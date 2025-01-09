@@ -98,7 +98,7 @@ export class NotificationsService {
     private async handleNotificationAdd(path: string) {
         // The path looks like /{notification base path}/{type}/{notification id}
         const type = path.includes('/unread/') ? NotificationType.UNREAD : NotificationType.ARCHIVE;
-        this.logger.debug(`Adding ${type} Notification: ${path}`);
+        // this.logger.debug(`Adding ${type} Notification: ${path}`);
 
         const notification = await this.loadNotificationFile(path, NotificationType[type]);
         this.increment(notification.importance, NotificationsService.overview[type.toLowerCase()]);
@@ -632,7 +632,7 @@ export class NotificationsService {
             type: 'ini',
         });
 
-        this.logger.verbose(`Loaded notification ini file from ${path}}`);
+        // this.logger.verbose(`Loaded notification ini file from ${path}}`);
 
         const notification: Notification = this.notificationFileToGqlNotification(
             { id: this.getIdFromPath(path), type },
@@ -722,7 +722,7 @@ export class NotificationsService {
             this.logger.warn(`[formatTimestamp] Could not parse date from timestamp: ${date}`);
             return timestamp;
         }
-        this.logger.debug(`[formatTimestamp] ${settings.date} :: ${settings.time} :: ${date}`);
+        // this.logger.debug(`[formatTimestamp] ${settings.date} :: ${settings.time} :: ${date}`);
         return formatDatetime(date, {
             dateFormat: settings.date,
             timeFormat: settings.time,

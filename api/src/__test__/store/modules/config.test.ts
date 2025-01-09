@@ -14,16 +14,12 @@ test('Before init returns default values for all fields', async () => {
 		    "minigraph": "PRE_INIT",
 		    "upnpStatus": "",
 		  },
-		  "local": {
-		    "2Fa": "",
-		    "showT2Fa": "",
-		  },
+		  "local": {},
 		  "nodeEnv": "test",
 		  "notifier": {
 		    "apikey": "",
 		  },
 		  "remote": {
-		    "2Fa": "",
 		    "accesstoken": "",
 		    "allowedOrigins": "",
 		    "apikey": "",
@@ -65,16 +61,12 @@ test('After init returns values from cfg file for all fields', async () => {
                 minigraph: 'PRE_INIT',
                 upnpStatus: '',
             },
-            local: {
-                '2Fa': '',
-                showT2Fa: '',
-            },
+            local: {},
             nodeEnv: 'test',
             notifier: {
                 apikey: 'unnotify_30994bfaccf839c65bae75f7fa12dd5ee16e69389f754c3b98ed7d5',
             },
             remote: {
-                '2Fa': '',
                 accesstoken: '',
                 allowedOrigins: '',
                 apikey: '_______________________BIG_API_KEY_HERE_________________________',
@@ -82,7 +74,7 @@ test('After init returns values from cfg file for all fields', async () => {
                 dynamicRemoteAccessType: 'DISABLED',
                 email: 'test@example.com',
                 idtoken: '',
-                localApiKey: '',
+                localApiKey: '_______________________LOCAL_API_KEY_HERE_________________________',
                 refreshtoken: '',
                 regWizTime: '1611175408732_0951-1653-3509-FBA155FA23C0',
                 upnpEnabled: 'no',
@@ -122,16 +114,12 @@ test('updateUserConfig merges in changes to current state', async () => {
                 minigraph: 'PRE_INIT',
                 upnpStatus: '',
             },
-            local: {
-                '2Fa': '',
-                showT2Fa: '',
-            },
+            local: {},
             nodeEnv: 'test',
             notifier: {
                 apikey: 'unnotify_30994bfaccf839c65bae75f7fa12dd5ee16e69389f754c3b98ed7d5',
             },
             remote: {
-                '2Fa': '',
                 accesstoken: '',
                 allowedOrigins: '',
                 apikey: '_______________________BIG_API_KEY_HERE_________________________',
@@ -139,7 +127,7 @@ test('updateUserConfig merges in changes to current state', async () => {
                 dynamicRemoteAccessType: 'DISABLED',
                 email: 'test@example.com',
                 idtoken: '',
-                localApiKey: '',
+                localApiKey: '_______________________LOCAL_API_KEY_HERE_________________________',
                 refreshtoken: '',
                 regWizTime: '1611175408732_0951-1653-3509-FBA155FA23C0',
                 upnpEnabled: 'no',

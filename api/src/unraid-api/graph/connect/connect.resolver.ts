@@ -8,7 +8,7 @@ import type {
     DynamicRemoteAccessStatus,
     EnableDynamicRemoteAccessInput,
 } from '@app/graphql/generated/api/types';
-import { ConnectResolvers, DynamicRemoteAccessType } from '@app/graphql/generated/api/types';
+import { ConnectResolvers, DynamicRemoteAccessType, Resource } from '@app/graphql/generated/api/types';
 import { RemoteAccessController } from '@app/remoteAccess/remote-access-controller';
 import { store } from '@app/store/index';
 import { setAllowedRemoteAccessUrl } from '@app/store/modules/dynamic-remote-access';
@@ -20,7 +20,7 @@ export class ConnectResolver implements ConnectResolvers {
     @Query('connect')
     @UsePermissions({
         action: AuthActionVerb.READ,
-        resource: 'connect/dynamic-remote-access',
+        resource: Resource.CONNECT,
         possession: AuthPossession.ANY,
     })
     public connect() {
@@ -46,7 +46,7 @@ export class ConnectResolver implements ConnectResolvers {
     @Mutation()
     @UsePermissions({
         action: AuthActionVerb.UPDATE,
-        resource: 'connect/dynamic-remote-access',
+        resource: Resource.CONNECT__REMOTE_ACCESS,
         possession: AuthPossession.ANY,
     })
     public async enableDynamicRemoteAccess(

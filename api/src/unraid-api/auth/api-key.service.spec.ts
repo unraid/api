@@ -2,16 +2,23 @@ import { Logger } from '@nestjs/common';
 import { readdir, readFile, writeFile } from 'fs/promises';
 import { join } from 'path';
 
+
+
 import { ensureDir } from 'fs-extra';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { ZodError } from 'zod';
+
+
 
 import type { ApiKey, ApiKeyWithSecret } from '@app/graphql/generated/api/types';
 import { ApiKeySchema, ApiKeyWithSecretSchema } from '@app/graphql/generated/api/operations';
 import { Role } from '@app/graphql/generated/api/types';
 import { getters } from '@app/store';
 
+
+
 import { ApiKeyService } from './api-key.service';
+
 
 vi.mock('fs/promises', async () => ({
     readdir: vi.fn(),
@@ -127,15 +134,14 @@ describe('ApiKeyService', () => {
         it('should create ApiKeyWithSecret with generated key', async () => {
             const saveSpy = vi.spyOn(apiKeyService, 'saveApiKey').mockResolvedValue();
             const { key, id, description, roles } = mockApiKeyWithSecret;
-            const inputName = 'Test API Key';
-            const expectedName = 'TEST_API_KEY';
+            const name = 'Test API Key';
 
-            const result = await apiKeyService.create(inputName, description ?? '', roles);
+            const result = await apiKeyService.create(name, description ?? '', roles);
 
             expect(result).toMatchObject({
                 id,
                 key,
-                name: expectedName,
+                name: name,
                 description,
                 roles,
                 createdAt: expect.any(String),
@@ -148,7 +154,7 @@ describe('ApiKeyService', () => {
             const saveSpy = vi.spyOn(apiKeyService, 'saveApiKey');
 
             await expect(apiKeyService.create('', 'desc', [Role.GUEST])).rejects.toThrow(
-                'API key name is required'
+                'API key name must contain only letters, numbers, and spaces (Unicode letters are supported)'
             );
 
             await expect(apiKeyService.create('name', 'desc', [])).rejects.toThrow(
@@ -300,13 +306,11 @@ describe('ApiKeyService', () => {
             expect(readFile).toHaveBeenCalledTimes(2);
         });
 
-        it('should throw authentication error when file read fails', async () => {
+        it('Should return null if an API key is invalid', async () => {
             vi.mocked(readdir).mockResolvedValue(['key1.json'] as any);
             vi.mocked(readFile).mockRejectedValue(new Error('Read error'));
 
-            await expect(apiKeyService.findByKey(mockApiKeyWithSecret.key)).rejects.toThrow(
-                'Authentication system error'
-            );
+            await expect(apiKeyService.findByKey(mockApiKeyWithSecret.key)).resolves.toBeNull();
         });
 
         it('should throw specific error for corrupted JSON', async () => {

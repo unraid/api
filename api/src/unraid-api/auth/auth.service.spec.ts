@@ -22,7 +22,7 @@ describe('AuthService', () => {
         id: '10f356da-1e9e-43b8-9028-a26a645539a6',
         name: 'Test API Key',
         description: 'Test API Key Description',
-        roles: [Role.GUEST, Role.UPC],
+        roles: [Role.GUEST, Role.CONNECT],
         createdAt: new Date().toISOString(),
     };
 
@@ -39,7 +39,7 @@ describe('AuthService', () => {
         id: '-1',
         description: 'Test User',
         name: 'test_user',
-        roles: [Role.GUEST, Role.UPC],
+        roles: [Role.GUEST, Role.CONNECT],
     };
 
     beforeEach(async () => {
@@ -134,13 +134,13 @@ describe('AuthService', () => {
 
             const mockApiKeyWithoutRole = {
                 ...mockApiKey,
-                roles: [Role.UPC],
+                roles: [Role.ADMIN],
             };
 
             vi.spyOn(apiKeyService, 'findById').mockResolvedValue(mockApiKeyWithoutRole);
             vi.spyOn(apiKeyService, 'findByIdWithSecret').mockResolvedValue({
                 ...mockApiKeyWithSecret,
-                roles: [Role.UPC],
+                roles: [Role.ADMIN],
             });
             vi.spyOn(apiKeyService, 'saveApiKey').mockResolvedValue();
             vi.spyOn(authzService, 'addRoleForUser').mockResolvedValue(true);
@@ -152,7 +152,7 @@ describe('AuthService', () => {
             expect(apiKeyService.findByIdWithSecret).toHaveBeenCalledWith(apiKeyId);
             expect(apiKeyService.saveApiKey).toHaveBeenCalledWith({
                 ...mockApiKeyWithSecret,
-                roles: [Role.UPC, role],
+                roles: [Role.ADMIN, role],
             });
             expect(authzService.addRoleForUser).toHaveBeenCalledWith(apiKeyId, role);
         });

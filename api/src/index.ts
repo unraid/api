@@ -21,7 +21,6 @@ import { PingTimeoutJobs } from '@app/mothership/jobs/ping-timeout-jobs';
 import { store } from '@app/store';
 import { loadDynamixConfigFile } from '@app/store/actions/load-dynamix-config-file';
 import { shutdownApiEvent } from '@app/store/actions/shutdown-api-event';
-import { validateApiKeyIfPresent } from '@app/store/listeners/api-key-listener';
 import { startMiddlewareListeners } from '@app/store/listeners/listener-middleware';
 import { loadConfigFile } from '@app/store/modules/config';
 import { loadStateFiles } from '@app/store/modules/emhttp';
@@ -32,6 +31,9 @@ import { setupRegistrationKeyWatch } from '@app/store/watch/registration-watch';
 import { StateManager } from '@app/store/watch/state-watch';
 import { setupVarRunWatch } from '@app/store/watch/var-run-watch';
 import { bootstrapNestServer } from '@app/unraid-api/main';
+import { createLocalApiKeyForConnectIfNecessary } from '@app/mothership/utils/create-local-connect-api-key';
+
+import { setupNewMothershipSubscription } from './mothership/subscribe-to-mothership';
 
 let server: NestFastifyApplication<RawServerDefault> | null = null;
 
@@ -72,6 +74,8 @@ try {
     // Load my dynamix config file into store
     await store.dispatch(loadDynamixConfigFile());
 
+    await setupNewMothershipSubscription();
+
     // Start listening to file updates
     StateManager.getInstance();
 
@@ -84,6 +88,8 @@ try {
     // Start listening to dynamix config file changes
     setupDynamixConfigWatch();
 
+    await createLocalApiKeyForConnectIfNecessary();
+
     // Disabled until we need the access token to work
     // TokenRefresh.init();
 
@@ -92,15 +98,12 @@ try {
 
     // Start webserver
     server = await bootstrapNestServer();
-    PingTimeoutJobs.init();
 
     startMiddlewareListeners();
 
-    await validateApiKeyIfPresent();
-
     // On process exit stop HTTP server
-    exitHook(() => {
-        console.log('exithook');
+    exitHook((signal) => {
+        console.log('exithook', signal);
         server?.close?.();
         // If port is unix socket, delete socket before exiting
         unlinkUnixPort();
@@ -113,7 +116,9 @@ try {
     await new Promise(() => {});
 } catch (error: unknown) {
     if (error instanceof Error) {
-        logger.error('API-ERROR %s %s', error.message, error.stack);
+        logger.error(error, 'API-ERROR');
+    } else {
+        logger.error(error, 'Encountered unexpected error');
     }
     if (server) {
         await server?.close?.();

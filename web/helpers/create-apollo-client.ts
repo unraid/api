@@ -20,7 +20,9 @@ const httpEndpoint = WEBGUI_GRAPHQL;
 const wsEndpoint = new URL(WEBGUI_GRAPHQL.toString().replace('http', 'ws'));
 
 // const headers = { 'x-api-key': serverStore.apiKey };
-const headers = {};
+const headers = {
+  'x-csrf-token': globalThis.csrf_token,
+};
 
 const httpLink = createHttpLink({
   uri: httpEndpoint.toString(),

@@ -7,7 +7,7 @@
 # By default, this is my-session
 
 sessions_dir=/var/lib/php
-default_session_name=my-session
+default_session_name=mock-user-session
 
 if [ "$1" = "--help" ]; then
   echo "This script creates a mock session on a server."
@@ -15,7 +15,7 @@ if [ "$1" = "--help" ]; then
   echo "Usage: $0 [options]"
   echo ""
   echo "Options:"
-  echo "  [name]    Name of the session to create (default: my-session)"
+  echo "  [name]    Name of the session to create (default: mock-user-session)"
   echo "  --help    Display this help message and exit"
   echo ""
   echo "Example: $0 a-session-name"

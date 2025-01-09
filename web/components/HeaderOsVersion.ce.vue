@@ -10,7 +10,7 @@ import { useI18n } from 'vue-i18n';
 import 'tailwindcss/tailwind.css';
 import '~/assets/main.css';
 
-import { WEBGUI_TOOLS_DOWNGRADE, WEBGUI_TOOLS_UPDATE } from '~/helpers/urls';
+import { getReleaseNotesUrl, WEBGUI_TOOLS_DOWNGRADE, WEBGUI_TOOLS_UPDATE } from '~/helpers/urls';
 import { useServerStore } from '~/store/server';
 import { useUpdateOsStore } from '~/store/updateOs';
 import { useUpdateOsActionsStore } from '~/store/updateOsActions';
@@ -70,10 +70,12 @@ const updateOsStatus = computed(() => {
 
 <template>
   <div class="flex flex-row justify-start gap-x-4px">
-    <button
+    <a
       class="group leading-none"
       :title="t('View release notes')"
-      @click="updateOsActionsStore.viewReleaseNotes(t('{0} Release Notes', [osVersion]))"
+      :href="getReleaseNotesUrl(osVersion).toString()"
+      target="_blank"
+      rel="noopener"
     >
       <UiBadge
         color="custom"
@@ -84,7 +86,7 @@ const updateOsStatus = computed(() => {
       >
         {{ osVersion }}
       </UiBadge>
-    </button>
+    </a>
     <component
       :is="updateOsStatus.href ? 'a' : 'button'"
       v-if="updateOsStatus"

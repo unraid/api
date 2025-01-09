@@ -1192,7 +1192,7 @@ export enum Resource {
   CLOUD = 'cloud',
   CONFIG = 'config',
   CONNECT = 'connect',
-  CRASH_REPORTING_ENABLED = 'crash_reporting_enabled',
+  CONNECT__REMOTE_ACCESS = 'connect__remote_access',
   CUSTOMIZATIONS = 'customizations',
   DASHBOARD = 'dashboard',
   DISK = 'disk',
@@ -1220,10 +1220,8 @@ export enum Resource {
 /** Available roles for API keys and users */
 export enum Role {
   ADMIN = 'admin',
-  GUEST = 'guest',
-  MY_SERVERS = 'my_servers',
-  NOTIFIER = 'notifier',
-  UPC = 'upc'
+  CONNECT = 'connect',
+  GUEST = 'guest'
 }
 
 export type Server = {

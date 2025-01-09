@@ -4,6 +4,7 @@ import { AuthZService } from 'nest-authz';
 
 import type { UserAccount } from '@app/graphql/generated/api/types';
 import { Role } from '@app/graphql/generated/api/types';
+import { getters } from '@app/store';
 import { handleAuthError } from '@app/utils';
 
 import { ApiKeyService } from './api-key.service';
@@ -205,6 +206,10 @@ export class AuthService {
         }
     }
 
+    public validateCsrfToken(token?: string): boolean {
+        return Boolean(token) && token === getters.emhttp().var.csrfToken;
+    }
+
     /**
      * Returns a user object representing a session.
      * Note: Does NOT perform validation.
@@ -215,9 +220,9 @@ export class AuthService {
         this.logger.debug('getSessionUser called!');
         return {
             id: '-1',
-            description: 'UPC service account',
-            name: 'upc',
-            roles: [Role.UPC],
+            description: 'Session receives administrator permissions',
+            name: 'admin',
+            roles: [Role.ADMIN],
         };
     }
 }
