@@ -158,6 +158,7 @@ onMounted(() => {
 <style lang="postcss">
 /* Import unraid-ui globals first */
 @import '@unraid/ui/styles';
+@import '../assets/main.css';
 
 code {
   @apply rounded-lg bg-gray-200 p-1 text-black shadow;
