@@ -179,7 +179,9 @@ jobs:
           path: ../unraid-ui
 
       - name: LS Unraid UI
-        run: ls ../unraid-ui
+        run: | 
+          ls /home/runner/work/api/unraid-ui
+          ls .
 
       - name: Installing node deps
         run: npm install
