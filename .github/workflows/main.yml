@@ -127,16 +127,16 @@ jobs:
 
       - name: Make Built Node Artifact
         run: |
-          mkdir unraid-ui
-          mv dist/ unraid-ui/dist/
-          mv package.json unraid-ui/package.json
-          ls unraid-ui
+          mkdir unraid-ui-dist
+          mv dist/ unraid-ui-dist/dist/
+          mv package.json unraid-ui-dist/package.json
+          ls unraid-ui-dist
 
       - name: Upload Artifact to Github
         uses: actions/upload-artifact@v4
         with:
           name: unraid-ui
-          path: unraid-ui/unraid-ui/
+          path: unraid-ui/unraid-ui-dist
 
   build-web:
     needs: [build-unraid-ui]
@@ -176,12 +176,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: unraid-ui
-          path: ../unraid-ui
-
-      - name: LS Unraid UI
-        run: | 
-          ls /home/runner/work/api/unraid-ui
-          ls .
+          path: unraid-ui
 
       - name: Installing node deps
         run: npm install
