@@ -21,7 +21,7 @@ const upgradeAction = computed((): ServerStateDataAction | undefined => {
   <span class="flex flex-row items-center gap-x-8px">
     <template v-if="upgradeAction">
       <UpcServerStateBuy
-        class="text-header-text-secondary"
+        class="text-white"
         :title="t('Upgrade Key')"
         @click="upgradeAction.click?.()"
       >

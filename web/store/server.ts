@@ -24,6 +24,7 @@ import {
   WEBGUI_TOOLS_UPDATE,
 } from "~/helpers/urls";
 import { useAccountStore } from "~/store/account";
+import { useActivationCodeStore } from '~/store/activationCode';
 import { useErrorsStore, type Error } from "~/store/errors";
 import { usePurchaseStore } from "~/store/purchase";
 import { useThemeStore, type Theme } from "~/store/theme";
@@ -258,7 +259,7 @@ export const useServerStore = defineStore("server", () => {
           keyTypeForPurchase = "Unleashed";
           break;
       }
-      const server = {
+      const server: ServerPurchaseCallbackSendPayload = {
         apiVersion: apiVersion.value,
         connectPluginVersion: connectPluginVersion.value,
         deviceCount: deviceCount.value,
@@ -276,8 +277,19 @@ export const useServerStore = defineStore("server", () => {
         state: state.value,
         site: site.value,
       };
+
+      const { code, partnerName } = storeToRefs(useActivationCodeStore());
+      if (code.value) {
+        server['activationCodeData'] = {
+          code: code.value,
+        };
+        if (partnerName.value) {
+          server['activationCodeData']['partnerName'] = partnerName.value;
+        }
+      }
       return server;
     }
+    
   );
 
   const serverAccountPayload = computed(
@@ -410,15 +422,16 @@ export const useServerStore = defineStore("server", () => {
     };
   });
   const redeemAction = computed((): ServerStateDataAction => {
+    const { code } = storeToRefs(useActivationCodeStore());
     return {
       click: () => {
-        purchaseStore.redeem();
+        code.value ? purchaseStore.activate() : purchaseStore.redeem();
       },
       disabled: serverActionsDisable.value.disable,
       external: true,
       icon: KeyIcon,
-      name: "redeem",
-      text: "Redeem Activation Code",
+      name: code.value ? "activate" : "redeem",
+      text: code.value ? "Activate Now" : "Redeem Activation Code",
       title: serverActionsDisable.value.title,
     };
   });
@@ -1194,6 +1207,11 @@ export const useServerStore = defineStore("server", () => {
     }
     if (typeof data?.regTo !== "undefined") {
       regTo.value = data.regTo;
+    }
+
+    if (typeof data.activationCodeData !== "undefined") {
+      const activationCodeStore = useActivationCodeStore();
+      activationCodeStore.setData(data.activationCodeData);
     }
   };
 
