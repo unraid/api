@@ -5,7 +5,7 @@ import BrandButton from '~/components/Brand/Button.vue';
 import type { SendPayloads } from '~/store/callback';
 import type { ButtonStyle } from '~/types/ui/button';
 import AES from 'crypto-js/aes';
-import { Badge } from 'unraid-ui';
+import { Badge } from '@unraid/ui';
 
 const { registerEntry } = useCustomElements();
 onBeforeMount(() => {
