@@ -34,7 +34,7 @@
 
 # Default flags
 DEBUG_MODE=false
-SELF_DELETE=false
+DRY_RUN=false
 REMOVE_SETUP_FLAG=false
 # Check for flags
 for arg in "$@"; do
@@ -42,8 +42,8 @@ for arg in "$@"; do
     --debug)
       DEBUG_MODE=true
       ;;
-    --delete)
-      SELF_DELETE=true
+    --dry-run)
+      DRY_RUN=true
       ;;
     --remove-setup-flag)
       REMOVE_SETUP_FLAG=true
@@ -125,7 +125,7 @@ if [[ -f "$ACTIVATION_SETUP_FLAG" ]]; then
     debug_echo "Setup flag removed"
   fi
 
-  if [[ $SELF_DELETE == true ]]; then
+  if [[ $DRY_RUN == false ]]; then
     debug_echo "Deleting activation code related setup and php files"
     FILES_TO_DELETE=(
       "/usr/local/emhttp/plugins/dynamix.my.servers/data/activation-data.php"
