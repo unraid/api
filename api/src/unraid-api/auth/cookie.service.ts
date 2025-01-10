@@ -83,6 +83,12 @@ export class CookieService {
      * @returns the full path to the session file on disk.
      */
     public getSessionFilePath(sessionId: string): string {
-        return join(this.opts.sessionDir, `sess_${sessionId}`);
+        if (typeof sessionId !== 'string') {
+            return join(this.opts.sessionDir, `sess_`);
+        }
+        // sanitize incoming session id to prevent e.g. directory traversal attacks
+        // only allow alpha-numeric characters
+        const sanitizedSessionId = sessionId.replace(/[^a-zA-Z0-9]/g, '');
+        return join(this.opts.sessionDir, `sess_${sanitizedSessionId}`);
     }
 }

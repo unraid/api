@@ -46,15 +46,17 @@ describe.concurrent('CookieService', () => {
     it('handles session names robustly', ({ expect }) => {
         const session = (name?: unknown) => service.getSessionFilePath(name as string);
         expect(session('foo')).toEqual('/tmp/php/sessions/sess_foo');
+        expect(session('foo123')).toEqual('/tmp/php/sessions/sess_foo123');
+        expect(session('/foo123*&/^\n\r\'"!;:/../~`+=@#$%(?) \t/~/.profile')).toEqual('/tmp/php/sessions/sess_foo123profile');
         expect(session('')).toEqual('/tmp/php/sessions/sess_');
-        expect(session(null)).toEqual('/tmp/php/sessions/sess_null');
-        expect(session(undefined)).toEqual('/tmp/php/sessions/sess_undefined');
-        expect(session(1)).toEqual('/tmp/php/sessions/sess_1');
-        expect(session(1.0)).toEqual('/tmp/php/sessions/sess_1');
-        expect(session(1.1)).toEqual('/tmp/php/sessions/sess_1.1');
-        expect(session({})).toEqual('/tmp/php/sessions/sess_[object Object]');
-        expect(session(['foo', 'bar'])).toEqual('/tmp/php/sessions/sess_foo,bar');
-        expect(session('foo/bar')).toEqual('/tmp/php/sessions/sess_foo/bar');
+        expect(session(null)).toEqual('/tmp/php/sessions/sess_');
+        expect(session(undefined)).toEqual('/tmp/php/sessions/sess_');
+        expect(session(1)).toEqual('/tmp/php/sessions/sess_');
+        expect(session(1.0)).toEqual('/tmp/php/sessions/sess_');
+        expect(session(1.1)).toEqual('/tmp/php/sessions/sess_');
+        expect(session({})).toEqual('/tmp/php/sessions/sess_');
+        expect(session(['foo', 'bar'])).toEqual('/tmp/php/sessions/sess_');
+        expect(session('foo/bar')).toEqual('/tmp/php/sessions/sess_foobar');
     });
 
     it('can read an existing session & reject a non-existent one', async ({ expect }) => {
