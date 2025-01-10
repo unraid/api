@@ -1,4 +1,5 @@
-import { Inject, Injectable } from '@nestjs/common';
+import { Inject, Injectable, Logger } from '@nestjs/common';
+import { readFile } from 'fs/promises';
 import { join } from 'path';
 
 import { fileExists } from '@app/core/utils/files/file-exists';
@@ -18,6 +19,7 @@ type SessionCookieConfig = {
 
 @Injectable()
 export class CookieService {
+    private readonly logger = new Logger(CookieService.name);
     constructor(
         @Inject(SESSION_COOKIE_CONFIG) readonly opts: SessionCookieConfig = CookieService.defaultOpts()
     ) {}
@@ -60,10 +62,17 @@ export class CookieService {
      */
     private async isValidAuthCookie(cookieName: string, cookieValue: string): Promise<boolean> {
         const { namePrefix } = this.opts;
-        if (!cookieName.startsWith(namePrefix)) {
+        const sessionFile = this.getSessionFilePath(cookieValue);
+        if (!cookieName.startsWith(namePrefix) || !(await fileExists(sessionFile))) {
             return false;
         }
-        return fileExists(this.getSessionFilePath(cookieValue));
+        try {
+            const sessionData = await readFile(sessionFile, 'ascii');
+            return sessionData.includes('unraid_login') && sessionData.includes('unraid_user');
+        } catch (e) {
+            this.logger.error(e, 'Error reading session file');
+            return false;
+        }
     }
 
     /**
