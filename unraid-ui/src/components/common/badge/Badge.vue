@@ -5,11 +5,12 @@ import { badgeVariants } from "./badge.variants";
 
 export interface BadgeProps {
   variant?: "red" | "yellow" | "green" | "blue" | "indigo" | "purple" | 
-    "pink" | "orange" | "black" | "white" | "transparent" | "current" | "gray";
+    "pink" | "orange" | "black" | "white" | "transparent" | "current" | "gray" | "custom";
   size?: "xs" | "sm" | "md" | "lg" | "xl" | "2xl";
   icon?: Component;
   iconRight?: Component;
   iconStyles?: string;
+  class?: string;
 }
 
 const props = withDefaults(defineProps<BadgeProps>(), {
@@ -18,6 +19,7 @@ const props = withDefaults(defineProps<BadgeProps>(), {
   icon: undefined,
   iconRight: undefined,
   iconStyles: "",
+  class: "",
 });
 
 const badgeClasses = computed(() => {
@@ -38,7 +40,7 @@ const badgeClasses = computed(() => {
 </script>
 
 <template>
-  <span :class="badgeClasses.badge">
+  <span :class="[badgeClasses.badge, props.class]">
     <component
       :is="icon"
       v-if="icon"

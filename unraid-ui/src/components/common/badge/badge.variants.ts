@@ -18,6 +18,7 @@ export const badgeVariants = cva(
         transparent: "bg-transparent text-black hover:bg-gray-100",
         current: "bg-current text-current hover:bg-gray-100",
         gray: "bg-gray-200 text-gray-800 hover:bg-gray-300",
+        custom: "",
       },
       size: {
         xs: "text-12px px-8px py-4px gap-4px",

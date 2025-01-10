@@ -15,6 +15,7 @@ export const Badge: Story = {
     variant: "gray",
     size: "md",
     default: "Badge",
+    class: ""
   },
   render: (args) => ({
     components: { BadgeComponent },
@@ -22,7 +23,11 @@ export const Badge: Story = {
       return { args };
     },
     template: `
-      <BadgeComponent :variant="args.variant" :size="args.size">
+      <BadgeComponent 
+        :variant="args.variant" 
+        :size="args.size"
+        :class="args.class"
+      >
         {{ args.default }}
       </BadgeComponent>
     `,
