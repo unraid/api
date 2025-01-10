@@ -5,16 +5,18 @@ import vue from "@vitejs/plugin-vue";
 import dts from "vite-plugin-dts";
 import tailwindcss from 'tailwindcss'
 
-export default defineConfig({
+export default function createConfig() { 
+  return defineConfig({
   plugins: [
     vue(),
+    ...(process.env.npm_lifecycle_script?.includes('storybook') ? [] : [
     dts({
       insertTypesEntry: true,
       include: ["src/**/*.ts", "src/**/*.vue", "tailwind.config.ts"],
       outDir: "dist",
       rollupTypes: true,
-      copyDtsFiles: true
-    }),
+      copyDtsFiles: true,
+    }),])
   ],
   css: {
     postcss: {
@@ -72,3 +74,5 @@ export default defineConfig({
     include: ["src/**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}"],
   },
 });
+
+}
