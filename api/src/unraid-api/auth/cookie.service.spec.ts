@@ -1,7 +1,11 @@
-import { Test, type TestingModule } from '@nestjs/testing';
+import type { TestingModule } from '@nestjs/testing';
+import { Test } from '@nestjs/testing';
+import { writeFile } from 'node:fs/promises';
+
+import { emptyDir } from 'fs-extra';
+import { afterAll, beforeAll, describe, it } from 'vitest';
+
 import { CookieService, SESSION_COOKIE_CONFIG } from './cookie.service';
-import { describe, it, beforeAll, afterAll } from 'vitest';
-import { emptyDir, ensureFile } from 'fs-extra';
 
 describe.concurrent('CookieService', () => {
     let service: CookieService;
@@ -10,7 +14,11 @@ describe.concurrent('CookieService', () => {
     // helper to create a session file
     function makeSession(sessionId: string, cookieService: CookieService = service) {
         const path = cookieService.getSessionFilePath(sessionId);
-        return ensureFile(path);
+        return writeFile(
+            path,
+            `unraid_login|i:1736523078;unraid_user|s:4:"root";locale|s:0:"";buildDate|s:8:"20241202";`,
+            'ascii'
+        );
     }
 
     beforeAll(async () => {
