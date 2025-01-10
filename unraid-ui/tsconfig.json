@@ -12,7 +12,8 @@
       "@/components": ["./src/components"],
       "@/composables": ["./src/composables"],
       "@/lib": ["./src/lib"],
-      "@/types": ["./src/types"]
+      "@/types": ["./src/types"],
+      "@/theme": ["./src/theme"]
     },
     "forceConsistentCasingInFileNames": true
   },
@@ -22,7 +23,8 @@
     "src/**/*.d.ts",
     "src/**/*.tsx",
     "src/**/*.vue",
-    "./tailwind.config.ts"
+    "./tailwind.config.ts",
+    "src/theme/**/*.ts"
   ],
   "exclude": ["node_modules", "**/*.copy.vue", "**/*copy.vue"],
   "references": [{ "path": "./tsconfig.test.json" }]

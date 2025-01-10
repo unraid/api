@@ -82,6 +82,10 @@
       "types": "./dist/tailwind.config.d.ts",
       "import": "./dist/tailwind.config.js",
       "default": "./dist/tailwind.config.js"
+    },
+    "./theme/preset": {
+      "types": "./dist/theme/preset.d.ts",
+      "import": "./dist/theme/preset.js"
     }
   }
 }

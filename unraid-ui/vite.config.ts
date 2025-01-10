@@ -33,6 +33,7 @@ export default function createConfig() {
         input: {
           index: resolve(__dirname, 'src/index.ts'),
           tailwind: resolve(__dirname, 'tailwind.config.ts'),
+          preset: resolve(__dirname, 'src/theme/preset.ts'),
         },
         preserveEntrySignatures: 'allow-extension',
         output: {
@@ -70,6 +71,7 @@ export default function createConfig() {
         '@/lib': resolve(__dirname, './src/lib'),
         '@/styles': resolve(__dirname, './src/styles'),
         '@/types': resolve(__dirname, './src/types'),
+        '@/theme': resolve(__dirname, './src/theme'),
       },
     },
     test: {
