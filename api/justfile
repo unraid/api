@@ -7,3 +7,15 @@ default:
 setup:
     npm install
     npm run container:build
+
+# builds js files that can run on an unraid server
+@build:
+    npm run build
+
+# deploys to an unraid server
+@deploy:
+    ./scripts/deploy-dev.sh
+
+# build & deploy
+bd: build deploy
+

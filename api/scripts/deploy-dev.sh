@@ -23,11 +23,15 @@ fi
 echo "$server_name" > "$state_file"
 
 # Source directory path
-source_directory="./src"
+source_directory="./dist"
 
 if [ ! -d "$source_directory" ]; then
-  echo "The src directory does not exist."
-  exit 1
+  echo "The dist directory does not exist. Attempting build..."
+  npm run build
+  if [ $? -ne 0 ]; then
+    echo "Build failed!"
+    exit 1
+  fi
 fi
 
 # Replace the value inside the rsync command with the user's input
@@ -57,3 +61,4 @@ fi
 
 # Exit with the rsync command's exit code
 exit $exit_code
+
