@@ -48,7 +48,9 @@ export async function bootstrapNestServer(): Promise<NestFastifyApplication> {
         const result = await server.listen({ port: parseInt(PORT), host: '0.0.0.0' });
         console.log('Server listening on %s', result);
     }
-
+    if (process.send) {
+        process.send('ready');
+    }
     apiLogger.info('Nest Server is now listening');
 
     return app;
