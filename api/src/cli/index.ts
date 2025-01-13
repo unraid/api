@@ -1,22 +1,25 @@
-import { parse } from 'ts-command-line-args';
-import { cliLogger } from '@app/core/log';
-import { type Flags, mainOptions, options, args } from '@app/cli/options';
-import { setEnv } from '@app/cli/set-env';
-import { getters } from '@app/store';
 import { execSync } from 'child_process';
+
+import type { Flags } from '@app/cli/options';
+import { args, mainOptions, options } from '@app/cli/options';
+import { setEnv } from '@app/cli/set-env';
 import { PM2_PATH } from '@app/consts';
-import * as ENVIRONMENT from '@app/environment';
 
 const command = mainOptions.command as unknown as string;
 
 export const main = async (...argv: string[]) => {
-    // Set envs
-    cliLogger.debug({ paths: getters.paths(), environment: ENVIRONMENT }, 'Starting CLI');
+    if (mainOptions.debug) {
+        const { cliLogger } = await import('@app/core/log');
+        const { getters } = await import('@app/store');
+        const ENVIRONMENT = await import('@app/environment');
+        cliLogger.debug({ paths: getters.paths(), environment: ENVIRONMENT }, 'Starting CLI');
+    }
 
     setEnv('PORT', process.env.PORT ?? mainOptions.port ?? '9000');
 
     if (!command) {
         // Run help command
+        const { parse } = await import('ts-command-line-args');
         parse<Flags>(args, {
             ...options,
             partial: true,
