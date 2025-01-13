@@ -1,9 +1,9 @@
-import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import crypto from 'crypto';
 import { readdir, readFile, writeFile } from 'fs/promises';
 import { join } from 'path';
 
-import { ensureDir } from 'fs-extra';
+import { ensureDirSync } from 'fs-extra';
 import { GraphQLError } from 'graphql';
 import { v4 as uuidv4 } from 'uuid';
 import { ZodError } from 'zod';
@@ -13,7 +13,7 @@ import { ApiKey, ApiKeyWithSecret, Role, UserAccount } from '@app/graphql/genera
 import { getters } from '@app/store';
 
 @Injectable()
-export class ApiKeyService implements OnModuleInit {
+export class ApiKeyService {
     private readonly logger = new Logger(ApiKeyService.name);
     protected readonly basePath: string;
     protected readonly keyFile: (id: string) => string;
@@ -23,24 +23,7 @@ export class ApiKeyService implements OnModuleInit {
     constructor() {
         this.basePath = getters.paths()['auth-keys'];
         this.keyFile = (id: string) => join(this.basePath, `${id}.json`);
-    }
-
-    public async initialize(): Promise<void> {
-        this.logger.verbose(`Ensuring API key directory exists: ${this.basePath}`);
-
-        try {
-            await ensureDir(this.basePath);
-        } catch (error) {
-            this.logger.error(`Failed to create API key directory: ${error}`);
-            throw new GraphQLError('Failed to initialize API key storage');
-        }
-        this.logger.verbose(`Using API key base path: ${this.basePath}`);
-
-        // @todo setup file watch to reload keys
-    }
-
-    async onModuleInit() {
-        await this.initialize();
+        ensureDirSync(this.basePath);
     }
 
     private sanitizeName(name: string): string {
@@ -267,7 +250,6 @@ export class ApiKeyService implements OnModuleInit {
     }
 
     public async createLocalConnectApiKey(): Promise<ApiKeyWithSecret> {
-        await ensureDir(this.basePath);
         return await this.create('Connect', 'API key for Connect user', [Role.CONNECT], true);
     }
 
