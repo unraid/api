@@ -1,4 +1,4 @@
-import { type ApolloClient as ApolloClientType, type NormalizedCacheObject } from '@apollo/client';
+import type { ApolloClient as ApolloClientType, NormalizedCacheObject } from '@apollo/client';
 import { ArrowPathIcon } from '@heroicons/vue/24/solid';
 import { WebguiUnraidApiCommand } from '~/composables/services/webgui';
 import { client } from '~/helpers/create-apollo-client';
@@ -20,7 +20,7 @@ export const useUnraidApiStore = defineStore('unraidApi', () => {
   const unraidApiClient = ref<ApolloClientType<NormalizedCacheObject> | null>(client);
 
   // const unraidApiErrors = ref<any[]>([]);
-  const unraidApiStatus = ref<'connecting' | 'offline' | 'online' | 'restarting'>('offline');
+  const unraidApiStatus = ref<'connecting' | 'offline' | 'online' | 'restarting'>('connecting');
   const prioritizeCorsError = ref(false); // Ensures we don't overwrite this specific error message with a non-descriptive network error message
 
   const offlineError = computed(() => {
