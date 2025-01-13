@@ -48,6 +48,10 @@ export async function bootstrapNestServer(): Promise<NestFastifyApplication> {
         const result = await server.listen({ port: parseInt(PORT), host: '0.0.0.0' });
         console.log('Server listening on %s', result);
     }
+
+    // This 'ready' signal tells pm2 that the api has started.
+    // PM2 documents this as Graceful Start or Clean Restart.
+    // See https://pm2.keymetrics.io/docs/usage/signals-clean-restart/
     if (process.send) {
         process.send('ready');
     }
