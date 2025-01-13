@@ -267,6 +267,7 @@ export class ApiKeyService implements OnModuleInit {
     }
 
     public async createLocalConnectApiKey(): Promise<ApiKeyWithSecret> {
+        await ensureDir(this.basePath);
         return await this.create('Connect', 'API key for Connect user', [Role.CONNECT], true);
     }
 
