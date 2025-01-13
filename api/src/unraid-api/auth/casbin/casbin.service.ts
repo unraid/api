@@ -18,7 +18,7 @@ export class CasbinService {
 
         try {
             const enforcer = await newEnforcer(casbinModel, casbinPolicy);
-            enforcer.enableLog(true);
+            // enforcer.enableLog(true);
 
             return enforcer;
         } catch (error: unknown) {
