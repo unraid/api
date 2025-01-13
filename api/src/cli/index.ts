@@ -1,7 +1,5 @@
 import { execSync } from 'child_process';
 
-import { parse } from 'ts-command-line-args';
-
 import type { Flags } from '@app/cli/options';
 import { args, mainOptions, options } from '@app/cli/options';
 import { setEnv } from '@app/cli/set-env';
@@ -21,6 +19,7 @@ export const main = async (...argv: string[]) => {
 
     if (!command) {
         // Run help command
+        const { parse } = await import('ts-command-line-args');
         parse<Flags>(args, {
             ...options,
             partial: true,
