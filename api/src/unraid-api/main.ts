@@ -54,6 +54,8 @@ export async function bootstrapNestServer(): Promise<NestFastifyApplication> {
     // See https://pm2.keymetrics.io/docs/usage/signals-clean-restart/
     if (process.send) {
         process.send('ready');
+    } else {
+        console.log('Warning: process.send is unavailable. This will affect IPC communication with PM2.');
     }
     apiLogger.info('Nest Server is now listening');
 
