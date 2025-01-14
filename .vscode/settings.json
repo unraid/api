@@ -10,6 +10,6 @@
       "locales"
     ],
     "i18n-ally.keystyle": "flat",
-    "eslint.experimental.useFlatConfig": true,
+    "eslint.experimental.useFlatConfig": true
   }
   
