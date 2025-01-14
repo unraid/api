@@ -70,6 +70,9 @@
     "vue": "^3.3.0",
     "vue-tsc": "^1.8.0"
   },
+  "optionalDependencies": {
+    "@rollup/rollup-linux-x64-gnu": "latest"
+  },
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
