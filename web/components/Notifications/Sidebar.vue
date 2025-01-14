@@ -88,7 +88,7 @@ const prepareToViewNotifications = () => {
           Unread <span v-if="overview">({{ overview.unread.total }})</span>
         </TabsTrigger>
         <TabsTrigger value="archived">
-          Archived <span v-if="overview">({{ overview.archive.total }})</span>
+          Archived <span v-if="overview">({{ overview.archive.total - overview.unread.total }})</span>
         </TabsTrigger>
         </TabsList>
         <TabsContent value="unread" class="flex-col items-end">
