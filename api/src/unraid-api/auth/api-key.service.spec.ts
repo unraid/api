@@ -4,7 +4,7 @@ import { join } from 'path';
 
 
 
-import { ensureDir } from 'fs-extra';
+import { ensureDir, ensureDirSync } from 'fs-extra';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { ZodError } from 'zod';
 
@@ -32,6 +32,7 @@ vi.mock('@app/graphql/generated/api/operations', () => ({
 }));
 vi.mock('fs-extra', () => ({
     ensureDir: vi.fn(),
+    ensureDirSync: vi.fn(),
 }));
 
 describe('ApiKeyService', () => {
