@@ -1,3 +1,10 @@
+import type { ApolloDriverConfig } from '@nestjs/apollo';
+import { ApolloDriver } from '@nestjs/apollo';
+import { Module } from '@nestjs/common';
+import { GraphQLModule } from '@nestjs/graphql';
+
+import { ApolloServerPluginLandingPageLocalDefault } from '@apollo/server/plugin/landingPage/default';
+import { NoUnusedVariablesRule, print } from 'graphql';
 import {
     DateTimeResolver,
     JSONResolver,
@@ -5,21 +12,40 @@ import {
     URLResolver,
     UUIDResolver,
 } from 'graphql-scalars';
-import { GraphQLLong } from '@app/graphql/resolvers/graphql-type-long';
-import { ApolloServerPluginLandingPageLocalDefault } from '@apollo/server/plugin/landingPage/default';
-import { ApolloDriver, type ApolloDriverConfig } from '@nestjs/apollo';
-import { Module } from '@nestjs/common';
-import { GraphQLModule } from '@nestjs/graphql';
-import { ResolversModule } from './resolvers/resolvers.module';
+
 import { GRAPHQL_INTROSPECTION } from '@app/environment';
+import { GraphQLLong } from '@app/graphql/resolvers/graphql-type-long';
 import { typeDefs } from '@app/graphql/schema/index';
-import { NoUnusedVariablesRule, print } from 'graphql';
-import { NetworkResolver } from './network/network.resolver';
-import { ServicesResolver } from './services/services.resolver';
-import { SharesResolver } from './shares/shares.resolver';
+import { getters } from '@app/store';
+import { idPrefixPlugin } from '@app/unraid-api/graph/id-prefix-plugin';
+
 import { ConnectResolver } from './connect/connect.resolver';
 import { ConnectService } from './connect/connect.service';
-import { idPrefixPlugin } from '@app/unraid-api/graph/id-prefix-plugin';
+import { NetworkResolver } from './network/network.resolver';
+import { ResolversModule } from './resolvers/resolvers.module';
+import { ServicesResolver } from './services/services.resolver';
+import { SharesResolver } from './shares/shares.resolver';
+
+/** The initial query displayed in the Apollo sandbox */
+const initialDocument = `query ExampleQuery {
+  notifications {
+    id
+    overview {
+      unread {
+        info
+        warning
+        alert
+        total
+      }
+      archive {
+        info
+        warning
+        alert
+        total
+      }
+    }
+  }
+}`;
 
 @Module({
     imports: [
@@ -34,7 +60,21 @@ import { idPrefixPlugin } from '@app/unraid-api/graph/id-prefix-plugin';
             }),
             playground: false,
             plugins: GRAPHQL_INTROSPECTION
-                ? [ApolloServerPluginLandingPageLocalDefault(), idPrefixPlugin]
+                ? [
+                      ApolloServerPluginLandingPageLocalDefault({
+                          footer: false,
+                          includeCookies: true,
+                          document: initialDocument,
+                          embed: {
+                              initialState: {
+                                  sharedHeaders: {
+                                      'x-csrf-token': getters.emhttp().var.csrfToken ?? 'no csrf token',
+                                  },
+                              },
+                          },
+                      }),
+                      idPrefixPlugin,
+                  ]
                 : [idPrefixPlugin],
             subscriptions: {
                 'graphql-ws': {
@@ -55,12 +95,6 @@ import { idPrefixPlugin } from '@app/unraid-api/graph/id-prefix-plugin';
             // schema: schema
         }),
     ],
-    providers: [
-        NetworkResolver,
-        ServicesResolver,
-        SharesResolver,
-        ConnectResolver,
-        ConnectService,
-    ],
+    providers: [NetworkResolver, ServicesResolver, SharesResolver, ConnectResolver, ConnectService],
 })
 export class GraphModule {}
