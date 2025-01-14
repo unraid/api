@@ -2,13 +2,14 @@
     "apps": [
         {
             "name": "unraid-api",
-            "script": "npm",
-            "args": "start",
+            "script": "./dist/main.js",
             "cwd": "/usr/local/unraid-api",
             "log": "/var/log/unraid-api/unraid-api.log",
             "exec_mode": "fork",
             "wait_ready": true,
             "listen_timeout": 30000,
+            "max_restarts": 10,
+            "min_uptime": 10000,
             "ignore_watch": [
                 "node_modules",
                 "src",

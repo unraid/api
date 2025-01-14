@@ -91,7 +91,6 @@ describe('ApiKeyService', () => {
         vi.mocked(ensureDir).mockResolvedValue();
 
         apiKeyService = new ApiKeyService();
-        await apiKeyService.initialize();
 
         vi.spyOn(apiKeyService as any, 'generateApiKey').mockReturnValue('test-api-key');
         vi.mock('uuid', () => ({
@@ -113,12 +112,8 @@ describe('ApiKeyService', () => {
 
     describe('initialization', () => {
         it('should ensure directory exists', async () => {
-            vi.mocked(ensureDir).mockResolvedValue();
             const service = new ApiKeyService();
-
-            await service.initialize();
-
-            expect(ensureDir).toHaveBeenCalledWith(mockBasePath);
+            expect(ensureDirSync).toHaveBeenCalledWith(mockBasePath);
         });
 
         it('should return correct paths', async () => {
