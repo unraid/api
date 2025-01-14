@@ -1,9 +1,8 @@
 <script lang="ts" setup>
 import { ExclamationTriangleIcon } from '@heroicons/vue/24/solid';
+import { BrandButton, BrandLogo } from '@unraid/ui';
 import { serverState } from '~/_data/serverState';
-import BrandButton from '~/components/Brand/Button.vue';
 import type { SendPayloads } from '~/store/callback';
-import type { ButtonStyle } from '~/types/ui/button';
 import AES from 'crypto-js/aes';
 
 const { registerEntry } = useCustomElements();
@@ -36,6 +35,18 @@ const createCallbackUrl = (payload: SendPayloads, sendType: string) => {
 
   callbackDestination.value = destinationUrl.toString(); // differs from callbackActions.send
 };
+const variants = [
+  'fill',
+  'black',
+  'gray',
+  'outline',
+  'outline-black',
+  'outline-white',
+  'underline',
+  'underline-hover-red',
+  'white',
+  'none',
+] as const;
 
 onMounted(() => {
   createCallbackUrl(
@@ -79,16 +90,14 @@ onMounted(() => {
           <ConnectSettingsCe />
           <hr class="border-black dark:border-white" />
 
-          <!-- <h3 class="text-lg font-semibold font-mono">
-            DownloadApiLogsCe
-          </h3>
+          <h3 class="text-lg font-semibold font-mono">DownloadApiLogsCe</h3>
           <DownloadApiLogsCe />
-          <hr class="border-black dark:border-white"> -->
-          <!-- <h3 class="text-lg font-semibold font-mono">
-            AuthCe
-          </h3>
+          <hr class="border-black dark:border-white" />
+
+          <h3 class="text-lg font-semibold font-mono">AuthCe</h3>
           <AuthCe />
-          <hr class="border-black dark:border-white"> -->
+          <hr class="border-black dark:border-white" />
+
           <!-- <h3 class="text-lg font-semibold font-mono">
             WanIpCheckCe
           </h3>
@@ -129,27 +138,14 @@ onMounted(() => {
           </div>
           <div class="bg-background">
             <hr class="border-black dark:border-white" />
-            <h2 class="text-xl font-semibold font-mono">Legacy Button Components</h2>
-            <template
-              v-for="color in [
-                'black',
-                'fill',
-                'gray',
-                'outline',
-                'outline-black',
-                'outline-white',
-                'underline',
-                'underline-hover-red',
-                'white',
-              ]"
-              :key="color"
-            >
+            <h2 class="text-xl font-semibold font-mono">Brand Button Component</h2>
+            <template v-for="variant in variants" :key="variant">
               <BrandButton
+                :variant="variant"
                 type="button"
                 size="14px"
                 :icon="ExclamationTriangleIcon"
-                :btn-style="color as ButtonStyle"
-                >{{ color }}</BrandButton
+                >{{ variant }}</BrandButton
               >
             </template>
           </div>
@@ -160,6 +156,9 @@ onMounted(() => {
 </template>
 
 <style lang="postcss">
+/* Import unraid-ui globals first */
+@import '@unraid/ui/styles';
+
 code {
   @apply rounded-lg bg-gray-200 p-1 text-black shadow;
 }

@@ -1,11 +1,8 @@
 <script lang="ts" setup>
-// eslint-disable vue/no-v-html
+import { BrandButton } from '@unraid/ui';
+import { useServerStore } from '~/store/server';
 import { storeToRefs } from 'pinia';
 import { useI18n } from 'vue-i18n';
-
-import { useServerStore } from '~/store/server';
-import 'tailwindcss/tailwind.css';
-import '~/assets/main.css';
 
 const { t } = useI18n();
 
@@ -33,7 +30,7 @@ const { authAction, stateData } = storeToRefs(serverStore);
 </template>
 
 <style lang="postcss">
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+/* Import unraid-ui globals first */
+@import '@unraid/ui/styles';
+@import '../assets/main.css';
 </style>

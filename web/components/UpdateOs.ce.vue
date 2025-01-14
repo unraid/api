@@ -15,14 +15,12 @@ else
   echo "Third party plugins found - PLEASE CHECK YOUR UNRAID NOTIFICATIONS AND WAIT FOR THE MESSAGE THAT IT IS SAFE TO REBOOT!"
 fi
  */
+import { BrandLoading, PageContainer } from '@unraid/ui';
 import { WEBGUI_TOOLS_UPDATE } from '~/helpers/urls';
 import { useAccountStore } from '~/store/account';
 import { useServerStore } from '~/store/server';
 import { storeToRefs } from 'pinia';
 import { useI18n } from 'vue-i18n';
-
-// import 'tailwindcss/tailwind.css';
-// import '~/assets/main.css';
 
 const { t } = useI18n();
 
@@ -58,7 +56,7 @@ onBeforeMount(() => {
 </script>
 
 <template>
-  <UiPageContainer>
+  <PageContainer>
     <BrandLoading v-if="showLoader" class="mx-auto my-12 max-w-160px" />
     <UpdateOsStatus
       v-else
@@ -68,12 +66,13 @@ onBeforeMount(() => {
       :t="t"
     />
     <UpdateOsThirdPartyDrivers v-if="rebootType === 'thirdPartyDriversDownloading'" :t="t" />
-  </UiPageContainer>
+  </PageContainer>
 </template>
 
 <style lang="postcss">
 /* Import unraid-ui globals first */
 @import '@unraid/ui/styles';
+@import '../assets/main.css';
 
 .unraid_mark_2,
 .unraid_mark_4 {

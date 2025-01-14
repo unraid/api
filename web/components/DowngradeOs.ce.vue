@@ -15,14 +15,11 @@ else
   echo "Third party plugins found - PLEASE CHECK YOUR UNRAID NOTIFICATIONS AND WAIT FOR THE MESSAGE THAT IT IS SAFE TO REBOOT!"
 fi
  */
+import { PageContainer } from '@unraid/ui';
+import { useServerStore } from '~/store/server';
 import { storeToRefs } from 'pinia';
 import { onBeforeMount } from 'vue';
 import { useI18n } from 'vue-i18n';
-
-import { useServerStore } from '~/store/server';
-
-import 'tailwindcss/tailwind.css';
-import '~/assets/main.css';
 
 const { t } = useI18n();
 
@@ -56,7 +53,7 @@ onBeforeMount(() => {
 </script>
 
 <template>
-  <UiPageContainer>
+  <PageContainer>
     <UpdateOsStatus
       :title="t('Downgrade Unraid OS')"
       :subtitle="subtitle"
@@ -70,15 +67,12 @@ onBeforeMount(() => {
       :version="restoreVersion"
       :t="t"
     />
-    <UpdateOsThirdPartyDrivers
-      v-if="rebootType === 'thirdPartyDriversDownloading'"
-      :t="t"
-    />
-  </UiPageContainer>
+    <UpdateOsThirdPartyDrivers v-if="rebootType === 'thirdPartyDriversDownloading'" :t="t" />
+  </PageContainer>
 </template>
 
 <style lang="postcss">
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+/* Import unraid-ui globals first */
+@import '@unraid/ui/styles';
+@import '../assets/main.css';
 </style>

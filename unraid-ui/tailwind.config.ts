@@ -5,9 +5,8 @@ export default {
   presets: [unraidPreset],
   content: [
     "./src/components/**/*.{js,vue,ts}",
-    "./src/components/**/*.ce.{js,vue,ts}",
     "./src/composables/**/*.{js,vue,ts}",
-    "./stories/**/*.stories.{js,ts,jsx,tsx,mdx}"
+    "./stories/**/*.stories.{js,ts,jsx,tsx,mdx}",
   ],
   safelist: [
     "dark",

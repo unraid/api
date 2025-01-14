@@ -8,7 +8,7 @@ import {
   InformationCircleIcon,
   XCircleIcon,
 } from '@heroicons/vue/24/solid';
-import { Badge } from '@unraid/ui';
+import { Badge, BrandButton } from '@unraid/ui';
 import BrandLoadingWhite from '~/components/Brand/LoadingWhite.vue';
 import useDateTimeHelper from '~/composables/dateTime';
 import { WEBGUI_TOOLS_REGISTRATION } from '~/helpers/urls';
@@ -181,7 +181,7 @@ const checkButton = computed((): ButtonProps => {
       <div class="inline-flex flex-col flex-shrink-0 gap-16px flex-grow items-center md:items-end">
         <span v-if="showRebootButton">
           <BrandButton
-            btn-style="fill"
+            variant="fill"
             :icon="ArrowPathIcon"
             :text="
               rebootType === 'downgrade'
@@ -194,7 +194,7 @@ const checkButton = computed((): ButtonProps => {
 
         <span>
           <BrandButton
-            :btn-style="checkButton.btnStyle"
+            :variant="checkButton.btnStyle"
             :icon="checkButton.icon"
             :text="checkButton.text"
             @click="checkButton.click"
@@ -203,7 +203,7 @@ const checkButton = computed((): ButtonProps => {
 
         <span v-if="rebootType !== ''">
           <BrandButton
-            btn-style="outline"
+            variant="outline"
             :icon="XCircleIcon"
             :text="t('Cancel {0}', [rebootType === 'downgrade' ? t('Downgrade') : t('Update')])"
             @click="updateOsStore.cancelUpdate()"

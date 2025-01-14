@@ -6,24 +6,15 @@ import remToRem from './utils/tailwind-rem-to-rem';
 export default {
   presets: [tailwindConfig],
   content: [
-    './components/**/*.{js,vue,ts}',
+    // Web components
     './components/**/*.ce.{js,vue,ts}',
+    // Regular Vue components
+    './components/**/*.{js,vue,ts}',
     './layouts/**/*.vue',
     './pages/**/*.vue',
-    '../unraid-ui/src/components/**/*.{js,vue,ts}',
-    '../unraid-ui/src/components/**/*.ce.{js,vue,ts}',
   ],
   mode: 'jit',
-  safelist: [
-    {
-      pattern: /^text-(header-text-secondary|orange-dark)$/, // need to be specific or build gets slow
-      variants: ['group-hover', 'group-focus'],
-    },
-    {
-      pattern: /^(underline|no-underline)$/,
-      variants: ['group-hover', 'group-focus'],
-    },
-  ],
+  safelist: [],
   plugins: [
     remToRem({
       baseFontSize: 16,
