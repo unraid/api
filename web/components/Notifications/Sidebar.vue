@@ -42,6 +42,7 @@ const overview = computed(() => {
   return result.value.notifications.overview;
 });
 
+/** This recalculates the archived count due to notifications going to archived + unread when they are in an Unread state. */
 const readArchivedCount = computed(() => {
   if (!overview.value) return 0;
   const { archive, unread } = overview.value;
