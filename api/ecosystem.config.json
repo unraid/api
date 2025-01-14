@@ -2,8 +2,7 @@
     "apps": [
         {
             "name": "unraid-api",
-            "script": "npm",
-            "args": "start",
+            "script": "./dist/main.js",
             "cwd": "/usr/local/unraid-api",
             "log": "/var/log/unraid-api/unraid-api.log",
             "exec_mode": "fork",
