@@ -35,6 +35,7 @@ const createCallbackUrl = (payload: SendPayloads, sendType: string) => {
 
   callbackDestination.value = destinationUrl.toString(); // differs from callbackActions.send
 };
+
 const variants = [
   'fill',
   'black',
@@ -90,14 +91,16 @@ onMounted(() => {
           <ConnectSettingsCe />
           <hr class="border-black dark:border-white" />
 
-          <h3 class="text-lg font-semibold font-mono">DownloadApiLogsCe</h3>
+          <!-- <h3 class="text-lg font-semibold font-mono">
+            DownloadApiLogsCe
+          </h3>
           <DownloadApiLogsCe />
-          <hr class="border-black dark:border-white" />
-
-          <h3 class="text-lg font-semibold font-mono">AuthCe</h3>
+          <hr class="border-black dark:border-white"> -->
+          <!-- <h3 class="text-lg font-semibold font-mono">
+            AuthCe
+          </h3>
           <AuthCe />
-          <hr class="border-black dark:border-white" />
-
+          <hr class="border-black dark:border-white"> -->
           <!-- <h3 class="text-lg font-semibold font-mono">
             WanIpCheckCe
           </h3>
