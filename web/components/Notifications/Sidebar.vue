@@ -23,7 +23,9 @@ const confirmAndArchiveAll = async () => {
 
 const confirmAndDeleteArchives = async () => {
   if (
-    confirm('This will permanently delete all archived notifications currently on your Unraid server. Continue?')
+    confirm(
+      'This will permanently delete all archived notifications currently on your Unraid server. Continue?'
+    )
   ) {
     await deleteArchives();
   }
@@ -38,6 +40,12 @@ const overview = computed(() => {
     return;
   }
   return result.value.notifications.overview;
+});
+
+const readArchivedCount = computed(() => {
+  if (!overview.value) return 0;
+  const { archive, unread } = overview.value;
+  return Math.max(0, archive.total - unread.total);
 });
 
 /** whether user has viewed their notifications */
@@ -70,80 +78,81 @@ const prepareToViewNotifications = () => {
       :to="teleportTarget"
       class="w-full max-w-[100vw] sm:max-w-[540px] max-h-screen h-screen min-h-screen px-0 flex flex-col gap-5 pb-0"
     >
-    <div class="relative flex flex-col h-full w-full">
-      <SheetHeader class="ml-1 px-6 items-baseline gap-1 pb-2">
-        <SheetTitle class="text-2xl">Notifications</SheetTitle>
-        <a href="/Settings/Notifications">
-        <Button variant="link" size="sm" class="p-0 h-auto">Edit Settings</Button>
-        </a>
-      </SheetHeader>
-      <Tabs 
-        default-value="unread" 
-        class="flex flex-1 flex-col min-h-0"
-        aria-label="Notification filters"
-      >
-      <div class="flex flex-row justify-between items-center flex-wrap gap-5 px-6">
-        <TabsList class="flex" aria-label="Filter notifications by status">
-        <TabsTrigger value="unread">
-          Unread <span v-if="overview">({{ overview.unread.total }})</span>
-        </TabsTrigger>
-        <TabsTrigger value="archived">
-          Archived <span v-if="overview">({{ overview.archive.total - overview.unread.total }})</span>
-        </TabsTrigger>
-        </TabsList>
-        <TabsContent value="unread" class="flex-col items-end">
-        <Button
-          :disabled="loadingArchiveAll"
-          variant="link"
-          size="sm"
-          class="text-foreground hover:text-destructive transition-none"
-          @click="confirmAndArchiveAll"
+      <div class="relative flex flex-col h-full w-full">
+        <SheetHeader class="ml-1 px-6 items-baseline gap-1 pb-2">
+          <SheetTitle class="text-2xl">Notifications</SheetTitle>
+          <a href="/Settings/Notifications">
+            <Button variant="link" size="sm" class="p-0 h-auto">Edit Settings</Button>
+          </a>
+        </SheetHeader>
+        <Tabs
+          default-value="unread"
+          class="flex flex-1 flex-col min-h-0"
+          aria-label="Notification filters"
         >
-          Archive All
-        </Button>
-        </TabsContent>
-        <TabsContent value="archived" class="flex-col items-end">
-        <Button
-          :disabled="loadingDeleteAll"
-          variant="link"
-          size="sm"
-          class="text-foreground hover:text-destructive transition-none"
-          @click="confirmAndDeleteArchives"
-        >
-          Delete All
-        </Button>
-        </TabsContent>
+          <div class="flex flex-row justify-between items-center flex-wrap gap-5 px-6">
+            <TabsList class="flex" aria-label="Filter notifications by status">
+              <TabsTrigger value="unread">
+                Unread <span v-if="overview">({{ overview.unread.total }})</span>
+              </TabsTrigger>
+              <TabsTrigger value="archived">
+                Archived
+                <span v-if="overview">({{ readArchivedCount }})</span>
+              </TabsTrigger>
+            </TabsList>
+            <TabsContent value="unread" class="flex-col items-end">
+              <Button
+                :disabled="loadingArchiveAll"
+                variant="link"
+                size="sm"
+                class="text-foreground hover:text-destructive transition-none"
+                @click="confirmAndArchiveAll"
+              >
+                Archive All
+              </Button>
+            </TabsContent>
+            <TabsContent value="archived" class="flex-col items-end">
+              <Button
+                :disabled="loadingDeleteAll"
+                variant="link"
+                size="sm"
+                class="text-foreground hover:text-destructive transition-none"
+                @click="confirmAndDeleteArchives"
+              >
+                Delete All
+              </Button>
+            </TabsContent>
 
-        <Select
-        @update:model-value="
-          (val) => {
-          importance = val === 'all' ? undefined : (val as Importance);
-          }
-        "
-        >
-        <SelectTrigger class="h-auto">
-          <SelectValue class="text-gray-400 leading-6" placeholder="Filter By" />
-        </SelectTrigger>
-        <SelectContent :to="teleportTarget">
-          <SelectGroup>
-          <SelectLabel>Notification Types</SelectLabel>
-          <SelectItem value="all">All Types</SelectItem>
-          <SelectItem :value="Importance.Alert"> Alert </SelectItem>
-          <SelectItem :value="Importance.Info">Info</SelectItem>
-          <SelectItem :value="Importance.Warning">Warning</SelectItem>
-          </SelectGroup>
-        </SelectContent>
-        </Select>
-      </div>
+            <Select
+              @update:model-value="
+                (val) => {
+                  importance = val === 'all' ? undefined : (val as Importance);
+                }
+              "
+            >
+              <SelectTrigger class="h-auto">
+                <SelectValue class="text-gray-400 leading-6" placeholder="Filter By" />
+              </SelectTrigger>
+              <SelectContent :to="teleportTarget">
+                <SelectGroup>
+                  <SelectLabel>Notification Types</SelectLabel>
+                  <SelectItem value="all">All Types</SelectItem>
+                  <SelectItem :value="Importance.Alert"> Alert </SelectItem>
+                  <SelectItem :value="Importance.Info">Info</SelectItem>
+                  <SelectItem :value="Importance.Warning">Warning</SelectItem>
+                </SelectGroup>
+              </SelectContent>
+            </Select>
+          </div>
 
-      <TabsContent value="unread" class="flex-col flex-1 min-h-0">
-        <NotificationsList :importance="importance" :type="NotificationType.Unread" />
-      </TabsContent>
+          <TabsContent value="unread" class="flex-col flex-1 min-h-0">
+            <NotificationsList :importance="importance" :type="NotificationType.Unread" />
+          </TabsContent>
 
-      <TabsContent value="archived" class="flex-col flex-1 min-h-0">
-        <NotificationsList :importance="importance" :type="NotificationType.Archive" />
-      </TabsContent>
-      </Tabs>
+          <TabsContent value="archived" class="flex-col flex-1 min-h-0">
+            <NotificationsList :importance="importance" :type="NotificationType.Archive" />
+          </TabsContent>
+        </Tabs>
       </div>
     </SheetContent>
   </Sheet>
