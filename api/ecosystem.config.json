@@ -9,6 +9,7 @@
             "exec_mode": "fork",
             "wait_ready": true,
             "listen_timeout": 30000,
+            "max_restarts": 10,
             "ignore_watch": [
                 "node_modules",
                 "src",
