@@ -5,6 +5,7 @@ import { useI18n } from 'vue-i18n';
 import 'tailwindcss/tailwind.css';
 import '~/assets/main.css';
 
+import ActivationSteps from '~/components/Activation/Steps.vue';
 import { useActivationCodeStore } from '~/store/activationCode';
 import { useServerStore } from '~/store/server';
 import type { Server } from '~/types/server';
@@ -97,6 +98,10 @@ onBeforeMount(() => {
             @click="dropdownHide"
           />
         </div>
+      </template>
+
+      <template #subFooter>
+        <ActivationSteps :active-step="1" class="hidden sm:flex mt-6" />
       </template>
     </Modal>
   </div>

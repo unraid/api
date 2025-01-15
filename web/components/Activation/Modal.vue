@@ -117,5 +117,9 @@ onUnmounted(() => {
         />
       </div>
     </template>
+
+    <template #subFooter>
+      <ActivationSteps :active-step="2" class="hidden sm:flex mt-6" />
+    </template>
   </Modal>
 </template>
