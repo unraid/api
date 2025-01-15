@@ -58,12 +58,12 @@ const closeModal = () => {
 const ariaLablledById = computed<string|undefined>(() => props.title ? `ModalTitle-${Math.random()}`.replace('0.', '') : undefined);
 const computedVerticalCenter = computed<string>(() => {
   if (props.tallContent) {
-    return 'items-start sm:items-center';
+    return 'justify-start sm:justify-center';
   }
   if (typeof props.modalVerticalCenter === 'string') {
     return props.modalVerticalCenter;
   }
-  return props.modalVerticalCenter ? 'items-center' : 'items-start';
+  return props.modalVerticalCenter ? 'justify-center' : 'justify-start';
 });
 </script>
 
@@ -78,7 +78,7 @@ const computedVerticalCenter = computed<string>(() => {
       @keyup.esc="closeModal"
     >
       <div
-        class="fixed inset-0 flex min-h-screen w-screen justify-center p-8px sm:p-16px overflow-y-auto"
+        class="fixed inset-0 flex flex-col min-h-screen w-screen items-center p-8px sm:p-16px overflow-y-auto"
         :class="computedVerticalCenter"
       >
         <TransitionChild
@@ -115,7 +115,7 @@ const computedVerticalCenter = computed<string>(() => {
               success ? 'shadow-green-600/30 border-green-600/10' : '',
               !error && !success && !disableShadow ? 'shadow-orange/10 border-white/10' : '',
             ]"
-            class="text-16px text-foreground bg-background text-left relative z-10 flex flex-col justify-around border-2 border-solid transform overflow-hidden rounded-lg transition-all sm:w-full"
+            class="text-16px text-foreground bg-background text-left relative z-10 mx-auto flex flex-col justify-around border-2 border-solid transform overflow-hidden rounded-lg transition-all sm:w-full"
           >
             <div v-if="showCloseX" class="absolute z-20 right-0 top-0 pt-4px pr-4px hidden sm:block">
               <button
@@ -172,6 +172,21 @@ const computedVerticalCenter = computed<string>(() => {
                 <slot name="footer" />
               </div>
             </footer>
+          </div>
+        </TransitionChild>
+
+        <TransitionChild
+          appear
+          as="template"
+          enter="duration-300 ease-out"
+          enter-from="opacity-0"
+          enter-to="opacity-100"
+          leave="duration-200 ease-in"
+          leave-from="opacity-100"
+          leave-to="opacity-0"
+        >
+          <div v-if="$slots['subFooter']" class="mt-4 flex justify-center mx-auto" :class="[maxWidth]">
+            <slot name="subFooter" />
           </div>
         </TransitionChild>
       </div>
