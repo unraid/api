@@ -1,14 +1,15 @@
 {
-  "files.associations": {
-    "*.page": "php"
-  },
-  "editor.codeActionsOnSave": {
-    "source.fixAll": "never",
-    "source.fixAll.eslint": "explicit"
-  },
-  "i18n-ally.localesPaths": [
-    "locales"
-  ],
-  "i18n-ally.keystyle": "flat",
-  "eslint.experimental.useFlatConfig": true,
-}
+    "files.associations": {
+      "*.page": "php"
+    },
+    "editor.codeActionsOnSave": {
+      "source.fixAll": "never",
+      "source.fixAll.eslint": "explicit"
+    },
+    "i18n-ally.localesPaths": [
+      "locales"
+    ],
+    "i18n-ally.keystyle": "flat",
+    "eslint.experimental.useFlatConfig": true
+  }
+  

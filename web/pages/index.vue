@@ -1,24 +1,18 @@
 <script lang="ts" setup>
-import {
-  ExclamationTriangleIcon,
-} from '@heroicons/vue/24/solid';
+import { ExclamationTriangleIcon } from '@heroicons/vue/24/solid';
+import { BrandButton, BrandLogo } from '@unraid/ui';
 import { serverState } from '~/_data/serverState';
 import type { SendPayloads } from '~/store/callback';
-import type { UiBadgePropsColor } from '~/types/ui/badge';
-import type { ButtonStyle } from '~/types/ui/button';
 import AES from 'crypto-js/aes';
-import BrandButton from '~/components/Brand/Button.vue';
+
 const { registerEntry } = useCustomElements();
 onBeforeMount(() => {
   registerEntry('UnraidComponents');
 });
 
 useHead({
-  meta: [
-    { name: 'viewport',
-    content: 'width=1300', }
-]
-})
+  meta: [{ name: 'viewport', content: 'width=1300' }],
+});
 
 const valueToMakeCallback = ref<SendPayloads | undefined>();
 const callbackDestination = ref<string>('');
@@ -42,6 +36,19 @@ const createCallbackUrl = (payload: SendPayloads, sendType: string) => {
   callbackDestination.value = destinationUrl.toString(); // differs from callbackActions.send
 };
 
+const variants = [
+  'fill',
+  'black',
+  'gray',
+  'outline',
+  'outline-black',
+  'outline-white',
+  'underline',
+  'underline-hover-red',
+  'white',
+  'none',
+] as const;
+
 onMounted(() => {
   createCallbackUrl(
     [
@@ -59,35 +66,6 @@ onMounted(() => {
     'forUpc'
   );
 });
-
-const badgeColors = [
-  'black',
-  'white',
-  'red',
-  'yellow',
-  'green',
-  'blue',
-  'indigo',
-  'purple',
-  'pink',
-  'orange',
-  'transparent',
-  'current',
-  'gray',
-  'custom',
-] as UiBadgePropsColor[];
-
-const buttonColors = [
-  'black',
-  'fill',
-  'gray',
-  'outline',
-  'outline-black',
-  'outline-white',
-  'underline',
-  'underline-hover-red',
-  'white',
-] as ButtonStyle[];
 </script>
 
 <template>
@@ -162,17 +140,16 @@ const buttonColors = [
             </code>
           </div>
           <div class="bg-background">
-          <hr class="border-black dark:border-white" />
-          <h2 class="text-xl font-semibold font-mono">Legacy Badge Components</h2>
-            <template v-for="color in badgeColors" :key="color">
-              <UiBadge size="14px" :icon="ExclamationTriangleIcon" :color="color">{{ color }}</UiBadge>
-            </template>
-          </div>
-           <div class="bg-background">
-          <hr class="border-black dark:border-white" />
-          <h2 class="text-xl font-semibold font-mono">Legacy Button Components</h2>
-            <template v-for="color in buttonColors" :key="color">
-              <BrandButton type="button" size="14px" :icon="ExclamationTriangleIcon" :btn-style="color as ButtonStyle">{{ color }}</BrandButton>
+            <hr class="border-black dark:border-white" />
+            <h2 class="text-xl font-semibold font-mono">Brand Button Component</h2>
+            <template v-for="variant in variants" :key="variant">
+              <BrandButton
+                :variant="variant"
+                type="button"
+                size="14px"
+                :icon="ExclamationTriangleIcon"
+                >{{ variant }}</BrandButton
+              >
             </template>
           </div>
         </div>
@@ -182,6 +159,10 @@ const buttonColors = [
 </template>
 
 <style lang="postcss">
+/* Import unraid-ui globals first */
+@import '@unraid/ui/styles';
+@import '../assets/main.css';
+
 code {
   @apply rounded-lg bg-gray-200 p-1 text-black shadow;
 }

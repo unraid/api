@@ -1,9 +1,23 @@
+// Styles
+import "./styles/index.css";
+
+// Config
+import tailwindConfig from "../tailwind.config";
+
 // Lib
 import { cn, scaleRemFactor } from "@/lib/utils";
 
 // Components
 import { Badge } from "@/components/common/badge";
-import { Button, ButtonVariants } from "@/components/common/button";
+import { 
+  BrandButton, 
+  brandButtonVariants, 
+  BrandLoading, 
+  BrandLoadingWhite, 
+  BrandLogo, 
+  BrandLogoConnect 
+} from "@/components/brand";
+import { Button, buttonVariants } from "@/components/common/button";
 import { CardWrapper, PageContainer } from "@/components/layout";
 import {
   DropdownMenu,
@@ -24,6 +38,7 @@ import {
 import { Bar, Error, Spinner } from "@/components/common/loading";
 import { Input } from "@/components/form/input";
 import { Label } from "@/components/form/label";
+import { Lightswitch } from "@/components/form/lightswitch";
 import {
   Select,
   SelectContent,
@@ -37,17 +52,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/form/select";
-import {
-  Switch,
-  SwitchHeadlessUI,
-  Lightswitch,
-} from "@/components/form/switch";
-import {
-  Tabs,
-  TabsList,
-  TabsTrigger,
-  TabsContent,
-} from "@/components/common/tabs";
+import { Switch, SwitchHeadlessUI } from "@/components/form/switch";
 import { ScrollArea, ScrollBar } from "@/components/common/scroll-area";
 import {
   Sheet,
@@ -59,6 +64,12 @@ import {
   SheetTitle,
   SheetDescription,
 } from "@/components/common/sheet";
+import {
+  Tabs,
+  TabsList,
+  TabsTrigger,
+  TabsContent,
+} from "@/components/common/tabs";
 import {
   Tooltip,
   TooltipContent,
@@ -73,8 +84,14 @@ import useTeleport from "@/composables/useTeleport";
 export {
   Bar,
   Badge,
+  BrandButton,
+  brandButtonVariants,
+  BrandLoading,
+  BrandLoadingWhite,
+  BrandLogo,
+  BrandLogoConnect,
   Button,
-  ButtonVariants,
+  buttonVariants,
   CardWrapper,
   cn,
   DropdownMenu,
@@ -120,6 +137,7 @@ export {
   Spinner,
   Switch,
   SwitchHeadlessUI,
+  tailwindConfig,
   Lightswitch,
   Tabs,
   TabsList,

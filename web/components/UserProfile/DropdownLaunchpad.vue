@@ -1,21 +1,18 @@
 <script lang="ts" setup>
+import { BrandButton, BrandLoadingWhite } from '@unraid/ui';
+import { useServerStore } from '~/store/server';
+import { useUnraidApiStore } from '~/store/unraidApi';
 import { storeToRefs } from 'pinia';
 import type { ComposerTranslation } from 'vue-i18n';
 
-import { useServerStore } from '~/store/server';
-import { useUnraidApiStore } from '~/store/unraidApi';
-
-import 'tailwindcss/tailwind.css';
-import '~/assets/main.css';
-
-import BrandLoadingWhite from '~/components/Brand/LoadingWhite.vue';
-
-defineProps<{ t: ComposerTranslation; }>();
+defineProps<{ t: ComposerTranslation }>();
 
 const { expireTime, connectPluginInstalled, state, stateData } = storeToRefs(useServerStore());
 const { unraidApiStatus, unraidApiRestartAction } = storeToRefs(useUnraidApiStore());
 
-const showExpireTime = computed(() => (state.value === 'TRIAL' || state.value === 'EEXPIRED') && expireTime.value > 0);
+const showExpireTime = computed(
+  () => (state.value === 'TRIAL' || state.value === 'EEXPIRED') && expireTime.value > 0
+);
 </script>
 
 <template>
@@ -26,21 +23,24 @@ const showExpireTime = computed(() => (state.value === 'TRIAL' || state.value ==
         class="text-center prose text-16px leading-relaxed whitespace-normal opacity-75 gap-y-8px"
         v-html="t(stateData.message)"
       />
-      <UpcUptimeExpire
-        v-if="showExpireTime"
-        class="text-center opacity-75 mt-12px"
-        :t="t"
-      />
+      <UpcUptimeExpire v-if="showExpireTime" class="text-center opacity-75 mt-12px" :t="t" />
     </header>
     <template v-if="stateData.actions">
-      <ul v-if="connectPluginInstalled && unraidApiStatus !== 'online'" class="list-reset flex flex-col gap-y-8px px-16px">
+      <ul
+        v-if="connectPluginInstalled && unraidApiStatus !== 'online'"
+        class="list-reset flex flex-col gap-y-8px px-16px"
+      >
         <li>
           <BrandButton
             class="w-full"
             :disabled="unraidApiStatus === 'connecting' || unraidApiStatus === 'restarting'"
             :icon="unraidApiStatus === 'restarting' ? BrandLoadingWhite : unraidApiRestartAction?.icon"
-            :text="unraidApiStatus === 'restarting' ? t('Restarting unraid-api…') : t('Restart unraid-api')"
-            :title="unraidApiStatus === 'restarting' ? t('Restarting unraid-api…') : t('Restart unraid-api')"
+            :text="
+              unraidApiStatus === 'restarting' ? t('Restarting unraid-api…') : t('Restart unraid-api')
+            "
+            :title="
+              unraidApiStatus === 'restarting' ? t('Restarting unraid-api…') : t('Restart unraid-api')
+            "
             @click="unraidApiRestartAction?.click?.()"
           />
         </li>
@@ -51,9 +51,9 @@ const showExpireTime = computed(() => (state.value === 'TRIAL' || state.value ==
 </template>
 
 <style lang="postcss">
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+/* Import unraid-ui globals first */
+@import '@unraid/ui/styles';
+@import '../../assets/main.css';
 
 .DropdownWrapper_blip {
   box-shadow: var(--ring-offset-shadow), var(--ring-shadow), var(--shadow-foreground);

@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import { computed } from "vue";
-import { ButtonVariants } from "./button.variants";
+import { buttonVariants } from "./button.variants";
 import { cn } from "@/lib/utils";
 
-interface Props {
+export interface ButtonProps {
   variant?:
     | "primary"
     | "destructive"
@@ -15,14 +15,14 @@ interface Props {
   class?: string;
 }
 
-const props = withDefaults(defineProps<Props>(), {
+const props = withDefaults(defineProps<ButtonProps>(), {
   variant: "primary",
   size: "md",
 });
 
 const buttonClass = computed(() => {
   return cn(
-    ButtonVariants({ variant: props.variant, size: props.size }),
+    buttonVariants({ variant: props.variant, size: props.size }),
     props.class
   );
 });
