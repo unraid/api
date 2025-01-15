@@ -1,7 +1,6 @@
 <script lang="ts" setup>
 // @todo ensure key installs and updateOs can be handled at the same time
 // @todo with multiple actions of key install and update after successful key install, rather than showing default success message, show a message to have them confirm the update
-import { useClipboard } from '@vueuse/core';
 import {
   CheckIcon,
   ChevronDoubleDownIcon,
@@ -10,10 +9,7 @@ import {
   WrenchScrewdriverIcon,
   XMarkIcon,
 } from '@heroicons/vue/24/solid';
-import { storeToRefs } from 'pinia';
-import type { ComposerTranslation } from 'vue-i18n';
-import 'tailwindcss/tailwind.css';
-import '~/assets/main.css';
+import { useClipboard } from '@vueuse/core';
 import { WEBGUI_CONNECT_SETTINGS, WEBGUI_TOOLS_REGISTRATION } from '~/helpers/urls';
 import { useAccountStore } from '~/store/account';
 import { useCallbackActionsStore } from '~/store/callbackActions';
@@ -21,6 +17,8 @@ import { useInstallKeyStore } from '~/store/installKey';
 // import { usePromoStore } from '~/store/promo';
 import { useServerStore } from '~/store/server';
 import { useUpdateOsActionsStore } from '~/store/updateOsActions';
+import { storeToRefs } from 'pinia';
+import type { ComposerTranslation } from 'vue-i18n';
 
 export interface Props {
   open?: boolean;
@@ -38,21 +36,10 @@ const installKeyStore = useInstallKeyStore();
 const serverStore = useServerStore();
 const updateOsActionStore = useUpdateOsActionsStore();
 
-const {
-  accountAction,
-  accountActionHide,
-  accountActionStatus,
-  accountActionType,
-} = storeToRefs(accountStore);
-const {
-  callbackStatus,
-} = storeToRefs(callbackActionsStore);
-const {
-  keyActionType,
-  keyUrl,
-  keyInstallStatus,
-  keyType,
-} = storeToRefs(installKeyStore);
+const { accountAction, accountActionHide, accountActionStatus, accountActionType } =
+  storeToRefs(accountStore);
+const { callbackStatus } = storeToRefs(callbackActionsStore);
+const { keyActionType, keyUrl, keyInstallStatus, keyType } = storeToRefs(installKeyStore);
 const {
   connectPluginInstalled,
   refreshServerStateStatus,
@@ -80,7 +67,9 @@ const isSettingsPage = ref<boolean>(document.location.pathname === '/Settings/Ma
 
 const heading = computed(() => {
   if (updateOsStatus.value === 'confirming') {
-    return callbackTypeDowngrade.value ? props.t('Downgrade Unraid OS confirmation required') : props.t('Update Unraid OS confirmation required');
+    return callbackTypeDowngrade.value
+      ? props.t('Downgrade Unraid OS confirmation required')
+      : props.t('Update Unraid OS confirmation required');
   }
   switch (callbackStatus.value) {
     case 'error':
@@ -94,19 +83,37 @@ const heading = computed(() => {
 });
 const subheading = computed(() => {
   if (updateOsStatus.value === 'confirming') {
-    return callbackTypeDowngrade.value ? props.t('Please confirm the downgrade details below') : props.t('Please confirm the update details below');
+    return callbackTypeDowngrade.value
+      ? props.t('Please confirm the downgrade details below')
+      : props.t('Please confirm the update details below');
   }
   if (callbackStatus.value === 'error') {
     return props.t('Something went wrong'); /** @todo show actual error messages */
   }
-  if (callbackStatus.value === 'loading') { return props.t('Please keep this window open while we perform some actions'); }
+  if (callbackStatus.value === 'loading') {
+    return props.t('Please keep this window open while we perform some actions');
+  }
   if (callbackStatus.value === 'success') {
-    if (accountActionType.value === 'signIn') { return props.t('You\'re one step closer to enhancing your Unraid experience'); }
-    if (keyActionType.value === 'purchase') { return props.t('Thank you for purchasing an Unraid {0} Key!', [keyType.value]); }
-    if (keyActionType.value === 'replace') { return props.t('Your {0} Key has been replaced!', [keyType.value]); }
-    if (keyActionType.value === 'trialExtend') { return props.t('Your Trial key has been extended!'); }
-    if (keyActionType.value === 'trialStart') { return props.t('Your free Trial key provides all the functionality of an Unleashed Registration key'); }
-    if (keyActionType.value === 'upgrade') { return props.t('Thank you for upgrading to an Unraid {0} Key!', [keyType.value]); }
+    if (accountActionType.value === 'signIn') {
+      return props.t("You're one step closer to enhancing your Unraid experience");
+    }
+    if (keyActionType.value === 'purchase') {
+      return props.t('Thank you for purchasing an Unraid {0} Key!', [keyType.value]);
+    }
+    if (keyActionType.value === 'replace') {
+      return props.t('Your {0} Key has been replaced!', [keyType.value]);
+    }
+    if (keyActionType.value === 'trialExtend') {
+      return props.t('Your Trial key has been extended!');
+    }
+    if (keyActionType.value === 'trialStart') {
+      return props.t(
+        'Your free Trial key provides all the functionality of an Unleashed Registration key'
+      );
+    }
+    if (keyActionType.value === 'upgrade') {
+      return props.t('Thank you for upgrading to an Unraid {0} Key!', [keyType.value]);
+    }
     return '';
   }
   return '';
@@ -137,30 +144,50 @@ const cancelUpdateOs = () => {
 //   close();
 // };
 
-const keyInstallStatusCopy = computed((): { text: string; } => {
+const keyInstallStatusCopy = computed((): { text: string } => {
   let txt1 = props.t('Installing');
   let txt2 = props.t('Installed');
   let txt3 = props.t('Install');
   switch (keyInstallStatus.value) {
     case 'installing':
-      if (keyActionType.value === 'trialExtend') { txt1 = props.t('Installing Extended Trial'); }
-      if (keyActionType.value === 'recover') { txt1 = props.t('Installing Recovered'); }
-      if (keyActionType.value === 'renew') { txt1 = props.t('Installing Extended'); }
-      if (keyActionType.value === 'replace') { txt1 = props.t('Installing Replaced'); }
+      if (keyActionType.value === 'trialExtend') {
+        txt1 = props.t('Installing Extended Trial');
+      }
+      if (keyActionType.value === 'recover') {
+        txt1 = props.t('Installing Recovered');
+      }
+      if (keyActionType.value === 'renew') {
+        txt1 = props.t('Installing Extended');
+      }
+      if (keyActionType.value === 'replace') {
+        txt1 = props.t('Installing Replaced');
+      }
       return {
         text: props.t('{0} {1} Key…', [txt1, keyType.value]),
       };
     case 'success':
-      if (keyActionType.value === 'renew' || keyActionType.value === 'trialExtend') { txt2 = props.t('Extension Installed'); }
-      if (keyActionType.value === 'recover') { txt2 = props.t('Recovered'); }
-      if (keyActionType.value === 'replace') { txt2 = props.t('Replaced'); }
+      if (keyActionType.value === 'renew' || keyActionType.value === 'trialExtend') {
+        txt2 = props.t('Extension Installed');
+      }
+      if (keyActionType.value === 'recover') {
+        txt2 = props.t('Recovered');
+      }
+      if (keyActionType.value === 'replace') {
+        txt2 = props.t('Replaced');
+      }
       return {
         text: props.t('{1} Key {0} Successfully', [txt2, keyType.value]),
       };
     case 'failed':
-      if (keyActionType.value === 'trialExtend') { txt3 = props.t('Install Extended'); }
-      if (keyActionType.value === 'recover') { txt3 = props.t('Install Recovered'); }
-      if (keyActionType.value === 'replace') { txt3 = props.t('Install Replaced'); }
+      if (keyActionType.value === 'trialExtend') {
+        txt3 = props.t('Install Extended');
+      }
+      if (keyActionType.value === 'recover') {
+        txt3 = props.t('Install Recovered');
+      }
+      if (keyActionType.value === 'replace') {
+        txt3 = props.t('Install Replaced');
+      }
       return {
         text: props.t('Failed to {0} {1} Key', [txt3, keyType.value]),
       };
@@ -172,31 +199,32 @@ const keyInstallStatusCopy = computed((): { text: string; } => {
   }
 });
 
-const accountActionStatusCopy = computed((): { text: string; } => {
+const accountActionStatusCopy = computed((): { text: string } => {
   switch (accountActionStatus.value) {
     case 'waiting':
       return {
-        text: accountAction.value?.type === 'signIn'
-          ? props.t('Signing In')
-          : props.t('Signing Out'),
+        text: accountAction.value?.type === 'signIn' ? props.t('Signing In') : props.t('Signing Out'),
       };
     case 'updating':
       return {
-        text: accountAction.value?.type === 'signIn'
-          ? props.t('Signing in {0}…', [accountAction.value.user?.preferred_username])
-          : props.t('Signing out {0}…', [username.value]),
+        text:
+          accountAction.value?.type === 'signIn'
+            ? props.t('Signing in {0}…', [accountAction.value.user?.preferred_username])
+            : props.t('Signing out {0}…', [username.value]),
       };
     case 'success':
       return {
-        text: accountAction.value?.type === 'signIn'
-          ? props.t('{0} Signed In Successfully', [accountAction.value.user?.preferred_username])
-          : props.t('{0} Signed Out Successfully', [username.value]),
+        text:
+          accountAction.value?.type === 'signIn'
+            ? props.t('{0} Signed In Successfully', [accountAction.value.user?.preferred_username])
+            : props.t('{0} Signed Out Successfully', [username.value]),
       };
     case 'failed':
       return {
-        text: accountAction.value?.type === 'signIn'
-          ? props.t('Sign In Failed')
-          : props.t('Sign Out Failed'),
+        text:
+          accountAction.value?.type === 'signIn'
+            ? props.t('Sign In Failed')
+            : props.t('Sign Out Failed'),
       };
     case 'ready':
     default:
@@ -214,7 +242,9 @@ const { copy, copied, isSupported } = useClipboard({ source: keyUrl.value });
  */
 const showUpdateEligibility = computed(() => {
   // rather than specifically targeting 'Starter' and 'Unleashed' we'll target all keys that are not 'Basic', 'Plus', 'Pro', 'Lifetime', or 'Trial'
-  if (!keyType.value) { return false; }
+  if (!keyType.value) {
+    return false;
+  }
   return !['Basic', 'Plus', 'Pro', 'Lifetime', 'Trial'].includes(keyType.value);
 });
 </script>
@@ -245,20 +275,13 @@ const showUpdateEligibility = computed(() => {
           :text="keyInstallStatusCopy.text"
         >
           <div v-if="keyType === 'Trial'" class="opacity-75 italic mt-4px">
-            <UpcUptimeExpire
-              v-if="refreshServerStateStatus === 'done'"
-              :for-expire="true"
-              :t="t"
-            />
+            <UpcUptimeExpire v-if="refreshServerStateStatus === 'done'" :for-expire="true" :t="t" />
             <p v-else>
               {{ t('Calculating trial expiration…') }}
             </p>
           </div>
           <div v-if="showUpdateEligibility" class="opacity-75 italic mt-4px">
-            <RegistrationUpdateExpiration
-              v-if="refreshServerStateStatus === 'done'"
-              :t="t"
-            />
+            <RegistrationUpdateExpiration v-if="refreshServerStateStatus === 'done'" :t="t" />
             <p v-else>
               {{ t('Calculating OS Update Eligibility…') }}
             </p>
@@ -276,7 +299,10 @@ const showUpdateEligibility = computed(() => {
               {{ t('Copy your Key URL: {0}', [keyUrl]) }}
             </p>
             <p>
-              <a href="/Tools/Registration" class="opacity-75 hover:opacity-100 focus:opacity-100 underline transition">
+              <a
+                href="/Tools/Registration"
+                class="opacity-75 hover:opacity-100 focus:opacity-100 underline transition"
+              >
                 {{ t('Then go to Tools > Registration to manually install it') }}
               </a>
             </p>
@@ -284,7 +310,11 @@ const showUpdateEligibility = computed(() => {
         </UpcCallbackFeedbackStatus>
 
         <UpcCallbackFeedbackStatus
-          v-if="stateDataError && callbackStatus !== 'loading' && (keyInstallStatus === 'success' || keyInstallStatus === 'failed')"
+          v-if="
+            stateDataError &&
+            callbackStatus !== 'loading' &&
+            (keyInstallStatus === 'success' || keyInstallStatus === 'failed')
+          "
           :error="true"
           :text="t('Post Install License Key Error')"
         >
@@ -322,7 +352,11 @@ const showUpdateEligibility = computed(() => {
             </p>
 
             <p class="text-14px italic opacity-75">
-              {{ callbackTypeDowngrade ? t('This downgrade will require a reboot') : t('This update will require a reboot') }}
+              {{
+                callbackTypeDowngrade
+                  ? t('This downgrade will require a reboot')
+                  : t('This update will require a reboot')
+              }}
             </p>
           </div>
         </div>
@@ -332,12 +366,7 @@ const showUpdateEligibility = computed(() => {
     <template v-if="callbackStatus === 'success' || updateOsStatus === 'confirming'" #footer>
       <div class="flex flex-row justify-center gap-16px">
         <template v-if="callbackStatus === 'success'">
-          <BrandButton
-            btn-style="underline"
-            :icon="XMarkIcon"
-            :text="closeText"
-            @click="close"
-          />
+          <BrandButton btn-style="underline" :icon="XMarkIcon" :text="closeText" @click="close" />
 
           <template v-if="connectPluginInstalled && accountActionType === 'signIn'">
             <BrandButton
@@ -372,7 +401,9 @@ const showUpdateEligibility = computed(() => {
           />
           <BrandButton
             :icon="CheckIcon"
-            :text="callbackTypeDowngrade ? t('Confirm and start downgrade') : t('Confirm and start update')"
+            :text="
+              callbackTypeDowngrade ? t('Confirm and start downgrade') : t('Confirm and start update')
+            "
             @click="confirmUpdateOs"
           />
         </template>
@@ -390,8 +421,8 @@ const showUpdateEligibility = computed(() => {
 </template>
 
 <style lang="postcss">
-@tailwind base;
-@tailwind components;
+/* Import unraid-ui globals first */
+@import '@unraid/ui/styles';
 
 .unraid_mark_2,
 .unraid_mark_4 {
@@ -440,6 +471,4 @@ const showUpdateEligibility = computed(() => {
     transform: translateY(0);
   }
 }
-
-@tailwind utilities;
 </style>

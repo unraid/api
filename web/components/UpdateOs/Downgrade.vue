@@ -6,19 +6,16 @@ import {
   InformationCircleIcon,
   LifebuoyIcon,
 } from '@heroicons/vue/24/solid';
-import dayjs from 'dayjs';
-import { storeToRefs } from 'pinia';
-import { ref } from 'vue';
-import type { ComposerTranslation } from 'vue-i18n';
-
-import 'tailwindcss/tailwind.css';
-import '~/assets/main.css';
-
+import { BrandButton, CardWrapper } from '@unraid/ui';
 import useDateTimeHelper from '~/composables/dateTime';
 import { FORUMS_BUG_REPORT } from '~/helpers/urls';
 import { useServerStore } from '~/store/server';
 import { useUpdateOsActionsStore } from '~/store/updateOsActions';
 import type { UserProfileLink } from '~/types/userProfile';
+import dayjs from 'dayjs';
+import { storeToRefs } from 'pinia';
+import { ref } from 'vue';
+import type { ComposerTranslation } from 'vue-i18n';
 
 const props = defineProps<{
   t: ComposerTranslation;
@@ -30,9 +27,12 @@ const serverStore = useServerStore();
 const updateOsActionsStore = useUpdateOsActionsStore();
 
 const { dateTimeFormat } = storeToRefs(serverStore);
-const {
-  outputDateTimeFormatted: formattedReleaseDate,
-} = useDateTimeHelper(dateTimeFormat.value, props.t, true, dayjs(props.releaseDate, 'YYYY-MM-DD').valueOf());
+const { outputDateTimeFormatted: formattedReleaseDate } = useDateTimeHelper(
+  dateTimeFormat.value,
+  props.t,
+  true,
+  dayjs(props.releaseDate, 'YYYY-MM-DD').valueOf()
+);
 
 const diagnosticsButton = ref<UserProfileLink | undefined>({
   click: () => {
@@ -55,12 +55,10 @@ const downgradeButton = ref<UserProfileLink>({
 </script>
 
 <template>
-  <UiCardWrapper :increased-padding="true">
+  <CardWrapper :increased-padding="true">
     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-20px sm:gap-24px">
       <div class="grid gap-y-16px">
-        <h3
-          class="font-semibold leading-normal flex flex-row items-start justify-start gap-8px"
-        >
+        <h3 class="font-semibold leading-normal flex flex-row items-start justify-start gap-8px">
           <ArrowUturnDownIcon class="w-20px shrink-0" />
           <span class="leading-none inline-flex flex-wrap justify-start items-baseline gap-8px">
             <span class="text-20px">
@@ -76,28 +74,45 @@ const downgradeButton = ref<UserProfileLink>({
         </h3>
         <div class="prose text-16px leading-relaxed opacity-75 whitespace-normal">
           <p>{{ t(`Downgrades are only recommended if you're unable to solve a critical issue.`) }}</p>
-          <p>{{ t('In the rare event you need to downgrade we ask that you please provide us with Diagnostics so we can investigate your issue.') }}</p>
-          <p>{{ t('Download the Diagnostics zip then please open a bug report on our forums with a description of the issue along with your diagnostics.') }} </p>
+          <p>
+            {{
+              t(
+                'In the rare event you need to downgrade we ask that you please provide us with Diagnostics so we can investigate your issue.'
+              )
+            }}
+          </p>
+          <p>
+            {{
+              t(
+                'Download the Diagnostics zip then please open a bug report on our forums with a description of the issue along with your diagnostics.'
+              )
+            }}
+          </p>
         </div>
       </div>
 
       <div v-if="downgradeButton" class="flex flex-col flex-shrink-0 gap-16px flex-grow items-stretch">
         <BrandButton
-          :btn-style="'underline'"
+          :variant="'underline'"
           :icon="InformationCircleIcon"
           :text="t('{0} Release Notes', [version])"
-          @click="updateOsActionsStore.viewReleaseNotes(t('{0} Release Notes', [version]), '/boot/previous/changes.txt')"
+          @click="
+            updateOsActionsStore.viewReleaseNotes(
+              t('{0} Release Notes', [version]),
+              '/boot/previous/changes.txt'
+            )
+          "
         />
         <BrandButton
           v-if="diagnosticsButton"
-          :btn-style="'gray'"
+          :variant="'gray'"
           :icon="diagnosticsButton.icon"
           :name="diagnosticsButton.name"
           :text="diagnosticsButton.text"
           @click="diagnosticsButton.click"
         />
         <BrandButton
-          :btn-style="'gray'"
+          :variant="'gray'"
           :external="true"
           :href="FORUMS_BUG_REPORT.toString()"
           :icon="LifebuoyIcon"
@@ -113,11 +128,11 @@ const downgradeButton = ref<UserProfileLink>({
         />
       </div>
     </div>
-  </UiCardWrapper>
+  </CardWrapper>
 </template>
 
 <style lang="postcss">
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+/* Import unraid-ui globals first */
+@import '@unraid/ui/styles';
+@import '../../assets/main.css';
 </style>

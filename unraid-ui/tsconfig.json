@@ -1,7 +1,9 @@
 {
   "extends": "./tsconfig.app.json",
   "compilerOptions": {
-    "composite": true,
+    "incremental": true,
+    "declaration": true,
+    "emitDeclarationOnly": true,
     "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.tsbuildinfo",
     "baseUrl": ".",
     "paths": {
@@ -10,11 +12,20 @@
       "@/components": ["./src/components"],
       "@/composables": ["./src/composables"],
       "@/lib": ["./src/lib"],
-      "@/types": ["./src/types"]
+      "@/types": ["./src/types"],
+      "@/theme": ["./src/theme"]
     },
     "forceConsistentCasingInFileNames": true
   },
-  "include": ["src/**/*.ts", "src/**/*.d.ts", "src/**/*.tsx", "src/**/*.vue"],
+  "files": ["tailwind.config.ts"],
+  "include": [
+    "src/**/*.ts",
+    "src/**/*.d.ts",
+    "src/**/*.tsx",
+    "src/**/*.vue",
+    "./tailwind.config.ts",
+    "src/theme/**/*.ts"
+  ],
   "exclude": ["node_modules", "**/*.copy.vue", "**/*copy.vue"],
   "references": [{ "path": "./tsconfig.test.json" }]
 }

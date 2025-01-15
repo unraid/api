@@ -1,127 +1,58 @@
 <script setup lang="ts">
 import { computed } from "vue";
-import type { UiBadgeProps } from "@/types/badge";
+import type { Component } from "vue";
+import { badgeVariants } from "./badge.variants";
 
-const props = withDefaults(defineProps<UiBadgeProps>(), {
-  color: "gray",
+export interface BadgeProps {
+  variant?: "red" | "yellow" | "green" | "blue" | "indigo" | "purple" | 
+    "pink" | "orange" | "black" | "white" | "transparent" | "current" | "gray" | "custom";
+  size?: "xs" | "sm" | "md" | "lg" | "xl" | "2xl";
+  icon?: Component;
+  iconRight?: Component;
+  iconStyles?: string;
+  class?: string;
+}
+
+const props = withDefaults(defineProps<BadgeProps>(), {
+  variant: "gray",
+  size: "md",
   icon: undefined,
   iconRight: undefined,
   iconStyles: "",
-  size: "16px",
+  class: "",
 });
 
-const computedStyleClasses = computed(() => {
-  let colorClasses = "";
-  let textSize = "";
-  let iconSize = "";
-  switch (props.color) {
-    case "red":
-      colorClasses =
-        "bg-unraid-red text-white group-hover:bg-orange-dark group-focus:bg-orange-dark";
-      break;
-    case "yellow":
-      colorClasses =
-        "bg-yellow-100 text-black group-hover:bg-yellow-200 group-focus:bg-yellow-200";
-      break;
-    case "green":
-      colorClasses =
-        "bg-green-200 text-green-800 group-hover:bg-green-300 group-focus:bg-green-300";
-      break;
-    case "blue":
-      colorClasses =
-        "bg-blue-100 text-blue-800 group-hover:bg-blue-200 group-focus:bg-blue-200";
-      break;
-    case "indigo":
-      colorClasses =
-        "bg-indigo-100 text-indigo-800 group-hover:bg-indigo-200 group-focus:bg-indigo-200";
-      break;
-    case "purple":
-      colorClasses =
-        "bg-purple-100 text-purple-800 group-hover:bg-purple-200 group-focus:bg-purple-200";
-      break;
-    case "pink":
-      colorClasses =
-        "bg-pink-100 text-pink-800 group-hover:bg-pink-200 group-focus:bg-pink-200";
-      break;
-    case "orange":
-      colorClasses =
-        "bg-orange text-white group-hover:bg-orange-dark group-focus:bg-orange-dark";
-      break;
-    case "black":
-      colorClasses =
-        "bg-black text-white group-hover:bg-gray-800 group-focus:bg-gray-800";
-      break;
-    case "white":
-      colorClasses =
-        "bg-white text-black group-hover:bg-gray-100 group-focus:bg-gray-100";
-      break;
-    case "transparent":
-      colorClasses =
-        "bg-transparent text-black group-hover:bg-gray-100 group-focus:bg-gray-100";
-      break;
-    case "current":
-      colorClasses =
-        "bg-current text-black group-hover:bg-gray-100 group-focus:bg-gray-100";
-      break;
-    case "gray":
-      colorClasses =
-        "bg-gray-200 text-gray-800 group-hover:bg-gray-300 group-focus:bg-gray-300";
-      break;
-    case "custom":
-      colorClasses = "";
-      break;
-  }
-  switch (props.size) {
-    case "12px":
-      textSize = "text-12px px-8px py-4px gap-4px";
-      iconSize = "w-12px";
-      break;
-    case "14px":
-      textSize = "text-14px px-8px py-4px gap-8px";
-      iconSize = "w-14px";
-      break;
-    case "16px":
-      textSize = "text-16px px-12px py-8px gap-8px";
-      iconSize = "w-16px";
-      break;
-    case "18px":
-      textSize = "text-18px px-12px py-8px gap-8px";
-      iconSize = "w-18px";
-      break;
-    case "20px":
-      textSize = "text-20px px-16px py-12px gap-8px";
-      iconSize = "w-20px";
-      break;
-    case "24px":
-      textSize = "text-24px px-16px py-12px gap-8px";
-      iconSize = "w-24px";
-      break;
-  }
+const badgeClasses = computed(() => {
+  const iconSizes = {
+    xs: "w-12px",
+    sm: "w-14px",
+    md: "w-16px",
+    lg: "w-18px",
+    xl: "w-20px",
+    "2xl": "w-24px",
+  } as const;
 
   return {
-    badge: `${textSize} ${colorClasses}`,
-    icon: `${iconSize} ${props.iconStyles}`,
+    badge: badgeVariants({ variant: props.variant, size: props.size }),
+    icon: `${iconSizes[props.size ?? "md"]} ${props.iconStyles}`,
   };
 });
 </script>
 
 <template>
-  <span
-    class="inline-flex items-center rounded-full font-semibold leading-none transition-all duration-200 ease-in-out"
-    :class="[computedStyleClasses.badge]"
-  >
+  <span :class="[badgeClasses.badge, props.class]">
     <component
       :is="icon"
       v-if="icon"
       class="flex-shrink-0"
-      :class="computedStyleClasses.icon"
+      :class="badgeClasses.icon"
     />
     <slot />
     <component
       :is="iconRight"
       v-if="iconRight"
       class="flex-shrink-0"
-      :class="computedStyleClasses.icon"
+      :class="badgeClasses.icon"
     />
   </span>
 </template>
