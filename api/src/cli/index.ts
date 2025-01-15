@@ -30,6 +30,7 @@ export const main = async (...argv: string[]) => {
 
     // Only import the command we need when we use it
     const commands = {
+        key: import('@app/cli/commands/key').then((pkg) => pkg.key),
         start: import('@app/cli/commands/start').then((pkg) => pkg.start),
         stop: import('@app/cli/commands/stop').then((pkg) => pkg.stop),
         restart: import('@app/cli/commands/restart').then((pkg) => pkg.restart),
