@@ -163,17 +163,24 @@ export class GraphQLClient {
         const retryLink = new RetryLink({
             delay(count, operation, error) {
                 const getDelay = delayFn(count);
+                operation.setContext({ retryCount: count });
                 store.dispatch(setMothershipTimeout(getDelay));
                 minigraphLogger.info('Delay currently is: %i', getDelay);
                 return getDelay;
             },
             attempts: {
                 max: Infinity,
-                retryIf: (error) => !isInvalidApiKeyError(error),
+                retryIf: (error, operation) => {
+                    const { retryCount = 0 } = operation.getContext();
+                    // retry api key errors up to 3 times (4 attempts total)
+                    return !isInvalidApiKeyError(error) || retryCount < 3;
+                },
             },
         });
 
         const errorLink = new ErrorLink((handler) => {
+            const { retryCount = 0 } = handler.operation.getContext();
+            minigraphLogger.debug(`Operation attempt: #${retryCount}`);
             if (handler.graphQLErrors) {
                 // GQL Error Occurred, we should log and move on
                 minigraphLogger.info('GQL Error Encountered %o', handler.graphQLErrors);
@@ -199,11 +206,13 @@ export class GraphQLClient {
                 }
 
                 if (isInvalidApiKeyError(error)) {
-                    store
+                    if (retryCount >= 3) {
+                        store
                         .dispatch(logoutUser({ reason: 'Invalid API Key on Mothership' }))
                         .catch((err) => {
                             minigraphLogger.error(err, 'Error during logout');
                         });
+                    }
                 } else if (getters.minigraph().status !== MinigraphStatus.ERROR_RETRYING) {
                     store.dispatch(
                         setGraphqlConnectionStatus({
