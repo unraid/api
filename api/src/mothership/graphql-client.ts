@@ -160,20 +160,32 @@ export class GraphQLClient {
             });
         });
 
+        /** 
+         * Max # of times to retry authenticating with mothership. 
+         * Total # of attempts will be retries + 1. 
+         */
+        const MAX_AUTH_RETRIES = 3;
         const retryLink = new RetryLink({
             delay(count, operation, error) {
                 const getDelay = delayFn(count);
+                operation.setContext({ retryCount: count });
                 store.dispatch(setMothershipTimeout(getDelay));
                 minigraphLogger.info('Delay currently is: %i', getDelay);
                 return getDelay;
             },
             attempts: {
                 max: Infinity,
-                retryIf: (error) => !isInvalidApiKeyError(error),
+                retryIf: (error, operation) => {
+                    const { retryCount = 0 } = operation.getContext();
+                    // i.e. retry api key errors up to 3 times (4 attempts total)
+                    return !isInvalidApiKeyError(error) || retryCount < MAX_AUTH_RETRIES;
+                },
             },
         });
 
         const errorLink = new ErrorLink((handler) => {
+            const { retryCount = 0 } = handler.operation.getContext();
+            minigraphLogger.debug(`Operation attempt: #${retryCount}`);
             if (handler.graphQLErrors) {
                 // GQL Error Occurred, we should log and move on
                 minigraphLogger.info('GQL Error Encountered %o', handler.graphQLErrors);
@@ -199,11 +211,13 @@ export class GraphQLClient {
                 }
 
                 if (isInvalidApiKeyError(error)) {
-                    store
+                    if (retryCount >= MAX_AUTH_RETRIES) {
+                        store
                         .dispatch(logoutUser({ reason: 'Invalid API Key on Mothership' }))
                         .catch((err) => {
                             minigraphLogger.error(err, 'Error during logout');
                         });
+                    }
                 } else if (getters.minigraph().status !== MinigraphStatus.ERROR_RETRYING) {
                     store.dispatch(
                         setGraphqlConnectionStatus({
