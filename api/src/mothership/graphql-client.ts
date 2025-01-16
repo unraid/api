@@ -160,6 +160,11 @@ export class GraphQLClient {
             });
         });
 
+        /** 
+         * Max # of times to retry authenticating with mothership. 
+         * Total # of attempts will be retries + 1. 
+         */
+        const MAX_AUTH_RETRIES = 3;
         const retryLink = new RetryLink({
             delay(count, operation, error) {
                 const getDelay = delayFn(count);
@@ -172,8 +177,8 @@ export class GraphQLClient {
                 max: Infinity,
                 retryIf: (error, operation) => {
                     const { retryCount = 0 } = operation.getContext();
-                    // retry api key errors up to 3 times (4 attempts total)
-                    return !isInvalidApiKeyError(error) || retryCount < 3;
+                    // i.e. retry api key errors up to 3 times (4 attempts total)
+                    return !isInvalidApiKeyError(error) || retryCount < MAX_AUTH_RETRIES;
                 },
             },
         });
@@ -206,7 +211,7 @@ export class GraphQLClient {
                 }
 
                 if (isInvalidApiKeyError(error)) {
-                    if (retryCount >= 3) {
+                    if (retryCount >= MAX_AUTH_RETRIES) {
                         store
                         .dispatch(logoutUser({ reason: 'Invalid API Key on Mothership' }))
                         .catch((err) => {
