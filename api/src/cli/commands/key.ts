@@ -10,11 +10,12 @@ enum Command {
 }
 
 type KeyFlags = {
-    command: string;
-    name: string;
     create?: boolean;
-    roles?: string;
+    command: string;
+    description?: string;
+    name: string;
     permissions?: string;
+    roles?: string;
 };
 
 const validRoles: Set<Role> = new Set(Object.values(Role));
@@ -42,6 +43,7 @@ const keyOptions: ArgumentConfig<KeyFlags> = {
     command: { type: String, description: 'get or create' },
     name: { type: String, description: 'Name of the API key', typeLabel: '{underline name}' },
     create: { type: Boolean, optional: true, description: "Create the key if it doesn't exist" },
+    description: { type: String, optional: true, description: 'Description of the API key' },
     roles: {
         type: String,
         optional: true,
@@ -70,12 +72,12 @@ export const key = async (...argv: string[]) => {
                 const roles = validateRoles(options.roles);
                 const key = await apiKeyService.create(
                     options.name,
-                    `CLI generated key: ${options.name}`,
+                    options.description || `CLI generated key: ${options.name}`,
                     roles,
                     true
                 );
 
-                console.log('API Key: ', key);
+                cliLogger.info('API Key: ', key);
                 cliLogger.info('API key created successfully');
 
                 break;
@@ -88,15 +90,15 @@ export const key = async (...argv: string[]) => {
                     const roles = validateRoles(options.roles);
                     const newKey = await apiKeyService.create(
                         options.name,
-                        `CLI generated key: ${options.name}`,
+                        options.description || `CLI generated key: ${options.name}`,
                         roles,
                         true
                     );
 
-                    console.log('New API Key: ', newKey);
+                    cliLogger.info('New API Key: ', newKey);
                     cliLogger.info('API key created successfully');
                 } else if (key) {
-                    console.log('API Key: ', key);
+                    cliLogger.info('API Key: ', key);
                 } else {
                     throw new Error(`No API key found with name: ${options.name}`);
                 }
