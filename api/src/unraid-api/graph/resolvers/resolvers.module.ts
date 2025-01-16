@@ -19,6 +19,7 @@ import { RegistrationResolver } from './registration/registration.resolver';
 import { ServerResolver } from './servers/server.resolver';
 import { VarsResolver } from './vars/vars.resolver';
 import { VmsResolver } from './vms/vms.resolver';
+import { MeResolver } from './me/me.resolver';
 
 @Module({
     imports: [AuthModule],
@@ -40,6 +41,7 @@ import { VmsResolver } from './vms/vms.resolver';
         VarsResolver,
         VmsResolver,
         NotificationsService,
+        MeResolver,
     ],
     exports: [AuthModule, AuthResolver],
 })

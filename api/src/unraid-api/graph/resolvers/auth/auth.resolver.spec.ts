@@ -101,22 +101,6 @@ describe('AuthResolver', () => {
         });
     });
 
-    describe('addRoleForUser', () => {
-        it('should add role to user', async () => {
-            const input = {
-                userId: 'user-1',
-                role: Role.ADMIN,
-            };
-
-            vi.spyOn(authService, 'addRoleToUser').mockResolvedValue(true);
-
-            const result = await resolver.addRoleForUser(input);
-
-            expect(result).toBe(true);
-            expect(authService.addRoleToUser).toHaveBeenCalledWith(input.userId, Role[input.role]);
-        });
-    });
-
     describe('addRoleForApiKey', () => {
         it('should add role to API key', async () => {
             const input = {

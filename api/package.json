@@ -25,6 +25,7 @@
         "dev": "vite",
         "container:build": "./scripts/dc.sh build dev",
         "container:start": "./scripts/dc.sh run --rm --service-ports dev",
+        "container:stop": "./scripts/dc.sh stop dev",
         "container:test": "./scripts/dc.sh run --rm builder npm run test",
         "container:enter": "./scripts/dc.sh exec dev /bin/bash"
     },

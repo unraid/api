@@ -1,8 +1,9 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import crypto from 'crypto';
 import { readdir, readFile, writeFile } from 'fs/promises';
 import { join } from 'path';
 
+import { watch } from 'chokidar';
 import { ensureDirSync } from 'fs-extra';
 import { GraphQLError } from 'graphql';
 import { v4 as uuidv4 } from 'uuid';
@@ -13,17 +14,32 @@ import { ApiKey, ApiKeyWithSecret, Role, UserAccount } from '@app/graphql/genera
 import { getters } from '@app/store';
 
 @Injectable()
-export class ApiKeyService {
+export class ApiKeyService implements OnModuleInit {
     private readonly logger = new Logger(ApiKeyService.name);
     protected readonly basePath: string;
-    protected readonly keyFile: (id: string) => string;
-    protected memoryApiKeys = new Map<string, ApiKeyWithSecret>();
+    protected memoryApiKeys: Array<ApiKeyWithSecret> = [];
     private static readonly validRoles: Set<Role> = new Set(Object.values(Role));
 
     constructor() {
         this.basePath = getters.paths()['auth-keys'];
-        this.keyFile = (id: string) => join(this.basePath, `${id}.json`);
         ensureDirSync(this.basePath);
+        this.setupWatch();
+    }
+
+    async onModuleInit() {
+        this.memoryApiKeys = await this.loadAllFromDisk();
+    }
+
+    public findAll(): ApiKey[] {
+        return this.memoryApiKeys.map((key) => ApiKeySchema().parse(key));
+    }
+
+    private setupWatch() {
+        watch(this.basePath, { ignoreInitial: false }).on('change', async (event, path) => {
+            this.logger.debug(`API key storage event: ${event} on ${path}`);
+            this.memoryApiKeys = [];
+            this.memoryApiKeys = await this.loadAllFromDisk();
+        });
     }
 
     private sanitizeName(name: string): string {
@@ -70,6 +86,7 @@ export class ApiKeyService {
 
         apiKey.description = description;
         apiKey.roles = roles;
+        apiKey.permissions = [];
         // Update createdAt date
         apiKey.createdAt = new Date().toISOString();
 
@@ -78,16 +95,16 @@ export class ApiKeyService {
         return apiKey as ApiKeyWithSecret;
     }
 
-    async findAll(): Promise<ApiKey[]> {
+    async loadAllFromDisk(): Promise<ApiKeyWithSecret[]> {
         try {
             const files = await readdir(this.basePath);
-            const apiKeys: ApiKey[] = [];
+            const apiKeys: ApiKeyWithSecret[] = [];
 
             for (const file of files) {
                 if (file.endsWith('.json')) {
                     try {
                         const content = await readFile(join(this.basePath, file), 'utf8');
-                        const apiKey = ApiKeySchema().parse(JSON.parse(content));
+                        const apiKey = ApiKeyWithSecretSchema().parse(JSON.parse(content));
 
                         apiKeys.push(apiKey);
                     } catch (error) {
@@ -100,7 +117,6 @@ export class ApiKeyService {
                     }
                 }
             }
-
             return apiKeys;
         } catch (error) {
             this.logger.error(`Failed to read API key directory: ${error}`);
@@ -108,104 +124,24 @@ export class ApiKeyService {
         }
     }
 
-    async findById(id: string): Promise<ApiKey | null> {
-        try {
-            const content = await readFile(this.keyFile(id), 'utf8');
+    findById(id: string): ApiKey | null {
+        const key = this.findByField('id', id);
 
-            try {
-                const apiKey = ApiKeySchema().parse(JSON.parse(content));
-
-                return apiKey;
-            } catch (error) {
-                if (error instanceof ZodError) {
-                    this.logger.error(`Invalid API key structure for ID ${id}`, error.errors);
-                    throw new GraphQLError('Invalid API key data structure');
-                }
-
-                throw error;
-            }
-        } catch (error: unknown) {
-            if (error instanceof GraphQLError) {
-                throw error;
-            }
-            if (error instanceof Error && (error as NodeJS.ErrnoException).code === 'ENOENT') {
-                this.logger.warn(`API key file not found for ID ${id}`);
-
-                return null;
-            } else {
-                this.logger.error(`Error reading API key file for ID ${id}: ${error}`);
-                throw new GraphQLError(
-                    `Failed to read API key: ${error instanceof Error ? error.message : String(error)}`
-                );
-            }
+        if (key) {
+            return ApiKeySchema().parse(key);
         }
+        return null;
     }
 
-    public async findByIdWithSecret(id: string): Promise<ApiKeyWithSecret | null> {
-        try {
-            const content = await readFile(this.keyFile(id), 'utf8');
-            const apiKey = JSON.parse(content);
-
-            return ApiKeyWithSecretSchema().parse(apiKey);
-        } catch (error) {
-            if (error instanceof ZodError) {
-                this.logger.error('Invalid API key data structure', error);
-                throw new GraphQLError('Invalid API key data structure');
-            }
-
-            if ((error as NodeJS.ErrnoException).code === 'ENOENT') {
-                return null;
-            }
-
-            this.logger.error('Failed to read API key file', error);
-            throw new GraphQLError('Failed to read API key file');
-        }
+    public findByIdWithSecret(id: string): ApiKeyWithSecret | null {
+        return this.findByField('id', id);
     }
 
-    async findByField(field: keyof ApiKeyWithSecret, value: string): Promise<ApiKeyWithSecret | null> {
+    public findByField(field: keyof ApiKeyWithSecret, value: string): ApiKeyWithSecret | null {
         if (!value) return null;
 
         try {
-            const files = await readdir(this.basePath);
-
-            for (const file of files ?? []) {
-                if (!file.endsWith('.json')) continue;
-
-                try {
-                    const content = await readFile(join(this.basePath, file), 'utf8');
-                    let parsedContent;
-
-                    try {
-                        parsedContent = JSON.parse(content);
-                    } catch (error) {
-                        if (error instanceof SyntaxError) {
-                            throw new GraphQLError('Authentication system error: Corrupted key file');
-                        }
-
-                        throw error;
-                    }
-
-                    const apiKey = ApiKeyWithSecretSchema().parse(parsedContent);
-
-                    if (field === 'key') {
-                        if (crypto.timingSafeEqual(Buffer.from(apiKey[field]), Buffer.from(value))) {
-                            apiKey.roles = apiKey.roles.map((role) => role || Role.GUEST);
-                            return apiKey;
-                        }
-                    } else if (apiKey[field] === value) {
-                        apiKey.roles = apiKey.roles.map((role) => role || Role.GUEST);
-                        return apiKey;
-                    }
-                } catch (error) {
-                    if (error instanceof GraphQLError) {
-                        throw error;
-                    }
-
-                    this.logger.error(`Error processing API key file ${file}: ${error}`);
-                }
-            }
-
-            return null;
+            return this.memoryApiKeys.find((key) => key[field] === value) ?? null;
         } catch (error) {
             if (error instanceof GraphQLError) {
                 throw error;
@@ -264,7 +200,7 @@ export class ApiKeyService {
                     return acc;
                 }, {} as ApiKeyWithSecret);
 
-            await writeFile(this.keyFile(validatedApiKey.id), JSON.stringify(sortedApiKey, null, 2));
+            await writeFile(`${validatedApiKey.id}.json`, JSON.stringify(sortedApiKey, null, 2));
         } catch (error: unknown) {
             if (error instanceof ZodError) {
                 this.logger.error('Invalid API key structure', error.errors);
@@ -280,7 +216,6 @@ export class ApiKeyService {
     public getPaths() {
         return {
             basePath: this.basePath,
-            keyFile: this.keyFile,
         };
     }
 }

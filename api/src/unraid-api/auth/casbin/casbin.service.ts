@@ -1,10 +1,11 @@
-import { Injectable, InternalServerErrorException, Logger } from '@nestjs/common';
+import { Injectable, InternalServerErrorException, Logger, OnModuleInit } from '@nestjs/common';
 
-import { Model as CasbinModel, newEnforcer, StringAdapter } from 'casbin';
+import { Model as CasbinModel, Enforcer, newEnforcer, StringAdapter } from 'casbin';
 
 @Injectable()
 export class CasbinService {
     private readonly logger = new Logger(CasbinService.name);
+    private enforcer: Enforcer | null = null;
 
     /**
      * Initializes a Casbin enforcer with the given model and policies.
@@ -15,12 +16,11 @@ export class CasbinService {
         const casbinModel = new CasbinModel();
         casbinModel.loadModelFromText(model);
         const casbinPolicy = new StringAdapter(policy);
-
         try {
-            const enforcer = await newEnforcer(casbinModel, casbinPolicy);
-            // enforcer.enableLog(true);
+            this.enforcer = await newEnforcer(casbinModel, casbinPolicy);
+            this.enforcer.enableLog(true);
 
-            return enforcer;
+            return this.enforcer;
         } catch (error: unknown) {
             const errorMessage = error instanceof Error ? error.message : String(error);
             this.logger.error(`Failed to create Casbin enforcer: ${errorMessage}`);

@@ -66,6 +66,7 @@ export type ApiKey = {
   description?: Maybe<Scalars['String']['output']>;
   id: Scalars['ID']['output'];
   name: Scalars['String']['output'];
+  permissions?: Maybe<Array<Permission>>;
   roles: Array<Role>;
 };
 
@@ -82,6 +83,7 @@ export type ApiKeyWithSecret = {
   id: Scalars['ID']['output'];
   key: Scalars['String']['output'];
   name: Scalars['String']['output'];
+  permissions: Array<Permission>;
   roles: Array<Role>;
 };
 
@@ -595,7 +597,7 @@ export type Me = UserAccount & {
   description: Scalars['String']['output'];
   id: Scalars['ID']['output'];
   name: Scalars['String']['output'];
-  permissions?: Maybe<Scalars['JSON']['output']>;
+  permissions?: Maybe<Array<Permission>>;
   roles: Array<Role>;
 };
 
@@ -1024,6 +1026,12 @@ export type Pci = {
   vendorname?: Maybe<Scalars['String']['output']>;
 };
 
+export type Permission = {
+  __typename?: 'Permission';
+  actions?: Maybe<Array<Scalars['String']['output']>>;
+  resource: Resource;
+};
+
 export type ProfileModel = {
   __typename?: 'ProfileModel';
   avatar?: Maybe<Scalars['String']['output']>;
@@ -1444,6 +1452,7 @@ export type User = UserAccount & {
   name: Scalars['String']['output'];
   /** If the account has a password set */
   password?: Maybe<Scalars['Boolean']['output']>;
+  permissions?: Maybe<Array<Permission>>;
   roles: Array<Role>;
 };
 
@@ -1451,6 +1460,7 @@ export type UserAccount = {
   description: Scalars['String']['output'];
   id: Scalars['ID']['output'];
   name: Scalars['String']['output'];
+  permissions?: Maybe<Array<Permission>>;
   roles: Array<Role>;
 };
 
@@ -1887,6 +1897,7 @@ export type ResolversTypes = ResolversObject<{
   ParityCheck: ResolverTypeWrapper<ParityCheck>;
   Partition: ResolverTypeWrapper<Partition>;
   Pci: ResolverTypeWrapper<Pci>;
+  Permission: ResolverTypeWrapper<Permission>;
   Port: ResolverTypeWrapper<Scalars['Port']['output']>;
   ProfileModel: ResolverTypeWrapper<ProfileModel>;
   Query: ResolverTypeWrapper<{}>;
@@ -1999,6 +2010,7 @@ export type ResolversParentTypes = ResolversObject<{
   ParityCheck: ParityCheck;
   Partition: Partition;
   Pci: Pci;
+  Permission: Permission;
   Port: Scalars['Port']['output'];
   ProfileModel: ProfileModel;
   Query: {};
@@ -2044,6 +2056,7 @@ export type ApiKeyResolvers<ContextType = Context, ParentType extends ResolversP
   description?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
   name?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  permissions?: Resolver<Maybe<Array<ResolversTypes['Permission']>>, ParentType, ContextType>;
   roles?: Resolver<Array<ResolversTypes['Role']>, ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
@@ -2060,6 +2073,7 @@ export type ApiKeyWithSecretResolvers<ContextType = Context, ParentType extends 
   id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
   key?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   name?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  permissions?: Resolver<Array<ResolversTypes['Permission']>, ParentType, ContextType>;
   roles?: Resolver<Array<ResolversTypes['Role']>, ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
@@ -2400,7 +2414,7 @@ export type MeResolvers<ContextType = Context, ParentType extends ResolversParen
   description?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
   name?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
-  permissions?: Resolver<Maybe<ResolversTypes['JSON']>, ParentType, ContextType>;
+  permissions?: Resolver<Maybe<Array<ResolversTypes['Permission']>>, ParentType, ContextType>;
   roles?: Resolver<Array<ResolversTypes['Role']>, ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
@@ -2638,6 +2652,12 @@ export type PciResolvers<ContextType = Context, ParentType extends ResolversPare
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
 
+export type PermissionResolvers<ContextType = Context, ParentType extends ResolversParentTypes['Permission'] = ResolversParentTypes['Permission']> = ResolversObject<{
+  actions?: Resolver<Maybe<Array<ResolversTypes['String']>>, ParentType, ContextType>;
+  resource?: Resolver<ResolversTypes['Resource'], ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+}>;
+
 export interface PortScalarConfig extends GraphQLScalarTypeConfig<ResolversTypes['Port'], any> {
   name: 'Port';
 }
@@ -2870,6 +2890,7 @@ export type UserResolvers<ContextType = Context, ParentType extends ResolversPar
   id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
   name?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   password?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType>;
+  permissions?: Resolver<Maybe<Array<ResolversTypes['Permission']>>, ParentType, ContextType>;
   roles?: Resolver<Array<ResolversTypes['Role']>, ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
@@ -2879,6 +2900,7 @@ export type UserAccountResolvers<ContextType = Context, ParentType extends Resol
   description?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
   name?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  permissions?: Resolver<Maybe<Array<ResolversTypes['Permission']>>, ParentType, ContextType>;
   roles?: Resolver<Array<ResolversTypes['Role']>, ParentType, ContextType>;
 }>;
 
@@ -3128,6 +3150,7 @@ export type Resolvers<ContextType = Context> = ResolversObject<{
   ParityCheck?: ParityCheckResolvers<ContextType>;
   Partition?: PartitionResolvers<ContextType>;
   Pci?: PciResolvers<ContextType>;
+  Permission?: PermissionResolvers<ContextType>;
   Port?: GraphQLScalarType;
   ProfileModel?: ProfileModelResolvers<ContextType>;
   Query?: QueryResolvers<ContextType>;
