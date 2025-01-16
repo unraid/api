@@ -23,6 +23,7 @@
         "coverage": "vitest run --pool=forks --coverage",
         "release": "standard-version",
         "dev": "vite",
+        "command": "npm run build && clear && ./dist/cli.js",
         "container:build": "./scripts/dc.sh build dev",
         "container:start": "./scripts/dc.sh run --rm --service-ports dev",
         "container:test": "./scripts/dc.sh run --rm builder npm run test",
