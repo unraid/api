@@ -17,11 +17,11 @@ root@Devon:~# unraid-api
 
 Unraid API
 
-  Thanks for using the official Unraid API 
+  Thanks for using the official Unraid API
 
 Usage:
 
-  $ unraid-api command <options> 
+  $ unraid-api command <options>
 
 Commands:
 
@@ -29,34 +29,66 @@ Commands:
 
 Options:
 
-  -h, --help                                                   Prints this usage guide.     
-  -d, --debug                                                  Enabled debug mode.          
-  -p, --port string                                            Set the graphql port.        
-  --environment production/staging/development                 Set the working environment. 
-  --log-level ALL/TRACE/DEBUG/INFO/WARN/ERROR/FATAL/MARK/OFF   Set the log level.           
+  -h, --help                                                   Prints this usage guide.
+  -d, --debug                                                  Enabled debug mode.
+  -p, --port string                                            Set the graphql port.
+  --environment production/staging/development                 Set the working environment.
+  --log-level ALL/TRACE/DEBUG/INFO/WARN/ERROR/FATAL/MARK/OFF   Set the log level.
 
   Copyright © 2024 Lime Technology, Inc.
 
 ```
 
+## Key
+
+To get an existing API key, run:
+
+```
+unraid-api key get --name "my-app-key"
+```
+
+To get an API key, and create if it doesn't exist, run:
+
+```
+unraid-api key get --name "my-app-key" --create
+```
+
+To create a new API key with specific roles, run:
+
+```
+unraid-api key create --name "backup-app" --roles "admin,guest"
+```
+
+To create a new API key with roles and permissions, run:
+
+```
+unraid-api key create --name "backup-app" --roles "admin,guest" --permissions "read:any"
+```
+
 ## Report
+
 To view the current status of the unraid-api and its connection to mothership, run:
+
 ```
 unraid-api report
 ```
 
 To view verbose data (anonymized), run:
+
 ```
 unraid-api report -v
 ```
 
 To view non-anonymized verbose data, run:
+
 ```
 unraid-api report -vv
 ```
 
 ## Secrets
+
 If you found this file you're likely a developer. If you'd like to know more about the API and when it's available please join [our discord](https://discord.unraid.net/).
 
 ## License
+
 Copyright Lime Technology Inc. All rights reserved.
