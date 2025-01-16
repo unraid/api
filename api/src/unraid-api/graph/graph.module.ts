@@ -1,3 +1,9 @@
+import type { ApolloDriverConfig } from '@nestjs/apollo';
+import { ApolloDriver } from '@nestjs/apollo';
+import { Module } from '@nestjs/common';
+import { GraphQLModule } from '@nestjs/graphql';
+
+import { NoUnusedVariablesRule, print } from 'graphql';
 import {
     DateTimeResolver,
     JSONResolver,
@@ -5,21 +11,19 @@ import {
     URLResolver,
     UUIDResolver,
 } from 'graphql-scalars';
-import { GraphQLLong } from '@app/graphql/resolvers/graphql-type-long';
-import { ApolloServerPluginLandingPageLocalDefault } from '@apollo/server/plugin/landingPage/default';
-import { ApolloDriver, type ApolloDriverConfig } from '@nestjs/apollo';
-import { Module } from '@nestjs/common';
-import { GraphQLModule } from '@nestjs/graphql';
-import { ResolversModule } from './resolvers/resolvers.module';
+
 import { GRAPHQL_INTROSPECTION } from '@app/environment';
+import { GraphQLLong } from '@app/graphql/resolvers/graphql-type-long';
 import { typeDefs } from '@app/graphql/schema/index';
-import { NoUnusedVariablesRule, print } from 'graphql';
-import { NetworkResolver } from './network/network.resolver';
-import { ServicesResolver } from './services/services.resolver';
-import { SharesResolver } from './shares/shares.resolver';
+import { idPrefixPlugin } from '@app/unraid-api/graph/id-prefix-plugin';
+
 import { ConnectResolver } from './connect/connect.resolver';
 import { ConnectService } from './connect/connect.service';
-import { idPrefixPlugin } from '@app/unraid-api/graph/id-prefix-plugin';
+import { NetworkResolver } from './network/network.resolver';
+import { ResolversModule } from './resolvers/resolvers.module';
+import { sandboxPlugin } from './sandbox-plugin';
+import { ServicesResolver } from './services/services.resolver';
+import { SharesResolver } from './shares/shares.resolver';
 
 @Module({
     imports: [
@@ -33,9 +37,7 @@ import { idPrefixPlugin } from '@app/unraid-api/graph/id-prefix-plugin';
                 extra,
             }),
             playground: false,
-            plugins: GRAPHQL_INTROSPECTION
-                ? [ApolloServerPluginLandingPageLocalDefault(), idPrefixPlugin]
-                : [idPrefixPlugin],
+            plugins: GRAPHQL_INTROSPECTION ? [sandboxPlugin, idPrefixPlugin] : [idPrefixPlugin],
             subscriptions: {
                 'graphql-ws': {
                     path: '/graphql',
@@ -55,12 +57,6 @@ import { idPrefixPlugin } from '@app/unraid-api/graph/id-prefix-plugin';
             // schema: schema
         }),
     ],
-    providers: [
-        NetworkResolver,
-        ServicesResolver,
-        SharesResolver,
-        ConnectResolver,
-        ConnectService,
-    ],
+    providers: [NetworkResolver, ServicesResolver, SharesResolver, ConnectResolver, ConnectService],
 })
 export class GraphModule {}

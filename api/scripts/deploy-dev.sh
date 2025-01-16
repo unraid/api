@@ -45,7 +45,13 @@ eval "$rsync_command"
 exit_code=$?
 
 # Run unraid-api restart on remote host
-ssh root@"${server_name}" "unraid-api restart"
+dev=${DEV:-true}
+
+if [ "$dev" = true ]; then
+  ssh root@"${server_name}" "INTROSPECTION=true unraid-api restart"
+else
+  ssh root@"${server_name}" "unraid-api restart"
+fi
 
 # Play built-in sound based on the operating system
 if [[ "$OSTYPE" == "darwin"* ]]; then
