@@ -129,6 +129,9 @@ jobs:
         run: |
           mkdir unraid-ui-dist
           mv dist/ unraid-ui-dist/dist/
+          mv src unraid-ui-dist/src
+          ln -s unraid-ui-dist/dist/node_modules unraid-ui-dist/node_modules
+          mv tailwind.config.ts unraid-ui-dist/tailwind.config.ts
           mv package.json unraid-ui-dist/package.json
           ls unraid-ui-dist
 
