@@ -10,6 +10,7 @@ import { SwitchEnvCommand } from '@app/unraid-api/cli/switch-env.command';
 import { VersionCommand } from '@app/unraid-api/cli/version.command';
 import { StatusCommand } from '@app/unraid-api/cli/status.command';
 import { ValidateTokenCommand } from '@app/unraid-api/cli/validate-token.command';
+import { LogsCommand } from '@app/unraid-api/cli/logs.command';
 
 @Module({
     providers: [
@@ -22,7 +23,8 @@ import { ValidateTokenCommand } from '@app/unraid-api/cli/validate-token.command
         SwitchEnvCommand,
         VersionCommand,
         StatusCommand,
-        ValidateTokenCommand
+        ValidateTokenCommand,
+        LogsCommand
     ],
 })
 export class CliModule {}
