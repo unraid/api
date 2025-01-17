@@ -17,7 +17,7 @@ import { setupLogRotation } from '@app/core/logrotate/setup-logrotate';
 import { fileExistsSync } from '@app/core/utils/files/file-exists';
 import { environment, PORT } from '@app/environment';
 import * as envVars from '@app/environment';
-import { PingTimeoutJobs } from '@app/mothership/jobs/ping-timeout-jobs';
+import { createLocalApiKeyForConnectIfNecessary } from '@app/mothership/utils/create-local-connect-api-key';
 import { store } from '@app/store';
 import { loadDynamixConfigFile } from '@app/store/actions/load-dynamix-config-file';
 import { shutdownApiEvent } from '@app/store/actions/shutdown-api-event';
@@ -31,7 +31,6 @@ import { setupRegistrationKeyWatch } from '@app/store/watch/registration-watch';
 import { StateManager } from '@app/store/watch/state-watch';
 import { setupVarRunWatch } from '@app/store/watch/var-run-watch';
 import { bootstrapNestServer } from '@app/unraid-api/main';
-import { createLocalApiKeyForConnectIfNecessary } from '@app/mothership/utils/create-local-connect-api-key';
 
 import { setupNewMothershipSubscription } from './mothership/subscribe-to-mothership';
 

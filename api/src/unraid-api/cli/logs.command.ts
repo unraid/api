@@ -20,10 +20,9 @@ export class LogsCommand extends CommandRunner {
         return isNaN(parseInt(input)) ? 100 : parseInt(input)
     }
 
-    async run(passedParams: string[], options?: LogsOptions): Promise<void> {
+    async run(_: string[], options?: LogsOptions): Promise<void> {
         const lines = options?.lines ?? 100;
         const subprocess = execa(PM2_PATH, ['logs', ECOSYSTEM_PATH, '--lines', lines.toString()]);
-
         subprocess.stdout?.on('data', (data) => {
             this.logger.log(data.toString());
         });
