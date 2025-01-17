@@ -20,7 +20,6 @@ const level =
     ] ?? 'info';
 
 export const logDestination = pino.destination({
-    minLength: 1_024,
     sync: true,
 });
 
