@@ -82,9 +82,9 @@
     "./styles": "./dist/style.css",
     "./styles/*": "./src/styles/*",
     "./tailwind.config": {
-      "types": "./dist/tailwind.config.d.ts",
-      "import": "./dist/tailwind.config.js",
-      "default": "./dist/tailwind.config.js"
+      "types": "./dist/tailwind.d.ts",
+      "import": "./dist/tailwind.mjs",
+      "default": "./dist/tailwind.mjs"
     },
     "./theme/preset": {
       "types": "./dist/theme/preset.d.ts",

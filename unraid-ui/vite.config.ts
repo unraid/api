@@ -52,7 +52,7 @@ export default function createConfig() {
           },
           entryFileNames: (chunkInfo) => {
             if (chunkInfo.name === 'tailwind') {
-              return '[name].config.js';
+              return '[name].mjs';
             } else {
               return '[name].js';
             }
