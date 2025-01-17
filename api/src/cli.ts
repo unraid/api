@@ -1,13 +1,26 @@
 #!/usr/bin/env node
 import '@app/dotenv';
 
-import { main } from '@app/cli/index';
-import { internalLogger } from '@app/core/log';
+import { execSync } from 'child_process';
+
+import { CommandFactory } from 'nest-commander';
+
+import { cliLogger, internalLogger } from '@app/core/log';
+import { CliModule } from '@app/unraid-api/cli/cli.module';
 
 try {
-    await main();
+    const shellToUse = execSync('which bash');
+    await CommandFactory.run(CliModule, {
+        cliName: 'unraid-api',
+        logger: false,
+        completion: {
+            fig: true,
+            cmd: 'unraid-api',
+            nativeShell: { executablePath: shellToUse.toString('utf-8') },
+        },
+    });
 } catch (error) {
-    console.log(error);
+    cliLogger.error('ERROR:', error);
     internalLogger.error({
         message: 'Failed to start unraid-api',
         error,
