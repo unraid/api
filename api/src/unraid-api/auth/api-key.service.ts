@@ -27,7 +27,12 @@ export class ApiKeyService implements OnModuleInit {
     }
 
     async onModuleInit() {
-        this.memoryApiKeys = await this.loadAllFromDisk();
+        try {
+            this.memoryApiKeys = await this.loadAllFromDisk();
+        } catch (error) {
+            this.logger.error('Failed to initialize API keys:', error);
+            throw error;
+        }
     }
 
     public findAll(): ApiKey[] {
@@ -108,9 +113,11 @@ export class ApiKeyService implements OnModuleInit {
 
                         apiKeys.push(apiKey);
                     } catch (error) {
+                        if (error instanceof SyntaxError) {
+                            throw new Error('Authentication system error: Corrupted key file');
+                        }
                         if (error instanceof ZodError) {
                             this.logger.error(`Invalid API key structure in file ${file}`, error.errors);
-
                             continue;
                         }
                         this.logger.warn(`Error reading API key file ${file}: ${error}`);
@@ -119,8 +126,11 @@ export class ApiKeyService implements OnModuleInit {
             }
             return apiKeys;
         } catch (error) {
+            if (error instanceof Error) {
+                throw error;
+            }
             this.logger.error(`Failed to read API key directory: ${error}`);
-            throw new GraphQLError('Failed to list API keys');
+            throw new Error('Failed to list API keys');
         }
     }
 
@@ -200,7 +210,10 @@ export class ApiKeyService implements OnModuleInit {
                     return acc;
                 }, {} as ApiKeyWithSecret);
 
-            await writeFile(`${validatedApiKey.id}.json`, JSON.stringify(sortedApiKey, null, 2));
+            await writeFile(
+                join(this.basePath, `${validatedApiKey.id}.json`),
+                JSON.stringify(sortedApiKey, null, 2)
+            );
         } catch (error: unknown) {
             if (error instanceof ZodError) {
                 this.logger.error('Invalid API key structure', error.errors);

@@ -5,7 +5,7 @@ import { AuthZService } from 'nest-authz';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import type { ApiKey, ApiKeyWithSecret, UserAccount } from '@app/graphql/generated/api/types';
-import { Role } from '@app/graphql/generated/api/types';
+import { Resource, Role } from '@app/graphql/generated/api/types';
 
 import { ApiKeyService } from './api-key.service';
 import { AuthService } from './auth.service';
@@ -32,6 +32,12 @@ describe('AuthService', () => {
         name: 'Test API Key',
         description: 'Test API Key Description',
         roles: [Role.GUEST],
+        permissions: [
+            {
+                resource: Resource.CONNECT,
+                actions: ['read'],
+            },
+        ],
         createdAt: new Date().toISOString(),
     };
 
