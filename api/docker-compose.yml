@@ -1,5 +1,3 @@
-version: '3.8'
-
 x-volumes: &volumes
   volumes:
   - ./dev:/app/dev
