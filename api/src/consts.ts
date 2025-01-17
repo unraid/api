@@ -1,5 +1,5 @@
 import { PORT } from '@app/environment';
-import { type JSONWebKeySet } from 'jose';
+import type { JSONWebKeySet } from 'jose';
 import { join } from 'path';
 
 export const getInternalApiAddress = (isHttp = true, nginxPort = 80) => {
@@ -82,3 +82,4 @@ export const KEYSERVER_VALIDATION_ENDPOINT =
 export const MAX_RETRIES_FOR_LINEAR_BACKOFF = 100;
 
 export const PM2_PATH = join(import.meta.dirname, '../../', 'node_modules', '.bin', 'pm2');
+export const ECOSYSTEM_PATH = join(import.meta.dirname, '../../', 'ecosystem.config.json');

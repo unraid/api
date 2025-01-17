@@ -1,9 +1,10 @@
 import { execSync } from 'child_process';
 import { join } from 'path';
 
+import { execa } from 'execa';
 import { Command, CommandRunner, Option } from 'nest-commander';
 
-import { PM2_PATH } from '@app/consts';
+import { ECOSYSTEM_PATH, PM2_PATH } from '@app/consts';
 import { levels } from '@app/core/log';
 import { LogService } from '@app/unraid-api/cli/log.service';
 
@@ -21,27 +22,23 @@ export class StartCommand extends CommandRunner {
     }
 
     async run(_, options: StartCommandOptions): Promise<void> {
-        this.logger.debug(options);
-        this.logger.log(
-            `Starting unraid-api with command: 
-${PM2_PATH} start ${join(import.meta.dirname, 'ecosystem.config.json')} --update-env`
-        );
-
-        execSync(
-            `${PM2_PATH} start ${join(import.meta.dirname, '../../', 'ecosystem.config.json')} --update-env`,
-            {
-                env: process.env,
-                stdio: 'inherit',
-                cwd: process.cwd(),
-            }
-        );
+        this.logger.info('Starting the Unraid API');
+        const envLog = options['log-level'] ? `LOG_LEVEL=${options['log-level']}` : ''
+        const { stderr, stdout } = await execa(`${envLog} ${PM2_PATH}`.trim(), ['start', ECOSYSTEM_PATH, '--update-env']);
+        if (stdout) {
+            this.logger.log(stdout);
+        }
+        if (stderr) {
+            this.logger.error(stderr);
+            process.exit(1);
+        }
     }
 
     @Option({
-        flags: '--log-level [string]',
+        flags: `--log-level <${levels.join('|')}>`,
         description: 'log level to use',
     })
-    parseLogLevel(val: unknown): typeof levels {
+    parseLogLevel(val: string): typeof levels {
         return (levels.includes(val as (typeof levels)[number])
             ? (val as (typeof levels)[number])
             : 'info') as unknown as typeof levels;
