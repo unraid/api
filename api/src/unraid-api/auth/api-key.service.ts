@@ -118,7 +118,7 @@ export class ApiKeyService implements OnModuleInit {
                         }
                         if (error instanceof ZodError) {
                             this.logger.error(`Invalid API key structure in file ${file}`, error.errors);
-                            continue;
+                            throw new Error('Invalid API key structure');
                         }
                         this.logger.warn(`Error reading API key file ${file}: ${error}`);
                     }
@@ -135,12 +135,20 @@ export class ApiKeyService implements OnModuleInit {
     }
 
     findById(id: string): ApiKey | null {
-        const key = this.findByField('id', id);
+        try {
+            const key = this.findByField('id', id);
 
-        if (key) {
-            return ApiKeySchema().parse(key);
+            if (key) {
+                return ApiKeySchema().parse(key);
+            }
+            return null;
+        } catch (error) {
+            if (error instanceof ZodError) {
+                this.logger.error('Invalid API key structure', error.errors);
+                throw new Error('Invalid API key structure');
+            }
+            throw error;
         }
-        return null;
     }
 
     public findByIdWithSecret(id: string): ApiKeyWithSecret | null {
