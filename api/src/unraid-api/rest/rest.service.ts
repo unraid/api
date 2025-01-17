@@ -9,6 +9,7 @@ import { execa } from 'execa';
 import { getBannerPathIfPresent, getCasePathIfPresent } from '@app/core/utils/images/image-file-helpers';
 import { getters } from '@app/store/index';
 import { ReportCommand } from '@app/unraid-api/cli/report.command';
+import { LogService } from '@app/unraid-api/cli/log.service';
 
 @Injectable()
 export class RestService {
@@ -16,7 +17,7 @@ export class RestService {
 
     async saveApiReport(pathToReport: string) {
         try {
-            const reportCommand = new ReportCommand();
+            const reportCommand = new ReportCommand(new LogService());
 
             const apiReport = await reportCommand.report({ json: true, verbose: 2, raw: false });
             this.logger.debug('Report object %o', apiReport);
