@@ -1,5 +1,7 @@
 import type { Config } from "tailwindcss";
 import type { PluginAPI } from "tailwindcss/types/config";
+import typography from "@tailwindcss/typography";
+import animate from "tailwindcss-animate";
 
 export const unraidPreset = {
   darkMode: ['selector', '[data-mode="dark"]'],
@@ -239,5 +241,5 @@ export const unraidPreset = {
       }),
     },
   },
-  plugins: [require('@tailwindcss/typography'), require('tailwindcss-animate')],
+  plugins: [typography, animate],
 } satisfies Partial<Config>; 

@@ -86,6 +86,10 @@
       "import": "./dist/tailwind.mjs",
       "default": "./dist/tailwind.mjs"
     },
+    "./tailwind.config.ts": {
+      "import": "./tailwind.config.ts",
+      "default": "./tailwind.config.ts"
+    },
     "./theme/preset": {
       "types": "./dist/theme/preset.d.ts",
       "import": "./dist/theme/preset.js"
