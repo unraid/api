@@ -1,0 +1,9 @@
+default: list-commands
+
+list-commands:
+    @just --list --justfile {{justfile()}} --list-heading $'\nMonorepo recipes:\n'  
+
+# Prepares the repo for development
+setup:
+    npm install
+    npm run build
