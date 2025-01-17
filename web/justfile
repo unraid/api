@@ -5,5 +5,6 @@ default:
     @just list-commands
 
 setup:
+    just ../unraid-ui/setup
     cp .env.example .env
     npm install
