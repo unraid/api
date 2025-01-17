@@ -1,6 +1,3 @@
-import { execSync } from 'child_process';
-import { join } from 'path';
-
 import { execa } from 'execa';
 import { Command, CommandRunner, Option } from 'nest-commander';
 
@@ -23,8 +20,12 @@ export class StartCommand extends CommandRunner {
 
     async run(_, options: StartCommandOptions): Promise<void> {
         this.logger.info('Starting the Unraid API');
-        const envLog = options['log-level'] ? `LOG_LEVEL=${options['log-level']}` : ''
-        const { stderr, stdout } = await execa(`${envLog} ${PM2_PATH}`.trim(), ['start', ECOSYSTEM_PATH, '--update-env']);
+        const envLog = options['log-level'] ? `LOG_LEVEL=${options['log-level']}` : '';
+        const { stderr, stdout } = await execa(
+            `${envLog} ${PM2_PATH}`.trim(),
+            ['start', ECOSYSTEM_PATH, '--update-env'],
+            { stdio: 'inherit' }
+        );
         if (stdout) {
             this.logger.log(stdout);
         }
