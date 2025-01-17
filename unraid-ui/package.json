@@ -31,20 +31,21 @@
   "dependencies": {
     "@headlessui/vue": "^1.7.23",
     "@heroicons/vue": "^2.2.0",
+    "@tailwindcss/typography": "^0.5.16",
     "@vueuse/core": "^10.0.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "lucide-vue-next": "^0.468.0",
     "radix-vue": "^1.9.11",
     "shadcn-vue": "^0.11.3",
-    "tailwind-merge": "^2.5.5"
+    "tailwind-merge": "^2.5.5",
+    "tailwindcss-animate": "^1.0.7"
   },
   "devDependencies": {
     "@storybook/addon-essentials": "^8.4.7",
     "@storybook/addon-interactions": "^8.4.7",
     "@storybook/addon-links": "^8.4.7",
     "@storybook/vue3-vite": "^8.4.7",
-    "@tailwindcss/typography": "^0.5.15",
     "@testing-library/vue": "^8.0.0",
     "@types/jsdom": "^21.1.7",
     "@types/node": "^20.0.0",
@@ -62,7 +63,6 @@
     "postcss": "^8.4.49",
     "prettier": "3.4.2",
     "tailwindcss": "^3.0.0",
-    "tailwindcss-animate": "^1.0.7",
     "typescript": "^5.0.0",
     "vite": "^5.0.0",
     "vite-plugin-dts": "^4.5.0",
@@ -83,8 +83,8 @@
     "./styles/*": "./src/styles/*",
     "./tailwind.config": {
       "types": "./dist/tailwind.d.ts",
-      "import": "./dist/tailwind.mjs",
-      "default": "./dist/tailwind.mjs"
+      "import": "./dist/tailwind.config.js",
+      "default": "./dist/tailwind.config.js"
     },
     "./tailwind.config.ts": {
       "import": "./tailwind.config.ts",
