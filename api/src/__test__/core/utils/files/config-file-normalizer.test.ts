@@ -10,72 +10,75 @@ test('it creates a FLASH config with NO OPTIONAL values', () => {
     const basicConfig = initialState;
     const config = getWriteableConfig(basicConfig, 'flash');
     expect(config).toMatchInlineSnapshot(`
-		{
-		  "api": {
-		    "extraOrigins": "",
-		    "version": "",
-		  },
-		  "local": {},
-		  "notifier": {
-		    "apikey": "",
-		  },
-		  "remote": {
-		    "accesstoken": "",
-		    "apikey": "",
-		    "avatar": "",
-		    "dynamicRemoteAccessType": "DISABLED",
-		    "email": "",
-		    "idtoken": "",
-		    "localApiKey": "",
-		    "refreshtoken": "",
-		    "regWizTime": "",
-		    "username": "",
-		    "wanaccess": "",
-		    "wanport": "",
-		  },
-		  "upc": {
-		    "apikey": "",
-		  },
-		}
-	`);
+      {
+        "api": {
+          "extraOrigins": "",
+          "version": "",
+        },
+        "local": {},
+        "notifier": {
+          "apikey": "",
+        },
+        "remote": {
+          "accesstoken": "",
+          "apikey": "",
+          "avatar": "",
+          "dynamicRemoteAccessType": "DISABLED",
+          "email": "",
+          "idtoken": "",
+          "localApiKey": "",
+          "refreshtoken": "",
+          "regWizTime": "",
+          "upnpEnabled": "",
+          "username": "",
+          "wanaccess": "",
+          "wanport": "",
+        },
+        "upc": {
+          "apikey": "",
+        },
+      }
+    `);
 });
 
 test('it creates a MEMORY config with NO OPTIONAL values', () => {
     const basicConfig = initialState;
     const config = getWriteableConfig(basicConfig, 'memory');
     expect(config).toMatchInlineSnapshot(`
-		{
-		  "api": {
-		    "extraOrigins": "",
-		    "version": "",
-		  },
-		  "connectionStatus": {
-		    "minigraph": "PRE_INIT",
-		  },
-		  "local": {},
-		  "notifier": {
-		    "apikey": "",
-		  },
-		  "remote": {
-		    "accesstoken": "",
-		    "allowedOrigins": "/var/run/unraid-notifications.sock, /var/run/unraid-php.sock, /var/run/unraid-cli.sock, https://connect.myunraid.net, https://connect-staging.myunraid.net, https://dev-my.myunraid.net:4000",
-		    "apikey": "",
-		    "avatar": "",
-		    "dynamicRemoteAccessType": "DISABLED",
-		    "email": "",
-		    "idtoken": "",
-		    "localApiKey": "",
-		    "refreshtoken": "",
-		    "regWizTime": "",
-		    "username": "",
-		    "wanaccess": "",
-		    "wanport": "",
-		  },
-		  "upc": {
-		    "apikey": "",
-		  },
-		}
-	`);
+      {
+        "api": {
+          "extraOrigins": "",
+          "version": "",
+        },
+        "connectionStatus": {
+          "minigraph": "PRE_INIT",
+          "upnpStatus": "",
+        },
+        "local": {},
+        "notifier": {
+          "apikey": "",
+        },
+        "remote": {
+          "accesstoken": "",
+          "allowedOrigins": "/var/run/unraid-notifications.sock, /var/run/unraid-php.sock, /var/run/unraid-cli.sock, https://connect.myunraid.net, https://connect-staging.myunraid.net, https://dev-my.myunraid.net:4000",
+          "apikey": "",
+          "avatar": "",
+          "dynamicRemoteAccessType": "DISABLED",
+          "email": "",
+          "idtoken": "",
+          "localApiKey": "",
+          "refreshtoken": "",
+          "regWizTime": "",
+          "upnpEnabled": "",
+          "username": "",
+          "wanaccess": "",
+          "wanport": "",
+        },
+        "upc": {
+          "apikey": "",
+        },
+      }
+    `);
 });
 
 test('it creates a FLASH config with OPTIONAL values', () => {

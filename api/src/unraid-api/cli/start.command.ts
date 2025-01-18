@@ -28,6 +28,7 @@ export class StartCommand extends CommandRunner {
         );
         if (stdout) {
             this.logger.log(stdout);
+            process.exit(0);
         }
         if (stderr) {
             this.logger.error(stderr);
