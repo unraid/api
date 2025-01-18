@@ -1,95 +1,64 @@
-import { getAllowedOrigins } from '@app/common/allowed-origins';
-import { DynamicRemoteAccessType } from '@app/graphql/generated/api/types';
-import {
-    type SliceState as ConfigSliceState,
-    initialState,
-} from '@app/store/modules/config';
-import { type RecursivePartial } from '@app/types';
-import type {
-    MyServersConfig,
-    MyServersConfigMemory,
-} from '@app/types/my-servers-config';
 import { isEqual } from 'lodash-es';
 
-export type ConfigType = 'flash' | 'memory';
-type ConfigObject<T> = T extends 'flash'
-    ? MyServersConfig
-    : T extends 'memory'
-    ? MyServersConfigMemory
-    : never;
-/**
- *
- * @param config Config to read from to create a new formatted server config to write
- * @param mode 'flash' or 'memory', changes what fields are included in the writeable payload
- * @returns
- */
- 
-export const getWriteableConfig = <T extends ConfigType>(
-    config: ConfigSliceState,
-    mode: T
-): ConfigObject<T> => {
-    // Get current state
-    const { api, local, notifier, remote, upc, connectionStatus } = config;
+import { getAllowedOrigins } from '@app/common/allowed-origins';
+import { initialState } from '@app/store/modules/config';
+import {
+    MyServersConfig,
+    MyServersConfigMemory,
+    MyServersConfigMemorySchema,
+    MyServersConfigSchema,
+} from '@app/types/my-servers-config';
 
-    // Create new state
-     
-    const newState: ConfigObject<T> = {
-        api: {
-            version: api?.version ?? initialState.api.version,
-            extraOrigins: api?.extraOrigins ?? initialState.api.extraOrigins,
-        },
-        local: {},
-        notifier: {
-            apikey: notifier.apikey ?? initialState.notifier.apikey,
-        },
+// Define ConfigType and ConfigObject
+export type ConfigType = 'flash' | 'memory';
+
+/**
+ * Get a writeable configuration based on the mode ('flash' or 'memory').
+ */
+export const getWriteableConfig = <T extends ConfigType>(
+    config: T extends 'memory' ? MyServersConfigMemory : MyServersConfig,
+    mode: T
+): T extends 'memory' ? MyServersConfigMemory : MyServersConfig => {
+    const schema = mode === 'memory' ? MyServersConfigMemorySchema : MyServersConfigSchema;
+
+    const defaultConfig = schema.parse(initialState);
+    // Use a type assertion for the mergedConfig to include `connectionStatus` only if `mode === 'memory`
+    const mergedConfig = {
+        ...defaultConfig,
+        ...config,
         remote: {
-            wanaccess: remote.wanaccess ?? initialState.remote.wanaccess,
-            wanport: remote.wanport ?? initialState.remote.wanport,
-            ...(remote.upnpEnabled ? { upnpEnabled: remote.upnpEnabled } : {}),
-            apikey: remote.apikey ?? initialState.remote.apikey,
-            localApiKey: remote.localApiKey ?? initialState.remote.localApiKey,
-            email: remote.email ?? initialState.remote.email,
-            username: remote.username ?? initialState.remote.username,
-            avatar: remote.avatar ?? initialState.remote.avatar,
-            regWizTime: remote.regWizTime ?? initialState.remote.regWizTime,
-            idtoken: remote.idtoken ?? initialState.remote.idtoken,
-            accesstoken: remote.accesstoken ?? initialState.remote.accesstoken,
-            refreshtoken:
-                remote.refreshtoken ?? initialState.remote.refreshtoken,
-            ...(mode === 'memory'
-                ? {
-                      allowedOrigins:
-                          getAllowedOrigins().join(', ')
-                  }
-                : {}),
-            dynamicRemoteAccessType: remote.dynamicRemoteAccessType ?? DynamicRemoteAccessType.DISABLED,
+            ...defaultConfig.remote,
+            ...config.remote,
         },
-        upc: {
-            apikey: upc.apikey ?? initialState.upc.apikey,
-        },
-        ...(mode === 'memory'
-            ? {
-                  connectionStatus: {
-                      minigraph:
-                          connectionStatus.minigraph ??
-                          initialState.connectionStatus.minigraph,
-                      ...(connectionStatus.upnpStatus
-                          ? { upnpStatus: connectionStatus.upnpStatus }
-                          : {}),
-                  },
-              }
-            : {}),
-    } as ConfigObject<T>;
-    return newState;
+    } as T extends 'memory' ? MyServersConfigMemory : MyServersConfig;
+
+    if (mode === 'memory') {
+        (mergedConfig as MyServersConfigMemory).remote.allowedOrigins = getAllowedOrigins().join(', ');
+        (mergedConfig as MyServersConfigMemory).connectionStatus = {
+            ...(defaultConfig as MyServersConfigMemory).connectionStatus,
+            ...(config as MyServersConfigMemory).connectionStatus,
+        };
+    }
+
+    return schema.parse(mergedConfig) as any; // Narrowing ensures correct typing
 };
 
 /**
- * Helper function to convert an object into a normalized config file.
- * This is used for loading config files and ensure changes have been made before the state is merged.
+ * Check if two configurations are equivalent by normalizing them through the Zod schema.
  */
 export const areConfigsEquivalent = (
-    newConfigFile: RecursivePartial<MyServersConfig>,
-    currentConfig: ConfigSliceState
-): boolean =>
-    // Enable to view config diffs: logger.debug(getDiff(getWriteableConfig(currentConfig, 'flash'), newConfigFile));
-    isEqual(newConfigFile, getWriteableConfig(currentConfig, 'flash'));
+    newConfigFile: Partial<MyServersConfigMemory>, // Use Partial here for flexibility
+    currentConfig: MyServersConfig
+): boolean => {
+    // Parse and validate the new config file using the schema (with default values applied)
+    const normalizedNewConfig = MyServersConfigSchema.parse({
+        ...currentConfig, // Use currentConfig as a baseline to fill missing fields
+        ...newConfigFile,
+    });
+
+    // Get the writeable configuration for the current config
+    const normalizedCurrentConfig = getWriteableConfig(currentConfig, 'flash');
+
+    // Compare the normalized configurations
+    return isEqual(normalizedNewConfig, normalizedCurrentConfig);
+};
