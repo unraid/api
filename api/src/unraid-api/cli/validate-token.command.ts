@@ -29,6 +29,7 @@ export class ValidateTokenCommand extends CommandRunner {
     async run(passedParams: string[]): Promise<void> {
         if (passedParams.length !== 1) {
             this.logger.error('Please pass token argument only');
+            process.exit(1);
         }
 
         const token = passedParams[0];
