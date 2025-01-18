@@ -68,6 +68,7 @@ export const JWKS_LOCAL_PAYLOAD: JSONWebKeySet = {
         },
     ],
 };
+
 export const OAUTH_BASE_URL =
     'https://cognito-idp.us-west-2.amazonaws.com/us-west-2_btSkhlsEk';
 export const OAUTH_CLIENT_ID = '53ci4o48gac8vq5jepubkjmo36';
