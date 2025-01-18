@@ -1,0 +1,40 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`Before init returns default values for all fields 1`] = `
+{
+  "api": {
+    "extraOrigins": "",
+    "version": "",
+  },
+  "connectionStatus": {
+    "minigraph": "PRE_INIT",
+    "upnpStatus": "",
+  },
+  "local": {},
+  "nodeEnv": "test",
+  "notifier": {
+    "apikey": "",
+  },
+  "remote": {
+    "accesstoken": "",
+    "allowedOrigins": "",
+    "apikey": "",
+    "avatar": "",
+    "dynamicRemoteAccessType": "DISABLED",
+    "email": "",
+    "idtoken": "",
+    "localApiKey": "",
+    "refreshtoken": "",
+    "regWizTime": "",
+    "ssoSubIds": "",
+    "upnpEnabled": "",
+    "username": "",
+    "wanaccess": "",
+    "wanport": "",
+  },
+  "status": "UNLOADED",
+  "upc": {
+    "apikey": "",
+  },
+}
+`;
