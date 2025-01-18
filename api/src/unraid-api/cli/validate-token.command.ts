@@ -7,12 +7,6 @@ import { store } from '@app/store';
 import { loadConfigFile } from '@app/store/modules/config';
 import { LogService } from '@app/unraid-api/cli/log.service';
 
-const createJsonErrorString = (errorMessage: string) =>
-    JSON.stringify({
-        error: errorMessage,
-        valid: false,
-    });
-
 @Command({
     name: 'validate-token',
     description: 'Returns JSON: { error: string | null, valid: boolean }',
@@ -26,6 +20,17 @@ export class ValidateTokenCommand extends CommandRunner {
         this.JWKSOffline = createLocalJWKSet(JWKS_LOCAL_PAYLOAD);
         this.JWKSOnline = createRemoteJWKSet(new URL(JWKS_REMOTE_LINK));
     }
+
+    private createErrorAndExit = (errorMessage: string) => {
+        this.logger.error(
+            JSON.stringify({
+                error: errorMessage,
+                valid: false,
+            })
+        );
+        process.exit(1);
+    };
+
     async run(passedParams: string[]): Promise<void> {
         if (passedParams.length !== 1) {
             this.logger.error('Please pass token argument only');
@@ -50,31 +55,32 @@ export class ValidateTokenCommand extends CommandRunner {
 
         if (caughtError) {
             if (caughtError instanceof Error) {
-                this.logger.error(
-                    createJsonErrorString(`Caught error validating jwt token: ${caughtError.message}`)
-                );
+                this.createErrorAndExit(`Caught error validating jwt token: ${caughtError.message}`);
             } else {
-                this.logger.error(createJsonErrorString('Caught error validating jwt token'));
+                this.createErrorAndExit('Caught unknown error validating jwt token');
             }
         }
 
         if (tokenPayload === null) {
-            this.logger.error(createJsonErrorString('No data in JWT to use for user validation'));
+            this.createErrorAndExit('No data in JWT to use for user validation');
         }
 
-        const username = tokenPayload!.username ?? tokenPayload!['cognito:username'];
+        const username = tokenPayload?.sub;
+
+        if (!username) {
+            return this.createErrorAndExit('No ID found in token');
+        }
         const configFile = await store.dispatch(loadConfigFile()).unwrap();
-        if (!configFile.remote?.accesstoken) {
-            this.logger.error(createJsonErrorString('No local user token set to compare to'));
-        }
-
-        const existingUserPayload = decodeJwt(configFile.remote?.accesstoken);
-        if (username === existingUserPayload.username) {
-            this.logger.info(JSON.stringify({ error: null, valid: true }));
-        } else {
-            this.logger.error(
-                createJsonErrorString('Username on token does not match logged in user name')
+        if (!configFile.remote?.ssoSubIds) {
+            this.createErrorAndExit(
+                'No local user token set to compare to - please set any valid SSO IDs you would like to sign in with'
             );
+        }
+        const possibleUserIds = configFile.remote.ssoSubIds.split(',');
+        if (possibleUserIds.includes(username)) {
+            this.logger.info(JSON.stringify({ error: null, valid: true, username }));
+        } else {
+            this.createErrorAndExit('Username on token does not match');
         }
     }
 }

@@ -29,6 +29,7 @@ test('it creates a FLASH config with NO OPTIONAL values', () => {
           "localApiKey": "",
           "refreshtoken": "",
           "regWizTime": "",
+          "ssoSubIds": "",
           "upnpEnabled": "",
           "username": "",
           "wanaccess": "",
@@ -69,6 +70,7 @@ test('it creates a MEMORY config with NO OPTIONAL values', () => {
           "localApiKey": "",
           "refreshtoken": "",
           "regWizTime": "",
+          "ssoSubIds": "",
           "upnpEnabled": "",
           "username": "",
           "wanaccess": "",
@@ -93,35 +95,36 @@ test('it creates a FLASH config with OPTIONAL values', () => {
     basicConfig.connectionStatus.upnpStatus = 'Turned On';
     const config = getWriteableConfig(basicConfig, 'flash');
     expect(config).toMatchInlineSnapshot(`
-		{
-		  "api": {
-		    "extraOrigins": "myextra.origins",
-		    "version": "",
-		  },
-		  "local": {},
-		  "notifier": {
-		    "apikey": "",
-		  },
-		  "remote": {
-		    "accesstoken": "",
-		    "apikey": "",
-		    "avatar": "",
-		    "dynamicRemoteAccessType": "DISABLED",
-		    "email": "",
-		    "idtoken": "",
-		    "localApiKey": "",
-		    "refreshtoken": "",
-		    "regWizTime": "",
-		    "upnpEnabled": "yes",
-		    "username": "",
-		    "wanaccess": "",
-		    "wanport": "",
-		  },
-		  "upc": {
-		    "apikey": "",
-		  },
-		}
-	`);
+      {
+        "api": {
+          "extraOrigins": "myextra.origins",
+          "version": "",
+        },
+        "local": {},
+        "notifier": {
+          "apikey": "",
+        },
+        "remote": {
+          "accesstoken": "",
+          "apikey": "",
+          "avatar": "",
+          "dynamicRemoteAccessType": "DISABLED",
+          "email": "",
+          "idtoken": "",
+          "localApiKey": "",
+          "refreshtoken": "",
+          "regWizTime": "",
+          "ssoSubIds": "",
+          "upnpEnabled": "yes",
+          "username": "",
+          "wanaccess": "",
+          "wanport": "",
+        },
+        "upc": {
+          "apikey": "",
+        },
+      }
+    `);
 });
 
 test('it creates a MEMORY config with OPTIONAL values', () => {
@@ -135,38 +138,39 @@ test('it creates a MEMORY config with OPTIONAL values', () => {
     basicConfig.connectionStatus.upnpStatus = 'Turned On';
     const config = getWriteableConfig(basicConfig, 'memory');
     expect(config).toMatchInlineSnapshot(`
-		{
-		  "api": {
-		    "extraOrigins": "myextra.origins",
-		    "version": "",
-		  },
-		  "connectionStatus": {
-		    "minigraph": "PRE_INIT",
-		    "upnpStatus": "Turned On",
-		  },
-		  "local": {},
-		  "notifier": {
-		    "apikey": "",
-		  },
-		  "remote": {
-		    "accesstoken": "",
-		    "allowedOrigins": "/var/run/unraid-notifications.sock, /var/run/unraid-php.sock, /var/run/unraid-cli.sock, https://connect.myunraid.net, https://connect-staging.myunraid.net, https://dev-my.myunraid.net:4000",
-		    "apikey": "",
-		    "avatar": "",
-		    "dynamicRemoteAccessType": "DISABLED",
-		    "email": "",
-		    "idtoken": "",
-		    "localApiKey": "",
-		    "refreshtoken": "",
-		    "regWizTime": "",
-		    "upnpEnabled": "yes",
-		    "username": "",
-		    "wanaccess": "",
-		    "wanport": "",
-		  },
-		  "upc": {
-		    "apikey": "",
-		  },
-		}
-	`);
+      {
+        "api": {
+          "extraOrigins": "myextra.origins",
+          "version": "",
+        },
+        "connectionStatus": {
+          "minigraph": "PRE_INIT",
+          "upnpStatus": "Turned On",
+        },
+        "local": {},
+        "notifier": {
+          "apikey": "",
+        },
+        "remote": {
+          "accesstoken": "",
+          "allowedOrigins": "/var/run/unraid-notifications.sock, /var/run/unraid-php.sock, /var/run/unraid-cli.sock, https://connect.myunraid.net, https://connect-staging.myunraid.net, https://dev-my.myunraid.net:4000",
+          "apikey": "",
+          "avatar": "",
+          "dynamicRemoteAccessType": "DISABLED",
+          "email": "",
+          "idtoken": "",
+          "localApiKey": "",
+          "refreshtoken": "",
+          "regWizTime": "",
+          "ssoSubIds": "",
+          "upnpEnabled": "yes",
+          "username": "",
+          "wanaccess": "",
+          "wanport": "",
+        },
+        "upc": {
+          "apikey": "",
+        },
+      }
+    `);
 });
