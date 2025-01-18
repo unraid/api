@@ -1,46 +1,11 @@
 import { expect, test } from 'vitest';
 
 import { store } from '@app/store';
+import { MyServersConfigMemory } from '@app/types/my-servers-config';
 
 test('Before init returns default values for all fields', async () => {
     const state = store.getState().config;
-    expect(state).toMatchInlineSnapshot(`
-		{
-		  "api": {
-		    "extraOrigins": "",
-		    "version": "",
-		  },
-		  "connectionStatus": {
-		    "minigraph": "PRE_INIT",
-		    "upnpStatus": "",
-		  },
-		  "local": {},
-		  "nodeEnv": "test",
-		  "notifier": {
-		    "apikey": "",
-		  },
-		  "remote": {
-		    "accesstoken": "",
-		    "allowedOrigins": "",
-		    "apikey": "",
-		    "avatar": "",
-		    "dynamicRemoteAccessType": "DISABLED",
-		    "email": "",
-		    "idtoken": "",
-		    "localApiKey": "",
-		    "refreshtoken": "",
-		    "regWizTime": "",
-		    "upnpEnabled": "",
-		    "username": "",
-		    "wanaccess": "",
-		    "wanport": "",
-		  },
-		  "status": "UNLOADED",
-		  "upc": {
-		    "apikey": "",
-		  },
-		}
-	`);
+    expect(state).toMatchSnapshot();
 }, 10_000);
 
 test('After init returns values from cfg file for all fields', async () => {
@@ -77,6 +42,7 @@ test('After init returns values from cfg file for all fields', async () => {
                 localApiKey: '_______________________LOCAL_API_KEY_HERE_________________________',
                 refreshtoken: '',
                 regWizTime: '1611175408732_0951-1653-3509-FBA155FA23C0',
+                ssoSubIds: '',
                 upnpEnabled: 'no',
                 username: 'zspearmint',
                 wanaccess: 'yes',
@@ -130,6 +96,7 @@ test('updateUserConfig merges in changes to current state', async () => {
                 localApiKey: '_______________________LOCAL_API_KEY_HERE_________________________',
                 refreshtoken: '',
                 regWizTime: '1611175408732_0951-1653-3509-FBA155FA23C0',
+                ssoSubIds: '',
                 upnpEnabled: 'no',
                 username: 'zspearmint',
                 wanaccess: 'yes',
@@ -139,6 +106,6 @@ test('updateUserConfig merges in changes to current state', async () => {
             upc: {
                 apikey: 'unupc_fab6ff6ffe51040595c6d9ffb63a353ba16cc2ad7d93f813a2e80a5810',
             },
-        })
+        } as MyServersConfigMemory)
     );
 });

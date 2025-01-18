@@ -51,6 +51,7 @@ export const initialState: SliceState = {
         refreshtoken: '',
         allowedOrigins: '',
         dynamicRemoteAccessType: DynamicRemoteAccessType.DISABLED,
+        ssoSubIds: ''
     },
     local: {},
     api: {

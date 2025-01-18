@@ -1,38 +1,27 @@
-import { execSync } from 'child_process';
-import { join } from 'path';
-
-
-
+import { execa } from 'execa';
 import { Command, CommandRunner } from 'nest-commander';
 
-
-
 import { ECOSYSTEM_PATH, PM2_PATH } from '@app/consts';
-
-
-
-
+import { LogService } from '@app/unraid-api/cli/log.service';
 
 /**
  * Stop a running API process and then start it again.
  */
-@Command({ name: 'restart', description: 'Restart / Start the Unraid API'})
+@Command({ name: 'restart', description: 'Restart / Start the Unraid API' })
 export class RestartCommand extends CommandRunner {
-	async run(_): Promise<void> {
-		console.log(
-            'Dirname is ',
-            import.meta.dirname,
-            ' command is ',
-            `${PM2_PATH} restart ${ECOSYSTEM_PATH} --update-env`
-        );
-		execSync(
-			`${PM2_PATH} restart ${ECOSYSTEM_PATH} --update-env`,
-			{
-				env: process.env,
-				stdio: 'pipe',
-				cwd: process.cwd(),
-			}
-		);
-	}
-	
+    constructor(private readonly logger: LogService) {
+        super();
+    }
+
+    async run(_): Promise<void> {
+        const { stderr, stdout } = await execa(PM2_PATH, ['restart', ECOSYSTEM_PATH]);
+        if (stderr) {
+            this.logger.error(stderr);
+            process.exit(1);
+        }
+        if (stdout) {
+            this.logger.info(stdout);
+        }
+        process.exit(0);
+    }
 }
