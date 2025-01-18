@@ -26,16 +26,19 @@ const RemoteConfigSchema = z.object({
     idtoken: z.string(),
     refreshtoken: z.string(),
     dynamicRemoteAccessType: z.nativeEnum(DynamicRemoteAccessType),
+    ssoSubIds: z.string(),
 });
 
 const UpcConfigSchema = z.object({
     apikey: z.string(),
 });
 
+const LocalConfigSchema = z.object({});
+
 // Base config schema
 export const MyServersConfigSchema = z.object({
     api: ApiConfigSchema,
-    local: z.object({}), // Empty object
+    local: LocalConfigSchema,
     notifier: NotifierConfigSchema,
     remote: RemoteConfigSchema,
     upc: UpcConfigSchema,
