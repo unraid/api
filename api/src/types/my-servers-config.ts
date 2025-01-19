@@ -8,10 +8,6 @@ const ApiConfigSchema = z.object({
     extraOrigins: z.string(),
 });
 
-const NotifierConfigSchema = z.object({
-    apikey: z.string(),
-});
-
 const RemoteConfigSchema = z.object({
     wanaccess: z.string(),
     wanport: z.string(),
@@ -29,20 +25,16 @@ const RemoteConfigSchema = z.object({
     ssoSubIds: z.string(),
 });
 
-const UpcConfigSchema = z.object({
-    apikey: z.string(),
-});
-
 const LocalConfigSchema = z.object({});
 
 // Base config schema
-export const MyServersConfigSchema = z.object({
-    api: ApiConfigSchema,
-    local: LocalConfigSchema,
-    notifier: NotifierConfigSchema,
-    remote: RemoteConfigSchema,
-    upc: UpcConfigSchema,
-});
+export const MyServersConfigSchema = z
+    .object({
+        api: ApiConfigSchema,
+        local: LocalConfigSchema,
+        remote: RemoteConfigSchema,
+    })
+    .strip();
 
 // Memory config schema
 export const ConnectionStatusSchema = z.object({
@@ -55,16 +47,8 @@ export const MyServersConfigMemorySchema = MyServersConfigSchema.extend({
     remote: RemoteConfigSchema.extend({
         allowedOrigins: z.string(),
     }),
-});
-
-// Memory config with mandatory hidden fields schema
-export const MyServersConfigMemoryWithMandatoryHiddenFieldsSchema = MyServersConfigMemorySchema.extend({
-    connectionStatus: ConnectionStatusSchema,
-});
+}).strip();
 
 // Infer and export types from Zod schemas
 export type MyServersConfig = z.infer<typeof MyServersConfigSchema>;
 export type MyServersConfigMemory = z.infer<typeof MyServersConfigMemorySchema>;
-export type MyServersConfigMemoryWithMandatoryHiddenFields = z.infer<
-    typeof MyServersConfigMemoryWithMandatoryHiddenFieldsSchema
->;
