@@ -42,11 +42,11 @@ export class ValidateTokenCommand extends CommandRunner {
         let caughtError: null | unknown = null;
         let tokenPayload: null | JWTPayload = null;
         try {
-            this.logger.debug('Attempting to validate token with local key');
+            // this.logger.debug('Attempting to validate token with local key');
             tokenPayload = (await jwtVerify(token, this.JWKSOffline)).payload;
         } catch (error: unknown) {
             try {
-                this.logger.debug('Local validation failed for key, trying remote validation');
+                // this.logger.debug('Local validation failed for key, trying remote validation');
                 tokenPayload = (await jwtVerify(token, this.JWKSOnline)).payload;
             } catch (error: unknown) {
                 caughtError = error;
