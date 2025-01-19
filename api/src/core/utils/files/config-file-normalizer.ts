@@ -42,23 +42,3 @@ export const getWriteableConfig = <T extends ConfigType>(
 
     return schema.parse(mergedConfig) as any; // Narrowing ensures correct typing
 };
-
-/**
- * Check if two configurations are equivalent by normalizing them through the Zod schema.
- */
-export const areConfigsEquivalent = (
-    newConfigFile: Partial<MyServersConfigMemory>, // Use Partial here for flexibility
-    currentConfig: MyServersConfig
-): boolean => {
-    // Parse and validate the new config file using the schema (with default values applied)
-    const normalizedNewConfig = MyServersConfigSchema.parse({
-        ...currentConfig, // Use currentConfig as a baseline to fill missing fields
-        ...newConfigFile,
-    });
-
-    // Get the writeable configuration for the current config
-    const normalizedCurrentConfig = getWriteableConfig(currentConfig, 'flash');
-
-    // Compare the normalized configurations
-    return isEqual(normalizedNewConfig, normalizedCurrentConfig);
-};
