@@ -55,12 +55,6 @@ export const initialState: SliceState = {
         extraOrigins: '',
         version: '',
     },
-    upc: {
-        apikey: '',
-    },
-    notifier: {
-        apikey: '',
-    },
     connectionStatus: {
         minigraph: MinigraphStatus.PRE_INIT,
         upnpStatus: '',
