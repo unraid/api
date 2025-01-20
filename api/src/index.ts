@@ -33,6 +33,7 @@ import { setupVarRunWatch } from '@app/store/watch/var-run-watch';
 import { bootstrapNestServer } from '@app/unraid-api/main';
 
 import { setupNewMothershipSubscription } from './mothership/subscribe-to-mothership';
+import { setupAuthRequest } from '@app/core/sso/auth-request-setup';
 
 let server: NestFastifyApplication<RawServerDefault> | null = null;
 
@@ -100,6 +101,7 @@ try {
 
     // If the config contains SSO IDs, enable SSO
     if (store.getState().config.remote.ssoSubIds) {
+        await setupAuthRequest();
         await setupSso();
     }
 
