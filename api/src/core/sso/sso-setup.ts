@@ -1,6 +1,10 @@
 import { existsSync } from 'node:fs';
 import { copyFile, readFile, rename, unlink, writeFile } from 'node:fs/promises';
 
+
+
+
+
 export const setupSso = async () => {
     const path = '/usr/local/emhttp/plugins/dynamix/include/.login.php';
 
@@ -52,8 +56,8 @@ function verifyUsernamePasswordAndSSO(string $username, string $password): bool 
         '!verifyUsernamePasswordAndSSO($username, $password)'
     );
 
-    // Inject the PHP include tag before the closing </body> tag
-    fileContent = fileContent.replace(/<\/body>/i, `${tagToInject}\n</body>`);
+    // Inject the PHP include tag after the closing </form> tag
+    fileContent = fileContent.replace(/<\/form>/i, `</form>\n${tagToInject}`);
 
     // Write the updated content back to the file
     await writeFile(path, fileContent);
