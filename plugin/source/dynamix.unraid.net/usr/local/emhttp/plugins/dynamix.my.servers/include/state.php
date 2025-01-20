@@ -53,6 +53,10 @@ class ServerState
         "nokeyserver" => 'NO_KEY_SERVER',
         "withdrawn" => 'WITHDRAWN',
     ];
+    /**
+     * SSO Sub IDs from the my servers config file.
+     */
+    private $ssoSubIds = '';
     private $osVersion;
     private $osVersionBranch;
     private $rebootDetails;
@@ -193,6 +197,7 @@ class ServerState
         $this->registered = !empty($this->myServersFlashCfg['remote']['apikey']) && $this->connectPluginInstalled;
         $this->registeredTime = $this->myServersFlashCfg['remote']['regWizTime'] ?? '';
         $this->username = $this->myServersFlashCfg['remote']['username'] ?? '';
+        $this->ssoSubIds = $this->myServersFlashCfg['remote']['ssoSubIds'] ?? '';
     }
 
     private function getConnectKnownOrigins() {
@@ -321,6 +326,7 @@ class ServerState
             "uptime" => 1000 * (time() - round(strtok(exec("cat /proc/uptime"), ' '))),
             "username" => $this->username,
             "wanFQDN" => @$this->nginxCfg['NGINX_WANFQDN'] ?? '',
+            "ssoSubIds" => $this->ssoSubIds
         ];
 
         if ($this->combinedKnownOrigins) {
