@@ -19,5 +19,6 @@ export class StopCommand extends CommandRunner {
             this.logger.warn(stderr);
             process.exit(1);
         }
+        process.exit(0);
     }
 }
