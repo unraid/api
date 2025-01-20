@@ -1,32 +1,11 @@
 <script setup lang="ts">
 import Button from '~/components/Brand/Button.vue';
 import { ACCOUNT } from '~/helpers/urls';
-import { useServerStore } from '~/store/server';
-import type { Server } from '~/types/server';
 
 export interface Props {
-  server?: Server | string;
+  ssoSubIds?: string;
 }
 const props = defineProps<Props>();
-const serverStore = useServerStore();
-
-const { ssoSubIds } = storeToRefs(serverStore);
-
-onBeforeMount(() => {
-  if (!props.server) {
-    throw new Error('Server data not present');
-  }
-  console.log('props.server', props.server);
-
-  if (typeof props.server === 'object') {
-    // Handles the testing dev Vue component
-    serverStore.setServer(props.server);
-  } else if (typeof props.server === 'string') {
-    // Handle web component
-    const parsedServerProp = JSON.parse(props.server);
-    serverStore.setServer(parsedServerProp);
-  }
-});
 
 const queryParams = useUrlSearchParams<{ token: string }>();
 
@@ -65,15 +44,18 @@ watch(queryParams, (newVal) => {
 });
 
 const externalSSOUrl = computed(() => {
+  if (props.ssoSubIds === undefined) {
+    return '';
+  }
   const url = new URL('sso', ACCOUNT);
-  url.searchParams.append('uids', ssoSubIds.value);
+  url.searchParams.append('uids', props.ssoSubIds);
   url.searchParams.append('callbackUrl', window.location.href);
   return url.toString();
 });
 </script>
 
 <template>
-  <template v-if="ssoSubIds">
+  <template v-if="props.ssoSubIds">
     <Button target="_blank" :href="externalSSOUrl">Sign In With Unraid.net Account</Button>
   </template>
 </template>
