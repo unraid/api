@@ -22,7 +22,23 @@ const RemoteConfigSchema = z.object({
     idtoken: z.string(),
     refreshtoken: z.string(),
     dynamicRemoteAccessType: z.nativeEnum(DynamicRemoteAccessType),
-    ssoSubIds: z.string(),
+    ssoSubIds: z
+        .string()
+        .transform((val) => {
+            // If valid, return as is
+            if (val === '' || val.split(',').every((id) => id.trim().match(/^[a-zA-Z0-9-]+$/))) {
+                return val;
+            }
+            // Otherwise, replace with an empty string
+            return '';
+        })
+        .refine(
+            (val) => val === '' || val.split(',').every((id) => id.trim().match(/^[a-zA-Z0-9-]+$/)),
+            {
+                message:
+                    'ssoSubIds must be empty or a comma-separated list of alphanumeric strings with dashes',
+            }
+        ),
 });
 
 const LocalConfigSchema = z.object({});
