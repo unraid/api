@@ -35,14 +35,14 @@ export class ServerHeaderStrategy extends PassportStrategy(Strategy, 'server-htt
 
         try {
             const user = await this.authService.validateApiKeyCasbin(key);
-            this.logger.debug('API key validation successful', {
+            this.logger.debug('API key validation successful %o', {
                 userId: user?.id,
                 roles: user?.roles,
             });
 
             return user;
         } catch (error) {
-            this.logger.error('API key validation failed', {
+            this.logger.error('API key validation failed %o', {
                 errorType: error instanceof Error ? error.constructor.name : 'Unknown',
                 message: error instanceof Error ? error.message : 'Unknown error',
             });
