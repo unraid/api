@@ -18,5 +18,5 @@ echo $wcExtractor->getScriptTagHtml();
 ?>
 
 <unraid-i18n-host>
-    <unraid-sso-button server="<?= $serverState->getServerStateJsonForHtmlAttr() ?>"></unraid-sso-button>
+    <unraid-sso-button server="<?= $serverState->ssoSubIds ?>"></unraid-sso-button>
 </unraid-i18n-host>
