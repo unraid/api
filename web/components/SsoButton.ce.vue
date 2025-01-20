@@ -7,8 +7,6 @@ export interface Props {
 }
 const props = defineProps<Props>();
 
-const queryParams = useUrlSearchParams<{ token: string }>();
-
 const enterCallbackTokenIntoField = (token: string) => {
   const passwordField = document.querySelector('input[name=password]') as HTMLInputElement;
   const usernameField = document.querySelector('input[name=username]') as HTMLInputElement;
@@ -59,7 +57,7 @@ const externalSSOUrl = computed<string>(() => {
   const state = generateStateToken();
   callbackUrlLogin.searchParams.append('state', state);
 
-  url.searchParams.append('serverUrl', callbackUrlLogin.toString());
+  url.searchParams.append('callbackUrl', callbackUrlLogin.toString());
   return url.toString();
 });
 </script>
