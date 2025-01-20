@@ -11,6 +11,7 @@ import { VersionCommand } from '@app/unraid-api/cli/version.command';
 import { StatusCommand } from '@app/unraid-api/cli/status.command';
 import { ValidateTokenCommand } from '@app/unraid-api/cli/validate-token.command';
 import { LogsCommand } from '@app/unraid-api/cli/logs.command';
+import { ConfigCommand } from '@app/unraid-api/cli/config.command';
 
 @Module({
     providers: [
@@ -24,7 +25,8 @@ import { LogsCommand } from '@app/unraid-api/cli/logs.command';
         VersionCommand,
         StatusCommand,
         ValidateTokenCommand,
-        LogsCommand
+        LogsCommand,
+        ConfigCommand
     ],
 })
 export class CliModule {}
