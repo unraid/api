@@ -75,7 +75,12 @@ onBeforeMount(() => {
       <h3 class="text-lg font-semibold font-mono">
         ModalsCe
       </h3>
-      <unraid-modals />
+      <!-- uncomment to test modals <unraid-modals />-->
+      <hr class="border-black dark:border-white">
+      <h3 class="text-lg font-semibold font-mono">
+        SSOSignInButtonCe
+      </h3>
+      <unraid-sso-button :server="JSON.stringify(serverState)" />
     </unraid-i18n-host>
   </client-only>
 </template>

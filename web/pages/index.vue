@@ -4,6 +4,7 @@ import { BrandButton, BrandLogo } from '@unraid/ui';
 import { serverState } from '~/_data/serverState';
 import type { SendPayloads } from '~/store/callback';
 import AES from 'crypto-js/aes';
+import SsoButtonCe from '~/components/SsoButton.ce.vue';
 
 const { registerEntry } = useCustomElements();
 onBeforeMount(() => {
@@ -151,6 +152,11 @@ onMounted(() => {
                 >{{ variant }}</BrandButton
               >
             </template>
+          </div>
+          <div class="bg-background">
+            <hr class="border-black dark:border-white" />
+            <h2 class="text-xl font-semibold font-mono">SSO Button Component</h2>
+              <SsoButtonCe :server="serverState" />
           </div>
         </div>
       </client-only>
