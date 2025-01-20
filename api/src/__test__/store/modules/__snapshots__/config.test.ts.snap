@@ -12,9 +12,6 @@ exports[`Before init returns default values for all fields 1`] = `
   },
   "local": {},
   "nodeEnv": "test",
-  "notifier": {
-    "apikey": "",
-  },
   "remote": {
     "accesstoken": "",
     "allowedOrigins": "",
@@ -33,8 +30,5 @@ exports[`Before init returns default values for all fields 1`] = `
     "wanport": "",
   },
   "status": "UNLOADED",
-  "upc": {
-    "apikey": "",
-  },
 }
 `;
