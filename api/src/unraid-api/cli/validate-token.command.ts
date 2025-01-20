@@ -1,14 +1,15 @@
 import type { JWTPayload } from 'jose';
 import { createLocalJWKSet, createRemoteJWKSet, decodeJwt, jwtVerify } from 'jose';
-import { Command, CommandRunner } from 'nest-commander';
+import { CommandRunner, SubCommand } from 'nest-commander';
 
 import { JWKS_LOCAL_PAYLOAD, JWKS_REMOTE_LINK } from '@app/consts';
 import { store } from '@app/store';
 import { loadConfigFile } from '@app/store/modules/config';
 import { LogService } from '@app/unraid-api/cli/log.service';
 
-@Command({
+@SubCommand({
     name: 'validate-token',
+    aliases: ['validate', 'v'],
     description: 'Returns JSON: { error: string | null, valid: boolean }',
     arguments: '<token>',
 })
@@ -33,11 +34,13 @@ export class ValidateTokenCommand extends CommandRunner {
 
     async run(passedParams: string[]): Promise<void> {
         if (passedParams.length !== 1) {
-            this.logger.error('Please pass token argument only');
-            process.exit(1);
+            this.createErrorAndExit('Please pass token argument only');
         }
 
         const token = passedParams[0];
+        if (typeof token !== 'string' || token.trim() === '') {
+            this.createErrorAndExit('Invalid token provided');
+        }
 
         let caughtError: null | unknown = null;
         let tokenPayload: null | JWTPayload = null;

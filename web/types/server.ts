@@ -117,6 +117,7 @@ export interface Server {
   username?: string;
   wanFQDN?: string;
   wanIp?: string;
+  ssoSubIds?: string;
 }
 
 export interface ServerAccountCallbackSendPayload {
