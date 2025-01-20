@@ -14,6 +14,7 @@ import { WebSocket } from 'ws';
 
 import { logger } from '@app/core/log';
 import { setupLogRotation } from '@app/core/logrotate/setup-logrotate';
+import { setupSso } from '@app/core/sso/sso-setup';
 import { fileExistsSync } from '@app/core/utils/files/file-exists';
 import { environment, PORT } from '@app/environment';
 import * as envVars from '@app/environment';
@@ -99,6 +100,11 @@ try {
     server = await bootstrapNestServer();
 
     startMiddlewareListeners();
+
+    // If the config contains SSO IDs, enable SSO
+    if (store.getState().config.remote.ssoSubIds) {
+        await setupSso();
+    }
 
     // On process exit stop HTTP server
     exitHook((signal) => {
