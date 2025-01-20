@@ -4,7 +4,7 @@ import { writeFileSync } from 'fs';
 import { access } from 'fs/promises';
 
 import type { PayloadAction } from '@reduxjs/toolkit';
-import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
+import { createAsyncThunk, createSlice, isAnyOf } from '@reduxjs/toolkit';
 import { isEqual } from 'lodash-es';
 import merge from 'lodash/merge';
 
@@ -24,6 +24,7 @@ import { setupRemoteAccessThunk } from '@app/store/actions/setup-remote-access';
 import { FileLoadStatus } from '@app/store/types';
 import { type RecursivePartial } from '@app/types';
 import { type MyServersConfig, type MyServersConfigMemory } from '@app/types/my-servers-config';
+import { isFulfilled } from '@app/utils';
 
 export type SliceState = {
     status: FileLoadStatus;
@@ -290,5 +291,25 @@ export const {
     setWanPortToValue,
     setWanAccess,
 } = actions;
+
+/**
+ * Actions that should trigger a flash write
+ */
+export const configUpdateActionsFlash = isAnyOf(
+    updateUserConfig,
+    updateAccessTokens,
+    updateAllowedOrigins,
+    setUpnpState,
+    setWanPortToValue,
+    setWanAccess,
+    setupRemoteAccessThunk.fulfilled,
+    logoutUser.fulfilled,
+    loginUser.fulfilled
+);
+
+/**
+ * Actions that should trigger a memory write
+ */
+export const configUpdateActionsMemory = isAnyOf(configUpdateActionsFlash, setGraphqlConnectionStatus);
 
 export const configReducer = reducer;
