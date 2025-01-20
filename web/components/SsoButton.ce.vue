@@ -34,7 +34,6 @@ if (token) {
 }
 
 watch(queryParams, (newVal) => {
-  console.log('newVal', newVal);
   if (newVal?.token) {
     enterCallbackTokenIntoField(newVal.token);
     // Clear the token from the URL
@@ -49,7 +48,8 @@ const externalSSOUrl = computed(() => {
   }
   const url = new URL('sso', ACCOUNT);
   url.searchParams.append('uids', props.subids);
-  url.searchParams.append('callbackUrl', window.location.href);
+  const callbackUrlLogin = new URL('login', window.location.origin);
+  url.searchParams.append('serverUrl', callbackUrlLogin.toString());
   return url.toString();
 });
 </script>
