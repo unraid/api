@@ -270,7 +270,7 @@ export const config = createSlice({
         });
 
         builder.addCase(setGraphqlConnectionStatus, (state, action) => {
-            state.connectionStatus.minigraph = action.payload.status;
+                state.connectionStatus.minigraph = action.payload.status;
         });
 
         builder.addCase(setupRemoteAccessThunk.fulfilled, (state, action) => {
