@@ -24,31 +24,41 @@ const enterCallbackTokenIntoField = (token: string) => {
   }
 };
 
-const search = new URLSearchParams(window.location.search);
-const token = search.get('token') ?? '';
-if (token) {
-  enterCallbackTokenIntoField(token);
-  // Clear the token from the URL
-  window.history.replaceState({}, document.title, window.location.pathname);
-  window.location.search = '';
-}
+const getStateToken = (): string | null => {
+  const state = sessionStorage.getItem('sso_state');
+  return state ?? null;
+};
 
-watch(queryParams, (newVal) => {
-  if (newVal?.token) {
-    enterCallbackTokenIntoField(newVal.token);
+const generateStateToken = (): string => {
+  const state =
+    Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+  sessionStorage.setItem('sso_state', state);
+  return state;
+};
+
+onMounted(() => {
+  const search = new URLSearchParams(window.location.search);
+  const token = search.get('token') ?? '';
+  const state = search.get('state') ?? '';
+  const sessionState = getStateToken();
+  if (token && state === sessionState) {
+    enterCallbackTokenIntoField(token);
     // Clear the token from the URL
     window.history.replaceState({}, document.title, window.location.pathname);
     window.location.search = '';
   }
 });
 
-const externalSSOUrl = computed(() => {
+const externalSSOUrl = computed<string>(() => {
   if (props.subids === undefined) {
     return '';
   }
   const url = new URL('sso', ACCOUNT);
   url.searchParams.append('uids', props.subids);
   const callbackUrlLogin = new URL('login', window.location.origin);
+  const state = generateStateToken();
+  callbackUrlLogin.searchParams.append('state', state);
+
   url.searchParams.append('serverUrl', callbackUrlLogin.toString());
   return url.toString();
 });
