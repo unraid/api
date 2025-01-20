@@ -3,7 +3,7 @@ import Button from '~/components/Brand/Button.vue';
 import { ACCOUNT } from '~/helpers/urls';
 
 export interface Props {
-  ssoSubIds?: string;
+  subids?: string;
 }
 const props = defineProps<Props>();
 
@@ -44,18 +44,18 @@ watch(queryParams, (newVal) => {
 });
 
 const externalSSOUrl = computed(() => {
-  if (props.ssoSubIds === undefined) {
+  if (props.subids === undefined) {
     return '';
   }
   const url = new URL('sso', ACCOUNT);
-  url.searchParams.append('uids', props.ssoSubIds);
+  url.searchParams.append('uids', props.subids);
   url.searchParams.append('callbackUrl', window.location.href);
   return url.toString();
 });
 </script>
 
 <template>
-  <template v-if="props.ssoSubIds">
+  <template v-if="props.subids">
     <Button target="_blank" :href="externalSSOUrl">Sign In With Unraid.net Account</Button>
   </template>
 </template>
