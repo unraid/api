@@ -56,7 +56,7 @@ class ServerState
     /**
      * SSO Sub IDs from the my servers config file.
      */
-    private $ssoSubIds = '';
+    public $ssoSubIds = '';
     private $osVersion;
     private $osVersionBranch;
     private $rebootDetails;
