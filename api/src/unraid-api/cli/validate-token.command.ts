@@ -79,6 +79,7 @@ export class ValidateTokenCommand extends CommandRunner {
         const possibleUserIds = configFile.remote.ssoSubIds.split(',');
         if (possibleUserIds.includes(username)) {
             this.logger.info(JSON.stringify({ error: null, valid: true, username }));
+            process.exit(0);
         } else {
             this.createErrorAndExit('Username on token does not match');
         }
