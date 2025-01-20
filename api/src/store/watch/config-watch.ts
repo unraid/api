@@ -22,7 +22,8 @@ export const setupConfigPathWatch = () => {
             ignoreInitial: false,
             usePolling: CHOKIDAR_USEPOLLING === true,
         })
-            .on('change', async () => {
+            .on('change', async (change) => {
+                logger.trace('Config File Changed, Reloading Config %s', change);
                 await store.dispatch(loadConfigFile());
             })
             .on('unlink', async () => {
