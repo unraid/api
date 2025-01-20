@@ -18,7 +18,7 @@ const enterCallbackTokenIntoField = (token: string) => {
     console.warn('Could not find form, username, or password field');
   } else {
     usernameField.value = 'root';
-    passwordField.value = 'password';
+    passwordField.value = token;
     // Submit the form
     form.requestSubmit();
   }
