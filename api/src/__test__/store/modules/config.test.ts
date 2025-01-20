@@ -28,9 +28,6 @@ test('After init returns values from cfg file for all fields', async () => {
             },
             local: {},
             nodeEnv: 'test',
-            notifier: {
-                apikey: 'unnotify_30994bfaccf839c65bae75f7fa12dd5ee16e69389f754c3b98ed7d5',
-            },
             remote: {
                 accesstoken: '',
                 allowedOrigins: '',
@@ -49,9 +46,6 @@ test('After init returns values from cfg file for all fields', async () => {
                 wanport: '8443',
             },
             status: 'LOADED',
-            upc: {
-                apikey: 'unupc_fab6ff6ffe51040595c6d9ffb63a353ba16cc2ad7d93f813a2e80a5810',
-            },
         })
     );
 });
@@ -82,9 +76,6 @@ test('updateUserConfig merges in changes to current state', async () => {
             },
             local: {},
             nodeEnv: 'test',
-            notifier: {
-                apikey: 'unnotify_30994bfaccf839c65bae75f7fa12dd5ee16e69389f754c3b98ed7d5',
-            },
             remote: {
                 accesstoken: '',
                 allowedOrigins: '',
@@ -103,9 +94,6 @@ test('updateUserConfig merges in changes to current state', async () => {
                 wanport: '8443',
             },
             status: 'LOADED',
-            upc: {
-                apikey: 'unupc_fab6ff6ffe51040595c6d9ffb63a353ba16cc2ad7d93f813a2e80a5810',
-            },
         } as MyServersConfigMemory)
     );
 });
