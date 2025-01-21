@@ -3,7 +3,7 @@ import Button from '~/components/Brand/Button.vue';
 import { ACCOUNT } from '~/helpers/urls';
 
 export interface Props {
-  subids?: string;
+  ssoenabled?: boolean;
 }
 const props = defineProps<Props>();
 
@@ -34,25 +34,39 @@ const generateStateToken = (): string => {
   return state;
 };
 
-onMounted(() => {
-  const search = new URLSearchParams(window.location.search);
-  const token = search.get('token') ?? '';
-  const state = search.get('state') ?? '';
-  const sessionState = getStateToken();
-  if (token && state === sessionState) {
-    enterCallbackTokenIntoField(token);
-    // Clear the token from the URL
-    window.history.replaceState({}, document.title, window.location.pathname);
-    window.location.search = '';
+onMounted(async () => {
+  try {
+    const search = new URLSearchParams(window.location.search);
+    const code = search.get('code') ?? '';
+    const state = search.get('state') ?? '';
+    const sessionState = getStateToken();
+
+    if (code && state === sessionState) {
+      const token = await fetch(new URL('token', ACCOUNT), {
+        method: 'POST',
+        body: new URLSearchParams({
+          code,
+          clientId: 'CONNECT_SERVER_SSO',
+          grant_type: 'authorization_code',
+        }),
+      });
+      if (token.ok) {
+        const tokenBody = await token.json();
+        enterCallbackTokenIntoField(tokenBody.access_token);
+        if (window.location.search) {
+          window.history.replaceState({}, document.title, window.location.pathname);
+          window.location.search = '';
+        }
+      }
+    }
+  } catch (err) {
+    console.error('Error fetching token', err);
+  } finally {
   }
 });
 
 const externalSSOUrl = computed<string>(() => {
-  if (props.subids === undefined) {
-    return '';
-  }
   const url = new URL('sso', ACCOUNT);
-  url.searchParams.append('uids', props.subids);
   const callbackUrlLogin = new URL('login', window.location.origin);
   const state = generateStateToken();
   callbackUrlLogin.searchParams.append('state', state);
@@ -63,7 +77,7 @@ const externalSSOUrl = computed<string>(() => {
 </script>
 
 <template>
-  <template v-if="props.subids">
+  <template v-if="props.ssoenabled === true">
     <Button target="_blank" :href="externalSSOUrl">Sign In With Unraid.net Account</Button>
   </template>
 </template>
