@@ -18,5 +18,5 @@ echo $wcExtractor->getScriptTagHtml();
 ?>
 
 <unraid-i18n-host>
-    <unraid-sso-button subids="<?= $serverState->ssoSubIds ?>"></unraid-sso-button>
+    <unraid-sso-button ssoenabled="<?= $serverState->ssoEnabled ?>"></unraid-sso-button>
 </unraid-i18n-host>
