@@ -9,7 +9,7 @@ type ApiKey {
     description: String
     roles: [Role!]!
     createdAt: DateTime!
-    permissions: [Permission!]
+    permissions: [Permission!]!
 }
 
 type ApiKeyWithSecret {

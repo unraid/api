@@ -128,7 +128,7 @@ export function ApiKeySchema(): z.ZodObject<Properties<ApiKey>> {
     description: z.string().nullish(),
     id: z.string(),
     name: z.string(),
-    permissions: z.array(PermissionSchema()).nullish(),
+    permissions: z.array(PermissionSchema()),
     roles: z.array(RoleSchema)
   })
 }
