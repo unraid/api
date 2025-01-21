@@ -5,5 +5,10 @@ default:
     @just list-commands
 
 setup:
+    just ../unraid-ui/setup
     cp .env.example .env
     npm install
+
+clean:
+    rm -rf .nuxt
+    rm -rf node_modules
