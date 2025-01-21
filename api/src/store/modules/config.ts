@@ -211,6 +211,15 @@ export const config = createSlice({
         setWanAccess(state, action: PayloadAction<'yes' | 'no'>) {
             state.remote.wanaccess = action.payload;
         },
+        addSsoUser(state, action: PayloadAction<string>) {
+            // First check if state already has ID, otherwise append it
+            if (state.remote.ssoSubIds.includes(action.payload)) {
+                return;
+            }
+            const stateAsArray = state.remote.ssoSubIds.split(',');
+            stateAsArray.push(action.payload);
+            state.remote.ssoSubIds = stateAsArray.join(',');
+        }
     },
     extraReducers(builder) {
         builder.addCase(loadConfigFile.pending, (state) => {
@@ -284,6 +293,7 @@ export const config = createSlice({
 const { actions, reducer } = config;
 
 export const {
+    addSsoUser,
     updateUserConfig,
     updateAccessTokens,
     updateAllowedOrigins,
