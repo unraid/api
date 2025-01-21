@@ -80,7 +80,7 @@ onBeforeMount(() => {
       <h3 class="text-lg font-semibold font-mono">
         SSOSignInButtonCe
       </h3>
-      <unraid-sso-button :ssoEnabled="serverState.ssoEnabled" />
+      <unraid-sso-button :ssoenabled="serverState.ssoEnabled" />
     </unraid-i18n-host>
   </client-only>
 </template>

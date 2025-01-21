@@ -3,9 +3,14 @@ import Button from '~/components/Brand/Button.vue';
 import { ACCOUNT } from '~/helpers/urls';
 
 export interface Props {
-  ssoenabled?: boolean;
+  ssoenabled?: boolean | string;
+  ssoEnabled?: boolean;
 }
 const props = defineProps<Props>();
+
+const isSsoEnabled = computed<boolean>(
+  () => props['ssoenabled'] === true || props['ssoenabled'] === 'true' || props.ssoEnabled
+);
 
 const enterCallbackTokenIntoField = (token: string) => {
   const passwordField = document.querySelector('input[name=password]') as HTMLInputElement;
@@ -42,11 +47,11 @@ onMounted(async () => {
     const sessionState = getStateToken();
 
     if (code && state === sessionState) {
-      const token = await fetch(new URL('token', ACCOUNT), {
+      const token = await fetch(new URL('/oauth2/token', ACCOUNT), {
         method: 'POST',
         body: new URLSearchParams({
           code,
-          clientId: 'CONNECT_SERVER_SSO',
+          client_id: 'CONNECT_SERVER_SSO',
           grant_type: 'authorization_code',
         }),
       });
@@ -65,20 +70,21 @@ onMounted(async () => {
   }
 });
 
-const externalSSOUrl = computed<string>(() => {
+const navigateToExternalSSOUrl = () => {
   const url = new URL('sso', ACCOUNT);
   const callbackUrlLogin = new URL('login', window.location.origin);
   const state = generateStateToken();
-  callbackUrlLogin.searchParams.append('state', state);
 
   url.searchParams.append('callbackUrl', callbackUrlLogin.toString());
-  return url.toString();
-});
+  url.searchParams.append('state', state);
+
+  window.location.href = url.toString();
+};
 </script>
 
 <template>
-  <template v-if="props.ssoenabled === true">
-    <Button target="_blank" :href="externalSSOUrl">Sign In With Unraid.net Account</Button>
+  <template v-if="isSsoEnabled">
+    <Button btnStyle="outline" @click="navigateToExternalSSOUrl" >Sign In With Unraid.net Account</Button>
   </template>
 </template>
 
