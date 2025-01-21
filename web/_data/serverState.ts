@@ -181,7 +181,7 @@ export const serverState: Server = {
   regExp,
   regGuid,
   site: 'http://localhost:4321',
-  ssoSubIds: '1234567890,0987654321,297294e2-b31c-4bcc-a441-88aee0ad609f',
+  ssoEnabled: true,
   state,
   theme: {
     banner: false,
