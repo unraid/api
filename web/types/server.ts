@@ -1,7 +1,8 @@
 import type { Config, PartialCloudFragment } from '~/composables/gql/graphql';
+import type { ActivationCodeData } from '~/store/activationCode';
 import type { Theme } from '~/store/theme';
 import type { UserProfileLink } from '~/types/userProfile';
-import type { ActivationCodeData } from '~/store/activationCode';
+
 
 export type ServerState = 'BASIC'
   | 'PLUS'
@@ -108,6 +109,7 @@ export interface Server {
   regExp?: number;
   regUpdatesExpired?: boolean;
   site?: string;
+  ssoEnabled?: boolean;
   state?: ServerState;
   theme?: Theme | undefined;
   updateOsIgnoredReleases?: string[];
@@ -117,7 +119,6 @@ export interface Server {
   username?: string;
   wanFQDN?: string;
   wanIp?: string;
-  ssoSubIds?: string;
 }
 
 export interface ServerAccountCallbackSendPayload {

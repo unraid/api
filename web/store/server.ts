@@ -155,7 +155,7 @@ export const useServerStore = defineStore("server", () => {
     return today.isAfter(parsedUpdateExpirationDate, "day");
   });
   const site = ref<string>("");
-  const ssoSubIds = ref<string>("");
+  const ssoEnabled = ref<boolean>(false);
   const state = ref<ServerState>();
   const theme = ref<Theme>();
   watch(theme, (newVal) => {
@@ -1209,8 +1209,8 @@ export const useServerStore = defineStore("server", () => {
     if (typeof data?.regTo !== "undefined") {
       regTo.value = data.regTo;
     }
-    if (typeof data?.ssoSubIds !== "undefined") {
-      ssoSubIds.value = data.ssoSubIds;
+    if (typeof data?.ssoEnabled !== "undefined") {
+      ssoEnabled.value = Boolean(data.ssoEnabled);
     }
 
     if (typeof data.activationCodeData !== "undefined") {
@@ -1478,7 +1478,7 @@ export const useServerStore = defineStore("server", () => {
     parsedRegExp,
     regUpdatesExpired,
     site,
-    ssoSubIds,
+    ssoEnabled,
     state,
     theme,
     updateOsIgnoredReleases,
