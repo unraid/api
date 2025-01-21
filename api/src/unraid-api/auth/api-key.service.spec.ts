@@ -1,5 +1,5 @@
 import { Logger } from '@nestjs/common';
-import { readdir, readFile, writeFile } from 'fs/promises';
+import { writeFile } from 'fs/promises';
 import { join } from 'path';
 
 import { ensureDir, ensureDirSync } from 'fs-extra';
@@ -9,20 +9,39 @@ import { ZodError } from 'zod';
 import type { ApiKey, ApiKeyWithSecret } from '@app/graphql/generated/api/types';
 import { ApiKeySchema, ApiKeyWithSecretSchema } from '@app/graphql/generated/api/operations';
 import { Resource, Role } from '@app/graphql/generated/api/types';
-import { getters } from '@app/store';
+import { getters, store } from '@app/store';
+import { updateUserConfig } from '@app/store/modules/config';
+import { FileLoadStatus } from '@app/store/types';
 
 import { ApiKeyService } from './api-key.service';
+
+// Mock the store and its modules
+vi.mock('@app/store', () => ({
+    getters: {
+        config: vi.fn(),
+        paths: vi.fn(),
+    },
+    store: {
+        dispatch: vi.fn(),
+        getState: vi.fn(),
+    },
+}));
+
+vi.mock('@app/store/modules/config', () => ({
+    updateUserConfig: vi.fn(),
+}));
 
 vi.mock('fs/promises', async () => ({
     readdir: vi.fn(),
     readFile: vi.fn(),
     writeFile: vi.fn(),
 }));
-vi.mock('@app/store');
+
 vi.mock('@app/graphql/generated/api/operations', () => ({
     ApiKeyWithSecretSchema: vi.fn(),
     ApiKeySchema: vi.fn(),
 }));
+
 vi.mock('fs-extra', () => ({
     ensureDir: vi.fn(),
     ensureDirSync: vi.fn(),
@@ -44,6 +63,7 @@ describe('ApiKeyService', () => {
         name: 'Test API Key',
         description: 'Test API Key Description',
         roles: [Role.GUEST],
+        permissions: [],
         createdAt: new Date().toISOString(),
     };
 
@@ -84,6 +104,15 @@ describe('ApiKeyService', () => {
         // Mock the paths getter
         vi.mocked(getters.paths).mockReturnValue({
             'auth-keys': mockBasePath,
+        } as any);
+
+        // Set up default config mock
+        vi.mocked(getters.config).mockReturnValue({
+            status: FileLoadStatus.LOADED,
+            remote: {
+                apikey: null,
+                localApiKey: null,
+            },
         } as any);
 
         // Mock ensureDir
@@ -159,6 +188,94 @@ describe('ApiKeyService', () => {
             );
 
             expect(saveSpy).not.toHaveBeenCalled();
+        });
+    });
+
+    describe('createLocalApiKeyForConnectIfNecessary', () => {
+        beforeEach(() => {
+            // Mock config getter
+            vi.mocked(getters.config).mockReturnValue({
+                status: FileLoadStatus.LOADED,
+                remote: {
+                    apikey: 'remote-api-key',
+                    localApiKey: null,
+                },
+            } as any);
+
+            // Mock store dispatch
+            vi.mocked(store.dispatch).mockResolvedValue({} as any);
+        });
+
+        it('should not create key if config is not loaded', async () => {
+            vi.mocked(getters.config).mockReturnValue({
+                status: FileLoadStatus.UNLOADED,
+            } as any);
+
+            await apiKeyService['createLocalApiKeyForConnectIfNecessary']();
+
+            expect(mockLogger.error).toHaveBeenCalledWith(
+                'Config file not loaded, cannot create local API key'
+            );
+            expect(store.dispatch).not.toHaveBeenCalled();
+        });
+
+        it('should not create key if remote apikey is not set', async () => {
+            vi.mocked(getters.config).mockReturnValue({
+                status: FileLoadStatus.LOADED,
+                remote: {
+                    apikey: null,
+                    localApiKey: null,
+                },
+            } as any);
+
+            await apiKeyService['createLocalApiKeyForConnectIfNecessary']();
+
+            expect(store.dispatch).not.toHaveBeenCalled();
+        });
+
+        it('should not create key if Connect key already exists', async () => {
+            vi.spyOn(apiKeyService, 'findByField').mockReturnValue(mockApiKeyWithSecret);
+
+            await apiKeyService['createLocalApiKeyForConnectIfNecessary']();
+
+            expect(store.dispatch).not.toHaveBeenCalled();
+        });
+
+        it('should create new Connect key and update config', async () => {
+            vi.spyOn(apiKeyService, 'findByField').mockReturnValue(null);
+            vi.spyOn(apiKeyService, 'create').mockResolvedValue(mockApiKeyWithSecret);
+
+            await apiKeyService['createLocalApiKeyForConnectIfNecessary']();
+
+            expect(apiKeyService.create).toHaveBeenCalledWith(
+                'Connect',
+                'API key for Connect user',
+                [Role.CONNECT],
+                true
+            );
+            expect(store.dispatch).toHaveBeenCalledWith(
+                updateUserConfig({
+                    remote: {
+                        localApiKey: mockApiKeyWithSecret.key,
+                    },
+                })
+            );
+        });
+
+        it('should throw error if key creation fails', async () => {
+            vi.spyOn(apiKeyService, 'findByField').mockReturnValue(null);
+            vi.spyOn(apiKeyService, 'create').mockResolvedValue({
+                ...mockApiKeyWithSecret,
+                key: '', // Empty string instead of undefined/null
+            } as ApiKeyWithSecret);
+
+            await expect(apiKeyService['createLocalApiKeyForConnectIfNecessary']()).rejects.toThrow(
+                'Failed to create local API key'
+            );
+            expect(mockLogger.error).toHaveBeenCalledWith(
+                'Failed to create local API key - no key returned'
+            );
+            expect(store.dispatch).not.toHaveBeenCalled();
         });
     });
 
