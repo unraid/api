@@ -34,6 +34,7 @@ export default function createConfig() {
           index: resolve(__dirname, 'src/index.ts'),
           tailwind: resolve(__dirname, 'tailwind.config.ts'),
           preset: resolve(__dirname, 'src/theme/preset.ts'),
+          importHack: resolve(__dirname, 'src/theme/import-hack.ts'),
         },
         preserveEntrySignatures: 'allow-extension',
         output: {
