@@ -87,8 +87,6 @@ try {
     // Start listening to dynamix config file changes
     setupDynamixConfigWatch();
 
-    await createLocalApiKeyForConnectIfNecessary();
-
     // Disabled until we need the access token to work
     // TokenRefresh.init();
 

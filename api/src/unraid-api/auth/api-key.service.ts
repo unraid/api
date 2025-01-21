@@ -11,7 +11,9 @@ import { ZodError } from 'zod';
 
 import { ApiKeySchema, ApiKeyWithSecretSchema } from '@app/graphql/generated/api/operations';
 import { ApiKey, ApiKeyWithSecret, Role, UserAccount } from '@app/graphql/generated/api/types';
-import { getters } from '@app/store';
+import { getters, store } from '@app/store';
+import { updateUserConfig } from '@app/store/modules/config';
+import { FileLoadStatus } from '@app/store/types';
 
 @Injectable()
 export class ApiKeyService implements OnModuleInit {
@@ -29,6 +31,7 @@ export class ApiKeyService implements OnModuleInit {
     async onModuleInit() {
         try {
             this.memoryApiKeys = await this.loadAllFromDisk();
+            await this.createLocalApiKeyForConnectIfNecessary();
         } catch (error) {
             this.logger.error('Failed to initialize API keys:', error);
             throw error;
@@ -98,6 +101,44 @@ export class ApiKeyService implements OnModuleInit {
         await this.saveApiKey(apiKey as ApiKeyWithSecret);
 
         return apiKey as ApiKeyWithSecret;
+    }
+
+    private async createLocalApiKeyForConnectIfNecessary() {
+        if (getters.config().status !== FileLoadStatus.LOADED) {
+            this.logger.error('Config file not loaded, cannot create local API key');
+
+            return;
+        }
+
+        const { remote } = getters.config();
+        // If the remote API Key is set and the local key is either not set or not found on disk, create a key
+        if (remote.apikey && (!remote.localApiKey || !(await this.findByKey(remote.localApiKey)))) {
+            const hasExistingKey = this.findByField('name', 'Connect');
+
+            if (hasExistingKey) {
+                return;
+            }
+            // Create local API key
+            const localApiKey = await this.create(
+                'Connect',
+                'API key for Connect user',
+                [Role.CONNECT],
+                true
+            );
+
+            if (localApiKey?.key) {
+                store.dispatch(
+                    updateUserConfig({
+                        remote: {
+                            localApiKey: localApiKey.key,
+                        },
+                    })
+                );
+            } else {
+                this.logger.error('Failed to create local API key - no key returned');
+                throw new Error('Failed to create local API key');
+            }
+        }
     }
 
     async loadAllFromDisk(): Promise<ApiKeyWithSecret[]> {
