@@ -17,7 +17,6 @@ import { setupLogRotation } from '@app/core/logrotate/setup-logrotate';
 import { fileExistsSync } from '@app/core/utils/files/file-exists';
 import { environment, PORT } from '@app/environment';
 import * as envVars from '@app/environment';
-import { createLocalApiKeyForConnectIfNecessary } from '@app/mothership/utils/create-local-connect-api-key';
 import { store } from '@app/store';
 import { loadDynamixConfigFile } from '@app/store/actions/load-dynamix-config-file';
 import { shutdownApiEvent } from '@app/store/actions/shutdown-api-event';
