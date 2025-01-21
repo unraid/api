@@ -156,7 +156,7 @@ onMounted(() => {
           <div class="bg-background">
             <hr class="border-black dark:border-white" />
             <h2 class="text-xl font-semibold font-mono">SSO Button Component</h2>
-              <SsoButtonCe :ssoEnabled="serverState.ssoEnabled" />
+              <SsoButtonCe :ssoenabled="serverState.ssoEnabled" />
           </div>
         </div>
       </client-only>
