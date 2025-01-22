@@ -243,3 +243,19 @@ export function handleAuthError(
 
     throw new UnauthorizedException(`${operation}: ${errorMessage}`);
 }
+
+/**
+ * Checks if an object is a valid UserAccount.
+ *
+ * @param user - The object to check
+ * @returns true if the object is a valid UserAccount, false otherwise
+ */
+export function isUserAccount(user: any): user is UserAccount {
+    return (
+        user &&
+        typeof user.id === 'string' &&
+        typeof user.name === 'string' &&
+        Array.isArray(user.permissions) &&
+        Array.isArray(user.roles)
+    );
+}

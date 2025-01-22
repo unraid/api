@@ -29,7 +29,7 @@ export class AuthService {
             }
 
             apiKeyEntity.roles ??= [];
-            console.log('Permissions', apiKeyEntity)
+            console.log('Permissions', apiKeyEntity);
             await this.syncApiKeyRoles(apiKeyEntity.id, apiKeyEntity.roles);
             await this.syncApiKeyPermissions(apiKeyEntity.id, apiKeyEntity.permissions);
             this.logger.debug(
@@ -43,7 +43,7 @@ export class AuthService {
                 name: apiKeyEntity.name,
                 description: apiKeyEntity.description ?? `API Key ${apiKeyEntity.name}`,
                 roles: apiKeyEntity.roles,
-                permissions: apiKeyEntity.permissions
+                permissions: apiKeyEntity.permissions,
             };
         } catch (error: unknown) {
             handleAuthError(this.logger, 'Failed to validate API key', error);
@@ -99,13 +99,19 @@ export class AuthService {
 
     public async syncApiKeyPermissions(apiKeyId: string, permissions: Array<Permission>): Promise<void> {
         try {
-            permissions.forEach((permission) => {
-                permission.actions?.forEach((action) => {
-                    this.authzService.addPermissionForUser(apiKeyId, permission.resource, action);
-                });
-            });
+            // Clear existing permissions first
+            await this.authzService.deletePermissionsForUser(apiKeyId);
+
+            // Add all new permissions in parallel
+            await Promise.all(
+                permissions.flatMap((permission) =>
+                    (permission.actions || []).map((action) =>
+                        this.authzService.addPermissionForUser(apiKeyId, permission.resource, action)
+                    )
+                )
+            );
         } catch (error: unknown) {
-            handleAuthError(this.logger, 'Invalid Permissions on Token', error, { apiKeyId })
+            handleAuthError(this.logger, 'Failed to sync permissions for API key', error, { apiKeyId });
         }
     }
 

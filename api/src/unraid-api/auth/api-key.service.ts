@@ -25,13 +25,13 @@ export class ApiKeyService implements OnModuleInit {
     constructor() {
         this.basePath = getters.paths()['auth-keys'];
         ensureDirSync(this.basePath);
-        this.setupWatch();
     }
 
     async onModuleInit() {
         try {
             this.memoryApiKeys = await this.loadAllFromDisk();
             await this.createLocalApiKeyForConnectIfNecessary();
+            this.setupWatch();
         } catch (error) {
             this.logger.error('Failed to initialize API keys:', error);
             throw error;
@@ -43,8 +43,8 @@ export class ApiKeyService implements OnModuleInit {
     }
 
     private setupWatch() {
-        watch(this.basePath, { ignoreInitial: false }).on('change', async (event, path) => {
-            this.logger.debug(`API key storage event: ${event} on ${path}`);
+        watch(this.basePath, { ignoreInitial: false }).on('change', async (path) => {
+            this.logger.debug(`API key changed: ${path}`);
             this.memoryApiKeys = [];
             this.memoryApiKeys = await this.loadAllFromDisk();
         });
@@ -197,6 +197,10 @@ export class ApiKeyService implements OnModuleInit {
     }
 
     public findByField(field: keyof ApiKeyWithSecret, value: string): ApiKeyWithSecret | null {
+        if (!ApiKeyWithSecretSchema().shape.hasOwnProperty(field)) {
+            throw new GraphQLError(`Invalid field name: ${field}`);
+        }
+
         if (!value) return null;
 
         try {

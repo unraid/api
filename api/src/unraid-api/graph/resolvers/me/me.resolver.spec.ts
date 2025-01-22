@@ -18,7 +18,13 @@ describe('MeResolver', () => {
                 {
                     provide: AuthZService,
                     useValue: {
-                        checkPermission: vi.fn().mockResolvedValue(true),
+                        checkPermission: vi.fn().mockImplementation((action, resource, possession) => {
+                            // Return false for specific test scenarios
+                            if (action === 'write' && resource === Resource.ME) {
+                                return Promise.resolve(false);
+                            }
+                            return Promise.resolve(true);
+                        }),
                     },
                 },
             ],
