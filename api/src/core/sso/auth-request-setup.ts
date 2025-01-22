@@ -1,5 +1,7 @@
 import { existsSync } from 'fs';
-import { glob, readFile, writeFile } from 'fs/promises';
+import { readFile, writeFile } from 'fs/promises';
+
+import { glob } from 'glob';
 
 import { logger } from '@app/core/log';
 
@@ -9,11 +11,7 @@ const WEB_COMPS_DIR = '/usr/local/emhttp/plugins/dynamix.my.servers/unraid-compo
 
 const getJsFiles = async (dir: string) => {
     const files = await glob(`${dir}/**/*.js`);
-    const filesArray: string[] = [];
-    for await (const file of files) {
-        filesArray.push(file.replace('/usr/local/emhttp', ''));
-    }
-    return filesArray;
+    return files.map((file) => file.replace('/usr/local/emhttp', ''));
 };
 
 export const setupAuthRequest = async () => {
