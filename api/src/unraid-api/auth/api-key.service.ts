@@ -197,7 +197,17 @@ export class ApiKeyService implements OnModuleInit {
     }
 
     public findByField(field: keyof ApiKeyWithSecret, value: string): ApiKeyWithSecret | null {
-        if (!ApiKeyWithSecretSchema().shape.hasOwnProperty(field)) {
+        const validFields = new Set([
+            'id',
+            'key',
+            'name',
+            'description',
+            'roles',
+            'permissions',
+            'createdAt',
+        ]);
+
+        if (!validFields.has(field)) {
             throw new GraphQLError(`Invalid field name: ${field}`);
         }
 

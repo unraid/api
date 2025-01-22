@@ -61,5 +61,15 @@ describe('MeResolver', () => {
             roles: mockUser.roles,
             permissions: mockUser.permissions,
         } as Me);
+        expect(result).toBeDefined();
+        expect(result.id).toBe(mockUser.id);
+        expect(result.name).toBe(mockUser.name);
+        expect(result.description).toBe(mockUser.description);
+        expect(result.roles).toEqual(expect.arrayContaining([Role.GUEST]));
+        expect(result.permissions!).toHaveLength(1);
+        expect(result.permissions![0]).toEqual({
+            resource: Resource.ME,
+            actions: expect.arrayContaining(['read']),
+        });
     });
 });
