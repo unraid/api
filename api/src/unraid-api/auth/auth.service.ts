@@ -29,7 +29,6 @@ export class AuthService {
             }
 
             apiKeyEntity.roles ??= [];
-            console.log('Permissions', apiKeyEntity);
             await this.syncApiKeyRoles(apiKeyEntity.id, apiKeyEntity.roles);
             await this.syncApiKeyPermissions(apiKeyEntity.id, apiKeyEntity.permissions);
             this.logger.debug(
