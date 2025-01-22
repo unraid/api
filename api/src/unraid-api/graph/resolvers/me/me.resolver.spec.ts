@@ -74,7 +74,9 @@ describe('MeResolver', () => {
     });
 
     it('should throw error for null user', async () => {
-        await expect(resolver.me(null as unknown as User)).rejects.toThrow('Invalid user data');
+        await expect(resolver.me(null as unknown as User)).rejects.toThrow(
+            "Cannot destructure property 'description' of 'user' as it is null"
+        );
     });
 
     it('should throw error for missing required fields', async () => {
