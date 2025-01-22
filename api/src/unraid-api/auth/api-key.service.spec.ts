@@ -1,5 +1,5 @@
 import { Logger } from '@nestjs/common';
-import { writeFile } from 'fs/promises';
+import { readdir, readFile, writeFile } from 'fs/promises';
 import { join } from 'path';
 
 import { ensureDir, ensureDirSync } from 'fs-extra';
@@ -31,8 +31,9 @@ vi.mock('@app/store/modules/config', () => ({
     updateUserConfig: vi.fn(),
 }));
 
+// Mock fs/promises
 vi.mock('fs/promises', async () => ({
-    readdir: vi.fn(),
+    readdir: vi.fn().mockResolvedValue(['key1.json', 'key2.json', 'notakey.txt']),
     readFile: vi.fn(),
     writeFile: vi.fn(),
 }));
@@ -391,6 +392,7 @@ describe('ApiKeyService', () => {
                 differentKey,
                 mockApiKeyWithSecret,
             ]);
+
             await apiKeyService.onModuleInit();
 
             vi.mocked(ApiKeyWithSecretSchema).mockReturnValue({
@@ -566,6 +568,91 @@ describe('ApiKeyService', () => {
 
             await expect(apiKeyService.saveApiKey(invalidApiKey)).rejects.toThrow(
                 'Failed to save API key: Invalid data structure'
+            );
+        });
+    });
+
+    describe('loadAllFromDisk', () => {
+        it('should load and parse all JSON files', async () => {
+            const mockFiles = ['key1.json', 'key2.json', 'notakey.txt'];
+
+            vi.mocked(readdir).mockResolvedValue(mockFiles as any);
+            vi.mocked(readFile).mockResolvedValue(JSON.stringify(mockApiKeyWithSecret));
+            vi.mocked(ApiKeyWithSecretSchema).mockReturnValue({
+                parse: vi.fn().mockReturnValue(mockApiKeyWithSecret),
+            } as any);
+
+            const result = await apiKeyService.loadAllFromDisk();
+
+            expect(result).toHaveLength(2);
+            expect(result[0]).toEqual(mockApiKeyWithSecret);
+            expect(readFile).toHaveBeenCalledTimes(2);
+        });
+
+        it('should throw error when directory read fails', async () => {
+            vi.mocked(readdir).mockRejectedValue(new Error('Directory read failed'));
+
+            await expect(apiKeyService.loadAllFromDisk()).rejects.toThrow('Failed to list API keys');
+
+            expect(mockLogger.error).toHaveBeenCalledWith(
+                expect.stringContaining('Failed to read API key directory')
+            );
+        });
+    });
+
+    describe('loadApiKeyFile', () => {
+        it('should load and parse a valid API key file', async () => {
+            vi.mocked(readFile).mockResolvedValue(JSON.stringify(mockApiKeyWithSecret));
+            vi.mocked(ApiKeyWithSecretSchema).mockReturnValue({
+                parse: vi.fn().mockReturnValue(mockApiKeyWithSecret),
+            } as any);
+
+            const result = await apiKeyService['loadApiKeyFile']('test.json');
+
+            expect(result).toEqual(mockApiKeyWithSecret);
+            expect(readFile).toHaveBeenCalledWith(join(mockBasePath, 'test.json'), 'utf8');
+        });
+
+        it('should return null when file read fails', async () => {
+            vi.mocked(readFile).mockRejectedValue(new Error('File read failed'));
+
+            const result = await apiKeyService['loadApiKeyFile']('test.json');
+
+            expect(result).toBeNull();
+            expect(mockLogger.warn).toHaveBeenCalledWith(
+                expect.stringContaining('Error reading API key file test.json')
+            );
+        });
+
+        it('should throw error on corrupted JSON', async () => {
+            vi.mocked(readFile).mockResolvedValue('invalid json');
+
+            await expect(apiKeyService['loadApiKeyFile']('test.json')).rejects.toThrow(
+                'Authentication system error: Corrupted key file'
+            );
+        });
+
+        it('should throw error on invalid API key structure', async () => {
+            vi.mocked(readFile).mockResolvedValue(JSON.stringify({ invalid: 'structure' }));
+            vi.mocked(ApiKeyWithSecretSchema).mockReturnValue({
+                parse: vi.fn().mockImplementation(() => {
+                    throw new ZodError([
+                        {
+                            code: 'custom',
+                            path: [],
+                            message: 'Invalid structure',
+                        },
+                    ]);
+                }),
+            } as any);
+
+            await expect(apiKeyService['loadApiKeyFile']('test.json')).rejects.toThrow(
+                'Invalid API key structure'
+            );
+
+            expect(mockLogger.error).toHaveBeenCalledWith(
+                expect.stringContaining('Invalid API key structure in file test.json'),
+                expect.any(Array)
             );
         });
     });

@@ -1,8 +1,8 @@
 import { createParamDecorator, ExecutionContext } from '@nestjs/common';
 import { GqlContextType, GqlExecutionContext } from '@nestjs/graphql';
 
+import { UserSchema } from '@app/graphql/generated/api/operations';
 import { UserAccount } from '@app/graphql/generated/api/types';
-import { isUserAccount } from '@app/utils';
 
 export const GraphqlUser = createParamDecorator<null, any, UserAccount>(
     (data: null, context: ExecutionContext): UserAccount => {
@@ -10,10 +10,13 @@ export const GraphqlUser = createParamDecorator<null, any, UserAccount>(
             const ctx = GqlExecutionContext.create(context);
             const user = ctx.getContext().req.user;
 
-            if (!isUserAccount(user)) {
+            const result = UserSchema().safeParse(user);
+
+            if (!result.success) {
                 throw new Error('Invalid user account structure');
             }
-            return user;
+
+            return result.data;
         } else {
             return context.switchToHttp().getRequest().user;
         }

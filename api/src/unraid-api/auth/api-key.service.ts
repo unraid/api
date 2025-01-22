@@ -28,14 +28,9 @@ export class ApiKeyService implements OnModuleInit {
     }
 
     async onModuleInit() {
-        try {
-            this.memoryApiKeys = await this.loadAllFromDisk();
-            await this.createLocalApiKeyForConnectIfNecessary();
-            this.setupWatch();
-        } catch (error) {
-            this.logger.error('Failed to initialize API keys:', error);
-            throw error;
-        }
+        this.memoryApiKeys = await this.loadAllFromDisk();
+        await this.createLocalApiKeyForConnectIfNecessary();
+        this.setupWatch();
     }
 
     public findAll(): ApiKey[] {
@@ -142,36 +137,43 @@ export class ApiKeyService implements OnModuleInit {
     }
 
     async loadAllFromDisk(): Promise<ApiKeyWithSecret[]> {
-        try {
-            const files = await readdir(this.basePath);
-            const apiKeys: ApiKeyWithSecret[] = [];
-
-            for (const file of files) {
-                if (file.endsWith('.json')) {
-                    try {
-                        const content = await readFile(join(this.basePath, file), 'utf8');
-                        const apiKey = ApiKeyWithSecretSchema().parse(JSON.parse(content));
-
-                        apiKeys.push(apiKey);
-                    } catch (error) {
-                        if (error instanceof SyntaxError) {
-                            throw new Error('Authentication system error: Corrupted key file');
-                        }
-                        if (error instanceof ZodError) {
-                            this.logger.error(`Invalid API key structure in file ${file}`, error.errors);
-                            throw new Error('Invalid API key structure');
-                        }
-                        this.logger.warn(`Error reading API key file ${file}: ${error}`);
-                    }
-                }
-            }
-            return apiKeys;
-        } catch (error) {
-            if (error instanceof Error) {
-                throw error;
-            }
+        const files = await readdir(this.basePath).catch((error) => {
             this.logger.error(`Failed to read API key directory: ${error}`);
             throw new Error('Failed to list API keys');
+        });
+
+        const apiKeys: ApiKeyWithSecret[] = [];
+        const jsonFiles = files.filter((file) => file.includes('.json'));
+
+        for (const file of jsonFiles) {
+            const apiKey = await this.loadApiKeyFile(file);
+
+            if (apiKey) {
+                apiKeys.push(apiKey);
+            }
+        }
+
+        return apiKeys;
+    }
+
+    private async loadApiKeyFile(file: string): Promise<ApiKeyWithSecret | null> {
+        try {
+            const content = await readFile(join(this.basePath, file), 'utf8');
+
+            return ApiKeyWithSecretSchema().parse(JSON.parse(content));
+        } catch (error) {
+            if (error instanceof SyntaxError) {
+                throw new Error('Authentication system error: Corrupted key file');
+            }
+
+            if (error instanceof ZodError) {
+                this.logger.error(`Invalid API key structure in file ${file}`, error.errors);
+                throw new Error('Invalid API key structure');
+            }
+
+            this.logger.warn(`Error reading API key file ${file}: ${error}`);
+
+            return null;
         }
     }
 

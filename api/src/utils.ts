@@ -3,6 +3,8 @@ import { GqlExecutionContext } from '@nestjs/graphql';
 
 import strftime from 'strftime';
 
+import { UserSchema } from '@app/graphql/generated/api/operations';
+
 import { UserAccount } from './graphql/generated/api/types';
 import { FastifyRequest } from './types/fastify';
 
@@ -242,20 +244,4 @@ export function handleAuthError(
     const errorMessage = error instanceof Error ? error.message : 'An unexpected error occurred';
 
     throw new UnauthorizedException(`${operation}: ${errorMessage}`);
-}
-
-/**
- * Checks if an object is a valid UserAccount.
- *
- * @param user - The object to check
- * @returns true if the object is a valid UserAccount, false otherwise
- */
-export function isUserAccount(user: any): user is UserAccount {
-    return (
-        user &&
-        typeof user.id === 'string' &&
-        typeof user.name === 'string' &&
-        Array.isArray(user.permissions) &&
-        Array.isArray(user.roles)
-    );
 }

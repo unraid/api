@@ -5,7 +5,7 @@ import { AuthZService } from 'nest-authz';
 import type { Permission, UserAccount } from '@app/graphql/generated/api/types';
 import { Role } from '@app/graphql/generated/api/types';
 import { getters } from '@app/store';
-import { handleAuthError } from '@app/utils';
+import { batchProcess, handleAuthError } from '@app/utils';
 
 import { ApiKeyService } from './api-key.service';
 import { CookieService } from './cookie.service';
@@ -101,14 +101,23 @@ export class AuthService {
             // Clear existing permissions first
             await this.authzService.deletePermissionsForUser(apiKeyId);
 
-            // Add all new permissions in parallel
-            await Promise.all(
-                permissions.flatMap((permission) =>
-                    (permission.actions || []).map((action) =>
-                        this.authzService.addPermissionForUser(apiKeyId, permission.resource, action)
-                    )
-                )
+            // Create array of permission-action pairs for processing
+            const permissionActions = permissions.flatMap((permission) =>
+                (permission.actions || []).map((action) => ({
+                    resource: permission.resource,
+                    action,
+                }))
             );
+
+            const { errors, errorOccured } = await batchProcess(
+                permissionActions,
+                ({ resource, action }) =>
+                    this.authzService.addPermissionForUser(apiKeyId, resource, action)
+            );
+
+            if (errorOccured) {
+                this.logger.warn(`Some permissions failed to sync for API key ${apiKeyId}:`, errors);
+            }
         } catch (error: unknown) {
             handleAuthError(this.logger, 'Failed to sync permissions for API key', error, { apiKeyId });
         }
