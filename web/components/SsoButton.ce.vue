@@ -47,7 +47,7 @@ onMounted(async () => {
     const sessionState = getStateToken();
 
     if (code && state === sessionState) {
-      const token = await fetch(new URL('/oauth2/token', ACCOUNT), {
+      const token = await fetch(new URL('/api/oauth2/token', ACCOUNT), {
         method: 'POST',
         body: new URLSearchParams({
           code,
