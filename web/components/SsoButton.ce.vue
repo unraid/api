@@ -84,9 +84,9 @@ const navigateToExternalSSOUrl = () => {
 
 <template>
   <template v-if="isSsoEnabled">
-    <hr class="my-4" />
-    <p class="text-center my-4">Or</p>
-    <Button btnStyle="outline" style="border-radius: 0;" @click="navigateToExternalSSOUrl" >Sign In With Unraid.net Account</Button>
+    <hr class="my-1" />
+    <p class="text-center my-1">Or</p>
+    <Button btnStyle="outline" class="rounded-none" @click="navigateToExternalSSOUrl" >Sign In With Unraid.net Account</Button>
   </template>
 </template>
 

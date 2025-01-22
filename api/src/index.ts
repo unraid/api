@@ -14,6 +14,7 @@ import { WebSocket } from 'ws';
 
 import { logger } from '@app/core/log';
 import { setupLogRotation } from '@app/core/logrotate/setup-logrotate';
+import { setupAuthRequest } from '@app/core/sso/auth-request-setup';
 import { setupSso } from '@app/core/sso/sso-setup';
 import { fileExistsSync } from '@app/core/utils/files/file-exists';
 import { environment, PORT } from '@app/environment';
@@ -34,7 +35,6 @@ import { setupVarRunWatch } from '@app/store/watch/var-run-watch';
 import { bootstrapNestServer } from '@app/unraid-api/main';
 
 import { setupNewMothershipSubscription } from './mothership/subscribe-to-mothership';
-import { setupAuthRequest } from '@app/core/sso/auth-request-setup';
 
 let server: NestFastifyApplication<RawServerDefault> | null = null;
 
@@ -104,8 +104,12 @@ try {
 
     // If the config contains SSO IDs, enable SSO
     if (store.getState().config.remote.ssoSubIds) {
-        await setupAuthRequest();
-        await setupSso();
+        try {
+            await setupAuthRequest();
+            await setupSso();
+        } catch (err) {
+            logger.error(err, 'Failed to setup SSO');
+        }
     }
 
     // On process exit stop HTTP server
