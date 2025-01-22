@@ -1,6 +1,5 @@
-import { existsSync, write } from 'fs';
-import { readdir, readFile, writeFile } from 'fs/promises';
-import path from 'path';
+import { existsSync } from 'fs';
+import { glob, readFile, writeFile } from 'fs/promises';
 
 import { logger } from '@app/core/log';
 
@@ -8,29 +7,17 @@ import { logger } from '@app/core/log';
 const AUTH_REQUEST_FILE = '/usr/local/emhttp/auth-request.php';
 const WEB_COMPS_DIR = '/usr/local/emhttp/plugins/dynamix.my.servers/unraid-components/_nuxt/';
 
+const getJsFiles = async (dir: string) => {
+    const files = await glob(`${dir}/**/*.js`);
+    const filesArray: string[] = [];
+    for await (const file of files) {
+        filesArray.push(file.replace('/usr/local/emhttp', ''));
+    }
+    return filesArray;
+};
+
 export const setupAuthRequest = async () => {
-    // Function to log debug messages
-    // Find all .js files in WEB_COMPS_DIR
-    const getJSFiles = async (dir) => {
-        const jsFiles: string[] = [];
-
-        const findFiles = async (currentDir) => {
-            const files = await readdir(currentDir, { withFileTypes: true });
-            for (const file of files) {
-                const fullPath = path.join(currentDir, file.name);
-                if (file.isDirectory()) {
-                    findFiles(fullPath);
-                } else if (file.isFile() && file.name.endsWith('.js')) {
-                    jsFiles.push(fullPath.replace('/usr/local/emhttp', ''));
-                }
-            }
-        };
-
-        await findFiles(dir);
-        return jsFiles;
-    };
-
-    const JS_FILES = await getJSFiles(WEB_COMPS_DIR);
+    const JS_FILES = await getJsFiles(WEB_COMPS_DIR);
     logger.debug(`Found ${JS_FILES.length} .js files in ${WEB_COMPS_DIR}`);
 
     const FILES_TO_ADD = ['/webGui/images/partner-logo.svg', ...JS_FILES];
