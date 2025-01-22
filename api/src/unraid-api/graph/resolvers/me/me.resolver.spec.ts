@@ -3,7 +3,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { AuthZService } from 'nest-authz';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { Me, Resource, Role, UserAccount } from '@app/graphql/generated/api/types';
+import { Me, Resource, Role, User, UserAccount } from '@app/graphql/generated/api/types';
 
 import { MeResolver } from './me.resolver';
 
@@ -71,5 +71,21 @@ describe('MeResolver', () => {
             resource: Resource.ME,
             actions: expect.arrayContaining(['read']),
         });
+    });
+
+    it('should throw error for null user', async () => {
+        await expect(resolver.me(null as unknown as User)).rejects.toThrow('Invalid user data');
+    });
+
+    it('should throw error for missing required fields', async () => {
+        const invalidUser: UserAccount = {
+            id: '',
+            name: '',
+            description: '',
+            roles: [],
+            permissions: [],
+        };
+
+        await expect(resolver.me(invalidUser)).rejects.toThrow('Invalid user data');
     });
 });
