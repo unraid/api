@@ -62,12 +62,12 @@ export const getCloudData = async (
 
 export const getServersData = async ({
     client,
-    v,
+    verbosity,
 }: {
     client: ApolloClient<NormalizedCacheObject>;
-    v: number;
+    verbosity: number;
 }): Promise<ServersPayload | null> => {
-    if (v === 0) {
+    if (verbosity === 0) {
         return null;
     }
 
@@ -201,6 +201,12 @@ export class ReportCommand extends CommandRunner {
         super();
     }
 
+    private defaultOptions: ReportOptions = {
+        raw: false,
+        json: false,
+        verbose: 0,
+    };
+
     @Option({
         flags: '-r, --raw',
         description: 'whether to enable raw command output',
@@ -236,7 +242,7 @@ export class ReportCommand extends CommandRunner {
         }
     }
 
-    async report(options?: ReportOptions): Promise<string | ReportObject | void> {
+    async report(options: ReportOptions = this.defaultOptions): Promise<string | ReportObject | void> {
         // Check if we have a tty attached to stdout
         // If we don't then this is being piped to a log file, etc.
         const hasTty = process.stdout.isTTY;
@@ -245,7 +251,7 @@ export class ReportCommand extends CommandRunner {
         // If this has a tty it's interactive
         // AND
         // If they don't have --raw
-        const isInteractive = hasTty && !options?.raw;
+        const isInteractive = hasTty && !options.raw;
 
         try {
             // Show loading message
@@ -254,7 +260,6 @@ export class ReportCommand extends CommandRunner {
             }
 
             const jsonReport = options?.json ?? false;
-            const v = options?.verbose ?? 0;
 
             // Find all processes called "unraid-api" which aren't this process
             const unraidApiRunning = await isUnraidApiRunning();
@@ -282,7 +287,7 @@ export class ReportCommand extends CommandRunner {
 
             // Query local graphql using upc's API key
             // Get the servers array
-            const servers = await getServersData({ client, v });
+            const servers = await getServersData({ client, verbosity: options.verbose });
 
             // Check if the API key is valid
             const isApiKeyValid = cloud?.apiKey.valid ?? false;
@@ -322,8 +327,8 @@ export class ReportCommand extends CommandRunner {
                     status: cloud?.cloud.status ?? 'error',
                     ...(cloud?.cloud.error ? { error: cloud.cloud.error } : {}),
                     ...(cloud?.cloud.status === 'ok' ? { ip: cloud.cloud.ip ?? 'NO_IP' } : {}),
-                    ...(getAllowedOrigins(cloud, v)
-                        ? { allowedOrigins: getAllowedOrigins(cloud, v) }
+                    ...(getAllowedOrigins(cloud, options.verbose)
+                        ? { allowedOrigins: getAllowedOrigins(cloud, options.verbose) }
                         : {}),
                 },
             };
@@ -347,10 +352,10 @@ MY_SERVERS: ${reportObject.myServers.status}${
                         ? `\nMY_SERVERS_USERNAME: ${reportObject.myServers.myServersUsername}`
                         : ''
                 }
-CLOUD: ${getReadableCloudDetails(reportObject, v)}
+CLOUD: ${getReadableCloudDetails(reportObject, options.verbose)}
 MINI-GRAPH: ${getReadableMinigraphDetails(reportObject)}${getReadableServerDetails(
                     reportObject,
-                    v
+                    options.verbose
                 )}${getReadableAllowedOrigins(reportObject)}
 </----UNRAID-API-REPORT----->
 `;
