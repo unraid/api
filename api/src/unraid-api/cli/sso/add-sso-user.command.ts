@@ -30,7 +30,7 @@ export class AddSSOUserCommand extends CommandRunner {
     async run(_input: string[], options: AddSSOUserCommandOptions): Promise<void> {
         try {
             options = await this.inquirerService.prompt(AddSSOUserQuestionSet.name, options);
-
+            console.log(options);
             if (options.disclaimer === 'y' && options.username) {
                 await store.dispatch(loadConfigFile());
                 store.dispatch(addSsoUser(options.username));
@@ -47,18 +47,30 @@ export class AddSSOUserCommand extends CommandRunner {
     }
 
     @Option({
-        flags: '--username [username]',
+        flags: '--username <username>',
         description: 'Cognito Username',
     })
-    parseUsername(val: string) {
-        return val;
+    parseUsername(input: string) {
+        if (
+            !/^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/.test(input)
+        ) {
+            throw new Error('Username must be in the format of a UUID (e.g., ${v4()}}\n');
+        }
+
+        return input;
     }
 
     @Option({
-        flags: '--disclaimer [disclaimer]',
+        flags: '--disclaimer <disclaimer>',
         description: 'Disclaimer (y/n)',
     })
-    parseDisclaimer(val: string) {
-        return val;
+    parseDisclaimer(input: string) {
+        if (!input || !['y', 'n'].includes(input.toLowerCase())) {
+            throw new Error('Please answer the diclaimer with (y/n)\n');
+        }
+        if (input.toLowerCase() === 'n') {
+            process.exit(1);
+        }
+        return input;
     }
 }
