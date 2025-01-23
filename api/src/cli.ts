@@ -19,6 +19,7 @@ try {
             nativeShell: { executablePath: shellToUse },
         },
     });
+    process.exit(0);
 } catch (error) {
     cliLogger.error('ERROR:', error);
     internalLogger.error({
