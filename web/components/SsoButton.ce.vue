@@ -8,15 +8,29 @@ export interface Props {
 }
 const props = defineProps<Props>();
 
+type CurrentState = 'loading' | 'idle' | 'error';
+
+const currentState = ref<CurrentState>('idle');
+const error = ref<string | null>(null);
+
 const isSsoEnabled = computed<boolean>(
   () => props['ssoenabled'] === true || props['ssoenabled'] === 'true' || props.ssoEnabled
 );
 
-const enterCallbackTokenIntoField = (token: string) => {
+const getInputFields = (): {
+  form: HTMLFormElement;
+  passwordField: HTMLInputElement;
+  usernameField: HTMLInputElement;
+} => {
+  const form = document.querySelector('form[action="/login"]') as HTMLFormElement;
   const passwordField = document.querySelector('input[name=password]') as HTMLInputElement;
   const usernameField = document.querySelector('input[name=username]') as HTMLInputElement;
-  const form = document.querySelector('form[action="/login"]') as HTMLFormElement;
+  return { form, passwordField, usernameField };
+};
 
+const enterCallbackTokenIntoField = (token: string) => {
+  const { form, passwordField, usernameField } = getInputFields();
+  console.trace(passwordField, usernameField, form);
   if (!passwordField || !usernameField || !form) {
     console.warn('Could not find form, username, or password field');
   } else {
@@ -39,6 +53,20 @@ const generateStateToken = (): string => {
   return state;
 };
 
+const disableFormOnSubmit = () => {
+  const { form } = getInputFields();
+  if (form) {
+    form.style.display = 'none';
+  }
+};
+
+const reEnableFormOnError = () => {
+  const { form } = getInputFields();
+  if (form) {
+    form.style.display = 'block';
+  }
+};
+
 onMounted(async () => {
   try {
     const search = new URLSearchParams(window.location.search);
@@ -47,6 +75,8 @@ onMounted(async () => {
     const sessionState = getStateToken();
 
     if (code && state === sessionState) {
+      disableFormOnSubmit();
+      currentState.value = 'loading';
       const token = await fetch(new URL('/api/oauth2/token', ACCOUNT), {
         method: 'POST',
         body: new URLSearchParams({
@@ -62,11 +92,28 @@ onMounted(async () => {
           window.history.replaceState({}, document.title, window.location.pathname);
           window.location.search = '';
         }
+      } else {
+        throw new Error('Failed to fetch token');
       }
     }
   } catch (err) {
     console.error('Error fetching token', err);
+
+    currentState.value = 'error';
+    error.value = 'Error fetching token';
+    reEnableFormOnError();
   } finally {
+  }
+});
+
+const buttonText = computed<string>(() => {
+  switch (currentState.value) {
+    case 'loading':
+      return 'Signing you in...';
+    case 'error':
+      return 'Error';
+    default:
+      return 'Log In With Unraid.net';
   }
 });
 
@@ -84,9 +131,13 @@ const navigateToExternalSSOUrl = () => {
 
 <template>
   <template v-if="isSsoEnabled">
-    <hr class="my-1" />
-    <p class="text-center my-1">Or</p>
-    <Button btnStyle="outline" class="rounded-none" @click="navigateToExternalSSOUrl" >Sign In With Unraid.net Account</Button>
+    <div class="w-full flex flex-col gap-1 my-1">
+      <hr v-if="currentState === 'idle' || currentState === 'error'" />
+      <p class="text-center" v-if="currentState === 'idle' || currentState === 'error'">Or</p>
+      <Button btnStyle="outline" class="rounded-none uppercase tracking-widest" @click="navigateToExternalSSOUrl">{{
+        buttonText
+      }}</Button>
+    </div>
   </template>
 </template>
 
