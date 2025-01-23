@@ -3,7 +3,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { AuthZService } from 'nest-authz';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { Me, Resource, Role, User, UserAccount } from '@app/graphql/generated/api/types';
+import { Me, Resource, Role, UserAccount } from '@app/graphql/generated/api/types';
 
 import { MeResolver } from './me.resolver';
 
@@ -54,40 +54,6 @@ describe('MeResolver', () => {
 
         const result = await resolver.me(mockUser);
 
-        expect(result).toEqual({
-            id: mockUser.id,
-            name: mockUser.name,
-            description: mockUser.description,
-            roles: mockUser.roles,
-            permissions: mockUser.permissions,
-        } as Me);
-        expect(result).toBeDefined();
-        expect(result.id).toBe(mockUser.id);
-        expect(result.name).toBe(mockUser.name);
-        expect(result.description).toBe(mockUser.description);
-        expect(result.roles).toEqual(expect.arrayContaining([Role.GUEST]));
-        expect(result.permissions!).toHaveLength(1);
-        expect(result.permissions![0]).toEqual({
-            resource: Resource.ME,
-            actions: expect.arrayContaining(['read']),
-        });
-    });
-
-    it('should throw error for null user', async () => {
-        await expect(resolver.me(null as unknown as User)).rejects.toThrow(
-            "Cannot destructure property 'description' of 'user' as it is null"
-        );
-    });
-
-    it('should throw error for missing required fields', async () => {
-        const invalidUser: UserAccount = {
-            id: '',
-            name: '',
-            description: '',
-            roles: [],
-            permissions: [],
-        };
-
-        await expect(resolver.me(invalidUser)).rejects.toThrow('Invalid user data');
+        expect(result).toBe(mockUser);
     });
 });

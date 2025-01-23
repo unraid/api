@@ -17,10 +17,10 @@ export class CasbinService {
         casbinModel.loadModelFromText(model);
         const casbinPolicy = new StringAdapter(policy);
         try {
-            this.enforcer = await newEnforcer(casbinModel, casbinPolicy);
-            this.enforcer.enableLog(true);
+            const enforcer = await newEnforcer(casbinModel, casbinPolicy);
+            enforcer.enableLog(true);
 
-            return this.enforcer;
+            return enforcer;
         } catch (error: unknown) {
             const errorMessage = error instanceof Error ? error.message : String(error);
             this.logger.error(`Failed to create Casbin enforcer: ${errorMessage}`);
