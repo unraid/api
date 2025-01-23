@@ -1,4 +1,3 @@
-
 import { viteCommonjs } from '@originjs/vite-plugin-commonjs';
 import nodeResolve from '@rollup/plugin-node-resolve';
 import nodeExternals from 'rollup-plugin-node-externals';
@@ -29,17 +28,17 @@ export default defineConfig(({ mode }) => {
                       appPath: 'src/index.ts',
                       tsCompiler: 'swc',
                       swcOptions: {
-                            jsc: {
-                                parser: {
-                                    syntax: 'typescript',
-                                    decorators: true,
-                                },
-                                target: 'es2024',
-                                transform: {
-                                    legacyDecorator: true,
-                                    decoratorMetadata: true,
-                                },
-                            },
+                          jsc: {
+                              parser: {
+                                  syntax: 'typescript',
+                                  decorators: true,
+                              },
+                              target: 'es2024',
+                              transform: {
+                                  legacyDecorator: true,
+                                  decoratorMetadata: true,
+                              },
+                          },
                       },
                       initAppOnBoot: true,
                   })
@@ -147,7 +146,11 @@ export default defineConfig(({ mode }) => {
                 reporter: ['text', 'json', 'html'],
             },
             clearMocks: true,
-            setupFiles: ['src/__test__/setup/env-setup.ts', 'src/__test__/setup/keyserver-mock.ts'],
+            setupFiles: [
+                'reflect-metadata',
+                'src/__test__/setup/env-setup.ts',
+                'src/__test__/setup/keyserver-mock.ts',
+            ],
             exclude: ['**/deploy/**', '**/node_modules/**'],
             env: {
                 NODE_ENV: 'test',

@@ -13,7 +13,7 @@ type Me implements UserAccount {
     name: String!
     description: String!
     roles: [Role!]!
-    permissions: JSON
+    permissions: [Permission!]
 }
 
 type Subscription {

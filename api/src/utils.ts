@@ -3,6 +3,8 @@ import { GqlExecutionContext } from '@nestjs/graphql';
 
 import strftime from 'strftime';
 
+import { UserSchema } from '@app/graphql/generated/api/operations';
+
 import { UserAccount } from './graphql/generated/api/types';
 import { FastifyRequest } from './types/fastify';
 

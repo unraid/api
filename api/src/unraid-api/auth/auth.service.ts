@@ -2,10 +2,10 @@ import { Injectable, Logger, UnauthorizedException } from '@nestjs/common';
 
 import { AuthZService } from 'nest-authz';
 
-import type { UserAccount } from '@app/graphql/generated/api/types';
+import type { Permission, UserAccount } from '@app/graphql/generated/api/types';
 import { Role } from '@app/graphql/generated/api/types';
 import { getters } from '@app/store';
-import { handleAuthError } from '@app/utils';
+import { batchProcess, handleAuthError } from '@app/utils';
 
 import { ApiKeyService } from './api-key.service';
 import { CookieService } from './cookie.service';
@@ -29,8 +29,8 @@ export class AuthService {
             }
 
             apiKeyEntity.roles ??= [];
-
             await this.syncApiKeyRoles(apiKeyEntity.id, apiKeyEntity.roles);
+            await this.syncApiKeyPermissions(apiKeyEntity.id, apiKeyEntity.permissions);
             this.logger.debug(
                 `Validating API key with roles: ${JSON.stringify(
                     await this.authzService.getRolesForUser(apiKeyEntity.id)
@@ -42,6 +42,7 @@ export class AuthService {
                 name: apiKeyEntity.name,
                 description: apiKeyEntity.description ?? `API Key ${apiKeyEntity.name}`,
                 roles: apiKeyEntity.roles,
+                permissions: apiKeyEntity.permissions,
             };
         } catch (error: unknown) {
             handleAuthError(this.logger, 'Failed to validate API key', error);
@@ -95,23 +96,30 @@ export class AuthService {
         }
     }
 
-    public async addRoleToUser(userId: string, role: Role): Promise<boolean> {
-        if (!userId || !role) {
-            throw new UnauthorizedException('User ID and role are required');
-        }
-
+    public async syncApiKeyPermissions(apiKeyId: string, permissions: Array<Permission>): Promise<void> {
         try {
-            const hasRole = await this.authzService.hasRoleForUser(userId, role);
+            // Clear existing permissions first
+            await this.authzService.deletePermissionsForUser(apiKeyId);
 
-            if (hasRole) {
-                return true;
+            // Create array of permission-action pairs for processing
+            const permissionActions = permissions.flatMap((permission) =>
+                (permission.actions || []).map((action) => ({
+                    resource: permission.resource,
+                    action,
+                }))
+            );
+
+            const { errors, errorOccured } = await batchProcess(
+                permissionActions,
+                ({ resource, action }) =>
+                    this.authzService.addPermissionForUser(apiKeyId, resource, action)
+            );
+
+            if (errorOccured) {
+                this.logger.warn(`Some permissions failed to sync for API key ${apiKeyId}:`, errors);
             }
-
-            await this.authzService.addRoleForUser(userId, role);
-
-            return true;
         } catch (error: unknown) {
-            handleAuthError(this.logger, 'Failed to add role to user', error, { userId, role });
+            handleAuthError(this.logger, 'Failed to sync permissions for API key', error, { apiKeyId });
         }
     }
 
@@ -223,6 +231,7 @@ export class AuthService {
             description: 'Session receives administrator permissions',
             name: 'admin',
             roles: [Role.ADMIN],
+            permissions: [],
         };
     }
 }

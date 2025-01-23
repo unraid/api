@@ -64,6 +64,7 @@ async function renderSandboxPage(service: GraphQLServerContext) {
 
     if (!serverListener) return preconditionFailed('serverListener');
     if (!serverListener.renderLandingPage) return preconditionFailed('renderLandingPage');
+    
     return serverListener.renderLandingPage();
 }
 

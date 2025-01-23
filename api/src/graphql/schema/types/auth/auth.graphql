@@ -1,9 +1,15 @@
+type Permission {
+    resource: Resource!
+    actions: [String!]
+}
+
 type ApiKey {
     id: ID!
     name: String!
     description: String
     roles: [Role!]!
     createdAt: DateTime!
+    permissions: [Permission!]!
 }
 
 type ApiKeyWithSecret {
@@ -13,6 +19,7 @@ type ApiKeyWithSecret {
     description: String
     roles: [Role!]!
     createdAt: DateTime!
+    permissions: [Permission!]!
 }
 
 input CreateApiKeyInput {
