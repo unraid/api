@@ -30,7 +30,6 @@ const getInputFields = (): {
 
 const enterCallbackTokenIntoField = (token: string) => {
   const { form, passwordField, usernameField } = getInputFields();
-  console.trace(passwordField, usernameField, form);
   if (!passwordField || !usernameField || !form) {
     console.warn('Could not find form, username, or password field');
   } else {
@@ -87,6 +86,9 @@ onMounted(async () => {
       });
       if (token.ok) {
         const tokenBody = await token.json();
+        if (!tokenBody.access_token) {
+          throw new Error('Token body did not contain access_token');
+        }
         enterCallbackTokenIntoField(tokenBody.access_token);
         if (window.location.search) {
           window.history.replaceState({}, document.title, window.location.pathname);
