@@ -40,5 +40,5 @@ export const getWriteableConfig = <T extends ConfigType>(
         };
     }
 
-    return schema.parse(mergedConfig) as any; // Narrowing ensures correct typing
+    return schema.parse(mergedConfig) as T extends 'memory' ? MyServersConfigMemory : MyServersConfig; // Narrowing ensures correct typing
 };
