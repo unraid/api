@@ -8,7 +8,7 @@ export class AddSSOUserQuestionSet {
     @Question({
         message: `Enabling Single Sign-On (SSO) will simplify authentication by centralizing access to your Unraid server. However, this comes with certain security considerations: if your SSO account is compromised, unauthorized access to your server could occur.
        
-Please note: your existing username and password will continue to work alongside SSO.
+Please note: your existing username and password will continue to work alongside SSO. We recommend using 2FA on your Unraid.net account or a single sign-on provider to enhance security.
 
 Are you sure you want to proceed with adding a user for SSO? (y/n)
 `,
