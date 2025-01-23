@@ -4,9 +4,6 @@ import { Command, CommandRunner } from 'nest-commander';
 import { ECOSYSTEM_PATH, PM2_PATH } from '@app/consts';
 import { LogService } from '@app/unraid-api/cli/log.service';
 
-/**
- * Stop a running API process and then start it again.
- */
 @Command({ name: 'restart', description: 'Restart / Start the Unraid API' })
 export class RestartCommand extends CommandRunner {
     constructor(private readonly logger: LogService) {
