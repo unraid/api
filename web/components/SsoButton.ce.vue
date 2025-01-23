@@ -133,7 +133,7 @@ const navigateToExternalSSOUrl = () => {
   <template v-if="isSsoEnabled">
     <div class="w-full flex flex-col gap-1 my-1">
       <hr v-if="currentState === 'idle' || currentState === 'error'" />
-      <p class="text-center" v-if="currentState === 'idle' || currentState === 'error'">Or</p>
+      <p class="text-center" v-if="currentState === 'idle' || currentState === 'error'">or</p>
       <Button
         :disabled="currentState === 'loading' || currentState === 'error'"
         btnStyle="outline"
