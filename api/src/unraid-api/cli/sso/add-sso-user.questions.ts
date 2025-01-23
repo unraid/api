@@ -1,4 +1,5 @@
 import { Question, QuestionSet } from 'nest-commander';
+import { v4 as uuidv4 } from 'uuid';
 
 
 
@@ -9,7 +10,12 @@ export class AddSSOUserQuestionSet {
     static name = 'add-user';
 
     @Question({
-        message: 'Are you sure you wish to add a user for SSO - this will enable single sign on in Unraid and has certain security implications? (y/n)',
+        message: `Enabling Single Sign-On (SSO) will simplify authentication by centralizing access to your Unraid server. However, this comes with certain security considerations: if your SSO account is compromised, unauthorized access to your server could occur.
+       
+Please note: your existing username and password will continue to work alongside SSO.
+
+Are you sure you want to proceed with adding a user for SSO? (y/n)
+`,
         name: 'disclaimer',
         validate(input) {
             if (!input) {
@@ -29,14 +35,17 @@ export class AddSSOUserQuestionSet {
     }
 
     @Question({
-        message: 'What is the cognito username (NOT YOUR UNRAID USERNAME)? Find it in your Unraid Account at https://account.unraid.net',
+        message:
+            "What is your Unique Unraid Account ID? Find it in your Unraid Account at https://account.unraid.net/settings\n",
         name: 'username',
         validate(input) {
             if (!input) {
                 return 'Username is required';
             }
-            if (!/^[a-zA-Z0-9-]+$/.test(input)) {
-                return 'Username must be alphanumeric and can include dashes.';
+            const randomUUID = uuidv4();
+
+            if (!/^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/.test(input)) {
+                return `Username must be in the format of a UUID (e.g., ${randomUUID}).`;
             }
             return true;
         },
