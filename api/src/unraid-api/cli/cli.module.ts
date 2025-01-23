@@ -19,6 +19,7 @@ import { SwitchEnvCommand } from '@app/unraid-api/cli/switch-env.command';
 import { VersionCommand } from '@app/unraid-api/cli/version.command';
 import { RemoveSSOUserCommand } from '@app/unraid-api/cli/sso/remove-sso-user.command';
 import { RemoveSSOUserQuestionSet } from '@app/unraid-api/cli/sso/remove-sso-user.questions';
+import { ListSSOUserCommand } from '@app/unraid-api/cli/sso/list-sso-user.command';
 
 @Module({
     providers: [
@@ -26,6 +27,7 @@ import { RemoveSSOUserQuestionSet } from '@app/unraid-api/cli/sso/remove-sso-use
         AddSSOUserQuestionSet,
         RemoveSSOUserCommand,
         RemoveSSOUserQuestionSet,
+        ListSSOUserCommand,
         LogService,
         StartCommand,
         StopCommand,
