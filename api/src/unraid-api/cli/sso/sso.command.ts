@@ -20,5 +20,6 @@ export class SSOCommand extends CommandRunner {
 
     async run(): Promise<void> {
         this.logger.info('Please provide a subcommand or use --help for more information');
+        process.exit(0);
     }
 }
