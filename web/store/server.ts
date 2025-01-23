@@ -1068,9 +1068,6 @@ export const useServerStore = defineStore("server", () => {
    */
   const setServer = (data: Server) => {
     console.debug("[setServer]", data);
-    if (typeof data?.apiKey !== "undefined") {
-      apiKey.value = data.apiKey;
-    }
     if (typeof data?.array !== "undefined") {
       array.value = data.array;
     }
