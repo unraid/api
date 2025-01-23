@@ -68,7 +68,6 @@ if (!file_exists('/var/lib/pkgtools/packages/dynamix.unraid.net') && !file_exist
 }
 
 $serverData = [
-  "apiKey" => $myservers['upc']['apikey'] ?? '',
   "apiVersion" => $myservers['api']['version'] ?? '',
   "avatar" => (!empty($myservers['remote']['avatar']) && $connectPluginInstalled) ? $myservers['remote']['avatar'] : '',
   "banner" => $display['banner'] ?? '',

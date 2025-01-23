@@ -69,7 +69,6 @@ export interface ServerStateArray {
 
 export interface Server {
   activationCodeData?: ActivationCodeData;
-  apiKey?: string;
   apiVersion?: string;
   array?: ServerStateArray;
   avatar?: string;

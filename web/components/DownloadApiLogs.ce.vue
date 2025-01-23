@@ -8,9 +8,7 @@ import { useI18n } from 'vue-i18n';
 
 const { t } = useI18n();
 
-const { apiKey } = storeToRefs(useServerStore());
-
-const downloadUrl = computed(() => new URL(`/graphql/api/logs?apiKey=${apiKey.value}`, WEBGUI_GRAPHQL));
+const downloadUrl = computed(() => new URL(`/graphql/api/logs`, WEBGUI_GRAPHQL));
 </script>
 
 <template>

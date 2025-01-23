@@ -19,7 +19,6 @@ import { WEBGUI_GRAPHQL } from './urls';
 const httpEndpoint = WEBGUI_GRAPHQL;
 const wsEndpoint = new URL(WEBGUI_GRAPHQL.toString().replace('http', 'ws'));
 
-// const headers = { 'x-api-key': serverStore.apiKey };
 const headers = {
   'x-csrf-token': globalThis.csrf_token,
 };

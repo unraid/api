@@ -67,7 +67,6 @@ export const useServerStore = defineStore("server", () => {
   /**
    * State
    */
-  const apiKey = ref<string>("");
   const apiVersion = ref<string>("");
   const array = ref<ServerStateArray | undefined>();
   // helps to display warning next to array status
@@ -201,7 +200,6 @@ export const useServerStore = defineStore("server", () => {
 
   const server = computed((): Server => {
     return {
-      apiKey: apiKey.value,
       apiVersion: apiVersion.value,
       array: array.value,
       avatar: avatar.value,
@@ -328,10 +326,6 @@ export const useServerStore = defineStore("server", () => {
 
   const serverDebugPayload = computed((): Server => {
     const payload = {
-      apiKey:
-        apiKey.value && typeof apiKey.value === "string"
-          ? `${apiKey.value.substring(0, 6)}__[REDACTED]`
-          : "", // so we don't send full api key in email
       apiVersion: apiVersion.value,
       avatar: avatar.value,
       connectPluginInstalled: connectPluginInstalled.value,
@@ -1443,7 +1437,6 @@ export const useServerStore = defineStore("server", () => {
 
   return {
     // state
-    apiKey,
     array,
     avatar,
     cloud,
