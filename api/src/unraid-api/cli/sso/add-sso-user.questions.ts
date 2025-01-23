@@ -1,10 +1,6 @@
 import { Question, QuestionSet } from 'nest-commander';
 import { v4 as uuidv4 } from 'uuid';
 
-
-
-
-
 @QuestionSet({ name: 'add-user' })
 export class AddSSOUserQuestionSet {
     static name = 'add-user';
