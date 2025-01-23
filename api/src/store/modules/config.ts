@@ -214,7 +214,7 @@ export const config = createSlice({
             if (state.remote.ssoSubIds.includes(action.payload)) {
                 return;
             }
-            const stateAsArray = state.remote.ssoSubIds.split(',');
+            const stateAsArray = state.remote.ssoSubIds.split(',').filter((id) => id !== '');
             stateAsArray.push(action.payload);
             state.remote.ssoSubIds = stateAsArray.join(',');
         },
