@@ -759,10 +759,6 @@ if ([[ -n "${email}" && (-z "${apikey}" || "${#apikey}" -ne "64") ]]); then
   }' "${CFG}">"${CFG}-new" && mv "${CFG}-new" "${CFG}" CFG_CLEANED=1
   echo "⚠️ Automatically signed out of Unraid.net"
 fi
-# if there wasn't an email or the CFG was cleaned
-if [[ -z "${email}" ]] || [[ CFG_CLEANED -eq 1 ]]; then
-  echo "✨ Sign In to Unraid.net to use Unraid Connect ✨"
-fi
 
 # configure flash backup to stop when the system starts shutting down
 [[ ! -d /etc/rc.d/rc6.d ]] && mkdir /etc/rc.d/rc6.d
