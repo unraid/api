@@ -12,6 +12,8 @@ export const levels = [
     'fatal',
 ] as const;
 
+export type LogLevel = typeof levels[number];
+
 const level =
     levels[
         levels.indexOf(

@@ -2,14 +2,11 @@ import { execa } from 'execa';
 import { Command, CommandRunner, Option } from 'nest-commander';
 
 import { ECOSYSTEM_PATH, PM2_PATH } from '@app/consts';
-import { levels } from '@app/core/log';
+import { levels, LogLevel } from '@app/core/log';
 import { LogService } from '@app/unraid-api/cli/log.service';
 
 interface StartCommandOptions {
-    debug?: boolean;
-    port?: string;
     'log-level'?: string;
-    environment?: string;
 }
 
 @Command({ name: 'start' })
@@ -39,10 +36,9 @@ export class StartCommand extends CommandRunner {
     @Option({
         flags: `--log-level <${levels.join('|')}>`,
         description: 'log level to use',
+        defaultValue: 'info',
     })
-    parseLogLevel(val: string): typeof levels {
-        return (levels.includes(val as (typeof levels)[number])
-            ? (val as (typeof levels)[number])
-            : 'info') as unknown as typeof levels;
+    parseLogLevel(val: string): LogLevel {
+        return levels.includes(val as LogLevel) ? (val as LogLevel) : 'info';
     }
 }
