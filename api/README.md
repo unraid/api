@@ -41,47 +41,29 @@ Options:
 
 ## Key
 
-To get an existing API key, run:
+To create and work with Unraid API keys, used for the local API, run the following command to view all available options. These options may change over time.
 
-```
-unraid-api key get --name "my-app-key"
-```
-
-To get an API key, and create if it doesn't exist, run:
-
-```
-unraid-api key get --name "my-app-key" --create
-```
-
-To create a new API key with specific roles, run:
-
-```
-unraid-api key create --name "backup-app" --roles "admin,guest"
-```
-
-To create a new API key with roles and permissions, run:
-
-```
-unraid-api key create --name "backup-app" --roles "admin,guest" --permissions "read:any"
+```sh
+unraid-api key --help
 ```
 
 ## Report
 
 To view the current status of the unraid-api and its connection to mothership, run:
 
-```
+```sh
 unraid-api report
 ```
 
 To view verbose data (anonymized), run:
 
-```
+```sh
 unraid-api report -v
 ```
 
 To view non-anonymized verbose data, run:
 
-```
+```sh
 unraid-api report -vv
 ```
 
