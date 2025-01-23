@@ -202,7 +202,7 @@ class ServerState
         $this->registered = !empty($this->myServersFlashCfg['remote']['apikey']) && $this->connectPluginInstalled;
         $this->registeredTime = $this->myServersFlashCfg['remote']['regWizTime'] ?? '';
         $this->username = $this->myServersFlashCfg['remote']['username'] ?? '';
-        $this->ssoEnabled = $this->myServersFlashCfg['remote']['ssoSubIds'] !== '';
+        $this->ssoEnabled = !empty($this->myServersFlashCfg['remote']['ssoSubIds'] ?? '');
     }
 
     private function getConnectKnownOrigins()
