@@ -28,13 +28,21 @@ export class AddSSOUserCommand extends CommandRunner {
     }
 
     async run(_input: string[], options: AddSSOUserCommandOptions): Promise<void> {
-        options = await this.inquirerService.prompt(AddSSOUserQuestionSet.name, options);
+        try {
+            options = await this.inquirerService.prompt(AddSSOUserQuestionSet.name, options);
 
-        if (options.disclaimer === 'y') {
-            await store.dispatch(loadConfigFile());
-            store.dispatch(addSsoUser(options.username));
-            writeConfigSync('flash');
-            this.logger.info('User added ' + options.username);
+            if (options.disclaimer === 'y' && options.username) {
+                await store.dispatch(loadConfigFile());
+                store.dispatch(addSsoUser(options.username));
+                writeConfigSync('flash');
+                this.logger.info('User added ' + options.username);
+            }
+        } catch (e: unknown) {
+            if (e instanceof Error) {
+                this.logger.error('Error adding user: ' + e.message);
+            } else {
+                this.logger.error('Error adding user');
+            }
         }
     }
 
