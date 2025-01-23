@@ -1,5 +1,4 @@
 import { F_OK } from 'constants';
-import { randomBytes } from 'crypto';
 import { writeFileSync } from 'fs';
 import { access } from 'fs/promises';
 
@@ -24,7 +23,6 @@ import { setupRemoteAccessThunk } from '@app/store/actions/setup-remote-access';
 import { FileLoadStatus } from '@app/store/types';
 import { type RecursivePartial } from '@app/types';
 import { type MyServersConfig, type MyServersConfigMemory } from '@app/types/my-servers-config';
-import { isFulfilled } from '@app/utils';
 
 export type SliceState = {
     status: FileLoadStatus;
@@ -219,7 +217,18 @@ export const config = createSlice({
             const stateAsArray = state.remote.ssoSubIds.split(',');
             stateAsArray.push(action.payload);
             state.remote.ssoSubIds = stateAsArray.join(',');
-        }
+        },
+        removeSsoUser(state, action: PayloadAction<string | null>) {
+            if (action.payload === null) {
+                state.remote.ssoSubIds = '';
+                return;
+            }
+            if (!state.remote.ssoSubIds.includes(action.payload)) {
+                return;
+            }
+            const stateAsArray = state.remote.ssoSubIds.split(',').filter((id) => id !== action.payload);
+            state.remote.ssoSubIds = stateAsArray.join(',');
+        },
     },
     extraReducers(builder) {
         builder.addCase(loadConfigFile.pending, (state) => {
@@ -300,12 +309,14 @@ export const {
     setUpnpState,
     setWanPortToValue,
     setWanAccess,
+    removeSsoUser,
 } = actions;
 
 /**
  * Actions that should trigger a flash write
  */
 export const configUpdateActionsFlash = isAnyOf(
+    addSsoUser,
     updateUserConfig,
     updateAccessTokens,
     updateAllowedOrigins,
@@ -314,7 +325,8 @@ export const configUpdateActionsFlash = isAnyOf(
     setWanAccess,
     setupRemoteAccessThunk.fulfilled,
     logoutUser.fulfilled,
-    loginUser.fulfilled
+    loginUser.fulfilled,
+    removeSsoUser
 );
 
 /**
