@@ -4,6 +4,7 @@ import { CommandRunner, InquirerService, Option, OptionChoiceFor, SubCommand } f
 
 import { store } from '@app/store/index';
 import { loadConfigFile, removeSsoUser } from '@app/store/modules/config';
+import { writeConfigSync } from '@app/store/sync/config-disk-sync';
 import { LogService } from '@app/unraid-api/cli/log.service';
 import { RemoveSSOUserQuestionSet } from '@app/unraid-api/cli/sso/remove-sso-user.questions';
 
@@ -26,9 +27,13 @@ export class RemoveSSOUserCommand extends CommandRunner {
     }
     public async run(_input: string[], options: RemoveSSOUserCommandOptions): Promise<void> {
         await store.dispatch(loadConfigFile());
-        console.log('options', options);
         options = await this.inquirerService.prompt(RemoveSSOUserQuestionSet.name, options);
         store.dispatch(removeSsoUser(options.username === 'all' ? null : options.username));
-        this.logger.info('User/s removed ' + options.username);
+        if (options.username === 'all') {
+            this.logger.info('All users removed from SSO');
+        } else {
+            this.logger.info('User removed: ' + options.username);
+        }
+        writeConfigSync('flash');
     }
 }
