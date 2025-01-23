@@ -36,4 +36,23 @@ export class RemoveSSOUserCommand extends CommandRunner {
         }
         writeConfigSync('flash');
     }
+
+    @Option({
+        name: 'username',
+        flags: '--username <username>',
+        description: 'Cognito Username',
+    })
+    parseUsername(input: string) {
+        if (!input) {
+            throw new Error('Username is required\n');
+        }
+
+        if (
+            !/^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/.test(input)
+        ) {
+            throw new Error('Username must be in the format of a UUID (e.g., ${v4()}}\n');
+        }
+
+        return input;
+    }
 }
