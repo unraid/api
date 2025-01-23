@@ -2,17 +2,16 @@ import { ApolloClient, ApolloQueryResult, NormalizedCacheObject } from '@apollo/
 import ipRegex from 'ip-regex';
 import { Command, CommandRunner, Option } from 'nest-commander';
 
+import type { getCloudQuery, getServersQuery } from '@app/graphql/generated/api/operations';
 import { isUnraidApiRunning } from '@app/core/utils/pm2/unraid-api-running';
 import { API_VERSION } from '@app/environment';
+import { getApiApolloClient } from '@app/graphql/client/api/get-api-client';
+import { getCloudDocument, getServersDocument } from '@app/graphql/generated/api/operations';
 import { MinigraphStatus } from '@app/graphql/generated/api/types';
 import { getters, store } from '@app/store';
 import { loadConfigFile } from '@app/store/modules/config';
 import { loadStateFiles } from '@app/store/modules/emhttp';
 import { LogService } from '@app/unraid-api/cli/log.service';
-
-import type { getCloudQuery, getServersQuery } from '../../graphql/generated/api/operations';
-import { getApiApolloClient } from '../../graphql/client/api/get-api-client';
-import { getCloudDocument, getServersDocument } from '../../graphql/generated/api/operations';
 
 type CloudQueryResult = NonNullable<ApolloQueryResult<getCloudQuery>['data']['cloud']>;
 type ServersQueryResultServer = NonNullable<ApolloQueryResult<getServersQuery>['data']['servers']>[0];
@@ -121,19 +120,19 @@ export const anonymiseOrigins = (origins?: string[]): string[] => {
         .filter(Boolean);
 };
 
-const getAllowedOrigins = (cloud: CloudQueryResult | null, v: number): string[] | null => {
-    if (v > 1) {
+const getAllowedOrigins = (cloud: CloudQueryResult | null, verbosity: number): string[] | null => {
+    if (verbosity > 1) {
         return cloud?.allowedOrigins.filter((url) => !url.endsWith('.sock')) ?? [];
-    } else if (v === 1) {
+    } else if (verbosity === 1) {
         return anonymiseOrigins(cloud?.allowedOrigins ?? []);
     }
     return null;
 };
 
-const getReadableCloudDetails = (reportObject: ReportObject, v: number): string => {
+const getReadableCloudDetails = (reportObject: ReportObject, verbosity: number): string => {
     const error = reportObject.cloud.error ? `\n	ERROR [${reportObject.cloud.error}]` : '';
     const status = reportObject.cloud.status ? reportObject.cloud.status : 'disconnected';
-    const ip = reportObject.cloud.ip && v !== 0 ? `\n	IP: [${reportObject.cloud.ip}]` : '';
+    const ip = reportObject.cloud.ip && verbosity !== 0 ? `\n	IP: [${reportObject.cloud.ip}]` : '';
     return `
 	STATUS: [${status}] ${ip} ${error}`;
 };
@@ -150,16 +149,16 @@ const getReadableMinigraphDetails = (reportObject: ReportObject): string => {
 };
 
 // Convert server to string output
-const serverToString = (v: number) => (server: ServersQueryResultServer) =>
+const serverToString = (verbosity: number) => (server: ServersQueryResultServer) =>
     `${server?.name ?? 'No Server Name'}${
-        v > 0
+        verbosity > 0
             ? `[owner="${server.owner?.username ?? 'No Owner Found'}"${
-                  v > 1 ? ` guid="${server.guid ?? 'No GUID'}"]` : ']'
+                  verbosity > 1 ? ` guid="${server.guid ?? 'No GUID'}"]` : ']'
               }`
             : ''
     }`;
 
-const getReadableServerDetails = (reportObject: ReportObject, v: number): string => {
+const getReadableServerDetails = (reportObject: ReportObject, verbosity: number): string => {
     if (!reportObject.servers) {
         return '';
     }
@@ -169,15 +168,15 @@ const getReadableServerDetails = (reportObject: ReportObject, v: number): string
     }
 
     const invalid =
-        v > 0 && reportObject.servers.invalid.length > 0
+        verbosity > 0 && reportObject.servers.invalid.length > 0
             ? `
-	INVALID: ${reportObject.servers.invalid.map(serverToString(v)).join(',')}`
+	INVALID: ${reportObject.servers.invalid.map(serverToString(verbosity)).join(',')}`
             : '';
 
     return `
 SERVERS:
-	ONLINE: ${reportObject.servers.online.map(serverToString(v)).join(',')}
-	OFFLINE: ${reportObject.servers.offline.map(serverToString(v)).join(',')}${invalid}`;
+	ONLINE: ${reportObject.servers.online.map(serverToString(verbosity)).join(',')}
+	OFFLINE: ${reportObject.servers.offline.map(serverToString(verbosity)).join(',')}${invalid}`;
 };
 
 const getReadableAllowedOrigins = (reportObject: ReportObject): string => {
@@ -205,6 +204,7 @@ export class ReportCommand extends CommandRunner {
     @Option({
         flags: '-r, --raw',
         description: 'whether to enable raw command output',
+        defaultValue: false,
     })
     parseRaw(): boolean {
         return true;
@@ -213,6 +213,7 @@ export class ReportCommand extends CommandRunner {
     @Option({
         flags: '-j, --json',
         description: 'Display JSON output for this command',
+        defaultValue: false,
     })
     parseJson(): boolean {
         return true;
@@ -221,22 +222,21 @@ export class ReportCommand extends CommandRunner {
     @Option({
         flags: '-v, --verbose',
         description: 'Verbosity level (-v -vv -vvv)',
+        defaultValue: 0,
     })
-    handleVerbose(value: string | boolean, previous: number): number {
+    handleVerbose(value: string | boolean, previous: number = 0): number {
         if (typeof value === 'boolean') {
             // Single `-v` or `--verbose` flag increments verbosity
-            return (previous ?? 0) + 1;
+            return previous + 1;
         } else if (value === undefined) {
-            return (previous ?? 0) + 1; // Increment if flag is used without value
+            return previous + 1; // Increment if flag is used without value
         } else {
             // If `-vvv` is passed as one flag, count the number of `v`s
-            return (previous ?? 0) + value.length;
+            return previous + value.length;
         }
     }
 
     async report(options?: ReportOptions): Promise<string | ReportObject | void> {
-        const rawOutput = options?.raw ?? false;
-
         // Check if we have a tty attached to stdout
         // If we don't then this is being piped to a log file, etc.
         const hasTty = process.stdout.isTTY;
@@ -245,7 +245,7 @@ export class ReportCommand extends CommandRunner {
         // If this has a tty it's interactive
         // AND
         // If they don't have --raw
-        const isInteractive = hasTty && !rawOutput;
+        const isInteractive = hasTty && !options?.raw;
 
         try {
             // Show loading message
@@ -264,7 +264,6 @@ export class ReportCommand extends CommandRunner {
             await store.dispatch(loadStateFiles());
 
             const { config, emhttp } = store.getState();
-            if (!config.upc.apikey) throw new Error('Missing UPC API key');
 
             const client = getApiApolloClient({ localApiKey: config.remote.localApiKey || '' });
             // Fetch the cloud endpoint
@@ -361,10 +360,12 @@ MINI-GRAPH: ${getReadableMinigraphDetails(reportObject)}${getReadableServerDetai
                 return report;
             }
         } catch (error: unknown) {
-            console.log({ error });
             if (error instanceof Error) {
                 this.logger.debug(error);
                 this.logger.error(`\nFailed generating report with "${error.message}"\n`);
+                return;
+            } else {
+                this.logger.error('Failed generating report');
                 return;
             }
         }
