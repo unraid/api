@@ -92,7 +92,6 @@ onMounted(async () => {
         enterCallbackTokenIntoField(tokenBody.access_token);
         if (window.location.search) {
           window.history.replaceState({}, document.title, window.location.pathname);
-          window.location.search = '';
         }
       } else {
         throw new Error('Failed to fetch token');
