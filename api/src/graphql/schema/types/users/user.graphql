@@ -3,6 +3,7 @@ interface UserAccount {
     name: String!
     description: String!
     roles: [Role!]!
+    permissions: [Permission!]
 }
 
 input usersInput {
@@ -61,4 +62,5 @@ type User implements UserAccount {
     If the account has a password set
     """
     password: Boolean
+    permissions: [Permission!]
 }
