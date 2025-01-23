@@ -146,7 +146,6 @@ export const serverState: Server = {
     showBannerGradient: 'yes',
     partnerLogo: true,
   },
-  apiKey: 'unupc_fab6ff6ffe51040595c6d9ffb63a353ba16cc2ad7d93f813a2e80a5810',
   avatar: 'https://source.unsplash.com/300x300/?portrait',
   config: {
     id: 'config-id',
