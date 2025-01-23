@@ -136,8 +136,9 @@ const navigateToExternalSSOUrl = () => {
     <div class="w-full flex flex-col gap-1 my-1">
       <hr v-if="currentState === 'idle' || currentState === 'error'" />
       <p class="text-center" v-if="currentState === 'idle' || currentState === 'error'">or</p>
+      <p class="text-red-500 text-center" v-if="currentState === 'error'">{{ error }}</p>
       <Button
-        :disabled="currentState === 'loading' || currentState === 'error'"
+        :disabled="currentState === 'loading'"
         btnStyle="outline"
         class="rounded-none uppercase tracking-widest"
         @click="navigateToExternalSSOUrl"
