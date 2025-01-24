@@ -25,6 +25,9 @@ const getInputFields = (): {
   const form = document.querySelector('form[action="/login"]') as HTMLFormElement;
   const passwordField = document.querySelector('input[name=password]') as HTMLInputElement;
   const usernameField = document.querySelector('input[name=username]') as HTMLInputElement;
+  if (!form || !passwordField || !usernameField) {
+    console.warn('Could not find form, username, or password field');
+  }
   return { form, passwordField, usernameField };
 };
 
