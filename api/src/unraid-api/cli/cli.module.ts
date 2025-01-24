@@ -1,9 +1,7 @@
 import { Module } from '@nestjs/common';
 
-import { InquirerService } from 'nest-commander';
-
 import { ConfigCommand } from '@app/unraid-api/cli/config.command';
-import { KeyCommand } from '@app/unraid-api/cli/key.command';
+import { ApiKeyCommand } from '@app/unraid-api/cli/apikey/api-key.command';
 import { LogService } from '@app/unraid-api/cli/log.service';
 import { LogsCommand } from '@app/unraid-api/cli/logs.command';
 import { ReportCommand } from '@app/unraid-api/cli/report.command';
@@ -20,6 +18,8 @@ import { VersionCommand } from '@app/unraid-api/cli/version.command';
 import { RemoveSSOUserCommand } from '@app/unraid-api/cli/sso/remove-sso-user.command';
 import { RemoveSSOUserQuestionSet } from '@app/unraid-api/cli/sso/remove-sso-user.questions';
 import { ListSSOUserCommand } from '@app/unraid-api/cli/sso/list-sso-user.command';
+import { AddApiKeyQuestionSet } from '@app/unraid-api/cli/apikey/add-api-key.questions';
+import { ApiKeyService } from '@app/unraid-api/auth/api-key.service';
 
 @Module({
     providers: [
@@ -33,7 +33,9 @@ import { ListSSOUserCommand } from '@app/unraid-api/cli/sso/list-sso-user.comman
         StopCommand,
         RestartCommand,
         ReportCommand,
-        KeyCommand,
+        ApiKeyService,
+        ApiKeyCommand,
+        AddApiKeyQuestionSet,
         SwitchEnvCommand,
         VersionCommand,
         StatusCommand,
