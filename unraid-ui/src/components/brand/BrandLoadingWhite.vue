@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import BrandLoading from './BrandLoading.vue';
+import BrandLoading from './BrandLoading.ce.vue';
 </script>
 
 <template>
