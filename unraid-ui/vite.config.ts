@@ -1,9 +1,9 @@
 /// <reference types="vitest" />
-import { defineConfig } from 'vite';
 import { resolve } from 'path';
+import tailwindcss from '@tailwindcss/vite';
 import vue from '@vitejs/plugin-vue';
+import { defineConfig } from 'vite';
 import dts from 'vite-plugin-dts';
-import tailwindcss from 'tailwindcss';
 
 export default function createConfig() {
   return defineConfig({
@@ -20,12 +20,8 @@ export default function createConfig() {
               copyDtsFiles: true,
             }),
           ]),
+      tailwindcss(),
     ],
-    css: {
-      postcss: {
-        plugins: [tailwindcss()],
-      },
-    },
     build: {
       cssCodeSplit: false,
       rollupOptions: {
