@@ -12,7 +12,7 @@ try {
     const shellToUse = execSync('which bash').toString().trim();
     await CommandFactory.run(CliModule, {
         cliName: 'unraid-api',
-        logger: false,
+        logger: false, // new LogService(), - enable this to see nest initialization issues
         completion: {
             fig: true,
             cmd: 'unraid-api',

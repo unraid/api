@@ -6,11 +6,20 @@ import { join } from 'path';
 import { watch } from 'chokidar';
 import { ensureDirSync } from 'fs-extra';
 import { GraphQLError } from 'graphql';
+import { AuthActionVerb } from 'nest-authz';
 import { v4 as uuidv4 } from 'uuid';
 import { ZodError } from 'zod';
 
+import { environment } from '@app/environment';
 import { ApiKeySchema, ApiKeyWithSecretSchema } from '@app/graphql/generated/api/operations';
-import { ApiKey, ApiKeyWithSecret, Role, UserAccount } from '@app/graphql/generated/api/types';
+import {
+    ApiKey,
+    ApiKeyWithSecret,
+    Permission,
+    Resource,
+    Role,
+    UserAccount,
+} from '@app/graphql/generated/api/types';
 import { getters, store } from '@app/store';
 import { updateUserConfig } from '@app/store/modules/config';
 import { FileLoadStatus } from '@app/store/types';
@@ -55,12 +64,52 @@ export class ApiKeyService implements OnModuleInit {
         }
     }
 
-    async create(
-        name: string,
-        description: string | undefined,
-        roles: Role[],
-        overwrite: boolean = false
-    ): Promise<ApiKeyWithSecret> {
+    public getAllValidPermissions(): Permission[] {
+        return Object.values(Resource).map((res) => ({
+            resource: res,
+            actions: Object.values(AuthActionVerb),
+        }));
+    }
+
+    public convertPermissionsStringArrayToPermissions(permissions: string[]): Permission[] {
+        return permissions.reduce<Array<Permission>>((acc, permission) => {
+            const [resource, action] = permission.split(':');
+            const validatedResource = Resource[resource.toUpperCase() as keyof typeof Resource] ?? null;
+            const validatedAction =
+                AuthActionVerb[action.toUpperCase() as keyof typeof AuthActionVerb] ?? null;
+            if (validatedAction && validatedResource) {
+                const existingEntry = acc.find((p) => p.resource === validatedResource);
+                if (existingEntry) {
+                    existingEntry.actions.push(validatedAction);
+                } else {
+                    acc.push({ resource: validatedResource, actions: [validatedAction] });
+                }
+            } else {
+                this.logger.warn(`Invalid permission / action specified: ${permission}:${action}`);
+            }
+            return acc;
+        }, [] as Array<Permission>);
+    }
+
+    public convertRolesStringArrayToRoles(roles: string[]): Role[] {
+        return roles
+            .map((roleStr) => Role[roleStr.trim().toUpperCase() as keyof typeof Role])
+            .filter(Boolean);
+    }
+
+    async create({
+        name,
+        description,
+        roles,
+        permissions,
+        overwrite = false,
+    }: {
+        name: string;
+        description: string | undefined;
+        roles?: Role[];
+        permissions?: Permission[];
+        overwrite?: boolean;
+    }): Promise<ApiKeyWithSecret> {
         const trimmedName = name?.trim();
         const sanitizedName = this.sanitizeName(trimmedName);
 
@@ -89,7 +138,7 @@ export class ApiKeyService implements OnModuleInit {
 
         apiKey.description = description;
         apiKey.roles = roles;
-        apiKey.permissions = [];
+        apiKey.permissions = permissions ?? [];
         // Update createdAt date
         apiKey.createdAt = new Date().toISOString();
 
@@ -98,28 +147,26 @@ export class ApiKeyService implements OnModuleInit {
         return apiKey as ApiKeyWithSecret;
     }
 
-    private async createLocalApiKeyForConnectIfNecessary() {
+    private async createLocalApiKeyForConnectIfNecessary(): Promise<void> {
+        if (!environment.IS_MAIN_PROCESS) {
+            return;
+        }
+
         if (getters.config().status !== FileLoadStatus.LOADED) {
             this.logger.error('Config file not loaded, cannot create local API key');
-
             return;
         }
 
         const { remote } = getters.config();
         // If the remote API Key is set and the local key is either not set or not found on disk, create a key
-        if (remote.apikey && (!remote.localApiKey || !(await this.findByKey(remote.localApiKey)))) {
+        if (remote.apikey && (!remote.localApiKey || !this.findByKey(remote.localApiKey))) {
             const hasExistingKey = this.findByField('name', 'Connect');
 
             if (hasExistingKey) {
                 return;
             }
             // Create local API key
-            const localApiKey = await this.create(
-                'Connect',
-                'API key for Connect user',
-                [Role.CONNECT],
-                true
-            );
+            const localApiKey = await this.createLocalConnectApiKey();
 
             if (localApiKey?.key) {
                 store.dispatch(
@@ -131,7 +178,6 @@ export class ApiKeyService implements OnModuleInit {
                 );
             } else {
                 this.logger.error('Failed to create local API key - no key returned');
-                throw new Error('Failed to create local API key');
             }
         }
     }
@@ -146,10 +192,14 @@ export class ApiKeyService implements OnModuleInit {
         const jsonFiles = files.filter((file) => file.includes('.json'));
 
         for (const file of jsonFiles) {
-            const apiKey = await this.loadApiKeyFile(file);
+            try {
+                const apiKey = await this.loadApiKeyFile(file);
 
-            if (apiKey) {
-                apiKeys.push(apiKey);
+                if (apiKey) {
+                    apiKeys.push(apiKey);
+                }
+            } catch (err) {
+                this.logger.error(`Error loading API key from file ${file}: ${err}`);
             }
         }
 
@@ -163,6 +213,7 @@ export class ApiKeyService implements OnModuleInit {
             return ApiKeyWithSecretSchema().parse(JSON.parse(content));
         } catch (error) {
             if (error instanceof SyntaxError) {
+                this.logger.error(`Corrupted key file: ${file}`);
                 throw new Error('Authentication system error: Corrupted key file');
             }
 
@@ -201,53 +252,29 @@ export class ApiKeyService implements OnModuleInit {
     public findByField(field: keyof ApiKeyWithSecret, value: string): ApiKeyWithSecret | null {
         if (!value) return null;
 
-        try {
-            return this.memoryApiKeys.find((key) => key[field] === value) ?? null;
-        } catch (error) {
-            if (error instanceof GraphQLError) {
-                throw error;
-            }
-
-            this.logger.error(`Failed to read API key storage: ${error}`);
-            throw new GraphQLError('Authentication system unavailable - please see logs');
-        }
+        return this.memoryApiKeys.find((k) => k[field] === value) ?? null;
     }
 
-    async findByKey(key: string): Promise<ApiKeyWithSecret | null> {
+    findByKey(key: string): ApiKeyWithSecret | null {
         return this.findByField('key', key);
-    }
-
-    async findOneByKey(apiKey: string): Promise<UserAccount | null> {
-        try {
-            const key = await this.findByKey(apiKey);
-
-            if (!key) {
-                throw new GraphQLError('API key not found');
-            }
-
-            return {
-                id: key.id,
-                description: key.description ?? `API Key ${key.name}`,
-                name: key.name,
-                roles: key.roles,
-            };
-        } catch (error) {
-            this.logger.error(`Error finding user by key: ${error}`);
-
-            if (error instanceof GraphQLError) {
-                throw error;
-            }
-
-            throw new GraphQLError('Failed to retrieve user account');
-        }
     }
 
     private generateApiKey(): string {
         return crypto.randomBytes(32).toString('hex');
     }
 
-    public async createLocalConnectApiKey(): Promise<ApiKeyWithSecret> {
-        return await this.create('Connect', 'API key for Connect user', [Role.CONNECT], true);
+    public async createLocalConnectApiKey(): Promise<ApiKeyWithSecret | null> {
+        try {
+            return await this.create({
+                name: 'Connect',
+                description: 'API key for Connect user',
+                roles: [Role.CONNECT],
+                overwrite: true,
+            });
+        } catch (err) {
+            this.logger.error(`Failed to create local API key for Connect user: ${err}`);
+            return null;
+        }
     }
 
     public async saveApiKey(apiKey: ApiKeyWithSecret): Promise<void> {

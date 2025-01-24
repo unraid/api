@@ -14,6 +14,7 @@ import { updateUserConfig } from '@app/store/modules/config';
 import { FileLoadStatus } from '@app/store/types';
 
 import { ApiKeyService } from './api-key.service';
+import { environment } from '@app/environment';
 
 // Mock the store and its modules
 vi.mock('@app/store', () => ({
@@ -84,6 +85,7 @@ describe('ApiKeyService', () => {
     };
 
     beforeEach(async () => {
+        environment.IS_MAIN_PROCESS = true;
         vi.resetAllMocks();
 
         // Create mock logger methods
@@ -159,7 +161,7 @@ describe('ApiKeyService', () => {
             const { key, id, description, roles } = mockApiKeyWithSecret;
             const name = 'Test API Key';
 
-            const result = await apiKeyService.create(name, description ?? '', roles);
+            const result = await apiKeyService.create({ name, description: description ?? '', roles });
 
             expect(result).toMatchObject({
                 id,
@@ -176,17 +178,23 @@ describe('ApiKeyService', () => {
         it('should validate input parameters', async () => {
             const saveSpy = vi.spyOn(apiKeyService, 'saveApiKey');
 
-            await expect(apiKeyService.create('', 'desc', [Role.GUEST])).rejects.toThrow(
+            await expect(
+                apiKeyService.create({ name: '', description: 'desc', roles: [Role.GUEST] })
+            ).rejects.toThrow(
                 'API key name must contain only letters, numbers, and spaces (Unicode letters are supported)'
             );
 
-            await expect(apiKeyService.create('name', 'desc', [])).rejects.toThrow(
-                'At least one role must be specified'
-            );
+            await expect(
+                apiKeyService.create({ name: 'name', description: 'desc', roles: [] })
+            ).rejects.toThrow('At least one role must be specified');
 
-            await expect(apiKeyService.create('name', 'desc', ['invalid_role' as Role])).rejects.toThrow(
-                'Invalid role specified'
-            );
+            await expect(
+                apiKeyService.create({
+                    name: 'name',
+                    description: 'desc',
+                    roles: ['invalid_role' as Role],
+                })
+            ).rejects.toThrow('Invalid role specified');
 
             expect(saveSpy).not.toHaveBeenCalled();
         });
@@ -248,12 +256,12 @@ describe('ApiKeyService', () => {
 
             await apiKeyService['createLocalApiKeyForConnectIfNecessary']();
 
-            expect(apiKeyService.create).toHaveBeenCalledWith(
-                'Connect',
-                'API key for Connect user',
-                [Role.CONNECT],
-                true
-            );
+            expect(apiKeyService.create).toHaveBeenCalledWith({
+                name: 'Connect',
+                description: 'API key for Connect user',
+                roles: [Role.CONNECT],
+                overwrite: true,
+            });
             expect(store.dispatch).toHaveBeenCalledWith(
                 updateUserConfig({
                     remote: {
@@ -263,15 +271,12 @@ describe('ApiKeyService', () => {
             );
         });
 
-        it('should throw error if key creation fails', async () => {
+        it('should log an error if key creation fails', async () => {
             vi.spyOn(apiKeyService, 'findByField').mockReturnValue(null);
-            vi.spyOn(apiKeyService, 'create').mockResolvedValue({
-                ...mockApiKeyWithSecret,
-                key: '', // Empty string instead of undefined/null
-            } as ApiKeyWithSecret);
+            vi.spyOn(apiKeyService, 'createLocalConnectApiKey').mockResolvedValue(null);
 
-            await expect(apiKeyService['createLocalApiKeyForConnectIfNecessary']()).rejects.toThrow(
-                'Failed to create local API key'
+            await expect(apiKeyService['createLocalApiKeyForConnectIfNecessary']()).resolves.toBe(
+                undefined
             );
             expect(mockLogger.error).toHaveBeenCalledWith(
                 'Failed to create local API key - no key returned'
@@ -427,60 +432,6 @@ describe('ApiKeyService', () => {
 
             await expect(apiKeyService.onModuleInit()).rejects.toThrow(
                 'Authentication system error: Corrupted key file'
-            );
-        });
-    });
-
-    describe('findOneByKey', () => {
-        it('should return UserAccount when API key exists', async () => {
-            const findByKeySpy = vi
-                .spyOn(apiKeyService, 'findByKey')
-                .mockResolvedValue(mockApiKeyWithSecret);
-            const result = await apiKeyService.findOneByKey('test-api-key');
-
-            expect(result).toEqual({
-                id: mockApiKeyWithSecret.id,
-                name: mockApiKeyWithSecret.name,
-                description: mockApiKeyWithSecret.description,
-                roles: mockApiKeyWithSecret.roles,
-            });
-            expect(findByKeySpy).toHaveBeenCalledWith('test-api-key');
-        });
-
-        it('should use default description when none provided', async () => {
-            const keyWithoutDesc = { ...mockApiKeyWithSecret, description: null };
-            vi.spyOn(apiKeyService, 'findByKey').mockResolvedValue(keyWithoutDesc);
-            const result = await apiKeyService.findOneByKey('test-api-key');
-
-            expect(result).toEqual({
-                id: keyWithoutDesc.id,
-                name: keyWithoutDesc.name,
-                description: `API Key ${keyWithoutDesc.name}`,
-                roles: keyWithoutDesc.roles,
-            });
-        });
-
-        it('should return null when API key not found', async () => {
-            vi.spyOn(apiKeyService, 'findByKey').mockResolvedValue(null);
-
-            await expect(apiKeyService.findOneByKey('non-existent-key')).rejects.toThrow(
-                'API key not found'
-            );
-        });
-
-        it('should throw error when API key not found', async () => {
-            vi.spyOn(apiKeyService, 'findByKey').mockResolvedValue(null);
-
-            await expect(apiKeyService.findOneByKey('non-existent-key')).rejects.toThrow(
-                'API key not found'
-            );
-        });
-
-        it('should throw error when unexpected error occurs', async () => {
-            vi.spyOn(apiKeyService, 'findByKey').mockRejectedValue(new Error('Test error'));
-
-            await expect(apiKeyService.findOneByKey('test-api-key')).rejects.toThrow(
-                'Failed to retrieve user account'
             );
         });
     });

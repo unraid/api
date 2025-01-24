@@ -2,7 +2,7 @@ import { execa } from 'execa';
 import { Command, CommandRunner, Option } from 'nest-commander';
 
 import { ECOSYSTEM_PATH, PM2_PATH } from '@app/consts';
-import { levels, LogLevel } from '@app/core/log';
+import { levels, type LogLevel } from '@app/core/log';
 import { LogService } from '@app/unraid-api/cli/log.service';
 
 interface StartCommandOptions {
@@ -15,7 +15,7 @@ export class StartCommand extends CommandRunner {
         super();
     }
 
-    async run(_, options: StartCommandOptions): Promise<void> {
+    async run(_: string[], options: StartCommandOptions): Promise<void> {
         this.logger.info('Starting the Unraid API');
         const envLog = options['log-level'] ? `LOG_LEVEL=${options['log-level']}` : '';
         const { stderr, stdout } = await execa(`${envLog} ${PM2_PATH}`.trim(), [

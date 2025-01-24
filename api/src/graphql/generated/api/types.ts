@@ -66,7 +66,7 @@ export type ApiKey = {
   description?: Maybe<Scalars['String']['output']>;
   id: Scalars['ID']['output'];
   name: Scalars['String']['output'];
-  permissions?: Maybe<Array<Permission>>;
+  permissions: Array<Permission>;
   roles: Array<Role>;
 };
 
@@ -1028,7 +1028,7 @@ export type Pci = {
 
 export type Permission = {
   __typename?: 'Permission';
-  actions?: Maybe<Array<Scalars['String']['output']>>;
+  actions: Array<Scalars['String']['output']>;
   resource: Resource;
 };
 
@@ -2056,7 +2056,7 @@ export type ApiKeyResolvers<ContextType = Context, ParentType extends ResolversP
   description?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
   name?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
-  permissions?: Resolver<Maybe<Array<ResolversTypes['Permission']>>, ParentType, ContextType>;
+  permissions?: Resolver<Array<ResolversTypes['Permission']>, ParentType, ContextType>;
   roles?: Resolver<Array<ResolversTypes['Role']>, ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
@@ -2653,7 +2653,7 @@ export type PciResolvers<ContextType = Context, ParentType extends ResolversPare
 }>;
 
 export type PermissionResolvers<ContextType = Context, ParentType extends ResolversParentTypes['Permission'] = ResolversParentTypes['Permission']> = ResolversObject<{
-  actions?: Resolver<Maybe<Array<ResolversTypes['String']>>, ParentType, ContextType>;
+  actions?: Resolver<Array<ResolversTypes['String']>, ParentType, ContextType>;
   resource?: Resolver<ResolversTypes['Resource'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
