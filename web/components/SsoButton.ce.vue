@@ -49,8 +49,9 @@ const getStateToken = (): string | null => {
 };
 
 const generateStateToken = (): string => {
-  const state =
-    Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+  const array = new Uint8Array(32);
+  window.crypto.getRandomValues(array);
+  const state = Array.from(array, byte => byte.toString(16).padStart(2, '0')).join('');
   sessionStorage.setItem('sso_state', state);
   return state;
 };
