@@ -30,7 +30,6 @@ export class AddSSOUserCommand extends CommandRunner {
     async run(_input: string[], options: AddSSOUserCommandOptions): Promise<void> {
         try {
             options = await this.inquirerService.prompt(AddSSOUserQuestionSet.name, options);
-            console.log(options);
             if (options.disclaimer === 'y' && options.username) {
                 await store.dispatch(loadConfigFile());
                 store.dispatch(addSsoUser(options.username));

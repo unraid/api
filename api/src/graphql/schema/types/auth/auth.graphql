@@ -1,6 +1,6 @@
 type Permission {
     resource: Resource!
-    actions: [String!]
+    actions: [String!]!
 }
 
 type ApiKey {

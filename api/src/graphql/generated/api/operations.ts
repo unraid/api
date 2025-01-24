@@ -823,7 +823,7 @@ export function PciSchema(): z.ZodObject<Properties<Pci>> {
 export function PermissionSchema(): z.ZodObject<Properties<Permission>> {
   return z.object({
     __typename: z.literal('Permission').optional(),
-    actions: z.array(z.string()).nullish(),
+    actions: z.array(z.string()),
     resource: ResourceSchema
   })
 }
