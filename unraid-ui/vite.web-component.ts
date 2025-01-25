@@ -13,17 +13,22 @@ export default defineConfig({
       '@': fileURLToPath(new URL('./src', import.meta.url)),
     },
   },
+  define: {
+    'process.env.NODE_ENV': JSON.stringify('production'),
+  },
   build: {
     cssCodeSplit: false,
-    manifest: true,
+    // manifest: true,
     lib: {
       entry: fileURLToPath(new URL('./src/register.ts', import.meta.url)),
       name: 'unraid-web-components',
+      formats: ['es'],
     },
-    // rollupOptions: {
-    //     output: {
-    //       inlineDynamicImports: true,  
-    //     },
-    //   },
+    rollupOptions: {
+      //   external: ['vue'],
+      //   output: {
+      //     inlineDynamicImports: true,
+      //   },
+    },
   },
 });
