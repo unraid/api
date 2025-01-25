@@ -27,6 +27,16 @@ const config: StorybookConfig = {
           "@/lib": join(dirname(new URL(import.meta.url).pathname), "../src/lib"),
         },
       },
+      css: {
+        postcss: {
+          plugins: [
+            (await import("tailwindcss")).default({
+              config: "./tailwind.config.ts",
+            }),
+            (await import("autoprefixer")).default,
+          ],
+        },
+      },
     };
   },
 };
