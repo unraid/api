@@ -1,7 +1,7 @@
-import { ConnectListAllDomainsFlags } from '@vmngr/libvirt';
-import { getHypervisor } from '@app/core/utils/vms/get-hypervisor';
-import { VmState, type VmDomain } from '@app/graphql/generated/api/types';
 import { GraphQLError } from 'graphql';
+
+import type { VmDomain } from '@app/graphql/generated/api/types';
+import { VmState } from '@app/graphql/generated/api/types';
 
 const states = {
     0: 'NOSTATE',
@@ -17,10 +17,11 @@ const states = {
 /**
  * Get vm domains.
  */
-export const getDomains =async () => {
-
+export const getDomains = async () => {
+    const { ConnectListAllDomainsFlags } = await import('@vmngr/libvirt');
+    const { UnraidHypervisor } = await import('@app/core/utils/vms/get-hypervisor');
     try {
-        const hypervisor = await getHypervisor();
+        const hypervisor = await UnraidHypervisor.getInstance().getHypervisor();
         if (!hypervisor) {
             throw new GraphQLError('VMs Disabled');
         }
@@ -30,9 +31,7 @@ export const getDomains =async () => {
         );
 
         const autoStartDomainNames = await Promise.all(
-            autoStartDomains.map(async (domain) =>
-                hypervisor.domainGetName(domain)
-            )
+            autoStartDomains.map(async (domain) => hypervisor.domainGetName(domain))
         );
 
         // Get all domains
@@ -53,9 +52,11 @@ export const getDomains =async () => {
             })
         );
 
-        return  resolvedDomains;
+        return resolvedDomains;
     } catch (error: unknown) {
         // If we hit an error expect libvirt to be offline
-        throw new GraphQLError(`Failed to fetch domains with error: ${error instanceof Error ? error.message : 'Unknown Error'}`);
+        throw new GraphQLError(
+            `Failed to fetch domains with error: ${error instanceof Error ? error.message : 'Unknown Error'}`
+        );
     }
 };
