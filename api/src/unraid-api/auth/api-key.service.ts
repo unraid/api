@@ -125,7 +125,7 @@ export class ApiKeyService implements OnModuleInit {
             throw new GraphQLError('Invalid role specified');
         }
 
-        const existingKey = await this.findByField('name', sanitizedName);
+        const existingKey = this.findByField('name', sanitizedName);
         if (!overwrite && existingKey) {
             throw new GraphQLError('API key name already exists, use overwrite flag to update');
         }
