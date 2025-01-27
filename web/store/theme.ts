@@ -32,7 +32,7 @@ export const defaultColors: Record<string, ThemeVariables> = {
     '--popover-foreground': '0 0% 98%',
     '--card': '0 0% 14.9%',
     '--card-foreground': '0 0% 98%',
-    '--border': '0 0% 14.9%',
+    '--border': '0 0% 20%',
     '--input': '0 0% 14.9%',
     '--primary': '24 100% 50%',
     '--primary-foreground': '0 0% 98%',
@@ -74,8 +74,8 @@ export const defaultColors: Record<string, ThemeVariables> = {
   },
 } as const;
 
-export const DARK_THEMES = ['black', 'azure'] as const;
-
+// used to swap the UPC text color when using the azure or gray theme
+export const DARK_THEMES = ['black', 'gray'] as const;
 
 export const useThemeStore = defineStore('theme', () => {
   // State
@@ -83,10 +83,11 @@ export const useThemeStore = defineStore('theme', () => {
 
   const activeColorVariables = ref<ThemeVariables>(defaultColors.light);
   // Getters
+
   const darkMode = computed<boolean>(
     () => DARK_THEMES.includes(theme.value?.name as (typeof DARK_THEMES)[number]) ?? false
   );
-  // used to swap the UPC text color when using the azure or gray theme
+
   const bannerGradient = computed(() => {
     if (!theme.value?.banner || !theme.value?.bannerGradient) {
       return undefined;

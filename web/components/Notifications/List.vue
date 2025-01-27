@@ -70,7 +70,7 @@ async function onLoadMore() {
   <div
     v-if="notifications?.length > 0"
     v-infinite-scroll="[onLoadMore, { canLoadMore: () => canLoadMore }]"
-    class="divide-y divide-gray-200 px-7 flex flex-col overflow-y-scroll flex-1 min-h-0"
+    class="divide-y px-7 flex flex-col overflow-y-scroll flex-1 min-h-0"
   >
     <NotificationsItem
       v-for="notification in notifications"

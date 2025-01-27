@@ -40,7 +40,8 @@ export class AddSSOUserCommand extends CommandRunner {
                 writeConfigSync('flash');
                 this.logger.info(`User added ${options.username}`);
                 if (shouldRestart) {
-                    this.logger.info('Restarting the Unraid API to enable to SSO button');
+                    this.logger.info('Restarting the Unraid API in 5 seconds to enable the SSO button');
+                    await new Promise(resolve => setTimeout(resolve, 5000));
                     await this.restartCommand.run([]);
                 }
             }

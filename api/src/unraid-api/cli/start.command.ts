@@ -17,6 +17,17 @@ export class StartCommand extends CommandRunner {
 
     async run(_: string[], options: StartCommandOptions): Promise<void> {
         this.logger.info('Starting the Unraid API');
+
+        // Update PM2 first if necessary
+        const { stderr: updateErr, stdout: updateOut } = await execa(`${PM2_PATH} update`);
+        if (updateOut) {
+            this.logger.log(updateOut);
+        }
+        if (updateErr) {
+            this.logger.error('PM2 Update Error: ' + updateErr);
+            process.exit(1);
+        }
+
         const envLog = options['log-level'] ? `LOG_LEVEL=${options['log-level']}` : '';
         const { stderr, stdout } = await execa(`${envLog} ${PM2_PATH}`.trim(), [
             'start',
