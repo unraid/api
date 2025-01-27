@@ -1,21 +1,23 @@
 #!/usr/bin/env node
+
 import '@app/dotenv';
 
-import { execSync } from 'child_process';
-
+import { execa } from 'execa';
 import { CommandFactory } from 'nest-commander';
 
 import { cliLogger, internalLogger } from '@app/core/log';
 import { CliModule } from '@app/unraid-api/cli/cli.module';
 
 try {
-    const shellToUse = execSync('which unraid-api').toString().trim();
+    const shellToUse = await execa('which unraid-api')
+        .then((res) => res.toString().trim())
+        .catch((_) => '/usr/local/bin/unraid-api');
     await CommandFactory.run(CliModule, {
         cliName: 'unraid-api',
         logger: false, // new LogService(), - enable this to see nest initialization issues
         completion: {
             fig: true,
-            cmd: 'unraid-api',
+            cmd: 'completion-script',
             nativeShell: { executablePath: shellToUse },
         },
     });
