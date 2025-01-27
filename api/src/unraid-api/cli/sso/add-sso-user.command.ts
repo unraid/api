@@ -1,13 +1,14 @@
 import { Injectable } from '@nestjs/common';
 
 import { CommandRunner, InquirerService, Option, SubCommand } from 'nest-commander';
+import { v4 } from 'uuid';
 
 import { store } from '@app/store/index';
 import { addSsoUser, loadConfigFile } from '@app/store/modules/config';
 import { writeConfigSync } from '@app/store/sync/config-disk-sync';
 import { LogService } from '@app/unraid-api/cli/log.service';
+import { RestartCommand } from '@app/unraid-api/cli/restart.command';
 import { AddSSOUserQuestionSet } from '@app/unraid-api/cli/sso/add-sso-user.questions';
-import { v4 } from 'uuid';
 
 interface AddSSOUserCommandOptions {
     disclaimer: string;
@@ -23,7 +24,8 @@ interface AddSSOUserCommandOptions {
 export class AddSSOUserCommand extends CommandRunner {
     constructor(
         private readonly logger: LogService,
-        private readonly inquirerService: InquirerService
+        private readonly inquirerService: InquirerService,
+        private readonly restartCommand: RestartCommand
     ) {
         super();
     }
@@ -33,9 +35,14 @@ export class AddSSOUserCommand extends CommandRunner {
             options = await this.inquirerService.prompt(AddSSOUserQuestionSet.name, options);
             if (options.disclaimer === 'y' && options.username) {
                 await store.dispatch(loadConfigFile());
+                const shouldRestart = store.getState().config.remote.ssoSubIds.length === 0;
                 store.dispatch(addSsoUser(options.username));
                 writeConfigSync('flash');
-                this.logger.info('User added ' + options.username);
+                this.logger.info(`User added ${options.username}`);
+                if (shouldRestart) {
+                    this.logger.info('Restarting the Unraid API to enable to SSO button');
+                    await this.restartCommand.run([]);
+                }
             }
         } catch (e: unknown) {
             if (e instanceof Error) {
