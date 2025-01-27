@@ -6,7 +6,11 @@ import { useI18n } from 'vue-i18n';
 
 const { t } = useI18n();
 
-const downloadUrl = computed(() => new URL(`/graphql/api/logs`, WEBGUI_GRAPHQL));
+const downloadUrl = computed(() => {
+  const url = new URL(`/graphql/api/logs`, WEBGUI_GRAPHQL);
+  url.searchParams.append('csrf_token', globalThis.csrf_token);
+  return url;
+});
 </script>
 
 <template>
