@@ -17,7 +17,8 @@ export class LogsCommand extends CommandRunner {
     @Option({ flags: '-l, --lines', description: 'Number of lines to tail'})
     parseLines(input: string): number
     {
-        return isNaN(parseInt(input)) ? 100 : parseInt(input)
+        const parsedValue = parseInt(input);
+        return Number.isNaN(parsedValue) ? 100 : parsedValue;
     }
 
     async run(_: string[], options?: LogsOptions): Promise<void> {
