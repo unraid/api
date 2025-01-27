@@ -2,6 +2,8 @@ import { Injectable, InternalServerErrorException, Logger, OnModuleInit } from '
 
 import { Model as CasbinModel, Enforcer, newEnforcer, StringAdapter } from 'casbin';
 
+import { LOG_LEVEL } from '@app/environment';
+
 @Injectable()
 export class CasbinService {
     private readonly logger = new Logger(CasbinService.name);
@@ -18,7 +20,9 @@ export class CasbinService {
         const casbinPolicy = new StringAdapter(policy);
         try {
             const enforcer = await newEnforcer(casbinModel, casbinPolicy);
-            enforcer.enableLog(true);
+            if (LOG_LEVEL === 'TRACE') {
+                enforcer.enableLog(true);
+            }
 
             return enforcer;
         } catch (error: unknown) {
