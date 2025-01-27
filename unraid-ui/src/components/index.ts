@@ -55,3 +55,4 @@ export {
 } from '@/components/common/sheet';
 export { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/common/tabs';
 export { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from '@/components/common/tooltip';
+export { Toaster } from '@/components/common/toast';

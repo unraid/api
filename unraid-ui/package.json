@@ -38,7 +38,8 @@
     "lucide-vue-next": "^0.468.0",
     "radix-vue": "^1.9.11",
     "shadcn-vue": "^0.11.3",
-    "tailwind-merge": "^2.5.5"
+    "tailwind-merge": "^2.5.5",
+    "vue-sonner": "^1.3.0"
   },
   "devDependencies": {
     "@ianvs/prettier-plugin-sort-imports": "^4.4.1",
