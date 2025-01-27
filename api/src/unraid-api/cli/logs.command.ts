@@ -5,7 +5,7 @@ import { ECOSYSTEM_PATH, PM2_PATH } from '@app/consts';
 import { LogService } from '@app/unraid-api/cli/log.service';
 
 interface LogsOptions {
-    lines: number
+    lines: number;
 }
 
 @Command({ name: 'logs' })
@@ -14,9 +14,8 @@ export class LogsCommand extends CommandRunner {
         super();
     }
 
-    @Option({ flags: '-l, --lines', description: 'Number of lines to tail'})
-    parseLines(input: string): number
-    {
+    @Option({ flags: '-l, --lines <lines>', description: 'Number of lines to tail', defaultValue: 100 })
+    parseLines(input: string): number {
         const parsedValue = parseInt(input);
         return Number.isNaN(parsedValue) ? 100 : parsedValue;
     }
