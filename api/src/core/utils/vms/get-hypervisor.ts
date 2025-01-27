@@ -1,12 +1,11 @@
-import { access } from 'fs/promises';
 import { constants } from 'fs';
+import { access } from 'fs/promises';
 
-import { Hypervisor } from '@vmngr/libvirt';
+import type { Hypervisor as HypervisorType } from '@vmngr/libvirt';
+
 import { libvirtLogger } from '@app/core/log';
 
 const uri = process.env.LIBVIRT_URI ?? 'qemu:///system';
-
-let hypervisor: Hypervisor | null;
 
 const libvirtPid = '/var/run/libvirt/libvirtd.pid';
 
@@ -19,29 +18,40 @@ const isLibvirtRunning = async (): Promise<boolean> => {
     }
 };
 
-export const getHypervisor = async (): Promise<Hypervisor> => {
-    // Return hypervisor if it's already connected
-    const running = await isLibvirtRunning();
+export class UnraidHypervisor {
+    private static instance: UnraidHypervisor | null = null;
+    private hypervisor: HypervisorType | null = null;
+    private constructor() {}
 
-    if (hypervisor && running) {
-        return hypervisor;
+    public static getInstance(): UnraidHypervisor {
+        if (this.instance === null) {
+            this.instance = new UnraidHypervisor();
+        }
+        return this.instance;
     }
 
-	if (!running) {
-		hypervisor = null;
-		throw new Error('Libvirt is not running');
-	}
+    public async getHypervisor(): Promise<HypervisorType | null> {
+        // Return hypervisor if it's already connected
+        const running = await isLibvirtRunning();
 
-    hypervisor = new Hypervisor({ uri });
-    await hypervisor.connectOpen().catch((error: unknown) => {
-        libvirtLogger.error(
-            `Failed starting VM hypervisor connection with "${
-                (error as Error).message
-            }"`
-        );
+        if (this.hypervisor && running) {
+            return this.hypervisor;
+        }
 
-        throw error;
-    });
+        if (!running) {
+            this.hypervisor = null;
+            throw new Error('Libvirt is not running');
+        }
+        const { Hypervisor } = await import('@vmngr/libvirt');
+        this.hypervisor = new Hypervisor({ uri });
+        await this.hypervisor.connectOpen().catch((error: unknown) => {
+            libvirtLogger.error(
+                `Failed starting VM hypervisor connection with "${(error as Error).message}"`
+            );
 
-    return hypervisor;
-};
+            throw error;
+        });
+
+        return this.hypervisor;
+    }
+}
