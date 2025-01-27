@@ -11,13 +11,26 @@ export class RestartCommand extends CommandRunner {
     }
 
     async run(_): Promise<void> {
-        const { stderr, stdout } = await execa(PM2_PATH, ['restart', ECOSYSTEM_PATH, '--update-env']);
-        if (stderr) {
-            this.logger.error(stderr);
+        try {
+            const { stderr, stdout } = await execa(PM2_PATH, [
+                'restart',
+                ECOSYSTEM_PATH,
+                '--update-env',
+            ]);
+            if (stderr) {
+                this.logger.error(stderr);
+                process.exit(1);
+            }
+            if (stdout) {
+                this.logger.info(stdout);
+            }
+        } catch (error) {
+            if (error instanceof Error) {
+                this.logger.error(error.message);
+            } else {
+                this.logger.error('Unknown error occurred');
+            }
             process.exit(1);
-        }
-        if (stdout) {
-            this.logger.info(stdout);
         }
         process.exit(0);
     }
