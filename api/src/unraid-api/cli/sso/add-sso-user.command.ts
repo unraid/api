@@ -7,6 +7,7 @@ import { addSsoUser, loadConfigFile } from '@app/store/modules/config';
 import { writeConfigSync } from '@app/store/sync/config-disk-sync';
 import { LogService } from '@app/unraid-api/cli/log.service';
 import { AddSSOUserQuestionSet } from '@app/unraid-api/cli/sso/add-sso-user.questions';
+import { v4 } from 'uuid';
 
 interface AddSSOUserCommandOptions {
     disclaimer: string;
@@ -53,7 +54,7 @@ export class AddSSOUserCommand extends CommandRunner {
         if (
             !/^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/.test(input)
         ) {
-            throw new Error('Username must be in the format of a UUID (e.g., ${v4()}}\n');
+            throw new Error(`Username must be in the format of a UUID (e.g., ${v4()}}\n`);
         }
 
         return input;
