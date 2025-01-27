@@ -38,8 +38,13 @@ export class ValidateTokenCommand extends CommandRunner {
         }
 
         const token = passedParams[0];
+
         if (typeof token !== 'string' || token.trim() === '') {
             this.createErrorAndExit('Invalid token provided');
+        }
+
+        if (!/^[A-Za-z0-9-_]+\.[A-Za-z0-9-_]+\.[A-Za-z0-9-_]+$/.test(token)) {
+            this.createErrorAndExit('Token format is invalid');
         }
 
         let caughtError: null | unknown = null;

@@ -23,8 +23,11 @@ function verifyUsernamePasswordAndSSO(string $username, string $password): bool 
     // We may have an SSO token, attempt validation
     if (strlen($password) > 800) {
         $safePassword = escapeshellarg($password);
+        if (!preg_match('/^[A-Za-z0-9-_]+\.[A-Za-z0-9-_]+\.[A-Za-z0-9-_]+$/', $password)) {
+            my_logger("SSO Login Attempt Failed: Invalid token format");
+        }
         $response = exec("/usr/local/bin/unraid-api sso validate-token $safePassword", $output, $code);
-        my_logger("SSO Login Response: $response");
+        my_logger("SSO Login Attempt: $response");
         if ($code === 0 && $response && strpos($response, '"valid":true') !== false) {
             return true;
         }
