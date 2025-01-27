@@ -1,6 +1,6 @@
 import { existsSync, renameSync, unlinkSync } from 'node:fs';
 
-import { cliLogger } from '@app/core/log';
+import { logger } from '@app/core/log';
 
 export const removeSso = () => {
     const path = '/usr/local/emhttp/plugins/dynamix/include/.login.php';
@@ -13,8 +13,8 @@ export const removeSso = () => {
             unlinkSync(path);
         }
         renameSync(backupPath, path);
-        cliLogger.debug('SSO login file restored.');
+        logger.debug('SSO login file restored.');
     } else {
-        cliLogger.debug('No SSO login file backup found.');
+        logger.debug('No SSO login file backup found.');
     }
 };

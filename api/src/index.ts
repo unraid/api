@@ -108,7 +108,6 @@ try {
             logger.info('SSO setup complete');
         } else {
             await removeSso();
-            logger.info('SSO removed');
         }
     } catch (err) {
         logger.error('Failed to setup SSO with error: %o', err);
