@@ -25,14 +25,13 @@ type ApiKeyWithSecret {
 input CreateApiKeyInput {
     name: String!
     description: String
-    roles: [Role!]!
+    roles: [Role!]
+    permissions: [AddPermissionInput!]
 }
 
 input AddPermissionInput {
-    role: Role!
     resource: Resource!
-    action: String!
-    possession: String!
+    actions: [String!]!
 }
 
 input AddRoleForUserInput {

@@ -13,12 +13,12 @@ import { ZodError } from 'zod';
 import { environment } from '@app/environment';
 import { ApiKeySchema, ApiKeyWithSecretSchema } from '@app/graphql/generated/api/operations';
 import {
+    AddPermissionInput,
     ApiKey,
     ApiKeyWithSecret,
     Permission,
     Resource,
     Role,
-    UserAccount,
 } from '@app/graphql/generated/api/types';
 import { getters, store } from '@app/store';
 import { updateUserConfig } from '@app/store/modules/config';
@@ -107,7 +107,7 @@ export class ApiKeyService implements OnModuleInit {
         name: string;
         description: string | undefined;
         roles?: Role[];
-        permissions?: Permission[];
+        permissions?: Permission[] | AddPermissionInput[];
         overwrite?: boolean;
     }): Promise<ApiKeyWithSecret> {
         const trimmedName = name?.trim();
