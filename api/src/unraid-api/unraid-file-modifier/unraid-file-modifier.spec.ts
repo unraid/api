@@ -1,16 +1,16 @@
 import { Test, TestingModule } from '@nestjs/testing';
 
-import { UnraidFileModifierService } from './unraid-file-modifier.service';
+import { UnraidFileModificationService } from '@app/unraid-api/unraid-file-modifier/unraid-file-modifier.service';
 
 describe('FileModificationService', () => {
-    let service: UnraidFileModifierService;
+    let service: UnraidFileModificationService;
 
     beforeEach(async () => {
         const module: TestingModule = await Test.createTestingModule({
-            providers: [UnraidFileModifierService],
+            providers: [UnraidFileModificationService],
         }).compile();
 
-        service = module.get<UnraidFileModifierService>(UnraidFileModifierService);
+        service = module.get<UnraidFileModificationService>(UnraidFileModificationService);
     });
 
     it('should be defined', () => {
