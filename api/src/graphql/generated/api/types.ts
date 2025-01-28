@@ -40,10 +40,8 @@ export type AccessUrlInput = {
 };
 
 export type AddPermissionInput = {
-  action: Scalars['String']['input'];
-  possession: Scalars['String']['input'];
+  actions: Array<Scalars['String']['input']>;
   resource: Resource;
-  role: Role;
 };
 
 export type AddRoleForApiKeyInput = {
@@ -350,7 +348,8 @@ export enum ContainerState {
 export type CreateApiKeyInput = {
   description?: InputMaybe<Scalars['String']['input']>;
   name: Scalars['String']['input'];
-  roles: Array<Role>;
+  permissions?: InputMaybe<Array<AddPermissionInput>>;
+  roles?: InputMaybe<Array<Role>>;
 };
 
 export type Devices = {
@@ -1682,6 +1681,7 @@ export enum VmState {
 export type Vms = {
   __typename?: 'Vms';
   domain?: Maybe<Array<VmDomain>>;
+  id: Scalars['ID']['output'];
 };
 
 export enum WAN_ACCESS_TYPE {
@@ -3090,6 +3090,7 @@ export type VmDomainResolvers<ContextType = Context, ParentType extends Resolver
 
 export type VmsResolvers<ContextType = Context, ParentType extends ResolversParentTypes['Vms'] = ResolversParentTypes['Vms']> = ResolversObject<{
   domain?: Resolver<Maybe<Array<ResolversTypes['VmDomain']>>, ParentType, ContextType>;
+  id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
 
