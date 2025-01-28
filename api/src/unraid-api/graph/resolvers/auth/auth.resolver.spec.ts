@@ -23,6 +23,7 @@ describe('AuthResolver', () => {
         description: 'Test API Key Description',
         roles: [Role.GUEST],
         createdAt: new Date().toISOString(),
+        permissions: []
     };
 
     const mockApiKeyWithSecret: ApiKeyWithSecret = {
@@ -32,6 +33,7 @@ describe('AuthResolver', () => {
         description: 'Test API Key Description',
         roles: [Role.GUEST],
         createdAt: new Date().toISOString(),
+        permissions: []
     };
 
     beforeEach(async () => {
@@ -84,6 +86,7 @@ describe('AuthResolver', () => {
                 name: 'New API Key',
                 description: 'New API Key Description',
                 roles: [Role.GUEST],
+                permissions: []
             };
 
             vi.spyOn(apiKeyService, 'create').mockResolvedValue(mockApiKeyWithSecret);
@@ -92,11 +95,12 @@ describe('AuthResolver', () => {
             const result = await resolver.createApiKey(input);
 
             expect(result).toEqual(mockApiKeyWithSecret);
-            expect(apiKeyService.create).toHaveBeenCalledWith(
-                input.name,
-                input.description,
-                input.roles
-            );
+            expect(apiKeyService.create).toHaveBeenCalledWith({
+                name: input.name,
+                description: input.description,
+                roles: input.roles,
+                permissions: [],
+            });
             expect(authService.syncApiKeyRoles).toHaveBeenCalledWith(mockApiKey.id, mockApiKey.roles);
         });
     });
