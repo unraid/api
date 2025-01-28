@@ -7,7 +7,7 @@ import { Resource } from '@app/graphql/generated/api/types';
 import { type Server } from '@app/graphql/generated/client/graphql';
 import { getLocalServer } from '@app/graphql/schema/utils';
 
-@Resolver()
+@Resolver('Server')
 export class ServerResolver {
     @Query()
     @UsePermissions({

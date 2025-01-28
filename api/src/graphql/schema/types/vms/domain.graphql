@@ -4,6 +4,7 @@ type Query {
 }
 
 type Vms {
+    id: ID!
     domain: [VmDomain!]
 }
 

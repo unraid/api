@@ -6,7 +6,7 @@ import type { UserAccount } from '@app/graphql/generated/api/types';
 import { Me, Resource } from '@app/graphql/generated/api/types';
 import { GraphqlUser } from '@app/unraid-api/auth/user.decorator';
 
-@Resolver()
+@Resolver('Me')
 export class MeResolver {
     constructor() {}
 
