@@ -20,6 +20,9 @@ onMounted(() => {
         description: 'group-[.toast]:text-muted-foreground',
         actionButton: 'group-[.toast]:bg-primary group-[.toast]:text-primary-foreground',
         cancelButton: 'group-[.toast]:bg-muted group-[.toast]:text-muted-foreground',
+        error: '[&>div>svg]:fill-unraid-red-500',
+        warning: '[&>div>svg]:fill-yellow-500',
+        info: '[&>div>svg]:fill-blue-500',
       },
     }"
   />

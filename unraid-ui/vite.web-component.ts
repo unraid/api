@@ -1,11 +1,9 @@
 import { fileURLToPath, URL } from 'node:url';
-// import tailwindcss from '@tailwindcss/vite';
 import vue from '@vitejs/plugin-vue';
 import vueJsx from '@vitejs/plugin-vue-jsx';
+import tailwindcss from 'tailwindcss';
 import { defineConfig } from 'vite';
 import vueDevTools from 'vite-plugin-vue-devtools';
-import tailwindcss from 'tailwindcss';
-
 
 // https://vite.dev/config/
 export default defineConfig({
@@ -24,18 +22,20 @@ export default defineConfig({
     },
   },
   build: {
+    manifest: 'manifest.json',
+    sourcemap: true,
     cssCodeSplit: false,
-    // manifest: true,
     lib: {
       entry: fileURLToPath(new URL('./src/register.ts', import.meta.url)),
       name: 'unraid-web-components',
       formats: ['es'],
     },
     rollupOptions: {
-      //   external: ['vue'],
-      //   output: {
-      //     inlineDynamicImports: true,
-      //   },
+      output: {
+        entryFileNames: '[name].[hash].js',
+        chunkFileNames: '[name].[hash].js',
+        assetFileNames: '[name].[hash][extname]',
+      },
     },
   },
 });
