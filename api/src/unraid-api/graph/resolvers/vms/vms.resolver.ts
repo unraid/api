@@ -13,7 +13,6 @@ export class VmsResolver {
         possession: AuthPossession.ANY,
     })
     public async vms() {
-        console.log('Resolving Domains');
         return {
             id: 'vms',
         };
