@@ -107,7 +107,6 @@ onMounted(async () => {
     currentState.value = 'error';
     error.value = 'Error fetching token';
     reEnableFormOnError();
-  } finally {
   }
 });
 
@@ -137,12 +136,11 @@ const navigateToExternalSSOUrl = () => {
 <template>
   <template v-if="isSsoEnabled">
     <div class="w-full flex flex-col gap-1 my-1">
-      <hr v-if="currentState === 'idle' || currentState === 'error'" />
-      <p class="text-center" v-if="currentState === 'idle' || currentState === 'error'">or</p>
-      <p class="text-red-500 text-center" v-if="currentState === 'error'">{{ error }}</p>
+      <p v-if="currentState === 'idle' || currentState === 'error'" class="text-center">or</p>
+      <p v-if="currentState === 'error'" class="text-red-500 text-center">{{ error }}</p>
       <Button
         :disabled="currentState === 'loading'"
-        btnStyle="outline"
+        btn-style="outline"
         class="rounded-none uppercase tracking-widest"
         @click="navigateToExternalSSOUrl"
         >{{ buttonText }}</Button
