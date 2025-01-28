@@ -43,10 +43,10 @@ export async function bootstrapNestServer(): Promise<NestFastifyApplication> {
 
     if (Number.isNaN(parseInt(PORT))) {
         const result = await server.listen({ path: '/var/run/unraid-api.sock' });
-        console.log('Server listening on %s', result);
+        apiLogger.info('Server listening on %s', result);
     } else {
         const result = await server.listen({ port: parseInt(PORT), host: '0.0.0.0' });
-        console.log('Server listening on %s', result);
+        apiLogger.info('Server listening on %s', result);
     }
 
     // This 'ready' signal tells pm2 that the api has started.
@@ -55,7 +55,9 @@ export async function bootstrapNestServer(): Promise<NestFastifyApplication> {
     if (process.send) {
         process.send('ready');
     } else {
-        console.log('Warning: process.send is unavailable. This will affect IPC communication with PM2.');
+        apiLogger.warn(
+            'Warning: process.send is unavailable. This will affect IPC communication with PM2.'
+        );
     }
     apiLogger.info('Nest Server is now listening');
 
