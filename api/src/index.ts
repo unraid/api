@@ -13,8 +13,6 @@ import exitHook from 'exit-hook';
 import { WebSocket } from 'ws';
 
 import { logger } from '@app/core/log';
-import { setupLogRotation } from '@app/core/logrotate/setup-logrotate';
-import { setupAuthRequest } from '@app/core/sso/auth-request-setup';
 import { fileExistsSync } from '@app/core/utils/files/file-exists';
 import { environment, PORT } from '@app/environment';
 import * as envVars from '@app/environment';

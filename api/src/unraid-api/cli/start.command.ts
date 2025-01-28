@@ -8,6 +8,7 @@ import type { LogLevel } from '@app/core/log';
 import { ECOSYSTEM_PATH, PM2_PATH } from '@app/consts';
 import { levels } from '@app/core/log';
 import { LogService } from '@app/unraid-api/cli/log.service';
+import { LOG_LEVEL, NODE_ENV } from '@app/environment';
 
 interface StartCommandOptions {
     'log-level'?: string;
@@ -21,6 +22,7 @@ export class StartCommand extends CommandRunner {
 
     async configurePm2(): Promise<void> {
         if (existsSync('/tmp/pm2-configured')) {
+            this.logger.debug('PM2 already configured');
             return;
         }
         // Write a temp file when first started to prevent needing to run this again
@@ -58,7 +60,6 @@ export class StartCommand extends CommandRunner {
 
     async run(_: string[], options: StartCommandOptions): Promise<void> {
         this.logger.info('Starting the Unraid API');
-
         await this.configurePm2();
 
         const envLog = options['log-level'] ? `LOG_LEVEL=${options['log-level']}` : '';
