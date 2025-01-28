@@ -104,7 +104,7 @@ onUnmounted(() => {
     </template>
 
     <template #main>
-      <div class="flex justify-center gap-4 mx-auto w-full">
+      <div class="flex flex-col sm:flex-row justify-center gap-4 mx-auto w-full">
         <BrandButton v-for="button in docsButtons" :key="button.text" v-bind="button" />
       </div>
     </template>
