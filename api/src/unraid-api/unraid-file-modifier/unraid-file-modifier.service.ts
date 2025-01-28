@@ -32,12 +32,8 @@ export class UnraidFileModificationService implements OnModuleInit, OnModuleDest
         }
     }
     async onModuleDestroy() {
-        try {
-            this.logger.log('Rolling back all modifications...');
-            await this.rollbackAll();
-        } catch (err) {
-            this.logger.error(`Failed to roll back modifications: ${err}`);
-        }
+        this.logger.log('Rolling back all modifications...');
+        await this.rollbackAll();
     }
 
     /**
@@ -90,7 +86,6 @@ export class UnraidFileModificationService implements OnModuleInit, OnModuleDest
             } else {
                 this.logger.error(`Failed to apply modification: ${modification.id}: ${error}`);
             }
-            throw error;
         }
     }
 
@@ -120,6 +115,4 @@ export class UnraidFileModificationService implements OnModuleInit, OnModuleDest
             }
         }
     }
-
-
 }
