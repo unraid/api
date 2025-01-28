@@ -4,9 +4,9 @@ import { readFile, writeFile } from 'fs/promises';
 
 import {
     FileModification,
-    FileModificationService,
     ShouldApplyWithReason,
 } from '@app/unraid-api/unraid-file-modifier/unraid-file-modifier.service';
+import { backupFile } from '@app/utils';
 
 const AUTH_REQUEST_FILE = '/usr/local/emhttp/auth-request.php' as const;
 const WEB_COMPS_DIR = '/usr/local/emhttp/plugins/dynamix.my.servers/unraid-components/_nuxt/' as const;
@@ -34,7 +34,7 @@ export default class AuthRequestModification implements FileModification {
             const fileContent = await readFile(AUTH_REQUEST_FILE, 'utf8');
 
             if (fileContent.includes('$arrWhitelist')) {
-                FileModificationService.backupFile(AUTH_REQUEST_FILE, true);
+                backupFile(AUTH_REQUEST_FILE, true);
                 this.logger.debug(`Backup of ${AUTH_REQUEST_FILE} created.`);
 
                 const filesToAddString = FILES_TO_ADD.map((file) => `  '${file}',`).join('\n');

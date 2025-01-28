@@ -1,5 +1,4 @@
 import { Injectable, Logger, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
-import { copyFile, unlink } from 'node:fs/promises';
 
 import AuthRequestModification from '@app/unraid-api/unraid-file-modifier/modifications/auth-request.modification';
 import SSOFileModification from '@app/unraid-api/unraid-file-modifier/modifications/sso.modification';
@@ -122,40 +121,5 @@ export class UnraidFileModificationService implements OnModuleInit, OnModuleDest
         }
     }
 
-    /**
-     * Helper method to allow backing up a single file to a .bak file.
-     * @param path the file to backup, creates a .bak file in the same directory
-     * @throws Error if the file cannot be copied
-     */
-    public static backupFile = async (path: string, throwOnMissing = true): Promise<void> => {
-        try {
-            const backupPath = path + '.bak';
-            await copyFile(path, backupPath);
-        } catch (err) {
-            if (throwOnMissing) {
-                throw new Error(`File does not exist: ${path}`);
-            }
-        }
-    };
 
-    /**
-     *
-     * @param path Path to original (not .bak) file
-     * @param throwOnMissing Whether to throw an error if the backup file does not exist
-     * @throws Error if the backup file does not exist and throwOnMissing is true
-     * @returns boolean indicating whether the restore was successful
-     */
-    public static restoreFile = async (path: string, throwOnMissing = true): Promise<boolean> => {
-        const backupPath = path + '.bak';
-        try {
-            await copyFile(backupPath, path);
-            await unlink(backupPath);
-            return true;
-        } catch {
-            if (throwOnMissing) {
-                throw new Error(`Backup file does not exist: ${backupPath}`);
-            }
-            return false;
-        }
-    };
 }

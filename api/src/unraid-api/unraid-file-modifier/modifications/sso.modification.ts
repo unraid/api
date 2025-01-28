@@ -3,9 +3,9 @@ import { readFile, writeFile } from 'node:fs/promises';
 
 import {
     FileModification,
-    FileModificationService,
     ShouldApplyWithReason,
 } from '@app/unraid-api/unraid-file-modifier/unraid-file-modifier.service';
+import { backupFile, restoreFile } from '@app/utils';
 
 export default class SSOFileModification implements FileModification {
     id: string = 'sso';
@@ -47,9 +47,9 @@ function verifyUsernamePasswordAndSSO(string $username, string $password): bool 
             '<?php include "$docroot/plugins/dynamix.my.servers/include/sso-login.php"; ?>';
 
         // Restore the original file if exists
-        await FileModificationService.restoreFile(this.loginFilePath, false);
+        await restoreFile(this.loginFilePath, false);
         // Backup the original content
-        await FileModificationService.backupFile(this.loginFilePath, true);
+        await backupFile(this.loginFilePath, true);
 
         // Read the file content
         let fileContent = await readFile(this.loginFilePath, 'utf-8');
@@ -73,7 +73,7 @@ function verifyUsernamePasswordAndSSO(string $username, string $password): bool 
         this.logger.log('Login Function replaced successfully.');
     }
     async rollback(): Promise<void> {
-        const restored = await FileModificationService.restoreFile(this.loginFilePath, false);
+        const restored = await restoreFile(this.loginFilePath, false);
         if (restored) {
             this.logger.debug('SSO login file restored.');
         } else {

@@ -1,9 +1,8 @@
 import { BadRequestException, ExecutionContext, Logger, UnauthorizedException } from '@nestjs/common';
 import { GqlExecutionContext } from '@nestjs/graphql';
+import { copyFile, unlink } from 'node:fs/promises';
 
 import strftime from 'strftime';
-
-import { UserSchema } from '@app/graphql/generated/api/operations';
 
 import { UserAccount } from './graphql/generated/api/types';
 import { FastifyRequest } from './types/fastify';
@@ -245,3 +244,40 @@ export function handleAuthError(
 
     throw new UnauthorizedException(`${operation}: ${errorMessage}`);
 }
+
+/**
+ * Helper method to allow backing up a single file to a .bak file.
+ * @param path the file to backup, creates a .bak file in the same directory
+ * @throws Error if the file cannot be copied
+ */
+export const backupFile = async (path: string, throwOnMissing = true): Promise<void> => {
+    try {
+        const backupPath = path + '.bak';
+        await copyFile(path, backupPath);
+    } catch (err) {
+        if (throwOnMissing) {
+            throw new Error(`File does not exist: ${path}`);
+        }
+    }
+};
+
+/**
+ *
+ * @param path Path to original (not .bak) file
+ * @param throwOnMissing Whether to throw an error if the backup file does not exist
+ * @throws Error if the backup file does not exist and throwOnMissing is true
+ * @returns boolean indicating whether the restore was successful
+ */
+export const restoreFile = async (path: string, throwOnMissing = true): Promise<boolean> => {
+    const backupPath = path + '.bak';
+    try {
+        await copyFile(backupPath, path);
+        await unlink(backupPath);
+        return true;
+    } catch {
+        if (throwOnMissing) {
+            throw new Error(`Backup file does not exist: ${backupPath}`);
+        }
+        return false;
+    }
+};
