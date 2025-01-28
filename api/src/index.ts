@@ -59,8 +59,6 @@ try {
     // Must occur before config is loaded to ensure that the handler can fix broken configs
     await startStoreSync();
 
-    await setupLogRotation();
-
     // Load my servers config file into store
     await store.dispatch(loadConfigFile());
 
