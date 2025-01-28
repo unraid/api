@@ -13,9 +13,6 @@ import { LogService } from '@app/unraid-api/cli/log.service';
 const getUnraidApiLocation = async () => {
     try {
         const shellToUse = await execa('which unraid-api');
-        if (shellToUse.code !== 0) {
-            throw new Error('unraid-api not found');
-        }
         return shellToUse.stdout.trim();
     } catch (err) {
         logger.debug('Could not find unraid-api in PATH, using default location');
