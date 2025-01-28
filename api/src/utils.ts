@@ -245,6 +245,9 @@ export function handleAuthError(
     throw new UnauthorizedException(`${operation}: ${errorMessage}`);
 }
 
+import { access, constants } from 'node:fs/promises';
+import { dirname } from 'node:path';
+
 /**
  * Helper method to allow backing up a single file to a .bak file.
  * @param path the file to backup, creates a .bak file in the same directory
@@ -252,11 +255,29 @@ export function handleAuthError(
  */
 export const backupFile = async (path: string, throwOnMissing = true): Promise<void> => {
     try {
+        // Validate path
+        if (!path) {
+            throw new Error('File path cannot be empty');
+        }
+        
+        // Check if source file exists and is readable
+        await access(path, constants.R_OK);
+        
+        // Check if backup directory is writable
+        await access(dirname(path), constants.W_OK);
+        
         const backupPath = path + '.bak';
         await copyFile(path, backupPath);
     } catch (err) {
+        const error = err as NodeJS.ErrnoException;
         if (throwOnMissing) {
-            throw new Error(`File does not exist: ${path}`);
+            throw new Error(
+                error.code === 'ENOENT'
+                    ? `File does not exist: ${path}`
+                    : error.code === 'EACCES'
+                    ? `Permission denied: ${path}`
+                    : `Failed to backup file: ${error.message}`
+            );
         }
     }
 };
