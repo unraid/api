@@ -19,7 +19,7 @@ export class StartCommand extends CommandRunner {
         this.logger.info('Starting the Unraid API');
 
         // Update PM2 first if necessary
-        const { stderr: updateErr, stdout: updateOut } = await execa(`${PM2_PATH} update`);
+        const { stderr: updateErr, stdout: updateOut } = await execa(PM2_PATH, ['update']);
         if (updateOut) {
             this.logger.log(updateOut);
         }
