@@ -19,8 +19,8 @@ export interface FileModification {
 
 // Step 2: Create a FileModificationService
 @Injectable()
-export class FileModificationService implements OnModuleInit, OnModuleDestroy {
-    private readonly logger = new Logger(FileModificationService.name);
+export class UnraidFileModificationService implements OnModuleInit, OnModuleDestroy {
+    private readonly logger = new Logger(UnraidFileModificationService.name);
     private history: FileModification[] = []; // Keeps track of applied modifications
 
     async onModuleInit() {
@@ -71,12 +71,16 @@ export class FileModificationService implements OnModuleInit, OnModuleDestroy {
         try {
             const shouldApplyWithReason = await modification.shouldApply();
             if (shouldApplyWithReason.shouldApply) {
-                this.logger.log(`Applying modification: ${modification.id} - ${shouldApplyWithReason.reason}`);
+                this.logger.log(
+                    `Applying modification: ${modification.id} - ${shouldApplyWithReason.reason}`
+                );
                 await modification.apply();
                 this.history.push(modification); // Store modification in history
                 this.logger.log(`Modification applied successfully: ${modification.id}`);
             } else {
-                this.logger.log(`Skipping modification: ${modification.id} - ${shouldApplyWithReason.reason}`);
+                this.logger.log(
+                    `Skipping modification: ${modification.id} - ${shouldApplyWithReason.reason}`
+                );
             }
         } catch (error) {
             if (error instanceof Error) {

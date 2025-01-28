@@ -1,7 +1,8 @@
 import { Module } from '@nestjs/common';
-import { FileModificationService } from './unraid-file-modifier.service';
+
+import { UnraidFileModificationService } from './unraid-file-modifier.service';
 
 @Module({
-  providers: [FileModificationService]
+    providers: [UnraidFileModificationService],
 })
 export class UnraidFileModifierModule {}
