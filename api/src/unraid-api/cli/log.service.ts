@@ -13,10 +13,11 @@ export class LogService {
 
     shouldLog(level: LogLevel): boolean {
         const logLevelsLowToHigh = levels;
-        return (
+        const shouldLog = (
             logLevelsLowToHigh.indexOf(level) >=
             logLevelsLowToHigh.indexOf(LOG_LEVEL.toLowerCase() as LogLevel)
         );
+        return shouldLog;
     }
 
     log(message: string): void {
