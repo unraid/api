@@ -17,7 +17,9 @@ const getUnraidApiLocation = async () => {
             throw new Error('unraid-api not found');
         }
         return shellToUse.stdout.trim();
-    } finally {
+    } catch (err) {
+        logger.debug('Could not find unraid-api in PATH, using default location');
+
         return '/usr/bin/unraid-api';
     }
 };
