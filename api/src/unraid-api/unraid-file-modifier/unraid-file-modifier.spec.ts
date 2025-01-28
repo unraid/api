@@ -73,7 +73,7 @@ describe('FileModificationService', () => {
     it('should apply modifications', async () => {
         await expect(
             service.applyModification(new TestFileModification())
-        ).rejects.toThrowErrorMatchingSnapshot();
+        ).resolves.toBe(undefined);
     });
 
     it('should not rollback any mods without loaded', async () => {
