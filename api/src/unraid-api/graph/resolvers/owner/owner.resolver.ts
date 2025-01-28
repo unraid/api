@@ -6,7 +6,7 @@ import { createSubscription, PUBSUB_CHANNEL } from '@app/core/pubsub';
 import { Resource } from '@app/graphql/generated/api/types';
 import { getters } from '@app/store/index';
 
-@Resolver()
+@Resolver('Owner')
 export class OwnerResolver {
     @Query()
     @UsePermissions({

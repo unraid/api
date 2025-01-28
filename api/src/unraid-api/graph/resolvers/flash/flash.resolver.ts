@@ -5,7 +5,7 @@ import { AuthActionVerb, AuthPossession, UsePermissions } from 'nest-authz';
 import { Resource } from '@app/graphql/generated/api/types';
 import { getters } from '@app/store/index';
 
-@Resolver()
+@Resolver('Flash')
 export class FlashResolver {
     @Query()
     @UsePermissions({

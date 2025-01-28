@@ -19,7 +19,7 @@ export const BYPASS_PERMISSION_CHECKS = process.env.BYPASS_PERMISSION_CHECKS ===
 export const BYPASS_CORS_CHECKS = process.env.BYPASS_CORS_CHECKS === 'true';
 export const LOG_CORS = process.env.LOG_CORS === 'true';
 export const LOG_TYPE = (process.env.LOG_TYPE as 'pretty' | 'raw') ?? 'pretty';
-export const LOG_LEVEL = process.env.LOG_LEVEL as
+export const LOG_LEVEL = process.env.LOG_LEVEL?.toUpperCase() as
     | 'TRACE'
     | 'DEBUG'
     | 'INFO'

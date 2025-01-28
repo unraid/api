@@ -5,25 +5,36 @@ import '@app/dotenv';
 import { execa } from 'execa';
 import { CommandFactory } from 'nest-commander';
 
-import { cliLogger, internalLogger } from '@app/core/log';
+import { internalLogger, logger } from '@app/core/log';
+import { LOG_LEVEL } from '@app/environment';
 import { CliModule } from '@app/unraid-api/cli/cli.module';
+import { LogService } from '@app/unraid-api/cli/log.service';
+
+const getUnraidApiLocation = async () => {
+    try {
+        const shellToUse = await execa('which unraid-api');
+        if (shellToUse.code !== 0) {
+            throw new Error('unraid-api not found');
+        }
+        return shellToUse.stdout.trim();
+    } finally {
+        return '/usr/bin/unraid-api';
+    }
+};
 
 try {
-    const shellToUse = await execa('which unraid-api')
-        .then((res) => res.toString().trim())
-        .catch((_) => '/usr/local/bin/unraid-api');
     await CommandFactory.run(CliModule, {
         cliName: 'unraid-api',
-        logger: false, // new LogService(), - enable this to see nest initialization issues
+        logger: LOG_LEVEL === 'TRACE' && new LogService(), // - enable this to see nest initialization issues
         completion: {
-            fig: true,
+            fig: false,
             cmd: 'completion-script',
-            nativeShell: { executablePath: shellToUse },
+            nativeShell: { executablePath: await getUnraidApiLocation() },
         },
     });
     process.exit(0);
 } catch (error) {
-    cliLogger.error('ERROR:', error);
+    logger.error('ERROR:', error);
     internalLogger.error({
         message: 'Failed to start unraid-api',
         error,

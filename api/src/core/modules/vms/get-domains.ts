@@ -18,9 +18,10 @@ const states = {
  * Get vm domains.
  */
 export const getDomains = async () => {
-    const { ConnectListAllDomainsFlags } = await import('@vmngr/libvirt');
-    const { UnraidHypervisor } = await import('@app/core/utils/vms/get-hypervisor');
     try {
+        const { ConnectListAllDomainsFlags } = await import('@vmngr/libvirt');
+        const { UnraidHypervisor } = await import('@app/core/utils/vms/get-hypervisor');
+
         const hypervisor = await UnraidHypervisor.getInstance().getHypervisor();
         if (!hypervisor) {
             throw new GraphQLError('VMs Disabled');

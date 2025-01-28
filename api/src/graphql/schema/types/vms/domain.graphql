@@ -1,0 +1,34 @@
+type Query {
+    """Virtual machines"""
+    vms: Vms
+}
+
+type Vms {
+    id: ID!
+    domain: [VmDomain!]
+}
+
+type Subscription {
+    vms: Vms
+}
+
+# https://libvirt.org/manpages/virsh.html#list
+enum VmState {
+    NOSTATE
+    RUNNING
+    IDLE
+    PAUSED
+    SHUTDOWN
+    SHUTOFF
+    CRASHED
+    PMSUSPENDED
+}
+
+"""A virtual machine"""
+type VmDomain {
+    uuid: ID!
+    """A friendly name for the vm"""
+    name: String
+    """Current domain vm state"""
+    state: VmState!
+}

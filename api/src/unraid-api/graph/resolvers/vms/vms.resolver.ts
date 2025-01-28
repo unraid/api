@@ -1,11 +1,10 @@
-import { Query, Resolver } from '@nestjs/graphql';
+import { Query, ResolveField, Resolver } from '@nestjs/graphql';
 
 import { AuthActionVerb, AuthPossession, UsePermissions } from 'nest-authz';
 
-import { getDomains } from '@app/core/modules/vms/get-domains';
-import { Resource } from '@app/graphql/generated/api/types';
+import { Resource, type VmDomain } from '@app/graphql/generated/api/types';
 
-@Resolver()
+@Resolver('Vms')
 export class VmsResolver {
     @Query()
     @UsePermissions({
@@ -14,17 +13,16 @@ export class VmsResolver {
         possession: AuthPossession.ANY,
     })
     public async vms() {
-        return {};
+        console.log('Resolving Domains');
+        return {
+            id: 'vms',
+        };
     }
 
-    @Resolver('domain')
-    @Query()
-    @UsePermissions({
-        action: AuthActionVerb.READ,
-        resource: 'vms/domain',
-        possession: AuthPossession.ANY,
-    })
-    public async domain() {
-        return getDomains();
+    @ResolveField('domain')
+    public async domain(): Promise<Array<VmDomain>> {
+        const { getDomains } = await import('@app/core/modules/vms/get-domains');
+        const domains = await getDomains();
+        return domains;
     }
 }

@@ -34,6 +34,7 @@ if [ ! -d "$source_directory" ]; then
   fi
 fi
 
+# Change ownership on copy
 # Replace the value inside the rsync command with the user's input
 rsync_command="rsync -avz -e ssh $source_directory root@${server_name}:/usr/local/unraid-api"
 
@@ -44,14 +45,11 @@ echo "$rsync_command"
 eval "$rsync_command"
 exit_code=$?
 
-# Run unraid-api restart on remote host
-dev=${DEV:-true}
+# Chown the directory
+ssh root@"${server_name}" "chown -R root:root /usr/local/unraid-api"
 
-if [ "$dev" = true ]; then
-  ssh root@"${server_name}" "INTROSPECTION=true unraid-api restart"
-else
-  ssh root@"${server_name}" "unraid-api restart"
-fi
+# Run unraid-api restart on remote host
+ssh root@"${server_name}" "INTROSPECTION=true LOG_LEVEL=trace unraid-api restart"
 
 # Play built-in sound based on the operating system
 if [[ "$OSTYPE" == "darwin"* ]]; then
