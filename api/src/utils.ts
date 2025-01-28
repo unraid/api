@@ -269,14 +269,31 @@ export const backupFile = async (path: string, throwOnMissing = true): Promise<v
  * @returns boolean indicating whether the restore was successful
  */
 export const restoreFile = async (path: string, throwOnMissing = true): Promise<boolean> => {
+    if (!path) {
+        throw new Error('File path cannot be empty');
+    }
+    
     const backupPath = path + '.bak';
     try {
+        // Check if backup file exists and is readable
+        await access(backupPath, constants.R_OK);
+        
+        // Check if target directory is writable
+        await access(dirname(path), constants.W_OK);
+        
         await copyFile(backupPath, path);
         await unlink(backupPath);
         return true;
-    } catch {
+    } catch (err) {
+        const error = err as NodeJS.ErrnoException;
         if (throwOnMissing) {
-            throw new Error(`Backup file does not exist: ${backupPath}`);
+            throw new Error(
+                error.code === 'ENOENT'
+                    ? `Backup file does not exist: ${backupPath}`
+                    : error.code === 'EACCES'
+                    ? `Permission denied: ${path}`
+                    : `Failed to restore file: ${error.message}`
+            );
         }
         return false;
     }
