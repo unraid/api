@@ -1,6 +1,7 @@
 import { BadRequestException, ExecutionContext, Logger, UnauthorizedException } from '@nestjs/common';
 import { GqlExecutionContext } from '@nestjs/graphql';
-import { copyFile, unlink } from 'node:fs/promises';
+import { access, constants, copyFile, unlink } from 'node:fs/promises';
+import { dirname } from 'node:path';
 
 import strftime from 'strftime';
 
@@ -245,9 +246,6 @@ export function handleAuthError(
     throw new UnauthorizedException(`${operation}: ${errorMessage}`);
 }
 
-import { access, constants } from 'node:fs/promises';
-import { dirname } from 'node:path';
-
 /**
  * Helper method to allow backing up a single file to a .bak file.
  * @param path the file to backup, creates a .bak file in the same directory
@@ -259,13 +257,13 @@ export const backupFile = async (path: string, throwOnMissing = true): Promise<v
         if (!path) {
             throw new Error('File path cannot be empty');
         }
-        
+
         // Check if source file exists and is readable
         await access(path, constants.R_OK);
-        
+
         // Check if backup directory is writable
         await access(dirname(path), constants.W_OK);
-        
+
         const backupPath = path + '.bak';
         await copyFile(path, backupPath);
     } catch (err) {
@@ -275,8 +273,8 @@ export const backupFile = async (path: string, throwOnMissing = true): Promise<v
                 error.code === 'ENOENT'
                     ? `File does not exist: ${path}`
                     : error.code === 'EACCES'
-                    ? `Permission denied: ${path}`
-                    : `Failed to backup file: ${error.message}`
+                      ? `Permission denied: ${path}`
+                      : `Failed to backup file: ${error.message}`
             );
         }
     }
@@ -293,15 +291,15 @@ export const restoreFile = async (path: string, throwOnMissing = true): Promise<
     if (!path) {
         throw new Error('File path cannot be empty');
     }
-    
+
     const backupPath = path + '.bak';
     try {
         // Check if backup file exists and is readable
         await access(backupPath, constants.R_OK);
-        
+
         // Check if target directory is writable
         await access(dirname(path), constants.W_OK);
-        
+
         await copyFile(backupPath, path);
         await unlink(backupPath);
         return true;
@@ -312,8 +310,8 @@ export const restoreFile = async (path: string, throwOnMissing = true): Promise<
                 error.code === 'ENOENT'
                     ? `Backup file does not exist: ${backupPath}`
                     : error.code === 'EACCES'
-                    ? `Permission denied: ${path}`
-                    : `Failed to restore file: ${error.message}`
+                      ? `Permission denied: ${path}`
+                      : `Failed to restore file: ${error.message}`
             );
         }
         return false;
