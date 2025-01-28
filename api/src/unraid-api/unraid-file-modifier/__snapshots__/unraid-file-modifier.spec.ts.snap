@@ -1,0 +1,3 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`FileModificationService > should apply modifications 1`] = `[Error: Application not implemented.]`;
