@@ -16,4 +16,9 @@ describe('FileModificationService', () => {
     it('should be defined', () => {
         expect(service).toBeDefined();
     });
+
+    it('should load modifications', async () => {
+        const mods = await service.loadModifications();
+        expect(mods).toHaveLength(2);
+    })
 });
