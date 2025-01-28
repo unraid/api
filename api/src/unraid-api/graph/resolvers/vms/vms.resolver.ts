@@ -20,8 +20,13 @@ export class VmsResolver {
 
     @ResolveField('domain')
     public async domain(): Promise<Array<VmDomain>> {
-        const { getDomains } = await import('@app/core/modules/vms/get-domains');
-        const domains = await getDomains();
-        return domains;
+        try {
+            const { getDomains } = await import('@app/core/modules/vms/get-domains');
+            const domains = await getDomains();
+            return domains;
+        } catch (error) {
+            // Consider using a proper logger here
+            throw new Error(`Failed to retrieve VM domains: ${error.message}`);
+        }
     }
 }
