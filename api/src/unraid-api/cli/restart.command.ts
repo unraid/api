@@ -12,19 +12,19 @@ export class RestartCommand extends CommandRunner {
 
     async run(_): Promise<void> {
         try {
-            this.logger.info('Restarting the Unraid API');
+            this.logger.info('Restarting the Unraid API...');
             const { stderr, stdout } = await execa(PM2_PATH, [
                 'restart',
                 ECOSYSTEM_PATH,
                 '--update-env',
             ]);
-            this.logger.info('Unraid API restarted');
             if (stderr) {
                 this.logger.error(stderr);
                 process.exit(1);
-            }
-            if (stdout) {
+            } else if (stdout) {
                 this.logger.info(stdout);
+            } else {
+                this.logger.info('Unraid API restarted');
             }
         } catch (error) {
             if (error instanceof Error) {
