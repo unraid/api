@@ -1,7 +1,7 @@
 import { Logger } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 
-import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import {
     FileModification,
@@ -98,5 +98,31 @@ describe('FileModificationService', () => {
         expect(mockLogger.log).toHaveBeenNthCalledWith(3, 'Modification applied successfully: test');
         expect(mockLogger.log).toHaveBeenNthCalledWith(4, 'Rolling back modification: test');
         expect(mockLogger.log).toHaveBeenNthCalledWith(5, 'Modification rolled back successfully: test');
+    });
+
+    it('should handle errors during rollback', async () => {
+        const errorMod = new TestFileModification(vi.fn(), () =>
+            Promise.reject(new Error('Rollback failed'))
+        );
+        await service.applyModification(errorMod);
+        await service.rollbackAll();
+        expect(mockLogger.error).toHaveBeenCalled();
+    });
+
+    it('should handle concurrent modifications', async () => {
+        const mods = [
+            new TestFileModification(vi.fn(), vi.fn()),
+            new TestFileModification(vi.fn(), vi.fn()),
+        ];
+        await Promise.all(mods.map((mod) => service.applyModification(mod)));
+        await service.rollbackAll();
+        mods.forEach((mod) => {
+            expect(mod.rollbackImplementation).toHaveBeenCalled();
+        });
+    });
+
+    afterEach(async () => {
+        await service.rollbackAll();
+        vi.clearAllMocks();
     });
 });

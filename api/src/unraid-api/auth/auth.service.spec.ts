@@ -24,6 +24,7 @@ describe('AuthService', () => {
         description: 'Test API Key Description',
         roles: [Role.GUEST, Role.CONNECT],
         createdAt: new Date().toISOString(),
+        permissions: [],
     };
 
     const mockApiKeyWithSecret: ApiKeyWithSecret = {
