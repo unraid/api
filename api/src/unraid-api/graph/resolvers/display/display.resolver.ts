@@ -58,7 +58,7 @@ const states = {
     },
 };
 
-@Resolver()
+@Resolver('Display')
 export class DisplayResolver {
     @Query()
     @UsePermissions({

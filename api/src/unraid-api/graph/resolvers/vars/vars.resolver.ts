@@ -5,7 +5,7 @@ import { AuthActionVerb, AuthPossession, UsePermissions } from 'nest-authz';
 import { Resource } from '@app/graphql/generated/api/types';
 import { getters } from '@app/store/index';
 
-@Resolver()
+@Resolver('Vars')
 export class VarsResolver {
     @Query()
     @UsePermissions({

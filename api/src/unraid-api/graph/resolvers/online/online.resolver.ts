@@ -4,7 +4,7 @@ import { AuthActionVerb, AuthPossession, UsePermissions } from 'nest-authz';
 
 import { Resource } from '@app/graphql/generated/api/types';
 
-@Resolver()
+@Resolver('Online')
 export class OnlineResolver {
     @Query()
     @UsePermissions({

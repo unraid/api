@@ -9,7 +9,7 @@ import { registrationType, Resource } from '@app/graphql/generated/api/types';
 import { getters } from '@app/store/index';
 import { FileLoadStatus } from '@app/store/types';
 
-@Resolver()
+@Resolver('Registration')
 export class RegistrationResolver {
     @Query()
     @UsePermissions({
