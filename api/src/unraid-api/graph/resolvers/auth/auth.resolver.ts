@@ -56,11 +56,12 @@ export class AuthResolver {
         @Args('input')
         input: CreateApiKeyInput
     ): Promise<ApiKeyWithSecret> {
-        const apiKey = await this.apiKeyService.create(
-            input.name,
-            input.description ?? undefined,
-            input.roles
-        );
+        const apiKey = await this.apiKeyService.create({
+            name: input.name,
+            description: input.description ?? undefined,
+            roles: input.roles ?? [],
+            permissions: input.permissions ?? [],
+        });
 
         await this.authService.syncApiKeyRoles(apiKey.id, apiKey.roles);
 

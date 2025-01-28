@@ -94,10 +94,8 @@ export function AccessUrlInputSchema(): z.ZodObject<Properties<AccessUrlInput>> 
 
 export function AddPermissionInputSchema(): z.ZodObject<Properties<AddPermissionInput>> {
   return z.object({
-    action: z.string(),
-    possession: z.string(),
-    resource: ResourceSchema,
-    role: RoleSchema
+    actions: z.array(z.string()),
+    resource: ResourceSchema
   })
 }
 
@@ -326,7 +324,8 @@ export function CreateApiKeyInputSchema(): z.ZodObject<Properties<CreateApiKeyIn
   return z.object({
     description: z.string().nullish(),
     name: z.string(),
-    roles: z.array(RoleSchema)
+    permissions: z.array(z.lazy(() => AddPermissionInputSchema())).nullish(),
+    roles: z.array(RoleSchema).nullish()
   })
 }
 
@@ -1230,7 +1229,8 @@ export function VmDomainSchema(): z.ZodObject<Properties<VmDomain>> {
 export function VmsSchema(): z.ZodObject<Properties<Vms>> {
   return z.object({
     __typename: z.literal('Vms').optional(),
-    domain: z.array(VmDomainSchema()).nullish()
+    domain: z.array(VmDomainSchema()).nullish(),
+    id: z.string()
   })
 }
 
