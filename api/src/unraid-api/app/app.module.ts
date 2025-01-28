@@ -11,6 +11,7 @@ import { AuthModule } from '@app/unraid-api/auth/auth.module';
 import { CronModule } from '@app/unraid-api/cron/cron.module';
 import { GraphModule } from '@app/unraid-api/graph/graph.module';
 import { RestModule } from '@app/unraid-api/rest/rest.module';
+import { UnraidFileModifierModule } from '@app/unraid-api/unraid-file-modifier/unraid-file-modifier.module';
 
 @Module({
     imports: [
@@ -30,6 +31,7 @@ import { RestModule } from '@app/unraid-api/rest/rest.module';
                 limit: 100, // 100 requests per 10 seconds
             },
         ]),
+        UnraidFileModifierModule,
     ],
     controllers: [],
     providers: [
