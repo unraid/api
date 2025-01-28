@@ -15,8 +15,6 @@ import { WebSocket } from 'ws';
 import { logger } from '@app/core/log';
 import { setupLogRotation } from '@app/core/logrotate/setup-logrotate';
 import { setupAuthRequest } from '@app/core/sso/auth-request-setup';
-import { removeSso } from '@app/core/sso/sso-remove';
-import { setupSso } from '@app/core/sso/sso-setup';
 import { fileExistsSync } from '@app/core/utils/files/file-exists';
 import { environment, PORT } from '@app/environment';
 import * as envVars from '@app/environment';
@@ -100,22 +98,10 @@ try {
 
     startMiddlewareListeners();
 
-    // If the config contains SSO IDs, enable SSO
-    try {
-        if (store.getState().config.remote.ssoSubIds) {
-            await setupAuthRequest();
-            await setupSso();
-            logger.info('SSO setup complete');
-        } else {
-            await removeSso();
-        }
-    } catch (err) {
-        logger.error('Failed to setup SSO with error: %o', err);
-    }
     // On process exit stop HTTP server
-    exitHook((signal) => {
+    exitHook(async (signal) => {
         console.log('exithook', signal);
-        server?.close?.();
+        await server?.close?.();
         // If port is unix socket, delete socket before exiting
         unlinkUnixPort();
 
