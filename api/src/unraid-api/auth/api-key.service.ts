@@ -47,7 +47,7 @@ export class ApiKeyService implements OnModuleInit {
     }
 
     private setupWatch() {
-        watch(this.basePath, { ignoreInitial: false }).on('change', async (path) => {
+        watch(this.basePath, { ignoreInitial: false }).on('all', async (path) => {
             this.logger.debug(`API key changed: ${path}`);
             this.memoryApiKeys = [];
             this.memoryApiKeys = await this.loadAllFromDisk();
