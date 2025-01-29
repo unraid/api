@@ -2,19 +2,26 @@ import { Logger } from '@nestjs/common';
 import { readdir, readFile, writeFile } from 'fs/promises';
 import { join } from 'path';
 
+
+
 import { ensureDir, ensureDirSync } from 'fs-extra';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { ZodError } from 'zod';
 
+
+
 import type { ApiKey, ApiKeyWithSecret } from '@app/graphql/generated/api/types';
+import { environment } from '@app/environment';
 import { ApiKeySchema, ApiKeyWithSecretSchema } from '@app/graphql/generated/api/operations';
 import { Resource, Role } from '@app/graphql/generated/api/types';
 import { getters, store } from '@app/store';
 import { updateUserConfig } from '@app/store/modules/config';
 import { FileLoadStatus } from '@app/store/types';
 
+
+
 import { ApiKeyService } from './api-key.service';
-import { environment } from '@app/environment';
+
 
 // Mock the store and its modules
 vi.mock('@app/store', () => ({
@@ -30,6 +37,7 @@ vi.mock('@app/store', () => ({
 
 vi.mock('@app/store/modules/config', () => ({
     updateUserConfig: vi.fn(),
+    setLocalApiKey: vi.fn(),
 }));
 
 // Mock fs/promises
@@ -242,12 +250,12 @@ describe('ApiKeyService', () => {
             expect(store.dispatch).not.toHaveBeenCalled();
         });
 
-        it('should not create key if Connect key already exists', async () => {
+        it('should dispatch to update config if Connect key already exists', async () => {
             vi.spyOn(apiKeyService, 'findByField').mockReturnValue(mockApiKeyWithSecret);
 
             await apiKeyService['createLocalApiKeyForConnectIfNecessary']();
 
-            expect(store.dispatch).not.toHaveBeenCalled();
+            expect(store.dispatch).toHaveBeenCalled();
         });
 
         it('should create new Connect key and update config', async () => {
