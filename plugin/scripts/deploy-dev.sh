@@ -60,7 +60,7 @@ fi
 
 if [ "$deploy" = "yes" ]; then
   cd web || exit
-  npm run deploy-wc:dev
+  npm run deploy-to-unraid:dev
 elif [ "$deploy" = "build" ]; then
   cd web || exit
   npm run build:dev

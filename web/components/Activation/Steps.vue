@@ -43,7 +43,7 @@ const steps = [
   },
   {
     step: 3,
-    title: "Done",
+    title: "Unleash Your Hardware",
     description: "Device is ready to configure",
     icon: {
       inactive: ServerStackIcon,

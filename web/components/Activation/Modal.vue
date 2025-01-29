@@ -19,10 +19,10 @@ const activationCodeStore = useActivationCodeStore();
 const { partnerLogo, showActivationModal } = storeToRefs(activationCodeStore);
 const purchaseStore = usePurchaseStore();
 
-const title = computed<string>(() => props.t("Let's activate your Unraid license!"));
+const title = computed<string>(() => props.t("Let's activate your Unraid OS License"));
 const description = computed<string>(() =>
   props.t(
-    `Start by creating an Unraid.net account — this will let you manage your license and access support. Once that's done, we'll guide you through a quick checkout process to register your license and install your key.`
+    `On the following screen, your license will be activated. You’ll then create an Unraid.net Account to manage your license going forward.`
   )
 );
 const docsButtons = computed<ButtonProps[]>(() => {
@@ -30,7 +30,7 @@ const docsButtons = computed<ButtonProps[]>(() => {
     {
       btnStyle: "underline",
       external: true,
-      href: "https://docs.unraid.net/unraid-os/faq/licensing-faq/",
+      href: "https://docs.unraid.net/unraid-os/faq/licensing-faq/?utm_source=unleashed&utm_medium=web&utm_campaign=activation-modal",
       iconRight: ArrowTopRightOnSquareIcon,
       size: "14px",
       text: props.t("More about Licensing"),
@@ -38,7 +38,7 @@ const docsButtons = computed<ButtonProps[]>(() => {
     {
       btnStyle: "underline",
       external: true,
-      href: "https://docs.unraid.net/account/",
+      href: "https://docs.unraid.net/account/?utm_source=unleashed&utm_medium=web&utm_campaign=activation-modal",
       iconRight: ArrowTopRightOnSquareIcon,
       size: "14px",
       text: props.t("More about Unraid.net Accounts"),
@@ -47,8 +47,7 @@ const docsButtons = computed<ButtonProps[]>(() => {
 });
 
 /**
- * Listen for a key sequence to close the modal
- * @todo - temporary solution until we have a better way to handle this
+ * Listen for konami code sequence to close the modal
  */
 onMounted(() => {
   const keySequence = [
@@ -103,11 +102,6 @@ onUnmounted(() => {
       <ActivationPartnerLogo />
     </template>
 
-    <template #main>
-      <div class="flex flex-col sm:flex-row justify-center gap-4 mx-auto w-full">
-        <BrandButton v-for="button in docsButtons" :key="button.text" v-bind="button" />
-      </div>
-    </template>
     <template #footer>
       <div class="w-full flex gap-8px justify-center mx-auto">
         <BrandButton
@@ -119,7 +113,13 @@ onUnmounted(() => {
     </template>
 
     <template #subFooter>
-      <ActivationSteps :active-step="2" class="hidden sm:flex mt-6" />
+      <div class="flex flex-col gap-6">
+        <ActivationSteps :active-step="2" class="hidden sm:flex mt-6" />
+
+        <div class="flex flex-col sm:flex-row justify-center gap-4 mx-auto w-full">
+          <BrandButton v-for="button in docsButtons" :key="button.text" v-bind="button" />
+        </div>
+      </div>
     </template>
   </Modal>
 </template>

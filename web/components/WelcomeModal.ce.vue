@@ -29,7 +29,7 @@ const title = computed<string>(() =>
 );
 
 const description = computed<string>(() =>
-  t(`You're about to create a password to secure access to your system. This password is essential for managing and configuring your server. You’ll use this password every time you access the Unraid web interface.`)
+  t(`First, you’ll create your device’s login credentials, then you’ll activate your Unraid license—your device’s operating system (OS).`)
 );
 
 const showModal = ref<boolean>(true);
