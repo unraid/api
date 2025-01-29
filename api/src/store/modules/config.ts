@@ -49,7 +49,9 @@ export const initialState: SliceState = {
         dynamicRemoteAccessType: DynamicRemoteAccessType.DISABLED,
         ssoSubIds: '',
     },
-    local: {},
+    local: {
+        sandbox: 'no'
+    },
     api: {
         extraOrigins: '',
         version: '',
