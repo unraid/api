@@ -20,7 +20,18 @@ type StepState = "inactive" | "active" | "completed";
 
 defineProps<{ activeStep: number }>();
 
-const steps = [
+interface Step {
+  step: number;
+  title: string;
+  description: string;
+  icon: {
+    inactive: Component;
+    active: Component;
+    completed: Component;
+  };
+};
+
+const steps: readonly Step[] = [
   {
     step: 1,
     title: "Create Device Password",

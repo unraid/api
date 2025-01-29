@@ -49,37 +49,39 @@ const docsButtons = computed<ButtonProps[]>(() => {
 /**
  * Listen for konami code sequence to close the modal
  */
+ const keySequence = [
+  "ArrowUp",
+  "ArrowUp",
+  "ArrowDown",
+  "ArrowDown",
+  "ArrowLeft",
+  "ArrowRight",
+  "ArrowLeft",
+  "ArrowRight",
+  "b",
+  "a",
+];
+let sequenceIndex = 0;
+
+const handleKeydown = (event: KeyboardEvent) => {
+  if (event.key === keySequence[sequenceIndex]) {
+    sequenceIndex++;
+  } else {
+    sequenceIndex = 0;
+  }
+
+  if (sequenceIndex === keySequence.length) {
+    activationCodeStore.setActivationModalHidden(true);
+    window.location.href = "/Tools/Registration";
+  }
+};
+
 onMounted(() => {
-  const keySequence = [
-    "ArrowUp",
-    "ArrowUp",
-    "ArrowDown",
-    "ArrowDown",
-    "ArrowLeft",
-    "ArrowRight",
-    "ArrowLeft",
-    "ArrowRight",
-    "b",
-    "a",
-  ];
-  let sequenceIndex = 0;
-
-  window.addEventListener("keydown", (event) => {
-    if (event.key === keySequence[sequenceIndex]) {
-      sequenceIndex++;
-    } else {
-      sequenceIndex = 0;
-    }
-
-    if (sequenceIndex === keySequence.length) {
-      activationCodeStore.setActivationModalHidden(true);
-      window.location.href = "/Tools/Registration";
-    }
-  });
+  window.addEventListener("keydown", handleKeydown);
 });
 
 onUnmounted(() => {
-  window.removeEventListener("keydown", () => {});
+  window.removeEventListener("keydown", handleKeydown);
 });
 </script>
 
