@@ -229,6 +229,11 @@ export const config = createSlice({
             const stateAsArray = state.remote.ssoSubIds.split(',').filter((id) => id !== action.payload);
             state.remote.ssoSubIds = stateAsArray.join(',');
         },
+        setLocalApiKey(state, action: PayloadAction<string | null>) {
+            if (action.payload) {
+                state.remote.localApiKey = action.payload;
+            }
+        },
     },
     extraReducers(builder) {
         builder.addCase(loadConfigFile.pending, (state) => {
@@ -310,6 +315,7 @@ export const {
     setWanPortToValue,
     setWanAccess,
     removeSsoUser,
+    setLocalApiKey,
 } = actions;
 
 /**
@@ -326,7 +332,8 @@ export const configUpdateActionsFlash = isAnyOf(
     setupRemoteAccessThunk.fulfilled,
     logoutUser.fulfilled,
     loginUser.fulfilled,
-    removeSsoUser
+    removeSsoUser,
+    setLocalApiKey
 );
 
 /**
