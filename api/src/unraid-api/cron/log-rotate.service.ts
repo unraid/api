@@ -13,12 +13,20 @@ export class LogRotateService {
     @Cron('0 * * * *')
     async handleCron() {
         try {
-            if (existsSync(this.logRotatePath)) {
-                this.logger.debug('Running logrotate');
-                await execa(`/usr/sbin/logrotate`, ['/etc/logrotate.conf']);
+            if (!existsSync(this.logRotatePath)) {
+                throw new Error(`Logrotate binary not found at ${this.logRotatePath}`);
             }
+            if (!existsSync(this.configPath)) {
+                throw new Error(`Logrotate config not found at ${this.configPath}`);
+            }
+            this.logger.debug('Running logrotate');
+            const result = await execa(this.logRotatePath, [this.configPath]);
+            if (result.failed) {
+                throw new Error(`Logrotate execution failed: ${result.stderr}`);
+            }
+            this.logger.debug('Logrotate completed successfully');
         } catch (error) {
-            this.logger.error(error);
+            this.logger.debug('Failed to run logrotate with error' + error);
         }
     }
 }
