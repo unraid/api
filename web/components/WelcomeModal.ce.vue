@@ -5,6 +5,7 @@ import { useI18n } from 'vue-i18n';
 import 'tailwindcss/tailwind.css';
 import '~/assets/main.css';
 
+import ActivationSteps from '~/components/Activation/Steps.vue';
 import { useActivationCodeStore } from '~/store/activationCode';
 import { useServerStore } from '~/store/server';
 import type { Server } from '~/types/server';
@@ -28,7 +29,7 @@ const title = computed<string>(() =>
 );
 
 const description = computed<string>(() =>
-  t(`You're about to create a password to secure access to your system. This password is essential for managing and configuring your server. You’ll use this password every time you access the Unraid web interface.`)
+  t(`First, you’ll create your device’s login credentials, then you’ll activate your Unraid license—your device’s operating system (OS).`)
 );
 
 const showModal = ref<boolean>(true);
@@ -97,6 +98,10 @@ onBeforeMount(() => {
             @click="dropdownHide"
           />
         </div>
+      </template>
+
+      <template #subFooter>
+        <ActivationSteps :active-step="1" class="hidden sm:flex mt-6" />
       </template>
     </Modal>
   </div>
