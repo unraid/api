@@ -1,14 +1,13 @@
-import pm2 from 'pm2';
-
 export const isUnraidApiRunning = async (): Promise<boolean | undefined> => {
+    const { connect, describe, disconnect } = await import('pm2');
     return new Promise((resolve, reject) => {
-        pm2.connect(function (err) {
+        connect(function (err) {
             if (err) {
                 console.error(err);
                 reject('Could not connect to pm2');
             }
 
-            pm2.describe('unraid-api', function (err, processDescription) {
+            describe('unraid-api', function (err, processDescription) {
                 console.log(err);
                 if (err || processDescription.length === 0) {
                     console.log(false); // Service not found or error occurred
@@ -19,7 +18,7 @@ export const isUnraidApiRunning = async (): Promise<boolean | undefined> => {
                     resolve(isOnline);
                 }
 
-                pm2.disconnect();
+                disconnect();
             });
         });
     });
