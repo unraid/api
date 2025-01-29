@@ -30,6 +30,7 @@ export class ApiKeyService implements OnModuleInit {
     protected readonly basePath: string;
     protected memoryApiKeys: Array<ApiKeyWithSecret> = [];
     private static readonly validRoles: Set<Role> = new Set(Object.values(Role));
+    private isInitialized = false;
 
     constructor() {
         this.basePath = getters.paths()['auth-keys'];
@@ -38,8 +39,19 @@ export class ApiKeyService implements OnModuleInit {
 
     async onModuleInit() {
         this.memoryApiKeys = await this.loadAllFromDisk();
-        await this.createLocalApiKeyForConnectIfNecessary();
         this.setupWatch();
+
+        // Subscribe to store changes to handle config loading
+        store.subscribe(() => {
+            const state = store.getState();
+
+            if (!this.isInitialized && state.config.status === FileLoadStatus.LOADED) {
+                this.isInitialized = true;
+                this.createLocalApiKeyForConnectIfNecessary().catch((error) => {
+                    this.logger.error('Failed to create local API key:', error);
+                });
+            }
+        });
     }
 
     public findAll(): ApiKey[] {
@@ -147,38 +159,58 @@ export class ApiKeyService implements OnModuleInit {
         return apiKey as ApiKeyWithSecret;
     }
 
+    private updateLocalApiKeyInConfig(localApiKey: string): void {
+        if (getters.config().status !== FileLoadStatus.LOADED) {
+            throw new Error('Cannot update config: config file not loaded');
+        }
+
+        store.dispatch(
+            updateUserConfig({
+                remote: {
+                    localApiKey,
+                },
+            })
+        );
+    }
+
     private async createLocalApiKeyForConnectIfNecessary(): Promise<void> {
         if (!environment.IS_MAIN_PROCESS) {
             return;
         }
 
-        if (getters.config().status !== FileLoadStatus.LOADED) {
-            this.logger.error('Config file not loaded, cannot create local API key');
+        const { remote } = getters.config();
+        const existingConnectKey = this.findByField('name', 'Connect');
+
+        // If no remote API key return early
+        if (!remote.apikey) {
             return;
         }
 
-        const { remote } = getters.config();
-        // If the remote API Key is set and the local key is either not set or not found on disk, create a key
-        if (remote.apikey && (!remote.localApiKey || !this.findByKey(remote.localApiKey))) {
-            const hasExistingKey = this.findByField('name', 'Connect');
-
-            if (hasExistingKey) {
-                return;
-            }
-            // Create local API key
+        // No local API key in config or key file
+        if (!remote.localApiKey || !this.findByKey(remote.localApiKey)) {
             const localApiKey = await this.createLocalConnectApiKey();
 
-            if (localApiKey?.key) {
-                store.dispatch(
-                    updateUserConfig({
-                        remote: {
-                            localApiKey: localApiKey.key,
-                        },
-                    })
-                );
-            } else {
+            if (!localApiKey?.key) {
                 this.logger.error('Failed to create local API key - no key returned');
+
+                return;
             }
+
+            // Update memory and config
+            this.memoryApiKeys = [
+                ...this.memoryApiKeys.filter((key) => key.name !== 'Connect'),
+                localApiKey,
+            ];
+            this.updateLocalApiKeyInConfig(localApiKey.key);
+
+            return;
+        }
+
+        // Local key exists but doesn't match remote key
+        if (existingConnectKey && existingConnectKey.key !== remote.localApiKey) {
+            this.updateLocalApiKeyInConfig(existingConnectKey.key);
+
+            return;
         }
     }
 
