@@ -30,7 +30,7 @@ const docsButtons = computed<ButtonProps[]>(() => {
     {
       btnStyle: "underline",
       external: true,
-      href: "https://docs.unraid.net/unraid-os/faq/licensing-faq/?utm_source=unleashed&utm_medium=web&utm_campaign=activation-modal",
+      href: "https://docs.unraid.net/unraid-os/faq/licensing-faq/",
       iconRight: ArrowTopRightOnSquareIcon,
       size: "14px",
       text: props.t("More about Licensing"),
@@ -38,7 +38,7 @@ const docsButtons = computed<ButtonProps[]>(() => {
     {
       btnStyle: "underline",
       external: true,
-      href: "https://docs.unraid.net/account/?utm_source=unleashed&utm_medium=web&utm_campaign=activation-modal",
+      href: "https://docs.unraid.net/account/",
       iconRight: ArrowTopRightOnSquareIcon,
       size: "14px",
       text: props.t("More about Unraid.net Accounts"),
