@@ -67,7 +67,7 @@ describe('FileModificationService', () => {
 
     it('should load modifications', async () => {
         const mods = await service.loadModifications();
-        expect(mods).toBeGreaterThan(0);
+        expect(mods.length).toBeGreaterThan(0);
     });
 
     it('should apply modifications', async () => {
