@@ -19,7 +19,7 @@ export class RestService {
         try {
             const reportCommand = new ReportCommand(new LogService());
 
-            const apiReport = await reportCommand.report({ json: true, verbose: 2, raw: false });
+            const apiReport = await reportCommand.report();
             this.logger.debug('Report object %o', apiReport);
             await writeFile(pathToReport, JSON.stringify(apiReport, null, 2), 'utf-8');
         } catch (error) {
