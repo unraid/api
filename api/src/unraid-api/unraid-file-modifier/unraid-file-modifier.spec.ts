@@ -67,7 +67,7 @@ describe('FileModificationService', () => {
 
     it('should load modifications', async () => {
         const mods = await service.loadModifications();
-        expect(mods).toHaveLength(2);
+        expect(mods).toHaveLength(3);
     });
 
     it('should apply modifications', async () => {
