@@ -75,6 +75,7 @@ export const fileExists = async (path: string) =>
     access(path, F_OK)
         .then(() => true)
         .catch(() => false);
+
 export const fileExistsSync = (path: string) => {
     try {
         accessSync(path, F_OK);

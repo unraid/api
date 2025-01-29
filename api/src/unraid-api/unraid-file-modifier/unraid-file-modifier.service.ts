@@ -2,6 +2,7 @@ import { Injectable, Logger, OnModuleDestroy, OnModuleInit } from '@nestjs/commo
 
 import AuthRequestModification from '@app/unraid-api/unraid-file-modifier/modifications/auth-request.modification';
 import SSOFileModification from '@app/unraid-api/unraid-file-modifier/modifications/sso.modification';
+import { LogRotateModification } from '@app/unraid-api/unraid-file-modifier/modifications/log-rotate.modification';
 
 export interface ShouldApplyWithReason {
     shouldApply: boolean;
@@ -42,6 +43,7 @@ export class UnraidFileModificationService implements OnModuleInit, OnModuleDest
     async loadModifications(): Promise<FileModification[]> {
         const modifications: FileModification[] = [];
         const modificationClasses: Array<new (logger: Logger) => FileModification> = [
+            LogRotateModification,
             AuthRequestModification,
             SSOFileModification,
         ];
