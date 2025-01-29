@@ -16,9 +16,15 @@ import {
   ServerStackIcon as ServerStackIconSolid,
 } from "@heroicons/vue/24/solid";
 
+import type { Component } from 'vue'
+
 type StepState = "inactive" | "active" | "completed";
 
-defineProps<{ activeStep: number }>();
+withDefaults(defineProps<{ 
+  activeStep: number 
+}>(), {
+  activeStep: 1
+})
 
 interface Step {
   step: number;
@@ -30,7 +36,6 @@ interface Step {
     completed: Component;
   };
 };
-
 const steps: readonly Step[] = [
   {
     step: 1,
@@ -92,7 +97,7 @@ const steps: readonly Step[] = [
             state !== 'inactive' &&
               'ring-2 ring-primary ring-offset-2 ring-offset-background *:cursor-default',
           ]"
-          :disabled="false"
+          :disabled="state === 'inactive'"
         >
           <component :is="step.icon[state]" class="size-4" />
         </Button>
