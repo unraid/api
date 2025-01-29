@@ -41,7 +41,9 @@ const RemoteConfigSchema = z.object({
         ),
 });
 
-const LocalConfigSchema = z.object({});
+const LocalConfigSchema = z.object({
+    sandbox: z.string()
+});
 
 // Base config schema
 export const MyServersConfigSchema = z

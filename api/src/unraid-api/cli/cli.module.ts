@@ -20,6 +20,8 @@ import { RemoveSSOUserQuestionSet } from '@app/unraid-api/cli/sso/remove-sso-use
 import { ListSSOUserCommand } from '@app/unraid-api/cli/sso/list-sso-user.command';
 import { AddApiKeyQuestionSet } from '@app/unraid-api/cli/apikey/add-api-key.questions';
 import { ApiKeyService } from '@app/unraid-api/auth/api-key.service';
+import { DeveloperCommand } from '@app/unraid-api/cli/developer/developer.command';
+import { DeveloperQuestions } from '@app/unraid-api/cli/developer/developer.questions';
 
 @Module({
     providers: [
@@ -43,6 +45,8 @@ import { ApiKeyService } from '@app/unraid-api/auth/api-key.service';
         ValidateTokenCommand,
         LogsCommand,
         ConfigCommand,
+        DeveloperCommand,
+        DeveloperQuestions
     ],
 })
 export class CliModule {}

@@ -1,4 +1,5 @@
 import { isEqual } from 'lodash-es';
+import merge from 'lodash/merge';
 
 import { getAllowedOrigins } from '@app/common/allowed-origins';
 import { initialState } from '@app/store/modules/config';
@@ -23,14 +24,10 @@ export const getWriteableConfig = <T extends ConfigType>(
 
     const defaultConfig = schema.parse(initialState);
     // Use a type assertion for the mergedConfig to include `connectionStatus` only if `mode === 'memory`
-    const mergedConfig = {
-        ...defaultConfig,
-        ...config,
-        remote: {
-            ...defaultConfig.remote,
-            ...config.remote,
-        },
-    } as T extends 'memory' ? MyServersConfigMemory : MyServersConfig;
+    const mergedConfig = merge<
+        MyServersConfig,
+        T extends 'memory' ? MyServersConfigMemory : MyServersConfig
+    >(defaultConfig, config);
 
     if (mode === 'memory') {
         (mergedConfig as MyServersConfigMemory).remote.allowedOrigins = getAllowedOrigins().join(', ');
