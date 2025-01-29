@@ -83,16 +83,13 @@ try {
     // Start listening to dynamix config file changes
     setupDynamixConfigWatch();
 
-    // Disabled until we need the access token to work
-    // TokenRefresh.init();
-
     // If port is unix socket, delete old socket before starting http server
     unlinkUnixPort();
 
+    startMiddlewareListeners();
+
     // Start webserver
     server = await bootstrapNestServer();
-
-    startMiddlewareListeners();
 
     // On process exit stop HTTP server
     exitHook(async (signal) => {
