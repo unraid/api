@@ -42,7 +42,7 @@ const RemoteConfigSchema = z.object({
 });
 
 const LocalConfigSchema = z.object({
-    sandbox: z.string()
+    sandbox: z.enum(['yes', 'no']).default('no'),
 });
 
 // Base config schema
