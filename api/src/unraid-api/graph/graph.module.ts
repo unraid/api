@@ -12,7 +12,6 @@ import {
     UUIDResolver,
 } from 'graphql-scalars';
 
-import { GRAPHQL_INTROSPECTION } from '@app/environment';
 import { GraphQLLong } from '@app/graphql/resolvers/graphql-type-long';
 import { typeDefs } from '@app/graphql/schema/index';
 import { idPrefixPlugin } from '@app/unraid-api/graph/id-prefix-plugin';
@@ -24,20 +23,21 @@ import { ResolversModule } from './resolvers/resolvers.module';
 import { sandboxPlugin } from './sandbox-plugin';
 import { ServicesResolver } from './services/services.resolver';
 import { SharesResolver } from './shares/shares.resolver';
+import { getters } from '@app/store/index';
 
 @Module({
     imports: [
         ResolversModule,
         GraphQLModule.forRoot<ApolloDriverConfig>({
             driver: ApolloDriver,
-            introspection: GRAPHQL_INTROSPECTION ? true : false,
+            introspection: getters.config().local?.sandbox === 'yes' ? true : false,
+            playground: false,
             context: ({ req, connectionParams, extra }) => ({
                 req,
                 connectionParams,
                 extra,
             }),
-            playground: false,
-            plugins: GRAPHQL_INTROSPECTION ? [sandboxPlugin, idPrefixPlugin] : [idPrefixPlugin],
+            plugins: [sandboxPlugin, idPrefixPlugin],
             subscriptions: {
                 'graphql-ws': {
                     path: '/graphql',
