@@ -105,7 +105,7 @@ sha256check() {
     </INLINE>
   </FILE>
   <!-- download node - older OS releases -->
-  <FILE Name="/boot/config/plugins/dynamix.my.servers/&NODEJS_FILENAME;" max="7.0.0-beta.5">
+  <FILE Name="/boot/config/plugins/dynamix.my.servers/&NODEJS_FILENAME;">
     <URL>&NODEJS_TXZ;</URL>
     <SHA256>&NODEJS_SHA256;</SHA256>
   </FILE>
@@ -113,23 +113,47 @@ sha256check() {
     <INLINE>
       NODE_FILE="&NODEJS_FILENAME;"
       <![CDATA[
-        if [[ -f "/boot/config/plugins/dynamix.my.servers/${NODE_FILE}" ]]; then
-          TEMP_DIR=$(mktemp -d)
-          tar --strip-components=1 -xf /boot/config/plugins/dynamix.my.servers/${NODE_FILE} -C ${TEMP_DIR};
-          if cp -rf "${TEMP_DIR}"/bin/* /usr/local/bin/ && \
-            cp -rf "${TEMP_DIR}"/lib/* /usr/local/lib/ && \
-            cp -rf "${TEMP_DIR}"/include/* /usr/local/include/ && \
-            cp -rf "${TEMP_DIR}"/share/* /usr/local/share/; then
-            echo "Node.js installation successful"
-          else
-            echo "Failed to copy Node.js files"
-            exit 1
-          fi
-        else
-          echo "Node.js download failed"
+      if [[ -f "/boot/config/plugins/dynamix.my.servers/${NODE_FILE}" ]]; then
+        # Create temp directory with error checking
+        TEMP_DIR=$(mktemp -d) || { echo "Failed to create temp directory"; exit 1; }
+        
+        # Extract with error checking
+        if ! tar --strip-components=1 -xf "/boot/config/plugins/dynamix.my.servers/${NODE_FILE}" -C "${TEMP_DIR}"; then
+          echo "Failed to extract Node.js archive"
+          rm -rf "${TEMP_DIR}"
           exit 1
         fi
-        exit 0;
+
+        # Verify extracted files exist before copying
+        for DIR in bin lib include share; do
+          if [[ ! -d "${TEMP_DIR}/${DIR}" ]]; then
+            echo "Missing ${DIR} directory in Node.js archive"
+            rm -rf "${TEMP_DIR}"
+            exit 1
+          fi
+        done
+
+        # Create destination directories if they don't exist
+        for DIR in bin lib include share; do
+          mkdir -p "/usr/local/${DIR}"
+        done
+
+        # Copy files with individual error checking
+        for DIR in bin lib include share; do
+          if ! cp -rf "${TEMP_DIR}/${DIR}"/* "/usr/local/${DIR}/"; then
+            echo "Failed to copy ${DIR} files"
+            rm -rf "${TEMP_DIR}"
+            exit 1
+          fi
+        done
+
+        echo "Node.js installation successful"
+        rm -rf "${TEMP_DIR}"
+      else
+        echo "Node.js archive not found at /boot/config/plugins/dynamix.my.servers/${NODE_FILE}"
+        exit 1
+      fi
+      exit 0
       ]]>
     </INLINE>
   </FILE>
