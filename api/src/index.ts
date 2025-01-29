@@ -9,7 +9,7 @@ import https from 'https';
 
 import type { RawServerDefault } from 'fastify';
 import CacheableLookup from 'cacheable-lookup';
-import exitHook from 'exit-hook';
+import { asyncExitHook, gracefulExit } from 'exit-hook';
 import { WebSocket } from 'ws';
 
 import { logger } from '@app/core/log';
@@ -91,17 +91,19 @@ try {
     // Start webserver
     server = await bootstrapNestServer();
 
-    // On process exit stop HTTP server
-    exitHook(async (signal) => {
-        console.log('exithook', signal);
-        await server?.close?.();
-        // If port is unix socket, delete socket before exiting
-        unlinkUnixPort();
+    asyncExitHook(
+        async (signal) => {
+            console.log('exithook', signal);
+            await server?.close?.();
+            // If port is unix socket, delete socket before exiting
+            unlinkUnixPort();
 
-        shutdownApiEvent();
+            shutdownApiEvent();
 
-        process.exit(0);
-    });
+            gracefulExit();
+        },
+        { wait: 9999 }
+    );
     // Start a loop to run the app
     await new Promise(() => {});
 } catch (error: unknown) {
@@ -115,5 +117,5 @@ try {
     }
     shutdownApiEvent();
     // Kill application
-    process.exit(1);
+    gracefulExit(1);
 }
