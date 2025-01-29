@@ -16,7 +16,9 @@
                 ".env.*",
                 "myservers.cfg"
             ],
-            "log": "/var/log/unraid-api/unraid-api.log"
+            "out_file": "/var/log/unraid-api/unraid-api.log",
+            "error_file": "/var/log/unraid-api/unraid-api.error.log",
+            "kill_timeout": 3000
         }
     ]
 }
