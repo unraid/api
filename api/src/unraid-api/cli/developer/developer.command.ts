@@ -32,7 +32,6 @@ export class DeveloperCommand extends CommandRunner {
         const { store } = await import('@app/store');
         await store.dispatch(loadConfigFile());
         store.dispatch(updateUserConfig({ local: { sandbox: options.sandbox ? 'yes' : 'no' } }));
-        console.log(store.getState().config.local.sandbox);
         writeConfigSync('flash');
 
         this.logger.info('Updated Developer Configuration');
