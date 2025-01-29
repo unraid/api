@@ -22,7 +22,7 @@ export default defineConfig({
     },
   },
   build: {
-    manifest: 'manifest.json',
+    manifest: 'ui.manifest.json',
     sourcemap: true,
     cssCodeSplit: false,
     lib: {
