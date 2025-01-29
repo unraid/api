@@ -9,8 +9,6 @@
 import type { Server, ServerState
 // ServerUpdateOsResponse,
 } from '~/types/server';
-;
-
 
 // dayjs plugins
 // extend(customParseFormat);
