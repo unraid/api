@@ -323,7 +323,6 @@ export function ContainerPortSchema(): z.ZodObject<Properties<ContainerPort>> {
 export function CreateApiKeyInputSchema(): z.ZodObject<Properties<CreateApiKeyInput>> {
   return z.object({
     description: z.string().nullish(),
-    memory: z.boolean().nullish(),
     name: z.string(),
     overwrite: z.boolean().nullish(),
     permissions: z.array(z.lazy(() => AddPermissionInputSchema())).nullish(),

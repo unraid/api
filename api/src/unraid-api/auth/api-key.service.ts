@@ -103,14 +103,12 @@ export class ApiKeyService implements OnModuleInit {
         roles,
         permissions,
         overwrite = false,
-        memory = false,
     }: {
         name: string;
         description: string | undefined;
         roles?: Role[];
         permissions?: Permission[] | AddPermissionInput[];
         overwrite?: boolean;
-        memory?: boolean;
     }): Promise<ApiKeyWithSecret> {
         const trimmedName = name?.trim();
         const sanitizedName = this.sanitizeName(trimmedName);
@@ -144,11 +142,7 @@ export class ApiKeyService implements OnModuleInit {
         // Update createdAt date
         apiKey.createdAt = new Date().toISOString();
 
-        if (memory) {
-            this.memoryApiKeys.push(apiKey as ApiKeyWithSecret)
-        } else {
-            await this.saveApiKey(apiKey as ApiKeyWithSecret);
-        }
+        await this.saveApiKey(apiKey as ApiKeyWithSecret);
 
         return apiKey as ApiKeyWithSecret;
     }
