@@ -80,6 +80,8 @@ export default defineNuxtConfig({
 
   vite: {
     plugins: [
+      // Only remove non-critical console methods when VITE_ALLOW_CONSOLE_LOGS is false
+      // Keeps console.warn and console.error for debugging purposes
       !process.env.VITE_ALLOW_CONSOLE_LOGS &&
         removeConsole({
           includes: ['log', 'info', 'debug'],
