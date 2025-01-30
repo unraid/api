@@ -896,10 +896,13 @@ mkdir -p /var/log/unraid-api
 tar -C "${api_base_directory}" -xzf "${flash}/unraid-api.tgz" --strip 1
 # Copy env file
 cp "${api_base_directory}/.env.${env}" "${api_base_directory}/.env"
-npm link "${api_base_directory}" --force
+
+# Create Symlink from /usr/local/unraid-api/dist/cli.js to /usr/local/bin/unraid-api
+ln -sf "${api_base_directory}/dist/cli.js" "${unraid_binary_path}"
+
 # Create symlink to unraid-api binary (to allow usage elsewhere)
-ln -sf /usr/local/bin/unraid-api /usr/local/sbin/unraid-api
-ln -sf /usr/local/bin/unraid-api /usr/bin/unraid-api
+ln -sf ${unraid_binary_path} /usr/local/sbin/unraid-api
+ln -sf ${unraid_binary_path} /usr/bin/unraid-api
 # bail if expected file does not exist
 [[ ! -f "${api_base_directory}/package.json" ]] && echo "unraid-api install failed" && exit 1
 
