@@ -57,6 +57,7 @@ export default class DefaultPageLayoutModification implements FileModification {
     }
 
     static replaceToasts(source: string): string {
+        // matches jgrowl calls up to the second `)};`
         const jGrowlPattern =
             /\$\.jGrowl\(notify\.subject\+'<br>'\+notify\.description,\s*\{(?:[\s\S]*?\}\);[\s\S]*?)}\);/g;
 
