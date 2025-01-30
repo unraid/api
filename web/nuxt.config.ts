@@ -82,7 +82,7 @@ export default defineNuxtConfig({
     plugins: [
       !process.env.VITE_ALLOW_CONSOLE_LOGS &&
         removeConsole({
-          includes: ['log', 'warn', 'error', 'info', 'debug'],
+          includes: ['log', 'info', 'debug'],
         }),
     ],
     build: {
