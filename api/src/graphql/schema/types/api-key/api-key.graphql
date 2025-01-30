@@ -27,6 +27,10 @@ input CreateApiKeyInput {
     description: String
     roles: [Role!]
     permissions: [AddPermissionInput!]
+    """ This will replace the existing key if one already exists with the same name, otherwise returns the existing key """
+    overwrite: Boolean
+    """ Whether to create the key in memory only (true), or on disk (false) - memory only keys will not persist through reboots of the API """
+    memory: Boolean
 }
 
 input AddPermissionInput {

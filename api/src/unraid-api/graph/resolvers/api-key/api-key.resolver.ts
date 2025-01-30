@@ -6,7 +6,6 @@ import { AuthActionVerb, AuthPossession, UsePermissions } from 'nest-authz';
 
 import type {
     AddRoleForApiKeyInput,
-    AddRoleForUserInput,
     ApiKey,
     ApiKeyWithSecret,
     CreateApiKeyInput,
@@ -17,10 +16,10 @@ import { ApiKeyService } from '@app/unraid-api/auth/api-key.service';
 import { GraphqlAuthGuard } from '@app/unraid-api/auth/auth.guard';
 import { AuthService } from '@app/unraid-api/auth/auth.service';
 
-@Resolver('Auth')
+@Resolver('ApiKey')
 @UseGuards(GraphqlAuthGuard)
 @Throttle({ default: { limit: 100, ttl: 60000 } }) // 100 requests per minute
-export class AuthResolver {
+export class ApiKeyResolver {
     constructor(
         private authService: AuthService,
         private apiKeyService: ApiKeyService
@@ -61,6 +60,8 @@ export class AuthResolver {
             description: input.description ?? undefined,
             roles: input.roles ?? [],
             permissions: input.permissions ?? [],
+            memory: input.memory ?? false,
+            overwrite: input.overwrite ?? false
         });
 
         await this.authService.syncApiKeyRoles(apiKey.id, apiKey.roles);
