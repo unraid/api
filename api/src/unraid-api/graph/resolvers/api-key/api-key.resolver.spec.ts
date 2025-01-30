@@ -98,6 +98,7 @@ describe('ApiKeyResolver', () => {
             expect(apiKeyService.create).toHaveBeenCalledWith({
                 name: input.name,
                 description: input.description,
+                overwrite: false,
                 roles: input.roles,
                 permissions: [],
             });
