@@ -317,38 +317,3 @@ export const restoreFile = async (path: string, throwOnMissing = true): Promise<
         return false;
     }
 };
-
-/**
- * Parses a cookie string (i.e. the value of the `Cookie` header) into an object.
- *
- * Copied from [GeeksForGeeks.org](https://www.geeksforgeeks.org/how-to-parse-http-cookie-header-and-return-an-object-of-all-cookie-name-value-pairs-in-javascript/)
- *
- * @param cookieString a Cookie header string
- * @returns object representation of cookies
- */
-export function parseCookies(cookieString: string): Record<string, string> {
-    if (cookieString === '') return {};
-
-    // Get each individual key-value pairs
-    // from the cookie string
-    // This returns a new array
-    const pairs = cookieString.split(';');
-
-    // Separate keys from values in each pair string
-    // Returns a new array which looks like
-    // [[key1,value1], [key2,value2], ...]
-    const splittedPairs = pairs.map((cookie) => cookie.split('='));
-
-    // Create an object with all key-value pairs
-    const cookieObj = splittedPairs.reduce(function (obj, cookie) {
-        // cookie[0] is the key of cookie
-        // cookie[1] is the value of the cookie
-        // decodeURIComponent() decodes the cookie string
-        // to handle cookies with special characters, e.g. '$'.
-        obj[decodeURIComponent(cookie[0].trim())] = decodeURIComponent(cookie[1].trim());
-
-        return obj;
-    }, {});
-
-    return cookieObj;
-}

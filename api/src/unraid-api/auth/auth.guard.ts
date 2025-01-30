@@ -4,13 +4,32 @@ import { Injectable, Logger, UnauthorizedException } from '@nestjs/common';
 import { GqlExecutionContext } from '@nestjs/graphql';
 import { AuthGuard } from '@nestjs/passport';
 
+import type { IncomingMessage } from 'http';
+import { parse as parseCookies } from 'cookie';
 import { type Observable } from 'rxjs';
 
+import type { FastifyRequest } from '@app/types/fastify';
 import { apiLogger } from '@app/core/log';
 import { ServerHeaderStrategy } from '@app/unraid-api/auth/header.strategy';
 
 import { UserCookieStrategy } from './cookie.strategy';
-import { parseCookies } from '@app/utils';
+
+// Define the GraphQLContext as a discriminated union
+type GraphQLContext =
+    | {
+          connectionParams: Record<string, string>; // When connectionParams is present
+          req: {
+              headers?: Record<string, string>;
+              cookies?: Record<string, unknown>;
+              extra: {
+                  request: IncomingMessage;
+              };
+          };
+      }
+    | {
+          connectionParams?: undefined; // When connectionParams is absent
+          req: FastifyRequest;
+      };
 
 @Injectable()
 export class GraphqlAuthGuard
@@ -55,19 +74,19 @@ export class GraphqlAuthGuard
         if (context.getType<GqlContextType>() === 'graphql') {
             // headers are either inside context.getContext().connectionParams or in the request, which is in context.getContext().req (see context.ts)
             const ctx = GqlExecutionContext.create(context);
-            const fullContext = ctx.getContext<any>();
+            const fullContext = ctx.getContext<GraphQLContext>();
             const request = fullContext.req ?? {};
             const additionalConnectionParamHeaders = fullContext.connectionParams ?? {};
             request.headers = {
                 ...(request.headers ?? {}),
                 ...additionalConnectionParamHeaders,
             };
-            
+
             // parse cookies from raw headers on initial web socket connection request
             if (fullContext.connectionParams) {
-                const rawHeaders: string[] = request.extra.request.rawHeaders;
-                const headerIndex = rawHeaders.findIndex((headerOrValue) => headerOrValue === "Cookie")
-                const cookieString = rawHeaders[headerIndex + 1]
+                const rawHeaders = fullContext.req.extra.request.rawHeaders;
+                const headerIndex = rawHeaders.findIndex((headerOrValue) => headerOrValue === 'Cookie');
+                const cookieString = rawHeaders[headerIndex + 1];
                 request.cookies = parseCookies(cookieString);
             }
 
