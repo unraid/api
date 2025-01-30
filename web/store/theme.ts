@@ -143,10 +143,13 @@ export const useThemeStore = defineStore('theme', () => {
     const selectedMode = darkMode.value ? 'dark' : 'light';
 
     // set the default header colors for the current theme
-    customColorVariables[selectedMode] = {
-      ...customColorVariables[selectedMode],
-      ...defaultHeaderColors[theme.value?.name as keyof typeof defaultHeaderColors],
-    };
+    const themeName = theme.value?.name;
+    if (themeName && themeName in defaultHeaderColors) {
+      customColorVariables[selectedMode] = {
+        ...customColorVariables[selectedMode],
+        ...defaultHeaderColors[themeName],
+      };
+    }
 
     // overwrite with hex colors set in webGUI @ /Settings/DisplaySettings
     if (theme.value?.textColor) {
