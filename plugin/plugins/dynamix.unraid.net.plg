@@ -909,6 +909,8 @@ ln -sf ${unraid_binary_path} /usr/bin/unraid-api
 
 logger "Starting flash backup (if enabled)"
 echo "/etc/rc.d/rc.flash_backup start" | at -M now &>/dev/null
+. /root/.bashrc
+echo "PATH: $PATH"
 logger "Starting Unraid API"
 ${unraid_binary_path} start
 
