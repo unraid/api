@@ -32,7 +32,6 @@ import { SharesResolver } from './shares/shares.resolver';
             driver: ApolloDriver,
             useFactory: async () => {
                 const typeDefs = await loadTypeDefs();
-                console.log(typeDefs);
                 return {
                     introspection: getters.config()?.local?.sandbox === 'yes',
                     playground: false,

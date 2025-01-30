@@ -4,6 +4,7 @@ import { join } from 'path';
 
 import { getters } from '@app/store';
 import { batchProcess } from '@app/utils';
+import { fileExists } from '@app/core/utils/files/file-exists';
 
 /** token for dependency injection of a session cookie options object */
 export const SESSION_COOKIE_CONFIG = 'SESSION_COOKIE_CONFIG';
@@ -62,7 +63,6 @@ export class CookieService {
     private async isValidAuthCookie(cookieName: string, cookieValue: string): Promise<boolean> {
         const { namePrefix } = this.opts;
         const sessionFile = this.getSessionFilePath(cookieValue);
-        const { fileExists } = await import('@app/core/utils/files/file-exists');
         if (!cookieName.startsWith(namePrefix) || !(await fileExists(sessionFile))) {
             return false;
         }

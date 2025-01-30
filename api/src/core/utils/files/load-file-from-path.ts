@@ -1,10 +1,9 @@
 import { readFile } from 'fs/promises';
 import { extname } from 'path';
 import { readFileSync } from 'fs';
-import { fileExistsSync } from '@app/core/utils/files/file-exists';
+import { fileExists, fileExistsSync } from '@app/core/utils/files/file-exists';
 
 export const loadFileFromPath = async (filePath: string): Promise<{ fileContents: string; extension: string }> => {
-	const { fileExists } = await import('@app/core/utils/files/file-exists');
 	if (await fileExists(filePath)) {
 		const fileContents = await readFile(filePath, 'utf-8');
 		const extension = extname(filePath);

@@ -1,3 +1,4 @@
+import type { ViteUserConfig } from 'vitest/config';
 import { viteCommonjs } from '@originjs/vite-plugin-commonjs';
 import nodeResolve from '@rollup/plugin-node-resolve';
 import nodeExternals from 'rollup-plugin-node-externals';
@@ -6,9 +7,9 @@ import { VitePluginNode } from 'vite-plugin-node';
 import tsconfigPaths from 'vite-tsconfig-paths';
 import { defineConfig } from 'vitest/config';
 
-export default defineConfig(({ mode }) => {
+export default defineConfig(({ mode }): ViteUserConfig => {
     return {
-        assetsInclude: ['**/*.graphql'],
+        assetsInclude: ['src/**/*.graphql'],
         plugins: [
             tsconfigPaths(),
             nodeExternals(),
@@ -79,7 +80,7 @@ export default defineConfig(({ mode }) => {
         },
         build: {
             ssr: true,
-            sourcemap: true,
+            sourcemap: false,
             outDir: 'dist',
             rollupOptions: {
                 input: {
