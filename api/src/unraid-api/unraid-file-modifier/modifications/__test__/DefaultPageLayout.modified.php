@@ -1186,6 +1186,7 @@ $('body').on("click","a,.ca_href", function(e) {
   }
 });
 </script>
-<unraid-toaster rich-colors close-button position="<?= ($notify['position'] === 'center') ? 'top-center' : $notify['position'] ?>"></unraid-toaster></body>
+<unraid-toaster rich-colors close-button position="<?= ($notify['position'] === 'center') ? 'top-center' : $notify['position'] ?>"></unraid-toaster>
+</body>
 </html>
 
