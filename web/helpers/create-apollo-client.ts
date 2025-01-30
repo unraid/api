@@ -1,11 +1,4 @@
-import {
-  ApolloClient,
-  ApolloLink,
-  createHttpLink,
-  from,
-  Observable,
-  split,
-} from '@apollo/client/core/index.js';
+import { ApolloClient, ApolloLink, createHttpLink, from, Observable, split } from '@apollo/client/core/index.js';
 import { onError } from '@apollo/client/link/error/index.js';
 import { RetryLink } from '@apollo/client/link/retry/index.js';
 import { GraphQLWsLink } from '@apollo/client/link/subscriptions/index.js';
@@ -20,7 +13,7 @@ const httpEndpoint = WEBGUI_GRAPHQL;
 const wsEndpoint = new URL(WEBGUI_GRAPHQL.toString().replace('http', 'ws'));
 
 const headers = {
-  'x-csrf-token': globalThis.csrf_token,
+  'x-csrf-token': globalThis.csrf_token ?? '0000000000000000',
 };
 
 const httpLink = createHttpLink({

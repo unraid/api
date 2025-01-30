@@ -40,11 +40,6 @@ const DOCS_REGISTRATION_REPLACE_KEY = new URL('/go/changing-the-flash-device/', 
 
 const SUPPORT = new URL('https://unraid.net');
 
-// initialize csrf_token in nuxt playground
-if (import.meta.env.VITE_CSRF_TOKEN) {
-  globalThis.csrf_token = import.meta.env.VITE_CSRF_TOKEN;
-}
-
 export {
   ACCOUNT,
   ACCOUNT_CALLBACK,
