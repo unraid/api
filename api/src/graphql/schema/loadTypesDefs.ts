@@ -1,14 +1,27 @@
 import type { TypeSource } from '@graphql-tools/utils';
 import { mergeTypeDefs } from '@graphql-tools/merge';
+import { logger } from '@app/core/log';
 
 export const loadTypeDefs = async () => {
-    const logger = (await import('@app/core/log')).logger;
-
-    logger.debug('Loading GraphQL type definitions');
-
     // TypeScript now knows this returns Record<string, () => Promise<string>>
     const typeModules = import.meta.glob('./types/**/*.graphql', { query: '?raw', import: 'default' });
 
-    const files = await Promise.all(Object.values(typeModules).map((importFn) => importFn()));
-    return mergeTypeDefs(files as TypeSource[]);
+    try {
+        const files = await Promise.all(
+            Object.values(typeModules).map(async (importFn) => {
+                const content = await importFn();
+                if (typeof content !== 'string') {
+                    throw new Error('Invalid GraphQL type definition format');
+                }
+                return content;
+            })
+        );
+        if (!files.length) {
+            throw new Error('No GraphQL type definitions found');
+        }
+        return mergeTypeDefs(files);
+    } catch (error) {
+        logger.error('Failed to load GraphQL type definitions:', error);
+        throw error;
+    }
 };
