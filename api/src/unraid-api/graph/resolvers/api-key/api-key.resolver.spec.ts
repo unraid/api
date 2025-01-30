@@ -8,10 +8,10 @@ import { ApiKeyService } from '@app/unraid-api/auth/api-key.service';
 import { AuthService } from '@app/unraid-api/auth/auth.service';
 import { CookieService } from '@app/unraid-api/auth/cookie.service';
 
-import { AuthResolver } from './auth.resolver';
+import { ApiKeyResolver } from './api-key.resolver';
 
-describe('AuthResolver', () => {
-    let resolver: AuthResolver;
+describe('ApiKeyResolver', () => {
+    let resolver: ApiKeyResolver;
     let authService: AuthService;
     let apiKeyService: ApiKeyService;
     let authzService: AuthZService;
@@ -45,7 +45,7 @@ describe('AuthResolver', () => {
         authzService = new AuthZService(enforcer);
         cookieService = new CookieService();
         authService = new AuthService(cookieService, apiKeyService, authzService);
-        resolver = new AuthResolver(authService, apiKeyService);
+        resolver = new ApiKeyResolver(authService, apiKeyService);
     });
 
     describe('apiKeys', () => {

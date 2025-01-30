@@ -4,13 +4,14 @@ import { AuthModule } from '@app/unraid-api/auth/auth.module';
 import { ArrayResolver } from '@app/unraid-api/graph/resolvers/array/array.resolver';
 import { DockerResolver } from '@app/unraid-api/graph/resolvers/docker/docker.resolver';
 
-import { AuthResolver } from './auth/auth.resolver';
+import { ApiKeyResolver } from './api-key/api-key.resolver';
 import { CloudResolver } from './cloud/cloud.resolver';
 import { ConfigResolver } from './config/config.resolver';
 import { DisksResolver } from './disks/disks.resolver';
 import { DisplayResolver } from './display/display.resolver';
 import { FlashResolver } from './flash/flash.resolver';
 import { InfoResolver } from './info/info.resolver';
+import { MeResolver } from './me/me.resolver';
 import { NotificationsResolver } from './notifications/notifications.resolver';
 import { NotificationsService } from './notifications/notifications.service';
 import { OnlineResolver } from './online/online.resolver';
@@ -19,13 +20,12 @@ import { RegistrationResolver } from './registration/registration.resolver';
 import { ServerResolver } from './servers/server.resolver';
 import { VarsResolver } from './vars/vars.resolver';
 import { VmsResolver } from './vms/vms.resolver';
-import { MeResolver } from './me/me.resolver';
 
 @Module({
     imports: [AuthModule],
     providers: [
         ArrayResolver,
-        AuthResolver,
+        ApiKeyResolver,
         CloudResolver,
         ConfigResolver,
         DisksResolver,
@@ -43,6 +43,6 @@ import { MeResolver } from './me/me.resolver';
         NotificationsService,
         MeResolver,
     ],
-    exports: [AuthModule, AuthResolver],
+    exports: [AuthModule, ApiKeyResolver],
 })
 export class ResolversModule {}

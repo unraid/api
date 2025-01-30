@@ -347,7 +347,11 @@ export enum ContainerState {
 
 export type CreateApiKeyInput = {
   description?: InputMaybe<Scalars['String']['input']>;
+  /**  Whether to create the key in memory only (true), or on disk (false) - memory only keys will not persist through reboots of the API  */
+  memory?: InputMaybe<Scalars['Boolean']['input']>;
   name: Scalars['String']['input'];
+  /**  This will replace the existing key if one already exists with the same name, otherwise returns the existing key  */
+  overwrite?: InputMaybe<Scalars['Boolean']['input']>;
   permissions?: InputMaybe<Array<AddPermissionInput>>;
   roles?: InputMaybe<Array<Role>>;
 };
