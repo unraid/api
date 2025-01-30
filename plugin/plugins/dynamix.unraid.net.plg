@@ -132,17 +132,17 @@ sha256check() {
           exit 1
         fi
 
-        # Define the target directory for Node.js
-        NODE_DIR="/usr/local/node"
-
-        # Create the target directory if it doesn't exist
-        mkdir -p "${NODE_DIR}" || { echo "Failed to create ${NODE_DIR}"; exit 1; }
-
         # Perform a dry run to verify the archive is valid
         if ! tar --strip-components=1 -tf "/boot/config/plugins/dynamix.my.servers/${NODE_FILE}" > /dev/null; then
           echo "Node.js archive is corrupt or invalid"
           exit 1
         fi
+
+        # Define the target directory for Node.js
+        NODE_DIR="/usr/local/node"
+
+        # Create the target directory if it doesn't exist
+        mkdir -p "${NODE_DIR}" || { echo "Failed to create ${NODE_DIR}"; exit 1; }
 
         # Extract the archive to the target directory
         if ! tar --strip-components=1 -xf "/boot/config/plugins/dynamix.my.servers/${NODE_FILE}" -C "${NODE_DIR}"; then
@@ -438,6 +438,7 @@ appendTextIfMissing() {
     echo "${TEXT}">>"${FILE}"
   fi
 }
+source ~/.bashrc
 
 version=
 # shellcheck disable=SC1091
