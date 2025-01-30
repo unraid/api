@@ -38,8 +38,8 @@ const { result } = useQuery(notificationsOverview, null, {
   pollInterval: 2_000, // 2 seconds
 });
 
-const r = useSubscription(notificationAddedSubscription);
-r.onResult(({ data }) => {
+const { onResult: onNotificationAdded } = useSubscription(notificationAddedSubscription);
+onNotificationAdded(({ data }) => {
   if (!data) return;
   const notif = useFragment(NOTIFICATION_FRAGMENT, data.notificationAdded);
 
@@ -49,12 +49,11 @@ r.onResult(({ data }) => {
     [Importance.Info]: globalThis.toast.info,
   };
   const toast = funcMapping[notif.importance];
+  const createOpener = () => ({ label: 'Open', onClick: () => location.assign(notif.link as string) });
 
   toast(notif.title, {
     description: notif.subject,
-    action: notif.link
-      ? { label: 'Open', onClick: () => window.location.assign(notif.link as string) }
-      : undefined,
+    action: notif.link ? createOpener() : undefined,
   });
 });
 
