@@ -60,7 +60,6 @@ export class ApiKeyResolver {
             description: input.description ?? undefined,
             roles: input.roles ?? [],
             permissions: input.permissions ?? [],
-            memory: input.memory ?? false,
             overwrite: input.overwrite ?? false
         });
 
