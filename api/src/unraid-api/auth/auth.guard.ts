@@ -10,6 +10,7 @@ import { apiLogger } from '@app/core/log';
 import { ServerHeaderStrategy } from '@app/unraid-api/auth/header.strategy';
 
 import { UserCookieStrategy } from './cookie.strategy';
+import { parseCookies } from '@app/utils';
 
 @Injectable()
 export class GraphqlAuthGuard
@@ -61,6 +62,14 @@ export class GraphqlAuthGuard
                 ...(request.headers ?? {}),
                 ...additionalConnectionParamHeaders,
             };
+            
+            // parse cookies from raw headers on initial web socket connection request
+            if (fullContext.connectionParams) {
+                const rawHeaders: string[] = request.extra.request.rawHeaders;
+                const headerIndex = rawHeaders.findIndex((headerOrValue) => headerOrValue === "Cookie")
+                const cookieString = rawHeaders[headerIndex + 1]
+                request.cookies = parseCookies(cookieString);
+            }
 
             return request;
         } else {
