@@ -74,6 +74,39 @@ export const defaultColors: Record<string, ThemeVariables> = {
   },
 } as const;
 
+/**
+ * Unraid default theme colors do not have consistent colors for the header.
+ * This is a workaround to set the correct colors for the header.
+ * DARK THEMES: black, gray
+ * DARK HEADER THEMES: white, gray
+ * LIGHT THEMES: white, gray
+ * LIGHT HEADER THEMES: black, gray
+ */
+export const defaultAzureGrayHeaderColors: ThemeVariables = { // azure and gray header colors are the same but the background color is different
+  '--header-text-primary': '#39587f',
+  '--header-text-secondary': '#606e7f',
+};
+export const defaultHeaderColors: Record<string, ThemeVariables> = {
+  azure: {
+    ...defaultAzureGrayHeaderColors,
+    '--header-background-color': '#1c1b1b',
+  },
+  black: {
+    '--header-text-primary': '#1c1c1c',
+    '--header-text-secondary': '#999999',
+    '--header-background-color': '#f2f2f2',
+  },
+  gray: {
+    ...defaultAzureGrayHeaderColors,
+    '--header-background-color': '#f2f2f2',
+  },
+  white: {
+    '--header-text-primary': '#f2f2f2',
+    '--header-text-secondary': '#999999',
+    '--header-background-color': '#1c1b1b',
+  },
+};
+
 // used to swap the UPC text color when using the azure or gray theme
 export const DARK_THEMES = ['black', 'gray'] as const;
 
@@ -81,9 +114,12 @@ export const useThemeStore = defineStore('theme', () => {
   // State
   const theme = ref<Theme | undefined>();
 
-  const activeColorVariables = ref<ThemeVariables>(defaultColors.light);
-  // Getters
+  const activeColorVariables = ref<ThemeVariables>({
+    ...defaultColors.light,
+    ...defaultHeaderColors['white'],
+  });
 
+  // Getters
   const darkMode = computed<boolean>(
     () => DARK_THEMES.includes(theme.value?.name as (typeof DARK_THEMES)[number]) ?? false
   );
@@ -105,6 +141,15 @@ export const useThemeStore = defineStore('theme', () => {
     const customColorVariables = structuredClone(defaultColors);
     const body = document.body;
     const selectedMode = darkMode.value ? 'dark' : 'light';
+
+    // set the default header colors for the current theme
+    const themeName = theme.value?.name;
+    if (themeName && themeName in defaultHeaderColors) {
+      customColorVariables[selectedMode] = {
+        ...customColorVariables[selectedMode],
+        ...defaultHeaderColors[themeName],
+      };
+    }
 
     // overwrite with hex colors set in webGUI @ /Settings/DisplaySettings
     if (theme.value?.textColor) {
