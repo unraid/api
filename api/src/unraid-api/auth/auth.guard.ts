@@ -14,7 +14,10 @@ import { ServerHeaderStrategy } from '@app/unraid-api/auth/header.strategy';
 
 import { UserCookieStrategy } from './cookie.strategy';
 
-// Define the GraphQLContext as a discriminated union
+/**
+ * Context of incoming requests.
+ * Websocket connection req's have connection params and must be treated differently from regular fastify requests.
+ */
 type GraphQLContext =
     | {
           connectionParams: Record<string, string>; // When connectionParams is present
