@@ -44,10 +44,8 @@ export type AccessUrlInput = {
 };
 
 export type AddPermissionInput = {
-  action: Scalars['String']['input'];
-  possession: Scalars['String']['input'];
+  actions: Array<Scalars['String']['input']>;
   resource: Resource;
-  role: Role;
 };
 
 export type AddRoleForApiKeyInput = {
@@ -70,6 +68,7 @@ export type ApiKey = {
   description?: Maybe<Scalars['String']['output']>;
   id: Scalars['ID']['output'];
   name: Scalars['String']['output'];
+  permissions: Array<Permission>;
   roles: Array<Role>;
 };
 
@@ -86,6 +85,7 @@ export type ApiKeyWithSecret = {
   id: Scalars['ID']['output'];
   key: Scalars['String']['output'];
   name: Scalars['String']['output'];
+  permissions: Array<Permission>;
   roles: Array<Role>;
 };
 
@@ -351,8 +351,13 @@ export enum ContainerState {
 
 export type CreateApiKeyInput = {
   description?: InputMaybe<Scalars['String']['input']>;
+  /**  Whether to create the key in memory only (true), or on disk (false) - memory only keys will not persist through reboots of the API  */
+  memory?: InputMaybe<Scalars['Boolean']['input']>;
   name: Scalars['String']['input'];
-  roles: Array<Role>;
+  /**  This will replace the existing key if one already exists with the same name, otherwise returns the existing key  */
+  overwrite?: InputMaybe<Scalars['Boolean']['input']>;
+  permissions?: InputMaybe<Array<AddPermissionInput>>;
+  roles?: InputMaybe<Array<Role>>;
 };
 
 export type Devices = {
@@ -599,7 +604,7 @@ export type Me = UserAccount & {
   description: Scalars['String']['output'];
   id: Scalars['ID']['output'];
   name: Scalars['String']['output'];
-  permissions?: Maybe<Scalars['JSON']['output']>;
+  permissions?: Maybe<Array<Permission>>;
   roles: Array<Role>;
 };
 
@@ -1028,6 +1033,12 @@ export type Pci = {
   vendorname?: Maybe<Scalars['String']['output']>;
 };
 
+export type Permission = {
+  __typename?: 'Permission';
+  actions: Array<Scalars['String']['output']>;
+  resource: Resource;
+};
+
 export type ProfileModel = {
   __typename?: 'ProfileModel';
   avatar?: Maybe<Scalars['String']['output']>;
@@ -1196,7 +1207,7 @@ export enum Resource {
   Cloud = 'cloud',
   Config = 'config',
   Connect = 'connect',
-  CrashReportingEnabled = 'crash_reporting_enabled',
+  ConnectRemoteAccess = 'connect__remote_access',
   Customizations = 'customizations',
   Dashboard = 'dashboard',
   Disk = 'disk',
@@ -1224,10 +1235,8 @@ export enum Resource {
 /** Available roles for API keys and users */
 export enum Role {
   Admin = 'admin',
-  Guest = 'guest',
-  MyServers = 'my_servers',
-  Notifier = 'notifier',
-  Upc = 'upc'
+  Connect = 'connect',
+  Guest = 'guest'
 }
 
 export type Server = {
@@ -1450,6 +1459,7 @@ export type User = UserAccount & {
   name: Scalars['String']['output'];
   /** If the account has a password set */
   password?: Maybe<Scalars['Boolean']['output']>;
+  permissions?: Maybe<Array<Permission>>;
   roles: Array<Role>;
 };
 
@@ -1457,6 +1467,7 @@ export type UserAccount = {
   description: Scalars['String']['output'];
   id: Scalars['ID']['output'];
   name: Scalars['String']['output'];
+  permissions?: Maybe<Array<Permission>>;
   roles: Array<Role>;
 };
 
@@ -1678,6 +1689,7 @@ export enum VmState {
 export type Vms = {
   __typename?: 'Vms';
   domain?: Maybe<Array<VmDomain>>;
+  id: Scalars['ID']['output'];
 };
 
 export enum WAN_ACCESS_TYPE {
