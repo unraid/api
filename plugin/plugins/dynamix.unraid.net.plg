@@ -164,7 +164,7 @@ sha256check() {
           TARGET="/usr/local/bin/${ENTRY_NAME}"
 
           # Create the symlink
-          ln -s "${ENTRY}" "${TARGET}" || { echo "Failed to create symlink for ${ENTRY}"; exit 1; }
+          ln -sf "${ENTRY}" "${TARGET}" || { echo "Failed to create symlink for ${ENTRY}"; exit 1; }
         done
 
         echo "Node.js installation successful"
