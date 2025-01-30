@@ -120,7 +120,7 @@ onMounted(() => {
           <span class="text-right text-12px sm:text-18px hidden 2xs:block" v-html="description" />
           <span class="text-header-text-secondary hidden md:inline-block px-8px">&bull;</span>
         </template>
-        <button :title="t('Click to Copy LAN IP {0}', [lanIp])" class="opacity-100 hover:opacity-75 focus:opacity-75 transition-opacity" @click="copyLanIp()">
+        <button :title="t('Click to Copy LAN IP {0}', [lanIp])" class="text-header-text-primary opacity-100 hover:opacity-75 focus:opacity-75 transition-opacity" @click="copyLanIp()">
           {{ name }}
         </button>
         <span
@@ -132,7 +132,7 @@ onMounted(() => {
         </span>
       </h1>
 
-      <div class="block w-2px h-24px bg-popover" />
+      <div class="block w-2px h-24px bg-header-text-secondary" />
 
       <!-- Keep the sidebar out of staging/prod builds, but easily accessible for development -->
       <NotificationsSidebar />
