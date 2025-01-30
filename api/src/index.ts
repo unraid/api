@@ -1,16 +1,25 @@
+
+
+
 import 'reflect-metadata';
 import 'global-agent/bootstrap.js';
 import '@app/dotenv';
+
+
 
 import { type NestFastifyApplication } from '@nestjs/platform-fastify';
 import { unlinkSync } from 'fs';
 import http from 'http';
 import https from 'https';
 
+
+
 import type { RawServerDefault } from 'fastify';
 import CacheableLookup from 'cacheable-lookup';
 import { asyncExitHook, gracefulExit } from 'exit-hook';
 import { WebSocket } from 'ws';
+
+
 
 import { logger } from '@app/core/log';
 import { fileExistsSync } from '@app/core/utils/files/file-exists';
@@ -29,7 +38,10 @@ import { setupRegistrationKeyWatch } from '@app/store/watch/registration-watch';
 import { StateManager } from '@app/store/watch/state-watch';
 import { setupVarRunWatch } from '@app/store/watch/var-run-watch';
 
+
+
 import { setupNewMothershipSubscription } from './mothership/subscribe-to-mothership';
+
 
 let server: NestFastifyApplication<RawServerDefault> | null = null;
 
@@ -89,6 +101,7 @@ try {
 
     // Start webserver
     const { bootstrapNestServer } = await import('@app/unraid-api/main');
+
     server = await bootstrapNestServer();
 
     asyncExitHook(
@@ -105,8 +118,9 @@ try {
         { wait: 9999 }
     );
     // Start a loop to run the app
-    await new Promise(() => {});
+    // await new Promise(() => {});
 } catch (error: unknown) {
+    console.log(error);
     if (error instanceof Error) {
         logger.error(error, 'API-ERROR');
     } else {

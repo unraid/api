@@ -1,13 +1,14 @@
-import { store } from '@app/store';
-import { dockerLogger } from '@app/core/log';
-import { updateDockerState } from '@app/store/modules/docker';
-import { getDockerContainers } from '@app/core/modules/index';
-import { docker } from '@app/core/utils/index';
 import DockerEE from 'docker-event-emitter';
 import { debounce } from 'lodash-es';
 
+import { dockerLogger } from '@app/core/log';
+import { docker } from '@app/core/utils/index';
+import { store } from '@app/store';
+import { updateDockerState } from '@app/store/modules/docker';
+
 const updateContainerCache = async () => {
     try {
+        const { getDockerContainers } = await import('@app/core/modules/docker');
         await getDockerContainers({ useCache: false });
     } catch (err) {
         dockerLogger.warn('Caught error getting containers %o', err);
@@ -25,37 +26,21 @@ const debouncedContainerCacheUpdate = debounce(updateContainerCache, 500);
 
 export const setupDockerWatch = async (): Promise<DockerEE> => {
     // Only watch container events equal to start/stop
-    const watchedActions = [
-        'die',
-        'kill',
-        'oom',
-        'pause',
-        'restart',
-        'start',
-        'stop',
-        'unpause',
-    ];
+    const watchedActions = ['die', 'kill', 'oom', 'pause', 'restart', 'start', 'stop', 'unpause'];
 
     // Create docker event emitter instance
     dockerLogger.debug('Creating docker event emitter instance');
 
     const dee = new DockerEE(docker);
     // On Docker event update info with { apps: { installed, started } }
-    dee.on(
-        'container',
-        async (data: {
-            Type: 'container';
-            Action: 'start' | 'stop';
-            from: string;
-        }) => {
-            // Only listen to container events
-            if (!watchedActions.includes(data.Action)) {
-                return;
-            }
-            dockerLogger.debug(`[${data.from}] ${data.Type}->${data.Action}`);
-            await debouncedContainerCacheUpdate();
+    dee.on('container', async (data: { Type: 'container'; Action: 'start' | 'stop'; from: string }) => {
+        // Only listen to container events
+        if (!watchedActions.includes(data.Action)) {
+            return;
         }
-    );
+        dockerLogger.debug(`[${data.from}] ${data.Type}->${data.Action}`);
+        await debouncedContainerCacheUpdate();
+    });
     // Get docker container count on first start
     await debouncedContainerCacheUpdate();
     await dee.start();

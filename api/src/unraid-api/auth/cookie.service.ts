@@ -2,7 +2,6 @@ import { Inject, Injectable, Logger } from '@nestjs/common';
 import { readFile } from 'fs/promises';
 import { join } from 'path';
 
-import { fileExists } from '@app/core/utils/files/file-exists';
 import { getters } from '@app/store';
 import { batchProcess } from '@app/utils';
 
@@ -63,6 +62,7 @@ export class CookieService {
     private async isValidAuthCookie(cookieName: string, cookieValue: string): Promise<boolean> {
         const { namePrefix } = this.opts;
         const sessionFile = this.getSessionFilePath(cookieValue);
+        const { fileExists } = await import('@app/core/utils/files/file-exists');
         if (!cookieName.startsWith(namePrefix) || !(await fileExists(sessionFile))) {
             return false;
         }

@@ -3,12 +3,12 @@ import nodeResolve from '@rollup/plugin-node-resolve';
 import nodeExternals from 'rollup-plugin-node-externals';
 import swc from 'unplugin-swc';
 import { VitePluginNode } from 'vite-plugin-node';
-import { viteStaticCopy } from 'vite-plugin-static-copy';
 import tsconfigPaths from 'vite-tsconfig-paths';
 import { defineConfig } from 'vitest/config';
 
 export default defineConfig(({ mode }) => {
     return {
+        assetsInclude: ['**/*.graphql'],
         plugins: [
             tsconfigPaths(),
             nodeExternals(),
@@ -18,9 +18,6 @@ export default defineConfig(({ mode }) => {
             }),
             viteCommonjs({
                 include: ['@fastify/type-provider-typebox', 'node_modules/**'],
-            }),
-            viteStaticCopy({
-                targets: [{ src: 'src/graphql/schema/types', dest: '' }],
             }),
             ...(mode === 'development'
                 ? VitePluginNode({
@@ -81,6 +78,7 @@ export default defineConfig(({ mode }) => {
             ],
         },
         build: {
+            ssr: true,
             sourcemap: true,
             outDir: 'dist',
             rollupOptions: {
