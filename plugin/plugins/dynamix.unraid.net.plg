@@ -118,7 +118,6 @@ sha256check() {
       exit 0
     </INLINE>
   </FILE>
-  <!-- download node - older OS releases -->
   <FILE Name="/boot/config/plugins/dynamix.my.servers/&NODEJS_FILENAME;">
     <URL>&NODEJS_TXZ;</URL>
     <SHA256>&NODEJS_SHA256;</SHA256>
@@ -134,7 +133,7 @@ sha256check() {
         fi
 
         # Define the target directory for Node.js
-        NODE_DIR="/usr/local/node"
+        NODE_DIR="/usr/local"
 
         # Create the target directory if it doesn't exist
         mkdir -p "${NODE_DIR}" || { echo "Failed to create ${NODE_DIR}"; exit 1; }
@@ -150,22 +149,6 @@ sha256check() {
           echo "Failed to extract Node.js archive"
           exit 1
         fi
-
-        
-        # Ensure the Node.js bin directory exists
-        if [[ ! -d "${NODE_DIR}/bin" ]]; then
-          echo "Node.js bin directory not found in ${NODE_DIR}"
-          exit 1
-        fi
-
-        # Symlink the contents of the Node.js bin directory to /usr/local/bin
-        for ENTRY in "${NODE_DIR}/bin"/*; do
-          ENTRY_NAME=$(basename "${ENTRY}")
-          TARGET="/usr/local/bin/${ENTRY_NAME}"
-
-          # Create the symlink
-          ln -sf "${ENTRY}" "${TARGET}" || { echo "Failed to create symlink for ${ENTRY}"; exit 1; }
-        done
 
         echo "Node.js installation successful"
         exit 0
