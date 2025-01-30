@@ -22,6 +22,7 @@ const documents = {
     "\n  mutation DeleteNotification($id: String!, $type: NotificationType!) {\n    deleteNotification(id: $id, type: $type) {\n      archive {\n        total\n      }\n    }\n  }\n": types.DeleteNotificationDocument,
     "\n  mutation DeleteAllNotifications {\n    deleteArchivedNotifications {\n      archive {\n        total\n      }\n      unread {\n        total\n      }\n    }\n  }\n": types.DeleteAllNotificationsDocument,
     "\n  query Overview {\n    notifications {\n      id\n      overview {\n        unread {\n          info\n          warning\n          alert\n          total\n        }\n        archive {\n          total\n        }\n      }\n    }\n  }\n": types.OverviewDocument,
+    "\n  subscription NotificationAddedSub {\n    notificationAdded {\n      ...NotificationFragment\n    }\n  }\n": types.NotificationAddedSubDocument,
     "\n  mutation ConnectSignIn($input: ConnectSignInInput!) {\n    connectSignIn(input: $input)\n  }\n": types.ConnectSignInDocument,
     "\n  mutation SignOut {\n    connectSignOut\n  }\n": types.SignOutDocument,
     "\n  fragment PartialCloud on Cloud {\n    error\n    apiKey {\n      valid\n      error\n    }\n    cloud {\n      status\n      error\n    }\n    minigraphql {\n      status\n      error\n    }\n    relay {\n      status\n      error\n    }\n  }\n": types.PartialCloudFragmentDoc,
@@ -78,6 +79,10 @@ export function graphql(source: "\n  mutation DeleteAllNotifications {\n    dele
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
 export function graphql(source: "\n  query Overview {\n    notifications {\n      id\n      overview {\n        unread {\n          info\n          warning\n          alert\n          total\n        }\n        archive {\n          total\n        }\n      }\n    }\n  }\n"): (typeof documents)["\n  query Overview {\n    notifications {\n      id\n      overview {\n        unread {\n          info\n          warning\n          alert\n          total\n        }\n        archive {\n          total\n        }\n      }\n    }\n  }\n"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "\n  subscription NotificationAddedSub {\n    notificationAdded {\n      ...NotificationFragment\n    }\n  }\n"): (typeof documents)["\n  subscription NotificationAddedSub {\n    notificationAdded {\n      ...NotificationFragment\n    }\n  }\n"];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */

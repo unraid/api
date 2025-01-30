@@ -30,7 +30,7 @@ import { getters } from '@app/store/index';
         ResolversModule,
         GraphQLModule.forRoot<ApolloDriverConfig>({
             driver: ApolloDriver,
-            introspection: getters.config().local?.sandbox === 'yes' ? true : false,
+            introspection: getters.config().local.sandbox === 'yes' ? true : false,
             playground: false,
             context: ({ req, connectionParams, extra }) => ({
                 req,

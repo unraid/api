@@ -28,7 +28,6 @@ import { setupDynamixConfigWatch } from '@app/store/watch/dynamix-config-watch';
 import { setupRegistrationKeyWatch } from '@app/store/watch/registration-watch';
 import { StateManager } from '@app/store/watch/state-watch';
 import { setupVarRunWatch } from '@app/store/watch/var-run-watch';
-import { bootstrapNestServer } from '@app/unraid-api/main';
 
 import { setupNewMothershipSubscription } from './mothership/subscribe-to-mothership';
 
@@ -89,6 +88,7 @@ try {
     startMiddlewareListeners();
 
     // Start webserver
+    const { bootstrapNestServer } = await import('@app/unraid-api/main');
     server = await bootstrapNestServer();
 
     asyncExitHook(
