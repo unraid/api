@@ -15,7 +15,9 @@ test('it creates a FLASH config with NO OPTIONAL values', () => {
           "extraOrigins": "",
           "version": "",
         },
-        "local": {},
+        "local": {
+          "sandbox": "no",
+        },
         "remote": {
           "accesstoken": "",
           "apikey": "",
@@ -49,7 +51,9 @@ test('it creates a MEMORY config with NO OPTIONAL values', () => {
           "minigraph": "PRE_INIT",
           "upnpStatus": "",
         },
-        "local": {},
+        "local": {
+          "sandbox": "no",
+        },
         "remote": {
           "accesstoken": "",
           "allowedOrigins": "/var/run/unraid-notifications.sock, /var/run/unraid-php.sock, /var/run/unraid-cli.sock, https://connect.myunraid.net, https://connect-staging.myunraid.net, https://dev-my.myunraid.net:4000",
@@ -88,7 +92,9 @@ test('it creates a FLASH config with OPTIONAL values', () => {
           "extraOrigins": "myextra.origins",
           "version": "",
         },
-        "local": {},
+        "local": {
+          "sandbox": "no",
+        },
         "remote": {
           "accesstoken": "",
           "apikey": "",
@@ -129,7 +135,9 @@ test('it creates a MEMORY config with OPTIONAL values', () => {
           "minigraph": "PRE_INIT",
           "upnpStatus": "Turned On",
         },
-        "local": {},
+        "local": {
+          "sandbox": "no",
+        },
         "remote": {
           "accesstoken": "",
           "allowedOrigins": "/var/run/unraid-notifications.sock, /var/run/unraid-php.sock, /var/run/unraid-cli.sock, https://connect.myunraid.net, https://connect-staging.myunraid.net, https://dev-my.myunraid.net:4000",

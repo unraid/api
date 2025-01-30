@@ -6,6 +6,7 @@ import { loadConfigFile, updateUserConfig } from '@app/store/modules/config';
 import { writeConfigSync } from '@app/store/sync/config-disk-sync';
 import { DeveloperQuestions } from '@app/unraid-api/cli/developer/developer.questions';
 import { LogService } from '@app/unraid-api/cli/log.service';
+import { RestartCommand } from '@app/unraid-api/cli/restart.command';
 
 interface DeveloperOptions {
     disclaimer: boolean;
@@ -19,7 +20,8 @@ interface DeveloperOptions {
 export class DeveloperCommand extends CommandRunner {
     constructor(
         private logger: LogService,
-        private readonly inquirerService: InquirerService
+        private readonly inquirerService: InquirerService,
+        private readonly restartCommand: RestartCommand
     ) {
         super();
     }
@@ -34,6 +36,10 @@ export class DeveloperCommand extends CommandRunner {
         store.dispatch(updateUserConfig({ local: { sandbox: options.sandbox ? 'yes' : 'no' } }));
         writeConfigSync('flash');
 
-        this.logger.info('Updated Developer Configuration');
+        this.logger.info(
+            'Updated Developer Configuration - restart the API in 5 seconds to apply them...'
+        );
+        await new Promise((resolve) => setTimeout(resolve, 5000));
+        await this.restartCommand.run([]);
     }
 }

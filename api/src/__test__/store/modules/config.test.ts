@@ -26,7 +26,9 @@ test('After init returns values from cfg file for all fields', async () => {
                 minigraph: 'PRE_INIT',
                 upnpStatus: '',
             },
-            local: {},
+            local: {
+                sandbox: 'no'
+            },
             nodeEnv: 'test',
             remote: {
                 accesstoken: '',
@@ -74,7 +76,9 @@ test('updateUserConfig merges in changes to current state', async () => {
                 minigraph: 'PRE_INIT',
                 upnpStatus: '',
             },
-            local: {},
+            local: {
+                sandbox: 'no'
+            },
             nodeEnv: 'test',
             remote: {
                 accesstoken: '',
