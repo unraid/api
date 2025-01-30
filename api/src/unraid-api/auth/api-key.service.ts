@@ -38,8 +38,10 @@ export class ApiKeyService implements OnModuleInit {
 
     async onModuleInit() {
         this.memoryApiKeys = await this.loadAllFromDisk();
-        await this.createLocalApiKeyForConnectIfNecessary();
-        this.setupWatch();
+        if (environment.IS_MAIN_PROCESS) {
+            await this.createLocalApiKeyForConnectIfNecessary();
+            this.setupWatch();
+        }
     }
 
     public findAll(): ApiKey[] {
