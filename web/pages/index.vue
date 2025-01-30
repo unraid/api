@@ -2,9 +2,9 @@
 import { ExclamationTriangleIcon } from '@heroicons/vue/24/solid';
 import { BrandButton, BrandLogo } from '@unraid/ui';
 import { serverState } from '~/_data/serverState';
+import SsoButtonCe from '~/components/SsoButton.ce.vue';
 import type { SendPayloads } from '~/store/callback';
 import AES from 'crypto-js/aes';
-import SsoButtonCe from '~/components/SsoButton.ce.vue';
 
 const { registerEntry } = useCustomElements();
 onBeforeMount(() => {
@@ -13,6 +13,10 @@ onBeforeMount(() => {
 
 useHead({
   meta: [{ name: 'viewport', content: 'width=1300' }],
+});
+
+onMounted(() => {
+  document.cookie = 'unraid_session_cookie=mockusersession';
 });
 
 const valueToMakeCallback = ref<SendPayloads | undefined>();
@@ -156,7 +160,7 @@ onMounted(() => {
           <div class="bg-background">
             <hr class="border-black dark:border-white" />
             <h2 class="text-xl font-semibold font-mono">SSO Button Component</h2>
-              <SsoButtonCe :ssoenabled="serverState.ssoEnabled" />
+            <SsoButtonCe :ssoenabled="serverState.ssoEnabled" />
           </div>
         </div>
       </client-only>
