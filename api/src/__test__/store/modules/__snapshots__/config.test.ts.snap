@@ -10,7 +10,9 @@ exports[`Before init returns default values for all fields 1`] = `
     "minigraph": "PRE_INIT",
     "upnpStatus": "",
   },
-  "local": {},
+  "local": {
+    "sandbox": "no",
+  },
   "nodeEnv": "test",
   "remote": {
     "accesstoken": "",
