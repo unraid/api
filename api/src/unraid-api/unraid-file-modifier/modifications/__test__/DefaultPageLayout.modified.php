@@ -557,18 +557,6 @@ function openNotifier() {
   $.post('/webGui/include/Notify.php',{cmd:'get',csrf_token:csrf_token},function(msg) {
     $.each($.parseJSON(msg), function(i, notify){
       
-  const toastParams = { description: notify.subject };
-  if (notify.link) {
-    toastParams.action = { label: "Open", onClick: () => location.assign(notify.link) };
-  }
-  // maps notification importance to a toast function
-  const funcMapper = {
-    alert: globalThis.toast.error,
-    warning: globalThis.toast.warning,
-  };
-  const toastFunc = funcMapper[notify.importance] ?? globalThis.toast.info;
-  requestAnimationFrame(() => toastFunc(notify.event, toastParams));
-
     });
   });
 }
@@ -889,18 +877,6 @@ defaultPage.on('message', function(msg,meta) {
 <?if ($notify['display']==0):?>
       if (notify.show) {
         
-  const toastParams = { description: notify.subject };
-  if (notify.link) {
-    toastParams.action = { label: "Open", onClick: () => location.assign(notify.link) };
-  }
-  // maps notification importance to a toast function
-  const funcMapper = {
-    alert: globalThis.toast.error,
-    warning: globalThis.toast.warning,
-  };
-  const toastFunc = funcMapper[notify.importance] ?? globalThis.toast.info;
-  requestAnimationFrame(() => toastFunc(notify.event, toastParams));
-
       }
 <?endif;?>
     });
