@@ -57,23 +57,9 @@ export default class DefaultPageLayoutModification implements FileModification {
     }
 
     static replaceToasts(source: string): string {
-        const toastReplacement = `
-  const toastParams = { description: notify.subject };
-  if (notify.link) {
-    toastParams.action = { label: "Open", onClick: () => location.assign(notify.link) };
-  }
-  // maps notification importance to a toast function
-  const funcMapper = {
-    alert: globalThis.toast.error,
-    warning: globalThis.toast.warning,
-  };
-  const toastFunc = funcMapper[notify.importance] ?? globalThis.toast.info;
-  requestAnimationFrame(() => toastFunc(notify.event, toastParams));
-`;
-
         const jGrowlPattern =
             /\$\.jGrowl\(notify\.subject\+'<br>'\+notify\.description,\s*\{(?:[\s\S]*?\}\);[\s\S]*?)}\);/g;
 
-        return source.replace(jGrowlPattern, toastReplacement);
+        return source.replace(jGrowlPattern, '');
     }
 }
