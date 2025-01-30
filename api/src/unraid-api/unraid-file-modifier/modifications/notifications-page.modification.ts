@@ -42,10 +42,10 @@ export default class NotificationsPageModification implements FileModification {
         return (
             fileContent
                 // Remove lines between _(Date format)_: and :notifications_date_format_help:
-                .replace(/_\(Date format\)_:(?:.*\n)*?:notifications_date_format_help:/g, '')
+                .replace(/^\s*_\(Date format\)_:(?:[^\n]*\n)*?\s*:notifications_date_format_help:/gm, '')
 
                 // Remove lines between _(Time format)_: and :notifications_time_format_help:
-                .replace(/_\(Time format\)_:(?:.*\n)*?:notifications_time_format_help:/g, '')
+                .replace(/^\s*_\(Time format\)_:(?:[^\n]*\n)*?\s*:notifications_time_format_help:/gm, '')
         );
     }
 }

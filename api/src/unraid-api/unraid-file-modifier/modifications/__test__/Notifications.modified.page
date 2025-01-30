@@ -136,9 +136,6 @@ _(Auto-close)_ (_(seconds)_):
 :notifications_auto_close_help:
 
 
-
-
-
 _(Store notifications to flash)_:
 : <select name="path" class="a">
   <?=mk_option($notify['path'], "/tmp/notifications", _("No"))?>
