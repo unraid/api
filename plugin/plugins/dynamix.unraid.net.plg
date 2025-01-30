@@ -133,7 +133,7 @@ sha256check() {
         fi
 
         # Define the target directory for Node.js
-        NODE_DIR="/usr/local"
+        NODE_DIR="/usr/local/node"
 
         # Create the target directory if it doesn't exist
         mkdir -p "${NODE_DIR}" || { echo "Failed to create ${NODE_DIR}"; exit 1; }
