@@ -8,9 +8,10 @@ import { FileModification } from '@app/unraid-api/unraid-file-modifier/file-modi
 import DefaultPageLayoutModification from '@app/unraid-api/unraid-file-modifier/modifications/default-page-layout.modification';
 import NotificationsPageModification from '@app/unraid-api/unraid-file-modifier/modifications/notifications-page.modification';
 import SSOFileModification from '@app/unraid-api/unraid-file-modifier/modifications/sso.modification';
+import { existsSync } from 'fs';
 
 interface ModificationTestCase {
-    ModificationClass: new (logger: Logger) => FileModification;
+    ModificationClass: typeof FileModification;
     fileUrl: string;
 }
 
@@ -37,8 +38,13 @@ async function testModification(testCase: ModificationTestCase) {
     const fileName = basename(testCase.fileUrl);
 
     const path = resolve(__dirname, `../__fixtures__/downloaded/${fileName}`);
-    const originalContent = await fetch(testCase.fileUrl).then((response) => response.text());
-    await writeFile(path, originalContent);
+    let originalContent = '';
+    if (!existsSync(path)) {
+        originalContent = await fetch(testCase.fileUrl).then((response) => response.text());
+        await writeFile(path, originalContent);
+    } else {
+        originalContent = await readFile(path, 'utf-8');
+    }
 
     expect(originalContent.length).toBeGreaterThan(0);
 

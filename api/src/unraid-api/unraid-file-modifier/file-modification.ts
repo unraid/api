@@ -15,7 +15,7 @@ export abstract class FileModification {
     abstract id: string;
     public abstract readonly filePath: string;
 
-    protected constructor(protected readonly logger: Logger) {}
+    public constructor(protected readonly logger: Logger) {}
 
     // This is the main method that child classes need to implement
     protected abstract generatePatch(): Promise<string>;
