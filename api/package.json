@@ -115,7 +115,7 @@
         "request": "^2.88.2",
         "semver": "^7.6.3",
         "strftime": "^0.10.3",
-        "systeminformation": "^5.23.5",
+        "systeminformation": "^5.25.11",
         "uuid": "^11.0.2",
         "ws": "^8.18.0",
         "zod": "^3.23.8"
