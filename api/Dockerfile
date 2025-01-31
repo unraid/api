@@ -20,7 +20,7 @@ WORKDIR /app
 # Set app env
 ENV NODE_ENV=development
 
-COPY tsconfig.json .eslintrc.ts .npmrc .env.production .env.staging ./
+COPY tsconfig.json .eslintrc.ts .prettierrc.cjs .npmrc .env.production .env.staging ./
 
 COPY package.json package-lock.json ./
 

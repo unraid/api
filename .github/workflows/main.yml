@@ -62,7 +62,7 @@ jobs:
           cache-to: type=gha,mode=max,ref=builder:latest
           load: true
       - name: Lint inside of the docker container
-        continue-on-error: true
+        continue-on-error: false
         run: |
           docker run --rm builder npm run lint
 
