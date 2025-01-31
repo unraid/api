@@ -54,6 +54,11 @@ class WebComponentsExtractor
 
     public function getScriptTagHtml(): string
     {
-        return $this->getRichComponentsScript() . $this->getUnraidUiScriptHtml();
+        try {
+            return $this->getRichComponentsScript() . $this->getUnraidUiScriptHtml();
+        } catch (\Exception $e) {
+            error_log("Error in WebComponentsExtractor::getScriptTagHtml: " . $e->getMessage());
+            return "";
+        }
     }
 }
