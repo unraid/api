@@ -28,7 +28,6 @@ import { setupDynamixConfigWatch } from '@app/store/watch/dynamix-config-watch';
 import { setupRegistrationKeyWatch } from '@app/store/watch/registration-watch';
 import { StateManager } from '@app/store/watch/state-watch';
 import { setupVarRunWatch } from '@app/store/watch/var-run-watch';
-import { bootstrapNestServer } from '@app/unraid-api/main';
 
 import { setupNewMothershipSubscription } from './mothership/subscribe-to-mothership';
 
@@ -40,82 +39,86 @@ const unlinkUnixPort = () => {
     }
 };
 
-try {
-    environment.IS_MAIN_PROCESS = true;
+export const viteNodeApp = async () => {
+    try {
+        environment.IS_MAIN_PROCESS = true;
 
-    logger.info('ENV %o', envVars);
-    logger.info('PATHS %o', store.getState().paths);
+        logger.info('ENV %o', envVars);
+        logger.info('PATHS %o', store.getState().paths);
 
-    const cacheable = new CacheableLookup();
+        const cacheable = new CacheableLookup();
 
-    Object.assign(global, { WebSocket });
-    // Ensure all DNS lookups are cached for their TTL
-    cacheable.install(http.globalAgent);
-    cacheable.install(https.globalAgent);
+        Object.assign(global, { WebSocket });
+        // Ensure all DNS lookups are cached for their TTL
+        cacheable.install(http.globalAgent);
+        cacheable.install(https.globalAgent);
 
-    // Start file <-> store sync
-    // Must occur before config is loaded to ensure that the handler can fix broken configs
-    await startStoreSync();
+        // Start file <-> store sync
+        // Must occur before config is loaded to ensure that the handler can fix broken configs
+        await startStoreSync();
 
-    // Load my servers config file into store
-    await store.dispatch(loadConfigFile());
+        // Load my servers config file into store
+        await store.dispatch(loadConfigFile());
 
-    // Load emhttp state into store
-    await store.dispatch(loadStateFiles());
+        // Load emhttp state into store
+        await store.dispatch(loadStateFiles());
 
-    // Load initial registration key into store
-    await store.dispatch(loadRegistrationKey());
+        // Load initial registration key into store
+        await store.dispatch(loadRegistrationKey());
 
-    // Load my dynamix config file into store
-    await store.dispatch(loadDynamixConfigFile());
+        // Load my dynamix config file into store
+        await store.dispatch(loadDynamixConfigFile());
 
-    await setupNewMothershipSubscription();
+        await setupNewMothershipSubscription();
 
-    // Start listening to file updates
-    StateManager.getInstance();
+        // Start listening to file updates
+        StateManager.getInstance();
 
-    // Start listening to key file changes
-    setupRegistrationKeyWatch();
+        // Start listening to key file changes
+        setupRegistrationKeyWatch();
 
-    // Start listening to docker events
-    setupVarRunWatch();
+        // Start listening to docker events
+        setupVarRunWatch();
 
-    // Start listening to dynamix config file changes
-    setupDynamixConfigWatch();
+        // Start listening to dynamix config file changes
+        setupDynamixConfigWatch();
 
-    // If port is unix socket, delete old socket before starting http server
-    unlinkUnixPort();
+        // If port is unix socket, delete old socket before starting http server
+        unlinkUnixPort();
 
-    startMiddlewareListeners();
+        startMiddlewareListeners();
 
-    // Start webserver
-    server = await bootstrapNestServer();
+        // Start webserver
+        const { bootstrapNestServer } = await import('@app/unraid-api/main');
 
-    asyncExitHook(
-        async (signal) => {
-            console.log('exithook', signal);
+        server = await bootstrapNestServer();
+
+        asyncExitHook(
+            async (signal) => {
+                logger.info('Exiting with signal %s', signal);
+                await server?.close?.();
+                // If port is unix socket, delete socket before exiting
+                unlinkUnixPort();
+
+                shutdownApiEvent();
+
+                gracefulExit();
+            },
+            { wait: 9999 }
+        );
+    } catch (error: unknown) {
+        if (error instanceof Error) {
+            logger.error(error, 'API-ERROR');
+        } else {
+            logger.error(error, 'Encountered unexpected error');
+        }
+        if (server) {
             await server?.close?.();
-            // If port is unix socket, delete socket before exiting
-            unlinkUnixPort();
-
-            shutdownApiEvent();
-
-            gracefulExit();
-        },
-        { wait: 9999 }
-    );
-    // Start a loop to run the app
-    await new Promise(() => {});
-} catch (error: unknown) {
-    if (error instanceof Error) {
-        logger.error(error, 'API-ERROR');
-    } else {
-        logger.error(error, 'Encountered unexpected error');
+        }
+        shutdownApiEvent();
+        // Kill application
+        gracefulExit(1);
     }
-    if (server) {
-        await server?.close?.();
-    }
-    shutdownApiEvent();
-    // Kill application
-    gracefulExit(1);
-}
+};
+
+await viteNodeApp();

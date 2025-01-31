@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from "@storybook/vue3";
-import BrandLoading from "../../../src/components/brand/BrandLoading.vue";
+import BrandLoading from "../../../src/components/brand/BrandLoading.ce.vue";
 
 const meta = {
   title: "Components/Brand",

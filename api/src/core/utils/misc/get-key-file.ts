@@ -1,5 +1,4 @@
 import { type RootState, store } from '@app/store';
-import btoa from 'btoa';
 import { basename, join } from 'path';
 import { readFile } from 'fs/promises';
 
@@ -16,5 +15,5 @@ export const getKeyFile = async function (appStore: RootState = store.getState()
 	const keyFileName = basename(emhttp.var?.regFile);
 	const registrationKeyFilePath = join(paths['keyfile-base'], keyFileName);
 	const keyFile = await readFile(registrationKeyFilePath, 'binary');
-	return btoa(keyFile).trim().replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '');
+	return Buffer.from(keyFile, 'binary').toString('base64').trim().replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '');
 };

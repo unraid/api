@@ -24,7 +24,7 @@ const getUnraidApiLocation = async () => {
 try {
     await CommandFactory.run(CliModule, {
         cliName: 'unraid-api',
-        logger: LOG_LEVEL === 'TRACE' && new LogService(), // - enable this to see nest initialization issues
+        logger: LOG_LEVEL === 'TRACE' ? new LogService() : false, // - enable this to see nest initialization issues
         completion: {
             fig: false,
             cmd: 'completion-script',

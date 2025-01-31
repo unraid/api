@@ -83,7 +83,7 @@ withDefaults(defineProps<Props>(), {
   </svg>
 </template>
 
-<style lang="postcss">
+<style scoped lang="css">
 .unraid_mark_2,
 .unraid_mark_4 {
   animation: mark_2 1.5s ease infinite;
