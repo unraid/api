@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { Button } from '@/components/shadcn/button';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/shadcn/sheet';
+import { Button } from '@unraid/ui';
 import { useMutation, useQuery, useSubscription } from '@vue/apollo-composable';
 import { useTrackLatestSeenNotification } from '~/composables/api/use-notifications';
 import { useFragment } from '~/composables/gql';

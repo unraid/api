@@ -1,6 +1,4 @@
 <script setup lang="ts">
-import { Button } from "@/components/shadcn/button";
-
 import {
   Stepper,
   StepperDescription,
@@ -8,23 +6,26 @@ import {
   StepperSeparator,
   StepperTitle,
   StepperTrigger,
-} from "@/components/shadcn/stepper";
-import { CheckIcon, KeyIcon, ServerStackIcon } from "@heroicons/vue/24/outline";
+} from '@/components/shadcn/stepper';
+import { CheckIcon, KeyIcon, ServerStackIcon } from '@heroicons/vue/24/outline';
 import {
   KeyIcon as KeyIconSolid,
   LockClosedIcon,
   ServerStackIcon as ServerStackIconSolid,
-} from "@heroicons/vue/24/solid";
+} from '@heroicons/vue/24/solid';
+import { Button } from '@unraid/ui';
+import type { Component } from 'vue';
 
-import type { Component } from 'vue'
+type StepState = 'inactive' | 'active' | 'completed';
 
-type StepState = "inactive" | "active" | "completed";
-
-withDefaults(defineProps<{ 
-  activeStep: number 
-}>(), {
-  activeStep: 1
-})
+withDefaults(
+  defineProps<{
+    activeStep: number;
+  }>(),
+  {
+    activeStep: 1,
+  }
+);
 
 interface Step {
   step: number;
@@ -35,12 +36,12 @@ interface Step {
     active: Component;
     completed: Component;
   };
-};
+}
 const steps: readonly Step[] = [
   {
     step: 1,
-    title: "Create Device Password",
-    description: "Secure your device",
+    title: 'Create Device Password',
+    description: 'Secure your device',
     icon: {
       inactive: LockClosedIcon,
       active: LockClosedIcon,
@@ -49,8 +50,8 @@ const steps: readonly Step[] = [
   },
   {
     step: 2,
-    title: "Activate License",
-    description: "Create an Unraid.net account and activate your key",
+    title: 'Activate License',
+    description: 'Create an Unraid.net account and activate your key',
     icon: {
       inactive: KeyIcon,
       active: KeyIconSolid,
@@ -59,8 +60,8 @@ const steps: readonly Step[] = [
   },
   {
     step: 3,
-    title: "Unleash Your Hardware",
-    description: "Device is ready to configure",
+    title: 'Unleash Your Hardware',
+    description: 'Device is ready to configure',
     icon: {
       inactive: ServerStackIcon,
       active: ServerStackIconSolid,
@@ -71,10 +72,7 @@ const steps: readonly Step[] = [
 </script>
 
 <template>
-  <Stepper
-    :default-value="activeStep"
-    class="text-foreground flex w-full items-start gap-2 text-16px"
-  >
+  <Stepper :default-value="activeStep" class="text-foreground flex w-full items-start gap-2 text-16px">
     <StepperItem
       v-for="step in steps"
       :key="step.step"
@@ -90,13 +88,13 @@ const steps: readonly Step[] = [
 
       <StepperTrigger as-child>
         <Button
-          :variant="state === 'completed' || state === 'active' ? 'default' : 'outline'"
-          size="default"
-          class="z-10 rounded-full shrink-0 opacity-100"
-          :class="[
-            state !== 'inactive' &&
-              'ring-2 ring-primary ring-offset-2 ring-offset-background *:cursor-default',
-          ]"
+          :variant="state === 'completed' || state === 'active' ? 'primary' : 'outline'"
+          size="md"
+          :class="`z-10 rounded-full shrink-0 opacity-100 ${
+            state !== 'inactive'
+              ? 'ring-2 ring-primary ring-offset-2 ring-offset-background *:cursor-default'
+              : ''
+          }`"
           :disabled="state === 'inactive'"
         >
           <component :is="step.icon[state]" class="size-4" />

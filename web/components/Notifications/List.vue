@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { CheckIcon } from '@heroicons/vue/24/solid';
+import { Spinner as LoadingSpinner } from '@unraid/ui';
 import { useQuery } from '@vue/apollo-composable';
 import { vInfiniteScroll } from '@vueuse/components';
 import { useHaveSeenNotifications } from '~/composables/api/use-notifications';

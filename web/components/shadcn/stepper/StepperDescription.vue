@@ -1,19 +1,18 @@
 <script lang="ts" setup>
-import type { StepperDescriptionProps } from 'radix-vue'
-import { cn } from '@/components/shadcn/utils'
-import { StepperDescription, useForwardProps } from 'radix-vue'
+import { cn } from '@/lib/utils';
+import type { StepperDescriptionProps } from 'radix-vue';
+import { StepperDescription, useForwardProps } from 'radix-vue';
+import { computed, type HTMLAttributes } from 'vue';
 
-import { computed, type HTMLAttributes } from 'vue'
-
-const props = defineProps<StepperDescriptionProps & { class?: HTMLAttributes['class'] }>()
+const props = defineProps<StepperDescriptionProps & { class?: HTMLAttributes['class'] }>();
 
 const delegatedProps = computed(() => {
-  const { class: _, ...delegated } = props
+  const { class: _, ...delegated } = props;
 
-  return delegated
-})
+  return delegated;
+});
 
-const forwarded = useForwardProps(delegatedProps)
+const forwarded = useForwardProps(delegatedProps);
 </script>
 
 <template>

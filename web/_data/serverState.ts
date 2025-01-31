@@ -6,8 +6,10 @@
 // import QueryStringAddon from 'wretch/addons/queryString';
 
 // import { OS_RELEASES } from '~/helpers/urls';
-import type { Server, ServerState
-// ServerUpdateOsResponse,
+import type {
+  Server,
+  ServerState,
+  // ServerUpdateOsResponse,
 } from '~/types/server';
 
 // dayjs plugins
