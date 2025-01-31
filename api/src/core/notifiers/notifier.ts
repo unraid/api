@@ -1,25 +1,26 @@
 import Mustache from 'mustache';
+
 import { type LooseObject } from '@app/core/types';
-import { type NotificationIni } from '../types/states/notification';
+import { type NotificationIni } from '@app/core/types/states/notification';
 
 export type NotifierLevel = 'info' | 'warn' | 'error';
 
 export type NotifierOptions = Partial<{
-	level: NotifierLevel;
-	importance?: NotificationIni['importance'];
-	helpers?: Record<string, unknown>;
-	template?: string;
+    level: NotifierLevel;
+    importance?: NotificationIni['importance'];
+    helpers?: Record<string, unknown>;
+    template?: string;
 }>;
 
 export interface NotifierSendOptions {
-	/** Which type of notification. */
-	type?: string;
-	/** The notification's title. */
-	title: string;
-	/** Static data passed for rendering. */
-	data: LooseObject;
-	/** Functions to generate dynamic data for rendering. */
-	computed?: LooseObject;
+    /** Which type of notification. */
+    type?: string;
+    /** The notification's title. */
+    title: string;
+    /** Static data passed for rendering. */
+    data: LooseObject;
+    /** Functions to generate dynamic data for rendering. */
+    computed?: LooseObject;
 }
 
 /**
@@ -30,31 +31,31 @@ export interface NotifierSendOptions {
  * @private
  */
 export class Notifier {
-	template: string;
-	helpers: LooseObject;
-	level: string;
+    template: string;
+    helpers: LooseObject;
+    level: string;
 
-	constructor(options: NotifierOptions) {
-		this.template = options.template ?? '{{ data }}';
-		this.helpers = options.helpers ?? {};
-		this.level = options.level ?? 'info';
-	}
+    constructor(options: NotifierOptions) {
+        this.template = options.template ?? '{{ data }}';
+        this.helpers = options.helpers ?? {};
+        this.level = options.level ?? 'info';
+    }
 
-	/**
-	 * Render template.
-	 * @param data Static data for template rendering.
-	 * @param helpers Functions for template rendering.
-	 * @param computed Functions to generate dynamic data for rendering.
-	 */
-	render(data: LooseObject): string {
-		return Mustache.render(this.template, data);
-	}
+    /**
+     * Render template.
+     * @param data Static data for template rendering.
+     * @param helpers Functions for template rendering.
+     * @param computed Functions to generate dynamic data for rendering.
+     */
+    render(data: LooseObject): string {
+        return Mustache.render(this.template, data);
+    }
 
-	/**
-	 * Generates a mustache helper.
-	 * @param func Function to be wrapped.
-	 */
-	generateHelper(func: (text: string) => string) {
-		return () => (text: string, render: (text: string) => string) => func(render(text));
-	}
+    /**
+     * Generates a mustache helper.
+     * @param func Function to be wrapped.
+     */
+    generateHelper(func: (text: string) => string) {
+        return () => (text: string, render: (text: string) => string) => func(render(text));
+    }
 }

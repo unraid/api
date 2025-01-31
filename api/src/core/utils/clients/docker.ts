@@ -2,7 +2,7 @@ import Docker from 'dockerode';
 
 const socketPath = '/var/run/docker.sock';
 const client = new Docker({
-	socketPath,
+    socketPath,
 });
 
 /**

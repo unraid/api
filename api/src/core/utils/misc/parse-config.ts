@@ -1,10 +1,12 @@
-import { parse as parseIni } from 'ini';
-import camelCaseKeys from 'camelcase-keys';
-import { AppError } from '@app/core/errors/app-error';
+import { F_OK } from 'constants';
 import { accessSync, readFileSync } from 'fs';
 import { access } from 'fs/promises';
-import { F_OK } from 'constants';
 import { extname } from 'path';
+
+import camelCaseKeys from 'camelcase-keys';
+import { parse as parseIni } from 'ini';
+
+import { AppError } from '@app/core/errors/app-error';
 import { fileExistsSync } from '@app/core/utils/files/file-exists';
 
 type ConfigType = 'ini' | 'cfg';

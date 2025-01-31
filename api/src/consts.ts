@@ -1,6 +1,8 @@
-import { PORT } from '@app/environment';
-import type { JSONWebKeySet } from 'jose';
 import { join } from 'path';
+
+import type { JSONWebKeySet } from 'jose';
+
+import { PORT } from '@app/environment';
 
 export const getInternalApiAddress = (isHttp = true, nginxPort = 80) => {
     const envPort = PORT;
@@ -18,7 +20,6 @@ export const getInternalApiAddress = (isHttp = true, nginxPort = 80) => {
 
     // Prod mode (user didn't change webgui port)
     return `${protocol}://127.0.0.1/graphql`;
-
 };
 
 // Milliseconds
@@ -69,15 +70,12 @@ export const JWKS_LOCAL_PAYLOAD: JSONWebKeySet = {
     ],
 };
 
-export const OAUTH_BASE_URL =
-    'https://cognito-idp.us-west-2.amazonaws.com/us-west-2_btSkhlsEk';
+export const OAUTH_BASE_URL = 'https://cognito-idp.us-west-2.amazonaws.com/us-west-2_btSkhlsEk';
 export const OAUTH_CLIENT_ID = '53ci4o48gac8vq5jepubkjmo36';
-export const OAUTH_OPENID_CONFIGURATION_URL =
-    OAUTH_BASE_URL + '/.well-known/openid-configuration';
+export const OAUTH_OPENID_CONFIGURATION_URL = OAUTH_BASE_URL + '/.well-known/openid-configuration';
 export const JWKS_REMOTE_LINK = OAUTH_BASE_URL + '/.well-known/jwks.json';
 export const RCD_SCRIPT = 'rc.unraid-api';
-export const KEYSERVER_VALIDATION_ENDPOINT =
-    'https://keys.lime-technology.com/validate/apikey';
+export const KEYSERVER_VALIDATION_ENDPOINT = 'https://keys.lime-technology.com/validate/apikey';
 
 /** Set the max retries for the GraphQL Client */
 export const MAX_RETRIES_FOR_LINEAR_BACKOFF = 100;

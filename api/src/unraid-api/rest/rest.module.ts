@@ -1,6 +1,7 @@
-import { RestController } from '@app/unraid-api/rest/rest.controller';
 import { Module } from '@nestjs/common';
-import { RestService } from './rest.service';
+
+import { RestController } from '@app/unraid-api/rest/rest.controller';
+import { RestService } from '@app/unraid-api/rest/rest.service';
 
 @Module({
     imports: [],

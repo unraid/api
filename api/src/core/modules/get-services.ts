@@ -1,6 +1,6 @@
-import { getEmhttpdService } from '@app/core/modules/services/get-emhttpd';
+import type { CoreContext, CoreResult } from '@app/core/types';
 import { logger } from '@app/core/log';
-import type { CoreResult, CoreContext } from '@app/core/types';
+import { getEmhttpdService } from '@app/core/modules/services/get-emhttpd';
 import { getUnraidApiService } from '@app/core/modules/services/get-unraid-api';
 import { NODE_ENV } from '@app/environment';
 

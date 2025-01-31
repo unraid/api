@@ -1,8 +1,11 @@
+import { join } from 'node:path';
+
+import type { FSWatcher } from 'chokidar';
+import { watch } from 'chokidar';
+
 import { getters, store } from '@app/store/index';
 import { clearNotification, loadNotification } from '@app/store/modules/notifications';
 import { FileLoadStatus } from '@app/store/types';
-import { type FSWatcher, watch } from 'chokidar';
-import { join } from 'node:path';
 
 const handleNotificationAdd = (path: string) => {
     store.dispatch(loadNotification({ path }));
@@ -18,7 +21,7 @@ export const setupNotificationWatch = async (): Promise<FSWatcher | null> => {
     const { notify, status } = getters.dynamix();
     if (status === FileLoadStatus.LOADED && notify?.path) {
         if (watcher) {
-            await watcher.close()
+            await watcher.close();
         }
         watcher = watch(join(notify.path, 'unread'), {})
             .on('add', (path) => {

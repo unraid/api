@@ -1,14 +1,8 @@
 import { ChoicesFor, Question, QuestionSet, WhenFor } from 'nest-commander';
 
-
-
 import { Permission, Role } from '@app/graphql/generated/api/types';
 import { ApiKeyService } from '@app/unraid-api/auth/api-key.service';
 import { LogService } from '@app/unraid-api/cli/log.service';
-
-
-
-
 
 @QuestionSet({ name: 'add-api-key' })
 export class AddApiKeyQuestionSet {

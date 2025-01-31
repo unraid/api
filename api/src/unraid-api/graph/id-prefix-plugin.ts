@@ -1,4 +1,5 @@
 import { type ApolloServerPlugin } from '@apollo/server';
+
 import { getServerIdentifier } from '@app/core/utils/server-identifier';
 import { updateObject } from '@app/utils';
 

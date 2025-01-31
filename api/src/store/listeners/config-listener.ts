@@ -1,6 +1,5 @@
 import { writeFileSync } from 'fs';
 
-
 import type { ConfigType } from '@app/core/utils/files/config-file-normalizer';
 import { logger } from '@app/core/log';
 import { getWriteableConfig } from '@app/core/utils/files/config-file-normalizer';

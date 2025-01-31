@@ -1,25 +1,14 @@
 import { pino } from 'pino';
-import { LOG_TYPE } from '@app/environment';
-
 import pretty from 'pino-pretty';
 
-export const levels = [
-    'trace',
-    'debug',
-    'info',
-    'warn',
-    'error',
-    'fatal',
-] as const;
+import { LOG_TYPE } from '@app/environment';
 
-export type LogLevel = typeof levels[number];
+export const levels = ['trace', 'debug', 'info', 'warn', 'error', 'fatal'] as const;
+
+export type LogLevel = (typeof levels)[number];
 
 const level =
-    levels[
-        levels.indexOf(
-            process.env.LOG_LEVEL?.toLowerCase() as (typeof levels)[number]
-        )
-    ] ?? 'info';
+    levels[levels.indexOf(process.env.LOG_LEVEL?.toLowerCase() as (typeof levels)[number])] ?? 'info';
 
 export const logDestination = pino.destination({
     sync: true,

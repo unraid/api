@@ -1,18 +1,20 @@
 import { join } from 'path';
+
 import { expect, test } from 'vitest';
-import { store } from '@app/store';
+
 import type { UsersIni } from '@app/store/state-parsers/users';
+import { store } from '@app/store';
 
 test('Returns parsed state file', async () => {
-	const { parse } = await import('@app/store/state-parsers/users');
-	const { parseConfig } = await import('@app/core/utils/misc/parse-config');
-	const { paths } = store.getState();
-	const filePath = join(paths.states, 'users.ini');
-	const stateFile = parseConfig<UsersIni>({
-		filePath,
-		type: 'ini',
-	});
-	expect(parse(stateFile)).toMatchInlineSnapshot(`
+    const { parse } = await import('@app/store/state-parsers/users');
+    const { parseConfig } = await import('@app/core/utils/misc/parse-config');
+    const { paths } = store.getState();
+    const filePath = join(paths.states, 'users.ini');
+    const stateFile = parseConfig<UsersIni>({
+        filePath,
+        type: 'ini',
+    });
+    expect(parse(stateFile)).toMatchInlineSnapshot(`
 		[
 		  {
 		    "description": "Console and webGui login account",

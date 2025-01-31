@@ -1,5 +1,7 @@
-import { Test, type TestingModule } from '@nestjs/testing';
-import { DockerResolver } from './docker.resolver';
+import type { TestingModule } from '@nestjs/testing';
+import { Test } from '@nestjs/testing';
+
+import { DockerResolver } from '@app/unraid-api/graph/resolvers/docker/docker.resolver';
 
 describe('DockerResolver', () => {
     let resolver: DockerResolver;

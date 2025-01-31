@@ -1,12 +1,13 @@
 import { expect, test } from 'vitest';
+
 import { getShares } from '@app/core/utils/shares/get-shares';
 import { store } from '@app/store';
 import { loadStateFiles } from '@app/store/modules/emhttp';
 
 test('Returns both disk and user shares', async () => {
-	await store.dispatch(loadStateFiles());
+    await store.dispatch(loadStateFiles());
 
-	expect(getShares()).toMatchInlineSnapshot(`
+    expect(getShares()).toMatchInlineSnapshot(`
 		{
 		  "disks": [],
 		  "users": [
@@ -96,8 +97,8 @@ test('Returns both disk and user shares', async () => {
 });
 
 test('Returns shares by type', async () => {
-	await store.dispatch(loadStateFiles());
-	expect(getShares('user')).toMatchInlineSnapshot(`
+    await store.dispatch(loadStateFiles());
+    expect(getShares('user')).toMatchInlineSnapshot(`
 		{
 		  "allocator": "highwater",
 		  "cachePool": "cache",
@@ -119,7 +120,7 @@ test('Returns shares by type', async () => {
 		  "used": 33619300,
 		}
 	`);
-	expect(getShares('users')).toMatchInlineSnapshot(`
+    expect(getShares('users')).toMatchInlineSnapshot(`
 		[
 		  {
 		    "allocator": "highwater",
@@ -203,12 +204,12 @@ test('Returns shares by type', async () => {
 		  },
 		]
 	`);
-	expect(getShares('disk')).toMatchInlineSnapshot('null');
-	expect(getShares('disks')).toMatchInlineSnapshot('[]');
+    expect(getShares('disk')).toMatchInlineSnapshot('null');
+    expect(getShares('disks')).toMatchInlineSnapshot('[]');
 });
 
 test('Returns shares by name', async () => {
-	expect(getShares('user', { name: 'domains' })).toMatchInlineSnapshot(`
+    expect(getShares('user', { name: 'domains' })).toMatchInlineSnapshot(`
 		{
 		  "allocator": "highwater",
 		  "cachePool": "cache",
@@ -230,8 +231,8 @@ test('Returns shares by name', async () => {
 		  "used": 33619300,
 		}
 	`);
-	expect(getShares('user', { name: 'non-existent-user-share' })).toMatchInlineSnapshot('null');
-	// @TODO: disk shares need to be added to the dev ini files
-	expect(getShares('disk', { name: 'disk1' })).toMatchInlineSnapshot('null');
-	expect(getShares('disk', { name: 'non-existent-disk-share' })).toMatchInlineSnapshot('null');
+    expect(getShares('user', { name: 'non-existent-user-share' })).toMatchInlineSnapshot('null');
+    // @TODO: disk shares need to be added to the dev ini files
+    expect(getShares('disk', { name: 'disk1' })).toMatchInlineSnapshot('null');
+    expect(getShares('disk', { name: 'non-existent-disk-share' })).toMatchInlineSnapshot('null');
 });

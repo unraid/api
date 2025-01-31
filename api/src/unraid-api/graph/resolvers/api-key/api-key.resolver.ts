@@ -60,7 +60,7 @@ export class ApiKeyResolver {
             description: input.description ?? undefined,
             roles: input.roles ?? [],
             permissions: input.permissions ?? [],
-            overwrite: input.overwrite ?? false
+            overwrite: input.overwrite ?? false,
         });
 
         await this.authService.syncApiKeyRoles(apiKey.id, apiKey.roles);

@@ -4,14 +4,14 @@
  * @returns The sanitized product name.
  */
 export const sanitizeProduct = (productName: string): string => {
-	if (productName === '') {
-		return '';
-	}
+    if (productName === '') {
+        return '';
+    }
 
-	let product = productName;
+    let product = productName;
 
-	product = product.replace(' PCI Express', ' PCIe');
-	product = product.replace(' High Definition ', ' HD ');
+    product = product.replace(' PCI Express', ' PCIe');
+    product = product.replace(' High Definition ', ' HD ');
 
-	return product;
+    return product;
 };

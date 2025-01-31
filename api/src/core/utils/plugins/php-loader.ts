@@ -1,8 +1,10 @@
 import path from 'path';
+
 import { execa } from 'execa';
+
 import { FileMissingError } from '@app/core/errors/file-missing-error';
-import { type LooseObject, type LooseStringObject } from '@app/core/types';
 import { PhpError } from '@app/core/errors/php-error';
+import { type LooseObject, type LooseStringObject } from '@app/core/types';
 
 /**
  * Encode GET/POST params.
@@ -12,35 +14,37 @@ import { PhpError } from '@app/core/errors/php-error';
  * @private
  */
 const encodeParameters = (parameters: LooseObject) =>
-	// Join query params together
-	Object.entries(parameters).map(kv =>
-		// Encode each section and join
-		kv.map(encodeURIComponent).join('='),
-	).join('&');
+    // Join query params together
+    Object.entries(parameters)
+        .map((kv) =>
+            // Encode each section and join
+            kv.map(encodeURIComponent).join('=')
+        )
+        .join('&');
 interface Options {
-	/** File path */
-	file: string;
-	/** HTTP Method GET/POST */
-	method?: string;
-	/** Request query */
-	query?: LooseStringObject;
-	/** Request body */
-	body?: LooseObject;
+    /** File path */
+    file: string;
+    /** HTTP Method GET/POST */
+    method?: string;
+    /** Request query */
+    query?: LooseStringObject;
+    /** Request body */
+    body?: LooseObject;
 }
 
 /**
  * Load a PHP file.
  */
 export const phpLoader = async (options: Options) => {
-	const { file, method = 'GET', query = {}, body = {} } = options;
-	const options_ = [
-		'./wrapper.php',
-		method,
-		`${file}${Object.keys(query).length >= 1 ? ('?' + encodeParameters(query)) : ''}`,
-		encodeParameters(body),
-	];
+    const { file, method = 'GET', query = {}, body = {} } = options;
+    const options_ = [
+        './wrapper.php',
+        method,
+        `${file}${Object.keys(query).length >= 1 ? '?' + encodeParameters(query) : ''}`,
+        encodeParameters(body),
+    ];
 
-	return execa('php', options_, { cwd: import.meta.dirname })
+    return execa('php', options_, { cwd: import.meta.dirname })
         .then(({ stdout }) => {
             // Missing php file
             if (

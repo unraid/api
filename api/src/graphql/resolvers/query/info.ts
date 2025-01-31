@@ -1,36 +1,38 @@
-import { cpu, cpuFlags, mem, memLayout, osInfo, versions } from 'systeminformation';
-import { docker } from '@app/core/utils/clients/docker';
-import {
-    type InfoApps,
-    type Os as InfoOs,
-    type InfoCpu,
-    type Display,
-    type Theme,
-    type Temperature,
-    type Versions,
-    type InfoMemory,
-    type MemoryLayout,
-    type Devices,
-    type Gpu,
-} from '@app/graphql/generated/api/types';
-import { getters } from '@app/store';
-import { loadState } from '@app/core/utils/misc/load-state';
-import { type DynamixConfig } from '@app/core/types/ini';
-import { toBoolean } from '@app/core/utils/casting';
+import { access } from 'fs/promises';
+
 import toBytes from 'bytes';
+import { execa, execaCommandSync } from 'execa';
+import { isSymlink } from 'path-type';
+import { cpu, cpuFlags, mem, memLayout, osInfo, versions } from 'systeminformation';
+
+import type { PciDevice } from '@app/core/types';
+import { bootTimestamp } from '@app/common/dashboard/boot-timestamp';
 import { getUnraidVersion } from '@app/common/dashboard/get-unraid-version';
 import { AppError } from '@app/core/errors/app-error';
+import { type DynamixConfig } from '@app/core/types/ini';
+import { toBoolean } from '@app/core/utils/casting';
+import { docker } from '@app/core/utils/clients/docker';
 import { cleanStdout } from '@app/core/utils/misc/clean-stdout';
-import { execaCommandSync, execa } from 'execa';
-import { isSymlink } from 'path-type';
-import type { PciDevice } from '@app/core/types';
-import { vmRegExps } from '@app/core/utils/vms/domain/vm-regexps';
-import { getPciDevices } from '@app/core/utils/vms/get-pci-devices';
-import { filterDevices } from '@app/core/utils/vms/filter-devices';
-import { sanitizeVendor } from '@app/core/utils/vms/domain/sanitize-vendor';
+import { loadState } from '@app/core/utils/misc/load-state';
 import { sanitizeProduct } from '@app/core/utils/vms/domain/sanitize-product';
-import { bootTimestamp } from '@app/common/dashboard/boot-timestamp';
-import { access } from 'fs/promises';
+import { sanitizeVendor } from '@app/core/utils/vms/domain/sanitize-vendor';
+import { vmRegExps } from '@app/core/utils/vms/domain/vm-regexps';
+import { filterDevices } from '@app/core/utils/vms/filter-devices';
+import { getPciDevices } from '@app/core/utils/vms/get-pci-devices';
+import {
+    type Devices,
+    type Display,
+    type Gpu,
+    type InfoApps,
+    type InfoCpu,
+    type InfoMemory,
+    type Os as InfoOs,
+    type MemoryLayout,
+    type Temperature,
+    type Theme,
+    type Versions,
+} from '@app/graphql/generated/api/types';
+import { getters } from '@app/store';
 
 export const generateApps = async (): Promise<InfoApps> => {
     const installed = await docker

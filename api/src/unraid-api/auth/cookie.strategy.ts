@@ -3,8 +3,8 @@ import { PassportStrategy } from '@nestjs/passport';
 
 import { Strategy } from 'passport-custom';
 
-import type { CustomRequest } from '../types/request';
-import { AuthService } from './auth.service';
+import type { CustomRequest } from '@app/unraid-api/types/request';
+import { AuthService } from '@app/unraid-api/auth/auth.service';
 
 const strategyName = 'user-cookie';
 

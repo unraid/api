@@ -13,16 +13,12 @@ import { LogService } from '@app/unraid-api/cli/log.service';
     description: 'List all users for SSO',
 })
 export class ListSSOUserCommand extends CommandRunner {
-    constructor(
-        private readonly logger: LogService,
-    ) {
+    constructor(private readonly logger: LogService) {
         super();
     }
 
     async run(_input: string[]): Promise<void> {
         await store.dispatch(loadConfigFile());
-        this.logger.info(
-            store.getState().config.remote.ssoSubIds.split(',').filter(Boolean).join('\n')
-        );
+        this.logger.info(store.getState().config.remote.ssoSubIds.split(',').filter(Boolean).join('\n'));
     }
 }

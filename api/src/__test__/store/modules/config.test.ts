@@ -27,7 +27,7 @@ test('After init returns values from cfg file for all fields', async () => {
                 upnpStatus: '',
             },
             local: {
-                sandbox: expect.any(String)
+                sandbox: expect.any(String),
             },
             nodeEnv: 'test',
             remote: {
@@ -77,7 +77,7 @@ test('updateUserConfig merges in changes to current state', async () => {
                 upnpStatus: '',
             },
             local: {
-                sandbox: expect.any(String)
+                sandbox: expect.any(String),
             },
             nodeEnv: 'test',
             remote: {

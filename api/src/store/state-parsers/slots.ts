@@ -1,16 +1,8 @@
-import { type IniEnabled, type IniNumberBoolean } from '@app/core/types/ini';
-import {
-    toNumber,
-    toBoolean,
-    toNumberOrNull,
-    toNumberOrNullConvert,
-} from '@app/core/utils';
-import {
-    ArrayDiskStatus,
-    ArrayDiskType,
-    type ArrayDisk,
-} from '@app/graphql/generated/api/types';
+import type { ArrayDisk } from '@app/graphql/generated/api/types';
 import type { StateFileToIniParserMap } from '@app/store/types';
+import { type IniEnabled, type IniNumberBoolean } from '@app/core/types/ini';
+import { toBoolean, toNumber, toNumberOrNull, toNumberOrNullConvert } from '@app/core/utils';
+import { ArrayDiskStatus, ArrayDiskType } from '@app/graphql/generated/api/types';
 
 type SlotStatus = 'DISK_OK';
 type SlotFsStatus = 'Mounted';
@@ -81,14 +73,12 @@ export const parse: StateFileToIniParserMap['disks'] = (disksIni) =>
                 size: toNumber(slot.size),
                 status: ArrayDiskStatus[slot.status],
                 temp: toNumberOrNull(slot.temp),
-                type: slot.type
-                    ? ArrayDiskType[slot.type.toUpperCase()]
-                    : undefined,
+                type: slot.type ? ArrayDiskType[slot.type.toUpperCase()] : undefined,
                 warning: toNumberOrNull(slot.warning),
                 critical: toNumberOrNull(slot.critical),
                 fsType: slot.fsType ?? null,
-                format: slot.format === '-' ? null: slot.format,
-                transport: slot.transport ?? null
+                format: slot.format === '-' ? null : slot.format,
+                transport: slot.transport ?? null,
             };
             // @TODO Zod Parse This
             return result;

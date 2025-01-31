@@ -1,9 +1,11 @@
-import { parseConfig } from '@app/core/utils/misc/parse-config';
-import { createAsyncThunk } from '@reduxjs/toolkit';
-import { access } from 'fs/promises';
 import { F_OK } from 'constants';
-import { type RecursivePartial, type RecursiveNullable } from '@app/types';
+import { access } from 'fs/promises';
+
+import { createAsyncThunk } from '@reduxjs/toolkit';
+
 import { type DynamixConfig } from '@app/core/types/ini';
+import { parseConfig } from '@app/core/utils/misc/parse-config';
+import { type RecursiveNullable, type RecursivePartial } from '@app/types';
 import { batchProcess } from '@app/utils';
 
 /**

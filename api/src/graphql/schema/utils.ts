@@ -1,14 +1,12 @@
-import { type User } from '@app/core/types/states/user';
+import type { Server } from '@app/graphql/generated/client/graphql';
 import { AppError } from '@app/core/errors/app-error';
-import { ensurePermission } from '@app/core/utils/permissions/ensure-permission';
-import { pubsub } from '@app/core/pubsub';
-import { store } from '@app/store';
 import { graphqlLogger } from '@app/core/log';
-import {
-    ServerStatus,
-    type Server,
-} from '@app/graphql/generated/client/graphql';
+import { pubsub } from '@app/core/pubsub';
+import { type User } from '@app/core/types/states/user';
+import { ensurePermission } from '@app/core/utils/permissions/ensure-permission';
 import { MinigraphStatus } from '@app/graphql/generated/api/types';
+import { ServerStatus } from '@app/graphql/generated/client/graphql';
+import { store } from '@app/store';
 
 export interface Context {
     user?: User;
@@ -25,15 +23,17 @@ const subscriptions: Record<string, Subscription> = {};
 /**
  * Return current ws connection count.
  */
-export const getWsConnectionCount = () => Object.values(subscriptions).filter(subscription => subscription.total >= 1).length;
+export const getWsConnectionCount = () =>
+    Object.values(subscriptions).filter((subscription) => subscription.total >= 1).length;
 
 /**
  * Return current ws connection count in channel.
  */
-export const getWsConnectionCountInChannel = (channel: string) => Object.values(subscriptions).filter(subscription => subscription.channels.includes(channel)).length;
+export const getWsConnectionCountInChannel = (channel: string) =>
+    Object.values(subscriptions).filter((subscription) => subscription.channels.includes(channel))
+        .length;
 
 export const hasSubscribedToChannel = (id: string, channel: string) => {
-
     graphqlLogger.debug('Subscribing to %s', channel);
 
     // Setup initial object
@@ -67,11 +67,11 @@ export const createSubscription = (channel: string, resource?: string) => ({
             possession: 'any',
         });
 
-    hasSubscribedToChannel(context.websocketId, channel);
+        hasSubscribedToChannel(context.websocketId, channel);
         return pubsub.asyncIterator(channel);
     },
 });
- 
+
 export const getLocalServer = (getState = store.getState): Array<Server> => {
     const { emhttp, config, minigraph } = getState();
     const guid = emhttp.var.regGuid;

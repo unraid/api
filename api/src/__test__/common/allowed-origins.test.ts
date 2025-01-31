@@ -1,4 +1,5 @@
 import 'reflect-metadata';
+
 import { expect, test } from 'vitest';
 
 // Preloading imports for faster tests

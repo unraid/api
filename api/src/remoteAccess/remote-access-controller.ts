@@ -1,24 +1,24 @@
+import type { AccessUrl } from '@app/graphql/generated/api/types';
+import type { AppDispatch, RootState } from '@app/store/index';
 import { remoteAccessLogger } from '@app/core/log';
 import { UnraidLocalNotifier } from '@app/core/notifiers/unraid-local';
-import {
-    type AccessUrl,
-    DynamicRemoteAccessType,
-} from '@app/graphql/generated/api/types';
+import { DynamicRemoteAccessType } from '@app/graphql/generated/api/types';
 import { type IRemoteAccessController } from '@app/remoteAccess/handlers/remote-access-interface';
 import { StaticRemoteAccess } from '@app/remoteAccess/handlers/static-remote-access';
 import { UpnpRemoteAccess } from '@app/remoteAccess/handlers/upnp-remote-access';
-import { getters, type AppDispatch, type RootState } from '@app/store/index';
+import { getters } from '@app/store/index';
 import {
     clearPing,
     receivedPing,
     setDynamicRemoteAccessError,
     setRemoteAccessRunningType,
 } from '@app/store/modules/dynamic-remote-access';
+
 export class RemoteAccessController implements IRemoteAccessController {
     static _instance: RemoteAccessController | null = null;
     activeRemoteAccess: UpnpRemoteAccess | StaticRemoteAccess | null = null;
     notifier: UnraidLocalNotifier = new UnraidLocalNotifier({ level: 'info' });
-     
+
     constructor() {}
 
     public static get instance(): RemoteAccessController {
@@ -33,11 +33,7 @@ export class RemoteAccessController implements IRemoteAccessController {
         return getters.dynamicRemoteAccess().runningType;
     }
 
-    public getRemoteAccessUrl({
-        getState,
-    }: {
-        getState: () => RootState;
-    }): AccessUrl | null {
+    public getRemoteAccessUrl({ getState }: { getState: () => RootState }): AccessUrl | null {
         if (!this.activeRemoteAccess) {
             return null;
         }
@@ -64,11 +60,7 @@ export class RemoteAccessController implements IRemoteAccessController {
             return null;
         }
 
-        remoteAccessLogger.debug(
-            'Beginning remote access',
-            runningType,
-            dynamicRemoteAccessType
-        );
+        remoteAccessLogger.debug('Beginning remote access', runningType, dynamicRemoteAccessType);
         if (runningType !== dynamicRemoteAccessType) {
             await this.activeRemoteAccess?.stopRemoteAccess({
                 getState,
@@ -79,9 +71,7 @@ export class RemoteAccessController implements IRemoteAccessController {
         switch (dynamicRemoteAccessType) {
             case DynamicRemoteAccessType.DISABLED:
                 this.activeRemoteAccess = null;
-                remoteAccessLogger.debug(
-                    'Received begin event, but DRA is disabled.'
-                );
+                remoteAccessLogger.debug('Received begin event, but DRA is disabled.');
                 break;
             case DynamicRemoteAccessType.UPNP:
                 remoteAccessLogger.debug('UPNP DRA Begin');
@@ -109,9 +99,7 @@ export class RemoteAccessController implements IRemoteAccessController {
             });
         } catch (error: unknown) {
             dispatch(
-                setDynamicRemoteAccessError(
-                    error instanceof Error ? error.message : 'Unknown Error'
-                )
+                setDynamicRemoteAccessError(error instanceof Error ? error.message : 'Unknown Error')
             );
         }
 

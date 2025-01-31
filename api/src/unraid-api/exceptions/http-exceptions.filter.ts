@@ -1,16 +1,10 @@
-import {
-    Catch,
-    HttpException,
-    type ArgumentsHost,
-    type ExceptionFilter,
-    Logger,
-} from '@nestjs/common';
+import type { ArgumentsHost, ExceptionFilter } from '@nestjs/common';
+import { Catch, HttpException, Logger } from '@nestjs/common';
+
 import { type FastifyReply } from 'fastify';
 
 @Catch(HttpException)
-export class HttpExceptionFilter<T extends HttpException>
-    implements ExceptionFilter
-{
+export class HttpExceptionFilter<T extends HttpException> implements ExceptionFilter {
     protected logger = new Logger('HttpExceptionFilter');
 
     catch(exception: T, host: ArgumentsHost) {
@@ -33,8 +27,6 @@ export class HttpExceptionFilter<T extends HttpException>
                 : (exceptionResponse as object);
 
         this.logger.error(`HttpException: ${JSON.stringify(error)}`);
-        return response
-            .status(status)
-            .send({ error, timestamp: new Date().toISOString() });
+        return response.status(status).send({ error, timestamp: new Date().toISOString() });
     }
 }

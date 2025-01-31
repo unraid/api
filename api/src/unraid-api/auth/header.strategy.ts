@@ -4,8 +4,7 @@ import { PassportStrategy } from '@nestjs/passport';
 import { Strategy } from 'passport-http-header-strategy';
 
 import { User } from '@app/graphql/generated/api/types';
-
-import { AuthService } from './auth.service';
+import { AuthService } from '@app/unraid-api/auth/auth.service';
 
 @Injectable()
 export class ServerHeaderStrategy extends PassportStrategy(Strategy, 'server-http-header') {

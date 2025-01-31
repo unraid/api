@@ -1,4 +1,5 @@
 import { expect, test } from 'vitest';
+
 import { store } from '@app/store';
 
 test('Returns paths', async () => {

@@ -1,10 +1,11 @@
+import { Injectable, Logger } from '@nestjs/common';
+import { Cron } from '@nestjs/schedule';
+import { readFile, writeFile } from 'fs/promises';
+
 import { ONE_DAY_MS, THIRTY_MINUTES_MS } from '@app/consts';
 import { sleep } from '@app/core/utils/misc/sleep';
 import { convertToFuzzyTime } from '@app/mothership/utils/convert-to-fuzzy-time';
 import { getters } from '@app/store/index';
-import { Injectable, Logger } from '@nestjs/common';
-import { Cron } from '@nestjs/schedule';
-import { readFile, writeFile } from 'fs/promises';
 
 @Injectable()
 export class WriteFlashFileService {
@@ -13,9 +14,7 @@ export class WriteFlashFileService {
     private fileLocation = getters.paths()['myservers-keepalive'];
     public randomizeWriteTime = true;
     public writeNewTimestamp = async (): Promise<number> => {
-        const wait = this.randomizeWriteTime
-            ? convertToFuzzyTime(0, THIRTY_MINUTES_MS)
-            : 0;
+        const wait = this.randomizeWriteTime ? convertToFuzzyTime(0, THIRTY_MINUTES_MS) : 0;
         await sleep(wait);
         const newDate = new Date();
         try {
@@ -28,9 +27,7 @@ export class WriteFlashFileService {
 
     public getOrCreateTimestamp = async (): Promise<number> => {
         try {
-            const file = (
-                await readFile(this.fileLocation, 'utf-8')
-            ).toString();
+            const file = (await readFile(this.fileLocation, 'utf-8')).toString();
             return Date.parse(file);
         } catch (error) {
             return await this.writeNewTimestamp();

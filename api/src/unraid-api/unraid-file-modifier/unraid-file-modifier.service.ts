@@ -1,11 +1,10 @@
 import { Injectable, Logger, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
 
 import AuthRequestModification from '@app/unraid-api/unraid-file-modifier/modifications/auth-request.modification';
+import DefaultPageLayoutModification from '@app/unraid-api/unraid-file-modifier/modifications/default-page-layout.modification';
 import { LogRotateModification } from '@app/unraid-api/unraid-file-modifier/modifications/log-rotate.modification';
+import NotificationsPageModification from '@app/unraid-api/unraid-file-modifier/modifications/notifications-page.modification';
 import SSOFileModification from '@app/unraid-api/unraid-file-modifier/modifications/sso.modification';
-
-import DefaultPageLayoutModification from './modifications/default-page-layout.modification';
-import NotificationsPageModification from './modifications/notifications-page.modification';
 
 export interface ShouldApplyWithReason {
     shouldApply: boolean;

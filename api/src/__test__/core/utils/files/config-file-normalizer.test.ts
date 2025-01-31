@@ -77,7 +77,7 @@ test('it creates a MEMORY config with NO OPTIONAL values', () => {
 
 test('it creates a FLASH config with OPTIONAL values', () => {
     const basicConfig = cloneDeep(initialState);
-	// 2fa & t2fa should be ignored
+    // 2fa & t2fa should be ignored
     basicConfig.remote['2Fa'] = 'yes';
     basicConfig.local['2Fa'] = 'yes';
     basicConfig.local.showT2Fa = 'yes';
@@ -117,7 +117,7 @@ test('it creates a FLASH config with OPTIONAL values', () => {
 
 test('it creates a MEMORY config with OPTIONAL values', () => {
     const basicConfig = cloneDeep(initialState);
-	// 2fa & t2fa should be ignored
+    // 2fa & t2fa should be ignored
     basicConfig.remote['2Fa'] = 'yes';
     basicConfig.local['2Fa'] = 'yes';
     basicConfig.local.showT2Fa = 'yes';

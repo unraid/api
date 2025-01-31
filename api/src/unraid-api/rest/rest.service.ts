@@ -8,8 +8,8 @@ import { execa } from 'execa';
 
 import { getBannerPathIfPresent, getCasePathIfPresent } from '@app/core/utils/images/image-file-helpers';
 import { getters } from '@app/store/index';
-import { ReportCommand } from '@app/unraid-api/cli/report.command';
 import { LogService } from '@app/unraid-api/cli/log.service';
+import { ReportCommand } from '@app/unraid-api/cli/report.command';
 
 @Injectable()
 export class RestService {

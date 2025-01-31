@@ -7,8 +7,7 @@ import { ApiKeyWithSecret, Resource, Role } from '@app/graphql/generated/api/typ
 import { ApiKeyService } from '@app/unraid-api/auth/api-key.service';
 import { AuthService } from '@app/unraid-api/auth/auth.service';
 import { CookieService } from '@app/unraid-api/auth/cookie.service';
-
-import { ApiKeyResolver } from './api-key.resolver';
+import { ApiKeyResolver } from '@app/unraid-api/graph/resolvers/api-key/api-key.resolver';
 
 describe('ApiKeyResolver', () => {
     let resolver: ApiKeyResolver;
@@ -23,7 +22,7 @@ describe('ApiKeyResolver', () => {
         description: 'Test API Key Description',
         roles: [Role.GUEST],
         createdAt: new Date().toISOString(),
-        permissions: []
+        permissions: [],
     };
 
     const mockApiKeyWithSecret: ApiKeyWithSecret = {
@@ -33,7 +32,7 @@ describe('ApiKeyResolver', () => {
         description: 'Test API Key Description',
         roles: [Role.GUEST],
         createdAt: new Date().toISOString(),
-        permissions: []
+        permissions: [],
     };
 
     beforeEach(async () => {
@@ -86,7 +85,7 @@ describe('ApiKeyResolver', () => {
                 name: 'New API Key',
                 description: 'New API Key Description',
                 roles: [Role.GUEST],
-                permissions: []
+                permissions: [],
             };
 
             vi.spyOn(apiKeyService, 'create').mockResolvedValue(mockApiKeyWithSecret);

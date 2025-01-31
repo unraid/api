@@ -5,7 +5,7 @@ import { AppError } from '@app/core/errors/app-error';
  * Sorry about that. 😔
  */
 export class NotImplementedError extends AppError {
-	constructor() {
-		super('Not implemented!');
-	}
+    constructor() {
+        super('Not implemented!');
+    }
 }

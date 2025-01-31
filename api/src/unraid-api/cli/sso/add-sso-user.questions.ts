@@ -32,7 +32,7 @@ Are you sure you want to proceed with adding a user for SSO? (y/n)
 
     @Question({
         message:
-            "What is your Unique Unraid Account ID? Find it in your Unraid Account at https://account.unraid.net/settings\n",
+            'What is your Unique Unraid Account ID? Find it in your Unraid Account at https://account.unraid.net/settings\n',
         name: 'username',
         validate(input) {
             if (!input) {
@@ -40,7 +40,11 @@ Are you sure you want to proceed with adding a user for SSO? (y/n)
             }
             const randomUUID = uuidv4();
 
-            if (!/^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/.test(input)) {
+            if (
+                !/^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/.test(
+                    input
+                )
+            ) {
                 return `Username must be in the format of a UUID (e.g., ${randomUUID}).`;
             }
             return true;

@@ -2,18 +2,16 @@ import { Args, Mutation, Query, ResolveField, Resolver, Subscription } from '@ne
 
 import { AuthActionVerb, AuthPossession, UsePermissions } from 'nest-authz';
 
+import type {
+    NotificationData,
+    NotificationFilter,
+    NotificationOverview,
+} from '@app/graphql/generated/api/types';
 import { AppError } from '@app/core/errors/app-error';
 import { createSubscription, PUBSUB_CHANNEL } from '@app/core/pubsub';
-import {
-    type NotificationData,
-    type NotificationFilter,
-    type NotificationOverview,
-    NotificationType,
-    Resource,
-} from '@app/graphql/generated/api/types';
+import { NotificationType, Resource } from '@app/graphql/generated/api/types';
 import { Importance } from '@app/graphql/generated/client/graphql';
-
-import { NotificationsService } from './notifications.service';
+import { NotificationsService } from '@app/unraid-api/graph/resolvers/notifications/notifications.service';
 
 @Resolver('Notifications')
 export class NotificationsResolver {
