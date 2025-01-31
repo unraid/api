@@ -1,19 +1,11 @@
 import { readFile } from 'fs/promises';
 
-
-
 import { Command, CommandRunner, Option } from 'nest-commander';
-
-
 
 import type { MyServersConfigMemory } from '@app/types/my-servers-config';
 import { getters } from '@app/store';
 import { MyServersConfigMemorySchema } from '@app/types/my-servers-config';
 import { LogService } from '@app/unraid-api/cli/log.service';
-
-
-
-
 
 @Command({ name: 'report' })
 export class ReportCommand extends CommandRunner {
