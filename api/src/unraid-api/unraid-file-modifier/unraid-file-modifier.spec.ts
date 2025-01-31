@@ -19,10 +19,6 @@ class TestFileModification extends FileModification {
     id = 'test';
     public readonly filePath: string = FIXTURE_PATH;
 
-    constructor(logger: Logger) {
-        super(logger);
-    }
-
     protected async generatePatch(): Promise<string> {
         return createPatch('text-patch-file.txt', ORIGINAL_CONTENT, 'modified');
     }
