@@ -1,4 +1,3 @@
-import type { TypeSource } from '@graphql-tools/utils';
 import { mergeTypeDefs } from '@graphql-tools/merge';
 import { logger } from '@app/core/log';
 
