@@ -1,14 +1,15 @@
+import type { ViteUserConfig } from 'vitest/config';
 import { viteCommonjs } from '@originjs/vite-plugin-commonjs';
 import nodeResolve from '@rollup/plugin-node-resolve';
 import nodeExternals from 'rollup-plugin-node-externals';
 import swc from 'unplugin-swc';
 import { VitePluginNode } from 'vite-plugin-node';
-import { viteStaticCopy } from 'vite-plugin-static-copy';
 import tsconfigPaths from 'vite-tsconfig-paths';
 import { defineConfig } from 'vitest/config';
 
-export default defineConfig(({ mode }) => {
+export default defineConfig(({ mode }): ViteUserConfig => {
     return {
+        assetsInclude: ['src/**/*.graphql'],
         plugins: [
             tsconfigPaths(),
             nodeExternals(),
@@ -18,9 +19,6 @@ export default defineConfig(({ mode }) => {
             }),
             viteCommonjs({
                 include: ['@fastify/type-provider-typebox', 'node_modules/**'],
-            }),
-            viteStaticCopy({
-                targets: [{ src: 'src/graphql/schema/types', dest: '' }],
             }),
             ...(mode === 'development'
                 ? VitePluginNode({
@@ -73,7 +71,6 @@ export default defineConfig(({ mode }) => {
             include: [
                 '@nestjs/common',
                 '@nestjs/core',
-                '@nestjs/platform-express',
                 'reflect-metadata',
                 'fastify',
                 'passport',
@@ -81,7 +78,8 @@ export default defineConfig(({ mode }) => {
             ],
         },
         build: {
-            sourcemap: true,
+            ssr: true,
+            sourcemap: false,
             outDir: 'dist',
             rollupOptions: {
                 input: {

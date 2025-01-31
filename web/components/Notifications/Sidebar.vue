@@ -1,14 +1,17 @@
 <script setup lang="ts">
 import { Button } from '@/components/shadcn/button';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/shadcn/sheet';
-import { useMutation, useQuery } from '@vue/apollo-composable';
+import { useMutation, useQuery, useSubscription } from '@vue/apollo-composable';
+import { useFragment } from '~/composables/gql';
 // eslint-disable-next-line @typescript-eslint/consistent-type-imports -- false positive :(
 import { Importance, NotificationType } from '~/composables/gql/graphql';
 import {
   archiveAllNotifications,
   deleteArchivedNotifications,
+  NOTIFICATION_FRAGMENT,
   notificationsOverview,
 } from './graphql/notification.query';
+import { notificationAddedSubscription } from './graphql/notification.subscription';
 
 const { mutate: archiveAll, loading: loadingArchiveAll } = useMutation(archiveAllNotifications);
 const { mutate: deleteArchives, loading: loadingDeleteAll } = useMutation(deleteArchivedNotifications);
@@ -33,6 +36,25 @@ const confirmAndDeleteArchives = async () => {
 
 const { result } = useQuery(notificationsOverview, null, {
   pollInterval: 2_000, // 2 seconds
+});
+
+const { onResult: onNotificationAdded } = useSubscription(notificationAddedSubscription);
+onNotificationAdded(({ data }) => {
+  if (!data) return;
+  const notif = useFragment(NOTIFICATION_FRAGMENT, data.notificationAdded);
+
+  const funcMapping: Record<Importance, (typeof globalThis)['toast']['info' | 'error' | 'warning']> = {
+    [Importance.Alert]: globalThis.toast.error,
+    [Importance.Warning]: globalThis.toast.warning,
+    [Importance.Info]: globalThis.toast.info,
+  };
+  const toast = funcMapping[notif.importance];
+  const createOpener = () => ({ label: 'Open', onClick: () => location.assign(notif.link as string) });
+
+  toast(notif.title, {
+    description: notif.subject,
+    action: notif.link ? createOpener() : undefined,
+  });
 });
 
 const overview = computed(() => {

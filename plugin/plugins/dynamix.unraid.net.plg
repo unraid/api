@@ -48,6 +48,20 @@ exit 0
   <FILE Run="/bin/bash" Method="install">
     <INLINE>
       <![CDATA[
+# Check available disk space on /usr
+echo -n "Checking disk space on /usr... "
+FREE_SPACE=$(df -m /usr | awk 'NR==2 {print $4}')
+if [ -z "$FREE_SPACE" ]; then
+  echo "⚠️ Error: Unable to determine free space on /usr"
+  exit 1
+fi
+
+if [ "$FREE_SPACE" -lt 300 ]; then
+  echo "⚠️ Error: Insufficient disk space on /usr. Need at least 300MB free, only ${FREE_SPACE}MB available"
+  exit 1
+fi
+echo "ok. (${FREE_SPACE}MB free)"
+
 version=
 # shellcheck disable=SC1091
 source /etc/unraid-version
@@ -104,7 +118,6 @@ sha256check() {
       exit 0
     </INLINE>
   </FILE>
-  <!-- download node - older OS releases -->
   <FILE Name="/boot/config/plugins/dynamix.my.servers/&NODEJS_FILENAME;">
     <URL>&NODEJS_TXZ;</URL>
     <SHA256>&NODEJS_SHA256;</SHA256>
@@ -113,47 +126,32 @@ sha256check() {
     <INLINE>
       NODE_FILE="&NODEJS_FILENAME;"
       <![CDATA[
-      if [[ -f "/boot/config/plugins/dynamix.my.servers/${NODE_FILE}" ]]; then
-        # Create temp directory with error checking
-        TEMP_DIR=$(mktemp -d) || { echo "Failed to create temp directory"; exit 1; }
-        
-        # Extract with error checking
-        if ! tar --strip-components=1 -xf "/boot/config/plugins/dynamix.my.servers/${NODE_FILE}" -C "${TEMP_DIR}"; then
-          echo "Failed to extract Node.js archive"
-          rm -rf "${TEMP_DIR}"
+        # Check if the Node.js archive exists
+        if [[ ! -f "/boot/config/plugins/dynamix.my.servers/${NODE_FILE}" ]]; then
+          echo "Node.js archive not found at /boot/config/plugins/dynamix.my.servers/${NODE_FILE}"
           exit 1
         fi
 
-        # Verify extracted files exist before copying
-        for DIR in bin lib include share; do
-          if [[ ! -d "${TEMP_DIR}/${DIR}" ]]; then
-            echo "Missing ${DIR} directory in Node.js archive"
-            rm -rf "${TEMP_DIR}"
-            exit 1
-          fi
-        done
+        # Perform a dry run to verify the archive is valid
+        if ! tar --strip-components=1 -tf "/boot/config/plugins/dynamix.my.servers/${NODE_FILE}" > /dev/null; then
+          echo "Node.js archive is corrupt or invalid"
+          exit 1
+        fi
 
-        # Create destination directories if they don't exist
-        for DIR in bin lib include share; do
-          mkdir -p "/usr/local/${DIR}"
-        done
+        # Define the target directory for Node.js
+        NODE_DIR="/usr/local/node"
 
-        # Copy files with individual error checking
-        for DIR in bin lib include share; do
-          if ! cp -rf "${TEMP_DIR}/${DIR}"/* "/usr/local/${DIR}/"; then
-            echo "Failed to copy ${DIR} files"
-            rm -rf "${TEMP_DIR}"
-            exit 1
-          fi
-        done
+        # Create the target directory if it doesn't exist
+        mkdir -p "${NODE_DIR}" || { echo "Failed to create ${NODE_DIR}"; exit 1; }
+
+        # Extract the archive to the target directory
+        if ! tar --strip-components=1 -xf "/boot/config/plugins/dynamix.my.servers/${NODE_FILE}" -C "${NODE_DIR}"; then
+          echo "Failed to extract Node.js archive"
+          exit 1
+        fi
 
         echo "Node.js installation successful"
-        rm -rf "${TEMP_DIR}"
-      else
-        echo "Node.js archive not found at /boot/config/plugins/dynamix.my.servers/${NODE_FILE}"
-        exit 1
-      fi
-      exit 0
+        exit 0
       ]]>
     </INLINE>
   </FILE>
@@ -440,6 +438,8 @@ appendTextIfMissing() {
     echo "${TEXT}">>"${FILE}"
   fi
 }
+      source /root/.bashrc
+      echo "PATH: $PATH"
 
 version=
 # shellcheck disable=SC1091
@@ -481,7 +481,6 @@ echo
 # skip: do not perform any action if there is a manifest version difference
 preserveFilesDirs=(
   "move:/usr/local/emhttp/plugins/dynamix/Registration.page:preventDowngrade"
-  "copy:/usr/local/emhttp/plugins/dynamix/Notifications.page:preventDowngrade"
   "move:/usr/local/emhttp/plugins/dynamix/include/UpdateDNS.php:preventDowngrade"
   "move:/usr/local/emhttp/plugins/dynamix.plugin.manager/Downgrade.page:preventDowngrade"
   "move:/usr/local/emhttp/plugins/dynamix.plugin.manager/Update.page:preventDowngrade"
@@ -548,13 +547,6 @@ if [[ -n $LINENUM ]]; then
   mv -f "$FILE~" "$FILE"
 fi
 
-# Remove lines containing id='bell' or #bell and write to intermediate temporary file.
-# This effectively removes the old notification bell from the webgui (via DefaultPageLayout.php).
-TMP_FILE=$(mktemp)
-grep -Ev "id='bell'|#bell" "$FILE" > "$TMP_FILE"
-mv "$TMP_FILE" "$FILE"
-echo "Removed notification-bell-related lines from $FILE"
-
 # patch: showchanges, starting with 6.11.0-rc1
 #        ShowChanges.php, in 6.10
 # search text:       $valid = ['/var/tmp/','/tmp/plugins/'];
@@ -567,19 +559,6 @@ for FILE in "${FILES[@]}"; do
     sed -i '/$valid = \[/c$valid = ['"'/var/tmp/'"','"'/tmp/plugins/'"','"'/boot/previous'"'];' "$FILE"
   fi
 done
-
-# patch: Notifications.page
-#
-# Remove date and time format settings from Notification Settings
-# search text:       _(Date format)_:
-# search text:       _(Time format)_:
-
-FILE=/usr/local/emhttp/plugins/dynamix/Notifications.page
-TMP_FILE=$(mktemp)
-cp "$FILE" "$TMP_FILE"
-sed -i '/_(Date format)_:/,/:notifications_date_format_help:/d' $TMP_FILE
-sed -i '/_(Time format)_:/,/:notifications_time_format_help:/d' $TMP_FILE
-mv "$TMP_FILE" "$FILE"
 
 # remove keys.limetechnology.com from hosts file
 # brings older versions of Unraid in sync with 6.12.12
@@ -905,15 +884,20 @@ mkdir -p /var/log/unraid-api
 tar -C "${api_base_directory}" -xzf "${flash}/unraid-api.tgz" --strip 1
 # Copy env file
 cp "${api_base_directory}/.env.${env}" "${api_base_directory}/.env"
-npm link "${api_base_directory}" --force
+
+# Create Symlink from /usr/local/unraid-api/dist/cli.js to /usr/local/bin/unraid-api
+ln -sf "${api_base_directory}/dist/cli.js" "${unraid_binary_path}"
+
 # Create symlink to unraid-api binary (to allow usage elsewhere)
-ln -sf /usr/local/bin/unraid-api /usr/local/sbin/unraid-api
-ln -sf /usr/local/bin/unraid-api /usr/bin/unraid-api
+ln -sf ${unraid_binary_path} /usr/local/sbin/unraid-api
+ln -sf ${unraid_binary_path} /usr/bin/unraid-api
 # bail if expected file does not exist
 [[ ! -f "${api_base_directory}/package.json" ]] && echo "unraid-api install failed" && exit 1
 
 logger "Starting flash backup (if enabled)"
 echo "/etc/rc.d/rc.flash_backup start" | at -M now &>/dev/null
+. /root/.bashrc
+echo "PATH: $PATH"
 logger "Starting Unraid API"
 ${unraid_binary_path} start
 

@@ -25,9 +25,7 @@ const httpLink = createHttpLink({
 const wsLink = new GraphQLWsLink(
   createClient({
     url: wsEndpoint.toString(),
-    connectionParams: () => ({
-      headers,
-    }),
+    connectionParams: () => headers,
   })
 );
 

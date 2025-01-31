@@ -5,8 +5,6 @@ import { FastifyAdapter } from '@nestjs/platform-fastify';
 import fastifyCookie from '@fastify/cookie';
 import Fastify from 'fastify';
 import { LoggerErrorInterceptor, Logger as PinoLogger } from 'nestjs-pino';
-
-import type { FastifyInstance } from '@app/types/fastify';
 import { apiLogger } from '@app/core/log';
 import { PORT } from '@app/environment';
 import { GraphQLExceptionsFilter } from '@app/unraid-api/exceptions/graphql-exceptions.filter';
@@ -17,17 +15,15 @@ import { configureFastifyCors } from './app/cors';
 import { CookieService } from './auth/cookie.service';
 
 export async function bootstrapNestServer(): Promise<NestFastifyApplication> {
-    const server = Fastify({
-        logger: false,
-    }) as FastifyInstance;
-
     apiLogger.debug('Creating Nest Server');
 
-    const app = await NestFactory.create<NestFastifyApplication>(AppModule, new FastifyAdapter(server), {
+    const app = await NestFactory.create<NestFastifyApplication>(AppModule, new FastifyAdapter(), {
         bufferLogs: false,
     });
 
-    app.register(fastifyCookie); // parse cookies before cors
+    const server = app.getHttpAdapter().getInstance();
+
+    await app.register(fastifyCookie); // parse cookies before cors
 
     const cookieService = app.get(CookieService);
     app.enableCors(configureFastifyCors(cookieService));

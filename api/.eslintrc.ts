@@ -1,9 +1,13 @@
-
-import type { Linter } from 'eslint';
 import eslint from '@eslint/js';
+import noRelativeImportPaths from 'eslint-plugin-no-relative-import-paths';
+import prettier from 'eslint-plugin-prettier';
 import tseslint from 'typescript-eslint';
 
 export default tseslint.config(eslint.configs.recommended, ...tseslint.configs.recommended, {
+    plugins: {
+        'no-relative-import-paths': noRelativeImportPaths,
+        prettier: prettier,
+    },
     rules: {
         '@typescript-eslint/no-redundant-type-constituents': 'off',
         '@typescript-eslint/no-unsafe-call': 'off',
@@ -17,5 +21,14 @@ export default tseslint.config(eslint.configs.recommended, ...tseslint.configs.r
         'no-multiple-empty-lines': ['error', { max: 1, maxBOF: 0, maxEOF: 1 }],
         '@typescript-eslint/no-unused-vars': 'off',
         '@typescript-eslint/no-unused-expressions': 'off',
+        'import/no-unresolved': 'off',
+        'import/extensions': 'off',
+        'import/no-absolute-path': 'off',
+        'import/prefer-default-export': 'off',
+        'no-relative-import-paths/no-relative-import-paths': [
+            'error',
+            { allowSameFolder: false, rootDir: 'src', prefix: '@app' },
+        ],
+        'prettier/prettier': 'error',
     },
 });

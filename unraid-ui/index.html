@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" href="/favicon.ico" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Vite App</title>
+  </head>
+  <body class="p-12">
+    <div id="app"></div>
+    <unraid-badge>Hello world</unraid-badge>
+    <unraid-button>woah</unraid-button>
+    <unraid-brand-button>woah2</unraid-brand-button>
+    <div class="w-[200px]"><unraid-brand-loading></unraid-brand-loading></div>
+    <div class="w-[200px] bg-neutral-900 p-6 rounded"><unraid-brand-loading-white></unraid-brand-loading-white></div>
+    <h1 class="text-3xl font-bold underline">Hello world!</h1>
+    <unraid-toaster close-button rich-colors></unraid-toaster>
+    <!-- <unraid-dropdown-menu-label>My Account</unraid-dropdown-menu-label>
+        <unraid-dropdown-menu-separator class="bg-black"></unraid-dropdown-menu-separator>
+      <unraid-dropdown-menu-trigger>
+        <unraid-button variant="secondary">Open Menu</unraid-button>
+      </unraid-dropdown-menu-trigger>
+    <unraid-dropdown-menu>
+      <unraid-dropdown-menu-trigger>
+        <unraid-button variant="secondary">Open Menu</unraid-button>
+      </unraid-dropdown-menu-trigger>
+      <unraid-dropdown-menu-content>
+        <unraid-dropdown-menu-label>My Account</unraid-dropdown-menu-label>
+        <unraid-dropdown-menu-separator></unraid-dropdown-menu-separator>
+        <unraid-dropdown-menu-item>Profile</unraid-dropdown-menu-item>
+        <unraid-dropdown-menu-item>Settings</unraid-dropdown-menu-item>
+        <unraid-dropdown-menu-item>Logout</unraid-dropdown-menu-item>
+      </unraid-dropdown-menu-content>
+    </unraid-dropdown-menu> -->
+
+    <script type="module">
+      import { registerAllComponents } from '/src/register.ts';
+      registerAllComponents();
+    </script>
+  </body>
+</html>

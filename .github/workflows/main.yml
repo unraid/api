@@ -101,42 +101,35 @@ jobs:
           name: unraid-api
           path: ${{ github.workspace }}/api/deploy/release/*.tgz
 
-  # build-unraid-ui:
-  #   name: Build Unraid UI Library
-  #   defaults:
-  #     run:
-  #       working-directory: unraid-ui
-  #   runs-on: ubuntu-latest
-  #   steps:
-  #     - name: Checkout repo
-  #       uses: actions/checkout@v4
-  #
-  #     - name: Install node
-  #       uses: actions/setup-node@v4
-  #       with:
-  #         cache: "npm"
-  #         cache-dependency-path: |
-  #           unraid-ui/package-lock.json
-  #         node-version-file: ".nvmrc"
-  #
-  #     - name: Install dependencies
-  #       run: npm install
-  #
-  #     - name: Build
-  #       run: npm run build
-  #
-  #     - name: Make Built Node Artifact
-  #       run: |
-  #         mkdir unraid-ui-dist
-  #         mv dist/ unraid-ui-dist/dist/
-  #         mv package.json unraid-ui-dist/package.json
-  #         ls unraid-ui-dist
-  #
-  #     - name: Upload Artifact to Github
-  #       uses: actions/upload-artifact@v4
-  #       with:
-  #         name: unraid-ui
-  #         path: unraid-ui/unraid-ui-dist
+  build-unraid-ui-webcomponents:
+    name: Build Unraid UI Library (Webcomponent Version)
+    defaults:
+      run:
+        working-directory: unraid-ui
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+  
+      - name: Install node
+        uses: actions/setup-node@v4
+        with:
+          cache: "npm"
+          cache-dependency-path: |
+            unraid-ui/package-lock.json
+          node-version-file: ".nvmrc"
+  
+      - name: Install dependencies
+        run: npm install
+  
+      - name: Build
+        run: npm run build:wc
+  
+      - name: Upload Artifact to Github
+        uses: actions/upload-artifact@v4
+        with:
+          name: unraid-wc-ui
+          path: unraid-ui/dist/
 
   build-web:
     # needs: [build-unraid-ui]
@@ -190,11 +183,11 @@ jobs:
       - name: Upload build to Github artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: unraid-web
+          name: unraid-wc-rich
           path: web/.nuxt/nuxt-custom-elements/dist/unraid-components
 
   build-plugin:
-    needs: [build-test-api, build-web]
+    needs: [build-test-api, build-web, build-unraid-ui-webcomponents]
     defaults:
       run:
         working-directory: plugin
@@ -206,11 +199,12 @@ jobs:
           timezoneLinux: "America/Los_Angeles"
       - name: Checkout repo
         uses: actions/checkout@v4
-      - name: Download unraid web components
+      - name: Download Unraid Web Components
         uses: actions/download-artifact@v4
         with:
-          name: unraid-web
+          pattern: unraid-wc-*
           path: ./plugin/source/dynamix.unraid.net/usr/local/emhttp/plugins/dynamix.my.servers/unraid-components
+          merge-multiple: true
       - name: Build Plugin
         run: |
           cd source/dynamix.unraid.net

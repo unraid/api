@@ -1,8 +1,11 @@
 import { Injectable, Logger, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
 
 import AuthRequestModification from '@app/unraid-api/unraid-file-modifier/modifications/auth-request.modification';
-import SSOFileModification from '@app/unraid-api/unraid-file-modifier/modifications/sso.modification';
 import { LogRotateModification } from '@app/unraid-api/unraid-file-modifier/modifications/log-rotate.modification';
+import SSOFileModification from '@app/unraid-api/unraid-file-modifier/modifications/sso.modification';
+
+import DefaultPageLayoutModification from './modifications/default-page-layout.modification';
+import NotificationsPageModification from './modifications/notifications-page.modification';
 
 export interface ShouldApplyWithReason {
     shouldApply: boolean;
@@ -46,6 +49,8 @@ export class UnraidFileModificationService implements OnModuleInit, OnModuleDest
             LogRotateModification,
             AuthRequestModification,
             SSOFileModification,
+            DefaultPageLayoutModification,
+            NotificationsPageModification,
         ];
         for (const ModificationClass of modificationClasses) {
             const instance = new ModificationClass(this.logger);
