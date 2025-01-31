@@ -17,6 +17,7 @@ export default class SSOFileModification implements FileModification {
 
     async apply(): Promise<void> {
         // Define the new PHP function to insert
+        /* eslint-disable no-useless-escape */
         const newFunction = `
 function verifyUsernamePasswordAndSSO(string $username, string $password): bool {
     if ($username != "root") return false;

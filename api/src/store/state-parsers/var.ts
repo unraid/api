@@ -1,15 +1,8 @@
-import {
-    type IniStringBoolean,
-    type IniStringBooleanOrAuto,
-} from '@app/core/types/ini';
-import { toNumber } from '@app/core/utils';
-import {
-    ArrayState,
-    type DiskFsType,
-    RegistrationState,
-    registrationType,
-} from '@app/graphql/generated/api/types';
+import type { DiskFsType } from '@app/graphql/generated/api/types';
 import type { StateFileToIniParserMap } from '@app/store/types';
+import { type IniStringBoolean, type IniStringBooleanOrAuto } from '@app/core/types/ini';
+import { toNumber } from '@app/core/utils';
+import { ArrayState, RegistrationState, registrationType } from '@app/graphql/generated/api/types';
 
 /**
  * Unraid registration check
@@ -195,11 +188,7 @@ const safeParseMdState = (mdState: string | undefined): ArrayState => {
     }
     const stateUpper = mdState.toUpperCase();
     const attemptedParse =
-        ArrayState[
-            stateUpper.startsWith('ERROR')
-                ? stateUpper.split(':')[1]
-                : stateUpper
-        ];
+        ArrayState[stateUpper.startsWith('ERROR') ? stateUpper.split(':')[1] : stateUpper];
 
     if (!attemptedParse) {
         return ArrayState.STOPPED;
@@ -247,15 +236,12 @@ export const parse: StateFileToIniParserMap['var'] = (iniFile) => {
         portssl: toNumber(iniFile.portssl),
         porttelnet: toNumber(iniFile.porttelnet),
         regCheck: iniFile.regCheck === '' ? 'Valid' : 'Error',
-        regTy:
-            registrationType[iniFile.regTy?.toUpperCase()] ??
-            registrationType.INVALID,
-        regExp: iniFile.regExp  ?? null,
+        regTy: registrationType[iniFile.regTy?.toUpperCase()] ?? registrationType.INVALID,
+        regExp: iniFile.regExp ?? null,
         // Make sure to use a || not a ?? as regCheck can be an empty string
         regState:
-            RegistrationState[
-                (iniFile.regCheck || iniFile.regTy || '').toUpperCase()
-            ] ?? RegistrationState.EGUID,
+            RegistrationState[(iniFile.regCheck || iniFile.regTy || '').toUpperCase()] ??
+            RegistrationState.EGUID,
         safeMode: iniBooleanToJsBoolean(iniFile.safeMode),
         sbClean: iniBooleanToJsBoolean(iniFile.sbClean),
         sbEvents: toNumber(iniFile.sbEvents),
@@ -272,10 +258,7 @@ export const parse: StateFileToIniParserMap['var'] = (iniFile) => {
         shareNfsEnabled: iniBooleanToJsBoolean(iniFile.shareNfsEnabled),
         shareSmbCount: toNumber(iniFile.shareSmbCount),
         shareSmbEnabled: ['yes', 'ads'].includes(iniFile.shareSmbEnabled),
-        shareSmbMode:
-            iniFile.shareSmbEnabled === 'ads'
-                ? 'active-directory'
-                : 'workgroup',
+        shareSmbMode: iniFile.shareSmbEnabled === 'ads' ? 'active-directory' : 'workgroup',
         shutdownTimeout: toNumber(iniFile.shutdownTimeout),
         spindownDelay: toNumber(iniFile.spindownDelay),
         spinupGroups: iniBooleanToJsBoolean(iniFile.spinupGroups),

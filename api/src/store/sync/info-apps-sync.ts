@@ -1,44 +1,48 @@
-import { logger } from '@app/core/log';
-import { PUBSUB_CHANNEL, pubsub } from '@app/core/pubsub';
-import { store } from '@app/store';
-import { DaemonConnectionStatus, type StoreSubscriptionHandler } from '@app/store/types';
 import { isEqual } from 'lodash-es';
 
+import type { StoreSubscriptionHandler } from '@app/store/types';
+import { logger } from '@app/core/log';
+import { pubsub, PUBSUB_CHANNEL } from '@app/core/pubsub';
+import { store } from '@app/store';
+import { DaemonConnectionStatus } from '@app/store/types';
+
 type InfoAppsEvent = {
-	info: {
-		apps: {
-			installed: number | null;
-			running: number | null;
-		};
-	};
+    info: {
+        apps: {
+            installed: number | null;
+            running: number | null;
+        };
+    };
 };
 
-export const createInfoAppsEvent = (state: Parameters<StoreSubscriptionHandler>[0]): InfoAppsEvent | null => {
-	// Docker state isn't loaded
-	if (state === null || state.docker.status === DaemonConnectionStatus.DISCONNECTED) return null;
+export const createInfoAppsEvent = (
+    state: Parameters<StoreSubscriptionHandler>[0]
+): InfoAppsEvent | null => {
+    // Docker state isn't loaded
+    if (state === null || state.docker.status === DaemonConnectionStatus.DISCONNECTED) return null;
 
-	return {
-		info: {
-			apps: {
-				installed: state?.docker.installed,
-				running: state?.docker.running,
-			},
-		},
-	};
+    return {
+        info: {
+            apps: {
+                installed: state?.docker.installed,
+                running: state?.docker.running,
+            },
+        },
+    };
 };
 
-export const syncInfoApps: StoreSubscriptionHandler = async lastState => {
-	const lastEvent = createInfoAppsEvent(lastState);
-	const currentEvent = createInfoAppsEvent(store.getState());
+export const syncInfoApps: StoreSubscriptionHandler = async (lastState) => {
+    const lastEvent = createInfoAppsEvent(lastState);
+    const currentEvent = createInfoAppsEvent(store.getState());
 
-	// Skip if either event resolved to null
-	if (lastEvent === null || currentEvent === null) return;
+    // Skip if either event resolved to null
+    if (lastEvent === null || currentEvent === null) return;
 
-	// Skip this if it's the same as the last one
-	if (isEqual(lastEvent, currentEvent)) return;
+    // Skip this if it's the same as the last one
+    if (isEqual(lastEvent, currentEvent)) return;
 
-	logger.debug('Docker container count was updated, publishing event');
+    logger.debug('Docker container count was updated, publishing event');
 
-	// Publish to graphql
-	await pubsub.publish(PUBSUB_CHANNEL.INFO, currentEvent);
+    // Publish to graphql
+    await pubsub.publish(PUBSUB_CHANNEL.INFO, currentEvent);
 };

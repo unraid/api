@@ -1,4 +1,5 @@
-import { test, expect } from 'vitest';
+import { expect, test } from 'vitest';
+
 import { store } from '@app/store';
 import { FileLoadStatus } from '@app/store/types';
 
@@ -6,9 +7,9 @@ import { FileLoadStatus } from '@app/store/types';
 import '@app/store/modules/emhttp';
 
 test('Before init returns default values for all fields', async () => {
-	const { status, ...state } = store.getState().emhttp;
-	expect(status).toBe(FileLoadStatus.UNLOADED);
-	expect(state).toMatchInlineSnapshot(`
+    const { status, ...state } = store.getState().emhttp;
+    expect(status).toBe(FileLoadStatus.UNLOADED);
+    expect(state).toMatchInlineSnapshot(`
 		{
 		  "devices": [],
 		  "disks": [],
@@ -24,16 +25,27 @@ test('Before init returns default values for all fields', async () => {
 });
 
 test('After init returns values from cfg file for all fields', async () => {
-	const { loadStateFiles } = await import('@app/store/modules/emhttp');
+    const { loadStateFiles } = await import('@app/store/modules/emhttp');
 
-	// Load state files into store
-	await store.dispatch(loadStateFiles());
+    // Load state files into store
+    await store.dispatch(loadStateFiles());
 
-	// Check if store has state files loaded
-	const { devices, networks, nfsShares, nginx, shares, disks, smbShares, status, users, var: varState } = store.getState().emhttp;
-	expect(status).toBe(FileLoadStatus.LOADED);
-	expect(devices).toMatchInlineSnapshot('[]');
-	expect(networks).toMatchInlineSnapshot(`
+    // Check if store has state files loaded
+    const {
+        devices,
+        networks,
+        nfsShares,
+        nginx,
+        shares,
+        disks,
+        smbShares,
+        status,
+        users,
+        var: varState,
+    } = store.getState().emhttp;
+    expect(status).toBe(FileLoadStatus.LOADED);
+    expect(devices).toMatchInlineSnapshot('[]');
+    expect(networks).toMatchInlineSnapshot(`
 		[
 		  {
 		    "bonding": true,
@@ -99,7 +111,7 @@ test('After init returns values from cfg file for all fields', async () => {
 		  },
 		]
 	`);
-	expect(nginx).toMatchInlineSnapshot(`
+    expect(nginx).toMatchInlineSnapshot(`
 		{
 		  "certificateName": "*.thisisfourtyrandomcharacters012345678900.myunraid.net",
 		  "certificatePath": "/boot/config/ssl/certs/certificate_bundle.pem",
@@ -184,7 +196,7 @@ test('After init returns values from cfg file for all fields', async () => {
 		  "wanIp": "",
 		}
 	`);
-	expect(disks).toMatchInlineSnapshot(`
+    expect(disks).toMatchInlineSnapshot(`
 		[
 		  {
 		    "comment": null,
@@ -356,7 +368,7 @@ test('After init returns values from cfg file for all fields', async () => {
 		  },
 		]
 	`);
-	expect(shares).toMatchInlineSnapshot(`
+    expect(shares).toMatchInlineSnapshot(`
 		[
 		  {
 		    "allocator": "highwater",
@@ -432,7 +444,7 @@ test('After init returns values from cfg file for all fields', async () => {
 		  },
 		]
 	`);
-	expect(nfsShares).toMatchInlineSnapshot(`
+    expect(nfsShares).toMatchInlineSnapshot(`
 		[
 		  {
 		    "enabled": false,
@@ -620,7 +632,7 @@ test('After init returns values from cfg file for all fields', async () => {
 		  },
 		]
 	`);
-	expect(smbShares).toMatchInlineSnapshot(`
+    expect(smbShares).toMatchInlineSnapshot(`
 		[
 		  {
 		    "caseSensitive": "auto",
@@ -911,7 +923,7 @@ test('After init returns values from cfg file for all fields', async () => {
 		  },
 		]
 	`);
-	expect(users).toMatchInlineSnapshot(`
+    expect(users).toMatchInlineSnapshot(`
 		[
 		  {
 		    "description": "Console and webGui login account",
@@ -936,7 +948,7 @@ test('After init returns values from cfg file for all fields', async () => {
 		  },
 		]
 	`);
-	expect(varState).toMatchInlineSnapshot(`
+    expect(varState).toMatchInlineSnapshot(`
 		{
 		  "bindMgt": false,
 		  "cacheNumDevices": NaN,

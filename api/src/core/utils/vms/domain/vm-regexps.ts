@@ -1,6 +1,6 @@
 /**
  * Disallowed device ids.
-*/
+ */
 const disallowedClassId = /^(05|06|08|0a|0b|0c05)/;
 
 /**
@@ -18,7 +18,7 @@ const allowedGpuClassId = /^(0001|03)/;
  * @note Class IDs come from the bottom of /usr/share/hwdata/pci.ids
  */
 export const vmRegExps = {
-	disallowedClassId,
-	allowedAudioClassId,
-	allowedGpuClassId,
+    disallowedClassId,
+    allowedAudioClassId,
+    allowedGpuClassId,
 };

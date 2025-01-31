@@ -3,11 +3,11 @@ import { rm, writeFile } from 'node:fs/promises';
 
 import { execa } from 'execa';
 
+import { fileExists } from '@app/core/utils/files/file-exists';
 import {
     FileModification,
     ShouldApplyWithReason,
 } from '@app/unraid-api/unraid-file-modifier/unraid-file-modifier.service';
-import { fileExists } from '@app/core/utils/files/file-exists';
 
 export class LogRotateModification implements FileModification {
     id: string = 'log-rotate';

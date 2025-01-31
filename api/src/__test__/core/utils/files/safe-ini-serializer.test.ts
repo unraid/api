@@ -1,7 +1,8 @@
-import { test, expect } from 'vitest';
 import { parse } from 'ini';
-import { safelySerializeObjectToIni } from '@app/core/utils/files/safe-ini-serializer';
 import { Serializer } from 'multi-ini';
+import { expect, test } from 'vitest';
+
+import { safelySerializeObjectToIni } from '@app/core/utils/files/safe-ini-serializer';
 
 test('MultiIni breaks when serializing an object with a boolean inside', async () => {
     const objectToSerialize = {

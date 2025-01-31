@@ -1,4 +1,5 @@
-import { GraphQLScalarType, type ASTNode } from 'graphql';
+import type { ASTNode } from 'graphql';
+import { GraphQLScalarType } from 'graphql';
 import { Kind } from 'graphql/language/index.js';
 
 const MAX_LONG = Number.MAX_SAFE_INTEGER;
@@ -6,9 +7,7 @@ const MIN_LONG = Number.MIN_SAFE_INTEGER;
 
 const coerceLong = (value) => {
     if (value === '')
-        throw new TypeError(
-            'Long cannot represent non 52-bit signed integer value: (empty string)'
-        );
+        throw new TypeError('Long cannot represent non 52-bit signed integer value: (empty string)');
     const num = Number(value);
     if (num == num && num <= MAX_LONG && num >= MIN_LONG) {
         if (num < 0) {
@@ -16,10 +15,7 @@ const coerceLong = (value) => {
         }
         return Math.floor(num);
     }
-    throw new TypeError(
-        'Long cannot represent non 52-bit signed integer value: ' +
-            String(value)
-    );
+    throw new TypeError('Long cannot represent non 52-bit signed integer value: ' + String(value));
 };
 
 const parseLiteral = (ast: ASTNode) => {

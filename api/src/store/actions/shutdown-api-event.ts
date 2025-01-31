@@ -7,17 +7,17 @@ import { setWanAccess } from '@app/store/modules/config';
 import { writeConfigSync } from '@app/store/sync/config-disk-sync';
 
 export const shutdownApiEvent = () => {
-	logger.debug('Running shutdown');
-	stopListeners();
-	store.dispatch(setGraphqlConnectionStatus({ status: MinigraphStatus.PRE_INIT, error: null }));
-	if (store.getState().config.remote.dynamicRemoteAccessType !== DynamicRemoteAccessType.DISABLED) {
-		store.dispatch(setWanAccess('no'));
-	}
+    logger.debug('Running shutdown');
+    stopListeners();
+    store.dispatch(setGraphqlConnectionStatus({ status: MinigraphStatus.PRE_INIT, error: null }));
+    if (store.getState().config.remote.dynamicRemoteAccessType !== DynamicRemoteAccessType.DISABLED) {
+        store.dispatch(setWanAccess('no'));
+    }
 
-	logger.debug('Writing final configs');
-	writeConfigSync('flash');
-	writeConfigSync('memory');
-	logger.debug('Shutting down log destination');
-	logDestination.flushSync();
-	logDestination.destroy();
+    logger.debug('Writing final configs');
+    writeConfigSync('flash');
+    writeConfigSync('memory');
+    logger.debug('Shutting down log destination');
+    logDestination.flushSync();
+    logDestination.destroy();
 };

@@ -1,20 +1,22 @@
-import { Test, type TestingModule } from '@nestjs/testing';
-import { NotificationsService } from './notifications.service';
-import { describe, it, expect, vi, beforeAll, afterEach } from 'vitest';
+import type { TestingModule } from '@nestjs/testing';
+import { Test } from '@nestjs/testing';
 import { existsSync } from 'fs';
-import {
-    Importance,
-    type NotificationData,
-    NotificationType,
-    type Notification,
-    type NotificationOverview,
-    type NotificationCounts,
-    type NotificationFilter,
-} from '@app/graphql/generated/api/types';
-import { NotificationSchema } from '@app/graphql/generated/api/operations';
 import { mkdir } from 'fs/promises';
-import { type NotificationIni } from '@app/core/types/states/notification';
+
 import { execa } from 'execa';
+import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest';
+
+import type {
+    Notification,
+    NotificationCounts,
+    NotificationData,
+    NotificationFilter,
+    NotificationOverview,
+} from '@app/graphql/generated/api/types';
+import { type NotificationIni } from '@app/core/types/states/notification';
+import { NotificationSchema } from '@app/graphql/generated/api/operations';
+import { Importance, NotificationType } from '@app/graphql/generated/api/types';
+import { NotificationsService } from '@app/unraid-api/graph/resolvers/notifications/notifications.service';
 
 // defined outside `describe` so it's defined inside the `beforeAll`
 // needed to mock the dynamix import
@@ -114,7 +116,7 @@ describe.sequential('NotificationsService', () => {
     }
 
     // currently unused b/c of difficulty implementing NotificationOverview tests
-     
+
     async function forAllTypesAndImportances(
         action: (type: NotificationType, importance: Importance) => Promise<void>
     ) {
@@ -134,7 +136,7 @@ describe.sequential('NotificationsService', () => {
     }
 
     // currently unused b/c of difficulty implementing NotificationOverview tests
-     
+
     function diffOverview(current: NotificationOverview, previous: NotificationOverview) {
         return Object.fromEntries(
             Object.entries(current).map(([key]) => {

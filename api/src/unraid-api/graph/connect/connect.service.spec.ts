@@ -1,18 +1,20 @@
-import { Test, type TestingModule } from '@nestjs/testing';
-import { ConnectService } from './connect.service';
+import type { TestingModule } from '@nestjs/testing';
+import { Test } from '@nestjs/testing';
+
+import { ConnectService } from '@app/unraid-api/graph/connect/connect.service';
 
 describe('ConnectService', () => {
-  let service: ConnectService;
+    let service: ConnectService;
 
-  beforeEach(async () => {
-    const module: TestingModule = await Test.createTestingModule({
-      providers: [ConnectService],
-    }).compile();
+    beforeEach(async () => {
+        const module: TestingModule = await Test.createTestingModule({
+            providers: [ConnectService],
+        }).compile();
 
-    service = module.get<ConnectService>(ConnectService);
-  });
+        service = module.get<ConnectService>(ConnectService);
+    });
 
-  it('should be defined', () => {
-    expect(service).toBeDefined();
-  });
+    it('should be defined', () => {
+        expect(service).toBeDefined();
+    });
 });

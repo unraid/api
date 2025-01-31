@@ -59,6 +59,9 @@ export default class AuthRequestModification implements FileModification {
         // No rollback needed, this is safe to preserve
     }
     async shouldApply(): Promise<ShouldApplyWithReason> {
-        return { shouldApply: true, reason: 'Always apply the allowed file changes to ensure compatibility.' };
+        return {
+            shouldApply: true,
+            reason: 'Always apply the allowed file changes to ensure compatibility.',
+        };
     }
 }

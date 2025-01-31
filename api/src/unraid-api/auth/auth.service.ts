@@ -5,10 +5,9 @@ import { AuthZService } from 'nest-authz';
 import type { Permission, UserAccount } from '@app/graphql/generated/api/types';
 import { Role } from '@app/graphql/generated/api/types';
 import { getters } from '@app/store';
+import { ApiKeyService } from '@app/unraid-api/auth/api-key.service';
+import { CookieService } from '@app/unraid-api/auth/cookie.service';
 import { batchProcess, handleAuthError } from '@app/utils';
-
-import { ApiKeyService } from './api-key.service';
-import { CookieService } from './cookie.service';
 
 @Injectable()
 export class AuthService {

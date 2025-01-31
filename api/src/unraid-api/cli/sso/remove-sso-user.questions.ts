@@ -1,4 +1,4 @@
-import { ChoicesFor, Question, QuestionSet, } from 'nest-commander';
+import { ChoicesFor, Question, QuestionSet } from 'nest-commander';
 
 import { store } from '@app/store/index';
 import { LogService } from '@app/unraid-api/cli/log.service';
@@ -19,7 +19,10 @@ export class RemoveSSOUserQuestionSet {
 
     @ChoicesFor({ name: 'username' })
     async choicesForUsername() {
-        const users = store.getState().config.remote.ssoSubIds.split(',').filter((user) => user !== '');
+        const users = store
+            .getState()
+            .config.remote.ssoSubIds.split(',')
+            .filter((user) => user !== '');
         if (users.length === 0) {
             this.logger.error('No SSO Users Found');
             process.exit(0);

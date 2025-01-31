@@ -1,28 +1,32 @@
-import { FileLoadStatus, StateFileKey, type StateFileToIniParserMap } from '@app/store/types';
-import { createAsyncThunk, createSlice, type PayloadAction } from '@reduxjs/toolkit';
-import merge from 'lodash/merge';
 import { join } from 'path';
+
+import type { PayloadAction } from '@reduxjs/toolkit';
+import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
+import merge from 'lodash/merge';
+
+import type { RootState } from '@app/store';
+import type { StateFileToIniParserMap } from '@app/store/types';
 import { emhttpLogger } from '@app/core/log';
-import { parseConfig } from '@app/core/utils/misc/parse-config';
 import { type Devices } from '@app/core/types/states/devices';
 import { type Networks } from '@app/core/types/states/network';
+import { type NfsShares } from '@app/core/types/states/nfs';
 import { type Nginx } from '@app/core/types/states/nginx';
 import { type Shares } from '@app/core/types/states/share';
-import { type Users } from '@app/core/types/states/user';
-import { type NfsShares } from '@app/core/types/states/nfs';
 import { type SmbShares } from '@app/core/types/states/smb';
+import { type Users } from '@app/core/types/states/user';
 import { type Var } from '@app/core/types/states/var';
+import { parseConfig } from '@app/core/utils/misc/parse-config';
+import { type ArrayDisk } from '@app/graphql/generated/api/types';
 import { parse as parseDevices } from '@app/store/state-parsers/devices';
 import { parse as parseNetwork } from '@app/store/state-parsers/network';
-import { parse as parseNginx } from '@app/store/state-parsers/nginx';
 import { parse as parseNfsShares } from '@app/store/state-parsers/nfs';
+import { parse as parseNginx } from '@app/store/state-parsers/nginx';
 import { parse as parseShares } from '@app/store/state-parsers/shares';
 import { parse as parseSlots } from '@app/store/state-parsers/slots';
 import { parse as parseSmbShares } from '@app/store/state-parsers/smb';
 import { parse as parseUsers } from '@app/store/state-parsers/users';
 import { parse as parseVar } from '@app/store/state-parsers/var';
-import type { RootState } from '@app/store';
-import { type ArrayDisk } from '@app/graphql/generated/api/types';
+import { FileLoadStatus, StateFileKey } from '@app/store/types';
 
 export type SliceState = {
     status: FileLoadStatus;
@@ -62,14 +66,10 @@ export const parsers: StateFileToIniParserMap = {
     [StateFileKey.sec_nfs]: parseNfsShares,
 };
 
-const getParserFunction = (
-    parser: StateFileKey
-): StateFileToIniParserMap[StateFileKey] => parsers[parser];
+const getParserFunction = (parser: StateFileKey): StateFileToIniParserMap[StateFileKey] =>
+    parsers[parser];
 
-const parseState = <
-    T extends StateFileKey,
-    Q = ReturnType<StateFileToIniParserMap[T]> | null
->(
+const parseState = <T extends StateFileKey, Q = ReturnType<StateFileToIniParserMap[T]> | null>(
     statesDirectory: string,
     parser: T,
     defaultValue?: NonNullable<Q>
@@ -101,41 +101,40 @@ const parseState = <
 };
 
 // @TODO Fix the type here Pick<SliceState, 'var' | 'devices' | 'networks' | 'nginx' | 'shares' | 'disks' | 'users' | 'smbShares' | 'nfsShares'> | null
-export const loadSingleStateFile = createAsyncThunk<
-    any,
-    StateFileKey,
-    { state: RootState }
->('emhttp/load-single-state-file', async (stateFileKey, { getState }) => {
-    const path = getState().paths.states;
+export const loadSingleStateFile = createAsyncThunk<any, StateFileKey, { state: RootState }>(
+    'emhttp/load-single-state-file',
+    async (stateFileKey, { getState }) => {
+        const path = getState().paths.states;
 
-    const config = parseState(path, stateFileKey);
-    if (config) {
-        switch (stateFileKey) {
-            case StateFileKey.var:
-                return { var: config };
-            case StateFileKey.devs:
-                return { devices: config };
-            case StateFileKey.network:
-                return { networks: config };
-            case StateFileKey.nginx:
-                return { nginx: config };
-            case StateFileKey.shares:
-                return { shares: config };
-            case StateFileKey.disks:
-                return { disks: config };
-            case StateFileKey.users:
-                return { users: config };
-            case StateFileKey.sec:
-                return { smbShares: config };
-            case StateFileKey.sec_nfs:
-                return { nfsShares: config };
-            default:
-                return null;
+        const config = parseState(path, stateFileKey);
+        if (config) {
+            switch (stateFileKey) {
+                case StateFileKey.var:
+                    return { var: config };
+                case StateFileKey.devs:
+                    return { devices: config };
+                case StateFileKey.network:
+                    return { networks: config };
+                case StateFileKey.nginx:
+                    return { nginx: config };
+                case StateFileKey.shares:
+                    return { shares: config };
+                case StateFileKey.disks:
+                    return { disks: config };
+                case StateFileKey.users:
+                    return { users: config };
+                case StateFileKey.sec:
+                    return { smbShares: config };
+                case StateFileKey.sec_nfs:
+                    return { nfsShares: config };
+                default:
+                    return null;
+            }
+        } else {
+            return null;
         }
-    } else {
-        return null;
     }
-});
+);
 /**
  * Load the emhttp states into the store.
  */
@@ -161,37 +160,43 @@ export const loadStateFiles = createAsyncThunk<
 });
 
 export const emhttp = createSlice({
-	name: 'emhttp',
-	initialState,
-	reducers: {
-		updateEmhttpState(state, action: PayloadAction<{ field: StateFileKey; state: Partial<typeof initialState[keyof typeof initialState]> }>) {
-			const { field } = action.payload;
-			return merge(state, { [field]: action.payload.state });
-		},
-	},
-	extraReducers(builder) {
-		builder.addCase(loadStateFiles.pending, (state) => {
-			state.status = FileLoadStatus.LOADING;
-		});
+    name: 'emhttp',
+    initialState,
+    reducers: {
+        updateEmhttpState(
+            state,
+            action: PayloadAction<{
+                field: StateFileKey;
+                state: Partial<(typeof initialState)[keyof typeof initialState]>;
+            }>
+        ) {
+            const { field } = action.payload;
+            return merge(state, { [field]: action.payload.state });
+        },
+    },
+    extraReducers(builder) {
+        builder.addCase(loadStateFiles.pending, (state) => {
+            state.status = FileLoadStatus.LOADING;
+        });
 
-		builder.addCase(loadStateFiles.fulfilled, (state, action) => {
-			merge(state, action.payload, { status: FileLoadStatus.LOADED });
-		});
+        builder.addCase(loadStateFiles.fulfilled, (state, action) => {
+            merge(state, action.payload, { status: FileLoadStatus.LOADED });
+        });
 
-		builder.addCase(loadStateFiles.rejected, (state, action) => {
-			merge(state, action.payload, { status: FileLoadStatus.FAILED_LOADING });
-		});
+        builder.addCase(loadStateFiles.rejected, (state, action) => {
+            merge(state, action.payload, { status: FileLoadStatus.FAILED_LOADING });
+        });
 
-		builder.addCase(loadSingleStateFile.fulfilled, (state, action) => {
-			if (action.payload) {
+        builder.addCase(loadSingleStateFile.fulfilled, (state, action) => {
+            if (action.payload) {
                 // const changedKey = Object.keys(action.payload)[0]
                 // emhttpLogger.debug('Key', changedKey, 'Difference in changes', getDiff(action.payload, { [changedKey]: state[changedKey] } ))
-				merge(state, action.payload);
-			} else {
-				emhttpLogger.warn('Invalid payload returned from loadSingleStateFile()');
-			}
-		});
-	},
+                merge(state, action.payload);
+            } else {
+                emhttpLogger.warn('Invalid payload returned from loadSingleStateFile()');
+            }
+        });
+    },
 });
 
 export const { updateEmhttpState } = emhttp.actions;

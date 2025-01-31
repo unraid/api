@@ -5,7 +5,7 @@ import { writeFile } from 'node:fs/promises';
 import { emptyDir } from 'fs-extra';
 import { afterAll, beforeAll, describe, it } from 'vitest';
 
-import { CookieService, SESSION_COOKIE_CONFIG } from './cookie.service';
+import { CookieService, SESSION_COOKIE_CONFIG } from '@app/unraid-api/auth/cookie.service';
 
 describe.concurrent('CookieService', () => {
     let service: CookieService;
@@ -47,7 +47,9 @@ describe.concurrent('CookieService', () => {
         const session = (name?: unknown) => service.getSessionFilePath(name as string);
         expect(session('foo')).toEqual('/tmp/php/sessions/sess_foo');
         expect(session('foo123')).toEqual('/tmp/php/sessions/sess_foo123');
-        expect(session('/foo123*&/^\n\r\'"!;:/../~`+=@#$%(?) \t/~/.profile')).toEqual('/tmp/php/sessions/sess_foo123profile');
+        expect(session('/foo123*&/^\n\r\'"!;:/../~`+=@#$%(?) \t/~/.profile')).toEqual(
+            '/tmp/php/sessions/sess_foo123profile'
+        );
         expect(session('')).toEqual('/tmp/php/sessions/sess_');
         expect(session(null)).toEqual('/tmp/php/sessions/sess_');
         expect(session(undefined)).toEqual('/tmp/php/sessions/sess_');

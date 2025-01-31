@@ -1,20 +1,12 @@
+import type { Systeminformation } from 'systeminformation';
 import { execa } from 'execa';
-import {
-    type Systeminformation,
-    blockDevices,
-    diskLayout,
-} from 'systeminformation';
-import {
-    type Disk,
-    DiskInterfaceType,
-    DiskSmartStatus,
-    DiskFsType,
-} from '@app/graphql/generated/api/types';
-import { graphqlLogger } from '@app/core/log';
+import { blockDevices, diskLayout } from 'systeminformation';
 
-const getTemperature = async (
-    disk: Systeminformation.DiskLayoutData
-): Promise<number> => {
+import type { Disk } from '@app/graphql/generated/api/types';
+import { graphqlLogger } from '@app/core/log';
+import { DiskFsType, DiskInterfaceType, DiskSmartStatus } from '@app/graphql/generated/api/types';
+
+const getTemperature = async (disk: Systeminformation.DiskLayoutData): Promise<number> => {
     try {
         const stdout = await execa('smartctl', ['-A', disk.device])
             .then(({ stdout }) => stdout)
@@ -23,9 +15,7 @@ const getTemperature = async (
         const header = lines.find((line) => line.startsWith('ID#')) ?? '';
         const fields = lines.splice(lines.indexOf(header) + 1, lines.length);
         const field = fields.find(
-            (line) =>
-                line.includes('Temperature_Celsius') ||
-                line.includes('Airflow_Temperature_Cel')
+            (line) => line.includes('Temperature_Celsius') || line.includes('Airflow_Temperature_Cel')
         );
 
         if (!field) {
@@ -33,10 +23,7 @@ const getTemperature = async (
         }
 
         if (field.includes('Min/Max')) {
-            return Number.parseInt(
-                field.split('  -  ')[1].trim().split(' ')[0],
-                10
-            );
+            return Number.parseInt(field.split('  -  ')[1].trim().split(' ')[0], 10);
         }
 
         const line = field.split(' ');
@@ -54,9 +41,7 @@ const parseDisk = async (
 ): Promise<Disk> => {
     const partitions = partitionsToParse
         // Only get partitions from this disk
-        .filter((partition) =>
-            partition.name.startsWith(disk.device.split('/dev/')[1])
-        )
+        .filter((partition) => partition.name.startsWith(disk.device.split('/dev/')[1]))
         // Remove unneeded fields
         .map(({ name, fsType, size }) => ({
             name,
@@ -82,18 +67,14 @@ const parseDisk = async (
 /**
  * Get all disks.
  */
-export const getDisks = async (
-    options?: { temperature: boolean }
-): Promise<Disk[]> => {
+export const getDisks = async (options?: { temperature: boolean }): Promise<Disk[]> => {
     // Return all fields but temperature
     if (options?.temperature === false) {
         const partitions = await blockDevices().then((devices) =>
             devices.filter((device) => device.type === 'part')
         );
         const diskLayoutData = await diskLayout();
-        const disks = await Promise.all(
-            diskLayoutData.map((disk) => parseDisk(disk, partitions))
-        );
+        const disks = await Promise.all(diskLayoutData.map((disk) => parseDisk(disk, partitions)));
 
         return disks;
     }
@@ -101,9 +82,7 @@ export const getDisks = async (
     const partitions = await blockDevices().then((devices) =>
         devices.filter((device) => device.type === 'part')
     );
-    const disks = await asyncMap(await diskLayout(), async (disk) =>
-        parseDisk(disk, partitions, true)
-    );
+    const disks = await asyncMap(await diskLayout(), async (disk) => parseDisk(disk, partitions, true));
 
     return disks;
 };

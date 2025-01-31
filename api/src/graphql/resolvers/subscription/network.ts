@@ -1,14 +1,11 @@
-import { type Nginx } from '@app/core/types/states/nginx';
-import { type RootState, store } from '@app/store';
-import {
-    URL_TYPE,
-    type AccessUrlInput,
-} from '@app/graphql/generated/client/graphql';
+import type { AccessUrlInput } from '@app/graphql/generated/client/graphql';
+import type { RootState } from '@app/store';
 import { logger } from '@app/core';
-import {
-    AccessUrlInputSchema,
-} from '@app/graphql/generated/client/validators';
+import { type Nginx } from '@app/core/types/states/nginx';
 import { type AccessUrl } from '@app/graphql/generated/api/types';
+import { URL_TYPE } from '@app/graphql/generated/client/graphql';
+import { AccessUrlInputSchema } from '@app/graphql/generated/client/validators';
+import { store } from '@app/store';
 
 interface UrlForFieldInput {
     url: string;
@@ -56,16 +53,9 @@ export const getUrlForField = ({
     }
 };
 
-const fieldIsFqdn = (field: keyof Nginx) =>
-    field?.toLowerCase().includes('fqdn');
+const fieldIsFqdn = (field: keyof Nginx) => field?.toLowerCase().includes('fqdn');
 
-export type NginxUrlFields = Extract<
-    keyof Nginx,
-    | 'lanIp'
-    | 'lanIp6'
-    | 'lanName'
-    | 'lanMdns'
->;
+export type NginxUrlFields = Extract<keyof Nginx, 'lanIp' | 'lanIp6' | 'lanName' | 'lanMdns'>;
 
 /**
  *
@@ -74,13 +64,7 @@ export type NginxUrlFields = Extract<
  * @returns a URL, created from the combination of inputs
  * @throws Error when the URL cannot be created or the URL is invalid
  */
-export const getUrlForServer = ({
-    nginx,
-    field,
-}: {
-    nginx: Nginx;
-    field: NginxUrlFields;
-}): URL => {
+export const getUrlForServer = ({ nginx, field }: { nginx: Nginx; field: NginxUrlFields }): URL => {
     if (nginx[field]) {
         if (fieldIsFqdn(field)) {
             return getUrlForField({
@@ -102,9 +86,7 @@ export const getUrlForServer = ({
         }
 
         if (nginx.sslMode === 'auto') {
-            throw new Error(
-                `Cannot get IP Based URL for field: "${field}" SSL mode auto`
-            );
+            throw new Error(`Cannot get IP Based URL for field: "${field}" SSL mode auto`);
         }
     }
 
@@ -128,7 +110,7 @@ const getUrlTypeFromFqdn = (fqdnType: string): URL_TYPE => {
             return URL_TYPE.WIREGUARD;
     }
 };
- 
+
 export const getServerIps = (
     state: RootState = store.getState()
 ): { urls: AccessUrl[]; errors: Error[] } => {
@@ -230,10 +212,7 @@ export const getServerIps = (
             const urlType = getUrlTypeFromFqdn(fqdnUrl.interface);
             const fqdnUrlToUse = getUrlForField({
                 url: fqdnUrl.fqdn,
-                portSsl:
-                    urlType === URL_TYPE.WAN
-                        ? Number(wanport)
-                        : nginx.httpsPort,
+                portSsl: urlType === URL_TYPE.WAN ? Number(wanport) : nginx.httpsPort,
             });
 
             urls.push({

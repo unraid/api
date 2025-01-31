@@ -1,6 +1,6 @@
 interface Options {
-	/** Standard output from execa. */
-	stdout: string;
+    /** Standard output from execa. */
+    stdout: string;
 }
 
 /**

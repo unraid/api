@@ -1,17 +1,18 @@
 import { configureStore } from '@reduxjs/toolkit';
-import { paths } from '@app/store/modules/paths';
-import { mothership } from '@app/store/modules/minigraph';
-import { configReducer } from '@app/store/modules/config';
-import { emhttp } from '@app/store/modules/emhttp';
-import { registration } from '@app/store/modules/registration';
-import { cache } from '@app/store/modules/cache';
-import { docker } from '@app/store/modules/docker';
-import { upnp } from '@app/store/modules/upnp';
+
 import { listenerMiddleware } from '@app/store/listeners/listener-middleware';
+import { cache } from '@app/store/modules/cache';
+import { configReducer } from '@app/store/modules/config';
+import { docker } from '@app/store/modules/docker';
 import { dynamicRemoteAccessReducer } from '@app/store/modules/dynamic-remote-access';
-import { remoteGraphQLReducer } from '@app/store/modules/remote-graphql';
 import { dynamix } from '@app/store/modules/dynamix';
+import { emhttp } from '@app/store/modules/emhttp';
+import { mothership } from '@app/store/modules/minigraph';
 import { notificationReducer } from '@app/store/modules/notifications';
+import { paths } from '@app/store/modules/paths';
+import { registration } from '@app/store/modules/registration';
+import { remoteGraphQLReducer } from '@app/store/modules/remote-graphql';
+import { upnp } from '@app/store/modules/upnp';
 
 export const store = configureStore({
     reducer: {
@@ -45,7 +46,7 @@ export const getters = {
     dynamix: () => store.getState().dynamix,
     emhttp: () => store.getState().emhttp,
     minigraph: () => store.getState().minigraph,
-	notifications: () => store.getState().notifications,
+    notifications: () => store.getState().notifications,
     paths: () => store.getState().paths,
     registration: () => store.getState().registration,
     remoteGraphQL: () => store.getState().remoteGraphQL,

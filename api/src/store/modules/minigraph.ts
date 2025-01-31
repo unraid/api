@@ -1,9 +1,11 @@
-import { createSlice, type PayloadAction } from '@reduxjs/toolkit';
+import type { PayloadAction } from '@reduxjs/toolkit';
+import { createSlice } from '@reduxjs/toolkit';
+
+import { KEEP_ALIVE_INTERVAL_MS } from '@app/consts';
+import { minigraphLogger } from '@app/core/log';
 import { MinigraphStatus } from '@app/graphql/generated/api/types';
 import { setGraphqlConnectionStatus } from '@app/store/actions/set-minigraph-status';
 import { loginUser, logoutUser } from '@app/store/modules/config';
-import { minigraphLogger } from '@app/core/log';
-import { KEEP_ALIVE_INTERVAL_MS } from '@app/consts';
 
 export type MinigraphClientState = {
     status: MinigraphStatus;
@@ -51,17 +53,11 @@ export const mothership = createSlice({
     },
     extraReducers(builder) {
         builder.addCase(setGraphqlConnectionStatus, (state, action) => {
-            minigraphLogger.debug(
-                'GraphQL Connection Status: %o',
-                action.payload
-            );
+            minigraphLogger.debug('GraphQL Connection Status: %o', action.payload);
             state.status = action.payload.status;
             state.error = action.payload.error;
             if (
-                [
-                    MinigraphStatus.CONNECTED,
-                    MinigraphStatus.CONNECTING,
-                ].includes(action.payload.status)
+                [MinigraphStatus.CONNECTED, MinigraphStatus.CONNECTING].includes(action.payload.status)
             ) {
                 state.error = null;
                 state.timeout = null;
@@ -76,8 +72,7 @@ export const mothership = createSlice({
             state.lastPing = null;
             state.selfDisconnectedSince = null;
             state.status = MinigraphStatus.PRE_INIT;
-            state.error =
-                'Connecting - refresh the page for an updated status.';
+            state.error = 'Connecting - refresh the page for an updated status.';
         });
         builder.addCase(logoutUser.pending, (state) => {
             state.error = null;
@@ -90,9 +85,5 @@ export const mothership = createSlice({
     },
 });
 
-export const {
-    setMothershipTimeout,
-    receivedMothershipPing,
-    setSelfDisconnected,
-    setSelfReconnected,
-} = mothership.actions;
+export const { setMothershipTimeout, receivedMothershipPing, setSelfDisconnected, setSelfReconnected } =
+    mothership.actions;

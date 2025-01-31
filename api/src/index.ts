@@ -16,6 +16,7 @@ import { logger } from '@app/core/log';
 import { fileExistsSync } from '@app/core/utils/files/file-exists';
 import { environment, PORT } from '@app/environment';
 import * as envVars from '@app/environment';
+import { setupNewMothershipSubscription } from '@app/mothership/subscribe-to-mothership';
 import { store } from '@app/store';
 import { loadDynamixConfigFile } from '@app/store/actions/load-dynamix-config-file';
 import { shutdownApiEvent } from '@app/store/actions/shutdown-api-event';
@@ -28,8 +29,6 @@ import { setupDynamixConfigWatch } from '@app/store/watch/dynamix-config-watch';
 import { setupRegistrationKeyWatch } from '@app/store/watch/registration-watch';
 import { StateManager } from '@app/store/watch/state-watch';
 import { setupVarRunWatch } from '@app/store/watch/var-run-watch';
-
-import { setupNewMothershipSubscription } from './mothership/subscribe-to-mothership';
 
 let server: NestFastifyApplication<RawServerDefault> | null = null;
 
