@@ -1,23 +1,18 @@
-import { Injectable, type OnApplicationShutdown } from '@nestjs/common';
+import type { OnApplicationShutdown } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
+import { type IncomingMessage, type Server, type ServerResponse } from 'http';
+
 import { type FastifyInstance } from 'fastify';
-import { Logger } from '@nestjs/common';
-import { type Server, type IncomingMessage, type ServerResponse } from 'http';
 
 /**
  * @todo Swap to this globally. This is a better way to handle shutdowns (right now they're handled in index.ts)
  */
 @Injectable()
 export class ShutdownObserver implements OnApplicationShutdown {
-    private httpServers: FastifyInstance<
-        Server,
-        IncomingMessage,
-        ServerResponse
-    >[] = [];
+    private httpServers: FastifyInstance<Server, IncomingMessage, ServerResponse>[] = [];
     private logger = new Logger(ShutdownObserver.name);
 
-    public addFastifyServer(
-        server: FastifyInstance<Server, IncomingMessage, ServerResponse>
-    ): void {
+    public addFastifyServer(server: FastifyInstance<Server, IncomingMessage, ServerResponse>): void {
         this.logger.debug('Adding Fastify Server to Shutdown Observers');
         this.httpServers.push(server);
     }

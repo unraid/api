@@ -15,15 +15,14 @@ import {
 import { GraphQLLong } from '@app/graphql/resolvers/graphql-type-long';
 import { loadTypeDefs } from '@app/graphql/schema/loadTypesDefs';
 import { getters } from '@app/store/index';
+import { ConnectResolver } from '@app/unraid-api/graph/connect/connect.resolver';
+import { ConnectService } from '@app/unraid-api/graph/connect/connect.service';
 import { idPrefixPlugin } from '@app/unraid-api/graph/id-prefix-plugin';
-
-import { ConnectResolver } from './connect/connect.resolver';
-import { ConnectService } from './connect/connect.service';
-import { NetworkResolver } from './network/network.resolver';
-import { ResolversModule } from './resolvers/resolvers.module';
-import { sandboxPlugin } from './sandbox-plugin';
-import { ServicesResolver } from './services/services.resolver';
-import { SharesResolver } from './shares/shares.resolver';
+import { NetworkResolver } from '@app/unraid-api/graph/network/network.resolver';
+import { ResolversModule } from '@app/unraid-api/graph/resolvers/resolvers.module';
+import { sandboxPlugin } from '@app/unraid-api/graph/sandbox-plugin';
+import { ServicesResolver } from '@app/unraid-api/graph/services/services.resolver';
+import { SharesResolver } from '@app/unraid-api/graph/shares/shares.resolver';
 
 @Module({
     imports: [

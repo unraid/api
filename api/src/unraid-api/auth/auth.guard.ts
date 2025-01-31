@@ -10,9 +10,8 @@ import { type Observable } from 'rxjs';
 
 import type { FastifyRequest } from '@app/types/fastify';
 import { apiLogger } from '@app/core/log';
+import { UserCookieStrategy } from '@app/unraid-api/auth/cookie.strategy';
 import { ServerHeaderStrategy } from '@app/unraid-api/auth/header.strategy';
-
-import { UserCookieStrategy } from './cookie.strategy';
 
 /**
  * Context of incoming requests.

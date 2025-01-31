@@ -4,8 +4,7 @@ import { AuthZService } from 'nest-authz';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { Me, Resource, Role, UserAccount } from '@app/graphql/generated/api/types';
-
-import { MeResolver } from './me.resolver';
+import { MeResolver } from '@app/unraid-api/graph/resolvers/me/me.resolver';
 
 describe('MeResolver', () => {
     let resolver: MeResolver;

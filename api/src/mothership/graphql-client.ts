@@ -160,9 +160,9 @@ export class GraphQLClient {
             });
         });
 
-        /** 
-         * Max # of times to retry authenticating with mothership. 
-         * Total # of attempts will be retries + 1. 
+        /**
+         * Max # of times to retry authenticating with mothership.
+         * Total # of attempts will be retries + 1.
          */
         const MAX_AUTH_RETRIES = 3;
         const retryLink = new RetryLink({
@@ -213,10 +213,10 @@ export class GraphQLClient {
                 if (isInvalidApiKeyError(error)) {
                     if (retryCount >= MAX_AUTH_RETRIES) {
                         store
-                        .dispatch(logoutUser({ reason: 'Invalid API Key on Mothership' }))
-                        .catch((err) => {
-                            minigraphLogger.error(err, 'Error during logout');
-                        });
+                            .dispatch(logoutUser({ reason: 'Invalid API Key on Mothership' }))
+                            .catch((err) => {
+                                minigraphLogger.error(err, 'Error during logout');
+                            });
                     }
                 } else if (getters.minigraph().status !== MinigraphStatus.ERROR_RETRYING) {
                     store.dispatch(
@@ -277,7 +277,7 @@ export class GraphQLClient {
 
     /**
      * Clears event handlers from the GraphQL client websocket connection
-     * 
+     *
      * Removes handlers for the specified events by replacing them with empty functions.
      * This ensures no lingering event handlers remain when disposing of a client.
      *

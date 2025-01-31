@@ -71,9 +71,7 @@ describe('FileModificationService', () => {
     });
 
     it('should apply modifications', async () => {
-        await expect(
-            service.applyModification(new TestFileModification())
-        ).resolves.toBe(undefined);
+        await expect(service.applyModification(new TestFileModification())).resolves.toBe(undefined);
     });
 
     it('should not rollback any mods without loaded', async () => {

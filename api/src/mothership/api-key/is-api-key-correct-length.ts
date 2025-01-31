@@ -4,9 +4,9 @@
  * @returns Boolean
  */
 export const isApiKeyCorrectLength = (apiKey: string) => {
-	if (apiKey.length !== 64) {
-		return false;
-	}
+    if (apiKey.length !== 64) {
+        return false;
+    }
 
-	return true;
+    return true;
 };

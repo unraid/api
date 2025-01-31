@@ -1,6 +1,6 @@
 import type { IniStringBooleanOrAuto } from '@app/core/types/ini';
-import { type FqdnEntry } from '@app/core/types/states/nginx';
 import type { StateFileToIniParserMap } from '@app/store/types';
+import { type FqdnEntry } from '@app/core/types/states/nginx';
 
 // Allow upper or lowercase FQDN6
 const fqdnRegex = /^nginx(.*?)fqdn6?$/i;
@@ -46,7 +46,7 @@ export const parse: StateFileToIniParserMap['nginx'] = (state) => {
     }, []);
 
     fqdnUrls.forEach((fqdn) => {
-        if ((interfaceId.get(fqdn.interface) || 0) <= 1 ) {
+        if ((interfaceId.get(fqdn.interface) || 0) <= 1) {
             fqdn.id = null;
         }
     });

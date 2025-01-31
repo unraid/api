@@ -1,12 +1,12 @@
-import { setGraphqlConnectionStatus } from '@app/store/actions/set-minigraph-status';
-import { logoutUser } from '@app/store/modules/config';
-import { type PayloadAction, createSlice, isAnyOf } from '@reduxjs/toolkit';
-import {
-    MOTHERSHIP_CRITICAL_STATUSES,
-    type SubscriptionWithLastPing,
-} from '@app/store/types';
+import type { PayloadAction } from '@reduxjs/toolkit';
+import { createSlice, isAnyOf } from '@reduxjs/toolkit';
+
+import type { SubscriptionWithLastPing } from '@app/store/types';
 import { remoteAccessLogger } from '@app/core/log';
 import { addRemoteSubscription } from '@app/store/actions/add-remote-subscription';
+import { setGraphqlConnectionStatus } from '@app/store/actions/set-minigraph-status';
+import { logoutUser } from '@app/store/modules/config';
+import { MOTHERSHIP_CRITICAL_STATUSES } from '@app/store/types';
 
 interface RemoteGraphQLStore {
     subscriptions: Array<SubscriptionWithLastPing>;
@@ -21,13 +21,8 @@ const remoteGraphQLStore = createSlice({
     initialState,
     reducers: {
         clearSubscription(state, action: PayloadAction<string>) {
-            remoteAccessLogger.debug(
-                'Clearing subscription with SHA %s',
-                action.payload
-            );
-            const subscription = state.subscriptions.find(
-                (sub) => sub.sha256 === action.payload
-            );
+            remoteAccessLogger.debug('Clearing subscription with SHA %s', action.payload);
+            const subscription = state.subscriptions.find((sub) => sub.sha256 === action.payload);
             if (subscription) {
                 subscription.subscription.unsubscribe();
                 state.subscriptions = state.subscriptions.filter(
@@ -35,18 +30,10 @@ const remoteGraphQLStore = createSlice({
                 );
             }
 
-            remoteAccessLogger.debug(
-                'Current remote subscriptions: %s',
-                state.subscriptions.length
-            );
+            remoteAccessLogger.debug('Current remote subscriptions: %s', state.subscriptions.length);
         },
-        renewRemoteSubscription(
-            state,
-            { payload: { sha256 } }: PayloadAction<{ sha256: string }>
-        ) {
-            const subscription = state.subscriptions.find(
-                (sub) => sub.sha256 === sha256
-            );
+        renewRemoteSubscription(state, { payload: { sha256 } }: PayloadAction<{ sha256: string }>) {
+            const subscription = state.subscriptions.find((sub) => sub.sha256 === sha256);
             if (subscription) {
                 subscription.lastPing = Date.now();
             }
@@ -55,16 +42,11 @@ const remoteGraphQLStore = createSlice({
     extraReducers(builder) {
         builder.addCase(addRemoteSubscription.rejected, (_, action) => {
             if (action.error) {
-                remoteAccessLogger.warn(
-                    'Handling Add Remote Sub Error: %s',
-                    action.error.message
-                );
+                remoteAccessLogger.warn('Handling Add Remote Sub Error: %s', action.error.message);
             }
         });
         builder.addCase(addRemoteSubscription.fulfilled, (state, action) => {
-            remoteAccessLogger.info(
-                'Successfully added new remote subscription'
-            );
+            remoteAccessLogger.info('Successfully added new remote subscription');
             state.subscriptions.push({
                 ...action.payload,
                 lastPing: Date.now(),
@@ -75,9 +57,7 @@ const remoteGraphQLStore = createSlice({
                 (state, action) => {
                     if (
                         (action.payload?.status &&
-                            MOTHERSHIP_CRITICAL_STATUSES.includes(
-                                action.payload.status
-                            )) ||
+                            MOTHERSHIP_CRITICAL_STATUSES.includes(action.payload.status)) ||
                         action.type === logoutUser.pending.type
                     ) {
                         remoteAccessLogger.debug(
@@ -93,6 +73,5 @@ const remoteGraphQLStore = createSlice({
     },
 });
 
-export const { clearSubscription, renewRemoteSubscription } =
-    remoteGraphQLStore.actions;
+export const { clearSubscription, renewRemoteSubscription } = remoteGraphQLStore.actions;
 export const remoteGraphQLReducer = remoteGraphQLStore.reducer;

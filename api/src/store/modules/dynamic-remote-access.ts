@@ -1,6 +1,9 @@
+import type { PayloadAction } from '@reduxjs/toolkit';
+import { createSlice } from '@reduxjs/toolkit';
+
+import type { AccessUrl, AccessUrlInput } from '@app/graphql/generated/api/types';
 import { remoteAccessLogger } from '@app/core/log';
-import { type AccessUrlInput, type AccessUrl, DynamicRemoteAccessType, URL_TYPE } from '@app/graphql/generated/api/types';
-import { createSlice, type PayloadAction } from '@reduxjs/toolkit';
+import { DynamicRemoteAccessType, URL_TYPE } from '@app/graphql/generated/api/types';
 
 interface DynamicRemoteAccessState {
     runningType: DynamicRemoteAccessType; // Is Dynamic Remote Access actively running - shows type of access currently running
@@ -13,7 +16,7 @@ const initialState: DynamicRemoteAccessState = {
     runningType: DynamicRemoteAccessType.DISABLED,
     error: null,
     lastPing: null,
-    allowedUrl: null
+    allowedUrl: null,
 };
 
 const dynamicRemoteAccess = createSlice({
@@ -28,10 +31,7 @@ const dynamicRemoteAccess = createSlice({
             remoteAccessLogger.info('clearing ping');
             state.lastPing = null;
         },
-        setRemoteAccessRunningType(
-            state,
-            action: PayloadAction<DynamicRemoteAccessType>
-        ) {
+        setRemoteAccessRunningType(state, action: PayloadAction<DynamicRemoteAccessType>) {
             state.error = null;
             state.runningType = action.payload;
             if (action.payload === DynamicRemoteAccessType.DISABLED) {
@@ -43,10 +43,7 @@ const dynamicRemoteAccess = createSlice({
         setDynamicRemoteAccessError(state, action: PayloadAction<string>) {
             state.error = action.payload;
         },
-        setAllowedRemoteAccessUrl(
-            state,
-            action: PayloadAction<AccessUrlInput | null>
-        ) {
+        setAllowedRemoteAccessUrl(state, action: PayloadAction<AccessUrlInput | null>) {
             if (action.payload) {
                 console.log(action.payload);
                 state.allowedUrl = {
@@ -54,7 +51,7 @@ const dynamicRemoteAccess = createSlice({
                     ipv6: action.payload.ipv6,
                     type: action.payload.type ?? URL_TYPE.WAN,
                     name: action.payload.name,
-                }
+                };
             }
         },
     },

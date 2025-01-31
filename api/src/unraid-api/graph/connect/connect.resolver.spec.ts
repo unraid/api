@@ -1,18 +1,20 @@
-import { Test, type TestingModule } from '@nestjs/testing';
-import { ConnectResolver } from './connect.resolver';
+import type { TestingModule } from '@nestjs/testing';
+import { Test } from '@nestjs/testing';
+
+import { ConnectResolver } from '@app/unraid-api/graph/connect/connect.resolver';
 
 describe('ConnectResolver', () => {
-  let resolver: ConnectResolver;
+    let resolver: ConnectResolver;
 
-  beforeEach(async () => {
-    const module: TestingModule = await Test.createTestingModule({
-      providers: [ConnectResolver],
-    }).compile();
+    beforeEach(async () => {
+        const module: TestingModule = await Test.createTestingModule({
+            providers: [ConnectResolver],
+        }).compile();
 
-    resolver = module.get<ConnectResolver>(ConnectResolver);
-  });
+        resolver = module.get<ConnectResolver>(ConnectResolver);
+    });
 
-  it('should be defined', () => {
-    expect(resolver).toBeDefined();
-  });
+    it('should be defined', () => {
+        expect(resolver).toBeDefined();
+    });
 });

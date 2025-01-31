@@ -95,7 +95,7 @@ export const stopPingTimeoutJobs = () => {
     if (!pingTimeoutJobs) {
         minigraphLogger.warn('PingTimeoutJobs Handler not found.');
         return;
-    } 
+    }
     pingTimeoutJobs.stopAll();
     pingTimeoutJobs.clear();
     pingTimeoutJobs = null;

@@ -3,7 +3,7 @@ import { resolve } from 'path';
 
 import { describe, expect, test } from 'vitest';
 
-import DefaultPageLayoutModification from '../default-page-layout.modification';
+import DefaultPageLayoutModification from '@app/unraid-api/unraid-file-modifier/modifications/default-page-layout.modification';
 
 describe('DefaultPageLayout.php modifier', () => {
     test('correctly applies to fresh install', async () => {

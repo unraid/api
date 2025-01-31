@@ -1,7 +1,7 @@
 import { type IniEnabled } from '@app/core/types/ini';
 
 export interface SecIni {
-	export: IniEnabled;
-	writeList: string;
-	readList: string;
+    export: IniEnabled;
+    writeList: string;
+    readList: string;
 }

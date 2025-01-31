@@ -50,7 +50,7 @@ export const initialState: SliceState = {
         ssoSubIds: '',
     },
     local: {
-        sandbox: 'no'
+        sandbox: 'no',
     },
     api: {
         extraOrigins: '',

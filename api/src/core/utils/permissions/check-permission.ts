@@ -5,6 +5,6 @@ import { type User } from '@app/core/types/states/user';
  * @param user The user to check permissions on.
  */
 export const checkPermission = (user: User, options: any) => {
-	// Stub until this can be removed
-	return false;
+    // Stub until this can be removed
+    return false;
 };

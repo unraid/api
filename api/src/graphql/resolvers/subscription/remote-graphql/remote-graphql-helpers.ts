@@ -1,4 +1,4 @@
-import { gql, QueryOptions } from "@apollo/client/core/index.js";
+import { gql, QueryOptions } from '@apollo/client/core/index.js';
 
 interface ParsedQuery {
     query?: string;
@@ -8,11 +8,7 @@ interface ParsedQuery {
 export const parseGraphQLQuery = (body: string): QueryOptions => {
     try {
         const parsedBody: ParsedQuery = JSON.parse(body);
-        if (
-            parsedBody.query &&
-            parsedBody.variables &&
-            typeof parsedBody.variables === 'object'
-        ) {
+        if (parsedBody.query && parsedBody.variables && typeof parsedBody.variables === 'object') {
             return {
                 query: gql(parsedBody.query),
                 variables: parsedBody.variables,

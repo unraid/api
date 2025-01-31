@@ -52,7 +52,7 @@ export const getPluginBasedOnSandbox = async (sandbox: boolean, csrfToken: strin
         );
 
         const plugin = ApolloServerPluginLandingPageProductionDefault({
-          footer: false
+            footer: false,
         });
         return plugin;
     }

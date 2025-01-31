@@ -1,13 +1,11 @@
-import { getServerIdentifier } from '@app/core/utils/server-identifier';
-import {
-    ArrayDiskType,
-    type ArrayCapacity,
-    type ArrayType,
-} from '@app/graphql/generated/api/types';
-import { store } from '@app/store/index';
-import { FileLoadStatus } from '@app/store/types';
 import { GraphQLError } from 'graphql';
 import sum from 'lodash/sum';
+
+import type { ArrayCapacity, ArrayType } from '@app/graphql/generated/api/types';
+import { getServerIdentifier } from '@app/core/utils/server-identifier';
+import { ArrayDiskType } from '@app/graphql/generated/api/types';
+import { store } from '@app/store/index';
+import { FileLoadStatus } from '@app/store/types';
 
 export const getArrayData = (getState = store.getState): ArrayType => {
     // Var state isn't loaded
@@ -17,9 +15,7 @@ export const getArrayData = (getState = store.getState): ArrayType => {
         state.emhttp.status !== FileLoadStatus.LOADED ||
         Object.keys(state.emhttp.var).length === 0
     ) {
-        throw new GraphQLError(
-            'Attempt to get Array Data, but state was not loaded'
-        );
+        throw new GraphQLError('Attempt to get Array Data, but state was not loaded');
     }
 
     const { emhttp } = state;
@@ -29,9 +25,7 @@ export const getArrayData = (getState = store.getState): ArrayType => {
 
     // Array boot/parities/disks/caches
     const boot = allDisks.find((disk) => disk.type === ArrayDiskType.FLASH);
-    const parities = allDisks.filter(
-        (disk) => disk.type === ArrayDiskType.PARITY
-    );
+    const parities = allDisks.filter((disk) => disk.type === ArrayDiskType.PARITY);
     const disks = allDisks.filter((disk) => disk.type === ArrayDiskType.DATA);
     const caches = allDisks.filter((disk) => disk.type === ArrayDiskType.CACHE);
     // Disk sizes

@@ -2,13 +2,9 @@ import { Logger } from '@nestjs/common';
 import { readdir, readFile, writeFile } from 'fs/promises';
 import { join } from 'path';
 
-
-
 import { ensureDir, ensureDirSync } from 'fs-extra';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { ZodError } from 'zod';
-
-
 
 import type { ApiKey, ApiKeyWithSecret } from '@app/graphql/generated/api/types';
 import { environment } from '@app/environment';
@@ -17,11 +13,7 @@ import { Resource, Role } from '@app/graphql/generated/api/types';
 import { getters, store } from '@app/store';
 import { updateUserConfig } from '@app/store/modules/config';
 import { FileLoadStatus } from '@app/store/types';
-
-
-
-import { ApiKeyService } from './api-key.service';
-
+import { ApiKeyService } from '@app/unraid-api/auth/api-key.service';
 
 // Mock the store and its modules
 vi.mock('@app/store', () => ({

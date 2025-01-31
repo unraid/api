@@ -1,17 +1,14 @@
 import fs from 'fs';
-import camelCaseKeys from 'camelcase-keys';
-import { catchHandlers } from '@app/core/utils/misc/catch-handlers';
-import { getters, store } from '@app/store';
-import { updateDockerState } from '@app/store/modules/docker'
 
-import {
-    type ContainerPort,
-    ContainerPortType,
-    type DockerContainer,
-    ContainerState,
-} from '@app/graphql/generated/api/types';
+import camelCaseKeys from 'camelcase-keys';
+
+import type { ContainerPort, DockerContainer } from '@app/graphql/generated/api/types';
 import { dockerLogger } from '@app/core/log';
 import { docker } from '@app/core/utils/clients/docker';
+import { catchHandlers } from '@app/core/utils/misc/catch-handlers';
+import { ContainerPortType, ContainerState } from '@app/graphql/generated/api/types';
+import { getters, store } from '@app/store';
+import { updateDockerState } from '@app/store/modules/docker';
 
 /**
  * Get all Docker containers.
@@ -21,7 +18,7 @@ import { docker } from '@app/core/utils/clients/docker';
 export const getDockerContainers = async (
     { useCache } = { useCache: true }
 ): Promise<Array<DockerContainer>> => {
-    const dockerState = getters.docker()
+    const dockerState = getters.docker();
     if (useCache && dockerState.containers) {
         dockerLogger.trace('Using docker container cache');
         return dockerState.containers;
@@ -45,43 +42,36 @@ export const getDockerContainers = async (
             all: true,
             size: true,
         })
-        .then((containers) =>
-            containers.map((object) => camelCaseKeys(object, { deep: true }))
-        )
+        .then((containers) => containers.map((object) => camelCaseKeys(object, { deep: true })))
         // If docker throws an error return no containers
         .catch(catchHandlers.docker);
 
     // Cleanup container object
-    const containers: Array<DockerContainer> = rawContainers.map<DockerContainer>(
-        (container) => {
-            const names = container.names[0];
-            const containerData: DockerContainer = {
-                ...container,
-                labels: container.labels,
-                // @ts-expect-error sizeRootFs is not on the dockerode type, but is fetched when size: true is set
-                sizeRootFs: container.sizeRootFs ?? undefined,
-                imageId: container.imageID,
-                state:
-                    typeof container?.state === 'string'
-                        ? ContainerState[container.state.toUpperCase()] ??
-                          ContainerState.EXITED
-                        : ContainerState.EXITED,
-                autoStart: autoStarts.includes(names.split('/')[1]),
-                ports: container.ports.map<ContainerPort>((port) => ({
-                    ...port,
-                    type: ContainerPortType[port.type.toUpperCase()],
-                })),
-            };
-            return containerData;
-        }
-    );
+    const containers: Array<DockerContainer> = rawContainers.map<DockerContainer>((container) => {
+        const names = container.names[0];
+        const containerData: DockerContainer = {
+            ...container,
+            labels: container.labels,
+            // @ts-expect-error sizeRootFs is not on the dockerode type, but is fetched when size: true is set
+            sizeRootFs: container.sizeRootFs ?? undefined,
+            imageId: container.imageID,
+            state:
+                typeof container?.state === 'string'
+                    ? (ContainerState[container.state.toUpperCase()] ?? ContainerState.EXITED)
+                    : ContainerState.EXITED,
+            autoStart: autoStarts.includes(names.split('/')[1]),
+            ports: container.ports.map<ContainerPort>((port) => ({
+                ...port,
+                type: ContainerPortType[port.type.toUpperCase()],
+            })),
+        };
+        return containerData;
+    });
 
     // Get all of the current containers
     const installed = containers.length;
-    const running = containers.filter(
-        (container) => container.state === ContainerState.RUNNING
-    ).length;
+    const running = containers.filter((container) => container.state === ContainerState.RUNNING).length;
 
-    store.dispatch(updateDockerState({ containers, installed, running }))
+    store.dispatch(updateDockerState({ containers, installed, running }));
     return containers;
 };

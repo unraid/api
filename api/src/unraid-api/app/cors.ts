@@ -6,8 +6,7 @@ import { getAllowedOrigins } from '@app/common/allowed-origins';
 import { apiLogger } from '@app/core/log';
 import { BYPASS_CORS_CHECKS } from '@app/environment';
 import { FastifyRequest } from '@app/types/fastify';
-
-import { type CookieService } from '../auth/cookie.service';
+import { type CookieService } from '@app/unraid-api/auth/cookie.service';
 
 /**
  * Returns whether the origin is allowed to access the API.

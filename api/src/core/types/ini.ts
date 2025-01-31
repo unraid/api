@@ -11,9 +11,9 @@ interface Display {
     critical: string;
     custom: string;
     dashapps: string;
-	/** a strftime format string */
+    /** a strftime format string */
     date: string;
-	/** a strftime format string */
+    /** a strftime format string */
     time?: string;
     hot: string;
     max: string;

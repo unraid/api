@@ -1,4 +1,5 @@
 import { mergeTypeDefs } from '@graphql-tools/merge';
+
 import { logger } from '@app/core/log';
 
 export const loadTypeDefs = async () => {

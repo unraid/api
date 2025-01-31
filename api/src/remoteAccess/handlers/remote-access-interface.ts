@@ -16,11 +16,7 @@ export interface GenericRemoteAccess {
         getState: () => RootState;
         dispatch: AppDispatch;
     }): Promise<void>;
-    getRemoteAccessUrl({
-        getState,
-    }: {
-        getState: () => RootState;
-    }): AccessUrl | null;
+    getRemoteAccessUrl({ getState }: { getState: () => RootState }): AccessUrl | null;
 }
 
 export interface IRemoteAccessController extends GenericRemoteAccess {

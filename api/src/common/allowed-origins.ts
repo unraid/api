@@ -1,12 +1,11 @@
-import { getters, type RootState, store } from '@app/store';
 import uniq from 'lodash/uniq';
-import {
-    getServerIps,
-    getUrlForField,
-} from '@app/graphql/resolvers/subscription/network';
-import { FileLoadStatus } from '@app/store/types';
-import { logger } from '../core';
+
+import type { RootState } from '@app/store';
+import { logger } from '@app/core';
 import { GRAPHQL_INTROSPECTION } from '@app/environment';
+import { getServerIps, getUrlForField } from '@app/graphql/resolvers/subscription/network';
+import { getters, store } from '@app/store';
+import { FileLoadStatus } from '@app/store/types';
 
 const getAllowedSocks = (): string[] => [
     // Notifier bridge
@@ -19,9 +18,7 @@ const getAllowedSocks = (): string[] => [
     '/var/run/unraid-cli.sock',
 ];
 
-const getLocalAccessUrlsForServer = (
-    state: RootState = store.getState()
-): string[] => {
+const getLocalAccessUrlsForServer = (state: RootState = store.getState()): string[] => {
     const { emhttp } = state;
     if (emhttp.status !== FileLoadStatus.LOADED) {
         return [];
@@ -40,22 +37,17 @@ const getLocalAccessUrlsForServer = (
             }).toString(),
         ];
     } catch (error: unknown) {
-        logger.debug(
-            'Caught error in getLocalAccessUrlsForServer: \n%o',
-            error
-        );
+        logger.debug('Caught error in getLocalAccessUrlsForServer: \n%o', error);
         return [];
     }
 };
 
-const getRemoteAccessUrlsForAllowedOrigins = (
-    state: RootState = store.getState()
-): string[] => {
+const getRemoteAccessUrlsForAllowedOrigins = (state: RootState = store.getState()): string[] => {
     const { urls } = getServerIps(state);
 
     if (urls) {
         return urls.reduce<string[]>((acc, curr) => {
-            if (curr.ipv4 && curr.ipv6 || curr.ipv4) {
+            if ((curr.ipv4 && curr.ipv6) || curr.ipv4) {
                 acc.push(curr.ipv4.toString());
             } else if (curr.ipv6) {
                 acc.push(curr.ipv6.toString());
@@ -74,11 +66,7 @@ export const getExtraOrigins = (): string[] => {
         return extraOrigins
             .replaceAll(' ', '')
             .split(',')
-            .filter(
-                (origin) =>
-                    origin.startsWith('http://') ||
-                    origin.startsWith('https://')
-            );
+            .filter((origin) => origin.startsWith('http://') || origin.startsWith('https://'));
     }
 
     return [];
@@ -99,9 +87,7 @@ const getApolloSandbox = (): string[] => {
     return [];
 };
 
-export const getAllowedOrigins = (
-    state: RootState = store.getState()
-): string[] =>
+export const getAllowedOrigins = (state: RootState = store.getState()): string[] =>
     uniq([
         ...getAllowedSocks(),
         ...getLocalAccessUrlsForServer(),

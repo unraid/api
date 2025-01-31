@@ -1,4 +1,5 @@
-import { convert, type Data } from 'convert';
+import type { Data } from 'convert';
+import { convert } from 'convert';
 
 // If it's "true", "yes" or "1" then it's true otherwise it's false
 export const toBoolean = (value: string): boolean =>

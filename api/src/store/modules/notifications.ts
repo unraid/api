@@ -1,19 +1,14 @@
+import type { PayloadAction } from '@reduxjs/toolkit';
+import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
+
+import type { Notification } from '@app/graphql/generated/api/types';
 import { logger } from '@app/core/log';
-import { parseConfig } from '@app/core/utils/misc/parse-config';
-import {
-    Importance,
-    NotificationType,
-    type Notification,
-} from '@app/graphql/generated/api/types';
-import { NotificationSchema } from '@app/graphql/generated/api/operations';
-import { type RootState, type AppDispatch } from '@app/store/index';
-import {
-    type PayloadAction,
-    createAsyncThunk,
-    createSlice,
-} from '@reduxjs/toolkit';
-import { PUBSUB_CHANNEL, pubsub } from '@app/core/pubsub';
+import { pubsub, PUBSUB_CHANNEL } from '@app/core/pubsub';
 import { type NotificationIni } from '@app/core/types/states/notification';
+import { parseConfig } from '@app/core/utils/misc/parse-config';
+import { NotificationSchema } from '@app/graphql/generated/api/operations';
+import { Importance, NotificationType } from '@app/graphql/generated/api/types';
+import { type AppDispatch, type RootState } from '@app/store/index';
 
 interface NotificationState {
     notifications: Record<string, Notification>;
@@ -23,9 +18,7 @@ const notificationInitialState: NotificationState = {
     notifications: {},
 };
 
-const fileImportanceToGqlImportance = (
-    importance: NotificationIni['importance']
-): Importance => {
+const fileImportanceToGqlImportance = (importance: NotificationIni['importance']): Importance => {
     switch (importance) {
         case 'alert':
             return Importance.ALERT;
@@ -36,9 +29,7 @@ const fileImportanceToGqlImportance = (
     }
 };
 
-const parseNotificationDateToIsoDate = (
-    unixStringSeconds: string | undefined
-): string | null => {
+const parseNotificationDateToIsoDate = (unixStringSeconds: string | undefined): string | null => {
     if (unixStringSeconds && !isNaN(Number(unixStringSeconds))) {
         return new Date(Number(unixStringSeconds) * 1_000).toISOString();
     }
@@ -68,7 +59,7 @@ export const loadNotification = createAsyncThunk<
     const convertedNotification = NotificationSchema().parse(notification);
 
     if (convertedNotification) {
-        pubsub.publish(PUBSUB_CHANNEL.NOTIFICATION, { notificationAdded: convertedNotification })
+        pubsub.publish(PUBSUB_CHANNEL.NOTIFICATION, { notificationAdded: convertedNotification });
         return { id: path, notification: convertedNotification };
     }
     throw new Error('Failed to parse notification');
@@ -85,17 +76,14 @@ export const notificationsStore = createSlice({
         },
         clearAllNotifications: (state) => {
             state.notifications = {};
-        }
+        },
     },
     extraReducers: (builder) => {
         builder.addCase(loadNotification.fulfilled, (state, { payload }) => {
             state.notifications[payload.id] = payload.notification;
         });
         builder.addCase(loadNotification.rejected, (_, action) => {
-            logger.debug(
-                'Failed to load notification with error %o',
-                action.error
-            );
+            logger.debug('Failed to load notification with error %o', action.error);
         });
     },
 });

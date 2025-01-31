@@ -9,17 +9,14 @@ export const enableWanAccessChangeListener = () =>
             if (
                 action.type === loadConfigFile.fulfilled.type &&
                 previousState.config.remote.wanaccess !== '' &&
-                state.config.remote.wanaccess !==
-                    previousState.config.remote.wanaccess
+                state.config.remote.wanaccess !== previousState.config.remote.wanaccess
             ) {
                 return true;
             }
             return false;
         },
         async effect(_, { dispatch }) {
-            remoteAccessLogger.info(
-                'Wan access value changed, reloading Nginx and Calling Update DNS'
-            );
+            remoteAccessLogger.info('Wan access value changed, reloading Nginx and Calling Update DNS');
             await dispatch(reloadNginxAndUpdateDNS());
         },
     });

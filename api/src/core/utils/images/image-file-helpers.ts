@@ -1,7 +1,8 @@
-import { getters } from '@app/store/index';
-import { FileLoadStatus } from '@app/store/types';
 import { readFile, stat } from 'node:fs/promises';
 import { join } from 'node:path';
+
+import { getters } from '@app/store/index';
+import { FileLoadStatus } from '@app/store/types';
 
 const isImageFile = async (path: string): Promise<boolean> => {
     try {
@@ -17,7 +18,6 @@ const isImageFile = async (path: string): Promise<boolean> => {
 };
 
 export const getCasePathIfPresent = async (): Promise<string | null> => {
-
     const dynamixBasePath = getters.paths()['dynamix-base'];
 
     const configFilePath = join(dynamixBasePath, 'case-model.cfg');
@@ -34,19 +34,17 @@ export const getCasePathIfPresent = async (): Promise<string | null> => {
     }
 };
 
-export const getBannerPathIfPresent = async (
-    filename = 'banner.png'
-): Promise<string | null> => {
+export const getBannerPathIfPresent = async (filename = 'banner.png'): Promise<string | null> => {
     if (getters.dynamix().status === FileLoadStatus.LOADED && getters.dynamix().display?.banner) {
         const dynamixBasePath = getters.paths()['dynamix-base'];
         const customBannerPath = join(dynamixBasePath, filename);
-		const defaultBannerPath = '/usr/local/emhttp/plugins/dynamix/images/banner.png';
+        const defaultBannerPath = '/usr/local/emhttp/plugins/dynamix/images/banner.png';
         if (await isImageFile(customBannerPath)) {
             return customBannerPath;
         }
-		if (await isImageFile(defaultBannerPath)) {
-			return defaultBannerPath;
-		}
+        if (await isImageFile(defaultBannerPath)) {
+            return defaultBannerPath;
+        }
     }
 
     return null;

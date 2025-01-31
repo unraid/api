@@ -3,7 +3,7 @@ import { resolve } from 'path';
 
 import { describe, expect, test } from 'vitest';
 
-import NotificationsPageModification from '../notifications-page.modification';
+import NotificationsPageModification from '@app/unraid-api/unraid-file-modifier/modifications/notifications-page.modification';
 
 describe('Notifications.page modifier', () => {
     test('correctly applies to fresh install', async () => {

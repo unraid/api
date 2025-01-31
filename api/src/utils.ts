@@ -5,8 +5,8 @@ import { dirname } from 'node:path';
 
 import strftime from 'strftime';
 
-import { UserAccount } from './graphql/generated/api/types';
-import { FastifyRequest } from './types/fastify';
+import { UserAccount } from '@app/graphql/generated/api/types';
+import { FastifyRequest } from '@app/types/fastify';
 
 export function notNull<T>(value: T): value is NonNullable<T> {
     return value !== null;

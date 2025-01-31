@@ -1,21 +1,21 @@
-import { getBannerPathIfPresent, getCasePathIfPresent } from "@app/core/utils/images/image-file-helpers";
-import { loadDynamixConfigFile } from "@app/store/actions/load-dynamix-config-file";
-import { store } from "@app/store/index";
+import { expect, test } from 'vitest';
 
-import { expect, test } from "vitest";
+import { getBannerPathIfPresent, getCasePathIfPresent } from '@app/core/utils/images/image-file-helpers';
+import { loadDynamixConfigFile } from '@app/store/actions/load-dynamix-config-file';
+import { store } from '@app/store/index';
 
 test('get case path returns expected result', async () => {
-    await expect(getCasePathIfPresent()).resolves.toContain('/dev/dynamix/case-model.png')
-})
+    await expect(getCasePathIfPresent()).resolves.toContain('/dev/dynamix/case-model.png');
+});
 
 test('get banner path returns null (state unloaded)', async () => {
-   await  expect(getBannerPathIfPresent()).resolves.toMatchInlineSnapshot('null')
-})
+    await expect(getBannerPathIfPresent()).resolves.toMatchInlineSnapshot('null');
+});
 
-test('get banner path returns the banner (state loaded)', async() => {
-	await store.dispatch(loadDynamixConfigFile()).unwrap();
+test('get banner path returns the banner (state loaded)', async () => {
+    await store.dispatch(loadDynamixConfigFile()).unwrap();
     await expect(getBannerPathIfPresent()).resolves.toContain('/dev/dynamix/banner.png');
-})
+});
 
 test('get banner path returns null when no banner (state loaded)', async () => {
     await store.dispatch(loadDynamixConfigFile()).unwrap();

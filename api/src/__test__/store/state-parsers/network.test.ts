@@ -1,18 +1,20 @@
 import { join } from 'path';
+
 import { expect, test } from 'vitest';
-import { store } from '@app/store';
+
 import type { NetworkIni } from '@app/store/state-parsers/network';
+import { store } from '@app/store';
 
 test('Returns parsed state file', async () => {
-	const { parse } = await import('@app/store/state-parsers/network');
-	const { parseConfig } = await import('@app/core/utils/misc/parse-config');
-	const { paths } = store.getState();
-	const filePath = join(paths.states, 'network.ini');
-	const stateFile = parseConfig<NetworkIni>({
-		filePath,
-		type: 'ini',
-	});
-	expect(parse(stateFile)).toMatchInlineSnapshot(`
+    const { parse } = await import('@app/store/state-parsers/network');
+    const { parseConfig } = await import('@app/core/utils/misc/parse-config');
+    const { paths } = store.getState();
+    const filePath = join(paths.states, 'network.ini');
+    const stateFile = parseConfig<NetworkIni>({
+        filePath,
+        type: 'ini',
+    });
+    expect(parse(stateFile)).toMatchInlineSnapshot(`
 		[
 		  {
 		    "bonding": true,

@@ -1,18 +1,20 @@
-import { Test, type TestingModule } from '@nestjs/testing';
-import { ServicesResolver } from './services.resolver';
+import type { TestingModule } from '@nestjs/testing';
+import { Test } from '@nestjs/testing';
+
+import { ServicesResolver } from '@app/unraid-api/graph/services/services.resolver';
 
 describe('ServicesResolver', () => {
-  let resolver: ServicesResolver;
+    let resolver: ServicesResolver;
 
-  beforeEach(async () => {
-    const module: TestingModule = await Test.createTestingModule({
-      providers: [ServicesResolver],
-    }).compile();
+    beforeEach(async () => {
+        const module: TestingModule = await Test.createTestingModule({
+            providers: [ServicesResolver],
+        }).compile();
 
-    resolver = module.get<ServicesResolver>(ServicesResolver);
-  });
+        resolver = module.get<ServicesResolver>(ServicesResolver);
+    });
 
-  it('should be defined', () => {
-    expect(resolver).toBeDefined();
-  });
+    it('should be defined', () => {
+        expect(resolver).toBeDefined();
+    });
 });
