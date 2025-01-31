@@ -1,21 +1,17 @@
 import type { Logger } from '@nestjs/common';
-import { readFile, writeFile } from 'node:fs/promises';
+import { readFile } from 'node:fs/promises';
+import { createPatch } from 'diff';
+import { FileModification, PatchResult, ShouldApplyWithReason } from '@app/unraid-api/unraid-file-modifier/file-modification';
 
-import {
-    FileModification,
-    ShouldApplyWithReason,
-} from '@app/unraid-api/unraid-file-modifier/unraid-file-modifier.service';
-import { backupFile, restoreFile } from '@app/utils';
-
-export default class SSOFileModification implements FileModification {
+export default class SSOFileModification extends FileModification {
     id: string = 'sso';
-    logger: Logger;
-    loginFilePath: string = '/usr/local/emhttp/plugins/dynamix/include/.login.php';
+    private loginFilePath: string = '/usr/local/emhttp/plugins/dynamix/include/.login.php';
+
     constructor(logger: Logger) {
-        this.logger = logger;
+        super(logger);
     }
 
-    async apply(): Promise<void> {
+    protected async generatePatch(): Promise<PatchResult> {
         // Define the new PHP function to insert
         /* eslint-disable no-useless-escape */
         const newFunction = `
@@ -49,39 +45,31 @@ function verifyUsernamePasswordAndSSO(string $username, string $password): bool 
         const tagToInject =
             '<?php include "$docroot/plugins/dynamix.my.servers/include/sso-login.php"; ?>';
 
-        // Restore the original file if exists
-        await restoreFile(this.loginFilePath, false);
-        // Backup the original content
-        await backupFile(this.loginFilePath, true);
-
         // Read the file content
-        let fileContent = await readFile(this.loginFilePath, 'utf-8');
+        const originalContent = await readFile(this.loginFilePath, 'utf-8');
+        
+        // Create modified content
+        let newContent = originalContent;
 
-        // Add new function after the opening PHP tag (<?php)
-        fileContent = fileContent.replace(/<\?php\s*(\r?\n|\r)*/, `<?php\n\n${newFunction}\n`);
+        // Add new function after the opening PHP tag
+        newContent = newContent.replace(/<\?php\s*(\r?\n|\r)*/, `<?php\n\n${newFunction}\n`);
 
-        // Replace the old function call with the new function name
-        const functionCallPattern = /!verifyUsernamePassword\(\$username, \$password\)/g;
-        fileContent = fileContent.replace(
-            functionCallPattern,
+        // Replace the old function call
+        newContent = newContent.replace(
+            /!verifyUsernamePassword\(\$username, \$password\)/g,
             '!verifyUsernamePasswordAndSSO($username, $password)'
         );
 
-        // Inject the PHP include tag after the closing </form> tag
-        fileContent = fileContent.replace(/<\/form>/i, `</form>\n${tagToInject}`);
+        // Inject the PHP include tag
+        newContent = newContent.replace(/<\/form>/i, `</form>\n${tagToInject}`);
 
-        // Write the updated content back to the file
-        await writeFile(this.loginFilePath, fileContent);
-
-        this.logger.log('Login Function replaced successfully.');
-    }
-    async rollback(): Promise<void> {
-        const restored = await restoreFile(this.loginFilePath, false);
-        if (restored) {
-            this.logger.debug('SSO login file restored.');
-        } else {
-            this.logger.debug('No SSO login file backup found.');
-        }
+        // Create and return the patch
+        const patch = createPatch(this.loginFilePath, originalContent, newContent, 'original', 'modified');
+        
+        return {
+            targetFile: this.loginFilePath,
+            patch
+        };
     }
 
     async shouldApply(): Promise<ShouldApplyWithReason> {

@@ -1,32 +1,46 @@
 import { Logger } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
+import { join } from 'path';
 
-import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import {
-    FileModification,
-    UnraidFileModificationService,
-} from '@app/unraid-api/unraid-file-modifier/unraid-file-modifier.service';
 
-class TestFileModification implements FileModification {
-    constructor(
-        public applyImplementation?: () => Promise<void>,
-        public rollbackImplementation?: () => Promise<void>
-    ) {}
+import { createPatch } from 'diff';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+
+
+
+import { FileModification, PatchResult, ShouldApplyWithReason } from '@app/unraid-api/unraid-file-modifier/file-modification';
+import { UnraidFileModificationService } from '@app/unraid-api/unraid-file-modifier/unraid-file-modifier.service';
+
+
+
+
+
+class TestFileModification extends FileModification {
     id = 'test';
-    async apply() {
-        if (this.applyImplementation) {
-            return this.applyImplementation();
-        }
-        throw new Error('Application not implemented.');
+
+    constructor(logger: Logger) {
+        super(logger);
     }
-    async rollback() {
-        if (this.rollbackImplementation) {
-            return this.rollbackImplementation();
-        }
-        throw new Error('Rollback not implemented.');
+
+    protected async generatePatch(): Promise<PatchResult> {
+        return {
+            targetFile: join(__dirname, '__fixtures__/text-patch-file.txt'),
+            patch: createPatch(
+                '__fixtures__/text-patch-file.txt',
+                'original',
+                'modified',
+                'original',
+                'modified'
+            ),
+        };
     }
-    async shouldApply() {
+
+    apply = vi.fn();
+
+    rollback = vi.fn();
+
+    async shouldApply(): Promise<ShouldApplyWithReason> {
         return { shouldApply: true, reason: 'Always Apply this mod' };
     }
 }
@@ -40,6 +54,8 @@ describe('FileModificationService', () => {
         verbose: ReturnType<typeof vi.fn>;
     };
     let service: UnraidFileModificationService;
+    let logger: Logger;
+
     beforeEach(async () => {
         mockLogger = {
             log: vi.fn(),
@@ -54,6 +70,9 @@ describe('FileModificationService', () => {
         vi.spyOn(Logger.prototype, 'warn').mockImplementation(mockLogger.warn);
         vi.spyOn(Logger.prototype, 'debug').mockImplementation(mockLogger.debug);
         vi.spyOn(Logger.prototype, 'verbose').mockImplementation(mockLogger.verbose);
+
+        logger = new Logger('test');
+
         const module: TestingModule = await Test.createTestingModule({
             providers: [UnraidFileModificationService],
         }).compile();
@@ -71,7 +90,8 @@ describe('FileModificationService', () => {
     });
 
     it('should apply modifications', async () => {
-        await expect(service.applyModification(new TestFileModification())).resolves.toBe(undefined);
+        const mod = new TestFileModification(logger);
+        await expect(service.applyModification(mod)).resolves.toBe(undefined);
     });
 
     it('should not rollback any mods without loaded', async () => {
@@ -80,47 +100,62 @@ describe('FileModificationService', () => {
 
     it('should rollback all mods', async () => {
         await service.loadModifications();
-        const applyFn = vi.fn();
-        const rollbackFn = vi.fn();
-        await service.applyModification(new TestFileModification(applyFn, rollbackFn));
-        await expect(service.rollbackAll()).resolves.toBe(undefined);
+        const mod = new TestFileModification(logger);
+
+        await service.applyModification(mod);
+        await service.rollbackAll();
+
         expect(mockLogger.error).not.toHaveBeenCalled();
-        expect(mockLogger.log).toHaveBeenCalledTimes(5);
-        expect(applyFn).toHaveBeenCalled();
-        expect(rollbackFn).toHaveBeenCalled();
-        expect(mockLogger.log).toHaveBeenNthCalledWith(1, 'RootTestModule dependencies initialized');
-        expect(mockLogger.log).toHaveBeenNthCalledWith(
-            2,
-            'Applying modification: test - Always Apply this mod'
-        );
-        expect(mockLogger.log).toHaveBeenNthCalledWith(3, 'Modification applied successfully: test');
-        expect(mockLogger.log).toHaveBeenNthCalledWith(4, 'Rolling back modification: test');
-        expect(mockLogger.log).toHaveBeenNthCalledWith(5, 'Modification rolled back successfully: test');
+        expect(mockLogger.log.mock.calls).toEqual([
+            ['RootTestModule dependencies initialized'],
+            ['Applying modification: test - Always Apply this mod'],
+            ['Modification applied successfully: test'],
+            ['Rolling back modification: test'],
+            ['Successfully rolled back modification: test'],
+        ]);
     });
 
     it('should handle errors during rollback', async () => {
-        const errorMod = new TestFileModification(vi.fn(), () =>
-            Promise.reject(new Error('Rollback failed'))
-        );
-        await service.applyModification(errorMod);
+        // Mock the logger to track error calls
+
+        const mod = new TestFileModification(logger);
+        await service.applyModification(mod);
+        console.log(service.appliedModifications);
+        expect(mockLogger.log.mock.calls).toEqual([
+            ['RootTestModule dependencies initialized'],
+            ['Applying modification: test - Always Apply this mod'],
+            ['Modification applied successfully: test'],
+        ]);
+
+        service.appliedModifications[0].appliedPatch = null;
+        console.log(service.appliedModifications);
+        // Now break the appliedModifications array so that the rollbackAll method fails
         await service.rollbackAll();
-        expect(mockLogger.error).toHaveBeenCalled();
+
+        expect(mockLogger.error).toHaveBeenCalledWith(
+            expect.stringContaining('Failed to roll back modification')
+        );
     });
 
     it('should handle concurrent modifications', async () => {
-        const mods = [
-            new TestFileModification(vi.fn(), vi.fn()),
-            new TestFileModification(vi.fn(), vi.fn()),
-        ];
+        vi.mock('fs/promises', () => ({
+            readFile: vi.fn().mockResolvedValue('modified'),
+            writeFile: vi.fn(),
+        }));
+        const mods = [new TestFileModification(logger), new TestFileModification(logger)];
+
         await Promise.all(mods.map((mod) => service.applyModification(mod)));
         await service.rollbackAll();
-        mods.forEach((mod) => {
-            expect(mod.rollbackImplementation).toHaveBeenCalled();
-        });
+
+        expect(mockLogger.error).not.toHaveBeenCalled();
+        expect(mockLogger.log).toHaveBeenCalledWith(
+            expect.stringContaining('Successfully rolled back modification')
+        );
     });
 
     afterEach(async () => {
         await service.rollbackAll();
         vi.clearAllMocks();
+        vi.resetModules();
     });
 });
