@@ -7,10 +7,6 @@ export default class SSOFileModification extends FileModification {
     id: string = 'sso';
     public readonly filePath: string = '/usr/local/emhttp/plugins/dynamix/include/.login.php';
 
-    constructor(logger: Logger) {
-        super(logger);
-    }
-
     protected async generatePatch(): Promise<string> {
         // Define the new PHP function to insert
         /* eslint-disable no-useless-escape */

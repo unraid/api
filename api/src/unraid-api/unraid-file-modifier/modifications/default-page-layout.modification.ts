@@ -13,10 +13,6 @@ export default class DefaultPageLayoutModification extends FileModification {
     public readonly filePath: string =
         '/usr/local/emhttp/plugins/dynamix/include/DefaultPageLayout.php';
 
-    constructor(logger: Logger) {
-        super(logger);
-    }
-
     private addToaster(source: string): string {
         if (source.includes('unraid-toaster')) {
             return source;
