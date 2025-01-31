@@ -1,17 +1,17 @@
 import type { Logger } from '@nestjs/common';
 import { readFile } from 'node:fs/promises';
 import { createPatch } from 'diff';
-import { FileModification, PatchResult, ShouldApplyWithReason } from '@app/unraid-api/unraid-file-modifier/file-modification';
+import { FileModification, ShouldApplyWithReason } from '@app/unraid-api/unraid-file-modifier/file-modification';
 
 export default class SSOFileModification extends FileModification {
     id: string = 'sso';
-    private readonly filePath: string = '/usr/local/emhttp/plugins/dynamix/include/.login.php';
+    public readonly filePath: string = '/usr/local/emhttp/plugins/dynamix/include/.login.php';
 
     constructor(logger: Logger) {
         super(logger);
     }
 
-    protected async generatePatch(): Promise<PatchResult> {
+    protected async generatePatch(): Promise<string> {
         // Define the new PHP function to insert
         /* eslint-disable no-useless-escape */
         const newFunction = `
@@ -65,11 +65,7 @@ function verifyUsernamePasswordAndSSO(string $username, string $password): bool 
 
         // Create and return the patch
         const patch = createPatch(this.filePath, originalContent, newContent, 'original', 'modified');
-        
-        return {
-            targetFile: this.filePath,
-            patch
-        };
+        return patch;
     }
 
     async shouldApply(): Promise<ShouldApplyWithReason> {

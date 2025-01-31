@@ -200,11 +200,11 @@ function settab(tab) {
   $.cookie('one','tab1');
 <?endif;?>
 <?break;?>
-<?case'Cache':case'Data':case'Flash':case'Parity':?>
+<?case'Cache':case'Data':case'Device':case'Flash':case'Parity':?>
   $.cookie('one',tab);
 <?break;?>
 <?default:?>
-  $.cookie(($.cookie('one')==null?'tab':'one'),tab);
+  $.cookie('one',tab);
 <?endswitch;?>
 }
 function done(key) {
@@ -577,8 +577,26 @@ function flashReport() {
   });
 }
 $(function() {
-  var tab = $.cookie('one')||$.cookie('tab')||'tab1';
-  if (tab=='tab0') tab = 'tab'+$('input[name$="tabs"]').length; else if ($('#'+tab).length==0) {initab(); tab = 'tab1';}
+  let tab;
+<?switch ($myPage['name']):?>
+<?case'Main':?>
+  tab = $.cookie('tab')||'tab1';
+<?break;?>
+<?case'Cache':case'Data':case'Device':case'Flash':case'Parity':?>
+  tab = $.cookie('one')||'tab1';
+<?break;?>
+<?default:?>
+  tab = $.cookie('one')||'tab1';
+<?endswitch;?>
+  /* Check if the tab is 'tab0' */
+  if (tab === 'tab0') {
+    /* Set tab to the last available tab based on input[name$="tabs"] length */
+    tab = 'tab' + $('input[name$="tabs"]').length;
+  } else if ($('#' + tab).length === 0) {
+    /* If the tab element does not exist, initialize a tab and set to 'tab1' */
+    initab();
+    tab = 'tab1';
+  }
   $('#'+tab).attr('checked', true);
   updateTime();
   $.jGrowl.defaults.closeTemplate = '<i class="fa fa-close"></i>';
@@ -693,7 +711,7 @@ if (isset($myPage['Load']) && $myPage['Load']>0) echo "\n<script>timers.reload =
 echo "<div class='tabs'>";
 $tab = 1;
 $pages = [];
-if (!empty($myPage['text'])) $pages[$myPage['name']] = $myPage;
+if (!empty($myPage['text']) && page_enabled($myPage)) $pages[$myPage['name']] = $myPage;
 if (_var($myPage,'Type')=='xmenu') $pages = array_merge($pages, find_pages($myPage['name']));
 if (isset($myPage['Tabs'])) $display['tabs'] = strtolower($myPage['Tabs'])=='true' ? 0 : 1;
 $tabbed = $display['tabs']==0 && count($pages)>1;
@@ -701,7 +719,7 @@ $tabbed = $display['tabs']==0 && count($pages)>1;
 foreach ($pages as $page) {
   $close = false;
   if (isset($page['Title'])) {
-    eval("\$title=\"".htmlspecialchars($page['Title'])."\";");
+    eval("\$title=\"{$page['Title']}\";");
     if ($tabbed) {
       echo "<div class='tab'><input type='radio' id='tab{$tab}' name='tabs' onclick='settab(this.id)'><label for='tab{$tab}'>";
       echo tab_title($title,$page['root'],_var($page,'Tag',false));
@@ -718,7 +736,7 @@ foreach ($pages as $page) {
   if (isset($page['Type']) && $page['Type']=='menu') {
     $pgs = find_pages($page['name']);
     foreach ($pgs as $pg) {
-      @eval("\$title=\"".htmlspecialchars($pg['Title'])."\";");
+      @eval("\$title=\"{$pg['Title']}\";");
       $icon = _var($pg,'Icon',"<i class='icon-app PanelIcon'></i>");
       if (substr($icon,-4)=='.png') {
         $root = $pg['root'];
@@ -1189,4 +1207,3 @@ $('body').on("click","a,.ca_href", function(e) {
 <unraid-toaster rich-colors close-button position="<?= ($notify['position'] === 'center') ? 'top-center' : $notify['position'] ?>"></unraid-toaster>
 </body>
 </html>
-

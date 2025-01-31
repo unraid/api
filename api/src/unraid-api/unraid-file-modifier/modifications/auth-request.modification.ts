@@ -6,7 +6,6 @@ import { createPatch } from 'diff';
 
 import {
     FileModification,
-    PatchResult,
     ShouldApplyWithReason,
 } from '@app/unraid-api/unraid-file-modifier/file-modification';
 
@@ -26,7 +25,7 @@ export default class AuthRequestModification extends FileModification {
         super(logger);
     }
 
-    protected async generatePatch(): Promise<PatchResult> {
+    protected async generatePatch(): Promise<string> {
         const JS_FILES = await getJsFiles(WEB_COMPS_DIR);
         this.logger.debug(`Found ${JS_FILES.length} .js files in ${WEB_COMPS_DIR}`);
 
@@ -54,10 +53,7 @@ export default class AuthRequestModification extends FileModification {
             context: 3,
         });
 
-        return {
-            targetFile: AUTH_REQUEST_FILE,
-            patch,
-        };
+        return patch;
     }
 
     async shouldApply(): Promise<ShouldApplyWithReason> {

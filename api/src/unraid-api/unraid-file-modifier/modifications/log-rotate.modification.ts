@@ -7,13 +7,12 @@ import { execa } from 'execa';
 import { fileExists } from '@app/core/utils/files/file-exists';
 import {
     FileModification,
-    PatchResult,
     ShouldApplyWithReason,
 } from '@app/unraid-api/unraid-file-modifier/file-modification';
 
 export class LogRotateModification extends FileModification {
     id: string = 'log-rotate';
-    private readonly filePath: string = '/etc/logrotate.d/unraid-api' as const;
+    public readonly filePath: string = '/etc/logrotate.d/unraid-api' as const;
     private readonly logRotateConfig: string = `
 /var/log/unraid-api/*.log {
     rotate 1
@@ -31,7 +30,7 @@ export class LogRotateModification extends FileModification {
         super(logger);
     }
 
-    protected async generatePatch(): Promise<PatchResult> {
+    protected async generatePatch(): Promise<string> {
         const currentContent = (await fileExists(this.filePath))
             ? await readFile(this.filePath, 'utf8')
             : '';
@@ -50,10 +49,7 @@ export class LogRotateModification extends FileModification {
         // After applying patch, ensure file permissions are correct
         await execa('chown', ['root:root', this.filePath]).catch((err) => this.logger.error(err));
 
-        return {
-            targetFile: this.filePath,
-            patch,
-        };
+        return patch;
     }
 
     async shouldApply(): Promise<ShouldApplyWithReason> {

@@ -5,19 +5,18 @@ import { createPatch } from 'diff';
 
 import {
     FileModification,
-    PatchResult,
     ShouldApplyWithReason,
 } from '@app/unraid-api/unraid-file-modifier/file-modification';
 
 export default class NotificationsPageModification extends FileModification {
-    id: string = 'Notifications.page';
-    private readonly filePath: string = '/usr/local/emhttp/plugins/dynamix/Notifications.page';
+    id: string = 'notifications-page';
+    public readonly filePath: string = '/usr/local/emhttp/plugins/dynamix/Notifications.page';
 
     constructor(logger: Logger) {
         super(logger);
     }
 
-    protected async generatePatch(): Promise<PatchResult> {
+    protected async generatePatch(): Promise<string> {
         const fileContent = await readFile(this.filePath, 'utf-8');
 
         const newContent = NotificationsPageModification.applyToSource(fileContent);
@@ -26,10 +25,7 @@ export default class NotificationsPageModification extends FileModification {
             context: 3,
         });
 
-        return {
-            targetFile: this.filePath,
-            patch,
-        };
+        return patch;
     }
 
     async shouldApply(): Promise<ShouldApplyWithReason> {
