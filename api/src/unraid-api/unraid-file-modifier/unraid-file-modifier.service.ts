@@ -1,10 +1,11 @@
 import { Injectable, Logger, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
+
+import { FileModification } from '@app/unraid-api/unraid-file-modifier/file-modification';
 import AuthRequestModification from '@app/unraid-api/unraid-file-modifier/modifications/auth-request.modification';
 import DefaultPageLayoutModification from '@app/unraid-api/unraid-file-modifier/modifications/default-page-layout.modification';
 import { LogRotateModification } from '@app/unraid-api/unraid-file-modifier/modifications/log-rotate.modification';
 import NotificationsPageModification from '@app/unraid-api/unraid-file-modifier/modifications/notifications-page.modification';
 import SSOFileModification from '@app/unraid-api/unraid-file-modifier/modifications/sso.modification';
-import { FileModification } from '@app/unraid-api/unraid-file-modifier/file-modification';
 
 @Injectable()
 export class UnraidFileModificationService implements OnModuleInit, OnModuleDestroy {
@@ -17,11 +18,9 @@ export class UnraidFileModificationService implements OnModuleInit, OnModuleDest
             const mods = await this.loadModifications();
             await this.applyModifications(mods);
         } catch (err) {
-            if (err instanceof Error) {
-                this.logger.error(`Failed to apply modifications: ${err.message}`);
-            } else {
-                this.logger.error('Failed to apply modifications: Unknown error');
-            }
+            this.logger.error(
+                `Failed to apply modifications: ${err instanceof Error ? err.message : 'Unknown error'}`
+            );
         }
     }
 

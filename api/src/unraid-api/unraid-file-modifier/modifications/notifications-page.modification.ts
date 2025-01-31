@@ -12,10 +12,6 @@ export default class NotificationsPageModification extends FileModification {
     id: string = 'notifications-page';
     public readonly filePath: string = '/usr/local/emhttp/plugins/dynamix/Notifications.page';
 
-    constructor(logger: Logger) {
-        super(logger);
-    }
-
     protected async generatePatch(): Promise<string> {
         const fileContent = await readFile(this.filePath, 'utf-8');
 
