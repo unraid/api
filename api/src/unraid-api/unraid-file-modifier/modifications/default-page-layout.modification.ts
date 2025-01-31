@@ -5,13 +5,12 @@ import { createPatch } from 'diff';
 
 import {
     FileModification,
-    PatchResult,
     ShouldApplyWithReason,
 } from '@app/unraid-api/unraid-file-modifier/file-modification';
 
 export default class DefaultPageLayoutModification extends FileModification {
     id: string = 'default-page-layout';
-    private readonly filePath: string =
+    public readonly filePath: string =
         '/usr/local/emhttp/plugins/dynamix/include/DefaultPageLayout.php';
 
     constructor(logger: Logger) {
@@ -47,7 +46,7 @@ export default class DefaultPageLayoutModification extends FileModification {
         return transformers.reduce((content, fn) => fn(content), fileContent);
     }
 
-    protected async generatePatch(): Promise<PatchResult> {
+    protected async generatePatch(): Promise<string> {
         const fileContent = await readFile(this.filePath, 'utf-8');
 
         
@@ -57,10 +56,7 @@ export default class DefaultPageLayoutModification extends FileModification {
             context: 2,
         });
 
-        return {
-            targetFile: this.filePath,
-            patch,
-        };
+        return patch;
     }
 
     async shouldApply(): Promise<ShouldApplyWithReason> {

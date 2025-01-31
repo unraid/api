@@ -1,7 +1,7 @@
-Index: /app/src/unraid-api/unraid-file-modifier/modifications/__fixtures__/DefaultPageLayout.php
+Index: /app/src/unraid-api/unraid-file-modifier/modifications/__fixtures__/downloaded/DefaultPageLayout.php
 ===================================================================
---- /app/src/unraid-api/unraid-file-modifier/modifications/__fixtures__/DefaultPageLayout.php
-+++ /app/src/unraid-api/unraid-file-modifier/modifications/__fixtures__/DefaultPageLayout.php
+--- /app/src/unraid-api/unraid-file-modifier/modifications/__fixtures__/downloaded/DefaultPageLayout.php
++++ /app/src/unraid-api/unraid-file-modifier/modifications/__fixtures__/downloaded/DefaultPageLayout.php
 @@ -557,14 +557,5 @@
    $.post('/webGui/include/Notify.php',{cmd:'get',csrf_token:csrf_token},function(msg) {
      $.each($.parseJSON(msg), function(i, notify){
@@ -18,7 +18,7 @@ Index: /app/src/unraid-api/unraid-file-modifier/modifications/__fixtures__/Defau
 +      
      });
    });
-@@ -680,6 +671,6 @@
+@@ -698,6 +689,6 @@
  }
  
 -echo "<div class='nav-user show'><a id='board' href='#' class='hand'><b id='bell' class='icon-u-bell system'></b></a></div>";
@@ -26,7 +26,7 @@ Index: /app/src/unraid-api/unraid-file-modifier/modifications/__fixtures__/Defau
 +
  if ($themes2) echo "</div>";
  echo "</div></div>";
-@@ -886,20 +877,12 @@
+@@ -904,20 +895,12 @@
  <?if ($notify['display']==0):?>
        if (notify.show) {
 -        $.jGrowl(notify.subject+'<br>'+notify.description,{
@@ -52,7 +52,7 @@ Index: /app/src/unraid-api/unraid-file-modifier/modifications/__fixtures__/Defau
 +
      break;
    }
-@@ -1204,4 +1187,5 @@
+@@ -1222,4 +1205,5 @@
  });
  </script>
 +<unraid-toaster rich-colors close-button position="<?= ($notify['position'] === 'center') ? 'top-center' : $notify['position'] ?>"></unraid-toaster>
