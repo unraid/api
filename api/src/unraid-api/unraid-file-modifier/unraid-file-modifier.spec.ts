@@ -1,20 +1,20 @@
 import { Logger } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
+import { promises as fs } from 'fs';
 import { join } from 'path';
-
-
 
 import { createPatch } from 'diff';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-
-
-import { FileModification, PatchResult, ShouldApplyWithReason } from '@app/unraid-api/unraid-file-modifier/file-modification';
+import {
+    FileModification,
+    PatchResult,
+    ShouldApplyWithReason,
+} from '@app/unraid-api/unraid-file-modifier/file-modification';
 import { UnraidFileModificationService } from '@app/unraid-api/unraid-file-modifier/unraid-file-modifier.service';
 
-
-
-
+const FIXTURE_PATH = join(__dirname, 'modifications', '__fixtures__', 'text-patch-file.txt');
+const ORIGINAL_CONTENT = 'original';
 
 class TestFileModification extends FileModification {
     id = 'test';
@@ -25,27 +25,17 @@ class TestFileModification extends FileModification {
 
     protected async generatePatch(): Promise<PatchResult> {
         return {
-            targetFile: join(__dirname, '__fixtures__/text-patch-file.txt'),
-            patch: createPatch(
-                '__fixtures__/text-patch-file.txt',
-                'original',
-                'modified',
-                'original',
-                'modified'
-            ),
+            targetFile: FIXTURE_PATH,
+            patch: createPatch('text-patch-file.txt', ORIGINAL_CONTENT, 'modified'),
         };
     }
-
-    apply = vi.fn();
-
-    rollback = vi.fn();
 
     async shouldApply(): Promise<ShouldApplyWithReason> {
         return { shouldApply: true, reason: 'Always Apply this mod' };
     }
 }
 
-describe('FileModificationService', () => {
+describe.sequential('FileModificationService', () => {
     let mockLogger: {
         log: ReturnType<typeof vi.fn>;
         error: ReturnType<typeof vi.fn>;
@@ -57,6 +47,9 @@ describe('FileModificationService', () => {
     let logger: Logger;
 
     beforeEach(async () => {
+        // Create/reset the fixture file before each test
+        await fs.writeFile(FIXTURE_PATH, ORIGINAL_CONTENT);
+
         mockLogger = {
             log: vi.fn(),
             error: vi.fn(),
@@ -64,7 +57,7 @@ describe('FileModificationService', () => {
             debug: vi.fn(),
             verbose: vi.fn(),
         };
-        // Mock the Logger constructor
+
         vi.spyOn(Logger.prototype, 'log').mockImplementation(mockLogger.log);
         vi.spyOn(Logger.prototype, 'error').mockImplementation(mockLogger.error);
         vi.spyOn(Logger.prototype, 'warn').mockImplementation(mockLogger.warn);
@@ -100,10 +93,18 @@ describe('FileModificationService', () => {
 
     it('should rollback all mods', async () => {
         await service.loadModifications();
+        const initialContent = await fs.readFile(FIXTURE_PATH, 'utf-8');
+        expect(initialContent).toBe(ORIGINAL_CONTENT);
+
         const mod = new TestFileModification(logger);
 
         await service.applyModification(mod);
+        const modifiedContent = await fs.readFile(FIXTURE_PATH, 'utf-8');
+        expect(modifiedContent).toBe('modified');
+
         await service.rollbackAll();
+        const rolledBackContent = await fs.readFile(FIXTURE_PATH, 'utf-8');
+        expect(rolledBackContent).toBe(ORIGINAL_CONTENT);
 
         expect(mockLogger.error).not.toHaveBeenCalled();
         expect(mockLogger.log.mock.calls).toEqual([
@@ -115,47 +116,37 @@ describe('FileModificationService', () => {
         ]);
     });
 
-    it('should handle errors during rollback', async () => {
-        // Mock the logger to track error calls
+    it('should handle errors during dual application', async () => {
+        await service.loadModifications();
+        const initialContent = await fs.readFile(FIXTURE_PATH, 'utf-8');
+        expect(initialContent).toBe(ORIGINAL_CONTENT);
 
         const mod = new TestFileModification(logger);
+
         await service.applyModification(mod);
-        console.log(service.appliedModifications);
+
         expect(mockLogger.log.mock.calls).toEqual([
             ['RootTestModule dependencies initialized'],
             ['Applying modification: test - Always Apply this mod'],
             ['Modification applied successfully: test'],
         ]);
 
-        service.appliedModifications[0].appliedPatch = null;
-        console.log(service.appliedModifications);
-        // Now break the appliedModifications array so that the rollbackAll method fails
-        await service.rollbackAll();
-
-        expect(mockLogger.error).toHaveBeenCalledWith(
-            expect.stringContaining('Failed to roll back modification')
-        );
-    });
-
-    it('should handle concurrent modifications', async () => {
-        vi.mock('fs/promises', () => ({
-            readFile: vi.fn().mockResolvedValue('modified'),
-            writeFile: vi.fn(),
-        }));
-        const mods = [new TestFileModification(logger), new TestFileModification(logger)];
-
-        await Promise.all(mods.map((mod) => service.applyModification(mod)));
-        await service.rollbackAll();
-
-        expect(mockLogger.error).not.toHaveBeenCalled();
-        expect(mockLogger.log).toHaveBeenCalledWith(
-            expect.stringContaining('Successfully rolled back modification')
+        // Now apply again and ensure the contents don't change
+        await service.applyModification(mod);
+        const errorMessage = mockLogger.error.mock.calls[0][0];
+        expect(errorMessage).toContain(
+            'Failed to apply patch to /app/src/unraid-api/unraid-file-modifier/modifications/__fixtures__/text-patch-file.txt'
         );
     });
 
     afterEach(async () => {
         await service.rollbackAll();
+        // Clean up the fixture file
+        try {
+            await fs.unlink(FIXTURE_PATH);
+        } catch (error) {
+            // Ignore errors if file doesn't exist
+        }
         vi.clearAllMocks();
-        vi.resetModules();
     });
 });

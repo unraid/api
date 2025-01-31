@@ -5,7 +5,7 @@ import { FileModification, PatchResult, ShouldApplyWithReason } from '@app/unrai
 
 export default class SSOFileModification extends FileModification {
     id: string = 'sso';
-    private loginFilePath: string = '/usr/local/emhttp/plugins/dynamix/include/.login.php';
+    private readonly filePath: string = '/usr/local/emhttp/plugins/dynamix/include/.login.php';
 
     constructor(logger: Logger) {
         super(logger);
@@ -46,7 +46,7 @@ function verifyUsernamePasswordAndSSO(string $username, string $password): bool 
             '<?php include "$docroot/plugins/dynamix.my.servers/include/sso-login.php"; ?>';
 
         // Read the file content
-        const originalContent = await readFile(this.loginFilePath, 'utf-8');
+        const originalContent = await readFile(this.filePath, 'utf-8');
         
         // Create modified content
         let newContent = originalContent;
@@ -64,10 +64,10 @@ function verifyUsernamePasswordAndSSO(string $username, string $password): bool 
         newContent = newContent.replace(/<\/form>/i, `</form>\n${tagToInject}`);
 
         // Create and return the patch
-        const patch = createPatch(this.loginFilePath, originalContent, newContent, 'original', 'modified');
+        const patch = createPatch(this.filePath, originalContent, newContent, 'original', 'modified');
         
         return {
-            targetFile: this.loginFilePath,
+            targetFile: this.filePath,
             patch
         };
     }
