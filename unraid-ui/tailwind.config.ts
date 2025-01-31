@@ -30,5 +30,5 @@ export default {
       variants: ['group-hover', 'group-focus'],
     },
   ],
-  plugins: [tailwindRemToRem({ baseFontSize: 16, newFontSize: !!process.env.REM_PLUGIN ? 10 : 16 })],
+  plugins: [tailwindRemToRem({ baseFontSize: 16, newFontSize: process.env.REM_PLUGIN ? 10 : 16 })],
 } satisfies Partial<Config>;
