@@ -1,11 +1,12 @@
-import type { Linter } from 'eslint';
 import eslint from '@eslint/js';
 import noRelativeImportPaths from 'eslint-plugin-no-relative-import-paths';
+import prettier from 'eslint-plugin-prettier';
 import tseslint from 'typescript-eslint';
 
 export default tseslint.config(eslint.configs.recommended, ...tseslint.configs.recommended, {
     plugins: {
         'no-relative-import-paths': noRelativeImportPaths,
+        prettier: prettier,
     },
     rules: {
         '@typescript-eslint/no-redundant-type-constituents': 'off',
@@ -28,5 +29,6 @@ export default tseslint.config(eslint.configs.recommended, ...tseslint.configs.r
             'error',
             { allowSameFolder: false, rootDir: 'src', prefix: '@app' },
         ],
+        'prettier/prettier': 'error',
     },
 });
