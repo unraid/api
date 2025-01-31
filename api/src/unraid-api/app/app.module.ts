@@ -19,12 +19,6 @@ import { UnraidFileModifierModule } from '@app/unraid-api/unraid-file-modifier/u
             pinoHttp: {
                 logger: apiLogger,
                 autoLogging: false,
-                transport: {
-                    target: 'pino-pretty',
-                    options: {
-                        singleLine: true,
-                    },
-                },
             },
         }),
         AuthModule,
