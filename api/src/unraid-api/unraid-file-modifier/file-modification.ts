@@ -1,7 +1,7 @@
 import { Logger } from '@nestjs/common';
-import { readFile, writeFile, access } from 'fs/promises';
+import { readFile, writeFile, access, unlink } from 'fs/promises';
 import { constants } from 'fs';
-import { join, dirname } from 'path';
+import { join, dirname, basename } from 'path';
 import { applyPatch, parsePatch, reversePatch } from 'diff';
 
 export interface PatchResult {
@@ -25,7 +25,7 @@ export abstract class FileModification {
 
     private getPatchFilePath(targetFile: string): string {
         const dir = dirname(targetFile);
-        const filename = `${this.id}.patch`;
+        const filename = `${basename(targetFile)}.patch`;
         return join(dir, filename);
     }
 
@@ -50,7 +50,6 @@ export abstract class FileModification {
         const { targetFile, patch } = patchResult;
         const currentContent = await readFile(targetFile, 'utf8');
         const parsedPatch = parsePatch(patch)[0];
-
         const results = applyPatch(currentContent, parsedPatch);
         if (results === false) {
             throw new Error(`Failed to apply patch to ${targetFile}`);
