@@ -95,7 +95,7 @@ export const viteNodeApp = async () => {
 
         asyncExitHook(
             async (signal) => {
-                console.log('exithook', signal);
+                logger.info('Exiting with signal %s', signal);
                 await server?.close?.();
                 // If port is unix socket, delete socket before exiting
                 unlinkUnixPort();
@@ -109,7 +109,6 @@ export const viteNodeApp = async () => {
         // Start a loop to run the app
         // await new Promise(() => {});
     } catch (error: unknown) {
-        console.log(error);
         if (error instanceof Error) {
             logger.error(error, 'API-ERROR');
         } else {
