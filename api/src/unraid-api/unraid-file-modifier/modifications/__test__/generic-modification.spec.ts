@@ -11,7 +11,7 @@ import SSOFileModification from '@app/unraid-api/unraid-file-modifier/modificati
 import { existsSync } from 'fs';
 
 interface ModificationTestCase {
-    ModificationClass: typeof FileModification;
+    ModificationClass: new (...args: ConstructorParameters<typeof FileModification>) => FileModification;
     fileUrl: string;
 }
 
