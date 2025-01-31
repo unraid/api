@@ -57,7 +57,6 @@ import { SharesResolver } from './shares/shares.resolver';
                         URL: URLResolver,
                     },
                     validationRules: [NoUnusedVariablesRule],
-                    // schema: schema
                 };
             },
         }),

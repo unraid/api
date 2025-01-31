@@ -71,7 +71,6 @@ export default defineConfig(({ mode }): ViteUserConfig => {
             include: [
                 '@nestjs/common',
                 '@nestjs/core',
-                '@nestjs/platform-express',
                 'reflect-metadata',
                 'fastify',
                 'passport',
