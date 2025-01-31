@@ -1,6 +1,6 @@
 import { Logger } from '@nestjs/common';
-import { readFile } from 'fs/promises';
-import { resolve } from 'path';
+import { readFile, writeFile } from 'fs/promises';
+import { basename, resolve } from 'path';
 import { describe, expect, test } from 'vitest';
 
 import DefaultPageLayoutModification from '@app/unraid-api/unraid-file-modifier/modifications/default-page-layout.modification';
@@ -9,32 +9,33 @@ import { FileModification } from '@app/unraid-api/unraid-file-modifier/file-modi
 import SSOFileModification from '@app/unraid-api/unraid-file-modifier/modifications/sso.modification';
 
 interface ModificationTestCase {
-    name: string;
     ModificationClass: new (logger: Logger) => FileModification;
-    fileName: string;
+    fileUrl: string;
 }
 
 const testCases: ModificationTestCase[] = [
     {
-        name: 'DefaultPageLayout.php',
         ModificationClass: DefaultPageLayoutModification,
-        fileName: 'DefaultPageLayout.php'
+        fileUrl: 'https://github.com/unraid/webgui/raw/refs/heads/master/emhttp/plugins/dynamix/include/DefaultPageLayout.php',
     },
     {
-        name: 'Notifications.page',
         ModificationClass: NotificationsPageModification,
-        fileName: 'Notifications.page'
+        fileUrl: "https://github.com/unraid/webgui/raw/refs/heads/master/emhttp/plugins/dynamix/Notifications.page",
     },
     {
-        name: '.login.php',
+        fileUrl: 'https://github.com/unraid/webgui/raw/refs/heads/master/emhttp/plugins/dynamix/include/.login.php',
         ModificationClass: SSOFileModification,
-        fileName: '.login.php'
     }
 ];
 
 async function testModification(testCase: ModificationTestCase) {
-    const path = resolve(__dirname, `../__fixtures__/${testCase.fileName}`);
-    const fileContent = await readFile(path, 'utf-8');
+    // First download the file from Github
+    const fileName = basename(testCase.fileUrl);
+    
+    const path = resolve(__dirname, `../__fixtures__/downloaded/${fileName}`);
+    const fileContent = await fetch(testCase.fileUrl).then(response => response.text());
+    await writeFile(path, fileContent);
+
     expect(fileContent.length).toBeGreaterThan(0);
 
     const logger = new Logger();
@@ -44,23 +45,23 @@ async function testModification(testCase: ModificationTestCase) {
     
     // @ts-ignore - Ignore for testing purposes
     const patch = await patcher.generatePatch();
-    
+
     // Test patch matches snapshot
-    await expect(patch.patch).toMatchFileSnapshot(
-        `snapshots/${testCase.fileName}.snapshot.patch`
+    await expect(patch).toMatchFileSnapshot(
+        `../patches/${patcher.id}.patch`
     );
 
     // Apply patch and verify modified file
     await patcher.apply();
     await expect(await readFile(path, 'utf-8')).toMatchFileSnapshot(
-        `snapshots/${testCase.fileName}.modified.snapshot.php`
+        `snapshots/${fileName}.modified.snapshot.php`
     );
 
     // Rollback and verify original state
     await patcher.rollback();
     const revertedContent = await readFile(path, 'utf-8');
     await expect(revertedContent).toMatchFileSnapshot(
-        `snapshots/${testCase.fileName}.original.php`
+        `snapshots/${fileName}.original.php`
     );
 }
 

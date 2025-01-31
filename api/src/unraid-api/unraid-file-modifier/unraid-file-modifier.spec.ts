@@ -8,7 +8,6 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import {
     FileModification,
-    PatchResult,
     ShouldApplyWithReason,
 } from '@app/unraid-api/unraid-file-modifier/file-modification';
 import { UnraidFileModificationService } from '@app/unraid-api/unraid-file-modifier/unraid-file-modifier.service';
@@ -18,16 +17,14 @@ const ORIGINAL_CONTENT = 'original';
 
 class TestFileModification extends FileModification {
     id = 'test';
+    public readonly filePath: string = FIXTURE_PATH;
 
     constructor(logger: Logger) {
         super(logger);
     }
 
-    protected async generatePatch(): Promise<PatchResult> {
-        return {
-            targetFile: FIXTURE_PATH,
-            patch: createPatch('text-patch-file.txt', ORIGINAL_CONTENT, 'modified'),
-        };
+    protected async generatePatch(): Promise<string> {
+        return createPatch('text-patch-file.txt', ORIGINAL_CONTENT, 'modified');
     }
 
     async shouldApply(): Promise<ShouldApplyWithReason> {

@@ -1,1 +1,4 @@
 !src/*
+
+# Downloaded Fixtures (For File Modifications)
+src/unraid-api/unraid-file-modifier/modifications/__fixtures__/downloaded/*

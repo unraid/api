@@ -9,7 +9,7 @@ import { defineConfig } from 'vitest/config';
 
 export default defineConfig(({ mode }): ViteUserConfig => {
     return {
-        assetsInclude: ['src/**/*.graphql'],
+        assetsInclude: ['src/**/*.graphql', 'src/**/*.patch'],
         plugins: [
             tsconfigPaths(),
             nodeExternals(),
