@@ -1,7 +1,12 @@
 import type { Logger } from '@nestjs/common';
 import { readFile } from 'node:fs/promises';
+
 import { createPatch } from 'diff';
-import { FileModification, ShouldApplyWithReason } from '@app/unraid-api/unraid-file-modifier/file-modification';
+
+import {
+    FileModification,
+    ShouldApplyWithReason,
+} from '@app/unraid-api/unraid-file-modifier/file-modification';
 
 export default class SSOFileModification extends FileModification {
     id: string = 'sso';
@@ -43,7 +48,7 @@ function verifyUsernamePasswordAndSSO(string $username, string $password): bool 
 
         // Read the file content
         const originalContent = await readFile(this.filePath, 'utf-8');
-        
+
         // Create modified content
         let newContent = originalContent;
 

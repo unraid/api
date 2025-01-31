@@ -10,8 +10,7 @@ import {
 
 export default class DefaultPageLayoutModification extends FileModification {
     id: string = 'default-page-layout';
-    public readonly filePath: string =
-        '/usr/local/emhttp/plugins/dynamix/include/DefaultPageLayout.php';
+    public readonly filePath: string = '/usr/local/emhttp/plugins/dynamix/include/DefaultPageLayout.php';
 
     private addToaster(source: string): string {
         if (source.includes('unraid-toaster')) {
@@ -45,7 +44,6 @@ export default class DefaultPageLayoutModification extends FileModification {
     protected async generatePatch(): Promise<string> {
         const fileContent = await readFile(this.filePath, 'utf-8');
 
-        
         const newContent = this.applyToSource(fileContent);
 
         const patch = createPatch(this.filePath, fileContent, newContent, undefined, undefined, {

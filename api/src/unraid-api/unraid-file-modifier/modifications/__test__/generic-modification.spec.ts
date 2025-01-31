@@ -1,4 +1,5 @@
 import { Logger } from '@nestjs/common';
+import { existsSync } from 'fs';
 import { readFile, writeFile } from 'fs/promises';
 import { basename, resolve } from 'path';
 
@@ -8,7 +9,6 @@ import { FileModification } from '@app/unraid-api/unraid-file-modifier/file-modi
 import DefaultPageLayoutModification from '@app/unraid-api/unraid-file-modifier/modifications/default-page-layout.modification';
 import NotificationsPageModification from '@app/unraid-api/unraid-file-modifier/modifications/notifications-page.modification';
 import SSOFileModification from '@app/unraid-api/unraid-file-modifier/modifications/sso.modification';
-import { existsSync } from 'fs';
 
 interface ModificationTestCase {
     ModificationClass: new (...args: ConstructorParameters<typeof FileModification>) => FileModification;
@@ -50,10 +50,10 @@ async function testModification(testCase: ModificationTestCase) {
 
     const logger = new Logger();
     const patcher = await new testCase.ModificationClass(logger);
-    // @ts-ignore - Ignore for testing purposes
+    // @ts-expect-error - Ignore for testing purposes
     patcher.filePath = path;
 
-    // @ts-ignore - Ignore for testing purposes
+    // @ts-expect-error - Ignore for testing purposes
     const patch = await patcher.generatePatch();
 
     // Test patch matches snapshot
