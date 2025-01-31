@@ -1,53 +1,24 @@
 import type { Logger } from '@nestjs/common';
-import { readFile, writeFile } from 'node:fs/promises';
+import { readFile } from 'node:fs/promises';
+
+import { createPatch } from 'diff';
 
 import {
     FileModification,
+    PatchResult,
     ShouldApplyWithReason,
-} from '@app/unraid-api/unraid-file-modifier/unraid-file-modifier.service';
-import { backupFile, restoreFile } from '@app/utils';
+} from '@app/unraid-api/unraid-file-modifier/file-modification';
 
-export default class DefaultPageLayoutModification implements FileModification {
-    id: string = 'DefaultPageLayout.php';
-    logger: Logger;
-    filePath: string = '/usr/local/emhttp/plugins/dynamix/include/DefaultPageLayout.php';
+export default class DefaultPageLayoutModification extends FileModification {
+    id: string = 'default-page-layout';
+    private readonly filePath: string =
+        '/usr/local/emhttp/plugins/dynamix/include/DefaultPageLayout.php';
+
     constructor(logger: Logger) {
-        this.logger = logger;
+        super(logger);
     }
 
-    async apply(): Promise<void> {
-        await backupFile(this.filePath, true);
-        const fileContent = await readFile(this.filePath, 'utf-8');
-        await writeFile(this.filePath, DefaultPageLayoutModification.applyToSource(fileContent));
-        this.logger.log(`${this.id} replaced successfully.`);
-    }
-
-    async rollback(): Promise<void> {
-        const restored = await restoreFile(this.filePath, false);
-        if (restored) {
-            this.logger.debug(`${this.id} restored.`);
-        } else {
-            this.logger.warn(`Could not restore ${this.id}`);
-        }
-    }
-
-    async shouldApply(): Promise<ShouldApplyWithReason> {
-        return {
-            shouldApply: true,
-            reason: 'Always apply the allowed file changes to ensure compatibility.',
-        };
-    }
-
-    static applyToSource(fileContent: string): string {
-        const transformers = [
-            DefaultPageLayoutModification.removeNotificationBell,
-            DefaultPageLayoutModification.replaceToasts,
-            DefaultPageLayoutModification.addToaster,
-        ];
-        return transformers.reduce((content, fn) => fn(content), fileContent);
-    }
-
-    static addToaster(source: string): string {
+    private addToaster(source: string): string {
         if (source.includes('unraid-toaster')) {
             return source;
         }
@@ -55,15 +26,47 @@ export default class DefaultPageLayoutModification implements FileModification {
         return source.replace(/<\/body>/, `${insertion}\n</body>`);
     }
 
-    static removeNotificationBell(source: string): string {
+    private removeNotificationBell(source: string): string {
         return source.replace(/^.*(id='bell'|#bell).*$/gm, '');
     }
 
-    static replaceToasts(source: string): string {
+    private replaceToasts(source: string): string {
         // matches jgrowl calls up to the second `)};`
         const jGrowlPattern =
             /\$\.jGrowl\(notify\.subject\+'<br>'\+notify\.description,\s*\{(?:[\s\S]*?\}\);[\s\S]*?)}\);/g;
 
         return source.replace(jGrowlPattern, '');
+    }
+
+    private applyToSource(fileContent: string): string {
+        const transformers = [
+            this.removeNotificationBell.bind(this),
+            this.replaceToasts.bind(this),
+            this.addToaster.bind(this),
+        ];
+        return transformers.reduce((content, fn) => fn(content), fileContent);
+    }
+
+    protected async generatePatch(): Promise<PatchResult> {
+        const fileContent = await readFile(this.filePath, 'utf-8');
+
+        
+        const newContent = this.applyToSource(fileContent);
+
+        const patch = createPatch(this.filePath, fileContent, newContent, undefined, undefined, {
+            context: 2,
+        });
+
+        return {
+            targetFile: this.filePath,
+            patch,
+        };
+    }
+
+    async shouldApply(): Promise<ShouldApplyWithReason> {
+        return {
+            shouldApply: true,
+            reason: 'Always apply the allowed file changes to ensure compatibility.',
+        };
     }
 }

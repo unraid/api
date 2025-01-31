@@ -1,19 +1,20 @@
 import { Logger } from '@nestjs/common';
-import { rm, writeFile } from 'node:fs/promises';
+import { readFile } from 'node:fs/promises';
 
+import { createPatch } from 'diff';
 import { execa } from 'execa';
 
 import { fileExists } from '@app/core/utils/files/file-exists';
 import {
     FileModification,
+    PatchResult,
     ShouldApplyWithReason,
-} from '@app/unraid-api/unraid-file-modifier/unraid-file-modifier.service';
+} from '@app/unraid-api/unraid-file-modifier/file-modification';
 
-export class LogRotateModification implements FileModification {
+export class LogRotateModification extends FileModification {
     id: string = 'log-rotate';
-    filePath: string = '/etc/logrotate.d/unraid-api' as const;
-    logger: Logger;
-    logRotateConfig: string = `
+    private readonly filePath: string = '/etc/logrotate.d/unraid-api' as const;
+    private readonly logRotateConfig: string = `
 /var/log/unraid-api/*.log {
     rotate 1
     missingok
@@ -27,17 +28,32 @@ export class LogRotateModification implements FileModification {
     `;
 
     constructor(logger: Logger) {
-        this.logger = logger;
+        super(logger);
     }
 
-    async apply(): Promise<void> {
-        await writeFile(this.filePath, this.logRotateConfig, { mode: '644' });
-        // Ensure file is owned by root:root
+    protected async generatePatch(): Promise<PatchResult> {
+        const currentContent = (await fileExists(this.filePath))
+            ? await readFile(this.filePath, 'utf8')
+            : '';
+
+        const patch = createPatch(
+            this.filePath,
+            currentContent,
+            this.logRotateConfig,
+            undefined,
+            undefined,
+            {
+                context: 3,
+            }
+        );
+
+        // After applying patch, ensure file permissions are correct
         await execa('chown', ['root:root', this.filePath]).catch((err) => this.logger.error(err));
-    }
 
-    async rollback(): Promise<void> {
-        await rm(this.filePath);
+        return {
+            targetFile: this.filePath,
+            patch,
+        };
     }
 
     async shouldApply(): Promise<ShouldApplyWithReason> {
