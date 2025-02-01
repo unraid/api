@@ -6,4 +6,3 @@ export * from './get-hypervisor';
 export * from './get-pci-devices';
 export * from './parse-domain';
 export * from './parse-domains';
-export * from './system-network-interfaces';
