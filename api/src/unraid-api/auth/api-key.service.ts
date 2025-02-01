@@ -16,7 +16,7 @@ import {
     AddPermissionInput,
     ApiKey,
     ApiKeyWithSecret,
-    Permission,
+    type Permission,
     Resource,
     Role,
 } from '@app/graphql/generated/api/types';
