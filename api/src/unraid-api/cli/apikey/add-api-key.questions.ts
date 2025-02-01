@@ -1,6 +1,7 @@
 import { ChoicesFor, Question, QuestionSet, WhenFor } from 'nest-commander';
 
-import { type Permission, Role } from '@app/graphql/generated/api/types';
+import type { Permission } from '@app/graphql/generated/api/types';
+import { Role } from '@app/graphql/generated/api/types';
 import { ApiKeyService } from '@app/unraid-api/auth/api-key.service';
 import { LogService } from '@app/unraid-api/cli/log.service';
 

@@ -1,10 +1,11 @@
+import WebSocket from 'ws';
+
 import { ApolloClient, HttpLink, InMemoryCache, split } from '@apollo/client/core/index.js';
 import { onError } from '@apollo/client/link/error/index.js';
 import { GraphQLWsLink } from '@apollo/client/link/subscriptions/index.js';
 import { getMainDefinition } from '@apollo/client/utilities/index.js';
 import { fetch } from 'cross-fetch';
 import { createClient } from 'graphql-ws';
-import WebSocket from 'ws';
 
 import { getInternalApiAddress } from '@app/consts';
 import { graphqlLogger } from '@app/core/log';
