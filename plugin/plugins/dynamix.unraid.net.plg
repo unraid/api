@@ -450,14 +450,6 @@ if [[ "${version:0:3}" == "6.9" || "${version:0:4}" == "6.10" || "${version:0:4}
   [ "${PLGTYPE}" = "staging" ] && PLGNAME=dynamix.unraid.net.staging
 
   DIR="/usr/local/emhttp/plugins/${PLGNAME}" && [[ ! -d "$DIR" ]] && mkdir "$DIR"
-cat << EOF > "$DIR/README.md"
-**Unraid Connect**
-
-Please uninstall this plugin or upgrade to a newer version of Unraid to enjoy Unraid Connect
-EOF
-  # exit 0 or else the original plugin will be reinstalled at boot
-  exit 0
-fi
 
 echo
 echo "⚠️ Do not close this window yet"
