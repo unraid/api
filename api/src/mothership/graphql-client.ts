@@ -1,5 +1,3 @@
-import { WebSocket } from 'ws';
-
 import type { NormalizedCacheObject } from '@apollo/client/core/index.js';
 import type { Client, Event as ClientEvent } from 'graphql-ws';
 import { ApolloClient, ApolloLink, InMemoryCache, Observable } from '@apollo/client/core/index.js';
@@ -7,6 +5,7 @@ import { ErrorLink } from '@apollo/client/link/error/index.js';
 import { RetryLink } from '@apollo/client/link/retry/index.js';
 import { GraphQLWsLink } from '@apollo/client/link/subscriptions/index.js';
 import { createClient } from 'graphql-ws';
+import { WebSocket } from 'ws';
 
 import { FIVE_MINUTES_MS } from '@app/consts';
 import { minigraphLogger } from '@app/core/log';
