@@ -48,21 +48,6 @@ exit_code=$?
 # Chown the directory
 ssh root@"${server_name}" "chown -R root:root /usr/local/unraid-api"
 
-# Run unraid-api restart on remote host
-ssh root@"${server_name}" "INTROSPECTION=true LOG_LEVEL=trace unraid-api restart"
-
-# Play built-in sound based on the operating system
-if [[ "$OSTYPE" == "darwin"* ]]; then
-  # macOS
-  afplay /System/Library/Sounds/Glass.aiff
-elif [[ "$OSTYPE" == "linux-gnu" ]]; then
-  # Linux
-  paplay /usr/share/sounds/freedesktop/stereo/complete.oga
-elif [[ "$OSTYPE" == "msys" || "$OSTYPE" == "win32" ]]; then
-  # Windows
-  powershell.exe -c "(New-Object Media.SoundPlayer 'C:\Windows\Media\Windows Default.wav').PlaySync()"
-fi
-
 # Exit with the rsync command's exit code
 exit $exit_code
 

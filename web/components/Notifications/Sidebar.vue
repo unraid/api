@@ -42,6 +42,7 @@ const { onResult: onNotificationAdded } = useSubscription(notificationAddedSubsc
 onNotificationAdded(({ data }) => {
   if (!data) return;
   const notif = useFragment(NOTIFICATION_FRAGMENT, data.notificationAdded);
+  if (notif.type !== NotificationType.Unread) return;
 
   // probably smart to leave this log outside the if-block for the initial release
   console.log('incoming notification', notif);
