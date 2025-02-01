@@ -16,6 +16,50 @@ setup:
 @deploy:
     ./scripts/deploy-dev.sh
 
+alias r:= restart
+
+# restarts the api on {target_server}
+restart target_server="" :
+    #!/usr/bin/env bash
+    # Path to store the last used server name
+    state_file="$HOME/.deploy_state"
+
+    # Read the last used server name from the state file
+    if [[ -f "$state_file" ]]; then
+        last_server_name=$(cat "$state_file")
+    else
+        last_server_name=""
+    fi
+
+    # Read the server name from the command-line argument or use the last used server name as the default
+    server_name=$([ "{{ target_server }}" = "" ] && echo "$last_server_name" || echo ""{{ target_server }}"")
+
+    # Check if the server name is provided
+    if [[ -z "$server_name" ]]; then
+        echo "Please provide the SSH server name."
+        exit 1
+    fi
+
+    # Save the current server name to the state file
+    echo "$server_name" > "$state_file"
+    # Run unraid-api restart on remote host
+    ssh root@"${server_name}" "LOG_LEVEL=trace unraid-api restart"
+
 # build & deploy
 bd: build deploy
 
+# plays an os-specific bell
+[no-cd]
+chime:
+    #!/usr/bin/env bash
+    # Play built-in sound based on the operating system
+    if [[ "$OSTYPE" == "darwin"* ]]; then
+      # macOS
+      afplay /System/Library/Sounds/Glass.aiff
+    elif [[ "$OSTYPE" == "linux-gnu" ]]; then
+      # Linux
+      paplay /usr/share/sounds/freedesktop/stereo/complete.oga
+    elif [[ "$OSTYPE" == "msys" || "$OSTYPE" == "win32" ]]; then
+      # Windows
+      powershell.exe -c "(New-Object Media.SoundPlayer 'C:\Windows\Media\Windows Default.wav').PlaySync()"
+    fi

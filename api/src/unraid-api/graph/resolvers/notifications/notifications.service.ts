@@ -103,10 +103,12 @@ export class NotificationsService {
         const notification = await this.loadNotificationFile(path, NotificationType[type]);
         this.increment(notification.importance, NotificationsService.overview[type.toLowerCase()]);
 
-        this.publishOverview();
-        pubsub.publish(PUBSUB_CHANNEL.NOTIFICATION_ADDED, {
-            notificationAdded: notification,
-        });
+        if (type === NotificationType.UNREAD) {
+            this.publishOverview();
+            pubsub.publish(PUBSUB_CHANNEL.NOTIFICATION_ADDED, {
+                notificationAdded: notification,
+            });
+        }
     }
 
     /**

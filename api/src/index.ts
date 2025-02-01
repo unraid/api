@@ -105,6 +105,7 @@ export const viteNodeApp = async () => {
             },
             { wait: 9999 }
         );
+        await new Promise(() => {});
     } catch (error: unknown) {
         if (error instanceof Error) {
             logger.error(error, 'API-ERROR');
