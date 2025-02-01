@@ -6,11 +6,11 @@ import { type NestFastifyApplication } from '@nestjs/platform-fastify';
 import { unlinkSync } from 'fs';
 import http from 'http';
 import https from 'https';
+import { WebSocket } from 'ws';
 
 import type { RawServerDefault } from 'fastify';
 import CacheableLookup from 'cacheable-lookup';
 import { asyncExitHook, gracefulExit } from 'exit-hook';
-import { WebSocket } from 'ws';
 
 import { logger } from '@app/core/log';
 import { fileExistsSync } from '@app/core/utils/files/file-exists';
