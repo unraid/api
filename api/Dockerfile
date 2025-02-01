@@ -1,7 +1,7 @@
 ###########################################################
 # Development/Build Image
 ###########################################################
-FROM oven/bun:1.2.2-slim AS development
+FROM node:20-bookworm-slim AS development
 
 # Install build tools and dependencies
 RUN apt-get update -y && apt-get install -y \
@@ -24,8 +24,10 @@ COPY tsconfig.json .eslintrc.ts .prettierrc.cjs .npmrc .env.production .env.stag
 
 COPY package.json package-lock.json ./
 
+RUN npm i -g bun
+
 # Install deps
-RUN bun install
+RUN npm install
 
 EXPOSE 4000
 
@@ -39,4 +41,4 @@ ENV NODE_ENV=production
 
 COPY . .
 
-CMD ["bun", "run", "build-and-pack"]
+CMD ["npm", "run", "build-and-pack"]
