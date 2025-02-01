@@ -11,8 +11,8 @@
   <!ENTITY API_version "">
   <!ENTITY API_SHA256 "">
   <!ENTITY NODEJS_FILENAME "bun-linux-x64-baseline.zip">
-  <!ENTITY NODEJS_SHA256 "e4f2a8796ee2f4357e02f38747a3d80aa48a3deca80aa41b21a3b8841855bf1e">
-  <!ENTITY NODEJS_TXZ "https://github.com/oven-sh/bun/releases/download/bun-v1.2.1/bun-linux-x64-baseline.zip">
+  <!ENTITY NODEJS_SHA256 "cad7756a6ee16f3432a328f8023fc5cd431106822eacfa6d6d3afbad6fdc24db">
+  <!ENTITY NODEJS_TXZ "https://github.com/oven-sh/bun/releases/download/bun-v1.2.2/bun-linux-x64-baseline.zip">
   <!ENTITY MAIN_TXZ "">
   <!ENTITY API_TGZ "">
 ]>

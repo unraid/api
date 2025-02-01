@@ -1,7 +1,7 @@
 ###########################################################
 # Development/Build Image
 ###########################################################
-FROM oven/bun:1.2.1-slim AS development
+FROM oven/bun:1.2.2-slim AS development
 
 # Install build tools and dependencies
 RUN apt-get update -y && apt-get install -y \

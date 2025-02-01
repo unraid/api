@@ -1,7 +1,7 @@
 import { AuthActionVerb } from 'nest-authz';
 import { Command, CommandRunner, InquirerService, Option } from 'nest-commander';
 
-import { Permission, Resource, Role } from '@app/graphql/generated/api/types';
+import { type Permission, Resource, Role } from '@app/graphql/generated/api/types';
 import { ApiKeyService } from '@app/unraid-api/auth/api-key.service';
 import { AddApiKeyQuestionSet } from '@app/unraid-api/cli/apikey/add-api-key.questions';
 import { LogService } from '@app/unraid-api/cli/log.service';
