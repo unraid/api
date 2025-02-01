@@ -5,6 +5,7 @@
             "name": "unraid-api",
             "script": "./dist/main.js",
             "cwd": "/usr/local/unraid-api",
+            "interpreter": "bun",
             "exec_mode": "fork",
             "wait_ready": true,
             "listen_timeout": 15000,
