@@ -87,7 +87,9 @@ export class GraphqlAuthGuard
             // parse cookies from raw headers on initial web socket connection request
             if (fullContext.connectionParams) {
                 const rawHeaders = fullContext.req.extra.request.rawHeaders;
-                const headerIndex = rawHeaders.findIndex((headerOrValue) => headerOrValue === 'Cookie');
+                const headerIndex = rawHeaders.findIndex(
+                    (headerOrValue) => headerOrValue.toLowerCase() === 'cookie'
+                );
                 const cookieString = rawHeaders[headerIndex + 1];
                 request.cookies = parseCookies(cookieString);
             }
