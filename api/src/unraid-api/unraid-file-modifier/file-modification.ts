@@ -46,9 +46,10 @@ export abstract class FileModification {
             query: '?raw',
             import: 'default',
         });
+        const patchPath = `./modifications/patches/${this.id}.patch`;
+        const loader = patchResults[patchPath];
 
-        if (patchResults[`./modifications/patches/${this.id}.patch`]) {
-            const loader = Object.values(patchResults)[0];
+        if (typeof loader === 'function') {
             const fileContents = await loader();
             this.logger.debug(`Loaded pregenerated patch for ${this.id}`);
             if (typeof fileContents !== 'string') {
@@ -56,9 +57,10 @@ export abstract class FileModification {
                 return null;
             }
             return fileContents;
+        } else {
+            this.logger.warn('Could not load pregenerated patch for: ' + this.id);
+            return null;
         }
-
-        return null;
     }
 
     private async applyPatch(patchContents: string): Promise<void> {
