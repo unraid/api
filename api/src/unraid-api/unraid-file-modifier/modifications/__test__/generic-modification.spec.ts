@@ -13,6 +13,7 @@ import SSOFileModification from '@app/unraid-api/unraid-file-modifier/modificati
 interface ModificationTestCase {
     ModificationClass: new (...args: ConstructorParameters<typeof FileModification>) => FileModification;
     fileUrl: string;
+    fileName: string;
 }
 
 const testCases: ModificationTestCase[] = [
@@ -20,16 +21,19 @@ const testCases: ModificationTestCase[] = [
         ModificationClass: DefaultPageLayoutModification,
         fileUrl:
             'https://github.com/unraid/webgui/raw/refs/heads/master/emhttp/plugins/dynamix/include/DefaultPageLayout.php',
+        fileName: 'DefaultPageLayout.php',
     },
     {
         ModificationClass: NotificationsPageModification,
         fileUrl:
             'https://github.com/unraid/webgui/raw/refs/heads/master/emhttp/plugins/dynamix/Notifications.page',
+        fileName: 'Notifications.page',
     },
     {
         fileUrl:
             'https://github.com/unraid/webgui/raw/refs/heads/master/emhttp/plugins/dynamix/include/.login.php',
         ModificationClass: SSOFileModification,
+        fileName: '.login.php',
     },
 ];
 
@@ -40,9 +44,16 @@ async function testModification(testCase: ModificationTestCase) {
     const path = resolve(__dirname, `../__fixtures__/downloaded/${fileName}`);
     let originalContent = '';
     if (!existsSync(path)) {
-        originalContent = await fetch(testCase.fileUrl).then((response) => response.text());
-        await writeFile(path, originalContent);
+        try {
+            console.log('Downloading file', testCase.fileUrl);
+            originalContent = await fetch(testCase.fileUrl).then((response) => response.text());
+            await writeFile(path, originalContent);
+        } catch (error) {
+            console.error('Failed to download file', error);
+            throw new Error('Failed to download file for testing');
+        }
     } else {
+        console.log('Using existing fixture file', path);
         originalContent = await readFile(path, 'utf-8');
     }
 
@@ -72,7 +83,7 @@ async function testModification(testCase: ModificationTestCase) {
 }
 
 describe('File modifications', () => {
-    test.each(testCases)(`$fileUrl modifier correctly applies to fresh install`, async (testCase) => {
+    test.each(testCases)(`$fileName modifier correctly applies to fresh install`, async (testCase) => {
         await testModification(testCase);
     });
 });
