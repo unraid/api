@@ -1,0 +1,12 @@
+Index: /app/src/unraid-api/unraid-file-modifier/modifications/__fixtures__/downloaded/auth-request.php
+===================================================================
+--- /app/src/unraid-api/unraid-file-modifier/modifications/__fixtures__/downloaded/auth-request.php
++++ /app/src/unraid-api/unraid-file-modifier/modifications/__fixtures__/downloaded/auth-request.php
+@@ -15,6 +15,7 @@
+ }
+ 
+ $arrWhitelist = [
++  '/webGui/images/partner-logo.svg',
+   '/webGui/styles/clear-sans-bold-italic.eot',
+   '/webGui/styles/clear-sans-bold-italic.woff',
+   '/webGui/styles/clear-sans-bold-italic.ttf',

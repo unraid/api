@@ -9,7 +9,6 @@ import {
     ShouldApplyWithReason,
 } from '@app/unraid-api/unraid-file-modifier/file-modification';
 
-const AUTH_REQUEST_FILE = '/usr/local/emhttp/auth-request.php' as const;
 const WEB_COMPS_DIR = '/usr/local/emhttp/plugins/dynamix.my.servers/unraid-components/_nuxt/' as const;
 
 const getJsFiles = async (dir: string) => {
@@ -19,6 +18,7 @@ const getJsFiles = async (dir: string) => {
 };
 
 export default class AuthRequestModification extends FileModification {
+    public filePath: string = '/usr/local/emhttp/auth-request.php';
     id: string = 'auth-request';
 
     constructor(logger: Logger) {
@@ -31,17 +31,15 @@ export default class AuthRequestModification extends FileModification {
 
         const FILES_TO_ADD = ['/webGui/images/partner-logo.svg', ...JS_FILES];
 
-        if (!existsSync(AUTH_REQUEST_FILE)) {
-            throw new Error(`File ${AUTH_REQUEST_FILE} not found.`);
+        if (!existsSync(this.filePath)) {
+            throw new Error(`File ${this.filePath} not found.`);
         }
 
-        const fileContent = await readFile(AUTH_REQUEST_FILE, 'utf8');
+        const fileContent = await readFile(this.filePath, 'utf8');
 
         if (!fileContent.includes('$arrWhitelist')) {
             throw new Error(`$arrWhitelist array not found in the file.`);
         }
-
-        this.logger.debug(`Backup of ${AUTH_REQUEST_FILE} created.`);
 
         const filesToAddString = FILES_TO_ADD.map((file) => `  '${file}',`).join('\n');
 
@@ -49,7 +47,7 @@ export default class AuthRequestModification extends FileModification {
         const newContent = fileContent.replace(/(\$arrWhitelist\s*=\s*\[)/, `$1\n${filesToAddString}`);
 
         // Generate and return patch
-        const patch = createPatch(AUTH_REQUEST_FILE, fileContent, newContent, undefined, undefined, {
+        const patch = createPatch(this.filePath, fileContent, newContent, undefined, undefined, {
             context: 3,
         });
 
