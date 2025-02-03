@@ -131,19 +131,19 @@ const osVersionBranch = 'stable';
 // };
 
 export const serverState: Server = {
-  activationCodeData: {
-    code: 'CC2KP3TDRF',
-    partnerName: 'OEM Partner',
-    partnerUrl: 'https://unraid.net/OEM+Partner',
-    sysModel: 'OEM Partner v1',
-    comment: 'OEM Partner NAS',
-    caseIcon: 'case-model.png',
-    header: '#ffffff',
-    headermetacolor: '#eeeeee',
-    background: '#000000',
-    showBannerGradient: 'yes',
-    partnerLogo: true,
-  },
+  // activationCodeData: {
+  //   code: 'CC2KP3TDRF',
+  //   partnerName: 'OEM Partner',
+  //   partnerUrl: 'https://unraid.net/OEM+Partner',
+  //   sysModel: 'OEM Partner v1',
+  //   comment: 'OEM Partner NAS',
+  //   caseIcon: 'case-model.png',
+  //   header: '#ffffff',
+  //   headermetacolor: '#eeeeee',
+  //   background: '#000000',
+  //   showBannerGradient: 'yes',
+  //   partnerLogo: true,
+  // },
   avatar: 'https://source.unsplash.com/300x300/?portrait',
   config: {
     id: 'config-id',
