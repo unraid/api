@@ -1,6 +1,6 @@
 import { Logger } from '@nestjs/common';
 import { existsSync } from 'fs';
-import { readFile, writeFile } from 'fs/promises';
+import { cp, readFile, writeFile } from 'fs/promises';
 import { basename, resolve } from 'path';
 
 import { describe, expect, test } from 'vitest';
@@ -49,8 +49,9 @@ async function testModification(testCase: ModificationTestCase) {
             originalContent = await fetch(testCase.fileUrl).then((response) => response.text());
             await writeFile(path, originalContent);
         } catch (error) {
-            console.error('Failed to download file', error);
-            throw new Error('Failed to download file for testing');
+            console.error('Failed to download file - using local fixture', error);
+            await cp(resolve(__dirname, `../__fixtures__/local/${fileName}`), path);
+            originalContent = await readFile(path, 'utf-8');
         }
     } else {
         console.log('Using existing fixture file', path);
