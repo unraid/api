@@ -10,6 +10,7 @@ import AuthRequestModification from '@app/unraid-api/unraid-file-modifier/modifi
 import DefaultPageLayoutModification from '@app/unraid-api/unraid-file-modifier/modifications/default-page-layout.modification';
 import NotificationsPageModification from '@app/unraid-api/unraid-file-modifier/modifications/notifications-page.modification';
 import SSOFileModification from '@app/unraid-api/unraid-file-modifier/modifications/sso.modification';
+import { LogRotateModification } from '@app/unraid-api/unraid-file-modifier/modifications/log-rotate.modification';
 
 interface ModificationTestCase {
     ModificationClass: new (...args: ConstructorParameters<typeof FileModification>) => FileModification;
@@ -41,6 +42,11 @@ const testCases: ModificationTestCase[] = [
         fileUrl: 'https://github.com/unraid/webgui/raw/refs/heads/master/emhttp/auth-request.php',
         fileName: 'auth-request.php',
     },
+    {
+        ModificationClass: LogRotateModification,
+        fileUrl: 'logrotate.conf',
+        fileName: 'logrotate.conf',
+    },
 ];
 
 async function testModification(testCase: ModificationTestCase) {
@@ -65,8 +71,6 @@ async function testModification(testCase: ModificationTestCase) {
         console.log('Using existing fixture file', path);
         originalContent = await readFile(path, 'utf-8');
     }
-
-    expect(originalContent.length).toBeGreaterThan(0);
 
     const logger = new Logger();
     const patcher = await new testCase.ModificationClass(logger);

@@ -1,0 +1,18 @@
+Index: /app/src/unraid-api/unraid-file-modifier/modifications/__fixtures__/downloaded/logrotate.conf
+===================================================================
+--- /app/src/unraid-api/unraid-file-modifier/modifications/__fixtures__/downloaded/logrotate.conf
++++ /app/src/unraid-api/unraid-file-modifier/modifications/__fixtures__/downloaded/logrotate.conf
+@@ -0,0 +1,12 @@
++
++/var/log/unraid-api/*.log {
++    rotate 1
++    missingok
++    size 1M
++    su root root
++    compress
++    delaycompress
++    copytruncate
++    create 0640 root root
++}
++    
+\ No newline at end of file
