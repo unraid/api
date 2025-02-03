@@ -42,6 +42,12 @@ const { onResult: onNotificationAdded } = useSubscription(notificationAddedSubsc
 onNotificationAdded(({ data }) => {
   if (!data) return;
   const notif = useFragment(NOTIFICATION_FRAGMENT, data.notificationAdded);
+  if (notif.type !== NotificationType.Unread) return;
+  // probably smart to leave this log outside the if-block for the initial release
+  console.log('incoming notification', notif);
+  if (!globalThis.toast) {
+    return;
+  }
 
   const funcMapping: Record<Importance, (typeof globalThis)['toast']['info' | 'error' | 'warning']> = {
     [Importance.Alert]: globalThis.toast.error,
@@ -51,10 +57,12 @@ onNotificationAdded(({ data }) => {
   const toast = funcMapping[notif.importance];
   const createOpener = () => ({ label: 'Open', onClick: () => location.assign(notif.link as string) });
 
-  toast(notif.title, {
-    description: notif.subject,
-    action: notif.link ? createOpener() : undefined,
-  });
+  requestAnimationFrame(() =>
+    toast(notif.title, {
+      description: notif.subject,
+      action: notif.link ? createOpener() : undefined,
+    })
+  );
 });
 
 const overview = computed(() => {
