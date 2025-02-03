@@ -6,10 +6,10 @@ import { basename, resolve } from 'path';
 import { describe, expect, test } from 'vitest';
 
 import { FileModification } from '@app/unraid-api/unraid-file-modifier/file-modification';
+import AuthRequestModification from '@app/unraid-api/unraid-file-modifier/modifications/auth-request.modification';
 import DefaultPageLayoutModification from '@app/unraid-api/unraid-file-modifier/modifications/default-page-layout.modification';
 import NotificationsPageModification from '@app/unraid-api/unraid-file-modifier/modifications/notifications-page.modification';
 import SSOFileModification from '@app/unraid-api/unraid-file-modifier/modifications/sso.modification';
-import AuthRequestModification from '@app/unraid-api/unraid-file-modifier/modifications/auth-request.modification';
 
 interface ModificationTestCase {
     ModificationClass: new (...args: ConstructorParameters<typeof FileModification>) => FileModification;
@@ -38,8 +38,7 @@ const testCases: ModificationTestCase[] = [
     },
     {
         ModificationClass: AuthRequestModification,
-        fileUrl:
-            'https://github.com/unraid/webgui/raw/refs/heads/master/emhttp/auth-request.php',
+        fileUrl: 'https://github.com/unraid/webgui/raw/refs/heads/master/emhttp/auth-request.php',
         fileName: 'auth-request.php',
     },
 ];
