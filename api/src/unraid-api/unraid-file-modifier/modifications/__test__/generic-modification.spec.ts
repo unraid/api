@@ -3,11 +3,7 @@ import { existsSync } from 'fs';
 import { cp, readFile, writeFile } from 'fs/promises';
 import path, { basename, resolve } from 'path';
 
-
-
 import { describe, expect, test } from 'vitest';
-
-
 
 import { FileModification } from '@app/unraid-api/unraid-file-modifier/file-modification';
 import AuthRequestModification from '@app/unraid-api/unraid-file-modifier/modifications/auth-request.modification';
@@ -15,10 +11,6 @@ import DefaultPageLayoutModification from '@app/unraid-api/unraid-file-modifier/
 import { LogRotateModification } from '@app/unraid-api/unraid-file-modifier/modifications/log-rotate.modification';
 import NotificationsPageModification from '@app/unraid-api/unraid-file-modifier/modifications/notifications-page.modification';
 import SSOFileModification from '@app/unraid-api/unraid-file-modifier/modifications/sso.modification';
-
-
-
-
 
 interface ModificationTestCase {
     ModificationClass: new (...args: ConstructorParameters<typeof FileModification>) => FileModification;

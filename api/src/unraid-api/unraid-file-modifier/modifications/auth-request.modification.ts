@@ -43,9 +43,16 @@ export default class AuthRequestModification extends FileModification {
         const newContent = fileContent.replace(/(\$arrWhitelist\s*=\s*\[)/, `$1\n${filesToAddString}`);
 
         // Generate and return patch
-        const patch = createPatch(overridePath ?? this.filePath, fileContent, newContent, undefined, undefined, {
-            context: 3,
-        });
+        const patch = createPatch(
+            overridePath ?? this.filePath,
+            fileContent,
+            newContent,
+            undefined,
+            undefined,
+            {
+                context: 3,
+            }
+        );
 
         return patch;
     }
