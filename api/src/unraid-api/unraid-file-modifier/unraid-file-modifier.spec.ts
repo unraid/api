@@ -127,9 +127,7 @@ describe.sequential('FileModificationService', () => {
         // Now apply again and ensure the contents don't change
         await service.applyModification(mod);
         const errorMessage = mockLogger.warn.mock.calls[0][0];
-        expect(errorMessage).toContain(
-            'Could not load pregenerated patch for: test'
-        );
+        expect(errorMessage).toContain('Could not load pregenerated patch for: test');
     });
 
     afterEach(async () => {
