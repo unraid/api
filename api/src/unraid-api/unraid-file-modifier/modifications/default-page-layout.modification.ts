@@ -41,12 +41,12 @@ export default class DefaultPageLayoutModification extends FileModification {
         return transformers.reduce((content, fn) => fn(content), fileContent);
     }
 
-    protected async generatePatch(): Promise<string> {
+    protected async generatePatch(overridePath?: string): Promise<string> {
         const fileContent = await readFile(this.filePath, 'utf-8');
 
         const newContent = this.applyToSource(fileContent);
 
-        const patch = createPatch(this.filePath, fileContent, newContent, undefined, undefined, {
+        const patch = createPatch(overridePath ?? this.filePath, fileContent, newContent, undefined, undefined, {
             context: 2,
         });
 

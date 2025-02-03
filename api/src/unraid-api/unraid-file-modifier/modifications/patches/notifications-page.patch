@@ -1,7 +1,7 @@
-Index: /app/src/unraid-api/unraid-file-modifier/modifications/__fixtures__/downloaded/Notifications.page
+Index: /usr/local/emhttp/plugins/dynamix/Notifications.page
 ===================================================================
---- /app/src/unraid-api/unraid-file-modifier/modifications/__fixtures__/downloaded/Notifications.page
-+++ /app/src/unraid-api/unraid-file-modifier/modifications/__fixtures__/downloaded/Notifications.page
+--- /usr/local/emhttp/plugins/dynamix/Notifications.page
++++ /usr/local/emhttp/plugins/dynamix/Notifications.page
 @@ -135,23 +135,7 @@
  
  :notifications_auto_close_help:

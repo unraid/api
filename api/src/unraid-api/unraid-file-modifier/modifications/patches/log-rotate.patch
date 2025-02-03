@@ -1,7 +1,7 @@
-Index: /app/src/unraid-api/unraid-file-modifier/modifications/__fixtures__/downloaded/logrotate.conf
+Index: /etc/logrotate.d/unraid-api
 ===================================================================
---- /app/src/unraid-api/unraid-file-modifier/modifications/__fixtures__/downloaded/logrotate.conf
-+++ /app/src/unraid-api/unraid-file-modifier/modifications/__fixtures__/downloaded/logrotate.conf
+--- /etc/logrotate.d/unraid-api
++++ /etc/logrotate.d/unraid-api
 @@ -0,0 +1,12 @@
 +
 +/var/log/unraid-api/*.log {

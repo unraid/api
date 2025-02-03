@@ -1,7 +1,7 @@
-Index: /app/src/unraid-api/unraid-file-modifier/modifications/__fixtures__/downloaded/auth-request.php
+Index: /usr/local/emhttp/auth-request.php
 ===================================================================
---- /app/src/unraid-api/unraid-file-modifier/modifications/__fixtures__/downloaded/auth-request.php
-+++ /app/src/unraid-api/unraid-file-modifier/modifications/__fixtures__/downloaded/auth-request.php
+--- /usr/local/emhttp/auth-request.php
++++ /usr/local/emhttp/auth-request.php
 @@ -15,6 +15,7 @@
  }
  

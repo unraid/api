@@ -12,12 +12,12 @@ export default class NotificationsPageModification extends FileModification {
     id: string = 'notifications-page';
     public readonly filePath: string = '/usr/local/emhttp/plugins/dynamix/Notifications.page';
 
-    protected async generatePatch(): Promise<string> {
+    protected async generatePatch(overridePath?: string): Promise<string> {
         const fileContent = await readFile(this.filePath, 'utf-8');
 
         const newContent = NotificationsPageModification.applyToSource(fileContent);
 
-        const patch = createPatch(this.filePath, fileContent, newContent, undefined, undefined, {
+        const patch = createPatch(overridePath ?? this.filePath, fileContent, newContent, undefined, undefined, {
             context: 3,
         });
 

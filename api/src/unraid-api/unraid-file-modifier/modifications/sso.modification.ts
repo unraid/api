@@ -11,7 +11,7 @@ export default class SSOFileModification extends FileModification {
     id: string = 'sso';
     public readonly filePath: string = '/usr/local/emhttp/plugins/dynamix/include/.login.php';
 
-    protected async generatePatch(): Promise<string> {
+    protected async generatePatch(overridePath?: string): Promise<string> {
         // Define the new PHP function to insert
         /* eslint-disable no-useless-escape */
         const newFunction = `
@@ -64,7 +64,7 @@ function verifyUsernamePasswordAndSSO(string $username, string $password): bool 
         newContent = newContent.replace(/<\/form>/i, `</form>\n${tagToInject}`);
 
         // Create and return the patch
-        const patch = createPatch(this.filePath, originalContent, newContent, 'original', 'modified');
+        const patch = createPatch(overridePath ?? this.filePath, originalContent, newContent, 'original', 'modified');
         return patch;
     }
 

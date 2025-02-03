@@ -10,7 +10,7 @@ import {
 } from '@app/unraid-api/unraid-file-modifier/file-modification';
 
 export default class AuthRequestModification extends FileModification {
-    public filePath: string = '/usr/local/emhttp/auth-request.php';
+    public filePath: string = '/usr/local/emhttp/auth-request.php' as const;
     public webComponentsDirectory: string =
         '/usr/local/emhttp/plugins/dynamix.my.servers/unraid-components/_nuxt/' as const;
     id: string = 'auth-request';
@@ -21,7 +21,7 @@ export default class AuthRequestModification extends FileModification {
         const baseDir = '/usr/local/emhttp'; // TODO: Make this configurable
         return files.map((file) => (file.startsWith(baseDir) ? file.slice(baseDir.length) : file));
     };
-    protected async generatePatch(): Promise<string> {
+    protected async generatePatch(overridePath?: string): Promise<string> {
         const jsFiles = await this.getJsFiles(this.webComponentsDirectory);
         this.logger.debug(`Found ${jsFiles.length} .js files in ${this.webComponentsDirectory}`);
 
@@ -43,7 +43,7 @@ export default class AuthRequestModification extends FileModification {
         const newContent = fileContent.replace(/(\$arrWhitelist\s*=\s*\[)/, `$1\n${filesToAddString}`);
 
         // Generate and return patch
-        const patch = createPatch(this.filePath, fileContent, newContent, undefined, undefined, {
+        const patch = createPatch(overridePath ?? this.filePath, fileContent, newContent, undefined, undefined, {
             context: 3,
         });
 
