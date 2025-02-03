@@ -1,7 +1,7 @@
-Index: /app/src/unraid-api/unraid-file-modifier/modifications/__fixtures__/downloaded/.login.php
+Index: /usr/local/emhttp/plugins/dynamix/include/.login.php
 ===================================================================
---- /app/src/unraid-api/unraid-file-modifier/modifications/__fixtures__/downloaded/.login.php	original
-+++ /app/src/unraid-api/unraid-file-modifier/modifications/__fixtures__/downloaded/.login.php	modified
+--- /usr/local/emhttp/plugins/dynamix/include/.login.php	original
++++ /usr/local/emhttp/plugins/dynamix/include/.login.php	modified
 @@ -1,5 +1,33 @@
  <?php
 +

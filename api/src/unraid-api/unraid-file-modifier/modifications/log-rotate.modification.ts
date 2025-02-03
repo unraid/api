@@ -30,13 +30,13 @@ export class LogRotateModification extends FileModification {
         super(logger);
     }
 
-    protected async generatePatch(): Promise<string> {
+    protected async generatePatch(overridePath?: string): Promise<string> {
         const currentContent = (await fileExists(this.filePath))
             ? await readFile(this.filePath, 'utf8')
             : '';
 
         const patch = createPatch(
-            this.filePath,
+            overridePath ?? this.filePath,
             currentContent,
             this.logRotateConfig,
             undefined,

@@ -4,6 +4,7 @@ import { access, readFile, unlink, writeFile } from 'fs/promises';
 import { basename, dirname, join } from 'path';
 
 import { applyPatch, parsePatch, reversePatch } from 'diff';
+import { patch } from 'semver';
 
 export interface ShouldApplyWithReason {
     shouldApply: boolean;
@@ -18,7 +19,7 @@ export abstract class FileModification {
     public constructor(protected readonly logger: Logger) {}
 
     // This is the main method that child classes need to implement
-    protected abstract generatePatch(): Promise<string>;
+    protected abstract generatePatch(overridePath?: string): Promise<string>;
 
     private getPatchFilePath(targetFile: string): string {
         const dir = dirname(targetFile);
@@ -64,8 +65,14 @@ export abstract class FileModification {
     }
 
     private async applyPatch(patchContents: string): Promise<void> {
+        if (!patchContents.trim()) {
+            throw new Error('Patch contents are empty');
+        }
         const currentContent = await readFile(this.filePath, 'utf8');
         const parsedPatch = parsePatch(patchContents)[0];
+        if (!parsedPatch?.hunks.length) {
+            throw new Error('Invalid Patch Format: No hunks found');
+        }
         const results = applyPatch(currentContent, parsedPatch);
         if (results === false) {
             throw new Error(`Failed to apply patch to ${this.filePath}`);
@@ -75,22 +82,26 @@ export abstract class FileModification {
 
     // Default implementation of apply that uses the patch
     async apply(): Promise<void> {
-        // First attempt to apply the patch that was generated
-        const staticPatch = await this.getPregeneratedPatch();
-        if (staticPatch) {
-            try {
-                await this.applyPatch(staticPatch);
-                await this.savePatch(staticPatch);
-                return;
-            } catch (error) {
-                this.logger.error(
-                    `Failed to apply static patch to ${this.filePath}, continuing with dynamic patch`
-                );
+        try {
+            // First attempt to apply the patch that was generated
+            const staticPatch = await this.getPregeneratedPatch();
+            if (staticPatch) {
+                try {
+                    await this.applyPatch(staticPatch);
+                    await this.savePatch(staticPatch);
+                    return;
+                } catch (error) {
+                    this.logger.error(
+                        `Failed to apply static patch to ${this.filePath}, continuing with dynamic patch`
+                    );
+                }
             }
+            const patchContents = await this.generatePatch();
+            await this.applyPatch(patchContents);
+            await this.savePatch(patchContents);
+        } catch (err) {
+            this.logger.error(`Failed to apply patch to ${this.filePath}: ${err}`);
         }
-        const patchContents = await this.generatePatch();
-        await this.applyPatch(patchContents);
-        await this.savePatch(patchContents);
     }
 
     // Update rollback to use the shared utility
