@@ -9,27 +9,22 @@ import {
     ShouldApplyWithReason,
 } from '@app/unraid-api/unraid-file-modifier/file-modification';
 
-const WEB_COMPS_DIR = '/usr/local/emhttp/plugins/dynamix.my.servers/unraid-components/_nuxt/' as const;
-
-const getJsFiles = async (dir: string) => {
-    const { glob } = await import('glob');
-    const files = await glob(`${dir}/**/*.js`);
-    return files.map((file) => file.replace('/usr/local/emhttp', ''));
-};
-
 export default class AuthRequestModification extends FileModification {
     public filePath: string = '/usr/local/emhttp/auth-request.php';
+    public webComponentsDirectory: string =
+        '/usr/local/emhttp/plugins/dynamix.my.servers/unraid-components/_nuxt/' as const;
     id: string = 'auth-request';
 
-    constructor(logger: Logger) {
-        super(logger);
-    }
-
+    private getJsFiles = async (dir: string) => {
+        const { glob } = await import('glob');
+        const files = await glob(`${dir}/**/*.js`);
+        return files.map((file) => file.replace('/usr/local/emhttp', ''));
+    };
     protected async generatePatch(): Promise<string> {
-        const JS_FILES = await getJsFiles(WEB_COMPS_DIR);
-        this.logger.debug(`Found ${JS_FILES.length} .js files in ${WEB_COMPS_DIR}`);
+        const jsFiles = await this.getJsFiles(this.webComponentsDirectory);
+        this.logger.debug(`Found ${jsFiles.length} .js files in ${this.webComponentsDirectory}`);
 
-        const FILES_TO_ADD = ['/webGui/images/partner-logo.svg', ...JS_FILES];
+        const filesToAdd = ['/webGui/images/partner-logo.svg', ...jsFiles];
 
         if (!existsSync(this.filePath)) {
             throw new Error(`File ${this.filePath} not found.`);
@@ -41,7 +36,7 @@ export default class AuthRequestModification extends FileModification {
             throw new Error(`$arrWhitelist array not found in the file.`);
         }
 
-        const filesToAddString = FILES_TO_ADD.map((file) => `  '${file}',`).join('\n');
+        const filesToAddString = filesToAdd.map((file) => `  '${file}',`).join('\n');
 
         // Create new content by finding the array declaration and adding our files after it
         const newContent = fileContent.replace(/(\$arrWhitelist\s*=\s*\[)/, `$1\n${filesToAddString}`);
