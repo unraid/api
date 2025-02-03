@@ -7,7 +7,7 @@ import { PM2_PATH } from '@app/consts';
 @Command({ name: 'status', description: 'Check status of unraid-api service' })
 export class StatusCommand extends CommandRunner {
     async run(): Promise<void> {
-        execSync(`${PM2_PATH} status unraid-api`, { stdio: 'inherit' });
+        execSync(`${PM2_PATH} status unraid-api`, { stdio: 'inherit', shell: 'bash' });
         process.exit(0);
     }
 }

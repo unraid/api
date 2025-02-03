@@ -84,6 +84,6 @@ export class SwitchEnvCommand extends CommandRunner {
         await copyFile(source, destination);
 
         cliLogger.info('Now using %s', newEnv);
-        await this.startCommand.run(null, {});
+        await this.startCommand.run([], {});
     }
 }

@@ -23,6 +23,8 @@ import { StopCommand } from '@app/unraid-api/cli/stop.command';
 import { SwitchEnvCommand } from '@app/unraid-api/cli/switch-env.command';
 import { VersionCommand } from '@app/unraid-api/cli/version.command';
 
+import { PM2Service } from './pm2.service';
+
 @Module({
     providers: [
         AddSSOUserCommand,
@@ -31,6 +33,7 @@ import { VersionCommand } from '@app/unraid-api/cli/version.command';
         RemoveSSOUserQuestionSet,
         ListSSOUserCommand,
         LogService,
+        PM2Service,
         StartCommand,
         StopCommand,
         RestartCommand,

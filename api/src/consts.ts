@@ -80,6 +80,5 @@ export const KEYSERVER_VALIDATION_ENDPOINT = 'https://keys.lime-technology.com/v
 /** Set the max retries for the GraphQL Client */
 export const MAX_RETRIES_FOR_LINEAR_BACKOFF = 100;
 
-// --yes will auto-install the latest version of pm2 if it is unavailable in the command context.
-export const PM2_PATH = 'npx --yes pm2';
+export const PM2_PATH = join(import.meta.dirname, '../../', 'node_modules', '.bin', 'pm2');
 export const ECOSYSTEM_PATH = join(import.meta.dirname, '../../', 'ecosystem.config.json');
