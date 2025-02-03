@@ -1,6 +1,6 @@
-import { Logger } from '@nestjs/common';
 import { existsSync } from 'fs';
 import { readFile } from 'fs/promises';
+import { join } from 'node:path';
 
 import { createPatch } from 'diff';
 
@@ -15,13 +15,11 @@ export default class AuthRequestModification extends FileModification {
         '/usr/local/emhttp/plugins/dynamix.my.servers/unraid-components/_nuxt/' as const;
     id: string = 'auth-request';
 
-import { join } from 'path';
-
     private getJsFiles = async (dir: string) => {
         const { glob } = await import('glob');
         const files = await glob(join(dir, '**/*.js'));
-        const baseDir = '/usr/local/emhttp';  // TODO: Make this configurable
-        return files.map((file) => file.startsWith(baseDir) ? file.slice(baseDir.length) : file);
+        const baseDir = '/usr/local/emhttp'; // TODO: Make this configurable
+        return files.map((file) => (file.startsWith(baseDir) ? file.slice(baseDir.length) : file));
     };
     protected async generatePatch(): Promise<string> {
         const jsFiles = await this.getJsFiles(this.webComponentsDirectory);
