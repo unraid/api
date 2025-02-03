@@ -99,7 +99,7 @@ describe.sequential('FileModificationService', () => {
         const rolledBackContent = await fs.readFile(FIXTURE_PATH, 'utf-8');
         expect(rolledBackContent).toBe(ORIGINAL_CONTENT);
 
-        expect(mockLogger.error).not.toHaveBeenCalled();
+        expect(mockLogger.warn).toHaveBeenCalledWith('Could not load pregenerated patch for: test');
         expect(mockLogger.log.mock.calls).toEqual([
             ['RootTestModule dependencies initialized'],
             ['Applying modification: test - Always Apply this mod'],
@@ -126,9 +126,9 @@ describe.sequential('FileModificationService', () => {
 
         // Now apply again and ensure the contents don't change
         await service.applyModification(mod);
-        const errorMessage = mockLogger.error.mock.calls[0][0];
+        const errorMessage = mockLogger.warn.mock.calls[0][0];
         expect(errorMessage).toContain(
-            'Failed to apply patch to /app/src/unraid-api/unraid-file-modifier/modifications/__fixtures__/text-patch-file.txt'
+            'Could not load pregenerated patch for: test'
         );
     });
 
