@@ -9,6 +9,7 @@ import { FileModification } from '@app/unraid-api/unraid-file-modifier/file-modi
 import DefaultPageLayoutModification from '@app/unraid-api/unraid-file-modifier/modifications/default-page-layout.modification';
 import NotificationsPageModification from '@app/unraid-api/unraid-file-modifier/modifications/notifications-page.modification';
 import SSOFileModification from '@app/unraid-api/unraid-file-modifier/modifications/sso.modification';
+import AuthRequestModification from '@app/unraid-api/unraid-file-modifier/modifications/auth-request.modification';
 
 interface ModificationTestCase {
     ModificationClass: new (...args: ConstructorParameters<typeof FileModification>) => FileModification;
@@ -35,6 +36,12 @@ const testCases: ModificationTestCase[] = [
         ModificationClass: SSOFileModification,
         fileName: '.login.php',
     },
+    {
+        ModificationClass: AuthRequestModification,
+        fileUrl:
+            'https://github.com/unraid/webgui/raw/refs/heads/master/emhttp/auth-request.php',
+        fileName: 'auth-request.php',
+    },
 ];
 
 async function testModification(testCase: ModificationTestCase) {
@@ -42,12 +49,14 @@ async function testModification(testCase: ModificationTestCase) {
     const fileName = basename(testCase.fileUrl);
 
     const path = resolve(__dirname, `../__fixtures__/downloaded/${fileName}`);
+    const pathLocal = resolve(__dirname, `../__fixtures__/local/${fileName}`);
     let originalContent = '';
     if (!existsSync(path)) {
         try {
             console.log('Downloading file', testCase.fileUrl);
             originalContent = await fetch(testCase.fileUrl).then((response) => response.text());
             await writeFile(path, originalContent);
+            await writeFile(pathLocal, originalContent);
         } catch (error) {
             console.error('Failed to download file - using local fixture', error);
             await cp(resolve(__dirname, `../__fixtures__/local/${fileName}`), path);

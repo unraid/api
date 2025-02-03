@@ -136,7 +136,7 @@ describe.sequential('FileModificationService', () => {
         try {
             await fs.unlink(FIXTURE_PATH);
         } catch (error) {
-            // Ignore errors if file doesn't exist
+            console.error('Failed to clean up fixture file', error);
         }
         vi.clearAllMocks();
     });
