@@ -19,8 +19,8 @@ class TestFileModification extends FileModification {
     id = 'test';
     public readonly filePath: string = FIXTURE_PATH;
 
-    protected async generatePatch(): Promise<string> {
-        return createPatch('text-patch-file.txt', ORIGINAL_CONTENT, 'modified');
+    protected async generatePatch(overridePath?: string): Promise<string> {
+        return createPatch(overridePath ?? 'text-patch-file.txt', ORIGINAL_CONTENT, 'modified');
     }
 
     async shouldApply(): Promise<ShouldApplyWithReason> {

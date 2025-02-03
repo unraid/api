@@ -1,7 +1,7 @@
-Index: /app/src/unraid-api/unraid-file-modifier/modifications/__fixtures__/downloaded/DefaultPageLayout.php
+Index: /usr/local/emhttp/plugins/dynamix/include/DefaultPageLayout.php
 ===================================================================
---- /app/src/unraid-api/unraid-file-modifier/modifications/__fixtures__/downloaded/DefaultPageLayout.php
-+++ /app/src/unraid-api/unraid-file-modifier/modifications/__fixtures__/downloaded/DefaultPageLayout.php
+--- /usr/local/emhttp/plugins/dynamix/include/DefaultPageLayout.php
++++ /usr/local/emhttp/plugins/dynamix/include/DefaultPageLayout.php
 @@ -557,14 +557,5 @@
    $.post('/webGui/include/Notify.php',{cmd:'get',csrf_token:csrf_token},function(msg) {
      $.each($.parseJSON(msg), function(i, notify){
