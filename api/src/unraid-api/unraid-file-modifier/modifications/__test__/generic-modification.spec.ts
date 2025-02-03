@@ -1,7 +1,6 @@
 import { Logger } from '@nestjs/common';
-import { existsSync } from 'fs';
-import { cp, readFile, writeFile } from 'fs/promises';
-import path, { basename, resolve } from 'path';
+import { readFile, writeFile } from 'fs/promises';
+import { basename, resolve } from 'path';
 
 import { describe, expect, test } from 'vitest';
 
