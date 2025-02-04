@@ -43,7 +43,7 @@ try {
     }
 
     // Get package details
-    const { name, version, ...rest } = await import('../package.json', {
+    const { name, version, devDependencies, ...rest } = await import('../package.json', {
         assert: { type: 'json' },
     }).then((pkg) => pkg.default);
 
@@ -76,7 +76,7 @@ try {
 
     // Ensure that we don't have any dev dependencies left
     console.log('Installed dependencies:');
-    await $`npm ls --omit=dev --depth=0`;
+    await $`npm ls --depth=0`;
 
     console.log('Dependencies installed, packing...');
 
