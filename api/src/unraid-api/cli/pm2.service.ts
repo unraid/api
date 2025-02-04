@@ -48,8 +48,7 @@ export class PM2Service {
         }
         return runCommand()
             .then((result) => {
-                this.logger.debug(result.stdout);
-                this.logger.log(`Operation "${tag}" completed.`);
+                this.logger.trace(result.stdout);
                 return result;
             })
             .catch((result: Result) => {
