@@ -1,8 +1,7 @@
-import { execa } from 'execa';
 import { Command, CommandRunner, Option } from 'nest-commander';
 
 import type { LogLevel } from '@app/core/log';
-import { ECOSYSTEM_PATH, PM2_PATH } from '@app/consts';
+import { ECOSYSTEM_PATH } from '@app/consts';
 import { levels } from '@app/core/log';
 import { LogService } from '@app/unraid-api/cli/log.service';
 import { PM2Service } from '@app/unraid-api/cli/pm2.service';

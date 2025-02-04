@@ -1,13 +1,17 @@
-import { execSync } from 'child_process';
-
 import { Command, CommandRunner } from 'nest-commander';
 
-import { PM2_PATH } from '@app/consts';
+import { PM2Service } from '@app/unraid-api/cli/pm2.service';
 
 @Command({ name: 'status', description: 'Check status of unraid-api service' })
 export class StatusCommand extends CommandRunner {
+    constructor(private readonly pm2: PM2Service) {
+        super();
+    }
     async run(): Promise<void> {
-        execSync(`${PM2_PATH} status unraid-api`, { stdio: 'inherit', shell: 'bash' });
-        process.exit(0);
+        await this.pm2.run(
+            { tag: 'PM2 Status', stdio: 'inherit', shell: 'bash', raw: true },
+            'status',
+            'unraid-api'
+        );
     }
 }
