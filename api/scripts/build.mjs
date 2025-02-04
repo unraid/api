@@ -15,7 +15,8 @@ try {
     process.env.WORKDIR ??= process.env.PWD;
     cd(process.env.WORKDIR);
 
-    await $`rm -rf ./deploy/*`;
+    await $`rm -rf ./deploy/release/*`;
+    await $`rm -rf ./deploy/pre-pack/*`;
     // Create deployment directories - ignore if they already exist
     await mkdir('./deploy/release', { recursive: true });
     await mkdir('./deploy/pre-pack', { recursive: true });
