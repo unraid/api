@@ -12,7 +12,7 @@ import {
 } from '@app/unraid-api/unraid-file-modifier/file-modification';
 import { UnraidFileModificationService } from '@app/unraid-api/unraid-file-modifier/unraid-file-modifier.service';
 
-const FIXTURE_PATH = join(__dirname, 'modifications', '__fixtures__', 'text-patch-file.txt');
+const FIXTURE_PATH = join(__dirname, 'modifications', '__test__', '__fixtures__', 'text-patch-file.txt');
 const ORIGINAL_CONTENT = 'original';
 
 class TestFileModification extends FileModification {
