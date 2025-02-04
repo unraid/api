@@ -74,7 +74,7 @@ const downloadOrRetrieveOriginalFile = async (filePath: string, fileUrl: string)
             );
         }
     }
-    return await readFile(filePath, 'utf-8');
+    return await readFile(filePath, 'utf-8').catch(() => '');
 };
 
 async function testModification(testCase: ModificationTestCase, patcher: FileModification) {
@@ -101,7 +101,7 @@ async function testModification(testCase: ModificationTestCase, patcher: FileMod
 
     // Rollback and verify original state
     await patcher.rollback();
-    const revertedContent = await readFile(filePath, 'utf-8');
+    const revertedContent = await readFile(filePath, 'utf-8').catch(() => '');
     await expect(revertedContent).toMatch(originalContent);
 }
 

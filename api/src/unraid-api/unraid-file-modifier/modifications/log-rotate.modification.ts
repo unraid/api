@@ -1,9 +1,6 @@
 import { Logger } from '@nestjs/common';
 import { readFile } from 'node:fs/promises';
 
-import { createPatch } from 'diff';
-import { execa } from 'execa';
-
 import { fileExists } from '@app/core/utils/files/file-exists';
 import {
     FileModification,
