@@ -15,6 +15,7 @@
   <!ENTITY NODEJS_TXZ "https://nodejs.org/dist/v20.18.1/node-v20.18.1-linux-x64.tar.xz">
   <!ENTITY MAIN_TXZ "">
   <!ENTITY API_TGZ "">
+  <!ENTITY PR "">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" pluginURL="&pluginURL;"
@@ -28,15 +29,11 @@
   <!-- prevent prod plugin from installing when staging already installed, and vice versa -->
   <FILE Run="/bin/bash" Method="install">
     <INLINE>
-      name="&name;" version="&version;" API_version="&API_version;" PLGTYPE="&env;"
+      name="&name;" version="&version;" API_version="&API_version;" PLGTYPE="&env;" PR="&PR;"
     <![CDATA[
 echo "Installing ${name}.plg ${version} with Unraid API ${API_version}"
-if [ "${PLGTYPE}" = "production" ] && [ -f /boot/config/plugins/dynamix.unraid.net.staging.plg ]; then
-  echo "⚠️ Please uninstall the Unraid Connect staging plugin before installing the production version"
-  exit 1
-fi
-if [ "${PLGTYPE}" = "staging" ] && [ -f /boot/config/plugins/dynamix.unraid.net.plg ]; then
-  echo "⚠️ Please uninstall the Unraid Connect production plugin before installing the staging version"
+if [-f /boot/config/plugins/dynamix.unraid.net.staging.plg]; then
+  echo "The staging plugin has changed, please uninstall the old staging plugin before installing the new one"
   exit 1
 fi
 exit 0
@@ -430,7 +427,7 @@ exit 0
   <!-- install all the things -->
   <FILE Run="/bin/bash" Method="install">
     <INLINE>
-      PLGTYPE="&env;" MAINTXZ="&source;.txz"
+      PR="&PR;" PLGTYPE="&env;" MAINTXZ="&source;.txz"
     <![CDATA[
 appendTextIfMissing() {
   FILE="$1" TEXT="$2"
@@ -452,10 +449,8 @@ if [[ "${version:0:3}" == "6.9" || "${version:0:4}" == "6.10" || "${version:0:4}
   echo
   echo "✅ It is safe to close this window"
   echo
-  PLGNAME=dynamix.unraid.net
-  [ "${PLGTYPE}" = "staging" ] && PLGNAME=dynamix.unraid.net.staging
 
-  DIR="/usr/local/emhttp/plugins/${PLGNAME}" && [[ ! -d "$DIR" ]] && mkdir "$DIR"
+  DIR="/usr/local/emhttp/plugins/dynamix.unraid.net" && [[ ! -d "$DIR" ]] && mkdir "$DIR"
 cat << EOF > "$DIR/README.md"
 **Unraid Connect**
 
@@ -737,6 +732,13 @@ upgradepkg --install-new --reinstall "${MAINTXZ}"
 # confirm an expected file now exists
 # WARNING: failure here results in broken install
 [[ ! -f /usr/local/emhttp/plugins/dynamix.my.servers/scripts/gitflash_log ]] && echo "⚠️ files missing from main txz" && exit 1
+
+if [[ -n "$PR" && "$PR" != "" ]]; then
+  printf -v sedcmd 's@^\*\*Unraid Connect\*\*@**Unraid Connect PR #%s**@' "$PR"
+  sed -i "${sedcmd}" "/usr/local/emhttp/plugins/dynamix.unraid.net/README.md"
+elif [[ "$PLGTYPE" == "staging" ]]; then
+  sed -i "s@^\*\*Unraid Connect\*\*@**Unraid Connect (staging)**@" "/usr/local/emhttp/plugins/dynamix.unraid.net/README.md"
+fi
 
 echo
 echo "⚠️ Do not close this window yet"
