@@ -132,12 +132,6 @@ describe.sequential('FileModificationService', () => {
 
     afterEach(async () => {
         await service.rollbackAll();
-        // Clean up the fixture file
-        try {
-            await fs.unlink(FIXTURE_PATH);
-        } catch (error) {
-            console.error('Failed to clean up fixture file', error);
-        }
         vi.clearAllMocks();
     });
 });

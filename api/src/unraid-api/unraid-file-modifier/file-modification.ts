@@ -68,7 +68,7 @@ export abstract class FileModification {
         }
     }
 
-    private async applyPatch(patchContents: string): Promise<void> {
+    private async applyPatch(patchContents: string): Promise<string> {
         if (!patchContents.trim()) {
             throw new Error('Patch contents are empty');
         }
@@ -82,22 +82,28 @@ export abstract class FileModification {
             throw new Error(`Failed to apply patch to ${this.filePath}`);
         }
         await writeFile(this.filePath, results);
+        return results;
     }
 
-    async apply(): Promise<void> {
+    /**
+     * Apply the patch for the target file
+     * @returns
+     */
+    async apply(): Promise<string> {
         try {
-            const savedPatch = await this.loadPatchedFilePatch(this.filePath);
-            if (savedPatch) {
-                // Rollback the saved patch before applying the new patch
-                await this.rollback();
-            }
+            // First attempt to rollback an existing patch saved on disk (if the file has already been modified by us, unclean shutdown)
+            await this.rollback(true).catch((err) => {
+                this.logger.debug(
+                    `Failed to rollback patch for ${this.id}: ${err}, may not have been applied yet`
+                );
+            });
             // First attempt to apply the patch that was generated
             const staticPatch = await this.getPregeneratedPatch();
             if (staticPatch) {
                 try {
                     await this.applyPatch(staticPatch);
                     await this.savePatch(staticPatch);
-                    return;
+                    return staticPatch;
                 } catch (error) {
                     this.logger.error(
                         `Failed to apply static patch to ${this.filePath}, continuing with dynamic patch`
@@ -107,23 +113,33 @@ export abstract class FileModification {
             const patchContents = await this.generatePatch();
             await this.applyPatch(patchContents);
             await this.savePatch(patchContents);
+            return patchContents;
         } catch (err) {
             this.logger.error(`Failed to apply patch to ${this.filePath}: ${err}`);
+            throw err;
         }
     }
 
-    async rollback(): Promise<void> {
-        let patch: string;
+    /**
+     * Rollback the patch for the target file
+     * @param useSavedPatchOnly - If true, only use the saved patch file if it exists, otherwise use the file or generate a new patch
+     */
+    async rollback(useSavedPatchOnly: boolean = false): Promise<void> {
+        let patch: string | null = null;
 
         // Try to load saved patch first
         const savedPatch = await this.loadPatchedFilePatch(this.filePath);
         if (savedPatch) {
             this.logger.debug(`Using saved patch file for ${this.id}`);
             patch = savedPatch;
-        } else {
+        } else if (!useSavedPatchOnly) {
             this.logger.debug(`No saved patch found for ${this.id}, generating new patch`);
             const patchContents = await this.generatePatch();
             patch = patchContents;
+        }
+
+        if (!patch) {
+            throw new Error(`No patch found to rollback for ${this.id}`);
         }
 
         const currentContent = await readFile(this.filePath, 'utf8');
