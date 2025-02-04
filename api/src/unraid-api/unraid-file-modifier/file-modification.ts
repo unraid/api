@@ -92,11 +92,12 @@ export abstract class FileModification {
         if (!patchContents.trim()) {
             throw new Error('Patch contents are empty');
         }
-        const currentContent = await readFile(this.filePath, 'utf8');
+        const currentContent = await readFile(this.filePath, 'utf8').catch(() => '');
         const parsedPatch = parsePatch(patchContents)[0];
         if (!parsedPatch?.hunks.length) {
             throw new Error('Invalid Patch Format: No hunks found');
         }
+
         const results = applyPatch(currentContent, parsedPatch);
         if (results === false) {
             throw new Error(`Failed to apply patch to ${this.filePath}`);
@@ -178,7 +179,12 @@ export abstract class FileModification {
             throw new Error(`Failed to rollback patch from ${this.filePath}`);
         }
 
-        await writeFile(this.filePath, results);
+        if (results === '') {
+            // Delete the file if the patch results in an empty string
+            await unlink(this.filePath);
+        } else {
+            await writeFile(this.filePath, results);
+        }
 
         // Clean up the patch file after successful rollback
         try {
