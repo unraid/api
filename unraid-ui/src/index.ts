@@ -4,6 +4,7 @@ import {
   BrandButton,
   brandButtonVariants,
   BrandLoading,
+  brandLoadingVariants,
   BrandLogo,
   BrandLogoConnect,
 } from '@/components/brand';
@@ -72,6 +73,7 @@ export {
   BrandButton,
   brandButtonVariants,
   BrandLoading,
+  brandLoadingVariants,
   BrandLogo,
   BrandLogoConnect,
   Button,
