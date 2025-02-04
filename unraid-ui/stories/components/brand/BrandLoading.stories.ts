@@ -1,39 +1,66 @@
-import type { Meta, StoryObj } from "@storybook/vue3";
-import BrandLoading from "../../../src/components/brand/BrandLoading.ce.vue";
+import type { Meta, StoryObj } from '@storybook/vue3';
+import BrandLoadingCe from '../../../src/components/brand/BrandLoading.ce.vue';
+import BrandLoadingVue from '../../../src/components/brand/BrandLoading.ce.vue';
 
 const meta = {
-  title: "Components/Brand",
-  component: BrandLoading,
+  title: 'Components/Brand',
+  component: BrandLoadingCe,
   argTypes: {
     gradientStart: { control: 'color' },
     gradientStop: { control: 'color' },
     title: { control: 'text' },
   },
-} satisfies Meta<typeof BrandLoading>;
+} satisfies Meta<typeof BrandLoadingCe>;
 
 export default meta;
 
 type Story = StoryObj<typeof meta>;
 
+const defaultArgs = {
+  gradientStart: '#e32929',
+  gradientStop: '#ff8d30',
+  title: 'Loading',
+};
+
+// Vue Component version
 export const Loading: Story = {
-  args: {
-    gradientStart: '#e32929',
-    gradientStop: '#ff8d30',
-    title: 'Loading',
-  },
+  args: defaultArgs,
   render: (args) => ({
-    components: { BrandLoading },
+    components: { BrandLoadingVue },
     setup() {
       return { args };
     },
     template: `
-      <div class="w-[200px]">
-        <BrandLoading
-          :gradient-start="args.gradientStart"
-          :gradient-stop="args.gradientStop"
-          :title="args.title"
-        />
+      <div>
+        <div class="w-[200px]">
+          <BrandLoadingVue
+            :gradient-start="args.gradientStart"
+            :gradient-stop="args.gradientStop"
+            :title="args.title"
+          />
+        </div>
       </div>
     `,
   }),
-}; 
+};
+
+// Web Component version
+export const LoadingCE: Story = {
+  args: defaultArgs,
+  render: (args) => ({
+    setup() {
+      return { args };
+    },
+    template: `
+      <div>
+        <div class="w-[200px]">
+          <uui-brand-loading
+            :gradient-start="args.gradientStart"
+            :gradient-stop="args.gradientStop"
+            :title="args.title"
+          />
+        </div>
+      </div>
+    `,
+  }),
+};

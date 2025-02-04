@@ -2,7 +2,7 @@
 export interface Props {
   gradientStart?: string;
   gradientStop?: string;
-  title?: string,
+  title?: string;
 }
 
 withDefaults(defineProps<Props>(), {
@@ -83,7 +83,11 @@ withDefaults(defineProps<Props>(), {
   </svg>
 </template>
 
-<style scoped lang="css">
+<style lang="postcss">
+.unraid_mark {
+  display: inline-block;
+}
+
 .unraid_mark_2,
 .unraid_mark_4 {
   animation: mark_2 1.5s ease infinite;
