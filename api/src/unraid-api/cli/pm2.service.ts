@@ -40,6 +40,8 @@ export class PM2Service {
      */
     async run(context: CmdContext, ...args: string[]) {
         const { tag, raw, ...execOptions } = context;
+        execOptions.extendEnv ??= false;
+        execOptions.shell ??= 'bash';
         const runCommand = () => execa(PM2_PATH, [...args], execOptions satisfies Options);
         if (raw) {
             return runCommand();

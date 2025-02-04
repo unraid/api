@@ -9,7 +9,7 @@ export class StatusCommand extends CommandRunner {
     }
     async run(): Promise<void> {
         await this.pm2.run(
-            { tag: 'PM2 Status', stdio: 'inherit', shell: 'bash', raw: true },
+            { tag: 'PM2 Status', stdio: 'inherit', raw: true },
             'status',
             'unraid-api'
         );
