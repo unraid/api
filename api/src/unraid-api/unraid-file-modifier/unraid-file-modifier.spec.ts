@@ -11,6 +11,7 @@ import {
     ShouldApplyWithReason,
 } from '@app/unraid-api/unraid-file-modifier/file-modification';
 import { UnraidFileModificationService } from '@app/unraid-api/unraid-file-modifier/unraid-file-modifier.service';
+import { fileExistsSync } from '@app/core/utils/files/file-exists';
 
 const FIXTURE_PATH = join(__dirname, 'modifications', '__test__', '__fixtures__', 'text-patch-file.txt');
 const ORIGINAL_CONTENT = 'original';
@@ -78,6 +79,25 @@ describe.sequential('FileModificationService', () => {
     it('should apply modifications', async () => {
         const mod = new TestFileModification(logger);
         await expect(service.applyModification(mod)).resolves.toBe(undefined);
+    });
+
+    it('should apply modification if file does not exist', async () => {
+        const mod = new TestFileModification(logger);
+        // @ts-expect-error - This is a protected method, but we need to mock it
+        mod.generatePatch = vi.fn().mockResolvedValue(createPatch(FIXTURE_PATH, '', 'modified'));
+        await fs.unlink(FIXTURE_PATH);
+        await expect(service.applyModification(mod)).resolves.toBe(undefined);
+        expect(mockLogger.warn).toHaveBeenCalledWith('Could not load pregenerated patch for: test');
+        expect(mockLogger.log).toHaveBeenCalledWith(
+            'Applying modification: test - Always Apply this mod'
+        );
+        expect(mockLogger.log).toHaveBeenCalledWith('Modification applied successfully: test');
+        const content = await fs.readFile(FIXTURE_PATH, 'utf-8');
+        expect(content).toBe('modified');
+        await service.rollbackAll();
+        expect(fileExistsSync(FIXTURE_PATH)).toBe(false);
+        expect(mockLogger.log).toHaveBeenCalledWith('Rolling back modification: test');
+        expect(mockLogger.log).toHaveBeenCalledWith('Successfully rolled back modification: test');
     });
 
     it('should not rollback any mods without loaded', async () => {
