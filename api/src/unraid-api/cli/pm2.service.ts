@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import { rm } from 'node:fs/promises';
 
 import type { Options, Result, ResultPromise } from 'execa';
 import { execa } from 'execa';
@@ -36,13 +37,14 @@ export class PM2Service {
      *          Logs debug information on success and error details on failure.
      */
     async run(context: CmdContext, ...args: string[]) {
-        const { tag, raw = false, ...execOptions } = context;
+        const { tag, raw, ...execOptions } = context;
         const runCommand = () => execa(PM2_PATH, [...args], execOptions satisfies Options);
         if (raw) {
             return runCommand();
         }
         return runCommand()
             .then((result) => {
+                this.logger.log(`Operation "${tag}" completed.`);
                 this.logger.debug(result.stdout);
                 return result;
             })
@@ -50,5 +52,18 @@ export class PM2Service {
                 this.logger.error(`PM2 error occurred from tag "${tag}": ${result.stdout}\n`);
                 return result;
             });
+    }
+
+    /**
+     * Deletes the PM2 dump file.
+     *
+     * This method removes the PM2 dump file located at `~/.pm2/dump.pm2`.
+     * It logs a message indicating that the PM2 dump has been cleared.
+     *
+     * @returns A promise that resolves once the dump file is removed.
+     */
+    async deleteDump(dumpFile = '~/.pm2/dump.pm2') {
+        await rm(dumpFile, { force: true });
+        this.logger.log('PM2 dump cleared.');
     }
 }

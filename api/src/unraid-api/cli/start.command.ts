@@ -23,6 +23,7 @@ export class StartCommand extends CommandRunner {
         await this.pm2.run({ tag: 'PM2 Stop' }, 'stop', ECOSYSTEM_PATH);
         await this.pm2.run({ tag: 'PM2 Delete' }, 'delete', ECOSYSTEM_PATH);
         await this.pm2.run({ tag: 'PM2 Update' }, 'update');
+        await this.pm2.deleteDump();
     }
 
     async run(_: string[], options: StartCommandOptions): Promise<void> {
@@ -47,7 +48,6 @@ export class StartCommand extends CommandRunner {
             this.logger.error(stderr.toString());
             process.exit(1);
         }
-        process.exit(0);
     }
 
     @Option({
