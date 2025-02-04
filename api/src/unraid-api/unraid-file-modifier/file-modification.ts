@@ -17,17 +17,28 @@ export abstract class FileModification {
 
     public constructor(protected readonly logger: Logger) {}
 
-    // This is the main method that child classes need to implement
+    /**
+     * Generate the patch for the target filePath
+     * @param overridePath - The path displayed in the patch file
+     */
     protected abstract generatePatch(overridePath?: string): Promise<string>;
 
-    private getPatchFilePath(targetFile: string): string {
+    /**
+     * Get the path to the applied patch file for the target filePath, saved after applying the patch
+     * @param targetFile - The path to the file that was patched
+     */
+    private getPathToAppliedPatch(targetFile: string): string {
         const dir = dirname(targetFile);
         const filename = `${basename(targetFile)}.patch`;
         return join(dir, filename);
     }
 
+    /**
+     * Save the patch to disk, next to the changed file
+     * @param patchResult - The patch to save to filePath.patch
+     */
     private async savePatch(patchResult: string): Promise<void> {
-        const patchFilePath = this.getPatchFilePath(this.filePath);
+        const patchFilePath = this.getPathToAppliedPatch(this.filePath);
         await writeFile(patchFilePath, patchResult, 'utf8');
     }
 
@@ -37,7 +48,7 @@ export abstract class FileModification {
      * @returns The patch contents if it exists (targetFile.patch), null otherwise
      */
     private async loadPatchedFilePatch(targetFile: string): Promise<string | null> {
-        const patchFile = this.getPatchFilePath(targetFile);
+        const patchFile = this.getPathToAppliedPatch(targetFile);
         try {
             await access(patchFile, constants.R_OK);
             return await readFile(patchFile, 'utf8');
@@ -46,6 +57,10 @@ export abstract class FileModification {
         }
     }
 
+    /**
+     * Load the pregenerated patch for the target file
+     * @returns The patch contents if it exists (targetFile.patch), null otherwise
+     */
     private async getPregeneratedPatch(): Promise<string | null> {
         const patchResults = await import.meta.glob('./modifications/patches/*.patch', {
             query: '?raw',
@@ -68,6 +83,11 @@ export abstract class FileModification {
         }
     }
 
+    /**
+     * Apply the patch to the target file
+     * @param patchContents - The patch to apply
+     * @returns The result of the patch
+     */
     private async applyPatch(patchContents: string): Promise<string> {
         if (!patchContents.trim()) {
             throw new Error('Patch contents are empty');
@@ -87,7 +107,9 @@ export abstract class FileModification {
 
     /**
      * Apply the patch for the target file
-     * @returns
+     * Attempts to apply the pregenerated patch first, then the dynamically generated patch
+     * Will roll back the already applied patch before running if the .patch file exists next to the target file
+     * @returns The result of the patch
      */
     async apply(): Promise<string> {
         try {
@@ -160,7 +182,7 @@ export abstract class FileModification {
 
         // Clean up the patch file after successful rollback
         try {
-            const patchFile = this.getPatchFilePath(this.filePath);
+            const patchFile = this.getPathToAppliedPatch(this.filePath);
             await access(patchFile, constants.W_OK);
             await unlink(patchFile);
         } catch {

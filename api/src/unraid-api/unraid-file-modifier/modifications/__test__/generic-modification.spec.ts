@@ -1,5 +1,6 @@
 import { Logger } from '@nestjs/common';
 import { readFile, writeFile } from 'fs/promises';
+import { afterEach } from 'node:test';
 import { basename, resolve } from 'path';
 
 import { describe, expect, test, vi } from 'vitest';
@@ -10,7 +11,6 @@ import DefaultPageLayoutModification from '@app/unraid-api/unraid-file-modifier/
 import { LogRotateModification } from '@app/unraid-api/unraid-file-modifier/modifications/log-rotate.modification';
 import NotificationsPageModification from '@app/unraid-api/unraid-file-modifier/modifications/notifications-page.modification';
 import SSOFileModification from '@app/unraid-api/unraid-file-modifier/modifications/sso.modification';
-import { afterEach } from 'node:test';
 
 interface ModificationTestCase {
     ModificationClass: new (...args: ConstructorParameters<typeof FileModification>) => FileModification;
@@ -18,6 +18,8 @@ interface ModificationTestCase {
     fileName: string;
 }
 let patcher: FileModification;
+
+const getPathToFixture = (fileName: string) => resolve(__dirname, `__fixtures__/downloaded/${fileName}`);
 const testCases: ModificationTestCase[] = [
     {
         ModificationClass: DefaultPageLayoutModification,
@@ -78,7 +80,7 @@ const downloadOrRetrieveOriginalFile = async (filePath: string, fileUrl: string)
 
 async function testModification(testCase: ModificationTestCase) {
     const fileName = basename(testCase.fileUrl);
-    const filePath = resolve(__dirname, `../__fixtures__/downloaded/${fileName}`);
+    const filePath = getPathToFixture(fileName);
     const originalContent = await downloadOrRetrieveOriginalFile(filePath, testCase.fileUrl);
     const logger = new Logger();
     patcher = await new testCase.ModificationClass(logger);
@@ -119,7 +121,7 @@ async function testInvalidModification(testCase: ModificationTestCase) {
     patcher.getPregeneratedPatch = vi.fn().mockResolvedValue('I AM NOT A VALID PATCH');
 
     const path = patcher.filePath;
-    const filePath = resolve(__dirname, `../__fixtures__/downloaded/${testCase.fileName}`);
+    const filePath = getPathToFixture(testCase.fileName);
 
     // @ts-expect-error - Testing invalid pregenerated patches
     patcher.filePath = filePath;
