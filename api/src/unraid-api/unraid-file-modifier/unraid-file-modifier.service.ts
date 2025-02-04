@@ -12,6 +12,9 @@ export class UnraidFileModificationService implements OnModuleInit, OnModuleDest
     private readonly logger = new Logger(UnraidFileModificationService.name);
     private appliedModifications: FileModification[] = [];
 
+    /**
+     * Load and apply all modifications on module init
+     */
     async onModuleInit() {
         try {
             this.logger.log('Loading file modifications...');
@@ -24,11 +27,18 @@ export class UnraidFileModificationService implements OnModuleInit, OnModuleDest
         }
     }
 
+    /**
+     * Rollback all applied modifications on module destroy
+     */
     async onModuleDestroy() {
         this.logger.log('Rolling back all modifications...');
         await this.rollbackAll();
     }
 
+    /**
+     * Load all modifications
+     * @returns An array of all loaded modifications
+     */
     async loadModifications(): Promise<FileModification[]> {
         const modifications: FileModification[] = [];
         const modificationClasses: Array<new (logger: Logger) => FileModification> = [
@@ -51,6 +61,10 @@ export class UnraidFileModificationService implements OnModuleInit, OnModuleDest
         }
     }
 
+    /**
+     * Apply a single modification
+     * @param modification - The modification to apply
+     */
     async applyModification(modification: FileModification): Promise<void> {
         try {
             const shouldApplyWithReason = await modification.shouldApply();
@@ -78,8 +92,10 @@ export class UnraidFileModificationService implements OnModuleInit, OnModuleDest
         }
     }
 
+    /**
+     * Rollback all applied modifications
+     */
     async rollbackAll(): Promise<void> {
-        // Process modifications in reverse order
         for (const modification of [...this.appliedModifications].reverse()) {
             try {
                 this.logger.log(`Rolling back modification: ${modification.id}`);
