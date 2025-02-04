@@ -17,7 +17,6 @@ interface ModificationTestCase {
     fileUrl: string;
     fileName: string;
 }
-let patcher: FileModification;
 
 const getPathToFixture = (fileName: string) => resolve(__dirname, `__fixtures__/downloaded/${fileName}`);
 const testCases: ModificationTestCase[] = [
@@ -78,7 +77,7 @@ const downloadOrRetrieveOriginalFile = async (filePath: string, fileUrl: string)
     return await readFile(filePath, 'utf-8');
 };
 
-async function testModification(testCase: ModificationTestCase) {
+async function testModification(testCase: ModificationTestCase, patcher: FileModification) {
     const fileName = basename(testCase.fileUrl);
     const filePath = getPathToFixture(fileName);
     const originalContent = await downloadOrRetrieveOriginalFile(filePath, testCase.fileUrl);
@@ -106,7 +105,7 @@ async function testModification(testCase: ModificationTestCase) {
     await expect(revertedContent).toMatch(originalContent);
 }
 
-async function testInvalidModification(testCase: ModificationTestCase) {
+async function testInvalidModification(testCase: ModificationTestCase, patcher: FileModification) {
     const mockLogger = {
         log: vi.fn(),
         error: vi.fn(),
@@ -120,7 +119,6 @@ async function testInvalidModification(testCase: ModificationTestCase) {
     // @ts-expect-error - Testing invalid pregenerated patches
     patcher.getPregeneratedPatch = vi.fn().mockResolvedValue('I AM NOT A VALID PATCH');
 
-    const path = patcher.filePath;
     const filePath = getPathToFixture(testCase.fileName);
 
     // @ts-expect-error - Testing invalid pregenerated patches
@@ -133,13 +131,15 @@ async function testInvalidModification(testCase: ModificationTestCase) {
     await patcher.rollback();
 }
 
-describe.sequential('File modifications', () => {
+describe('File modifications', () => {
+    let patcher: FileModification;
+
     test.each(testCases)(`$fileName modifier correctly applies to fresh install`, async (testCase) => {
-        await testModification(testCase);
+        await testModification(testCase, patcher);
     });
 
     test.each(testCases)(`$fileName modifier correctly handles invalid content`, async (testCase) => {
-        await testInvalidModification(testCase);
+        await testInvalidModification(testCase, patcher);
     });
 
     afterEach(async () => {
