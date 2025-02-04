@@ -82,7 +82,9 @@ export const getDisks = async (options?: { temperature: boolean }): Promise<Disk
     const partitions = await blockDevices().then((devices) =>
         devices.filter((device) => device.type === 'part')
     );
-    const disks = await asyncMap(await diskLayout(), async (disk) => parseDisk(disk, partitions, true));
+    const disks = await Promise.all(
+        (await diskLayout()).map((disk) => parseDisk(disk, partitions, true))
+    );
 
     return disks;
 };
