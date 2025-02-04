@@ -4,7 +4,6 @@ import { access, readFile, unlink, writeFile } from 'fs/promises';
 import { basename, dirname, join } from 'path';
 
 import { applyPatch, parsePatch, reversePatch } from 'diff';
-import { patch } from 'semver';
 
 export interface ShouldApplyWithReason {
     shouldApply: boolean;
@@ -28,11 +27,16 @@ export abstract class FileModification {
     }
 
     private async savePatch(patchResult: string): Promise<void> {
-        const patchFile = this.getPatchFilePath(this.filePath);
-        await writeFile(patchFile, patchResult, 'utf8');
+        const patchFilePath = this.getPatchFilePath(this.filePath);
+        await writeFile(patchFilePath, patchResult, 'utf8');
     }
 
-    private async loadSavedPatch(targetFile: string): Promise<string | null> {
+    /**
+     * Loads the applied patch for the target file if it exists
+     * @param targetFile - The path to the file to be patched
+     * @returns The patch contents if it exists (targetFile.patch), null otherwise
+     */
+    private async loadPatchedFilePatch(targetFile: string): Promise<string | null> {
         const patchFile = this.getPatchFilePath(targetFile);
         try {
             await access(patchFile, constants.R_OK);
@@ -80,9 +84,13 @@ export abstract class FileModification {
         await writeFile(this.filePath, results);
     }
 
-    // Default implementation of apply that uses the patch
     async apply(): Promise<void> {
         try {
+            const savedPatch = await this.loadPatchedFilePatch(this.filePath);
+            if (savedPatch) {
+                // Rollback the saved patch before applying the new patch
+                await this.rollback();
+            }
             // First attempt to apply the patch that was generated
             const staticPatch = await this.getPregeneratedPatch();
             if (staticPatch) {
@@ -104,12 +112,11 @@ export abstract class FileModification {
         }
     }
 
-    // Update rollback to use the shared utility
     async rollback(): Promise<void> {
         let patch: string;
 
         // Try to load saved patch first
-        const savedPatch = await this.loadSavedPatch(this.filePath);
+        const savedPatch = await this.loadPatchedFilePatch(this.filePath);
         if (savedPatch) {
             this.logger.debug(`Using saved patch file for ${this.id}`);
             patch = savedPatch;
@@ -141,15 +148,37 @@ export abstract class FileModification {
             await access(patchFile, constants.W_OK);
             await unlink(patchFile);
         } catch {
-            // Ignore errors when trying to delete the patch file
+            this.logger.warn(`Failed to delete patch file for ${this.id}`);
         }
     }
 
     // Default implementation that can be overridden if needed
     async shouldApply(): Promise<ShouldApplyWithReason> {
-        return {
-            shouldApply: true,
-            reason: 'Default behavior is to always apply modifications',
-        };
+        try {
+            if (!this.filePath || !this.id) {
+                throw new Error('Invalid file modification configuration');
+            }
+
+            const fileExists = await access(this.filePath, constants.R_OK | constants.W_OK)
+                .then(() => true)
+                .catch(() => false);
+
+            if (!fileExists) {
+                return {
+                    shouldApply: false,
+                    reason: `Target file ${this.filePath} does not exist or is not accessible`,
+                };
+            }
+            return {
+                shouldApply: true,
+                reason: 'Default behavior is to apply modifications if the file exists',
+            };
+        } catch (err) {
+            this.logger.error(`Failed to check if file ${this.filePath} should be applied: ${err}`);
+            return {
+                shouldApply: false,
+                reason: `Failed to check if file ${this.filePath} should be applied: ${err}`,
+            };
+        }
     }
 }

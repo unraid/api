@@ -2,7 +2,7 @@ import { Logger } from '@nestjs/common';
 import { readFile, writeFile } from 'fs/promises';
 import { basename, resolve } from 'path';
 
-import { describe, expect, test } from 'vitest';
+import { describe, expect, test, vi } from 'vitest';
 
 import { FileModification } from '@app/unraid-api/unraid-file-modifier/file-modification';
 import AuthRequestModification from '@app/unraid-api/unraid-file-modifier/modifications/auth-request.modification';
@@ -10,13 +10,14 @@ import DefaultPageLayoutModification from '@app/unraid-api/unraid-file-modifier/
 import { LogRotateModification } from '@app/unraid-api/unraid-file-modifier/modifications/log-rotate.modification';
 import NotificationsPageModification from '@app/unraid-api/unraid-file-modifier/modifications/notifications-page.modification';
 import SSOFileModification from '@app/unraid-api/unraid-file-modifier/modifications/sso.modification';
+import { afterEach } from 'node:test';
 
 interface ModificationTestCase {
     ModificationClass: new (...args: ConstructorParameters<typeof FileModification>) => FileModification;
     fileUrl: string;
     fileName: string;
 }
-
+let patcher: FileModification;
 const testCases: ModificationTestCase[] = [
     {
         ModificationClass: DefaultPageLayoutModification,
@@ -80,7 +81,7 @@ async function testModification(testCase: ModificationTestCase) {
     const filePath = resolve(__dirname, `../__fixtures__/downloaded/${fileName}`);
     const originalContent = await downloadOrRetrieveOriginalFile(filePath, testCase.fileUrl);
     const logger = new Logger();
-    const patcher = await new testCase.ModificationClass(logger);
+    patcher = await new testCase.ModificationClass(logger);
     const originalPath = patcher.filePath;
     // @ts-expect-error - Ignore for testing purposes
     patcher.filePath = filePath;
@@ -103,8 +104,43 @@ async function testModification(testCase: ModificationTestCase) {
     await expect(revertedContent).toMatch(originalContent);
 }
 
+async function testInvalidModification(testCase: ModificationTestCase) {
+    const mockLogger = {
+        log: vi.fn(),
+        error: vi.fn(),
+        warn: vi.fn(),
+        debug: vi.fn(),
+        verbose: vi.fn(),
+    };
+
+    patcher = new testCase.ModificationClass(mockLogger as unknown as Logger);
+
+    // @ts-expect-error - Testing invalid pregenerated patches
+    patcher.getPregeneratedPatch = vi.fn().mockResolvedValue('I AM NOT A VALID PATCH');
+
+    const path = patcher.filePath;
+    const filePath = resolve(__dirname, `../__fixtures__/downloaded/${testCase.fileName}`);
+
+    // @ts-expect-error - Testing invalid pregenerated patches
+    patcher.filePath = filePath;
+    await patcher.apply();
+
+    expect(mockLogger.error.mock.calls[0][0]).toContain(`Failed to apply static patch to ${filePath}`);
+
+    expect(mockLogger.error.mock.calls.length).toBe(1);
+    await patcher.rollback();
+}
+
 describe('File modifications', () => {
     test.each(testCases)(`$fileName modifier correctly applies to fresh install`, async (testCase) => {
         await testModification(testCase);
+    });
+
+    test.each(testCases)(`$fileName modifier correctly handles invalid content`, async (testCase) => {
+        await testInvalidModification(testCase);
+    });
+
+    afterEach(async () => {
+        await patcher?.rollback();
     });
 });
