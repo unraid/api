@@ -1,5 +1,4 @@
 import { Injectable } from '@nestjs/common';
-import { rm } from 'node:fs/promises';
 
 import type { Options, Result, ResultPromise } from 'execa';
 import { execa } from 'execa';
@@ -44,8 +43,8 @@ export class PM2Service {
         }
         return runCommand()
             .then((result) => {
-                this.logger.log(`Operation "${tag}" completed.`);
                 this.logger.debug(result.stdout);
+                this.logger.log(`Operation "${tag}" completed.`);
                 return result;
             })
             .catch((result: Result) => {
@@ -63,7 +62,8 @@ export class PM2Service {
      * @returns A promise that resolves once the dump file is removed.
      */
     async deleteDump(dumpFile = '~/.pm2/dump.pm2') {
-        await rm(dumpFile, { force: true });
+        // rm via bash instead of node to respect the home directory of the current user/session
+        await execa('rm', ['-f', dumpFile], { stdio: 'inherit', shell: 'bash' });
         this.logger.log('PM2 dump cleared.');
     }
 }
