@@ -15,6 +15,5 @@ export class StopCommand extends CommandRunner {
         if (stderr) {
             process.exit(1);
         }
-        process.exit(0);
     }
 }
