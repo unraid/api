@@ -1,5 +1,6 @@
 #!/usr/bin/env zx
-import { cp, mkdir, writeFile } from 'fs/promises';
+import { cp, mkdir, writeFile, stat } from 'fs/promises';
+import { pathExists } from 'fs-extra';
 import { exit } from 'process';
 
 import { $, cd } from 'zx';
@@ -7,7 +8,6 @@ import { $, cd } from 'zx';
 import { getDeploymentVersion } from './get-deployment-version.mjs';
 
 try {
-    
     // Enable colours in output
     process.env.FORCE_COLOR = '1';
 
@@ -80,8 +80,18 @@ try {
     console.log('Dependencies installed, packing...');
 
     // Now we'll pack everything in the pre-pack directory to the release directory
-    await $`tar -czf ./deploy/release/unraid-api-${deploymentVersion}.tgz ./deploy/pre-pack/`;
-    console.log('Packing complete, build finished.');
+    await cd('./deploy/pre-pack');
+    const tarballPath = `../release/unraid-api-${deploymentVersion}.tgz`;
+    await $`tar -czf ${tarballPath} .`;
+    // Ensure the tarball exists
+    if (!(await pathExists(tarballPath))) {
+        console.error(`Failed to create tarball at ${tarballPath}`);
+        process.exit(1);
+    }
+    const packageSize = Math.round((await stat(tarballPath)).size / 1024 / 1024);
+    console.log(
+        `Package created at: ${tarballPath} with size ${packageSize} MB`
+    );
 } catch (error) {
     // Error with a command
     if (Object.keys(error).includes('stderr')) {
