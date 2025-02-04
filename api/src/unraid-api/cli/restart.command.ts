@@ -39,6 +39,5 @@ export class RestartCommand extends CommandRunner {
             }
             process.exit(1);
         }
-        process.exit(0);
     }
 }
