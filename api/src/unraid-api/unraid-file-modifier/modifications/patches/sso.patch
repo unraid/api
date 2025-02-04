@@ -2,7 +2,7 @@ Index: /usr/local/emhttp/plugins/dynamix/include/.login.php
 ===================================================================
 --- /usr/local/emhttp/plugins/dynamix/include/.login.php	original
 +++ /usr/local/emhttp/plugins/dynamix/include/.login.php	modified
-@@ -1,5 +1,33 @@
+@@ -1,6 +1,34 @@
  <?php
 +
 +
@@ -36,7 +36,9 @@ Index: /usr/local/emhttp/plugins/dynamix/include/.login.php
  
  // Only start a session to check if they have a cookie that looks like our session
  $server_name = strtok($_SERVER['HTTP_HOST'],":");
-@@ -203,9 +231,9 @@
+ if (!empty($_COOKIE['unraid_'.md5($server_name)])) {
+@@ -202,11 +230,11 @@
+             if ($failCount == $maxFails) my_logger("Ignoring login attempts for {$username} from {$remote_addr}");
              throw new Exception(_('Too many invalid login attempts'));
          }
  
@@ -47,7 +49,9 @@ Index: /usr/local/emhttp/plugins/dynamix/include/.login.php
          // Bail if we need a token but it's invalid
          if (isWildcardCert() && $twoFactorRequired && !verifyTwoFactorToken($username, $token)) throw new Exception(_('Invalid 2FA token'));
  
-@@ -537,8 +565,9 @@
+         // Successful login, start session
+@@ -536,10 +564,11 @@
+                             document.body.textContent = '';
                              document.body.appendChild(errorElement);
                          }
                      </script>
@@ -57,3 +61,4 @@ Index: /usr/local/emhttp/plugins/dynamix/include/.login.php
                  <? if (($twoFactorRequired && !empty($token)) || !$twoFactorRequired) { ?>
                      <div class="js-addTimeout hidden">
                          <p class="error" style="padding-top:10px;"><?=_('Transparent 2FA Token timed out')?></p>
+                         <a href="https://forums.unraid.net/my-servers/" class="button button--small" title="<?=_('Go to My Servers Dashboard')?>"><?=_('Go to My Servers Dashboard')?></a>

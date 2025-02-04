@@ -3,7 +3,7 @@ import { constants } from 'fs';
 import { access, readFile, unlink, writeFile } from 'fs/promises';
 import { basename, dirname, join } from 'path';
 
-import { applyPatch, parsePatch, reversePatch } from 'diff';
+import { applyPatch, createPatch, parsePatch, reversePatch } from 'diff';
 
 export interface ShouldApplyWithReason {
     shouldApply: boolean;
@@ -218,5 +218,16 @@ export abstract class FileModification {
                 reason: `Failed to check if file ${this.filePath} should be applied: ${err}`,
             };
         }
+    }
+
+    async createPatchWithDiff(
+        filePath: string,
+        originalContent: string,
+        newContent: string
+    ): Promise<string> {
+        const patch = createPatch(filePath, originalContent, newContent, 'original', 'modified', {
+            context: 5,
+        });
+        return patch;
     }
 }
