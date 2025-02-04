@@ -1,22 +1,18 @@
-import { execa } from 'execa';
 import { Command, CommandRunner } from 'nest-commander';
 
-import { ECOSYSTEM_PATH, PM2_PATH } from '@app/consts';
-import { LogService } from '@app/unraid-api/cli/log.service';
+import { ECOSYSTEM_PATH } from '@app/consts';
+import { PM2Service } from '@app/unraid-api/cli/pm2.service';
 
 @Command({
     name: 'stop',
 })
 export class StopCommand extends CommandRunner {
-    constructor(private readonly logger: LogService) {
+    constructor(private readonly pm2: PM2Service) {
         super();
     }
     async run() {
-        const { stderr, stdout } = await execa(PM2_PATH, ['stop', ECOSYSTEM_PATH]);
-        if (stdout) {
-            this.logger.info(stdout);
-        } else if (stderr) {
-            this.logger.warn(stderr);
+        const { stderr } = await this.pm2.run({ tag: 'PM2 Stop' }, 'stop', ECOSYSTEM_PATH);
+        if (stderr) {
             process.exit(1);
         }
         process.exit(0);

@@ -1,3 +1,6 @@
+import { homedir } from 'node:os';
+import { join } from 'node:path';
+
 import { version } from 'package.json';
 
 export const API_VERSION =
@@ -26,9 +29,11 @@ export const LOG_LEVEL = process.env.LOG_LEVEL
     ? (process.env.LOG_LEVEL.toUpperCase() as 'TRACE' | 'DEBUG' | 'INFO' | 'WARN' | 'ERROR' | 'FATAL')
     : process.env.ENVIRONMENT === 'production'
       ? 'INFO'
-      : 'TRACE';
+      : 'DEBUG';
 export const MOTHERSHIP_GRAPHQL_LINK = process.env.MOTHERSHIP_GRAPHQL_LINK
     ? process.env.MOTHERSHIP_GRAPHQL_LINK
     : ENVIRONMENT === 'staging'
       ? 'https://staging.mothership.unraid.net/ws'
       : 'https://mothership.unraid.net/ws';
+
+export const PM2_HOME = process.env.PM2_HOME ?? join(homedir(), '.pm2');
