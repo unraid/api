@@ -5,6 +5,7 @@ import { blockDevices, diskLayout } from 'systeminformation';
 import type { Disk } from '@app/graphql/generated/api/types';
 import { graphqlLogger } from '@app/core/log';
 import { DiskFsType, DiskInterfaceType, DiskSmartStatus } from '@app/graphql/generated/api/types';
+import { batchProcess } from '@app/utils';
 
 const getTemperature = async (disk: Systeminformation.DiskLayoutData): Promise<number> => {
     try {
@@ -82,9 +83,9 @@ export const getDisks = async (options?: { temperature: boolean }): Promise<Disk
     const partitions = await blockDevices().then((devices) =>
         devices.filter((device) => device.type === 'part')
     );
-    const disks = await Promise.all(
-        (await diskLayout()).map((disk) => parseDisk(disk, partitions, true))
-    );
 
-    return disks;
+    const { data } = await batchProcess(await diskLayout(), async (disk) =>
+        parseDisk(disk, partitions, true)
+    );
+    return data;
 };
