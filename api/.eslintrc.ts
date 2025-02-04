@@ -31,4 +31,5 @@ export default tseslint.config(eslint.configs.recommended, ...tseslint.configs.r
         ],
         'prettier/prettier': 'error',
     },
+    ignores: ['src/graphql/generated/client/**/*'],
 });
