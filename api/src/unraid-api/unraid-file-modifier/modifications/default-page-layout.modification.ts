@@ -46,18 +46,7 @@ export default class DefaultPageLayoutModification extends FileModification {
 
         const newContent = this.applyToSource(fileContent);
 
-        const patch = createPatch(
-            overridePath ?? this.filePath,
-            fileContent,
-            newContent,
-            undefined,
-            undefined,
-            {
-                context: 2,
-            }
-        );
-
-        return patch;
+        return this.createPatchWithDiff(overridePath ?? this.filePath, fileContent, newContent);
     }
 
     async shouldApply(): Promise<ShouldApplyWithReason> {

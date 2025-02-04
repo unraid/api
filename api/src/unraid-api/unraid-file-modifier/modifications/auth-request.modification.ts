@@ -15,12 +15,23 @@ export default class AuthRequestModification extends FileModification {
         '/usr/local/emhttp/plugins/dynamix.my.servers/unraid-components/_nuxt/' as const;
     id: string = 'auth-request';
 
+    /**
+     * Get the list of .js files in the given directory
+     * @param dir - The directory to search for .js files
+     * @returns The list of .js files in the given directory
+     */
     private getJsFiles = async (dir: string) => {
         const { glob } = await import('glob');
         const files = await glob(join(dir, '**/*.js'));
-        const baseDir = '/usr/local/emhttp'; // TODO: Make this configurable
+        const baseDir = '/usr/local/emhttp';
         return files.map((file) => (file.startsWith(baseDir) ? file.slice(baseDir.length) : file));
     };
+
+    /**
+     * Generate a patch for the auth-request.php file
+     * @param overridePath - The path to override the default file path
+     * @returns The patch for the auth-request.php file
+     */
     protected async generatePatch(overridePath?: string): Promise<string> {
         const jsFiles = await this.getJsFiles(this.webComponentsDirectory);
         this.logger.debug(`Found ${jsFiles.length} .js files in ${this.webComponentsDirectory}`);
@@ -42,19 +53,7 @@ export default class AuthRequestModification extends FileModification {
         // Create new content by finding the array declaration and adding our files after it
         const newContent = fileContent.replace(/(\$arrWhitelist\s*=\s*\[)/, `$1\n${filesToAddString}`);
 
-        // Generate and return patch
-        const patch = createPatch(
-            overridePath ?? this.filePath,
-            fileContent,
-            newContent,
-            undefined,
-            undefined,
-            {
-                context: 3,
-            }
-        );
-
-        return patch;
+        return this.createPatchWithDiff(overridePath ?? this.filePath, fileContent, newContent);
     }
 
     async shouldApply(): Promise<ShouldApplyWithReason> {

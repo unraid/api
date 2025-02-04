@@ -1,8 +1,10 @@
 Index: /usr/local/emhttp/plugins/dynamix/Notifications.page
 ===================================================================
---- /usr/local/emhttp/plugins/dynamix/Notifications.page
-+++ /usr/local/emhttp/plugins/dynamix/Notifications.page
-@@ -135,23 +135,7 @@
+--- /usr/local/emhttp/plugins/dynamix/Notifications.page	original
++++ /usr/local/emhttp/plugins/dynamix/Notifications.page	modified
+@@ -133,27 +133,11 @@
+ _(Auto-close)_ (_(seconds)_):
+ : <input type="number" name="life" class="a" min="0" max="60" value="<?=$notify['life']?>"> _(a value of zero means no automatic closure)_
  
  :notifications_auto_close_help:
  
@@ -26,3 +28,5 @@ Index: /usr/local/emhttp/plugins/dynamix/Notifications.page
  _(Store notifications to flash)_:
  : <select name="path" class="a">
    <?=mk_option($notify['path'], "/tmp/notifications", _("No"))?>
+   <?=mk_option($notify['path'], "/boot/config/plugins/dynamix/notifications", _("Yes"))?>
+   </select>

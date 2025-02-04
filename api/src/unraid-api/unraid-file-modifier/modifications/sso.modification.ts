@@ -64,14 +64,7 @@ function verifyUsernamePasswordAndSSO(string $username, string $password): bool 
         newContent = newContent.replace(/<\/form>/i, `</form>\n${tagToInject}`);
 
         // Create and return the patch
-        const patch = createPatch(
-            overridePath ?? this.filePath,
-            originalContent,
-            newContent,
-            'original',
-            'modified'
-        );
-        return patch;
+        return this.createPatchWithDiff(overridePath ?? this.filePath, originalContent, newContent);
     }
 
     async shouldApply(): Promise<ShouldApplyWithReason> {
