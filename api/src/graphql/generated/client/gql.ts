@@ -15,7 +15,7 @@ import type { TypedDocumentNode as DocumentNode } from '@graphql-typed-document-
  */
 const documents = {
     "\n    mutation sendRemoteGraphQLResponse($input: RemoteGraphQLServerInput!) {\n        remoteGraphQLResponse(input: $input)\n    }\n": types.sendRemoteGraphQLResponseDocument,
-    "\n    fragment RemoteGraphQLEventFragment on RemoteGraphQLEvent {\n        remoteGraphQLEventData: data {\n                type\n                body\n                sha256\n        }\n    }\n": types.RemoteGraphQLEventFragmentFragmentDoc,
+    "\n    fragment RemoteGraphQLEventFragment on RemoteGraphQLEvent {\n        remoteGraphQLEventData: data {\n            type\n            body\n            sha256\n        }\n    }\n": types.RemoteGraphQLEventFragmentFragmentDoc,
     "\n    subscription events {\n        events {\n            __typename\n            ... on ClientConnectedEvent {\n                connectedData: data {\n                    type\n                    version\n                    apiKey\n                }\n                connectedEvent: type\n            }\n            ... on ClientDisconnectedEvent {\n                disconnectedData: data {\n                    type\n                    version\n                    apiKey\n                }\n                disconnectedEvent: type\n            }\n            ...RemoteGraphQLEventFragment\n        }\n    }\n": types.eventsDocument,
 };
 
@@ -40,7 +40,7 @@ export function graphql(source: "\n    mutation sendRemoteGraphQLResponse($input
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
-export function graphql(source: "\n    fragment RemoteGraphQLEventFragment on RemoteGraphQLEvent {\n        remoteGraphQLEventData: data {\n                type\n                body\n                sha256\n        }\n    }\n"): (typeof documents)["\n    fragment RemoteGraphQLEventFragment on RemoteGraphQLEvent {\n        remoteGraphQLEventData: data {\n                type\n                body\n                sha256\n        }\n    }\n"];
+export function graphql(source: "\n    fragment RemoteGraphQLEventFragment on RemoteGraphQLEvent {\n        remoteGraphQLEventData: data {\n            type\n            body\n            sha256\n        }\n    }\n"): (typeof documents)["\n    fragment RemoteGraphQLEventFragment on RemoteGraphQLEvent {\n        remoteGraphQLEventData: data {\n            type\n            body\n            sha256\n        }\n    }\n"];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */

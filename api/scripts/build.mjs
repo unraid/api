@@ -1,10 +1,13 @@
 #!/usr/bin/env zx
+import { cp, mkdir, writeFile } from 'fs/promises';
 import { exit } from 'process';
-import { cd, $ } from 'zx';
+
+import { $, cd } from 'zx';
 
 import { getDeploymentVersion } from './get-deployment-version.mjs';
 
 try {
+    
     // Enable colours in output
     process.env.FORCE_COLOR = '1';
 
@@ -12,20 +15,17 @@ try {
     process.env.WORKDIR ??= process.env.PWD;
     cd(process.env.WORKDIR);
 
+    await $`rm -rf ./deploy/*`;
     // Create deployment directories - ignore if they already exist
-    await $`mkdir -p ./deploy/release`;
-    await $`mkdir -p ./deploy/pre-pack`;
-
-    await $`rm -rf ./deploy/release/*`;
-    await $`rm -rf ./deploy/pre-pack/*`;
+    await mkdir('./deploy/release', { recursive: true });
+    await mkdir('./deploy/pre-pack', { recursive: true });
 
     // Build Generated Types
     await $`npm run codegen`;
 
     await $`npm run build`;
     // Copy app files to plugin directory
-    await $`cp -r ./src/ ./deploy/pre-pack/src/`;
-    await $`cp -r ./dist/ ./deploy/pre-pack/dist/`;
+    await cp('./dist', './deploy/pre-pack/dist', { recursive: true });
 
     // Copy environment to deployment directory
     const files = [
@@ -35,10 +35,10 @@ try {
         'codegen.ts',
         'ecosystem.config.json',
         'vite.config.ts',
-    ]
+    ];
 
     for (const file of files) {
-        await $`cp ./${file} ./deploy/pre-pack/${file}`;
+        await cp(`./${file}`, `./deploy/pre-pack/${file}`);
     }
 
     // Get package details
@@ -49,28 +49,39 @@ try {
     const deploymentVersion = getDeploymentVersion(process.env, version);
 
     // Create deployment package.json
-    await $`echo ${JSON.stringify({
-        ...rest,
-        name,
-        version: deploymentVersion,
-    })} > ./deploy/pre-pack/package.json`;
-
+    await writeFile(
+        './deploy/pre-pack/package.json',
+        JSON.stringify(
+            {
+                name,
+                version: deploymentVersion,
+                ...rest,
+            },
+            null,
+            2
+        )
+    );
     // # Create final tgz
-    await $`cp ./README.md ./deploy/pre-pack/`;
+    await cp('./README.md', './deploy/pre-pack/README.md');
 
-    await $`cp -r ./node_modules ./deploy/pre-pack/node_modules`;
-	// Install production dependencies
-    cd('./deploy/pre-pack');
+    await cp('./node_modules', './deploy/pre-pack/node_modules', { recursive: true });
+    // Install production dependencies
 
-    await $`npm prune --omit=dev`;
-    await $`npm install --omit=dev`;
-    await $`npm install github:unraid/libvirt`;
+    console.log('Installing dependencies...');
 
-    // Now we'll pack everything in the pre-pack directory
-    await $`tar -czf ../unraid-api-${deploymentVersion}.tgz .`;
+    $.verbose = true;
+    await $`npm --prefix ./deploy/pre-pack prune --omit=dev`;
+    await $`npm --prefix ./deploy/pre-pack install --omit=dev`;
 
-    // Move unraid-api.tgz to release directory
-    await $`mv ../unraid-api-${deploymentVersion}.tgz ../release`;
+    // Ensure that we don't have any dev dependencies left
+    console.log('Installed dependencies:');
+    await $`npm --prefix ./deploy/pre-pack ls --omit=dev --depth=0`;
+
+    console.log('Dependencies installed, packing...');
+
+    // Now we'll pack everything in the pre-pack directory to the release directory
+    await $`tar -czf ./deploy/release/unraid-api-${deploymentVersion}.tgz ./deploy/pre-pack/`;
+    console.log('Packing complete, build finished.');
 } catch (error) {
     // Error with a command
     if (Object.keys(error).includes('stderr')) {
