@@ -26,7 +26,7 @@ export const LOG_LEVEL = process.env.LOG_LEVEL
     ? (process.env.LOG_LEVEL.toUpperCase() as 'TRACE' | 'DEBUG' | 'INFO' | 'WARN' | 'ERROR' | 'FATAL')
     : process.env.ENVIRONMENT === 'production'
       ? 'INFO'
-      : 'TRACE';
+      : 'DEBUG';
 export const MOTHERSHIP_GRAPHQL_LINK = process.env.MOTHERSHIP_GRAPHQL_LINK
     ? process.env.MOTHERSHIP_GRAPHQL_LINK
     : ENVIRONMENT === 'staging'
