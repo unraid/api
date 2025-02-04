@@ -17,18 +17,7 @@ export default class NotificationsPageModification extends FileModification {
 
         const newContent = NotificationsPageModification.applyToSource(fileContent);
 
-        const patch = createPatch(
-            overridePath ?? this.filePath,
-            fileContent,
-            newContent,
-            undefined,
-            undefined,
-            {
-                context: 3,
-            }
-        );
-
-        return patch;
+        return this.createPatchWithDiff(overridePath ?? this.filePath, fileContent, newContent);
     }
 
     async shouldApply(): Promise<ShouldApplyWithReason> {

@@ -1,7 +1,7 @@
 Index: /etc/logrotate.d/unraid-api
 ===================================================================
---- /etc/logrotate.d/unraid-api
-+++ /etc/logrotate.d/unraid-api
+--- /etc/logrotate.d/unraid-api	original
++++ /etc/logrotate.d/unraid-api	modified
 @@ -0,0 +1,12 @@
 +
 +/var/log/unraid-api/*.log {

@@ -35,21 +35,11 @@ export class LogRotateModification extends FileModification {
             ? await readFile(this.filePath, 'utf8')
             : '';
 
-        const patch = createPatch(
+        return this.createPatchWithDiff(
             overridePath ?? this.filePath,
             currentContent,
-            this.logRotateConfig,
-            undefined,
-            undefined,
-            {
-                context: 3,
-            }
+            this.logRotateConfig
         );
-
-        // After applying patch, ensure file permissions are correct
-        await execa('chown', ['root:root', this.filePath]).catch((err) => this.logger.error(err));
-
-        return patch;
     }
 
     async shouldApply(): Promise<ShouldApplyWithReason> {
