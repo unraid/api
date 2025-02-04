@@ -1,8 +1,8 @@
 #!/usr/bin/env zx
-import { cp, mkdir, writeFile, stat } from 'fs/promises';
-import { pathExists } from 'fs-extra';
+import { cp, mkdir, stat, writeFile } from 'fs/promises';
 import { exit } from 'process';
 
+import { pathExists } from 'fs-extra';
 import { $, cd } from 'zx';
 
 import { getDeploymentVersion } from './get-deployment-version.mjs';
@@ -64,24 +64,23 @@ try {
     );
     // # Create final tgz
     await cp('./README.md', './deploy/pre-pack/README.md');
-
-    await cp('./node_modules', './deploy/pre-pack/node_modules', { recursive: true });
     // Install production dependencies
 
     console.log('Installing dependencies...');
 
     $.verbose = true;
-    await $`npm --prefix ./deploy/pre-pack prune --omit=dev`;
-    await $`npm --prefix ./deploy/pre-pack install --omit=dev`;
+
+    await cd('./deploy/pre-pack');
+
+    await $`npm install --omit=dev`;
 
     // Ensure that we don't have any dev dependencies left
     console.log('Installed dependencies:');
-    await $`npm --prefix ./deploy/pre-pack ls --omit=dev --depth=0`;
+    await $`npm ls --omit=dev --depth=0`;
 
     console.log('Dependencies installed, packing...');
 
     // Now we'll pack everything in the pre-pack directory to the release directory
-    await cd('./deploy/pre-pack');
     const tarballPath = `../release/unraid-api-${deploymentVersion}.tgz`;
     await $`tar -czf ${tarballPath} .`;
     // Ensure the tarball exists
@@ -90,9 +89,7 @@ try {
         process.exit(1);
     }
     const packageSize = Math.round((await stat(tarballPath)).size / 1024 / 1024);
-    console.log(
-        `Package created at: ${tarballPath} with size ${packageSize} MB`
-    );
+    console.log(`Package created at: ${tarballPath} with size ${packageSize} MB`);
 } catch (error) {
     // Error with a command
     if (Object.keys(error).includes('stderr')) {
