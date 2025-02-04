@@ -1,10 +1,6 @@
-import { execa } from 'execa';
 import { Command, CommandRunner, Option } from 'nest-commander';
 
-import { ECOSYSTEM_PATH, PM2_PATH } from '@app/consts';
-import { LogService } from '@app/unraid-api/cli/log.service';
-
-import { PM2Service } from './pm2.service';
+import { PM2Service } from '@app/unraid-api/cli/pm2.service';
 
 interface LogsOptions {
     lines: number;
@@ -12,10 +8,7 @@ interface LogsOptions {
 
 @Command({ name: 'logs' })
 export class LogsCommand extends CommandRunner {
-    constructor(
-        private readonly logger: LogService,
-        private readonly pm2: PM2Service
-    ) {
+    constructor(private readonly pm2: PM2Service) {
         super();
     }
 
@@ -28,9 +21,9 @@ export class LogsCommand extends CommandRunner {
     async run(_: string[], options?: LogsOptions): Promise<void> {
         const lines = options?.lines ?? 100;
         await this.pm2.run(
-            { tag: 'PM2 Logs', raw: true },
+            { tag: 'PM2 Logs', stdio: 'inherit' },
             'logs',
-            ECOSYSTEM_PATH,
+            'unraid-api',
             '--lines',
             lines.toString()
         );

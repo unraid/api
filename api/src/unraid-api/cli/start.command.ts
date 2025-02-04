@@ -5,8 +5,7 @@ import type { LogLevel } from '@app/core/log';
 import { ECOSYSTEM_PATH, PM2_PATH } from '@app/consts';
 import { levels } from '@app/core/log';
 import { LogService } from '@app/unraid-api/cli/log.service';
-
-import { PM2Service } from './pm2.service';
+import { PM2Service } from '@app/unraid-api/cli/pm2.service';
 
 interface StartCommandOptions {
     'log-level'?: string;

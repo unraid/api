@@ -8,6 +8,7 @@ import { DeveloperCommand } from '@app/unraid-api/cli/developer/developer.comman
 import { DeveloperQuestions } from '@app/unraid-api/cli/developer/developer.questions';
 import { LogService } from '@app/unraid-api/cli/log.service';
 import { LogsCommand } from '@app/unraid-api/cli/logs.command';
+import { PM2Service } from '@app/unraid-api/cli/pm2.service';
 import { ReportCommand } from '@app/unraid-api/cli/report.command';
 import { RestartCommand } from '@app/unraid-api/cli/restart.command';
 import { AddSSOUserCommand } from '@app/unraid-api/cli/sso/add-sso-user.command';
@@ -22,8 +23,6 @@ import { StatusCommand } from '@app/unraid-api/cli/status.command';
 import { StopCommand } from '@app/unraid-api/cli/stop.command';
 import { SwitchEnvCommand } from '@app/unraid-api/cli/switch-env.command';
 import { VersionCommand } from '@app/unraid-api/cli/version.command';
-
-import { PM2Service } from './pm2.service';
 
 @Module({
     providers: [

@@ -1,18 +1,18 @@
 import { Injectable } from '@nestjs/common';
 
-import type { Options, Result } from 'execa';
+import type { Options, Result, ResultPromise } from 'execa';
 import { execa } from 'execa';
 
 import { PM2_PATH } from '@app/consts';
 import { LogService } from '@app/unraid-api/cli/log.service';
 
-type CmdContext = {
+type CmdContext = Options & {
+    /** A tag for logging & debugging purposes. Should represent the operation being performed. */
     tag: string;
-    env?: Record<string, string>;
     /** Default: false.
      *
      * When true, results will not be automatically handled and logged.
-     * The caller must handle desired effects.
+     * The caller must handle desired effects, such as logging, error handling, etc.
      */
     raw?: boolean;
 };
@@ -20,6 +20,12 @@ type CmdContext = {
 @Injectable()
 export class PM2Service {
     constructor(private readonly logger: LogService) {}
+
+    // Type Overload: if raw is true, return an execa ResultPromise (which is a Promise with extra properties)
+    run<T extends CmdContext>(context: T & { raw: true }, ...args: string[]): ResultPromise<T>;
+
+    // Type Overload: if raw is false, return a plain Promise<Result>
+    run(context: CmdContext & { raw?: false }, ...args: string[]): Promise<Result>;
 
     /**
      * Executes a PM2 command with the provided arguments and environment variables.
@@ -30,8 +36,8 @@ export class PM2Service {
      *          Logs debug information on success and error details on failure.
      */
     async run(context: CmdContext, ...args: string[]) {
-        const { tag, env, raw = false } = context;
-        const runCommand = () => execa(PM2_PATH, [...args], { env } satisfies Options);
+        const { tag, raw = false, ...execOptions } = context;
+        const runCommand = () => execa(PM2_PATH, [...args], execOptions satisfies Options);
         if (raw) {
             return runCommand();
         }

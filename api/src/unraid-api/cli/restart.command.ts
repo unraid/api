@@ -2,8 +2,7 @@ import { Command, CommandRunner } from 'nest-commander';
 
 import { ECOSYSTEM_PATH } from '@app/consts';
 import { LogService } from '@app/unraid-api/cli/log.service';
-
-import { PM2Service } from './pm2.service';
+import { PM2Service } from '@app/unraid-api/cli/pm2.service';
 
 @Command({ name: 'restart', description: 'Restart / Start the Unraid API' })
 export class RestartCommand extends CommandRunner {

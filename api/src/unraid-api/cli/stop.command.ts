@@ -1,8 +1,7 @@
 import { Command, CommandRunner } from 'nest-commander';
 
 import { ECOSYSTEM_PATH } from '@app/consts';
-
-import { PM2Service } from './pm2.service';
+import { PM2Service } from '@app/unraid-api/cli/pm2.service';
 
 @Command({
     name: 'stop',
