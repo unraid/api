@@ -1,10 +1,10 @@
-import { execa } from 'execa';
 import { Command, CommandRunner, Option } from 'nest-commander';
 
 import type { LogLevel } from '@app/core/log';
-import { ECOSYSTEM_PATH, PM2_PATH } from '@app/consts';
+import { ECOSYSTEM_PATH } from '@app/consts';
 import { levels } from '@app/core/log';
 import { LogService } from '@app/unraid-api/cli/log.service';
+import { PM2Service } from '@app/unraid-api/cli/pm2.service';
 
 interface StartCommandOptions {
     'log-level'?: string;
@@ -12,41 +12,42 @@ interface StartCommandOptions {
 
 @Command({ name: 'start' })
 export class StartCommand extends CommandRunner {
-    constructor(private readonly logger: LogService) {
+    constructor(
+        private readonly logger: LogService,
+        private readonly pm2: PM2Service
+    ) {
         super();
     }
 
     async cleanupPM2State() {
-        await execa(PM2_PATH, ['stop', ECOSYSTEM_PATH])
-            .then(({ stdout }) => this.logger.debug(stdout))
-            .catch(({ stderr }) => this.logger.error('PM2 Stop Error: ' + stderr));
-        await execa(PM2_PATH, ['delete', ECOSYSTEM_PATH])
-            .then(({ stdout }) => this.logger.debug(stdout))
-            .catch(({ stderr }) => this.logger.error('PM2 Delete API Error: ' + stderr));
-
-        // Update PM2
-        await execa(PM2_PATH, ['update'])
-            .then(({ stdout }) => this.logger.debug(stdout))
-            .catch(({ stderr }) => this.logger.error('PM2 Update Error: ' + stderr));
+        await this.pm2.run({ tag: 'PM2 Stop' }, 'stop', ECOSYSTEM_PATH);
+        await this.pm2.run({ tag: 'PM2 Update' }, 'update');
+        await this.pm2.deleteDump();
+        await this.pm2.run({ tag: 'PM2 Delete' }, 'delete', ECOSYSTEM_PATH);
     }
 
     async run(_: string[], options: StartCommandOptions): Promise<void> {
         this.logger.info('Starting the Unraid API');
         await this.cleanupPM2State();
-        const envLog = options['log-level'] ? `LOG_LEVEL=${options['log-level']}` : '';
-        const { stderr, stdout } = await execa(`${envLog} ${PM2_PATH}`.trim(), [
+
+        const env: Record<string, string> = {};
+        if (options['log-level']) {
+            env.LOG_LEVEL = options['log-level'];
+        }
+
+        const { stderr, stdout } = await this.pm2.run(
+            { tag: 'PM2 Start', env, raw: true },
             'start',
             ECOSYSTEM_PATH,
-            '--update-env',
-        ]);
+            '--update-env'
+        );
         if (stdout) {
-            this.logger.log(stdout);
+            this.logger.log(stdout.toString());
         }
         if (stderr) {
-            this.logger.error(stderr);
+            this.logger.error(stderr.toString());
             process.exit(1);
         }
-        process.exit(0);
     }
 
     @Option({

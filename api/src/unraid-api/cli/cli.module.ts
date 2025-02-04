@@ -8,6 +8,7 @@ import { DeveloperCommand } from '@app/unraid-api/cli/developer/developer.comman
 import { DeveloperQuestions } from '@app/unraid-api/cli/developer/developer.questions';
 import { LogService } from '@app/unraid-api/cli/log.service';
 import { LogsCommand } from '@app/unraid-api/cli/logs.command';
+import { PM2Service } from '@app/unraid-api/cli/pm2.service';
 import { ReportCommand } from '@app/unraid-api/cli/report.command';
 import { RestartCommand } from '@app/unraid-api/cli/restart.command';
 import { AddSSOUserCommand } from '@app/unraid-api/cli/sso/add-sso-user.command';
@@ -31,6 +32,7 @@ import { VersionCommand } from '@app/unraid-api/cli/version.command';
         RemoveSSOUserQuestionSet,
         ListSSOUserCommand,
         LogService,
+        PM2Service,
         StartCommand,
         StopCommand,
         RestartCommand,
