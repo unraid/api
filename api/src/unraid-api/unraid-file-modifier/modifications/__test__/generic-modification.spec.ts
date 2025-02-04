@@ -133,7 +133,7 @@ async function testInvalidModification(testCase: ModificationTestCase) {
     await patcher.rollback();
 }
 
-describe('File modifications', () => {
+describe.sequential('File modifications', () => {
     test.each(testCases)(`$fileName modifier correctly applies to fresh install`, async (testCase) => {
         await testModification(testCase);
     });
