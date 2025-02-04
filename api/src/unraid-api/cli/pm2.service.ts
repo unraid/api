@@ -1,9 +1,12 @@
 import { Injectable } from '@nestjs/common';
+import { rm } from 'node:fs/promises';
+import { join } from 'node:path';
 
 import type { Options, Result, ResultPromise } from 'execa';
 import { execa } from 'execa';
 
 import { PM2_PATH } from '@app/consts';
+import { PM2_HOME } from '@app/environment';
 import { LogService } from '@app/unraid-api/cli/log.service';
 
 type CmdContext = Options & {
@@ -61,9 +64,8 @@ export class PM2Service {
      *
      * @returns A promise that resolves once the dump file is removed.
      */
-    async deleteDump(dumpFile = '~/.pm2/dump.pm2') {
-        // rm via bash instead of node to respect the home directory of the current user/session
-        await execa('rm', ['-f', dumpFile], { stdio: 'inherit', shell: 'bash' });
+    async deleteDump(dumpFile = join(PM2_HOME, 'dump.pm2')) {
+        await rm(dumpFile, { force: true });
         this.logger.log('PM2 dump cleared.');
     }
 }
