@@ -921,14 +921,14 @@ if [[ "${CHANGED}" == "yes" ]]; then
     # if nginx is running, reload it to enable the changes above
     # note: if this is being installed at boot, nginx will not yet be running
     echo ""
-    echo "⚠️ Reloading Web Server - if this window stops updating for two minutes please close it."
+    echo "✅ Installation complete, now reloading web server - it is safe to close this window"
     /etc/rc.d/rc.nginx reload &>/dev/null
   fi
+else
+  echo
+  echo "✅ Installation is complete, it is safe to close this window"
+  echo
 fi
-
-echo
-echo "✅ Installation is complete, it is safe to close this window"
-echo
 
 exit 0
 ]]>
