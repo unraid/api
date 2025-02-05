@@ -24,22 +24,13 @@ export class StopCommand extends CommandRunner {
     }
 
     async run(_: string[], options: StopCommandOptions = { delete: false }) {
-        // Stop and remove the PM2 process
-        await this.pm2.run({ tag: 'PM2 Stop', stdio: 'inherit' }, 'stop', ECOSYSTEM_PATH);
-
         // Wait a short time for processes to stop gracefully
-        await new Promise((resolve) => setTimeout(resolve, GRACEFUL_SHUTDOWN_TIME));
-
-        // Force kill any remaining instances
-        try {
-            await this.pm2.run({ tag: 'PM2 Kill', stdio: 'inherit' }, 'kill');
-        } catch (e) {
-            // Ignore kill errors as process might already be gone
-        }
-
         await this.pm2.run({ tag: 'PM2 Delete', stdio: 'inherit' }, 'delete', ECOSYSTEM_PATH);
 
+        await new Promise((resolve) => setTimeout(resolve, GRACEFUL_SHUTDOWN_TIME));
+
         if (options.delete) {
+            await this.pm2.run({ tag: 'PM2 Kill', stdio: 'inherit' }, 'kill');
             await this.pm2.stopPm2Daemon();
             await this.pm2.deletePm2Home();
         }
