@@ -1,4 +1,3 @@
-import path from "path";
 import { execSync } from "child_process";
 import { cp, readFile, writeFile, mkdir, readdir } from "fs/promises";
 import { join } from "path";
@@ -70,13 +69,13 @@ function updateEntityValue(
 
 const validateSourceDir = async () => {
   console.log("Validating TXZ source directory");
-  const sourceDir = path.join(startingDir, "source");
+  const sourceDir = join(startingDir, "source");
   if (!existsSync(sourceDir)) {
     throw new Error(`Source directory ${sourceDir} does not exist`);
   }
   // Validate existence of webcomponent files:
   // source/dynamix.unraid.net/usr/local/emhttp/plugins/dynamix.my.servers/unraid-components
-  const webcomponentDir = path.join(
+  const webcomponentDir = join(
     sourceDir,
     "dynamix.unraid.net",
     "usr",
@@ -106,7 +105,7 @@ const buildTxz = async (
     await validateSourceDir();
   }
   const txzName = `${pluginName}-${version}.txz`;
-  const txzPath = path.join(startingDir, "deploy/release/archive", txzName);
+  const txzPath = join(startingDir, "deploy/release/archive", txzName);
   const prePackDir = join(startingDir, "deploy/pre-pack");
 
   // Copy all files from source to temp dir, excluding specific files
@@ -205,9 +204,9 @@ const buildPlugin = async ({
   apiVersion: string;
   apiSha256: string;
 }) => {
-  const rootPlgFile = path.join(startingDir, "/plugins/", `${pluginName}.plg`);
+  const rootPlgFile = join(startingDir, "/plugins/", `${pluginName}.plg`);
   // Set up paths
-  const newPluginFile = path.join(
+  const newPluginFile = join(
     startingDir,
     "/deploy/release/plugins/",
     `${pluginName}${type === "production" ? "" : `.${type}`}.plg`
@@ -280,7 +279,6 @@ const buildPlugin = async ({
  */
 
 const main = async () => {
-
   await createBuildDirectory();
 
   const version = formatDate(new Date(), "yyyy.MM.dd.HHmm");
