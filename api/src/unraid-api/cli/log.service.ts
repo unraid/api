@@ -48,4 +48,10 @@ export class LogService {
             this.logger.debug(message, ...optionalParams);
         }
     }
+
+    trace(message: any, ...optionalParams: any[]): void {
+        if (this.shouldLog('trace')) {
+            this.logger.log(message, ...optionalParams);
+        }
+    }
 }

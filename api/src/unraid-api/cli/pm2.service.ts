@@ -25,29 +25,32 @@ export class PM2Service {
     constructor(private readonly logger: LogService) {}
 
     // Type Overload: if raw is true, return an execa ResultPromise (which is a Promise with extra properties)
+    /**
+     * Executes a PM2 command with the specified context and arguments.
+     * Handles logging automatically (stdout -> trace, stderr -> error), unless the `raw` flag is
+     * set to true, in which case the caller must handle desired effects.
+     *
+     * @param context - Execa Options for command execution, such as a unique tag for logging
+     *                  and whether the result should be handled raw.
+     * @param args - The arguments to pass to the PM2 command.
+     * @returns ResultPromise\<@param context\> When raw is true
+     * @returns Promise\<Result\> When raw is false
+     */
     run<T extends CmdContext>(context: T & { raw: true }, ...args: string[]): ResultPromise<T>;
 
-    // Type Overload: if raw is false, return a plain Promise<Result>
     run(context: CmdContext & { raw?: false }, ...args: string[]): Promise<Result>;
 
-    /**
-     * Executes a PM2 command with the provided arguments and environment variables.
-     *
-     * @param context - An object containing a tag for logging purposes and optional environment variables (merging with current env).
-     * @param args - Arguments to pass to the PM2 command. Each arguement is escaped.
-     * @returns A promise that resolves to a Result object containing the command's output.
-     *          Logs debug information on success and error details on failure.
-     */
     async run(context: CmdContext, ...args: string[]) {
         const { tag, raw, ...execOptions } = context;
+        execOptions.extendEnv ??= false;
+        execOptions.shell ??= 'bash';
         const runCommand = () => execa(PM2_PATH, [...args], execOptions satisfies Options);
         if (raw) {
             return runCommand();
         }
         return runCommand()
             .then((result) => {
-                this.logger.debug(result.stdout);
-                this.logger.log(`Operation "${tag}" completed.`);
+                this.logger.trace(result.stdout);
                 return result;
             })
             .catch((result: Result) => {
@@ -59,13 +62,13 @@ export class PM2Service {
     /**
      * Deletes the PM2 dump file.
      *
-     * This method removes the PM2 dump file located at `~/.pm2/dump.pm2`.
+     * This method removes the PM2 dump file located at `~/.pm2/dump.pm2` by default.
      * It logs a message indicating that the PM2 dump has been cleared.
      *
      * @returns A promise that resolves once the dump file is removed.
      */
     async deleteDump(dumpFile = join(PM2_HOME, 'dump.pm2')) {
         await rm(dumpFile, { force: true });
-        this.logger.log('PM2 dump cleared.');
+        this.logger.trace('PM2 dump cleared.');
     }
 }
