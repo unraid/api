@@ -225,7 +225,7 @@ jobs:
         run: |
           export API_VERSION=${{needs.build-test-api.outputs.API_VERSION}}
           export API_SHA256=${{needs.build-test-api.outputs.API_SHA256}}
-          export PR=${{ github.event.pull_request.number }} || ""
+          export PR="${{ github.event.pull_request.number }}"
           if [ -z "${API_VERSION}" ] || 
             [ -z "${API_SHA256}" ]; then
             echo "Error: One or more required variables are not set."
