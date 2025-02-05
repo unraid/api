@@ -274,7 +274,7 @@ jobs:
       - name: Copy other release files to pr-release
         run: |
           cp archive/*.txz pr-release/
-          cp plugins/dynamix.unraid.net.staging.plg pr-release/
+          cp plugins/dynamix.unraid.net.pr.plg pr-release/dynamix.unraid.net.plg
 
       - name: Upload to Cloudflare
         uses: jakejarvis/s3-sync-action@v0.5.1
@@ -295,7 +295,7 @@ jobs:
             This plugin has been deployed to Cloudflare R2 and is available for testing.
             Download it at this URL:
             ```
-            https://preview.dl.unraid.net/unraid-api/pr/${{ github.event.pull_request.number }}/dynamix.unraid.net.staging.plg
+            https://preview.dl.unraid.net/unraid-api/pr/${{ github.event.pull_request.number }}/dynamix.unraid.net.plg
             ```
 
   release-staging:
@@ -327,7 +327,7 @@ jobs:
       - name: Copy Files for Staging Release
         run: |
           cp archive/*.txz staging-release/
-          cp plugins/dynamix.unraid.net.staging.plg staging-release/
+          cp plugins/dynamix.unraid.net.staging.plg staging-release/dynamix.unraid.net.plg
           ls -al staging-release
 
       - name: Upload Staging Plugin to Cloudflare Bucket
