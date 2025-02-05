@@ -204,11 +204,6 @@ exit 0
 <?
 $msini = @parse_ini_file('/boot/config/plugins/dynamix.my.servers/myservers.cfg', true);
 
-# if no_delete_on_uninstall exists on flash drive then skip the rest of the cleanup (useful when switching between staging and production)
-if (file_exists("/boot/config/plugins/dynamix.my.servers/no_delete_on_uninstall")) {
-  exit(0);
-}
-
 echo "\n";
 echo "**********************************\n";
 echo "🧹 CLEANING UP - may take a minute\n";
@@ -227,12 +222,19 @@ if (file_exists("/boot/.git")) {
   }
 }
 
+if (file_exists("/usr/local/bin/unraid-api")) {
+  echo "\nStopping unraid-api. Please wait…";
+  exec("unraid-api stop");
+
+  # Find all PIDs referencing main.js and kill them, excluding grep process
+  pids=$(ps aux | grep "node /usr/local/unraid-api/dist/main.js" | grep -v grep | awk '{print $2}')
+  for pid in $pids; do
+    kill -9 $pid
+  done
+}
+
 # set "Allow Remote Access" to "No" and sign out from Unraid Connect
 if ($msini !== false) {
-  # stop unraid-api
-  echo "\nStopping unraid-api. Please wait…";
-  exec("/etc/rc.d/rc.unraid-api stop &>/dev/null");
-
   if (!empty($msini['remote']['username'])) {
     $var = parse_ini_file("/var/local/emhttp/var.ini");
     $keyfile = @file_get_contents($var['regFILE']);
