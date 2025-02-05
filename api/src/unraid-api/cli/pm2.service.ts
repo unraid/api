@@ -71,4 +71,9 @@ export class PM2Service {
         await rm(dumpFile, { force: true });
         this.logger.trace('PM2 dump cleared.');
     }
+
+    async deletePm2Home() {
+        await rm(PM2_HOME, { recursive: true, force: true });
+        this.logger.trace('PM2 home directory cleared.');
+    }
 }
