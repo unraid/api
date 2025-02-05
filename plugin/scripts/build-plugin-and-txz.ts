@@ -6,7 +6,7 @@ import { createHash } from "node:crypto";
 import { $, cd, dotenv } from "zx";
 import { z } from "zod";
 import conventionalChangelog from "conventional-changelog";
-import he from "he";
+import { escape } from "html-sloppy-escaper";
 
 const envSchema = z.object({
   API_VERSION: z.string().regex(/^\d+\.\d+\.\d+$/),
@@ -121,10 +121,7 @@ const getStagingChangelogFromGit = async (
       changelog += chunk;
     }
     // Encode HTML entities using the 'he' library
-    return he.encode(changelog, {
-      useNamedReferences: true,
-      allowUnsafeSymbols: false
-    });
+    return escape(changelog) ?? null;
   } catch (err) {
     console.error(`Error: failed to get changelog from git: ${err}`);
     return null;
