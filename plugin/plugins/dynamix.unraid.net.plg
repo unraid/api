@@ -227,10 +227,12 @@ if (file_exists("/usr/local/bin/unraid-api")) {
   exec("unraid-api stop");
 
   # Find all PIDs referencing main.js and kill them, excluding grep process
-  pids=$(ps aux | grep "node /usr/local/unraid-api/dist/main.js" | grep -v grep | awk '{print $2}')
-  for pid in $pids; do
-    kill -9 $pid
-  done
+  $pids = shell_exec("ps aux | grep 'node /usr/local/unraid-api/dist/main.js' | grep -v grep | awk '{print $2}'");
+  foreach(explode("\n", trim($pids)) as $pid) {
+    if ($pid) {
+      posix_kill((int)$pid, 9);
+    }
+  }
 }
 
 # set "Allow Remote Access" to "No" and sign out from Unraid Connect
@@ -347,10 +349,15 @@ if [ -e /etc/rc.d/rc.unraid-api ]; then
   /etc/rc.d/rc.unraid-api stop &>/dev/null
   # forcibly stop older clients
   kill -9 `pidof unraid-api` &>/dev/null
+  # Find all PIDs referencing main.js and kill them, excluding grep process
+  pids=$(ps aux | grep "node /usr/local/unraid-api/dist/main.js" | grep -v grep | awk '{print $2}')
+  for pid in $pids; do
+    kill -9 $pid
+  done
   # uninstall the api
   rm -rf /usr/local/unraid-api
   rm -rf /var/log/unraid-api/
-  rm -f /var/run/unraid-api.sock
+  rm -rf /var/run/unraid-api.sock
   # uninstall the main source package
   [[ -f "/var/log/packages/${MAINNAME}" ]] && removepkg --terse "${MAINNAME}"
   # restore stock files
@@ -394,8 +401,8 @@ if [ -e /etc/rc.d/rc.unraid-api ]; then
   rm -f /boot/config/plugins/dynamix.my.servers/.gitignore
   rm -f /etc/rc.d/rc.unraid-api
   rm -f /etc/rc.d/rc.flash_backup
-  rm -f /usr/local/sbin/unraid-api
-  rm -f /usr/local/bin/unraid-api
+  rm -rf /usr/local/sbin/unraid-api
+  rm -rf /usr/local/bin/unraid-api
   rm -rf /usr/local/emhttp/plugins/dynamix.unraid.net
   rm -rf /usr/local/emhttp/plugins/dynamix.unraid.net.staging
   rm -f /etc/rc.d/rc6.d/K10_flash_backup
