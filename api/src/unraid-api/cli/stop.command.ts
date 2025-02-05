@@ -13,11 +13,8 @@ export class StopCommand extends CommandRunner {
 
     async run() {
         // Stop and remove the PM2 process
-        await this.pm2.run({ tag: 'PM2 Stop', stdio: 'inherit' }, 'stop', 'unraid-api');
-        await this.pm2.run({ tag: 'PM2 Delete', stdio: 'inherit' }, 'delete', 'unraid-api');
-
-        // Clean up PM2 state
-        await this.pm2.deletePm2Home(); // Delete the PM2 home file
-        await this.pm2.run({ tag: 'PM2 Kill', stdio: 'inherit' }, 'kill');
+        await this.pm2.run({ tag: 'PM2 Stop', stdio: 'inherit' }, 'stop', ECOSYSTEM_PATH);
+        await this.pm2.run({ tag: 'PM2 Delete', stdio: 'inherit' }, 'delete', ECOSYSTEM_PATH);
+        await this.pm2.run({ tag: 'PM2 Save', stdio: 'inherit' }, 'save');
     }
 }
