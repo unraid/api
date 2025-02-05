@@ -8,9 +8,10 @@ export const brandLoadingVariants = cva('inline-flex items-center justify-center
       white: 'text-white fill-white',
     },
     size: {
-      sm: 'h-8 w-8',
-      md: 'h-10 w-10',
-      lg: 'h-12 w-12',
+      sm: 'h-12 w-12',
+      md: 'h-16 w-16',
+      lg: 'h-20 w-20',
+      full: 'h-full w-full',
     },
   },
   defaultVariants: {

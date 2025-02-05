@@ -4,3 +4,6 @@ export { default as BrandLoading } from './BrandLoading.ce.vue';
 export { brandLoadingVariants } from './brand-loading.variants';
 export { default as BrandLogo } from './BrandLogo.vue';
 export { default as BrandLogoConnect } from './BrandLogoConnect.vue';
+
+// Type exports
+export type { BrandButtonProps } from './BrandButton.vue';

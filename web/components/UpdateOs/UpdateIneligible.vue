@@ -1,22 +1,23 @@
 <script lang="ts" setup>
-import {
-  ArrowTopRightOnSquareIcon,
-  ExclamationTriangleIcon,
-  EyeIcon,
-} from '@heroicons/vue/24/solid';
-import dayjs from 'dayjs';
-import { storeToRefs } from 'pinia';
 import { ref, watchEffect } from 'vue';
+import { storeToRefs } from 'pinia';
+
+import { ArrowTopRightOnSquareIcon, ExclamationTriangleIcon, EyeIcon } from '@heroicons/vue/24/solid';
+import dayjs from 'dayjs';
+
 import type { ComposerTranslation } from 'vue-i18n';
 
 import 'tailwindcss/tailwind.css';
 import '~/assets/main.css';
 
+import { BrandButton } from '@unraid/ui';
+
+import type { UserProfileLink } from '~/types/userProfile';
+
 import useDateTimeHelper from '~/composables/dateTime';
 import { useServerStore } from '~/store/server';
 import { useUpdateOsStore } from '~/store/updateOs';
 import { useUpdateOsActionsStore } from '~/store/updateOsActions';
-import type { UserProfileLink } from '~/types/userProfile';
 
 const props = defineProps<{
   t: ComposerTranslation;
@@ -30,8 +31,15 @@ const { dateTimeFormat, regTy, renewAction, updateOsResponse } = storeToRefs(ser
 const { availableWithRenewal } = storeToRefs(updateOsStore);
 const { ineligibleText } = storeToRefs(updateOsActionsStore);
 
-const availableWithRenewalRelease = computed(() => availableWithRenewal.value ? updateOsResponse.value : undefined);
-const { outputDateTimeFormatted: formattedReleaseDate } = useDateTimeHelper(dateTimeFormat.value, props.t, true, dayjs(availableWithRenewalRelease.value?.date, 'YYYY-MM-DD').valueOf());
+const availableWithRenewalRelease = computed(() =>
+  availableWithRenewal.value ? updateOsResponse.value : undefined
+);
+const { outputDateTimeFormatted: formattedReleaseDate } = useDateTimeHelper(
+  dateTimeFormat.value,
+  props.t,
+  true,
+  dayjs(availableWithRenewalRelease.value?.date, 'YYYY-MM-DD').valueOf()
+);
 
 const heading = computed((): string => {
   if (availableWithRenewal.value) {
@@ -59,16 +67,16 @@ watchEffect(() => {
   <UiCardWrapper :increased-padding="true" :warning="true">
     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-20px sm:gap-24px">
       <div class="grid gap-y-16px">
-        <h3
-          class="font-semibold leading-normal flex flex-row items-start justify-start gap-8px"
-        >
+        <h3 class="font-semibold leading-normal flex flex-row items-start justify-start gap-8px">
           <ExclamationTriangleIcon class="w-20px shrink-0" />
           <span class="leading-none inline-flex flex-wrap justify-start items-baseline gap-8px">
             <span class="text-20px">
               {{ heading }}
             </span>
             <span
-              v-if="availableWithRenewalRelease && availableWithRenewalRelease.date && formattedReleaseDate"
+              v-if="
+                availableWithRenewalRelease && availableWithRenewalRelease.date && formattedReleaseDate
+              "
               class="text-16px opacity-75 shrink"
             >
               {{ formattedReleaseDate }}
@@ -80,10 +88,7 @@ watchEffect(() => {
           <RegistrationUpdateExpiration :t="t" />
         </h4>
 
-        <div
-          class="prose text-black text-16px leading-relaxed whitespace-normal"
-          v-html="text"
-        />
+        <div class="prose text-black text-16px leading-relaxed whitespace-normal" v-html="text" />
       </div>
 
       <div class="flex flex-col sm:flex-shrink-0 items-center gap-16px">
@@ -98,7 +103,7 @@ watchEffect(() => {
           @click="renewAction.click?.()"
         />
         <!-- <BrandButton
-          btn-style="black"
+          variant="black"
           href="/Tools/Registration"
           :icon="WrenchScrewdriverIcon"
           :icon-right="ArrowSmallRightIcon"
@@ -107,7 +112,7 @@ watchEffect(() => {
 
         <BrandButton
           v-if="availableWithRenewal && updateButton"
-          btn-style="outline-black"
+          variant="outline-black"
           :external="updateButton?.external"
           :icon="EyeIcon"
           :icon-right="ArrowTopRightOnSquareIcon"
@@ -122,7 +127,7 @@ watchEffect(() => {
 </template>
 
 <style lang="postcss">
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+/* Import unraid-ui globals first */
+@import '@unraid/ui/styles';
+@import '../../assets/main.css';
 </style>

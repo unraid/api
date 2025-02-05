@@ -4,7 +4,9 @@
  * @todo require keyfile to update
  * @todo require valid guid / server state to update
  */
-import { Switch, SwitchGroup, SwitchLabel } from '@headlessui/vue';
+import { ref, watchEffect } from 'vue';
+import { storeToRefs } from 'pinia';
+
 import {
   ArchiveBoxArrowDownIcon,
   ArrowPathIcon,
@@ -12,19 +14,22 @@ import {
   BellAlertIcon,
   EyeIcon,
 } from '@heroicons/vue/24/solid';
+import { Switch, SwitchGroup, SwitchLabel } from '@headlessui/vue';
 import dayjs from 'dayjs';
-import { storeToRefs } from 'pinia';
-import { ref, watchEffect } from 'vue';
+
 import type { ComposerTranslation } from 'vue-i18n';
 
 import 'tailwindcss/tailwind.css';
 import '~/assets/main.css';
 
+import { BrandButton } from '@unraid/ui';
+
+import type { UserProfileLink } from '~/types/userProfile';
+
 import useDateTimeHelper from '~/composables/dateTime';
 import { useServerStore } from '~/store/server';
 import { useUpdateOsStore } from '~/store/updateOs';
 import { useUpdateOsActionsStore } from '~/store/updateOsActions';
-import type { UserProfileLink } from '~/types/userProfile';
 
 const props = defineProps<{
   t: ComposerTranslation;
@@ -39,9 +44,12 @@ const updateOsActionsStore = useUpdateOsActionsStore();
 const { connectPluginInstalled, flashBackupActivated } = storeToRefs(useServerStore());
 const { available } = storeToRefs(updateOsStore);
 
-const {
-  outputDateTimeFormatted: formattedReleaseDate,
-} = useDateTimeHelper(dateTimeFormat.value, props.t, true, dayjs(updateOsResponse.value?.date ?? '', 'YYYY-MM-DD').valueOf());
+const { outputDateTimeFormatted: formattedReleaseDate } = useDateTimeHelper(
+  dateTimeFormat.value,
+  props.t,
+  true,
+  dayjs(updateOsResponse.value?.date ?? '', 'YYYY-MM-DD').valueOf()
+);
 
 const updateButton = ref<UserProfileLink | undefined>();
 
@@ -90,7 +98,12 @@ const startFlashBackup = () => {
     flashBackup();
     checkFlashBackupStatus();
   } else {
-    alert(props.t('Flash Backup is not available. Navigate to {0}/Main/Settings/Flash to try again then come back to this page.', [window.location.origin]));
+    alert(
+      props.t(
+        'Flash Backup is not available. Navigate to {0}/Main/Settings/Flash to try again then come back to this page.',
+        [window.location.origin]
+      )
+    );
   }
 };
 /**
@@ -114,7 +127,9 @@ const checkFlashBackupStatus = () => {
   }, 500);
 };
 
-const disableCallbackButton = computed(() => !acknowledgeBackup.value || flashBackupBasicStatus.value === 'started');
+const disableCallbackButton = computed(
+  () => !acknowledgeBackup.value || flashBackupBasicStatus.value === 'started'
+);
 
 watchEffect(() => {
   if (available.value) {
@@ -132,25 +147,26 @@ watchEffect(() => {
   <UiCardWrapper :increased-padding="true">
     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-20px sm:gap-24px">
       <div class="grid gap-y-16px">
-        <h3
-          class="font-semibold leading-normal flex flex-row items-start justify-start gap-8px"
-        >
+        <h3 class="font-semibold leading-normal flex flex-row items-start justify-start gap-8px">
           <component :is="headingIcon" class="w-20px shrink-0" />
           <span class="leading-none inline-flex flex-wrap justify-start items-baseline gap-8px">
             <span class="text-20px">
               {{ heading }}
             </span>
-            <span
-              v-if="updateOsResponse && formattedReleaseDate"
-              class="text-16px opacity-75 shrink"
-            >
+            <span v-if="updateOsResponse && formattedReleaseDate" class="text-16px opacity-75 shrink">
               {{ formattedReleaseDate }}
             </span>
           </span>
         </h3>
 
         <div class="prose opacity-75 text-16px leading-relaxed whitespace-normal">
-          <p>{{ t('Receive the latest and greatest for Unraid OS. Whether it new features, security patches, or bug fixes – keeping your server up-to-date ensures the best experience that Unraid has to offer.') }}</p>
+          <p>
+            {{
+              t(
+                'Receive the latest and greatest for Unraid OS. Whether it new features, security patches, or bug fixes – keeping your server up-to-date ensures the best experience that Unraid has to offer.'
+              )
+            }}
+          </p>
           <p v-if="available">
             {{ flashBackupCopy }}
           </p>
@@ -160,7 +176,7 @@ watchEffect(() => {
       <div class="flex flex-col sm:flex-shrink-0 items-center gap-16px">
         <template v-if="available && updateButton">
           <BrandButton
-            btn-style="outline"
+            variant="outline"
             :disabled="flashBackupBasicStatus === 'started'"
             :icon="ArchiveBoxArrowDownIcon"
             :name="'flashBackup'"
@@ -191,24 +207,36 @@ watchEffect(() => {
                 >
                   <span
                     :class="[
-                      acknowledgeBackup ? 'opacity-0 duration-100 ease-out' : 'opacity-100 duration-200 ease-in',
+                      acknowledgeBackup
+                        ? 'opacity-0 duration-100 ease-out'
+                        : 'opacity-100 duration-200 ease-in',
                       'absolute inset-0 flex h-full w-full items-center justify-center transition-opacity',
                     ]"
                     aria-hidden="true"
                   >
                     <svg class="h-12px w-12px text-gray-400" fill="none" viewBox="0 0 12 12">
-                      <path d="M4 8l2-2m0 0l2-2M6 6L4 4m2 2l2 2" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                      <path
+                        d="M4 8l2-2m0 0l2-2M6 6L4 4m2 2l2 2"
+                        stroke="currentColor"
+                        stroke-width="2"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                      />
                     </svg>
                   </span>
                   <span
                     :class="[
-                      acknowledgeBackup ? 'opacity-100 duration-200 ease-in' : 'opacity-0 duration-100 ease-out',
+                      acknowledgeBackup
+                        ? 'opacity-100 duration-200 ease-in'
+                        : 'opacity-0 duration-100 ease-out',
                       'absolute inset-0 flex h-full w-full items-center justify-center transition-opacity',
                     ]"
                     aria-hidden="true"
                   >
                     <svg class="h-12px w-12px text-green-500" fill="currentColor" viewBox="0 0 12 12">
-                      <path d="M3.707 5.293a1 1 0 00-1.414 1.414l1.414-1.414zM5 8l-.707.707a1 1 0 001.414 0L5 8zm4.707-3.293a1 1 0 00-1.414-1.414l1.414 1.414zm-7.414 2l2 2 1.414-1.414-2-2-1.414 1.414zm3.414 2l4-4-1.414-1.414-4 4 1.414 1.414z" />
+                      <path
+                        d="M3.707 5.293a1 1 0 00-1.414 1.414l1.414-1.414zM5 8l-.707.707a1 1 0 001.414 0L5 8zm4.707-3.293a1 1 0 00-1.414-1.414l1.414 1.414zm-7.414 2l2 2 1.414-1.414-2-2-1.414 1.414zm3.414 2l4-4-1.414-1.414-4 4 1.414 1.414z"
+                      />
                     </svg>
                   </span>
                 </span>
@@ -221,14 +249,18 @@ watchEffect(() => {
         </template>
 
         <BrandButton
-          btn-style="fill"
+          variant="fill"
           :disabled="disableCallbackButton"
           :external="updateButton?.external"
           :icon="EyeIcon"
           :icon-right="ArrowTopRightOnSquareIcon"
           :name="updateButton?.name"
           :text="t('View Available Updates')"
-          :title="!acknowledgeBackup ? t('Acklowledge that you have made a Flash Backup to enable this action') : ''"
+          :title="
+            !acknowledgeBackup
+              ? t('Acklowledge that you have made a Flash Backup to enable this action')
+              : ''
+          "
           class="flex-none"
           @click="updateButton?.click"
         />
@@ -238,7 +270,7 @@ watchEffect(() => {
 </template>
 
 <style lang="postcss">
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+/* Import unraid-ui globals first */
+@import '@unraid/ui/styles';
+@import '../../assets/main.css';
 </style>

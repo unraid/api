@@ -1,6 +1,9 @@
 <script lang="ts" setup>
 // @todo ensure key installs and updateOs can be handled at the same time
 // @todo with multiple actions of key install and update after successful key install, rather than showing default success message, show a message to have them confirm the update
+import { storeToRefs } from 'pinia';
+import { useClipboard } from '@vueuse/core';
+
 import {
   CheckIcon,
   ChevronDoubleDownIcon,
@@ -9,16 +12,17 @@ import {
   WrenchScrewdriverIcon,
   XMarkIcon,
 } from '@heroicons/vue/24/solid';
-import { useClipboard } from '@vueuse/core';
+import { BrandButton } from '@unraid/ui';
 import { WEBGUI_CONNECT_SETTINGS, WEBGUI_TOOLS_REGISTRATION } from '~/helpers/urls';
+
+import type { ComposerTranslation } from 'vue-i18n';
+
 import { useAccountStore } from '~/store/account';
 import { useCallbackActionsStore } from '~/store/callbackActions';
 import { useInstallKeyStore } from '~/store/installKey';
 // import { usePromoStore } from '~/store/promo';
 import { useServerStore } from '~/store/server';
 import { useUpdateOsActionsStore } from '~/store/updateOsActions';
-import { storeToRefs } from 'pinia';
-import type { ComposerTranslation } from 'vue-i18n';
 
 export interface Props {
   open?: boolean;
@@ -366,7 +370,7 @@ const showUpdateEligibility = computed(() => {
     <template v-if="callbackStatus === 'success' || updateOsStatus === 'confirming'" #footer>
       <div class="flex flex-row justify-center gap-16px">
         <template v-if="callbackStatus === 'success'">
-          <BrandButton btn-style="underline" :icon="XMarkIcon" :text="closeText" @click="close" />
+          <BrandButton variant="underline" :icon="XMarkIcon" :text="closeText" @click="close" />
 
           <template v-if="connectPluginInstalled && accountActionType === 'signIn'">
             <BrandButton
@@ -394,7 +398,7 @@ const showUpdateEligibility = computed(() => {
 
         <template v-if="updateOsStatus === 'confirming' && !stateDataError">
           <BrandButton
-            btn-style="underline"
+            variant="underline"
             :icon="XMarkIcon"
             :text="t('Cancel')"
             @click="cancelUpdateOs"
@@ -423,6 +427,7 @@ const showUpdateEligibility = computed(() => {
 <style lang="postcss">
 /* Import unraid-ui globals first */
 @import '@unraid/ui/styles';
+@import '../../assets/main.css';
 
 .unraid_mark_2,
 .unraid_mark_4 {

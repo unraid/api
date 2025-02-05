@@ -7,10 +7,11 @@ import {
   brandLoadingVariants,
   BrandLogo,
   BrandLogoConnect,
+  type BrandButtonProps,
 } from '@/components/brand';
 // Components
-import { Badge } from '@/components/common/badge';
-import { Button, buttonVariants } from '@/components/common/button';
+import { Badge, type BadgeProps } from '@/components/common/badge';
+import { Button, buttonVariants, type ButtonProps } from '@/components/common/button';
 import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
@@ -133,5 +134,10 @@ export {
   TooltipTrigger,
   TooltipProvider,
   useTeleport,
+
+  // Type exports
+  type BrandButtonProps,
+  type BadgeProps,
+  type ButtonProps,
 };
 export { Toaster } from '@/components/common/toast';

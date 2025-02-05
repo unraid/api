@@ -15,26 +15,22 @@ else
   echo "Third party plugins found - PLEASE CHECK YOUR UNRAID NOTIFICATIONS AND WAIT FOR THE MESSAGE THAT IT IS SAFE TO REBOOT!"
 fi
  */
-import 'tailwindcss/tailwind.css';
-import '~/assets/main.css';
-import {
-  ShieldCheckIcon,
-  ShieldExclamationIcon,
-} from '@heroicons/vue/24/solid';
-import { storeToRefs } from 'pinia';
 import { useI18n } from 'vue-i18n';
+import { storeToRefs } from 'pinia';
 
-import useDateTimeHelper from '~/composables/dateTime';
+import { ShieldCheckIcon, ShieldExclamationIcon } from '@heroicons/vue/24/solid';
+import { BrandButton } from '@unraid/ui';
 
-import { useReplaceRenewStore } from '~/store/replaceRenew';
-import { useServerStore } from '~/store/server';
 import type { RegistrationItemProps } from '~/types/registration';
 
 import KeyActions from '~/components/KeyActions.vue';
-import RegistrationReplaceCheck from '~/components/Registration/ReplaceCheck.vue';
 import RegistrationKeyLinkedStatus from '~/components/Registration/KeyLinkedStatus.vue';
+import RegistrationReplaceCheck from '~/components/Registration/ReplaceCheck.vue';
 import RegistrationUpdateExpirationAction from '~/components/Registration/UpdateExpirationAction.vue';
 import UserProfileUptimeExpire from '~/components/UserProfile/UptimeExpire.vue';
+import useDateTimeHelper from '~/composables/dateTime';
+import { useReplaceRenewStore } from '~/store/replaceRenew';
+import { useServerStore } from '~/store/server';
 
 const { t } = useI18n();
 
@@ -72,7 +68,9 @@ const formattedRegTm = ref<string>();
  * So we need to watch for this value to be able to format it based on the user's date time preferences.
  */
 const setFormattedRegTm = () => {
-  if (!regTm.value) { return; }
+  if (!regTm.value) {
+    return;
+  }
 
   const { outputDateTimeFormatted } = useDateTimeHelper(dateTimeFormat.value, t, true, regTm.value);
   formattedRegTm.value = outputDateTimeFormatted.value;
@@ -88,132 +86,180 @@ onBeforeMount(() => {
   }
 });
 
-const headingIcon = computed(() => serverErrors.value.length ? ShieldExclamationIcon : ShieldCheckIcon);
+const headingIcon = computed(() =>
+  serverErrors.value.length ? ShieldExclamationIcon : ShieldCheckIcon
+);
 const heading = computed(() => {
-  if (serverErrors.value.length) { // It's rare to have multiple errors but for the time being only show the first error
+  if (serverErrors.value.length) {
+    // It's rare to have multiple errors but for the time being only show the first error
     return serverErrors.value[0]?.heading;
   }
   return stateData.value.heading;
 });
 const subheading = computed(() => {
-  if (serverErrors.value.length) { // It's rare to have multiple errors but for the time being only show the first error
+  if (serverErrors.value.length) {
+    // It's rare to have multiple errors but for the time being only show the first error
     return serverErrors.value[0]?.message;
   }
   return stateData.value.message;
 });
 
-const showTrialExpiration = computed((): boolean => state.value === 'TRIAL' || state.value === 'EEXPIRED');
-const showUpdateEligibility = computed((): boolean => !!(regExp.value));
+const showTrialExpiration = computed(
+  (): boolean => state.value === 'TRIAL' || state.value === 'EEXPIRED'
+);
+const showUpdateEligibility = computed((): boolean => !!regExp.value);
 const keyInstalled = computed((): boolean => !!(!stateDataError.value && state.value !== 'ENOKEYFILE'));
-const showLinkedAndTransferStatus = computed((): boolean => !!(keyInstalled.value && guid.value && !showTrialExpiration.value));
+const showLinkedAndTransferStatus = computed(
+  (): boolean => !!(keyInstalled.value && guid.value && !showTrialExpiration.value)
+);
 // filter out renew action and only display other key actions…renew is displayed in RegistrationUpdateExpirationAction
-const showFilteredKeyActions = computed((): boolean => !!(keyActions.value && keyActions.value?.filter(action => !['renew'].includes(action.name)).length > 0));
+const showFilteredKeyActions = computed(
+  (): boolean =>
+    !!(
+      keyActions.value &&
+      keyActions.value?.filter((action) => !['renew'].includes(action.name)).length > 0
+    )
+);
 
 const items = computed((): RegistrationItemProps[] => {
   return [
     ...(computedArray.value
-      ? [{
-          label: t('Array status'),
-          text: computedArray.value,
-          warning: arrayWarning.value,
-        }]
+      ? [
+          {
+            label: t('Array status'),
+            text: computedArray.value,
+            warning: arrayWarning.value,
+          },
+        ]
       : []),
     ...(regTy.value
-      ? [{
-          label: t('License key type'),
-          text: regTy.value,
-        }]
+      ? [
+          {
+            label: t('License key type'),
+            text: regTy.value,
+          },
+        ]
       : []),
     ...(showTrialExpiration.value
-      ? [{
-          error: state.value === 'EEXPIRED',
-          label: t('Trial expiration'),
-          component: UserProfileUptimeExpire,
-          componentProps: {
-            forExpire: true,
-            shortText: true,
-            t,
+      ? [
+          {
+            error: state.value === 'EEXPIRED',
+            label: t('Trial expiration'),
+            component: UserProfileUptimeExpire,
+            componentProps: {
+              forExpire: true,
+              shortText: true,
+              t,
+            },
+            componentOpacity: true,
           },
-          componentOpacity: true,
-        }]
+        ]
       : []),
     ...(regTo.value
-      ? [{
-          label: t('Registered to'),
-          text: regTo.value,
-        }]
+      ? [
+          {
+            label: t('Registered to'),
+            text: regTo.value,
+          },
+        ]
       : []),
     ...(regTo.value && regTm.value && formattedRegTm.value
-      ? [{
-          label: t('Registered on'),
-          text: formattedRegTm.value,
-        }]
+      ? [
+          {
+            label: t('Registered on'),
+            text: formattedRegTm.value,
+          },
+        ]
       : []),
     ...(showUpdateEligibility.value
-      ? [{
-          label: t('OS Update Eligibility'),
-          warning: regUpdatesExpired.value,
-          component: RegistrationUpdateExpirationAction,
-          componentProps: { t },
-          componentOpacity: !regUpdatesExpired.value,
-        }]
+      ? [
+          {
+            label: t('OS Update Eligibility'),
+            warning: regUpdatesExpired.value,
+            component: RegistrationUpdateExpirationAction,
+            componentProps: { t },
+            componentOpacity: !regUpdatesExpired.value,
+          },
+        ]
       : []),
     ...(state.value === 'EGUID'
-      ? [{
-          label: t('Registered GUID'),
-          text: regGuid.value,
-        }]
+      ? [
+          {
+            label: t('Registered GUID'),
+            text: regGuid.value,
+          },
+        ]
       : []),
     ...(guid.value
-      ? [{
-          label: t('Flash GUID'),
-          text: guid.value,
-        }]
+      ? [
+          {
+            label: t('Flash GUID'),
+            text: guid.value,
+          },
+        ]
       : []),
     ...(flashVendor.value
-      ? [{
-          label: t('Flash Vendor'),
-          text: flashVendor.value,
-        }]
+      ? [
+          {
+            label: t('Flash Vendor'),
+            text: flashVendor.value,
+          },
+        ]
       : []),
     ...(flashProduct.value
-      ? [{
-          label: t('Flash Product'),
-          text: flashProduct.value,
-        }]
+      ? [
+          {
+            label: t('Flash Product'),
+            text: flashProduct.value,
+          },
+        ]
       : []),
     ...(keyInstalled.value
-      ? [{
-          error: tooManyDevices.value,
-          label: t('Attached Storage Devices'),
-          text: tooManyDevices.value
-            ? t('{0} out of {1} allowed devices – upgrade your key to support more devices', [deviceCount.value, computedRegDevs.value])
-            : t('{0} out of {1} devices', [deviceCount.value, computedRegDevs.value === -1 ? t('unlimited') : computedRegDevs.value]),
-        }]
+      ? [
+          {
+            error: tooManyDevices.value,
+            label: t('Attached Storage Devices'),
+            text: tooManyDevices.value
+              ? t('{0} out of {1} allowed devices – upgrade your key to support more devices', [
+                  deviceCount.value,
+                  computedRegDevs.value,
+                ])
+              : t('{0} out of {1} devices', [
+                  deviceCount.value,
+                  computedRegDevs.value === -1 ? t('unlimited') : computedRegDevs.value,
+                ]),
+          },
+        ]
       : []),
     ...(showLinkedAndTransferStatus.value
-      ? [{
-          label: t('Transfer License to New Flash'),
-          component: RegistrationReplaceCheck,
-          componentProps: { t },
-        }]
+      ? [
+          {
+            label: t('Transfer License to New Flash'),
+            component: RegistrationReplaceCheck,
+            componentProps: { t },
+          },
+        ]
       : []),
     ...(regTo.value && showLinkedAndTransferStatus.value
-      ? [{
-          label: t('Linked to Unraid.net account'),
-          component: RegistrationKeyLinkedStatus,
-          componentProps: { t },
-        }]
+      ? [
+          {
+            label: t('Linked to Unraid.net account'),
+            component: RegistrationKeyLinkedStatus,
+            componentProps: { t },
+          },
+        ]
       : []),
 
     ...(showFilteredKeyActions.value
-      ? [{
-          component: KeyActions,
-          componentProps: {
-            filterOut: ['renew'],
-            t,
+      ? [
+          {
+            component: KeyActions,
+            componentProps: {
+              filterOut: ['renew'],
+              t,
+            },
           },
-        }]
+        ]
       : []),
   ];
 });
@@ -274,7 +320,7 @@ const items = computed((): RegistrationItemProps[] => {
 </template>
 
 <style lang="postcss">
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+/* Import unraid-ui globals first */
+@import '@unraid/ui/styles';
+@import '../assets/main.css';
 </style>

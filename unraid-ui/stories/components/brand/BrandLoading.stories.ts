@@ -11,7 +11,7 @@ const meta = {
     },
     size: {
       control: 'select',
-      options: ['sm', 'md', 'lg'],
+      options: ['sm', 'md', 'lg', 'full'],
     },
     title: { control: 'text' },
   },
@@ -24,6 +24,7 @@ type Story = StoryObj<typeof meta>;
 const defaultArgs = {
   variant: 'default' as const,
   title: 'Loading',
+  size: 'full' as const,
 };
 
 // Web Component version

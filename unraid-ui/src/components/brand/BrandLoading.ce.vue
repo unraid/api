@@ -5,26 +5,24 @@ import { brandLoadingVariants, markAnimations } from './brand-loading.variants';
 
 export interface Props {
   variant?: 'default' | 'black' | 'white';
-  size?: 'sm' | 'md' | 'lg';
+  size?: 'sm' | 'md' | 'lg' | 'full';
   class?: string;
   title?: string;
 }
 
 const props = withDefaults(defineProps<Props>(), {
   variant: 'default',
+  size: 'full',
   title: 'Loading',
 });
 
-const gradientColors = computed(() => {
-  switch (props.variant) {
-    case 'black':
-      return { start: '#000000', stop: '#000000' };
-    case 'white':
-      return { start: '#FFFFFF', stop: '#FFFFFF' };
-    default:
-      return { start: '#e32929', stop: '#ff8d30' };
-  }
-});
+const GRADIENT_COLORS = {
+  black: { start: '#000000', stop: '#000000' },
+  white: { start: '#FFFFFF', stop: '#FFFFFF' },
+  default: { start: '#e32929', stop: '#ff8d30' },
+} as const;
+
+const gradientColors = computed(() => GRADIENT_COLORS[props.variant]);
 
 const classes = computed(() => {
   return cn(brandLoadingVariants({ variant: props.variant, size: props.size }), props.class);
