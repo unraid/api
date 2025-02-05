@@ -1,6 +1,6 @@
 import path from "path";
 import { execSync } from "child_process";
-import { cp, readFile, writeFile, mkdir } from "fs/promises";
+import { cp, readFile, writeFile, mkdir, readdir } from "fs/promises";
 import { join } from "path";
 import { createHash } from "node:crypto";
 import { $, cd, dotenv } from "zx";
@@ -8,12 +8,14 @@ import { z } from "zod";
 import conventionalChangelog from "conventional-changelog";
 import { escape as escapeHtml } from "html-sloppy-escaper";
 import { parse } from "semver";
+import { existsSync } from "fs";
 const envSchema = z.object({
   API_VERSION: z.string().refine((v) => {
     return parse(v) ?? false;
   }, "Must be a valid semver version"),
   API_SHA256: z.string().regex(/^[a-f0-9]{64}$/),
   PR: z.string().optional(),
+  SKIP_SOURCE_VALIDATION: z.string().optional().default("false"),
 });
 
 type Env = z.infer<typeof envSchema>;
@@ -52,18 +54,49 @@ function updateEntityValue(
   throw new Error(`Entity ${entityName} not found in XML`);
 }
 
+const validateSourceDir = async () => {
+  console.log("Validating TXZ source directory");
+  const sourceDir = path.join(startingDir, "source");
+  if (!existsSync(sourceDir)) {
+    throw new Error(`Source directory ${sourceDir} does not exist`);
+  }
+  // Validate existence of webcomponent files:
+  // source/dynamix.unraid.net/usr/local/emhttp/plugins/dynamix.my.servers/unraid-components
+  const webcomponentDir = path.join(
+    sourceDir,
+    "dynamix.unraid.net",
+    "usr",
+    "local",
+    "emhttp",
+    "plugins",
+    "dynamix.my.servers",
+    "unraid-components"
+  );
+  if (!existsSync(webcomponentDir)) {
+    throw new Error(`Webcomponent directory ${webcomponentDir} does not exist`);
+  }
+  // Validate that there are webcomponents
+  const webcomponents = await readdir(webcomponentDir);
+  if (webcomponents.length === 1 && webcomponents[0] === ".gitkeep") {
+    throw new Error(`No webcomponents found in ${webcomponentDir}`);
+  }
+};
+
 const buildTxz = async (
   version: string
 ): Promise<{
   txzName: string;
   txzSha256: string;
 }> => {
+  if (validatedEnv.SKIP_SOURCE_VALIDATION !== "true") {
+    await validateSourceDir();
+  }
   const txzName = `${pluginName}-${version}.txz`;
   const txzPath = path.join(startingDir, "deploy/release/archive", txzName);
   const prePackDir = join(startingDir, "deploy/pre-pack");
 
   // Copy all files from source to temp dir, excluding specific files
-  await cp("source/dynamix.unraid.net", prePackDir, {
+  await cp(join(startingDir, "source/dynamix.unraid.net"), prePackDir, {
     recursive: true,
     filter: (src) => {
       const filename = path.basename(src);
