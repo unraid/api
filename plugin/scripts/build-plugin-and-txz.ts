@@ -14,8 +14,15 @@ const envSchema = z.object({
     return parse(v) ?? false;
   }, "Must be a valid semver version"),
   API_SHA256: z.string().regex(/^[a-f0-9]{64}$/),
-  PR: z.string().optional(),
-  SKIP_SOURCE_VALIDATION: z.string().optional().default("false"),
+  PR: z
+    .string()
+    .optional()
+    .refine((v) => !v || /^\d+$/.test(v), "Must be a valid PR number"),
+  SKIP_SOURCE_VALIDATION: z
+    .string()
+    .optional()
+    .default("false")
+    .refine((v) => v === "true" || v === "false", "Must be true or false"),
 });
 
 type Env = z.infer<typeof envSchema>;
@@ -30,7 +37,12 @@ const BASE_URLS = {
 } as const;
 
 // Ensure that git is available
-await $`git log -1 --pretty=%B`;
+try {
+  await $`git log -1 --pretty=%B`;
+} catch (err) {
+  console.error(`Error: git not available: ${err}`);
+  process.exit(1);
+}
 
 const createBuildDirectory = async () => {
   await execSync(`rm -rf deploy/pre-pack/*`);
@@ -140,7 +152,7 @@ const getStagingChangelogFromGit = async (
   apiVersion: string,
   pr: string | null = null
 ): Promise<string | null> => {
-  console.log('Getting changelog from git' + (pr ? ' for PR' : ''));
+  console.log("Getting changelog from git" + (pr ? " for PR" : ""));
   try {
     const changelogStream = conventionalChangelog(
       {
