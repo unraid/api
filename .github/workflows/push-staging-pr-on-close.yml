@@ -27,6 +27,11 @@ jobs:
 
       - name: Update Downloaded Staging Plugin to New Date
         run: |
+          if [ ! -f "connect-files/plugins/dynamix.unraid.net.pr.plg" ]; then
+            echo "ERROR: dynamix.unraid.net.pr.plg not found"
+            exit 1
+          fi
+          
           plgfile="connect-files/plugins/dynamix.unraid.net.pr.plg"
           version=$(date +"%Y.%m.%d.%H%M")
           sed -i -E "s#(<!ENTITY version \").*(\">)#\1${version}\2#g" "${plgfile}" || exit 1

@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import { existsSync } from 'node:fs';
 import { rm } from 'node:fs/promises';
 import { join } from 'node:path';
 
@@ -82,7 +83,11 @@ export class PM2Service {
     }
 
     async deletePm2Home() {
-        await rm(PM2_HOME, { recursive: true, force: true });
-        this.logger.trace('PM2 home directory cleared.');
+        if (existsSync(PM2_HOME) && existsSync(join(PM2_HOME, 'pm2.log'))) {
+            await rm(PM2_HOME, { recursive: true, force: true });
+            this.logger.trace('PM2 home directory cleared.');
+        } else {
+            this.logger.trace('PM2 home directory does not exist.');
+        }
     }
 }
