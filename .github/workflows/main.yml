@@ -223,20 +223,9 @@ jobs:
           merge-multiple: true
       - name: Build Plugin
         run: |
-          export API_VERSION=${{needs.build-test-api.outputs.API_VERSION}}
-          export API_SHA256=${{needs.build-test-api.outputs.API_SHA256}}
-          export PR="${{ github.event.pull_request.number }}"
-          if [ -z "${API_VERSION}" ] || 
-            [ -z "${API_SHA256}" ]; then
-            echo "Error: One or more required variables are not set."
-            exit 1
-          fi
-          echo "API_VERSION=${API_VERSION}" > .env
-          echo "API_SHA256=${API_SHA256}" >> .env
-          if [ -n "${PR}" ]; then
-            echo "PR=${PR}" >> .env
-          fi
-
+          echo "API_VERSION=${{needs.build-test-api.outputs.API_VERSION}}" > .env
+          echo "API_SHA256=${{needs.build-test-api.outputs.API_SHA256}}" >> .env
+          echo "PR=${{ github.event.pull_request.number }}" >> .env
           npm run start
       - name: Upload binary txz and plg to Github artifacts
         uses: actions/upload-artifact@v4
