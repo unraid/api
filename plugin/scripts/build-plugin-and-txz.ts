@@ -28,7 +28,8 @@ const createBuildDirectory = async () => {
   await execSync(`rm -rf deploy/release/*`);
   await execSync(`rm -rf deploy/test/*`);
   await mkdir("deploy/pre-pack", { recursive: true });
-  await mkdir("deploy/release", { recursive: true });
+  await mkdir("deploy/release/plugins", { recursive: true });
+  await mkdir("deploy/release/archive", { recursive: true });
   await mkdir("deploy/test", { recursive: true });
 };
 
@@ -56,7 +57,7 @@ const buildTxz = async (): Promise<{
     .replace("T", ".");
   const txzPath = path.join(
     startingDir,
-    "deploy/release",
+    "deploy/release/archive",
     `${pluginName}-${version}.txz`
   );
   const prePackDir = join(startingDir, "deploy/pre-pack");
@@ -144,7 +145,7 @@ const buildPlugin = async ({
   // Set up paths
   const newPluginFile = path.join(
     startingDir,
-    "/deploy/release/",
+    "/deploy/release/plugins/",
     `${pluginName}${type === "production" ? "" : `.${type}`}.plg`
   );
 

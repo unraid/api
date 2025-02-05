@@ -243,7 +243,8 @@ jobs:
         with:
           name: connect-files
           path: |
-            plugin/deploy/release/*
+            plugin/deploy/release/plugins/*.plg
+            plugin/deploy/release/archive/*.txz
           retention-days: 5
           if-no-files-found: error
 
