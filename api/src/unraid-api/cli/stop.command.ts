@@ -3,6 +3,7 @@ import { Command, CommandRunner, Option } from 'nest-commander';
 import { ECOSYSTEM_PATH } from '@app/consts';
 import { PM2Service } from '@app/unraid-api/cli/pm2.service';
 
+const GRACEFUL_SHUTDOWN_TIME = 2000;
 interface StopCommandOptions {
     delete: boolean;
 }
@@ -27,7 +28,7 @@ export class StopCommand extends CommandRunner {
         await this.pm2.run({ tag: 'PM2 Stop', stdio: 'inherit' }, 'stop', ECOSYSTEM_PATH);
 
         // Wait a short time for processes to stop gracefully
-        await new Promise((resolve) => setTimeout(resolve, 2000));
+        await new Promise((resolve) => setTimeout(resolve, GRACEFUL_SHUTDOWN_TIME));
 
         // Force kill any remaining instances
         try {
@@ -37,7 +38,6 @@ export class StopCommand extends CommandRunner {
         }
 
         await this.pm2.run({ tag: 'PM2 Delete', stdio: 'inherit' }, 'delete', ECOSYSTEM_PATH);
-        await this.pm2.run({ tag: 'PM2 Save', stdio: 'inherit' }, 'save');
 
         if (options.delete) {
             await this.pm2.stopPm2Daemon();
