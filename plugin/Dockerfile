@@ -12,8 +12,9 @@ RUN apt-get update -y && apt-get install -y \
     git \
     build-essential
 
-WORKDIR /app
+RUN git config --global --add safe.directory /app
 
+WORKDIR /app
 
 COPY package.json package-lock.json ./
 
