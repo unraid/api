@@ -29,11 +29,15 @@
   <!-- prevent prod plugin from installing when staging already installed, and vice versa -->
   <FILE Run="/bin/bash" Method="install">
     <INLINE>
-      name="&name;" version="&version;" API_version="&API_version;" PLGTYPE="&env;"
+      name="&name;" version="&version;" API_version="&API_version;" PLGTYPE="&env;" pluginURL="&pluginURL;"
     <![CDATA[
 echo "Installing ${name}.plg ${version} with Unraid API ${API_version}"
 if [ -f /boot/config/plugins/dynamix.unraid.net.staging.plg ]; then
-  echo "The staging plugin has changed, please uninstall the old staging plugin before installing the new one"
+  echo "ERROR: Cannot proceed with installation"
+  echo "Reason: Staging plugin detected at /boot/config/plugins/dynamix.unraid.net.staging.plg"
+  echo "Action required: Please uninstall the existing staging plugin first"
+  echo "How to fix: Navigate to Plugins > Installed Plugins in the Unraid web GUI and remove the staging plugin"
+  echo "Use this URL to reinstall this plugin: ${pluginURL}"
   exit 1
 fi
 exit 0
