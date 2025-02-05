@@ -243,7 +243,7 @@ jobs:
         with:
           name: connect-files
           path: |
-            ${{ github.workspace }}/deploy/release/*
+            plugin/deploy/release/*
           retention-days: 5
           if-no-files-found: error
 

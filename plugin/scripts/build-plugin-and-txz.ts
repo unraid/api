@@ -145,7 +145,7 @@ const buildPlugin = async ({
   const newPluginFile = path.join(
     startingDir,
     "/deploy/release/",
-    `${pluginName}.plg.${type}`
+    `${pluginName}${type === "production" ? "" : `.${type}`}.plg`
   );
 
   // Define URLs
