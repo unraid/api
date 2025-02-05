@@ -887,14 +887,26 @@ tar -C "${api_base_directory}" -xzf "${flash}/unraid-api.tgz" --strip 1
 # Copy env file
 cp "${api_base_directory}/.env.${env}" "${api_base_directory}/.env"
 
+# bail if expected file does not exist
+[[ ! -f "${api_base_directory}/package.json" ]] && echo "unraid-api install failed" && exit 1
+
 # Create Symlink from /usr/local/unraid-api/dist/cli.js to /usr/local/bin/unraid-api
-ln -sf "${api_base_directory}/dist/cli.js" "${unraid_binary_path}"
+# Ensure we're linking the file, not the directory, by checking it exists first
+if [[ -f "${api_base_directory}/dist/cli.js" ]]; then
+  ln -sf "${api_base_directory}/dist/cli.js" "${unraid_binary_path}"
+else
+  echo "Error: ${api_base_directory}/dist/cli.js does not exist" && exit 1
+fi
+
+# Ensure unraid-api exists
+if [[ ! -f "${unraid_binary_path}" ]]; then
+  echo "Error: unraid-api binary not found at ${unraid_binary_path}" && exit 1
+fi
+
 
 # Create symlink to unraid-api binary (to allow usage elsewhere)
 ln -sf ${unraid_binary_path} /usr/local/sbin/unraid-api
 ln -sf ${unraid_binary_path} /usr/bin/unraid-api
-# bail if expected file does not exist
-[[ ! -f "${api_base_directory}/package.json" ]] && echo "unraid-api install failed" && exit 1
 
 logger "Starting flash backup (if enabled)"
 echo "/etc/rc.d/rc.flash_backup start" | at -M now &>/dev/null
