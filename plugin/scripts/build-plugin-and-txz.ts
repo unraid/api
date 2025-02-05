@@ -7,9 +7,11 @@ import { $, cd, dotenv } from "zx";
 import { z } from "zod";
 import conventionalChangelog from "conventional-changelog";
 import { escape } from "html-sloppy-escaper";
-
+import { parse } from "semver";
 const envSchema = z.object({
-  API_VERSION: z.string().regex(/^\d+\.\d+\.\d+$/),
+  API_VERSION: z.string().refine((v) => {
+    return parse(v) ?? false;
+  }, "Must be a valid semver version"),
   API_SHA256: z.string().regex(/^[a-f0-9]{64}$/),
   PR: z.string().optional(),
 });

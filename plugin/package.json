@@ -3,6 +3,7 @@
     "conventional-changelog": "^6.0.0",
     "glob": "^11.0.1",
     "html-sloppy-escaper": "^0.1.0",
+    "semver": "^7.7.1",
     "tsx": "^4.19.2",
     "zod": "^3.24.1",
     "zx": "^8.3.2"
