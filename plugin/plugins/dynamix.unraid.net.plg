@@ -883,6 +883,9 @@ elif [[ -f "${unraid_binary_path}" ]]; then
   ${unraid_binary_path} stop
 fi
 
+# Kill any remaining unraid-api processes
+pkill -9 unraid-api
+
 # Ensure installation tgz exists
 [[ ! -f "${flash}/unraid-api.tgz" ]] && echo "Missing unraid-api.tgz" && exit 1
 # Install unraid-api
