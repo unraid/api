@@ -199,6 +199,8 @@ jobs:
           timezoneLinux: "America/Los_Angeles"
       - name: Checkout repo
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - name: Download Unraid Web Components
         uses: actions/download-artifact@v4
         with:
@@ -209,6 +211,7 @@ jobs:
         run: |
           export API_VERSION=${{needs.build-test-api.outputs.API_VERSION}}
           export API_SHA256=${{needs.build-test-api.outputs.API_SHA256}}
+          export PR=${{ github.event.pull_request.number }} || ""
           if [ -z "${API_VERSION}" ] || 
             [ -z "${API_SHA256}" ]; then
             echo "Error: One or more required variables are not set."

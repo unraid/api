@@ -20,6 +20,9 @@ const validatedEnv = envSchema.parse(env);
 const pluginName = "dynamix.unraid.net" as const;
 const startingDir = process.cwd();
 
+// Ensure that git is available
+await $`git log -1 --pretty=%B`;
+
 const createBuildDirectory = async () => {
   await execSync(`rm -rf deploy/pre-pack/*`);
   await execSync(`rm -rf deploy/release/*`);
@@ -100,16 +103,15 @@ const buildTxz = async (): Promise<{
 };
 
 const getStagingChangelogFromGit = async (
-  version: string
+  apiVersion: string
 ): Promise<string | null> => {
   try {
     const changelogStream = conventionalChangelog(
       {
         preset: "conventionalcommits",
-        releaseCount: 0,
       },
       {
-        version,
+        version: apiVersion,
       }
     );
     let changelog = "";
@@ -161,13 +163,13 @@ const buildPlugin = async ({
       MAIN_TXZ = `https://preview.dl.unraid.net/unraid-api/pr/${pr}/${pluginName}-${version}.txz`;
       API_TGZ = `https://preview.dl.unraid.net/unraid-api/pr/${pr}/unraid-api-${process.env.API_VERSION}.tgz`;
       PLUGIN_URL = `https://preview.dl.unraid.net/unraid-api/pr/${pr}/${pluginName}.plg`;
-      RELEASE_NOTES = await getStagingChangelogFromGit(version);
+      RELEASE_NOTES = await getStagingChangelogFromGit(apiVersion);
       break;
     case "staging":
       PLUGIN_URL = "https://stable.dl.unraid.net/unraid-api/&name;.plg";
       MAIN_TXZ = `https://preview.dl.unraid.net/unraid-api/${pluginName}-${version}.txz`;
       API_TGZ = `https://preview.dl.unraid.net/unraid-api/unraid-api-${process.env.API_VERSION}.tgz`;
-      RELEASE_NOTES = await getStagingChangelogFromGit(version);
+      RELEASE_NOTES = await getStagingChangelogFromGit(apiVersion);
       break;
   }
 
@@ -211,30 +213,35 @@ const buildPlugin = async ({
 /**
  * Main build script
  */
-await createBuildDirectory();
-const { sha256: txzSha256, version } = await buildTxz();
-const { API_VERSION, API_SHA256, PR } = validatedEnv;
-await buildPlugin({
-  type: "staging",
-  txzSha256,
-  version,
-  apiVersion: API_VERSION,
-  apiSha256: API_SHA256,
-});
-if (PR) {
+
+const main = async () => {
+  await createBuildDirectory();
+  const { sha256: txzSha256, version } = await buildTxz();
+  const { API_VERSION, API_SHA256, PR } = validatedEnv;
   await buildPlugin({
-    type: "pr",
+    type: "staging",
     txzSha256,
     version,
-    pr: PR,
     apiVersion: API_VERSION,
     apiSha256: API_SHA256,
   });
-}
-await buildPlugin({
-  type: "production",
-  txzSha256,
-  version,
-  apiVersion: API_VERSION,
-  apiSha256: API_SHA256,
-});
+  if (PR) {
+    await buildPlugin({
+      type: "pr",
+      txzSha256,
+      version,
+      pr: PR,
+      apiVersion: API_VERSION,
+      apiSha256: API_SHA256,
+    });
+  }
+  await buildPlugin({
+    type: "production",
+    txzSha256,
+    version,
+    apiVersion: API_VERSION,
+    apiSha256: API_SHA256,
+  });
+};
+
+await main();
