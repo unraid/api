@@ -874,10 +874,17 @@ source "${flash}/env"
 # Install the API to /usr/local/unraid-api
 api_base_directory="/usr/local/unraid-api"
 unraid_binary_path="/usr/local/bin/unraid-api"
+
+# Stop old process
+if [[ -f "/usr/local/bin/unraid-api/unraid-api" ]]; then
+  /usr/local/bin/unraid-api/unraid-api stop
+  rm -rf /usr/local/bin/unraid-api
+elif [[ -f "${unraid_binary_path}" ]]; then
+  ${unraid_binary_path} stop
+fi
+
 # Ensure installation tgz exists
 [[ ! -f "${flash}/unraid-api.tgz" ]] && echo "Missing unraid-api.tgz" && exit 1
-# Stop old process
-[[ -f "${unraid_binary_path}" ]] && ${unraid_binary_path} stop
 # Install unraid-api
 rm -rf "${api_base_directory}"
 mkdir -p "${api_base_directory}"
