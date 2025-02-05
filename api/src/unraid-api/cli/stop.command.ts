@@ -18,8 +18,5 @@ export class StopCommand extends CommandRunner {
 
         // Clean up PM2 state
         await this.pm2.deleteDump(); // Delete the PM2 dump file
-
-        // Kill the PM2 daemon
-        await this.pm2.run({ tag: 'PM2 Kill', stdio: 'inherit' }, 'kill');
     }
 }
