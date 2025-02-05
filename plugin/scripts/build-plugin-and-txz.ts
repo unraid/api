@@ -170,7 +170,7 @@ const getStagingChangelogFromGit = async (
     return escapeHtml(changelog) ?? null;
   } catch (err) {
     console.error(`Error: failed to get changelog from git: ${err}`);
-    return null;
+    process.exit(1);
   }
 };
 
