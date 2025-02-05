@@ -32,7 +32,7 @@
       name="&name;" version="&version;" API_version="&API_version;" PLGTYPE="&env;"
     <![CDATA[
 echo "Installing ${name}.plg ${version} with Unraid API ${API_version}"
-if [-f /boot/config/plugins/dynamix.unraid.net.staging.plg]; then
+if [ -f /boot/config/plugins/dynamix.unraid.net.staging.plg ]; then
   echo "The staging plugin has changed, please uninstall the old staging plugin before installing the new one"
   exit 1
 fi
