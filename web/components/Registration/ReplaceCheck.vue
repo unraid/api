@@ -2,7 +2,7 @@
 import { storeToRefs } from 'pinia';
 
 import { ArrowTopRightOnSquareIcon, KeyIcon } from '@heroicons/vue/24/solid';
-import { BrandButton } from '@unraid/ui';
+import { Badge, BrandButton } from '@unraid/ui';
 import { DOCS_REGISTRATION_REPLACE_KEY } from '~/helpers/urls';
 
 import type { ComposerTranslation } from 'vue-i18n';
@@ -27,9 +27,9 @@ defineProps<{
       @click="replaceRenewStore.check"
     />
 
-    <UiBadge v-else :color="replaceStatusOutput.color" :icon="replaceStatusOutput.icon" size="16px">
+    <Badge v-else :color="replaceStatusOutput.color" :icon="replaceStatusOutput.icon" size="md">
       {{ t(replaceStatusOutput.text ?? 'Unknown') }}
-    </UiBadge>
+    </Badge>
 
     <span class="inline-flex flex-wrap items-center justify-end gap-8px">
       <BrandButton

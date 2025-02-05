@@ -15,11 +15,11 @@ import {
 } from '@heroicons/vue/24/solid';
 import { BrandLoading } from '@unraid/ui';
 
+import type { BadgeProps } from '@unraid/ui';
 import type {
   // type KeyLatestResponse,
   ValidateGuidResponse,
 } from '~/composables/services/keyServer';
-import type { UiBadgeProps } from '~/types/ui/badge';
 import type { WretchError } from 'wretch';
 
 import {
@@ -35,7 +35,7 @@ import { useServerStore } from '~/store/server';
  */
 setActivePinia(createPinia());
 
-export interface UiBadgePropsExtended extends UiBadgeProps {
+export interface UiBadgePropsExtended extends BadgeProps {
   text?: string;
 }
 
@@ -70,32 +70,32 @@ export const useReplaceRenewStore = defineStore('replaceRenewCheck', () => {
     switch (keyLinkedStatus.value) {
       case 'checking':
         return {
-          color: 'gray',
+          variant: 'gray',
           icon: () => h(BrandLoading, { variant: 'white' }),
           text: 'Checking...',
         };
       case 'linked':
         return {
-          color: 'green',
+          variant: 'green',
           icon: CheckCircleIcon,
           text: 'Linked',
         };
       case 'notLinked':
         return {
-          color: 'yellow',
+          variant: 'yellow',
           icon: ExclamationCircleIcon,
           text: 'Not Linked',
         };
       case 'error':
         return {
-          color: 'red',
+          variant: 'red',
           icon: ShieldExclamationIcon,
           text: error.value?.message || 'Unknown error',
         };
       case 'ready':
       default:
         return {
-          color: 'gray',
+          variant: 'gray',
           icon: ExclamationCircleIcon,
           text: 'Unknown',
         };
@@ -118,25 +118,25 @@ export const useReplaceRenewStore = defineStore('replaceRenewCheck', () => {
     switch (replaceStatus.value) {
       case 'checking':
         return {
-          color: 'gray',
+          variant: 'gray',
           icon: () => h(BrandLoading, { variant: 'white' }),
           text: 'Checking...',
         };
       case 'eligible':
         return {
-          color: 'green',
+          variant: 'green',
           icon: CheckCircleIcon,
           text: 'Eligible',
         };
       case 'error':
         return {
-          color: 'red',
+          variant: 'red',
           icon: ShieldExclamationIcon,
           text: error.value?.message || 'Unknown error',
         };
       case 'ineligible':
         return {
-          color: 'red',
+          variant: 'red',
           icon: XCircleIcon,
           text: 'Ineligible for self-replacement',
         };

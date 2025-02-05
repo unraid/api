@@ -3,16 +3,11 @@ import { ref, watchEffect } from 'vue';
 import { storeToRefs } from 'pinia';
 
 import { ArrowTopRightOnSquareIcon, ExclamationTriangleIcon, EyeIcon } from '@heroicons/vue/24/solid';
+import { BrandButton, CardWrapper } from '@unraid/ui';
 import dayjs from 'dayjs';
 
-import type { ComposerTranslation } from 'vue-i18n';
-
-import 'tailwindcss/tailwind.css';
-import '~/assets/main.css';
-
-import { BrandButton } from '@unraid/ui';
-
 import type { UserProfileLink } from '~/types/userProfile';
+import type { ComposerTranslation } from 'vue-i18n';
 
 import useDateTimeHelper from '~/composables/dateTime';
 import { useServerStore } from '~/store/server';
@@ -64,7 +59,7 @@ watchEffect(() => {
 </script>
 
 <template>
-  <UiCardWrapper :increased-padding="true" :warning="true">
+  <CardWrapper :increased-padding="true" :warning="true">
     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-20px sm:gap-24px">
       <div class="grid gap-y-16px">
         <h3 class="font-semibold leading-normal flex flex-row items-start justify-start gap-8px">
@@ -123,7 +118,7 @@ watchEffect(() => {
         />
       </div>
     </div>
-  </UiCardWrapper>
+  </CardWrapper>
 </template>
 
 <style lang="postcss">

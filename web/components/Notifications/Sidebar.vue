@@ -1,7 +1,8 @@
 <script setup lang="ts">
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/shadcn/sheet';
-import { Button } from '@unraid/ui';
 import { useMutation, useQuery, useSubscription } from '@vue/apollo-composable';
+
+import { Button, Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@unraid/ui';
+
 import { useTrackLatestSeenNotification } from '~/composables/api/use-notifications';
 import { useFragment } from '~/composables/gql';
 // eslint-disable-next-line @typescript-eslint/consistent-type-imports -- false positive :(

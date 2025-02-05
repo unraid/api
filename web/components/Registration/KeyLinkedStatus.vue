@@ -2,7 +2,7 @@
 import { storeToRefs } from 'pinia';
 
 import { ArrowPathIcon, ArrowTopRightOnSquareIcon, LinkIcon } from '@heroicons/vue/24/solid';
-import { BrandButton } from '@unraid/ui';
+import { Badge, BrandButton } from '@unraid/ui';
 
 import type { ComposerTranslation } from 'vue-i18n';
 
@@ -27,19 +27,19 @@ defineProps<{
       class="group"
       @click="replaceRenewStore.check(true)"
     >
-      <UiBadge
+      <Badge
         v-if="keyLinkedOutput"
         :color="keyLinkedOutput.color"
         :icon="keyLinkedOutput.icon"
         :icon-right="ArrowPathIcon"
-        size="16px"
+        size="md"
       >
         {{ t(keyLinkedOutput.text ?? 'Unknown') }}
-      </UiBadge>
+      </Badge>
     </BrandButton>
-    <UiBadge v-else :color="keyLinkedOutput.color" :icon="keyLinkedOutput.icon" size="16px">
+    <Badge v-else :color="keyLinkedOutput.color" :icon="keyLinkedOutput.icon" size="md">
       {{ t(keyLinkedOutput.text ?? 'Unknown') }}
-    </UiBadge>
+    </Badge>
 
     <span class="inline-flex flex-wrap-items-start gap-8px">
       <BrandButton

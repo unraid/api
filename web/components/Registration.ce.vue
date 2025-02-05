@@ -19,9 +19,10 @@ import { useI18n } from 'vue-i18n';
 import { storeToRefs } from 'pinia';
 
 import { ShieldCheckIcon, ShieldExclamationIcon } from '@heroicons/vue/24/solid';
-import { BrandButton } from '@unraid/ui';
+import { BrandButton, CardWrapper, PageContainer } from '@unraid/ui';
 
 import type { RegistrationItemProps } from '~/types/registration';
+import type { ServerStateDataAction } from '~/types/server';
 
 import KeyActions from '~/components/KeyActions.vue';
 import RegistrationKeyLinkedStatus from '~/components/Registration/KeyLinkedStatus.vue';
@@ -117,7 +118,8 @@ const showFilteredKeyActions = computed(
   (): boolean =>
     !!(
       keyActions.value &&
-      keyActions.value?.filter((action) => !['renew'].includes(action.name)).length > 0
+      keyActions.value?.filter((action: ServerStateDataAction) => !['renew'].includes(action.name))
+        .length > 0
     )
 );
 
@@ -266,8 +268,8 @@ const items = computed((): RegistrationItemProps[] => {
 </script>
 
 <template>
-  <UiPageContainer class="max-w-800px">
-    <UiCardWrapper :increased-padding="true">
+  <PageContainer class="max-w-800px">
+    <CardWrapper :increased-padding="true">
       <div class="flex flex-col gap-20px sm:gap-24px">
         <header class="flex flex-col gap-y-16px">
           <h3
@@ -315,8 +317,8 @@ const items = computed((): RegistrationItemProps[] => {
           </RegistrationItem>
         </dl>
       </div>
-    </UiCardWrapper>
-  </UiPageContainer>
+    </CardWrapper>
+  </PageContainer>
 </template>
 
 <style lang="postcss">
