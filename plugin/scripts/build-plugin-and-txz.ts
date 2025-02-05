@@ -8,14 +8,14 @@ import { z } from "zod";
 import conventionalChangelog from "conventional-changelog";
 
 const envSchema = z.object({
-  API_VERSION: z.string(),
-  API_SHA256: z.string(),
+  API_VERSION: z.string().regex(/^\d+\.\d+\.\d+$/),
+  API_SHA256: z.string().regex(/^[a-f0-9]{64}$/),
   PR: z.string().optional(),
 });
 
 type Env = z.infer<typeof envSchema>;
-const env = dotenv.config() as Env;
-const validatedEnv = envSchema.parse(env);
+
+const validatedEnv = envSchema.parse(dotenv.config() as Env);
 
 const pluginName = "dynamix.unraid.net" as const;
 const startingDir = process.cwd();
