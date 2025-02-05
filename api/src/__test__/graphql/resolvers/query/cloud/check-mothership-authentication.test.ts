@@ -13,4 +13,4 @@ test('It fails to authenticate with mothership with no credentials', async () =>
     await expect(
         checkMothershipAuthentication(packageJson.version, 'BAD_API_KEY')
     ).rejects.toThrowErrorMatchingInlineSnapshot(`[Error: Invalid credentials]`);
-}, 15_000);
+}, { timeout: 30_000 });
