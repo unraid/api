@@ -34,8 +34,8 @@
 echo "Installing ${name}.plg ${version} with Unraid API ${API_version}"
 if [ -f /boot/config/plugins/dynamix.unraid.net.staging.plg ]; then
   echo "ERROR: Cannot proceed with installation"
-  echo "Reason: Staging plugin detected at /boot/config/plugins/dynamix.unraid.net.staging.plg"
-  echo "Action required: Please uninstall the existing staging plugin first"
+  echo "Reason: Staging Unraid Connect plugin detected at /boot/config/plugins/dynamix.unraid.net.staging.plg"
+  echo "Action required: Please uninstall the existing Unraid Connect Staging plugin first"
   echo "How to fix: Navigate to Plugins > Installed Plugins in the Unraid web GUI and remove the staging plugin"
   echo "Use this URL to reinstall this plugin: ${pluginURL}"
   exit 1
