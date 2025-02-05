@@ -152,7 +152,7 @@ const getStagingChangelogFromGit = async (
   apiVersion: string,
   pr: string | null = null
 ): Promise<string | null> => {
-  console.log("Getting changelog from git" + (pr ? " for PR" : ""));
+  console.debug("Getting changelog from git" + (pr ? " for PR" : ""));
   try {
     const changelogStream = conventionalChangelog(
       {
@@ -270,7 +270,7 @@ const buildPlugin = async ({
   }
 
   await writeFile(newPluginFile, plgContent);
-  console.log(`${entities.env} plugin: ${newPluginFile}`);
+  console.log(`${type} plugin: ${newPluginFile}`);
 };
 
 /**
@@ -278,6 +278,7 @@ const buildPlugin = async ({
  */
 
 const main = async () => {
+
   await createBuildDirectory();
 
   const version = new Date()
