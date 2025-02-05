@@ -289,9 +289,14 @@ jobs:
       - name: Comment URL
         uses: thollander/actions-comment-pull-request@v3
         with:
+          comment-tag: prlink
+          mode: recreate
           message: |
             This plugin has been deployed to Cloudflare R2 and is available for testing.
-            Download it at this URL: [https://preview.dl.unraid.net/unraid-api/pr/${{ github.event.pull_request.number }}/dynamix.unraid.net.staging.plg](https://preview.dl.unraid.net/unraid-api/pr/${{ github.event.pull_request.number }}/dynamix.unraid.net.staging.plg)
+            Download it at this URL:
+            ```
+            https://preview.dl.unraid.net/unraid-api/pr/${{ github.event.pull_request.number }}/dynamix.unraid.net.staging.plg
+            ```
 
   release-staging:
     environment:
