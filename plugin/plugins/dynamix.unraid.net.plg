@@ -228,7 +228,7 @@ if (file_exists("/boot/.git")) {
 
 if (exec("which unraid-api")) {
   echo "\nStopping unraid-api. Please wait…";
-  $output = shell_exec("unraid-api stop --delete 2>&1");
+  $output = shell_exec("/bin/bash -lc 'unraid-api stop --delete 2>&1'");
   if (!$output) {
     echo "Waiting for unraid-api to stop...\n";
     sleep(5); // Give it a few seconds to fully stop
@@ -310,7 +310,12 @@ if (file_exists("/boot/.git")) {
 if ($msini !== false) {
   # stop unraid-api
   echo "\nStopping unraid-api. Please wait…";
-  exec("unraid-api stop");
+  $output = shell_exec("/bin/bash -lc 'unraid-api stop --delete 2>&1'");
+  if (!$output) {
+    echo "Waiting for unraid-api to stop...\n";
+    sleep(5); // Give it a few seconds to fully stop
+  }
+  echo "Stopped unraid-api: $output";
 
   if (!empty($msini['remote']['username'])) {
     $var = parse_ini_file("/var/local/emhttp/var.ini");
