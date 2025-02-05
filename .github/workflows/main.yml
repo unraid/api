@@ -271,20 +271,6 @@ jobs:
         with:
           name: connect-files
 
-      - name: Write Changelog to Plugin XML
-        run: |
-          # Capture the pull request number and latest commit message
-          pr_number="${{ github.event.pull_request.number }}"
-          commit_message=$(git log -1 --pretty=%B)
-
-          # Clean up newlines, escape special characters, and handle line breaks
-          notes=$(echo -e "Pull Request Build: ${pr_number}\n${commit_message}" | \
-                  sed ':a;N;$!ba;s/\n/\\n/g' | \
-                  sed -e 's/[&\\/]/\\&/g')
-
-          # Replace <CHANGES> tag content in the file
-          sed -i -z -E "s/<CHANGES>(.*)<\/CHANGES>/<CHANGES>\n${notes}\n<\/CHANGES>/g" "plugins/dynamix.unraid.net.staging.plg"
-
       - name: Copy other release files to pr-release
         run: |
           cp archive/*.txz pr-release/
@@ -332,13 +318,6 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: connect-files
-
-      - name: Parse Changelog
-        id: changelog
-        uses: ocavue/changelog-parser-action@v1
-        with:
-          removeMarkdown: false
-          filePath: "./api/CHANGELOG.md"
 
       - name: Copy Files for Staging Release
         run: |
