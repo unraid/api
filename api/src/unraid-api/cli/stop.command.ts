@@ -1,8 +1,11 @@
-import { Command, CommandRunner } from 'nest-commander';
+import { Command, CommandRunner, Option } from 'nest-commander';
 
 import { ECOSYSTEM_PATH } from '@app/consts';
 import { PM2Service } from '@app/unraid-api/cli/pm2.service';
 
+interface StopCommandOptions {
+    delete: boolean;
+}
 @Command({
     name: 'stop',
 })
@@ -11,10 +14,23 @@ export class StopCommand extends CommandRunner {
         super();
     }
 
-    async run() {
+    @Option({
+        flags: '-d, --delete',
+        description: 'Delete the PM2 home directory',
+    })
+    parseDelete(): boolean {
+        return true;
+    }
+
+    async run(_: string[], options: StopCommandOptions = { delete: false }) {
         // Stop and remove the PM2 process
         await this.pm2.run({ tag: 'PM2 Stop', stdio: 'inherit' }, 'stop', ECOSYSTEM_PATH);
         await this.pm2.run({ tag: 'PM2 Delete', stdio: 'inherit' }, 'delete', ECOSYSTEM_PATH);
         await this.pm2.run({ tag: 'PM2 Save', stdio: 'inherit' }, 'save');
+
+        if (options.delete) {
+            await this.pm2.stopPm2Daemon();
+            await this.pm2.deletePm2Home();
+        }
     }
 }

@@ -222,7 +222,7 @@ if (file_exists("/boot/.git")) {
   }
 }
 
-if (file_exists("/usr/local/bin/unraid-api")) {
+if (exec("which unraid-api")) {
   echo "\nStopping unraid-api. Please wait…";
   exec("unraid-api stop");
 
@@ -301,7 +301,7 @@ if (file_exists("/boot/.git")) {
 if ($msini !== false) {
   # stop unraid-api
   echo "\nStopping unraid-api. Please wait…";
-  exec("/etc/rc.d/rc.unraid-api stop &>/dev/null");
+  exec("unraid-api stop");
 
   if (!empty($msini['remote']['username'])) {
     $var = parse_ini_file("/var/local/emhttp/var.ini");
@@ -347,6 +347,8 @@ if [ -e /etc/rc.d/rc.unraid-api ]; then
   /etc/rc.d/rc.flash_backup stop &>/dev/null
   # stop the api gracefully
   /etc/rc.d/rc.unraid-api stop &>/dev/null
+  # Stop newer clients
+  unraid-api stop
   # forcibly stop older clients
   kill -9 `pidof unraid-api` &>/dev/null
   # Find all PIDs referencing main.js and kill them, excluding grep process
