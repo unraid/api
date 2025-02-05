@@ -6,7 +6,7 @@ import { createHash } from "node:crypto";
 import { $, cd, dotenv } from "zx";
 import { z } from "zod";
 import conventionalChangelog from "conventional-changelog";
-import { escape } from "html-sloppy-escaper";
+import { escape as escapeHtml } from "html-sloppy-escaper";
 import { parse } from "semver";
 const envSchema = z.object({
   API_VERSION: z.string().refine((v) => {
@@ -22,6 +22,10 @@ const validatedEnv = envSchema.parse(dotenv.config() as Env);
 
 const pluginName = "dynamix.unraid.net" as const;
 const startingDir = process.cwd();
+const BASE_URLS = {
+  STABLE: "https://stable.dl.unraid.net/unraid-api",
+  PREVIEW: "https://preview.dl.unraid.net/unraid-api",
+} as const;
 
 // Ensure that git is available
 await $`git log -1 --pretty=%B`;
@@ -48,21 +52,14 @@ function updateEntityValue(
   throw new Error(`Entity ${entityName} not found in XML`);
 }
 
-const buildTxz = async (): Promise<{
-  sha256: string;
-  txzPath: string;
-  version: string;
+const buildTxz = async (
+  version: string
+): Promise<{
+  txzName: string;
+  txzSha256: string;
 }> => {
-  const version = new Date()
-    .toISOString()
-    .replace(/[-:]/g, ".")
-    .slice(0, 16)
-    .replace("T", ".");
-  const txzPath = path.join(
-    startingDir,
-    "deploy/release/archive",
-    `${pluginName}-${version}.txz`
-  );
+  const txzName = `${pluginName}-${version}.txz`;
+  const txzPath = path.join(startingDir, "deploy/release/archive", txzName);
   const prePackDir = join(startingDir, "deploy/pre-pack");
 
   // Copy all files from source to temp dir, excluding specific files
@@ -103,7 +100,7 @@ const buildTxz = async (): Promise<{
     process.exit(1);
   }
 
-  return { sha256, txzPath, version };
+  return { txzSha256: sha256, txzName };
 };
 
 const getStagingChangelogFromGit = async (
@@ -123,7 +120,7 @@ const getStagingChangelogFromGit = async (
       changelog += chunk;
     }
     // Encode HTML entities using the 'he' library
-    return escape(changelog) ?? null;
+    return escapeHtml(changelog) ?? null;
   } catch (err) {
     console.error(`Error: failed to get changelog from git: ${err}`);
     return null;
@@ -133,6 +130,7 @@ const getStagingChangelogFromGit = async (
 const buildPlugin = async ({
   type,
   txzSha256,
+  txzName,
   version,
   pr = "",
   apiVersion,
@@ -140,6 +138,7 @@ const buildPlugin = async ({
 }: {
   type: "staging" | "pr" | "production";
   txzSha256: string;
+  txzName: string;
   version: string;
   pr?: string;
   apiVersion: string;
@@ -160,20 +159,20 @@ const buildPlugin = async ({
   let RELEASE_NOTES: string | null = null;
   switch (type) {
     case "production":
-      PLUGIN_URL = "https://stable.dl.unraid.net/unraid-api/&name;.plg";
-      MAIN_TXZ = `https://stable.dl.unraid.net/unraid-api/${pluginName}-${version}.txz`;
-      API_TGZ = `https://stable.dl.unraid.net/unraid-api/unraid-api-${process.env.API_VERSION}.tgz`;
+      PLUGIN_URL = `${BASE_URLS.STABLE}/${pluginName}.plg`;
+      MAIN_TXZ = `${BASE_URLS.STABLE}/${txzName}`;
+      API_TGZ = `${BASE_URLS.STABLE}/unraid-api-${apiVersion}.tgz`;
       break;
     case "pr":
-      MAIN_TXZ = `https://preview.dl.unraid.net/unraid-api/pr/${pr}/${pluginName}-${version}.txz`;
-      API_TGZ = `https://preview.dl.unraid.net/unraid-api/pr/${pr}/unraid-api-${process.env.API_VERSION}.tgz`;
-      PLUGIN_URL = `https://preview.dl.unraid.net/unraid-api/pr/${pr}/${pluginName}.plg`;
+      PLUGIN_URL = `${BASE_URLS.PREVIEW}/pr/${pr}/${pluginName}.plg`;
+      MAIN_TXZ = `${BASE_URLS.PREVIEW}/pr/${pr}/${txzName}`;
+      API_TGZ = `${BASE_URLS.PREVIEW}/pr/${pr}/unraid-api-${apiVersion}.tgz`;
       RELEASE_NOTES = await getStagingChangelogFromGit(apiVersion);
       break;
     case "staging":
-      PLUGIN_URL = "https://stable.dl.unraid.net/unraid-api/&name;.plg";
-      MAIN_TXZ = `https://preview.dl.unraid.net/unraid-api/${pluginName}-${version}.txz`;
-      API_TGZ = `https://preview.dl.unraid.net/unraid-api/unraid-api-${process.env.API_VERSION}.tgz`;
+      PLUGIN_URL = `${BASE_URLS.PREVIEW}/${pluginName}.plg`;
+      MAIN_TXZ = `${BASE_URLS.PREVIEW}/${txzName}`;
+      API_TGZ = `${BASE_URLS.PREVIEW}/unraid-api-${apiVersion}.tgz`;
       RELEASE_NOTES = await getStagingChangelogFromGit(apiVersion);
       break;
   }
@@ -221,11 +220,18 @@ const buildPlugin = async ({
 
 const main = async () => {
   await createBuildDirectory();
-  const { sha256: txzSha256, version } = await buildTxz();
+
+  const version = new Date()
+    .toISOString()
+    .replace(/[-:]/g, ".")
+    .slice(0, 16)
+    .replace("T", ".");
+  const { txzSha256, txzName } = await buildTxz(version);
   const { API_VERSION, API_SHA256, PR } = validatedEnv;
   await buildPlugin({
     type: "staging",
     txzSha256,
+    txzName,
     version,
     apiVersion: API_VERSION,
     apiSha256: API_SHA256,
@@ -234,6 +240,7 @@ const main = async () => {
     await buildPlugin({
       type: "pr",
       txzSha256,
+      txzName,
       version,
       pr: PR,
       apiVersion: API_VERSION,
@@ -243,6 +250,7 @@ const main = async () => {
   await buildPlugin({
     type: "production",
     txzSha256,
+    txzName,
     version,
     apiVersion: API_VERSION,
     apiSha256: API_SHA256,
