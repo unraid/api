@@ -78,10 +78,6 @@ try {
     console.log('Installed dependencies:');
     await $`npm ls --depth=0`;
 
-    // Set executable permissions on all node_modules files
-    console.log('Setting correct permissions on node_modules...');
-    await $`chmod -R 755 ./node_modules`;
-
     console.log('Dependencies installed, packing...');
 
     // Now we'll pack everything in the pre-pack directory to the release directory
