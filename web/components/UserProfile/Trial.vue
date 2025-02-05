@@ -1,5 +1,8 @@
 <script lang="ts" setup>
 import { storeToRefs } from 'pinia';
+
+import { BrandLoading } from '@unraid/ui';
+
 import type { ComposerTranslation } from 'vue-i18n';
 
 import { useTrialStore } from '~/store/trial';

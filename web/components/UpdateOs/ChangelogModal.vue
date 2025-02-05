@@ -1,14 +1,17 @@
 <script setup lang="ts">
+import { computed } from 'vue';
+import { storeToRefs } from 'pinia';
+
 import {
-  ArrowTopRightOnSquareIcon,
   ArrowSmallRightIcon,
+  ArrowTopRightOnSquareIcon,
   EyeIcon,
   KeyIcon,
   ServerStackIcon,
   XMarkIcon,
 } from '@heroicons/vue/24/solid';
-import { storeToRefs } from 'pinia';
-import { computed } from 'vue';
+import { BrandButton, BrandLoading } from '@unraid/ui';
+
 import type { ComposerTranslation } from 'vue-i18n';
 
 import { usePurchaseStore } from '~/store/purchase';
@@ -31,12 +34,8 @@ const updateOsStore = useUpdateOsStore();
 const updateOsChangelogStore = useUpdateOsChangelogStore();
 
 const { availableWithRenewal } = storeToRefs(updateOsStore);
-const {
-  releaseForUpdate,
-  mutatedParsedChangelog,
-  parseChangelogFailed,
-  parsedChangelogTitle,
-} = storeToRefs(updateOsChangelogStore);
+const { releaseForUpdate, mutatedParsedChangelog, parseChangelogFailed, parsedChangelogTitle } =
+  storeToRefs(updateOsChangelogStore);
 
 const showExtendKeyButton = computed(() => {
   return availableWithRenewal.value;
@@ -62,27 +61,21 @@ const showExtendKeyButton = computed(() => {
         v-html="mutatedParsedChangelog"
       />
 
-      <div
-        v-else-if="parseChangelogFailed"
-        class="text-center flex flex-col gap-4 prose"
-      >
+      <div v-else-if="parseChangelogFailed" class="text-center flex flex-col gap-4 prose">
         <h2 class="text-lg text-unraid-red italic font-semibold">
           {{ props.t(`Error Parsing Changelog • {0}`, [parseChangelogFailed]) }}
         </h2>
         <p>
           {{ props.t(`It's highly recommended to review the changelog before continuing your update`) }}
         </p>
-        <div
-          v-if="releaseForUpdate?.changelogPretty"
-          class="flex self-center"
-        >
+        <div v-if="releaseForUpdate?.changelogPretty" class="flex self-center">
           <BrandButton
             :href="releaseForUpdate?.changelogPretty"
-            btn-style="underline"
+            variant="underline"
             :external="true"
             :icon-right="ArrowTopRightOnSquareIcon"
           >
-            {{ props.t("View Changelog on Docs") }}
+            {{ props.t('View Changelog on Docs') }}
           </BrandButton>
         </div>
       </div>
@@ -92,7 +85,7 @@ const showExtendKeyButton = computed(() => {
         class="text-center flex flex-col justify-center w-full min-h-[250px] min-w-[280px] sm:min-w-[400px]"
       >
         <BrandLoading class="w-[150px] mx-auto mt-24px" />
-        <p>{{ props.t("Fetching & parsing changelog…") }}</p>
+        <p>{{ props.t('Fetching & parsing changelog…') }}</p>
       </div>
     </template>
 
@@ -100,31 +93,31 @@ const showExtendKeyButton = computed(() => {
       <div class="flex flex-col-reverse xs:flex-row justify-between gap-12px md:gap-16px">
         <div class="flex flex-col-reverse xs:flex-row xs:justify-start gap-12px md:gap-16px">
           <BrandButton
-            btn-style="underline-hover-red"
+            variant="underline"
             :icon="XMarkIcon"
             @click="updateOsChangelogStore.setReleaseForUpdate(null)"
           >
-            {{ props.t("Close") }}
+            {{ props.t('Close') }}
           </BrandButton>
           <BrandButton
             v-if="releaseForUpdate?.changelogPretty"
-            btn-style="underline"
+            variant="underline"
             :external="true"
             :href="releaseForUpdate?.changelogPretty"
             :icon="EyeIcon"
             :icon-right="ArrowTopRightOnSquareIcon"
           >
-            {{ props.t("View on Docs") }}
+            {{ props.t('View on Docs') }}
           </BrandButton>
         </div>
         <BrandButton
           v-if="showExtendKeyButton"
-          btn-style="fill"
+          variant="fill"
           :icon="KeyIcon"
           :icon-right="ArrowTopRightOnSquareIcon"
           @click="purchaseStore.renew()"
         >
-          {{ props.t("Extend License to Update") }}
+          {{ props.t('Extend License to Update') }}
         </BrandButton>
         <BrandButton
           v-else-if="releaseForUpdate?.sha256"

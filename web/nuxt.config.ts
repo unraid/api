@@ -63,6 +63,7 @@ export default defineNuxtConfig({
   ignore: ['/webGui/images'],
 
   components: [
+    { path: '~/components/Brand', prefix: 'Brand' },
     { path: '~/components/ConnectSettings', prefix: 'ConnectSettings' },
     { path: '~/components/Ui', prefix: 'Ui' },
     { path: '~/components/UserProfile', prefix: 'Upc' },

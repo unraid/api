@@ -12,7 +12,7 @@ import {
   WrenchScrewdriverIcon,
   XMarkIcon,
 } from '@heroicons/vue/24/solid';
-import { BrandButton } from '@unraid/ui';
+import { BrandButton, BrandLoading } from '@unraid/ui';
 import { WEBGUI_CONNECT_SETTINGS, WEBGUI_TOOLS_REGISTRATION } from '~/helpers/urls';
 
 import type { ComposerTranslation } from 'vue-i18n';

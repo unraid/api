@@ -4,25 +4,31 @@
  * New key replacement, should happen also on server side.
  * Cron to run hourly, check on how many days are left until regExp…within X days then allow request to be done
  */
+import { h } from 'vue';
+import { createPinia, defineStore, setActivePinia } from 'pinia';
+
 import {
   CheckCircleIcon,
   ExclamationCircleIcon,
-  XCircleIcon,
   ShieldExclamationIcon,
+  XCircleIcon,
 } from '@heroicons/vue/24/solid';
-import { defineStore, createPinia, setActivePinia } from 'pinia';
+import { BrandLoading } from '@unraid/ui';
+
+import type {
+  // type KeyLatestResponse,
+  ValidateGuidResponse,
+} from '~/composables/services/keyServer';
+import type { UiBadgeProps } from '~/types/ui/badge';
 import type { WretchError } from 'wretch';
 
 import {
   // keyLatest,
   validateGuid,
-  // type KeyLatestResponse,
-  type ValidateGuidResponse,
 } from '~/composables/services/keyServer';
 // import { useCallbackStore } from '~/store/callbackActions';
 import { useServerStore } from '~/store/server';
-import type { UiBadgeProps } from '~/types/ui/badge';
-import BrandLoadingWhite from '~/components/Brand/LoadingWhite.vue';
+
 /**
  * @see https://stackoverflow.com/questions/73476371/using-pinia-with-vue-js-web-components
  * @see https://github.com/vuejs/pinia/discussions/1085
@@ -65,7 +71,7 @@ export const useReplaceRenewStore = defineStore('replaceRenewCheck', () => {
       case 'checking':
         return {
           color: 'gray',
-          icon: BrandLoadingWhite,
+          icon: () => h(BrandLoading, { variant: 'white' }),
           text: 'Checking...',
         };
       case 'linked':
@@ -101,7 +107,9 @@ export const useReplaceRenewStore = defineStore('replaceRenewCheck', () => {
     renewStatus.value = status;
   };
 
-  const replaceStatus = ref<'checking' | 'eligible' | 'error' | 'ineligible' | 'ready'>(guid.value ? 'ready' : 'error');
+  const replaceStatus = ref<'checking' | 'eligible' | 'error' | 'ineligible' | 'ready'>(
+    guid.value ? 'ready' : 'error'
+  );
   const setReplaceStatus = (status: typeof replaceStatus.value) => {
     replaceStatus.value = status;
   };
@@ -111,7 +119,7 @@ export const useReplaceRenewStore = defineStore('replaceRenewCheck', () => {
       case 'checking':
         return {
           color: 'gray',
-          icon: BrandLoadingWhite,
+          icon: () => h(BrandLoading, { variant: 'white' }),
           text: 'Checking...',
         };
       case 'eligible':
@@ -208,12 +216,18 @@ export const useReplaceRenewStore = defineStore('replaceRenewCheck', () => {
       setKeyLinked(response?.linked ? 'linked' : 'notLinked');
 
       /** cache the response to prevent repeated POSTs in the session */
-      if ((replaceStatus.value === 'eligible' || replaceStatus.value === 'ineligible') && !validationResponse.value) {
-        sessionStorage.setItem(REPLACE_CHECK_LOCAL_STORAGE_KEY, JSON.stringify({
-          key: keyfileShort.value,
-          timestamp: Date.now(),
-          ...response,
-        }));
+      if (
+        (replaceStatus.value === 'eligible' || replaceStatus.value === 'ineligible') &&
+        !validationResponse.value
+      ) {
+        sessionStorage.setItem(
+          REPLACE_CHECK_LOCAL_STORAGE_KEY,
+          JSON.stringify({
+            key: keyfileShort.value,
+            timestamp: Date.now(),
+            ...response,
+          })
+        );
       }
 
       // if (response?.hasNewerKeyfile) {
