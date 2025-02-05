@@ -224,7 +224,11 @@ if (file_exists("/boot/.git")) {
 
 if (exec("which unraid-api")) {
   echo "\nStopping unraid-api. Please wait…";
-  $output = shell_exec("unraid-api stop --delete");
+  $output = shell_exec("unraid-api stop --delete 2>&1");
+  if (!$output) {
+    echo "Waiting for unraid-api to stop...\n";
+    sleep(5); // Give it a few seconds to fully stop
+  }
   echo "Stopped unraid-api: $output";
 
   # Find all PIDs referencing main.js and kill them, excluding grep process
