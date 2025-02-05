@@ -9,9 +9,9 @@
   "type": "module",
   "scripts": {
     "build-and-pack": "tsx scripts/build-plugin-and-txz.ts",
-    "build:docker": "docker build -t unraid-api-plugin-builder . && docker run -v $(pwd)/deploy:/app/deploy -v $(cd ../ && pwd)/.git:/app/.git unraid-api-plugin-builder",
+    "build:docker": "docker run --env-file .env -v $(pwd)/deploy:/app/deploy -v $(cd ../ && pwd)/.git:/app/.git plugin-builder",
     "prebuild:docker:test": "cp .env.example .env",
-    "build:docker:test": "npm run build:docker",
+    "build:docker:test": "docker build -t plugin-builder . && npm run build:docker",
     "postbuild:docker:test": "rm .env"
   }
 }

@@ -1,4 +1,5 @@
 #!/bin/bash
+# LEGACY SCRIPT - Kept for validation purposes. If still present after May 2025, delete.
 # passes `shellcheck` and `shfmt -i 2`
 
 [[ "$1" == "s" ]] && env=staging
