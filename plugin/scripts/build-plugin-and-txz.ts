@@ -1,13 +1,45 @@
-#!/usr/bin/env node
-
 import path from "path";
-import crypto from "crypto";
 import { execSync } from "child_process";
-import os from "os";
-import { mkdtemp, cp, readFile, writeFile } from "fs/promises";
-import { glob } from "glob";
+import { cp, readFile, writeFile, mkdir } from "fs/promises";
+import { join } from "path";
+import { createHash } from "node:crypto";
+import { $, cd, dotenv } from "zx";
+import { z } from "zod";
+import conventionalChangelog from "conventional-changelog";
+
+const envSchema = z.object({
+  API_VERSION: z.string(),
+  API_SHA256: z.string(),
+  PR: z.string().optional(),
+});
+
+type Env = z.infer<typeof envSchema>;
+const env = dotenv.config() as Env;
+const validatedEnv = envSchema.parse(env);
 
 const pluginName = "dynamix.unraid.net" as const;
+const startingDir = process.cwd();
+
+const createBuildDirectory = async () => {
+  await execSync(`rm -rf deploy/pre-pack/*`);
+  await execSync(`rm -rf deploy/release/*`);
+  await execSync(`rm -rf deploy/test/*`);
+  await mkdir("deploy/pre-pack", { recursive: true });
+  await mkdir("deploy/release", { recursive: true });
+  await mkdir("deploy/test", { recursive: true });
+};
+
+function updateEntityValue(
+  xmlString: string,
+  entityName: string,
+  newValue: string
+) {
+  const regex = new RegExp(`<!ENTITY ${entityName} "[^"]*">`);
+  if (regex.test(xmlString)) {
+    return xmlString.replace(regex, `<!ENTITY ${entityName} "${newValue}">`);
+  }
+  throw new Error(`Entity ${entityName} not found in XML`);
+}
 
 const buildTxz = async (): Promise<{
   sha256: string;
@@ -20,16 +52,14 @@ const buildTxz = async (): Promise<{
     .slice(0, 16)
     .replace("T", ".");
   const txzPath = path.join(
-    process.cwd(),
-    "archive",
+    startingDir,
+    "deploy/release",
     `${pluginName}-${version}.txz`
   );
-
-  const startingDir = process.cwd();
-  const tempDir = await mkdtemp("plugin-");
+  const prePackDir = join(startingDir, "deploy/pre-pack");
 
   // Copy all files from source to temp dir, excluding specific files
-  await cp("source/dynamix.unraid.net", tempDir, {
+  await cp("source/dynamix.unraid.net", prePackDir, {
     recursive: true,
     filter: (src) => {
       const filename = path.basename(src);
@@ -39,68 +69,88 @@ const buildTxz = async (): Promise<{
         "makepkg",
         "explodepkg",
         "sftp-config.json",
+        ".gitkeep",
       ].includes(filename);
     },
   });
 
-  // Set permissions
-  execSync(`chmod 0755 -R ${tempDir}`);
-  execSync(`sudo chown root:root -R ${tempDir}`);
+  // Create package - must be run from within the pre-pack directory
+  // Use cd option to run command from prePackDir
+  await cd(prePackDir);
+  $.verbose = true;
 
-  // Create package
-  execSync(`sudo "scripts/makepkg" -l y -c y "${txzPath}"`);
-  execSync(`sudo rm -rf "${tempDir}"`);
+  await $`${join(startingDir, "scripts/makepkg")} -l y -c y "${txzPath}"`;
+  $.verbose = false;
+  await cd(startingDir);
 
   // Calculate hashes
-  const sha256 = execSync(`sha256sum "${txzPath}"`).toString().split(" ")[0];
-  console.log(`SHA256: ${sha256}`);
-
-  // Test package
-  const testTmpdir = await mkdtemp("test-");
-  process.chdir(testTmpdir);
+  const sha256 = createHash("sha256")
+    .update(await readFile(txzPath))
+    .digest("hex");
+  console.log(`TXZ SHA256: ${sha256}`);
 
   try {
-    execSync(`sudo "${startingDir}/scripts/explodepkg" "${txzPath}"`, {
-      stdio: "pipe",
-    });
+    await $`${join(startingDir, "scripts/explodepkg")} "${txzPath}"`;
   } catch (err) {
     console.error(`Error: invalid txz package created: ${txzPath}`);
     process.exit(1);
-  } finally {
-    execSync(`sudo rm -rf "${testTmpdir}"`);
   }
 
   return { sha256, txzPath, version };
+};
+
+const getStagingChangelogFromGit = async (
+  version: string
+): Promise<string | null> => {
+  try {
+    const changelogStream = conventionalChangelog(
+      {
+        preset: "conventionalcommits",
+        releaseCount: 0,
+      },
+      {
+        version,
+      }
+    );
+    let changelog = "";
+    for await (const chunk of changelogStream) {
+      changelog += chunk;
+    }
+    return changelog;
+  } catch (err) {
+    console.error(`Error: failed to get changelog from git: ${err}`);
+    return null;
+  }
 };
 
 const buildPlugin = async ({
   type,
   txzSha256,
   version,
+  pr = "",
+  apiVersion,
+  apiSha256,
 }: {
   type: "staging" | "pr" | "production";
   txzSha256: string;
   version: string;
+  pr?: string;
+  apiVersion: string;
+  apiSha256: string;
 }) => {
-  // Parse command line args
-  let env;
-  if (process.argv[2] === "s") env = "staging";
-  if (process.argv[2] === "p") env = "production";
-  if (!env) {
-    console.log("usage: [s|p]");
-    process.exit(1);
-  }
-
-  // Get PR number if provided
-  const PR = process.argv[3] || "";
-
+  const rootPlgFile = path.join(startingDir, "/plugins/", `${pluginName}.plg`);
   // Set up paths
-  const plgfile = path.join("plugins", `${pluginName}.plg.${type}`);
+  const newPluginFile = path.join(
+    startingDir,
+    "/deploy/release/",
+    `${pluginName}.plg.${type}`
+  );
 
   // Define URLs
   let PLUGIN_URL = "";
   let MAIN_TXZ = "";
   let API_TGZ = "";
+  let RELEASE_NOTES: string | null = null;
   switch (type) {
     case "production":
       PLUGIN_URL = "https://stable.dl.unraid.net/unraid-api/&name;.plg";
@@ -108,55 +158,83 @@ const buildPlugin = async ({
       API_TGZ = `https://stable.dl.unraid.net/unraid-api/unraid-api-${process.env.API_VERSION}.tgz`;
       break;
     case "pr":
-      MAIN_TXZ = `https://preview.dl.unraid.net/unraid-api/pr/${PR}/${pluginName}-${version}.txz`;
-      API_TGZ = `https://preview.dl.unraid.net/unraid-api/pr/${PR}/unraid-api-${process.env.API_VERSION}.tgz`;
-      PLUGIN_URL = `https://preview.dl.unraid.net/unraid-api/pr/${PR}/${pluginName}.plg`;
+      MAIN_TXZ = `https://preview.dl.unraid.net/unraid-api/pr/${pr}/${pluginName}-${version}.txz`;
+      API_TGZ = `https://preview.dl.unraid.net/unraid-api/pr/${pr}/unraid-api-${process.env.API_VERSION}.tgz`;
+      PLUGIN_URL = `https://preview.dl.unraid.net/unraid-api/pr/${pr}/${pluginName}.plg`;
+      RELEASE_NOTES = await getStagingChangelogFromGit(version);
       break;
     case "staging":
       PLUGIN_URL = "https://stable.dl.unraid.net/unraid-api/&name;.plg";
       MAIN_TXZ = `https://preview.dl.unraid.net/unraid-api/${pluginName}-${version}.txz`;
       API_TGZ = `https://preview.dl.unraid.net/unraid-api/unraid-api-${process.env.API_VERSION}.tgz`;
+      RELEASE_NOTES = await getStagingChangelogFromGit(version);
       break;
   }
 
   // Update plg file
-  const plgContent = await readFile(plgfile, "utf8");
-  const xmlDoc = new DOMParser().parseFromString(plgContent, "text/xml");
+  let plgContent = await readFile(rootPlgFile, "utf8");
 
   // Update entity values
-  const entities = {
+  const entities: Record<string, string> = {
     name: pluginName,
-    env: env,
+    env: type === "pr" ? "staging" : type,
     version: version,
     pluginURL: PLUGIN_URL,
     SHA256: txzSha256,
     MAIN_TXZ: MAIN_TXZ,
     API_TGZ: API_TGZ,
-    PR: PR,
-    API_version: process.env.API_VERSION,
-    API_SHA256: process.env.API_SHA256,
+    PR: pr,
+    API_version: apiVersion,
+    API_SHA256: apiSha256,
   };
 
-  for (const [name, value] of Object.entries(entities)) {
-    const entity = xmlDoc.querySelector(`ENTITY[name="${name}"]`);
-    if (entity && value) {
-      entity.textContent = value;
-    } else {
-      console.error(`Entity ${name} or value ${value} not found in ${plgfile}`);
-      process.exit(1);
+  // Iterate over entities and update them
+  Object.entries(entities).forEach(([key, value]) => {
+    if (key !== "PR" && !value) {
+      throw new Error(`Entity ${key} not set in entities : ${value}`);
     }
+    plgContent = updateEntityValue(plgContent, key, value);
+  });
+
+  if (RELEASE_NOTES) {
+    // Update the CHANGES section with release notes
+    plgContent = plgContent.replace(
+      /<CHANGES>.*?<\/CHANGES>/s,
+      `<CHANGES>\n${RELEASE_NOTES}\n</CHANGES>`
+    );
   }
 
-  const serializer = new XMLSerializer();
-  const updatedPlg = serializer.serializeToString(xmlDoc);
-
-  await writeFile(plgfile, updatedPlg);
-
-  console.log(`${env} plugin: ${plgfile}`);
+  await writeFile(newPluginFile, plgContent);
+  console.log(`${entities.env} plugin: ${newPluginFile}`);
 };
 
-const { sha256: txzSha256, txzPath, version } = await buildTxz();
-console.log("Path to txz:", txzPath);
-await buildPlugin({ type: "staging", txzSha256, version });
-await buildPlugin({ type: "pr", txzSha256, version });
-await buildPlugin({ type: "production", txzSha256, version });
+/**
+ * Main build script
+ */
+await createBuildDirectory();
+const { sha256: txzSha256, version } = await buildTxz();
+const { API_VERSION, API_SHA256, PR } = validatedEnv;
+await buildPlugin({
+  type: "staging",
+  txzSha256,
+  version,
+  apiVersion: API_VERSION,
+  apiSha256: API_SHA256,
+});
+if (PR) {
+  await buildPlugin({
+    type: "pr",
+    txzSha256,
+    version,
+    pr: PR,
+    apiVersion: API_VERSION,
+    apiSha256: API_SHA256,
+  });
+}
+await buildPlugin({
+  type: "production",
+  txzSha256,
+  version,
+  apiVersion: API_VERSION,
+  apiSha256: API_SHA256,
+});
