@@ -29,7 +29,7 @@
   <!-- prevent prod plugin from installing when staging already installed, and vice versa -->
   <FILE Run="/bin/bash" Method="install">
     <INLINE>
-      name="&name;" version="&version;" API_version="&API_version;" PLGTYPE="&env;" PR="&PR;"
+      name="&name;" version="&version;" API_version="&API_version;" PLGTYPE="&env;"
     <![CDATA[
 echo "Installing ${name}.plg ${version} with Unraid API ${API_version}"
 if [-f /boot/config/plugins/dynamix.unraid.net.staging.plg]; then
