@@ -137,8 +137,10 @@ const buildTxz = async (
 };
 
 const getStagingChangelogFromGit = async (
-  apiVersion: string
+  apiVersion: string,
+  pr: string | null = null
 ): Promise<string | null> => {
+  console.log('Getting changelog from git' + (pr ? ' for PR' : ''));
   try {
     const changelogStream = conventionalChangelog(
       {
@@ -146,7 +148,19 @@ const getStagingChangelogFromGit = async (
       },
       {
         version: apiVersion,
-      }
+      },
+      pr
+        ? {
+            from: "origin/main",
+            to: "HEAD",
+          }
+        : {},
+      undefined,
+      pr
+        ? {
+            headerPartial: `## [PR #${pr}](https://github.com/unraid/api/pull/${pr})\n\n`,
+          }
+        : undefined
     );
     let changelog = "";
     for await (const chunk of changelogStream) {
@@ -200,7 +214,7 @@ const buildPlugin = async ({
       PLUGIN_URL = `${BASE_URLS.PREVIEW}/pr/${pr}/${pluginName}.plg`;
       MAIN_TXZ = `${BASE_URLS.PREVIEW}/pr/${pr}/${txzName}`;
       API_TGZ = `${BASE_URLS.PREVIEW}/pr/${pr}/unraid-api-${apiVersion}.tgz`;
-      RELEASE_NOTES = await getStagingChangelogFromGit(apiVersion);
+      RELEASE_NOTES = await getStagingChangelogFromGit(apiVersion, pr);
       break;
     case "staging":
       PLUGIN_URL = `${BASE_URLS.PREVIEW}/${pluginName}.plg`;
