@@ -237,7 +237,7 @@ jobs:
             echo "PR=${PR}" >> .env
           fi
 
-          npm run build:docker
+          npm run start
       - name: Upload binary txz and plg to Github artifacts
         uses: actions/upload-artifact@v4
         with:
