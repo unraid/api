@@ -22,4 +22,4 @@ RUN npm i
 
 COPY . .
 
-CMD ["npm", "run", "build-and-pack"]
+CMD ["npm", "run", "build"]
