@@ -1,6 +1,7 @@
 {
   "dependencies": {
     "conventional-changelog": "^6.0.0",
+    "date-fns": "^4.1.0",
     "glob": "^11.0.1",
     "html-sloppy-escaper": "^0.1.0",
     "semver": "^7.7.1",
@@ -13,17 +14,14 @@
     "// Build scripts": "",
     "build": "tsx scripts/build-plugin-and-txz.ts",
     "build:validate": "npm run env:validate && npm run build",
-
     "// Docker commands": "",
     "docker:build": "docker build -t plugin-builder .",
     "docker:run": "docker run --env-file .env -v $(pwd)/deploy:/app/deploy -v $(cd ../ && pwd)/.git:/app/.git -v $(pwd)/source:/app/source plugin-builder",
     "docker:build-and-run": "npm run docker:build && npm run docker:run",
-
     "// Environment management": "",
     "env:init": "cp .env.example .env",
     "env:validate": "node -e \"require('fs').existsSync('.env') || (console.error('Error: .env file missing. Run npm run env:init first') && process.exit(1))\"",
     "env:clean": "rm -f .env",
-
     "// Composite commands": "",
     "start": "npm run env:validate && npm run docker:build-and-run",
     "test": "npm run env:init && npm run start && npm run env:clean"

@@ -9,6 +9,8 @@ import conventionalChangelog from "conventional-changelog";
 import { escape as escapeHtml } from "html-sloppy-escaper";
 import { parse } from "semver";
 import { existsSync } from "fs";
+import { format as formatDate } from "date-fns";
+
 const envSchema = z.object({
   API_VERSION: z.string().refine((v) => {
     return parse(v) ?? false;
@@ -281,11 +283,9 @@ const main = async () => {
 
   await createBuildDirectory();
 
-  const version = new Date()
-    .toISOString()
-    .replace(/[-:]/g, ".")
-    .slice(0, 16)
-    .replace("T", ".");
+  const version = formatDate(new Date(), "yyyy.MM.dd.HHmm");
+  console.log(`Version: ${version}`);
+  process.exit(0);
   const { txzSha256, txzName } = await buildTxz(version);
   const { API_VERSION, API_SHA256, PR } = validatedEnv;
   await buildPlugin({
