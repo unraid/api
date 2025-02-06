@@ -25,11 +25,7 @@ export class StopCommand extends CommandRunner {
 
     async run(_: string[], options: StopCommandOptions = { delete: false }) {
         if (options.delete) {
-            await this.pm2.run(
-                { tag: 'PM2 Kill', stdio: 'inherit' },
-                'kill',
-                '--no-autorestart',
-            );
+            await this.pm2.run({ tag: 'PM2 Kill', stdio: 'inherit' }, 'kill', '--no-autorestart');
             await this.pm2.forceKillPm2Daemon();
             await this.pm2.deletePm2Home();
         } else {
