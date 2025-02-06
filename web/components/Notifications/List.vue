@@ -48,16 +48,15 @@ const notifications = computed(() => {
   return list.filter((n) => n.type === props.type);
 });
 
-// marks timestamp of latest visible notification
+// saves timestamp of latest visible notification to local storage
 const { latestSeenTimestamp } = useHaveSeenNotifications();
 watch(
   notifications,
   () => {
-    // console.log('checking notif list for later than', latestSeenTimestamp.value, notifications.value);
     notifications.value.forEach((n) => {
       const timestamp = n.timestamp ?? '';
       if (new Date(timestamp) > new Date(latestSeenTimestamp.value)) {
-        console.log('setting last seen notif timestamp', timestamp);
+        console.log('[notif list] setting last seen timestamp', timestamp);
         latestSeenTimestamp.value = timestamp;
       }
     });

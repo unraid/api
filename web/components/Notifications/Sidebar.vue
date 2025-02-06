@@ -2,9 +2,7 @@
 import { Button } from '@/components/shadcn/button';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/shadcn/sheet';
 import { useMutation, useQuery, useSubscription } from '@vue/apollo-composable';
-import {
-  trackLatestSeenNotification,
-} from '~/composables/api/use-notifications';
+import { useTrackLatestSeenNotification } from '~/composables/api/use-notifications';
 import { useFragment } from '~/composables/gql';
 // eslint-disable-next-line @typescript-eslint/consistent-type-imports -- false positive :(
 import { Importance, NotificationType } from '~/composables/gql/graphql';
@@ -37,17 +35,12 @@ const confirmAndDeleteArchives = async () => {
   }
 };
 
-
 const { result } = useQuery(notificationsOverview, null, {
   pollInterval: 2_000, // 2 seconds
 });
-const { latestNotificationTimestamp, haveSeenNotifications } = trackLatestSeenNotification();
-
-watchEffect(() => {
-  console.log('haveSeenNotifications', haveSeenNotifications.value);
-});
-
+const { latestNotificationTimestamp, haveSeenNotifications } = useTrackLatestSeenNotification();
 const { onResult: onNotificationAdded } = useSubscription(notificationAddedSubscription);
+
 onNotificationAdded(({ data }) => {
   if (!data) return;
   const notif = useFragment(NOTIFICATION_FRAGMENT, data.notificationAdded);
