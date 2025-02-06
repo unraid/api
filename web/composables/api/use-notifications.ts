@@ -45,6 +45,7 @@ export function useTrackLatestSeenNotification() {
     return notification;
   });
 
+  // initialize timestamp of latest notification
   const latestNotificationTimestamp = ref<string | null>();
   watchOnce(latestNotification, () => {
     latestNotificationTimestamp.value = latestNotification.value?.timestamp;
@@ -53,6 +54,7 @@ export function useTrackLatestSeenNotification() {
   const isBeforeLastSeen = (timestamp?: string | null) =>
     new Date(timestamp ?? '0') <= new Date(latestSeenTimestamp.value);
 
+  // derive haveSeenNotifications by comparing last seen's timestamp to latest's timestamp
   watchEffect(() => {
     if (!latestNotificationTimestamp.value) {
       return;
