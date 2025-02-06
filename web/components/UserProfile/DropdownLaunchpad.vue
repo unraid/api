@@ -1,8 +1,9 @@
 <script lang="ts" setup>
-import { BrandButton, BrandLoadingWhite } from '@unraid/ui';
+import { BrandButton, BrandLoading } from '@unraid/ui';
 import { useServerStore } from '~/store/server';
 import { useUnraidApiStore } from '~/store/unraidApi';
 import { storeToRefs } from 'pinia';
+import { h } from 'vue';
 import type { ComposerTranslation } from 'vue-i18n';
 
 defineProps<{ t: ComposerTranslation }>();
@@ -34,7 +35,11 @@ const showExpireTime = computed(
           <BrandButton
             class="w-full"
             :disabled="unraidApiStatus === 'connecting' || unraidApiStatus === 'restarting'"
-            :icon="unraidApiStatus === 'restarting' ? BrandLoadingWhite : unraidApiRestartAction?.icon"
+            :icon="
+              unraidApiStatus === 'restarting'
+                ? h(BrandLoading, { variant: 'white' })
+                : unraidApiRestartAction?.icon
+            "
             :text="
               unraidApiStatus === 'restarting' ? t('Restarting unraid-api…') : t('Restart unraid-api')
             "
