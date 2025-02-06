@@ -15,6 +15,7 @@ interface SwitchEnvOptions {
 
 @Command({
     name: 'switch-env',
+    description: 'Switch the active Unraid API environment',
 })
 export class SwitchEnvCommand extends CommandRunner {
     private parseStringToEnv(environment: string): 'production' | 'staging' {

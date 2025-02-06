@@ -10,7 +10,7 @@ interface StartCommandOptions {
     'log-level'?: string;
 }
 
-@Command({ name: 'start' })
+@Command({ name: 'start', description: 'Start the Unraid API' })
 export class StartCommand extends CommandRunner {
     constructor(
         private readonly logger: LogService,
