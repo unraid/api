@@ -2,6 +2,9 @@
 import { Button } from '@/components/shadcn/button';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/shadcn/sheet';
 import { useMutation, useQuery, useSubscription } from '@vue/apollo-composable';
+import {
+  trackLatestSeenNotification,
+} from '~/composables/api/use-notifications';
 import { useFragment } from '~/composables/gql';
 // eslint-disable-next-line @typescript-eslint/consistent-type-imports -- false positive :(
 import { Importance, NotificationType } from '~/composables/gql/graphql';
@@ -34,15 +37,21 @@ const confirmAndDeleteArchives = async () => {
   }
 };
 
+
 const { result } = useQuery(notificationsOverview, null, {
   pollInterval: 2_000, // 2 seconds
 });
+const { haveSeenNotifications, latestNotificationTimestamp } = trackLatestSeenNotification();
 
 const { onResult: onNotificationAdded } = useSubscription(notificationAddedSubscription);
 onNotificationAdded(({ data }) => {
   if (!data) return;
   const notif = useFragment(NOTIFICATION_FRAGMENT, data.notificationAdded);
   if (notif.type !== NotificationType.Unread) return;
+
+  if (notif.timestamp) {
+    latestNotificationTimestamp.value = notif.timestamp;
+  }
   // probably smart to leave this log outside the if-block for the initial release
   console.log('incoming notification', notif);
   if (!globalThis.toast) {
@@ -78,32 +87,13 @@ const readArchivedCount = computed(() => {
   const { archive, unread } = overview.value;
   return Math.max(0, archive.total - unread.total);
 });
-
-/** whether user has viewed their notifications */
-const hasSeenNotifications = ref(false);
-
-// renews unseen state when new notifications arrive
-watch(
-  () => overview.value?.unread,
-  (newVal, oldVal) => {
-    if (!newVal || !oldVal) return;
-    if (newVal.total > oldVal.total) {
-      hasSeenNotifications.value = false;
-    }
-  }
-);
-
-const prepareToViewNotifications = () => {
-  determineTeleportTarget();
-  hasSeenNotifications.value = true;
-};
 </script>
 
 <template>
   <Sheet>
-    <SheetTrigger @click="prepareToViewNotifications">
+    <SheetTrigger @click="determineTeleportTarget">
       <span class="sr-only">Notifications</span>
-      <NotificationsIndicator :overview="overview" :seen="hasSeenNotifications" />
+      <NotificationsIndicator :overview="overview" :seen="haveSeenNotifications" />
     </SheetTrigger>
     <SheetContent
       :to="teleportTarget"

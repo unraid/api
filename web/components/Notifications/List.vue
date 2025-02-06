@@ -2,6 +2,7 @@
 import { CheckIcon } from '@heroicons/vue/24/solid';
 import { useQuery } from '@vue/apollo-composable';
 import { vInfiniteScroll } from '@vueuse/components';
+import { useHaveSeenNotifications } from '~/composables/api/use-notifications';
 import { useFragment } from '~/composables/gql/fragment-masking';
 import type { Importance, NotificationType } from '~/composables/gql/graphql';
 import { useUnraidApiStore } from '~/store/unraidApi';
@@ -46,6 +47,23 @@ const notifications = computed(() => {
   // and we don't want to display them in the wrong list client-side.
   return list.filter((n) => n.type === props.type);
 });
+
+// marks timestamp of latest visible notification
+const { latestSeenTimestamp } = useHaveSeenNotifications();
+watch(
+  notifications,
+  () => {
+    // console.log('checking notif list for later than', latestSeenTimestamp.value, notifications.value);
+    notifications.value.forEach((n) => {
+      const timestamp = n.timestamp ?? '';
+      if (new Date(timestamp) > new Date(latestSeenTimestamp.value)) {
+        console.log('setting last seen notif timestamp', timestamp);
+        latestSeenTimestamp.value = timestamp;
+      }
+    });
+  },
+  { immediate: true }
+);
 
 async function onLoadMore() {
   console.log('[getNotifications] onLoadMore');
