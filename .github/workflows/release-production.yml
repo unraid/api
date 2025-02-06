@@ -33,7 +33,6 @@ jobs:
           )
           escapedNotes=$(sed -e 's/[&\\/]/\\&/g; s/$/\\/' -e '$s/\\$//' <<<"$notes")
           sed -i -z -E "s/<CHANGES>(.*)<\/CHANGES>/<CHANGES>\n${escapedNotes}\n<\/CHANGES>/g" "dynamix.unraid.net.plg"
-          sed -i -z -E "s/<CHANGES>(.*)<\/CHANGES>/<CHANGES>\n${escapedNotes}\n<\/CHANGES>/g" "dynamix.unraid.net.staging.plg"
 
       - name: Upload All Release Files to DO Spaces
         uses: BetaHuhn/do-spaces-action@v2
