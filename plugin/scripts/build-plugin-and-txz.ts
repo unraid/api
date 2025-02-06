@@ -1,6 +1,6 @@
 import { execSync } from "child_process";
 import { cp, readFile, writeFile, mkdir, readdir } from "fs/promises";
-import { join } from "path";
+import { basename, join } from "path";
 import { createHash } from "node:crypto";
 import { $, cd, dotenv } from "zx";
 import { z } from "zod";
@@ -112,7 +112,7 @@ const buildTxz = async (
   await cp(join(startingDir, "source/dynamix.unraid.net"), prePackDir, {
     recursive: true,
     filter: (src) => {
-      const filename = path.basename(src);
+      const filename = basename(src);
       return ![
         ".DS_Store",
         "pkg_build.sh",
