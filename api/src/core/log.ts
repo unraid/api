@@ -28,7 +28,7 @@ const stream =
 export const logger = pino(
     {
         level,
-        timestamp: () => `,"time":"${new Date().toLocaleTimeString()}"`,
+        timestamp: () => `,"time":"${new Date().toISOString()}"`,
         formatters: {
             level: (label: string) => ({ level: label }),
         },
