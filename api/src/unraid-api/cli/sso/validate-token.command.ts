@@ -86,7 +86,6 @@ export class ValidateTokenCommand extends CommandRunner {
         }
         const possibleUserIds = configFile.remote.ssoSubIds.split(',');
         if (possibleUserIds.includes(username)) {
-            this.logger.clear();
             this.logger.info(JSON.stringify({ error: null, valid: true, username }));
             process.exit(0);
         } else {
