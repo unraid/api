@@ -155,7 +155,10 @@ export default defineNuxtConfig({
             name: 'UnraidWelcomeModal',
             path: '@/components/WelcomeModal.ce',
           },
-          { name: 'UnraidSsoButton', path: '@/components/SsoButton.ce' },
+          {
+            name: 'UnraidSsoButton',
+            path: '@/components/SsoButton.ce',
+          },
         ],
       },
     ],
