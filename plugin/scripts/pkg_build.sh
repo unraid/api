@@ -1,4 +1,5 @@
 #!/bin/bash
+# LEGACY SCRIPT - Kept for validation purposes. If still present after May 2025, delete.
 # passes `shellcheck` and `shfmt -i 2`
 
 [[ "$1" == "s" ]] && env=staging
@@ -10,10 +11,9 @@
 
 DIR=$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")
 MAINDIR=$(dirname "$(dirname "${DIR}")")
-tmpdir=/tmp/tmp.$((RANDOM * 19318203981230 + 40))
+tmpdir=$(mktemp -d)
 pluginSrc=$(basename "${DIR}")
 plugin="${pluginSrc}"
-[[ "${env}" == "staging" ]] && plugin="${plugin}.staging" && cp "${MAINDIR}/plugins/${pluginSrc}.plg" "${MAINDIR}/plugins/${plugin}.plg"
 version=$(date +"%Y.%m.%d.%H%M")
 plgfile="${MAINDIR}/plugins/${plugin}.plg"
 txzfile="${MAINDIR}/archive/${plugin}-${version}.txz"
@@ -24,17 +24,6 @@ mkdir -p "${tmpdir}"
 # shellcheck disable=SC2046
 cp --parents -f $(find . -type f ! \( -iname ".DS_Store" -o -iname "pkg_build.sh" -o -iname "makepkg" -o -iname "explodepkg" -o -iname "sftp-config.json" \)) "${tmpdir}/"
 cd "${tmpdir}" || exit 1
-if [[ -n "${PR}" ]]; then
-  sed -i "s@\*\*Unraid Connect\*\*@\*\*Unraid Connect (PR #${PR})\*\*@" "${tmpdir}/usr/local/emhttp/plugins/dynamix.unraid.net.staging/README.md"
-elif [[ "${env}" == "staging" ]]; then
-  sed -i "s@\*\*Unraid Connect\*\*@\*\*Unraid Connect \(staging\)\*\*@" "${tmpdir}/usr/local/emhttp/plugins/dynamix.unraid.net.staging/README.md"
-fi
-
-if [[ "${env}" == "staging" ]]; then
-  # create README.md for staging plugin
-  mv "${tmpdir}/usr/local/emhttp/plugins/dynamix.unraid.net" "${tmpdir}/usr/local/emhttp/plugins/dynamix.unraid.net.staging"
-  sed -i "s@dynamix.unraid.net.plg@dynamix.unraid.net.staging.plg@" "${tmpdir}/usr/local/emhttp/plugins/dynamix.my.servers/Connect.page"
-fi
 
 chmod 0755 -R .
 sudo chown root:root -R .
@@ -76,7 +65,7 @@ sed -i -E "s#(ENTITY pluginURL\s*)\".*\"#\1\"${PLUGIN_URL}\"#g" "${plgfile}"
 sed -i -E "s#(ENTITY SHA256\s*)\".*\"#\1\"${sha256}\"#g" "${plgfile}"
 sed -i -E "s#(ENTITY MAIN_TXZ\s*)\".*\"#\1\"${MAIN_TXZ}\"#g" "${plgfile}"
 sed -i -E "s#(ENTITY API_TGZ\s*)\".*\"#\1\"${API_TGZ}\"#g" "${plgfile}"
-
+sed -i -E "s#(ENTITY PR\s*)\".*\"#\1\"${PR}\"#g" "${plgfile}"
 
 # set from environment vars
 sed -i -E "s#(ENTITY API_version\s*)\".*\"#\1\"${API_VERSION}\"#g" "${plgfile}"

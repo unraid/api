@@ -20,7 +20,7 @@ const stream =
               singleLine: true,
               hideObject: false,
               colorize: true,
-              ignore: 'time,hostname,pid',
+              ignore: 'hostname,pid',
               destination: logDestination,
           })
         : logDestination;

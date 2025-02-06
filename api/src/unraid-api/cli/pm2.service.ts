@@ -1,9 +1,10 @@
 import { Injectable } from '@nestjs/common';
+import { existsSync } from 'node:fs';
 import { rm } from 'node:fs/promises';
 import { join } from 'node:path';
 
 import type { Options, Result, ResultPromise } from 'execa';
-import { execa } from 'execa';
+import { execa, ExecaError } from 'execa';
 
 import { PM2_PATH } from '@app/consts';
 import { PM2_HOME } from '@app/environment';
@@ -70,5 +71,31 @@ export class PM2Service {
     async deleteDump(dumpFile = join(PM2_HOME, 'dump.pm2')) {
         await rm(dumpFile, { force: true });
         this.logger.trace('PM2 dump cleared.');
+    }
+
+    async forceKillPm2Daemon() {
+        try {
+            // Find all PM2 daemon processes and kill them
+            const pids = (await execa('pgrep', ['-i', 'PM2'])).stdout.split('\n').filter(Boolean);
+            if (pids.length > 0) {
+                await execa('kill', ['-9', ...pids]);
+                this.logger.trace(`Killed PM2 daemon processes: ${pids.join(', ')}`);
+            }
+        } catch (err) {
+            if (err instanceof ExecaError && err.exitCode === 1) {
+                this.logger.trace('No PM2 daemon processes found.');
+            } else {
+                this.logger.error(`Error force killing PM2 daemon: ${err}`);
+            }
+        }
+    }
+
+    async deletePm2Home() {
+        if (existsSync(PM2_HOME) && existsSync(join(PM2_HOME, 'pm2.log'))) {
+            await rm(PM2_HOME, { recursive: true, force: true });
+            this.logger.trace('PM2 home directory cleared.');
+        } else {
+            this.logger.trace('PM2 home directory does not exist.');
+        }
     }
 }

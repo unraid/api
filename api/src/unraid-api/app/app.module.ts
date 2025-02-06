@@ -6,6 +6,7 @@ import { AuthZGuard } from 'nest-authz';
 import { LoggerModule } from 'nestjs-pino';
 
 import { apiLogger } from '@app/core/log';
+import { LOG_LEVEL } from '@app/environment';
 import { GraphqlAuthGuard } from '@app/unraid-api/auth/auth.guard';
 import { AuthModule } from '@app/unraid-api/auth/auth.module';
 import { CronModule } from '@app/unraid-api/cron/cron.module';
@@ -19,6 +20,19 @@ import { UnraidFileModifierModule } from '@app/unraid-api/unraid-file-modifier/u
             pinoHttp: {
                 logger: apiLogger,
                 autoLogging: false,
+                timestamp: false,
+                ...(LOG_LEVEL !== 'TRACE'
+                    ? {
+                          serializers: {
+                              req: (req) => ({
+                                  id: req.id,
+                                  method: req.method,
+                                  url: req.url,
+                                  remoteAddress: req.remoteAddress,
+                              }),
+                          },
+                      }
+                    : {}),
             },
         }),
         AuthModule,

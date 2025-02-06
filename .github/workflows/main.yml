@@ -110,7 +110,7 @@ jobs:
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
-  
+
       - name: Install node
         uses: actions/setup-node@v4
         with:
@@ -118,13 +118,13 @@ jobs:
           cache-dependency-path: |
             unraid-ui/package-lock.json
           node-version-file: ".nvmrc"
-  
+
       - name: Install dependencies
         run: npm install
-  
+
       - name: Build
         run: npm run build:wc
-  
+
       - name: Upload Artifact to Github
         uses: actions/upload-artifact@v4
         with:
@@ -199,6 +199,22 @@ jobs:
           timezoneLinux: "America/Los_Angeles"
       - name: Checkout repo
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Build with Buildx
+        uses: docker/setup-buildx-action@v3
+        with:
+          install: true
+          platforms: linux/amd64
+      - name: Build Builder
+        uses: docker/build-push-action@v6
+        with:
+          context: ./plugin
+          push: false
+          tags: plugin-builder:latest
+          cache-from: type=gha,ref=plugin-builder:latest
+          cache-to: type=gha,mode=max,ref=plugin-builder:latest
+          load: true
       - name: Download Unraid Web Components
         uses: actions/download-artifact@v4
         with:
@@ -207,26 +223,17 @@ jobs:
           merge-multiple: true
       - name: Build Plugin
         run: |
-          cd source/dynamix.unraid.net
-          export API_VERSION=${{needs.build-test-api.outputs.API_VERSION}}
-          export API_MD5=${{needs.build-test-api.outputs.API_MD5}}
-          export API_SHA256=${{needs.build-test-api.outputs.API_SHA256}}
-          if [ -z "${API_VERSION}" ] || 
-            [ -z "${API_MD5}" ] || 
-            [ -z "${API_SHA256}" ]; then
-            echo "Error: One or more required variables are not set."
-            exit 1
-          fi
-
-          bash ./pkg_build.sh s ${{github.event.pull_request.number}}
-          bash ./pkg_build.sh p
+          echo "API_VERSION=${{needs.build-test-api.outputs.API_VERSION}}" > .env
+          echo "API_SHA256=${{needs.build-test-api.outputs.API_SHA256}}" >> .env
+          echo "PR=${{ github.event.pull_request.number }}" >> .env
+          npm run start
       - name: Upload binary txz and plg to Github artifacts
         uses: actions/upload-artifact@v4
         with:
           name: connect-files
           path: |
-            ${{ github.workspace }}/plugin/archive/*.txz
-            ${{ github.workspace }}/plugin/plugins/*.plg
+            plugin/deploy/release/plugins/*.plg
+            plugin/deploy/release/archive/*.txz
           retention-days: 5
           if-no-files-found: error
 
@@ -253,24 +260,10 @@ jobs:
         with:
           name: connect-files
 
-      - name: Write Changelog to Plugin XML
-        run: |
-          # Capture the pull request number and latest commit message
-          pr_number="${{ github.event.pull_request.number }}"
-          commit_message=$(git log -1 --pretty=%B)
-
-          # Clean up newlines, escape special characters, and handle line breaks
-          notes=$(echo -e "Pull Request Build: ${pr_number}\n${commit_message}" | \
-                  sed ':a;N;$!ba;s/\n/\\n/g' | \
-                  sed -e 's/[&\\/]/\\&/g')
-
-          # Replace <CHANGES> tag content in the file
-          sed -i -z -E "s/<CHANGES>(.*)<\/CHANGES>/<CHANGES>\n${notes}\n<\/CHANGES>/g" "plugins/dynamix.unraid.net.staging.plg"
-
       - name: Copy other release files to pr-release
         run: |
           cp archive/*.txz pr-release/
-          cp plugins/dynamix.unraid.net.staging.plg pr-release/
+          cp plugins/dynamix.unraid.net.pr.plg pr-release/dynamix.unraid.net.plg
 
       - name: Upload to Cloudflare
         uses: jakejarvis/s3-sync-action@v0.5.1
@@ -285,9 +278,14 @@ jobs:
       - name: Comment URL
         uses: thollander/actions-comment-pull-request@v3
         with:
+          comment-tag: prlink
+          mode: recreate
           message: |
             This plugin has been deployed to Cloudflare R2 and is available for testing.
-            Download it at this URL: [https://preview.dl.unraid.net/unraid-api/pr/${{ github.event.pull_request.number }}/dynamix.unraid.net.staging.plg](https://preview.dl.unraid.net/unraid-api/pr/${{ github.event.pull_request.number }}/dynamix.unraid.net.staging.plg)
+            Download it at this URL:
+            ```
+            https://preview.dl.unraid.net/unraid-api/pr/${{ github.event.pull_request.number }}/dynamix.unraid.net.plg
+            ```
 
   release-staging:
     environment:
@@ -315,28 +313,11 @@ jobs:
         with:
           name: connect-files
 
-      - name: Parse Changelog
-        id: changelog
-        uses: ocavue/changelog-parser-action@v1
-        with:
-          removeMarkdown: false
-          filePath: "./api/CHANGELOG.md"
-
       - name: Copy Files for Staging Release
         run: |
           cp archive/*.txz staging-release/
-          cp plugins/dynamix.unraid.net.staging.plg staging-release/
+          cp plugins/dynamix.unraid.net.staging.plg staging-release/dynamix.unraid.net.plg
           ls -al staging-release
-
-      - name: Upload Staging Plugin to DO Spaces
-        uses: BetaHuhn/do-spaces-action@v2
-        with:
-          access_key: ${{ secrets.DO_ACCESS_KEY }}
-          secret_key: ${{ secrets.DO_SECRET_KEY }}
-          space_name: ${{ secrets.DO_SPACE_NAME }}
-          space_region: ${{ secrets.DO_SPACE_REGION }}
-          source: staging-release
-          out_dir: unraid-api
 
       - name: Upload Staging Plugin to Cloudflare Bucket
         uses: jakejarvis/s3-sync-action@v0.5.1
@@ -370,14 +351,19 @@ jobs:
         with:
           name: connect-files
 
+      - name: Move Files to Release Folder
+        run: |
+          mkdir -p release/
+          mv unraid-api-*.tgz release/
+          mv plugins/dynamix.unraid.net.plg release/
+          mv archive/* release/
+
       - name: Create Github release
         uses: softprops/action-gh-release@v1
         with:
           draft: true
           prerelease: false
           files: |
-            unraid-api-*.tgz
-            plugins/dynamix.unraid.net*
-            archive/*
+            release/*
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

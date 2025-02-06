@@ -1,0 +1,55 @@
+name: Push Staging Plugin on PR Close
+
+on:
+  pull_request:
+    types:
+      - closed
+
+jobs:
+  push-staging:
+    if: github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Set Timezone
+        uses: szenius/set-timezone@v1.2
+        with:
+          timezoneLinux: "America/Los_Angeles"
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Download artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: connect-files
+          path: connect-files
+
+      - name: Update Downloaded Staging Plugin to New Date
+        run: |
+          if [ ! -f "connect-files/plugins/dynamix.unraid.net.pr.plg" ]; then
+            echo "ERROR: dynamix.unraid.net.pr.plg not found"
+            exit 1
+          fi
+          
+          plgfile="connect-files/plugins/dynamix.unraid.net.pr.plg"
+          version=$(date +"%Y.%m.%d.%H%M")
+          sed -i -E "s#(<!ENTITY version \").*(\">)#\1${version}\2#g" "${plgfile}" || exit 1
+                
+          # Change the plugin url to point to staging
+          url="https://preview.dl.unraid.net/unraid-api/dynamix.unraid.net.plg"
+          sed -i -E "s#(<!ENTITY pluginURL \").*(\">)#\1${url}\2#g" "${plgfile}" || exit 1
+          cat "${plgfile}"
+          mkdir -p pr-release
+          mv "${plgfile}" pr-release/dynamix.unraid.net.plg
+
+      - name: Upload to Cloudflare
+        uses: jakejarvis/s3-sync-action@v0.5.1
+        env:
+          AWS_S3_ENDPOINT: ${{ secrets.CF_ENDPOINT }}
+          AWS_S3_BUCKET: ${{ secrets.CF_BUCKET_PREVIEW }}
+          AWS_ACCESS_KEY_ID: ${{ secrets.CF_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.CF_SECRET_ACCESS_KEY }}
+          AWS_REGION: "auto"
+          SOURCE_DIR: pr-release
+          DEST_DIR: unraid-api/pr/${{ github.event.pull_request.number }}

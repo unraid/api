@@ -3,11 +3,10 @@ import { NestFactory } from '@nestjs/core';
 import { FastifyAdapter } from '@nestjs/platform-fastify';
 
 import fastifyCookie from '@fastify/cookie';
-import Fastify from 'fastify';
 import { LoggerErrorInterceptor, Logger as PinoLogger } from 'nestjs-pino';
 
 import { apiLogger } from '@app/core/log';
-import { PORT } from '@app/environment';
+import { LOG_LEVEL, PORT } from '@app/environment';
 import { AppModule } from '@app/unraid-api/app/app.module';
 import { configureFastifyCors } from '@app/unraid-api/app/cors';
 import { CookieService } from '@app/unraid-api/auth/cookie.service';
@@ -19,6 +18,7 @@ export async function bootstrapNestServer(): Promise<NestFastifyApplication> {
 
     const app = await NestFactory.create<NestFastifyApplication>(AppModule, new FastifyAdapter(), {
         bufferLogs: false,
+        ...(LOG_LEVEL !== 'TRACE' ? { logger: false } : {}),
     });
 
     const server = app.getHttpAdapter().getInstance();
