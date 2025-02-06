@@ -6,7 +6,7 @@ interface LogsOptions {
     lines: number;
 }
 
-@Command({ name: 'logs' })
+@Command({ name: 'logs', description: 'View logs' })
 export class LogsCommand extends CommandRunner {
     constructor(private readonly pm2: PM2Service) {
         super();

@@ -4,7 +4,7 @@ import { ECOSYSTEM_PATH } from '@app/consts';
 import { LogService } from '@app/unraid-api/cli/log.service';
 import { PM2Service } from '@app/unraid-api/cli/pm2.service';
 
-@Command({ name: 'restart', description: 'Restart / Start the Unraid API' })
+@Command({ name: 'restart', description: 'Restart the Unraid API' })
 export class RestartCommand extends CommandRunner {
     constructor(
         private readonly logger: LogService,

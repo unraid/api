@@ -3,12 +3,12 @@ import { Command, CommandRunner, Option } from 'nest-commander';
 import { ECOSYSTEM_PATH } from '@app/consts';
 import { PM2Service } from '@app/unraid-api/cli/pm2.service';
 
-const GRACEFUL_SHUTDOWN_TIME = 2000;
 interface StopCommandOptions {
     delete: boolean;
 }
 @Command({
     name: 'stop',
+    description: 'Stop the Unraid API',
 })
 export class StopCommand extends CommandRunner {
     constructor(private readonly pm2: PM2Service) {
