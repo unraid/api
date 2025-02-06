@@ -78,11 +78,6 @@ export default defineNuxtConfig({
     componentDir: './components/shadcn',
   },
 
-  app: {
-    buildAssetsDir: '/_nuxt/',
-    cdnURL: process.env.NUXT_APP_CDN_URL,
-  },
-
   vite: {
     plugins: [
       // Only remove non-critical console methods when VITE_ALLOW_CONSOLE_LOGS is false
