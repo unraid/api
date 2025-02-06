@@ -4,7 +4,7 @@ import { rm } from 'node:fs/promises';
 import { join } from 'node:path';
 
 import type { Options, Result, ResultPromise } from 'execa';
-import { execa } from 'execa';
+import { execa, ExecaError } from 'execa';
 
 import { PM2_PATH } from '@app/consts';
 import { PM2_HOME } from '@app/environment';
@@ -82,7 +82,11 @@ export class PM2Service {
                 this.logger.trace(`Killed PM2 daemon processes: ${pids.join(', ')}`);
             }
         } catch (err) {
-            this.logger.error(`Error force killing PM2 daemon: ${err}`);
+            if (err instanceof ExecaError && err.exitCode === 1) {
+                this.logger.trace('No PM2 daemon processes found.');
+            } else {
+                this.logger.error(`Error force killing PM2 daemon: ${err}`);
+            }
         }
     }
 
