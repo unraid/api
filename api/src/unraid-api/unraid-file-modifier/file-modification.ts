@@ -61,7 +61,7 @@ export abstract class FileModification {
      * Load the pregenerated patch for the target file
      * @returns The patch contents if it exists (targetFile.patch), null otherwise
      */
-    private async getPregeneratedPatch(): Promise<string | null> {
+    protected async getPregeneratedPatch(): Promise<string | null> {
         const patchResults = await import.meta.glob('./modifications/patches/*.patch', {
             query: '?raw',
             import: 'default',

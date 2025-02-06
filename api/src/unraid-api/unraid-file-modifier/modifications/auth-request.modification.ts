@@ -28,6 +28,14 @@ export default class AuthRequestModification extends FileModification {
     };
 
     /**
+     * Get the pregenerated patch for the auth-request.php file
+     * @returns null, we must generate the patch dynamically using the js files on the server
+     */
+    protected async getPregeneratedPatch(): Promise<string | null> {
+        return null;
+    }
+
+    /**
      * Generate a patch for the auth-request.php file
      * @param overridePath - The path to override the default file path
      * @returns The patch for the auth-request.php file
