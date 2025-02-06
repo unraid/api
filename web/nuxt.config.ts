@@ -47,7 +47,7 @@ export default defineNuxtConfig({
   },
 
   devtools: {
-    enabled: true,
+    enabled: process.env.NODE_ENV === 'development',
   },
 
   modules: [
@@ -87,6 +87,10 @@ export default defineNuxtConfig({
           includes: ['log', 'info', 'debug'],
         }),
     ],
+    define: {
+      'globalThis.__DEV__': process.env.NODE_ENV === 'development',
+      __VUE_PROD_DEVTOOLS__: false,
+    },
     build: {
       minify: 'terser',
       terserOptions: {
@@ -151,8 +155,9 @@ export default defineNuxtConfig({
             name: 'UnraidWelcomeModal',
             path: '@/components/WelcomeModal.ce',
           },
-          { name: 'UnraidSsoButton', 
-            path: '@/components/SsoButton.ce' 
+          {
+            name: 'UnraidSsoButton',
+            path: '@/components/SsoButton.ce',
           },
         ],
       },
