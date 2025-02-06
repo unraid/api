@@ -53,13 +53,12 @@ const { latestSeenTimestamp } = useHaveSeenNotifications();
 watch(
   notifications,
   () => {
-    notifications.value.forEach((n) => {
-      const timestamp = n.timestamp ?? '';
-      if (new Date(timestamp) > new Date(latestSeenTimestamp.value)) {
-        console.log('[notif list] setting last seen timestamp', timestamp);
-        latestSeenTimestamp.value = timestamp;
-      }
-    });
+    const [latest] = notifications.value;
+    if (!latest?.timestamp) return;
+    if (new Date(latest.timestamp) > new Date(latestSeenTimestamp.value)) {
+      console.log('[notif list] setting last seen timestamp', latest.timestamp);
+      latestSeenTimestamp.value = latest.timestamp;
+    }
   },
   { immediate: true }
 );
