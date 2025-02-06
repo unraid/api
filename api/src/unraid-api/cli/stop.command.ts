@@ -29,7 +29,6 @@ export class StopCommand extends CommandRunner {
                 { tag: 'PM2 Kill', stdio: 'inherit' },
                 'kill',
                 '--no-autorestart',
-                '--no-daemon'
             );
             await this.pm2.forceKillPm2Daemon();
             await this.pm2.deletePm2Home();
