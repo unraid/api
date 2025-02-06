@@ -20,7 +20,7 @@
     "generate": "nuxt generate",
     "preview": "nuxt preview",
     "postinstall": "nuxt prepare",
-    "serve": "NODE_ENV=production PORT=4321 node .output/server/index.mjs",
+    "serve": "NODE_ENV=production PORT=${PORT:-4321} node .output/server/index.mjs",
     "codegen": "graphql-codegen --config codegen.ts -r dotenv/config",
     "codegen:watch": "graphql-codegen --config codegen.ts --watch -r dotenv/config",
     "test": "vitest",
