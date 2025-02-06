@@ -32,11 +32,26 @@ function verifyUsernamePasswordAndSSO(string $username, string $password): bool 
         $safePassword = escapeshellarg($password);
 
         $output = array();
-        $response = exec("/usr/local/bin/unraid-api sso validate-token $safePassword", $output, $code);
-        my_logger("SSO Login Attempt Response: " . print_r($output, true));
+        exec("bash -c '/usr/local/bin/unraid-api sso validate-token $safePassword' 2>&1", $output, $code);
         my_logger("SSO Login Attempt Code: $code");
-        if ($code === 0 && !empty($output) && strpos($output[0], '"valid":true') !== false) {
-            return true;
+        my_logger("SSO Login Attempt Response: " . print_r($output, true));
+
+        if ($code !== 0) {
+            return false;
+        }
+
+        if (empty($output)) {
+            return false;
+        }
+
+        try {
+            $response = json_decode($output[0], true);
+            if (isset($response['valid']) && $response['valid'] === true) {
+                return true;
+            }
+        } catch (Exception $e) {
+            my_logger("SSO Login Attempt Exception: " . $e->getMessage());
+            return false;
         }
     }
     return false;
