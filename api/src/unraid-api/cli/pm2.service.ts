@@ -73,7 +73,7 @@ export class PM2Service {
         this.logger.trace('PM2 dump cleared.');
     }
 
-    async stopPm2Daemon() {
+    async forceKillPm2Daemon() {
         // Find all PM2 daemon processes and kill them
         const pids = (await execa('pgrep', ['-i', 'PM2'])).stdout.split('\n').filter(Boolean);
         if (pids.length > 0) {
