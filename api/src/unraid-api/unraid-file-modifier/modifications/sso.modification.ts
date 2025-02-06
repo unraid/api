@@ -32,7 +32,7 @@ function verifyUsernamePasswordAndSSO(string $username, string $password): bool 
         $safePassword = escapeshellarg($password);
 
         $output = array();
-        exec("/etc/rc.d/rc.unraid-api sso validate-token $safePassword' 2>&1", $output, $code);
+        exec("/etc/rc.d/rc.unraid-api sso validate-token $safePassword 2>&1", $output, $code);
         my_logger("SSO Login Attempt Code: $code");
         my_logger("SSO Login Attempt Response: " . print_r($output, true));
 
