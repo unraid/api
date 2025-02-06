@@ -20,7 +20,7 @@ const stream =
               singleLine: true,
               hideObject: false,
               colorize: true,
-              ignore: 'time,hostname,pid',
+              ignore: 'hostname,pid',
               destination: logDestination,
           })
         : logDestination;
@@ -28,7 +28,7 @@ const stream =
 export const logger = pino(
     {
         level,
-        timestamp: () => `,"time":"${new Date().toISOString()}"`,
+        timestamp: () => `,"time":"${new Date().toLocaleTimeString()}"`,
         formatters: {
             level: (label: string) => ({ level: label }),
         },
