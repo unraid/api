@@ -24,16 +24,6 @@ export class StopCommand extends CommandRunner {
     }
 
     async run(_: string[], options: StopCommandOptions = { delete: false }) {
-        await this.pm2.run(
-            { tag: 'PM2 Delete', stdio: 'inherit' },
-            'delete',
-            ECOSYSTEM_PATH,
-            '--no-autorestart',
-            '--no-daemon'
-        );
-
-        await new Promise((resolve) => setTimeout(resolve, GRACEFUL_SHUTDOWN_TIME));
-
         if (options.delete) {
             await this.pm2.run(
                 { tag: 'PM2 Kill', stdio: 'inherit' },
@@ -43,6 +33,14 @@ export class StopCommand extends CommandRunner {
             );
             await this.pm2.forceKillPm2Daemon();
             await this.pm2.deletePm2Home();
+        } else {
+            await this.pm2.run(
+                { tag: 'PM2 Delete', stdio: 'inherit' },
+                'delete',
+                ECOSYSTEM_PATH,
+                '--no-autorestart',
+                '--no-daemon'
+            );
         }
     }
 }
