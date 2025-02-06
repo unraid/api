@@ -1,5 +1,9 @@
 #!/bin/bash
 # unraid-api-handler
+
+# shellcheck source=/dev/null
+source /etc/profile
+
 flash="/boot/config/plugins/dynamix.my.servers"
 [[ ! -d "${flash}" ]] && echo "Please reinstall the Unraid Connect plugin" && exit 1
 [[ ! -f "${flash}/env" ]] && echo 'env=production' >"${flash}/env"

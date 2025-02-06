@@ -1,7 +1,5 @@
 import { readFile } from 'node:fs/promises';
 
-import { createPatch } from 'diff';
-
 import {
     FileModification,
     ShouldApplyWithReason,
@@ -27,16 +25,33 @@ function verifyUsernamePasswordAndSSO(string $username, string $password): bool 
     }
     // We may have an SSO token, attempt validation
     if (strlen($password) > 800) {
-        $safePassword = escapeshellarg($password);
         if (!preg_match('/^[A-Za-z0-9-_]+\.[A-Za-z0-9-_]+\.[A-Za-z0-9-_]+$/', $password)) {
             my_logger("SSO Login Attempt Failed: Invalid token format");
             return false;
         }
         $safePassword = escapeshellarg($password);
-        $response = exec("/usr/local/bin/unraid-api sso validate-token $safePassword", $output, $code);
-        my_logger("SSO Login Attempt: $response");
-        if ($code === 0 && $response && strpos($response, '"valid":true') !== false) {
-            return true;
+
+        $output = array();
+        exec("/etc/rc.d/rc.unraid-api sso validate-token $safePassword 2>&1", $output, $code);
+        my_logger("SSO Login Attempt Code: $code");
+        my_logger("SSO Login Attempt Response: " . print_r($output, true));
+
+        if ($code !== 0) {
+            return false;
+        }
+
+        if (empty($output)) {
+            return false;
+        }
+
+        try {
+            $response = json_decode($output[0], true);
+            if (isset($response['valid']) && $response['valid'] === true) {
+                return true;
+            }
+        } catch (Exception $e) {
+            my_logger("SSO Login Attempt Exception: " . $e->getMessage());
+            return false;
         }
     }
     return false;

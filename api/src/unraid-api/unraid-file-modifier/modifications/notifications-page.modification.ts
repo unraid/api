@@ -1,7 +1,4 @@
-import type { Logger } from '@nestjs/common';
 import { readFile } from 'node:fs/promises';
-
-import { createPatch } from 'diff';
 
 import {
     FileModification,

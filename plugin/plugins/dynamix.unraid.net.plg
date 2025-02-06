@@ -15,6 +15,7 @@
   <!ENTITY NODEJS_TXZ "https://nodejs.org/dist/v20.18.1/node-v20.18.1-linux-x64.tar.xz">
   <!ENTITY MAIN_TXZ "">
   <!ENTITY API_TGZ "">
+  <!ENTITY PR "">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" pluginURL="&pluginURL;"
@@ -28,15 +29,15 @@
   <!-- prevent prod plugin from installing when staging already installed, and vice versa -->
   <FILE Run="/bin/bash" Method="install">
     <INLINE>
-      name="&name;" version="&version;" API_version="&API_version;" PLGTYPE="&env;"
+      name="&name;" version="&version;" API_version="&API_version;" PLGTYPE="&env;" pluginURL="&pluginURL;"
     <![CDATA[
 echo "Installing ${name}.plg ${version} with Unraid API ${API_version}"
-if [ "${PLGTYPE}" = "production" ] && [ -f /boot/config/plugins/dynamix.unraid.net.staging.plg ]; then
-  echo "⚠️ Please uninstall the Unraid Connect staging plugin before installing the production version"
-  exit 1
-fi
-if [ "${PLGTYPE}" = "staging" ] && [ -f /boot/config/plugins/dynamix.unraid.net.plg ]; then
-  echo "⚠️ Please uninstall the Unraid Connect production plugin before installing the staging version"
+if [ -f /boot/config/plugins/dynamix.unraid.net.staging.plg ]; then
+  echo "ERROR: Cannot proceed with installation"
+  echo "Reason: Staging Unraid Connect plugin detected at /boot/config/plugins/dynamix.unraid.net.staging.plg"
+  echo "Action required: Please uninstall the existing Unraid Connect Staging plugin first"
+  echo "How to fix: Navigate to Plugins > Installed Plugins in the Unraid web GUI and remove the staging plugin"
+  echo "Use this URL to reinstall this plugin: ${pluginURL}"
   exit 1
 fi
 exit 0
@@ -207,11 +208,6 @@ exit 0
 <?
 $msini = @parse_ini_file('/boot/config/plugins/dynamix.my.servers/myservers.cfg', true);
 
-# if no_delete_on_uninstall exists on flash drive then skip the rest of the cleanup (useful when switching between staging and production)
-if (file_exists("/boot/config/plugins/dynamix.my.servers/no_delete_on_uninstall")) {
-  exit(0);
-}
-
 echo "\n";
 echo "**********************************\n";
 echo "🧹 CLEANING UP - may take a minute\n";
@@ -230,12 +226,26 @@ if (file_exists("/boot/.git")) {
   }
 }
 
+if (file_exists("/etc/rc.d/rc.unraid-api")) {
+  echo "\nStopping unraid-api. Please wait…";
+  $output = shell_exec("/etc/rc.d/rc.unraid-api stop --delete 2>&1'");
+  if (!$output) {
+    echo "Waiting for unraid-api to stop...\n";
+    sleep(5); // Give it a few seconds to fully stop
+  }
+  echo "Stopped unraid-api: $output";
+
+  # Find all PIDs referencing main.js and kill them, excluding grep process
+  $pids = shell_exec("ps aux | grep 'node /usr/local/unraid-api/dist/main.js' | grep -v grep | awk '{print $2}'");
+  foreach(explode("\n", trim($pids)) as $pid) {
+    if ($pid) {
+      posix_kill((int)$pid, 9);
+    }
+  }
+}
+
 # set "Allow Remote Access" to "No" and sign out from Unraid Connect
 if ($msini !== false) {
-  # stop unraid-api
-  echo "\nStopping unraid-api. Please wait…";
-  exec("/etc/rc.d/rc.unraid-api stop &>/dev/null");
-
   if (!empty($msini['remote']['username'])) {
     $var = parse_ini_file("/var/local/emhttp/var.ini");
     $keyfile = @file_get_contents($var['regFILE']);
@@ -300,7 +310,12 @@ if (file_exists("/boot/.git")) {
 if ($msini !== false) {
   # stop unraid-api
   echo "\nStopping unraid-api. Please wait…";
-  exec("/etc/rc.d/rc.unraid-api stop &>/dev/null");
+  $output = shell_exec("/etc/rc.d/rc.unraid-api stop --delete 2>&1'");
+  if (!$output) {
+    echo "Waiting for unraid-api to stop...\n";
+    sleep(5); // Give it a few seconds to fully stop
+  }
+  echo "Stopped unraid-api: $output";
 
   if (!empty($msini['remote']['username'])) {
     $var = parse_ini_file("/var/local/emhttp/var.ini");
@@ -346,12 +361,18 @@ if [ -e /etc/rc.d/rc.unraid-api ]; then
   /etc/rc.d/rc.flash_backup stop &>/dev/null
   # stop the api gracefully
   /etc/rc.d/rc.unraid-api stop &>/dev/null
+  # Stop newer clients
+  unraid-api stop
   # forcibly stop older clients
   kill -9 `pidof unraid-api` &>/dev/null
+  # Find all PIDs referencing main.js and kill them, excluding grep process
+  pids=$(ps aux | grep "node /usr/local/unraid-api/dist/main.js" | grep -v grep | awk '{print $2}')
+  for pid in $pids; do
+    kill -9 $pid
+  done
   # uninstall the api
   rm -rf /usr/local/unraid-api
-  rm -rf /var/log/unraid-api/
-  rm -f /var/run/unraid-api.sock
+  rm -rf /var/run/unraid-api.sock
   # uninstall the main source package
   [[ -f "/var/log/packages/${MAINNAME}" ]] && removepkg --terse "${MAINNAME}"
   # restore stock files
@@ -395,8 +416,8 @@ if [ -e /etc/rc.d/rc.unraid-api ]; then
   rm -f /boot/config/plugins/dynamix.my.servers/.gitignore
   rm -f /etc/rc.d/rc.unraid-api
   rm -f /etc/rc.d/rc.flash_backup
-  rm -f /usr/local/sbin/unraid-api
-  rm -f /usr/local/bin/unraid-api
+  rm -rf /usr/local/sbin/unraid-api
+  rm -rf /usr/local/bin/unraid-api
   rm -rf /usr/local/emhttp/plugins/dynamix.unraid.net
   rm -rf /usr/local/emhttp/plugins/dynamix.unraid.net.staging
   rm -f /etc/rc.d/rc6.d/K10_flash_backup
@@ -430,7 +451,7 @@ exit 0
   <!-- install all the things -->
   <FILE Run="/bin/bash" Method="install">
     <INLINE>
-      PLGTYPE="&env;" MAINTXZ="&source;.txz"
+      PR="&PR;" PLGTYPE="&env;" MAINTXZ="&source;.txz"
     <![CDATA[
 appendTextIfMissing() {
   FILE="$1" TEXT="$2"
@@ -438,8 +459,8 @@ appendTextIfMissing() {
     echo "${TEXT}">>"${FILE}"
   fi
 }
-      source /root/.bashrc
-      echo "PATH: $PATH"
+source /root/.bashrc
+
 
 version=
 # shellcheck disable=SC1091
@@ -452,10 +473,8 @@ if [[ "${version:0:3}" == "6.9" || "${version:0:4}" == "6.10" || "${version:0:4}
   echo
   echo "✅ It is safe to close this window"
   echo
-  PLGNAME=dynamix.unraid.net
-  [ "${PLGTYPE}" = "staging" ] && PLGNAME=dynamix.unraid.net.staging
 
-  DIR="/usr/local/emhttp/plugins/${PLGNAME}" && [[ ! -d "$DIR" ]] && mkdir "$DIR"
+  DIR="/usr/local/emhttp/plugins/dynamix.unraid.net" && [[ ! -d "$DIR" ]] && mkdir "$DIR"
 cat << EOF > "$DIR/README.md"
 **Unraid Connect**
 
@@ -738,6 +757,13 @@ upgradepkg --install-new --reinstall "${MAINTXZ}"
 # WARNING: failure here results in broken install
 [[ ! -f /usr/local/emhttp/plugins/dynamix.my.servers/scripts/gitflash_log ]] && echo "⚠️ files missing from main txz" && exit 1
 
+if [[ -n "$PR" && "$PR" != "" ]]; then
+  printf -v sedcmd 's@^\*\*Unraid Connect\*\*@**Unraid Connect PR #%s**@' "$PR"
+  sed -i "${sedcmd}" "/usr/local/emhttp/plugins/dynamix.unraid.net/README.md"
+elif [[ "$PLGTYPE" == "staging" ]]; then
+  sed -i "s@^\*\*Unraid Connect\*\*@**Unraid Connect (staging)**@" "/usr/local/emhttp/plugins/dynamix.unraid.net/README.md"
+fi
+
 echo
 echo "⚠️ Do not close this window yet"
 echo
@@ -794,15 +820,6 @@ if ! grep -q "#robots.txt any origin" "${FILE}"; then
   # escape tabs and spaces
   ADD="\	\ \ \ \ add_header Access-Control-Allow-Origin *; #robots.txt any origin"
   sed -i "/${FIND}/a ${ADD}" "${FILE}"
-fi
-if [[ "${CHANGED}" == "yes" ]]; then
-  if /etc/rc.d/rc.nginx status &>/dev/null; then
-    # if nginx is running, reload it to enable the changes above
-    # note: if this is being installed at boot, nginx will not yet be running
-    echo ""
-    echo "⚠️ Reloading Web Server. If this window stops updating for two minutes please close it."
-    /etc/rc.d/rc.nginx reload &>/dev/null
-  fi
 fi
 
 # Prevent web component file downgrade if the webgui version is newer than the plugin version
@@ -872,10 +889,20 @@ source "${flash}/env"
 # Install the API to /usr/local/unraid-api
 api_base_directory="/usr/local/unraid-api"
 unraid_binary_path="/usr/local/bin/unraid-api"
+
+# Stop old process
+if [[ -f "/usr/local/bin/unraid-api/unraid-api" ]]; then
+  /usr/local/bin/unraid-api/unraid-api stop
+  rm -rf /usr/local/bin/unraid-api
+elif [[ -f "${unraid_binary_path}" ]]; then
+  ${unraid_binary_path} stop
+fi
+
+# Kill any remaining unraid-api processes
+pkill -9 unraid-api
+
 # Ensure installation tgz exists
 [[ ! -f "${flash}/unraid-api.tgz" ]] && echo "Missing unraid-api.tgz" && exit 1
-# Stop old process
-[[ -f "${unraid_binary_path}" ]] && ${unraid_binary_path} stop
 # Install unraid-api
 rm -rf "${api_base_directory}"
 mkdir -p "${api_base_directory}"
@@ -885,25 +912,47 @@ tar -C "${api_base_directory}" -xzf "${flash}/unraid-api.tgz" --strip 1
 # Copy env file
 cp "${api_base_directory}/.env.${env}" "${api_base_directory}/.env"
 
+# bail if expected file does not exist
+[[ ! -f "${api_base_directory}/package.json" ]] && echo "unraid-api install failed" && exit 1
+
 # Create Symlink from /usr/local/unraid-api/dist/cli.js to /usr/local/bin/unraid-api
-ln -sf "${api_base_directory}/dist/cli.js" "${unraid_binary_path}"
+# Ensure we're linking the file, not the directory, by checking it exists first
+if [[ -f "${api_base_directory}/dist/cli.js" ]]; then
+  ln -sf "${api_base_directory}/dist/cli.js" "${unraid_binary_path}"
+else
+  echo "Error: ${api_base_directory}/dist/cli.js does not exist" && exit 1
+fi
+
+# Ensure unraid-api exists
+if [[ ! -f "${unraid_binary_path}" ]]; then
+  echo "Error: unraid-api binary not found at ${unraid_binary_path}" && exit 1
+fi
+
 
 # Create symlink to unraid-api binary (to allow usage elsewhere)
 ln -sf ${unraid_binary_path} /usr/local/sbin/unraid-api
 ln -sf ${unraid_binary_path} /usr/bin/unraid-api
-# bail if expected file does not exist
-[[ ! -f "${api_base_directory}/package.json" ]] && echo "unraid-api install failed" && exit 1
 
 logger "Starting flash backup (if enabled)"
 echo "/etc/rc.d/rc.flash_backup start" | at -M now &>/dev/null
 . /root/.bashrc
-echo "PATH: $PATH"
+
 logger "Starting Unraid API"
 ${unraid_binary_path} start
 
-echo
-echo "✅ Installation is complete, it is safe to close this window"
-echo
+if [[ "${CHANGED}" == "yes" ]]; then
+  if /etc/rc.d/rc.nginx status &>/dev/null; then
+    # if nginx is running, reload it to enable the changes above
+    # note: if this is being installed at boot, nginx will not yet be running
+    echo ""
+    echo "✅ Installation complete, now reloading web server - it is safe to close this window"
+    /etc/rc.d/rc.nginx reload &>/dev/null
+  fi
+else
+  echo
+  echo "✅ Installation is complete, it is safe to close this window"
+  echo
+fi
 
 exit 0
 ]]>

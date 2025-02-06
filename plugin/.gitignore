@@ -5,3 +5,9 @@ Thumbs.db
 .DS_Store
 
 source/dynamix.unraid.net/sftp-config.json
+
+deploy/
+!deploy/.gitkeep
+
+usr/local/emhttp/plugins/dynamix.my.servers/unraid-components/
+!usr/local/emhttp/plugins/dynamix.my.servers/unraid-components/.gitkeep
