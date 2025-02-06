@@ -351,14 +351,19 @@ jobs:
         with:
           name: connect-files
 
+      - name: Move Files to Release Folder
+        run: |
+          mkdir -p release/
+          mv unraid-api-*.tgz release/
+          mv plugins/dynamix.unraid.net.plg release/
+          mv archive/* release/
+
       - name: Create Github release
         uses: softprops/action-gh-release@v1
         with:
           draft: true
           prerelease: false
           files: |
-            unraid-api-*.tgz
-            plugins/dynamix.unraid.net*
-            archive/*
+            release/*
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
