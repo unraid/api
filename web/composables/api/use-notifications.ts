@@ -1,5 +1,4 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import type { TypedDocumentNode } from '@apollo/client';
 import { useQuery } from '@vue/apollo-composable';
 import { useStorage } from '@vueuse/core';
 import {
@@ -12,32 +11,29 @@ import { NotificationType } from '../gql/graphql';
 /** whether user has viewed their notifications */
 export function useHaveSeenNotifications() {
   // time '0' is shorthand for Jan 1 2000, which is good enough.
+  const haveSeenNotificationsStorage = useStorage<boolean>('have-seen-notifications', null);
+  const haveSeenNotificationsRef = ref<boolean>();
+//   const haveSeenNotifications = computed(() => {
+//     console.log('computing haveSeenNotificationsStorage.value', haveSeenNotificationsStorage.value, localStorage.getItem('have-seen-notifications'));
+//     return (
+//       haveSeenNotificationsStorage.value || localStorage.getItem('have-seen-notifications') === 'true'
+//     );
+//   });
+  watchImmediate(haveSeenNotificationsStorage, () => {
+    console.log('watching haveSeenNotificationsStorage.value', haveSeenNotificationsStorage.value, localStorage.getItem('have-seen-notifications'));
+    haveSeenNotificationsRef.value = haveSeenNotificationsStorage.value || localStorage.getItem('have-seen-notifications') === 'true'
+  });
+
   return {
     latestSeenTimestamp: useStorage('latest-seen-notification-timestamp', '0'),
-    haveSeenNotifications: useStorage('have-seen-notifications', false),
+    haveSeenNotificationsStorage,
+    haveSeenNotifications: haveSeenNotificationsRef,
   };
 }
 
-type ExtractVariables<T> = T extends TypedDocumentNode<unknown, infer U> ? U : never;
-type Variables = ExtractVariables<typeof getNotifications>;
-
-type Options = Parameters<typeof useQuery<typeof getNotifications, Variables>>[2];
-type Vars = Parameters<typeof useQuery<typeof getNotifications, Variables>>[1];
-
-export const useNotifications = (variables: Vars, options?: Options) => {
-  const query = useQuery(getNotifications, variables, options ?? {});
-  const notifications = computed(() => {
-    if (!query.result.value?.notifications.list) return [];
-    return useFragment(NOTIFICATION_FRAGMENT, query.result.value?.notifications.list);
-  });
-  return {
-    notificationsQuery: query,
-    notifications,
-  };
-};
-
 export function trackLatestSeenNotification() {
-  const { haveSeenNotifications, latestSeenTimestamp } = useHaveSeenNotifications();
+  const { haveSeenNotificationsStorage, latestSeenTimestamp, haveSeenNotifications } =
+    useHaveSeenNotifications();
 
   const { result: latestNotifications } = useQuery(getNotifications, () => ({
     filter: {
@@ -66,18 +62,20 @@ export function trackLatestSeenNotification() {
   watchEffect(() => {
     console.log('running', latestNotificationTimestamp.value, latestSeenTimestamp.value);
     if (!latestNotificationTimestamp.value) {
-        haveSeenNotifications.value = false;
-        return;
+    //     console.log('no latest notif, setting seen to false');
+    //   haveSeenNotificationsStorage.value = false;
+      return;
     }
-    console.log('setting', isBeforeLastSeen(latestNotificationTimestamp.value));
-    haveSeenNotifications.value = isBeforeLastSeen(latestNotificationTimestamp.value);
+    console.log('setting notif seen', isBeforeLastSeen(latestNotificationTimestamp.value));
+    haveSeenNotificationsStorage.value = isBeforeLastSeen(latestNotificationTimestamp.value);
   });
 
   return {
     latestNotification,
     latestNotificationTimestamp,
-    haveSeenNotifications,
+    haveSeenNotificationsStorage,
     latestSeenTimestamp,
+    haveSeenNotifications,
     isBeforeLastSeen,
   };
 }

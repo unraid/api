@@ -41,7 +41,11 @@ const confirmAndDeleteArchives = async () => {
 const { result } = useQuery(notificationsOverview, null, {
   pollInterval: 2_000, // 2 seconds
 });
-const { haveSeenNotifications, latestNotificationTimestamp } = trackLatestSeenNotification();
+const { latestNotificationTimestamp, haveSeenNotifications } = trackLatestSeenNotification();
+
+watchEffect(() => {
+  console.log('haveSeenNotifications', haveSeenNotifications.value);
+});
 
 const { onResult: onNotificationAdded } = useSubscription(notificationAddedSubscription);
 onNotificationAdded(({ data }) => {
