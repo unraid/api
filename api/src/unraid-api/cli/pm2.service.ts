@@ -74,11 +74,15 @@ export class PM2Service {
     }
 
     async forceKillPm2Daemon() {
-        // Find all PM2 daemon processes and kill them
-        const pids = (await execa('pgrep', ['-i', 'PM2'])).stdout.split('\n').filter(Boolean);
-        if (pids.length > 0) {
-            await execa('kill', ['-9', ...pids]);
-            this.logger.trace(`Killed PM2 daemon processes: ${pids.join(', ')}`);
+        try {
+            // Find all PM2 daemon processes and kill them
+            const pids = (await execa('pgrep', ['-i', 'PM2'])).stdout.split('\n').filter(Boolean);
+            if (pids.length > 0) {
+                await execa('kill', ['-9', ...pids]);
+                this.logger.trace(`Killed PM2 daemon processes: ${pids.join(', ')}`);
+            }
+        } catch (err) {
+            this.logger.error(`Error force killing PM2 daemon: ${err}`);
         }
     }
 
