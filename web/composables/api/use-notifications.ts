@@ -7,8 +7,8 @@ import {
 import { useFragment } from '~/composables/gql/fragment-masking';
 import { NotificationType } from '../gql/graphql';
 
-const lastestSeenTimestampKey = 'latest-seen-notification-timestamp';
-const haveSeenNotificationsKey = 'have-seen-notifications';
+const LATEST_SEEN_TIMESTAMP_KEY = 'latest-seen-notification-timestamp';
+const HAVE_SEEN_NOTIFICATIONS_KEY = 'have-seen-notifications';
 
 /**
  * Composable for managing user's state of having seen notifications.
@@ -30,7 +30,7 @@ export function useHaveSeenNotifications() {
      *
      * Writing this ref will persist to local storage and affect global state.
      */
-    latestSeenTimestamp: useStorage(lastestSeenTimestampKey, new Date(0).toISOString()),
+    latestSeenTimestamp: useStorage(LATEST_SEEN_TIMESTAMP_KEY, new Date(0).toISOString()),
     /**
      * Local-storage global state of whether a user has seen their notifications.
      * Consider this derived-state and avoid modifying this directly, outside of
@@ -38,7 +38,7 @@ export function useHaveSeenNotifications() {
      *
      * Writing this ref will persist to local storage and affect global state.
      */
-    haveSeenNotifications: useStorage<boolean>(haveSeenNotificationsKey, null),
+    haveSeenNotifications: useStorage<boolean>(HAVE_SEEN_NOTIFICATIONS_KEY, null),
   };
 }
 
