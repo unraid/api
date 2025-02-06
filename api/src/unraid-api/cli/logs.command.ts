@@ -25,7 +25,8 @@ export class LogsCommand extends CommandRunner {
             'logs',
             'unraid-api',
             '--lines',
-            lines.toString()
+            lines.toString(),
+            '--raw'
         );
     }
 }
