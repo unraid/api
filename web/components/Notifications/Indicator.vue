@@ -3,7 +3,7 @@ import { BellIcon, ExclamationTriangleIcon, ShieldExclamationIcon } from '@heroi
 import { cn } from '~/components/shadcn/utils';
 import { Importance, type OverviewQuery } from '~/composables/gql/graphql';
 
-const props = defineProps<{ overview?: OverviewQuery['notifications']['overview'], seen?: boolean }>();
+const props = defineProps<{ overview?: OverviewQuery['notifications']['overview']; seen?: boolean }>();
 
 const indicatorLevel = computed(() => {
   if (!props.overview?.unread) {
