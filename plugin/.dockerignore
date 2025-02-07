@@ -1,2 +1,7 @@
 .env
 source/*
+deploy/*
+.git/*
+.github/*
+.vscode/*
+.DS_Store

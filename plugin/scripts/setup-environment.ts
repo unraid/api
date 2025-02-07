@@ -9,10 +9,10 @@ const envSchema = z.object({
   API_VERSION: z.string().refine((v) => {
     return parse(v) ?? false;
   }, "Must be a valid semver version"),
-  PR: z
+  TAG: z
     .string()
-    .optional()
-    .refine((v) => !v || /^\d+$/.test(v), "Must be a valid PR number"),
+    .refine((v) => v ? /^[a-zA-Z0-9]+$/.test(v) : true, "Tag must contain only alphanumeric characters")
+    .optional(),
   SKIP_VALIDATION: z
     .string()
     .optional()
@@ -52,8 +52,8 @@ export const setupEnvironment = async (
     shouldWait = true;
   }
 
-  if (validatedEnv.PR) {
-    console.warn("PR is set, will generate a PR build");
+  if (validatedEnv.TAG) {
+    console.warn("TAG is set, will generate a TAGGED build");
     shouldWait = true;
   }
 

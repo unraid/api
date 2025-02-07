@@ -14,7 +14,7 @@
   <!ENTITY NODEJS_TXZ "https://nodejs.org/dist/v20.18.1/node-v20.18.1-linux-x64.tar.xz">
   <!ENTITY MAIN_TXZ "">
   <!ENTITY API_TGZ "">
-  <!ENTITY PR "">
+  <!ENTITY TAG "">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" pluginURL="&pluginURL;"
@@ -443,7 +443,7 @@ exit 0
   <!-- install all the things -->
   <FILE Run="/bin/bash" Method="install">
     <INLINE>
-      PR="&PR;" PLGTYPE="&env;" MAINTXZ="&source;.txz"
+      TAG="&TAG;" PLGTYPE="&env;" MAINTXZ="&source;.txz"
     <![CDATA[
 appendTextIfMissing() {
   FILE="$1" TEXT="$2"
@@ -749,8 +749,8 @@ upgradepkg --install-new --reinstall "${MAINTXZ}"
 # WARNING: failure here results in broken install
 [[ ! -f /usr/local/emhttp/plugins/dynamix.my.servers/scripts/gitflash_log ]] && echo "⚠️ files missing from main txz" && exit 1
 
-if [[ -n "$PR" && "$PR" != "" ]]; then
-  printf -v sedcmd 's@^\*\*Unraid Connect\*\*@**Unraid Connect PR #%s**@' "$PR"
+if [[ -n "$TAG" && "$TAG" != "" ]]; then
+  printf -v sedcmd 's@^\*\*Unraid Connect\*\*@**Unraid Connect (%s)**@' "$TAG"
   sed -i "${sedcmd}" "/usr/local/emhttp/plugins/dynamix.unraid.net/README.md"
 elif [[ "$PLGTYPE" == "staging" ]]; then
   sed -i "s@^\*\*Unraid Connect\*\*@**Unraid Connect (staging)**@" "/usr/local/emhttp/plugins/dynamix.unraid.net/README.md"

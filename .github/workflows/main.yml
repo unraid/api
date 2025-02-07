@@ -221,11 +221,16 @@ jobs:
           pattern: unraid-wc-*
           path: ./plugin/source/dynamix.unraid.net/usr/local/emhttp/plugins/dynamix.my.servers/unraid-components
           merge-multiple: true
+      - name: Download Unraid API
+        uses: actions/download-artifact@v4
+        with:
+          name: unraid-api
+          path: ./plugin/source/dynamix.unraid.net/usr/local/unraid-api
       - name: Build Plugin
         run: |
           echo "API_VERSION=${{needs.build-test-api.outputs.API_VERSION}}" > .env
           echo "API_SHA256=${{needs.build-test-api.outputs.API_SHA256}}" >> .env
-          echo "PR=${{ github.event.pull_request.number }}" >> .env
+          echo "TAG=PR${{ github.event.pull_request.number }}" >> .env
           npm run start
       - name: Upload binary txz and plg to Github artifacts
         uses: actions/upload-artifact@v4
@@ -248,12 +253,6 @@ jobs:
 
       - name: Make PR Release Folder
         run: mkdir pr-release/
-
-      - name: Download unraid-api binary tgz
-        uses: actions/download-artifact@v4
-        with:
-          name: unraid-api
-          path: pr-release
 
       - name: Download plugin binary tgz
         uses: actions/download-artifact@v4
@@ -302,12 +301,6 @@ jobs:
       - name: Make Staging Release Folder
         run: mkdir staging-release/
 
-      - name: Download unraid-api binary tgz
-        uses: actions/download-artifact@v4
-        with:
-          name: unraid-api
-          path: staging-release
-
       - name: Download plugin binary tgz
         uses: actions/download-artifact@v4
         with:
@@ -340,11 +333,6 @@ jobs:
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
-
-      - name: Download unraid-api binary tgz
-        uses: actions/download-artifact@v4
-        with:
-          name: unraid-api
 
       - name: Download plugin binary tgz
         uses: actions/download-artifact@v4

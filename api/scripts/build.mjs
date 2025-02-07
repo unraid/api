@@ -72,7 +72,7 @@ try {
 
     await cd('./deploy/pre-pack');
 
-    await $`npm install --omit=dev`;
+    await $`npm install --omit=dev --no-bin-links`;
 
     // Ensure that we don't have any dev dependencies left
     console.log('Installed dependencies:');
