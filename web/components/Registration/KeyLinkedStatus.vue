@@ -29,7 +29,7 @@ defineProps<{
     >
       <Badge
         v-if="keyLinkedOutput"
-        :color="keyLinkedOutput.color"
+        :variant="keyLinkedOutput.variant"
         :icon="keyLinkedOutput.icon"
         :icon-right="ArrowPathIcon"
         size="md"
@@ -37,7 +37,7 @@ defineProps<{
         {{ t(keyLinkedOutput.text ?? 'Unknown') }}
       </Badge>
     </BrandButton>
-    <Badge v-else :color="keyLinkedOutput.color" :icon="keyLinkedOutput.icon" size="md">
+    <Badge v-else :variant="keyLinkedOutput.variant" :icon="keyLinkedOutput.icon" size="md">
       {{ t(keyLinkedOutput.text ?? 'Unknown') }}
     </Badge>
 

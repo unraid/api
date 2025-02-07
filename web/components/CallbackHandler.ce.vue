@@ -1,7 +1,4 @@
 <script setup lang="ts">
-import 'tailwindcss/tailwind.css';
-import '~/assets/main.css';
-
 import { useCallbackStore } from '~/store/callbackActions';
 
 const callbackStore = useCallbackStore();
@@ -16,7 +13,7 @@ onBeforeMount(() => {
 </template>
 
 <style lang="postcss">
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+/* Import unraid-ui globals first */
+@import '@unraid/ui/styles';
+@import '../../assets/main.css';
 </style>

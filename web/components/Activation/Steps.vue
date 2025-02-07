@@ -1,19 +1,20 @@
 <script setup lang="ts">
-import {
-  Stepper,
-  StepperDescription,
-  StepperItem,
-  StepperSeparator,
-  StepperTitle,
-  StepperTrigger,
-} from '@/components/shadcn/stepper';
 import { CheckIcon, KeyIcon, ServerStackIcon } from '@heroicons/vue/24/outline';
 import {
   KeyIcon as KeyIconSolid,
   LockClosedIcon,
   ServerStackIcon as ServerStackIconSolid,
 } from '@heroicons/vue/24/solid';
-import { Button } from '@unraid/ui';
+import {
+  Button,
+  Stepper,
+  StepperDescription,
+  StepperItem,
+  StepperSeparator,
+  StepperTitle,
+  StepperTrigger,
+} from '@unraid/ui';
+
 import type { Component } from 'vue';
 
 type StepState = 'inactive' | 'active' | 'completed';

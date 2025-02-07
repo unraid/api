@@ -40,6 +40,14 @@ import {
   SheetTitle,
   SheetTrigger,
 } from '@/components/common/sheet';
+import {
+  Stepper,
+  StepperDescription,
+  StepperItem,
+  StepperSeparator,
+  StepperTitle,
+  StepperTrigger,
+} from '@/components/common/stepper';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/common/tabs';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/common/tooltip';
 import { Input } from '@/components/form/input';
@@ -121,6 +129,12 @@ export {
   SheetTitle,
   SheetTrigger,
   Spinner,
+  Stepper,
+  StepperDescription,
+  StepperItem,
+  StepperSeparator,
+  StepperTitle,
+  StepperTrigger,
   Switch,
   SwitchHeadlessUI,
   tailwindConfig,

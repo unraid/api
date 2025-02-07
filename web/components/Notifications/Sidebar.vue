@@ -94,7 +94,7 @@ const readArchivedCount = computed(() => {
       <NotificationsIndicator :overview="overview" :seen="haveSeenNotifications" />
     </SheetTrigger>
     <SheetContent
-      :to="teleportTarget"
+      :to="teleportTarget as HTMLElement"
       class="w-full max-w-[100vw] sm:max-w-[540px] max-h-screen h-screen min-h-screen px-0 flex flex-col gap-5 pb-0"
     >
       <div class="relative flex flex-col h-full w-full">
@@ -144,7 +144,7 @@ const readArchivedCount = computed(() => {
 
             <Select
               @update:model-value="
-                (val) => {
+                (val: string) => {
                   importance = val === 'all' ? undefined : (val as Importance);
                 }
               "
