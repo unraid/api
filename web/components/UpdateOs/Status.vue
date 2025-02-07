@@ -44,6 +44,8 @@ const serverStore = useServerStore();
 const updateOsStore = useUpdateOsStore();
 const updateOsActionsStore = useUpdateOsActionsStore();
 
+const LoadingIcon = () => h(BrandLoading, { variant: 'white' });
+
 const { dateTimeFormat, osVersion, rebootType, rebootVersion, regExp, regUpdatesExpired } =
   storeToRefs(serverStore);
 const { available, availableWithRenewal } = storeToRefs(updateOsStore);
@@ -154,11 +156,7 @@ const checkButton = computed((): BrandButtonProps => {
           {{ t('Key ineligible for {0}', [availableWithRenewal]) }}
         </Badge>
 
-        <Badge
-          v-if="status === 'checking'"
-          variant="orange"
-          :icon="() => h(BrandLoading, { variant: 'white' })"
-        >
+        <Badge v-if="status === 'checking'" variant="orange" :icon="LoadingIcon">
           {{ t('Checking...') }}
         </Badge>
         <template v-else>

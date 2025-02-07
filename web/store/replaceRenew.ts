@@ -4,6 +4,9 @@
  * New key replacement, should happen also on server side.
  * Cron to run hourly, check on how many days are left until regExp…within X days then allow request to be done
  */
+import { h } from 'vue';
+import { createPinia, defineStore, setActivePinia } from 'pinia';
+
 import {
   CheckCircleIcon,
   ExclamationCircleIcon,
@@ -11,20 +14,20 @@ import {
   XCircleIcon,
 } from '@heroicons/vue/24/solid';
 import { BrandLoading } from '@unraid/ui';
+
 import type { BadgeProps } from '@unraid/ui';
 import type {
   // type KeyLatestResponse,
   ValidateGuidResponse,
 } from '~/composables/services/keyServer';
+import type { WretchError } from 'wretch';
+
 import {
   // keyLatest,
   validateGuid,
 } from '~/composables/services/keyServer';
 // import { useCallbackStore } from '~/store/callbackActions';
 import { useServerStore } from '~/store/server';
-import { createPinia, defineStore, setActivePinia } from 'pinia';
-import { h } from 'vue';
-import type { WretchError } from 'wretch';
 
 /**
  * @see https://stackoverflow.com/questions/73476371/using-pinia-with-vue-js-web-components
@@ -40,6 +43,8 @@ interface CachedValidationResponse extends ValidateGuidResponse {
   key: string;
   timestamp: number;
 }
+
+const BrandLoadingIcon = () => h(BrandLoading, { variant: 'white' });
 
 export const REPLACE_CHECK_LOCAL_STORAGE_KEY = 'unraidReplaceCheck';
 
@@ -68,7 +73,7 @@ export const useReplaceRenewStore = defineStore('replaceRenewCheck', () => {
       case 'checking':
         return {
           variant: 'gray',
-          icon: () => h(BrandLoading, { variant: 'white' }),
+          icon: BrandLoadingIcon,
           text: 'Checking...',
         };
       case 'linked':
@@ -116,7 +121,7 @@ export const useReplaceRenewStore = defineStore('replaceRenewCheck', () => {
       case 'checking':
         return {
           variant: 'gray',
-          icon: () => h(BrandLoading, { variant: 'white' }),
+          icon: BrandLoadingIcon,
           text: 'Checking...',
         };
       case 'eligible':
