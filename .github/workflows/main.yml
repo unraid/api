@@ -53,7 +53,7 @@ jobs:
 
       - name: Install Build Packages using Apt
         run: |
-          apt-get update -y && apt-get install -y \
+          sudo apt-get update -y && sudo apt-get install -y \
           bash \
           procps \ 
           python3 \
