@@ -8,15 +8,21 @@ import { escape as escapeHtml } from "html-sloppy-escaper";
 import { existsSync } from "fs";
 import { format as formatDate } from "date-fns";
 import { setupEnvironment } from "./setup-environment";
+import { dirname } from "node:path";
 const pluginName = "dynamix.unraid.net" as const;
 const startingDir = process.cwd();
+
+const validatedEnv = await setupEnvironment(startingDir);
+
 const BASE_URLS = {
   STABLE: "https://stable.dl.unraid.net/unraid-api",
   PREVIEW: "https://preview.dl.unraid.net/unraid-api",
+  ...(validatedEnv.LOCAL_FILESERVER_URL
+    ? { LOCAL: validatedEnv.LOCAL_FILESERVER_URL }
+    : {}),
 } as const;
 
 // Setup environment variables
-const validatedEnv = await setupEnvironment(startingDir);
 // Ensure that git is available
 
 try {
@@ -74,6 +80,11 @@ const validateSourceDir = async () => {
   if (webcomponents.length === 1 && webcomponents[0] === ".gitkeep") {
     throw new Error(`No webcomponents found in ${webcomponentDir}`);
   }
+  // Check for the existence of "ui.manifest.json" as well as "manifest.json" in webcomponents
+  if (!webcomponents.includes("ui.manifest.json") || !webcomponents.includes("manifest.json")) {
+    throw new Error(`Webcomponents must contain both "ui.manifest.json" and "manifest.json"`);
+  }
+
 
   const apiDir = join(
     startingDir,
@@ -90,7 +101,7 @@ const buildTxz = async (
   txzName: string;
   txzSha256: string;
 }> => {
-  if (validatedEnv.SKIP_VALIDATION !== "true") {
+  if (validatedEnv.SKIP_VALIDATION !== "true" || validatedEnv.LOCAL_FILESERVER_URL) {
     await validateSourceDir();
   }
 
@@ -187,7 +198,7 @@ const buildPlugin = async ({
   pr = "",
   apiVersion,
 }: {
-  type: "staging" | "pr" | "production";
+  type: "staging" | "pr" | "production" | "local";
   txzSha256: string;
   txzName: string;
   version: string;
@@ -199,30 +210,32 @@ const buildPlugin = async ({
   const newPluginFile = join(
     startingDir,
     "/deploy/release/plugins/",
-    `${pluginName}${type === "production" ? "" : `.${type}`}.plg`
+    type,
+    `${pluginName}.plg`
   );
 
   // Define URLs
   let PLUGIN_URL = "";
   let MAIN_TXZ = "";
-  let API_TGZ = "";
   let RELEASE_NOTES: string | null = null;
   switch (type) {
     case "production":
       PLUGIN_URL = `${BASE_URLS.STABLE}/${pluginName}.plg`;
       MAIN_TXZ = `${BASE_URLS.STABLE}/${txzName}`;
-      API_TGZ = `${BASE_URLS.STABLE}/unraid-api-${apiVersion}.tgz`;
       break;
     case "pr":
       PLUGIN_URL = `${BASE_URLS.PREVIEW}/pr/${pr}/${pluginName}.plg`;
       MAIN_TXZ = `${BASE_URLS.PREVIEW}/pr/${pr}/${txzName}`;
-      API_TGZ = `${BASE_URLS.PREVIEW}/pr/${pr}/unraid-api-${apiVersion}.tgz`;
       RELEASE_NOTES = await getStagingChangelogFromGit(apiVersion, pr);
       break;
     case "staging":
       PLUGIN_URL = `${BASE_URLS.PREVIEW}/${pluginName}.plg`;
       MAIN_TXZ = `${BASE_URLS.PREVIEW}/${txzName}`;
-      API_TGZ = `${BASE_URLS.PREVIEW}/unraid-api-${apiVersion}.tgz`;
+      RELEASE_NOTES = await getStagingChangelogFromGit(apiVersion);
+      break;
+    case "local":
+      PLUGIN_URL = `${BASE_URLS.LOCAL}/plugins/${type}/${pluginName}.plg`;
+      MAIN_TXZ = `${BASE_URLS.LOCAL}/archive/${txzName}`;
       RELEASE_NOTES = await getStagingChangelogFromGit(apiVersion);
       break;
   }
@@ -238,7 +251,6 @@ const buildPlugin = async ({
     pluginURL: PLUGIN_URL,
     SHA256: txzSha256,
     MAIN_TXZ: MAIN_TXZ,
-    API_TGZ: API_TGZ,
     PR: pr,
     API_version: apiVersion,
   };
@@ -259,6 +271,7 @@ const buildPlugin = async ({
     );
   }
 
+  await mkdir(dirname(newPluginFile), { recursive: true });
   await writeFile(newPluginFile, plgContent);
   console.log(`${type} plugin: ${newPluginFile}`);
 };
@@ -273,14 +286,8 @@ const main = async () => {
   const version = formatDate(new Date(), "yyyy.MM.dd.HHmm");
   console.log(`Version: ${version}`);
   const { txzSha256, txzName } = await buildTxz(version);
-  const { API_VERSION, PR } = validatedEnv;
-  await buildPlugin({
-    type: "staging",
-    txzSha256,
-    txzName,
-    version,
-    apiVersion: API_VERSION,
-  });
+  const { API_VERSION, PR, LOCAL_FILESERVER_URL } = validatedEnv;
+
   if (PR) {
     await buildPlugin({
       type: "pr",
@@ -291,6 +298,22 @@ const main = async () => {
       apiVersion: API_VERSION,
     });
   }
+  if (LOCAL_FILESERVER_URL) {
+    await buildPlugin({
+      type: "local",
+      txzSha256,
+      txzName,
+      version,
+      apiVersion: API_VERSION,
+    });
+  }
+  await buildPlugin({
+    type: "staging",
+    txzSha256,
+    txzName,
+    version,
+    apiVersion: API_VERSION,
+  });
   await buildPlugin({
     type: "production",
     txzSha256,

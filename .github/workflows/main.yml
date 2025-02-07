@@ -232,7 +232,7 @@ jobs:
         with:
           name: connect-files
           path: |
-            plugin/deploy/release/plugins/*.plg
+            plugin/deploy/release/plugins/
             plugin/deploy/release/archive/*.txz
           retention-days: 5
           if-no-files-found: error
@@ -263,7 +263,7 @@ jobs:
       - name: Copy other release files to pr-release
         run: |
           cp archive/*.txz pr-release/
-          cp plugins/dynamix.unraid.net.pr.plg pr-release/dynamix.unraid.net.plg
+          cp plugins/pr/dynamix.unraid.net.plg pr-release/dynamix.unraid.net.plg
 
       - name: Upload to Cloudflare
         uses: jakejarvis/s3-sync-action@v0.5.1
@@ -316,7 +316,7 @@ jobs:
       - name: Copy Files for Staging Release
         run: |
           cp archive/*.txz staging-release/
-          cp plugins/dynamix.unraid.net.staging.plg staging-release/dynamix.unraid.net.plg
+          cp plugins/staging/dynamix.unraid.net.plg staging-release/dynamix.unraid.net.plg
           ls -al staging-release
 
       - name: Upload Staging Plugin to Cloudflare Bucket
@@ -355,7 +355,7 @@ jobs:
         run: |
           mkdir -p release/
           mv unraid-api-*.tgz release/
-          mv plugins/dynamix.unraid.net.plg release/
+          mv plugins/production/dynamix.unraid.net.plg release/
           mv archive/* release/
 
       - name: Create Github release

@@ -18,6 +18,7 @@ const envSchema = z.object({
     .optional()
     .default("false")
     .refine((v) => v === "true" || v === "false", "Must be true or false"),
+  LOCAL_FILESERVER_URL: z.string().url().optional(),
 });
 
 type Env = z.infer<typeof envSchema>;
@@ -44,14 +45,24 @@ export const setupEnvironment = async (
       ...(await getLocalEnvironmentVariablesFromApiFolder()),
     }
   );
+  let shouldWait = false;
 
   if (validatedEnv.SKIP_VALIDATION == "true") {
     console.warn("SKIP_VALIDATION is true, skipping validation");
-    await wait(1000);
+    shouldWait = true;
   }
 
   if (validatedEnv.PR) {
     console.warn("PR is set, will generate a PR build");
+    shouldWait = true;
+  }
+
+  if (validatedEnv.LOCAL_FILESERVER_URL) {
+    console.warn("LOCAL_FILESERVER_URL is set, will generate a local build");
+    shouldWait = true;
+  }
+
+  if (shouldWait) {
     await wait(1000);
   }
 
