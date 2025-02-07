@@ -246,7 +246,7 @@ const buildPlugin = async ({
     case "local":
       PLUGIN_URL = `${BASE_URLS.LOCAL}/plugins/${type}/${pluginName}.plg`;
       MAIN_TXZ = `${BASE_URLS.LOCAL}/archive/${txzName}`;
-      RELEASE_NOTES = await getStagingChangelogFromGit(apiVersion);
+      RELEASE_NOTES = await getStagingChangelogFromGit(apiVersion, tag);
       break;
   }
 
