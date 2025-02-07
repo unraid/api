@@ -55,6 +55,10 @@ jobs:
         with:
           packages: bash procps python3 libvirt-dev jq zstd git build-essential
           version: 1.0
+
+      - name: NPM Install
+        run: npm install
+
       - name: Lint
         run: npm run lint
 
