@@ -201,20 +201,15 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      - name: Build with Buildx
-        uses: docker/setup-buildx-action@v3
+      - name: Install node
+        uses: actions/setup-node@v4
         with:
-          install: true
-          platforms: linux/amd64
-      - name: Build Builder
-        uses: docker/build-push-action@v6
-        with:
-          context: ./plugin
-          push: false
-          tags: plugin-builder:latest
-          cache-from: type=gha,ref=plugin-builder:latest
-          cache-to: type=gha,mode=max,ref=plugin-builder:latest
-          load: true
+          cache: "npm"
+          cache-dependency-path: |
+            plugin/package-lock.json
+          node-version-file: ".nvmrc"
+      - name: Install dependencies
+        run: npm ci
       - name: Download Unraid Web Components
         uses: actions/download-artifact@v4
         with:
@@ -231,7 +226,7 @@ jobs:
           echo "API_VERSION=${{needs.build-test-api.outputs.API_VERSION}}" > .env
           echo "API_SHA256=${{needs.build-test-api.outputs.API_SHA256}}" >> .env
           echo "TAG=PR${{ github.event.pull_request.number }}" >> .env
-          npm run start
+          npm run build:validate
       - name: Upload binary txz and plg to Github artifacts
         uses: actions/upload-artifact@v4
         with:
