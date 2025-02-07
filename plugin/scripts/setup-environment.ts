@@ -11,7 +11,6 @@ const envSchema = z.object({
   }, "Must be a valid semver version"),
   TAG: z
     .string()
-    .refine((v) => v ? /^[a-zA-Z0-9]+$/.test(v) : true, "Tag must contain only alphanumeric characters")
     .optional(),
   SKIP_VALIDATION: z
     .string()

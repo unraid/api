@@ -40,60 +40,47 @@ jobs:
     defaults:
       run:
         working-directory: api
-    outputs:
-      API_VERSION: ${{ steps.vars.outputs.API_VERSION }}
-      API_MD5: ${{ steps.set-hashes.outputs.API_MD5 }}
-      API_SHA256: ${{ steps.set-hashes.outputs.API_SHA256 }}
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
-      - name: Build with Buildx
-        uses: docker/setup-buildx-action@v3
+      - name: Install Node
+        uses: actions/setup-node@v4
         with:
-          install: true
-          platforms: linux/amd64
-      - name: Build Builder
-        uses: docker/build-push-action@v6
-        with:
-          context: ./api
-          push: false
-          tags: builder:latest
-          cache-from: type=gha,ref=builder:latest
-          cache-to: type=gha,mode=max,ref=builder:latest
-          load: true
-      - name: Lint inside of the docker container
-        continue-on-error: false
-        run: |
-          docker run --rm builder npm run lint
+          cache: "npm"
+          cache-dependency-path: |
+            api/package-lock.json
+          node-version-file: "api/.nvmrc"
 
-      - name: Test inside of the docker container
+      - name: Install Build Packages using Apt
         run: |
-          git fetch --depth=2 origin main
-          if git diff --name-only --relative=api origin/main HEAD | grep -q '.'; then
-            docker run --rm builder npm run coverage
-          else
-            echo "No changes in /api folder, skipping coverage."
-          fi
+          apt-get update -y && apt-get install -y \
+          bash \
+          procps \ 
+          python3 \
+          libvirt-dev \
+          jq \
+          zstd \
+          git \
+          build-essential
+      - name: Lint
+        run: npm run lint
+
+      - name: Test
+        run: npm run coverage
+
+      - name: Build
+        run: npm run build
+
       - name: Get Git Short Sha and API version
         id: vars
         run: |
           GIT_SHA=$(git rev-parse --short HEAD)
           IS_TAGGED=$(git describe --tags --abbrev=0 --exact-match || echo '')
           PACKAGE_LOCK_VERSION=$(jq -r '.version' package-lock.json)
-          echo "GIT_SHA=$GIT_SHA" >> $GITHUB_OUTPUT
-          echo "IS_TAGGED=$IS_TAGGED" >> $GITHUB_OUTPUT
-          echo "PACKAGE_LOCK_VERSION=$PACKAGE_LOCK_VERSION" >> $GITHUB_OUTPUT
-          echo "API_VERSION=$([[ -n "$IS_TAGGED" ]] && echo "$PACKAGE_LOCK_VERSION" || echo "${PACKAGE_LOCK_VERSION}+${GIT_SHA}")" >> $GITHUB_OUTPUT
-      - name: Build inside of the docker container
-        id: build-pack-binary
-        run: |
-          docker run --rm -v ${{ github.workspace }}/api/deploy/release:/app/deploy/release -e API_VERSION=${{ steps.vars.outputs.API_VERSION }} builder npm run build-and-pack
-
-      - name: Set Hashes
-        id: set-hashes
-        run: |
-          echo "API_MD5=$(md5sum ${{ github.workspace }}/api/deploy/release/*.tgz | awk '{ print $1 }')" >> $GITHUB_OUTPUT
-          echo "API_SHA256=$(sha256sum ${{ github.workspace }}/api/deploy/release/*.tgz | awk '{ print $1 }')" >> $GITHUB_OUTPUT
+          API_VERSION=$([[ -n "$IS_TAGGED" ]] && echo "$PACKAGE_LOCK_VERSION" || echo "${PACKAGE_LOCK_VERSION}+${GIT_SHA}")
+          export API_VERSION
+      - name: Build
+        run: npm run build-and-pack
 
       - name: Upload tgz to Github artifacts
         uses: actions/upload-artifact@v4
@@ -224,9 +211,9 @@ jobs:
       - name: Build Plugin
         run: |
           cd ${{ github.workspace }}/plugin
-          echo "API_VERSION=${{needs.build-test-api.outputs.API_VERSION}}" > .env
-          echo "API_SHA256=${{needs.build-test-api.outputs.API_SHA256}}" >> .env
-          echo "TAG=PR${{ github.event.pull_request.number }}" >> .env
+          if [ -n "${{ github.event.pull_request.number }}" ]; then
+            echo "TAG=PR${{ github.event.pull_request.number }}" >> .env
+          fi
           npm run build:validate
       - name: Upload binary txz and plg to Github artifacts
         uses: actions/upload-artifact@v4
