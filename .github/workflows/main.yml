@@ -223,6 +223,7 @@ jobs:
           path: ./plugin/source/dynamix.unraid.net/usr/local/unraid-api
       - name: Build Plugin
         run: |
+          cd ${{ github.workspace }}/plugin
           echo "API_VERSION=${{needs.build-test-api.outputs.API_VERSION}}" > .env
           echo "API_SHA256=${{needs.build-test-api.outputs.API_SHA256}}" >> .env
           echo "TAG=PR${{ github.event.pull_request.number }}" >> .env
