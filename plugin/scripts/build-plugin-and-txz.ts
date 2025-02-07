@@ -2,34 +2,12 @@ import { execSync } from "child_process";
 import { cp, readFile, writeFile, mkdir, readdir } from "fs/promises";
 import { basename, join } from "path";
 import { createHash } from "node:crypto";
-import { $, cd, dotenv } from "zx";
-import { z } from "zod";
+import { $, cd } from "zx";
 import conventionalChangelog from "conventional-changelog";
 import { escape as escapeHtml } from "html-sloppy-escaper";
-import { parse } from "semver";
 import { existsSync } from "fs";
 import { format as formatDate } from "date-fns";
-
-const envSchema = z.object({
-  API_VERSION: z.string().refine((v) => {
-    return parse(v) ?? false;
-  }, "Must be a valid semver version"),
-  API_SHA256: z.string().regex(/^[a-f0-9]{64}$/),
-  PR: z
-    .string()
-    .optional()
-    .refine((v) => !v || /^\d+$/.test(v), "Must be a valid PR number"),
-  SKIP_SOURCE_VALIDATION: z
-    .string()
-    .optional()
-    .default("false")
-    .refine((v) => v === "true" || v === "false", "Must be true or false"),
-});
-
-type Env = z.infer<typeof envSchema>;
-
-const validatedEnv = envSchema.parse(dotenv.config() as Env);
-
+import { setupEnvironment } from "./setup-environment";
 const pluginName = "dynamix.unraid.net" as const;
 const startingDir = process.cwd();
 const BASE_URLS = {
@@ -37,7 +15,10 @@ const BASE_URLS = {
   PREVIEW: "https://preview.dl.unraid.net/unraid-api",
 } as const;
 
+// Setup environment variables
+const validatedEnv = await setupEnvironment(startingDir);
 // Ensure that git is available
+
 try {
   await $`git log -1 --pretty=%B`;
 } catch (err) {
@@ -93,6 +74,14 @@ const validateSourceDir = async () => {
   if (webcomponents.length === 1 && webcomponents[0] === ".gitkeep") {
     throw new Error(`No webcomponents found in ${webcomponentDir}`);
   }
+
+  const apiDir = join(
+    startingDir,
+    "source/dynamix.unraid.net/usr/local/unraid-api/package.json"
+  );
+  if (!existsSync(apiDir)) {
+    throw new Error(`API directory ${apiDir} does not exist`);
+  }
 };
 
 const buildTxz = async (
@@ -101,9 +90,10 @@ const buildTxz = async (
   txzName: string;
   txzSha256: string;
 }> => {
-  if (validatedEnv.SKIP_SOURCE_VALIDATION !== "true") {
+  if (validatedEnv.SKIP_VALIDATION !== "true") {
     await validateSourceDir();
   }
+
   const txzName = `${pluginName}-${version}.txz`;
   const txzPath = join(startingDir, "deploy/release/archive", txzName);
   const prePackDir = join(startingDir, "deploy/pre-pack");
@@ -139,11 +129,13 @@ const buildTxz = async (
     .digest("hex");
   console.log(`TXZ SHA256: ${sha256}`);
 
-  try {
-    await $`${join(startingDir, "scripts/explodepkg")} "${txzPath}"`;
-  } catch (err) {
-    console.error(`Error: invalid txz package created: ${txzPath}`);
-    process.exit(1);
+  if (validatedEnv.SKIP_VALIDATION !== "true") {
+    try {
+      await $`${join(startingDir, "scripts/explodepkg")} "${txzPath}"`;
+    } catch (err) {
+      console.error(`Error: invalid txz package created: ${txzPath}`);
+      process.exit(1);
+    }
   }
 
   return { txzSha256: sha256, txzName };
@@ -194,7 +186,6 @@ const buildPlugin = async ({
   version,
   pr = "",
   apiVersion,
-  apiSha256,
 }: {
   type: "staging" | "pr" | "production";
   txzSha256: string;
@@ -202,7 +193,6 @@ const buildPlugin = async ({
   version: string;
   pr?: string;
   apiVersion: string;
-  apiSha256: string;
 }) => {
   const rootPlgFile = join(startingDir, "/plugins/", `${pluginName}.plg`);
   // Set up paths
@@ -251,7 +241,6 @@ const buildPlugin = async ({
     API_TGZ: API_TGZ,
     PR: pr,
     API_version: apiVersion,
-    API_SHA256: apiSha256,
   };
 
   // Iterate over entities and update them
@@ -284,14 +273,13 @@ const main = async () => {
   const version = formatDate(new Date(), "yyyy.MM.dd.HHmm");
   console.log(`Version: ${version}`);
   const { txzSha256, txzName } = await buildTxz(version);
-  const { API_VERSION, API_SHA256, PR } = validatedEnv;
+  const { API_VERSION, PR } = validatedEnv;
   await buildPlugin({
     type: "staging",
     txzSha256,
     txzName,
     version,
     apiVersion: API_VERSION,
-    apiSha256: API_SHA256,
   });
   if (PR) {
     await buildPlugin({
@@ -301,7 +289,6 @@ const main = async () => {
       version,
       pr: PR,
       apiVersion: API_VERSION,
-      apiSha256: API_SHA256,
     });
   }
   await buildPlugin({
@@ -310,7 +297,6 @@ const main = async () => {
     txzName,
     version,
     apiVersion: API_VERSION,
-    apiSha256: API_SHA256,
   });
 };
 

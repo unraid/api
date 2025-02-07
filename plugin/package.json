@@ -24,6 +24,13 @@
     "env:clean": "rm -f .env",
     "// Composite commands": "",
     "start": "npm run env:validate && npm run docker:build-and-run",
-    "test": "npm run env:init && npm run start && npm run env:clean"
+    "test": "npm run env:init && npm run start && npm run env:clean",
+    "// Watchers for Other Changes": "",
+    "wc:watch": "cpx -w -C -v \"../web/.nuxt/nuxt-custom-elements/dist/unraid-components/**/*\" ./source/dynamix.unraid.net/usr/local/emhttp/plugins/dynamix.my.servers/unraid-components",
+    "api:watch": "cpx -w -C -v \"../api/deploy/pre-pack/**/*\" ./source/dynamix.unraid.net/usr/local/unraid-api",
+    "watch:all": "npm run wc:watch & npm run api:watch"
+  },
+  "devDependencies": {
+    "cpx2": "^8.0.0"
   }
 }
