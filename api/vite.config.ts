@@ -145,14 +145,12 @@ export default defineConfig(({ mode }): ViteUserConfig => {
             },
             clearMocks: true,
             setupFiles: [
+                'dotenv/config',
                 'reflect-metadata',
                 'src/__test__/setup/env-setup.ts',
                 'src/__test__/setup/keyserver-mock.ts',
             ],
             exclude: ['**/deploy/**', '**/node_modules/**'],
-            env: {
-                NODE_ENV: 'test',
-            },
         },
     };
 });
