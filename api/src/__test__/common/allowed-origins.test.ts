@@ -2,12 +2,12 @@ import { getAllowedOrigins } from '@app/common/allowed-origins';
 import { store } from '@app/store/index';
 import { loadConfigFile } from '@app/store/modules/config';
 import { loadStateFiles } from '@app/store/modules/emhttp';
+
 import 'reflect-metadata';
 
 import { expect, test } from 'vitest';
 
 test('Returns allowed origins', async () => {
-
     // Load state files into store
     await store.dispatch(loadStateFiles());
     await store.dispatch(loadConfigFile());
