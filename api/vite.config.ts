@@ -137,6 +137,7 @@ export default defineConfig(({ mode }): ViteUserConfig => {
             },
         },
         test: {
+            isolate: false,
             poolOptions: {
                 threads: {
                     useAtomics: true,
@@ -148,7 +149,6 @@ export default defineConfig(({ mode }): ViteUserConfig => {
                     minForks: 8,
                 },
             },
-            pool: 'forks',
             maxConcurrency: 10,
             globals: true,
             coverage: {
