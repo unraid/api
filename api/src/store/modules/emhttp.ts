@@ -2,7 +2,7 @@ import { join } from 'path';
 
 import type { PayloadAction } from '@reduxjs/toolkit';
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
-import merge from 'lodash/merge';
+import { merge } from 'lodash-es';
 
 import type { RootState } from '@app/store';
 import type { StateFileToIniParserMap } from '@app/store/types';

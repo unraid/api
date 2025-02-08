@@ -43,41 +43,61 @@ jobs:
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
+
       - name: Install Node
         uses: actions/setup-node@v4
         with:
-          cache: "npm"
-          cache-dependency-path: |
-            api/package-lock.json
           node-version-file: "api/.nvmrc"
+
+      - uses: pnpm/action-setup@v4
+        name: Install pnpm
+        with:
+          version: 8
+          run_install: false
+
+      - name: Get pnpm store directory
+        id: pnpm-cache
+        shell: bash
+        run: |
+          echo "STORE_PATH=$(pnpm store path)" >> $GITHUB_OUTPUT
+
+      - uses: actions/cache@v4
+        name: Setup pnpm cache
+        with:
+          path: ${{ steps.pnpm-cache.outputs.STORE_PATH }}
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('api/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
+
       - name: Cache APT Packages
         uses: awalsh128/cache-apt-pkgs-action@v1.4.3
         with:
           packages: bash procps python3 libvirt-dev jq zstd git build-essential
           version: 1.0
 
-      - name: NPM Install
-        run: npm install
+      - name: PNPM Install
+        run: pnpm install
 
       - name: Lint
-        run: npm run lint
+        run: pnpm run lint
 
       - name: Test
-        run: npm run coverage
+        run: pnpm run coverage
 
       - name: Build
-        run: npm run build
+        run: pnpm run build
 
       - name: Get Git Short Sha and API version
         id: vars
         run: |
           GIT_SHA=$(git rev-parse --short HEAD)
           IS_TAGGED=$(git describe --tags --abbrev=0 --exact-match || echo '')
-          PACKAGE_LOCK_VERSION=$(jq -r '.version' package-lock.json)
+          PACKAGE_LOCK_VERSION=$(jq -r '.version' package.json)
           API_VERSION=$([[ -n "$IS_TAGGED" ]] && echo "$PACKAGE_LOCK_VERSION" || echo "${PACKAGE_LOCK_VERSION}+${GIT_SHA}")
           export API_VERSION
+          
       - name: Build
-        run: npm run build-and-pack
+        run: pnpm run build-and-pack
 
       - name: Upload tgz to Github artifacts
         uses: actions/upload-artifact@v4
@@ -211,6 +231,8 @@ jobs:
           if [ -n "${{ github.event.pull_request.number }}" ]; then
             echo "TAG=PR${{ github.event.pull_request.number }}" >> .env
           fi
+          echo "PWD: $(pwd)"
+          echo "ENV: $(cat .env)"
           npm run build:validate
       - name: Upload binary txz and plg to Github artifacts
         uses: actions/upload-artifact@v4

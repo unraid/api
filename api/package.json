@@ -6,6 +6,9 @@
     "repository": "git@github.com:unraid/api.git",
     "author": "Lime Technology, Inc. <unraid.net>",
     "license": "UNLICENSED",
+    "engines": {
+        "pnpm": ">=8.15.4"
+    },
     "scripts": {
         "start": "node dist/main.js",
         "build:docker": "./scripts/dc.sh run --rm builder",
@@ -23,11 +26,11 @@
         "coverage": "NODE_ENV=test vitest run --coverage",
         "release": "standard-version",
         "dev": "vite",
-        "command": "npm run build && clear && ./dist/cli.js",
+        "command": "pnpm run build && clear && ./dist/cli.js",
         "container:build": "./scripts/dc.sh build dev",
         "container:start": "./scripts/dc.sh run --rm --service-ports dev",
         "container:stop": "./scripts/dc.sh stop dev",
-        "container:test": "./scripts/dc.sh run --rm builder npm run test",
+        "container:test": "./scripts/dc.sh run --rm builder pnpm run test",
         "container:enter": "./scripts/dc.sh exec dev /bin/bash"
     },
     "files": [
@@ -180,11 +183,12 @@
         "zx": "^8.2.0"
     },
     "optionalDependencies": {
-        "@vmngr/libvirt": "github:unraid/libvirt"
+        "@vmngr/libvirt": "github:unraid/libvirt#os=linux"
     },
     "overrides": {
         "eslint": {
             "jiti": "2"
         }
-    }
+    },
+    "packageManager": "pnpm@8.15.4+sha512.0bd3a9be9eb0e9a692676deec00a303ba218ba279d99241475616b398dbaeedd11146f92c2843458f557b1d127e09d4c171e105bdcd6b61002b39685a8016b9e"
 }

@@ -20,12 +20,15 @@ WORKDIR /app
 # Set app env
 ENV NODE_ENV=development
 
+# Install pnpm
+RUN corepack enable && corepack prepare pnpm@8.15.4 --activate
+
 COPY tsconfig.json .eslintrc.ts .prettierrc.cjs .npmrc .env.production .env.staging ./
 
-COPY package.json package-lock.json ./
+COPY package.json pnpm-lock.yaml ./
 
 # Install deps
-RUN npm i
+RUN pnpm install
 
 EXPOSE 4000
 
@@ -39,4 +42,4 @@ ENV NODE_ENV=production
 
 COPY . .
 
-CMD ["npm", "run", "build-and-pack"]
+CMD ["pnpm", "run", "build-and-pack"]

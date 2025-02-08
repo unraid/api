@@ -22,9 +22,9 @@ try {
     await mkdir('./deploy/pre-pack', { recursive: true });
 
     // Build Generated Types
-    await $`npm run codegen`;
+    await $`pnpm run codegen`;
 
-    await $`npm run build`;
+    await $`pnpm run build`;
     // Copy app files to plugin directory
     await cp('./dist', './deploy/pre-pack/dist', { recursive: true });
 
@@ -72,24 +72,11 @@ try {
 
     await cd('./deploy/pre-pack');
 
-    await $`npm install --omit=dev --no-bin-links`;
+    await $`pnpm install --prod --no-optional`;
 
     // Ensure that we don't have any dev dependencies left
     console.log('Installed dependencies:');
-    await $`npm ls --depth=0`;
-
-    console.log('Dependencies installed, packing...');
-
-    // Now we'll pack everything in the pre-pack directory to the release directory
-    const tarballPath = `../release/unraid-api-${deploymentVersion}.tgz`;
-    await $`tar -czf ${tarballPath} .`;
-    // Ensure the tarball exists
-    if (!(await pathExists(tarballPath))) {
-        console.error(`Failed to create tarball at ${tarballPath}`);
-        process.exit(1);
-    }
-    const packageSize = Math.round((await stat(tarballPath)).size / 1024 / 1024);
-    console.log(`Package created at: ${tarballPath} with size ${packageSize} MB`);
+    await $`pnpm ls --depth=0`;
 } catch (error) {
     // Error with a command
     if (Object.keys(error).includes('stderr')) {

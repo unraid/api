@@ -1,4 +1,4 @@
-import isEqual from 'lodash/isEqual';
+import { isEqual } from 'lodash-es';
 
 import { minigraphLogger } from '@app/core/log';
 import { MinigraphStatus } from '@app/graphql/generated/api/types';
