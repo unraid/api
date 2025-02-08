@@ -1,24 +1,23 @@
 #!/usr/bin/env zx
-import { cp, mkdir, stat, writeFile } from 'fs/promises';
+import { cp, mkdir, readFile, writeFile } from 'fs/promises';
 import { exit } from 'process';
 
-import { pathExists } from 'fs-extra';
 import { $, cd } from 'zx';
 
-import { getDeploymentVersion } from './get-deployment-version.mjs';
+import { getDeploymentVersion } from './get-deployment-version.js';
+
+const callerDir = process.cwd();
+console.log('Caller directory:', callerDir);
 
 try {
-    // Enable colours in output
-    process.env.FORCE_COLOR = '1';
+    // Set working directory to caller location
+    cd(callerDir);
 
-    // Ensure we have the correct working directory
-    process.env.WORKDIR ??= process.env.PWD;
-    cd(process.env.WORKDIR);
+    await $`echo ${callerDir}`;
 
-    await $`rm -rf ./deploy/release/*`;
+
     await $`rm -rf ./deploy/pre-pack/*`;
     // Create deployment directories - ignore if they already exist
-    await mkdir('./deploy/release', { recursive: true });
     await mkdir('./deploy/pre-pack', { recursive: true });
 
     // Build Generated Types
@@ -43,11 +42,10 @@ try {
     }
 
     // Get package details
-    const { name, version, devDependencies, ...rest } = await import('../package.json', {
-        assert: { type: 'json' },
-    }).then((pkg) => pkg.default);
+    const packageJson = await readFile('./package.json', 'utf-8');
+    const { name, version, devDependencies, ...rest } = JSON.parse(packageJson);
 
-    const deploymentVersion = getDeploymentVersion(process.env, version);
+    const deploymentVersion = await getDeploymentVersion(process.env, version);
 
     // Create deployment package.json
     await writeFile(
@@ -72,7 +70,7 @@ try {
 
     await cd('./deploy/pre-pack');
 
-    await $`pnpm install --prod --no-optional`;
+    await $`pnpm install --prod`;
 
     // Ensure that we don't have any dev dependencies left
     console.log('Installed dependencies:');

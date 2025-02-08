@@ -19,18 +19,18 @@ WORKDIR /app
 
 # Set app env
 ENV NODE_ENV=development
+ENV PNPM_HOME="/pnpm"
+ENV PATH="$PNPM_HOME:$PATH"
 
 # Install pnpm
-RUN corepack enable && corepack prepare pnpm@8.15.4 --activate
+RUN corepack enable && corepack prepare pnpm@8.15.4 --activate && npm i -g npm@latest
 
-COPY tsconfig.json .eslintrc.ts .prettierrc.cjs .npmrc .env.production .env.staging ./
-
-COPY package.json pnpm-lock.yaml .npmrc ./
+COPY tsconfig.json .eslintrc.ts .prettierrc.cjs .npmrc .env.production .env.staging package.json pnpm-lock.yaml .npmrc ./
 
 # Install deps
-RUN pnpm install
+RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install
 
-EXPOSE 4000
+EXPOSE 3001
 
 ###########################################################
 # Builder Image
