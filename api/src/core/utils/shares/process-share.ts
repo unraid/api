@@ -1,5 +1,5 @@
 import type { DiskShare, Share, UserShare } from '@app/core/types/states/share';
-import { type ArrayDisk } from '@app/graphql/generated/api/types';
+import type { ArrayDisk } from '@app/graphql/generated/api/types';
 import { getters } from '@app/store';
 
 const processors = {

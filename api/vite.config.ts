@@ -143,7 +143,12 @@ export default defineConfig(({ mode }): ViteUserConfig => {
                     minThreads: 8,
                     maxThreads: 16,
                 },
+                forks: {
+                    maxForks: 16,
+                    minForks: 8,
+                },
             },
+            pool: 'forks',
             maxConcurrency: 10,
             globals: true,
             coverage: {

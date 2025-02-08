@@ -46,7 +46,7 @@ const initialState: SliceState = {
 };
 
 export const parsers: {
-    [K in StateFileKey]: () => Promise<StateFileToIniParserMap[K]>
+    [K in StateFileKey]: () => Promise<StateFileToIniParserMap[K]>;
 } = {
     [StateFileKey.var]: async () => (await import('@app/store/state-parsers/var')).parse,
     [StateFileKey.devs]: async () => (await import('@app/store/state-parsers/devices')).parse,
