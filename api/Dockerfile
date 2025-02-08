@@ -25,7 +25,7 @@ RUN corepack enable && corepack prepare pnpm@8.15.4 --activate
 
 COPY tsconfig.json .eslintrc.ts .prettierrc.cjs .npmrc .env.production .env.staging ./
 
-COPY package.json pnpm-lock.yaml ./
+COPY package.json pnpm-lock.yaml .npmrc ./
 
 # Install deps
 RUN pnpm install
