@@ -30,7 +30,7 @@
     "// Watchers for Other Changes": "",
     "wc:clean": "rm -r ./source/dynamix.unraid.net/usr/local/emhttp/plugins/dynamix.my.servers/unraid-components/*",
     "wc:watch": "cpx -w -v \"../web/.nuxt/nuxt-custom-elements/dist/unraid-components/**/*\" ./source/dynamix.unraid.net/usr/local/emhttp/plugins/dynamix.my.servers/unraid-components",
-    "api:watch": "cpx -w -C -v \"../api/deploy/pre-pack/**/*\" ./source/dynamix.unraid.net/usr/local/unraid-api",
+    "api:watch": "cpx -w -C -v \"../api/deploy/pack/**/*\" ./source/dynamix.unraid.net/usr/local/unraid-api",
     "ui:watch": "cpx -w -v \"../unraid-ui/dist/**/*\" ./source/dynamix.unraid.net/usr/local/emhttp/plugins/dynamix.my.servers/unraid-components", 
     "watch:all": "npm run wc:clean && npm run wc:watch & npm run api:watch & npm run ui:watch"
   },

@@ -1,80 +1,57 @@
 #!/usr/bin/env zx
-import { cp, mkdir, readFile, writeFile } from 'fs/promises';
+import { mkdir, readFile, rm, writeFile } from 'fs/promises';
 import { exit } from 'process';
 
 import { $, cd } from 'zx';
 
 import { getDeploymentVersion } from './get-deployment-version.js';
 
-const callerDir = process.cwd();
-console.log('Caller directory:', callerDir);
-
 try {
-    // Set working directory to caller location
-    cd(callerDir);
-
-    await $`echo ${callerDir}`;
-
-
-    await $`rm -rf ./deploy/pre-pack/*`;
-    // Create deployment directories - ignore if they already exist
-    await mkdir('./deploy/pre-pack', { recursive: true });
+    // Create release and pack directories
+    // Clean existing deploy folder
+    await rm('./deploy', { recursive: true });
+    await mkdir('./deploy/release', { recursive: true });
+    await mkdir('./deploy/pack', { recursive: true });
 
     // Build Generated Types
     await $`pnpm run codegen`;
 
     await $`pnpm run build`;
     // Copy app files to plugin directory
-    await cp('./dist', './deploy/pre-pack/dist', { recursive: true });
-
-    // Copy environment to deployment directory
-    const files = [
-        '.env.production',
-        '.env.staging',
-        'tsconfig.json',
-        'codegen.ts',
-        'ecosystem.config.json',
-        'vite.config.ts',
-    ];
-
-    for (const file of files) {
-        await cp(`./${file}`, `./deploy/pre-pack/${file}`);
-    }
 
     // Get package details
     const packageJson = await readFile('./package.json', 'utf-8');
-    const { name, version, devDependencies, ...rest } = JSON.parse(packageJson);
+    const parsedPackageJson = JSON.parse(packageJson);
 
-    const deploymentVersion = await getDeploymentVersion(process.env, version);
+    const deploymentVersion = await getDeploymentVersion(process.env, parsedPackageJson.version);
 
-    // Create deployment package.json
-    await writeFile(
-        './deploy/pre-pack/package.json',
-        JSON.stringify(
-            {
-                name,
-                version: deploymentVersion,
-                ...rest,
-            },
-            null,
-            2
-        )
-    );
-    // # Create final tgz
-    await cp('./README.md', './deploy/pre-pack/README.md');
-    // Install production dependencies
+    // Update the package.json version to the deployment version
+    parsedPackageJson.version = deploymentVersion;
 
-    console.log('Installing dependencies...');
-
+    // Create a temporary directory for packaging
+    await mkdir('./deploy/pack/', { recursive: true });
+    
+    await writeFile('./deploy/pack/package.json', JSON.stringify(parsedPackageJson, null, 4));
+    // Copy necessary files to the pack directory
+    await $`cp -r dist README.md .env.* ecosystem.config.json ./deploy/pack/`;
+    
+    // Change to the pack directory and install dependencies
+    cd('./deploy/pack');
+    
+    console.log('Installing production dependencies...');
     $.verbose = true;
-
-    await cd('./deploy/pre-pack');
-
     await $`pnpm install --prod`;
 
-    // Ensure that we don't have any dev dependencies left
-    console.log('Installed dependencies:');
-    await $`pnpm ls --depth=0`;
+    // chmod the cli
+    await $`chmod +x ./dist/cli.js`;
+    await $`chmod +x ./dist/main.js`;
+
+    // Create the tarball
+    await $`tar -czf ../release/unraid-api.tgz ./`;
+    
+    // Clean up
+    cd('..');
+
 } catch (error) {
     // Error with a command
     if (Object.keys(error).includes('stderr')) {

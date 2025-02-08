@@ -42,14 +42,6 @@
         "container:test": "./scripts/dc.sh run --rm builder pnpm run test",
         "container:enter": "./scripts/dc.sh exec dev /bin/bash"
     },
-    "files": [
-        ".env.staging",
-        ".env.production",
-        "ecosystem.config.json",
-        "README.md",
-        "src",
-        "node_modules/"
-    ],
     "bin": {
         "unraid-api": "dist/cli.js"
     },
