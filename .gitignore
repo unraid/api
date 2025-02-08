@@ -92,3 +92,6 @@ deploy/*
 !.env.example
 
 fb_keepalive
+
+# pnpm store
+.pnpm-store

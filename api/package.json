@@ -183,7 +183,7 @@
         "zx": "^8.2.0"
     },
     "optionalDependencies": {
-        "@vmngr/libvirt": "github:unraid/libvirt#os=linux"
+        "@vmngr/libvirt": "github:unraid/libvirt"
     },
     "overrides": {
         "eslint": {

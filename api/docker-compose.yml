@@ -1,26 +1,6 @@
 x-volumes: &volumes
   volumes:
-  - ./dev:/app/dev
-  - ./src:/app/src
-  - ./package.json:/app/package.json
-  - ./tsconfig.json:/app/tsconfig.json
-  - ./vite.config.ts:/app/vite.config.ts
-  - ./dist/:/app/dist/
-  - ./deploy/:/app/deploy/
-  - ./README.md:/app/README.md
-  - ./scripts/:/app/scripts/
-  - ../.git/:/app/.git/
-  - ./.env.production:/app/.env.production
-  - ./.env.staging:/app/.env.staging
-  - ./.env.test:/app/.env.test
-  - ./.env.development:/app/.env.development
-  - ./codegen.ts:/app/codegen.ts
-  - ./fix-array-type.cjs:/app/fix-array-type.cjs
-  - /var/run/docker.sock:/var/run/docker.sock
-  - ./unraid-api.js:/app/unraid-api.js
-  - ./ecosystem.config.json:/app/ecosystem.config.json
-  - type: volume
-    target: /app/.pnpm-store
+  - ./:/app
 
 services:
 
