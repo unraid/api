@@ -137,6 +137,14 @@ export default defineConfig(({ mode }): ViteUserConfig => {
             },
         },
         test: {
+            poolOptions: {
+                threads: {
+                    useAtomics: true,
+                    minThreads: 8,
+                    maxThreads: 16,
+                },
+            },
+            maxConcurrency: 10,
             globals: true,
             coverage: {
                 all: true,
