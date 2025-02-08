@@ -18,7 +18,7 @@
         "tsc": "tsc --noEmit",
         "lint": "eslint --config .eslintrc.ts src/",
         "lint:fix": "eslint --fix --config .eslintrc.ts src/",
-        "test:watch": "NODE_ENV=test vitest",
+        "test:watch": "NODE_ENV=test vitest --ui",
         "test": "NODE_ENV=test vitest run",
         "coverage": "NODE_ENV=test vitest run --coverage",
         "release": "standard-version",

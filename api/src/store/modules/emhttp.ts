@@ -17,15 +17,6 @@ import { type Users } from '@app/core/types/states/user';
 import { type Var } from '@app/core/types/states/var';
 import { parseConfig } from '@app/core/utils/misc/parse-config';
 import { type ArrayDisk } from '@app/graphql/generated/api/types';
-import { parse as parseDevices } from '@app/store/state-parsers/devices';
-import { parse as parseNetwork } from '@app/store/state-parsers/network';
-import { parse as parseNfsShares } from '@app/store/state-parsers/nfs';
-import { parse as parseNginx } from '@app/store/state-parsers/nginx';
-import { parse as parseShares } from '@app/store/state-parsers/shares';
-import { parse as parseSlots } from '@app/store/state-parsers/slots';
-import { parse as parseSmbShares } from '@app/store/state-parsers/smb';
-import { parse as parseUsers } from '@app/store/state-parsers/users';
-import { parse as parseVar } from '@app/store/state-parsers/var';
 import { FileLoadStatus, StateFileKey } from '@app/store/types';
 
 export type SliceState = {
@@ -54,26 +45,28 @@ const initialState: SliceState = {
     nfsShares: [],
 };
 
-export const parsers: StateFileToIniParserMap = {
-    [StateFileKey.var]: parseVar,
-    [StateFileKey.devs]: parseDevices,
-    [StateFileKey.network]: parseNetwork,
-    [StateFileKey.nginx]: parseNginx,
-    [StateFileKey.shares]: parseShares,
-    [StateFileKey.disks]: parseSlots,
-    [StateFileKey.users]: parseUsers,
-    [StateFileKey.sec]: parseSmbShares,
-    [StateFileKey.sec_nfs]: parseNfsShares,
+export const parsers: {
+    [K in StateFileKey]: () => Promise<StateFileToIniParserMap[K]>
+} = {
+    [StateFileKey.var]: async () => (await import('@app/store/state-parsers/var')).parse,
+    [StateFileKey.devs]: async () => (await import('@app/store/state-parsers/devices')).parse,
+    [StateFileKey.network]: async () => (await import('@app/store/state-parsers/network')).parse,
+    [StateFileKey.nginx]: async () => (await import('@app/store/state-parsers/nginx')).parse,
+    [StateFileKey.shares]: async () => (await import('@app/store/state-parsers/shares')).parse,
+    [StateFileKey.disks]: async () => (await import('@app/store/state-parsers/slots')).parse,
+    [StateFileKey.users]: async () => (await import('@app/store/state-parsers/users')).parse,
+    [StateFileKey.sec]: async () => (await import('@app/store/state-parsers/smb')).parse,
+    [StateFileKey.sec_nfs]: async () => (await import('@app/store/state-parsers/nfs')).parse,
 };
 
-const getParserFunction = (parser: StateFileKey): StateFileToIniParserMap[StateFileKey] =>
-    parsers[parser];
+const getParserFunction = async (parser: StateFileKey): Promise<StateFileToIniParserMap[StateFileKey]> =>
+    await parsers[parser]();
 
-const parseState = <T extends StateFileKey, Q = ReturnType<StateFileToIniParserMap[T]> | null>(
+const parseState = async <T extends StateFileKey, Q = ReturnType<StateFileToIniParserMap[T]> | null>(
     statesDirectory: string,
     parser: T,
     defaultValue?: NonNullable<Q>
-): Q => {
+): Promise<Q> => {
     const filePath = join(statesDirectory, `${parser}.ini`);
 
     try {
@@ -82,8 +75,7 @@ const parseState = <T extends StateFileKey, Q = ReturnType<StateFileToIniParserM
             filePath,
             type: 'ini',
         });
-        const parserFn = getParserFunction(parser);
-        // @TODO Not sure why this type doesn't work
+        const parserFn = await getParserFunction(parser);
         return parserFn(config as unknown as any) as Q;
     } catch (error: unknown) {
         emhttpLogger.error(
@@ -106,7 +98,7 @@ export const loadSingleStateFile = createAsyncThunk<any, StateFileKey, { state: 
     async (stateFileKey, { getState }) => {
         const path = getState().paths.states;
 
-        const config = parseState(path, stateFileKey);
+        const config = await parseState(path, stateFileKey);
         if (config) {
             switch (stateFileKey) {
                 case StateFileKey.var:
@@ -145,15 +137,15 @@ export const loadStateFiles = createAsyncThunk<
 >('emhttp/load-state-file', async (_, { getState }) => {
     const path = getState().paths.states;
     const state: Omit<SliceState, 'mode' | 'status'> = {
-        var: parseState(path, StateFileKey.var, {} as Var),
-        devices: parseState(path, StateFileKey.devs, []),
-        networks: parseState(path, StateFileKey.network, []),
-        nginx: parseState(path, StateFileKey.nginx, {} as Nginx),
-        shares: parseState(path, StateFileKey.shares, []),
-        disks: parseState(path, StateFileKey.disks, []),
-        users: parseState(path, StateFileKey.users, []),
-        smbShares: parseState(path, StateFileKey.sec, []),
-        nfsShares: parseState(path, StateFileKey.sec_nfs, []),
+        var: await parseState(path, StateFileKey.var, {} as Var),
+        devices: await parseState(path, StateFileKey.devs, []),
+        networks: await parseState(path, StateFileKey.network, []),
+        nginx: await parseState(path, StateFileKey.nginx, {} as Nginx),
+        shares: await parseState(path, StateFileKey.shares, []),
+        disks: await parseState(path, StateFileKey.disks, []),
+        users: await parseState(path, StateFileKey.users, []),
+        smbShares: await parseState(path, StateFileKey.sec, []),
+        nfsShares: await parseState(path, StateFileKey.sec_nfs, []),
     };
 
     return state;
