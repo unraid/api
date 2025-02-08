@@ -9,7 +9,7 @@ import { getDeploymentVersion } from './get-deployment-version.js';
 try {
     // Create release and pack directories
     // Clean existing deploy folder
-    await rm('./deploy', { recursive: true });
+    await rm('./deploy', { recursive: true }).catch(() => {});
     await mkdir('./deploy/release', { recursive: true });
     await mkdir('./deploy/pack', { recursive: true });
 
