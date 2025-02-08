@@ -80,3 +80,6 @@ deploy/*
 
 # IDE Settings Files
 .idea
+
+!.login.php
+!.login.php.last-download-time
