@@ -233,7 +233,7 @@ jobs:
           fi
           echo "PWD: $(pwd)"
           echo "ENV: $(cat .env)"
-          npm run build:validate
+          npm run build
       - name: Upload binary txz and plg to Github artifacts
         uses: actions/upload-artifact@v4
         with:
