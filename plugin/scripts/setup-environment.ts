@@ -2,6 +2,7 @@ import { readFile } from "fs/promises";
 import { join } from "path";
 import { z } from "zod";
 import { parse } from "semver";
+import { dotenv } from "zx";
 
 const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
@@ -41,6 +42,7 @@ export const setupEnvironment = async (
   const validatedEnv = envSchema.parse(
     {
       ...process.env,
+      ...(await dotenv.config()),
       ...(await getLocalEnvironmentVariablesFromApiFolder()),
     }
   );
