@@ -61,6 +61,8 @@ export const setupEnvironment = async (
     shouldWait = true;
   }
 
+  console.log("validatedEnv", validatedEnv);
+
   if (shouldWait) {
     await wait(1000);
   }
