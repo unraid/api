@@ -224,16 +224,17 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: unraid-api
-          path: ./plugin/source/dynamix.unraid.net/usr/local/unraid-api
-      - name: Build Plugin
+          path: /tmp/unraid-api/
+      - name: Extract Unraid API and Build Plugin
         run: |
+          tar -xzf /tmp/unraid-api/unraid-api.tgz -C ${{ github.workspace }}/plugin/source/dynamix.unraid.net/usr/local/unraid-api
           cd ${{ github.workspace }}/plugin
           if [ -n "${{ github.event.pull_request.number }}" ]; then
             echo "TAG=PR${{ github.event.pull_request.number }}" >> .env
           fi
           echo "PWD: $(pwd)"
           echo "ENV: $(cat .env)"
-          npm run build
+          npm run build:validate
       - name: Upload binary txz and plg to Github artifacts
         uses: actions/upload-artifact@v4
         with:
