@@ -234,7 +234,7 @@ jobs:
             export TAG=PR${{ github.event.pull_request.number }}
           fi
 
-          npm run build:validate
+          npm run build
       - name: Upload binary txz and plg to Github artifacts
         uses: actions/upload-artifact@v4
         with:
