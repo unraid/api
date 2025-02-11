@@ -30,9 +30,12 @@ jobs:
 
       - name: Copy updated docs
         run: |
+          if [ ! -d "source-repo/api/docs" ]; then
+            echo "Source directory does not exist!"
+            exit 1
+          fi
           mkdir -p docs-repo/docs/api
           cp -r source-repo/api/docs/* docs-repo/docs/api/
-
       - name: Create Pull Request
         uses: peter-evans/create-pull-request@v6
         with:
