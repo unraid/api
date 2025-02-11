@@ -9,5 +9,8 @@ source/dynamix.unraid.net/sftp-config.json
 deploy/
 !deploy/.gitkeep
 
-usr/local/emhttp/plugins/dynamix.my.servers/unraid-components/
-!usr/local/emhttp/plugins/dynamix.my.servers/unraid-components/.gitkeep
+source/dynamix.unraid.net/usr/local/emhttp/plugins/dynamix.my.servers/unraid-components/*
+!source/dynamix.unraid.net/usr/local/emhttp/plugins/dynamix.my.servers/unraid-components/.gitkeep
+
+source/dynamix.unraid.net/usr/local/unraid-api/*
+!source/dynamix.unraid.net/usr/local/unraid-api/.gitkeep

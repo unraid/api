@@ -4,8 +4,7 @@ import { access } from 'fs/promises';
 
 import type { PayloadAction } from '@reduxjs/toolkit';
 import { createAsyncThunk, createSlice, isAnyOf } from '@reduxjs/toolkit';
-import { isEqual } from 'lodash-es';
-import merge from 'lodash/merge';
+import { isEqual, merge } from 'lodash-es';
 
 import type { Owner } from '@app/graphql/generated/api/types';
 import { logger } from '@app/core/log';

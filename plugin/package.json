@@ -4,6 +4,7 @@
     "date-fns": "^4.1.0",
     "glob": "^11.0.1",
     "html-sloppy-escaper": "^0.1.0",
+    "http-server": "^14.1.1",
     "semver": "^7.7.1",
     "tsx": "^4.19.2",
     "zod": "^3.24.1",
@@ -18,12 +19,22 @@
     "docker:build": "docker build -t plugin-builder .",
     "docker:run": "docker run --env-file .env -v $(pwd)/deploy:/app/deploy -v $(cd ../ && pwd)/.git:/app/.git -v $(pwd)/source:/app/source plugin-builder",
     "docker:build-and-run": "npm run docker:build && npm run docker:run",
+    "http-server": "http-server ./deploy/release/ -p 8080 --cors",
     "// Environment management": "",
     "env:init": "cp .env.example .env",
-    "env:validate": "node -e \"require('fs').existsSync('.env') || (console.error('Error: .env file missing. Run npm run env:init first') && process.exit(1))\"",
+    "env:validate": "test -f .env || (echo 'Error: .env file missing. Run npm run env:init first' && exit 1)",
     "env:clean": "rm -f .env",
     "// Composite commands": "",
     "start": "npm run env:validate && npm run docker:build-and-run",
-    "test": "npm run env:init && npm run start && npm run env:clean"
+    "test": "npm run env:init && npm run start && npm run env:clean",
+    "// Watchers for Other Changes": "",
+    "wc:clean": "rm -r ./source/dynamix.unraid.net/usr/local/emhttp/plugins/dynamix.my.servers/unraid-components/*",
+    "wc:watch": "cpx -w -v \"../web/.nuxt/nuxt-custom-elements/dist/unraid-components/**/*\" ./source/dynamix.unraid.net/usr/local/emhttp/plugins/dynamix.my.servers/unraid-components",
+    "api:watch": "cpx -w -C -v \"../api/deploy/pack/**/*\" ./source/dynamix.unraid.net/usr/local/unraid-api",
+    "ui:watch": "cpx -w -v \"../unraid-ui/dist/**/*\" ./source/dynamix.unraid.net/usr/local/emhttp/plugins/dynamix.my.servers/unraid-components", 
+    "watch:all": "npm run wc:clean && npm run wc:watch & npm run api:watch & npm run ui:watch"
+  },
+  "devDependencies": {
+    "cpx2": "^8.0.0"
   }
 }

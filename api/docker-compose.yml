@@ -1,25 +1,11 @@
-x-volumes: &volumes
+x-common: &common
   volumes:
-  - ./dev:/app/dev
-  - ./src:/app/src
-  - ./package.json:/app/package.json
-  - ./package-lock.json:/app/package-lock.json
-  - ./tsconfig.json:/app/tsconfig.json
-  - ./vite.config.ts:/app/vite.config.ts
-  - ./dist/:/app/dist/
-  - ./deploy/:/app/deploy/
-  - ./README.md:/app/README.md
-  - ./scripts/:/app/scripts/
-  - ../.git/:/app/.git/
-  - ./.env.production:/app/.env.production
-  - ./.env.staging:/app/.env.staging
-  - ./.env.test:/app/.env.test
-  - ./.env.development:/app/.env.development
-  - ./codegen.ts:/app/codegen.ts
-  - ./fix-array-type.cjs:/app/fix-array-type.cjs
-  - /var/run/docker.sock:/var/run/docker.sock
-  - ./unraid-api.js:/app/unraid-api.js
-  - ./ecosystem.config.json:/app/ecosystem.config.json
+    - ./:/app
+    - pnpm-store:/pnpm/store
+  environment:
+    - IS_DOCKER=true
+    - GIT_SHA=${GIT_SHA:-unknown}
+    - IS_TAGGED=${IS_TAGGED:-false}
 
 services:
 
@@ -31,14 +17,10 @@ services:
       context: .
       target: development
       dockerfile: Dockerfile
-    <<: *volumes
+    <<: *common
     stdin_open: true
     tty: true
     entrypoint: /bin/bash
-    environment: 
-      - IS_DOCKER=true
-      - GIT_SHA=${GIT_SHA:?err}
-      - IS_TAGGED=${IS_TAGGED}
     profiles:
       - builder
 
@@ -50,24 +32,23 @@ services:
       context: .
       target: development
       dockerfile: Dockerfile
-    <<: *volumes
+    <<: *common
     command: npm run start:dev
-    environment: 
-      - IS_DOCKER=true
-      - GIT_SHA=${GIT_SHA:?err}
-      - IS_TAGGED=${IS_TAGGED}
     profiles:
       - builder
 
   builder:
     image: unraid-api:builder
-    environment:
-      - GIT_SHA=${GIT_SHA:?err}
-      - IS_TAGGED=${IS_TAGGED}
     build: 
       context: .
       target: builder
       dockerfile: Dockerfile
-    <<: *volumes
+    <<: *common
     profiles:
       - builder
+
+volumes:
+  pnpm-store:
+    name: "pnpm-store"
+  pnpm-cache:
+    name: "pnpm-cache"

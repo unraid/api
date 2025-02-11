@@ -2,7 +2,7 @@ import { format } from 'util';
 
 import type { PayloadAction } from '@reduxjs/toolkit';
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
-import merge from 'lodash/merge';
+import { merge } from 'lodash-es';
 
 import type { RootState } from '@app/store';
 import { logger } from '@app/core/log';

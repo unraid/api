@@ -1,4 +1,4 @@
-import isEqual from 'lodash/isEqual';
+import { isEqual } from 'lodash-es';
 
 import { mothershipLogger } from '@app/core/log';
 import { pubsub, PUBSUB_CHANNEL } from '@app/core/pubsub';

@@ -1,4 +1,4 @@
-import uniq from 'lodash/uniq';
+import { uniq } from 'lodash-es';
 
 import type { RootState } from '@app/store';
 import { logger } from '@app/core';

@@ -8,7 +8,6 @@ import { enableArrayEventListener } from '@app/store/listeners/array-event-liste
 import { enableConfigFileListener } from '@app/store/listeners/config-listener';
 import { enableDynamicRemoteAccessListener } from '@app/store/listeners/dynamic-remote-access-listener';
 import { enableMothershipJobsListener } from '@app/store/listeners/mothership-subscription-listener';
-import { enableNotificationPathListener } from '@app/store/listeners/notification-path-listener';
 import { enableServerStateListener } from '@app/store/listeners/server-state-listener';
 import { enableUpnpListener } from '@app/store/listeners/upnp-listener';
 import { enableVersionListener } from '@app/store/listeners/version-listener';
@@ -35,5 +34,4 @@ export const startMiddlewareListeners = () => {
     enableArrayEventListener();
     enableWanAccessChangeListener();
     enableServerStateListener();
-    enableNotificationPathListener();
 };

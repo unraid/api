@@ -80,3 +80,5 @@ deploy/*
 
 # IDE Settings Files
 .idea
+
+!**/*.login.*

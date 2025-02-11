@@ -1,5 +1,5 @@
 import { GraphQLError } from 'graphql';
-import sum from 'lodash/sum';
+import { sum } from 'lodash-es';
 
 import type { ArrayCapacity, ArrayType } from '@app/graphql/generated/api/types';
 import { getServerIdentifier } from '@app/core/utils/server-identifier';
