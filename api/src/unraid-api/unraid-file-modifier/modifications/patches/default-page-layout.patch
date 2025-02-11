@@ -2,7 +2,7 @@ Index: /usr/local/emhttp/plugins/dynamix/include/DefaultPageLayout.php
 ===================================================================
 --- /usr/local/emhttp/plugins/dynamix/include/DefaultPageLayout.php	original
 +++ /usr/local/emhttp/plugins/dynamix/include/DefaultPageLayout.php	modified
-@@ -554,20 +554,11 @@
+@@ -556,20 +556,11 @@
    return 'three';
  }
  function openNotifier() {
@@ -24,7 +24,7 @@ Index: /usr/local/emhttp/plugins/dynamix/include/DefaultPageLayout.php
  }
  function closeNotifier() {
    $.post('/webGui/include/Notify.php',{cmd:'get',csrf_token:csrf_token},function(msg) {
-@@ -695,12 +686,12 @@
+@@ -698,12 +689,12 @@
    }
    // create list of nchan scripts to be started
    if (isset($button['Nchan'])) nchan_merge($button['root'], $button['Nchan']);
@@ -38,7 +38,7 @@ Index: /usr/local/emhttp/plugins/dynamix/include/DefaultPageLayout.php
  foreach ($buttons as $button) {
    annotate($button['file']);
    // include page specific stylesheets (if existing)
-@@ -901,26 +892,18 @@
+@@ -905,26 +896,18 @@
          case 'warning': bell2++; break;
          case 'normal' : bell3++; break;
        }
@@ -69,8 +69,8 @@ Index: /usr/local/emhttp/plugins/dynamix/include/DefaultPageLayout.php
    }
  });
  
- var nchan_plugins = new NchanSubscriber('/sub/plugins',{subscriber:'websocket'});
-@@ -1219,7 +1202,8 @@
+ <?if ($wlan0):?>
+@@ -1231,7 +1214,8 @@
        });
      }
    }

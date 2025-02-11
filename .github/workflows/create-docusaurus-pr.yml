@@ -1,6 +1,4 @@
 name: Update API Documentation
-
-name: Update API Documentation
 on:
   push:
     branches:
