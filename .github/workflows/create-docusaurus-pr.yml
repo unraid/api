@@ -35,8 +35,9 @@ jobs:
             echo "Source directory does not exist!"
             exit 1
           fi
+          rm -rf docs-repo/docs/api/
           mkdir -p docs-repo/docs/api
-          cp -r source-repo/api/docs/* docs-repo/docs/api/
+          cp -r source-repo/api/docs/public* docs-repo/docs/api/
       - name: Create Pull Request
         uses: peter-evans/create-pull-request@v6
         with:
