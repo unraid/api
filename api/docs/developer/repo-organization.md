@@ -78,5 +78,5 @@ New development should focus on the NestJS implementation in `src/unraid-api/`:
 
 1. Follow NestJS architectural patterns
 2. Use TypeScript decorators and strong typing
-3. Implement proper dependency injection 
+3. Implement proper dependency injection
 4. Write unit tests for new services
