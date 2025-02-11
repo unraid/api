@@ -9,13 +9,11 @@
   <!ENTITY source "/boot/config/plugins/dynamix.my.servers/&name;">
   <!ENTITY SHA256 "">
   <!ENTITY API_version "">
-  <!ENTITY API_SHA256 "">
   <!ENTITY NODEJS_FILENAME "node-v20.18.1-linux-x64.tar.xz">
   <!ENTITY NODEJS_SHA256 "c6fa75c841cbffac851678a472f2a5bd612fff8308ef39236190e1f8dbb0e567">
   <!ENTITY NODEJS_TXZ "https://nodejs.org/dist/v20.18.1/node-v20.18.1-linux-x64.tar.xz">
   <!ENTITY MAIN_TXZ "">
-  <!ENTITY API_TGZ "">
-  <!ENTITY PR "">
+  <!ENTITY TAG "">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" pluginURL="&pluginURL;"
@@ -115,7 +113,6 @@ sha256check() {
 }
 ]]>
       sha256check "&source;.txz" "&SHA256;"
-      sha256check "/boot/config/plugins/dynamix.my.servers/unraid-api.tgz" "&API_SHA256;"
       exit 0
     </INLINE>
   </FILE>
@@ -163,19 +160,12 @@ sha256check() {
     <SHA256>&SHA256;</SHA256>
   </FILE>
 
-  <!-- download unraid-api -->
-  <FILE Name="/boot/config/plugins/dynamix.my.servers/unraid-api.tgz">
-    <URL>&API_TGZ;</URL>
-    <SHA256>&API_SHA256;</SHA256>
-  </FILE>
-
   <FILE Run="/bin/bash" Method="install">
     <INLINE>
       MAINTXZ="&source;.txz"
     <![CDATA[
 # before proceeding with install, doubly confirm downloaded files exist. just being pedantic.
 FILE=${MAINTXZ} && [[ ! -f "$FILE" ]] && echo "⚠️ file missing - $FILE" && exit 1
-FILE=/boot/config/plugins/dynamix.my.servers/unraid-api.tgz && [[ ! -f "$FILE" ]] && echo "⚠️ file missing - $FILE" && exit 1
 exit 0
 ]]>
     </INLINE>
@@ -432,6 +422,7 @@ if [ -e /etc/rc.d/rc.unraid-api ]; then
   rm -rf /boot/config/plugins/dynamix.my.servers/wc
   rm -f /boot/config/plugins/Unraid.net/unraid-api.tgz
   rm -f /boot/config/plugins/Unraid.net/.gitignore
+  rm -f /boot/config/plugins/dynamix.my.servers/unraid-api.tgz
   rm -rf /boot/config/plugins/Unraid.net/webComps
   rm -rf /boot/config/plugins/Unraid.net/wc
   rm -f /usr/local/emhttp/webGui/javascript/vue.js
@@ -451,7 +442,7 @@ exit 0
   <!-- install all the things -->
   <FILE Run="/bin/bash" Method="install">
     <INLINE>
-      PR="&PR;" PLGTYPE="&env;" MAINTXZ="&source;.txz"
+      TAG="&TAG;" PLGTYPE="&env;" MAINTXZ="&source;.txz"
     <![CDATA[
 appendTextIfMissing() {
   FILE="$1" TEXT="$2"
@@ -757,8 +748,8 @@ upgradepkg --install-new --reinstall "${MAINTXZ}"
 # WARNING: failure here results in broken install
 [[ ! -f /usr/local/emhttp/plugins/dynamix.my.servers/scripts/gitflash_log ]] && echo "⚠️ files missing from main txz" && exit 1
 
-if [[ -n "$PR" && "$PR" != "" ]]; then
-  printf -v sedcmd 's@^\*\*Unraid Connect\*\*@**Unraid Connect PR #%s**@' "$PR"
+if [[ -n "$TAG" && "$TAG" != "" ]]; then
+  printf -v sedcmd 's@^\*\*Unraid Connect\*\*@**Unraid Connect (%s)**@' "$TAG"
   sed -i "${sedcmd}" "/usr/local/emhttp/plugins/dynamix.unraid.net/README.md"
 elif [[ "$PLGTYPE" == "staging" ]]; then
   sed -i "s@^\*\*Unraid Connect\*\*@**Unraid Connect (staging)**@" "/usr/local/emhttp/plugins/dynamix.unraid.net/README.md"
@@ -877,9 +868,6 @@ echo
 # - Must come after the web component timestamp check to avoid potentially targeting the wrong JS during this setup
 source /usr/local/emhttp/plugins/dynamix.my.servers/scripts/activation_code_setup
 
-# Install the API (previously in rc.d script)
-echo "Extracting and installing the Unraid API"
-
 flash="/boot/config/plugins/dynamix.my.servers"
 [[ ! -d "${flash}" ]] && echo "Please reinstall the Unraid Connect plugin" && exit 1
 [[ ! -f "${flash}/env" ]] && echo 'env=production' >"${flash}/env"
@@ -901,14 +889,9 @@ fi
 # Kill any remaining unraid-api processes
 pkill -9 unraid-api
 
-# Ensure installation tgz exists
-[[ ! -f "${flash}/unraid-api.tgz" ]] && echo "Missing unraid-api.tgz" && exit 1
-# Install unraid-api
-rm -rf "${api_base_directory}"
-mkdir -p "${api_base_directory}"
 # Create log directory (PM2 will not start without it)
 mkdir -p /var/log/unraid-api
-tar -C "${api_base_directory}" -xzf "${flash}/unraid-api.tgz" --strip 1
+
 # Copy env file
 cp "${api_base_directory}/.env.${env}" "${api_base_directory}/.env"
 

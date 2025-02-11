@@ -1,6 +1,6 @@
 import type { PayloadAction } from '@reduxjs/toolkit';
 import { createSlice } from '@reduxjs/toolkit';
-import merge from 'lodash/merge';
+import { merge } from 'lodash-es';
 
 import { type DynamixConfig } from '@app/core/types/ini';
 import { loadDynamixConfigFile } from '@app/store/actions/load-dynamix-config-file';

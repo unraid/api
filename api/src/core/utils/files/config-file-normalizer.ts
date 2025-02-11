@@ -1,5 +1,4 @@
-import { isEqual } from 'lodash-es';
-import merge from 'lodash/merge';
+import { isEqual, merge } from 'lodash-es';
 
 import { getAllowedOrigins } from '@app/common/allowed-origins';
 import { initialState } from '@app/store/modules/config';

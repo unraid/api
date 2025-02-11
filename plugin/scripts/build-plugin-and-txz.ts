@@ -2,42 +2,29 @@ import { execSync } from "child_process";
 import { cp, readFile, writeFile, mkdir, readdir } from "fs/promises";
 import { basename, join } from "path";
 import { createHash } from "node:crypto";
-import { $, cd, dotenv } from "zx";
-import { z } from "zod";
+import { $, cd } from "zx";
 import conventionalChangelog from "conventional-changelog";
 import { escape as escapeHtml } from "html-sloppy-escaper";
-import { parse } from "semver";
 import { existsSync } from "fs";
 import { format as formatDate } from "date-fns";
-
-const envSchema = z.object({
-  API_VERSION: z.string().refine((v) => {
-    return parse(v) ?? false;
-  }, "Must be a valid semver version"),
-  API_SHA256: z.string().regex(/^[a-f0-9]{64}$/),
-  PR: z
-    .string()
-    .optional()
-    .refine((v) => !v || /^\d+$/.test(v), "Must be a valid PR number"),
-  SKIP_SOURCE_VALIDATION: z
-    .string()
-    .optional()
-    .default("false")
-    .refine((v) => v === "true" || v === "false", "Must be true or false"),
-});
-
-type Env = z.infer<typeof envSchema>;
-
-const validatedEnv = envSchema.parse(dotenv.config() as Env);
-
+import { setupEnvironment } from "./setup-environment";
+import { dirname } from "node:path";
 const pluginName = "dynamix.unraid.net" as const;
 const startingDir = process.cwd();
+
+const validatedEnv = await setupEnvironment(startingDir);
+
 const BASE_URLS = {
   STABLE: "https://stable.dl.unraid.net/unraid-api",
   PREVIEW: "https://preview.dl.unraid.net/unraid-api",
+  ...(validatedEnv.LOCAL_FILESERVER_URL
+    ? { LOCAL: validatedEnv.LOCAL_FILESERVER_URL }
+    : {}),
 } as const;
 
+// Setup environment variables
 // Ensure that git is available
+
 try {
   await $`git log -1 --pretty=%B`;
 } catch (err) {
@@ -93,6 +80,23 @@ const validateSourceDir = async () => {
   if (webcomponents.length === 1 && webcomponents[0] === ".gitkeep") {
     throw new Error(`No webcomponents found in ${webcomponentDir}`);
   }
+  // Check for the existence of "ui.manifest.json" as well as "manifest.json" in webcomponents
+  if (
+    !webcomponents.includes("ui.manifest.json") ||
+    !webcomponents.includes("manifest.json")
+  ) {
+    throw new Error(
+      `Webcomponents must contain both "ui.manifest.json" and "manifest.json"`
+    );
+  }
+
+  const apiDir = join(
+    startingDir,
+    "source/dynamix.unraid.net/usr/local/unraid-api/package.json"
+  );
+  if (!existsSync(apiDir)) {
+    throw new Error(`API directory ${apiDir} does not exist`);
+  }
 };
 
 const buildTxz = async (
@@ -101,9 +105,13 @@ const buildTxz = async (
   txzName: string;
   txzSha256: string;
 }> => {
-  if (validatedEnv.SKIP_SOURCE_VALIDATION !== "true") {
+  if (
+    validatedEnv.SKIP_VALIDATION !== "true" ||
+    validatedEnv.LOCAL_FILESERVER_URL
+  ) {
     await validateSourceDir();
   }
+
   const txzName = `${pluginName}-${version}.txz`;
   const txzPath = join(startingDir, "deploy/release/archive", txzName);
   const prePackDir = join(startingDir, "deploy/pre-pack");
@@ -129,7 +137,10 @@ const buildTxz = async (
   await cd(prePackDir);
   $.verbose = true;
 
-  await $`${join(startingDir, "scripts/makepkg")} -l y -c y "${txzPath}"`;
+  await $`${join(
+    startingDir,
+    "scripts/makepkg"
+  )} -l y -c y --compress -1 "${txzPath}"`;
   $.verbose = false;
   await cd(startingDir);
 
@@ -139,11 +150,13 @@ const buildTxz = async (
     .digest("hex");
   console.log(`TXZ SHA256: ${sha256}`);
 
-  try {
-    await $`${join(startingDir, "scripts/explodepkg")} "${txzPath}"`;
-  } catch (err) {
-    console.error(`Error: invalid txz package created: ${txzPath}`);
-    process.exit(1);
+  if (validatedEnv.SKIP_VALIDATION !== "true") {
+    try {
+      await $`${join(startingDir, "scripts/explodepkg")} "${txzPath}"`;
+    } catch (err) {
+      console.error(`Error: invalid txz package created: ${txzPath}`);
+      process.exit(1);
+    }
   }
 
   return { txzSha256: sha256, txzName };
@@ -151,9 +164,9 @@ const buildTxz = async (
 
 const getStagingChangelogFromGit = async (
   apiVersion: string,
-  pr: string | null = null
+  tag: string | null = null
 ): Promise<string | null> => {
-  console.debug("Getting changelog from git" + (pr ? " for PR" : ""));
+  console.debug("Getting changelog from git" + (tag ? " for TAG" : ""));
   try {
     const changelogStream = conventionalChangelog(
       {
@@ -162,16 +175,16 @@ const getStagingChangelogFromGit = async (
       {
         version: apiVersion,
       },
-      pr
+      tag
         ? {
             from: "origin/main",
             to: "HEAD",
           }
         : {},
       undefined,
-      pr
+      tag
         ? {
-            headerPartial: `## [PR #${pr}](https://github.com/unraid/api/pull/${pr})\n\n`,
+            headerPartial: `## [${tag}](https://github.com/unraid/api/${tag})\n\n`,
           }
         : undefined
     );
@@ -192,48 +205,48 @@ const buildPlugin = async ({
   txzSha256,
   txzName,
   version,
-  pr = "",
+  tag = "",
   apiVersion,
-  apiSha256,
 }: {
-  type: "staging" | "pr" | "production";
+  type: "staging" | "pr" | "production" | "local";
   txzSha256: string;
   txzName: string;
   version: string;
-  pr?: string;
+  tag?: string;
   apiVersion: string;
-  apiSha256: string;
 }) => {
   const rootPlgFile = join(startingDir, "/plugins/", `${pluginName}.plg`);
   // Set up paths
   const newPluginFile = join(
     startingDir,
     "/deploy/release/plugins/",
-    `${pluginName}${type === "production" ? "" : `.${type}`}.plg`
+    type,
+    `${pluginName}.plg`
   );
 
   // Define URLs
   let PLUGIN_URL = "";
   let MAIN_TXZ = "";
-  let API_TGZ = "";
   let RELEASE_NOTES: string | null = null;
   switch (type) {
     case "production":
       PLUGIN_URL = `${BASE_URLS.STABLE}/${pluginName}.plg`;
       MAIN_TXZ = `${BASE_URLS.STABLE}/${txzName}`;
-      API_TGZ = `${BASE_URLS.STABLE}/unraid-api-${apiVersion}.tgz`;
       break;
     case "pr":
-      PLUGIN_URL = `${BASE_URLS.PREVIEW}/pr/${pr}/${pluginName}.plg`;
-      MAIN_TXZ = `${BASE_URLS.PREVIEW}/pr/${pr}/${txzName}`;
-      API_TGZ = `${BASE_URLS.PREVIEW}/pr/${pr}/unraid-api-${apiVersion}.tgz`;
-      RELEASE_NOTES = await getStagingChangelogFromGit(apiVersion, pr);
+      PLUGIN_URL = `${BASE_URLS.PREVIEW}/tag/${tag}/${pluginName}.plg`;
+      MAIN_TXZ = `${BASE_URLS.PREVIEW}/tag/${tag}/${txzName}`;
+      RELEASE_NOTES = await getStagingChangelogFromGit(apiVersion, tag);
       break;
     case "staging":
       PLUGIN_URL = `${BASE_URLS.PREVIEW}/${pluginName}.plg`;
       MAIN_TXZ = `${BASE_URLS.PREVIEW}/${txzName}`;
-      API_TGZ = `${BASE_URLS.PREVIEW}/unraid-api-${apiVersion}.tgz`;
       RELEASE_NOTES = await getStagingChangelogFromGit(apiVersion);
+      break;
+    case "local":
+      PLUGIN_URL = `${BASE_URLS.LOCAL}/plugins/${type}/${pluginName}.plg`;
+      MAIN_TXZ = `${BASE_URLS.LOCAL}/archive/${txzName}`;
+      RELEASE_NOTES = await getStagingChangelogFromGit(apiVersion, tag);
       break;
   }
 
@@ -248,15 +261,13 @@ const buildPlugin = async ({
     pluginURL: PLUGIN_URL,
     SHA256: txzSha256,
     MAIN_TXZ: MAIN_TXZ,
-    API_TGZ: API_TGZ,
-    PR: pr,
+    TAG: tag,
     API_version: apiVersion,
-    API_SHA256: apiSha256,
   };
 
   // Iterate over entities and update them
   Object.entries(entities).forEach(([key, value]) => {
-    if (key !== "PR" && !value) {
+    if (key !== "TAG" && !value) {
       throw new Error(`Entity ${key} not set in entities : ${value}`);
     }
     plgContent = updateEntityValue(plgContent, key, value);
@@ -270,6 +281,7 @@ const buildPlugin = async ({
     );
   }
 
+  await mkdir(dirname(newPluginFile), { recursive: true });
   await writeFile(newPluginFile, plgContent);
   console.log(`${type} plugin: ${newPluginFile}`);
 };
@@ -284,33 +296,41 @@ const main = async () => {
   const version = formatDate(new Date(), "yyyy.MM.dd.HHmm");
   console.log(`Version: ${version}`);
   const { txzSha256, txzName } = await buildTxz(version);
-  const { API_VERSION, API_SHA256, PR } = validatedEnv;
+  const { API_VERSION, TAG, LOCAL_FILESERVER_URL } = validatedEnv;
+
+  if (LOCAL_FILESERVER_URL) {
+    await buildPlugin({
+      type: "local",
+      txzSha256,
+      txzName,
+      version,
+      tag: TAG,
+      apiVersion: API_VERSION,
+    });
+  } else if (TAG) {
+    await buildPlugin({
+      type: "pr",
+      txzSha256,
+      txzName,
+      version,
+      tag: TAG,
+      apiVersion: API_VERSION,
+    });
+  }
+
   await buildPlugin({
     type: "staging",
     txzSha256,
     txzName,
     version,
     apiVersion: API_VERSION,
-    apiSha256: API_SHA256,
   });
-  if (PR) {
-    await buildPlugin({
-      type: "pr",
-      txzSha256,
-      txzName,
-      version,
-      pr: PR,
-      apiVersion: API_VERSION,
-      apiSha256: API_SHA256,
-    });
-  }
   await buildPlugin({
     type: "production",
     txzSha256,
     txzName,
     version,
     apiVersion: API_VERSION,
-    apiSha256: API_SHA256,
   });
 };
 

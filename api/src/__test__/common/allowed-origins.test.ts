@@ -1,18 +1,13 @@
+import { getAllowedOrigins } from '@app/common/allowed-origins';
+import { store } from '@app/store/index';
+import { loadConfigFile } from '@app/store/modules/config';
+import { loadStateFiles } from '@app/store/modules/emhttp';
+
 import 'reflect-metadata';
 
 import { expect, test } from 'vitest';
 
-// Preloading imports for faster tests
-import '@app/common/allowed-origins';
-import '@app/store/modules/emhttp';
-import '@app/store';
-
 test('Returns allowed origins', async () => {
-    const { store } = await import('@app/store');
-    const { loadStateFiles } = await import('@app/store/modules/emhttp');
-    const { getAllowedOrigins } = await import('@app/common/allowed-origins');
-    const { loadConfigFile } = await import('@app/store/modules/config');
-
     // Load state files into store
     await store.dispatch(loadStateFiles());
     await store.dispatch(loadConfigFile());

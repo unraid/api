@@ -1,15 +1,16 @@
-import { execSync } from 'child_process';
+import { execa } from 'execa';
 
-const runCommand = (command) => {
+const runCommand = async (command: string, args: string[]) => {
     try {
-        return execSync(command, { stdio: 'pipe' }).toString().trim();
+        const { stdout } = await execa(command, args);
+        return stdout.trim();
     } catch (error) {
-        console.log('Failed to get value from tag command: ', command, error.message);
-        return;
+        console.log('Failed to execute command:', command, args.join(' '), error.message);
+        return undefined;
     }
 };
 
-export const getDeploymentVersion = (env = process.env, packageVersion) => {
+export const getDeploymentVersion = async (env = process.env, packageVersion: string) => {
     if (env.API_VERSION) {
         console.log(`Using env var for version: ${env.API_VERSION}`);
         return env.API_VERSION;
@@ -17,9 +18,11 @@ export const getDeploymentVersion = (env = process.env, packageVersion) => {
         console.log(`Using env vars for git tags: ${env.GIT_SHA} ${env.IS_TAGGED}`);
         return env.IS_TAGGED ? packageVersion : `${packageVersion}+${env.GIT_SHA}`;
     } else {
-        const gitShortSHA = runCommand('git rev-parse --short HEAD');
-        const isCommitTagged = runCommand('git describe --tags --abbrev=0 --exact-match') !== undefined;
+        const gitShortSHA = await runCommand('git', ['rev-parse', '--short', 'HEAD']);
+        const isCommitTagged = await runCommand('git', ['describe', '--tags', '--abbrev=0', '--exact-match']) !== undefined;
+        
         console.log('gitShortSHA', gitShortSHA, 'isCommitTagged', isCommitTagged);
+        
         if (!gitShortSHA) {
             console.error('Failed to get git short SHA');
             process.exit(1);

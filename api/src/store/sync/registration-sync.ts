@@ -1,4 +1,4 @@
-import isEqual from 'lodash/isEqual';
+import { isEqual } from 'lodash-es';
 
 import type { StoreSubscriptionHandler } from '@app/store/types';
 import { logger } from '@app/core/log';

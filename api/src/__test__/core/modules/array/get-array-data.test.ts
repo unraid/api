@@ -1,14 +1,15 @@
 import { expect, test, vi } from 'vitest';
 
+import { getArrayData } from '@app/core/modules/array/get-array-data';
+import { store } from '@app/store';
+import { loadConfigFile } from '@app/store/modules/config';
+import { loadStateFiles } from '@app/store/modules/emhttp';
+
 vi.mock('@app/core/pubsub', () => ({
     pubsub: { publish: vi.fn() },
 }));
 
 test('Creates an array event', async () => {
-    const { getArrayData } = await import('@app/core/modules/array/get-array-data');
-    const { store } = await import('@app/store');
-    const { loadStateFiles } = await import('@app/store/modules/emhttp');
-    const { loadConfigFile } = await import('@app/store/modules/config');
     // Load state files into store
     await store.dispatch(loadStateFiles());
 
