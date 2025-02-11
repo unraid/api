@@ -51,6 +51,8 @@ jobs:
             This PR updates the API documentation based on changes from the main repository.
             
             Changes were automatically generated from api/docs/* directory.
+
+            @coderabbitai ignore
           reviewers: ljm42, elibosley, pujitm, mdatelle
           branch: update-api-docs
           base: main
