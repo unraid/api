@@ -1,0 +1,49 @@
+name: Update API Documentation
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'api/docs/**'
+
+# Add permissions for GITHUB_TOKEN
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  create-docs-pr:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout source repository
+        uses: actions/checkout@v4
+        with:
+          path: source-repo
+
+      - name: Checkout docs repository
+        uses: actions/checkout@v4
+        with:
+          repository: unraid/docs
+          path: docs-repo
+          token: ${{ github.token }}
+
+      - name: Copy updated docs
+        run: |
+          mkdir -p docs-repo/docs/api
+          cp -r source-repo/api/docs/* docs-repo/docs/api/
+
+      - name: Create Pull Request
+        uses: peter-evans/create-pull-request@v6
+        with:
+          token: ${{ github.token }}
+          path: docs-repo
+          commit-message: 'docs: update API documentation'
+          title: 'Update API Documentation'
+          body: |
+            This PR updates the API documentation based on changes from the main repository.
+            
+            Changes were automatically generated from api/docs/* directory.
+          branch: update-api-docs
+          base: main
+          delete-branch: true
