@@ -1,7 +1,24 @@
 <script setup lang="ts">
 import { useMutation, useQuery, useSubscription } from '@vue/apollo-composable';
 
-import { Button, Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@unraid/ui';
+import {
+  Button,
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectLabel,
+  SelectTrigger,
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from '@unraid/ui';
 
 import { useTrackLatestSeenNotification } from '~/composables/api/use-notifications';
 import { useFragment } from '~/composables/gql';
