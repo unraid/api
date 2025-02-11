@@ -1,17 +1,20 @@
 name: Update API Documentation
 
+name: Update API Documentation
 on:
   push:
     branches:
       - main
     paths:
       - 'api/docs/**'
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 # Add permissions for GITHUB_TOKEN
 permissions:
   contents: write
   pull-requests: write
-
 jobs:
   create-docs-pr:
     runs-on: ubuntu-latest
