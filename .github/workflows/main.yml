@@ -228,6 +228,8 @@ jobs:
 
   build-plugin:
     needs: [build-api, build-web, build-unraid-ui-webcomponents]
+    outputs:
+      tag: ${{ steps.build-plugin.outputs.tag }}
     defaults:
       run:
         working-directory: plugin
@@ -262,12 +264,15 @@ jobs:
           name: unraid-api
           path: /tmp/unraid-api/
       - name: Extract Unraid API and Build Plugin
+        id: build-plugin
         run: |
           tar -xzf /tmp/unraid-api/unraid-api.tgz -C ${{ github.workspace }}/plugin/source/dynamix.unraid.net/usr/local/unraid-api
           cd ${{ github.workspace }}/plugin
 
           if [ -n "${{ github.event.pull_request.number }}" ]; then
             export TAG=PR${{ github.event.pull_request.number }}
+            # Put tag into github env
+            echo "TAG=${TAG}" >> $GITHUB_OUTPUT
           fi
 
           npm run build
@@ -312,7 +317,7 @@ jobs:
           AWS_SECRET_ACCESS_KEY: ${{ secrets.CF_SECRET_ACCESS_KEY }}
           AWS_REGION: "auto"
           SOURCE_DIR: pr-release
-          DEST_DIR: unraid-api/pr/${{ github.event.pull_request.number }}
+          DEST_DIR: unraid-api/tag/${{ needs.build-plugin.outputs.tag }}
       - name: Comment URL
         uses: thollander/actions-comment-pull-request@v3
         with:
@@ -322,7 +327,7 @@ jobs:
             This plugin has been deployed to Cloudflare R2 and is available for testing.
             Download it at this URL:
             ```
-            https://preview.dl.unraid.net/unraid-api/pr/${{ github.event.pull_request.number }}/dynamix.unraid.net.plg
+            https://preview.dl.unraid.net/unraid-api/tag/${{ needs.build-plugin.outputs.tag }}/dynamix.unraid.net.plg
             ```
 
   release-staging:
