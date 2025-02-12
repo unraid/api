@@ -5,65 +5,65 @@
 | Feature | Status | Tag |
 |---------|--------|-----|
 | API Development Environment Improvements | Done | v4.0.0 |
-| Ship API as part of the OS | Planned (Q1) | - |
-| API Open Source | Planned (Q1) | - |
-| API / Connect Plugin Split | Planned (Q2) | - |
-| Plugin Development Flow (Nest / Nuxt) | Planned (Q2) | - |
+| Include API in Unraid OS | Planned (Q1 2025) | - |
+| Make API Open Source | Planned (Q1 2025) | - |
+| Separate API from Connect Plugin | Planned (Q2 2025) | - |
+| Developer Tools for Plugins | Planned (Q2 2025) | - |
 
 ## Security & Authentication
 
 | Feature | Status | Tag |
 |---------|--------|-----|
 | Permissions System Rewrite | Done | v4.0.0 |
-| UI Library / Component Setup | In Progress | - |
+| User Interface Component Library | In Progress | - |
 
 ## User Interface Improvements
 
 | Feature | Status | Tag |
 |---------|--------|-----|
-| Generated Settings Page Replacements | Planned (Q2) | - |
-| Theme Creator Feature | Planned (Q2-Q3) | - |
-| Replace Connect settings page with web component | Planned (Q1) | - |
+| New Settings Pages | Planned (Q2 2025) | - |
+| Custom Theme Creator | Planned (Q2-Q3 2025) | - |
+| New Connect Settings Interface | Planned (Q1 2025) | - |
 
 ## Array Management
 
 | Feature | Status | Tag |
 |---------|--------|-----|
-| Array Status API Read Only | Done | v4.0.0 |
-| Pool Creation UI / API | Planned (Q2) | - |
-| Pool Status UI / API | Planned (Q2) | - |
+| Array Status Monitoring | Done | v4.0.0 |
+| Storage Pool Creation Interface | Planned (Q2 2025) | - |
+| Storage Pool Status Interface | Planned (Q2 2025) | - |
 
 ## Docker Integration
 
 | Feature | Status | Tag |
 |---------|--------|-----|
-| Docker Status API (Read Only) | Done | v4.0.0 |
-| Docker Status View Design | Planned (Q3) | - |
-| Docker Status View Implementation | Planned (Q3) | - |
-| Docker Setup View (Generated UI) | Planned (Q3) | - |
+| Docker Container Status Monitoring | Done | v4.0.0 |
+| New Docker Status Interface Design | Planned (Q3 2025) | - |
+| New Docker Status Interface | Planned (Q3 2025) | - |
+| Docker Container Setup Interface | Planned (Q3 2025) | - |
 | Docker Compose Support | Planned | - |
 
 ## Share Management
 
 | Feature | Status | Tag |
 |---------|--------|-----|
-| Share Status API (Read Only) | Done | v4.0.0 |
-| Shares Setup API | Planned | - |
-| Shares Setup / Display UI | Planned | - |
+| Array/Cache Share Status Monitoring | Done | v4.0.0 |
+| Storage Share Creation & Settings | Planned | - |
+| Storage Share Management Interface | Planned | - |
 
 ## Plugin System
 
 | Feature | Status | Tag |
 |---------|--------|-----|
-| Plugins Tab Migration to API | Planned (Q3) | - |
-| Plugin UI | Planned | - |
-| Plugin Development Flows | Planned | - |
+| New Plugins Interface | Planned (Q3 2025) | - |
+| Plugin Management Interface | Planned | - |
+| Plugin Development Tools | Planned | - |
 
 ## Notifications
 
 | Feature | Status | Tag |
 |---------|--------|-----|
-| Notifications API | Done | v4.0.0 |
-| Notifications UI | Done | v4.0.0 |
+| Notifications System | Done | v4.0.0 |
+| Notifications Interface | Done | v4.0.0 |
 
 Note: This roadmap is subject to change based on development priorities and community feedback. Features marked as "Done" have been released in previous versions. The tag column indicates the version where a feature was first introduced. Features without tags are either planned or in development.
