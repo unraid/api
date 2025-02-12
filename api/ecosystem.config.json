@@ -11,13 +11,8 @@
             "max_restarts": 10,
             "min_uptime": 10000,
             "watch": false,
-            "ignore_watch": [
-                "node_modules",
-                "src",
-                ".env.*",
-                "myservers.cfg"
-            ],
-            "out_file": "/var/log/unraid-api/unraid-api.log",
+            "ignore_watch": ["node_modules", "src", ".env.*", "myservers.cfg"],
+            "out_file": "/var/log/graphql-api.log",
             "error_file": "/var/log/unraid-api/unraid-api.error.log",
             "kill_timeout": 10000
         }
