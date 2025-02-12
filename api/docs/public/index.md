@@ -20,8 +20,8 @@ The API will be integrated directly into the Unraid operating system in an upcom
 
 ## Documentation Sections
 
-- [How to Use the API](./how-to-use-the-api.md) - Comprehensive guide on using the GraphQL API
 - [CLI Commands](./cli.md) - Reference for all available command-line interface commands
+- [Using the Unraid API](./how-to-use-the-api.md) - Comprehensive guide on using the GraphQL API
 - [Upcoming Features](./upcoming-features.md) - Roadmap of planned features and improvements
 
 ## Key Features
@@ -34,4 +34,4 @@ The API provides:
 - Developer Tools: Built-in GraphQL sandbox for testing
 - Role-Based Access: Granular permission control
 
-For detailed usage instructions, see [How to Use the API](./how-to-use-the-api.md).
+For detailed usage instructions, see [CLI Commands](./cli.md).
