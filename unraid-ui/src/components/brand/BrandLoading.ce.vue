@@ -1,14 +1,31 @@
 <script setup lang="ts">
+import { cn } from '@/lib/utils';
+import { computed } from 'vue';
+import { brandLoadingVariants, markAnimations } from './brand-loading.variants';
+
 export interface Props {
-  gradientStart?: string;
-  gradientStop?: string;
-  title?: string,
+  variant?: 'default' | 'black' | 'white';
+  size?: 'sm' | 'md' | 'lg' | 'full';
+  class?: string;
+  title?: string;
 }
 
-withDefaults(defineProps<Props>(), {
-  gradientStart: '#e32929',
-  gradientStop: '#ff8d30',
+const props = withDefaults(defineProps<Props>(), {
+  variant: 'default',
+  size: 'full',
   title: 'Loading',
+});
+
+const GRADIENT_COLORS = {
+  black: { start: '#000000', stop: '#000000' },
+  white: { start: '#FFFFFF', stop: '#FFFFFF' },
+  default: { start: '#e32929', stop: '#ff8d30' },
+} as const;
+
+const gradientColors = computed(() => GRADIENT_COLORS[props.variant]);
+
+const classes = computed(() => {
+  return cn(brandLoadingVariants({ variant: props.variant, size: props.size }), props.class);
 });
 </script>
 
@@ -17,7 +34,7 @@ withDefaults(defineProps<Props>(), {
     xmlns="http://www.w3.org/2000/svg"
     xmlns:xlink="http://www.w3.org/1999/xlink"
     viewBox="0 0 133.52 76.97"
-    :class="`unraid_mark`"
+    :class="classes"
     role="img"
   >
     <title>{{ title }}</title>
@@ -31,8 +48,8 @@ withDefaults(defineProps<Props>(), {
         y2="-4.51"
         gradientUnits="userSpaceOnUse"
       >
-        <stop offset="0" :stop-color="gradientStart" />
-        <stop offset="1" :stop-color="gradientStop" />
+        <stop offset="0" :stop-color="gradientColors.start" />
+        <stop offset="1" :stop-color="gradientColors.stop" />
       </linearGradient>
     </defs>
     <path
@@ -43,17 +60,17 @@ withDefaults(defineProps<Props>(), {
     <path
       d="m70,19.24zm47.65,11.9l-6.55,0l0,-23.79l6.55,0l0,23.79z"
       fill="url(#unraidLoadingGradient)"
-      class="unraid_mark_8"
+      :class="['unraid_mark_8', markAnimations.mark_6_8]"
     />
     <path
       d="m70,19.24zm31.77,-4.54l-6.54,0l0,-14.7l6.54,0l0,14.7z"
       fill="url(#unraidLoadingGradient)"
-      class="unraid_mark_7"
+      :class="['unraid_mark_7', markAnimations.mark_7]"
     />
     <path
       d="m70,19.24zm15.9,11.9l-6.54,0l0,-23.79l6.54,0l0,23.79z"
       fill="url(#unraidLoadingGradient)"
-      class="unraid_mark_6"
+      :class="['unraid_mark_6', markAnimations.mark_6_8]"
     />
     <path
       d="m63.49,19.24l6.51,0l0,38.49l-6.51,0l0,-38.49z"
@@ -63,17 +80,17 @@ withDefaults(defineProps<Props>(), {
     <path
       d="m70,19.24zm-22.38,26.6l6.54,0l0,23.78l-6.54,0l0,-23.78z"
       fill="url(#unraidLoadingGradient)"
-      class="unraid_mark_4"
+      :class="['unraid_mark_4', markAnimations.mark_2_4]"
     />
     <path
       d="m70,19.24zm-38.26,43.03l6.55,0l0,14.73l-6.55,0l0,-14.73z"
       fill="url(#unraidLoadingGradient)"
-      class="unraid_mark_3"
+      :class="['unraid_mark_3', markAnimations.mark_3]"
     />
     <path
       d="m70,19.24zm-54.13,26.6l6.54,0l0,23.78l-6.54,0l0,-23.78z"
       fill="url(#unraidLoadingGradient)"
-      class="unraid_mark_2"
+      :class="['unraid_mark_2', markAnimations.mark_2_4]"
     />
     <path
       d="m70,19.24zm-63.46,38.49l-6.54,0l0,-38.49l6.54,0l0,38.49z"
@@ -82,53 +99,3 @@ withDefaults(defineProps<Props>(), {
     />
   </svg>
 </template>
-
-<style scoped lang="css">
-.unraid_mark_2,
-.unraid_mark_4 {
-  animation: mark_2 1.5s ease infinite;
-}
-.unraid_mark_3 {
-  animation: mark_3 1.5s ease infinite;
-}
-.unraid_mark_6,
-.unraid_mark_8 {
-  animation: mark_6 1.5s ease infinite;
-}
-.unraid_mark_7 {
-  animation: mark_7 1.5s ease infinite;
-}
-
-@keyframes mark_2 {
-  50% {
-    transform: translateY(-40px);
-  }
-  100% {
-    transform: translateY(0);
-  }
-}
-@keyframes mark_3 {
-  50% {
-    transform: translateY(-62px);
-  }
-  100% {
-    transform: translateY(0);
-  }
-}
-@keyframes mark_6 {
-  50% {
-    transform: translateY(40px);
-  }
-  100% {
-    transform: translateY(0);
-  }
-}
-@keyframes mark_7 {
-  50% {
-    transform: translateY(62px);
-  }
-  100% {
-    transform: translateY(0);
-  }
-}
-</style>

@@ -1,15 +1,15 @@
 <script setup lang="ts">
-import { type HTMLAttributes, computed } from "vue";
+import { cn } from '@/lib/utils';
 import {
   SelectContent,
-  type SelectContentEmits,
-  type SelectContentProps,
   SelectPortal,
   SelectViewport,
   useForwardPropsEmits,
-} from "radix-vue";
-import { SelectScrollDownButton, SelectScrollUpButton } from ".";
-import { cn } from "@/lib/utils";
+  type SelectContentEmits,
+  type SelectContentProps,
+} from 'radix-vue';
+import { computed, type HTMLAttributes } from 'vue';
+import { SelectScrollDownButton, SelectScrollUpButton } from '.';
 
 defineOptions({
   inheritAttrs: false,
@@ -18,16 +18,16 @@ defineOptions({
 const props = withDefaults(
   defineProps<
     SelectContentProps & {
-      class?: HTMLAttributes["class"];
+      class?: HTMLAttributes['class'];
       disabled?: boolean;
       forceMount?: boolean;
       to?: string | HTMLElement | Element;
     }
   >(),
   {
-    position: "popper",
+    position: 'popper',
     class: undefined,
-    to: "#modals",
+    to: '#modals',
   }
 );
 const emits = defineEmits<SelectContentEmits>();
@@ -42,11 +42,7 @@ const forwarded = useForwardPropsEmits(delegatedProps, emits);
 </script>
 
 <template>
-  <SelectPortal
-    :disabled="disabled"
-    :force-mount="forceMount"
-    :to="to as HTMLElement"
-  >
+  <SelectPortal :disabled="disabled" :force-mount="forceMount" :to="to as HTMLElement">
     <SelectContent
       v-bind="{ ...forwarded, ...$attrs }"
       :class="

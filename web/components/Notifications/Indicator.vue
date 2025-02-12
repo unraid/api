@@ -1,7 +1,10 @@
 <script setup lang="ts">
 import { BellIcon, ExclamationTriangleIcon, ShieldExclamationIcon } from '@heroicons/vue/24/solid';
-import { cn } from '~/components/shadcn/utils';
-import { Importance, type OverviewQuery } from '~/composables/gql/graphql';
+import { cn } from '@unraid/ui';
+
+import type { OverviewQuery } from '~/composables/gql/graphql';
+
+import { Importance } from '~/composables/gql/graphql';
 
 const props = defineProps<{ overview?: OverviewQuery['notifications']['overview']; seen?: boolean }>();
 

@@ -1,11 +1,5 @@
 export { Badge } from '@/components/common/badge';
-export {
-  BrandButton,
-  BrandLoading,
-  BrandLoadingWhite,
-  BrandLogo,
-  BrandLogoConnect,
-} from '@/components/brand';
+export { BrandButton, BrandLoading, BrandLogo, BrandLogoConnect } from '@/components/brand';
 export { Button } from '@/components/common/button';
 export { CardWrapper, PageContainer } from '@/components/layout';
 export {

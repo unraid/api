@@ -1,7 +1,9 @@
 <script lang="ts" setup>
-import Input from '~/components/shadcn/input/Input.vue';
-import Label from '~/components/shadcn/label/Label.vue';
-import { defaultColors, useThemeStore, type Theme } from '~/store/theme';
+import { Input, Label, Switch } from '@unraid/ui';
+
+import type { Theme } from '~/store/theme';
+
+import { defaultColors, useThemeStore } from '~/store/theme';
 
 const themeStore = useThemeStore();
 const { darkMode } = toRefs(themeStore);
@@ -89,7 +91,7 @@ watch([setDarkMode, bgColorToSet, textSecondaryToSet, textPrimaryToSet], (newVal
 </template>
 
 <style lang="postcss">
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+/* Import unraid-ui globals first */
+@import '@unraid/ui/styles';
+@import '../assets/main.css';
 </style>

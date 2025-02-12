@@ -1,14 +1,14 @@
 <script setup lang="ts">
-import { storeToRefs } from 'pinia';
 import { useI18n } from 'vue-i18n';
+import { storeToRefs } from 'pinia';
 
-import 'tailwindcss/tailwind.css';
-import '~/assets/main.css';
+import { BrandButton } from '@unraid/ui';
+
+import type { Server } from '~/types/server';
 
 import ActivationSteps from '~/components/Activation/Steps.vue';
 import { useActivationCodeStore } from '~/store/activationCode';
 import { useServerStore } from '~/store/server';
-import type { Server } from '~/types/server';
 
 const { t } = useI18n();
 
@@ -29,14 +29,18 @@ const title = computed<string>(() =>
 );
 
 const description = computed<string>(() =>
-  t(`First, you’ll create your device’s login credentials, then you’ll activate your Unraid license—your device’s operating system (OS).`)
+  t(
+    `First, you’ll create your device’s login credentials, then you’ll activate your Unraid license—your device’s operating system (OS).`
+  )
 );
 
 const showModal = ref<boolean>(true);
-const dropdownHide = () => { showModal.value = false; };
+const dropdownHide = () => {
+  showModal.value = false;
+};
 
 watchEffect(() => {
-  /** 
+  /**
    * A necessary workaround for how the webgui handles font-size.
    * There's not a shared CSS file between /login and any of the authenticated webgui pages.
    * Which has lead to font-size differences.
@@ -60,9 +64,11 @@ onBeforeMount(() => {
     throw new Error('Server data not present');
   }
 
-  if (typeof props.server === 'object') { // Handles the testing dev Vue component
+  if (typeof props.server === 'object') {
+    // Handles the testing dev Vue component
     serverStore.setServer(props.server);
-  } else if (typeof props.server === 'string') { // Handle web component
+  } else if (typeof props.server === 'string') {
+    // Handle web component
     const parsedServerProp = JSON.parse(props.server);
     serverStore.setServer(parsedServerProp);
   }
@@ -93,10 +99,7 @@ onBeforeMount(() => {
 
       <template #footer>
         <div class="w-full flex gap-8px justify-center mx-auto">
-          <BrandButton
-            :text="t('Create a password')"
-            @click="dropdownHide"
-          />
+          <BrandButton :text="t('Create a password')" @click="dropdownHide" />
         </div>
       </template>
 
@@ -108,8 +111,9 @@ onBeforeMount(() => {
 </template>
 
 <style lang="postcss">
-@tailwind base;
-@tailwind components;
+/* Import unraid-ui globals first */
+@import '@unraid/ui/styles';
+@import '../assets/main.css';
 
 .unraid_mark_2,
 .unraid_mark_4 {
@@ -158,6 +162,4 @@ onBeforeMount(() => {
     transform: translateY(0);
   }
 }
-
-@tailwind utilities;
 </style>

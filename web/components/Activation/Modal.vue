@@ -1,13 +1,15 @@
 <script lang="ts" setup>
-import { ArrowTopRightOnSquareIcon } from "@heroicons/vue/24/solid";
-import { storeToRefs } from "pinia";
-import type { ComposerTranslation } from "vue-i18n";
+import { storeToRefs } from 'pinia';
 
-import { useActivationCodeStore } from "~/store/activationCode";
-import { usePurchaseStore } from "~/store/purchase";
-import type { ButtonProps } from "~/types/ui/button";
+import { ArrowTopRightOnSquareIcon } from '@heroicons/vue/24/solid';
+import { BrandButton } from '@unraid/ui';
 
-import ActivationPartnerLogo from "~/components/Activation/PartnerLogo.vue";
+import type { BrandButtonProps } from '@unraid/ui';
+import type { ComposerTranslation } from 'vue-i18n';
+
+import ActivationPartnerLogo from '~/components/Activation/PartnerLogo.vue';
+import { useActivationCodeStore } from '~/store/activationCode';
+import { usePurchaseStore } from '~/store/purchase';
 
 export interface Props {
   t: ComposerTranslation;
@@ -25,23 +27,23 @@ const description = computed<string>(() =>
     `On the following screen, your license will be activated. You’ll then create an Unraid.net Account to manage your license going forward.`
   )
 );
-const docsButtons = computed<ButtonProps[]>(() => {
+const docsButtons = computed<BrandButtonProps[]>(() => {
   return [
     {
-      btnStyle: "underline",
+      btnStyle: 'underline',
       external: true,
-      href: "https://docs.unraid.net/unraid-os/faq/licensing-faq/",
+      href: 'https://docs.unraid.net/unraid-os/faq/licensing-faq/',
       iconRight: ArrowTopRightOnSquareIcon,
-      size: "14px",
-      text: props.t("More about Licensing"),
+      size: '14px',
+      text: props.t('More about Licensing'),
     },
     {
-      btnStyle: "underline",
+      btnStyle: 'underline',
       external: true,
-      href: "https://docs.unraid.net/account/",
+      href: 'https://docs.unraid.net/account/',
       iconRight: ArrowTopRightOnSquareIcon,
-      size: "14px",
-      text: props.t("More about Unraid.net Accounts"),
+      size: '14px',
+      text: props.t('More about Unraid.net Accounts'),
     },
   ];
 });
@@ -49,17 +51,17 @@ const docsButtons = computed<ButtonProps[]>(() => {
 /**
  * Listen for konami code sequence to close the modal
  */
- const keySequence = [
-  "ArrowUp",
-  "ArrowUp",
-  "ArrowDown",
-  "ArrowDown",
-  "ArrowLeft",
-  "ArrowRight",
-  "ArrowLeft",
-  "ArrowRight",
-  "b",
-  "a",
+const keySequence = [
+  'ArrowUp',
+  'ArrowUp',
+  'ArrowDown',
+  'ArrowDown',
+  'ArrowLeft',
+  'ArrowRight',
+  'ArrowLeft',
+  'ArrowRight',
+  'b',
+  'a',
 ];
 let sequenceIndex = 0;
 
@@ -72,16 +74,16 @@ const handleKeydown = (event: KeyboardEvent) => {
 
   if (sequenceIndex === keySequence.length) {
     activationCodeStore.setActivationModalHidden(true);
-    window.location.href = "/Tools/Registration";
+    window.location.href = '/Tools/Registration';
   }
 };
 
 onMounted(() => {
-  window.addEventListener("keydown", handleKeydown);
+  window.addEventListener('keydown', handleKeydown);
 });
 
 onUnmounted(() => {
-  window.removeEventListener("keydown", handleKeydown);
+  window.removeEventListener('keydown', handleKeydown);
 });
 </script>
 

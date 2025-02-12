@@ -2,16 +2,15 @@
 /**
  * @todo future idea – turn this into a carousel. each feature could have a short video if we ever them
  */
-import { Switch, SwitchGroup, SwitchLabel } from '@headlessui/vue';
 import { ArrowTopRightOnSquareIcon } from '@heroicons/vue/24/solid';
+import { Switch, SwitchGroup, SwitchLabel } from '@headlessui/vue';
+import { CONNECT_DOCS } from '~/helpers/urls';
+
+import type { UserProfilePromoFeature } from '~/types/userProfile';
 import type { ComposerTranslation } from 'vue-i18n';
 
 import useInstallPlugin from '~/composables/installPlugin';
-import { CONNECT_DOCS } from '~/helpers/urls';
 import { usePromoStore } from '~/store/promo';
-import type { UserProfilePromoFeature } from '~/types/userProfile';
-import 'tailwindcss/tailwind.css';
-import '~/assets/main.css';
 
 export interface Props {
   open?: boolean;
@@ -46,11 +45,11 @@ const features = ref<UserProfilePromoFeature[]>([
   },
   {
     title: 'Real-time Monitoring',
-    copy: 'Get an overview of your server\'s state, storage space, apps and VMs status, and more.',
+    copy: "Get an overview of your server's state, storage space, apps and VMs status, and more.",
   },
   {
     title: 'Customizable Dashboard Tiles',
-    copy: 'Set custom server tiles how you like and automatically display your server\'s banner image on your Connect Dashboard.',
+    copy: "Set custom server tiles how you like and automatically display your server's banner image on your Connect Dashboard.",
   },
   {
     title: 'License Management',
@@ -65,7 +64,9 @@ const features = ref<UserProfilePromoFeature[]>([
 const staging = ref(false);
 
 const connectPluginUrl = computed((): string => {
-  const url = new URL(`https://sfo2.digitaloceanspaces.com/unraid-dl/unraid-api/dynamix.unraid.net${staging.value ? '.staging.plg' : '.plg'}`);
+  const url = new URL(
+    `https://sfo2.digitaloceanspaces.com/unraid-dl/unraid-api/dynamix.unraid.net${staging.value ? '.staging.plg' : '.plg'}`
+  );
   return url.toString();
 });
 
@@ -102,8 +103,20 @@ const { install } = useInstallPlugin();
     <template #footer>
       <div class="w-full max-w-xs flex flex-col items-center gap-y-16px mx-auto">
         <SwitchGroup v-if="import.meta.env.DEV" as="div" class="flex items-center justify-center">
-          <Switch v-model="staging" :class="[staging ? 'bg-indigo-600' : 'bg-gray-200', 'relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-indigo-600 focus:ring-offset-2']">
-            <span aria-hidden="true" :class="[staging ? 't-x-5' : 't-x-0', 'pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out']" />
+          <Switch
+            v-model="staging"
+            :class="[
+              staging ? 'bg-indigo-600' : 'bg-gray-200',
+              'relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-indigo-600 focus:ring-offset-2',
+            ]"
+          >
+            <span
+              aria-hidden="true"
+              :class="[
+                staging ? 't-x-5' : 't-x-0',
+                'pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out',
+              ]"
+            />
           </Switch>
           <SwitchLabel as="span" class="ml-3 text-12px">
             <span class="font-semibold">Install Staging</span>
@@ -140,7 +153,7 @@ const { install } = useInstallPlugin();
 </template>
 
 <style lang="postcss">
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+/* Import unraid-ui globals first */
+@import '@unraid/ui/styles';
+@import '../../assets/main.css';
 </style>

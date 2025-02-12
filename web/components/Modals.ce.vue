@@ -1,9 +1,6 @@
 <script setup lang="ts">
-import { storeToRefs } from 'pinia';
 import { useI18n } from 'vue-i18n';
-
-import 'tailwindcss/tailwind.css';
-import '~/assets/main.css';
+import { storeToRefs } from 'pinia';
 
 import { useCallbackActionsStore } from '~/store/callbackActions';
 import { useTrialStore } from '~/store/trial';
@@ -32,8 +29,9 @@ const { releaseForUpdate: updateOsChangelogModalVisible } = storeToRefs(useUpdat
 </template>
 
 <style lang="postcss">
-@tailwind base;
-@tailwind components;
+/* Import unraid-ui globals first */
+@import '@unraid/ui/styles';
+@import '../assets/main.css';
 
 .unraid_mark_2,
 .unraid_mark_4 {
@@ -82,6 +80,4 @@ const { releaseForUpdate: updateOsChangelogModalVisible } = storeToRefs(useUpdat
     transform: translateY(0);
   }
 }
-
-@tailwind utilities;
 </style>

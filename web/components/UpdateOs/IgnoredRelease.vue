@@ -1,5 +1,7 @@
 <script setup lang="ts">
 import { XMarkIcon } from '@heroicons/vue/24/solid';
+import { BrandButton } from '@unraid/ui';
+
 import type { ComposerTranslation } from 'vue-i18n';
 
 import { useServerStore } from '~/store/server';
@@ -29,7 +31,7 @@ const evenBgColor = computed(() => {
   >
     <span class="font-semibold">{{ label }}</span>
     <BrandButton
-      :btn-style="'underline'"
+      variant="underline"
       :icon-right="XMarkIcon"
       :text="t('Remove')"
       :title="t('Remove from ignore list')"

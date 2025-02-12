@@ -1,7 +1,7 @@
 import 'dotenv/config';
+import tailwindRemToRem from '@unraid/tailwind-rem-to-rem';
 import tailwindConfig from '@unraid/ui/tailwind.config.ts';
 import type { Config } from 'tailwindcss';
-import remToRem from './utils/tailwind-rem-to-rem';
 
 export default {
   presets: [tailwindConfig],
@@ -16,7 +16,7 @@ export default {
   mode: 'jit',
   safelist: [],
   plugins: [
-    remToRem({
+    tailwindRemToRem({
       baseFontSize: 16,
       /**
        * The font size where the web components will be rendered in production.
