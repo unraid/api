@@ -6,17 +6,17 @@ The Unraid API provides a GraphQL interface that allows you to interact with you
 
 1. First, enable developer mode using the CLI:
 
-```bash
-unraid-api developer
-```
+    ```bash
+    unraid-api developer
+    ```
 
 2. Follow the prompts to enable the sandbox. This will allow you to access the Apollo Sandbox interface.
 
 3. Access the GraphQL playground by navigating to:
 
-```
-http://YOUR_SERVER_IP/graphql
-```
+    ```txt
+    http://YOUR_SERVER_IP/graphql
+    ```
 
 ## Authentication
 
@@ -44,7 +44,7 @@ The generated API key should be included in your GraphQL requests as a header:
 
 ```json
 {
-  "x-api-key": "YOUR_API_KEY"
+    "x-api-key": "YOUR_API_KEY"
 }
 ```
 
@@ -83,20 +83,20 @@ The API provides access to various aspects of your Unraid server:
 
 ```graphql
 query {
-  info {
-    os {
-      platform
-      distro
-      release
-      uptime
+    info {
+        os {
+            platform
+            distro
+            release
+            uptime
+        }
+        cpu {
+            manufacturer
+            brand
+            cores
+            threads
+        }
     }
-    cpu {
-      manufacturer
-      brand
-      cores
-      threads
-    }
-  }
 }
 ```
 
@@ -104,22 +104,22 @@ query {
 
 ```graphql
 query {
-  array {
-    state
-    capacity {
-      disks {
-        free
-        used
-        total
-      }
+    array {
+        state
+        capacity {
+            disks {
+                free
+                used
+                total
+            }
+        }
+        disks {
+            name
+            size
+            status
+            temp
+        }
     }
-    disks {
-      name
-      size
-      status
-      temp
-    }
-  }
 }
 ```
 
@@ -127,13 +127,13 @@ query {
 
 ```graphql
 query {
-  dockerContainers {
-    id
-    names
-    state
-    status
-    autoStart
-  }
+    dockerContainers {
+        id
+        names
+        state
+        status
+        autoStart
+    }
 }
 ```
 
