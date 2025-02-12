@@ -2,9 +2,11 @@
 import { ExclamationTriangleIcon } from '@heroicons/vue/24/solid';
 import { BrandButton, BrandLogo } from '@unraid/ui';
 import { serverState } from '~/_data/serverState';
-import SsoButtonCe from '~/components/SsoButton.ce.vue';
-import type { SendPayloads } from '~/store/callback';
 import AES from 'crypto-js/aes';
+
+import type { SendPayloads } from '~/store/callback';
+
+import SsoButtonCe from '~/components/SsoButton.ce.vue';
 
 const { registerEntry } = useCustomElements();
 onBeforeMount(() => {

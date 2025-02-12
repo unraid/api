@@ -1,32 +1,42 @@
 <script lang="ts" setup>
-import { ArrowTopRightOnSquareIcon } from '@heroicons/vue/24/solid';
 import { storeToRefs } from 'pinia';
+
+import { ArrowTopRightOnSquareIcon } from '@heroicons/vue/24/solid';
+import { BrandButton, cn } from '@unraid/ui';
+
+import type { ServerStateDataAction } from '~/types/server';
 import type { ComposerTranslation } from 'vue-i18n';
 
 import { useServerStore } from '~/store/server';
-import type { ServerStateDataAction } from '~/types/server';
 
-const props = withDefaults(defineProps<{
-  actions?: ServerStateDataAction[];
-  filterBy?: string[] | undefined;
-  filterOut?: string[] | undefined;
-  maxWidth?: boolean;
-  t: ComposerTranslation;
-}>(), {
-  actions: undefined,
-  filterBy: undefined,
-  filterOut: undefined,
-  maxWidth: false,
-});
+const props = withDefaults(
+  defineProps<{
+    actions?: ServerStateDataAction[];
+    filterBy?: string[] | undefined;
+    filterOut?: string[] | undefined;
+    maxWidth?: boolean;
+    t: ComposerTranslation;
+  }>(),
+  {
+    actions: undefined,
+    filterBy: undefined,
+    filterOut: undefined,
+    maxWidth: false,
+  }
+);
 
 const { keyActions } = storeToRefs(useServerStore());
 
-const computedActions = computed((): ServerStateDataAction[] | undefined => props.actions ? props.actions : keyActions.value);
+const computedActions = computed((): ServerStateDataAction[] | undefined =>
+  props.actions ? props.actions : keyActions.value
+);
 
 const filteredKeyActions = computed((): ServerStateDataAction[] | undefined => {
-  if (!computedActions.value || (!props.filterOut && !props.filterBy)) { return computedActions.value; }
+  if (!computedActions.value || (!props.filterOut && !props.filterBy)) {
+    return computedActions.value;
+  }
 
-  return computedActions.value.filter((action: { name: string; }) => {
+  return computedActions.value.filter((action: { name: string }) => {
     return props.filterOut
       ? !props.filterOut?.includes(action.name)
       : props.filterBy?.includes(action.name);
@@ -38,10 +48,7 @@ const filteredKeyActions = computed((): ServerStateDataAction[] | undefined => {
   <ul v-if="filteredKeyActions" class="flex flex-col gap-y-8px">
     <li v-for="action in filteredKeyActions" :key="action.name">
       <BrandButton
-        :class="[
-          'w-full',
-          props.maxWidth ? 'sm:max-w-300px' : '',
-        ]"
+        :class="cn('w-full', props.maxWidth ? 'sm:max-w-300px' : '')"
         :disabled="action?.disabled"
         :external="action?.external"
         :href="action?.href"

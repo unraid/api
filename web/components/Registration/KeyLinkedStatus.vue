@@ -1,10 +1,9 @@
 <script setup lang="ts">
-import {
-  ArrowTopRightOnSquareIcon,
-  ArrowPathIcon,
-  LinkIcon,
-} from '@heroicons/vue/24/solid';
 import { storeToRefs } from 'pinia';
+
+import { ArrowPathIcon, ArrowTopRightOnSquareIcon, LinkIcon } from '@heroicons/vue/24/solid';
+import { Badge, BrandButton } from '@unraid/ui';
+
 import type { ComposerTranslation } from 'vue-i18n';
 
 import { useAccountStore } from '~/store/account';
@@ -23,35 +22,29 @@ defineProps<{
   <div class="flex flex-wrap items-center justify-between gap-8px">
     <BrandButton
       v-if="keyLinkedStatus !== 'linked' && keyLinkedStatus !== 'checking'"
-      btn-style="none"
-      :no-padding="true"
+      variant="none"
       :title="t('Refresh')"
       class="group"
       @click="replaceRenewStore.check(true)"
     >
-      <UiBadge
+      <Badge
         v-if="keyLinkedOutput"
-        :color="keyLinkedOutput.color"
+        :variant="keyLinkedOutput.variant"
         :icon="keyLinkedOutput.icon"
         :icon-right="ArrowPathIcon"
-        size="16px"
+        size="md"
       >
         {{ t(keyLinkedOutput.text ?? 'Unknown') }}
-      </UiBadge>
+      </Badge>
     </BrandButton>
-    <UiBadge
-      v-else
-      :color="keyLinkedOutput.color"
-      :icon="keyLinkedOutput.icon"
-      size="16px"
-    >
+    <Badge v-else :variant="keyLinkedOutput.variant" :icon="keyLinkedOutput.icon" size="md">
       {{ t(keyLinkedOutput.text ?? 'Unknown') }}
-    </UiBadge>
+    </Badge>
 
     <span class="inline-flex flex-wrap-items-start gap-8px">
       <BrandButton
         v-if="keyLinkedStatus === 'notLinked'"
-        btn-style="underline"
+        variant="underline"
         :external="true"
         :icon="LinkIcon"
         :icon-right="ArrowTopRightOnSquareIcon"
@@ -62,7 +55,7 @@ defineProps<{
       />
       <BrandButton
         v-else
-        btn-style="underline"
+        variant="underline"
         :external="true"
         :icon-right="ArrowTopRightOnSquareIcon"
         :text="t('Learn More')"

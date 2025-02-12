@@ -1,39 +1,49 @@
-import type { Meta, StoryObj } from "@storybook/vue3";
-import BrandLoading from "../../../src/components/brand/BrandLoading.ce.vue";
+import type { Meta, StoryObj } from '@storybook/vue3';
+import BrandLoadingCe from '../../../src/components/brand/BrandLoading.ce.vue';
 
 const meta = {
-  title: "Components/Brand",
-  component: BrandLoading,
+  title: 'Components/Brand',
+  component: BrandLoadingCe,
   argTypes: {
-    gradientStart: { control: 'color' },
-    gradientStop: { control: 'color' },
+    variant: {
+      control: 'select',
+      options: ['default', 'black', 'white'],
+    },
+    size: {
+      control: 'select',
+      options: ['sm', 'md', 'lg', 'full'],
+    },
     title: { control: 'text' },
   },
-} satisfies Meta<typeof BrandLoading>;
+} satisfies Meta<typeof BrandLoadingCe>;
 
 export default meta;
 
 type Story = StoryObj<typeof meta>;
 
-export const Loading: Story = {
-  args: {
-    gradientStart: '#e32929',
-    gradientStop: '#ff8d30',
-    title: 'Loading',
-  },
+const defaultArgs = {
+  variant: 'default' as const,
+  title: 'Loading',
+  size: 'full' as const,
+};
+
+// Web Component version
+export const LoadingCE: Story = {
+  args: defaultArgs,
   render: (args) => ({
-    components: { BrandLoading },
     setup() {
       return { args };
     },
     template: `
-      <div class="w-[200px]">
-        <BrandLoading
-          :gradient-start="args.gradientStart"
-          :gradient-stop="args.gradientStop"
-          :title="args.title"
-        />
+      <div>
+        <div class="w-[200px]">
+          <uui-brand-loading
+            :variant="args.variant"
+            :size="args.size"
+            :title="args.title"
+          />
+        </div>
       </div>
     `,
   }),
-}; 
+};

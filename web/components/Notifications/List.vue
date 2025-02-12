@@ -1,10 +1,14 @@
 <script setup lang="ts">
-import { CheckIcon } from '@heroicons/vue/24/solid';
 import { useQuery } from '@vue/apollo-composable';
 import { vInfiniteScroll } from '@vueuse/components';
+
+import { CheckIcon } from '@heroicons/vue/24/solid';
+import { Error as LoadingError, Spinner as LoadingSpinner } from '@unraid/ui';
+
+import type { Importance, NotificationType } from '~/composables/gql/graphql';
+
 import { useHaveSeenNotifications } from '~/composables/api/use-notifications';
 import { useFragment } from '~/composables/gql/fragment-masking';
-import type { Importance, NotificationType } from '~/composables/gql/graphql';
 import { useUnraidApiStore } from '~/store/unraidApi';
 import { getNotifications, NOTIFICATION_FRAGMENT } from './graphql/notification.query';
 

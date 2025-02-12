@@ -1,13 +1,10 @@
 <script setup lang="ts">
-import {
-  ArrowTopRightOnSquareIcon,
-  KeyIcon,
-} from '@heroicons/vue/24/solid';
-import { storeToRefs } from 'pinia';
-import type { ComposerTranslation } from 'vue-i18n';
-
+import { ArrowTopRightOnSquareIcon, KeyIcon } from '@heroicons/vue/24/solid';
+import { Badge, BrandButton } from '@unraid/ui';
 import { DOCS_REGISTRATION_REPLACE_KEY } from '~/helpers/urls';
 import { useReplaceRenewStore } from '~/store/replaceRenew';
+import { storeToRefs } from 'pinia';
+import type { ComposerTranslation } from 'vue-i18n';
 
 const replaceRenewStore = useReplaceRenewStore();
 const { replaceStatusOutput } = storeToRefs(replaceRenewStore);
@@ -27,18 +24,13 @@ defineProps<{
       @click="replaceRenewStore.check"
     />
 
-    <UiBadge
-      v-else
-      :color="replaceStatusOutput.color"
-      :icon="replaceStatusOutput.icon"
-      size="16px"
-    >
+    <Badge v-else :variant="replaceStatusOutput.variant" :icon="replaceStatusOutput.icon" size="md">
       {{ t(replaceStatusOutput.text ?? 'Unknown') }}
-    </UiBadge>
+    </Badge>
 
     <span class="inline-flex flex-wrap items-center justify-end gap-8px">
       <BrandButton
-        btn-style="underline"
+        variant="underline"
         :external="true"
         :href="DOCS_REGISTRATION_REPLACE_KEY.toString()"
         :icon-right="ArrowTopRightOnSquareIcon"

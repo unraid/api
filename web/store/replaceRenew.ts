@@ -4,32 +4,38 @@
  * New key replacement, should happen also on server side.
  * Cron to run hourly, check on how many days are left until regExp…within X days then allow request to be done
  */
+import { h } from 'vue';
+import { createPinia, defineStore, setActivePinia } from 'pinia';
+
 import {
   CheckCircleIcon,
   ExclamationCircleIcon,
-  XCircleIcon,
   ShieldExclamationIcon,
+  XCircleIcon,
 } from '@heroicons/vue/24/solid';
-import { defineStore, createPinia, setActivePinia } from 'pinia';
+import { BrandLoading } from '@unraid/ui';
+
+import type { BadgeProps } from '@unraid/ui';
+import type {
+  // type KeyLatestResponse,
+  ValidateGuidResponse,
+} from '~/composables/services/keyServer';
 import type { WretchError } from 'wretch';
 
 import {
   // keyLatest,
   validateGuid,
-  // type KeyLatestResponse,
-  type ValidateGuidResponse,
 } from '~/composables/services/keyServer';
 // import { useCallbackStore } from '~/store/callbackActions';
 import { useServerStore } from '~/store/server';
-import type { UiBadgeProps } from '~/types/ui/badge';
-import BrandLoadingWhite from '~/components/Brand/LoadingWhite.vue';
+
 /**
  * @see https://stackoverflow.com/questions/73476371/using-pinia-with-vue-js-web-components
  * @see https://github.com/vuejs/pinia/discussions/1085
  */
 setActivePinia(createPinia());
 
-export interface UiBadgePropsExtended extends UiBadgeProps {
+export interface BadgePropsExtended extends BadgeProps {
   text?: string;
 }
 
@@ -37,6 +43,8 @@ interface CachedValidationResponse extends ValidateGuidResponse {
   key: string;
   timestamp: number;
 }
+
+const BrandLoadingIcon = () => h(BrandLoading, { variant: 'white' });
 
 export const REPLACE_CHECK_LOCAL_STORAGE_KEY = 'unraidReplaceCheck';
 
@@ -59,37 +67,37 @@ export const useReplaceRenewStore = defineStore('replaceRenewCheck', () => {
   const setKeyLinked = (value: typeof keyLinkedStatus.value) => {
     keyLinkedStatus.value = value;
   };
-  const keyLinkedOutput = computed((): UiBadgePropsExtended => {
+  const keyLinkedOutput = computed((): BadgePropsExtended => {
     // text values are translated in the component
     switch (keyLinkedStatus.value) {
       case 'checking':
         return {
-          color: 'gray',
-          icon: BrandLoadingWhite,
+          variant: 'gray',
+          icon: BrandLoadingIcon,
           text: 'Checking...',
         };
       case 'linked':
         return {
-          color: 'green',
+          variant: 'green',
           icon: CheckCircleIcon,
           text: 'Linked',
         };
       case 'notLinked':
         return {
-          color: 'yellow',
+          variant: 'yellow',
           icon: ExclamationCircleIcon,
           text: 'Not Linked',
         };
       case 'error':
         return {
-          color: 'red',
+          variant: 'red',
           icon: ShieldExclamationIcon,
           text: error.value?.message || 'Unknown error',
         };
       case 'ready':
       default:
         return {
-          color: 'gray',
+          variant: 'gray',
           icon: ExclamationCircleIcon,
           text: 'Unknown',
         };
@@ -101,34 +109,36 @@ export const useReplaceRenewStore = defineStore('replaceRenewCheck', () => {
     renewStatus.value = status;
   };
 
-  const replaceStatus = ref<'checking' | 'eligible' | 'error' | 'ineligible' | 'ready'>(guid.value ? 'ready' : 'error');
+  const replaceStatus = ref<'checking' | 'eligible' | 'error' | 'ineligible' | 'ready'>(
+    guid.value ? 'ready' : 'error'
+  );
   const setReplaceStatus = (status: typeof replaceStatus.value) => {
     replaceStatus.value = status;
   };
-  const replaceStatusOutput = computed((): UiBadgePropsExtended | undefined => {
+  const replaceStatusOutput = computed((): BadgePropsExtended | undefined => {
     // text values are translated in the component
     switch (replaceStatus.value) {
       case 'checking':
         return {
-          color: 'gray',
-          icon: BrandLoadingWhite,
+          variant: 'gray',
+          icon: BrandLoadingIcon,
           text: 'Checking...',
         };
       case 'eligible':
         return {
-          color: 'green',
+          variant: 'green',
           icon: CheckCircleIcon,
           text: 'Eligible',
         };
       case 'error':
         return {
-          color: 'red',
+          variant: 'red',
           icon: ShieldExclamationIcon,
           text: error.value?.message || 'Unknown error',
         };
       case 'ineligible':
         return {
-          color: 'red',
+          variant: 'red',
           icon: XCircleIcon,
           text: 'Ineligible for self-replacement',
         };
@@ -208,12 +218,18 @@ export const useReplaceRenewStore = defineStore('replaceRenewCheck', () => {
       setKeyLinked(response?.linked ? 'linked' : 'notLinked');
 
       /** cache the response to prevent repeated POSTs in the session */
-      if ((replaceStatus.value === 'eligible' || replaceStatus.value === 'ineligible') && !validationResponse.value) {
-        sessionStorage.setItem(REPLACE_CHECK_LOCAL_STORAGE_KEY, JSON.stringify({
-          key: keyfileShort.value,
-          timestamp: Date.now(),
-          ...response,
-        }));
+      if (
+        (replaceStatus.value === 'eligible' || replaceStatus.value === 'ineligible') &&
+        !validationResponse.value
+      ) {
+        sessionStorage.setItem(
+          REPLACE_CHECK_LOCAL_STORAGE_KEY,
+          JSON.stringify({
+            key: keyfileShort.value,
+            timestamp: Date.now(),
+            ...response,
+          })
+        );
       }
 
       // if (response?.hasNewerKeyfile) {

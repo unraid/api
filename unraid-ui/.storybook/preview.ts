@@ -1,9 +1,12 @@
-import type { Preview } from "@storybook/vue3";
-import "../src/styles/globals.css";
+import type { Preview } from '@storybook/vue3';
+import '../src/styles/globals.css';
+import { registerAllComponents } from '../src/register';
+
+registerAllComponents({});
 
 const preview: Preview = {
   parameters: {
-    actions: { argTypesRegex: "^on[A-Z].*" },
+    actions: { argTypesRegex: '^on[A-Z].*' },
     controls: {
       matchers: {
         color: /(background|color)$/i,

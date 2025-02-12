@@ -1,4 +1,7 @@
 <script lang="ts" setup>
+import { h } from 'vue';
+import { storeToRefs } from 'pinia';
+
 import {
   ArrowPathIcon,
   ArrowTopRightOnSquareIcon,
@@ -8,17 +11,17 @@ import {
   InformationCircleIcon,
   XCircleIcon,
 } from '@heroicons/vue/24/solid';
-import { Badge, BrandButton } from '@unraid/ui';
-import BrandLoadingWhite from '~/components/Brand/LoadingWhite.vue';
-import useDateTimeHelper from '~/composables/dateTime';
+import { Badge, BrandButton, BrandLoading } from '@unraid/ui';
 import { WEBGUI_TOOLS_REGISTRATION } from '~/helpers/urls';
+
+import type { BrandButtonProps } from '@unraid/ui';
+import type { ComposerTranslation } from 'vue-i18n';
+
+import useDateTimeHelper from '~/composables/dateTime';
 import { useAccountStore } from '~/store/account';
 import { useServerStore } from '~/store/server';
 import { useUpdateOsStore } from '~/store/updateOs';
 import { useUpdateOsActionsStore } from '~/store/updateOsActions';
-import type { ButtonProps } from '~/types/ui/button';
-import { storeToRefs } from 'pinia';
-import type { ComposerTranslation } from 'vue-i18n';
 
 export interface Props {
   downgradeNotAvailable?: boolean;
@@ -40,6 +43,8 @@ const accountStore = useAccountStore();
 const serverStore = useServerStore();
 const updateOsStore = useUpdateOsStore();
 const updateOsActionsStore = useUpdateOsActionsStore();
+
+const LoadingIcon = () => h(BrandLoading, { variant: 'white' });
 
 const { dateTimeFormat, osVersion, rebootType, rebootVersion, regExp, regUpdatesExpired } =
   storeToRefs(serverStore);
@@ -69,10 +74,10 @@ const showRebootButton = computed(
   () => rebootType.value === 'downgrade' || rebootType.value === 'update'
 );
 
-const checkButton = computed((): ButtonProps => {
+const checkButton = computed((): BrandButtonProps => {
   if (showRebootButton.value || props.showExternalDowngrade) {
     return {
-      btnStyle: 'outline',
+      variant: 'outline',
       click: () => {
         props.showExternalDowngrade ? accountStore.downgradeOs() : accountStore.updateOs();
       },
@@ -83,7 +88,7 @@ const checkButton = computed((): ButtonProps => {
 
   if (!updateAvailable.value) {
     return {
-      btnStyle: 'outline',
+      variant: 'outline',
       click: () => {
         updateOsStore.localCheckForUpdate();
       },
@@ -93,7 +98,7 @@ const checkButton = computed((): ButtonProps => {
   }
 
   return {
-    btnStyle: 'fill',
+    variant: 'fill',
     click: () => {
       updateOsStore.setModalOpen(true);
     },
@@ -151,7 +156,7 @@ const checkButton = computed((): ButtonProps => {
           {{ t('Key ineligible for {0}', [availableWithRenewal]) }}
         </Badge>
 
-        <Badge v-if="status === 'checking'" variant="orange" :icon="BrandLoadingWhite">
+        <Badge v-if="status === 'checking'" variant="orange" :icon="LoadingIcon">
           {{ t('Checking...') }}
         </Badge>
         <template v-else>
@@ -194,7 +199,7 @@ const checkButton = computed((): ButtonProps => {
 
         <span>
           <BrandButton
-            :variant="checkButton.btnStyle"
+            :variant="checkButton.variant"
             :icon="checkButton.icon"
             :text="checkButton.text"
             @click="checkButton.click"

@@ -1,4 +1,3 @@
 /* global styles for unraid-ui */
-@import "./globals.css";
-@import "./sonner.css";
-
+@import 'globals.css';
+@import 'sonner.css';

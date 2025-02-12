@@ -1,11 +1,13 @@
-import tailwindRemToRem from './src/lib/tailwind-rem-to-rem';
+import tailwindRemToRem from '@unraid/tailwind-rem-to-rem';
 import type { Config } from 'tailwindcss';
 import { unraidPreset } from './src/theme/preset';
+
 
 export default {
   presets: [unraidPreset],
   content: [
     './src/components/**/*.{js,vue,ts}',
+    './src/components/**/*.ce.{js,vue,ts}',
     './src/composables/**/*.{js,vue,ts}',
     './stories/**/*.stories.{js,ts,jsx,tsx,mdx}',
     './index.html',
@@ -30,5 +32,10 @@ export default {
       variants: ['group-hover', 'group-focus'],
     },
   ],
-  plugins: [tailwindRemToRem({ baseFontSize: 16, newFontSize: process.env.REM_PLUGIN ? 10 : 16 })],
+  plugins: [
+    tailwindRemToRem({
+      baseFontSize: 16,
+      newFontSize: Number(process.env.VITE_TAILWIND_BASE_FONT_SIZE ?? 10),
+    }),
+  ],
 } satisfies Partial<Config>;

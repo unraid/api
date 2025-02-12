@@ -23,6 +23,7 @@
     "src/**/*.d.ts",
     "src/**/*.tsx",
     "src/**/*.vue",
+    "src/**/*.ce.vue",
     "./tailwind.config.ts",
     "src/theme/**/*.ts"
   ],

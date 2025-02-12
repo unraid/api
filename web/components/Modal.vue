@@ -1,8 +1,9 @@
 <script setup lang="ts">
-import { TransitionChild, TransitionRoot } from '@headlessui/vue';
 import { XMarkIcon } from '@heroicons/vue/24/outline';
+import { cn } from '@unraid/ui';
+import { TransitionChild, TransitionRoot } from '@headlessui/vue';
+
 import type { ComposerTranslation } from 'vue-i18n';
-import { cn } from '~/components/shadcn/utils';
 
 export interface Props {
   centerContent?: boolean;
@@ -44,7 +45,7 @@ const props = withDefaults(defineProps<Props>(), {
 watchEffect(() => {
   // toggle body scrollability
   if (props.open) {
-    document.body.style.setProperty('overflow', 'hidden')
+    document.body.style.setProperty('overflow', 'hidden');
   } else {
     document.body.style.removeProperty('overflow');
   }
@@ -55,7 +56,9 @@ const closeModal = () => {
   emit('close');
 };
 
-const ariaLablledById = computed<string|undefined>(() => props.title ? `ModalTitle-${Math.random()}`.replace('0.', '') : undefined);
+const ariaLablledById = computed<string | undefined>(() =>
+  props.title ? `ModalTitle-${Math.random()}`.replace('0.', '') : undefined
+);
 const computedVerticalCenter = computed<string>(() => {
   if (props.tallContent) {
     return 'justify-start sm:justify-center';
@@ -138,7 +141,11 @@ const computedVerticalCenter = computed<string>(() => {
             >
               <div class="absolute -z-10 inset-0 opacity-10 bg-card" />
               <template v-if="!$slots['header']">
-                <h1 v-if="title && !titleInMain" :id="ariaLablledById" class="text-center text-20px sm:text-24px font-semibold flex flex-wrap justify-center gap-x-4px">
+                <h1
+                  v-if="title && !titleInMain"
+                  :id="ariaLablledById"
+                  class="text-center text-20px sm:text-24px font-semibold flex flex-wrap justify-center gap-x-4px"
+                >
                   {{ title }}
                   <slot name="headerTitle" />
                 </h1>
@@ -149,15 +156,16 @@ const computedVerticalCenter = computed<string>(() => {
             <div
               v-if="$slots['main'] || description"
               class="relative max-h-[65vh] tall:max-h-[75vh] flex flex-col gap-y-16px sm:gap-y-24px p-16px md:p-24px overflow-y-auto"
-              :class="[
-                centerContent && 'text-center',
-                !disableShadow && 'shadow-inner',
-              ]"
+              :class="[centerContent && 'text-center', !disableShadow && 'shadow-inner']"
             >
               <div class="flex flex-col gap-y-12px">
-                <h1 v-if="title && titleInMain" :id="ariaLablledById" class="text-center text-20px sm:text-24px font-semibold flex flex-wrap justify-center gap-x-4px">
-                    {{ title }}
-                    <slot name="headerTitle" />
+                <h1
+                  v-if="title && titleInMain"
+                  :id="ariaLablledById"
+                  class="text-center text-20px sm:text-24px font-semibold flex flex-wrap justify-center gap-x-4px"
+                >
+                  {{ title }}
+                  <slot name="headerTitle" />
                 </h1>
                 <h2 v-if="description" class="text-18px sm:text-20px opacity-75" v-html="description" />
               </div>
