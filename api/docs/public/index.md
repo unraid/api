@@ -7,8 +7,8 @@ The Unraid API provides a GraphQL interface for programmatic interaction with yo
 The API is available through the Unraid Connect Plugin:
 
 1. Install Unraid Connect Plugin from Apps
-2. Configure the plugin
-3. Access API functionality through the plugin interface
+2. [Configure the plugin](./how-to-use-the-api.md#enabling-the-graphql-sandbox)
+3. Access API functionality through the [GraphQL Sandbox](./how-to-use-the-api.md#accessing-the-graphql-sandbox)
 
 ## Future Availability
 
