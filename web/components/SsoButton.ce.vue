@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import Button from '~/components/Brand/Button.vue';
+import { BrandButton } from '@unraid/ui';
 import { ACCOUNT } from '~/helpers/urls';
 
 export interface Props {
@@ -51,7 +51,7 @@ const getStateToken = (): string | null => {
 const generateStateToken = (): string => {
   const array = new Uint8Array(32);
   window.crypto.getRandomValues(array);
-  const state = Array.from(array, byte => byte.toString(16).padStart(2, '0')).join('');
+  const state = Array.from(array, (byte) => byte.toString(16).padStart(2, '0')).join('');
   sessionStorage.setItem('sso_state', state);
   return state;
 };
@@ -138,19 +138,19 @@ const navigateToExternalSSOUrl = () => {
     <div class="w-full flex flex-col gap-1 my-1">
       <p v-if="currentState === 'idle' || currentState === 'error'" class="text-center">or</p>
       <p v-if="currentState === 'error'" class="text-red-500 text-center">{{ error }}</p>
-      <Button
+      <BrandButton
         :disabled="currentState === 'loading'"
-        btn-style="outline"
+        variant="outline"
         class="rounded-none uppercase tracking-widest"
         @click="navigateToExternalSSOUrl"
-        >{{ buttonText }}</Button
+        >{{ buttonText }}</BrandButton
       >
     </div>
   </template>
 </template>
 
 <style lang="postcss">
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+/* Import unraid-ui globals first */
+@import '@unraid/ui/styles';
+@import '../assets/main.css';
 </style>

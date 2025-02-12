@@ -1,10 +1,13 @@
 <script setup lang="ts">
-import { ArrowPathIcon, ArrowTopRightOnSquareIcon } from '@heroicons/vue/24/solid';
 import { storeToRefs } from 'pinia';
+
+import { ArrowPathIcon, ArrowTopRightOnSquareIcon } from '@heroicons/vue/24/solid';
+import { BrandButton } from '@unraid/ui';
+import { DOCS_REGISTRATION_LICENSING } from '~/helpers/urls';
+
 import type { ComposerTranslation } from 'vue-i18n';
 
 import useDateTimeHelper from '~/composables/dateTime';
-import { DOCS_REGISTRATION_LICENSING } from '~/helpers/urls';
 import { useReplaceRenewStore } from '~/store/replaceRenew';
 import { useServerStore } from '~/store/server';
 
@@ -18,21 +21,14 @@ const replaceRenewStore = useReplaceRenewStore();
 const serverStore = useServerStore();
 
 const { renewStatus } = storeToRefs(replaceRenewStore);
-const {
-  dateTimeFormat,
-  regExp,
-  regUpdatesExpired,
-  renewAction,
-} = storeToRefs(serverStore);
+const { dateTimeFormat, regExp, regUpdatesExpired, renewAction } = storeToRefs(serverStore);
 
 const reload = () => {
   window.location.reload();
 };
 
-const {
-  outputDateTimeReadableDiff: readableDiffRegExp,
-  outputDateTimeFormatted: formattedRegExp,
-} = useDateTimeHelper(dateTimeFormat.value, props.t, true, regExp.value);
+const { outputDateTimeReadableDiff: readableDiffRegExp, outputDateTimeFormatted: formattedRegExp } =
+  useDateTimeHelper(dateTimeFormat.value, props.t, true, regExp.value);
 
 const output = computed(() => {
   if (!regExp.value) {
@@ -55,7 +51,11 @@ const output = computed(() => {
 
     <p class="text-14px opacity-90">
       <template v-if="renewStatus === 'installed'">
-        {{ t('Your license key was automatically renewed and installed. Reload the page to see updated details.') }}
+        {{
+          t(
+            'Your license key was automatically renewed and installed. Reload the page to see updated details.'
+          )
+        }}
       </template>
     </p>
     <div class="flex flex-wrap items-start justify-between gap-8px">
@@ -80,7 +80,7 @@ const output = computed(() => {
       />
 
       <BrandButton
-        btn-style="underline"
+        variant="underline"
         :external="true"
         :href="DOCS_REGISTRATION_LICENSING.toString()"
         :icon-right="ArrowTopRightOnSquareIcon"

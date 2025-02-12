@@ -8,6 +8,7 @@ import {
   ShieldExclamationIcon,
   TrashIcon,
 } from '@heroicons/vue/24/solid';
+import { Button } from '@unraid/ui';
 import { useMutation } from '@vue/apollo-composable';
 import type { NotificationFragmentFragment } from '~/composables/gql/graphql';
 import { NotificationType } from '~/composables/gql/graphql';

@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { storeToRefs } from 'pinia';
+
 import {
   ArrowPathIcon,
   ArrowTopRightOnSquareIcon,
@@ -9,22 +10,24 @@ import {
   KeyIcon,
   UserIcon,
 } from '@heroicons/vue/24/solid';
-import type { ComposerTranslation } from 'vue-i18n';
-
+import { BrandLogoConnect } from '@unraid/ui';
 import {
   CONNECT_DASHBOARD,
   WEBGUI_CONNECT_SETTINGS,
-  WEBGUI_TOOLS_REGISTRATION,
   WEBGUI_TOOLS_DOWNGRADE,
+  WEBGUI_TOOLS_REGISTRATION,
   WEBGUI_TOOLS_UPDATE,
 } from '~/helpers/urls';
+
+import type { UserProfileLink } from '~/types/userProfile';
+import type { ComposerTranslation } from 'vue-i18n';
+
 import { useAccountStore } from '~/store/account';
 import { useErrorsStore } from '~/store/errors';
 import { useServerStore } from '~/store/server';
 import { useUpdateOsStore } from '~/store/updateOs';
-import type { UserProfileLink } from '~/types/userProfile';
 
-const props = defineProps<{ t: ComposerTranslation; }>();
+const props = defineProps<{ t: ComposerTranslation }>();
 
 const accountStore = useAccountStore();
 const errorsStore = useErrorsStore();
@@ -40,23 +43,29 @@ const {
   stateData,
   stateDataError,
 } = storeToRefs(useServerStore());
-const {
-  available: osUpdateAvailable,
-  availableWithRenewal: osUpdateAvailableWithRenewal,
-} = storeToRefs(updateOsStore);
+const { available: osUpdateAvailable, availableWithRenewal: osUpdateAvailableWithRenewal } =
+  storeToRefs(updateOsStore);
 
-const signInAction = computed(() => stateData.value.actions?.filter((act: { name: string; }) => act.name === 'signIn') ?? []);
-const signOutAction = computed(() => stateData.value.actions?.filter((act: { name: string; }) => act.name === 'signOut') ?? []);
+const signInAction = computed(
+  () => stateData.value.actions?.filter((act: { name: string }) => act.name === 'signIn') ?? []
+);
+const signOutAction = computed(
+  () => stateData.value.actions?.filter((act: { name: string }) => act.name === 'signOut') ?? []
+);
 
 /**
  * Filter out the renew action from the key actions so we can display it separately and link to the Tools > Registration page
  */
-const filteredKeyActions = computed(() => keyActions.value?.filter(action => !['renew'].includes(action.name)));
+const filteredKeyActions = computed(() =>
+  keyActions.value?.filter((action) => !['renew'].includes(action.name))
+);
 
 const manageUnraidNetAccount = computed((): UserProfileLink => {
   return {
     external: true,
-    click: () => { accountStore.manage(); },
+    click: () => {
+      accountStore.manage();
+    },
     icon: UserIcon,
     text: props.t('Manage Unraid.net Account'),
     title: props.t('Manage Unraid.net Account in new tab'),
@@ -86,13 +95,15 @@ const updateOsResponseModalOpenButton = computed((): UserProfileLink => {
 });
 const rebootDetectedButton = computed((): UserProfileLink => {
   return {
-    href: rebootType.value === 'downgrade'
-      ? WEBGUI_TOOLS_DOWNGRADE.toString()
-      : WEBGUI_TOOLS_UPDATE.toString(),
+    href:
+      rebootType.value === 'downgrade'
+        ? WEBGUI_TOOLS_DOWNGRADE.toString()
+        : WEBGUI_TOOLS_UPDATE.toString(),
     icon: ExclamationTriangleIcon,
-    text: rebootType.value === 'downgrade'
-      ? props.t('Reboot Required for Downgrade')
-      : props.t('Reboot Required for Update'),
+    text:
+      rebootType.value === 'downgrade'
+        ? props.t('Reboot Required for Downgrade')
+        : props.t('Reboot Required for Update'),
   };
 });
 
@@ -111,15 +122,17 @@ const updateOsButton = computed((): UserProfileLink[] => {
   return btns;
 });
 
-const links = computed(():UserProfileLink[] => {
+const links = computed((): UserProfileLink[] => {
   return [
     ...(regUpdatesExpired.value
-      ? [{
-          href: WEBGUI_TOOLS_REGISTRATION.toString(),
-          icon: KeyIcon,
-          text: props.t('OS Update Eligibility Expired'),
-          title: props.t('Go to Tools > Registration to Learn More'),
-        }]
+      ? [
+          {
+            href: WEBGUI_TOOLS_REGISTRATION.toString(),
+            icon: KeyIcon,
+            text: props.t('OS Update Eligibility Expired'),
+            title: props.t('Go to Tools > Registration to Learn More'),
+          },
+        ]
       : []),
 
     // ensure we only show the update button when we don't have an error
@@ -136,31 +149,36 @@ const links = computed(():UserProfileLink[] => {
             text: props.t('Go to Connect'),
             title: props.t('Opens Connect in new tab'),
           },
-          ...([manageUnraidNetAccount.value]),
+          ...[manageUnraidNetAccount.value],
           {
             href: WEBGUI_CONNECT_SETTINGS.toString(),
             icon: CogIcon,
             text: props.t('Settings'),
             title: props.t('Go to Connect plugin settings'),
           },
-          ...(signOutAction.value),
+          ...signOutAction.value,
         ]
-      : [
-          ...([manageUnraidNetAccount.value]),
-        ]
-    ),
+      : [...[manageUnraidNetAccount.value]]),
   ];
 });
 
 const showErrors = computed(() => errors.value.length);
-const showConnectStatus = computed(() => !showErrors.value && !stateData.value.error && registered.value && connectPluginInstalled.value);
-const showKeyline = computed(() =>
-  (showConnectStatus.value && (keyActions.value?.length || links.value.length)) ||
-  unraidConnectWelcome.value
+const showConnectStatus = computed(
+  () => !showErrors.value && !stateData.value.error && registered.value && connectPluginInstalled.value
+);
+const showKeyline = computed(
+  () =>
+    (showConnectStatus.value && (keyActions.value?.length || links.value.length)) ||
+    unraidConnectWelcome.value
 );
 
 const unraidConnectWelcome = computed(() => {
-  if (connectPluginInstalled.value && !registered.value && !errors.value.length && !stateDataError.value) {
+  if (
+    connectPluginInstalled.value &&
+    !registered.value &&
+    !errors.value.length &&
+    !stateDataError.value
+  ) {
     return {
       heading: props.t('Thank you for installing Connect!'),
       message: props.t('Sign In to your Unraid.net account to get started'),
@@ -172,9 +190,16 @@ const unraidConnectWelcome = computed(() => {
 
 <template>
   <div class="flex flex-col gap-y-8px min-w-300px max-w-350px">
-    <header v-if="connectPluginInstalled" class="flex flex-col items-start justify-between mt-8px mx-8px">
+    <header
+      v-if="connectPluginInstalled"
+      class="flex flex-col items-start justify-between mt-8px mx-8px"
+    >
       <h2 class="text-18px leading-none flex flex-row gap-x-4px items-center justify-between">
-        <BrandLogoConnect gradient-start="currentcolor" gradient-stop="currentcolor" class="text-foreground w-[120px]" />
+        <BrandLogoConnect
+          gradient-start="currentcolor"
+          gradient-stop="currentcolor"
+          class="text-foreground w-[120px]"
+        />
         <UpcBeta />
       </h2>
       <template v-if="unraidConnectWelcome">

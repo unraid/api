@@ -1,7 +1,26 @@
 <script setup lang="ts">
-import { Button } from '@/components/shadcn/button';
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/shadcn/sheet';
 import { useMutation, useQuery, useSubscription } from '@vue/apollo-composable';
+
+import {
+  Button,
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectLabel,
+  SelectTrigger,
+  SelectValue,
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from '@unraid/ui';
+
 import { useTrackLatestSeenNotification } from '~/composables/api/use-notifications';
 import { useFragment } from '~/composables/gql';
 // eslint-disable-next-line @typescript-eslint/consistent-type-imports -- false positive :(
@@ -93,7 +112,7 @@ const readArchivedCount = computed(() => {
       <NotificationsIndicator :overview="overview" :seen="haveSeenNotifications" />
     </SheetTrigger>
     <SheetContent
-      :to="teleportTarget"
+      :to="teleportTarget as HTMLElement"
       class="w-full max-w-[100vw] sm:max-w-[540px] max-h-screen h-screen min-h-screen px-0 flex flex-col gap-5 pb-0"
     >
       <div class="relative flex flex-col h-full w-full">
@@ -143,7 +162,7 @@ const readArchivedCount = computed(() => {
 
             <Select
               @update:model-value="
-                (val) => {
+                (val: string) => {
                   importance = val === 'all' ? undefined : (val as Importance);
                 }
               "

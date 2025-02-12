@@ -11,7 +11,7 @@ type RegisterParams = {
 };
 
 export function registerAllComponents(params: RegisterParams = {}) {
-  const { namePrefix = 'unraid', pathToSharedCss = './src/styles/index.css' } = params;
+  const { namePrefix = 'uui', pathToSharedCss = './src/styles/index.css' } = params;
   Object.entries(Components).forEach(([name, component]) => {
     // add our shared css to each web component
     component.styles ??= [];

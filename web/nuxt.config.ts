@@ -1,4 +1,5 @@
 import { readFileSync } from 'fs';
+
 import { parse } from 'dotenv';
 import removeConsole from 'vite-plugin-remove-console';
 
@@ -64,7 +65,6 @@ export default defineNuxtConfig({
   components: [
     { path: '~/components/Brand', prefix: 'Brand' },
     { path: '~/components/ConnectSettings', prefix: 'ConnectSettings' },
-    { path: '~/components/Ui', prefix: 'Ui' },
     { path: '~/components/UserProfile', prefix: 'Upc' },
     { path: '~/components/UpdateOs', prefix: 'UpdateOs' },
     '~/components',
