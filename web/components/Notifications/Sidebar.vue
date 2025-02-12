@@ -9,6 +9,7 @@ import {
   SelectItem,
   SelectLabel,
   SelectTrigger,
+  SelectValue,
   Sheet,
   SheetContent,
   SheetHeader,
