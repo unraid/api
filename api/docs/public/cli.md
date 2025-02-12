@@ -8,7 +8,8 @@ unraid-api start [--log-level <level>]
 
 Starts the Unraid API service.
 
-- `--log-level`: Optional. Set logging level (trace|debug|info|warn|error)
+Options:
+- `--log-level`: Set logging level (trace|debug|info|warn|error)
 
 ### Stop
 
@@ -155,7 +156,7 @@ Generate a system report.
 
 ## Notes
 
-1. Most commands that modify the system state will require appropriate permissions.
-2. Some commands may require the API to be running or stopped depending on their function.
-3. When using API keys, ensure you store them securely as they provide access to your system.
-4. SSO configuration changes may require a service restart to take effect.
+1. Most commands require appropriate permissions to modify system state
+2. Some commands require the API to be running or stopped
+3. Store API keys securely as they provide system access
+4. SSO configuration changes may require a service restart

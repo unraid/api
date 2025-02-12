@@ -1,14 +1,14 @@
-# Unraid API Documentation
+# Unraid API
 
-The Unraid API provides a powerful GraphQL interface for interacting with your Unraid server programmatically. It enables automation, monitoring, and integration capabilities for your Unraid system.
+The Unraid API provides a GraphQL interface for programmatic interaction with your Unraid server. It enables automation, monitoring, and integration capabilities.
 
 ## Current Availability
 
-The Unraid API is currently available exclusively through the **Unraid Connect Plugin**. To get started:
+The API is available through the Unraid Connect Plugin:
 
-1. Install the Unraid Connect Plugin from the Apps tab
-2. Configure the plugin according to your needs
-3. Access the API functionality through the plugin interface
+1. Install Unraid Connect Plugin from Apps
+2. Configure the plugin
+3. Access API functionality through the plugin interface
 
 ## Future Availability
 
@@ -26,10 +26,12 @@ The API will be integrated directly into the Unraid operating system in an upcom
 
 ## Key Features
 
-- **GraphQL Interface**: Modern, flexible API design with strong typing
-- **Authentication**: Secure access through API keys or session cookies
-- **Comprehensive Coverage**: Access to system info, array management, Docker operations, and more
-- **Developer Tools**: Built-in GraphQL sandbox for easy exploration and testing
-- **Role-Based Access**: Granular control over API permissions and access levels
+The API provides:
 
-For detailed information about using the API, please refer to the [How to Use the API](./how-to-use-the-api.md) guide.
+- GraphQL Interface: Modern, flexible API with strong typing
+- Authentication: Secure access via API keys or session cookies
+- Comprehensive Coverage: Access to system information, array management, and Docker operations
+- Developer Tools: Built-in GraphQL sandbox for testing
+- Role-Based Access: Granular permission control
+
+For detailed usage instructions, see [How to Use the API](./how-to-use-the-api.md).
