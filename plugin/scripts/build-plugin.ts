@@ -7,12 +7,12 @@ import conventionalChangelog from "conventional-changelog";
 import { escape as escapeHtml } from "html-sloppy-escaper";
 import { existsSync } from "fs";
 import { format as formatDate } from "date-fns";
-import { setupEnvironment } from "./setup-environment";
+import { setupEnvironment } from "./setup-plugin-environment";
 import { dirname } from "node:path";
 const pluginName = "dynamix.unraid.net" as const;
 const startingDir = process.cwd();
 
-const validatedEnv = await setupEnvironment(startingDir);
+const validatedEnv = await setupEnvironment(startingDir, "plugin");
 
 const BASE_URLS = {
   STABLE: "https://stable.dl.unraid.net/unraid-api",
@@ -32,14 +32,9 @@ try {
   process.exit(1);
 }
 
-const createBuildDirectory = async () => {
-  await execSync(`rm -rf deploy/pre-pack/*`);
+const createPluginDirectory = async () => {
   await execSync(`rm -rf deploy/release/*`);
-  await execSync(`rm -rf deploy/test/*`);
-  await mkdir("deploy/pre-pack", { recursive: true });
   await mkdir("deploy/release/plugins", { recursive: true });
-  await mkdir("deploy/release/archive", { recursive: true });
-  await mkdir("deploy/test", { recursive: true });
 };
 
 function updateEntityValue(
@@ -53,120 +48,13 @@ function updateEntityValue(
   }
   throw new Error(`Entity ${entityName} not found in XML`);
 }
-
-const validateSourceDir = async () => {
-  console.log("Validating TXZ source directory");
-  const sourceDir = join(startingDir, "source");
-  if (!existsSync(sourceDir)) {
-    throw new Error(`Source directory ${sourceDir} does not exist`);
-  }
-  // Validate existence of webcomponent files:
-  // source/dynamix.unraid.net/usr/local/emhttp/plugins/dynamix.my.servers/unraid-components
-  const webcomponentDir = join(
-    sourceDir,
-    "dynamix.unraid.net",
-    "usr",
-    "local",
-    "emhttp",
-    "plugins",
-    "dynamix.my.servers",
-    "unraid-components"
-  );
-  if (!existsSync(webcomponentDir)) {
-    throw new Error(`Webcomponent directory ${webcomponentDir} does not exist`);
-  }
-  // Validate that there are webcomponents
-  const webcomponents = await readdir(webcomponentDir);
-  if (webcomponents.length === 1 && webcomponents[0] === ".gitkeep") {
-    throw new Error(`No webcomponents found in ${webcomponentDir}`);
-  }
-  // Check for the existence of "ui.manifest.json" as well as "manifest.json" in webcomponents
-  if (
-    !webcomponents.includes("ui.manifest.json") ||
-    !webcomponents.includes("manifest.json")
-  ) {
-    throw new Error(
-      `Webcomponents must contain both "ui.manifest.json" and "manifest.json"`
-    );
-  }
-
-  const apiDir = join(
-    startingDir,
-    "source/dynamix.unraid.net/usr/local/unraid-api/package.json"
-  );
-  if (!existsSync(apiDir)) {
-    throw new Error(`API directory ${apiDir} does not exist`);
-  }
-};
-
-const buildTxz = async (
-  version: string
-): Promise<{
-  txzName: string;
-  txzSha256: string;
-}> => {
-  if (
-    validatedEnv.SKIP_VALIDATION !== "true" ||
-    validatedEnv.LOCAL_FILESERVER_URL
-  ) {
-    await validateSourceDir();
-  }
-
-  const txzName = `${pluginName}-${version}.txz`;
-  const txzPath = join(startingDir, "deploy/release/archive", txzName);
-  const prePackDir = join(startingDir, "deploy/pre-pack");
-
-  // Copy all files from source to temp dir, excluding specific files
-  await cp(join(startingDir, "source/dynamix.unraid.net"), prePackDir, {
-    recursive: true,
-    filter: (src) => {
-      const filename = basename(src);
-      return ![
-        ".DS_Store",
-        "pkg_build.sh",
-        "makepkg",
-        "explodepkg",
-        "sftp-config.json",
-        ".gitkeep",
-      ].includes(filename);
-    },
-  });
-
-  // Create package - must be run from within the pre-pack directory
-  // Use cd option to run command from prePackDir
-  await cd(prePackDir);
-  $.verbose = true;
-
-  await $`${join(
-    startingDir,
-    "scripts/makepkg"
-  )} -l y -c y --compress -1 "${txzPath}"`;
-  $.verbose = false;
-  await cd(startingDir);
-
-  // Calculate hashes
-  const sha256 = createHash("sha256")
-    .update(await readFile(txzPath))
-    .digest("hex");
-  console.log(`TXZ SHA256: ${sha256}`);
-
-  if (validatedEnv.SKIP_VALIDATION !== "true") {
-    try {
-      await $`${join(startingDir, "scripts/explodepkg")} "${txzPath}"`;
-    } catch (err) {
-      console.error(`Error: invalid txz package created: ${txzPath}`);
-      process.exit(1);
-    }
-  }
-
-  return { txzSha256: sha256, txzName };
-};
-
 const getStagingChangelogFromGit = async (
   apiVersion: string,
   tag: string | null = null
 ): Promise<string | null> => {
-  console.debug("Getting changelog from git" + (tag ? " for TAG" : ""));
+  if (!validatedEnv.CI) {
+    console.debug("Getting changelog from git" + (tag ? " for TAG" : ""));
+  }
   try {
     const changelogStream = conventionalChangelog(
       {
@@ -283,7 +171,9 @@ const buildPlugin = async ({
 
   await mkdir(dirname(newPluginFile), { recursive: true });
   await writeFile(newPluginFile, plgContent);
-  console.log(`${type} plugin: ${newPluginFile}`);
+  if (!validatedEnv.CI) {
+    console.log(`${type} plugin: ${newPluginFile}`);
+  }
 };
 
 /**
@@ -292,10 +182,6 @@ const buildPlugin = async ({
 
 const main = async () => {
   await createBuildDirectory();
-
-  const version = formatDate(new Date(), "yyyy.MM.dd.HHmm");
-  console.log(`Version: ${version}`);
-  const { txzSha256, txzName } = await buildTxz(version);
   const { API_VERSION, TAG, LOCAL_FILESERVER_URL } = validatedEnv;
 
   if (LOCAL_FILESERVER_URL) {
@@ -332,6 +218,8 @@ const main = async () => {
     version,
     apiVersion: API_VERSION,
   });
+  
+  console.log()
 };
 
 await main();
