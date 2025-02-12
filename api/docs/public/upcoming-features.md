@@ -1,4 +1,6 @@
-# Unraid API Release Roadmap
+# Upcoming Features
+
+Note: This roadmap outlines planned features and improvements for the Unraid API. Features and timelines may change based on development priorities and community feedback.
 
 ## Core Infrastructure
 
@@ -66,4 +68,4 @@
 | Notifications System | Done | v4.0.0 |
 | Notifications Interface | Done | v4.0.0 |
 
-Note: This roadmap is subject to change based on development priorities and community feedback. Features marked as "Done" have been released in previous versions. The tag column indicates the version where a feature was first introduced. Features without tags are either planned or in development.
+Features marked as "Done" are available in current releases. The tag column shows the version where a feature was first introduced.
