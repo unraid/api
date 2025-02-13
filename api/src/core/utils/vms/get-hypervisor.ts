@@ -1,7 +1,7 @@
 import { constants } from 'fs';
 import { access } from 'fs/promises';
 
-import type { Hypervisor as HypervisorType } from '@unraid/libvirt';
+import { type Hypervisor as HypervisorType } from '@unraid/libvirt';
 
 import { libvirtLogger } from '@app/core/log';
 
