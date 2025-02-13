@@ -2,7 +2,7 @@ x-common: &common
   volumes:
     - ./:/app
     - pnpm-store:/pnpm/store
-    - ../../libvirt:/libvirt
+    - ../libvirt:/libvirt
   environment:
     - IS_DOCKER=true
     - GIT_SHA=${GIT_SHA:-unknown}
