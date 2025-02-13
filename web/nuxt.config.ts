@@ -74,7 +74,7 @@ export default defineNuxtConfig({
       __VUE_PROD_DEVTOOLS__: false,
     },
     build: {
-      minify: false,
+      minify: 'terser',
       terserOptions: {
         mangle: {
           reserved: terserReservations(charsToReserve),

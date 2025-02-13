@@ -19,7 +19,7 @@
     "build:validate": "npm run env:validate && npm run build",
     "// Docker commands": "",
     "docker:build": "docker build -t plugin-builder .",
-    "docker:run": "docker run --env-file .env -v $(pwd)/deploy:/app/deploy -v $(cd ../ && pwd)/.git:/app/.git -v $(pwd)/source:/app/source plugin-builder",
+    "docker:run": "docker run --env-file .env -v $(pwd)/:/app/ -v $(cd ../ && pwd)/.git:/app/.git -v $(pwd)/source:/app/source -v $(pwd)/scripts:/app/scripts plugin-builder",
     "docker:build-and-run": "npm run docker:build && npm run docker:run",
     "http-server": "http-server ./deploy/release/ -p 8080 --cors",
     "// Environment management": "",

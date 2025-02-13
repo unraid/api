@@ -74,7 +74,7 @@ const handleKeydown = (event: KeyboardEvent) => {
 
   if (sequenceIndex === keySequence.length) {
     activationCodeStore.setActivationModalHidden(true);
-    window.location.href = '/Tools/Registration';
+      window.location.href = '/Tools/Registration';
   }
 };
 
