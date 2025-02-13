@@ -1,4 +1,4 @@
-import { Cron, Expression, Initializer } from '@reflet/cron';
+import { CronJob } from 'cron';
 
 import { KEEP_ALIVE_INTERVAL_MS, ONE_MINUTE_MS } from '@app/consts';
 import { minigraphLogger, mothershipLogger, remoteAccessLogger } from '@app/core/log';
@@ -9,10 +9,15 @@ import { store } from '@app/store/index';
 import { setRemoteAccessRunningType } from '@app/store/modules/dynamic-remote-access';
 import { clearSubscription } from '@app/store/modules/remote-graphql';
 
-export class PingTimeoutJobs extends Initializer<typeof PingTimeoutJobs> {
-    @Cron.PreventOverlap
-    @Cron(Expression.EVERY_MINUTE)
-    @Cron.Start
+class PingTimeoutJobs {
+    private cronJob: CronJob;
+    private isRunning: boolean = false;
+
+    constructor() {
+        // Run every minute
+        this.cronJob = new CronJob('* * * * *', this.checkForPingTimeouts.bind(this));
+    }
+
     async checkForPingTimeouts() {
         const state = store.getState();
         if (!isAPIStateDataFullyLoaded(state)) {
@@ -78,16 +83,34 @@ export class PingTimeoutJobs extends Initializer<typeof PingTimeoutJobs> {
             store.dispatch(setRemoteAccessRunningType(DynamicRemoteAccessType.DISABLED));
         }
     }
+
+    start() {
+        if (!this.isRunning) {
+            this.cronJob.start();
+            this.isRunning = true;
+        }
+    }
+
+    stop() {
+        if (this.isRunning) {
+            this.cronJob.stop();
+            this.isRunning = false;
+        }
+    }
+
+    isJobRunning(): boolean {
+        return this.isRunning;
+    }
 }
 
-let pingTimeoutJobs: ReturnType<typeof PingTimeoutJobs.init<PingTimeoutJobs>> | null = null;
+let pingTimeoutJobs: PingTimeoutJobs | null = null;
 
 export const initPingTimeoutJobs = (): boolean => {
     if (!pingTimeoutJobs) {
-        pingTimeoutJobs = PingTimeoutJobs.init();
+        pingTimeoutJobs = new PingTimeoutJobs();
     }
-    pingTimeoutJobs.startAll();
-    return pingTimeoutJobs.get('checkForPingTimeouts').running ?? false;
+    pingTimeoutJobs.start();
+    return pingTimeoutJobs.isJobRunning();
 };
 
 export const stopPingTimeoutJobs = () => {
@@ -96,7 +119,6 @@ export const stopPingTimeoutJobs = () => {
         minigraphLogger.warn('PingTimeoutJobs Handler not found.');
         return;
     }
-    pingTimeoutJobs.stopAll();
-    pingTimeoutJobs.clear();
+    pingTimeoutJobs.stop();
     pingTimeoutJobs = null;
 };

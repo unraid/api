@@ -1,31 +1,55 @@
-import { Cron, Expression, Initializer } from '@reflet/cron';
+import { CronJob } from 'cron';
 
 import { upnpLogger } from '@app/core/log';
 import { store } from '@app/store';
 import { enableUpnp } from '@app/store/modules/upnp';
 
-export class UPNPJobManager extends Initializer<typeof UPNPJobManager> {
-    @Cron.PreventOverlap
-    @Cron(Expression.EVERY_30_MINUTES)
-    async renewUpnpLeaseJob() {
-        upnpLogger.trace('Running UPNP Renewal Job');
-        await store.dispatch(enableUpnp());
+class UPNPJobManager {
+    private renewalTask: CronJob | null = null;
+
+    constructor() {
+        this.renewalTask = new CronJob(
+            '*/30 * * * *',
+            async () => {
+                try {
+                    upnpLogger.trace('Running UPNP Renewal Job');
+                    await store.dispatch(enableUpnp());
+                } catch (error) {
+                    upnpLogger.error('Error in UPNP renewal job:', error);
+                }
+            },
+            null, // onComplete
+            false, // start
+            'UTC'  // timezone
+        );
+    }
+
+    start() {
+        this.renewalTask?.start();
+        return this.isRunning();
+    }
+
+    stop() {
+        this.renewalTask?.stop();
+        return this.isRunning();
+    }
+
+    isRunning(): boolean {
+        return this.renewalTask?.running ?? false;
     }
 }
 
+let upnpJobs: UPNPJobManager | null = null;
+
 export const initUpnpJobs = (): boolean => {
     if (!upnpJobs) {
-        upnpJobs = UPNPJobManager.init();
+        upnpJobs = new UPNPJobManager();
     }
 
-    upnpJobs.get('renewUpnpLeaseJob').start();
-    return upnpJobs.get('renewUpnpLeaseJob').running ?? false;
+    return upnpJobs.start();
 };
 
 export const stopUpnpJobs = (): boolean => {
     upnpLogger.debug('Stopping UPNP Jobs');
-    upnpJobs?.get('renewUpnpLeaseJob').stop();
-    return upnpJobs?.get('renewUpnpLeaseJob').running ?? false;
+    return upnpJobs?.stop() ?? false;
 };
-
-let upnpJobs: ReturnType<typeof UPNPJobManager.init<UPNPJobManager>> | null = null;

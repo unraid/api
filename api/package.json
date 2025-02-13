@@ -63,7 +63,6 @@
         "@nestjs/schedule": "^4.1.1",
         "@nestjs/throttler": "^6.2.1",
         "@reduxjs/toolkit": "^2.3.0",
-        "@reflet/cron": "^1.3.1",
         "@runonflux/nat-upnp": "^1.0.2",
         "@types/diff": "^7.0.1",
         "@unraid/libvirt": "link:../libvirt",
