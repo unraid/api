@@ -75,8 +75,9 @@ jobs:
             ${{ runner.os }}-pnpm-store-
 
       - name: PNPM Install
-        run: pnpm install --frozen-lockfile
-        working-directory: .
+        run: |
+          cd ${{ github.workspace }}
+          pnpm install --frozen-lockfile
 
       - name: Lint
         run: pnpm run lint
@@ -126,8 +127,9 @@ jobs:
           version: 1.0
 
       - name: PNPM Install
-        run: pnpm install --frozen-lockfile
-        working-directory: .
+        run: |
+          cd ${{ github.workspace }}
+          pnpm install --frozen-lockfile
 
       - name: Lint
         run: pnpm run lint
@@ -189,8 +191,9 @@ jobs:
             ${{ runner.os }}-pnpm-store-
 
       - name: Install dependencies
-        run: pnpm install --frozen-lockfile --prod
-        working-directory: .
+        run: |
+          cd ${{ github.workspace }}
+          pnpm install --frozen-lockfile --prod
 
       - name: Build
         run: pnpm run build:wc
@@ -249,8 +252,9 @@ jobs:
             ${{ runner.os }}-pnpm-store-
 
       - name: PNPM Install
-        run: pnpm install --frozen-lockfile
-        working-directory: .
+        run: |
+          cd ${{ github.workspace }}
+          pnpm install --frozen-lockfile
 
       - name: Setup Just
         uses: extractions/setup-just@v2
@@ -318,8 +322,9 @@ jobs:
             ${{ runner.os }}-pnpm-store-
 
       - name: Install dependencies
-        run: pnpm install --frozen-lockfile --prod
-        working-directory: .
+        run: |
+          cd ${{ github.workspace }}
+          pnpm install --frozen-lockfile --prod
 
       - name: Download Unraid Web Components
         uses: actions/download-artifact@v4
