@@ -12,7 +12,7 @@
   "scripts": {
     "prepare": "pnpm run build",
     "build": "node scripts/conditional-build.js",
-    "build/native": "node-gyp rebuild",
+    "build/native": "node scripts/build-native.js",
     "build/stub": "tsup lib/stub.ts --dts",
     "build/ts": "tsup lib/index.ts --dts --format cjs --clean",
     "test": "mocha -r ts-node/register lib/**/*.spec.ts",

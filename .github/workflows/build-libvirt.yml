@@ -56,15 +56,15 @@ jobs:
         name: Setup pnpm cache
         with:
           path: ${{ steps.pnpm-cache.outputs.STORE_PATH }}
-          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('api/pnpm-lock.yaml') }}
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('libvirt/package.json') }}
           restore-keys: |
             ${{ runner.os }}-pnpm-store-
 
-      - name: Run pnpm install
-        run: pnpm install
-
       - name: pnpm install
         run: pnpm install
+
+      - name: Build
+        run: pnpm run build
 
       - name: pnpm lint/bindings
         run: pnpm run lint/bindings
