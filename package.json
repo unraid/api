@@ -1,0 +1,18 @@
+{
+  "name": "unraid-monorepo",
+  "private": true,
+  "scripts": {
+    "build": "pnpm -r build",
+    "dev": "pnpm -r dev",
+    "test": "pnpm -r test",
+    "lint": "pnpm -r lint",
+    "lint:fix": "pnpm -r lint:fix"
+  },
+  "pnpm": {
+    "peerDependencyRules": {
+      "allowAny": [
+        "vue"
+      ]
+    }
+  }
+} 

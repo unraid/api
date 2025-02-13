@@ -1,0 +1,82 @@
+{
+  "name": "@vmngr/libvirt",
+  "version": "0.0.6",
+  "description": "Libvirt bindings for Node.js®",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "gypfile": true,
+  "files": [
+    "dist",
+    "build"
+  ],
+  "scripts": {
+    "prepare": "pnpm run build",
+    "build": "node scripts/conditional-build.js",
+    "build/native": "node-gyp rebuild",
+    "build/stub": "tsup lib/stub.ts --dts",
+    "build/ts": "tsup lib/index.ts --dts --format cjs --clean",
+    "test": "mocha -r ts-node/register lib/**/*.spec.ts",
+    "lint": "pnpm run lint/bindings && pnpm run lint/lib && pnpm run lint/examples",
+    "lint/bindings": "styleguide/cpplint/cpplint.py src/*",
+    "lint/lib": "eslint lib/**/*.ts",
+    "lint/examples": "eslint examples",
+    "examples/list": "node examples/list.js",
+    "examples/start": "node examples/start.js",
+    "examples/shutdown": "node examples/shutdown.js",
+    "examples/builder": "node examples/builder.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/unraid/libvirt.git"
+  },
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com/"
+  },
+  "keywords": [
+    "libvirt",
+    "lxc",
+    "openvz",
+    "qemu",
+    "virtualbox",
+    "vmware",
+    "esx",
+    "esxi",
+    "xen",
+    "hyperv",
+    "powervm",
+    "virtuozzo",
+    "bhyve"
+  ],
+  "author": "Leon Rinkel <leon@rinkel.me>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/vmngr/libvirt/issues"
+  },
+  "homepage": "https://github.com/vmngr/libvirt#readme",
+  "dependencies": {
+    "bindings": "^1.5.0",
+    "node-addon-api": "^3.2.0",
+    "xml2js": "^0.5.0"
+  },
+  "devDependencies": {
+    "@types/bindings": "^1.5.0",
+    "@types/chai": "^4.2.18",
+    "@types/mocha": "^8.2.2",
+    "@types/node": "^15.6.1",
+    "@types/xml2js": "^0.4.11",
+    "@typescript-eslint/eslint-plugin": "^4.25.0",
+    "@typescript-eslint/parser": "^4.25.0",
+    "chai": "^4.3.4",
+    "chalk": "^4.1.1",
+    "detect-libc": "^2.0.2",
+    "eslint": "^7.27.0",
+    "eslint-config-xo": "^0.36.0",
+    "eslint-config-xo-typescript": "^0.41.1",
+    "eslint-plugin-unicorn": "^32.0.1",
+    "gts": "^3.1.0",
+    "mocha": "^10.2.0",
+    "ts-node": "^10.0.0",
+    "tsup": "^8.3.6",
+    "typescript": "^4.3.2"
+  }
+}

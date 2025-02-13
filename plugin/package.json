@@ -1,4 +1,6 @@
 {
+  "name": "@unraid/plugin",
+  "private": true,
   "dependencies": {
     "conventional-changelog": "^6.0.0",
     "date-fns": "^4.1.0",

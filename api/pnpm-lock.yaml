@@ -65,6 +65,9 @@ dependencies:
   '@types/diff':
     specifier: ^7.0.1
     version: 7.0.1
+  '@vmngr/libvirt':
+    specifier: link:/libvirt/
+    version: link:../libvirt
   accesscontrol:
     specifier: ^2.2.1
     version: 2.2.1
@@ -245,11 +248,6 @@ dependencies:
   zod:
     specifier: ^3.23.8
     version: 3.24.1
-
-optionalDependencies:
-  '@vmngr/libvirt':
-    specifier: github:unraid/libvirt
-    version: github.com/unraid/libvirt/437a77501c51df4143286a380cc5df010c1e9f81
 
 devDependencies:
   '@graphql-codegen/add':
@@ -4444,14 +4442,6 @@ packages:
     resolution: {integrity: sha512-Ceh+7ox5qe7LJuLHoY0feh3pHuUDHAcRUeyL2VYghZwfpkNIy/+8Ocg0a3UuSoYzavmylwuLWQOf3hl0jjMMIw==}
     engines: {node: '>=8'}
 
-  /bindings@1.5.0:
-    resolution: {integrity: sha512-p2q/t/mhvuOj/UeLlV6566GD/guowlr0hHxClI0W9m7MWYkL1F0hLo+0Aexs9HSPCtR1SXQ0TD3MMKrXZajbiQ==}
-    requiresBuild: true
-    dependencies:
-      file-uri-to-path: 1.0.0
-    dev: false
-    optional: true
-
   /bl@4.1.0:
     resolution: {integrity: sha512-1W07cM9gS6DcLperZfFSj+bWLtaPGSOHWhPiGzXmvVJbRLdG82sH/Kn8EtW1VqWVA54AKf2h5k5BbnIbwF3h6w==}
     dependencies:
@@ -6507,12 +6497,6 @@ packages:
       flat-cache: 4.0.1
     dev: true
 
-  /file-uri-to-path@1.0.0:
-    resolution: {integrity: sha512-0Zt+s3L7Vf1biwWZ29aARiVYLx7iMGnEUl9x33fbB/j3jR81u/O2LbqK+Bm1CDSNDKVtJ/YjwY7TUd5SkeLQLw==}
-    requiresBuild: true
-    dev: false
-    optional: true
-
   /filename-reserved-regex@3.0.0:
     resolution: {integrity: sha512-hn4cQfU6GOT/7cFHXBqeBg2TbrMBgdD0kcjLhvSQYYwm3s4B6cjvBfb7nBALJLAXqmU5xajSa7X2NnUud/VCdw==}
     engines: {node: ^12.20.0 || ^14.13.1 || >=16.0.0}
@@ -8359,12 +8343,6 @@ packages:
   /node-abort-controller@3.1.1:
     resolution: {integrity: sha512-AGK2yQKIjRuqnc6VkX2Xj5d+QW8xZ87pa1UK6yA6ouUyuxfHuMP6umE5QK7UmTeOAymo+Zx1Fxiuw9rVx8taHQ==}
     dev: false
-
-  /node-addon-api@3.2.1:
-    resolution: {integrity: sha512-mmcei9JghVNDYydghQmeDX8KoAm0FAiYyIcUt/N4nhyAipB17pllZQDOJD2fotxABnt4Mdz+dKTO7eftLg4d0A==}
-    requiresBuild: true
-    dev: false
-    optional: true
 
   /node-cache@5.1.2:
     resolution: {integrity: sha512-t1QzWwnk4sjLWaQAS8CHgOJ+RAfmHpxFWmc36IWTiWHQfs0w5JDMBS1b1ZxQteo0vVVuWJvIUKHDkkeK7vIGCg==}
@@ -10890,23 +10868,6 @@ packages:
       utf-8-validate:
         optional: true
 
-  /xml2js@0.5.0:
-    resolution: {integrity: sha512-drPFnkQJik/O+uPKpqSgr22mpuFHqKdbS835iAQrUC73L2F5WkboIRd63ai/2Yg6I1jzifPFKH2NTK+cfglkIA==}
-    engines: {node: '>=4.0.0'}
-    requiresBuild: true
-    dependencies:
-      sax: 1.4.1
-      xmlbuilder: 11.0.1
-    dev: false
-    optional: true
-
-  /xmlbuilder@11.0.1:
-    resolution: {integrity: sha512-fDlsI/kFEx7gLvbecc0/ohLG50fugQp8ryHzMTuW9vSa1GJ0XYWKnhsUx7oie3G98+r56aTQIUB4kht42R3JvA==}
-    engines: {node: '>=4.0'}
-    requiresBuild: true
-    dev: false
-    optional: true
-
   /xss@1.0.15:
     resolution: {integrity: sha512-FVdlVVC67WOIPvfOwhoMETV72f6GbW7aOabBC3WxN/oUdoEMDyLz4OgRv5/gck2ZeNqEQu+Tb0kloovXOfpYVg==}
     engines: {node: '>= 0.10.0'}
@@ -11039,15 +11000,3 @@ packages:
       '@types/fs-extra': 11.0.4
       '@types/node': 22.13.1
     dev: true
-
-  github.com/unraid/libvirt/437a77501c51df4143286a380cc5df010c1e9f81:
-    resolution: {tarball: https://codeload.github.com/unraid/libvirt/tar.gz/437a77501c51df4143286a380cc5df010c1e9f81}
-    name: '@vmngr/libvirt'
-    version: 0.0.6
-    requiresBuild: true
-    dependencies:
-      bindings: 1.5.0
-      node-addon-api: 3.2.1
-      xml2js: 0.5.0
-    dev: false
-    optional: true

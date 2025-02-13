@@ -1,0 +1,11 @@
+version: '3.8'
+services:
+  libvirt-dev:
+    build: 
+      context: .
+      dockerfile: Dockerfile
+    stdin_open: true
+    tty: true
+    entrypoint: /bin/bash
+    volumes:
+      - ./:/app
