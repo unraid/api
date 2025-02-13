@@ -79,11 +79,11 @@ const handleKeydown = (event: KeyboardEvent) => {
 };
 
 onMounted(() => {
-  window.addEventListener('keydown', handleKeydown);
+  window?.addEventListener('keydown', handleKeydown);
 });
 
 onUnmounted(() => {
-  window.removeEventListener('keydown', handleKeydown);
+  window?.removeEventListener('keydown', handleKeydown);
 });
 </script>
 
