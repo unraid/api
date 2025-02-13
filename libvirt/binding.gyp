@@ -13,11 +13,12 @@
             ],
             "include_dirs": [
                 "<!@(node -p \"require('node-addon-api').include\")",
-                "<!@(pkg-config --cflags-only-I libvirt | sed 's/-I//g')",
+                "<!@(pkg-config --cflags-only-I libvirt 2>/dev/null || echo '-I/usr/include/libvirt -I/usr/local/include/libvirt'| sed 's/-I//g')",
                 "."
             ],
             "dependencies": [
-                "<!(node -p \"require('node-addon-api').gyp\")"            ],
+                "<!(node -p \"require('node-addon-api').gyp\")"
+            ],
             "cflags!": [ "-fno-exceptions" ],
             "cflags_cc!": [ "-fno-exceptions" ],
             "xcode_settings": {
@@ -38,7 +39,11 @@
                 }],
                 ["OS!=\"mac\"", {
                     "libraries": [
-                        "<!@(pkg-config --libs libvirt)"
+                        "<!@(pkg-config --libs libvirt 2>/dev/null || echo '-L/usr/lib -L/usr/local/lib -lvirt')"
+                    ],
+                    "include_dirs": [
+                        "/usr/include/libvirt",
+                        "/usr/local/include/libvirt"
                     ]
                 }]
             ]
