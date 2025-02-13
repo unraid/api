@@ -44,6 +44,12 @@ function checkLibvirt() {
 
 async function build() {
   try {
+    // Check libvirt installation first
+    if (!checkLibvirt()) {
+      console.error('Libvirt is not available on this platform');
+      process.exit(1);
+    }
+    
     await exec('pnpm run build/native');
     await exec('pnpm run build/ts');
   } catch (error) {
