@@ -1,7 +1,8 @@
-name: Libvirt CI
-
+name: Test Libvirt
 on:
   push:
+    branches:
+      - main
     paths:
       - "libvirt/**"
   pull_request:
