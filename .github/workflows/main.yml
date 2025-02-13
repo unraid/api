@@ -326,7 +326,7 @@ jobs:
       - name: Install dependencies
         run: |
           cd ${{ github.workspace }}
-          pnpm install --frozen-lockfile
+          pnpm install --frozen-lockfile --filter @unraid/connect-plugin
 
       - name: Download Unraid Web Components
         uses: actions/download-artifact@v4
