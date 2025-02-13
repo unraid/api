@@ -3,3 +3,4 @@ packages:
   - 'web'
   - 'plugin'
   - 'unraid-ui'
+  - 'libvirt'

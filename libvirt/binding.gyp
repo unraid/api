@@ -16,27 +16,32 @@
                 "<!@(pkg-config --cflags-only-I libvirt | sed 's/-I//g')",
                 "."
             ],
+            "dependencies": [
+                "<!(node -p \"require('node-addon-api').gyp\")"            ],
+            "cflags!": [ "-fno-exceptions" ],
+            "cflags_cc!": [ "-fno-exceptions" ],
+            "xcode_settings": {
+                "GCC_ENABLE_CPP_EXCEPTIONS": "YES",
+                "CLANG_CXX_LIBRARY": "libc++",
+                "MACOSX_DEPLOYMENT_TARGET": "<!(sw_vers -productVersion | cut -d. -f1,2)"
+            },
+            "msvs_settings": {
+                "VCCLCompilerTool": { "ExceptionHandling": 1 }
+            },
             "conditions": [
                 ["OS==\"mac\"", {
                     "include_dirs": ["<!(echo $LIBVIRT_INCLUDE_DIR)"],
                     "libraries": [
-                        "<!(echo $LIBVIRT_LIB_DIR)/libvirt.dylib"
+                        "<!(echo ${LIBVIRT_LIB_DIR:=/opt/homebrew/lib})/libvirt.dylib"
                     ],
-                    "xcode_settings": {
-                        "GCC_ENABLE_CPP_EXCEPTIONS": "YES",
-                        "CLANG_CXX_LIBRARY": "libc++",
-                        "MACOSX_DEPLOYMENT_TARGET": "10.15"
-                    }
+                    "defines": [ "NAPI_CPP_EXCEPTIONS" ]
                 }],
                 ["OS!=\"mac\"", {
                     "libraries": [
                         "<!@(pkg-config --libs libvirt)"
                     ]
                 }]
-            ],
-            "cflags!": [ "-fno-exceptions" ],
-            "cflags_cc!": [ "-fno-exceptions" ],
-            "defines": [ "NAPI_CPP_EXCEPTIONS" ]
+            ]
         }
     ]
 }
