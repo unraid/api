@@ -13,7 +13,6 @@
             ],
             "include_dirs": [
                 "<!@(node -p \"require('node-addon-api').include\")",
-                "<!@(pkg-config --cflags-only-I libvirt 2>/dev/null || echo '-I/usr/include/libvirt -I/usr/local/include/libvirt'| sed 's/-I//g')",
                 "."
             ],
             "dependencies": [
@@ -24,7 +23,7 @@
             "xcode_settings": {
                 "GCC_ENABLE_CPP_EXCEPTIONS": "YES",
                 "CLANG_CXX_LIBRARY": "libc++",
-                "MACOSX_DEPLOYMENT_TARGET": "<!(sw_vers -productVersion | cut -d. -f1,2)"
+                "MACOSX_DEPLOYMENT_TARGET": "<!(command -v sw_vers >/dev/null && sw_vers -productVersion | cut -d. -f1,2 || echo '10.13')"
             },
             "msvs_settings": {
                 "VCCLCompilerTool": { "ExceptionHandling": 1 }
@@ -38,12 +37,13 @@
                     "defines": [ "NAPI_CPP_EXCEPTIONS" ]
                 }],
                 ["OS!=\"mac\"", {
-                    "libraries": [
-                        "<!@(pkg-config --libs libvirt 2>/dev/null || echo '-L/usr/lib -L/usr/local/lib -lvirt')"
-                    ],
                     "include_dirs": [
-                        "/usr/include/libvirt",
-                        "/usr/local/include/libvirt"
+                        "<!@(pkg-config --cflags-only-I libvirt 2>/dev/null | sed 's/-I//g')",
+                        "/usr/include",
+                        "/usr/local/include"
+                    ],
+                    "libraries": [
+                        "<!@(pkg-config --libs libvirt 2>/dev/null || echo '-lvirt')"
                     ]
                 }]
             ]
