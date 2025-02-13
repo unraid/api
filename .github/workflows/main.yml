@@ -192,10 +192,16 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-pnpm-store-
 
+      - name: Cache APT Packages
+        uses: awalsh128/cache-apt-pkgs-action@v1.4.3
+        with:
+          packages: bash procps python3 libvirt-dev jq zstd git build-essential
+          version: 1.0
+
       - name: Install dependencies
         run: |
           cd ${{ github.workspace }}
-          pnpm install --frozen-lockfile --filter @unraid/ui
+          pnpm install --frozen-lockfile
 
       - name: Build
         run: pnpm run build:wc
@@ -253,10 +259,16 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-pnpm-store-
 
+      - name: Cache APT Packages
+        uses: awalsh128/cache-apt-pkgs-action@v1.4.3
+        with:
+          packages: bash procps python3 libvirt-dev jq zstd git build-essential
+          version: 1.0
+
       - name: PNPM Install
         run: |
           cd ${{ github.workspace }}
-          pnpm install --frozen-lockfile --filter @unraid/web --filter @unraid/ui
+          pnpm install --frozen-lockfile
 
       - name: Setup Just
         uses: extractions/setup-just@v2
@@ -323,10 +335,16 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-pnpm-store-
 
+      - name: Cache APT Packages
+        uses: awalsh128/cache-apt-pkgs-action@v1.4.3
+        with:
+          packages: bash procps python3 libvirt-dev jq zstd git build-essential
+          version: 1.0
+
       - name: Install dependencies
         run: |
           cd ${{ github.workspace }}
-          pnpm install --frozen-lockfile --filter @unraid/connect-plugin
+          pnpm install --frozen-lockfile
 
       - name: Download Unraid Web Components
         uses: actions/download-artifact@v4
