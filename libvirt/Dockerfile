@@ -5,5 +5,7 @@ RUN apt-get update -y && apt-get install  -y \
     libvirt-dev \
     jq
 
+# Install pnpm globally using npm
+RUN npm install -g pnpm@latest
 
 WORKDIR /app

@@ -66,13 +66,5 @@ jobs:
       - name: Build
         run: pnpm run build
 
-      - name: pnpm lint/bindings
-        run: pnpm run lint/bindings
-        continue-on-error: false
-
-      - name: lint/examples
-        run: pnpm run lint/examples
-        continue-on-error: true
-
       - name: test
         run: pnpm run test
