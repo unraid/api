@@ -77,22 +77,22 @@ jobs:
       - name: Debug lockfile
         run: |
           echo "Current directory: $(pwd)"
-          echo "Workspace root: ${{ github.workspace }}"
-          echo "Files in workspace:"
+          echo "Github workspace: ${{ github.workspace }}"
+          echo "Files in current dir:"
+          ls -la
+          echo "Files in github.workspace:"
           ls -la ${{ github.workspace }}
+          echo "Parent directory:"
+          ls -la ..
           echo "PNPM version:"
           pnpm --version
           echo "Node version:"
           node --version
-          echo "Lockfile contents exist?"
-          test -f ${{ github.workspace }}/pnpm-lock.yaml && echo "Yes" || echo "No"
-          echo "Workspace yaml contents:"
-          cat ${{ github.workspace }}/pnpm-workspace.yaml
+          echo "Lockfile path check:"
+          find / -name pnpm-lock.yaml 2>/dev/null
 
       - name: PNPM Install
-        run: |
-          cd ${{ github.workspace }}
-          pnpm install --frozen-lockfile
+        run: pnpm install --frozen-lockfile
 
       - name: Lint
         run: pnpm run lint
