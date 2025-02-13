@@ -2,32 +2,13 @@ import { spawnSync, execSync } from "child_process";
 import { platform } from "os";
 import { existsSync } from "fs";
 
-function runCommand(command, args, options = {}) {
-  const result = spawnSync(command, args, {
-    stdio: "inherit",
-    shell: true,
-    ...options,
-  });
-
-  if (result.status !== 0) {
-    console.error(`Command failed: ${command} ${args.join(" ")}`);
-    process.exit(1);
-  }
-
-  return result;
-}
-
-function installLibvirtMac() {
-  console.log("Installing libvirt via Homebrew...");
-  return runCommand("brew", ["install", "libvirt"]);
-}
-
 function checkLibvirt() {
   if (platform() === "darwin") {
     // Check if libvirt is installed on macOS
     const result = spawnSync("brew", ["list", "libvirt"], { stdio: "pipe" });
     if (result.status !== 0) {
-      return installLibvirtMac();
+      console.error("Libvirt is not installed. Please install it manually using 'brew install libvirt'");
+      process.exit(1);
     }
     // Verify libvirt daemon is available
     const libvirtdCheck = spawnSync("which", ["libvirtd"], { stdio: "pipe" });
