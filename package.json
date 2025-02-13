@@ -6,7 +6,8 @@
     "dev": "pnpm -r dev",
     "test": "pnpm -r test",
     "lint": "pnpm -r lint",
-    "lint:fix": "pnpm -r lint:fix"
+    "lint:fix": "pnpm -r lint:fix",
+    "check": "manypkg check"
   },
   "pnpm": {
     "peerDependencyRules": {
@@ -14,5 +15,8 @@
         "vue"
       ]
     }
+  },
+  "dependencies": {
+    "@manypkg/cli": "^0.23.0"
   }
-} 
+}

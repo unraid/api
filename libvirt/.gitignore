@@ -8,3 +8,6 @@
 # misc
 **/.DS_Store
 *.tgz
+
+# tsbuildinfo
+tsconfig.tsbuildinfo
