@@ -185,6 +185,9 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-pnpm-store-
 
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile --prod
+
       - name: Build
         run: pnpm run build:wc
 
