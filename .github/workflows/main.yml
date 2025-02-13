@@ -74,23 +74,6 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-pnpm-store-
 
-      - name: Debug lockfile
-        run: |
-          echo "Current directory: $(pwd)"
-          echo "Github workspace: ${{ github.workspace }}"
-          echo "Files in current dir:"
-          ls -la
-          echo "Files in github.workspace:"
-          ls -la ${{ github.workspace }}
-          echo "Parent directory:"
-          ls -la ..
-          echo "PNPM version:"
-          pnpm --version
-          echo "Node version:"
-          node --version
-          echo "Lockfile path check:"
-          find / -name pnpm-lock.yaml 2>/dev/null
-
       - name: PNPM Install
         run: pnpm install --frozen-lockfile
 
@@ -208,7 +191,7 @@ jobs:
       - name: Install dependencies
         run: |
           cd ${{ github.workspace }}
-          pnpm install --frozen-lockfile --prod
+          pnpm install --frozen-lockfile
 
       - name: Build
         run: pnpm run build:wc
@@ -339,7 +322,7 @@ jobs:
       - name: Install dependencies
         run: |
           cd ${{ github.workspace }}
-          pnpm install --frozen-lockfile --prod
+          pnpm install --frozen-lockfile
 
       - name: Download Unraid Web Components
         uses: actions/download-artifact@v4
