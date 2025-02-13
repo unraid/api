@@ -78,6 +78,7 @@
         "command-exists": "^1.2.9",
         "convert": "^5.5.1",
         "cookie": "^1.0.2",
+        "cron": "3.2.1",
         "cross-fetch": "^4.0.0",
         "diff": "^7.0.0",
         "docker-event-emitter": "^0.3.0",
