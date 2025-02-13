@@ -92,7 +92,6 @@ jobs:
       - name: PNPM Install
         run: |
           cd ${{ github.workspace }}
-          pnpm install --lockfile-only
           pnpm install --frozen-lockfile
 
       - name: Lint
@@ -145,7 +144,6 @@ jobs:
       - name: PNPM Install
         run: |
           cd ${{ github.workspace }}
-          pnpm install --lockfile-only
           pnpm install --frozen-lockfile
 
       - name: Lint
@@ -271,7 +269,7 @@ jobs:
       - name: PNPM Install
         run: |
           cd ${{ github.workspace }}
-          pnpm install --no-frozen-lockfile --verbose
+          pnpm install --frozen-lockfile
 
       - name: Setup Just
         uses: extractions/setup-just@v2
