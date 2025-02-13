@@ -16,9 +16,9 @@ RUN git config --global --add safe.directory /app
 
 WORKDIR /app
 
-COPY package.json package-lock.json ./
+COPY package.json ./
 
-RUN npm i
+RUN npm install --include=dev
 
 COPY . .
 
