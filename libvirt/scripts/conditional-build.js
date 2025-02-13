@@ -50,8 +50,8 @@ async function build() {
       process.exit(1);
     }
     
-    await exec('pnpm run build/native');
-    await exec('pnpm run build/ts');
+    await exec('pnpm run build/native --frozen-lockfile');
+    await exec('pnpm run build/ts --frozen-lockfile');
   } catch (error) {
     console.error('Failed to build:', error);
     process.exit(1);
