@@ -44,7 +44,7 @@ jobs:
       - name: Install pnpm
         uses: pnpm/action-setup@v4
         with:
-          version: 8
+          version: 10
           run_install: false
 
       - name: Get pnpm store directory
@@ -62,10 +62,7 @@ jobs:
             ${{ runner.os }}-pnpm-store-
 
       - name: pnpm install
-        run: |
-          cd ${{ github.workspace }}
-          ls -la
-          pnpm install --frozen-lockfile
+        run: pnpm install --frozen-lockfile
 
       - name: Build
         run: pnpm run build

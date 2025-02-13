@@ -2,9 +2,16 @@
   "name": "@unraid/libvirt",
   "version": "1.0.0",
   "description": "Libvirt bindings for Node.js® - forked from vmngr/libvirt",
-  "main": "dist/index.js",
-  "types": "dist/index.d.ts",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "type": "module",
   "gypfile": true,
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
   "files": [
     "dist",
     "build"
@@ -30,7 +37,7 @@
   },
   "keywords": [
     "libvirt",
-    "lxc",
+    "lxc", 
     "openvz",
     "qemu",
     "virtualbox",
@@ -72,7 +79,8 @@
     "gts": "^3.1.0",
     "mocha": "^10.2.0",
     "ts-node": "^10.0.0",
-    "typescript": "^4.3.2"
+    "typescript": "^4.3.2",
+    "tsup": "^8.0.2"
   },
   "os": ["linux", "darwin"],
   "cpu": ["x64", "arm64"],

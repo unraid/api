@@ -1,22 +1,7 @@
-const { spawnSync } = require('child_process');
-const { platform } = require('os');
+import { execSync } from 'child_process';
+import { platform } from 'os';
 
 console.log('Running build-native.js script...');
-
-function runCommand(command, args, options = {}) {
-  const result = spawnSync(command, args, {
-    stdio: 'inherit',
-    shell: true,
-    ...options,
-  });
-
-  if (result.status !== 0) {
-    console.error(`Command failed: ${command} ${args.join(' ')}`);
-    process.exit(1);
-  }
-
-  return result;
-}
 
 // Set up platform-specific environment variables
 const env = { ...process.env };
@@ -40,4 +25,4 @@ const getPlatformPaths = () => {
 Object.assign(env, getPlatformPaths());
 
 // Run node-gyp rebuild with the appropriate environment
-runCommand('pnpm', ['exec', 'node-gyp', 'rebuild'], { env }); 
+execSync('pnpm exec node-gyp rebuild', { env, stdio: 'inherit' });

@@ -1,7 +1,5 @@
-const { spawnSync } = require("child_process");
-const { platform } = require("os");
-const fs = require("fs");
-const { exec } = require("child_process");
+import { spawnSync, execSync } from "child_process";
+import { platform } from "os";
 
 function runCommand(command, args, options = {}) {
   const result = spawnSync(command, args, {
@@ -50,8 +48,11 @@ async function build() {
       process.exit(1);
     }
     
-    await exec('pnpm run build/native --frozen-lockfile');
-    await exec('pnpm run build/ts --frozen-lockfile');
+    console.log('Running native build...');
+    execSync('pnpm run build/native', { stdio: 'inherit' });
+
+    console.log('Running TypeScript build...');
+    execSync('pnpm run build/ts', { stdio: 'inherit' });
   } catch (error) {
     console.error('Failed to build:', error);
     process.exit(1);
