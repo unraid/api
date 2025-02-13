@@ -28,7 +28,7 @@ RUN corepack enable && corepack prepare pnpm@8.15.4 --activate && npm i -g npm@l
 COPY tsconfig.json .eslintrc.ts .prettierrc.cjs .npmrc .env.production .env.staging package.json pnpm-lock.yaml .npmrc ./
 
 # Install deps
-RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install
+RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install --frozen-lockfile
 
 EXPOSE 3001
 
