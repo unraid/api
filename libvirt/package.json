@@ -19,7 +19,8 @@
     "examples/list": "node examples/list.js",
     "examples/start": "node examples/start.js",
     "examples/shutdown": "node examples/shutdown.js",
-    "examples/builder": "node examples/builder.js"
+    "examples/builder": "node examples/builder.js",
+    "preinstall": "node scripts/conditional-build.js"
   },
   "repository": {
     "type": "git",
@@ -74,5 +75,14 @@
     "ts-node": "^10.0.0",
     "tsup": "^8.3.6",
     "typescript": "^4.3.2"
+  },
+  "os": ["linux", "darwin"],
+  "cpu": ["x64", "arm64"],
+  "engines": {
+    "node": ">=14"
+  },
+  "system_requirements": {
+    "linux": "libvirt-dev package (Ubuntu/Debian) or libvirt-devel package (RHEL/CentOS)",
+    "darwin": "libvirt package from Homebrew"
   }
 }

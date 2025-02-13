@@ -13,7 +13,8 @@
             ],
             "include_dirs": [
                 "<!@(node -p \"require('node-addon-api').include\")",
-                "."
+                ".",
+                "/usr/include"
             ],
             "dependencies": [
                 "<!(node -p \"require('node-addon-api').gyp\")"
