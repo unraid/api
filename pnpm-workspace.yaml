@@ -1,6 +1,4 @@
 packages:
   - 'api'
-  - 'web'
-  - 'plugin'
-  - 'unraid-ui'
   - 'libvirt'
+  - 'plugin'
