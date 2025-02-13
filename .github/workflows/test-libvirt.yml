@@ -62,7 +62,10 @@ jobs:
             ${{ runner.os }}-pnpm-store-
 
       - name: pnpm install
-        run: pnpm install --frozen-lockfile
+        run: |
+          cd ${{ github.workspace }}
+          ls -la
+          pnpm install --frozen-lockfile
 
       - name: Build
         run: pnpm run build
