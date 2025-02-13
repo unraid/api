@@ -10,7 +10,7 @@
     "author": "Lime Technology, Inc. <unraid.net>",
     "license": "UNLICENSED",
     "engines": {
-        "pnpm": ">=8.15.4"
+        "pnpm": ">=8.0.0"
     },
     "scripts": {
         "// Main application commands": "",
