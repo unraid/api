@@ -14,7 +14,18 @@
       "allowAny": [
         "vue"
       ]
-    }
+    },
+    "onlyBuiltDependencies": [
+      "@apollo/protobufjs",
+      "@nestjs/core",
+      "@parcel/watcher",
+      "@swc/core",
+      "cpu-features",
+      "esbuild",
+      "nestjs-pino",
+      "ssh2",
+      "vue-demi"
+    ]
   },
   "dependencies": {
     "@manypkg/cli": "^0.23.0"
