@@ -58,11 +58,6 @@ export default defineNuxtConfig({
   // typescript: {
   //   typeCheck: true
   // },
-  shadcn: {
-    prefix: '',
-    componentDir: './components/shadcn',
-  },
-
   vite: {
     plugins: [
       // Only remove non-critical console methods when VITE_ALLOW_CONSOLE_LOGS is false
