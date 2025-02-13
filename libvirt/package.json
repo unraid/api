@@ -13,8 +13,7 @@
     "prepare": "pnpm run build",
     "build": "node scripts/conditional-build.js",
     "build/native": "node scripts/build-native.js",
-    "build/stub": "tsup lib/stub.ts --dts",
-    "build/ts": "tsup lib/index.ts --dts --format cjs --clean",
+    "build/ts": "tsc",
     "test": "mocha -r ts-node/register lib/**/*.spec.ts",
     "examples/list": "node examples/list.js",
     "examples/start": "node examples/start.js",
@@ -73,7 +72,6 @@
     "gts": "^3.1.0",
     "mocha": "^10.2.0",
     "ts-node": "^10.0.0",
-    "tsup": "^8.3.6",
     "typescript": "^4.3.2"
   },
   "os": ["linux", "darwin"],
