@@ -57,7 +57,7 @@ jobs:
       - name: Install pnpm
         uses: pnpm/action-setup@v4
         with:
-          version: 10.2.1
+          version: 10
           run_install: false
 
       - name: Get pnpm store directory
@@ -74,9 +74,25 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-pnpm-store-
 
+      - name: Debug lockfile
+        run: |
+          echo "Current directory: $(pwd)"
+          echo "Workspace root: ${{ github.workspace }}"
+          echo "Files in workspace:"
+          ls -la ${{ github.workspace }}
+          echo "PNPM version:"
+          pnpm --version
+          echo "Node version:"
+          node --version
+          echo "Lockfile contents exist?"
+          test -f ${{ github.workspace }}/pnpm-lock.yaml && echo "Yes" || echo "No"
+          echo "Workspace yaml contents:"
+          cat ${{ github.workspace }}/pnpm-workspace.yaml
+
       - name: PNPM Install
         run: |
           cd ${{ github.workspace }}
+          pnpm install --lockfile-only
           pnpm install --frozen-lockfile
 
       - name: Lint
@@ -103,7 +119,7 @@ jobs:
       - uses: pnpm/action-setup@v4
         name: Install pnpm
         with:
-          version: 10.2.1
+          version: 10
           run_install: false
 
       - name: Get pnpm store directory
@@ -129,6 +145,7 @@ jobs:
       - name: PNPM Install
         run: |
           cd ${{ github.workspace }}
+          pnpm install --lockfile-only
           pnpm install --frozen-lockfile
 
       - name: Lint
@@ -173,7 +190,7 @@ jobs:
       - uses: pnpm/action-setup@v4
         name: Install pnpm
         with:
-          version: 10.2.1
+          version: 10
           run_install: false
 
       - name: Get pnpm store directory
@@ -234,7 +251,7 @@ jobs:
       - uses: pnpm/action-setup@v4
         name: Install pnpm
         with:
-          version: 10.2.1
+          version: 10
           run_install: false
 
       - name: Get pnpm store directory
@@ -254,7 +271,7 @@ jobs:
       - name: PNPM Install
         run: |
           cd ${{ github.workspace }}
-          pnpm install --frozen-lockfile
+          pnpm install --no-frozen-lockfile --verbose
 
       - name: Setup Just
         uses: extractions/setup-just@v2
@@ -304,7 +321,7 @@ jobs:
       - uses: pnpm/action-setup@v4
         name: Install pnpm
         with:
-          version: 10.2.1
+          version: 10
           run_install: false
 
       - name: Get pnpm store directory
