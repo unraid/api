@@ -163,7 +163,7 @@ jobs:
       - name: Install Node
         uses: actions/setup-node@v4
         with:
-          node-version-file: "unraid-ui/.nvmrc"
+          node-version-file: ".nvmrc"
 
       - uses: pnpm/action-setup@v4
         name: Install pnpm
@@ -287,7 +287,7 @@ jobs:
       - name: Install Node
         uses: actions/setup-node@v4
         with:
-          node-version-file: "plugin/.nvmrc"
+          node-version-file: ".nvmrc"
 
       - uses: pnpm/action-setup@v4
         name: Install pnpm
