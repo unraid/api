@@ -40,7 +40,7 @@ try {
     
     console.log('Installing production dependencies...');
     $.verbose = true;
-    await $`pnpm install --prod --frozen-lockfile`;
+    await $`pnpm install --prod --frozen-lockfile --ignore-workspace-root-check`;
 
     // chmod the cli
     await $`chmod +x ./dist/cli.js`;
