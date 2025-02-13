@@ -1,6 +1,6 @@
 ![Cover image][cover]
 
-# vmngr / libvirt
+# Unraid / libvirt bindings
 
 ![Alpha badge][alphabadge]
 ![CI badge][cibadge]
@@ -15,87 +15,92 @@ Libvirt bindings for Node.js®.
 
 ```typescript
 import libvirt, {
-    DomainBuilder,
-    domainDescToXml,
-    domainDescFromXml,
-} from "@vmngr/libvirt";
+  DomainBuilder,
+  domainDescToXml,
+  domainDescFromXml,
+} from "@unraid/libvirt";
 
 const uri = process.env.LIBVIRT_URI || "qemu:///system";
 const hypervisor = new libvirt.Hypervisor({ uri });
 
 (async () => {
+  await hypervisor.connectOpen();
 
-    await hypervisor.connectOpen();
+  // parse xml template
+  const template = await domainDescFromXml("<domain>...</domain>");
 
-    // parse xml template
-    const template = await domainDescFromXml("<domain>...</domain>");
+  // build new domain description
+  const domain = new DomainBuilder()
+    .fromTemplate(template)
 
-    // build new domain description
-    const domain = new DomainBuilder()
-        .fromTemplate(template)
+    .setName("test1")
+    .setUUID("148d0864-2354-4c27-b82c-731bdd3f320c")
 
-        .setName("test1")
-        .setUUID("148d0864-2354-4c27-b82c-731bdd3f320c")
+    .addDisk({
+      type: "file",
+      device: "disk",
+      driver: { name: "qemu", type: "qcow2" },
+      source: { file: "/home/leon/test1.img" },
+      target: { dev: "vda", bus: "virtio" },
+    })
 
-        .addDisk({
-            type: "file", device: "disk",
-            driver: { name: "qemu", type: "qcow2" },
-            source: { file: "/home/leon/test1.img" },
-            target: { dev: "vda", bus: "virtio" },
-        })
+    .addInterface({
+      type: "network",
+      source: { network: "default" },
+      mac: { address: "52:54:00:8e:c6:5f" },
+      model: { type: "virtio" },
+    })
 
-        .addInterface({
-            type: "network",
-            source: { network: "default" },
-            mac: { address: "52:54:00:8e:c6:5f" },
-            model: { type: "virtio" },
-        })
+    .build();
 
-        .build();
+  // define and boot domain
+  const xml = domainDescToXml(domain);
+  await hypervisor.domainCreateXML(xml);
 
-    // define and boot domain
-    const xml = domainDescToXml(domain);
-    await hypervisor.domainCreateXML(xml);
+  // list active domains
+  const activeDomains = await hypervisor.connectListAllDomains(
+    libvirt.ConnectListAllDomainsFlags.ACTIVE
+  );
 
-    // list active domains
-    const activeDomains = await hypervisor.connectListAllDomains(
-            libvirt.ConnectListAllDomainsFlags.ACTIVE);
+  // log active domain names
+  const activeDomainNames = await Promise.all(
+    activeDomains.map((domain) => hypervisor.domainGetName(domain))
+  );
+  console.log(activeDomainNames);
 
-    // log active domain names
-    const activeDomainNames = await Promise.all(activeDomains
-        .map((domain) => hypervisor.domainGetName(domain)));
-    console.log(activeDomainNames);
-
-    await hypervisor.connectClose();
-
+  await hypervisor.connectClose();
 })();
 ```
 
 ## Install
 
 ### Debian / Ubuntu
+
 ```bash
-$ sudo apt install build-essential libvirt-dev
-$ npm i @vmngr/libvirt
+sudo apt install build-essential libvirt-dev
+npm i @unraid/libvirt
 ```
 
 ### MacOS
+
 Install Homebrew and Xcode first if not already installed.
+
 ```bash
-$ brew install libvirt
-$ npm i @vmngr/libvirt
+brew install libvirt
+npm i @unraid/libvirt
 ```
 
 ## Contribute
 
 Any contribution is welcome! To check wether your contribution conforms our style guide run the following tasks:
-```bash
-$ pip install cppcheck # required once
-$ git submodule update --init --recursive # required once
 
-$ npm run lint/bindings
-$ npm run lint/lib
-$ npm run lint/examples
+```bash
+pip install cppcheck # required once
+git submodule update --init --recursive # required once
+
+pnpm run lint/bindings
+pnpm run lint/lib
+pnpm run lint/examples
 ```
 
 ---
@@ -122,9 +127,7 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
-
 [cover]: cover.png "Cover image"
-
 [alphabadge]: https://img.shields.io/badge/-alpha-green "Alpha badge"
 [licensebadge]: https://img.shields.io/github/license/vmngr/libvirt "License badge"
 [cibadge]: https://github.com/vmngr/libvirt/workflows/CI/badge.svg "CI badge"
