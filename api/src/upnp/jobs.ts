@@ -20,7 +20,7 @@ class UPNPJobManager {
             },
             null, // onComplete
             false, // start
-            'UTC'  // timezone
+            'UTC' // timezone
         );
     }
 
