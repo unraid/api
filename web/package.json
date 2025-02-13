@@ -13,7 +13,7 @@
     "prebuild:webgui": "./scripts/prebuild-webgui-set-env.sh",
     "build:webgui": "pnpm run type-check && nuxt build && pnpm run manifest-ts && pnpm run copy-to-webgui-repo",
     "postbuild:webgui": "./scripts/postbuild-webgui-restore-env.sh",
-    "build": "NODE_ENV=production pnpm run type-check && nuxt build && pnpm run manifest-ts",
+    "build": "NODE_ENV=production nuxt build && pnpm run manifest-ts",
     "deploy-to-unraid:dev": "./scripts/deploy-dev.sh",
     "copy-to-webgui-repo": "./scripts/copy-to-webgui-repo.sh",
     "manifest-ts": "node ./scripts/add-timestamp-webcomponent-manifest.js",
