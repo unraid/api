@@ -74,7 +74,7 @@ jobs:
             ${{ runner.os }}-pnpm-store-
 
       - name: PNPM Install
-        run: pnpm install
+        run: pnpm install --frozen-lockfile
 
       - name: Lint
         run: pnpm run lint
@@ -124,7 +124,7 @@ jobs:
           version: 1.0
 
       - name: PNPM Install
-        run: pnpm install
+        run: pnpm install --frozen-lockfile
 
       - name: Lint
         run: pnpm run lint
@@ -242,7 +242,7 @@ jobs:
             ${{ runner.os }}-pnpm-store-
 
       - name: PNPM Install
-        run: pnpm install
+        run: pnpm install --frozen-lockfile
 
       - name: Setup Just
         uses: extractions/setup-just@v2
@@ -310,7 +310,7 @@ jobs:
             ${{ runner.os }}-pnpm-store-
 
       - name: Install dependencies
-        run: pnpm install
+        run: pnpm install --frozen-lockfile
 
       - name: Download Unraid Web Components
         uses: actions/download-artifact@v4
