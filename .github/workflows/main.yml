@@ -42,15 +42,24 @@ jobs:
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
+
       - name: Install Node
         uses: actions/setup-node@v4
         with:
           node-version-file: "api/.nvmrc"
+
+      - name: Cache APT Packages
+        uses: awalsh128/cache-apt-pkgs-action@v1.4.3
+        with:
+          packages: bash procps python3 libvirt-dev jq zstd git build-essential
+          version: 1.0
+
       - name: Install pnpm
         uses: pnpm/action-setup@v4
         with:
           version: 8
           run_install: false
+
       - name: Get pnpm store directory
         id: pnpm-cache
         shell: bash
@@ -131,7 +140,7 @@ jobs:
           PACKAGE_LOCK_VERSION=$(jq -r '.version' package.json)
           API_VERSION=$([[ -n "$IS_TAGGED" ]] && echo "$PACKAGE_LOCK_VERSION" || echo "${PACKAGE_LOCK_VERSION}+${GIT_SHA}")
           export API_VERSION
-          
+
       - name: Build
         run: pnpm run build-and-pack
 
