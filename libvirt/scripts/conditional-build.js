@@ -1,6 +1,7 @@
 const { spawnSync } = require("child_process");
 const { platform } = require("os");
 const fs = require("fs");
+const { exec } = require("child_process");
 
 function runCommand(command, args, options = {}) {
   const result = spawnSync(command, args, {
@@ -43,28 +44,10 @@ function checkLibvirt() {
 
 async function build() {
   try {
-    if (checkLibvirt()) {
-      console.log("Building native bindings...");
-      runCommand("pnpm", ["run", "build/native"]);
-
-      console.log("Building TypeScript...");
-      runCommand("pnpm", ["run", "build/ts"]);
-    } else {
-      console.log(
-        "Failed to install/find libvirt, building stub implementation..."
-      );
-      runCommand("pnpm", ["run", "build/stub"]);
-
-      if (fs.existsSync("dist/stub.d.ts")) {
-        fs.copyFileSync("dist/stub.d.ts", "dist/index.d.ts");
-        fs.copyFileSync("dist/stub.js", "dist/index.js");
-      } else {
-        console.error("Stub build failed to generate files");
-        process.exit(1);
-      }
-    }
+    await exec('pnpm run build/native');
+    await exec('pnpm run build/ts');
   } catch (error) {
-    console.error("Build failed:", error);
+    console.error('Failed to build:', error);
     process.exit(1);
   }
 }
