@@ -1,19 +1,4 @@
-import { readFileSync } from 'fs';
-
-import { parse } from 'dotenv';
 import removeConsole from 'vite-plugin-remove-console';
-
-const envConfig = parse(readFileSync('.env'));
-console.log('\n');
-console.log('==============================');
-console.log('========= ENV VALUES =========');
-console.log('==============================');
-for (const k in envConfig) {
-  process.env[k] = envConfig[k];
-  console.log(`[${k}]`, process.env[k]);
-}
-console.log('==============================');
-console.log('\n');
 
 /**
  * Used to avoid redeclaring variables in the webgui codebase.
