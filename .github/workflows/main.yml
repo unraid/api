@@ -75,9 +75,7 @@ jobs:
             ${{ runner.os }}-pnpm-store-
 
       - name: PNPM Install
-        run: |
-          cd ${{ github.workspace }}
-          pnpm install --frozen-lockfile
+        run: pnpm install --frozen-lockfile
         working-directory: .
 
       - name: Lint
@@ -128,9 +126,7 @@ jobs:
           version: 1.0
 
       - name: PNPM Install
-        run: |
-          cd ${{ github.workspace }}
-          pnpm install --frozen-lockfile
+        run: pnpm install --frozen-lockfile
         working-directory: .
 
       - name: Lint
@@ -193,9 +189,7 @@ jobs:
             ${{ runner.os }}-pnpm-store-
 
       - name: Install dependencies
-        run: |
-          cd ${{ github.workspace }}
-          pnpm install --frozen-lockfile --prod
+        run: pnpm install --frozen-lockfile --prod
         working-directory: .
 
       - name: Build
@@ -255,9 +249,7 @@ jobs:
             ${{ runner.os }}-pnpm-store-
 
       - name: PNPM Install
-        run: |
-          cd ${{ github.workspace }}
-          pnpm install --frozen-lockfile
+        run: pnpm install --frozen-lockfile
         working-directory: .
 
       - name: Setup Just
@@ -326,9 +318,7 @@ jobs:
             ${{ runner.os }}-pnpm-store-
 
       - name: Install dependencies
-        run: |
-          cd ${{ github.workspace }}
-          pnpm install --frozen-lockfile
+        run: pnpm install --frozen-lockfile --prod
         working-directory: .
 
       - name: Download Unraid Web Components
