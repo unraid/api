@@ -28,7 +28,6 @@ function checkLibvirt() {
     if (result.status !== 0) {
       return installLibvirtMac();
     }
-    
     // Verify libvirt daemon is available
     const libvirtdCheck = spawnSync("which", ["libvirtd"], { stdio: "pipe" });
     if (libvirtdCheck.status !== 0) {
@@ -40,10 +39,23 @@ function checkLibvirt() {
   }
 
   if (platform() === "linux") {
-    // Check if libvirt daemon is installed and available
-    const libvirtdCheck = spawnSync("which", ["libvirtd"], { stdio: "pipe" });
-    if (libvirtdCheck.status !== 0) {
-      console.error("libvirt is not installed. Please install libvirt using your distribution's package manager");
+    // Check if libvirt headers are installed
+    const fs = require("fs");
+    const headerPath = "/usr/include/libvirt/libvirt.h";
+
+    if (!fs.existsSync(headerPath)) {
+      console.error(`
+libvirt headers not found. Please install the development package:
+
+For Debian/Ubuntu:
+  sudo apt-get install libvirt-dev
+
+For Fedora/RHEL:
+  sudo dnf install libvirt-devel
+
+For Arch Linux:
+  sudo pacman -S libvirt
+`);
       return false;
     }
 
@@ -58,17 +70,17 @@ async function build() {
   try {
     // Check libvirt installation first
     if (!checkLibvirt()) {
-      console.error('Libvirt is not available on this platform');
+      console.error("Libvirt is not available on this platform");
       process.exit(1);
     }
-    
-    console.log('Running native build...');
-    execSync('pnpm run build/native', { stdio: 'inherit' });
 
-    console.log('Running TypeScript build...');
-    execSync('pnpm run build/ts', { stdio: 'inherit' });
+    console.log("Running native build...");
+    execSync("pnpm run build/native", { stdio: "inherit" });
+
+    console.log("Running TypeScript build...");
+    execSync("pnpm run build/ts", { stdio: "inherit" });
   } catch (error) {
-    console.error('Failed to build:', error);
+    console.error("Failed to build:", error);
     process.exit(1);
   }
 }
