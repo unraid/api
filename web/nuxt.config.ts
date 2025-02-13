@@ -1,4 +1,3 @@
-import { mkdir } from 'fs/promises';
 import removeConsole from 'vite-plugin-remove-console';
 
 /**
@@ -25,7 +24,6 @@ function terserReservations(inputStr: string) {
 
 const charsToReserve = '_$abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
 
-await mkdir('./components/ui', { recursive: true });
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
   ssr: false,
@@ -83,7 +81,10 @@ export default defineNuxtConfig({
       },
     },
   },
-
+  shadcn: {
+    prefix: '',
+    componentDir: './components/shadcn',
+  },
   customElements: {
     entries: [
       {
