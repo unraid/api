@@ -2,3 +2,5 @@ packages:
   - 'api'
   - 'libvirt'
   - 'plugin'
+  - 'unraid-ui'
+  - 'web'
