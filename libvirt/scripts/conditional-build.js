@@ -28,11 +28,25 @@ function checkLibvirt() {
     if (result.status !== 0) {
       return installLibvirtMac();
     }
+    
+    // Verify libvirt daemon is available
+    const libvirtdCheck = spawnSync("which", ["libvirtd"], { stdio: "pipe" });
+    if (libvirtdCheck.status !== 0) {
+      console.error("libvirt installation appears broken - libvirtd not found");
+      return false;
+    }
 
     return true;
   }
 
   if (platform() === "linux") {
+    // Check if libvirt daemon is installed and available
+    const libvirtdCheck = spawnSync("which", ["libvirtd"], { stdio: "pipe" });
+    if (libvirtdCheck.status !== 0) {
+      console.error("libvirt is not installed. Please install libvirt using your distribution's package manager");
+      return false;
+    }
+
     return true;
   }
 
