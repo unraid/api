@@ -1,0 +1,57 @@
+name: Libvirt CI
+
+on:
+  push:
+    paths:
+      - 'libvirt/**'
+  pull_request:
+    paths:
+      - 'libvirt/**'
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: ./libvirt
+
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        submodules: recursive
+
+    - uses: actions/setup-python@v5
+      with:
+        python-version: '3.10'
+
+    - name: Set Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: 20.x
+        cache: 'pnpm'
+        cache-dependency-path: './libvirt/pnpm-lock.yaml'
+
+    - name: Cache APT Packages
+      uses: awalsh128/cache-apt-pkgs-action@v1.4.3
+      with:
+        packages: libvirt-dev
+        version: 1.0
+
+    - name: pnpm install
+      run: pnpm install
+
+    - name: pnpm lint/bindings
+      run: pnpm run lint/bindings
+      continue-on-error: true
+
+    - name: lint/examples
+      run: pnpm run lint/examples
+      continue-on-error: true
+
+    - name: test
+      run: pnpm run test 
