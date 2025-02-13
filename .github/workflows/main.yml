@@ -57,7 +57,7 @@ jobs:
       - name: Install pnpm
         uses: pnpm/action-setup@v4
         with:
-          version: 8
+          version: 10.2.1
           run_install: false
 
       - name: Get pnpm store directory
@@ -104,7 +104,7 @@ jobs:
       - uses: pnpm/action-setup@v4
         name: Install pnpm
         with:
-          version: 8
+          version: 10.2.1
           run_install: false
 
       - name: Get pnpm store directory
@@ -175,7 +175,7 @@ jobs:
       - uses: pnpm/action-setup@v4
         name: Install pnpm
         with:
-          version: 8
+          version: 10.2.1
           run_install: false
 
       - name: Get pnpm store directory
@@ -237,7 +237,7 @@ jobs:
       - uses: pnpm/action-setup@v4
         name: Install pnpm
         with:
-          version: 8
+          version: 10.2.1
           run_install: false
 
       - name: Get pnpm store directory
@@ -308,7 +308,7 @@ jobs:
       - uses: pnpm/action-setup@v4
         name: Install pnpm
         with:
-          version: 8
+          version: 10.2.1
           run_install: false
 
       - name: Get pnpm store directory
