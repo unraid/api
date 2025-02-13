@@ -1,5 +1,6 @@
 import { spawnSync, execSync } from "child_process";
 import { platform } from "os";
+import { existsSync } from "fs";
 
 function runCommand(command, args, options = {}) {
   const result = spawnSync(command, args, {
@@ -40,10 +41,9 @@ function checkLibvirt() {
 
   if (platform() === "linux") {
     // Check if libvirt headers are installed
-    const fs = require("fs");
     const headerPath = "/usr/include/libvirt/libvirt.h";
 
-    if (!fs.existsSync(headerPath)) {
+    if (!existsSync(headerPath)) {
       console.error(`
 libvirt headers not found. Please install the development package:
 
