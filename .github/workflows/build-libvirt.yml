@@ -3,10 +3,10 @@ name: Libvirt CI
 on:
   push:
     paths:
-      - 'libvirt/**'
+      - "libvirt/**"
   pull_request:
     paths:
-      - 'libvirt/**'
+      - "libvirt/**"
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
@@ -21,44 +21,58 @@ jobs:
         working-directory: ./libvirt
 
     steps:
-    - uses: actions/checkout@v4
-      with:
-        submodules: recursive
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
 
-    - uses: actions/setup-python@v5
-      with:
-        python-version: '3.10'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
 
+      - name: Cache APT Packages
+        uses: awalsh128/cache-apt-pkgs-action@v1.4.3
+        with:
+          packages: libvirt-dev
+          version: 1.0
 
-    - name: Set Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version: 20.x
-        cache: 'pnpm'
-        cache-dependency-path: './libvirt/pnpm-lock.yaml'
+      - name: Set Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: ".nvmrc"
 
-    - uses: pnpm/action-setup@v4
-      name: Install pnpm
-      with:
-        version: 8
-        run_install: false
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 8
+          run_install: false
 
-    - name: Cache APT Packages
-      uses: awalsh128/cache-apt-pkgs-action@v1.4.3
-      with:
-        packages: libvirt-dev
-        version: 1.0
+      - name: Get pnpm store directory
+        id: pnpm-cache
+        shell: bash
+        run: |
+          echo "STORE_PATH=$(pnpm store path)" >> $GITHUB_OUTPUT
 
-    - name: pnpm install
-      run: pnpm install
+      - uses: actions/cache@v4
+        name: Setup pnpm cache
+        with:
+          path: ${{ steps.pnpm-cache.outputs.STORE_PATH }}
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('api/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
 
-    - name: pnpm lint/bindings
-      run: pnpm run lint/bindings
-      continue-on-error: true
+      - name: Run pnpm install
+        run: pnpm install
 
-    - name: lint/examples
-      run: pnpm run lint/examples
-      continue-on-error: true
+      - name: pnpm install
+        run: pnpm install
 
-    - name: test
-      run: pnpm run test 
+      - name: pnpm lint/bindings
+        run: pnpm run lint/bindings
+        continue-on-error: false
+
+      - name: lint/examples
+        run: pnpm run lint/examples
+        continue-on-error: true
+
+      - name: test
+        run: pnpm run test
