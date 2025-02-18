@@ -1,5 +1,5 @@
 import { Logger } from '@nestjs/common';
-import { chmod, readFile, rm } from 'node:fs/promises';
+import { chmod, readFile, rm, writeFile } from 'node:fs/promises';
 
 import { fileExists } from '@app/core/utils/files/file-exists';
 import {
@@ -48,10 +48,9 @@ export class LogRotateModification extends FileModification {
     }
 
     async apply(): Promise<string> {
-        const patchContents = await super.apply();
-        await chmod(this.filePath, 0o644);
-        await rm(this.getPathToAppliedPatch(), { force: true });
-        return patchContents;
+        await this.rollback();
+        await writeFile(this.filePath, this.logRotateConfig, { mode: 0o644 });
+        return this.logRotateConfig;
     }
 
     async rollback(): Promise<void> {
