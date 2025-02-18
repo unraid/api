@@ -6,8 +6,6 @@ const store = useDummyServerStore();
 const { selector, serverState } = storeToRefs(store);
 
 const updateSelector = (val: string) => {
-  console.log('typeof selector', typeof selector);
-  console.log('new dummy server state:', val);
   selector.value = val;
 };
 </script>
@@ -19,10 +17,6 @@ const updateSelector = (val: string) => {
       <summary>Initial Server State: {{ selector }}</summary>
       <pre>{{ JSON.stringify(serverState, null, 4) }}</pre>
     </details>
-    <!-- <select v-model="selector">
-    <option value="default">Default</option>
-    <option value="oemActivation">OEM Activation</option>
-    </select> -->
     <Select v-model="selector" @update:model-value="updateSelector">
       <SelectTrigger>
         <SelectValue placeholder="Select an initial state" />
