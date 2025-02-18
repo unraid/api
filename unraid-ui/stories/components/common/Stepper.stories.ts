@@ -1,4 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/vue3';
+import { Check, Circle, Dot } from 'lucide-vue-next';
+import { Button } from '../../../src/components/common/button';
 import {
   Stepper as StepperComponent,
   StepperDescription,
@@ -31,32 +33,25 @@ export const Stepper: Story = {
     },
     template: `
       <StepperComponent>
-        <StepperItem :step="1">
-          <StepperTrigger>
-            <StepperIndicator>1</StepperIndicator>
-              <StepperTitle>Account Setup</StepperTitle>
-            <StepperDescription>Create your account</StepperDescription>
-          </StepperTrigger>
-          <StepperSeparator />
-        </StepperItem>
-
-        <StepperItem :step="2">
-        <StepperTrigger>
-          <StepperIndicator>2</StepperIndicator>
-            <StepperTitle>Server Details</StepperTitle>
-            <StepperDescription>Configure your server</StepperDescription>
-          </StepperTrigger>
-          <StepperSeparator />
-        </StepperItem>
-
-        <StepperItem :step="3">
-          <StepperTrigger>
-            <StepperIndicator>3</StepperIndicator>
-              <StepperTitle>Review</StepperTitle>
-              <StepperDescription>Review and confirm</StepperDescription>
-          </StepperTrigger>
-        </StepperItem>
+        <template v-for="(step, index) in steps" :key="index">
+          <StepperItem :step="index + 1">
+            <StepperTrigger>
+              <StepperIndicator>{{ index + 1 }}</StepperIndicator>
+              <StepperTitle>{{ step.title }}</StepperTitle>
+              <StepperDescription>{{ step.description }}</StepperDescription>
+            </StepperTrigger>
+            <StepperSeparator v-if="index < steps.length - 1" />
+          </StepperItem>
+        </template>
       </StepperComponent>
     `,
+    setup() {
+      const steps = [
+        { title: 'Account Setup', description: 'Create your account' },
+        { title: 'Server Details', description: 'Configure your server' },
+        { title: 'Review', description: 'Review and confirm' },
+      ];
+      return { steps };
+    },
   }),
 };
