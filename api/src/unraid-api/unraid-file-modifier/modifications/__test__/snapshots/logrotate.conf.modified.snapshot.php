@@ -1,4 +1,3 @@
-
 /var/log/unraid-api/*.log {
     rotate 1
     missingok
@@ -9,4 +8,3 @@
     copytruncate
     create 0640 root root
 }
-    

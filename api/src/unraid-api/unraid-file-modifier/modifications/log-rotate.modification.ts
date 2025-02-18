@@ -53,4 +53,9 @@ export class LogRotateModification extends FileModification {
         await rm(this.getPathToAppliedPatch(), { force: true });
         return patchContents;
     }
+
+    async rollback(): Promise<void> {
+        await rm(this.getPathToAppliedPatch(), { force: true });
+        await rm(this.filePath, { force: true });
+    }
 }
