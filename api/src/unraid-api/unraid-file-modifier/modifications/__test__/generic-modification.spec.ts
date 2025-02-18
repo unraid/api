@@ -19,7 +19,7 @@ interface ModificationTestCase {
 }
 
 const getPathToFixture = (fileName: string) => resolve(__dirname, `__fixtures__/downloaded/${fileName}`);
-const testCases: ModificationTestCase[] = [
+const patchTestCases: ModificationTestCase[] = [
     {
         ModificationClass: DefaultPageLayoutModification,
         fileUrl:
@@ -43,6 +43,9 @@ const testCases: ModificationTestCase[] = [
         fileUrl: 'https://github.com/unraid/webgui/raw/refs/heads/master/emhttp/auth-request.php',
         fileName: 'auth-request.php',
     },
+];
+
+const simpleTestCases: ModificationTestCase[] = [
     {
         ModificationClass: LogRotateModification,
         fileUrl: 'logrotate.conf',
@@ -131,16 +134,24 @@ async function testInvalidModification(testCase: ModificationTestCase, patcher: 
     await patcher.rollback();
 }
 
+const allTestCases = [...patchTestCases, ...simpleTestCases];
+
 describe('File modifications', () => {
     let patcher: FileModification;
 
-    test.each(testCases)(`$fileName modifier correctly applies to fresh install`, async (testCase) => {
-        await testModification(testCase, patcher);
-    });
+    test.each(allTestCases)(
+        `$fileName modifier correctly applies to fresh install`,
+        async (testCase) => {
+            await testModification(testCase, patcher);
+        }
+    );
 
-    test.each(testCases)(`$fileName modifier correctly handles invalid content`, async (testCase) => {
-        await testInvalidModification(testCase, patcher);
-    });
+    test.each(patchTestCases)(
+        `$fileName modifier correctly handles invalid content`,
+        async (testCase) => {
+            await testInvalidModification(testCase, patcher);
+        }
+    );
 
     afterEach(async () => {
         await patcher?.rollback();
