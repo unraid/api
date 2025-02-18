@@ -83,7 +83,6 @@ onMounted(() => {
       <client-only>
         <div class="flex flex-col gap-6 p-6">
           <DummyServerSwitcher />
-          <DevSettings />
           <ColorSwitcherCe />
           <h2 class="text-xl font-semibold font-mono">Vue Components</h2>
           <h3 class="text-lg font-semibold font-mono">UserProfileCe</h3>

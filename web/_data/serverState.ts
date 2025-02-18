@@ -193,7 +193,7 @@ const baseServerState: Server = {
   wanFQDN: '',
 };
 
-type ServerSelector = 'default' | 'oemActivation';
+export type ServerSelector = 'default' | 'oemActivation';
 const defaultServer: ServerSelector = 'default';
 
 const servers: Record<ServerSelector, Server> = {

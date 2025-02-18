@@ -1,12 +1,12 @@
 <script lang="ts" setup>
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@unraid/ui';
-import { useDummyServerStore } from '~/_data/serverState';
+import { useDummyServerStore, type ServerSelector } from '~/_data/serverState';
 
 const store = useDummyServerStore();
 const { selector, serverState } = storeToRefs(store);
 
 const updateSelector = (val: string) => {
-  selector.value = val;
+  selector.value = val as ServerSelector;
 };
 </script>
 
@@ -23,7 +23,7 @@ const updateSelector = (val: string) => {
       </SelectTrigger>
       <SelectContent>
         <SelectItem value="default">Default</SelectItem>
-        <SelectItem value="oemActivation">OEM Activation</SelectItem>
+        <SelectItem value="oemActiviation">OEM Activation</SelectItem>
       </SelectContent>
     </Select>
   </div>
