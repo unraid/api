@@ -155,3 +155,4 @@ export {
   type ButtonProps,
 };
 export { Toaster } from '@/components/common/toast';
+export * from '@/components/common/popover';
