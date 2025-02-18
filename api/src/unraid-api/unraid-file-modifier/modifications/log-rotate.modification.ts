@@ -1,5 +1,5 @@
 import { Logger } from '@nestjs/common';
-import { readFile } from 'node:fs/promises';
+import { chmod, readFile, rm } from 'node:fs/promises';
 
 import { fileExists } from '@app/core/utils/files/file-exists';
 import {
@@ -21,7 +21,7 @@ export class LogRotateModification extends FileModification {
     copytruncate
     create 0640 root root
 }
-    `;
+    `.trim();
 
     constructor(logger: Logger) {
         super(logger);
@@ -45,5 +45,12 @@ export class LogRotateModification extends FileModification {
             return { shouldApply: false, reason: 'LogRotate configuration already exists' };
         }
         return { shouldApply: true, reason: 'No LogRotate config for the API configured yet' };
+    }
+
+    async apply(): Promise<string> {
+        const patchContents = await super.apply();
+        await chmod(this.filePath, 0o644);
+        await rm(this.getPathToAppliedPatch(), { force: true });
+        return patchContents;
     }
 }
