@@ -1,6 +1,4 @@
 import type { Meta, StoryObj } from '@storybook/vue3';
-import { Check, Circle, Dot } from 'lucide-vue-next';
-import { Button } from '../../../src/components/common/button';
 import {
   Stepper as StepperComponent,
   StepperDescription,
@@ -14,6 +12,22 @@ import {
 const meta = {
   title: 'Components/Common',
   component: StepperComponent,
+  parameters: {
+    layout: 'padded',
+    viewport: {
+      defaultViewport: 'responsive',
+      viewports: {
+        responsive: {
+          name: 'Responsive',
+          styles: { width: '100%', height: '100%' },
+        },
+        mobile: {
+          name: 'Mobile',
+          styles: { width: '320px', height: '100%' },
+        },
+      },
+    },
+  },
 } satisfies Meta<typeof StepperComponent>;
 
 export default meta;
