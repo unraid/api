@@ -1,13 +1,15 @@
 <script lang="ts" setup>
 import { ExclamationTriangleIcon } from '@heroicons/vue/24/solid';
 import { BrandButton, BrandLogo } from '@unraid/ui';
-import { serverState } from '~/_data/serverState';
+import { useDummyServerStore } from '~/_data/serverState';
 import AES from 'crypto-js/aes';
 
 import type { SendPayloads } from '~/store/callback';
 
 import SsoButtonCe from '~/components/SsoButton.ce.vue';
 
+const serverStore = useDummyServerStore();
+const { serverState } = storeToRefs(serverStore);
 const { registerEntry } = useCustomElements();
 onBeforeMount(() => {
   registerEntry('UnraidComponents');
@@ -80,6 +82,8 @@ onMounted(() => {
     <div class="pb-12 mx-auto">
       <client-only>
         <div class="flex flex-col gap-6 p-6">
+          <DummyServerSwitcher />
+          <DevSettings />
           <ColorSwitcherCe />
           <h2 class="text-xl font-semibold font-mono">Vue Components</h2>
           <h3 class="text-lg font-semibold font-mono">UserProfileCe</h3>
