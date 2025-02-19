@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { useMutation, useQuery, useSubscription } from '@vue/apollo-composable';
 
-import { ArrowPathIcon } from '@heroicons/vue/24/solid';
 import {
   Button,
   Select,
@@ -36,7 +35,7 @@ import { notificationAddedSubscription } from './graphql/notification.subscripti
 
 const { mutate: archiveAll, loading: loadingArchiveAll } = useMutation(archiveAllNotifications);
 const { mutate: deleteArchives, loading: loadingDeleteAll } = useMutation(deleteArchivedNotifications);
-const { mutate: recalculateOverview, loading: loadingRecalculateOverview } = useMutation(resetOverview);
+const { mutate: recalculateOverview } = useMutation(resetOverview);
 const { teleportTarget, determineTeleportTarget } = useTeleport();
 const importance = ref<Importance | undefined>(undefined);
 
@@ -105,11 +104,16 @@ const readArchivedCount = computed(() => {
   const { archive, unread } = overview.value;
   return Math.max(0, archive.total - unread.total);
 });
+
+const prepareToViewNotifications = () => {
+  determineTeleportTarget();
+  void recalculateOverview();
+};
 </script>
 
 <template>
   <Sheet>
-    <SheetTrigger @click="determineTeleportTarget">
+    <SheetTrigger @click="prepareToViewNotifications">
       <span class="sr-only">Notifications</span>
       <NotificationsIndicator :overview="overview" :seen="haveSeenNotifications" />
     </SheetTrigger>
@@ -119,20 +123,7 @@ const readArchivedCount = computed(() => {
     >
       <div class="relative flex flex-col h-full w-full">
         <SheetHeader class="ml-1 px-6 items-baseline gap-1 pb-2">
-          <SheetTitle class="text-2xl"
-            >Notifications
-            <Button
-              :disabled="loadingRecalculateOverview"
-              variant="ghost"
-              size="icon"
-              type="button"
-              class="p-1.5 mx-1.5 h-auto w-auto translate-y-[1px]"
-              title="Refresh notification counts"
-              @click="recalculateOverview"
-            >
-              <ArrowPathIcon class="h-4" />
-            </Button>
-          </SheetTitle>
+          <SheetTitle class="text-2xl">Notifications </SheetTitle>
           <a href="/Settings/Notifications">
             <Button variant="link" size="sm" class="p-0 h-auto">Edit Settings</Button>
           </a>
