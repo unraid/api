@@ -8,7 +8,7 @@
     },
     "repository": "git@github.com:unraid/api.git",
     "author": "Lime Technology, Inc. <unraid.net>",
-    "license": "GPL-2.0",
+    "license": "GPL-2.0-only",
     "engines": {
         "pnpm": ">=8.0.0"
     },

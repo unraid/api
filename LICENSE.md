@@ -290,8 +290,8 @@ to attach them to the start of each source file to most effectively
 convey the exclusion of warranty; and each file should have at least
 the "copyright" line and a pointer to where the full notice is found.
 
-    <one line to give the program's name and a brief idea of what it does.>
-    Copyright (C) <year>  <name of author>
+    Unraid API - Core API functionality for Unraid systems
+    Copyright (C) 2024  Lime Technology, Inc.
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -307,6 +307,10 @@ the "copyright" line and a pointer to where the full notice is found.
     with this program; if not, see <https://www.gnu.org/licenses/>.
 
 Also add information on how to contact you by electronic and paper mail.
+
+For questions about licensing or to report issues:
+- Website: https://unraid.net
+- Email: support@unraid.net
 
 If the program is interactive, make it output a short notice like this
 when it starts in an interactive mode:
