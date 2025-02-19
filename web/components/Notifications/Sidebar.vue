@@ -23,18 +23,22 @@ import {
 
 import { useTrackLatestSeenNotification } from '~/composables/api/use-notifications';
 import { useFragment } from '~/composables/gql';
-// eslint-disable-next-line @typescript-eslint/consistent-type-imports -- false positive :(
 import { Importance, NotificationType } from '~/composables/gql/graphql';
 import {
   archiveAllNotifications,
   deleteArchivedNotifications,
   NOTIFICATION_FRAGMENT,
   notificationsOverview,
+  resetOverview,
 } from './graphql/notification.query';
-import { notificationAddedSubscription } from './graphql/notification.subscription';
+import {
+  notificationAddedSubscription,
+  notificationOverviewSubscription,
+} from './graphql/notification.subscription';
 
 const { mutate: archiveAll, loading: loadingArchiveAll } = useMutation(archiveAllNotifications);
 const { mutate: deleteArchives, loading: loadingDeleteAll } = useMutation(deleteArchivedNotifications);
+const { mutate: recalculateOverview } = useMutation(resetOverview);
 const { teleportTarget, determineTeleportTarget } = useTeleport();
 const importance = ref<Importance | undefined>(undefined);
 
@@ -54,8 +58,14 @@ const confirmAndDeleteArchives = async () => {
   }
 };
 
-const { result } = useQuery(notificationsOverview, null, {
-  pollInterval: 2_000, // 2 seconds
+const { result, subscribeToMore } = useQuery(notificationsOverview);
+subscribeToMore({
+  document: notificationOverviewSubscription,
+  updateQuery: (prev, { subscriptionData }) => {
+    const snapshot = structuredClone(prev);
+    snapshot.notifications.overview = subscriptionData.data.notificationsOverview;
+    return snapshot;
+  },
 });
 const { latestNotificationTimestamp, haveSeenNotifications } = useTrackLatestSeenNotification();
 const { onResult: onNotificationAdded } = useSubscription(notificationAddedSubscription);
@@ -103,11 +113,16 @@ const readArchivedCount = computed(() => {
   const { archive, unread } = overview.value;
   return Math.max(0, archive.total - unread.total);
 });
+
+const prepareToViewNotifications = () => {
+  determineTeleportTarget();
+  void recalculateOverview();
+};
 </script>
 
 <template>
   <Sheet>
-    <SheetTrigger @click="determineTeleportTarget">
+    <SheetTrigger @click="prepareToViewNotifications">
       <span class="sr-only">Notifications</span>
       <NotificationsIndicator :overview="overview" :seen="haveSeenNotifications" />
     </SheetTrigger>

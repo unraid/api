@@ -7,3 +7,16 @@ export const notificationAddedSubscription = graphql(/* GraphQL */ `
     }
   }
 `);
+
+export const notificationOverviewSubscription = graphql(/* GraphQL */ `
+  subscription NotificationOverviewSub {
+    notificationsOverview {
+      archive {
+        ...NotificationCountFragment
+      }
+      unread {
+        ...NotificationCountFragment
+      }
+    }
+  }
+`);

@@ -1,4 +1,4 @@
-import { graphql } from "~/composables/gql/gql";
+import { graphql } from '~/composables/gql/gql';
 
 export const NOTIFICATION_FRAGMENT = graphql(/* GraphQL */ `
   fragment NotificationFragment on Notification {
@@ -95,6 +95,20 @@ export const notificationsOverview = graphql(/* GraphQL */ `
         archive {
           total
         }
+      }
+    }
+  }
+`);
+
+/** Re-calculates the notifications overview (i.e. notification counts) */
+export const resetOverview = graphql(/* GraphQL */ `
+  mutation RecomputeOverview {
+    recalculateOverview {
+      archive {
+        ...NotificationCountFragment
+      }
+      unread {
+        ...NotificationCountFragment
       }
     }
   }
