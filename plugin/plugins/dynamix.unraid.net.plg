@@ -341,8 +341,8 @@ exit(0);
     </INLINE>
   </FILE>
 
-  <!-- uninstall existing plugin during update or removal -->
-  <FILE Run="/bin/bash" Method="install remove">
+  <!-- uninstall existing plugin during removal -->
+  <FILE Run="/bin/bash" Method="remove">
     <INLINE>
       MAINNAME="&name;"
     <![CDATA[
@@ -372,7 +372,7 @@ if [ -e /etc/rc.d/rc.unraid-api ]; then
   rm -rf /usr/local/unraid-api
   rm -rf /var/run/unraid-api.sock
   # uninstall the main source package
-  [[ -f "/var/log/packages/${MAINNAME}" ]] && removepkg --warn "${MAINNAME}"
+  [[ -f "/var/log/packages/${MAINNAME}" ]] && removepkg --terse "${MAINNAME}"
   # restore stock files
   FILES_TO_RESTORE=(
     "/usr/local/emhttp/plugins/dynamix/DisplaySettings.page"
