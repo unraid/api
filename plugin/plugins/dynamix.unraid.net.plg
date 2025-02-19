@@ -203,6 +203,9 @@ echo "**********************************\n";
 echo "🧹 CLEANING UP - may take a minute\n";
 echo "**********************************\n";
 
+# Clean up node_modules before package removal
+rm -rf /usr/local/unraid-api/node_modules
+
 if (file_exists("/boot/.git")) {
   if (file_exists("/etc/rc.d/rc.flash_backup")) {
     # stop flash backup service

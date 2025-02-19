@@ -1,7 +1,7 @@
 import { constants } from 'fs';
 import { access } from 'fs/promises';
 
-import type { Hypervisor as HypervisorType } from '@vmngr/libvirt';
+import { type Hypervisor as HypervisorType } from '@unraid/libvirt';
 
 import { libvirtLogger } from '@app/core/log';
 
@@ -42,7 +42,7 @@ export class UnraidHypervisor {
             this.hypervisor = null;
             throw new Error('Libvirt is not running');
         }
-        const { Hypervisor } = await import('@vmngr/libvirt');
+        const { Hypervisor } = await import('@unraid/libvirt');
         this.hypervisor = new Hypervisor({ uri });
         await this.hypervisor.connectOpen().catch((error: unknown) => {
             libvirtLogger.error(

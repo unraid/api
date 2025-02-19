@@ -10,7 +10,7 @@
     "author": "Lime Technology, Inc. <unraid.net>",
     "license": "UNLICENSED",
     "engines": {
-        "pnpm": ">=8.15.4"
+        "pnpm": ">=8.0.0"
     },
     "scripts": {
         "// Main application commands": "",
@@ -56,6 +56,7 @@
         "@graphql-tools/schema": "^10.0.7",
         "@graphql-tools/utils": "^10.5.5",
         "@nestjs/apollo": "^12.2.1",
+        "@nestjs/common": "^10.4.7",
         "@nestjs/core": "^10.4.7",
         "@nestjs/graphql": "^12.2.1",
         "@nestjs/passport": "^10.0.3",
@@ -63,9 +64,9 @@
         "@nestjs/schedule": "^4.1.1",
         "@nestjs/throttler": "^6.2.1",
         "@reduxjs/toolkit": "^2.3.0",
-        "@reflet/cron": "^1.3.1",
         "@runonflux/nat-upnp": "^1.0.2",
         "@types/diff": "^7.0.1",
+        "@unraid/libvirt": "^1.0.5",
         "accesscontrol": "^2.2.1",
         "bycontract": "^2.0.11",
         "bytes": "^3.1.2",
@@ -78,6 +79,7 @@
         "command-exists": "^1.2.9",
         "convert": "^5.5.1",
         "cookie": "^1.0.2",
+        "cron": "3.2.1",
         "cross-fetch": "^4.0.0",
         "diff": "^7.0.0",
         "docker-event-emitter": "^0.3.0",
@@ -104,7 +106,6 @@
         "lodash-es": "^4.17.21",
         "multi-ini": "^2.3.2",
         "mustache": "^4.2.0",
-        "nest-access-control": "^3.1.0",
         "nest-authz": "^2.11.0",
         "nest-commander": "^3.15.0",
         "nestjs-pino": "^4.1.0",
@@ -184,13 +185,11 @@
         "vitest": "^3.0.5",
         "zx": "^8.3.2"
     },
-    "optionalDependencies": {
-        "@vmngr/libvirt": "github:unraid/libvirt"
-    },
     "overrides": {
         "eslint": {
             "jiti": "2"
         }
     },
-    "packageManager": "pnpm@8.15.4+sha512.0bd3a9be9eb0e9a692676deec00a303ba218ba279d99241475616b398dbaeedd11146f92c2843458f557b1d127e09d4c171e105bdcd6b61002b39685a8016b9e"
+    "packageManager": "pnpm@8.15.4+sha512.0bd3a9be9eb0e9a692676deec00a303ba218ba279d99241475616b398dbaeedd11146f92c2843458f557b1d127e09d4c171e105bdcd6b61002b39685a8016b9e",
+    "private": true
 }

@@ -1,6 +1,5 @@
 import { Query, ResolveField, Resolver, Subscription } from '@nestjs/graphql';
 
-import { UseRoles } from 'nest-access-control';
 import { AuthActionVerb, AuthPossession, UsePermissions } from 'nest-authz';
 import { baseboard, system } from 'systeminformation';
 

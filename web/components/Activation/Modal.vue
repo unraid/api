@@ -74,16 +74,16 @@ const handleKeydown = (event: KeyboardEvent) => {
 
   if (sequenceIndex === keySequence.length) {
     activationCodeStore.setActivationModalHidden(true);
-    window.location.href = '/Tools/Registration';
+      window.location.href = '/Tools/Registration';
   }
 };
 
 onMounted(() => {
-  window.addEventListener('keydown', handleKeydown);
+  window?.addEventListener('keydown', handleKeydown);
 });
 
 onUnmounted(() => {
-  window.removeEventListener('keydown', handleKeydown);
+  window?.removeEventListener('keydown', handleKeydown);
 });
 </script>
 

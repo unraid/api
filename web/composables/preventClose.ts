@@ -5,9 +5,9 @@ export const preventClose = (e: { preventDefault: () => void; returnValue: strin
 };
 
 export const addPreventClose = () => {
-  window.addEventListener('beforeunload', preventClose);
+  window?.addEventListener('beforeunload', preventClose);
 };
 
 export const removePreventClose = () => {
-  window.removeEventListener('beforeunload', preventClose);
+  window?.removeEventListener('beforeunload', preventClose);
 };
