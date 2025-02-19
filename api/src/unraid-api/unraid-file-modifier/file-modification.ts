@@ -27,7 +27,7 @@ export abstract class FileModification {
      * Get the path to the applied patch file for the target filePath, saved after applying the patch
      * @param targetFile - The path to the file that was patched
      */
-    private getPathToAppliedPatch(targetFile: string): string {
+    protected getPathToAppliedPatch(targetFile = this.filePath): string {
         const dir = dirname(targetFile);
         const filename = `${basename(targetFile)}.patch`;
         return join(dir, filename);

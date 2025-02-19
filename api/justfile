@@ -5,12 +5,12 @@ default:
     @just list-commands
 
 setup:
-    npm install
-    npm run container:build
+    pnpm install
+    pnpm run container:build
 
 # builds js files that can run on an unraid server
 @build:
-    npm run build
+    pnpm run build
 
 # deploys to an unraid server
 @deploy:
@@ -18,4 +18,3 @@ setup:
 
 # build & deploy
 bd: build deploy
-
