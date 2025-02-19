@@ -16,7 +16,7 @@ export default class DefaultPageLayoutModification extends FileModification {
         if (source.includes('unraid-toaster')) {
             return source;
         }
-        const insertion = `<unraid-toaster rich-colors close-button position="<?= ($notify['position'] === 'center') ? 'top-center' : $notify['position'] ?>"></unraid-toaster>`;
+        const insertion = `<uui-toaster rich-colors close-button position="<?= ($notify['position'] === 'center') ? 'top-center' : $notify['position'] ?>"></uui-toaster>`;
         return source.replace(/<\/body>/, `${insertion}\n</body>`);
     }
 
