@@ -19,7 +19,7 @@ const states = {
  */
 export const getDomains = async () => {
     try {
-        const { ConnectListAllDomainsFlags } = await import('@vmngr/libvirt');
+        const { ConnectListAllDomainsFlags } = await import('@unraid/libvirt');
         const { UnraidHypervisor } = await import('@app/core/utils/vms/get-hypervisor');
 
         const hypervisor = await UnraidHypervisor.getInstance().getHypervisor();
