@@ -11,6 +11,7 @@ import type {
   ServerState,
   // ServerUpdateOsResponse,
 } from '~/types/server';
+import { defineStore } from 'pinia'
 
 // dayjs plugins
 // extend(customParseFormat);
@@ -132,20 +133,7 @@ const osVersionBranch = 'stable';
 //   }
 // };
 
-export const serverState: Server = {
-  // activationCodeData: {
-  //   code: 'CC2KP3TDRF',
-  //   partnerName: 'OEM Partner',
-  //   partnerUrl: 'https://unraid.net/OEM+Partner',
-  //   sysModel: 'OEM Partner v1',
-  //   comment: 'OEM Partner NAS',
-  //   caseIcon: 'case-model.png',
-  //   header: '#ffffff',
-  //   headermetacolor: '#eeeeee',
-  //   background: '#000000',
-  //   showBannerGradient: 'yes',
-  //   partnerLogo: true,
-  // },
+const baseServerState: Server = {
   avatar: 'https://source.unsplash.com/300x300/?portrait',
   config: {
     id: 'config-id',
@@ -204,3 +192,33 @@ export const serverState: Server = {
   username: 'zspearmint',
   wanFQDN: '',
 };
+
+export type ServerSelector = 'default' | 'oemActivation';
+const defaultServer: ServerSelector = 'default';
+
+const servers: Record<ServerSelector, Server> = {
+  default: baseServerState,
+  /** shows oem activation flow */
+  oemActivation: {
+    ...baseServerState,
+    activationCodeData: {
+      code: 'CC2KP3TDRF',
+      partnerName: 'OEM Partner',
+      partnerUrl: 'https://unraid.net/OEM+Partner',
+      sysModel: 'OEM Partner v1',
+      comment: 'OEM Partner NAS',
+      caseIcon: 'case-model.png',
+      header: '#ffffff',
+      headermetacolor: '#eeeeee',
+      background: '#000000',
+      showBannerGradient: 'yes',
+      partnerLogo: true,
+    },
+  },
+};
+
+export const useDummyServerStore = defineStore('_dummyServer',() => {
+  const selector = ref<ServerSelector>(defaultServer);
+  const serverState = computed(() => servers[selector.value] ?? servers.default);
+  return { selector, serverState };
+})
