@@ -1,5 +1,5 @@
 import { Logger } from '@nestjs/common';
-import { chmod, readFile, rm, writeFile } from 'node:fs/promises';
+import { readFile, rm, writeFile } from 'node:fs/promises';
 
 import { fileExists } from '@app/core/utils/files/file-exists';
 import {

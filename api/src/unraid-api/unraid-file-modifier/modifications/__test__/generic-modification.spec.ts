@@ -19,6 +19,8 @@ interface ModificationTestCase {
 }
 
 const getPathToFixture = (fileName: string) => resolve(__dirname, `__fixtures__/downloaded/${fileName}`);
+
+/** Modifications that patch the content of an existing file in one or more places. */
 const patchTestCases: ModificationTestCase[] = [
     {
         ModificationClass: DefaultPageLayoutModification,
@@ -45,6 +47,7 @@ const patchTestCases: ModificationTestCase[] = [
     },
 ];
 
+/** Modifications that simply add a new file & remove it on rollback. */
 const simpleTestCases: ModificationTestCase[] = [
     {
         ModificationClass: LogRotateModification,
