@@ -71,7 +71,7 @@ const computedVerticalCenter = computed<string>(() => {
 </script>
 
 <template>
-  <TransitionRoot appear :show="open" as="template">
+  <TransitionRoot appear :show="open">
     <div
       class="fixed inset-0 z-10 overflow-y-auto"
       role="dialog"
@@ -86,7 +86,6 @@ const computedVerticalCenter = computed<string>(() => {
       >
         <TransitionChild
           appear
-          as="template"
           enter="duration-300 ease-out"
           enter-from="opacity-0"
           enter-to="opacity-100"
@@ -102,7 +101,6 @@ const computedVerticalCenter = computed<string>(() => {
         </TransitionChild>
         <TransitionChild
           appear
-          as="template"
           enter="duration-300 ease-out"
           enter-from="opacity-0 scale-95"
           enter-to="opacity-100 scale-100"
@@ -185,7 +183,6 @@ const computedVerticalCenter = computed<string>(() => {
 
         <TransitionChild
           appear
-          as="template"
           enter="duration-300 ease-out"
           enter-from="opacity-0"
           enter-to="opacity-100"
