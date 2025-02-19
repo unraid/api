@@ -111,9 +111,10 @@ sha256check() {
     fi
   fi
 }
+      
+sha256check "&source;.txz" "&SHA256;"
+exit 0
 ]]>
-      sha256check "&source;.txz" "&SHA256;"
-      exit 0
     </INLINE>
   </FILE>
   <FILE Name="/boot/config/plugins/dynamix.my.servers/&NODEJS_FILENAME;">
@@ -149,6 +150,9 @@ sha256check() {
         fi
 
         echo "Node.js installation successful"
+
+        # Now cleanup existing node_modules for the API to speed up the install
+        rm -rf /usr/local/unraid-api/node_modules
         exit 0
       ]]>
     </INLINE>
