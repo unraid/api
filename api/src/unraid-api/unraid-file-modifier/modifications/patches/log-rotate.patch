@@ -2,8 +2,7 @@ Index: /etc/logrotate.d/unraid-api
 ===================================================================
 --- /etc/logrotate.d/unraid-api	original
 +++ /etc/logrotate.d/unraid-api	modified
-@@ -0,0 +1,12 @@
-+
+@@ -0,0 +1,20 @@
 +/var/log/unraid-api/*.log {
 +    rotate 1
 +    missingok
@@ -14,5 +13,13 @@ Index: /etc/logrotate.d/unraid-api
 +    copytruncate
 +    create 0640 root root
 +}
-+    
-\ No newline at end of file
++/var/log/graphql-api.log {
++    rotate 1
++    missingok
++    size 1M
++    su root root
++    compress
++    delaycompress
++    copytruncate
++    create 0640 root root
++}
