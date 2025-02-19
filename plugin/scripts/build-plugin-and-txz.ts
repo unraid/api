@@ -140,7 +140,7 @@ const buildTxz = async (
   await $`${join(
     startingDir,
     "scripts/makepkg"
-  )} -l y -c y --compress -1 "${txzPath}"`;
+  )} -l n -c y --compress -1 "${txzPath}"`;
   $.verbose = false;
   await cd(startingDir);
 
