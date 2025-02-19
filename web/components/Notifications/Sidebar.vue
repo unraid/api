@@ -31,7 +31,10 @@ import {
   notificationsOverview,
   resetOverview,
 } from './graphql/notification.query';
-import { notificationAddedSubscription } from './graphql/notification.subscription';
+import {
+  notificationAddedSubscription,
+  notificationOverviewSubscription,
+} from './graphql/notification.subscription';
 
 const { mutate: archiveAll, loading: loadingArchiveAll } = useMutation(archiveAllNotifications);
 const { mutate: deleteArchives, loading: loadingDeleteAll } = useMutation(deleteArchivedNotifications);
@@ -55,8 +58,14 @@ const confirmAndDeleteArchives = async () => {
   }
 };
 
-const { result } = useQuery(notificationsOverview, null, {
-  pollInterval: 2_000, // 2 seconds
+const { result, subscribeToMore } = useQuery(notificationsOverview);
+subscribeToMore({
+  document: notificationOverviewSubscription,
+  updateQuery: (prev, { subscriptionData }) => {
+    const snapshot = structuredClone(prev);
+    snapshot.notifications.overview = subscriptionData.data.notificationsOverview;
+    return snapshot;
+  },
 });
 const { latestNotificationTimestamp, haveSeenNotifications } = useTrackLatestSeenNotification();
 const { onResult: onNotificationAdded } = useSubscription(notificationAddedSubscription);
