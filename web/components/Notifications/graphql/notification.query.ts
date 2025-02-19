@@ -105,10 +105,10 @@ export const resetOverview = graphql(/* GraphQL */ `
   mutation RecomputeOverview {
     recalculateOverview {
       archive {
-        total
+        ...NotificationCountFragment
       }
       unread {
-        total
+        ...NotificationCountFragment
       }
     }
   }
