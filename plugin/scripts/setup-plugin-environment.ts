@@ -1,16 +1,13 @@
-import { readFile } from "fs/promises";
-import { join } from "path";
 import { z } from "zod";
-import { parse } from "semver";
 import { dotenv } from "zx";
+import { access, constants, readFile } from "node:fs/promises";
 
 const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
+const ENV = z.enum(["PRODUCTION", "STAGING"]);
+export type Env = Zod.infer<typeof ENV>;
+
 const sharedEnvSchema = z.object({
-  API_VERSION: z.string().refine((v) => {
-    return parse(v) ?? false;
-  }, "Must be a valid semver version"),
-  TAG: z.string().optional(),
   CI: z.boolean().optional().default(false),
 });
 
@@ -20,30 +17,18 @@ const txzEnvSchema = sharedEnvSchema.extend({
     .optional()
     .default("false")
     .refine((v) => v === "true" || v === "false", "Must be true or false"),
-
 });
 
 const pluginEnvSchema = sharedEnvSchema.extend({
-  PLUGIN_URL: z.string().url(),
+  BASE_URL: z.string().url(),
+  TAG: z.string().optional(),
+  ENV,
   TXZ_SHA256: z.string(),
   TXZ_NAME: z.string(),
   LOCAL_FILESERVER_URL: z.string().url().optional(),
+  RELEASE_NOTES_PATH: z.string().optional(),
+  RELEASE_NOTES: z.string().optional(),
 });
-
-const getLocalEnvironmentVariablesFromApiFolder = async (startingDir: string): Promise<
-  Partial<PluginEnv>
-> => {
-  const apiDir = join(
-    startingDir,
-    "source/dynamix.unraid.net/usr/local/unraid-api"
-  );
-  const apiPackageJson = join(apiDir, "package.json");
-  const apiPackageJsonContent = await readFile(apiPackageJson, "utf8");
-  const apiPackageJsonObject = JSON.parse(apiPackageJsonContent);
-  return {
-    API_VERSION: apiPackageJsonObject.version,
-  };
-};
 
 type PluginEnv = z.infer<typeof pluginEnvSchema>;
 type TxzEnv = z.infer<typeof txzEnvSchema>;
@@ -55,44 +40,45 @@ function getSchema(type: SchemaType) {
   return type === "plugin" ? pluginEnvSchema : txzEnvSchema;
 }
 
-function isTxzEnv(env: TxzEnv | PluginEnv): env is TxzEnv {
-  return 'SKIP_VALIDATION' in env;
-}
-
 export const setupEnvironment = async <T extends SchemaType>(
-  startingDir: string,
   schemaType: T
 ): Promise<EnvType<T>> => {
   const schema = getSchema(schemaType);
-  const validatedEnv = schema.parse(
-    {
-      ...process.env,
-      ...(await dotenv.config()),
-      ...(schemaType === "plugin" ? await getLocalEnvironmentVariablesFromApiFolder(startingDir) : {}),
-    }
-  ) as EnvType<T>;
+  const validatedEnv = schema.parse({
+    ...process.env,
+    ...(await dotenv.config()),
+  }) as EnvType<T>;
+
   let shouldWait = false;
+  if ("TAG" in validatedEnv) {
+    console.warn("TAG is set, will generate a TAGGED build");
+    shouldWait = true;
+  }
+  if ("LOCAL_FILESERVER_URL" in validatedEnv) {
+    console.warn("LOCAL_FILESERVER_URL is set, will generate a local build");
+    shouldWait = true;
+  }
+  if ("SKIP_VALIDATION" in validatedEnv) {
+    console.warn("SKIP_VALIDATION is true, skipping validation");
+    shouldWait = true;
+  }
 
-  if (schemaType === "txz" && isTxzEnv(validatedEnv)) {
-    if (validatedEnv.SKIP_VALIDATION === "true") {
-      console.warn("SKIP_VALIDATION is true, skipping validation");
-      shouldWait = true;
-    }
-
-    if (validatedEnv.TAG) {
-      console.warn("TAG is set, will generate a TAGGED build");
-      shouldWait = true;
-    }
-
-    if (validatedEnv.LOCAL_FILESERVER_URL) {
-      console.warn("LOCAL_FILESERVER_URL is set, will generate a local build");
-      shouldWait = true;
+  if ("RELEASE_NOTES_PATH" in validatedEnv) {
+    // Validate the file exists with content and fail if it doesn't
+    const notesPath = validatedEnv.RELEASE_NOTES_PATH;
+    if (notesPath) {
+      await access(notesPath, constants.F_OK);
+      const releaseNotes = await readFile(notesPath, "utf8");
+      if (!releaseNotes || releaseNotes.length === 0) {
+        throw new Error(
+          `RELEASE_NOTES_PATH file is empty: ${validatedEnv.RELEASE_NOTES_PATH}`
+        );
+      }
+      validatedEnv.RELEASE_NOTES = releaseNotes;
     }
   }
 
-  console.log("validatedEnv", validatedEnv);
-
-  if (shouldWait) {
+  if (shouldWait && !validatedEnv.CI) {
     await wait(1000);
   }
 

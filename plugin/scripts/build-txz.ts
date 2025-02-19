@@ -1,19 +1,18 @@
 import { cp, readFile, mkdir } from "fs/promises";
 import { basename, join } from "path";
 import { createHash } from "node:crypto";
-import { $, cd } from "zx";
+import { $, cd, version } from "zx";
 import { setupEnvironment } from "./setup-plugin-environment";
 import { existsSync } from "node:fs";
 import { readdir } from "node:fs/promises";
 import { execSync } from "node:child_process";
-const pluginName = "dynamix.unraid.net" as const;
-const startingDir = process.cwd();
+import { pluginName, startingDir } from "./consts";
 
-const validatedEnv = await setupEnvironment(startingDir, "txz");
+const validatedEnv = await setupEnvironment("txz");
 
 const createTxzDirectory = async () => {
   await execSync(`rm -rf deploy/pre-pack/*`);
-  await execSync(`rm -rf deploy/release/archive/*`);
+  await execSync(`rm -rf deploy/release/*`);
   await execSync(`rm -rf deploy/test/*`);
 
   await mkdir("deploy/test", { recursive: true });
@@ -68,19 +67,14 @@ const validateSourceDir = async () => {
   }
 };
 
-const buildTxz = async (
-  version: string
-): Promise<{
+const buildTxz = async (): Promise<{
   txzName: string;
-  txzSha256: string;
 }> => {
-  if (
-    validatedEnv.SKIP_VALIDATION !== "true"
-  ) {
+  if (validatedEnv.SKIP_VALIDATION !== "true") {
     await validateSourceDir();
   }
 
-  const txzName = `${pluginName}-${version}.txz`;
+  const txzName = `${pluginName}.txz`;
   const txzPath = join(startingDir, "deploy/release/archive", txzName);
   const prePackDir = join(startingDir, "deploy/pre-pack");
 
@@ -105,21 +99,13 @@ const buildTxz = async (
   await cd(prePackDir);
   $.verbose = true;
 
-  await $`${join(
-    startingDir,
-    "scripts/makepkg"
-  )} -l y -c y --compress -1 "${txzPath}"`;
+  await $`${join(startingDir, "scripts/makepkg")} -l ${
+    validatedEnv.CI ? "y" : "n"
+  } -c ${validatedEnv.CI ? "y" : "n"} --compress ${
+    validatedEnv.CI ? "-5" : "-1"
+  } "${txzPath}"`;
   $.verbose = false;
   await cd(startingDir);
-
-  // Calculate hashes
-  const sha256 = createHash("sha256")
-    .update(await readFile(txzPath))
-    .digest("hex");
-
-  if (!validatedEnv.CI) {
-    console.log(`TXZ SHA256: ${sha256}`);
-  }
 
   if (validatedEnv.SKIP_VALIDATION !== "true") {
     try {
@@ -130,13 +116,12 @@ const buildTxz = async (
     }
   }
 
-  return { txzSha256: sha256, txzName };
+  return { txzName };
 };
-
 
 const main = async () => {
   await createTxzDirectory();
-  await buildTxz(validatedEnv.API_VERSION);
+  await buildTxz();
 };
 
-main();
+await main();

@@ -15,7 +15,8 @@
   "type": "module",
   "scripts": {
     "// Build scripts": "",
-    "build": "tsx scripts/build-plugin-and-txz.ts",
+    "build:txz": "tsx scripts/build-txz.ts",
+    "build:plugin": "tsx scripts/build-plugin.ts",
     "build:validate": "npm run env:validate && npm run build",
     "// Docker commands": "",
     "docker:build": "docker build -t plugin-builder .",
