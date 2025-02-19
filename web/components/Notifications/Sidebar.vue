@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { useMutation, useQuery, useSubscription } from '@vue/apollo-composable';
 
+import { ArrowPathIcon } from '@heroicons/vue/24/solid';
 import {
   Button,
   Select,
@@ -23,18 +24,19 @@ import {
 
 import { useTrackLatestSeenNotification } from '~/composables/api/use-notifications';
 import { useFragment } from '~/composables/gql';
-// eslint-disable-next-line @typescript-eslint/consistent-type-imports -- false positive :(
 import { Importance, NotificationType } from '~/composables/gql/graphql';
 import {
   archiveAllNotifications,
   deleteArchivedNotifications,
   NOTIFICATION_FRAGMENT,
   notificationsOverview,
+  resetOverview,
 } from './graphql/notification.query';
 import { notificationAddedSubscription } from './graphql/notification.subscription';
 
 const { mutate: archiveAll, loading: loadingArchiveAll } = useMutation(archiveAllNotifications);
 const { mutate: deleteArchives, loading: loadingDeleteAll } = useMutation(deleteArchivedNotifications);
+const { mutate: recalculateOverview, loading: loadingRecalculateOverview } = useMutation(resetOverview);
 const { teleportTarget, determineTeleportTarget } = useTeleport();
 const importance = ref<Importance | undefined>(undefined);
 
@@ -117,7 +119,20 @@ const readArchivedCount = computed(() => {
     >
       <div class="relative flex flex-col h-full w-full">
         <SheetHeader class="ml-1 px-6 items-baseline gap-1 pb-2">
-          <SheetTitle class="text-2xl">Notifications</SheetTitle>
+          <SheetTitle class="text-2xl"
+            >Notifications
+            <Button
+              :disabled="loadingRecalculateOverview"
+              variant="ghost"
+              size="icon"
+              type="button"
+              class="p-1.5 mx-1.5 h-auto w-auto translate-y-[1px]"
+              title="Refresh notification counts"
+              @click="recalculateOverview"
+            >
+              <ArrowPathIcon class="h-4" />
+            </Button>
+          </SheetTitle>
           <a href="/Settings/Notifications">
             <Button variant="link" size="sm" class="p-0 h-auto">Edit Settings</Button>
           </a>
