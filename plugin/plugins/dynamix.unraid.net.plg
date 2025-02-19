@@ -372,7 +372,7 @@ if [ -e /etc/rc.d/rc.unraid-api ]; then
   rm -rf /usr/local/unraid-api
   rm -rf /var/run/unraid-api.sock
   # uninstall the main source package
-  [[ -f "/var/log/packages/${MAINNAME}" ]] && removepkg --terse "${MAINNAME}"
+  [[ -f "/var/log/packages/${MAINNAME}" ]] && removepkg --warn "${MAINNAME}"
   # restore stock files
   FILES_TO_RESTORE=(
     "/usr/local/emhttp/plugins/dynamix/DisplaySettings.page"
