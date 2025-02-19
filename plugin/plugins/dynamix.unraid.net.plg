@@ -152,7 +152,8 @@ exit 0
         echo "Node.js installation successful"
 
         # Now cleanup existing node_modules for the API to speed up the install
-        rm -rf /usr/local/unraid-api/node_modules
+        rm -rf --one-file-system /usr/local/unraid-api/node_modules
+
         exit 0
       ]]>
     </INLINE>
@@ -170,6 +171,11 @@ exit 0
     <![CDATA[
 # before proceeding with install, doubly confirm downloaded files exist. just being pedantic.
 FILE=${MAINTXZ} && [[ ! -f "$FILE" ]] && echo "⚠️ file missing - $FILE" && exit 1
+
+# Create .noremove in node_modules directory before packaging
+mkdir -p /usr/local/unraid-api/node_modules
+touch /usr/local/unraid-api/node_modules/.noremove
+
 exit 0
 ]]>
     </INLINE>
@@ -208,7 +214,7 @@ echo "🧹 CLEANING UP - may take a minute\n";
 echo "**********************************\n";
 
 # Clean up node_modules before package removal
-rm -rf /usr/local/unraid-api/node_modules
+rm -rf --one-file-system /usr/local/unraid-api/node_modules
 
 if (file_exists("/boot/.git")) {
   if (file_exists("/etc/rc.d/rc.flash_backup")) {
@@ -233,12 +239,7 @@ if (file_exists("/etc/rc.d/rc.unraid-api")) {
   echo "Stopped unraid-api: $output";
 
   # Find all PIDs referencing main.js and kill them, excluding grep process
-  $pids = shell_exec("ps aux | grep 'node /usr/local/unraid-api/dist/main.js' | grep -v grep | awk '{print $2}'");
-  foreach(explode("\n", trim($pids)) as $pid) {
-    if ($pid) {
-      posix_kill((int)$pid, 9);
-    }
-  }
+  shell_exec("pkill -9 -f 'node /usr/local/unraid-api/dist/main.js'");
 }
 
 # set "Allow Remote Access" to "No" and sign out from Unraid Connect
@@ -750,6 +751,10 @@ fi
 
 # install the main txz
 upgradepkg --install-new --reinstall "${MAINTXZ}"
+
+# Mark node_modules to be skipped during package removal
+mkdir -p /usr/local/unraid-api/node_modules
+touch /usr/local/unraid-api/node_modules/.noremove
 
 # confirm an expected file now exists
 # WARNING: failure here results in broken install
