@@ -21,7 +21,17 @@ export class LogRotateModification extends FileModification {
     copytruncate
     create 0640 root root
 }
-    `.trim();
+/var/log/graphql-api.log {
+    rotate 1
+    missingok
+    size 1M
+    su root root
+    compress
+    delaycompress
+    copytruncate
+    create 0640 root root
+}
+`.trimStart();
 
     constructor(logger: Logger) {
         super(logger);
