@@ -228,7 +228,12 @@ if (file_exists("/etc/rc.d/rc.unraid-api")) {
   echo "Stopped unraid-api: $output";
 
   # Find all PIDs referencing main.js and kill them, excluding grep process
-  shell_exec("pkill -9 -f 'node /usr/local/unraid-api/dist/main.js'");
+  $pids = shell_exec("ps aux | grep 'node /usr/local/unraid-api/dist/main.js' | grep -v grep | awk '{print $2}'");
+  foreach(explode("\n", trim($pids)) as $pid) {
+    if ($pid) {
+      posix_kill((int)$pid, 9);
+    }
+  }
 }
 
 # set "Allow Remote Access" to "No" and sign out from Unraid Connect
