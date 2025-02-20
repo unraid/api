@@ -7,15 +7,18 @@
         },
         "web": {
             "package-name": "@unraid/web",
-            "release-type": "node"
+            "release-type": "node",
+            "skip-github-release": true
         },
         "unraid-ui": {
             "package-name": "@unraid/ui",
-            "release-type": "node"
+            "release-type": "node",
+            "skip-github-release": true
         },
         "plugin": {
             "package-name": "@unraid/connect-plugin",
-            "release-type": "node"
+            "release-type": "node",
+            "skip-github-release": true
         }
     },
     "separate-pull-requests": false,
