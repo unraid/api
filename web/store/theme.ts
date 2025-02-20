@@ -1,6 +1,6 @@
-import hexToRgba from 'hex-to-rgba';
 import { createPinia, defineStore, setActivePinia } from 'pinia';
 
+import hexToRgba from 'hex-to-rgba';
 
 /**
  * @see https://stackoverflow.com/questions/73476371/using-pinia-with-vue-js-web-components
@@ -46,6 +46,8 @@ export const defaultColors: Record<string, ThemeVariables> = {
     '--header-text-primary': '#1c1c1c',
     '--header-text-secondary': '#999999',
     '--header-background-color': '#f2f2f2',
+    '--color-customgradient-start': 'rgba(0, 0, 0, 0)',
+    '--color-customgradient-end': 'var(--header-background-color)',
   },
   light: {
     '--background': '0 0% 100%',
@@ -71,6 +73,8 @@ export const defaultColors: Record<string, ThemeVariables> = {
     '--header-text-primary': '#f2f2f2',
     '--header-text-secondary': '#999999',
     '--header-background-color': '#1c1b1b',
+    '--color-customgradient-start': 'rgba(0, 0, 0, 0)',
+    '--color-customgradient-end': 'var(--header-background-color)',
   },
 } as const;
 
@@ -82,7 +86,8 @@ export const defaultColors: Record<string, ThemeVariables> = {
  * LIGHT THEMES: white, gray
  * LIGHT HEADER THEMES: black, gray
  */
-export const defaultAzureGrayHeaderColors: ThemeVariables = { // azure and gray header colors are the same but the background color is different
+export const defaultAzureGrayHeaderColors: ThemeVariables = {
+  // azure and gray header colors are the same but the background color is different
   '--header-text-primary': '#39587f',
   '--header-text-secondary': '#606e7f',
 };
@@ -129,7 +134,9 @@ export const useThemeStore = defineStore('theme', () => {
       return undefined;
     }
     const start = theme.value?.bgColor ? 'var(--color-customgradient-start)' : 'rgba(0, 0, 0, 0)';
-    const end = theme.value?.bgColor ? 'var(--color-customgradient-end)' : 'var(--color-beta)';
+    const end = theme.value?.bgColor
+      ? 'var(--color-customgradient-end)'
+      : 'var(--header-background-color)';
     return `background-image: linear-gradient(90deg, ${start} 0, ${end} 30%);`;
   });
   // Actions
@@ -151,23 +158,54 @@ export const useThemeStore = defineStore('theme', () => {
       };
     }
 
+    // Set banner gradient if enabled
+    if (theme.value?.banner && theme.value?.bannerGradient) {
+      const start = theme.value?.bgColor
+        ? hexToRgba(theme.value.bgColor, 0)
+        : customColorVariables[selectedMode]['--color-customgradient-start'];
+      const end = theme.value?.bgColor
+        ? hexToRgba(theme.value.bgColor, 0.7)
+        : customColorVariables[selectedMode]['--color-customgradient-end'];
+      body.style.setProperty('--banner-gradient', `linear-gradient(90deg, ${start} 0, ${end} 30%)`);
+    } else {
+      body.style.removeProperty('--banner-gradient');
+    }
+
     // overwrite with hex colors set in webGUI @ /Settings/DisplaySettings
     if (theme.value?.textColor) {
-      customColorVariables[selectedMode]['--header-text-primary'] = theme.value.textColor;
+      body.style.setProperty('--header-text-primary', theme.value.textColor);
+    } else {
+      body.style.setProperty(
+        '--header-text-primary',
+        customColorVariables[selectedMode]['--header-text-primary']
+      );
     }
     if (theme.value?.metaColor) {
-      customColorVariables[selectedMode]['--header-text-secondary'] = theme.value.metaColor;
+      body.style.setProperty('--header-text-secondary', theme.value.metaColor);
+    } else {
+      body.style.setProperty(
+        '--header-text-secondary',
+        customColorVariables[selectedMode]['--header-text-secondary']
+      );
     }
     if (theme.value?.bgColor) {
-      customColorVariables[selectedMode]['--header-background-color'] = theme.value.bgColor;
-
+      body.style.setProperty('--header-background-color', theme.value.bgColor);
       body.style.setProperty('--color-customgradient-start', hexToRgba(theme.value.bgColor, 0));
       body.style.setProperty('--color-customgradient-end', hexToRgba(theme.value.bgColor, 0.7));
+    } else {
+      body.style.setProperty(
+        '--header-background-color',
+        customColorVariables[selectedMode]['--header-background-color']
+      );
     }
 
+    // Apply all other CSS variables
     Object.entries(customColorVariables[selectedMode]).forEach(([key, value]) => {
-      body.style.setProperty(key, value);
+      if (!key.startsWith('--header-')) {
+        body.style.setProperty(key, value);
+      }
     });
+
     if (darkMode.value) {
       document.body.classList.add('dark');
     } else {
