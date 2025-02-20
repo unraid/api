@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [4.1.1](https://github.com/unraid/api/compare/v4.1.0...v4.1.1) (2025-02-20)
+
+
+### Bug Fixes
+
+* main.yml release issue ([8a2a24e](https://github.com/unraid/api/commit/8a2a24eb22762034d44995580d6057186521dae5))
+
 ## [4.1.0](https://github.com/unraid/api/compare/v4.0.1...v4.1.0) (2025-02-20)
 
 
