@@ -335,11 +335,11 @@ exit(0);
     </INLINE>
   </FILE>
 
-  <!-- uninstall existing plugin during install -->
+  <!-- uninstall existing plugin during update or removal -->
   <FILE Run="/bin/bash" Method="install remove">
     <INLINE>
-      MAINNAME="&name;"
-      <![CDATA[
+    <![CDATA[
+echo "Uninstalling existing plugin"
 version=
 # shellcheck disable=SC1091
 source /etc/unraid-version
@@ -365,7 +365,8 @@ if [ -e /etc/rc.d/rc.unraid-api ]; then
   # uninstall the api
   rm -rf /usr/local/unraid-api
   rm -rf /var/run/unraid-api.sock
-      ]]>
+
+    ]]>
     </INLINE>
   </FILE>
 
@@ -373,6 +374,7 @@ if [ -e /etc/rc.d/rc.unraid-api ]; then
     <INLINE>
       MAINNAME="&name;"
       <![CDATA[
+      echo "Removing Plugin"
       [[ -f "/var/log/packages/${MAINNAME}" ]] && removepkg --terse "${MAINNAME}"
       ]]>
     </INLINE>
@@ -382,6 +384,7 @@ if [ -e /etc/rc.d/rc.unraid-api ]; then
   <FILE Run="/bin/bash" Method="install remove">
     <INLINE>
     <![CDATA[
+    echo "Restoring Files"
   # restore stock files
   FILES_TO_RESTORE=(
     "/usr/local/emhttp/plugins/dynamix/DisplaySettings.page"
