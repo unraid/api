@@ -1,5 +1,6 @@
 {
   "name": "@unraid/connect-plugin",
+  "version": "4.1.1",
   "private": true,
   "dependencies": {
     "conventional-changelog": "^6.0.0",
