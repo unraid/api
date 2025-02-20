@@ -465,9 +465,8 @@ jobs:
       - name: Move Files to Release Folder
         run: |
           mkdir -p release/
-          mv unraid-api-*.tgz release/
           mv plugins/production/dynamix.unraid.net.plg release/
-          mv archive/* release/
+          mv archive/*.txz release/
 
       - name: Create Github release
         uses: softprops/action-gh-release@v1
