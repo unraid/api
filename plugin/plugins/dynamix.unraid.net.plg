@@ -112,8 +112,8 @@ sha256check() {
   fi
 }
 ]]>
-      sha256check "&source;.txz" "&SHA256;"
-      exit 0
+sha256check "&source;.txz" "&SHA256;"
+exit 0
     </INLINE>
   </FILE>
   <FILE Name="/boot/config/plugins/dynamix.my.servers/&NODEJS_FILENAME;">
@@ -149,6 +149,7 @@ sha256check() {
         fi
 
         echo "Node.js installation successful"
+
         exit 0
       ]]>
     </INLINE>
@@ -166,6 +167,7 @@ sha256check() {
     <![CDATA[
 # before proceeding with install, doubly confirm downloaded files exist. just being pedantic.
 FILE=${MAINTXZ} && [[ ! -f "$FILE" ]] && echo "⚠️ file missing - $FILE" && exit 1
+
 exit 0
 ]]>
     </INLINE>
@@ -202,9 +204,6 @@ echo "\n";
 echo "**********************************\n";
 echo "🧹 CLEANING UP - may take a minute\n";
 echo "**********************************\n";
-
-# Clean up node_modules before package removal
-rm -rf /usr/local/unraid-api/node_modules
 
 if (file_exists("/boot/.git")) {
   if (file_exists("/etc/rc.d/rc.flash_backup")) {
@@ -339,8 +338,8 @@ exit(0);
   <!-- uninstall existing plugin during update or removal -->
   <FILE Run="/bin/bash" Method="install remove">
     <INLINE>
-      MAINNAME="&name;"
     <![CDATA[
+echo "Uninstalling existing plugin"
 version=
 # shellcheck disable=SC1091
 source /etc/unraid-version
@@ -366,8 +365,28 @@ if [ -e /etc/rc.d/rc.unraid-api ]; then
   # uninstall the api
   rm -rf /usr/local/unraid-api
   rm -rf /var/run/unraid-api.sock
-  # uninstall the main source package
-  [[ -f "/var/log/packages/${MAINNAME}" ]] && removepkg --terse "${MAINNAME}"
+fi
+    ]]>
+    </INLINE>
+  </FILE>
+
+  <FILE Run="/bin/bash" Method="remove">
+    <INLINE>
+      MAINNAME="&name;"
+      <![CDATA[
+      echo "Removing Plugin"
+      [[ -f "/var/log/packages/${MAINNAME}" ]] && removepkg --terse "${MAINNAME}"
+      ]]>
+    </INLINE>
+  </FILE>
+
+  <!-- uninstall existing plugin during removal -->
+  <FILE Run="/bin/bash" Method="install remove">
+    <INLINE>
+    <![CDATA[
+    echo "Restoring Files"
+
+if [ -e /etc/rc.d/rc.unraid-api ]; then
   # restore stock files
   FILES_TO_RESTORE=(
     "/usr/local/emhttp/plugins/dynamix/DisplaySettings.page"
