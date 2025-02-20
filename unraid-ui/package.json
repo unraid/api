@@ -105,5 +105,6 @@
       "types": "./dist/theme/preset.d.ts",
       "import": "./dist/theme/preset.js"
     }
-  }
+  },
+  "packageManager": "pnpm@10.4.1"
 }
