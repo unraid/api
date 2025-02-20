@@ -2,7 +2,7 @@
   "name": "@unraid/web",
   "version": "3.10.0",
   "private": true,
-  "license": "GPL-2.0",
+  "license": "GPL-2.0-only",
   "scripts": {
     "dev": "nuxt dev",
     "lint": "eslint .",
