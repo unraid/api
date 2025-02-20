@@ -151,9 +151,6 @@ exit 0
 
         echo "Node.js installation successful"
 
-        # Now cleanup existing node_modules for the API to speed up the install
-        rm -rf --one-file-system /usr/local/unraid-api/node_modules
-
         exit 0
       ]]>
     </INLINE>
@@ -171,10 +168,6 @@ exit 0
     <![CDATA[
 # before proceeding with install, doubly confirm downloaded files exist. just being pedantic.
 FILE=${MAINTXZ} && [[ ! -f "$FILE" ]] && echo "⚠️ file missing - $FILE" && exit 1
-
-# Create .noremove in node_modules directory before packaging
-mkdir -p /usr/local/unraid-api/node_modules
-touch /usr/local/unraid-api/node_modules/.noremove
 
 exit 0
 ]]>
@@ -212,9 +205,6 @@ echo "\n";
 echo "**********************************\n";
 echo "🧹 CLEANING UP - may take a minute\n";
 echo "**********************************\n";
-
-# Clean up node_modules before package removal
-rm -rf --one-file-system /usr/local/unraid-api/node_modules
 
 if (file_exists("/boot/.git")) {
   if (file_exists("/etc/rc.d/rc.flash_backup")) {
@@ -341,11 +331,11 @@ exit(0);
     </INLINE>
   </FILE>
 
-  <!-- uninstall existing plugin during removal -->
-  <FILE Run="/bin/bash" Method="remove">
+  <!-- uninstall existing plugin during install -->
+  <FILE Run="/bin/bash" Method="install remove">
     <INLINE>
       MAINNAME="&name;"
-    <![CDATA[
+      <![CDATA[
 version=
 # shellcheck disable=SC1091
 source /etc/unraid-version
@@ -371,8 +361,23 @@ if [ -e /etc/rc.d/rc.unraid-api ]; then
   # uninstall the api
   rm -rf /usr/local/unraid-api
   rm -rf /var/run/unraid-api.sock
-  # uninstall the main source package
-  [[ -f "/var/log/packages/${MAINNAME}" ]] && removepkg --terse "${MAINNAME}"
+      ]]>
+    </INLINE>
+  </FILE>
+
+  <FILE Run="/bin/bash" Method="remove">
+    <INLINE>
+      MAINNAME="&name;"
+      <![CDATA[
+      [[ -f "/var/log/packages/${MAINNAME}" ]] && removepkg --terse "${MAINNAME}"
+      ]]>
+    </INLINE>
+  </FILE>
+
+  <!-- uninstall existing plugin during removal -->
+  <FILE Run="/bin/bash" Method="install remove">
+    <INLINE>
+    <![CDATA[
   # restore stock files
   FILES_TO_RESTORE=(
     "/usr/local/emhttp/plugins/dynamix/DisplaySettings.page"
@@ -751,10 +756,6 @@ fi
 
 # install the main txz
 upgradepkg --install-new --reinstall "${MAINTXZ}"
-
-# Mark node_modules to be skipped during package removal
-mkdir -p /usr/local/unraid-api/node_modules
-touch /usr/local/unraid-api/node_modules/.noremove
 
 # confirm an expected file now exists
 # WARNING: failure here results in broken install
