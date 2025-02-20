@@ -365,7 +365,7 @@ if [ -e /etc/rc.d/rc.unraid-api ]; then
   # uninstall the api
   rm -rf /usr/local/unraid-api
   rm -rf /var/run/unraid-api.sock
-
+fi
     ]]>
     </INLINE>
   </FILE>
@@ -385,6 +385,8 @@ if [ -e /etc/rc.d/rc.unraid-api ]; then
     <INLINE>
     <![CDATA[
     echo "Restoring Files"
+
+if [ -e /etc/rc.d/rc.unraid-api ]; then
   # restore stock files
   FILES_TO_RESTORE=(
     "/usr/local/emhttp/plugins/dynamix/DisplaySettings.page"
