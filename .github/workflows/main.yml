@@ -5,8 +5,6 @@ on:
   push:
     branches:
       - main
-    tags:
-      - "v*"
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
@@ -14,7 +12,6 @@ concurrency:
 
 jobs:
   release-please:
-    if: startsWith(github.ref, 'refs/tags/')
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -25,15 +22,6 @@ jobs:
     outputs:
       releases_created: ${{ steps.release.outputs.releases_created }}
       tag_name: ${{ steps.release.outputs.tag_name }}
-  start:
-    # This prevents a tag running twice as it'll have a "tag" and a "commit" event
-    # We only want the tag to run the action as it'll be able to create the release notes
-    if: (startsWith(github.event.ref, 'refs/heads/') && !startsWith(github.event.head_commit.message, 'chore(release)')) || (startsWith(github.event.ref, 'refs/tags/') && startsWith(github.event.head_commit.message, 'chore(release)'))
-    runs-on: ubuntu-latest
-    steps:
-      - name: Validate branch and tag
-        run: exit 0
-
   test-api:
     defaults:
       run:
@@ -448,11 +436,10 @@ jobs:
           DEST_DIR: unraid-api
 
   create-draft-release:
-    # Only create new draft if this is a version tag
-    if: |
-      startsWith(github.ref, 'refs/tags/v')
+    # Only run if release-please created a release
+    if: needs.release-please.outputs.releases_created
     runs-on: ubuntu-latest
-    needs: [test-api, build-plugin]
+    needs: [release-please, test-api, build-plugin]
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
@@ -468,12 +455,12 @@ jobs:
           mv plugins/production/dynamix.unraid.net.plg release/
           mv archive/*.txz release/
 
-      - name: Create Github release
-        uses: softprops/action-gh-release@v1
-        with:
-          draft: true
-          prerelease: false
-          files: |
-            release/*
+      - name: Upload Release Assets
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # For each file in release directory
+          for file in release/*; do
+            echo "Uploading $file to release..."
+            gh release upload ${{ needs.release-please.outputs.tag_name }} "$file" --clobber
+          done

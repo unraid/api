@@ -1,9 +1,24 @@
 {
+    "$schema": "https://raw.githubusercontent.com/googleapis/release-please/main/schemas/config.json",
     "packages": {
-        "api": {},
-        "web": {}
+        "api": {
+            "package-name": "@unraid/api",
+            "release-type": "node"
+        },
+        "web": {
+            "package-name": "@unraid/web",
+            "release-type": "node"
+        },
+        "unraid-ui": {
+            "package-name": "@unraid/ui",
+            "release-type": "node"
+        },
+        "plugin": {
+            "package-name": "@unraid/connect-plugin",
+            "release-type": "node"
+        }
     },
     "separate-pull-requests": false,
     "include-component-in-tag": false,
-    "skip-github-release": true
+    "draft": true
 }
