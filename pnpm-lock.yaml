@@ -75,8 +75,8 @@ importers:
         specifier: ^7.0.1
         version: 7.0.1
       '@unraid/libvirt':
-        specifier: ^1.1.1
-        version: 1.1.1
+        specifier: ^1.1.2
+        version: 1.1.2
       accesscontrol:
         specifier: ^2.2.1
         version: 2.2.1
@@ -3700,8 +3700,8 @@ packages:
     engines: {node: '>=18'}
     hasBin: true
 
-  '@unraid/libvirt@1.1.1':
-    resolution: {integrity: sha512-V/HtkNo6c33CyyLu7BvUHhfbynAUDYaVgQ7e3WTkkKXIEPYU1ytYNH0aHlLEBNo0DGPkzhG2y/MDQyFA3xq2ew==}
+  '@unraid/libvirt@1.1.2':
+    resolution: {integrity: sha512-LfCLkxZg6NcNxccoZ4A17/Kj4cCk+NGKdAMlubRtzONhaB/1UhIEXBB8a010qMsgZeC5aFC/0S9WaSq2rN1HAA==}
     engines: {node: '>=14'}
     cpu: [x64, arm64]
     os: [linux, darwin]
@@ -14896,7 +14896,7 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  '@unraid/libvirt@1.1.1':
+  '@unraid/libvirt@1.1.2':
     dependencies:
       bindings: 1.5.0
       node-addon-api: 8.3.0
