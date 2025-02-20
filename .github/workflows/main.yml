@@ -12,6 +12,8 @@ concurrency:
 
 jobs:
   release-please:
+    # Only run release-please on pushes to main
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     permissions:
       contents: write
