@@ -111,10 +111,9 @@ sha256check() {
     fi
   fi
 }
-      
+]]>
 sha256check "&source;.txz" "&SHA256;"
 exit 0
-]]>
     </INLINE>
   </FILE>
   <FILE Name="/boot/config/plugins/dynamix.my.servers/&NODEJS_FILENAME;">
