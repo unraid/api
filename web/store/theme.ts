@@ -46,8 +46,8 @@ export const defaultColors: Record<string, ThemeVariables> = {
     '--header-text-primary': '#1c1c1c',
     '--header-text-secondary': '#999999',
     '--header-background-color': '#f2f2f2',
-    '--color-customgradient-start': 'rgba(0, 0, 0, 0)',
-    '--color-customgradient-end': 'var(--header-background-color)',
+    '--gradient-start': 'rgba(0, 0, 0, 0)',
+    '--gradient-end': 'var(--header-background-color)',
   },
   light: {
     '--background': '0 0% 100%',
@@ -73,8 +73,8 @@ export const defaultColors: Record<string, ThemeVariables> = {
     '--header-text-primary': '#f2f2f2',
     '--header-text-secondary': '#999999',
     '--header-background-color': '#1c1b1b',
-    '--color-customgradient-start': 'rgba(0, 0, 0, 0)',
-    '--color-customgradient-end': 'var(--header-background-color)',
+    '--gradient-start': 'rgba(0, 0, 0, 0)',
+    '--gradient-end': 'var(--header-background-color)',
   },
 } as const;
 
@@ -133,10 +133,8 @@ export const useThemeStore = defineStore('theme', () => {
     if (!theme.value?.banner || !theme.value?.bannerGradient) {
       return undefined;
     }
-    const start = theme.value?.bgColor ? 'var(--color-customgradient-start)' : 'rgba(0, 0, 0, 0)';
-    const end = theme.value?.bgColor
-      ? 'var(--color-customgradient-end)'
-      : 'var(--header-background-color)';
+    const start = theme.value?.bgColor ? 'var(--gradient-start)' : 'rgba(0, 0, 0, 0)';
+    const end = theme.value?.bgColor ? 'var(--gradient-end)' : 'var(--header-background-color)';
     return `background-image: linear-gradient(90deg, ${start} 0, ${end} 30%);`;
   });
   // Actions
@@ -162,10 +160,10 @@ export const useThemeStore = defineStore('theme', () => {
     if (theme.value?.banner && theme.value?.bannerGradient) {
       const start = theme.value?.bgColor
         ? hexToRgba(theme.value.bgColor, 0)
-        : customColorVariables[selectedMode]['--color-customgradient-start'];
+        : customColorVariables[selectedMode]['--gradient-start'];
       const end = theme.value?.bgColor
         ? hexToRgba(theme.value.bgColor, 0.7)
-        : customColorVariables[selectedMode]['--color-customgradient-end'];
+        : customColorVariables[selectedMode]['--gradient-end'];
       body.style.setProperty('--banner-gradient', `linear-gradient(90deg, ${start} 0, ${end} 30%)`);
     } else {
       body.style.removeProperty('--banner-gradient');
@@ -190,8 +188,8 @@ export const useThemeStore = defineStore('theme', () => {
     }
     if (theme.value?.bgColor) {
       body.style.setProperty('--header-background-color', theme.value.bgColor);
-      body.style.setProperty('--color-customgradient-start', hexToRgba(theme.value.bgColor, 0));
-      body.style.setProperty('--color-customgradient-end', hexToRgba(theme.value.bgColor, 0.7));
+      body.style.setProperty('--gradient-start', hexToRgba(theme.value.bgColor, 0));
+      body.style.setProperty('--gradient-end', hexToRgba(theme.value.bgColor, 0.7));
     } else {
       body.style.setProperty(
         '--header-background-color',
