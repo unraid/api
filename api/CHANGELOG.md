@@ -2,6 +2,49 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [4.1.0](https://github.com/unraid/api/compare/v4.0.1...v4.1.0) (2025-02-20)
+
+
+### Features
+
+* add category.json ([c9e87e2](https://github.com/unraid/api/commit/c9e87e2e5b47a8801b7865ed586c803d0b470915))
+* add developer docs ([#1128](https://github.com/unraid/api/issues/1128)) ([bb2e340](https://github.com/unraid/api/commit/bb2e340b68268d5121db650b27e8b2580c7966bb))
+* add unraid-ui documentation ([#1142](https://github.com/unraid/api/issues/1142)) ([c557806](https://github.com/unraid/api/commit/c55780680ae905558b79dfefa91b116aef22b105))
+* attempt to resolve performance issues with rm earlier in build … ([#1152](https://github.com/unraid/api/issues/1152)) ([2a1aa95](https://github.com/unraid/api/commit/2a1aa95bd62ebfe42b62b8e7105c7a92b00cfca9))
+* auto-docusaurus-prs ([#1127](https://github.com/unraid/api/issues/1127)) ([1147e76](https://github.com/unraid/api/commit/1147e762ae2fed6dea198fa38d6bcc514a1e66fb))
+* bug report template ([f1ee8b2](https://github.com/unraid/api/commit/f1ee8b27b11fa969d0e6891590e44047c76eedb5))
+* contributing guide ([c912476](https://github.com/unraid/api/commit/c912476b431750834c64bdec80a61fda23e6c490))
+* convert to pnpm monorepo ([#1137](https://github.com/unraid/api/issues/1137)) ([8d89f8b](https://github.com/unraid/api/commit/8d89f8b20d6f3983d4e85b33827a857aa862db37))
+* feature request template ([72a042c](https://github.com/unraid/api/commit/72a042c4fab295cf561807102c9eb9a78273bd83))
+* fix docusaurus build + update snapshot ([23b27bd](https://github.com/unraid/api/commit/23b27bd63ea99f4137538eab40501daa67d7e3f5))
+* public index ([f0641ea](https://github.com/unraid/api/commit/f0641ea7ca0919884dc3b8642c2e6694398e3246))
+* reorder index ([858553f](https://github.com/unraid/api/commit/858553f0debb6424ae0614640b82a050c33f175a))
+* simplify docs ([d428030](https://github.com/unraid/api/commit/d428030b806f55b62421559d434fc723786b03ad))
+* upgrade workflow and auto-assign reviewers ([58a419e](https://github.com/unraid/api/commit/58a419ed36926d121e405a3de37bcb39f26f50b1))
+* **web:** improve notification count syncing ([#1148](https://github.com/unraid/api/issues/1148)) ([af2057c](https://github.com/unraid/api/commit/af2057c643640270e3e152ff8e08c3045e622437))
+* work intent ([feee4be](https://github.com/unraid/api/commit/feee4bebfe97620c73e6a6093065f22ea26ee8b9))
+* work intent process ([b04a97a](https://github.com/unraid/api/commit/b04a97a493f06c450949c674629e8a787164464b))
+
+
+### Bug Fixes
+
+* **api:** change log output location for diagnostic compatibility ([#1130](https://github.com/unraid/api/issues/1130)) ([cba1551](https://github.com/unraid/api/commit/cba155138379d47bc3151c7c27d745ba6a345d83))
+* **api:** logrotate modification & permissions ([#1145](https://github.com/unraid/api/issues/1145)) ([5209df2](https://github.com/unraid/api/commit/5209df2776e1a985e82bedc655fe28acf1fd0bde))
+* connect breaks default css of header ([#1155](https://github.com/unraid/api/issues/1155)) ([4ac9aa3](https://github.com/unraid/api/commit/4ac9aa3e409d0d89f2be61bfbafb8d7b5a5b3b00))
+* create PR ignored ([bdfefa8](https://github.com/unraid/api/commit/bdfefa808f5f1d85ff957a78a624edcef3afb47a))
+* **deps:** update dependency dockerode to v4 ([#830](https://github.com/unraid/api/issues/830)) ([c331ecd](https://github.com/unraid/api/commit/c331ecd50c4910fd6c35e5ad92b3f676d552febc))
+* docs creation workflow ([86134c6](https://github.com/unraid/api/commit/86134c60856c130dab9f96b718d9afa5bbab1e50))
+* make public not a part of folder structure in PR ([099a88e](https://github.com/unraid/api/commit/099a88eb4970da48e57dafbc3807e16f1987d7fc))
+* PHP Warning in state.php ([#1126](https://github.com/unraid/api/issues/1126)) ([c154b4e](https://github.com/unraid/api/commit/c154b4e0ad2d0627b1541a7f9ee5e55235d4dd5e))
+* revert dockerode upgrade ([#1140](https://github.com/unraid/api/issues/1140)) ([a74a379](https://github.com/unraid/api/commit/a74a379a93fd15a315e31191de1bf69c5879f8a6)), closes [unraid/api#830](https://github.com/unraid/api/issues/830)
+* shorten work intent form ([95fe671](https://github.com/unraid/api/commit/95fe671717ab856518f5b4893dfbcbade0d0f2ed))
+* simplify api setup index ([701b1fb](https://github.com/unraid/api/commit/701b1fbd9096c9675475062eaf32a2cbfb0567b9))
+* simplify upcoming features ([8af79b2](https://github.com/unraid/api/commit/8af79b27501b42e1c1f7697756a56a9001000d8f))
+* storybook resolution issue ([#1153](https://github.com/unraid/api/issues/1153)) ([52c70b9](https://github.com/unraid/api/commit/52c70b9d85469008894d44788429ba298b082ac7))
+* upload to correct tag directory on build ([c5fe723](https://github.com/unraid/api/commit/c5fe723a0abee0d0fc494a5b512c995001ae0615))
+* **web:** broken modals ([aebf339](https://github.com/unraid/api/commit/aebf3392595d45c84a84668f461c632a2d62e7dd))
+* **web:** name of toaster component ([e093242](https://github.com/unraid/api/commit/e093242d20ddd72567396f4a53238250f2199a64))
+
 ### [4.0.1](https://github.com/unraid/api/compare/v4.0.0...v4.0.1) (2025-02-06)
 
 ## [4.0.0](https://github.com/unraid/api/compare/v3.11.0...v4.0.0) (2025-02-06)
