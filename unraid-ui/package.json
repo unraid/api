@@ -47,6 +47,7 @@
     "@storybook/addon-essentials": "^8.4.7",
     "@storybook/addon-interactions": "^8.4.7",
     "@storybook/addon-links": "^8.4.7",
+    "@storybook/builder-vite": "^8.5.8",
     "@storybook/vue3-vite": "^8.4.7",
     "@tailwindcss/typography": "^0.5.15",
     "@testing-library/vue": "^8.0.0",

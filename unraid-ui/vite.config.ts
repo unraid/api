@@ -1,9 +1,9 @@
 /// <reference types="vitest" />
-import { defineConfig } from 'vite';
 import { resolve } from 'path';
 import vue from '@vitejs/plugin-vue';
-import dts from 'vite-plugin-dts';
 import tailwindcss from 'tailwindcss';
+import { defineConfig } from 'vite';
+import dts from 'vite-plugin-dts';
 
 export default function createConfig() {
   return defineConfig({
@@ -29,7 +29,11 @@ export default function createConfig() {
     build: {
       cssCodeSplit: false,
       rollupOptions: {
-        external: ['vue', 'tailwindcss'],
+        external: [
+          'vue',
+          'tailwindcss',
+          ...(process.env.npm_lifecycle_script?.includes('storybook') ? [/^storybook\//] : []),
+        ],
         input: {
           index: resolve(__dirname, 'src/index.ts'),
           tailwind: resolve(__dirname, 'tailwind.config.ts'),
