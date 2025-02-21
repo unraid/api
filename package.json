@@ -1,5 +1,5 @@
 {
-  "name": "unraid-monorepo",
+  "name": "unraid-api-monorepo",
   "private": true,
   "version": "4.1.2",
   "scripts": {
