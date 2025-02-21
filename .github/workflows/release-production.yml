@@ -63,12 +63,13 @@ jobs:
             const parser = new xml2js.Parser();
             parser.parseStringPromise(pluginContent).then((result) => {
               console.log('Plugin file is valid XML');
+
+              // Write back to file
+              fs.writeFileSync(pluginPath, pluginContent);
             }).catch((err) => {
               console.error('Plugin file is not valid XML');
               process.exit(1);
             });
-            // Write back to file
-            fs.writeFileSync(pluginPath, pluginContent);
 
       - name: Upload All Release Files to DO Spaces
         uses: BetaHuhn/do-spaces-action@v2
