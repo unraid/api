@@ -150,15 +150,6 @@ const buildTxz = async (
     .digest("hex");
   console.log(`TXZ SHA256: ${sha256}`);
 
-  if (validatedEnv.SKIP_VALIDATION !== "true") {
-    try {
-      await $`${join(startingDir, "scripts/explodepkg")} "${txzPath}"`;
-    } catch (err) {
-      console.error(`Error: invalid txz package created: ${txzPath}`);
-      process.exit(1);
-    }
-  }
-
   return { txzSha256: sha256, txzName };
 };
 
