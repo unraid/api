@@ -19,7 +19,7 @@
     "test": "vitest",
     "test:ui": "vitest --ui",
     "coverage": "vitest run --coverage",
-    "clean": "pnpm run clean:build && pnpm run clean:deps",
+    "clean": "pnpm run clean:build",
     "clean:build": "pnpx rimraf dist",
     "clean:deps": "pnpx rimraf node_modules",
     "prebuild": "npm run clean",
