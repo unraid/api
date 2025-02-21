@@ -200,6 +200,12 @@ export const useThemeStore = defineStore('theme', () => {
     activeColorVariables.value = customTheme;
   };
 
+  /**
+   * Creates a string of CSS rules preserving existing rules that are not defined in the theme variables
+   * @param themeVariables - The theme variables to apply
+   * @param body - The body element to apply the CSS to
+   * @returns A string of CSS rules
+   */
   const createCssText = (themeVariables: ThemeVariables, body: HTMLBodyElement) => {
     const existingStyles = body.style.cssText
       .split(';')
