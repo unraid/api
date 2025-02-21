@@ -2,7 +2,13 @@ name: Publish Release to Digital Ocean
 
 on:
   release:
-    types: [published, edited]
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Tag to update'
+        required: true
+
 
 jobs:
   publish-to-digital-ocean:
@@ -16,7 +22,7 @@ jobs:
           regex: true
           token: ${{ secrets.GITHUB_TOKEN }}
           target: "./"
-          version: "latest"
+          version: ${{ inputs.version || 'latest' }}
 
       - uses: cardinalby/git-get-release-action@v1
         id: release-info
