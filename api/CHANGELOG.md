@@ -1,4 +1,4 @@
-# Changelogs
+# Changelog
 
 ### [4.1.1](https://github.com/unraid/api/compare/v4.1.0...v4.1.1) (2025-02-20)
 
