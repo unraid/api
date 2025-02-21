@@ -55,7 +55,7 @@ jobs:
             // Replace the changelog section using CDATA
             pluginContent = pluginContent.replace(
               /<CHANGES>[\s\S]*?<\/CHANGES>/,
-              `<CHANGES>\n<![CDATA[\n${releaseNotes}\n]]>\n</CHANGES>`
+              `<CHANGES>\n${releaseNotes}\n</CHANGES>`
             );
             
             // Validate the plugin file is valid XML
