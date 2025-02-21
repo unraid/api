@@ -73,7 +73,7 @@ jobs:
               // Write back to file
               fs.writeFileSync(pluginPath, pluginContent);
             }).catch((err) => {
-              console.error('Plugin file is not valid XML');
+              console.error('Plugin file is not valid XML', err);
               process.exit(1);
             });
 
