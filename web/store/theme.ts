@@ -1,12 +1,6 @@
 import { createPinia, defineStore, setActivePinia } from 'pinia';
 
-
-
 import hexToRgba from 'hex-to-rgba';
-
-
-
-
 
 /**
  * @see https://stackoverflow.com/questions/73476371/using-pinia-with-vue-js-web-components
@@ -167,10 +161,8 @@ export const useThemeStore = defineStore('theme', () => {
 
   const setCssVars = () => {
     const customColorVariables = structuredClone(defaultColors);
-    const body = document.body;
+    const body: HTMLBodyElement = document.body as HTMLBodyElement;
     const selectedTheme = theme.value.name;
-
-    console.log(theme.value);
     // Set banner gradient if enabled
     if (theme.value.banner && theme.value.bannerGradient) {
       const start = theme.value.bgColor
@@ -199,29 +191,32 @@ export const useThemeStore = defineStore('theme', () => {
       customColorVariables[selectedTheme]['--header-gradient-end'] = hexToRgba(theme.value.bgColor, 0.7);
     }
 
-    // Diff the customColorVariables and print the 
-    const diff = Object.entries(customColorVariables[selectedTheme]).filter(
-      ([key, value]) =>
-        value !== defaultColors[selectedTheme][key]
-    );
-    console.log(diff);
-
-    // Apply all other CSS variables
-    Object.entries(customColorVariables[selectedTheme]).forEach(([key, value]) => {
-      if (value) {
-        body.style.setProperty(key, value);
-      } else {
-        body.style.removeProperty(key);
-      }
-    });
-
     if (darkMode.value) {
       document.body.classList.add('dark');
     } else {
       document.body.classList.remove('dark');
     }
 
+    body.style.cssText = createCssText(customColorVariables[selectedTheme], body);
+
     activeColorVariables.value = customColorVariables[selectedTheme];
+  };
+
+  const createCssText = (themeVariables: ThemeVariables, body: HTMLBodyElement) => {
+    const existingStyles = body.style.cssText
+      .split(';')
+      .filter((rule) => rule.trim())
+      .filter((rule) => {
+        // Keep rules that aren't in our theme variables
+        return !Object.keys(themeVariables).some((themeVar) => rule.startsWith(themeVar));
+      });
+
+    const themeStyles = Object.entries(themeVariables).reduce((acc, [key, value]) => {
+      if (value) acc.push(`${key}: ${value}`);
+      return acc;
+    }, [] as string[]);
+
+    return [...existingStyles, ...themeStyles].join(';');
   };
 
   watch(theme, () => {
