@@ -4,7 +4,7 @@
 default: list-commands
 
 list-commands:
-    @just --list --justfile {{justfile()}} --list-heading $'\nMonorepo recipes:\n'
+    @just --list --justfile {{justfile()}} --list-heading $'\nMonorepo recipes:\n'  
 
 # Prepares the repo for development
 setup:
@@ -12,7 +12,9 @@ setup:
     @just ignore .vscode/settings.json api/.vscode/settings.json web/.vscode/settings.json
     # ignore api local-state files
     @just ignore api/dev/states/myservers.cfg api/dev/Unraid.net/myservers.cfg
-    pnpm install
+
+    just api/setup
+    just web/setup
 
 # restore notification files under api/dev
 restore-notifications:
