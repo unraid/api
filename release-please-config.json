@@ -1,14 +1,17 @@
 {
-    "$schema": "https://raw.githubusercontent.com/googleapis/release-please/main/schemas/config.json",
-    "packages": {
-        ".": {
-            "release-type": "node",
-            "extra-files": [
-                "*/package.json"
-            ]
-        }
-    },
-    "always-update": true,
-    "include-component-in-tag": false,
-    "draft": false
+  "$schema": "https://raw.githubusercontent.com/googleapis/release-please/main/schemas/config.json",
+  "packages": {
+    ".": {
+      "release-type": "node",
+      "extra-files": [
+        "api/package.json",
+        "plugin/package.json",
+        "unraid-ui/package.json",
+        "web/package.json"
+      ]
+    }
+  },
+  "always-update": true,
+  "include-component-in-tag": false,
+  "draft": false
 }
