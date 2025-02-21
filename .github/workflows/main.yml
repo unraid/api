@@ -457,10 +457,9 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-
-          release_id=$(gh release list --repo ${{ github.repository }} --json id --jq '.[] | select(.draft == true) | .id' | head -n 1)
+          release_name=$(gh release list --repo ${{ github.repository }} --json name --jq '.[] | select(.draft == true) | .name' | head -n 1)
           # For each file in release directory
           for file in release/*; do
             echo "Uploading $file to release..."
-            gh release upload ${release_id} "$file" --clobber
+            gh release upload "${release_name}" "$file" --clobber
           done
