@@ -2,7 +2,7 @@ name: Publish Release to Digital Ocean
 
 on:
   release:
-    types: [published]
+    types: [published, edited]
 
 jobs:
   publish-to-digital-ocean:
@@ -25,14 +25,50 @@ jobs:
         with:
           latest: true
           prerelease: false
-      - name: Get Release Changelog
-        run: |
-          notes=$(cat << EOF
-          ${{ steps.release-info.outputs.body }}
-          EOF
-          )
-          escapedNotes=$(sed -e 's/[&\\/]/\\&/g; s/$/\\/' -e '$s/\\$//' <<<"$notes")
-          sed -i -z -E "s/<CHANGES>(.*)<\/CHANGES>/<CHANGES>\n${escapedNotes}\n<\/CHANGES>/g" "dynamix.unraid.net.plg"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+      - run: npm install html-sloppy-escaper xml2js
+      - name: Update Plugin Changelog
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const { escape as escapeHtml } = require('html-sloppy-escaper');
+            const releaseNotes = escapeHtml(`${{ steps.release-info.outputs.body }}`);
+            
+            if (!releaseNotes) {
+              console.error('No release notes found');
+              process.exit(1);
+            }
+
+            // Read the plugin file
+            const pluginPath = 'dynamix.unraid.net.plg';
+
+            if (!fs.existsSync(pluginPath)) {
+              console.error('Plugin file not found:', pluginPath);
+              process.exit(1);
+            }
+            
+            let pluginContent = fs.readFileSync(pluginPath, 'utf8');
+            
+            // Replace the changelog section using CDATA
+            pluginContent = pluginContent.replace(
+              /<CHANGES>[\s\S]*?<\/CHANGES>/,
+              `<CHANGES>\n<![CDATA[\n${releaseNotes}\n]]>\n</CHANGES>`
+            );
+            
+            // Validate the plugin file is valid XML
+            const xml2js = require('xml2js');
+            const parser = new xml2js.Parser();
+            parser.parseStringPromise(pluginContent).then((result) => {
+              console.log('Plugin file is valid XML');
+            }).catch((err) => {
+              console.error('Plugin file is not valid XML');
+              process.exit(1);
+            });
+            // Write back to file
+            fs.writeFileSync(pluginPath, pluginContent);
 
       - name: Upload All Release Files to DO Spaces
         uses: BetaHuhn/do-spaces-action@v2
