@@ -160,35 +160,34 @@ export const useThemeStore = defineStore('theme', () => {
   };
 
   const setCssVars = () => {
-    const customColorVariables = structuredClone(defaultColors);
     const body: HTMLBodyElement = document.body as HTMLBodyElement;
     const selectedTheme = theme.value.name;
+    const customTheme = structuredClone(defaultColors[selectedTheme]);
     // Set banner gradient if enabled
     if (theme.value.banner && theme.value.bannerGradient) {
       const start = theme.value.bgColor
         ? hexToRgba(theme.value.bgColor, 0)
-        : customColorVariables[selectedTheme]['--header-gradient-start'];
+        : customTheme['--header-gradient-start'];
       const end = theme.value.bgColor
         ? hexToRgba(theme.value.bgColor, 0.7)
-        : customColorVariables[selectedTheme]['--header-gradient-end'];
+        : customTheme['--header-gradient-end'];
 
       // set the banner gradient
-      customColorVariables[selectedTheme]['--banner-gradient'] =
-        `linear-gradient(90deg, ${start} 0, ${end} 30%)`;
+      customTheme['--banner-gradient'] = `linear-gradient(90deg, ${start} 0, ${end} 30%)`;
     }
 
     // overwrite with hex colors set in webGUI @ /Settings/DisplaySettings
     if (theme.value.textColor) {
-      customColorVariables[selectedTheme]['--header-text-primary'] = theme.value.textColor;
+      customTheme['--header-text-primary'] = theme.value.textColor;
     }
     if (theme.value.metaColor) {
-      customColorVariables[selectedTheme]['--header-text-secondary'] = theme.value.metaColor;
+      customTheme['--header-text-secondary'] = theme.value.metaColor;
     }
 
     if (theme.value.bgColor) {
-      customColorVariables[selectedTheme]['--header-background-color'] = theme.value.bgColor;
-      customColorVariables[selectedTheme]['--header-gradient-start'] = hexToRgba(theme.value.bgColor, 0);
-      customColorVariables[selectedTheme]['--header-gradient-end'] = hexToRgba(theme.value.bgColor, 0.7);
+      customTheme['--header-background-color'] = theme.value.bgColor;
+      customTheme['--header-gradient-start'] = hexToRgba(theme.value.bgColor, 0);
+      customTheme['--header-gradient-end'] = hexToRgba(theme.value.bgColor, 0.7);
     }
 
     if (darkMode.value) {
@@ -197,9 +196,8 @@ export const useThemeStore = defineStore('theme', () => {
       document.body.classList.remove('dark');
     }
 
-    body.style.cssText = createCssText(customColorVariables[selectedTheme], body);
-
-    activeColorVariables.value = customColorVariables[selectedTheme];
+    body.style.cssText = createCssText(customTheme, body);
+    activeColorVariables.value = customTheme;
   };
 
   const createCssText = (themeVariables: ThemeVariables, body: HTMLBodyElement) => {
