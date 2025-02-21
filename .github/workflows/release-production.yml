@@ -1,11 +1,11 @@
-name: Update Release Changelog
+name: Publish Release to Digital Ocean
 
 on:
   release:
-    types: [edited]
+    types: [published]
 
 jobs:
-  update-release-changelog:
+  publish-to-digital-ocean:
     runs-on: ubuntu-latest
 
     steps:
@@ -18,19 +18,6 @@ jobs:
           target: "./"
           version: "latest"
 
-      - name: Verify Required Files Exist
-        run: |
-          if [ ! -f "dynamix.unraid.net.plg" ]; then
-            echo "Error: dynamix.unraid.net.plg not found"
-            exit 1
-          fi
-          
-          # Check for at least one .txz file
-          if [ -z "$(find . -name '*.txz')" ]; then
-            echo "Error: No .txz files found"
-            exit 1
-          fi
-
       - uses: cardinalby/git-get-release-action@v1
         id: release-info
         env:
@@ -38,7 +25,6 @@ jobs:
         with:
           latest: true
           prerelease: false
-
       - name: Get Release Changelog
         run: |
           notes=$(cat << EOF

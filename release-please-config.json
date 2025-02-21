@@ -1,17 +1,27 @@
 {
-  "$schema": "https://raw.githubusercontent.com/googleapis/release-please/main/schemas/config.json",
-  "packages": {
-    ".": {
-      "release-type": "node",
-      "extra-files": [
-        "api/package.json",
-        "plugin/package.json",
-        "unraid-ui/package.json",
-        "web/package.json"
-      ]
-    }
-  },
-  "always-update": true,
-  "include-component-in-tag": false,
-  "draft": false
+    "$schema": "https://raw.githubusercontent.com/googleapis/release-please/main/schemas/config.json",
+    "packages": {
+        "api": {
+            "package-name": "@unraid/api",
+            "release-type": "node"
+        },
+        "web": {
+            "package-name": "@unraid/web",
+            "release-type": "node",
+            "skip-github-release": true
+        },
+        "unraid-ui": {
+            "package-name": "@unraid/ui",
+            "release-type": "node",
+            "skip-github-release": true
+        },
+        "plugin": {
+            "package-name": "@unraid/connect-plugin",
+            "release-type": "node",
+            "skip-github-release": true
+        }
+    },
+    "separate-pull-requests": false,
+    "include-component-in-tag": false,
+    "draft": true
 }
