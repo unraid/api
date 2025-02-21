@@ -28,6 +28,21 @@ interface ThemeVariables {
   [key: string]: string | null;
 }
 
+/**
+ * Defines legacy colors that are kept for backwards compatibility
+ *
+ * Allows theme-engine to be updated without breaking existing themes
+ */
+const legacyColors = {
+  '--color-alpha': 'var(--header-background-color)',
+  '--color-beta': 'var(--header-text-primary)',
+  '--color-gamma': 'var(--header-text-secondary)',
+  '--color-gamma-opaque': 'rgba(153, 153, 153, .5)',
+  '--color-customgradient-start': 'rgba(242, 242, 242, .0)',
+  '--color-customgradient-end': 'rgba(242, 242, 242, .85)',
+  '--shadow-beta': '0 25px 50px -12px rgba(242, 242, 242, .15)',
+};
+
 const defaultLight = {
   '--background': '0 0% 3.9%',
   '--foreground': '0 0% 98%',
@@ -54,6 +69,7 @@ const defaultLight = {
   '--header-gradient-start': 'rgba(0, 0, 0, 0)',
   '--header-gradient-end': 'var(--header-background-color)',
   '--banner-gradient': null,
+  ...legacyColors,
 } as const;
 
 const defaultDark = {
@@ -83,6 +99,7 @@ const defaultDark = {
   '--header-gradient-start': 'rgba(0, 0, 0, 0)',
   '--header-gradient-end': 'var(--header-background-color)',
   '--banner-gradient': null,
+  ...legacyColors,
 } as const;
 
 /**
