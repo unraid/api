@@ -457,7 +457,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          release_name=$(gh release list --repo ${{ github.repository }} --json name --jq '.[] | select(.draft == true) | .name' | head -n 1)
+          release_name=$(gh release list --repo ${{ github.repository }} --json name,isDraft --jq '.[] | select(.isDraft == true) | .name' | head -n 1)
           # For each file in release directory
           for file in release/*; do
             echo "Uploading $file to release..."
