@@ -23,6 +23,7 @@ jobs:
         uses: googleapis/release-please-action@v4
     outputs:
       releases_created: ${{ steps.release.outputs.releases_created }}
+      pr: ${{ steps.release.outputs.pr }}
       tag_name: ${{ steps.release.outputs.tag_name }}
   test-api:
     defaults:
@@ -433,7 +434,7 @@ jobs:
           SOURCE_DIR: staging-release
           DEST_DIR: unraid-api
 
-  create-draft-release:
+  publish-production-release:
     # Only run if release-please created a release
     if: needs.release-please.outputs.releases_created == 'true'
     runs-on: ubuntu-latest
@@ -453,13 +454,43 @@ jobs:
           mv plugins/production/dynamix.unraid.net.plg release/
           mv archive/*.txz release/
 
-      - name: Upload Release Assets
+      - name: Update Plugin with Changelog
+        run: |
+          # Parse PR JSON to get body
+          pr_json='${{ needs.release-please.outputs.pr }}'
+          changelog=$(echo "$pr_json" | jq -r '.body')
+          echo "Changelog: $changelog"
+          escapedChangelog=$(sed -e 's/[&\\/]/\\&/g; s/$/\\/' -e '$s/\\$//' <<<"$changelog")
+          sed -i -z -E "s/<CHANGES>(.*)<\/CHANGES>/<CHANGES>\n${escapedChangelog}\n<\/CHANGES>/g" "release/dynamix.unraid.net.plg"
+          echo "CHANGELOG=${escapedChangelog}" >> $GITHUB_ENV
+
+      - name: Upload to Digital Ocean Spaces
+        uses: BetaHuhn/do-spaces-action@v2
+        with:
+          access_key: ${{ secrets.DO_ACCESS_KEY }}
+          secret_key: ${{ secrets.DO_SECRET_KEY }}
+          space_name: ${{ secrets.DO_SPACE_NAME }}
+          space_region: ${{ secrets.DO_SPACE_REGION }}
+          source: "release"
+          out_dir: unraid-api
+
+      - name: Upload to Cloudflare
+        uses: jakejarvis/s3-sync-action@v0.5.1
+        env:
+          AWS_S3_ENDPOINT: ${{ secrets.CF_ENDPOINT }}
+          AWS_S3_BUCKET: ${{ secrets.CF_BUCKET }}
+          AWS_ACCESS_KEY_ID: ${{ secrets.CF_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.CF_SECRET_ACCESS_KEY }}
+          AWS_REGION: 'auto'
+          SOURCE_DIR: "release"
+          DEST_DIR: unraid-api
+
+      - name: Upload Release Assets to Github
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          release_name=$(gh release list --repo ${{ github.repository }} --json name,isDraft --jq '.[] | select(.isDraft == true) | .name' | head -n 1)
-          # For each file in release directory
           for file in release/*; do
-            echo "Uploading $file to release..."
-            gh release upload "${release_name}" "$file" --clobber
+            gh release upload "${{ needs.release-please.outputs.tag_name }}" "$file" --clobber
           done
+
+          gh release edit "${{ needs.release-please.outputs.tag_name }}" --body "$CHANGELOG"
