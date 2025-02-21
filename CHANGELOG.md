@@ -1,5 +1,16 @@
 # Changelog
 
+## [4.1.3](https://github.com/unraid/api/compare/v4.1.2...v4.1.3) (2025-02-21)
+
+
+### Bug Fixes
+
+* chown correctly ([#1185](https://github.com/unraid/api/issues/1185)) ([11b0441](https://github.com/unraid/api/commit/11b04417371ba77eddc12699db8575988d6deafc))
+* create releases as drafts ([0adba3a](https://github.com/unraid/api/commit/0adba3ae3566ad84626a9ab1cf7d38edb24de69f))
+* **deps:** update all non-major dependencies ([#1168](https://github.com/unraid/api/issues/1168)) ([443b608](https://github.com/unraid/api/commit/443b608163cdb64775d6758b8207cbe745f892f4))
+* revert config ([c17db6d](https://github.com/unraid/api/commit/c17db6d7648c15f71cd2195530cd0c2d051db3f6))
+* small modal window ([#1183](https://github.com/unraid/api/issues/1183)) ([2183965](https://github.com/unraid/api/commit/2183965757ded27a5a01a6e27c4b783c9434af2e))
+
 ## [4.1.2](https://github.com/unraid/api/compare/v4.1.3...v4.1.2) (2025-02-21)
 
 
