@@ -1,1 +1,3 @@
-!.env.staging
+# Env vars here shouldn't be secret
+!.env.*
+!.env

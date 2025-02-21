@@ -1,15 +1,19 @@
 {
   "name": "unraid-api-monorepo",
-  "private": true,
   "version": "4.1.2",
+  "private": true,
   "scripts": {
     "build": "pnpm -r build",
+    "deps:check": "manypkg check",
     "dev": "pnpm -r dev",
-    "test": "pnpm -r test",
     "lint": "pnpm -r lint",
     "lint:fix": "pnpm -r lint:fix",
-    "check": "manypkg check"
+    "test": "pnpm -r test"
   },
+  "dependencies": {
+    "@manypkg/cli": "^0.23.0"
+  },
+  "packageManager": "pnpm@10.4.1",
   "pnpm": {
     "peerDependencyRules": {
       "allowAny": [
@@ -28,9 +32,5 @@
       "ssh2",
       "vue-demi"
     ]
-  },
-  "dependencies": {
-    "@manypkg/cli": "^0.23.0"
-  },
-  "packageManager": "pnpm@10.4.1"
+  }
 }
