@@ -22,7 +22,7 @@ jobs:
           regex: true
           token: ${{ secrets.GITHUB_TOKEN }}
           target: "./"
-          version: ${{ inputs.version || 'latest' }}
+          version: ${{ inputs.version && format('tags/{0}', inputs.version) || 'latest' }}
 
       - uses: cardinalby/git-get-release-action@v1
         id: release-info
@@ -34,13 +34,13 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '20.x'
-      - run: npm install html-sloppy-escaper xml2js
+      - run: npm install html-sloppy-escaper@2 xml2js
       - name: Update Plugin Changelog
         uses: actions/github-script@v7
         with:
           script: |
             const fs = require('fs');
-            const { escape as escapeHtml } = require('html-sloppy-escaper');
+            const { escape } = require('html-sloppy-escaper');
             const releaseNotes = escapeHtml(`${{ steps.release-info.outputs.body }}`);
             
             if (!releaseNotes) {
