@@ -349,6 +349,7 @@ echo "⚠️ Do not close this window yet"
 echo
 
 if [ -e /etc/rc.d/rc.unraid-api ]; then
+  touch /tmp/restore-files-dynamix-unraid-net
   # stop flash backup
   /etc/rc.d/rc.flash_backup stop &>/dev/null
   # stop the api gracefully
@@ -386,7 +387,7 @@ fi
     <![CDATA[
     echo "Restoring Files"
 
-if [ -e /etc/rc.d/rc.unraid-api ]; then
+if [ -f /tmp/restore-files-dynamix-unraid-net ]; then
   # restore stock files
   FILES_TO_RESTORE=(
     "/usr/local/emhttp/plugins/dynamix/DisplaySettings.page"
@@ -455,6 +456,7 @@ if [ -e /etc/rc.d/rc.unraid-api ]; then
   sed -i '/scripts\/makestate/d' /etc/rc.d/rc.nginx
   # clean up extra origin for robots.txt
   sed -i '#robots.txt any origin/d' /etc/rc.d/rc.nginx
+  rm /tmp/restore-files-dynamix-unraid-net
 fi
 exit 0
 ]]>
