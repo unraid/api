@@ -34,14 +34,14 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '20.x'
-      - run: npm install html-sloppy-escaper@2 xml2js
+      - run: npm install html-escaper@2 xml2js
       - name: Update Plugin Changelog
         uses: actions/github-script@v7
         with:
           script: |
             const fs = require('fs');
-            const { escape } = require('html-sloppy-escaper');
-            const releaseNotes = escapeHtml(`${{ steps.release-info.outputs.body }}`);
+            const { escape } = require('html-escaper');
+            const releaseNotes = escape(`${{ steps.release-info.outputs.body }}`);
             
             if (!releaseNotes) {
               console.error('No release notes found');
