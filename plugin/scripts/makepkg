@@ -379,8 +379,8 @@ else
   echo
 fi
 if [ "$CHOWN" = "y" ]; then
-  find . -type d -exec chmod -v 755 {} \;
-  find . -type d -exec chown -v 0:0 {} \;
+  find . -type d -exec sudo chmod -v 755 {} \;
+  find . -type d -exec sudo chown -v 0:0 {} \;
 fi
 
 # Ensure that the 'root' of the package is chmod 755 because
