@@ -1,77 +1,47 @@
 <script lang="ts" setup>
 import { Input, Label, Switch, Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@unraid/ui';
-
-import type { Theme } from '~/store/theme';
-
+import type { Theme } from '~/themes/types';
 import { defaultColors, useThemeStore } from '~/store/theme';
 
 const themeStore = useThemeStore();
 
-const selectedTheme = ref('white');
-
-const setGradient = ref<boolean>(false);
-const setDescription = ref<boolean>(true);
-const setBanner = ref<boolean>(true);
-
-const toggleGradient = (value: boolean) => {
-  setGradient.value = value;
-};
-const toggleDescription = (value: boolean) => {
-  setDescription.value = value;
-};
-const toggleBanner = (value: boolean) => {
-  setBanner.value = value;
-};
-
-const textPrimary = ref<string>('');
-const textSecondary = ref<string>('');
-const bgColor = ref<string>('');
-
-const textPrimaryToSet = computed<string>(() => {
-  if (textPrimary.value) {
-    return textPrimary.value;
-  }
-  return defaultColors[selectedTheme.value]['--header-text-primary']!;
+// Form state
+const form = reactive({
+  selectedTheme: 'white',
+  gradient: false,
+  description: true,
+  banner: true,
+  textPrimary: '',
+  textSecondary: '',
+  bgColor: ''
 });
 
-const textSecondaryToSet = computed<string>(() => {
-  if (textSecondary.value) {
-    return textSecondary.value;
+// Watch for changes and update theme
+watch([form], () => {
+  // Enable gradient if banner is enabled
+  if (form.banner && !form.gradient) {
+    form.gradient = true;
   }
-  return defaultColors[selectedTheme.value]['--header-text-secondary']!;
-});
 
-const bgColorToSet = computed(() => {
-  if (bgColor.value) {
-    return bgColor.value;
-  }
-  return defaultColors[selectedTheme.value]['--header-background-color'];
-});
-
-watch([selectedTheme, bgColorToSet, textSecondaryToSet, textPrimaryToSet], (newVal) => {
   const themeToSet: Theme = {
-    banner: setBanner.value,
-    bannerGradient: setGradient.value,
-    descriptionShow: setDescription.value,
-    textColor: textPrimaryToSet.value,
-    metaColor: textSecondaryToSet.value,
-    bgColor: bgColorToSet.value ?? '',
-    name: selectedTheme.value
+    banner: form.banner,
+    bannerGradient: form.gradient,
+    descriptionShow: form.description,
+    textColor: form.textPrimary ?? defaultColors[form.selectedTheme]['--header-text-primary']!,
+    metaColor: form.textSecondary ?? defaultColors[form.selectedTheme]['--header-text-secondary']!,
+    bgColor: form.bgColor ?? defaultColors[form.selectedTheme]['--header-background-color']!,
+    name: form.selectedTheme
   };
-  console.log('New Theme', themeToSet);
   themeStore.setTheme(themeToSet);
 });
-
-const updateTheme = (value: string) => {
-  selectedTheme.value = value;
-};
 </script>
 
 <template>
   <div class="flex flex-col gap-2 border-solid border-2 p-2 border-r-2">
     <h1 class="text-lg">Color Theme Customization</h1>
+    
     <Label for="theme-select">Theme</Label>
-    <Select v-model="selectedTheme" @update:model-value="updateTheme">
+    <Select v-model="form.selectedTheme">
       <SelectTrigger>
         <SelectValue placeholder="Select a theme" />
       </SelectTrigger>
@@ -82,18 +52,24 @@ const updateTheme = (value: string) => {
         <SelectItem value="gray">Gray</SelectItem>
       </SelectContent>
     </Select>
+
     <Label for="primary-text-color">Header Primary Text Color</Label>
-    <Input id="primary-text-color" v-model="textPrimary" />
-    <Label for="primary-text-color">Header Secondary Text Color</Label>
-    <Input id="primary-text-color" v-model="textSecondary" />
-    <Label for="primary-text-color">Header Background Color</Label>
-    <Input id="primary-text-color" v-model="bgColor" />
+    <Input id="primary-text-color" v-model="form.textPrimary" />
+    
+    <Label for="secondary-text-color">Header Secondary Text Color</Label>
+    <Input id="secondary-text-color" v-model="form.textSecondary" />
+    
+    <Label for="background-color">Header Background Color</Label>
+    <Input id="background-color" v-model="form.bgColor" />
+    
     <Label for="gradient">Gradient</Label>
-    <Switch id="gradient" @update:checked="toggleGradient" />
+    <Switch id="gradient" v-model:checked="form.gradient" />
+    
     <Label for="description">Description</Label>
-    <Switch id="description" @update:checked="toggleDescription" />
+    <Switch id="description" v-model:checked="form.description" />
+    
     <Label for="banner">Banner</Label>
-    <Switch id="banner" @update:checked="toggleBanner" />
+    <Switch id="banner" v-model:checked="form.banner" />
   </div>
 </template>
 

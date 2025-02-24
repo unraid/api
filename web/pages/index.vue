@@ -7,10 +7,12 @@ import AES from 'crypto-js/aes';
 import type { SendPayloads } from '~/store/callback';
 
 import SsoButtonCe from '~/components/SsoButton.ce.vue';
+import { useThemeStore } from '~/store/theme';
 
 const serverStore = useDummyServerStore();
 const { serverState } = storeToRefs(serverStore);
 const { registerEntry } = useCustomElements();
+const { theme } = storeToRefs(useThemeStore());
 onBeforeMount(() => {
   registerEntry('UnraidComponents');
 });
@@ -86,7 +88,14 @@ onMounted(() => {
           <ColorSwitcherCe />
           <h2 class="text-xl font-semibold font-mono">Vue Components</h2>
           <h3 class="text-lg font-semibold font-mono">UserProfileCe</h3>
-          <header class="bg-header-background-color py-4 flex flex-row justify-between items-center">
+          <header 
+            class="bg-header-background-color flex flex-row justify-between items-center"
+            :style="{
+              backgroundImage: theme.banner ? `url(https://picsum.photos/1920/200?${Math.round(Math.random() * 100)})` : 'none',
+              backgroundSize: 'cover',
+              backgroundPosition: 'center'
+            }"
+          >
             <div class="inline-flex flex-col gap-4 items-start px-4">
               <a href="https://unraid.net" target="_blank">
                 <BrandLogo class="w-[100px] sm:w-[150px]" />

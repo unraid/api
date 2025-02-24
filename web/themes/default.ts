@@ -1,60 +1,13 @@
-export interface Theme {
-  banner: boolean;
-  bannerGradient: boolean;
-  bgColor: string;
-  descriptionShow: boolean;
-  metaColor: string;
-  name: string;
-  textColor: string;
-}
+import type { ThemeVariables } from "~/themes/types";
 
-type BaseThemeVariables = {
-  '--background': string;
-  '--foreground': string;
-  '--muted': string;
-  '--muted-foreground': string;
-  '--popover': string;
-  '--popover-foreground': string;
-  '--card': string;
-  '--card-foreground': string;
-  '--border': string;
-  '--input': string;
-  '--primary': string;
-  '--primary-foreground': string;
-  '--secondary': string;
-  '--secondary-foreground': string;
-  '--accent': string;
-  '--accent-foreground': string;
-  '--destructive': string;
-  '--destructive-foreground': string;
-  '--ring': string;
-  '--radius': string;
-  '--header-text-primary': string;
-  '--header-text-secondary': string;
-  '--header-background-color': string;
-  '--header-gradient-start': string;
-  '--header-gradient-end': string;
-  '--banner-gradient': string | null;
-};
-
-type LegacyThemeVariables = {
-  '--color-alpha': string;
-  '--color-beta': string;
-  '--color-gamma': string;
-  '--color-gamma-opaque': string;
-  '--color-customgradient-start': string;
-  '--color-customgradient-end': string;
-  '--shadow-beta': string;
-};
-
-export type ThemeVariables = BaseThemeVariables & LegacyThemeVariables;
+import type { LegacyThemeVariables } from "~/themes/types";
 
 /**
  * Defines legacy colors that are kept for backwards compatibility
  *
  * Allows theme-engine to be updated without breaking existing themes
  */
-export const legacyColors: LegacyThemeVariables = {
+export const legacyColors = {
   '--color-alpha': 'var(--header-background-color)',
   '--color-beta': 'var(--header-text-primary)',
   '--color-gamma': 'var(--header-text-secondary)',
@@ -62,7 +15,7 @@ export const legacyColors: LegacyThemeVariables = {
   '--color-customgradient-start': 'rgba(242, 242, 242, .0)',
   '--color-customgradient-end': 'rgba(242, 242, 242, .85)',
   '--shadow-beta': '0 25px 50px -12px rgba(242, 242, 242, .15)',
-};
+} as const satisfies LegacyThemeVariables;
 
 export const defaultLight: ThemeVariables = {
   '--background': '0 0% 3.9%',
@@ -92,7 +45,7 @@ export const defaultLight: ThemeVariables = {
   '--header-gradient-end': 'var(--header-background-color)',
   '--banner-gradient': null,
   ...legacyColors,
-} as const;
+} as const satisfies ThemeVariables;
 
 export const defaultDark: ThemeVariables = {
   '--background': '0 0% 100%',
@@ -122,4 +75,4 @@ export const defaultDark: ThemeVariables = {
   '--header-gradient-end': 'var(--header-background-color)',
   '--banner-gradient': null,
   ...legacyColors,
-} as const;
+} as const satisfies ThemeVariables;

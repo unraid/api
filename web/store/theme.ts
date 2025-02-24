@@ -1,10 +1,9 @@
 import { createPinia, defineStore, setActivePinia } from 'pinia';
 
+import { defaultDark, defaultLight } from '~/themes/default';
 import hexToRgba from 'hex-to-rgba';
 
-import type { Theme, ThemeVariables } from '~/store/theme.defaults';
-
-import { defaultDark, defaultLight } from '~/store/theme.defaults';
+import type { Theme, ThemeVariables } from '~/themes/types';
 
 /**
  * @see https://stackoverflow.com/questions/73476371/using-pinia-with-vue-js-web-components
