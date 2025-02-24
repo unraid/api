@@ -13,5 +13,6 @@
   },
   "always-update": true,
   "include-component-in-tag": false,
-  "draft": true
+  "draft": true,
+  "changelog-path": "api/CHANGELOG.md"
 }
