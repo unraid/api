@@ -122,7 +122,6 @@ jobs:
 
       - name: Type Check
         run: pnpm run type-check
-        continue-on-error: true
 
       - name: Build
         run: pnpm run build
