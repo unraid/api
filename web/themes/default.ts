@@ -1,6 +1,8 @@
-import type { ThemeVariables } from "~/themes/types";
+import type { LegacyThemeVariables, ThemeVariables } from "~/themes/types";
 
-import type { LegacyThemeVariables } from "~/themes/types";
+
+
+
 
 /**
  * Defines legacy colors that are kept for backwards compatibility
@@ -76,3 +78,31 @@ export const defaultDark: ThemeVariables = {
   '--banner-gradient': null,
   ...legacyColors,
 } as const satisfies ThemeVariables;
+
+/**
+ * Color Explanation:
+ * White (base light theme): has dark header background and light text
+ * Black (base dark theme): has light header background and dark text
+ * Gray (base dark theme): has dark header background and light text
+ * Azure (base light theme): has light header background and dark text
+ */
+export const defaultColors: Record<string, ThemeVariables> = {
+  white: {
+    ...defaultLight,
+  },
+  black: {
+    ...defaultDark,
+  },
+  gray: {
+    ...defaultDark,
+    '--header-text-primary': '#39587f',
+    '--header-text-secondary': '#606e7f',
+    '--header-background-color': '#1c1b1b',
+  },
+  azure: {
+    ...defaultDark,
+    '--header-text-primary': '#39587f',
+    '--header-text-secondary': '#606e7f',
+    '--header-background-color': '#f2f2f2',
+  },
+} as const satisfies Record<string, ThemeVariables>;

@@ -1,6 +1,6 @@
 import { createPinia, defineStore, setActivePinia } from 'pinia';
 
-import { defaultDark, defaultLight } from '~/themes/default';
+import { defaultColors } from '~/themes/default';
 import hexToRgba from 'hex-to-rgba';
 
 import type { Theme, ThemeVariables } from '~/themes/types';
@@ -10,34 +10,6 @@ import type { Theme, ThemeVariables } from '~/themes/types';
  * @see https://github.com/vuejs/pinia/discussions/1085
  */
 setActivePinia(createPinia());
-
-/**
- * Color Explanation:
- * White (base light theme): has dark header background and light text
- * Black (base dark theme): has light header background and dark text
- * Gray (base dark theme): has dark header background and light text
- * Azure (base light theme): has light header background and dark text
- */
-export const defaultColors: Record<string, ThemeVariables> = {
-  white: {
-    ...defaultLight,
-  },
-  black: {
-    ...defaultDark,
-  },
-  gray: {
-    ...defaultDark,
-    '--header-text-primary': '#39587f',
-    '--header-text-secondary': '#606e7f',
-    '--header-background-color': '#1c1b1b',
-  },
-  azure: {
-    ...defaultDark,
-    '--header-text-primary': '#39587f',
-    '--header-text-secondary': '#606e7f',
-    '--header-background-color': '#f2f2f2',
-  },
-} as const;
 
 // used to swap the UPC text color when using the azure or gray theme
 export const DARK_THEMES = ['black', 'gray'] as const;
@@ -76,7 +48,7 @@ export const useThemeStore = defineStore('theme', () => {
 
   const setCssVars = () => {
     const selectedTheme = theme.value.name;
-    const customTheme = structuredClone(defaultColors[selectedTheme]);
+    const customTheme = { ...defaultColors[selectedTheme] };
     // Set banner gradient if enabled
     if (theme.value.banner && theme.value.bannerGradient) {
       const start = theme.value.bgColor
