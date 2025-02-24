@@ -77,6 +77,13 @@ onMounted(() => {
     'forUpc'
   );
 });
+
+const bannerImage = watch(theme, () => {
+  if (theme.value.banner) {
+    return `url(https://picsum.photos/1920/200?${Math.round(Math.random() * 100)})`;
+  }
+  return 'none';
+});
 </script>
 
 <template>
@@ -89,9 +96,9 @@ onMounted(() => {
           <h2 class="text-xl font-semibold font-mono">Vue Components</h2>
           <h3 class="text-lg font-semibold font-mono">UserProfileCe</h3>
           <header 
-            class="bg-header-background-color flex flex-row justify-between items-center"
+            class="bg-header-background-color flex justify-between items-center"
             :style="{
-              backgroundImage: theme.banner ? `url(https://picsum.photos/1920/200?${Math.round(Math.random() * 100)})` : 'none',
+              backgroundImage: bannerImage,
               backgroundSize: 'cover',
               backgroundPosition: 'center'
             }"

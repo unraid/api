@@ -76,14 +76,16 @@ export const useThemeStore = defineStore('theme', () => {
       customTheme['--header-gradient-end'] = hexToRgba(theme.value.bgColor, 0.7);
     }
 
-    if (darkMode.value) {
-      document.body.classList.add('dark');
-    } else {
-      document.body.classList.remove('dark');
-    }
+    requestAnimationFrame(() => {
+      if (darkMode.value) {
+        document.body.classList.add('dark');
+      } else {
+        document.body.classList.remove('dark');
+      }
 
-    document.body.style.cssText = createCssText(customTheme, document.body);
-    activeColorVariables.value = customTheme;
+      document.body.style.cssText = createCssText(customTheme, document.body);
+      activeColorVariables.value = customTheme;
+    });
   };
 
   /**

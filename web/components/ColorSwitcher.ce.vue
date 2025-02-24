@@ -1,7 +1,8 @@
 <script lang="ts" setup>
 import { Input, Label, Switch, Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@unraid/ui';
 import type { Theme } from '~/themes/types';
-import { defaultColors, useThemeStore } from '~/store/theme';
+import { useThemeStore } from '~/store/theme';
+import { defaultColors } from '~/themes/default';
 
 const themeStore = useThemeStore();
 
@@ -34,6 +35,7 @@ watch([form], () => {
   };
   themeStore.setTheme(themeToSet);
 });
+
 </script>
 
 <template>
