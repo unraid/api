@@ -1,8 +1,4 @@
-import type { LegacyThemeVariables, ThemeVariables } from "~/themes/types";
-
-
-
-
+import type { LegacyThemeVariables, ThemeVariables } from '~/themes/types';
 
 /**
  * Defines legacy colors that are kept for backwards compatibility
