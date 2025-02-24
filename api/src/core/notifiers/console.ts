@@ -1,6 +1,6 @@
-import type { NotifierOptions, NotifierSendOptions } from '@app/core/notifiers/notifier';
-import { logger } from '@app/core/log';
-import { Notifier } from '@app/core/notifiers/notifier';
+import type { NotifierOptions, NotifierSendOptions } from '@app/core/notifiers/notifier.js';
+import { logger } from '@app/core/log.js';
+import { Notifier } from '@app/core/notifiers/notifier.js';
 
 /**
  * Console notifier.
@@ -22,9 +22,9 @@ export class ConsoleNotifier extends Notifier {
      */
     send(options: NotifierSendOptions) {
         const { title, data } = options;
-        const { level, helpers } = this;
+        const { level } = this;
         // Render template
-        const template = this.render({ ...data }, helpers);
+        const template = this.render({ ...data });
 
         this.log[level](title, template);
     }

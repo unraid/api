@@ -1,10 +1,10 @@
 import { type OutgoingHttpHeaders } from 'node:http2';
 
-import { logger } from '@app/core/log';
-import { API_VERSION } from '@app/environment';
-import { ClientType } from '@app/graphql/generated/client/graphql';
-import { isAPIStateDataFullyLoaded } from '@app/mothership/graphql-client';
-import { store } from '@app/store';
+import { logger } from '@app/core/log.js';
+import { API_VERSION } from '@app/environment.js';
+import { ClientType } from '@app/graphql/generated/client/graphql.js';
+import { isAPIStateDataFullyLoaded } from '@app/mothership/graphql-client.js';
+import { store } from '@app/store/index.js';
 
 interface MothershipWebsocketHeaders extends OutgoingHttpHeaders {
     'x-api-key': string;

@@ -2,8 +2,8 @@ import { Query, ResolveField, Resolver } from '@nestjs/graphql';
 
 import { AuthActionVerb, AuthPossession, UsePermissions } from 'nest-authz';
 
-import { AccessUrl, Network, Resource } from '@app/graphql/generated/api/types';
-import { getServerIps } from '@app/graphql/resolvers/subscription/network';
+import { AccessUrl, Network, Resource } from '@app/graphql/generated/api/types.js';
+import { getServerIps } from '@app/graphql/resolvers/subscription/network.js';
 
 @Resolver('Network')
 export class NetworkResolver {

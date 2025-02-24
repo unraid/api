@@ -3,7 +3,7 @@ import { Test } from '@nestjs/testing';
 
 import { beforeEach, describe, expect, it } from 'vitest';
 
-import { SharesResolver } from '@app/unraid-api/graph/shares/shares.resolver';
+import { SharesResolver } from '@app/unraid-api/graph/shares/shares.resolver.js';
 
 describe('SharesResolver', () => {
     let resolver: SharesResolver;

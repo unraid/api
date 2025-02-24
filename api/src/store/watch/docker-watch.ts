@@ -1,20 +1,20 @@
 import DockerEE from 'docker-event-emitter';
 import { debounce } from 'lodash-es';
 
-import { dockerLogger } from '@app/core/log';
-import { docker } from '@app/core/utils/index';
-import { store } from '@app/store';
-import { updateDockerState } from '@app/store/modules/docker';
+import { dockerLogger } from '@app/core/log.js';
+import { docker } from '@app/core/utils/clients/docker.js';
+import { store } from '@app/store/index.js';
+import { updateDockerState } from '@app/store/modules/docker.js';
 
 const updateContainerCache = async () => {
     try {
-        const { getDockerContainers } = await import('@app/core/modules/docker');
+        const { getDockerContainers } = await import('@app/core/modules/docker/get-docker-containers.js');
         await getDockerContainers({ useCache: false });
     } catch (err) {
         dockerLogger.warn('Caught error getting containers %o', err);
         store.dispatch(
             updateDockerState({
-                installed: null,
+                installed: null,    
                 running: null,
                 containers: [],
             })

@@ -1,7 +1,7 @@
-import type { DNSCheck } from '@app/store/types';
-import { type CloudResponse } from '@app/graphql/generated/api/types';
-import { getters, store } from '@app/store';
-import { CacheKeys } from '@app/store/types';
+import type { DNSCheck } from '@app/store/types.js';
+import { type CloudResponse } from '@app/graphql/generated/api/types.js';
+import { getters, store } from '@app/store/index.js';
+import { CacheKeys } from '@app/store/types.js';
 
 export const getCloudCache = (): CloudResponse | undefined => {
     const { nodeCache } = getters.cache();

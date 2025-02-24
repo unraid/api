@@ -3,7 +3,7 @@ import { Test } from '@nestjs/testing';
 
 import { beforeEach, describe, expect, it } from 'vitest';
 
-import { ConnectResolver } from '@app/unraid-api/graph/connect/connect.resolver';
+import { ConnectResolver } from '@app/unraid-api/graph/connect/connect.resolver.js';
 
 describe('ConnectResolver', () => {
     let resolver: ConnectResolver;

@@ -1,10 +1,10 @@
 import { expect, test } from 'vitest';
 
-import { store } from '@app/store';
-import { FileLoadStatus } from '@app/store/types';
+import { store } from '@app/store/index.js';
+import { FileLoadStatus } from '@app/store/types.js';
 
 // Preloading imports for faster tests
-import '@app/store/modules/emhttp';
+import '@app/store/modules/emhttp.js';
 
 test('Before init returns default values for all fields', async () => {
     const { status, ...state } = store.getState().emhttp;
@@ -25,7 +25,7 @@ test('Before init returns default values for all fields', async () => {
 });
 
 test('After init returns values from cfg file for all fields', async () => {
-    const { loadStateFiles } = await import('@app/store/modules/emhttp');
+    const { loadStateFiles } = await import('@app/store/modules/emhttp.js');
 
     // Load state files into store
     await store.dispatch(loadStateFiles());

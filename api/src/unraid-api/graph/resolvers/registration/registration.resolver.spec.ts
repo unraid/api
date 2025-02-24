@@ -3,7 +3,7 @@ import { Test } from '@nestjs/testing';
 
 import { beforeEach, describe, expect, it } from 'vitest';
 
-import { RegistrationResolver } from '@app/unraid-api/graph/resolvers/registration/registration.resolver';
+import { RegistrationResolver } from '@app/unraid-api/graph/resolvers/registration/registration.resolver.js';
 
 describe('RegistrationResolver', () => {
     let resolver: RegistrationResolver;

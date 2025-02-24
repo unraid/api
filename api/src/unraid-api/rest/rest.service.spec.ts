@@ -3,7 +3,7 @@ import { Test } from '@nestjs/testing';
 
 import { beforeEach, describe, expect, it } from 'vitest';
 
-import { RestService } from '@app/unraid-api/rest/rest.service';
+import { RestService } from '@app/unraid-api/rest/rest.service.js';
 
 describe('RestService', () => {
     let service: RestService;

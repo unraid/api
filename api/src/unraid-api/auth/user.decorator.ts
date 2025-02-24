@@ -1,8 +1,8 @@
 import { createParamDecorator, ExecutionContext } from '@nestjs/common';
 import { GqlContextType, GqlExecutionContext } from '@nestjs/graphql';
 
-import { UserSchema } from '@app/graphql/generated/api/operations';
-import { UserAccount } from '@app/graphql/generated/api/types';
+import { UserSchema } from '@app/graphql/generated/api/operations.js';
+import { UserAccount } from '@app/graphql/generated/api/types.js';
 
 export const GraphqlUser = createParamDecorator<null, any, UserAccount>(
     (data: null, context: ExecutionContext): UserAccount => {

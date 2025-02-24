@@ -3,7 +3,7 @@ import { Test } from '@nestjs/testing';
 
 import { beforeEach, describe, expect, it } from 'vitest';
 
-import { DockerResolver } from '@app/unraid-api/graph/resolvers/docker/docker.resolver';
+import { DockerResolver } from '@app/unraid-api/graph/resolvers/docker/docker.resolver.js';
 
 describe('DockerResolver', () => {
     let resolver: DockerResolver;

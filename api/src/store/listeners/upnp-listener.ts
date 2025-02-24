@@ -1,13 +1,13 @@
 import { isAnyOf } from '@reduxjs/toolkit';
 
-import { upnpLogger } from '@app/core/log';
-import { type RootState } from '@app/store';
-import { setupRemoteAccessThunk } from '@app/store/actions/setup-remote-access';
-import { startAppListening } from '@app/store/listeners/listener-middleware';
-import { loadConfigFile } from '@app/store/modules/config';
-import { loadSingleStateFile, loadStateFiles } from '@app/store/modules/emhttp';
-import { disableUpnp, enableUpnp } from '@app/store/modules/upnp';
-import { FileLoadStatus } from '@app/store/types';
+import { upnpLogger } from '@app/core/log.js';
+import { setupRemoteAccessThunk } from '@app/store/actions/setup-remote-access.js';
+import { type RootState } from '@app/store/index.js';
+import { startAppListening } from '@app/store/listeners/listener-middleware.js';
+import { loadConfigFile } from '@app/store/modules/config.js';
+import { loadSingleStateFile, loadStateFiles } from '@app/store/modules/emhttp.js';
+import { disableUpnp, enableUpnp } from '@app/store/modules/upnp.js';
+import { FileLoadStatus } from '@app/store/types.js';
 
 const shouldUpnpBeEnabled = (state: RootState | null): boolean => {
     if (

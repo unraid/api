@@ -1,2 +1,2 @@
-export * from './model';
-export * from './policy';
+export * from './model.js';
+export * from './policy.js';

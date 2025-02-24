@@ -6,12 +6,12 @@ import type {
     NotificationData,
     NotificationFilter,
     NotificationOverview,
-} from '@app/graphql/generated/api/types';
-import { AppError } from '@app/core/errors/app-error';
-import { createSubscription, PUBSUB_CHANNEL } from '@app/core/pubsub';
-import { NotificationType, Resource } from '@app/graphql/generated/api/types';
-import { Importance } from '@app/graphql/generated/client/graphql';
-import { NotificationsService } from '@app/unraid-api/graph/resolvers/notifications/notifications.service';
+} from '@app/graphql/generated/api/types.js';
+import { AppError } from '@app/core/errors/app-error.js';
+import { createSubscription, PUBSUB_CHANNEL } from '@app/core/pubsub.js';
+import { NotificationType, Resource } from '@app/graphql/generated/api/types.js';
+import { Importance } from '@app/graphql/generated/client/graphql.js';
+import { NotificationsService } from '@app/unraid-api/graph/resolvers/notifications/notifications.service.js';
 
 @Resolver('Notifications')
 export class NotificationsResolver {

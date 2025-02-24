@@ -3,7 +3,7 @@ import { Test } from '@nestjs/testing';
 
 import { beforeEach, describe, expect, it } from 'vitest';
 
-import { DisksResolver } from '@app/unraid-api/graph/resolvers/disks/disks.resolver';
+import { DisksResolver } from '@app/unraid-api/graph/resolvers/disks/disks.resolver.js';
 
 describe('DisksResolver', () => {
     let resolver: DisksResolver;

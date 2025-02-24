@@ -1,13 +1,13 @@
 import { expect, test } from 'vitest';
 
-import { store } from '@app/store';
-import { FileLoadStatus, StateFileKey } from '@app/store/types';
+import { store } from '@app/store/index.js';
+import { FileLoadStatus, StateFileKey } from '@app/store/types.js';
 
-import '@app/core/utils/misc/get-key-file';
-import '@app/store/modules/emhttp';
+import '@app/core/utils/misc/get-key-file.js';
+import '@app/store/modules/emhttp.js';
 
 test('Before loading key returns null', async () => {
-    const { getKeyFile } = await import('@app/core/utils/misc/get-key-file');
+    const { getKeyFile } = await import('@app/core/utils/misc/get-key-file.js');
     const { status } = store.getState().registration;
 
     expect(status).toBe(FileLoadStatus.UNLOADED);
@@ -15,8 +15,8 @@ test('Before loading key returns null', async () => {
 });
 
 test('Requires emhttp to be loaded to find key file', async () => {
-    const { getKeyFile } = await import('@app/core/utils/misc/get-key-file');
-    const { loadRegistrationKey } = await import('@app/store/modules/registration');
+    const { getKeyFile } = await import('@app/core/utils/misc/get-key-file.js');
+    const { loadRegistrationKey } = await import('@app/store/modules/registration.js');
 
     // Load registration key into store
     await store.dispatch(loadRegistrationKey());
@@ -28,8 +28,8 @@ test('Requires emhttp to be loaded to find key file', async () => {
 });
 
 test('Returns empty key if key location is empty', async () => {
-    const { getKeyFile } = await import('@app/core/utils/misc/get-key-file');
-    const { updateEmhttpState } = await import('@app/store/modules/emhttp');
+    const { getKeyFile } = await import('@app/core/utils/misc/get-key-file.js');
+    const { updateEmhttpState } = await import('@app/store/modules/emhttp.js');
 
     // Set key file location as empty
     // This should only happen if the user doesn't have a key file
@@ -49,8 +49,8 @@ test('Returns empty key if key location is empty', async () => {
 });
 
 test('Returns decoded key file if key location exists', async () => {
-    const { getKeyFile } = await import('@app/core/utils/misc/get-key-file');
-    const { loadStateFiles } = await import('@app/store/modules/emhttp');
+    const { getKeyFile } = await import('@app/core/utils/misc/get-key-file.js');
+    const { loadStateFiles } = await import('@app/store/modules/emhttp.js');
 
     // Load state files into store
     await store.dispatch(loadStateFiles());

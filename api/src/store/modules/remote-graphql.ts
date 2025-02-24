@@ -1,12 +1,12 @@
 import type { PayloadAction } from '@reduxjs/toolkit';
 import { createSlice, isAnyOf } from '@reduxjs/toolkit';
 
-import type { SubscriptionWithLastPing } from '@app/store/types';
-import { remoteAccessLogger } from '@app/core/log';
-import { addRemoteSubscription } from '@app/store/actions/add-remote-subscription';
-import { setGraphqlConnectionStatus } from '@app/store/actions/set-minigraph-status';
-import { logoutUser } from '@app/store/modules/config';
-import { MOTHERSHIP_CRITICAL_STATUSES } from '@app/store/types';
+import type { SubscriptionWithLastPing } from '@app/store/types.js';
+import { remoteAccessLogger } from '@app/core/log.js';
+import { addRemoteSubscription } from '@app/store/actions/add-remote-subscription.js';
+import { setGraphqlConnectionStatus } from '@app/store/actions/set-minigraph-status.js';
+import { logoutUser } from '@app/store/modules/config.js';
+import { MOTHERSHIP_CRITICAL_STATUSES } from '@app/store/types.js';
 
 interface RemoteGraphQLStore {
     subscriptions: Array<SubscriptionWithLastPing>;

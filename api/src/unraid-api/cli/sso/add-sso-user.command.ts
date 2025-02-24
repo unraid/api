@@ -3,12 +3,12 @@ import { Injectable } from '@nestjs/common';
 import { CommandRunner, InquirerService, Option, SubCommand } from 'nest-commander';
 import { v4 } from 'uuid';
 
-import { store } from '@app/store/index';
-import { addSsoUser, loadConfigFile } from '@app/store/modules/config';
-import { writeConfigSync } from '@app/store/sync/config-disk-sync';
-import { LogService } from '@app/unraid-api/cli/log.service';
-import { RestartCommand } from '@app/unraid-api/cli/restart.command';
-import { AddSSOUserQuestionSet } from '@app/unraid-api/cli/sso/add-sso-user.questions';
+import { store } from '@app/store/index.js';
+import { addSsoUser, loadConfigFile } from '@app/store/modules/config.js';
+import { writeConfigSync } from '@app/store/sync/config-disk-sync.js';
+import { LogService } from '@app/unraid-api/cli/log.service.js';
+import { RestartCommand } from '@app/unraid-api/cli/restart.command.js';
+import { AddSSOUserQuestionSet } from '@app/unraid-api/cli/sso/add-sso-user.questions.js';
 
 interface AddSSOUserCommandOptions {
     disclaimer: string;

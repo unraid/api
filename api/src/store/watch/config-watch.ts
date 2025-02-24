@@ -2,12 +2,12 @@ import { existsSync, writeFileSync } from 'fs';
 
 import { watch } from 'chokidar';
 
-import { logger } from '@app/core/log';
-import { getWriteableConfig } from '@app/core/utils/files/config-file-normalizer';
-import { safelySerializeObjectToIni } from '@app/core/utils/files/safe-ini-serializer';
-import { CHOKIDAR_USEPOLLING, ENVIRONMENT } from '@app/environment';
-import { getters, store } from '@app/store';
-import { initialState, loadConfigFile, logoutUser } from '@app/store/modules/config';
+import { logger } from '@app/core/log.js';
+import { getWriteableConfig } from '@app/core/utils/files/config-file-normalizer.js';
+import { safelySerializeObjectToIni } from '@app/core/utils/files/safe-ini-serializer.js';
+import { CHOKIDAR_USEPOLLING, ENVIRONMENT } from '@app/environment.js';
+import { getters, store } from '@app/store/index.js';
+import { initialState, loadConfigFile, logoutUser } from '@app/store/modules/config.js';
 
 export const setupConfigPathWatch = () => {
     const myServersConfigPath = getters.paths()?.['myservers-config'];

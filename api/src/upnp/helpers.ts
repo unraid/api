@@ -1,13 +1,13 @@
 import type { Mapping } from '@runonflux/nat-upnp';
 import { Client } from '@runonflux/nat-upnp';
 
-import { ONE_HOUR_SECS, THIRTY_SECONDS_MS } from '@app/consts';
-import { upnpLogger } from '@app/core/log';
-import { IS_DOCKER } from '@app/environment';
-import { convertToFuzzyTime } from '@app/mothership/utils/convert-to-fuzzy-time';
-import { getters } from '@app/store';
-import { type LeaseRenewalArgs } from '@app/store/modules/upnp';
-import { MockUpnpClient } from '@app/upnp/mock-upnp-client';
+import { ONE_HOUR_SECS, THIRTY_SECONDS_MS } from '@app/consts.js';
+import { upnpLogger } from '@app/core/log.js';
+import { IS_DOCKER } from '@app/environment.js';
+import { convertToFuzzyTime } from '@app/mothership/utils/convert-to-fuzzy-time.js';
+import { getters } from '@app/store/index.js';
+import { type LeaseRenewalArgs } from '@app/store/modules/upnp.js';
+import { MockUpnpClient } from '@app/upnp/mock-upnp-client.js';
 
 // If we're in docker mode, load the mock client
 const upnpClient = IS_DOCKER

@@ -1,10 +1,10 @@
 import type DockerEE from 'docker-event-emitter';
 import { watch } from 'chokidar';
 
-import { dockerLogger } from '@app/core/log';
-import { getters, store } from '@app/store/index';
-import { updateDockerState } from '@app/store/modules/docker';
-import { setupDockerWatch } from '@app/store/watch/docker-watch';
+import { dockerLogger } from '@app/core/log.js';
+import { getters, store } from '@app/store/index.js';
+import { updateDockerState } from '@app/store/modules/docker.js';
+import { setupDockerWatch } from '@app/store/watch/docker-watch.js';
 
 export const setupVarRunWatch = () => {
     const paths = getters.paths();

@@ -3,7 +3,7 @@ import { Test } from '@nestjs/testing';
 
 import { beforeEach, describe, expect, it } from 'vitest';
 
-import { OnlineResolver } from '@app/unraid-api/graph/resolvers/online/online.resolver';
+import { OnlineResolver } from '@app/unraid-api/graph/resolvers/online/online.resolver.js';
 
 describe('OnlineResolver', () => {
     let resolver: OnlineResolver;

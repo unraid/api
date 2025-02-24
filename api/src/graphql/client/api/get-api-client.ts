@@ -6,9 +6,9 @@ import { fetch } from 'cross-fetch';
 import { createClient } from 'graphql-ws';
 import WebSocket from 'ws';
 
-import { getInternalApiAddress } from '@app/consts';
-import { graphqlLogger } from '@app/core/log';
-import { getters } from '@app/store/index';
+import { getInternalApiAddress } from '@app/consts.js';
+import { graphqlLogger } from '@app/core/log.js';
+import { getters } from '@app/store/index.js';
 
 const getWebsocketWithHeaders = () => {
     return class WebsocketWithOriginHeader extends WebSocket {

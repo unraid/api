@@ -4,8 +4,8 @@ import { parse } from 'ini';
 import { Parser as MultiIniParser } from 'multi-ini';
 import { expect, test } from 'vitest';
 
-import { safelySerializeObjectToIni } from '@app/core/utils/files/safe-ini-serializer';
-import { parseConfig } from '@app/core/utils/misc/parse-config';
+import { safelySerializeObjectToIni } from '@app/core/utils/files/safe-ini-serializer.js';
+import { parseConfig } from '@app/core/utils/misc/parse-config.js';
 
 const iniTestData = `["root"]
 idx="0"

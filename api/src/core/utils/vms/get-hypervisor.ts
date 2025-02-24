@@ -3,7 +3,7 @@ import { access } from 'fs/promises';
 
 import { type Hypervisor as HypervisorType } from '@unraid/libvirt';
 
-import { libvirtLogger } from '@app/core/log';
+import { libvirtLogger } from '@app/core/log.js';
 
 const uri = process.env.LIBVIRT_URI ?? 'qemu:///system';
 

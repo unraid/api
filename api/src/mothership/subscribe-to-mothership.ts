@@ -1,14 +1,14 @@
-import { minigraphLogger, mothershipLogger } from '@app/core/log';
-import { useFragment } from '@app/graphql/generated/client/fragment-masking';
-import { ClientType } from '@app/graphql/generated/client/graphql';
-import { EVENTS_SUBSCRIPTION, RemoteGraphQL_Fragment } from '@app/graphql/mothership/subscriptions';
-import { GraphQLClient } from '@app/mothership/graphql-client';
-import { initPingTimeoutJobs } from '@app/mothership/jobs/ping-timeout-jobs';
-import { getMothershipConnectionParams } from '@app/mothership/utils/get-mothership-websocket-headers';
-import { store } from '@app/store';
-import { handleRemoteGraphQLEvent } from '@app/store/actions/handle-remote-graphql-event';
-import { setSelfDisconnected, setSelfReconnected } from '@app/store/modules/minigraph';
-import { notNull } from '@app/utils';
+import { minigraphLogger, mothershipLogger } from '@app/core/log.js';
+import { useFragment } from '@app/graphql/generated/client/fragment-masking.js';
+import { ClientType } from '@app/graphql/generated/client/graphql.js';
+import { EVENTS_SUBSCRIPTION, RemoteGraphQL_Fragment } from '@app/graphql/mothership/subscriptions.js';
+import { GraphQLClient } from '@app/mothership/graphql-client.js';
+import { initPingTimeoutJobs } from '@app/mothership/jobs/ping-timeout-jobs.js';
+import { getMothershipConnectionParams } from '@app/mothership/utils/get-mothership-websocket-headers.js';
+import { handleRemoteGraphQLEvent } from '@app/store/actions/handle-remote-graphql-event.js';
+import { store } from '@app/store/index.js';
+import { setSelfDisconnected, setSelfReconnected } from '@app/store/modules/minigraph.js';
+import { notNull } from '@app/utils.js';
 
 export const subscribeToEvents = async (apiKey: string) => {
     minigraphLogger.info('Subscribing to Events');

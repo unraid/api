@@ -1,7 +1,7 @@
 import { type ApolloServerPlugin } from '@apollo/server';
 
-import { getServerIdentifier } from '@app/core/utils/server-identifier';
-import { updateObject } from '@app/utils';
+import { getServerIdentifier } from '@app/core/utils/server-identifier.js';
+import { updateObject } from '@app/utils.js';
 
 type ObjectModifier = (obj: object) => void;
 

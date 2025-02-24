@@ -2,10 +2,10 @@ import { Query, Resolver, Subscription } from '@nestjs/graphql';
 
 import { AuthActionVerb, AuthPossession, UsePermissions } from 'nest-authz';
 
-import { createSubscription, PUBSUB_CHANNEL } from '@app/core/pubsub';
-import { Resource } from '@app/graphql/generated/api/types';
-import { type Server } from '@app/graphql/generated/client/graphql';
-import { getLocalServer } from '@app/graphql/schema/utils';
+import { createSubscription, PUBSUB_CHANNEL } from '@app/core/pubsub.js';
+import { Resource } from '@app/graphql/generated/api/types.js';
+import { type Server } from '@app/graphql/generated/client/graphql.js';
+import { getLocalServer } from '@app/graphql/schema/utils.js';
 
 @Resolver('Server')
 export class ServerResolver {

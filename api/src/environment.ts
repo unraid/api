@@ -1,10 +1,15 @@
+import { readFileSync } from 'node:fs';
 import { homedir } from 'node:os';
 import { join } from 'node:path';
 
-import { version } from 'package.json';
+const getPackageJsonVersion = () => {
+    const packageJson = readFileSync(join(__dirname, 'package.json'), 'utf-8');
+    const packageJsonObject = JSON.parse(packageJson);
+    return packageJsonObject.version;
+};
 
 export const API_VERSION =
-    process.env.npm_package_version ?? version ?? new Error('API_VERSION not set');
+    process.env.npm_package_version ?? getPackageJsonVersion() ?? new Error('API_VERSION not set');
 
 export const NODE_ENV =
     (process.env.NODE_ENV as 'development' | 'test' | 'staging' | 'production') ?? 'production';

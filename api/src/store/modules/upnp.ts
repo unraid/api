@@ -2,12 +2,17 @@ import type { PayloadAction } from '@reduxjs/toolkit';
 import type { Mapping } from '@runonflux/nat-upnp';
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 
-import { upnpLogger } from '@app/core';
-import { toNumberOrNull } from '@app/core/utils/casting';
-import { type AppDispatch, type RootState } from '@app/store';
-import { setUpnpState, setWanPortToValue } from '@app/store/modules/config';
-import { getUpnpMappings, getWanPortForUpnp, removeUpnpLease, renewUpnpLease } from '@app/upnp/helpers';
-import { initUpnpJobs, stopUpnpJobs } from '@app/upnp/jobs';
+import { upnpLogger } from '@app/core/log.js';
+import { toNumberOrNull } from '@app/core/utils/casting.js';
+import { type AppDispatch, type RootState } from '@app/store/index.js';
+import { setUpnpState, setWanPortToValue } from '@app/store/modules/config.js';
+import {
+    getUpnpMappings,
+    getWanPortForUpnp,
+    removeUpnpLease,
+    renewUpnpLease,
+} from '@app/upnp/helpers.js';
+import { initUpnpJobs, stopUpnpJobs } from '@app/upnp/jobs.js';
 
 interface UpnpState {
     upnpEnabled: boolean;

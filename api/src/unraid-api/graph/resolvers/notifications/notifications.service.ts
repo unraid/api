@@ -16,18 +16,18 @@ import type {
     NotificationData,
     NotificationFilter,
     NotificationOverview,
-} from '@app/graphql/generated/api/types';
-import { AppError } from '@app/core/errors/app-error';
-import { pubsub, PUBSUB_CHANNEL } from '@app/core/pubsub';
-import { NotificationIni } from '@app/core/types/states/notification';
-import { fileExists } from '@app/core/utils/files/file-exists';
-import { parseConfig } from '@app/core/utils/misc/parse-config';
-import { CHOKIDAR_USEPOLLING } from '@app/environment';
-import { NotificationSchema } from '@app/graphql/generated/api/operations';
-import { Importance, NotificationType } from '@app/graphql/generated/api/types';
-import { getters } from '@app/store';
-import { SortFn } from '@app/unraid-api/types/util';
-import { batchProcess, formatDatetime, isFulfilled, isRejected, unraidTimestamp } from '@app/utils';
+} from '@app/graphql/generated/api/types.js';
+import { AppError } from '@app/core/errors/app-error.js';
+import { pubsub, PUBSUB_CHANNEL } from '@app/core/pubsub.js';
+import { NotificationIni } from '@app/core/types/states/notification.js';
+import { fileExists } from '@app/core/utils/files/file-exists.js';
+import { parseConfig } from '@app/core/utils/misc/parse-config.js';
+import { CHOKIDAR_USEPOLLING } from '@app/environment.js';
+import { NotificationSchema } from '@app/graphql/generated/api/operations.js';
+import { Importance, NotificationType } from '@app/graphql/generated/api/types.js';
+import { getters } from '@app/store/index.js';
+import { SortFn } from '@app/unraid-api/types/util.js';
+import { batchProcess, formatDatetime, isFulfilled, isRejected, unraidTimestamp } from '@app/utils.js';
 
 @Injectable()
 export class NotificationsService {

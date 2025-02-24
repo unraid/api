@@ -5,12 +5,12 @@ import { basename, resolve } from 'path';
 
 import { describe, expect, test, vi } from 'vitest';
 
-import { FileModification } from '@app/unraid-api/unraid-file-modifier/file-modification';
-import AuthRequestModification from '@app/unraid-api/unraid-file-modifier/modifications/auth-request.modification';
-import DefaultPageLayoutModification from '@app/unraid-api/unraid-file-modifier/modifications/default-page-layout.modification';
-import { LogRotateModification } from '@app/unraid-api/unraid-file-modifier/modifications/log-rotate.modification';
-import NotificationsPageModification from '@app/unraid-api/unraid-file-modifier/modifications/notifications-page.modification';
-import SSOFileModification from '@app/unraid-api/unraid-file-modifier/modifications/sso.modification';
+import { FileModification } from '@app/unraid-api/unraid-file-modifier/file-modification.js';
+import AuthRequestModification from '@app/unraid-api/unraid-file-modifier/modifications/auth-request.modification.js';
+import DefaultPageLayoutModification from '@app/unraid-api/unraid-file-modifier/modifications/default-page-layout.modification.js';
+import { LogRotateModification } from '@app/unraid-api/unraid-file-modifier/modifications/log-rotate.modification.js';
+import NotificationsPageModification from '@app/unraid-api/unraid-file-modifier/modifications/notifications-page.modification.js';
+import SSOFileModification from '@app/unraid-api/unraid-file-modifier/modifications/sso.modification.js';
 
 interface ModificationTestCase {
     ModificationClass: new (...args: ConstructorParameters<typeof FileModification>) => FileModification;

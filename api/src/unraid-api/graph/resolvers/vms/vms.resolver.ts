@@ -2,8 +2,8 @@ import { Query, ResolveField, Resolver } from '@nestjs/graphql';
 
 import { AuthActionVerb, AuthPossession, UsePermissions } from 'nest-authz';
 
-import type { VmDomain } from '@app/graphql/generated/api/types';
-import { Resource } from '@app/graphql/generated/api/types';
+import type { VmDomain } from '@app/graphql/generated/api/types.js';
+import { Resource } from '@app/graphql/generated/api/types.js';
 
 @Resolver('Vms')
 export class VmsResolver {
@@ -22,7 +22,7 @@ export class VmsResolver {
     @ResolveField('domain')
     public async domain(): Promise<Array<VmDomain>> {
         try {
-            const { getDomains } = await import('@app/core/modules/vms/get-domains');
+            const { getDomains } = await import('@app/core/modules/vms/get-domains.js');
             const domains = await getDomains();
             return domains;
         } catch (error) {

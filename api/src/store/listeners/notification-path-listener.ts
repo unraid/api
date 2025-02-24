@@ -1,6 +1,6 @@
-import { logger } from '@app/core/log';
-import { startAppListening } from '@app/store/listeners/listener-middleware';
-import { clearAllNotifications } from '@app/store/modules/notifications';
+import { logger } from '@app/core/log.js';
+import { startAppListening } from '@app/store/listeners/listener-middleware.js';
+import { clearAllNotifications } from '@app/store/modules/notifications.js';
 
 export const enableNotificationPathListener = () =>
     startAppListening({

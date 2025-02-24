@@ -1,5 +1,5 @@
-import type { CoreContext, CoreResult } from '@app/core/types';
-import { ensurePermission } from '@app/core/utils/permissions/ensure-permission';
+import type { CoreContext, CoreResult } from '@app/core/types/index.js';
+import { ensurePermission } from '@app/core/utils/permissions/ensure-permission.js';
 
 /**
  * Get all devices.

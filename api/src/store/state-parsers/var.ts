@@ -1,12 +1,12 @@
-import type { StateFileToIniParserMap } from '@app/store/types';
-import { type IniStringBoolean, type IniStringBooleanOrAuto } from '@app/core/types/ini';
-import { toNumber } from '@app/core/utils';
+import type { StateFileToIniParserMap } from '@app/store/types.js';
+import { type IniStringBoolean, type IniStringBooleanOrAuto } from '@app/core/types/ini.js';
+import { toNumber } from '@app/core/utils/index.js';
 import {
     ArrayState,
     DiskFsType,
     RegistrationState,
     registrationType,
-} from '@app/graphql/generated/api/types';
+} from '@app/graphql/generated/api/types.js';
 
 /**
  * Unraid registration check

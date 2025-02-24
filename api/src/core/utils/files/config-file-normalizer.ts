@@ -1,13 +1,13 @@
 import { isEqual, merge } from 'lodash-es';
 
-import { getAllowedOrigins } from '@app/common/allowed-origins';
-import { initialState } from '@app/store/modules/config';
+import { getAllowedOrigins } from '@app/common/allowed-origins.js';
+import { initialState } from '@app/store/modules/config.js';
 import {
     MyServersConfig,
     MyServersConfigMemory,
     MyServersConfigMemorySchema,
     MyServersConfigSchema,
-} from '@app/types/my-servers-config';
+} from '@app/types/my-servers-config.js';
 
 // Define ConfigType and ConfigObject
 export type ConfigType = 'flash' | 'memory';

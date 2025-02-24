@@ -1,11 +1,11 @@
 import { uniq } from 'lodash-es';
 
-import type { RootState } from '@app/store';
-import { logger } from '@app/core';
-import { GRAPHQL_INTROSPECTION } from '@app/environment';
-import { getServerIps, getUrlForField } from '@app/graphql/resolvers/subscription/network';
-import { getters, store } from '@app/store';
-import { FileLoadStatus } from '@app/store/types';
+import type { RootState } from '@app/store/index.js';
+import { logger } from '@app/core/log.js';
+import { GRAPHQL_INTROSPECTION } from '@app/environment.js';
+import { getServerIps, getUrlForField } from '@app/graphql/resolvers/subscription/network.js';
+import { getters, store } from '@app/store/index.js';
+import { FileLoadStatus } from '@app/store/types.js';
 
 const getAllowedSocks = (): string[] => [
     // Notifier bridge

@@ -6,7 +6,7 @@ import { createPatch } from 'diff';
 import {
     FileModification,
     ShouldApplyWithReason,
-} from '@app/unraid-api/unraid-file-modifier/file-modification';
+} from '@app/unraid-api/unraid-file-modifier/file-modification.js';
 
 export default class DefaultPageLayoutModification extends FileModification {
     id: string = 'default-page-layout';

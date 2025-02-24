@@ -1,11 +1,11 @@
-import type { CoreContext, CoreResult } from '@app/core/types';
-import { AppError } from '@app/core/errors/app-error';
-import { NotImplementedError } from '@app/core/errors/not-implemented-error';
-import { ensurePermission } from '@app/core/utils/permissions/ensure-permission';
-import { getters } from '@app/store';
+import type { CoreContext, CoreResult } from '@app/core/types/index.js';
+import { AppError } from '@app/core/errors/app-error.js';
+import { NotImplementedError } from '@app/core/errors/not-implemented-error.js';
+import { ensurePermission } from '@app/core/utils/permissions/ensure-permission.js';
+import { getters } from '@app/store/index.js';
 
 export const addShare = async (context: CoreContext<unknown, { name: string }>): Promise<CoreResult> => {
-    const { user, data } = context;
+    const { user, data } = context; 
 
     if (!data?.name) {
         throw new AppError('No name provided');
@@ -24,7 +24,7 @@ export const addShare = async (context: CoreContext<unknown, { name: string }>):
     const userShares = shares.map(({ name }) => name);
     const diskShares = disks
         .filter((slot) => slot.exportable)
-        .filter(({ name }) => name.startsWith('disk'))
+        .filter(({ name }) => name?.startsWith('disk'))
         .map(({ name }) => name);
 
     // Existing share names

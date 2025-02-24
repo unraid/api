@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common';
 
-import { RestController } from '@app/unraid-api/rest/rest.controller';
-import { RestService } from '@app/unraid-api/rest/rest.service';
+import { RestController } from '@app/unraid-api/rest/rest.controller.js';
+import { RestService } from '@app/unraid-api/rest/rest.service.js';
 
 @Module({
     imports: [],

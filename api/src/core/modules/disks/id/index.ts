@@ -1,3 +1,3 @@
 // Created from 'create-ts-index'
 
-export * from './get-disk';
+export * from './get-disk.js';

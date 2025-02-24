@@ -1,12 +1,12 @@
-import type { Server } from '@app/graphql/generated/client/graphql';
-import { AppError } from '@app/core/errors/app-error';
-import { graphqlLogger } from '@app/core/log';
-import { pubsub } from '@app/core/pubsub';
-import { type User } from '@app/core/types/states/user';
-import { ensurePermission } from '@app/core/utils/permissions/ensure-permission';
-import { MinigraphStatus } from '@app/graphql/generated/api/types';
-import { ServerStatus } from '@app/graphql/generated/client/graphql';
-import { store } from '@app/store';
+import type { Server } from '@app/graphql/generated/client/graphql.js';
+import { AppError } from '@app/core/errors/app-error.js';
+import { graphqlLogger } from '@app/core/log.js';
+import { pubsub } from '@app/core/pubsub.js';
+import { type User } from '@app/core/types/states/user.js';
+import { ensurePermission } from '@app/core/utils/permissions/ensure-permission.js';
+import { MinigraphStatus } from '@app/graphql/generated/api/types.js';
+import { ServerStatus } from '@app/graphql/generated/client/graphql.js';
+import { store } from '@app/store/index.js';
 
 export interface Context {
     user?: User;

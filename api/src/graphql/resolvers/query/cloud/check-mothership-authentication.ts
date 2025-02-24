@@ -1,7 +1,7 @@
 import { got, HTTPError, TimeoutError } from 'got';
 
-import { logger } from '@app/core';
-import { MOTHERSHIP_GRAPHQL_LINK } from '@app/environment';
+import { logger } from '@app/core/log.js';
+import { MOTHERSHIP_GRAPHQL_LINK } from '@app/environment.js';
 
 const createGotOptions = (apiVersion: string, apiKey: string) => ({
     timeout: {

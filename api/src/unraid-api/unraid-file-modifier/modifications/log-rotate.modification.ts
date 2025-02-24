@@ -1,11 +1,11 @@
 import { Logger } from '@nestjs/common';
 import { readFile, rm, writeFile } from 'node:fs/promises';
 
-import { fileExists } from '@app/core/utils/files/file-exists';
+import { fileExists } from '@app/core/utils/files/file-exists.js';
 import {
     FileModification,
     ShouldApplyWithReason,
-} from '@app/unraid-api/unraid-file-modifier/file-modification';
+} from '@app/unraid-api/unraid-file-modifier/file-modification.js';
 
 export class LogRotateModification extends FileModification {
     id: string = 'log-rotate';

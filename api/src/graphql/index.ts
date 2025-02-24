@@ -1,5 +1,5 @@
-import { modules } from '@app/core';
-import { FatalAppError } from '@app/core/errors/fatal-error';
+import { FatalAppError } from '@app/core/errors/fatal-error.js';
+import { modules } from '@app/core/index.js';
 
 export const getCoreModule = (moduleName: string) => {
     if (!Object.keys(modules).includes(moduleName)) {

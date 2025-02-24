@@ -1,9 +1,9 @@
 import camelCaseKeys from 'camelcase-keys';
 
-import { type CoreContext, type CoreResult } from '@app/core/types';
-import { docker } from '@app/core/utils';
-import { catchHandlers } from '@app/core/utils/misc/catch-handlers';
-import { ensurePermission } from '@app/core/utils/permissions/ensure-permission';
+import { type CoreContext, type CoreResult } from '@app/core/types/index.js';
+import { docker } from '@app/core/utils/index.js';
+import { catchHandlers } from '@app/core/utils/misc/catch-handlers.js';
+import { ensurePermission } from '@app/core/utils/permissions/ensure-permission.js';
 
 export const getDockerNetworks = async (context: CoreContext): Promise<CoreResult> => {
     const { user } = context;
@@ -19,7 +19,10 @@ export const getDockerNetworks = async (context: CoreContext): Promise<CoreResul
         .listNetworks()
         // If docker throws an error return no networks
         .catch(catchHandlers.docker)
-        .then((networks = []) => networks.map((object) => camelCaseKeys(object, { deep: true })));
+        .then((networks = []) =>
+            networks.map((object) => camelCaseKeys(object as unknown as Record<string, unknown>, { deep: true })
+            )
+        );
 
     /**
      * Get all Docker networks
@@ -30,7 +33,6 @@ export const getDockerNetworks = async (context: CoreContext): Promise<CoreResul
      * @returns {Core~Result} All the in/active Docker networks on the system.
      */
     return {
-        text: `Networks: ${JSON.stringify(networks, null, 2)}`,
         json: networks,
     };
 };

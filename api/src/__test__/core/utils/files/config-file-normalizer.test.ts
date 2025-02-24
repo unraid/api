@@ -3,8 +3,8 @@ import 'reflect-metadata';
 import { cloneDeep } from 'lodash-es';
 import { expect, test } from 'vitest';
 
-import { getWriteableConfig } from '@app/core/utils/files/config-file-normalizer';
-import { initialState } from '@app/store/modules/config';
+import { getWriteableConfig } from '@app/core/utils/files/config-file-normalizer.js';
+import { initialState } from '@app/store/modules/config.js';
 
 test('it creates a FLASH config with NO OPTIONAL values', () => {
     const basicConfig = initialState;

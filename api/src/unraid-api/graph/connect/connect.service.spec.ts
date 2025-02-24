@@ -3,7 +3,7 @@ import { Test } from '@nestjs/testing';
 
 import { beforeEach, describe, expect, it } from 'vitest';
 
-import { ConnectService } from '@app/unraid-api/graph/connect/connect.service';
+import { ConnectService } from '@app/unraid-api/graph/connect/connect.service.js';
 
 describe('ConnectService', () => {
     let service: ConnectService;

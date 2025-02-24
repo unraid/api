@@ -1,10 +1,9 @@
-import { ArrayRunningError } from '@app/core/errors/array-running-error';
-import { FieldMissingError } from '@app/core/errors/field-missing-error';
-import { getArrayData } from '@app/core/modules/array/get-array-data';
-import { type CoreContext, type CoreResult } from '@app/core/types';
-import { arrayIsRunning } from '@app/core/utils/array/array-is-running';
-import { ensurePermission } from '@app/core/utils/permissions/ensure-permission';
-import { hasFields } from '@app/core/utils/validation/has-fields';
+import { ArrayRunningError } from '@app/core/errors/array-running-error.js';
+import { FieldMissingError } from '@app/core/errors/field-missing-error.js';
+import { getArrayData } from '@app/core/modules/array/get-array-data.js';
+import { type CoreContext, type CoreResult } from '@app/core/types/index.js';
+import { arrayIsRunning } from '@app/core/utils/array/array-is-running.js';
+import { hasFields } from '@app/core/utils/validation/has-fields.js';
 
 interface Context extends CoreContext {
     data: {
@@ -18,15 +17,7 @@ interface Context extends CoreContext {
  * @returns The updated array.
  */
 export const removeDiskFromArray = async (context: Context): Promise<CoreResult> => {
-    const { data, user } = context;
-
-    // Check permissions
-    ensurePermission(user, {
-        resource: 'array',
-        action: 'create',
-        possession: 'any',
-    });
-
+    const { data } = context;
     const missingFields = hasFields(data, ['id']);
 
     if (missingFields.length !== 0) {

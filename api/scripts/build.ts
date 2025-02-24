@@ -4,7 +4,7 @@ import { exit } from 'process';
 
 import { $, cd } from 'zx';
 
-import { getDeploymentVersion } from './get-deployment-version.js';
+import { getDeploymentVersion } from '@app/../scripts/get-deployment-version.js';
 
 try {
     // Create release and pack directories
@@ -30,14 +30,14 @@ try {
 
     // Create a temporary directory for packaging
     await mkdir('./deploy/pack/', { recursive: true });
-    
+
     await writeFile('./deploy/pack/package.json', JSON.stringify(parsedPackageJson, null, 4));
     // Copy necessary files to the pack directory
     await $`cp -r dist README.md .env.* ecosystem.config.json ./deploy/pack/`;
-    
+
     // Change to the pack directory and install dependencies
     cd('./deploy/pack');
-    
+
     console.log('Installing production dependencies...');
     $.verbose = true;
     await $`pnpm install --prod --ignore-workspace --node-linker hoisted`;
@@ -48,10 +48,9 @@ try {
 
     // Create the tarball
     await $`tar -czf ../release/unraid-api.tgz ./`;
-    
+
     // Clean up
     cd('..');
-
 } catch (error) {
     // Error with a command
     if (Object.keys(error).includes('stderr')) {

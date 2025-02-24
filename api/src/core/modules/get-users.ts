@@ -1,8 +1,7 @@
-import type { CoreContext, CoreResult } from '@app/core/types';
-import { AppError } from '@app/core/errors/app-error';
-import { type User } from '@app/core/types/states/user';
-import { ensurePermission } from '@app/core/utils/permissions/ensure-permission';
-import { getters } from '@app/store';
+import type { CoreContext, CoreResult } from '@app/core/types/index.js';
+import { AppError } from '@app/core/errors/app-error.js';
+import { type User } from '@app/core/types/states/user.js';
+import { getters } from '@app/store/index.js';
 
 interface Context extends CoreContext {
     query: {
@@ -15,14 +14,7 @@ interface Context extends CoreContext {
  * Get all users.
  */
 export const getUsers = async (context: Context): Promise<CoreResult> => {
-    const { query, user } = context;
-
-    // Check permissions
-    ensurePermission(user, {
-        resource: 'user',
-        action: 'read',
-        possession: 'any',
-    });
+    const { query } = context;
 
     // Default to only showing limited fields
     const { slim = 'true' } = query;

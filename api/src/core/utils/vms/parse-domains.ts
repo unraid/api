@@ -1,6 +1,6 @@
-import type { DomainLookupType } from '@app/core/utils/vms/parse-domain';
-import { type Domain } from '@app/core/types';
-import { parseDomain } from '@app/core/utils/vms/parse-domain';
+import type { DomainLookupType } from '@app/core/utils/vms/parse-domain.js';
+import { type Domain } from '@app/core/types/index.js';
+import { parseDomain } from '@app/core/utils/vms/parse-domain.js';
 
 /**
  * Parse domains.

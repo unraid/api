@@ -1,3 +1,3 @@
 // Created from 'create-ts-index'
 
-export * from './get-context';
+export * from './get-context.js';

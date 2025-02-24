@@ -1,4 +1,4 @@
-import { AppError } from '@app/core/errors/app-error';
+import { AppError } from '@app/core/errors/app-error.js';
 
 /**
  * Whatever this is attached to isn't yet implemented.

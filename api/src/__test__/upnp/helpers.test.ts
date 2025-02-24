@@ -1,7 +1,7 @@
 import { type Mapping } from '@runonflux/nat-upnp';
 import { expect, test, vi } from 'vitest';
 
-import { getWanPortForUpnp } from '@app/upnp/helpers';
+import { getWanPortForUpnp } from '@app/upnp/helpers.js';
 
 test('it successfully gets a wan port given no exclusions', () => {
     const port = getWanPortForUpnp(null, 36_000, 38_000);

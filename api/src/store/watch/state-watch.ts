@@ -3,11 +3,11 @@ import { join, parse } from 'path';
 import type { FSWatcher, FSWInstanceOptions } from 'chokidar';
 import { watch } from 'chokidar';
 
-import { emhttpLogger } from '@app/core/log';
-import { CHOKIDAR_USEPOLLING } from '@app/environment';
-import { getters, store } from '@app/store';
-import { loadSingleStateFile } from '@app/store/modules/emhttp';
-import { StateFileKey } from '@app/store/types';
+import { emhttpLogger } from '@app/core/log.js';
+import { CHOKIDAR_USEPOLLING } from '@app/environment.js';
+import { getters, store } from '@app/store/index.js';
+import { loadSingleStateFile } from '@app/store/modules/emhttp.js';
+import { StateFileKey } from '@app/store/types.js';
 
 // Configure any excluded nchan channels that we support here
 const excludedWatches: StateFileKey[] = [StateFileKey.devs];

@@ -3,7 +3,7 @@ import {
     type DiskFsType,
     type RegistrationState,
     type registrationType,
-} from '@app/graphql/generated/api/types';
+} from '@app/graphql/generated/api/types.js';
 
 /**
  * Global vars

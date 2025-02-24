@@ -3,12 +3,13 @@ import noRelativeImportPaths from 'eslint-plugin-no-relative-import-paths';
 import pluginNode from 'eslint-plugin-node';
 import prettier from 'eslint-plugin-prettier';
 import tseslint from 'typescript-eslint';
-
+import importPlugin from 'eslint-plugin-import';
 export default tseslint.config(eslint.configs.recommended, ...tseslint.configs.recommended, {
     plugins: {
         'no-relative-import-paths': noRelativeImportPaths,
         prettier: prettier,
-        node: pluginNode,
+        // node: pluginNode,
+        import: importPlugin
     },
     rules: {
         '@typescript-eslint/no-redundant-type-constituents': 'off',
@@ -31,7 +32,14 @@ export default tseslint.config(eslint.configs.recommended, ...tseslint.configs.r
             { allowSameFolder: false, rootDir: 'src', prefix: '@app' },
         ],
         'prettier/prettier': 'error',
-        'node/file-extension-in-import': ['error', 'always'],
+        'import/extensions': [
+            'error',
+            'always',
+            {
+                js: 'always',
+                ts: 'always',
+            },
+        ],
     },
 
     ignores: ['src/graphql/generated/client/**/*'],

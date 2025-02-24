@@ -1,9 +1,9 @@
 import fs from 'fs';
 import path from 'path';
 
-import convert from 'convert';
+import { convert } from 'convert';
 
-import { logger } from '@app/core/log';
+import { logger } from '@app/core/log.js';
 
 const writeFile = async (filePath: string, fileContents: string | Buffer) => {
     logger.debug(`Writing ${convert(fileContents.length, 'bytes').to('kilobytes')} to ${filePath}`);

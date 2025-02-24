@@ -5,14 +5,14 @@ import { ThrottlerModule } from '@nestjs/throttler';
 import { AuthZGuard } from 'nest-authz';
 import { LoggerModule } from 'nestjs-pino';
 
-import { apiLogger } from '@app/core/log';
-import { LOG_LEVEL } from '@app/environment';
-import { GraphqlAuthGuard } from '@app/unraid-api/auth/auth.guard';
-import { AuthModule } from '@app/unraid-api/auth/auth.module';
-import { CronModule } from '@app/unraid-api/cron/cron.module';
-import { GraphModule } from '@app/unraid-api/graph/graph.module';
-import { RestModule } from '@app/unraid-api/rest/rest.module';
-import { UnraidFileModifierModule } from '@app/unraid-api/unraid-file-modifier/unraid-file-modifier.module';
+import { apiLogger } from '@app/core/log.js';
+import { LOG_LEVEL } from '@app/environment.js';
+import { GraphqlAuthGuard } from '@app/unraid-api/auth/auth.guard.js';
+import { AuthModule } from '@app/unraid-api/auth/auth.module.js';
+import { CronModule } from '@app/unraid-api/cron/cron.module.js';
+import { GraphModule } from '@app/unraid-api/graph/graph.module.js';
+import { RestModule } from '@app/unraid-api/rest/rest.module.js';
+import { UnraidFileModifierModule } from '@app/unraid-api/unraid-file-modifier/unraid-file-modifier.module.js';
 
 @Module({
     imports: [

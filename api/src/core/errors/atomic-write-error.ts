@@ -1,4 +1,4 @@
-import { FatalAppError } from '@app/core/errors/fatal-error';
+import { FatalAppError } from '@app/core/errors/fatal-error.js';
 
 /**
  * Atomic write error

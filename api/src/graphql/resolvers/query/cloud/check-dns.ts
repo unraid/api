@@ -3,10 +3,10 @@ import { promisify } from 'util';
 
 import ip from 'ip';
 
-import { MOTHERSHIP_GRAPHQL_LINK } from '@app/environment';
-import { store } from '@app/store';
-import { getDnsCache } from '@app/store/getters';
-import { setDNSCheck } from '@app/store/modules/cache';
+import { MOTHERSHIP_GRAPHQL_LINK } from '@app/environment.js';
+import { getDnsCache } from '@app/store/getters/index.js';
+import { store } from '@app/store/index.js';
+import { setDNSCheck } from '@app/store/modules/cache.js';
 
 const msHostname = new URL(MOTHERSHIP_GRAPHQL_LINK).host;
 
@@ -41,7 +41,9 @@ export const checkDNS = async (hostname = msHostname): Promise<{ cloudIp: string
         // The user's server and the DNS server they're using are returning different results
         if (!local.includes(network))
             throw new Error(
-                `Local and network resolvers showing different IP for "${hostname}". [local="${local ?? 'NOT FOUND'}"] [network="${network ?? 'NOT FOUND'}"]`
+                `Local and network resolvers showing different IP for "${hostname}". [local="${
+                    local ?? 'NOT FOUND'
+                }"] [network="${network ?? 'NOT FOUND'}"]`
             );
 
         // The user likely has a PI-hole or something similar running.

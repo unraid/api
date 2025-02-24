@@ -2,10 +2,10 @@ import { promises as fs } from 'fs';
 
 import Table from 'cli-table';
 
-import { FileMissingError } from '@app/core/errors/file-missing-error';
-import { type CoreContext, type CoreResult } from '@app/core/types';
-import { ensurePermission } from '@app/core/utils/permissions/ensure-permission';
-import { getters } from '@app/store';
+import { FileMissingError } from '@app/core/errors/file-missing-error.js';
+import { type CoreContext, type CoreResult } from '@app/core/types/index.js';
+import { ensurePermission } from '@app/core/utils/permissions/ensure-permission.js';
+import { getters } from '@app/store/index.js';
 
 /**
  * Get parity history.
@@ -35,7 +35,7 @@ export const getParityHistory = async (context: CoreContext): Promise<CoreResult
             duration: Number.parseInt(duration, 10),
             speed,
             status,
-            errors: Number.parseInt(errors, 10),
+            errors: Number.parseInt(errors, 10)
         };
     });
 
@@ -46,10 +46,11 @@ export const getParityHistory = async (context: CoreContext): Promise<CoreResult
     // Update raw values with strings
     parityChecks.forEach((check) => {
         const array = Object.values({
-            ...check,
+            date: check.date,
             speed: check.speed ? check.speed : 'Unavailable',
-            duration: check.duration >= 0 ? check.duration : 'Unavailable',
+            duration: check.duration >= 0 ? check.duration.toString() : 'Unavailable',
             status: check.status === '-4' ? 'Cancelled' : 'OK',
+            errors: check.errors.toString(),
         });
         table.push(array);
     });

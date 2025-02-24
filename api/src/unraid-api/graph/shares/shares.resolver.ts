@@ -2,8 +2,8 @@ import { Query, Resolver } from '@nestjs/graphql';
 
 import { AuthActionVerb, AuthPossession, UsePermissions } from 'nest-authz';
 
-import { getShares } from '@app/core/utils/index';
-import { Resource } from '@app/graphql/generated/api/types';
+import { getShares } from '@app/core/utils/shares/get-shares.js';
+import { Resource } from '@app/graphql/generated/api/types.js';
 
 @Resolver('Shares')
 export class SharesResolver {

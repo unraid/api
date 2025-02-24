@@ -2,11 +2,13 @@ import 'reflect-metadata';
 
 import { expect, test } from 'vitest';
 
-import packageJson from '@app/../package.json';
-import { checkMothershipAuthentication } from '@app/graphql/resolvers/query/cloud/check-mothership-authentication';
+import { checkMothershipAuthentication } from '@app/graphql/resolvers/query/cloud/check-mothership-authentication.js';
+import { readFileSync } from 'fs';
+import path from 'path';
 
 test('It fails to authenticate with mothership with no credentials', async () => {
     try {
+        const packageJson = JSON.parse(readFileSync(path.join(__dirname, '../../../../../../package.json'), 'utf-8'));
         await expect(
             checkMothershipAuthentication('BAD', 'BAD')
         ).rejects.toThrowErrorMatchingInlineSnapshot(

@@ -1,6 +1,6 @@
-import { logger } from '@app/core/log';
-import { type MinigraphqlResponse } from '@app/graphql/generated/api/types';
-import { getters } from '@app/store';
+import { logger } from '@app/core/log.js';
+import { type MinigraphqlResponse } from '@app/graphql/generated/api/types.js';
+import { getters } from '@app/store/index.js';
 
 export const checkMinigraphql = (): MinigraphqlResponse => {
     logger.trace('Cloud endpoint: Checking mini-graphql');

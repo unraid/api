@@ -1,8 +1,8 @@
 import { readFile, stat } from 'node:fs/promises';
 import { join } from 'node:path';
 
-import { getters } from '@app/store/index';
-import { FileLoadStatus } from '@app/store/types';
+import { getters } from '@app/store/index.js';
+import { FileLoadStatus } from '@app/store/types.js';
 
 const isImageFile = async (path: string): Promise<boolean> => {
     try {

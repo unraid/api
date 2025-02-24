@@ -1,12 +1,12 @@
 import { isAnyOf } from '@reduxjs/toolkit';
 
-import { remoteAccessLogger } from '@app/core/log';
-import { DynamicRemoteAccessType } from '@app/graphql/generated/api/types';
-import { RemoteAccessController } from '@app/remoteAccess/remote-access-controller';
-import { type RootState } from '@app/store';
-import { startAppListening } from '@app/store/listeners/listener-middleware';
-import { loadConfigFile } from '@app/store/modules/config';
-import { FileLoadStatus } from '@app/store/types';
+import { remoteAccessLogger } from '@app/core/log.js';
+import { DynamicRemoteAccessType } from '@app/graphql/generated/api/types.js';
+import { RemoteAccessController } from '@app/remoteAccess/remote-access-controller.js';
+import { type RootState } from '@app/store/index.js';
+import { startAppListening } from '@app/store/listeners/listener-middleware.js';
+import { loadConfigFile } from '@app/store/modules/config.js';
+import { FileLoadStatus } from '@app/store/types.js';
 
 const shouldDynamicRemoteAccessBeEnabled = (state: RootState | null): boolean => {
     if (

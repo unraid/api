@@ -8,10 +8,10 @@ import type { IncomingMessage } from 'http';
 import type { Observable } from 'rxjs';
 import { parse as parseCookies } from 'cookie';
 
-import type { FastifyRequest } from '@app/types/fastify';
-import { apiLogger } from '@app/core/log';
-import { UserCookieStrategy } from '@app/unraid-api/auth/cookie.strategy';
-import { ServerHeaderStrategy } from '@app/unraid-api/auth/header.strategy';
+import type { FastifyRequest } from '@app/types/fastify.js';
+import { apiLogger } from '@app/core/log.js';
+import { UserCookieStrategy } from '@app/unraid-api/auth/cookie.strategy.js';
+import { ServerHeaderStrategy } from '@app/unraid-api/auth/header.strategy.js';
 
 /**
  * Context of incoming requests.

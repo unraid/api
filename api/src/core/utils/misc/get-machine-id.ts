@@ -1,7 +1,7 @@
 import { readFile } from 'fs/promises';
 
-import { FileMissingError } from '@app/core/errors/file-missing-error';
-import { getters } from '@app/store';
+import { FileMissingError } from '@app/core/errors/file-missing-error.js';
+import { getters } from '@app/store/index.js';
 
 let machineId: string | null = null;
 

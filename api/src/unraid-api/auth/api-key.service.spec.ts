@@ -6,17 +6,17 @@ import { ensureDir, ensureDirSync } from 'fs-extra';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { ZodError } from 'zod';
 
-import type { ApiKey, ApiKeyWithSecret } from '@app/graphql/generated/api/types';
-import { environment } from '@app/environment';
-import { ApiKeySchema, ApiKeyWithSecretSchema } from '@app/graphql/generated/api/operations';
-import { Resource, Role } from '@app/graphql/generated/api/types';
-import { getters, store } from '@app/store';
-import { updateUserConfig } from '@app/store/modules/config';
-import { FileLoadStatus } from '@app/store/types';
-import { ApiKeyService } from '@app/unraid-api/auth/api-key.service';
+import type { ApiKey, ApiKeyWithSecret } from '@app/graphql/generated/api/types.js';
+import { environment } from '@app/environment.js';
+import { ApiKeySchema, ApiKeyWithSecretSchema } from '@app/graphql/generated/api/operations.js';
+import { Resource, Role } from '@app/graphql/generated/api/types.js';
+import { getters, store } from '@app/store/index.js';
+import { updateUserConfig } from '@app/store/modules/config.js';
+import { FileLoadStatus } from '@app/store/types.js';
+import { ApiKeyService } from '@app/unraid-api/auth/api-key.service.js';
 
 // Mock the store and its modules
-vi.mock('@app/store', () => ({
+vi.mock('@app/store.js', () => ({
     getters: {
         config: vi.fn(),
         paths: vi.fn(),
@@ -27,7 +27,7 @@ vi.mock('@app/store', () => ({
     },
 }));
 
-vi.mock('@app/store/modules/config', () => ({
+vi.mock('@app/store/modules/config.js', () => ({
     updateUserConfig: vi.fn(),
     setLocalApiKey: vi.fn(),
 }));
@@ -39,7 +39,7 @@ vi.mock('fs/promises', async () => ({
     writeFile: vi.fn(),
 }));
 
-vi.mock('@app/graphql/generated/api/operations', () => ({
+vi.mock('@app/graphql/generated/api/operations.js', () => ({
     ApiKeyWithSecretSchema: vi.fn(),
     ApiKeySchema: vi.fn(),
 }));

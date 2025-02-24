@@ -3,7 +3,7 @@ import { readFile } from 'node:fs/promises';
 import {
     FileModification,
     ShouldApplyWithReason,
-} from '@app/unraid-api/unraid-file-modifier/file-modification';
+} from '@app/unraid-api/unraid-file-modifier/file-modification.js';
 
 export default class SSOFileModification extends FileModification {
     id: string = 'sso';
@@ -83,7 +83,7 @@ function verifyUsernamePasswordAndSSO(string $username, string $password): bool 
     }
 
     async shouldApply(): Promise<ShouldApplyWithReason> {
-        const { getters } = await import('@app/store/index');
+        const { getters } = await import('@app/store/index.js');
         const hasConfiguredSso = getters.config().remote.ssoSubIds.length > 0;
         return hasConfiguredSso
             ? { shouldApply: true, reason: 'SSO is configured - enabling support in .login.php' }

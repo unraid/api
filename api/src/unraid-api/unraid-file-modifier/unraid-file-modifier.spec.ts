@@ -6,12 +6,12 @@ import { join } from 'path';
 import { createPatch } from 'diff';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { fileExistsSync } from '@app/core/utils/files/file-exists';
+import { fileExistsSync } from '@app/core/utils/files/file-exists.js';
 import {
     FileModification,
     ShouldApplyWithReason,
-} from '@app/unraid-api/unraid-file-modifier/file-modification';
-import { UnraidFileModificationService } from '@app/unraid-api/unraid-file-modifier/unraid-file-modifier.service';
+} from '@app/unraid-api/unraid-file-modifier/file-modification.js';
+import { UnraidFileModificationService } from '@app/unraid-api/unraid-file-modifier/unraid-file-modifier.service.js';
 
 const FIXTURE_PATH = join(__dirname, 'modifications', '__test__', '__fixtures__', 'text-patch-file.txt');
 const ORIGINAL_CONTENT = 'original';

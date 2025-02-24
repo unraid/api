@@ -1,5 +1,5 @@
 // Created from 'create-ts-index'
 
-export * from './add-role';
-export * from './delete-user';
-export * from './get-user';
+export * from './add-role.js';
+export * from './delete-user.js';
+export * from './get-user.js';

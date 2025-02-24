@@ -1,8 +1,8 @@
 import { expect, test } from 'vitest';
 
-import { store } from '@app/store';
-import { loadRegistrationKey } from '@app/store/modules/registration';
-import { FileLoadStatus, StateFileKey } from '@app/store/types';
+import { store } from '@app/store/index.js';
+import { loadRegistrationKey } from '@app/store/modules/registration.js';
+import { FileLoadStatus, StateFileKey } from '@app/store/types.js';
 
 // Preloading imports for faster tests
 
@@ -24,8 +24,8 @@ test('Requires emhttp to be loaded to find key file', async () => {
 });
 
 test('Returns empty key if key location is empty', async () => {
-    const { updateEmhttpState } = await import('@app/store/modules/emhttp');
-    const { loadRegistrationKey } = await import('@app/store/modules/registration');
+    const { updateEmhttpState } = await import('@app/store/modules/emhttp.js');
+    const { loadRegistrationKey } = await import('@app/store/modules/registration.js');
 
     // Set key file location as empty
     // This should only happen if the user doesn't have a key file
@@ -48,8 +48,8 @@ test('Returns empty key if key location is empty', async () => {
 });
 
 test('Returns decoded key file if key location exists', async () => {
-    const { loadRegistrationKey } = await import('@app/store/modules/registration');
-    const { loadStateFiles } = await import('@app/store/modules/emhttp');
+    const { loadRegistrationKey } = await import('@app/store/modules/registration.js');
+    const { loadStateFiles } = await import('@app/store/modules/emhttp.js');
 
     // Load state files into store
     await store.dispatch(loadStateFiles());

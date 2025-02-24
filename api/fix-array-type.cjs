@@ -7,13 +7,12 @@
  * @return {string}
  */
 function FixArrayType(str) {
-	if (str === 'Array') {
-		return 'ArrayType';
-	}
+    if (str === 'Array') {
+        return 'ArrayType';
+    }
 
-	// If result is an empty string, just return the original string
-	return str;
+    // If result is an empty string, just return the original string
+    return str;
 }
 
 module.exports = FixArrayType;
-

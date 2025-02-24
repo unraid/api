@@ -2,12 +2,12 @@ import { join } from 'path';
 
 import { expect, test } from 'vitest';
 
-import type { NetworkIni } from '@app/store/state-parsers/network';
-import { store } from '@app/store';
+import type { NetworkIni } from '@app/store/state-parsers/network.js';
+import { store } from '@app/store/index.js';
 
 test('Returns parsed state file', async () => {
-    const { parse } = await import('@app/store/state-parsers/network');
-    const { parseConfig } = await import('@app/core/utils/misc/parse-config');
+    const { parse } = await import('@app/store/state-parsers/network.js');
+    const { parseConfig } = await import('@app/core/utils/misc/parse-config.js');
     const { paths } = store.getState();
     const filePath = join(paths.states, 'network.ini');
     const stateFile = parseConfig<NetworkIni>({

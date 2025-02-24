@@ -2,10 +2,10 @@ import type { PayloadAction } from '@reduxjs/toolkit';
 import { createSlice } from '@reduxjs/toolkit';
 import NodeCache from 'node-cache';
 
-import type { DNSCheck } from '@app/store/types';
-import { ONE_HOUR_SECS } from '@app/consts';
-import { type CloudResponse } from '@app/graphql/generated/api/types';
-import { CacheKeys } from '@app/store/types';
+import type { DNSCheck } from '@app/store/types.js';
+import { ONE_HOUR_SECS } from '@app/consts.js';
+import { type CloudResponse } from '@app/graphql/generated/api/types.js';
+import { CacheKeys } from '@app/store/types.js';
 
 const initialState: {
     nodeCache: NodeCache;

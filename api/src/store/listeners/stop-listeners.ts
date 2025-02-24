@@ -1,5 +1,5 @@
-import { logger } from '@app/core/log';
-import { listenerMiddleware } from '@app/store/listeners/listener-middleware';
+import { logger } from '@app/core/log.js';
+import { listenerMiddleware } from '@app/store/listeners/listener-middleware.js';
 
 export const stopListeners = () => {
     logger.debug('Stopping app listeners');

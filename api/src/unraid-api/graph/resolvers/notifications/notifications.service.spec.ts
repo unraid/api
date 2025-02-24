@@ -12,11 +12,11 @@ import type {
     NotificationData,
     NotificationFilter,
     NotificationOverview,
-} from '@app/graphql/generated/api/types';
-import { type NotificationIni } from '@app/core/types/states/notification';
-import { NotificationSchema } from '@app/graphql/generated/api/operations';
-import { Importance, NotificationType } from '@app/graphql/generated/api/types';
-import { NotificationsService } from '@app/unraid-api/graph/resolvers/notifications/notifications.service';
+} from '@app/graphql/generated/api/types.js';
+import { type NotificationIni } from '@app/core/types/states/notification.js';
+import { NotificationSchema } from '@app/graphql/generated/api/operations.js';
+import { Importance, NotificationType } from '@app/graphql/generated/api/types.js';
+import { NotificationsService } from '@app/unraid-api/graph/resolvers/notifications/notifications.service.js';
 
 // defined outside `describe` so it's defined inside the `beforeAll`
 // needed to mock the dynamix import
@@ -41,7 +41,7 @@ describe.sequential('NotificationsService', () => {
         await mkdir(basePath, { recursive: true });
         // need to mock the dynamix import bc the file watcher is init'ed in the service constructor
         // i.e. before we can mock service.paths()
-        vi.mock(import('../../../../store'), async (importOriginal) => {
+        vi.mock(import('../../../../store/index.js'), async (importOriginal) => {
             const mod = await importOriginal();
             return {
                 ...mod,

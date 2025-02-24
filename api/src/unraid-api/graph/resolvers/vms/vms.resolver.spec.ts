@@ -3,7 +3,7 @@ import { Test } from '@nestjs/testing';
 
 import { beforeEach, describe, expect, it } from 'vitest';
 
-import { VmsResolver } from '@app/unraid-api/graph/resolvers/vms/vms.resolver';
+import { VmsResolver } from '@app/unraid-api/graph/resolvers/vms/vms.resolver.js';
 
 describe('VmsResolver', () => {
     let resolver: VmsResolver;

@@ -4,10 +4,10 @@ import type { PayloadAction } from '@reduxjs/toolkit';
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 import { merge } from 'lodash-es';
 
-import type { RootState } from '@app/store';
-import { logger } from '@app/core/log';
-import { getKeyFile } from '@app/core/utils/misc/get-key-file';
-import { FileLoadStatus } from '@app/store/types';
+import type { RootState } from '@app/store/index.js';
+import { logger } from '@app/core/log.js';
+import { getKeyFile } from '@app/core/utils/misc/get-key-file.js';
+import { FileLoadStatus } from '@app/store/types.js';
 
 export type SliceState = {
     status: FileLoadStatus;

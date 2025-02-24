@@ -1,11 +1,11 @@
-import type { AccessUrlInput } from '@app/graphql/generated/client/graphql';
-import type { RootState } from '@app/store';
-import { logger } from '@app/core';
-import { type Nginx } from '@app/core/types/states/nginx';
-import { type AccessUrl } from '@app/graphql/generated/api/types';
-import { URL_TYPE } from '@app/graphql/generated/client/graphql';
-import { AccessUrlInputSchema } from '@app/graphql/generated/client/validators';
-import { store } from '@app/store';
+import type { AccessUrlInput } from '@app/graphql/generated/client/graphql.js';
+import type { RootState } from '@app/store/index.js';
+import { logger } from '@app/core/log.js';
+import { type Nginx } from '@app/core/types/states/nginx.js';
+import { type AccessUrl } from '@app/graphql/generated/api/types.js';
+import { URL_TYPE } from '@app/graphql/generated/client/graphql.js';
+import { AccessUrlInputSchema } from '@app/graphql/generated/client/validators.js';
+import { store } from '@app/store/index.js';
 
 interface UrlForFieldInput {
     url: string;
@@ -55,7 +55,10 @@ export const getUrlForField = ({
 
 const fieldIsFqdn = (field: keyof Nginx) => field?.toLowerCase().includes('fqdn');
 
-export type NginxUrlFields = Extract<keyof Nginx, 'lanIp' | 'lanIp6' | 'lanName' | 'lanMdns'>;
+export type NginxUrlFields = Extract<
+    keyof Nginx,
+    'lanIp' | 'lanIp6' | 'lanName' | 'lanMdns' | 'lanFqdn' | 'wanFqdn' | 'wanFqdn6'
+>;
 
 /**
  *

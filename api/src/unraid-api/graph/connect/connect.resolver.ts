@@ -7,11 +7,15 @@ import { AuthActionVerb, AuthPossession, UsePermissions } from 'nest-authz';
 import type {
     DynamicRemoteAccessStatus,
     EnableDynamicRemoteAccessInput,
-} from '@app/graphql/generated/api/types';
-import { ConnectResolvers, DynamicRemoteAccessType, Resource } from '@app/graphql/generated/api/types';
-import { RemoteAccessController } from '@app/remoteAccess/remote-access-controller';
-import { store } from '@app/store/index';
-import { setAllowedRemoteAccessUrl } from '@app/store/modules/dynamic-remote-access';
+} from '@app/graphql/generated/api/types.js';
+import {
+    ConnectResolvers,
+    DynamicRemoteAccessType,
+    Resource,
+} from '@app/graphql/generated/api/types.js';
+import { RemoteAccessController } from '@app/remoteAccess/remote-access-controller.js';
+import { store } from '@app/store/index.js';
+import { setAllowedRemoteAccessUrl } from '@app/store/modules/dynamic-remote-access.js';
 
 @Resolver('Connect')
 export class ConnectResolver implements ConnectResolvers {

@@ -1,6 +1,6 @@
 import 'reflect-metadata';
 import 'global-agent/bootstrap.js';
-import '@app/dotenv';
+import '@app/dotenv.js';
 
 import { type NestFastifyApplication } from '@nestjs/platform-fastify';
 import { unlinkSync } from 'fs';
@@ -12,23 +12,23 @@ import CacheableLookup from 'cacheable-lookup';
 import { asyncExitHook, gracefulExit } from 'exit-hook';
 import { WebSocket } from 'ws';
 
-import { logger } from '@app/core/log';
-import { fileExistsSync } from '@app/core/utils/files/file-exists';
-import { environment, PORT } from '@app/environment';
-import * as envVars from '@app/environment';
-import { setupNewMothershipSubscription } from '@app/mothership/subscribe-to-mothership';
-import { store } from '@app/store';
-import { loadDynamixConfigFile } from '@app/store/actions/load-dynamix-config-file';
-import { shutdownApiEvent } from '@app/store/actions/shutdown-api-event';
-import { startMiddlewareListeners } from '@app/store/listeners/listener-middleware';
-import { loadConfigFile } from '@app/store/modules/config';
-import { loadStateFiles } from '@app/store/modules/emhttp';
-import { loadRegistrationKey } from '@app/store/modules/registration';
-import { startStoreSync } from '@app/store/store-sync';
-import { setupDynamixConfigWatch } from '@app/store/watch/dynamix-config-watch';
-import { setupRegistrationKeyWatch } from '@app/store/watch/registration-watch';
-import { StateManager } from '@app/store/watch/state-watch';
-import { setupVarRunWatch } from '@app/store/watch/var-run-watch';
+import { logger } from '@app/core/log.js';
+import { fileExistsSync } from '@app/core/utils/files/file-exists.js';
+import { environment, PORT } from '@app/environment.js';
+import * as envVars from '@app/environment.js';
+import { setupNewMothershipSubscription } from '@app/mothership/subscribe-to-mothership.js';
+import { loadDynamixConfigFile } from '@app/store/actions/load-dynamix-config-file.js';
+import { shutdownApiEvent } from '@app/store/actions/shutdown-api-event.js';
+import { store } from '@app/store/index.js';
+import { startMiddlewareListeners } from '@app/store/listeners/listener-middleware.js';
+import { loadConfigFile } from '@app/store/modules/config.js';
+import { loadStateFiles } from '@app/store/modules/emhttp.js';
+import { loadRegistrationKey } from '@app/store/modules/registration.js';
+import { startStoreSync } from '@app/store/store-sync.js';
+import { setupDynamixConfigWatch } from '@app/store/watch/dynamix-config-watch.js';
+import { setupRegistrationKeyWatch } from '@app/store/watch/registration-watch.js';
+import { StateManager } from '@app/store/watch/state-watch.js';
+import { setupVarRunWatch } from '@app/store/watch/var-run-watch.js';
 
 let server: NestFastifyApplication<RawServerDefault> | null = null;
 
@@ -88,7 +88,7 @@ export const viteNodeApp = async () => {
         startMiddlewareListeners();
 
         // Start webserver
-        const { bootstrapNestServer } = await import('@app/unraid-api/main');
+        const { bootstrapNestServer } = await import('@app/unraid-api/main.js');
 
         server = await bootstrapNestServer();
 

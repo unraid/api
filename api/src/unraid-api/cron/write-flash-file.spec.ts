@@ -4,8 +4,8 @@ import { readFileSync, writeFileSync } from 'fs';
 
 import { beforeEach, describe, expect, it } from 'vitest';
 
-import { getters } from '@app/store/index';
-import { WriteFlashFileService } from '@app/unraid-api/cron/write-flash-file.service';
+import { getters } from '@app/store/index.js';
+import { WriteFlashFileService } from '@app/unraid-api/cron/write-flash-file.service.js';
 
 describe('WriteFlashFileService', () => {
     let service: WriteFlashFileService;

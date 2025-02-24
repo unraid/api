@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-import { DynamicRemoteAccessType, MinigraphStatus } from '@app/graphql/generated/api/types';
+import { DynamicRemoteAccessType, MinigraphStatus } from '@app/graphql/generated/api/types.js';
 
 // Define Zod schemas
 const ApiConfigSchema = z.object({
