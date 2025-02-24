@@ -10,8 +10,12 @@
   <!ENTITY SHA256 "">
   <!ENTITY API_version "">
   <!ENTITY NODEJS_VERSION "22.14.0">
+  <!-- To get SHA256:
+       wget https://nodejs.org/download/release/v22.14.0/node-v22.14.0-linux-x64.tar.xz
+       sha256sum node-v22.14.0-linux-x64.tar.xz
+  -->
   <!ENTITY NODEJS_FILENAME "node-v&NODEJS_VERSION;-linux-x64.tar.xz">
-  <!ENTITY NODEJS_SHA256 "c6fa75c841cbffac851678a472f2a5bd612fff8308ef39236190e1f8dbb0e567">
+  <!ENTITY NODEJS_SHA256 "69b09dba5c8dcb05c4e4273a4340db1005abeafe3927efda2bc5b249e80437ec">
   <!ENTITY NODEJS_TXZ "https://nodejs.org/download/release/v&NODEJS_VERSION;/node-v&NODEJS_VERSION;-linux-x64.tar.xz">
   <!ENTITY MAIN_TXZ "">
   <!ENTITY TAG "">
