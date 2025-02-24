@@ -15,7 +15,7 @@ export const legacyColors = {
   '--shadow-beta': '0 25px 50px -12px rgba(242, 242, 242, .15)',
 } as const satisfies LegacyThemeVariables;
 
-export const defaultLight: ThemeVariables = {
+export const defaultDark: ThemeVariables = {
   '--background': '0 0% 3.9%',
   '--foreground': '0 0% 98%',
   '--muted': '0 0% 14.9%',
@@ -36,16 +36,16 @@ export const defaultLight: ThemeVariables = {
   '--destructive-foreground': '0 0% 98%',
   '--ring': '0 0% 83.1%',
   '--radius': '0.5rem',
-  '--header-text-primary': '#f2f2f2',
+  '--header-text-primary': '#1c1c1c',
   '--header-text-secondary': '#999999',
-  '--header-background-color': '#1c1b1b',
+  '--header-background-color': '#f2f2f2',
   '--header-gradient-start': 'rgba(0, 0, 0, 0)',
   '--header-gradient-end': 'var(--header-background-color)',
   '--banner-gradient': null,
   ...legacyColors,
 } as const satisfies ThemeVariables;
 
-export const defaultDark: ThemeVariables = {
+export const defaultLight: ThemeVariables = {
   '--background': '0 0% 100%',
   '--foreground': '0 0% 3.9%',
   '--muted': '0 0% 96.1%',
@@ -66,9 +66,9 @@ export const defaultDark: ThemeVariables = {
   '--destructive-foreground': '0 0% 98%',
   '--ring': '0 0% 3.9%',
   '--radius': '0.5rem',
-  '--header-text-primary': '#1c1c1c',
+  '--header-text-primary': '#f2f2f2',
   '--header-text-secondary': '#999999',
-  '--header-background-color': '#f2f2f2',
+  '--header-background-color': '#1c1b1b',
   '--header-gradient-start': 'rgba(0, 0, 0, 0)',
   '--header-gradient-end': 'var(--header-background-color)',
   '--banner-gradient': null,
