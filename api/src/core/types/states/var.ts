@@ -22,7 +22,7 @@ export type Var = {
     csrfToken: string;
     defaultFormat: string;
     /** Default file system for data disks. */
-    defaultFsType: DiskFsType.XFS;
+    defaultFsType: DiskFsType;
     /** Amount of connected drives (license device count). */
     deviceCount: number;
     domain: string;

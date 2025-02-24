@@ -27,7 +27,9 @@ export class VmsResolver {
             return domains;
         } catch (error) {
             // Consider using a proper logger here
-            throw new Error(`Failed to retrieve VM domains: ${error.message}`);
+            throw new Error(
+                `Failed to retrieve VM domains: ${error instanceof Error ? error.message : 'Unknown error'}`
+            );
         }
     }
 }

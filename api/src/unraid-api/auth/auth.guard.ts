@@ -5,8 +5,8 @@ import { GqlExecutionContext } from '@nestjs/graphql';
 import { AuthGuard } from '@nestjs/passport';
 
 import type { IncomingMessage } from 'http';
+import type { Observable } from 'rxjs';
 import { parse as parseCookies } from 'cookie';
-import { type Observable } from 'rxjs';
 
 import type { FastifyRequest } from '@app/types/fastify';
 import { apiLogger } from '@app/core/log';

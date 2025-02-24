@@ -80,7 +80,7 @@ describe('AuthService', () => {
 
         it('should throw UnauthorizedException when session user is missing', async () => {
             vi.spyOn(cookieService, 'hasValidAuthCookie').mockResolvedValue(true);
-            vi.spyOn(authService, 'getSessionUser').mockResolvedValue(null);
+            vi.spyOn(authService, 'getSessionUser').mockResolvedValue(null as unknown as UserAccount);
 
             await expect(authService.validateCookiesCasbin({})).rejects.toThrow(UnauthorizedException);
         });

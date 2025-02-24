@@ -1,6 +1,8 @@
 import type { TestingModule } from '@nestjs/testing';
 import { Test } from '@nestjs/testing';
 
+import { beforeEach, describe, expect, it } from 'vitest';
+
 import { InfoResolver } from '@app/unraid-api/graph/resolvers/info/info.resolver';
 
 describe('InfoResolver', () => {

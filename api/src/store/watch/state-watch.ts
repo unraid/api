@@ -1,6 +1,6 @@
 import { join, parse } from 'path';
 
-import type { FSWatcher, WatchOptions } from 'chokidar';
+import type { FSWatcher, FSWInstanceOptions } from 'chokidar';
 import { watch } from 'chokidar';
 
 import { emhttpLogger } from '@app/core/log';
@@ -12,7 +12,9 @@ import { StateFileKey } from '@app/store/types';
 // Configure any excluded nchan channels that we support here
 const excludedWatches: StateFileKey[] = [StateFileKey.devs];
 
-const chokidarOptionsForStateKey = (key: StateFileKey): WatchOptions => {
+const chokidarOptionsForStateKey = (
+    key: StateFileKey
+): Partial<Pick<FSWInstanceOptions, 'usePolling' | 'interval'>> => {
     if ([StateFileKey.disks, StateFileKey.shares].includes(key)) {
         return {
             usePolling: true,

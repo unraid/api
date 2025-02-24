@@ -411,7 +411,6 @@ describe.concurrent('NotificationsService legacy script compatibility', () => {
             expect.soft(result.escapedCommand).toMatchSnapshot();
 
             if (result.failed) {
-                // @ts-expect-error this is correct; `execa`'s return type just isn't comprehensive
                 // see https://github.com/sindresorhus/execa/blob/main/docs/errors.md#error-message
                 //
                 //* we use a snapshot because the script should only fail when it doesn't exist (ENOENT)

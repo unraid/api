@@ -62,7 +62,7 @@ export class SwitchEnvCommand extends CommandRunner {
 
         this.logger.warn('Stopping the Unraid API');
         try {
-            await this.stopCommand.run();
+            await this.stopCommand.run([], { delete: false });
         } catch (err) {
             this.logger.warn('Failed to stop the Unraid API (maybe already stopped?)');
         }

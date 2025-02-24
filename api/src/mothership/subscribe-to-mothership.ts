@@ -3,7 +3,7 @@ import { useFragment } from '@app/graphql/generated/client/fragment-masking';
 import { ClientType } from '@app/graphql/generated/client/graphql';
 import { EVENTS_SUBSCRIPTION, RemoteGraphQL_Fragment } from '@app/graphql/mothership/subscriptions';
 import { GraphQLClient } from '@app/mothership/graphql-client';
-import { initPingTimeoutJobs, PingTimeoutJobs } from '@app/mothership/jobs/ping-timeout-jobs';
+import { initPingTimeoutJobs } from '@app/mothership/jobs/ping-timeout-jobs';
 import { getMothershipConnectionParams } from '@app/mothership/utils/get-mothership-websocket-headers';
 import { store } from '@app/store';
 import { handleRemoteGraphQLEvent } from '@app/store/actions/handle-remote-graphql-event';

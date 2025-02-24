@@ -1,4 +1,4 @@
-import { type Subscription } from 'zen-observable-ts';
+import type { Subscription } from 'zen-observable-ts';
 
 import type { ArrayDisk, Share } from '@app/graphql/generated/api/types';
 import type { RootState } from '@app/store';

@@ -33,6 +33,7 @@ import {
     type Versions,
 } from '@app/graphql/generated/api/types';
 import { getters } from '@app/store';
+import { batchProcess } from '@app/utils';
 
 export const generateApps = async (): Promise<InfoApps> => {
     const installed = await docker
@@ -75,14 +76,27 @@ export const generateCpu = async (): Promise<InfoCpu> => {
 };
 
 export const generateDisplay = async (): Promise<Display> => {
-    const filePath = getters.paths()['dynamix-config'];
-    const state = loadState<DynamixConfig>(filePath);
-    if (!state) {
-        return {};
+    const filePaths = getters.paths()['dynamix-config'];
+
+    const state = filePaths.reduce<Partial<DynamixConfig>>(
+        (acc, filePath) => {
+            const state = loadState<DynamixConfig>(filePath);
+            return state ? { ...acc, ...state } : acc;
+        },
+        {
+            id: 'dynamix-config/display',
+        }
+    );
+
+    if (!state.display) {
+        return {
+            id: 'dynamix-config/display',
+        };
     }
     const { theme, unit, ...display } = state.display;
     return {
         ...display,
+        id: 'dynamix-config/display',
         theme: theme as Theme,
         unit: unit as Temperature,
         scale: toBoolean(display.scale),
@@ -138,12 +152,13 @@ export const generateMemory = async (): Promise<InfoMemory> => {
                 const end = lines.indexOf(nextHeaders);
                 const fields = lines.slice(start, end);
 
-                max = toBytes(
-                    fields
-                        ?.find((line) => line.trim().startsWith('Maximum Capacity'))
-                        ?.trim()
-                        ?.split(': ')[1] ?? '0'
-                );
+                max =
+                    toBytes(
+                        fields
+                            ?.find((line) => line.trim().startsWith('Maximum Capacity'))
+                            ?.trim()
+                            ?.split(': ')[1] ?? '0'
+                    ) ?? 0;
             }
         }
     } catch {
