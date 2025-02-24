@@ -23,10 +23,8 @@ import dayjs from 'dayjs';
 import prerelease from 'semver/functions/prerelease';
 
 import type { ApolloQueryResult } from '@apollo/client/core/index.js';
-import type { BrandButtonProps } from '@unraid/ui';
 import type { Config, PartialCloudFragment, serverStateQuery } from '~/composables/gql/graphql';
 import type { Error } from '~/store/errors';
-import type { Theme } from '~/store/theme';
 import type {
   Server,
   ServerAccountCallbackSendPayload,
@@ -42,7 +40,7 @@ import type {
   ServerStateDataKeyActions,
   ServerUpdateOsResponse,
 } from '~/types/server';
-
+import type { Theme } from '~/themes/types';
 import { useFragment } from '~/composables/gql/fragment-masking';
 import { WebguiState, WebguiUpdateIgnore } from '~/composables/services/webgui';
 import { useAccountStore } from '~/store/account';
