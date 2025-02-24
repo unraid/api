@@ -255,7 +255,7 @@ jobs:
           cd ${{ github.workspace }}/unraid-ui
           pnpm run build
       - name: Lint files
-        continue-on-error: true
+        continue-on-error: false
         run: pnpm run lint
 
       - name: Test

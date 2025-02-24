@@ -88,7 +88,7 @@ export const useUpdateOsStore = defineStore('updateOs', () => {
       // otherwise refresh the page
       window.location.reload();
     } catch (error) {
-      throw new Error('[cancelUpdate] Error cancelling update');
+      throw new Error(`[cancelUpdate] Error cancelling update with error: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   };
 

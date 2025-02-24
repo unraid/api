@@ -79,7 +79,11 @@ const checkButton = computed((): BrandButtonProps => {
     return {
       variant: 'outline',
       click: () => {
-        props.showExternalDowngrade ? accountStore.downgradeOs() : accountStore.updateOs();
+        if (props.showExternalDowngrade) {
+          accountStore.downgradeOs();
+        } else {
+          accountStore.updateOs();
+        }
       },
       icon: ArrowTopRightOnSquareIcon,
       text: props.t('More options'),

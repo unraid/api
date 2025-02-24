@@ -13,7 +13,6 @@ import {
   KeyIcon,
   QuestionMarkCircleIcon,
 } from '@heroicons/vue/24/solid';
-import { BrandButton } from '@unraid/ui';
 import {
   WEBGUI_SETTINGS_MANAGMENT_ACCESS,
   WEBGUI_TOOLS_REGISTRATION,
@@ -400,7 +399,11 @@ export const useServerStore = defineStore('server', () => {
     const { code } = storeToRefs(useActivationCodeStore());
     return {
       click: () => {
-        code.value ? purchaseStore.activate() : purchaseStore.redeem();
+        if (code.value) {
+          purchaseStore.activate();
+        } else {
+          purchaseStore.redeem();
+        }
       },
       disabled: serverActionsDisable.value.disable,
       external: true,

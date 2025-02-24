@@ -7,10 +7,6 @@ const handleSubmit = () => {
 </script>
 
 <template>
-  <head>
-    <title><?=$var['NAME']?>/Login</title>
-  </head>
-
   <body>
     <section id="login" class="shadow">
       <div class="logo angle">

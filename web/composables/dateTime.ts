@@ -192,7 +192,7 @@ const useDateTimeHelper = (
       const y = b ? dayjs(parseInt(b, 10)) : dayjs();
       return preciseDateDiff(x, y);
     } catch (error) {
-      throw new Error('Couldn\'t calculate date difference');
+      throw new Error(`Couldn't calculate date difference with error: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   };
 

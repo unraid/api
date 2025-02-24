@@ -21,7 +21,7 @@
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "type-check": "nuxi typecheck",
-    "clean": "rm -rf .nuxt .output node_modules/.vite node_modules/.cache dist",
+    "clean": "rm -rf .nuxt .output dist",
     "// GraphQL Codegen": "",
     "codegen": "graphql-codegen --config codegen.ts -r dotenv/config",
     "codegen:watch": "graphql-codegen --config codegen.ts --watch -r dotenv/config",
@@ -60,6 +60,7 @@
     "tailwindcss": "^3.0.0",
     "tailwindcss-animate": "^1.0.7",
     "terser": "^5.37.0",
+    "typescript": "^5.7.3",
     "vite-plugin-remove-console": "^2.2.0",
     "vitest": "^2.1.3",
     "vue-tsc": "^2.1.10"
