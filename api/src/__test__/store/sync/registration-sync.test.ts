@@ -5,9 +5,9 @@ vi.mock('@app/core/pubsub', () => ({
 }));
 
 test('Creates a registration event', async () => {
-    const { createRegistrationEvent } = await import('@app/store/sync/registration-sync');
-    const { store } = await import('@app/store');
-    const { loadStateFiles } = await import('@app/store/modules/emhttp');
+    const { createRegistrationEvent } = await import('@app/store/sync/registration-sync.js');
+    const { store } = await import('@app/store/index.js');
+    const { loadStateFiles } = await import('@app/store/modules/emhttp.js');
 
     // Load state files into store
     await store.dispatch(loadStateFiles());

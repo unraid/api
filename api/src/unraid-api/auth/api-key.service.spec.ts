@@ -16,7 +16,7 @@ import { FileLoadStatus } from '@app/store/types.js';
 import { ApiKeyService } from '@app/unraid-api/auth/api-key.service.js';
 
 // Mock the store and its modules
-vi.mock('@app/store.js', () => ({
+vi.mock('@app/store/index.js', () => ({
     getters: {
         config: vi.fn(),
         paths: vi.fn(),
@@ -27,10 +27,14 @@ vi.mock('@app/store.js', () => ({
     },
 }));
 
-vi.mock('@app/store/modules/config.js', () => ({
-    updateUserConfig: vi.fn(),
-    setLocalApiKey: vi.fn(),
-}));
+vi.mock('@app/store/modules/config.js', async (importOriginal) => {
+    const actual = await importOriginal<typeof import('@app/store/modules/config.js')>();
+    return {
+        ...actual,
+        updateUserConfig: vi.fn(),
+        setLocalApiKey: vi.fn(),
+    };
+});
 
 // Mock fs/promises
 vi.mock('fs/promises', async () => ({
