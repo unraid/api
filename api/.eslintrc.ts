@@ -39,13 +39,17 @@ export default tseslint.config(eslint.configs.recommended, ...tseslint.configs.r
                 ts: 'always',
             },
         ],
-        'no-restricted-globals': ["error", {
-            "name": "__dirname",
-            "message": "Use import.meta.url instead of __dirname in ESM"
-        }, {
-            "name": "__filename",
-            "message": "Use import.meta.url instead of __filename in ESM"
-        }],
+        'no-restricted-globals': [
+            'error',
+            {
+                name: '__dirname',
+                message: 'Use import.meta.url instead of __dirname in ESM',
+            },
+            {
+                name: '__filename',
+                message: 'Use import.meta.url instead of __filename in ESM',
+            },
+        ],
     },
 
     ignores: ['src/graphql/generated/client/**/*'],

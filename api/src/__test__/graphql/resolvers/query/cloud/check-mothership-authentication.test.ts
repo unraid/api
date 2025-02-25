@@ -9,9 +9,7 @@ import { checkMothershipAuthentication } from '@app/graphql/resolvers/query/clou
 
 test('It fails to authenticate with mothership with no credentials', async () => {
     try {
-        const packageJson = JSON.parse(
-            readFileSync(join(process.cwd(), 'package.json'), 'utf-8')
-        );
+        const packageJson = JSON.parse(readFileSync(join(process.cwd(), 'package.json'), 'utf-8'));
         await expect(
             checkMothershipAuthentication('BAD', 'BAD')
         ).rejects.toThrowErrorMatchingInlineSnapshot(
