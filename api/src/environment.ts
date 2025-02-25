@@ -1,9 +1,14 @@
 import { readFileSync } from 'node:fs';
 import { homedir } from 'node:os';
-import { join } from 'node:path';
+import { dirname, join } from 'node:path';
+import { fileURLToPath } from 'node:url';
 
 const getPackageJsonVersion = () => {
-    const packageJson = readFileSync(join(__dirname, 'package.json'), 'utf-8');
+    // Go up one level from the current directory to find package.json
+    const packageJson = readFileSync(
+        join(dirname(fileURLToPath(import.meta.url)), 'package.json'),
+        'utf-8'
+    );
     const packageJsonObject = JSON.parse(packageJson);
     return packageJsonObject.version;
 };

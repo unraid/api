@@ -1,7 +1,8 @@
 import { Logger } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import { promises as fs } from 'fs';
-import { join } from 'path';
+import { dirname, join } from 'path';
+import { fileURLToPath } from 'url';
 
 import { createPatch } from 'diff';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
@@ -13,7 +14,13 @@ import {
 } from '@app/unraid-api/unraid-file-modifier/file-modification.js';
 import { UnraidFileModificationService } from '@app/unraid-api/unraid-file-modifier/unraid-file-modifier.service.js';
 
-const FIXTURE_PATH = join(__dirname, 'modifications', '__test__', '__fixtures__', 'text-patch-file.txt');
+const FIXTURE_PATH = join(
+    dirname(fileURLToPath(import.meta.url)),
+    'modifications',
+    '__test__',
+    '__fixtures__',
+    'text-patch-file.txt'
+);
 const ORIGINAL_CONTENT = 'original';
 
 class TestFileModification extends FileModification {

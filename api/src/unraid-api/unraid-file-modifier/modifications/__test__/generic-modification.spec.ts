@@ -1,7 +1,6 @@
 import { Logger } from '@nestjs/common';
 import { readFile, writeFile } from 'fs/promises';
-import { afterEach } from 'node:test';
-import { basename, resolve } from 'path';
+import { basename, dirname, resolve } from 'path';
 
 import { describe, expect, test, vi } from 'vitest';
 
@@ -11,6 +10,7 @@ import DefaultPageLayoutModification from '@app/unraid-api/unraid-file-modifier/
 import { LogRotateModification } from '@app/unraid-api/unraid-file-modifier/modifications/log-rotate.modification.js';
 import NotificationsPageModification from '@app/unraid-api/unraid-file-modifier/modifications/notifications-page.modification.js';
 import SSOFileModification from '@app/unraid-api/unraid-file-modifier/modifications/sso.modification.js';
+import { fileURLToPath } from 'url';
 
 interface ModificationTestCase {
     ModificationClass: new (...args: ConstructorParameters<typeof FileModification>) => FileModification;
@@ -18,7 +18,7 @@ interface ModificationTestCase {
     fileName: string;
 }
 
-const getPathToFixture = (fileName: string) => resolve(__dirname, `__fixtures__/downloaded/${fileName}`);
+const getPathToFixture = (fileName: string) => resolve(dirname(fileURLToPath(import.meta.url)), `__fixtures__/downloaded/${fileName}`);
 
 /** Modifications that patch the content of an existing file in one or more places. */
 const patchTestCases: ModificationTestCase[] = [

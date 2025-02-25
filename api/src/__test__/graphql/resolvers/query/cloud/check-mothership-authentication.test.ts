@@ -1,7 +1,7 @@
 import 'reflect-metadata';
 
 import { readFileSync } from 'fs';
-import path from 'path';
+import { join } from 'path';
 
 import { expect, test } from 'vitest';
 
@@ -10,7 +10,7 @@ import { checkMothershipAuthentication } from '@app/graphql/resolvers/query/clou
 test('It fails to authenticate with mothership with no credentials', async () => {
     try {
         const packageJson = JSON.parse(
-            readFileSync(path.join(__dirname, '../../../../../../package.json'), 'utf-8')
+            readFileSync(join(process.cwd(), 'package.json'), 'utf-8')
         );
         await expect(
             checkMothershipAuthentication('BAD', 'BAD')
