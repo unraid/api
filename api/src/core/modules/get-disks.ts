@@ -62,7 +62,7 @@ const parseDisk = async (
                 : DiskInterfaceType.UNKNOWN,
         temperature: temperature ? await getTemperature(disk) : -1,
         partitions,
-        id: disk.serialNum
+        id: disk.serialNum,
     };
 };
 
