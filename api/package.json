@@ -13,29 +13,33 @@
         "pnpm": ">=8.0.0"
     },
     "scripts": {
-        "// Main application commands": "",
+        "// Development": "",
         "start": "node dist/main.js",
         "dev": "vite",
         "command": "pnpm run build && clear && ./dist/cli.js",
-        "// Build commands": "",
+
+        "// Build": "",
         "build": "vite build --mode=production",
         "postbuild": "chmod +x dist/main.js && chmod +x dist/cli.js",
         "build:docker": "./scripts/dc.sh run --rm builder",
         "build-and-pack": "tsx ./scripts/build.ts",
-        "// Code generation commands": "",
+
+        "// GraphQL Codegen": "",
         "codegen": "MOTHERSHIP_GRAPHQL_LINK='https://staging.mothership.unraid.net/ws' graphql-codegen --config codegen.ts -r dotenv/config './.env.staging'",
         "codegen:watch": "DOTENV_CONFIG_PATH='./.env.staging' graphql-codegen --config codegen.ts --watch -r dotenv/config",
         "codegen:local": "NODE_TLS_REJECT_UNAUTHORIZED=0  MOTHERSHIP_GRAPHQL_LINK='https://mothership.localhost/ws' graphql-codegen --config codegen.ts --watch",
-        "// Development and quality tools": "",
-        "tsc": "tsc --noEmit",
+
+        "// Code Quality": "",
         "lint": "eslint --config .eslintrc.ts src/",
         "lint:fix": "eslint --fix --config .eslintrc.ts src/",
-        "release": "standard-version",
-        "// Testing commands": "",
+        "type-check": "tsc --noEmit",
+
+        "// Testing": "",
         "test": "NODE_ENV=test vitest run",
         "test:watch": "NODE_ENV=test vitest --ui",
         "coverage": "NODE_ENV=test vitest run --coverage",
-        "// Container management commands": "",
+
+        "// Docker": "",
         "container:build": "./scripts/dc.sh build dev",
         "container:start": "pnpm run container:stop && ./scripts/dc.sh run --rm --service-ports dev",
         "container:stop": "./scripts/dc.sh stop dev",

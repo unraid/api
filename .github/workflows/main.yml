@@ -254,9 +254,12 @@ jobs:
         run: |
           cd ${{ github.workspace }}/unraid-ui
           pnpm run build
+
       - name: Lint files
-        continue-on-error: true
         run: pnpm run lint
+
+      - name: Type Check
+        run: pnpm run type-check
 
       - name: Test
         run: pnpm run test:ci
