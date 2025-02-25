@@ -4,13 +4,17 @@ import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const getPackageJsonVersion = () => {
-    // Go up one level from the current directory to find package.json
-    const packageJson = readFileSync(
-        join(dirname(fileURLToPath(import.meta.url)), 'package.json'),
-        'utf-8'
-    );
-    const packageJsonObject = JSON.parse(packageJson);
-    return packageJsonObject.version;
+    try {
+        // Use import.meta.resolve to get the URL of package.json
+        const packageJsonUrl = import.meta.resolve('../package.json');
+        const packageJsonPath = fileURLToPath(packageJsonUrl);
+        const packageJson = readFileSync(packageJsonPath, 'utf-8');
+        const packageJsonObject = JSON.parse(packageJson);
+        return packageJsonObject.version;
+    } catch (error) {
+        console.error('Failed to load package.json:', error);
+        return undefined;
+    }
 };
 
 export const API_VERSION =
