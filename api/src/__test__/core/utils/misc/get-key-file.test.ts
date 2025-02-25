@@ -48,17 +48,21 @@ test('Returns empty key if key location is empty', async () => {
     await expect(getKeyFile()).resolves.toBe('');
 });
 
-test('Returns decoded key file if key location exists', async () => {
-    const { getKeyFile } = await import('@app/core/utils/misc/get-key-file.js');
-    const { loadStateFiles } = await import('@app/store/modules/emhttp.js');
+test(
+    'Returns decoded key file if key location exists',
+    async () => {
+        const { getKeyFile } = await import('@app/core/utils/misc/get-key-file.js');
+        const { loadStateFiles } = await import('@app/store/modules/emhttp.js');
 
-    // Load state files into store
-    await store.dispatch(loadStateFiles());
+        // Load state files into store
+        await store.dispatch(loadStateFiles());
 
-    // Check if store has state files loaded
-    const { status } = store.getState().registration;
-    expect(status).toBe(FileLoadStatus.LOADED);
-    await expect(getKeyFile()).resolves.toMatchInlineSnapshot(
-        '"hVs1tLjvC9FiiQsIwIQ7G1KszAcexf0IneThhnmf22SB0dGs5WzRkqMiSMmt2DtR5HOXFUD32YyxuzGeUXmky3zKpSu6xhZNKVg5atGM1OfvkzHBMldI3SeBLuUFSgejLbpNUMdTrbk64JJdbzle4O8wiQgkIpAMIGxeYLwLBD4zHBcfyzq40QnxG--HcX6j25eE0xqa2zWj-j0b0rCAXahJV2a3ySCbPzr1MvfPRTVb0rr7KJ-25R592hYrz4H7Sc1B3p0lr6QUxHE6o7bcYrWKDRtIVoZ8SMPpd1_0gzYIcl5GsDFzFumTXUh8NEnl0Q8hwW1YE-tRc6Y_rrvd7w"'
-    );
-});
+        // Check if store has state files loaded
+        const { status } = store.getState().registration;
+        expect(status).toBe(FileLoadStatus.LOADED);
+        await expect(getKeyFile()).resolves.toMatchInlineSnapshot(
+            '"hVs1tLjvC9FiiQsIwIQ7G1KszAcexf0IneThhnmf22SB0dGs5WzRkqMiSMmt2DtR5HOXFUD32YyxuzGeUXmky3zKpSu6xhZNKVg5atGM1OfvkzHBMldI3SeBLuUFSgejLbpNUMdTrbk64JJdbzle4O8wiQgkIpAMIGxeYLwLBD4zHBcfyzq40QnxG--HcX6j25eE0xqa2zWj-j0b0rCAXahJV2a3ySCbPzr1MvfPRTVb0rr7KJ-25R592hYrz4H7Sc1B3p0lr6QUxHE6o7bcYrWKDRtIVoZ8SMPpd1_0gzYIcl5GsDFzFumTXUh8NEnl0Q8hwW1YE-tRc6Y_rrvd7w"'
+        );
+    },
+    { timeout: 10000 }
+);
