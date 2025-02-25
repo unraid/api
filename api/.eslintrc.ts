@@ -1,6 +1,5 @@
 import eslint from '@eslint/js';
 import noRelativeImportPaths from 'eslint-plugin-no-relative-import-paths';
-import pluginNode from 'eslint-plugin-node';
 import prettier from 'eslint-plugin-prettier';
 import tseslint from 'typescript-eslint';
 import importPlugin from 'eslint-plugin-import';
@@ -34,7 +33,7 @@ export default tseslint.config(eslint.configs.recommended, ...tseslint.configs.r
         'prettier/prettier': 'error',
         'import/extensions': [
             'error',
-            'always',
+            'ignorePackages',
             {
                 js: 'always',
                 ts: 'always',

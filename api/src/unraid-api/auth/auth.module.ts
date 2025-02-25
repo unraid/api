@@ -5,9 +5,9 @@ import { AUTHZ_ENFORCER, AuthZModule } from 'nest-authz';
 
 import { ApiKeyService } from '@app/unraid-api/auth/api-key.service.js';
 import { AuthService } from '@app/unraid-api/auth/auth.service.js';
-import { BASE_POLICY, CASBIN_MODEL } from '@app/unraid-api/auth/casbin/index.js';
 import { CasbinModule } from '@app/unraid-api/auth/casbin/casbin.module.js';
 import { CasbinService } from '@app/unraid-api/auth/casbin/casbin.service.js';
+import { BASE_POLICY, CASBIN_MODEL } from '@app/unraid-api/auth/casbin/index.js';
 import { CookieService, SESSION_COOKIE_CONFIG } from '@app/unraid-api/auth/cookie.service.js';
 import { UserCookieStrategy } from '@app/unraid-api/auth/cookie.strategy.js';
 import { ServerHeaderStrategy } from '@app/unraid-api/auth/header.strategy.js';

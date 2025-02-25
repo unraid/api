@@ -18,7 +18,7 @@ interface Context extends CoreContext {
  */
 export const deleteUser = async (context: Context): Promise<CoreResult> => {
     // Check permissions
-    
+
     const { params } = context;
     const { name } = params;
     const missingFields = hasFields(params, ['name']);

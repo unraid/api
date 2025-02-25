@@ -35,7 +35,7 @@ export const getParityHistory = async (context: CoreContext): Promise<CoreResult
             duration: Number.parseInt(duration, 10),
             speed,
             status,
-            errors: Number.parseInt(errors, 10)
+            errors: Number.parseInt(errors, 10),
         };
     });
 

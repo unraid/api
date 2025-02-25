@@ -5,7 +5,7 @@ import { ensurePermission } from '@app/core/utils/permissions/ensure-permission.
 import { getters } from '@app/store/index.js';
 
 export const addShare = async (context: CoreContext<unknown, { name: string }>): Promise<CoreResult> => {
-    const { user, data } = context; 
+    const { user, data } = context;
 
     if (!data?.name) {
         throw new AppError('No name provided');

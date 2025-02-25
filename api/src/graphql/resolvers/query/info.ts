@@ -5,10 +5,10 @@ import { execa, execaCommandSync } from 'execa';
 import { isSymlink } from 'path-type';
 import { cpu, cpuFlags, mem, memLayout, osInfo, versions } from 'systeminformation';
 
+import type { PciDevice } from '@app/core/types/index.js';
 import { bootTimestamp } from '@app/common/dashboard/boot-timestamp.js';
 import { getUnraidVersion } from '@app/common/dashboard/get-unraid-version.js';
 import { AppError } from '@app/core/errors/app-error.js';
-import type { PciDevice } from '@app/core/types/index.js';
 import { type DynamixConfig } from '@app/core/types/ini.js';
 import { toBoolean } from '@app/core/utils/casting.js';
 import { docker } from '@app/core/utils/clients/docker.js';

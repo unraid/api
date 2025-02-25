@@ -16,7 +16,9 @@ import { updateDockerState } from '@app/store/modules/docker.js';
  * @returns All the in/active Docker containers on the system.
  */
 
-export const getDockerContainers = async ({ useCache } = { useCache: true }): Promise<Array<DockerContainer>> => {
+export const getDockerContainers = async (
+    { useCache } = { useCache: true }
+): Promise<Array<DockerContainer>> => {
     const dockerState = getters.docker();
     if (useCache && dockerState.containers) {
         dockerLogger.trace('Using docker container cache');
@@ -54,7 +56,7 @@ export const getDockerContainers = async ({ useCache } = { useCache: true }): Pr
                 imageId: container.ImageID,
                 state:
                     typeof container.State === 'string'
-                        ? ContainerState[container.State.toUpperCase()] ?? ContainerState.EXITED
+                        ? (ContainerState[container.State.toUpperCase()] ?? ContainerState.EXITED)
                         : ContainerState.EXITED,
                 autoStart: autoStarts.includes(names.split('/')[1]),
                 ports: container.Ports.map<ContainerPort>((port) => ({

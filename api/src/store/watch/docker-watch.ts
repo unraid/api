@@ -8,13 +8,15 @@ import { updateDockerState } from '@app/store/modules/docker.js';
 
 const updateContainerCache = async () => {
     try {
-        const { getDockerContainers } = await import('@app/core/modules/docker/get-docker-containers.js');
+        const { getDockerContainers } = await import(
+            '@app/core/modules/docker/get-docker-containers.js'
+        );
         await getDockerContainers({ useCache: false });
     } catch (err) {
         dockerLogger.warn('Caught error getting containers %o', err);
         store.dispatch(
             updateDockerState({
-                installed: null,    
+                installed: null,
                 running: null,
                 containers: [],
             })
