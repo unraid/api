@@ -1,6 +1,6 @@
 import type { Config, PartialCloudFragment } from '~/composables/gql/graphql';
 import type { ActivationCodeData } from '~/store/activationCode';
-import type { Theme } from '~/store/theme';
+import type { Theme } from '~/themes/types';
 import type { UserProfileLink } from '~/types/userProfile';
 
 

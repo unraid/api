@@ -19,6 +19,7 @@ const origins = computed<string[]>(() => {
       try {
         const newUrl = new URL(origin.trim());
         newOrigins.push(newUrl.toString());
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
       } catch (e) {
         errors.value.push(`Invalid origin: ${origin}`);
       }
