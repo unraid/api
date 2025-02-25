@@ -18,7 +18,7 @@ export type Scalars = {
   Int: { input: number; output: number; }
   Float: { input: number; output: number; }
   DateTime: { input: string; output: string; }
-  JSON: { input: { [key: string]: any }; output: { [key: string]: any }; }
+  JSON: { input: Record<string, any>; output: Record<string, any>; }
   Long: { input: number; output: number; }
   Port: { input: number; output: number; }
   URL: { input: URL; output: URL; }

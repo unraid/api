@@ -17,7 +17,7 @@ const config: CodegenConfig = {
         scalars: {
             DateTime: 'string',
             Long: 'number',
-            JSON: '{ [key: string]: any }',
+            JSON: 'Record<string, any>',
             URL: 'URL',
             Port: 'number',
             UUID: 'string',
