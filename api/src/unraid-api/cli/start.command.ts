@@ -1,10 +1,10 @@
 import { Command, CommandRunner, Option } from 'nest-commander';
 
-import type { LogLevel } from '@app/core/log';
-import { ECOSYSTEM_PATH } from '@app/consts';
-import { levels } from '@app/core/log';
-import { LogService } from '@app/unraid-api/cli/log.service';
-import { PM2Service } from '@app/unraid-api/cli/pm2.service';
+import type { LogLevel } from '@app/core/log.js';
+import { ECOSYSTEM_PATH } from '@app/consts.js';
+import { levels } from '@app/core/log.js';
+import { LogService } from '@app/unraid-api/cli/log.service.js';
+import { PM2Service } from '@app/unraid-api/cli/pm2.service.js';
 
 interface StartCommandOptions {
     'log-level'?: string;

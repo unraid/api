@@ -5,6 +5,7 @@ type Query {
     disks: [Disk]!
 }
 type Disk {
+    id: ID!
     # /dev/sdb
     device: String!
     # SSD

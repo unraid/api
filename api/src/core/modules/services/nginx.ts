@@ -1,6 +1,6 @@
 import { execa } from 'execa';
 
-import { logger } from '@app/core/log';
+import { logger } from '@app/core/log.js';
 
 export class NginxManager {
     public reloadNginx = async () => {

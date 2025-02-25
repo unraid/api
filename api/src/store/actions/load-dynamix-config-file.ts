@@ -3,10 +3,10 @@ import { access } from 'fs/promises';
 
 import { createAsyncThunk } from '@reduxjs/toolkit';
 
-import { type DynamixConfig } from '@app/core/types/ini';
-import { parseConfig } from '@app/core/utils/misc/parse-config';
-import { type RecursiveNullable, type RecursivePartial } from '@app/types';
-import { batchProcess } from '@app/utils';
+import { type DynamixConfig } from '@app/core/types/ini.js';
+import { parseConfig } from '@app/core/utils/misc/parse-config.js';
+import { type RecursiveNullable, type RecursivePartial } from '@app/types/index.js';
+import { batchProcess } from '@app/utils.js';
 
 /**
  * Loads a configuration file from disk, parses it to a RecursivePartial of the provided type, and returns it.
@@ -40,7 +40,7 @@ export const loadDynamixConfigFile = createAsyncThunk<
     if (filePath) {
         return loadConfigFile<DynamixConfig>(filePath);
     }
-    const store = await import('@app/store');
+    const store = await import('@app/store/index.js');
     const paths = store.getters.paths()['dynamix-config'];
     const { data: configs } = await batchProcess(paths, (path) => loadConfigFile<DynamixConfig>(path));
     const [defaultConfig = {}, customConfig = {}] = configs;

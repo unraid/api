@@ -1,15 +1,20 @@
 import type { PayloadAction } from '@reduxjs/toolkit';
 import { createSlice } from '@reduxjs/toolkit';
 
-import type { AccessUrl, AccessUrlInput } from '@app/graphql/generated/api/types';
-import { remoteAccessLogger } from '@app/core/log';
-import { DynamicRemoteAccessType, URL_TYPE } from '@app/graphql/generated/api/types';
+import type { AccessUrlInput } from '@app/graphql/generated/api/types.js';
+import { remoteAccessLogger } from '@app/core/log.js';
+import { DynamicRemoteAccessType, URL_TYPE } from '@app/graphql/generated/api/types.js';
 
 interface DynamicRemoteAccessState {
     runningType: DynamicRemoteAccessType; // Is Dynamic Remote Access actively running - shows type of access currently running
     error: string | null;
     lastPing: number | null;
-    allowedUrl: AccessUrl | null; // Not used yet, will be used to facilitate allowlisting clients
+    allowedUrl: {
+        ipv4: string | null | undefined;
+        ipv6: string | null | undefined;
+        type: URL_TYPE;
+        name: string | null | undefined;
+    } | null;
 }
 
 const initialState: DynamicRemoteAccessState = {
@@ -45,10 +50,9 @@ const dynamicRemoteAccess = createSlice({
         },
         setAllowedRemoteAccessUrl(state, action: PayloadAction<AccessUrlInput | null>) {
             if (action.payload) {
-                console.log(action.payload);
                 state.allowedUrl = {
-                    ipv4: action.payload.ipv4,
-                    ipv6: action.payload.ipv6,
+                    ipv4: action.payload.ipv4?.toString(),
+                    ipv6: action.payload.ipv6?.toString(),
                     type: action.payload.type ?? URL_TYPE.WAN,
                     name: action.payload.name,
                 };

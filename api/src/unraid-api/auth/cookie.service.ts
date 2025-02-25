@@ -2,9 +2,9 @@ import { Inject, Injectable, Logger } from '@nestjs/common';
 import { readFile } from 'fs/promises';
 import { join } from 'path';
 
-import { fileExists } from '@app/core/utils/files/file-exists';
-import { getters } from '@app/store';
-import { batchProcess } from '@app/utils';
+import { fileExists } from '@app/core/utils/files/file-exists.js';
+import { getters } from '@app/store/index.js';
+import { batchProcess } from '@app/utils.js';
 
 /** token for dependency injection of a session cookie options object */
 export const SESSION_COOKIE_CONFIG = 'SESSION_COOKIE_CONFIG';

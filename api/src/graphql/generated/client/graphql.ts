@@ -21,7 +21,7 @@ export type Scalars = {
   /** A field whose value is a IPv6 address: https://en.wikipedia.org/wiki/IPv6. */
   IPv6: { input: any; output: any; }
   /** The `JSON` scalar type represents JSON values as specified by [ECMA-404](http://www.ecma-international.org/publications/files/ECMA-ST/ECMA-404.pdf). */
-  JSON: { input: { [key: string]: any }; output: { [key: string]: any }; }
+  JSON: { input: Record<string, any>; output: Record<string, any>; }
   /** The `Long` scalar type represents 52-bit integers */
   Long: { input: number; output: number; }
   /** A field whose value is a valid TCP port within the range of 0 to 65535: https://en.wikipedia.org/wiki/Transmission_Control_Protocol#TCP_ports */

@@ -1,6 +1,6 @@
-import type { StateFileToIniParserMap } from '@app/store/types';
-import { toNumberOrNullConvert } from '@app/core/utils/casting';
-import { type Share } from '@app/graphql/generated/api/types';
+import type { StateFileToIniParserMap } from '@app/store/types.js';
+import { toNumberOrNullConvert } from '@app/core/utils/casting.js';
+import { type Share } from '@app/graphql/generated/api/types.js';
 
 export type SharesIni = Array<{
     name: string;

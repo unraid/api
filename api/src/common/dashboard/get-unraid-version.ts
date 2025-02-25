@@ -1,5 +1,5 @@
-import { getters } from '@app/store';
-import { FileLoadStatus } from '@app/store/types';
+import { getters } from '@app/store/index.js';
+import { FileLoadStatus } from '@app/store/types.js';
 
 /**
  * Unraid version string.

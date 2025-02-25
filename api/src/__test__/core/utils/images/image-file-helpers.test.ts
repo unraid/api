@@ -1,8 +1,11 @@
 import { expect, test } from 'vitest';
 
-import { getBannerPathIfPresent, getCasePathIfPresent } from '@app/core/utils/images/image-file-helpers';
-import { loadDynamixConfigFile } from '@app/store/actions/load-dynamix-config-file';
-import { store } from '@app/store/index';
+import {
+    getBannerPathIfPresent,
+    getCasePathIfPresent,
+} from '@app/core/utils/images/image-file-helpers.js';
+import { loadDynamixConfigFile } from '@app/store/actions/load-dynamix-config-file.js';
+import { store } from '@app/store/index.js';
 
 test('get case path returns expected result', async () => {
     await expect(getCasePathIfPresent()).resolves.toContain('/dev/dynamix/case-model.png');

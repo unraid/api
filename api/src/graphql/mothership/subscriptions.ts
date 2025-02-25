@@ -1,4 +1,4 @@
-import { graphql } from '@app/graphql/generated/client/gql';
+import { graphql } from '@app/graphql/generated/client/gql.js';
 
 export const RemoteGraphQL_Fragment = graphql(/* GraphQL */ `
     fragment RemoteGraphQLEventFragment on RemoteGraphQLEvent {

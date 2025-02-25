@@ -1,11 +1,11 @@
-import type { RemoteGraphQLEventFragmentFragment } from '@app/graphql/generated/client/graphql';
-import { remoteQueryLogger } from '@app/core/log';
-import { getApiApolloClient } from '@app/graphql/client/api/get-api-client';
-import { RemoteGraphQLEventType } from '@app/graphql/generated/client/graphql';
-import { SEND_REMOTE_QUERY_RESPONSE } from '@app/graphql/mothership/mutations';
-import { parseGraphQLQuery } from '@app/graphql/resolvers/subscription/remote-graphql/remote-graphql-helpers';
-import { GraphQLClient } from '@app/mothership/graphql-client';
-import { getters } from '@app/store/index';
+import type { RemoteGraphQLEventFragmentFragment } from '@app/graphql/generated/client/graphql.js';
+import { remoteQueryLogger } from '@app/core/log.js';
+import { getApiApolloClient } from '@app/graphql/client/api/get-api-client.js';
+import { RemoteGraphQLEventType } from '@app/graphql/generated/client/graphql.js';
+import { SEND_REMOTE_QUERY_RESPONSE } from '@app/graphql/mothership/mutations.js';
+import { parseGraphQLQuery } from '@app/graphql/resolvers/subscription/remote-graphql/remote-graphql-helpers.js';
+import { GraphQLClient } from '@app/mothership/graphql-client.js';
+import { getters } from '@app/store/index.js';
 
 export const executeRemoteGraphQLQuery = async (
     data: RemoteGraphQLEventFragmentFragment['remoteGraphQLEventData']

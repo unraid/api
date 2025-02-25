@@ -3,9 +3,9 @@ import { Query, ResolveField, Resolver, Subscription } from '@nestjs/graphql';
 import { AuthActionVerb, AuthPossession, UsePermissions } from 'nest-authz';
 import { baseboard, system } from 'systeminformation';
 
-import { createSubscription, PUBSUB_CHANNEL } from '@app/core/pubsub';
-import { getMachineId } from '@app/core/utils/misc/get-machine-id';
-import { Resource } from '@app/graphql/generated/api/types';
+import { createSubscription, PUBSUB_CHANNEL } from '@app/core/pubsub.js';
+import { getMachineId } from '@app/core/utils/misc/get-machine-id.js';
+import { Resource } from '@app/graphql/generated/api/types.js';
 import {
     generateApps,
     generateCpu,
@@ -14,7 +14,7 @@ import {
     generateMemory,
     generateOs,
     generateVersions,
-} from '@app/graphql/resolvers/query/info';
+} from '@app/graphql/resolvers/query/info.js';
 
 @Resolver('Info')
 export class InfoResolver {

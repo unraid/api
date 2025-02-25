@@ -1,7 +1,9 @@
 import type { TestingModule } from '@nestjs/testing';
 import { Test } from '@nestjs/testing';
 
-import { VmsResolver } from '@app/unraid-api/graph/resolvers/vms/vms.resolver';
+import { beforeEach, describe, expect, it } from 'vitest';
+
+import { VmsResolver } from '@app/unraid-api/graph/resolvers/vms/vms.resolver.js';
 
 describe('VmsResolver', () => {
     let resolver: VmsResolver;

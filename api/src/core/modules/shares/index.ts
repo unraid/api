@@ -1,3 +1,3 @@
 // Created from 'create-ts-index'
 
-export * from './name';
+export * from './name/index.js';

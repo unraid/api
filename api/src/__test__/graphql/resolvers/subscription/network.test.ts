@@ -1,15 +1,15 @@
 import { expect, test } from 'vitest';
 
-import type { NginxUrlFields } from '@app/graphql/resolvers/subscription/network';
-import { type Nginx } from '@app/core/types/states/nginx';
+import type { NginxUrlFields } from '@app/graphql/resolvers/subscription/network.js';
+import { type Nginx } from '@app/core/types/states/nginx.js';
 import {
     getServerIps,
     getUrlForField,
     getUrlForServer,
-} from '@app/graphql/resolvers/subscription/network';
-import { store } from '@app/store';
-import { loadConfigFile } from '@app/store/modules/config';
-import { loadStateFiles } from '@app/store/modules/emhttp';
+} from '@app/graphql/resolvers/subscription/network.js';
+import { store } from '@app/store/index.js';
+import { loadConfigFile } from '@app/store/modules/config.js';
+import { loadStateFiles } from '@app/store/modules/emhttp.js';
 
 test.each([
     [{ httpPort: 80, httpsPort: 443, url: 'my-default-url.com' }],
@@ -117,16 +117,16 @@ test('getUrlForServer - field does not exist, ssl disabled', async () => {
 
 test('getUrlForServer - FQDN - field exists, port non-empty', () => {
     const result = getUrlForServer({
-        nginx: { lanFqdn: 'my-fqdn.unraid.net', httpsPort: 445 } as const as Nginx,
-        field: 'lanFqdn',
+        nginx: { lanFqdn: 'my-fqdn.unraid.net', httpsPort: 445 } as unknown as Nginx,
+        field: 'lanFqdn' as NginxUrlFields,
     });
     expect(result).toMatchInlineSnapshot('"https://my-fqdn.unraid.net:445/"');
 });
 
 test('getUrlForServer - FQDN - field exists, port empty', () => {
     const result = getUrlForServer({
-        nginx: { lanFqdn: 'my-fqdn.unraid.net', httpPort: 80, httpsPort: 443 } as const as Nginx,
-        field: 'lanFqdn',
+        nginx: { lanFqdn: 'my-fqdn.unraid.net', httpPort: 80, httpsPort: 443 } as unknown as Nginx,
+        field: 'lanFqdn' as NginxUrlFields,
     });
     expect(result).toMatchInlineSnapshot('"https://my-fqdn.unraid.net/"');
 });
@@ -140,7 +140,7 @@ test.each([
                 sslMode: 'no',
                 httpPort: 80,
                 httpsPort: 443,
-            } as const as Nginx,
+            } as unknown as Nginx,
             field: 'lanFqdn' as NginxUrlFields,
         },
     ],
@@ -152,7 +152,7 @@ test.each([
                 sslMode: 'yes',
                 httpPort: 80,
                 httpsPort: 443,
-            } as const as Nginx,
+            } as unknown as Nginx,
             field: 'wanFqdn' as NginxUrlFields,
         },
     ],
@@ -164,7 +164,7 @@ test.each([
                 sslMode: 'auto',
                 httpPort: 80,
                 httpsPort: 443,
-            } as const as Nginx,
+            } as unknown as Nginx,
             field: 'wanFqdn6' as NginxUrlFields,
         },
     ],
@@ -176,7 +176,7 @@ test.each([
 test('getUrlForServer - field does not exist, ssl disabled', async () => {
     const getResult = async () =>
         getUrlForServer({
-            nginx: { lanFqdn: 'my-fqdn.unraid.net' } as const as Nginx,
+            nginx: { lanFqdn: 'my-fqdn.unraid.net' } as unknown as Nginx,
             ports: { portSsl: '', port: '', defaultUrl: new URL('https://my-default-url.unraid.net') },
             // @ts-expect-error Field doesn't exist
             field: 'idontexist',

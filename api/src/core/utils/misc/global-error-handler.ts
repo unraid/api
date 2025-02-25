@@ -1,4 +1,4 @@
-import { exitApp } from '@app/core/utils/misc/exit-app';
+import { exitApp } from '@app/core/utils/misc/exit-app.js';
 
 /**
  * Handles all global, bubbled and uncaught errors.

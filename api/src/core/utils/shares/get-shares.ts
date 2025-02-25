@@ -1,7 +1,7 @@
-import { AppError } from '@app/core/errors/app-error';
-import { type DiskShare, type UserShare } from '@app/core/types/states/share';
-import { processShare } from '@app/core/utils/shares/process-share';
-import { getters } from '@app/store';
+import { AppError } from '@app/core/errors/app-error.js';
+import { type DiskShare, type UserShare } from '@app/core/types/states/share.js';
+import { processShare } from '@app/core/utils/shares/process-share.js';
+import { getters } from '@app/store/index.js';
 
 interface Filter {
     name: string;

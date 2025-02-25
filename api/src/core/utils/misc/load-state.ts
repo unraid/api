@@ -1,7 +1,7 @@
 import camelCaseKeys from 'camelcase-keys';
 
-import { logger } from '@app/core/log';
-import { parseConfig } from '@app/core/utils/misc/parse-config';
+import { logger } from '@app/core/log.js';
+import { parseConfig } from '@app/core/utils/misc/parse-config.js';
 
 /**
  * Loads state from path.

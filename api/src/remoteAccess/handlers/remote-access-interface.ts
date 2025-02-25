@@ -1,5 +1,5 @@
-import { type AccessUrl } from '@app/graphql/generated/api/types';
-import { type AppDispatch, type RootState } from '@app/store/index';
+import { type AccessUrl } from '@app/graphql/generated/api/types.js';
+import { type AppDispatch, type RootState } from '@app/store/index.js';
 
 export interface GenericRemoteAccess {
     beginRemoteAccess({

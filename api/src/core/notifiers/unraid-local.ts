@@ -1,8 +1,8 @@
 import { execa } from 'execa';
 
-import type { NotifierOptions, NotifierSendOptions } from '@app/core/notifiers/notifier';
-import { logger } from '@app/core/log';
-import { Notifier } from '@app/core/notifiers/notifier';
+import type { NotifierOptions, NotifierSendOptions } from '@app/core/notifiers/notifier.js';
+import { logger } from '@app/core/log.js';
+import { Notifier } from '@app/core/notifiers/notifier.js';
 
 type ValidLocalLevels = 'alert' | 'warning' | 'normal';
 

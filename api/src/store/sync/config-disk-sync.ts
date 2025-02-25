@@ -1,11 +1,11 @@
 import { writeFileSync } from 'fs';
 
-import type { ConfigType } from '@app/core/utils/files/config-file-normalizer';
-import { logger } from '@app/core/log';
-import { getWriteableConfig } from '@app/core/utils/files/config-file-normalizer';
-import { safelySerializeObjectToIni } from '@app/core/utils/files/safe-ini-serializer';
-import { store } from '@app/store';
-import { FileLoadStatus } from '@app/store/types';
+import type { ConfigType } from '@app/core/utils/files/config-file-normalizer.js';
+import { logger } from '@app/core/log.js';
+import { getWriteableConfig } from '@app/core/utils/files/config-file-normalizer.js';
+import { safelySerializeObjectToIni } from '@app/core/utils/files/safe-ini-serializer.js';
+import { store } from '@app/store/index.js';
+import { FileLoadStatus } from '@app/store/types.js';
 
 export const writeConfigSync = (mode: ConfigType) => {
     const { config, paths } = store.getState();

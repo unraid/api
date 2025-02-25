@@ -1,15 +1,15 @@
 import { createAsyncThunk } from '@reduxjs/toolkit';
 
-import type { RemoteGraphQLEventFragmentFragment } from '@app/graphql/generated/client/graphql';
-import { remoteQueryLogger } from '@app/core/log';
-import { getApiApolloClient } from '@app/graphql/client/api/get-api-client';
-import { RemoteGraphQLEventType } from '@app/graphql/generated/client/graphql';
-import { SEND_REMOTE_QUERY_RESPONSE } from '@app/graphql/mothership/mutations';
-import { parseGraphQLQuery } from '@app/graphql/resolvers/subscription/remote-graphql/remote-graphql-helpers';
-import { GraphQLClient } from '@app/mothership/graphql-client';
-import { hasRemoteSubscription } from '@app/store/getters/index';
-import { type AppDispatch, type RootState } from '@app/store/index';
-import { type SubscriptionWithSha256 } from '@app/store/types';
+import type { RemoteGraphQLEventFragmentFragment } from '@app/graphql/generated/client/graphql.js';
+import { remoteQueryLogger } from '@app/core/log.js';
+import { getApiApolloClient } from '@app/graphql/client/api/get-api-client.js';
+import { RemoteGraphQLEventType } from '@app/graphql/generated/client/graphql.js';
+import { SEND_REMOTE_QUERY_RESPONSE } from '@app/graphql/mothership/mutations.js';
+import { parseGraphQLQuery } from '@app/graphql/resolvers/subscription/remote-graphql/remote-graphql-helpers.js';
+import { GraphQLClient } from '@app/mothership/graphql-client.js';
+import { hasRemoteSubscription } from '@app/store/getters/index.js';
+import { type AppDispatch, type RootState } from '@app/store/index.js';
+import { type SubscriptionWithSha256 } from '@app/store/types.js';
 
 export const addRemoteSubscription = createAsyncThunk<
     SubscriptionWithSha256,

@@ -1,7 +1,7 @@
 import Mustache from 'mustache';
 
-import { type LooseObject } from '@app/core/types';
-import { type NotificationIni } from '@app/core/types/states/notification';
+import { type LooseObject } from '@app/core/types/index.js';
+import { type NotificationIni } from '@app/core/types/states/notification.js';
 
 export type NotifierLevel = 'info' | 'warn' | 'error';
 

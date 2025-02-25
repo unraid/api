@@ -2,10 +2,10 @@ import { Query, Resolver, Subscription } from '@nestjs/graphql';
 
 import { AuthActionVerb, AuthPossession, UsePermissions } from 'nest-authz';
 
-import { getArrayData } from '@app/core/modules/array/get-array-data';
-import { createSubscription, PUBSUB_CHANNEL } from '@app/core/pubsub';
-import { Resource } from '@app/graphql/generated/api/types';
-import { store } from '@app/store/index';
+import { getArrayData } from '@app/core/modules/array/get-array-data.js';
+import { createSubscription, PUBSUB_CHANNEL } from '@app/core/pubsub.js';
+import { Resource } from '@app/graphql/generated/api/types.js';
+import { store } from '@app/store/index.js';
 
 @Resolver('Array')
 export class ArrayResolver {

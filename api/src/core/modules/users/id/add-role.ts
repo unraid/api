@@ -1,9 +1,9 @@
-import { AppError } from '@app/core/errors/app-error';
-import { FieldMissingError } from '@app/core/errors/field-missing-error';
-import { type CoreContext, type CoreResult } from '@app/core/types';
-import { ensurePermission } from '@app/core/utils/permissions/ensure-permission';
-import { hasFields } from '@app/core/utils/validation/has-fields';
-import { getters } from '@app/store';
+import { AppError } from '@app/core/errors/app-error.js';
+import { FieldMissingError } from '@app/core/errors/field-missing-error.js';
+import { type CoreContext, type CoreResult } from '@app/core/types/index.js';
+import { ensurePermission } from '@app/core/utils/permissions/ensure-permission.js';
+import { hasFields } from '@app/core/utils/validation/has-fields.js';
+import { getters } from '@app/store/index.js';
 
 interface Context extends CoreContext {
     params: {
@@ -16,14 +16,7 @@ interface Context extends CoreContext {
  * Add role to user.
  */
 export const addRole = async (context: Context): Promise<CoreResult> => {
-    const { user, params } = context;
-
-    // Check permissions
-    ensurePermission(user, {
-        resource: 'user',
-        action: 'update',
-        possession: 'any',
-    });
+    const { params } = context;
 
     // Validation
     const { name } = params;

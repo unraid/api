@@ -2,10 +2,10 @@ import { Controller, Get, Logger, Param, Res } from '@nestjs/common';
 
 import { AuthActionVerb, AuthPossession, UsePermissions } from 'nest-authz';
 
-import type { FastifyReply } from '@app/types/fastify';
-import { Resource } from '@app/graphql/generated/api/types';
-import { Public } from '@app/unraid-api/auth/public.decorator';
-import { RestService } from '@app/unraid-api/rest/rest.service';
+import type { FastifyReply } from '@app/types/fastify.js';
+import { Resource } from '@app/graphql/generated/api/types.js';
+import { Public } from '@app/unraid-api/auth/public.decorator.js';
+import { RestService } from '@app/unraid-api/rest/rest.service.js';
 
 @Controller()
 export class RestController {

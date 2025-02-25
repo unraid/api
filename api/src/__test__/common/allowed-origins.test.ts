@@ -1,7 +1,7 @@
-import { getAllowedOrigins } from '@app/common/allowed-origins';
-import { store } from '@app/store/index';
-import { loadConfigFile } from '@app/store/modules/config';
-import { loadStateFiles } from '@app/store/modules/emhttp';
+import { getAllowedOrigins } from '@app/common/allowed-origins.js';
+import { store } from '@app/store/index.js';
+import { loadConfigFile } from '@app/store/modules/config.js';
+import { loadStateFiles } from '@app/store/modules/emhttp.js';
 
 import 'reflect-metadata';
 

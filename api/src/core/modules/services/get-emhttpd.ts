@@ -1,8 +1,8 @@
 import { execa } from 'execa';
 
-import { type CoreContext, type CoreResult } from '@app/core/types';
-import { cleanStdout } from '@app/core/utils/misc/clean-stdout';
-import { ensurePermission } from '@app/core/utils/permissions/ensure-permission';
+import { type CoreContext, type CoreResult } from '@app/core/types/index.js';
+import { cleanStdout } from '@app/core/utils/misc/clean-stdout.js';
+import { ensurePermission } from '@app/core/utils/permissions/ensure-permission.js';
 
 interface Result extends CoreResult {
     json: {
@@ -33,7 +33,6 @@ export const getEmhttpdService = async (context: CoreContext): Promise<Result> =
     const online = uptime >= 1;
 
     return {
-        text: `Online: ${online}\n Uptime: ${uptime}`,
         json: {
             online,
             uptime,

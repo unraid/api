@@ -1,8 +1,8 @@
 import { expect, test, vi } from 'vitest';
 
-import { UnraidLocalNotifier } from '@app/core/notifiers/unraid-local';
+import { UnraidLocalNotifier } from '@app/core/notifiers/unraid-local.js';
 
-vi.mock('@app/core/log', () => ({
+vi.mock('@app/core/log.js', () => ({
     logger: {
         info: vi.fn(),
         error: vi.fn(),

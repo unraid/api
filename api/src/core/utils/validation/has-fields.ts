@@ -1,4 +1,4 @@
-import { type LooseObject } from '@app/core/types';
+import { type LooseObject } from '@app/core/types/index.js';
 
 /**
  * Check if object has fields.

@@ -1,7 +1,7 @@
 import { got, HTTPError, TimeoutError } from 'got';
 
-import { logger } from '@app/core';
-import { MOTHERSHIP_GRAPHQL_LINK } from '@app/environment';
+import { logger } from '@app/core/log.js';
+import { MOTHERSHIP_GRAPHQL_LINK } from '@app/environment.js';
 
 const createGotOptions = (apiVersion: string, apiKey: string) => ({
     timeout: {
@@ -15,6 +15,8 @@ const createGotOptions = (apiVersion: string, apiKey: string) => ({
     },
 });
 
+const isHttpError = (error: unknown): error is HTTPError => error instanceof HTTPError;
+
 // Check if we're rate limited, etc.
 export const checkMothershipAuthentication = async (apiVersion: string, apiKey: string) => {
     const msURL = new URL(MOTHERSHIP_GRAPHQL_LINK);
@@ -27,7 +29,7 @@ export const checkMothershipAuthentication = async (apiVersion: string, apiKey: 
         await got.head(url, options);
     } catch (error: unknown) {
         // HTTP errors
-        if (error instanceof HTTPError) {
+        if (isHttpError(error)) {
             switch (error.response.statusCode) {
                 case 429: {
                     const retryAfter = error.response.headers['retry-after'];

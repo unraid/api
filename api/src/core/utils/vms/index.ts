@@ -1,9 +1,8 @@
 // Created from 'create-ts-index'
 
-export * from './domain';
-export * from './filter-devices';
-export * from './get-hypervisor';
-export * from './get-pci-devices';
-export * from './parse-domain';
-export * from './parse-domains';
-export * from './system-network-interfaces';
+export * from './filter-devices.js';
+export * from './get-hypervisor.js';
+export * from './get-pci-devices.js';
+export * from './parse-domain.js';
+export * from './parse-domains.js';
+export * from './system-network-interfaces.js';

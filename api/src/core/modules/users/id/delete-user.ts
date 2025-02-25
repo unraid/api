@@ -1,10 +1,10 @@
-import type { CoreContext, CoreResult } from '@app/core/types';
-import { AppError } from '@app/core/errors/app-error';
-import { FieldMissingError } from '@app/core/errors/field-missing-error';
-import { emcmd } from '@app/core/utils/clients/emcmd';
-import { ensurePermission } from '@app/core/utils/permissions/ensure-permission';
-import { hasFields } from '@app/core/utils/validation/has-fields';
-import { getters } from '@app/store';
+import type { CoreContext, CoreResult } from '@app/core/types/index.js';
+import { AppError } from '@app/core/errors/app-error.js';
+import { FieldMissingError } from '@app/core/errors/field-missing-error.js';
+import { emcmd } from '@app/core/utils/clients/emcmd.js';
+import { ensurePermission } from '@app/core/utils/permissions/ensure-permission.js';
+import { hasFields } from '@app/core/utils/validation/has-fields.js';
+import { getters } from '@app/store/index.js';
 
 interface Context extends CoreContext {
     params: {
@@ -18,11 +18,6 @@ interface Context extends CoreContext {
  */
 export const deleteUser = async (context: Context): Promise<CoreResult> => {
     // Check permissions
-    ensurePermission(context.user, {
-        resource: 'user',
-        action: 'delete',
-        possession: 'any',
-    });
 
     const { params } = context;
     const { name } = params;

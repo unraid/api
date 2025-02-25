@@ -1,7 +1,7 @@
 import { pino } from 'pino';
 import pretty from 'pino-pretty';
 
-import { LOG_TYPE } from '@app/environment';
+import { LOG_TYPE } from '@app/environment.js';
 
 export const levels = ['trace', 'debug', 'info', 'warn', 'error', 'fatal'] as const;
 

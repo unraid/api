@@ -20,8 +20,8 @@
 		},
 		"skipLibCheck": true,
 		"target": "ESNext", /* Specify ECMAScript target version: 'ES3' (default), 'ES5', 'ES2015', 'ES2016', 'ES2017', 'ES2018', 'ES2019' or 'ESNEXT'. */
-		"module": "ESNext", /* Specify module code generation: 'none', 'commonjs', 'amd', 'system', 'umd', 'es2015', or 'ESNext'. */
-		"moduleResolution": "node", /* Specify module resolution strategy: 'node' (Node.js) or 'classic' (TypeScript pre-1.6). */
+		"module": "NodeNext", /* Specify module code generation: 'none', 'commonjs', 'amd', 'system', 'umd', 'es2015', or 'ESNext'. */
+		"moduleResolution": "nodenext", /* Specify module resolution strategy: 'node' (Node.js) or 'classic' (TypeScript pre-1.6). */
 		"allowJs": false, /* Allow javascript files to be compiled. */
 		"outDir": "./dist", /* Redirect output structure to the directory. */
 		"rootDir": "./src", /* Specify the root directory of input files. Use to control the output directory structure with --outDir. */
@@ -35,9 +35,13 @@
 		"noFallthroughCasesInSwitch": true, /* Report errors for fallthrough cases in switch statement. */
 		"baseUrl": "./", /* Base directory to resolve non-absolute module names. */
 		"typeRoots": [
-			"node_modules/@types/",
+			"node_modules/@types",
+			"node_modules",
 			"./src/types/"
-		], /* List of folders to include type definitions from. */
+		],
+		"types": [
+			"node",
+		],
 		"esModuleInterop": true, /* Enables emit interoperability between CommonJS and ES Modules via creation of namespace objects for all imports. Implies 'allowSyntheticDefaultImports'. */
 		"forceConsistentCasingInFileNames": true /* Disallow inconsistently-cased references to the same file. */,
 		"resolveJsonModule": true,

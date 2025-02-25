@@ -1,3 +1,3 @@
 // Created from 'create-ts-index'
 
-export * from './array-is-running';
+export * from './array-is-running.js';

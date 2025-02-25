@@ -1,9 +1,9 @@
-import type { CoreContext, CoreResult } from '@app/core/types';
-import { FieldMissingError } from '@app/core/errors/field-missing-error';
-import { ParamInvalidError } from '@app/core/errors/param-invalid-error';
-import { emcmd } from '@app/core/utils/clients/emcmd';
-import { ensurePermission } from '@app/core/utils/permissions/ensure-permission';
-import { getters } from '@app/store';
+import type { CoreContext, CoreResult } from '@app/core/types/index.js';
+import { FieldMissingError } from '@app/core/errors/field-missing-error.js';
+import { ParamInvalidError } from '@app/core/errors/param-invalid-error.js';
+import { emcmd } from '@app/core/utils/clients/emcmd.js';
+import { ensurePermission } from '@app/core/utils/permissions/ensure-permission.js';
+import { getters } from '@app/store/index.js';
 
 type State = 'start' | 'cancel' | 'resume' | 'cancel';
 

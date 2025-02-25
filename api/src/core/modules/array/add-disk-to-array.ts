@@ -1,11 +1,11 @@
-import { ArrayRunningError } from '@app/core/errors/array-running-error';
-import { FieldMissingError } from '@app/core/errors/field-missing-error';
-import { getArrayData } from '@app/core/modules/array/get-array-data';
-import { type CoreContext, type CoreResult } from '@app/core/types';
-import { arrayIsRunning } from '@app/core/utils/array/array-is-running';
-import { emcmd } from '@app/core/utils/clients/emcmd';
-import { ensurePermission } from '@app/core/utils/permissions/ensure-permission';
-import { hasFields } from '@app/core/utils/validation/has-fields';
+import { ArrayRunningError } from '@app/core/errors/array-running-error.js';
+import { FieldMissingError } from '@app/core/errors/field-missing-error.js';
+import { getArrayData } from '@app/core/modules/array/get-array-data.js';
+import { type CoreContext, type CoreResult } from '@app/core/types/index.js';
+import { arrayIsRunning } from '@app/core/utils/array/array-is-running.js';
+import { emcmd } from '@app/core/utils/clients/emcmd.js';
+import { ensurePermission } from '@app/core/utils/permissions/ensure-permission.js';
+import { hasFields } from '@app/core/utils/validation/has-fields.js';
 
 /**
  * Add a disk to the array.

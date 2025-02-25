@@ -2,11 +2,11 @@ import { Args, Mutation, Query, Resolver } from '@nestjs/graphql';
 
 import { AuthActionVerb, AuthPossession, UsePermissions } from 'nest-authz';
 
-import type { AllowedOriginInput } from '@app/graphql/generated/api/types';
-import { getAllowedOrigins } from '@app/common/allowed-origins';
-import { Config, ConfigErrorState, Resource } from '@app/graphql/generated/api/types';
-import { getters, store } from '@app/store/index';
-import { updateAllowedOrigins } from '@app/store/modules/config';
+import type { AllowedOriginInput } from '@app/graphql/generated/api/types.js';
+import { getAllowedOrigins } from '@app/common/allowed-origins.js';
+import { Config, ConfigErrorState, Resource } from '@app/graphql/generated/api/types.js';
+import { getters, store } from '@app/store/index.js';
+import { updateAllowedOrigins } from '@app/store/modules/config.js';
 
 @Resolver('Config')
 export class ConfigResolver {

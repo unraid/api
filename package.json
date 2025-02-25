@@ -8,6 +8,7 @@
     "test": "pnpm -r test",
     "lint": "pnpm -r lint",
     "lint:fix": "pnpm -r lint:fix",
+    "type-check": "pnpm -r type-check",
     "check": "manypkg check"
   },
   "pnpm": {

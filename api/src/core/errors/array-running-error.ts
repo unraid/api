@@ -1,4 +1,4 @@
-import { AppError } from '@app/core/errors/app-error';
+import { AppError } from '@app/core/errors/app-error.js';
 
 /**
  * The attempted operation can only be processed while the array is stopped.

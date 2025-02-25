@@ -1,7 +1,9 @@
 import type { TestingModule } from '@nestjs/testing';
 import { Test } from '@nestjs/testing';
 
-import { OnlineResolver } from '@app/unraid-api/graph/resolvers/online/online.resolver';
+import { beforeEach, describe, expect, it } from 'vitest';
+
+import { OnlineResolver } from '@app/unraid-api/graph/resolvers/online/online.resolver.js';
 
 describe('OnlineResolver', () => {
     let resolver: OnlineResolver;

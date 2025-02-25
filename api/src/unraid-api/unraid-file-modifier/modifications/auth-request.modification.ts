@@ -7,7 +7,7 @@ import { createPatch } from 'diff';
 import {
     FileModification,
     ShouldApplyWithReason,
-} from '@app/unraid-api/unraid-file-modifier/file-modification';
+} from '@app/unraid-api/unraid-file-modifier/file-modification.js';
 
 export default class AuthRequestModification extends FileModification {
     public filePath: string = '/usr/local/emhttp/auth-request.php' as const;

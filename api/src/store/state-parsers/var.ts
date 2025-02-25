@@ -1,8 +1,12 @@
-import type { DiskFsType } from '@app/graphql/generated/api/types';
-import type { StateFileToIniParserMap } from '@app/store/types';
-import { type IniStringBoolean, type IniStringBooleanOrAuto } from '@app/core/types/ini';
-import { toNumber } from '@app/core/utils';
-import { ArrayState, RegistrationState, registrationType } from '@app/graphql/generated/api/types';
+import type { StateFileToIniParserMap } from '@app/store/types.js';
+import { type IniStringBoolean, type IniStringBooleanOrAuto } from '@app/core/types/ini.js';
+import { toNumber } from '@app/core/utils/index.js';
+import {
+    ArrayState,
+    DiskFsType,
+    RegistrationState,
+    registrationType,
+} from '@app/graphql/generated/api/types.js';
 
 /**
  * Unraid registration check
@@ -22,7 +26,7 @@ export type VarIni = {
     configState: string;
     csrfToken: string;
     defaultFormat: string;
-    defaultFsType: DiskFsType;
+    defaultFsType: string;
     deviceCount: string;
     domain: string;
     domainLogin: string;
@@ -199,6 +203,7 @@ const safeParseMdState = (mdState: string | undefined): ArrayState => {
 export const parse: StateFileToIniParserMap['var'] = (iniFile) => {
     return {
         ...iniFile,
+        defaultFsType: DiskFsType[iniFile.defaultFsType] || DiskFsType.XFS,
         mdState: safeParseMdState(iniFile.mdState),
         bindMgt: iniBooleanOrAutoToJsBoolean(iniFile.bindMgt),
         cacheNumDevices: toNumber(iniFile.cacheNumDevices),

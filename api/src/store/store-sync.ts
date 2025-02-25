@@ -3,13 +3,13 @@ import { join } from 'path';
 
 import { isEqual } from 'lodash-es';
 
-import type { RootState } from '@app/store';
-import { NODE_ENV } from '@app/environment';
-import { store } from '@app/store';
-import { syncInfoApps } from '@app/store/sync/info-apps-sync';
-import { syncRegistration } from '@app/store/sync/registration-sync';
-import { FileLoadStatus } from '@app/store/types';
-import { setupConfigPathWatch } from '@app/store/watch/config-watch';
+import type { RootState } from '@app/store/index.js';
+import { NODE_ENV } from '@app/environment.js';
+import { store } from '@app/store/index.js';
+import { syncInfoApps } from '@app/store/sync/info-apps-sync.js';
+import { syncRegistration } from '@app/store/sync/registration-sync.js';
+import { FileLoadStatus } from '@app/store/types.js';
+import { setupConfigPathWatch } from '@app/store/watch/config-watch.js';
 
 export const startStoreSync = async () => {
     // The last state is stored so we don't end up in a loop of writing -> reading -> writing

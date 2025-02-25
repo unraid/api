@@ -1,10 +1,10 @@
 import { got } from 'got';
 
-import { logger } from '@app/core/log';
-import { type LooseObject } from '@app/core/types';
-import { catchHandlers } from '@app/core/utils/misc/catch-handlers';
-import { DRY_RUN } from '@app/environment';
-import { getters } from '@app/store';
+import { logger } from '@app/core/log.js';
+import { type LooseObject } from '@app/core/types/index.js';
+import { catchHandlers } from '@app/core/utils/misc/catch-handlers.js';
+import { DRY_RUN } from '@app/environment.js';
+import { getters } from '@app/store/index.js';
 
 /**
  * Run a command with emcmd.

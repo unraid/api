@@ -2,11 +2,11 @@ import { Injectable } from '@nestjs/common';
 
 import { CommandRunner, InquirerService, Option, OptionChoiceFor, SubCommand } from 'nest-commander';
 
-import { store } from '@app/store/index';
-import { loadConfigFile, removeSsoUser } from '@app/store/modules/config';
-import { writeConfigSync } from '@app/store/sync/config-disk-sync';
-import { LogService } from '@app/unraid-api/cli/log.service';
-import { RemoveSSOUserQuestionSet } from '@app/unraid-api/cli/sso/remove-sso-user.questions';
+import { store } from '@app/store/index.js';
+import { loadConfigFile, removeSsoUser } from '@app/store/modules/config.js';
+import { writeConfigSync } from '@app/store/sync/config-disk-sync.js';
+import { LogService } from '@app/unraid-api/cli/log.service.js';
+import { RemoveSSOUserQuestionSet } from '@app/unraid-api/cli/sso/remove-sso-user.questions.js';
 
 interface RemoveSSOUserCommandOptions {
     username: string;

@@ -1,7 +1,9 @@
 import type { TestingModule } from '@nestjs/testing';
 import { Test } from '@nestjs/testing';
 
-import { DockerResolver } from '@app/unraid-api/graph/resolvers/docker/docker.resolver';
+import { beforeEach, describe, expect, it } from 'vitest';
+
+import { DockerResolver } from '@app/unraid-api/graph/resolvers/docker/docker.resolver.js';
 
 describe('DockerResolver', () => {
     let resolver: DockerResolver;
