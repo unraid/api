@@ -38,8 +38,8 @@ export const UpdateTypeSchema = z.nativeEnum(UpdateType);
 
 export function AccessUrlInputSchema(): z.ZodObject<Properties<AccessUrlInput>> {
   return z.object({
-    ipv4: definedNonNullAnySchema.nullish(),
-    ipv6: definedNonNullAnySchema.nullish(),
+    ipv4: z.instanceof(URL).nullish(),
+    ipv6: z.instanceof(URL).nullish(),
     name: z.string().nullish(),
     type: URL_TYPESchema
   })

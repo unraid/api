@@ -1,4 +1,3 @@
-import { logger, pubsub } from '@app/core/index.js';
 import { AppError } from '@app/core/errors/app-error.js';
 import { logger, pubsub } from '@app/core/index.js';
 import { CoreContext, CoreResult } from '@app/core/types/global.js';

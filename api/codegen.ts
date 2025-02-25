@@ -1,5 +1,9 @@
 import type { CodegenConfig } from '@graphql-codegen/cli';
 
+
+
+
+
 const config: CodegenConfig = {
     overwrite: true,
     emitLegacyCommonJSImports: false,
@@ -17,6 +21,13 @@ const config: CodegenConfig = {
             URL: 'URL',
             Port: 'number',
             UUID: 'string',
+        },
+        scalarSchemas: {
+            URL: 'z.instanceof(URL)',
+            Long: 'z.number()',
+            JSON: 'z.record(z.string(), z.any())',
+            Port: 'z.number()',
+            UUID: 'z.string()',
         },
     },
     generates: {
@@ -45,7 +56,7 @@ const config: CodegenConfig = {
             plugins: [
                 'typescript',
                 'typescript-resolvers',
-                { add: { content: "/* eslint-disable */\n/* @ts-nocheck */" } },
+                { add: { content: '/* eslint-disable */\n/* @ts-nocheck */' } },
             ],
             config: {
                 contextType: '@app/graphql/schema/utils.js#Context',

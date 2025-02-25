@@ -349,7 +349,7 @@ importers:
         specifier: ^4.2.5
         version: 4.2.5
       '@types/node':
-        specifier: ^22.9.0
+        specifier: ^22.13.4
         version: 22.13.4
       '@types/pify':
         specifier: ^5.0.4

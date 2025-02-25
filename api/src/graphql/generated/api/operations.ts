@@ -76,8 +76,8 @@ export const registrationTypeSchema = z.nativeEnum(registrationType);
 export function AccessUrlSchema(): z.ZodObject<Properties<AccessUrl>> {
   return z.object({
     __typename: z.literal('AccessUrl').optional(),
-    ipv4: definedNonNullAnySchema.nullish(),
-    ipv6: definedNonNullAnySchema.nullish(),
+    ipv4: z.instanceof(URL).nullish(),
+    ipv6: z.instanceof(URL).nullish(),
     name: z.string().nullish(),
     type: URL_TYPESchema
   })
@@ -85,8 +85,8 @@ export function AccessUrlSchema(): z.ZodObject<Properties<AccessUrl>> {
 
 export function AccessUrlInputSchema(): z.ZodObject<Properties<AccessUrlInput>> {
   return z.object({
-    ipv4: definedNonNullAnySchema.nullish(),
-    ipv6: definedNonNullAnySchema.nullish(),
+    ipv4: z.instanceof(URL).nullish(),
+    ipv6: z.instanceof(URL).nullish(),
     name: z.string().nullish(),
     type: URL_TYPESchema
   })
@@ -420,10 +420,10 @@ export function DockerContainerSchema(): z.ZodObject<Properties<DockerContainer>
     id: z.string(),
     image: z.string(),
     imageId: z.string(),
-    labels: definedNonNullAnySchema.nullish(),
-    mounts: z.array(definedNonNullAnySchema.nullable()).nullish(),
+    labels: z.record(z.string(), z.any()).nullish(),
+    mounts: z.array(z.record(z.string(), z.any()).nullable()).nullish(),
     names: z.array(z.string()).nullish(),
-    networkSettings: definedNonNullAnySchema.nullish(),
+    networkSettings: z.record(z.string(), z.any()).nullish(),
     ports: z.array(ContainerPortSchema()),
     sizeRootFs: z.number().nullish(),
     state: ContainerStateSchema,
@@ -435,19 +435,19 @@ export function DockerNetworkSchema(): z.ZodObject<Properties<DockerNetwork>> {
   return z.object({
     __typename: z.literal('DockerNetwork').optional(),
     attachable: z.boolean(),
-    configFrom: definedNonNullAnySchema.nullish(),
+    configFrom: z.record(z.string(), z.any()).nullish(),
     configOnly: z.boolean(),
-    containers: definedNonNullAnySchema.nullish(),
+    containers: z.record(z.string(), z.any()).nullish(),
     created: z.string().nullish(),
     driver: z.string().nullish(),
     enableIPv6: z.boolean(),
     id: z.string().nullish(),
     ingress: z.boolean(),
     internal: z.boolean(),
-    ipam: definedNonNullAnySchema.nullish(),
-    labels: definedNonNullAnySchema.nullish(),
+    ipam: z.record(z.string(), z.any()).nullish(),
+    labels: z.record(z.string(), z.any()).nullish(),
     name: z.string().nullish(),
-    options: definedNonNullAnySchema.nullish(),
+    options: z.record(z.string(), z.any()).nullish(),
     scope: z.string().nullish()
   })
 }
@@ -520,7 +520,7 @@ export function InfoCpuSchema(): z.ZodObject<Properties<InfoCpu>> {
   return z.object({
     __typename: z.literal('InfoCpu').optional(),
     brand: z.string(),
-    cache: definedNonNullAnySchema,
+    cache: z.record(z.string(), z.any()),
     cores: z.number(),
     family: z.string(),
     flags: z.array(z.string()).nullish(),
