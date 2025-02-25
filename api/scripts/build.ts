@@ -4,7 +4,7 @@ import { exit } from 'process';
 
 import { $, cd } from 'zx';
 
-import { getDeploymentVersion } from '@app/../scripts/get-deployment-version.js';
+import { getDeploymentVersion } from './get-deployment-version.js';
 
 try {
     // Create release and pack directories
