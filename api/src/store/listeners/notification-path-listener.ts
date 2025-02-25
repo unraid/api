@@ -1,7 +1,6 @@
-import { logger } from '@app/core/log';
-import { setupNotificationWatch } from '@app/core/modules/notifications/setup-notification-watch';
-import { startAppListening } from '@app/store/listeners/listener-middleware';
-import { clearAllNotifications } from '@app/store/modules/notifications';
+import { logger } from '@app/core/log.js';
+import { startAppListening } from '@app/store/listeners/listener-middleware.js';
+import { clearAllNotifications } from '@app/store/modules/notifications.js';
 
 export const enableNotificationPathListener = () =>
     startAppListening({
@@ -18,6 +17,5 @@ export const enableNotificationPathListener = () =>
         async effect(_, { dispatch }) {
             logger.debug('Notification Path Changed or Loaded, Recreating Watcher');
             dispatch(clearAllNotifications());
-            await setupNotificationWatch();
         },
     });

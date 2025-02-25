@@ -1,8 +1,8 @@
 import { CronJob } from 'cron';
 
-import { upnpLogger } from '@app/core/log';
-import { store } from '@app/store';
-import { enableUpnp } from '@app/store/modules/upnp';
+import { upnpLogger } from '@app/core/log.js';
+import { store } from '@app/store/index.js';
+import { enableUpnp } from '@app/store/modules/upnp.js';
 
 class UPNPJobManager {
     private renewalTask: CronJob | null = null;

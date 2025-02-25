@@ -7,21 +7,21 @@ import type {
     ConnectSignInInput,
     RemoteAccess,
     SetupRemoteAccessInput,
-} from '@app/graphql/generated/api/types';
-import { getAllowedOrigins, getExtraOrigins } from '@app/common/allowed-origins';
+} from '@app/graphql/generated/api/types.js';
+import { getAllowedOrigins, getExtraOrigins } from '@app/common/allowed-origins.js';
 import {
     DynamicRemoteAccessType,
     Resource,
     WAN_ACCESS_TYPE,
     WAN_FORWARD_TYPE,
-} from '@app/graphql/generated/api/types';
-import { connectSignIn } from '@app/graphql/resolvers/mutation/connect/connect-sign-in';
-import { checkApi } from '@app/graphql/resolvers/query/cloud/check-api';
-import { checkCloud } from '@app/graphql/resolvers/query/cloud/check-cloud';
-import { checkMinigraphql } from '@app/graphql/resolvers/query/cloud/check-minigraphql';
-import { setupRemoteAccessThunk } from '@app/store/actions/setup-remote-access';
-import { getters, store } from '@app/store/index';
-import { logoutUser } from '@app/store/modules/config';
+} from '@app/graphql/generated/api/types.js';
+import { connectSignIn } from '@app/graphql/resolvers/mutation/connect/connect-sign-in.js';
+import { checkApi } from '@app/graphql/resolvers/query/cloud/check-api.js';
+import { checkCloud } from '@app/graphql/resolvers/query/cloud/check-cloud.js';
+import { checkMinigraphql } from '@app/graphql/resolvers/query/cloud/check-minigraphql.js';
+import { setupRemoteAccessThunk } from '@app/store/actions/setup-remote-access.js';
+import { getters, store } from '@app/store/index.js';
+import { logoutUser } from '@app/store/modules/config.js';
 
 @Resolver('Cloud')
 export class CloudResolver {

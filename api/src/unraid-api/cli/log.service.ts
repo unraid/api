@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 
-import { levels, LogLevel } from '@app/core/log';
-import { LOG_LEVEL } from '@app/environment';
+import { levels, LogLevel } from '@app/core/log.js';
+import { LOG_LEVEL } from '@app/environment.js';
 
 @Injectable()
 export class LogService {

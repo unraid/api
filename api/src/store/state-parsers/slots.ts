@@ -1,8 +1,8 @@
-import type { ArrayDisk } from '@app/graphql/generated/api/types';
-import type { StateFileToIniParserMap } from '@app/store/types';
-import { type IniEnabled, type IniNumberBoolean } from '@app/core/types/ini';
-import { toBoolean, toNumber, toNumberOrNull, toNumberOrNullConvert } from '@app/core/utils';
-import { ArrayDiskStatus, ArrayDiskType } from '@app/graphql/generated/api/types';
+import type { ArrayDisk } from '@app/graphql/generated/api/types.js';
+import type { StateFileToIniParserMap } from '@app/store/types.js';
+import { type IniEnabled, type IniNumberBoolean } from '@app/core/types/ini.js';
+import { toBoolean, toNumber, toNumberOrNull, toNumberOrNullConvert } from '@app/core/utils/index.js';
+import { ArrayDiskStatus, ArrayDiskType } from '@app/graphql/generated/api/types.js';
 
 type SlotStatus = 'DISK_OK';
 type SlotFsStatus = 'Mounted';

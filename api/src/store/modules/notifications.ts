@@ -1,14 +1,14 @@
 import type { PayloadAction } from '@reduxjs/toolkit';
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 
-import type { Notification } from '@app/graphql/generated/api/types';
-import { logger } from '@app/core/log';
-import { pubsub, PUBSUB_CHANNEL } from '@app/core/pubsub';
-import { type NotificationIni } from '@app/core/types/states/notification';
-import { parseConfig } from '@app/core/utils/misc/parse-config';
-import { NotificationSchema } from '@app/graphql/generated/api/operations';
-import { Importance, NotificationType } from '@app/graphql/generated/api/types';
-import { type AppDispatch, type RootState } from '@app/store/index';
+import type { Notification } from '@app/graphql/generated/api/types.js';
+import { logger } from '@app/core/log.js';
+import { pubsub, PUBSUB_CHANNEL } from '@app/core/pubsub.js';
+import { type NotificationIni } from '@app/core/types/states/notification.js';
+import { parseConfig } from '@app/core/utils/misc/parse-config.js';
+import { NotificationSchema } from '@app/graphql/generated/api/operations.js';
+import { Importance, NotificationType } from '@app/graphql/generated/api/types.js';
+import { type AppDispatch, type RootState } from '@app/store/index.js';
 
 interface NotificationState {
     notifications: Record<string, Notification>;

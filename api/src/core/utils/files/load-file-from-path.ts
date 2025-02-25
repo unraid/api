@@ -2,7 +2,7 @@ import { readFileSync } from 'fs';
 import { readFile } from 'fs/promises';
 import { extname } from 'path';
 
-import { fileExists, fileExistsSync } from '@app/core/utils/files/file-exists';
+import { fileExists, fileExistsSync } from '@app/core/utils/files/file-exists.js';
 
 export const loadFileFromPath = async (
     filePath: string

@@ -1,7 +1,7 @@
 import { ChoicesFor, Question, QuestionSet } from 'nest-commander';
 
-import { store } from '@app/store/index';
-import { LogService } from '@app/unraid-api/cli/log.service';
+import { store } from '@app/store/index.js';
+import { LogService } from '@app/unraid-api/cli/log.service.js';
 
 @QuestionSet({ name: 'remove-user' })
 export class RemoveSSOUserQuestionSet {

@@ -1,8 +1,8 @@
-import type { CoreContext, CoreResult } from '@app/core/types';
-import { AppError } from '@app/core/errors/app-error';
-import { ensurePermission } from '@app/core/utils/permissions/ensure-permission';
-import { ensureParameter } from '@app/core/utils/validation/context';
-import { getters } from '@app/store';
+import type { CoreContext, CoreResult } from '@app/core/types/index.js';
+import { AppError } from '@app/core/errors/app-error.js';
+import { ensurePermission } from '@app/core/utils/permissions/ensure-permission.js';
+import { ensureParameter } from '@app/core/utils/validation/context/ensure-parameter.js';
+import { getters } from '@app/store/index.js';
 
 interface Context extends CoreContext {
     params: {

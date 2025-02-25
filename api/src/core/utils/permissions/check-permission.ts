@@ -1,4 +1,4 @@
-import { type User } from '@app/core/types/states/user';
+import { type User } from '@app/core/types/states/user.js';
 
 /**
  * Check if the user has the correct permissions.

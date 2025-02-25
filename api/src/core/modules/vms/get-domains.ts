@@ -1,7 +1,7 @@
 import { GraphQLError } from 'graphql';
 
-import type { VmDomain } from '@app/graphql/generated/api/types';
-import { VmState } from '@app/graphql/generated/api/types';
+import type { VmDomain } from '@app/graphql/generated/api/types.js';
+import { VmState } from '@app/graphql/generated/api/types.js';
 
 const states = {
     0: 'NOSTATE',
@@ -20,7 +20,7 @@ const states = {
 export const getDomains = async () => {
     try {
         const { ConnectListAllDomainsFlags } = await import('@unraid/libvirt');
-        const { UnraidHypervisor } = await import('@app/core/utils/vms/get-hypervisor');
+        const { UnraidHypervisor } = await import('@app/core/utils/vms/get-hypervisor.js');
 
         const hypervisor = await UnraidHypervisor.getInstance().getHypervisor();
         if (!hypervisor) {

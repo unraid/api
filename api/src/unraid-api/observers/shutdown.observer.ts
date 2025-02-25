@@ -2,7 +2,7 @@ import type { OnApplicationShutdown } from '@nestjs/common';
 import { Injectable, Logger } from '@nestjs/common';
 import { type IncomingMessage, type Server, type ServerResponse } from 'http';
 
-import { type FastifyInstance } from 'fastify';
+import type { FastifyInstance } from 'fastify';
 
 /**
  * @todo Swap to this globally. This is a better way to handle shutdowns (right now they're handled in index.ts)

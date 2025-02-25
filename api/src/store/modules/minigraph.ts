@@ -1,11 +1,11 @@
 import type { PayloadAction } from '@reduxjs/toolkit';
 import { createSlice } from '@reduxjs/toolkit';
 
-import { KEEP_ALIVE_INTERVAL_MS } from '@app/consts';
-import { minigraphLogger } from '@app/core/log';
-import { MinigraphStatus } from '@app/graphql/generated/api/types';
-import { setGraphqlConnectionStatus } from '@app/store/actions/set-minigraph-status';
-import { loginUser, logoutUser } from '@app/store/modules/config';
+import { KEEP_ALIVE_INTERVAL_MS } from '@app/consts.js';
+import { minigraphLogger } from '@app/core/log.js';
+import { MinigraphStatus } from '@app/graphql/generated/api/types.js';
+import { setGraphqlConnectionStatus } from '@app/store/actions/set-minigraph-status.js';
+import { loginUser, logoutUser } from '@app/store/modules/config.js';
 
 export type MinigraphClientState = {
     status: MinigraphStatus;

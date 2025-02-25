@@ -1,13 +1,13 @@
 import { createAsyncThunk } from '@reduxjs/toolkit';
 
-import type { SetupRemoteAccessInput } from '@app/graphql/generated/api/types';
+import type { SetupRemoteAccessInput } from '@app/graphql/generated/api/types.js';
 import {
     DynamicRemoteAccessType,
     WAN_ACCESS_TYPE,
     WAN_FORWARD_TYPE,
-} from '@app/graphql/generated/api/types';
-import { type AppDispatch, type RootState } from '@app/store/index';
-import { type MyServersConfig } from '@app/types/my-servers-config';
+} from '@app/graphql/generated/api/types.js';
+import { type AppDispatch, type RootState } from '@app/store/index.js';
+import { type MyServersConfig } from '@app/types/my-servers-config.js';
 
 const getDynamicRemoteAccessType = (
     accessType: WAN_ACCESS_TYPE,

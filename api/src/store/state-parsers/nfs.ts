@@ -1,5 +1,5 @@
-import type { SecIni } from '@app/core/types/states/sec';
-import type { StateFileToIniParserMap } from '@app/store/types';
+import type { SecIni } from '@app/core/types/states/sec.js';
+import type { StateFileToIniParserMap } from '@app/store/types.js';
 
 export type NfsSharesIni = SecIni[];
 

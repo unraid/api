@@ -19,10 +19,12 @@ export const getDeploymentVersion = async (env = process.env, packageVersion: st
         return env.IS_TAGGED ? packageVersion : `${packageVersion}+${env.GIT_SHA}`;
     } else {
         const gitShortSHA = await runCommand('git', ['rev-parse', '--short', 'HEAD']);
-        const isCommitTagged = await runCommand('git', ['describe', '--tags', '--abbrev=0', '--exact-match']) !== undefined;
-        
+        const isCommitTagged =
+            (await runCommand('git', ['describe', '--tags', '--abbrev=0', '--exact-match'])) !==
+            undefined;
+
         console.log('gitShortSHA', gitShortSHA, 'isCommitTagged', isCommitTagged);
-        
+
         if (!gitShortSHA) {
             console.error('Failed to get git short SHA');
             process.exit(1);

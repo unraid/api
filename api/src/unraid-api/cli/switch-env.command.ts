@@ -3,11 +3,11 @@ import { join } from 'path';
 
 import { Command, CommandRunner, Option } from 'nest-commander';
 
-import { cliLogger } from '@app/core/log';
-import { getters } from '@app/store';
-import { LogService } from '@app/unraid-api/cli/log.service';
-import { StartCommand } from '@app/unraid-api/cli/start.command';
-import { StopCommand } from '@app/unraid-api/cli/stop.command';
+import { cliLogger } from '@app/core/log.js';
+import { getters } from '@app/store/index.js';
+import { LogService } from '@app/unraid-api/cli/log.service.js';
+import { StartCommand } from '@app/unraid-api/cli/start.command.js';
+import { StopCommand } from '@app/unraid-api/cli/stop.command.js';
 
 interface SwitchEnvOptions {
     environment?: 'staging' | 'production';
@@ -62,7 +62,7 @@ export class SwitchEnvCommand extends CommandRunner {
 
         this.logger.warn('Stopping the Unraid API');
         try {
-            await this.stopCommand.run();
+            await this.stopCommand.run([], { delete: false });
         } catch (err) {
             this.logger.warn('Failed to stop the Unraid API (maybe already stopped?)');
         }

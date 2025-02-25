@@ -2,12 +2,12 @@ import { newEnforcer } from 'casbin';
 import { AuthActionVerb, AuthPossession, AuthZService } from 'nest-authz';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import type { ApiKey } from '@app/graphql/generated/api/types';
-import { ApiKeyWithSecret, Resource, Role } from '@app/graphql/generated/api/types';
-import { ApiKeyService } from '@app/unraid-api/auth/api-key.service';
-import { AuthService } from '@app/unraid-api/auth/auth.service';
-import { CookieService } from '@app/unraid-api/auth/cookie.service';
-import { ApiKeyResolver } from '@app/unraid-api/graph/resolvers/api-key/api-key.resolver';
+import type { ApiKey } from '@app/graphql/generated/api/types.js';
+import { ApiKeyWithSecret, Resource, Role } from '@app/graphql/generated/api/types.js';
+import { ApiKeyService } from '@app/unraid-api/auth/api-key.service.js';
+import { AuthService } from '@app/unraid-api/auth/auth.service.js';
+import { CookieService } from '@app/unraid-api/auth/cookie.service.js';
+import { ApiKeyResolver } from '@app/unraid-api/graph/resolvers/api-key/api-key.resolver.js';
 
 describe('ApiKeyResolver', () => {
     let resolver: ApiKeyResolver;

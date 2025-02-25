@@ -1,8 +1,8 @@
 import { expect, test } from 'vitest';
 
-import { getShares } from '@app/core/utils/shares/get-shares';
-import { store } from '@app/store';
-import { loadStateFiles } from '@app/store/modules/emhttp';
+import { getShares } from '@app/core/utils/shares/get-shares.js';
+import { store } from '@app/store/index.js';
+import { loadStateFiles } from '@app/store/modules/emhttp.js';
 
 test('Returns both disk and user shares', async () => {
     await store.dispatch(loadStateFiles());

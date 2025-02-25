@@ -2,10 +2,10 @@ import { Injectable, Logger } from '@nestjs/common';
 import { Cron } from '@nestjs/schedule';
 import { readFile, writeFile } from 'fs/promises';
 
-import { ONE_DAY_MS, THIRTY_MINUTES_MS } from '@app/consts';
-import { sleep } from '@app/core/utils/misc/sleep';
-import { convertToFuzzyTime } from '@app/mothership/utils/convert-to-fuzzy-time';
-import { getters } from '@app/store/index';
+import { ONE_DAY_MS, THIRTY_MINUTES_MS } from '@app/consts.js';
+import { sleep } from '@app/core/utils/misc/sleep.js';
+import { convertToFuzzyTime } from '@app/mothership/utils/convert-to-fuzzy-time.js';
+import { getters } from '@app/store/index.js';
 
 @Injectable()
 export class WriteFlashFileService {

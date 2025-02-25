@@ -1,12 +1,12 @@
 import { isAnyOf } from '@reduxjs/toolkit';
 import { isEqual } from 'lodash-es';
 
-import { logger } from '@app/core/log';
-import { getArrayData } from '@app/core/modules/array/get-array-data';
-import { pubsub, PUBSUB_CHANNEL } from '@app/core/pubsub';
-import { startAppListening } from '@app/store/listeners/listener-middleware';
-import { loadSingleStateFile } from '@app/store/modules/emhttp';
-import { StateFileKey } from '@app/store/types';
+import { logger } from '@app/core/log.js';
+import { getArrayData } from '@app/core/modules/array/get-array-data.js';
+import { pubsub, PUBSUB_CHANNEL } from '@app/core/pubsub.js';
+import { startAppListening } from '@app/store/listeners/listener-middleware.js';
+import { loadSingleStateFile } from '@app/store/modules/emhttp.js';
+import { StateFileKey } from '@app/store/types.js';
 
 export const enableArrayEventListener = () =>
     startAppListening({

@@ -1,7 +1,9 @@
 import type { TestingModule } from '@nestjs/testing';
 import { Test } from '@nestjs/testing';
 
-import { FlashResolver } from '@app/unraid-api/graph/resolvers/flash/flash.resolver';
+import { beforeEach, describe, expect, it } from 'vitest';
+
+import { FlashResolver } from '@app/unraid-api/graph/resolvers/flash/flash.resolver.js';
 
 describe('FlashResolver', () => {
     let resolver: FlashResolver;

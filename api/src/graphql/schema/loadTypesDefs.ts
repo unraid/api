@@ -1,6 +1,6 @@
 import { mergeTypeDefs } from '@graphql-tools/merge';
 
-import { logger } from '@app/core/log';
+import { logger } from '@app/core/log.js';
 
 export const loadTypeDefs = async () => {
     // TypeScript now knows this returns Record<string, () => Promise<string>>

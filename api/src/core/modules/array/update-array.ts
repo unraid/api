@@ -1,13 +1,13 @@
-import type { CoreContext, CoreResult } from '@app/core/types';
-import { AppError } from '@app/core/errors/app-error';
-import { FieldMissingError } from '@app/core/errors/field-missing-error';
-import { ParamInvalidError } from '@app/core/errors/param-invalid-error';
-import { getArrayData } from '@app/core/modules/array/get-array-data';
-import { arrayIsRunning } from '@app/core/utils/array/array-is-running';
-import { emcmd } from '@app/core/utils/clients/emcmd';
-import { uppercaseFirstChar } from '@app/core/utils/misc/uppercase-first-char';
-import { ensurePermission } from '@app/core/utils/permissions/ensure-permission';
-import { hasFields } from '@app/core/utils/validation/has-fields';
+import type { CoreContext, CoreResult } from '@app/core/types/index.js';
+import { AppError } from '@app/core/errors/app-error.js';
+import { FieldMissingError } from '@app/core/errors/field-missing-error.js';
+import { ParamInvalidError } from '@app/core/errors/param-invalid-error.js';
+import { getArrayData } from '@app/core/modules/array/get-array-data.js';
+import { arrayIsRunning } from '@app/core/utils/array/array-is-running.js';
+import { emcmd } from '@app/core/utils/clients/emcmd.js';
+import { uppercaseFirstChar } from '@app/core/utils/misc/uppercase-first-char.js';
+import { ensurePermission } from '@app/core/utils/permissions/ensure-permission.js';
+import { hasFields } from '@app/core/utils/validation/has-fields.js';
 
 // @TODO: Fix this not working across node apps
 //        each app has it's own lock since the var is scoped
@@ -31,7 +31,7 @@ export const updateArray = async (context: CoreContext): Promise<CoreResult> => 
         throw new FieldMissingError(missingFields[0]);
     }
 
-    const { state: nextState } = data;
+    const { state: nextState } = data as { state: string };
     const startState = arrayIsRunning() ? 'started' : 'stopped';
     const pendingState = nextState === 'stop' ? 'stopping' : 'starting';
 
@@ -79,7 +79,7 @@ export const updateArray = async (context: CoreContext): Promise<CoreResult> => 
     return {
         text: `Array was ${startState}, ${pendingState}.`,
         json: {
-            ...array.json,
+            ...array,
             state: nextState === 'start' ? 'started' : 'stopped',
             previousState: startState,
             pendingState,

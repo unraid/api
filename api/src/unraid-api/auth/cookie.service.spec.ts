@@ -5,7 +5,7 @@ import { writeFile } from 'node:fs/promises';
 import { emptyDir } from 'fs-extra';
 import { afterAll, beforeAll, describe, it } from 'vitest';
 
-import { CookieService, SESSION_COOKIE_CONFIG } from '@app/unraid-api/auth/cookie.service';
+import { CookieService, SESSION_COOKIE_CONFIG } from '@app/unraid-api/auth/cookie.service.js';
 
 describe.concurrent('CookieService', () => {
     let service: CookieService;

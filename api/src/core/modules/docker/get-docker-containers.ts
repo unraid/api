@@ -1,14 +1,15 @@
 import fs from 'fs';
 
 import camelCaseKeys from 'camelcase-keys';
+import { ContainerInfo } from 'dockerode';
 
-import type { ContainerPort, DockerContainer } from '@app/graphql/generated/api/types';
-import { dockerLogger } from '@app/core/log';
-import { docker } from '@app/core/utils/clients/docker';
-import { catchHandlers } from '@app/core/utils/misc/catch-handlers';
-import { ContainerPortType, ContainerState } from '@app/graphql/generated/api/types';
-import { getters, store } from '@app/store';
-import { updateDockerState } from '@app/store/modules/docker';
+import type { ContainerPort, Docker, DockerContainer } from '@app/graphql/generated/api/types.js';
+import { dockerLogger } from '@app/core/log.js';
+import { docker } from '@app/core/utils/clients/docker.js';
+import { catchHandlers } from '@app/core/utils/misc/catch-handlers.js';
+import { ContainerPortType, ContainerState } from '@app/graphql/generated/api/types.js';
+import { getters, store } from '@app/store/index.js';
+import { updateDockerState } from '@app/store/modules/docker.js';
 
 /**
  * Get all Docker containers.
@@ -42,29 +43,39 @@ export const getDockerContainers = async (
             all: true,
             size: true,
         })
-        .then((containers) => containers.map((object) => camelCaseKeys(object, { deep: true })))
         // If docker throws an error return no containers
         .catch(catchHandlers.docker);
 
     // Cleanup container object
-    const containers: Array<DockerContainer> = rawContainers.map<DockerContainer>((container) => {
-        const names = container.names[0];
-        const containerData: DockerContainer = {
-            ...container,
-            labels: container.labels,
-            // @ts-expect-error sizeRootFs is not on the dockerode type, but is fetched when size: true is set
-            sizeRootFs: container.sizeRootFs ?? undefined,
-            imageId: container.imageID,
-            state:
-                typeof container?.state === 'string'
-                    ? (ContainerState[container.state.toUpperCase()] ?? ContainerState.EXITED)
-                    : ContainerState.EXITED,
-            autoStart: autoStarts.includes(names.split('/')[1]),
-            ports: container.ports.map<ContainerPort>((port) => ({
-                ...port,
-                type: ContainerPortType[port.type.toUpperCase()],
-            })),
-        };
+    const containers: Array<DockerContainer> = rawContainers.map((container) => {
+        const names = container.Names[0];
+        const containerData: DockerContainer = camelCaseKeys<DockerContainer>(
+            {
+                labels: container.Labels ?? {},
+                sizeRootFs: undefined,
+                imageId: container.ImageID,
+                state:
+                    typeof container.State === 'string'
+                        ? (ContainerState[container.State.toUpperCase()] ?? ContainerState.EXITED)
+                        : ContainerState.EXITED,
+                autoStart: autoStarts.includes(names.split('/')[1]),
+                ports: container.Ports.map<ContainerPort>((port) => ({
+                    ...port,
+                    type: ContainerPortType[port.Type.toUpperCase()],
+                })),
+                command: container.Command,
+                created: container.Created,
+                mounts: container.Mounts,
+                networkSettings: container.NetworkSettings,
+                hostConfig: {
+                    networkMode: container.HostConfig.NetworkMode,
+                },
+                id: container.Id,
+                image: container.Image,
+                status: container.Status,
+            },
+            { deep: true }
+        );
         return containerData;
     });
 

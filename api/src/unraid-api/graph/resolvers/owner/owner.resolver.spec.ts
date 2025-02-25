@@ -1,7 +1,9 @@
 import type { TestingModule } from '@nestjs/testing';
 import { Test } from '@nestjs/testing';
 
-import { OwnerResolver } from '@app/unraid-api/graph/resolvers/owner/owner.resolver';
+import { beforeEach, describe, expect, it } from 'vitest';
+
+import { OwnerResolver } from '@app/unraid-api/graph/resolvers/owner/owner.resolver.js';
 
 describe('OwnerResolver', () => {
     let resolver: OwnerResolver;

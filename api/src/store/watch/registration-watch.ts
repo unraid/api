@@ -1,8 +1,8 @@
 import { watch } from 'chokidar';
 
-import { CHOKIDAR_USEPOLLING } from '@app/environment';
-import { store } from '@app/store';
-import { loadRegistrationKey } from '@app/store/modules/registration';
+import { CHOKIDAR_USEPOLLING } from '@app/environment.js';
+import { store } from '@app/store/index.js';
+import { loadRegistrationKey } from '@app/store/modules/registration.js';
 
 export const setupRegistrationKeyWatch = () => {
     watch('/boot/config', {

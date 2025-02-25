@@ -1,6 +1,6 @@
 /* eslint-disable */
 import { z } from 'zod'
-import { AccessUrlInput, ArrayCapacityBytesInput, ArrayCapacityInput, ClientType, ConfigErrorState, DashboardAppsInput, DashboardArrayInput, DashboardCaseInput, DashboardConfigInput, DashboardDisplayInput, DashboardInput, DashboardOsInput, DashboardServiceInput, DashboardServiceUptimeInput, DashboardTwoFactorInput, DashboardTwoFactorLocalInput, DashboardTwoFactorRemoteInput, DashboardVarsInput, DashboardVersionsInput, DashboardVmsInput, EventType, Importance, NetworkInput, NotificationInput, NotificationStatus, PingEventSource, RegistrationState, RemoteAccessEventActionType, RemoteAccessInput, RemoteGraphQLClientInput, RemoteGraphQLEventType, RemoteGraphQLServerInput, ServerStatus, URL_TYPE, UpdateType } from '@app/graphql/generated/client/graphql'
+import { AccessUrlInput, ArrayCapacityBytesInput, ArrayCapacityInput, ClientType, ConfigErrorState, DashboardAppsInput, DashboardArrayInput, DashboardCaseInput, DashboardConfigInput, DashboardDisplayInput, DashboardInput, DashboardOsInput, DashboardServiceInput, DashboardServiceUptimeInput, DashboardTwoFactorInput, DashboardTwoFactorLocalInput, DashboardTwoFactorRemoteInput, DashboardVarsInput, DashboardVersionsInput, DashboardVmsInput, EventType, Importance, NetworkInput, NotificationInput, NotificationStatus, PingEventSource, RegistrationState, RemoteAccessEventActionType, RemoteAccessInput, RemoteGraphQLClientInput, RemoteGraphQLEventType, RemoteGraphQLServerInput, ServerStatus, URL_TYPE, UpdateType } from '@app/graphql/generated/client/graphql.js'
 
 type Properties<T> = Required<{
   [K in keyof T]: z.ZodType<T[K], any, T[K]>;
@@ -38,8 +38,8 @@ export const UpdateTypeSchema = z.nativeEnum(UpdateType);
 
 export function AccessUrlInputSchema(): z.ZodObject<Properties<AccessUrlInput>> {
   return z.object({
-    ipv4: definedNonNullAnySchema.nullish(),
-    ipv6: definedNonNullAnySchema.nullish(),
+    ipv4: z.instanceof(URL).nullish(),
+    ipv6: z.instanceof(URL).nullish(),
     name: z.string().nullish(),
     type: URL_TYPESchema
   })

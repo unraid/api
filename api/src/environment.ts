@@ -1,10 +1,24 @@
+import { readFileSync } from 'node:fs';
 import { homedir } from 'node:os';
-import { join } from 'node:path';
+import { dirname, join } from 'node:path';
+import { fileURLToPath } from 'node:url';
 
-import { version } from 'package.json';
+const getPackageJsonVersion = () => {
+    try {
+        // Use import.meta.resolve to get the URL of package.json
+        const packageJsonUrl = import.meta.resolve('../package.json');
+        const packageJsonPath = fileURLToPath(packageJsonUrl);
+        const packageJson = readFileSync(packageJsonPath, 'utf-8');
+        const packageJsonObject = JSON.parse(packageJson);
+        return packageJsonObject.version;
+    } catch (error) {
+        console.error('Failed to load package.json:', error);
+        return undefined;
+    }
+};
 
 export const API_VERSION =
-    process.env.npm_package_version ?? version ?? new Error('API_VERSION not set');
+    process.env.npm_package_version ?? getPackageJsonVersion() ?? new Error('API_VERSION not set');
 
 export const NODE_ENV =
     (process.env.NODE_ENV as 'development' | 'test' | 'staging' | 'production') ?? 'production';

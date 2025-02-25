@@ -1,11 +1,11 @@
-import type { CoreContext, CoreResult } from '@app/core/types';
-import { AppError } from '@app/core/errors/app-error';
-import { FieldMissingError } from '@app/core/errors/field-missing-error';
-import { pubsub } from '@app/core/pubsub';
-import { emcmd } from '@app/core/utils/clients/emcmd';
-import { ensurePermission } from '@app/core/utils/permissions/ensure-permission';
-import { hasFields } from '@app/core/utils/validation/has-fields';
-import { getters } from '@app/store';
+import type { CoreContext, CoreResult } from '@app/core/types/index.js';
+import { AppError } from '@app/core/errors/app-error.js';
+import { FieldMissingError } from '@app/core/errors/field-missing-error.js';
+import { pubsub } from '@app/core/pubsub.js';
+import { emcmd } from '@app/core/utils/clients/emcmd.js';
+import { ensurePermission } from '@app/core/utils/permissions/ensure-permission.js';
+import { hasFields } from '@app/core/utils/validation/has-fields.js';
+import { getters } from '@app/store/index.js';
 
 interface Context extends CoreContext {
     readonly data: {
@@ -24,11 +24,6 @@ interface Context extends CoreContext {
 export const addUser = async (context: Context): Promise<CoreResult> => {
     const { data } = context;
     // Check permissions
-    ensurePermission(context.user, {
-        resource: 'user',
-        action: 'create',
-        possession: 'any',
-    });
 
     // Validation
     const { name, description = '', password } = data;

@@ -1,5 +1,5 @@
-import type { StateFileToIniParserMap } from '@app/store/types';
-import { type User } from '@app/core/types/states/user';
+import type { StateFileToIniParserMap } from '@app/store/types.js';
+import { type User } from '@app/core/types/states/user.js';
 
 type BooleanString = 'yes' | 'no';
 

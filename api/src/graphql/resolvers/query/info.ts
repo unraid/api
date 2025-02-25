@@ -5,20 +5,20 @@ import { execa, execaCommandSync } from 'execa';
 import { isSymlink } from 'path-type';
 import { cpu, cpuFlags, mem, memLayout, osInfo, versions } from 'systeminformation';
 
-import type { PciDevice } from '@app/core/types';
-import { bootTimestamp } from '@app/common/dashboard/boot-timestamp';
-import { getUnraidVersion } from '@app/common/dashboard/get-unraid-version';
-import { AppError } from '@app/core/errors/app-error';
-import { type DynamixConfig } from '@app/core/types/ini';
-import { toBoolean } from '@app/core/utils/casting';
-import { docker } from '@app/core/utils/clients/docker';
-import { cleanStdout } from '@app/core/utils/misc/clean-stdout';
-import { loadState } from '@app/core/utils/misc/load-state';
-import { sanitizeProduct } from '@app/core/utils/vms/domain/sanitize-product';
-import { sanitizeVendor } from '@app/core/utils/vms/domain/sanitize-vendor';
-import { vmRegExps } from '@app/core/utils/vms/domain/vm-regexps';
-import { filterDevices } from '@app/core/utils/vms/filter-devices';
-import { getPciDevices } from '@app/core/utils/vms/get-pci-devices';
+import type { PciDevice } from '@app/core/types/index.js';
+import { bootTimestamp } from '@app/common/dashboard/boot-timestamp.js';
+import { getUnraidVersion } from '@app/common/dashboard/get-unraid-version.js';
+import { AppError } from '@app/core/errors/app-error.js';
+import { type DynamixConfig } from '@app/core/types/ini.js';
+import { toBoolean } from '@app/core/utils/casting.js';
+import { docker } from '@app/core/utils/clients/docker.js';
+import { cleanStdout } from '@app/core/utils/misc/clean-stdout.js';
+import { loadState } from '@app/core/utils/misc/load-state.js';
+import { sanitizeProduct } from '@app/core/utils/vms/domain/sanitize-product.js';
+import { sanitizeVendor } from '@app/core/utils/vms/domain/sanitize-vendor.js';
+import { vmRegExps } from '@app/core/utils/vms/domain/vm-regexps.js';
+import { filterDevices } from '@app/core/utils/vms/filter-devices.js';
+import { getPciDevices } from '@app/core/utils/vms/get-pci-devices.js';
 import {
     type Devices,
     type Display,
@@ -31,8 +31,8 @@ import {
     type Temperature,
     type Theme,
     type Versions,
-} from '@app/graphql/generated/api/types';
-import { getters } from '@app/store';
+} from '@app/graphql/generated/api/types.js';
+import { getters } from '@app/store/index.js';
 
 export const generateApps = async (): Promise<InfoApps> => {
     const installed = await docker
@@ -75,14 +75,27 @@ export const generateCpu = async (): Promise<InfoCpu> => {
 };
 
 export const generateDisplay = async (): Promise<Display> => {
-    const filePath = getters.paths()['dynamix-config'];
-    const state = loadState<DynamixConfig>(filePath);
-    if (!state) {
-        return {};
+    const filePaths = getters.paths()['dynamix-config'];
+
+    const state = filePaths.reduce<Partial<DynamixConfig>>(
+        (acc, filePath) => {
+            const state = loadState<DynamixConfig>(filePath);
+            return state ? { ...acc, ...state } : acc;
+        },
+        {
+            id: 'dynamix-config/display',
+        }
+    );
+
+    if (!state.display) {
+        return {
+            id: 'dynamix-config/display',
+        };
     }
     const { theme, unit, ...display } = state.display;
     return {
         ...display,
+        id: 'dynamix-config/display',
         theme: theme as Theme,
         unit: unit as Temperature,
         scale: toBoolean(display.scale),
@@ -138,12 +151,13 @@ export const generateMemory = async (): Promise<InfoMemory> => {
                 const end = lines.indexOf(nextHeaders);
                 const fields = lines.slice(start, end);
 
-                max = toBytes(
-                    fields
-                        ?.find((line) => line.trim().startsWith('Maximum Capacity'))
-                        ?.trim()
-                        ?.split(': ')[1] ?? '0'
-                );
+                max =
+                    toBytes(
+                        fields
+                            ?.find((line) => line.trim().startsWith('Maximum Capacity'))
+                            ?.trim()
+                            ?.split(': ')[1] ?? '0'
+                    ) ?? 0;
             }
         }
     } catch {
@@ -223,8 +237,7 @@ export const generateDevices = async (): Promise<Devices> => {
         const processedDevices = await filterDevices(filteredDevices).then(async (devices) =>
             Promise.all(
                 devices
-                    // @ts-expect-error - Device is not PciDevice
-                    .map((device) => addDeviceClass(device))
+                    .map((device) => addDeviceClass(device as PciDevice))
                     .map(async (device) => {
                         // Attempt to get the current kernel-bound driver for this pci device
                         await isSymlink(`${basePath}${device.id}/driver`).then((symlink) => {

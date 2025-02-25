@@ -1,7 +1,7 @@
 import { Command, CommandRunner } from 'nest-commander';
 
-import { API_VERSION } from '@app/environment';
-import { LogService } from '@app/unraid-api/cli/log.service';
+import { API_VERSION } from '@app/environment.js';
+import { LogService } from '@app/unraid-api/cli/log.service.js';
 
 @Command({ name: 'version' })
 export class VersionCommand extends CommandRunner {

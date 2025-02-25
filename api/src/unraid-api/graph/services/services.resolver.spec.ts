@@ -1,7 +1,9 @@
 import type { TestingModule } from '@nestjs/testing';
 import { Test } from '@nestjs/testing';
 
-import { ServicesResolver } from '@app/unraid-api/graph/services/services.resolver';
+import { beforeEach, describe, expect, it } from 'vitest';
+
+import { ServicesResolver } from '@app/unraid-api/graph/services/services.resolver.js';
 
 describe('ServicesResolver', () => {
     let resolver: ServicesResolver;

@@ -1,24 +1,24 @@
-import { type Subscription } from 'zen-observable-ts';
+import type { Subscription } from 'zen-observable-ts';
 
-import type { ArrayDisk, Share } from '@app/graphql/generated/api/types';
-import type { RootState } from '@app/store';
-import { type Devices } from '@app/core/types/states/devices';
-import { type Networks } from '@app/core/types/states/network';
-import { type NfsShares } from '@app/core/types/states/nfs';
-import { type Nginx } from '@app/core/types/states/nginx';
-import { type SmbShares } from '@app/core/types/states/smb';
-import { type Users } from '@app/core/types/states/user';
-import { type Var } from '@app/core/types/states/var';
-import { MinigraphStatus } from '@app/graphql/generated/api/types';
-import { type DevicesIni } from '@app/store/state-parsers/devices';
-import { type NetworkIni } from '@app/store/state-parsers/network';
-import { type NfsSharesIni } from '@app/store/state-parsers/nfs';
-import { type NginxIni } from '@app/store/state-parsers/nginx';
-import { type SharesIni } from '@app/store/state-parsers/shares';
-import { type SlotsIni } from '@app/store/state-parsers/slots';
-import { type SmbIni } from '@app/store/state-parsers/smb';
-import { type UsersIni } from '@app/store/state-parsers/users';
-import { type VarIni } from '@app/store/state-parsers/var';
+import type { ArrayDisk, Share } from '@app/graphql/generated/api/types.js';
+import type { RootState } from '@app/store/index.js';
+import { type Devices } from '@app/core/types/states/devices.js';
+import { type Networks } from '@app/core/types/states/network.js';
+import { type NfsShares } from '@app/core/types/states/nfs.js';
+import { type Nginx } from '@app/core/types/states/nginx.js';
+import { type SmbShares } from '@app/core/types/states/smb.js';
+import { type Users } from '@app/core/types/states/user.js';
+import { type Var } from '@app/core/types/states/var.js';
+import { MinigraphStatus } from '@app/graphql/generated/api/types.js';
+import { type DevicesIni } from '@app/store/state-parsers/devices.js';
+import { type NetworkIni } from '@app/store/state-parsers/network.js';
+import { type NfsSharesIni } from '@app/store/state-parsers/nfs.js';
+import { type NginxIni } from '@app/store/state-parsers/nginx.js';
+import { type SharesIni } from '@app/store/state-parsers/shares.js';
+import { type SlotsIni } from '@app/store/state-parsers/slots.js';
+import { type SmbIni } from '@app/store/state-parsers/smb.js';
+import { type UsersIni } from '@app/store/state-parsers/users.js';
+import { type VarIni } from '@app/store/state-parsers/var.js';
 
 export enum FileLoadStatus {
     UNLOADED = 'UNLOADED',

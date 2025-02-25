@@ -1,4 +1,4 @@
-import type { CoreResult } from '@app/core/types';
+import type { CoreResult } from '@app/core/types/index.js';
 
 /**
  * Get all apps.

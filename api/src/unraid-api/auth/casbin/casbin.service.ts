@@ -2,7 +2,7 @@ import { Injectable, InternalServerErrorException, Logger, OnModuleInit } from '
 
 import { Model as CasbinModel, Enforcer, newEnforcer, StringAdapter } from 'casbin';
 
-import { LOG_LEVEL } from '@app/environment';
+import { LOG_LEVEL } from '@app/environment.js';
 
 @Injectable()
 export class CasbinService {

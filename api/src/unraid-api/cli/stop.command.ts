@@ -1,7 +1,7 @@
 import { Command, CommandRunner, Option } from 'nest-commander';
 
-import { ECOSYSTEM_PATH } from '@app/consts';
-import { PM2Service } from '@app/unraid-api/cli/pm2.service';
+import { ECOSYSTEM_PATH } from '@app/consts.js';
+import { PM2Service } from '@app/unraid-api/cli/pm2.service.js';
 
 interface StopCommandOptions {
     delete: boolean;

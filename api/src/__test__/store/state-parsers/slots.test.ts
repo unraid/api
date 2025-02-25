@@ -2,12 +2,12 @@ import { join } from 'path';
 
 import { expect, test } from 'vitest';
 
-import type { SlotsIni } from '@app/store/state-parsers/slots';
-import { store } from '@app/store';
+import type { SlotsIni } from '@app/store/state-parsers/slots.js';
+import { store } from '@app/store/index.js';
 
 test('Returns parsed state file', async () => {
-    const { parse } = await import('@app/store/state-parsers/slots');
-    const { parseConfig } = await import('@app/core/utils/misc/parse-config');
+    const { parse } = await import('@app/store/state-parsers/slots.js');
+    const { parseConfig } = await import('@app/core/utils/misc/parse-config.js');
     const { paths } = store.getState();
     const filePath = join(paths.states, 'disks.ini');
     const stateFile = parseConfig<SlotsIni>({

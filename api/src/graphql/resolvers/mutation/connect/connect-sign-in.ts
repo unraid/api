@@ -1,10 +1,10 @@
 import { decodeJwt } from 'jose';
 
-import type { ConnectSignInInput } from '@app/graphql/generated/api/types';
-import { getters, store } from '@app/store/index';
-import { loginUser } from '@app/store/modules/config';
-import { FileLoadStatus } from '@app/store/types';
-import { ApiKeyService } from '@app/unraid-api/auth/api-key.service';
+import type { ConnectSignInInput } from '@app/graphql/generated/api/types.js';
+import { getters, store } from '@app/store/index.js';
+import { loginUser } from '@app/store/modules/config.js';
+import { FileLoadStatus } from '@app/store/types.js';
+import { ApiKeyService } from '@app/unraid-api/auth/api-key.service.js';
 
 export const connectSignIn = async (input: ConnectSignInInput): Promise<boolean> => {
     if (getters.emhttp().status === FileLoadStatus.LOADED) {

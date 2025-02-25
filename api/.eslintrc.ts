@@ -1,4 +1,5 @@
 import eslint from '@eslint/js';
+import importPlugin from 'eslint-plugin-import';
 import noRelativeImportPaths from 'eslint-plugin-no-relative-import-paths';
 import prettier from 'eslint-plugin-prettier';
 import tseslint from 'typescript-eslint';
@@ -7,6 +8,7 @@ export default tseslint.config(eslint.configs.recommended, ...tseslint.configs.r
     plugins: {
         'no-relative-import-paths': noRelativeImportPaths,
         prettier: prettier,
+        import: importPlugin,
     },
     rules: {
         '@typescript-eslint/no-redundant-type-constituents': 'off',
@@ -22,7 +24,6 @@ export default tseslint.config(eslint.configs.recommended, ...tseslint.configs.r
         '@typescript-eslint/no-unused-vars': 'off',
         '@typescript-eslint/no-unused-expressions': 'off',
         'import/no-unresolved': 'off',
-        'import/extensions': 'off',
         'import/no-absolute-path': 'off',
         'import/prefer-default-export': 'off',
         'no-relative-import-paths/no-relative-import-paths': [
@@ -30,6 +31,26 @@ export default tseslint.config(eslint.configs.recommended, ...tseslint.configs.r
             { allowSameFolder: false, rootDir: 'src', prefix: '@app' },
         ],
         'prettier/prettier': 'error',
+        'import/extensions': [
+            'error',
+            'ignorePackages',
+            {
+                js: 'always',
+                ts: 'always',
+            },
+        ],
+        'no-restricted-globals': [
+            'error',
+            {
+                name: '__dirname',
+                message: 'Use import.meta.url instead of __dirname in ESM',
+            },
+            {
+                name: '__filename',
+                message: 'Use import.meta.url instead of __filename in ESM',
+            },
+        ],
     },
+
     ignores: ['src/graphql/generated/client/**/*'],
 });

@@ -2,9 +2,9 @@ import path from 'path';
 
 import { execa } from 'execa';
 
-import { FileMissingError } from '@app/core/errors/file-missing-error';
-import { PhpError } from '@app/core/errors/php-error';
-import { type LooseObject, type LooseStringObject } from '@app/core/types';
+import { FileMissingError } from '@app/core/errors/file-missing-error.js';
+import { PhpError } from '@app/core/errors/php-error.js';
+import { type LooseObject, type LooseStringObject } from '@app/core/types/index.js';
 
 /**
  * Encode GET/POST params.

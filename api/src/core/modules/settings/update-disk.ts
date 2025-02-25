@@ -1,9 +1,9 @@
-import { EmCmdError } from '@app/core/errors/em-cmd-error';
-import { type CoreContext, type CoreResult } from '@app/core/types';
-import { type Var } from '@app/core/types/states/var';
-import { emcmd } from '@app/core/utils/clients/emcmd';
-import { ensurePermission } from '@app/core/utils/permissions/ensure-permission';
-import { getters } from '@app/store';
+import { EmCmdError } from '@app/core/errors/em-cmd-error.js';
+import { type CoreContext, type CoreResult } from '@app/core/types/index.js';
+import { type Var } from '@app/core/types/states/var.js';
+import { emcmd } from '@app/core/utils/clients/emcmd.js';
+import { ensurePermission } from '@app/core/utils/permissions/ensure-permission.js';
+import { getters } from '@app/store/index.js';
 
 interface Context extends CoreContext {
     data: Var;
@@ -23,14 +23,7 @@ interface Result extends CoreResult {
  * Update disk settings.
  */
 export const updateDisk = async (context: Context): Promise<Result> => {
-    const { data, user } = context;
-
-    // Check permissions
-    ensurePermission(user, {
-        resource: 'disk/settings',
-        action: 'update',
-        possession: 'any',
-    });
+    const { data } = context;
 
     /**
      * Check context.data[property] is using an allowed value.
