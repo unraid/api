@@ -7,6 +7,17 @@ Thank you for your interest in contributing to Unraid Connect! We want to make c
 - Submitting a fix
 - Proposing new features
 
+## TypeScript Import Extensions in the API Directory
+
+When working with the API directory, you'll notice that TypeScript files are imported with `.js` extensions (e.g., `import { something } from './file.js'`) even though the actual files have `.ts` extensions. This is because:
+
+1. We use ECMAScript modules (ESM) in our TypeScript configuration
+2. When TypeScript compiles `.ts` files to `.js`, the import paths in the compiled code need to reference `.js` files
+3. TypeScript doesn't automatically change the extensions in import statements during compilation
+4. Using `.js` extensions in imports ensures that both TypeScript during development and Node.js in production can resolve the modules correctly
+
+This approach follows the [official TypeScript ESM recommendation](https://www.typescriptlang.org/docs/handbook/esm-node.html) and ensures compatibility across development and production environments.
+
 ## Development Process
 
 We use GitHub to host code, to track issues and feature requests, as well as accept pull requests.
