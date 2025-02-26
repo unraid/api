@@ -8,7 +8,6 @@ import { dynamicRemoteAccessReducer } from '@app/store/modules/dynamic-remote-ac
 import { dynamix } from '@app/store/modules/dynamix.js';
 import { emhttp } from '@app/store/modules/emhttp.js';
 import { mothership } from '@app/store/modules/minigraph.js';
-import { notificationReducer } from '@app/store/modules/notifications.js';
 import { paths } from '@app/store/modules/paths.js';
 import { registration } from '@app/store/modules/registration.js';
 import { remoteGraphQLReducer } from '@app/store/modules/remote-graphql.js';
@@ -23,7 +22,6 @@ export const store = configureStore({
         emhttp: emhttp.reducer,
         registration: registration.reducer,
         remoteGraphQL: remoteGraphQLReducer,
-        notifications: notificationReducer,
         cache: cache.reducer,
         docker: docker.reducer,
         upnp: upnp.reducer,
@@ -46,7 +44,6 @@ export const getters = {
     dynamix: () => store.getState().dynamix,
     emhttp: () => store.getState().emhttp,
     minigraph: () => store.getState().minigraph,
-    notifications: () => store.getState().notifications,
     paths: () => store.getState().paths,
     registration: () => store.getState().registration,
     remoteGraphQL: () => store.getState().remoteGraphQL,
