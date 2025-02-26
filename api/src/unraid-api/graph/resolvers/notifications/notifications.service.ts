@@ -52,7 +52,7 @@ export class NotificationsService {
 
     constructor() {
         this.path = getters.dynamix().notify!.path;
-        NotificationsService.watcher = this.getNotificationsWatcher(this.path);
+        void this.getNotificationsWatcher(this.path);
     }
 
     /**
@@ -68,7 +68,7 @@ export class NotificationsService {
 
         if (this.path !== basePath) {
             // Recreate the watcher, the close call is non-blocking
-            NotificationsService.watcher = this.getNotificationsWatcher(basePath, true);
+            void this.getNotificationsWatcher(basePath, true);
             this.path = basePath;
         }
 
@@ -87,11 +87,11 @@ export class NotificationsService {
      * events to their event handlers.
      *------------------------------------------------------------------------**/
 
-    private getNotificationsWatcher(basePath: string, recreate = false) {
+    private async getNotificationsWatcher(basePath: string, recreate = false): Promise<FSWatcher> {
         if (NotificationsService.watcher && !recreate) {
             return NotificationsService.watcher;
         }
-        NotificationsService.watcher?.close().catch((e) => this.logger.error(e));
+        await NotificationsService.watcher?.close().catch((e) => this.logger.error(e));
 
         NotificationsService.watcher = watch(basePath, { usePolling: CHOKIDAR_USEPOLLING }).on(
             'add',
