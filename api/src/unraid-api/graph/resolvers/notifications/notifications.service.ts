@@ -68,8 +68,7 @@ export class NotificationsService {
 
         if (this.path !== basePath) {
             // Recreate the watcher, the close call is non-blocking
-            NotificationsService.watcher?.close().catch((e) => this.logger.error(e));
-            NotificationsService.watcher = this.getNotificationsWatcher(basePath);
+            NotificationsService.watcher = this.getNotificationsWatcher(basePath, true);
             this.path = basePath;
         }
 
@@ -88,10 +87,11 @@ export class NotificationsService {
      * events to their event handlers.
      *------------------------------------------------------------------------**/
 
-    private getNotificationsWatcher(basePath: string) {
-        if (NotificationsService.watcher) {
+    private getNotificationsWatcher(basePath: string, recreate = false) {
+        if (NotificationsService.watcher && !recreate) {
             return NotificationsService.watcher;
         }
+        NotificationsService.watcher?.close().catch((e) => this.logger.error(e));
 
         NotificationsService.watcher = watch(basePath, { usePolling: CHOKIDAR_USEPOLLING }).on(
             'add',
