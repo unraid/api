@@ -1,14 +1,12 @@
-import { cp, readFile, mkdir } from "fs/promises";
+import { cp, mkdir } from "fs/promises";
 import { basename, join } from "path";
-import { createHash } from "node:crypto";
-import { $, cd, version } from "zx";
-import { setupEnvironment } from "./setup-plugin-environment";
+import { $, cd } from "zx";
 import { existsSync } from "node:fs";
 import { readdir } from "node:fs/promises";
 import { execSync } from "node:child_process";
-import { pluginName, startingDir } from "./consts";
+import { pluginName, startingDir } from "./utils/consts";
+import { setupTxzEnvironment, TxzEnv } from "./cli/setup-txz-environment";
 
-const validatedEnv = await setupEnvironment("txz");
 
 const createTxzDirectory = async () => {
   await execSync(`rm -rf deploy/pre-pack/*`);
@@ -20,7 +18,7 @@ const createTxzDirectory = async () => {
   await mkdir("deploy/release/archive", { recursive: true });
 };
 
-const validateSourceDir = async () => {
+const validateSourceDir = async (validatedEnv: TxzEnv) => {
   if (!validatedEnv.CI) {
     console.log("Validating TXZ source directory");
   }
@@ -67,13 +65,9 @@ const validateSourceDir = async () => {
   }
 };
 
-const buildTxz = async (): Promise<{
+const buildTxz = async (validatedEnv: TxzEnv): Promise<{
   txzName: string;
 }> => {
-  if (validatedEnv.SKIP_VALIDATION !== "true") {
-    await validateSourceDir();
-  }
-
   const txzName = `${pluginName}.txz`;
   const txzPath = join(startingDir, "deploy/release/archive", txzName);
   const prePackDir = join(startingDir, "deploy/pre-pack");
@@ -120,8 +114,9 @@ const buildTxz = async (): Promise<{
 };
 
 const main = async () => {
+  const validatedEnv = await setupTxzEnvironment(process.argv);
   await createTxzDirectory();
-  await buildTxz();
+  await buildTxz(validatedEnv);
 };
 
 await main();

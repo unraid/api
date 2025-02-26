@@ -1,30 +1,25 @@
-import { execSync } from "child_process";
 import { readFile, writeFile, mkdir } from "fs/promises";
-import { join } from "path";
 import { $ } from "zx";
 import conventionalChangelog from "conventional-changelog";
 import { escape as escapeHtml } from "html-sloppy-escaper";
-import { setupEnvironment } from "./setup-plugin-environment";
 import { dirname } from "node:path";
-import { getTxzName, pluginName, pluginNameWithExt, startingDir } from "./consts";
-import { getPluginUrl } from "./bucket-urls";
-import { getMainTxzUrl } from "./bucket-urls";
-import { getDeployPluginPath, getRootPluginPath, getTxzPath } from "./paths";
+import { getTxzName, pluginName, startingDir } from "./utils/consts";
+import { getPluginUrl } from "./utils/bucket-urls";
+import { getMainTxzUrl } from "./utils/bucket-urls";
+import { getDeployPluginPath, getRootPluginPath, getTxzPath } from "./utils/paths";
 import { createHash } from "node:crypto";
+import { setupPluginEnvironment } from "./cli/setup-plugin-environment";
 
-// Setup environment variables
-// Ensure that git is available
-
-try {
-  await $`git log -1 --pretty=%B`;
-} catch (err) {
-  console.error(`Error: git not available: ${err}`);
-  process.exit(1);
-}
-
-const createPluginDirectory = async () => {
-  await execSync(`rm -rf deploy/release/*`);
-  await mkdir("deploy/release/plugins", { recursive: true });
+/**
+ * Check if git is available
+ */
+const checkGit = async () => {
+  try {
+    await $`git log -1 --pretty=%B`;
+  } catch (err) {
+    console.error(`Error: git not available: ${err}`);
+    process.exit(1);
+  }
 };
 
 function updateEntityValue(
@@ -141,9 +136,8 @@ const getTxzInfo = async () => {
 
 const main = async () => {
 
-  const validatedEnv = await setupEnvironment("plugin");
-
-  const { BASE_URL, TAG, RELEASE_NOTES } = validatedEnv;
+  await checkGit();
+  const { BASE_URL, TAG, RELEASE_NOTES, PLUGIN_VERSION, TXZ_SHA256, TXZ_NAME } = await setupPluginEnvironment(process.argv);
 
   const { txzSha256, txzName } = await getTxzInfo();
   const releaseNotes =

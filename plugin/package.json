@@ -3,6 +3,7 @@
   "version": "4.1.3",
   "private": true,
   "dependencies": {
+    "commander": "^13.1.0",
     "conventional-changelog": "^6.0.0",
     "date-fns": "^4.1.0",
     "glob": "^11.0.1",
@@ -17,8 +18,8 @@
   "license": "GPL-2.0-only",
   "scripts": {
     "// Build scripts": "",
-    "build:txz": "tsx scripts/build-txz.ts",
-    "build:plugin": "tsx scripts/build-plugin.ts",
+    "build:txz": "tsx builder/cli/build-txz.ts",
+    "build:plugin": "tsx builder/cli/build-plugin.ts",
     "build:validate": "npm run env:validate && npm run build",
     "// Docker commands": "",
     "docker:build": "docker build -t plugin-builder .",
@@ -30,17 +31,18 @@
     "env:validate": "test -f .env || (echo 'Error: .env file missing. Run npm run env:init first' && exit 1)",
     "env:clean": "rm -f .env",
     "// Composite commands": "",
-    "start": "npm run env:validate && npm run docker:build-and-run",
-    "test": "npm run env:init && npm run start && npm run env:clean",
+
     "// Watchers for Other Changes": "",
     "wc:clean": "rm -r ./source/dynamix.unraid.net/usr/local/emhttp/plugins/dynamix.my.servers/unraid-components/*",
     "wc:watch": "cpx -w -v \"../web/.nuxt/nuxt-custom-elements/dist/unraid-components/**/*\" ./source/dynamix.unraid.net/usr/local/emhttp/plugins/dynamix.my.servers/unraid-components",
     "api:watch": "cpx -w -C -v \"../api/deploy/pack/**/*\" ./source/dynamix.unraid.net/usr/local/unraid-api",
     "ui:watch": "cpx -w -v \"../unraid-ui/dist/**/*\" ./source/dynamix.unraid.net/usr/local/emhttp/plugins/dynamix.my.servers/unraid-components",
-    "watch:all": "npm run wc:clean && npm run wc:watch & npm run api:watch & npm run ui:watch"
+    "watch:all": "npm run wc:clean && npm run wc:watch & npm run api:watch & npm run ui:watch",
+    "test": "vitest"
   },
   "devDependencies": {
-    "cpx2": "^8.0.0"
+    "cpx2": "^8.0.0",
+    "vitest": "^3.0.7"
   },
   "packageManager": "pnpm@10.4.1"
 }
