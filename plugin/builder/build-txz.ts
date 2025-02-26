@@ -1,12 +1,11 @@
-import { cp, mkdir } from "fs/promises";
-import { basename, join } from "path";
+import { mkdir } from "fs/promises";
+import { join } from "path";
 import { $, cd } from "zx";
 import { existsSync } from "node:fs";
 import { readdir } from "node:fs/promises";
 import { execSync } from "node:child_process";
-import { pluginName, startingDir } from "./utils/consts";
-import { setupTxzEnvironment, TxzEnv } from "./cli/setup-txz-environment";
-
+import { getTxzName, startingDir } from "./utils/consts";
+import { setupTxzEnv, TxzEnv } from "./cli/setup-txz-environment";
 
 const createTxzDirectory = async () => {
   await execSync(`rm -rf deploy/pre-pack/*`);
@@ -19,7 +18,7 @@ const createTxzDirectory = async () => {
 };
 
 const validateSourceDir = async (validatedEnv: TxzEnv) => {
-  if (!validatedEnv.CI) {
+  if (!validatedEnv.ci) {
     console.log("Validating TXZ source directory");
   }
   const sourceDir = join(startingDir, "source");
@@ -65,43 +64,30 @@ const validateSourceDir = async (validatedEnv: TxzEnv) => {
   }
 };
 
-const buildTxz = async (validatedEnv: TxzEnv): Promise<{
-  txzName: string;
-}> => {
-  const txzName = `${pluginName}.txz`;
-  const txzPath = join(startingDir, "deploy/release/archive", txzName);
-  const prePackDir = join(startingDir, "deploy/pre-pack");
-
-  // Copy all files from source to temp dir, excluding specific files
-  await cp(join(startingDir, "source/dynamix.unraid.net"), prePackDir, {
-    recursive: true,
-    filter: (src) => {
-      const filename = basename(src);
-      return ![
-        ".DS_Store",
-        "pkg_build.sh",
-        "makepkg",
-        "explodepkg",
-        "sftp-config.json",
-        ".gitkeep",
-      ].includes(filename);
-    },
-  });
+const buildTxz = async (validatedEnv: TxzEnv) => {
+  await validateSourceDir(validatedEnv);
+  const txzPath = join(validatedEnv.txzOutputDir, getTxzName());
 
   // Create package - must be run from within the pre-pack directory
   // Use cd option to run command from prePackDir
-  await cd(prePackDir);
+  await cd(validatedEnv.txzOutputDir);
   $.verbose = true;
 
-  await $`${join(startingDir, "scripts/makepkg")} -l ${
-    validatedEnv.CI ? "y" : "n"
-  } -c ${validatedEnv.CI ? "y" : "n"} --compress ${
-    validatedEnv.CI ? "-5" : "-1"
-  } "${txzPath}"`;
+  const makepkgOptions: Record<string, { key: string; value: string }> = {
+    chown: { key: "--chown", value: validatedEnv.ci ? "y" : "n" },
+    compress: { key: "--compress", value: validatedEnv.compress },
+    moveSymlinks: { key: "--linkadd", value: validatedEnv.ci ? "y" : "n" },
+  };
+
+  await $`${join(startingDir, "scripts/makepkg")} ${Object.values(
+    makepkgOptions
+  )
+    .map((option) => `${option.key} ${option.value}`)
+    .join(" ")} "${txzPath}"`;
   $.verbose = false;
   await cd(startingDir);
 
-  if (validatedEnv.SKIP_VALIDATION !== "true") {
+  if (validatedEnv.skipValidation !== "true") {
     try {
       await $`${join(startingDir, "scripts/explodepkg")} "${txzPath}"`;
     } catch (err) {
@@ -109,12 +95,10 @@ const buildTxz = async (validatedEnv: TxzEnv): Promise<{
       process.exit(1);
     }
   }
-
-  return { txzName };
 };
 
 const main = async () => {
-  const validatedEnv = await setupTxzEnvironment(process.argv);
+  const validatedEnv = await setupTxzEnv(process.argv);
   await createTxzDirectory();
   await buildTxz(validatedEnv);
 };

@@ -18,8 +18,8 @@
   "license": "GPL-2.0-only",
   "scripts": {
     "// Build scripts": "",
-    "build:txz": "tsx builder/cli/build-txz.ts",
-    "build:plugin": "tsx builder/cli/build-plugin.ts",
+    "build:txz": "tsx builder/build-txz.ts",
+    "build:plugin": "tsx builder/build-plugin.ts",
     "build:validate": "npm run env:validate && npm run build",
     "// Docker commands": "",
     "docker:build": "docker build -t plugin-builder .",

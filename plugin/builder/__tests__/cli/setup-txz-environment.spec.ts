@@ -1,14 +1,12 @@
-import {
-  setupTxzEnv,
-  validateTxzEnv,
-  TxzEnv,
-} from "../../cli/setup-txz-environment";
+import { join } from "path";
+import { validateTxzEnv, TxzEnv } from "../../cli/setup-txz-environment";
 import { describe, it, expect, vi } from "vitest";
+import { startingDir } from "../../utils/consts";
 
 describe("setupTxzEnvironment", () => {
   it("should return default values when no arguments are provided", async () => {
     const envArgs = {};
-    const expected: TxzEnv = { CI: false, SKIP_VALIDATION: "false" };
+    const expected: TxzEnv = { ci: false, skipValidation: "false", compress: "1", txzOutputDir: join(startingDir, "deploy/release/archive") };
 
     const result = await validateTxzEnv(envArgs);
 
@@ -16,16 +14,16 @@ describe("setupTxzEnvironment", () => {
   });
 
   it("should parse and return provided environment arguments", async () => {
-    const envArgs = { CI: true, SKIP_VALIDATION: "true" };
-    const expected: TxzEnv = { CI: true, SKIP_VALIDATION: "true" };
+    const envArgs = { ci: true, skipValidation: "true", txzOutputDir: join(startingDir, "deploy/release/test"), compress: '8' };
+    const expected: TxzEnv = { ci: true, skipValidation: "true", compress: "8", txzOutputDir: join(startingDir, "deploy/release/test") };
 
     const result = await validateTxzEnv(envArgs);
 
     expect(result).toEqual(expected);
   });
 
-  it("should warn and skip validation when SKIP_VALIDATION is true", async () => {
-    const envArgs = { SKIP_VALIDATION: "true" };
+  it("should warn and skip validation when skipValidation is true", async () => {
+    const envArgs = { skipValidation: "true" };
     const consoleWarnSpy = vi
       .spyOn(console, "warn")
       .mockImplementation(() => {});
@@ -33,33 +31,13 @@ describe("setupTxzEnvironment", () => {
     await validateTxzEnv(envArgs);
 
     expect(consoleWarnSpy).toHaveBeenCalledWith(
-      "SKIP_VALIDATION is true, skipping validation"
+      "skipValidation is true, skipping validation"
     );
     consoleWarnSpy.mockRestore();
   });
 
-  it("should wait for 1 second when CI is false", async () => {
-    const envArgs = { CI: false };
-    const waitSpy = vi.spyOn(global, "setTimeout");
-
-    await validateTxzEnv(envArgs);
-
-    expect(waitSpy).toHaveBeenCalledWith(expect.any(Function), 1000);
-    waitSpy.mockRestore();
-  });
-
-  it("should not wait when CI is true", async () => {
-    const envArgs = { CI: true };
-    const waitSpy = vi.spyOn(global, "setTimeout");
-
-    await validateTxzEnv(envArgs);
-
-    expect(waitSpy).not.toHaveBeenCalled();
-    waitSpy.mockRestore();
-  });
-
   it("should throw an error for invalid SKIP_VALIDATION value", async () => {
-    const envArgs = { SKIP_VALIDATION: "invalid" };
+    const envArgs = { skipValidation: "invalid" };
 
     await expect(validateTxzEnv(envArgs)).rejects.toThrow(
       "Must be true or false"

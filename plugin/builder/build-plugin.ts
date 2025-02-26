@@ -1,14 +1,17 @@
 import { readFile, writeFile, mkdir } from "fs/promises";
 import { $ } from "zx";
-import conventionalChangelog from "conventional-changelog";
 import { escape as escapeHtml } from "html-sloppy-escaper";
 import { dirname } from "node:path";
 import { getTxzName, pluginName, startingDir } from "./utils/consts";
 import { getPluginUrl } from "./utils/bucket-urls";
 import { getMainTxzUrl } from "./utils/bucket-urls";
-import { getDeployPluginPath, getRootPluginPath, getTxzPath } from "./utils/paths";
+import {
+  getDeployPluginPath,
+  getRootPluginPath,
+  getTxzPath,
+} from "./utils/paths";
 import { createHash } from "node:crypto";
-import { setupPluginEnvironment } from "./cli/setup-plugin-environment";
+import { PluginEnv, setupPluginEnv } from "./cli/setup-plugin-environment";
 
 /**
  * Check if git is available
@@ -34,56 +37,13 @@ function updateEntityValue(
   throw new Error(`Entity ${entityName} not found in XML`);
 }
 
-const getStagingChangelogFromGit = async (
-  pluginVersion: string,
-  tag: string | null = null
-): Promise<string> => {
-  try {
-    const changelogStream = conventionalChangelog(
-      {
-        preset: "conventionalcommits",
-      },
-      {
-        version: pluginVersion,
-      },
-      tag
-        ? {
-            from: "origin/main",
-            to: "HEAD",
-          }
-        : {},
-      undefined,
-      tag
-        ? {
-            headerPartial: `## [${tag}](https://github.com/unraid/api/${tag})\n\n`,
-          }
-        : undefined
-    );
-    let changelog = "";
-    for await (const chunk of changelogStream) {
-      changelog += chunk;
-    }
-    // Encode HTML entities using the 'he' library
-    return changelog ?? "";
-  } catch (err) {
-    console.error(`Error: failed to get changelog from git: ${err}`);
-    process.exit(1);
-  }
-};
-
 const buildPlugin = async ({
-  baseUrl,
-  txzSha256,
   pluginVersion,
-  releaseNotes,
+  baseUrl,
   tag = "",
-}: {
-  baseUrl: string;
-  txzSha256: string;
-  pluginVersion: string;
-  releaseNotes: string;
-  tag?: string;
-}) => {
+  txzSha256,
+  releaseNotes,
+}: PluginEnv) => {
   // Update plg file
   let plgContent = await readFile(getRootPluginPath({ startingDir }), "utf8");
 
@@ -120,7 +80,9 @@ const buildPlugin = async ({
 };
 
 const getSha256 = async (path: string) => {
-  const hash = createHash("sha256").update(await readFile(path)).digest("hex");
+  const hash = createHash("sha256")
+    .update(await readFile(path))
+    .digest("hex");
   return hash;
 };
 
@@ -135,19 +97,9 @@ const getTxzInfo = async () => {
  */
 
 const main = async () => {
-
   await checkGit();
-  const { BASE_URL, TAG, RELEASE_NOTES, PLUGIN_VERSION, TXZ_SHA256, TXZ_NAME } = await setupPluginEnvironment(process.argv);
-
-  const { txzSha256, txzName } = await getTxzInfo();
-  const releaseNotes =
-    RELEASE_NOTES ?? (await getStagingChangelogFromGit(PLUGIN_VERSION, TAG));
-  await buildPlugin({
-    baseUrl: BASE_URL,
-    txzSha256: TXZ_SHA256,
-    pluginVersion: PLUGIN_VERSION,
-    releaseNotes,
-  });
+  const validatedEnv = await setupPluginEnv(process.argv);
+  await buildPlugin(validatedEnv);
 };
 
 await main();

@@ -1,15 +1,17 @@
+import { join } from "path";
 import { z } from "zod";
 import { Command } from "commander";
-
-const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+import { startingDir } from "../utils/consts";
 
 const txzEnvSchema = z.object({
-  CI: z.boolean().optional().default(false),
-  SKIP_VALIDATION: z
+  ci: z.boolean().optional().default(false),
+  skipValidation: z
     .string()
     .optional()
     .default("false")
     .refine((v) => v === "true" || v === "false", "Must be true or false"),
+  compress: z.string().optional().default("1"),
+  txzOutputDir: z.string().optional().default(join(startingDir, "deploy/release/archive")),
 });
 
 export type TxzEnv = z.infer<typeof txzEnvSchema>;
@@ -19,12 +21,8 @@ export const validateTxzEnv = async (
 ): Promise<TxzEnv> => {
   const validatedEnv = txzEnvSchema.parse(envArgs);
 
-  if ("SKIP_VALIDATION" in validatedEnv) {
-    console.warn("SKIP_VALIDATION is true, skipping validation");
-  }
-
-  if (!validatedEnv.CI) {
-    await wait(1000);
+  if ("skipValidation" in validatedEnv) {
+    console.warn("skipValidation is true, skipping validation");
   }
 
   return validatedEnv;
@@ -36,7 +34,9 @@ export const setupTxzEnv = async (argv: string[]): Promise<TxzEnv> => {
 
   program
     .option("--skip-validation", "Skip validation", "false")
-    .option("--ci", "CI mode", false)
+    .option("--ci", "CI mode", process.env.CI === "true")
+    .option("--compress, -z", "Compress level", "1")
+
     .parse(argv);
 
   const options = program.opts();
