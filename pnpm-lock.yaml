@@ -96,8 +96,8 @@ importers:
         specifier: ^5.32.0
         version: 5.38.0
       catch-exit:
-        specifier: ^1.2.2
-        version: 1.2.2
+        specifier: ^2.0.0
+        version: 2.0.0
       chokidar:
         specifier: ^4.0.1
         version: 4.0.3
@@ -4764,8 +4764,9 @@ packages:
   caseless@0.12.0:
     resolution: {integrity: sha512-4tYFyifaFfGacoiObjJegolkwSU4xQNGbVgUiNYVUxbQ2x2lUsFvY4hVgVzGiIe6WLOPqycWXA40l+PWsxthUw==}
 
-  catch-exit@1.2.2:
-    resolution: {integrity: sha512-7rZ3CgzR3L3fDcEjtxj0bV6/zEhf9P7jkjm7ucMSTqBVhvCrwp+/Dbq26AqC+O0HxpIqY+pz9O+xKlvGqUBDmg==}
+  catch-exit@2.0.0:
+    resolution: {integrity: sha512-Gr+6lDXQCxnDLlFQXwQgDgLEqRBnHi0J3d0qYB642JTnZzrBqS3XBJmi15MU6pwDBuQXPtv/2Zl9YlqUWU5Mtw==}
+    engines: {node: '>=12'}
 
   chai@4.5.0:
     resolution: {integrity: sha512-RITGBfijLkBddZvnn8jdqoTypxvqbOLYQkGGxXzeFjVHvudaPw0HNFD9x928/eUwYWd2dPCugVqspGALTZZQKw==}
@@ -7112,10 +7113,6 @@ packages:
 
   httpxy@0.1.7:
     resolution: {integrity: sha512-pXNx8gnANKAndgga5ahefxc++tJvNL87CXoRwxn1cJE2ZkWEojF3tNfQIEhZX/vfpt+wzeAzpUI4qkediX1MLQ==}
-
-  human-signals@2.1.0:
-    resolution: {integrity: sha512-B4FFZ6q/T2jhhksgkbEW3HBvWIfDW85snkQgawt07S7J5QXTk6BkNV+0yAeZrM5QpMAdYlocGoljn0sJ/WQkFw==}
-    engines: {node: '>=10.17.0'}
 
   human-signals@4.3.1:
     resolution: {integrity: sha512-nZXjEF2nbo7lIw3mgYjItAfgQXog3OjJogSbKa2CQIIvSGWcKgeJnQlNXip6NglNzYH45nSRiEVimMvYL8DDqQ==}
@@ -16670,9 +16667,9 @@ snapshots:
 
   caseless@0.12.0: {}
 
-  catch-exit@1.2.2:
+  catch-exit@2.0.0:
     dependencies:
-      human-signals: 2.1.0
+      human-signals: 8.0.0
 
   chai@4.5.0:
     dependencies:
@@ -19477,8 +19474,6 @@ snapshots:
       - supports-color
 
   httpxy@0.1.7: {}
-
-  human-signals@2.1.0: {}
 
   human-signals@4.3.1: {}
 
