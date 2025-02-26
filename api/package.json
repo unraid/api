@@ -173,7 +173,7 @@
         "eslint": "^9.20.1",
         "eslint-plugin-import": "^2.31.0",
         "eslint-plugin-no-relative-import-paths": "^1.6.1",
-        "eslint-plugin-node": "^11.1.0",
+        "eslint-plugin-n": "^14.0.0",
         "eslint-plugin-prettier": "^5.2.3",
         "graphql-codegen-typescript-validation-schema": "^0.17.0",
         "jiti": "^2.4.0",
