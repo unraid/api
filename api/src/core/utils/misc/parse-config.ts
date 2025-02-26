@@ -6,8 +6,8 @@ import { extname } from 'path';
 import camelCaseKeys from 'camelcase-keys';
 import { parse as parseIni } from 'ini';
 
-import { AppError } from '@app/core/errors/app-error';
-import { fileExistsSync } from '@app/core/utils/files/file-exists';
+import { AppError } from '@app/core/errors/app-error.js';
+import { fileExistsSync } from '@app/core/utils/files/file-exists.js';
 
 type ConfigType = 'ini' | 'cfg';
 

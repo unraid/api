@@ -1,16 +1,16 @@
 import { Logger } from '@nestjs/common';
 import { readFile, writeFile } from 'fs/promises';
-import { afterEach } from 'node:test';
-import { basename, resolve } from 'path';
+import { basename, dirname, resolve } from 'path';
+import { fileURLToPath } from 'url';
 
 import { describe, expect, test, vi } from 'vitest';
 
-import { FileModification } from '@app/unraid-api/unraid-file-modifier/file-modification';
-import AuthRequestModification from '@app/unraid-api/unraid-file-modifier/modifications/auth-request.modification';
-import DefaultPageLayoutModification from '@app/unraid-api/unraid-file-modifier/modifications/default-page-layout.modification';
-import { LogRotateModification } from '@app/unraid-api/unraid-file-modifier/modifications/log-rotate.modification';
-import NotificationsPageModification from '@app/unraid-api/unraid-file-modifier/modifications/notifications-page.modification';
-import SSOFileModification from '@app/unraid-api/unraid-file-modifier/modifications/sso.modification';
+import { FileModification } from '@app/unraid-api/unraid-file-modifier/file-modification.js';
+import AuthRequestModification from '@app/unraid-api/unraid-file-modifier/modifications/auth-request.modification.js';
+import DefaultPageLayoutModification from '@app/unraid-api/unraid-file-modifier/modifications/default-page-layout.modification.js';
+import { LogRotateModification } from '@app/unraid-api/unraid-file-modifier/modifications/log-rotate.modification.js';
+import NotificationsPageModification from '@app/unraid-api/unraid-file-modifier/modifications/notifications-page.modification.js';
+import SSOFileModification from '@app/unraid-api/unraid-file-modifier/modifications/sso.modification.js';
 
 interface ModificationTestCase {
     ModificationClass: new (...args: ConstructorParameters<typeof FileModification>) => FileModification;
@@ -18,8 +18,11 @@ interface ModificationTestCase {
     fileName: string;
 }
 
-const getPathToFixture = (fileName: string) => resolve(__dirname, `__fixtures__/downloaded/${fileName}`);
-const testCases: ModificationTestCase[] = [
+const getPathToFixture = (fileName: string) =>
+    resolve(dirname(fileURLToPath(import.meta.url)), `__fixtures__/downloaded/${fileName}`);
+
+/** Modifications that patch the content of an existing file in one or more places. */
+const patchTestCases: ModificationTestCase[] = [
     {
         ModificationClass: DefaultPageLayoutModification,
         fileUrl:
@@ -43,6 +46,10 @@ const testCases: ModificationTestCase[] = [
         fileUrl: 'https://github.com/unraid/webgui/raw/refs/heads/master/emhttp/auth-request.php',
         fileName: 'auth-request.php',
     },
+];
+
+/** Modifications that simply add a new file & remove it on rollback. */
+const simpleTestCases: ModificationTestCase[] = [
     {
         ModificationClass: LogRotateModification,
         fileUrl: 'logrotate.conf',
@@ -77,12 +84,12 @@ const downloadOrRetrieveOriginalFile = async (filePath: string, fileUrl: string)
     return await readFile(filePath, 'utf-8').catch(() => '');
 };
 
-async function testModification(testCase: ModificationTestCase, patcher: FileModification) {
+async function testModification(testCase: ModificationTestCase) {
     const fileName = basename(testCase.fileUrl);
     const filePath = getPathToFixture(fileName);
     const originalContent = await downloadOrRetrieveOriginalFile(filePath, testCase.fileUrl);
     const logger = new Logger();
-    patcher = await new testCase.ModificationClass(logger);
+    const patcher = await new testCase.ModificationClass(logger);
     const originalPath = patcher.filePath;
     // @ts-expect-error - Ignore for testing purposes
     patcher.filePath = filePath;
@@ -105,7 +112,7 @@ async function testModification(testCase: ModificationTestCase, patcher: FileMod
     await expect(revertedContent).toMatch(originalContent);
 }
 
-async function testInvalidModification(testCase: ModificationTestCase, patcher: FileModification) {
+async function testInvalidModification(testCase: ModificationTestCase) {
     const mockLogger = {
         log: vi.fn(),
         error: vi.fn(),
@@ -114,7 +121,7 @@ async function testInvalidModification(testCase: ModificationTestCase, patcher: 
         verbose: vi.fn(),
     };
 
-    patcher = new testCase.ModificationClass(mockLogger as unknown as Logger);
+    const patcher = new testCase.ModificationClass(mockLogger as unknown as Logger);
 
     // @ts-expect-error - Testing invalid pregenerated patches
     patcher.getPregeneratedPatch = vi.fn().mockResolvedValue('I AM NOT A VALID PATCH');
@@ -131,18 +138,20 @@ async function testInvalidModification(testCase: ModificationTestCase, patcher: 
     await patcher.rollback();
 }
 
+const allTestCases = [...patchTestCases, ...simpleTestCases];
+
 describe('File modifications', () => {
-    let patcher: FileModification;
+    test.each(allTestCases)(
+        `$fileName modifier correctly applies to fresh install`,
+        async (testCase) => {
+            await testModification(testCase);
+        }
+    );
 
-    test.each(testCases)(`$fileName modifier correctly applies to fresh install`, async (testCase) => {
-        await testModification(testCase, patcher);
-    });
-
-    test.each(testCases)(`$fileName modifier correctly handles invalid content`, async (testCase) => {
-        await testInvalidModification(testCase, patcher);
-    });
-
-    afterEach(async () => {
-        await patcher?.rollback();
-    });
+    test.each(patchTestCases)(
+        `$fileName modifier correctly handles invalid content`,
+        async (testCase) => {
+            await testInvalidModification(testCase);
+        }
+    );
 });

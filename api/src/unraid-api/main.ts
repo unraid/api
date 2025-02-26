@@ -5,13 +5,13 @@ import { FastifyAdapter } from '@nestjs/platform-fastify';
 import fastifyCookie from '@fastify/cookie';
 import { LoggerErrorInterceptor, Logger as PinoLogger } from 'nestjs-pino';
 
-import { apiLogger } from '@app/core/log';
-import { LOG_LEVEL, PORT } from '@app/environment';
-import { AppModule } from '@app/unraid-api/app/app.module';
-import { configureFastifyCors } from '@app/unraid-api/app/cors';
-import { CookieService } from '@app/unraid-api/auth/cookie.service';
-import { GraphQLExceptionsFilter } from '@app/unraid-api/exceptions/graphql-exceptions.filter';
-import { HttpExceptionFilter } from '@app/unraid-api/exceptions/http-exceptions.filter';
+import { apiLogger } from '@app/core/log.js';
+import { LOG_LEVEL, PORT } from '@app/environment.js';
+import { AppModule } from '@app/unraid-api/app/app.module.js';
+import { configureFastifyCors } from '@app/unraid-api/app/cors.js';
+import { CookieService } from '@app/unraid-api/auth/cookie.service.js';
+import { GraphQLExceptionsFilter } from '@app/unraid-api/exceptions/graphql-exceptions.filter.js';
+import { HttpExceptionFilter } from '@app/unraid-api/exceptions/http-exceptions.filter.js';
 
 export async function bootstrapNestServer(): Promise<NestFastifyApplication> {
     apiLogger.debug('Creating Nest Server');

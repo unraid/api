@@ -1,7 +1,7 @@
 import { beforeEach, expect, test, vi } from 'vitest';
 
 // Preloading imports for faster tests
-import '@app/mothership/utils/convert-to-fuzzy-time';
+import '@app/mothership/utils/convert-to-fuzzy-time.js';
 
 vi.mock('fs', () => ({
     default: {
@@ -17,7 +17,7 @@ vi.mock('@graphql-tools/schema', () => ({
     makeExecutableSchema: vi.fn(),
 }));
 
-vi.mock('@app/core/log', () => ({
+vi.mock('@app/core/log.js', () => ({
     default: { relayLogger: { trace: vi.fn() } },
     relayLogger: { trace: vi.fn() },
     logger: { trace: vi.fn() },
@@ -40,7 +40,7 @@ const generateTestCases = () => {
 };
 
 test.each(generateTestCases())('Successfully converts to fuzzy time %o', async ({ min, max }) => {
-    const { convertToFuzzyTime } = await import('@app/mothership/utils/convert-to-fuzzy-time');
+    const { convertToFuzzyTime } = await import('@app/mothership/utils/convert-to-fuzzy-time.js');
 
     const res = convertToFuzzyTime(min, max);
     expect(res).toBeGreaterThanOrEqual(min);

@@ -1,8 +1,8 @@
-import { logger } from '@app/core/log';
-import { API_VERSION } from '@app/environment';
-import { startAppListening } from '@app/store/listeners/listener-middleware';
-import { updateUserConfig } from '@app/store/modules/config';
-import { FileLoadStatus } from '@app/store/types';
+import { logger } from '@app/core/log.js';
+import { API_VERSION } from '@app/environment.js';
+import { startAppListening } from '@app/store/listeners/listener-middleware.js';
+import { updateUserConfig } from '@app/store/modules/config.js';
+import { FileLoadStatus } from '@app/store/types.js';
 
 export const enableVersionListener = () =>
     startAppListening({

@@ -2,11 +2,11 @@ import { Injectable } from '@nestjs/common';
 
 import { Command, CommandRunner } from 'nest-commander';
 
-import { LogService } from '@app/unraid-api/cli/log.service';
-import { AddSSOUserCommand } from '@app/unraid-api/cli/sso/add-sso-user.command';
-import { ListSSOUserCommand } from '@app/unraid-api/cli/sso/list-sso-user.command';
-import { RemoveSSOUserCommand } from '@app/unraid-api/cli/sso/remove-sso-user.command';
-import { ValidateTokenCommand } from '@app/unraid-api/cli/sso/validate-token.command';
+import { LogService } from '@app/unraid-api/cli/log.service.js';
+import { AddSSOUserCommand } from '@app/unraid-api/cli/sso/add-sso-user.command.js';
+import { ListSSOUserCommand } from '@app/unraid-api/cli/sso/list-sso-user.command.js';
+import { RemoveSSOUserCommand } from '@app/unraid-api/cli/sso/remove-sso-user.command.js';
+import { ValidateTokenCommand } from '@app/unraid-api/cli/sso/validate-token.command.js';
 
 @Injectable()
 @Command({

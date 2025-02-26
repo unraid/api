@@ -1,7 +1,7 @@
 import { got } from 'got';
 
-import type { NotifierOptions } from '@app/core/notifiers/notifier';
-import { Notifier } from '@app/core/notifiers/notifier';
+import type { NotifierOptions } from '@app/core/notifiers/notifier.js';
+import { Notifier } from '@app/core/notifiers/notifier.js';
 
 export type Options = NotifierOptions;
 

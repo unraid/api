@@ -2,12 +2,12 @@ import { join } from 'path';
 
 import { expect, test } from 'vitest';
 
-import type { VarIni } from '@app/store/state-parsers/var';
-import { store } from '@app/store';
+import type { VarIni } from '@app/store/state-parsers/var.js';
+import { store } from '@app/store/index.js';
 
 test('Returns parsed state file', async () => {
-    const { parse } = await import('@app/store/state-parsers/var');
-    const { parseConfig } = await import('@app/core/utils/misc/parse-config');
+    const { parse } = await import('@app/store/state-parsers/var.js');
+    const { parseConfig } = await import('@app/core/utils/misc/parse-config.js');
     const { paths } = store.getState();
     const filePath = join(paths.states, 'var.ini');
     const stateFile = parseConfig<VarIni>({

@@ -1,8 +1,8 @@
-import type { CoreContext, CoreResult } from '@app/core/types/global';
-import type { DiskShare, UserShare } from '@app/core/types/states/share';
-import { AppError } from '@app/core/errors/app-error';
-import { getShares } from '@app/core/utils';
-import { ensurePermission } from '@app/core/utils/permissions/ensure-permission';
+import type { CoreContext, CoreResult } from '@app/core/types/global.js';
+import type { DiskShare, UserShare } from '@app/core/types/states/share.js';
+import { AppError } from '@app/core/errors/app-error.js';
+import { ensurePermission } from '@app/core/utils/permissions/ensure-permission.js';
+import { getShares } from '@app/core/utils/shares/get-shares.js';
 
 interface Context extends CoreContext {
     params: {

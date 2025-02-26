@@ -1,6 +1,6 @@
-import { type User } from '@app/core/types/states/user';
+import { type User } from '@app/core/types/states/user.js';
 
-import '@app/core/utils/permissions/check-permission';
+import '@app/core/utils/permissions/check-permission.js';
 
 /**
  * @deprecated Use casbin auth in nest instead

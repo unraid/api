@@ -2,12 +2,12 @@ import { join } from 'path';
 
 import { expect, test } from 'vitest';
 
-import type { SmbIni } from '@app/store/state-parsers/smb';
-import { store } from '@app/store';
+import type { SmbIni } from '@app/store/state-parsers/smb.js';
+import { store } from '@app/store/index.js';
 
 test('Returns parsed state file', async () => {
-    const { parse } = await import('@app/store/state-parsers/smb');
-    const { parseConfig } = await import('@app/core/utils/misc/parse-config');
+    const { parse } = await import('@app/store/state-parsers/smb.js');
+    const { parseConfig } = await import('@app/core/utils/misc/parse-config.js');
     const { paths } = store.getState();
     const filePath = join(paths.states, 'sec.ini');
     const stateFile = parseConfig<SmbIni>({

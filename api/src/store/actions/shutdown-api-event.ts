@@ -1,10 +1,10 @@
-import { logDestination, logger } from '@app/core/log';
-import { DynamicRemoteAccessType, MinigraphStatus } from '@app/graphql/generated/api/types';
-import { setGraphqlConnectionStatus } from '@app/store/actions/set-minigraph-status';
-import { store } from '@app/store/index';
-import { stopListeners } from '@app/store/listeners/stop-listeners';
-import { setWanAccess } from '@app/store/modules/config';
-import { writeConfigSync } from '@app/store/sync/config-disk-sync';
+import { logDestination, logger } from '@app/core/log.js';
+import { DynamicRemoteAccessType, MinigraphStatus } from '@app/graphql/generated/api/types.js';
+import { setGraphqlConnectionStatus } from '@app/store/actions/set-minigraph-status.js';
+import { store } from '@app/store/index.js';
+import { stopListeners } from '@app/store/listeners/stop-listeners.js';
+import { setWanAccess } from '@app/store/modules/config.js';
+import { writeConfigSync } from '@app/store/sync/config-disk-sync.js';
 
 export const shutdownApiEvent = () => {
     logger.debug('Running shutdown');

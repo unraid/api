@@ -1,7 +1,9 @@
 import type { TestingModule } from '@nestjs/testing';
 import { Test } from '@nestjs/testing';
 
-import { ConnectService } from '@app/unraid-api/graph/connect/connect.service';
+import { beforeEach, describe, expect, it } from 'vitest';
+
+import { ConnectService } from '@app/unraid-api/graph/connect/connect.service.js';
 
 describe('ConnectService', () => {
     let service: ConnectService;

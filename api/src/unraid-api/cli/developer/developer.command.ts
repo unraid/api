@@ -2,11 +2,11 @@ import { Injectable } from '@nestjs/common';
 
 import { Command, CommandRunner, InquirerService } from 'nest-commander';
 
-import { loadConfigFile, updateUserConfig } from '@app/store/modules/config';
-import { writeConfigSync } from '@app/store/sync/config-disk-sync';
-import { DeveloperQuestions } from '@app/unraid-api/cli/developer/developer.questions';
-import { LogService } from '@app/unraid-api/cli/log.service';
-import { RestartCommand } from '@app/unraid-api/cli/restart.command';
+import { loadConfigFile, updateUserConfig } from '@app/store/modules/config.js';
+import { writeConfigSync } from '@app/store/sync/config-disk-sync.js';
+import { DeveloperQuestions } from '@app/unraid-api/cli/developer/developer.questions.js';
+import { LogService } from '@app/unraid-api/cli/log.service.js';
+import { RestartCommand } from '@app/unraid-api/cli/restart.command.js';
 
 interface DeveloperOptions {
     disclaimer: boolean;
@@ -31,7 +31,7 @@ export class DeveloperCommand extends CommandRunner {
             this.logger.warn('No changes made, disclaimer not accepted.');
             process.exit(1);
         }
-        const { store } = await import('@app/store');
+        const { store } = await import('@app/store/index.js');
         await store.dispatch(loadConfigFile());
         store.dispatch(updateUserConfig({ local: { sandbox: options.sandbox ? 'yes' : 'no' } }));
         writeConfigSync('flash');

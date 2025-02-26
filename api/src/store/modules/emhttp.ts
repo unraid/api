@@ -4,20 +4,20 @@ import type { PayloadAction } from '@reduxjs/toolkit';
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 import { merge } from 'lodash-es';
 
-import type { RootState } from '@app/store';
-import type { StateFileToIniParserMap } from '@app/store/types';
-import { emhttpLogger } from '@app/core/log';
-import { type Devices } from '@app/core/types/states/devices';
-import { type Networks } from '@app/core/types/states/network';
-import { type NfsShares } from '@app/core/types/states/nfs';
-import { type Nginx } from '@app/core/types/states/nginx';
-import { type Shares } from '@app/core/types/states/share';
-import { type SmbShares } from '@app/core/types/states/smb';
-import { type Users } from '@app/core/types/states/user';
-import { type Var } from '@app/core/types/states/var';
-import { parseConfig } from '@app/core/utils/misc/parse-config';
-import { type ArrayDisk } from '@app/graphql/generated/api/types';
-import { FileLoadStatus, StateFileKey } from '@app/store/types';
+import type { RootState } from '@app/store/index.js';
+import type { StateFileToIniParserMap } from '@app/store/types.js';
+import { emhttpLogger } from '@app/core/log.js';
+import { type Devices } from '@app/core/types/states/devices.js';
+import { type Networks } from '@app/core/types/states/network.js';
+import { type NfsShares } from '@app/core/types/states/nfs.js';
+import { type Nginx } from '@app/core/types/states/nginx.js';
+import { type Shares } from '@app/core/types/states/share.js';
+import { type SmbShares } from '@app/core/types/states/smb.js';
+import { type Users } from '@app/core/types/states/user.js';
+import { type Var } from '@app/core/types/states/var.js';
+import { parseConfig } from '@app/core/utils/misc/parse-config.js';
+import { type ArrayDisk } from '@app/graphql/generated/api/types.js';
+import { FileLoadStatus, StateFileKey } from '@app/store/types.js';
 
 export type SliceState = {
     status: FileLoadStatus;
@@ -48,15 +48,15 @@ const initialState: SliceState = {
 export const parsers: {
     [K in StateFileKey]: () => Promise<StateFileToIniParserMap[K]>;
 } = {
-    [StateFileKey.var]: async () => (await import('@app/store/state-parsers/var')).parse,
-    [StateFileKey.devs]: async () => (await import('@app/store/state-parsers/devices')).parse,
-    [StateFileKey.network]: async () => (await import('@app/store/state-parsers/network')).parse,
-    [StateFileKey.nginx]: async () => (await import('@app/store/state-parsers/nginx')).parse,
-    [StateFileKey.shares]: async () => (await import('@app/store/state-parsers/shares')).parse,
-    [StateFileKey.disks]: async () => (await import('@app/store/state-parsers/slots')).parse,
-    [StateFileKey.users]: async () => (await import('@app/store/state-parsers/users')).parse,
-    [StateFileKey.sec]: async () => (await import('@app/store/state-parsers/smb')).parse,
-    [StateFileKey.sec_nfs]: async () => (await import('@app/store/state-parsers/nfs')).parse,
+    [StateFileKey.var]: async () => (await import('@app/store/state-parsers/var.js')).parse,
+    [StateFileKey.devs]: async () => (await import('@app/store/state-parsers/devices.js')).parse,
+    [StateFileKey.network]: async () => (await import('@app/store/state-parsers/network.js')).parse,
+    [StateFileKey.nginx]: async () => (await import('@app/store/state-parsers/nginx.js')).parse,
+    [StateFileKey.shares]: async () => (await import('@app/store/state-parsers/shares.js')).parse,
+    [StateFileKey.disks]: async () => (await import('@app/store/state-parsers/slots.js')).parse,
+    [StateFileKey.users]: async () => (await import('@app/store/state-parsers/users.js')).parse,
+    [StateFileKey.sec]: async () => (await import('@app/store/state-parsers/smb.js')).parse,
+    [StateFileKey.sec_nfs]: async () => (await import('@app/store/state-parsers/nfs.js')).parse,
 };
 
 const getParserFunction = async (parser: StateFileKey): Promise<StateFileToIniParserMap[StateFileKey]> =>

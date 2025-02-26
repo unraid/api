@@ -2,7 +2,7 @@ import { Query, ResolveField, Resolver } from '@nestjs/graphql';
 
 import { AuthActionVerb, AuthPossession, UsePermissions } from 'nest-authz';
 
-import { Resource } from '@app/graphql/generated/api/types';
+import { Resource } from '@app/graphql/generated/api/types.js';
 
 @Resolver('Docker')
 export class DockerResolver {
@@ -25,7 +25,9 @@ export class DockerResolver {
     })
     @ResolveField()
     public async containers() {
-        const { getDockerContainers } = await import('@app/core/modules/docker');
+        const { getDockerContainers } = await import(
+            '@app/core/modules/docker/get-docker-containers.js'
+        );
 
         return getDockerContainers({ useCache: false });
     }

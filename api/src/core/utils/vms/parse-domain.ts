@@ -1,4 +1,4 @@
-import { type Domain } from '@app/core/types';
+import { type Domain } from '@app/core/types/index.js';
 
 export type DomainLookupType = 'id' | 'uuid' | 'name';
 
@@ -20,7 +20,7 @@ export const parseDomain = async (type: DomainLookupType, id: string): Promise<D
         throw new Error(`Type must be one of [${Object.keys(types).join(', ')}], ${type} given.`);
     }
 
-    const { UnraidHypervisor } = await import('@app/core/utils/vms/get-hypervisor');
+    const { UnraidHypervisor } = await import('@app/core/utils/vms/get-hypervisor.js');
     const client = await UnraidHypervisor.getInstance().getHypervisor();
     const method = types[type];
     const domain = await client[method](id);

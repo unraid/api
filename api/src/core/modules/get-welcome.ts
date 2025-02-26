@@ -1,6 +1,6 @@
-import type { CoreContext, CoreResult } from '@app/core/types';
-import { getUnraidVersion } from '@app/common/dashboard/get-unraid-version';
-import { ensurePermission } from '@app/core/utils/permissions/ensure-permission';
+import type { CoreContext, CoreResult } from '@app/core/types/index.js';
+import { getUnraidVersion } from '@app/common/dashboard/get-unraid-version.js';
+import { ensurePermission } from '@app/core/utils/permissions/ensure-permission.js';
 
 /**
  * Get welcome message.

@@ -1,4 +1,4 @@
-import { type DelayFunctionOptions } from '@apollo/client/link/retry/delayFunction';
+import { type DelayFunctionOptions } from '@apollo/client/link/retry/delayFunction.js';
 
 export function buildDelayFunction(delayOptions?: DelayFunctionOptions): (count: number) => number {
     const { initial = 10_000, jitter = true, max = Infinity } = delayOptions ?? {};

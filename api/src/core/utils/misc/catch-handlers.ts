@@ -1,5 +1,5 @@
-import { AppError } from '@app/core/errors/app-error';
-import { getters } from '@app/store';
+import { AppError } from '@app/core/errors/app-error.js';
+import { getters } from '@app/store/index.js';
 
 interface DockerError extends NodeJS.ErrnoException {
     address: string;

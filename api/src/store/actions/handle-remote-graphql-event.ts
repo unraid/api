@@ -1,12 +1,12 @@
 import { createAsyncThunk } from '@reduxjs/toolkit';
 
-import type { RemoteGraphQLEventFragmentFragment } from '@app/graphql/generated/client/graphql';
-import { remoteQueryLogger } from '@app/core/log';
-import { RemoteGraphQLEventType } from '@app/graphql/generated/client/graphql';
-import { executeRemoteGraphQLQuery } from '@app/graphql/resolvers/subscription/remote-graphql/remote-query';
-import { createRemoteSubscription } from '@app/graphql/resolvers/subscription/remote-graphql/remote-subscription';
-import { type AppDispatch, type RootState } from '@app/store/index';
-import { renewRemoteSubscription } from '@app/store/modules/remote-graphql';
+import type { RemoteGraphQLEventFragmentFragment } from '@app/graphql/generated/client/graphql.js';
+import { remoteQueryLogger } from '@app/core/log.js';
+import { RemoteGraphQLEventType } from '@app/graphql/generated/client/graphql.js';
+import { executeRemoteGraphQLQuery } from '@app/graphql/resolvers/subscription/remote-graphql/remote-query.js';
+import { createRemoteSubscription } from '@app/graphql/resolvers/subscription/remote-graphql/remote-subscription.js';
+import { type AppDispatch, type RootState } from '@app/store/index.js';
+import { renewRemoteSubscription } from '@app/store/modules/remote-graphql.js';
 
 export const handleRemoteGraphQLEvent = createAsyncThunk<
     void,

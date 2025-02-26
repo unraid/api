@@ -1,4 +1,4 @@
 // Created from 'create-ts-index'
 
-export * from './docker';
-export * from './emcmd';
+export * from './docker.js';
+export * from './emcmd.js';

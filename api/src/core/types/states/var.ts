@@ -3,7 +3,7 @@ import {
     type DiskFsType,
     type RegistrationState,
     type registrationType,
-} from '@app/graphql/generated/api/types';
+} from '@app/graphql/generated/api/types.js';
 
 /**
  * Global vars
@@ -22,7 +22,7 @@ export type Var = {
     csrfToken: string;
     defaultFormat: string;
     /** Default file system for data disks. */
-    defaultFsType: DiskFsType.XFS;
+    defaultFsType: DiskFsType;
     /** Amount of connected drives (license device count). */
     deviceCount: number;
     domain: string;

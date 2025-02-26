@@ -1,5 +1,5 @@
 // Created from 'create-ts-index'
 
-export * from './ensure-data';
-export * from './ensure-parameter';
-export * from './ensure-query';
+export * from './ensure-data.js';
+export * from './ensure-parameter.js';
+export * from './ensure-query.js';

@@ -1,11 +1,11 @@
 import { writeFileSync } from 'fs';
 
-import type { ConfigType } from '@app/core/utils/files/config-file-normalizer';
-import { logger } from '@app/core/log';
-import { getWriteableConfig } from '@app/core/utils/files/config-file-normalizer';
-import { safelySerializeObjectToIni } from '@app/core/utils/files/safe-ini-serializer';
-import { startAppListening } from '@app/store/listeners/listener-middleware';
-import { configUpdateActionsFlash, configUpdateActionsMemory } from '@app/store/modules/config';
+import type { ConfigType } from '@app/core/utils/files/config-file-normalizer.js';
+import { logger } from '@app/core/log.js';
+import { getWriteableConfig } from '@app/core/utils/files/config-file-normalizer.js';
+import { safelySerializeObjectToIni } from '@app/core/utils/files/safe-ini-serializer.js';
+import { startAppListening } from '@app/store/listeners/listener-middleware.js';
+import { configUpdateActionsFlash, configUpdateActionsMemory } from '@app/store/modules/config.js';
 
 export const enableConfigFileListener = (mode: ConfigType) => () =>
     startAppListening({

@@ -2,8 +2,8 @@ import { Query, Resolver } from '@nestjs/graphql';
 
 import { AuthActionVerb, AuthPossession, UsePermissions } from 'nest-authz';
 
-import { getDisks } from '@app/core/modules/get-disks';
-import { Resource } from '@app/graphql/generated/api/types';
+import { getDisks } from '@app/core/modules/get-disks.js';
+import { Resource } from '@app/graphql/generated/api/types.js';
 
 @Resolver('Disks')
 export class DisksResolver {

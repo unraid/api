@@ -16,23 +16,27 @@ import type {
     NotificationData,
     NotificationFilter,
     NotificationOverview,
-} from '@app/graphql/generated/api/types';
-import { AppError } from '@app/core/errors/app-error';
-import { pubsub, PUBSUB_CHANNEL } from '@app/core/pubsub';
-import { NotificationIni } from '@app/core/types/states/notification';
-import { fileExists } from '@app/core/utils/files/file-exists';
-import { parseConfig } from '@app/core/utils/misc/parse-config';
-import { CHOKIDAR_USEPOLLING } from '@app/environment';
-import { NotificationSchema } from '@app/graphql/generated/api/operations';
-import { Importance, NotificationType } from '@app/graphql/generated/api/types';
-import { getters } from '@app/store';
-import { SortFn } from '@app/unraid-api/types/util';
-import { batchProcess, formatDatetime, isFulfilled, isRejected, unraidTimestamp } from '@app/utils';
+} from '@app/graphql/generated/api/types.js';
+import { AppError } from '@app/core/errors/app-error.js';
+import { pubsub, PUBSUB_CHANNEL } from '@app/core/pubsub.js';
+import { NotificationIni } from '@app/core/types/states/notification.js';
+import { fileExists } from '@app/core/utils/files/file-exists.js';
+import { parseConfig } from '@app/core/utils/misc/parse-config.js';
+import { CHOKIDAR_USEPOLLING } from '@app/environment.js';
+import { NotificationSchema } from '@app/graphql/generated/api/operations.js';
+import { Importance, NotificationType } from '@app/graphql/generated/api/types.js';
+import { getters } from '@app/store/index.js';
+import { SortFn } from '@app/unraid-api/types/util.js';
+import { batchProcess, formatDatetime, isFulfilled, isRejected, unraidTimestamp } from '@app/utils.js';
 
 @Injectable()
 export class NotificationsService {
     private logger = new Logger(NotificationsService.name);
     private static watcher: FSWatcher | null = null;
+    /**
+     * The path to the notification directory - will be updated if the user changes the notifier path
+     */
+    private path: string | null = null;
 
     private static overview: NotificationOverview = {
         unread: {
@@ -50,7 +54,8 @@ export class NotificationsService {
     };
 
     constructor() {
-        NotificationsService.watcher = this.getNotificationsWatcher();
+        this.path = getters.dynamix().notify!.path;
+        void this.getNotificationsWatcher(this.path);
     }
 
     /**
@@ -63,6 +68,13 @@ export class NotificationsService {
      */
     public paths(): Record<'basePath' | NotificationType, string> {
         const basePath = getters.dynamix().notify!.path;
+
+        if (this.path !== basePath) {
+            // Recreate the watcher with force = true
+            void this.getNotificationsWatcher(basePath, true);
+            this.path = basePath;
+        }
+
         const makePath = (type: NotificationType) => join(basePath, type.toLowerCase());
         return {
             basePath,
@@ -78,12 +90,11 @@ export class NotificationsService {
      * events to their event handlers.
      *------------------------------------------------------------------------**/
 
-    private getNotificationsWatcher() {
-        const { basePath } = this.paths();
-
-        if (NotificationsService.watcher) {
+    private async getNotificationsWatcher(basePath: string, recreate = false): Promise<FSWatcher> {
+        if (NotificationsService.watcher && !recreate) {
             return NotificationsService.watcher;
         }
+        await NotificationsService.watcher?.close().catch((e) => this.logger.error(e));
 
         NotificationsService.watcher = watch(basePath, { usePolling: CHOKIDAR_USEPOLLING }).on(
             'add',

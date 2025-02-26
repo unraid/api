@@ -1,11 +1,11 @@
 import { expect, test, vi } from 'vitest';
 
-import { getArrayData } from '@app/core/modules/array/get-array-data';
-import { store } from '@app/store';
-import { loadConfigFile } from '@app/store/modules/config';
-import { loadStateFiles } from '@app/store/modules/emhttp';
+import { getArrayData } from '@app/core/modules/array/get-array-data.js';
+import { store } from '@app/store/index.js';
+import { loadConfigFile } from '@app/store/modules/config.js';
+import { loadStateFiles } from '@app/store/modules/emhttp.js';
 
-vi.mock('@app/core/pubsub', () => ({
+vi.mock('@app/core/pubsub.js', () => ({
     pubsub: { publish: vi.fn() },
 }));
 

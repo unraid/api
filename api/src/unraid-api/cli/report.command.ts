@@ -2,10 +2,10 @@ import { readFile } from 'fs/promises';
 
 import { Command, CommandRunner, Option } from 'nest-commander';
 
-import type { MyServersConfigMemory } from '@app/types/my-servers-config';
-import { getters } from '@app/store';
-import { MyServersConfigMemorySchema } from '@app/types/my-servers-config';
-import { LogService } from '@app/unraid-api/cli/log.service';
+import type { MyServersConfigMemory } from '@app/types/my-servers-config.js';
+import { getters } from '@app/store/index.js';
+import { MyServersConfigMemorySchema } from '@app/types/my-servers-config.js';
+import { LogService } from '@app/unraid-api/cli/log.service.js';
 
 @Command({ name: 'report' })
 export class ReportCommand extends CommandRunner {
@@ -50,7 +50,7 @@ export class ReportCommand extends CommandRunner {
 
     async report(): Promise<string | void> {
         try {
-            const { isUnraidApiRunning } = await import('@app/core/utils/pm2/unraid-api-running');
+            const { isUnraidApiRunning } = await import('@app/core/utils/pm2/unraid-api-running.js');
 
             const apiRunning = await isUnraidApiRunning().catch((err) => {
                 this.logger.debug('failed to get PM2 state with error: ' + err);

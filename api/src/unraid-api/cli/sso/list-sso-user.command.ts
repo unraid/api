@@ -2,9 +2,9 @@ import { Injectable } from '@nestjs/common';
 
 import { CommandRunner, SubCommand } from 'nest-commander';
 
-import { store } from '@app/store/index';
-import { loadConfigFile } from '@app/store/modules/config';
-import { LogService } from '@app/unraid-api/cli/log.service';
+import { store } from '@app/store/index.js';
+import { loadConfigFile } from '@app/store/modules/config.js';
+import { LogService } from '@app/unraid-api/cli/log.service.js';
 
 @Injectable()
 @SubCommand({

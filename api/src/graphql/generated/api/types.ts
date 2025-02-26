@@ -1,6 +1,7 @@
 /* eslint-disable */
+/* @ts-nocheck */
 import { GraphQLResolveInfo, GraphQLScalarType, GraphQLScalarTypeConfig } from 'graphql';
-import { Context } from '@app/graphql/schema/utils';
+import { Context } from '@app/graphql/schema/utils.js';
 export type Maybe<T> = T | null;
 export type InputMaybe<T> = Maybe<T>;
 export type Exact<T extends { [key: string]: unknown }> = { [K in keyof T]: T[K] };
@@ -17,7 +18,7 @@ export type Scalars = {
   Int: { input: number; output: number; }
   Float: { input: number; output: number; }
   DateTime: { input: string; output: string; }
-  JSON: { input: { [key: string]: any }; output: { [key: string]: any }; }
+  JSON: { input: Record<string, any>; output: Record<string, any>; }
   Long: { input: number; output: number; }
   Port: { input: number; output: number; }
   URL: { input: URL; output: URL; }
@@ -367,6 +368,7 @@ export type Disk = {
   bytesPerSector: Scalars['Long']['output'];
   device: Scalars['String']['output'];
   firmwareRevision: Scalars['String']['output'];
+  id: Scalars['ID']['output'];
   interfaceType: DiskInterfaceType;
   name: Scalars['String']['output'];
   partitions?: Maybe<Array<DiskPartition>>;
@@ -2220,6 +2222,7 @@ export type DiskResolvers<ContextType = Context, ParentType extends ResolversPar
   bytesPerSector?: Resolver<ResolversTypes['Long'], ParentType, ContextType>;
   device?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   firmwareRevision?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
   interfaceType?: Resolver<ResolversTypes['DiskInterfaceType'], ParentType, ContextType>;
   name?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   partitions?: Resolver<Maybe<Array<ResolversTypes['DiskPartition']>>, ParentType, ContextType>;

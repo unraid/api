@@ -2,7 +2,7 @@ import { join } from 'path';
 
 import type { JSONWebKeySet } from 'jose';
 
-import { PORT } from '@app/environment';
+import { PORT } from '@app/environment.js';
 
 export const getInternalApiAddress = (isHttp = true, nginxPort = 80) => {
     const envPort = PORT;

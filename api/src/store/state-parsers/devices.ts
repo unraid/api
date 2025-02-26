@@ -1,4 +1,4 @@
-import type { StateFileToIniParserMap } from '@app/store/types';
+import type { StateFileToIniParserMap } from '@app/store/types.js';
 
 export type DevicesIni = Array<Record<string, unknown>>;
 

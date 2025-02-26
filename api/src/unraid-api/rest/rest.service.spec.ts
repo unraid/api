@@ -1,7 +1,9 @@
 import type { TestingModule } from '@nestjs/testing';
 import { Test } from '@nestjs/testing';
 
-import { RestService } from '@app/unraid-api/rest/rest.service';
+import { beforeEach, describe, expect, it } from 'vitest';
+
+import { RestService } from '@app/unraid-api/rest/rest.service.js';
 
 describe('RestService', () => {
     let service: RestService;

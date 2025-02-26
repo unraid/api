@@ -3,8 +3,8 @@ import { readFile } from 'fs/promises';
 
 import { Command, CommandRunner } from 'nest-commander';
 
-import { getters } from '@app/store/index';
-import { LogService } from '@app/unraid-api/cli/log.service';
+import { getters } from '@app/store/index.js';
+import { LogService } from '@app/unraid-api/cli/log.service.js';
 
 @Injectable()
 @Command({

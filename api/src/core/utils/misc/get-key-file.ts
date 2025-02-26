@@ -1,8 +1,8 @@
 import { readFile } from 'fs/promises';
 import { basename, join } from 'path';
 
-import type { RootState } from '@app/store';
-import { store } from '@app/store';
+import type { RootState } from '@app/store/index.js';
+import { store } from '@app/store/index.js';
 
 // Get key file
 export const getKeyFile = async function (appStore: RootState = store.getState()) {

@@ -1,8 +1,8 @@
 import type { PayloadAction } from '@reduxjs/toolkit';
 import { createSlice } from '@reduxjs/toolkit';
 
-import { type DockerContainer } from '@app/graphql/generated/api/types';
-import { DaemonConnectionStatus } from '@app/store/types';
+import { type DockerContainer } from '@app/graphql/generated/api/types.js';
+import { DaemonConnectionStatus } from '@app/store/types.js';
 
 type DockerState = {
     status: DaemonConnectionStatus;

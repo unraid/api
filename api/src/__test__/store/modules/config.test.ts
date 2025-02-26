@@ -1,7 +1,7 @@
 import { expect, test } from 'vitest';
 
-import { store } from '@app/store';
-import { MyServersConfigMemory } from '@app/types/my-servers-config';
+import { store } from '@app/store/index.js';
+import { MyServersConfigMemory } from '@app/types/my-servers-config.js';
 
 test('Before init returns default values for all fields', async () => {
     const state = store.getState().config;
@@ -9,7 +9,7 @@ test('Before init returns default values for all fields', async () => {
 }, 10_000);
 
 test('After init returns values from cfg file for all fields', async () => {
-    const { loadConfigFile } = await import('@app/store/modules/config');
+    const { loadConfigFile } = await import('@app/store/modules/config.js');
 
     // Load cfg into store
     await store.dispatch(loadConfigFile());
@@ -53,7 +53,7 @@ test('After init returns values from cfg file for all fields', async () => {
 });
 
 test('updateUserConfig merges in changes to current state', async () => {
-    const { loadConfigFile, updateUserConfig } = await import('@app/store/modules/config');
+    const { loadConfigFile, updateUserConfig } = await import('@app/store/modules/config.js');
 
     // Load cfg into store
     await store.dispatch(loadConfigFile());

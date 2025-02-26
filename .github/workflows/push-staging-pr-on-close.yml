@@ -13,13 +13,13 @@ jobs:
       contents: read
     steps:
       - name: Set Timezone
-        uses: szenius/set-timezone@v1.2
+        uses: szenius/set-timezone@v2.0
         with:
           timezoneLinux: "America/Los_Angeles"
       - name: Checkout repo
         uses: actions/checkout@v4
         with:
-          ref: refs/pull/${{ github.event.pull_request.number }}/merge
+          ref: refs/pull/${{ github.event.pull_request.base.ref }}/merge
 
       - name: Download artifact
         uses: actions/download-artifact@v4

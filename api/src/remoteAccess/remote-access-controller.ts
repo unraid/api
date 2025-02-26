@@ -1,18 +1,18 @@
-import type { AccessUrl } from '@app/graphql/generated/api/types';
-import type { AppDispatch, RootState } from '@app/store/index';
-import { remoteAccessLogger } from '@app/core/log';
-import { UnraidLocalNotifier } from '@app/core/notifiers/unraid-local';
-import { DynamicRemoteAccessType } from '@app/graphql/generated/api/types';
-import { type IRemoteAccessController } from '@app/remoteAccess/handlers/remote-access-interface';
-import { StaticRemoteAccess } from '@app/remoteAccess/handlers/static-remote-access';
-import { UpnpRemoteAccess } from '@app/remoteAccess/handlers/upnp-remote-access';
-import { getters } from '@app/store/index';
+import type { AccessUrl } from '@app/graphql/generated/api/types.js';
+import type { AppDispatch, RootState } from '@app/store/index.js';
+import { remoteAccessLogger } from '@app/core/log.js';
+import { UnraidLocalNotifier } from '@app/core/notifiers/unraid-local.js';
+import { DynamicRemoteAccessType } from '@app/graphql/generated/api/types.js';
+import { type IRemoteAccessController } from '@app/remoteAccess/handlers/remote-access-interface.js';
+import { StaticRemoteAccess } from '@app/remoteAccess/handlers/static-remote-access.js';
+import { UpnpRemoteAccess } from '@app/remoteAccess/handlers/upnp-remote-access.js';
+import { getters } from '@app/store/index.js';
 import {
     clearPing,
     receivedPing,
     setDynamicRemoteAccessError,
     setRemoteAccessRunningType,
-} from '@app/store/modules/dynamic-remote-access';
+} from '@app/store/modules/dynamic-remote-access.js';
 
 export class RemoteAccessController implements IRemoteAccessController {
     static _instance: RemoteAccessController | null = null;

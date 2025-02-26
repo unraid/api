@@ -1,10 +1,10 @@
 import { isEqual } from 'lodash-es';
 
-import type { StoreSubscriptionHandler } from '@app/store/types';
-import { logger } from '@app/core/log';
-import { pubsub, PUBSUB_CHANNEL } from '@app/core/pubsub';
-import { store } from '@app/store';
-import { FileLoadStatus } from '@app/store/types';
+import type { StoreSubscriptionHandler } from '@app/store/types.js';
+import { logger } from '@app/core/log.js';
+import { pubsub, PUBSUB_CHANNEL } from '@app/core/pubsub.js';
+import { store } from '@app/store/index.js';
+import { FileLoadStatus } from '@app/store/types.js';
 
 export type RegistrationEvent = {
     registration: {

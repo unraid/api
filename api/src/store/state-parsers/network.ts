@@ -1,8 +1,8 @@
-import type { StateFileToIniParserMap } from '@app/store/types';
-import { type CommaSeparatedString } from '@app/core/types/global';
-import { type IniStringBoolean } from '@app/core/types/ini';
-import { type Network } from '@app/core/types/states/network';
-import { toBoolean } from '@app/core/utils/casting';
+import type { StateFileToIniParserMap } from '@app/store/types.js';
+import { type CommaSeparatedString } from '@app/core/types/global.js';
+import { type IniStringBoolean } from '@app/core/types/ini.js';
+import { type Network } from '@app/core/types/states/network.js';
+import { toBoolean } from '@app/core/utils/casting.js';
 
 export type NetworkIni = Record<
     string,

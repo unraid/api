@@ -19,7 +19,7 @@ const origins = computed<string[]>(() => {
       try {
         const newUrl = new URL(origin.trim());
         newOrigins.push(newUrl.toString());
-      } catch (e) {
+      } catch {
         errors.value.push(`Invalid origin: ${origin}`);
       }
     });

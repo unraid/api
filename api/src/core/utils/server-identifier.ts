@@ -1,7 +1,7 @@
 import crypto from 'crypto';
 import { hostname } from 'os';
 
-import { getters } from '@app/store/index';
+import { getters } from '@app/store/index.js';
 
 export const getServerIdentifier = (): string => {
     const flashGuid = getters.emhttp()?.var?.flashGuid ?? 'FLASH_GUID_NOT_FOUND';

@@ -1,18 +1,17 @@
 import { configureStore } from '@reduxjs/toolkit';
 
-import { listenerMiddleware } from '@app/store/listeners/listener-middleware';
-import { cache } from '@app/store/modules/cache';
-import { configReducer } from '@app/store/modules/config';
-import { docker } from '@app/store/modules/docker';
-import { dynamicRemoteAccessReducer } from '@app/store/modules/dynamic-remote-access';
-import { dynamix } from '@app/store/modules/dynamix';
-import { emhttp } from '@app/store/modules/emhttp';
-import { mothership } from '@app/store/modules/minigraph';
-import { notificationReducer } from '@app/store/modules/notifications';
-import { paths } from '@app/store/modules/paths';
-import { registration } from '@app/store/modules/registration';
-import { remoteGraphQLReducer } from '@app/store/modules/remote-graphql';
-import { upnp } from '@app/store/modules/upnp';
+import { listenerMiddleware } from '@app/store/listeners/listener-middleware.js';
+import { cache } from '@app/store/modules/cache.js';
+import { configReducer } from '@app/store/modules/config.js';
+import { docker } from '@app/store/modules/docker.js';
+import { dynamicRemoteAccessReducer } from '@app/store/modules/dynamic-remote-access.js';
+import { dynamix } from '@app/store/modules/dynamix.js';
+import { emhttp } from '@app/store/modules/emhttp.js';
+import { mothership } from '@app/store/modules/minigraph.js';
+import { paths } from '@app/store/modules/paths.js';
+import { registration } from '@app/store/modules/registration.js';
+import { remoteGraphQLReducer } from '@app/store/modules/remote-graphql.js';
+import { upnp } from '@app/store/modules/upnp.js';
 
 export const store = configureStore({
     reducer: {
@@ -23,7 +22,6 @@ export const store = configureStore({
         emhttp: emhttp.reducer,
         registration: registration.reducer,
         remoteGraphQL: remoteGraphQLReducer,
-        notifications: notificationReducer,
         cache: cache.reducer,
         docker: docker.reducer,
         upnp: upnp.reducer,
@@ -46,7 +44,6 @@ export const getters = {
     dynamix: () => store.getState().dynamix,
     emhttp: () => store.getState().emhttp,
     minigraph: () => store.getState().minigraph,
-    notifications: () => store.getState().notifications,
     paths: () => store.getState().paths,
     registration: () => store.getState().registration,
     remoteGraphQL: () => store.getState().remoteGraphQL,

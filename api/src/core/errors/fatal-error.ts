@@ -1,4 +1,4 @@
-import { AppError } from '@app/core/errors/app-error';
+import { AppError } from '@app/core/errors/app-error.js';
 
 /**
  * Fatal application error.

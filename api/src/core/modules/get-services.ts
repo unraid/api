@@ -1,8 +1,7 @@
-import type { CoreContext, CoreResult } from '@app/core/types';
-import { logger } from '@app/core/log';
-import { getEmhttpdService } from '@app/core/modules/services/get-emhttpd';
-import { getUnraidApiService } from '@app/core/modules/services/get-unraid-api';
-import { NODE_ENV } from '@app/environment';
+import type { CoreContext, CoreResult } from '@app/core/types/index.js';
+import { logger } from '@app/core/log.js';
+import { getEmhttpdService } from '@app/core/modules/services/get-emhttpd.js';
+import { getUnraidApiService } from '@app/core/modules/services/get-unraid-api.js';
 
 const devNames = ['emhttpd', 'rest-api'];
 
@@ -61,7 +60,6 @@ export const getServices = async (context: CoreContext): Promise<Result> => {
     ];
 
     return {
-        text: `Services: ${JSON.stringify(result, null, 2)}`,
         json: result,
     };
 };

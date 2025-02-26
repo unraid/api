@@ -1,8 +1,8 @@
 import type { CancelableRequest, Response } from 'got';
 import { got } from 'got';
 
-import { AppError } from '@app/core/errors/app-error';
-import { logger } from '@app/core/log';
+import { AppError } from '@app/core/errors/app-error.js';
+import { logger } from '@app/core/log.js';
 
 export const sendFormToKeyServer = async (
     url: string,

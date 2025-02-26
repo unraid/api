@@ -1,7 +1,7 @@
 import { execa } from 'execa';
 
-import { type PciDevice } from '@app/core/types';
-import { cleanStdout } from '@app/core/utils/misc/clean-stdout';
+import { type PciDevice } from '@app/core/types/index.js';
+import { cleanStdout } from '@app/core/utils/misc/clean-stdout.js';
 
 const regex = new RegExp(
     /^(?<id>\S+) "(?<type>[^"]+) \[(?<typeid>[a-f\d]{4})]" "(?<vendorname>[^"]+) \[(?<vendorid>[a-f\d]{4})]" "(?<productname>[^"]+) \[(?<productid>[a-f\d]{4})]"/

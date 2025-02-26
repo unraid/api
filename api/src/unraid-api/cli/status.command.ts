@@ -1,6 +1,6 @@
 import { Command, CommandRunner } from 'nest-commander';
 
-import { PM2Service } from '@app/unraid-api/cli/pm2.service';
+import { PM2Service } from '@app/unraid-api/cli/pm2.service.js';
 
 @Command({ name: 'status', description: 'Check status of unraid-api service' })
 export class StatusCommand extends CommandRunner {

@@ -2,10 +2,10 @@ import type { JWTPayload } from 'jose';
 import { createLocalJWKSet, createRemoteJWKSet, decodeJwt, jwtVerify } from 'jose';
 import { CommandRunner, SubCommand } from 'nest-commander';
 
-import { JWKS_LOCAL_PAYLOAD, JWKS_REMOTE_LINK } from '@app/consts';
-import { store } from '@app/store';
-import { loadConfigFile } from '@app/store/modules/config';
-import { LogService } from '@app/unraid-api/cli/log.service';
+import { JWKS_LOCAL_PAYLOAD, JWKS_REMOTE_LINK } from '@app/consts.js';
+import { store } from '@app/store/index.js';
+import { loadConfigFile } from '@app/store/modules/config.js';
+import { LogService } from '@app/unraid-api/cli/log.service.js';
 
 @SubCommand({
     name: 'validate-token',

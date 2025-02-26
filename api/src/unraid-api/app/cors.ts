@@ -1,12 +1,12 @@
-import { type CorsOptions } from '@nestjs/common/interfaces/external/cors-options.interface';
+import { type CorsOptions } from '@nestjs/common/interfaces/external/cors-options.interface.js';
 
 import { GraphQLError } from 'graphql';
 
-import { getAllowedOrigins } from '@app/common/allowed-origins';
-import { apiLogger } from '@app/core/log';
-import { BYPASS_CORS_CHECKS } from '@app/environment';
-import { FastifyRequest } from '@app/types/fastify';
-import { type CookieService } from '@app/unraid-api/auth/cookie.service';
+import { getAllowedOrigins } from '@app/common/allowed-origins.js';
+import { apiLogger } from '@app/core/log.js';
+import { BYPASS_CORS_CHECKS } from '@app/environment.js';
+import { FastifyRequest } from '@app/types/fastify.js';
+import { type CookieService } from '@app/unraid-api/auth/cookie.service.js';
 
 /**
  * Returns whether the origin is allowed to access the API.

@@ -1,14 +1,14 @@
 #!/usr/bin/env node
 
-import '@app/dotenv';
+import '@app/dotenv.js';
 
 import { execa } from 'execa';
 import { CommandFactory } from 'nest-commander';
 
-import { internalLogger, logger } from '@app/core/log';
-import { LOG_LEVEL } from '@app/environment';
-import { CliModule } from '@app/unraid-api/cli/cli.module';
-import { LogService } from '@app/unraid-api/cli/log.service';
+import { internalLogger, logger } from '@app/core/log.js';
+import { LOG_LEVEL } from '@app/environment.js';
+import { CliModule } from '@app/unraid-api/cli/cli.module.js';
+import { LogService } from '@app/unraid-api/cli/log.service.js';
 
 const getUnraidApiLocation = async () => {
     try {

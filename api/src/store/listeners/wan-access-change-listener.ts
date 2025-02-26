@@ -1,7 +1,7 @@
-import { remoteAccessLogger } from '@app/core/log';
-import { reloadNginxAndUpdateDNS } from '@app/store/actions/reload-nginx-and-update-dns';
-import { startAppListening } from '@app/store/listeners/listener-middleware';
-import { loadConfigFile } from '@app/store/modules/config';
+import { remoteAccessLogger } from '@app/core/log.js';
+import { reloadNginxAndUpdateDNS } from '@app/store/actions/reload-nginx-and-update-dns.js';
+import { startAppListening } from '@app/store/listeners/listener-middleware.js';
+import { loadConfigFile } from '@app/store/modules/config.js';
 
 export const enableWanAccessChangeListener = () =>
     startAppListening({

@@ -7,19 +7,19 @@ import { GraphQLWsLink } from '@apollo/client/link/subscriptions/index.js';
 import { createClient } from 'graphql-ws';
 import { WebSocket } from 'ws';
 
-import { FIVE_MINUTES_MS } from '@app/consts';
-import { minigraphLogger } from '@app/core/log';
-import { API_VERSION, MOTHERSHIP_GRAPHQL_LINK } from '@app/environment';
-import { MinigraphStatus } from '@app/graphql/generated/api/types';
-import { buildDelayFunction } from '@app/mothership/utils/delay-function';
+import { FIVE_MINUTES_MS } from '@app/consts.js';
+import { minigraphLogger } from '@app/core/log.js';
+import { API_VERSION, MOTHERSHIP_GRAPHQL_LINK } from '@app/environment.js';
+import { MinigraphStatus } from '@app/graphql/generated/api/types.js';
+import { buildDelayFunction } from '@app/mothership/utils/delay-function.js';
 import {
     getMothershipConnectionParams,
     getMothershipWebsocketHeaders,
-} from '@app/mothership/utils/get-mothership-websocket-headers';
-import { getters, store } from '@app/store';
-import { setGraphqlConnectionStatus } from '@app/store/actions/set-minigraph-status';
-import { logoutUser } from '@app/store/modules/config';
-import { receivedMothershipPing, setMothershipTimeout } from '@app/store/modules/minigraph';
+} from '@app/mothership/utils/get-mothership-websocket-headers.js';
+import { setGraphqlConnectionStatus } from '@app/store/actions/set-minigraph-status.js';
+import { getters, store } from '@app/store/index.js';
+import { logoutUser } from '@app/store/modules/config.js';
+import { receivedMothershipPing, setMothershipTimeout } from '@app/store/modules/minigraph.js';
 
 const getWebsocketWithMothershipHeaders = () => {
     return class WebsocketWithMothershipHeaders extends WebSocket {

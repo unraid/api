@@ -1,6 +1,6 @@
 import { Command, CommandRunner, Option } from 'nest-commander';
 
-import { PM2Service } from '@app/unraid-api/cli/pm2.service';
+import { PM2Service } from '@app/unraid-api/cli/pm2.service.js';
 
 interface LogsOptions {
     lines: number;

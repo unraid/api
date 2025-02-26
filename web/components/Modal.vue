@@ -71,7 +71,7 @@ const computedVerticalCenter = computed<string>(() => {
 </script>
 
 <template>
-  <TransitionRoot appear :show="open" as="template">
+  <TransitionRoot appear :show="open">
     <div
       class="fixed inset-0 z-10 overflow-y-auto"
       role="dialog"
@@ -86,7 +86,6 @@ const computedVerticalCenter = computed<string>(() => {
       >
         <TransitionChild
           appear
-          as="template"
           enter="duration-300 ease-out"
           enter-from="opacity-0"
           enter-to="opacity-100"
@@ -102,13 +101,13 @@ const computedVerticalCenter = computed<string>(() => {
         </TransitionChild>
         <TransitionChild
           appear
-          as="template"
           enter="duration-300 ease-out"
           enter-from="opacity-0 scale-95"
           enter-to="opacity-100 scale-100"
           leave="duration-200 ease-in"
           leave-from="opacity-100 scale-100"
           leave-to="opacity-0 scale-95"
+          class="w-full"
         >
           <div
             :class="[
@@ -118,7 +117,7 @@ const computedVerticalCenter = computed<string>(() => {
               success ? 'shadow-green-600/30 border-green-600/10' : '',
               !error && !success && !disableShadow ? 'shadow-orange/10 border-white/10' : '',
             ]"
-            class="text-16px text-foreground bg-background text-left relative z-10 mx-auto flex flex-col justify-around border-2 border-solid transform overflow-hidden rounded-lg transition-all sm:w-full"
+            class="text-16px text-foreground bg-background text-left relative z-10 mx-auto flex flex-col justify-around border-2 border-solid transform overflow-hidden rounded-lg transition-all"
           >
             <div v-if="showCloseX" class="absolute z-20 right-0 top-0 pt-4px pr-4px hidden sm:block">
               <button
@@ -185,7 +184,6 @@ const computedVerticalCenter = computed<string>(() => {
 
         <TransitionChild
           appear
-          as="template"
           enter="duration-300 ease-out"
           enter-from="opacity-0"
           enter-to="opacity-100"

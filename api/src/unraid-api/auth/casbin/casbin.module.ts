@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
 
-import { CasbinService } from '@app/unraid-api/auth/casbin/casbin.service';
+import { CasbinService } from '@app/unraid-api/auth/casbin/casbin.service.js';
 
 @Module({
     providers: [CasbinService],

@@ -1,3 +1,3 @@
 // Created from 'create-ts-index'
 
-export * from './get-share';
+export * from './get-share.js';

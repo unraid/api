@@ -151,6 +151,7 @@ export default defineConfig(({ mode }): ViteUserConfig => {
             },
             maxConcurrency: 10,
             globals: true,
+            environment: 'node',
             coverage: {
                 all: true,
                 include: ['src/**/*'],

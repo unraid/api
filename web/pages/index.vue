@@ -1,14 +1,18 @@
 <script lang="ts" setup>
 import { ExclamationTriangleIcon } from '@heroicons/vue/24/solid';
 import { BrandButton, BrandLogo } from '@unraid/ui';
-import { serverState } from '~/_data/serverState';
+import { useDummyServerStore } from '~/_data/serverState';
 import AES from 'crypto-js/aes';
 
 import type { SendPayloads } from '~/store/callback';
 
 import SsoButtonCe from '~/components/SsoButton.ce.vue';
+import { useThemeStore } from '~/store/theme';
 
+const serverStore = useDummyServerStore();
+const { serverState } = storeToRefs(serverStore);
 const { registerEntry } = useCustomElements();
+const { theme } = storeToRefs(useThemeStore());
 onBeforeMount(() => {
   registerEntry('UnraidComponents');
 });
@@ -73,6 +77,13 @@ onMounted(() => {
     'forUpc'
   );
 });
+
+const bannerImage = watch(theme, () => {
+  if (theme.value.banner) {
+    return `url(https://picsum.photos/1920/200?${Math.round(Math.random() * 100)})`;
+  }
+  return 'none';
+});
 </script>
 
 <template>
@@ -80,10 +91,18 @@ onMounted(() => {
     <div class="pb-12 mx-auto">
       <client-only>
         <div class="flex flex-col gap-6 p-6">
+          <DummyServerSwitcher />
           <ColorSwitcherCe />
           <h2 class="text-xl font-semibold font-mono">Vue Components</h2>
           <h3 class="text-lg font-semibold font-mono">UserProfileCe</h3>
-          <header class="bg-header-background-color py-4 flex flex-row justify-between items-center">
+          <header 
+            class="bg-header-background-color flex justify-between items-center"
+            :style="{
+              backgroundImage: bannerImage,
+              backgroundSize: 'cover',
+              backgroundPosition: 'center'
+            }"
+          >
             <div class="inline-flex flex-col gap-4 items-start px-4">
               <a href="https://unraid.net" target="_blank">
                 <BrandLogo class="w-[100px] sm:w-[150px]" />

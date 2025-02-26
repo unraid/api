@@ -3,7 +3,7 @@ import { readFile } from 'node:fs/promises';
 import {
     FileModification,
     ShouldApplyWithReason,
-} from '@app/unraid-api/unraid-file-modifier/file-modification';
+} from '@app/unraid-api/unraid-file-modifier/file-modification.js';
 
 export default class NotificationsPageModification extends FileModification {
     id: string = 'notifications-page';

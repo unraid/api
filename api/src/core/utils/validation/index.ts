@@ -1,5 +1,5 @@
 // Created from 'create-ts-index'
 
-export * from './context';
-export * from './has-fields';
-export * from './is-node-error';
+export * from './context/index.js';
+export * from './has-fields.js';
+export * from './is-node-error.js';

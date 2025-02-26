@@ -1,6 +1,6 @@
-import type { CoreContext, CoreResult } from '@app/core/types';
-import { ensurePermission } from '@app/core/utils/permissions/ensure-permission';
-import { API_VERSION } from '@app/environment';
+import type { CoreContext, CoreResult } from '@app/core/types/index.js';
+import { ensurePermission } from '@app/core/utils/permissions/ensure-permission.js';
+import { API_VERSION } from '@app/environment.js';
 
 interface Result extends CoreResult {
     json: {
@@ -42,7 +42,6 @@ export const getUnraidApiService = async (context: CoreContext): Promise<Result>
     };
 
     return {
-        text: `Service: ${JSON.stringify(service, null, 2)}`,
         json: service,
     };
 };

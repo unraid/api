@@ -1,5 +1,5 @@
-import { ArrayState } from '@app/graphql/generated/api/types';
-import { getters } from '@app/store';
+import { ArrayState } from '@app/graphql/generated/api/types.js';
+import { getters } from '@app/store/index.js';
 
 /**
  * Is the array running?

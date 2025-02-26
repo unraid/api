@@ -1,7 +1,9 @@
 import type { TestingModule } from '@nestjs/testing';
 import { Test } from '@nestjs/testing';
 
-import { DisplayResolver } from '@app/unraid-api/graph/resolvers/display/display.resolver';
+import { beforeEach, describe, expect, it } from 'vitest';
+
+import { DisplayResolver } from '@app/unraid-api/graph/resolvers/display/display.resolver.js';
 
 describe('DisplayResolver', () => {
     let resolver: DisplayResolver;
