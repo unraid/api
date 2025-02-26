@@ -51,7 +51,8 @@ export class NotificationsService {
     };
 
     constructor() {
-        NotificationsService.watcher = this.getNotificationsWatcher();
+        this.path = getters.dynamix().notify!.path;
+        NotificationsService.watcher = this.getNotificationsWatcher(this.path);
     }
 
     /**
@@ -65,14 +66,14 @@ export class NotificationsService {
     public paths(): Record<'basePath' | NotificationType, string> {
         const basePath = getters.dynamix().notify!.path;
 
-        if (this.path && this.path !== basePath) {
+        if (this.path !== basePath) {
             // Recreate the watcher, the close call is non-blocking
             NotificationsService.watcher?.close().catch((e) => this.logger.error(e));
-            NotificationsService.watcher = this.getNotificationsWatcher();
+            NotificationsService.watcher = this.getNotificationsWatcher(basePath);
+            this.path = basePath;
         }
 
         const makePath = (type: NotificationType) => join(basePath, type.toLowerCase());
-        this.path = basePath;
         return {
             basePath,
             [NotificationType.UNREAD]: makePath(NotificationType.UNREAD),
@@ -87,9 +88,7 @@ export class NotificationsService {
      * events to their event handlers.
      *------------------------------------------------------------------------**/
 
-    private getNotificationsWatcher() {
-        const { basePath } = this.paths();
-
+    private getNotificationsWatcher(basePath: string) {
         if (NotificationsService.watcher) {
             return NotificationsService.watcher;
         }
