@@ -33,6 +33,10 @@ import { batchProcess, formatDatetime, isFulfilled, isRejected, unraidTimestamp 
 export class NotificationsService {
     private logger = new Logger(NotificationsService.name);
     private static watcher: FSWatcher | null = null;
+    /**
+     * The path to the notification directory - will be updated if the user changes the notifier path
+     */
+    private path: string | null = null;
 
     private static overview: NotificationOverview = {
         unread: {
@@ -50,7 +54,8 @@ export class NotificationsService {
     };
 
     constructor() {
-        NotificationsService.watcher = this.getNotificationsWatcher();
+        this.path = getters.dynamix().notify!.path;
+        void this.getNotificationsWatcher(this.path);
     }
 
     /**
@@ -63,6 +68,13 @@ export class NotificationsService {
      */
     public paths(): Record<'basePath' | NotificationType, string> {
         const basePath = getters.dynamix().notify!.path;
+
+        if (this.path !== basePath) {
+            // Recreate the watcher with force = true
+            void this.getNotificationsWatcher(basePath, true);
+            this.path = basePath;
+        }
+
         const makePath = (type: NotificationType) => join(basePath, type.toLowerCase());
         return {
             basePath,
@@ -78,12 +90,11 @@ export class NotificationsService {
      * events to their event handlers.
      *------------------------------------------------------------------------**/
 
-    private getNotificationsWatcher() {
-        const { basePath } = this.paths();
-
-        if (NotificationsService.watcher) {
+    private async getNotificationsWatcher(basePath: string, recreate = false): Promise<FSWatcher> {
+        if (NotificationsService.watcher && !recreate) {
             return NotificationsService.watcher;
         }
+        await NotificationsService.watcher?.close().catch((e) => this.logger.error(e));
 
         NotificationsService.watcher = watch(basePath, { usePolling: CHOKIDAR_USEPOLLING }).on(
             'add',
