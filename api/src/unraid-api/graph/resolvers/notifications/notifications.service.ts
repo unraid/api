@@ -33,6 +33,9 @@ import { batchProcess, formatDatetime, isFulfilled, isRejected, unraidTimestamp 
 export class NotificationsService {
     private logger = new Logger(NotificationsService.name);
     private static watcher: FSWatcher | null = null;
+    /**
+     * The path to the notification directory - will be updated if the user changes the notifier path
+     */
     private path: string | null = null;
 
     private static overview: NotificationOverview = {
@@ -67,7 +70,7 @@ export class NotificationsService {
         const basePath = getters.dynamix().notify!.path;
 
         if (this.path !== basePath) {
-            // Recreate the watcher, the close call is non-blocking
+            // Recreate the watcher with force = true
             void this.getNotificationsWatcher(basePath, true);
             this.path = basePath;
         }
