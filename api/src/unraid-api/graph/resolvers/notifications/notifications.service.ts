@@ -33,6 +33,7 @@ import { batchProcess, formatDatetime, isFulfilled, isRejected, unraidTimestamp 
 export class NotificationsService {
     private logger = new Logger(NotificationsService.name);
     private static watcher: FSWatcher | null = null;
+    private path: string | null = null;
 
     private static overview: NotificationOverview = {
         unread: {
@@ -63,7 +64,15 @@ export class NotificationsService {
      */
     public paths(): Record<'basePath' | NotificationType, string> {
         const basePath = getters.dynamix().notify!.path;
+
+        if (this.path && this.path !== basePath) {
+            // Recreate the watcher, the close call is non-blocking
+            NotificationsService.watcher?.close().catch((e) => this.logger.error(e));
+            NotificationsService.watcher = this.getNotificationsWatcher();
+        }
+
         const makePath = (type: NotificationType) => join(basePath, type.toLowerCase());
+        this.path = basePath;
         return {
             basePath,
             [NotificationType.UNREAD]: makePath(NotificationType.UNREAD),
