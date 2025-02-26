@@ -60,7 +60,7 @@
         "@nestjs/graphql": "^12.2.1",
         "@nestjs/passport": "^10.0.3",
         "@nestjs/platform-fastify": "^10.4.7",
-        "@nestjs/schedule": "^4.1.1",
+        "@nestjs/schedule": "^5.0.0",
         "@nestjs/throttler": "^6.2.1",
         "@reduxjs/toolkit": "^2.3.0",
         "@runonflux/nat-upnp": "^1.0.2",
