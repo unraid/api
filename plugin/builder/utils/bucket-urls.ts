@@ -14,7 +14,13 @@ interface TxzUrlParams extends UrlParams {
  * Get the bucket path for the given tag
  */
 const getRootBucketPath = ({ baseUrl, tag }: UrlParams): URL => {
-  return new URL(tag || '', baseUrl);
+  // Append tag to the baseUrl if tag is set, otherwise return the baseUrl
+  const url = new URL(baseUrl);
+  if (tag) {
+    // Ensure the path ends with a trailing slash before adding the tag
+    url.pathname = url.pathname.replace(/\/?$/, "/") + tag;
+  }
+  return url;
 };
 
 /**

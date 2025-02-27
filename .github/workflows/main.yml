@@ -369,16 +369,14 @@ jobs:
           name: unraid-plugin
           path: plugin/deploy/
       - name: Upload to Cloudflare
-        uses: jakejarvis/s3-sync-action@v0.5.1
         if: github.event_name == 'pull_request' || startsWith(github.ref, 'refs/heads/main')
         env:
-          AWS_S3_ENDPOINT: ${{ secrets.CF_ENDPOINT }}
-          AWS_S3_BUCKET: ${{ secrets.CF_BUCKET_PREVIEW }}
           AWS_ACCESS_KEY_ID: ${{ secrets.CF_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.CF_SECRET_ACCESS_KEY }}
-          AWS_REGION: "auto"
-          SOURCE_DIR: plugin/deploy/
-          DEST_DIR: ${{ steps.build-plugin.outputs.BUCKET_PATH }}
+          AWS_ENDPOINT_URL: ${{ secrets.CF_ENDPOINT }}
+          AWS_DEFAULT_REGION: auto
+        run: |
+          aws s3 sync plugin/deploy/ s3://${{ secrets.CF_BUCKET_PREVIEW }}/${{ steps.build-plugin.outputs.BUCKET_PATH }} --endpoint-url $AWS_ENDPOINT_URL
 
       - name: Upload Release Assets
         if: needs.release-please.outputs.releases_created == 'true'
