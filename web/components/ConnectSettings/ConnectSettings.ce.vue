@@ -6,15 +6,16 @@
 import { useQuery } from '@vue/apollo-composable';
 
 import { JsonForms } from '@jsonforms/vue';
-import { extendedVuetifyRenderers } from '@jsonforms/vue-vuetify';
+import { vanillaRenderers } from '@jsonforms/vue-vanilla';
+// import { extendedVuetifyRenderers } from '@jsonforms/vue-vuetify';
 
 import { getConnectSettingsForm } from './graphql/settings.query';
 import { formSwitchEntry } from './renderer/switch.renderer';
 
 const { result } = useQuery(getConnectSettingsForm);
 const renderers = [
-  // ...vanillaRenderers,
-  ...extendedVuetifyRenderers,
+  ...vanillaRenderers,
+  // ...extendedVuetifyRenderers,
   formSwitchEntry,
   // custom renderers here
 ];
@@ -32,19 +33,21 @@ watchImmediate(result, () => {
 const config = {
   restrict: false,
   trim: false,
-}
+};
 </script>
 
 <template>
   <AuthCe />
   <!-- @todo: flashback up -->
-  <div><JsonForms
-    v-if="result"
-    :schema="dataSchema"
-    :uischema="uiSchema"
-    :renderers="renderers"
-    :config="config"
-  /></div>
+  <div>
+    <JsonForms
+      v-if="result"
+      :schema="dataSchema"
+      :uischema="uiSchema"
+      :renderers="renderers"
+      :config="config"
+    />
+  </div>
   <WanIpCheckCe />
   <ConnectSettingsRemoteAccess />
   <ConnectSettingsAllowedOrigins />
