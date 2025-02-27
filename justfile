@@ -12,8 +12,9 @@ setup:
     @just ignore .vscode/settings.json api/.vscode/settings.json web/.vscode/settings.json
     # ignore api local-state files
     @just ignore api/dev/states/myservers.cfg api/dev/Unraid.net/myservers.cfg
-
-    just api/setup
+    
+    pnpm install
+    just unraid-ui/setup
     just web/setup
 
 # restore notification files under api/dev
