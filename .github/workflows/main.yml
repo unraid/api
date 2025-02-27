@@ -360,7 +360,7 @@ jobs:
           fi
 
           cd ${{ github.workspace }}/plugin
-          pnpm run build:plugin -- --tag=${TAG} --base-url=${BASE_URL}
+          pnpm run build:plugin -- --tag="${TAG}" --base-url="${BASE_URL}"
 
       - name: Upload to Cloudflare
         uses: jakejarvis/s3-sync-action@v0.5.1
