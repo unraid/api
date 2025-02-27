@@ -6,16 +6,8 @@ import { readdir } from "node:fs/promises";
 import { execSync } from "node:child_process";
 import { getTxzName, pluginName, startingDir } from "./utils/consts";
 import { setupTxzEnv, TxzEnv } from "./cli/setup-txz-environment";
+import { cleanupTxzFiles } from "./utils/cleanup";
 
-const createTxzDirectory = async () => {
-  await execSync(`rm -rf deploy/pre-pack/*`);
-  await execSync(`rm -rf deploy/release/*`);
-  await execSync(`rm -rf deploy/test/*`);
-
-  await mkdir("deploy/test", { recursive: true });
-  await mkdir("deploy/pre-pack", { recursive: true });
-  await mkdir("deploy/release/archive", { recursive: true });
-};
 
 // Recursively search for manifest files
 const findManifestFiles = async (dir: string): Promise<string[]> => {
@@ -96,7 +88,7 @@ const buildTxz = async (validatedEnv: TxzEnv) => {
 
 const main = async () => {
   const validatedEnv = await setupTxzEnv(process.argv);
-  await createTxzDirectory();
+  await cleanupTxzFiles();
   await buildTxz(validatedEnv);
 };
 

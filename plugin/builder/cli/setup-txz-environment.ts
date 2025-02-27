@@ -2,6 +2,7 @@ import { join } from "path";
 import { z } from "zod";
 import { Command } from "commander";
 import { startingDir } from "../utils/consts";
+import { deployDir } from "../utils/paths";
 
 const txzEnvSchema = z.object({
   ci: z.boolean().optional().default(false),
@@ -11,7 +12,7 @@ const txzEnvSchema = z.object({
     .default("false")
     .refine((v) => v === "true" || v === "false", "Must be true or false"),
   compress: z.string().optional().default("1"),
-  txzOutputDir: z.string().optional().default(join(startingDir, "deploy/release/archive")),
+  txzOutputDir: z.string().optional().default(join(startingDir, deployDir)),
 });
 
 export type TxzEnv = z.infer<typeof txzEnvSchema>;

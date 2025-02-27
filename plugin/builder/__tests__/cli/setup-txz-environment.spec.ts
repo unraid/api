@@ -2,11 +2,12 @@ import { join } from "path";
 import { validateTxzEnv, TxzEnv } from "../../cli/setup-txz-environment";
 import { describe, it, expect, vi } from "vitest";
 import { startingDir } from "../../utils/consts";
+import { deployDir } from "../../utils/paths";
 
 describe("setupTxzEnvironment", () => {
   it("should return default values when no arguments are provided", async () => {
     const envArgs = {};
-    const expected: TxzEnv = { ci: false, skipValidation: "false", compress: "1", txzOutputDir: join(startingDir, "deploy/release/archive") };
+    const expected: TxzEnv = { ci: false, skipValidation: "false", compress: "1", txzOutputDir: join(startingDir, deployDir) };
 
     const result = await validateTxzEnv(envArgs);
 
