@@ -375,6 +375,7 @@ jobs:
           AWS_SECRET_ACCESS_KEY: ${{ secrets.CF_SECRET_ACCESS_KEY }}
           AWS_DEFAULT_REGION: auto
         run: |
+          # Sync the deploy directory to the Cloudflare bucket - CRC32 is required for the checksum-algorithm on cloudflare (ref. https://community.cloudflare.com/t/an-error-occurred-internalerror-when-calling-the-putobject-operation/764905/8)
           aws s3 sync deploy/ s3://${{ secrets.CF_BUCKET_PREVIEW }}/${{ steps.build-plugin.outputs.BUCKET_PATH }} --endpoint-url ${{ secrets.CF_ENDPOINT }} --checksum-algorithm CRC32
 
       - name: Upload Release Assets

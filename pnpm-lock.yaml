@@ -472,9 +472,6 @@ importers:
         specifier: ^8.3.2
         version: 8.3.2
     devDependencies:
-      cpx2:
-        specifier: ^8.0.0
-        version: 8.0.0
       http-server:
         specifier: ^14.1.1
         version: 14.1.1
@@ -3631,7 +3628,6 @@ packages:
   '@unraid/libvirt@1.1.3':
     resolution: {integrity: sha512-aZNHkwgQ/0e+5BE7i3Ru4GC3Ev8fEUlnU0wmTcuSbpN0r74rMpiGwzA/4cqIJU8X+Kj//I80pkUufzXzHmMWwQ==}
     engines: {node: '>=14'}
-    cpu: [x64, arm64]
     os: [linux, darwin]
 
   '@unraid/tailwind-rem-to-rem@1.1.0':
@@ -5112,11 +5108,6 @@ packages:
     resolution: {integrity: sha512-9IkYqtX3YHPCzoVg1Py+o9057a3i0fp7S530UWokCSaFVTc7CwXPRiOjRjBQQ18ZCNafx78YfnG+HALxtVmOGA==}
     engines: {node: '>=10.0.0'}
 
-  cpx2@8.0.0:
-    resolution: {integrity: sha512-RxD9jrSVNSOmfcbiPlr3XnKbUKH9K1w2HCv0skczUKhsZTueiDBecxuaSAKQkYSLQaGVA4ZQJZlTj5hVNNEvKg==}
-    engines: {node: ^20.0.0 || >=22.0.0, npm: '>=10'}
-    hasBin: true
-
   crc-32@1.2.2:
     resolution: {integrity: sha512-ROmzCKrTnOwybPcJApAA6WBWij23HVfGVNKqqrZpuyZOHqK2CwHSvpGuyt/UNNvaIjEd8X5IFGp4Mh+Ie1IHJQ==}
     engines: {node: '>=0.8'}
@@ -5315,10 +5306,6 @@ packages:
 
   debounce@1.2.1:
     resolution: {integrity: sha512-XRRe6Glud4rd/ZGQfiV1ruXSfbvfJedlV9Y6zOlP+2K04vBYiJEte6stfFkCP03aMnY5tsipamumUjL14fofug==}
-
-  debounce@2.2.0:
-    resolution: {integrity: sha512-Xks6RUDLZFdz8LIdR6q0MTH44k7FikOmnh5xkSjMig6ch45afc8sjTjRQf3P6ax8dMgcQrYO/AR2RGWURrruqw==}
-    engines: {node: '>=18'}
 
   debug@2.6.9:
     resolution: {integrity: sha512-bC7ElrdJaJnPbAP+1EotYvqZsb3ecl5wi6Bfi6BJTUcNowp6cvspg0jXznRTKDjm/E7AdgFBVeAPVMNcKGsHMA==}
@@ -6297,9 +6284,6 @@ packages:
     resolution: {integrity: sha512-6BN9trH7bp3qvnrRyzsBz+g3lZxTNZTbVO2EV1CS0WIcDbawYVdYvGflME/9QP0h0pYlCDBCTjYa9nZzMDpyxQ==}
     engines: {node: '>= 0.8'}
 
-  find-index@0.1.1:
-    resolution: {integrity: sha512-uJ5vWrfBKMcE6y2Z8834dwEZj9mNGxYa3t3I53OwFeuZ8D9oc2E5zcsrkuhX6h4iYrjhiv0T3szQmxlAV9uxDg==}
-
   find-my-way@8.2.2:
     resolution: {integrity: sha512-Dobi7gcTEq8yszimcfp/R7+owiT4WncAJ7VTTgFH1jYJ5GaG1FbhjwDG820hptN0QDFvzVY3RfCzdInvGPGzjA==}
     engines: {node: '>=14'}
@@ -6562,10 +6546,6 @@ packages:
 
   glob-to-regexp@0.4.1:
     resolution: {integrity: sha512-lkX1HJXwyMcprw/5YUZc2s7DrpAiHB21/V+E1rHUrVNokkvB6bqMzT0VfV6/86ZNabt1k14YOIaT7nDvOX3Iiw==}
-
-  glob2base@0.0.12:
-    resolution: {integrity: sha512-ZyqlgowMbfj2NPjxaZZ/EtsXlOch28FRXgMd64vqZWk1bT9+wvSRLYD1om9M7QfQru51zJPAT17qXm4/zd+9QA==}
-    engines: {node: '>= 0.10'}
 
   glob@10.4.5:
     resolution: {integrity: sha512-7Bv8RF0k6xjo7d4A/PxYLbUCfb6c+Vpd2/mB2yRDlew7Jb5hEXiCD9ibfO7wpk8i4sevK6DFny9h7EYbM3/sHg==}
@@ -6953,10 +6933,6 @@ packages:
 
   ignore@5.3.2:
     resolution: {integrity: sha512-hsBTNUqQTDwkWtcdYI2i06Y/nUBEsNEDJKjWdigLvegy8kDuJAS8uRlpkkcQpyEXL0Z/pjDy5HBmMjRCJ2gq+g==}
-    engines: {node: '>= 4'}
-
-  ignore@6.0.2:
-    resolution: {integrity: sha512-InwqeHHN2XpumIkMvpl/DCJVrAHgCsG5+cn1XlnLWGwtZBm8QJfSusItfrwx81CTp5agNZqpKU2J/ccC5nGT4A==}
     engines: {node: '>= 4'}
 
   ignore@7.0.3:
@@ -8445,10 +8421,6 @@ packages:
   p-map@4.0.0:
     resolution: {integrity: sha512-/bjOqmgETBYB5BoEeGVea8dmvHb2m9GLy1E9W43yeyfP6QQCZGFNa+XRceJEuDB6zqr+gKpIAmlLebMpykw/MQ==}
     engines: {node: '>=10'}
-
-  p-map@7.0.3:
-    resolution: {integrity: sha512-VkndIv2fIB99swvQoA65bm+fsmt6UNdGeIB0oxBs+WhAhdh08QA04JXpI7rbB9r08/nkbysKoya9rtDERYOYMA==}
-    engines: {node: '>=18'}
 
   p-retry@6.2.1:
     resolution: {integrity: sha512-hEt02O4hUct5wtwg4H4KcWgDdm+l1bOaEy/hWzd8xtXB9BqxTWBBhb+2ImAtH4Cv4rPjV76xN3Zumqk3k3AhhQ==}
@@ -10015,9 +9987,6 @@ packages:
   stylus@0.57.0:
     resolution: {integrity: sha512-yOI6G8WYfr0q8v8rRvE91wbxFU+rJPo760Va4MF6K0I6BZjO4r+xSynkvyPBP9tV1CIEUeRsiidjIs2rzb1CnQ==}
     hasBin: true
-
-  subarg@1.0.0:
-    resolution: {integrity: sha512-RIrIdRY0X1xojthNcVtgT9sjpOGagEUKpZdgBUi054OEPFo282yg+zE+t1Rj3+RqKq2xStL7uUHhY+AjbC4BXg==}
 
   subscriptions-transport-ws@0.11.0:
     resolution: {integrity: sha512-8D4C6DIH5tGiAIpp5I0wD/xRlNiZAPGHygzCe7VzyzUoxHtawzjNAY9SUTXU05/EY2NMY9/9GF0ycizkXr1CWQ==}
@@ -16830,24 +16799,6 @@ snapshots:
       nan: 2.22.0
     optional: true
 
-  cpx2@8.0.0:
-    dependencies:
-      debounce: 2.2.0
-      debug: 4.4.0(supports-color@9.4.0)
-      duplexer: 0.1.2
-      fs-extra: 11.3.0
-      glob: 11.0.1
-      glob2base: 0.0.12
-      ignore: 6.0.2
-      minimatch: 10.0.1
-      p-map: 7.0.3
-      resolve: 1.22.10
-      safe-buffer: 5.2.1
-      shell-quote: 1.8.2
-      subarg: 1.0.0
-    transitivePeerDependencies:
-      - supports-color
-
   crc-32@1.2.2: {}
 
   crc32-stream@6.0.0:
@@ -17061,8 +17012,6 @@ snapshots:
   de-indent@1.0.2: {}
 
   debounce@1.2.1: {}
-
-  debounce@2.2.0: {}
 
   debug@2.6.9:
     dependencies:
@@ -18281,8 +18230,6 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  find-index@0.1.1: {}
-
   find-my-way@8.2.2:
     dependencies:
       fast-deep-equal: 3.1.3
@@ -18574,10 +18521,6 @@ snapshots:
       is-glob: 4.0.3
 
   glob-to-regexp@0.4.1: {}
-
-  glob2base@0.0.12:
-    dependencies:
-      find-index: 0.1.1
 
   glob@10.4.5:
     dependencies:
@@ -19034,8 +18977,6 @@ snapshots:
   ignore-by-default@1.0.1: {}
 
   ignore@5.3.2: {}
-
-  ignore@6.0.2: {}
 
   ignore@7.0.3: {}
 
@@ -20745,8 +20686,6 @@ snapshots:
   p-map@4.0.0:
     dependencies:
       aggregate-error: 3.1.0
-
-  p-map@7.0.3: {}
 
   p-retry@6.2.1:
     dependencies:
@@ -22491,10 +22430,6 @@ snapshots:
       source-map: 0.7.4
     transitivePeerDependencies:
       - supports-color
-
-  subarg@1.0.0:
-    dependencies:
-      minimist: 1.2.8
 
   subscriptions-transport-ws@0.11.0(graphql@16.10.0):
     dependencies:

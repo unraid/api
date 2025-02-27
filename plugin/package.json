@@ -31,16 +31,10 @@
     "env:init": "cp .env.example .env",
     "env:validate": "test -f .env || (echo 'Error: .env file missing. Run npm run env:init first' && exit 1)",
     "env:clean": "rm -f .env",
-    "// Composite commands": "",
-    "// Watchers for Other Changes": "",
-    "wc:clean": "rm -r ./source/dynamix.unraid.net/usr/local/emhttp/plugins/dynamix.my.servers/unraid-components/*",
-    "wc:watch": "cpx -w -v \"../web/.nuxt/nuxt-custom-elements/dist/unraid-components/**/*\" ./source/dynamix.unraid.net/usr/local/emhttp/plugins/dynamix.my.servers/unraid-components",
-    "ui:watch": "cpx -w -v \"../unraid-ui/dist-wc/**/*\" ./source/dynamix.unraid.net/usr/local/emhttp/plugins/dynamix.my.servers/unraid-components",
-    "watch:components": "npm run wc:clean && npm run wc:watch & npm run ui:watch",
+    "// Testing": "",
     "test": "vitest"
   },
   "devDependencies": {
-    "cpx2": "^8.0.0",
     "http-server": "^14.1.1",
     "nodemon": "^3.1.7",
     "vitest": "^3.0.7"
