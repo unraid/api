@@ -87,7 +87,10 @@ export const setupPluginEnv = async (argv: string[]): Promise<PluginEnv> => {
   program
     .requiredOption(
       "--base-url <url>",
-      "Base URL - will be used to determine the bucket, and combined with the tag (if set) to form the final URL"
+      "Base URL - will be used to determine the bucket, and combined with the tag (if set) to form the final URL",
+      process.env.CI === "true"
+        ? "This is a CI build, please set the base URL manually"
+        : `http://${process.env.HOST_LAN_IP}:8080`
     )
     .option(
       "--txz-path <path>",
@@ -105,6 +108,7 @@ export const setupPluginEnv = async (argv: string[]): Promise<PluginEnv> => {
     .parse(argv);
 
   const options = program.opts();
+  console.log("Options:", options);
   const env = await validatePluginEnv(options);
   console.log("Plugin environment setup successfully:", env);
   return env;
