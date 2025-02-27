@@ -28,8 +28,9 @@ const getRootBucketPath = ({ baseUrl, tag }: UrlParams): URL => {
  */
 export const getPluginUrl = (params: UrlParams): string => {
   const rootUrl = getRootBucketPath(params);
-  const url = new URL(pluginNameWithExt, rootUrl);
-  return url.toString();
+  // Ensure the path ends with a slash and join with the plugin name
+  rootUrl.pathname = rootUrl.pathname.replace(/\/?$/, "/") + pluginNameWithExt;
+  return rootUrl.toString();
 };
 
 /**
@@ -37,6 +38,7 @@ export const getPluginUrl = (params: UrlParams): string => {
  */
 export const getMainTxzUrl = (params: TxzUrlParams): string => {
   const rootUrl = getRootBucketPath(params);
-  const url = new URL(getTxzName(params.pluginVersion), rootUrl);
-  return url.toString();
+  // Ensure the path ends with a slash and join with the txz name
+  rootUrl.pathname = rootUrl.pathname.replace(/\/?$/, "/") + getTxzName(params.pluginVersion);
+  return rootUrl.toString();
 };
