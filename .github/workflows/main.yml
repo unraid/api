@@ -363,7 +363,11 @@ jobs:
 
           cd ${{ github.workspace }}/plugin
           pnpm run build:plugin --tag="${TAG}" --base-url="${BASE_URL}"
-
+      - name: Upload to GHA
+        uses: actions/upload-artifact@v4
+        with:
+          name: unraid-plugin
+          path: plugin/deploy/
       - name: Upload to Cloudflare
         uses: jakejarvis/s3-sync-action@v0.5.1
         if: github.event_name == 'pull_request' || startsWith(github.ref, 'refs/heads/main')
