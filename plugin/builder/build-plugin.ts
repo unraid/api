@@ -1,15 +1,17 @@
-import { readFile, writeFile, mkdir } from "fs/promises";
+import { readFile, writeFile, mkdir, rename } from "fs/promises";
 import { $ } from "zx";
 import { escape as escapeHtml } from "html-sloppy-escaper";
-import { dirname } from "node:path";
-import { pluginName, startingDir } from "./utils/consts";
+import { dirname, join } from "node:path";
+import { getTxzName, pluginName, startingDir } from "./utils/consts";
 import { getPluginUrl } from "./utils/bucket-urls";
 import { getMainTxzUrl } from "./utils/bucket-urls";
 import {
+  deployDir,
   getDeployPluginPath,
   getRootPluginPath,
 } from "./utils/paths";
 import { PluginEnv, setupPluginEnv } from "./cli/setup-plugin-environment";
+import { cleanupPluginFiles } from "./utils/cleanup";
 
 /**
  * Check if git is available
@@ -22,6 +24,11 @@ const checkGit = async () => {
     process.exit(1);
   }
 };
+
+const moveTxzFile = async (txzPath: string, pluginVersion: string) => {
+  const txzName = getTxzName(pluginVersion);
+  await rename(txzPath, join(deployDir, txzName));
+}
 
 function updateEntityValue(
   xmlString: string,
@@ -51,7 +58,7 @@ const buildPlugin = async ({
     version: pluginVersion,
     pluginURL: getPluginUrl({ baseUrl, tag }),
     MAIN_TXZ: getMainTxzUrl({ baseUrl, pluginVersion, tag }),
-    SHA256: txzSha256,
+    TXZ_SHA256: txzSha256,
     TAG: tag,
   };
 
@@ -82,9 +89,12 @@ const buildPlugin = async ({
  */
 
 const main = async () => {
-  await checkGit();
   const validatedEnv = await setupPluginEnv(process.argv);
+  await checkGit();
+  await cleanupPluginFiles();
+
   await buildPlugin(validatedEnv);
+  await moveTxzFile(validatedEnv.txzPath, validatedEnv.pluginVersion);
 };
 
 await main();

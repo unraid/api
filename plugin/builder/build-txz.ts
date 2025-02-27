@@ -1,9 +1,7 @@
-import { mkdir } from "fs/promises";
 import { join } from "path";
 import { $, cd } from "zx";
 import { existsSync } from "node:fs";
 import { readdir } from "node:fs/promises";
-import { execSync } from "node:child_process";
 import { getTxzName, pluginName, startingDir } from "./utils/consts";
 import { setupTxzEnv, TxzEnv } from "./cli/setup-txz-environment";
 import { cleanupTxzFiles } from "./utils/cleanup";
@@ -58,9 +56,12 @@ const validateSourceDir = async (validatedEnv: TxzEnv) => {
   const hasUiManifest = manifestFiles.includes("ui.manifest.json");
 
   if (!hasManifest || !hasUiManifest) {
+    console.log(
+      "Existing Manifest Files:", manifestFiles);
     throw new Error(
       `Webcomponents must contain both "ui.manifest.json" and "manifest.json" - be sure to have run pnpm build:wc in unraid-ui`
     );
+    
   }
 
   const apiDir = join(

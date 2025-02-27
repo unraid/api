@@ -20,6 +20,7 @@
         "// Build": "",
         "build": "vite build --mode=production",
         "postbuild": "chmod +x dist/main.js && chmod +x dist/cli.js",
+        "build:watch": "vite build --mode=production --watch",
         "build:docker": "./scripts/dc.sh run --rm builder",
         "build-and-pack": "tsx ./scripts/build.ts",
         "// GraphQL Codegen": "",

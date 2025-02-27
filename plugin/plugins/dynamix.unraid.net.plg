@@ -7,7 +7,6 @@
   <!ENTITY pluginURL "">
   <!ENTITY source "/boot/config/plugins/dynamix.my.servers/&name;">
   <!ENTITY TXZ_SHA256 "">
-  <!ENTITY API_version "">
   <!ENTITY NODEJS_VERSION "22.14.0">
   <!-- To get SHA256:
        wget https://nodejs.org/download/release/v22.14.0/node-v22.14.0-linux-x64.tar.xz

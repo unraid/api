@@ -17,12 +17,15 @@
   "license": "GPL-2.0-only",
   "scripts": {
     "// Build scripts": "",
+    "build": "pnpm run build:txz && pnpm run build:plugin",
     "build:txz": "tsx builder/build-txz.ts",
     "build:plugin": "tsx builder/build-plugin.ts",
     "build:validate": "npm run env:validate && npm run build",
+    "build:watcher": "nodemon --watch 'source/**/*' --exec 'pnpm run build'",
     "// Docker commands": "",
+    "build:watch": "docker compose run --service-ports --rm plugin-builder pnpm run build:watcher",
     "docker:build": "docker compose build",
-    "docker:run": "docker compose run --rm plugin-builder /bin/bash",
+    "docker:run": "docker compose run --service-ports --rm plugin-builder /bin/bash",
     "docker:build-and-run": "npm run docker:build && npm run docker:run",
     "http-server": "http-server ./deploy/release/ -p 8080 --cors",
     "// Environment management": "",
@@ -30,7 +33,6 @@
     "env:validate": "test -f .env || (echo 'Error: .env file missing. Run npm run env:init first' && exit 1)",
     "env:clean": "rm -f .env",
     "// Composite commands": "",
-
     "// Watchers for Other Changes": "",
     "wc:clean": "rm -r ./source/dynamix.unraid.net/usr/local/emhttp/plugins/dynamix.my.servers/unraid-components/*",
     "wc:watch": "cpx -w -v \"../web/.nuxt/nuxt-custom-elements/dist/unraid-components/**/*\" ./source/dynamix.unraid.net/usr/local/emhttp/plugins/dynamix.my.servers/unraid-components",
@@ -40,8 +42,9 @@
   },
   "devDependencies": {
     "cpx2": "^8.0.0",
-    "vitest": "^3.0.7",
-    "http-server": "^14.1.1"
+    "http-server": "^14.1.1",
+    "nodemon": "^3.1.7",
+    "vitest": "^3.0.7"
   },
   "packageManager": "pnpm@10.4.1"
 }

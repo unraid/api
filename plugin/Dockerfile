@@ -19,3 +19,16 @@ WORKDIR /app
 COPY package.json ./
 
 RUN corepack enable && pnpm install
+
+# Install a simple http server
+RUN npm install -g http-server
+
+# Expose port 8080
+EXPOSE 8080
+
+COPY scripts/entrypoint.sh /start.sh
+RUN chmod +x /start.sh
+
+ENTRYPOINT [ "/start.sh" ]
+
+CMD [ "pnpm", "run", "build:watcher" ]

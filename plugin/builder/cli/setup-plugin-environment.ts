@@ -3,6 +3,7 @@ import { access, constants, readFile } from "node:fs/promises";
 import { Command } from "commander";
 import { getStagingChangelogFromGit } from "../utils/changelog";
 import { createHash } from "node:crypto";
+import { getTxzPath } from "../utils/paths";
 
 const safeParseEnvSchema = z.object({
   ci: z.boolean().optional(),
@@ -70,11 +71,13 @@ export const validatePluginEnv = async (
 export const getPluginVersion = () => {
   const now = new Date();
   const year = now.getFullYear();
-  const month = now.getMonth() + 1;
-  const day = now.getDate();
-  const hour = now.getHours();
-  const minute = now.getMinutes();
-  return `${year}.${month}.${day}.${hour}${minute}`;
+  const month = String(now.getMonth() + 1).padStart(2, '0');
+  const day = String(now.getDate()).padStart(2, '0');
+  const hour = String(now.getHours()).padStart(2, '0');
+  const minute = String(now.getMinutes()).padStart(2, '0');
+  const version = `${year}.${month}.${day}.${hour}${minute}`;
+  console.log("Plugin version:", version);
+  return version;
 };
 
 export const setupPluginEnv = async (argv: string[]): Promise<PluginEnv> => {
@@ -83,12 +86,13 @@ export const setupPluginEnv = async (argv: string[]): Promise<PluginEnv> => {
 
   program
     .requiredOption(
-      "--txz-path <path>",
-      "Path to built package, will be used to generate the SHA256 and renamed with the plugin version"
-    )
-    .requiredOption(
       "--base-url <url>",
       "Base URL - will be used to determine the bucket, and combined with the tag (if set) to form the final URL"
+    )
+    .option(
+      "--txz-path <path>",
+      "Path to built package, will be used to generate the SHA256 and renamed with the plugin version",
+      getTxzPath({ startingDir: process.cwd() })
     )
     .option(
       "--plugin-version <version>",

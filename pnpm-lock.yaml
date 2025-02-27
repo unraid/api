@@ -478,6 +478,9 @@ importers:
       http-server:
         specifier: ^14.1.1
         version: 14.1.1
+      nodemon:
+        specifier: ^3.1.7
+        version: 3.1.9
       vitest:
         specifier: ^3.0.7
         version: 3.0.7(@types/node@22.13.4)(happy-dom@17.1.4)(jiti@2.4.2)(jsdom@26.0.0)(stylus@0.57.0)(terser@5.39.0)(tsx@4.19.3)(yaml@2.7.0)
@@ -3628,6 +3631,7 @@ packages:
   '@unraid/libvirt@1.1.3':
     resolution: {integrity: sha512-aZNHkwgQ/0e+5BE7i3Ru4GC3Ev8fEUlnU0wmTcuSbpN0r74rMpiGwzA/4cqIJU8X+Kj//I80pkUufzXzHmMWwQ==}
     engines: {node: '>=14'}
+    cpu: [x64, arm64]
     os: [linux, darwin]
 
   '@unraid/tailwind-rem-to-rem@1.1.0':
