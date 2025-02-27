@@ -373,7 +373,7 @@ jobs:
           AWS_ACCESS_KEY_ID: ${{ secrets.CF_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.CF_SECRET_ACCESS_KEY }}
           AWS_REGION: "auto"
-          SOURCE_DIR: deploy
+          SOURCE_DIR: plugin/deploy/
           DEST_DIR: ${{ steps.build-plugin.outputs.BUCKET_PATH }}
 
       - name: Upload Release Assets
