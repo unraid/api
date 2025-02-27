@@ -207,8 +207,6 @@ jobs:
   build-web:
     # needs: [build-unraid-ui]
     name: Build Web App
-    environment:
-      name: production
     defaults:
       run:
         working-directory: web
@@ -220,10 +218,10 @@ jobs:
       - name: Create env file
         run: |
           touch .env
-          echo VITE_ACCOUNT=${{ vars.VITE_ACCOUNT }} >> .env
-          echo VITE_CONNECT=${{ vars.VITE_CONNECT }} >> .env
-          echo VITE_UNRAID_NET=${{ vars.VITE_UNRAID_NET }} >> .env
-          echo VITE_CALLBACK_KEY=${{ vars.VITE_CALLBACK_KEY }} >> .env
+          echo VITE_ACCOUNT=${{ secrets.VITE_ACCOUNT }} >> .env
+          echo VITE_CONNECT=${{ secrets.VITE_CONNECT }} >> .env
+          echo VITE_UNRAID_NET=${{ secrets.VITE_UNRAID_NET }} >> .env
+          echo VITE_CALLBACK_KEY=${{ secrets.VITE_CALLBACK_KEY }} >> .env
           cat .env
 
       - name: Install Node
