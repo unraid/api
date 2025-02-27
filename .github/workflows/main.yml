@@ -14,17 +14,21 @@ jobs:
   release-please:
     name: Release Please
     # Only run release-please on pushes to main
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     permissions:
       contents: write
       pull-requests: write
     steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+      
       - id: release
         uses: googleapis/release-please-action@v4
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     outputs:
-      releases_created: ${{ steps.release.outputs.releases_created }}
-      tag_name: ${{ steps.release.outputs.tag_name }}
+      releases_created: ${{ steps.release.outputs.releases_created || 'false' }}
+      tag_name: ${{ steps.release.outputs.tag_name || '' }}
   test-api:
     name: Test API
     defaults:
