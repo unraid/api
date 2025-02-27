@@ -18,5 +18,4 @@ WORKDIR /app
 
 COPY package.json ./
 
-
 RUN corepack enable && pnpm install

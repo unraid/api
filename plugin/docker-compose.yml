@@ -1,0 +1,13 @@
+services:
+  plugin-builder:
+    build: .
+    volumes:
+      - ./:/app
+      - ../.git:/app/.git
+      - ./source:/app/source
+      - ./scripts:/app/scripts
+      - ../unraid-ui/dist-wc:/app/source/dynamix.unraid.net/usr/local/emhttp/plugins/dynamix.my.servers/unraid-components/uui
+      - ../web/.nuxt/nuxt-custom-elements/dist/unraid-components:/app/source/dynamix.unraid.net/usr/local/emhttp/plugins/dynamix.my.servers/unraid-components/nuxt
+      - ../api/deploy/pack/:/app/source/dynamix.unraid.net/usr/local/unraid-api
+    stdin_open: true # equivalent to -i
+    tty: true        # equivalent to -t 

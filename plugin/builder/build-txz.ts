@@ -4,7 +4,7 @@ import { $, cd } from "zx";
 import { existsSync } from "node:fs";
 import { readdir } from "node:fs/promises";
 import { execSync } from "node:child_process";
-import { getTxzName, startingDir } from "./utils/consts";
+import { getTxzName, pluginName, startingDir } from "./utils/consts";
 import { setupTxzEnv, TxzEnv } from "./cli/setup-txz-environment";
 
 const createTxzDirectory = async () => {
@@ -15,6 +15,26 @@ const createTxzDirectory = async () => {
   await mkdir("deploy/test", { recursive: true });
   await mkdir("deploy/pre-pack", { recursive: true });
   await mkdir("deploy/release/archive", { recursive: true });
+};
+
+// Recursively search for manifest files
+const findManifestFiles = async (dir: string): Promise<string[]> => {
+  const entries = await readdir(dir, { withFileTypes: true });
+  const files: string[] = [];
+
+  for (const entry of entries) {
+    const fullPath = join(dir, entry.name);
+    if (entry.isDirectory()) {
+      files.push(...(await findManifestFiles(fullPath)));
+    } else if (
+      entry.isFile() &&
+      (entry.name === "manifest.json" || entry.name === "ui.manifest.json")
+    ) {
+      files.push(entry.name);
+    }
+  }
+
+  return files;
 };
 
 const validateSourceDir = async (validatedEnv: TxzEnv) => {
@@ -40,18 +60,14 @@ const validateSourceDir = async (validatedEnv: TxzEnv) => {
   if (!existsSync(webcomponentDir)) {
     throw new Error(`Webcomponent directory ${webcomponentDir} does not exist`);
   }
-  // Validate that there are webcomponents
-  const webcomponents = await readdir(webcomponentDir);
-  if (webcomponents.length === 1 && webcomponents[0] === ".gitkeep") {
-    throw new Error(`No webcomponents found in ${webcomponentDir}`);
-  }
-  // Check for the existence of "ui.manifest.json" as well as "manifest.json" in webcomponents
-  if (
-    !webcomponents.includes("ui.manifest.json") ||
-    !webcomponents.includes("manifest.json")
-  ) {
+
+  const manifestFiles = await findManifestFiles(webcomponentDir);
+  const hasManifest = manifestFiles.includes("manifest.json");
+  const hasUiManifest = manifestFiles.includes("ui.manifest.json");
+
+  if (!hasManifest || !hasUiManifest) {
     throw new Error(
-      `Webcomponents must contain both "ui.manifest.json" and "manifest.json - be sure to have run pnpm build:wc in unraid-ui`
+      `Webcomponents must contain both "ui.manifest.json" and "manifest.json" - be sure to have run pnpm build:wc in unraid-ui`
     );
   }
 
@@ -70,31 +86,12 @@ const buildTxz = async (validatedEnv: TxzEnv) => {
 
   // Create package - must be run from within the pre-pack directory
   // Use cd option to run command from prePackDir
-  await cd(validatedEnv.txzOutputDir);
+  await cd(join(startingDir, "source"));
   $.verbose = true;
 
-  const makepkgOptions: Record<string, { key: string; value: string }> = {
-    chown: { key: "--chown", value: validatedEnv.ci ? "y" : "n" },
-    compress: { key: "--compress", value: validatedEnv.compress },
-    moveSymlinks: { key: "--linkadd", value: validatedEnv.ci ? "y" : "n" },
-  };
-
-  await $`${join(startingDir, "scripts/makepkg")} ${Object.values(
-    makepkgOptions
-  )
-    .map((option) => `${option.key} ${option.value}`)
-    .join(" ")} "${txzPath}"`;
+  await $`${join(startingDir, "scripts/makepkg")} --chown y --compress -${validatedEnv.compress} --linkadd y ${txzPath}`;
   $.verbose = false;
   await cd(startingDir);
-
-  if (validatedEnv.skipValidation !== "true") {
-    try {
-      await $`${join(startingDir, "scripts/explodepkg")} "${txzPath}"`;
-    } catch (err) {
-      console.error(`Error: invalid txz package created: ${txzPath}`);
-      process.exit(1);
-    }
-  }
 };
 
 const main = async () => {
