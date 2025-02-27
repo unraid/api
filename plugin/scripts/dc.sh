@@ -10,4 +10,5 @@ else
 fi
 
 CI=${CI:-false}
-docker compose run --service-ports --rm -e HOST_LAN_IP="$HOST_LAN_IP" -e CI="$CI" plugin-builder "$@" 
+TAG="LOCAL_PLUGIN_BUILD"
+docker compose run --service-ports --rm -e HOST_LAN_IP="$HOST_LAN_IP" -e CI="$CI" -e TAG="$TAG" plugin-builder "$@" 

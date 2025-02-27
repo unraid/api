@@ -17,3 +17,4 @@ services:
     environment:
       - HOST_LAN_IP=${HOST_LAN_IP}
       - CI=${CI:-false}
+      - TAG=${TAG}

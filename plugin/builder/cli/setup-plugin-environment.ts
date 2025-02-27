@@ -8,7 +8,7 @@ import { getTxzPath } from "../utils/paths";
 const safeParseEnvSchema = z.object({
   ci: z.boolean().optional(),
   baseUrl: z.string().url(),
-  tag: z.string().optional(),
+  tag: z.string().optional().default(''),
 
   txzPath: z.string().refine((val) => val.endsWith(".txz"), {
     message: "TXZ Path must end with .txz",
@@ -58,7 +58,6 @@ export const validatePluginEnv = async (
     envArgs.txzSha256 = getSha256(txzFile);
   }
 
-  console.log("Validating plugin environment:", envArgs);
   const validatedEnv = pluginEnvSchema.parse(envArgs);
 
   if (validatedEnv.tag) {
@@ -102,7 +101,7 @@ export const setupPluginEnv = async (argv: string[]): Promise<PluginEnv> => {
       "Plugin Version in the format YYYY.MM.DD.HHMM",
       getPluginVersion()
     )
-    .option("--tag <tag>", "Tag (used for PR and staging builds)")
+    .option("--tag <tag>", "Tag (used for PR and staging builds)", process.env.TAG)
     .option("--release-notes-path <path>", "Path to release notes file")
     .option("--ci", "CI mode", process.env.CI === "true")
     .parse(argv);

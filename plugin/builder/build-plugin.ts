@@ -35,6 +35,7 @@ function updateEntityValue(
   entityName: string,
   newValue: string
 ) {
+  console.log("Updating entity:", entityName, "with value:", newValue);
   const regex = new RegExp(`<!ENTITY ${entityName} "[^"]*">`);
   if (regex.test(xmlString)) {
     return xmlString.replace(regex, `<!ENTITY ${entityName} "${newValue}">`);
@@ -45,7 +46,7 @@ function updateEntityValue(
 const buildPlugin = async ({
   pluginVersion,
   baseUrl,
-  tag = "",
+  tag,
   txzSha256,
   releaseNotes,
 }: PluginEnv) => {
@@ -62,6 +63,7 @@ const buildPlugin = async ({
     TAG: tag,
   };
 
+  console.log("Entities:", entities);
   // Iterate over entities and update them
   Object.entries(entities).forEach(([key, value]) => {
     if (key !== "TAG" && !value) {
@@ -81,6 +83,7 @@ const buildPlugin = async ({
   await mkdir(dirname(getDeployPluginPath({ startingDir })), {
     recursive: true,
   });
+  console.log("Writing plg file to:", getDeployPluginPath({ startingDir }));
   await writeFile(getDeployPluginPath({ startingDir }), plgContent);
 };
 
