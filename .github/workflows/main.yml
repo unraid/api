@@ -295,6 +295,8 @@ jobs:
           timezoneLinux: "America/Los_Angeles"
       - name: Checkout repo
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Install Node
         uses: actions/setup-node@v4
