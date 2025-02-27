@@ -12,19 +12,23 @@ interface TxzUrlParams extends UrlParams {
 
 /**
  * Get the bucket path for the given tag
+ * ex. baseUrl = https://stable.dl.unraid.net/unraid-api
+ * ex. tag = PR123
+ * ex. returns = https://stable.dl.unraid.net/unraid-api/tag/PR123
  */
 const getRootBucketPath = ({ baseUrl, tag }: UrlParams): URL => {
   // Append tag to the baseUrl if tag is set, otherwise return the baseUrl
   const url = new URL(baseUrl);
   if (tag) {
     // Ensure the path ends with a trailing slash before adding the tag
-    url.pathname = url.pathname.replace(/\/?$/, "/") + tag;
+    url.pathname = url.pathname.replace(/\/?$/, "/") + "tag/" + tag;
   }
   return url;
 };
 
 /**
  * Get the URL for the plugin file
+ * ex. returns = BASE_URL/TAG/dynamix.unraid.net.plg
  */
 export const getPluginUrl = (params: UrlParams): string => {
   const rootUrl = getRootBucketPath(params);
@@ -35,6 +39,7 @@ export const getPluginUrl = (params: UrlParams): string => {
 
 /**
  * Get the URL for the main TXZ file
+ * ex. returns = BASE_URL/TAG/dynamix.unraid.net-4.1.3.txz
  */
 export const getMainTxzUrl = (params: TxzUrlParams): string => {
   const rootUrl = getRootBucketPath(params);
