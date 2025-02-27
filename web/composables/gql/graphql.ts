@@ -17,7 +17,7 @@ export type Scalars = {
   /** A date-time string at UTC, such as 2007-12-03T10:15:30Z, compliant with the `date-time` format outlined in section 5.6 of the RFC 3339 profile of the ISO 8601 standard for representation of dates and times using the Gregorian calendar. */
   DateTime: { input: string; output: string; }
   /** The `JSON` scalar type represents JSON values as specified by [ECMA-404](http://www.ecma-international.org/publications/files/ECMA-ST/ECMA-404.pdf). */
-  JSON: { input: Record<string, any>; output: Record<string, any>; }
+  JSON: { input: any; output: any; }
   /** The `Long` scalar type represents 52-bit integers */
   Long: { input: number; output: number; }
   /** A field whose value is a valid TCP port within the range of 0 to 65535: https://en.wikipedia.org/wiki/Transmission_Control_Protocol#TCP_ports */
@@ -1755,7 +1755,7 @@ export type usersInput = {
 export type GetConnectSettingsFormQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type GetConnectSettingsFormQuery = { __typename?: 'Query', connectSettingsForm: { __typename?: 'ConnectSettings', id: string, dataSchema: Record<string, any>, uiSchema: Record<string, any> } };
+export type GetConnectSettingsFormQuery = { __typename?: 'Query', connectSettingsForm: { __typename?: 'ConnectSettings', id: string, dataSchema: any, uiSchema: any } };
 
 export type NotificationFragmentFragment = { __typename?: 'Notification', id: string, title: string, subject: string, description: string, importance: Importance, link?: string | null, type: NotificationType, timestamp?: string | null, formattedTimestamp?: string | null } & { ' $fragmentName'?: 'NotificationFragmentFragment' };
 
