@@ -486,6 +486,7 @@ $('body').on('click', '.js-setCurrentHostExtraOrigins', function(e) {
 });
 </script>
 
+<unraid-connect-settings></unraid-connect-settings>
 <form id="UnraidNetSettings" markdown="1" name="UnraidNetSettings" method="POST" action="/update.htm" target="progressFrame">
 <?
 /**
