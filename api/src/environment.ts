@@ -6,7 +6,7 @@ import { fileURLToPath } from 'node:url';
 const getPackageJsonVersion = () => {
     try {
         // Use import.meta.resolve to get the URL of package.json
-        const packageJsonUrl = import.meta.resolve('../package.json');
+        const packageJsonUrl = process.env.PACKAGE_JSON_PATH ?? import.meta.resolve('../package.json');
         const packageJsonPath = fileURLToPath(packageJsonUrl);
         const packageJson = readFileSync(packageJsonPath, 'utf-8');
         const packageJsonObject = JSON.parse(packageJson);
