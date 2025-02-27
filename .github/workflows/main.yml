@@ -373,10 +373,9 @@ jobs:
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.CF_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.CF_SECRET_ACCESS_KEY }}
-          AWS_ENDPOINT_URL: ${{ secrets.CF_ENDPOINT }}
           AWS_DEFAULT_REGION: auto
         run: |
-          aws s3 sync deploy/ s3://${{ secrets.CF_BUCKET_PREVIEW }}/${{ steps.build-plugin.outputs.BUCKET_PATH }} --endpoint-url $AWS_ENDPOINT_URL
+          aws s3 sync deploy/ s3://${{ secrets.CF_BUCKET_PREVIEW }}/${{ steps.build-plugin.outputs.BUCKET_PATH }} --endpoint-url ${{ secrets.CF_ENDPOINT }} --checksum-algorithm CRC32
 
       - name: Upload Release Assets
         if: needs.release-please.outputs.releases_created == 'true'
