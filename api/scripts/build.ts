@@ -45,12 +45,6 @@ try {
     // chmod the cli
     await $`chmod +x ./dist/cli.js`;
     await $`chmod +x ./dist/main.js`;
-
-    // Create the tarball
-    await $`tar -czf ../release/unraid-api.tgz ./`;
-
-    // Clean up
-    cd('..');
 } catch (error) {
     // Error with a command
     if (Object.keys(error).includes('stderr')) {

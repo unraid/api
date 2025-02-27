@@ -51,7 +51,7 @@ const validateSourceDir = async (validatedEnv: TxzEnv) => {
     !webcomponents.includes("manifest.json")
   ) {
     throw new Error(
-      `Webcomponents must contain both "ui.manifest.json" and "manifest.json"`
+      `Webcomponents must contain both "ui.manifest.json" and "manifest.json - be sure to have run pnpm build:wc in unraid-ui`
     );
   }
 

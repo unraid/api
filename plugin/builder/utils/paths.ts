@@ -1,5 +1,5 @@
 import { join } from "path";
-import { getTxzName, pluginNameWithExt, txzNameWithoutVersion } from "./consts";
+import { getTxzName, pluginNameWithExt } from "./consts";
 
 export interface PathConfig {
   startingDir: string;

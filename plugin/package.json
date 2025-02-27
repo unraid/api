@@ -8,7 +8,6 @@
     "date-fns": "^4.1.0",
     "glob": "^11.0.1",
     "html-sloppy-escaper": "^0.1.0",
-    "http-server": "^14.1.1",
     "semver": "^7.7.1",
     "tsx": "^4.19.2",
     "zod": "^3.24.1",
@@ -23,7 +22,7 @@
     "build:validate": "npm run env:validate && npm run build",
     "// Docker commands": "",
     "docker:build": "docker build -t plugin-builder .",
-    "docker:run": "docker run --env-file .env -v $(pwd)/:/app/ -v $(cd ../ && pwd)/.git:/app/.git -v $(pwd)/source:/app/source -v $(pwd)/scripts:/app/scripts plugin-builder",
+    "docker:run": "docker run -it --env-file .env -v $(pwd)/:/app/ -v $(cd ../ && pwd)/.git:/app/.git -v $(pwd)/source:/app/source -v $(pwd)/scripts:/app/scripts plugin-builder /bin/bash",
     "docker:build-and-run": "npm run docker:build && npm run docker:run",
     "http-server": "http-server ./deploy/release/ -p 8080 --cors",
     "// Environment management": "",
@@ -35,14 +34,14 @@
     "// Watchers for Other Changes": "",
     "wc:clean": "rm -r ./source/dynamix.unraid.net/usr/local/emhttp/plugins/dynamix.my.servers/unraid-components/*",
     "wc:watch": "cpx -w -v \"../web/.nuxt/nuxt-custom-elements/dist/unraid-components/**/*\" ./source/dynamix.unraid.net/usr/local/emhttp/plugins/dynamix.my.servers/unraid-components",
-    "api:watch": "cpx -w -C -v \"../api/deploy/pack/**/*\" ./source/dynamix.unraid.net/usr/local/unraid-api",
     "ui:watch": "cpx -w -v \"../unraid-ui/dist/**/*\" ./source/dynamix.unraid.net/usr/local/emhttp/plugins/dynamix.my.servers/unraid-components",
-    "watch:all": "npm run wc:clean && npm run wc:watch & npm run api:watch & npm run ui:watch",
+    "watch:components": "npm run wc:clean && npm run wc:watch & npm run ui:watch",
     "test": "vitest"
   },
   "devDependencies": {
     "cpx2": "^8.0.0",
-    "vitest": "^3.0.7"
+    "vitest": "^3.0.7",
+    "http-server": "^14.1.1"
   },
   "packageManager": "pnpm@10.4.1"
 }

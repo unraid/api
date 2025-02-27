@@ -2,15 +2,13 @@ import { readFile, writeFile, mkdir } from "fs/promises";
 import { $ } from "zx";
 import { escape as escapeHtml } from "html-sloppy-escaper";
 import { dirname } from "node:path";
-import { getTxzName, pluginName, startingDir } from "./utils/consts";
+import { pluginName, startingDir } from "./utils/consts";
 import { getPluginUrl } from "./utils/bucket-urls";
 import { getMainTxzUrl } from "./utils/bucket-urls";
 import {
   getDeployPluginPath,
   getRootPluginPath,
-  getTxzPath,
 } from "./utils/paths";
-import { createHash } from "node:crypto";
 import { PluginEnv, setupPluginEnv } from "./cli/setup-plugin-environment";
 
 /**
@@ -77,19 +75,6 @@ const buildPlugin = async ({
     recursive: true,
   });
   await writeFile(getDeployPluginPath({ startingDir }), plgContent);
-};
-
-const getSha256 = async (path: string) => {
-  const hash = createHash("sha256")
-    .update(await readFile(path))
-    .digest("hex");
-  return hash;
-};
-
-const getTxzInfo = async () => {
-  const txzPath = getTxzPath({ startingDir });
-  const txzSha256 = await getSha256(txzPath);
-  return { txzSha256, txzName: getTxzName() };
 };
 
 /**
