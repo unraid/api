@@ -297,6 +297,13 @@ export type Connect = Node & {
   id: Scalars['ID']['output'];
 };
 
+export type ConnectSettings = Node & {
+  __typename?: 'ConnectSettings';
+  dataSchema: Scalars['JSON']['output'];
+  id: Scalars['ID']['output'];
+  uiSchema: Scalars['JSON']['output'];
+};
+
 export type ConnectSignInInput = {
   accessToken?: InputMaybe<Scalars['String']['input']>;
   apiKey: Scalars['String']['input'];
@@ -1052,6 +1059,7 @@ export type Query = {
   cloud?: Maybe<Cloud>;
   config: Config;
   connect: Connect;
+  connectSettingsForm: ConnectSettings;
   /** Single disk */
   disk?: Maybe<Disk>;
   /** Mulitiple disks */
@@ -1812,7 +1820,7 @@ export type DirectiveResolverFn<TResult = {}, TParent = {}, TContext = {}, TArgs
 
 /** Mapping of interface types */
 export type ResolversInterfaceTypes<_RefType extends Record<string, unknown>> = ResolversObject<{
-  Node: ( ArrayType ) | ( Config ) | ( Connect ) | ( Docker ) | ( Info ) | ( Network ) | ( Notification ) | ( Notifications ) | ( Service ) | ( Vars );
+  Node: ( ArrayType ) | ( Config ) | ( Connect ) | ( ConnectSettings ) | ( Docker ) | ( Info ) | ( Network ) | ( Notification ) | ( Notifications ) | ( Service ) | ( Vars );
   UserAccount: ( Me ) | ( User );
 }>;
 
@@ -1844,6 +1852,7 @@ export type ResolversTypes = ResolversObject<{
   Config: ResolverTypeWrapper<Config>;
   ConfigErrorState: ConfigErrorState;
   Connect: ResolverTypeWrapper<Connect>;
+  ConnectSettings: ResolverTypeWrapper<ConnectSettings>;
   ConnectSignInInput: ConnectSignInInput;
   ConnectUserInfoInput: ConnectUserInfoInput;
   ContainerHostConfig: ResolverTypeWrapper<ContainerHostConfig>;
@@ -1968,6 +1977,7 @@ export type ResolversParentTypes = ResolversObject<{
   CloudResponse: CloudResponse;
   Config: Config;
   Connect: Connect;
+  ConnectSettings: ConnectSettings;
   ConnectSignInInput: ConnectSignInInput;
   ConnectUserInfoInput: ConnectUserInfoInput;
   ContainerHostConfig: ContainerHostConfig;
@@ -2178,6 +2188,13 @@ export type ConfigResolvers<ContextType = Context, ParentType extends ResolversP
 export type ConnectResolvers<ContextType = Context, ParentType extends ResolversParentTypes['Connect'] = ResolversParentTypes['Connect']> = ResolversObject<{
   dynamicRemoteAccess?: Resolver<ResolversTypes['DynamicRemoteAccessStatus'], ParentType, ContextType>;
   id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+}>;
+
+export type ConnectSettingsResolvers<ContextType = Context, ParentType extends ResolversParentTypes['ConnectSettings'] = ResolversParentTypes['ConnectSettings']> = ResolversObject<{
+  dataSchema?: Resolver<ResolversTypes['JSON'], ParentType, ContextType>;
+  id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
+  uiSchema?: Resolver<ResolversTypes['JSON'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
 
@@ -2512,7 +2529,7 @@ export type NetworkResolvers<ContextType = Context, ParentType extends Resolvers
 }>;
 
 export type NodeResolvers<ContextType = Context, ParentType extends ResolversParentTypes['Node'] = ResolversParentTypes['Node']> = ResolversObject<{
-  __resolveType: TypeResolveFn<'Array' | 'Config' | 'Connect' | 'Docker' | 'Info' | 'Network' | 'Notification' | 'Notifications' | 'Service' | 'Vars', ParentType, ContextType>;
+  __resolveType: TypeResolveFn<'Array' | 'Config' | 'Connect' | 'ConnectSettings' | 'Docker' | 'Info' | 'Network' | 'Notification' | 'Notifications' | 'Service' | 'Vars', ParentType, ContextType>;
   id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
 }>;
 
@@ -2682,6 +2699,7 @@ export type QueryResolvers<ContextType = Context, ParentType extends ResolversPa
   cloud?: Resolver<Maybe<ResolversTypes['Cloud']>, ParentType, ContextType>;
   config?: Resolver<ResolversTypes['Config'], ParentType, ContextType>;
   connect?: Resolver<ResolversTypes['Connect'], ParentType, ContextType>;
+  connectSettingsForm?: Resolver<ResolversTypes['ConnectSettings'], ParentType, ContextType>;
   disk?: Resolver<Maybe<ResolversTypes['Disk']>, ParentType, ContextType, RequireFields<QuerydiskArgs, 'id'>>;
   disks?: Resolver<Array<Maybe<ResolversTypes['Disk']>>, ParentType, ContextType>;
   display?: Resolver<Maybe<ResolversTypes['Display']>, ParentType, ContextType>;
@@ -3119,6 +3137,7 @@ export type Resolvers<ContextType = Context> = ResolversObject<{
   CloudResponse?: CloudResponseResolvers<ContextType>;
   Config?: ConfigResolvers<ContextType>;
   Connect?: ConnectResolvers<ContextType>;
+  ConnectSettings?: ConnectSettingsResolvers<ContextType>;
   ContainerHostConfig?: ContainerHostConfigResolvers<ContextType>;
   ContainerMount?: ContainerMountResolvers<ContextType>;
   ContainerPort?: ContainerPortResolvers<ContextType>;

@@ -36,14 +36,7 @@ export default defineNuxtConfig({
     enabled: process.env.NODE_ENV === 'development',
   },
 
-  modules: [
-    '@vueuse/nuxt',
-    '@pinia/nuxt',
-    '@nuxtjs/tailwindcss',
-    'nuxt-custom-elements',
-    '@nuxt/eslint',
-    'shadcn-nuxt',
-  ],
+  modules: ['@vueuse/nuxt', '@pinia/nuxt', '@nuxtjs/tailwindcss', 'nuxt-custom-elements', '@nuxt/eslint', 'shadcn-nuxt', 'vuetify-nuxt-module'],
 
   ignore: ['/webGui/images'],
 
@@ -57,6 +50,9 @@ export default defineNuxtConfig({
 
   // typescript: {
   //   typeCheck: true
+  // },
+  // build: {
+  //   transpile: ['@jsonforms/core', '@jsonforms/vue', '@jsonforms/vue-vanilla'],
   // },
   vite: {
     plugins: [

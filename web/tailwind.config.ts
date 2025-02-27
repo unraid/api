@@ -1,4 +1,3 @@
-import 'dotenv/config';
 import tailwindRemToRem from '@unraid/tailwind-rem-to-rem';
 import tailwindConfig from '@unraid/ui/tailwind.config.ts';
 import type { Config } from 'tailwindcss';

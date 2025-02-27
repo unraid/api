@@ -1,0 +1,9 @@
+type Query {
+    connectSettingsForm: ConnectSettings!
+}
+
+type ConnectSettings implements Node {
+    id: ID!
+    dataSchema: JSON!
+    uiSchema: JSON!
+}

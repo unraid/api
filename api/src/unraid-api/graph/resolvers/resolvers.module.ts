@@ -17,6 +17,8 @@ import { OnlineResolver } from '@app/unraid-api/graph/resolvers/online/online.re
 import { OwnerResolver } from '@app/unraid-api/graph/resolvers/owner/owner.resolver.js';
 import { RegistrationResolver } from '@app/unraid-api/graph/resolvers/registration/registration.resolver.js';
 import { ServerResolver } from '@app/unraid-api/graph/resolvers/servers/server.resolver.js';
+import { ConnectSettingsResolver } from '@app/unraid-api/graph/resolvers/settings/connect-settings.resolver.js';
+import { ConnectSettingsService } from '@app/unraid-api/graph/resolvers/settings/connect-settings.service.js';
 import { VarsResolver } from '@app/unraid-api/graph/resolvers/vars/vars.resolver.js';
 import { VmsResolver } from '@app/unraid-api/graph/resolvers/vms/vms.resolver.js';
 
@@ -41,6 +43,8 @@ import { VmsResolver } from '@app/unraid-api/graph/resolvers/vms/vms.resolver.js
         VmsResolver,
         NotificationsService,
         MeResolver,
+        ConnectSettingsResolver,
+        ConnectSettingsService,
     ],
     exports: [AuthModule, ApiKeyResolver],
 })
