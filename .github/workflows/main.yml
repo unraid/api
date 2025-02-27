@@ -12,6 +12,7 @@ concurrency:
 
 jobs:
   release-please:
+    name: Release Please
     # Only run release-please on pushes to main
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
@@ -25,6 +26,7 @@ jobs:
       releases_created: ${{ steps.release.outputs.releases_created }}
       tag_name: ${{ steps.release.outputs.tag_name }}
   test-api:
+    name: Test API
     defaults:
       run:
         working-directory: api
@@ -73,7 +75,7 @@ jobs:
         run: pnpm run coverage
 
   build-api:
-    name: Build and Test API
+    name: Build API
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -273,7 +275,13 @@ jobs:
           path: web/.nuxt/nuxt-custom-elements/dist/unraid-components
 
   build-plugin:
-    needs: [release-please,build-api, build-web, build-unraid-ui-webcomponents, test-api]
+    name: Build and Deploy Plugin
+    needs:
+      - release-please
+      - build-api
+      - build-web
+      - build-unraid-ui-webcomponents
+      - test-api
     defaults:
       run:
         working-directory: plugin
@@ -351,7 +359,7 @@ jobs:
 
           cd ${{ github.workspace }}/plugin
           pnpm run build:plugin -- --tag=${TAG} --base-url=${BASE_URL}
-      
+
       - name: Upload to Cloudflare
         uses: jakejarvis/s3-sync-action@v0.5.1
         if: github.event_name == 'pull_request' || startsWith(github.ref, 'refs/heads/main')
@@ -364,7 +372,6 @@ jobs:
           SOURCE_DIR: deploy
           DEST_DIR: ${{ steps.build-plugin.outputs.BUCKET_PATH }}
 
-      
       - name: Upload Release Assets
         if: needs.release-please.outputs.releases_created == 'true'
         env:
