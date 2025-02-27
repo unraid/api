@@ -6,7 +6,6 @@
 import { useQuery } from '@vue/apollo-composable';
 
 import { JsonForms } from '@jsonforms/vue';
-import { vanillaRenderers } from '@jsonforms/vue-vanilla';
 import { extendedVuetifyRenderers } from '@jsonforms/vue-vuetify';
 
 import { getConnectSettingsForm } from './graphql/settings.query';
@@ -29,15 +28,6 @@ const uiSchema = computed(() => {
 });
 watchImmediate(result, () => {
   console.log('connect settings', result.value);
-});
-enum IIU {
-  A,
-  B,
-}
-const dummyData = ref({
-  access: false,
-  dummy: 'sd',
-  iiu: IIU.A,
 });
 const config = {
   restrict: false,
