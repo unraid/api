@@ -343,17 +343,14 @@ jobs:
         run: |
           cd ${{ github.workspace }}/plugin
           pnpm run build:txz
-          TAG=""
 
           if [ -n "${{ github.event.pull_request.number }}" ]; then
             TAG="PR${{ github.event.pull_request.number }}"
-            echo "TAG=${TAG}" >> $GITHUB_OUTPUT
             BUCKET_PATH="unraid-api/tag/${TAG}"
           else
+            TAG=""
             BUCKET_PATH="unraid-api"
           fi
-
-          echo "BUCKET_PATH=${BUCKET_PATH}" >> $GITHUB_OUTPUT
 
           if [ "${{ needs.release-please.outputs.releases_created }}" == 'true' ]; then
             BASE_URL="https://stable.dl.unraid.net/unraid-api"
@@ -361,7 +358,9 @@ jobs:
             BASE_URL="https://preview.dl.unraid.net/unraid-api"
           fi
 
-          cd ${{ github.workspace }}/plugin
+          echo "BUCKET_PATH=${BUCKET_PATH}" >> $GITHUB_OUTPUT
+          echo "TAG=${TAG}" >> $GITHUB_OUTPUT
+
           pnpm run build:plugin --tag="${TAG}" --base-url="${BASE_URL}"
       - name: Upload to GHA
         uses: actions/upload-artifact@v4
