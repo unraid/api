@@ -21,7 +21,7 @@ const checkGit = async () => {
     await $`git log -1 --pretty=%B`;
   } catch (err) {
     console.error(`Error: git not available: ${err}`);
-    process.exit(1);
+    throw new Error(`Git not available: ${err}`);
   }
 };
 
