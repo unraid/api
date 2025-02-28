@@ -25,7 +25,7 @@
     "// Docker commands": "",
     "build:watch": "./scripts/dc.sh pnpm run build:watcher",
     "docker:build": "docker compose build",
-    "docker:run": "./scripts/dc.sh /bin/bash",
+    "docker:run": "./scripts/dc.sh run",
     "docker:build-and-run": "pnpm run docker:build && pnpm run docker:run",
     "// Environment management": "",
     "env:init": "cp .env.example .env",

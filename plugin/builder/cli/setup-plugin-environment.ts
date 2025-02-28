@@ -3,20 +3,18 @@ import { access, constants, readFile } from "node:fs/promises";
 import { Command } from "commander";
 import { getStagingChangelogFromGit } from "../utils/changelog";
 import { createHash } from "node:crypto";
-import {
-  findTxzInDeployDir,
-  getPluginVersionFromTxz,
-  getTxzPath,
-} from "../utils/paths";
-import { getPluginVersion } from "../utils/date";
+import { getTxzPath } from "../utils/paths";
 
 const safeParseEnvSchema = z.object({
   ci: z.boolean().optional(),
   baseUrl: z.string().url(),
-  tag: z.string().optional().default(""),
+  tag: z.string().optional().default(''),
 
   txzPath: z.string().refine((val) => val.endsWith(".txz"), {
     message: "TXZ Path must end with .txz",
+  }),
+  pluginVersion: z.string().regex(/^\d{4}\.\d{2}\.\d{2}\.\d{4}$/, {
+    message: "Plugin version must be in the format YYYY.MM.DD.HHMM",
   }),
   releaseNotesPath: z.string().optional(),
 });
@@ -25,9 +23,6 @@ const pluginEnvSchema = safeParseEnvSchema.extend({
   releaseNotes: z.string().nonempty("Release notes are required"),
   txzSha256: z.string().refine((val) => val.length === 64, {
     message: "TXZ SHA256 must be 64 characters long",
-  }),
-  pluginVersion: z.string().regex(/^\d{4}\.\d{2}\.\d{2}\.\d{4}$/, {
-    message: "Plugin version must be in the format YYYY.MM.DD.HHMM",
   }),
 });
 
@@ -60,8 +55,6 @@ export const validatePluginEnv = async (
     if (!txzFile || txzFile.length === 0) {
       throw new Error(`TXZ Path is empty: ${safeEnv.txzPath}`);
     }
-    const pluginVersion = getPluginVersionFromTxz(safeEnv.txzPath);
-    envArgs.pluginVersion = pluginVersion;
     envArgs.txzSha256 = getSha256(txzFile);
   }
 
@@ -72,6 +65,18 @@ export const validatePluginEnv = async (
   }
 
   return validatedEnv;
+};
+
+export const getPluginVersion = () => {
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = String(now.getMonth() + 1).padStart(2, '0');
+  const day = String(now.getDate()).padStart(2, '0');
+  const hour = String(now.getHours()).padStart(2, '0');
+  const minute = String(now.getMinutes()).padStart(2, '0');
+  const version = `${year}.${month}.${day}.${hour}${minute}`;
+  console.log("Plugin version:", version);
+  return version;
 };
 
 export const setupPluginEnv = async (argv: string[]): Promise<PluginEnv> => {
@@ -88,14 +93,15 @@ export const setupPluginEnv = async (argv: string[]): Promise<PluginEnv> => {
     )
     .option(
       "--txz-path <path>",
-      "Path to built package, if a version is found the version on this package will be used as the plugin version",
-      await findTxzInDeployDir(process.cwd())
+      "Path to built package, will be used to generate the SHA256 and renamed with the plugin version",
+      getTxzPath({ startingDir: process.cwd() })
     )
     .option(
-      "--tag <tag>",
-      "Tag (used for PR and staging builds)",
-      process.env.TAG
+      "--plugin-version <version>",
+      "Plugin Version in the format YYYY.MM.DD.HHMM",
+      getPluginVersion()
     )
+    .option("--tag <tag>", "Tag (used for PR and staging builds)", process.env.TAG)
     .option("--release-notes-path <path>", "Path to release notes file")
     .option("--ci", "CI mode", process.env.CI === "true")
     .parse(argv);

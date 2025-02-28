@@ -1,6 +1,5 @@
 import { join } from "path";
 import { getTxzName, pluginNameWithExt } from "./consts";
-import { readdir } from "fs/promises";
 
 export interface PathConfig {
   startingDir: string;
@@ -42,24 +41,3 @@ export function getTxzPath({
 }: TxzPathConfig): string {
   return join(startingDir, deployDir, getTxzName(pluginVersion));
 }
-
-export const findTxzInDeployDir = async (startingDir: string): Promise<string | undefined> => {
-  const txzDir = join(startingDir, deployDir);
-  const txzFiles = await readdir(txzDir);
-  const txzFile = txzFiles.find((file) => file.endsWith(".txz"));
-  if (!txzFile) {
-    throw new Error(`No TXZ file found in ${txzDir}`);
-  }
-  return join(txzDir, txzFile);
-};
-
-export const getPluginVersionFromTxz = (txzPath: string): string => {
-  const txzFileName = txzPath.split('/').pop() || '';
-  const match = txzFileName.match(/.*-(\d{4}\.\d{2}\.\d{2}\.\d{4})\.txz$/);
-  if (!match) {
-    throw new Error(`Invalid TXZ filename format: ${txzFileName}`);
-  }
-  const version = match[1];
-  console.log("Plugin version from TXZ:", version);
-  return version;
-};
