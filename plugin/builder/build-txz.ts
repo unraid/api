@@ -66,10 +66,10 @@ const validateSourceDir = async (validatedEnv: TxzEnv) => {
 
   const apiDir = join(
     startingDir,
-    "source/dynamix.unraid.net/usr/local/unraid-api/package.json"
+    "source", pluginName, "usr", "local", "unraid-api", "package.json"
   );
   if (!existsSync(apiDir)) {
-    throw new Error(`API directory ${apiDir} does not exist`);
+    throw new Error(`API package.json file ${apiDir} does not exist`);
   }
 };
 
