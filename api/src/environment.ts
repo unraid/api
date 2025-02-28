@@ -17,9 +17,8 @@ const getPackageJsonVersion = () => {
                 if (packageJsonObject.version) {
                     return packageJsonObject.version;
                 }
-            } catch (error) {
+            } catch {
                 // Continue to next location if this one fails
-                continue;
             }
         }
 
