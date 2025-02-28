@@ -92,7 +92,7 @@ export default defineConfig(({ mode }): ViteUserConfig => {
                     interop: 'auto',
                     banner: (chunk) => {
                         if (chunk.fileName === 'main.js' || chunk.fileName === 'cli.js') {
-                            return '#!/bin/sh\n":" //# comment; exec /opt/homebrew/bin/node "$0" "$@" 2>/dev/null || exec /usr/local/node/bin/node "$0" "$@" 2>/dev/null || exec /usr/bin/env node "$0" "$@"\n';
+                            return '#!/bin/sh\n":" //# comment; /opt/homebrew/bin/node "$0" "$@" 2>/dev/null || /usr/local/bin/node "$0" "$@" 2>/dev/null || /usr/local/node/bin/node "$0" "$@" 2>/dev/null || /usr/bin/env node "$0" "$@"\n';
                         }
                         return '';
                     },
