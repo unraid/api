@@ -43,7 +43,7 @@ function updateEntityValue(
   throw new Error(`Entity ${entityName} not found in XML`);
 }
 
-const buildPlugin = async ({
+export const buildPlugin = async ({
   pluginVersion,
   baseUrl,
   tag,

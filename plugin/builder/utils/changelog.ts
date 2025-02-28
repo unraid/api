@@ -3,16 +3,15 @@ import conventionalChangelog from "conventional-changelog";
 import { PluginEnv } from "../cli/setup-plugin-environment";
 
 export const getStagingChangelogFromGit = async ({
-  pluginVersion,
   tag,
-}: Pick<PluginEnv, "pluginVersion" | "tag">): Promise<string> => {
+}: Pick<PluginEnv, "tag">): Promise<string> => {
   try {
     const changelogStream = conventionalChangelog(
       {
         preset: "conventionalcommits",
       },
       {
-        version: pluginVersion,
+        version: tag,
       },
       tag
         ? {

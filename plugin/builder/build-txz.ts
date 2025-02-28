@@ -1,30 +1,23 @@
 import { join } from "path";
 import { $, cd } from "zx";
 import { existsSync } from "node:fs";
-import { readdir } from "node:fs/promises";
-import { getTxzName, pluginName, startingDir } from "./utils/consts";
+import { getTxzName, startingDir } from "./utils/consts";
 import { setupTxzEnv, TxzEnv } from "./cli/setup-txz-environment";
 import { cleanupTxzFiles } from "./utils/cleanup";
 
 
-// Recursively search for manifest files
+// Recursively search for manifest files using find command
 const findManifestFiles = async (dir: string): Promise<string[]> => {
-  const entries = await readdir(dir, { withFileTypes: true });
-  const files: string[] = [];
-
-  for (const entry of entries) {
-    const fullPath = join(dir, entry.name);
-    if (entry.isDirectory()) {
-      files.push(...(await findManifestFiles(fullPath)));
-    } else if (
-      entry.isFile() &&
-      (entry.name === "manifest.json" || entry.name === "ui.manifest.json")
-    ) {
-      files.push(entry.name);
-    }
+  if (!existsSync(dir)) {
+    throw new Error(`Directory does not exist: ${dir}`);
   }
-
-  return files;
+  try {
+    const result = await $`find ${dir} -type f -name "manifest.json" -o -name "ui.manifest.json"`;
+    return result.stdout.trim().split('\n').filter(Boolean).map(path => path.split('/').pop() || '');
+  } catch (error) {
+    console.error(`Error searching for manifest files in ${dir}:`, error);
+    throw error;
+  }
 };
 
 const validateSourceDir = async (validatedEnv: TxzEnv) => {
@@ -75,7 +68,7 @@ const validateSourceDir = async (validatedEnv: TxzEnv) => {
 
 const buildTxz = async (validatedEnv: TxzEnv) => {
   await validateSourceDir(validatedEnv);
-  const txzPath = join(validatedEnv.txzOutputDir, getTxzName());
+  const txzPath = join(validatedEnv.txzOutputDir, getTxzName(validatedEnv.pluginVersion));
 
   // Create package - must be run from within the pre-pack directory
   // Use cd option to run command from prePackDir
