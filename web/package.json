@@ -5,7 +5,8 @@
   "license": "GPL-2.0-only",
   "scripts": {
     "// Development": "",
-    "dev": "[ -f .env ] && nuxt dev --dotenv .env || nuxt dev --dotenv .env.staging",
+    "predev": "pnpm --filter=@unraid/ui build",
+    "dev": "nuxt dev --dotenv .env.example || nuxt dev --dotenv .env.staging",
     "preview": "nuxt preview",
     "serve": "NODE_ENV=production PORT=${PORT:-4321} node .output/server/index.mjs",
     "// Build": "",
