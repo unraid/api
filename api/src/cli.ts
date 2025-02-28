@@ -1,5 +1,3 @@
-#!/usr/bin/env node
-
 import '@app/dotenv.js';
 
 import { execa } from 'execa';
