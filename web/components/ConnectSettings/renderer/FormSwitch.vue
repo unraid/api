@@ -1,31 +1,20 @@
-<script lang="ts">
-import { defineComponent } from 'vue';
-
+<script setup lang="ts">
 import { Label as UuiLabel, Switch as UuiSwitch } from '@unraid/ui';
-import { rendererProps, useJsonFormsControl } from '@jsonforms/vue';
+import { useJsonFormsControl } from '@jsonforms/vue';
 
 import type { ControlElement } from '@jsonforms/core';
 import type { RendererProps } from '@jsonforms/vue';
 
-const controlRenderer = defineComponent({
-  name: 'BooleanToggleControlRenderer',
-  components: {
-    UuiSwitch,
-    UuiLabel,
-  },
-  props: {
-    ...rendererProps<ControlElement>(),
-  },
-  setup(props: RendererProps<ControlElement>) {
-    return useJsonFormsControl(props);
-  },
-});
-
-export default controlRenderer;
+const props = defineProps<RendererProps<ControlElement>>();
+const { control, handleChange } = useJsonFormsControl(props);
+const onChange = (checked: boolean) => {
+  handleChange(control.value.path, checked);
+};
 </script>
 
 <template>
-  <div class="flex items-center gap-2">
+  <div class="grid gap-6 grid-cols-2 items-center">
+    <UuiLabel class="text-end">{{ control.label }}</UuiLabel>
     <UuiSwitch
       :id="control.id + '-input'"
       :name="control.path"
@@ -34,7 +23,7 @@ export default controlRenderer;
       :required="control.required"
       :error-messages="control.errors"
       :model-value="control.data as boolean"
+      @update:checked="onChange"
     />
-    <UuiLabel>{{ control.label }}</UuiLabel>
   </div>
 </template>

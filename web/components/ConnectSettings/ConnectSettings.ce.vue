@@ -5,9 +5,10 @@
 
 import { useQuery } from '@vue/apollo-composable';
 
+// import { extendedVuetifyRenderers } from '@jsonforms/vue-vuetify';
+import { Button, Label } from '@unraid/ui';
 import { JsonForms } from '@jsonforms/vue';
 import { vanillaRenderers } from '@jsonforms/vue-vanilla';
-// import { extendedVuetifyRenderers } from '@jsonforms/vue-vuetify';
 
 import { getConnectSettingsForm } from './graphql/settings.query';
 import { formSwitchEntry } from './renderer/switch.renderer';
@@ -34,10 +35,28 @@ const config = {
   restrict: false,
   trim: false,
 };
+const data = ref({});
+const debugData = () => {
+  console.log('[ConnectSettings] data', data.value);
+};
+const onChange = ({ data: fdata, errors }) => {
+  console.log('[ConnectSettings] data', fdata);
+  console.log('[ConnectSettings] errors', errors);
+  data.value = fdata;
+};
 </script>
 
 <template>
-  <AuthCe />
+  <div class="grid grid-cols-12 items-baseline gap-6 [&>*:nth-child(odd)]:text-end [&>*:nth-child(odd)]:col-span-4 [&>*:nth-child(even)]:col-span-8">
+    <Label>Account Status:</Label>
+    <AuthCe />
+    <Label>Download Unraid API Logs:</Label>
+    <DownloadApiLogsCe />
+    <Label>WAN IP Check:</Label>
+    <WanIpCheckCe />
+    <Label>Allowed Origins:</Label>
+    <ConnectSettingsAllowedOrigins />
+  </div>
   <!-- @todo: flashback up -->
   <div>
     <JsonForms
@@ -46,12 +65,11 @@ const config = {
       :uischema="uiSchema"
       :renderers="renderers"
       :config="config"
+      @change="onChange"
     />
+    <Button @click="debugData">Debug data</Button>
   </div>
-  <WanIpCheckCe />
   <ConnectSettingsRemoteAccess />
-  <ConnectSettingsAllowedOrigins />
-  <DownloadApiLogsCe />
 </template>
 <style>
 @import '@jsonforms/vue-vuetify/lib/jsonforms-vue-vuetify.css';
