@@ -9,3 +9,5 @@ export const BASE_URLS = {
   STABLE: "https://stable.dl.unraid.net/unraid-api",
   PREVIEW: "https://preview.dl.unraid.net/unraid-api",
 } as const;
+
+export const LOCAL_BUILD_TAG = "LOCAL_PLUGIN_BUILD" as const;

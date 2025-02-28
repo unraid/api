@@ -1,4 +1,4 @@
-import { getTxzName, pluginNameWithExt } from "./consts";
+import { getTxzName, LOCAL_BUILD_TAG, pluginNameWithExt } from "./consts";
 
 // Define a common interface for URL parameters
 interface UrlParams {
@@ -19,7 +19,7 @@ interface TxzUrlParams extends UrlParams {
 const getRootBucketPath = ({ baseUrl, tag }: UrlParams): URL => {
   // Append tag to the baseUrl if tag is set, otherwise return the baseUrl
   const url = new URL(baseUrl);
-  if (tag) {
+  if (tag && tag !== LOCAL_BUILD_TAG) {
     // Ensure the path ends with a trailing slash before adding the tag
     url.pathname = url.pathname.replace(/\/?$/, "/") + "tag/" + tag;
   }
