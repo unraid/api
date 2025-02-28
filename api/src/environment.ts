@@ -7,7 +7,7 @@ const getPackageJsonVersion = () => {
     try {
         // Try different possible locations for package.json
         const possibleLocations = ['../package.json', '../../package.json'];
-        
+
         for (const location of possibleLocations) {
             try {
                 const packageJsonUrl = import.meta.resolve(location);
@@ -22,7 +22,7 @@ const getPackageJsonVersion = () => {
                 continue;
             }
         }
-        
+
         // If we get here, we couldn't find a valid package.json in any location
         console.error('Could not find package.json in any of the expected locations');
         return undefined;
