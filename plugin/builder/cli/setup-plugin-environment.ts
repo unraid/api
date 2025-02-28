@@ -69,11 +69,15 @@ export const validatePluginEnv = async (
 
 export const getPluginVersion = () => {
   const now = new Date();
-  const year = now.getFullYear();
-  const month = String(now.getMonth() + 1).padStart(2, '0');
-  const day = String(now.getDate()).padStart(2, '0');
-  const hour = String(now.getHours()).padStart(2, '0');
-  const minute = String(now.getMinutes()).padStart(2, '0');
+  
+  const formatUtcComponent = (component: number) => String(component).padStart(2, '0');
+
+  const year = now.getUTCFullYear();
+  const month = formatUtcComponent(now.getUTCMonth() + 1);
+  const day = formatUtcComponent(now.getUTCDate());
+  const hour = formatUtcComponent(now.getUTCHours());
+  const minute = formatUtcComponent(now.getUTCMinutes());
+
   const version = `${year}.${month}.${day}.${hour}${minute}`;
   console.log("Plugin version:", version);
   return version;
