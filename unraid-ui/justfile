@@ -13,7 +13,7 @@ clean:
     rm -rf node_modules
 
 build-wc:
-    REM_PLUGIN=true vite build -c vite.web-component.ts --mode production
+    vite build -c vite.web-component.ts --mode production
 
 deploy server_name:
     rsync -avz -e ssh ./dist/ root@{{server_name}}:/usr/local/emhttp/plugins/dynamix.my.servers/unraid-components

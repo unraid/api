@@ -15,8 +15,8 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "build:watch": "REM_PLUGIN=true vite build -c vite.web-component.ts --mode production --watch",
-    "build:wc": "REM_PLUGIN=true vite build -c vite.web-component.ts --mode production",
+    "build:watch": "vite build -c vite.web-component.ts --mode production --watch",
+    "build:wc": "vite build -c vite.web-component.ts --mode production",
     "preview": "vite preview",
     "test": "vitest",
     "test:ui": "vitest --ui",
