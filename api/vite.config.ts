@@ -96,7 +96,7 @@ export default defineConfig(({ mode }): ViteUserConfig => {
                     interop: 'auto',
                     banner: (chunk) => {
                         if (chunk.fileName === 'main.js' || chunk.fileName === 'cli.js') {
-                            return '#!/bin/sh\n":" //# comment; /opt/homebrew/bin/node "$0" "$@" 2>/dev/null && exit 0 || /usr/local/bin/node "$0" "$@" 2>/dev/null && exit 0 || /usr/local/node/bin/node "$0" "$@" 2>/dev/null && exit 0 || /usr/bin/env node "$0" "$@" 2>/dev/null && exit 0 || { echo "Node.js not found or errored. Exiting."; exit 1; }\n';
+                            return '#!/usr/local/node/bin/node\n';
                         }
                         return '';
                     },
