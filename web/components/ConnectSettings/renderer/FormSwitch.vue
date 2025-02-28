@@ -13,17 +13,18 @@ const onChange = (checked: boolean) => {
 </script>
 
 <template>
-  <div class="grid gap-6 grid-cols-2 items-center">
-    <UuiLabel class="text-end">{{ control.label }}</UuiLabel>
+  <div>
     <UuiSwitch
       :id="control.id + '-input'"
       :name="control.path"
       :disabled="!control.enabled"
       :hint="control.description"
       :required="control.required"
-      :error-messages="control.errors"
       :model-value="control.data as boolean"
       @update:checked="onChange"
     />
+    <div v-if="control.errors" class="error-messages">
+      <span v-for="(error, index) in control.errors" :key="index">{{ error }}</span>
+    </div>
   </div>
 </template>

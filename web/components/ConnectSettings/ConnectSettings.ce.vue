@@ -12,12 +12,14 @@ import { vanillaRenderers } from '@jsonforms/vue-vanilla';
 
 import { getConnectSettingsForm } from './graphql/settings.query';
 import { formSwitchEntry } from './renderer/switch.renderer';
+import { verticalLayoutEntry } from './renderer/vertical-layout.renderer';
 
 const { result } = useQuery(getConnectSettingsForm);
 const renderers = [
   ...vanillaRenderers,
   // ...extendedVuetifyRenderers,
   formSwitchEntry,
+  verticalLayoutEntry,
   // custom renderers here
 ];
 const dataSchema = computed(() => {
@@ -26,7 +28,52 @@ const dataSchema = computed(() => {
 });
 const uiSchema = computed(() => {
   if (!result.value) return;
-  return result.value?.connectSettingsForm.uiSchema;
+  // return result.value?.connectSettingsForm.uiSchema;
+  return {
+    type: 'VerticalLayout',
+    elements: [
+      // {
+      //   type: 'Control',
+      //   scope: '#/properties/remoteAccess',
+      // },
+      // {
+      //   type: 'Control',
+      //   scope: '#/properties/wanPort',
+      //   rule: {
+      //     effect: 'SHOW',
+      //     condition: {
+      //       scope: '#/properties/remoteAccess',
+      //       schema: {
+      //         enum: ['DYNAMIC_MANUAL', 'ALWAYS_MANUAL'],
+      //       },
+      //     },
+      //   },
+      // },
+      {
+        type: 'Control',
+        scope: '#/properties/sandbox',
+        label: 'Enable Developer Sandbox:',
+        options: {
+          toggle: true,
+        },
+      },
+      // {
+      //   type: 'Control',
+      //   scope: '#/properties/extraOrigins',
+      //   options: {
+      //     detail: {
+      //       type: 'VerticalLayout',
+      //       elements: [
+      //         {
+      //           type: 'Control',
+      //           scope: '#/properties/url',
+      //         },
+      //       ],
+      //     },
+      //   },
+      // },
+    ],
+  };
 });
 watchImmediate(result, () => {
   console.log('connect settings', result.value);
@@ -39,7 +86,7 @@ const data = ref({});
 const debugData = () => {
   console.log('[ConnectSettings] data', data.value);
 };
-const onChange = ({ data: fdata, errors }) => {
+const onChange = ({ data: fdata, errors }: { data: Record<string, unknown>; errors: string[] }) => {
   console.log('[ConnectSettings] data', fdata);
   console.log('[ConnectSettings] errors', errors);
   data.value = fdata;
@@ -47,18 +94,34 @@ const onChange = ({ data: fdata, errors }) => {
 </script>
 
 <template>
-  <div class="grid grid-cols-12 items-baseline gap-6 [&>*:nth-child(odd)]:text-end [&>*:nth-child(odd)]:col-span-4 [&>*:nth-child(even)]:col-span-8">
+  <div
+    class="grid grid-cols-12 items-baseline gap-6 [&>*:nth-child(odd)]:text-end [&>*:nth-child(odd)]:col-span-4 [&>*:nth-child(even)]:col-span-8"
+  >
     <Label>Account Status:</Label>
-    <AuthCe />
-    <Label>Download Unraid API Logs:</Label>
-    <DownloadApiLogsCe />
-    <Label>WAN IP Check:</Label>
-    <WanIpCheckCe />
-    <Label>Allowed Origins:</Label>
+    <div v-html="'<unraid-i18n-host><unraid-auth></unraid-auth></unraid-i18n-host>'"></div>
+    <div>
+      <Label>Allowed Origins:</Label>
+      <p class="italic mt-1">
+        Provide a comma separated list of urls that are allowed to access the unraid-api.<br>
+        e.g. (https://abc.myreverseproxy.com,https://xyz.rvrsprx.com,…)
+      </p>
+    </div>
     <ConnectSettingsAllowedOrigins />
+    <Label>WAN IP Check:</Label>
+    <div
+      v-html="'<unraid-i18n-host><unraid-wan-ip-check></unraid-wan-ip-check></unraid-i18n-host>'"
+    ></div>
+    <Label>Remote Access (Deprecated):</Label>
+    <ConnectSettingsRemoteAccess />
+    <Label>Download Unraid API Logs:</Label>
+    <div
+      v-html="
+        '<unraid-i18n-host><unraid-download-api-logs></unraid-download-api-logs></unraid-i18n-host>'
+      "
+    ></div>
   </div>
   <!-- @todo: flashback up -->
-  <div>
+  <div class="mt-6">
     <JsonForms
       v-if="result"
       :schema="dataSchema"
@@ -67,10 +130,13 @@ const onChange = ({ data: fdata, errors }) => {
       :config="config"
       @change="onChange"
     />
-    <Button @click="debugData">Debug data</Button>
+    <div class="mt-6 grid grid-cols-3 gap-6">
+      <div class="col-start-2"><Button @click="debugData">Debug data</Button></div>
+    </div>
   </div>
-  <ConnectSettingsRemoteAccess />
 </template>
-<style>
-@import '@jsonforms/vue-vuetify/lib/jsonforms-vue-vuetify.css';
+<style lang="postcss">
+/* Import unraid-ui globals first */
+@import '@unraid/ui/styles';
+@import '../../assets/main.css';
 </style>

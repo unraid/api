@@ -33,7 +33,6 @@ export class ConnectSettingsResolver {
                         'DYNAMIC_MANUAL',
                         'ALWAYS_UPNP',
                         'ALWAYS_MANUAL',
-                        'hello',
                     ],
                     title: 'Allow Remote Access',
                     default: 'OFF',
@@ -46,7 +45,8 @@ export class ConnectSettingsResolver {
                 },
                 sandbox: {
                     type: 'boolean',
-                    title: 'Enable Developer Sandbox',
+                    label: 'Enable Developer Sandbox',
+                    // title: 'Enable Developer Sandbox',
                     default: false,
                 },
                 flashBackup: {
