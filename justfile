@@ -15,7 +15,6 @@ setup:
     
     pnpm install
     just unraid-ui/setup
-    just web/setup
 
 # restore notification files under api/dev
 restore-notifications:

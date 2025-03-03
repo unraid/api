@@ -4,9 +4,6 @@ default:
     @just --list --justfile {{justfile()}} --list-heading $'\nWeb project recipes:\n'
     @just list-commands
 
-setup:
-    cp .env.example .env
-
 clean:
     rm -rf .nuxt
     rm -rf node_modules
