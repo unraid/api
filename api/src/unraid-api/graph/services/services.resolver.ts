@@ -2,9 +2,10 @@ import { Query, Resolver } from '@nestjs/graphql';
 
 import { AuthActionVerb, AuthPossession, UsePermissions } from 'nest-authz';
 
+import type { Service } from '@app/graphql/generated/api/types.js';
 import { bootTimestamp } from '@app/common/dashboard/boot-timestamp.js';
 import { API_VERSION } from '@app/environment.js';
-import { DynamicRemoteAccessType, Resource, Service } from '@app/graphql/generated/api/types.js';
+import { DynamicRemoteAccessType, Resource } from '@app/graphql/generated/api/types.js';
 import { store } from '@app/store/index.js';
 
 @Resolver('Services')
