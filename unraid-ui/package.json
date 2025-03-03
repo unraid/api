@@ -16,6 +16,8 @@
     "dev": "vite",
     "build": "vite build",
     "build:wc": "REM_PLUGIN=true vite build -c vite.web-component.ts --mode production",
+    "preunraid:deploy": "pnpm build:wc",
+    "unraid:deploy": "just deploy",
     "preview": "vite preview",
     "test": "vitest",
     "test:ui": "vitest --ui",

@@ -96,6 +96,7 @@ Make sure the following software is installed before proceeding.
 * Docker (for macOS folks, Orbstack works too)
 * [Node.js (v20)][Node-url]
 * [Just](https://github.com/casey/just)
+* libvirt (macOS folks can run `brew install libvirt`)
 * An [Unraid][Unraid-url] server for development
 
 Next, create an SSH key if you haven't already.
@@ -123,26 +124,27 @@ Once you have your key pair, add your public SSH key to your Unraid server:
    ```
 
    This will run installation scripts, container builds, and some git scripts to reduce noise (i.e. personal editor customizations, etc).
-3. Run the API container
+
+   Alternatively, run `pnpm install` for a lighter, less opinionated setup.
+3. Run dev servers
 
    ```sh
-   cd api
-   npm run container:start
+   pnpm dev
    ```
 
-4. This should bring you inside the API container. There, run the following command to start the server:
+   This will run every dev server in the monorepo. By default, this means:
+
+   * The unraid-api will be available at localhost:3001
+   * The dev server for "rich" web components (like the User Profile Component) will be at localhost:4321 -- Note that shipping to unraid is preferred, as the dev environment is significantly different.
+   * The vite server for unraid-ui development will be at localhost:5173
+
+4. Test on Unraid
 
    ```js
-   npm run dev
+   pnpm unraid:deploy <SERVER_IP>
    ```
 
-5. In another terminal, open the project and navigate to the web directory. Then, run the dev server:
-
-   ```sh
-   cd web
-   npm install # just in case
-   npm run dev
-   ```
+   This will ship a staging build of unraid-api, unraid-ui, and unraid-components to an Unraid server located at `<SERVER_IP>`.
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 

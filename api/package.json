@@ -17,6 +17,8 @@
         "start": "node dist/main.js",
         "dev": "vite",
         "command": "pnpm run build && clear && ./dist/cli.js",
+        "preunraid:deploy": "pnpm build",
+        "unraid:deploy": "./scripts/deploy-dev.sh",
         "// Build": "",
         "build": "vite build --mode=production",
         "postbuild": "chmod +x dist/main.js && chmod +x dist/cli.js",
