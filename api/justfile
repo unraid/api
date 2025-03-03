@@ -4,10 +4,6 @@ default:
     @just --list --justfile {{justfile()}} --list-heading $'\nAPI project recipes:\n'
     @just list-commands
 
-setup:
-    pnpm install
-    pnpm run container:build
-
 # builds js files that can run on an unraid server
 @build:
     pnpm run build
