@@ -5,7 +5,6 @@ list-commands:
 
 # Prepares the repo for development
 setup:
-    pnpm install
     pnpm run build
 
 clean:

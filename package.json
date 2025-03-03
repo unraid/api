@@ -6,6 +6,7 @@
     "build": "pnpm -r build",
     "build:watch": "pnpm -r build:watch",
     "dev": "pnpm -r dev",
+    "unraid:deploy": "pnpm -r unraid:deploy",
     "test": "pnpm -r test",
     "lint": "pnpm -r lint",
     "lint:fix": "pnpm -r lint:fix",
