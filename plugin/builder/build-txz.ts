@@ -6,7 +6,6 @@ import { getTxzName, pluginName, startingDir } from "./utils/consts";
 import { setupTxzEnv, TxzEnv } from "./cli/setup-txz-environment";
 import { cleanupTxzFiles } from "./utils/cleanup";
 
-
 // Recursively search for manifest files
 const findManifestFiles = async (dir: string): Promise<string[]> => {
   const entries = await readdir(dir, { withFileTypes: true });
@@ -56,23 +55,29 @@ const validateSourceDir = async (validatedEnv: TxzEnv) => {
   const hasUiManifest = manifestFiles.includes("ui.manifest.json");
 
   if (!hasManifest || !hasUiManifest) {
-    console.log(
-      "Existing Manifest Files:", manifestFiles);
+    console.log("Existing Manifest Files:", manifestFiles);
     throw new Error(
       `Webcomponents must contain both "ui.manifest.json" and "manifest.json" - be sure to have run pnpm build:wc in unraid-ui`
     );
-    
   }
 
   const apiDir = join(
     startingDir,
-    "source", pluginName, "usr", "local", "unraid-api", "package.json"
+    "source",
+    pluginName,
+    "usr",
+    "local",
+    "unraid-api"
   );
   if (!existsSync(apiDir)) {
-    throw new Error(`API package.json file ${apiDir} does not exist`);
+    throw new Error(`API directory ${apiDir} does not exist`);
+  }
+  const packageJson = join(apiDir, "package.json");
+  if (!existsSync(packageJson)) {
+    throw new Error(`API package.json file ${packageJson} does not exist`);
   }
   // Now CHMOD the api/dist directory files to allow execution
-  await $`chmod +x ${apiDir}/dist/*.js`
+  await $`chmod +x ${apiDir}/dist/*.js`;
 };
 
 const buildTxz = async (validatedEnv: TxzEnv) => {
@@ -84,7 +89,9 @@ const buildTxz = async (validatedEnv: TxzEnv) => {
   await cd(join(startingDir, "source", pluginName));
   $.verbose = true;
 
-  await $`${join(startingDir, "scripts/makepkg")} --chown y --compress -${validatedEnv.compress} --linkadd y ${txzPath}`;
+  await $`${join(startingDir, "scripts/makepkg")} --chown y --compress -${
+    validatedEnv.compress
+  } --linkadd y ${txzPath}`;
   $.verbose = false;
   await cd(startingDir);
 };
