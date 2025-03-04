@@ -816,15 +816,6 @@ if ! grep -q "#robots.txt any origin" "${FILE}"; then
   sed -i "/${FIND}/a ${ADD}" "${FILE}"
 fi
 
-# Prevent web component file downgrade if the webgui version is newer than the plugin version
-# Function to extract "ts" value from JSON file
-extract_ts() {
-    local filepath="$1"
-    local ts_value=null
-    ts_value=$(jq -r '.ts' "$filepath" 2>/dev/null)
-    echo "$ts_value"
-}
-
 preventDowngradeAction() {
     local action="$1"
     local path="$2"
@@ -849,8 +840,8 @@ preventDowngradeAction() {
 # Extract "ts" values from both files
 plgWebComponentPath="/usr/local/emhttp/plugins/dynamix.my.servers/unraid-components"
 backupWebComponentPath="/usr/local/emhttp/plugins/dynamix.my.servers/unraid-components-"
-plgManifestTs=$(extract_ts "$plgWebComponentPath/manifest.json")
-webguiManifestTs=$(extract_ts "$backupWebComponentPath/manifest.json")
+plgManifestTs=$(find "$plgWebComponentPath" -name manifest.json -exec jq -r '.ts' {} \; 2>/dev/null)
+webguiManifestTs=$(find "$backupWebComponentPath" -name manifest.json -exec jq -r '.ts' {} \; 2>/dev/null)
 
 # Compare the "ts" values and return the file path of the higher value
 if [[ "$webguiManifestTs" -gt "$plgManifestTs" ]]; then
