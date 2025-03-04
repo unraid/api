@@ -370,8 +370,8 @@ jobs:
             exit 1
           fi
 
-          if [ ! -f ./deploy/*.tgz ]; then
-            echo "Error: .tgz file not found in plugin/deploy/"
+          if [ ! -f ./deploy/*.txz ]; then
+            echo "Error: .txz file not found in plugin/deploy/"
             exit 1
           fi
       - name: Upload to GHA
