@@ -365,12 +365,12 @@ jobs:
 
       - name: Ensure Plugin Files Exist
         run: |
-          if [ ! -f plugin/deploy/*.plg ]; then
+          if [ ! -f ./deploy/*.plg ]; then
             echo "Error: .plg file not found in plugin/deploy/"
             exit 1
           fi
 
-          if [ ! -f plugin/deploy/*.tgz ]; then
+          if [ ! -f ./deploy/*.tgz ]; then
             echo "Error: .tgz file not found in plugin/deploy/"
             exit 1
           fi
