@@ -327,11 +327,17 @@ jobs:
           cd ${{ github.workspace }}
           pnpm install --frozen-lockfile --filter @unraid/connect-plugin
 
+      - name: Download Unraid UI Components
+        uses: actions/download-artifact@v4
+        with:
+          name: unraid-wc-ui
+          path: ${{ github.workspace }}/plugin/source/dynamix.unraid.net/usr/local/emhttp/plugins/dynamix.my.servers/unraid-components/uui
+          merge-multiple: true
       - name: Download Unraid Web Components
         uses: actions/download-artifact@v4
         with:
-          pattern: unraid-wc-*
-          path: ./plugin/source/dynamix.unraid.net/usr/local/emhttp/plugins/dynamix.my.servers/unraid-components
+          pattern: unraid-wc-rich
+          path: ${{ github.workspace }}/plugin/source/dynamix.unraid.net/usr/local/emhttp/plugins/dynamix.my.servers/unraid-components/nuxt
           merge-multiple: true
       - name: Download Unraid API
         uses: actions/download-artifact@v4
