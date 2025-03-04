@@ -144,6 +144,7 @@ jobs:
       - name: Build
         run: |
           pnpm run build:release
+
           tar -czf deploy/unraid-api.tgz -C deploy/pack/ .
 
       - name: Upload tgz to Github artifacts
@@ -345,11 +346,11 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: unraid-api
-          path: ${{ github.workspace }}/tmp/unraid-api.tgz
+          path: ${{ github.workspace }}/plugin/unraid-api.tgz
       - name: Extract Unraid API
         run: |
           mkdir -p ${{ github.workspace }}/plugin/source/dynamix.unraid.net/usr/local/unraid-api
-          tar -xzf ${{ github.workspace }}/tmp/unraid-api.tgz -C ${{ github.workspace }}/plugin/source/dynamix.unraid.net/usr/local/unraid-api
+          tar -xzf ${{ github.workspace }}/plugin/unraid-api.tgz -C ${{ github.workspace }}/plugin/source/dynamix.unraid.net/usr/local/unraid-api
       - name: Build Plugin and TXZ Based on Event and Tag
         id: build-plugin
         run: |
