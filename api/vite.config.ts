@@ -90,6 +90,12 @@ export default defineConfig(({ mode }): ViteUserConfig => {
                     entryFileNames: '[name].js',
                     format: 'es',
                     interop: 'auto',
+                    banner: (chunk) => {
+                        if (chunk.fileName === 'main.js' || chunk.fileName === 'cli.js') {
+                            return '#!/usr/local/node/bin/node\n';
+                        }
+                        return '';
+                    },
                 },
                 preserveEntrySignatures: 'strict',
                 external: [
