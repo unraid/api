@@ -34,7 +34,6 @@ export const getStagingChangelogFromGit = async ({
     // Encode HTML entities using the 'he' library
     return changelog ?? "";
   } catch (err) {
-    console.error(`Error: failed to get changelog from git: ${err}`);
-    process.exit(1);
+    throw new Error(`Failed to get changelog from git: ${err}`);
   }
 };
