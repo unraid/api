@@ -907,8 +907,10 @@ fi
 
 
 # Create symlink to unraid-api binary (to allow usage elsewhere)
+ln -sf /usr/local/node/bin/node /usr/local/bin/node
 ln -sf ${unraid_binary_path} /usr/local/sbin/unraid-api
 ln -sf ${unraid_binary_path} /usr/bin/unraid-api
+
 
 logger "Starting flash backup (if enabled)"
 echo "/etc/rc.d/rc.flash_backup start" | at -M now &>/dev/null

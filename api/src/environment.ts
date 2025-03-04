@@ -1,16 +1,30 @@
 import { readFileSync } from 'node:fs';
 import { homedir } from 'node:os';
-import { dirname, join } from 'node:path';
+import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const getPackageJsonVersion = () => {
     try {
-        // Use import.meta.resolve to get the URL of package.json
-        const packageJsonUrl = import.meta.resolve('../package.json');
-        const packageJsonPath = fileURLToPath(packageJsonUrl);
-        const packageJson = readFileSync(packageJsonPath, 'utf-8');
-        const packageJsonObject = JSON.parse(packageJson);
-        return packageJsonObject.version;
+        // Try different possible locations for package.json
+        const possibleLocations = ['../package.json', '../../package.json'];
+
+        for (const location of possibleLocations) {
+            try {
+                const packageJsonUrl = import.meta.resolve(location);
+                const packageJsonPath = fileURLToPath(packageJsonUrl);
+                const packageJson = readFileSync(packageJsonPath, 'utf-8');
+                const packageJsonObject = JSON.parse(packageJson);
+                if (packageJsonObject.version) {
+                    return packageJsonObject.version;
+                }
+            } catch {
+                // Continue to next location if this one fails
+            }
+        }
+
+        // If we get here, we couldn't find a valid package.json in any location
+        console.error('Could not find package.json in any of the expected locations');
+        return undefined;
     } catch (error) {
         console.error('Failed to load package.json:', error);
         return undefined;
