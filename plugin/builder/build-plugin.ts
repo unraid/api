@@ -60,14 +60,14 @@ const buildPlugin = async ({
     pluginURL: getPluginUrl({ baseUrl, tag }),
     MAIN_TXZ: getMainTxzUrl({ baseUrl, pluginVersion, tag }),
     TXZ_SHA256: txzSha256,
-    TAG: tag,
+    ...(tag ? { TAG: tag } : {}),
   };
 
   console.log("Entities:", entities);
   // Iterate over entities and update them
   Object.entries(entities).forEach(([key, value]) => {
-    if (key !== "TAG" && !value) {
-      throw new Error(`Entity ${key} not set in entities : ${value}`);
+    if (!value) {
+      throw new Error(`Entity ${key} not set in entities: ${JSON.stringify(entities)}`);
     }
     plgContent = updateEntityValue(plgContent, key, value);
   });
