@@ -362,6 +362,18 @@ jobs:
           echo "TAG=${TAG}" >> $GITHUB_OUTPUT
 
           pnpm run build:plugin --tag="${TAG}" --base-url="${BASE_URL}"
+
+      - name: Ensure Plugin Files Exist
+        run: |
+          if [ ! -f plugin/deploy/*.plg ]; then
+            echo "Error: .plg file not found in plugin/deploy/"
+            exit 1
+          fi
+
+          if [ ! -f plugin/deploy/*.tgz ]; then
+            echo "Error: .tgz file not found in plugin/deploy/"
+            exit 1
+          fi
       - name: Upload to GHA
         uses: actions/upload-artifact@v4
         with:
