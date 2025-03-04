@@ -1,4 +1,4 @@
-FROM node:22-bookworm-slim AS builder
+FROM node:22-bookworm-slim AS plugin-builder
 
 # Install build tools and dependencies
 RUN apt-get update -y && apt-get install -y \
@@ -18,8 +18,17 @@ WORKDIR /app
 
 COPY package.json ./
 
-RUN npm install --include=dev
+RUN corepack enable && pnpm install
 
-COPY . .
+# Install a simple http server
+RUN npm install -g http-server
 
-CMD ["npm", "run", "build"]
+# Expose port 8080
+EXPOSE 8080
+
+COPY scripts/entrypoint.sh /start.sh
+RUN chmod +x /start.sh
+
+ENTRYPOINT [ "/start.sh" ]
+
+CMD [ "pnpm", "run", "build:watcher" ]

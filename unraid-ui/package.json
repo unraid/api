@@ -22,6 +22,7 @@
     "// Build": "",
     "prebuild": "npm run clean",
     "build": "vite build",
+    "build:watch": "vite build -c vite.web-component.ts --mode production --watch",
     "build:wc": "REM_PLUGIN=true vite build -c vite.web-component.ts --mode production",
     "clean": "rm -rf dist",
     "typecheck": "vue-tsc --noEmit",

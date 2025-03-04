@@ -42,4 +42,4 @@ ENV NODE_ENV=production
 
 COPY . .
 
-CMD ["pnpm", "run", "build-and-pack"]
+CMD ["pnpm", "run", "build:release"]
