@@ -142,9 +142,7 @@ jobs:
           export API_VERSION
 
       - name: Build
-        run: |
-          pnpm run build:release
-          tar -czf deploy/unraid-api.tgz -C deploy/pack/ .
+        run: pnpm run build:release && tar -czf deploy/unraid-api.tgz -C deploy/pack/ .
 
       - name: Upload tgz to Github artifacts
         uses: actions/upload-artifact@v4
