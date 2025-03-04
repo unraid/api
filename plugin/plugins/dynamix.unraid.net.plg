@@ -3,12 +3,10 @@
   <!ENTITY name "">
   <!ENTITY launch "Connect">
   <!ENTITY author "limetech">
-  <!ENTITY env "">
   <!ENTITY version "">
   <!ENTITY pluginURL "">
   <!ENTITY source "/boot/config/plugins/dynamix.my.servers/&name;">
-  <!ENTITY SHA256 "">
-  <!ENTITY API_version "">
+  <!ENTITY TXZ_SHA256 "">
   <!ENTITY NODEJS_VERSION "22.14.0">
   <!-- To get SHA256:
        wget https://nodejs.org/download/release/v22.14.0/node-v22.14.0-linux-x64.tar.xz
@@ -32,9 +30,9 @@
   <!-- prevent prod plugin from installing when staging already installed, and vice versa -->
   <FILE Run="/bin/bash" Method="install">
     <INLINE>
-      name="&name;" version="&version;" API_version="&API_version;" PLGTYPE="&env;" pluginURL="&pluginURL;"
+      name="&name;" version="&version;" pluginURL="&pluginURL;"
     <![CDATA[
-echo "Installing ${name}.plg ${version} with Unraid API ${API_version}"
+echo "Installing ${name}.plg ${version}"
 if [ -f /boot/config/plugins/dynamix.unraid.net.staging.plg ]; then
   echo "ERROR: Cannot proceed with installation"
   echo "Reason: Staging Unraid Connect plugin detected at /boot/config/plugins/dynamix.unraid.net.staging.plg"
@@ -149,7 +147,7 @@ exit 0
   <!-- download main txz -->
   <FILE Name="&source;.txz">
     <URL>&MAIN_TXZ;</URL>
-    <SHA256>&SHA256;</SHA256>
+    <SHA256>&TXZ_SHA256;</SHA256>
   </FILE>
 
   <FILE Run="/bin/bash" Method="install">
@@ -457,7 +455,7 @@ exit 0
   <!-- install all the things -->
   <FILE Run="/bin/bash" Method="install">
     <INLINE>
-      TAG="&TAG;" PLGTYPE="&env;" MAINTXZ="&source;.txz"
+      TAG="&TAG;" MAINTXZ="&source;.txz"
     <![CDATA[
 appendTextIfMissing() {
   FILE="$1" TEXT="$2"
@@ -766,8 +764,6 @@ upgradepkg --install-new --reinstall "${MAINTXZ}"
 if [[ -n "$TAG" && "$TAG" != "" ]]; then
   printf -v sedcmd 's@^\*\*Unraid Connect\*\*@**Unraid Connect (%s)**@' "$TAG"
   sed -i "${sedcmd}" "/usr/local/emhttp/plugins/dynamix.unraid.net/README.md"
-elif [[ "$PLGTYPE" == "staging" ]]; then
-  sed -i "s@^\*\*Unraid Connect\*\*@**Unraid Connect (staging)**@" "/usr/local/emhttp/plugins/dynamix.unraid.net/README.md"
 fi
 
 echo
@@ -775,9 +771,8 @@ echo "⚠️ Do not close this window yet"
 echo
 
 # setup env
-if [ "${PLGTYPE}" = "production" ] || [ ! -f /boot/config/plugins/dynamix.my.servers/env ]; then
-  echo "env=\"${PLGTYPE}\"">/boot/config/plugins/dynamix.my.servers/env
-fi
+echo "env=\"production\"">/boot/config/plugins/dynamix.my.servers/env
+
 
 # Use myservers.cfg values to help prevent conflicts when installing
 CFG=/boot/config/plugins/dynamix.my.servers/myservers.cfg
@@ -810,14 +805,7 @@ if grep -q "SAMEORIGIN" "${FILE}"; then
   cp "$FILE" "$FILE-" OLD="add_header X-Frame-Options 'SAMEORIGIN';" NEW="add_header Content-Security-Policy \"frame-ancestors 'self' https://connect.myunraid.net/\";"
   sed -i "s#${OLD}#${NEW}#" "${FILE}"
 fi
-if  [ "${PLGTYPE}" = "staging" ]; then
-  # staging plugin allows an additional origin
-  if ! grep -q "dev-my.myunraid.net:4000" "${FILE}"; then
-    CHANGED=yes
-    [[ ! -f "$FILE-" ]] && cp "$FILE" "$FILE-" OLD="add_header Content-Security-Policy \"frame-ancestors 'self' https://connect.myunraid.net/\";" NEW="add_header Content-Security-Policy \"frame-ancestors 'self' https://connect-staging.myunraid.net https://connect.myunraid.net/ https://dev-my.myunraid.net:4000/\";"
-    sed -i "s#${OLD}#${NEW}#" "${FILE}"
-  fi
-fi
+
 FILE=/etc/rc.d/rc.nginx
 # brings older versions of Unraid in sync with 6.12.0
 if ! grep -q "#robots.txt any origin" "${FILE}"; then
@@ -827,15 +815,6 @@ if ! grep -q "#robots.txt any origin" "${FILE}"; then
   ADD="\	\ \ \ \ add_header Access-Control-Allow-Origin *; #robots.txt any origin"
   sed -i "/${FIND}/a ${ADD}" "${FILE}"
 fi
-
-# Prevent web component file downgrade if the webgui version is newer than the plugin version
-# Function to extract "ts" value from JSON file
-extract_ts() {
-    local filepath="$1"
-    local ts_value=null
-    ts_value=$(jq -r '.ts' "$filepath" 2>/dev/null)
-    echo "$ts_value"
-}
 
 preventDowngradeAction() {
     local action="$1"
@@ -861,8 +840,8 @@ preventDowngradeAction() {
 # Extract "ts" values from both files
 plgWebComponentPath="/usr/local/emhttp/plugins/dynamix.my.servers/unraid-components"
 backupWebComponentPath="/usr/local/emhttp/plugins/dynamix.my.servers/unraid-components-"
-plgManifestTs=$(extract_ts "$plgWebComponentPath/manifest.json")
-webguiManifestTs=$(extract_ts "$backupWebComponentPath/manifest.json")
+plgManifestTs=$(find "$plgWebComponentPath" -name manifest.json -exec jq -r '.ts' {} \; 2>/dev/null)
+webguiManifestTs=$(find "$backupWebComponentPath" -name manifest.json -exec jq -r '.ts' {} \; 2>/dev/null)
 
 # Compare the "ts" values and return the file path of the higher value
 if [[ "$webguiManifestTs" -gt "$plgManifestTs" ]]; then

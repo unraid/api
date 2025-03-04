@@ -10,26 +10,47 @@ class WebComponentsExtractor
 
     public function __construct() {}
 
-    public function getAssetPath(string $asset): string
+    private function findManifestFiles(string $manifestName): array
     {
-        return self::PREFIXED_PATH . $asset;
+        $basePath = '/usr/local/emhttp' . self::PREFIXED_PATH;
+        $command = "find {$basePath} -name {$manifestName}";
+        exec($command, $files);
+        return $files;
     }
 
-    public function getManifestContents(string $pathFromComponents): array
+    public function getAssetPath(string $asset, string $subfolder = ''): string
     {
-        $filePath = '/usr/local/emhttp' . $this->getAssetPath($pathFromComponents);
-        return json_decode(file_get_contents($filePath), true);
+        return self::PREFIXED_PATH . ($subfolder ? $subfolder . '/' : '') . $asset;
+    }
+
+    private function getRelativePath(string $fullPath): string
+    {
+        $basePath = '/usr/local/emhttp' . self::PREFIXED_PATH;
+        $relative = str_replace($basePath, '', $fullPath);
+        return dirname($relative);
+    }
+
+    public function getManifestContents(string $manifestPath): array
+    {
+        $contents = @file_get_contents($manifestPath);
+        return $contents ? json_decode($contents, true) : [];
     }
 
     private function getRichComponentsFile(): string
     {
-        $localManifest = $this->getManifestContents('manifest.json');
-
-        foreach ($localManifest as $key => $value) {
-            if (strpos($key, self::RICH_COMPONENTS_ENTRY) !== false && isset($value["file"])) {
-                return $value["file"];
+        $manifestFiles = $this->findManifestFiles('manifest.json');
+        
+        foreach ($manifestFiles as $manifestPath) {
+            $manifest = $this->getManifestContents($manifestPath);
+            $subfolder = $this->getRelativePath($manifestPath);
+            
+            foreach ($manifest as $key => $value) {
+                if (strpos($key, self::RICH_COMPONENTS_ENTRY) !== false && isset($value["file"])) {
+                    return ($subfolder ? $subfolder . '/' : '') . $value["file"];
+                }
             }
         }
+        return '';
     }
 
     private function getRichComponentsScript(): string
@@ -43,9 +64,25 @@ class WebComponentsExtractor
 
     private function getUnraidUiScriptHtml(): string
     {
-        $manifest = $this->getManifestContents('ui.manifest.json');
-        $jsFile = $manifest[self::UI_ENTRY]['file'];
-        $cssFile = $manifest[self::UI_STYLES_ENTRY]['file'];
+        $manifestFiles = $this->findManifestFiles('ui.manifest.json');
+        
+        if (empty($manifestFiles)) {
+            error_log("No ui.manifest.json found");
+            return '';
+        }
+
+        $manifestPath = $manifestFiles[0]; // Use the first found manifest
+        $manifest = $this->getManifestContents($manifestPath);
+        $subfolder = $this->getRelativePath($manifestPath);
+
+        if (!isset($manifest[self::UI_ENTRY]) || !isset($manifest[self::UI_STYLES_ENTRY])) {
+            error_log("Required entries not found in ui.manifest.json");
+            return '';
+        }
+
+        $jsFile = ($subfolder ? $subfolder . '/' : '') . $manifest[self::UI_ENTRY]['file'];
+        $cssFile = ($subfolder ? $subfolder . '/' : '') . $manifest[self::UI_STYLES_ENTRY]['file'];
+
         return '<script defer type="module">
             import { registerAllComponents } from "' . $this->getAssetPath($jsFile) . '";
             registerAllComponents({ pathToSharedCss: "' . $this->getAssetPath($cssFile) . '" });

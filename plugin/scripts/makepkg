@@ -381,8 +381,17 @@ fi
 if [ "$CHOWN" = "y" ]; then
   # Set strict mode and fail if commands fail
   set -e
-  find . -type d -exec sudo chmod 755 {} + || exit 1
-  find . -type d -exec sudo chown 0:0 {} + || exit 1
+  echo "Setting permissions and ownerships"
+  
+  # Use sudo if available, otherwise run directly
+  if command -v sudo >/dev/null 2>&1; then
+    SUDO="sudo"
+  else
+    SUDO=""
+  fi
+  
+  $SUDO find . -type d -exec chmod 755 {} + || exit 1
+  $SUDO find . -exec chown 0:0 {} + || exit 1
   set +e
 fi
 
@@ -416,7 +425,7 @@ rm -f ${TARGET_NAME}/${TAR_NAME}.${EXTENSION}
 # find ./ | sed '2,$s,^\./,,' | cpio --quiet -ovHustar > ${TARGET_NAME}/${TAR_NAME}.tar
 
 # Create the package:
-find ./ | LC_COLLATE=C sort | sed '2,$s,^\./,,' | tar --no-recursion $ACLS $XATTRS $MTIME -T - -cvf - | $COMPRESSOR > ${TARGET_NAME}/${TAR_NAME}.${EXTENSION}
+find ./ | LC_COLLATE=C sort | sed '2,$s,^\./,,' | tar --no-recursion $ACLS $XATTRS $MTIME -T - -cf - | $COMPRESSOR > ${TARGET_NAME}/${TAR_NAME}.${EXTENSION}
 ERRCODE=$?
 if [ ! $ERRCODE = 0 ]; then
   echo "ERROR:  $COMPRESSOR returned error code $ERRCODE -- makepkg failed."

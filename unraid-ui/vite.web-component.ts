@@ -22,6 +22,7 @@ export default defineConfig({
     },
   },
   build: {
+    outDir: 'dist-wc',
     manifest: 'ui.manifest.json',
     sourcemap: true,
     cssCodeSplit: false,
