@@ -88,9 +88,14 @@ const buildTxz = async (validatedEnv: TxzEnv) => {
 };
 
 const main = async () => {
-  const validatedEnv = await setupTxzEnv(process.argv);
-  await cleanupTxzFiles();
-  await buildTxz(validatedEnv);
+  try {
+    const validatedEnv = await setupTxzEnv(process.argv);
+    await cleanupTxzFiles();
+    await buildTxz(validatedEnv);
+  } catch (error) {
+    console.error(error);
+    process.exit(1);
+  }
 };
 
 await main();

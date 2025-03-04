@@ -28,7 +28,7 @@ const checkGit = async () => {
 const moveTxzFile = async (txzPath: string, pluginVersion: string) => {
   const txzName = getTxzName(pluginVersion);
   await rename(txzPath, join(deployDir, txzName));
-}
+};
 
 function updateEntityValue(
   xmlString: string,
@@ -92,12 +92,17 @@ const buildPlugin = async ({
  */
 
 const main = async () => {
-  const validatedEnv = await setupPluginEnv(process.argv);
-  await checkGit();
-  await cleanupPluginFiles();
+  try {
+    const validatedEnv = await setupPluginEnv(process.argv);
+    await checkGit();
+    await cleanupPluginFiles();
 
-  await buildPlugin(validatedEnv);
-  await moveTxzFile(validatedEnv.txzPath, validatedEnv.pluginVersion);
+    await buildPlugin(validatedEnv);
+    await moveTxzFile(validatedEnv.txzPath, validatedEnv.pluginVersion);
+  } catch (error) {
+    console.error(error);
+    process.exit(1);
+  }
 };
 
 await main();
