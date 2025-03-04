@@ -7,10 +7,6 @@ import { VitePluginNode } from 'vite-plugin-node';
 import tsconfigPaths from 'vite-tsconfig-paths';
 import { defineConfig } from 'vitest/config';
 
-
-
-
-
 export default defineConfig(({ mode }): ViteUserConfig => {
     return {
         assetsInclude: ['src/**/*.graphql', 'src/**/*.patch'],
