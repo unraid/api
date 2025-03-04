@@ -145,11 +145,10 @@ jobs:
         run: pnpm run build-and-pack
 
       - name: Upload tgz to Github artifacts
-        uses: pyTooling/upload-artifact@v4 # Used to preserve permissions
+        uses: actions/upload-artifact@v4
         with:
           name: unraid-api
           path: ${{ github.workspace }}/api/deploy/pack/*
-          compression-level: 2
 
   build-unraid-ui-webcomponents:
     name: Build Unraid UI Library (Webcomponent Version)
@@ -341,7 +340,7 @@ jobs:
           path: ${{ github.workspace }}/plugin/source/dynamix.unraid.net/usr/local/emhttp/plugins/dynamix.my.servers/unraid-components/nuxt
           merge-multiple: true
       - name: Download Unraid API
-        uses: pyTooling/download-artifact@v4 # Used to preserve permissions
+        uses: actions/download-artifact@v4
         with:
           name: unraid-api
           path: ${{ github.workspace }}/plugin/source/dynamix.unraid.net/usr/local/unraid-api

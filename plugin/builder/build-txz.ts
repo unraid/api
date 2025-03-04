@@ -71,6 +71,8 @@ const validateSourceDir = async (validatedEnv: TxzEnv) => {
   if (!existsSync(apiDir)) {
     throw new Error(`API package.json file ${apiDir} does not exist`);
   }
+  // Now CHMOD the api/dist directory files to allow execution
+  await $`chmod +x ${apiDir}/dist/*.js`
 };
 
 const buildTxz = async (validatedEnv: TxzEnv) => {
