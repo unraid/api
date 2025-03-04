@@ -79,7 +79,7 @@ const buildTxz = async (validatedEnv: TxzEnv) => {
 
   // Create package - must be run from within the pre-pack directory
   // Use cd option to run command from prePackDir
-  await cd(join(startingDir, "source", "dynamix.unraid.net"));
+  await cd(join(startingDir, "source", pluginName));
   $.verbose = true;
 
   await $`${join(startingDir, "scripts/makepkg")} --chown y --compress -${validatedEnv.compress} --linkadd y ${txzPath}`;
