@@ -22,7 +22,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-      
+
       - id: release
         uses: googleapis/release-please-action@v4
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
@@ -142,13 +142,15 @@ jobs:
           export API_VERSION
 
       - name: Build
-        run: pnpm run build-and-pack
+        run: |
+          pnpm run build:release
+          tar -czf deploy/unraid-api.tgz -C deploy/pack/ .
 
       - name: Upload tgz to Github artifacts
         uses: actions/upload-artifact@v4
         with:
           name: unraid-api
-          path: ${{ github.workspace }}/api/deploy/pack/*
+          path: ${{ github.workspace }}/api/deploy/pack/unraid-api.tgz
 
   build-unraid-ui-webcomponents:
     name: Build Unraid UI Library (Webcomponent Version)
@@ -343,7 +345,11 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: unraid-api
-          path: ${{ github.workspace }}/plugin/source/dynamix.unraid.net/usr/local/unraid-api
+          path: ${{ github.workspace }}/tmp/unraid-api.tgz
+      - name: Extract Unraid API
+        run: |
+          mkdir -p ${{ github.workspace }}/plugin/source/dynamix.unraid.net/usr/local/unraid-api
+          tar -xzf ${{ github.workspace }}/tmp/unraid-api.tgz -C ${{ github.workspace }}/plugin/source/dynamix.unraid.net/usr/local/unraid-api
       - name: Build Plugin and TXZ Based on Event and Tag
         id: build-plugin
         run: |
