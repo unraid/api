@@ -3,6 +3,7 @@ import { type OutgoingHttpHeaders } from 'node:http2';
 import { ClientType } from '@app/unraid-api/plugins/connect/api/graphql/generated/client/graphql.js';
 import { isAPIStateDataFullyLoaded } from '@app/unraid-api/plugins/connect/api/mothership/graphql-client.js';
 import { store } from '@app/store/index.js';
+import { API_VERSION } from '@app/environment.js';
 
 interface MothershipWebsocketHeaders extends OutgoingHttpHeaders {
     'x-api-key': string;
@@ -13,9 +14,10 @@ interface MothershipWebsocketHeaders extends OutgoingHttpHeaders {
 }
 
 export const getMothershipWebsocketHeaders = (
-    state = store.getState()
+    state = store.getState(),
+    
 ): MothershipWebsocketHeaders | OutgoingHttpHeaders => {
-    const { config, emhttp } = state;
+    const { config } = state;
     if (isAPIStateDataFullyLoaded(state)) {
         const headers: MothershipWebsocketHeaders = {
             'x-api-key': config.remote.apikey,
