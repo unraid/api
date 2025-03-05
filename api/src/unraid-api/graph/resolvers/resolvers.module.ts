@@ -3,7 +3,6 @@ import { Module } from '@nestjs/common';
 import { AuthModule } from '@app/unraid-api/auth/auth.module.js';
 import { ApiKeyResolver } from '@app/unraid-api/graph/resolvers/api-key/api-key.resolver.js';
 import { ArrayResolver } from '@app/unraid-api/graph/resolvers/array/array.resolver.js';
-import { CloudResolver } from '@app/unraid-api/graph/resolvers/cloud/cloud.resolver.js';
 import { ConfigResolver } from '@app/unraid-api/graph/resolvers/config/config.resolver.js';
 import { DisksResolver } from '@app/unraid-api/graph/resolvers/disks/disks.resolver.js';
 import { DisplayResolver } from '@app/unraid-api/graph/resolvers/display/display.resolver.js';
@@ -25,7 +24,6 @@ import { VmsResolver } from '@app/unraid-api/graph/resolvers/vms/vms.resolver.js
     providers: [
         ArrayResolver,
         ApiKeyResolver,
-        CloudResolver,
         ConfigResolver,
         DisksResolver,
         DisplayResolver,

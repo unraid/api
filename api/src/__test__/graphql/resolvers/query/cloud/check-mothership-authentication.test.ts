@@ -5,7 +5,7 @@ import { join } from 'path';
 
 import { expect, test } from 'vitest';
 
-import { checkMothershipAuthentication } from '@app/graphql/resolvers/query/cloud/check-mothership-authentication.js';
+import { checkMothershipAuthentication } from '@app/unraid-api/plugins/connect/api/graphql/resolvers/query/cloud/check-mothership-authentication.js';
 
 test('It fails to authenticate with mothership with no credentials', async () => {
     try {

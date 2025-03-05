@@ -1,0 +1,19 @@
+{
+    "name": "connect-plugin",
+    "type": "module",
+    "version": "1.0.0",
+    "unraidPlugin": true,
+    "keywords": [
+        "unraid-plugin"
+    ],
+    "devDependencies": {
+        "@types/node": "^22.13.9",
+        "@unraid/api": "workspace:*"
+    },
+    "dependencies": {
+        "@nestjs/common": "^10.3.3",
+        "@nestjs/core": "^10.3.3",
+        "@reduxjs/toolkit": "^2.2.0",
+        "nest-commander": "^3.12.5"
+    }
+}

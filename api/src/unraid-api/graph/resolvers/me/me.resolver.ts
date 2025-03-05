@@ -2,8 +2,8 @@ import { Query, Resolver } from '@nestjs/graphql';
 
 import { AuthActionVerb, AuthPossession, UsePermissions } from 'nest-authz';
 
-import type { UserAccount } from '@app/graphql/generated/api/types.js';
-import { Me, Resource } from '@app/graphql/generated/api/types.js';
+import type { UserAccount } from '@app/unraid-api/plugins/connect/api/graphql/generated/api/types.js';
+import { Me, Resource } from '@app/unraid-api/plugins/connect/api/graphql/generated/api/types.js';
 import { GraphqlUser } from '@app/unraid-api/auth/user.decorator.js';
 
 @Resolver('Me')

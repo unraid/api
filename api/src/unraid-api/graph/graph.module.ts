@@ -23,38 +23,46 @@ import { ResolversModule } from '@app/unraid-api/graph/resolvers/resolvers.modul
 import { sandboxPlugin } from '@app/unraid-api/graph/sandbox-plugin.js';
 import { ServicesResolver } from '@app/unraid-api/graph/services/services.resolver.js';
 import { SharesResolver } from '@app/unraid-api/graph/shares/shares.resolver.js';
+import { PluginModule } from '@app/unraid-api/plugin/plugin.module.js';
+import { PluginService } from '@app/unraid-api/plugin/plugin.service.js';
 
 @Module({
     imports: [
         ResolversModule,
         GraphQLModule.forRootAsync<ApolloDriverConfig>({
             driver: ApolloDriver,
-            useFactory: async () => ({
-                introspection: getters.config()?.local?.sandbox === 'yes',
-                playground: false,
-                context: ({ req, connectionParams, extra }: any) => ({
-                    req,
-                    connectionParams,
-                    extra,
-                }),
-                plugins: [sandboxPlugin, idPrefixPlugin] as any[],
-                subscriptions: {
-                    'graphql-ws': {
-                        path: '/graphql',
+            imports: [PluginModule],
+            inject: [PluginService],
+            useFactory: async (pluginService: PluginService) => {
+                const pluginConfig = await pluginService.getGraphQLConfiguration();
+                return {
+                    introspection: getters.config()?.local?.sandbox === 'yes',
+                    playground: false,
+                    context: ({ req, connectionParams, extra }: any) => ({
+                        req,
+                        connectionParams,
+                        extra,
+                    }),
+                    plugins: [sandboxPlugin, idPrefixPlugin] as any[],
+                    subscriptions: {
+                        'graphql-ws': {
+                            path: '/graphql',
+                        },
                     },
-                },
-                path: '/graphql',
-                typeDefs: print(await loadTypeDefs()),
-                resolvers: {
-                    JSON: JSONResolver,
-                    Long: GraphQLLong,
-                    UUID: UUIDResolver,
-                    DateTime: DateTimeResolver,
-                    Port: PortResolver,
-                    URL: URLResolver,
-                },
-                validationRules: [NoUnusedVariablesRule],
-            }),
+                    path: '/graphql',
+                    typeDefs: [print(await loadTypeDefs()), ...pluginConfig.typeDefs],
+                    resolvers: {
+                        JSON: JSONResolver,
+                        Long: GraphQLLong,
+                        UUID: UUIDResolver,
+                        DateTime: DateTimeResolver,
+                        Port: PortResolver,
+                        URL: URLResolver,
+                        ...pluginConfig.resolvers
+                    },
+                    validationRules: [NoUnusedVariablesRule],
+                };
+            },
         }),
     ],
     providers: [NetworkResolver, ServicesResolver, SharesResolver, ConnectResolver, ConnectService],

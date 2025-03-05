@@ -1,7 +1,7 @@
 import { beforeEach, expect, test, vi } from 'vitest';
 
 // Preloading imports for faster tests
-import '@app/mothership/utils/convert-to-fuzzy-time.js';
+import '@app/unraid-api/plugins/connect/api/mothership/utils/convert-to-fuzzy-time.js';
 
 vi.mock('fs', () => ({
     default: {
@@ -40,7 +40,7 @@ const generateTestCases = () => {
 };
 
 test.each(generateTestCases())('Successfully converts to fuzzy time %o', async ({ min, max }) => {
-    const { convertToFuzzyTime } = await import('@app/mothership/utils/convert-to-fuzzy-time.js');
+    const { convertToFuzzyTime } = await import('@app/unraid-api/plugins/connect/api/mothership/utils/convert-to-fuzzy-time.js');
 
     const res = convertToFuzzyTime(min, max);
     expect(res).toBeGreaterThanOrEqual(min);

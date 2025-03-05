@@ -1,4 +1,6 @@
-import { Module } from '@nestjs/common';
+import { DynamicModule, Module, Provider, Type } from '@nestjs/common';
+
+import { CommandRunner } from 'nest-commander';
 
 import { ApiKeyService } from '@app/unraid-api/auth/api-key.service.js';
 import { AddApiKeyQuestionSet } from '@app/unraid-api/cli/apikey/add-api-key.questions.js';
@@ -23,32 +25,77 @@ import { StatusCommand } from '@app/unraid-api/cli/status.command.js';
 import { StopCommand } from '@app/unraid-api/cli/stop.command.js';
 import { SwitchEnvCommand } from '@app/unraid-api/cli/switch-env.command.js';
 import { VersionCommand } from '@app/unraid-api/cli/version.command.js';
+import { UnraidAPIPlugin } from '@app/unraid-api/plugin/plugin.interface.js';
+import { PluginModule } from '@app/unraid-api/plugin/plugin.module.js';
+import { PluginService } from '@app/unraid-api/plugin/plugin.service.js';
+
+const DEFAULT_COMMANDS = [
+    ApiKeyCommand,
+    ConfigCommand,
+    DeveloperCommand,
+    LogsCommand,
+    ReportCommand,
+    RestartCommand,
+    StartCommand,
+    StatusCommand,
+    StopCommand,
+    SwitchEnvCommand,
+    VersionCommand,
+    SSOCommand,
+    ValidateTokenCommand,
+    AddSSOUserCommand,
+    RemoveSSOUserCommand,
+    ListSSOUserCommand,
+] as const;
+
+const DEFAULT_PROVIDERS = [
+    AddApiKeyQuestionSet,
+    AddSSOUserQuestionSet,
+    RemoveSSOUserQuestionSet,
+    DeveloperQuestions,
+    LogService,
+    PM2Service,
+    ApiKeyService,
+] as const;
+
+type PluginProvider = Provider & {
+    provide: string | symbol | Type<any>;
+    useValue?: UnraidAPIPlugin;
+};
 
 @Module({
-    providers: [
-        AddSSOUserCommand,
-        AddSSOUserQuestionSet,
-        RemoveSSOUserCommand,
-        RemoveSSOUserQuestionSet,
-        ListSSOUserCommand,
-        LogService,
-        PM2Service,
-        StartCommand,
-        StopCommand,
-        RestartCommand,
-        ReportCommand,
-        ApiKeyService,
-        ApiKeyCommand,
-        AddApiKeyQuestionSet,
-        SwitchEnvCommand,
-        VersionCommand,
-        StatusCommand,
-        SSOCommand,
-        ValidateTokenCommand,
-        LogsCommand,
-        ConfigCommand,
-        DeveloperCommand,
-        DeveloperQuestions,
-    ],
+    imports: [PluginModule],
+    providers: [...DEFAULT_COMMANDS, ...DEFAULT_PROVIDERS],
 })
-export class CliModule {}
+export class CliModule {
+    /**
+     * Get all registered commands
+     * @returns Array of registered command classes
+     */
+    static getCommands(): Type<CommandRunner>[] {
+        return [...DEFAULT_COMMANDS];
+    }
+
+    /**
+     * Register the module with plugin support
+     * @returns DynamicModule configuration including plugin commands
+     */
+    static async registerWithPlugins(): Promise<DynamicModule> {
+        const pluginModule = await PluginModule.registerPlugins();
+        const pluginService = new PluginService();
+
+        // Get commands from plugins
+        const pluginCommands: Type<CommandRunner>[] = [];
+        for (const provider of (pluginModule.providers || []) as PluginProvider[]) {
+            if (provider.provide !== PluginService && provider.useValue?.commands) {
+                pluginCommands.push(...provider.useValue.commands);
+            }
+        }
+
+        return {
+            module: CliModule,
+            imports: [pluginModule],
+            providers: [...DEFAULT_COMMANDS, ...DEFAULT_PROVIDERS, ...pluginCommands],
+        };
+    }
+}

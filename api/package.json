@@ -174,8 +174,8 @@
         "cz-conventional-changelog": "3.3.0",
         "eslint": "^9.20.1",
         "eslint-plugin-import": "^2.31.0",
-        "eslint-plugin-no-relative-import-paths": "^1.6.1",
         "eslint-plugin-n": "^17.0.0",
+        "eslint-plugin-no-relative-import-paths": "^1.6.1",
         "eslint-plugin-prettier": "^5.2.3",
         "graphql-codegen-typescript-validation-schema": "^0.17.0",
         "jiti": "^2.4.0",
@@ -188,6 +188,7 @@
         "typescript-eslint": "^8.13.0",
         "unplugin-swc": "^1.5.1",
         "vite": "^6.0.0",
+        "vite-plugin-dts": "^3.0.0",
         "vite-plugin-node": "^4.0.0",
         "vite-tsconfig-paths": "^5.1.0",
         "vitest": "^3.0.5",
@@ -198,6 +199,5 @@
             "jiti": "2"
         }
     },
-    "private": true,
     "packageManager": "pnpm@10.4.1"
 }

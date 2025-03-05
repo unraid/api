@@ -2,8 +2,8 @@ import { Query, ResolveField, Resolver } from '@nestjs/graphql';
 
 import { AuthActionVerb, AuthPossession, UsePermissions } from 'nest-authz';
 
-import type { VmDomain } from '@app/graphql/generated/api/types.js';
-import { Resource } from '@app/graphql/generated/api/types.js';
+import type { VmDomain } from '@app/unraid-api/plugins/connect/api/graphql/generated/api/types.js';
+import { Resource } from '@app/unraid-api/plugins/connect/api/graphql/generated/api/types.js';
 
 @Resolver('Vms')
 export class VmsResolver {

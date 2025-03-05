@@ -2,8 +2,8 @@ import { Injectable, Logger, UnauthorizedException } from '@nestjs/common';
 
 import { AuthZService } from 'nest-authz';
 
-import type { Permission, UserAccount } from '@app/graphql/generated/api/types.js';
-import { Role } from '@app/graphql/generated/api/types.js';
+import type { Permission, UserAccount } from '@app/unraid-api/plugins/connect/api/graphql/generated/api/types.js';
+import { Role } from '@app/unraid-api/plugins/connect/api/graphql/generated/api/types.js';
 import { getters } from '@app/store/index.js';
 import { ApiKeyService } from '@app/unraid-api/auth/api-key.service.js';
 import { CookieService } from '@app/unraid-api/auth/cookie.service.js';

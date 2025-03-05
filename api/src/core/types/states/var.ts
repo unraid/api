@@ -3,7 +3,7 @@ import {
     type DiskFsType,
     type RegistrationState,
     type registrationType,
-} from '@app/graphql/generated/api/types.js';
+} from '@app/unraid-api/plugins/connect/api/graphql/generated/api/types.js';
 
 /**
  * Global vars

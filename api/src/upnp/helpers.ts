@@ -4,7 +4,7 @@ import { Client } from '@runonflux/nat-upnp';
 import { ONE_HOUR_SECS, THIRTY_SECONDS_MS } from '@app/consts.js';
 import { upnpLogger } from '@app/core/log.js';
 import { IS_DOCKER } from '@app/environment.js';
-import { convertToFuzzyTime } from '@app/mothership/utils/convert-to-fuzzy-time.js';
+import { convertToFuzzyTime } from '@app/unraid-api/plugins/connect/api/mothership/utils/convert-to-fuzzy-time.js';
 import { getters } from '@app/store/index.js';
 import { type LeaseRenewalArgs } from '@app/store/modules/upnp.js';
 import { MockUpnpClient } from '@app/upnp/mock-upnp-client.js';

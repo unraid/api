@@ -3,9 +3,10 @@ import { viteCommonjs } from '@originjs/vite-plugin-commonjs';
 import nodeResolve from '@rollup/plugin-node-resolve';
 import nodeExternals from 'rollup-plugin-node-externals';
 import swc from 'unplugin-swc';
+import { defineConfig } from 'vite';
+import dts from 'vite-plugin-dts';
 import { VitePluginNode } from 'vite-plugin-node';
 import tsconfigPaths from 'vite-tsconfig-paths';
-import { defineConfig } from 'vitest/config';
 
 export default defineConfig(({ mode }): ViteUserConfig => {
     return {
@@ -23,7 +24,7 @@ export default defineConfig(({ mode }): ViteUserConfig => {
             ...(mode === 'development'
                 ? VitePluginNode({
                       adapter: 'nest',
-                      appPath: 'src/index.ts',
+                      appPath: 'src/main.ts',
                       tsCompiler: 'swc',
                       swcOptions: {
                           jsc: {
@@ -54,6 +55,23 @@ export default defineConfig(({ mode }): ViteUserConfig => {
                     },
                 },
             }),
+            dts({
+                entryRoot: 'src',
+                outDir: 'dist',
+                include: ['src/**/*.ts'],
+                exclude: ['src/**/*.spec.ts', 'src/**/*.test.ts'],
+                rollupTypes: false,
+                insertTypesEntry: true,
+                beforeWriteFile: (filePath, content) => ({
+                    filePath,
+                    content: content.replace(/from ['"]([^'"]+)['"]/g, (match, p1) => {
+                        if (p1.startsWith('.') && !p1.endsWith('.js')) {
+                            return `from '${p1}.js'`;
+                        }
+                        return match;
+                    }),
+                }),
+            }),
         ],
         define: {
             // Allows vite to preserve process.env variables and not hardcode them
@@ -83,11 +101,17 @@ export default defineConfig(({ mode }): ViteUserConfig => {
             outDir: 'dist',
             rollupOptions: {
                 input: {
-                    main: 'src/index.ts',
-                    cli: 'src/cli.ts',
+                    main: 'src/main.ts',
+                    cli: 'src/cli.ts'
                 },
                 output: {
-                    entryFileNames: '[name].js',
+                    entryFileNames: (chunkInfo) => {
+                        // Handle .d.ts files differently
+                        if (chunkInfo.name.endsWith('.d')) {
+                            return '[name].ts';
+                        }
+                        return '[name].js';
+                    },
                     format: 'es',
                     interop: 'auto',
                     banner: (chunk) => {

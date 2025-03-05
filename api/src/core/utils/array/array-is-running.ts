@@ -1,4 +1,4 @@
-import { ArrayState } from '@app/graphql/generated/api/types.js';
+import { ArrayState } from '@app/unraid-api/plugins/connect/api/graphql/generated/api/types.js';
 import { getters } from '@app/store/index.js';
 
 /**

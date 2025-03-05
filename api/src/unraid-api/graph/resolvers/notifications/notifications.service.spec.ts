@@ -12,10 +12,10 @@ import type {
     NotificationData,
     NotificationFilter,
     NotificationOverview,
-} from '@app/graphql/generated/api/types.js';
+} from '@app/unraid-api/plugins/connect/api/graphql/generated/api/types.js';
 import { type NotificationIni } from '@app/core/types/states/notification.js';
-import { NotificationSchema } from '@app/graphql/generated/api/operations.js';
-import { Importance, NotificationType } from '@app/graphql/generated/api/types.js';
+import { NotificationSchema } from '@app/unraid-api/plugins/connect/api/graphql/generated/api/operations.js';
+import { Importance, NotificationType } from '@app/unraid-api/plugins/connect/api/graphql/generated/api/types.js';
 import { NotificationsService } from '@app/unraid-api/graph/resolvers/notifications/notifications.service.js';
 
 // defined outside `describe` so it's defined inside the `beforeAll`

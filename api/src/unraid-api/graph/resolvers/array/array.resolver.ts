@@ -4,7 +4,7 @@ import { AuthActionVerb, AuthPossession, UsePermissions } from 'nest-authz';
 
 import { getArrayData } from '@app/core/modules/array/get-array-data.js';
 import { createSubscription, PUBSUB_CHANNEL } from '@app/core/pubsub.js';
-import { Resource } from '@app/graphql/generated/api/types.js';
+import { Resource } from '@app/unraid-api/plugins/connect/api/graphql/generated/api/types.js';
 import { store } from '@app/store/index.js';
 
 @Resolver('Array')

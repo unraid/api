@@ -1,12 +1,12 @@
 import { expect, test } from 'vitest';
 
-import type { NginxUrlFields } from '@app/graphql/resolvers/subscription/network.js';
+import type { NginxUrlFields } from '@app/unraid-api/plugins/connect/api/graphql/resolvers/subscription/network.js';
 import { type Nginx } from '@app/core/types/states/nginx.js';
 import {
     getServerIps,
     getUrlForField,
     getUrlForServer,
-} from '@app/graphql/resolvers/subscription/network.js';
+} from '@app/unraid-api/plugins/connect/api/graphql/resolvers/subscription/network.js';
 import { store } from '@app/store/index.js';
 import { loadConfigFile } from '@app/store/modules/config.js';
 import { loadStateFiles } from '@app/store/modules/emhttp.js';

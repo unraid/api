@@ -3,11 +3,11 @@ import fs from 'fs';
 import camelCaseKeys from 'camelcase-keys';
 import { ContainerInfo } from 'dockerode';
 
-import type { ContainerPort, Docker, DockerContainer } from '@app/graphql/generated/api/types.js';
+import type { ContainerPort, Docker, DockerContainer } from '@app/unraid-api/plugins/connect/api/graphql/generated/api/types.js';
 import { dockerLogger } from '@app/core/log.js';
 import { docker } from '@app/core/utils/clients/docker.js';
 import { catchHandlers } from '@app/core/utils/misc/catch-handlers.js';
-import { ContainerPortType, ContainerState } from '@app/graphql/generated/api/types.js';
+import { ContainerPortType, ContainerState } from '@app/unraid-api/plugins/connect/api/graphql/generated/api/types.js';
 import { getters, store } from '@app/store/index.js';
 import { updateDockerState } from '@app/store/modules/docker.js';
 

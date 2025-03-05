@@ -1,6 +1,6 @@
 import { AppError } from '@app/core/errors/app-error.js';
 import { type CoreContext, type CoreResult } from '@app/core/types/index.js';
-import { Disk } from '@app/graphql/generated/api/types.js';
+import { Disk } from '@app/unraid-api/plugins/connect/api/graphql/generated/api/types.js';
 
 interface Context extends CoreContext {
     params: {

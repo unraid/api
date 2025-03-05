@@ -2,7 +2,7 @@ import { Query, ResolveField, Resolver } from '@nestjs/graphql';
 
 import { AuthActionVerb, AuthPossession, UsePermissions } from 'nest-authz';
 
-import { Resource } from '@app/graphql/generated/api/types.js';
+import { Resource } from '@app/unraid-api/plugins/connect/api/graphql/generated/api/types.js';
 
 @Resolver('Docker')
 export class DockerResolver {

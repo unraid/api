@@ -3,7 +3,7 @@ import { Query, Resolver } from '@nestjs/graphql';
 import { AuthActionVerb, AuthPossession, UsePermissions } from 'nest-authz';
 
 import { getDisks } from '@app/core/modules/get-disks.js';
-import { Resource } from '@app/graphql/generated/api/types.js';
+import { Resource } from '@app/unraid-api/plugins/connect/api/graphql/generated/api/types.js';
 
 @Resolver('Disks')
 export class DisksResolver {

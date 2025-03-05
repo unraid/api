@@ -2,9 +2,9 @@ import { Args, Mutation, Query, Resolver } from '@nestjs/graphql';
 
 import { AuthActionVerb, AuthPossession, UsePermissions } from 'nest-authz';
 
-import type { AllowedOriginInput } from '@app/graphql/generated/api/types.js';
+import type { AllowedOriginInput } from '@app/unraid-api/plugins/connect/api/graphql/generated/api/types.js';
 import { getAllowedOrigins } from '@app/common/allowed-origins.js';
-import { Config, ConfigErrorState, Resource } from '@app/graphql/generated/api/types.js';
+import { Config, ConfigErrorState, Resource } from '@app/unraid-api/plugins/connect/api/graphql/generated/api/types.js';
 import { getters, store } from '@app/store/index.js';
 import { updateAllowedOrigins } from '@app/store/modules/config.js';
 

@@ -4,8 +4,8 @@ import { newEnforcer } from 'casbin';
 import { AuthZService } from 'nest-authz';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import type { ApiKey, ApiKeyWithSecret, UserAccount } from '@app/graphql/generated/api/types.js';
-import { Resource, Role } from '@app/graphql/generated/api/types.js';
+import type { ApiKey, ApiKeyWithSecret, UserAccount } from '@app/unraid-api/plugins/connect/api/graphql/generated/api/types.js';
+import { Resource, Role } from '@app/unraid-api/plugins/connect/api/graphql/generated/api/types.js';
 import { ApiKeyService } from '@app/unraid-api/auth/api-key.service.js';
 import { AuthService } from '@app/unraid-api/auth/auth.service.js';
 import { CookieService } from '@app/unraid-api/auth/cookie.service.js';

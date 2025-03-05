@@ -1,6 +1,6 @@
 import { decodeJwt } from 'jose';
 
-import type { ConnectSignInInput } from '@app/graphql/generated/api/types.js';
+import type { ConnectSignInInput } from '@app/unraid-api/plugins/connect/api/graphql/generated/api/types.js';
 import { getters, store } from '@app/store/index.js';
 import { loginUser } from '@app/store/modules/config.js';
 import { FileLoadStatus } from '@app/store/types.js';

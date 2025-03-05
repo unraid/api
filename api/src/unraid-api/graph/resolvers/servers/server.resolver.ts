@@ -3,8 +3,8 @@ import { Query, Resolver, Subscription } from '@nestjs/graphql';
 import { AuthActionVerb, AuthPossession, UsePermissions } from 'nest-authz';
 
 import { createSubscription, PUBSUB_CHANNEL } from '@app/core/pubsub.js';
-import { Resource } from '@app/graphql/generated/api/types.js';
-import { type Server } from '@app/graphql/generated/client/graphql.js';
+import { Resource } from '@app/unraid-api/plugins/connect/api/graphql/generated/api/types.js';
+import { type Server } from '@app/unraid-api/plugins/connect/api/graphql/generated/client/graphql.js';
 import { getLocalServer } from '@app/graphql/schema/utils.js';
 
 @Resolver('Server')

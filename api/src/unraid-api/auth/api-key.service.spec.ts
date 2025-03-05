@@ -6,10 +6,10 @@ import { ensureDir, ensureDirSync } from 'fs-extra';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { ZodError } from 'zod';
 
-import type { ApiKey, ApiKeyWithSecret } from '@app/graphql/generated/api/types.js';
+import type { ApiKey, ApiKeyWithSecret } from '@app/unraid-api/plugins/connect/api/graphql/generated/api/types.js';
 import { environment } from '@app/environment.js';
-import { ApiKeySchema, ApiKeyWithSecretSchema } from '@app/graphql/generated/api/operations.js';
-import { Resource, Role } from '@app/graphql/generated/api/types.js';
+import { ApiKeySchema, ApiKeyWithSecretSchema } from '@app/unraid-api/plugins/connect/api/graphql/generated/api/operations.js';
+import { Resource, Role } from '@app/unraid-api/plugins/connect/api/graphql/generated/api/types.js';
 import { getters, store } from '@app/store/index.js';
 import { updateUserConfig } from '@app/store/modules/config.js';
 import { FileLoadStatus } from '@app/store/types.js';

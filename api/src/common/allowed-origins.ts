@@ -3,7 +3,7 @@ import { uniq } from 'lodash-es';
 import type { RootState } from '@app/store/index.js';
 import { logger } from '@app/core/log.js';
 import { GRAPHQL_INTROSPECTION } from '@app/environment.js';
-import { getServerIps, getUrlForField } from '@app/graphql/resolvers/subscription/network.js';
+import { getServerIps, getUrlForField } from '@app/unraid-api/plugins/connect/api/graphql/resolvers/subscription/network.js';
 import { getters, store } from '@app/store/index.js';
 import { FileLoadStatus } from '@app/store/types.js';
 

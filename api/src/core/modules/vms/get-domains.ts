@@ -1,7 +1,7 @@
 import { GraphQLError } from 'graphql';
 
-import type { VmDomain } from '@app/graphql/generated/api/types.js';
-import { VmState } from '@app/graphql/generated/api/types.js';
+import type { VmDomain } from '@app/unraid-api/plugins/connect/api/graphql/generated/api/types.js';
+import { VmState } from '@app/unraid-api/plugins/connect/api/graphql/generated/api/types.js';
 
 const states = {
     0: 'NOSTATE',

@@ -2,9 +2,9 @@ import type { Systeminformation } from 'systeminformation';
 import { execa } from 'execa';
 import { blockDevices, diskLayout } from 'systeminformation';
 
-import type { Disk } from '@app/graphql/generated/api/types.js';
+import type { Disk } from '@app/unraid-api/plugins/connect/api/graphql/generated/api/types.js';
 import { graphqlLogger } from '@app/core/log.js';
-import { DiskFsType, DiskInterfaceType, DiskSmartStatus } from '@app/graphql/generated/api/types.js';
+import { DiskFsType, DiskInterfaceType, DiskSmartStatus } from '@app/unraid-api/plugins/connect/api/graphql/generated/api/types.js';
 import { batchProcess } from '@app/utils.js';
 
 const getTemperature = async (disk: Systeminformation.DiskLayoutData): Promise<number> => {

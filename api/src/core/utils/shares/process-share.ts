@@ -1,5 +1,5 @@
 import type { DiskShare, Share, UserShare } from '@app/core/types/states/share.js';
-import type { ArrayDisk } from '@app/graphql/generated/api/types.js';
+import type { ArrayDisk } from '@app/unraid-api/plugins/connect/api/graphql/generated/api/types.js';
 import { getters } from '@app/store/index.js';
 
 const processors = {

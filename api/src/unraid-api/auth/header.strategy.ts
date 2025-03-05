@@ -3,7 +3,7 @@ import { PassportStrategy } from '@nestjs/passport';
 
 import { Strategy } from 'passport-http-header-strategy';
 
-import { User } from '@app/graphql/generated/api/types.js';
+import { User } from '@app/unraid-api/plugins/connect/api/graphql/generated/api/types.js';
 import { AuthService } from '@app/unraid-api/auth/auth.service.js';
 
 @Injectable()

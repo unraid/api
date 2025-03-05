@@ -5,9 +5,9 @@ import { join } from 'node:path';
 
 import { AuthActionVerb, AuthPossession, UsePermissions } from 'nest-authz';
 
-import type { Display } from '@app/graphql/generated/api/types.js';
+import type { Display } from '@app/unraid-api/plugins/connect/api/graphql/generated/api/types.js';
 import { createSubscription, PUBSUB_CHANNEL } from '@app/core/pubsub.js';
-import { Resource } from '@app/graphql/generated/api/types.js';
+import { Resource } from '@app/unraid-api/plugins/connect/api/graphql/generated/api/types.js';
 import { getters } from '@app/store/index.js';
 
 const states = {

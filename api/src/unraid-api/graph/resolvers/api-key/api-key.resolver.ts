@@ -10,8 +10,8 @@ import type {
     ApiKeyWithSecret,
     CreateApiKeyInput,
     RemoveRoleFromApiKeyInput,
-} from '@app/graphql/generated/api/types.js';
-import { Resource, Role } from '@app/graphql/generated/api/types.js';
+} from '@app/unraid-api/plugins/connect/api/graphql/generated/api/types.js';
+import { Resource, Role } from '@app/unraid-api/plugins/connect/api/graphql/generated/api/types.js';
 import { ApiKeyService } from '@app/unraid-api/auth/api-key.service.js';
 import { GraphqlAuthGuard } from '@app/unraid-api/auth/auth.guard.js';
 import { AuthService } from '@app/unraid-api/auth/auth.service.js';

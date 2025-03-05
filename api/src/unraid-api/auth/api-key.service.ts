@@ -10,16 +10,16 @@ import { AuthActionVerb } from 'nest-authz';
 import { v4 as uuidv4 } from 'uuid';
 import { ZodError } from 'zod';
 
-import type { Permission } from '@app/graphql/generated/api/types.js';
+import type { Permission } from '@app/unraid-api/plugins/connect/api/graphql/generated/api/types.js';
 import { environment } from '@app/environment.js';
-import { ApiKeySchema, ApiKeyWithSecretSchema } from '@app/graphql/generated/api/operations.js';
+import { ApiKeySchema, ApiKeyWithSecretSchema } from '@app/unraid-api/plugins/connect/api/graphql/generated/api/operations.js';
 import {
     AddPermissionInput,
     ApiKey,
     ApiKeyWithSecret,
     Resource,
     Role,
-} from '@app/graphql/generated/api/types.js';
+} from '@app/unraid-api/plugins/connect/api/graphql/generated/api/types.js';
 import { getters, store } from '@app/store/index.js';
 import { setLocalApiKey } from '@app/store/modules/config.js';
 import { FileLoadStatus } from '@app/store/types.js';
