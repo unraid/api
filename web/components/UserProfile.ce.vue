@@ -26,7 +26,7 @@ const serverStore = useServerStore();
 
 const { callbackData } = storeToRefs(useCallbackActionsStore());
 const { dropdownVisible } = storeToRefs(dropdownStore);
-const { name, description, guid, keyfile, lanIp } = storeToRefs(serverStore);
+const { name, description, guid, keyfile, lanIp, connectPluginInstalled } = storeToRefs(serverStore);
 const { bannerGradient, theme } = storeToRefs(useThemeStore());
 
 /**
@@ -149,8 +149,10 @@ onMounted(() => {
 
       <div class="block w-2px h-24px bg-header-text-secondary" />
 
-      <!-- Keep the sidebar out of staging/prod builds, but easily accessible for development -->
-      <NotificationsSidebar />
+      <template v-if="connectPluginInstalled">
+        <!-- Keep the sidebar out of staging/prod builds, but easily accessible for development -->
+        <NotificationsSidebar />
+      </template>
 
       <OnClickOutside
         class="flex items-center justify-end h-full"
