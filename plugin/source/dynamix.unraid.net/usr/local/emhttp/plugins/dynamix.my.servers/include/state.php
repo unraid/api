@@ -94,7 +94,7 @@ class ServerState
         $this->webguiGlobals = &$webguiGlobals;
         // echo "<pre>" . json_encode($this->webguiGlobals, JSON_PRETTY_PRINT) . "</pre>";
 
-        $this->var = (array)parse_ini_file('state/var.ini');
+        $this->var = $webguiGlobals['var'];
         $this->nginxCfg = @parse_ini_file('/var/local/emhttp/nginx.ini') ?? [];
 
         $this->state = strtoupper(empty($this->var['regCheck']) ? $this->var['regTy'] : $this->var['regCheck']);
