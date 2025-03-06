@@ -1,7 +1,13 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 
-import { NumberField, NumberFieldDecrement, NumberFieldIncrement, NumberFieldInput } from '@unraid/ui';
+import {
+  cn,
+  NumberField,
+  NumberFieldDecrement,
+  NumberFieldIncrement,
+  NumberFieldInput,
+} from '@unraid/ui';
 import { useJsonFormsControl } from '@jsonforms/vue';
 
 import type { ControlElement } from '@jsonforms/core';
@@ -22,11 +28,23 @@ const min = computed(() => control.value.schema.minimum ?? Number.MIN_SAFE_INTEG
 const max = computed(() => control.value.schema.maximum ?? Number.MAX_SAFE_INTEGER);
 const step = computed(() => control.value.schema.multipleOf ?? 1);
 const formatOptions = computed(() => control.value.uischema?.options?.formatOptions || {});
+const classOverride = computed(() => {
+  return cn(control.value.uischema?.options?.class, {
+    'max-w-[25ch]': control.value.uischema?.options?.format === 'short',
+  });
+});
 </script>
 
 <template>
   <ControlLayout v-if="control.visible" :label="control.label" :errors="control.errors">
-    <NumberField v-model="value" :min="min" :max="max" :step="step" :format-options="formatOptions">
+    <NumberField
+      v-model="value"
+      :min="min"
+      :max="max"
+      :step="step"
+      :format-options="formatOptions"
+      :class="classOverride"
+    >
       <NumberFieldDecrement />
       <NumberFieldInput />
       <NumberFieldIncrement />

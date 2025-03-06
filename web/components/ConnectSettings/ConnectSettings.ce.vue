@@ -44,6 +44,9 @@ const uiSchema = computed(() => {
         type: 'Control',
         scope: '#/properties/wanPort',
         label: 'WAN Port',
+        options: {
+          format: 'short',
+        },
         rule: {
           effect: 'SHOW',
           condition: {
