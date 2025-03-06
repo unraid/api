@@ -27,18 +27,13 @@ export class ConnectSettingsResolver {
             properties: {
                 remoteAccess: {
                     type: 'string',
-                    enum: [
-                        'OFF',
-                        'DYNAMIC_UPNP',
-                        'DYNAMIC_MANUAL',
-                        'ALWAYS_UPNP',
-                        'ALWAYS_MANUAL',
-                    ],
+                    // parse available options based on auth state & ssl status
+                    enum: ['OFF', 'DYNAMIC_UPNP', 'DYNAMIC_MANUAL', 'ALWAYS_UPNP', 'ALWAYS_MANUAL'],
                     title: 'Allow Remote Access',
                     default: 'OFF',
                 },
                 wanPort: {
-                    type: 'integer',
+                    type: 'number',
                     title: 'WAN Port',
                     minimum: 0,
                     maximum: 65535,
@@ -62,16 +57,11 @@ export class ConnectSettingsResolver {
                 extraOrigins: {
                     type: 'array',
                     items: {
-                        type: 'object',
-                        properties: {
-                            url: {
-                                type: 'string',
-                            },
-                        },
+                        type: 'string',
+                        format: 'url',
                     },
                     title: 'Unraid API extra origins',
-                    label: 'Unraid API extra origins',
-                    description: 'List of allowed origins',
+                    description: `Provide a comma separated list of urls that are allowed to access the unraid-api. \ne.g. https://abc.myreverseproxy.com`,
                 },
             },
         };
@@ -81,10 +71,14 @@ export class ConnectSettingsResolver {
     public async uiSchema() {
         return {
             type: 'VerticalLayout',
+            options: {
+                format: 'legacyGrid',
+            },
             elements: [
                 {
                     type: 'Control',
                     scope: '#/properties/remoteAccess',
+                    label: 'Allow Remote Access',
                 },
                 {
                     type: 'Control',

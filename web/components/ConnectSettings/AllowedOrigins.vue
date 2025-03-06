@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { BrandButton, Button, Input } from '@unraid/ui';
+import { BrandButton, Input } from '@unraid/ui';
 
 import { useUnraidApiSettingsStore } from '~/store/unraidApiSettings';
 

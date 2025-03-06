@@ -1,9 +1,11 @@
 <script setup lang="ts">
-import { Label as UuiLabel, Switch as UuiSwitch } from '@unraid/ui';
+import { Switch as UuiSwitch } from '@unraid/ui';
 import { useJsonFormsControl } from '@jsonforms/vue';
 
 import type { ControlElement } from '@jsonforms/core';
 import type { RendererProps } from '@jsonforms/vue';
+
+import ControlLayout from './ControlLayout.vue';
 
 const props = defineProps<RendererProps<ControlElement>>();
 const { control, handleChange } = useJsonFormsControl(props);
@@ -13,7 +15,7 @@ const onChange = (checked: boolean) => {
 </script>
 
 <template>
-  <div>
+  <ControlLayout v-if="control.visible" :label="control.label" :errors="control.errors">
     <UuiSwitch
       :id="control.id + '-input'"
       :name="control.path"
@@ -23,8 +25,5 @@ const onChange = (checked: boolean) => {
       :model-value="control.data as boolean"
       @update:checked="onChange"
     />
-    <div v-if="control.errors" class="error-messages">
-      <span v-for="(error, index) in control.errors" :key="index">{{ error }}</span>
-    </div>
-  </div>
+  </ControlLayout>
 </template>

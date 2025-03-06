@@ -11,15 +11,18 @@ import { JsonForms } from '@jsonforms/vue';
 import { vanillaRenderers } from '@jsonforms/vue-vanilla';
 
 import { getConnectSettingsForm } from './graphql/settings.query';
-import { formSwitchEntry } from './renderer/switch.renderer';
-import { verticalLayoutEntry } from './renderer/vertical-layout.renderer';
+import { formSelectEntry, formSwitchEntry, numberFieldEntry } from './renderer/renderer-entries';
+import { stringArrayEntry } from './renderer/string-array.renderer';
 
 const { result } = useQuery(getConnectSettingsForm);
 const renderers = [
   ...vanillaRenderers,
   // ...extendedVuetifyRenderers,
   formSwitchEntry,
-  verticalLayoutEntry,
+  formSelectEntry,
+  numberFieldEntry,
+  // verticalLayoutEntry,
+  stringArrayEntry,
   // custom renderers here
 ];
 const dataSchema = computed(() => {
@@ -32,23 +35,25 @@ const uiSchema = computed(() => {
   return {
     type: 'VerticalLayout',
     elements: [
-      // {
-      //   type: 'Control',
-      //   scope: '#/properties/remoteAccess',
-      // },
-      // {
-      //   type: 'Control',
-      //   scope: '#/properties/wanPort',
-      //   rule: {
-      //     effect: 'SHOW',
-      //     condition: {
-      //       scope: '#/properties/remoteAccess',
-      //       schema: {
-      //         enum: ['DYNAMIC_MANUAL', 'ALWAYS_MANUAL'],
-      //       },
-      //     },
-      //   },
-      // },
+      {
+        type: 'Control',
+        scope: '#/properties/remoteAccess',
+        label: 'Allow Remote Access',
+      },
+      {
+        type: 'Control',
+        scope: '#/properties/wanPort',
+        label: 'WAN Port',
+        rule: {
+          effect: 'SHOW',
+          condition: {
+            scope: '#/properties/remoteAccess',
+            schema: {
+              enum: ['DYNAMIC_MANUAL', 'ALWAYS_MANUAL'],
+            },
+          },
+        },
+      },
       {
         type: 'Control',
         scope: '#/properties/sandbox',
@@ -57,21 +62,14 @@ const uiSchema = computed(() => {
           toggle: true,
         },
       },
-      // {
-      //   type: 'Control',
-      //   scope: '#/properties/extraOrigins',
-      //   options: {
-      //     detail: {
-      //       type: 'VerticalLayout',
-      //       elements: [
-      //         {
-      //           type: 'Control',
-      //           scope: '#/properties/url',
-      //         },
-      //       ],
-      //     },
-      //   },
-      // },
+      {
+        type: 'Control',
+        scope: '#/properties/extraOrigins',
+        options: {
+          inputType: 'url',
+          placeholder: 'https://example.com',
+        },
+      },
     ],
   };
 });
@@ -99,20 +97,20 @@ const onChange = ({ data: fdata, errors }: { data: Record<string, unknown>; erro
   >
     <Label>Account Status:</Label>
     <div v-html="'<unraid-i18n-host><unraid-auth></unraid-auth></unraid-i18n-host>'"></div>
-    <div>
+    <!-- <div>
       <Label>Allowed Origins:</Label>
       <p class="italic mt-1">
         Provide a comma separated list of urls that are allowed to access the unraid-api.<br>
         e.g. (https://abc.myreverseproxy.com,https://xyz.rvrsprx.com,…)
       </p>
     </div>
-    <ConnectSettingsAllowedOrigins />
-    <Label>WAN IP Check:</Label>
+    <ConnectSettingsAllowedOrigins /> -->
+    <!-- <Label>WAN IP Check:</Label>
     <div
       v-html="'<unraid-i18n-host><unraid-wan-ip-check></unraid-wan-ip-check></unraid-i18n-host>'"
     ></div>
     <Label>Remote Access (Deprecated):</Label>
-    <ConnectSettingsRemoteAccess />
+    <ConnectSettingsRemoteAccess /> -->
     <Label>Download Unraid API Logs:</Label>
     <div
       v-html="
@@ -121,7 +119,7 @@ const onChange = ({ data: fdata, errors }: { data: Record<string, unknown>; erro
     ></div>
   </div>
   <!-- @todo: flashback up -->
-  <div class="mt-6">
+  <div class="mt-6 [&_.vertical-layout]:space-y-6">
     <JsonForms
       v-if="result"
       :schema="dataSchema"
@@ -131,7 +129,7 @@ const onChange = ({ data: fdata, errors }: { data: Record<string, unknown>; erro
       @change="onChange"
     />
     <div class="mt-6 grid grid-cols-3 gap-6">
-      <div class="col-start-2"><Button @click="debugData">Debug data</Button></div>
+      <div class="col-start-2"><Button variant="outline" @click="debugData">Apply</Button></div>
     </div>
   </div>
 </template>

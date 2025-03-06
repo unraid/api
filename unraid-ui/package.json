@@ -33,12 +33,14 @@
   "dependencies": {
     "@headlessui/vue": "^1.7.23",
     "@heroicons/vue": "^2.2.0",
+    "@internationalized/number": "^3.6.0",
     "@vueuse/core": "^12.0.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "kebab-case": "^2.0.1",
     "lucide-vue-next": "^0.475.0",
     "radix-vue": "^1.9.13",
+    "reka-ui": "^2.0.2",
     "shadcn-vue": "^0.11.3",
     "tailwind-merge": "^2.6.0",
     "vue-sonner": "^1.3.0"
