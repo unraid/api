@@ -23,7 +23,7 @@ fi
 echo "$server_name" > "$state_file"
 
 # Source directory path
-source_directory=".nuxt/nuxt-custom-elements/dist/unraid-components"
+source_directory=".nuxt/nuxt-custom-elements/dist/unraid-components/"
 
 if [ ! -d "$source_directory" ]; then
   echo "The web components directory does not exist."
@@ -31,7 +31,7 @@ if [ ! -d "$source_directory" ]; then
 fi
 
 # Replace the value inside the rsync command with the user's input
-rsync_command="rsync -avz -e ssh $source_directory root@${server_name}:/usr/local/emhttp/plugins/dynamix.my.servers"
+rsync_command="rsync -avz -e ssh $source_directory root@${server_name}:/usr/local/emhttp/plugins/dynamix.my.servers/unraid-components/nuxt"
 
 echo "Executing the following command:"
 echo "$rsync_command"
@@ -46,7 +46,7 @@ update_auth_request() {
   # SSH into server and update auth-request.php
   ssh "root@${server_name}" "
     AUTH_REQUEST_FILE='/usr/local/emhttp/auth-request.php'
-    WEB_COMPS_DIR='/usr/local/emhttp/plugins/dynamix.my.servers/unraid-components/_nuxt/'
+    WEB_COMPS_DIR='/usr/local/emhttp/plugins/dynamix.my.servers/unraid-components/nuxt/_nuxt/'
 
     # Find JS files and modify paths
     mapfile -t JS_FILES < <(find \"\$WEB_COMPS_DIR\" -type f -name \"*.js\" | sed 's|/usr/local/emhttp||' | sort -u)
@@ -66,7 +66,7 @@ update_auth_request() {
           print \$0
           next
         }
-        !in_array || !/\/plugins\/dynamix\.my\.servers\/unraid-components\/_nuxt\/unraid-components\.client-/ {
+        !in_array || !/\/plugins\/dynamix\.my\.servers\/unraid-components\/nuxt\/_nuxt\/unraid-components\.client-/ {
           print \$0
         }
       ' \"\$AUTH_REQUEST_FILE\" > \"\${AUTH_REQUEST_FILE}.tmp\"
