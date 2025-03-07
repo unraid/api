@@ -6,7 +6,7 @@
 import { useQuery } from '@vue/apollo-composable';
 
 // import { extendedVuetifyRenderers } from '@jsonforms/vue-vuetify';
-import { Button, Label } from '@unraid/ui';
+import { BrandButton, Label } from '@unraid/ui';
 import { JsonForms } from '@jsonforms/vue';
 import { vanillaRenderers } from '@jsonforms/vue-vanilla';
 
@@ -132,7 +132,11 @@ const onChange = ({ data: fdata, errors }: { data: Record<string, unknown>; erro
       @change="onChange"
     />
     <div class="mt-6 grid grid-cols-3 gap-6">
-      <div class="col-start-2"><Button variant="outline" @click="debugData">Apply</Button></div>
+      <div class="col-start-2">
+        <BrandButton variant="outline-primary" padding="lean" size="12px" class="leading-normal" @click="debugData">
+          Apply
+        </BrandButton>
+      </div>
     </div>
   </div>
 </template>

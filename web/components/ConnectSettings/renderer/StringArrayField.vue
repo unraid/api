@@ -43,7 +43,7 @@ const placeholder = computed(() => control.value.uischema?.options?.placeholder 
 <template>
   <ControlLayout v-if="control.visible" :label="control.label" :errors="control.errors">
     <div class="space-y-4">
-      <p v-if="control.description" class="text-sm text-gray-600">{{ control.description }}</p>
+      <p v-if="control.description">{{ control.description }}</p>
       <div v-for="(item, index) in items" :key="index" class="flex gap-2">
         <Input
           :type="inputType"

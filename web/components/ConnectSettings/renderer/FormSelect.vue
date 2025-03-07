@@ -21,10 +21,9 @@ import ControlLayout from './ControlLayout.vue';
 
 // Define the component props expected by JSONForms.
 const props = defineProps<RendererProps<ControlElement>>();
+console.log('FormSelect hi');
 const { control, handleChange } = useJsonFormsControl(props);
 
-// Create a local ref for the currently selected value.
-// If no value exists, default it to an empty string.
 const selected = computed(() => control.value.data);
 // Create a computed property to extract options from the JSON Schema.
 // We expect that the schema contains an "enum" array. Optionally, it may
@@ -37,23 +36,32 @@ const options = computed(() => {
   }));
 });
 
+watchImmediate(options, (value) => {
+  console.log('FormSelect options', value);
+});
+
 // Update JSONForms data when the local selection changes.
 const onChange = (value: string) => {
   console.log('onChange', value);
   handleChange(control.value.path, value);
 };
+
+const { teleportTarget, determineTeleportTarget } = useTeleport();
+const onSelectOpen = () => {
+  determineTeleportTarget();
+};
 </script>
 
 <template>
   <ControlLayout v-if="control.visible" :label="control.label" :errors="control.errors">
-    <Select v-model="selected" @update:model-value="onChange">
+    <Select v-model="selected" @update:model-value="onChange" @update:open="onSelectOpen">
       <!-- The trigger shows the currently selected value (if any) -->
       <SelectTrigger>
         <SelectValue v-if="selected">{{ selected }}</SelectValue>
         <span v-else>{{ control.schema.default ?? 'Select an option' }}</span>
       </SelectTrigger>
       <!-- The content includes the selectable options -->
-      <SelectContent>
+      <SelectContent :to="teleportTarget">
         <SelectItem v-for="option in options" :key="option.value" :value="option.value">
           <SelectItemText>{{ option.label }}</SelectItemText>
         </SelectItem>
