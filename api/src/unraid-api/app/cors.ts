@@ -69,7 +69,7 @@ export const configureFastifyCors =
      */
     (req: FastifyRequest, callback: (error: Error | null, options: CorsOptions) => void) => {
         const { cookies } = req;
-        if (typeof cookies === 'object') {
+        if (cookies && typeof cookies === 'object') {
             service.hasValidAuthCookie(cookies).then((isValid) => {
                 if (isValid) {
                     callback(null, { credentials: true, origin: true });

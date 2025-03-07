@@ -1,6 +1,6 @@
 import type { NestFastifyApplication } from '@nestjs/platform-fastify';
 import { NestFactory } from '@nestjs/core';
-import { FastifyAdapter } from '@nestjs/platform-fastify';
+import { FastifyAdapter } from '@nestjs/platform-fastify/adapters';
 
 import fastifyCookie from '@fastify/cookie';
 import { LoggerErrorInterceptor, Logger as PinoLogger } from 'nestjs-pino';
@@ -8,8 +8,6 @@ import { LoggerErrorInterceptor, Logger as PinoLogger } from 'nestjs-pino';
 import { apiLogger } from '@app/core/log.js';
 import { LOG_LEVEL, PORT } from '@app/environment.js';
 import { AppModule } from '@app/unraid-api/app/app.module.js';
-import { configureFastifyCors } from '@app/unraid-api/app/cors.js';
-import { CookieService } from '@app/unraid-api/auth/cookie.service.js';
 import { GraphQLExceptionsFilter } from '@app/unraid-api/exceptions/graphql-exceptions.filter.js';
 import { HttpExceptionFilter } from '@app/unraid-api/exceptions/http-exceptions.filter.js';
 
@@ -23,10 +21,16 @@ export async function bootstrapNestServer(): Promise<NestFastifyApplication> {
 
     const server = app.getHttpAdapter().getInstance();
 
-    await app.register(fastifyCookie); // parse cookies before cors
+    // Type casting is needed due to version mismatches between @nestjs/platform-fastify and fastify
+    await (server as any).register(fastifyCookie);
 
-    const cookieService = app.get(CookieService);
-    app.enableCors(configureFastifyCors(cookieService));
+    // Allows all origins but still checks authentication
+    app.enableCors({
+        origin: true, // Allows all origins
+        credentials: true,
+        methods: ['GET', 'PUT', 'POST', 'DELETE', 'OPTIONS'],
+        allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+    });
 
     // Setup Nestjs Pino Logger
     app.useLogger(app.get(PinoLogger));

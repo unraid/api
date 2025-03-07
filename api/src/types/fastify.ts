@@ -5,5 +5,7 @@ import type {
 } from 'fastify';
 
 export type FastifyInstance = BaseFastifyInstance;
-export type FastifyRequest = BaseFastifyRequest;
+export interface FastifyRequest extends BaseFastifyRequest {
+    cookies?: Record<string, string>;
+}
 export type FastifyReply = BaseFastifyReply;
