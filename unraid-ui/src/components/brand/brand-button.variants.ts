@@ -1,4 +1,4 @@
-import { cva } from "class-variance-authority";
+import { cva, type VariantProps } from "class-variance-authority";
 
 export const brandButtonVariants = cva(
   "group text-center font-semibold leading-none relative z-0 flex flex-row items-center justify-center border-2 border-solid shadow-none cursor-pointer rounded-md hover:shadow-md focus:shadow-md disabled:opacity-25 disabled:hover:opacity-25 disabled:focus:opacity-25 disabled:cursor-not-allowed",
@@ -9,6 +9,7 @@ export const brandButtonVariants = cva(
         black: "[&]:text-white bg-black border-black transition hover:text-black focus:text-black hover:bg-grey focus:bg-grey hover:border-grey focus:border-grey",
         gray: "text-black bg-grey transition hover:text-white focus:text-white hover:bg-grey-mid focus:bg-grey-mid hover:border-grey-mid focus:border-grey-mid",
         outline: "[&]:text-orange bg-transparent border-orange hover:text-white focus:text-white",
+        "outline-primary": "text-primary [&]:text-primary uppercase tracking-widest bg-transparent border-primary rounded-sm hover:text-white focus:text-white",
         "outline-black": "text-black bg-transparent border-black hover:text-black focus:text-black hover:bg-grey focus:bg-grey hover:border-grey focus:border-grey",
         "outline-white": "text-white bg-transparent border-white hover:text-black focus:text-black hover:bg-white focus:bg-white",
         underline: "opacity-75 underline border-transparent transition hover:text-primary hover:bg-muted hover:border-muted focus:text-primary focus:bg-muted focus:border-muted hover:opacity-100 focus:opacity-100",
@@ -27,6 +28,7 @@ export const brandButtonVariants = cva(
       padding: {
         default: "",
         none: "p-0",
+        lean: "px-16px py-8px",
       },
     },
     compoundVariants: [
@@ -67,4 +69,6 @@ export const brandButtonVariants = cva(
       padding: "default",
     },
   }
-); 
+);
+
+export type BrandButtonVariants = VariantProps<typeof brandButtonVariants>;

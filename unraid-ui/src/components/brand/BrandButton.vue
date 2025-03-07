@@ -1,12 +1,12 @@
 <script setup lang="ts">
 import { computed } from 'vue';
-import { brandButtonVariants } from './brand-button.variants';
+import { type BrandButtonVariants, brandButtonVariants } from './brand-button.variants';
 import { cn } from '@/lib/utils';
 
 export interface BrandButtonProps {
-  variant?: 'fill' | 'black' | 'gray' | 'outline' | 'outline-black' | 'outline-white' | 'underline' | 'underline-hover-red' | 'white' | 'none';
-  size?: '12px' | '14px' | '16px' | '18px' | '20px' | '24px';
-  padding?: 'default' | 'none';
+  variant?: BrandButtonVariants['variant'];
+  size?: BrandButtonVariants['size'];
+  padding?: BrandButtonVariants['padding'];
   btnType?: 'button' | 'submit' | 'reset';
   class?: string;
   click?: () => void;
@@ -66,7 +66,7 @@ const classes = computed(() => {
       class="absolute -top-[2px] -right-[2px] -bottom-[2px] -left-[2px] -z-10 bg-gradient-to-r from-unraid-red to-orange opacity-100 transition-all rounded-md group-hover:opacity-60 group-focus:opacity-60"
     />
     <div
-      v-if="variant === 'outline'"
+      v-if="variant?.includes('outline')"
       class="absolute -top-[2px] -right-[2px] -bottom-[2px] -left-[2px] -z-10 bg-gradient-to-r from-unraid-red to-orange opacity-0 transition-all rounded-md group-hover:opacity-100 group-focus:opacity-100"
     />
 
