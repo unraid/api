@@ -23,10 +23,11 @@ export class ConnectSettingsResolver {
 
     @ResolveField()
     public async dataSchema() {
+        const { dataSlice } = await this.connectSettingsService.remoteAccessDataSchema();
         return {
             type: 'object',
             properties: {
-                remoteAccess: await this.connectSettingsService.remoteAccessDataSchema(),
+                ...dataSlice,
                 wanPort: {
                     type: 'number',
                     title: 'WAN Port',
@@ -64,10 +65,11 @@ export class ConnectSettingsResolver {
 
     @ResolveField()
     public async uiSchema() {
+        const { uiSlice } = await this.connectSettingsService.remoteAccessDataSchema();
         return {
             type: 'VerticalLayout',
             elements: [
-                await this.connectSettingsService.remoteAccessUiSchema(),
+                ...uiSlice,
                 {
                     type: 'Control',
                     scope: '#/properties/wanPort',
