@@ -43,7 +43,7 @@ export class CookieService {
      * @param opts optional overrides for the session directory & prefix of the session cookie to look for
      * @returns true if any of the cookies are a valid unraid session cookie, false otherwise
      */
-    async hasValidAuthCookie(cookies: { [cookieName: string]: string | undefined }): Promise<boolean> {
+    async hasValidAuthCookie(cookies: Record<string, string | undefined>): Promise<boolean> {
         const { data } = await batchProcess(Object.entries(cookies), ([cookieName, cookieValue]) =>
             this.isValidAuthCookie(String(cookieName), String(cookieValue ?? ''))
         );

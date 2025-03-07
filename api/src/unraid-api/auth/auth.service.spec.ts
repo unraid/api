@@ -5,6 +5,7 @@ import { AuthZService } from 'nest-authz';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import type { ApiKey, ApiKeyWithSecret, UserAccount } from '@app/graphql/generated/api/types.js';
+import type { FastifyRequest } from '@app/types/fastify.js';
 import { Resource, Role } from '@app/graphql/generated/api/types.js';
 import { ApiKeyService } from '@app/unraid-api/auth/api-key.service.js';
 import { AuthService } from '@app/unraid-api/auth/auth.service.js';
@@ -48,6 +49,19 @@ describe('AuthService', () => {
         roles: [Role.GUEST, Role.CONNECT],
     };
 
+    // Mock FastifyRequest object for tests
+    const createMockRequest = (overrides = {}): FastifyRequest => {
+        return {
+            headers: {},
+            query: {},
+            cookies: {},
+            id: 'test-id',
+            params: {},
+            raw: {} as any,
+            ...overrides,
+        } as FastifyRequest;
+    };
+
     beforeEach(async () => {
         const enforcer = await newEnforcer();
 
@@ -66,35 +80,56 @@ describe('AuthService', () => {
             vi.spyOn(cookieService, 'hasValidAuthCookie').mockResolvedValue(true);
             vi.spyOn(authService, 'getSessionUser').mockResolvedValue(mockUser);
             vi.spyOn(authzService, 'getRolesForUser').mockResolvedValue([Role.ADMIN]);
+            vi.spyOn(authService, 'validateCsrfToken').mockReturnValue(true);
 
-            const result = await authService.validateCookiesCasbin({});
+            const mockRequest = createMockRequest();
+            const result = await authService.validateCookiesCasbin(mockRequest);
 
             expect(result).toEqual(mockUser);
         });
 
         it('should throw UnauthorizedException when auth cookie is invalid', async () => {
             vi.spyOn(cookieService, 'hasValidAuthCookie').mockResolvedValue(false);
+            vi.spyOn(authService, 'validateCsrfToken').mockReturnValue(true);
 
-            await expect(authService.validateCookiesCasbin({})).rejects.toThrow(UnauthorizedException);
+            const mockRequest = createMockRequest();
+            await expect(authService.validateCookiesCasbin(mockRequest)).rejects.toThrow(
+                UnauthorizedException
+            );
         });
 
         it('should throw UnauthorizedException when session user is missing', async () => {
             vi.spyOn(cookieService, 'hasValidAuthCookie').mockResolvedValue(true);
             vi.spyOn(authService, 'getSessionUser').mockResolvedValue(null as unknown as UserAccount);
+            vi.spyOn(authService, 'validateCsrfToken').mockReturnValue(true);
 
-            await expect(authService.validateCookiesCasbin({})).rejects.toThrow(UnauthorizedException);
+            const mockRequest = createMockRequest();
+            await expect(authService.validateCookiesCasbin(mockRequest)).rejects.toThrow(
+                UnauthorizedException
+            );
         });
 
         it('should add guest role when user has no roles', async () => {
             vi.spyOn(cookieService, 'hasValidAuthCookie').mockResolvedValue(true);
             vi.spyOn(authService, 'getSessionUser').mockResolvedValue(mockUser);
             vi.spyOn(authzService, 'getRolesForUser').mockResolvedValue([]);
+            vi.spyOn(authService, 'validateCsrfToken').mockReturnValue(true);
 
             const addRoleSpy = vi.spyOn(authzService, 'addRoleForUser');
-            const result = await authService.validateCookiesCasbin({});
+            const mockRequest = createMockRequest();
+            const result = await authService.validateCookiesCasbin(mockRequest);
 
             expect(result).toEqual(mockUser);
             expect(addRoleSpy).toHaveBeenCalledWith(mockUser.id, 'guest');
+        });
+
+        it('should throw UnauthorizedException when CSRF token is invalid', async () => {
+            vi.spyOn(authService, 'validateCsrfToken').mockReturnValue(false);
+
+            const mockRequest = createMockRequest();
+            await expect(authService.validateCookiesCasbin(mockRequest)).rejects.toThrow(
+                new UnauthorizedException('Invalid CSRF token')
+            );
         });
     });
 
