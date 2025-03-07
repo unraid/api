@@ -16,94 +16,17 @@ export class ConnectSettingsResolver {
         possession: AuthPossession.ANY,
     })
     public async connectSettingsForm() {
+        const { properties, elements } = await this.connectSettingsService.buildSettingsSchema();
         return {
             id: 'connectSettingsForm',
-        };
-    }
-
-    @ResolveField()
-    public async dataSchema() {
-        const { dataSlice } = await this.connectSettingsService.remoteAccessDataSchema();
-        return {
-            type: 'object',
-            properties: {
-                ...dataSlice,
-                wanPort: {
-                    type: 'number',
-                    title: 'WAN Port',
-                    minimum: 0,
-                    maximum: 65535,
-                },
-                sandbox: {
-                    type: 'boolean',
-                    label: 'Enable Developer Sandbox',
-                    // title: 'Enable Developer Sandbox',
-                    default: false,
-                },
-                flashBackup: {
-                    type: 'object',
-                    properties: {
-                        status: {
-                            type: 'string',
-                            enum: ['inactive', 'active', 'updating'],
-                            default: 'inactive',
-                        },
-                    },
-                },
-                extraOrigins: {
-                    type: 'array',
-                    items: {
-                        type: 'string',
-                        format: 'url',
-                    },
-                    title: 'Unraid API extra origins',
-                    description: `Provide a comma separated list of urls that are allowed to access the unraid-api. \ne.g. https://abc.myreverseproxy.com`,
-                },
+            dataSchema: {
+                type: 'object',
+                properties,
             },
-        };
-    }
-
-    @ResolveField()
-    public async uiSchema() {
-        const { uiSlice } = await this.connectSettingsService.remoteAccessDataSchema();
-        return {
-            type: 'VerticalLayout',
-            elements: [
-                ...uiSlice,
-                {
-                    type: 'Control',
-                    scope: '#/properties/wanPort',
-                    label: 'WAN Port',
-                    options: {
-                        format: 'short',
-                    },
-                    rule: {
-                        effect: 'SHOW',
-                        condition: {
-                            scope: '#/properties/remoteAccess',
-                            schema: {
-                                enum: ['DYNAMIC_MANUAL', 'ALWAYS_MANUAL'],
-                            },
-                        },
-                    },
-                },
-                {
-                    type: 'Control',
-                    scope: '#/properties/sandbox',
-                    label: 'Enable Developer Sandbox:',
-                    options: {
-                        toggle: true,
-                    },
-                },
-                {
-                    type: 'Control',
-                    scope: '#/properties/extraOrigins',
-                    options: {
-                        inputType: 'url',
-                        placeholder: 'https://example.com',
-                    },
-                },
-            ],
+            uiSchema: {
+                type: 'VerticalLayout',
+                elements,
+            },
         };
     }
 }
