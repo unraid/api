@@ -83,7 +83,7 @@
     "tailwind-rem-to-rem": "github:unraid/tailwind-rem-to-rem",
     "tailwindcss": "^3.0.0",
     "tailwindcss-animate": "^1.0.7",
-    "typescript": "^5.0.0",
+    "typescript": "^5.7.3",
     "vite": "^6.0.0",
     "vite-plugin-dts": "^3.0.0",
     "vite-plugin-vue-devtools": "^7.7.1",
