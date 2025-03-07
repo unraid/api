@@ -11,6 +11,7 @@
             "max_restarts": 10,
             "min_uptime": 10000,
             "watch": false,
+            "interpreter": "/usr/local/node/bin/node",
             "ignore_watch": ["node_modules", "src", ".env.*", "myservers.cfg"],
             "log_file": "/var/log/graphql-api.log",
             "kill_timeout": 10000

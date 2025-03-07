@@ -12,19 +12,25 @@ concurrency:
 
 jobs:
   release-please:
+    name: Release Please
     # Only run release-please on pushes to main
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     permissions:
       contents: write
       pull-requests: write
     steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+
       - id: release
         uses: googleapis/release-please-action@v4
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     outputs:
-      releases_created: ${{ steps.release.outputs.releases_created }}
-      tag_name: ${{ steps.release.outputs.tag_name }}
+      releases_created: ${{ steps.release.outputs.releases_created || 'false' }}
+      tag_name: ${{ steps.release.outputs.tag_name || '' }}
   test-api:
+    name: Test API
     defaults:
       run:
         working-directory: api
@@ -73,7 +79,7 @@ jobs:
         run: pnpm run coverage
 
   build-api:
-    name: Build and Test API
+    name: Build API
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -136,13 +142,16 @@ jobs:
           export API_VERSION
 
       - name: Build
-        run: pnpm run build-and-pack
+        run: |
+          pnpm run build:release
+
+          tar -czf deploy/unraid-api.tgz -C deploy/pack/ .
 
       - name: Upload tgz to Github artifacts
         uses: actions/upload-artifact@v4
         with:
           name: unraid-api
-          path: ${{ github.workspace }}/api/deploy/release/*.tgz
+          path: ${{ github.workspace }}/api/deploy/unraid-api.tgz
 
   build-unraid-ui-webcomponents:
     name: Build Unraid UI Library (Webcomponent Version)
@@ -196,13 +205,11 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: unraid-wc-ui
-          path: unraid-ui/dist/
+          path: unraid-ui/dist-wc/
 
   build-web:
     # needs: [build-unraid-ui]
     name: Build Web App
-    environment:
-      name: production
     defaults:
       run:
         working-directory: web
@@ -214,10 +221,10 @@ jobs:
       - name: Create env file
         run: |
           touch .env
-          echo VITE_ACCOUNT=${{ vars.VITE_ACCOUNT }} >> .env
-          echo VITE_CONNECT=${{ vars.VITE_CONNECT }} >> .env
-          echo VITE_UNRAID_NET=${{ vars.VITE_UNRAID_NET }} >> .env
-          echo VITE_CALLBACK_KEY=${{ vars.VITE_CALLBACK_KEY }} >> .env
+          echo VITE_ACCOUNT=${{ secrets.VITE_ACCOUNT }} >> .env
+          echo VITE_CONNECT=${{ secrets.VITE_CONNECT }} >> .env
+          echo VITE_UNRAID_NET=${{ secrets.VITE_UNRAID_NET }} >> .env
+          echo VITE_CALLBACK_KEY=${{ secrets.VITE_CALLBACK_KEY }} >> .env
           cat .env
 
       - name: Install Node
@@ -273,9 +280,13 @@ jobs:
           path: web/.nuxt/nuxt-custom-elements/dist/unraid-components
 
   build-plugin:
-    needs: [build-api, build-web, build-unraid-ui-webcomponents]
-    outputs:
-      tag: ${{ steps.build-plugin.outputs.tag }}
+    name: Build and Deploy Plugin
+    needs:
+      - release-please
+      - build-api
+      - build-web
+      - build-unraid-ui-webcomponents
+      - test-api
     defaults:
       run:
         working-directory: plugin
@@ -298,7 +309,6 @@ jobs:
       - uses: pnpm/action-setup@v4
         name: Install pnpm
         with:
-          
           run_install: false
 
       - name: Get pnpm store directory
@@ -320,73 +330,92 @@ jobs:
           cd ${{ github.workspace }}
           pnpm install --frozen-lockfile --filter @unraid/connect-plugin
 
+      - name: Download Unraid UI Components
+        uses: actions/download-artifact@v4
+        with:
+          name: unraid-wc-ui
+          path: ${{ github.workspace }}/plugin/source/dynamix.unraid.net/usr/local/emhttp/plugins/dynamix.my.servers/unraid-components/uui
+          merge-multiple: true
       - name: Download Unraid Web Components
         uses: actions/download-artifact@v4
         with:
-          pattern: unraid-wc-*
-          path: ./plugin/source/dynamix.unraid.net/usr/local/emhttp/plugins/dynamix.my.servers/unraid-components
+          pattern: unraid-wc-rich
+          path: ${{ github.workspace }}/plugin/source/dynamix.unraid.net/usr/local/emhttp/plugins/dynamix.my.servers/unraid-components/nuxt
           merge-multiple: true
       - name: Download Unraid API
         uses: actions/download-artifact@v4
         with:
           name: unraid-api
-          path: /tmp/unraid-api/
-      - name: Extract Unraid API and Build Plugin
+          path: ${{ github.workspace }}/plugin/api/
+      - name: Extract Unraid API
+        run: |
+          mkdir -p ${{ github.workspace }}/plugin/source/dynamix.unraid.net/usr/local/unraid-api
+          tar -xzf ${{ github.workspace }}/plugin/api/unraid-api.tgz -C ${{ github.workspace }}/plugin/source/dynamix.unraid.net/usr/local/unraid-api
+      - name: Build Plugin and TXZ Based on Event and Tag
         id: build-plugin
         run: |
-          tar -xzf /tmp/unraid-api/unraid-api.tgz -C ${{ github.workspace }}/plugin/source/dynamix.unraid.net/usr/local/unraid-api
           cd ${{ github.workspace }}/plugin
+          pnpm run build:txz
 
           if [ -n "${{ github.event.pull_request.number }}" ]; then
-            export TAG=PR${{ github.event.pull_request.number }}
-            # Put tag into github env
-            echo "TAG=${TAG}" >> $GITHUB_OUTPUT
+            TAG="PR${{ github.event.pull_request.number }}"
+            BUCKET_PATH="unraid-api/tag/${TAG}"
+          else
+            TAG=""
+            BUCKET_PATH="unraid-api"
           fi
 
-          pnpm run build
-      - name: Upload binary txz and plg to Github artifacts
+          if [ "${{ needs.release-please.outputs.releases_created }}" == 'true' ]; then
+            BASE_URL="https://stable.dl.unraid.net/unraid-api"
+          else
+            BASE_URL="https://preview.dl.unraid.net/unraid-api"
+          fi
+
+          echo "BUCKET_PATH=${BUCKET_PATH}" >> $GITHUB_OUTPUT
+          echo "TAG=${TAG}" >> $GITHUB_OUTPUT
+
+          pnpm run build:plugin --tag="${TAG}" --base-url="${BASE_URL}"
+
+      - name: Ensure Plugin Files Exist
+        run: |
+          if [ ! -f ./deploy/*.plg ]; then
+            echo "Error: .plg file not found in plugin/deploy/"
+            exit 1
+          fi
+
+          if [ ! -f ./deploy/*.txz ]; then
+            echo "Error: .txz file not found in plugin/deploy/"
+            exit 1
+          fi
+      - name: Upload to GHA
         uses: actions/upload-artifact@v4
         with:
-          name: connect-files
-          path: |
-            plugin/deploy/release/plugins/
-            plugin/deploy/release/archive/*.txz
-          retention-days: 5
-          if-no-files-found: error
-
-  release-pull-request:
-    if: |
-      github.event_name == 'pull_request'
-    runs-on: ubuntu-latest
-    needs: [test-api, build-plugin]
-    steps:
-      - name: Checkout repo
-        uses: actions/checkout@v4
-
-      - name: Make PR Release Folder
-        run: mkdir pr-release/
-
-      - name: Download plugin binary tgz
-        uses: actions/download-artifact@v4
-        with:
-          name: connect-files
-
-      - name: Copy other release files to pr-release
-        run: |
-          cp archive/*.txz pr-release/
-          cp plugins/pr/dynamix.unraid.net.plg pr-release/dynamix.unraid.net.plg
-
+          name: unraid-plugin
+          path: plugin/deploy/
       - name: Upload to Cloudflare
-        uses: jakejarvis/s3-sync-action@v0.5.1
+        if: github.event_name == 'pull_request' || startsWith(github.ref, 'refs/heads/main')
         env:
-          AWS_S3_ENDPOINT: ${{ secrets.CF_ENDPOINT }}
-          AWS_S3_BUCKET: ${{ secrets.CF_BUCKET_PREVIEW }}
           AWS_ACCESS_KEY_ID: ${{ secrets.CF_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.CF_SECRET_ACCESS_KEY }}
-          AWS_REGION: "auto"
-          SOURCE_DIR: pr-release
-          DEST_DIR: unraid-api/tag/${{ needs.build-plugin.outputs.tag }}
+          AWS_DEFAULT_REGION: auto
+        run: |
+          # Sync the deploy directory to the Cloudflare bucket - CRC32 is required for the checksum-algorithm on cloudflare (ref. https://community.cloudflare.com/t/an-error-occurred-internalerror-when-calling-the-putobject-operation/764905/8)
+          aws s3 sync deploy/ s3://${{ secrets.CF_BUCKET_PREVIEW }}/${{ steps.build-plugin.outputs.BUCKET_PATH }} --endpoint-url ${{ secrets.CF_ENDPOINT }} --checksum-algorithm CRC32
+
+      - name: Upload Release Assets
+        if: needs.release-please.outputs.releases_created == 'true'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          release_name=$(gh release list --repo ${{ github.repository }} --json name,isDraft --jq '.[] | select(.isDraft == true) | .name' | head -n 1)
+          # For each file in release directory
+          for file in deploy/*; do
+            echo "Uploading $file to release..."
+            gh release upload "${release_name}" "$file" --clobber
+          done
+
       - name: Comment URL
+        if: github.event_name == 'pull_request'
         uses: thollander/actions-comment-pull-request@v3
         with:
           comment-tag: prlink
@@ -395,73 +424,5 @@ jobs:
             This plugin has been deployed to Cloudflare R2 and is available for testing.
             Download it at this URL:
             ```
-            https://preview.dl.unraid.net/unraid-api/tag/${{ needs.build-plugin.outputs.tag }}/dynamix.unraid.net.plg
+            https://preview.dl.unraid.net/unraid-api/tag/${{ steps.build-plugin.outputs.tag }}/dynamix.unraid.net.plg
             ```
-
-  release-staging:
-    environment:
-      name: staging
-    # Only release if this is a push to the main branch
-    if: startsWith(github.ref, 'refs/heads/main')
-    runs-on: ubuntu-latest
-    needs: [test-api, build-plugin]
-
-    steps:
-      - name: Checkout repo
-        uses: actions/checkout@v4
-
-      - name: Make Staging Release Folder
-        run: mkdir staging-release/
-
-      - name: Download plugin binary tgz
-        uses: actions/download-artifact@v4
-        with:
-          name: connect-files
-
-      - name: Copy Files for Staging Release
-        run: |
-          cp archive/*.txz staging-release/
-          cp plugins/staging/dynamix.unraid.net.plg staging-release/dynamix.unraid.net.plg
-          ls -al staging-release
-
-      - name: Upload Staging Plugin to Cloudflare Bucket
-        uses: jakejarvis/s3-sync-action@v0.5.1
-        env:
-          AWS_S3_ENDPOINT: ${{ secrets.CF_ENDPOINT }}
-          AWS_S3_BUCKET: ${{ secrets.CF_BUCKET_PREVIEW }}
-          AWS_ACCESS_KEY_ID: ${{ secrets.CF_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.CF_SECRET_ACCESS_KEY }}
-          AWS_REGION: "auto"
-          SOURCE_DIR: staging-release
-          DEST_DIR: unraid-api
-
-  create-draft-release:
-    # Only run if release-please created a release
-    if: needs.release-please.outputs.releases_created == 'true'
-    runs-on: ubuntu-latest
-    needs: [release-please, test-api, build-plugin]
-    steps:
-      - name: Checkout repo
-        uses: actions/checkout@v4
-
-      - name: Download plugin binary tgz
-        uses: actions/download-artifact@v4
-        with:
-          name: connect-files
-
-      - name: Move Files to Release Folder
-        run: |
-          mkdir -p release/
-          mv plugins/production/dynamix.unraid.net.plg release/
-          mv archive/*.txz release/
-
-      - name: Upload Release Assets
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          release_name=$(gh release list --repo ${{ github.repository }} --json name,isDraft --jq '.[] | select(.isDraft == true) | .name' | head -n 1)
-          # For each file in release directory
-          for file in release/*; do
-            echo "Uploading $file to release..."
-            gh release upload "${release_name}" "$file" --clobber
-          done

@@ -10,13 +10,13 @@ import { AuthActionVerb } from 'nest-authz';
 import { v4 as uuidv4 } from 'uuid';
 import { ZodError } from 'zod';
 
+import type { Permission } from '@app/graphql/generated/api/types.js';
 import { environment } from '@app/environment.js';
 import { ApiKeySchema, ApiKeyWithSecretSchema } from '@app/graphql/generated/api/operations.js';
 import {
     AddPermissionInput,
     ApiKey,
     ApiKeyWithSecret,
-    Permission,
     Resource,
     Role,
 } from '@app/graphql/generated/api/types.js';
