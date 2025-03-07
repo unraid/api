@@ -31,50 +31,7 @@ const dataSchema = computed(() => {
 });
 const uiSchema = computed(() => {
   if (!result.value) return;
-  // return result.value?.connectSettingsForm.uiSchema;
-  return {
-    type: 'VerticalLayout',
-    elements: [
-      {
-        type: 'Control',
-        scope: '#/properties/remoteAccess',
-        label: 'Allow Remote Access',
-      },
-      {
-        type: 'Control',
-        scope: '#/properties/wanPort',
-        label: 'WAN Port',
-        options: {
-          format: 'short',
-        },
-        rule: {
-          effect: 'SHOW',
-          condition: {
-            scope: '#/properties/remoteAccess',
-            schema: {
-              enum: ['DYNAMIC_MANUAL', 'ALWAYS_MANUAL'],
-            },
-          },
-        },
-      },
-      {
-        type: 'Control',
-        scope: '#/properties/sandbox',
-        label: 'Enable Developer Sandbox:',
-        options: {
-          toggle: true,
-        },
-      },
-      {
-        type: 'Control',
-        scope: '#/properties/extraOrigins',
-        options: {
-          inputType: 'url',
-          placeholder: 'https://example.com',
-        },
-      },
-    ],
-  };
+  return result.value?.connectSettingsForm.uiSchema;
 });
 watchImmediate(result, () => {
   console.log('connect settings', result.value);

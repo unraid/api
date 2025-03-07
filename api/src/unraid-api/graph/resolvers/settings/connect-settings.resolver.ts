@@ -3,10 +3,11 @@ import { Args, Query, ResolveField, Resolver } from '@nestjs/graphql';
 import { AuthActionVerb, AuthPossession, UsePermissions } from 'nest-authz';
 
 import { Resource } from '@app/graphql/generated/api/types.js';
+import { ConnectSettingsService } from '@app/unraid-api/graph/resolvers/settings/connect-settings.service.js';
 
 @Resolver('ConnectSettings')
 export class ConnectSettingsResolver {
-    constructor() {}
+    constructor(private readonly connectSettingsService: ConnectSettingsService) {}
 
     @Query()
     @UsePermissions({
@@ -25,13 +26,7 @@ export class ConnectSettingsResolver {
         return {
             type: 'object',
             properties: {
-                remoteAccess: {
-                    type: 'string',
-                    // parse available options based on auth state & ssl status
-                    enum: ['OFF', 'DYNAMIC_UPNP', 'DYNAMIC_MANUAL', 'ALWAYS_UPNP', 'ALWAYS_MANUAL'],
-                    title: 'Allow Remote Access',
-                    default: 'OFF',
-                },
+                remoteAccess: await this.connectSettingsService.remoteAccessDataSchema(),
                 wanPort: {
                     type: 'number',
                     title: 'WAN Port',
@@ -71,18 +66,15 @@ export class ConnectSettingsResolver {
     public async uiSchema() {
         return {
             type: 'VerticalLayout',
-            options: {
-                format: 'legacyGrid',
-            },
             elements: [
-                {
-                    type: 'Control',
-                    scope: '#/properties/remoteAccess',
-                    label: 'Allow Remote Access',
-                },
+                await this.connectSettingsService.remoteAccessUiSchema(),
                 {
                     type: 'Control',
                     scope: '#/properties/wanPort',
+                    label: 'WAN Port',
+                    options: {
+                        format: 'short',
+                    },
                     rule: {
                         effect: 'SHOW',
                         condition: {
@@ -96,6 +88,7 @@ export class ConnectSettingsResolver {
                 {
                     type: 'Control',
                     scope: '#/properties/sandbox',
+                    label: 'Enable Developer Sandbox:',
                     options: {
                         toggle: true,
                     },
@@ -104,16 +97,8 @@ export class ConnectSettingsResolver {
                     type: 'Control',
                     scope: '#/properties/extraOrigins',
                     options: {
-                        detail: {
-                            type: 'VerticalLayout',
-                            elements: [
-                                {
-                                    type: 'Control',
-                                    scope: '#/properties/url',
-                                },
-                            ],
-                        },
-                        // validate: 'isCommaSeparatedURLs',
+                        inputType: 'url',
+                        placeholder: 'https://example.com',
                     },
                 },
             ],
