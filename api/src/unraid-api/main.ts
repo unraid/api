@@ -15,14 +15,10 @@ import { HttpExceptionFilter } from '@app/unraid-api/exceptions/http-exceptions.
 export async function bootstrapNestServer(): Promise<NestFastifyApplication> {
     apiLogger.debug('Creating Nest Server');
 
-    const app = await NestFactory.create<NestFastifyApplication>(
-        AppModule,
-        new FastifyAdapter() as any,
-        {
-            bufferLogs: false,
-            ...(LOG_LEVEL !== 'TRACE' ? { logger: false } : {}),
-        }
-    );
+    const app = await NestFactory.create<NestFastifyApplication>(AppModule, new FastifyAdapter(), {
+        bufferLogs: false,
+        ...(LOG_LEVEL !== 'TRACE' ? { logger: false } : {}),
+    });
 
     const server = app.getHttpAdapter().getInstance();
 
