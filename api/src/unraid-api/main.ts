@@ -3,6 +3,7 @@ import { NestFactory } from '@nestjs/core';
 import { FastifyAdapter } from '@nestjs/platform-fastify/adapters';
 
 import fastifyCookie from '@fastify/cookie';
+import fastifyHelmet from '@fastify/helmet';
 import { LoggerErrorInterceptor, Logger as PinoLogger } from 'nestjs-pino';
 
 import { apiLogger } from '@app/core/log.js';
@@ -14,15 +15,44 @@ import { HttpExceptionFilter } from '@app/unraid-api/exceptions/http-exceptions.
 export async function bootstrapNestServer(): Promise<NestFastifyApplication> {
     apiLogger.debug('Creating Nest Server');
 
-    const app = await NestFactory.create<NestFastifyApplication>(AppModule, new FastifyAdapter(), {
-        bufferLogs: false,
-        ...(LOG_LEVEL !== 'TRACE' ? { logger: false } : {}),
-    });
+    const app = await NestFactory.create<NestFastifyApplication>(
+        AppModule,
+        new FastifyAdapter() as any,
+        {
+            bufferLogs: false,
+            ...(LOG_LEVEL !== 'TRACE' ? { logger: false } : {}),
+        }
+    );
 
     const server = app.getHttpAdapter().getInstance();
 
     // Type casting is needed due to version mismatches between @nestjs/platform-fastify and fastify
     await (server as any).register(fastifyCookie);
+
+    // Minimal Helmet configuration to avoid blocking plugin functionality
+    await (server as any).register(fastifyHelmet, {
+        // Disable restrictive policies
+        contentSecurityPolicy: false,
+        crossOriginEmbedderPolicy: false,
+        crossOriginOpenerPolicy: false,
+        crossOriginResourcePolicy: false,
+
+        // Basic security headers that don't restrict functionality
+        xssFilter: true,
+        hidePoweredBy: true,
+
+        // Additional safe headers
+        noSniff: true, // Prevents MIME type sniffing
+        ieNoOpen: true, // Prevents IE from executing downloads in site context
+        permittedCrossDomainPolicies: true, // Restricts Adobe Flash and PDF access
+        referrerPolicy: { policy: 'no-referrer-when-downgrade' }, // Safe referrer policy
+
+        // X-Frame-Options to prevent clickjacking
+        frameguard: { action: 'sameorigin' }, // Allows framing only from same origin
+
+        // HSTS disabled to avoid issues with running on local networks
+        hsts: false,
+    });
 
     // Allows all origins but still checks authentication
     app.enableCors({
