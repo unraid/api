@@ -21,7 +21,7 @@ export class UserCookieStrategy extends PassportStrategy(Strategy, strategyName)
         return (
             this.authService.validateCsrfToken(
                 req.headers['x-csrf-token'] || (req.query as { csrf_token?: string })?.csrf_token
-            ) && this.authService.validateCookiesCasbin(req.cookies)
+            ) && this.authService.validateCookiesCasbin(req.cookies || {})
         );
     };
 }

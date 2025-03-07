@@ -48,7 +48,9 @@ export class AuthService {
         }
     }
 
-    async validateCookiesCasbin(cookies: object): Promise<UserAccount> {
+    async validateCookiesCasbin(cookies: {
+        [cookieName: string]: string | undefined;
+    }): Promise<UserAccount> {
         try {
             if (!(await this.cookieService.hasValidAuthCookie(cookies))) {
                 throw new UnauthorizedException('No user session found');
