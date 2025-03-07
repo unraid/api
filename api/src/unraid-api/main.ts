@@ -22,11 +22,10 @@ export async function bootstrapNestServer(): Promise<NestFastifyApplication> {
 
     const server = app.getHttpAdapter().getInstance();
 
-    // Type casting is needed due to version mismatches between @nestjs/platform-fastify and fastify
-    await (server as any).register(fastifyCookie);
+    await server.register(fastifyCookie);
 
     // Minimal Helmet configuration to avoid blocking plugin functionality
-    await (server as any).register(fastifyHelmet, {
+    await server.register(fastifyHelmet, {
         // Disable restrictive policies
         contentSecurityPolicy: false,
         crossOriginEmbedderPolicy: false,
@@ -42,9 +41,7 @@ export async function bootstrapNestServer(): Promise<NestFastifyApplication> {
         ieNoOpen: true, // Prevents IE from executing downloads in site context
         permittedCrossDomainPolicies: true, // Restricts Adobe Flash and PDF access
         referrerPolicy: { policy: 'no-referrer-when-downgrade' }, // Safe referrer policy
-
-        // X-Frame-Options to prevent clickjacking
-        frameguard: { action: 'sameorigin' }, // Allows framing only from same origin
+        frameguard: false, // Turn off for plugin compatibility
 
         // HSTS disabled to avoid issues with running on local networks
         hsts: false,
