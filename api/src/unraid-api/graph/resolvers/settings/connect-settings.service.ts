@@ -71,7 +71,7 @@ export class ConnectSettingsService {
      */
     async remoteAccessSlice(scope = '#/properties/remoteAccess'): Promise<SettingSlice> {
         const precondition = (await this.isSignedIn()) && (await this.isSSLCertProvisioned());
-        if (!precondition) return this.createEmptySlice();
+        // if (!precondition) return this.createEmptySlice();
 
         const { getters } = await import('@app/store/index.js');
         const { nginx } = getters.emhttp();
@@ -96,36 +96,57 @@ export class ConnectSettingsService {
                     maximum: 65535,
                 },
             },
-            elements: [
-                {
-                    type: 'Control',
-                    scope,
-                    label: 'Allow Remote Access',
-                },
-                {
-                    type: 'Control',
-                    scope: '#/properties/wanPort',
-                    label: 'WAN Port',
-                    options: {
-                        format: 'short',
-                    },
-                    rule: {
-                        effect: RuleEffect.SHOW,
-                        // technically, this is a SchemaBasedCondition, but that type requires a scope
-                        // but this has been working and I don't know what the correct scope would be.
-                        condition: {
-                            failWhenUndefined: true,
-                            schema: {
-                                properties: {
-                                    remoteAccess: {
-                                        enum: ['DYNAMIC_MANUAL', 'ALWAYS_MANUAL'],
-                                    },
-                                },
-                            },
-                        } as Omit<SchemaBasedCondition, 'scope'>,
-                    },
-                },
-            ],
+            elements: precondition
+                ? [
+                      {
+                          type: 'Control',
+                          scope,
+                          label: 'Allow Remote Access',
+                      },
+                      {
+                          type: 'Control',
+                          scope: '#/properties/wanPort',
+                          label: 'WAN Port',
+                          options: {
+                              format: 'short',
+                          },
+                          rule: {
+                              effect: RuleEffect.SHOW,
+                              // technically, this is a SchemaBasedCondition, but that type requires a scope
+                              // but this has been working and I don't know what the correct scope would be.
+                              condition: {
+                                  failWhenUndefined: true,
+                                  schema: {
+                                      properties: {
+                                          remoteAccess: {
+                                              enum: ['DYNAMIC_MANUAL', 'ALWAYS_MANUAL'],
+                                          },
+                                      },
+                                  },
+                              } as Omit<SchemaBasedCondition, 'scope'>,
+                          },
+                      },
+                  ]
+                : [
+                      {
+                          type: 'Label',
+                          text: 'Allow Remote Access',
+                          options: {
+                              format: 'preconditions',
+                              description: 'Remote Access is disabled. To enable, please make sure:',
+                              items: [
+                                  {
+                                      text: 'You are signed in to Unraid Connect',
+                                      status: await this.isSignedIn(),
+                                  },
+                                  {
+                                      text: 'You have provisioned a valid SSL certificate',
+                                      status: await this.isSSLCertProvisioned(),
+                                  },
+                              ],
+                          },
+                      },
+                  ],
         };
     }
 

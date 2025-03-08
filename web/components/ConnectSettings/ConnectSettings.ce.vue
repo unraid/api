@@ -11,7 +11,7 @@ import { JsonForms } from '@jsonforms/vue';
 import { vanillaRenderers } from '@jsonforms/vue-vanilla';
 
 import { getConnectSettingsForm } from './graphql/settings.query';
-import { formSelectEntry, formSwitchEntry, numberFieldEntry } from './renderer/renderer-entries';
+import { formSelectEntry, formSwitchEntry, numberFieldEntry, preconditionsLabelEntry } from './renderer/renderer-entries';
 import { stringArrayEntry } from './renderer/string-array.renderer';
 
 const { result } = useQuery(getConnectSettingsForm);
@@ -21,6 +21,7 @@ const renderers = [
   formSwitchEntry,
   formSelectEntry,
   numberFieldEntry,
+  preconditionsLabelEntry,
   // verticalLayoutEntry,
   stringArrayEntry,
   // custom renderers here
