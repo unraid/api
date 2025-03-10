@@ -26,7 +26,7 @@ export type FastifyRequest = BaseFastifyRequest<{
     Headers: Headers;
     Querystring: Query;
 }> & {
-    cookies: Cookies;
+    cookies?: Cookies;
 };
 
 export type FastifyInstance = BaseFastifyInstance;
