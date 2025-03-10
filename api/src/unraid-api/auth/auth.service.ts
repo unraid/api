@@ -53,8 +53,8 @@ export class AuthService {
         try {
             if (
                 !this.validateCsrfToken(
-                    (request.headers['x-csrf-token'] as string | undefined) ||
-                        ((request.query as { csrf_token?: string })?.csrf_token as string | undefined)
+                    request.headers['x-csrf-token'] ||
+                        (request.query as { csrf_token?: string })?.csrf_token
                 )
             ) {
                 throw new UnauthorizedException('Invalid CSRF token');
