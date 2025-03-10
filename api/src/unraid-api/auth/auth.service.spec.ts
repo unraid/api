@@ -5,8 +5,8 @@ import { AuthZService } from 'nest-authz';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import type { ApiKey, ApiKeyWithSecret, UserAccount } from '@app/graphql/generated/api/types.js';
-import type { FastifyRequest } from '@app/types/fastify.js';
 import { Resource, Role } from '@app/graphql/generated/api/types.js';
+import { FastifyRequest } from '@app/types/fastify.js';
 import { ApiKeyService } from '@app/unraid-api/auth/api-key.service.js';
 import { AuthService } from '@app/unraid-api/auth/auth.service.js';
 import { CookieService } from '@app/unraid-api/auth/cookie.service.js';
@@ -50,17 +50,13 @@ describe('AuthService', () => {
     };
 
     // Mock FastifyRequest object for tests
-    const createMockRequest = (overrides = {}): FastifyRequest => {
-        return {
-            headers: {},
-            query: {},
+    const createMockRequest = (overrides = {}) =>
+        ({
+            headers: { 'x-csrf-token': undefined },
+            query: { csrf_token: undefined },
             cookies: {},
-            id: 'test-id',
-            params: {},
-            raw: {} as any,
             ...overrides,
-        } as FastifyRequest;
-    };
+        }) as FastifyRequest;
 
     beforeEach(async () => {
         const enforcer = await newEnforcer();
@@ -82,7 +78,9 @@ describe('AuthService', () => {
             vi.spyOn(authzService, 'getRolesForUser').mockResolvedValue([Role.ADMIN]);
             vi.spyOn(authService, 'validateCsrfToken').mockReturnValue(true);
 
-            const mockRequest = createMockRequest();
+            const mockRequest = createMockRequest({
+                headers: { 'x-csrf-token': 'valid-token' },
+            });
             const result = await authService.validateCookiesCasbin(mockRequest);
 
             expect(result).toEqual(mockUser);
@@ -92,7 +90,9 @@ describe('AuthService', () => {
             vi.spyOn(cookieService, 'hasValidAuthCookie').mockResolvedValue(false);
             vi.spyOn(authService, 'validateCsrfToken').mockReturnValue(true);
 
-            const mockRequest = createMockRequest();
+            const mockRequest = createMockRequest({
+                headers: { 'x-csrf-token': 'valid-token' },
+            });
             await expect(authService.validateCookiesCasbin(mockRequest)).rejects.toThrow(
                 UnauthorizedException
             );
@@ -126,10 +126,26 @@ describe('AuthService', () => {
         it('should throw UnauthorizedException when CSRF token is invalid', async () => {
             vi.spyOn(authService, 'validateCsrfToken').mockReturnValue(false);
 
-            const mockRequest = createMockRequest();
+            const mockRequest = createMockRequest({
+                headers: { 'x-csrf-token': 'invalid-token' },
+            });
             await expect(authService.validateCookiesCasbin(mockRequest)).rejects.toThrow(
                 new UnauthorizedException('Invalid CSRF token')
             );
+        });
+
+        it('should accept CSRF token from query parameter', async () => {
+            vi.spyOn(cookieService, 'hasValidAuthCookie').mockResolvedValue(true);
+            vi.spyOn(authService, 'getSessionUser').mockResolvedValue(mockUser);
+            vi.spyOn(authzService, 'getRolesForUser').mockResolvedValue([Role.ADMIN]);
+            vi.spyOn(authService, 'validateCsrfToken').mockReturnValue(true);
+
+            const mockRequest = createMockRequest({
+                query: { csrf_token: 'valid-token' },
+            });
+            const result = await authService.validateCookiesCasbin(mockRequest);
+
+            expect(result).toEqual(mockUser);
         });
     });
 
