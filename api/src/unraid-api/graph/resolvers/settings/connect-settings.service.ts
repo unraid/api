@@ -70,7 +70,8 @@ export class ConnectSettingsService {
      * Computes the JSONForms schema definition for remote access settings.
      */
     async remoteAccessSlice(scope = '#/properties/remoteAccess'): Promise<SettingSlice> {
-        const precondition = (await this.isSignedIn()) && (await this.isSSLCertProvisioned());
+        // const precondition = (await this.isSignedIn()) && (await this.isSSLCertProvisioned());
+        const precondition = true;
         // if (!precondition) return this.createEmptySlice();
 
         const { getters } = await import('@app/store/index.js');
@@ -106,22 +107,19 @@ export class ConnectSettingsService {
                       {
                           type: 'Control',
                           scope: '#/properties/wanPort',
-                          label: 'WAN Port',
+                          label: 'Remote Access WAN Port',
                           options: {
                               format: 'short',
                           },
                           rule: {
-                              effect: RuleEffect.SHOW,
+                              effect: RuleEffect.ENABLE,
                               // technically, this is a SchemaBasedCondition, but that type requires a scope
                               // but this has been working and I don't know what the correct scope would be.
                               condition: {
                                   failWhenUndefined: true,
+                                  scope,
                                   schema: {
-                                      properties: {
-                                          remoteAccess: {
-                                              enum: ['DYNAMIC_MANUAL', 'ALWAYS_MANUAL'],
-                                          },
-                                      },
+                                      enum: ['DYNAMIC_MANUAL', 'ALWAYS_MANUAL'],
                                   },
                               } as Omit<SchemaBasedCondition, 'scope'>,
                           },

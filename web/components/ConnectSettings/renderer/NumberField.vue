@@ -44,6 +44,7 @@ const classOverride = computed(() => {
       :step="step"
       :format-options="formatOptions"
       :class="classOverride"
+      :disabled="!control.enabled"
     >
       <NumberFieldDecrement />
       <NumberFieldInput />
