@@ -17,6 +17,6 @@ export class UserCookieStrategy extends PassportStrategy(Strategy, strategyName)
     }
 
     public validate = async (request: FastifyRequest): Promise<any> => {
-        return this.authService.validateCookiesCasbin(request);
+        return this.authService.validateCookiesWithCsrfToken(request);
     };
 }

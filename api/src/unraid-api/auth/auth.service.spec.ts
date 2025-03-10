@@ -81,7 +81,7 @@ describe('AuthService', () => {
             const mockRequest = createMockRequest({
                 headers: { 'x-csrf-token': 'valid-token' },
             });
-            const result = await authService.validateCookiesCasbin(mockRequest);
+            const result = await authService.validateCookiesWithCsrfToken(mockRequest);
 
             expect(result).toEqual(mockUser);
         });
@@ -93,7 +93,7 @@ describe('AuthService', () => {
             const mockRequest = createMockRequest({
                 headers: { 'x-csrf-token': 'valid-token' },
             });
-            await expect(authService.validateCookiesCasbin(mockRequest)).rejects.toThrow(
+            await expect(authService.validateCookiesWithCsrfToken(mockRequest)).rejects.toThrow(
                 UnauthorizedException
             );
         });
@@ -104,7 +104,7 @@ describe('AuthService', () => {
             vi.spyOn(authService, 'validateCsrfToken').mockReturnValue(true);
 
             const mockRequest = createMockRequest();
-            await expect(authService.validateCookiesCasbin(mockRequest)).rejects.toThrow(
+            await expect(authService.validateCookiesWithCsrfToken(mockRequest)).rejects.toThrow(
                 UnauthorizedException
             );
         });
@@ -117,7 +117,7 @@ describe('AuthService', () => {
 
             const addRoleSpy = vi.spyOn(authzService, 'addRoleForUser');
             const mockRequest = createMockRequest();
-            const result = await authService.validateCookiesCasbin(mockRequest);
+            const result = await authService.validateCookiesWithCsrfToken(mockRequest);
 
             expect(result).toEqual(mockUser);
             expect(addRoleSpy).toHaveBeenCalledWith(mockUser.id, 'guest');
@@ -129,7 +129,7 @@ describe('AuthService', () => {
             const mockRequest = createMockRequest({
                 headers: { 'x-csrf-token': 'invalid-token' },
             });
-            await expect(authService.validateCookiesCasbin(mockRequest)).rejects.toThrow(
+            await expect(authService.validateCookiesWithCsrfToken(mockRequest)).rejects.toThrow(
                 new UnauthorizedException('Invalid CSRF token')
             );
         });
@@ -143,7 +143,7 @@ describe('AuthService', () => {
             const mockRequest = createMockRequest({
                 query: { csrf_token: 'valid-token' },
             });
-            const result = await authService.validateCookiesCasbin(mockRequest);
+            const result = await authService.validateCookiesWithCsrfToken(mockRequest);
 
             expect(result).toEqual(mockUser);
         });

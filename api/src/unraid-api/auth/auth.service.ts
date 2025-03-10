@@ -49,7 +49,7 @@ export class AuthService {
         }
     }
 
-    async validateCookiesCasbin(request: FastifyRequest): Promise<UserAccount> {
+    async validateCookiesWithCsrfToken(request: FastifyRequest): Promise<UserAccount> {
         try {
             if (!this.validateCsrfToken(request.headers['x-csrf-token'] || request.query.csrf_token)) {
                 throw new UnauthorizedException('Invalid CSRF token');
