@@ -18,9 +18,9 @@ export interface CommonQuery {
 }
 
 // Base types
-type Headers = Record<string, string | string[] | undefined> & Partial<CommonHeaders>;
-type Query = Record<string, string | undefined> & Partial<CommonQuery>;
-type Cookies = Record<string, string | undefined>;
+type Headers = BaseFastifyRequest['headers'] & Partial<CommonHeaders>;
+type Query = BaseFastifyRequest['query'] & Partial<CommonQuery>;
+type Cookies = BaseFastifyRequest['cookies'];
 
 export type FastifyRequest = BaseFastifyRequest<{
     Headers: Headers;
