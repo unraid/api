@@ -6,10 +6,10 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import type { ApiKey, ApiKeyWithSecret, UserAccount } from '@app/graphql/generated/api/types.js';
 import { Resource, Role } from '@app/graphql/generated/api/types.js';
-import { FastifyRequest } from '@app/types/fastify.js';
 import { ApiKeyService } from '@app/unraid-api/auth/api-key.service.js';
 import { AuthService } from '@app/unraid-api/auth/auth.service.js';
 import { CookieService } from '@app/unraid-api/auth/cookie.service.js';
+import { FastifyRequest } from '@app/unraid-api/types/fastify.js';
 
 describe('AuthService', () => {
     let authService: AuthService;

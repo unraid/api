@@ -5,8 +5,8 @@ import { GraphQLError } from 'graphql';
 import { getAllowedOrigins } from '@app/common/allowed-origins.js';
 import { apiLogger } from '@app/core/log.js';
 import { BYPASS_CORS_CHECKS } from '@app/environment.js';
-import { FastifyRequest } from '@app/types/fastify.js';
 import { type CookieService } from '@app/unraid-api/auth/cookie.service.js';
+import { FastifyRequest } from '@app/unraid-api/types/fastify.js';
 
 /**
  * Returns whether the origin is allowed to access the API.

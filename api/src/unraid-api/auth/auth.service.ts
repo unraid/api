@@ -5,9 +5,9 @@ import { AuthZService } from 'nest-authz';
 import type { Permission, UserAccount } from '@app/graphql/generated/api/types.js';
 import { Role } from '@app/graphql/generated/api/types.js';
 import { getters } from '@app/store/index.js';
-import { FastifyRequest } from '@app/types/fastify.js';
 import { ApiKeyService } from '@app/unraid-api/auth/api-key.service.js';
 import { CookieService } from '@app/unraid-api/auth/cookie.service.js';
+import { FastifyRequest } from '@app/unraid-api/types/fastify.js';
 import { batchProcess, handleAuthError } from '@app/utils.js';
 
 @Injectable()
