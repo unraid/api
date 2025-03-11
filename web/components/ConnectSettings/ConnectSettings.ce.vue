@@ -26,13 +26,9 @@ const renderers = [
   stringArrayEntry,
   // custom renderers here
 ];
-const dataSchema = computed(() => {
+const settings = computed(() => {
   if (!result.value) return;
-  return result.value?.connectSettingsForm.dataSchema;
-});
-const uiSchema = computed(() => {
-  if (!result.value) return;
-  return result.value?.connectSettingsForm.uiSchema;
+  return result.value?.connect.settings;
 });
 watchImmediate(result, () => {
   console.log('connect settings', result.value);
@@ -82,9 +78,10 @@ const onChange = ({ data: fdata, errors }: { data: Record<string, unknown>; erro
   <!-- @todo: flashback up -->
   <div class="mt-6 [&_.vertical-layout]:space-y-6">
     <JsonForms
-      v-if="result"
-      :schema="dataSchema"
-      :uischema="uiSchema"
+      v-if="settings"
+      :schema="settings.dataSchema"
+      :uischema="settings.uiSchema"
+      :data="settings.values"
       :renderers="renderers"
       :config="config"
       @change="onChange"

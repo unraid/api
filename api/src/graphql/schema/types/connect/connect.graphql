@@ -58,15 +58,35 @@ type DynamicRemoteAccessStatus {
     error: String
 }
 
+"""
+    Intersection type of ApiSettings and RemoteAccess
+"""
+type ConnectSettingsValues {
+    sandbox: Boolean!
+    extraOrigins: [String!]!
+    accessType: WAN_ACCESS_TYPE!
+    forwardType: WAN_FORWARD_TYPE
+    port: Port
+}
+
+type ConnectSettings implements Node {
+    id: ID!
+    dataSchema: JSON!
+    uiSchema: JSON!
+    values: ConnectSettingsValues!
+}
+
 type Connect implements Node {
     id: ID!
     dynamicRemoteAccess: DynamicRemoteAccessStatus!
+    settings: ConnectSettings!
 }
 
 type Query {
     remoteAccess: RemoteAccess!
     extraAllowedOrigins: [String!]!
     connect: Connect!
+    connectSettingsForm: ConnectSettings!
 }
 
 type Mutation {

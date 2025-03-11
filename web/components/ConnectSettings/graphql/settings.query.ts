@@ -2,10 +2,20 @@ import { graphql } from '~/composables/gql/gql';
 
 export const getConnectSettingsForm = graphql(/* GraphQL */ `
   query GetConnectSettingsForm {
-    connectSettingsForm {
+    connect {
       id
-      dataSchema
-      uiSchema
+      settings {
+        id
+        dataSchema
+        uiSchema
+        values {
+          sandbox
+          extraOrigins
+          accessType
+          forwardType
+          port
+        }
+      }
     }
   }
 `);

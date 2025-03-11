@@ -295,6 +295,7 @@ export type Connect = Node & {
   __typename?: 'Connect';
   dynamicRemoteAccess: DynamicRemoteAccessStatus;
   id: Scalars['ID']['output'];
+  settings: ConnectSettings;
 };
 
 export type ConnectSettings = Node & {
@@ -302,6 +303,17 @@ export type ConnectSettings = Node & {
   dataSchema: Scalars['JSON']['output'];
   id: Scalars['ID']['output'];
   uiSchema: Scalars['JSON']['output'];
+  values: ConnectSettingsValues;
+};
+
+/** Intersection type of ApiSettings and RemoteAccess */
+export type ConnectSettingsValues = {
+  __typename?: 'ConnectSettingsValues';
+  accessType: WAN_ACCESS_TYPE;
+  extraOrigins: Array<Scalars['String']['output']>;
+  forwardType?: Maybe<WAN_FORWARD_TYPE>;
+  port?: Maybe<Scalars['Port']['output']>;
+  sandbox: Scalars['Boolean']['output'];
 };
 
 export type ConnectSignInInput = {
@@ -1853,6 +1865,7 @@ export type ResolversTypes = ResolversObject<{
   ConfigErrorState: ConfigErrorState;
   Connect: ResolverTypeWrapper<Connect>;
   ConnectSettings: ResolverTypeWrapper<ConnectSettings>;
+  ConnectSettingsValues: ResolverTypeWrapper<ConnectSettingsValues>;
   ConnectSignInInput: ConnectSignInInput;
   ConnectUserInfoInput: ConnectUserInfoInput;
   ContainerHostConfig: ResolverTypeWrapper<ContainerHostConfig>;
@@ -1978,6 +1991,7 @@ export type ResolversParentTypes = ResolversObject<{
   Config: Config;
   Connect: Connect;
   ConnectSettings: ConnectSettings;
+  ConnectSettingsValues: ConnectSettingsValues;
   ConnectSignInInput: ConnectSignInInput;
   ConnectUserInfoInput: ConnectUserInfoInput;
   ContainerHostConfig: ContainerHostConfig;
@@ -2188,6 +2202,7 @@ export type ConfigResolvers<ContextType = Context, ParentType extends ResolversP
 export type ConnectResolvers<ContextType = Context, ParentType extends ResolversParentTypes['Connect'] = ResolversParentTypes['Connect']> = ResolversObject<{
   dynamicRemoteAccess?: Resolver<ResolversTypes['DynamicRemoteAccessStatus'], ParentType, ContextType>;
   id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
+  settings?: Resolver<ResolversTypes['ConnectSettings'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
 
@@ -2195,6 +2210,16 @@ export type ConnectSettingsResolvers<ContextType = Context, ParentType extends R
   dataSchema?: Resolver<ResolversTypes['JSON'], ParentType, ContextType>;
   id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
   uiSchema?: Resolver<ResolversTypes['JSON'], ParentType, ContextType>;
+  values?: Resolver<ResolversTypes['ConnectSettingsValues'], ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+}>;
+
+export type ConnectSettingsValuesResolvers<ContextType = Context, ParentType extends ResolversParentTypes['ConnectSettingsValues'] = ResolversParentTypes['ConnectSettingsValues']> = ResolversObject<{
+  accessType?: Resolver<ResolversTypes['WAN_ACCESS_TYPE'], ParentType, ContextType>;
+  extraOrigins?: Resolver<Array<ResolversTypes['String']>, ParentType, ContextType>;
+  forwardType?: Resolver<Maybe<ResolversTypes['WAN_FORWARD_TYPE']>, ParentType, ContextType>;
+  port?: Resolver<Maybe<ResolversTypes['Port']>, ParentType, ContextType>;
+  sandbox?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
 
@@ -3138,6 +3163,7 @@ export type Resolvers<ContextType = Context> = ResolversObject<{
   Config?: ConfigResolvers<ContextType>;
   Connect?: ConnectResolvers<ContextType>;
   ConnectSettings?: ConnectSettingsResolvers<ContextType>;
+  ConnectSettingsValues?: ConnectSettingsValuesResolvers<ContextType>;
   ContainerHostConfig?: ContainerHostConfigResolvers<ContextType>;
   ContainerMount?: ContainerMountResolvers<ContextType>;
   ContainerPort?: ContainerPortResolvers<ContextType>;

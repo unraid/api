@@ -14,7 +14,7 @@ import type { TypedDocumentNode as DocumentNode } from '@graphql-typed-document-
  * Learn more about it here: https://the-guild.dev/graphql/codegen/plugins/presets/preset-client#reducing-bundle-size
  */
 type Documents = {
-    "\n  query GetConnectSettingsForm {\n    connectSettingsForm {\n      id\n      dataSchema\n      uiSchema\n    }\n  }\n": typeof types.GetConnectSettingsFormDocument,
+    "\n  query GetConnectSettingsForm {\n    connect {\n      id\n      settings {\n        id\n        dataSchema\n        uiSchema\n        values {\n          sandbox\n          extraOrigins\n          accessType\n          forwardType\n          port\n        }\n      }\n    }\n  }\n": typeof types.GetConnectSettingsFormDocument,
     "\n  fragment NotificationFragment on Notification {\n    id\n    title\n    subject\n    description\n    importance\n    link\n    type\n    timestamp\n    formattedTimestamp\n  }\n": typeof types.NotificationFragmentFragmentDoc,
     "\n  fragment NotificationCountFragment on NotificationCounts {\n    total\n    info\n    warning\n    alert\n  }\n": typeof types.NotificationCountFragmentFragmentDoc,
     "\n  query Notifications($filter: NotificationFilter!) {\n    notifications {\n      id\n      list(filter: $filter) {\n        ...NotificationFragment\n      }\n    }\n  }\n": typeof types.NotificationsDocument,
@@ -36,7 +36,7 @@ type Documents = {
     "\n    mutation setupRemoteAccess($input: SetupRemoteAccessInput!) {\n        setupRemoteAccess(input: $input)\n    }\n": typeof types.setupRemoteAccessDocument,
 };
 const documents: Documents = {
-    "\n  query GetConnectSettingsForm {\n    connectSettingsForm {\n      id\n      dataSchema\n      uiSchema\n    }\n  }\n": types.GetConnectSettingsFormDocument,
+    "\n  query GetConnectSettingsForm {\n    connect {\n      id\n      settings {\n        id\n        dataSchema\n        uiSchema\n        values {\n          sandbox\n          extraOrigins\n          accessType\n          forwardType\n          port\n        }\n      }\n    }\n  }\n": types.GetConnectSettingsFormDocument,
     "\n  fragment NotificationFragment on Notification {\n    id\n    title\n    subject\n    description\n    importance\n    link\n    type\n    timestamp\n    formattedTimestamp\n  }\n": types.NotificationFragmentFragmentDoc,
     "\n  fragment NotificationCountFragment on NotificationCounts {\n    total\n    info\n    warning\n    alert\n  }\n": types.NotificationCountFragmentFragmentDoc,
     "\n  query Notifications($filter: NotificationFilter!) {\n    notifications {\n      id\n      list(filter: $filter) {\n        ...NotificationFragment\n      }\n    }\n  }\n": types.NotificationsDocument,
@@ -75,7 +75,7 @@ export function graphql(source: string): unknown;
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
-export function graphql(source: "\n  query GetConnectSettingsForm {\n    connectSettingsForm {\n      id\n      dataSchema\n      uiSchema\n    }\n  }\n"): (typeof documents)["\n  query GetConnectSettingsForm {\n    connectSettingsForm {\n      id\n      dataSchema\n      uiSchema\n    }\n  }\n"];
+export function graphql(source: "\n  query GetConnectSettingsForm {\n    connect {\n      id\n      settings {\n        id\n        dataSchema\n        uiSchema\n        values {\n          sandbox\n          extraOrigins\n          accessType\n          forwardType\n          port\n        }\n      }\n    }\n  }\n"): (typeof documents)["\n  query GetConnectSettingsForm {\n    connect {\n      id\n      settings {\n        id\n        dataSchema\n        uiSchema\n        values {\n          sandbox\n          extraOrigins\n          accessType\n          forwardType\n          port\n        }\n      }\n    }\n  }\n"];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */

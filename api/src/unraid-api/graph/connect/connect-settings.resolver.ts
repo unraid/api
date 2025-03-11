@@ -2,8 +2,10 @@ import { Args, Query, ResolveField, Resolver } from '@nestjs/graphql';
 
 import { AuthActionVerb, AuthPossession, UsePermissions } from 'nest-authz';
 
+import type { ConnectSettings } from '@app/graphql/generated/api/types.js';
 import { Resource } from '@app/graphql/generated/api/types.js';
-import { ConnectSettingsService } from '@app/unraid-api/graph/resolvers/settings/connect-settings.service.js';
+
+import { ConnectSettingsService } from './connect-settings.service.js';
 
 @Resolver('ConnectSettings')
 export class ConnectSettingsResolver {
@@ -15,7 +17,7 @@ export class ConnectSettingsResolver {
         resource: Resource.CONNECT,
         possession: AuthPossession.ANY,
     })
-    public async connectSettingsForm() {
+    public async connectSettingsForm(): Promise<ConnectSettings> {
         const { properties, elements } = await this.connectSettingsService.buildSettingsSchema();
         return {
             id: 'connectSettingsForm',
@@ -27,6 +29,7 @@ export class ConnectSettingsResolver {
                 type: 'VerticalLayout',
                 elements,
             },
+            values: await this.connectSettingsService.getCurrentSettings(),
         };
     }
 }

@@ -11,7 +11,14 @@ import type {
 } from '@jsonforms/core';
 import { RuleEffect } from '@jsonforms/core';
 
+import type { RemoteAccess, SetupRemoteAccessInput } from '@app/graphql/generated/api/types.js';
 import { fileExistsSync } from '@app/core/utils/files/file-exists.js';
+import {
+    DynamicRemoteAccessType,
+    WAN_ACCESS_TYPE,
+    WAN_FORWARD_TYPE,
+} from '@app/graphql/generated/api/types.js';
+import { setupRemoteAccessThunk } from '@app/store/actions/setup-remote-access.js';
 
 type DataSlice = Record<string, JsonSchema>;
 type UIElement = UISchemaElement | LabelElement | Layout | ControlElement | Categorization;
@@ -20,6 +27,11 @@ type SettingSlice = {
     properties: DataSlice;
     /** One or more UI schema elements */
     elements: UIElement[];
+};
+
+type SettingsRepresentation = Omit<RemoteAccess, '__typename'> & {
+    sandbox: boolean;
+    extraOrigins: string[];
 };
 
 @Injectable()
@@ -44,6 +56,46 @@ export class ConnectSettingsService {
         return nginx.certificateName.endsWith('.myunraid.net');
     }
 
+    /**------------------------------------------------------------------------
+     *                           Settings Form Data
+     *------------------------------------------------------------------------**/
+
+    async getCurrentSettings(): Promise<SettingsRepresentation> {
+        const { getters } = await import('@app/store/index.js');
+        const { local, api } = getters.config();
+        return {
+            ...(await this.dynamicRemoteAccessSettings()),
+            sandbox: local.sandbox === 'yes',
+            extraOrigins: api.extraOrigins?.split(',') ?? [],
+        };
+    }
+
+    public async updateRemoteAccess(input: SetupRemoteAccessInput): Promise<boolean> {
+        const { store } = await import('@app/store/index.js');
+        await store.dispatch(setupRemoteAccessThunk(input)).unwrap();
+        return true;
+    }
+
+    public async dynamicRemoteAccessSettings(): Promise<RemoteAccess> {
+        const { getters } = await import('@app/store/index.js');
+        const hasWanAccess = getters.config().remote.wanaccess === 'yes';
+        return {
+            accessType: hasWanAccess
+                ? getters.config().remote.dynamicRemoteAccessType !== DynamicRemoteAccessType.DISABLED
+                    ? WAN_ACCESS_TYPE.DYNAMIC
+                    : WAN_ACCESS_TYPE.ALWAYS
+                : WAN_ACCESS_TYPE.DISABLED,
+            forwardType: getters.config().remote.upnpEnabled
+                ? WAN_FORWARD_TYPE.UPNP
+                : WAN_FORWARD_TYPE.STATIC,
+            port: getters.config().remote.wanport ? Number(getters.config().remote.wanport) : null,
+        };
+    }
+
+    /**------------------------------------------------------------------------
+     *                           Settings Form Slices
+     *------------------------------------------------------------------------**/
+
     /**
      * Builds the complete settings schema
      */
@@ -57,10 +109,6 @@ export class ConnectSettingsService {
 
         return this.reduceSlices(slices);
     }
-
-    /**------------------------------------------------------------------------
-     *                           Settings Form Slices
-     *------------------------------------------------------------------------**/
 
     createEmptySlice(): SettingSlice {
         return { properties: {}, elements: [] };
@@ -78,19 +126,19 @@ export class ConnectSettingsService {
         const { nginx } = getters.emhttp();
         return {
             properties: {
-                remoteAccess: {
+                accessType: {
                     type: 'string',
-                    enum: [
-                        'OFF',
-                        'DYNAMIC_UPNP',
-                        nginx.sslEnabled && 'DYNAMIC_MANUAL',
-                        'ALWAYS_UPNP',
-                        'ALWAYS_MANUAL',
-                    ].filter((val) => Boolean(val)),
+                    enum: Object.values(WAN_ACCESS_TYPE),
                     title: 'Allow Remote Access',
-                    default: 'OFF',
+                    default: 'DISABLED',
                 },
-                wanPort: {
+                forwardType: {
+                    type: 'string',
+                    enum: Object.values(WAN_FORWARD_TYPE),
+                    title: 'Forward Type',
+                    default: 'STATIC',
+                },
+                port: {
                     type: 'number',
                     title: 'WAN Port',
                     minimum: 0,
@@ -101,15 +149,23 @@ export class ConnectSettingsService {
                 ? [
                       {
                           type: 'Control',
-                          scope,
+                          scope: '#/properties/accessType',
                           label: 'Allow Remote Access',
                       },
                       {
                           type: 'Control',
-                          scope: '#/properties/wanPort',
+                          scope: '#/properties/forwardType',
+                          label: 'Remote AccessForward Type',
+                      },
+                      {
+                          type: 'Control',
+                          scope: '#/properties/port',
                           label: 'Remote Access WAN Port',
                           options: {
                               format: 'short',
+                              formatOptions: {
+                                  useGrouping: false,
+                              },
                           },
                           rule: {
                               effect: RuleEffect.ENABLE,
@@ -117,11 +173,11 @@ export class ConnectSettingsService {
                               // but this has been working and I don't know what the correct scope would be.
                               condition: {
                                   failWhenUndefined: true,
-                                  scope,
+                                  scope: '#/properties/forwardType',
                                   schema: {
-                                      enum: ['DYNAMIC_MANUAL', 'ALWAYS_MANUAL'],
+                                      enum: [WAN_FORWARD_TYPE.STATIC],
                                   },
-                              } as Omit<SchemaBasedCondition, 'scope'>,
+                              } as SchemaBasedCondition,
                           },
                       },
                   ]

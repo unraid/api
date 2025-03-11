@@ -5,21 +5,22 @@ import { GraphQLError } from 'graphql';
 import { AuthActionVerb, AuthPossession, UsePermissions } from 'nest-authz';
 
 import type {
+    ConnectResolvers,
+    ConnectSettings,
     DynamicRemoteAccessStatus,
     EnableDynamicRemoteAccessInput,
 } from '@app/graphql/generated/api/types.js';
-import {
-    ConnectResolvers,
-    DynamicRemoteAccessType,
-    Resource,
-} from '@app/graphql/generated/api/types.js';
+import { DynamicRemoteAccessType, Resource } from '@app/graphql/generated/api/types.js';
 import { RemoteAccessController } from '@app/remoteAccess/remote-access-controller.js';
 import { store } from '@app/store/index.js';
 import { setAllowedRemoteAccessUrl } from '@app/store/modules/dynamic-remote-access.js';
 
+import { ConnectSettingsService } from './connect-settings.service.js';
+
 @Resolver('Connect')
 export class ConnectResolver implements ConnectResolvers {
     protected logger = new Logger(ConnectResolver.name);
+    constructor(private readonly connectSettingsService: ConnectSettingsService) {}
 
     @Query('connect')
     @UsePermissions({
@@ -34,6 +35,23 @@ export class ConnectResolver implements ConnectResolvers {
     @ResolveField()
     public id() {
         return 'connect';
+    }
+
+    @ResolveField()
+    public async settings(): Promise<ConnectSettings> {
+        const { properties, elements } = await this.connectSettingsService.buildSettingsSchema();
+        return {
+            id: 'connectSettingsForm',
+            dataSchema: {
+                type: 'object',
+                properties,
+            },
+            uiSchema: {
+                type: 'VerticalLayout',
+                elements,
+            },
+            values: await this.connectSettingsService.getCurrentSettings(),
+        };
     }
 
     @ResolveField()

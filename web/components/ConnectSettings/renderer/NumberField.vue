@@ -27,6 +27,7 @@ const value = computed({
 const min = computed(() => control.value.schema.minimum ?? Number.MIN_SAFE_INTEGER);
 const max = computed(() => control.value.schema.maximum ?? Number.MAX_SAFE_INTEGER);
 const step = computed(() => control.value.schema.multipleOf ?? 1);
+const stepperEnabled = computed(() => Boolean(control.value.uischema?.options?.stepper));
 const formatOptions = computed(() => control.value.uischema?.options?.formatOptions || {});
 const classOverride = computed(() => {
   return cn(control.value.uischema?.options?.class, {
@@ -46,9 +47,9 @@ const classOverride = computed(() => {
       :class="classOverride"
       :disabled="!control.enabled"
     >
-      <NumberFieldDecrement />
+      <NumberFieldDecrement v-if="stepperEnabled" />
       <NumberFieldInput />
-      <NumberFieldIncrement />
+      <NumberFieldIncrement v-if="stepperEnabled" />
     </NumberField>
   </ControlLayout>
 </template>

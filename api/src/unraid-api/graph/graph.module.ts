@@ -24,6 +24,8 @@ import { sandboxPlugin } from '@app/unraid-api/graph/sandbox-plugin.js';
 import { ServicesResolver } from '@app/unraid-api/graph/services/services.resolver.js';
 import { SharesResolver } from '@app/unraid-api/graph/shares/shares.resolver.js';
 
+import { ConnectSettingsService } from './connect/connect-settings.service.js';
+
 @Module({
     imports: [
         ResolversModule,
@@ -57,6 +59,13 @@ import { SharesResolver } from '@app/unraid-api/graph/shares/shares.resolver.js'
             }),
         }),
     ],
-    providers: [NetworkResolver, ServicesResolver, SharesResolver, ConnectResolver, ConnectService],
+    providers: [
+        NetworkResolver,
+        ServicesResolver,
+        SharesResolver,
+        ConnectResolver,
+        ConnectService,
+        ConnectSettingsService,
+    ],
 })
 export class GraphModule {}
