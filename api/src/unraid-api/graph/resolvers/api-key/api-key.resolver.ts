@@ -1,6 +1,4 @@
-import { UseGuards } from '@nestjs/common';
 import { Args, Mutation, Query, Resolver } from '@nestjs/graphql';
-import { Throttle } from '@nestjs/throttler';
 
 import { AuthActionVerb, AuthPossession, UsePermissions } from 'nest-authz';
 
@@ -13,12 +11,9 @@ import type {
 } from '@app/graphql/generated/api/types.js';
 import { Resource, Role } from '@app/graphql/generated/api/types.js';
 import { ApiKeyService } from '@app/unraid-api/auth/api-key.service.js';
-import { GraphqlAuthGuard } from '@app/unraid-api/auth/auth.guard.js';
 import { AuthService } from '@app/unraid-api/auth/auth.service.js';
 
 @Resolver('ApiKey')
-@UseGuards(GraphqlAuthGuard)
-@Throttle({ default: { limit: 100, ttl: 60000 } }) // 100 requests per minute
 export class ApiKeyResolver {
     constructor(
         private authService: AuthService,
