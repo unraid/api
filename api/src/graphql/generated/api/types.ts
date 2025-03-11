@@ -1071,7 +1071,6 @@ export type Query = {
   cloud?: Maybe<Cloud>;
   config: Config;
   connect: Connect;
-  connectSettingsForm: ConnectSettings;
   /** Single disk */
   disk?: Maybe<Disk>;
   /** Mulitiple disks */
@@ -2724,7 +2723,6 @@ export type QueryResolvers<ContextType = Context, ParentType extends ResolversPa
   cloud?: Resolver<Maybe<ResolversTypes['Cloud']>, ParentType, ContextType>;
   config?: Resolver<ResolversTypes['Config'], ParentType, ContextType>;
   connect?: Resolver<ResolversTypes['Connect'], ParentType, ContextType>;
-  connectSettingsForm?: Resolver<ResolversTypes['ConnectSettings'], ParentType, ContextType>;
   disk?: Resolver<Maybe<ResolversTypes['Disk']>, ParentType, ContextType, RequireFields<QuerydiskArgs, 'id'>>;
   disks?: Resolver<Array<Maybe<ResolversTypes['Disk']>>, ParentType, ContextType>;
   display?: Resolver<Maybe<ResolversTypes['Display']>, ParentType, ContextType>;

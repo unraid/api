@@ -14,8 +14,7 @@ import { DynamicRemoteAccessType, Resource } from '@app/graphql/generated/api/ty
 import { RemoteAccessController } from '@app/remoteAccess/remote-access-controller.js';
 import { store } from '@app/store/index.js';
 import { setAllowedRemoteAccessUrl } from '@app/store/modules/dynamic-remote-access.js';
-
-import { ConnectSettingsService } from './connect-settings.service.js';
+import { ConnectSettingsService } from '@app/unraid-api/graph/connect/connect-settings.service.js';
 
 @Resolver('Connect')
 export class ConnectResolver implements ConnectResolvers {

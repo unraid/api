@@ -1074,7 +1074,6 @@ export type Query = {
   cloud?: Maybe<Cloud>;
   config: Config;
   connect: Connect;
-  connectSettingsForm: ConnectSettings;
   /** Single disk */
   disk?: Maybe<Disk>;
   /** Mulitiple disks */

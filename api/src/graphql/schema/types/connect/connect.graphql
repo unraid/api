@@ -86,7 +86,6 @@ type Query {
     remoteAccess: RemoteAccess!
     extraAllowedOrigins: [String!]!
     connect: Connect!
-    connectSettingsForm: ConnectSettings!
 }
 
 type Mutation {
