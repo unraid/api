@@ -67,7 +67,8 @@ export class ConnectSettingsService {
         return {
             ...(await this.dynamicRemoteAccessSettings()),
             sandbox: local.sandbox === 'yes',
-            extraOrigins: api.extraOrigins?.split(',') ?? [],
+            // note the space after the comma. This is meant to match the logic in @app/store/modules/config.ts
+            extraOrigins: api.extraOrigins?.split(', ').map((origin) => origin.trim()) ?? [],
         };
     }
 
