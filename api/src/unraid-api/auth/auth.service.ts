@@ -7,6 +7,7 @@ import { Role } from '@app/graphql/generated/api/types.js';
 import { getters } from '@app/store/index.js';
 import { ApiKeyService } from '@app/unraid-api/auth/api-key.service.js';
 import { CookieService } from '@app/unraid-api/auth/cookie.service.js';
+import { FastifyRequest } from '@app/unraid-api/types/fastify.js';
 import { batchProcess, handleAuthError } from '@app/utils.js';
 
 @Injectable()
@@ -48,9 +49,13 @@ export class AuthService {
         }
     }
 
-    async validateCookiesCasbin(cookies: object): Promise<UserAccount> {
+    async validateCookiesWithCsrfToken(request: FastifyRequest): Promise<UserAccount> {
         try {
-            if (!(await this.cookieService.hasValidAuthCookie(cookies))) {
+            if (!this.validateCsrfToken(request.headers['x-csrf-token'] || request.query.csrf_token)) {
+                throw new UnauthorizedException('Invalid CSRF token');
+            }
+
+            if (!(await this.cookieService.hasValidAuthCookie(request.cookies))) {
                 throw new UnauthorizedException('No user session found');
             }
 
