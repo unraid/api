@@ -11,7 +11,12 @@ import type {
 } from '@jsonforms/core';
 import { RuleEffect } from '@jsonforms/core';
 
-import type { RemoteAccess, SetupRemoteAccessInput } from '@app/graphql/generated/api/types.js';
+import type {
+    ConnectSettingsValues,
+    PossibleApiSettings,
+    RemoteAccess,
+    SetupRemoteAccessInput,
+} from '@app/graphql/generated/api/types.js';
 import { fileExistsSync } from '@app/core/utils/files/file-exists.js';
 import {
     DynamicRemoteAccessType,
@@ -19,6 +24,7 @@ import {
     WAN_FORWARD_TYPE,
 } from '@app/graphql/generated/api/types.js';
 import { setupRemoteAccessThunk } from '@app/store/actions/setup-remote-access.js';
+import { updateAllowedOrigins, updateUserConfig } from '@app/store/modules/config.js';
 
 type DataSlice = Record<string, JsonSchema>;
 type UIElement = UISchemaElement | LabelElement | Layout | ControlElement | Categorization;
@@ -27,11 +33,6 @@ type SettingSlice = {
     properties: DataSlice;
     /** One or more UI schema elements */
     elements: UIElement[];
-};
-
-type SettingsRepresentation = Omit<RemoteAccess, '__typename'> & {
-    sandbox: boolean;
-    extraOrigins: string[];
 };
 
 @Injectable()
@@ -60,7 +61,7 @@ export class ConnectSettingsService {
      *                           Settings Form Data
      *------------------------------------------------------------------------**/
 
-    async getCurrentSettings(): Promise<SettingsRepresentation> {
+    async getCurrentSettings(): Promise<ConnectSettingsValues> {
         const { getters } = await import('@app/store/index.js');
         const { local, api } = getters.config();
         return {
@@ -70,13 +71,45 @@ export class ConnectSettingsService {
         };
     }
 
-    public async updateRemoteAccess(input: SetupRemoteAccessInput): Promise<boolean> {
+    /**
+     * Syncs the settings to the store and writes the config to disk
+     * @param settings - The settings to sync
+     */
+    async syncSettings(settings: Partial<PossibleApiSettings>) {
+        if (settings.accessType) {
+            await this.updateRemoteAccess({
+                accessType: settings.accessType,
+                forwardType: settings.forwardType,
+                port: settings.port,
+            });
+        }
+        if (settings.extraOrigins) {
+            await this.updateAllowedOrigins(settings.extraOrigins);
+        }
+        if (typeof settings.sandbox === 'boolean') {
+            await this.setSandboxMode(settings.sandbox);
+        }
+        const { writeConfigSync } = await import('@app/store/sync/config-disk-sync.js');
+        writeConfigSync('flash');
+    }
+
+    private async updateAllowedOrigins(origins: string[]) {
+        const { store } = await import('@app/store/index.js');
+        store.dispatch(updateAllowedOrigins(origins));
+    }
+
+    private async setSandboxMode(sandbox: boolean) {
+        const { store } = await import('@app/store/index.js');
+        store.dispatch(updateUserConfig({ local: { sandbox: sandbox ? 'yes' : 'no' } }));
+    }
+
+    private async updateRemoteAccess(input: SetupRemoteAccessInput): Promise<boolean> {
         const { store } = await import('@app/store/index.js');
         await store.dispatch(setupRemoteAccessThunk(input)).unwrap();
         return true;
     }
 
-    public async dynamicRemoteAccessSettings(): Promise<RemoteAccess> {
+    private async dynamicRemoteAccessSettings(): Promise<Omit<RemoteAccess, '__typename'>> {
         const { getters } = await import('@app/store/index.js');
         const hasWanAccess = getters.config().remote.wanaccess === 'yes';
         return {
@@ -117,13 +150,9 @@ export class ConnectSettingsService {
     /**
      * Computes the JSONForms schema definition for remote access settings.
      */
-    async remoteAccessSlice(scope = '#/properties/remoteAccess'): Promise<SettingSlice> {
-        // const precondition = (await this.isSignedIn()) && (await this.isSSLCertProvisioned());
-        const precondition = true;
-        // if (!precondition) return this.createEmptySlice();
+    async remoteAccessSlice(): Promise<SettingSlice> {
+        const precondition = (await this.isSignedIn()) && (await this.isSSLCertProvisioned());
 
-        const { getters } = await import('@app/store/index.js');
-        const { nginx } = getters.emhttp();
         return {
             properties: {
                 accessType: {

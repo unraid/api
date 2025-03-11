@@ -3,17 +3,29 @@
 
 // const { t } = useI18n();
 
-import { useQuery } from '@vue/apollo-composable';
+import { useMutation, useQuery } from '@vue/apollo-composable';
 
 // import { extendedVuetifyRenderers } from '@jsonforms/vue-vuetify';
 import { BrandButton, Label } from '@unraid/ui';
 import { JsonForms } from '@jsonforms/vue';
 import { vanillaRenderers } from '@jsonforms/vue-vanilla';
 
-import { getConnectSettingsForm } from './graphql/settings.query';
-import { formSelectEntry, formSwitchEntry, numberFieldEntry, preconditionsLabelEntry } from './renderer/renderer-entries';
+import type { ConnectSettingsValues, PossibleApiSettings } from '~/composables/gql/graphql';
+
+import { getConnectSettingsForm, updateConnectSettings } from './graphql/settings.query';
+import {
+  formSelectEntry,
+  formSwitchEntry,
+  numberFieldEntry,
+  preconditionsLabelEntry,
+} from './renderer/renderer-entries';
 import { stringArrayEntry } from './renderer/string-array.renderer';
 
+const {
+  mutate: updateSettings,
+  loading: updateSettingsLoading,
+  error: updateSettingsError,
+} = useMutation(updateConnectSettings);
 const { result } = useQuery(getConnectSettingsForm);
 const renderers = [
   ...vanillaRenderers,
@@ -26,25 +38,29 @@ const renderers = [
   stringArrayEntry,
   // custom renderers here
 ];
+const formSettings = ref<Partial<ConnectSettingsValues>>({});
 const settings = computed(() => {
   if (!result.value) return;
   return result.value?.connect.settings;
 });
-watchImmediate(result, () => {
-  console.log('connect settings', result.value);
+watch(result, () => {
+  if (!result.value) return;
+  const { __typename, ...initialValues } = result.value.connect.settings.values;
+  formSettings.value = initialValues;
 });
 const config = {
   restrict: false,
   trim: false,
 };
-const data = ref({});
-const debugData = () => {
-  console.log('[ConnectSettings] data', data.value);
+
+const debugData = async () => {
+  console.log('[ConnectSettings] data', formSettings.value);
+  await updateSettings({ input: formSettings.value });
 };
 const onChange = ({ data: fdata, errors }: { data: Record<string, unknown>; errors: string[] }) => {
   console.log('[ConnectSettings] data', fdata);
   console.log('[ConnectSettings] errors', errors);
-  data.value = fdata;
+  formSettings.value = fdata;
 };
 </script>
 
@@ -81,14 +97,20 @@ const onChange = ({ data: fdata, errors }: { data: Record<string, unknown>; erro
       v-if="settings"
       :schema="settings.dataSchema"
       :uischema="settings.uiSchema"
-      :data="settings.values"
+      :data="formSettings"
       :renderers="renderers"
       :config="config"
       @change="onChange"
     />
     <div class="mt-6 grid grid-cols-3 gap-6">
       <div class="col-start-2">
-        <BrandButton variant="outline-primary" padding="lean" size="12px" class="leading-normal" @click="debugData">
+        <BrandButton
+          variant="outline-primary"
+          padding="lean"
+          size="12px"
+          class="leading-normal"
+          @click="debugData"
+        >
           Apply
         </BrandButton>
       </div>

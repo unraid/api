@@ -723,6 +723,7 @@ export type Mutation = {
   unmountArrayDisk?: Maybe<Disk>;
   /** Marks a notification as unread. */
   unreadNotification: Notification;
+  updateApiSettings: ConnectSettingsValues;
 };
 
 
@@ -855,6 +856,11 @@ export type MutationunmountArrayDiskArgs = {
 
 export type MutationunreadNotificationArgs = {
   id: Scalars['String']['input'];
+};
+
+
+export type MutationupdateApiSettingsArgs = {
+  input: PossibleApiSettings;
 };
 
 export type Network = Node & {
@@ -1052,6 +1058,14 @@ export type Permission = {
   __typename?: 'Permission';
   actions: Array<Scalars['String']['output']>;
   resource: Resource;
+};
+
+export type PossibleApiSettings = {
+  accessType?: InputMaybe<WAN_ACCESS_TYPE>;
+  extraOrigins?: InputMaybe<Array<Scalars['String']['input']>>;
+  forwardType?: InputMaybe<WAN_FORWARD_TYPE>;
+  port?: InputMaybe<Scalars['Port']['input']>;
+  sandbox?: InputMaybe<Scalars['Boolean']['input']>;
 };
 
 export type ProfileModel = {
@@ -1924,6 +1938,7 @@ export type ResolversTypes = ResolversObject<{
   Pci: ResolverTypeWrapper<Pci>;
   Permission: ResolverTypeWrapper<Permission>;
   Port: ResolverTypeWrapper<Scalars['Port']['output']>;
+  PossibleApiSettings: PossibleApiSettings;
   ProfileModel: ResolverTypeWrapper<ProfileModel>;
   Query: ResolverTypeWrapper<{}>;
   Registration: ResolverTypeWrapper<Registration>;
@@ -2039,6 +2054,7 @@ export type ResolversParentTypes = ResolversObject<{
   Pci: Pci;
   Permission: Permission;
   Port: Scalars['Port']['output'];
+  PossibleApiSettings: PossibleApiSettings;
   ProfileModel: ProfileModel;
   Query: {};
   Registration: Registration;
@@ -2532,6 +2548,7 @@ export type MutationResolvers<ContextType = Context, ParentType extends Resolver
   unarchiveNotifications?: Resolver<ResolversTypes['NotificationOverview'], ParentType, ContextType, Partial<MutationunarchiveNotificationsArgs>>;
   unmountArrayDisk?: Resolver<Maybe<ResolversTypes['Disk']>, ParentType, ContextType, RequireFields<MutationunmountArrayDiskArgs, 'id'>>;
   unreadNotification?: Resolver<ResolversTypes['Notification'], ParentType, ContextType, RequireFields<MutationunreadNotificationArgs, 'id'>>;
+  updateApiSettings?: Resolver<ResolversTypes['ConnectSettingsValues'], ParentType, ContextType, RequireFields<MutationupdateApiSettingsArgs, 'input'>>;
 }>;
 
 export type NetworkResolvers<ContextType = Context, ParentType extends ResolversParentTypes['Network'] = ResolversParentTypes['Network']> = ResolversObject<{

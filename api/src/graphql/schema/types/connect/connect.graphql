@@ -69,6 +69,15 @@ type ConnectSettingsValues {
     port: Port
 }
 
+input PossibleApiSettings {
+    sandbox: Boolean
+    extraOrigins: [String!]
+
+    accessType: WAN_ACCESS_TYPE
+    forwardType: WAN_FORWARD_TYPE
+    port: Port
+}
+
 type ConnectSettings implements Node {
     id: ID!
     dataSchema: JSON!
@@ -94,4 +103,5 @@ type Mutation {
     enableDynamicRemoteAccess(input: EnableDynamicRemoteAccessInput!): Boolean!
     setAdditionalAllowedOrigins(input: AllowedOriginInput!): [String!]!
     setupRemoteAccess(input: SetupRemoteAccessInput!): Boolean!
+    updateApiSettings(input: PossibleApiSettings!): ConnectSettingsValues!
 }           

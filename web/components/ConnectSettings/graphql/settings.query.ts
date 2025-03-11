@@ -19,3 +19,15 @@ export const getConnectSettingsForm = graphql(/* GraphQL */ `
     }
   }
 `);
+
+export const updateConnectSettings = graphql(/* GraphQL */ `
+  mutation UpdateConnectSettings($input: PossibleApiSettings!) {
+    updateApiSettings(input: $input) {
+      sandbox
+      extraOrigins
+      accessType
+      forwardType
+      port
+    }
+  }
+`);
