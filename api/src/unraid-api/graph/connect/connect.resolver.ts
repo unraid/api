@@ -54,17 +54,6 @@ export class ConnectResolver implements ConnectResolvers {
         };
     }
 
-    @ResolveField()
-    public dynamicRemoteAccess(): DynamicRemoteAccessStatus {
-        return {
-            runningType: store.getState().dynamicRemoteAccess.runningType,
-            enabledType:
-                store.getState().config.remote.dynamicRemoteAccessType ??
-                DynamicRemoteAccessType.DISABLED,
-            error: store.getState().dynamicRemoteAccess.error,
-        };
-    }
-
     @Mutation()
     @UsePermissions({
         action: AuthActionVerb.UPDATE,
@@ -75,6 +64,17 @@ export class ConnectResolver implements ConnectResolvers {
         this.logger.verbose(`Attempting to update API settings: ${JSON.stringify(settings, null, 2)}`);
         await this.connectSettingsService.syncSettings(settings);
         return this.connectSettingsService.getCurrentSettings();
+    }
+
+    @ResolveField()
+    public dynamicRemoteAccess(): DynamicRemoteAccessStatus {
+        return {
+            runningType: store.getState().dynamicRemoteAccess.runningType,
+            enabledType:
+                store.getState().config.remote.dynamicRemoteAccessType ??
+                DynamicRemoteAccessType.DISABLED,
+            error: store.getState().dynamicRemoteAccess.error,
+        };
     }
 
     @Mutation()

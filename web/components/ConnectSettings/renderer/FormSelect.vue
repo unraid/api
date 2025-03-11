@@ -54,7 +54,13 @@ const onSelectOpen = () => {
 
 <template>
   <ControlLayout v-if="control.visible" :label="control.label" :errors="control.errors">
-    <Select v-model="selected" @update:model-value="onChange" @update:open="onSelectOpen">
+    <Select
+      v-model="selected"
+      :disabled="!control.enabled"
+      :required="control.required"
+      @update:model-value="onChange"
+      @update:open="onSelectOpen"
+    >
       <!-- The trigger shows the currently selected value (if any) -->
       <SelectTrigger>
         <SelectValue v-if="selected">{{ selected }}</SelectValue>

@@ -46,6 +46,7 @@ const classOverride = computed(() => {
       :format-options="formatOptions"
       :class="classOverride"
       :disabled="!control.enabled"
+      :required="control.required"
     >
       <NumberFieldDecrement v-if="stepperEnabled" />
       <NumberFieldInput />

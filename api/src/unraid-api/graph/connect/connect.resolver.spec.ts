@@ -4,8 +4,7 @@ import { Test } from '@nestjs/testing';
 import { beforeEach, describe, expect, it } from 'vitest';
 
 import { ConnectResolver } from '@app/unraid-api/graph/connect/connect.resolver.js';
-
-import { ConnectService } from './connect.service.js';
+import { ConnectService } from '@app/unraid-api/graph/connect/connect.service.js';
 
 describe('ConnectResolver', () => {
     let resolver: ConnectResolver;

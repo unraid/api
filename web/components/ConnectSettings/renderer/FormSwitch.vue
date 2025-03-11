@@ -20,7 +20,6 @@ const onChange = (checked: boolean) => {
       :id="control.id + '-input'"
       :name="control.path"
       :disabled="!control.enabled"
-      :hint="control.description"
       :required="control.required"
       :checked="control.data as boolean"
       @update:checked="onChange"

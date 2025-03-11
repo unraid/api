@@ -10,7 +10,7 @@ import { BrandButton, Label } from '@unraid/ui';
 import { JsonForms } from '@jsonforms/vue';
 import { vanillaRenderers } from '@jsonforms/vue-vanilla';
 
-import type { ConnectSettingsValues, PossibleApiSettings } from '~/composables/gql/graphql';
+import type { ConnectSettingsValues } from '~/composables/gql/graphql';
 
 import { getConnectSettingsForm, updateConnectSettings } from './graphql/settings.query';
 import {
@@ -25,7 +25,29 @@ const {
   mutate: updateSettings,
   loading: updateSettingsLoading,
   error: updateSettingsError,
+  onDone: onUpdateDone,
 } = useMutation(updateConnectSettings);
+const isUpdating = ref(false);
+const reactionMessage = ref('');
+watchDebounced(
+  updateSettingsLoading,
+  (loading) => {
+    isUpdating.value = loading;
+  },
+  {
+    debounce: 100,
+  }
+);
+onUpdateDone(() => {
+  globalThis.toast?.success('Updated API Settings');
+  if (!globalThis.toast) {
+    reactionMessage.value = 'Updated API Settings <span class="text-green-500">✓</span>';
+    setTimeout(() => {
+      reactionMessage.value = '';
+    }, 3000);
+  }
+});
+
 const { result } = useQuery(getConnectSettingsForm);
 const renderers = [
   ...vanillaRenderers,
@@ -101,10 +123,12 @@ const onChange = ({ data: fdata, errors }: { data: Record<string, unknown>; erro
       :data="formSettings"
       :renderers="renderers"
       :config="config"
+      :readonly="isUpdating"
       @change="onChange"
     />
-    <div class="mt-6 grid grid-cols-3 gap-6">
-      <div class="col-start-2">
+    <div class="mt-6 grid grid-cols-3 gap-6 items-baseline">
+      <p v-if="reactionMessage" class="text-sm text-end" v-html="reactionMessage"></p>
+      <div class="col-start-2 space-y-4">
         <BrandButton
           variant="outline-primary"
           padding="lean"
@@ -114,6 +138,10 @@ const onChange = ({ data: fdata, errors }: { data: Record<string, unknown>; erro
         >
           Apply
         </BrandButton>
+
+        <p v-if="updateSettingsError" class="text-sm text-unraid-red-500">
+          ✕ Error: {{ updateSettingsError.message }}
+        </p>
       </div>
     </div>
   </div>

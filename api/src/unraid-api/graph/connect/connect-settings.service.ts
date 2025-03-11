@@ -152,7 +152,7 @@ export class ConnectSettingsService {
      */
     async remoteAccessSlice(): Promise<SettingSlice> {
         const precondition = (await this.isSignedIn()) && (await this.isSSLCertProvisioned());
-
+        // const precondition = true;
         return {
             properties: {
                 accessType: {

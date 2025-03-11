@@ -49,14 +49,23 @@ const placeholder = computed(() => control.value.uischema?.options?.placeholder 
           :type="inputType"
           :model-value="item"
           :placeholder="placeholder"
+          :disabled="!control.enabled"
           class="flex-1"
           @update:model-value="(value: string) => updateItem(index, value)"
         />
-        <Button variant="ghost" class="rounded underline underline-offset-4" @click="() => removeItem(index)">
+        <Button variant="ghost" class="rounded underline underline-offset-4" :disabled="!control.enabled" @click="() => removeItem(index)">
           Remove
         </Button>
       </div>
-      <Button variant="outline" size="md" class="text-sm rounded-sm" @click="addItem">Add Item</Button>
+      <Button
+        variant="outline"
+        size="md"
+        class="text-sm rounded-sm"
+        :disabled="!control.enabled"
+        @click="addItem"
+      >
+        Add Item
+      </Button>
     </div>
   </ControlLayout>
 </template> 
