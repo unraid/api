@@ -46,6 +46,7 @@ const settings = computed(() => {
 watch(result, () => {
   if (!result.value) return;
   const { __typename, ...initialValues } = result.value.connect.settings.values;
+  console.log('[ConnectSettings] current settings', initialValues);
   formSettings.value = initialValues;
 });
 const config = {
@@ -54,12 +55,12 @@ const config = {
 };
 
 const debugData = async () => {
-  console.log('[ConnectSettings] data', formSettings.value);
+  console.log('[ConnectSettings] trying to update settings to', formSettings.value);
   await updateSettings({ input: formSettings.value });
 };
 const onChange = ({ data: fdata, errors }: { data: Record<string, unknown>; errors: string[] }) => {
-  console.log('[ConnectSettings] data', fdata);
-  console.log('[ConnectSettings] errors', errors);
+  console.log('[ConnectSettings] form touched', fdata);
+  console.error('[ConnectSettings] errors', errors);
   formSettings.value = fdata;
 };
 </script>

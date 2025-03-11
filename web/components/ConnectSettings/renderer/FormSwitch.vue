@@ -22,7 +22,7 @@ const onChange = (checked: boolean) => {
       :disabled="!control.enabled"
       :hint="control.description"
       :required="control.required"
-      :model-value="control.data as boolean"
+      :checked="control.data as boolean"
       @update:checked="onChange"
     />
   </ControlLayout>
