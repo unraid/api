@@ -17,8 +17,8 @@ import {
   formSwitchEntry,
   numberFieldEntry,
   preconditionsLabelEntry,
-} from './renderer/renderer-entries';
-import { stringArrayEntry } from './renderer/string-array.renderer';
+  stringArrayEntry,
+} from '../GeneratedForm/renderer-entries';
 
 /**--------------------------------------------
  *     Settings State & Form definition
