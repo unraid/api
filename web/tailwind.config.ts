@@ -1,7 +1,7 @@
 import tailwindRemToRem from '@unraid/tailwind-rem-to-rem';
 import tailwindConfig from '@unraid/ui/tailwind.config.ts';
 import type { Config } from 'tailwindcss';
-import tailwindForms from '@tailwindcss/forms';
+
 
 
 export default {
@@ -26,7 +26,6 @@ export default {
        */
       newFontSize: Number(process.env.VITE_TAILWIND_BASE_FONT_SIZE ?? 10),
     }),
-    tailwindForms,
   ],
   theme: {
     extend: {
