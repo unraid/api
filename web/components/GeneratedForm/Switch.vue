@@ -21,7 +21,7 @@ const onChange = (checked: boolean) => {
       :name="control.path"
       :disabled="!control.enabled"
       :required="control.required"
-      :checked="control.data as boolean"
+      :checked="Boolean(control.data)"
       @update:checked="onChange"
     />
   </ControlLayout>
