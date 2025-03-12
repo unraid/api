@@ -89,7 +89,7 @@ const onChange = ({ data: fdata, errors }: { data: Record<string, unknown>; erro
 
 <template>
   <div
-    class="grid grid-cols-12 items-baseline gap-6 [&>*:nth-child(odd)]:text-end [&>*:nth-child(odd)]:col-span-4 [&>*:nth-child(even)]:col-span-8"
+    class="grid grid-cols-settings items-baseline pl-3 gap-y-6 [&>*:nth-child(odd)]:text-end [&>*:nth-child(even)]:ml-10"
   >
     <Label>Account Status:</Label>
     <div v-html="'<unraid-i18n-host><unraid-auth></unraid-auth></unraid-i18n-host>'"></div>
@@ -115,7 +115,7 @@ const onChange = ({ data: fdata, errors }: { data: Record<string, unknown>; erro
     ></div>
   </div>
   <!-- @todo: flashback up -->
-  <div class="mt-6 [&_.vertical-layout]:space-y-6">
+  <div class="mt-6 pl-3 [&_.vertical-layout]:space-y-6">
     <JsonForms
       v-if="settings"
       :schema="settings.dataSchema"
@@ -126,9 +126,9 @@ const onChange = ({ data: fdata, errors }: { data: Record<string, unknown>; erro
       :readonly="isUpdating"
       @change="onChange"
     />
-    <div class="mt-6 grid grid-cols-3 gap-6 items-baseline">
+    <div class="mt-6 grid grid-cols-settings gap-y-6 items-baseline">
       <p v-if="reactionMessage" class="text-sm text-end" v-html="reactionMessage"></p>
-      <div class="col-start-2 space-y-4">
+      <div class="col-start-2 ml-10 space-y-4">
         <BrandButton
           variant="outline-primary"
           padding="lean"

@@ -19,9 +19,9 @@ const formattedLabel = computed(() => {
 </script>
 
 <template>
-  <div class="grid grid-cols-12 items-baseline gap-6">
-    <Label class="text-end col-span-4">{{ formattedLabel }}</Label>
-    <div class="col-span-8 max-w-3xl">
+  <div class="grid grid-cols-settings items-baseline">
+    <Label class="text-end">{{ formattedLabel }}</Label>
+    <div class="ml-10 max-w-3xl">
       <slot></slot>
       <div v-if="normalizedErrors.length > 0" class="mt-2 text-red-500 text-sm">
         <p v-for="error in normalizedErrors" :key="error">{{ error }}</p>
