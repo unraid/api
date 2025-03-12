@@ -52,6 +52,7 @@
         "@apollo/server": "^4.11.2",
         "@as-integrations/fastify": "^2.1.1",
         "@fastify/cookie": "^9.4.0",
+        "@fastify/helmet": "^13.0.1",
         "@graphql-codegen/client-preset": "^4.5.0",
         "@graphql-tools/load-files": "^7.0.0",
         "@graphql-tools/merge": "^9.0.8",

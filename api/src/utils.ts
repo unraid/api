@@ -6,7 +6,7 @@ import { dirname } from 'node:path';
 import strftime from 'strftime';
 
 import { UserAccount } from '@app/graphql/generated/api/types.js';
-import { FastifyRequest } from '@app/types/fastify.js';
+import { FastifyRequest } from '@app/unraid-api/types/fastify.js';
 
 export function notNull<T>(value: T): value is NonNullable<T> {
     return value !== null;
