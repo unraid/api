@@ -11,7 +11,6 @@ import { vanillaRenderers } from '@jsonforms/vue-vanilla';
 
 import type { ConnectSettingsValues } from '~/composables/gql/graphql';
 
-import { getConnectSettingsForm, updateConnectSettings } from './graphql/settings.query';
 import {
   formSelectEntry,
   formSwitchEntry,
@@ -19,6 +18,7 @@ import {
   preconditionsLabelEntry,
   stringArrayEntry,
 } from '../GeneratedForm/renderer-entries';
+import { getConnectSettingsForm, updateConnectSettings } from './graphql/settings.query';
 
 /**--------------------------------------------
  *     Settings State & Form definition
@@ -41,7 +41,7 @@ watch(result, () => {
  *     Update Settings Actions
  *---------------------------------------------**/
 
- const {
+const {
   mutate: mutateSettings,
   loading: mutateSettingsLoading,
   error: mutateSettingsError,
@@ -133,7 +133,10 @@ const onChange = ({ data }: { data: Record<string, unknown> }) => {
     />
     <!-- form submission & fallback reaction message -->
     <div class="mt-6 grid grid-cols-settings gap-y-6 items-baseline">
-      <p v-if="reactionMessage" class="text-sm text-end" v-html="reactionMessage"></p>
+      <div class="text-sm text-end">
+        <p v-if="isUpdating">Applying Settings...</p>
+        <p v-if="reactionMessage" v-html="reactionMessage"></p>
+      </div>
       <div class="col-start-2 ml-10 space-y-4">
         <BrandButton
           variant="outline-primary"
