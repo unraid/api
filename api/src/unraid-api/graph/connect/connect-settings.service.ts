@@ -10,6 +10,7 @@ import type {
     UISchemaElement,
 } from '@jsonforms/core';
 import { RuleEffect } from '@jsonforms/core';
+import { GraphQLError } from 'graphql/error/GraphQLError.js';
 
 import type {
     ConnectSettingsValues,
@@ -77,7 +78,18 @@ export class ConnectSettingsService {
      * @param settings - The settings to sync
      */
     async syncSettings(settings: Partial<PossibleApiSettings>) {
+        const { getters } = await import('@app/store/index.js');
+        const { nginx } = getters.emhttp();
         if (settings.accessType) {
+            if (
+                !nginx.sslEnabled &&
+                settings.accessType === WAN_ACCESS_TYPE.DYNAMIC &&
+                settings.forwardType === WAN_FORWARD_TYPE.STATIC
+            ) {
+                throw new GraphQLError(
+                    'SSL must be provisioned and enabled for dynamic access and static port forwarding.'
+                );
+            }
             await this.updateRemoteAccess({
                 accessType: settings.accessType,
                 forwardType: settings.forwardType,
