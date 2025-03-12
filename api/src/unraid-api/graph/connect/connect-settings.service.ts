@@ -138,7 +138,10 @@ export class ConnectSettingsService {
             await this.remoteAccessSlice(),
             this.sandboxSlice(),
             this.flashBackupSlice(),
-            this.extraOriginsSlice(),
+            // Because CORS is effectively disabled, this setting is no longer necessary
+            // keeping it here for in case it needs to be re-enabled
+            //
+            // this.extraOriginsSlice(),
         ];
 
         return this.reduceSlices(slices);
