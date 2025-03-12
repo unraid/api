@@ -1,4 +1,3 @@
-<!-- VerticalLayout.vue -->
 <script lang="ts" setup>
 import { Label } from '@unraid/ui';
 import { DispatchRenderer, type RendererProps } from '@jsonforms/vue';
@@ -14,10 +13,11 @@ const elements = computed(() => {
 </script>
 
 <template>
-  <div class="grid grid-cols-settings items-baseline gap-y-6 [&>*:nth-child(odd)]:text-end [&>*:nth-child(even)]:ml-10">
+  <div class="grid grid-cols-settings items-baseline gap-y-6">
     <template v-for="(element, index) in elements" :key="index">
-      <Label v-if="element.label">{{ element.label }}</Label>
+      <Label v-if="element.label" class="text-end">{{ element.label }}</Label>
       <DispatchRenderer
+        class="ml-10"
         :schema="props.schema"
         :uischema="element"
         :path="props.path"
