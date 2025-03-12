@@ -8,6 +8,7 @@ const props = defineProps<{
 </script>
 
 <template>
+  <!-- Add corresponding padding when increment/decrement buttons are present -->
   <div
     :class="
       cn(
