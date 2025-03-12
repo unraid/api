@@ -75,8 +75,10 @@ export class ConnectSettingsService {
     /**
      * Syncs the settings to the store and writes the config to disk
      * @param settings - The settings to sync
+     * @returns true if a restart is required, false otherwise
      */
-    async syncSettings(settings: Partial<PossibleApiSettings>) {
+    async syncSettings(settings: Partial<PossibleApiSettings>): Promise<boolean> {
+        let restartRequired = false;
         if (settings.accessType) {
             await this.updateRemoteAccess({
                 accessType: settings.accessType,
@@ -88,10 +90,11 @@ export class ConnectSettingsService {
             await this.updateAllowedOrigins(settings.extraOrigins);
         }
         if (typeof settings.sandbox === 'boolean') {
-            await this.setSandboxMode(settings.sandbox);
+            restartRequired = await this.setSandboxMode(settings.sandbox);
         }
         const { writeConfigSync } = await import('@app/store/sync/config-disk-sync.js');
         writeConfigSync('flash');
+        return restartRequired;
     }
 
     private async updateAllowedOrigins(origins: string[]) {
@@ -99,9 +102,20 @@ export class ConnectSettingsService {
         store.dispatch(updateAllowedOrigins(origins));
     }
 
-    private async setSandboxMode(sandbox: boolean) {
-        const { store } = await import('@app/store/index.js');
-        store.dispatch(updateUserConfig({ local: { sandbox: sandbox ? 'yes' : 'no' } }));
+    /**
+     * Sets the sandbox mode and returns true if the mode was changed
+     * @param sandboxFlag - The new sandbox mode
+     * @returns true if the mode was changed, false otherwise
+     */
+    private async setSandboxMode(sandboxFlag: boolean): Promise<boolean> {
+        const { store, getters } = await import('@app/store/index.js');
+        const sandbox = sandboxFlag ? 'yes' : 'no';
+        const currentSandbox = getters.config().local.sandbox;
+        if (currentSandbox === sandbox) {
+            return false;
+        }
+        store.dispatch(updateUserConfig({ local: { sandbox } }));
+        return true;
     }
 
     private async updateRemoteAccess(input: SetupRemoteAccessInput): Promise<boolean> {
