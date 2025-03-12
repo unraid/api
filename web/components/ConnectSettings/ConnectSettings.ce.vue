@@ -5,7 +5,6 @@
 
 import { useMutation, useQuery } from '@vue/apollo-composable';
 
-// import { extendedVuetifyRenderers } from '@jsonforms/vue-vuetify';
 import { BrandButton, Label } from '@unraid/ui';
 import { JsonForms } from '@jsonforms/vue';
 import { vanillaRenderers } from '@jsonforms/vue-vanilla';
@@ -21,46 +20,12 @@ import {
 } from './renderer/renderer-entries';
 import { stringArrayEntry } from './renderer/string-array.renderer';
 
-const {
-  mutate: updateSettings,
-  loading: updateSettingsLoading,
-  error: updateSettingsError,
-  onDone: onUpdateDone,
-} = useMutation(updateConnectSettings);
-const isUpdating = ref(false);
-const reactionMessage = ref('');
-watchDebounced(
-  updateSettingsLoading,
-  (loading) => {
-    isUpdating.value = loading;
-  },
-  {
-    debounce: 100,
-  }
-);
-onUpdateDone(() => {
-  globalThis.toast?.success('Updated API Settings');
-  if (!globalThis.toast) {
-    reactionMessage.value = 'Updated API Settings <span class="text-green-500">✓</span>';
-    setTimeout(() => {
-      reactionMessage.value = '';
-    }, 3000);
-  }
-});
+/**--------------------------------------------
+ *     Settings State & Form definition
+ *---------------------------------------------**/
 
-const { result } = useQuery(getConnectSettingsForm);
-const renderers = [
-  ...vanillaRenderers,
-  // ...extendedVuetifyRenderers,
-  formSwitchEntry,
-  formSelectEntry,
-  numberFieldEntry,
-  preconditionsLabelEntry,
-  // verticalLayoutEntry,
-  stringArrayEntry,
-  // custom renderers here
-];
 const formSettings = ref<Partial<ConnectSettingsValues>>({});
+const { result } = useQuery(getConnectSettingsForm);
 const settings = computed(() => {
   if (!result.value) return;
   return result.value?.connect.settings;
@@ -71,42 +36,82 @@ watch(result, () => {
   console.log('[ConnectSettings] current settings', initialValues);
   formSettings.value = initialValues;
 });
-const config = {
+
+/**--------------------------------------------
+ *     Update Settings Actions
+ *---------------------------------------------**/
+
+ const {
+  mutate: mutateSettings,
+  loading: mutateSettingsLoading,
+  error: mutateSettingsError,
+  onDone: onMutateSettingsDone,
+} = useMutation(updateConnectSettings);
+
+const isUpdating = ref(false);
+const reactionMessage = ref('');
+
+// prevent ui flash if loading finishes too fast
+watchDebounced(
+  mutateSettingsLoading,
+  (loading) => {
+    isUpdating.value = loading;
+  },
+  {
+    debounce: 100,
+  }
+);
+
+// show a toast when the update is done, or fallback to a reaction message (eg in dev environment)
+onMutateSettingsDone(() => {
+  globalThis.toast?.success('Updated API Settings');
+  if (!globalThis.toast) {
+    reactionMessage.value = 'Updated API Settings <span class="text-green-500">✓</span>';
+    setTimeout(() => {
+      reactionMessage.value = '';
+    }, 3000);
+  }
+});
+
+/**--------------------------------------------
+ *     Form Config & Actions
+ *---------------------------------------------**/
+
+const jsonFormsConfig = {
   restrict: false,
   trim: false,
 };
 
-const debugData = async () => {
+/** JSONForms renderers */
+const renderers = [
+  ...vanillaRenderers,
+  formSwitchEntry,
+  formSelectEntry,
+  numberFieldEntry,
+  preconditionsLabelEntry,
+  // verticalLayoutEntry,
+  stringArrayEntry,
+];
+
+/** Called when the user clicks the "Apply" button */
+const submitSettingsUpdate = async () => {
   console.log('[ConnectSettings] trying to update settings to', formSettings.value);
-  await updateSettings({ input: formSettings.value });
+  await mutateSettings({ input: formSettings.value });
 };
-const onChange = ({ data: fdata, errors }: { data: Record<string, unknown>; errors: string[] }) => {
-  console.log('[ConnectSettings] form touched', fdata);
-  console.error('[ConnectSettings] errors', errors);
-  formSettings.value = fdata;
+
+/** Called whenever a JSONForms form control changes */
+const onChange = ({ data }: { data: Record<string, unknown> }) => {
+  formSettings.value = data;
 };
 </script>
 
 <template>
+  <!-- common api-related actions -->
   <div
     class="grid grid-cols-settings items-baseline pl-3 gap-y-6 [&>*:nth-child(odd)]:text-end [&>*:nth-child(even)]:ml-10"
   >
     <Label>Account Status:</Label>
     <div v-html="'<unraid-i18n-host><unraid-auth></unraid-auth></unraid-i18n-host>'"></div>
-    <!-- <div>
-      <Label>Allowed Origins:</Label>
-      <p class="italic mt-1">
-        Provide a comma separated list of urls that are allowed to access the unraid-api.<br>
-        e.g. (https://abc.myreverseproxy.com,https://xyz.rvrsprx.com,…)
-      </p>
-    </div>
-    <ConnectSettingsAllowedOrigins /> -->
-    <!-- <Label>WAN IP Check:</Label>
-    <div
-      v-html="'<unraid-i18n-host><unraid-wan-ip-check></unraid-wan-ip-check></unraid-i18n-host>'"
-    ></div>
-    <Label>Remote Access (Deprecated):</Label>
-    <ConnectSettingsRemoteAccess /> -->
     <Label>Download Unraid API Logs:</Label>
     <div
       v-html="
@@ -114,7 +119,7 @@ const onChange = ({ data: fdata, errors }: { data: Record<string, unknown>; erro
       "
     ></div>
   </div>
-  <!-- @todo: flashback up -->
+  <!-- auto-generated settings form -->
   <div class="mt-6 pl-3 [&_.vertical-layout]:space-y-6">
     <JsonForms
       v-if="settings"
@@ -122,10 +127,11 @@ const onChange = ({ data: fdata, errors }: { data: Record<string, unknown>; erro
       :uischema="settings.uiSchema"
       :data="formSettings"
       :renderers="renderers"
-      :config="config"
+      :config="jsonFormsConfig"
       :readonly="isUpdating"
       @change="onChange"
     />
+    <!-- form submission & fallback reaction message -->
     <div class="mt-6 grid grid-cols-settings gap-y-6 items-baseline">
       <p v-if="reactionMessage" class="text-sm text-end" v-html="reactionMessage"></p>
       <div class="col-start-2 ml-10 space-y-4">
@@ -134,13 +140,13 @@ const onChange = ({ data: fdata, errors }: { data: Record<string, unknown>; erro
           padding="lean"
           size="12px"
           class="leading-normal"
-          @click="debugData"
+          @click="submitSettingsUpdate"
         >
           Apply
         </BrandButton>
 
-        <p v-if="updateSettingsError" class="text-sm text-unraid-red-500">
-          ✕ Error: {{ updateSettingsError.message }}
+        <p v-if="mutateSettingsError" class="text-sm text-unraid-red-500">
+          ✕ Error: {{ mutateSettingsError.message }}
         </p>
       </div>
     </div>
