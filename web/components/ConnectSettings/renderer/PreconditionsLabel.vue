@@ -9,9 +9,12 @@ import ControlLayout from './ControlLayout.vue';
 type PreconditionsLabelElement = LabelElement & {
   options: {
     format: 'preconditions';
+    /** A description of the setting this element represents, and context for the preconditions. */
     description?: string;
     items: {
+      /** The text to display in the list item, representing each precondition. e.g. "API is enabled" */
       text: string;
+      /** Whether the precondition is met. */
       status: boolean;
     }[];
   };

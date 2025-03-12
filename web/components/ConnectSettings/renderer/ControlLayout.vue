@@ -13,6 +13,8 @@ const normalizedErrors = computed(() => {
   return Array.isArray(props.errors) ? props.errors : [props.errors];
 });
 
+// ensures the label ends with a colon
+// todo: in RTL locales, this probably isn't desirable
 const formattedLabel = computed(() => {
   return props.label.endsWith(':') ? props.label : `${props.label}:`;
 });

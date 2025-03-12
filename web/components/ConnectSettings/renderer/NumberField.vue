@@ -20,7 +20,7 @@ const { control, handleChange } = useJsonFormsControl(props);
 
 // Bind the number field's value to JSONForms data
 const value = computed({
-  get: () => control.value.data ?? 0, // Default to 0 if no value exists
+  get: () => control.value.data ?? control.value.schema.default ?? 0,
   set: (newValue: number) => handleChange(control.value.path, newValue),
 });
 // Extract schema-based constraints (optional settings)
