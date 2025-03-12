@@ -36,7 +36,7 @@ export default defineNuxtConfig({
     enabled: process.env.NODE_ENV === 'development',
   },
 
-  modules: ['@vueuse/nuxt', '@pinia/nuxt', '@nuxtjs/tailwindcss', 'nuxt-custom-elements', '@nuxt/eslint', 'shadcn-nuxt', 'vuetify-nuxt-module'],
+  modules: ['@vueuse/nuxt', '@pinia/nuxt', '@nuxtjs/tailwindcss', 'nuxt-custom-elements', '@nuxt/eslint'],
 
   ignore: ['/webGui/images'],
 
@@ -76,10 +76,6 @@ export default defineNuxtConfig({
         },
       },
     },
-  },
-  shadcn: {
-    prefix: '',
-    componentDir: './components/shadcn',
   },
   customElements: {
     entries: [
