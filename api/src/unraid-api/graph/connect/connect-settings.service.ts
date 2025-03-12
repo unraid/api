@@ -168,84 +168,88 @@ export class ConnectSettingsService {
      */
     async remoteAccessSlice(): Promise<SettingSlice> {
         const precondition = (await this.isSignedIn()) && (await this.isSSLCertProvisioned());
-        // const precondition = true;
-        return {
-            properties: {
-                accessType: {
-                    type: 'string',
-                    enum: Object.values(WAN_ACCESS_TYPE),
-                    title: 'Allow Remote Access',
-                    default: 'DISABLED',
-                },
-                forwardType: {
-                    type: 'string',
-                    enum: Object.values(WAN_FORWARD_TYPE),
-                    title: 'Forward Type',
-                    default: 'STATIC',
-                },
-                port: {
-                    type: 'number',
-                    title: 'WAN Port',
-                    minimum: 0,
-                    maximum: 65535,
+        /** shown when preconditions are not met */
+        const requirements: UIElement[] = [
+            {
+                type: 'Label',
+                text: 'Allow Remote Access',
+                options: {
+                    format: 'preconditions',
+                    description: 'Remote Access is disabled. To enable, please make sure:',
+                    items: [
+                        {
+                            text: 'You are signed in to Unraid Connect',
+                            status: await this.isSignedIn(),
+                        },
+                        {
+                            text: 'You have provisioned a valid SSL certificate',
+                            status: await this.isSSLCertProvisioned(),
+                        },
+                    ],
                 },
             },
-            elements: precondition
-                ? [
-                      {
-                          type: 'Control',
-                          scope: '#/properties/accessType',
-                          label: 'Allow Remote Access',
-                      },
-                      {
-                          type: 'Control',
-                          scope: '#/properties/forwardType',
-                          label: 'Remote AccessForward Type',
-                      },
-                      {
-                          type: 'Control',
-                          scope: '#/properties/port',
-                          label: 'Remote Access WAN Port',
-                          options: {
-                              format: 'short',
-                              formatOptions: {
-                                  useGrouping: false,
-                              },
-                          },
-                          rule: {
-                              effect: RuleEffect.ENABLE,
-                              // technically, this is a SchemaBasedCondition, but that type requires a scope
-                              // but this has been working and I don't know what the correct scope would be.
-                              condition: {
-                                  failWhenUndefined: true,
-                                  scope: '#/properties/forwardType',
-                                  schema: {
-                                      enum: [WAN_FORWARD_TYPE.STATIC],
-                                  },
-                              } as SchemaBasedCondition,
-                          },
-                      },
-                  ]
-                : [
-                      {
-                          type: 'Label',
-                          text: 'Allow Remote Access',
-                          options: {
-                              format: 'preconditions',
-                              description: 'Remote Access is disabled. To enable, please make sure:',
-                              items: [
-                                  {
-                                      text: 'You are signed in to Unraid Connect',
-                                      status: await this.isSignedIn(),
-                                  },
-                                  {
-                                      text: 'You have provisioned a valid SSL certificate',
-                                      status: await this.isSSLCertProvisioned(),
-                                  },
-                              ],
-                          },
-                      },
-                  ],
+        ];
+
+        /** shown when preconditions are met */
+        const formControls: UIElement[] = [
+            {
+                type: 'Control',
+                scope: '#/properties/accessType',
+                label: 'Allow Remote Access',
+            },
+            {
+                type: 'Control',
+                scope: '#/properties/forwardType',
+                label: 'Remote AccessForward Type',
+            },
+            {
+                type: 'Control',
+                scope: '#/properties/port',
+                label: 'Remote Access WAN Port',
+                options: {
+                    format: 'short',
+                    formatOptions: {
+                        useGrouping: false,
+                    },
+                },
+                rule: {
+                    effect: RuleEffect.ENABLE,
+                    condition: {
+                        failWhenUndefined: true,
+                        scope: '#/properties/forwardType',
+                        schema: {
+                            enum: [WAN_FORWARD_TYPE.STATIC],
+                        },
+                    } as SchemaBasedCondition,
+                },
+            },
+        ];
+
+        /** shape of the data associated with remote access settings, as json schema properties*/
+        const properties: DataSlice = {
+            accessType: {
+                type: 'string',
+                enum: Object.values(WAN_ACCESS_TYPE),
+                title: 'Allow Remote Access',
+                default: 'DISABLED',
+            },
+            forwardType: {
+                type: 'string',
+                enum: Object.values(WAN_FORWARD_TYPE),
+                title: 'Forward Type',
+                default: 'STATIC',
+            },
+            port: {
+                type: 'number',
+                title: 'WAN Port',
+                minimum: 0,
+                maximum: 65535,
+            },
+        };
+
+        return {
+            properties,
+            elements: precondition ? formControls : requirements,
         };
     }
 

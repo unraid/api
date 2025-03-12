@@ -28,7 +28,7 @@ export const brandButtonVariants = cva(
       padding: {
         default: "",
         none: "p-0",
-        lean: "px-16px py-8px",
+        lean: "px-4 py-2",
       },
     },
     compoundVariants: [
