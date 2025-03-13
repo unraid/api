@@ -3,7 +3,7 @@ import { computed, nextTick, onMounted, onUnmounted, reactive, ref, watch } from
 import { useQuery, useApolloClient  } from '@vue/apollo-composable';
 import { vInfiniteScroll } from '@vueuse/components';
 import { ArrowPathIcon, ArrowDownTrayIcon } from '@heroicons/vue/24/outline';
-import { Button } from '@unraid/ui';
+import { Button, Tooltip, TooltipProvider, TooltipTrigger, TooltipContent } from '@unraid/ui';
 import DOMPurify from 'isomorphic-dompurify';
 import hljs from 'highlight.js/lib/core';
 import 'highlight.js/styles/github-dark.css'; // You can choose a different style
@@ -60,7 +60,8 @@ const state = reactive({
   isAtTop: false,
   canLoadMore: false,
   initialLoadComplete: false,
-  isDownloading: false
+  isDownloading: false,
+  isSubscriptionActive: false
 });
 
 // Get Apollo client for direct queries
@@ -114,6 +115,9 @@ onMounted(() => {
       updateQuery: (prev, { subscriptionData }) => {
         if (!subscriptionData.data || !prev) return prev;
 
+        // Set subscription as active when we receive data
+        state.isSubscriptionActive = true;
+        
         const existingContent = prev.logFile?.content || '';
         const newContent = subscriptionData.data.logFile.content;
         
@@ -138,6 +142,9 @@ onMounted(() => {
         };
       },
     });
+    
+    // Set subscription as active
+    state.isSubscriptionActive = true;
   }
 });
 
@@ -354,7 +361,19 @@ defineExpose({ refreshLogContent });
 <template>
   <div class="flex flex-col h-full max-h-full overflow-hidden">
     <div class="flex justify-between px-4 py-2 bg-muted text-xs text-muted-foreground shrink-0 items-center">
-      <span>Total lines: {{ totalLines }}</span>
+      <div class="flex items-center gap-2">
+        <span>Total lines: {{ totalLines }}</span>
+        <TooltipProvider v-if="state.isSubscriptionActive">
+          <Tooltip :delay-duration="300">
+            <TooltipTrigger as-child>
+              <div class="w-2 h-2 rounded-full bg-green-500 animate-pulse cursor-help" aria-hidden="true"></div>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>Watching log file</p>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+      </div>
       <span>{{ state.isAtTop ? 'Showing all available lines' : 'Scroll up to load more' }}</span>
       <div class="flex gap-2">
         <Button variant="outline" :disabled="loadingLogContent || state.isDownloading" @click="downloadLogFile">
