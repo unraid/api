@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue';
+import { ref, computed, watch } from 'vue';
 import { useQuery } from '@vue/apollo-composable';
 import { 
   Select, 
@@ -18,6 +18,21 @@ import SingleLogViewer from './SingleLogViewer.vue';
 const selectedLogFile = ref<string>('');
 const lineCount = ref<number>(100);
 const autoScroll = ref<boolean>(true);
+const highlightLanguage = ref<string>('plaintext');
+
+// Available highlight languages
+const highlightLanguages = [
+  { value: 'plaintext', label: 'Plain Text' },
+  { value: 'bash', label: 'Bash/Shell' },
+  { value: 'ini', label: 'INI/Config' },
+  { value: 'xml', label: 'XML/HTML' },
+  { value: 'json', label: 'JSON' },
+  { value: 'yaml', label: 'YAML' },
+  { value: 'nginx', label: 'Nginx' },
+  { value: 'apache', label: 'Apache' },
+  { value: 'javascript', label: 'JavaScript' },
+  { value: 'php', label: 'PHP' }
+];
 
 // Fetch log files
 const { result: logFilesResult, loading: loadingLogFiles, error: logFilesError } = useQuery(GET_LOG_FILES);
@@ -36,6 +51,40 @@ const formatFileSize = (bytes: number): string => {
   
   return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
 };
+
+// Auto-detect language based on file extension
+const autoDetectLanguage = (filePath: string): string => {
+  const fileName = filePath.split('/').pop() || '';
+  
+  if (fileName.endsWith('.sh') || fileName.endsWith('.bash') || fileName.includes('syslog')) {
+    return 'bash';
+  } else if (fileName.endsWith('.conf') || fileName.endsWith('.ini') || fileName.endsWith('.cfg')) {
+    return 'ini';
+  } else if (fileName.endsWith('.xml') || fileName.endsWith('.html')) {
+    return 'xml';
+  } else if (fileName.endsWith('.json')) {
+    return 'json';
+  } else if (fileName.endsWith('.yml') || fileName.endsWith('.yaml')) {
+    return 'yaml';
+  } else if (fileName.includes('nginx')) {
+    return 'nginx';
+  } else if (fileName.includes('apache') || fileName.includes('httpd')) {
+    return 'apache';
+  } else if (fileName.endsWith('.js')) {
+    return 'javascript';
+  } else if (fileName.endsWith('.php')) {
+    return 'php';
+  }
+  
+  return 'plaintext';
+};
+
+// Watch for file selection changes to auto-detect language
+watch(selectedLogFile, (newValue) => {
+  if (newValue) {
+    highlightLanguage.value = autoDetectLanguage(newValue);
+  }
+});
 </script>
 
 <template>
@@ -71,6 +120,20 @@ const formatFileSize = (bytes: number): string => {
         </div>
         
         <div>
+          <Label for="highlight-language">Syntax</Label>
+          <Select v-model="highlightLanguage">
+            <SelectTrigger id="highlight-language" class="w-full">
+              <SelectValue placeholder="Select language" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem v-for="lang in highlightLanguages" :key="lang.value" :value="lang.value">
+                {{ lang.label }}
+              </SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+        
+        <div class="flex flex-col gap-2">
           <Label for="auto-scroll">Auto-scroll</Label>
           <Switch 
             id="auto-scroll" 
@@ -102,6 +165,7 @@ const formatFileSize = (bytes: number): string => {
         :log-file-path="selectedLogFile"
         :line-count="lineCount"
         :auto-scroll="autoScroll"
+        :highlight-language="highlightLanguage"
         class="h-full"
       />
     </div>
