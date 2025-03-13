@@ -97,7 +97,10 @@ export type ApiSettingsInput = {
   extraOrigins?: InputMaybe<Array<Scalars['String']['input']>>;
   /** The type of port forwarding to use for Remote Access. */
   forwardType?: InputMaybe<WAN_FORWARD_TYPE>;
-  /** The port to use for Remote Access. */
+  /**
+   * The port to use for Remote Access. Not required for UPNP forwardType. Required for STATIC forwardType.
+   * Ignored if accessType is DISABLED or forwardType is UPNP.
+   */
   port?: InputMaybe<Scalars['Port']['input']>;
   /**
    * If true, the GraphQL sandbox will be enabled and available at /graphql.
@@ -330,10 +333,18 @@ export type ConnectSettings = Node & {
 /** Intersection type of ApiSettings and RemoteAccess */
 export type ConnectSettingsValues = {
   __typename?: 'ConnectSettingsValues';
+  /** The type of WAN access used for Remote Access. */
   accessType: WAN_ACCESS_TYPE;
+  /** A list of origins allowed to interact with the API. */
   extraOrigins: Array<Scalars['String']['output']>;
+  /** The type of port forwarding used for Remote Access. */
   forwardType?: Maybe<WAN_FORWARD_TYPE>;
+  /** The port used for Remote Access. */
   port?: Maybe<Scalars['Port']['output']>;
+  /**
+   * If true, the GraphQL sandbox is enabled and available at /graphql.
+   * If false, the GraphQL sandbox is disabled and only the production API will be available.
+   */
   sandbox: Scalars['Boolean']['output'];
 };
 
@@ -634,6 +645,30 @@ export type KeyFile = {
   location?: Maybe<Scalars['String']['output']>;
 };
 
+/** Represents a log file in the system */
+export type LogFile = {
+  __typename?: 'LogFile';
+  /** Last modified timestamp */
+  modifiedAt: Scalars['DateTime']['output'];
+  /** Name of the log file */
+  name: Scalars['String']['output'];
+  /** Full path to the log file */
+  path: Scalars['String']['output'];
+  /** Size of the log file in bytes */
+  size: Scalars['Int']['output'];
+};
+
+/** Content of a log file */
+export type LogFileContent = {
+  __typename?: 'LogFileContent';
+  /** Content of the log file */
+  content: Scalars['String']['output'];
+  /** Path to the log file */
+  path: Scalars['String']['output'];
+  /** Total number of lines in the file */
+  totalLines: Scalars['Int']['output'];
+};
+
 /** The current user */
 export type Me = UserAccount & {
   __typename?: 'Me';
@@ -744,6 +779,10 @@ export type Mutation = {
   unmountArrayDisk?: Maybe<Disk>;
   /** Marks a notification as unread. */
   unreadNotification: Notification;
+  /**
+   * Update the API settings.
+   * Some setting combinations may be required or disallowed. Please refer to each setting for more information.
+   */
   updateApiSettings: ConnectSettingsValues;
 };
 
@@ -1113,6 +1152,14 @@ export type Query = {
   extraAllowedOrigins: Array<Scalars['String']['output']>;
   flash?: Maybe<Flash>;
   info?: Maybe<Info>;
+  /**
+   * Get the content of a specific log file
+   * @param path Path to the log file
+   * @param lines Number of lines to read from the end of the file (default: 100)
+   */
+  logFile: LogFileContent;
+  /** List all available log files */
+  logFiles: Array<LogFile>;
   /** Current user account */
   me?: Maybe<Me>;
   network?: Maybe<Network>;
@@ -1160,6 +1207,12 @@ export type QuerydockerNetworkArgs = {
 
 export type QuerydockerNetworksArgs = {
   all?: InputMaybe<Scalars['Boolean']['input']>;
+};
+
+
+export type QuerylogFileArgs = {
+  lines?: InputMaybe<Scalars['Int']['input']>;
+  path: Scalars['String']['input'];
 };
 
 
@@ -1353,6 +1406,11 @@ export type Subscription = {
   dockerNetworks: Array<Maybe<DockerNetwork>>;
   flash: Flash;
   info: Info;
+  /**
+   * Subscribe to changes in a log file
+   * @param path Path to the log file
+   */
+  logFile: LogFileContent;
   me?: Maybe<Me>;
   notificationAdded: Notification;
   notificationsOverview: NotificationOverview;
@@ -1380,6 +1438,11 @@ export type SubscriptiondockerContainerArgs = {
 
 export type SubscriptiondockerNetworkArgs = {
   id: Scalars['ID']['input'];
+};
+
+
+export type SubscriptionlogFileArgs = {
+  path: Scalars['String']['input'];
 };
 
 
@@ -1927,6 +1990,8 @@ export type ResolversTypes = ResolversObject<{
   Int: ResolverTypeWrapper<Scalars['Int']['output']>;
   JSON: ResolverTypeWrapper<Scalars['JSON']['output']>;
   KeyFile: ResolverTypeWrapper<KeyFile>;
+  LogFile: ResolverTypeWrapper<LogFile>;
+  LogFileContent: ResolverTypeWrapper<LogFileContent>;
   Long: ResolverTypeWrapper<Scalars['Long']['output']>;
   Me: ResolverTypeWrapper<Me>;
   MemoryFormFactor: MemoryFormFactor;
@@ -2047,6 +2112,8 @@ export type ResolversParentTypes = ResolversObject<{
   Int: Scalars['Int']['output'];
   JSON: Scalars['JSON']['output'];
   KeyFile: KeyFile;
+  LogFile: LogFile;
+  LogFileContent: LogFileContent;
   Long: Scalars['Long']['output'];
   Me: Me;
   MemoryLayout: MemoryLayout;
@@ -2481,6 +2548,21 @@ export type KeyFileResolvers<ContextType = Context, ParentType extends Resolvers
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
 
+export type LogFileResolvers<ContextType = Context, ParentType extends ResolversParentTypes['LogFile'] = ResolversParentTypes['LogFile']> = ResolversObject<{
+  modifiedAt?: Resolver<ResolversTypes['DateTime'], ParentType, ContextType>;
+  name?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  path?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  size?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+}>;
+
+export type LogFileContentResolvers<ContextType = Context, ParentType extends ResolversParentTypes['LogFileContent'] = ResolversParentTypes['LogFileContent']> = ResolversObject<{
+  content?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  path?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  totalLines?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+}>;
+
 export interface LongScalarConfig extends GraphQLScalarTypeConfig<ResolversTypes['Long'], any> {
   name: 'Long';
 }
@@ -2763,6 +2845,8 @@ export type QueryResolvers<ContextType = Context, ParentType extends ResolversPa
   extraAllowedOrigins?: Resolver<Array<ResolversTypes['String']>, ParentType, ContextType>;
   flash?: Resolver<Maybe<ResolversTypes['Flash']>, ParentType, ContextType>;
   info?: Resolver<Maybe<ResolversTypes['Info']>, ParentType, ContextType>;
+  logFile?: Resolver<ResolversTypes['LogFileContent'], ParentType, ContextType, RequireFields<QuerylogFileArgs, 'path'>>;
+  logFiles?: Resolver<Array<ResolversTypes['LogFile']>, ParentType, ContextType>;
   me?: Resolver<Maybe<ResolversTypes['Me']>, ParentType, ContextType>;
   network?: Resolver<Maybe<ResolversTypes['Network']>, ParentType, ContextType>;
   notifications?: Resolver<ResolversTypes['Notifications'], ParentType, ContextType>;
@@ -2857,6 +2941,7 @@ export type SubscriptionResolvers<ContextType = Context, ParentType extends Reso
   dockerNetworks?: SubscriptionResolver<Array<Maybe<ResolversTypes['DockerNetwork']>>, "dockerNetworks", ParentType, ContextType>;
   flash?: SubscriptionResolver<ResolversTypes['Flash'], "flash", ParentType, ContextType>;
   info?: SubscriptionResolver<ResolversTypes['Info'], "info", ParentType, ContextType>;
+  logFile?: SubscriptionResolver<ResolversTypes['LogFileContent'], "logFile", ParentType, ContextType, RequireFields<SubscriptionlogFileArgs, 'path'>>;
   me?: SubscriptionResolver<Maybe<ResolversTypes['Me']>, "me", ParentType, ContextType>;
   notificationAdded?: SubscriptionResolver<ResolversTypes['Notification'], "notificationAdded", ParentType, ContextType>;
   notificationsOverview?: SubscriptionResolver<ResolversTypes['NotificationOverview'], "notificationsOverview", ParentType, ContextType>;
@@ -3212,6 +3297,8 @@ export type Resolvers<ContextType = Context> = ResolversObject<{
   InfoMemory?: InfoMemoryResolvers<ContextType>;
   JSON?: GraphQLScalarType;
   KeyFile?: KeyFileResolvers<ContextType>;
+  LogFile?: LogFileResolvers<ContextType>;
+  LogFileContent?: LogFileContentResolvers<ContextType>;
   Long?: GraphQLScalarType;
   Me?: MeResolvers<ContextType>;
   MemoryLayout?: MemoryLayoutResolvers<ContextType>;

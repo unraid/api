@@ -20,6 +20,8 @@ import { RegistrationResolver } from '@app/unraid-api/graph/resolvers/registrati
 import { ServerResolver } from '@app/unraid-api/graph/resolvers/servers/server.resolver.js';
 import { VarsResolver } from '@app/unraid-api/graph/resolvers/vars/vars.resolver.js';
 import { VmsResolver } from '@app/unraid-api/graph/resolvers/vms/vms.resolver.js';
+import { LogsResolver } from './logs/logs.resolver.js';
+import { LogsService } from './logs/logs.service.js';
 
 @Module({
     imports: [AuthModule],
@@ -43,6 +45,8 @@ import { VmsResolver } from '@app/unraid-api/graph/resolvers/vms/vms.resolver.js
         NotificationsService,
         MeResolver,
         ConnectSettingsService,
+        LogsResolver,
+        LogsService,
     ],
     exports: [AuthModule, ApiKeyResolver],
 })
