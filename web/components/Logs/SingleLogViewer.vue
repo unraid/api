@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { computed, nextTick, onMounted, onUnmounted, reactive, ref, watch } from 'vue';
-import { useQuery } from '@vue/apollo-composable';
+import { useQuery, useApolloClient  } from '@vue/apollo-composable';
 import { vInfiniteScroll } from '@vueuse/components';
-import { ArrowPathIcon } from '@heroicons/vue/24/outline';
+import { ArrowPathIcon, ArrowDownTrayIcon } from '@heroicons/vue/24/outline';
 import { Button } from '@unraid/ui';
 import DOMPurify from 'isomorphic-dompurify';
 
@@ -24,8 +24,12 @@ const state = reactive({
   isLoadingMore: false,
   isAtTop: false,
   canLoadMore: false,
-  initialLoadComplete: false
+  initialLoadComplete: false,
+  isDownloading: false
 });
+
+// Get Apollo client for direct queries
+const { client } = useApolloClient();
 
 // Fetch log content
 const {
@@ -165,6 +169,54 @@ const loadMoreContent = async () => {
   }
 };
 
+// Download log file
+const downloadLogFile = async () => {
+  if (!props.logFilePath || state.isDownloading) return;
+  
+  try {
+    state.isDownloading = true;
+    
+    // Get the filename from the path
+    const fileName = props.logFilePath.split('/').pop() || 'log.txt';
+    
+    // Query for the entire log file content
+    const result = await client.query({
+      query: GET_LOG_FILE_CONTENT,
+      variables: {
+        path: props.logFilePath,
+        // Don't specify lines or startLine to get the entire file
+      },
+      fetchPolicy: 'network-only',
+    });
+    
+    if (!result.data?.logFile?.content) {
+      throw new Error('Failed to fetch log content');
+    }
+    
+    // Create a blob with the content
+    const blob = new Blob([result.data.logFile.content], { type: 'text/plain' });
+    
+    // Create a download link
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = fileName;
+    
+    // Trigger the download
+    document.body.appendChild(link);
+    link.click();
+    
+    // Clean up
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  } catch (error) {
+    console.error('Error downloading log file:', error);
+    alert(`Error downloading log file: ${error instanceof Error ? error.message : String(error)}`);
+  } finally {
+    state.isDownloading = false;
+  }
+};
+
 // Refresh logs
 const refreshLogContent = () => {
   state.loadedContentChunks = [];
@@ -190,6 +242,10 @@ defineExpose({ refreshLogContent });
       <span>Total lines: {{ totalLines }}</span>
       <span>{{ state.isAtTop ? 'Showing all available lines' : 'Scroll up to load more' }}</span>
       <div class="flex gap-2">
+        <Button variant="outline" size="sm" :disabled="loadingLogContent || state.isDownloading" @click="downloadLogFile">
+          <ArrowDownTrayIcon class="h-3 w-3 mr-1" :class="{ 'animate-pulse': state.isDownloading }" aria-hidden="true" />
+          <span>{{ state.isDownloading ? 'Downloading...' : 'Download' }}</span>
+        </Button>
         <Button variant="outline" size="sm" :disabled="loadingLogContent" @click="refreshLogContent">
           <ArrowPathIcon class="h-3 w-3 mr-1" aria-hidden="true" />
           <span>Refresh</span>
@@ -211,6 +267,14 @@ defineExpose({ refreshLogContent });
       v-infinite-scroll="[loadMoreContent, { direction: 'top', distance: 200, canLoadMore: () => shouldLoadMore }]"
       class="flex-1 overflow-y-auto max-h-[500px]"
     >
+      <!-- Loading indicator for loading more content -->
+      <div v-if="state.isLoadingMore" class="sticky top-0 z-10 bg-muted/80 backdrop-blur-sm border-b border-border rounded-md mx-2 mt-2">
+        <div class="flex items-center justify-center p-2 text-xs text-primary-foreground">
+          <ArrowPathIcon class="h-3 w-3 mr-2 animate-spin" aria-hidden="true" />
+          Loading more lines...
+        </div>
+      </div>
+      
       <pre class="font-mono whitespace-pre-wrap p-4 m-0 text-xs leading-6" v-html="logContent"></pre>
     </div>
   </div>
