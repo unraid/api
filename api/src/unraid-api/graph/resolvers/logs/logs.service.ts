@@ -26,7 +26,10 @@ interface LogFileContent {
 @Injectable()
 export class LogsService {
     private readonly logger = new Logger(LogsService.name);
-    private readonly logWatchers = new Map<string, { watcher: chokidar.FSWatcher; position: number; subscriptionCount: number }>();
+    private readonly logWatchers = new Map<
+        string,
+        { watcher: chokidar.FSWatcher; position: number; subscriptionCount: number }
+    >();
     private readonly DEFAULT_LINES = 100;
 
     /**
@@ -122,7 +125,9 @@ export class LogsService {
             const watcher = this.logWatchers.get(normalizedPath);
             if (watcher) {
                 watcher.subscriptionCount++;
-                this.logger.debug(`Incremented subscription count for ${normalizedPath} to ${watcher.subscriptionCount}`);
+                this.logger.debug(
+                    `Incremented subscription count for ${normalizedPath} to ${watcher.subscriptionCount}`
+                );
             }
         }
 
@@ -205,7 +210,9 @@ export class LogsService {
             // Store the watcher and current position with initial subscription count of 1
             this.logWatchers.set(path, { watcher, position, subscriptionCount: 1 });
 
-            this.logger.debug(`Started watching log file with chokidar: ${path} (subscription count: 1)`);
+            this.logger.debug(
+                `Started watching log file with chokidar: ${path} (subscription count: 1)`
+            );
         } catch (error: unknown) {
             this.logger.error(`Error setting up chokidar file watcher for ${path}: ${error}`);
         }
@@ -218,12 +225,14 @@ export class LogsService {
     public stopWatchingLogFile(path: string): void {
         const normalizedPath = join(this.logBasePath, basename(path));
         const watcher = this.logWatchers.get(normalizedPath);
-        
+
         if (watcher) {
             // Decrement subscription count
             watcher.subscriptionCount--;
-            this.logger.debug(`Decremented subscription count for ${normalizedPath} to ${watcher.subscriptionCount}`);
-            
+            this.logger.debug(
+                `Decremented subscription count for ${normalizedPath} to ${watcher.subscriptionCount}`
+            );
+
             // Only close the watcher when subscription count reaches 0
             if (watcher.subscriptionCount <= 0) {
                 watcher.watcher.close();
