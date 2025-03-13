@@ -23,8 +23,8 @@ RUN corepack enable && pnpm install
 # Install a simple http server
 RUN npm install -g http-server
 
-# Expose port 8080
-EXPOSE 8080
+# Expose port 5858
+EXPOSE 5858
 
 COPY scripts/entrypoint.sh /start.sh
 RUN chmod +x /start.sh

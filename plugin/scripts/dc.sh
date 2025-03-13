@@ -17,4 +17,16 @@ fi
 
 CI=${CI:-false}
 TAG="LOCAL_PLUGIN_BUILD"
-docker compose run --service-ports --rm -e HOST_LAN_IP="$HOST_LAN_IP" -e CI="$CI" -e TAG="$TAG" plugin-builder "$@" 
+
+# Define container name for easier management
+CONTAINER_NAME="plugin-builder"
+
+# Stop any running plugin-builder container first
+echo "Stopping any running plugin-builder containers..."
+docker ps -q --filter "name=${CONTAINER_NAME}" | xargs -r docker stop
+
+# Start the container with the specified environment variables
+echo "Starting plugin-builder container..."
+echo "Install the local plugin using this URL: http://${HOST_LAN_IP}:5858/plugins/dynamix.unraid.net.plg"
+
+docker compose run --remove-orphans --service-ports -e HOST_LAN_IP="$HOST_LAN_IP" -e CI="$CI" -e TAG="$TAG" ${CONTAINER_NAME} "$@"
