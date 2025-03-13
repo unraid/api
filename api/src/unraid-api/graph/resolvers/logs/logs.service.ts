@@ -72,8 +72,8 @@ export class LogsService {
      * @param startLine Optional starting line number (1-indexed)
      */
     async getLogFileContent(
-        path: string, 
-        lines = this.DEFAULT_LINES, 
+        path: string,
+        lines = this.DEFAULT_LINES,
         startLine?: number
     ): Promise<LogFileContent> {
         try {
@@ -84,7 +84,7 @@ export class LogsService {
             const totalLines = await this.countFileLines(normalizedPath);
 
             let content: string;
-            
+
             if (startLine !== undefined) {
                 // Read from specific starting line
                 content = await this.readLinesFromPosition(normalizedPath, startLine, lines);
@@ -97,7 +97,7 @@ export class LogsService {
                 path: normalizedPath,
                 content,
                 totalLines,
-                startLine: startLine !== undefined ? startLine : Math.max(1, totalLines - lines + 1)
+                startLine: startLine !== undefined ? startLine : Math.max(1, totalLines - lines + 1),
             };
         } catch (error: unknown) {
             this.logger.error(`Error reading log file: ${error}`);
@@ -288,8 +288,8 @@ export class LogsService {
      * @param lineCount Number of lines to read
      */
     private async readLinesFromPosition(
-        filePath: string, 
-        startLine: number, 
+        filePath: string,
+        startLine: number,
         lineCount: number
     ): Promise<string> {
         return new Promise((resolve, reject) => {
@@ -305,7 +305,7 @@ export class LogsService {
 
             rl.on('line', (line) => {
                 currentLine++;
-                
+
                 // Skip lines before the starting position
                 if (currentLine >= startLine) {
                     // Only read the requested number of lines

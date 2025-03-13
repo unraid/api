@@ -27,7 +27,7 @@ export class LogsResolver {
         possession: AuthPossession.ANY,
     })
     async logFile(
-        @Args('path') path: string, 
+        @Args('path') path: string,
         @Args('lines') lines?: number,
         @Args('startLine') startLine?: number
     ) {
