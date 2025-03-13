@@ -1,6 +1,12 @@
 import { expect, test } from 'vitest';
 
+
+
 import { store } from '@app/store/index.js';
+
+
+
+
 
 test('Returns paths', async () => {
     const { paths } = store.getState();
@@ -25,6 +31,7 @@ test('Returns paths', async () => {
 		  "keyfile-base",
 		  "machine-id",
 		  "log-base",
+		  "unraid-log-base",
 		  "var-run",
 		  "auth-sessions",
 		  "auth-keys",
