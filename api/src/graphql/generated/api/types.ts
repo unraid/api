@@ -288,7 +288,8 @@ export enum ConfigErrorState {
   INVALID = 'INVALID',
   NO_KEY_SERVER = 'NO_KEY_SERVER',
   UNKNOWN_ERROR = 'UNKNOWN_ERROR',
-  WITHDRAWN = 'WITHDRAWN'
+  WITHDRAWN = 'WITHDRAWN',
+  INELIGIBLE = 'INELIGIBLE'
 }
 
 export type Connect = Node & {
