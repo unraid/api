@@ -27,6 +27,5 @@ docker ps -q --filter "name=${CONTAINER_NAME}" | xargs -r docker stop
 
 # Start the container with the specified environment variables
 echo "Starting plugin-builder container..."
-echo "Install the local plugin using this URL: http://${HOST_LAN_IP}:5858/plugins/dynamix.unraid.net.plg"
 
 docker compose run --remove-orphans --service-ports -e HOST_LAN_IP="$HOST_LAN_IP" -e CI="$CI" -e TAG="$TAG" ${CONTAINER_NAME} "$@"
