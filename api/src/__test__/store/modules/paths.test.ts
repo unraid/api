@@ -1,12 +1,6 @@
 import { expect, test } from 'vitest';
 
-
-
 import { store } from '@app/store/index.js';
-
-
-
-
 
 test('Returns paths', async () => {
     const { paths } = store.getState();
