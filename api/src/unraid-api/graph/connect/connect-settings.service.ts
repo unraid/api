@@ -223,14 +223,19 @@ export class ConnectSettingsService {
                     },
                 },
                 rule: {
-                    effect: RuleEffect.ENABLE,
+                    effect: RuleEffect.SHOW,
                     condition: {
-                        failWhenUndefined: true,
-                        scope: '#/properties/forwardType',
                         schema: {
-                            enum: [WAN_FORWARD_TYPE.STATIC],
+                            properties: {
+                                forwardType: {
+                                    enum: [WAN_FORWARD_TYPE.STATIC],
+                                },
+                                accessType: {
+                                    enum: [WAN_ACCESS_TYPE.DYNAMIC, WAN_ACCESS_TYPE.ALWAYS],
+                                },
+                            },
                         },
-                    } as SchemaBasedCondition,
+                    } as Omit<SchemaBasedCondition, 'scope'>,
                 },
             },
         ];
