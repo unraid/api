@@ -353,15 +353,15 @@ defineExpose({ refreshLogContent });
 
 <template>
   <div class="flex flex-col h-full max-h-full overflow-hidden">
-    <div class="flex justify-between px-4 py-2 bg-muted text-xs text-muted-foreground shrink-0">
+    <div class="flex justify-between px-4 py-2 bg-muted text-xs text-muted-foreground shrink-0 items-center">
       <span>Total lines: {{ totalLines }}</span>
       <span>{{ state.isAtTop ? 'Showing all available lines' : 'Scroll up to load more' }}</span>
       <div class="flex gap-2">
-        <Button variant="outline" size="sm" :disabled="loadingLogContent || state.isDownloading" @click="downloadLogFile">
+        <Button variant="outline" :disabled="loadingLogContent || state.isDownloading" @click="downloadLogFile">
           <ArrowDownTrayIcon class="h-3 w-3 mr-1" :class="{ 'animate-pulse': state.isDownloading }" aria-hidden="true" />
           <span class="text-sm">{{ state.isDownloading ? 'Downloading...' : 'Download' }}</span>
         </Button>
-        <Button variant="outline" size="sm" :disabled="loadingLogContent" @click="refreshLogContent">
+        <Button variant="outline" :disabled="loadingLogContent" @click="refreshLogContent">
           <ArrowPathIcon class="h-3 w-3 mr-1" aria-hidden="true" />
           <span class="text-sm">Refresh</span>
         </Button>
