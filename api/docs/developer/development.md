@@ -2,7 +2,7 @@
 
 ## Installation
 
-Manual install can be done with the following routes:
+Manual install of the staging and production plugins can be done with the following routes:
 [production](https://stable.dl.unraid.net/unraid-api/dynamix.unraid.net.plg)
 [staging](https://preview.dl.unraid.net/unraid-api/dynamix.unraid.net.staging.plg)
 

@@ -21,7 +21,7 @@
 <br />
 <div align="center">
   <a href="https://github.com/unraid/api">
-    <img src=".github/unraid.svg" alt="Logo" width="80" height="80">
+    <img src=".github/unraid.svg" alt="Logo" width="80" height="80"/>
   </a>
 
 <h3 align="center">Unraid Connect</h3>
@@ -112,39 +112,25 @@ Once you have your key pair, add your public SSH key to your Unraid server:
 1. Clone and enter the repo
 
    ```sh
-   # Optionally, give the cloned folder a more specific name
-   gh repo clone unraid/api api-monorepo
-   cd api-monorepo
+   git clone git@github.com:unraid/api.git
+   cd api
    ```
 
 2. Run the monorepo setup command.
 
    ```sh
-   just setup
+    pnpm install
    ```
 
-   This will run installation scripts, container builds, and some git scripts to reduce noise (i.e. personal editor customizations, etc).
-
-   Alternatively, run `pnpm install` for a lighter, less opinionated setup.
-3. Run dev servers
+3. Run the build watcher to build the components and serve a local plugin file that can be installed on your Unraid server.
 
    ```sh
-   pnpm dev
+   pnpm build:watch
    ```
 
-   This will run every dev server in the monorepo. By default, this means:
+   Navigate to Plugins->Install and install the local plugin file that is output to the console.
 
-   * The unraid-api will be available at localhost:3001
-   * The dev server for "rich" web components (like the User Profile Component) will be at localhost:4321 -- Note that shipping to unraid is preferred, as the dev environment is significantly different.
-   * The vite server for unraid-ui development will be at localhost:5173
-
-4. Test on Unraid
-
-   ```js
-   pnpm unraid:deploy <SERVER_IP>
-   ```
-
-   This will ship a staging build of unraid-api, unraid-ui, and unraid-components to an Unraid server located at `<SERVER_IP>`.
+## View other workflows (local dev, etc.) in the [Developer Workflows](./api/docs/developer/workflows.md)
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
