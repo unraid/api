@@ -168,6 +168,7 @@ export class ConnectSettingsService {
      */
     async remoteAccessSlice(): Promise<SettingSlice> {
         const precondition = (await this.isSignedIn()) && (await this.isSSLCertProvisioned());
+
         /** shown when preconditions are not met */
         const requirements: UIElement[] = [
             {
@@ -200,7 +201,16 @@ export class ConnectSettingsService {
             {
                 type: 'Control',
                 scope: '#/properties/forwardType',
-                label: 'Remote AccessForward Type',
+                label: 'Remote Access Forward Type',
+                rule: {
+                    effect: RuleEffect.DISABLE,
+                    condition: {
+                        scope: '#/properties/accessType',
+                        schema: {
+                            enum: [WAN_ACCESS_TYPE.DISABLED],
+                        },
+                    } as SchemaBasedCondition,
+                },
             },
             {
                 type: 'Control',
@@ -244,6 +254,7 @@ export class ConnectSettingsService {
                 title: 'WAN Port',
                 minimum: 0,
                 maximum: 65535,
+                default: 0,
             },
         };
 

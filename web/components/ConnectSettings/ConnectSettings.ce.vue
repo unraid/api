@@ -24,7 +24,7 @@ import { getConnectSettingsForm, updateConnectSettings } from './graphql/setting
  *     Settings State & Form definition
  *---------------------------------------------**/
 
-const formSettings = ref<Partial<ConnectSettingsValues>>({});
+const formState = ref<Partial<ConnectSettingsValues>>({});
 const { result } = useQuery(getConnectSettingsForm);
 const settings = computed(() => {
   if (!result.value) return;
@@ -34,7 +34,7 @@ watch(result, () => {
   if (!result.value) return;
   const { __typename, ...initialValues } = result.value.connect.settings.values;
   console.log('[ConnectSettings] current settings', initialValues);
-  formSettings.value = initialValues;
+  formState.value = initialValues;
 });
 
 /**--------------------------------------------
@@ -95,13 +95,13 @@ const renderers = [
 
 /** Called when the user clicks the "Apply" button */
 const submitSettingsUpdate = async () => {
-  console.log('[ConnectSettings] trying to update settings to', formSettings.value);
-  await mutateSettings({ input: formSettings.value });
+  console.log('[ConnectSettings] trying to update settings to', formState.value);
+  await mutateSettings({ input: formState.value });
 };
 
 /** Called whenever a JSONForms form control changes */
 const onChange = ({ data }: { data: Record<string, unknown> }) => {
-  formSettings.value = data;
+  formState.value = data;
 };
 </script>
 
@@ -125,8 +125,8 @@ const onChange = ({ data }: { data: Record<string, unknown> }) => {
       v-if="settings"
       :schema="settings.dataSchema"
       :uischema="settings.uiSchema"
-      :data="formSettings"
       :renderers="renderers"
+      :data="formState"
       :config="jsonFormsConfig"
       :readonly="isUpdating"
       @change="onChange"
