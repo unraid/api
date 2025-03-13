@@ -81,6 +81,17 @@ onMounted(() => {
 
         const existingContent = prev.logFile?.content || '';
         const newContent = subscriptionData.data.logFile.content;
+        
+        // Update the local state with the new content
+        if (newContent && state.loadedContentChunks.length > 0) {
+          const lastChunk = state.loadedContentChunks[state.loadedContentChunks.length - 1];
+          lastChunk.content += newContent;
+          
+          // Force scroll to bottom if auto-scroll is enabled
+          if (props.autoScroll) {
+            nextTick(() => forceScrollToBottom());
+          }
+        }
 
         return {
           ...prev,
