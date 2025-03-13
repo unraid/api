@@ -1,11 +1,3 @@
-enum ConfigErrorState {
-    UNKNOWN_ERROR
-    INELIGIBLE
-    INVALID
-    NO_KEY_SERVER
-    WITHDRAWN
-}
-
 type Config implements Node {
     id: ID!
     valid: Boolean

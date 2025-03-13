@@ -1,4 +1,4 @@
- 
+/* eslint-disable */
 import type { TypedDocumentNode as DocumentNode } from '@graphql-typed-document-node/core';
 export type Maybe<T> = T | null;
 export type InputMaybe<T> = Maybe<T>;
@@ -372,6 +372,7 @@ export type Disk = {
   bytesPerSector: Scalars['Long']['output'];
   device: Scalars['String']['output'];
   firmwareRevision: Scalars['String']['output'];
+  id: Scalars['ID']['output'];
   interfaceType: DiskInterfaceType;
   name: Scalars['String']['output'];
   partitions?: Maybe<Array<DiskPartition>>;
