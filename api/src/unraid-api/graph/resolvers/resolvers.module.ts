@@ -11,6 +11,8 @@ import { DisplayResolver } from '@app/unraid-api/graph/resolvers/display/display
 import { DockerResolver } from '@app/unraid-api/graph/resolvers/docker/docker.resolver.js';
 import { FlashResolver } from '@app/unraid-api/graph/resolvers/flash/flash.resolver.js';
 import { InfoResolver } from '@app/unraid-api/graph/resolvers/info/info.resolver.js';
+import { LogsResolver } from '@app/unraid-api/graph/resolvers/logs/logs.resolver.js';
+import { LogsService } from '@app/unraid-api/graph/resolvers/logs/logs.service.js';
 import { MeResolver } from '@app/unraid-api/graph/resolvers/me/me.resolver.js';
 import { NotificationsResolver } from '@app/unraid-api/graph/resolvers/notifications/notifications.resolver.js';
 import { NotificationsService } from '@app/unraid-api/graph/resolvers/notifications/notifications.service.js';
@@ -20,8 +22,6 @@ import { RegistrationResolver } from '@app/unraid-api/graph/resolvers/registrati
 import { ServerResolver } from '@app/unraid-api/graph/resolvers/servers/server.resolver.js';
 import { VarsResolver } from '@app/unraid-api/graph/resolvers/vars/vars.resolver.js';
 import { VmsResolver } from '@app/unraid-api/graph/resolvers/vms/vms.resolver.js';
-import { LogsResolver } from './logs/logs.resolver.js';
-import { LogsService } from './logs/logs.service.js';
 
 @Module({
     imports: [AuthModule],
