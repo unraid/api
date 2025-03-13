@@ -1,25 +1,25 @@
-import { dirname, join } from "path";
-import type { StorybookConfig } from "@storybook/vue3-vite";
-
+import { dirname, join } from 'path';
+import type { StorybookConfig } from '@storybook/vue3-vite';
 
 const config: StorybookConfig = {
-  stories: ["../stories/**/*.stories.@(js|jsx|ts|tsx)"],
+  stories: ['../stories/**/*.stories.@(js|jsx|ts|tsx)'],
   addons: [
-    "@storybook/addon-links",
-    "@storybook/addon-essentials",
-    "@storybook/addon-interactions"
+    '@storybook/addon-links',
+    '@storybook/addon-essentials',
+    '@storybook/addon-interactions',
+    '@storybook/addon-designs',
   ],
   framework: {
-    name: "@storybook/vue3-vite",
+    name: '@storybook/vue3-vite',
     options: {
-      docgen: "vue-component-meta",
+      docgen: 'vue-component-meta',
     },
   },
   core: {
-    builder: "@storybook/builder-vite",
+    builder: '@storybook/builder-vite',
   },
   docs: {
-    autodocs: "tag",
+    autodocs: 'tag',
   },
   async viteFinal(config) {
     config.root = dirname(require.resolve('@storybook/builder-vite'));
