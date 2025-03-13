@@ -20,6 +20,7 @@ interface LogFileContent {
     path: string;
     content: string;
     totalLines: number;
+    startLine?: number;
 }
 
 @Injectable()
@@ -68,8 +69,13 @@ export class LogsService {
      * Get the content of a log file
      * @param path Path to the log file
      * @param lines Number of lines to read from the end of the file (default: 100)
+     * @param startLine Optional starting line number (1-indexed)
      */
-    async getLogFileContent(path: string, lines = this.DEFAULT_LINES): Promise<LogFileContent> {
+    async getLogFileContent(
+        path: string, 
+        lines = this.DEFAULT_LINES, 
+        startLine?: number
+    ): Promise<LogFileContent> {
         try {
             // Validate that the path is within the log directory
             const normalizedPath = join(this.logBasePath, basename(path));
@@ -77,13 +83,21 @@ export class LogsService {
             // Count total lines
             const totalLines = await this.countFileLines(normalizedPath);
 
-            // Read the last N lines
-            const content = await this.readLastLines(normalizedPath, lines);
+            let content: string;
+            
+            if (startLine !== undefined) {
+                // Read from specific starting line
+                content = await this.readLinesFromPosition(normalizedPath, startLine, lines);
+            } else {
+                // Read the last N lines (default behavior)
+                content = await this.readLastLines(normalizedPath, lines);
+            }
 
             return {
                 path: normalizedPath,
                 content,
                 totalLines,
+                startLine: startLine !== undefined ? startLine : Math.max(1, totalLines - lines + 1)
             };
         } catch (error: unknown) {
             this.logger.error(`Error reading log file: ${error}`);
@@ -254,6 +268,54 @@ export class LogsService {
                 currentLine++;
                 if (currentLine > linesToSkip) {
                     content += line + '\n';
+                }
+            });
+
+            rl.on('close', () => {
+                resolve(content);
+            });
+
+            rl.on('error', (err) => {
+                reject(err);
+            });
+        });
+    }
+
+    /**
+     * Read lines from a specific position in the file
+     * @param filePath Path to the file
+     * @param startLine Starting line number (1-indexed)
+     * @param lineCount Number of lines to read
+     */
+    private async readLinesFromPosition(
+        filePath: string, 
+        startLine: number, 
+        lineCount: number
+    ): Promise<string> {
+        return new Promise((resolve, reject) => {
+            let currentLine = 0;
+            let content = '';
+            let linesRead = 0;
+
+            const stream = createReadStream(filePath);
+            const rl = createInterface({
+                input: stream,
+                crlfDelay: Infinity,
+            });
+
+            rl.on('line', (line) => {
+                currentLine++;
+                
+                // Skip lines before the starting position
+                if (currentLine >= startLine) {
+                    // Only read the requested number of lines
+                    if (linesRead < lineCount) {
+                        content += line + '\n';
+                        linesRead++;
+                    } else {
+                        // We've read enough lines, close the stream
+                        rl.close();
+                    }
                 }
             });
 

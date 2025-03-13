@@ -8,8 +8,9 @@ type Query {
   Get the content of a specific log file
   @param path Path to the log file
   @param lines Number of lines to read from the end of the file (default: 100)
+  @param startLine Optional starting line number (1-indexed)
   """
-  logFile(path: String!, lines: Int): LogFileContent!
+  logFile(path: String!, lines: Int, startLine: Int): LogFileContent!
 }
 
 type Subscription {
@@ -63,4 +64,9 @@ type LogFileContent {
   Total number of lines in the file
   """
   totalLines: Int!
+  
+  """
+  Starting line number of the content (1-indexed)
+  """
+  startLine: Int
 } 

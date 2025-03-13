@@ -8,6 +8,7 @@ import type { SendPayloads } from '~/store/callback';
 
 import SsoButtonCe from '~/components/SsoButton.ce.vue';
 import { useThemeStore } from '~/store/theme';
+import LogViewerCe from '~/components/Logs/LogViewer.ce.vue';
 
 const serverStore = useDummyServerStore();
 const { serverState } = storeToRefs(serverStore);
@@ -182,6 +183,11 @@ const bannerImage = watch(theme, () => {
             <hr class="border-black dark:border-white" />
             <h2 class="text-xl font-semibold font-mono">SSO Button Component</h2>
             <SsoButtonCe :ssoenabled="serverState.ssoEnabled" />
+          </div>
+          <div class="bg-background">
+            <hr class="border-black dark:border-white" />
+            <h2 class="text-xl font-semibold font-mono">Log Viewer Component</h2>
+            <LogViewerCe />
           </div>
         </div>
       </client-only>

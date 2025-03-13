@@ -26,8 +26,12 @@ export class LogsResolver {
         resource: Resource.LOGS,
         possession: AuthPossession.ANY,
     })
-    async logFile(@Args('path') path: string, @Args('lines') lines?: number) {
-        return this.logsService.getLogFileContent(path, lines);
+    async logFile(
+        @Args('path') path: string, 
+        @Args('lines') lines?: number,
+        @Args('startLine') startLine?: number
+    ) {
+        return this.logsService.getLogFileContent(path, lines, startLine);
     }
 
     @Subscription('logFile')
