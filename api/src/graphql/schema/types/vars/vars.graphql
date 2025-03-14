@@ -8,6 +8,7 @@ type Subscription {
 
 enum ConfigErrorState {
     UNKNOWN_ERROR
+    INELIGIBLE
     INVALID
     NO_KEY_SERVER
     WITHDRAWN

@@ -305,6 +305,7 @@ export type Config = Node & {
 };
 
 export enum ConfigErrorState {
+  INELIGIBLE = 'INELIGIBLE',
   INVALID = 'INVALID',
   NO_KEY_SERVER = 'NO_KEY_SERVER',
   UNKNOWN_ERROR = 'UNKNOWN_ERROR',
