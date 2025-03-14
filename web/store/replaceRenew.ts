@@ -17,16 +17,16 @@ import { BrandLoading } from '@unraid/ui';
 
 import type { BadgeProps } from '@unraid/ui';
 import type {
-  // type KeyLatestResponse,
+  KeyLatestResponse,
   ValidateGuidResponse,
 } from '~/composables/services/keyServer';
 import type { WretchError } from 'wretch';
 
 import {
-  // keyLatest,
+  keyLatest,
   validateGuid,
 } from '~/composables/services/keyServer';
-// import { useCallbackStore } from '~/store/callbackActions';
+import { useCallbackStore } from '~/store/callbackActions';
 import { useServerStore } from '~/store/server';
 
 /**
@@ -44,12 +44,12 @@ interface CachedValidationResponse extends ValidateGuidResponse {
   timestamp: number;
 }
 
-const BrandLoadingIcon = () => h(BrandLoading, { variant: 'white' });
+const BrandLoadingIcon = () => h(BrandLoading, { size: 'sm' });
 
 export const REPLACE_CHECK_LOCAL_STORAGE_KEY = 'unraidReplaceCheck';
 
 export const useReplaceRenewStore = defineStore('replaceRenewCheck', () => {
-  // const callbackStore = useCallbackStore();
+  const callbackStore = useCallbackStore();
   const serverStore = useServerStore();
 
   const guid = computed(() => serverStore.guid);
@@ -156,6 +156,8 @@ export const useReplaceRenewStore = defineStore('replaceRenewCheck', () => {
       : undefined
   );
 
+  const validationResponseTimestamp = computed<number | null>(() => validationResponse.value?.timestamp ?? null);
+
   const purgeValidationResponse = async () => {
     validationResponse.value = undefined;
     await sessionStorage.removeItem(REPLACE_CHECK_LOCAL_STORAGE_KEY);
@@ -190,6 +192,8 @@ export const useReplaceRenewStore = defineStore('replaceRenewCheck', () => {
       error.value = { name: 'Error', message: 'Keyfile required to check replacement status' };
     }
 
+    console.log('[ReplaceCheck.check]');
+
     try {
       if (skipCache) {
         await purgeValidationResponse();
@@ -200,6 +204,7 @@ export const useReplaceRenewStore = defineStore('replaceRenewCheck', () => {
 
       setKeyLinked('checking');
       setReplaceStatus('checking');
+      setRenewStatus('checking');
       error.value = null;
       /**
        * If the session already has a validation response, use that instead of making a new request
@@ -222,35 +227,38 @@ export const useReplaceRenewStore = defineStore('replaceRenewCheck', () => {
         (replaceStatus.value === 'eligible' || replaceStatus.value === 'ineligible') &&
         !validationResponse.value
       ) {
+        validationResponse.value = {
+          key: keyfileShort.value,
+          timestamp: Date.now(),
+          ...response,
+        };
         sessionStorage.setItem(
           REPLACE_CHECK_LOCAL_STORAGE_KEY,
-          JSON.stringify({
-            key: keyfileShort.value,
-            timestamp: Date.now(),
-            ...response,
-          })
+          JSON.stringify(validationResponse.value)
         );
       }
 
-      // if (response?.hasNewerKeyfile) {
-      //   setRenewStatus('checking');
+      if (!response?.hasNewerKeyfile) {
+        setRenewStatus('ready');
+      } else if (response?.hasNewerKeyfile) {
+        setRenewStatus('checking');
 
-      //   const keyLatestResponse: KeyLatestResponse = await keyLatest({
-      //     keyfile: keyfile.value,
-      //   });
+        const keyLatestResponse: KeyLatestResponse = await keyLatest({
+          keyfile: keyfile.value,
+        });
 
-      //   if (keyLatestResponse?.license) {
-      //     callbackStore.send(
-      //       window.location.href,
-      //       [{
-      //         keyUrl: keyLatestResponse.license,
-      //         type: 'renew',
-      //       }],
-      //       undefined,
-      //       'forUpc',
-      //     );
-      //   }
-      // }
+        if (keyLatestResponse?.license) {
+          callbackStore.send(
+            window.location.href,
+            [{
+              keyUrl: keyLatestResponse.license,
+              type: 'renew',
+            }],
+            undefined,
+            'forUpc',
+          );
+        }
+      }
     } catch (err) {
       const catchError = err as WretchError;
       setReplaceStatus('error');
@@ -266,6 +274,7 @@ export const useReplaceRenewStore = defineStore('replaceRenewCheck', () => {
     renewStatus,
     replaceStatus,
     replaceStatusOutput,
+    validationResponseTimestamp,
     // actions
     check,
     purgeValidationResponse,
