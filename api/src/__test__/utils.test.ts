@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { formatDatetime, csvStringToArray } from '@app/utils.js';
+import { csvStringToArray, formatDatetime } from '@app/utils.js';
 
 describe('formatDatetime', () => {
     const testDate = new Date('2024-02-14T12:34:56');

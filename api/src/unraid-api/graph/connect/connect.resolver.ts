@@ -5,11 +5,11 @@ import { GraphQLError } from 'graphql';
 import { AuthActionVerb, AuthPossession, UsePermissions } from 'nest-authz';
 
 import type {
+    ApiSettingsInput,
     ConnectResolvers,
     ConnectSettings,
     DynamicRemoteAccessStatus,
     EnableDynamicRemoteAccessInput,
-    ApiSettingsInput,
 } from '@app/graphql/generated/api/types.js';
 import { DynamicRemoteAccessType, Resource } from '@app/graphql/generated/api/types.js';
 import { RemoteAccessController } from '@app/remoteAccess/remote-access-controller.js';
