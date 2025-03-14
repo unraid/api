@@ -48,12 +48,6 @@ export default defineNuxtConfig({
     '~/components',
   ],
 
-  // typescript: {
-  //   typeCheck: true
-  // },
-  // build: {
-  //   transpile: ['@jsonforms/core', '@jsonforms/vue', '@jsonforms/vue-vanilla'],
-  // },
   vite: {
     plugins: [
       // Only remove non-critical console methods when VITE_ALLOW_CONSOLE_LOGS is false
