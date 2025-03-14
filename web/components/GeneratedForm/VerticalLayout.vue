@@ -1,4 +1,18 @@
 <script lang="ts" setup>
+/**
+ * VerticalLayout component
+ * 
+ * Renders form elements in a vertical layout with labels aligned to the right
+ * and fields to the left. Consumes JSON Schema uischema to determine what elements
+ * to render.
+ * 
+ * @prop schema - The JSON Schema
+ * @prop uischema - The UI Schema containing the layout elements
+ * @prop path - The current path
+ * @prop enabled - Whether the form is enabled
+ * @prop renderers - Available renderers
+ * @prop cells - Available cells
+ */
 import { Label } from '@unraid/ui';
 import { DispatchRenderer, type RendererProps } from '@jsonforms/vue';
 import { computed } from 'vue';
