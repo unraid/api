@@ -46,6 +46,7 @@ if (!function_exists('ipaddr')) {
 }
 $configErrorEnum = [ // used to map $var['configValid'] value to mimic unraid-api's `configError` ENUM
   "error" => 'UNKNOWN_ERROR',
+  "ineligible" => 'INELIGIBLE',
   "invalid" => 'INVALID',
   "nokeyserver" => 'NO_KEY_SERVER',
   "withdrawn" => 'WITHDRAWN',
