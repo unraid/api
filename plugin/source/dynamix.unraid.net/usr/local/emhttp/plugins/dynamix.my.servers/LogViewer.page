@@ -1,4 +1,4 @@
-Menu="ManagementAccess:101"
+Menu="WebGUI"
 Title="Log Viewer"
 Icon="icon-u-file-text"
 Tag="file-text"
