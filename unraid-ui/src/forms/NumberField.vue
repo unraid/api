@@ -20,12 +20,12 @@ const { control, handleChange } = useJsonFormsControl(props);
 
 // Bind the number field's value to JSONForms data
 const value = computed({
-  get: () => control.value.data ?? control.value.schema.default ?? 0,
+  get: () => control.value.data ?? control.value.schema.default,
   set: (newValue: number) => handleChange(control.value.path, newValue),
 });
 // Extract schema-based constraints (optional settings)
-const min = computed(() => control.value.schema.minimum ?? Number.MIN_SAFE_INTEGER);
-const max = computed(() => control.value.schema.maximum ?? Number.MAX_SAFE_INTEGER);
+const min = computed(() => control.value.schema.minimum);
+const max = computed(() => control.value.schema.maximum);
 const step = computed(() => control.value.schema.multipleOf ?? 1);
 const stepperEnabled = computed(() => Boolean(control.value.uischema?.options?.stepper));
 const formatOptions = computed(() => control.value.uischema?.options?.formatOptions || {});
