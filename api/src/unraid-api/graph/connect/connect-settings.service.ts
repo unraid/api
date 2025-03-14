@@ -1,14 +1,6 @@
 import { Injectable } from '@nestjs/common';
 
-import type {
-    Categorization,
-    ControlElement,
-    JsonSchema,
-    LabelElement,
-    Layout,
-    SchemaBasedCondition,
-    UISchemaElement,
-} from '@jsonforms/core';
+import type { SchemaBasedCondition } from '@jsonforms/core';
 import { RuleEffect } from '@jsonforms/core';
 import { GraphQLError } from 'graphql/error/GraphQLError.js';
 
@@ -18,6 +10,7 @@ import type {
     RemoteAccess,
     SetupRemoteAccessInput,
 } from '@app/graphql/generated/api/types.js';
+import type { DataSlice, SettingSlice, UIElement } from '@app/unraid-api/types/json-forms.js';
 import { fileExistsSync } from '@app/core/utils/files/file-exists.js';
 import {
     DynamicRemoteAccessType,
@@ -26,16 +19,8 @@ import {
 } from '@app/graphql/generated/api/types.js';
 import { setupRemoteAccessThunk } from '@app/store/actions/setup-remote-access.js';
 import { updateAllowedOrigins, updateUserConfig } from '@app/store/modules/config.js';
+import { mergeSettingSlices } from '@app/unraid-api/types/json-forms.js';
 import { csvStringToArray } from '@app/utils.js';
-
-type DataSlice = Record<string, JsonSchema>;
-type UIElement = UISchemaElement | LabelElement | Layout | ControlElement | Categorization;
-type SettingSlice = {
-    /** One or more JSON schema properties */
-    properties: DataSlice;
-    /** One or more UI schema elements */
-    elements: UIElement[];
-};
 
 @Injectable()
 export class ConnectSettingsService {
@@ -161,11 +146,7 @@ export class ConnectSettingsService {
             // this.extraOriginsSlice(),
         ];
 
-        return this.reduceSlices(slices);
-    }
-
-    createEmptySlice(): SettingSlice {
-        return { properties: {}, elements: [] };
+        return mergeSettingSlices(slices);
     }
 
     /**
@@ -347,17 +328,5 @@ export class ConnectSettingsService {
                 },
             ],
         };
-    }
-
-    /**
-     * Reduces multiple setting slices into a single slice
-     */
-    private reduceSlices(slices: SettingSlice[]): SettingSlice {
-        const result = this.createEmptySlice();
-        for (const slice of slices) {
-            Object.assign(result.properties, slice.properties);
-            result.elements.push(...slice.elements);
-        }
-        return result;
     }
 }
