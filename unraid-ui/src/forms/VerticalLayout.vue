@@ -22,7 +22,7 @@ import type { VerticalLayout } from '@jsonforms/core';
 const props = defineProps<RendererProps<VerticalLayout>>();
 
 const elements = computed(() => {
-  return props.uischema.elements || [];
+  return props.uischema?.elements || [];
 });
 </script>
 
