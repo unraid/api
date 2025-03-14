@@ -792,7 +792,6 @@ export const useServerStore = defineStore('server', () => {
         //     ref: 'configError',
         //     type: 'server',
         //   };
-        //@ts-expect-error - causing a build-breaking type error, but seems plausible, so i kept it around - pujitm
         case 'INELIGIBLE':
           return {
             heading: 'Ineligible for OS Version',
