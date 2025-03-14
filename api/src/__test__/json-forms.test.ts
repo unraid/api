@@ -1,8 +1,8 @@
 import type { ControlElement } from '@jsonforms/core';
 import { describe, expect, it } from 'vitest';
 
-import type { SettingSlice } from '../unraid-api/types/json-forms.js';
-import { createEmptySettingSlice, mergeSettingSlices } from '../unraid-api/types/json-forms.js';
+import type { SettingSlice } from '@app/unraid-api/types/json-forms.js';
+import { createEmptySettingSlice, mergeSettingSlices } from '@app/unraid-api/types/json-forms.js';
 
 describe('mergeSettingSlices', () => {
     it('returns an empty slice when given an empty array', () => {
