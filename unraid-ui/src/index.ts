@@ -157,3 +157,4 @@ export {
 export { Toaster } from '@/components/common/toast';
 export * from '@/components/common/popover';
 export * from '@/components/form/number';
+export * from '@/forms/renderers';

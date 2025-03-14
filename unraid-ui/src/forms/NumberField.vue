@@ -1,17 +1,17 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 
+import type { ControlElement } from '@jsonforms/core';
+import type { RendererProps } from '@jsonforms/vue';
+import { useJsonFormsControl } from '@jsonforms/vue';
+
 import {
-  cn,
   NumberField,
   NumberFieldDecrement,
   NumberFieldIncrement,
   NumberFieldInput,
-} from '@unraid/ui';
-import { useJsonFormsControl } from '@jsonforms/vue';
-
-import type { ControlElement } from '@jsonforms/core';
-import type { RendererProps } from '@jsonforms/vue';
+} from '@/components/form/number';
+import { cn } from '@/lib/utils';
 
 import ControlLayout from './ControlLayout.vue';
 

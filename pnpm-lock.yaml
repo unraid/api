@@ -499,6 +499,15 @@ importers:
       '@internationalized/number':
         specifier: ^3.6.0
         version: 3.6.0
+      '@jsonforms/core':
+        specifier: ^3.5.1
+        version: 3.5.1
+      '@jsonforms/vue':
+        specifier: ^3.5.1
+        version: 3.5.1(@jsonforms/core@3.5.1)(vue@3.5.13(typescript@5.7.3))
+      '@jsonforms/vue-vanilla':
+        specifier: ^3.5.1
+        version: 3.5.1(@jsonforms/core@3.5.1)(@jsonforms/vue@3.5.1(@jsonforms/core@3.5.1)(vue@3.5.13(typescript@5.7.3)))(vue@3.5.13(typescript@5.7.3))
       '@vueuse/core':
         specifier: ^12.0.0
         version: 12.7.0(typescript@5.7.3)

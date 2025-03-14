@@ -13,7 +13,7 @@
  * @prop renderers - Available renderers
  * @prop cells - Available cells
  */
-import { Label } from '@unraid/ui';
+import { Label } from '@/components/form/label';
 import { DispatchRenderer, type RendererProps } from '@jsonforms/vue';
 import { computed } from 'vue';
 import type { VerticalLayout } from '@jsonforms/core';
@@ -29,7 +29,7 @@ const elements = computed(() => {
 <template>
   <div class="grid grid-cols-settings items-baseline gap-y-6">
     <template v-for="(element, index) in elements" :key="index">
-      <Label v-if="element.label" class="text-end">{{ element.label }}</Label>
+      <Label v-if="element.label" class="text-end">{{ element.label ?? index }}</Label>
       <DispatchRenderer
         class="ml-10"
         :schema="props.schema"

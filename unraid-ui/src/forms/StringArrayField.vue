@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue';
-import { Button, Input } from '@unraid/ui';
+import { Button } from '@/components/common/button';
+import { Input } from '@/components/form/input';
 import { useJsonFormsControl } from '@jsonforms/vue';
 import type { ControlElement } from '@jsonforms/core';
 import type { RendererProps } from '@jsonforms/vue';
@@ -51,7 +52,7 @@ const placeholder = computed(() => control.value.uischema?.options?.placeholder 
           :placeholder="placeholder"
           :disabled="!control.enabled"
           class="flex-1"
-          @update:model-value="(value: string) => updateItem(index, value)"
+          @update:model-value="(value) => updateItem(index, String(value))"
         />
         <Button variant="ghost" class="rounded underline underline-offset-4" :disabled="!control.enabled" @click="() => removeItem(index)">
           Remove

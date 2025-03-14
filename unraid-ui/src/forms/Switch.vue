@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Switch as UuiSwitch } from '@unraid/ui';
+import { Switch as UuiSwitch } from '@/components/form/switch';
 import { useJsonFormsControl } from '@jsonforms/vue';
 
 import type { ControlElement } from '@jsonforms/core';

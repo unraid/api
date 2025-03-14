@@ -8,7 +8,8 @@ import {
   SelectItemText,
   SelectTrigger,
   SelectValue,
-} from '@unraid/ui';
+} from '@/components/form/select';
+import useTeleport from '@/composables/useTeleport';
 import { useJsonFormsControl } from '@jsonforms/vue';
 
 import type { ControlElement } from '@jsonforms/core';

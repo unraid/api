@@ -5,19 +5,11 @@
 
 import { useMutation, useQuery } from '@vue/apollo-composable';
 
-import { BrandButton, Label } from '@unraid/ui';
+import { BrandButton, Label, jsonFormsRenderers } from '@unraid/ui';
 import { JsonForms } from '@jsonforms/vue';
-import { vanillaRenderers } from '@jsonforms/vue-vanilla';
 
 import type { ConnectSettingsValues } from '~/composables/gql/graphql';
 
-import {
-  formSelectEntry,
-  formSwitchEntry,
-  numberFieldEntry,
-  preconditionsLabelEntry,
-  stringArrayEntry,
-} from '../GeneratedForm/renderer-entries';
 import { getConnectSettingsForm, updateConnectSettings } from './graphql/settings.query';
 
 /**--------------------------------------------
@@ -76,13 +68,13 @@ const jsonFormsConfig = {
 
 /** JSONForms renderers */
 const renderers = [
-  ...vanillaRenderers,
-  formSwitchEntry,
-  formSelectEntry,
-  numberFieldEntry,
-  preconditionsLabelEntry,
-  // verticalLayoutEntry,
-  stringArrayEntry,
+  ...jsonFormsRenderers,
+  // formSwitchEntry,
+  // formSelectEntry,
+  // numberFieldEntry,
+  // preconditionsLabelEntry,
+  // // verticalLayoutEntry,
+  // stringArrayEntry,
 ];
 
 /** Called when the user clicks the "Apply" button */

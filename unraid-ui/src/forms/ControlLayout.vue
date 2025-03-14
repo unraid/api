@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 
-import { Label } from '@unraid/ui';
+import { Label } from '@/components/form/label';
 
 const props = defineProps<{
   label: string;

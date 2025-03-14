@@ -11,14 +11,12 @@ import {
   schemaMatches,
   uiTypeIs,
 } from '@jsonforms/core';
-
 import type { JsonFormsRendererRegistryEntry, JsonSchema } from '@jsonforms/core';
-
-import selectRenderer from './Select.vue';
-import switchRenderer from './Switch.vue';
 import numberFieldRenderer from './NumberField.vue';
 import PreconditionsLabel from './PreconditionsLabel.vue';
+import selectRenderer from './Select.vue';
 import StringArrayField from './StringArrayField.vue';
+import switchRenderer from './Switch.vue';
 
 const isStringArray = (schema: JsonSchema): boolean => {
   if (!schema || typeof schema !== 'object' || Array.isArray(schema)) return false;
@@ -41,12 +39,12 @@ export const numberFieldEntry: JsonFormsRendererRegistryEntry = {
   tester: rankWith(4, or(isNumberControl, isIntegerControl)),
 };
 
-export const preconditionsLabelEntry: JsonFormsRendererRegistryEntry = {
-  renderer: PreconditionsLabel,
-  tester: rankWith(3, and(uiTypeIs('Label'), optionIs('format', 'preconditions'))),
-};
-
 export const stringArrayEntry: JsonFormsRendererRegistryEntry = {
   renderer: StringArrayField,
   tester: rankWith(4, and(isControl, schemaMatches(isStringArray))),
+};
+
+export const preconditionsLabelEntry: JsonFormsRendererRegistryEntry = {
+  renderer: PreconditionsLabel,
+  tester: rankWith(3, and(uiTypeIs('Label'), optionIs('format', 'preconditions'))),
 };
