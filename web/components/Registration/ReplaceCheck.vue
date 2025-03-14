@@ -24,7 +24,7 @@ defineProps<{
       @click="replaceRenewStore.check"
     />
 
-    <Badge v-else :variant="replaceStatusOutput.variant" :icon="replaceStatusOutput.icon" size="md">
+    <Badge v-else :variant="replaceStatusOutput.variant" :icon="replaceStatusOutput.icon" size="md" class="self-center">
       {{ t(replaceStatusOutput.text ?? 'Unknown') }}
     </Badge>
 
