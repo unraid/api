@@ -33,7 +33,6 @@ const settings = computed(() => {
 watch(result, () => {
   if (!result.value) return;
   const { __typename, ...initialValues } = result.value.connect.settings.values;
-  console.log('[ConnectSettings] current settings', initialValues);
   formState.value = initialValues;
 });
 
@@ -49,7 +48,6 @@ const {
 } = useMutation(updateConnectSettings);
 
 const isUpdating = ref(false);
-const reactionMessage = ref('');
 
 // prevent ui flash if loading finishes too fast
 watchDebounced(
@@ -62,15 +60,9 @@ watchDebounced(
   }
 );
 
-// show a toast when the update is done, or fallback to a reaction message (eg in dev environment)
+// show a toast when the update is done
 onMutateSettingsDone(() => {
-  globalThis.toast?.success('Updated API Settings');
-  if (!globalThis.toast) {
-    reactionMessage.value = 'Updated API Settings <span class="text-green-500">✓</span>';
-    setTimeout(() => {
-      reactionMessage.value = '';
-    }, 3000);
-  }
+  globalThis.toast.success('Updated API Settings');
 });
 
 /**--------------------------------------------
@@ -135,7 +127,6 @@ const onChange = ({ data }: { data: Record<string, unknown> }) => {
     <div class="mt-6 grid grid-cols-settings gap-y-6 items-baseline">
       <div class="text-sm text-end">
         <p v-if="isUpdating">Applying Settings...</p>
-        <p v-if="reactionMessage" v-html="reactionMessage"></p>
       </div>
       <div class="col-start-2 ml-10 space-y-4">
         <BrandButton
