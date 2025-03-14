@@ -1,16 +1,18 @@
 <script setup lang="ts">
-import { ref, computed, watch } from 'vue';
+import { computed, ref, watch } from 'vue';
 import { useQuery } from '@vue/apollo-composable';
-import { 
-  Select, 
-  SelectContent, 
-  SelectItem, 
-  SelectTrigger, 
-  SelectValue,
+
+import {
   Input,
   Label,
-  Switch
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+  Switch,
 } from '@unraid/ui';
+
 import { GET_LOG_FILES } from './log.query';
 import SingleLogViewer from './SingleLogViewer.vue';
 
@@ -31,11 +33,15 @@ const highlightLanguages = [
   { value: 'nginx', label: 'Nginx' },
   { value: 'apache', label: 'Apache' },
   { value: 'javascript', label: 'JavaScript' },
-  { value: 'php', label: 'PHP' }
+  { value: 'php', label: 'PHP' },
 ];
 
 // Fetch log files
-const { result: logFilesResult, loading: loadingLogFiles, error: logFilesError } = useQuery(GET_LOG_FILES);
+const {
+  result: logFilesResult,
+  loading: loadingLogFiles,
+  error: logFilesError,
+} = useQuery(GET_LOG_FILES);
 
 const logFiles = computed(() => {
   return logFilesResult.value?.logFiles || [];
@@ -44,18 +50,18 @@ const logFiles = computed(() => {
 // Format file size for display
 const formatFileSize = (bytes: number): string => {
   if (bytes === 0) return '0 Bytes';
-  
+
   const k = 1024;
   const sizes = ['Bytes', 'KB', 'MB', 'GB'];
   const i = Math.floor(Math.log(bytes) / Math.log(k));
-  
+
   return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
 };
 
 // Auto-detect language based on file extension
 const autoDetectLanguage = (filePath: string): string => {
   const fileName = filePath.split('/').pop() || '';
-  
+
   if (fileName.endsWith('.sh') || fileName.endsWith('.bash') || fileName.includes('syslog')) {
     return 'bash';
   } else if (fileName.endsWith('.conf') || fileName.endsWith('.ini') || fileName.endsWith('.cfg')) {
@@ -75,7 +81,7 @@ const autoDetectLanguage = (filePath: string): string => {
   } else if (fileName.endsWith('.php')) {
     return 'php';
   }
-  
+
   return 'plaintext';
 };
 
@@ -85,81 +91,99 @@ watch(selectedLogFile, (newValue) => {
     highlightLanguage.value = autoDetectLanguage(newValue);
   }
 });
+
+// Without this, the select dropdown will not be visible, unless it's already in a teleported context.
+const { teleportTarget, determineTeleportTarget } = useTeleport();
+const onSelectOpen = () => {
+  determineTeleportTarget();
+};
+
 </script>
 
 <template>
-  <div class="flex flex-col h-full min-h-[400px] bg-background text-foreground rounded-lg border border-border overflow-hidden">
+  <div
+    class="flex flex-col h-full min-h-[400px] bg-background text-foreground rounded-lg border border-border overflow-hidden"
+  >
     <div class="p-4 border-b border-border">
       <h2 class="text-lg font-semibold mb-4">Log Viewer</h2>
-      
+
       <div class="flex flex-wrap gap-4 items-end">
         <div class="flex-1 min-w-[200px]">
           <Label for="log-file-select">Log File</Label>
-          <Select v-model="selectedLogFile">
+          <Select v-model="selectedLogFile" @update:open="onSelectOpen">
             <SelectTrigger class="w-full">
               <SelectValue placeholder="Select a log file" />
             </SelectTrigger>
-            <SelectContent>
+            <SelectContent :to="teleportTarget">
               <SelectItem v-for="file in logFiles" :key="file.path" :value="file.path">
                 {{ file.name }} ({{ formatFileSize(file.size) }})
               </SelectItem>
             </SelectContent>
           </Select>
         </div>
-        
+
         <div>
           <Label for="line-count">Lines</Label>
-          <Input 
-            id="line-count" 
-            v-model.number="lineCount" 
-            type="number" 
-            min="10" 
-            max="1000" 
+          <Input
+            id="line-count"
+            v-model.number="lineCount"
+            type="number"
+            min="10"
+            max="1000"
             class="w-24"
           />
         </div>
-        
+
         <div>
           <Label for="highlight-language">Syntax</Label>
-          <Select v-model="highlightLanguage">
+          <Select v-model="highlightLanguage" @update:open="onSelectOpen">
             <SelectTrigger id="highlight-language" class="w-full">
               <SelectValue placeholder="Select language" />
             </SelectTrigger>
-            <SelectContent>
+            <SelectContent :to="teleportTarget">
               <SelectItem v-for="lang in highlightLanguages" :key="lang.value" :value="lang.value">
                 {{ lang.label }}
               </SelectItem>
             </SelectContent>
           </Select>
         </div>
-        
+
         <div class="flex flex-col gap-2">
           <Label for="auto-scroll">Auto-scroll</Label>
-          <Switch 
-            id="auto-scroll" 
-            v-model:checked="autoScroll"
-          />
+          <Switch id="auto-scroll" v-model:checked="autoScroll" />
         </div>
       </div>
     </div>
-    
+
     <div class="flex-1 overflow-hidden relative">
-      <div v-if="loadingLogFiles" class="flex items-center justify-center h-full p-4 text-center text-muted-foreground">
+      <div
+        v-if="loadingLogFiles"
+        class="flex items-center justify-center h-full p-4 text-center text-muted-foreground"
+      >
         Loading log files...
       </div>
-      
-      <div v-else-if="logFilesError" class="flex items-center justify-center h-full p-4 text-center text-destructive">
+
+      <div
+        v-else-if="logFilesError"
+        class="flex items-center justify-center h-full p-4 text-center text-destructive"
+      >
         Error loading log files: {{ logFilesError.message }}
       </div>
-      
-      <div v-else-if="logFiles.length === 0" class="flex items-center justify-center h-full p-4 text-center text-muted-foreground">
+
+      <div
+        v-else-if="logFiles.length === 0"
+        class="flex items-center justify-center h-full p-4 text-center text-muted-foreground"
+      >
         No log files found.
       </div>
-      
-      <div v-else-if="!selectedLogFile" class="flex items-center justify-center h-full p-4 text-center text-muted-foreground">
+
+      <div
+        v-else-if="!selectedLogFile"
+        class="flex items-center justify-center h-full p-4 text-center text-muted-foreground"
+      >
         Please select a log file to view.
       </div>
-      
+
       <SingleLogViewer
         v-else
         :log-file-path="selectedLogFile"
@@ -176,6 +200,4 @@ watch(selectedLogFile, (newValue) => {
 /* Import unraid-ui globals first */
 @import '@unraid/ui/styles';
 @import '~/assets/main.css';
-
 </style>
-
