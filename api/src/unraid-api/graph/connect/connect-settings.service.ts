@@ -13,8 +13,8 @@ import { RuleEffect } from '@jsonforms/core';
 import { GraphQLError } from 'graphql/error/GraphQLError.js';
 
 import type {
+    ApiSettingsInput,
     ConnectSettingsValues,
-    PossibleApiSettings,
     RemoteAccess,
     SetupRemoteAccessInput,
 } from '@app/graphql/generated/api/types.js';
@@ -78,7 +78,7 @@ export class ConnectSettingsService {
      * Syncs the settings to the store and writes the config to disk
      * @param settings - The settings to sync
      */
-    async syncSettings(settings: Partial<PossibleApiSettings>) {
+    async syncSettings(settings: Partial<ApiSettingsInput>) {
         const { getters } = await import('@app/store/index.js');
         const { nginx } = getters.emhttp();
         if (settings.accessType === WAN_ACCESS_TYPE.DISABLED) {

@@ -86,6 +86,26 @@ export type ApiKeyWithSecret = {
   roles: Array<Role>;
 };
 
+/**
+ * Input should be a subset of ApiSettings that can be updated.
+ * Some field combinations may be required or disallowed. Please refer to each field for more information.
+ */
+export type ApiSettingsInput = {
+  /** The type of WAN access to use for Remote Access. */
+  accessType?: InputMaybe<WAN_ACCESS_TYPE>;
+  /** A list of origins allowed to interact with the API. */
+  extraOrigins?: InputMaybe<Array<Scalars['String']['input']>>;
+  /** The type of port forwarding to use for Remote Access. */
+  forwardType?: InputMaybe<WAN_FORWARD_TYPE>;
+  /** The port to use for Remote Access. */
+  port?: InputMaybe<Scalars['Port']['input']>;
+  /**
+   * If true, the GraphQL sandbox will be enabled and available at /graphql.
+   * If false, the GraphQL sandbox will be disabled and only the production API will be available.
+   */
+  sandbox?: InputMaybe<Scalars['Boolean']['input']>;
+};
+
 export type ArrayType = Node & {
   __typename?: 'Array';
   /** Current boot disk */
@@ -860,7 +880,7 @@ export type MutationunreadNotificationArgs = {
 
 
 export type MutationupdateApiSettingsArgs = {
-  input: PossibleApiSettings;
+  input: ApiSettingsInput;
 };
 
 export type Network = Node & {
@@ -1058,14 +1078,6 @@ export type Permission = {
   __typename?: 'Permission';
   actions: Array<Scalars['String']['output']>;
   resource: Resource;
-};
-
-export type PossibleApiSettings = {
-  accessType?: InputMaybe<WAN_ACCESS_TYPE>;
-  extraOrigins?: InputMaybe<Array<Scalars['String']['input']>>;
-  forwardType?: InputMaybe<WAN_FORWARD_TYPE>;
-  port?: InputMaybe<Scalars['Port']['input']>;
-  sandbox?: InputMaybe<Scalars['Boolean']['input']>;
 };
 
 export type ProfileModel = {
@@ -1860,6 +1872,7 @@ export type ResolversTypes = ResolversObject<{
   ApiKey: ResolverTypeWrapper<ApiKey>;
   ApiKeyResponse: ResolverTypeWrapper<ApiKeyResponse>;
   ApiKeyWithSecret: ResolverTypeWrapper<ApiKeyWithSecret>;
+  ApiSettingsInput: ApiSettingsInput;
   Array: ResolverTypeWrapper<ArrayType>;
   ArrayCapacity: ResolverTypeWrapper<ArrayCapacity>;
   ArrayDisk: ResolverTypeWrapper<ArrayDisk>;
@@ -1938,7 +1951,6 @@ export type ResolversTypes = ResolversObject<{
   Pci: ResolverTypeWrapper<Pci>;
   Permission: ResolverTypeWrapper<Permission>;
   Port: ResolverTypeWrapper<Scalars['Port']['output']>;
-  PossibleApiSettings: PossibleApiSettings;
   ProfileModel: ResolverTypeWrapper<ProfileModel>;
   Query: ResolverTypeWrapper<{}>;
   Registration: ResolverTypeWrapper<Registration>;
@@ -1993,6 +2005,7 @@ export type ResolversParentTypes = ResolversObject<{
   ApiKey: ApiKey;
   ApiKeyResponse: ApiKeyResponse;
   ApiKeyWithSecret: ApiKeyWithSecret;
+  ApiSettingsInput: ApiSettingsInput;
   Array: ArrayType;
   ArrayCapacity: ArrayCapacity;
   ArrayDisk: ArrayDisk;
@@ -2054,7 +2067,6 @@ export type ResolversParentTypes = ResolversObject<{
   Pci: Pci;
   Permission: Permission;
   Port: Scalars['Port']['output'];
-  PossibleApiSettings: PossibleApiSettings;
   ProfileModel: ProfileModel;
   Query: {};
   Registration: Registration;

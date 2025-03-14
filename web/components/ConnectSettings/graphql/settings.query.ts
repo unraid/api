@@ -21,7 +21,7 @@ export const getConnectSettingsForm = graphql(/* GraphQL */ `
 `);
 
 export const updateConnectSettings = graphql(/* GraphQL */ `
-  mutation UpdateConnectSettings($input: PossibleApiSettings!) {
+  mutation UpdateConnectSettings($input: ApiSettingsInput!) {
     updateApiSettings(input: $input) {
       sandbox
       extraOrigins

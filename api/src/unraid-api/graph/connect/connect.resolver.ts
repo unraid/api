@@ -9,7 +9,7 @@ import type {
     ConnectSettings,
     DynamicRemoteAccessStatus,
     EnableDynamicRemoteAccessInput,
-    PossibleApiSettings,
+    ApiSettingsInput,
 } from '@app/graphql/generated/api/types.js';
 import { DynamicRemoteAccessType, Resource } from '@app/graphql/generated/api/types.js';
 import { RemoteAccessController } from '@app/remoteAccess/remote-access-controller.js';
@@ -60,7 +60,7 @@ export class ConnectResolver implements ConnectResolvers {
         resource: Resource.CONFIG,
         possession: AuthPossession.ANY,
     })
-    public async updateApiSettings(@Args('input') settings: PossibleApiSettings) {
+    public async updateApiSettings(@Args('input') settings: ApiSettingsInput) {
         this.logger.verbose(`Attempting to update API settings: ${JSON.stringify(settings, null, 2)}`);
         await this.connectSettingsService.syncSettings(settings);
         return this.connectSettingsService.getCurrentSettings();
