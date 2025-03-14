@@ -14,7 +14,7 @@ const serverStore = useServerStore();
 const updateOsStore = useUpdateOsStore();
 const updateOsActionsStore = useUpdateOsActionsStore();
 
-const { osVersion, rebootType, stateDataError } = storeToRefs(serverStore);
+const { osVersion, displayVersion, rebootType, stateDataError } = storeToRefs(serverStore);
 const { available, availableWithRenewal } = storeToRefs(updateOsStore);
 const { rebootTypeText } = storeToRefs(updateOsActionsStore);
 
@@ -74,7 +74,7 @@ const updateOsStatus = computed(() => {
         size="sm"
         class="text-header-text-secondary group-hover:text-orange-dark group-focus:text-orange-dark group-hover:underline group-focus:underline"
       >
-        {{ osVersion }}
+        {{ displayVersion }}
       </Badge>
     </a>
     <component

@@ -100,6 +100,7 @@ class ServerState
         if (file_exists('/tmp/Patcher/patches.json')) {
             $patchJson = @json_decode(@file_get_contents('/tmp/Patcher/patches.json'), true) ?: [];
             $this->var['version'] = $patchJson['combinedVersion'] ?? $this->var['version'];
+            $this->var['displayVersion'] = $patchJson['displayVersion'] ?? $this->var['version'];
         }
 
         $this->nginxCfg = @parse_ini_file('/var/local/emhttp/nginx.ini') ?? [];

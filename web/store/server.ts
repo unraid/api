@@ -104,6 +104,7 @@ export const useServerStore = defineStore('server', () => {
   const locale = ref<string>('');
   const name = ref<string>('');
   const osVersion = ref<string>('');
+  const displayVersion = ref<string>('');
   const osVersionBranch = ref<ServerOsVersionBranch>('stable');
   const rebootType = ref<'thirdPartyDriversDownloading' | 'downgrade' | 'update' | ''>('');
   const rebootVersion = ref<string | undefined>();
@@ -208,6 +209,7 @@ export const useServerStore = defineStore('server', () => {
       locale: locale.value,
       name: name.value,
       osVersion: osVersion.value,
+      displayVersion: displayVersion.value,
       osVersionBranch: osVersionBranch.value,
       rebootType: rebootType.value,
       rebootVersion: rebootVersion.value,
@@ -1063,6 +1065,9 @@ export const useServerStore = defineStore('server', () => {
     if (typeof data?.osVersionBranch !== 'undefined') {
       osVersionBranch.value = data.osVersionBranch;
     }
+    if (typeof data?.displayVersion !== 'undefined') {
+      displayVersion.value = data.displayVersion;
+    }
     if (typeof data?.rebootType !== 'undefined') {
       rebootType.value = data.rebootType;
     }
@@ -1342,6 +1347,7 @@ export const useServerStore = defineStore('server', () => {
     lanIp,
     name,
     osVersion,
+    displayVersion,
     osVersionBranch,
     rebootType,
     rebootVersion,

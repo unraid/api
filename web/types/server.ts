@@ -95,6 +95,7 @@ export interface Server {
   locale?: string;
   name?: string;
   osVersion?: string;
+  displayVersion?: string;
   osVersionBranch?: ServerOsVersionBranch;
   rebootType?: ServerRebootType;
   rebootVersion?: string;

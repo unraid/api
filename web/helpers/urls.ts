@@ -1,7 +1,15 @@
-const ACCOUNT = new URL(sessionStorage.getItem('unraidAccountUrl') ?? import.meta.env.VITE_ACCOUNT ?? 'https://account.unraid.net');
+import { SemVer } from 'semver';
+
+const ACCOUNT = new URL(
+  sessionStorage.getItem('unraidAccountUrl') ??
+    import.meta.env.VITE_ACCOUNT ??
+    'https://account.unraid.net'
+);
 const DOCS = new URL('https://docs.unraid.net');
 const FORUMS = new URL('https://forums.unraid.net');
-const UNRAID_NET = new URL(sessionStorage.getItem('unraidPurchaseUrl') ?? import.meta.env.VITE_UNRAID_NET ?? 'https://unraid.net');
+const UNRAID_NET = new URL(
+  sessionStorage.getItem('unraidPurchaseUrl') ?? import.meta.env.VITE_UNRAID_NET ?? 'https://unraid.net'
+);
 
 const ACCOUNT_CALLBACK = new URL('c', ACCOUNT);
 const FORUMS_BUG_REPORT = new URL('/bug-reports', FORUMS);
@@ -26,14 +34,25 @@ const OS_RELEASES = new URL(import.meta.env.VITE_OS_RELEASES ?? 'https://release
 const DOCS_RELEASE_NOTES = new URL('/go/release-notes/', DOCS);
 
 /**
- * @param version - An Unraid OS version string (x.x.x-suffix). 
+ * @param version - An Unraid OS version string (x.x.x-suffix).
  *   Suffix indicates special releases, such as RCs or betas.
  * @returns A URL object pointing to the release notes for the specified Unraid OS version.
  */
 const getReleaseNotesUrl = (version: string): URL => {
-  const osVersion = version.split('-')[0];
-  return new URL(`/unraid-os/release-notes/${osVersion}`, DOCS);
-}
+  try {
+    const versionSemver = new SemVer(version);
+    if (versionSemver.prerelease.includes('patch') && versionSemver.patch > 0) {
+      return new URL(
+        `/unraid-os/release-notes/${versionSemver.major}.${versionSemver.minor}.${versionSemver.patch - 1}`,
+        DOCS
+      );
+    }
+    const osVersion = version.split('-')[0];
+    return new URL(`/unraid-os/release-notes/${osVersion}`, DOCS);
+  } catch {
+    return new URL(`/unraid-os/release-notes`, DOCS);
+  }
+};
 
 const DOCS_REGISTRATION_LICENSING = new URL('/go/faq-licensing/', DOCS);
 const DOCS_REGISTRATION_REPLACE_KEY = new URL('/go/changing-the-flash-device/', DOCS);
