@@ -1,6 +1,6 @@
 import { cva } from 'class-variance-authority';
 
-export const brandLoadingVariants = cva('inline-flex items-center justify-center w-full h-full aspect-[133.52/76.97]', {
+export const brandLoadingVariants = cva('inline-flex items-center justify-center w-full h-full aspect-[7/4]', {
   variants: {
     variant: {
       default: '',
