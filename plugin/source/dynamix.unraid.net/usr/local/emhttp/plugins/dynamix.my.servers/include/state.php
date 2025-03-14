@@ -58,6 +58,7 @@ class ServerState
      * SSO Sub IDs from the my servers config file.
      */
     public $ssoEnabled = false;
+    private $displayVersion;
     private $osVersion;
     private $osVersionBranch;
     private $rebootDetails;
@@ -95,12 +96,14 @@ class ServerState
         // echo "<pre>" . json_encode($this->webguiGlobals, JSON_PRETTY_PRINT) . "</pre>";
 
         $this->var = $webguiGlobals['var'];
+        $this->displayVersion = $this->var['version'];
 
         // If we're on a patch, we need to use the combinedVersion to check for updates
         if (file_exists('/tmp/Patcher/patches.json')) {
             $patchJson = @json_decode(@file_get_contents('/tmp/Patcher/patches.json'), true) ?: [];
             $this->var['version'] = $patchJson['combinedVersion'] ?? $this->var['version'];
             $this->var['displayVersion'] = $patchJson['displayVersion'] ?? $this->var['version'];
+            $this->displayVersion = $this->var['displayVersion'];
         }
 
         $this->nginxCfg = @parse_ini_file('/var/local/emhttp/nginx.ini') ?? [];
@@ -312,6 +315,7 @@ class ServerState
             "locale" => (!empty($_SESSION) && $_SESSION['locale']) ? $_SESSION['locale'] : 'en_US',
             "model" => $this->var['SYS_MODEL'] ? htmlspecialchars($this->var['SYS_MODEL'], ENT_HTML5, 'UTF-8') : '',
             "name" => htmlspecialchars($this->var['NAME'], ENT_HTML5, 'UTF-8'),
+            "displayVersion" => $this->displayVersion,
             "osVersion" => $this->osVersion,
             "osVersionBranch" => $this->osVersionBranch,
             "protocol" => _var($_SERVER, 'REQUEST_SCHEME'),
