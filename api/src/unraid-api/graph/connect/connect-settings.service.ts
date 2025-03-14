@@ -26,6 +26,7 @@ import {
 } from '@app/graphql/generated/api/types.js';
 import { setupRemoteAccessThunk } from '@app/store/actions/setup-remote-access.js';
 import { updateAllowedOrigins, updateUserConfig } from '@app/store/modules/config.js';
+import { csvStringToArray } from '@app/utils.js';
 
 type DataSlice = Record<string, JsonSchema>;
 type UIElement = UISchemaElement | LabelElement | Layout | ControlElement | Categorization;
@@ -69,7 +70,7 @@ export class ConnectSettingsService {
             ...(await this.dynamicRemoteAccessSettings()),
             sandbox: local.sandbox === 'yes',
             // note the space after the comma. This is meant to match the logic in @app/store/modules/config.ts
-            extraOrigins: api.extraOrigins?.split(', ').map((origin) => origin.trim()) ?? [],
+            extraOrigins: csvStringToArray(api.extraOrigins),
         };
     }
 

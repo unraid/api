@@ -245,3 +245,31 @@ export function handleAuthError(
 
     throw new UnauthorizedException(`${operation}: ${errorMessage}`);
 }
+
+/**
+ * Converts a Comma Separated (CSV) string to an array of strings.
+ *
+ * @example
+ * csvStringToArray('one,two,three') // ['one', 'two', 'three']
+ * csvStringToArray('one, two, three') // ['one', 'two', 'three']
+ * csvStringToArray(null) // []
+ * csvStringToArray(undefined) // []
+ * csvStringToArray('') // []
+ *
+ * @param csvString - The Comma Separated string to convert
+ * @param opts - Options
+ * @param opts.noEmpty - Whether to omit empty strings. Default is true.
+ * @returns An array of strings
+ */
+export function csvStringToArray(
+    csvString?: string | null,
+    opts: { noEmpty?: boolean } = {}
+): string[] {
+    if (!csvString) return [];
+    const { noEmpty = true } = opts;
+    const result = csvString.split(',').map((item) => item.trim());
+    if (noEmpty) {
+        return result.filter((item) => item !== '');
+    }
+    return result;
+}
