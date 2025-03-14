@@ -1,6 +1,6 @@
 import { cva } from 'class-variance-authority';
 
-export const brandLoadingVariants = cva('inline-flex items-center justify-center w-full h-full', {
+export const brandLoadingVariants = cva('inline-flex items-center justify-center w-full h-full aspect-[7/4]', {
   variants: {
     variant: {
       default: '',
@@ -8,10 +8,10 @@ export const brandLoadingVariants = cva('inline-flex items-center justify-center
       white: 'text-white fill-white',
     },
     size: {
-      sm: 'h-12 w-12',
-      md: 'h-16 w-16',
-      lg: 'h-20 w-20',
-      full: 'h-full w-full',
+      sm: 'w-12',
+      md: 'w-16',
+      lg: 'w-20',
+      full: 'w-full',
     },
   },
   defaultVariants: {
