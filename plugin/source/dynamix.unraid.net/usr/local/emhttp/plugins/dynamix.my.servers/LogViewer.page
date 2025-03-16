@@ -1,6 +1,6 @@
 Menu="UNRAID-OS"
 Title="Log Viewer (new)"
-Icon="icon-u-file-text"
+Icon="icon-log"
 Tag="list"
 ---
 <?php
