@@ -86,6 +86,26 @@ export type ApiKeyWithSecret = {
   roles: Array<Role>;
 };
 
+/**
+ * Input should be a subset of ApiSettings that can be updated.
+ * Some field combinations may be required or disallowed. Please refer to each field for more information.
+ */
+export type ApiSettingsInput = {
+  /** The type of WAN access to use for Remote Access. */
+  accessType?: InputMaybe<WAN_ACCESS_TYPE>;
+  /** A list of origins allowed to interact with the API. */
+  extraOrigins?: InputMaybe<Array<Scalars['String']['input']>>;
+  /** The type of port forwarding to use for Remote Access. */
+  forwardType?: InputMaybe<WAN_FORWARD_TYPE>;
+  /** The port to use for Remote Access. */
+  port?: InputMaybe<Scalars['Port']['input']>;
+  /**
+   * If true, the GraphQL sandbox will be enabled and available at /graphql.
+   * If false, the GraphQL sandbox will be disabled and only the production API will be available.
+   */
+  sandbox?: InputMaybe<Scalars['Boolean']['input']>;
+};
+
 export type ArrayType = Node & {
   __typename?: 'Array';
   /** Current boot disk */
@@ -296,6 +316,25 @@ export type Connect = Node & {
   __typename?: 'Connect';
   dynamicRemoteAccess: DynamicRemoteAccessStatus;
   id: Scalars['ID']['output'];
+  settings: ConnectSettings;
+};
+
+export type ConnectSettings = Node & {
+  __typename?: 'ConnectSettings';
+  dataSchema: Scalars['JSON']['output'];
+  id: Scalars['ID']['output'];
+  uiSchema: Scalars['JSON']['output'];
+  values: ConnectSettingsValues;
+};
+
+/** Intersection type of ApiSettings and RemoteAccess */
+export type ConnectSettingsValues = {
+  __typename?: 'ConnectSettingsValues';
+  accessType: WAN_ACCESS_TYPE;
+  extraOrigins: Array<Scalars['String']['output']>;
+  forwardType?: Maybe<WAN_FORWARD_TYPE>;
+  port?: Maybe<Scalars['Port']['output']>;
+  sandbox: Scalars['Boolean']['output'];
 };
 
 export type ConnectSignInInput = {
@@ -705,6 +744,7 @@ export type Mutation = {
   unmountArrayDisk?: Maybe<Disk>;
   /** Marks a notification as unread. */
   unreadNotification: Notification;
+  updateApiSettings: ConnectSettingsValues;
 };
 
 
@@ -837,6 +877,11 @@ export type MutationunmountArrayDiskArgs = {
 
 export type MutationunreadNotificationArgs = {
   id: Scalars['String']['input'];
+};
+
+
+export type MutationupdateApiSettingsArgs = {
+  input: ApiSettingsInput;
 };
 
 export type Network = Node & {
@@ -1813,7 +1858,7 @@ export type DirectiveResolverFn<TResult = {}, TParent = {}, TContext = {}, TArgs
 
 /** Mapping of interface types */
 export type ResolversInterfaceTypes<_RefType extends Record<string, unknown>> = ResolversObject<{
-  Node: ( ArrayType ) | ( Config ) | ( Connect ) | ( Docker ) | ( Info ) | ( Network ) | ( Notification ) | ( Notifications ) | ( Service ) | ( Vars );
+  Node: ( ArrayType ) | ( Config ) | ( Connect ) | ( ConnectSettings ) | ( Docker ) | ( Info ) | ( Network ) | ( Notification ) | ( Notifications ) | ( Service ) | ( Vars );
   UserAccount: ( Me ) | ( User );
 }>;
 
@@ -1828,6 +1873,7 @@ export type ResolversTypes = ResolversObject<{
   ApiKey: ResolverTypeWrapper<ApiKey>;
   ApiKeyResponse: ResolverTypeWrapper<ApiKeyResponse>;
   ApiKeyWithSecret: ResolverTypeWrapper<ApiKeyWithSecret>;
+  ApiSettingsInput: ApiSettingsInput;
   Array: ResolverTypeWrapper<ArrayType>;
   ArrayCapacity: ResolverTypeWrapper<ArrayCapacity>;
   ArrayDisk: ResolverTypeWrapper<ArrayDisk>;
@@ -1845,6 +1891,8 @@ export type ResolversTypes = ResolversObject<{
   Config: ResolverTypeWrapper<Config>;
   ConfigErrorState: ConfigErrorState;
   Connect: ResolverTypeWrapper<Connect>;
+  ConnectSettings: ResolverTypeWrapper<ConnectSettings>;
+  ConnectSettingsValues: ResolverTypeWrapper<ConnectSettingsValues>;
   ConnectSignInInput: ConnectSignInInput;
   ConnectUserInfoInput: ConnectUserInfoInput;
   ContainerHostConfig: ResolverTypeWrapper<ContainerHostConfig>;
@@ -1958,6 +2006,7 @@ export type ResolversParentTypes = ResolversObject<{
   ApiKey: ApiKey;
   ApiKeyResponse: ApiKeyResponse;
   ApiKeyWithSecret: ApiKeyWithSecret;
+  ApiSettingsInput: ApiSettingsInput;
   Array: ArrayType;
   ArrayCapacity: ArrayCapacity;
   ArrayDisk: ArrayDisk;
@@ -1969,6 +2018,8 @@ export type ResolversParentTypes = ResolversObject<{
   CloudResponse: CloudResponse;
   Config: Config;
   Connect: Connect;
+  ConnectSettings: ConnectSettings;
+  ConnectSettingsValues: ConnectSettingsValues;
   ConnectSignInInput: ConnectSignInInput;
   ConnectUserInfoInput: ConnectUserInfoInput;
   ContainerHostConfig: ContainerHostConfig;
@@ -2179,6 +2230,24 @@ export type ConfigResolvers<ContextType = Context, ParentType extends ResolversP
 export type ConnectResolvers<ContextType = Context, ParentType extends ResolversParentTypes['Connect'] = ResolversParentTypes['Connect']> = ResolversObject<{
   dynamicRemoteAccess?: Resolver<ResolversTypes['DynamicRemoteAccessStatus'], ParentType, ContextType>;
   id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
+  settings?: Resolver<ResolversTypes['ConnectSettings'], ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+}>;
+
+export type ConnectSettingsResolvers<ContextType = Context, ParentType extends ResolversParentTypes['ConnectSettings'] = ResolversParentTypes['ConnectSettings']> = ResolversObject<{
+  dataSchema?: Resolver<ResolversTypes['JSON'], ParentType, ContextType>;
+  id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
+  uiSchema?: Resolver<ResolversTypes['JSON'], ParentType, ContextType>;
+  values?: Resolver<ResolversTypes['ConnectSettingsValues'], ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+}>;
+
+export type ConnectSettingsValuesResolvers<ContextType = Context, ParentType extends ResolversParentTypes['ConnectSettingsValues'] = ResolversParentTypes['ConnectSettingsValues']> = ResolversObject<{
+  accessType?: Resolver<ResolversTypes['WAN_ACCESS_TYPE'], ParentType, ContextType>;
+  extraOrigins?: Resolver<Array<ResolversTypes['String']>, ParentType, ContextType>;
+  forwardType?: Resolver<Maybe<ResolversTypes['WAN_FORWARD_TYPE']>, ParentType, ContextType>;
+  port?: Resolver<Maybe<ResolversTypes['Port']>, ParentType, ContextType>;
+  sandbox?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
 
@@ -2492,6 +2561,7 @@ export type MutationResolvers<ContextType = Context, ParentType extends Resolver
   unarchiveNotifications?: Resolver<ResolversTypes['NotificationOverview'], ParentType, ContextType, Partial<MutationunarchiveNotificationsArgs>>;
   unmountArrayDisk?: Resolver<Maybe<ResolversTypes['Disk']>, ParentType, ContextType, RequireFields<MutationunmountArrayDiskArgs, 'id'>>;
   unreadNotification?: Resolver<ResolversTypes['Notification'], ParentType, ContextType, RequireFields<MutationunreadNotificationArgs, 'id'>>;
+  updateApiSettings?: Resolver<ResolversTypes['ConnectSettingsValues'], ParentType, ContextType, RequireFields<MutationupdateApiSettingsArgs, 'input'>>;
 }>;
 
 export type NetworkResolvers<ContextType = Context, ParentType extends ResolversParentTypes['Network'] = ResolversParentTypes['Network']> = ResolversObject<{
@@ -2513,7 +2583,7 @@ export type NetworkResolvers<ContextType = Context, ParentType extends Resolvers
 }>;
 
 export type NodeResolvers<ContextType = Context, ParentType extends ResolversParentTypes['Node'] = ResolversParentTypes['Node']> = ResolversObject<{
-  __resolveType: TypeResolveFn<'Array' | 'Config' | 'Connect' | 'Docker' | 'Info' | 'Network' | 'Notification' | 'Notifications' | 'Service' | 'Vars', ParentType, ContextType>;
+  __resolveType: TypeResolveFn<'Array' | 'Config' | 'Connect' | 'ConnectSettings' | 'Docker' | 'Info' | 'Network' | 'Notification' | 'Notifications' | 'Service' | 'Vars', ParentType, ContextType>;
   id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
 }>;
 
@@ -3120,6 +3190,8 @@ export type Resolvers<ContextType = Context> = ResolversObject<{
   CloudResponse?: CloudResponseResolvers<ContextType>;
   Config?: ConfigResolvers<ContextType>;
   Connect?: ConnectResolvers<ContextType>;
+  ConnectSettings?: ConnectSettingsResolvers<ContextType>;
+  ConnectSettingsValues?: ConnectSettingsValuesResolvers<ContextType>;
   ContainerHostConfig?: ContainerHostConfigResolvers<ContextType>;
   ContainerMount?: ContainerMountResolvers<ContextType>;
   ContainerPort?: ContainerPortResolvers<ContextType>;

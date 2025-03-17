@@ -1,5 +1,6 @@
 <script lang="ts" setup>
 import { useDummyServerStore } from '~/_data/serverState';
+import { Toaster } from '@unraid/ui';
 
 const serverStore = useDummyServerStore();
 const { serverState } = storeToRefs(serverStore);
@@ -57,5 +58,6 @@ onBeforeMount(() => {
       <h3 class="text-lg font-semibold font-mono">SSOSignInButtonCe</h3>
       <unraid-sso-button :ssoenabled="serverState.ssoEnabled" />
     </unraid-i18n-host>
+    <Toaster rich-colors close-button />
   </client-only>
 </template>

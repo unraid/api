@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import { ExclamationTriangleIcon } from '@heroicons/vue/24/solid';
-import { BrandButton, BrandLogo } from '@unraid/ui';
+import { BrandButton, BrandLogo, Toaster } from '@unraid/ui';
 import { useDummyServerStore } from '~/_data/serverState';
 import AES from 'crypto-js/aes';
 
@@ -186,6 +186,7 @@ const bannerImage = watch(theme, () => {
         </div>
       </client-only>
     </div>
+    <Toaster rich-colors close-button />
   </div>
 </template>
 

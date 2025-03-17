@@ -4,7 +4,7 @@ import { GqlContextType, GqlExecutionContext } from '@nestjs/graphql';
 import { UserSchema } from '@app/graphql/generated/api/operations.js';
 import { UserAccount } from '@app/graphql/generated/api/types.js';
 
-export const GraphqlUser = createParamDecorator<null, any, UserAccount>(
+export const GraphqlUser = createParamDecorator<null, UserAccount>(
     (data: null, context: ExecutionContext): UserAccount => {
         if (context.getType<GqlContextType>() === 'graphql') {
             const ctx = GqlExecutionContext.create(context);
