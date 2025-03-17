@@ -113,9 +113,16 @@ class UnraidOsCheck
 
         $var = (array)@parse_ini_file('/var/local/emhttp/var.ini');
 
+        // If we're on a patch, we need to use the combinedVersion to check for updates
+        $currentVersion = plugin('version', self::PLG_PATH) ?: _var($var,'version');
+        if (file_exists('/tmp/Patcher/patches.json')) {
+            $patchJson = @json_decode(@file_get_contents('/tmp/Patcher/patches.json'), true) ?: [];
+            $currentVersion = $patchJson['combinedVersion'] ?? $currentVersion;
+        }
+
         $params  = [];
         $params['branch']          = plugin('category', self::PLG_PATH, 'stable');
-        $params['current_version'] = plugin('version', self::PLG_PATH) ?: _var($var,'version');
+        $params['current_version'] = $currentVersion;
         if (_var($var,'regExp')) $params['update_exp'] = date('Y-m-d', _var($var,'regExp')*1);
         $defaultUrl = self::BASE_RELEASES_URL;
         // pass a param of altUrl to use the provided url instead of the default
