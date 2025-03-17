@@ -59,7 +59,7 @@ const showExpireTime = computed(
 <style lang="postcss">
 /* Import unraid-ui globals first */
 @import '@unraid/ui/styles';
-@import '../../assets/main.css';
+@import '~/assets/main.css';
 
 .DropdownWrapper_blip {
   box-shadow: var(--ring-offset-shadow), var(--ring-shadow), var(--shadow-foreground);

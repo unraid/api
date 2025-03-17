@@ -113,7 +113,7 @@ onBeforeMount(() => {
 <style lang="postcss">
 /* Import unraid-ui globals first */
 @import '@unraid/ui/styles';
-@import '../assets/main.css';
+@import '~/assets/main.css';
 
 .unraid_mark_2,
 .unraid_mark_4 {
