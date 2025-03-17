@@ -25,6 +25,7 @@ test('Returns paths', async () => {
 		  "keyfile-base",
 		  "machine-id",
 		  "log-base",
+		  "unraid-log-base",
 		  "var-run",
 		  "auth-sessions",
 		  "auth-keys",
