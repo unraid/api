@@ -16,8 +16,7 @@ import { RemoteAccessController } from '@app/remoteAccess/remote-access-controll
 import { store } from '@app/store/index.js';
 import { setAllowedRemoteAccessUrl } from '@app/store/modules/dynamic-remote-access.js';
 import { ConnectSettingsService } from '@app/unraid-api/graph/connect/connect-settings.service.js';
-
-import { ConnectService } from './connect.service.js';
+import { ConnectService } from '@app/unraid-api/graph/connect/connect.service.js';
 
 @Resolver('Connect')
 export class ConnectResolver implements ConnectResolvers {

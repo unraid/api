@@ -271,7 +271,8 @@ export class ConnectSettingsService {
      */
     async sandboxSlice(): Promise<SettingSlice> {
         const { sandbox } = await this.getCurrentSettings();
-        const description = 'The developer sandbox is available at <code><a class="underline" href="/graphql" target="_blank">/graphql</a></code>.';
+        const description =
+            'The developer sandbox is available at <code><a class="underline" href="/graphql" target="_blank">/graphql</a></code>.';
         return {
             properties: {
                 sandbox: {
