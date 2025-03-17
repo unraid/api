@@ -50,6 +50,7 @@ export default tseslint.config(eslint.configs.recommended, ...tseslint.configs.r
                 message: 'Use import.meta.url instead of __filename in ESM',
             },
         ],
+        'eol-last': ['error', 'always'],
     },
 
     ignores: ['src/graphql/generated/client/**/*'],
