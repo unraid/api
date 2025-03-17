@@ -261,11 +261,13 @@ export function handleAuthError(
  * @param opts.noEmpty - Whether to omit empty strings. Default is true.
  * @returns An array of strings
  */
-export function csvStringToArray(csvString?: string | null, opts: { noEmpty?: boolean } = {}): string[] {
+export function csvStringToArray(
+    csvString?: string | null,
+    opts: { noEmpty?: boolean } = { noEmpty: true }
+): string[] {
     if (!csvString) return [];
-    const { noEmpty = true } = opts;
     const result = csvString.split(',').map((item) => item.trim());
-    if (noEmpty) {
+    if (opts.noEmpty) {
         return result.filter((item) => item !== '');
     }
     return result;
