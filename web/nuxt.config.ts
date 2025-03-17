@@ -36,14 +36,7 @@ export default defineNuxtConfig({
     enabled: process.env.NODE_ENV === 'development',
   },
 
-  modules: [
-    '@vueuse/nuxt',
-    '@pinia/nuxt',
-    '@nuxtjs/tailwindcss',
-    'nuxt-custom-elements',
-    '@nuxt/eslint',
-    'shadcn-nuxt',
-  ],
+  modules: ['@vueuse/nuxt', '@pinia/nuxt', '@nuxtjs/tailwindcss', 'nuxt-custom-elements', '@nuxt/eslint'],
 
   ignore: ['/webGui/images'],
 
@@ -55,9 +48,6 @@ export default defineNuxtConfig({
     '~/components',
   ],
 
-  // typescript: {
-  //   typeCheck: true
-  // },
   vite: {
     plugins: [
       // Only remove non-critical console methods when VITE_ALLOW_CONSOLE_LOGS is false
@@ -80,10 +70,6 @@ export default defineNuxtConfig({
         },
       },
     },
-  },
-  shadcn: {
-    prefix: '',
-    componentDir: './components/shadcn',
   },
   customElements: {
     entries: [

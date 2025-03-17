@@ -1,6 +1,6 @@
 import type { NestFastifyApplication } from '@nestjs/platform-fastify';
 import { NestFactory } from '@nestjs/core';
-import { FastifyAdapter } from '@nestjs/platform-fastify/adapters';
+import { FastifyAdapter } from '@nestjs/platform-fastify/index.js';
 
 import fastifyCookie from '@fastify/cookie';
 import fastifyHelmet from '@fastify/helmet';

@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 
 import { AuthModule } from '@app/unraid-api/auth/auth.module.js';
+import { ConnectSettingsService } from '@app/unraid-api/graph/connect/connect-settings.service.js';
 import { ApiKeyResolver } from '@app/unraid-api/graph/resolvers/api-key/api-key.resolver.js';
 import { ArrayResolver } from '@app/unraid-api/graph/resolvers/array/array.resolver.js';
 import { CloudResolver } from '@app/unraid-api/graph/resolvers/cloud/cloud.resolver.js';
@@ -41,6 +42,7 @@ import { VmsResolver } from '@app/unraid-api/graph/resolvers/vms/vms.resolver.js
         VmsResolver,
         NotificationsService,
         MeResolver,
+        ConnectSettingsService,
     ],
     exports: [AuthModule, ApiKeyResolver],
 })

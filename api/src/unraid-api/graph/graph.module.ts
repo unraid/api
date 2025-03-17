@@ -15,6 +15,7 @@ import {
 import { GraphQLLong } from '@app/graphql/resolvers/graphql-type-long.js';
 import { loadTypeDefs } from '@app/graphql/schema/loadTypesDefs.js';
 import { getters } from '@app/store/index.js';
+import { ConnectSettingsService } from '@app/unraid-api/graph/connect/connect-settings.service.js';
 import { ConnectResolver } from '@app/unraid-api/graph/connect/connect.resolver.js';
 import { ConnectService } from '@app/unraid-api/graph/connect/connect.service.js';
 import { idPrefixPlugin } from '@app/unraid-api/graph/id-prefix-plugin.js';
@@ -57,6 +58,13 @@ import { SharesResolver } from '@app/unraid-api/graph/shares/shares.resolver.js'
             }),
         }),
     ],
-    providers: [NetworkResolver, ServicesResolver, SharesResolver, ConnectResolver, ConnectService],
+    providers: [
+        NetworkResolver,
+        ServicesResolver,
+        SharesResolver,
+        ConnectResolver,
+        ConnectService,
+        ConnectSettingsService,
+    ],
 })
 export class GraphModule {}

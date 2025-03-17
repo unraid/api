@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { formatDatetime } from '@app/utils.js';
+import { csvStringToArray, formatDatetime } from '@app/utils.js';
 
 describe('formatDatetime', () => {
     const testDate = new Date('2024-02-14T12:34:56');
@@ -67,5 +67,39 @@ describe('formatDatetime', () => {
                 expect(result).toMatch(/^Wednesday.*2024.*(?:12:34 PM|12:34)$/);
             }
         );
+    });
+});
+
+describe('csvStringToArray', () => {
+    it('returns an empty array for null, undefined, or empty strings', () => {
+        expect(csvStringToArray(null)).toEqual([]);
+        expect(csvStringToArray(undefined)).toEqual([]);
+        expect(csvStringToArray('')).toEqual([]);
+    });
+
+    it('returns an array of strings for a CSV string', () => {
+        expect(csvStringToArray('one,two,three')).toEqual(['one', 'two', 'three']);
+    });
+
+    it('returns an array of strings for a CSV string with spaces', () => {
+        expect(csvStringToArray('one, two,  three')).toEqual(['one', 'two', 'three']);
+    });
+
+    it('handles single element edge cases', () => {
+        expect(csvStringToArray('one', { noEmpty: false })).toEqual(['one']);
+        expect(csvStringToArray('one,', { noEmpty: false })).toEqual(['one', '']);
+        expect(csvStringToArray(',one', { noEmpty: false })).toEqual(['', 'one']);
+        expect(csvStringToArray(',one,', { noEmpty: false })).toEqual(['', 'one', '']);
+    });
+
+    it('handles non-empty option', () => {
+        expect(csvStringToArray('one', { noEmpty: true })).toEqual(['one']);
+        expect(csvStringToArray('one,', { noEmpty: true })).toEqual(['one']);
+        expect(csvStringToArray(',one', { noEmpty: true })).toEqual(['one']);
+        expect(csvStringToArray(',one,', { noEmpty: true })).toEqual(['one']);
+    });
+
+    it('defaults to noEmpty', () => {
+        expect(csvStringToArray(',one,')).toEqual(['one']);
     });
 });
