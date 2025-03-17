@@ -21,12 +21,12 @@ export const badgeVariants = cva(
         custom: '',
       },
       size: {
-        xs: 'text-12px px-8px py-4px gap-4px',
-        sm: 'text-14px px-8px py-4px gap-8px',
-        md: 'text-16px px-12px py-8px gap-8px',
-        lg: 'text-18px px-12px py-8px gap-8px',
-        xl: 'text-20px px-16px py-12px gap-8px',
-        '2xl': 'text-24px px-16px py-12px gap-8px',
+        xs: 'text-xs px-2 py-1 gap-1',
+        sm: 'text-sm px-2 py-1 gap-2',
+        md: 'text-base px-3 py-2 gap-2',
+        lg: 'text-lg px-3 py-2 gap-2',
+        xl: 'text-xl px-4 py-3 gap-2',
+        '2xl': 'text-2xl px-4 py-3 gap-2',
       },
     },
     defaultVariants: {
