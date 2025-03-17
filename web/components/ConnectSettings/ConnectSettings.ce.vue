@@ -5,7 +5,7 @@
 
 import { useMutation, useQuery } from '@vue/apollo-composable';
 
-import { BrandButton, Label, jsonFormsRenderers } from '@unraid/ui';
+import { BrandButton, jsonFormsRenderers, Label } from '@unraid/ui';
 import { JsonForms } from '@jsonforms/vue';
 
 import type { ConnectSettingsValues } from '~/composables/gql/graphql';
@@ -17,7 +17,7 @@ import { getConnectSettingsForm, updateConnectSettings } from './graphql/setting
  *---------------------------------------------**/
 
 const formState = ref<Partial<ConnectSettingsValues>>({});
-const { result } = useQuery(getConnectSettingsForm);
+const { result, refetch } = useQuery(getConnectSettingsForm);
 const settings = computed(() => {
   if (!result.value) return;
   return result.value?.connect.settings;
@@ -26,6 +26,9 @@ watch(result, () => {
   if (!result.value) return;
   const { __typename, ...initialValues } = result.value.connect.settings.values;
   formState.value = initialValues;
+});
+const restartRequired = computed(() => {
+  return settings.value?.values.sandbox !== formState.value?.sandbox;
 });
 
 /**--------------------------------------------
@@ -54,7 +57,9 @@ watchDebounced(
 
 // show a toast when the update is done
 onMutateSettingsDone(() => {
-  globalThis.toast.success('Updated API Settings');
+  globalThis.toast.success('Updated API Settings', {
+    description: restartRequired.value ? 'The API is restarting...' : undefined,
+  });
 });
 
 /**--------------------------------------------
@@ -66,14 +71,13 @@ const jsonFormsConfig = {
   trim: false,
 };
 
-const renderers = [
-  ...jsonFormsRenderers,
-];
+const renderers = [...jsonFormsRenderers];
 
 /** Called when the user clicks the "Apply" button */
 const submitSettingsUpdate = async () => {
   console.log('[ConnectSettings] trying to update settings to', formState.value);
   await mutateSettings({ input: formState.value });
+  await refetch();
 };
 
 /** Called whenever a JSONForms form control changes */
@@ -112,6 +116,7 @@ const onChange = ({ data }: { data: Record<string, unknown> }) => {
     <div class="mt-6 grid grid-cols-settings gap-y-6 items-baseline">
       <div class="text-sm text-end">
         <p v-if="isUpdating">Applying Settings...</p>
+        <p v-else-if="restartRequired">The API will restart after settings are applied.</p>
       </div>
       <div class="col-start-2 ml-10 space-y-4">
         <BrandButton
@@ -123,7 +128,6 @@ const onChange = ({ data }: { data: Record<string, unknown> }) => {
         >
           Apply
         </BrandButton>
-
         <p v-if="mutateSettingsError" class="text-sm text-unraid-red-500">
           ✕ Error: {{ mutateSettingsError.message }}
         </p>

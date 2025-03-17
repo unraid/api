@@ -149,7 +149,7 @@ export class ConnectSettingsService {
     async buildSettingsSchema(): Promise<SettingSlice> {
         const slices = [
             await this.remoteAccessSlice(),
-            this.sandboxSlice(),
+            await this.sandboxSlice(),
             this.flashBackupSlice(),
             // Because CORS is effectively disabled, this setting is no longer necessary
             // keeping it here for in case it needs to be re-enabled
@@ -269,7 +269,9 @@ export class ConnectSettingsService {
     /**
      * Developer sandbox settings slice
      */
-    sandboxSlice(): SettingSlice {
+    async sandboxSlice(): Promise<SettingSlice> {
+        const { sandbox } = await this.getCurrentSettings();
+        const description = 'The developer sandbox is available at <code><a class="underline" href="/graphql" target="_blank">/graphql</a></code>.';
         return {
             properties: {
                 sandbox: {
@@ -285,6 +287,7 @@ export class ConnectSettingsService {
                     label: 'Enable Developer Sandbox:',
                     options: {
                         toggle: true,
+                        description: sandbox ? description : undefined,
                     },
                 },
             ],
