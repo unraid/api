@@ -24,8 +24,8 @@ importers:
         specifier: ^2.1.1
         version: 2.1.1(@apollo/server@4.11.3(graphql@16.10.0))(fastify@4.28.1)
       '@fastify/cookie':
-        specifier: ^9.4.0
-        version: 9.4.0
+        specifier: ^11.0.0
+        version: 11.0.2
       '@fastify/helmet':
         specifier: ^13.0.1
         version: 13.0.1
@@ -1819,8 +1819,8 @@ packages:
   '@fastify/ajv-compiler@3.6.0':
     resolution: {integrity: sha512-LwdXQJjmMD+GwLOkP7TVC68qa+pSSogeWWmznRJ/coyTcfe9qA05AHFSe1eZFwK6q+xVRpChnvFUkf1iYaSZsQ==}
 
-  '@fastify/cookie@9.4.0':
-    resolution: {integrity: sha512-Th+pt3kEkh4MQD/Q2q1bMuJIB5NX/D5SwSpOKu3G/tjoGbwfpurIMJsWSPS0SJJ4eyjtmQ8OipDQspf8RbUOlg==}
+  '@fastify/cookie@11.0.2':
+    resolution: {integrity: sha512-GWdwdGlgJxyvNv+QcKiGNevSspMQXncjMZ1J8IvuDQk0jvkzgWWZFNC2En3s+nHndZBGV8IbLwOI/sxCZw/mzA==}
 
   '@fastify/cors@9.0.1':
     resolution: {integrity: sha512-YY9Ho3ovI+QHIL2hW+9X4XqQjXLjJqsU+sMV/xFsxZkE8p3GNnYVFpoOxF7SsP5ZL76gwvbo3V9L+FIekBGU4Q==}
@@ -5044,10 +5044,6 @@ packages:
 
   cookie-signature@1.0.6:
     resolution: {integrity: sha512-QADzlaHc8icV8I7vbaJXJwod9HWYp8uCqf1xa4OfNu1T7JVxQIrUgOWtHdNDtPiywmFbiS12VjotIXLrKM3orQ==}
-
-  cookie-signature@1.2.2:
-    resolution: {integrity: sha512-D76uU73ulSXrD1UXF4KE2TMxVVwhsnCgfAyTg9k8P6KGZjlXKrOLe4dJQKI3Bxi5wjesZoFXJWElNWBjPZMbhg==}
-    engines: {node: '>=6.6.0'}
 
   cookie@0.7.1:
     resolution: {integrity: sha512-6DnInpx7SJ2AK3+CTUE/ZM0vWTUboZCegxhC2xiIydHR9jNuTAASBrfEpHhiGOZw/nX51bHt6YQl8jsGo4y/0w==}
@@ -10963,8 +10959,8 @@ packages:
   vue-component-type-helpers@2.2.0:
     resolution: {integrity: sha512-cYrAnv2me7bPDcg9kIcGwjJiSB6Qyi08+jLDo9yuvoFQjzHiPTzML7RnkJB1+3P6KMsX/KbCD4QE3Tv/knEllw==}
 
-  vue-component-type-helpers@2.2.8:
-    resolution: {integrity: sha512-4bjIsC284coDO9om4HPA62M7wfsTvcmZyzdfR0aUlFXqq4tXxM1APyXpNVxPC8QazKw9OhmZNHBVDA6ODaZsrA==}
+  vue-component-type-helpers@3.0.0-alpha.2:
+    resolution: {integrity: sha512-dv9YzsuJFLnpRNxKU0exwIlCIA/v+rXrgCsEtaENsFJLPFMw1Sr4IRctilwfjnjCzoJGgGACHRZfxo6ZwlH2fQ==}
 
   vue-demi@0.14.10:
     resolution: {integrity: sha512-nMZBOwuzabUO0nLgIcc6rycZEebF6eeUfaiQx9+WSk8e29IbLvPU9feI6tqW4kTo3hvoYAJkMh8n8D0fuISphg==}
@@ -12434,10 +12430,10 @@ snapshots:
       ajv-formats: 2.1.1(ajv@8.17.1)
       fast-uri: 2.4.0
 
-  '@fastify/cookie@9.4.0':
+  '@fastify/cookie@11.0.2':
     dependencies:
-      cookie-signature: 1.2.2
-      fastify-plugin: 4.5.1
+      cookie: 1.0.2
+      fastify-plugin: 5.0.1
 
   '@fastify/cors@9.0.1':
     dependencies:
@@ -14450,7 +14446,7 @@ snapshots:
       ts-dedent: 2.2.0
       type-fest: 2.19.0
       vue: 3.5.13(typescript@5.7.3)
-      vue-component-type-helpers: 2.2.8
+      vue-component-type-helpers: 3.0.0-alpha.2
 
   '@stylistic/eslint-plugin@4.0.1(eslint@9.21.0(jiti@2.4.2))(typescript@5.7.3)':
     dependencies:
@@ -16709,8 +16705,6 @@ snapshots:
   cookie-es@1.2.2: {}
 
   cookie-signature@1.0.6: {}
-
-  cookie-signature@1.2.2: {}
 
   cookie@0.7.1: {}
 
@@ -23459,7 +23453,7 @@ snapshots:
 
   vue-component-type-helpers@2.2.0: {}
 
-  vue-component-type-helpers@2.2.8: {}
+  vue-component-type-helpers@3.0.0-alpha.2: {}
 
   vue-demi@0.14.10(vue@3.5.13(typescript@5.7.3)):
     dependencies:
