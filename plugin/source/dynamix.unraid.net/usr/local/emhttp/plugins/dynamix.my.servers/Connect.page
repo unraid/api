@@ -565,7 +565,7 @@ $(function() {
 </div><!-- end Flash Backup section -->
 
 <!-- legacy search compatibility -->
-<div class="display:none;">
+<div style="display:none;">
 _(Unraid API extra origins)_:
 _(Connect Remote Access)_:
 _(GraphQL API Developer Sandbox)_:
