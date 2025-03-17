@@ -97,6 +97,7 @@
     "graphql-tag": "^2.12.6",
     "graphql-ws": "^5.16.0",
     "hex-to-rgba": "^2.0.1",
+    "highlight.js": "^11.11.1",
     "isomorphic-dompurify": "^2.19.0",
     "lucide-vue-next": "^0.475.0",
     "marked": "^12.0.2",

@@ -128,6 +128,10 @@ export default defineNuxtConfig({
             name: 'UnraidSsoButton',
             path: '@/components/SsoButton.ce',
           },
+          {
+            name: 'UnraidLogViewer',
+            path: '@/components/Logs/LogViewer.ce',
+          },
         ],
       },
     ],

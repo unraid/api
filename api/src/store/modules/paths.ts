@@ -60,6 +60,7 @@ const initialState = {
     'keyfile-base': resolvePath(process.env.PATHS_KEYFILE_BASE ?? ('/boot/config' as const)),
     'machine-id': resolvePath(process.env.PATHS_MACHINE_ID ?? ('/var/lib/dbus/machine-id' as const)),
     'log-base': resolvePath('/var/log/unraid-api/' as const),
+    'unraid-log-base': resolvePath('/var/log/' as const),
     'var-run': '/var/run' as const,
     // contains sess_ files that correspond to authenticated user sessions
     'auth-sessions': process.env.PATHS_AUTH_SESSIONS ?? '/var/lib/php',
