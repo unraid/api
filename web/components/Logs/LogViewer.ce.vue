@@ -11,6 +11,7 @@ import {
   SelectTrigger,
   SelectValue,
   Switch,
+  useTeleport,
 } from '@unraid/ui';
 
 import { GET_LOG_FILES } from './log.query';
