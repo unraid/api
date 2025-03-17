@@ -564,6 +564,11 @@ $(function() {
 <?endif // end show flash backup form ?>
 </div><!-- end Flash Backup section -->
 
+<!-- legacy search compatibility -->
+<span style="display:none;" id="extraOriginsSettings" class="js-extraOriginsLabel">
+_(Unraid API extra origins)_:
+</span>
+
 <!-- start unraid-api section -->
 <unraid-i18n-host><unraid-connect-settings></unraid-connect-settings></unraid-i18n-host>
 <!-- end unraid-api section -->
