@@ -103,7 +103,7 @@ const onSelectOpen = () => {
 
 <template>
   <div
-    class="flex flex-col h-full min-h-[400px] resize-y bg-background text-foreground rounded-lg border border-border overflow-hidden"
+    class="flex flex-col h-[500px] resize-y bg-background text-foreground rounded-lg border border-border overflow-hidden"
   >
     <div class="p-4 border-b border-border">
       <h2 class="text-lg font-semibold mb-4">Log Viewer</h2>
