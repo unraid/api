@@ -1,1 +1,20 @@
-@elibosley @pujitm @mdatelle @zackspear
+# Default owners for everything in the repo
+* @elibosley @pujitm @mdatelle @zackspear
+
+# API specific files
+/api/ @elibosley @pujitm @mdatelle
+
+# Web frontend files
+/web/ @elibosley @mdatelle @zackspear
+
+# Plugin related files
+/plugin/ @elibosley
+
+# Unraid UI specific files
+/unraid-ui/ @mdatelle @zackspear @pujitm
+
+# GitHub workflows and configuration
+/.github/ @elibosley
+
+# Documentation
+*.md @elibosley @pujitm @mdatelle @zackspear

@@ -8,22 +8,35 @@ import { cleanupTxzFiles } from "./utils/cleanup";
 
 // Recursively search for manifest files
 const findManifestFiles = async (dir: string): Promise<string[]> => {
-  const entries = await readdir(dir, { withFileTypes: true });
-  const files: string[] = [];
+  try {
+    const entries = await readdir(dir, { withFileTypes: true });
+    const files: string[] = [];
 
-  for (const entry of entries) {
-    const fullPath = join(dir, entry.name);
-    if (entry.isDirectory()) {
-      files.push(...(await findManifestFiles(fullPath)));
-    } else if (
-      entry.isFile() &&
-      (entry.name === "manifest.json" || entry.name === "ui.manifest.json")
-    ) {
-      files.push(entry.name);
+    for (const entry of entries) {
+      const fullPath = join(dir, entry.name);
+      if (entry.isDirectory()) {
+        try {
+          files.push(...(await findManifestFiles(fullPath)));
+        } catch (error) {
+          // Log and continue if a subdirectory can't be read
+          console.warn(`Warning: Could not read directory ${fullPath}: ${error.message}`);
+        }
+      } else if (
+        entry.isFile() &&
+        (entry.name === "manifest.json" || entry.name === "ui.manifest.json")
+      ) {
+        files.push(entry.name);
+      }
     }
-  }
 
-  return files;
+    return files;
+  } catch (error) {
+    if (error.code === 'ENOENT') {
+      console.warn(`Directory does not exist: ${dir}`);
+      return [];
+    }
+    throw error; // Re-throw other errors
+  }
 };
 
 const validateSourceDir = async (validatedEnv: TxzEnv) => {

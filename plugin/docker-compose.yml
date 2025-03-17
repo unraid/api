@@ -1,7 +1,7 @@
 services:
   plugin-builder:
     ports:
-      - 8080:8080
+      - 5858:5858
     build: .
     volumes:
       - ./:/app
