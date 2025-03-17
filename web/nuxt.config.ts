@@ -36,7 +36,13 @@ export default defineNuxtConfig({
     enabled: process.env.NODE_ENV === 'development',
   },
 
-  modules: ['@vueuse/nuxt', '@pinia/nuxt', '@nuxtjs/tailwindcss', 'nuxt-custom-elements', '@nuxt/eslint'],
+  modules: [
+    '@vueuse/nuxt',
+    '@pinia/nuxt',
+    '@nuxtjs/tailwindcss',
+    'nuxt-custom-elements',
+    '@nuxt/eslint',
+  ],
 
   ignore: ['/webGui/images'],
 
@@ -49,52 +55,6 @@ export default defineNuxtConfig({
   ],
 
   vite: {
-    build: {
-      // Increase chunk size warning limit to reduce noise
-      chunkSizeWarningLimit: 1000,
-      // Enable parallel build with thread pooling
-      minify: 'terser',
-      terserOptions: {
-        mangle: {
-          reserved: terserReservations(charsToReserve),
-          toplevel: true,
-        },
-        compress: {
-          // Optimize terser compression
-          drop_console: !process.env.VITE_ALLOW_CONSOLE_LOGS,
-          drop_debugger: true,
-          pure_funcs: !process.env.VITE_ALLOW_CONSOLE_LOGS ? ['console.log', 'console.info', 'console.debug'] : [],
-          passes: 2, // Reduce passes for faster build
-        }
-      },
-      // Implement code splitting and manual chunking
-      rollupOptions: {
-        output: {
-          // Simpler chunking strategy for better performance
-          manualChunks(id: string) {
-            if (id.includes('node_modules')) {
-              if (id.includes('vue') || id.includes('pinia')) {
-                return 'vendor';
-              }
-              return 'deps';
-            }
-          }
-        }
-      },
-      // Enable parallel processing
-      reportCompressedSize: false,
-      cssMinify: true,
-    },
-    // Enable build caching
-    optimizeDeps: {
-      include: [
-        'vue',
-        'pinia',
-        '@vueuse/core',
-      ],
-      // Disable dependency discovery for faster builds
-      noDiscovery: process.env.NODE_ENV === 'production',
-    },
     plugins: [
       // Only remove non-critical console methods when VITE_ALLOW_CONSOLE_LOGS is false
       // Keeps console.warn and console.error for debugging purposes
@@ -107,43 +67,17 @@ export default defineNuxtConfig({
       'globalThis.__DEV__': process.env.NODE_ENV === 'development',
       __VUE_PROD_DEVTOOLS__: false,
     },
+    build: {
+      minify: 'terser',
+      terserOptions: {
+        mangle: {
+          reserved: terserReservations(charsToReserve),
+          toplevel: true,
+        },
+      },
+    },
   },
   customElements: {
-    // Optimize custom elements build
-    buildOptions: {
-      vite: {
-        build: {
-          minify: 'terser',
-          terserOptions: {
-            mangle: {
-              reserved: terserReservations(charsToReserve),
-              toplevel: true,
-            },
-            compress: {
-              drop_console: !process.env.VITE_ALLOW_CONSOLE_LOGS,
-              drop_debugger: true,
-              passes: 2, // Reduce passes for faster build
-            }
-          },
-          reportCompressedSize: false,
-          cssMinify: true,
-          // Simpler chunking for custom elements
-          rollupOptions: {
-            output: {
-              manualChunks(id: string) {
-                if (id.includes('node_modules')) {
-                  return 'vendor';
-                }
-              }
-            }
-          }
-        },
-        // Skip HMR for production builds
-        server: {
-          hmr: false
-        }
-      }
-    },
     entries: [
       {
         name: 'UnraidComponents',
@@ -207,15 +141,6 @@ export default defineNuxtConfig({
         ],
       },
     ],
-  },
-
-  // Enable build caching
-  experimental: {
-    payloadExtraction: true,
-    treeshakeClientOnly: true,
-    asyncContext: true,
-    asyncEntry: true,
-    // Improve HMR performance
   },
 
   compatibilityDate: '2024-12-05',
