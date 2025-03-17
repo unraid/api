@@ -399,7 +399,7 @@ defineExpose({ refreshLogContent });
       v-else
       ref="scrollViewportRef"
       v-infinite-scroll="[loadMoreContent, { direction: 'top', distance: 200, canLoadMore: () => shouldLoadMore }]"
-      class="flex-1 overflow-y-auto max-h-[500px]"
+      class="flex-1 overflow-y-auto"
       :class="{ 'theme-dark': isDarkMode, 'theme-light': !isDarkMode }"
     >
       <!-- Loading indicator for loading more content -->
