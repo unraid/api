@@ -11,11 +11,11 @@ The repository consists of:
 - Core Modules
 - Tests
 
-## API Server Architecture 
+## API Server Architecture
 
 The API server is built with NestJS and provides the core functionality for interacting with Unraid systems.
 
-### Key Components:
+### Key Components
 
 - `src/unraid-api/` - Core NestJS implementation
 - `src/core/` - Legacy business logic and utilities
@@ -61,7 +61,7 @@ The store syncs data in two ways:
 The repository is organized into several packages:
 
 - `api/` - NestJS API server
-- `plugin/` - Unraid plugin package  
+- `plugin/` - Unraid plugin package
 - `web/` - Frontend application
 - `unraid-ui/` - Shared UI components
 

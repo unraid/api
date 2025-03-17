@@ -1,26 +1,17 @@
 #!/bin/bash
 
-# Path to store the last used server name
-state_file="$HOME/.deploy_state"
-
-# Read the last used server name from the state file
-if [[ -f "$state_file" ]]; then
-  last_server_name=$(cat "$state_file")
-else
-  last_server_name=""
-fi
-
-# Read the server name from the command-line argument or use the last used server name as the default
-server_name="${1:-$last_server_name}"
+# Arguments
+# $1: SSH server name (required)
 
 # Check if the server name is provided
-if [[ -z "$server_name" ]]; then
-  echo "Please provide the SSH server name."
+if [[ -z "$1" ]]; then
+  echo "Error: SSH server name is required."
+  echo "Usage: $0 <server_name>"
   exit 1
 fi
 
-# Save the current server name to the state file
-echo "$server_name" > "$state_file"
+# Set server name from command-line argument
+server_name="$1"
 
 # Source directory path
 source_directory="./dist"
@@ -34,9 +25,11 @@ if [ ! -d "$source_directory" ]; then
   fi
 fi
 
-# Change ownership on copy
+# Destination directory path
+destination_directory="/usr/local/unraid-api"
+
 # Replace the value inside the rsync command with the user's input
-rsync_command="rsync -avz -e ssh $source_directory root@${server_name}:/usr/local/unraid-api"
+rsync_command="rsync -avz --progress --stats -e ssh \"$source_directory\" \"root@${server_name}:$destination_directory\""
 
 echo "Executing the following command:"
 echo "$rsync_command"
@@ -46,10 +39,10 @@ eval "$rsync_command"
 exit_code=$?
 
 # Chown the directory
-ssh root@"${server_name}" "chown -R root:root /usr/local/unraid-api"
+ssh root@"${server_name}" 'chown -R root:root /usr/local/unraid-api'
 
 # Run unraid-api restart on remote host
-ssh root@"${server_name}" "INTROSPECTION=true LOG_LEVEL=trace unraid-api restart"
+ssh root@"${server_name}" 'INTROSPECTION=true LOG_LEVEL=trace unraid-api restart'
 
 # Play built-in sound based on the operating system
 if [[ "$OSTYPE" == "darwin"* ]]; then
