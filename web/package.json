@@ -13,7 +13,7 @@
     "prebuild:dev": "pnpm predev",
     "build:dev": "nuxi build --dotenv .env.staging && pnpm run manifest-ts && pnpm run deploy-to-unraid:dev",
     "build:webgui": "pnpm run type-check && nuxi build --dotenv .env.production && pnpm run manifest-ts && pnpm run copy-to-webgui-repo",
-    "build": "NODE_ENV=production NODE_OPTIONS='--max-old-space-size=4096' VITE_ALLOW_CONSOLE_LOGS=false nuxi build --dotenv .env.production && pnpm run manifest-ts",
+    "build": "NODE_ENV=production nuxi build --dotenv .env.production && pnpm run manifest-ts",
     "build:watch": "nuxi build --dotenv .env.production --watch && pnpm run manifest-ts",
     "generate": "nuxt generate",
     "manifest-ts": "node ./scripts/add-timestamp-webcomponent-manifest.js",
