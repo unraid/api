@@ -66,15 +66,8 @@ const jsonFormsConfig = {
   trim: false,
 };
 
-/** JSONForms renderers */
 const renderers = [
   ...jsonFormsRenderers,
-  // formSwitchEntry,
-  // formSelectEntry,
-  // numberFieldEntry,
-  // preconditionsLabelEntry,
-  // // verticalLayoutEntry,
-  // stringArrayEntry,
 ];
 
 /** Called when the user clicks the "Apply" button */
