@@ -36,7 +36,13 @@ export default defineNuxtConfig({
     enabled: process.env.NODE_ENV === 'development',
   },
 
-  modules: ['@vueuse/nuxt', '@pinia/nuxt', '@nuxtjs/tailwindcss', 'nuxt-custom-elements', '@nuxt/eslint'],
+  modules: [
+    '@vueuse/nuxt',
+    '@pinia/nuxt',
+    '@nuxtjs/tailwindcss',
+    'nuxt-custom-elements',
+    '@nuxt/eslint',
+  ],
 
   ignore: ['/webGui/images'],
 
