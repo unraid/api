@@ -89,7 +89,7 @@
         "dotenv": "^16.4.5",
         "execa": "^9.5.1",
         "exit-hook": "^4.0.0",
-        "fastify": "^4.28.1",
+        "fastify": "^5.0.0",
         "filenamify": "^6.0.0",
         "fs-extra": "^11.2.0",
         "glob": "^11.0.1",
