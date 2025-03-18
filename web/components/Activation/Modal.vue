@@ -30,7 +30,7 @@ const description = computed<string>(() =>
 const docsButtons = computed<BrandButtonProps[]>(() => {
   return [
     {
-      btnStyle: 'underline',
+      variant: 'underline',
       external: true,
       href: 'https://docs.unraid.net/unraid-os/faq/licensing-faq/',
       iconRight: ArrowTopRightOnSquareIcon,
@@ -38,7 +38,7 @@ const docsButtons = computed<BrandButtonProps[]>(() => {
       text: props.t('More about Licensing'),
     },
     {
-      btnStyle: 'underline',
+      variant: 'underline',
       external: true,
       href: 'https://docs.unraid.net/account/',
       iconRight: ArrowTopRightOnSquareIcon,
