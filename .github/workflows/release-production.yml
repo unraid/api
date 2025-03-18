@@ -66,8 +66,23 @@ jobs:
             
             // Validate the plugin file is valid XML
             const xml2js = require('xml2js');
-            const parser = new xml2js.Parser();
+            const parser = new xml2js.Parser({
+              explicitCharkey: true,
+              trim: true,
+              explicitRoot: true,
+              explicitArray: false,
+              attrkey: 'ATTR',
+              charkey: 'TEXT',
+              xmlnskey: 'XMLNS',
+              normalizeTags: false,
+              normalize: false,
+              strict: false // Try with less strict parsing
+            });
             parser.parseStringPromise(pluginContent).then((result) => {
+              if (!result) {
+                console.error('Plugin file is not valid XML');
+                process.exit(1);
+              }
               console.log('Plugin file is valid XML');
 
               // Write back to file
