@@ -146,8 +146,6 @@ const bannerImage = watch(theme, () => {
           <ModalsCe />
           <hr class="border-black dark:border-white" />
           <h3 class="text-lg font-semibold font-mono">WelcomeModalCe</h3>
-          <!-- <WelcomeModalCe :server="serverState ?? undefined" /> -->
-          Uncomment the WelcomeModalCe component to test it.
           <hr class="border-black dark:border-white" />
           <h3 class="text-lg font-semibold font-mono">Test Callback Builder</h3>
           <div class="flex flex-col justify-end gap-8px">
