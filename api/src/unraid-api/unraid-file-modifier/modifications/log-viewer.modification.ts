@@ -9,7 +9,8 @@ import {
 
 export class LogViewerModification extends FileModification {
     id: string = 'log-viewer';
-    public readonly filePath: string = '/usr/local/emhttp/plugins/dynamix.my.servers/LogViewer.page' as const;
+    public readonly filePath: string =
+        '/usr/local/emhttp/plugins/dynamix.my.servers/LogViewer.page' as const;
 
     private readonly logViewerConfig: string = `
 Menu="UNRAID-OS"
