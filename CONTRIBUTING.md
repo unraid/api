@@ -58,6 +58,14 @@ We use GitHub to host code, to track issues and feature requests, as well as acc
 
 **Note:** Direct pushes to the main branch are not allowed. All changes must go through the PR process.
 
+## Developer Documentation
+
+For detailed information about development workflows, repository organization, and other technical details, please refer to our developer documentation:
+
+- [Development Guide](api/docs/developer/development.md) - Setup, building, and debugging instructions
+- [Development Workflows](api/docs/developer/workflows.md) - Detailed workflows for local development, building, and deployment
+- [Repository Organization](api/docs/developer/repo-organization.md) - High-level architecture and project structure
+
 ## Bug Reports and Feature Requests
 
 We use GitHub issues to track bugs and feature requests:
