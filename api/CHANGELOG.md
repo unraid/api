@@ -1,5 +1,12 @@
 # Changelog
 
+## [4.2.1](https://github.com/unraid/api/compare/v4.2.0...v4.2.1) (2025-03-18)
+
+
+### Bug Fixes
+
+* **deps:** update all non-major dependencies ([#1192](https://github.com/unraid/api/issues/1192)) ([65b8db2](https://github.com/unraid/api/commit/65b8db2845a5f4234527a70b0625b1a88df5b2fe))
+
 ## [4.2.0](https://github.com/unraid/api/compare/v4.1.3...v4.2.0) (2025-03-18)
 
 
