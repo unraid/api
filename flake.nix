@@ -32,6 +32,7 @@
           shellHook = ''
             echo "🚀 Unraid API Development Environment"
             echo ""
+            echo "✔︎ BASH version: $BASH_VERSION"
             echo "✔︎ Node.js version: $(node --version)"
             echo "✔︎ pnpm version: $(pnpm --version)"
             echo "✔︎ just version: $(just --version)"
