@@ -21,7 +21,7 @@ type StepState = 'inactive' | 'active' | 'completed';
 
 withDefaults(
   defineProps<{
-    activeStep: number;
+    activeStep?: number;
   }>(),
   {
     activeStep: 1,
@@ -78,7 +78,7 @@ const steps: readonly Step[] = [
       v-for="(step, index) in steps"
       :key="step.step"
       v-slot="{ state }: { state: StepState }"
-      class="relative flex w-full flex-col items-center justify-center"
+      class="relative flex w-full flex-col items-center justify-center data-[disabled]:opacity-100"
       :step="step.step"
       :disabled="true"
     >
