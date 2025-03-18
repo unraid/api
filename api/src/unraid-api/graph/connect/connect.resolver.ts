@@ -69,10 +69,11 @@ export class ConnectResolver implements ConnectResolvers {
         const restartRequired = await this.connectSettingsService.syncSettings(settings);
         const currentSettings = await this.connectSettingsService.getCurrentSettings();
         if (restartRequired) {
+            const restartDelayMs = 3_000;
             setTimeout(async () => {
                 this.logger.log('Restarting API');
                 await this.connectService.restartApi();
-            }, 3_000);
+            }, restartDelayMs);
         }
         return currentSettings;
     }
