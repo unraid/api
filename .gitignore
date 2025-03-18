@@ -95,3 +95,9 @@ fb_keepalive
 
 # pnpm store
 .pnpm-store
+
+# Nix
+result
+result-*
+.direnv/
+.envrc
