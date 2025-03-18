@@ -68,7 +68,7 @@ export const createSubscription = (channel: string, resource?: string) => ({
         });
 
         hasSubscribedToChannel(context.websocketId, channel);
-        return pubsub.asyncIterator(channel);
+        return pubsub.asyncIterableIterator(channel);
     },
 });
 

@@ -28,5 +28,5 @@ export const pubsub = new PubSub({ eventEmitter });
  * @param channel The pubsub channel to subscribe to.
  */
 export const createSubscription = (channel: PUBSUB_CHANNEL) => {
-    return pubsub.asyncIterator(channel);
+    return pubsub.asyncIterableIterator(channel);
 };
