@@ -21,7 +21,7 @@ type StepState = 'inactive' | 'active' | 'completed';
 
 withDefaults(
   defineProps<{
-    activeStep: number;
+    activeStep?: number;
   }>(),
   {
     activeStep: 1,
@@ -75,44 +75,43 @@ const steps: readonly Step[] = [
 <template>
   <Stepper :default-value="activeStep" class="text-foreground flex w-full items-start gap-2 text-16px">
     <StepperItem
-      v-for="step in steps"
+      v-for="(step, index) in steps"
       :key="step.step"
       v-slot="{ state }: { state: StepState }"
-      class="relative flex w-full flex-col items-center justify-center"
+      class="relative flex w-full flex-col items-center justify-center data-[disabled]:opacity-100"
       :step="step.step"
       :disabled="true"
     >
-      <StepperSeparator
-        v-if="step.step !== steps[steps.length - 1].step"
-        class="absolute left-[calc(50%+20px)] right-[calc(-50%+10px)] top-[1.5rem] &block h-0.5 shrink-0 rounded-full bg-muted group-data-[state=completed]:bg-primary"
-      />
+      <StepperTrigger>
+        <div class="flex items-center justify-center">
+          <Button
+            :variant="state === 'completed' ? 'primary' : state === 'active' ? 'primary' : 'outline'"
+            size="md"
+            :class="`z-10 rounded-full  ${
+              state !== 'inactive'
+                ? 'ring-2 ring-offset-2 ring-offset-background *:cursor-default ' +
+                  (state === 'completed' ? 'ring-success' : 'ring-primary')
+                : ''
+            }`"
+            :disabled="state === 'inactive'"
+          >
+            <component :is="step.icon[state]" class="size-4" />
+          </Button>
+        </div>
 
-      <StepperTrigger as-child>
-        <Button
-          :variant="state === 'completed' || state === 'active' ? 'primary' : 'outline'"
-          size="md"
-          :class="`z-10 rounded-full shrink-0 opacity-100 ${
-            state !== 'inactive'
-              ? 'ring-2 ring-primary ring-offset-2 ring-offset-background *:cursor-default'
-              : ''
-          }`"
-          :disabled="state === 'inactive'"
-        >
-          <component :is="step.icon[state]" class="size-4" />
-        </Button>
+        <div class="mt-2 flex flex-col items-center text-center">
+          <StepperTitle
+            :class="[state === 'active' && 'text-primary']"
+            class="text-2xs font-semibold transition"
+          >
+            {{ step.title }}
+          </StepperTitle>
+          <StepperDescription class="text-2xs font-normal">
+            {{ step.description }}
+          </StepperDescription>
+        </div>
       </StepperTrigger>
-
-      <div class="mt-2 flex flex-col items-center text-center">
-        <StepperTitle
-          :class="[state === 'active' && 'text-primary']"
-          class="text-2xs font-semibold transition"
-        >
-          {{ step.title }}
-        </StepperTitle>
-        <StepperDescription class="text-2xs font-normal">
-          {{ step.description }}
-        </StepperDescription>
-      </div>
+      <StepperSeparator v-if="index < steps.length - 1" class="w-[50px] bg-black h-[30px]" />
     </StepperItem>
   </Stepper>
 </template>
