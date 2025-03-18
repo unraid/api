@@ -61,8 +61,10 @@ export class ConnectSettingsService {
     /**
      * Syncs the settings to the store and writes the config to disk
      * @param settings - The settings to sync
+     * @returns true if a restart is required, false otherwise
      */
     async syncSettings(settings: Partial<ApiSettingsInput>) {
+        let restartRequired = false;
         const { getters } = await import('@app/store/index.js');
         const { nginx } = getters.emhttp();
         if (settings.accessType === WAN_ACCESS_TYPE.DISABLED) {
@@ -89,10 +91,11 @@ export class ConnectSettingsService {
             await this.updateAllowedOrigins(settings.extraOrigins);
         }
         if (typeof settings.sandbox === 'boolean') {
-            await this.setSandboxMode(settings.sandbox);
+            restartRequired ||= await this.setSandboxMode(settings.sandbox);
         }
         const { writeConfigSync } = await import('@app/store/sync/config-disk-sync.js');
         writeConfigSync('flash');
+        return restartRequired;
     }
 
     private async updateAllowedOrigins(origins: string[]) {
@@ -100,9 +103,18 @@ export class ConnectSettingsService {
         store.dispatch(updateAllowedOrigins(origins));
     }
 
-    private async setSandboxMode(sandbox: boolean) {
-        const { store } = await import('@app/store/index.js');
-        store.dispatch(updateUserConfig({ local: { sandbox: sandbox ? 'yes' : 'no' } }));
+    /**
+     * Sets the sandbox mode and returns true if the mode was changed
+     * @param sandboxEnabled - Whether to enable sandbox mode
+     * @returns true if the mode was changed, false otherwise
+     */
+    private async setSandboxMode(sandboxEnabled: boolean): Promise<boolean> {
+        const { store, getters } = await import('@app/store/index.js');
+        const currentSandbox = getters.config().local.sandbox;
+        const sandbox = sandboxEnabled ? 'yes' : 'no';
+        if (currentSandbox === sandbox) return false;
+        store.dispatch(updateUserConfig({ local: { sandbox } }));
+        return true;
     }
 
     private async updateRemoteAccess(input: SetupRemoteAccessInput): Promise<boolean> {
@@ -137,7 +149,7 @@ export class ConnectSettingsService {
     async buildSettingsSchema(): Promise<SettingSlice> {
         const slices = [
             await this.remoteAccessSlice(),
-            this.sandboxSlice(),
+            await this.sandboxSlice(),
             this.flashBackupSlice(),
             // Because CORS is effectively disabled, this setting is no longer necessary
             // keeping it here for in case it needs to be re-enabled
@@ -257,7 +269,10 @@ export class ConnectSettingsService {
     /**
      * Developer sandbox settings slice
      */
-    sandboxSlice(): SettingSlice {
+    async sandboxSlice(): Promise<SettingSlice> {
+        const { sandbox } = await this.getCurrentSettings();
+        const description =
+            'The developer sandbox is available at <code><a class="underline" href="/graphql" target="_blank">/graphql</a></code>.';
         return {
             properties: {
                 sandbox: {
@@ -273,6 +288,7 @@ export class ConnectSettingsService {
                     label: 'Enable Developer Sandbox:',
                     options: {
                         toggle: true,
+                        description: sandbox ? description : undefined,
                     },
                 },
             ],

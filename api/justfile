@@ -9,8 +9,8 @@ default:
     pnpm run build
 
 # deploys to an unraid server
-@deploy:
-    ./scripts/deploy-dev.sh
+@deploy remote:
+    ./scripts/deploy-dev.sh {{remote}}
 
-# build & deploy
-bd: build deploy
+alias b := build
+alias d := deploy

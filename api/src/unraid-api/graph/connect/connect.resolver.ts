@@ -16,11 +16,15 @@ import { RemoteAccessController } from '@app/remoteAccess/remote-access-controll
 import { store } from '@app/store/index.js';
 import { setAllowedRemoteAccessUrl } from '@app/store/modules/dynamic-remote-access.js';
 import { ConnectSettingsService } from '@app/unraid-api/graph/connect/connect-settings.service.js';
+import { ConnectService } from '@app/unraid-api/graph/connect/connect.service.js';
 
 @Resolver('Connect')
 export class ConnectResolver implements ConnectResolvers {
     protected logger = new Logger(ConnectResolver.name);
-    constructor(private readonly connectSettingsService: ConnectSettingsService) {}
+    constructor(
+        private readonly connectSettingsService: ConnectSettingsService,
+        private readonly connectService: ConnectService
+    ) {}
 
     @Query('connect')
     @UsePermissions({
@@ -62,8 +66,16 @@ export class ConnectResolver implements ConnectResolvers {
     })
     public async updateApiSettings(@Args('input') settings: ApiSettingsInput) {
         this.logger.verbose(`Attempting to update API settings: ${JSON.stringify(settings, null, 2)}`);
-        await this.connectSettingsService.syncSettings(settings);
-        return this.connectSettingsService.getCurrentSettings();
+        const restartRequired = await this.connectSettingsService.syncSettings(settings);
+        const currentSettings = await this.connectSettingsService.getCurrentSettings();
+        if (restartRequired) {
+            const restartDelayMs = 3_000;
+            setTimeout(async () => {
+                this.logger.log('Restarting API');
+                await this.connectService.restartApi();
+            }, restartDelayMs);
+        }
+        return currentSettings;
     }
 
     @ResolveField()
