@@ -130,7 +130,8 @@ Once you have your key pair, add your public SSH key to your Unraid server:
 
    Navigate to Plugins->Install and install the local plugin file that is output to the console.
 
-## View other workflows (local dev, etc.) in the [Developer Workflows](./api/docs/developer/workflows.md)
+> [!TIP]
+> View other workflows (local dev, etc.) in the [Developer Workflows](./api/docs/developer/workflows.md)
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
@@ -157,6 +158,16 @@ See the [open issues](https://github.com/unraid/api/issues) for a full list of p
 
 <!-- CONTRIBUTING -->
 ## Contributing
+
+For a complete guide on contributing to the project, including our code of conduct and development process, please see our [Contributing Guide](./CONTRIBUTING.md). Please read this before contributing.
+
+### Developer Documentation
+
+For more information about development workflows, repository organization, and other technical details, please refer to the developer documentation inside this repository:
+
+* [Development Guide](./api/docs/developer/development.md) - Setup, building, and debugging instructions
+* [Development Workflows](./api/docs/developer/workflows.md) - Detailed workflows for local development, building, and deployment
+* [Repository Organization](./api/docs/developer/repo-organization.md) - High-level architecture and project structure
 
 ### Work Intent Process
 

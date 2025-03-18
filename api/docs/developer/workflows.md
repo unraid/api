@@ -215,3 +215,5 @@ unraid-api --help
 5. Test your changes: `pnpm test`
 6. Deploy to a development server: `pnpm unraid:deploy <SERVER_IP>`
 7. Verify your changes on the Unraid server
+
+If using nix, run `nix develop` from the root of the repo before Step 2.
