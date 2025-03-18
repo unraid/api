@@ -30,13 +30,15 @@
           ];
 
           shellHook = ''
-            echo "🚀 Unraid Connect Development Environment"
+            echo "🚀 Unraid API Development Environment"
+            echo ""
             echo "Node.js version: $(node --version)"
             echo "pnpm version: $(pnpm --version)"
             echo "just version: $(just --version)"
             echo "git version: $(git --version)"
             echo "docker version: $(docker --version)"
             echo "libvirt version: $(virsh --version)"
+            echo ""
           '';
         };
       }
