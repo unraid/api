@@ -8,10 +8,6 @@ import { MinigraphStatus } from '@app/graphql/generated/api/types.js';
 import { ServerStatus } from '@app/graphql/generated/client/graphql.js';
 import { store } from '@app/store/index.js';
 
-
-
-
-
 export interface Context {
     user?: User;
     websocketId: string;
