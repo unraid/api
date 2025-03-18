@@ -48,7 +48,7 @@
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "kebab-case": "^2.0.1",
-    "lucide-vue-next": "^0.475.0",
+    "lucide-vue-next": "^0.483.0",
     "radix-vue": "^1.9.13",
     "reka-ui": "^2.0.2",
     "shadcn-vue": "^0.11.3",
@@ -80,7 +80,7 @@
     "eslint-plugin-vue": "^9.32.0",
     "happy-dom": "^17.0.0",
     "postcss": "^8.4.49",
-    "prettier": "3.5.1",
+    "prettier": "3.5.3",
     "prettier-plugin-tailwindcss": "^0.6.11",
     "storybook": "^8.5.8",
     "tailwind-rem-to-rem": "github:unraid/tailwind-rem-to-rem",
@@ -119,5 +119,5 @@
       "import": "./dist/theme/preset.js"
     }
   },
-  "packageManager": "pnpm@10.4.1"
+  "packageManager": "pnpm@10.6.4"
 }
