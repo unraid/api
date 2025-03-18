@@ -1,5 +1,12 @@
 # Changelog
 
+## [4.3.0](https://github.com/unraid/api/compare/v4.2.1...v4.3.0) (2025-03-18)
+
+
+### Features
+
+* update production release flow to validate less strictly ([#1238](https://github.com/unraid/api/issues/1238)) ([3afb203](https://github.com/unraid/api/commit/3afb203b856655e4ce7c9d709e30d3f2ebd64784))
+
 ## [4.2.1](https://github.com/unraid/api/compare/v4.2.0...v4.2.1) (2025-03-18)
 
 
