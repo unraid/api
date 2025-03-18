@@ -6,9 +6,9 @@ import AES from 'crypto-js/aes';
 
 import type { SendPayloads } from '~/store/callback';
 
+import LogViewerCe from '~/components/Logs/LogViewer.ce.vue';
 import SsoButtonCe from '~/components/SsoButton.ce.vue';
 import { useThemeStore } from '~/store/theme';
-import LogViewerCe from '~/components/Logs/LogViewer.ce.vue';
 
 const serverStore = useDummyServerStore();
 const { serverState } = storeToRefs(serverStore);
@@ -96,12 +96,12 @@ const bannerImage = watch(theme, () => {
           <ColorSwitcherCe />
           <h2 class="text-xl font-semibold font-mono">Vue Components</h2>
           <h3 class="text-lg font-semibold font-mono">UserProfileCe</h3>
-          <header 
+          <header
             class="bg-header-background-color flex justify-between items-center"
             :style="{
               backgroundImage: bannerImage,
               backgroundSize: 'cover',
-              backgroundPosition: 'center'
+              backgroundPosition: 'center',
             }"
           >
             <div class="inline-flex flex-col gap-4 items-start px-4">

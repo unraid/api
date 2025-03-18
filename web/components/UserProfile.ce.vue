@@ -1,7 +1,6 @@
 <script lang="ts" setup>
 import { useI18n } from 'vue-i18n';
 import { storeToRefs } from 'pinia';
-import { OnClickOutside } from '@vueuse/components';
 import { useClipboard } from '@vueuse/core';
 
 import { devConfig } from '~/helpers/env';
@@ -12,6 +11,7 @@ import { useCallbackActionsStore, useCallbackStore } from '~/store/callbackActio
 import { useDropdownStore } from '~/store/dropdown';
 import { useServerStore } from '~/store/server';
 import { useThemeStore } from '~/store/theme';
+import Dropdown from './UserProfile/Dropdown.vue';
 
 export interface Props {
   server?: Server | string;
@@ -28,18 +28,6 @@ const { callbackData } = storeToRefs(useCallbackActionsStore());
 const { dropdownVisible } = storeToRefs(dropdownStore);
 const { name, description, guid, keyfile, lanIp, connectPluginInstalled } = storeToRefs(serverStore);
 const { bannerGradient, theme } = storeToRefs(useThemeStore());
-
-/**
- * Close dropdown when clicking outside
- * @note If in testing you have two variants of the component on a page the clickOutside will fire twice making it seem like it doesn't work
- */
-const clickOutsideTarget = ref();
-const clickOutsideIgnoreTarget = ref();
-const outsideDropdown = () => {
-  if (dropdownVisible.value) {
-    return dropdownStore.dropdownToggle();
-  }
-};
 
 /**
  * Copy LAN IP on server name click
@@ -154,14 +142,11 @@ onMounted(() => {
         <NotificationsSidebar />
       </template>
 
-      <OnClickOutside
-        class="flex items-center justify-end h-full"
-        :options="{ ignore: [clickOutsideIgnoreTarget] }"
-        @trigger="outsideDropdown"
-      >
-        <UpcDropdownTrigger ref="clickOutsideIgnoreTarget" :t="t" />
-        <UpcDropdown ref="clickOutsideTarget" :t="t" />
-      </OnClickOutside>
+      <Dropdown :t="t">
+        <template #trigger>
+          <UpcDropdownTrigger :t="t" />
+        </template>
+      </Dropdown>
     </div>
   </div>
 </template>
@@ -170,23 +155,6 @@ onMounted(() => {
 /* Import unraid-ui globals first */
 @import '@unraid/ui/styles';
 @import '~/assets/main.css';
-
-.DropdownWrapper_blip {
-  box-shadow: var(--ring-offset-shadow), var(--ring-shadow), var(--shadow-popover-foreground);
-
-  &::before {
-    @apply absolute z-20 block;
-
-    content: '';
-    width: 0;
-    height: 0;
-    top: -10px;
-    right: 42px;
-    border-right: 11px solid transparent;
-    border-bottom: 11px solid var(--color-headerTextPrimary);
-    border-left: 11px solid transparent;
-  }
-}
 
 .unraid_mark_2,
 .unraid_mark_4 {
