@@ -1,5 +1,12 @@
 # Changelog
 
+## [4.3.1](https://github.com/unraid/api/compare/v4.3.0...v4.3.1) (2025-03-18)
+
+
+### Bug Fixes
+
+* stepper fixes ([#1240](https://github.com/unraid/api/issues/1240)) ([e7f6f5e](https://github.com/unraid/api/commit/e7f6f5e8315c50fd37193f7d7de2af3d370c18ea))
+
 ## [4.3.0](https://github.com/unraid/api/compare/v4.2.1...v4.3.0) (2025-03-18)
 
 
