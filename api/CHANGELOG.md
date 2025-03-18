@@ -1,5 +1,35 @@
 # Changelog
 
+## [4.2.0](https://github.com/unraid/api/compare/v4.1.3...v4.2.0) (2025-03-18)
+
+
+### Features
+
+* add resolver for logging ([#1222](https://github.com/unraid/api/issues/1222)) ([2d90408](https://github.com/unraid/api/commit/2d9040801f044dc7a974e9737acdffbbdcae5e37))
+* connect settings web component ([#1211](https://github.com/unraid/api/issues/1211)) ([653de00](https://github.com/unraid/api/commit/653de00d3761826c8f0a969be3cfb9253f2d3e43))
+* improve local dev with install path ([#1221](https://github.com/unraid/api/issues/1221)) ([32c5b0a](https://github.com/unraid/api/commit/32c5b0a879e59a823d5dc7bf4b4b4e9d07d2f010))
+* split plugin builds ([4d10966](https://github.com/unraid/api/commit/4d109669dba614328db068697d97d3ad424a6237))
+* swap to absolute paths for css ([#1224](https://github.com/unraid/api/issues/1224)) ([6f9fa10](https://github.com/unraid/api/commit/6f9fa10c0909874a5964818f24ed28b79463aed2))
+* update theme application logic and color picker ([#1181](https://github.com/unraid/api/issues/1181)) ([c352f49](https://github.com/unraid/api/commit/c352f4961885e16260d95b0c8be938009bcfc5e4))
+* use patch version if needed on update check ([#1227](https://github.com/unraid/api/issues/1227)) ([6ed46b3](https://github.com/unraid/api/commit/6ed46b3b61432c51a58c741ead014c856671d839))
+
+
+### Bug Fixes
+
+* add INELIGIBLE state to ConfigErrorState enum ([#1220](https://github.com/unraid/api/issues/1220)) ([1f00212](https://github.com/unraid/api/commit/1f00212a7e663f29cbdeabf5663c9f398799b761))
+* **api:** dynamix notifications dir during development ([#1216](https://github.com/unraid/api/issues/1216)) ([0a382ca](https://github.com/unraid/api/commit/0a382ca5b77ad6e7d5e5c6f35b11ac2dd2479d30))
+* **api:** type imports from generated graphql types ([#1215](https://github.com/unraid/api/issues/1215)) ([fd02297](https://github.com/unraid/api/commit/fd02297971d88ac420887969313fbca570ffdc6d))
+* **deps:** update dependency @nestjs/schedule to v5 ([#1197](https://github.com/unraid/api/issues/1197)) ([b1ff6e5](https://github.com/unraid/api/commit/b1ff6e553ed1391e8f450446088502fd6b9782c0))
+* **deps:** update dependency @vueuse/core to v12 ([#1199](https://github.com/unraid/api/issues/1199)) ([d8b8339](https://github.com/unraid/api/commit/d8b8339d6c8cdebd468160fb17c4056ad5dffd4c))
+* fix changelog thing again ([2426345](https://github.com/unraid/api/commit/24263459fc35d61065712d315a03fd425d98d328))
+* fix invalid path to node with sh execution ([#1213](https://github.com/unraid/api/issues/1213)) ([d12448d](https://github.com/unraid/api/commit/d12448d75a6637fe1608e3e3807ecfd2a20f55c9))
+* load tag correctly ([acd692b](https://github.com/unraid/api/commit/acd692b717b91d708fa93a2941ac4ee9ad544ac4))
+* log errors ([629feda](https://github.com/unraid/api/commit/629feda5b8befd1677d38999a08c667717491442))
+* one-command dev & web env files ([#1214](https://github.com/unraid/api/issues/1214)) ([8218fab](https://github.com/unraid/api/commit/8218fab98b53394171a4cc207432de01e95250ae))
+* re-release fixed ([bb526b5](https://github.com/unraid/api/commit/bb526b5444ac6aaa832adee723513b98df4de423))
+* recreate watcher on path change ([#1203](https://github.com/unraid/api/issues/1203)) ([5a9154e](https://github.com/unraid/api/commit/5a9154ebeadfbc6439e7aac6cf9fd2464acff6d0))
+* update brand loading variants for consistent sizing ([#1223](https://github.com/unraid/api/issues/1223)) ([d7a4b98](https://github.com/unraid/api/commit/d7a4b9855f182588fded088bf9c5610b2f9967b7))
+
 ## [4.1.3](https://github.com/unraid/api/compare/v4.1.2...v4.1.3) (2025-02-21)
 
 
