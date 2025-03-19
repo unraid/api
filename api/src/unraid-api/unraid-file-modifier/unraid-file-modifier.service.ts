@@ -4,6 +4,7 @@ import { FileModification } from '@app/unraid-api/unraid-file-modifier/file-modi
 import AuthRequestModification from '@app/unraid-api/unraid-file-modifier/modifications/auth-request.modification.js';
 import DefaultPageLayoutModification from '@app/unraid-api/unraid-file-modifier/modifications/default-page-layout.modification.js';
 import { LogRotateModification } from '@app/unraid-api/unraid-file-modifier/modifications/log-rotate.modification.js';
+import { LogViewerModification } from '@app/unraid-api/unraid-file-modifier/modifications/log-viewer.modification.js';
 import NotificationsPageModification from '@app/unraid-api/unraid-file-modifier/modifications/notifications-page.modification.js';
 import SSOFileModification from '@app/unraid-api/unraid-file-modifier/modifications/sso.modification.js';
 
@@ -42,6 +43,7 @@ export class UnraidFileModificationService implements OnModuleInit, OnModuleDest
     async loadModifications(): Promise<FileModification[]> {
         const modifications: FileModification[] = [];
         const modificationClasses: Array<new (logger: Logger) => FileModification> = [
+            LogViewerModification,
             LogRotateModification,
             AuthRequestModification,
             SSOFileModification,
