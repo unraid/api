@@ -166,7 +166,7 @@ importers:
         version: 2.0.3
       graphql-scalars:
         specifier: ^1.23.0
-        version: 1.24.1(graphql@16.10.0)
+        version: 1.24.2(graphql@16.10.0)
       graphql-subscriptions:
         specifier: ^3.0.0
         version: 3.0.0(graphql@16.10.0)
@@ -208,7 +208,7 @@ importers:
         version: 3.17.0(@nestjs/common@11.0.12(reflect-metadata@0.1.14)(rxjs@7.8.2))(@nestjs/core@11.0.12(@nestjs/common@11.0.12(reflect-metadata@0.1.14)(rxjs@7.8.2))(reflect-metadata@0.1.14)(rxjs@7.8.2))(@types/inquirer@8.2.10)(typescript@5.8.2)
       nestjs-pino:
         specifier: ^4.1.0
-        version: 4.3.1(@nestjs/common@11.0.12(reflect-metadata@0.1.14)(rxjs@7.8.2))(pino-http@10.4.0)(pino@9.6.0)(rxjs@7.8.2)
+        version: 4.4.0(@nestjs/common@11.0.12(reflect-metadata@0.1.14)(rxjs@7.8.2))(pino-http@10.4.0)(pino@9.6.0)(rxjs@7.8.2)
       node-cache:
         specifier: ^5.1.2
         version: 5.1.2
@@ -6951,8 +6951,8 @@ packages:
     peerDependencies:
       graphql: 14 - 16
 
-  graphql-scalars@1.24.1:
-    resolution: {integrity: sha512-3L553TMPh3YpHQM4x9G4tXcyD+AX8QQOYA6tUn1nrNiWEXE0JfAnWdjoe3WGxRuGjnZrzvHDz62q8S+sSGXXwA==}
+  graphql-scalars@1.24.2:
+    resolution: {integrity: sha512-FoZ11yxIauEnH0E5rCUkhDXHVn/A6BBfovJdimRZCQlFCl+h7aVvarKmI15zG4VtQunmCDdqdtNs6ixThy3uAg==}
     engines: {node: '>=10'}
     peerDependencies:
       graphql: ^0.8.0 || ^0.9.0 || ^0.10.0 || ^0.11.0 || ^0.12.0 || ^0.13.0 || ^14.0.0 || ^15.0.0 || ^16.0.0
@@ -8410,8 +8410,8 @@ packages:
       '@nestjs/core': ^8.0.0 || ^9.0.0 || ^10.0.0 || ^11.0.0
       '@types/inquirer': ^8.1.3
 
-  nestjs-pino@4.3.1:
-    resolution: {integrity: sha512-Mym5k8X0prO4dqZoMC11EsZq3lggeJg9Z3gTUl4JvRXGkCz2Owu3ZUOiitDdX1znowPWVXOse/1Q+kufi2SlZA==}
+  nestjs-pino@4.4.0:
+    resolution: {integrity: sha512-+GMNlcNWDRrMtlQftfcxN+5pV2C25A4wsYIY7cfRJTMW4b8IFKYReDrG1lUp5LGql9fXemmnVJ2Ww10iIkCZPQ==}
     engines: {node: '>= 14'}
     peerDependencies:
       '@nestjs/common': ^8.0.0 || ^9.0.0 || ^10.0.0 || ^11.0.0
@@ -18897,7 +18897,7 @@ snapshots:
     transitivePeerDependencies:
       - encoding
 
-  graphql-scalars@1.24.1(graphql@16.10.0):
+  graphql-scalars@1.24.2(graphql@16.10.0):
     dependencies:
       graphql: 16.10.0
       tslib: 2.8.1
@@ -20317,7 +20317,7 @@ snapshots:
     transitivePeerDependencies:
       - typescript
 
-  nestjs-pino@4.3.1(@nestjs/common@11.0.12(reflect-metadata@0.1.14)(rxjs@7.8.2))(pino-http@10.4.0)(pino@9.6.0)(rxjs@7.8.2):
+  nestjs-pino@4.4.0(@nestjs/common@11.0.12(reflect-metadata@0.1.14)(rxjs@7.8.2))(pino-http@10.4.0)(pino@9.6.0)(rxjs@7.8.2):
     dependencies:
       '@nestjs/common': 11.0.12(reflect-metadata@0.1.14)(rxjs@7.8.2)
       pino: 9.6.0
