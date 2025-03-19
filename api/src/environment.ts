@@ -6,14 +6,20 @@ import { fileURLToPath } from 'node:url';
 import type { PackageJson } from 'type-fest';
 
 /**
- * Tries to get the package.json at the given location
+ * Tries to get the package.json at the given location.
  * @param location - The location of the package.json file, relative to the current file
  * @returns The package.json object or undefined if unable to read
  */
 function getPackageJsonAt(location: string): PackageJson | undefined {
     try {
-        const packageJsonUrl = import.meta.resolve(location);
-        const packageJsonPath = fileURLToPath(packageJsonUrl);
+        let packageJsonPath: string;
+        try {
+            const packageJsonUrl = import.meta.resolve(location);
+            packageJsonPath = fileURLToPath(packageJsonUrl);
+        } catch {
+            // Fallback (e.g. for local development): resolve the path relative to this module
+            packageJsonPath = fileURLToPath(new URL(location, import.meta.url));
+        }
         const packageJsonRaw = readFileSync(packageJsonPath, 'utf-8');
         return JSON.parse(packageJsonRaw) as PackageJson;
     } catch {
@@ -38,6 +44,20 @@ const getPackageJsonVersion = () => {
     return packageJson.version;
 };
 
+/**
+ * Returns list of runtime dependencies from the Unraid-API package.json. Returns undefined if
+ * the package.json or its dependency object cannot be found or read. 
+ * 
+ * Does not log or produce side effects.
+ * @returns The names of all runtime dependencies. Undefined if failed.
+ */
+export const getPackageJsonDependencies = (): string[] | undefined => {
+    const dependencies = getPackageJson()?.dependencies;
+    if (!dependencies) {
+        return;
+    }
+    return Object.keys(dependencies);
+};
 export const API_VERSION =
     process.env.npm_package_version ?? getPackageJsonVersion() ?? new Error('API_VERSION not set');
 
