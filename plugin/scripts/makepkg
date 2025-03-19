@@ -391,7 +391,7 @@ if [ "$CHOWN" = "y" ]; then
   fi
   
   $SUDO find . -type d -exec chmod 755 {} + || exit 1
-  $SUDO find . -type d -name scripts -exec find {} -type f -exec chmod +x {} + \;
+  $SUDO find . -type d -name scripts -exec sh -c "find \"\$1\" -type f -exec chmod +x {} \;" _ {} \;
   $SUDO find . -exec chown 0:0 {} + || exit 1
   set +e
 fi
