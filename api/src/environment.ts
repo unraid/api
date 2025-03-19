@@ -3,7 +3,7 @@ import { homedir } from 'node:os';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-import type { PackageJson } from 'type-fest';
+import type { PackageJson, SetRequired } from 'type-fest';
 
 /**
  * Tries to get the package.json at the given location.
@@ -28,15 +28,17 @@ function getPackageJsonAt(location: string): PackageJson | undefined {
 }
 
 /**
- * Retrieves the Unraid API package.json. If unable to find, logs to stderr and returns undefined.
- * @returns The package.json object or undefined if unable to find
+ * Retrieves the Unraid API package.json. Throws if unable to find.
+ * This should be considered a fatal error.
+ *
+ * @returns The package.json object
  */
-export const getPackageJson = (): PackageJson | undefined => {
+export const getPackageJson = () => {
     const packageJson = getPackageJsonAt('../package.json') || getPackageJsonAt('../../package.json');
     if (!packageJson) {
-        console.error('Could not find package.json in any of the expected locations');
+        throw new Error('Could not find package.json in any of the expected locations');
     }
-    return packageJson;
+    return packageJson as SetRequired<PackageJson, 'version' | 'dependencies'>;
 };
 
 /**
@@ -47,14 +49,11 @@ export const getPackageJson = (): PackageJson | undefined => {
  * @returns The names of all runtime dependencies. Undefined if failed.
  */
 export const getPackageJsonDependencies = (): string[] | undefined => {
-    const dependencies = getPackageJson()?.dependencies;
-    if (!dependencies) {
-        return;
-    }
+    const { dependencies } = getPackageJson();
     return Object.keys(dependencies);
 };
-export const API_VERSION =
-    process.env.npm_package_version ?? getPackageJson()?.version ?? new Error('API_VERSION not set');
+
+export const API_VERSION = process.env.npm_package_version ?? getPackageJson().version;
 
 export const NODE_ENV =
     (process.env.NODE_ENV as 'development' | 'test' | 'staging' | 'production') ?? 'production';
