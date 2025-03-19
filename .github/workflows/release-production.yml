@@ -102,7 +102,7 @@ jobs:
           # Upload files with explicit content encoding and public-read ACL
           aws s3 sync . s3://${{ secrets.DO_SPACE_NAME }}/unraid-api \
             --checksum-algorithm CRC32 \
-            --content-encoding none \
+            --no-guess-mime-type \
             --acl public-read
 
       - name: Upload Release Files to Cloudflare Bucket
@@ -115,5 +115,5 @@ jobs:
           # Upload files with explicit content encoding and public-read ACL
           aws s3 sync . s3://${{ secrets.CF_BUCKET }}/unraid-api \
             --checksum-algorithm CRC32 \
-            --content-encoding none \
+            --no-guess-mime-type \
             --acl public-read
