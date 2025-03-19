@@ -8,7 +8,6 @@ import { devConfig } from '~/helpers/env';
 import type { Server } from '~/types/server';
 
 import { useCallbackActionsStore, useCallbackStore } from '~/store/callbackActions';
-import { useDropdownStore } from '~/store/dropdown';
 import { useServerStore } from '~/store/server';
 import { useThemeStore } from '~/store/theme';
 
