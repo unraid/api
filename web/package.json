@@ -104,6 +104,7 @@
     "marked-base-url": "^1.1.6",
     "pinia": "^3.0.1",
     "radix-vue": "^1.9.13",
+    "reka-ui": "^2.0.2",
     "semver": "^7.6.3",
     "tailwind-merge": "^2.5.5",
     "vue-i18n": "^11.0.0",

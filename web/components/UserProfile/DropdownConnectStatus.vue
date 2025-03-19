@@ -15,6 +15,7 @@ const { username } = storeToRefs(useServerStore());
 
 const unraidApiStore = useUnraidApiStore();
 const { unraidApiStatus, unraidApiRestartAction } = storeToRefs(unraidApiStore);
+const brandLoading = () => h(BrandLoading, { size: 'custom' });
 
 interface StatusOutput {
   icon: typeof BrandLoading | typeof ExclamationTriangleIcon | typeof CheckCircleIcon;
@@ -25,16 +26,16 @@ interface StatusOutput {
 const status = computed((): StatusOutput | undefined => {
   if (unraidApiStatus.value === 'connecting') {
     return {
-      icon: BrandLoading,
-      iconClasses: 'w-16px',
+      icon: brandLoading,
+      iconClasses: 'w-4',
       text: props.t('Loading…'),
       textClasses: 'italic',
     };
   }
   if (unraidApiStatus.value === 'restarting') {
     return {
-      icon: BrandLoading,
-      iconClasses: 'w-16px',
+      icon: brandLoading,
+      iconClasses: 'w-4',
       text: props.t('Restarting unraid-api…'),
       textClasses: 'italic',
     };

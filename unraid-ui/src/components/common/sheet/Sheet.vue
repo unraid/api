@@ -1,39 +1,30 @@
 <script setup lang="ts">
-import { ref, onUnmounted } from "vue";
-import {
-  DialogRoot,
-  useForwardPropsEmits,
-  type DialogRootEmits,
-  type DialogRootProps,
-} from "radix-vue";
+import { DialogRoot, useForwardPropsEmits, type DialogRootEmits, type DialogRootProps } from 'reka-ui';
+import { onUnmounted, ref } from 'vue';
 
-const MOBILE_VIEWPORT =
-  "width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0" as const;
+const MOBILE_VIEWPORT = 'width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0' as const;
 
 const props = defineProps<DialogRootProps & { class?: string }>();
 const emits = defineEmits<DialogRootEmits>();
 
 const getViewport = (): string => {
-  return (
-    document.querySelector('meta[name="viewport"]')?.getAttribute("content") ??
-    "width=1300"
-  );
+  return document.querySelector('meta[name="viewport"]')?.getAttribute('content') ?? 'width=1300';
 };
 const updateViewport = (viewport: string): void => {
   if (window.innerWidth < 500) {
     const meta = document.querySelector('meta[name="viewport"]');
     if (meta) {
-      meta.setAttribute("content", viewport);
+      meta.setAttribute('content', viewport);
     } else {
-      const meta = document.createElement("meta");
-      meta.name = "viewport";
+      const meta = document.createElement('meta');
+      meta.name = 'viewport';
       meta.content = viewport;
       document.head.appendChild(meta);
     }
   }
 };
 
-const forwarded = useForwardPropsEmits(props, emits);
+const forwarded = useForwardPropsEmits(props, emits) as any;
 const initialViewport = ref(getViewport());
 const openListener = (opened: boolean) => {
   if (opened) {

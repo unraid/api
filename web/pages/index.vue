@@ -79,12 +79,19 @@ onMounted(() => {
   );
 });
 
-const bannerImage = watch(theme, () => {
-  if (theme.value.banner) {
-    return `url(https://picsum.photos/1920/200?${Math.round(Math.random() * 100)})`;
-  }
-  return 'none';
-});
+const bannerImage = ref<string>('none');
+
+watch(
+  theme,
+  (newTheme) => {
+    if (newTheme.banner) {
+      bannerImage.value = `url(https://picsum.photos/1920/200?${Math.round(Math.random() * 100)})`;
+    } else {
+      bannerImage.value = 'none';
+    }
+  },
+  { immediate: true }
+);
 </script>
 
 <template>

@@ -11,7 +11,6 @@ import { useCallbackActionsStore, useCallbackStore } from '~/store/callbackActio
 import { useDropdownStore } from '~/store/dropdown';
 import { useServerStore } from '~/store/server';
 import { useThemeStore } from '~/store/theme';
-import Dropdown from './UserProfile/Dropdown.vue';
 
 export interface Props {
   server?: Server | string;
@@ -21,11 +20,9 @@ const props = defineProps<Props>();
 const { t } = useI18n();
 
 const callbackStore = useCallbackStore();
-const dropdownStore = useDropdownStore();
 const serverStore = useServerStore();
 
 const { callbackData } = storeToRefs(useCallbackActionsStore());
-const { dropdownVisible } = storeToRefs(dropdownStore);
 const { name, description, guid, keyfile, lanIp, connectPluginInstalled } = storeToRefs(serverStore);
 const { bannerGradient, theme } = storeToRefs(useThemeStore());
 
@@ -142,11 +139,11 @@ onMounted(() => {
         <NotificationsSidebar />
       </template>
 
-      <Dropdown :t="t">
+      <UpcDropdownMenu :t="t">
         <template #trigger>
           <UpcDropdownTrigger :t="t" />
         </template>
-      </Dropdown>
+      </UpcDropdownMenu>
     </div>
   </div>
 </template>
