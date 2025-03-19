@@ -260,6 +260,9 @@ importers:
       systeminformation:
         specifier: ^5.25.11
         version: 5.25.11
+      unraid-api-plugin-health:
+        specifier: workspace:*
+        version: link:../packages/unraid-api-plugin-health
       uuid:
         specifier: ^11.0.2
         version: 11.1.0
@@ -453,6 +456,8 @@ importers:
       zx:
         specifier: ^8.3.2
         version: 8.4.1
+
+  packages/unraid-api-plugin-health: {}
 
   plugin:
     dependencies:

@@ -130,6 +130,7 @@
         "semver": "^7.6.3",
         "strftime": "^0.10.3",
         "systeminformation": "^5.25.11",
+        "unraid-api-plugin-health": "workspace:*",
         "uuid": "^11.0.2",
         "ws": "^8.18.0",
         "zen-observable-ts": "^1.1.0",

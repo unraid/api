@@ -5,7 +5,7 @@ import { pascalCase } from 'change-case';
 import type { ConstructablePlugin } from '@app/unraid-api/plugin/plugin.interface.js';
 import { getPackageJsonDependencies as getPackageDependencies } from '@app/environment.js';
 import { store } from '@app/store/index.js';
-import { UnraidAPIPlugin } from '@app/unraid-api/plugin/plugin.interface.js';
+import { ApiPluginDefinition, apiPluginSchema } from '@app/unraid-api/plugin/plugin.interface.js';
 import { PluginService } from '@app/unraid-api/plugin/plugin.service.js';
 import { batchProcess } from '@app/utils.js';
 
@@ -18,33 +18,35 @@ export class PluginModule implements OnModuleInit {
     private static readonly logger = new Logger(PluginModule.name);
     constructor(private readonly pluginService: PluginService) {}
 
-    private static isValidPlugin(plugin: any): plugin is ConstructablePlugin {
-        return typeof plugin === 'function' && plugin.prototype instanceof UnraidAPIPlugin;
+    private static isPluginFactory(factory: any): factory is ConstructablePlugin {
+        return typeof factory === 'function';
     }
 
     private static async getPluginFromPackage(pluginPackage: string): Promise<{
         provider: CustomProvider;
-        pluginInstance: UnraidAPIPlugin;
+        pluginInstance: ApiPluginDefinition;
     }> {
         const moduleImport = await import(/* @vite-ignore */ pluginPackage);
         const pluginName = pascalCase(pluginPackage);
-        const ModuleClass = moduleImport.default || moduleImport[pluginName];
+        const PluginFactory = moduleImport.default || moduleImport[pluginName];
 
-        if (!this.isValidPlugin(ModuleClass)) {
-            throw new Error(
-                `Invalid plugin from ${pluginPackage}. Must implement UnraidApiPlugin interface.`
-            );
+        if (!this.isPluginFactory(PluginFactory)) {
+            throw new Error(`Invalid plugin from ${pluginPackage}. Must export a factory function.`);
         }
 
-        const logger = new Logger(ModuleClass.name);
-        const pluginInstance = new ModuleClass({ store, logger });
-        const provider: CustomProvider = {
-            provide: ModuleClass.name,
-            useValue: pluginInstance,
-        };
+        const logger = new Logger(PluginFactory.name);
+        // Note: plugin construction could throw. this should bubble up.
+        const validation = apiPluginSchema.safeParse(PluginFactory({ store, logger }));
+        if (!validation.success) {
+            throw new Error(`Invalid plugin from ${pluginPackage}: ${validation.error}`);
+        }
+        const pluginInstance = validation.data;
 
         return {
-            provider,
+            provider: {
+                provide: PluginFactory.name,
+                useValue: pluginInstance,
+            },
             pluginInstance,
         };
     }
@@ -65,16 +67,24 @@ export class PluginModule implements OnModuleInit {
                 global: true,
             };
         }
-        this.logger.debug(
-            `Found ${plugins.length} plugins to load: ${JSON.stringify(plugins, null, 2)}`
-        );
+        const pluginsListing = JSON.stringify(plugins, null, 2);
+        this.logger.debug(`Found ${plugins.length} plugins to load: ${pluginsListing}`);
 
-        const { data: pluginProviders, errors } = await batchProcess(plugins, async (pluginPackage) => {
-            return this.getPluginFromPackage(pluginPackage);
+        const failedPlugins: string[] = [];
+        const { data: pluginProviders } = await batchProcess(plugins, async (pluginPackage) => {
+            try {
+                return await this.getPluginFromPackage(pluginPackage);
+            } catch (error) {
+                failedPlugins.push(pluginPackage);
+                this.logger.warn(error);
+                throw error;
+            }
         });
-        errors.forEach((error) => {
-            this.logger.warn(error?.message ?? error);
-        });
+        if (failedPlugins.length > 0) {
+            this.logger.warn(
+                `${failedPlugins.length} plugins failed to load. Ignoring them: ${failedPlugins.join(', ')}`
+            );
+        }
 
         // Separate providers and instances
         const providers = pluginProviders.map((result) => result.provider);
@@ -92,8 +102,7 @@ export class PluginModule implements OnModuleInit {
         const pluginProviders = Reflect.getMetadata('providers', PluginModule) || [];
         const plugins = pluginProviders
             .filter((provider) => provider.provide !== PluginService)
-            .map((provider) => provider.useValue)
-            .filter((plugin): plugin is UnraidAPIPlugin => plugin instanceof UnraidAPIPlugin);
+            .map((provider) => provider.useValue);
 
         // Register each plugin with the PluginService
         for (const plugin of plugins) {
