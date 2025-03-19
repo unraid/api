@@ -46,8 +46,8 @@ const getPackageJsonVersion = () => {
 
 /**
  * Returns list of runtime dependencies from the Unraid-API package.json. Returns undefined if
- * the package.json or its dependency object cannot be found or read. 
- * 
+ * the package.json or its dependency object cannot be found or read.
+ *
  * Does not log or produce side effects.
  * @returns The names of all runtime dependencies. Undefined if failed.
  */

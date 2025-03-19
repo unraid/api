@@ -2,7 +2,7 @@ import { Logger, OnModuleDestroy, OnModuleInit, Type } from '@nestjs/common';
 
 import { CommandRunner } from 'nest-commander';
 
-import { AppDispatch, RootState } from '@app/store/index.js';
+import { ApiStore, AppDispatch, RootState } from '@app/store/index.js';
 
 export interface PluginMetadata {
     name: string;
@@ -11,11 +11,9 @@ export interface PluginMetadata {
 }
 
 export abstract class UnraidAPIPlugin implements OnModuleInit, OnModuleDestroy {
+    /** Warning: unstable API. The config mechanism and API may soon change. */
     constructor(
-        protected readonly store: {
-            state: RootState;
-            dispatch: AppDispatch;
-        },
+        protected readonly store: ApiStore,
         protected readonly logger: Logger
     ) {}
 
@@ -40,3 +38,8 @@ export abstract class UnraidAPIPlugin implements OnModuleInit, OnModuleDestroy {
     abstract onModuleInit(): Promise<void>;
     abstract onModuleDestroy(): Promise<void>;
 }
+
+/**
+ * Represents a subclass of UnraidAPIPlugin that can be instantiated.
+ */
+export type ConstructablePlugin = new (options: { store: ApiStore; logger: Logger }) => UnraidAPIPlugin;

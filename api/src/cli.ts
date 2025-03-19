@@ -22,7 +22,7 @@ const getUnraidApiLocation = async () => {
 try {
     // Register plugins and create a dynamic module configuration
     const dynamicModule = await CliModule.registerWithPlugins();
-    
+
     // Create a new class that extends CliModule with the dynamic configuration
     const DynamicCliModule = class extends CliModule {
         static module = dynamicModule.module;

@@ -1,11 +1,13 @@
 import { DynamicModule, Logger, Module, OnModuleInit, Provider, Type } from '@nestjs/common';
-import { readdir } from 'fs/promises';
-import path, { join } from 'path';
 
-import { ENVIRONMENT } from '@app/environment.js';
+import { pascalCase } from 'change-case';
+
+import type { ConstructablePlugin } from '@app/unraid-api/plugin/plugin.interface.js';
+import { getPackageJsonDependencies as getPackageDependencies } from '@app/environment.js';
 import { store } from '@app/store/index.js';
 import { UnraidAPIPlugin } from '@app/unraid-api/plugin/plugin.interface.js';
 import { PluginService } from '@app/unraid-api/plugin/plugin.service.js';
+import { batchProcess } from '@app/utils.js';
 
 type CustomProvider = Provider & {
     provide: string | symbol | Type<any>;
@@ -13,84 +15,69 @@ type CustomProvider = Provider & {
 
 @Module({})
 export class PluginModule implements OnModuleInit {
+    private static readonly logger = new Logger(PluginModule.name);
     constructor(private readonly pluginService: PluginService) {}
 
-    private static isValidPlugin(plugin: any): plugin is typeof UnraidAPIPlugin {
+    private static isValidPlugin(plugin: any): plugin is ConstructablePlugin {
         return typeof plugin === 'function' && plugin.prototype instanceof UnraidAPIPlugin;
     }
 
-    private static async processPluginFolder(pluginPath: string): Promise<{
+    private static async getPluginFromPackage(pluginPackage: string): Promise<{
         provider: CustomProvider;
         pluginInstance: UnraidAPIPlugin;
     }> {
-        const folderName = path.basename(pluginPath);
-        const modulePath = join(
-            pluginPath,
-            'api',
-            ENVIRONMENT === 'development' ? 'index.ts' : 'index.js'
-        );
+        const moduleImport = await import(/* @vite-ignore */ pluginPackage);
+        const pluginName = pascalCase(pluginPackage);
+        const ModuleClass = moduleImport.default || moduleImport[pluginName];
 
-        try {
-            const moduleImport = await import(modulePath);
-            const ModuleClass = moduleImport.default || moduleImport[`${folderName}Module`];
-
-            if (!ModuleClass || !this.isValidPlugin(ModuleClass)) {
-                throw new Error(
-                    `Invalid plugin in ${modulePath}. Must implement UnraidPlugin interface`
-                );
-            }
-
-            if (ModuleClass === UnraidAPIPlugin) {
-                throw new Error(
-                    `${folderName} must be a concrete implementation, not the abstract UnraidAPIPlugin class`
-                );
-            }
-
-            const logger = new Logger(folderName);
-            const pluginInstance = new (ModuleClass as unknown as new (options: {
-                store: any;
-                logger: Logger;
-            }) => UnraidAPIPlugin)({ store, logger });
-
-            const provider: CustomProvider = {
-                provide: folderName,
-                useValue: pluginInstance,
-            };
-
-            return {
-                provider,
-                pluginInstance,
-            };
-        } catch (error) {
-            console.error(`Failed to load plugin ${folderName}:`, error);
-            throw error;
+        if (!this.isValidPlugin(ModuleClass)) {
+            throw new Error(
+                `Invalid plugin from ${pluginPackage}. Must implement UnraidApiPlugin interface.`
+            );
         }
+
+        const logger = new Logger(ModuleClass.name);
+        const pluginInstance = new ModuleClass({ store, logger });
+        const provider: CustomProvider = {
+            provide: ModuleClass.name,
+            useValue: pluginInstance,
+        };
+
+        return {
+            provider,
+            pluginInstance,
+        };
     }
 
     static async registerPlugins(): Promise<DynamicModule> {
-        /**
-         * @todo Please eventually move plugins to independent node modules.
-         * This was skipped due to time constraints.
-         */
-        const pluginsPath = path.join(import.meta.dirname, '../plugins');
-
-        let allPlugins: any[] = [];
-        try {
-            allPlugins = await readdir(pluginsPath, { withFileTypes: true });
-        } catch (error) {
-            // Directory doesn't exist or can't be read, log and continue with empty plugins
-            console.log(`No plugins directory found at ${pluginsPath}`);
+        /** All api plugins must be npm packages whose name starts with this prefix */
+        const pluginPrefix = 'unraid-api-plugin-';
+        // All api plugins must be installed as dependencies of the unraid-api package
+        /** list of npm packages that are unraid-api plugins */
+        const plugins = getPackageDependencies()?.filter((pkgName) => pkgName.startsWith(pluginPrefix));
+        if (!plugins) {
+            this.logger.warn('Could not load dependencies from the Unraid-API package.json');
+            // Fail silently: Return the module without plugins
+            return {
+                module: PluginModule,
+                providers: [PluginService],
+                exports: [PluginService],
+                global: true,
+            };
         }
-
-        const pluginResults = await Promise.all(
-            allPlugins
-                .filter((dirent) => dirent.isDirectory())
-                .map((dir) => this.processPluginFolder(join(pluginsPath, dir.name)))
+        this.logger.debug(
+            `Found ${plugins.length} plugins to load: ${JSON.stringify(plugins, null, 2)}`
         );
 
-        // Separate providers and instances
-        const providers = pluginResults.map((result) => result.provider);
+        const { data: pluginProviders, errors } = await batchProcess(plugins, async (pluginPackage) => {
+            return this.getPluginFromPackage(pluginPackage);
+        });
+        errors.forEach((error) => {
+            this.logger.warn(error?.message ?? error);
+        });
 
+        // Separate providers and instances
+        const providers = pluginProviders.map((result) => result.provider);
         // Create the module configuration
         return {
             module: PluginModule,
@@ -113,6 +100,6 @@ export class PluginModule implements OnModuleInit {
             this.pluginService.registerPlugin(plugin);
         }
 
-        console.log('Plugin Module initialized');
+        PluginModule.logger.log('Plugin Module initialized');
     }
 }
