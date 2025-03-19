@@ -611,6 +611,7 @@ export function LogFileContentSchema(): z.ZodObject<Properties<LogFileContent>> 
     __typename: z.literal('LogFileContent').optional(),
     content: z.string(),
     path: z.string(),
+    startLine: z.number().nullish(),
     totalLines: z.number()
   })
 }
