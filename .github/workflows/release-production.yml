@@ -103,6 +103,7 @@ jobs:
           aws s3 sync . s3://${{ secrets.DO_SPACE_NAME }}/unraid-api \
             --checksum-algorithm CRC32 \
             --no-guess-mime-type \
+            --content-encoding none \
             --acl public-read
 
       - name: Upload Release Files to Cloudflare Bucket
@@ -116,4 +117,5 @@ jobs:
           aws s3 sync . s3://${{ secrets.CF_BUCKET }}/unraid-api \
             --checksum-algorithm CRC32 \
             --no-guess-mime-type \
+            --content-encoding none \
             --acl public-read

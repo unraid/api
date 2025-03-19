@@ -404,6 +404,7 @@ jobs:
             --endpoint-url ${{ secrets.CF_ENDPOINT }} \
             --checksum-algorithm CRC32 \
             --no-guess-mime-type \
+            --content-encoding none \
             --acl public-read
 
       - name: Upload Release Assets
