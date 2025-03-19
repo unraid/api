@@ -3,32 +3,39 @@ import { homedir } from 'node:os';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-const getPackageJsonVersion = () => {
+import type { PackageJson } from 'type-fest';
+
+/**
+ * Tries to get the package.json at the given location
+ * @param location - The location of the package.json file, relative to the current file
+ * @returns The package.json object or undefined if unable to read
+ */
+function getPackageJsonAt(location: string): PackageJson | undefined {
     try {
-        // Try different possible locations for package.json
-        const possibleLocations = ['../package.json', '../../package.json'];
-
-        for (const location of possibleLocations) {
-            try {
-                const packageJsonUrl = import.meta.resolve(location);
-                const packageJsonPath = fileURLToPath(packageJsonUrl);
-                const packageJson = readFileSync(packageJsonPath, 'utf-8');
-                const packageJsonObject = JSON.parse(packageJson);
-                if (packageJsonObject.version) {
-                    return packageJsonObject.version;
-                }
-            } catch {
-                // Continue to next location if this one fails
-            }
-        }
-
-        // If we get here, we couldn't find a valid package.json in any location
-        console.error('Could not find package.json in any of the expected locations');
-        return undefined;
-    } catch (error) {
-        console.error('Failed to load package.json:', error);
+        const packageJsonUrl = import.meta.resolve(location);
+        const packageJsonPath = fileURLToPath(packageJsonUrl);
+        const packageJsonRaw = readFileSync(packageJsonPath, 'utf-8');
+        return JSON.parse(packageJsonRaw) as PackageJson;
+    } catch {
         return undefined;
     }
+}
+
+/**
+ * Retrieves the Unraid API package.json
+ * @returns The package.json object or undefined if unable to find
+ */
+export const getPackageJson = (): PackageJson | undefined => {
+    return getPackageJsonAt('../package.json') || getPackageJsonAt('../../package.json');
+};
+
+const getPackageJsonVersion = () => {
+    const packageJson = getPackageJson();
+    if (!packageJson) {
+        console.error('Could not find package.json in any of the expected locations');
+        return undefined;
+    }
+    return packageJson.version;
 };
 
 export const API_VERSION =
