@@ -28,20 +28,15 @@ function getPackageJsonAt(location: string): PackageJson | undefined {
 }
 
 /**
- * Retrieves the Unraid API package.json
+ * Retrieves the Unraid API package.json. If unable to find, logs to stderr and returns undefined.
  * @returns The package.json object or undefined if unable to find
  */
 export const getPackageJson = (): PackageJson | undefined => {
-    return getPackageJsonAt('../package.json') || getPackageJsonAt('../../package.json');
-};
-
-const getPackageJsonVersion = () => {
-    const packageJson = getPackageJson();
+    const packageJson = getPackageJsonAt('../package.json') || getPackageJsonAt('../../package.json');
     if (!packageJson) {
         console.error('Could not find package.json in any of the expected locations');
-        return undefined;
     }
-    return packageJson.version;
+    return packageJson;
 };
 
 /**
@@ -59,7 +54,7 @@ export const getPackageJsonDependencies = (): string[] | undefined => {
     return Object.keys(dependencies);
 };
 export const API_VERSION =
-    process.env.npm_package_version ?? getPackageJsonVersion() ?? new Error('API_VERSION not set');
+    process.env.npm_package_version ?? getPackageJson()?.version ?? new Error('API_VERSION not set');
 
 export const NODE_ENV =
     (process.env.NODE_ENV as 'development' | 'test' | 'staging' | 'production') ?? 'production';
