@@ -26,7 +26,7 @@ const showLaunchpad = computed(() => state.value === 'ENOKEYFILE');
       :side-offset="4"
       :align="'end'"
       :side="'bottom'"
-      class="w-96"
+      class="w-[88rem]"
     >
       <UpcDropdownLaunchpad v-if="showLaunchpad" :t="t" />
       <UpcDropdownContent v-else :t="t" />
