@@ -99,7 +99,11 @@ jobs:
           AWS_DEFAULT_REGION: ${{ secrets.DO_SPACE_REGION }}
           AWS_ENDPOINT_URL: https://${{ secrets.DO_SPACE_REGION }}.digitaloceanspaces.com
         run: |
-          aws s3 sync . s3://${{ secrets.DO_SPACE_NAME }}/unraid-api --checksum-algorithm CRC32
+          # Upload files with explicit content encoding and public-read ACL
+          aws s3 sync . s3://${{ secrets.DO_SPACE_NAME }}/unraid-api \
+            --checksum-algorithm CRC32 \
+            --content-encoding none \
+            --acl public-read
 
       - name: Upload Release Files to Cloudflare Bucket
         env:
@@ -108,4 +112,8 @@ jobs:
           AWS_DEFAULT_REGION: auto
           AWS_ENDPOINT_URL: ${{ secrets.CF_ENDPOINT }}
         run: |
-          aws s3 sync . s3://${{ secrets.CF_BUCKET }}/unraid-api --checksum-algorithm CRC32
+          # Upload files with explicit content encoding and public-read ACL
+          aws s3 sync . s3://${{ secrets.CF_BUCKET }}/unraid-api \
+            --checksum-algorithm CRC32 \
+            --content-encoding none \
+            --acl public-read
