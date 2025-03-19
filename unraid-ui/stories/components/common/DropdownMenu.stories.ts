@@ -1,17 +1,23 @@
-import type { Meta, StoryObj } from "@storybook/vue3";
-import { MoreVertical } from "lucide-vue-next";
-
-import Button from "../../../src/components/common/button/Button.vue";
-import DropdownMenu from "../../../src/components/common/dropdown-menu/DropdownMenu.vue";
-import DropdownMenuContent from "../../../src/components/common/dropdown-menu/DropdownMenuContent.vue";
-import DropdownMenuItem from "../../../src/components/common/dropdown-menu/DropdownMenuItem.vue";
-import DropdownMenuLabel from "../../../src/components/common/dropdown-menu/DropdownMenuLabel.vue";
-import DropdownMenuSeparator from "../../../src/components/common/dropdown-menu/DropdownMenuSeparator.vue";
-import DropdownMenuTrigger from "../../../src/components/common/dropdown-menu/DropdownMenuTrigger.vue";
+import type { Meta, StoryObj } from '@storybook/vue3';
+import { MoreVertical } from 'lucide-vue-next';
+import Button from '../../../src/components/common/button/Button.vue';
+import DropdownMenu from '../../../src/components/common/dropdown-menu/DropdownMenu.vue';
+import DropdownMenuContent from '../../../src/components/common/dropdown-menu/DropdownMenuContent.vue';
+import DropdownMenuItem from '../../../src/components/common/dropdown-menu/DropdownMenuItem.vue';
+import DropdownMenuLabel from '../../../src/components/common/dropdown-menu/DropdownMenuLabel.vue';
+import DropdownMenuSeparator from '../../../src/components/common/dropdown-menu/DropdownMenuSeparator.vue';
+import DropdownMenuTrigger from '../../../src/components/common/dropdown-menu/DropdownMenuTrigger.vue';
 
 const meta = {
-  title: "Components/Common/DropdownMenu",
+  title: 'Components/Common/DropdownMenu',
   component: DropdownMenu,
+  tags: ['autodocs'],
+  argTypes: {
+    open: {
+      control: 'boolean',
+      description: 'Controls the open state of the dropdown menu',
+    },
+  },
 } satisfies Meta<typeof DropdownMenu>;
 
 export default meta;
@@ -58,7 +64,7 @@ export const IconDropdown: Story = {
       Button,
       MoreVertical,
     },
-    template: `
+    template: ` 
       <DropdownMenu>
         <DropdownMenuTrigger>
           <Button variant="ghost" size="icon">
@@ -71,8 +77,8 @@ export const IconDropdown: Story = {
           <DropdownMenuItem>Edit</DropdownMenuItem>
           <DropdownMenuItem>Duplicate</DropdownMenuItem>
           <DropdownMenuItem>Delete</DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenu>
+          </DropdownMenuContent>
+        </DropdownMenu>
     `,
   }),
-}; 
+};

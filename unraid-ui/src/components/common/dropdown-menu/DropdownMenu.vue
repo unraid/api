@@ -1,15 +1,15 @@
 <script setup lang="ts">
 import {
   DropdownMenuRoot,
+  useForwardPropsEmits,
   type DropdownMenuRootEmits,
   type DropdownMenuRootProps,
-  useForwardPropsEmits,
-} from "radix-vue";
+} from 'reka-ui';
 
 const props = defineProps<DropdownMenuRootProps>();
 const emits = defineEmits<DropdownMenuRootEmits>();
 
-const forwarded = useForwardPropsEmits(props, emits);
+const forwarded = useForwardPropsEmits<DropdownMenuRootProps, 'update:open'>(props, emits);
 </script>
 
 <template>
