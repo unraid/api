@@ -1,7 +1,9 @@
 <script lang="ts" setup>
 import { ref } from 'vue';
+import { storeToRefs } from 'pinia';
 
 import { DropdownMenu, DropdownMenuArrow, DropdownMenuContent, DropdownMenuTrigger } from '@unraid/ui';
+import useTeleport from '@/composables/useTeleport';
 
 import type { ComposerTranslation } from 'vue-i18n';
 
@@ -9,7 +11,7 @@ import { useServerStore } from '~/store/server';
 
 defineProps<{ t: ComposerTranslation }>();
 
-const { teleportTarget, determineTeleportTarget } = useTeleport();
+const { teleportTarget } = useTeleport();
 const { state } = storeToRefs(useServerStore());
 const open = ref(false);
 
