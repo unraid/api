@@ -134,7 +134,7 @@ exit 0
         fi
 
         # Remove all node js archives from the flashdrive that do not match the expected version
-        find /boot/config/plugins/dynamix.my.servers/ -name "node-v*-linux-x64.tar.xz" ! -name "&NODEJS_FILENAME;" -delete
+        find /boot/config/plugins/dynamix.my.servers/ -name "node-v*-linux-x64.tar.xz" ! -name "${NODE_FILE}" -delete
 
 
         echo "Node.js installation successful"
