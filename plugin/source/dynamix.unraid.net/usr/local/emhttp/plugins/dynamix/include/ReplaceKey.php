@@ -232,7 +232,7 @@ class ReplaceKey
                 ]
             );
             return null;
-        };
+        }
 
         return $this->installNewKey($latestKey);
     }
