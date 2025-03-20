@@ -355,8 +355,8 @@ importers:
         specifier: ^22.13.4
         version: 22.13.10
       '@types/pify':
-        specifier: ^5.0.4
-        version: 5.0.4
+        specifier: ^6.0.0
+        version: 6.1.0
       '@types/semver':
         specifier: ^7.5.8
         version: 7.5.8
@@ -3768,8 +3768,9 @@ packages:
   '@types/parse-path@7.0.3':
     resolution: {integrity: sha512-LriObC2+KYZD3FzCrgWGv/qufdUy4eXrxcLgQMfYXgPbLIecKIsVBaQgUPmxSSLcjmYbDTQbMgr6qr6l/eb7Bg==}
 
-  '@types/pify@5.0.4':
-    resolution: {integrity: sha512-gxKJ1Aw8LbyCsCQWIsip9bYKJCNsKHMoZoQMAe2IWH7U7hgp/l6TvJpbFvu8ZlGBimjZZNvEx2S1ZQlj02ayNQ==}
+  '@types/pify@6.1.0':
+    resolution: {integrity: sha512-HCVIdzNiVAi7OxWTAZagTBNzylgNhImtx442pMcu8QZHzDHElS3ccgqaYIuHskpaeG7rIbYlN5XP5tcOAf8F2w==}
+    deprecated: This is a stub types definition. pify provides its own type definitions, so you do not need this installed.
 
   '@types/qs@6.9.18':
     resolution: {integrity: sha512-kK7dgTYDyGqS+e2Q4aK9X3D7q234CIZ1Bv0q/7Z5IwRDoADNU81xXJK/YVyLbLTZCoIwUoDoffFeF+p/eIklAA==}
@@ -15098,7 +15099,9 @@ snapshots:
 
   '@types/parse-path@7.0.3': {}
 
-  '@types/pify@5.0.4': {}
+  '@types/pify@6.1.0':
+    dependencies:
+      pify: 3.0.0
 
   '@types/qs@6.9.18': {}
 

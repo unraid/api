@@ -163,7 +163,7 @@
         "@types/lodash": "^4.17.13",
         "@types/mustache": "^4.2.5",
         "@types/node": "^22.13.4",
-        "@types/pify": "^5.0.4",
+        "@types/pify": "^6.0.0",
         "@types/semver": "^7.5.8",
         "@types/sendmail": "^1.4.7",
         "@types/stoppable": "^1.1.3",
