@@ -17,11 +17,10 @@ Tag="upload"
  * @note icon-update is rotated via CSS in myservers1.php
  */
 require_once "$docroot/plugins/dynamix/include/ReplaceKey.php";
-require_once "$docroot/plugins/dynamix.my.servers/include/reboot-details.php";
-
 $replaceKey = new ReplaceKey();
 $replaceKey->check();
 
+require_once "$docroot/plugins/dynamix.my.servers/include/reboot-details.php";
 $rebootDetails = new RebootDetails();
 $rebootDetails->setPrevious();
 
