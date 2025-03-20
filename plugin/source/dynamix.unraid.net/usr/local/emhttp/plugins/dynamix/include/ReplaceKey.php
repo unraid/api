@@ -1,5 +1,4 @@
 <?php
-$webguiGlobals = $GLOBALS;
 $docroot = $docroot ?? $_SERVER['DOCUMENT_ROOT'] ?: '/usr/local/emhttp';
 
 class ReplaceKey
@@ -32,41 +31,35 @@ class ReplaceKey
     {
         $ch = curl_init($url);
 
-        // Set the request method
         curl_setopt($ch, CURLOPT_CUSTOMREQUEST, $method);
-        // store the response in a variable instead of printing it
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-
-        // Set the payload if present
+        
         if ($payload !== null) {
             curl_setopt($ch, CURLOPT_POSTFIELDS, $payload);
         }
-
         if ($headers !== null) {
-            // Set the headers
             curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
         }
 
-        // Set additional options as needed
-
-        // Execute the request
         $response = curl_exec($ch);
+        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
 
-        // Check for errors
-        if (curl_errno($ch)) {
+        // Check for cURL errors or non-2xx responses
+        if (curl_errno($ch) || $httpCode < 200 || $httpCode >= 300) {
             $error = [
-                'heading' => 'CurlError',
-                'message' => curl_error($ch),
+                'heading' => curl_errno($ch) ? 'CurlError' : 'HttpError',
+                'message' => curl_errno($ch) ? curl_error($ch) : "HTTP Status $httpCode",
                 'level' => 'error',
-                'ref' => 'curlError',
+                'ref' => curl_errno($ch) ? 'curlError' : 'httpError',
                 'type' => 'request',
+                'ts' => time(),
+                'url' => $url,
+                'httpCode' => $httpCode
             ];
-            // @todo store error
+            $this->writeJsonFile('/tmp/ReplaceKey/request_errors.json', $error);
         }
 
-        // Close the cURL session
         curl_close($ch);
-
         return $response;
     }
 
