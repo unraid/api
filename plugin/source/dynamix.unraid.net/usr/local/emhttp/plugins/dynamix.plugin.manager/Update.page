@@ -14,7 +14,10 @@ Tag="upload"
  * all copies or substantial portions of the Software.
  */
 require_once "$docroot/plugins/dynamix.my.servers/include/reboot-details.php";
+require_once "$docroot/plugins/dynamix/include/ReplaceKey.php";
 $rebootDetails = new RebootDetails();
+$replaceKey = new ReplaceKey();
+$replaceKey->check();
 ?>
 <script>
 function cleanUpFlashBackup(zip) {
