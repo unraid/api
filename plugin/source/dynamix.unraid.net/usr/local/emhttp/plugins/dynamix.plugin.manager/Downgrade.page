@@ -16,11 +16,13 @@ Tag="upload"
 /**
  * @note icon-update is rotated via CSS in myservers1.php
  */
-
+require_once "$docroot/plugins/dynamix/include/ReplaceKey.php";
 require_once "$docroot/plugins/dynamix.my.servers/include/reboot-details.php";
-// Create an instance of the RebootDetails class
+
+$replaceKey = new ReplaceKey();
+$replaceKey->check();
+
 $rebootDetails = new RebootDetails();
-// Get the current reboot details if there are any
 $rebootDetails->setPrevious();
 
 $serverNameEscaped = htmlspecialchars(str_replace(' ', '_', strtolower($var['NAME'])));
