@@ -15,6 +15,7 @@ Tag="upload"
  */
 /**
  * @note icon-update is rotated via CSS in myservers1.php
+ * @note ServerState class constructor will check for updates and new license key when rendering /Tools/Registration
  */
 
 require_once "$docroot/plugins/dynamix.my.servers/include/reboot-details.php";

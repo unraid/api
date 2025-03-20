@@ -29,6 +29,7 @@
  */
 $docroot ??= ($_SERVER['DOCUMENT_ROOT'] ?: '/usr/local/emhttp');
 require_once "$docroot/webGui/include/Wrappers.php";
+require_once "$docroot/webGui/include/ReplaceKey.php";
 require_once "$docroot/plugins/dynamix.plugin.manager/include/PluginHelpers.php";
 
 class UnraidOsCheck
@@ -38,6 +39,7 @@ class UnraidOsCheck
     private const JSON_FILE_IGNORED_KEY = 'updateOsIgnoredReleases';
     private const JSON_FILE_RESULT = '/tmp/unraidcheck/result.json';
     private const PLG_PATH = '/usr/local/emhttp/plugins/unRAIDServer/unRAIDServer.plg';
+    private const VAR_INI_FILE = '/var/local/emhttp/var.ini';
 
     public function __construct()
     {
@@ -53,7 +55,8 @@ class UnraidOsCheck
     {
         switch ($_GET['action']) {
             case 'check':
-                $this->checkForUpdate();
+                $forceReplaceKeyCheck = (isset($_GET['forceReplaceKeyCheck'])) ? true : false;
+                $this->checkForUpdate($forceReplaceKeyCheck);
                 break;
 
             case 'removeAllIgnored':
@@ -100,30 +103,51 @@ class UnraidOsCheck
         return [];
     }
 
-    /** @todo clean up this method to be more extensible */
-    public function checkForUpdate()
+    /**
+     * Check for Unraid OS updates and new license keys
+     * 
+     * @param bool $forceReplaceKeyCheck Force check for license key replacement regardless of expiry window
+     * @return ?bool Returns:
+     *   - true: Successfully checked for updates with no errors
+     *   - false: Error occurred during update check
+     *   - null: No update check was performed (e.g. invalid params)
+     *   Note: If $_GET['json'] is set, outputs JSON response and exits with code 0 instead of returning
+     */
+    public function checkForUpdate(bool $forceReplaceKeyCheck = false): ?bool
     {
-        // Multi-language support
-        if (!function_exists('_')) {
-            function _($text) {return $text;}
+        $var = (array)@parse_ini_file(self::VAR_INI_FILE);
+        $initialRegExp = _var($var, 'regExp');
+
+        // checking for a new license key created via auto-extension
+        $replaceKey = new ReplaceKey();
+        if ($replaceKey->check($forceReplaceKeyCheck)) {
+            // if we have a new key, we need to wait for emhttp to update var.ini with the new regExp value
+            $startTime = time();
+            $timeout = 30; // 30 seconds
+
+            while (time() - $startTime < $timeout) {
+                $currentVar = (array)@parse_ini_file(self::VAR_INI_FILE);
+                $currentRegExp = _var($currentVar, 'regExp');
+
+                // Handle cases where either value might be undefined or different
+                if ((!$initialRegExp && $currentRegExp) || ($initialRegExp && !$currentRegExp) ||
+                    ($initialRegExp && $currentRegExp && $currentRegExp !== $initialRegExp)) {
+                    $var = $currentVar;
+                    break;
+                }
+
+                usleep(250000); // Sleep for 0.25 seconds between checks
+            }
+
+            if (time() - $startTime >= $timeout) { // if we timeout, use the current value
+                $var = (array)@parse_ini_file(self::VAR_INI_FILE);
+            }
         }
-
-        // this command will set the $notify array
-        extract(parse_plugin_cfg('dynamix', true));
-
-        $var = (array)@parse_ini_file('/var/local/emhttp/var.ini');
 
         $params  = [];
         $params['branch']          = plugin('category', self::PLG_PATH, 'stable');
-        // Get current version from patches.json if it exists, otherwise fall back to plugin version or var.ini
-        $patcherVersion = null;
-        if (file_exists('/tmp/Patcher/patches.json')) {
-            $patcherData = @json_decode(file_get_contents('/tmp/Patcher/patches.json'), true);
-            $patcherVersion = $patcherData['combinedVersion'] ?? null;
-        }
-
-        $params['current_version'] = $patcherVersion ?: plugin('version', self::PLG_PATH) ?: _var($var, 'version');
-        if (_var($var,'regExp')) $params['update_exp'] = date('Y-m-d', _var($var,'regExp')*1);
+        $params['current_version'] = plugin('version', self::PLG_PATH) ?: _var($var, 'version');
+        if (_var($var, 'regExp')) $params['update_exp'] = date('Y-m-d', _var($var, 'regExp')*1);
         $defaultUrl = self::BASE_RELEASES_URL;
         // pass a param of altUrl to use the provided url instead of the default
         $parsedAltUrl = (array_key_exists('altUrl',$_GET) && $_GET['altUrl']) ? $_GET['altUrl'] : null;
@@ -161,8 +185,8 @@ class UnraidOsCheck
         $isReleaseIgnored = array_key_exists('version',$responseMutated) ? in_array($responseMutated['version'], $this->getIgnoredReleases()) : false;
 
         if ($responseMutated && $isNewerVersion && !$isReleaseIgnored) {
-            $output  = _var($notify,'plugin');
-            $server  = strtoupper(_var($var,'NAME','server'));
+            $output  = _var($notify, 'plugin');
+            $server  = strtoupper(_var($var, 'NAME', 'server'));
             $newver = (array_key_exists('version',$responseMutated) && $responseMutated['version']) ? $responseMutated['version'] : 'unknown';
             $script  = '/usr/local/emhttp/webGui/scripts/notify';
             $event = "System - Unraid [$newver]";
@@ -171,7 +195,7 @@ class UnraidOsCheck
             exec("$script -e ".escapeshellarg($event)." -s ".escapeshellarg($subject)." -d ".escapeshellarg($description)." -i ".escapeshellarg("normal $output")." -l '/Tools/Update' -x");
         }
 
-        exit(0);
+        return !array_key_exists('error', $responseMutated);
     }
 
     private function removeAllIgnored()

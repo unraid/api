@@ -9,11 +9,19 @@
  *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
+ *
+ * Usage:
+ *   unraidcheck                             - Normal check for updates
+ *   unraidcheck --force-replace-key-check   - Force check for new license key before update check
  */
 ?>
 <?
 $docroot ??= ($_SERVER['DOCUMENT_ROOT'] ?: '/usr/local/emhttp');
 require_once "$docroot/plugins/dynamix.plugin.manager/include/UnraidCheck.php";
 
+$forceReplaceKeyCheck = in_array('--force-replace-key-check', $argv);
+
 $unraidOsCheck = new UnraidOsCheck();
-$unraidOsCheck->checkForUpdate();
+$unraidOsCheckResult = $unraidOsCheck->checkForUpdate($forceReplaceKeyCheck);
+
+exit($unraidOsCheckResult ? 0 : 1);

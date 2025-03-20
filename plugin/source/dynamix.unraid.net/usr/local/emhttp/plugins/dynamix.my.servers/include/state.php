@@ -35,6 +35,9 @@ class ServerState
 {
     protected $webguiGlobals;
 
+    private const VAR_INI_FILE = '/var/local/emhttp/var.ini';
+    private const NGINX_INI_FILE = '/var/local/emhttp/nginx.ini';
+
     private $var;
     private $apiKey = '';
     private $apiVersion = '';
@@ -54,6 +57,7 @@ class ServerState
         "nokeyserver" => 'NO_KEY_SERVER',
         "withdrawn" => 'WITHDRAWN',
     ];
+
     /**
      * SSO Sub IDs from the my servers config file.
      */
@@ -81,20 +85,43 @@ class ServerState
     public $activationCodeData = [];
     public $state = 'UNKNOWN';
 
+    public $pathsForUpdateOsCheck = [
+        [
+            'path' => '/Tools/Registration',
+            'forceReplaceKeyCheck' => true,
+        ],
+        [
+            'path' => '/Tools/Update',
+            'forceReplaceKeyCheck' => false,
+        ],
+        [
+            'path' => '/Tools/Downgrade',
+            'forceReplaceKeyCheck' => false,
+        ],
+    ];
+
     /**
      * Constructor to initialize class properties and gather server information.
      */
     public function __construct()
     {
+        $this->updateOsCheck = new UnraidOsCheck();
+        /**
+         * This is positioned here to ensure that if during the UpdateOSCheck, which includes a ReplaceKeyCheck,
+         * that we get the latest var.ini values before anything else attempts to use them throughout the class.
+         */
+        $updateCheck = $this->shouldCheckForUpdates();
+        if ($updateCheck) {
+            $this->updateOsCheck->checkForUpdate($updateCheck['forceReplaceKeyCheck']);
+        }
         /**
          * @note – necessary evil until full webgui is class based.
          * @see - getWebguiGlobal() for usage
          * */
         global $webguiGlobals;
         $this->webguiGlobals = &$webguiGlobals;
-        // echo "<pre>" . json_encode($this->webguiGlobals, JSON_PRETTY_PRINT) . "</pre>";
 
-        $this->var = $webguiGlobals['var'];
+        $this->var = (array)@parse_ini_file(self::VAR_INI_FILE);
 
         // If we're on a patch, we need to use the combinedVersion to check for updates
         if (file_exists('/tmp/Patcher/patches.json')) {
@@ -102,7 +129,7 @@ class ServerState
             $this->var['version'] = $patchJson['combinedVersion'] ?? $this->var['version'];
         }
 
-        $this->nginxCfg = @parse_ini_file('/var/local/emhttp/nginx.ini') ?? [];
+        $this->nginxCfg = @parse_ini_file(self::NGINX_INI_FILE);
 
         $this->state = strtoupper(empty($this->var['regCheck']) ? $this->var['regTy'] : $this->var['regCheck']);
         $this->osVersion = $this->var['version'];
@@ -119,7 +146,6 @@ class ServerState
             $this->keyfileBase64UrlSafe = str_replace(['+', '/', '='], ['-', '_', ''], trim($this->keyfileBase64));
         }
 
-        $this->updateOsCheck = new UnraidOsCheck();
         $this->updateOsIgnoredReleases = $this->updateOsCheck->getIgnoredReleases();
         $this->updateOsNotificationsEnabled = !empty(@$this->getWebguiGlobal('notify', 'unraidos'));
         $this->updateOsResponse = $this->updateOsCheck->getUnraidOSCheckResult();
@@ -266,6 +292,19 @@ class ServerState
         }
 
         $this->activationCodeData = $data;
+    }
+
+    private function shouldCheckForUpdates(): ?array
+    {
+        $currentPath = $_SERVER['REQUEST_URI'];
+
+        foreach ($this->pathsForUpdateOsCheck as $pathConfig) {
+            if (strpos($currentPath, $pathConfig['path']) !== false) {
+                return $pathConfig;
+            }
+        }
+
+        return null;
     }
 
     /**
