@@ -80,8 +80,7 @@ const title = computed((): string => {
       class="hover:animate-pulse fill-current relative w-16px h-16px"
     />
 
-    <Bars3Icon v-if="!dropdownVisible" class="w-20px" />
-    <Bars3BottomRightIcon v-else class="w-20px" />
+    <Bars3Icon class="w-20px" />
 
     <BrandAvatar />
   </button>

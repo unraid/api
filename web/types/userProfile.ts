@@ -4,7 +4,9 @@ import type { ArrowTopRightOnSquareIcon } from '@heroicons/vue/24/solid';
 // the click key can be a function that returns void or a promise that returns void
 
 export type UserProfileLinkClickParams = string[] | number[] | undefined;
-export type UserProfileLinkClick = ((...args: UserProfileLinkClickParams[]) => void | Promise<void>) | ((...args: UserProfileLinkClickParams[]) => Promise<NodeJS.Timeout | undefined>);
+export type UserProfileLinkClick =
+  | ((...args: UserProfileLinkClickParams[]) => void | Promise<void>)
+  | ((...args: UserProfileLinkClickParams[]) => Promise<NodeJS.Timeout | undefined>);
 
 export interface UserProfileLink {
   click?: UserProfileLinkClick;
@@ -18,10 +20,4 @@ export interface UserProfileLink {
   text: string;
   textParams?: string[] | number[];
   title?: string;
-}
-
-export interface UserProfilePromoFeature {
-  copy: string;
-  icon?: typeof ArrowTopRightOnSquareIcon;
-  title: string;
 }

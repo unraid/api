@@ -13,9 +13,6 @@ const { callbackStatus } = storeToRefs(useCallbackActionsStore());
 const { trialModalVisible } = storeToRefs(useTrialStore());
 const { modalOpen: updateOsModalVisible } = storeToRefs(useUpdateOsStore());
 const { releaseForUpdate: updateOsChangelogModalVisible } = storeToRefs(useUpdateOsChangelogStore());
-// import { usePromoStore } from '~/store/promo';
-// const { promoVisible } = storeToRefs(usePromoStore());
-// <UpcPromo :t="t" :open="promoVisible" />
 </script>
 
 <template>
