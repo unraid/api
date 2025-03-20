@@ -665,6 +665,8 @@ export type LogFileContent = {
   content: Scalars['String']['output'];
   /** Path to the log file */
   path: Scalars['String']['output'];
+  /** Starting line number of the content (1-indexed) */
+  startLine?: Maybe<Scalars['Int']['output']>;
   /** Total number of lines in the file */
   totalLines: Scalars['Int']['output'];
 };
@@ -1156,6 +1158,7 @@ export type Query = {
    * Get the content of a specific log file
    * @param path Path to the log file
    * @param lines Number of lines to read from the end of the file (default: 100)
+   * @param startLine Optional starting line number (1-indexed)
    */
   logFile: LogFileContent;
   /** List all available log files */
@@ -1213,6 +1216,7 @@ export type QuerydockerNetworksArgs = {
 export type QuerylogFileArgs = {
   lines?: InputMaybe<Scalars['Int']['input']>;
   path: Scalars['String']['input'];
+  startLine?: InputMaybe<Scalars['Int']['input']>;
 };
 
 
@@ -2559,6 +2563,7 @@ export type LogFileResolvers<ContextType = Context, ParentType extends Resolvers
 export type LogFileContentResolvers<ContextType = Context, ParentType extends ResolversParentTypes['LogFileContent'] = ResolversParentTypes['LogFileContent']> = ResolversObject<{
   content?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   path?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  startLine?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
   totalLines?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
