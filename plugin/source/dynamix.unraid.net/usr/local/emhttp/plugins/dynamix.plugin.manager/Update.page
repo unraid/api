@@ -13,11 +13,11 @@ Tag="upload"
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
  */
+/**
+ * @note ServerState class constructor will check for updates and new license key when rendering /Tools/Update
+ */
 require_once "$docroot/plugins/dynamix.my.servers/include/reboot-details.php";
-require_once "$docroot/plugins/dynamix/include/ReplaceKey.php";
 $rebootDetails = new RebootDetails();
-$replaceKey = new ReplaceKey();
-$replaceKey->check();
 ?>
 <script>
 function cleanUpFlashBackup(zip) {
