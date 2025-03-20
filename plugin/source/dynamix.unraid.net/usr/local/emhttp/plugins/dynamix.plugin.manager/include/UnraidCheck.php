@@ -123,7 +123,7 @@ class UnraidOsCheck
         if ($replaceKey->check($forceReplaceKeyCheck)) {
             // if we have a new key, we need to wait for emhttp to update var.ini with the new regExp value
             $startTime = time();
-            $timeout = 30; // 30 seconds
+            $timeout = 5; // seconds
 
             while (time() - $startTime < $timeout) {
                 $currentVar = (array)@parse_ini_file(self::VAR_INI_FILE);
