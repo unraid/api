@@ -384,6 +384,7 @@ if [ -f /tmp/restore-files-dynamix-unraid-net ]; then
     "/usr/local/emhttp/plugins/dynamix/include/DefaultPageLayout.php"
     "/usr/local/emhttp/plugins/dynamix/include/ProvisionCert.php"
     "/usr/local/emhttp/plugins/dynamix/include/UpdateDNS.php"
+    "/usr/local/emhttp/plugins/dynamix/include/ReplaceKey.php"
     "/usr/local/emhttp/plugins/dynamix/include/Wrappers.php"
     "/usr/local/emhttp/plugins/dynamix.plugin.manager/Downgrade.page"
     "/usr/local/emhttp/plugins/dynamix.plugin.manager/Update.page"
@@ -505,6 +506,7 @@ echo
 preserveFilesDirs=(
   "move:/usr/local/emhttp/plugins/dynamix/Registration.page:preventDowngrade"
   "move:/usr/local/emhttp/plugins/dynamix/include/UpdateDNS.php:preventDowngrade"
+  "move:/usr/local/emhttp/plugins/dynamix/include/ReplaceKey.php:preventDowngrade"
   "move:/usr/local/emhttp/plugins/dynamix.plugin.manager/Downgrade.page:preventDowngrade"
   "move:/usr/local/emhttp/plugins/dynamix.plugin.manager/Update.page:preventDowngrade"
   "move:/usr/local/emhttp/plugins/dynamix.plugin.manager/scripts/unraidcheck:preventDowngrade"
