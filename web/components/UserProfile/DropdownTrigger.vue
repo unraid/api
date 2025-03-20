@@ -2,7 +2,6 @@
 import { storeToRefs } from 'pinia';
 
 import {
-  Bars3BottomRightIcon,
   Bars3Icon,
   BellAlertIcon,
   ExclamationTriangleIcon,
