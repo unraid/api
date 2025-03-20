@@ -136,7 +136,7 @@ class UnraidOsCheck
                     break;
                 }
 
-                usleep(250000); // Sleep for 0.25 seconds between checks
+                usleep(150000); // Sleep for 0.15 seconds between checks
             }
 
             if (time() - $startTime >= $timeout) { // if we timeout, use the current value
