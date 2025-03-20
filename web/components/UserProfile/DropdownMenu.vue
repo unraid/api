@@ -32,7 +32,7 @@ const showLaunchpad = computed(() => state.value === 'ENOKEYFILE');
     >
       <UpcDropdownLaunchpad v-if="showLaunchpad" :t="t" />
       <UpcDropdownContent v-else :t="t" />
-      <DropdownMenuArrow :rounded="true" :width="16" :height="12" class="fill-popover" />
+      <DropdownMenuArrow :rounded="true" class="fill-popover" :height="10" :width="16" />
     </DropdownMenuContent>
   </DropdownMenu>
 </template>

@@ -2,6 +2,7 @@ import type { Meta, StoryObj } from '@storybook/vue3';
 import { MoreVertical } from 'lucide-vue-next';
 import Button from '../../../src/components/common/button/Button.vue';
 import DropdownMenu from '../../../src/components/common/dropdown-menu/DropdownMenu.vue';
+import DropdownMenuArrow from '../../../src/components/common/dropdown-menu/DropdownMenuArrow.vue';
 import DropdownMenuContent from '../../../src/components/common/dropdown-menu/DropdownMenuContent.vue';
 import DropdownMenuItem from '../../../src/components/common/dropdown-menu/DropdownMenuItem.vue';
 import DropdownMenuLabel from '../../../src/components/common/dropdown-menu/DropdownMenuLabel.vue';
@@ -27,6 +28,7 @@ type Story = StoryObj<typeof meta>;
 export const Dropdown: Story = {
   render: () => ({
     components: {
+      DropdownMenuArrow,
       DropdownMenu,
       DropdownMenuTrigger,
       DropdownMenuContent,
@@ -36,18 +38,21 @@ export const Dropdown: Story = {
       Button,
     },
     template: `
-      <DropdownMenu>
-        <DropdownMenuTrigger>
-          <Button variant="secondary">Open Menu</Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent>
-          <DropdownMenuLabel>My Account</DropdownMenuLabel>
-          <DropdownMenuSeparator />
-          <DropdownMenuItem>Profile</DropdownMenuItem>
-          <DropdownMenuItem>Settings</DropdownMenuItem>
-          <DropdownMenuItem>Logout</DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenu>
+      <div class="bg-gray-200 p-4 h-screen">
+        <DropdownMenu>
+          <DropdownMenuTrigger>
+            <Button variant="secondary">Open Menu</Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent>
+            <DropdownMenuLabel>My Account</DropdownMenuLabel>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem>Profile</DropdownMenuItem>
+            <DropdownMenuItem>Settings</DropdownMenuItem>
+            <DropdownMenuItem>Logout</DropdownMenuItem>
+            <DropdownMenuArrow />
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </div>
     `,
   }),
 };
@@ -77,8 +82,9 @@ export const IconDropdown: Story = {
           <DropdownMenuItem>Edit</DropdownMenuItem>
           <DropdownMenuItem>Duplicate</DropdownMenuItem>
           <DropdownMenuItem>Delete</DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+          <DropdownMenuArrow />
+        </DropdownMenuContent>
+      </DropdownMenu>
     `,
   }),
 };
