@@ -105,15 +105,11 @@ class ServerState
      */
     public function __construct()
     {
-        $this->updateOsCheck = new UnraidOsCheck();
         /**
-         * This is positioned here to ensure that if during the UpdateOSCheck, which includes a ReplaceKeyCheck,
-         * that we get the latest var.ini values before anything else attempts to use them throughout the class.
+         * Run update check before any other operations to ensure
+         * var.ini has latest values after potential key replacements
          */
-        $updateCheck = $this->shouldCheckForUpdates();
-        if ($updateCheck) {
-            $this->updateOsCheck->checkForUpdate($updateCheck['forceReplaceKeyCheck']);
-        }
+        $this->initializeOsCheck();
         /**
          * @note – necessary evil until full webgui is class based.
          * @see - getWebguiGlobal() for usage
@@ -152,6 +148,16 @@ class ServerState
 
         $this->setConnectValues();
         $this->detectActivationCode();
+    }
+
+    private function initializeOsCheck(): void 
+    {
+        $this->updateOsCheck = new UnraidOsCheck();
+
+        $updateCheck = $this->shouldCheckForUpdates();
+        if ($updateCheck) {
+            $this->updateOsCheck->checkForUpdate($updateCheck['forceReplaceKeyCheck']);
+        }
     }
 
     /**
