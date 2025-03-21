@@ -56,14 +56,16 @@ const status = computed((): StatusOutput | undefined => {
   }
   return undefined;
 });
+
+const statusItemClasses = "text-14px flex flex-row justify-start items-center gap-8px mt-8px px-8px";
 </script>
 
 <template>
-  <li v-if="username" class="flex flex-row justify-start items-center gap-8px mt-8px px-8px">
+  <li v-if="username" :class="statusItemClasses">
     <UserCircleIcon class="w-16px h-16px" aria-hidden="true" />
     {{ username }}
   </li>
-  <li v-if="status" class="flex flex-row justify-start items-center gap-8px mt-8px px-8px">
+  <li v-if="status" :class="statusItemClasses">
     <component :is="status.icon" :class="status.iconClasses" aria-hidden="true" />
     {{ status.text }}
   </li>
