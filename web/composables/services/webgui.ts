@@ -108,7 +108,7 @@ export const WebguiCheckForUpdate = async (): Promise<ServerUpdateOsResponse | u
       params.altUrl = OS_RELEASES.toString();
     }
     const response = await request
-      .url('/plugins/dynamix.plugin.manager/include/UnraidCheck.php') // @todo replace with /scripts/unraidcheck
+      .url('/plugins/dynamix.plugin.manager/include/UnraidCheckExec.php') // @todo replace with /scripts/unraidcheck
       .query(params)
       .get()
       .json((json) => {
