@@ -7,7 +7,7 @@ import {
   useForwardPropsEmits,
   type SelectContentEmits,
   type SelectContentProps,
-} from 'radix-vue';
+} from 'reka-ui';
 import { computed, type HTMLAttributes } from 'vue';
 import { SelectScrollDownButton, SelectScrollUpButton } from '.';
 
