@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import useTeleport from '@/composables/useTeleport';
 import { cn } from '@/lib/utils';
 import {
   SelectContent,
@@ -15,21 +16,9 @@ defineOptions({
   inheritAttrs: false,
 });
 
-const props = withDefaults(
-  defineProps<
-    SelectContentProps & {
-      class?: HTMLAttributes['class'];
-      disabled?: boolean;
-      forceMount?: boolean;
-      to?: string | HTMLElement | Element;
-    }
-  >(),
-  {
-    position: 'popper',
-    class: undefined,
-    to: '#modals',
-  }
-);
+const props = withDefaults(defineProps<SelectContentProps & { class?: HTMLAttributes['class'] }>(), {
+  position: 'popper',
+});
 const emits = defineEmits<SelectContentEmits>();
 
 const delegatedProps = computed(() => {
@@ -38,11 +27,15 @@ const delegatedProps = computed(() => {
   return delegated;
 });
 
+const teleportTarget = useTeleport();
+
+console.log('teleportTarget', teleportTarget);
+
 const forwarded = useForwardPropsEmits(delegatedProps, emits);
 </script>
 
 <template>
-  <SelectPortal :disabled="disabled" :force-mount="forceMount" :to="to as HTMLElement">
+  <SelectPortal :defer="true" :to="teleportTarget as unknown as HTMLElement">
     <SelectContent
       v-bind="{ ...forwarded, ...$attrs }"
       :class="
@@ -60,7 +53,7 @@ const forwarded = useForwardPropsEmits(delegatedProps, emits);
           cn(
             'p-1',
             position === 'popper' &&
-              'h-[--radix-select-trigger-height] w-full min-w-[--radix-select-trigger-width]'
+              'h-[--reka-select-trigger-height] w-full min-w-[--reka-select-trigger-width]'
           )
         "
       >

@@ -178,15 +178,16 @@ const prepareToViewNotifications = () => {
 
             <Select
               @update:model-value="
-                (val: string) => {
-                  importance = val === 'all' ? undefined : (val as Importance);
+                (val: unknown) => {
+                  const strVal = String(val);
+                  importance = strVal === 'all' || !strVal ? undefined : (strVal as Importance);
                 }
               "
             >
               <SelectTrigger class="h-auto">
                 <SelectValue class="text-gray-400 leading-6" placeholder="Filter By" />
               </SelectTrigger>
-              <SelectContent :to="teleportTarget">
+              <SelectContent>
                 <SelectGroup>
                   <SelectLabel>Notification Types</SelectLabel>
                   <SelectItem value="all">All Types</SelectItem>

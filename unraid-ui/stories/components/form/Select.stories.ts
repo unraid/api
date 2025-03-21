@@ -1,4 +1,4 @@
-import type { Meta, StoryObj } from "@storybook/vue3";
+import type { Meta, StoryObj } from '@storybook/vue3';
 import {
   Select as SelectComponent,
   SelectContent,
@@ -7,10 +7,28 @@ import {
   SelectLabel,
   SelectTrigger,
   SelectValue,
-} from "../../../src/components/form/select";
+} from '../../../src/components/form/select';
+
+// Define the custom element for modals
+class ModalsContainer extends HTMLElement {
+  constructor() {
+    super();
+    const shadow = this.attachShadow({ mode: 'open' });
+    const parent = document.createElement('div');
+    const container = document.createElement('div');
+    container.id = 'modals';
+
+    parent.appendChild(container);
+
+    shadow.appendChild(parent);
+  }
+}
+
+// Register the custom element
+customElements.define('unraid-modals', ModalsContainer);
 
 const meta = {
-  title: "Components/Form/Select",
+  title: 'Components/Form/Select',
   component: SelectComponent,
 } satisfies Meta<typeof SelectComponent>;
 
@@ -34,7 +52,7 @@ export const Select: Story = {
     },
     template: `
       <div>
-        <div id="modals"></div>
+        <unraid-modals></unraid-modals>
         <SelectComponent>
           <SelectTrigger class="w-[180px]">
             <SelectValue placeholder="Select a fruit" />
@@ -70,7 +88,7 @@ export const Grouped: Story = {
     },
     template: `
       <div>
-        <div id="modals"></div>
+        <unraid-modals></unraid-modals>
         <SelectComponent>
           <SelectTrigger class="w-[180px]">
             <SelectValue placeholder="Select a food" />
