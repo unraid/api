@@ -88,8 +88,6 @@ DNSERR=no
 
 echo "Checking DNS..."
 dnscheck "mothership.unraid.net"
-#dnscheck "wanip4.unraid.net"
-#dnscheck "backup.unraid.net"
 
 [[ "${DNSERR}" == "yes" && "${DNS_SERVER1}" != "8.8.8.8" ]] && echo "  Recommend navigating to Settings -> Network Settings and changing your DNS server to 8.8.8.8"
 # Note: DNS checks will fail if the network is not available at boot. Cannot exit the install when DNS checks fail.
@@ -150,18 +148,6 @@ exit 0
     <SHA256>&TXZ_SHA256;</SHA256>
   </FILE>
 
-  <FILE Run="/bin/bash" Method="install">
-    <INLINE>
-      MAINTXZ="&source;.txz"
-    <![CDATA[
-# before proceeding with install, doubly confirm downloaded files exist. just being pedantic.
-FILE=${MAINTXZ} && [[ ! -f "$FILE" ]] && echo "⚠️ file missing - $FILE" && exit 1
-
-exit 0
-]]>
-    </INLINE>
-  </FILE>
-
   <FILE Run="/bin/bash" Method="remove">
     <INLINE>
       <![CDATA[
@@ -172,6 +158,10 @@ source /etc/unraid-version
 # Undo some activation / partner setup
 source /usr/local/emhttp/plugins/dynamix.my.servers/scripts/activation_code_remove
 
+# Run cleanup operations
+echo "Performing cleanup operations..."
+/usr/bin/php /usr/local/emhttp/plugins/dynamix.my.servers/scripts/cleanup_operations.php
+
 echo
 echo "⚠️ Do not close this window yet"
 echo
@@ -181,144 +171,28 @@ exit 0
     </INLINE>
   </FILE>
 
-  <!-- disable features on uninstall -->
-  <!-- NOTE: this script is PHP not bash -->
-  <FILE Run="/usr/bin/php" Method="remove">
-    <INLINE>
-      <![CDATA[
-<?
-$msini = @parse_ini_file('/boot/config/plugins/dynamix.my.servers/myservers.cfg', true);
-
-echo "\n";
-echo "**********************************\n";
-echo "🧹 CLEANING UP - may take a minute\n";
-echo "**********************************\n";
-
-if (file_exists("/boot/.git")) {
-  if (file_exists("/etc/rc.d/rc.flash_backup")) {
-    # stop flash backup service
-    echo "\nStopping flash backup service. Please wait…";
-    exec("/etc/rc.d/rc.flash_backup stop &>/dev/null");
-  }
-  if (file_exists("/usr/local/emhttp/plugins/dynamix.my.servers/include/UpdateFlashBackup.php")) {
-    # deactivate and delete local flash backup
-    echo "\nDeactivating flash backup. Please wait…";
-    passthru("/usr/bin/php /usr/local/emhttp/plugins/dynamix.my.servers/include/UpdateFlashBackup.php deactivate");
-  }
-}
-
-if (file_exists("/etc/rc.d/rc.unraid-api")) {
-  echo "\nStopping unraid-api. Please wait…";
-  $output = shell_exec("/etc/rc.d/rc.unraid-api stop --delete 2>&1'");
-  if (!$output) {
-    echo "Waiting for unraid-api to stop...\n";
-    sleep(5); // Give it a few seconds to fully stop
-  }
-  echo "Stopped unraid-api: $output";
-
-  # Find all PIDs referencing main.js and kill them, excluding grep process
-  $pids = shell_exec("ps aux | grep 'node /usr/local/unraid-api/dist/main.js' | grep -v grep | awk '{print $2}'");
-  foreach(explode("\n", trim($pids)) as $pid) {
-    if ($pid) {
-      posix_kill((int)$pid, 9);
-    }
-  }
-}
-
-# set "Allow Remote Access" to "No" and sign out from Unraid Connect
-if ($msini !== false) {
-  if (!empty($msini['remote']['username'])) {
-    $var = parse_ini_file("/var/local/emhttp/var.ini");
-    $keyfile = @file_get_contents($var['regFILE']);
-    if ($keyfile !== false) {
-      echo "\nSigning out of Unraid Connect\n";
-      $ch = curl_init('https://keys.lime-technology.com/account/server/unregister');
-      curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-      curl_setopt($ch, CURLOPT_POST, 1);
-      curl_setopt($ch, CURLOPT_POSTFIELDS, ['keyfile' => @base64_encode($keyfile)]);
-      curl_exec($ch);
-      curl_close($ch);
-    }
-  }
-
-  # remove myservers.cfg
-  unlink('/boot/config/plugins/dynamix.my.servers/myservers.cfg');
-
-  # reload nginx to disable Remote Access
-  echo "\n⚠️ Reloading Web Server. If this window stops updating for two minutes please close it.\n";
-  exec("/etc/rc.d/rc.nginx reload &>/dev/null");
-}
-exit(0);
-]]>
-    </INLINE>
-  </FILE>
-
-  <!-- disable features when upgrading on unsupported OS versions -->
-  <!-- duplicated from above because the script can't distinguish between install and remove -->
-  <!-- NOTE: this script is PHP not bash -->
+  <!-- Cleanup for install on unsupported OS -->
   <FILE Run="/usr/bin/php" Method="install">
     <INLINE>
       <![CDATA[
-<?
-$ver = @parse_ini_file('/etc/unraid-version', true)['version'];
-$msini = @parse_ini_file('/boot/config/plugins/dynamix.my.servers/myservers.cfg', true);
+<?php
+// Check Unraid version
+$version = @parse_ini_file('/etc/unraid-version', true)['version'];
 
-// exit this install block if NOT isUnsupportedVersion
-// must be 6.12.0 or higher (not 6.12.0-[beta|rc])
-if (version_compare($ver,'6.12.0','>=')) {
+// Check if this is a supported version
+// - Must be 6.12.0 or higher
+// - Must not be a 6.12.0 beta/rc version
+$is_stable_6_12_or_higher = version_compare($version, '6.12.0', '>=') && !preg_match('/^6\\.12\\.0-/', $version);
+
+if ($is_stable_6_12_or_higher) {
+  echo "Running on supported version {$version}, skipping cleanup\n";
   exit(0);
 }
 
-echo "\n";
-echo "**********************************\n";
-echo "🧹 CLEANING UP - may take a minute\n";
-echo "**********************************\n";
+echo "Running on unsupported version {$version}, performing cleanup\n";
+echo "Running cleanup operations...\n";
+include_once("/usr/local/emhttp/plugins/dynamix.my.servers/scripts/cleanup_operations.php");
 
-if (file_exists("/boot/.git")) {
-  if (file_exists("/etc/rc.d/rc.flash_backup")) {
-    # stop flash backup service
-    echo "\nStopping flash backup service. Please wait…";
-    exec("/etc/rc.d/rc.flash_backup stop &>/dev/null");
-  }
-  if (file_exists("/usr/local/emhttp/plugins/dynamix.my.servers/include/UpdateFlashBackup.php")) {
-    # deactivate and delete local flash backup
-    echo "\nDeactivating flash backup. Please wait…";
-    passthru("/usr/bin/php /usr/local/emhttp/plugins/dynamix.my.servers/include/UpdateFlashBackup.php deactivate");
-  }
-}
-
-# set "Allow Remote Access" to "No" and sign out from Unraid Connect
-if ($msini !== false) {
-  # stop unraid-api
-  echo "\nStopping unraid-api. Please wait…";
-  $output = shell_exec("/etc/rc.d/rc.unraid-api stop --delete 2>&1'");
-  if (!$output) {
-    echo "Waiting for unraid-api to stop...\n";
-    sleep(5); // Give it a few seconds to fully stop
-  }
-  echo "Stopped unraid-api: $output";
-
-  if (!empty($msini['remote']['username'])) {
-    $var = parse_ini_file("/var/local/emhttp/var.ini");
-    $keyfile = @file_get_contents($var['regFILE']);
-    if ($keyfile !== false) {
-      echo "\nSigning out of Unraid Connect\n";
-      $ch = curl_init('https://keys.lime-technology.com/account/server/unregister');
-      curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-      curl_setopt($ch, CURLOPT_POST, 1);
-      curl_setopt($ch, CURLOPT_POSTFIELDS, ['keyfile' => @base64_encode($keyfile)]);
-      curl_exec($ch);
-      curl_close($ch);
-    }
-  }
-
-  # remove myservers.cfg
-  unlink('/boot/config/plugins/dynamix.my.servers/myservers.cfg');
-
-  # reload nginx to disable Remote Access
-  echo "\n⚠️ Reloading Web Server. If this window stops updating for two minutes please close it.\n";
-  exec("/etc/rc.d/rc.nginx reload &>/dev/null");
-}
 exit(0);
 ]]>
     </INLINE>
@@ -527,6 +401,7 @@ preserveFilesDirs=(
 preserveAction() {
     local action="$1"
     local path="$2"
+    local preventType="$3" # preventDowngrade or skip
 
     if [[ "$action" == "move" ]]; then
         [[ -f "$path" ]] && mv -f "$path" "$path-"

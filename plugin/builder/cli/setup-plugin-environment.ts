@@ -93,7 +93,7 @@ export const setupPluginEnv = async (argv: string[]): Promise<PluginEnv> => {
       "Base URL - will be used to determine the bucket, and combined with the tag (if set) to form the final URL",
       process.env.CI === "true"
         ? "This is a CI build, please set the base URL manually"
-        : `http://${process.env.HOST_LAN_IP}:8080`
+        : `http://${process.env.HOST_LAN_IP}:5858`
     )
     .option(
       "--txz-path <path>",
