@@ -51,7 +51,7 @@ import { PluginService } from '@app/unraid-api/plugin/plugin.service.js';
                         },
                     },
                     path: '/graphql',
-                    typeDefs: [print(await loadTypeDefs()), plugins.typeDefs],
+                    typeDefs: [print(await loadTypeDefs([plugins.typeDefs]))],
                     resolvers: {
                         JSON: JSONResolver,
                         Long: GraphQLLong,

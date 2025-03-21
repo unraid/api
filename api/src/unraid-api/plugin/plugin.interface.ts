@@ -14,12 +14,29 @@ const asyncArray = () => z.function().returns(z.promise(z.array(z.any())));
 const asyncString = () => z.function().returns(z.promise(z.string()));
 const asyncVoid = () => z.function().returns(z.promise(z.void()));
 
+// GraphQL resolver type definitions
+const resolverFunction = z.function()
+    .args(
+        z.any().optional(),  // parent
+        z.any().optional(),  // args
+        z.any().optional(),  // context
+        z.any().optional()   // info
+    )
+    .returns(z.any());
+
+const resolverFieldMap = z.record(z.string(), resolverFunction);
+const resolverTypeMap = z.record(
+    z.enum(['Query', 'Mutation', 'Subscription']).or(z.string()), 
+    resolverFieldMap
+);
+const asyncResolver = () => z.function().returns(z.promise(resolverTypeMap));
+
 export const apiPluginSchema = z.object({
     _type: z.literal('UnraidApiPlugin'),
     name: z.string(),
     description: z.string(),
     commands: z.array(z.custom<Type<CommandRunner>>()),
-    registerGraphQLResolvers: asyncArray().optional(),
+    registerGraphQLResolvers: asyncResolver().optional(),
     registerGraphQLTypeDefs: asyncString().optional(),
     registerRESTControllers: asyncArray().optional(),
     registerRESTRoutes: asyncArray().optional(),

@@ -12,6 +12,24 @@ export default ({ store, logger }) => ({
 
   commands: [],
 
+  async registerGraphQLResolvers() {
+    return {
+      Query: {
+        health: () => {
+            logger.log("Pinged health");
+            return "OK";
+        }
+      }
+    };
+  },
+
+  async registerGraphQLTypeDefs() {
+    return `
+      type Query {
+        health: String
+      }
+    `;
+  },
   async onModuleInit() {
     logger.log("Health plugin initialized");
   },

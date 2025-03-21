@@ -1,24 +1,145 @@
-import { Injectable, Logger, Type } from '@nestjs/common';
+import { Injectable, Logger, Provider, Type } from '@nestjs/common';
 
-import type { ApiPluginDefinition } from '@app/unraid-api/plugin/plugin.interface.js';
+import { pascalCase } from 'change-case';
+
+import type {
+    ApiPluginDefinition,
+    ConstructablePlugin,
+} from '@app/unraid-api/plugin/plugin.interface.js';
+import { getPackageJsonDependencies as getPackageDependencies } from '@app/environment.js';
+import { store } from '@app/store/index.js';
+import { apiPluginSchema } from '@app/unraid-api/plugin/plugin.interface.js';
+import { batchProcess } from '@app/utils.js';
+
+type CustomProvider = Provider & {
+    provide: string | symbol | Type<any>;
+};
+
+type PluginProvider = {
+    provider: CustomProvider;
+    pluginInstance: ApiPluginDefinition;
+};
 
 @Injectable()
 export class PluginService {
-    private readonly plugins: ApiPluginDefinition[] = [];
-    private readonly logger = new Logger(PluginService.name);
+    private pluginProviders: PluginProvider[] | undefined;
+    private static readonly logger = new Logger(PluginService.name);
+    constructor() {
+        this.loadPlugins();
+    }
+
+    private get plugins() {
+        return this.pluginProviders?.map((plugin) => plugin.pluginInstance) ?? [];
+    }
+
+    async loadPlugins() {
+        if (this.pluginProviders?.length) {
+            return this.pluginProviders;
+        }
+        return PluginService.getPlugins()
+            .then((plugins) => {
+                if (!this.pluginProviders?.length) {
+                    this.pluginProviders = plugins;
+                    PluginService.logger.debug(
+                        `Registered ${this.plugins.length} plugins: ${JSON.stringify(Object.keys(this.plugins[0]), null, 2)}`
+                    );
+                } else {
+                    PluginService.logger.debug(
+                        `${plugins.length} plugins already registered. Skipping registration.`
+                    );
+                }
+                return this.pluginProviders;
+            })
+            .catch((error) => {
+                PluginService.logger.error('Error registering plugins', error);
+                return [];
+            });
+    }
+
+    private static isPluginFactory(factory: any): factory is ConstructablePlugin {
+        return typeof factory === 'function';
+    }
+
+    private static async getPluginFromPackage(pluginPackage: string): Promise<{
+        provider: CustomProvider;
+        pluginInstance: ApiPluginDefinition;
+    }> {
+        const moduleImport = await import(/* @vite-ignore */ pluginPackage);
+        const pluginName = pascalCase(pluginPackage);
+        const PluginFactory = moduleImport.default || moduleImport[pluginName];
+
+        if (!this.isPluginFactory(PluginFactory)) {
+            throw new Error(`Invalid plugin from ${pluginPackage}. Must export a factory function.`);
+        }
+        console.log('PluginFactory', PluginFactory);
+        const logger = new Logger(PluginFactory.name);
+        // Note: plugin construction could throw. this should bubble up.
+        const validation = apiPluginSchema.safeParse(PluginFactory({ store, logger }));
+        if (!validation.success) {
+            throw new Error(`Invalid plugin from ${pluginPackage}: ${validation.error}`);
+        }
+        const pluginInstance = validation.data;
+
+        return {
+            provider: {
+                provide: PluginFactory.name,
+                useValue: pluginInstance,
+            },
+            pluginInstance,
+        };
+    }
+
+    static async getPlugins() {
+        /** All api plugins must be npm packages whose name starts with this prefix */
+        const pluginPrefix = 'unraid-api-plugin-';
+        // All api plugins must be installed as dependencies of the unraid-api package
+        /** list of npm packages that are unraid-api plugins */
+        const plugins = getPackageDependencies()?.filter((pkgName) => pkgName.startsWith(pluginPrefix));
+        if (!plugins) {
+            this.logger.warn('Could not load dependencies from the Unraid-API package.json');
+            // Fail silently: Return the module without plugins
+            return [];
+        }
+        const pluginsListing = JSON.stringify(plugins, null, 2);
+        this.logger.debug(`Found ${plugins.length} plugins to load: ${pluginsListing}`);
+
+        const failedPlugins: string[] = [];
+        const { data: pluginProviders } = await batchProcess(plugins, async (pluginPackage) => {
+            try {
+                return await this.getPluginFromPackage(pluginPackage);
+            } catch (error) {
+                failedPlugins.push(pluginPackage);
+                this.logger.warn(error);
+                throw error;
+            }
+        });
+        if (failedPlugins.length > 0) {
+            this.logger.warn(
+                `${failedPlugins.length} plugins failed to load. Ignoring them: ${failedPlugins.join(', ')}`
+            );
+        }
+
+        return pluginProviders;
+    }
 
     registerPlugin(plugin: ApiPluginDefinition) {
         this.plugins.push(plugin);
     }
 
     async getGraphQLConfiguration() {
-        const resolvers: Record<string, any>[] = [];
+        await this.loadPlugins();
+        const plugins = this.plugins;
+
+        let combinedResolvers = {};
         const typeDefs: string[] = [];
 
-        for (const plugin of this.plugins) {
+        for (const plugin of plugins) {
             if (plugin.registerGraphQLResolvers) {
                 const pluginResolvers = await plugin.registerGraphQLResolvers();
-                resolvers.push(...pluginResolvers);
+                combinedResolvers = {
+                    ...combinedResolvers,
+                    ...pluginResolvers
+                };
             }
 
             if (plugin.registerGraphQLTypeDefs) {
@@ -28,12 +149,13 @@ export class PluginService {
         }
 
         return {
-            resolvers,
+            resolvers: combinedResolvers,
             typeDefs: typeDefs.join('\n'),
         };
     }
 
     async getRESTConfiguration() {
+        await this.loadPlugins();
         const controllers: Type<any>[] = [];
         const routes: Record<string, any>[] = [];
 
@@ -56,6 +178,7 @@ export class PluginService {
     }
 
     async getServices() {
+        await this.loadPlugins();
         const services: Type<any>[] = [];
 
         for (const plugin of this.plugins) {
@@ -69,6 +192,7 @@ export class PluginService {
     }
 
     async getCronJobs() {
+        await this.loadPlugins();
         const cronJobs: Record<string, any>[] = [];
 
         for (const plugin of this.plugins) {

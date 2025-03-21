@@ -2,7 +2,7 @@ import { mergeTypeDefs } from '@graphql-tools/merge';
 
 import { logger } from '@app/core/log.js';
 
-export const loadTypeDefs = async () => {
+export const loadTypeDefs = async (additionalTypeDefs: string[] = []) => {
     // TypeScript now knows this returns Record<string, () => Promise<string>>
     const typeModules = import.meta.glob('./types/**/*.graphql', { query: '?raw', import: 'default' });
 
@@ -19,6 +19,7 @@ export const loadTypeDefs = async () => {
         if (!files.length) {
             throw new Error('No GraphQL type definitions found');
         }
+        files.push(...additionalTypeDefs);
         return mergeTypeDefs(files);
     } catch (error) {
         logger.error('Failed to load GraphQL type definitions:', error);
