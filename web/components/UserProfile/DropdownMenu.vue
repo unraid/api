@@ -22,7 +22,7 @@ const open = ref(false);
       :side-offset="4"
       :align="'end'"
       :side="'bottom'"
-      class="w-[350px]"
+      class="min-w-[300px] max-w-[300px] md:max-w-[350px]"
     >
       <UpcDropdownContent :t="t" />
       <DropdownMenuArrow :rounded="true" class="fill-popover" :height="10" :width="16" />
