@@ -19,6 +19,9 @@ if [ ! -d "$source_directory" ]; then
 fi
 
 # Replace the value inside the rsync command with the user's input
+# Delete existing web components in the target directory
+ssh "root@${server_name}" "rm -rf /usr/local/emhttp/plugins/dynamix.my.servers/unraid-components/nuxt/*"
+
 rsync_command="rsync -avz -e ssh $source_directory root@${server_name}:/usr/local/emhttp/plugins/dynamix.my.servers/unraid-components/nuxt"
 
 echo "Executing the following command:"
