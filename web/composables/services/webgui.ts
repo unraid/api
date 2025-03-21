@@ -92,6 +92,11 @@ interface WebguiUnraidCheckPayload {
   version?: string;
 }
 
+interface WebguiUnraidCheckExecPayload {
+  altUrl?: string;
+  json?: boolean;
+}
+
 interface WebguiUnraidCheckIgnoreResponse {
   updateOsIgnoredReleases: string[];
 }
@@ -99,8 +104,7 @@ interface WebguiUnraidCheckIgnoreResponse {
 export const WebguiCheckForUpdate = async (): Promise<ServerUpdateOsResponse | unknown> => {
   console.debug('[WebguiCheckForUpdate]');
   try {
-    const params: WebguiUnraidCheckPayload = {
-      action: 'check',
+    const params: WebguiUnraidCheckExecPayload = {
       json: true,
     };
     // conditionally add altUrl if OS_RELEASES.toString() is not 'https://releases.unraid.net/os'

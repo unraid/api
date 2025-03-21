@@ -5,6 +5,9 @@
  * handles both operations in a simplified manner.
  * 
  * It's called via the WebguiCheckForUpdate function in composables/services/webgui.ts of the web components.
+ * Handles WebguiUnraidCheckExecPayload interface parameters:
+ * - altUrl?: string
+ * - json?: boolean
  */
 class UnraidCheckExec
 {
@@ -13,7 +16,16 @@ class UnraidCheckExec
     private function setupEnvironment(): void
     {
         header('Content-Type: application/json');
-        putenv('QUERY_STRING=json=true');
+
+        $params = [
+            'json' => 'true',
+        ];
+        // allows the web components to determine the OS_RELEASES url
+        if (isset($_GET['altUrl']) && filter_var($_GET['altUrl'], FILTER_VALIDATE_URL)) {
+            $params['altUrl'] = $_GET['altUrl'];
+        }
+        // pass the params to the unraidcheck script for usage in UnraidCheck.php
+        putenv('QUERY_STRING=' . http_build_query($params));
     }
 
     public function execute(): string
