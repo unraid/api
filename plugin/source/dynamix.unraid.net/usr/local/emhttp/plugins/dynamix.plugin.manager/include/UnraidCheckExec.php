@@ -30,9 +30,15 @@ class UnraidCheckExec
 
     public function execute(): string
     {
+        if (!is_file(self::SCRIPT_PATH) || !is_readable(self::SCRIPT_PATH)) {
+            throw new RuntimeException('Script not found or not readable');
+        }
+
         $this->setupEnvironment();
         $output = [];
-        exec(self::SCRIPT_PATH, $output);
+        $command = escapeshellcmd(self::SCRIPT_PATH);
+        exec($command, $output);
+
         return implode("\n", $output);
     }
 }
