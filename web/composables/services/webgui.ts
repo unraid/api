@@ -92,6 +92,11 @@ interface WebguiUnraidCheckPayload {
   version?: string;
 }
 
+interface WebguiUnraidCheckExecPayload {
+  altUrl?: string;
+  json?: boolean;
+}
+
 interface WebguiUnraidCheckIgnoreResponse {
   updateOsIgnoredReleases: string[];
 }
@@ -99,8 +104,7 @@ interface WebguiUnraidCheckIgnoreResponse {
 export const WebguiCheckForUpdate = async (): Promise<ServerUpdateOsResponse | unknown> => {
   console.debug('[WebguiCheckForUpdate]');
   try {
-    const params: WebguiUnraidCheckPayload = {
-      action: 'check',
+    const params: WebguiUnraidCheckExecPayload = {
       json: true,
     };
     // conditionally add altUrl if OS_RELEASES.toString() is not 'https://releases.unraid.net/os'
@@ -108,7 +112,7 @@ export const WebguiCheckForUpdate = async (): Promise<ServerUpdateOsResponse | u
       params.altUrl = OS_RELEASES.toString();
     }
     const response = await request
-      .url('/plugins/dynamix.plugin.manager/include/UnraidCheck.php') // @todo replace with /scripts/unraidcheck
+      .url('/plugins/dynamix.plugin.manager/include/UnraidCheckExec.php')
       .query(params)
       .get()
       .json((json) => {
