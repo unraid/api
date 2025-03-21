@@ -10,20 +10,23 @@ export interface PluginMetadata {
     description: string;
 }
 
+const asyncArray = () => z.function().returns(z.promise(z.array(z.any())));
+const asyncString = () => z.function().returns(z.promise(z.string()));
+const asyncVoid = () => z.function().returns(z.promise(z.void()));
+
 export const apiPluginSchema = z.object({
     _type: z.literal('UnraidApiPlugin'),
     name: z.string(),
     description: z.string(),
-    commands: z.array(z.function()),
-    registerGraphQLResolvers: z.function().optional(),
-    registerGraphQLTypeDefs: z.function().optional(),
-    registerRESTControllers: z.function().optional(),
-    registerRESTRoutes: z.function().optional(),
-    registerServices: z.function().optional(),
-    registerCronJobs: z.function().optional(),
-    onModuleInit: z.function().optional(),
-    onModuleDestroy: z.function().optional(),
-    unrequiredProp: z.string(),
+    commands: z.array(z.custom<Type<CommandRunner>>()),
+    registerGraphQLResolvers: asyncArray().optional(),
+    registerGraphQLTypeDefs: asyncString().optional(),
+    registerRESTControllers: asyncArray().optional(),
+    registerRESTRoutes: asyncArray().optional(),
+    registerServices: asyncArray().optional(),
+    registerCronJobs: asyncArray().optional(),
+    onModuleInit: asyncVoid().optional(),
+    onModuleDestroy: asyncVoid().optional(),
 });
 
 export type ApiPluginDefinition = z.infer<typeof apiPluginSchema>;

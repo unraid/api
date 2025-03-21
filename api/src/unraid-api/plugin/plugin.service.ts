@@ -1,28 +1,14 @@
-import { Injectable, Logger, OnModuleDestroy, OnModuleInit, Type } from '@nestjs/common';
+import { Injectable, Logger, Type } from '@nestjs/common';
 
-import { UnraidAPIPlugin } from '@app/unraid-api/plugin/plugin.interface.js';
+import type { ApiPluginDefinition } from '@app/unraid-api/plugin/plugin.interface.js';
 
 @Injectable()
-export class PluginService implements OnModuleInit, OnModuleDestroy {
-    private readonly plugins: UnraidAPIPlugin[] = [];
+export class PluginService {
+    private readonly plugins: ApiPluginDefinition[] = [];
     private readonly logger = new Logger(PluginService.name);
 
-    registerPlugin(plugin: UnraidAPIPlugin) {
+    registerPlugin(plugin: ApiPluginDefinition) {
         this.plugins.push(plugin);
-    }
-
-    async onModuleInit() {
-        for (const plugin of this.plugins) {
-            await plugin.onModuleInit();
-            this.logger.log(`Initialized plugin: ${plugin.metadata.name}`);
-        }
-    }
-
-    async onModuleDestroy() {
-        for (const plugin of this.plugins) {
-            await plugin.onModuleDestroy();
-            this.logger.log(`Destroyed plugin: ${plugin.metadata.name}`);
-        }
     }
 
     async getGraphQLConfiguration() {
