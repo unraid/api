@@ -121,13 +121,14 @@ const prepareToViewNotifications = () => {
 </script>
 
 <template>
-  <Sheet>
+  <Sheet :modal="false">
     <SheetTrigger @click="prepareToViewNotifications">
       <span class="sr-only">Notifications</span>
       <NotificationsIndicator :overview="overview" :seen="haveSeenNotifications" />
     </SheetTrigger>
     <SheetContent
       :to="teleportTarget as HTMLElement"
+      side="right"
       class="w-full max-w-[100vw] sm:max-w-[540px] max-h-screen h-screen min-h-screen px-0 flex flex-col gap-5 pb-0"
     >
       <div class="relative flex flex-col h-full w-full">
@@ -177,15 +178,16 @@ const prepareToViewNotifications = () => {
 
             <Select
               @update:model-value="
-                (val: string) => {
-                  importance = val === 'all' ? undefined : (val as Importance);
+                (val: unknown) => {
+                  const strVal = String(val);
+                  importance = strVal === 'all' || !strVal ? undefined : (strVal as Importance);
                 }
               "
             >
               <SelectTrigger class="h-auto">
                 <SelectValue class="text-gray-400 leading-6" placeholder="Filter By" />
               </SelectTrigger>
-              <SelectContent :to="teleportTarget">
+              <SelectContent>
                 <SelectGroup>
                   <SelectLabel>Notification Types</SelectLabel>
                   <SelectItem value="all">All Types</SelectItem>

@@ -1,15 +1,15 @@
 <script setup lang="ts">
 import {
   DropdownMenuRadioGroup,
+  useForwardPropsEmits,
   type DropdownMenuRadioGroupEmits,
   type DropdownMenuRadioGroupProps,
-  useForwardPropsEmits,
-} from "radix-vue";
+} from 'reka-ui';
 
 const props = defineProps<DropdownMenuRadioGroupProps>();
 const emits = defineEmits<DropdownMenuRadioGroupEmits>();
 
-const forwarded = useForwardPropsEmits(props, emits);
+const forwarded = useForwardPropsEmits<DropdownMenuRadioGroupProps, 'update:modelValue'>(props, emits);
 </script>
 
 <template>

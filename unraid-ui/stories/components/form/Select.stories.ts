@@ -1,4 +1,4 @@
-import type { Meta, StoryObj } from "@storybook/vue3";
+import type { Meta, StoryObj } from '@storybook/vue3';
 import {
   Select as SelectComponent,
   SelectContent,
@@ -7,10 +7,10 @@ import {
   SelectLabel,
   SelectTrigger,
   SelectValue,
-} from "../../../src/components/form/select";
+} from '../../../src/components/form/select';
 
 const meta = {
-  title: "Components/Form/Select",
+  title: 'Components/Form/Select',
   component: SelectComponent,
 } satisfies Meta<typeof SelectComponent>;
 
@@ -33,8 +33,6 @@ export const Select: Story = {
       return { args };
     },
     template: `
-      <div>
-        <div id="modals"></div>
         <SelectComponent>
           <SelectTrigger class="w-[180px]">
             <SelectValue placeholder="Select a fruit" />
@@ -49,7 +47,6 @@ export const Select: Story = {
             </SelectGroup>
           </SelectContent>
         </SelectComponent>
-      </div>
     `,
   }),
 };
@@ -70,7 +67,7 @@ export const Grouped: Story = {
     },
     template: `
       <div>
-        <div id="modals"></div>
+        <unraid-modals></unraid-modals>
         <SelectComponent>
           <SelectTrigger class="w-[180px]">
             <SelectValue placeholder="Select a food" />

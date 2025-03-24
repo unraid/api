@@ -1,9 +1,14 @@
-import type { Meta, StoryObj } from "@storybook/vue3";
-import { Tooltip as TooltipComponent, TooltipTrigger, TooltipContent, TooltipProvider } from "../../../src/components/common/tooltip";
-import { Button } from "../../../src/components/common/button";
+import type { Meta, StoryObj } from '@storybook/vue3';
+import { Button } from '../../../src/components/common/button';
+import {
+  Tooltip as TooltipComponent,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '../../../src/components/common/tooltip';
 
 const meta = {
-  title: "Components/Common",
+  title: 'Components/Common',
   component: TooltipComponent,
 } satisfies Meta<typeof TooltipComponent>;
 
@@ -21,8 +26,6 @@ export const Tooltip: Story = {
       return { args };
     },
     template: `
-      <div>
-        <div id="modals"></div>
         <div class="p-20 flex items-center justify-start">
           <TooltipProvider>
             <TooltipComponent :default-open="args.defaultOpen">
@@ -35,7 +38,6 @@ export const Tooltip: Story = {
             </TooltipComponent>
           </TooltipProvider>
         </div>
-      </div>
     `,
   }),
 };

@@ -189,7 +189,7 @@ const unraidConnectWelcome = computed(() => {
 </script>
 
 <template>
-  <div class="flex flex-col gap-y-8px min-w-300px max-w-350px">
+  <div class="flex flex-col grow gap-y-8px">
     <header
       v-if="connectPluginInstalled"
       class="flex flex-col items-start justify-between mt-8px mx-8px"

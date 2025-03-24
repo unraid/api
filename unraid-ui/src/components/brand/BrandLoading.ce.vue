@@ -1,11 +1,15 @@
 <script setup lang="ts">
 import { cn } from '@/lib/utils';
 import { computed } from 'vue';
-import { brandLoadingVariants, markAnimations } from './brand-loading.variants';
+import {
+  brandLoadingVariants,
+  markAnimations,
+  type BrandLoadingVariants,
+} from './brand-loading.variants';
 
 export interface Props {
-  variant?: 'default' | 'black' | 'white';
-  size?: 'sm' | 'md' | 'lg' | 'full';
+  variant?: BrandLoadingVariants['variant'];
+  size?: BrandLoadingVariants['size'];
   class?: string;
   title?: string;
 }
@@ -22,7 +26,7 @@ const GRADIENT_COLORS = {
   default: { start: '#e32929', stop: '#ff8d30' },
 } as const;
 
-const gradientColors = computed(() => GRADIENT_COLORS[props.variant]);
+const gradientColors = computed(() => GRADIENT_COLORS[props.variant as keyof typeof GRADIENT_COLORS]);
 
 const classes = computed(() => {
   return cn(brandLoadingVariants({ variant: props.variant, size: props.size }), props.class);

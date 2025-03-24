@@ -20,7 +20,6 @@ import type { ComposerTranslation } from 'vue-i18n';
 import { useAccountStore } from '~/store/account';
 import { useCallbackActionsStore } from '~/store/callbackActions';
 import { useInstallKeyStore } from '~/store/installKey';
-// import { usePromoStore } from '~/store/promo';
 import { useServerStore } from '~/store/server';
 import { useUpdateOsActionsStore } from '~/store/updateOsActions';
 
@@ -36,7 +35,6 @@ const props = withDefaults(defineProps<Props>(), {
 const accountStore = useAccountStore();
 const callbackActionsStore = useCallbackActionsStore();
 const installKeyStore = useInstallKeyStore();
-// const promoStore = usePromoStore();
 const serverStore = useServerStore();
 const updateOsActionStore = useUpdateOsActionsStore();
 
@@ -66,8 +64,6 @@ const {
  * @todo figure out the difference between document.location and window.location in relation to the webGUI and webGUI being iframed
  */
 const isSettingsPage = ref<boolean>(document.location.pathname === '/Settings/ManagementAccess');
-
-// const showPromoCta = computed(() => callbackStatus.value === 'success' && !connectPluginInstalled.value);
 
 const heading = computed(() => {
   if (updateOsStatus.value === 'confirming') {
@@ -142,11 +138,6 @@ const cancelUpdateOs = () => {
   updateOsActionStore.setStatus('ready');
   callbackActionsStore.setCallbackStatus('ready');
 };
-
-// const promoClick = () => {
-//   promoStore.openOnNextLoad();
-//   close();
-// };
 
 const keyInstallStatusCopy = computed((): { text: string } => {
   let txt1 = props.t('Installing');
@@ -334,12 +325,6 @@ const showUpdateEligibility = computed(() => {
           :error="accountActionStatus === 'failed'"
           :text="accountActionStatusCopy.text"
         />
-
-        <!-- <UpcCallbackFeedbackStatus
-          v-if="showPromoCta"
-          :icon="InformationCircleIcon"
-          :text="t('Enhance your experience with Unraid Connect')"
-        /> -->
       </div>
 
       <template v-if="updateOsStatus === 'confirming' && !stateDataError">
@@ -388,12 +373,6 @@ const showUpdateEligibility = computed(() => {
               :text="t('Configure Connect Features')"
             />
           </template>
-
-          <!-- <BrandButton
-            v-if="showPromoCta"
-            :text="t('Learn More')"
-            @click="promoClick"
-          /> -->
         </template>
 
         <template v-if="updateOsStatus === 'confirming' && !stateDataError">

@@ -4,14 +4,9 @@
     "composite": true,
     "emitDeclarationOnly": true,
     "outDir": "./dist/test",
-    "types": [
-      "node",
-      "happy-dom",
-      "vitest/globals",
-      "@vue/test-utils",
-      "@testing-library/vue"
-    ]
+    "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.test.tsbuildinfo",
+    "types": ["node", "happy-dom", "vitest/globals", "@vue/test-utils", "@testing-library/vue"]
   },
-  "include": ["src/**/*.ts", "src/**/*.d.ts", "src/**/*.tsx", "src/**/*.vue", "tailwind.config.ts"],
+  "include": ["src/**/*.test.ts", "src/**/*.spec.ts", "src/**/*.test.tsx", "src/**/*.spec.tsx"],
   "exclude": ["node_modules", "**/*.copy.vue", "**/*copy.vue"]
 }

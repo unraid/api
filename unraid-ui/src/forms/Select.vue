@@ -1,6 +1,4 @@
 <script setup lang="ts">
-import { computed } from 'vue';
-
 import {
   Select,
   SelectContent,
@@ -10,11 +8,10 @@ import {
   SelectValue,
 } from '@/components/form/select';
 import useTeleport from '@/composables/useTeleport';
-import { useJsonFormsControl } from '@jsonforms/vue';
-
 import type { ControlElement } from '@jsonforms/core';
+import { useJsonFormsControl } from '@jsonforms/vue';
 import type { RendererProps } from '@jsonforms/vue';
-
+import { computed } from 'vue';
 import ControlLayout from './ControlLayout.vue';
 
 const props = defineProps<RendererProps<ControlElement>>();
@@ -29,8 +26,8 @@ const options = computed(() => {
   }));
 });
 
-const onChange = (value: string) => {
-  handleChange(control.value.path, value);
+const onChange = (value: unknown) => {
+  handleChange(control.value.path, String(value));
 };
 
 // Without this, the select dropdown will not be visible, unless it's already in a teleported context.
@@ -55,7 +52,7 @@ const onSelectOpen = () => {
         <span v-else>{{ control.schema.default ?? 'Select an option' }}</span>
       </SelectTrigger>
       <!-- The content includes the selectable options -->
-      <SelectContent :to="teleportTarget">
+      <SelectContent :to="teleportTarget as HTMLElement">
         <SelectItem v-for="option in options" :key="option.value" :value="option.value">
           <SelectItemText>{{ option.label }}</SelectItemText>
         </SelectItem>
