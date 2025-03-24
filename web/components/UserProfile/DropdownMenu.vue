@@ -11,7 +11,7 @@ const open = ref(false);
 </script>
 
 <template>
-  <DropdownMenu v-model:open="open" :modal="false">
+  <DropdownMenu v-model:open="open">
     <DropdownMenuTrigger>
       <slot name="trigger" />
     </DropdownMenuTrigger>
