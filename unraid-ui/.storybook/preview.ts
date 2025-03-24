@@ -14,6 +14,18 @@ const preview: Preview = {
       },
     },
   },
+  // Add decorator to include modals container in every story
+  decorators: [
+    (story) => ({
+      components: { story },
+      template: `
+        <div>
+          <div id="modals"></div>
+          <story />
+        </div>
+      `,
+    }),
+  ],
 };
 
 export default preview;
