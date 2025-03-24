@@ -52,7 +52,7 @@ const onSelectOpen = () => {
         <span v-else>{{ control.schema.default ?? 'Select an option' }}</span>
       </SelectTrigger>
       <!-- The content includes the selectable options -->
-      <SelectContent :to="teleportTarget">
+      <SelectContent :to="teleportTarget as HTMLElement">
         <SelectItem v-for="option in options" :key="option.value" :value="option.value">
           <SelectItemText>{{ option.label }}</SelectItemText>
         </SelectItem>

@@ -16,9 +16,14 @@ defineOptions({
   inheritAttrs: false,
 });
 
+const { teleportTarget } = useTeleport();
+
 const props = withDefaults(defineProps<SelectContentProps & { class?: HTMLAttributes['class'] }>(), {
+  forceMount: false,
   position: 'popper',
+  to: undefined,
 });
+
 const emits = defineEmits<SelectContentEmits>();
 
 const delegatedProps = computed(() => {
@@ -27,15 +32,11 @@ const delegatedProps = computed(() => {
   return delegated;
 });
 
-const teleportTarget = useTeleport();
-
-console.log('teleportTarget', teleportTarget);
-
 const forwarded = useForwardPropsEmits(delegatedProps, emits);
 </script>
 
 <template>
-  <SelectPortal :defer="true" :to="teleportTarget as unknown as HTMLElement">
+  <SelectPortal :force-mount="forceMount" :to="teleportTarget as HTMLElement">
     <SelectContent
       v-bind="{ ...forwarded, ...$attrs }"
       :class="

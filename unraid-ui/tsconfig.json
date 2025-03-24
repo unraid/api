@@ -28,6 +28,14 @@
     "./tailwind.config.ts",
     "src/theme/**/*.ts"
   ],
-  "exclude": ["node_modules", "**/*.copy.vue", "**/*copy.vue"],
+  "exclude": [
+    "node_modules",
+    "**/*.copy.vue",
+    "**/*copy.vue",
+    "**/*.test.ts",
+    "**/*.spec.ts",
+    "**/*.test.tsx",
+    "**/*.spec.tsx"
+  ],
   "references": [{ "path": "./tsconfig.test.json" }]
 }

@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import useTeleport from '@/composables/useTeleport';
 import { cn } from '@/lib/utils';
 import {
   DropdownMenuContent,
@@ -8,6 +9,8 @@ import {
   type DropdownMenuContentProps,
 } from 'reka-ui';
 import { computed, type HTMLAttributes } from 'vue';
+
+const { teleportTarget } = useTeleport();
 
 const props = withDefaults(
   defineProps<DropdownMenuContentProps & { class?: HTMLAttributes['class'] }>(),
@@ -26,7 +29,7 @@ const forwarded = useForwardPropsEmits(delegatedProps, emits);
 </script>
 
 <template>
-  <DropdownMenuPortal>
+  <DropdownMenuPortal :to="teleportTarget as HTMLElement">
     <DropdownMenuContent
       v-bind="forwarded"
       side="bottom"
