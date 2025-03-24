@@ -1,10 +1,10 @@
-import {
-    ConfigErrorState,
-    type ArrayState,
-    type DiskFsType,
-    type RegistrationState,
-    type registrationType,
+import type {
+    ArrayState,
+    DiskFsType,
+    RegistrationState,
+    registrationType,
 } from '@app/graphql/generated/api/types.js';
+import { ConfigErrorState } from '@app/graphql/generated/api/types.js';
 
 /**
  * Global vars

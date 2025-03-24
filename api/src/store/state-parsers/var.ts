@@ -214,7 +214,9 @@ export const parse: StateFileToIniParserMap['var'] = (iniFile) => {
         cacheNumDevices: toNumber(iniFile.cacheNumDevices),
         cacheSbNumDisks: toNumber(iniFile.cacheSbNumDisks),
         configValid: iniBooleanToJsBoolean(iniFile.configValid, false),
-        configErrorState: iniBooleanToJsBoolean(iniFile.configValid, false) ? null : convertconfigErrorStateToEnum(iniFile.configValid),
+        configErrorState: iniBooleanToJsBoolean(iniFile.configValid, false)
+            ? null
+            : convertconfigErrorStateToEnum(iniFile.configValid),
         deviceCount: toNumber(iniFile.deviceCount),
         fsCopyPrcnt: toNumber(iniFile.fsCopyPrcnt),
         fsNumMounted: toNumber(iniFile.fsNumMounted),

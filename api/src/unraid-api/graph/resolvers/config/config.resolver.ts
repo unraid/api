@@ -21,9 +21,7 @@ export class ConfigResolver {
         return {
             id: 'config',
             valid: emhttp.var.configValid,
-            error: emhttp.var.configValid
-                ? null
-                : emhttp.var.configErrorState,
+            error: emhttp.var.configValid ? null : emhttp.var.configErrorState,
         };
     }
 
