@@ -788,8 +788,25 @@ fi
 
 # Create symlink to unraid-api binary (to allow usage elsewhere)
 ln -sf /usr/local/node/bin/node /usr/local/bin/node
+ln -sf /usr/local/node/bin/npm /usr/local/bin/npm
+ln -sf /usr/local/node/bin/corepack /usr/local/bin/corepack
+# TODO ensure pnpm lasts between reboots, even when offline
+if ! command -v pnpm >/dev/null 2>&1; then
+  echo "pnpm not found, enabling via corepack..."
+  corepack enable pnpm
+fi
+
 ln -sf ${unraid_binary_path} /usr/local/sbin/unraid-api
 ln -sf ${unraid_binary_path} /usr/bin/unraid-api
+
+/etc/rc.d/rc.unraid-api restore-dependencies
+echo "⚠️ Do not close this window yet"
+/etc/rc.d/rc.unraid-api pnpm-install
+echo "⚠️ Do not close this window yet"
+/etc/rc.d/rc.unraid-api backup-dependencies
+echo "⚠️ Do not close this window yet"
+
+echo "About to start Unraid API"
 
 
 logger "Starting flash backup (if enabled)"

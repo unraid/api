@@ -94,7 +94,11 @@ const buildPlugin = async ({
 const main = async () => {
   try {
     const validatedEnv = await setupPluginEnv(process.argv);
-    await checkGit();
+    if (validatedEnv.tag === "LOCAL_PLUGIN_BUILD") {
+      console.log("Skipping git check for LOCAL_PLUGIN_BUILD");
+    } else {
+      await checkGit();
+    }
     await cleanupPluginFiles();
 
     await buildPlugin(validatedEnv);

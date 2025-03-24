@@ -6,6 +6,7 @@ export const getStagingChangelogFromGit = async ({
   pluginVersion,
   tag,
 }: Pick<PluginEnv, "pluginVersion" | "tag">): Promise<string> => {
+  if (tag === "LOCAL_PLUGIN_BUILD") return "WIP - Local Plugin Build";
   try {
     const changelogStream = conventionalChangelog(
       {

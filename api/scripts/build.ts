@@ -36,9 +36,9 @@ try {
     // Change to the pack directory and install dependencies
     cd('./deploy/pack');
 
-    console.log('Installing production dependencies...');
-    $.verbose = true;
-    await $`pnpm install --prod --ignore-workspace --node-linker hoisted`;
+    // console.log('Installing production dependencies...');
+    // $.verbose = true;
+    // await $`pnpm install --prod --ignore-workspace --node-linker hoisted`;
 
     // chmod the cli
     await $`chmod +x ./dist/cli.js`;
