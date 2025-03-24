@@ -78,6 +78,65 @@ jobs:
       - name: Test
         run: pnpm run coverage
 
+  upload-production-pnpm-cache:
+    name: Upload Production PNPM Cache
+    runs-on: ubuntu-latest
+    outputs:
+      API_VERSION: ${{ steps.vars.outputs.API_VERSION }}
+    defaults:
+      run:
+        working-directory: api
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Install Node
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: ".nvmrc"
+
+      - uses: pnpm/action-setup@v4
+        name: Install pnpm and Production Dependencies
+        with:
+          run_install: |
+            - recursive: false
+              args: [--prod, --ignore-workspace, --filter @unraid/api]
+
+      - name: Get pnpm store directory
+        id: pnpm-cache
+        shell: bash
+        run: |
+          echo "STORE_PATH=$(pnpm store path)" >> $GITHUB_OUTPUT
+
+      - uses: actions/cache@v4
+        name: Setup pnpm cache
+        with:
+          path: ${{ steps.pnpm-cache.outputs.STORE_PATH }}
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
+
+      - name: Get API Version
+        id: vars
+        run: |
+          GIT_SHA=$(git rev-parse --short HEAD)
+          IS_TAGGED=$(git describe --tags --abbrev=0 --exact-match || echo '')
+          PACKAGE_LOCK_VERSION=$(jq -r '.version' package.json)
+          API_VERSION=$([[ -n "$IS_TAGGED" ]] && echo "$PACKAGE_LOCK_VERSION" || echo "${PACKAGE_LOCK_VERSION}+${GIT_SHA}")
+          echo "API_VERSION=${API_VERSION}" >> $GITHUB_OUTPUT
+
+      - name: Create PNPM Store Archive
+        run: |
+          cd ${{ steps.pnpm-cache.outputs.STORE_PATH }}
+          tar -czf ${{ github.workspace }}/pnpm-store-v${{ steps.vars.outputs.API_VERSION }}.txz .
+
+      - name: Upload to GitHub Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: pnpm-store-v${{ steps.vars.outputs.API_VERSION }}
+          path: pnpm-store-v${{ steps.vars.outputs.API_VERSION }}.txz
+          retention-days: 7
+
   build-api:
     name: Build API
     runs-on: ubuntu-latest
@@ -287,6 +346,7 @@ jobs:
       - build-web
       - build-unraid-ui-webcomponents
       - test-api
+      - upload-production-pnpm-cache
     defaults:
       run:
         working-directory: plugin
@@ -347,6 +407,7 @@ jobs:
         with:
           name: unraid-api
           path: ${{ github.workspace }}/plugin/api/
+      
       - name: Extract Unraid API
         run: |
           mkdir -p ${{ github.workspace }}/plugin/source/dynamix.unraid.net/usr/local/unraid-api
@@ -375,7 +436,11 @@ jobs:
           echo "TAG=${TAG}" >> $GITHUB_OUTPUT
 
           pnpm run build:plugin --tag="${TAG}" --base-url="${BASE_URL}"
-
+      - name: Download PNPM Store
+        uses: actions/download-artifact@v4
+        with:
+          name: pnpm-store-v${{ needs.upload-production-pnpm-cache.outputs.API_VERSION }}
+          path: ${{ github.workspace }}/plugin/deploy/
       - name: Ensure Plugin Files Exist
         run: |
           if [ ! -f ./deploy/*.plg ]; then
@@ -387,6 +452,7 @@ jobs:
             echo "Error: .txz file not found in plugin/deploy/"
             exit 1
           fi
+          ls -al ./deploy
       - name: Upload to GHA
         uses: actions/upload-artifact@v4
         with:
