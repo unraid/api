@@ -53,7 +53,7 @@ Then install the plugin on your Unraid development machine by visiting:
 
 Then paste the following URL into the Unraid Plugins page:
 
-`http://YOUR_LOCAL_DEV_MACHINE_IP:8080/plugins/local/dynamix.unraid.net.plg`
+`http://YOUR_LOCAL_DEV_MACHINE_IP:5858/plugins/local/dynamix.unraid.net.plg`
 
 Replace `SERVER_NAME` with your development machine's hostname.
 
