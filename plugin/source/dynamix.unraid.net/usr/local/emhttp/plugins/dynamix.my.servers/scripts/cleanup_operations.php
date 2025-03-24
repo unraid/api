@@ -55,7 +55,7 @@ if (file_exists("/boot/.git")) {
 if ($msini !== false) {
   # stop unraid-api
   echo "\nStopping unraid-api. Please wait…";
-  $output = shell_exec("/etc/rc.d/rc.unraid-api stop --delete 2>&1'");
+  $output = shell_exec("/etc/rc.d/rc.unraid-api stop --delete 2>&1");
   if (!$output) {
     echo "Waiting for unraid-api to stop...\n";
     sleep(5); // Give it a few seconds to fully stop
