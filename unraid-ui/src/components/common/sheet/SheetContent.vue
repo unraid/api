@@ -1,38 +1,35 @@
 <script setup lang="ts">
-import { type HTMLAttributes, computed } from "vue";
+import { cn } from '@/lib/utils';
+import { X } from 'lucide-vue-next';
 import {
   DialogClose,
   DialogContent,
-  type DialogContentEmits,
   DialogOverlay,
   DialogPortal,
   useForwardPropsEmits,
-} from "radix-vue";
-import { X } from "lucide-vue-next";
-import { sheetVariants } from "./sheet.variants";
-import { cn } from "@/lib/utils";
+  type DialogContentEmits,
+} from 'reka-ui';
+import { computed, type HTMLAttributes } from 'vue';
+import { sheetVariants } from './sheet.variants';
 
 export interface SheetContentProps {
-  side?: "top" | "bottom" | "left" | "right";
-  padding?: "none" | "md";
-  class?: HTMLAttributes["class"];
+  side?: 'top' | 'bottom' | 'left' | 'right';
+  padding?: 'none' | 'md';
+  class?: HTMLAttributes['class'];
   disabled?: boolean;
   forceMount?: boolean;
   to?: string | HTMLElement;
 }
 
 const props = withDefaults(defineProps<SheetContentProps>(), {
-  side: "right",
-  padding: "md",
+  side: 'right',
+  padding: 'md',
 });
 
 const emits = defineEmits<DialogContentEmits>();
 
 const sheetClass = computed(() => {
-  return cn(
-    sheetVariants({ side: props.side, padding: props.padding }),
-    props.class,
-  );
+  return cn(sheetVariants({ side: props.side, padding: props.padding }), props.class);
 });
 
 const delegatedProps = computed(() => {

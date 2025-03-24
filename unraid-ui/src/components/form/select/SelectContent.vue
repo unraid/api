@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import useTeleport from '@/composables/useTeleport';
 import { cn } from '@/lib/utils';
 import {
   SelectContent,
@@ -7,7 +8,7 @@ import {
   useForwardPropsEmits,
   type SelectContentEmits,
   type SelectContentProps,
-} from 'radix-vue';
+} from 'reka-ui';
 import { computed, type HTMLAttributes } from 'vue';
 import { SelectScrollDownButton, SelectScrollUpButton } from '.';
 
@@ -15,21 +16,14 @@ defineOptions({
   inheritAttrs: false,
 });
 
-const props = withDefaults(
-  defineProps<
-    SelectContentProps & {
-      class?: HTMLAttributes['class'];
-      disabled?: boolean;
-      forceMount?: boolean;
-      to?: string | HTMLElement | Element;
-    }
-  >(),
-  {
-    position: 'popper',
-    class: undefined,
-    to: '#modals',
-  }
-);
+const { teleportTarget } = useTeleport();
+
+const props = withDefaults(defineProps<SelectContentProps & { class?: HTMLAttributes['class'] }>(), {
+  forceMount: false,
+  position: 'popper',
+  to: undefined,
+});
+
 const emits = defineEmits<SelectContentEmits>();
 
 const delegatedProps = computed(() => {
@@ -42,7 +36,7 @@ const forwarded = useForwardPropsEmits(delegatedProps, emits);
 </script>
 
 <template>
-  <SelectPortal :disabled="disabled" :force-mount="forceMount" :to="to as HTMLElement">
+  <SelectPortal :force-mount="forceMount" :to="teleportTarget">
     <SelectContent
       v-bind="{ ...forwarded, ...$attrs }"
       :class="
@@ -60,7 +54,7 @@ const forwarded = useForwardPropsEmits(delegatedProps, emits);
           cn(
             'p-1',
             position === 'popper' &&
-              'h-[--radix-select-trigger-height] w-full min-w-[--radix-select-trigger-width]'
+              'h-[--reka-select-trigger-height] w-full min-w-[--reka-select-trigger-width]'
           )
         "
       >

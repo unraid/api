@@ -1,23 +1,27 @@
-import { cva } from 'class-variance-authority';
+import { cva, type VariantProps } from 'class-variance-authority';
 
-export const brandLoadingVariants = cva('inline-flex items-center justify-center w-full h-full aspect-[7/4]', {
-  variants: {
-    variant: {
-      default: '',
-      black: 'text-black fill-black',
-      white: 'text-white fill-white',
+export const brandLoadingVariants = cva(
+  'inline-flex items-center justify-center w-full h-full aspect-[7/4]',
+  {
+    variants: {
+      variant: {
+        default: '',
+        black: 'text-black fill-black',
+        white: 'text-white fill-white',
+      },
+      size: {
+        sm: 'w-12',
+        md: 'w-16',
+        lg: 'w-20',
+        full: 'w-full',
+        custom: '',
+      },
     },
-    size: {
-      sm: 'w-12',
-      md: 'w-16',
-      lg: 'w-20',
-      full: 'w-full',
+    defaultVariants: {
+      variant: 'default',
     },
-  },
-  defaultVariants: {
-    variant: 'default',
-  },
-});
+  }
+);
 
 export const markAnimations = {
   mark_2_4: 'animate-mark-2',
@@ -25,3 +29,5 @@ export const markAnimations = {
   mark_6_8: 'animate-mark-6',
   mark_7: 'animate-mark-7',
 };
+
+export type BrandLoadingVariants = VariantProps<typeof brandLoadingVariants>;

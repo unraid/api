@@ -15,6 +15,7 @@ const { username } = storeToRefs(useServerStore());
 
 const unraidApiStore = useUnraidApiStore();
 const { unraidApiStatus, unraidApiRestartAction } = storeToRefs(unraidApiStore);
+const brandLoading = () => h(BrandLoading, { size: 'custom' });
 
 interface StatusOutput {
   icon: typeof BrandLoading | typeof ExclamationTriangleIcon | typeof CheckCircleIcon;
@@ -25,16 +26,16 @@ interface StatusOutput {
 const status = computed((): StatusOutput | undefined => {
   if (unraidApiStatus.value === 'connecting') {
     return {
-      icon: BrandLoading,
-      iconClasses: 'w-16px',
+      icon: brandLoading,
+      iconClasses: 'w-4',
       text: props.t('Loading…'),
       textClasses: 'italic',
     };
   }
   if (unraidApiStatus.value === 'restarting') {
     return {
-      icon: BrandLoading,
-      iconClasses: 'w-16px',
+      icon: brandLoading,
+      iconClasses: 'w-4',
       text: props.t('Restarting unraid-api…'),
       textClasses: 'italic',
     };
@@ -55,14 +56,16 @@ const status = computed((): StatusOutput | undefined => {
   }
   return undefined;
 });
+
+const statusItemClasses = "text-14px flex flex-row justify-start items-center gap-8px mt-8px px-8px";
 </script>
 
 <template>
-  <li v-if="username" class="flex flex-row justify-start items-center gap-8px mt-8px px-8px">
+  <li v-if="username" :class="statusItemClasses">
     <UserCircleIcon class="w-16px h-16px" aria-hidden="true" />
     {{ username }}
   </li>
-  <li v-if="status" class="flex flex-row justify-start items-center gap-8px mt-8px px-8px">
+  <li v-if="status" :class="statusItemClasses">
     <component :is="status.icon" :class="status.iconClasses" aria-hidden="true" />
     {{ status.text }}
   </li>
