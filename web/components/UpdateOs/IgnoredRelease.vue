@@ -8,7 +8,7 @@ import { useServerStore } from '~/store/server';
 import { useThemeStore } from '~/store/theme';
 
 export interface Props {
-  label: string;
+  label?: string;
   t: ComposerTranslation;
 }
 

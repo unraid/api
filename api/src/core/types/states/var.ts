@@ -1,9 +1,10 @@
-import {
-    type ArrayState,
-    type DiskFsType,
-    type RegistrationState,
-    type registrationType,
+import type {
+    ArrayState,
+    DiskFsType,
+    RegistrationState,
+    registrationType,
 } from '@app/graphql/generated/api/types.js';
+import { ConfigErrorState } from '@app/graphql/generated/api/types.js';
 
 /**
  * Global vars
@@ -17,7 +18,7 @@ export type Var = {
     /** Is the array's config valid. */
     configValid: boolean;
     /** @internal used to hold the value for config.error */
-    configState: string;
+    configErrorState: ConfigErrorState | null;
     /** Current CSRF token for HTTP requests with emhttpd. */
     csrfToken: string;
     defaultFormat: string;
