@@ -29,7 +29,7 @@ const forwarded = useForwardPropsEmits(delegatedProps, emits);
 </script>
 
 <template>
-  <DropdownMenuPortal :to="teleportTarget as HTMLElement">
+  <DropdownMenuPortal :to="teleportTarget">
     <DropdownMenuContent
       v-bind="forwarded"
       side="bottom"
