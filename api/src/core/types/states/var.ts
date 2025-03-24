@@ -1,4 +1,5 @@
 import {
+    ConfigErrorState,
     type ArrayState,
     type DiskFsType,
     type RegistrationState,
@@ -17,7 +18,7 @@ export type Var = {
     /** Is the array's config valid. */
     configValid: boolean;
     /** @internal used to hold the value for config.error */
-    configState: string;
+    configErrorState: ConfigErrorState | null;
     /** Current CSRF token for HTTP requests with emhttpd. */
     csrfToken: string;
     defaultFormat: string;

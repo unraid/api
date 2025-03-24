@@ -3,6 +3,7 @@ import { type IniStringBoolean, type IniStringBooleanOrAuto } from '@app/core/ty
 import { toNumber } from '@app/core/utils/index.js';
 import {
     ArrayState,
+    ConfigErrorState,
     DiskFsType,
     RegistrationState,
     registrationType,
@@ -23,7 +24,7 @@ export type VarIni = {
     cacheSbNumDisks: string;
     comment: string;
     configValid: string;
-    configState: string;
+    configErrorState: string;
     csrfToken: string;
     defaultFormat: string;
     defaultFsType: string;
@@ -200,6 +201,10 @@ const safeParseMdState = (mdState: string | undefined): ArrayState => {
     return attemptedParse;
 };
 
+export const convertconfigErrorStateToEnum = (configErrorState: string): ConfigErrorState => {
+    return ConfigErrorState[configErrorState.toUpperCase()];
+};
+
 export const parse: StateFileToIniParserMap['var'] = (iniFile) => {
     return {
         ...iniFile,
@@ -209,7 +214,7 @@ export const parse: StateFileToIniParserMap['var'] = (iniFile) => {
         cacheNumDevices: toNumber(iniFile.cacheNumDevices),
         cacheSbNumDisks: toNumber(iniFile.cacheSbNumDisks),
         configValid: iniBooleanToJsBoolean(iniFile.configValid, false),
-        configState: iniFile.configValid,
+        configErrorState: iniBooleanToJsBoolean(iniFile.configValid, false) ? null : convertconfigErrorStateToEnum(iniFile.configValid),
         deviceCount: toNumber(iniFile.deviceCount),
         fsCopyPrcnt: toNumber(iniFile.fsCopyPrcnt),
         fsNumMounted: toNumber(iniFile.fsNumMounted),
