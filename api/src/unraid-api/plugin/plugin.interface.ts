@@ -15,18 +15,19 @@ const asyncString = () => z.function().returns(z.promise(z.string()));
 const asyncVoid = () => z.function().returns(z.promise(z.void()));
 
 // GraphQL resolver type definitions
-const resolverFunction = z.function()
+const resolverFunction = z
+    .function()
     .args(
-        z.any().optional(),  // parent
-        z.any().optional(),  // args
-        z.any().optional(),  // context
-        z.any().optional()   // info
+        z.any().optional(), // parent
+        z.any().optional(), // args
+        z.any().optional(), // context
+        z.any().optional() // info
     )
     .returns(z.any());
 
 const resolverFieldMap = z.record(z.string(), resolverFunction);
 const resolverTypeMap = z.record(
-    z.enum(['Query', 'Mutation', 'Subscription']).or(z.string()), 
+    z.enum(['Query', 'Mutation', 'Subscription']).or(z.string()),
     resolverFieldMap
 );
 const asyncResolver = () => z.function().returns(z.promise(resolverTypeMap));

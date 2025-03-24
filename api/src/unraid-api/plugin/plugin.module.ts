@@ -36,14 +36,11 @@ export class PluginModule implements OnModuleInit {
         // const plugins = pluginProviders
         //     .filter((provider) => provider.provide !== PluginService)
         //     .map((provider) => provider.useValue);
-
         // console.log('new plugins', plugins);
-
         // // Register each plugin with the PluginService
         // for (const plugin of plugins) {
         //     this.pluginService.registerPlugin(plugin);
         // }
-
         // PluginModule.logger.log('Plugin Module initialized');
     }
 }

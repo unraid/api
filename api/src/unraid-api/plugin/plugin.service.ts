@@ -138,7 +138,7 @@ export class PluginService {
                 const pluginResolvers = await plugin.registerGraphQLResolvers();
                 combinedResolvers = {
                     ...combinedResolvers,
-                    ...pluginResolvers
+                    ...pluginResolvers,
                 };
             }
 
