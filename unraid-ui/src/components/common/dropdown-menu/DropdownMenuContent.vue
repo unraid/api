@@ -30,7 +30,7 @@ const forwarded = useForwardPropsEmits(delegatedProps, emits);
 </script>
 
 <template>
-  <ConfigProvider :scroll-body="true">
+  <ConfigProvider :scroll-body="{ padding: true }">
     <DropdownMenuPortal :to="teleportTarget as HTMLElement">
       <DropdownMenuContent
         v-bind="forwarded"
