@@ -45,6 +45,7 @@ const forwarded = useForwardPropsEmits(delegatedProps, emits);
         <div class="overflow-hidden">
           <slot />
         </div>
-      </DropdownMenuContent> </DropdownMenuPortal
-  ></ConfigProvider>
+      </DropdownMenuContent>
+    </DropdownMenuPortal>
+  </ConfigProvider>
 </template>

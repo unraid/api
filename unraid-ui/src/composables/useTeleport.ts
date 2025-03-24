@@ -1,7 +1,7 @@
 import { onMounted, ref } from 'vue';
 
 const useTeleport = () => {
-  const teleportTarget = ref<string | HTMLElement | Element>('#modals');
+  const teleportTarget = ref<string | HTMLElement>('#modals');
 
   const determineTeleportTarget = () => {
     const myModalsComponent = document.querySelector('unraid-modals');
@@ -10,7 +10,7 @@ const useTeleport = () => {
     const potentialTarget = myModalsComponent.shadowRoot.querySelector('#modals');
     if (!potentialTarget) return;
 
-    teleportTarget.value = potentialTarget;
+    teleportTarget.value = potentialTarget as HTMLElement;
     console.log('[determineTeleportTarget] teleportTarget', teleportTarget.value);
   };
 

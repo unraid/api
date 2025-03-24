@@ -36,7 +36,7 @@ const forwarded = useForwardPropsEmits(delegatedProps, emits);
 </script>
 
 <template>
-  <SelectPortal :force-mount="forceMount" :to="teleportTarget as HTMLElement">
+  <SelectPortal :force-mount="forceMount" :to="teleportTarget">
     <SelectContent
       v-bind="{ ...forwarded, ...$attrs }"
       :class="
