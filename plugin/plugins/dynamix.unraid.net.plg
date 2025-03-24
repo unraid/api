@@ -800,12 +800,15 @@ ln -sf ${unraid_binary_path} /usr/local/sbin/unraid-api
 ln -sf ${unraid_binary_path} /usr/bin/unraid-api
 
 /etc/rc.d/rc.unraid-api restore-dependencies
+echo
 echo "⚠️ Do not close this window yet"
 /etc/rc.d/rc.unraid-api pnpm-install
+echo
 echo "⚠️ Do not close this window yet"
 /etc/rc.d/rc.unraid-api backup-dependencies
+echo
 echo "⚠️ Do not close this window yet"
-
+echo
 echo "About to start Unraid API"
 
 
