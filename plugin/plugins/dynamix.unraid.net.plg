@@ -17,6 +17,7 @@
   <!ENTITY NODEJS_TXZ "https://nodejs.org/download/release/v&NODEJS_VERSION;/node-v&NODEJS_VERSION;-linux-x64.tar.xz">
   <!ENTITY MAIN_TXZ "">
   <!ENTITY VENDOR_STORE "">
+  <!ENTITY VENDOR_STORE_FILENAME "">
   <!ENTITY TAG "">
 ]>
 
@@ -104,9 +105,13 @@ exit 0
     <URL>&NODEJS_TXZ;</URL>
     <SHA256>&NODEJS_SHA256;</SHA256>
   </FILE>
+  <FILE Name="/boot/config/plugins/dynamix.my.servers/&VENDOR_STORE_FILENAME;">
+    <URL>&VENDOR_STORE;</URL>
+  </FILE>
   <FILE Run="/bin/bash" Method="install">
     <INLINE>
       NODE_FILE="&NODEJS_FILENAME;"
+      VENDOR_ARCHIVE="&VENDOR_STORE_FILENAME;"
       <![CDATA[
         # Check if the Node.js archive exists
         if [[ ! -f "/boot/config/plugins/dynamix.my.servers/${NODE_FILE}" ]]; then
@@ -135,6 +140,8 @@ exit 0
         # Remove all node js archives from the flashdrive that do not match the expected version
         find /boot/config/plugins/dynamix.my.servers/ -name "node-v*-linux-x64.tar.xz" ! -name "${NODE_FILE}" -delete
 
+        # Remove stale pnpm store archives from the boot drive
+        find /boot/config/plugins/dynamix.my.servers/ -name "pnpm-store-for-v*.txz" ! -name "${VENDOR_ARCHIVE}" -delete
 
         echo "Node.js installation successful"
 
@@ -333,6 +340,7 @@ exit 0
   <FILE Run="/bin/bash" Method="install">
     <INLINE>
       TAG="&TAG;" MAINTXZ="&source;.txz"
+      VENDOR_ARCHIVE="/boot/config/plugins/dynamix.my.servers/&VENDOR_STORE_FILENAME;"
     <![CDATA[
 appendTextIfMissing() {
   FILE="$1" TEXT="$2"
@@ -800,13 +808,10 @@ fi
 ln -sf ${unraid_binary_path} /usr/local/sbin/unraid-api
 ln -sf ${unraid_binary_path} /usr/bin/unraid-api
 
-/etc/rc.d/rc.unraid-api restore-dependencies
+/etc/rc.d/rc.unraid-api restore-dependencies "$VENDOR_ARCHIVE"
 echo
 echo "⚠️ Do not close this window yet"
 /etc/rc.d/rc.unraid-api pnpm-install
-echo
-echo "⚠️ Do not close this window yet"
-/etc/rc.d/rc.unraid-api backup-dependencies
 echo
 echo "⚠️ Do not close this window yet"
 echo

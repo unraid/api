@@ -48,9 +48,7 @@ restore_pnpm_store() {
     return 1
   fi
 
-  # Define the backup file path
-  local backup_file="/boot/config/plugins/dynamix.my.servers/pnpm-store-backup.tar.gz"
-  
+  local backup_file="$1"
   # Check if backup file exists
   if [ ! -f "$backup_file" ]; then
     echo "Backup file not found at '$backup_file'. Skipping restore."
@@ -127,7 +125,7 @@ case "$1" in
   backup_pnpm_store
   ;;
 'restore-dependencies')
-  restore_pnpm_store
+  restore_pnpm_store "$2"
   ;;
 *)
   # Pass all other commands to unraid-api
