@@ -27,23 +27,24 @@ const getRootBucketPath = ({ baseUrl, tag }: UrlParams): URL => {
 };
 
 /**
+ * Get the URL for an asset from the root bucket
+ * ex. returns = BASE_URL/TAG/dynamix.unraid.net.plg
+ */
+export const getAssetUrl = (params: UrlParams, assetName: string): string => {
+  const rootUrl = getRootBucketPath(params);
+  rootUrl.pathname = rootUrl.pathname.replace(/\/?$/, "/") + assetName;
+  return rootUrl.toString();
+};
+/**
  * Get the URL for the plugin file
  * ex. returns = BASE_URL/TAG/dynamix.unraid.net.plg
  */
-export const getPluginUrl = (params: UrlParams): string => {
-  const rootUrl = getRootBucketPath(params);
-  // Ensure the path ends with a slash and join with the plugin name
-  rootUrl.pathname = rootUrl.pathname.replace(/\/?$/, "/") + pluginNameWithExt;
-  return rootUrl.toString();
-};
+export const getPluginUrl = (params: UrlParams): string =>
+  getAssetUrl(params, pluginNameWithExt);
 
 /**
  * Get the URL for the main TXZ file
  * ex. returns = BASE_URL/TAG/dynamix.unraid.net-4.1.3.txz
  */
-export const getMainTxzUrl = (params: TxzUrlParams): string => {
-  const rootUrl = getRootBucketPath(params);
-  // Ensure the path ends with a slash and join with the txz name
-  rootUrl.pathname = rootUrl.pathname.replace(/\/?$/, "/") + getTxzName(params.pluginVersion);
-  return rootUrl.toString();
-};
+export const getMainTxzUrl = (params: TxzUrlParams): string =>
+  getAssetUrl(params, getTxzName(params.pluginVersion));
