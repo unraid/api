@@ -1,5 +1,4 @@
 import type { Meta, StoryObj } from '@storybook/vue3';
-import { h } from 'vue';
 import Button from '../../../src/components/common/button/Button.vue';
 import SheetComponent from '../../../src/components/common/sheet/Sheet.vue';
 import SheetContent from '../../../src/components/common/sheet/SheetContent.vue';

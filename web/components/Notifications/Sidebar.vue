@@ -21,6 +21,12 @@ import {
   TabsTrigger,
 } from '@unraid/ui';
 
+import type {
+  NotificationAddedSubSubscription,
+  NotificationOverviewSubSubscription,
+  OverviewQuery,
+} from '~/composables/gql/graphql';
+
 import { useTrackLatestSeenNotification } from '~/composables/api/use-notifications';
 import { useFragment } from '~/composables/gql';
 import { Importance, NotificationType } from '~/composables/gql/graphql';
@@ -61,16 +67,39 @@ const confirmAndDeleteArchives = async () => {
 const { result, subscribeToMore } = useQuery(notificationsOverview);
 subscribeToMore({
   document: notificationOverviewSubscription,
-  updateQuery: (prev, { subscriptionData }) => {
+  updateQuery: (
+    prev: OverviewQuery,
+    { subscriptionData }: { subscriptionData: { data: NotificationOverviewSubSubscription } }
+  ) => {
     const snapshot = structuredClone(prev);
-    snapshot.notifications.overview = subscriptionData.data.notificationsOverview;
+    const subData = subscriptionData.data.notificationsOverview;
+    const unreadFragment = subData.unread[' $fragmentRefs']?.NotificationCountFragmentFragment;
+    const archiveFragment = subData.archive[' $fragmentRefs']?.NotificationCountFragmentFragment;
+
+    if (!unreadFragment || !archiveFragment) return snapshot;
+
+    snapshot.notifications.overview = {
+      __typename: 'NotificationOverview',
+      unread: {
+        __typename: 'NotificationCounts',
+        info: unreadFragment.info,
+        warning: unreadFragment.warning,
+        alert: unreadFragment.alert,
+        total: unreadFragment.total,
+      },
+      archive: {
+        __typename: 'NotificationCounts',
+        total: archiveFragment.total,
+      },
+    };
+
     return snapshot;
   },
 });
 const { latestNotificationTimestamp, haveSeenNotifications } = useTrackLatestSeenNotification();
 const { onResult: onNotificationAdded } = useSubscription(notificationAddedSubscription);
 
-onNotificationAdded(({ data }) => {
+onNotificationAdded(({ data }: { data: NotificationAddedSubSubscription | null }) => {
   if (!data) return;
   const notif = useFragment(NOTIFICATION_FRAGMENT, data.notificationAdded);
   if (notif.type !== NotificationType.Unread) return;
