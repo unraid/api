@@ -1,5 +1,35 @@
 #!/bin/bash
 
+# copy-to-webgui-repo.sh
+# =====================
+# Copies built web components to your local webGUI repository
+#
+# Usage:
+#   ./copy-to-webgui-repo.sh [OPTIONS] [WEBGUI_PATH]
+#
+# Options:
+#   --wc-build[=y|n]  Control web component build
+#                     =y: Force build (default if no value)
+#                     =n: Skip build
+#                     If not specified, will prompt
+#
+# Arguments:
+#   WEBGUI_PATH       Path to webGUI directory
+#                     Only required on first run or when path changes
+#                     Path is stored in ~/.copy_to_webgui_state
+#
+# State Management:
+#   The script stores the last used webGUI path in ~/.copy_to_webgui_state
+#   This means you only need to specify the path once, unless it changes
+#
+# Examples:
+#   First time:
+#     ./copy-to-webgui-repo.sh --wc-build=y /path/to/webgui
+#   Subsequent uses:
+#     ./copy-to-webgui-repo.sh --wc-build=y
+#     ./copy-to-webgui-repo.sh --wc-build=n
+#     ./copy-to-webgui-repo.sh
+
 # Check for --wc-build argument
 if [[ "$1" == "--wc-build=y" || "$1" == "--wc-build=Y" ]]; then
     run_build="Y"
