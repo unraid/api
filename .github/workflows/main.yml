@@ -407,7 +407,11 @@ jobs:
         with:
           name: unraid-api
           path: ${{ github.workspace }}/plugin/api/
-      
+      - name: Download PNPM Store
+        uses: actions/download-artifact@v4
+        with:
+          name: pnpm-store-v${{ needs.upload-production-pnpm-cache.outputs.API_VERSION }}
+          path: ${{ github.workspace }}/plugin/packed-pnpm-store.txz
       - name: Extract Unraid API
         run: |
           mkdir -p ${{ github.workspace }}/plugin/source/dynamix.unraid.net/usr/local/unraid-api
@@ -436,11 +440,6 @@ jobs:
           echo "TAG=${TAG}" >> $GITHUB_OUTPUT
 
           pnpm run build:plugin --tag="${TAG}" --base-url="${BASE_URL}"
-      - name: Download PNPM Store
-        uses: actions/download-artifact@v4
-        with:
-          name: pnpm-store-v${{ needs.upload-production-pnpm-cache.outputs.API_VERSION }}
-          path: ${{ github.workspace }}/plugin/deploy/
       - name: Ensure Plugin Files Exist
         run: |
           if [ ! -f ./deploy/*.plg ]; then
