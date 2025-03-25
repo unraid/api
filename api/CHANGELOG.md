@@ -1,5 +1,37 @@
 # Changelog
 
+## [4.4.0](https://github.com/unraid/api/compare/v4.3.1...v4.4.0) (2025-03-25)
+
+
+### Features
+
+* add ReplaceKey functionality to plugin ([#1264](https://github.com/unraid/api/issues/1264)) ([4aadcef](https://github.com/unraid/api/commit/4aadcef1ca6b45b44885f2d2a986874e86945d4f))
+* downgrade page replace key check ([#1263](https://github.com/unraid/api/issues/1263)) ([8d56d12](https://github.com/unraid/api/commit/8d56d12f67d86d7015a358727bcb303eb511ac42))
+* make log viewer component dynamic ([#1242](https://github.com/unraid/api/issues/1242)) ([e6ec110](https://github.com/unraid/api/commit/e6ec110fbf81b329b72ef350643bf3c76734290a))
+* ReplaceKey functionality in Registration and Update pages ([#1246](https://github.com/unraid/api/issues/1246)) ([04307c9](https://github.com/unraid/api/commit/04307c977cfd4916753140e5a20811c561d2dfb2))
+* UnraidCheckExec for Check OS Updates via UPC dropdown ([#1265](https://github.com/unraid/api/issues/1265)) ([5935a3b](https://github.com/unraid/api/commit/5935a3b3c2f69ee683146c3fcc798d72996633f8))
+
+
+### Bug Fixes
+
+* **deps:** update all non-major dependencies ([#1236](https://github.com/unraid/api/issues/1236)) ([7194f85](https://github.com/unraid/api/commit/7194f859ce0178116621b4bdf28db553b037940d))
+* **deps:** update all non-major dependencies ([#1247](https://github.com/unraid/api/issues/1247)) ([20b0aeb](https://github.com/unraid/api/commit/20b0aeb9d7e621ec917c928135b2c867e07ce7a4))
+* **deps:** update all non-major dependencies ([#1251](https://github.com/unraid/api/issues/1251)) ([33a1a1d](https://github.com/unraid/api/commit/33a1a1ddd2f228cf001bb492f9c76bb5bc6dc8a0))
+* **deps:** update all non-major dependencies ([#1253](https://github.com/unraid/api/issues/1253)) ([53fec0e](https://github.com/unraid/api/commit/53fec0efaba8f3e2dcf5f2899e3099e0e12f5162))
+* **deps:** update dependency @nestjs/passport to v11 ([#1244](https://github.com/unraid/api/issues/1244)) ([edc93a9](https://github.com/unraid/api/commit/edc93a921ea93d98b7c2de9a7fed2fed650365e8))
+* **deps:** update dependency graphql-subscriptions to v3 ([#1209](https://github.com/unraid/api/issues/1209)) ([c14c85f](https://github.com/unraid/api/commit/c14c85fcf7ce920edd75d15fa9b3d556f452bb88))
+* **deps:** update dependency ini to v5 ([#1217](https://github.com/unraid/api/issues/1217)) ([f27660f](https://github.com/unraid/api/commit/f27660f140acb647cab1dce162af0d49d5655fb6))
+* **deps:** update dependency jose to v6 ([#1248](https://github.com/unraid/api/issues/1248)) ([42e3d59](https://github.com/unraid/api/commit/42e3d59107dd800351ee1f7d175c550465ebddb4))
+* **deps:** update dependency marked to v15 ([#1249](https://github.com/unraid/api/issues/1249)) ([2b6693f](https://github.com/unraid/api/commit/2b6693f404a9a3405300637d2c55bd5b65c61f0b))
+* **deps:** update dependency pino-pretty to v13 ([#1250](https://github.com/unraid/api/issues/1250)) ([85fb910](https://github.com/unraid/api/commit/85fb91059a0ad7728d766cd3b429857b3fd4bd08))
+* **deps:** update dependency pm2 to v6 ([#1258](https://github.com/unraid/api/issues/1258)) ([04ad2bc](https://github.com/unraid/api/commit/04ad2bc9c8c1e5fd9622655ce9881bde17388246))
+* **deps:** update dependency shadcn-vue to v1 ([#1259](https://github.com/unraid/api/issues/1259)) ([1a4fe8f](https://github.com/unraid/api/commit/1a4fe8f85f50cf34df6af2c0bf55efc305fa9fff))
+* **deps:** update dependency vue-i18n to v11 ([#1261](https://github.com/unraid/api/issues/1261)) ([0063286](https://github.com/unraid/api/commit/0063286e29b9a7439e6acc64973a3152370c75c3))
+* **deps:** update vueuse monorepo to v13 (major) ([#1262](https://github.com/unraid/api/issues/1262)) ([94caae3](https://github.com/unraid/api/commit/94caae3d87fbfb04dfe5633030e24acddbcc0f6b))
+* make scripts executable when building the plugin ([#1255](https://github.com/unraid/api/issues/1255)) ([e237f38](https://github.com/unraid/api/commit/e237f38bc4646f13461938c03d566fef781ad406))
+* node installation not persisting across reboots ([#1256](https://github.com/unraid/api/issues/1256)) ([0415cf1](https://github.com/unraid/api/commit/0415cf1252ed8c7fba32a65c031dc0d21e0f5a81))
+* update configValid state to ineligible in var.ini and adjust rel… ([#1268](https://github.com/unraid/api/issues/1268)) ([ef8c954](https://github.com/unraid/api/commit/ef8c9548baef99010e2f26288af33a90167e5177))
+
 ## [4.3.1](https://github.com/unraid/api/compare/v4.3.0...v4.3.1) (2025-03-18)
 
 
