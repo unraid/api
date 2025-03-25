@@ -12,6 +12,7 @@ import type {
 } from '@app/graphql/generated/api/types.js';
 import type { DataSlice, SettingSlice, UIElement } from '@app/unraid-api/types/json-forms.js';
 import { fileExistsSync } from '@app/core/utils/files/file-exists.js';
+import { CONNECT } from '@app/environment.js';
 import {
     DynamicRemoteAccessType,
     WAN_ACCESS_TYPE,
@@ -147,16 +148,16 @@ export class ConnectSettingsService {
      * Builds the complete settings schema
      */
     async buildSettingsSchema(): Promise<SettingSlice> {
-        const slices = [
-            await this.remoteAccessSlice(),
-            await this.sandboxSlice(),
-            this.flashBackupSlice(),
-            // Because CORS is effectively disabled, this setting is no longer necessary
-            // keeping it here for in case it needs to be re-enabled
-            //
-            // this.extraOriginsSlice(),
-        ];
-
+        const slices: SettingSlice[] = [];
+        if (CONNECT) {
+            slices.push(await this.remoteAccessSlice());
+            slices.push(this.flashBackupSlice());
+        }
+        slices.push(await this.sandboxSlice());
+        // Because CORS is effectively disabled, this setting is no longer necessary
+        // keeping it here for in case it needs to be re-enabled
+        //
+        // this.extraOriginsSlice(),
         return mergeSettingSlices(slices);
     }
 

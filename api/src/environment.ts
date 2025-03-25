@@ -65,3 +65,9 @@ export const MOTHERSHIP_GRAPHQL_LINK = process.env.MOTHERSHIP_GRAPHQL_LINK
       : 'https://mothership.unraid.net/ws';
 
 export const PM2_HOME = process.env.PM2_HOME ?? join(homedir(), '.pm2');
+/**
+ * Whether the API is running in the context of Unraid Connect
+ * 
+ * When true, enables Connect specific features
+ */
+export const CONNECT = process.env.CONNECT;

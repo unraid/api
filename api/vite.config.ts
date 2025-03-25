@@ -7,6 +7,7 @@ import { VitePluginNode } from 'vite-plugin-node';
 import tsconfigPaths from 'vite-tsconfig-paths';
 import { defineConfig } from 'vitest/config';
 
+const isConnect = process.env.CONNECT === 'true';
 export default defineConfig(({ mode }): ViteUserConfig => {
     return {
         assetsInclude: ['src/**/*.graphql', 'src/**/*.patch'],
@@ -58,6 +59,7 @@ export default defineConfig(({ mode }): ViteUserConfig => {
         define: {
             // Allows vite to preserve process.env variables and not hardcode them
             'process.env': 'process.env',
+            'process.env.CONNECT': isConnect,
         },
         optimizeDeps: {
             exclude: [
@@ -80,7 +82,7 @@ export default defineConfig(({ mode }): ViteUserConfig => {
         build: {
             ssr: true,
             sourcemap: false,
-            outDir: 'dist',
+            outDir: isConnect ? 'dist/connect/' : 'dist/api/',
             rollupOptions: {
                 input: {
                     main: 'src/index.ts',

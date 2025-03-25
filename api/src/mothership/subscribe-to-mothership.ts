@@ -1,4 +1,5 @@
 import { minigraphLogger, mothershipLogger } from '@app/core/log.js';
+import { CONNECT } from '@app/environment.js';
 import { useFragment } from '@app/graphql/generated/client/fragment-masking.js';
 import { ClientType } from '@app/graphql/generated/client/graphql.js';
 import { EVENTS_SUBSCRIPTION, RemoteGraphQL_Fragment } from '@app/graphql/mothership/subscriptions.js';
@@ -75,14 +76,18 @@ export const subscribeToEvents = async (apiKey: string) => {
 };
 
 export const setupNewMothershipSubscription = async (state = store.getState()) => {
-    await GraphQLClient.clearInstance();
-    if (getMothershipConnectionParams(state)?.apiKey) {
-        minigraphLogger.trace('Creating Graphql client');
-        const client = GraphQLClient.createSingletonInstance();
-        if (client) {
-            minigraphLogger.trace('Connecting to mothership');
-            await subscribeToEvents(state.config.remote.apikey);
-            initPingTimeoutJobs();
+    if (CONNECT) {
+        await GraphQLClient.clearInstance();
+        if (getMothershipConnectionParams(state)?.apiKey) {
+            minigraphLogger.trace('Creating Graphql client');
+            const client = GraphQLClient.createSingletonInstance();
+            if (client) {
+                minigraphLogger.trace('Connecting to mothership');
+                await subscribeToEvents(state.config.remote.apikey);
+                initPingTimeoutJobs();
+            }
         }
+    } else {
+        minigraphLogger.trace('In API mode, CONNECT is false - skipping mothership subscription');
     }
 };
