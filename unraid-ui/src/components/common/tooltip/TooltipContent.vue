@@ -1,26 +1,23 @@
 <script setup lang="ts">
-import { type HTMLAttributes, computed } from "vue";
+import useTeleport from '@/composables/useTeleport';
+import { cn } from '@/lib/utils';
 import {
   TooltipContent,
-  type TooltipContentEmits,
-  type TooltipContentProps,
   TooltipPortal,
   useForwardPropsEmits,
-} from "radix-vue";
-import { cn } from "@/lib/utils";
-import useTeleport from "@/composables/useTeleport";
+  type TooltipContentEmits,
+  type TooltipContentProps,
+} from 'reka-ui';
+import { computed, type HTMLAttributes } from 'vue';
 
 defineOptions({
   inheritAttrs: false,
 });
 
-const props = withDefaults(
-  defineProps<TooltipContentProps & { class?: HTMLAttributes["class"] }>(),
-  {
-    sideOffset: 4,
-    class: undefined,
-  }
-);
+const props = withDefaults(defineProps<TooltipContentProps & { class?: HTMLAttributes['class'] }>(), {
+  sideOffset: 4,
+  class: undefined,
+});
 
 const emits = defineEmits<TooltipContentEmits>();
 
