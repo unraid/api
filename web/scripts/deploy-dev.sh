@@ -20,9 +20,9 @@ fi
 
 # Replace the value inside the rsync command with the user's input
 # Delete existing web components in the target directory
-ssh "root@${server_name}" "rm -rf /usr/local/emhttp/plugins/dynamix.my.servers/unraid-components/nuxt/*"
+ssh "root@${server_name}" "rm -rf /usr/local/emhttp/plugins/dynamix.my.servers/unraid-components/*"
 
-rsync_command="rsync -avz -e ssh $source_directory root@${server_name}:/usr/local/emhttp/plugins/dynamix.my.servers/unraid-components/nuxt"
+rsync_command="rsync -avz -e ssh $source_directory root@${server_name}:/usr/local/emhttp/plugins/dynamix.my.servers/unraid-components"
 
 echo "Executing the following command:"
 echo "$rsync_command"
@@ -37,7 +37,7 @@ update_auth_request() {
   # SSH into server and update auth-request.php
   ssh "root@${server_name}" "
     AUTH_REQUEST_FILE='/usr/local/emhttp/auth-request.php'
-    WEB_COMPS_DIR='/usr/local/emhttp/plugins/dynamix.my.servers/unraid-components/nuxt/_nuxt/'
+    WEB_COMPS_DIR='/usr/local/emhttp/plugins/dynamix.my.servers/unraid-components/_nuxt/'
 
     # Find JS files and modify paths
     mapfile -t JS_FILES < <(find \"\$WEB_COMPS_DIR\" -type f -name \"*.js\" | sed 's|/usr/local/emhttp||' | sort -u)
