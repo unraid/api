@@ -48,8 +48,11 @@ fi
 run_build=${run_build:-Y}
 
 if [[ $run_build =~ ^[Yy]$ ]]; then
-  echo "Build web components..."
-  pnpm run build
+    echo "Build web components..."
+    if ! pnpm run build; then
+        echo "Error: Build failed! Aborting copy process."
+        exit 1
+    fi
 fi
 
 # Path to store the last used webgui path
