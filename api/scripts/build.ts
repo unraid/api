@@ -32,13 +32,18 @@ try {
     await writeFile('./deploy/pack/package.json', JSON.stringify(parsedPackageJson, null, 4));
     // Copy necessary files to the pack directory
     await $`cp -r dist README.md .env.* ecosystem.config.json ./deploy/pack/`;
+    await $`cp ./.npmrc-for-release-build ./deploy/pack/.npmrc`;
 
     // Change to the pack directory and install dependencies
     cd('./deploy/pack');
 
-    // console.log('Installing production dependencies...');
-    // $.verbose = true;
-    // await $`pnpm install --prod --ignore-workspace --node-linker hoisted`;
+    console.log('Building production pnpm store...');
+    $.verbose = true;
+    await $`pnpm config get store-dir`;
+    await $`pnpm install --prod --ignore-workspace`;
+
+    await $`rm -rf node_modules`; // Don't include node_modules in final package
+    await $`XZ_OPT=-5 tar -cJf ../packed-pnpm-store.txz ../.pnpm-store`;
 
     // chmod the cli
     await $`chmod +x ./dist/cli.js`;

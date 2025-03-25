@@ -1,5 +1,10 @@
 import { join } from "path";
-import { getTxzName, pluginNameWithExt } from "./consts";
+import {
+  getTxzName,
+  pluginName,
+  pluginNameWithExt,
+  startingDir,
+} from "./consts";
 
 export interface PathConfig {
   startingDir: string;
@@ -10,6 +15,15 @@ export interface TxzPathConfig extends PathConfig {
 }
 
 export const deployDir = "deploy" as const;
+
+export const apiDir = join(
+  startingDir,
+  "source",
+  pluginName,
+  "usr",
+  "local",
+  "unraid-api"
+);
 
 /**
  * Get the path to the root plugin directory

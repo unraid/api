@@ -16,6 +16,7 @@
   <!ENTITY NODEJS_SHA256 "69b09dba5c8dcb05c4e4273a4340db1005abeafe3927efda2bc5b249e80437ec">
   <!ENTITY NODEJS_TXZ "https://nodejs.org/download/release/v&NODEJS_VERSION;/node-v&NODEJS_VERSION;-linux-x64.tar.xz">
   <!ENTITY MAIN_TXZ "">
+  <!ENTITY VENDOR_STORE "">
   <!ENTITY TAG "">
 ]>
 
