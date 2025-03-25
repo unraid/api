@@ -78,7 +78,7 @@ restore_pnpm_store() {
   mkdir -p "$(dirname "$pnpm_store_dir")"
   
   # Extract directly to final location
-  if ! tar -xzf "$backup_file" -C "$(dirname "$pnpm_store_dir")" --preserve-permissions; then
+  if ! tar -xJf "$backup_file" -C "$(dirname "$pnpm_store_dir")" --preserve-permissions; then
     echo "Error: Failed to extract backup to final location."
     rm -rf "$pnpm_store_dir"
     return 1
