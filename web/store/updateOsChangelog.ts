@@ -82,17 +82,11 @@ export const useUpdateOsChangelogStore = defineStore('updateOsChangelog', () => 
 
       // open links in new tab & replace .md from links
       const renderer = new marked.Renderer();
-      const anchorRender = {
-        options: {
-          sanitize: true,
-        },
-        render: marked.Renderer.prototype.link,
-      };
-      renderer.link = function (href, title, text) {
-        const anchor = anchorRender.render(href, title, text);
-        return anchor
-          .replace('<a', "<a target='_blank' ") // open links in new tab
-          .replace('.md', ''); // remove .md from links
+
+      renderer.link = ({ href, title, tokens }) => {
+        const linkText = renderer.parser.parseInline(tokens);
+        const cleanHref = href.replace('.md', ''); // remove .md from href
+        return `<a href="${cleanHref}" ${title ? `title="${title}"` : ''} target="_blank">${linkText}</a>`;
       };
 
       marked.setOptions({
