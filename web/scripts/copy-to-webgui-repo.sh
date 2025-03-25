@@ -1,5 +1,27 @@
 #!/bin/bash
 
+# Check for --wc-build argument
+if [[ "$1" == "--wc-build=y" || "$1" == "--wc-build=Y" ]]; then
+    run_build="Y"
+    shift
+elif [[ "$1" == "--wc-build=n" || "$1" == "--wc-build=N" ]]; then
+    run_build="N"
+    shift
+elif [[ "$1" == "--wc-build" ]]; then
+    run_build="Y"  # Default to Y if no value specified
+    shift
+else
+    # Prompt user about running build
+    read -r -p "Run 'pnpm run build' to build the web components before copying? (Y/n) " run_build
+fi
+
+run_build=${run_build:-Y}
+
+if [[ $run_build =~ ^[Yy]$ ]]; then
+  echo "Build web components..."
+  pnpm run build
+fi
+
 # Path to store the last used webgui path
 state_file="$HOME/.copy_to_webgui_state"
 
