@@ -86,9 +86,8 @@ export class PluginService {
         if (!this.isPluginFactory(PluginFactory)) {
             throw new Error(`Invalid plugin from ${pluginPackage}. Must export a factory function.`);
         }
-        console.log('PluginFactory', PluginFactory);
+
         const logger = new Logger(PluginFactory.name);
-        // Note: plugin construction could throw. this should bubble up.
         const validation = apiPluginSchema.safeParse(PluginFactory({ store, logger }));
         if (!validation.success) {
             throw new Error(`Invalid plugin from ${pluginPackage}: ${validation.error}`);
