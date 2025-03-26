@@ -39,16 +39,16 @@ try {
 
     console.log('Building production pnpm store...');
     $.verbose = true;
-    await $`pnpm config get store-dir`;
-    await $`pnpm install --prod --ignore-workspace`;
+    await $`pnpm install --prod --ignore-workspace --store-dir=../.pnpm-store`;
 
     await $`rm -rf node_modules`; // Don't include node_modules in final package
-
+    
     const sudoCheck = await $`command -v sudo`.nothrow();
     const SUDO = sudoCheck.exitCode === 0 ? 'sudo' : '';
     await $`${SUDO} chown -R 0:0 ../.pnpm-store`;
 
     await $`XZ_OPT=-5 tar -cJf ../packed-pnpm-store.txz ../.pnpm-store`;
+    await $`${SUDO} rm -rf ../.pnpm-store`;
 
     // chmod the cli
     await $`chmod +x ./dist/cli.js`;

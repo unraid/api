@@ -16,6 +16,10 @@
   <!ENTITY NODEJS_SHA256 "69b09dba5c8dcb05c4e4273a4340db1005abeafe3927efda2bc5b249e80437ec">
   <!ENTITY NODEJS_TXZ "https://nodejs.org/download/release/v&NODEJS_VERSION;/node-v&NODEJS_VERSION;-linux-x64.tar.xz">
   <!ENTITY MAIN_TXZ "">
+  <!ENTITY PNPM_BINARY "/boot/config/plugins/dynamix.my.servers/pnpm-linuxstatic-x64">
+  <!ENTITY PNPM_BINARY_URL "https://github.com/pnpm/pnpm/releases/download/v10.7.0/pnpm-linuxstatic-x64">
+  <!ENTITY PNPM_BINARY_SHA256 "714f4c21b63f47ed415f2e59f4bf5c699aa4f58b4d88e15ce6c66cda5631ebb2">
+  <!-- PNPM Binary will re-download when SHA256 doesn't match, so PNPM_BINARY doesn't need a version in the filename -->
   <!ENTITY VENDOR_STORE "">
   <!ENTITY VENDOR_STORE_FILENAME "">
   <!ENTITY TAG "">
@@ -104,6 +108,10 @@ exit 0
   <FILE Name="/boot/config/plugins/dynamix.my.servers/&NODEJS_FILENAME;">
     <URL>&NODEJS_TXZ;</URL>
     <SHA256>&NODEJS_SHA256;</SHA256>
+  </FILE>
+  <FILE Name="&PNPM_BINARY;">
+    <URL>&PNPM_BINARY_URL;</URL>
+    <SHA256>&PNPM_BINARY_SHA256;</SHA256>
   </FILE>
   <FILE Name="/boot/config/plugins/dynamix.my.servers/&VENDOR_STORE_FILENAME;">
     <URL>&VENDOR_STORE;</URL>
@@ -342,6 +350,7 @@ exit 0
     <INLINE>
       TAG="&TAG;" MAINTXZ="&source;.txz"
       VENDOR_ARCHIVE="/boot/config/plugins/dynamix.my.servers/&VENDOR_STORE_FILENAME;"
+      PNPM_BINARY_FILE="&PNPM_BINARY;"
     <![CDATA[
 appendTextIfMissing() {
   FILE="$1" TEXT="$2"
@@ -800,14 +809,12 @@ fi
 ln -sf /usr/local/node/bin/node /usr/local/bin/node
 ln -sf /usr/local/node/bin/npm /usr/local/bin/npm
 ln -sf /usr/local/node/bin/corepack /usr/local/bin/corepack
-# TODO ensure pnpm lasts between reboots, even when offline
-if ! command -v pnpm >/dev/null 2>&1; then
-  echo "pnpm not found, enabling via corepack..."
-  corepack enable pnpm
-fi
 
 ln -sf ${unraid_binary_path} /usr/local/sbin/unraid-api
 ln -sf ${unraid_binary_path} /usr/bin/unraid-api
+
+cp -f "${PNPM_BINARY_FILE}" /usr/local/bin/pnpm
+chmod +x /usr/local/bin/pnpm
 
 /etc/rc.d/rc.unraid-api restore-dependencies "$VENDOR_ARCHIVE"
 echo
