@@ -856,6 +856,9 @@ importers:
       vite-plugin-remove-console:
         specifier: ^2.2.0
         version: 2.2.0
+      vite-plugin-vue-tracer:
+        specifier: ^0.1.3
+        version: 0.1.3(vite@6.2.3(@types/node@22.13.13)(jiti@2.4.2)(stylus@0.57.0)(terser@5.39.0)(tsx@4.19.3)(yaml@2.7.0))(vue@3.5.13(typescript@5.8.2))
       vitest:
         specifier: ^3.0.0
         version: 3.0.9(@types/node@22.13.13)(@vitest/ui@3.0.9)(happy-dom@17.4.4)(jiti@2.4.2)(jsdom@26.0.0)(stylus@0.57.0)(terser@5.39.0)(tsx@4.19.3)(yaml@2.7.0)
@@ -3758,7 +3761,6 @@ packages:
   '@unraid/libvirt@1.1.3':
     resolution: {integrity: sha512-aZNHkwgQ/0e+5BE7i3Ru4GC3Ev8fEUlnU0wmTcuSbpN0r74rMpiGwzA/4cqIJU8X+Kj//I80pkUufzXzHmMWwQ==}
     engines: {node: '>=14'}
-    cpu: [x64, arm64]
     os: [linux, darwin]
 
   '@unraid/tailwind-rem-to-rem@1.1.0':
@@ -10973,8 +10975,8 @@ packages:
     peerDependencies:
       vite: ^3.0.0-0 || ^4.0.0-0 || ^5.0.0-0 || ^6.0.0-0
 
-  vite-plugin-vue-tracer@0.1.2:
-    resolution: {integrity: sha512-pH8BaBQfC9K9A2/ENsdOSfyba76BZGDsmzi7LvgDqNMcPekznIHRdPFjPMVWetYz7fQGPHqvuSQjUrdTyYLmnQ==}
+  vite-plugin-vue-tracer@0.1.3:
+    resolution: {integrity: sha512-+fN6oo0//dwZP9Ax9gRKeUroCqpQ43P57qlWgL0ljCIxAs+Rpqn/L4anIPZPgjDPga5dZH+ZJsshbF0PNJbm3Q==}
     peerDependencies:
       vite: ^6.0.0
       vue: ^3.5.0
@@ -13630,7 +13632,7 @@ snapshots:
       tinyglobby: 0.2.12
       vite: 6.2.3(@types/node@22.13.13)(jiti@2.4.2)(stylus@0.57.0)(terser@5.39.0)(tsx@4.19.3)(yaml@2.7.0)
       vite-plugin-inspect: 11.0.0(@nuxt/kit@3.16.1(magicast@0.3.5))(vite@6.2.3(@types/node@22.13.13)(jiti@2.4.2)(stylus@0.57.0)(terser@5.39.0)(tsx@4.19.3)(yaml@2.7.0))
-      vite-plugin-vue-tracer: 0.1.2(vite@6.2.3(@types/node@22.13.13)(jiti@2.4.2)(stylus@0.57.0)(terser@5.39.0)(tsx@4.19.3)(yaml@2.7.0))(vue@3.5.13(typescript@5.8.2))
+      vite-plugin-vue-tracer: 0.1.3(vite@6.2.3(@types/node@22.13.13)(jiti@2.4.2)(stylus@0.57.0)(terser@5.39.0)(tsx@4.19.3)(yaml@2.7.0))(vue@3.5.13(typescript@5.8.2))
       which: 5.0.0
       ws: 8.18.1
     transitivePeerDependencies:
@@ -15122,7 +15124,7 @@ snapshots:
     dependencies:
       '@ampproject/remapping': 2.3.0
       '@bcoe/v8-coverage': 1.0.2
-      debug: 4.4.0
+      debug: 4.4.0(supports-color@9.4.0)
       istanbul-lib-coverage: 3.2.2
       istanbul-lib-report: 3.0.1
       istanbul-lib-source-maps: 5.0.6
@@ -17010,10 +17012,6 @@ snapshots:
     dependencies:
       ms: 2.1.3
 
-  debug@4.4.0:
-    dependencies:
-      ms: 2.1.3
-
   debug@4.4.0(supports-color@5.5.0):
     dependencies:
       ms: 2.1.3
@@ -17475,7 +17473,7 @@ snapshots:
 
   esbuild-register@3.6.0(esbuild@0.25.1):
     dependencies:
-      debug: 4.4.0
+      debug: 4.4.0(supports-color@9.4.0)
       esbuild: 0.25.1
     transitivePeerDependencies:
       - supports-color
@@ -19294,7 +19292,7 @@ snapshots:
   istanbul-lib-source-maps@5.0.6:
     dependencies:
       '@jridgewell/trace-mapping': 0.3.25
-      debug: 4.4.0
+      debug: 4.4.0(supports-color@9.4.0)
       istanbul-lib-coverage: 3.2.2
     transitivePeerDependencies:
       - supports-color
@@ -21189,7 +21187,7 @@ snapshots:
 
   postcss-styl@0.12.3:
     dependencies:
-      debug: 4.4.0
+      debug: 4.4.0(supports-color@9.4.0)
       fast-diff: 1.3.0
       lodash.sortedlastindex: 4.1.0
       postcss: 8.5.3
@@ -23162,7 +23160,7 @@ snapshots:
       '@microsoft/api-extractor': 7.43.0(@types/node@22.13.13)
       '@rollup/pluginutils': 5.1.4(rollup@4.37.0)
       '@vue/language-core': 1.8.27(typescript@5.8.2)
-      debug: 4.4.0
+      debug: 4.4.0(supports-color@9.4.0)
       kolorist: 1.8.0
       magic-string: 0.30.17
       typescript: 5.8.2
@@ -23178,7 +23176,7 @@ snapshots:
     dependencies:
       '@antfu/utils': 0.7.10
       '@rollup/pluginutils': 5.1.4(rollup@4.37.0)
-      debug: 4.4.0
+      debug: 4.4.0(supports-color@9.4.0)
       error-stack-parser-es: 0.1.5
       fs-extra: 11.3.0
       open: 10.1.0
@@ -23251,7 +23249,7 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  vite-plugin-vue-tracer@0.1.2(vite@6.2.3(@types/node@22.13.13)(jiti@2.4.2)(stylus@0.57.0)(terser@5.39.0)(tsx@4.19.3)(yaml@2.7.0))(vue@3.5.13(typescript@5.8.2)):
+  vite-plugin-vue-tracer@0.1.3(vite@6.2.3(@types/node@22.13.13)(jiti@2.4.2)(stylus@0.57.0)(terser@5.39.0)(tsx@4.19.3)(yaml@2.7.0))(vue@3.5.13(typescript@5.8.2)):
     dependencies:
       estree-walker: 3.0.3
       exsolve: 1.0.4
@@ -23403,7 +23401,7 @@ snapshots:
 
   vue-eslint-parser@9.4.3(eslint@9.23.0(jiti@2.4.2)):
     dependencies:
-      debug: 4.4.0
+      debug: 4.4.0(supports-color@9.4.0)
       eslint: 9.23.0(jiti@2.4.2)
       eslint-scope: 7.2.2
       eslint-visitor-keys: 3.4.3
