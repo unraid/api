@@ -7,7 +7,7 @@
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
-  "author": "",
+  "author": "Lime Technology, Inc. <unraid.net>",
   "license": "GPL-2.0-only",
-  "description": ""
+  "description": "Example Health plugin for Unraid API"
 }
