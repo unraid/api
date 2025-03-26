@@ -83,7 +83,7 @@ export class PluginService {
         const pluginName = pascalCase(pluginPackage);
         const PluginFactory = moduleImport.default || moduleImport[pluginName];
 
-        if (!this.isPluginFactory(PluginFactory)) {
+        if (!PluginService.isPluginFactory(PluginFactory)) {
             throw new Error(`Invalid plugin from ${pluginPackage}. Must export a factory function.`);
         }
 
@@ -110,7 +110,7 @@ export class PluginService {
         /** list of npm packages that are unraid-api plugins */
         const plugins = getPackageDependencies()?.filter((pkgName) => pkgName.startsWith(pluginPrefix));
         if (!plugins) {
-            this.logger.warn('Could not load dependencies from the Unraid-API package.json');
+            PluginService.logger.warn('Could not load dependencies from the Unraid-API package.json');
             // Fail silently: Return the module without plugins
             return [];
         }
@@ -118,15 +118,15 @@ export class PluginService {
         const failedPlugins: string[] = [];
         const { data: pluginProviders } = await batchProcess(plugins, async (pluginPackage) => {
             try {
-                return await this.getPluginFromPackage(pluginPackage);
+                return await PluginService.getPluginFromPackage(pluginPackage);
             } catch (error) {
                 failedPlugins.push(pluginPackage);
-                this.logger.warn(error);
+                PluginService.logger.warn(error);
                 throw error;
             }
         });
         if (failedPlugins.length > 0) {
-            this.logger.warn(
+            PluginService.logger.warn(
                 `${failedPlugins.length} plugins failed to load. Ignoring them: ${failedPlugins.join(', ')}`
             );
         }
