@@ -134,10 +134,6 @@ export class PluginService {
         return pluginProviders;
     }
 
-    registerPlugin(plugin: ApiPluginDefinition) {
-        this.plugins.push(plugin);
-    }
-
     async getGraphQLConfiguration() {
         await this.loadPlugins();
         const plugins = this.plugins;
