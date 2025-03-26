@@ -100,3 +100,6 @@ result
 result-*
 .direnv/
 .envrc
+
+# Webgui sync script helpers
+web/scripts/.sync-webgui-repo-*
