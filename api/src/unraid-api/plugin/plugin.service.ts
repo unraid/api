@@ -1,6 +1,7 @@
 import { Injectable, Logger, Provider, Type } from '@nestjs/common';
 
 import { pascalCase } from 'change-case';
+import { parse } from 'graphql';
 
 import type {
     ApiPluginDefinition,
@@ -152,9 +153,11 @@ export class PluginService {
 
             if (plugin.registerGraphQLTypeDefs) {
                 const pluginTypeDefs = await plugin.registerGraphQLTypeDefs();
-                if (pluginTypeDefs) {
+                try {
+                    // Validate schema by parsing it - this will throw if invalid
+                    parse(pluginTypeDefs);
                     typeDefs.push(pluginTypeDefs);
-                } else {
+                } catch (error) {
                     const errorMessage = `Plugin ${plugin.name} returned an unusable GraphQL type definition: ${JSON.stringify(
                         pluginTypeDefs
                     )}`;
