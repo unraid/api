@@ -1,4 +1,3 @@
-// Core imports
 const fs = require('fs');
 const path = require('path');
 const ignore = require('ignore');
@@ -7,7 +6,6 @@ const diff = require('diff');
 const crypto = require('crypto');
 const chalk = require('chalk');
 
-// Constants
 const CONSTANTS = {
     PATHS: {
         IGNORE_LIST: path.join(__dirname, '.sync-webgui-repo-ignored-files.json'),
@@ -15,11 +13,11 @@ const CONSTANTS = {
         STATE: path.join(__dirname, '.sync-webgui-repo-state.json')
     },
     IGNORE_PATTERNS: [
-        /\.md$/i,          // Markdown files
-        /\.ico$/i,         // Icon files
-        /\.cfg$/i,         // Config files
-        /\.json$/i,        // JSON files
-        /^banner\.png$/i,  // banner.png files
+        /\.md$/i,
+        /\.ico$/i,
+        /\.cfg$/i,
+        /\.json$/i,
+        /^banner\.png$/i,
     ],
     PLUGIN_PATHS: {
         API: 'plugin/source/dynamix.unraid.net/usr/local/emhttp/plugins',
@@ -27,11 +25,10 @@ const CONSTANTS = {
     },
     WEB_COMPONENTS: {
         API_PATH: 'web/.nuxt/nuxt-custom-elements/dist/unraid-components',
-        WEBGUI_PATH: 'emhttp/plugins/dynamix.my.servers/unraid-components'
+        WEBGUI_PATH: 'emhttp/plugins/dynamix.my.servers/unraid-components/nuxt'
     }
 };
 
-// File System Helpers
 const FileSystem = {
     readJsonFile(path, defaultValue = {}) {
         try {
@@ -88,7 +85,6 @@ const FileSystem = {
     }
 };
 
-// UI Helpers
 const UI = {
     rl: readline.createInterface({
         input: process.stdin,
@@ -127,7 +123,6 @@ const UI = {
     }
 };
 
-// State Management
 const State = {
     loadIgnoredFiles() {
         return FileSystem.readJsonFile(CONSTANTS.PATHS.IGNORE_LIST, []);
@@ -163,7 +158,6 @@ const State = {
     }
 };
 
-// File Operations
 const FileOps = {
     loadGitignore(dirPath) {
         const gitignorePath = path.join(dirPath, '.gitignore');
@@ -248,7 +242,6 @@ const FileOps = {
     }
 };
 
-// Core Features
 const Features = {
     async setupPaths() {
         const paths = State.loadPaths();
@@ -367,7 +360,7 @@ const Features = {
         return missingFiles;
     }
 
-        const gitignore1 = FileOps.loadGitignore(apiProjectDir);
+    const gitignore1 = FileOps.loadGitignore(apiProjectDir);
 
     function walkDir(currentPath, baseDir) {
         if (!fs.existsSync(currentPath)) {
@@ -441,9 +434,9 @@ const Features = {
             }
         } catch (err) {
             UI.log(`Error while scanning directories: ${err.message}`, 'error');
-    }
+        }
 
-    return missingFiles;
+        return missingFiles;
     },
 
     async handleNewFiles() {
@@ -509,7 +502,6 @@ const Features = {
     }
 };
 
-// Menu System
 const Menu = {
     async show() {
         try {
@@ -574,7 +566,7 @@ const Menu = {
                             } else {
                                 UI.log('Files are identical', 'success');
                             }
-                            console.log(''); // Empty line for spacing
+                            console.log('');
                         }
                     }
                     break;
@@ -608,7 +600,6 @@ const Menu = {
     }
 };
 
-// Application Entry Point
 const App = {
     async init() {
         try {
@@ -624,7 +615,6 @@ const App = {
     }
 };
 
-// Start the application
 App.init().catch(error => {
     UI.log(`Something went wrong fam: ${error.message}`, 'error');
     UI.rl.close();
