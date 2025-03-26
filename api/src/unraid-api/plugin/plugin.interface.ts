@@ -1,4 +1,4 @@
-import { Logger, OnModuleDestroy, OnModuleInit, Type } from '@nestjs/common';
+import { Logger, Type } from '@nestjs/common';
 
 import { CommandRunner } from 'nest-commander';
 import { z } from 'zod';
@@ -32,6 +32,7 @@ const resolverTypeMap = z.record(
 );
 const asyncResolver = () => z.function().returns(z.promise(resolverTypeMap));
 
+/** Warning: unstable API. The config mechanism and API may soon change. */
 export const apiPluginSchema = z.object({
     _type: z.literal('UnraidApiPlugin'),
     name: z.string(),
@@ -43,43 +44,18 @@ export const apiPluginSchema = z.object({
     registerRESTRoutes: asyncArray().optional(),
     registerServices: asyncArray().optional(),
     registerCronJobs: asyncArray().optional(),
+    // These schema definitions are picked up as nest modules as well.
     onModuleInit: asyncVoid().optional(),
     onModuleDestroy: asyncVoid().optional(),
 });
 
+/** Warning: unstable API. The config mechanism and API may soon change. */
 export type ApiPluginDefinition = z.infer<typeof apiPluginSchema>;
 
-export abstract class UnraidAPIPlugin implements OnModuleInit, OnModuleDestroy {
-    /** Warning: unstable API. The config mechanism and API may soon change. */
-    constructor(
-        protected readonly store: ApiStore,
-        protected readonly logger: Logger
-    ) {}
-
-    abstract metadata: PluginMetadata;
-
-    // CLI Commands - now a property instead of a method
-    abstract commands: Type<CommandRunner>[];
-
-    // GraphQL configuration
-    abstract registerGraphQLResolvers?(): Promise<any[]>;
-    abstract registerGraphQLTypeDefs?(): Promise<string>;
-
-    // REST configuration
-    abstract registerRESTControllers?(): Promise<any[]>;
-    abstract registerRESTRoutes?(): Promise<any[]>;
-
-    // Services and background tasks
-    abstract registerServices?(): Promise<any[]>;
-    abstract registerCronJobs?(): Promise<any[]>;
-
-    // Implement required OnModuleInit and OnModuleDestroy
-    abstract onModuleInit(): Promise<void>;
-    abstract onModuleDestroy(): Promise<void>;
-}
-
+// todo: the blocker to publishing this type is the 'ApiStore' type. 
+// It pulls in a lot of irrelevant types (e.g. graphql types) and triggers js transpilation of everything related to the store.
+// If we can isolate the type, we can publish it to npm and developers can use it as a dev dependency.
 /**
  * Represents a subclass of UnraidAPIPlugin that can be instantiated.
  */
-// export type ConstructablePlugin = new (options: { store: ApiStore; logger: Logger }) => UnraidAPIPlugin;
 export type ConstructablePlugin = (options: { store: ApiStore; logger: Logger }) => ApiPluginDefinition;

@@ -25,7 +25,7 @@ import { StatusCommand } from '@app/unraid-api/cli/status.command.js';
 import { StopCommand } from '@app/unraid-api/cli/stop.command.js';
 import { SwitchEnvCommand } from '@app/unraid-api/cli/switch-env.command.js';
 import { VersionCommand } from '@app/unraid-api/cli/version.command.js';
-import { UnraidAPIPlugin } from '@app/unraid-api/plugin/plugin.interface.js';
+import { ApiPluginDefinition } from '@app/unraid-api/plugin/plugin.interface.js';
 import { PluginModule } from '@app/unraid-api/plugin/plugin.module.js';
 import { PluginService } from '@app/unraid-api/plugin/plugin.service.js';
 
@@ -60,7 +60,7 @@ const DEFAULT_PROVIDERS = [
 
 type PluginProvider = Provider & {
     provide: string | symbol | Type<any>;
-    useValue?: UnraidAPIPlugin;
+    useValue?: ApiPluginDefinition;
 };
 
 @Module({
