@@ -237,6 +237,7 @@ if [ -e /etc/rc.d/rc.unraid-api ]; then
   # uninstall the api
   rm -rf /usr/local/unraid-api
   rm -rf /var/run/unraid-api.sock
+  rm -rf /usr/.pnpm-store
 fi
     ]]>
     </INLINE>
