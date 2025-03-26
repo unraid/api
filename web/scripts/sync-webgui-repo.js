@@ -27,7 +27,7 @@ const FileSystem = {
   readJsonFile(path, defaultValue = {}) {
     try {
       return fs.existsSync(path) ? JSON.parse(fs.readFileSync(path, 'utf8')) : defaultValue;
-    } catch (err) {
+    } catch {
       return defaultValue;
     }
   },
