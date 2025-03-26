@@ -197,13 +197,13 @@ const FileOps = {
     if (!this.showDiff(apiFile, webguiFile)) return 'identical';
 
     const answer = await UI.question(
-      'What should I do fam? (a=copy from API to webgui/w=copy from webgui to API/n=skip) '
+      'What should I do fam? (w=copy to webgui/a=copy to API/s=skip) '
     );
     switch (answer.toLowerCase()) {
-      case 'a':
-        return FileSystem.copyFile(apiFile, webguiFile) ? 'api' : 'error';
       case 'w':
-        return FileSystem.copyFile(webguiFile, apiFile) ? 'webgui' : 'error';
+        return FileSystem.copyFile(apiFile, webguiFile) ? 'webgui' : 'error';
+      case 'a':
+        return FileSystem.copyFile(webguiFile, apiFile) ? 'api' : 'error';
       default:
         return 'skip';
     }
@@ -462,10 +462,12 @@ const Features = {
       console.log(`From: ${info.source}`);
       console.log(`To: ${info.destinationPath}`);
 
-      const answer = await UI.question('What should I do fam? (y=copy/n=skip/i=ignore forever/q=quit) ');
+      const answer = await UI.question(
+        'What should I do fam? (w=copy to webgui/i=ignore forever/s=skip/q=quit) '
+      );
 
       switch (answer.toLowerCase()) {
-        case 'y':
+        case 'w':
           if (FileSystem.copyFile(info.source, info.destinationPath)) {
             UI.log(`Copied: ${relativePath}`, 'success');
             handledFiles.add(relativePath);
