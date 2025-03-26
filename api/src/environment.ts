@@ -10,7 +10,7 @@ import type { PackageJson, SetRequired } from 'type-fest';
  * @param location - The location of the package.json file, relative to the current file
  * @returns The package.json object or undefined if unable to read
  */
-function getPackageJsonAt(location: string): PackageJson | undefined {
+function readPackageJson(location: string): PackageJson | undefined {
     try {
         let packageJsonPath: string;
         try {
@@ -34,7 +34,7 @@ function getPackageJsonAt(location: string): PackageJson | undefined {
  * @returns The package.json object
  */
 export const getPackageJson = () => {
-    const packageJson = getPackageJsonAt('../package.json') || getPackageJsonAt('../../package.json');
+    const packageJson = readPackageJson('../package.json') || readPackageJson('../../package.json');
     if (!packageJson) {
         throw new Error('Could not find package.json in any of the expected locations');
     }

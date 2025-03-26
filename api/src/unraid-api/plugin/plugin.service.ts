@@ -72,7 +72,7 @@ export class PluginService {
         return this.loadingPromise;
     }
 
-    private static isPluginFactory(factory: any): factory is ConstructablePlugin {
+    private static isPluginFactory(factory: unknown): factory is ConstructablePlugin {
         return typeof factory === 'function';
     }
 
