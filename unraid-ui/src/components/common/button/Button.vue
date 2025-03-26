@@ -1,30 +1,21 @@
 <script setup lang="ts">
-import { computed } from "vue";
-import { buttonVariants } from "./button.variants";
-import { cn } from "@/lib/utils";
+import { cn } from '@/lib/utils';
+import { computed } from 'vue';
+import { buttonVariants, type ButtonVariants } from './button.variants';
 
 export interface ButtonProps {
-  variant?:
-    | "primary"
-    | "destructive"
-    | "outline"
-    | "secondary"
-    | "ghost"
-    | "link";
-  size?: "sm" | "md" | "lg" | "icon";
+  variant?: ButtonVariants['variant'];
+  size?: ButtonVariants['size'];
   class?: string;
 }
 
 const props = withDefaults(defineProps<ButtonProps>(), {
-  variant: "primary",
-  size: "md",
+  variant: 'primary',
+  size: 'md',
 });
 
 const buttonClass = computed(() => {
-  return cn(
-    buttonVariants({ variant: props.variant, size: props.size }),
-    props.class
-  );
+  return cn(buttonVariants({ variant: props.variant, size: props.size }), props.class);
 });
 </script>
 

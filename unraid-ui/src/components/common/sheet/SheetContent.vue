@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import useTeleport from '@/composables/useTeleport';
 import { cn } from '@/lib/utils';
 import { X } from 'lucide-vue-next';
 import {
@@ -10,16 +11,18 @@ import {
   type DialogContentEmits,
 } from 'reka-ui';
 import { computed, type HTMLAttributes } from 'vue';
-import { sheetVariants } from './sheet.variants';
+import { sheetVariants, type SheetVariants } from './sheet.variants';
 
 export interface SheetContentProps {
-  side?: 'top' | 'bottom' | 'left' | 'right';
-  padding?: 'none' | 'md';
+  side?: SheetVariants['side'];
+  padding?: SheetVariants['padding'];
   class?: HTMLAttributes['class'];
   disabled?: boolean;
   forceMount?: boolean;
   to?: string | HTMLElement;
 }
+
+const { teleportTarget } = useTeleport();
 
 const props = withDefaults(defineProps<SheetContentProps>(), {
   side: 'right',
@@ -41,7 +44,7 @@ const forwarded = useForwardPropsEmits(delegatedProps, emits);
 </script>
 
 <template>
-  <DialogPortal :disabled="disabled" :force-mount="forceMount" :to="to">
+  <DialogPortal :disabled="disabled" :force-mount="forceMount" :to="teleportTarget">
     <DialogOverlay
       class="fixed inset-0 z-50 bg-black/80 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0"
     />

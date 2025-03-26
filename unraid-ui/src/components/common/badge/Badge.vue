@@ -1,25 +1,11 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 import type { Component } from 'vue';
-import { badgeVariants } from './badge.variants';
+import { badgeVariants, type BadgeVariants } from './badge.variants';
 
 export interface BadgeProps {
-  variant?:
-    | 'red'
-    | 'yellow'
-    | 'green'
-    | 'blue'
-    | 'indigo'
-    | 'purple'
-    | 'pink'
-    | 'orange'
-    | 'black'
-    | 'white'
-    | 'transparent'
-    | 'current'
-    | 'gray'
-    | 'custom';
-  size?: 'xs' | 'sm' | 'md' | 'lg' | 'xl' | '2xl';
+  variant?: BadgeVariants['variant'];
+  size?: BadgeVariants['size'];
   icon?: Component;
   iconRight?: Component;
   iconStyles?: string;
