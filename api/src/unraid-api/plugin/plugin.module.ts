@@ -1,17 +1,6 @@
 import { DynamicModule, Logger, Module, OnModuleInit, Provider, Type } from '@nestjs/common';
 
-import { pascalCase } from 'change-case';
-
-import type { ConstructablePlugin } from '@app/unraid-api/plugin/plugin.interface.js';
-import { getPackageJsonDependencies as getPackageDependencies } from '@app/environment.js';
-import { store } from '@app/store/index.js';
-import { ApiPluginDefinition, apiPluginSchema } from '@app/unraid-api/plugin/plugin.interface.js';
 import { PluginService } from '@app/unraid-api/plugin/plugin.service.js';
-import { batchProcess } from '@app/utils.js';
-
-type CustomProvider = Provider & {
-    provide: string | symbol | Type<any>;
-};
 
 @Module({})
 export class PluginModule implements OnModuleInit {

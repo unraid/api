@@ -23,6 +23,7 @@ type PluginProvider = {
 @Injectable()
 export class PluginService {
     private pluginProviders: PluginProvider[] | undefined;
+    private loadingPromise: Promise<PluginProvider[]> | undefined;
     private static readonly logger = new Logger(PluginService.name);
     constructor() {
         this.loadPlugins();
@@ -33,15 +34,23 @@ export class PluginService {
     }
 
     async loadPlugins() {
+        // If plugins are already loaded, return them
         if (this.pluginProviders?.length) {
             return this.pluginProviders;
         }
-        return PluginService.getPlugins()
+
+        // If getPlugins() is already loading, return its promise
+        if (this.loadingPromise) {
+            return this.loadingPromise;
+        }
+
+        this.loadingPromise = PluginService.getPlugins()
             .then((plugins) => {
                 if (!this.pluginProviders?.length) {
                     this.pluginProviders = plugins;
+                    const pluginNames = this.plugins.map((plugin) => plugin.name);
                     PluginService.logger.debug(
-                        `Registered ${this.plugins.length} plugins: ${JSON.stringify(Object.keys(this.plugins[0]), null, 2)}`
+                        `Registered ${pluginNames.length} plugins: ${pluginNames.join(', ')}`
                     );
                 } else {
                     PluginService.logger.debug(
@@ -53,7 +62,13 @@ export class PluginService {
             .catch((error) => {
                 PluginService.logger.error('Error registering plugins', error);
                 return [];
+            })
+            .finally(() => {
+                // clear loading state
+                this.loadingPromise = undefined;
             });
+
+        return this.loadingPromise;
     }
 
     private static isPluginFactory(factory: any): factory is ConstructablePlugin {
@@ -100,8 +115,6 @@ export class PluginService {
             // Fail silently: Return the module without plugins
             return [];
         }
-        const pluginsListing = JSON.stringify(plugins, null, 2);
-        this.logger.debug(`Found ${plugins.length} plugins to load: ${pluginsListing}`);
 
         const failedPlugins: string[] = [];
         const { data: pluginProviders } = await batchProcess(plugins, async (pluginPackage) => {
