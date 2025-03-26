@@ -508,100 +508,100 @@ const Features = {
 
 const Menu = {
   async show() {
-    try {
-      console.log('\nWhat you trying to do fam?');
-      console.log('1. Find new plugin files in API project');
-      console.log('2. Handle new plugin files in API project');
-      console.log('3. Sync shared files between API and webgui');
-      console.log('4. Build web components');
-      console.log('5. Sync web components');
-      console.log('6. Exit\n');
+    while (true) { // Keep showing menu until exit
+      try {
+        console.log('\nWhat you trying to do fam?');
+        console.log('1. Find new plugin files in API project');
+        console.log('2. Handle new plugin files in API project');
+        console.log('3. Sync shared files between API and webgui');
+        console.log('4. Build web components');
+        console.log('5. Sync web components');
+        console.log('6. Exit\n');
 
-      const answer = await UI.question('Choose an option (1-6): ');
+        const answer = await UI.question('Choose an option (1-6): ');
 
-      switch (answer) {
-        case '1': {
-          UI.log('Checking plugin directories for missing files bruv...', 'info');
-          const ignoredFiles = State.loadIgnoredFiles();
-          const missingFiles = Features.findMissingPluginFiles(
-            global.apiProjectDir,
-            global.webguiProjectDir,
-            ignoredFiles
-          );
+        switch (answer) {
+          case '1': {
+            UI.log('Checking plugin directories for missing files bruv...', 'info');
+            const ignoredFiles = State.loadIgnoredFiles();
+            const missingFiles = Features.findMissingPluginFiles(
+              global.apiProjectDir,
+              global.webguiProjectDir,
+              ignoredFiles
+            );
 
-          if (missingFiles.size > 0) {
-            UI.log(`Found ${missingFiles.size} new files! 🔍`, 'info');
-            if (await UI.confirm('Want to handle these new files now fam?', false)) {
-              await Features.handleNewFiles();
-            } else {
-              UI.log('Safe, you can handle them later with option 2!', 'info');
-            }
-          } else {
-            UI.log('No new files found bruv! 👌', 'success');
-          }
-          break;
-        }
-
-        case '2':
-          await Features.handleNewFiles();
-          break;
-
-        case '3': {
-          UI.log('Checking for matching files bruv...', 'info');
-          const matchingFiles = Features.findMatchingFiles(
-            global.apiProjectDir,
-            global.webguiProjectDir
-          );
-
-          if (matchingFiles.size === 0) {
-            UI.log('No matching files found fam!', 'info');
-          } else {
-            UI.log(`Found ${matchingFiles.size} matching files:\n`, 'info');
-
-            for (const [filename, paths] of matchingFiles) {
-              const [apiPath, webguiPath] = paths;
-              console.log(`File: ${filename}`);
-
-              const apiHash = FileSystem.getFileHash(apiPath);
-              const webguiHash = FileSystem.getFileHash(webguiPath);
-
-              if (apiHash !== webguiHash) {
-                await FileOps.handleFileDiff(apiPath, webguiPath);
+            if (missingFiles.size > 0) {
+              UI.log(`Found ${missingFiles.size} new files! 🔍`, 'info');
+              if (await UI.confirm('Want to handle these new files now fam?', false)) {
+                await Features.handleNewFiles();
               } else {
-                UI.log('Files are identical', 'success');
+                UI.log('Safe, you can handle them later with option 2!', 'info');
               }
-              console.log('');
+            } else {
+              UI.log('No new files found bruv! 👌', 'success');
             }
+            break;
           }
-          break;
+
+          case '2':
+            await Features.handleNewFiles();
+            break;
+
+          case '3': {
+            UI.log('Checking for matching files bruv...', 'info');
+            const matchingFiles = Features.findMatchingFiles(
+              global.apiProjectDir,
+              global.webguiProjectDir
+            );
+
+            if (matchingFiles.size === 0) {
+              UI.log('No matching files found fam!', 'info');
+            } else {
+              UI.log(`Found ${matchingFiles.size} matching files:\n`, 'info');
+
+              for (const [filename, paths] of matchingFiles) {
+                const [apiPath, webguiPath] = paths;
+                console.log(`File: ${filename}`);
+
+                const apiHash = FileSystem.getFileHash(apiPath);
+                const webguiHash = FileSystem.getFileHash(webguiPath);
+
+                if (apiHash !== webguiHash) {
+                  await FileOps.handleFileDiff(apiPath, webguiPath);
+                } else {
+                  UI.log('Files are identical', 'success');
+                }
+                console.log('');
+              }
+            }
+            break;
+          }
+
+          case '4':
+            await Features.handleWebComponentBuild();
+            break;
+
+          case '5':
+            await Features.handleWebComponentSync();
+            break;
+
+          case '6':
+            UI.log('Safe bruv, catch you later! 👋', 'success');
+            UI.rl.close();
+            process.exit(0);
+            return; // Exit the loop
+
+          default:
+            UI.log("Nah fam, that's not a valid option!", 'error');
+            break;
         }
-
-        case '4':
-          await Features.handleWebComponentBuild();
-          break;
-
-        case '5':
-          await Features.handleWebComponentSync();
-          break;
-
-        case '6':
-          UI.log('Safe bruv, catch you later! 👋', 'success');
-          UI.rl.close();
-          process.exit(0);
-          break;
-
-        default:
-          UI.log("Nah fam, that's not a valid option!", 'error');
-          break;
+      } catch (error) {
+        UI.log(error.message, 'error');
+        UI.rl.close();
+        process.exit(1);
       }
-
-      await this.show(); // Show menu again unless exited
-    } catch (error) {
-      UI.log(error.message, 'error');
-      UI.rl.close();
-      process.exit(1);
     }
-  },
+  }
 };
 
 const App = {
