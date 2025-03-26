@@ -156,7 +156,14 @@ export class PluginService {
 
             if (plugin.registerGraphQLTypeDefs) {
                 const pluginTypeDefs = await plugin.registerGraphQLTypeDefs();
-                typeDefs.push(pluginTypeDefs);
+                if (pluginTypeDefs) {
+                    typeDefs.push(pluginTypeDefs);
+                } else {
+                    const errorMessage = `Plugin ${plugin.name} returned an unusable GraphQL type definition: ${JSON.stringify(
+                        pluginTypeDefs
+                    )}`;
+                    PluginService.logger.warn(errorMessage);
+                }
             }
         }
 
