@@ -11,6 +11,15 @@ importers:
       '@manypkg/cli':
         specifier: ^0.23.0
         version: 0.23.0
+      chalk:
+        specifier: ^4.1.2
+        version: 4.1.2
+      diff:
+        specifier: ^5.1.0
+        version: 5.2.0
+      ignore:
+        specifier: ^5.2.4
+        version: 5.3.2
 
   api:
     dependencies:
@@ -5664,6 +5673,10 @@ packages:
 
   didyoumean@1.2.2:
     resolution: {integrity: sha512-gxtyfqMg7GKyhQmb056K7M3xszy/myH8w+B4RT+QXBQsvAOdc3XymqDDPHx1BgPgsdAA5SIifona89YtRATDzw==}
+
+  diff@5.2.0:
+    resolution: {integrity: sha512-uIFDxqpRZGZ6ThOk84hEfqWoHx2devRFvpTZcTHur85vImfaxUbTW9Ryh4CpCuDnToOP1CEtXKIgytHBPVff5A==}
+    engines: {node: '>=0.3.1'}
 
   diff@7.0.0:
     resolution: {integrity: sha512-PJWHUb1RFevKCwaFA9RlG5tCd+FO5iRh9A8HEtkmBH2Li03iJriB6m6JIN4rGz3K3JLawI7/veA1xzRKP6ISBw==}
@@ -17153,6 +17166,8 @@ snapshots:
   devalue@5.1.1: {}
 
   didyoumean@1.2.2: {}
+
+  diff@5.2.0: {}
 
   diff@7.0.0: {}
 
