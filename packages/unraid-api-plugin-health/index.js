@@ -1,10 +1,3 @@
-class UnraidAPIPlugin {
-  constructor(store, logger) {
-    this.store = store;
-    this.logger = logger;
-  }
-}
-
 export default ({ store, logger }) => ({
   _type: "UnraidApiPlugin",
   name: "HealthPlugin",
