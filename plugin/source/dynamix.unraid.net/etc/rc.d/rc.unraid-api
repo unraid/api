@@ -8,9 +8,9 @@ flash="/boot/config/plugins/dynamix.my.servers"
 [[ ! -d "${flash}" ]] && echo "Please reinstall the Unraid Connect plugin" && exit 1
 [[ ! -f "${flash}/env" ]] && echo 'env=production' >"${flash}/env"
 unraid_binary_path="/usr/local/bin/unraid-api"
-unraid_api_dir="/usr/local/unraid-api"
 pnpm_store_dir="/usr/.pnpm-store"
 
+# Placeholder functions for plugin installation/uninstallation
 install() {
   true;
 }
@@ -18,7 +18,20 @@ uninstall() {
   true;
 }
 
+# Creates a backup of the global pnpm store directory
+# Args:
+#   $1 - Path to the backup file (tar.xz format)
+# Returns:
+#   0 on success, 1 on failure
 backup_pnpm_store() {
+  # Check if backup file path is provided
+  if [ -z "$1" ]; then
+    echo "Error: Backup file path is required"
+    return 1
+  fi
+
+  local backup_file="$1"
+
   # Check if pnpm command exists
   if ! command -v pnpm >/dev/null 2>&1; then
     echo "pnpm is not installed. Skipping backup."
@@ -28,12 +41,10 @@ backup_pnpm_store() {
   # Determine the global pnpm store directory
   mkdir -p "$pnpm_store_dir"
 
-  # Define the backup file path
-  local backup_file="/boot/config/plugins/dynamix.my.servers/pnpm-store-backup.tar.gz"
   echo "Backing up pnpm store from '$pnpm_store_dir' to '$backup_file'"
 
   # Create a tar.gz archive of the global pnpm store
-  if tar -czf "$backup_file" -C "$(dirname "$pnpm_store_dir")" "$(basename "$pnpm_store_dir")"; then
+  if tar -cJf "$backup_file" -C "$(dirname "$pnpm_store_dir")" "$(basename "$pnpm_store_dir")"; then
     echo "pnpm store backup completed successfully."
   else
     echo "Error: Failed to create pnpm store backup."
@@ -41,6 +52,12 @@ backup_pnpm_store() {
   fi
 }
 
+# Restores the pnpm store from a backup file
+# Args:
+#   $1 - Path to the backup file (tar.xz format)
+# Returns:
+#   0 on success, 1 on failure
+# Note: Requires 1.5x the backup size in free space for safe extraction
 restore_pnpm_store() {
   # Check if pnpm command exists
   if ! command -v pnpm >/dev/null 2>&1; then
@@ -61,7 +78,7 @@ restore_pnpm_store() {
   local dest_space
   dest_space=$(df --output=avail "$(dirname "$pnpm_store_dir")" | tail -n1)
   dest_space=$((dest_space * 1024)) # Convert KB to bytes
-  
+
   # Require 1.5x the backup size for safe extraction
   local required_space=$((backup_size + (backup_size / 2)))
   
@@ -71,10 +88,8 @@ restore_pnpm_store() {
   fi
 
   echo "Restoring pnpm store from '$backup_file' to '$pnpm_store_dir'"
-
-  # Remove existing store directory if it exists
+  # Remove existing store directory if it exists and ensure its parent directory exists
   rm -rf "$pnpm_store_dir"
-  # Create parent directory
   mkdir -p "$(dirname "$pnpm_store_dir")"
   
   # Extract directly to final location
@@ -87,6 +102,10 @@ restore_pnpm_store() {
   echo "pnpm store restored successfully."
 }
 
+# Installs production dependencies for the unraid-api using pnpm. Prefers offline mode.
+# Uses the api_base_directory variable or defaults to /usr/local/unraid-api
+# Returns:
+#   0 on success, 1 on failure
 pnpm_install_unraid_api() {
   # Check if pnpm command exists
   if ! command -v pnpm >/dev/null 2>&1; then
@@ -122,7 +141,7 @@ case "$1" in
   pnpm_install_unraid_api
   ;;
 'backup-dependencies')
-  backup_pnpm_store
+  backup_pnpm_store "$2"
   ;;
 'restore-dependencies')
   restore_pnpm_store "$2"

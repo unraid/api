@@ -52,7 +52,7 @@ export const apiPluginSchema = z.object({
 /** Warning: unstable API. The config mechanism and API may soon change. */
 export type ApiPluginDefinition = z.infer<typeof apiPluginSchema>;
 
-// todo: the blocker to publishing this type is the 'ApiStore' type. 
+// todo: the blocker to publishing this type is the 'ApiStore' type.
 // It pulls in a lot of irrelevant types (e.g. graphql types) and triggers js transpilation of everything related to the store.
 // If we can isolate the type, we can publish it to npm and developers can use it as a dev dependency.
 /**
