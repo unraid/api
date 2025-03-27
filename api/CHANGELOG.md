@@ -1,5 +1,13 @@
 # Changelog
 
+## [4.4.1](https://github.com/unraid/api/compare/v4.4.0...v4.4.1) (2025-03-26)
+
+
+### Bug Fixes
+
+* .env.production from allowing console logs on build ([#1273](https://github.com/unraid/api/issues/1273)) ([32acc2d](https://github.com/unraid/api/commit/32acc2d27c8bb565b38a66d8233030de3711ea12))
+* patch version override logic incorrect ([#1275](https://github.com/unraid/api/issues/1275)) ([6a59756](https://github.com/unraid/api/commit/6a597561a3e21c27fff8d4530cf59cf382eaa015))
+
 ## [4.4.0](https://github.com/unraid/api/compare/v4.3.1...v4.4.0) (2025-03-25)
 
 
