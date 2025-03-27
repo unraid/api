@@ -192,7 +192,7 @@
         "typescript-eslint": "^8.13.0",
         "unplugin-swc": "^1.5.1",
         "vite": "^6.0.0",
-        "vite-plugin-node": "^4.0.0",
+        "vite-plugin-node": "^5.0.0",
         "vite-tsconfig-paths": "^5.1.0",
         "vitest": "^3.0.5",
         "zx": "^8.3.2"
