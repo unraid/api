@@ -153,6 +153,7 @@ exit 0
         fi
 
         # Remove all node js archives from the flashdrive that do not match the expected version
+        # deprecated Apr 2025. kept to remove unused archives for users upgrading from versioned node downloads.
         find /boot/config/plugins/dynamix.my.servers/ -name "node-v*-linux-x64.tar.xz" ! -name "${NODE_FILE}" -delete
 
         # Remove stale pnpm store archives from the boot drive
@@ -830,7 +831,7 @@ echo "⚠️ Do not close this window yet"
 echo
 echo "⚠️ Do not close this window yet"
 echo
-echo "About to start Unraid API"
+echo "About to start the Unraid API"
 
 
 logger "Starting flash backup (if enabled)"
