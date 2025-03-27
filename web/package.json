@@ -105,7 +105,7 @@
     "marked-base-url": "^1.1.6",
     "pinia": "^3.0.1",
     "semver": "^7.6.3",
-    "tailwind-merge": "^2.5.5",
+    "tailwind-merge": "^3.0.0",
     "vue-i18n": "^11.0.0",
     "vuetify": "^3.7.14",
     "wretch": "^2.11.0"
