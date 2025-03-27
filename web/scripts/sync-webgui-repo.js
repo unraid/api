@@ -92,7 +92,7 @@ const UI = {
     return defaultYes ? answer.toLowerCase() !== 'n' : answer.toLowerCase() === 'y';
   },
 
-  log(message, type = 'info') {
+  log(message, type) {
     const icons = {
       success: '✅',
       error: '❌',
@@ -540,6 +540,7 @@ const Menu = {
                 UI.log('Safe, you can handle them later with option 2!', 'info');
               }
             } else {
+              UI.log('\n');
               UI.log('No new files found bruv! 👌', 'success');
             }
             break;
