@@ -564,7 +564,7 @@ importers:
         version: 8.6.9(storybook@8.6.9(prettier@3.5.3))(vite@6.2.3(@types/node@22.13.13)(jiti@2.4.2)(stylus@0.57.0)(terser@5.39.0)(tsx@4.19.3)(yaml@2.7.0))(vue@3.5.13(typescript@5.8.2))
       '@tailwindcss/typography':
         specifier: ^0.5.15
-        version: 0.5.16(tailwindcss@3.4.17)
+        version: 0.5.16(tailwindcss@4.0.17)
       '@testing-library/vue':
         specifier: ^8.0.0
         version: 8.1.0(@vue/compiler-sfc@3.5.13)(vue@3.5.13(typescript@5.8.2))
@@ -579,7 +579,7 @@ importers:
         version: 5.3.0(@vue/compiler-sfc@3.5.13)(vue@3.5.13(typescript@5.8.2))
       '@unraid/tailwind-rem-to-rem':
         specifier: ^1.1.0
-        version: 1.1.0(tailwindcss@3.4.17)
+        version: 1.1.0(tailwindcss@4.0.17)
       '@vitejs/plugin-vue':
         specifier: ^5.0.0
         version: 5.2.3(vite@6.2.3(@types/node@22.13.13)(jiti@2.4.2)(stylus@0.57.0)(terser@5.39.0)(tsx@4.19.3)(yaml@2.7.0))(vue@3.5.13(typescript@5.8.2))
@@ -627,13 +627,13 @@ importers:
         version: 8.6.9(prettier@3.5.3)
       tailwind-rem-to-rem:
         specifier: github:unraid/tailwind-rem-to-rem
-        version: '@unraid/tailwind-rem-to-rem@https://codeload.github.com/unraid/tailwind-rem-to-rem/tar.gz/4b907d0cdb3abda88de9813e33c13c3e7b1300c4(tailwindcss@3.4.17)'
+        version: '@unraid/tailwind-rem-to-rem@https://codeload.github.com/unraid/tailwind-rem-to-rem/tar.gz/4b907d0cdb3abda88de9813e33c13c3e7b1300c4(tailwindcss@4.0.17)'
       tailwindcss:
-        specifier: ^3.0.0
-        version: 3.4.17
+        specifier: ^4.0.0
+        version: 4.0.17
       tailwindcss-animate:
         specifier: ^1.0.7
-        version: 1.0.7(tailwindcss@3.4.17)
+        version: 1.0.7(tailwindcss@4.0.17)
       typescript:
         specifier: ^5.7.3
         version: 5.8.2
@@ -800,7 +800,7 @@ importers:
         version: 3.0.4(rollup@4.37.0)
       '@tailwindcss/typography':
         specifier: ^0.5.15
-        version: 0.5.16(tailwindcss@3.4.17)
+        version: 0.5.16(tailwindcss@4.0.17)
       '@types/crypto-js':
         specifier: ^4.2.2
         version: 4.2.2
@@ -815,7 +815,7 @@ importers:
         version: 7.5.8
       '@unraid/tailwind-rem-to-rem':
         specifier: ^1.1.0
-        version: 1.1.0(tailwindcss@3.4.17)
+        version: 1.1.0(tailwindcss@4.0.17)
       '@vue/apollo-util':
         specifier: ^4.0.0-beta.6
         version: 4.2.2
@@ -850,11 +850,11 @@ importers:
         specifier: ^1.0.0
         version: 1.0.3(magicast@0.3.5)
       tailwindcss:
-        specifier: ^3.0.0
-        version: 3.4.17
+        specifier: ^4.0.0
+        version: 4.0.17
       tailwindcss-animate:
         specifier: ^1.0.7
-        version: 1.0.7(tailwindcss@3.4.17)
+        version: 1.0.7(tailwindcss@4.0.17)
       terser:
         specifier: ^5.37.0
         version: 5.39.0
@@ -3769,6 +3769,7 @@ packages:
   '@unraid/libvirt@1.1.3':
     resolution: {integrity: sha512-aZNHkwgQ/0e+5BE7i3Ru4GC3Ev8fEUlnU0wmTcuSbpN0r74rMpiGwzA/4cqIJU8X+Kj//I80pkUufzXzHmMWwQ==}
     engines: {node: '>=14'}
+    cpu: [x64, arm64]
     os: [linux, darwin]
 
   '@unraid/tailwind-rem-to-rem@1.1.0':
@@ -9317,6 +9318,7 @@ packages:
     engines: {node: '>=0.6.0', teleport: '>=0.2.0'}
     deprecated: |-
       You or someone you depend on is using Q, the JavaScript Promise library that gave JavaScript developers strong feelings about promises. They can almost certainly migrate to the native JavaScript promise now. Thank you literally everyone for joining me in this bet against the odds. Be excellent to each other.
+
       (For a CapTP with native promises, see @endo/eventual-send and @endo/captp)
 
   qs@6.13.0:
@@ -10276,6 +10278,9 @@ packages:
     resolution: {integrity: sha512-w33E2aCvSDP0tW9RZuNXadXlkHXqFzSkQew/aIa2i/Sj8fThxwovwlXHSPXTbAHwEIhBFXAedUhP2tueAKP8Og==}
     engines: {node: '>=14.0.0'}
     hasBin: true
+
+  tailwindcss@4.0.17:
+    resolution: {integrity: sha512-OErSiGzRa6rLiOvaipsDZvLMSpsBZ4ysB4f0VKGXUrjw2jfkJRd6kjRKV2+ZmTCNvwtvgdDam5D7w6WXsdLJZw==}
 
   tapable@2.2.1:
     resolution: {integrity: sha512-GNzQvQTOIP6RyTfE2Qxb8ZVlNmw0n88vp1szwWRimP02mnTsx3Wtn5qRdqY9w2XduFNUgvOwhNnQsjwCp+kqaQ==}
@@ -14647,13 +14652,13 @@ snapshots:
     dependencies:
       defer-to-connect: 2.0.1
 
-  '@tailwindcss/typography@0.5.16(tailwindcss@3.4.17)':
+  '@tailwindcss/typography@0.5.16(tailwindcss@4.0.17)':
     dependencies:
       lodash.castarray: 4.4.0
       lodash.isplainobject: 4.0.6
       lodash.merge: 4.6.2
       postcss-selector-parser: 6.0.10
-      tailwindcss: 3.4.17
+      tailwindcss: 4.0.17
 
   '@tanstack/virtual-core@3.13.0': {}
 
@@ -15050,13 +15055,13 @@ snapshots:
       tsx: 4.19.3
       xml2js: 0.6.2
 
-  '@unraid/tailwind-rem-to-rem@1.1.0(tailwindcss@3.4.17)':
+  '@unraid/tailwind-rem-to-rem@1.1.0(tailwindcss@4.0.17)':
     dependencies:
-      tailwindcss: 3.4.17
+      tailwindcss: 4.0.17
 
-  '@unraid/tailwind-rem-to-rem@https://codeload.github.com/unraid/tailwind-rem-to-rem/tar.gz/4b907d0cdb3abda88de9813e33c13c3e7b1300c4(tailwindcss@3.4.17)':
+  '@unraid/tailwind-rem-to-rem@https://codeload.github.com/unraid/tailwind-rem-to-rem/tar.gz/4b907d0cdb3abda88de9813e33c13c3e7b1300c4(tailwindcss@4.0.17)':
     dependencies:
-      tailwindcss: 3.4.17
+      tailwindcss: 4.0.17
 
   '@unrs/rspack-resolver-binding-darwin-arm64@1.2.1':
     optional: true
@@ -22514,9 +22519,9 @@ snapshots:
 
   tailwind-merge@2.6.0: {}
 
-  tailwindcss-animate@1.0.7(tailwindcss@3.4.17):
+  tailwindcss-animate@1.0.7(tailwindcss@4.0.17):
     dependencies:
-      tailwindcss: 3.4.17
+      tailwindcss: 4.0.17
 
   tailwindcss@3.4.17:
     dependencies:
@@ -22544,6 +22549,8 @@ snapshots:
       sucrase: 3.35.0
     transitivePeerDependencies:
       - ts-node
+
+  tailwindcss@4.0.17: {}
 
   tapable@2.2.1: {}
 
