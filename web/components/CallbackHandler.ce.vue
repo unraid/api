@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import { useCallbackStore } from '~/store/callbackActions';
+import { useCallbackActionsStore } from '~/store/callbackActions';
 
-const callbackStore = useCallbackStore();
+const callbackStore = useCallbackActionsStore();
 
 onBeforeMount(() => {
   callbackStore.watcher();

@@ -1,18 +1,18 @@
-import { Markdown } from '@/helpers/markdown';
-import { request } from '~/composables/services/request';
-import { DOCS_RELEASE_NOTES } from '~/helpers/urls';
-import { useCallbackStore } from '~/store/callbackActions';
-// import { useServerStore } from '~/store/server';
-import type { ServerUpdateOsResponse } from '~/types/server';
-import { baseUrl } from 'marked-base-url';
-import { defineStore } from 'pinia';
-import prerelease from 'semver/functions/prerelease';
 import { computed, ref, watch } from 'vue';
+import { defineStore } from 'pinia';
+
+import { Markdown } from '@/helpers/markdown';
+import { DOCS_RELEASE_NOTES } from '~/helpers/urls';
+import { baseUrl } from 'marked-base-url';
+import prerelease from 'semver/functions/prerelease';
+
+import type { ServerUpdateOsResponse } from '~/types/server';
+
+import { request } from '~/composables/services/request';
+import { useCallbackActionsStore } from '~/store/callbackActions';
 
 export const useUpdateOsChangelogStore = defineStore('updateOsChangelog', () => {
-  const callbackStore = useCallbackStore();
-  // const serverStore = useServerStore();
-  // const osVersionBranch = computed(() => serverStore.osVersionBranch);
+  const callbackStore = useCallbackActionsStore();
 
   const releaseForUpdate = ref<ServerUpdateOsResponse | null>(null);
   watch(releaseForUpdate, async (newVal, oldVal) => {

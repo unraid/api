@@ -85,6 +85,7 @@
     "@jsonforms/vue-vuetify": "^3.5.1",
     "@nuxtjs/color-mode": "^3.5.2",
     "@pinia/nuxt": "^0.10.0",
+    "@unraid/shared-callbacks": "github:unraid/shared-callbacks",
     "@unraid/ui": "link:../unraid-ui",
     "@vue/apollo-composable": "^4.2.1",
     "@vueuse/components": "^13.0.0",

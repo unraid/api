@@ -3,13 +3,13 @@ import { logErrorMessages } from '@vue/apollo-util';
 import { defineStore, createPinia, setActivePinia } from 'pinia';
 
 import { CONNECT_SIGN_IN, CONNECT_SIGN_OUT } from './account.fragment';
-import { useCallbackStore } from '~/store/callbackActions';
+import { useCallbackActionsStore } from '~/store/callbackActions';
 import { useErrorsStore } from '~/store/errors';
 import { useReplaceRenewStore } from '~/store/replaceRenew';
 import { useServerStore } from '~/store/server';
 import { useUnraidApiStore } from '~/store/unraidApi';
 import { ACCOUNT_CALLBACK } from '~/helpers/urls';
-import type { ExternalSignIn, ExternalSignOut } from '~/store/callback';
+import type { ExternalSignIn, ExternalSignOut } from '@unraid/shared-callbacks';
 /**
  * @see https://stackoverflow.com/questions/73476371/using-pinia-with-vue-js-web-components
  * @see https://github.com/vuejs/pinia/discussions/1085
@@ -23,7 +23,7 @@ export interface ConnectSignInMutationPayload {
 }
 
 export const useAccountStore = defineStore('account', () => {
-  const callbackStore = useCallbackStore();
+  const callbackStore = useCallbackActionsStore();
   const errorsStore = useErrorsStore();
   const replaceRenewStore = useReplaceRenewStore();
   const serverStore = useServerStore();

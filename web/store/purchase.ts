@@ -1,7 +1,7 @@
 import { defineStore, createPinia, setActivePinia } from 'pinia';
 
 import { PURCHASE_CALLBACK } from '~/helpers/urls';
-import { useCallbackStore } from '~/store/callbackActions';
+import { useCallbackActionsStore } from '~/store/callbackActions';
 import { useServerStore } from '~/store/server';
 
 /**
@@ -11,7 +11,7 @@ import { useServerStore } from '~/store/server';
 setActivePinia(createPinia());
 
 export const usePurchaseStore = defineStore('purchase', () => {
-  const callbackStore = useCallbackStore();
+  const callbackStore = useCallbackActionsStore();
   const serverStore = useServerStore();
 
   const activate = () => {
