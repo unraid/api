@@ -5,6 +5,7 @@ import { readdir } from "node:fs/promises";
 import { getTxzName, pluginName, startingDir } from "./utils/consts";
 import { setupTxzEnv, TxzEnv } from "./cli/setup-txz-environment";
 import { cleanupTxzFiles } from "./utils/cleanup";
+import { apiDir } from "./utils/paths";
 
 // Recursively search for manifest files
 const findManifestFiles = async (dir: string): Promise<string[]> => {
@@ -74,14 +75,6 @@ const validateSourceDir = async (validatedEnv: TxzEnv) => {
     );
   }
 
-  const apiDir = join(
-    startingDir,
-    "source",
-    pluginName,
-    "usr",
-    "local",
-    "unraid-api"
-  );
   if (!existsSync(apiDir)) {
     throw new Error(`API directory ${apiDir} does not exist`);
   }

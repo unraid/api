@@ -101,6 +101,9 @@ importers:
       casbin:
         specifier: ^5.32.0
         version: 5.38.0
+      change-case:
+        specifier: ^5.4.4
+        version: 5.4.4
       chokidar:
         specifier: ^4.0.1
         version: 4.0.3
@@ -423,6 +426,9 @@ importers:
       tsx:
         specifier: ^4.19.2
         version: 4.19.3
+      type-fest:
+        specifier: ^4.37.0
+        version: 4.37.0
       typescript:
         specifier: ^5.6.3
         version: 5.8.2
@@ -447,6 +453,8 @@ importers:
       zx:
         specifier: ^8.3.2
         version: 8.4.1
+
+  packages/unraid-api-plugin-health: {}
 
   plugin:
     dependencies:
@@ -9309,7 +9317,6 @@ packages:
     engines: {node: '>=0.6.0', teleport: '>=0.2.0'}
     deprecated: |-
       You or someone you depend on is using Q, the JavaScript Promise library that gave JavaScript developers strong feelings about promises. They can almost certainly migrate to the native JavaScript promise now. Thank you literally everyone for joining me in this bet against the odds. Be excellent to each other.
-
       (For a CapTP with native promises, see @endo/eventual-send and @endo/captp)
 
   qs@6.13.0:
@@ -10549,8 +10556,8 @@ packages:
     resolution: {integrity: sha512-RAH822pAdBgcNMAfWnCBU3CFZcfZ/i1eZjwFU/dsLKumyuuP3niueg2UAukXYF0E2AAoc82ZSSf9J0WQBinzHA==}
     engines: {node: '>=12.20'}
 
-  type-fest@4.34.1:
-    resolution: {integrity: sha512-6kSc32kT0rbwxD6QL1CYe8IqdzN/J/ILMrNK+HMQCKH3insCDRY/3ITb0vcBss0a3t72fzh2YSzj8ko1HgwT3g==}
+  type-fest@4.37.0:
+    resolution: {integrity: sha512-S/5/0kFftkq27FPNye0XM1e2NsnoD/3FS+pBmbjmmtLT6I+i344KoOf7pvXreaFsDamWeaJX55nczA1m5PsBDg==}
     engines: {node: '>=16'}
 
   type-fest@4.38.0:
@@ -16183,7 +16190,7 @@ snapshots:
       camelcase: 8.0.0
       map-obj: 5.0.0
       quick-lru: 6.1.2
-      type-fest: 4.34.1
+      type-fest: 4.37.0
 
   camelcase@5.3.1: {}
 
@@ -18549,7 +18556,7 @@ snapshots:
       lowercase-keys: 3.0.0
       p-cancelable: 4.0.1
       responselike: 3.0.0
-      type-fest: 4.34.1
+      type-fest: 4.37.0
 
   graceful-fs@4.2.10: {}
 
@@ -20698,7 +20705,7 @@ snapshots:
     dependencies:
       '@babel/code-frame': 7.26.2
       index-to-position: 0.1.2
-      type-fest: 4.34.1
+      type-fest: 4.37.0
 
   parse-json@8.2.0:
     dependencies:
@@ -21444,7 +21451,7 @@ snapshots:
     dependencies:
       find-up-simple: 1.0.0
       read-pkg: 9.0.1
-      type-fest: 4.34.1
+      type-fest: 4.37.0
 
   read-pkg-up@3.0.0:
     dependencies:
@@ -21475,7 +21482,7 @@ snapshots:
       '@types/normalize-package-data': 2.4.4
       normalize-package-data: 6.0.2
       parse-json: 8.1.0
-      type-fest: 4.34.1
+      type-fest: 4.37.0
       unicorn-magic: 0.1.0
 
   read@1.0.7:
@@ -22784,7 +22791,7 @@ snapshots:
 
   type-fest@2.19.0: {}
 
-  type-fest@4.34.1: {}
+  type-fest@4.37.0: {}
 
   type-fest@4.38.0: {}
 

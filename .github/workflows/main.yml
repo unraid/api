@@ -152,6 +152,11 @@ jobs:
         with:
           name: unraid-api
           path: ${{ github.workspace }}/api/deploy/unraid-api.tgz
+      - name: Upload PNPM Store to Github artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: packed-pnpm-store
+          path: ${{ github.workspace }}/api/deploy/packed-pnpm-store.txz
 
   build-unraid-ui-webcomponents:
     name: Build Unraid UI Library (Webcomponent Version)
@@ -316,6 +321,15 @@ jobs:
         shell: bash
         run: |
           echo "STORE_PATH=$(pnpm store path)" >> $GITHUB_OUTPUT
+      
+      - name: Get API Version
+        id: vars
+        run: |
+          GIT_SHA=$(git rev-parse --short HEAD)
+          IS_TAGGED=$(git describe --tags --abbrev=0 --exact-match || echo '')
+          PACKAGE_LOCK_VERSION=$(jq -r '.version' package.json)
+          API_VERSION=$([[ -n "$IS_TAGGED" ]] && echo "$PACKAGE_LOCK_VERSION" || echo "${PACKAGE_LOCK_VERSION}+${GIT_SHA}")
+          echo "API_VERSION=${API_VERSION}" >> $GITHUB_OUTPUT
 
       - uses: actions/cache@v4
         name: Setup pnpm cache
@@ -347,6 +361,11 @@ jobs:
         with:
           name: unraid-api
           path: ${{ github.workspace }}/plugin/api/
+      - name: Download PNPM Store
+        uses: actions/download-artifact@v4
+        with:
+          name: packed-pnpm-store
+          path: ${{ github.workspace }}/plugin/
       - name: Extract Unraid API
         run: |
           mkdir -p ${{ github.workspace }}/plugin/source/dynamix.unraid.net/usr/local/unraid-api
@@ -355,6 +374,7 @@ jobs:
         id: build-plugin
         run: |
           cd ${{ github.workspace }}/plugin
+          ls -al
           pnpm run build:txz
 
           if [ -n "${{ github.event.pull_request.number }}" ]; then
@@ -375,7 +395,6 @@ jobs:
           echo "TAG=${TAG}" >> $GITHUB_OUTPUT
 
           pnpm run build:plugin --tag="${TAG}" --base-url="${BASE_URL}"
-
       - name: Ensure Plugin Files Exist
         run: |
           if [ ! -f ./deploy/*.plg ]; then
@@ -387,6 +406,7 @@ jobs:
             echo "Error: .txz file not found in plugin/deploy/"
             exit 1
           fi
+          ls -al ./deploy
       - name: Upload to GHA
         uses: actions/upload-artifact@v4
         with:

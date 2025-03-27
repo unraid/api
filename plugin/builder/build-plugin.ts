@@ -3,7 +3,7 @@ import { $ } from "zx";
 import { escape as escapeHtml } from "html-sloppy-escaper";
 import { dirname, join } from "node:path";
 import { getTxzName, pluginName, startingDir } from "./utils/consts";
-import { getPluginUrl } from "./utils/bucket-urls";
+import { getAssetUrl, getPluginUrl } from "./utils/bucket-urls";
 import { getMainTxzUrl } from "./utils/bucket-urls";
 import {
   deployDir,
@@ -12,6 +12,7 @@ import {
 } from "./utils/paths";
 import { PluginEnv, setupPluginEnv } from "./cli/setup-plugin-environment";
 import { cleanupPluginFiles } from "./utils/cleanup";
+import { bundlePnpmStore, getPnpmBundleName } from "./build-pnpm-store";
 
 /**
  * Check if git is available
@@ -60,6 +61,8 @@ const buildPlugin = async ({
     pluginURL: getPluginUrl({ baseUrl, tag }),
     MAIN_TXZ: getMainTxzUrl({ baseUrl, pluginVersion, tag }),
     TXZ_SHA256: txzSha256,
+    VENDOR_STORE_URL: getAssetUrl({ baseUrl, tag }, getPnpmBundleName()),
+    VENDOR_STORE_FILENAME: getPnpmBundleName(),
     ...(tag ? { TAG: tag } : {}),
   };
 
@@ -67,7 +70,9 @@ const buildPlugin = async ({
   // Iterate over entities and update them
   Object.entries(entities).forEach(([key, value]) => {
     if (!value) {
-      throw new Error(`Entity ${key} not set in entities: ${JSON.stringify(entities)}`);
+      throw new Error(
+        `Entity ${key} not set in entities: ${JSON.stringify(entities)}`
+      );
     }
     plgContent = updateEntityValue(plgContent, key, value);
   });
@@ -94,11 +99,16 @@ const buildPlugin = async ({
 const main = async () => {
   try {
     const validatedEnv = await setupPluginEnv(process.argv);
-    await checkGit();
+    if (validatedEnv.tag === "LOCAL_PLUGIN_BUILD") {
+      console.log("Skipping git check for LOCAL_PLUGIN_BUILD");
+    } else {
+      await checkGit();
+    }
     await cleanupPluginFiles();
 
     await buildPlugin(validatedEnv);
     await moveTxzFile(validatedEnv.txzPath, validatedEnv.pluginVersion);
+    await bundlePnpmStore();
   } catch (error) {
     console.error(error);
     process.exit(1);

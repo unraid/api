@@ -7,15 +7,28 @@
   <!ENTITY pluginURL "">
   <!ENTITY source "/boot/config/plugins/dynamix.my.servers/&name;">
   <!ENTITY TXZ_SHA256 "">
+  <!-- Node.js Runtime. Required to run the Unraid API. -->
   <!ENTITY NODEJS_VERSION "22.14.0">
+  <!-- Version is omitted from filename, so we don't need to search/delete other versions when updating the plugin. -->
+  <!ENTITY NODEJS_FILENAME "node-linux-x64.tar.xz">
   <!-- To get SHA256:
        wget https://nodejs.org/download/release/v22.14.0/node-v22.14.0-linux-x64.tar.xz
        sha256sum node-v22.14.0-linux-x64.tar.xz
   -->
-  <!ENTITY NODEJS_FILENAME "node-v&NODEJS_VERSION;-linux-x64.tar.xz">
   <!ENTITY NODEJS_SHA256 "69b09dba5c8dcb05c4e4273a4340db1005abeafe3927efda2bc5b249e80437ec">
   <!ENTITY NODEJS_TXZ "https://nodejs.org/download/release/v&NODEJS_VERSION;/node-v&NODEJS_VERSION;-linux-x64.tar.xz">
   <!ENTITY MAIN_TXZ "">
+  <!-- PNPM package manager for Node.js. Decouples dependencies from MAIN_TXZ. Prevents supply chain attacks. -->
+  <!-- PNPM_BINARY is the filename of the binary on the boot drive. (In)validated via SHA256. -->
+  <!ENTITY PNPM_BINARY "/boot/config/plugins/dynamix.my.servers/pnpm-linuxstatic-x64">
+  <!ENTITY PNPM_BINARY_URL "https://github.com/pnpm/pnpm/releases/download/v10.7.0/pnpm-linuxstatic-x64">
+  <!ENTITY PNPM_BINARY_SHA256 "714f4c21b63f47ed415f2e59f4bf5c699aa4f58b4d88e15ce6c66cda5631ebb2">
+  <!-- VENDOR_STORE_URL points to an XZ tarball of vendored dependencies (i.e. global pnpm store), specific to the plugin version.
+       This archive may be updated after installation (e.g. when adding api plugins), so we don't verify its hash.
+       It is replaced only when the plugin/api is updated. -->
+  <!ENTITY VENDOR_STORE_URL "">
+  <!-- The archive's filename on the boot drive. Enables reproducible offline installs of the Unraid API. -->
+  <!ENTITY VENDOR_STORE_FILENAME "">
   <!ENTITY TAG "">
 ]>
 
@@ -103,9 +116,17 @@ exit 0
     <URL>&NODEJS_TXZ;</URL>
     <SHA256>&NODEJS_SHA256;</SHA256>
   </FILE>
+  <FILE Name="&PNPM_BINARY;">
+    <URL>&PNPM_BINARY_URL;</URL>
+    <SHA256>&PNPM_BINARY_SHA256;</SHA256>
+  </FILE>
+  <FILE Name="/boot/config/plugins/dynamix.my.servers/&VENDOR_STORE_FILENAME;">
+    <URL>&VENDOR_STORE_URL;</URL>
+  </FILE>
   <FILE Run="/bin/bash" Method="install">
     <INLINE>
       NODE_FILE="&NODEJS_FILENAME;"
+      VENDOR_ARCHIVE="&VENDOR_STORE_FILENAME;"
       <![CDATA[
         # Check if the Node.js archive exists
         if [[ ! -f "/boot/config/plugins/dynamix.my.servers/${NODE_FILE}" ]]; then
@@ -132,8 +153,11 @@ exit 0
         fi
 
         # Remove all node js archives from the flashdrive that do not match the expected version
+        # deprecated Apr 2025. kept to remove unused archives for users upgrading from versioned node downloads.
         find /boot/config/plugins/dynamix.my.servers/ -name "node-v*-linux-x64.tar.xz" ! -name "${NODE_FILE}" -delete
 
+        # Remove stale pnpm store archives from the boot drive
+        find /boot/config/plugins/dynamix.my.servers/ -name "pnpm-store-for-v*.txz" ! -name "${VENDOR_ARCHIVE}" -delete
 
         echo "Node.js installation successful"
 
@@ -229,6 +253,7 @@ if [ -e /etc/rc.d/rc.unraid-api ]; then
   # uninstall the api
   rm -rf /usr/local/unraid-api
   rm -rf /var/run/unraid-api.sock
+  rm -rf /usr/.pnpm-store
 fi
     ]]>
     </INLINE>
@@ -332,6 +357,8 @@ exit 0
   <FILE Run="/bin/bash" Method="install">
     <INLINE>
       TAG="&TAG;" MAINTXZ="&source;.txz"
+      VENDOR_ARCHIVE="/boot/config/plugins/dynamix.my.servers/&VENDOR_STORE_FILENAME;"
+      PNPM_BINARY_FILE="&PNPM_BINARY;"
     <![CDATA[
 appendTextIfMissing() {
   FILE="$1" TEXT="$2"
@@ -788,8 +815,23 @@ fi
 
 # Create symlink to unraid-api binary (to allow usage elsewhere)
 ln -sf /usr/local/node/bin/node /usr/local/bin/node
+ln -sf /usr/local/node/bin/npm /usr/local/bin/npm
+ln -sf /usr/local/node/bin/corepack /usr/local/bin/corepack
+
 ln -sf ${unraid_binary_path} /usr/local/sbin/unraid-api
 ln -sf ${unraid_binary_path} /usr/bin/unraid-api
+
+cp -f "${PNPM_BINARY_FILE}" /usr/local/bin/pnpm
+chmod +x /usr/local/bin/pnpm
+
+/etc/rc.d/rc.unraid-api restore-dependencies "$VENDOR_ARCHIVE"
+echo
+echo "⚠️ Do not close this window yet"
+/etc/rc.d/rc.unraid-api pnpm-install
+echo
+echo "⚠️ Do not close this window yet"
+echo
+echo "About to start the Unraid API"
 
 
 logger "Starting flash backup (if enabled)"

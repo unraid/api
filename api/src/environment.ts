@@ -3,36 +3,57 @@ import { homedir } from 'node:os';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-const getPackageJsonVersion = () => {
+import type { PackageJson, SetRequired } from 'type-fest';
+
+/**
+ * Tries to get the package.json at the given location.
+ * @param location - The location of the package.json file, relative to the current file
+ * @returns The package.json object or undefined if unable to read
+ */
+function readPackageJson(location: string): PackageJson | undefined {
     try {
-        // Try different possible locations for package.json
-        const possibleLocations = ['../package.json', '../../package.json'];
-
-        for (const location of possibleLocations) {
-            try {
-                const packageJsonUrl = import.meta.resolve(location);
-                const packageJsonPath = fileURLToPath(packageJsonUrl);
-                const packageJson = readFileSync(packageJsonPath, 'utf-8');
-                const packageJsonObject = JSON.parse(packageJson);
-                if (packageJsonObject.version) {
-                    return packageJsonObject.version;
-                }
-            } catch {
-                // Continue to next location if this one fails
-            }
+        let packageJsonPath: string;
+        try {
+            const packageJsonUrl = import.meta.resolve(location);
+            packageJsonPath = fileURLToPath(packageJsonUrl);
+        } catch {
+            // Fallback (e.g. for local development): resolve the path relative to this module
+            packageJsonPath = fileURLToPath(new URL(location, import.meta.url));
         }
-
-        // If we get here, we couldn't find a valid package.json in any location
-        console.error('Could not find package.json in any of the expected locations');
-        return undefined;
-    } catch (error) {
-        console.error('Failed to load package.json:', error);
+        const packageJsonRaw = readFileSync(packageJsonPath, 'utf-8');
+        return JSON.parse(packageJsonRaw) as PackageJson;
+    } catch {
         return undefined;
     }
+}
+
+/**
+ * Retrieves the Unraid API package.json. Throws if unable to find.
+ * This should be considered a fatal error.
+ *
+ * @returns The package.json object
+ */
+export const getPackageJson = () => {
+    const packageJson = readPackageJson('../package.json') || readPackageJson('../../package.json');
+    if (!packageJson) {
+        throw new Error('Could not find package.json in any of the expected locations');
+    }
+    return packageJson as SetRequired<PackageJson, 'version' | 'dependencies'>;
 };
 
-export const API_VERSION =
-    process.env.npm_package_version ?? getPackageJsonVersion() ?? new Error('API_VERSION not set');
+/**
+ * Returns list of runtime dependencies from the Unraid-API package.json. Returns undefined if
+ * the package.json or its dependency object cannot be found or read.
+ *
+ * Does not log or produce side effects.
+ * @returns The names of all runtime dependencies. Undefined if failed.
+ */
+export const getPackageJsonDependencies = (): string[] | undefined => {
+    const { dependencies } = getPackageJson();
+    return Object.keys(dependencies);
+};
+
+export const API_VERSION = process.env.npm_package_version ?? getPackageJson().version;
 
 export const NODE_ENV =
     (process.env.NODE_ENV as 'development' | 'test' | 'staging' | 'production') ?? 'production';
