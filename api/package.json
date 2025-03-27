@@ -87,7 +87,7 @@
         "cross-fetch": "^4.0.0",
         "diff": "^7.0.0",
         "docker-event-emitter": "^0.3.0",
-        "dockerode": "^3.3.5",
+        "dockerode": "^4.0.0",
         "dotenv": "^16.4.5",
         "execa": "^9.5.1",
         "exit-hook": "^4.0.0",
