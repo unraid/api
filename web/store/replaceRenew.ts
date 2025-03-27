@@ -16,17 +16,10 @@ import {
 import { BrandLoading } from '@unraid/ui';
 
 import type { BadgeProps } from '@unraid/ui';
-import type {
-  // type KeyLatestResponse,
-  ValidateGuidResponse,
-} from '~/composables/services/keyServer';
+import type { ValidateGuidResponse } from '~/composables/services/keyServer';
 import type { WretchError } from 'wretch';
 
-import {
-  // keyLatest,
-  validateGuid,
-} from '~/composables/services/keyServer';
-// import { useCallbackStore } from '~/store/callbackActions';
+import { validateGuid } from '~/composables/services/keyServer';
 import { useServerStore } from '~/store/server';
 
 /**
@@ -49,7 +42,6 @@ const BrandLoadingIcon = () => h(BrandLoading, { variant: 'white' });
 export const REPLACE_CHECK_LOCAL_STORAGE_KEY = 'unraidReplaceCheck';
 
 export const useReplaceRenewStore = defineStore('replaceRenewCheck', () => {
-  // const callbackStore = useCallbackStore();
   const serverStore = useServerStore();
 
   const guid = computed(() => serverStore.guid);

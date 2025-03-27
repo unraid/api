@@ -108,7 +108,7 @@ switch (state) {
 // const connectPluginInstalled = 'dynamix.unraid.net.staging.plg';
 const connectPluginInstalled = 'dynamix.unraid.net.staging.plg';
 
-const osVersion = '7.0.0-beta.2.10';
+const osVersion = '7.0.0';
 const osVersionBranch = 'stable';
 // const parsedRegExp = regExp ? dayjs(regExp).format('YYYY-MM-DD') : undefined;
 

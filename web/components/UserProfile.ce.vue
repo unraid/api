@@ -7,7 +7,7 @@ import { devConfig } from '~/helpers/env';
 
 import type { Server } from '~/types/server';
 
-import { useCallbackActionsStore, useCallbackStore } from '~/store/callbackActions';
+import { useCallbackActionsStore } from '~/store/callbackActions';
 import { useServerStore } from '~/store/server';
 import { useThemeStore } from '~/store/theme';
 
@@ -18,10 +18,10 @@ const props = defineProps<Props>();
 
 const { t } = useI18n();
 
-const callbackStore = useCallbackStore();
+const callbackStore = useCallbackActionsStore();
 const serverStore = useServerStore();
 
-const { callbackData } = storeToRefs(useCallbackActionsStore());
+const { callbackData } = storeToRefs(callbackStore);
 const { name, description, guid, keyfile, lanIp, connectPluginInstalled } = storeToRefs(serverStore);
 const { bannerGradient, theme } = storeToRefs(useThemeStore());
 

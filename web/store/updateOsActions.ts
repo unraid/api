@@ -11,7 +11,7 @@ import { useAccountStore } from '~/store/account';
 import { useServerStore } from '~/store/server';
 import { useUpdateOsStore } from '~/store/updateOs';
 
-import type { ExternalUpdateOsAction } from '~/store/callback';
+import type { ExternalUpdateOsAction } from '@unraid/shared-callbacks';
 import type { UserProfileLink } from '~/types/userProfile';
 
 /**
