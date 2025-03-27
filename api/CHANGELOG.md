@@ -1,5 +1,12 @@
 # Changelog
 
+## [4.5.0](https://github.com/unraid/api/compare/v4.4.1...v4.5.0) (2025-03-27)
+
+
+### Features
+
+* api plugin system & offline versioned dependency vendoring ([#1252](https://github.com/unraid/api/issues/1252)) ([cb6c695](https://github.com/unraid/api/commit/cb6c6955e160a83c437daf7c8f67127f2ce46b7c))
+
 ## [4.4.1](https://github.com/unraid/api/compare/v4.4.0...v4.4.1) (2025-03-26)
 
 
