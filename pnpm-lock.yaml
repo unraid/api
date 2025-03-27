@@ -699,8 +699,8 @@ importers:
         specifier: ^0.10.0
         version: 0.10.1(magicast@0.3.5)(pinia@3.0.1(typescript@5.8.2)(vue@3.5.13(typescript@5.8.2)))
       '@unraid/shared-callbacks':
-        specifier: github:unraid/shared-callbacks
-        version: https://codeload.github.com/unraid/shared-callbacks/tar.gz/8a82d380b8a070e6b46a4fb7e519d73dc627595f(@vueuse/core@13.0.0(vue@3.5.13(typescript@5.8.2)))
+        specifier: ^1.0.1
+        version: 1.0.1(@vueuse/core@13.0.0(vue@3.5.13(typescript@5.8.2)))
       '@unraid/ui':
         specifier: link:../unraid-ui
         version: link:../unraid-ui
@@ -3775,9 +3775,8 @@ packages:
     cpu: [x64, arm64]
     os: [linux, darwin]
 
-  '@unraid/shared-callbacks@https://codeload.github.com/unraid/shared-callbacks/tar.gz/8a82d380b8a070e6b46a4fb7e519d73dc627595f':
-    resolution: {tarball: https://codeload.github.com/unraid/shared-callbacks/tar.gz/8a82d380b8a070e6b46a4fb7e519d73dc627595f}
-    version: 0.0.1
+  '@unraid/shared-callbacks@1.0.1':
+    resolution: {integrity: sha512-dBUsfCShYzSVHjRMSVXhfu81GKJqLTKKSbfGcKAFScI2Po+GL3ITcI5gaGFryiIzfR2mlIsRCgul+1y8nYNrzA==}
     peerDependencies:
       '@vueuse/core': ^10.9.0
 
@@ -9327,6 +9326,7 @@ packages:
     engines: {node: '>=0.6.0', teleport: '>=0.2.0'}
     deprecated: |-
       You or someone you depend on is using Q, the JavaScript Promise library that gave JavaScript developers strong feelings about promises. They can almost certainly migrate to the native JavaScript promise now. Thank you literally everyone for joining me in this bet against the odds. Be excellent to each other.
+
       (For a CapTP with native promises, see @endo/eventual-send and @endo/captp)
 
   qs@6.13.0:
@@ -15060,7 +15060,7 @@ snapshots:
       tsx: 4.19.3
       xml2js: 0.6.2
 
-  '@unraid/shared-callbacks@https://codeload.github.com/unraid/shared-callbacks/tar.gz/8a82d380b8a070e6b46a4fb7e519d73dc627595f(@vueuse/core@13.0.0(vue@3.5.13(typescript@5.8.2)))':
+  '@unraid/shared-callbacks@1.0.1(@vueuse/core@13.0.0(vue@3.5.13(typescript@5.8.2)))':
     dependencies:
       '@vueuse/core': 13.0.0(vue@3.5.13(typescript@5.8.2))
       crypto-js: 4.2.0
