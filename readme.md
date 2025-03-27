@@ -24,7 +24,7 @@
     <img src=".github/unraid.svg" alt="Logo" width="80" height="80"/>
   </a>
 
-<h3 align="center">Unraid Connect</h3>
+<h3 align="center">Unraid API</h3>
 
   <p align="center">
     Monorepo for Unraid Connect and the Unraid API.
