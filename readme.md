@@ -36,7 +36,7 @@
     <a href="https://github.com/unraid/api/issues/new?template=bug_report.md">Report Bug</a>
     ·
     <a href="https://github.com/unraid/api/issues/new?template=feature_request.md">Request Feature</a>
-    .
+    ·
     <a href="https://github.com/unraid/api/issues/new?template=work_intent.md&type=task">Submit Work Intent</a>
   </p>
 </div>
