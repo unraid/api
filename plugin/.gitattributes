@@ -1,0 +1,8 @@
+# Auto detect text files and perform LF normalization
+* text=auto
+*.sh text eol=lf
+*.conf text eol=lf
+*.md text eol=lf
+*.php text eol=lf
+*.page text eol=lf
+*.plg text eol=lf

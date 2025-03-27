@@ -1,0 +1,5 @@
+{
+  schema: {
+    files: 'src/graphql/schema/types/**/*.graphql'
+  }
+}

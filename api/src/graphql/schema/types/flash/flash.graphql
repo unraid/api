@@ -1,0 +1,13 @@
+type Query {
+    flash: Flash
+}
+
+type Subscription {
+    flash: Flash!
+}
+
+type Flash {
+    guid: String
+    vendor: String
+    product: String
+}

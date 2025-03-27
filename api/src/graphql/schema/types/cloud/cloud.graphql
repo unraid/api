@@ -1,0 +1,43 @@
+type ApiKeyResponse {
+    valid: Boolean!
+    error: String
+}
+
+enum MinigraphStatus {
+	PRE_INIT
+    CONNECTING
+	CONNECTED
+    PING_FAILURE
+    ERROR_RETRYING
+}
+
+type MinigraphqlResponse {
+    status: MinigraphStatus!
+    timeout: Int
+    error: String
+}
+
+type CloudResponse {
+    status: String!
+    ip: String
+    error: String
+}
+
+type RelayResponse {
+     status: String!
+     timeout: String
+     error: String
+ }
+
+type Cloud {
+    error: String
+    apiKey: ApiKeyResponse!
+    relay: RelayResponse
+    minigraphql: MinigraphqlResponse!
+    cloud: CloudResponse!
+    allowedOrigins: [String!]!
+}
+
+type Query {
+    cloud: Cloud
+}

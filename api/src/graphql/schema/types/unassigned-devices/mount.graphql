@@ -1,0 +1,6 @@
+type Mount {
+    name: String
+    directory: String
+    type: String
+    permissions: String
+}

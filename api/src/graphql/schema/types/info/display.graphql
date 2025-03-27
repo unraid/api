@@ -1,0 +1,34 @@
+type Info {
+    display: Display
+}
+
+type Display {
+    date: String
+    number: String
+    scale: Boolean
+    tabs: Boolean
+    users: String
+    resize: Boolean
+    wwn: Boolean
+    total: Boolean
+    usage: Boolean
+    banner: String
+    dashapps: String
+    theme: Theme
+    text: Boolean
+    unit: Temperature
+    warning: Int
+    critical: Int
+    hot: Int
+    max: Int
+    locale: String
+}
+
+enum Temperature {
+    C
+    F
+}
+
+enum Theme {
+    white
+}

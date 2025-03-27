@@ -1,0 +1,60 @@
+type Query {
+    """All Docker containers"""
+    dockerContainers(all: Boolean): [DockerContainer!]!
+}
+
+type Subscription {
+    dockerContainer(id: ID!): DockerContainer!
+    dockerContainers: [DockerContainer]
+}
+
+enum ContainerPortType {
+    TCP
+    UDP
+}
+
+type ContainerPort {
+    ip: String
+    privatePort: Int
+    publicPort: Int
+    type: ContainerPortType
+}
+
+enum ContainerState {
+    RUNNING
+    EXITED
+}
+
+type ContainerHostConfig {
+    networkMode: String!
+}
+
+type ContainerMount {
+    type: String!
+    name: String!
+    source: String!
+    destination: String!
+    driver: String!
+    mode: String!
+    rw: Boolean!
+    propagation: String!
+}
+
+type DockerContainer {
+    id: ID!
+    names: [String!]
+    image: String!
+    imageId: String!
+    command: String!
+    created: Int!
+    ports: [ContainerPort!]!
+    """ (B) Total size of all the files in the container """ 
+    sizeRootFs: Long
+    labels: JSON
+    state: ContainerState!
+    status: String!
+    hostConfig: ContainerHostConfig
+    networkSettings: JSON
+    mounts: [JSON]
+    autoStart: Boolean!
+}
