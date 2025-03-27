@@ -3,7 +3,7 @@ name: Work Intent
 about: Request approval for planned development work (must be approved before starting)
 title: 'Work Intent: '
 labels: work-intent, unapproved
-assignees: ''
+assignees: 'elibosley'
 ---
 
 <!--
