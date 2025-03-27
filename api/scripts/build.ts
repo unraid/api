@@ -25,6 +25,8 @@ try {
 
     // Update the package.json version to the deployment version
     parsedPackageJson.version = deploymentVersion;
+    // omit dev dependencies from release build
+    parsedPackageJson.devDependencies = {};
 
     // Create a temporary directory for packaging
     await mkdir('./deploy/pack/', { recursive: true });
