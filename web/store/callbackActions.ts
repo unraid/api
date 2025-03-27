@@ -23,7 +23,7 @@ type CallbackStatus = 'closing' | 'error' | 'loading' | 'ready' | 'success';
 setActivePinia(createPinia());
 
 export const useCallbackActionsStore = defineStore('callbackActions', () => {
-  const { send, watcher } = useCallback({
+  const { send, watcher: providedWatcher } = useCallback({
     encryptionKey: import.meta.env.VITE_CALLBACK_KEY,
   });
   const accountStore = useAccountStore();
@@ -36,6 +36,13 @@ export const useCallbackActionsStore = defineStore('callbackActions', () => {
   const callbackStatus = ref<CallbackStatus>('ready');
   const callbackData = ref<QueryPayloads>();
   const callbackError = ref();
+
+  const watcher = () => {
+    const result = providedWatcher();
+    if (result) {
+      saveCallbackData(result);
+    }
+  };
 
   const saveCallbackData = (decryptedData?: QueryPayloads) => {
     if (decryptedData) {
