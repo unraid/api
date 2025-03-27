@@ -1,14 +1,15 @@
 import { createPinia, defineStore, setActivePinia } from 'pinia';
 
-
-
 import { useCallback } from '@unraid/shared-callbacks';
 
-
-
-import type { ExternalActions, ExternalKeyActions, ExternalSignIn, ExternalSignOut, ExternalUpdateOsAction, QueryPayloads } from '@unraid/shared-callbacks';
-
-
+import type {
+  ExternalActions,
+  ExternalKeyActions,
+  ExternalSignIn,
+  ExternalSignOut,
+  ExternalUpdateOsAction,
+  QueryPayloads,
+} from '@unraid/shared-callbacks';
 
 import { addPreventClose, removePreventClose } from '~/composables/preventClose';
 import { useAccountStore } from '~/store/account';
@@ -17,16 +18,15 @@ import { useServerStore } from '~/store/server';
 import { useUpdateOsStore } from '~/store/updateOs';
 import { useUpdateOsActionsStore } from '~/store/updateOsActions';
 
-
 type CallbackStatus = 'closing' | 'error' | 'loading' | 'ready' | 'success';
 
 setActivePinia(createPinia());
 
 export const useCallbackActionsStore = defineStore('callbackActions', () => {
-   const { send, watcher } = useCallback({
-     encryptionKey: import.meta.env.VITE_CALLBACK_KEY,
-   });
-   const accountStore = useAccountStore();
+  const { send, watcher } = useCallback({
+    encryptionKey: import.meta.env.VITE_CALLBACK_KEY,
+  });
+  const accountStore = useAccountStore();
   const installKeyStore = useInstallKeyStore();
   const serverStore = useServerStore();
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
