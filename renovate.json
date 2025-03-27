@@ -4,5 +4,6 @@
   "ignoreDeps": [
     "nuxt-custom-elements",
     "reflect-metadata"
-  ]
+  ],
+  "rangeStrategy": "replace"
 }
