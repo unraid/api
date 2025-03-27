@@ -34,7 +34,6 @@ try {
     await writeFile('./deploy/pack/package.json', JSON.stringify(parsedPackageJson, null, 4));
     // Copy necessary files to the pack directory
     await $`cp -r dist README.md .env.* ecosystem.config.json ./deploy/pack/`;
-    await $`cp ./.npmrc-for-release-build ./deploy/pack/.npmrc`;
 
     // Change to the pack directory and install dependencies
     cd('./deploy/pack');

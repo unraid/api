@@ -1,7 +1,0 @@
-# .npmrc-for-release-build
-# NPM config for building the api inside ./deploy/pack
-
-# store-dir=../.pnpm-store
-
-# Use hardlinks instead of copies on servers to reduce disk/memory consumption
-# package-import-method=hardlink
