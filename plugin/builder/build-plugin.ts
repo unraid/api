@@ -61,7 +61,7 @@ const buildPlugin = async ({
     pluginURL: getPluginUrl({ baseUrl, tag }),
     MAIN_TXZ: getMainTxzUrl({ baseUrl, pluginVersion, tag }),
     TXZ_SHA256: txzSha256,
-    VENDOR_STORE: getAssetUrl({ baseUrl, tag }, getPnpmBundleName()),
+    VENDOR_STORE_URL: getAssetUrl({ baseUrl, tag }, getPnpmBundleName()),
     VENDOR_STORE_FILENAME: getPnpmBundleName(),
     ...(tag ? { TAG: tag } : {}),
   };
