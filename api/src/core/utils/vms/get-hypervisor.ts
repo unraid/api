@@ -1,7 +1,7 @@
 import { constants } from 'fs';
 import { access } from 'fs/promises';
 
-import { type Hypervisor as HypervisorType } from '@unraid/libvirt';
+import type { Hypervisor as HypervisorConstructor } from '@unraid/libvirt';
 
 import { libvirtLogger } from '@app/core/log.js';
 
@@ -20,7 +20,7 @@ const isLibvirtRunning = async (): Promise<boolean> => {
 
 export class UnraidHypervisor {
     private static instance: UnraidHypervisor | null = null;
-    private hypervisor: HypervisorType | null = null;
+    private hypervisor: InstanceType<typeof HypervisorConstructor> | null = null;
     private constructor() {}
 
     public static getInstance(): UnraidHypervisor {
@@ -30,7 +30,7 @@ export class UnraidHypervisor {
         return this.instance;
     }
 
-    public async getHypervisor(): Promise<HypervisorType | null> {
+    public async getHypervisor(): Promise<InstanceType<typeof HypervisorConstructor> | null> {
         // Return hypervisor if it's already connected
         const running = await isLibvirtRunning();
 

@@ -90,8 +90,8 @@ importers:
         specifier: ^7.0.1
         version: 7.0.2
       '@unraid/libvirt':
-        specifier: ^1.1.3
-        version: 1.1.3
+        specifier: ^1.2.2
+        version: 1.2.2
       accesscontrol:
         specifier: ^2.2.1
         version: 2.2.1
@@ -1186,11 +1186,6 @@ packages:
 
   '@babel/parser@7.26.8':
     resolution: {integrity: sha512-TZIQ25pkSoaKEYYaHbbxkfL36GNsQ6iFiBbeuzAkLnXayKR1yP1zFe+NxuZWWsUyvt8icPU9CCq0sgWGXR1GEw==}
-    engines: {node: '>=6.0.0'}
-    hasBin: true
-
-  '@babel/parser@7.26.9':
-    resolution: {integrity: sha512-81NWa1njQblgZbQHxWHpxxCzNsa3ZwvFqpUg7P+NNUU6f3UU2jBEg4OlF/J6rl8+PQGh1q6/zWScd001YwcA5A==}
     engines: {node: '>=6.0.0'}
     hasBin: true
 
@@ -3917,8 +3912,8 @@ packages:
     engines: {node: '>=18'}
     hasBin: true
 
-  '@unraid/libvirt@1.1.3':
-    resolution: {integrity: sha512-aZNHkwgQ/0e+5BE7i3Ru4GC3Ev8fEUlnU0wmTcuSbpN0r74rMpiGwzA/4cqIJU8X+Kj//I80pkUufzXzHmMWwQ==}
+  '@unraid/libvirt@1.2.2':
+    resolution: {integrity: sha512-1I4UToL6s8sXK4UfjZ1OLbz++/qo/Jhz/68cyVdcTGIHVw+SvD2vejstDQXqjfkHuGo4gISucpdDT0Krap9q+A==}
     engines: {node: '>=14'}
     os: [linux, darwin]
 
@@ -8491,8 +8486,8 @@ packages:
   node-addon-api@7.1.1:
     resolution: {integrity: sha512-5m3bsyrjFWE1xf7nz7YXdN4udnVtXK6/Yfgn5qnahL6bCkf2yKt4k3nuTKAtT4r3IG8JNR2ncsIMdZuAzJjHQQ==}
 
-  node-addon-api@8.3.0:
-    resolution: {integrity: sha512-8VOpLHFrOQlAH+qA0ZzuGRlALRA6/LVh8QJldbrC4DY0hXoMP0l4Acq8TzFC018HztWiRqyCEj2aTWY2UvnJUg==}
+  node-addon-api@8.3.1:
+    resolution: {integrity: sha512-lytcDEdxKjGJPTLEfW4mYMigRezMlyJY8W4wxJK8zE533Jlb8L8dRuObJFWg2P+AuOIxoCgKF+2Oq4d4Zd0OUA==}
     engines: {node: ^18 || ^20 || >= 21}
 
   node-cache@5.1.2:
@@ -12106,10 +12101,6 @@ snapshots:
     dependencies:
       '@babel/types': 7.26.8
 
-  '@babel/parser@7.26.9':
-    dependencies:
-      '@babel/types': 7.27.0
-
   '@babel/parser@7.27.0':
     dependencies:
       '@babel/types': 7.27.0
@@ -15442,10 +15433,10 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  '@unraid/libvirt@1.1.3':
+  '@unraid/libvirt@1.2.2':
     dependencies:
       bindings: 1.5.0
-      node-addon-api: 8.3.0
+      node-addon-api: 8.3.1
       tsx: 4.19.3
       xml2js: 0.6.2
 
@@ -15791,7 +15782,7 @@ snapshots:
 
   '@vue/compiler-sfc@3.5.13':
     dependencies:
-      '@babel/parser': 7.26.9
+      '@babel/parser': 7.27.0
       '@vue/compiler-core': 3.5.13
       '@vue/compiler-dom': 3.5.13
       '@vue/compiler-ssr': 3.5.13
@@ -20630,7 +20621,7 @@ snapshots:
 
   node-addon-api@7.1.1: {}
 
-  node-addon-api@8.3.0: {}
+  node-addon-api@8.3.1: {}
 
   node-cache@5.1.2:
     dependencies:

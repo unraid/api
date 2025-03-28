@@ -3,6 +3,18 @@ type Query {
     vms: Vms
 }
 
+type Mutation {
+    """Virtual machine mutations"""
+    vms: VmMutations
+}
+
+type VmMutations {
+    """Start a virtual machine"""
+    startVm(id: ID!): Boolean!
+    """Stop a virtual machine"""
+    stopVm(id: ID!): Boolean!
+}
+
 type Vms {
     id: ID!
     domain: [VmDomain!]

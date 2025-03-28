@@ -26,7 +26,9 @@ import { OwnerResolver } from '@app/unraid-api/graph/resolvers/owner/owner.resol
 import { RegistrationResolver } from '@app/unraid-api/graph/resolvers/registration/registration.resolver.js';
 import { ServerResolver } from '@app/unraid-api/graph/resolvers/servers/server.resolver.js';
 import { VarsResolver } from '@app/unraid-api/graph/resolvers/vars/vars.resolver.js';
+import { VmMutationsResolver } from '@app/unraid-api/graph/resolvers/vms/vms.mutations.resolver.js';
 import { VmsResolver } from '@app/unraid-api/graph/resolvers/vms/vms.resolver.js';
+import { VmsService } from '@app/unraid-api/graph/resolvers/vms/vms.service.js';
 
 @Module({
     imports: [AuthModule],
@@ -52,6 +54,8 @@ import { VmsResolver } from '@app/unraid-api/graph/resolvers/vms/vms.resolver.js
         ServerResolver,
         VarsResolver,
         VmsResolver,
+        VmMutationsResolver,
+        VmsService,
         NotificationsService,
         MeResolver,
         ConnectSettingsService,
