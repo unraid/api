@@ -21,8 +21,8 @@ export class DeleteApiKeyQuestionSet {
         type: 'checkbox',
         message: 'Select API keys to delete:',
     })
-    parseSelectedKeys(val: string[]): string[] {
-        return val;
+    parseSelectedKeys(keyIds: string[]): string[] {
+        return keyIds;
     }
 
     @ChoicesFor({ name: 'selectedKeys' })
