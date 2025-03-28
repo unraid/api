@@ -153,8 +153,6 @@ class ActivationCodeExtractor {
 
     /**
      * Output for debugging
-     * 
-     * @see https://tower.local/plugins/dynamix.my.servers/data/activation-data.php
      * @return void
      */
     public function debug(): void {
