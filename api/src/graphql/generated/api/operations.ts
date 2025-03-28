@@ -2,7 +2,7 @@
 import * as Types from '@app/graphql/generated/api/types.js';
 
 import { z } from 'zod'
-import { AccessUrl, AccessUrlInput, AddPermissionInput, AddRoleForApiKeyInput, AddRoleForUserInput, AllowedOriginInput, ApiKey, ApiKeyResponse, ApiKeyWithSecret, ApiSettingsInput, ArrayType, ArrayCapacity, ArrayDisk, ArrayDiskFsColor, ArrayDiskStatus, ArrayDiskType, ArrayPendingState, ArrayState, Baseboard, Capacity, Case, Cloud, CloudResponse, Config, ConfigErrorState, Connect, ConnectSettings, ConnectSettingsValues, ConnectSignInInput, ConnectUserInfoInput, ContainerHostConfig, ContainerMount, ContainerPort, ContainerPortType, ContainerState, CreateApiKeyInput, Devices, Disk, DiskFsType, DiskInterfaceType, DiskPartition, DiskSmartStatus, Display, Docker, DockerContainer, DockerNetwork, DynamicRemoteAccessStatus, DynamicRemoteAccessType, EnableDynamicRemoteAccessInput, Flash, Gpu, Importance, Info, InfoApps, InfoCpu, InfoMemory, KeyFile, LogFile, LogFileContent, Me, MemoryFormFactor, MemoryLayout, MemoryType, MinigraphStatus, MinigraphqlResponse, Mount, Network, Node, Notification, NotificationCounts, NotificationData, NotificationFilter, NotificationOverview, NotificationType, Notifications, NotificationslistArgs, Os, Owner, ParityCheck, Partition, Pci, Permission, ProfileModel, Registration, RegistrationState, RelayResponse, RemoteAccess, RemoveRoleFromApiKeyInput, Resource, Role, Server, ServerStatus, Service, SetupRemoteAccessInput, Share, System, Temperature, Theme, URL_TYPE, UnassignedDevice, Uptime, Usb, User, UserAccount, Vars, Versions, VmDomain, VmState, Vms, WAN_ACCESS_TYPE, WAN_FORWARD_TYPE, Welcome, addUserInput, arrayDiskInput, deleteUserInput, mdState, registrationType, usersInput } from '@app/graphql/generated/api/types.js'
+import { AccessUrl, AccessUrlInput, AddPermissionInput, AddRoleForApiKeyInput, AddRoleForUserInput, AllowedOriginInput, ApiKey, ApiKeyResponse, ApiKeyWithSecret, ApiSettingsInput, ArrayType, ArrayCapacity, ArrayDisk, ArrayDiskFsColor, ArrayDiskInput, ArrayDiskStatus, ArrayDiskType, ArrayMutations, ArrayMutationsaddDiskToArrayArgs, ArrayMutationsclearArrayDiskStatisticsArgs, ArrayMutationsmountArrayDiskArgs, ArrayMutationsremoveDiskFromArrayArgs, ArrayMutationssetStateArgs, ArrayMutationsunmountArrayDiskArgs, ArrayPendingState, ArrayState, ArrayStateInput, ArrayStateInputState, Baseboard, Capacity, Case, Cloud, CloudResponse, Config, ConfigErrorState, Connect, ConnectSettings, ConnectSettingsValues, ConnectSignInInput, ConnectUserInfoInput, ContainerHostConfig, ContainerMount, ContainerPort, ContainerPortType, ContainerState, CreateApiKeyInput, Devices, Disk, DiskFsType, DiskInterfaceType, DiskPartition, DiskSmartStatus, Display, Docker, DockerContainer, DockerNetwork, DynamicRemoteAccessStatus, DynamicRemoteAccessType, EnableDynamicRemoteAccessInput, Flash, Gpu, Importance, Info, InfoApps, InfoCpu, InfoMemory, KeyFile, LogFile, LogFileContent, Me, MemoryFormFactor, MemoryLayout, MemoryType, MinigraphStatus, MinigraphqlResponse, Mount, Network, Node, Notification, NotificationCounts, NotificationData, NotificationFilter, NotificationOverview, NotificationType, Notifications, NotificationslistArgs, Os, Owner, ParityCheck, Partition, Pci, Permission, ProfileModel, Registration, RegistrationState, RelayResponse, RemoteAccess, RemoveRoleFromApiKeyInput, Resource, Role, Server, ServerStatus, Service, SetupRemoteAccessInput, Share, System, Temperature, Theme, URL_TYPE, UnassignedDevice, Uptime, Usb, User, UserAccount, Vars, Versions, VmDomain, VmState, Vms, WAN_ACCESS_TYPE, WAN_FORWARD_TYPE, Welcome, addUserInput, deleteUserInput, mdState, registrationType, usersInput } from '@app/graphql/generated/api/types.js'
 import { TypedDocumentNode as DocumentNode } from '@graphql-typed-document-node/core';
 
 type Properties<T> = Required<{
@@ -24,6 +24,8 @@ export const ArrayDiskTypeSchema = z.nativeEnum(ArrayDiskType);
 export const ArrayPendingStateSchema = z.nativeEnum(ArrayPendingState);
 
 export const ArrayStateSchema = z.nativeEnum(ArrayState);
+
+export const ArrayStateInputStateSchema = z.nativeEnum(ArrayStateInputState);
 
 export const ConfigErrorStateSchema = z.nativeEnum(ConfigErrorState);
 
@@ -210,6 +212,67 @@ export function ArrayDiskSchema(): z.ZodObject<Properties<ArrayDisk>> {
     transport: z.string().nullish(),
     type: ArrayDiskTypeSchema,
     warning: z.number().nullish()
+  })
+}
+
+export function ArrayDiskInputSchema(): z.ZodObject<Properties<ArrayDiskInput>> {
+  return z.object({
+    id: z.string(),
+    slot: z.number().nullish()
+  })
+}
+
+export function ArrayMutationsSchema(): z.ZodObject<Properties<ArrayMutations>> {
+  return z.object({
+    __typename: z.literal('ArrayMutations').optional(),
+    addDiskToArray: ArrayTypeSchema().nullish(),
+    clearArrayDiskStatistics: z.record(z.string(), z.any()).nullish(),
+    mountArrayDisk: DiskSchema().nullish(),
+    removeDiskFromArray: ArrayTypeSchema().nullish(),
+    setState: ArrayTypeSchema().nullish(),
+    unmountArrayDisk: DiskSchema().nullish()
+  })
+}
+
+export function ArrayMutationsaddDiskToArrayArgsSchema(): z.ZodObject<Properties<ArrayMutationsaddDiskToArrayArgs>> {
+  return z.object({
+    input: z.lazy(() => ArrayDiskInputSchema().nullish())
+  })
+}
+
+export function ArrayMutationsclearArrayDiskStatisticsArgsSchema(): z.ZodObject<Properties<ArrayMutationsclearArrayDiskStatisticsArgs>> {
+  return z.object({
+    id: z.string()
+  })
+}
+
+export function ArrayMutationsmountArrayDiskArgsSchema(): z.ZodObject<Properties<ArrayMutationsmountArrayDiskArgs>> {
+  return z.object({
+    id: z.string()
+  })
+}
+
+export function ArrayMutationsremoveDiskFromArrayArgsSchema(): z.ZodObject<Properties<ArrayMutationsremoveDiskFromArrayArgs>> {
+  return z.object({
+    input: z.lazy(() => ArrayDiskInputSchema().nullish())
+  })
+}
+
+export function ArrayMutationssetStateArgsSchema(): z.ZodObject<Properties<ArrayMutationssetStateArgs>> {
+  return z.object({
+    input: z.lazy(() => ArrayStateInputSchema().nullish())
+  })
+}
+
+export function ArrayMutationsunmountArrayDiskArgsSchema(): z.ZodObject<Properties<ArrayMutationsunmountArrayDiskArgs>> {
+  return z.object({
+    id: z.string()
+  })
+}
+
+export function ArrayStateInputSchema(): z.ZodObject<Properties<ArrayStateInput>> {
+  return z.object({
+    desiredState: z.lazy(() => ArrayStateInputStateSchema)
   })
 }
 
@@ -1300,13 +1363,6 @@ export function addUserInputSchema(): z.ZodObject<Properties<addUserInput>> {
     description: z.string().nullish(),
     name: z.string(),
     password: z.string()
-  })
-}
-
-export function arrayDiskInputSchema(): z.ZodObject<Properties<arrayDiskInput>> {
-  return z.object({
-    id: z.string(),
-    slot: z.number().nullish()
   })
 }
 

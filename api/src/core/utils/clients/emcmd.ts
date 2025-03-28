@@ -2,7 +2,7 @@ import { got } from 'got';
 
 import { logger } from '@app/core/log.js';
 import { type LooseObject } from '@app/core/types/index.js';
-import { catchHandlers } from '@app/core/utils/misc/catch-handlers.js';
+import { AppError } from '@app/core/errors/app-error.js';
 import { DRY_RUN } from '@app/environment.js';
 import { getters } from '@app/store/index.js';
 
@@ -27,10 +27,15 @@ export const emcmd = async (commands: LooseObject) => {
         // Ensure we only log on dry-run
         return;
     }
-    // Untested, this code is unused right now so going to assume it's probably not working well anyway, swapped
-    // to got to remove this request-promise dependency
     return got
-        .get(url, { searchParams: { ...commands, csrf_token: csrfToken } })
-        .catch(catchHandlers.emhttpd);
-    // return request.get(url, options).catch(catchHandlers.emhttpd);
+        .get(url, { 
+            enableUnixSockets: true,
+            searchParams: { ...commands, csrf_token: csrfToken } 
+        })
+        .catch((error: NodeJS.ErrnoException) => {
+            if (error.code === 'ENOENT') {
+                throw new AppError('emhttpd socket unavailable.');
+            }
+            throw error;
+        });
 };

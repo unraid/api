@@ -2,7 +2,6 @@ import { GraphQLError } from 'graphql';
 import { sum } from 'lodash-es';
 
 import type { ArrayCapacity, ArrayType } from '@app/graphql/generated/api/types.js';
-import { getServerIdentifier } from '@app/core/utils/server-identifier.js';
 import { ArrayDiskType } from '@app/graphql/generated/api/types.js';
 import { store } from '@app/store/index.js';
 import { FileLoadStatus } from '@app/store/types.js';
