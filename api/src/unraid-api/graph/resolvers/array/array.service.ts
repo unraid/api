@@ -2,17 +2,15 @@ import { BadRequestException, Injectable } from '@nestjs/common';
 
 import { capitalCase, constantCase } from 'change-case';
 
+import type { ArrayDiskInput, ArrayStateInput, ArrayType } from '@app/graphql/generated/api/types.js';
 import { AppError } from '@app/core/errors/app-error.js';
 import { ArrayRunningError } from '@app/core/errors/array-running-error.js';
 import { getArrayData } from '@app/core/modules/array/get-array-data.js';
 import { emcmd } from '@app/core/utils/clients/emcmd.js';
 import {
-    ArrayDiskInput,
     ArrayPendingState,
     ArrayState,
-    ArrayStateInput,
     ArrayStateInputState,
-    ArrayType,
 } from '@app/graphql/generated/api/types.js';
 import { getters } from '@app/store/index.js';
 
@@ -104,17 +102,44 @@ export class ArrayService {
     }
 
     async mountArrayDisk(id: string): Promise<any> {
-        // TODO: Implement mountArrayDisk
-        throw new Error('Not implemented');
+        if (!this.arrayIsRunning()) {
+            throw new BadRequestException('Array must be running to mount disks');
+        }
+
+        // Mount disk
+        await emcmd({
+            mount: 'apply',
+            [`diskId.${id}`]: '1',
+        });
+
+        return getArrayData();
     }
 
     async unmountArrayDisk(id: string): Promise<any> {
-        // TODO: Implement unmountArrayDisk
-        throw new Error('Not implemented');
+        if (!this.arrayIsRunning()) {
+            throw new BadRequestException('Array must be running to unmount disks');
+        }
+
+        // Unmount disk
+        await emcmd({
+            unmount: 'apply',
+            [`diskId.${id}`]: '1',
+        });
+
+        return getArrayData();
     }
 
     async clearArrayDiskStatistics(id: string): Promise<any> {
-        // TODO: Implement clearArrayDiskStatistics
-        throw new Error('Not implemented');
+        if (!this.arrayIsRunning()) {
+            throw new BadRequestException('Array must be running to clear disk statistics');
+        }
+
+        // Clear disk statistics
+        await emcmd({
+            clearStats: 'apply',
+            [`diskId.${id}`]: '1',
+        });
+
+        return getArrayData();
     }
 }
