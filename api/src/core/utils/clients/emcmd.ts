@@ -1,8 +1,8 @@
 import { got } from 'got';
 
+import { AppError } from '@app/core/errors/app-error.js';
 import { logger } from '@app/core/log.js';
 import { type LooseObject } from '@app/core/types/index.js';
-import { AppError } from '@app/core/errors/app-error.js';
 import { DRY_RUN } from '@app/environment.js';
 import { getters } from '@app/store/index.js';
 
@@ -28,9 +28,9 @@ export const emcmd = async (commands: LooseObject) => {
         return;
     }
     return got
-        .get(url, { 
+        .get(url, {
             enableUnixSockets: true,
-            searchParams: { ...commands, csrf_token: csrfToken } 
+            searchParams: { ...commands, csrf_token: csrfToken },
         })
         .catch((error: NodeJS.ErrnoException) => {
             if (error.code === 'ENOENT') {

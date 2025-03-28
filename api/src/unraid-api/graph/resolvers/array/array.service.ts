@@ -7,12 +7,12 @@ import { ArrayRunningError } from '@app/core/errors/array-running-error.js';
 import { getArrayData } from '@app/core/modules/array/get-array-data.js';
 import { emcmd } from '@app/core/utils/clients/emcmd.js';
 import {
+    ArrayDiskInput,
     ArrayPendingState,
     ArrayState,
     ArrayStateInput,
     ArrayStateInputState,
     ArrayType,
-    ArrayDiskInput,
 } from '@app/graphql/generated/api/types.js';
 import { getters } from '@app/store/index.js';
 
@@ -37,7 +37,9 @@ export class ArrayService {
 
         // Prevent this running multiple times at once
         if (this.pendingState) {
-            throw new BadRequestException(new AppError(`Array state is still being updated. Changing to ${pendingState}`));
+            throw new BadRequestException(
+                new AppError(`Array state is still being updated. Changing to ${pendingState}`)
+            );
         }
 
         // Prevent starting/stopping array when it's already in the same state
