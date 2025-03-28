@@ -265,6 +265,8 @@ if [[ -d "$ACTIVATION_DIR" ]]; then
         PARTNER_CASE_ICON=$(jq -r '.caseIcon // empty' "$ACTIVATION_JSON" 2>/dev/null || true); # for included with system icon
         debug_echo "Partner case model icon: $PARTNER_CASE_MODEL"
         if [[ -f "$PARTNER_CASE_MODEL" ]]; then
+          # First remove any existing symlink or file
+          rm -f "$WEBGUI_IMAGES_DIR/$CUSTOM_CASE_FILE_NAME"
           cp -f "$PARTNER_CASE_MODEL" "$WEBGUI_IMAGES_DIR/$CUSTOM_CASE_FILE_NAME"
           if [[ $? -ne 0 ]]; then
             echo "⚠️ Warning: Failed to replace the original case model icon with the custom icon."
