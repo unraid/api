@@ -1,13 +1,9 @@
-import { Args, Mutation, ResolveField, Resolver } from '@nestjs/graphql';
+import { Args, ResolveField, Resolver } from '@nestjs/graphql';
 
 import { AuthActionVerb, AuthPossession, UsePermissions } from 'nest-authz';
 
-import {
-    ArrayDiskInput,
-    ArrayMutations,
-    ArrayStateInput,
-    Resource,
-} from '@app/graphql/generated/api/types.js';
+import type { ArrayDiskInput, ArrayStateInput } from '@app/graphql/generated/api/types.js';
+import { Resource } from '@app/graphql/generated/api/types.js';
 import { ArrayService } from '@app/unraid-api/graph/resolvers/array/array.service.js';
 
 @Resolver('ArrayMutations')
