@@ -66,7 +66,7 @@ ssh "root@$REMOTE_HOST" "rm -rf $REMOTE_PATH/*" || {
 
 # Remove Unraid password file if requested
 if [[ "$REMOVE_PASSWORD" == true ]]; then
-    ssh "root@$REMOTE_HOST" "rm -f /boot/config/passwd" || {
+    ssh "root@$REMOTE_HOST" "rm -f /boot/config/passwd /boot/config/shadow /boot/config/super.dat" || {
         echo "Error: Failed to remove Unraid password file"
         exit 1
     }
