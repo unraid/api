@@ -98,41 +98,8 @@ if [[ -d "$ACTIVATION_DIR" ]]; then
     # create the setup flag file to prevent re-running this setup
     touch "$ACTIVATION_SETUP_FLAG"
 
-    #
-    # Inject welcome modal into .set-password.php
-    #
-    # We first need to add files to allow them to be requested without authentication
-    AUTH_REQUEST_FILE="/usr/local/emhttp/auth-request.php"
-    WEB_COMPS_DIR="/usr/local/emhttp/plugins/dynamix.my.servers/unraid-components/_nuxt/"
-    mapfile -t JS_FILES < <(find "$WEB_COMPS_DIR" -type f -name "*.js" | sed 's|/usr/local/emhttp||') # modifying the path to be relative to the webgui's webroot
-    debug_echo "Found ${#JS_FILES[@]} .js files in $WEB_COMPS_DIR"
-
-    FILES_TO_ADD=(
-      "/webGui/images/partner-logo.svg"
-    )
-    FILES_TO_ADD+=("${JS_FILES[@]}")
-
-    if grep -q "\$arrWhitelist" "$AUTH_REQUEST_FILE"; then
-      cp "$AUTH_REQUEST_FILE" "${AUTH_REQUEST_FILE}.bak"
-      debug_echo "Backup of $AUTH_REQUEST_FILE created at ${AUTH_REQUEST_FILE}.bak"
-
-      # prepending items to the array as appending them to the end of the array was causing issues with trying to detect the last item with or without a comma
-      awk -v files_to_add="$(printf "%s\n" "${FILES_TO_ADD[@]}" | awk '{printf "  \x27%s\x27,\n", $0}')" '
-        BEGIN { added = 0 }
-        /\$arrWhitelist\s*=\s*\[/ {
-          print $0
-          print files_to_add
-          added = 1
-          next
-        }
-        { print }
-      ' "$AUTH_REQUEST_FILE" > "${AUTH_REQUEST_FILE}.tmp"
-
-      mv "${AUTH_REQUEST_FILE}.tmp" "$AUTH_REQUEST_FILE"
-      debug_echo "Default values and .js files from $WEB_COMPS_DIR added to \$arrWhitelist."
-    else
-      debug_echo "\$arrWhitelist array not found in the file."
-    fi
+    # Auth Request Modification move into the Unraid API
+    # @todo - Move the remaining modifications into the Unraid API
     # Inject the welcome modal into the .set-password.php file
     WELCOME_MODAL_INJECT_FILE="/usr/local/emhttp/plugins/dynamix/include/.set-password.php"
     # shellcheck disable=SC2016
