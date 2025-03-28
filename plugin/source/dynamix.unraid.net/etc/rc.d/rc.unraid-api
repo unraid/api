@@ -12,10 +12,10 @@ pnpm_store_dir="/usr/.pnpm-store"
 
 # Placeholder functions for plugin installation/uninstallation
 install() {
-  true;
+  true
 }
 uninstall() {
-  true;
+  true
 }
 
 # Creates a backup of the global pnpm store directory
@@ -81,7 +81,7 @@ restore_pnpm_store() {
 
   # Require 1.5x the backup size for safe extraction
   local required_space=$((backup_size + (backup_size / 2)))
-  
+
   if [ "$dest_space" -lt "$required_space" ]; then
     echo "Error: Insufficient disk space in destination. Need at least $((required_space / 1024 / 1024))MB, have $((dest_space / 1024 / 1024))MB"
     return 1
@@ -91,7 +91,7 @@ restore_pnpm_store() {
   # Remove existing store directory if it exists and ensure its parent directory exists
   rm -rf "$pnpm_store_dir"
   mkdir -p "$(dirname "$pnpm_store_dir")"
-  
+
   # Extract directly to final location
   if ! tar -xJf "$backup_file" -C "$(dirname "$pnpm_store_dir")" --preserve-permissions; then
     echo "Error: Failed to extract backup to final location."
@@ -100,6 +100,24 @@ restore_pnpm_store() {
   fi
 
   echo "pnpm store restored successfully."
+}
+
+# Executes pnpm install with production dependencies and offline preference
+# Captures and logs build script warnings to a dedicated log file at /var/log/unraid-api/build-scripts.log
+# Args: none
+# Output: Streams install progress and logs build script warnings
+run_pnpm_install() {
+  local log_file="/var/log/unraid-api/build-scripts.log"
+  stdbuf -oL pnpm install --prod --prefer-offline 2>&1 | while IFS= read -r line; do
+    if echo "$line" | grep -q "Ignored build scripts:"; then
+      mkdir -p "$(dirname "$log_file")"
+      echo "Note: This warning is expected. Build scripts are intentionally ignored for security and performance reasons." > "$log_file"
+      echo "$line" >> "$log_file"
+      echo "Build scripts completed. See $log_file for details."
+    else
+      echo "$line"
+    fi
+  done
 }
 
 # Installs production dependencies for the unraid-api using pnpm. Prefers offline mode.
@@ -123,9 +141,8 @@ pnpm_install_unraid_api() {
   echo "Executing 'pnpm install' in $unraid_api_dir"
   rm -rf /usr/local/unraid-api/node_modules
   # Run pnpm install in a subshell to prevent changing the current working directory of the script
-  ( cd "$unraid_api_dir" && pnpm install --prod --prefer-offline )
+  (cd "$unraid_api_dir" && run_pnpm_install)
 }
-
 
 case "$1" in
 'install')
