@@ -9,6 +9,7 @@ import { getArrayData } from '@app/core/modules/array/get-array-data.js';
 import { emcmd } from '@app/core/utils/clients/emcmd.js';
 import { arrayIsRunning as arrayIsRunningUtil } from '@app/core/utils/index.js';
 import {
+    ArrayDiskInput,
     ArrayPendingState,
     ArrayState,
     ArrayStateInputState,
