@@ -70,18 +70,13 @@ debug_echo "Checking for setup flag at $ACTIVATION_SETUP_FLAG"
 if [[ -f "$ACTIVATION_SETUP_FLAG" ]]; then
   debug_echo "Setup flag found, proceeding with removal"
 
-  # Restore the original auth-request and .set-password files modified for the welcome modal
-  AUTH_REQUEST_FILE="/usr/local/emhttp/auth-request.php"
-  AUTH_REQUEST_BK_FILE="$AUTH_REQUEST_FILE.bak"
-  rm -f "$AUTH_REQUEST_FILE"
-  mv -f "$AUTH_REQUEST_BK_FILE" "$AUTH_REQUEST_FILE"
-
+  # Restore the original .set-password files modified for the welcome modal
   WELCOME_MODAL_INJECT_FILE="/usr/local/emhttp/plugins/dynamix/include/.set-password.php"
   WELCOME_MODAL_INJECT_BK_FILE="$WELCOME_MODAL_INJECT_FILE.bak"
   rm -f "$WELCOME_MODAL_INJECT_FILE"
   mv -f "$WELCOME_MODAL_INJECT_BK_FILE" "$WELCOME_MODAL_INJECT_FILE"
 
-  debug_echo "Restored auth-request and .set-password files"
+  debug_echo "Restored .set-password file"
 
   # Remove the partner logo symbolic link if it exists
   WEBGUI_IMAGES_DIR="/usr/local/emhttp/webGui/images"
