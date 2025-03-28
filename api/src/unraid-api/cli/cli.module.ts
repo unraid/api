@@ -5,6 +5,7 @@ import { CommandRunner } from 'nest-commander';
 import { ApiKeyService } from '@app/unraid-api/auth/api-key.service.js';
 import { AddApiKeyQuestionSet } from '@app/unraid-api/cli/apikey/add-api-key.questions.js';
 import { ApiKeyCommand } from '@app/unraid-api/cli/apikey/api-key.command.js';
+import { DeleteApiKeyQuestionSet } from '@app/unraid-api/cli/apikey/delete-api-key.questions.js';
 import { ConfigCommand } from '@app/unraid-api/cli/config.command.js';
 import { DeveloperCommand } from '@app/unraid-api/cli/developer/developer.command.js';
 import { DeveloperQuestions } from '@app/unraid-api/cli/developer/developer.questions.js';
@@ -50,6 +51,7 @@ const DEFAULT_COMMANDS = [
 
 const DEFAULT_PROVIDERS = [
     AddApiKeyQuestionSet,
+    DeleteApiKeyQuestionSet,
     AddSSOUserQuestionSet,
     RemoveSSOUserQuestionSet,
     DeveloperQuestions,

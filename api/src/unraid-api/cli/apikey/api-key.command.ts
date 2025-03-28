@@ -2,14 +2,17 @@ import { AuthActionVerb } from 'nest-authz';
 import { Command, CommandRunner, InquirerService, Option } from 'nest-commander';
 
 import type { Permission } from '@app/graphql/generated/api/types.js';
+import type { DeleteApiKeyAnswers } from '@app/unraid-api/cli/apikey/delete-api-key.questions.js';
 import { Resource, Role } from '@app/graphql/generated/api/types.js';
 import { ApiKeyService } from '@app/unraid-api/auth/api-key.service.js';
 import { AddApiKeyQuestionSet } from '@app/unraid-api/cli/apikey/add-api-key.questions.js';
+import { DeleteApiKeyQuestionSet } from '@app/unraid-api/cli/apikey/delete-api-key.questions.js';
 import { LogService } from '@app/unraid-api/cli/log.service.js';
 
 interface KeyOptions {
     name: string;
     create: boolean;
+    delete?: boolean;
     description?: string;
     roles?: Role[];
     permissions?: Permission[];
@@ -17,7 +20,7 @@ interface KeyOptions {
 
 @Command({
     name: 'apikey',
-    description: `Create / Fetch Connect API Keys - use --create with no arguments for a creation wizard`,
+    description: `Create / Fetch / Delete Connect API Keys - use --create with no arguments for a creation wizard, or --delete to remove keys`,
 })
 export class ApiKeyCommand extends CommandRunner {
     constructor(
@@ -88,8 +91,50 @@ ACTIONS: ${Object.values(AuthActionVerb).join(', ')}`,
         return description;
     }
 
-    async run(_: string[], options: KeyOptions = { create: false, name: '' }): Promise<void> {
+    @Option({
+        flags: '--delete',
+        description: 'Delete selected API keys',
+    })
+    parseDelete(): boolean {
+        return true;
+    }
+
+    /** Prompt the user to select API keys to delete. Then, delete the selected keys. */
+    private async deleteKeys() {
+        const allKeys = this.apiKeyService.findAll();
+        if (allKeys.length === 0) {
+            this.logger.log('No API keys found to delete');
+            return;
+        }
+
+        const answers = await this.inquirerService.prompt<DeleteApiKeyAnswers>(
+            DeleteApiKeyQuestionSet.name,
+            {}
+        );
+        if (!answers.selectedKeys || answers.selectedKeys.length === 0) {
+            this.logger.log('No keys selected for deletion');
+            return;
+        }
+
         try {
+            await this.apiKeyService.deleteApiKeys(answers.selectedKeys);
+            this.logger.log(`Successfully deleted ${answers.selectedKeys.length} API keys`);
+        } catch (error) {
+            this.logger.error(error as any);
+            process.exit(1);
+        }
+    }
+
+    async run(
+        _: string[],
+        options: KeyOptions = { create: false, name: '', delete: false }
+    ): Promise<void> {
+        try {
+            if (options.delete) {
+                await this.deleteKeys();
+                return;
+            }
+
             const key = this.apiKeyService.findByField('name', options.name);
             if (key) {
                 this.logger.log(key.key);

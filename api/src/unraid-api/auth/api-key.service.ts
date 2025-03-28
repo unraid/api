@@ -1,6 +1,6 @@
 import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import crypto from 'crypto';
-import { readdir, readFile, writeFile } from 'fs/promises';
+import { readdir, readFile, unlink, writeFile } from 'fs/promises';
 import { join } from 'path';
 
 import { watch } from 'chokidar';
@@ -23,6 +23,7 @@ import {
 import { getters, store } from '@app/store/index.js';
 import { setLocalApiKey } from '@app/store/modules/config.js';
 import { FileLoadStatus } from '@app/store/types.js';
+import { batchProcess } from '@app/utils.js';
 
 @Injectable()
 export class ApiKeyService implements OnModuleInit {
@@ -311,5 +312,37 @@ export class ApiKeyService implements OnModuleInit {
         return {
             basePath: this.basePath,
         };
+    }
+
+    /**
+     * Deletes API keys from the disk and updates the in-memory store.
+     *
+     * This method first verifies that all the provided API key IDs exist in the in-memory store.
+     * If any keys are missing, it throws an Error detailing the missing keys.
+     * It then deletes the corresponding JSON files concurrently using batch processing.
+     * If any errors occur during the file deletion process, an array of errors is thrown.
+     *
+     * @param ids An array of API key identifiers to delete.
+     * @throws Error if one or more API keys are not found.
+     * @throws Array<Error> if errors occur during the file deletion.
+     */
+    public async deleteApiKeys(ids: string[]): Promise<void> {
+        // First verify all keys exist
+        const missingKeys = ids.filter((id) => !this.findByField('id', id));
+        if (missingKeys.length > 0) {
+            throw new Error(`API keys not found: ${missingKeys.join(', ')}`);
+        }
+
+        // Delete all files in parallel
+        const { errors, data: deletedIds } = await batchProcess(ids, async (id) => {
+            await unlink(join(this.basePath, `${id}.json`));
+            return id;
+        });
+
+        const deletedSet = new Set(deletedIds);
+        this.memoryApiKeys = this.memoryApiKeys.filter((key) => !deletedSet.has(key.id));
+        if (errors.length > 0) {
+            throw errors;
+        }
     }
 }
