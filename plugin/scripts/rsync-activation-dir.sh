@@ -66,6 +66,14 @@ ssh "root@$REMOTE_HOST" "rm -rf $REMOTE_PATH/*" || {
 
 # Remove Unraid password file if requested
 if [[ "$REMOVE_PASSWORD" == true ]]; then
+    read -p "Do you want to remove any existing Unraid license keys on the server? (y/n): " REMOVE_KEYS
+    if [[ "$REMOVE_KEYS" =~ ^[Yy]$ ]]; then
+        ssh "root@$REMOTE_HOST" "rm -f /boot/config/*.key" || {
+            echo "Error: Failed to remove Unraid license keys"
+            exit 1
+        }
+        echo "Removed Unraid license keys"
+    fi
     ssh "root@$REMOTE_HOST" "rm -f /boot/config/passwd /boot/config/shadow /boot/config/super.dat" || {
         echo "Error: Failed to remove Unraid password file"
         exit 1
