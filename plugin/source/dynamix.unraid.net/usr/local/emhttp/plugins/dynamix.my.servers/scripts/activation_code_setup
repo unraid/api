@@ -265,15 +265,13 @@ if [[ -d "$ACTIVATION_DIR" ]]; then
         PARTNER_CASE_ICON=$(jq -r '.caseIcon // empty' "$ACTIVATION_JSON" 2>/dev/null || true); # for included with system icon
         debug_echo "Partner case model icon: $PARTNER_CASE_MODEL"
         if [[ -f "$PARTNER_CASE_MODEL" ]]; then
-          # First remove any existing symlink or file
-          rm -f "$WEBGUI_IMAGES_DIR/$CUSTOM_CASE_FILE_NAME"
-          cp -f "$PARTNER_CASE_MODEL" "$WEBGUI_IMAGES_DIR/$CUSTOM_CASE_FILE_NAME"
+          ln -sf "$PARTNER_CASE_MODEL" "$WEBGUI_IMAGES_DIR/$CUSTOM_CASE_FILE_NAME"
           if [[ $? -ne 0 ]]; then
-            echo "⚠️ Warning: Failed to replace the original case model icon with the custom icon."
+            echo "⚠️ Warning: Failed to create symlink for the custom case model icon."
           else
             echo -n "$CUSTOM_CASE_FILE_NAME" > $CASE_MODEL_CFG # set the custom icon in the config file
             echo "case: $CUSTOM_CASE_FILE_NAME" >> "$ACTIVATION_SETUP_FLAG" # add what changed to the .done flag file
-            debug_echo "Custom case model set"
+            debug_echo "Custom case model symlink created"
           fi
         elif [[ -n "$PARTNER_CASE_ICON" ]]; then
           echo -n "$PARTNER_CASE_ICON" > $CASE_MODEL_CFG # set the parsed icon name in the config file
