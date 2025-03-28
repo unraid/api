@@ -204,5 +204,16 @@
         }
     },
     "private": true,
-    "packageManager": "pnpm@10.6.5"
+    "packageManager": "pnpm@10.6.5",
+    "pnpm": {
+        "onlyBuiltDependencies": [
+            "@apollo/protobufjs",
+            "@nestjs/core",
+            "@swc/core",
+            "cpu-features",
+            "esbuild",
+            "nestjs-pino",
+            "ssh2"
+        ]
+    }
 }
