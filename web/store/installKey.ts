@@ -1,7 +1,7 @@
 import { defineStore, createPinia, setActivePinia } from 'pinia';
 import { WebguiInstallKey } from '~/composables/services/webgui';
 import { useErrorsStore } from '~/store/errors';
-import type { ExternalKeyActions } from '~/store/callback';
+import type { ExternalKeyActions } from '@unraid/shared-callbacks';
 /**
  * @see https://stackoverflow.com/questions/73476371/using-pinia-with-vue-js-web-components
  * @see https://github.com/vuejs/pinia/discussions/1085

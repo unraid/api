@@ -4,7 +4,7 @@ import { BrandButton, BrandLogo, Toaster } from '@unraid/ui';
 import { useDummyServerStore } from '~/_data/serverState';
 import AES from 'crypto-js/aes';
 
-import type { SendPayloads } from '~/store/callback';
+import type { SendPayloads } from '@unraid/shared-callbacks';
 
 import LogViewerCe from '~/components/Logs/LogViewer.ce.vue';
 import SsoButtonCe from '~/components/SsoButton.ce.vue';

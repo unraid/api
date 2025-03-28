@@ -6,7 +6,7 @@ import { startTrial, type StartTrialResponse } from '~/composables/services/keyS
 import { useCallbackActionsStore } from '~/store/callbackActions';
 import { useDropdownStore } from '~/store/dropdown';
 import { useServerStore } from '~/store/server';
-import type { ExternalPayload, TrialExtend, TrialStart } from '~/store/callback';
+import type { ExternalPayload, TrialExtend, TrialStart } from '@unraid/shared-callbacks';
 
 /**
  * @see https://stackoverflow.com/questions/73476371/using-pinia-with-vue-js-web-components
