@@ -3,12 +3,12 @@ import { Test } from '@nestjs/testing';
 
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { ArrayService } from './array.service.js';
 import type { ArrayDiskInput, ArrayStateInput } from '@app/graphql/generated/api/types.js';
-import { ArrayState, ArrayStateInputState } from '@app/graphql/generated/api/types.js';
-import { emcmd } from '@app/core/utils/clients/emcmd.js';
-import { getters } from '@app/store/index.js';
 import { getArrayData } from '@app/core/modules/array/get-array-data.js';
+import { emcmd } from '@app/core/utils/clients/emcmd.js';
+import { ArrayState, ArrayStateInputState } from '@app/graphql/generated/api/types.js';
+import { getters } from '@app/store/index.js';
+import { ArrayService } from '@app/unraid-api/graph/resolvers/array/array.service.js';
 
 vi.mock('@app/core/utils/clients/emcmd.js', () => ({
     emcmd: vi.fn(),
@@ -168,7 +168,9 @@ describe('ArrayService', () => {
             id: 'test-disk',
             slot: 1,
         };
-        await expect(service.addDiskToArray(input)).rejects.toThrow('Array needs to be stopped before any changes can occur.');
+        await expect(service.addDiskToArray(input)).rejects.toThrow(
+            'Array needs to be stopped before any changes can occur.'
+        );
     });
 
     it('should throw error when array is running for remove disk', async () => {
@@ -183,18 +185,26 @@ describe('ArrayService', () => {
             id: 'test-disk',
             slot: 1,
         };
-        await expect(service.removeDiskFromArray(input)).rejects.toThrow('Array needs to be stopped before any changes can occur.');
+        await expect(service.removeDiskFromArray(input)).rejects.toThrow(
+            'Array needs to be stopped before any changes can occur.'
+        );
     });
 
     it('should throw error when array is not running for mount disk', async () => {
-        await expect(service.mountArrayDisk('test-disk')).rejects.toThrow('Array must be running to mount disks');
+        await expect(service.mountArrayDisk('test-disk')).rejects.toThrow(
+            'Array must be running to mount disks'
+        );
     });
 
     it('should throw error when array is not running for unmount disk', async () => {
-        await expect(service.unmountArrayDisk('test-disk')).rejects.toThrow('Array must be running to unmount disks');
+        await expect(service.unmountArrayDisk('test-disk')).rejects.toThrow(
+            'Array must be running to unmount disks'
+        );
     });
 
     it('should throw error when array is not running for clear disk statistics', async () => {
-        await expect(service.clearArrayDiskStatistics('test-disk')).rejects.toThrow('Array must be running to clear disk statistics');
+        await expect(service.clearArrayDiskStatistics('test-disk')).rejects.toThrow(
+            'Array must be running to clear disk statistics'
+        );
     });
-}); 
+});

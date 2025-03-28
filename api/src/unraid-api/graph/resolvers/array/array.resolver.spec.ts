@@ -3,8 +3,8 @@ import { Test } from '@nestjs/testing';
 
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { ArrayResolver } from './array.resolver.js';
-import { ArrayService } from './array.service.js';
+import { ArrayResolver } from '@app/unraid-api/graph/resolvers/array/array.resolver.js';
+import { ArrayService } from '@app/unraid-api/graph/resolvers/array/array.service.js';
 
 describe('ArrayResolver', () => {
     let resolver: ArrayResolver;
