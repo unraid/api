@@ -2,8 +2,6 @@ import { existsSync } from 'fs';
 import { readFile } from 'fs/promises';
 import { join } from 'node:path';
 
-import { createPatch } from 'diff';
-
 import {
     FileModification,
     ShouldApplyWithReason,
@@ -12,7 +10,7 @@ import {
 export default class AuthRequestModification extends FileModification {
     public filePath: string = '/usr/local/emhttp/auth-request.php' as const;
     public webComponentsDirectory: string =
-        '/usr/local/emhttp/plugins/dynamix.my.servers/unraid-components/_nuxt/' as const;
+        '/usr/local/emhttp/plugins/dynamix.my.servers/unraid-components/' as const;
     id: string = 'auth-request';
 
     /**
