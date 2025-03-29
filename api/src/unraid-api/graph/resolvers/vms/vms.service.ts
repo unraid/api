@@ -153,7 +153,10 @@ export class VmsService implements OnModuleInit {
         try {
             const hypervisor = this.hypervisor;
             libvirtLogger.info('Getting all domains...');
-            const domains = await hypervisor.connectListAllDomains();
+            // Get both active and inactive domains
+            const activeDomains = await hypervisor.connectListAllDomains(ConnectListAllDomainsFlags.ACTIVE);
+            const inactiveDomains = await hypervisor.connectListAllDomains(ConnectListAllDomainsFlags.INACTIVE);
+            const domains = [...activeDomains, ...inactiveDomains];
             libvirtLogger.info(`Found ${domains.length} domains`);
 
             const resolvedDomains: Array<VmDomain> = await Promise.all(

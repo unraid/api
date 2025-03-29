@@ -5,10 +5,11 @@ import { existsSync, readFileSync, writeFileSync } from 'fs';
 import { tmpdir } from 'os';
 import { join } from 'path';
 
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi, beforeAll, afterAll } from 'vitest';
 
 import { VmDomain } from '@app/graphql/generated/api/types.js';
 import { VmsService } from '@app/unraid-api/graph/resolvers/vms/vms.service.js';
+import { Hypervisor, ConnectListAllDomainsFlags } from '@unraid/libvirt';
 
 const TEST_VM_NAME = 'test-integration-vm';
 const TMP_DIR = tmpdir();
@@ -88,60 +89,100 @@ const cleanupDomainXml = () => {
     }
 };
 
-// Helper function to clean up domain
-const cleanupDomain = async () => {
+// Helper function to clean up domain using libvirt
+const cleanupDomain = async (hypervisor: Hypervisor) => {
     try {
-        const domains = await execSync(`virsh -c ${LIBVIRT_URI} list --all --name`)
-            .toString()
-            .split('\n');
-        if (domains.includes(TEST_VM_NAME)) {
+        // Get both active and inactive domains
+        const activeDomains = await hypervisor.connectListAllDomains(ConnectListAllDomainsFlags.ACTIVE);
+        const inactiveDomains = await hypervisor.connectListAllDomains(ConnectListAllDomainsFlags.INACTIVE);
+        const domains = [...activeDomains, ...inactiveDomains];
+        console.log('Found domains during cleanup:', domains);
+        
+        // Find the test domain
+        let testDomain: any = null;
+        for (const domain of domains) {
+            const name = await hypervisor.domainGetName(domain);
+            if (name === TEST_VM_NAME) {
+                testDomain = domain;
+                break;
+            }
+        }
+
+        if (testDomain) {
+            console.log('Found test domain during cleanup');
             try {
-                execSync(`virsh -c ${LIBVIRT_URI} shutdown ${TEST_VM_NAME}`);
-                await new Promise((resolve) => setTimeout(resolve, 1000));
+                const info = await hypervisor.domainGetInfo(testDomain);
+                console.log('Domain state during cleanup:', info.state);
+                if (info.state === 1) { // RUNNING
+                    console.log('Domain is running, destroying it');
+                    await hypervisor.domainDestroy(testDomain);
+                    await new Promise((resolve) => setTimeout(resolve, 2000));
+                }
             } catch (error) {
-                // Ignore errors during shutdown
+                console.error('Error during domain shutdown:', error);
             }
             try {
-                execSync(`virsh -c ${LIBVIRT_URI} destroy ${TEST_VM_NAME}`);
-                await new Promise((resolve) => setTimeout(resolve, 1000));
+                console.log('Undefining domain');
+                await hypervisor.domainUndefine(testDomain);
+                await new Promise((resolve) => setTimeout(resolve, 2000));
             } catch (error) {
-                // Ignore errors during force shutdown
-            }
-            try {
-                execSync(`virsh -c ${LIBVIRT_URI} undefine ${TEST_VM_NAME}`);
-                await new Promise((resolve) => setTimeout(resolve, 1000));
-            } catch (error) {
-                // Ignore errors during undefine
+                console.error('Error during domain undefine:', error);
             }
         }
     } catch (error) {
-        // Ignore errors during cleanup
+        console.error('Error during domain cleanup:', error);
     }
 };
 
-// Helper function to verify libvirt session is working
-const verifyLibvirtSession = async () => {
+// Helper function to verify libvirt connection
+const verifyLibvirtConnection = async (hypervisor: Hypervisor) => {
     try {
-        await execSync(`virsh -c ${LIBVIRT_URI} list --all`);
+        await hypervisor.connectOpen();
         return true;
     } catch (error) {
-        console.error('Libvirt session verification failed:', error);
+        console.error('Libvirt connection verification failed:', error);
         return false;
     }
 };
 
 describe('VmsService', () => {
     let service: VmsService;
+    let hypervisor: Hypervisor;
+    let testVm: VmDomain | null = null;
+    const archConfig = getArchConfig();
+    const domainXml = `
+        <domain type='qemu'>
+            <name>${TEST_VM_NAME}</name>
+            <memory unit='KiB'>524288</memory>
+            <vcpu>1</vcpu>
+            <os>
+                <type arch='${archConfig.arch}' machine='${archConfig.machine}'>hvm</type>
+                <boot dev='hd'/>
+            </os>
+            <devices>
+                <emulator>${archConfig.emulator}</emulator>
+                <disk type='file' device='disk'>
+                    <driver name='qemu' type='qcow2'/>
+                    <source file='${DISK_IMAGE}'/>
+                    <target dev='vda' bus='virtio'/>
+                </disk>
+                <console type='pty'/>
+            </devices>
+        </domain>
+    `;
 
-    beforeEach(async () => {
+    beforeAll(async () => {
         // Override the LIBVIRT_URI environment variable for testing
         process.env.LIBVIRT_URI = LIBVIRT_URI;
 
-        // Verify libvirt session is working
-        const isSessionWorking = await verifyLibvirtSession();
-        if (!isSessionWorking) {
+        // Create hypervisor instance for direct libvirt operations
+        hypervisor = new Hypervisor({ uri: LIBVIRT_URI });
+        
+        // Verify libvirt connection is working
+        const isConnectionWorking = await verifyLibvirtConnection(hypervisor);
+        if (!isConnectionWorking) {
             throw new Error(
-                'Libvirt session is not working. Please ensure libvirt is running and accessible.'
+                'Libvirt connection is not working. Please ensure libvirt is running and accessible.'
             );
         }
 
@@ -153,46 +194,24 @@ describe('VmsService', () => {
 
         // Initialize the service
         await service.onModuleInit();
-
-        // Wait for service to initialize
-        await new Promise((resolve) => setTimeout(resolve, 2000));
     });
 
-    it('should be defined', () => {
-        expect(service).toBeDefined();
+    afterAll(async () => {
+        await cleanupDomain(hypervisor);
+        cleanupDiskImage();
+        cleanupDomainXml();
     });
 
-    describe('Integration Tests', () => {
-        const archConfig = getArchConfig();
-        const domainXml = `
-            <domain type='qemu'>
-                <name>${TEST_VM_NAME}</name>
-                <memory unit='KiB'>524288</memory>
-                <vcpu>1</vcpu>
-                <os>
-                    <type arch='${archConfig.arch}' machine='${archConfig.machine}'>hvm</type>
-                    <boot dev='hd'/>
-                </os>
-                <devices>
-                    <emulator>${archConfig.emulator}</emulator>
-                    <disk type='file' device='disk'>
-                        <driver name='qemu' type='qcow2'/>
-                        <source file='${DISK_IMAGE}'/>
-                        <target dev='vda' bus='virtio'/>
-                    </disk>
-                    <console type='pty'/>
-                </devices>
-            </domain>
-        `;
-
-        beforeEach(async () => {
+    beforeEach(async () => {
+        // Only set up test VM if it doesn't exist
+        if (!testVm) {
             console.log('Setting up test environment...');
             console.log('TMP_DIR:', TMP_DIR);
             console.log('DISK_IMAGE:', DISK_IMAGE);
             console.log('DOMAIN_XML:', DOMAIN_XML);
 
             // Clean up any existing test VM and files
-            await cleanupDomain();
+            await cleanupDomain(hypervisor);
             cleanupDiskImage();
             cleanupDomainXml();
 
@@ -203,89 +222,83 @@ describe('VmsService', () => {
             // Write domain XML to file
             writeFileSync(DOMAIN_XML, domainXml.trim());
             console.log('Created domain XML file');
-            console.log('XML content:', readFileSync(DOMAIN_XML, 'utf-8'));
 
-            // Define the domain using the XML file
-            execSync(`virsh -c ${LIBVIRT_URI} define ${DOMAIN_XML}`);
+            // Define the domain using libvirt
+            const domain = await hypervisor.domainDefineXML(domainXml.trim());
             console.log('Defined domain');
 
-            // Verify domain was created
-            const domains = await execSync(`virsh -c ${LIBVIRT_URI} list --all --name`)
-                .toString()
-                .split('\n');
-            console.log('Available domains:', domains);
-
-            // Wait for the domain to be defined
+            // Wait for the domain to be defined in the service
             let retries = 0;
-            let testVm: VmDomain | null = null;
-            while (retries < 5 && !testVm) {
-                const domains = await service.getDomains();
-                testVm = domains.find((d) => d.name === TEST_VM_NAME) ?? null;
-                if (!testVm) {
-                    await new Promise((resolve) => setTimeout(resolve, 1000));
-                    retries++;
+            const maxRetries = 5; // Reduced from 10
+            while (retries < maxRetries && !testVm) {
+                try {
+                    const domains = await service.getDomains();
+                    testVm = domains.find((d) => d.name === TEST_VM_NAME) ?? null;
+                    if (testVm) break;
+                } catch (error) {
+                    console.error('Error getting domains from service:', error);
                 }
+                await new Promise((resolve) => setTimeout(resolve, 1000)); // Reduced from 2000
+                retries++;
             }
 
             if (!testVm) {
-                throw new Error('Failed to find test VM after defining it');
+                throw new Error('Failed to find test VM in service after defining it');
             }
+        }
+    });
 
-            // Wait for the service to initialize
-            await new Promise((resolve) => setTimeout(resolve, 2000));
-        });
+    it('should list domains including our test VM', async () => {
+        const domains = await service.getDomains();
+        const testVm = domains.find((d) => d.name === TEST_VM_NAME);
 
-        afterEach(async () => {
-            await cleanupDomain();
-            cleanupDiskImage();
-            cleanupDomainXml();
-        });
+        expect(testVm).toBeDefined();
+        expect(testVm?.state).toBe('SHUTOFF');
+    });
 
-        it('should list domains including our test VM', async () => {
-            const domains = await service.getDomains();
-            console.log('Found domains:', domains); // Debug log
-            const testVm = domains.find((d) => d.name === TEST_VM_NAME);
+    it('should start and stop the test VM', async () => {
+        expect(testVm).toBeDefined();
+        expect(testVm?.uuid).toBeDefined();
 
-            expect(testVm).toBeDefined();
-            expect(testVm?.state).toBe('SHUTOFF');
-        });
+        // Start the VM
+        const startResult = await service.startVm(testVm!.uuid);
+        expect(startResult).toBe(true);
 
-        it('should start and stop the test VM', async () => {
-            // Get the domain's UUID
-            const domains = await service.getDomains();
-            const testVm = domains.find((d) => d.name === TEST_VM_NAME);
-            expect(testVm).toBeDefined();
-            expect(testVm?.uuid).toBeDefined();
-
-            // Start the VM
-            const startResult = await service.startVm(testVm!.uuid);
-            expect(startResult).toBe(true);
-
-            // Wait for VM to start
-            await new Promise((resolve) => setTimeout(resolve, 2000));
-
-            // Verify VM is running
+        // Wait for VM to start with a more targeted approach
+        let isRunning = false;
+        let attempts = 0;
+        while (!isRunning && attempts < 5) {
             const runningDomains = await service.getDomains();
             const runningTestVm = runningDomains.find((d) => d.name === TEST_VM_NAME);
-            expect(runningTestVm?.state).toBe('RUNNING');
+            isRunning = runningTestVm?.state === 'RUNNING';
+            if (!isRunning) {
+                await new Promise((resolve) => setTimeout(resolve, 1000));
+                attempts++;
+            }
+        }
+        expect(isRunning).toBe(true);
 
-            // Stop the VM
-            const stopResult = await service.stopVm(testVm!.uuid);
-            expect(stopResult).toBe(true);
+        // Stop the VM
+        const stopResult = await service.stopVm(testVm!.uuid);
+        expect(stopResult).toBe(true);
 
-            // Wait for VM to stop
-            await new Promise((resolve) => setTimeout(resolve, 5000));
-
-            // Verify VM is stopped
+        // Wait for VM to stop with a more targeted approach
+        let isStopped = false;
+        attempts = 0;
+        while (!isStopped && attempts < 5) {
             const stoppedDomains = await service.getDomains();
             const stoppedTestVm = stoppedDomains.find((d) => d.name === TEST_VM_NAME);
-            expect(stoppedTestVm?.state).toBe('SHUTOFF');
-        }, 30000); // Increase timeout to 30 seconds
+            isStopped = stoppedTestVm?.state === 'SHUTOFF';
+            if (!isStopped) {
+                await new Promise((resolve) => setTimeout(resolve, 1000));
+                attempts++;
+            }
+        }
+        expect(isStopped).toBe(true);
+    }, 15000); // Reduced timeout from 30000
 
-        it('should handle errors when VM is not available', async () => {
-            // Try to start a non-existent VM
-            await expect(service.startVm('999')).rejects.toThrow('Failed to start VM');
-            await expect(service.stopVm('999')).rejects.toThrow('Failed to stop VM');
-        });
+    it('should handle errors when VM is not available', async () => {
+        await expect(service.startVm('999')).rejects.toThrow('Failed to start VM');
+        await expect(service.stopVm('999')).rejects.toThrow('Failed to stop VM');
     });
 });
