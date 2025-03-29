@@ -15,7 +15,7 @@ export class VmMutationsResolver {
         resource: Resource.VMS,
         possession: AuthPossession.ANY,
     })
-    public async startVm(@Args('id') id: string) {
+    public async startVm(@Args('id') id: number) {
         return this.vmsService.startVm(id);
     }
 
@@ -25,7 +25,7 @@ export class VmMutationsResolver {
         resource: Resource.VMS,
         possession: AuthPossession.ANY,
     })
-    public async stopVm(@Args('id') id: string) {
+    public async stopVm(@Args('id') id: number) {
         return this.vmsService.stopVm(id);
     }
 }
