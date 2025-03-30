@@ -1,5 +1,4 @@
 import { Injectable, OnModuleInit } from '@nestjs/common';
-import { execSync } from 'child_process';
 import { constants } from 'fs';
 import { access } from 'fs/promises';
 
@@ -154,16 +153,14 @@ export class VmsService implements OnModuleInit {
             const hypervisor = this.hypervisor;
             libvirtLogger.info('Getting all domains...');
             // Get both active and inactive domains
-            const activeDomains = await hypervisor.connectListAllDomains(ConnectListAllDomainsFlags.ACTIVE);
-            const inactiveDomains = await hypervisor.connectListAllDomains(ConnectListAllDomainsFlags.INACTIVE);
-            const domains = [...activeDomains, ...inactiveDomains];
+            const domains = await hypervisor.connectListAllDomains(ConnectListAllDomainsFlags.ACTIVE | ConnectListAllDomainsFlags.INACTIVE);
             libvirtLogger.info(`Found ${domains.length} domains`);
 
             const resolvedDomains: Array<VmDomain> = await Promise.all(
                 domains.map(async (domain) => {
-                    const info = await hypervisor.domainGetInfo(domain);
-                    const name = await hypervisor.domainGetName(domain);
-                    const uuid = await hypervisor.domainGetUUIDString(domain);
+                    const info = await domain.getInfo();
+                    const name = await domain.getName();
+                    const uuid = await domain.getUUIDString();
                     libvirtLogger.info(
                         `Found domain: ${name} (${uuid}) with state ${DomainState[info.state]}`
                     );

@@ -90,8 +90,8 @@ importers:
         specifier: ^7.0.1
         version: 7.0.2
       '@unraid/libvirt':
-        specifier: ^1.2.2
-        version: 1.2.2
+        specifier: ^2.0.1
+        version: 2.0.1
       accesscontrol:
         specifier: ^2.2.1
         version: 2.2.1
@@ -3912,8 +3912,8 @@ packages:
     engines: {node: '>=18'}
     hasBin: true
 
-  '@unraid/libvirt@1.2.2':
-    resolution: {integrity: sha512-1I4UToL6s8sXK4UfjZ1OLbz++/qo/Jhz/68cyVdcTGIHVw+SvD2vejstDQXqjfkHuGo4gISucpdDT0Krap9q+A==}
+  '@unraid/libvirt@2.0.1':
+    resolution: {integrity: sha512-PYlOnWlKATi59T/JMVsaJzHxbJHZ4T99M87rxoRGLO5ufD2b+YoShojFCSolG8xBBYgZW71wVXgWASfAwBqt4g==}
     engines: {node: '>=14'}
     os: [linux, darwin]
 
@@ -15433,12 +15433,16 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  '@unraid/libvirt@1.2.2':
+  '@unraid/libvirt@2.0.1':
     dependencies:
+      '@mapbox/node-pre-gyp': 2.0.0
       bindings: 1.5.0
       node-addon-api: 8.3.1
       tsx: 4.19.3
       xml2js: 0.6.2
+    transitivePeerDependencies:
+      - encoding
+      - supports-color
 
   '@unraid/shared-callbacks@1.0.1(@vueuse/core@13.0.0(vue@3.5.13(typescript@5.8.2)))':
     dependencies:
