@@ -1,15 +1,15 @@
 import type { TestingModule } from '@nestjs/testing';
 import { Test } from '@nestjs/testing';
 import { execSync } from 'child_process';
-import { existsSync, readFileSync, writeFileSync } from 'fs';
+import { existsSync, writeFileSync } from 'fs';
 import { tmpdir } from 'os';
 import { join } from 'path';
 
-import { afterEach, beforeEach, describe, expect, it, vi, beforeAll, afterAll } from 'vitest';
+import { ConnectListAllDomainsFlags, Hypervisor } from '@unraid/libvirt';
+import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 
 import { VmDomain } from '@app/graphql/generated/api/types.js';
 import { VmsService } from '@app/unraid-api/graph/resolvers/vms/vms.service.js';
-import { Hypervisor, ConnectListAllDomainsFlags } from '@unraid/libvirt';
 
 const TEST_VM_NAME = 'test-integration-vm';
 const TMP_DIR = tmpdir();
@@ -94,10 +94,12 @@ const cleanupDomain = async (hypervisor: Hypervisor) => {
     try {
         // Get both active and inactive domains
         const activeDomains = await hypervisor.connectListAllDomains(ConnectListAllDomainsFlags.ACTIVE);
-        const inactiveDomains = await hypervisor.connectListAllDomains(ConnectListAllDomainsFlags.INACTIVE);
+        const inactiveDomains = await hypervisor.connectListAllDomains(
+            ConnectListAllDomainsFlags.INACTIVE
+        );
         const domains = [...activeDomains, ...inactiveDomains];
         console.log('Found domains during cleanup:', domains);
-        
+
         // Find the test domain
         let testDomain: any = null;
         for (const domain of domains) {
@@ -113,7 +115,8 @@ const cleanupDomain = async (hypervisor: Hypervisor) => {
             try {
                 const info = await hypervisor.domainGetInfo(testDomain);
                 console.log('Domain state during cleanup:', info.state);
-                if (info.state === 1) { // RUNNING
+                if (info.state === 1) {
+                    // RUNNING
                     console.log('Domain is running, destroying it');
                     await hypervisor.domainDestroy(testDomain);
                     await new Promise((resolve) => setTimeout(resolve, 2000));
@@ -177,7 +180,7 @@ describe('VmsService', () => {
 
         // Create hypervisor instance for direct libvirt operations
         hypervisor = new Hypervisor({ uri: LIBVIRT_URI });
-        
+
         // Verify libvirt connection is working
         const isConnectionWorking = await verifyLibvirtConnection(hypervisor);
         if (!isConnectionWorking) {
