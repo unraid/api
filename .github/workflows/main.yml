@@ -97,6 +97,11 @@ jobs:
           # Add the current user to libvirt and kvm groups (note: this change won’t apply to the current session)
           sudo usermod -aG libvirt,kvm $USER
 
+          sudo mkdir -p /var/run/libvirt
+          sudo chown root:libvirt /var/run/libvirt
+          sudo chmod 775 /var/run/libvirt
+
+
           # Start libvirtd in the background
           sudo /usr/sbin/libvirtd --daemon
 
