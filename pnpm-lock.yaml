@@ -90,8 +90,8 @@ importers:
         specifier: ^7.0.1
         version: 7.0.2
       '@unraid/libvirt':
-        specifier: ^2.0.3
-        version: 2.0.3
+        specifier: ^2.0.4
+        version: 2.0.4
       accesscontrol:
         specifier: ^2.2.1
         version: 2.2.1
@@ -3912,8 +3912,8 @@ packages:
     engines: {node: '>=18'}
     hasBin: true
 
-  '@unraid/libvirt@2.0.3':
-    resolution: {integrity: sha512-U6L55jIfk2ow71MRH6tThKAXTs6mWmsaME4IVW7gg+rhwJpR1Ic0dIbpXpFgP34TAa8Cro8GnrI23m1hZ9z0FA==}
+  '@unraid/libvirt@2.0.4':
+    resolution: {integrity: sha512-9QcV2Y2O57smf5No1+pv9qzPfsMPlvCm4i/G0DujOUSP4ta5eLXQhsu4eZtMzhYtV74AAhsqbyzPXnlPLop+Ug==}
     engines: {node: '>=14'}
     os: [linux, darwin]
 
@@ -15433,7 +15433,7 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  '@unraid/libvirt@2.0.3':
+  '@unraid/libvirt@2.0.4':
     dependencies:
       '@mapbox/node-pre-gyp': 2.0.0
       bindings: 1.5.0
