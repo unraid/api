@@ -58,7 +58,7 @@ describe('DockerService', () => {
         ];
         vi.mocked(getDockerContainers).mockResolvedValue(mockContainers);
 
-        const result = await service.getContainers(false);
+        const result = await service.getContainers({ useCache: false });
         expect(result).toEqual(mockContainers);
         expect(getDockerContainers).toHaveBeenCalledWith({ useCache: false });
     });
