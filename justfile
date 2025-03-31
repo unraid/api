@@ -44,7 +44,7 @@ stop-ignoring file:
 list-ignored:
     -git ls-files -v | grep '^S'
 
-# Masks output of `pnpm compliance` for brevity.
+# Checks a node.js project's compliance with GPL-2.0-or-later.
 [no-cd]
-compliance:
-    @sh -c 'if output=$(pnpm compliance 2>&1); then echo "Compliance check succeeded"; else echo "$output" >&2; exit 1; fi'
+@compliance:
+    pnpx license-checker --excludePrivatePackages --direct --production --onlyAllow="MIT;BSD-2-Clause;BSD-3-Clause;ISC;Apache-2.0;Zlib;X11;Python-2.0;Artistic-2.0;PostgreSQL;GPL-2.0-or-later;GPL-3.0;AGPL-3.0;LGPL-2.1;LGPL-3.0"

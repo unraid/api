@@ -8,6 +8,6 @@
   },
   "keywords": [],
   "author": "Lime Technology, Inc. <unraid.net>",
-  "license": "GPL-2.0-only",
+  "license": "GPL-2.0-or-later",
   "description": "Example Health plugin for Unraid API"
 }
