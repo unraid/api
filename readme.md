@@ -79,10 +79,11 @@
 
 ### Built With
 
-* [![Unraid][Unraid]][Unraid-url]
-* [![Node.js][Node.js]][Node-url]
-* [![Nuxt][Nuxt.js]][Nuxt-url]
-* [![PHP][PHP]][PHP-url]
+[![Unraid][Unraid]][Unraid-url]
+[![Node.js][Node.js]][Node-url]
+[![Vite][Vite-badge]][Vite-url]
+[![Nuxt][Nuxt.js]][Nuxt-url]
+[![PHP][PHP]][PHP-url]
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
@@ -258,3 +259,5 @@ Project Link: [https://github.com/unraid/api](https://github.com/unraid/api)
 [Nuxt-url]: https://nuxt.com/
 [Node-url]: https://nodejs.org/
 [PHP-url]: https://php.net/
+[Vite-badge]: https://img.shields.io/badge/Vite-646CFF?style=for-the-badge&logo=Vite&logoColor=white
+[Vite-url]: https://vite.dev/
