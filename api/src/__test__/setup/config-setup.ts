@@ -1,6 +1,5 @@
 import { copyFileSync, existsSync } from 'fs';
-import { join } from 'path';
-import { resolve } from 'path';
+import { join, resolve } from 'path';
 
 // Get the project root directory
 const projectRoot = resolve(process.cwd());
@@ -11,8 +10,8 @@ const destFile = join(projectRoot, 'dev/Unraid.net/myservers.cfg');
 
 // Ensure the example file exists
 if (!existsSync(sourceFile)) {
-  console.error('Error: myservers.example.cfg not found!');
-  process.exit(1);
+    console.error('Error: myservers.example.cfg not found!');
+    process.exit(1);
 }
 
 copyFileSync(sourceFile, destFile);
