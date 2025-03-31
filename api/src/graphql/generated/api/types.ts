@@ -191,6 +191,13 @@ export enum ArrayDiskFsColor {
   YELLOW_ON = 'yellow_on'
 }
 
+export type ArrayDiskInput = {
+  /** Disk ID */
+  id: Scalars['ID']['input'];
+  /** The slot for the disk */
+  slot?: InputMaybe<Scalars['Int']['input']>;
+};
+
 export enum ArrayDiskStatus {
   /**  disabled, old disk still present  */
   DISK_DSBL = 'DISK_DSBL',
@@ -222,6 +229,49 @@ export enum ArrayDiskType {
   /** Parity disk */
   PARITY = 'Parity'
 }
+
+export type ArrayMutations = {
+  __typename?: 'ArrayMutations';
+  /** Add new disk to array */
+  addDiskToArray?: Maybe<ArrayType>;
+  clearArrayDiskStatistics?: Maybe<Scalars['JSON']['output']>;
+  mountArrayDisk?: Maybe<Disk>;
+  /** Remove existing disk from array. NOTE: The array must be stopped before running this otherwise it'll throw an error. */
+  removeDiskFromArray?: Maybe<ArrayType>;
+  /** Set array state */
+  setState?: Maybe<ArrayType>;
+  unmountArrayDisk?: Maybe<Disk>;
+};
+
+
+export type ArrayMutationsaddDiskToArrayArgs = {
+  input?: InputMaybe<ArrayDiskInput>;
+};
+
+
+export type ArrayMutationsclearArrayDiskStatisticsArgs = {
+  id: Scalars['ID']['input'];
+};
+
+
+export type ArrayMutationsmountArrayDiskArgs = {
+  id: Scalars['ID']['input'];
+};
+
+
+export type ArrayMutationsremoveDiskFromArrayArgs = {
+  input?: InputMaybe<ArrayDiskInput>;
+};
+
+
+export type ArrayMutationssetStateArgs = {
+  input?: InputMaybe<ArrayStateInput>;
+};
+
+
+export type ArrayMutationsunmountArrayDiskArgs = {
+  id: Scalars['ID']['input'];
+};
 
 export enum ArrayPendingState {
   /** Array has no data disks */
@@ -257,6 +307,18 @@ export enum ArrayState {
   SWAP_DSBL = 'SWAP_DSBL',
   /** Array has too many missing data disks */
   TOO_MANY_MISSING_DISKS = 'TOO_MANY_MISSING_DISKS'
+}
+
+export type ArrayStateInput = {
+  /** Array state */
+  desiredState: ArrayStateInputState;
+};
+
+export enum ArrayStateInputState {
+  /** Start array */
+  START = 'START',
+  /** Stop array */
+  STOP = 'STOP'
 }
 
 export type Baseboard = {
@@ -731,8 +793,6 @@ export type Mount = {
 
 export type Mutation = {
   __typename?: 'Mutation';
-  /** Add new disk to array */
-  addDiskToArray?: Maybe<ArrayType>;
   addPermission: Scalars['Boolean']['output'];
   addRoleForApiKey: Scalars['Boolean']['output'];
   addRoleForUser: Scalars['Boolean']['output'];
@@ -742,9 +802,9 @@ export type Mutation = {
   /** Marks a notification as archived. */
   archiveNotification: Notification;
   archiveNotifications: NotificationOverview;
+  array?: Maybe<ArrayMutations>;
   /** Cancel parity check */
   cancelParityCheck?: Maybe<Scalars['JSON']['output']>;
-  clearArrayDiskStatistics?: Maybe<Scalars['JSON']['output']>;
   connectSignIn: Scalars['Boolean']['output'];
   connectSignOut: Scalars['Boolean']['output'];
   createApiKey: ApiKeyWithSecret;
@@ -756,29 +816,21 @@ export type Mutation = {
   deleteUser?: Maybe<User>;
   enableDynamicRemoteAccess: Scalars['Boolean']['output'];
   login?: Maybe<Scalars['String']['output']>;
-  mountArrayDisk?: Maybe<Disk>;
   /** Pause parity check */
   pauseParityCheck?: Maybe<Scalars['JSON']['output']>;
   reboot?: Maybe<Scalars['String']['output']>;
   /** Reads each notification to recompute & update the overview. */
   recalculateOverview: NotificationOverview;
-  /** Remove existing disk from array. NOTE: The array must be stopped before running this otherwise it'll throw an error. */
-  removeDiskFromArray?: Maybe<ArrayType>;
   removeRoleFromApiKey: Scalars['Boolean']['output'];
   /** Resume parity check */
   resumeParityCheck?: Maybe<Scalars['JSON']['output']>;
   setAdditionalAllowedOrigins: Array<Scalars['String']['output']>;
   setupRemoteAccess: Scalars['Boolean']['output'];
   shutdown?: Maybe<Scalars['String']['output']>;
-  /** Start array */
-  startArray?: Maybe<ArrayType>;
   /** Start parity check */
   startParityCheck?: Maybe<Scalars['JSON']['output']>;
-  /** Stop array */
-  stopArray?: Maybe<ArrayType>;
   unarchiveAll: NotificationOverview;
   unarchiveNotifications: NotificationOverview;
-  unmountArrayDisk?: Maybe<Disk>;
   /** Marks a notification as unread. */
   unreadNotification: Notification;
   /**
@@ -786,11 +838,6 @@ export type Mutation = {
    * Some setting combinations may be required or disallowed. Please refer to each setting for more information.
    */
   updateApiSettings: ConnectSettingsValues;
-};
-
-
-export type MutationaddDiskToArrayArgs = {
-  input?: InputMaybe<arrayDiskInput>;
 };
 
 
@@ -826,11 +873,6 @@ export type MutationarchiveNotificationArgs = {
 
 export type MutationarchiveNotificationsArgs = {
   ids?: InputMaybe<Array<Scalars['String']['input']>>;
-};
-
-
-export type MutationclearArrayDiskStatisticsArgs = {
-  id: Scalars['ID']['input'];
 };
 
 
@@ -871,16 +913,6 @@ export type MutationloginArgs = {
 };
 
 
-export type MutationmountArrayDiskArgs = {
-  id: Scalars['ID']['input'];
-};
-
-
-export type MutationremoveDiskFromArrayArgs = {
-  input?: InputMaybe<arrayDiskInput>;
-};
-
-
 export type MutationremoveRoleFromApiKeyArgs = {
   input: RemoveRoleFromApiKeyInput;
 };
@@ -908,11 +940,6 @@ export type MutationunarchiveAllArgs = {
 
 export type MutationunarchiveNotificationsArgs = {
   ids?: InputMaybe<Array<Scalars['String']['input']>>;
-};
-
-
-export type MutationunmountArrayDiskArgs = {
-  id: Scalars['ID']['input'];
 };
 
 
@@ -1823,13 +1850,6 @@ export type addUserInput = {
   password: Scalars['String']['input'];
 };
 
-export type arrayDiskInput = {
-  /** Disk ID */
-  id: Scalars['ID']['input'];
-  /** The slot for the disk */
-  slot?: InputMaybe<Scalars['Int']['input']>;
-};
-
 export type deleteUserInput = {
   name: Scalars['String']['input'];
 };
@@ -1945,10 +1965,14 @@ export type ResolversTypes = ResolversObject<{
   ArrayCapacity: ResolverTypeWrapper<ArrayCapacity>;
   ArrayDisk: ResolverTypeWrapper<ArrayDisk>;
   ArrayDiskFsColor: ArrayDiskFsColor;
+  ArrayDiskInput: ArrayDiskInput;
   ArrayDiskStatus: ArrayDiskStatus;
   ArrayDiskType: ArrayDiskType;
+  ArrayMutations: ResolverTypeWrapper<ArrayMutations>;
   ArrayPendingState: ArrayPendingState;
   ArrayState: ArrayState;
+  ArrayStateInput: ArrayStateInput;
+  ArrayStateInputState: ArrayStateInputState;
   Baseboard: ResolverTypeWrapper<Baseboard>;
   Boolean: ResolverTypeWrapper<Scalars['Boolean']['output']>;
   Capacity: ResolverTypeWrapper<Capacity>;
@@ -2057,7 +2081,6 @@ export type ResolversTypes = ResolversObject<{
   WAN_FORWARD_TYPE: WAN_FORWARD_TYPE;
   Welcome: ResolverTypeWrapper<Welcome>;
   addUserInput: addUserInput;
-  arrayDiskInput: arrayDiskInput;
   deleteUserInput: deleteUserInput;
   mdState: mdState;
   registrationType: registrationType;
@@ -2079,6 +2102,9 @@ export type ResolversParentTypes = ResolversObject<{
   Array: ArrayType;
   ArrayCapacity: ArrayCapacity;
   ArrayDisk: ArrayDisk;
+  ArrayDiskInput: ArrayDiskInput;
+  ArrayMutations: ArrayMutations;
+  ArrayStateInput: ArrayStateInput;
   Baseboard: Baseboard;
   Boolean: Scalars['Boolean']['output'];
   Capacity: Capacity;
@@ -2165,7 +2191,6 @@ export type ResolversParentTypes = ResolversObject<{
   Vms: Vms;
   Welcome: Welcome;
   addUserInput: addUserInput;
-  arrayDiskInput: arrayDiskInput;
   deleteUserInput: deleteUserInput;
   usersInput: usersInput;
 }>;
@@ -2247,6 +2272,16 @@ export type ArrayDiskResolvers<ContextType = Context, ParentType extends Resolve
   transport?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   type?: Resolver<ResolversTypes['ArrayDiskType'], ParentType, ContextType>;
   warning?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+}>;
+
+export type ArrayMutationsResolvers<ContextType = Context, ParentType extends ResolversParentTypes['ArrayMutations'] = ResolversParentTypes['ArrayMutations']> = ResolversObject<{
+  addDiskToArray?: Resolver<Maybe<ResolversTypes['Array']>, ParentType, ContextType, Partial<ArrayMutationsaddDiskToArrayArgs>>;
+  clearArrayDiskStatistics?: Resolver<Maybe<ResolversTypes['JSON']>, ParentType, ContextType, RequireFields<ArrayMutationsclearArrayDiskStatisticsArgs, 'id'>>;
+  mountArrayDisk?: Resolver<Maybe<ResolversTypes['Disk']>, ParentType, ContextType, RequireFields<ArrayMutationsmountArrayDiskArgs, 'id'>>;
+  removeDiskFromArray?: Resolver<Maybe<ResolversTypes['Array']>, ParentType, ContextType, Partial<ArrayMutationsremoveDiskFromArrayArgs>>;
+  setState?: Resolver<Maybe<ResolversTypes['Array']>, ParentType, ContextType, Partial<ArrayMutationssetStateArgs>>;
+  unmountArrayDisk?: Resolver<Maybe<ResolversTypes['Disk']>, ParentType, ContextType, RequireFields<ArrayMutationsunmountArrayDiskArgs, 'id'>>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
 
@@ -2612,7 +2647,6 @@ export type MountResolvers<ContextType = Context, ParentType extends ResolversPa
 }>;
 
 export type MutationResolvers<ContextType = Context, ParentType extends ResolversParentTypes['Mutation'] = ResolversParentTypes['Mutation']> = ResolversObject<{
-  addDiskToArray?: Resolver<Maybe<ResolversTypes['Array']>, ParentType, ContextType, Partial<MutationaddDiskToArrayArgs>>;
   addPermission?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationaddPermissionArgs, 'input'>>;
   addRoleForApiKey?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationaddRoleForApiKeyArgs, 'input'>>;
   addRoleForUser?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationaddRoleForUserArgs, 'input'>>;
@@ -2620,8 +2654,8 @@ export type MutationResolvers<ContextType = Context, ParentType extends Resolver
   archiveAll?: Resolver<ResolversTypes['NotificationOverview'], ParentType, ContextType, Partial<MutationarchiveAllArgs>>;
   archiveNotification?: Resolver<ResolversTypes['Notification'], ParentType, ContextType, RequireFields<MutationarchiveNotificationArgs, 'id'>>;
   archiveNotifications?: Resolver<ResolversTypes['NotificationOverview'], ParentType, ContextType, Partial<MutationarchiveNotificationsArgs>>;
+  array?: Resolver<Maybe<ResolversTypes['ArrayMutations']>, ParentType, ContextType>;
   cancelParityCheck?: Resolver<Maybe<ResolversTypes['JSON']>, ParentType, ContextType>;
-  clearArrayDiskStatistics?: Resolver<Maybe<ResolversTypes['JSON']>, ParentType, ContextType, RequireFields<MutationclearArrayDiskStatisticsArgs, 'id'>>;
   connectSignIn?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationconnectSignInArgs, 'input'>>;
   connectSignOut?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
   createApiKey?: Resolver<ResolversTypes['ApiKeyWithSecret'], ParentType, ContextType, RequireFields<MutationcreateApiKeyArgs, 'input'>>;
@@ -2631,22 +2665,17 @@ export type MutationResolvers<ContextType = Context, ParentType extends Resolver
   deleteUser?: Resolver<Maybe<ResolversTypes['User']>, ParentType, ContextType, RequireFields<MutationdeleteUserArgs, 'input'>>;
   enableDynamicRemoteAccess?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationenableDynamicRemoteAccessArgs, 'input'>>;
   login?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType, RequireFields<MutationloginArgs, 'password' | 'username'>>;
-  mountArrayDisk?: Resolver<Maybe<ResolversTypes['Disk']>, ParentType, ContextType, RequireFields<MutationmountArrayDiskArgs, 'id'>>;
   pauseParityCheck?: Resolver<Maybe<ResolversTypes['JSON']>, ParentType, ContextType>;
   reboot?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   recalculateOverview?: Resolver<ResolversTypes['NotificationOverview'], ParentType, ContextType>;
-  removeDiskFromArray?: Resolver<Maybe<ResolversTypes['Array']>, ParentType, ContextType, Partial<MutationremoveDiskFromArrayArgs>>;
   removeRoleFromApiKey?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationremoveRoleFromApiKeyArgs, 'input'>>;
   resumeParityCheck?: Resolver<Maybe<ResolversTypes['JSON']>, ParentType, ContextType>;
   setAdditionalAllowedOrigins?: Resolver<Array<ResolversTypes['String']>, ParentType, ContextType, RequireFields<MutationsetAdditionalAllowedOriginsArgs, 'input'>>;
   setupRemoteAccess?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationsetupRemoteAccessArgs, 'input'>>;
   shutdown?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
-  startArray?: Resolver<Maybe<ResolversTypes['Array']>, ParentType, ContextType>;
   startParityCheck?: Resolver<Maybe<ResolversTypes['JSON']>, ParentType, ContextType, Partial<MutationstartParityCheckArgs>>;
-  stopArray?: Resolver<Maybe<ResolversTypes['Array']>, ParentType, ContextType>;
   unarchiveAll?: Resolver<ResolversTypes['NotificationOverview'], ParentType, ContextType, Partial<MutationunarchiveAllArgs>>;
   unarchiveNotifications?: Resolver<ResolversTypes['NotificationOverview'], ParentType, ContextType, Partial<MutationunarchiveNotificationsArgs>>;
-  unmountArrayDisk?: Resolver<Maybe<ResolversTypes['Disk']>, ParentType, ContextType, RequireFields<MutationunmountArrayDiskArgs, 'id'>>;
   unreadNotification?: Resolver<ResolversTypes['Notification'], ParentType, ContextType, RequireFields<MutationunreadNotificationArgs, 'id'>>;
   updateApiSettings?: Resolver<ResolversTypes['ConnectSettingsValues'], ParentType, ContextType, RequireFields<MutationupdateApiSettingsArgs, 'input'>>;
 }>;
@@ -3273,6 +3302,7 @@ export type Resolvers<ContextType = Context> = ResolversObject<{
   Array?: ArrayResolvers<ContextType>;
   ArrayCapacity?: ArrayCapacityResolvers<ContextType>;
   ArrayDisk?: ArrayDiskResolvers<ContextType>;
+  ArrayMutations?: ArrayMutationsResolvers<ContextType>;
   Baseboard?: BaseboardResolvers<ContextType>;
   Capacity?: CapacityResolvers<ContextType>;
   Case?: CaseResolvers<ContextType>;

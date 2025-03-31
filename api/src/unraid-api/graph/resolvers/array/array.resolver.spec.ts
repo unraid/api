@@ -1,19 +1,35 @@
 import type { TestingModule } from '@nestjs/testing';
 import { Test } from '@nestjs/testing';
 
-import { beforeEach, describe, expect, it } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { ArrayResolver } from '@app/unraid-api/graph/resolvers/array/array.resolver.js';
+import { ArrayService } from '@app/unraid-api/graph/resolvers/array/array.service.js';
 
 describe('ArrayResolver', () => {
     let resolver: ArrayResolver;
+    let arrayService: ArrayService;
 
     beforeEach(async () => {
         const module: TestingModule = await Test.createTestingModule({
-            providers: [ArrayResolver],
+            providers: [
+                ArrayResolver,
+                {
+                    provide: ArrayService,
+                    useValue: {
+                        updateArrayState: vi.fn(),
+                        addDiskToArray: vi.fn(),
+                        removeDiskFromArray: vi.fn(),
+                        mountArrayDisk: vi.fn(),
+                        unmountArrayDisk: vi.fn(),
+                        clearArrayDiskStatistics: vi.fn(),
+                    },
+                },
+            ],
         }).compile();
 
         resolver = module.get<ArrayResolver>(ArrayResolver);
+        arrayService = module.get<ArrayService>(ArrayService);
     });
 
     it('should be defined', () => {

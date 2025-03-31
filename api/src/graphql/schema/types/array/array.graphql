@@ -3,16 +3,26 @@ type Query {
     array: Array!
 }
 
-type Mutation {
+enum ArrayStateInputState {
     """Start array"""
-    startArray: Array
+    START
     """Stop array"""
-    stopArray: Array
+    STOP
+}
+
+input ArrayStateInput {
+    """Array state"""
+    desiredState: ArrayStateInputState!
+}
+
+type ArrayMutations {
+    """Set array state"""
+    setState(input: ArrayStateInput): Array
 
     """Add new disk to array"""
-    addDiskToArray(input: arrayDiskInput): Array
+    addDiskToArray(input: ArrayDiskInput): Array
     """Remove existing disk from array. NOTE: The array must be stopped before running this otherwise it'll throw an error."""
-    removeDiskFromArray(input: arrayDiskInput): Array
+    removeDiskFromArray(input: ArrayDiskInput): Array
 
     mountArrayDisk(id: ID!): Disk
     unmountArrayDisk(id: ID!): Disk
@@ -20,11 +30,15 @@ type Mutation {
     clearArrayDiskStatistics(id: ID!): JSON
 }
 
+type Mutation {
+    array: ArrayMutations
+}
+
 type Subscription {
     array: Array!
 }
 
-input arrayDiskInput {
+input ArrayDiskInput {
     """Disk ID"""
     id: ID!
     """The slot for the disk"""
