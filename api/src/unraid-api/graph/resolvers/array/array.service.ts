@@ -7,13 +7,12 @@ import { AppError } from '@app/core/errors/app-error.js';
 import { ArrayRunningError } from '@app/core/errors/array-running-error.js';
 import { getArrayData } from '@app/core/modules/array/get-array-data.js';
 import { emcmd } from '@app/core/utils/clients/emcmd.js';
+import { arrayIsRunning as arrayIsRunningUtil } from '@app/core/utils/index.js';
 import {
     ArrayPendingState,
     ArrayState,
     ArrayStateInputState,
 } from '@app/graphql/generated/api/types.js';
-import { getters } from '@app/store/index.js';
-import { arrayIsRunning as arrayIsRunningUtil } from '@app/core/utils/index.js';
 
 @Injectable()
 export class ArrayService {
