@@ -143,9 +143,9 @@ Once you have your key pair, add your public SSH key to your Unraid server:
 <!-- USAGE EXAMPLES -->
 ## Usage
 
-Use this space to show useful examples of how a project can be used. Additional screenshots, code examples and demos work well in this space. You may also link to more resources.
+See [How to Use the API](./api/docs/public/how-to-use-the-api.md).
 
-_For more examples, please refer to the [Documentation](https://docs.unraid.net/)_
+_For more examples, please refer to the [Documentation](https://docs.unraid.net/API/how-to-use-the-api/)_
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
@@ -213,11 +213,6 @@ Don't forget to give the project a star! Thanks again!
 <a href="https://github.com/unraid/api/graphs/contributors">
   <img src="https://contrib.rocks/image?repo=unraid/api" alt="contrib.rocks image" />
 </a>
-
-<!-- LICENSE -->
-<!-- ## License
-
-<p align="right">(<a href="#readme-top">back to top</a>)</p> -->
 
 <!-- Community & Acknowledgements -->
 ## Community
