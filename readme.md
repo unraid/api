@@ -247,7 +247,7 @@ Project Link: [https://github.com/unraid/api](https://github.com/unraid/api)
 [stars-url]: https://github.com/unraid/api/stargazers
 [issues-shield]: https://img.shields.io/github/issues/unraid/api.svg?style=for-the-badge
 [issues-url]: https://github.com/unraid/api/issues
-[license-shield]: https://img.shields.io/badge/License-GPL--2.0-default?style=for-the-badge&color=orange
+[license-shield]: https://img.shields.io/badge/License-GPL--2.0-default?style=for-the-badge&color=red
 [license-url]: https://github.com/unraid/api/blob/main/LICENSE.md
 [linkedin-shield]: https://img.shields.io/badge/-LinkedIn-black.svg?style=for-the-badge&logo=linkedin&colorB=555
 [linkedin-url]: https://www.linkedin.com/company/unraid
