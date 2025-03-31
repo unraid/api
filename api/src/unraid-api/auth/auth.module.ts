@@ -44,7 +44,7 @@ import { getRequest } from '@app/utils.js';
                     logger.error('Failed to extract user context', error);
                     throw new UnauthorizedException('Failed to authenticate user');
                 }
-            }
+            },
         }),
     ],
     providers: [

@@ -1,4 +1,5 @@
 import { AuthAction } from 'nest-authz';
+
 import { Resource, Role } from '@app/graphql/generated/api/types.js';
 
 export const BASE_POLICY = `

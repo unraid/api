@@ -197,7 +197,7 @@ export class VmsService implements OnModuleInit {
             libvirtLogger.info(`Looking up domain with UUID: ${uuid}`);
             const domain = await this.hypervisor.domainLookupByUUIDString(uuid);
             libvirtLogger.info(`Found domain, force stopping...`);
-            
+
             await this.hypervisor.domainDestroy(domain);
             return true;
         } catch (error) {
@@ -216,17 +216,17 @@ export class VmsService implements OnModuleInit {
             libvirtLogger.info(`Looking up domain with UUID: ${uuid}`);
             const domain = await this.hypervisor.domainLookupByUUIDString(uuid);
             libvirtLogger.info(`Found domain, rebooting...`);
-            
+
             // First try graceful shutdown
             await this.hypervisor.domainShutdown(domain);
-            
+
             // Wait for shutdown to complete
             const shutdownSuccess = await this.waitForDomainShutdown(domain);
             if (!shutdownSuccess) {
                 libvirtLogger.info('Graceful shutdown failed, forcing domain stop...');
                 await this.hypervisor.domainDestroy(domain);
             }
-            
+
             // Start the domain again
             await domain.create();
             return true;
@@ -246,10 +246,10 @@ export class VmsService implements OnModuleInit {
             libvirtLogger.info(`Looking up domain with UUID: ${uuid}`);
             const domain = await this.hypervisor.domainLookupByUUIDString(uuid);
             libvirtLogger.info(`Found domain, resetting...`);
-            
+
             // Force stop the domain
             await this.hypervisor.domainDestroy(domain);
-            
+
             // Start the domain again
             await domain.create();
             return true;

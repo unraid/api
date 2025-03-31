@@ -601,10 +601,12 @@ describe('ApiKeyService', () => {
                 }),
             } as any);
 
-            await expect(apiKeyService['loadApiKeyFile']('test.json')).rejects.toThrowErrorMatchingInlineSnapshot(`[Error: Invalid API key structure]`);
+            await expect(
+                apiKeyService['loadApiKeyFile']('test.json')
+            ).rejects.toThrowErrorMatchingInlineSnapshot(`[Error: Invalid API key structure]`);
 
             expect(mockLogger.error).toHaveBeenCalledWith(
-                expect.stringContaining('Invalid API key structure in file test.json'),
+                expect.stringContaining('Invalid API key structure in file test.json')
             );
         });
     });
