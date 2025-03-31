@@ -220,6 +220,11 @@ test('integration test, loading nginx ini and generating all URLs', async () => 
           "type": "LAN",
         },
         {
+          "ipv4": "https://85-121-123-122.thisisfourtyrandomcharacters012345678900.myunraid.net:8443/",
+          "name": "FQDN WAN",
+          "type": "WAN",
+        },
+        {
           "ipv4": "https://10-252-0-1.hash.myunraid.net:4443/",
           "name": "FQDN WG 0",
           "type": "WIREGUARD",
@@ -269,7 +274,6 @@ test('integration test, loading nginx ini and generating all URLs', async () => 
     expect(urls.errors).toMatchInlineSnapshot(`
       [
         [Error: IP URL Resolver: Could not resolve any access URL for field: "lanIp6", is FQDN?: false],
-        [Error: No ports specified for URL: 85-121-123-122.thisisfourtyrandomcharacters012345678900.myunraid.net],
       ]
     `);
 });

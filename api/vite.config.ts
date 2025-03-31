@@ -169,6 +169,7 @@ export default defineConfig(({ mode }): ViteUserConfig => {
                 'reflect-metadata',
                 'src/__test__/setup/env-setup.ts',
                 'src/__test__/setup/keyserver-mock.ts',
+                'src/__test__/setup/config-setup.ts',
             ],
             exclude: ['**/deploy/**', '**/node_modules/**'],
         },

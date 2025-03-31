@@ -301,7 +301,7 @@ describe('VmsService', () => {
     }, 15000); // Reduced timeout from 30000
 
     it('should handle errors when VM is not available', async () => {
-        await expect(service.startVm('999')).rejects.toThrow('Failed to start VM');
-        await expect(service.stopVm('999')).rejects.toThrow('Failed to stop VM');
+        await expect(service.startVm('999')).rejects.toThrow('Failed to set VM state: Invalid UUID');
+        await expect(service.stopVm('999')).rejects.toThrow('Failed to set VM state: Invalid UUID');
     });
 });
