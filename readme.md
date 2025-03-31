@@ -30,7 +30,7 @@
 <h3 align="center">Unraid API</h3>
 
   <p align="center">
-    Monorepo for Unraid Connect and the Unraid API.
+    Monorepo for the Unraid API and Unraid Connect.
     <br />
     <a href="https://docs.unraid.net/"><strong>Explore the docs »</strong></a>
     <br />
