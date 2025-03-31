@@ -43,3 +43,8 @@ stop-ignoring file:
 [group('git')]
 list-ignored:
     -git ls-files -v | grep '^S'
+
+# Masks output of `pnpm compliance` for brevity.
+[no-cd]
+compliance:
+    @sh -c 'if output=$(pnpm compliance 2>&1); then echo "Compliance check succeeded"; else echo "$output" >&2; exit 1; fi'
