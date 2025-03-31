@@ -101,7 +101,7 @@ export class ArrayService {
         return getArrayData();
     }
 
-    async mountArrayDisk(id: string): Promise<any> {
+    async mountArrayDisk(id: string): Promise<ArrayType> {
         if (!this.arrayIsRunning()) {
             throw new BadRequestException('Array must be running to mount disks');
         }
@@ -115,7 +115,7 @@ export class ArrayService {
         return getArrayData();
     }
 
-    async unmountArrayDisk(id: string): Promise<any> {
+    async unmountArrayDisk(id: string): Promise<ArrayType> {
         if (!this.arrayIsRunning()) {
             throw new BadRequestException('Array must be running to unmount disks');
         }
@@ -129,7 +129,7 @@ export class ArrayService {
         return getArrayData();
     }
 
-    async clearArrayDiskStatistics(id: string): Promise<any> {
+    async clearArrayDiskStatistics(id: string): Promise<ArrayType> {
         if (!this.arrayIsRunning()) {
             throw new BadRequestException('Array must be running to clear disk statistics');
         }
