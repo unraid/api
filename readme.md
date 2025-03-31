@@ -244,7 +244,7 @@ Project Link: [https://github.com/unraid/api](https://github.com/unraid/api)
 [issues-shield]: https://img.shields.io/github/issues/unraid/api.svg?style=for-the-badge
 [issues-url]: https://github.com/unraid/api/issues
 [license-shield]: https://img.shields.io/github/license/unraid/api.svg?style=for-the-badge
-[license-url]: https://github.com/unraid/api/blob/master/LICENSE.txt
+[license-url]: https://github.com/unraid/api/blob/main/LICENSE.md
 [linkedin-shield]: https://img.shields.io/badge/-LinkedIn-black.svg?style=for-the-badge&logo=linkedin&colorB=555
 [linkedin-url]: https://www.linkedin.com/company/unraid
 [Nuxt.js]: https://img.shields.io/badge/Nuxt-002E3B?style=for-the-badge&logo=nuxtdotjs&logoColor=#00DC82
