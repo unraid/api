@@ -17,17 +17,11 @@ export type Scalars = {
   Boolean: { input: boolean; output: boolean; }
   Int: { input: number; output: number; }
   Float: { input: number; output: number; }
-  /** A date-time string at UTC, such as 2007-12-03T10:15:30Z, compliant with the `date-time` format outlined in section 5.6 of the RFC 3339 profile of the ISO 8601 standard for representation of dates and times using the Gregorian calendar. */
   DateTime: { input: string; output: string; }
-  /** The `JSON` scalar type represents JSON values as specified by [ECMA-404](http://www.ecma-international.org/publications/files/ECMA-ST/ECMA-404.pdf). */
   JSON: { input: Record<string, any>; output: Record<string, any>; }
-  /** The `Long` scalar type represents 52-bit integers */
   Long: { input: number; output: number; }
-  /** A field whose value is a valid TCP port within the range of 0 to 65535: https://en.wikipedia.org/wiki/Transmission_Control_Protocol#TCP_ports */
   Port: { input: number; output: number; }
-  /** A field whose value conforms to the standard URL format as specified in RFC3986: https://www.ietf.org/rfc/rfc3986.txt. */
   URL: { input: URL; output: URL; }
-  /** A field whose value is a generic Universally Unique Identifier: https://en.wikipedia.org/wiki/Universally_unique_identifier. */
   UUID: { input: string; output: string; }
 };
 
@@ -880,15 +874,7 @@ export type Mutation = {
    * Some setting combinations may be required or disallowed. Please refer to each setting for more information.
    */
   updateApiSettings: ConnectSettingsValues;
-  /**
-   * Virtual machine mutations
-   *
-   * #### Required Permissions:
-   *
-   * - Action: **READ**
-   * - Resource: **VMS**
-   * - Possession: **ANY**
-   */
+  /** Virtual machine mutations */
   vms?: Maybe<VmMutations>;
 };
 
@@ -1262,15 +1248,7 @@ export type Query = {
   /** User accounts */
   users: Array<User>;
   vars?: Maybe<Vars>;
-  /**
-   * Virtual machines
-   *
-   * #### Required Permissions:
-   *
-   * - Action: **READ**
-   * - Resource: **VMS**
-   * - Possession: **ANY**
-   */
+  /** Virtual machines */
   vms?: Maybe<Vms>;
 };
 
@@ -1518,15 +1496,6 @@ export type Subscription = {
   user: User;
   users: Array<Maybe<User>>;
   vars: Vars;
-  /**
-   *
-   *
-   * #### Required Permissions:
-   *
-   * - Action: **READ**
-   * - Resource: **VMS**
-   * - Possession: **ANY**
-   */
   vms?: Maybe<Vms>;
 };
 
@@ -1882,75 +1851,19 @@ export type VmDomain = {
 
 export type VmMutations = {
   __typename?: 'VmMutations';
-  /**
-   * Force stop a virtual machine
-   *
-   * #### Required Permissions:
-   *
-   * - Action: **UPDATE**
-   * - Resource: **VMS**
-   * - Possession: **ANY**
-   */
+  /** Force stop a virtual machine */
   forceStopVm: Scalars['Boolean']['output'];
-  /**
-   * Pause a virtual machine
-   *
-   * #### Required Permissions:
-   *
-   * - Action: **UPDATE**
-   * - Resource: **VMS**
-   * - Possession: **ANY**
-   */
+  /** Pause a virtual machine */
   pauseVm: Scalars['Boolean']['output'];
-  /**
-   * Reboot a virtual machine
-   *
-   * #### Required Permissions:
-   *
-   * - Action: **UPDATE**
-   * - Resource: **VMS**
-   * - Possession: **ANY**
-   */
+  /** Reboot a virtual machine */
   rebootVm: Scalars['Boolean']['output'];
-  /**
-   * Reset a virtual machine
-   *
-   * #### Required Permissions:
-   *
-   * - Action: **UPDATE**
-   * - Resource: **VMS**
-   * - Possession: **ANY**
-   */
+  /** Reset a virtual machine */
   resetVm: Scalars['Boolean']['output'];
-  /**
-   * Resume a virtual machine
-   *
-   * #### Required Permissions:
-   *
-   * - Action: **UPDATE**
-   * - Resource: **VMS**
-   * - Possession: **ANY**
-   */
+  /** Resume a virtual machine */
   resumeVm: Scalars['Boolean']['output'];
-  /**
-   * Start a virtual machine
-   *
-   * #### Required Permissions:
-   *
-   * - Action: **UPDATE**
-   * - Resource: **VMS**
-   * - Possession: **ANY**
-   */
+  /** Start a virtual machine */
   startVm: Scalars['Boolean']['output'];
-  /**
-   * Stop a virtual machine
-   *
-   * #### Required Permissions:
-   *
-   * - Action: **UPDATE**
-   * - Resource: **VMS**
-   * - Possession: **ANY**
-   */
+  /** Stop a virtual machine */
   stopVm: Scalars['Boolean']['output'];
 };
 
@@ -2002,15 +1915,6 @@ export enum VmState {
 
 export type Vms = {
   __typename?: 'Vms';
-  /**
-   *
-   *
-   * #### Required Permissions:
-   *
-   * - Action: **READ**
-   * - Resource: **VMS**
-   * - Possession: **ANY**
-   */
   domain?: Maybe<Array<VmDomain>>;
   id: Scalars['ID']['output'];
 };

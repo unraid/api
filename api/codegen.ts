@@ -1,6 +1,9 @@
 import type { CodegenConfig } from '@graphql-codegen/cli';
 
+
+
 import { getAuthEnumTypeDefs } from './src/unraid-api/graph/directives/auth.directive.js';
+
 
 const config: CodegenConfig = {
     overwrite: true,
@@ -37,6 +40,49 @@ const config: CodegenConfig = {
                 getAuthEnumTypeDefs(),
             ],
         },
+        // Generate Types for the API Server
+        'src/graphql/generated/api/types.ts': {
+            schema: [
+                './src/graphql/types.ts',
+                './src/graphql/schema/types/**/*.graphql',
+                getAuthEnumTypeDefs(),
+            ],
+            plugins: [
+                'typescript',
+                'typescript-resolvers',
+                { add: { content: '/* eslint-disable */\n/* @ts-nocheck */' } },
+            ],
+            config: {
+                contextType: '@app/graphql/schema/utils.js#Context',
+                useIndexSignature: true,
+            },
+        },
+        // Generate Operations for any built-in API Server Operations (e.g., report.ts)
+        'src/graphql/generated/api/operations.ts': {
+            documents: './src/graphql/client/api/*.ts',
+            schema: [
+                './src/graphql/types.ts',
+                './src/graphql/schema/types/**/*.graphql',
+                getAuthEnumTypeDefs(),
+            ],
+            preset: 'import-types',
+            presetConfig: {
+                typesPath: '@app/graphql/generated/api/types.js',
+            },
+            plugins: [
+                'typescript-validation-schema',
+                'typescript-operations',
+                'typed-document-node',
+                { add: { content: '/* eslint-disable */' } },
+            ],
+            config: {
+                importFrom: '@app/graphql/generated/api/types.js',
+                strictScalars: true,
+                schema: 'zod',
+                withObjectType: true,
+            },
+        },
+        // Generate Types for Mothership GraphQL Client
         'src/graphql/generated/client/': {
             documents: './src/graphql/mothership/*.ts',
             schema: {
@@ -55,40 +101,6 @@ const config: CodegenConfig = {
                 withObjectType: true,
             },
             plugins: [{ add: { content: '/* eslint-disable */' } }],
-        },
-        // Generate Types for the API Server
-        'src/graphql/generated/api/types.ts': {
-            schema: ['./src/graphql/types.ts', './src/graphql/schema/types/**/*.graphql'],
-            plugins: [
-                'typescript',
-                'typescript-resolvers',
-                { add: { content: '/* eslint-disable */\n/* @ts-nocheck */' } },
-            ],
-            config: {
-                contextType: '@app/graphql/schema/utils.js#Context',
-                useIndexSignature: true,
-            },
-        },
-        // Generate Operations for any built-in API Server Operations (e.g., report.ts)
-        'src/graphql/generated/api/operations.ts': {
-            documents: './src/graphql/client/api/*.ts',
-            schema: ['./src/graphql/types.ts', './src/graphql/schema/types/**/*.graphql'],
-            preset: 'import-types',
-            presetConfig: {
-                typesPath: '@app/graphql/generated/api/types.js',
-            },
-            plugins: [
-                'typescript-validation-schema',
-                'typescript-operations',
-                'typed-document-node',
-                { add: { content: '/* eslint-disable */' } },
-            ],
-            config: {
-                importFrom: '@app/graphql/generated/api/types.js',
-                strictScalars: true,
-                schema: 'zod',
-                withObjectType: true,
-            },
         },
         'src/graphql/generated/client/validators.ts': {
             schema: {
