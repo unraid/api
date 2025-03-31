@@ -190,6 +190,7 @@ describe('Auth Directive', () => {
                     );
                     return result;
                 }
+                return;
             };
 
             await testResolver();
