@@ -1,10 +1,9 @@
 import { AuthAction } from 'nest-authz';
-
 import { Resource, Role } from '@app/graphql/generated/api/types.js';
 
 export const BASE_POLICY = `
 # Admin permissions
-p, ${Role.ADMIN}, *, *, *
+p, ${Role.ADMIN}, *, *
 
 # Connect Permissions
 p, ${Role.CONNECT}, *, ${AuthAction.READ_ANY}

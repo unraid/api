@@ -1,27 +1,37 @@
 type Query {
     """Virtual machines"""
-    vms: Vms
+    vms: Vms @auth(action: READ, resource: VMS, possession: ANY)
 }
 
 type Mutation {
     """Virtual machine mutations"""
-    vms: VmMutations
+    vms: VmMutations @auth(action: READ, resource: VMS, possession: ANY)
 }
 
 type VmMutations {
     """Start a virtual machine"""
-    startVm(id: ID!): Boolean!
+    startVm(id: ID!): Boolean! @auth(action: UPDATE, resource: VMS, possession: ANY)
     """Stop a virtual machine"""
-    stopVm(id: ID!): Boolean!
+    stopVm(id: ID!): Boolean! @auth(action: UPDATE, resource: VMS, possession: ANY)
+    """Pause a virtual machine"""
+    pauseVm(id: ID!): Boolean! @auth(action: UPDATE, resource: VMS, possession: ANY)
+    """Resume a virtual machine"""
+    resumeVm(id: ID!): Boolean! @auth(action: UPDATE, resource: VMS, possession: ANY)
+    """Force stop a virtual machine"""
+    forceStopVm(id: ID!): Boolean! @auth(action: UPDATE, resource: VMS, possession: ANY)
+    """Reboot a virtual machine"""
+    rebootVm(id: ID!): Boolean! @auth(action: UPDATE, resource: VMS, possession: ANY)
+    """Reset a virtual machine"""
+    resetVm(id: ID!): Boolean! @auth(action: UPDATE, resource: VMS, possession: ANY)
 }
 
 type Vms {
     id: ID!
-    domain: [VmDomain!]
+    domain: [VmDomain!] @auth(action: READ, resource: VMS, possession: ANY)
 }
 
 type Subscription {
-    vms: Vms
+    vms: Vms @auth(action: READ, resource: VMS, possession: ANY)
 }
 
 # https://libvirt.org/manpages/virsh.html#list

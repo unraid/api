@@ -1,8 +1,7 @@
 import { Query, Resolver } from '@nestjs/graphql';
+import { UsePermissions } from 'nest-authz';
 
-import { AuthActionVerb, AuthPossession, UsePermissions } from 'nest-authz';
-
-import { Resource } from '@app/graphql/generated/api/types.js';
+import { AuthActionVerb, AuthPossession, Resource } from '@app/graphql/generated/api/types.js';
 
 @Resolver('Online')
 export class OnlineResolver {

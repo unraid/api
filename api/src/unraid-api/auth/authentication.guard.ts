@@ -34,11 +34,11 @@ type GraphQLContext =
       };
 
 @Injectable()
-export class GraphqlAuthGuard
+export class AuthenticationGuard
     extends AuthGuard([ServerHeaderStrategy.key, UserCookieStrategy.key])
     implements CanActivate
 {
-    protected logger = new Logger(GraphqlAuthGuard.name);
+    protected logger = new Logger(AuthenticationGuard.name);
     constructor() {
         super();
     }

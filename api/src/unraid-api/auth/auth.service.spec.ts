@@ -1,7 +1,7 @@
 import { UnauthorizedException } from '@nestjs/common';
 
 import { newEnforcer } from 'casbin';
-import { AuthZService } from 'nest-authz';
+import { AuthActionVerb, AuthZService } from 'nest-authz';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import type { ApiKey, ApiKeyWithSecret, UserAccount } from '@app/graphql/generated/api/types.js';
@@ -36,7 +36,7 @@ describe('AuthService', () => {
         permissions: [
             {
                 resource: Resource.CONNECT,
-                actions: ['read'],
+                actions: [AuthActionVerb.READ.toUpperCase()],
             },
         ],
         createdAt: new Date().toISOString(),
@@ -120,7 +120,7 @@ describe('AuthService', () => {
             const result = await authService.validateCookiesWithCsrfToken(mockRequest);
 
             expect(result).toEqual(mockUser);
-            expect(addRoleSpy).toHaveBeenCalledWith(mockUser.id, 'guest');
+            expect(addRoleSpy).toHaveBeenCalledWith(mockUser.id, Role.GUEST);
         });
 
         it('should throw UnauthorizedException when CSRF token is invalid', async () => {

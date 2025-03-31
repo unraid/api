@@ -27,6 +27,10 @@ export const ArrayStateSchema = z.nativeEnum(ArrayState);
 
 export const ArrayStateInputStateSchema = z.nativeEnum(ArrayStateInputState);
 
+export const AuthActionVerbSchema = z.nativeEnum(AuthActionVerb);
+
+export const AuthPossessionSchema = z.nativeEnum(AuthPossession);
+
 export const ConfigErrorStateSchema = z.nativeEnum(ConfigErrorState);
 
 export const ContainerPortTypeSchema = z.nativeEnum(ContainerPortType);
@@ -1363,6 +1367,61 @@ export function VmDomainSchema(): z.ZodObject<Properties<VmDomain>> {
     name: z.string().nullish(),
     state: VmStateSchema,
     uuid: z.string()
+  })
+}
+
+export function VmMutationsSchema(): z.ZodObject<Properties<VmMutations>> {
+  return z.object({
+    __typename: z.literal('VmMutations').optional(),
+    forceStopVm: z.boolean(),
+    pauseVm: z.boolean(),
+    rebootVm: z.boolean(),
+    resetVm: z.boolean(),
+    resumeVm: z.boolean(),
+    startVm: z.boolean(),
+    stopVm: z.boolean()
+  })
+}
+
+export function VmMutationsforceStopVmArgsSchema(): z.ZodObject<Properties<VmMutationsforceStopVmArgs>> {
+  return z.object({
+    id: z.string()
+  })
+}
+
+export function VmMutationspauseVmArgsSchema(): z.ZodObject<Properties<VmMutationspauseVmArgs>> {
+  return z.object({
+    id: z.string()
+  })
+}
+
+export function VmMutationsrebootVmArgsSchema(): z.ZodObject<Properties<VmMutationsrebootVmArgs>> {
+  return z.object({
+    id: z.string()
+  })
+}
+
+export function VmMutationsresetVmArgsSchema(): z.ZodObject<Properties<VmMutationsresetVmArgs>> {
+  return z.object({
+    id: z.string()
+  })
+}
+
+export function VmMutationsresumeVmArgsSchema(): z.ZodObject<Properties<VmMutationsresumeVmArgs>> {
+  return z.object({
+    id: z.string()
+  })
+}
+
+export function VmMutationsstartVmArgsSchema(): z.ZodObject<Properties<VmMutationsstartVmArgs>> {
+  return z.object({
+    id: z.string()
+  })
+}
+
+export function VmMutationsstopVmArgsSchema(): z.ZodObject<Properties<VmMutationsstopVmArgs>> {
+  return z.object({
+    id: z.string()
   })
 }
 

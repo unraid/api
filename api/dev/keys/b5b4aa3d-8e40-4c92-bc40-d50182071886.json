@@ -6,6 +6,6 @@
   "name": "Connect",
   "permissions": [],
   "roles": [
-    "connect"
+    "CONNECT"
   ]
 }

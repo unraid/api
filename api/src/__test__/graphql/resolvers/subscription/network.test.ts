@@ -192,88 +192,84 @@ test('integration test, loading nginx ini and generating all URLs', async () => 
 
     const urls = getServerIps();
     expect(urls.urls).toMatchInlineSnapshot(`
-		[
-		  {
-		    "ipv4": "https://tower.local:4443/",
-		    "ipv6": "https://tower.local:4443/",
-		    "name": "Default",
-		    "type": "DEFAULT",
-		  },
-		  {
-		    "ipv4": "https://192.168.1.150:4443/",
-		    "name": "LAN IPv4",
-		    "type": "LAN",
-		  },
-		  {
-		    "ipv4": "https://tower:4443/",
-		    "name": "LAN Name",
-		    "type": "MDNS",
-		  },
-		  {
-		    "ipv4": "https://tower.local:4443/",
-		    "name": "LAN MDNS",
-		    "type": "MDNS",
-		  },
-		  {
-		    "ipv4": "https://192-168-1-150.thisisfourtyrandomcharacters012345678900.myunraid.net:4443/",
-		    "name": "FQDN LAN",
-		    "type": "LAN",
-		  },
-		  {
-		    "ipv4": "https://85-121-123-122.thisisfourtyrandomcharacters012345678900.myunraid.net:8443/",
-		    "name": "FQDN WAN",
-		    "type": "WAN",
-		  },
-		  {
-		    "ipv4": "https://10-252-0-1.hash.myunraid.net:4443/",
-		    "name": "FQDN WG 0",
-		    "type": "WIREGUARD",
-		  },
-		  {
-		    "ipv4": "https://10-252-1-1.hash.myunraid.net:4443/",
-		    "name": "FQDN WG 1",
-		    "type": "WIREGUARD",
-		  },
-		  {
-		    "ipv4": "https://10-253-3-1.hash.myunraid.net:4443/",
-		    "name": "FQDN WG 2",
-		    "type": "WIREGUARD",
-		  },
-		  {
-		    "ipv4": "https://10-253-4-1.hash.myunraid.net:4443/",
-		    "name": "FQDN WG 3",
-		    "type": "WIREGUARD",
-		  },
-		  {
-		    "ipv4": "https://10-253-5-1.hash.myunraid.net:4443/",
-		    "name": "FQDN WG 4",
-		    "type": "WIREGUARD",
-		  },
-		  {
-		    "ipv4": "https://10-100-0-1.hash.myunraid.net:4443/",
-		    "name": "FQDN TAILSCALE 0",
-		    "type": "WIREGUARD",
-		  },
-		  {
-		    "ipv4": "https://10-100-0-2.hash.myunraid.net:4443/",
-		    "name": "FQDN TAILSCALE 1",
-		    "type": "WIREGUARD",
-		  },
-		  {
-		    "ipv4": "https://10-123-1-2.hash.myunraid.net:4443/",
-		    "name": "FQDN CUSTOM 0",
-		    "type": "WIREGUARD",
-		  },
-		  {
-		    "ipv4": "https://221-123-121-112.hash.myunraid.net:4443/",
-		    "name": "FQDN CUSTOM 1",
-		    "type": "WIREGUARD",
-		  },
-		]
-	`);
+      [
+        {
+          "ipv4": "https://tower.local:4443/",
+          "ipv6": "https://tower.local:4443/",
+          "name": "Default",
+          "type": "DEFAULT",
+        },
+        {
+          "ipv4": "https://192.168.1.150:4443/",
+          "name": "LAN IPv4",
+          "type": "LAN",
+        },
+        {
+          "ipv4": "https://tower:4443/",
+          "name": "LAN Name",
+          "type": "MDNS",
+        },
+        {
+          "ipv4": "https://tower.local:4443/",
+          "name": "LAN MDNS",
+          "type": "MDNS",
+        },
+        {
+          "ipv4": "https://192-168-1-150.thisisfourtyrandomcharacters012345678900.myunraid.net:4443/",
+          "name": "FQDN LAN",
+          "type": "LAN",
+        },
+        {
+          "ipv4": "https://10-252-0-1.hash.myunraid.net:4443/",
+          "name": "FQDN WG 0",
+          "type": "WIREGUARD",
+        },
+        {
+          "ipv4": "https://10-252-1-1.hash.myunraid.net:4443/",
+          "name": "FQDN WG 1",
+          "type": "WIREGUARD",
+        },
+        {
+          "ipv4": "https://10-253-3-1.hash.myunraid.net:4443/",
+          "name": "FQDN WG 2",
+          "type": "WIREGUARD",
+        },
+        {
+          "ipv4": "https://10-253-4-1.hash.myunraid.net:4443/",
+          "name": "FQDN WG 3",
+          "type": "WIREGUARD",
+        },
+        {
+          "ipv4": "https://10-253-5-1.hash.myunraid.net:4443/",
+          "name": "FQDN WG 4",
+          "type": "WIREGUARD",
+        },
+        {
+          "ipv4": "https://10-100-0-1.hash.myunraid.net:4443/",
+          "name": "FQDN TAILSCALE 0",
+          "type": "WIREGUARD",
+        },
+        {
+          "ipv4": "https://10-100-0-2.hash.myunraid.net:4443/",
+          "name": "FQDN TAILSCALE 1",
+          "type": "WIREGUARD",
+        },
+        {
+          "ipv4": "https://10-123-1-2.hash.myunraid.net:4443/",
+          "name": "FQDN CUSTOM 0",
+          "type": "WIREGUARD",
+        },
+        {
+          "ipv4": "https://221-123-121-112.hash.myunraid.net:4443/",
+          "name": "FQDN CUSTOM 1",
+          "type": "WIREGUARD",
+        },
+      ]
+    `);
     expect(urls.errors).toMatchInlineSnapshot(`
-		[
-		  [Error: IP URL Resolver: Could not resolve any access URL for field: "lanIp6", is FQDN?: false],
-		]
-	`);
+      [
+        [Error: IP URL Resolver: Could not resolve any access URL for field: "lanIp6", is FQDN?: false],
+        [Error: No ports specified for URL: 85-121-123-122.thisisfourtyrandomcharacters012345678900.myunraid.net],
+      ]
+    `);
 });

@@ -11,11 +11,6 @@ export class VmsResolver {
     constructor(private readonly vmsService: VmsService) {}
 
     @Query()
-    @UsePermissions({
-        action: AuthActionVerb.READ,
-        resource: Resource.VMS,
-        possession: AuthPossession.ANY,
-    })
     public async vms() {
         return {
             id: 'vms',

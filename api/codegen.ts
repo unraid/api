@@ -1,8 +1,6 @@
 import type { CodegenConfig } from '@graphql-codegen/cli';
 
-
-
-
+import { getAuthEnumTypeDefs } from './src/unraid-api/graph/directives/auth.directive.js';
 
 const config: CodegenConfig = {
     overwrite: true,
@@ -31,6 +29,14 @@ const config: CodegenConfig = {
         },
     },
     generates: {
+        './generated-schema.graphql': {
+            plugins: ['schema-ast'],
+            schema: [
+                './src/graphql/types.ts',
+                './src/graphql/schema/types/**/*.graphql',
+                getAuthEnumTypeDefs(),
+            ],
+        },
         'src/graphql/generated/client/': {
             documents: './src/graphql/mothership/*.ts',
             schema: {

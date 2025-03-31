@@ -17,11 +17,17 @@ export type Scalars = {
   Boolean: { input: boolean; output: boolean; }
   Int: { input: number; output: number; }
   Float: { input: number; output: number; }
+  /** A date-time string at UTC, such as 2007-12-03T10:15:30Z, compliant with the `date-time` format outlined in section 5.6 of the RFC 3339 profile of the ISO 8601 standard for representation of dates and times using the Gregorian calendar. */
   DateTime: { input: string; output: string; }
+  /** The `JSON` scalar type represents JSON values as specified by [ECMA-404](http://www.ecma-international.org/publications/files/ECMA-ST/ECMA-404.pdf). */
   JSON: { input: Record<string, any>; output: Record<string, any>; }
+  /** The `Long` scalar type represents 52-bit integers */
   Long: { input: number; output: number; }
+  /** A field whose value is a valid TCP port within the range of 0 to 65535: https://en.wikipedia.org/wiki/Transmission_Control_Protocol#TCP_ports */
   Port: { input: number; output: number; }
+  /** A field whose value conforms to the standard URL format as specified in RFC3986: https://www.ietf.org/rfc/rfc3986.txt. */
   URL: { input: URL; output: URL; }
+  /** A field whose value is a generic Universally Unique Identifier: https://en.wikipedia.org/wiki/Universally_unique_identifier. */
   UUID: { input: string; output: string; }
 };
 
@@ -321,6 +327,21 @@ export enum ArrayStateInputState {
   START = 'START',
   /** Stop array */
   STOP = 'STOP'
+}
+
+/** Available authentication action verbs */
+export enum AuthActionVerb {
+  CREATE = 'CREATE',
+  DELETE = 'DELETE',
+  READ = 'READ',
+  UPDATE = 'UPDATE'
+}
+
+/** Available authentication possession types */
+export enum AuthPossession {
+  ANY = 'ANY',
+  OWN = 'OWN',
+  OWN_ANY = 'OWN_ANY'
 }
 
 export type Baseboard = {
@@ -859,6 +880,16 @@ export type Mutation = {
    * Some setting combinations may be required or disallowed. Please refer to each setting for more information.
    */
   updateApiSettings: ConnectSettingsValues;
+  /**
+   * Virtual machine mutations
+   *
+   * #### Required Permissions:
+   *
+   * - Action: **READ**
+   * - Resource: **VMS**
+   * - Possession: **ANY**
+   */
+  vms?: Maybe<VmMutations>;
 };
 
 
@@ -1231,7 +1262,15 @@ export type Query = {
   /** User accounts */
   users: Array<User>;
   vars?: Maybe<Vars>;
-  /** Virtual machines */
+  /**
+   * Virtual machines
+   *
+   * #### Required Permissions:
+   *
+   * - Action: **READ**
+   * - Resource: **VMS**
+   * - Possession: **ANY**
+   */
   vms?: Maybe<Vms>;
 };
 
@@ -1349,41 +1388,41 @@ export type RemoveRoleFromApiKeyInput = {
 
 /** Available resources for permissions */
 export enum Resource {
-  API_KEY = 'api_key',
-  ARRAY = 'array',
-  CLOUD = 'cloud',
-  CONFIG = 'config',
-  CONNECT = 'connect',
-  CONNECT__REMOTE_ACCESS = 'connect__remote_access',
-  CUSTOMIZATIONS = 'customizations',
-  DASHBOARD = 'dashboard',
-  DISK = 'disk',
-  DISPLAY = 'display',
-  DOCKER = 'docker',
-  FLASH = 'flash',
-  INFO = 'info',
-  LOGS = 'logs',
-  ME = 'me',
-  NETWORK = 'network',
-  NOTIFICATIONS = 'notifications',
-  ONLINE = 'online',
-  OS = 'os',
-  OWNER = 'owner',
-  PERMISSION = 'permission',
-  REGISTRATION = 'registration',
-  SERVERS = 'servers',
-  SERVICES = 'services',
-  SHARE = 'share',
-  VARS = 'vars',
-  VMS = 'vms',
-  WELCOME = 'welcome'
+  API_KEY = 'API_KEY',
+  ARRAY = 'ARRAY',
+  CLOUD = 'CLOUD',
+  CONFIG = 'CONFIG',
+  CONNECT = 'CONNECT',
+  CONNECT__REMOTE_ACCESS = 'CONNECT__REMOTE_ACCESS',
+  CUSTOMIZATIONS = 'CUSTOMIZATIONS',
+  DASHBOARD = 'DASHBOARD',
+  DISK = 'DISK',
+  DISPLAY = 'DISPLAY',
+  DOCKER = 'DOCKER',
+  FLASH = 'FLASH',
+  INFO = 'INFO',
+  LOGS = 'LOGS',
+  ME = 'ME',
+  NETWORK = 'NETWORK',
+  NOTIFICATIONS = 'NOTIFICATIONS',
+  ONLINE = 'ONLINE',
+  OS = 'OS',
+  OWNER = 'OWNER',
+  PERMISSION = 'PERMISSION',
+  REGISTRATION = 'REGISTRATION',
+  SERVERS = 'SERVERS',
+  SERVICES = 'SERVICES',
+  SHARE = 'SHARE',
+  VARS = 'VARS',
+  VMS = 'VMS',
+  WELCOME = 'WELCOME'
 }
 
 /** Available roles for API keys and users */
 export enum Role {
-  ADMIN = 'admin',
-  CONNECT = 'connect',
-  GUEST = 'guest'
+  ADMIN = 'ADMIN',
+  CONNECT = 'CONNECT',
+  GUEST = 'GUEST'
 }
 
 export type Server = {
@@ -1479,6 +1518,15 @@ export type Subscription = {
   user: User;
   users: Array<Maybe<User>>;
   vars: Vars;
+  /**
+   *
+   *
+   * #### Required Permissions:
+   *
+   * - Action: **READ**
+   * - Resource: **VMS**
+   * - Possession: **ANY**
+   */
   vms?: Maybe<Vms>;
 };
 
@@ -1832,6 +1880,115 @@ export type VmDomain = {
   uuid: Scalars['ID']['output'];
 };
 
+export type VmMutations = {
+  __typename?: 'VmMutations';
+  /**
+   * Force stop a virtual machine
+   *
+   * #### Required Permissions:
+   *
+   * - Action: **UPDATE**
+   * - Resource: **VMS**
+   * - Possession: **ANY**
+   */
+  forceStopVm: Scalars['Boolean']['output'];
+  /**
+   * Pause a virtual machine
+   *
+   * #### Required Permissions:
+   *
+   * - Action: **UPDATE**
+   * - Resource: **VMS**
+   * - Possession: **ANY**
+   */
+  pauseVm: Scalars['Boolean']['output'];
+  /**
+   * Reboot a virtual machine
+   *
+   * #### Required Permissions:
+   *
+   * - Action: **UPDATE**
+   * - Resource: **VMS**
+   * - Possession: **ANY**
+   */
+  rebootVm: Scalars['Boolean']['output'];
+  /**
+   * Reset a virtual machine
+   *
+   * #### Required Permissions:
+   *
+   * - Action: **UPDATE**
+   * - Resource: **VMS**
+   * - Possession: **ANY**
+   */
+  resetVm: Scalars['Boolean']['output'];
+  /**
+   * Resume a virtual machine
+   *
+   * #### Required Permissions:
+   *
+   * - Action: **UPDATE**
+   * - Resource: **VMS**
+   * - Possession: **ANY**
+   */
+  resumeVm: Scalars['Boolean']['output'];
+  /**
+   * Start a virtual machine
+   *
+   * #### Required Permissions:
+   *
+   * - Action: **UPDATE**
+   * - Resource: **VMS**
+   * - Possession: **ANY**
+   */
+  startVm: Scalars['Boolean']['output'];
+  /**
+   * Stop a virtual machine
+   *
+   * #### Required Permissions:
+   *
+   * - Action: **UPDATE**
+   * - Resource: **VMS**
+   * - Possession: **ANY**
+   */
+  stopVm: Scalars['Boolean']['output'];
+};
+
+
+export type VmMutationsforceStopVmArgs = {
+  id: Scalars['ID']['input'];
+};
+
+
+export type VmMutationspauseVmArgs = {
+  id: Scalars['ID']['input'];
+};
+
+
+export type VmMutationsrebootVmArgs = {
+  id: Scalars['ID']['input'];
+};
+
+
+export type VmMutationsresetVmArgs = {
+  id: Scalars['ID']['input'];
+};
+
+
+export type VmMutationsresumeVmArgs = {
+  id: Scalars['ID']['input'];
+};
+
+
+export type VmMutationsstartVmArgs = {
+  id: Scalars['ID']['input'];
+};
+
+
+export type VmMutationsstopVmArgs = {
+  id: Scalars['ID']['input'];
+};
+
 export enum VmState {
   CRASHED = 'CRASHED',
   IDLE = 'IDLE',
@@ -1845,6 +2002,15 @@ export enum VmState {
 
 export type Vms = {
   __typename?: 'Vms';
+  /**
+   *
+   *
+   * #### Required Permissions:
+   *
+   * - Action: **READ**
+   * - Resource: **VMS**
+   * - Possession: **ANY**
+   */
   domain?: Maybe<Array<VmDomain>>;
   id: Scalars['ID']['output'];
 };
@@ -1994,6 +2160,8 @@ export type ResolversTypes = ResolversObject<{
   ArrayState: ArrayState;
   ArrayStateInput: ArrayStateInput;
   ArrayStateInputState: ArrayStateInputState;
+  AuthActionVerb: AuthActionVerb;
+  AuthPossession: AuthPossession;
   Baseboard: ResolverTypeWrapper<Baseboard>;
   Boolean: ResolverTypeWrapper<Scalars['Boolean']['output']>;
   Capacity: ResolverTypeWrapper<Capacity>;
@@ -2097,6 +2265,7 @@ export type ResolversTypes = ResolversObject<{
   Vars: ResolverTypeWrapper<Vars>;
   Versions: ResolverTypeWrapper<Versions>;
   VmDomain: ResolverTypeWrapper<VmDomain>;
+  VmMutations: ResolverTypeWrapper<VmMutations>;
   VmState: VmState;
   Vms: ResolverTypeWrapper<Vms>;
   WAN_ACCESS_TYPE: WAN_ACCESS_TYPE;
@@ -2211,12 +2380,21 @@ export type ResolversParentTypes = ResolversObject<{
   Vars: Vars;
   Versions: Versions;
   VmDomain: VmDomain;
+  VmMutations: VmMutations;
   Vms: Vms;
   Welcome: Welcome;
   addUserInput: addUserInput;
   deleteUserInput: deleteUserInput;
   usersInput: usersInput;
 }>;
+
+export type authDirectiveArgs = {
+  action: AuthActionVerb;
+  possession: AuthPossession;
+  resource: Resource;
+};
+
+export type authDirectiveResolver<Result, Parent, ContextType = Context, Args = authDirectiveArgs> = DirectiveResolverFn<Result, Parent, ContextType, Args>;
 
 export type AccessUrlResolvers<ContextType = Context, ParentType extends ResolversParentTypes['AccessUrl'] = ResolversParentTypes['AccessUrl']> = ResolversObject<{
   ipv4?: Resolver<Maybe<ResolversTypes['URL']>, ParentType, ContextType>;
@@ -2709,6 +2887,7 @@ export type MutationResolvers<ContextType = Context, ParentType extends Resolver
   unarchiveNotifications?: Resolver<ResolversTypes['NotificationOverview'], ParentType, ContextType, Partial<MutationunarchiveNotificationsArgs>>;
   unreadNotification?: Resolver<ResolversTypes['Notification'], ParentType, ContextType, RequireFields<MutationunreadNotificationArgs, 'id'>>;
   updateApiSettings?: Resolver<ResolversTypes['ConnectSettingsValues'], ParentType, ContextType, RequireFields<MutationupdateApiSettingsArgs, 'input'>>;
+  vms?: Resolver<Maybe<ResolversTypes['VmMutations']>, ParentType, ContextType>;
 }>;
 
 export type NetworkResolvers<ContextType = Context, ParentType extends ResolversParentTypes['Network'] = ResolversParentTypes['Network']> = ResolversObject<{
@@ -3314,6 +3493,17 @@ export type VmDomainResolvers<ContextType = Context, ParentType extends Resolver
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
 
+export type VmMutationsResolvers<ContextType = Context, ParentType extends ResolversParentTypes['VmMutations'] = ResolversParentTypes['VmMutations']> = ResolversObject<{
+  forceStopVm?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<VmMutationsforceStopVmArgs, 'id'>>;
+  pauseVm?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<VmMutationspauseVmArgs, 'id'>>;
+  rebootVm?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<VmMutationsrebootVmArgs, 'id'>>;
+  resetVm?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<VmMutationsresetVmArgs, 'id'>>;
+  resumeVm?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<VmMutationsresumeVmArgs, 'id'>>;
+  startVm?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<VmMutationsstartVmArgs, 'id'>>;
+  stopVm?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<VmMutationsstopVmArgs, 'id'>>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+}>;
+
 export type VmsResolvers<ContextType = Context, ParentType extends ResolversParentTypes['Vms'] = ResolversParentTypes['Vms']> = ResolversObject<{
   domain?: Resolver<Maybe<Array<ResolversTypes['VmDomain']>>, ParentType, ContextType>;
   id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
@@ -3405,7 +3595,11 @@ export type Resolvers<ContextType = Context> = ResolversObject<{
   Vars?: VarsResolvers<ContextType>;
   Versions?: VersionsResolvers<ContextType>;
   VmDomain?: VmDomainResolvers<ContextType>;
+  VmMutations?: VmMutationsResolvers<ContextType>;
   Vms?: VmsResolvers<ContextType>;
   Welcome?: WelcomeResolvers<ContextType>;
 }>;
 
+export type DirectiveResolvers<ContextType = Context> = ResolversObject<{
+  auth?: authDirectiveResolver<any, any, ContextType>;
+}>;

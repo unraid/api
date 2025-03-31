@@ -67,6 +67,7 @@ const initialState = {
     'auth-keys': resolvePath(
         process.env.PATHS_AUTH_KEY ?? ('/boot/config/plugins/dynamix.my.servers/keys' as const)
     ),
+    'libvirt-pid': '/var/run/libvirt/libvirtd.pid' as const,
 };
 
 export const paths = createSlice({
