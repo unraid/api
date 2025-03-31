@@ -10,6 +10,8 @@
 *** for contributors-url, forks-url, etc. This is an optional, concise syntax you may use.
 *** https://www.markdownguide.org/basic-syntax/#reference-style-links
 -->
+<div align="center">
+
 [![Contributors][contributors-shield]][contributors-url]
 [![Forks][forks-shield]][forks-url]
 [![Stargazers][stars-shield]][stars-url]
@@ -17,6 +19,7 @@
 [![MIT License][license-shield]][license-url]
 [![LinkedIn][linkedin-shield]][linkedin-url]
 
+</div>
 <!-- PROJECT LOGO -->
 <br />
 <div align="center">
@@ -27,9 +30,9 @@
 <h3 align="center">Unraid API</h3>
 
   <p align="center">
-    Monorepo for Unraid Connect and the Unraid API.
+    Monorepo for the Unraid API and Unraid Connect.
     <br />
-    <a href="https://docs.unraid.net/"><strong>Explore the docs »</strong></a>
+    <a href="https://docs.unraid.net/API/"><strong>Explore the docs »</strong></a>
     <br />
     <br />
     ·
@@ -76,10 +79,11 @@
 
 ### Built With
 
-* [![Unraid][Unraid]][Unraid-url]
-* [![Node.js][Node.js]][Node-url]
-* [![Nuxt][Nuxt.js]][Nuxt-url]
-* [![PHP][PHP]][PHP-url]
+[![Unraid][Unraid]][Unraid-url]
+[![Node.js][Node.js]][Node-url]
+[![Vite][Vite-badge]][Vite-url]
+[![Nuxt][Nuxt.js]][Nuxt-url]
+[![PHP][PHP]][PHP-url]
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
@@ -139,9 +143,9 @@ Once you have your key pair, add your public SSH key to your Unraid server:
 <!-- USAGE EXAMPLES -->
 ## Usage
 
-Use this space to show useful examples of how a project can be used. Additional screenshots, code examples and demos work well in this space. You may also link to more resources.
+See [How to Use the API](./api/docs/public/how-to-use-the-api.md).
 
-_For more examples, please refer to the [Documentation](https://docs.unraid.net/)_
+_For more examples, please refer to the [Documentation](https://docs.unraid.net/API/how-to-use-the-api/)_
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
@@ -210,26 +214,20 @@ Don't forget to give the project a star! Thanks again!
   <img src="https://contrib.rocks/image?repo=unraid/api" alt="contrib.rocks image" />
 </a>
 
-<!-- LICENSE -->
-<!-- ## License
+<!-- Community & Acknowledgements -->
+## Community
 
-<p align="right">(<a href="#readme-top">back to top</a>)</p> -->
+🌐 [Forums](https://forums.unraid.net/)  
+💬 [Discord](https://discord.unraid.net/)  
+
+<p align="right">(<a href="#readme-top">back to top</a>)</p>
 
 <!-- CONTACT -->
 ## Contact
 
-[@UnraidOfficial](https://twitter.com/UnraidOfficial) - <support@unraid.net.com>
+[@UnraidOfficial](https://twitter.com/UnraidOfficial) - <contact@unraid.net>
 
 Project Link: [https://github.com/unraid/api](https://github.com/unraid/api)
-
-<p align="right">(<a href="#readme-top">back to top</a>)</p>
-
-<!-- ACKNOWLEDGMENTS -->
-## Acknowledgments
-
-* []()
-* []()
-* []()
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
@@ -243,8 +241,8 @@ Project Link: [https://github.com/unraid/api](https://github.com/unraid/api)
 [stars-url]: https://github.com/unraid/api/stargazers
 [issues-shield]: https://img.shields.io/github/issues/unraid/api.svg?style=for-the-badge
 [issues-url]: https://github.com/unraid/api/issues
-[license-shield]: https://img.shields.io/github/license/unraid/api.svg?style=for-the-badge
-[license-url]: https://github.com/unraid/api/blob/main/LICENSE.md
+[license-shield]: https://img.shields.io/badge/License-GPL--2.0-default?style=for-the-badge&color=red
+[license-url]: https://github.com/unraid/api/blob/main/LICENSE.txt
 [linkedin-shield]: https://img.shields.io/badge/-LinkedIn-black.svg?style=for-the-badge&logo=linkedin&colorB=555
 [linkedin-url]: https://www.linkedin.com/company/unraid
 [Nuxt.js]: https://img.shields.io/badge/Nuxt-002E3B?style=for-the-badge&logo=nuxtdotjs&logoColor=#00DC82
@@ -255,3 +253,5 @@ Project Link: [https://github.com/unraid/api](https://github.com/unraid/api)
 [Nuxt-url]: https://nuxt.com/
 [Node-url]: https://nodejs.org/
 [PHP-url]: https://php.net/
+[Vite-badge]: https://img.shields.io/badge/Vite-646CFF?style=for-the-badge&logo=Vite&logoColor=white
+[Vite-url]: https://vite.dev/
