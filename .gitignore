@@ -100,3 +100,9 @@ result
 result-*
 .direnv/
 .envrc
+
+# Webgui sync script helpers
+web/scripts/.sync-webgui-repo-*
+
+# Activation code data
+plugin/source/dynamix.unraid.net/usr/local/emhttp/plugins/dynamix.my.servers/data/activation-data.php

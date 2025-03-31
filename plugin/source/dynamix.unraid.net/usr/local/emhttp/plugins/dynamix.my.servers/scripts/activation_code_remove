@@ -123,7 +123,6 @@ if [[ -f "$ACTIVATION_SETUP_FLAG" ]]; then
   if [[ $DRY_RUN == false ]]; then
     debug_echo "Deleting activation code related setup and php files"
     FILES_TO_DELETE=(
-      "/usr/local/emhttp/plugins/dynamix.my.servers/data/activation-data.php"
       "/usr/local/emhttp/plugins/dynamix.my.servers/include/activation-code-extractor.php"
       "/usr/local/emhttp/plugins/dynamix.my.servers/include/partner-logo.php"
       "/usr/local/emhttp/plugins/dynamix.my.servers/include/welcome-modal.php"

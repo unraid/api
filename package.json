@@ -11,7 +11,8 @@
     "lint": "pnpm -r lint",
     "lint:fix": "pnpm -r lint:fix",
     "type-check": "pnpm -r type-check",
-    "check": "manypkg check"
+    "check": "manypkg check",
+    "sync-webgui-repo": "node web/scripts/sync-webgui-repo.js"
   },
   "pnpm": {
     "peerDependencyRules": {
@@ -33,7 +34,10 @@
     ]
   },
   "dependencies": {
-    "@manypkg/cli": "^0.23.0"
+    "@manypkg/cli": "^0.23.0",
+    "chalk": "^4.1.2",
+    "diff": "^5.1.0",
+    "ignore": "^5.2.4"
   },
   "packageManager": "pnpm@10.6.5"
 }

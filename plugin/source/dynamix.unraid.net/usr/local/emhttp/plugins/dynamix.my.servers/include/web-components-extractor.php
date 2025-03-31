@@ -13,7 +13,9 @@ class WebComponentsExtractor
     private function findManifestFiles(string $manifestName): array
     {
         $basePath = '/usr/local/emhttp' . self::PREFIXED_PATH;
-        $command = "find {$basePath} -name {$manifestName}";
+        $escapedBasePath = escapeshellarg($basePath);
+        $escapedManifestName = escapeshellarg($manifestName);
+        $command = "find {$escapedBasePath} -name {$escapedManifestName}";
         exec($command, $files);
         return $files;
     }
