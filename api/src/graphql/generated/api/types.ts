@@ -555,6 +555,7 @@ export type Docker = Node & {
   __typename?: 'Docker';
   containers?: Maybe<Array<DockerContainer>>;
   id: Scalars['ID']['output'];
+  mutations: DockerMutations;
   networks?: Maybe<Array<DockerNetwork>>;
 };
 
@@ -576,6 +577,22 @@ export type DockerContainer = {
   sizeRootFs?: Maybe<Scalars['Long']['output']>;
   state: ContainerState;
   status: Scalars['String']['output'];
+};
+
+export type DockerMutations = {
+  __typename?: 'DockerMutations';
+  startContainer: DockerContainer;
+  stopContainer: DockerContainer;
+};
+
+
+export type DockerMutationsstartContainerArgs = {
+  id: Scalars['ID']['input'];
+};
+
+
+export type DockerMutationsstopContainerArgs = {
+  id: Scalars['ID']['input'];
 };
 
 export type DockerNetwork = {
@@ -2002,6 +2019,7 @@ export type ResolversTypes = ResolversObject<{
   Display: ResolverTypeWrapper<Display>;
   Docker: ResolverTypeWrapper<Docker>;
   DockerContainer: ResolverTypeWrapper<DockerContainer>;
+  DockerMutations: ResolverTypeWrapper<DockerMutations>;
   DockerNetwork: ResolverTypeWrapper<DockerNetwork>;
   DynamicRemoteAccessStatus: ResolverTypeWrapper<DynamicRemoteAccessStatus>;
   DynamicRemoteAccessType: DynamicRemoteAccessType;
@@ -2128,6 +2146,7 @@ export type ResolversParentTypes = ResolversObject<{
   Display: Display;
   Docker: Docker;
   DockerContainer: DockerContainer;
+  DockerMutations: DockerMutations;
   DockerNetwork: DockerNetwork;
   DynamicRemoteAccessStatus: DynamicRemoteAccessStatus;
   EnableDynamicRemoteAccessInput: EnableDynamicRemoteAccessInput;
@@ -2452,6 +2471,7 @@ export type DisplayResolvers<ContextType = Context, ParentType extends Resolvers
 export type DockerResolvers<ContextType = Context, ParentType extends ResolversParentTypes['Docker'] = ResolversParentTypes['Docker']> = ResolversObject<{
   containers?: Resolver<Maybe<Array<ResolversTypes['DockerContainer']>>, ParentType, ContextType>;
   id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
+  mutations?: Resolver<ResolversTypes['DockerMutations'], ParentType, ContextType>;
   networks?: Resolver<Maybe<Array<ResolversTypes['DockerNetwork']>>, ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
@@ -2472,6 +2492,12 @@ export type DockerContainerResolvers<ContextType = Context, ParentType extends R
   sizeRootFs?: Resolver<Maybe<ResolversTypes['Long']>, ParentType, ContextType>;
   state?: Resolver<ResolversTypes['ContainerState'], ParentType, ContextType>;
   status?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+}>;
+
+export type DockerMutationsResolvers<ContextType = Context, ParentType extends ResolversParentTypes['DockerMutations'] = ResolversParentTypes['DockerMutations']> = ResolversObject<{
+  startContainer?: Resolver<ResolversTypes['DockerContainer'], ParentType, ContextType, RequireFields<DockerMutationsstartContainerArgs, 'id'>>;
+  stopContainer?: Resolver<ResolversTypes['DockerContainer'], ParentType, ContextType, RequireFields<DockerMutationsstopContainerArgs, 'id'>>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
 
@@ -3322,6 +3348,7 @@ export type Resolvers<ContextType = Context> = ResolversObject<{
   Display?: DisplayResolvers<ContextType>;
   Docker?: DockerResolvers<ContextType>;
   DockerContainer?: DockerContainerResolvers<ContextType>;
+  DockerMutations?: DockerMutationsResolvers<ContextType>;
   DockerNetwork?: DockerNetworkResolvers<ContextType>;
   DynamicRemoteAccessStatus?: DynamicRemoteAccessStatusResolvers<ContextType>;
   Flash?: FlashResolvers<ContextType>;
