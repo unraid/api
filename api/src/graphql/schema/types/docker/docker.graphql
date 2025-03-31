@@ -7,3 +7,12 @@ type Docker implements Node {
 type Query {
     docker: Docker!
 }
+
+type DockerMutations {
+    startContainer(id: ID!): DockerContainer!
+    stopContainer(id: ID!): DockerContainer!
+}
+
+extend type Docker {
+    mutations: DockerMutations!
+}
