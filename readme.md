@@ -219,7 +219,6 @@ Don't forget to give the project a star! Thanks again!
 
 🌐 [Forums](https://forums.unraid.net/)  
 💬 [Discord](https://discord.unraid.net/)  
-🐦 [Reddit](https://www.reddit.com/r/unRAID/)
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
