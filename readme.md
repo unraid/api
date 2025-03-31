@@ -32,7 +32,7 @@
   <p align="center">
     Monorepo for the Unraid API and Unraid Connect.
     <br />
-    <a href="https://docs.unraid.net/"><strong>Explore the docs »</strong></a>
+    <a href="https://docs.unraid.net/API/"><strong>Explore the docs »</strong></a>
     <br />
     <br />
     ·
