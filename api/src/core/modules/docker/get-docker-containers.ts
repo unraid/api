@@ -1,7 +1,6 @@
 import fs from 'fs';
 
 import camelCaseKeys from 'camelcase-keys';
-import { ContainerInfo } from 'dockerode';
 
 import type { ContainerPort, Docker, DockerContainer } from '@app/graphql/generated/api/types.js';
 import { dockerLogger } from '@app/core/log.js';
@@ -11,13 +10,16 @@ import { ContainerPortType, ContainerState } from '@app/graphql/generated/api/ty
 import { getters, store } from '@app/store/index.js';
 import { updateDockerState } from '@app/store/modules/docker.js';
 
+export interface ContainerListingOptions {
+    useCache?: boolean;
+}
+
 /**
  * Get all Docker containers.
  * @returns All the in/active Docker containers on the system.
  */
-
 export const getDockerContainers = async (
-    { useCache } = { useCache: true }
+    { useCache }: ContainerListingOptions = { useCache: true }
 ): Promise<Array<DockerContainer>> => {
     const dockerState = getters.docker();
     if (useCache && dockerState.containers) {
