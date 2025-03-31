@@ -28,7 +28,7 @@ export class DockerResolver {
     })
     @ResolveField()
     public async containers() {
-        return this.dockerService.getContainers(false);
+        return this.dockerService.getContainers({ useCache: false });
     }
 
     @ResolveField()
