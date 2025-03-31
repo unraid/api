@@ -31,7 +31,6 @@
         "codegen:watch": "DOTENV_CONFIG_PATH='./.env.staging' graphql-codegen --config codegen.ts --watch -r dotenv/config",
         "codegen:local": "NODE_TLS_REJECT_UNAUTHORIZED=0  MOTHERSHIP_GRAPHQL_LINK='https://mothership.localhost/ws' graphql-codegen --config codegen.ts --watch",
         "// Code Quality": "",
-        "compliance": "pnpx license-checker --excludePrivatePackages --direct --production --onlyAllow=\"MIT;BSD-2-Clause;BSD-3-Clause;ISC;Apache-2.0;Zlib;X11;Python-2.0;Artistic-2.0;PostgreSQL;GPL-2.0-or-later;GPL-3.0;AGPL-3.0;LGPL-2.1;LGPL-3.0\"",
         "lint": "eslint --config .eslintrc.ts src/",
         "lint:fix": "eslint --fix --config .eslintrc.ts src/",
         "type-check": "tsc --noEmit",

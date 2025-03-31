@@ -2,7 +2,7 @@
   "name": "@unraid/ui",
   "version": "4.4.1",
   "private": true,
-  "license": "GPL-2.0-only",
+  "license": "GPL-2.0-or-later",
   "type": "module",
   "main": "./dist/index.js",
   "module": "./dist/index.js",

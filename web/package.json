@@ -2,7 +2,7 @@
   "name": "@unraid/web",
   "version": "4.4.1",
   "private": true,
-  "license": "GPL-2.0-only",
+  "license": "GPL-2.0-or-later",
   "scripts": {
     "// Development": "",
     "predev": "pnpm --filter=@unraid/ui build",
