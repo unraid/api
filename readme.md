@@ -10,6 +10,8 @@
 *** for contributors-url, forks-url, etc. This is an optional, concise syntax you may use.
 *** https://www.markdownguide.org/basic-syntax/#reference-style-links
 -->
+<div align="center">
+
 [![Contributors][contributors-shield]][contributors-url]
 [![Forks][forks-shield]][forks-url]
 [![Stargazers][stars-shield]][stars-url]
@@ -17,6 +19,7 @@
 [![MIT License][license-shield]][license-url]
 [![LinkedIn][linkedin-shield]][linkedin-url]
 
+</div>
 <!-- PROJECT LOGO -->
 <br />
 <div align="center">
@@ -215,21 +218,21 @@ Don't forget to give the project a star! Thanks again!
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p> -->
 
-<!-- CONTACT -->
-## Contact
+<!-- Community & Acknowledgements -->
+## Community
 
-[@UnraidOfficial](https://twitter.com/UnraidOfficial) - <support@unraid.net.com>
-
-Project Link: [https://github.com/unraid/api](https://github.com/unraid/api)
+🌐 [Forums](https://forums.unraid.net/)  
+💬 [Discord](https://discord.unraid.net/)  
+🐦 [Reddit](https://www.reddit.com/r/unRAID/)
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
-<!-- ACKNOWLEDGMENTS -->
-## Acknowledgments
+<!-- CONTACT -->
+## Contact
 
-* []()
-* []()
-* []()
+[@UnraidOfficial](https://twitter.com/UnraidOfficial) - <contact@unraid.net>
+
+Project Link: [https://github.com/unraid/api](https://github.com/unraid/api)
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
@@ -243,7 +246,7 @@ Project Link: [https://github.com/unraid/api](https://github.com/unraid/api)
 [stars-url]: https://github.com/unraid/api/stargazers
 [issues-shield]: https://img.shields.io/github/issues/unraid/api.svg?style=for-the-badge
 [issues-url]: https://github.com/unraid/api/issues
-[license-shield]: https://img.shields.io/github/license/unraid/api.svg?style=for-the-badge
+[license-shield]: https://img.shields.io/badge/License-GPL--2.0-default?style=for-the-badge&color=pink
 [license-url]: https://github.com/unraid/api/blob/main/LICENSE.md
 [linkedin-shield]: https://img.shields.io/badge/-LinkedIn-black.svg?style=for-the-badge&logo=linkedin&colorB=555
 [linkedin-url]: https://www.linkedin.com/company/unraid
