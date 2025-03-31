@@ -13,6 +13,7 @@ import {
     ArrayStateInputState,
 } from '@app/graphql/generated/api/types.js';
 import { getters } from '@app/store/index.js';
+import { arrayIsRunning as arrayIsRunningUtil } from '@app/core/utils/index.js';
 
 @Injectable()
 export class ArrayService {
@@ -20,11 +21,11 @@ export class ArrayService {
 
     /**
      * Is the array running?
+     * @todo Refactor this to include this util in the service directly
      */
-    arrayIsRunning = () => {
-        const emhttp = getters.emhttp();
-        return emhttp.var.mdState === ArrayState.STARTED;
-    };
+    private arrayIsRunning() {
+        return arrayIsRunningUtil();
+    }
 
     async updateArrayState({ desiredState }: ArrayStateInput): Promise<ArrayType> {
         const startState = this.arrayIsRunning() ? ArrayState.STARTED : ArrayState.STOPPED;
