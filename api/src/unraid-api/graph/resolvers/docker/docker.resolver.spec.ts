@@ -67,7 +67,7 @@ describe('DockerResolver', () => {
 
         const result = await resolver.containers();
         expect(result).toEqual(mockContainers);
-        expect(dockerService.getContainers).toHaveBeenCalledWith(false);
+        expect(dockerService.getContainers).toHaveBeenCalledWith({ useCache: false });
     });
 
     it('should return mutations object with id', () => {
