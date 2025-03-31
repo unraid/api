@@ -1,3 +1,13 @@
+Project License Notice
+----------------------
+
+This project is licensed under the terms of the GNU General Public License version 2,
+**or (at your option) any later version** published by the Free Software Foundation.
+
+The full text of the GNU GPL v2.0 is provided below for reference.
+
+----------------------
+
                     GNU GENERAL PUBLIC LICENSE
                        Version 2, June 1991
 
