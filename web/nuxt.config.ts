@@ -138,6 +138,10 @@ export default defineNuxtConfig({
             name: 'UnraidLogViewer',
             path: '@/components/Logs/LogViewer.ce',
           },
+          {
+            name: 'UnraidThemeSwitcher',
+            path: '@/components/ThemeSwitcher.ce',
+          },
         ],
       },
     ],
