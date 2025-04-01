@@ -5,6 +5,10 @@ export default ({ store, logger }) => ({
 
   commands: [],
 
+  config() {
+    return ['health', { demo: true}]
+  },
+
   async registerGraphQLResolvers() {
     return {
       Query: {

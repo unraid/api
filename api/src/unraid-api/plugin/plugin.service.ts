@@ -222,4 +222,10 @@ export class PluginService {
 
         return cronJobs;
     }
+
+    async getConfig() {
+        await this.loadPlugins();
+        const config = this.plugins.map((plugin) => plugin.config?.()).filter((val) => val);
+        return config;
+    }
 }

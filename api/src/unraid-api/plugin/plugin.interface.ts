@@ -38,6 +38,7 @@ export const apiPluginSchema = z.object({
     name: z.string(),
     description: z.string(),
     commands: z.array(z.custom<Type<CommandRunner>>()),
+    config: z.function().returns(z.array(z.any())).optional(),
     registerGraphQLResolvers: asyncResolver().optional(),
     registerGraphQLTypeDefs: asyncString().optional(),
     registerRESTControllers: asyncArray().optional(),
