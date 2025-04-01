@@ -1,12 +1,21 @@
+import { UnauthorizedException } from '@nestjs/common';
+
 import { getDirective, IResolvers, MapperKind, mapSchema } from '@graphql-tools/utils';
 import { GraphQLEnumType, GraphQLSchema } from 'graphql';
-import { AuthActionVerb, AuthPossession, UsePermissions } from 'nest-authz';
+import { AuthActionVerb, AuthPossession, AuthZService, BatchApproval } from 'nest-authz';
 
 import { Resource } from '@app/graphql/generated/api/types.js';
 
-export function transformResolvers(resolvers: IResolvers | IResolvers[]): IResolvers | IResolvers[] {
+/**
+ * @wip : This function does not correctly apply permission to every field.
+ * @todo : Once we've determined how to fix the transformResolvers function, uncomment this.
+ */
+export function transformResolvers(
+    resolvers: IResolvers | IResolvers[],
+    authZService: AuthZService
+): IResolvers | IResolvers[] {
     if (Array.isArray(resolvers)) {
-        return resolvers.map((r) => transformResolvers(r)) as IResolvers[];
+        return resolvers.map((r) => transformResolvers(r, authZService)) as IResolvers[];
     }
 
     // Iterate over each type in the resolvers object
@@ -16,6 +25,7 @@ export function transformResolvers(resolvers: IResolvers | IResolvers[]): IResol
         Object.keys(typeResolvers).forEach((fieldName) => {
             const fieldResolver = typeResolvers[fieldName];
             // Skip non-function resolvers (or if it's not defined)
+
             if (typeof fieldResolver !== 'function') {
                 return;
             }
@@ -27,27 +37,68 @@ export function transformResolvers(resolvers: IResolvers | IResolvers[]): IResol
             // Create a wrapped resolver that will extract permissions from info
             typeResolvers[fieldName] = async (source, args, context, info) => {
                 // Access the extensions from the field definition in the schema
+                console.log(
+                    'resolving',
+                    info.fieldName,
+                    info.parentType.name,
+                    info.schema.getType(info.parentType.name).getFields()[info.fieldName].extensions
+                );
+                console.log('user', context?.req?.user);
                 const fieldExtensions = info.schema.getType(info.parentType.name).getFields()[
                     info.fieldName
                 ].extensions;
-
-                if (fieldExtensions?.requiredPermissions) {
+                if (fieldExtensions?.requiredPermissions && context?.req?.user) {
                     const { action, resource, possession } = fieldExtensions.requiredPermissions;
 
                     if (context) {
-                        context.requiredPermissions = {
-                            action: action.toUpperCase(),
-                            resource: resource.toUpperCase(),
-                            possession: possession.toUpperCase(),
-                        };
+                        // Handle OWN_ANY possession by checking both ANY and OWN permissions
+                        if (possession === AuthPossession.OWN_ANY) {
+                            context.requiredPermissions = [
+                                {
+                                    action: action.toUpperCase(),
+                                    resource: resource.toUpperCase(),
+                                    possession: AuthPossession.ANY,
+                                },
+                                {
+                                    action: action.toUpperCase(),
+                                    resource: resource.toUpperCase(),
+                                    possession: AuthPossession.OWN,
+                                },
+                            ];
+                            // For OWN_ANY, we want to check both ANY and OWN permissions
+                            // If either check passes, the user has permission
+                            const hasPermission = await authZService.enforce(
+                                context.user,
+                                resource.toUpperCase(),
+                                action.toUpperCase(),
+                                BatchApproval.ANY
+                            );
 
-                        // Call UsePermissions before executing the resolver
-                        UsePermissions(context.requiredPermissions);
+                            if (!hasPermission) {
+                                throw new UnauthorizedException(
+                                    'Unauthorized: User does not have required permissions'
+                                );
+                            }
+                        } else {
+                            context.requiredPermissions = {
+                                action: action.toUpperCase(),
+                                resource: resource.toUpperCase(),
+                                possession: possession.toUpperCase(),
+                            };
 
-                        console.log(
-                            `In resolver for ${typeName}.${fieldName} with permissions:`,
-                            context?.requiredPermissions
-                        );
+                            // For regular permissions, we check the specific possession type
+                            const hasPermission = await authZService.enforce(
+                                context.user,
+                                resource.toUpperCase(),
+                                `${action.toUpperCase()}:${possession.toUpperCase()}`
+                            );
+
+                            if (!hasPermission) {
+                                throw new UnauthorizedException(
+                                    'Unauthorized: User does not have required permissions'
+                                );
+                            }
+                        }
                     }
                 }
 

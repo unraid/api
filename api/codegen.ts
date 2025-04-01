@@ -2,7 +2,7 @@ import type { CodegenConfig } from '@graphql-codegen/cli';
 
 
 
-import { getAuthEnumTypeDefs } from './src/unraid-api/graph/directives/auth.directive.js';
+import { getAuthEnumTypeDefs } from './src/unraid-api/graph/utils/auth-enum.utils.js';
 
 
 const config: CodegenConfig = {

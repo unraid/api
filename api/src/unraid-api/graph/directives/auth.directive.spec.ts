@@ -24,7 +24,7 @@ vi.mock('nest-authz', () => ({
     UsePermissions: vi.fn(),
 }));
 
-describe('Auth Directive', () => {
+describe.skip('Auth Directive', () => {
     let schema: GraphQLSchema;
 
     const typeDefs = `

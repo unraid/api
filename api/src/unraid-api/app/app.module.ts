@@ -1,5 +1,5 @@
 import { Module } from '@nestjs/common';
-import { APP_GUARD } from '@nestjs/core';
+import { APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
 import { ThrottlerModule } from '@nestjs/throttler';
 
 import { AuthZGuard } from 'nest-authz';
@@ -7,6 +7,7 @@ import { LoggerModule } from 'nestjs-pino';
 
 import { apiLogger } from '@app/core/log.js';
 import { LOG_LEVEL } from '@app/environment.js';
+import { AuthInterceptor } from '@app/unraid-api/auth/auth.interceptor.js';
 import { AuthModule } from '@app/unraid-api/auth/auth.module.js';
 import { AuthenticationGuard } from '@app/unraid-api/auth/authentication.guard.js';
 import { CronModule } from '@app/unraid-api/cron/cron.module.js';
