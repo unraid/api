@@ -9,10 +9,12 @@
  * ```
  * with the following PHP
  * ```
- * echo "</span>";
- * echo "<unraid-theme-switcher current='$theme'></unraid-theme-switcher>";
+ * echo "</span>"; //
+ * echo "<unraid-theme-switcher current='$theme' themes='".htmlspecialchars(json_encode(['azure', 'gray', 'black', 'white']), ENT_QUOTES, 'UTF-8')."'></unraid-theme-switcher>";
  * echo "</div>";
  * ```
+ * 
+ * @todo unraid-theme-switcher usage should pull theme files to determine what themes are available instead of being hardcoded.
  */
 import { ref, computed } from 'vue';
 import { storeToRefs } from 'pinia';
