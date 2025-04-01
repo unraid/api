@@ -3,7 +3,6 @@ import { AppError } from '@app/core/errors/app-error.js';
 import { FieldMissingError } from '@app/core/errors/field-missing-error.js';
 import { ParamInvalidError } from '@app/core/errors/param-invalid-error.js';
 import { getArrayData } from '@app/core/modules/array/get-array-data.js';
-import { arrayIsRunning } from '@app/core/utils/array/array-is-running.js';
 import { emcmd } from '@app/core/utils/clients/emcmd.js';
 import { uppercaseFirstChar } from '@app/core/utils/misc/uppercase-first-char.js';
 import { ensurePermission } from '@app/core/utils/permissions/ensure-permission.js';
@@ -15,6 +14,7 @@ import { hasFields } from '@app/core/utils/validation/has-fields.js';
 let locked = false;
 
 export const updateArray = async (context: CoreContext): Promise<CoreResult> => {
+    const { arrayIsRunning } = await import('@app/core/utils/array/array-is-running.js');
     const { data = {}, user } = context;
 
     // Check permissions

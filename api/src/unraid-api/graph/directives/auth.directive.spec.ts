@@ -1,6 +1,7 @@
 import { makeExecutableSchema } from '@graphql-tools/schema';
+import { Enforcer } from 'casbin';
 import { GraphQLResolveInfo, GraphQLSchema } from 'graphql';
-import { AuthActionVerb, AuthPossession, UsePermissions } from 'nest-authz';
+import { AuthActionVerb, AuthPossession, AuthZService, UsePermissions } from 'nest-authz';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import {
@@ -44,10 +45,11 @@ describe.skip('Auth Directive', () => {
     };
 
     beforeEach(() => {
+        const authZService = new AuthZService({} as Enforcer);
         // Create schema for each test
         schema = makeExecutableSchema({
             typeDefs,
-            resolvers: transformResolvers(resolvers),
+            resolvers: transformResolvers(resolvers, authZService),
         });
 
         // Apply our auth schema transformer
@@ -202,12 +204,13 @@ describe.skip('Auth Directive', () => {
         });
 
         it('should handle an array of resolvers', () => {
+            const authZService = new AuthZService({} as Enforcer);
             const resolversArray = [
                 { Query: { field1: () => 'data' } },
                 { Mutation: { field2: () => 'data' } },
             ] as any; // Type assertion to avoid complex IResolvers typing
 
-            const transformed = transformResolvers(resolversArray);
+            const transformed = transformResolvers(resolversArray, authZService);
             expect(Array.isArray(transformed)).toBe(true);
             expect(transformed).toHaveLength(2);
         });
