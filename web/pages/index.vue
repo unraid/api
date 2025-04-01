@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import { ExclamationTriangleIcon } from '@heroicons/vue/24/solid';
-import { BrandLogo, Button, buttonVariants, Toaster } from '@unraid/ui';
+import { BrandLogo, Button, Toaster } from '@unraid/ui';
 import { useDummyServerStore } from '~/_data/serverState';
 import AES from 'crypto-js/aes';
 
