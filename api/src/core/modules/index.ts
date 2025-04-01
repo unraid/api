@@ -1,6 +1,5 @@
 // Created from 'create-ts-index'
 
-export * from './array/index.js';
 export * from './debug/index.js';
 export * from './disks/index.js';
 export * from './docker/index.js';
