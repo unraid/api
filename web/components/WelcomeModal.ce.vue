@@ -99,7 +99,7 @@ onBeforeMount(() => {
 
       <template #footer>
         <div class="w-full flex gap-8px justify-center mx-auto">
-          <Button variant="brand" @click="dropdownHide">{{ t('Create a password') }}</Button>
+          <Button variant="primary" @click="dropdownHide">{{ t('Create a password') }}</Button>
         </div>
       </template>
 

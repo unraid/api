@@ -288,7 +288,7 @@ const items = computed((): RegistrationItemProps[] => {
           />
           <span v-if="authAction" class="grow-0">
             <Button
-              variant="brand"
+              variant="primary"
               :disabled="authAction?.disabled"
               :icon="authAction.icon"
               :title="authAction.title ? t(authAction.title) : undefined"

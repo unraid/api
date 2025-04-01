@@ -1,27 +1,30 @@
 <script setup lang="ts">
 import { computed, nextTick, onMounted, onUnmounted, reactive, ref, watch } from 'vue';
-import { useQuery, useApolloClient  } from '@vue/apollo-composable';
+import { useApolloClient, useQuery } from '@vue/apollo-composable';
 import { vInfiniteScroll } from '@vueuse/components';
-import { ArrowPathIcon, ArrowDownTrayIcon } from '@heroicons/vue/24/outline';
-import { Button, Tooltip, TooltipProvider, TooltipTrigger, TooltipContent } from '@unraid/ui';
-import DOMPurify from 'isomorphic-dompurify';
-import hljs from 'highlight.js/lib/core';
-import 'highlight.js/styles/github-dark.css'; // You can choose a different style
-import { useThemeStore } from '~/store/theme';
 
-// Register the languages you want to support
-import plaintext from 'highlight.js/lib/languages/plaintext';
+import { ArrowDownTrayIcon, ArrowPathIcon } from '@heroicons/vue/24/outline';
+import { Button, Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@unraid/ui';
+import hljs from 'highlight.js/lib/core';
+import DOMPurify from 'isomorphic-dompurify';
+
+import 'highlight.js/styles/github-dark.css'; // You can choose a different style
+
+import apache from 'highlight.js/lib/languages/apache';
 import bash from 'highlight.js/lib/languages/bash';
 import ini from 'highlight.js/lib/languages/ini';
-import xml from 'highlight.js/lib/languages/xml';
-import json from 'highlight.js/lib/languages/json';
-import yaml from 'highlight.js/lib/languages/yaml';
-import nginx from 'highlight.js/lib/languages/nginx';
-import apache from 'highlight.js/lib/languages/apache';
 import javascript from 'highlight.js/lib/languages/javascript';
+import json from 'highlight.js/lib/languages/json';
+import nginx from 'highlight.js/lib/languages/nginx';
 import php from 'highlight.js/lib/languages/php';
+// Register the languages you want to support
+import plaintext from 'highlight.js/lib/languages/plaintext';
+import xml from 'highlight.js/lib/languages/xml';
+import yaml from 'highlight.js/lib/languages/yaml';
 
 import type { LogFileContentQuery, LogFileContentQueryVariables } from '~/composables/gql/graphql';
+
+import { useThemeStore } from '~/store/theme';
 import { GET_LOG_FILE_CONTENT } from './log.query';
 import { LOG_FILE_SUBSCRIPTION } from './log.subscription';
 
@@ -61,7 +64,7 @@ const state = reactive({
   canLoadMore: false,
   initialLoadComplete: false,
   isDownloading: false,
-  isSubscriptionActive: false
+  isSubscriptionActive: false,
 });
 
 // Get Apollo client for direct queries
@@ -117,15 +120,15 @@ onMounted(() => {
 
         // Set subscription as active when we receive data
         state.isSubscriptionActive = true;
-        
+
         const existingContent = prev.logFile?.content || '';
         const newContent = subscriptionData.data.logFile.content;
-        
+
         // Update the local state with the new content
         if (newContent && state.loadedContentChunks.length > 0) {
           const lastChunk = state.loadedContentChunks[state.loadedContentChunks.length - 1];
           lastChunk.content += newContent;
-          
+
           // Force scroll to bottom if auto-scroll is enabled
           if (props.autoScroll) {
             nextTick(() => forceScrollToBottom());
@@ -142,7 +145,7 @@ onMounted(() => {
         };
       },
     });
-    
+
     // Set subscription as active
     state.isSubscriptionActive = true;
   }
@@ -158,7 +161,7 @@ watch(
   logContentResult,
   (newResult) => {
     if (!newResult?.logFile) return;
-    
+
     const { content, startLine } = newResult.logFile;
     const effectiveStartLine = startLine || 1;
 
@@ -166,10 +169,10 @@ watch(
       state.loadedContentChunks.unshift({ content, startLine: effectiveStartLine });
       state.isLoadingMore = false;
 
-      nextTick(() => state.canLoadMore = true);
+      nextTick(() => (state.canLoadMore = true));
     } else {
       state.loadedContentChunks = [{ content, startLine: effectiveStartLine }];
-      
+
       nextTick(() => {
         forceScrollToBottom();
         state.initialLoadComplete = true;
@@ -190,29 +193,29 @@ const highlightLog = (content: string): string => {
   try {
     // Determine which language to use for highlighting
     const language = props.highlightLanguage || defaultLanguage;
-    
+
     // Apply syntax highlighting
     let highlighted = hljs.highlight(content, { language }).value;
-    
+
     // Apply additional custom highlighting for common log patterns
-    
+
     // Highlight timestamps (various formats)
     highlighted = highlighted.replace(
       /\b(\d{4}-\d{2}-\d{2}[T ]\d{2}:\d{2}:\d{2}(?:\.\d+)?(?:Z|[+-]\d{2}:?\d{2})?)\b/g,
       '<span class="hljs-timestamp">$1</span>'
     );
-    
+
     // Highlight IP addresses
     highlighted = highlighted.replace(
       /\b(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})\b/g,
       '<span class="hljs-ip">$1</span>'
     );
-    
+
     // Split the content into lines
     let lines = highlighted.split('\n');
-    
+
     // Process each line to add error, warning, and success highlighting
-    lines = lines.map(line => {
+    lines = lines.map((line) => {
       if (/(error|exception|fail|failed|failure)/i.test(line)) {
         // Highlight error keywords
         line = line.replace(
@@ -223,10 +226,7 @@ const highlightLog = (content: string): string => {
         return `<span class="hljs-error">${line}</span>`;
       } else if (/(warning|warn)/i.test(line)) {
         // Highlight warning keywords
-        line = line.replace(
-          /\b(warning|warn)\b/gi,
-          '<span class="hljs-warning-keyword">$1</span>'
-        );
+        line = line.replace(/\b(warning|warn)\b/gi, '<span class="hljs-warning-keyword">$1</span>');
         // Wrap the entire line
         return `<span class="hljs-warning">${line}</span>`;
       } else if (/(success|successful|completed|done)/i.test(line)) {
@@ -240,10 +240,10 @@ const highlightLog = (content: string): string => {
       }
       return line;
     });
-    
+
     // Join the lines back together
     highlighted = lines.join('\n');
-    
+
     // Sanitize the highlighted HTML
     return DOMPurify.sanitize(highlighted);
   } catch (error) {
@@ -255,7 +255,7 @@ const highlightLog = (content: string): string => {
 
 // Computed properties
 const logContent = computed(() => {
-  const rawContent = state.loadedContentChunks.map(chunk => chunk.content).join('');
+  const rawContent = state.loadedContentChunks.map((chunk) => chunk.content).join('');
   return highlightLog(rawContent);
 });
 
@@ -294,13 +294,13 @@ const loadMoreContent = async () => {
 // Download log file
 const downloadLogFile = async () => {
   if (!props.logFilePath || state.isDownloading) return;
-  
+
   try {
     state.isDownloading = true;
-    
+
     // Get the filename from the path
     const fileName = props.logFilePath.split('/').pop() || 'log.txt';
-    
+
     // Query for the entire log file content
     const result = await client.query({
       query: GET_LOG_FILE_CONTENT,
@@ -310,24 +310,24 @@ const downloadLogFile = async () => {
       },
       fetchPolicy: 'network-only',
     });
-    
+
     if (!result.data?.logFile?.content) {
       throw new Error('Failed to fetch log content');
     }
-    
+
     // Create a blob with the content
     const blob = new Blob([result.data.logFile.content], { type: 'text/plain' });
-    
+
     // Create a download link
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
     link.download = fileName;
-    
+
     // Trigger the download
     document.body.appendChild(link);
     link.click();
-    
+
     // Clean up
     document.body.removeChild(link);
     URL.revokeObjectURL(url);
@@ -348,7 +348,7 @@ const refreshLogContent = () => {
   state.initialLoadComplete = false;
   state.isLoadingMore = false;
   refetchLogContent();
-  
+
   nextTick(() => {
     forceScrollToBottom();
   });
@@ -360,13 +360,18 @@ defineExpose({ refreshLogContent });
 
 <template>
   <div class="flex flex-col h-full max-h-full overflow-hidden">
-    <div class="flex justify-between px-4 py-2 bg-muted text-xs text-muted-foreground shrink-0 items-center">
+    <div
+      class="flex justify-between px-4 py-2 bg-muted text-xs text-muted-foreground shrink-0 items-center"
+    >
       <div class="flex items-center gap-2">
         <span>Total lines: {{ totalLines }}</span>
         <TooltipProvider v-if="state.isSubscriptionActive">
           <Tooltip :delay-duration="300">
             <TooltipTrigger as-child>
-              <div class="w-2 h-2 rounded-full bg-green-500 animate-pulse cursor-help" aria-hidden="true"></div>
+              <div
+                class="w-2 h-2 rounded-full bg-green-500 animate-pulse cursor-help"
+                aria-hidden="true"
+              ></div>
             </TooltipTrigger>
             <TooltipContent>
               <p>Watching log file</p>
@@ -376,42 +381,62 @@ defineExpose({ refreshLogContent });
       </div>
       <span>{{ state.isAtTop ? 'Showing all available lines' : 'Scroll up to load more' }}</span>
       <div class="flex gap-2">
-        <Button variant="outline" :disabled="loadingLogContent || state.isDownloading" @click="downloadLogFile">
-          <ArrowDownTrayIcon class="h-3 w-3 mr-1" :class="{ 'animate-pulse': state.isDownloading }" aria-hidden="true" />
+        <Button
+          variant="secondary"
+          :disabled="loadingLogContent || state.isDownloading"
+          @click="downloadLogFile"
+        >
+          <ArrowDownTrayIcon
+            class="h-3 w-3 mr-1"
+            :class="{ 'animate-pulse': state.isDownloading }"
+            aria-hidden="true"
+          />
           <span class="text-sm">{{ state.isDownloading ? 'Downloading...' : 'Download' }}</span>
         </Button>
-        <Button variant="outline" :disabled="loadingLogContent" @click="refreshLogContent">
+        <Button variant="secondary" :disabled="loadingLogContent" @click="refreshLogContent">
           <ArrowPathIcon class="h-3 w-3 mr-1" aria-hidden="true" />
           <span class="text-sm">Refresh</span>
         </Button>
       </div>
     </div>
 
-    <div v-if="loadingLogContent && !state.isLoadingMore" class="flex items-center justify-center flex-1 p-4 text-muted-foreground">
+    <div
+      v-if="loadingLogContent && !state.isLoadingMore"
+      class="flex items-center justify-center flex-1 p-4 text-muted-foreground"
+    >
       Loading log content...
     </div>
 
-    <div v-else-if="logContentError" class="flex items-center justify-center flex-1 p-4 text-destructive">
+    <div
+      v-else-if="logContentError"
+      class="flex items-center justify-center flex-1 p-4 text-destructive"
+    >
       Error loading log content: {{ logContentError.message }}
     </div>
 
     <div
       v-else
       ref="scrollViewportRef"
-      v-infinite-scroll="[loadMoreContent, { direction: 'top', distance: 200, canLoadMore: () => shouldLoadMore }]"
+      v-infinite-scroll="[
+        loadMoreContent,
+        { direction: 'top', distance: 200, canLoadMore: () => shouldLoadMore },
+      ]"
       class="flex-1 overflow-y-auto"
       :class="{ 'theme-dark': isDarkMode, 'theme-light': !isDarkMode }"
     >
       <!-- Loading indicator for loading more content -->
-      <div v-if="state.isLoadingMore" class="sticky top-0 z-10 bg-muted/80 backdrop-blur-sm border-b border-border rounded-md mx-2 mt-2">
+      <div
+        v-if="state.isLoadingMore"
+        class="sticky top-0 z-10 bg-muted/80 backdrop-blur-sm border-b border-border rounded-md mx-2 mt-2"
+      >
         <div class="flex items-center justify-center p-2 text-xs text-primary-foreground">
           <ArrowPathIcon class="h-3 w-3 mr-2 animate-spin" aria-hidden="true" />
           Loading more lines...
         </div>
       </div>
-      
-      <pre 
-        class="font-mono whitespace-pre-wrap p-4 m-0 text-xs leading-6 hljs" 
+
+      <pre
+        class="font-mono whitespace-pre-wrap p-4 m-0 text-xs leading-6 hljs"
         :class="{ 'theme-dark': isDarkMode, 'theme-light': !isDarkMode }"
         v-html="logContent"
       ></pre>

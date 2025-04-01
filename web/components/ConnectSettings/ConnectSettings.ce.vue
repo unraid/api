@@ -120,7 +120,7 @@ const onChange = ({ data }: { data: Record<string, unknown> }) => {
       </div>
       <div class="col-start-2 ml-10 space-y-4">
         <Button
-          variant="outline-brand"
+          variant="secondary"
           padding="lean"
           size="md"
           class="leading-normal"

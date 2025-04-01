@@ -140,7 +140,7 @@ const navigateToExternalSSOUrl = () => {
       <p v-if="currentState === 'error'" class="text-red-500 text-center">{{ error }}</p>
       <Button
         :disabled="currentState === 'loading'"
-        variant="outline"
+        variant="secondary"
         class="rounded-none uppercase tracking-widest"
         @click="navigateToExternalSSOUrl"
         >{{ buttonText }}

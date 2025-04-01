@@ -20,7 +20,7 @@ const { authAction, stateData } = storeToRefs(serverStore);
     </span>
     <span v-if="authAction">
       <Button
-        variant="brand"
+        variant="primary"
         :disabled="authAction?.disabled"
         :icon="authAction.icon"
         size="md"

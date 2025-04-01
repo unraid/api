@@ -28,7 +28,7 @@ const downloadUrl = computed(() => {
     <span class="flex flex-col gap-y-16px">
       <div class="flex">
         <Button
-          variant="brand"
+          variant="primary"
           class="grow-0 shrink-0"
           download
           :external="true"
