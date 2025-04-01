@@ -14,18 +14,25 @@
  * echo "</div>";
  * ```
  */
-import { ref } from 'vue';
+import { ref, computed } from 'vue';
 import { storeToRefs } from 'pinia';
 import { WebguiUpdate } from '~/composables/services/webgui';
 import { useServerStore } from '~/store/server';
 
 const props = defineProps<{
   current: string;
+  themes?: string | string[]; // when string it'll be JSON encoded array that's been run thru htmlspecialchars in PHP
 }>();
 
+const computedThemes = computed(() => {
+  if (props.themes) {
+    return typeof props.themes === 'string' ? JSON.parse(props.themes) : props.themes;
+  }
+  return ['azure', 'black', 'gray', 'white'];
+});
+
 const { csrf } = storeToRefs(useServerStore());
-const devModeEnabled = ref<boolean>(import.meta.env.VITE_ALLOW_CONSOLE_LOGS);
-const themes = ref<string[]>(['azure', 'black', 'gray', 'white']);
+const devModeEnabled = import.meta.env.VITE_ALLOW_CONSOLE_LOGS;
 const submitting = ref<boolean>(false);
 
 const handleThemeChange = (event: Event) => {
@@ -50,6 +57,7 @@ const handleThemeChange = (event: Event) => {
       .post()
       .res(() => {
         console.log('[ThemeSwitcher.setTheme] Theme updated, reloading…');
+        // without this timeout, the page refresh happens before emhttp has a chance to update the theme
         setTimeout(() => {
           window.location.reload();
         }, 1000);
@@ -70,7 +78,7 @@ const handleThemeChange = (event: Event) => {
     @change="handleThemeChange"
   >
     <option
-      v-for="theme in themes"
+      v-for="theme in computedThemes"
       :key="theme"
       :value="theme"
     >
