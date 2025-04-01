@@ -108,7 +108,7 @@ export class VmsService implements OnModuleInit {
                 case VmState.SHUTOFF:
                     if (currentState === VmState.RUNNING || currentState === VmState.PAUSED) {
                         libvirtLogger.info(`Initiating graceful shutdown for domain...`);
-                        await this.hypervisor.domainShutdown(domain);
+                        await domain.shutdown();
 
                         const shutdownSuccess = await this.waitForDomainShutdown(domain);
                         if (!shutdownSuccess) {
@@ -120,7 +120,7 @@ export class VmsService implements OnModuleInit {
                 case VmState.PAUSED:
                     if (currentState === VmState.RUNNING) {
                         libvirtLogger.info(`Pausing domain...`);
-                        await this.hypervisor.domainDestroy(domain);
+                        await domain.suspend();
                     }
                     break;
                 default:
@@ -198,7 +198,7 @@ export class VmsService implements OnModuleInit {
             const domain = await this.hypervisor.domainLookupByUUIDString(uuid);
             libvirtLogger.info(`Found domain, force stopping...`);
 
-            await this.hypervisor.domainDestroy(domain);
+            await domain.destroy();
             return true;
         } catch (error) {
             throw new GraphQLError(
@@ -218,13 +218,12 @@ export class VmsService implements OnModuleInit {
             libvirtLogger.info(`Found domain, rebooting...`);
 
             // First try graceful shutdown
-            await this.hypervisor.domainShutdown(domain);
+            await domain.shutdown();
 
             // Wait for shutdown to complete
             const shutdownSuccess = await this.waitForDomainShutdown(domain);
             if (!shutdownSuccess) {
-                libvirtLogger.info('Graceful shutdown failed, forcing domain stop...');
-                await this.hypervisor.domainDestroy(domain);
+                throw new Error('Graceful shutdown failed, please force stop the VM and try again');
             }
 
             // Start the domain again
@@ -248,7 +247,7 @@ export class VmsService implements OnModuleInit {
             libvirtLogger.info(`Found domain, resetting...`);
 
             // Force stop the domain
-            await this.hypervisor.domainDestroy(domain);
+            await domain.destroy();
 
             // Start the domain again
             await domain.create();

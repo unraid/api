@@ -1,6 +1,6 @@
 import { Query, Resolver } from '@nestjs/graphql';
 
-import { UsePermissions, AuthPossession } from 'nest-authz';
+import { AuthPossession, UsePermissions } from 'nest-authz';
 
 import { AuthActionVerb, Resource } from '@app/graphql/generated/api/types.js';
 
