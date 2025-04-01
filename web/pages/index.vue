@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import { ExclamationTriangleIcon } from '@heroicons/vue/24/solid';
-import { BrandButton, BrandLogo, Toaster } from '@unraid/ui';
+import { BrandLogo, Button, buttonVariants, Toaster } from '@unraid/ui';
 import { useDummyServerStore } from '~/_data/serverState';
 import AES from 'crypto-js/aes';
 
@@ -48,19 +48,6 @@ const createCallbackUrl = (payload: SendPayloads, sendType: string) => {
   callbackDestination.value = destinationUrl.toString(); // differs from callbackActions.send
 };
 
-const variants = [
-  'fill',
-  'black',
-  'gray',
-  'outline',
-  'outline-black',
-  'outline-white',
-  'underline',
-  'underline-hover-red',
-  'white',
-  'none',
-] as const;
-
 onMounted(() => {
   createCallbackUrl(
     [
@@ -92,6 +79,18 @@ watch(
   },
   { immediate: true }
 );
+
+// Define the valid button variant names for display
+const displayableButtonVariants = [
+  'primary',
+  'brand',
+  'destructive',
+  'outline',
+  'outline-brand',
+  'secondary',
+  'ghost',
+  'link',
+] as const;
 </script>
 
 <template>
@@ -163,9 +162,9 @@ watch(
             <code>
               <pre>{{ valueToMakeCallback }}</pre>
             </code>
-            <BrandButton v-if="callbackDestination" :href="callbackDestination" :external="true">
+            <Button v-if="callbackDestination" :href="callbackDestination" :external="true">
               {{ 'Go to Callback URL' }}
-            </BrandButton>
+            </Button>
             <h4>Full URL Destination</h4>
             <code>
               <pre>{{ callbackDestination }}</pre>
@@ -174,14 +173,10 @@ watch(
           <div class="bg-background">
             <hr class="border-black dark:border-white" />
             <h2 class="text-xl font-semibold font-mono">Brand Button Component</h2>
-            <template v-for="variant in variants" :key="variant">
-              <BrandButton
-                :variant="variant"
-                type="button"
-                size="14px"
-                :icon="ExclamationTriangleIcon"
-                >{{ variant }}</BrandButton
-              >
+            <template v-for="variantName in displayableButtonVariants" :key="variantName">
+              <Button :variant="variantName" class="m-2" size="md" :icon="ExclamationTriangleIcon">
+                {{ variantName }}
+              </Button>
             </template>
           </div>
           <div class="bg-background">

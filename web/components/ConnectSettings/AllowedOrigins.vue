@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { BrandButton, Input } from '@unraid/ui';
+import { Button, Input } from '@unraid/ui';
 
 import { useUnraidApiSettingsStore } from '~/store/unraidApiSettings';
 
@@ -42,8 +42,7 @@ const setAllowedOrigins = () => {
       type="text"
       placeholder="https://abc.myreverseproxy.com,https://xyz.rvrsprx.com"
     />
-    <BrandButton type="button" variant="outline" text="Apply" @click="setAllowedOrigins()">
-    </BrandButton>
+    <Button type="button" variant="secondary" @click="setAllowedOrigins()">Apply</Button>
     <div v-for="(error, index) of errors" :key="index">
       <p>{{ error }}</p>
     </div>

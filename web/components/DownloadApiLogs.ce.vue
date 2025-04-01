@@ -1,8 +1,9 @@
 <script setup lang="ts">
-import { ArrowDownTrayIcon, ArrowTopRightOnSquareIcon } from '@heroicons/vue/24/solid';
-import { BrandButton } from '@unraid/ui';
-import { CONNECT_FORUMS, CONTACT, DISCORD, WEBGUI_GRAPHQL } from '~/helpers/urls';
 import { useI18n } from 'vue-i18n';
+
+import { ArrowDownTrayIcon, ArrowTopRightOnSquareIcon } from '@heroicons/vue/24/solid';
+import { Button } from '@unraid/ui';
+import { CONNECT_FORUMS, CONTACT, DISCORD, WEBGUI_GRAPHQL } from '~/helpers/urls';
 
 const { t } = useI18n();
 
@@ -26,15 +27,16 @@ const downloadUrl = computed(() => {
     </span>
     <span class="flex flex-col gap-y-16px">
       <div class="flex">
-        <BrandButton
+        <Button
+          variant="brand"
           class="grow-0 shrink-0"
           download
           :external="true"
           :href="downloadUrl.toString()"
           :icon="ArrowDownTrayIcon"
-          size="12px"
-          :text="t('Download unraid-api Logs')"
-        />
+          size="md"
+          >{{ t('Download unraid-api Logs') }}</Button
+        >
       </div>
 
       <div class="flex flex-row items-baseline gap-8px">

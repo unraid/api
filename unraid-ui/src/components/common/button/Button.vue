@@ -7,6 +7,7 @@ export interface ButtonProps {
   variant?: ButtonVariants['variant'];
   size?: ButtonVariants['size'];
   class?: string;
+  icon?: any;
 }
 
 const props = withDefaults(defineProps<ButtonProps>(), {
@@ -21,6 +22,7 @@ const buttonClass = computed(() => {
 
 <template>
   <button :class="buttonClass">
+    <component :is="icon" v-if="icon" class="w-4 h-4" />
     <slot />
   </button>
 </template>

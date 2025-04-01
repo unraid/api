@@ -1,8 +1,10 @@
 <script lang="ts" setup>
-import { BrandButton } from '@unraid/ui';
-import { useServerStore } from '~/store/server';
-import { storeToRefs } from 'pinia';
 import { useI18n } from 'vue-i18n';
+import { storeToRefs } from 'pinia';
+
+import { Button } from '@unraid/ui';
+
+import { useServerStore } from '~/store/server';
 
 const { t } = useI18n();
 
@@ -17,14 +19,16 @@ const { authAction, stateData } = storeToRefs(serverStore);
       <span class="text-14px" v-html="t(stateData.message)" />
     </span>
     <span v-if="authAction">
-      <BrandButton
+      <Button
+        variant="brand"
         :disabled="authAction?.disabled"
         :icon="authAction.icon"
-        size="12px"
-        :text="t(authAction.text)"
+        size="md"
         :title="authAction?.title ? t(authAction?.title) : undefined"
         @click="authAction.click?.()"
-      />
+      >
+        {{ t(authAction.text) }}
+      </Button>
     </span>
   </div>
 </template>

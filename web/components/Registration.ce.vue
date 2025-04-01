@@ -19,7 +19,7 @@ import { useI18n } from 'vue-i18n';
 import { storeToRefs } from 'pinia';
 
 import { ShieldCheckIcon, ShieldExclamationIcon } from '@heroicons/vue/24/solid';
-import { BrandButton, CardWrapper, PageContainer } from '@unraid/ui';
+import { Button, CardWrapper, PageContainer } from '@unraid/ui';
 
 import type { RegistrationItemProps } from '~/types/registration';
 import type { ServerStateDataAction } from '~/types/server';
@@ -287,13 +287,15 @@ const items = computed((): RegistrationItemProps[] => {
             v-html="subheading"
           />
           <span v-if="authAction" class="grow-0">
-            <BrandButton
+            <Button
+              variant="brand"
               :disabled="authAction?.disabled"
               :icon="authAction.icon"
-              :text="t(authAction.text)"
               :title="authAction.title ? t(authAction.title) : undefined"
               @click="authAction.click?.()"
-            />
+            >
+              {{ t(authAction.text) }}
+            </Button>
           </span>
         </header>
         <dl>

@@ -2,7 +2,7 @@
 import { useI18n } from 'vue-i18n';
 import { storeToRefs } from 'pinia';
 
-import { BrandButton } from '@unraid/ui';
+import { Button } from '@unraid/ui';
 
 import type { Server } from '~/types/server';
 
@@ -99,7 +99,7 @@ onBeforeMount(() => {
 
       <template #footer>
         <div class="w-full flex gap-8px justify-center mx-auto">
-          <BrandButton :text="t('Create a password')" @click="dropdownHide" />
+          <Button variant="brand" @click="dropdownHide">{{ t('Create a password') }}</Button>
         </div>
       </template>
 

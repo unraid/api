@@ -5,7 +5,7 @@
 
 import { useMutation, useQuery } from '@vue/apollo-composable';
 
-import { BrandButton, jsonFormsRenderers, Label } from '@unraid/ui';
+import { Button, jsonFormsRenderers, Label } from '@unraid/ui';
 import { JsonForms } from '@jsonforms/vue';
 
 import type { ConnectSettingsValues } from '~/composables/gql/graphql';
@@ -119,15 +119,15 @@ const onChange = ({ data }: { data: Record<string, unknown> }) => {
         <p v-else-if="restartRequired">The API will restart after settings are applied.</p>
       </div>
       <div class="col-start-2 ml-10 space-y-4">
-        <BrandButton
-          variant="outline-primary"
+        <Button
+          variant="outline-brand"
           padding="lean"
-          size="12px"
+          size="md"
           class="leading-normal"
           @click="submitSettingsUpdate"
         >
           Apply
-        </BrandButton>
+        </Button>
         <p v-if="mutateSettingsError" class="text-sm text-unraid-red-500">
           ✕ Error: {{ mutateSettingsError.message }}
         </p>
