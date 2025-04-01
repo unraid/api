@@ -81,16 +81,7 @@ watch(
 );
 
 // Define the valid button variant names for display
-const displayableButtonVariants = [
-  'primary',
-  'brand',
-  'destructive',
-  'outline',
-  'outline-brand',
-  'secondary',
-  'ghost',
-  'link',
-] as const;
+const displayableButtonVariants = ['primary', 'secondary', 'link'] as const;
 </script>
 
 <template>
