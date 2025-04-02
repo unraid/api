@@ -26,7 +26,7 @@
     "build:wc": "REM_PLUGIN=true vite build -c vite.web-component.ts --mode production",
     "clean": "rimraf dist",
     "type-check": "vue-tsc --noEmit",
-    "lint": "eslint --debug src",
+    "lint": "eslint src",
     "lint:fix": "eslint src --fix",
     "// Deploy to Unraid Server": "",
     "preunraid:deploy": "pnpm build:wc",
