@@ -1,11 +1,11 @@
-import { vanillaRenderers } from '@jsonforms/vue-vanilla';
 import {
   formSelectEntry,
   formSwitchEntry,
   numberFieldEntry,
   preconditionsLabelEntry,
   stringArrayEntry,
-} from './renderer-entries';
+} from '@app/forms/renderer-entries';
+import { vanillaRenderers } from '@jsonforms/vue-vanilla';
 
 /**
  * JSONForms renderers for Unraid UI

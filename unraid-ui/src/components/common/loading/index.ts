@@ -1,5 +1,5 @@
-import Bar from "./Bar.vue";
-import Error from "./Error.vue";
-import Spinner from "./Spinner.vue";
+import Bar from '@app/components/common/loading/Bar.vue';
+import Error from '@app/components/common/loading/Error.vue';
+import Spinner from '@app/components/common/loading/Spinner.vue';
 
 export { Bar, Error, Spinner };

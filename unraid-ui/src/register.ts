@@ -1,5 +1,5 @@
 import { defineCustomElement } from 'vue';
-import './styles/index.css';
+import '@app/styles/index.css';
 import * as Components from '@/components';
 import kebabCase from 'kebab-case';
 
