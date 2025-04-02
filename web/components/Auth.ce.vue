@@ -1,8 +1,10 @@
 <script lang="ts" setup>
-import { BrandButton } from '@unraid/ui';
-import { useServerStore } from '~/store/server';
-import { storeToRefs } from 'pinia';
 import { useI18n } from 'vue-i18n';
+import { storeToRefs } from 'pinia';
+
+import { BrandButton } from '@unraid/ui';
+
+import { useServerStore } from '~/store/server';
 
 const { t } = useI18n();
 
