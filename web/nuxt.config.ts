@@ -42,6 +42,7 @@ export default defineNuxtConfig({
     '@nuxtjs/tailwindcss',
     'nuxt-custom-elements',
     '@nuxt/eslint',
+
   ],
 
   ignore: ['/webGui/images'],
