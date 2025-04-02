@@ -1,5 +1,29 @@
 # Changelog
 
+## [4.5.0](https://github.com/unraid/api/compare/v4.4.1...v4.5.0) (2025-04-02)
+
+
+### Features
+
+* add webgui theme switcher component ([#1304](https://github.com/unraid/api/issues/1304)) ([e2d00dc](https://github.com/unraid/api/commit/e2d00dc3464f9663062ac759a8aad85e61804b91))
+* api plugin system & offline versioned dependency vendoring ([#1252](https://github.com/unraid/api/issues/1252)) ([9f492bf](https://github.com/unraid/api/commit/9f492bf2175b1b909d3bec079ce901ba34765eb7))
+* **api:** add `unraid-api --delete` command ([#1289](https://github.com/unraid/api/issues/1289)) ([2f09445](https://github.com/unraid/api/commit/2f09445f2ed6b23cd851ca64ac5b84cfde3cbd50))
+* basic array controls ([#1291](https://github.com/unraid/api/issues/1291)) ([61fe696](https://github.com/unraid/api/commit/61fe6966caf973eec3d74c67741302dd4b507134))
+* basic docker controls ([#1292](https://github.com/unraid/api/issues/1292)) ([12eddf8](https://github.com/unraid/api/commit/12eddf894e1808b61f5d4e007f3a7a39a3f2e4d6))
+* copy to webgui repo script docs + wc build options ([#1285](https://github.com/unraid/api/issues/1285)) ([e54f189](https://github.com/unraid/api/commit/e54f189630f70aeff5af6bdef4271f0a01fedb74))
+
+
+### Bug Fixes
+
+* additional url fixes ([4b2763c](https://github.com/unraid/api/commit/4b2763c7f9d8b85d5b0ce066dfc9a9a80a115658))
+* **api:** redirect benign pnpm postinstall warning to log file ([#1290](https://github.com/unraid/api/issues/1290)) ([7fb7849](https://github.com/unraid/api/commit/7fb78494cb23630f60a889e6252fc06754e14ef9))
+* **deps:** update dependency chalk to v5 ([#1296](https://github.com/unraid/api/issues/1296)) ([6bed638](https://github.com/unraid/api/commit/6bed63805ff026be98a8e20c4d8a37cd47048357))
+* **deps:** update dependency diff to v7 ([#1297](https://github.com/unraid/api/issues/1297)) ([3c6683c](https://github.com/unraid/api/commit/3c6683c81422a088c13e9545aaecececd78b8628))
+* disable all config watchers ([#1306](https://github.com/unraid/api/issues/1306)) ([5c1b435](https://github.com/unraid/api/commit/5c1b4352cf71d8525f667822f8ca202e2934f463))
+* extract callbacks to library ([#1280](https://github.com/unraid/api/issues/1280)) ([2266139](https://github.com/unraid/api/commit/226613974258f15d39932de94316a54aec2e29d2))
+* OEM plugin issues ([#1288](https://github.com/unraid/api/issues/1288)) ([d5a3d0d](https://github.com/unraid/api/commit/d5a3d0dfac214fc433c2c0aec578de564a990dd4))
+* replace files lost during pruning ([d0d2ff6](https://github.com/unraid/api/commit/d0d2ff65ed2d51223414e50bb1c2ecf82e32a071))
+
 ## [4.4.1](https://github.com/unraid/api/compare/v4.4.0...v4.4.1) (2025-03-26)
 
 
