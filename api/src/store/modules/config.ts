@@ -328,6 +328,7 @@ export const {
  */
 export const configUpdateActionsFlash = isAnyOf(
     addSsoUser,
+    setSsoUsers,
     updateUserConfig,
     updateAccessTokens,
     updateAllowedOrigins,
