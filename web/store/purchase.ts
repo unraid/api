@@ -24,6 +24,7 @@ export const usePurchaseStore = defineStore('purchase', () => {
         type: 'activate',
       }],
       serverStore.inIframe ? 'newTab' : undefined,
+      callbackStore.sendType,
     );
   };
   const redeem = () => {
@@ -36,6 +37,7 @@ export const usePurchaseStore = defineStore('purchase', () => {
         type: 'redeem',
       }],
       serverStore.inIframe ? 'newTab' : undefined,
+      callbackStore.sendType,
     );
   };
   const purchase = () => {
@@ -48,6 +50,7 @@ export const usePurchaseStore = defineStore('purchase', () => {
         type: 'purchase',
       }],
       serverStore.inIframe ? 'newTab' : undefined,
+      callbackStore.sendType,
     );
   };
   const upgrade = () => {
@@ -60,6 +63,7 @@ export const usePurchaseStore = defineStore('purchase', () => {
         type: 'upgrade',
       }],
       serverStore.inIframe ? 'newTab' : undefined,
+      callbackStore.sendType,
     );
   };
   const renew = () => {
@@ -72,6 +76,7 @@ export const usePurchaseStore = defineStore('purchase', () => {
         type: 'renew',
       }],
       serverStore.inIframe ? 'newTab' : undefined,
+      callbackStore.sendType,
     );
   };
 

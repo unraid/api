@@ -31,6 +31,7 @@ export const useAccountStore = defineStore('account', () => {
 
   const serverAccountPayload = computed(() => serverStore.serverAccountPayload);
   const inIframe = computed(() => serverStore.inIframe);
+  const sendType = computed(() => callbackStore.sendType);
 
   // State
   const accountAction = ref<ExternalSignIn | ExternalSignOut>();
@@ -84,6 +85,7 @@ export const useAccountStore = defineStore('account', () => {
         type: 'downgradeOs',
       }],
       inIframe.value ? 'newTab' : (autoRedirectReplace ? 'replace' : undefined),
+      sendType.value,
     );
   };
 
@@ -97,6 +99,7 @@ export const useAccountStore = defineStore('account', () => {
         type: 'manage',
       }],
       inIframe.value ? 'newTab' : undefined,
+      sendType.value,
     );
   };
   const myKeys = async () => {
@@ -114,6 +117,7 @@ export const useAccountStore = defineStore('account', () => {
         type: 'myKeys',
       }],
       inIframe.value ? 'newTab' : undefined,
+      sendType.value,
     );
   };
   const linkKey = async () => {
@@ -131,6 +135,7 @@ export const useAccountStore = defineStore('account', () => {
         type: 'linkKey',
       }],
       inIframe.value ? 'newTab' : undefined,
+      sendType.value,
     );
   };
   const recover = () => {
@@ -143,6 +148,7 @@ export const useAccountStore = defineStore('account', () => {
         type: 'recover',
       }],
       inIframe.value ? 'newTab' : undefined,
+      sendType.value,
     );
   };
   const replace = () => {
@@ -155,6 +161,7 @@ export const useAccountStore = defineStore('account', () => {
         type: 'replace',
       }],
       inIframe.value ? 'newTab' : undefined,
+      sendType.value,
     );
   };
   const signIn = () => {
@@ -167,6 +174,7 @@ export const useAccountStore = defineStore('account', () => {
         type: 'signIn',
       }],
       inIframe.value ? 'newTab' : undefined,
+      sendType.value,
     );
   };
   const signOut = () => {
@@ -179,6 +187,7 @@ export const useAccountStore = defineStore('account', () => {
         type: 'signOut',
       }],
       inIframe.value ? 'newTab' : undefined,
+      sendType.value,
     );
   };
   const trialExtend = () => {
@@ -191,6 +200,7 @@ export const useAccountStore = defineStore('account', () => {
         type: 'trialExtend',
       }],
       inIframe.value ? 'newTab' : undefined,
+      sendType.value,
     );
   };
   const trialStart = () => {
@@ -203,6 +213,7 @@ export const useAccountStore = defineStore('account', () => {
         type: 'trialStart',
       }],
       inIframe.value ? 'newTab' : undefined,
+      sendType.value,
     );
   };
 
