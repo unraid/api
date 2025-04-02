@@ -1,13 +1,13 @@
 import { expect, test, vi } from 'vitest';
 
-import { store } from '@app/store/index.js';
-import { MyServersConfigMemory } from '@app/types/my-servers-config.js';
 import { pubsub, PUBSUB_CHANNEL } from '@app/core/pubsub.js';
+import { MinigraphStatus, WAN_ACCESS_TYPE, WAN_FORWARD_TYPE } from '@app/graphql/generated/api/types.js';
 import { GraphQLClient } from '@app/mothership/graphql-client.js';
 import { stopPingTimeoutJobs } from '@app/mothership/jobs/ping-timeout-jobs.js';
 import { setGraphqlConnectionStatus } from '@app/store/actions/set-minigraph-status.js';
 import { setupRemoteAccessThunk } from '@app/store/actions/setup-remote-access.js';
-import { MinigraphStatus, WAN_ACCESS_TYPE, WAN_FORWARD_TYPE } from '@app/graphql/generated/api/types.js';
+import { store } from '@app/store/index.js';
+import { MyServersConfigMemory } from '@app/types/my-servers-config.js';
 
 // Mock dependencies
 vi.mock('@app/core/pubsub.js', () => ({
@@ -100,11 +100,13 @@ test('updateUserConfig merges in changes to current state', async () => {
     );
 
     const state = store.getState().config;
-    expect(state).toMatchObject(createConfigMatcher({
-        remote: expect.objectContaining({
-            avatar: 'https://via.placeholder.com/200'
+    expect(state).toMatchObject(
+        createConfigMatcher({
+            remote: expect.objectContaining({
+                avatar: 'https://via.placeholder.com/200',
+            }),
         })
-    }));
+    );
 });
 
 test('loginUser updates state and publishes to pubsub', async () => {
@@ -127,9 +129,11 @@ test('loginUser updates state and publishes to pubsub', async () => {
     });
 
     const state = store.getState().config;
-    expect(state).toMatchObject(createConfigMatcher({
-        remote: expect.objectContaining(userInfo)
-    }));
+    expect(state).toMatchObject(
+        createConfigMatcher({
+            remote: expect.objectContaining(userInfo),
+        })
+    );
 });
 
 test('logoutUser clears state and publishes to pubsub', async () => {
@@ -160,9 +164,11 @@ test('updateAccessTokens updates token fields', async () => {
     store.dispatch(updateAccessTokens(tokens));
 
     const state = store.getState().config;
-    expect(state).toMatchObject(createConfigMatcher({
-        remote: expect.objectContaining(tokens)
-    }));
+    expect(state).toMatchObject(
+        createConfigMatcher({
+            remote: expect.objectContaining(tokens),
+        })
+    );
 });
 
 test('updateAllowedOrigins updates extraOrigins', async () => {
@@ -263,7 +269,7 @@ test('setGraphqlConnectionStatus updates minigraph status', async () => {
 test('setupRemoteAccessThunk.fulfilled updates remote access settings', async () => {
     const remoteAccessSettings = {
         accessType: WAN_ACCESS_TYPE.DYNAMIC,
-        forwardType: WAN_FORWARD_TYPE.UPNP
+        forwardType: WAN_FORWARD_TYPE.UPNP,
     };
 
     await store.dispatch(setupRemoteAccessThunk(remoteAccessSettings));
@@ -273,6 +279,6 @@ test('setupRemoteAccessThunk.fulfilled updates remote access settings', async ()
         wanaccess: 'no',
         dynamicRemoteAccessType: 'UPNP',
         wanport: '',
-        upnpEnabled: 'yes'
+        upnpEnabled: 'yes',
     });
 });
