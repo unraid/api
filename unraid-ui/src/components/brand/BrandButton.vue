@@ -13,8 +13,10 @@ export interface BrandButtonProps {
   disabled?: boolean;
   external?: boolean;
   href?: string;
-  icon?: unknown;
-  iconRight?: unknown;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  icon?: any;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  iconRight?: any;
   iconRightHoverDisplay?: boolean;
   text?: string;
   title?: string;
