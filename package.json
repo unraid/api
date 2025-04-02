@@ -36,7 +36,7 @@
   "dependencies": {
     "@manypkg/cli": "^0.23.0",
     "chalk": "^5.0.0",
-    "diff": "^5.1.0",
+    "diff": "^7.0.0",
     "ignore": "^7.0.0"
   },
   "packageManager": "pnpm@10.7.1"
