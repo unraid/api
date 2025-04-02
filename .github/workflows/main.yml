@@ -385,18 +385,20 @@ jobs:
             BUCKET_PATH="unraid-api"
           fi
 
+          # On release, build both prod and preview plugins
           if [ "${{ needs.release-please.outputs.releases_created }}" == 'true' ]; then
             BASE_URL="https://stable.dl.unraid.net/unraid-api"
-          else
-            BASE_URL="https://preview.dl.unraid.net/unraid-api"
+            pnpm run build:plugin --tag="${TAG}" --base-url="${BASE_URL}"
+            mv ./deploy ./deploy-prod
           fi
 
+          BASE_URL="https://preview.dl.unraid.net/unraid-api"
           echo "BUCKET_PATH=${BUCKET_PATH}" >> $GITHUB_OUTPUT
           echo "TAG=${TAG}" >> $GITHUB_OUTPUT
-
           pnpm run build:plugin --tag="${TAG}" --base-url="${BASE_URL}"
       - name: Ensure Plugin Files Exist
         run: |
+          ls -al ./deploy
           if [ ! -f ./deploy/*.plg ]; then
             echo "Error: .plg file not found in plugin/deploy/"
             exit 1
@@ -406,7 +408,19 @@ jobs:
             echo "Error: .txz file not found in plugin/deploy/"
             exit 1
           fi
-          ls -al ./deploy
+      - name: Ensure Production Plugin Files Exist
+        if: needs.release-please.outputs.releases_created == 'true'
+        run: |
+          ls -al ./deploy-prod
+          if [ ! -f ./deploy-prod/*.plg ]; then
+            echo "Error: .plg file not found in plugin/deploy-prod/"
+            exit 1
+          fi
+
+          if [ ! -f ./deploy-prod/*.txz ]; then
+            echo "Error: .txz file not found in plugin/deploy-prod/"
+            exit 1
+          fi
       - name: Upload to GHA
         uses: actions/upload-artifact@v4
         with:
@@ -434,7 +448,7 @@ jobs:
         run: |
           release_name=$(gh release list --repo ${{ github.repository }} --json name,isDraft --jq '.[] | select(.isDraft == true) | .name' | head -n 1)
           # For each file in release directory
-          for file in deploy/*; do
+          for file in deploy-prod/*; do
             echo "Uploading $file to release..."
             gh release upload "${release_name}" "$file" --clobber
           done
