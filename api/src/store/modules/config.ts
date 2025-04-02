@@ -234,9 +234,7 @@ export const config = createSlice({
             state.remote.ssoSubIds = stateAsArray.join(',');
         },
         setLocalApiKey(state, action: PayloadAction<string | null>) {
-            if (action.payload) {
-                state.remote.localApiKey = action.payload;
-            }
+            state.remote.localApiKey = action.payload ?? '';
         },
     },
     extraReducers(builder) {
