@@ -7,8 +7,8 @@ import { loadConfigFile, removeSsoUser } from '@app/store/modules/config.js';
 import { writeConfigSync } from '@app/store/sync/config-disk-sync.js';
 import { LogService } from '@app/unraid-api/cli/log.service.js';
 import { RemoveSSOUserQuestionSet } from '@app/unraid-api/cli/sso/remove-sso-user.questions.js';
-import { StopCommand } from '@app/unraid-api/cli/stop.command.js';
 import { StartCommand } from '@app/unraid-api/cli/start.command.js';
+import { StopCommand } from '@app/unraid-api/cli/stop.command.js';
 
 interface RemoveSSOUserCommandOptions {
     username: string;
