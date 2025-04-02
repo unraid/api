@@ -219,6 +219,9 @@ export const config = createSlice({
             stateAsArray.push(action.payload);
             state.remote.ssoSubIds = stateAsArray.join(',');
         },
+        setSsoUsers(state, action: PayloadAction<string[]>) {
+            state.remote.ssoSubIds = action.payload.filter((id) => id).join(',');
+        },
         removeSsoUser(state, action: PayloadAction<string | null>) {
             if (action.payload === null) {
                 state.remote.ssoSubIds = '';
@@ -309,6 +312,7 @@ const { actions, reducer } = config;
 
 export const {
     addSsoUser,
+    setSsoUsers,
     updateUserConfig,
     updateAccessTokens,
     updateAllowedOrigins,

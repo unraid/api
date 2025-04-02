@@ -160,7 +160,8 @@ export function ApiSettingsInputSchema(): z.ZodObject<Properties<ApiSettingsInpu
     extraOrigins: z.array(z.string()).nullish(),
     forwardType: WAN_FORWARD_TYPESchema.nullish(),
     port: z.number().nullish(),
-    sandbox: z.boolean().nullish()
+    sandbox: z.boolean().nullish(),
+    ssoUserIds: z.array(z.string()).nullish()
   })
 }
 
@@ -362,7 +363,8 @@ export function ConnectSettingsValuesSchema(): z.ZodObject<Properties<ConnectSet
     extraOrigins: z.array(z.string()),
     forwardType: WAN_FORWARD_TYPESchema.nullish(),
     port: z.number().nullish(),
-    sandbox: z.boolean()
+    sandbox: z.boolean(),
+    ssoUserIds: z.array(z.string())
   })
 }
 
