@@ -35,7 +35,7 @@ export {
   SelectTrigger,
   SelectValue,
 } from '@/components/form/select';
-export { Switch, SwitchHeadlessUI } from '@/components/form/switch';
+export { Switch } from '@/components/form/switch';
 export { ScrollArea, ScrollBar } from '@/components/common/scroll-area';
 export {
   Sheet,

@@ -69,7 +69,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/form/select';
-import { Switch, SwitchHeadlessUI } from '@/components/form/switch';
+import { Switch } from '@/components/form/switch';
 import { CardWrapper, PageContainer } from '@/components/layout';
 // Composables
 import useTeleport from '@/composables/useTeleport';
@@ -144,7 +144,6 @@ export {
   StepperTitle,
   StepperTrigger,
   Switch,
-  SwitchHeadlessUI,
   tailwindConfig,
   Lightswitch,
   Tabs,

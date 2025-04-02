@@ -25,8 +25,8 @@ const description = computed(() => props.uischema.options?.description);
       :name="control.path"
       :disabled="!control.enabled"
       :required="control.required"
-      :checked="Boolean(control.data)"
-      @update:checked="onChange"
+      :modelValue="Boolean(control.data)"
+      @update:modelValue="onChange"
     />
   </ControlLayout>
 </template>
