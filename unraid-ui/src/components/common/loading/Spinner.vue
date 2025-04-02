@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import { cn } from "@/lib/utils";
+import { cn } from '@/lib/utils';
 
-const props = withDefaults(defineProps<{ class?: string }>(), { class: "" });
+const props = withDefaults(defineProps<{ class?: string }>(), { class: '' });
 </script>
 <template>
   <!-- adapted from https://tw-elements.com/docs/standard/components/spinners/ -->

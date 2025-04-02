@@ -1,7 +1,8 @@
 <script setup lang="ts">
-import { ShieldExclamationIcon } from "@heroicons/vue/24/solid";
-import LoadingSpinner from "./Spinner.vue";
-import { cn } from "@/lib/utils";
+import Button from '@/components/common/button/Button.vue';
+import LoadingSpinner from '@/components/common/loading/Spinner.vue';
+import { cn } from '@/lib/utils';
+import { ShieldExclamationIcon } from '@heroicons/vue/24/solid';
 
 /**
  * A default container for displaying loading and error states.
@@ -27,17 +28,13 @@ const props = withDefaults(
     loading: boolean;
     error: Error | null | undefined;
   }>(),
-  { class: "" }
+  { class: '' }
 );
 
-defineEmits(["retry"]);
+defineEmits(['retry']);
 </script>
 <template>
-  <div
-    :class="
-      cn('h-full flex flex-col items-center justify-center gap-3', props.class)
-    "
-  >
+  <div :class="cn('h-full flex flex-col items-center justify-center gap-3', props.class)">
     <!-- Loading State -->
     <div v-if="loading" class="contents">
       <LoadingSpinner />
@@ -52,9 +49,7 @@ defineEmits(["retry"]);
         <h3 class="font-bold">{{ `Error` }}</h3>
         <p>{{ error.message }}</p>
       </div>
-      <Button type="button" class="w-full" @click="$emit('retry')"
-        >Try Again</Button
-      >
+      <Button type="button" class="w-full" @click="$emit('retry')">Try Again</Button>
     </div>
     <!-- Default state -->
     <slot v-else />

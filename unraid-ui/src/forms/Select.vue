@@ -8,11 +8,11 @@ import {
   SelectValue,
 } from '@/components/form/select';
 import useTeleport from '@/composables/useTeleport';
+import ControlLayout from '@/forms/ControlLayout.vue';
 import type { ControlElement } from '@jsonforms/core';
 import { useJsonFormsControl } from '@jsonforms/vue';
 import type { RendererProps } from '@jsonforms/vue';
 import { computed } from 'vue';
-import ControlLayout from './ControlLayout.vue';
 
 const props = defineProps<RendererProps<ControlElement>>();
 const { control, handleChange } = useJsonFormsControl(props);

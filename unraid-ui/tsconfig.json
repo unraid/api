@@ -25,7 +25,14 @@
       "@/composables": ["./src/composables"],
       "@/theme": ["./src/theme"]
     },
-    "types": ["vite/client", "vitest/globals", "node", "happy-dom", "@vue/test-utils", "@testing-library/vue"],
+    "types": [
+      "vite/client",
+      "vitest/globals",
+      "node",
+      "happy-dom",
+      "@vue/test-utils",
+      "@testing-library/vue"
+    ],
     "forceConsistentCasingInFileNames": true
   },
   "include": [
@@ -36,7 +43,8 @@
     "src/**/*.ce.vue",
     "tailwind.config.ts",
     "src/theme/**/*.ts",
-    "**/*.config.ts"
+    "**/*.config.ts",
+    "eslint.config.ts"
   ],
   "exclude": [
     "node_modules",

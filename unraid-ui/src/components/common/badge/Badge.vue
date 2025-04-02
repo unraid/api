@@ -1,7 +1,7 @@
 <script setup lang="ts">
+import { badgeVariants, type BadgeVariants } from '@/components/common/badge/badge.variants';
 import { computed } from 'vue';
 import type { Component } from 'vue';
-import { badgeVariants, type BadgeVariants } from './badge.variants';
 
 export interface BadgeProps {
   variant?: BadgeVariants['variant'];

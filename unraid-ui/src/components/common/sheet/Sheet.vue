@@ -4,7 +4,7 @@ import { onUnmounted, ref } from 'vue';
 
 const MOBILE_VIEWPORT = 'width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0' as const;
 
-const props = defineProps<DialogRootProps & { class?: string }>();
+const props = defineProps<DialogRootProps>();
 const emits = defineEmits<DialogRootEmits>();
 
 const getViewport = (): string => {
@@ -24,7 +24,7 @@ const updateViewport = (viewport: string): void => {
   }
 };
 
-const forwarded = useForwardPropsEmits(props, emits) as any;
+const forwarded = useForwardPropsEmits(props, emits);
 const initialViewport = ref(getViewport());
 const openListener = (opened: boolean) => {
   if (opened) {

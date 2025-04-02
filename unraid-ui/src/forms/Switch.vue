@@ -1,13 +1,10 @@
 <script setup lang="ts">
-import { computed } from 'vue';
-
 import { Switch as UuiSwitch } from '@/components/form/switch';
-import { useJsonFormsControl } from '@jsonforms/vue';
-
+import ControlLayout from '@/forms/ControlLayout.vue';
 import type { ControlElement } from '@jsonforms/core';
+import { useJsonFormsControl } from '@jsonforms/vue';
 import type { RendererProps } from '@jsonforms/vue';
-
-import ControlLayout from './ControlLayout.vue';
+import { computed } from 'vue';
 
 const props = defineProps<RendererProps<ControlElement>>();
 const { control, handleChange } = useJsonFormsControl(props);
@@ -19,7 +16,7 @@ const description = computed(() => props.uischema.options?.description);
 
 <template>
   <ControlLayout v-if="control.visible" :label="control.label" :errors="control.errors">
-    <p v-if="description" v-html="description" class="mb-2"></p>
+    <p v-if="description" v-html="description" class="mb-2" />
     <UuiSwitch
       :id="control.id + '-input'"
       :name="control.path"

@@ -1,12 +1,11 @@
 <script setup lang="ts">
-import { computed } from 'vue';
 import { Button } from '@/components/common/button';
 import { Input } from '@/components/form/input';
-import { useJsonFormsControl } from '@jsonforms/vue';
+import ControlLayout from '@/forms/ControlLayout.vue';
 import type { ControlElement } from '@jsonforms/core';
+import { useJsonFormsControl } from '@jsonforms/vue';
 import type { RendererProps } from '@jsonforms/vue';
-
-import ControlLayout from './ControlLayout.vue';
+import { computed } from 'vue';
 
 const props = defineProps<RendererProps<ControlElement>>();
 const { control, handleChange } = useJsonFormsControl(props);
@@ -54,7 +53,12 @@ const placeholder = computed(() => control.value.uischema?.options?.placeholder 
           class="flex-1"
           @update:model-value="(value) => updateItem(index, String(value))"
         />
-        <Button variant="ghost" class="rounded underline underline-offset-4" :disabled="!control.enabled" @click="() => removeItem(index)">
+        <Button
+          variant="ghost"
+          class="rounded underline underline-offset-4"
+          :disabled="!control.enabled"
+          @click="() => removeItem(index)"
+        >
           Remove
         </Button>
       </div>
@@ -69,4 +73,4 @@ const placeholder = computed(() => control.value.uischema?.options?.placeholder 
       </Button>
     </div>
   </ControlLayout>
-</template> 
+</template>
