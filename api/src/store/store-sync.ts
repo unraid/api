@@ -9,7 +9,6 @@ import { store } from '@app/store/index.js';
 import { syncInfoApps } from '@app/store/sync/info-apps-sync.js';
 import { syncRegistration } from '@app/store/sync/registration-sync.js';
 import { FileLoadStatus } from '@app/store/types.js';
-import { setupConfigPathWatch } from '@app/store/watch/config-watch.js';
 
 export const startStoreSync = async () => {
     // The last state is stored so we don't end up in a loop of writing -> reading -> writing
@@ -45,6 +44,4 @@ export const startStoreSync = async () => {
 
         lastState = state;
     });
-
-    setupConfigPathWatch();
 };
