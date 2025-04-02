@@ -108,16 +108,8 @@ restore_pnpm_store() {
 # Output: Streams install progress and logs build script warnings
 run_pnpm_install() {
   local log_file="/var/log/unraid-api/build-scripts.log"
-  stdbuf -oL pnpm install --prod --prefer-offline 2>&1 | while IFS= read -r line; do
-    if echo "$line" | grep -q "Ignored build scripts:"; then
-      mkdir -p "$(dirname "$log_file")"
-      echo "Note: This warning is expected. Build scripts are intentionally ignored for security and performance reasons." > "$log_file"
-      echo "$line" >> "$log_file"
-      echo "Build scripts completed. See $log_file for details."
-    else
-      echo "$line"
-    fi
-  done
+  stdbuf -oL pnpm install --prod --prefer-offline --reporter=append-only 2>&1 | sed -e "/^╭ Warning/,/^╰/w $log_file" -e "/^╭ Warning/,/^╰/c\Build scripts completed. See $log_file for details."
+  echo "Note: This warning is expected. Build scripts are intentionally ignored for security and performance reasons." >> "$log_file"
 }
 
 # Installs production dependencies for the unraid-api using pnpm. Prefers offline mode.
