@@ -1,5 +1,14 @@
 import { vi } from 'vitest';
+
 import type { SendPayloads } from '@unraid/shared-callbacks';
+
+// Mock shared callbacks
+vi.mock('@unraid/shared-callbacks', () => ({
+  default: {
+    encrypt: (data: string) => data,
+    decrypt: (data: string) => data,
+  },
+}));
 
 // Mock implementation of the shared-callbacks module
 export const mockSharedCallbacks = {
@@ -16,9 +25,9 @@ export const mockSharedCallbacks = {
       },
       watcher: () => {
         return null;
-      }
+      },
     };
-  }
+  },
 };
 
 // Mock the crypto-js/aes module
@@ -29,6 +38,6 @@ vi.mock('crypto-js/aes.js', () => ({
     },
     decrypt: (data: string, _key: string) => {
       return { toString: () => data };
-    }
-  }
-})); 
+    },
+  },
+}));

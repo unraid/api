@@ -1,51 +1,44 @@
 import { config } from '@vue/test-utils';
+
 import { createTestingPinia } from '@pinia/testing';
 import { afterAll, beforeAll, vi } from 'vitest';
-import { createI18n } from 'vue-i18n';
-import { createTestApolloClient } from './mocks/apollo-client';
 
-// Mock shared callbacks
-vi.mock('@unraid/shared-callbacks', () => ({
-  default: {
-    encrypt: (data: string) => data,
-    decrypt: (data: string) => data,
-  },
-}));
+// Import mocks
+import './mocks/vue-i18n.ts';
+import './mocks/vue.ts';
+import './mocks/pinia.ts';
+import './mocks/shared-callbacks.ts';
+import './mocks/ui-libraries.ts';
+import './mocks/ui-components.ts';
+import './mocks/stores/index.ts';
+import './mocks/services/index.ts';
 
 // Configure Vue Test Utils
 config.global.plugins = [
   createTestingPinia({
     createSpy: vi.fn,
   }),
+  // Simple mock for i18n
+  {
+    install: vi.fn(),
+  },
 ];
 
-// Create a basic i18n instance for testing
-const i18n = createI18n({
-  legacy: false,
-  locale: 'en',
-  messages: {
-    en: {
-      'auth.button.title': 'Authenticate',
-      'auth.button.text': 'Click to authenticate',
-      'auth.error.message': 'Authentication failed',
-    },
-  },
+// Set a timeout for tests
+vi.setConfig({
+  testTimeout: 10000,
+  hookTimeout: 10000,
 });
 
-config.global.plugins.push(i18n);
+// Mock fetch
+globalThis.fetch = vi.fn(() =>
+  Promise.resolve({
+    ok: true,
+    json: () => Promise.resolve({}),
+    text: () => Promise.resolve(''),
+  } as Response)
+);
 
-// Create and configure Apollo client for testing
-createTestApolloClient();
-
-// Increase test timeout
-vi.setConfig({ testTimeout: 10000 });
-
-// Global setup
-beforeAll(() => {
-  // Add any global setup here
-});
-
-// Global cleanup
-afterAll(() => {
-  // Add any global cleanup here
-});
+// Global setup and cleanup
+beforeAll(() => {});
+afterAll(() => {});

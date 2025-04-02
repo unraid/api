@@ -26,8 +26,6 @@ const charsToReserve = '_$abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ01
 
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
-  ssr: false,
-
   devServer: {
     port: 4321,
   },
@@ -40,10 +38,14 @@ export default defineNuxtConfig({
     '@vueuse/nuxt',
     '@pinia/nuxt',
     '@nuxtjs/tailwindcss',
-    ...(process.env.NODE_ENV !== 'test' ? ['nuxt-custom-elements'] : []),
+    'nuxt-custom-elements',
     '@nuxt/eslint',
-
   ],
+
+  // Properly handle ES modules in testing and build environments
+  build: {
+    transpile: [/node_modules\/.*\.mjs$/, 'clsx', 'tailwind-merge'],
+  },
 
   ignore: ['/webGui/images'],
 
@@ -149,4 +151,6 @@ export default defineNuxtConfig({
   },
 
   compatibilityDate: '2024-12-05',
+
+  ssr: false,
 });
