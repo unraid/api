@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 
-import { CommandRunner, InquirerService, Option, OptionChoiceFor, SubCommand } from 'nest-commander';
+import { CommandRunner, InquirerService, Option, SubCommand } from 'nest-commander';
 
 import { store } from '@app/store/index.js';
 import { loadConfigFile, removeSsoUser } from '@app/store/modules/config.js';
