@@ -413,12 +413,12 @@ jobs:
         run: |
           ls -al ./deploy-prod
           if [ ! -f ./deploy-prod/*.plg ]; then
-            echo "Error: .plg file not found in plugin/deploy/"
+            echo "Error: .plg file not found in plugin/deploy-prod/"
             exit 1
           fi
 
           if [ ! -f ./deploy-prod/*.txz ]; then
-            echo "Error: .txz file not found in plugin/deploy/"
+            echo "Error: .txz file not found in plugin/deploy-prod/"
             exit 1
           fi
       - name: Upload to GHA
