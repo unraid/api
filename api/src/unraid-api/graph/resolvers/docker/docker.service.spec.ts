@@ -1,28 +1,44 @@
-import type { TestingModule } from '@nestjs/testing';
-import { Test } from '@nestjs/testing';
-
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import type { DockerContainer } from '@app/graphql/generated/api/types.js';
-import { getDockerContainers } from '@app/core/modules/docker/get-docker-containers.js';
-import { docker } from '@app/core/utils/clients/docker.js';
-import { ContainerState } from '@app/graphql/generated/api/types.js';
-import { DockerService } from '@app/unraid-api/graph/resolvers/docker/docker.service.js';
+const mockContainer = {
+    start: vi.fn(),
+    stop: vi.fn(),
+};
 
-vi.mock('@app/core/utils/clients/docker.js', () => ({
-    docker: {
-        getContainer: vi.fn(),
-        listContainers: vi.fn(),
+const mockDockerInstance = {
+    getContainer: vi.fn().mockReturnValue(mockContainer),
+    listContainers: vi.fn(),
+    modem: {
+        Promise: Promise,
+        protocol: 'http',
+        socketPath: '/var/run/docker.sock',
+        headers: {},
+        sshOptions: {
+            agentForward: undefined,
+        },
     },
-}));
+} as unknown as Docker;
+
+vi.mock('dockerode', () => {
+    return {
+        default: vi.fn().mockImplementation(() => mockDockerInstance),
+    };
+});
 
 vi.mock('@app/core/modules/docker/get-docker-containers.js', () => ({
     getDockerContainers: vi.fn(),
 }));
 
+import type { TestingModule } from '@nestjs/testing';
+import { Test } from '@nestjs/testing';
+import type { DockerContainer } from '@app/graphql/generated/api/types.js';
+import { getDockerContainers } from '@app/core/modules/docker/get-docker-containers.js';
+import { ContainerState } from '@app/graphql/generated/api/types.js';
+import { DockerService } from '@app/unraid-api/graph/resolvers/docker/docker.service.js';
+import Docker from 'dockerode';
+
 describe('DockerService', () => {
     let service: DockerService;
-    let mockContainer: any;
 
     beforeEach(async () => {
         const module: TestingModule = await Test.createTestingModule({
@@ -30,12 +46,10 @@ describe('DockerService', () => {
         }).compile();
 
         service = module.get<DockerService>(DockerService);
-
-        mockContainer = {
-            start: vi.fn(),
-            stop: vi.fn(),
-        };
-        vi.mocked(docker.getContainer).mockReturnValue(mockContainer as any);
+        
+        // Reset mock container methods
+        mockContainer.start.mockReset();
+        mockContainer.stop.mockReset();
     });
 
     it('should be defined', () => {
@@ -45,7 +59,7 @@ describe('DockerService', () => {
     it('should get containers', async () => {
         const mockContainers: DockerContainer[] = [
             {
-                id: '1',
+                id: 'abc123def456',
                 autoStart: false,
                 command: 'test',
                 created: 1234567890,
@@ -58,15 +72,22 @@ describe('DockerService', () => {
         ];
         vi.mocked(getDockerContainers).mockResolvedValue(mockContainers);
 
-        const result = await service.getContainers({ useCache: false });
+        const result = await service.getContainers({ useCache: false, docker: mockDockerInstance });
         expect(result).toEqual(mockContainers);
-        expect(getDockerContainers).toHaveBeenCalledWith({ useCache: false });
+        expect(getDockerContainers).toHaveBeenCalledWith({
+            useCache: false,
+            docker: expect.objectContaining({
+                getContainer: expect.any(Function),
+                listContainers: expect.any(Function),
+                modem: expect.any(Object),
+            }),
+        });
     });
 
     it('should start container', async () => {
         const mockContainers: DockerContainer[] = [
             {
-                id: '1',
+                id: 'abc123def456',
                 autoStart: false,
                 command: 'test',
                 created: 1234567890,
@@ -78,18 +99,25 @@ describe('DockerService', () => {
             },
         ];
         vi.mocked(getDockerContainers).mockResolvedValue(mockContainers);
+        mockContainer.start.mockResolvedValue(undefined);
 
-        const result = await service.startContainer('1');
+        const result = await service.startContainer('abc123def456');
         expect(result).toEqual(mockContainers[0]);
-        expect(docker.getContainer).toHaveBeenCalledWith('1');
         expect(mockContainer.start).toHaveBeenCalled();
-        expect(getDockerContainers).toHaveBeenCalledWith({ useCache: false });
+        expect(getDockerContainers).toHaveBeenCalledWith({
+            useCache: false,
+            docker: expect.objectContaining({
+                getContainer: expect.any(Function),
+                listContainers: expect.any(Function),
+                modem: expect.any(Object),
+            }),
+        });
     });
 
     it('should stop container', async () => {
         const mockContainers: DockerContainer[] = [
             {
-                id: '1',
+                id: 'abc123def456',
                 autoStart: false,
                 command: 'test',
                 created: 1234567890,
@@ -101,25 +129,34 @@ describe('DockerService', () => {
             },
         ];
         vi.mocked(getDockerContainers).mockResolvedValue(mockContainers);
+        mockContainer.stop.mockResolvedValue(undefined);
 
-        const result = await service.stopContainer('1');
+        const result = await service.stopContainer('abc123def456');
         expect(result).toEqual(mockContainers[0]);
-        expect(docker.getContainer).toHaveBeenCalledWith('1');
         expect(mockContainer.stop).toHaveBeenCalled();
-        expect(getDockerContainers).toHaveBeenCalledWith({ useCache: false });
+        expect(getDockerContainers).toHaveBeenCalledWith({
+            useCache: false,
+            docker: expect.objectContaining({
+                getContainer: expect.any(Function),
+                listContainers: expect.any(Function),
+                modem: expect.any(Object),
+            }),
+        });
     });
 
     it('should throw error if container not found after start', async () => {
         vi.mocked(getDockerContainers).mockResolvedValue([]);
+        mockContainer.start.mockResolvedValue(undefined);
 
-        await expect(service.startContainer('1')).rejects.toThrow(
-            'Container 1 not found after starting'
+        await expect(service.startContainer('abc123def456')).rejects.toThrow(
+            'Container abc123def456 not found after starting'
         );
     });
 
     it('should throw error if container not found after stop', async () => {
         vi.mocked(getDockerContainers).mockResolvedValue([]);
+        mockContainer.stop.mockResolvedValue(undefined);
 
-        await expect(service.stopContainer('1')).rejects.toThrow('Container 1 not found after stopping');
+        await expect(service.stopContainer('abc123def456')).rejects.toThrow('Container abc123def456 not found after stopping');
     });
 });
