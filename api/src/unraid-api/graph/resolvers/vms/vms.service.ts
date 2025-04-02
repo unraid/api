@@ -43,8 +43,7 @@ export class VmsService implements OnModuleInit {
         } catch (error) {
             this.isVmsAvailable = false;
             libvirtLogger.warn(
-                'VMs are not available:',
-                error instanceof Error ? error.message : 'Unknown error'
+                `VMs are not available: ${error instanceof Error ? error.message : 'Unknown error'}`
             );
         }
     }
