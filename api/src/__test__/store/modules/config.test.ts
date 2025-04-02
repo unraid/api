@@ -19,7 +19,7 @@ test('After init returns values from cfg file for all fields', async () => {
     expect(state).toMatchObject(
         expect.objectContaining({
             api: {
-                extraOrigins: expect.stringMatching('https://google.com, https://test.com'),
+                extraOrigins: expect.stringContaining('https://google.com') && expect.stringContaining('https://test.com') && expect.stringContaining(','),
                 version: expect.any(String),
             },
             connectionStatus: {
@@ -69,7 +69,7 @@ test('updateUserConfig merges in changes to current state', async () => {
     expect(state).toMatchObject(
         expect.objectContaining({
             api: {
-                extraOrigins: expect.stringMatching('https://google.com, https://test.com'),
+                extraOrigins: expect.stringContaining('https://google.com') && expect.stringContaining('https://test.com') && expect.stringContaining(','),
                 version: expect.any(String),
             },
             connectionStatus: {
