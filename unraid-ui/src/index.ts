@@ -1,5 +1,5 @@
 // Styles
-import '@app/styles/index.css';
+import '@/styles/index.css';
 import {
   BrandButton,
   brandButtonVariants,

@@ -1,4 +1,4 @@
-import CardWrapper from '@app/components/layout/CardWrapper.vue';
-import PageContainer from '@app/components/layout/PageContainer.vue';
+import CardWrapper from '@/components/layout/CardWrapper.vue';
+import PageContainer from '@/components/layout/PageContainer.vue';
 
 export { CardWrapper, PageContainer };

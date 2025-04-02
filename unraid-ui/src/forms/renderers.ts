@@ -4,7 +4,7 @@ import {
   numberFieldEntry,
   preconditionsLabelEntry,
   stringArrayEntry,
-} from '@app/forms/renderer-entries';
+} from '@/forms/renderer-entries';
 import { vanillaRenderers } from '@jsonforms/vue-vanilla';
 
 /**

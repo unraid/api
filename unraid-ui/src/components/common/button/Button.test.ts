@@ -1,4 +1,4 @@
-import Button from '@app/components/common/button/Button.vue';
+import Button from '@/components/common/button/Button.vue';
 import { render, screen } from '@testing-library/vue';
 import { describe, expect, it } from 'vitest';
 

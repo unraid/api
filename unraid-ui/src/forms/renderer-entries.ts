@@ -1,8 +1,8 @@
-import numberFieldRenderer from '@app/forms/NumberField.vue';
-import PreconditionsLabel from '@app/forms/PreconditionsLabel.vue';
-import selectRenderer from '@app/forms/Select.vue';
-import StringArrayField from '@app/forms/StringArrayField.vue';
-import switchRenderer from '@app/forms/Switch.vue';
+import numberFieldRenderer from '@/forms/NumberField.vue';
+import PreconditionsLabel from '@/forms/PreconditionsLabel.vue';
+import selectRenderer from '@/forms/Select.vue';
+import StringArrayField from '@/forms/StringArrayField.vue';
+import switchRenderer from '@/forms/Switch.vue';
 import {
   and,
   isBooleanControl,

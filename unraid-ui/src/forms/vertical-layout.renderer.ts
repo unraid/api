@@ -1,4 +1,4 @@
-import VerticalLayout from '@app/forms/VerticalLayout.vue';
+import VerticalLayout from '@/forms/VerticalLayout.vue';
 import { and, isLayout, rankWith, uiTypeIs } from '@jsonforms/core';
 import type { JsonFormsRendererRegistryEntry } from '@jsonforms/core';
 
