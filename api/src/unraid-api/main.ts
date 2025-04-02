@@ -52,7 +52,13 @@ export async function bootstrapNestServer(): Promise<NestFastifyApplication> {
         origin: true, // Allows all origins
         credentials: true,
         methods: ['GET', 'PUT', 'POST', 'DELETE', 'OPTIONS'],
-        allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'X-CSRF-TOKEN', 'X-API-KEY'],
+        allowedHeaders: [
+            'Content-Type',
+            'Authorization',
+            'X-Requested-With',
+            'X-CSRF-TOKEN',
+            'X-API-KEY',
+        ],
     });
 
     // Setup Nestjs Pino Logger
