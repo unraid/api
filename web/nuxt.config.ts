@@ -40,7 +40,7 @@ export default defineNuxtConfig({
     '@vueuse/nuxt',
     '@pinia/nuxt',
     '@nuxtjs/tailwindcss',
-    'nuxt-custom-elements',
+    ...(process.env.NODE_ENV !== 'test' ? ['nuxt-custom-elements'] : []),
     '@nuxt/eslint',
 
   ],

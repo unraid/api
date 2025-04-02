@@ -31,6 +31,7 @@
     "codegen:watch": "graphql-codegen --config codegen.ts --watch -r dotenv/config",
     "// Testing": "",
     "test": "nuxt test",
+    "test:watch": "nuxt test --watch",
     "test:ci": "nuxt test run",
     "// Nuxt": "",
     "postinstall": "nuxt prepare"
