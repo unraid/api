@@ -390,10 +390,11 @@ jobs:
           # On release, build both prod and preview plugins
           if [ "${{ needs.release-please.outputs.releases_created }}" == 'true' ]; then
             BASE_URL="https://stable.dl.unraid.net/unraid-api"
-            pnpm run build:plugin --tag="${TAG}" --base-url="${BASE_URL}"
             mv ${{ github.workspace }}/plugin/deploy ${{ github.workspace }}/plugin/deploy-prod
             mkdir -p ${{ github.workspace}}/plugin/deploy
             cp ${{ github.workspace }}/plugin/dynamix.unraid.net.txz ${{ github.workspace }}/plugin/deploy/
+            pnpm run build:plugin --tag="${TAG}" --base-url="${BASE_URL}"
+
           fi
 
           BASE_URL="https://preview.dl.unraid.net/unraid-api"
