@@ -133,7 +133,7 @@ jobs:
       - name: Upload to GHA
         uses: actions/upload-artifact@v4
         with:
-          name: unraid-plugin-${{ github.run_id }}
+          name: unraid-plugin-${{ github.run_id }}-${{ inputs.RELEASE_TAG }}
           path: plugin/deploy/
 
       - name: Upload Release Assets
