@@ -1,5 +1,14 @@
 # Changelog
 
+## [4.6.3](https://github.com/unraid/api/compare/v4.6.2...v4.6.3) (2025-04-03)
+
+
+### Bug Fixes
+
+* copy dynamix.unraid.net ([662d5f6](https://github.com/unraid/api/commit/662d5f64c94586e35bfdaae2df0716c3754b2c45))
+* make backup of txz ([37e72f9](https://github.com/unraid/api/commit/37e72f9729f6ab385ed1070fbdca6028688fbd92))
+* ordering in build script ([a562f77](https://github.com/unraid/api/commit/a562f7716380bde4a1ae0d6960eff51c37b9291c))
+
 ## [4.6.2](https://github.com/unraid/api/compare/v4.6.1...v4.6.2) (2025-04-03)
 
 
