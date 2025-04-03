@@ -13,7 +13,6 @@ concurrency:
 jobs:
   release-please:
     name: Release Please
-    # Only run release-please on pushes to main
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -21,6 +20,7 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        # Only run release-please on pushes to main
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
 
       - id: release
@@ -317,6 +317,7 @@ jobs:
     uses: ./.github/workflows/build-plugin.yml
     with:
       RELEASE_CREATED: ${{ needs.release-please.outputs.releases_created }}
+      RELEASE_TAG: ${{ needs.release-please.outputs.tag_name }}
       TAG:
       BUCKET_PATH: unraid-api
       BASE_URL: "https://stable.dl.unraid.net/unraid-api"

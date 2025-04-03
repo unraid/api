@@ -7,6 +7,10 @@ on:
         type: boolean
         required: true
         description: "Whether a release was created"
+      RELEASE_TAG:
+        type: string
+        required: false
+        description: "Name of the tag when a release is created"
       TAG:
         type: string
         required: false
@@ -139,12 +143,19 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          release_name=$(gh release list --repo ${{ github.repository }} --json name,isDraft --jq '.[] | select(.isDraft == true) | .name' | head -n 1)
           # For each file in release directory
-          for file in deploy-prod/*; do
+          for file in deploy/*; do
             echo "Uploading $file to release..."
-            gh release upload "${release_name}" "$file" --clobber
+            gh release upload "${inputs.RELEASE_TAG}" "$file" --clobber
           done  
+
+      - name: Workflow Dispatch and wait
+        if: inputs.RELEASE_CREATED == 'true'
+        uses: the-actions-org/workflow-dispatch@v4.0.0
+        with:
+          workflow: release-production.yml
+          inputs: '{ "version": "${{ steps.vars.outputs.API_VERSION }}" }'
+          token: ${{ secrets.WORKFLOW_TRIGGER_PAT }}
 
       - name: Upload to Cloudflare
         if: inputs.RELEASE_CREATED == 'false'
