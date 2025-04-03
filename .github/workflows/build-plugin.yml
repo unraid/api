@@ -140,11 +140,12 @@ jobs:
         if: inputs.RELEASE_CREATED == 'true'
         env:
           GITHUB_TOKEN: ${{ github.token }}
+          RELEASE_TAG: ${{ inputs.RELEASE_TAG }}
         run: |
           # For each file in release directory
           for file in deploy/*; do
             echo "Uploading $file to release..."
-            gh release upload "${inputs.RELEASE_TAG}" "$file" --clobber
+            gh release upload "${RELEASE_TAG}" "$file" --clobber
           done  
 
       - name: Workflow Dispatch and wait
