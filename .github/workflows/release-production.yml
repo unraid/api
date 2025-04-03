@@ -1,14 +1,11 @@
-name: Publish Release to Digital Ocean
+name: Publish Release
 
 on:
-  release:
-    types: [published]
   workflow_dispatch:
     inputs:
       version:
         description: 'Tag to update'
         required: true
-
 
 jobs:
   publish-to-digital-ocean:

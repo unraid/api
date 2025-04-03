@@ -144,7 +144,7 @@ jobs:
           for file in deploy-prod/*; do
             echo "Uploading $file to release..."
             gh release upload "${release_name}" "$file" --clobber
-          done
+          done  
 
       - name: Upload to Cloudflare
         if: inputs.RELEASE_CREATED == 'false'

@@ -11,8 +11,7 @@
       ]
     }
   },
-  "always-update": true,
   "include-component-in-tag": false,
-  "draft": true,
+  "draft": false,
   "changelog-path": "api/CHANGELOG.md"
 }
