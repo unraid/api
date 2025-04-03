@@ -24,7 +24,7 @@ export const createKeyActionsTest = createListComponentMockFactory<
   }
 >(
   // Template function that generates the mock component template
-  ({ filteredItems, maxWidth, t }) => `
+  (_options) => `
     <ul v-if="filteredItems" class="flex flex-col gap-y-8px">
       <li v-for="action in filteredItems" :key="action.name">
         <button

@@ -11,7 +11,8 @@ vi.mock('vue', async () => {
       if (typeof fn === 'function') {
         try {
           return { value: fn() };
-        } catch (e) {
+        } catch {
+          // Silently handle errors in computed functions
           return { value: undefined };
         }
       }

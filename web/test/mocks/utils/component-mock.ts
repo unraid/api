@@ -10,18 +10,16 @@
 
 import { mount } from '@vue/test-utils';
 
-import type { ComponentMountingOptions } from '@vue/test-utils';
-
 /**
  * Creates a mock component that simulates the behavior of a component with composition API
  *
  * @param template The Vue template string for the mock component
  * @param logicFn Function that transforms the input options into component data
  */
-export function createMockComponent<Props extends Record<string, any>, Data extends Record<string, any>>(
-  template: string,
-  logicFn: (props: Props) => Data
-) {
+export function createMockComponent<
+  Props extends Record<string, unknown>,
+  Data extends Record<string, unknown>,
+>(template: string, logicFn: (props: Props) => Data) {
   return (props: Props) => {
     const componentData = logicFn(props);
 

@@ -21,7 +21,7 @@
 import { mount } from '@vue/test-utils';
 
 import { CONNECT_FORUMS, CONTACT, DISCORD, WEBGUI_GRAPHQL } from '~/helpers/urls';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, it } from 'vitest';
 
 // Mock global csrf_token
 beforeEach(() => {

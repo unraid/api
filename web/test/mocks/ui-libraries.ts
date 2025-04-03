@@ -2,7 +2,7 @@ import { vi } from 'vitest';
 
 // Mock clsx
 vi.mock('clsx', () => {
-  const clsx = (...args: any[]) => {
+  const clsx = (...args: unknown[]) => {
     return args
       .flatMap((arg) => {
         if (typeof arg === 'string') return arg;
@@ -23,7 +23,7 @@ vi.mock('clsx', () => {
 
 // Mock tailwind-merge
 vi.mock('tailwind-merge', () => {
-  const twMerge = (...classes: any[]) => {
+  const twMerge = (...classes: string[]) => {
     return classes.filter(Boolean).join(' ');
   };
 
