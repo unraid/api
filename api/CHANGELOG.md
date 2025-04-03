@@ -1,5 +1,12 @@
 # Changelog
 
+## [4.6.1](https://github.com/unraid/api/compare/v4.6.0...v4.6.1) (2025-04-03)
+
+
+### Bug Fixes
+
+* don't mv deploy on prod release ([9568aab](https://github.com/unraid/api/commit/9568aabd17fbab9e7e2f06f723ee57dc2026583c))
+
 ## [4.6.0](https://github.com/unraid/api/compare/v4.5.0...v4.6.0) (2025-04-03)
 
 
