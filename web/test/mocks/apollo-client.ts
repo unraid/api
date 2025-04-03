@@ -1,27 +1,47 @@
-import { ApolloClient, InMemoryCache, createHttpLink } from '@apollo/client/core';
 import { provideApolloClient } from '@vue/apollo-composable';
-import type { WebSocket } from 'ws';
 
-// Create a simple HTTP-only Apollo Client for testing
-export function createTestApolloClient() {
-  const httpLink = createHttpLink({
-    uri: 'http://localhost:3000/graphql',
-    fetch: (_input: RequestInfo | URL, _init?: RequestInit) => {
-      // Mock the fetch response
-      return Promise.resolve(new Response(JSON.stringify({ data: {} })));
+import { ApolloClient, createHttpLink, InMemoryCache } from '@apollo/client/core';
+
+// Types for Apollo Client options
+interface TestApolloClientOptions {
+  uri?: string;
+  mockData?: Record<string, unknown>;
+}
+
+// Single function to create Apollo clients
+function createClient(options: TestApolloClientOptions = {}) {
+  const { uri = 'http://localhost/graphql', mockData = { data: {} } } = options;
+
+  return new ApolloClient({
+    link: createHttpLink({
+      uri,
+      credentials: 'include',
+      fetch: () => Promise.resolve(new Response(JSON.stringify(mockData))),
+    }),
+    cache: new InMemoryCache(),
+    defaultOptions: {
+      watchQuery: {
+        fetchPolicy: 'no-cache',
+      },
     },
   });
+}
 
-  const client = new ApolloClient({
-    link: httpLink,
-    cache: new InMemoryCache(),
-  });
+// Default mock client
+export const mockApolloClient = createClient();
 
-  // Provide the client to Vue Apollo
+// Helper function to provide the mock client
+export function provideMockApolloClient() {
+  provideApolloClient(mockApolloClient);
+
+  return mockApolloClient;
+}
+
+// Create a customizable Apollo Client
+export function createTestApolloClient(options: TestApolloClientOptions = {}) {
+  const client = createClient(options);
+
   provideApolloClient(client);
 
   return client;
 }
-
-// Export WebSocket type for use in other parts of the test setup
-export type { WebSocket }; 
