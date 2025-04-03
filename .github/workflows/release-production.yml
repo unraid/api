@@ -89,6 +89,9 @@ jobs:
               process.exit(1);
             });
 
+      - name: Cleanup Inline Scripts
+        run: |
+          rm -rf node_modules/
       - name: Upload Release Files to DO Spaces
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.DO_ACCESS_KEY }}
