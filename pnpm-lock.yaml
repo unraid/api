@@ -269,6 +269,9 @@ importers:
       systeminformation:
         specifier: ^5.25.11
         version: 5.25.11
+      unraid-api-plugin-connect:
+        specifier: workspace:*
+        version: link:../packages/unraid-api-plugin-connect
       uuid:
         specifier: ^11.0.2
         version: 11.1.0
@@ -465,6 +468,24 @@ importers:
       zx:
         specifier: ^8.3.2
         version: 8.4.1
+
+  packages/unraid-api-plugin-connect:
+    devDependencies:
+      '@nestjs/common':
+        specifier: ^11.0.11
+        version: 11.0.12(reflect-metadata@0.1.14)(rxjs@7.8.2)
+      '@nestjs/config':
+        specifier: ^4.0.2
+        version: 4.0.2(@nestjs/common@11.0.12(reflect-metadata@0.1.14)(rxjs@7.8.2))(rxjs@7.8.2)
+      '@nestjs/core':
+        specifier: ^11.0.11
+        version: 11.0.12(@nestjs/common@11.0.12(reflect-metadata@0.1.14)(rxjs@7.8.2))(reflect-metadata@0.1.14)(rxjs@7.8.2)
+      '@nestjs/graphql':
+        specifier: ^13.0.3
+        version: 13.0.4(@nestjs/common@11.0.12(reflect-metadata@0.1.14)(rxjs@7.8.2))(@nestjs/core@11.0.12(@nestjs/common@11.0.12(reflect-metadata@0.1.14)(rxjs@7.8.2))(reflect-metadata@0.1.14)(rxjs@7.8.2))(graphql@16.10.0)(reflect-metadata@0.1.14)(ts-morph@24.0.0)
+      nest-authz:
+        specifier: ^2.14.0
+        version: 2.15.0(@nestjs/common@11.0.12(reflect-metadata@0.1.14)(rxjs@7.8.2))(@nestjs/core@11.0.12(@nestjs/common@11.0.12(reflect-metadata@0.1.14)(rxjs@7.8.2))(reflect-metadata@0.1.14)(rxjs@7.8.2))(reflect-metadata@0.1.14)(rxjs@7.8.2)
 
   packages/unraid-api-plugin-health: {}
 

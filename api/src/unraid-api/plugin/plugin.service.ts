@@ -166,6 +166,9 @@ export class PluginService {
             }
         }
 
+        const connectPlugin = await import('unraid-api-plugin-connect').then((module) => module.registerGraphQLTypeDefs());
+        typeDefs.push(connectPlugin);
+
         return {
             resolvers: combinedResolvers,
             typeDefs: typeDefs.join('\n'),
