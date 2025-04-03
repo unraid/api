@@ -31,6 +31,8 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22.x'
+      - run: |
+          echo "${{ steps.release-info.outputs.body }}" >> release-notes.txt
       - run: npm install html-escaper@2 xml2js
       - name: Update Plugin Changelog
         uses: actions/github-script@v7
@@ -38,7 +40,8 @@ jobs:
           script: |
             const fs = require('fs');
             const { escape } = require('html-escaper');
-            const releaseNotes = escape(`${{ steps.release-info.outputs.body }}`);
+
+            const releaseNotes = fs.readFileSync('release-notes.txt', 'utf8');
             
             if (!releaseNotes) {
               console.error('No release notes found');
