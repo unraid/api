@@ -74,10 +74,10 @@ vi.mock('dockerode', () => {
 vi.mock('@app/store/index.js', () => ({
     getters: {
         docker: vi.fn().mockReturnValue({ containers: [] }),
-        paths: vi.fn().mockReturnValue({ 
+        paths: vi.fn().mockReturnValue({
             'docker-autostart': '/path/to/docker-autostart',
             'docker-socket': '/var/run/docker.sock',
-            'var-run': '/var/run'
+            'var-run': '/var/run',
         }),
     },
 }));
@@ -293,15 +293,15 @@ describe('DockerService', () => {
                     Config: [
                         {
                             Subnet: '172.17.0.0/16',
-                            Gateway: '172.17.0.1'
-                        }
-                    ]
+                            Gateway: '172.17.0.1',
+                        },
+                    ],
                 },
                 Internal: false,
                 Attachable: false,
                 Ingress: false,
                 ConfigFrom: {
-                    Network: ''
+                    Network: '',
                 },
                 ConfigOnly: false,
                 Containers: {},
@@ -311,10 +311,10 @@ describe('DockerService', () => {
                     'com.docker.network.bridge.enable_ip_masquerade': 'true',
                     'com.docker.network.bridge.host_binding_ipv4': '0.0.0.0',
                     'com.docker.network.bridge.name': 'docker0',
-                    'com.docker.network.driver.mtu': '1500'
+                    'com.docker.network.driver.mtu': '1500',
                 },
-                Labels: {}
-            }
+                Labels: {},
+            },
         ];
 
         mockListNetworks.mockResolvedValue(mockNetworks);
@@ -334,15 +334,15 @@ describe('DockerService', () => {
                     config: [
                         {
                             subnet: '172.17.0.0/16',
-                            gateway: '172.17.0.1'
-                        }
-                    ]
+                            gateway: '172.17.0.1',
+                        },
+                    ],
                 },
                 internal: false,
                 attachable: false,
                 ingress: false,
                 configFrom: {
-                    network: ''
+                    network: '',
                 },
                 configOnly: false,
                 containers: {},
@@ -352,10 +352,10 @@ describe('DockerService', () => {
                     comDockerNetworkBridgeEnableIpMasquerade: 'true',
                     comDockerNetworkBridgeHostBindingIpv4: '0.0.0.0',
                     comDockerNetworkBridgeName: 'docker0',
-                    comDockerNetworkDriverMtu: '1500'
+                    comDockerNetworkDriverMtu: '1500',
                 },
-                labels: {}
-            }
+                labels: {},
+            },
         ]);
 
         expect(mockListNetworks).toHaveBeenCalled();
@@ -376,7 +376,9 @@ describe('DockerService', () => {
         error.address = '/var/run/docker.sock';
         mockListNetworks.mockRejectedValue(error);
 
-        await expect(service.getNetworks({ useCache: false })).rejects.toThrow('Docker socket unavailable.');
+        await expect(service.getNetworks({ useCache: false })).rejects.toThrow(
+            'Docker socket unavailable.'
+        );
         expect(mockListNetworks).toHaveBeenCalled();
     });
 
@@ -529,7 +531,7 @@ describe('DockerService', () => {
 
             // Get the watch function from chokidar
             const { watch } = await import('chokidar');
-            
+
             // Mock the on method to simulate the add event
             const mockOn = vi.fn().mockImplementation((event, callback) => {
                 if (event === 'add') {
@@ -538,7 +540,7 @@ describe('DockerService', () => {
                 }
                 return { on: vi.fn() };
             });
-            
+
             // Replace the watch function's on method
             (watch as any).mockReturnValue({
                 on: mockOn,
@@ -554,22 +556,22 @@ describe('DockerService', () => {
         it('should stop docker watcher when docker socket is removed', async () => {
             // Get the watch function from chokidar
             const { watch } = await import('chokidar');
-            
+
             // Create a mock stop function
             const mockStop = vi.fn();
-            
+
             // Set up the dockerWatcher before calling setupVarRunWatch
             (service as any).dockerWatcher = { stop: mockStop };
-            
+
             // Mock the on method to simulate the unlink event
-            let unlinkCallback: Function = () => {};
+            let unlinkCallback: (path: string) => void = () => {};
             const mockOn = vi.fn().mockImplementation((event, callback) => {
                 if (event === 'unlink') {
                     unlinkCallback = callback;
                 }
                 return { on: mockOn };
             });
-            
+
             // Replace the watch function's on method
             (watch as any).mockReturnValue({
                 on: mockOn,
@@ -583,7 +585,7 @@ describe('DockerService', () => {
             expect(unlinkCallback).toBeDefined();
 
             // Trigger the unlink event
-            (unlinkCallback as Function)('/var/run/docker.sock');
+            unlinkCallback('/var/run/docker.sock');
 
             // Verify that the stop method was called
             expect(mockStop).toHaveBeenCalled();
@@ -594,9 +596,12 @@ describe('DockerService', () => {
         it('should setup docker watch correctly', async () => {
             // Get the DockerEE import
             const DockerEE = (await import('docker-event-emitter')).default;
-            
+
             // Mock the debouncedContainerCacheUpdate method
-            const debouncedContainerCacheUpdateSpy = vi.spyOn(service as any, 'debouncedContainerCacheUpdate');
+            const debouncedContainerCacheUpdateSpy = vi.spyOn(
+                service as any,
+                'debouncedContainerCacheUpdate'
+            );
             debouncedContainerCacheUpdateSpy.mockResolvedValue(undefined);
 
             // Call the setupDockerWatch method
@@ -604,20 +609,17 @@ describe('DockerService', () => {
 
             // Verify that DockerEE was instantiated with the client
             expect(DockerEE).toHaveBeenCalledWith(mockDockerInstance);
-            
+
             // Verify that the on method was called with the correct arguments
             const dockerEEInstance = DockerEE();
-            expect(dockerEEInstance.on).toHaveBeenCalledWith(
-                'container',
-                expect.any(Function)
-            );
-            
+            expect(dockerEEInstance.on).toHaveBeenCalledWith('container', expect.any(Function));
+
             // Verify that the start method was called
             expect(dockerEEInstance.start).toHaveBeenCalled();
-            
+
             // Verify that debouncedContainerCacheUpdate was called
             expect(debouncedContainerCacheUpdateSpy).toHaveBeenCalled();
-            
+
             // Verify that the result is the DockerEE instance
             expect(result).toBe(dockerEEInstance);
         });
@@ -625,7 +627,7 @@ describe('DockerService', () => {
         it('should call debouncedContainerCacheUpdate when container event is received', async () => {
             // Get the DockerEE import
             const DockerEE = (await import('docker-event-emitter')).default;
-            
+
             // Mock the on method to capture the callback
             const mockOnCallback = vi.fn();
             const mockOn = vi.fn().mockImplementation((event, callback) => {
@@ -634,7 +636,7 @@ describe('DockerService', () => {
                 }
                 return { on: vi.fn() };
             });
-            
+
             // Replace the DockerEE constructor's on method
             (DockerEE as any).mockReturnValue({
                 on: mockOn,
@@ -642,7 +644,10 @@ describe('DockerService', () => {
             });
 
             // Mock the debouncedContainerCacheUpdate method
-            const debouncedContainerCacheUpdateSpy = vi.spyOn(service as any, 'debouncedContainerCacheUpdate');
+            const debouncedContainerCacheUpdateSpy = vi.spyOn(
+                service as any,
+                'debouncedContainerCacheUpdate'
+            );
             debouncedContainerCacheUpdateSpy.mockResolvedValue(undefined);
 
             // Call the setupDockerWatch method
@@ -665,20 +670,27 @@ describe('DockerService', () => {
         it('should not call debouncedContainerCacheUpdate for non-watched container events', async () => {
             // Get the DockerEE import
             const DockerEE = (await import('docker-event-emitter')).default;
-            
+
             // Mock the debouncedContainerCacheUpdate method
-            const debouncedContainerCacheUpdateSpy = vi.spyOn(service as any, 'debouncedContainerCacheUpdate');
+            const debouncedContainerCacheUpdateSpy = vi.spyOn(
+                service as any,
+                'debouncedContainerCacheUpdate'
+            );
             debouncedContainerCacheUpdateSpy.mockResolvedValue(undefined);
 
             // Create a mock on function that captures the callback
-            let containerCallback: Function = () => {};
+            let containerCallback: (data: {
+                Type: string;
+                Action: string;
+                from: string;
+            }) => void = () => {};
             const mockOn = vi.fn().mockImplementation((event, callback) => {
                 if (event === 'container') {
                     containerCallback = callback;
                 }
                 return { on: vi.fn() };
             });
-            
+
             // Replace the DockerEE constructor's on method
             (DockerEE as any).mockReturnValue({
                 on: mockOn,
@@ -718,7 +730,7 @@ describe('DockerService', () => {
             // Call the debouncedContainerCacheUpdate method directly and wait for the debounce
             service['debouncedContainerCacheUpdate']();
             // Force the debounced function to execute immediately
-            await new Promise(resolve => setTimeout(resolve, 600));
+            await new Promise((resolve) => setTimeout(resolve, 600));
 
             // Verify that getContainers was called with useCache: false
             expect(getContainersSpy).toHaveBeenCalledWith({ useCache: false });
