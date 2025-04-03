@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { sheetVariants, type SheetVariants } from '@/components/common/sheet/sheet.variants';
 import useTeleport from '@/composables/useTeleport';
 import { cn } from '@/lib/utils';
 import { X } from 'lucide-vue-next';
@@ -11,7 +12,6 @@ import {
   type DialogContentEmits,
 } from 'reka-ui';
 import { computed, type HTMLAttributes } from 'vue';
-import { sheetVariants, type SheetVariants } from './sheet.variants';
 
 export interface SheetContentProps {
   side?: SheetVariants['side'];

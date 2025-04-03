@@ -1,11 +1,11 @@
 <script setup lang="ts">
-import { cn } from '@/lib/utils';
-import { computed } from 'vue';
 import {
   brandLoadingVariants,
   markAnimations,
   type BrandLoadingVariants,
-} from './brand-loading.variants';
+} from '@/components/brand/brand-loading.variants';
+import { cn } from '@/lib/utils';
+import { computed } from 'vue';
 
 export interface Props {
   variant?: BrandLoadingVariants['variant'];

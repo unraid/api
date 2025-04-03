@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import { computed } from 'vue';
-import { type BrandButtonVariants, brandButtonVariants } from './brand-button.variants';
+import { brandButtonVariants, type BrandButtonVariants } from '@/components/brand/brand-button.variants';
 import { cn } from '@/lib/utils';
+import { computed } from 'vue';
 
 export interface BrandButtonProps {
   variant?: BrandButtonVariants['variant'];
@@ -13,7 +13,9 @@ export interface BrandButtonProps {
   disabled?: boolean;
   external?: boolean;
   href?: string;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   icon?: any;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   iconRight?: any;
   iconRightHoverDisplay?: boolean;
   text?: string;
@@ -43,7 +45,10 @@ const classes = computed(() => {
   const iconSize = `w-${props.size}`;
 
   return {
-    button: cn(brandButtonVariants({ variant: props.variant, size: props.size, padding: props.padding }), props.class),
+    button: cn(
+      brandButtonVariants({ variant: props.variant, size: props.size, padding: props.padding }),
+      props.class
+    ),
     icon: `${iconSize} fill-current flex-shrink-0`,
   };
 });
@@ -74,11 +79,7 @@ const needsBrandGradientBackground = computed(() => {
       class="absolute -top-[2px] -right-[2px] -bottom-[2px] -left-[2px] -z-10 bg-gradient-to-r from-unraid-red to-orange opacity-0 transition-all rounded-md group-hover:opacity-100 group-focus:opacity-100"
     />
 
-    <component
-      :is="icon"
-      v-if="icon"
-      :class="classes.icon"
-    />
+    <component :is="icon" v-if="icon" :class="classes.icon" />
 
     {{ text }}
     <slot />
@@ -88,7 +89,8 @@ const needsBrandGradientBackground = computed(() => {
       v-if="iconRight"
       :class="[
         classes.icon,
-        iconRightHoverDisplay && 'opacity-0 group-hover:opacity-100 group-focus:opacity-100 transition-all',
+        iconRightHoverDisplay &&
+          'opacity-0 group-hover:opacity-100 group-focus:opacity-100 transition-all',
       ]"
     />
   </component>

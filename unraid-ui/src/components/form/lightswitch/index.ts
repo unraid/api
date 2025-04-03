@@ -1,1 +1,1 @@
-export { default as Lightswitch } from "./Lightswitch.vue";
+export { default as Lightswitch } from './Lightswitch.vue';

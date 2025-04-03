@@ -203,6 +203,9 @@ jobs:
           cd ${{ github.workspace }}
           pnpm install --frozen-lockfile --filter @unraid/ui
 
+      - name: Lint
+        run: pnpm run lint
+
       - name: Build
         run: pnpm run build:wc
 

@@ -21,7 +21,7 @@ export const unraidPreset = {
         sans: 'clear-sans,ui-sans-serif,system-ui,sans-serif,Apple Color Emoji,Segoe UI Emoji,Segoe UI Symbol,Noto Color Emoji',
       },
       gridTemplateColumns: {
-        'settings': '35% 1fr',
+        settings: '35% 1fr',
       },
       colors: {
         inherit: 'inherit',

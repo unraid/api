@@ -1,3 +1,8 @@
+import numberFieldRenderer from '@/forms/NumberField.vue';
+import PreconditionsLabel from '@/forms/PreconditionsLabel.vue';
+import selectRenderer from '@/forms/Select.vue';
+import StringArrayField from '@/forms/StringArrayField.vue';
+import switchRenderer from '@/forms/Switch.vue';
 import {
   and,
   isBooleanControl,
@@ -12,11 +17,6 @@ import {
   uiTypeIs,
 } from '@jsonforms/core';
 import type { JsonFormsRendererRegistryEntry, JsonSchema } from '@jsonforms/core';
-import numberFieldRenderer from './NumberField.vue';
-import PreconditionsLabel from './PreconditionsLabel.vue';
-import selectRenderer from './Select.vue';
-import StringArrayField from './StringArrayField.vue';
-import switchRenderer from './Switch.vue';
 
 const isStringArray = (schema: JsonSchema): boolean => {
   if (!schema || typeof schema !== 'object' || Array.isArray(schema)) return false;

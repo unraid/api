@@ -1,32 +1,50 @@
 {
-  "extends": "./tsconfig.app.json",
   "compilerOptions": {
-    "incremental": true,
-    "declaration": true,
-    "emitDeclarationOnly": true,
-    "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.tsbuildinfo",
+    "target": "ES2020",
+    "useDefineForClassFields": true,
+    "module": "ESNext",
+    "lib": ["ES2020", "DOM", "DOM.Iterable"],
+    "skipLibCheck": true,
+    "moduleResolution": "bundler",
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "jsx": "preserve",
+    "strict": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noFallthroughCasesInSwitch": true,
+    "allowImportingTsExtensions": true,
+    "noEmit": true,
     "baseUrl": ".",
     "paths": {
       "@/*": ["./src/*"],
+      "@/components/*": ["./src/components/*"],
+      "@/lib/*": ["./src/lib/*"],
+      "@/types/*": ["./src/types/*"],
       "@/styles": ["./src/styles"],
-      "@/components": ["./src/components"],
       "@/composables": ["./src/composables"],
-      "@/lib": ["./src/lib"],
-      "@/types": ["./src/types"],
       "@/theme": ["./src/theme"]
     },
+    "types": [
+      "vite/client",
+      "vitest/globals",
+      "node",
+      "happy-dom",
+      "@vue/test-utils",
+      "@testing-library/vue"
+    ],
     "forceConsistentCasingInFileNames": true
   },
-  "files": ["tailwind.config.ts"],
   "include": [
     "src/**/*.ts",
-    "src/**/*/*.ts",
     "src/**/*.d.ts",
     "src/**/*.tsx",
     "src/**/*.vue",
     "src/**/*.ce.vue",
-    "./tailwind.config.ts",
-    "src/theme/**/*.ts"
+    "tailwind.config.ts",
+    "src/theme/**/*.ts",
+    "**/*.config.ts",
+    "eslint.config.ts"
   ],
   "exclude": [
     "node_modules",
@@ -36,6 +54,5 @@
     "**/*.spec.ts",
     "**/*.test.tsx",
     "**/*.spec.tsx"
-  ],
-  "references": [{ "path": "./tsconfig.test.json" }]
+  ]
 }

@@ -1,7 +1,7 @@
 <script setup lang="ts">
+import { buttonVariants, type ButtonVariants } from '@/components/common/button/button.variants';
 import { cn } from '@/lib/utils';
 import { computed } from 'vue';
-import { buttonVariants, type ButtonVariants } from './button.variants';
 
 export interface ButtonProps {
   variant?: ButtonVariants['variant'];

@@ -1,10 +1,8 @@
 <script setup lang="ts">
-import { computed } from 'vue';
-
+import ControlLayout from '@/forms/ControlLayout.vue';
 import type { LabelElement } from '@jsonforms/core';
 import type { RendererProps } from '@jsonforms/vue';
-
-import ControlLayout from './ControlLayout.vue';
+import { computed } from 'vue';
 
 type PreconditionsLabelElement = LabelElement & {
   options: {

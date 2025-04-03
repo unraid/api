@@ -1,11 +1,11 @@
 <script lang="ts" setup>
 /**
  * VerticalLayout component
- * 
+ *
  * Renders form elements in a vertical layout with labels aligned to the right
  * and fields to the left. Consumes JSON Schema uischema to determine what elements
  * to render.
- * 
+ *
  * @prop schema - The JSON Schema
  * @prop uischema - The UI Schema containing the layout elements
  * @prop path - The current path
@@ -14,10 +14,9 @@
  * @prop cells - Available cells
  */
 import { Label } from '@/components/form/label';
+import type { VerticalLayout } from '@jsonforms/core';
 import { DispatchRenderer, type RendererProps } from '@jsonforms/vue';
 import { computed } from 'vue';
-import type { VerticalLayout } from '@jsonforms/core';
-
 
 const props = defineProps<RendererProps<VerticalLayout>>();
 

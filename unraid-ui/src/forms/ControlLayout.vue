@@ -1,7 +1,6 @@
 <script setup lang="ts">
-import { computed } from 'vue';
-
 import { Label } from '@/components/form/label';
+import { computed } from 'vue';
 
 const props = defineProps<{
   label: string;
@@ -24,7 +23,7 @@ const formattedLabel = computed(() => {
   <div class="grid grid-cols-settings items-baseline">
     <Label class="text-end">{{ formattedLabel }}</Label>
     <div class="ml-10 max-w-3xl">
-      <slot></slot>
+      <slot />
       <div v-if="normalizedErrors.length > 0" class="mt-2 text-red-500 text-sm">
         <p v-for="error in normalizedErrors" :key="error">{{ error }}</p>
       </div>
