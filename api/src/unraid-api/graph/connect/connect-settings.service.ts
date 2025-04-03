@@ -18,7 +18,7 @@ import {
     WAN_FORWARD_TYPE,
 } from '@app/graphql/generated/api/types.js';
 import { setupRemoteAccessThunk } from '@app/store/actions/setup-remote-access.js';
-import { updateAllowedOrigins, updateUserConfig } from '@app/store/modules/config.js';
+import { setSsoUsers, updateAllowedOrigins, updateUserConfig } from '@app/store/modules/config.js';
 import { mergeSettingSlices } from '@app/unraid-api/types/json-forms.js';
 import { csvStringToArray } from '@app/utils.js';
 
@@ -50,11 +50,12 @@ export class ConnectSettingsService {
 
     async getCurrentSettings(): Promise<ConnectSettingsValues> {
         const { getters } = await import('@app/store/index.js');
-        const { local, api } = getters.config();
+        const { local, api, remote } = getters.config();
         return {
             ...(await this.dynamicRemoteAccessSettings()),
             sandbox: local.sandbox === 'yes',
             extraOrigins: csvStringToArray(api.extraOrigins),
+            ssoUserIds: csvStringToArray(remote.ssoSubIds),
         };
     }
 
@@ -63,7 +64,7 @@ export class ConnectSettingsService {
      * @param settings - The settings to sync
      * @returns true if a restart is required, false otherwise
      */
-    async syncSettings(settings: Partial<ApiSettingsInput>) {
+    async syncSettings(settings: Partial<ApiSettingsInput>): Promise<boolean> {
         let restartRequired = false;
         const { getters } = await import('@app/store/index.js');
         const { nginx } = getters.emhttp();
@@ -86,12 +87,14 @@ export class ConnectSettingsService {
                 port: settings.port,
             });
         }
-
         if (settings.extraOrigins) {
             await this.updateAllowedOrigins(settings.extraOrigins);
         }
         if (typeof settings.sandbox === 'boolean') {
             restartRequired ||= await this.setSandboxMode(settings.sandbox);
+        }
+        if (settings.ssoUserIds) {
+            restartRequired ||= await this.updateSSOUsers(settings.ssoUserIds);
         }
         const { writeConfigSync } = await import('@app/store/sync/config-disk-sync.js');
         writeConfigSync('flash');
@@ -115,6 +118,32 @@ export class ConnectSettingsService {
         if (currentSandbox === sandbox) return false;
         store.dispatch(updateUserConfig({ local: { sandbox } }));
         return true;
+    }
+
+    /**
+     * Updates the SSO users and returns true if a restart is required
+     * @param userIds - The list of SSO user IDs
+     * @returns true if a restart is required, false otherwise
+     */
+    private async updateSSOUsers(userIds: string[]): Promise<boolean> {
+        const { ssoUserIds } = await this.getCurrentSettings();
+        const currentUserSet = new Set(ssoUserIds);
+        const newUserSet = new Set(userIds);
+        if (newUserSet.symmetricDifference(currentUserSet).size === 0) {
+            // there's no change, so no need to update
+            return false;
+        }
+        // make sure we aren't adding invalid user ids
+        const uuidRegex =
+            /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/;
+        const invalidUserIds = userIds.filter((id) => !uuidRegex.test(id));
+        if (invalidUserIds.length > 0) {
+            throw new GraphQLError(`Invalid SSO user ID's: ${invalidUserIds.join(', ')}`);
+        }
+        const { store } = await import('@app/store/index.js');
+        store.dispatch(setSsoUsers(userIds));
+        // request a restart if we're there were no sso users before
+        return currentUserSet.size === 0;
     }
 
     private async updateRemoteAccess(input: SetupRemoteAccessInput): Promise<boolean> {
@@ -151,6 +180,7 @@ export class ConnectSettingsService {
             await this.remoteAccessSlice(),
             await this.sandboxSlice(),
             this.flashBackupSlice(),
+            this.ssoUsersSlice(),
             // Because CORS is effectively disabled, this setting is no longer necessary
             // keeping it here for in case it needs to be re-enabled
             //
@@ -339,6 +369,34 @@ export class ConnectSettingsService {
                     options: {
                         inputType: 'url',
                         placeholder: 'https://example.com',
+                    },
+                },
+            ],
+        };
+    }
+
+    /**
+     * Extra origins settings slice
+     */
+    ssoUsersSlice(): SettingSlice {
+        return {
+            properties: {
+                ssoUserIds: {
+                    type: 'array',
+                    items: {
+                        type: 'string',
+                    },
+                    title: 'Unraid API SSO Users',
+                    description: `Provide a list of Unique Unraid Account ID's. Find yours at <a href="https://account.unraid.net/settings" target="_blank">account.unraid.net/settings</a>`,
+                },
+            },
+            elements: [
+                {
+                    type: 'Control',
+                    scope: '#/properties/ssoUserIds',
+                    options: {
+                        inputType: 'text',
+                        placeholder: 'UUID',
                     },
                 },
             ],

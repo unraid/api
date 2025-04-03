@@ -14,6 +14,7 @@ export const getConnectSettingsForm = graphql(/* GraphQL */ `
           accessType
           forwardType
           port
+          ssoUserIds
         }
       }
     }
@@ -28,6 +29,7 @@ export const updateConnectSettings = graphql(/* GraphQL */ `
       accessType
       forwardType
       port
+      ssoUserIds
     }
   }
 `);

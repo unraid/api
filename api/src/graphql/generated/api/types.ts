@@ -107,6 +107,8 @@ export type ApiSettingsInput = {
    * If false, the GraphQL sandbox will be disabled and only the production API will be available.
    */
   sandbox?: InputMaybe<Scalars['Boolean']['input']>;
+  /** A list of Unique Unraid Account ID's. */
+  ssoUserIds?: InputMaybe<Array<Scalars['String']['input']>>;
 };
 
 export type ArrayType = Node & {
@@ -408,6 +410,8 @@ export type ConnectSettingsValues = {
    * If false, the GraphQL sandbox is disabled and only the production API will be available.
    */
   sandbox: Scalars['Boolean']['output'];
+  /** A list of Unique Unraid Account ID's. */
+  ssoUserIds: Array<Scalars['String']['output']>;
 };
 
 export type ConnectSignInInput = {
@@ -2373,6 +2377,7 @@ export type ConnectSettingsValuesResolvers<ContextType = Context, ParentType ext
   forwardType?: Resolver<Maybe<ResolversTypes['WAN_FORWARD_TYPE']>, ParentType, ContextType>;
   port?: Resolver<Maybe<ResolversTypes['Port']>, ParentType, ContextType>;
   sandbox?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
+  ssoUserIds?: Resolver<Array<ResolversTypes['String']>, ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
 

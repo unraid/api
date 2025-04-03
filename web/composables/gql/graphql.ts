@@ -110,6 +110,8 @@ export type ApiSettingsInput = {
    * If false, the GraphQL sandbox will be disabled and only the production API will be available.
    */
   sandbox?: InputMaybe<Scalars['Boolean']['input']>;
+  /** A list of Unique Unraid Account ID's. */
+  ssoUserIds?: InputMaybe<Array<Scalars['String']['input']>>;
 };
 
 export type ArrayType = Node & {
@@ -194,6 +196,13 @@ export enum ArrayDiskFsColor {
   YellowOn = 'yellow_on'
 }
 
+export type ArrayDiskInput = {
+  /** Disk ID */
+  id: Scalars['ID']['input'];
+  /** The slot for the disk */
+  slot?: InputMaybe<Scalars['Int']['input']>;
+};
+
 export enum ArrayDiskStatus {
   /**  disabled, old disk still present  */
   DiskDsbl = 'DISK_DSBL',
@@ -225,6 +234,49 @@ export enum ArrayDiskType {
   /** Parity disk */
   Parity = 'Parity'
 }
+
+export type ArrayMutations = {
+  __typename?: 'ArrayMutations';
+  /** Add new disk to array */
+  addDiskToArray?: Maybe<ArrayType>;
+  clearArrayDiskStatistics?: Maybe<Scalars['JSON']['output']>;
+  mountArrayDisk?: Maybe<Disk>;
+  /** Remove existing disk from array. NOTE: The array must be stopped before running this otherwise it'll throw an error. */
+  removeDiskFromArray?: Maybe<ArrayType>;
+  /** Set array state */
+  setState?: Maybe<ArrayType>;
+  unmountArrayDisk?: Maybe<Disk>;
+};
+
+
+export type ArrayMutationsaddDiskToArrayArgs = {
+  input?: InputMaybe<ArrayDiskInput>;
+};
+
+
+export type ArrayMutationsclearArrayDiskStatisticsArgs = {
+  id: Scalars['ID']['input'];
+};
+
+
+export type ArrayMutationsmountArrayDiskArgs = {
+  id: Scalars['ID']['input'];
+};
+
+
+export type ArrayMutationsremoveDiskFromArrayArgs = {
+  input?: InputMaybe<ArrayDiskInput>;
+};
+
+
+export type ArrayMutationssetStateArgs = {
+  input?: InputMaybe<ArrayStateInput>;
+};
+
+
+export type ArrayMutationsunmountArrayDiskArgs = {
+  id: Scalars['ID']['input'];
+};
 
 export enum ArrayPendingState {
   /** Array has no data disks */
@@ -260,6 +312,18 @@ export enum ArrayState {
   SwapDsbl = 'SWAP_DSBL',
   /** Array has too many missing data disks */
   TooManyMissingDisks = 'TOO_MANY_MISSING_DISKS'
+}
+
+export type ArrayStateInput = {
+  /** Array state */
+  desiredState: ArrayStateInputState;
+};
+
+export enum ArrayStateInputState {
+  /** Start array */
+  Start = 'START',
+  /** Stop array */
+  Stop = 'STOP'
 }
 
 export type Baseboard = {
@@ -349,6 +413,8 @@ export type ConnectSettingsValues = {
    * If false, the GraphQL sandbox is disabled and only the production API will be available.
    */
   sandbox: Scalars['Boolean']['output'];
+  /** A list of Unique Unraid Account ID's. */
+  ssoUserIds: Array<Scalars['String']['output']>;
 };
 
 export type ConnectSignInInput = {
@@ -496,6 +562,7 @@ export type Docker = Node & {
   __typename?: 'Docker';
   containers?: Maybe<Array<DockerContainer>>;
   id: Scalars['ID']['output'];
+  mutations: DockerMutations;
   networks?: Maybe<Array<DockerNetwork>>;
 };
 
@@ -517,6 +584,22 @@ export type DockerContainer = {
   sizeRootFs?: Maybe<Scalars['Long']['output']>;
   state: ContainerState;
   status: Scalars['String']['output'];
+};
+
+export type DockerMutations = {
+  __typename?: 'DockerMutations';
+  startContainer: DockerContainer;
+  stopContainer: DockerContainer;
+};
+
+
+export type DockerMutationsstartContainerArgs = {
+  id: Scalars['ID']['input'];
+};
+
+
+export type DockerMutationsstopContainerArgs = {
+  id: Scalars['ID']['input'];
 };
 
 export type DockerNetwork = {
@@ -734,8 +817,6 @@ export type Mount = {
 
 export type Mutation = {
   __typename?: 'Mutation';
-  /** Add new disk to array */
-  addDiskToArray?: Maybe<ArrayType>;
   addPermission: Scalars['Boolean']['output'];
   addRoleForApiKey: Scalars['Boolean']['output'];
   addRoleForUser: Scalars['Boolean']['output'];
@@ -745,9 +826,9 @@ export type Mutation = {
   /** Marks a notification as archived. */
   archiveNotification: Notification;
   archiveNotifications: NotificationOverview;
+  array?: Maybe<ArrayMutations>;
   /** Cancel parity check */
   cancelParityCheck?: Maybe<Scalars['JSON']['output']>;
-  clearArrayDiskStatistics?: Maybe<Scalars['JSON']['output']>;
   connectSignIn: Scalars['Boolean']['output'];
   connectSignOut: Scalars['Boolean']['output'];
   createApiKey: ApiKeyWithSecret;
@@ -759,29 +840,21 @@ export type Mutation = {
   deleteUser?: Maybe<User>;
   enableDynamicRemoteAccess: Scalars['Boolean']['output'];
   login?: Maybe<Scalars['String']['output']>;
-  mountArrayDisk?: Maybe<Disk>;
   /** Pause parity check */
   pauseParityCheck?: Maybe<Scalars['JSON']['output']>;
   reboot?: Maybe<Scalars['String']['output']>;
   /** Reads each notification to recompute & update the overview. */
   recalculateOverview: NotificationOverview;
-  /** Remove existing disk from array. NOTE: The array must be stopped before running this otherwise it'll throw an error. */
-  removeDiskFromArray?: Maybe<ArrayType>;
   removeRoleFromApiKey: Scalars['Boolean']['output'];
   /** Resume parity check */
   resumeParityCheck?: Maybe<Scalars['JSON']['output']>;
   setAdditionalAllowedOrigins: Array<Scalars['String']['output']>;
   setupRemoteAccess: Scalars['Boolean']['output'];
   shutdown?: Maybe<Scalars['String']['output']>;
-  /** Start array */
-  startArray?: Maybe<ArrayType>;
   /** Start parity check */
   startParityCheck?: Maybe<Scalars['JSON']['output']>;
-  /** Stop array */
-  stopArray?: Maybe<ArrayType>;
   unarchiveAll: NotificationOverview;
   unarchiveNotifications: NotificationOverview;
-  unmountArrayDisk?: Maybe<Disk>;
   /** Marks a notification as unread. */
   unreadNotification: Notification;
   /**
@@ -789,11 +862,6 @@ export type Mutation = {
    * Some setting combinations may be required or disallowed. Please refer to each setting for more information.
    */
   updateApiSettings: ConnectSettingsValues;
-};
-
-
-export type MutationaddDiskToArrayArgs = {
-  input?: InputMaybe<arrayDiskInput>;
 };
 
 
@@ -829,11 +897,6 @@ export type MutationarchiveNotificationArgs = {
 
 export type MutationarchiveNotificationsArgs = {
   ids?: InputMaybe<Array<Scalars['String']['input']>>;
-};
-
-
-export type MutationclearArrayDiskStatisticsArgs = {
-  id: Scalars['ID']['input'];
 };
 
 
@@ -874,16 +937,6 @@ export type MutationloginArgs = {
 };
 
 
-export type MutationmountArrayDiskArgs = {
-  id: Scalars['ID']['input'];
-};
-
-
-export type MutationremoveDiskFromArrayArgs = {
-  input?: InputMaybe<arrayDiskInput>;
-};
-
-
 export type MutationremoveRoleFromApiKeyArgs = {
   input: RemoveRoleFromApiKeyInput;
 };
@@ -911,11 +964,6 @@ export type MutationunarchiveAllArgs = {
 
 export type MutationunarchiveNotificationsArgs = {
   ids?: InputMaybe<Array<Scalars['String']['input']>>;
-};
-
-
-export type MutationunmountArrayDiskArgs = {
-  id: Scalars['ID']['input'];
 };
 
 
@@ -1826,13 +1874,6 @@ export type addUserInput = {
   password: Scalars['String']['input'];
 };
 
-export type arrayDiskInput = {
-  /** Disk ID */
-  id: Scalars['ID']['input'];
-  /** The slot for the disk */
-  slot?: InputMaybe<Scalars['Int']['input']>;
-};
-
 export type deleteUserInput = {
   name: Scalars['String']['input'];
 };
@@ -1860,14 +1901,14 @@ export type usersInput = {
 export type GetConnectSettingsFormQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type GetConnectSettingsFormQuery = { __typename?: 'Query', connect: { __typename?: 'Connect', id: string, settings: { __typename?: 'ConnectSettings', id: string, dataSchema: any, uiSchema: any, values: { __typename?: 'ConnectSettingsValues', sandbox: boolean, extraOrigins: Array<string>, accessType: WAN_ACCESS_TYPE, forwardType?: WAN_FORWARD_TYPE | null, port?: number | null } } } };
+export type GetConnectSettingsFormQuery = { __typename?: 'Query', connect: { __typename?: 'Connect', id: string, settings: { __typename?: 'ConnectSettings', id: string, dataSchema: any, uiSchema: any, values: { __typename?: 'ConnectSettingsValues', sandbox: boolean, extraOrigins: Array<string>, accessType: WAN_ACCESS_TYPE, forwardType?: WAN_FORWARD_TYPE | null, port?: number | null, ssoUserIds: Array<string> } } } };
 
 export type UpdateConnectSettingsMutationVariables = Exact<{
   input: ApiSettingsInput;
 }>;
 
 
-export type UpdateConnectSettingsMutation = { __typename?: 'Mutation', updateApiSettings: { __typename?: 'ConnectSettingsValues', sandbox: boolean, extraOrigins: Array<string>, accessType: WAN_ACCESS_TYPE, forwardType?: WAN_FORWARD_TYPE | null, port?: number | null } };
+export type UpdateConnectSettingsMutation = { __typename?: 'Mutation', updateApiSettings: { __typename?: 'ConnectSettingsValues', sandbox: boolean, extraOrigins: Array<string>, accessType: WAN_ACCESS_TYPE, forwardType?: WAN_FORWARD_TYPE | null, port?: number | null, ssoUserIds: Array<string> } };
 
 export type LogFilesQueryVariables = Exact<{ [key: string]: never; }>;
 
@@ -2016,8 +2057,8 @@ export type setupRemoteAccessMutation = { __typename?: 'Mutation', setupRemoteAc
 export const NotificationFragmentFragmentDoc = {"kind":"Document","definitions":[{"kind":"FragmentDefinition","name":{"kind":"Name","value":"NotificationFragment"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"Notification"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"title"}},{"kind":"Field","name":{"kind":"Name","value":"subject"}},{"kind":"Field","name":{"kind":"Name","value":"description"}},{"kind":"Field","name":{"kind":"Name","value":"importance"}},{"kind":"Field","name":{"kind":"Name","value":"link"}},{"kind":"Field","name":{"kind":"Name","value":"type"}},{"kind":"Field","name":{"kind":"Name","value":"timestamp"}},{"kind":"Field","name":{"kind":"Name","value":"formattedTimestamp"}}]}}]} as unknown as DocumentNode<NotificationFragmentFragment, unknown>;
 export const NotificationCountFragmentFragmentDoc = {"kind":"Document","definitions":[{"kind":"FragmentDefinition","name":{"kind":"Name","value":"NotificationCountFragment"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"NotificationCounts"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"total"}},{"kind":"Field","name":{"kind":"Name","value":"info"}},{"kind":"Field","name":{"kind":"Name","value":"warning"}},{"kind":"Field","name":{"kind":"Name","value":"alert"}}]}}]} as unknown as DocumentNode<NotificationCountFragmentFragment, unknown>;
 export const PartialCloudFragmentDoc = {"kind":"Document","definitions":[{"kind":"FragmentDefinition","name":{"kind":"Name","value":"PartialCloud"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"Cloud"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"error"}},{"kind":"Field","name":{"kind":"Name","value":"apiKey"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"valid"}},{"kind":"Field","name":{"kind":"Name","value":"error"}}]}},{"kind":"Field","name":{"kind":"Name","value":"cloud"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"status"}},{"kind":"Field","name":{"kind":"Name","value":"error"}}]}},{"kind":"Field","name":{"kind":"Name","value":"minigraphql"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"status"}},{"kind":"Field","name":{"kind":"Name","value":"error"}}]}},{"kind":"Field","name":{"kind":"Name","value":"relay"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"status"}},{"kind":"Field","name":{"kind":"Name","value":"error"}}]}}]}}]} as unknown as DocumentNode<PartialCloudFragment, unknown>;
-export const GetConnectSettingsFormDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"GetConnectSettingsForm"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"connect"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"settings"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"dataSchema"}},{"kind":"Field","name":{"kind":"Name","value":"uiSchema"}},{"kind":"Field","name":{"kind":"Name","value":"values"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"sandbox"}},{"kind":"Field","name":{"kind":"Name","value":"extraOrigins"}},{"kind":"Field","name":{"kind":"Name","value":"accessType"}},{"kind":"Field","name":{"kind":"Name","value":"forwardType"}},{"kind":"Field","name":{"kind":"Name","value":"port"}}]}}]}}]}}]}}]} as unknown as DocumentNode<GetConnectSettingsFormQuery, GetConnectSettingsFormQueryVariables>;
-export const UpdateConnectSettingsDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"UpdateConnectSettings"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"input"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"ApiSettingsInput"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"updateApiSettings"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"input"},"value":{"kind":"Variable","name":{"kind":"Name","value":"input"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"sandbox"}},{"kind":"Field","name":{"kind":"Name","value":"extraOrigins"}},{"kind":"Field","name":{"kind":"Name","value":"accessType"}},{"kind":"Field","name":{"kind":"Name","value":"forwardType"}},{"kind":"Field","name":{"kind":"Name","value":"port"}}]}}]}}]} as unknown as DocumentNode<UpdateConnectSettingsMutation, UpdateConnectSettingsMutationVariables>;
+export const GetConnectSettingsFormDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"GetConnectSettingsForm"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"connect"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"settings"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"dataSchema"}},{"kind":"Field","name":{"kind":"Name","value":"uiSchema"}},{"kind":"Field","name":{"kind":"Name","value":"values"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"sandbox"}},{"kind":"Field","name":{"kind":"Name","value":"extraOrigins"}},{"kind":"Field","name":{"kind":"Name","value":"accessType"}},{"kind":"Field","name":{"kind":"Name","value":"forwardType"}},{"kind":"Field","name":{"kind":"Name","value":"port"}},{"kind":"Field","name":{"kind":"Name","value":"ssoUserIds"}}]}}]}}]}}]}}]} as unknown as DocumentNode<GetConnectSettingsFormQuery, GetConnectSettingsFormQueryVariables>;
+export const UpdateConnectSettingsDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"UpdateConnectSettings"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"input"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"ApiSettingsInput"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"updateApiSettings"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"input"},"value":{"kind":"Variable","name":{"kind":"Name","value":"input"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"sandbox"}},{"kind":"Field","name":{"kind":"Name","value":"extraOrigins"}},{"kind":"Field","name":{"kind":"Name","value":"accessType"}},{"kind":"Field","name":{"kind":"Name","value":"forwardType"}},{"kind":"Field","name":{"kind":"Name","value":"port"}},{"kind":"Field","name":{"kind":"Name","value":"ssoUserIds"}}]}}]}}]} as unknown as DocumentNode<UpdateConnectSettingsMutation, UpdateConnectSettingsMutationVariables>;
 export const LogFilesDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"LogFiles"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"logFiles"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"path"}},{"kind":"Field","name":{"kind":"Name","value":"size"}},{"kind":"Field","name":{"kind":"Name","value":"modifiedAt"}}]}}]}}]} as unknown as DocumentNode<LogFilesQuery, LogFilesQueryVariables>;
 export const LogFileContentDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"LogFileContent"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"path"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"lines"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"Int"}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"startLine"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"Int"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"logFile"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"path"},"value":{"kind":"Variable","name":{"kind":"Name","value":"path"}}},{"kind":"Argument","name":{"kind":"Name","value":"lines"},"value":{"kind":"Variable","name":{"kind":"Name","value":"lines"}}},{"kind":"Argument","name":{"kind":"Name","value":"startLine"},"value":{"kind":"Variable","name":{"kind":"Name","value":"startLine"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"path"}},{"kind":"Field","name":{"kind":"Name","value":"content"}},{"kind":"Field","name":{"kind":"Name","value":"totalLines"}},{"kind":"Field","name":{"kind":"Name","value":"startLine"}}]}}]}}]} as unknown as DocumentNode<LogFileContentQuery, LogFileContentQueryVariables>;
 export const LogFileSubscriptionDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"subscription","name":{"kind":"Name","value":"LogFileSubscription"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"path"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"logFile"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"path"},"value":{"kind":"Variable","name":{"kind":"Name","value":"path"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"path"}},{"kind":"Field","name":{"kind":"Name","value":"content"}},{"kind":"Field","name":{"kind":"Name","value":"totalLines"}}]}}]}}]} as unknown as DocumentNode<LogFileSubscriptionSubscription, LogFileSubscriptionSubscriptionVariables>;
