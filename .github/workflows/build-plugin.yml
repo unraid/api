@@ -1,0 +1,186 @@
+name: Build Plugin Component
+
+on:
+  workflow_call:
+    inputs:
+      RELEASE_CREATED:
+        type: boolean
+        required: true
+        description: "Whether a release was created"
+      RELEASE_TAG:
+        type: string
+        required: false
+        description: "Name of the tag when a release is created"
+      TAG:
+        type: string
+        required: false
+        description: "Tag for the build (e.g. PR number or version)"
+      BUCKET_PATH:
+        type: string
+        required: true
+        description: "Path in the bucket where artifacts should be stored"
+      BASE_URL:
+        type: string
+        required: true
+        description: "Base URL for the plugin builds"
+    secrets:
+      CF_ACCESS_KEY_ID:
+        required: true
+      CF_SECRET_ACCESS_KEY:
+        required: true
+      CF_BUCKET_PREVIEW:
+        required: true
+      CF_ENDPOINT:
+        required: true
+      GITHUB_TOKEN:
+        required: true
+jobs:
+  build-plugin:
+    name: Build and Deploy Plugin
+    defaults:
+      run:
+        working-directory: plugin
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Install Node
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: ".nvmrc"
+
+      - uses: pnpm/action-setup@v4
+        name: Install pnpm
+        with:
+          run_install: false
+
+      - name: Get pnpm store directory
+        id: pnpm-cache
+        shell: bash
+        run: |
+          echo "STORE_PATH=$(pnpm store path)" >> $GITHUB_OUTPUT
+
+      - name: Get API Version
+        id: vars
+        run: |
+          GIT_SHA=$(git rev-parse --short HEAD)
+          IS_TAGGED=$(git describe --tags --abbrev=0 --exact-match || echo '')
+          PACKAGE_LOCK_VERSION=$(jq -r '.version' package.json)
+          API_VERSION=$([[ -n "$IS_TAGGED" ]] && echo "$PACKAGE_LOCK_VERSION" || echo "${PACKAGE_LOCK_VERSION}+${GIT_SHA}")
+          echo "API_VERSION=${API_VERSION}" >> $GITHUB_OUTPUT
+
+      - uses: actions/cache@v4
+        name: Setup pnpm cache
+        with:
+          path: ${{ steps.pnpm-cache.outputs.STORE_PATH }}
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
+
+      - name: Install dependencies
+        run: |
+          cd ${{ github.workspace }}
+          pnpm install --frozen-lockfile --filter @unraid/connect-plugin
+
+      - name: Download Unraid UI Components
+        uses: actions/download-artifact@v4
+        with:
+          name: unraid-wc-ui
+          path: ${{ github.workspace }}/plugin/source/dynamix.unraid.net/usr/local/emhttp/plugins/dynamix.my.servers/unraid-components/uui
+          merge-multiple: true
+      - name: Download Unraid Web Components
+        uses: actions/download-artifact@v4
+        with:
+          pattern: unraid-wc-rich
+          path: ${{ github.workspace }}/plugin/source/dynamix.unraid.net/usr/local/emhttp/plugins/dynamix.my.servers/unraid-components/nuxt
+          merge-multiple: true
+      - name: Download Unraid API
+        uses: actions/download-artifact@v4
+        with:
+          name: unraid-api
+          path: ${{ github.workspace }}/plugin/api/
+      - name: Download PNPM Store
+        uses: actions/download-artifact@v4
+        with:
+          name: packed-pnpm-store
+          path: ${{ github.workspace }}/plugin/
+      - name: Extract Unraid API
+        run: |
+          mkdir -p ${{ github.workspace }}/plugin/source/dynamix.unraid.net/usr/local/unraid-api
+          tar -xzf ${{ github.workspace }}/plugin/api/unraid-api.tgz -C ${{ github.workspace }}/plugin/source/dynamix.unraid.net/usr/local/unraid-api
+      - name: Build Plugin and TXZ Based on Event and Tag
+        id: build-plugin
+        run: |
+          cd ${{ github.workspace }}/plugin
+          ls -al
+          pnpm run build:txz
+          pnpm run build:plugin --tag="${{ inputs.TAG }}" --base-url="${{ inputs.BASE_URL }}"
+
+      - name: Ensure Plugin Files Exist
+        run: |
+          ls -al ./deploy
+          if [ ! -f ./deploy/*.plg ]; then
+            echo "Error: .plg file not found in plugin/deploy/"
+            exit 1
+          fi
+
+          if [ ! -f ./deploy/*.txz ]; then
+            echo "Error: .txz file not found in plugin/deploy/"
+            exit 1
+          fi
+
+      - name: Upload to GHA
+        uses: actions/upload-artifact@v4
+        with:
+          name: unraid-plugin
+          path: plugin/deploy/
+
+      - name: Upload Release Assets
+        if: inputs.RELEASE_CREATED == 'true'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # For each file in release directory
+          for file in deploy/*; do
+            echo "Uploading $file to release..."
+            gh release upload "${inputs.RELEASE_TAG}" "$file" --clobber
+          done  
+
+      - name: Workflow Dispatch and wait
+        if: inputs.RELEASE_CREATED == 'true'
+        uses: the-actions-org/workflow-dispatch@v4.0.0
+        with:
+          workflow: release-production.yml
+          inputs: '{ "version": "${{ steps.vars.outputs.API_VERSION }}" }'
+          token: ${{ secrets.WORKFLOW_TRIGGER_PAT }}
+
+      - name: Upload to Cloudflare
+        if: inputs.RELEASE_CREATED == 'false'
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.CF_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.CF_SECRET_ACCESS_KEY }}
+          AWS_DEFAULT_REGION: auto
+        run: |
+          # Sync the deploy directory to the Cloudflare bucket with explicit content encoding and public-read ACL
+          aws s3 sync deploy/ s3://${{ secrets.CF_BUCKET_PREVIEW }}/${{ inputs.BUCKET_PATH }} \
+            --endpoint-url ${{ secrets.CF_ENDPOINT }} \
+            --checksum-algorithm CRC32 \
+            --no-guess-mime-type \
+            --content-encoding none \
+            --acl public-read
+
+      - name: Comment URL
+        if: github.event_name == 'pull_request'
+        uses: thollander/actions-comment-pull-request@v3
+        with:
+          comment-tag: prlink
+          mode: recreate
+          message: |
+            This plugin has been deployed to Cloudflare R2 and is available for testing.
+            Download it at this URL:
+            ```
+            ${{ inputs.BASE_URL }}/tag/${{ inputs.TAG }}/dynamix.unraid.net.plg
+            ```
