@@ -32,8 +32,6 @@ on:
         required: true
       CF_ENDPOINT:
         required: true
-      GITHUB_TOKEN:
-        required: true
 jobs:
   build-plugin:
     name: Build and Deploy Plugin
@@ -141,7 +139,7 @@ jobs:
       - name: Upload Release Assets
         if: inputs.RELEASE_CREATED == 'true'
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ github.token }}
         run: |
           # For each file in release directory
           for file in deploy/*; do

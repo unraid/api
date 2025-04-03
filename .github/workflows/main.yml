@@ -303,7 +303,6 @@ jobs:
       CF_SECRET_ACCESS_KEY: ${{ secrets.CF_SECRET_ACCESS_KEY }}
       CF_BUCKET_PREVIEW: ${{ secrets.CF_BUCKET_PREVIEW }}
       CF_ENDPOINT: ${{ secrets.CF_ENDPOINT }}
-      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   build-plugin-production:
     if: ${{ needs.release-please.outputs.releases_created == 'true' }}
@@ -326,4 +325,3 @@ jobs:
       CF_SECRET_ACCESS_KEY: ${{ secrets.CF_SECRET_ACCESS_KEY }}
       CF_BUCKET_PREVIEW: ${{ secrets.CF_BUCKET_PREVIEW }}
       CF_ENDPOINT: ${{ secrets.CF_ENDPOINT }}
-      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
