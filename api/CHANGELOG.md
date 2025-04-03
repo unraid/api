@@ -1,5 +1,12 @@
 # Changelog
 
+## [4.6.6](https://github.com/unraid/api/compare/v4.6.5...v4.6.6) (2025-04-03)
+
+
+### Bug Fixes
+
+* issue with invalid builds for prod and tagging ([7e89cd2](https://github.com/unraid/api/commit/7e89cd2a3e06a4abc8164f2f4985ad9f6cc9388d))
+
 ## [4.6.5](https://github.com/unraid/api/compare/v4.6.4...v4.6.5) (2025-04-03)
 
 
