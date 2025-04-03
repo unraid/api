@@ -1,5 +1,12 @@
 # Changelog
 
+## [4.6.5](https://github.com/unraid/api/compare/v4.6.4...v4.6.5) (2025-04-03)
+
+
+### Bug Fixes
+
+* unique artifact ID ([0f682b5](https://github.com/unraid/api/commit/0f682b5f23f4319a1ad8f0e8f2b5e5ae0a2293db))
+
 ## [4.6.4](https://github.com/unraid/api/compare/v4.6.3...v4.6.4) (2025-04-03)
 
 
