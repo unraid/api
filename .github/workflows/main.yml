@@ -284,7 +284,7 @@ jobs:
           name: unraid-wc-rich
           path: web/.nuxt/nuxt-custom-elements/dist/unraid-components
 
-  build-plugin:
+  build-plugin-staging-pr:
     name: Build and Deploy Plugin
     needs:
       - release-please
@@ -292,181 +292,37 @@ jobs:
       - build-web
       - build-unraid-ui-webcomponents
       - test-api
-    defaults:
-      run:
-        working-directory: plugin
-    runs-on: ubuntu-latest
-    steps:
-      - name: Set Timezone
-        uses: szenius/set-timezone@v2.0
-        with:
-          timezoneLinux: "America/Los_Angeles"
-      - name: Checkout repo
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
+    uses: ./.github/workflows/build-plugin.yml
+    with:
+      RELEASE_CREATED: ${{ needs.release-please.outputs.releases_created }}
+      TAG: ${{ github.event.pull_request.number || 'staging' }}
+      BUCKET_PATH: ${{ github.event.pull_request.number && format('unraid-api/tag/PR{0}', github.event.pull_request.number) || 'unraid-api' }}
+      BASE_URL: "https://preview.dl.unraid.net/unraid-api"
+    secrets:
+      CF_ACCESS_KEY_ID: ${{ secrets.CF_ACCESS_KEY_ID }}
+      CF_SECRET_ACCESS_KEY: ${{ secrets.CF_SECRET_ACCESS_KEY }}
+      CF_BUCKET_PREVIEW: ${{ secrets.CF_BUCKET_PREVIEW }}
+      CF_ENDPOINT: ${{ secrets.CF_ENDPOINT }}
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Install Node
-        uses: actions/setup-node@v4
-        with:
-          node-version-file: ".nvmrc"
-
-      - uses: pnpm/action-setup@v4
-        name: Install pnpm
-        with:
-          run_install: false
-
-      - name: Get pnpm store directory
-        id: pnpm-cache
-        shell: bash
-        run: |
-          echo "STORE_PATH=$(pnpm store path)" >> $GITHUB_OUTPUT
-
-      - name: Get API Version
-        id: vars
-        run: |
-          GIT_SHA=$(git rev-parse --short HEAD)
-          IS_TAGGED=$(git describe --tags --abbrev=0 --exact-match || echo '')
-          PACKAGE_LOCK_VERSION=$(jq -r '.version' package.json)
-          API_VERSION=$([[ -n "$IS_TAGGED" ]] && echo "$PACKAGE_LOCK_VERSION" || echo "${PACKAGE_LOCK_VERSION}+${GIT_SHA}")
-          echo "API_VERSION=${API_VERSION}" >> $GITHUB_OUTPUT
-
-      - uses: actions/cache@v4
-        name: Setup pnpm cache
-        with:
-          path: ${{ steps.pnpm-cache.outputs.STORE_PATH }}
-          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
-          restore-keys: |
-            ${{ runner.os }}-pnpm-store-
-
-      - name: Install dependencies
-        run: |
-          cd ${{ github.workspace }}
-          pnpm install --frozen-lockfile --filter @unraid/connect-plugin
-
-      - name: Download Unraid UI Components
-        uses: actions/download-artifact@v4
-        with:
-          name: unraid-wc-ui
-          path: ${{ github.workspace }}/plugin/source/dynamix.unraid.net/usr/local/emhttp/plugins/dynamix.my.servers/unraid-components/uui
-          merge-multiple: true
-      - name: Download Unraid Web Components
-        uses: actions/download-artifact@v4
-        with:
-          pattern: unraid-wc-rich
-          path: ${{ github.workspace }}/plugin/source/dynamix.unraid.net/usr/local/emhttp/plugins/dynamix.my.servers/unraid-components/nuxt
-          merge-multiple: true
-      - name: Download Unraid API
-        uses: actions/download-artifact@v4
-        with:
-          name: unraid-api
-          path: ${{ github.workspace }}/plugin/api/
-      - name: Download PNPM Store
-        uses: actions/download-artifact@v4
-        with:
-          name: packed-pnpm-store
-          path: ${{ github.workspace }}/plugin/
-      - name: Extract Unraid API
-        run: |
-          mkdir -p ${{ github.workspace }}/plugin/source/dynamix.unraid.net/usr/local/unraid-api
-          tar -xzf ${{ github.workspace }}/plugin/api/unraid-api.tgz -C ${{ github.workspace }}/plugin/source/dynamix.unraid.net/usr/local/unraid-api
-      - name: Build Plugin and TXZ Based on Event and Tag
-        id: build-plugin
-        run: |
-          cd ${{ github.workspace }}/plugin
-          ls -al
-          pnpm run build:txz
-
-          cp -r ${{ github.workspace }}/plugin/deploy/dynamix.unraid.net.txz ${{ github.workspace }}/plugin/
-
-          if [ -n "${{ github.event.pull_request.number }}" ]; then
-            TAG="PR${{ github.event.pull_request.number }}"
-            BUCKET_PATH="unraid-api/tag/${TAG}"
-          else
-            TAG=""
-            BUCKET_PATH="unraid-api"
-          fi
-
-          # On release, build both prod and preview plugins
-          if [ "${{ needs.release-please.outputs.releases_created }}" == 'true' ]; then
-            BASE_URL="https://stable.dl.unraid.net/unraid-api"
-            mv ${{ github.workspace }}/plugin/deploy ${{ github.workspace }}/plugin/deploy-prod
-            mkdir -p ${{ github.workspace}}/plugin/deploy
-            cp ${{ github.workspace }}/plugin/dynamix.unraid.net.txz ${{ github.workspace }}/plugin/deploy/
-            pnpm run build:plugin --tag="${TAG}" --base-url="${BASE_URL}"
-
-          fi
-
-          BASE_URL="https://preview.dl.unraid.net/unraid-api"
-          echo "BUCKET_PATH=${BUCKET_PATH}" >> $GITHUB_OUTPUT
-          echo "TAG=${TAG}" >> $GITHUB_OUTPUT
-          pnpm run build:plugin --tag="${TAG}" --base-url="${BASE_URL}"
-      - name: Ensure Plugin Files Exist
-        run: |
-          ls -al ./deploy
-          if [ ! -f ./deploy/*.plg ]; then
-            echo "Error: .plg file not found in plugin/deploy/"
-            exit 1
-          fi
-
-          if [ ! -f ./deploy/*.txz ]; then
-            echo "Error: .txz file not found in plugin/deploy/"
-            exit 1
-          fi
-      - name: Ensure Production Plugin Files Exist
-        if: needs.release-please.outputs.releases_created == 'true'
-        run: |
-          ls -al ./deploy-prod
-          if [ ! -f ./deploy-prod/*.plg ]; then
-            echo "Error: .plg file not found in plugin/deploy-prod/"
-            exit 1
-          fi
-
-          if [ ! -f ./deploy-prod/*.txz ]; then
-            echo "Error: .txz file not found in plugin/deploy-prod/"
-            exit 1
-          fi
-      - name: Upload to GHA
-        uses: actions/upload-artifact@v4
-        with:
-          name: unraid-plugin
-          path: plugin/deploy/
-      - name: Upload to Cloudflare
-        if: github.event_name == 'pull_request' || startsWith(github.ref, 'refs/heads/main')
-        env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.CF_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.CF_SECRET_ACCESS_KEY }}
-          AWS_DEFAULT_REGION: auto
-        run: |
-          # Sync the deploy directory to the Cloudflare bucket with explicit content encoding and public-read ACL
-          aws s3 sync deploy/ s3://${{ secrets.CF_BUCKET_PREVIEW }}/${{ steps.build-plugin.outputs.BUCKET_PATH }} \
-            --endpoint-url ${{ secrets.CF_ENDPOINT }} \
-            --checksum-algorithm CRC32 \
-            --no-guess-mime-type \
-            --content-encoding none \
-            --acl public-read
-
-      - name: Upload Release Assets
-        if: needs.release-please.outputs.releases_created == 'true'
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          release_name=$(gh release list --repo ${{ github.repository }} --json name,isDraft --jq '.[] | select(.isDraft == true) | .name' | head -n 1)
-          # For each file in release directory
-          for file in deploy-prod/*; do
-            echo "Uploading $file to release..."
-            gh release upload "${release_name}" "$file" --clobber
-          done
-
-      - name: Comment URL
-        if: github.event_name == 'pull_request'
-        uses: thollander/actions-comment-pull-request@v3
-        with:
-          comment-tag: prlink
-          mode: recreate
-          message: |
-            This plugin has been deployed to Cloudflare R2 and is available for testing.
-            Download it at this URL:
-            ```
-            https://preview.dl.unraid.net/unraid-api/tag/${{ steps.build-plugin.outputs.tag }}/dynamix.unraid.net.plg
-            ```
+  build-plugin-production:
+    if: ${{ needs.release-please.outputs.releases_created == 'true' }}
+    name: Build and Deploy Production Plugin
+    needs:
+      - release-please
+      - build-api
+      - build-web
+      - build-unraid-ui-webcomponents
+      - test-api
+    uses: ./.github/workflows/build-plugin.yml
+    with:
+      RELEASE_CREATED: ${{ needs.release-please.outputs.releases_created }}
+      TAG:
+      BUCKET_PATH: unraid-api
+      BASE_URL: "https://stable.dl.unraid.net/unraid-api"
+    secrets:
+      CF_ACCESS_KEY_ID: ${{ secrets.CF_ACCESS_KEY_ID }}
+      CF_SECRET_ACCESS_KEY: ${{ secrets.CF_SECRET_ACCESS_KEY }}
+      CF_BUCKET_PREVIEW: ${{ secrets.CF_BUCKET_PREVIEW }}
+      CF_ENDPOINT: ${{ secrets.CF_ENDPOINT }}
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
