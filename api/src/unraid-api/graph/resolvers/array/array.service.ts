@@ -197,7 +197,7 @@ export class ArrayService {
                 ...(writeCorrectionsToParity ? { optionCorrect: 'correct' } : {}),
             });
         } catch (error) {
-            throw new GraphQLError(`Failed to update parity check: ${error.message}`);
+            throw new GraphQLError(`Failed to update parity check: ${error instanceof Error ? error.message : 'Unknown error'}`);
         }
 
         return getArrayData();
