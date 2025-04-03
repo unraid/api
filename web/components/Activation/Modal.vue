@@ -2,9 +2,9 @@
 import { storeToRefs } from 'pinia';
 
 import { ArrowTopRightOnSquareIcon } from '@heroicons/vue/24/solid';
-import { BrandButton } from '@unraid/ui';
+import { Button } from '@unraid/ui';
 
-import type { BrandButtonProps } from '@unraid/ui';
+import type { ButtonProps } from '@unraid/ui';
 import type { ComposerTranslation } from 'vue-i18n';
 
 import ActivationPartnerLogo from '~/components/Activation/PartnerLogo.vue';
@@ -24,25 +24,25 @@ const purchaseStore = usePurchaseStore();
 const title = computed<string>(() => props.t("Let's activate your Unraid OS License"));
 const description = computed<string>(() =>
   props.t(
-    `On the following screen, your license will be activated. You’ll then create an Unraid.net Account to manage your license going forward.`
+    `On the following screen, your license will be activated. You'll then create an Unraid.net Account to manage your license going forward.`
   )
 );
-const docsButtons = computed<BrandButtonProps[]>(() => {
+const docsButtons = computed<ButtonProps[]>(() => {
   return [
     {
-      variant: 'underline',
+      variant: 'link',
       external: true,
       href: 'https://docs.unraid.net/unraid-os/faq/licensing-faq/',
       iconRight: ArrowTopRightOnSquareIcon,
-      size: '14px',
+      size: 'md',
       text: props.t('More about Licensing'),
     },
     {
-      variant: 'underline',
+      variant: 'link',
       external: true,
       href: 'https://docs.unraid.net/account/',
       iconRight: ArrowTopRightOnSquareIcon,
-      size: '14px',
+      size: 'md',
       text: props.t('More about Unraid.net Accounts'),
     },
   ];
@@ -74,7 +74,7 @@ const handleKeydown = (event: KeyboardEvent) => {
 
   if (sequenceIndex === keySequence.length) {
     activationCodeStore.setActivationModalHidden(true);
-      window.location.href = '/Tools/Registration';
+    window.location.href = '/Tools/Registration';
   }
 };
 
@@ -108,11 +108,9 @@ onUnmounted(() => {
 
     <template #footer>
       <div class="w-full flex gap-8px justify-center mx-auto">
-        <BrandButton
-          :text="t('Activate Now')"
-          :icon-right="ArrowTopRightOnSquareIcon"
-          @click="purchaseStore.activate"
-        />
+        <Button :icon="ArrowTopRightOnSquareIcon" @click="purchaseStore.activate">{{
+          t('Activate Now')
+        }}</Button>
       </div>
     </template>
 
@@ -121,7 +119,7 @@ onUnmounted(() => {
         <ActivationSteps :active-step="2" class="hidden sm:flex mt-6" />
 
         <div class="flex flex-col sm:flex-row justify-center gap-4 mx-auto w-full">
-          <BrandButton v-for="button in docsButtons" :key="button.text" v-bind="button" />
+          <Button v-for="(button, index) in docsButtons" :key="index" v-bind="button"></Button>
         </div>
       </div>
     </template>

@@ -85,7 +85,7 @@ const steps: readonly Step[] = [
       <StepperTrigger>
         <div class="flex items-center justify-center">
           <Button
-            :variant="state === 'completed' ? 'primary' : state === 'active' ? 'primary' : 'outline'"
+            :variant="state === 'completed' ? 'primary' : state === 'active' ? 'primary' : 'secondary'"
             size="md"
             :class="`z-10 rounded-full  ${
               state !== 'inactive'

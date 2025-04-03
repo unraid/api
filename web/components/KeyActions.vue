@@ -2,7 +2,7 @@
 import { storeToRefs } from 'pinia';
 
 import { ArrowTopRightOnSquareIcon } from '@heroicons/vue/24/solid';
-import { BrandButton, cn } from '@unraid/ui';
+import { Button, cn } from '@unraid/ui';
 
 import type { ServerStateDataAction } from '~/types/server';
 import type { ComposerTranslation } from 'vue-i18n';
@@ -47,7 +47,7 @@ const filteredKeyActions = computed((): ServerStateDataAction[] | undefined => {
 <template>
   <ul v-if="filteredKeyActions" class="flex flex-col gap-y-8px">
     <li v-for="action in filteredKeyActions" :key="action.name">
-      <BrandButton
+      <Button
         :class="cn('w-full', props.maxWidth ? 'sm:max-w-300px' : '')"
         :disabled="action?.disabled"
         :external="action?.external"
@@ -55,10 +55,11 @@ const filteredKeyActions = computed((): ServerStateDataAction[] | undefined => {
         :icon="action.icon"
         :icon-right="ArrowTopRightOnSquareIcon"
         :icon-right-hover-display="true"
-        :text="t(action.text)"
         :title="action.title ? t(action.title) : undefined"
         @click="action.click?.()"
-      />
+      >
+        {{ t(action.text) }}
+      </Button>
     </li>
   </ul>
 </template>

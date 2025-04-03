@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { Markdown } from '@/helpers/markdown';
+import { useMutation } from '@vue/apollo-composable';
+
 import {
   ArchiveBoxIcon,
   CheckBadgeIcon,
@@ -9,8 +10,10 @@ import {
   TrashIcon,
 } from '@heroicons/vue/24/solid';
 import { Button } from '@unraid/ui';
-import { useMutation } from '@vue/apollo-composable';
+import { Markdown } from '@/helpers/markdown';
+
 import type { NotificationFragmentFragment } from '~/composables/gql/graphql';
+
 import { NotificationType } from '~/composables/gql/graphql';
 import {
   archiveNotification as archiveMutation,
@@ -117,7 +120,7 @@ const reformattedTimestamp = computed<string>(() => {
 
     <div class="flex justify-end items-baseline gap-4">
       <a v-if="link" :href="link">
-        <Button type="button" variant="outline">
+        <Button type="button" variant="secondary">
           <LinkIcon class="size-4 mr-2" />
           <span class="text-sm">View</span>
         </Button>

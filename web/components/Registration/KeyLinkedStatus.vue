@@ -2,7 +2,7 @@
 import { storeToRefs } from 'pinia';
 
 import { ArrowPathIcon, ArrowTopRightOnSquareIcon, LinkIcon } from '@heroicons/vue/24/solid';
-import { Badge, BrandButton } from '@unraid/ui';
+import { Badge, Button } from '@unraid/ui';
 
 import type { ComposerTranslation } from 'vue-i18n';
 
@@ -20,9 +20,9 @@ defineProps<{
 
 <template>
   <div class="flex flex-wrap items-center justify-between gap-8px">
-    <BrandButton
+    <Button
       v-if="keyLinkedStatus !== 'linked' && keyLinkedStatus !== 'checking'"
-      variant="none"
+      variant="link"
       :title="t('Refresh')"
       class="group"
       @click="replaceRenewStore.check(true)"
@@ -36,15 +36,15 @@ defineProps<{
       >
         {{ t(keyLinkedOutput.text ?? 'Unknown') }}
       </Badge>
-    </BrandButton>
+    </Button>
     <Badge v-else :variant="keyLinkedOutput.variant" :icon="keyLinkedOutput.icon" size="md">
       {{ t(keyLinkedOutput.text ?? 'Unknown') }}
     </Badge>
 
     <span class="inline-flex flex-wrap-items-start gap-8px">
-      <BrandButton
+      <Button
         v-if="keyLinkedStatus === 'notLinked'"
-        variant="underline"
+        variant="link"
         :external="true"
         :icon="LinkIcon"
         :icon-right="ArrowTopRightOnSquareIcon"
@@ -52,16 +52,20 @@ defineProps<{
         :title="t('Learn more and link your key to your account')"
         class="text-14px"
         @click="accountStore.linkKey"
-      />
-      <BrandButton
+      >
+        {{ t('Link Key') }}
+      </Button>
+      <Button
         v-else
-        variant="underline"
+        variant="link"
         :external="true"
         :icon-right="ArrowTopRightOnSquareIcon"
         :text="t('Learn More')"
         class="text-14px"
         @click="accountStore.myKeys"
-      />
+      >
+        {{ t('Learn More') }}
+      </Button>
     </span>
   </div>
 </template>
