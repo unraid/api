@@ -1,5 +1,12 @@
 # Changelog
 
+## [4.6.2](https://github.com/unraid/api/compare/v4.6.1...v4.6.2) (2025-04-03)
+
+
+### Bug Fixes
+
+* build issue ([99d8b31](https://github.com/unraid/api/commit/99d8b31fa8bef13ae6c7dcf74593bc2999a676ed))
+
 ## [4.6.1](https://github.com/unraid/api/compare/v4.6.0...v4.6.1) (2025-04-03)
 
 
