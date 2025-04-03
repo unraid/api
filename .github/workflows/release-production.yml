@@ -41,7 +41,7 @@ jobs:
             const fs = require('fs');
             const { escape } = require('html-escaper');
 
-            const releaseNotes = fs.readFileSync('release-notes.txt', 'utf8');
+            const releaseNotes = escape(fs.readFileSync('release-notes.txt', 'utf8'));
             
             if (!releaseNotes) {
               console.error('No release notes found');
