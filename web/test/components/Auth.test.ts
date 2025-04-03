@@ -4,6 +4,8 @@ import { mount } from '@vue/test-utils';
 import Auth from '@/components/Auth.ce.vue';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
+import type { Store } from 'pinia';
+
 import { useServerStore } from '~/store/server';
 
 import '../mocks/pinia';
@@ -18,8 +20,11 @@ vi.mock('~/store/server', () => ({
   useServerStore: vi.fn(),
 }));
 
+// Define store type using ReturnType
+type ServerStoreType = ReturnType<typeof useServerStore>;
+
 // Helper to create a mock store with required Pinia properties
-function createMockStore(storeProps: Record<string, any>) {
+function createMockStore(storeProps: Record<string, unknown>) {
   return {
     ...storeProps,
     $id: 'server',
@@ -30,7 +35,8 @@ function createMockStore(storeProps: Record<string, any>) {
     $subscribe: vi.fn(),
     $onAction: vi.fn(),
     $unsubscribe: vi.fn(),
-  };
+    _customProperties: new Set(),
+  } as unknown as ServerStoreType;
 }
 
 describe('Auth Component', () => {
