@@ -82,6 +82,9 @@ input ApiSettingsInput {
   If false, the GraphQL sandbox will be disabled and only the production API will be available.
   """
   sandbox: Boolean
+
+  """A list of Unique Unraid Account ID's."""
+  ssoUserIds: [String!]
 }
 
 type Array implements Node {
@@ -421,6 +424,9 @@ type ConnectSettingsValues {
   If false, the GraphQL sandbox is disabled and only the production API will be available.
   """
   sandbox: Boolean!
+
+  """A list of Unique Unraid Account ID's."""
+  ssoUserIds: [String!]!
 }
 
 input ConnectSignInInput {
