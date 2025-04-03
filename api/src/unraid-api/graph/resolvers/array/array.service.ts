@@ -150,7 +150,13 @@ export class ArrayService {
      * @param correct - Whether to write corrections to parity (only applicable for 'start' state)
      * @returns The updated array data
      */
-    async updateParityCheck({ wantedState, correct }: { wantedState: 'pause' | 'resume' | 'cancel' | 'start'; correct: boolean }): Promise<ArrayType> {
+    async updateParityCheck({
+        wantedState,
+        correct,
+    }: {
+        wantedState: 'pause' | 'resume' | 'cancel' | 'start';
+        correct: boolean;
+    }): Promise<ArrayType> {
         const { getters } = await import('@app/store/index.js');
         const running = getters.emhttp().var.mdResync !== 0;
         const states = {
@@ -193,7 +199,7 @@ export class ArrayService {
         } catch (error) {
             throw new GraphQLError(`Failed to update parity check: ${error.message}`);
         }
-        
+
         return getArrayData();
     }
 }
