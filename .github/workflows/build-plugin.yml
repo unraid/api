@@ -4,7 +4,7 @@ on:
   workflow_call:
     inputs:
       RELEASE_CREATED:
-        type: boolean
+        type: string
         required: true
         description: "Whether a release was created"
       RELEASE_TAG:
