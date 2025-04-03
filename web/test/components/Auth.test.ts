@@ -4,8 +4,6 @@ import { mount } from '@vue/test-utils';
 import Auth from '@/components/Auth.ce.vue';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import type { Store } from 'pinia';
-
 import { useServerStore } from '~/store/server';
 
 import '../mocks/pinia';
