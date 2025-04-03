@@ -44,7 +44,7 @@ export default defineNuxtConfig({
 
   // Properly handle ES modules in testing and build environments
   build: {
-    transpile: [/node_modules\/.*\.mjs$/, 'clsx', 'tailwind-merge'],
+    transpile: [/node_modules\/.*\.mjs$/],
   },
 
   ignore: ['/webGui/images'],

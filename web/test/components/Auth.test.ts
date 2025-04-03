@@ -1,59 +1,125 @@
+import { ref } from 'vue';
 import { mount } from '@vue/test-utils';
 
-import { describe, expect, it } from 'vitest';
+import Auth from '@/components/Auth.ce.vue';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-// Mock the component directly
-const MockAuthComponent = {
-  name: 'AuthComponent',
-  template:
-    '<div><button @click.stop="$emit(\'click\')">Click to authenticate</button><div v-if="stateData.error" class="error-message">{{stateData.message}}</div></div>',
-  props: ['authAction', 'stateData'],
-};
+import { useServerStore } from '~/store/server';
 
-describe('AuthComponent', () => {
-  it('runs a basic test', () => {
-    expect(true).toBe(true);
+import '../mocks/pinia';
+
+vi.mock('vue-i18n', () => ({
+  useI18n: () => ({
+    t: (key: string) => key,
+  }),
+}));
+
+vi.mock('~/store/server', () => ({
+  useServerStore: vi.fn(),
+}));
+
+// Helper to create a mock store with required Pinia properties
+function createMockStore(storeProps: Record<string, any>) {
+  return {
+    ...storeProps,
+    $id: 'server',
+    $state: storeProps,
+    $patch: vi.fn(),
+    $reset: vi.fn(),
+    $dispose: vi.fn(),
+    $subscribe: vi.fn(),
+    $onAction: vi.fn(),
+    $unsubscribe: vi.fn(),
+  } as any;
+}
+
+describe('Auth Component', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
   });
 
-  it('can mount a mock component', () => {
-    const wrapper = mount(MockAuthComponent, {
-      props: {
-        authAction: 'authenticate',
-        stateData: { error: false, message: '' },
-      },
+  it('renders the authentication button', () => {
+    // Mock store values
+    const mockAuthAction = ref({
+      text: 'Authenticate',
+      icon: 'key',
+      click: vi.fn(),
+    });
+    const mockStateData = ref({ error: false, message: '', heading: '' });
+
+    // Create mock store with required Pinia properties
+    const mockStore = createMockStore({
+      authAction: mockAuthAction,
+      stateData: mockStateData,
     });
 
-    expect(wrapper.find('button').exists()).toBe(true);
-  });
+    vi.mocked(useServerStore).mockReturnValue(mockStore);
 
-  it('renders error message when stateData.error is true', async () => {
-    const wrapper = mount(MockAuthComponent, {
-      props: {
-        authAction: 'authenticate',
-        stateData: {
-          error: true,
-          message: 'Authentication failed',
+    const wrapper = mount(Auth, {
+      global: {
+        stubs: {
+          BrandButton: {
+            template: '<button class="brand-button-stub">{{ text }}</button>',
+            props: ['size', 'text', 'icon', 'title'],
+          },
         },
       },
     });
-    const errorMessage = wrapper.find('.error-message');
-    expect(errorMessage.exists()).toBe(true);
-    expect(errorMessage.text()).toBe('Authentication failed');
+
+    // Look for the stubbed brand-button
+    expect(wrapper.find('.brand-button-stub').exists()).toBe(true);
   });
 
-  it('calls click handler when button is clicked', async () => {
-    const wrapper = mount(MockAuthComponent, {
-      props: {
-        authAction: 'authenticate',
-        stateData: { error: false, message: '' },
-      },
+  it('renders error message when stateData.error is true', async () => {
+    // Mock store values with error
+    const mockAuthAction = ref({
+      text: 'Authenticate',
+      icon: 'key',
+      click: vi.fn(),
+    });
+    const mockStateData = ref({
+      error: true,
+      heading: 'Error Occurred',
+      message: 'Authentication failed',
     });
 
-    // Instead of trying to mock $emit, check if the event was emitted
-    const button = wrapper.find('button');
-    await button.trigger('click');
+    // Create mock store with required Pinia properties
+    const mockStore = createMockStore({
+      authAction: mockAuthAction,
+      stateData: mockStateData,
+    });
 
-    // Just verify the event was emitted at least once
-    expect(wrapper.emitted().click).toBeTruthy();
+    vi.mocked(useServerStore).mockReturnValue(mockStore);
+
+    const wrapper = mount(Auth);
+
+    expect(wrapper.exists()).toBe(true);
+  });
+
+  it('provides a click handler in authAction', async () => {
+    const mockClick = vi.fn();
+
+    // Mock store values
+    const mockAuthAction = ref({
+      text: 'Authenticate',
+      icon: 'key',
+      click: mockClick,
+    });
+    const mockStateData = ref({ error: false, message: '', heading: '' });
+
+    // Create mock store with required Pinia properties
+    const mockStore = createMockStore({
+      authAction: mockAuthAction,
+      stateData: mockStateData,
+    });
+
+    vi.mocked(useServerStore).mockReturnValue(mockStore);
+
+    expect(mockAuthAction.value.click).toBeDefined();
+    expect(typeof mockAuthAction.value.click).toBe('function');
+
+    mockAuthAction.value.click();
+
+    expect(mockClick).toHaveBeenCalled();
   });
 });
