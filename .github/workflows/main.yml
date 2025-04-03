@@ -377,6 +377,8 @@ jobs:
           ls -al
           pnpm run build:txz
 
+          cp -r ${{ github.workspace }}/plugin/deploy/dynamix.unraid.net.txz ${{ github.workspace }}/plugin/
+
           if [ -n "${{ github.event.pull_request.number }}" ]; then
             TAG="PR${{ github.event.pull_request.number }}"
             BUCKET_PATH="unraid-api/tag/${TAG}"
@@ -390,7 +392,8 @@ jobs:
             BASE_URL="https://stable.dl.unraid.net/unraid-api"
             pnpm run build:plugin --tag="${TAG}" --base-url="${BASE_URL}"
             mv ${{ github.workspace }}/plugin/deploy ${{ github.workspace }}/plugin/deploy-prod
-            pnpm run build:txz
+            mkdir -p ${{ github.workspace}}/plugin/deploy
+            cp ${{ github.workspace }}/plugin/dynamix.unraid.net.txz ${{ github.workspace }}/plugin/deploy/
           fi
 
           BASE_URL="https://preview.dl.unraid.net/unraid-api"
