@@ -1,5 +1,13 @@
 # Changelog
 
+## [4.6.4](https://github.com/unraid/api/compare/v4.6.3...v4.6.4) (2025-04-03)
+
+
+### Bug Fixes
+
+* cleanup build pipeline ([#1326](https://github.com/unraid/api/issues/1326)) ([60f16bd](https://github.com/unraid/api/commit/60f16bde416993771fce2ad5861a671504af4b7d))
+* remove unneeded workflow secret pass ([4bb00dd](https://github.com/unraid/api/commit/4bb00dd981384083cec40d804209ec2ca18d7aae))
+
 ## [4.6.3](https://github.com/unraid/api/compare/v4.6.2...v4.6.3) (2025-04-03)
 
 
