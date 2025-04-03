@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: 'Tag to update'
+        description: 'Tag to release - will replace active release'
         required: true
 
 jobs:
@@ -32,7 +32,7 @@ jobs:
         with:
           node-version: '22.x'
       - run: |
-          echo "${{ steps.release-info.outputs.body }}" >> release-notes.txt
+          echo '${{ steps.release-info.outputs.body }}' >> release-notes.txt
       - run: npm install html-escaper@2 xml2js
       - name: Update Plugin Changelog
         uses: actions/github-script@v7
