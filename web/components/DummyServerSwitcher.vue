@@ -7,7 +7,7 @@ import { useDummyServerStore } from '~/_data/serverState';
 import type { ServerSelector } from '~/_data/serverState';
 
 // Define the same type locally as in reka-ui
-type AcceptableValue = string | number | Record<string, any> | null;
+type AcceptableValue = string | number | Record<string, unknown> | null;
 
 const store = useDummyServerStore();
 const { selector, serverState } = storeToRefs(store);
