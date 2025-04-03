@@ -1,4 +1,13 @@
+import type { TestingModule } from '@nestjs/testing';
+import { Test } from '@nestjs/testing';
+
+import Docker from 'dockerode';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+
+import type { DockerContainer } from '@app/graphql/generated/api/types.js';
+import { getDockerContainers } from '@app/core/modules/docker/get-docker-containers.js';
+import { ContainerState } from '@app/graphql/generated/api/types.js';
+import { DockerService } from '@app/unraid-api/graph/resolvers/docker/docker.service.js';
 
 const mockContainer = {
     start: vi.fn(),
@@ -29,14 +38,6 @@ vi.mock('@app/core/modules/docker/get-docker-containers.js', () => ({
     getDockerContainers: vi.fn(),
 }));
 
-import type { TestingModule } from '@nestjs/testing';
-import { Test } from '@nestjs/testing';
-import type { DockerContainer } from '@app/graphql/generated/api/types.js';
-import { getDockerContainers } from '@app/core/modules/docker/get-docker-containers.js';
-import { ContainerState } from '@app/graphql/generated/api/types.js';
-import { DockerService } from '@app/unraid-api/graph/resolvers/docker/docker.service.js';
-import Docker from 'dockerode';
-
 describe('DockerService', () => {
     let service: DockerService;
 
@@ -46,7 +47,7 @@ describe('DockerService', () => {
         }).compile();
 
         service = module.get<DockerService>(DockerService);
-        
+
         // Reset mock container methods
         mockContainer.start.mockReset();
         mockContainer.stop.mockReset();
@@ -157,6 +158,8 @@ describe('DockerService', () => {
         vi.mocked(getDockerContainers).mockResolvedValue([]);
         mockContainer.stop.mockResolvedValue(undefined);
 
-        await expect(service.stopContainer('abc123def456')).rejects.toThrow('Container abc123def456 not found after stopping');
+        await expect(service.stopContainer('abc123def456')).rejects.toThrow(
+            'Container abc123def456 not found after stopping'
+        );
     });
 });

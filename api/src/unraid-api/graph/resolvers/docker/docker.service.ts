@@ -33,10 +33,11 @@ export class DockerService {
         return this.client
             .listNetworks()
             .catch(catchHandlers.docker)
-            .then((networks = []) =>
-                networks.map((object) =>
-                    camelCaseKeys(object as unknown as Record<string, unknown>, { deep: true })
-                ) as DockerNetwork[]
+            .then(
+                (networks = []) =>
+                    networks.map((object) =>
+                        camelCaseKeys(object as unknown as Record<string, unknown>, { deep: true })
+                    ) as DockerNetwork[]
             );
     }
 
