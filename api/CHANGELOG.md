@@ -1,5 +1,18 @@
 # Changelog
 
+## [4.6.0](https://github.com/unraid/api/compare/v4.5.0...v4.6.0) (2025-04-03)
+
+
+### Features
+
+* add gui settings field for sso users ([#1310](https://github.com/unraid/api/issues/1310)) ([5ba3fa6](https://github.com/unraid/api/commit/5ba3fa67a26828f29e1e234c6838e7beaa3fdff3))
+
+
+### Bug Fixes
+
+* build ([ed67af9](https://github.com/unraid/api/commit/ed67af956802eec95845519997bc15b32c84c6ee))
+* **plugin:** flaky masking of benign warning during pnpm install ([#1313](https://github.com/unraid/api/issues/1313)) ([1f10b63](https://github.com/unraid/api/commit/1f10b63c8b015e9a2527f79e15a7042feb2d2aca))
+
 ## [4.5.0](https://github.com/unraid/api/compare/v4.4.1...v4.5.0) (2025-04-02)
 
 
