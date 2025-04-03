@@ -3,7 +3,6 @@
 export * from './array/index.js';
 export * from './debug/index.js';
 export * from './disks/index.js';
-export * from './docker/index.js';
 export * from './services/index.js';
 export * from './settings/index.js';
 export * from './shares/index.js';

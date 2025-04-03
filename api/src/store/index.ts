@@ -3,7 +3,6 @@ import { configureStore } from '@reduxjs/toolkit';
 import { listenerMiddleware } from '@app/store/listeners/listener-middleware.js';
 import { cache } from '@app/store/modules/cache.js';
 import { configReducer } from '@app/store/modules/config.js';
-import { docker } from '@app/store/modules/docker.js';
 import { dynamicRemoteAccessReducer } from '@app/store/modules/dynamic-remote-access.js';
 import { dynamix } from '@app/store/modules/dynamix.js';
 import { emhttp } from '@app/store/modules/emhttp.js';
@@ -23,7 +22,6 @@ export const store = configureStore({
         registration: registration.reducer,
         remoteGraphQL: remoteGraphQLReducer,
         cache: cache.reducer,
-        docker: docker.reducer,
         upnp: upnp.reducer,
         dynamix: dynamix.reducer,
     },
@@ -40,7 +38,6 @@ export type ApiStore = typeof store;
 export const getters = {
     cache: () => store.getState().cache,
     config: () => store.getState().config,
-    docker: () => store.getState().docker,
     dynamicRemoteAccess: () => store.getState().dynamicRemoteAccess,
     dynamix: () => store.getState().dynamix,
     emhttp: () => store.getState().emhttp,
