@@ -9,8 +9,11 @@ export class AuthInterceptor implements NestInterceptor {
         const gqlContext = GqlExecutionContext.create(context);
         const req = gqlContext.getContext().req;
         console.log('in auth interceptor', req.user);
+import { UnauthorizedException } from '@nestjs/common';
+...
         if (!req.user) {
-            throw new Error('Unauthorized'); // Ensure authentication
+-            throw new Error('Unauthorized'); // Ensure authentication
++            throw new UnauthorizedException('User not authenticated');
         }
 
         return next.handle();
