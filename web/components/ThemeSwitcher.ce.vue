@@ -34,7 +34,8 @@ const computedThemes = computed(() => {
 });
 
 const { csrf } = storeToRefs(useServerStore());
-const devModeEnabled = import.meta.env.VITE_ALLOW_CONSOLE_LOGS;
+const storageKey = 'enableThemeSwitcher';
+const enableThemeSwitcher = sessionStorage.getItem(storageKey) === 'true' || localStorage.getItem(storageKey) === 'true';
 const submitting = ref<boolean>(false);
 
 const handleThemeChange = (event: Event) => {
@@ -73,7 +74,7 @@ const handleThemeChange = (event: Event) => {
 
 <template>
   <select
-    v-if="devModeEnabled"
+    v-if="enableThemeSwitcher"
     :disabled="submitting"
     :value="props.current"
     class="text-xs relative float-left mr-2 text-white bg-black"

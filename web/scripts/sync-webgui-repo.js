@@ -4,7 +4,10 @@ const ignore = require('ignore');
 const readline = require('readline');
 const diff = require('diff');
 const crypto = require('crypto');
-const chalk = require('chalk');
+let chalk;
+(async () => {
+  chalk = await import('chalk');
+})();
 
 const CONSTANTS = {
   PATHS: {
@@ -18,8 +21,11 @@ const CONSTANTS = {
     WEBGUI: 'emhttp/plugins',
   },
   WEB_COMPONENTS: {
-    API_PATH: 'web/.nuxt/nuxt-custom-elements/dist/unraid-components',
-    WEBGUI_PATH: 'emhttp/plugins/dynamix.my.servers/unraid-components/nuxt',
+    API_WEB_BUILD_PATH: 'web/.nuxt/nuxt-custom-elements/dist/unraid-components',
+    API_UI_BUILD_PATH: 'unraid-ui/dist-wc',
+    WEBGUI_BASE_PATH: 'emhttp/plugins/dynamix.my.servers/unraid-components',
+    WEBGUI_WEB_SUBPATH: 'nuxt',
+    WEBGUI_UI_SUBPATH: 'uui',
   },
 };
 
@@ -175,17 +181,17 @@ const FileOps = {
     );
 
     if (differences.split('\n').length > 5) {
-      console.log('\nDiff for', chalk.cyan(path.basename(apiFile)));
-      console.log(chalk.red('--- webgui:'), webguiFile);
-      console.log(chalk.green('+++ api:  '), apiFile);
+      console.log('\nDiff for', chalk.default.cyan(path.basename(apiFile)));
+      console.log(chalk.default.red('--- webgui:'), webguiFile);
+      console.log(chalk.default.green('+++ api:  '), apiFile);
 
       differences
         .split('\n')
         .slice(5)
         .forEach((line) => {
-          if (line.startsWith('+')) console.log(chalk.green(line));
-          else if (line.startsWith('-')) console.log(chalk.red(line));
-          else if (line.startsWith('@')) console.log(chalk.cyan(line));
+          if (line.startsWith('+')) console.log(chalk.default.green(line));
+          else if (line.startsWith('-')) console.log(chalk.default.red(line));
+          else if (line.startsWith('@')) console.log(chalk.default.cyan(line));
           else console.log(line);
         });
       return true;
@@ -279,16 +285,43 @@ const Features = {
     try {
       await new Promise((resolve, reject) => {
         const buildProcess = exec('pnpm run build', { cwd: webDir });
-
         buildProcess.stdout.on('data', (data) => process.stdout.write(data));
         buildProcess.stderr.on('data', (data) => process.stderr.write(data));
-
         buildProcess.on('exit', (code) => {
           if (code === 0) {
-            UI.log('Build completed successfully!', 'success');
+            UI.log('Web components build completed successfully!', 'success');
             resolve();
           } else {
-            reject(new Error(`Build failed with code ${code}`));
+            reject(new Error(`Web components build failed with code ${code}`));
+          }
+        });
+      });
+    } catch (err) {
+      UI.log(`Error during build: ${err.message}`, 'error');
+    }
+  },
+
+  async handleUiComponentBuild() {
+    const uiDir = path.join(global.apiProjectDir, 'unraid-ui');
+    if (!fs.existsSync(uiDir)) {
+      UI.log('Unraid UI directory not found in API repo!', 'error');
+      return;
+    }
+
+    UI.log('Building UI components...', 'info');
+    const { exec } = require('child_process');
+
+    try {
+      await new Promise((resolve, reject) => {
+        const buildProcess = exec('pnpm run build && pnpm run build:wc', { cwd: uiDir });
+        buildProcess.stdout.on('data', (data) => process.stdout.write(data));
+        buildProcess.stderr.on('data', (data) => process.stderr.write(data));
+        buildProcess.on('exit', (code) => {
+          if (code === 0) {
+            UI.log('UI build completed successfully!', 'success');
+            resolve();
+          } else {
+            reject(new Error(`UI build failed with code ${code}`));
           }
         });
       });
@@ -298,29 +331,54 @@ const Features = {
   },
 
   async handleWebComponentSync() {
-    const apiPath = path.join(global.apiProjectDir, CONSTANTS.WEB_COMPONENTS.API_PATH);
-    const webguiPath = path.join(global.webguiProjectDir, CONSTANTS.WEB_COMPONENTS.WEBGUI_PATH);
+    const apiWebPath = path.join(global.apiProjectDir, CONSTANTS.WEB_COMPONENTS.API_WEB_BUILD_PATH);
+    const webguiBasePath = path.join(global.webguiProjectDir, CONSTANTS.WEB_COMPONENTS.WEBGUI_BASE_PATH);
+    const webguiWebPath = path.join(webguiBasePath, CONSTANTS.WEB_COMPONENTS.WEBGUI_WEB_SUBPATH);
 
     try {
-      if (!fs.existsSync(apiPath)) {
-        UI.log('Source directory not found! Did you build the web components?', 'error');
+      if (!fs.existsSync(apiWebPath)) {
+        UI.log('Web components source directory not found! Did you build the web components?', 'error');
         return;
       }
 
-      UI.log('Removing old _nuxt directory...', 'info');
-      fs.rmSync(`${webguiPath}/_nuxt`, { recursive: true, force: true });
+      UI.log('Removing old web components...', 'info');
+      fs.rmSync(webguiWebPath, { recursive: true, force: true });
 
-      UI.log('Copying new files...', 'info');
-      FileSystem.copyDirectory(apiPath, webguiPath);
+      UI.log('Copying new web components...', 'info');
+      FileSystem.copyDirectory(apiWebPath, webguiWebPath);
 
-      const indexPath = path.join(webguiPath, 'index.html');
+      const indexPath = path.join(webguiWebPath, 'index.html');
       if (fs.existsSync(indexPath)) {
         UI.log('Removing irrelevant index.html...', 'info');
         fs.unlinkSync(indexPath);
       }
 
       UI.playSound();
-      UI.log('Files copied successfully!', 'success');
+      UI.log('Web components copied successfully!', 'success');
+    } catch (err) {
+      UI.log(`Error during sync: ${err.message}`, 'error');
+    }
+  },
+
+  async handleUiComponentSync() {
+    const apiUiPath = path.join(global.apiProjectDir, CONSTANTS.WEB_COMPONENTS.API_UI_BUILD_PATH);
+    const webguiBasePath = path.join(global.webguiProjectDir, CONSTANTS.WEB_COMPONENTS.WEBGUI_BASE_PATH);
+    const webguiUiPath = path.join(webguiBasePath, CONSTANTS.WEB_COMPONENTS.WEBGUI_UI_SUBPATH);
+
+    try {
+      if (!fs.existsSync(apiUiPath)) {
+        UI.log('Unraid UI source directory not found!', 'error');
+        return;
+      }
+
+      UI.log('Removing old UI components...', 'info');
+      fs.rmSync(webguiUiPath, { recursive: true, force: true });
+
+      UI.log('Copying new UI components...', 'info');
+      FileSystem.copyDirectory(apiUiPath, webguiUiPath);
+
+      UI.playSound();
+      UI.log('UI components copied successfully!', 'success');
     } catch (err) {
       UI.log(`Error during sync: ${err.message}`, 'error');
     }
@@ -510,17 +568,19 @@ const Features = {
 
 const Menu = {
   async show() {
-    while (true) { // Keep showing menu until exit
+    while (true) {
       try {
         console.log('\nWhat you trying to do fam?');
         console.log('1. Find new plugin files in API project');
         console.log('2. Handle new plugin files in API project');
         console.log('3. Sync shared files between API and webgui');
-        console.log('4. Build web components');
-        console.log('5. Sync web components');
-        console.log('6. Exit\n');
+        console.log('4. Build UI components');
+        console.log('5. Sync UI components');
+        console.log('6. Build web components');
+        console.log('7. Sync web components');
+        console.log('8. Exit\n');
 
-        const answer = await UI.question('Choose an option (1-6): ');
+        const answer = await UI.question('Choose an option (1-8): ');
 
         switch (answer) {
           case '1': {
@@ -574,25 +634,32 @@ const Menu = {
                 } else {
                   UI.log('Files are identical', 'success');
                 }
-                console.log('');
               }
             }
             break;
           }
 
           case '4':
-            await Features.handleWebComponentBuild();
+            await Features.handleUiComponentBuild();
             break;
 
           case '5':
-            await Features.handleWebComponentSync();
+            await Features.handleUiComponentSync();
             break;
 
           case '6':
+            await Features.handleWebComponentBuild();
+            break;
+
+          case '7':
+            await Features.handleWebComponentSync();
+            break;
+
+          case '8':
             UI.log('Safe bruv, catch you later! 👋', 'success');
             UI.rl.close();
             process.exit(0);
-            return; // Exit the loop
+            return;
 
           default:
             UI.log("Nah fam, that's not a valid option!", 'error');

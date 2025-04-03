@@ -14,16 +14,21 @@ export const usePurchaseStore = defineStore('purchase', () => {
   const callbackStore = useCallbackActionsStore();
   const serverStore = useServerStore();
 
+  const serverPurchasePayload = computed(() => serverStore.serverPurchasePayload);
+  const inIframe = computed(() => serverStore.inIframe);
+  const sendType = computed(() => callbackStore.sendType);
+
   const activate = () => {
     callbackStore.send(
       PURCHASE_CALLBACK.toString(),
       [{
         server: {
-          ...serverStore.serverPurchasePayload,
+          ...serverPurchasePayload.value,
         },
         type: 'activate',
       }],
-      serverStore.inIframe ? 'newTab' : undefined,
+      inIframe.value ? 'newTab' : undefined,
+      sendType.value,
     );
   };
   const redeem = () => {
@@ -31,11 +36,12 @@ export const usePurchaseStore = defineStore('purchase', () => {
       PURCHASE_CALLBACK.toString(),
       [{
         server: {
-          ...serverStore.serverPurchasePayload,
+          ...serverPurchasePayload.value,
         },
         type: 'redeem',
       }],
-      serverStore.inIframe ? 'newTab' : undefined,
+      inIframe.value ? 'newTab' : undefined,
+      sendType.value,
     );
   };
   const purchase = () => {
@@ -43,11 +49,12 @@ export const usePurchaseStore = defineStore('purchase', () => {
       PURCHASE_CALLBACK.toString(),
       [{
         server: {
-          ...serverStore.serverPurchasePayload,
+          ...serverPurchasePayload.value,
         },
         type: 'purchase',
       }],
-      serverStore.inIframe ? 'newTab' : undefined,
+      inIframe.value ? 'newTab' : undefined,
+      sendType.value,
     );
   };
   const upgrade = () => {
@@ -55,11 +62,12 @@ export const usePurchaseStore = defineStore('purchase', () => {
       PURCHASE_CALLBACK.toString(),
       [{
         server: {
-          ...serverStore.serverPurchasePayload,
+          ...serverPurchasePayload.value,
         },
         type: 'upgrade',
       }],
-      serverStore.inIframe ? 'newTab' : undefined,
+      inIframe.value ? 'newTab' : undefined,
+      sendType.value,
     );
   };
   const renew = () => {
@@ -67,11 +75,12 @@ export const usePurchaseStore = defineStore('purchase', () => {
       PURCHASE_CALLBACK.toString(),
       [{
         server: {
-          ...serverStore.serverPurchasePayload,
+          ...serverPurchasePayload.value,
         },
         type: 'renew',
       }],
-      serverStore.inIframe ? 'newTab' : undefined,
+      inIframe.value ? 'newTab' : undefined,
+      sendType.value,
     );
   };
 
