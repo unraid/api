@@ -64,7 +64,7 @@ export class ConnectSettingsService {
      * @param settings - The settings to sync
      * @returns true if a restart is required, false otherwise
      */
-    async syncSettings(settings: Partial<ApiSettingsInput>) {
+    async syncSettings(settings: Partial<ApiSettingsInput>): Promise<boolean> {
         let restartRequired = false;
         const { getters } = await import('@app/store/index.js');
         const { nginx } = getters.emhttp();
