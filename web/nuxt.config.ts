@@ -26,8 +26,6 @@ const charsToReserve = '_$abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ01
 
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
-  ssr: false,
-
   devServer: {
     port: 4321,
   },
@@ -43,6 +41,11 @@ export default defineNuxtConfig({
     'nuxt-custom-elements',
     '@nuxt/eslint',
   ],
+
+  // Properly handle ES modules in testing and build environments
+  build: {
+    transpile: [/node_modules\/.*\.mjs$/],
+  },
 
   ignore: ['/webGui/images'],
 
@@ -148,4 +151,6 @@ export default defineNuxtConfig({
   },
 
   compatibilityDate: '2024-12-05',
+
+  ssr: false,
 });
