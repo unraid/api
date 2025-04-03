@@ -20,6 +20,8 @@ try {
     // Get package details
     const packageJson = await readFile('./package.json', 'utf-8');
     const parsedPackageJson = JSON.parse(packageJson);
+    const rootPackageJson = await readFile('./../package.json', 'utf-8');
+    const parsedRootPackageJson = JSON.parse(rootPackageJson);
 
     const deploymentVersion = await getDeploymentVersion(process.env, parsedPackageJson.version);
 
@@ -27,6 +29,9 @@ try {
     parsedPackageJson.version = deploymentVersion;
     // omit dev dependencies from release build
     parsedPackageJson.devDependencies = {};
+
+    // add all PNPM settings for pnpm install from root package.json
+    parsedPackageJson.pnpm = parsedRootPackageJson.pnpm;
 
     // Create a temporary directory for packaging
     await mkdir('./deploy/pack/', { recursive: true });
@@ -42,8 +47,13 @@ try {
     $.verbose = true;
     await $`pnpm install --prod --ignore-workspace --store-dir=../.pnpm-store`;
 
+    // Now remove the onlybuilddependencies from the package json
+    delete parsedPackageJson.pnpm;
+    // Now write the package.json back to the pack directoryaw
+    await writeFile('package.json', JSON.stringify(parsedPackageJson, null, 4));
+
     await $`rm -rf node_modules`; // Don't include node_modules in final package
-    
+
     const sudoCheck = await $`command -v sudo`.nothrow();
     const SUDO = sudoCheck.exitCode === 0 ? 'sudo' : '';
     await $`${SUDO} chown -R 0:0 ../.pnpm-store`;
