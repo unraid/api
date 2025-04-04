@@ -4,7 +4,7 @@ import { vi } from 'vitest';
 const mockCn = (...args: any[]) => args.filter(Boolean).join(' ');
 
 const MockBrandButton = {
-  name: 'BrandButton', // Use the actual component name
+  name: 'BrandButton',
   props: [
     'class',
     'disabled',
@@ -27,7 +27,7 @@ const MockBrandButton = {
       {{ props.text || '' }} <slot />
     </button>
   `,
-  setup(props: any) {
+  setup(props: Record<string, unknown>) {
     return { props };
   },
 };

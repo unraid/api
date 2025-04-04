@@ -1,6 +1,7 @@
 /**
  * Auth Component Test Coverage
  */
+
 import { ref } from 'vue';
 import { mount } from '@vue/test-utils';
 
@@ -42,7 +43,7 @@ vi.mock('~/store/server', () => ({
 
 // Mock pinia's storeToRefs to simply return the store
 vi.mock('pinia', () => ({
-  storeToRefs: (store: any) => store,
+  storeToRefs: (store: unknown) => store,
 }));
 
 describe('Auth Component', () => {

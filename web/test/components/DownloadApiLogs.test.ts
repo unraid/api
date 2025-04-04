@@ -1,7 +1,5 @@
 /**
  * DownloadApiLogs Component Test Coverage
- *
- * This test file provides 100% coverage for the DownloadApiLogs component.
  */
 
 import { mount } from '@vue/test-utils';

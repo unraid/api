@@ -1,3 +1,7 @@
+/**
+ * KeyActions Component Test Coverage
+ */
+
 import { ref } from 'vue';
 import { mount } from '@vue/test-utils';
 
