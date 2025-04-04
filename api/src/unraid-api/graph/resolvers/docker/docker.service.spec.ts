@@ -142,6 +142,7 @@ describe('DockerService', () => {
                 image: 'test-image',
                 imageId: 'test-image-id',
                 ports: [],
+                sizeRootFs: undefined,
                 state: ContainerState.EXITED,
                 status: 'Exited',
                 labels: {},
@@ -150,6 +151,7 @@ describe('DockerService', () => {
                 },
                 networkSettings: {},
                 mounts: [],
+                names: ['/test-container'],
             },
         ]);
 
@@ -193,6 +195,7 @@ describe('DockerService', () => {
             image: 'test-image',
             imageId: 'test-image-id',
             ports: [],
+            sizeRootFs: undefined,
             state: ContainerState.RUNNING,
             status: 'Up 2 hours',
             labels: {},
@@ -201,6 +204,7 @@ describe('DockerService', () => {
             },
             networkSettings: {},
             mounts: [],
+            names: ['/test-container'],
         });
 
         expect(mockContainer.start).toHaveBeenCalled();
@@ -244,6 +248,7 @@ describe('DockerService', () => {
             image: 'test-image',
             imageId: 'test-image-id',
             ports: [],
+            sizeRootFs: undefined,
             state: ContainerState.EXITED,
             status: 'Exited',
             labels: {},
@@ -252,6 +257,7 @@ describe('DockerService', () => {
             },
             networkSettings: {},
             mounts: [],
+            names: ['/test-container'],
         });
 
         expect(mockContainer.stop).toHaveBeenCalledWith({ t: 10 });
@@ -394,6 +400,8 @@ describe('DockerService', () => {
                     image: 'test-image',
                     imageId: 'test-image-id',
                     ports: [],
+                    sizeRootFs: undefined,
+                    names: ['/test-container'],
                     state: ContainerState.RUNNING,
                     status: 'Up 2 hours',
                     labels: {},
@@ -411,6 +419,8 @@ describe('DockerService', () => {
                     image: 'test-image2',
                     imageId: 'test-image-id2',
                     ports: [],
+                    sizeRootFs: undefined,
+                    names: ['/test-container2'],
                     state: ContainerState.EXITED,
                     status: 'Exited',
                     labels: {},
@@ -439,6 +449,8 @@ describe('DockerService', () => {
                     image: 'test-image',
                     imageId: 'test-image-id',
                     ports: [],
+                    sizeRootFs: undefined,
+                    names: ['/test-container'],
                     state: ContainerState.RUNNING,
                     status: 'Up 2 hours',
                     labels: {},
@@ -456,6 +468,8 @@ describe('DockerService', () => {
                     image: 'test-image2',
                     imageId: 'test-image-id2',
                     ports: [],
+                    sizeRootFs: undefined,
+                    names: ['/test-container2'],
                     state: ContainerState.EXITED,
                     status: 'Exited',
                     labels: {},
