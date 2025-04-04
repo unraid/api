@@ -928,8 +928,8 @@ importers:
         specifier: ^2.1.10
         version: 2.2.8(typescript@5.8.2)
       vuetify-nuxt-module:
-        specifier: 0.18.5
-        version: 0.18.5(magicast@0.3.5)(typescript@5.8.2)(vite@6.2.3(@types/node@22.13.13)(jiti@2.4.2)(stylus@0.57.0)(terser@5.39.0)(tsx@4.19.3)(yaml@2.7.0))(vue@3.5.13(typescript@5.8.2))
+        specifier: 0.18.6
+        version: 0.18.6(magicast@0.3.5)(typescript@5.8.2)(vite@6.2.3(@types/node@22.13.13)(jiti@2.4.2)(stylus@0.57.0)(terser@5.39.0)(tsx@4.19.3)(yaml@2.7.0))(vue@3.5.13(typescript@5.8.2))
     optionalDependencies:
       '@rollup/rollup-linux-x64-gnu':
         specifier: ^4.30.1
@@ -3915,6 +3915,7 @@ packages:
   '@unraid/libvirt@2.1.0':
     resolution: {integrity: sha512-yF/sAzYukM+VpDdAebf0z0O2mE5mGOEAW5lIafFkYoMiu60zNkNmr5IoA9hWCMmQkBOUCam8RZGs9YNwRjMtMQ==}
     engines: {node: '>=14'}
+    cpu: [x64, arm64]
     os: [linux, darwin]
 
   '@unraid/shared-callbacks@1.0.1':
@@ -9516,6 +9517,7 @@ packages:
     engines: {node: '>=0.6.0', teleport: '>=0.2.0'}
     deprecated: |-
       You or someone you depend on is using Q, the JavaScript Promise library that gave JavaScript developers strong feelings about promises. They can almost certainly migrate to the native JavaScript promise now. Thank you literally everyone for joining me in this bet against the odds. Be excellent to each other.
+
       (For a CapTP with native promises, see @endo/eventual-send and @endo/captp)
 
   qs@6.13.0:
@@ -11420,8 +11422,8 @@ packages:
       typescript:
         optional: true
 
-  vuetify-nuxt-module@0.18.5:
-    resolution: {integrity: sha512-XJ6tgzkPvEaWWs7zQ/vu5zUvC1Bs40OVOfhWNkj1vSTjYxi/RnJS2M5j8NPdMyZHK0dFgtmm27qudSwU/IZjug==}
+  vuetify-nuxt-module@0.18.6:
+    resolution: {integrity: sha512-IEoV2XlAWkAVkUWnNx2dkFmScgZLZ58AxFnmXYS7ECQJvmskLODc/BUhonK6Ueqzu+SQhYkHjmaOi5ZukLl4PQ==}
 
   vuetify@3.7.18:
     resolution: {integrity: sha512-JDkPIaug4hP9c+K/wxSgmTiLTMjBTYv2ATPvudhkRKuhsoym89aWCXb1CVbs7FRYuRsJEOGojpwpL5rBfDDy9g==}
@@ -24133,7 +24135,7 @@ snapshots:
     optionalDependencies:
       typescript: 5.8.2
 
-  vuetify-nuxt-module@0.18.5(magicast@0.3.5)(typescript@5.8.2)(vite@6.2.3(@types/node@22.13.13)(jiti@2.4.2)(stylus@0.57.0)(terser@5.39.0)(tsx@4.19.3)(yaml@2.7.0))(vue@3.5.13(typescript@5.8.2)):
+  vuetify-nuxt-module@0.18.6(magicast@0.3.5)(typescript@5.8.2)(vite@6.2.3(@types/node@22.13.13)(jiti@2.4.2)(stylus@0.57.0)(terser@5.39.0)(tsx@4.19.3)(yaml@2.7.0))(vue@3.5.13(typescript@5.8.2)):
     dependencies:
       '@nuxt/kit': 3.16.1(magicast@0.3.5)
       defu: 6.1.4
