@@ -1,4 +1,6 @@
 import { readFile } from 'fs/promises';
+import { Injectable } from '@nestjs/common';
+import { PathsConfig } from '../../config/paths.config.js';
 
 import { Command, CommandRunner, Option } from 'nest-commander';
 
@@ -7,9 +9,13 @@ import { getters } from '@app/store/index.js';
 import { MyServersConfigMemorySchema } from '@app/types/my-servers-config.js';
 import { LogService } from '@app/unraid-api/cli/log.service.js';
 
+@Injectable()
 @Command({ name: 'report' })
 export class ReportCommand extends CommandRunner {
-    constructor(private readonly logger: LogService) {
+    constructor(
+        private readonly logger: LogService,
+        private readonly paths: PathsConfig
+    ) {
         super();
     }
 
@@ -33,11 +39,11 @@ export class ReportCommand extends CommandRunner {
 
     async getBothMyServersConfigsWithoutError(): Promise<MyServersConfigMemory | null> {
         const ini = await import('ini');
-        const diskConfig = await readFile(getters.paths()['myservers-config'], 'utf-8').catch(
-            (_) => null
+        const diskConfig = await readFile(this.paths.myserversConfig, 'utf-8').catch(
+            () => 'No disk config found'
         );
-        const memoryConfig = await readFile(getters.paths()['myservers-config-states'], 'utf-8').catch(
-            (_) => null
+        const memoryConfig = await readFile(this.paths.myserversConfigStates, 'utf-8').catch(
+            () => 'No memory config found'
         );
 
         if (memoryConfig) {

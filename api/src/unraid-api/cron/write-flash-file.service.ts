@@ -1,6 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { Cron } from '@nestjs/schedule';
 import { readFile, writeFile } from 'fs/promises';
+import { PathsConfig } from '../../config/paths.config.js';
 
 import { ONE_DAY_MS, THIRTY_MINUTES_MS } from '@app/consts.js';
 import { sleep } from '@app/core/utils/misc/sleep.js';
@@ -9,9 +10,12 @@ import { getters } from '@app/store/index.js';
 
 @Injectable()
 export class WriteFlashFileService {
-    constructor() {}
+    constructor(private readonly paths: PathsConfig) {
+        this.fileLocation = paths.myserversKeepalive;
+    }
+
     private readonly logger = new Logger(WriteFlashFileService.name);
-    private fileLocation = getters.paths()['myservers-keepalive'];
+    private fileLocation: string;
     public randomizeWriteTime = true;
     public writeNewTimestamp = async (): Promise<number> => {
         const wait = this.randomizeWriteTime ? convertToFuzzyTime(0, THIRTY_MINUTES_MS) : 0;

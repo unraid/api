@@ -5,6 +5,7 @@ import { join } from 'path';
 import { fileExists } from '@app/core/utils/files/file-exists.js';
 import { getters } from '@app/store/index.js';
 import { batchProcess } from '@app/utils.js';
+import { PathsConfig } from '../../config/paths.config.js';
 
 /** token for dependency injection of a session cookie options object */
 export const SESSION_COOKIE_CONFIG = 'SESSION_COOKIE_CONFIG';
@@ -21,8 +22,13 @@ type SessionCookieConfig = {
 export class CookieService {
     private readonly logger = new Logger(CookieService.name);
     constructor(
-        @Inject(SESSION_COOKIE_CONFIG) readonly opts: SessionCookieConfig = CookieService.defaultOpts()
-    ) {}
+        @Inject(SESSION_COOKIE_CONFIG) readonly opts: SessionCookieConfig = CookieService.defaultOpts(),
+        private readonly paths: PathsConfig
+    ) {
+        this.sessionDir = paths.authSessions;
+    }
+
+    private sessionDir: string;
 
     /**
      * @returns new SessionCookieOptions with e.g. `namePrefix: 'unraid_', sessionDir: '/var/lib/php'`
@@ -84,11 +90,11 @@ export class CookieService {
      */
     public getSessionFilePath(sessionId: string): string {
         if (typeof sessionId !== 'string') {
-            return join(this.opts.sessionDir, `sess_`);
+            return join(this.sessionDir, `sess_`);
         }
         // sanitize incoming session id to prevent e.g. directory traversal attacks
         // only allow alpha-numeric characters
         const sanitizedSessionId = sessionId.replace(/[^a-zA-Z0-9]/g, '');
-        return join(this.opts.sessionDir, `sess_${sanitizedSessionId}`);
+        return join(this.sessionDir, `sess_${sanitizedSessionId}`);
     }
 }

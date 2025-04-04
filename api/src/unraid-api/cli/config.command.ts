@@ -5,6 +5,7 @@ import { Command, CommandRunner } from 'nest-commander';
 
 import { getters } from '@app/store/index.js';
 import { LogService } from '@app/unraid-api/cli/log.service.js';
+import { PathsConfig } from '../../config/paths.config.js';
 
 @Injectable()
 @Command({
@@ -12,13 +13,13 @@ import { LogService } from '@app/unraid-api/cli/log.service.js';
     description: 'Display current configuration values',
 })
 export class ConfigCommand extends CommandRunner {
-    constructor(private readonly logger: LogService) {
+    constructor(private readonly logger: LogService, private readonly paths: PathsConfig) {
         super();
     }
 
     async run(): Promise<void> {
         this.logger.log('\nDisk Configuration:');
-        const diskConfig = await readFile(getters.paths()['myservers-config'], 'utf8');
+        const diskConfig = await readFile(this.paths.myserversConfig, 'utf8');
         this.logger.log(diskConfig);
         process.exit(0);
     }

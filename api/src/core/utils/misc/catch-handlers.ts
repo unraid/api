@@ -1,5 +1,6 @@
 import { AppError } from '@app/core/errors/app-error.js';
 import { getters } from '@app/store/index.js';
+import { PathsConfig } from '../../../config/paths.config.js';
 
 interface DockerError extends NodeJS.ErrnoException {
     address: string;
@@ -10,7 +11,8 @@ interface DockerError extends NodeJS.ErrnoException {
  */
 export const catchHandlers = {
     docker(error: DockerError) {
-        const socketPath = getters.paths()['docker-socket'];
+        const paths = PathsConfig.getInstance();
+        const socketPath = paths.dockerSocket;
 
         // Throw custom error for docker socket missing
         if (error.code === 'ENOENT' && error.address === socketPath) {
@@ -26,4 +28,10 @@ export const catchHandlers = {
 
         throw error;
     },
+};
+
+export const handleDockerError = (error: Error) => {
+    const paths = PathsConfig.getInstance();
+    const socketPath = paths.dockerSocket;
+    // Rest of implementation
 };

@@ -2,11 +2,13 @@ import { readFile } from 'fs/promises';
 
 import { FileMissingError } from '@app/core/errors/file-missing-error.js';
 import { getters } from '@app/store/index.js';
+import { PathsConfig } from '../../../config/paths.config.js';
 
 let machineId: string | null = null;
 
 export const getMachineId = async (): Promise<string> => {
-    const path = getters.paths()['machine-id'];
+    const paths = PathsConfig.getInstance();
+    const path = paths.machineId;
 
     if (machineId) {
         return machineId;

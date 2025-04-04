@@ -1,11 +1,16 @@
 import Docker from 'dockerode';
+import { PathsConfig } from '../../../config/paths.config.js';
 
-const socketPath = '/var/run/docker.sock';
-const client = new Docker({
-    socketPath,
-});
+const createDockerClient = () => {
+    const paths = PathsConfig.getInstance();
+    const socketPath = paths.dockerSocket;
+    return new Docker({
+        socketPath,
+    });
+};
 
 /**
  * Docker client
  */
-export const docker = client;
+export const docker = createDockerClient();
+export { createDockerClient };

@@ -5,12 +5,14 @@ import { logger } from '@app/core/log.js';
 import { type LooseObject } from '@app/core/types/index.js';
 import { DRY_RUN } from '@app/environment.js';
 import { getters } from '@app/store/index.js';
+import { PathsConfig } from '../../../config/paths.config.js';
 
 /**
  * Run a command with emcmd.
  */
 export const emcmd = async (commands: LooseObject) => {
-    const socketPath = getters.paths()['emhttpd-socket'];
+    const paths = PathsConfig.getInstance();
+    const socketPath = paths.emhttpdSocket;
     const { csrfToken } = getters.emhttp().var;
 
     const url = `http://unix:${socketPath}:/update.htm`;
@@ -38,4 +40,10 @@ export const emcmd = async (commands: LooseObject) => {
             }
             throw error;
         });
+};
+
+export const createEmcmdClient = () => {
+    const paths = PathsConfig.getInstance();
+    const socketPath = paths.emhttpdSocket;
+    // Rest of implementation
 };

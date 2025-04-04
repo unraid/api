@@ -8,6 +8,7 @@ import * as chokidar from 'chokidar';
 
 import { pubsub, PUBSUB_CHANNEL } from '@app/core/pubsub.js';
 import { getters } from '@app/store/index.js';
+import { PathsConfig } from '../../../../config/paths.config.js';
 
 interface LogFile {
     name: string;
@@ -32,11 +33,13 @@ export class LogsService {
     >();
     private readonly DEFAULT_LINES = 100;
 
+    constructor(private readonly paths: PathsConfig) {}
+
     /**
      * Get the base path for log files
      */
     private get logBasePath(): string {
-        return getters.paths()['unraid-log-base'];
+        return this.paths.unraidLogBase;
     }
 
     /**

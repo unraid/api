@@ -13,10 +13,17 @@ import {
 import { getters } from '@app/store/index.js';
 import { LogService } from '@app/unraid-api/cli/log.service.js';
 import { ReportCommand } from '@app/unraid-api/cli/report.command.js';
+import { PathsConfig } from '../../config/paths.config.js';
 
 @Injectable()
 export class RestService {
     protected logger = new Logger(RestService.name);
+
+    constructor(private readonly paths: PathsConfig) {
+        this.logPath = paths.logBase;
+    }
+
+    private logPath: string;
 
     async saveApiReport(pathToReport: string) {
         try {
