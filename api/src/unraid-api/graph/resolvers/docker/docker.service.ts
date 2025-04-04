@@ -2,13 +2,10 @@ import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { readFile } from 'fs/promises';
 
 import camelCaseKeys from 'camelcase-keys';
-import { watch } from 'chokidar';
-import DockerEE from 'docker-event-emitter';
 import Docker from 'dockerode';
 import { debounce } from 'lodash-es';
 
 import type { ContainerPort, DockerContainer, DockerNetwork } from '@app/graphql/generated/api/types.js';
-import { dockerLogger } from '@app/core/log.js';
 import { pubsub, PUBSUB_CHANNEL } from '@app/core/pubsub.js';
 import { catchHandlers } from '@app/core/utils/misc/catch-handlers.js';
 import { sleep } from '@app/core/utils/misc/sleep.js';
@@ -28,36 +25,16 @@ export class DockerService implements OnModuleInit {
     private client: Docker;
     private containerCache: Array<DockerContainer> = [];
     private autoStarts: string[] = [];
-    private dockerWatcher: null | typeof DockerEE = null;
     private readonly logger = new Logger(DockerService.name);
 
     constructor() {
         this.client = this.getDockerClient();
     }
 
-    private getDockerClient() {
+    public getDockerClient() {
         return new Docker({
             socketPath: '/var/run/docker.sock',
         });
-    }
-
-    private setupVarRunWatch() {
-        const paths = getters.paths();
-        watch(paths['var-run'], { ignoreInitial: false })
-            .on('add', async (path) => {
-                if (path === paths['docker-socket']) {
-                    dockerLogger.debug('Starting docker watch');
-                    this.dockerWatcher = await this.setupDockerWatch();
-                }
-            })
-            .on('unlink', (path) => {
-                if (path === paths['docker-socket'] && this.dockerWatcher) {
-                    dockerLogger.debug('Stopping docker watch');
-                    this.dockerWatcher?.stop?.();
-                    this.dockerWatcher = null;
-                    this.containerCache = [];
-                }
-            });
     }
 
     get installed() {
@@ -77,51 +54,24 @@ export class DockerService implements OnModuleInit {
         };
     }
 
-    private async setupDockerWatch(): Promise<DockerEE> {
-        // Only watch container events equal to start/stop
-        const watchedActions = ['die', 'kill', 'oom', 'pause', 'restart', 'start', 'stop', 'unpause'];
-
-        // Create docker event emitter instance
-        dockerLogger.debug('Creating docker event emitter instance');
-
-        const dee = new DockerEE(this.client);
-        // On Docker event update info with { apps: { installed, started } }
-        dee.on(
-            'container',
-            async (data: { Type: 'container'; Action: 'start' | 'stop'; from: string }) => {
-                // Only listen to container events
-                if (!watchedActions.includes(data.Action)) {
-                    return;
-                }
-                dockerLogger.debug(`[${data.from}] ${data.Type}->${data.Action}`);
-                await this.debouncedContainerCacheUpdate();
-            }
-        );
-        // Get docker container count on first start
-        await this.debouncedContainerCacheUpdate();
-        await dee.start();
-        dockerLogger.debug('Binding to docker events');
-        return dee;
-    }
-
     public async onModuleInit() {
-        this.setupVarRunWatch();
+        await this.debouncedContainerCacheUpdate();
     }
 
+    /**
+     * Docker auto start file
+     *
+     * @note Doesn't exist if array is offline.
+     * @see https://github.com/limetech/webgui/issues/502#issue-480992547
+     */
     public async getAutoStarts(): Promise<string[]> {
-        /**
-         * Docker auto start file
-         *
-         * @note Doesn't exist if array is offline.
-         * @see https://github.com/limetech/webgui/issues/502#issue-480992547
-         */
         const autoStartFile = await readFile(getters.paths()['docker-autostart'], 'utf8')
             .then((file) => file.toString())
             .catch(() => '');
         return autoStartFile.split('\n');
     }
 
-    private debouncedContainerCacheUpdate = debounce(async () => {
+    public debouncedContainerCacheUpdate = debounce(async () => {
         await this.getContainers({ useCache: false });
         await pubsub.publish(PUBSUB_CHANNEL.INFO, this.appUpdateEvent);
     }, 500);

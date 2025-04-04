@@ -13,9 +13,7 @@ import { CloudResolver } from '@app/unraid-api/graph/resolvers/cloud/cloud.resol
 import { ConfigResolver } from '@app/unraid-api/graph/resolvers/config/config.resolver.js';
 import { DisksResolver } from '@app/unraid-api/graph/resolvers/disks/disks.resolver.js';
 import { DisplayResolver } from '@app/unraid-api/graph/resolvers/display/display.resolver.js';
-import { DockerMutationsResolver } from '@app/unraid-api/graph/resolvers/docker/docker.mutations.resolver.js';
-import { DockerResolver } from '@app/unraid-api/graph/resolvers/docker/docker.resolver.js';
-import { DockerService } from '@app/unraid-api/graph/resolvers/docker/docker.service.js';
+import { DockerModule } from '@app/unraid-api/graph/resolvers/docker/docker.module.js';
 import { FlashResolver } from '@app/unraid-api/graph/resolvers/flash/flash.resolver.js';
 import { InfoResolver } from '@app/unraid-api/graph/resolvers/info/info.resolver.js';
 import { LogsResolver } from '@app/unraid-api/graph/resolvers/logs/logs.resolver.js';
@@ -36,7 +34,7 @@ import { ServicesResolver } from '@app/unraid-api/graph/services/services.resolv
 import { SharesResolver } from '@app/unraid-api/graph/shares/shares.resolver.js';
 
 @Module({
-    imports: [AuthModule],
+    imports: [AuthModule, DockerModule],
     providers: [
         ApiKeyResolver,
         ArrayMutationsResolver,
@@ -49,9 +47,6 @@ import { SharesResolver } from '@app/unraid-api/graph/shares/shares.resolver.js'
         ConnectSettingsService,
         DisksResolver,
         DisplayResolver,
-        DockerMutationsResolver,
-        DockerResolver,
-        DockerService,
         FlashResolver,
         InfoResolver,
         LogsResolver,

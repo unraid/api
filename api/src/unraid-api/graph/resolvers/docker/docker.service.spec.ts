@@ -524,194 +524,29 @@ describe('DockerService', () => {
     });
 
     describe('watchers', () => {
-        it('should setup docker watcher when docker socket is added', async () => {
-            // Mock the setupDockerWatch method
-            const setupDockerWatchSpy = vi.spyOn(service as any, 'setupDockerWatch');
-            setupDockerWatchSpy.mockResolvedValue({} as any);
-
-            // Get the watch function from chokidar
-            const { watch } = await import('chokidar');
-
-            // Mock the on method to simulate the add event
-            const mockOn = vi.fn().mockImplementation((event, callback) => {
-                if (event === 'add') {
-                    // Simulate the add event with the docker socket path
-                    callback('/var/run/docker.sock');
-                }
-                return { on: vi.fn() };
-            });
-
-            // Replace the watch function's on method
-            (watch as any).mockReturnValue({
-                on: mockOn,
-            });
-
-            // Call the setupVarRunWatch method
-            await (service as any).setupVarRunWatch();
-
-            // Verify that setupDockerWatch was called
-            expect(setupDockerWatchSpy).toHaveBeenCalled();
+        it.skip('should setup docker watcher when docker socket is added', async () => {
+            // This test has been moved to docker-event.service.spec.ts
+            // Method no longer exists in DockerService
         });
 
-        it('should stop docker watcher when docker socket is removed', async () => {
-            // Get the watch function from chokidar
-            const { watch } = await import('chokidar');
-
-            // Create a mock stop function
-            const mockStop = vi.fn();
-
-            // Set up the dockerWatcher before calling setupVarRunWatch
-            (service as any).dockerWatcher = { stop: mockStop };
-
-            // Mock the on method to simulate the unlink event
-            let unlinkCallback: (path: string) => void = () => {};
-            const mockOn = vi.fn().mockImplementation((event, callback) => {
-                if (event === 'unlink') {
-                    unlinkCallback = callback;
-                }
-                return { on: mockOn };
-            });
-
-            // Replace the watch function's on method
-            (watch as any).mockReturnValue({
-                on: mockOn,
-            });
-
-            // Call the setupVarRunWatch method
-            (service as any).setupVarRunWatch();
-
-            // Verify that the on method was called with 'unlink'
-            expect(mockOn).toHaveBeenCalledWith('unlink', expect.any(Function));
-            expect(unlinkCallback).toBeDefined();
-
-            // Trigger the unlink event
-            unlinkCallback('/var/run/docker.sock');
-
-            // Verify that the stop method was called
-            expect(mockStop).toHaveBeenCalled();
-            expect((service as any).dockerWatcher).toBeNull();
-            expect((service as any).containerCache).toEqual([]);
+        it.skip('should stop docker watcher when docker socket is removed', async () => {
+            // This test has been moved to docker-event.service.spec.ts
+            // Method no longer exists in DockerService
         });
 
-        it('should setup docker watch correctly', async () => {
-            // Get the DockerEE import
-            const DockerEE = (await import('docker-event-emitter')).default;
-
-            // Mock the debouncedContainerCacheUpdate method
-            const debouncedContainerCacheUpdateSpy = vi.spyOn(
-                service as any,
-                'debouncedContainerCacheUpdate'
-            );
-            debouncedContainerCacheUpdateSpy.mockResolvedValue(undefined);
-
-            // Call the setupDockerWatch method
-            const result = await (service as any).setupDockerWatch();
-
-            // Verify that DockerEE was instantiated with the client
-            expect(DockerEE).toHaveBeenCalledWith(mockDockerInstance);
-
-            // Verify that the on method was called with the correct arguments
-            const dockerEEInstance = DockerEE();
-            expect(dockerEEInstance.on).toHaveBeenCalledWith('container', expect.any(Function));
-
-            // Verify that the start method was called
-            expect(dockerEEInstance.start).toHaveBeenCalled();
-
-            // Verify that debouncedContainerCacheUpdate was called
-            expect(debouncedContainerCacheUpdateSpy).toHaveBeenCalled();
-
-            // Verify that the result is the DockerEE instance
-            expect(result).toBe(dockerEEInstance);
+        it.skip('should setup docker watch correctly', async () => {
+            // This test has been moved to docker-event.service.spec.ts
+            // Method no longer exists in DockerService
         });
 
-        it('should call debouncedContainerCacheUpdate when container event is received', async () => {
-            // Get the DockerEE import
-            const DockerEE = (await import('docker-event-emitter')).default;
-
-            // Mock the on method to capture the callback
-            const mockOnCallback = vi.fn();
-            const mockOn = vi.fn().mockImplementation((event, callback) => {
-                if (event === 'container') {
-                    mockOnCallback(callback);
-                }
-                return { on: vi.fn() };
-            });
-
-            // Replace the DockerEE constructor's on method
-            (DockerEE as any).mockReturnValue({
-                on: mockOn,
-                start: vi.fn().mockResolvedValue(undefined),
-            });
-
-            // Mock the debouncedContainerCacheUpdate method
-            const debouncedContainerCacheUpdateSpy = vi.spyOn(
-                service as any,
-                'debouncedContainerCacheUpdate'
-            );
-            debouncedContainerCacheUpdateSpy.mockResolvedValue(undefined);
-
-            // Call the setupDockerWatch method
-            await (service as any).setupDockerWatch();
-
-            // Get the callback function that was passed to the on method
-            const containerEventCallback = mockOnCallback.mock.calls[0][0];
-
-            // Call the callback with a container event
-            await containerEventCallback({
-                Type: 'container',
-                Action: 'start',
-                from: 'test-container',
-            });
-
-            // Verify that debouncedContainerCacheUpdate was called
-            expect(debouncedContainerCacheUpdateSpy).toHaveBeenCalled();
+        it.skip('should call debouncedContainerCacheUpdate when container event is received', async () => {
+            // This test has been moved to docker-event.service.spec.ts
+            // Method no longer exists in DockerService
         });
 
-        it('should not call debouncedContainerCacheUpdate for non-watched container events', async () => {
-            // Get the DockerEE import
-            const DockerEE = (await import('docker-event-emitter')).default;
-
-            // Mock the debouncedContainerCacheUpdate method
-            const debouncedContainerCacheUpdateSpy = vi.spyOn(
-                service as any,
-                'debouncedContainerCacheUpdate'
-            );
-            debouncedContainerCacheUpdateSpy.mockResolvedValue(undefined);
-
-            // Create a mock on function that captures the callback
-            let containerCallback: (data: {
-                Type: string;
-                Action: string;
-                from: string;
-            }) => void = () => {};
-            const mockOn = vi.fn().mockImplementation((event, callback) => {
-                if (event === 'container') {
-                    containerCallback = callback;
-                }
-                return { on: vi.fn() };
-            });
-
-            // Replace the DockerEE constructor's on method
-            (DockerEE as any).mockReturnValue({
-                on: mockOn,
-                start: vi.fn().mockResolvedValue(undefined),
-            });
-
-            // Call the setupDockerWatch method
-            await (service as any).setupDockerWatch();
-
-            // Reset the spy after setup
-            debouncedContainerCacheUpdateSpy.mockReset();
-
-            // Call the callback with a non-watched container event
-            await containerCallback({
-                Type: 'container',
-                Action: 'create',
-                from: 'test-container',
-            });
-
-            // Verify that debouncedContainerCacheUpdate was not called
-            expect(debouncedContainerCacheUpdateSpy).not.toHaveBeenCalled();
+        it.skip('should not call debouncedContainerCacheUpdate for non-watched container events', async () => {
+            // This test has been moved to docker-event.service.spec.ts
+            // Method no longer exists in DockerService
         });
 
         it('should call getContainers and publish appUpdateEvent in debouncedContainerCacheUpdate', async () => {
