@@ -78,6 +78,7 @@ export class ApiKeyService implements OnModuleInit {
         return permissions.reduce<Array<Permission>>((acc, permission) => {
             const [resource, action] = permission.split(':');
             const validatedResource = Resource[resource.toUpperCase() as keyof typeof Resource] ?? null;
+            // Pull the actual enum value from the graphql schema
             const validatedAction =
                 AuthActionVerb[action.toUpperCase() as keyof typeof AuthActionVerb] ?? null;
             if (validatedAction && validatedResource) {
@@ -214,7 +215,12 @@ export class ApiKeyService implements OnModuleInit {
         try {
             const content = await readFile(join(this.basePath, file), 'utf8');
 
-            return ApiKeyWithSecretSchema().parse(JSON.parse(content));
+            // First convert all the strings in roles and permissions to uppercase (this ensures that casing is never an issue)
+            const parsedContent = JSON.parse(content);
+            if (parsedContent.roles) {
+                parsedContent.roles = parsedContent.roles.map((role: string) => role.toUpperCase());
+            }
+            return ApiKeyWithSecretSchema().parse(parsedContent);
         } catch (error) {
             if (error instanceof SyntaxError) {
                 this.logger.error(`Corrupted key file: ${file}`);
@@ -222,7 +228,7 @@ export class ApiKeyService implements OnModuleInit {
             }
 
             if (error instanceof ZodError) {
-                this.logger.error(`Invalid API key structure in file ${file}`, error.errors);
+                this.logApiKeyZodError(file, error);
                 throw new Error('Invalid API key structure');
             }
 
@@ -242,7 +248,7 @@ export class ApiKeyService implements OnModuleInit {
             return null;
         } catch (error) {
             if (error instanceof ZodError) {
-                this.logger.error('Invalid API key structure', error.errors);
+                this.logApiKeyZodError(id, error);
                 throw new Error('Invalid API key structure');
             }
             throw error;
@@ -265,6 +271,11 @@ export class ApiKeyService implements OnModuleInit {
 
     private generateApiKey(): string {
         return crypto.randomBytes(32).toString('hex');
+    }
+
+    private logApiKeyZodError(file: string, error: ZodError): void {
+        this.logger.error(`Invalid API key structure in file ${file}.
+                    Errors: ${JSON.stringify(error.errors, null, 2)}`);
     }
 
     public async createLocalConnectApiKey(): Promise<ApiKeyWithSecret | null> {
@@ -298,7 +309,7 @@ export class ApiKeyService implements OnModuleInit {
             );
         } catch (error: unknown) {
             if (error instanceof ZodError) {
-                this.logger.error('Invalid API key structure', error.errors);
+                this.logApiKeyZodError(apiKey.id, error);
                 throw new GraphQLError('Failed to save API key: Invalid data structure');
             } else if (error instanceof Error) {
                 throw new GraphQLError(`Failed to save API key: ${error.message}`);

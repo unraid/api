@@ -38,7 +38,7 @@ Index: /usr/local/emhttp/plugins/dynamix/include/DefaultPageLayout.php
  foreach ($buttons as $button) {
    annotate($button['file']);
    // include page specific stylesheets (if existing)
-@@ -944,26 +935,18 @@
+@@ -943,26 +934,18 @@
          case 'warning': bell2++; break;
          case 'normal' : bell3++; break;
        }
@@ -70,7 +70,7 @@ Index: /usr/local/emhttp/plugins/dynamix/include/DefaultPageLayout.php
  });
  
  <?if ($wlan0):?>
-@@ -1340,7 +1323,8 @@
+@@ -1339,7 +1322,8 @@
        }
      }
    }

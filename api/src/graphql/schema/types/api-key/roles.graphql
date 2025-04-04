@@ -2,41 +2,41 @@
 Available resources for permissions
 """
 enum Resource {
-    api_key
-    array
-    cloud
-    config
-    connect
-    connect__remote_access
-    customizations
-    dashboard
-    disk
-    display
-    docker
-    flash
-    info
-    logs
-    me
-    network
-    notifications
-    online
-    os
-    owner
-    permission
-    registration
-    servers
-    services
-    share
-    vars
-    vms
-    welcome
+    API_KEY
+    ARRAY
+    CLOUD
+    CONFIG
+    CONNECT
+    CONNECT__REMOTE_ACCESS
+    CUSTOMIZATIONS
+    DASHBOARD
+    DISK
+    DISPLAY
+    DOCKER
+    FLASH
+    INFO
+    LOGS
+    ME
+    NETWORK
+    NOTIFICATIONS
+    ONLINE
+    OS
+    OWNER
+    PERMISSION
+    REGISTRATION
+    SERVERS
+    SERVICES
+    SHARE
+    VARS
+    VMS
+    WELCOME
 }
 
 """
 Available roles for API keys and users
 """
 enum Role {
-    admin
-    connect
-    guest
+    ADMIN
+    CONNECT
+    GUEST
 }

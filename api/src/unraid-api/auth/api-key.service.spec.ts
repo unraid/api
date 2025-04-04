@@ -9,7 +9,7 @@ import { ZodError } from 'zod';
 import type { ApiKey, ApiKeyWithSecret } from '@app/graphql/generated/api/types.js';
 import { environment } from '@app/environment.js';
 import { ApiKeySchema, ApiKeyWithSecretSchema } from '@app/graphql/generated/api/operations.js';
-import { Resource, Role } from '@app/graphql/generated/api/types.js';
+import { AuthActionVerb, Resource, Role } from '@app/graphql/generated/api/types.js';
 import { getters, store } from '@app/store/index.js';
 import { updateUserConfig } from '@app/store/modules/config.js';
 import { FileLoadStatus } from '@app/store/types.js';
@@ -82,7 +82,7 @@ describe('ApiKeyService', () => {
         permissions: [
             {
                 resource: Resource.CONNECT,
-                actions: ['read'],
+                actions: [AuthActionVerb.READ],
             },
         ],
         createdAt: new Date().toISOString(),
@@ -601,13 +601,12 @@ describe('ApiKeyService', () => {
                 }),
             } as any);
 
-            await expect(apiKeyService['loadApiKeyFile']('test.json')).rejects.toThrow(
-                'Invalid API key structure'
-            );
+            await expect(
+                apiKeyService['loadApiKeyFile']('test.json')
+            ).rejects.toThrowErrorMatchingInlineSnapshot(`[Error: Invalid API key structure]`);
 
             expect(mockLogger.error).toHaveBeenCalledWith(
-                expect.stringContaining('Invalid API key structure in file test.json'),
-                expect.any(Array)
+                expect.stringContaining('Invalid API key structure in file test.json')
             );
         });
     });

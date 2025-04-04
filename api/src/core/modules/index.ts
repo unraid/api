@@ -1,13 +1,11 @@
 // Created from 'create-ts-index'
 
-export * from './array/index.js';
 export * from './debug/index.js';
 export * from './disks/index.js';
 export * from './services/index.js';
 export * from './settings/index.js';
 export * from './shares/index.js';
 export * from './users/index.js';
-export * from './vms/index.js';
 export * from './add-share.js';
 export * from './add-user.js';
 export * from './get-apps.js';

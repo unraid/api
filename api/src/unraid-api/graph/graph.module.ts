@@ -1,8 +1,9 @@
 import type { ApolloDriverConfig } from '@nestjs/apollo';
 import { ApolloDriver } from '@nestjs/apollo';
-import { Module } from '@nestjs/common';
+import { Module, UnauthorizedException } from '@nestjs/common';
 import { GraphQLModule } from '@nestjs/graphql';
 
+import { ApolloServerPlugin } from '@apollo/server';
 import { NoUnusedVariablesRule, print } from 'graphql';
 import {
     DateTimeResolver,
@@ -11,19 +12,16 @@ import {
     URLResolver,
     UUIDResolver,
 } from 'graphql-scalars';
+import { AuthZService } from 'nest-authz';
 
 import { GraphQLLong } from '@app/graphql/resolvers/graphql-type-long.js';
 import { loadTypeDefs } from '@app/graphql/schema/loadTypesDefs.js';
 import { getters } from '@app/store/index.js';
-import { ConnectSettingsService } from '@app/unraid-api/graph/connect/connect-settings.service.js';
-import { ConnectResolver } from '@app/unraid-api/graph/connect/connect.resolver.js';
-import { ConnectService } from '@app/unraid-api/graph/connect/connect.service.js';
+import { AuthModule } from '@app/unraid-api/auth/auth.module.js';
 import { idPrefixPlugin } from '@app/unraid-api/graph/id-prefix-plugin.js';
-import { NetworkResolver } from '@app/unraid-api/graph/network/network.resolver.js';
 import { ResolversModule } from '@app/unraid-api/graph/resolvers/resolvers.module.js';
 import { sandboxPlugin } from '@app/unraid-api/graph/sandbox-plugin.js';
-import { ServicesResolver } from '@app/unraid-api/graph/services/services.resolver.js';
-import { SharesResolver } from '@app/unraid-api/graph/shares/shares.resolver.js';
+import { getAuthEnumTypeDefs } from '@app/unraid-api/graph/utils/auth-enum.utils.js';
 import { PluginModule } from '@app/unraid-api/plugin/plugin.module.js';
 import { PluginService } from '@app/unraid-api/plugin/plugin.service.js';
 
@@ -32,47 +30,51 @@ import { PluginService } from '@app/unraid-api/plugin/plugin.service.js';
         ResolversModule,
         GraphQLModule.forRootAsync<ApolloDriverConfig>({
             driver: ApolloDriver,
-            imports: [PluginModule],
-            inject: [PluginService],
-            useFactory: async (pluginService: PluginService) => {
+            imports: [PluginModule, AuthModule],
+            inject: [PluginService, AuthZService],
+            useFactory: async (pluginService: PluginService, authZService: AuthZService) => {
                 const plugins = await pluginService.getGraphQLConfiguration();
+                const authEnumTypeDefs = getAuthEnumTypeDefs();
+                const typeDefs = print(await loadTypeDefs([plugins.typeDefs, authEnumTypeDefs]));
+                const resolvers = {
+                    DateTime: DateTimeResolver,
+                    JSON: JSONResolver,
+                    Long: GraphQLLong,
+                    Port: PortResolver,
+                    URL: URLResolver,
+                    UUID: UUIDResolver,
+                    ...plugins.resolvers,
+                };
+
                 return {
                     introspection: getters.config()?.local?.sandbox === 'yes',
                     playground: false,
-                    context: ({ req, connectionParams, extra }: any) => ({
-                        req,
-                        connectionParams,
-                        extra,
-                    }),
+                    context: async ({ req, connectionParams, extra }) => {
+                        return {
+                            req,
+                            connectionParams,
+                            extra,
+                        };
+                    },
                     plugins: [sandboxPlugin, idPrefixPlugin] as any[],
                     subscriptions: {
                         'graphql-ws': {
                             path: '/graphql',
                         },
                     },
-                    path: '/graphql',
-                    typeDefs: [print(await loadTypeDefs([plugins.typeDefs]))],
-                    resolvers: {
-                        JSON: JSONResolver,
-                        Long: GraphQLLong,
-                        UUID: UUIDResolver,
-                        DateTime: DateTimeResolver,
-                        Port: PortResolver,
-                        URL: URLResolver,
-                        ...plugins.resolvers,
-                    },
+                    typeDefs,
+                    resolvers,
+                    /**
+                     * @todo : Once we've determined how to fix the transformResolvers function, uncomment this.
+                     */
+                    // transformResolvers: (resolvers) => transformResolvers(resolvers, authZService),
+                    // transformSchema: (schema) => authSchemaTransformer(schema),
                     validationRules: [NoUnusedVariablesRule],
                 };
             },
         }),
     ],
-    providers: [
-        NetworkResolver,
-        ServicesResolver,
-        SharesResolver,
-        ConnectResolver,
-        ConnectService,
-        ConnectSettingsService,
-    ],
+    providers: [],
+    exports: [GraphQLModule],
 })
 export class GraphModule {}

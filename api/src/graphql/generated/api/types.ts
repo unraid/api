@@ -323,6 +323,21 @@ export enum ArrayStateInputState {
   STOP = 'STOP'
 }
 
+/** Available authentication action verbs */
+export enum AuthActionVerb {
+  CREATE = 'CREATE',
+  DELETE = 'DELETE',
+  READ = 'READ',
+  UPDATE = 'UPDATE'
+}
+
+/** Available authentication possession types */
+export enum AuthPossession {
+  ANY = 'ANY',
+  OWN = 'OWN',
+  OWN_ANY = 'OWN_ANY'
+}
+
 export type Baseboard = {
   __typename?: 'Baseboard';
   assetTag?: Maybe<Scalars['String']['output']>;
@@ -859,6 +874,8 @@ export type Mutation = {
    * Some setting combinations may be required or disallowed. Please refer to each setting for more information.
    */
   updateApiSettings: ConnectSettingsValues;
+  /** Virtual machine mutations */
+  vms?: Maybe<VmMutations>;
 };
 
 
@@ -1349,41 +1366,41 @@ export type RemoveRoleFromApiKeyInput = {
 
 /** Available resources for permissions */
 export enum Resource {
-  API_KEY = 'api_key',
-  ARRAY = 'array',
-  CLOUD = 'cloud',
-  CONFIG = 'config',
-  CONNECT = 'connect',
-  CONNECT__REMOTE_ACCESS = 'connect__remote_access',
-  CUSTOMIZATIONS = 'customizations',
-  DASHBOARD = 'dashboard',
-  DISK = 'disk',
-  DISPLAY = 'display',
-  DOCKER = 'docker',
-  FLASH = 'flash',
-  INFO = 'info',
-  LOGS = 'logs',
-  ME = 'me',
-  NETWORK = 'network',
-  NOTIFICATIONS = 'notifications',
-  ONLINE = 'online',
-  OS = 'os',
-  OWNER = 'owner',
-  PERMISSION = 'permission',
-  REGISTRATION = 'registration',
-  SERVERS = 'servers',
-  SERVICES = 'services',
-  SHARE = 'share',
-  VARS = 'vars',
-  VMS = 'vms',
-  WELCOME = 'welcome'
+  API_KEY = 'API_KEY',
+  ARRAY = 'ARRAY',
+  CLOUD = 'CLOUD',
+  CONFIG = 'CONFIG',
+  CONNECT = 'CONNECT',
+  CONNECT__REMOTE_ACCESS = 'CONNECT__REMOTE_ACCESS',
+  CUSTOMIZATIONS = 'CUSTOMIZATIONS',
+  DASHBOARD = 'DASHBOARD',
+  DISK = 'DISK',
+  DISPLAY = 'DISPLAY',
+  DOCKER = 'DOCKER',
+  FLASH = 'FLASH',
+  INFO = 'INFO',
+  LOGS = 'LOGS',
+  ME = 'ME',
+  NETWORK = 'NETWORK',
+  NOTIFICATIONS = 'NOTIFICATIONS',
+  ONLINE = 'ONLINE',
+  OS = 'OS',
+  OWNER = 'OWNER',
+  PERMISSION = 'PERMISSION',
+  REGISTRATION = 'REGISTRATION',
+  SERVERS = 'SERVERS',
+  SERVICES = 'SERVICES',
+  SHARE = 'SHARE',
+  VARS = 'VARS',
+  VMS = 'VMS',
+  WELCOME = 'WELCOME'
 }
 
 /** Available roles for API keys and users */
 export enum Role {
-  ADMIN = 'admin',
-  CONNECT = 'connect',
-  GUEST = 'guest'
+  ADMIN = 'ADMIN',
+  CONNECT = 'CONNECT',
+  GUEST = 'GUEST'
 }
 
 export type Server = {
@@ -1832,6 +1849,59 @@ export type VmDomain = {
   uuid: Scalars['ID']['output'];
 };
 
+export type VmMutations = {
+  __typename?: 'VmMutations';
+  /** Force stop a virtual machine */
+  forceStopVm: Scalars['Boolean']['output'];
+  /** Pause a virtual machine */
+  pauseVm: Scalars['Boolean']['output'];
+  /** Reboot a virtual machine */
+  rebootVm: Scalars['Boolean']['output'];
+  /** Reset a virtual machine */
+  resetVm: Scalars['Boolean']['output'];
+  /** Resume a virtual machine */
+  resumeVm: Scalars['Boolean']['output'];
+  /** Start a virtual machine */
+  startVm: Scalars['Boolean']['output'];
+  /** Stop a virtual machine */
+  stopVm: Scalars['Boolean']['output'];
+};
+
+
+export type VmMutationsforceStopVmArgs = {
+  id: Scalars['ID']['input'];
+};
+
+
+export type VmMutationspauseVmArgs = {
+  id: Scalars['ID']['input'];
+};
+
+
+export type VmMutationsrebootVmArgs = {
+  id: Scalars['ID']['input'];
+};
+
+
+export type VmMutationsresetVmArgs = {
+  id: Scalars['ID']['input'];
+};
+
+
+export type VmMutationsresumeVmArgs = {
+  id: Scalars['ID']['input'];
+};
+
+
+export type VmMutationsstartVmArgs = {
+  id: Scalars['ID']['input'];
+};
+
+
+export type VmMutationsstopVmArgs = {
+  id: Scalars['ID']['input'];
+};
+
 export enum VmState {
   CRASHED = 'CRASHED',
   IDLE = 'IDLE',
@@ -1994,6 +2064,8 @@ export type ResolversTypes = ResolversObject<{
   ArrayState: ArrayState;
   ArrayStateInput: ArrayStateInput;
   ArrayStateInputState: ArrayStateInputState;
+  AuthActionVerb: AuthActionVerb;
+  AuthPossession: AuthPossession;
   Baseboard: ResolverTypeWrapper<Baseboard>;
   Boolean: ResolverTypeWrapper<Scalars['Boolean']['output']>;
   Capacity: ResolverTypeWrapper<Capacity>;
@@ -2097,6 +2169,7 @@ export type ResolversTypes = ResolversObject<{
   Vars: ResolverTypeWrapper<Vars>;
   Versions: ResolverTypeWrapper<Versions>;
   VmDomain: ResolverTypeWrapper<VmDomain>;
+  VmMutations: ResolverTypeWrapper<VmMutations>;
   VmState: VmState;
   Vms: ResolverTypeWrapper<Vms>;
   WAN_ACCESS_TYPE: WAN_ACCESS_TYPE;
@@ -2211,12 +2284,21 @@ export type ResolversParentTypes = ResolversObject<{
   Vars: Vars;
   Versions: Versions;
   VmDomain: VmDomain;
+  VmMutations: VmMutations;
   Vms: Vms;
   Welcome: Welcome;
   addUserInput: addUserInput;
   deleteUserInput: deleteUserInput;
   usersInput: usersInput;
 }>;
+
+export type authDirectiveArgs = {
+  action: AuthActionVerb;
+  possession: AuthPossession;
+  resource: Resource;
+};
+
+export type authDirectiveResolver<Result, Parent, ContextType = Context, Args = authDirectiveArgs> = DirectiveResolverFn<Result, Parent, ContextType, Args>;
 
 export type AccessUrlResolvers<ContextType = Context, ParentType extends ResolversParentTypes['AccessUrl'] = ResolversParentTypes['AccessUrl']> = ResolversObject<{
   ipv4?: Resolver<Maybe<ResolversTypes['URL']>, ParentType, ContextType>;
@@ -2709,6 +2791,7 @@ export type MutationResolvers<ContextType = Context, ParentType extends Resolver
   unarchiveNotifications?: Resolver<ResolversTypes['NotificationOverview'], ParentType, ContextType, Partial<MutationunarchiveNotificationsArgs>>;
   unreadNotification?: Resolver<ResolversTypes['Notification'], ParentType, ContextType, RequireFields<MutationunreadNotificationArgs, 'id'>>;
   updateApiSettings?: Resolver<ResolversTypes['ConnectSettingsValues'], ParentType, ContextType, RequireFields<MutationupdateApiSettingsArgs, 'input'>>;
+  vms?: Resolver<Maybe<ResolversTypes['VmMutations']>, ParentType, ContextType>;
 }>;
 
 export type NetworkResolvers<ContextType = Context, ParentType extends ResolversParentTypes['Network'] = ResolversParentTypes['Network']> = ResolversObject<{
@@ -3314,6 +3397,17 @@ export type VmDomainResolvers<ContextType = Context, ParentType extends Resolver
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
 
+export type VmMutationsResolvers<ContextType = Context, ParentType extends ResolversParentTypes['VmMutations'] = ResolversParentTypes['VmMutations']> = ResolversObject<{
+  forceStopVm?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<VmMutationsforceStopVmArgs, 'id'>>;
+  pauseVm?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<VmMutationspauseVmArgs, 'id'>>;
+  rebootVm?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<VmMutationsrebootVmArgs, 'id'>>;
+  resetVm?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<VmMutationsresetVmArgs, 'id'>>;
+  resumeVm?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<VmMutationsresumeVmArgs, 'id'>>;
+  startVm?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<VmMutationsstartVmArgs, 'id'>>;
+  stopVm?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<VmMutationsstopVmArgs, 'id'>>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+}>;
+
 export type VmsResolvers<ContextType = Context, ParentType extends ResolversParentTypes['Vms'] = ResolversParentTypes['Vms']> = ResolversObject<{
   domain?: Resolver<Maybe<Array<ResolversTypes['VmDomain']>>, ParentType, ContextType>;
   id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
@@ -3405,7 +3499,11 @@ export type Resolvers<ContextType = Context> = ResolversObject<{
   Vars?: VarsResolvers<ContextType>;
   Versions?: VersionsResolvers<ContextType>;
   VmDomain?: VmDomainResolvers<ContextType>;
+  VmMutations?: VmMutationsResolvers<ContextType>;
   Vms?: VmsResolvers<ContextType>;
   Welcome?: WelcomeResolvers<ContextType>;
 }>;
 
+export type DirectiveResolvers<ContextType = Context> = ResolversObject<{
+  auth?: authDirectiveResolver<any, any, ContextType>;
+}>;

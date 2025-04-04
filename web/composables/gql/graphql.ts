@@ -326,6 +326,21 @@ export enum ArrayStateInputState {
   Stop = 'STOP'
 }
 
+/** Available authentication action verbs */
+export enum AuthActionVerb {
+  Create = 'CREATE',
+  Delete = 'DELETE',
+  Read = 'READ',
+  Update = 'UPDATE'
+}
+
+/** Available authentication possession types */
+export enum AuthPossession {
+  Any = 'ANY',
+  Own = 'OWN',
+  OwnAny = 'OWN_ANY'
+}
+
 export type Baseboard = {
   __typename?: 'Baseboard';
   assetTag?: Maybe<Scalars['String']['output']>;
@@ -862,6 +877,16 @@ export type Mutation = {
    * Some setting combinations may be required or disallowed. Please refer to each setting for more information.
    */
   updateApiSettings: ConnectSettingsValues;
+  /**
+   * Virtual machine mutations
+   *
+   * #### Required Permissions:
+   *
+   * - Action: **READ**
+   * - Resource: **VMS**
+   * - Possession: **ANY**
+   */
+  vms?: Maybe<VmMutations>;
 };
 
 
@@ -1234,7 +1259,15 @@ export type Query = {
   /** User accounts */
   users: Array<User>;
   vars?: Maybe<Vars>;
-  /** Virtual machines */
+  /**
+   * Virtual machines
+   *
+   * #### Required Permissions:
+   *
+   * - Action: **READ**
+   * - Resource: **VMS**
+   * - Possession: **ANY**
+   */
   vms?: Maybe<Vms>;
 };
 
@@ -1352,41 +1385,41 @@ export type RemoveRoleFromApiKeyInput = {
 
 /** Available resources for permissions */
 export enum Resource {
-  ApiKey = 'api_key',
-  Array = 'array',
-  Cloud = 'cloud',
-  Config = 'config',
-  Connect = 'connect',
-  ConnectRemoteAccess = 'connect__remote_access',
-  Customizations = 'customizations',
-  Dashboard = 'dashboard',
-  Disk = 'disk',
-  Display = 'display',
-  Docker = 'docker',
-  Flash = 'flash',
-  Info = 'info',
-  Logs = 'logs',
-  Me = 'me',
-  Network = 'network',
-  Notifications = 'notifications',
-  Online = 'online',
-  Os = 'os',
-  Owner = 'owner',
-  Permission = 'permission',
-  Registration = 'registration',
-  Servers = 'servers',
-  Services = 'services',
-  Share = 'share',
-  Vars = 'vars',
-  Vms = 'vms',
-  Welcome = 'welcome'
+  ApiKey = 'API_KEY',
+  Array = 'ARRAY',
+  Cloud = 'CLOUD',
+  Config = 'CONFIG',
+  Connect = 'CONNECT',
+  ConnectRemoteAccess = 'CONNECT__REMOTE_ACCESS',
+  Customizations = 'CUSTOMIZATIONS',
+  Dashboard = 'DASHBOARD',
+  Disk = 'DISK',
+  Display = 'DISPLAY',
+  Docker = 'DOCKER',
+  Flash = 'FLASH',
+  Info = 'INFO',
+  Logs = 'LOGS',
+  Me = 'ME',
+  Network = 'NETWORK',
+  Notifications = 'NOTIFICATIONS',
+  Online = 'ONLINE',
+  Os = 'OS',
+  Owner = 'OWNER',
+  Permission = 'PERMISSION',
+  Registration = 'REGISTRATION',
+  Servers = 'SERVERS',
+  Services = 'SERVICES',
+  Share = 'SHARE',
+  Vars = 'VARS',
+  Vms = 'VMS',
+  Welcome = 'WELCOME'
 }
 
 /** Available roles for API keys and users */
 export enum Role {
-  Admin = 'admin',
-  Connect = 'connect',
-  Guest = 'guest'
+  Admin = 'ADMIN',
+  Connect = 'CONNECT',
+  Guest = 'GUEST'
 }
 
 export type Server = {
@@ -1482,6 +1515,15 @@ export type Subscription = {
   user: User;
   users: Array<Maybe<User>>;
   vars: Vars;
+  /**
+   *
+   *
+   * #### Required Permissions:
+   *
+   * - Action: **READ**
+   * - Resource: **VMS**
+   * - Possession: **ANY**
+   */
   vms?: Maybe<Vms>;
 };
 
@@ -1835,6 +1877,115 @@ export type VmDomain = {
   uuid: Scalars['ID']['output'];
 };
 
+export type VmMutations = {
+  __typename?: 'VmMutations';
+  /**
+   * Force stop a virtual machine
+   *
+   * #### Required Permissions:
+   *
+   * - Action: **UPDATE**
+   * - Resource: **VMS**
+   * - Possession: **ANY**
+   */
+  forceStopVm: Scalars['Boolean']['output'];
+  /**
+   * Pause a virtual machine
+   *
+   * #### Required Permissions:
+   *
+   * - Action: **UPDATE**
+   * - Resource: **VMS**
+   * - Possession: **ANY**
+   */
+  pauseVm: Scalars['Boolean']['output'];
+  /**
+   * Reboot a virtual machine
+   *
+   * #### Required Permissions:
+   *
+   * - Action: **UPDATE**
+   * - Resource: **VMS**
+   * - Possession: **ANY**
+   */
+  rebootVm: Scalars['Boolean']['output'];
+  /**
+   * Reset a virtual machine
+   *
+   * #### Required Permissions:
+   *
+   * - Action: **UPDATE**
+   * - Resource: **VMS**
+   * - Possession: **ANY**
+   */
+  resetVm: Scalars['Boolean']['output'];
+  /**
+   * Resume a virtual machine
+   *
+   * #### Required Permissions:
+   *
+   * - Action: **UPDATE**
+   * - Resource: **VMS**
+   * - Possession: **ANY**
+   */
+  resumeVm: Scalars['Boolean']['output'];
+  /**
+   * Start a virtual machine
+   *
+   * #### Required Permissions:
+   *
+   * - Action: **UPDATE**
+   * - Resource: **VMS**
+   * - Possession: **ANY**
+   */
+  startVm: Scalars['Boolean']['output'];
+  /**
+   * Stop a virtual machine
+   *
+   * #### Required Permissions:
+   *
+   * - Action: **UPDATE**
+   * - Resource: **VMS**
+   * - Possession: **ANY**
+   */
+  stopVm: Scalars['Boolean']['output'];
+};
+
+
+export type VmMutationsforceStopVmArgs = {
+  id: Scalars['ID']['input'];
+};
+
+
+export type VmMutationspauseVmArgs = {
+  id: Scalars['ID']['input'];
+};
+
+
+export type VmMutationsrebootVmArgs = {
+  id: Scalars['ID']['input'];
+};
+
+
+export type VmMutationsresetVmArgs = {
+  id: Scalars['ID']['input'];
+};
+
+
+export type VmMutationsresumeVmArgs = {
+  id: Scalars['ID']['input'];
+};
+
+
+export type VmMutationsstartVmArgs = {
+  id: Scalars['ID']['input'];
+};
+
+
+export type VmMutationsstopVmArgs = {
+  id: Scalars['ID']['input'];
+};
+
 export enum VmState {
   Crashed = 'CRASHED',
   Idle = 'IDLE',
@@ -1848,6 +1999,15 @@ export enum VmState {
 
 export type Vms = {
   __typename?: 'Vms';
+  /**
+   *
+   *
+   * #### Required Permissions:
+   *
+   * - Action: **READ**
+   * - Resource: **VMS**
+   * - Possession: **ANY**
+   */
   domain?: Maybe<Array<VmDomain>>;
   id: Scalars['ID']['output'];
 };

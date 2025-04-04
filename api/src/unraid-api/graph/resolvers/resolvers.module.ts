@@ -2,6 +2,9 @@ import { Module } from '@nestjs/common';
 
 import { AuthModule } from '@app/unraid-api/auth/auth.module.js';
 import { ConnectSettingsService } from '@app/unraid-api/graph/connect/connect-settings.service.js';
+import { ConnectResolver } from '@app/unraid-api/graph/connect/connect.resolver.js';
+import { ConnectService } from '@app/unraid-api/graph/connect/connect.service.js';
+import { NetworkResolver } from '@app/unraid-api/graph/network/network.resolver.js';
 import { ApiKeyResolver } from '@app/unraid-api/graph/resolvers/api-key/api-key.resolver.js';
 import { ArrayMutationsResolver } from '@app/unraid-api/graph/resolvers/array/array.mutations.resolver.js';
 import { ArrayResolver } from '@app/unraid-api/graph/resolvers/array/array.resolver.js';
@@ -26,37 +29,48 @@ import { OwnerResolver } from '@app/unraid-api/graph/resolvers/owner/owner.resol
 import { RegistrationResolver } from '@app/unraid-api/graph/resolvers/registration/registration.resolver.js';
 import { ServerResolver } from '@app/unraid-api/graph/resolvers/servers/server.resolver.js';
 import { VarsResolver } from '@app/unraid-api/graph/resolvers/vars/vars.resolver.js';
+import { VmMutationsResolver } from '@app/unraid-api/graph/resolvers/vms/vms.mutations.resolver.js';
 import { VmsResolver } from '@app/unraid-api/graph/resolvers/vms/vms.resolver.js';
+import { VmsService } from '@app/unraid-api/graph/resolvers/vms/vms.service.js';
+import { ServicesResolver } from '@app/unraid-api/graph/services/services.resolver.js';
+import { SharesResolver } from '@app/unraid-api/graph/shares/shares.resolver.js';
 
 @Module({
     imports: [AuthModule],
     providers: [
-        ArrayResolver,
-        ArrayMutationsResolver,
-        ArrayService,
         ApiKeyResolver,
+        ArrayMutationsResolver,
+        ArrayResolver,
+        ArrayService,
         CloudResolver,
         ConfigResolver,
+        ConnectResolver,
+        ConnectService,
+        ConnectSettingsService,
         DisksResolver,
         DisplayResolver,
-        DockerResolver,
         DockerMutationsResolver,
+        DockerResolver,
         DockerService,
         FlashResolver,
-        MutationResolver,
         InfoResolver,
+        LogsResolver,
+        LogsService,
+        MeResolver,
+        MutationResolver,
+        NetworkResolver,
         NotificationsResolver,
+        NotificationsService,
         OnlineResolver,
         OwnerResolver,
         RegistrationResolver,
         ServerResolver,
+        ServicesResolver,
+        SharesResolver,
         VarsResolver,
+        VmMutationsResolver,
         VmsResolver,
-        NotificationsService,
-        MeResolver,
-        ConnectSettingsService,
-        LogsResolver,
-        LogsService,
+        VmsService,
     ],
     exports: [AuthModule, ApiKeyResolver],
 })

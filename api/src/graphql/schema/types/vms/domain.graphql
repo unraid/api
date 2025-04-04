@@ -3,13 +3,35 @@ type Query {
     vms: Vms
 }
 
-type Vms {
-    id: ID!
-    domain: [VmDomain!]
+type Mutation {
+    """Virtual machine mutations"""
+    vms: VmMutations
+}
+
+type VmMutations {
+    """Start a virtual machine"""
+    startVm(id: ID!): Boolean!
+    """Stop a virtual machine"""
+    stopVm(id: ID!): Boolean!
+    """Pause a virtual machine"""
+    pauseVm(id: ID!): Boolean!
+    """Resume a virtual machine"""
+    resumeVm(id: ID!): Boolean!
+    """Force stop a virtual machine"""
+    forceStopVm(id: ID!): Boolean!
+    """Reboot a virtual machine"""
+    rebootVm(id: ID!): Boolean!
+    """Reset a virtual machine"""
+    resetVm(id: ID!): Boolean!
 }
 
 type Subscription {
     vms: Vms
+}
+
+type Vms {
+    id: ID!
+    domain: [VmDomain!]
 }
 
 # https://libvirt.org/manpages/virsh.html#list

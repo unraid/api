@@ -106,3 +106,6 @@ web/scripts/.sync-webgui-repo-*
 
 # Activation code data
 plugin/source/dynamix.unraid.net/usr/local/emhttp/plugins/dynamix.my.servers/data/activation-data.php
+
+# Config file that changes between versions
+api/dev/Unraid.net/myservers.cfg

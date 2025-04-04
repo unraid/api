@@ -4,9 +4,12 @@ import { AuthActionVerb, AuthPossession, UsePermissions } from 'nest-authz';
 
 import type { VmDomain } from '@app/graphql/generated/api/types.js';
 import { Resource } from '@app/graphql/generated/api/types.js';
+import { VmsService } from '@app/unraid-api/graph/resolvers/vms/vms.service.js';
 
 @Resolver('Vms')
 export class VmsResolver {
+    constructor(private readonly vmsService: VmsService) {}
+
     @Query()
     @UsePermissions({
         action: AuthActionVerb.READ,
@@ -22,9 +25,7 @@ export class VmsResolver {
     @ResolveField('domain')
     public async domain(): Promise<Array<VmDomain>> {
         try {
-            const { getDomains } = await import('@app/core/modules/vms/get-domains.js');
-            const domains = await getDomains();
-            return domains;
+            return await this.vmsService.getDomains();
         } catch (error) {
             // Consider using a proper logger here
             throw new Error(
