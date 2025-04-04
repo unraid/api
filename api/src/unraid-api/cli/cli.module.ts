@@ -1,6 +1,5 @@
-import { DynamicModule, Module, Provider, Type } from '@nestjs/common';
+import { Module } from '@nestjs/common';
 
-import { CommandRunner } from 'nest-commander';
 
 import { ApiKeyService } from '@app/unraid-api/auth/api-key.service.js';
 import { AddApiKeyQuestionSet } from '@app/unraid-api/cli/apikey/add-api-key.questions.js';
@@ -26,9 +25,7 @@ import { StatusCommand } from '@app/unraid-api/cli/status.command.js';
 import { StopCommand } from '@app/unraid-api/cli/stop.command.js';
 import { SwitchEnvCommand } from '@app/unraid-api/cli/switch-env.command.js';
 import { VersionCommand } from '@app/unraid-api/cli/version.command.js';
-import { ApiPluginDefinition } from '@app/unraid-api/plugin/plugin.interface.js';
-import { PluginModule } from '@app/unraid-api/plugin/plugin.module.js';
-import { PluginService } from '@app/unraid-api/plugin/plugin.service.js';
+import { PluginCliModule } from '@app/unraid-api/plugin/plugin.module.js';
 
 const DEFAULT_COMMANDS = [
     ApiKeyCommand,
@@ -60,43 +57,8 @@ const DEFAULT_PROVIDERS = [
     ApiKeyService,
 ] as const;
 
-type PluginProvider = Provider & {
-    provide: string | symbol | Type<any>;
-    useValue?: ApiPluginDefinition;
-};
-
 @Module({
-    imports: [PluginModule],
+    imports: [PluginCliModule.register()],
     providers: [...DEFAULT_COMMANDS, ...DEFAULT_PROVIDERS],
 })
-export class CliModule {
-    /**
-     * Get all registered commands
-     * @returns Array of registered command classes
-     */
-    static getCommands(): Type<CommandRunner>[] {
-        return [...DEFAULT_COMMANDS];
-    }
-
-    /**
-     * Register the module with plugin support
-     * @returns DynamicModule configuration including plugin commands
-     */
-    static async registerWithPlugins(): Promise<DynamicModule> {
-        const pluginModule = await PluginModule.registerPlugins();
-
-        // Get commands from plugins
-        const pluginCommands: Type<CommandRunner>[] = [];
-        for (const provider of (pluginModule.providers || []) as PluginProvider[]) {
-            if (provider.provide !== PluginService && provider.useValue?.commands) {
-                pluginCommands.push(...provider.useValue.commands);
-            }
-        }
-
-        return {
-            module: CliModule,
-            imports: [pluginModule],
-            providers: [...DEFAULT_COMMANDS, ...DEFAULT_PROVIDERS, ...pluginCommands],
-        };
-    }
-}
+export class CliModule {}

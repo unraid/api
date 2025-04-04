@@ -15,12 +15,10 @@ import {
 import { GraphQLLong } from '@app/graphql/resolvers/graphql-type-long.js';
 import { loadTypeDefs } from '@app/graphql/schema/loadTypesDefs.js';
 import { getters } from '@app/store/index.js';
-import { AuthModule } from '@app/unraid-api/auth/auth.module.js';
 import { idPrefixPlugin } from '@app/unraid-api/graph/id-prefix-plugin.js';
 import { ResolversModule } from '@app/unraid-api/graph/resolvers/resolvers.module.js';
 import { sandboxPlugin } from '@app/unraid-api/graph/sandbox-plugin.js';
 import { getAuthEnumTypeDefs } from '@app/unraid-api/graph/utils/auth-enum.utils.js';
-import { PluginModule } from '@app/unraid-api/plugin/plugin.module.js';
 import { PluginService } from '@app/unraid-api/plugin/plugin.service.js';
 
 @Module({
@@ -28,12 +26,10 @@ import { PluginService } from '@app/unraid-api/plugin/plugin.service.js';
         ResolversModule,
         GraphQLModule.forRootAsync<ApolloDriverConfig>({
             driver: ApolloDriver,
-            imports: [PluginModule, AuthModule],
-            inject: [PluginService],
-            useFactory: async (pluginService: PluginService) => {
-                const plugins = await pluginService.getGraphQLConfiguration();
+            useFactory: async () => {
+                const pluginSchemas = await PluginService.getGraphQlSchemas();
                 const authEnumTypeDefs = getAuthEnumTypeDefs();
-                const typeDefs = print(await loadTypeDefs([plugins.typeDefs, authEnumTypeDefs]));
+                const typeDefs = [print(await loadTypeDefs([...pluginSchemas, authEnumTypeDefs]))];
                 const resolvers = {
                     DateTime: DateTimeResolver,
                     JSON: JSONResolver,
@@ -41,9 +37,7 @@ import { PluginService } from '@app/unraid-api/plugin/plugin.service.js';
                     Port: PortResolver,
                     URL: URLResolver,
                     UUID: UUIDResolver,
-                    ...plugins.resolvers,
                 };
-
                 return {
                     introspection: getters.config()?.local?.sandbox === 'yes',
                     playground: false,

@@ -47,7 +47,7 @@ import { UnraidFileModifierModule } from '@app/unraid-api/unraid-file-modifier/u
             },
         ]),
         UnraidFileModifierModule,
-        PluginModule.registerPlugins(),
+        PluginModule.register(),
     ],
     controllers: [],
     providers: [
