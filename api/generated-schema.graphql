@@ -120,6 +120,8 @@ type ArrayCapacity {
 }
 
 type ArrayDisk {
+  color: ArrayDiskFsColor
+
   """ User comment on disk """
   comment: String
 
@@ -187,14 +189,35 @@ type ArrayDisk {
 }
 
 enum ArrayDiskFsColor {
-  """Disk is OK and not running"""
-  green_off
+  """New device, in standby mode (spun-down)"""
+  blue_blink
 
-  """Disk is OK and running"""
+  """New device"""
+  blue_on
+
+  """Device is in standby mode (spun-down)"""
+  green_blink
+
+  """Normal operation, device is active"""
   green_on
+
+  """Device not present"""
+  grey_off
+
+  """
+  Device is missing (disabled) or contents emulated / Parity device is missing
+  """
   red_off
+
+  """Device is disabled or contents emulated / Parity device is disabled"""
   red_on
-  yellow_off
+
+  """
+  Device contents invalid or emulated / Parity is invalid, in standby mode (spun-down)
+  """
+  yellow_blink
+
+  """Device contents invalid or emulated / Parity is invalid"""
   yellow_on
 }
 
@@ -519,6 +542,8 @@ type Disk {
 
 enum DiskFsType {
   btrfs
+  ext4
+  ntfs
   vfat
   xfs
   zfs
@@ -1084,9 +1109,6 @@ type Query {
   display: Display
   docker: Docker!
 
-  """All Docker containers"""
-  dockerContainers(all: Boolean): [DockerContainer!]!
-
   """Docker network"""
   dockerNetwork(id: ID!): DockerNetwork!
 
@@ -1322,8 +1344,6 @@ type Subscription {
   array: Array!
   config: Config!
   display: Display
-  dockerContainer(id: ID!): DockerContainer!
-  dockerContainers: [DockerContainer]
   dockerNetwork(id: ID!): DockerNetwork!
   dockerNetworks: [DockerNetwork]!
   flash: Flash!
