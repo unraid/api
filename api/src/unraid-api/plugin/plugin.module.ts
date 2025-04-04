@@ -1,4 +1,5 @@
 import { DynamicModule, Logger, Module } from '@nestjs/common';
+import { ConfigModule } from '@nestjs/config';
 
 import { PluginService } from '@app/unraid-api/plugin/plugin.service.js';
 
@@ -7,14 +8,41 @@ export class PluginModule {
     private static readonly logger = new Logger(PluginModule.name);
     constructor(private readonly pluginService: PluginService) {}
 
-    static async registerPlugins(): Promise<DynamicModule> {
+    static async register(): Promise<DynamicModule> {
         const plugins = await PluginService.getPlugins();
-        const providers = plugins.map((result) => result.provider);
+        const apiModules = plugins
+            .filter((plugin) => plugin.ApiModule)
+            .map((plugin) => plugin.ApiModule!);
+
+        const pluginList = apiModules.map((plugin) => plugin.name).join(', ');
+        PluginModule.logger.log(`Found ${apiModules.length} API plugins: ${pluginList}`);
+
         return {
             module: PluginModule,
-            providers: [PluginService, ...providers],
-            exports: [PluginService, ...providers.map((p) => p.provide)],
+            imports: [...apiModules],
+            providers: [PluginService],
+            exports: [PluginService],
             global: true,
+        };
+    }
+}
+
+@Module({})
+export class PluginCliModule {
+    private static readonly logger = new Logger(PluginCliModule.name);
+
+    static async register(): Promise<DynamicModule> {
+        const plugins = await PluginService.getPlugins();
+        const cliModules = plugins
+            .filter((plugin) => plugin.CliModule)
+            .map((plugin) => plugin.CliModule!);
+
+        const cliList = cliModules.map((plugin) => plugin.name).join(', ');
+        PluginCliModule.logger.log(`Found ${cliModules.length} CLI plugins: ${cliList}`);
+
+        return {
+            module: PluginModule,
+            imports: [...cliModules],
         };
     }
 }
