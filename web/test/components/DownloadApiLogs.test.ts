@@ -7,23 +7,19 @@
 import { mount } from '@vue/test-utils';
 
 import { BrandButton } from '@unraid/ui';
-import { CONNECT_FORUMS, CONTACT, DISCORD } from '~/helpers/urls';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import DownloadApiLogs from '~/components/DownloadApiLogs.ce.vue';
 
-import '../mocks/pinia';
+// Mock the urls helper with a predictable mock URL
+vi.mock('~/helpers/urls', () => ({
+  CONNECT_FORUMS: new URL('http://mock-forums.local'),
+  CONTACT: new URL('http://mock-contact.local'),
+  DISCORD: new URL('http://mock-discord.local'),
+  WEBGUI_GRAPHQL: new URL('http://mock-webgui.local'),
+}));
 
-// Mock the urls helper
-vi.mock('~/helpers/urls', async () => {
-  const actual = await vi.importActual('~/helpers/urls');
-  return {
-    ...actual,
-    WEBGUI_GRAPHQL: new URL('http://mock-webgui.local'),
-  };
-});
-
-// Mock vue-i18n
+// Mock vue-i18n with a simple implementation
 vi.mock('vue-i18n', () => ({
   useI18n: () => ({
     t: (key: string) => key,
@@ -37,7 +33,7 @@ describe('DownloadApiLogs', () => {
     globalThis.csrf_token = 'mock-csrf-token';
   });
 
-  it('computes the correct download URL', () => {
+  it('provides a download button with the correct URL', () => {
     const wrapper = mount(DownloadApiLogs, {
       global: {
         stubs: {
@@ -47,41 +43,22 @@ describe('DownloadApiLogs', () => {
       },
     });
 
-    // Create the expected URL using the inline string
+    // Expected download URL
     const expectedUrl = new URL('/graphql/api/logs', 'http://mock-webgui.local');
     expectedUrl.searchParams.append('csrf_token', 'mock-csrf-token');
 
-    // Find the button and check its rendered href attribute
+    // Find the download button
     const downloadButton = wrapper.findComponent(BrandButton);
-    expect(downloadButton.attributes('href')).toBe(expectedUrl.toString());
-  });
 
-  it('renders the download button with correct attributes', () => {
-    const wrapper = mount(DownloadApiLogs, {
-      global: {
-        stubs: {
-          ArrowDownTrayIcon: true,
-          ArrowTopRightOnSquareIcon: true,
-        },
-      },
-    });
-
-    const downloadButton = wrapper.findComponent(BrandButton);
+    // Verify download button exists and has correct attributes
     expect(downloadButton.exists()).toBe(true);
-
-    // Create the expected URL using the inline string
-    const expectedUrl = new URL('/graphql/api/logs', 'http://mock-webgui.local');
-    expectedUrl.searchParams.append('csrf_token', 'mock-csrf-token');
-
-    // Check the rendered href attribute
     expect(downloadButton.attributes('href')).toBe(expectedUrl.toString());
-
-    // Check the other attributes
     expect(downloadButton.attributes('download')).toBe('');
     expect(downloadButton.attributes('external')).toBe('true');
+    expect(downloadButton.text()).toContain('Download unraid-api Logs');
   });
 
-  it('renders the support links with correct URLs', () => {
+  it('displays support links to documentation and help resources', () => {
     const wrapper = mount(DownloadApiLogs, {
       global: {
         stubs: {
@@ -91,44 +68,28 @@ describe('DownloadApiLogs', () => {
       },
     });
 
-    // Find all the support links
+    // Find all support links
     const links = wrapper.findAll('a');
     expect(links.length).toBe(3);
 
-    // Check the forum link
-    expect(links[0].attributes('href')).toBe(CONNECT_FORUMS.toString());
-    expect(links[0].attributes('target')).toBe('_blank');
-    expect(links[0].attributes('rel')).toBe('noopener noreferrer');
-
-    // Check the Discord link
-    expect(links[1].attributes('href')).toBe(DISCORD.toString());
-    expect(links[1].attributes('target')).toBe('_blank');
-    expect(links[1].attributes('rel')).toBe('noopener noreferrer');
-
-    // Check the Contact link
-    expect(links[2].attributes('href')).toBe(CONTACT.toString());
-    expect(links[2].attributes('target')).toBe('_blank');
-    expect(links[2].attributes('rel')).toBe('noopener noreferrer');
-  });
-
-  it('displays the correct text for each link', () => {
-    const wrapper = mount(DownloadApiLogs, {
-      global: {
-        stubs: {
-          ArrowDownTrayIcon: true,
-          ArrowTopRightOnSquareIcon: true,
-        },
-      },
-    });
-
-    const links = wrapper.findAll('a');
-
+    // Verify each link has correct href and text
+    expect(links[0].attributes('href')).toBe('http://mock-forums.local/');
     expect(links[0].text()).toContain('Unraid Connect Forums');
+
+    expect(links[1].attributes('href')).toBe('http://mock-discord.local/');
     expect(links[1].text()).toContain('Unraid Discord');
+
+    expect(links[2].attributes('href')).toBe('http://mock-contact.local/');
     expect(links[2].text()).toContain('Unraid Contact Page');
+
+    // Verify all links open in new tab
+    links.forEach((link) => {
+      expect(link.attributes('target')).toBe('_blank');
+      expect(link.attributes('rel')).toBe('noopener noreferrer');
+    });
   });
 
-  it('displays the support information text', () => {
+  it('displays instructions about log usage and privacy', () => {
     const wrapper = mount(DownloadApiLogs, {
       global: {
         stubs: {
@@ -138,15 +99,13 @@ describe('DownloadApiLogs', () => {
       },
     });
 
-    const textContent = wrapper.text();
-    expect(textContent).toContain(
+    const text = wrapper.text();
+
+    // Verify key instructional text is present
+    expect(text).toContain(
       'The primary method of support for Unraid Connect is through our forums and Discord'
     );
-    expect(textContent).toContain(
-      'If you are asked to supply logs, please open a support request on our Contact Page'
-    );
-    expect(textContent).toContain(
-      'The logs may contain sensitive information so do not post them publicly'
-    );
+    expect(text).toContain('If you are asked to supply logs');
+    expect(text).toContain('The logs may contain sensitive information so do not post them publicly');
   });
 });

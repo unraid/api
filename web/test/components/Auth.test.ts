@@ -1,129 +1,127 @@
+/**
+ * Auth Component Test Coverage
+ */
 import { ref } from 'vue';
 import { mount } from '@vue/test-utils';
 
-import Auth from '@/components/Auth.ce.vue';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 
-import { useServerStore } from '~/store/server';
+import Auth from '~/components/Auth.ce.vue';
 
-import '../mocks/pinia';
+// Define types for our mocks
+interface AuthAction {
+  text: string;
+  icon: string;
+  click?: () => void;
+  disabled?: boolean;
+  title?: string;
+}
 
+interface StateData {
+  error: boolean;
+  heading?: string;
+  message?: string;
+}
+
+// Mock vue-i18n
 vi.mock('vue-i18n', () => ({
   useI18n: () => ({
     t: (key: string) => key,
   }),
 }));
 
+// Mock the useServerStore composable
+const mockServerStore = {
+  authAction: ref<AuthAction | undefined>(undefined),
+  stateData: ref<StateData>({ error: false }),
+};
+
 vi.mock('~/store/server', () => ({
-  useServerStore: vi.fn(),
+  useServerStore: () => mockServerStore,
 }));
 
-// Define store type using ReturnType
-type ServerStoreType = ReturnType<typeof useServerStore>;
-
-// Helper to create a mock store with required Pinia properties
-function createMockStore(storeProps: Record<string, unknown>) {
-  return {
-    ...storeProps,
-    $id: 'server',
-    $state: storeProps,
-    $patch: vi.fn(),
-    $reset: vi.fn(),
-    $dispose: vi.fn(),
-    $subscribe: vi.fn(),
-    $onAction: vi.fn(),
-    $unsubscribe: vi.fn(),
-    _customProperties: new Set(),
-  } as unknown as ServerStoreType;
-}
+// Mock pinia's storeToRefs to simply return the store
+vi.mock('pinia', () => ({
+  storeToRefs: (store: any) => store,
+}));
 
 describe('Auth Component', () => {
-  beforeEach(() => {
-    vi.clearAllMocks();
-  });
-
-  it('renders the authentication button', () => {
-    // Mock store values
-    const mockAuthAction = ref({
-      text: 'Authenticate',
+  it('displays an authentication button when authAction is available', () => {
+    // Configure auth action
+    mockServerStore.authAction.value = {
+      text: 'Sign in to Unraid',
       icon: 'key',
       click: vi.fn(),
-    });
-    const mockStateData = ref({ error: false, message: '', heading: '' });
+    };
+    mockServerStore.stateData.value = { error: false };
 
-    // Create mock store with required Pinia properties
-    const mockStore = createMockStore({
-      authAction: mockAuthAction,
-      stateData: mockStateData,
-    });
-
-    vi.mocked(useServerStore).mockReturnValue(mockStore);
-
-    const wrapper = mount(Auth, {
-      global: {
-        stubs: {
-          BrandButton: {
-            template: '<button class="brand-button-stub">{{ text }}</button>',
-            props: ['size', 'text', 'icon', 'title'],
-          },
-        },
-      },
-    });
-
-    // Look for the stubbed brand-button
-    expect(wrapper.find('.brand-button-stub').exists()).toBe(true);
-  });
-
-  it('renders error message when stateData.error is true', async () => {
-    // Mock store values with error
-    const mockAuthAction = ref({
-      text: 'Authenticate',
-      icon: 'key',
-      click: vi.fn(),
-    });
-    const mockStateData = ref({
-      error: true,
-      heading: 'Error Occurred',
-      message: 'Authentication failed',
-    });
-
-    // Create mock store with required Pinia properties
-    const mockStore = createMockStore({
-      authAction: mockAuthAction,
-      stateData: mockStateData,
-    });
-
-    vi.mocked(useServerStore).mockReturnValue(mockStore);
-
+    // Mount component
     const wrapper = mount(Auth);
 
-    expect(wrapper.exists()).toBe(true);
+    // Verify button exists
+    const button = wrapper.findComponent({ name: 'BrandButton' });
+    expect(button.exists()).toBe(true);
+    // Check props passed to button
+    expect(button.props('text')).toBe('Sign in to Unraid');
+    expect(button.props('icon')).toBe('key');
   });
 
-  it('provides a click handler in authAction', async () => {
-    const mockClick = vi.fn();
-
-    // Mock store values
-    const mockAuthAction = ref({
-      text: 'Authenticate',
+  it('displays error messages when stateData.error is true', () => {
+    // Configure with error state
+    mockServerStore.authAction.value = {
+      text: 'Sign in to Unraid',
       icon: 'key',
-      click: mockClick,
-    });
-    const mockStateData = ref({ error: false, message: '', heading: '' });
+    };
+    mockServerStore.stateData.value = {
+      error: true,
+      heading: 'Error Title',
+      message: 'Error Message Content',
+    };
 
-    // Create mock store with required Pinia properties
-    const mockStore = createMockStore({
-      authAction: mockAuthAction,
-      stateData: mockStateData,
-    });
+    // Mount component
+    const wrapper = mount(Auth);
 
-    vi.mocked(useServerStore).mockReturnValue(mockStore);
+    // Verify error message is displayed
+    const errorHeading = wrapper.find('h3');
 
-    expect(mockAuthAction.value.click).toBeDefined();
-    expect(typeof mockAuthAction.value.click).toBe('function');
+    expect(errorHeading.exists()).toBe(true);
+    expect(errorHeading.text()).toBe('Error Title');
+    expect(wrapper.text()).toContain('Error Message Content');
+  });
 
-    mockAuthAction.value.click();
+  it('calls the click handler when button is clicked', async () => {
+    // Create mock click handler
+    const clickHandler = vi.fn();
 
-    expect(mockClick).toHaveBeenCalled();
+    // Configure with click handler
+    mockServerStore.authAction.value = {
+      text: 'Sign in to Unraid',
+      icon: 'key',
+      click: clickHandler,
+    };
+    mockServerStore.stateData.value = { error: false };
+
+    // Mount component
+    const wrapper = mount(Auth);
+
+    // Click the button
+    await wrapper.findComponent({ name: 'BrandButton' }).vm.$emit('click');
+
+    // Verify click handler was called
+    expect(clickHandler).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not render button when authAction is undefined', () => {
+    // Configure with undefined auth action
+    mockServerStore.authAction.value = undefined;
+    mockServerStore.stateData.value = { error: false };
+
+    // Mount component
+    const wrapper = mount(Auth);
+
+    // Verify button doesn't exist
+    const button = wrapper.findComponent({ name: 'BrandButton' });
+
+    expect(button.exists()).toBe(false);
   });
 });
