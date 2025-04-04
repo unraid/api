@@ -42,9 +42,7 @@ vi.mock('@app/store/index.js', () => ({
 // Mock DockerService
 vi.mock('./docker.service.js', () => ({
     DockerService: vi.fn().mockImplementation(() => ({
-        getDockerClient: vi.fn().mockReturnValue({
-            getEvents: vi.fn(),
-        }),
+        getDockerClient: vi.fn(),
         debouncedContainerCacheUpdate: vi.fn(),
     })),
 }));
@@ -55,6 +53,7 @@ describe('DockerEventService', () => {
     let mockDockerClient: Docker;
     let mockEventStream: PassThrough;
     let mockLogger: Logger;
+    let module: TestingModule;
 
     beforeEach(async () => {
         // Create a mock Docker client
@@ -62,48 +61,54 @@ describe('DockerEventService', () => {
             getEvents: vi.fn(),
         } as unknown as Docker;
 
-        // Create a mock Docker service
-        dockerService = {
+        // Create a mock Docker service *instance*
+        const mockDockerServiceImpl = {
             getDockerClient: vi.fn().mockReturnValue(mockDockerClient),
             debouncedContainerCacheUpdate: vi.fn(),
-        } as unknown as DockerService;
+        };
 
         // Create a mock event stream
         mockEventStream = new PassThrough();
 
         // Set up the mock Docker client to return our mock event stream
-        (mockDockerClient.getEvents as any).mockResolvedValue(mockEventStream as unknown as Readable);
+        vi.spyOn(mockDockerClient, 'getEvents').mockResolvedValue(mockEventStream as unknown as Readable);
 
         // Create a mock logger
         mockLogger = new Logger(DockerEventService.name) as Logger;
 
-        const module: TestingModule = await Test.createTestingModule({
+        // Use the mock implementation in the testing module
+        module = await Test.createTestingModule({
             providers: [
                 DockerEventService,
                 {
                     provide: DockerService,
-                    useValue: dockerService,
+                    useValue: mockDockerServiceImpl,
                 },
             ],
         }).compile();
 
         service = module.get<DockerEventService>(DockerEventService);
+        dockerService = module.get<DockerService>(DockerService);
     });
 
     afterEach(() => {
         vi.clearAllMocks();
-        service.stopEventStream();
+        if (service['dockerEventStream']) {
+            service.stopEventStream();
+        }
+        module.close();
     });
 
     it('should be defined', () => {
         expect(service).toBeDefined();
     });
 
-    it('should process Docker events correctly', async () => {
-        // Start the event stream
-        await service['setupDockerWatch']();
+    const waitForEventProcessing = (ms = 100) => new Promise((resolve) => setTimeout(resolve, ms));
 
-        // Write a valid Docker event to the stream
+    it('should process Docker events correctly', async () => {
+        await service['setupDockerWatch']();
+        expect(service.isActive()).toBe(true);
+
         const event = {
             Type: 'container',
             Action: 'start',
@@ -113,21 +118,17 @@ describe('DockerEventService', () => {
             timeNano: Date.now() * 1000000,
         };
 
-        // Write the event as a JSON string with a newline
         mockEventStream.write(JSON.stringify(event) + '\n');
 
-        // Wait for the event to be processed
-        await new Promise((resolve) => setTimeout(resolve, 100));
+        await waitForEventProcessing();
 
-        // Verify that the container cache update was called
         expect(dockerService.debouncedContainerCacheUpdate).toHaveBeenCalled();
     });
 
     it('should ignore non-watched actions', async () => {
-        // Start the event stream
         await service['setupDockerWatch']();
+        expect(service.isActive()).toBe(true);
 
-        // Write an event with a non-watched action
         const event = {
             Type: 'container',
             Action: 'unknown',
@@ -137,142 +138,115 @@ describe('DockerEventService', () => {
             timeNano: Date.now() * 1000000,
         };
 
-        // Write the event as a JSON string with a newline
         mockEventStream.write(JSON.stringify(event) + '\n');
 
-        // Wait for the event to be processed
-        await new Promise((resolve) => setTimeout(resolve, 100));
+        await waitForEventProcessing();
 
-        // Verify that the container cache update was not called
         expect(dockerService.debouncedContainerCacheUpdate).not.toHaveBeenCalled();
     });
 
     it('should handle malformed JSON gracefully', async () => {
-        // Start the event stream
         await service['setupDockerWatch']();
-
-        // Write malformed JSON to the stream
-        mockEventStream.write('{malformed json}\n');
-
-        // Wait for the event to be processed
-        await new Promise((resolve) => setTimeout(resolve, 100));
-
-        // Verify that the service is still running
         expect(service.isActive()).toBe(true);
+
+        const malformedJson = '{malformed json}\n';
+        mockEventStream.write(malformedJson);
+
+        const validEvent = { Type: 'container', Action: 'start', id: '456' };
+        mockEventStream.write(JSON.stringify(validEvent) + '\n');
+
+        await waitForEventProcessing();
+
+        expect(service.isActive()).toBe(true);
+        expect(dockerService.debouncedContainerCacheUpdate).toHaveBeenCalledTimes(1);
     });
 
     it('should handle multiple JSON bodies in a single chunk', async () => {
-        // Start the event stream
         await service['setupDockerWatch']();
+        expect(service.isActive()).toBe(true);
 
-        // Write multiple valid Docker events in a single chunk
         const events = [
-            {
-                Type: 'container',
-                Action: 'start',
-                id: '123',
-                from: 'test-image-1',
-                time: Date.now(),
-                timeNano: Date.now() * 1000000,
-            },
-            {
-                Type: 'container',
-                Action: 'stop',
-                id: '456',
-                from: 'test-image-2',
-                time: Date.now(),
-                timeNano: Date.now() * 1000000,
-            },
+            { Type: 'container', Action: 'start', id: '123', from: 'test-image-1' },
+            { Type: 'container', Action: 'stop', id: '456', from: 'test-image-2' },
         ];
 
-        // Write the events as JSON strings with newlines
         mockEventStream.write(events.map((event) => JSON.stringify(event)).join('\n') + '\n');
 
-        // Wait for the events to be processed
-        await new Promise((resolve) => setTimeout(resolve, 100));
+        await waitForEventProcessing();
 
-        // Verify that the container cache update was called twice
         expect(dockerService.debouncedContainerCacheUpdate).toHaveBeenCalledTimes(2);
     });
 
     it('should handle mixed valid and invalid JSON in a single chunk', async () => {
-        // Start the event stream
         await service['setupDockerWatch']();
+        expect(service.isActive()).toBe(true);
 
-        // Create a chunk with both valid and invalid JSON
-        const validEvent = {
-            Type: 'container',
-            Action: 'start',
-            id: '123',
-            from: 'test-image',
-            time: Date.now(),
-            timeNano: Date.now() * 1000000,
-        };
-
+        const validEvent = { Type: 'container', Action: 'start', id: '123', from: 'test-image' };
         const invalidJson = '{malformed json}';
 
-        // Write the mixed content to the stream
         mockEventStream.write(JSON.stringify(validEvent) + '\n' + invalidJson + '\n');
 
-        // Wait for the events to be processed
-        await new Promise((resolve) => setTimeout(resolve, 100));
+        await waitForEventProcessing();
 
-        // Verify that the container cache update was called for the valid event
         expect(dockerService.debouncedContainerCacheUpdate).toHaveBeenCalledTimes(1);
 
-        // Verify that the service is still running despite the invalid JSON
         expect(service.isActive()).toBe(true);
     });
 
     it('should handle empty lines in a chunk', async () => {
-        // Start the event stream
         await service['setupDockerWatch']();
+        expect(service.isActive()).toBe(true);
 
-        // Create a chunk with empty lines
-        const event = {
-            Type: 'container',
-            Action: 'start',
-            id: '123',
-            from: 'test-image',
-            time: Date.now(),
-            timeNano: Date.now() * 1000000,
-        };
+        const event = { Type: 'container', Action: 'start', id: '123', from: 'test-image' };
 
-        // Write the event with empty lines before and after
         mockEventStream.write('\n\n' + JSON.stringify(event) + '\n\n');
 
-        // Wait for the events to be processed
-        await new Promise((resolve) => setTimeout(resolve, 100));
+        await waitForEventProcessing();
 
-        // Verify that the container cache update was called for the valid event
         expect(dockerService.debouncedContainerCacheUpdate).toHaveBeenCalledTimes(1);
 
-        // Verify that the service is still running
         expect(service.isActive()).toBe(true);
     });
 
     it('should handle stream errors gracefully', async () => {
-        // Start the event stream
+        const stopSpy = vi.spyOn(service, 'stopEventStream');
+
         await service['setupDockerWatch']();
+        expect(service.isActive()).toBe(true);
 
-        // Emit an error on the stream
-        mockEventStream.emit('error', new Error('Stream error'));
+        const testError = new Error('Stream error');
+        mockEventStream.emit('error', testError);
 
-        // Wait for the error to be processed
-        await new Promise((resolve) => setTimeout(resolve, 100));
+        await waitForEventProcessing();
 
-        // Verify that the service has stopped
         expect(service.isActive()).toBe(false);
+        expect(stopSpy).toHaveBeenCalled();
     });
 
     it('should clean up resources when stopped', async () => {
         // Start the event stream
         await service['setupDockerWatch']();
+        expect(service.isActive()).toBe(true); // Ensure it started
+
+        // Check if the stream exists before spying
+        const stream = service['dockerEventStream'];
+        let removeListenersSpy: any, destroySpy: any;
+        if (stream) {
+            removeListenersSpy = vi.spyOn(stream, 'removeAllListeners');
+            destroySpy = vi.spyOn(stream, 'destroy');
+        }
 
         // Stop the event stream
         service.stopEventStream();
 
         // Verify that the service has stopped
         expect(service.isActive()).toBe(false);
+        // Verify stream methods were called if the stream existed
+        if (removeListenersSpy) {
+            expect(removeListenersSpy).toHaveBeenCalled();
+        }
+        if (destroySpy) {
+            expect(destroySpy).toHaveBeenCalled();
+        }
     });
 });

@@ -14,7 +14,7 @@ describe('DockerModule', () => {
             imports: [DockerModule],
         })
             .overrideProvider(DockerService)
-            .useValue({})
+            .useValue({ getDockerClient: vi.fn() })
             .compile();
 
         expect(module).toBeDefined();
