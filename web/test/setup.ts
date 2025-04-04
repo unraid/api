@@ -4,11 +4,8 @@ import { createTestingPinia } from '@pinia/testing';
 import { afterAll, beforeAll, vi } from 'vitest';
 
 // Import mocks
-import './mocks/vue-i18n.ts';
-import './mocks/vue.ts';
 import './mocks/pinia.ts';
 import './mocks/shared-callbacks.ts';
-import './mocks/ui-libraries.ts';
 import './mocks/ui-components.ts';
 import './mocks/stores/index.ts';
 import './mocks/services/index.ts';
