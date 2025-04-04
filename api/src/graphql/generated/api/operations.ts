@@ -507,7 +507,6 @@ export function DockerSchema(): z.ZodObject<Properties<Docker>> {
     __typename: z.literal('Docker').optional(),
     containers: z.array(DockerContainerSchema()).nullish(),
     id: z.string(),
-    mutations: DockerMutationsSchema(),
     networks: z.array(DockerNetworkSchema()).nullish()
   })
 }

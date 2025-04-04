@@ -19,8 +19,8 @@ describe('DockerMutationsResolver', () => {
                 {
                     provide: DockerService,
                     useValue: {
-                        startContainer: vi.fn(),
-                        stopContainer: vi.fn(),
+                        start: vi.fn(),
+                        stop: vi.fn(),
                     },
                 },
             ],
@@ -34,7 +34,7 @@ describe('DockerMutationsResolver', () => {
         expect(resolver).toBeDefined();
     });
 
-    it('should start container', async () => {
+    it('should start', async () => {
         const mockContainer: DockerContainer = {
             id: '1',
             autoStart: false,
@@ -46,14 +46,14 @@ describe('DockerMutationsResolver', () => {
             state: ContainerState.RUNNING,
             status: 'Up 2 hours',
         };
-        vi.mocked(dockerService.startContainer).mockResolvedValue(mockContainer);
+        vi.mocked(dockerService.start).mockResolvedValue(mockContainer);
 
-        const result = await resolver.startContainer('1');
+        const result = await resolver.start('1');
         expect(result).toEqual(mockContainer);
-        expect(dockerService.startContainer).toHaveBeenCalledWith('1');
+        expect(dockerService.start).toHaveBeenCalledWith('1');
     });
 
-    it('should stop container', async () => {
+    it('should stop', async () => {
         const mockContainer: DockerContainer = {
             id: '1',
             autoStart: false,
@@ -65,10 +65,10 @@ describe('DockerMutationsResolver', () => {
             state: ContainerState.EXITED,
             status: 'Exited',
         };
-        vi.mocked(dockerService.stopContainer).mockResolvedValue(mockContainer);
+        vi.mocked(dockerService.stop).mockResolvedValue(mockContainer);
 
-        const result = await resolver.stopContainer('1');
+        const result = await resolver.stop('1');
         expect(result).toEqual(mockContainer);
-        expect(dockerService.stopContainer).toHaveBeenCalledWith('1');
+        expect(dockerService.stop).toHaveBeenCalledWith('1');
     });
 });

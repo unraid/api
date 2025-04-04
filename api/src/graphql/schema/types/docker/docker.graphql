@@ -9,10 +9,12 @@ type Query {
 }
 
 type DockerMutations {
-    startContainer(id: ID!): DockerContainer!
-    stopContainer(id: ID!): DockerContainer!
+    """ Stop a container """
+    stop(id: ID!): DockerContainer!
+    """ Start a container """
+    start(id: ID!): DockerContainer!
 }
 
-extend type Docker {
-    mutations: DockerMutations!
+type Mutation {
+    docker: DockerMutations
 }

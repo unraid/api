@@ -183,7 +183,7 @@ describe('DockerService', () => {
         mockListContainers.mockResolvedValue(mockContainers);
         mockContainer.start.mockResolvedValue(undefined);
 
-        const result = await service.startContainer('abc123def456');
+        const result = await service.start('abc123def456');
 
         expect(result).toEqual({
             id: 'abc123def456',
@@ -234,7 +234,7 @@ describe('DockerService', () => {
         mockListContainers.mockResolvedValue(mockContainers);
         mockContainer.stop.mockResolvedValue(undefined);
 
-        const result = await service.stopContainer('abc123def456');
+        const result = await service.stop('abc123def456');
 
         expect(result).toEqual({
             id: 'abc123def456',
@@ -254,7 +254,7 @@ describe('DockerService', () => {
             mounts: [],
         });
 
-        expect(mockContainer.stop).toHaveBeenCalled();
+        expect(mockContainer.stop).toHaveBeenCalledWith({ t: 10 });
         expect(mockListContainers).toHaveBeenCalledWith({
             all: true,
             size: true,
@@ -265,8 +265,8 @@ describe('DockerService', () => {
         mockListContainers.mockResolvedValue([]);
         mockContainer.start.mockResolvedValue(undefined);
 
-        await expect(service.startContainer('abc123def456')).rejects.toThrow(
-            'Container abc123def456 not found after starting'
+        await expect(service.start('not-found')).rejects.toThrow(
+            'Container not-found not found after starting'
         );
     });
 
@@ -274,8 +274,8 @@ describe('DockerService', () => {
         mockListContainers.mockResolvedValue([]);
         mockContainer.stop.mockResolvedValue(undefined);
 
-        await expect(service.stopContainer('abc123def456')).rejects.toThrow(
-            'Container abc123def456 not found after stopping'
+        await expect(service.stop('not-found')).rejects.toThrow(
+            'Container not-found not found after stopping'
         );
     });
 
