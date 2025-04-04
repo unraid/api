@@ -6,7 +6,6 @@ import { isEqual } from 'lodash-es';
 import type { RootState } from '@app/store/index.js';
 import { NODE_ENV } from '@app/environment.js';
 import { store } from '@app/store/index.js';
-import { syncInfoApps } from '@app/store/sync/info-apps-sync.js';
 import { syncRegistration } from '@app/store/sync/registration-sync.js';
 import { FileLoadStatus } from '@app/store/types.js';
 
@@ -21,9 +20,6 @@ export const startStoreSync = async () => {
         if (state.config.status === FileLoadStatus.LOADED) {
             // Update registration
             await syncRegistration(lastState);
-
-            // Update docker app counts
-            await syncInfoApps(lastState);
         }
 
         if (

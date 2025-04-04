@@ -1,12 +1,3 @@
-type Query {
-    """All Docker containers"""
-    dockerContainers(all: Boolean): [DockerContainer!]!
-}
-
-type Subscription {
-    dockerContainer(id: ID!): DockerContainer!
-    dockerContainers: [DockerContainer]
-}
 
 enum ContainerPortType {
     TCP

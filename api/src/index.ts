@@ -28,7 +28,6 @@ import { startStoreSync } from '@app/store/store-sync.js';
 import { setupDynamixConfigWatch } from '@app/store/watch/dynamix-config-watch.js';
 import { setupRegistrationKeyWatch } from '@app/store/watch/registration-watch.js';
 import { StateManager } from '@app/store/watch/state-watch.js';
-import { setupVarRunWatch } from '@app/store/watch/var-run-watch.js';
 
 let server: NestFastifyApplication<RawServerDefault> | null = null;
 
@@ -75,9 +74,6 @@ export const viteNodeApp = async () => {
 
         // Start listening to key file changes
         setupRegistrationKeyWatch();
-
-        // Start listening to docker events
-        setupVarRunWatch();
 
         // Start listening to dynamix config file changes
         setupDynamixConfigWatch();

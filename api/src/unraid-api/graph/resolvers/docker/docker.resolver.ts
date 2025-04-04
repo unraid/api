@@ -32,6 +32,11 @@ export class DockerResolver {
     }
 
     @ResolveField()
+    public async networks() {
+        return this.dockerService.getNetworks({ useCache: false });
+    }
+
+    @ResolveField()
     public mutations() {
         return {
             id: 'docker-mutations',
