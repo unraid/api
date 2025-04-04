@@ -1,5 +1,18 @@
 # Changelog
 
+## [4.7.0](https://github.com/unraid/api/compare/v4.6.6...v4.7.0) (2025-04-04)
+
+
+### Features
+
+* add basic docker network listing ([#1317](https://github.com/unraid/api/issues/1317)) ([c4fdff8](https://github.com/unraid/api/commit/c4fdff8149eb2812707605b3a98eabc795d18c5e))
+* basic vm controls ([#1293](https://github.com/unraid/api/issues/1293)) ([bc3ca92](https://github.com/unraid/api/commit/bc3ca92fb02387bc019bb001809df96974737b50))
+
+
+### Bug Fixes
+
+* move docker mutations to the mutations resolver ([#1333](https://github.com/unraid/api/issues/1333)) ([1bbe7d2](https://github.com/unraid/api/commit/1bbe7d27b0e87b5ffcd57ac9cc28e64b046055be))
+
 ## [4.6.6](https://github.com/unraid/api/compare/v4.6.5...v4.6.6) (2025-04-03)
 
 
