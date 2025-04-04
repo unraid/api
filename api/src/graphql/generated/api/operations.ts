@@ -195,6 +195,7 @@ export function ArrayCapacitySchema(): z.ZodObject<Properties<ArrayCapacity>> {
 export function ArrayDiskSchema(): z.ZodObject<Properties<ArrayDisk>> {
   return z.object({
     __typename: z.literal('ArrayDisk').optional(),
+    color: ArrayDiskFsColorSchema.nullish(),
     comment: z.string().nullish(),
     critical: z.number().nullish(),
     device: z.string().nullish(),
