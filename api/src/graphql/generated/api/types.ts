@@ -559,7 +559,6 @@ export type Docker = Node & {
   __typename?: 'Docker';
   containers?: Maybe<Array<DockerContainer>>;
   id: Scalars['ID']['output'];
-  mutations: DockerMutations;
   networks?: Maybe<Array<DockerNetwork>>;
 };
 
@@ -835,6 +834,7 @@ export type Mutation = {
   deleteNotification: NotificationOverview;
   /** Delete a user */
   deleteUser?: Maybe<User>;
+  docker?: Maybe<DockerMutations>;
   enableDynamicRemoteAccess: Scalars['Boolean']['output'];
   login?: Maybe<Scalars['String']['output']>;
   /** Pause parity check */
@@ -2476,7 +2476,6 @@ export type DisplayResolvers<ContextType = Context, ParentType extends Resolvers
 export type DockerResolvers<ContextType = Context, ParentType extends ResolversParentTypes['Docker'] = ResolversParentTypes['Docker']> = ResolversObject<{
   containers?: Resolver<Maybe<Array<ResolversTypes['DockerContainer']>>, ParentType, ContextType>;
   id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
-  mutations?: Resolver<ResolversTypes['DockerMutations'], ParentType, ContextType>;
   networks?: Resolver<Maybe<Array<ResolversTypes['DockerNetwork']>>, ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
@@ -2694,6 +2693,7 @@ export type MutationResolvers<ContextType = Context, ParentType extends Resolver
   deleteArchivedNotifications?: Resolver<ResolversTypes['NotificationOverview'], ParentType, ContextType>;
   deleteNotification?: Resolver<ResolversTypes['NotificationOverview'], ParentType, ContextType, RequireFields<MutationdeleteNotificationArgs, 'id' | 'type'>>;
   deleteUser?: Resolver<Maybe<ResolversTypes['User']>, ParentType, ContextType, RequireFields<MutationdeleteUserArgs, 'input'>>;
+  docker?: Resolver<Maybe<ResolversTypes['DockerMutations']>, ParentType, ContextType>;
   enableDynamicRemoteAccess?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationenableDynamicRemoteAccessArgs, 'input'>>;
   login?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType, RequireFields<MutationloginArgs, 'password' | 'username'>>;
   pauseParityCheck?: Resolver<Maybe<ResolversTypes['JSON']>, ParentType, ContextType>;

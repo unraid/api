@@ -8,4 +8,11 @@ export class MutationResolver {
             __typename: 'ArrayMutations',
         };
     }
+
+    @ResolveField()
+    public async docker() {
+        return {
+            __typename: 'DockerMutations',
+        };
+    }
 }

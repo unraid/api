@@ -9,23 +9,23 @@ import { DockerService } from '@app/unraid-api/graph/resolvers/docker/docker.ser
 export class DockerMutationsResolver {
     constructor(private readonly dockerService: DockerService) {}
 
-    @ResolveField('startContainer')
+    @ResolveField('start')
     @UsePermissions({
         action: AuthActionVerb.UPDATE,
         resource: Resource.DOCKER,
         possession: AuthPossession.ANY,
     })
-    public async startContainer(@Args('id') id: string) {
-        return this.dockerService.startContainer(id);
+    public async start(@Args('id') id: string) {
+        return this.dockerService.start(id);
     }
 
-    @ResolveField('stopContainer')
+    @ResolveField('stop')
     @UsePermissions({
         action: AuthActionVerb.UPDATE,
         resource: Resource.DOCKER,
         possession: AuthPossession.ANY,
     })
-    public async stopContainer(@Args('id') id: string) {
-        return this.dockerService.stopContainer(id);
+    public async stop(@Args('id') id: string) {
+        return this.dockerService.stop(id);
     }
 }

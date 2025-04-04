@@ -70,8 +70,4 @@ describe('DockerResolver', () => {
         expect(dockerService.getContainers).toHaveBeenCalledWith({ useCache: false });
     });
 
-    it('should return mutations object with id', () => {
-        const result = resolver.mutations();
-        expect(result).toEqual({ id: 'docker-mutations' });
-    });
 });

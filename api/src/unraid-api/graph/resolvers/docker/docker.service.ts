@@ -11,6 +11,7 @@ import type { ContainerPort, DockerContainer, DockerNetwork } from '@app/graphql
 import { dockerLogger } from '@app/core/log.js';
 import { pubsub, PUBSUB_CHANNEL } from '@app/core/pubsub.js';
 import { catchHandlers } from '@app/core/utils/misc/catch-handlers.js';
+import { sleep } from '@app/core/utils/misc/sleep.js';
 import { ContainerPortType, ContainerState } from '@app/graphql/generated/api/types.js';
 import { getters } from '@app/store/index.js';
 
@@ -193,7 +194,7 @@ export class DockerService implements OnModuleInit {
             );
     }
 
-    public async startContainer(id: string): Promise<DockerContainer> {
+    public async start(id: string): Promise<DockerContainer> {
         const container = this.client.getContainer(id);
         await container.start();
         const containers = await this.getContainers({ useCache: false });
@@ -204,14 +205,15 @@ export class DockerService implements OnModuleInit {
         return updatedContainer;
     }
 
-    public async stopContainer(id: string): Promise<DockerContainer> {
+    public async stop(id: string): Promise<DockerContainer> {
         const container = this.client.getContainer(id);
-        await container.stop();
+        await container.stop({ t: 10 });
         const containers = await this.getContainers({ useCache: false });
         const updatedContainer = containers.find((c) => c.id === id);
         if (!updatedContainer) {
             throw new Error(`Container ${id} not found after stopping`);
         }
+        updatedContainer.state = ContainerState.EXITED;
         return updatedContainer;
     }
 }
