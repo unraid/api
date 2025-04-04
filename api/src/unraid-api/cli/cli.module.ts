@@ -1,6 +1,5 @@
 import { Module } from '@nestjs/common';
 
-
 import { ApiKeyService } from '@app/unraid-api/auth/api-key.service.js';
 import { AddApiKeyQuestionSet } from '@app/unraid-api/cli/apikey/add-api-key.questions.js';
 import { ApiKeyCommand } from '@app/unraid-api/cli/apikey/api-key.command.js';
