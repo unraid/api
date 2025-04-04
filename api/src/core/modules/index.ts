@@ -10,7 +10,6 @@ export * from './add-share.js';
 export * from './add-user.js';
 export * from './get-apps.js';
 export * from './get-devices.js';
-export * from './get-disks.js';
 export * from './get-parity-history.js';
 export * from './get-services.js';
 export * from './get-users.js';
