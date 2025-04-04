@@ -79,6 +79,7 @@ export class DockerService implements OnModuleInit {
     public transformContainer(container: Docker.ContainerInfo): DockerContainer {
         return camelCaseKeys<DockerContainer>(
             {
+                names: container.Names,
                 labels: container.Labels ?? {},
                 sizeRootFs: undefined,
                 imageId: container.ImageID,
