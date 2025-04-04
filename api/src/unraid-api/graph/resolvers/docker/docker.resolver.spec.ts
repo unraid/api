@@ -69,5 +69,4 @@ describe('DockerResolver', () => {
         expect(result).toEqual(mockContainers);
         expect(dockerService.getContainers).toHaveBeenCalledWith({ useCache: false });
     });
-
 });

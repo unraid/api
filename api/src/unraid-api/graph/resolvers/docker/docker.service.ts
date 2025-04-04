@@ -151,13 +151,19 @@ export class DockerService implements OnModuleInit {
                 id: container.Id,
                 image: container.Image,
                 status: container.Status,
-
             },
             { deep: true }
         );
     }
 
-    public async getContainers({ useCache = false, all = true, size = true, ...listOptions }: Partial<ContainerListingOptions> = { useCache: false }): Promise<DockerContainer[]> {
+    public async getContainers(
+        {
+            useCache = false,
+            all = true,
+            size = true,
+            ...listOptions
+        }: Partial<ContainerListingOptions> = { useCache: false }
+    ): Promise<DockerContainer[]> {
         if (useCache && this.containerCache.length > 0) {
             this.logger.debug('Using docker container cache');
             return this.containerCache;
@@ -219,7 +225,9 @@ export class DockerService implements OnModuleInit {
             // Refresh the containers list on each attempt
             containers = await this.getContainers({ useCache: false });
             updatedContainer = containers.find((c) => c.id === id);
-            this.logger.debug(`Container ${id} state after stop attempt ${i+1}: ${updatedContainer?.state}`);
+            this.logger.debug(
+                `Container ${id} state after stop attempt ${i + 1}: ${updatedContainer?.state}`
+            );
             if (updatedContainer?.state === ContainerState.EXITED) {
                 return updatedContainer;
             }
