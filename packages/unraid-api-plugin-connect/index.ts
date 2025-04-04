@@ -2,15 +2,13 @@ import { Module, Logger, Inject } from "@nestjs/common";
 import { ConfigModule, ConfigService, registerAs } from "@nestjs/config";
 import { Resolver, Query } from "@nestjs/graphql";
 
-export const pluginAdapterType = 'nestjs';
+export const adapter = 'nestjs';
 
-export async function registerGraphQLTypeDefs() {
-  return `
-    type Query {
-      health: String
-    }
-  `;
-}
+export const graphqlSchemaExtension = async () => `
+  type Query {
+    health: String
+  }
+`;
 
 @Resolver()
 export class HealthResolver {
@@ -25,18 +23,18 @@ const config = registerAs("connect", () => ({
   demo: true,
 }));
 
-
 @Module({
   imports: [ConfigModule.forFeature(config)],
   providers: [HealthResolver],
 })
-export default class ConnectPluginModule {
+class ConnectPluginModule {
   logger = new Logger(ConnectPluginModule.name);
+  private readonly configService: ConfigService;
 
   /**
    * @param {ConfigService} configService
    */
-  constructor(@Inject(ConfigService) configService) {
+  constructor(@Inject(ConfigService) configService: ConfigService) {
     this.configService = configService;
   }
 
@@ -45,3 +43,5 @@ export default class ConnectPluginModule {
     console.log("Connect plugin initialized", this.configService.get('connect'));
   }
 }
+
+export const ApiModule = ConnectPluginModule;

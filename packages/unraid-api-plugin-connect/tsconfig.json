@@ -1,11 +1,10 @@
 {
   "compilerOptions": {
     "target": "es2018",
-    "module": "commonjs",
+    "module": "ESNext",
+    "moduleResolution": "bundler",
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true,
-    "allowJs": true,
-    "checkJs": true,
     "declaration": true,
     "sourceMap": true,
     "outDir": "./dist",
@@ -14,6 +13,6 @@
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true
   },
-  "include": ["**/*.js", "**/*.ts"],
+  "include": ["index.ts"],
   "exclude": ["node_modules", "dist"]
 } 
