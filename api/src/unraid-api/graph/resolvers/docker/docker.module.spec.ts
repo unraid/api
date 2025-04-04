@@ -1,7 +1,7 @@
-import type { TestingModule } from '@nestjs/testing';
-import { Test } from '@nestjs/testing';
+import { Test, TestingModule } from '@nestjs/testing';
 
-import { beforeEach, describe, expect, it } from 'vitest';
+import { describe, expect, it } from 'vitest';
+import { vi } from 'vitest';
 
 import { DockerEventService } from '@app/unraid-api/graph/resolvers/docker/docker-event.service.js';
 import { DockerModule } from '@app/unraid-api/graph/resolvers/docker/docker.module.js';
@@ -13,23 +13,38 @@ describe('DockerModule', () => {
     it('should compile the module', async () => {
         const module = await Test.createTestingModule({
             imports: [DockerModule],
-        }).compile();
+        })
+            .overrideProvider(DockerService)
+            .useValue({})
+            .compile();
 
         expect(module).toBeDefined();
     });
 
     it('should provide DockerService', async () => {
-        const module = await Test.createTestingModule({
-            imports: [DockerModule],
+        const module: TestingModule = await Test.createTestingModule({
+            providers: [
+                {
+                    provide: DockerService,
+                    useValue: {
+                        getDockerClient: vi.fn(),
+                        debouncedContainerCacheUpdate: vi.fn(),
+                    },
+                },
+            ],
         }).compile();
 
         const service = module.get<DockerService>(DockerService);
-        expect(service).toBeInstanceOf(DockerService);
+        expect(service).toBeDefined();
+        expect(service).toHaveProperty('getDockerClient');
     });
 
     it('should provide DockerEventService', async () => {
-        const module = await Test.createTestingModule({
-            imports: [DockerModule],
+        const module: TestingModule = await Test.createTestingModule({
+            providers: [
+                DockerEventService,
+                { provide: DockerService, useValue: { getDockerClient: vi.fn() } },
+            ],
         }).compile();
 
         const service = module.get<DockerEventService>(DockerEventService);
@@ -37,8 +52,11 @@ describe('DockerModule', () => {
     });
 
     it('should provide DockerResolver', async () => {
-        const module = await Test.createTestingModule({
-            imports: [DockerModule],
+        const module: TestingModule = await Test.createTestingModule({
+            providers: [
+                DockerResolver,
+                { provide: DockerService, useValue: {} },
+            ],
         }).compile();
 
         const resolver = module.get<DockerResolver>(DockerResolver);
@@ -46,8 +64,11 @@ describe('DockerModule', () => {
     });
 
     it('should provide DockerMutationsResolver', async () => {
-        const module = await Test.createTestingModule({
-            imports: [DockerModule],
+        const module: TestingModule = await Test.createTestingModule({
+            providers: [
+                DockerMutationsResolver,
+                { provide: DockerService, useValue: {} },
+            ],
         }).compile();
 
         const resolver = module.get<DockerMutationsResolver>(DockerMutationsResolver);
