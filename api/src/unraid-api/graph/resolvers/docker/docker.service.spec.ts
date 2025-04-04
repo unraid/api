@@ -4,26 +4,8 @@ import { Test } from '@nestjs/testing';
 import Docker from 'dockerode';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import type { DockerContainer } from '@app/graphql/generated/api/types.js';
 import { ContainerState } from '@app/graphql/generated/api/types.js';
 import { DockerService } from '@app/unraid-api/graph/resolvers/docker/docker.service.js';
-
-// Mock chokidar
-vi.mock('chokidar', () => ({
-    watch: vi.fn().mockReturnValue({
-        on: vi.fn().mockReturnValue({
-            on: vi.fn(),
-        }),
-    }),
-}));
-
-// Mock docker-event-emitter
-vi.mock('docker-event-emitter', () => ({
-    default: vi.fn().mockReturnValue({
-        on: vi.fn(),
-        start: vi.fn().mockResolvedValue(undefined),
-    }),
-}));
 
 // Mock pubsub
 vi.mock('@app/core/pubsub.js', () => ({
@@ -518,62 +500,6 @@ describe('DockerService', () => {
             expect(service.appUpdateEvent).toEqual({
                 info: {
                     apps: { installed: 2, running: 1 },
-                },
-            });
-        });
-    });
-
-    describe('watchers', () => {
-        it.skip('should setup docker watcher when docker socket is added', async () => {
-            // This test has been moved to docker-event.service.spec.ts
-            // Method no longer exists in DockerService
-        });
-
-        it.skip('should stop docker watcher when docker socket is removed', async () => {
-            // This test has been moved to docker-event.service.spec.ts
-            // Method no longer exists in DockerService
-        });
-
-        it.skip('should setup docker watch correctly', async () => {
-            // This test has been moved to docker-event.service.spec.ts
-            // Method no longer exists in DockerService
-        });
-
-        it.skip('should call debouncedContainerCacheUpdate when container event is received', async () => {
-            // This test has been moved to docker-event.service.spec.ts
-            // Method no longer exists in DockerService
-        });
-
-        it.skip('should not call debouncedContainerCacheUpdate for non-watched container events', async () => {
-            // This test has been moved to docker-event.service.spec.ts
-            // Method no longer exists in DockerService
-        });
-
-        it('should call getContainers and publish appUpdateEvent in debouncedContainerCacheUpdate', async () => {
-            // Mock the client's listContainers method
-            const mockListContainers = vi.fn().mockResolvedValue([]);
-            (service as any).client = {
-                listContainers: mockListContainers,
-            };
-
-            // Mock the getContainers method
-            const getContainersSpy = vi.spyOn(service, 'getContainers');
-
-            // Get the pubsub import
-            const { pubsub, PUBSUB_CHANNEL } = await import('@app/core/pubsub.js');
-
-            // Call the debouncedContainerCacheUpdate method directly and wait for the debounce
-            service['debouncedContainerCacheUpdate']();
-            // Force the debounced function to execute immediately
-            await new Promise((resolve) => setTimeout(resolve, 600));
-
-            // Verify that getContainers was called with useCache: false
-            expect(getContainersSpy).toHaveBeenCalledWith({ useCache: false });
-
-            // Verify that pubsub.publish was called with the correct arguments
-            expect(pubsub.publish).toHaveBeenCalledWith('info', {
-                info: {
-                    apps: { installed: 0, running: 0 },
                 },
             });
         });
