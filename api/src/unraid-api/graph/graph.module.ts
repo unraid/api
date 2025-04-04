@@ -32,10 +32,8 @@ import { PluginService } from '@app/unraid-api/plugin/plugin.service.js';
         ResolversModule,
         GraphQLModule.forRootAsync<ApolloDriverConfig>({
             driver: ApolloDriver,
-            imports: [PluginModule],
-            inject: [PluginService],
-            useFactory: async (pluginService: PluginService) => {
-                const plugins = await pluginService.getGraphQLConfiguration();
+            useFactory: async () => {
+                const pluginSchemas = await PluginService.getGraphQlSchemas();
                 return {
                     introspection: getters.config()?.local?.sandbox === 'yes',
                     playground: false,
@@ -51,7 +49,7 @@ import { PluginService } from '@app/unraid-api/plugin/plugin.service.js';
                         },
                     },
                     path: '/graphql',
-                    typeDefs: [print(await loadTypeDefs([plugins.typeDefs]))],
+                    typeDefs: [print(await loadTypeDefs(pluginSchemas))],
                     resolvers: {
                         JSON: JSONResolver,
                         Long: GraphQLLong,
@@ -59,7 +57,6 @@ import { PluginService } from '@app/unraid-api/plugin/plugin.service.js';
                         DateTime: DateTimeResolver,
                         Port: PortResolver,
                         URL: URLResolver,
-                        ...plugins.resolvers,
                     },
                     validationRules: [NoUnusedVariablesRule],
                 };
