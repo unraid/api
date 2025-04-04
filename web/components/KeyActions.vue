@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import { computed } from 'vue';
 import { storeToRefs } from 'pinia';
 
 import { ArrowTopRightOnSquareIcon } from '@heroicons/vue/24/solid';
