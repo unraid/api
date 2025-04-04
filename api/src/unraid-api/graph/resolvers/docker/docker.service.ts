@@ -15,7 +15,7 @@ import { sleep } from '@app/core/utils/misc/sleep.js';
 import { ContainerPortType, ContainerState } from '@app/graphql/generated/api/types.js';
 import { getters } from '@app/store/index.js';
 
-interface ContainerListingOptions {
+interface ContainerListingOptions extends Docker.ContainerListOptions {
     useCache: boolean;
 }
 
@@ -27,6 +27,7 @@ interface NetworkListingOptions {
 export class DockerService implements OnModuleInit {
     private client: Docker;
     private containerCache: Array<DockerContainer> = [];
+    private autoStarts: string[] = [];
     private dockerWatcher: null | typeof DockerEE = null;
     private readonly logger = new Logger(DockerService.name);
 
@@ -125,53 +126,56 @@ export class DockerService implements OnModuleInit {
         await pubsub.publish(PUBSUB_CHANNEL.INFO, this.appUpdateEvent);
     }, 500);
 
-    public async getContainers({ useCache }: ContainerListingOptions): Promise<DockerContainer[]> {
+    public transformContainer(container: Docker.ContainerInfo): DockerContainer {
+        return camelCaseKeys<DockerContainer>(
+            {
+                labels: container.Labels ?? {},
+                sizeRootFs: undefined,
+                imageId: container.ImageID,
+                state:
+                    typeof container.State === 'string'
+                        ? (ContainerState[container.State.toUpperCase()] ?? ContainerState.EXITED)
+                        : ContainerState.EXITED,
+                autoStart: this.autoStarts.includes(container.Names[0].split('/')[1]),
+                ports: container.Ports.map<ContainerPort>((port) => ({
+                    ...port,
+                    type: ContainerPortType[port.Type.toUpperCase()],
+                })),
+                command: container.Command,
+                created: container.Created,
+                mounts: container.Mounts,
+                networkSettings: container.NetworkSettings,
+                hostConfig: {
+                    networkMode: container.HostConfig.NetworkMode,
+                },
+                id: container.Id,
+                image: container.Image,
+                status: container.Status,
+
+            },
+            { deep: true }
+        );
+    }
+
+    public async getContainers({ useCache = false, all = true, size = true, ...listOptions }: Partial<ContainerListingOptions> = { useCache: false }): Promise<DockerContainer[]> {
         if (useCache && this.containerCache.length > 0) {
             this.logger.debug('Using docker container cache');
             return this.containerCache;
         }
 
         this.logger.debug('Updating docker container cache');
-
         const rawContainers = await this.client
             .listContainers({
-                all: true,
-                size: true,
+                all,
+                size,
+                ...listOptions,
             })
             // If docker throws an error return no containers
             .catch(catchHandlers.docker);
-
-        const autoStarts = await this.getAutoStarts();
+        this.autoStarts = await this.getAutoStarts();
         // Cleanup container object
         this.containerCache = rawContainers.map((container) => {
-            const names = container.Names[0];
-            const containerData: DockerContainer = camelCaseKeys<DockerContainer>(
-                {
-                    labels: container.Labels ?? {},
-                    sizeRootFs: undefined,
-                    imageId: container.ImageID,
-                    state:
-                        typeof container.State === 'string'
-                            ? (ContainerState[container.State.toUpperCase()] ?? ContainerState.EXITED)
-                            : ContainerState.EXITED,
-                    autoStart: autoStarts.includes(names.split('/')[1]),
-                    ports: container.Ports.map<ContainerPort>((port) => ({
-                        ...port,
-                        type: ContainerPortType[port.Type.toUpperCase()],
-                    })),
-                    command: container.Command,
-                    created: container.Created,
-                    mounts: container.Mounts,
-                    networkSettings: container.NetworkSettings,
-                    hostConfig: {
-                        networkMode: container.HostConfig.NetworkMode,
-                    },
-                    id: container.Id,
-                    image: container.Image,
-                    status: container.Status,
-                },
-                { deep: true }
-            );
+            const containerData: DockerContainer = this.transformContainer(container);
             return containerData;
         });
         return this.containerCache;
@@ -208,12 +212,21 @@ export class DockerService implements OnModuleInit {
     public async stop(id: string): Promise<DockerContainer> {
         const container = this.client.getContainer(id);
         await container.stop({ t: 10 });
-        const containers = await this.getContainers({ useCache: false });
-        const updatedContainer = containers.find((c) => c.id === id);
+        let containers = await this.getContainers({ useCache: false });
+        let updatedContainer: DockerContainer | undefined;
+        for (let i = 0; i < 5; i++) {
+            await sleep(500);
+            // Refresh the containers list on each attempt
+            containers = await this.getContainers({ useCache: false });
+            updatedContainer = containers.find((c) => c.id === id);
+            this.logger.debug(`Container ${id} state after stop attempt ${i+1}: ${updatedContainer?.state}`);
+            if (updatedContainer?.state === ContainerState.EXITED) {
+                return updatedContainer;
+            }
+        }
         if (!updatedContainer) {
             throw new Error(`Container ${id} not found after stopping`);
         }
-        updatedContainer.state = ContainerState.EXITED;
         return updatedContainer;
     }
 }
