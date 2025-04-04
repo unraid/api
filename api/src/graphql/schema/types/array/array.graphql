@@ -175,6 +175,7 @@ type ArrayDisk {
     format: String
     """ ata | nvme | usb | (others)"""
     transport: String
+    color: ArrayDiskFsColor
 }
 
 # type ArrayParityDisk {}
@@ -192,12 +193,22 @@ enum ArrayDiskType {
 }
 
 enum ArrayDiskFsColor {
-    """Disk is OK and running"""
+    """Normal operation, device is active"""
     green_on
-    """Disk is OK and not running"""
-    green_off
+    """Device is in standby mode (spun-down)"""
+    green_blink
+    """New device"""
+    blue_on
+    """New device, in standby mode (spun-down)"""
+    blue_blink
+    """Device contents invalid or emulated / Parity is invalid"""
     yellow_on
-    yellow_off
+    """Device contents invalid or emulated / Parity is invalid, in standby mode (spun-down)"""
+    yellow_blink
+    """Device is disabled or contents emulated / Parity device is disabled"""
     red_on
+    """Device is missing (disabled) or contents emulated / Parity device is missing"""
     red_off
+    """Device not present"""
+    grey_off
 }

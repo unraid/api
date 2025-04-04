@@ -140,6 +140,7 @@ export type ArrayCapacity = {
 
 export type ArrayDisk = {
   __typename?: 'ArrayDisk';
+  color?: Maybe<ArrayDiskFsColor>;
   /**  User comment on disk  */
   comment?: Maybe<Scalars['String']['output']>;
   /**  (%) Disk space left for critical  */
@@ -183,13 +184,23 @@ export type ArrayDisk = {
 };
 
 export enum ArrayDiskFsColor {
-  /** Disk is OK and not running */
-  GREEN_OFF = 'green_off',
-  /** Disk is OK and running */
+  /** New device, in standby mode (spun-down) */
+  BLUE_BLINK = 'blue_blink',
+  /** New device */
+  BLUE_ON = 'blue_on',
+  /** Device is in standby mode (spun-down) */
+  GREEN_BLINK = 'green_blink',
+  /** Normal operation, device is active */
   GREEN_ON = 'green_on',
+  /** Device not present */
+  GREY_OFF = 'grey_off',
+  /** Device is missing (disabled) or contents emulated / Parity device is missing */
   RED_OFF = 'red_off',
+  /** Device is disabled or contents emulated / Parity device is disabled */
   RED_ON = 'red_on',
-  YELLOW_OFF = 'yellow_off',
+  /** Device contents invalid or emulated / Parity is invalid, in standby mode (spun-down) */
+  YELLOW_BLINK = 'yellow_blink',
+  /** Device contents invalid or emulated / Parity is invalid */
   YELLOW_ON = 'yellow_on'
 }
 
@@ -520,6 +531,8 @@ export type Disk = {
 
 export enum DiskFsType {
   BTRFS = 'btrfs',
+  EXT4 = 'ext4',
+  NTFS = 'ntfs',
   VFAT = 'vfat',
   XFS = 'xfs',
   ZFS = 'zfs'
@@ -1210,8 +1223,6 @@ export type Query = {
   disks: Array<Maybe<Disk>>;
   display?: Maybe<Display>;
   docker: Docker;
-  /** All Docker containers */
-  dockerContainers: Array<DockerContainer>;
   /** Docker network */
   dockerNetwork: DockerNetwork;
   /** All Docker networks */
@@ -1260,11 +1271,6 @@ export type QueryapiKeyArgs = {
 
 export type QuerydiskArgs = {
   id: Scalars['ID']['input'];
-};
-
-
-export type QuerydockerContainersArgs = {
-  all?: InputMaybe<Scalars['Boolean']['input']>;
 };
 
 
@@ -1469,8 +1475,6 @@ export type Subscription = {
   array: ArrayType;
   config: Config;
   display?: Maybe<Display>;
-  dockerContainer: DockerContainer;
-  dockerContainers?: Maybe<Array<Maybe<DockerContainer>>>;
   dockerNetwork: DockerNetwork;
   dockerNetworks: Array<Maybe<DockerNetwork>>;
   flash: Flash;
@@ -1497,11 +1501,6 @@ export type Subscription = {
   users: Array<Maybe<User>>;
   vars: Vars;
   vms?: Maybe<Vms>;
-};
-
-
-export type SubscriptiondockerContainerArgs = {
-  id: Scalars['ID']['input'];
 };
 
 
@@ -2355,6 +2354,7 @@ export type ArrayCapacityResolvers<ContextType = Context, ParentType extends Res
 }>;
 
 export type ArrayDiskResolvers<ContextType = Context, ParentType extends ResolversParentTypes['ArrayDisk'] = ResolversParentTypes['ArrayDisk']> = ResolversObject<{
+  color?: Resolver<Maybe<ResolversTypes['ArrayDiskFsColor']>, ParentType, ContextType>;
   comment?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   critical?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
   device?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
@@ -2987,7 +2987,6 @@ export type QueryResolvers<ContextType = Context, ParentType extends ResolversPa
   disks?: Resolver<Array<Maybe<ResolversTypes['Disk']>>, ParentType, ContextType>;
   display?: Resolver<Maybe<ResolversTypes['Display']>, ParentType, ContextType>;
   docker?: Resolver<ResolversTypes['Docker'], ParentType, ContextType>;
-  dockerContainers?: Resolver<Array<ResolversTypes['DockerContainer']>, ParentType, ContextType, Partial<QuerydockerContainersArgs>>;
   dockerNetwork?: Resolver<ResolversTypes['DockerNetwork'], ParentType, ContextType, RequireFields<QuerydockerNetworkArgs, 'id'>>;
   dockerNetworks?: Resolver<Array<Maybe<ResolversTypes['DockerNetwork']>>, ParentType, ContextType, Partial<QuerydockerNetworksArgs>>;
   extraAllowedOrigins?: Resolver<Array<ResolversTypes['String']>, ParentType, ContextType>;
@@ -3083,8 +3082,6 @@ export type SubscriptionResolvers<ContextType = Context, ParentType extends Reso
   array?: SubscriptionResolver<ResolversTypes['Array'], "array", ParentType, ContextType>;
   config?: SubscriptionResolver<ResolversTypes['Config'], "config", ParentType, ContextType>;
   display?: SubscriptionResolver<Maybe<ResolversTypes['Display']>, "display", ParentType, ContextType>;
-  dockerContainer?: SubscriptionResolver<ResolversTypes['DockerContainer'], "dockerContainer", ParentType, ContextType, RequireFields<SubscriptiondockerContainerArgs, 'id'>>;
-  dockerContainers?: SubscriptionResolver<Maybe<Array<Maybe<ResolversTypes['DockerContainer']>>>, "dockerContainers", ParentType, ContextType>;
   dockerNetwork?: SubscriptionResolver<ResolversTypes['DockerNetwork'], "dockerNetwork", ParentType, ContextType, RequireFields<SubscriptiondockerNetworkArgs, 'id'>>;
   dockerNetworks?: SubscriptionResolver<Array<Maybe<ResolversTypes['DockerNetwork']>>, "dockerNetworks", ParentType, ContextType>;
   flash?: SubscriptionResolver<ResolversTypes['Flash'], "flash", ParentType, ContextType>;
