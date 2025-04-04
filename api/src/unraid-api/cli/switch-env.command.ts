@@ -2,22 +2,34 @@ import { copyFile, readFile, writeFile } from 'fs/promises';
 import { join } from 'path';
 
 import { Command, CommandRunner, Option } from 'nest-commander';
+import { Injectable } from '@nestjs/common';
 
 import { cliLogger } from '@app/core/log.js';
 import { getters } from '@app/store/index.js';
 import { LogService } from '@app/unraid-api/cli/log.service.js';
 import { StartCommand } from '@app/unraid-api/cli/start.command.js';
 import { StopCommand } from '@app/unraid-api/cli/stop.command.js';
+import { PathsConfig } from '../../config/paths.config.js';
 
 interface SwitchEnvOptions {
     environment?: 'staging' | 'production';
 }
 
+@Injectable()
 @Command({
     name: 'switch-env',
     description: 'Switch the active Unraid API environment',
 })
 export class SwitchEnvCommand extends CommandRunner {
+    constructor(
+        private readonly logger: LogService,
+        private readonly stopCommand: StopCommand,
+        private readonly startCommand: StartCommand,
+        private readonly paths: PathsConfig
+    ) {
+        super();
+    }
+
     private parseStringToEnv(environment: string): 'production' | 'staging' {
         return ['production', 'staging'].includes(environment)
             ? (environment as 'production' | 'staging')
@@ -27,14 +39,6 @@ export class SwitchEnvCommand extends CommandRunner {
     @Option({ flags: '-e, --environment <environment>' })
     getEnvOption(environment: string): 'production' | 'staging' {
         return this.parseStringToEnv(environment);
-    }
-
-    constructor(
-        private readonly logger: LogService,
-        private readonly stopCommand: StopCommand,
-        private readonly startCommand: StartCommand
-    ) {
-        super();
     }
 
     private async getEnvironmentFromFile(path: string): Promise<'production' | 'staging'> {
@@ -56,7 +60,7 @@ export class SwitchEnvCommand extends CommandRunner {
     }
 
     async run(_, options: SwitchEnvOptions): Promise<void> {
-        const paths = getters.paths();
+        const paths = this.paths;
         const basePath = paths['unraid-api-base'];
         const envFlashFilePath = paths['myservers-env'];
 

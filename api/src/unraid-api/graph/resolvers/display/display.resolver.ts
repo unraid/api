@@ -2,6 +2,7 @@ import { Query, Resolver, Subscription } from '@nestjs/graphql';
 import { existsSync } from 'node:fs';
 import { readFile } from 'node:fs/promises';
 import { join } from 'node:path';
+import { Injectable } from '@nestjs/common';
 
 import { AuthActionVerb, AuthPossession, UsePermissions } from 'nest-authz';
 
@@ -9,6 +10,7 @@ import type { Display } from '@app/graphql/generated/api/types.js';
 import { createSubscription, PUBSUB_CHANNEL } from '@app/core/pubsub.js';
 import { Resource } from '@app/graphql/generated/api/types.js';
 import { getters } from '@app/store/index.js';
+import { PathsConfig } from '../../../../config/paths.config.js';
 
 const states = {
     // Success
@@ -58,8 +60,11 @@ const states = {
     },
 };
 
+@Injectable()
 @Resolver('Display')
 export class DisplayResolver {
+    constructor(private readonly paths: PathsConfig) {}
+
     @Query()
     @UsePermissions({
         action: AuthActionVerb.READ,
@@ -70,7 +75,7 @@ export class DisplayResolver {
         /**
          * This is deprecated, remove it eventually
          */
-        const dynamixBasePath = getters.paths()['dynamix-base'];
+        const dynamixBasePath = this.paths.dynamixBase;
         const configFilePath = join(dynamixBasePath, 'case-model.cfg');
         const result = {
             id: 'display',

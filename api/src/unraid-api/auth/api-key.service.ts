@@ -24,6 +24,7 @@ import { getters, store } from '@app/store/index.js';
 import { setLocalApiKey } from '@app/store/modules/config.js';
 import { FileLoadStatus } from '@app/store/types.js';
 import { batchProcess } from '@app/utils.js';
+import { PathsConfig } from '../../config/paths.config.js';
 
 @Injectable()
 export class ApiKeyService implements OnModuleInit {
@@ -32,8 +33,8 @@ export class ApiKeyService implements OnModuleInit {
     protected memoryApiKeys: Array<ApiKeyWithSecret> = [];
     private static readonly validRoles: Set<Role> = new Set(Object.values(Role));
 
-    constructor() {
-        this.basePath = getters.paths()['auth-keys'];
+    constructor(private readonly paths: PathsConfig) {
+        this.basePath = paths.authKeys;
         ensureDirSync(this.basePath);
     }
 

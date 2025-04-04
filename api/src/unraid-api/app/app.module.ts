@@ -14,9 +14,11 @@ import { GraphModule } from '@app/unraid-api/graph/graph.module.js';
 import { PluginModule } from '@app/unraid-api/plugin/plugin.module.js';
 import { RestModule } from '@app/unraid-api/rest/rest.module.js';
 import { UnraidFileModifierModule } from '@app/unraid-api/unraid-file-modifier/unraid-file-modifier.module.js';
+import { PathsModule } from '@app/config/paths.module.js';
 
 @Module({
     imports: [
+        PathsModule,
         LoggerModule.forRoot({
             pinoHttp: {
                 logger: apiLogger,

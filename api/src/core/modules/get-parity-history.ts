@@ -6,6 +6,7 @@ import { FileMissingError } from '@app/core/errors/file-missing-error.js';
 import { type CoreContext, type CoreResult } from '@app/core/types/index.js';
 import { ensurePermission } from '@app/core/utils/permissions/ensure-permission.js';
 import { getters } from '@app/store/index.js';
+import { PathsConfig } from '../../config/paths.config.js';
 
 /**
  * Get parity history.
@@ -21,7 +22,8 @@ export const getParityHistory = async (context: CoreContext): Promise<CoreResult
         possession: 'any',
     });
 
-    const historyFilePath = getters.paths()['parity-checks'];
+    const paths = PathsConfig.getInstance();
+    const historyFilePath = paths.parityChecks;
     const history = await fs.readFile(historyFilePath).catch(() => {
         throw new FileMissingError(historyFilePath);
     });

@@ -1,5 +1,7 @@
 import { writeFileSync } from 'fs';
 import { join } from 'path';
+import { Injectable } from '@nestjs/common';
+import { PathsConfig } from '../config/paths.config';
 
 import { isEqual } from 'lodash-es';
 
@@ -9,6 +11,23 @@ import { store } from '@app/store/index.js';
 import { syncInfoApps } from '@app/store/sync/info-apps-sync.js';
 import { syncRegistration } from '@app/store/sync/registration-sync.js';
 import { FileLoadStatus } from '@app/store/types.js';
+
+@Injectable()
+export class StoreSyncService {
+    constructor(private readonly paths: PathsConfig) {}
+
+    syncState(state: any) {
+        writeFileSync(join(this.paths.states, 'config.log'), JSON.stringify(state.config, null, 2));
+        writeFileSync(
+            join(this.paths.states, 'dynamicRemoteAccess.log'),
+            JSON.stringify(state.dynamicRemoteAccess, null, 2)
+        );
+        writeFileSync(
+            join(this.paths.states, 'graphql.log'),
+            JSON.stringify(state.graphql, null, 2)
+        );
+    }
+}
 
 export const startStoreSync = async () => {
     // The last state is stored so we don't end up in a loop of writing -> reading -> writing
