@@ -71,7 +71,9 @@ describe('DockerEventService', () => {
         mockEventStream = new PassThrough();
 
         // Set up the mock Docker client to return our mock event stream
-        vi.spyOn(mockDockerClient, 'getEvents').mockResolvedValue(mockEventStream as unknown as Readable);
+        vi.spyOn(mockDockerClient, 'getEvents').mockResolvedValue(
+            mockEventStream as unknown as Readable
+        );
 
         // Create a mock logger
         mockLogger = new Logger(DockerEventService.name) as Logger;
