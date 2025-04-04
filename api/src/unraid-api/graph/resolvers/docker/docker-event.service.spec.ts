@@ -1,12 +1,12 @@
-import { Test, TestingModule } from '@nestjs/testing';
 import { Logger } from '@nestjs/common';
-import { Readable } from 'stream';
-import { PassThrough } from 'stream';
+import { Test, TestingModule } from '@nestjs/testing';
+import { PassThrough, Readable } from 'stream';
+
 import Docker from 'dockerode';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { DockerEventService } from './docker-event.service.js';
-import { DockerService } from './docker.service.js';
+import { DockerEventService } from '@app/unraid-api/graph/resolvers/docker/docker-event.service.js';
+import { DockerService } from '@app/unraid-api/graph/resolvers/docker/docker.service.js';
 
 // Mock chokidar
 vi.mock('chokidar', () => ({
@@ -117,7 +117,7 @@ describe('DockerEventService', () => {
         mockEventStream.write(JSON.stringify(event) + '\n');
 
         // Wait for the event to be processed
-        await new Promise(resolve => setTimeout(resolve, 100));
+        await new Promise((resolve) => setTimeout(resolve, 100));
 
         // Verify that the container cache update was called
         expect(dockerService.debouncedContainerCacheUpdate).toHaveBeenCalled();
@@ -141,7 +141,7 @@ describe('DockerEventService', () => {
         mockEventStream.write(JSON.stringify(event) + '\n');
 
         // Wait for the event to be processed
-        await new Promise(resolve => setTimeout(resolve, 100));
+        await new Promise((resolve) => setTimeout(resolve, 100));
 
         // Verify that the container cache update was not called
         expect(dockerService.debouncedContainerCacheUpdate).not.toHaveBeenCalled();
@@ -155,7 +155,7 @@ describe('DockerEventService', () => {
         mockEventStream.write('{malformed json}\n');
 
         // Wait for the event to be processed
-        await new Promise(resolve => setTimeout(resolve, 100));
+        await new Promise((resolve) => setTimeout(resolve, 100));
 
         // Verify that the service is still running
         expect(service.isActive()).toBe(true);
@@ -182,14 +182,14 @@ describe('DockerEventService', () => {
                 from: 'test-image-2',
                 time: Date.now(),
                 timeNano: Date.now() * 1000000,
-            }
+            },
         ];
 
         // Write the events as JSON strings with newlines
-        mockEventStream.write(events.map(event => JSON.stringify(event)).join('\n') + '\n');
+        mockEventStream.write(events.map((event) => JSON.stringify(event)).join('\n') + '\n');
 
         // Wait for the events to be processed
-        await new Promise(resolve => setTimeout(resolve, 100));
+        await new Promise((resolve) => setTimeout(resolve, 100));
 
         // Verify that the container cache update was called twice
         expect(dockerService.debouncedContainerCacheUpdate).toHaveBeenCalledTimes(2);
@@ -208,18 +208,18 @@ describe('DockerEventService', () => {
             time: Date.now(),
             timeNano: Date.now() * 1000000,
         };
-        
+
         const invalidJson = '{malformed json}';
-        
+
         // Write the mixed content to the stream
         mockEventStream.write(JSON.stringify(validEvent) + '\n' + invalidJson + '\n');
 
         // Wait for the events to be processed
-        await new Promise(resolve => setTimeout(resolve, 100));
+        await new Promise((resolve) => setTimeout(resolve, 100));
 
         // Verify that the container cache update was called for the valid event
         expect(dockerService.debouncedContainerCacheUpdate).toHaveBeenCalledTimes(1);
-        
+
         // Verify that the service is still running despite the invalid JSON
         expect(service.isActive()).toBe(true);
     });
@@ -237,16 +237,16 @@ describe('DockerEventService', () => {
             time: Date.now(),
             timeNano: Date.now() * 1000000,
         };
-        
+
         // Write the event with empty lines before and after
         mockEventStream.write('\n\n' + JSON.stringify(event) + '\n\n');
 
         // Wait for the events to be processed
-        await new Promise(resolve => setTimeout(resolve, 100));
+        await new Promise((resolve) => setTimeout(resolve, 100));
 
         // Verify that the container cache update was called for the valid event
         expect(dockerService.debouncedContainerCacheUpdate).toHaveBeenCalledTimes(1);
-        
+
         // Verify that the service is still running
         expect(service.isActive()).toBe(true);
     });
@@ -259,7 +259,7 @@ describe('DockerEventService', () => {
         mockEventStream.emit('error', new Error('Stream error'));
 
         // Wait for the error to be processed
-        await new Promise(resolve => setTimeout(resolve, 100));
+        await new Promise((resolve) => setTimeout(resolve, 100));
 
         // Verify that the service has stopped
         expect(service.isActive()).toBe(false);
@@ -275,4 +275,4 @@ describe('DockerEventService', () => {
         // Verify that the service has stopped
         expect(service.isActive()).toBe(false);
     });
-}); 
+});

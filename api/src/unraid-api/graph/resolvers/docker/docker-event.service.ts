@@ -5,8 +5,7 @@ import { watch } from 'chokidar';
 import Docker from 'dockerode';
 
 import { getters } from '@app/store/index.js';
-
-import { DockerService } from './docker.service.js';
+import { DockerService } from '@app/unraid-api/graph/resolvers/docker/docker.service.js';
 
 enum DockerEventAction {
     DIE = 'die',
@@ -31,7 +30,7 @@ export class DockerEventService implements OnModuleDestroy, OnModuleInit {
     private client: Docker;
     private dockerEventStream: Readable | null = null;
     private readonly logger = new Logger(DockerEventService.name);
-    
+
     private watchedActions = [
         DockerEventAction.DIE,
         DockerEventAction.KILL,
@@ -108,10 +107,7 @@ export class DockerEventService implements OnModuleDestroy, OnModuleInit {
             this.logger.debug(`[${event.from}] ${event.Type}->${actionName}`);
 
             // For container lifecycle events, update the container cache
-            if (
-                event.Type === DockerEventType.CONTAINER &&
-                this.containerActions.includes(actionName)
-            ) {
+            if (event.Type === DockerEventType.CONTAINER && this.containerActions.includes(actionName)) {
                 await this.dockerService.debouncedContainerCacheUpdate();
             }
         }
@@ -140,19 +136,25 @@ export class DockerEventService implements OnModuleDestroy, OnModuleInit {
                 this.dockerEventStream.on('data', async (chunk) => {
                     try {
                         // Split the chunk by newlines to handle multiple JSON bodies
-                        const jsonStrings = chunk.toString().split('\n').filter(line => line.trim() !== '');
-                        
+                        const jsonStrings = chunk
+                            .toString()
+                            .split('\n')
+                            .filter((line) => line.trim() !== '');
+
                         for (const jsonString of jsonStrings) {
                             try {
                                 const event = JSON.parse(jsonString);
                                 await this.handleDockerEvent(event);
                             } catch (parseError) {
-                                this.logger.error(`Failed to parse individual Docker event: ${parseError instanceof Error ? parseError.message : String(parseError)}
+                                this.logger
+                                    .error(`Failed to parse individual Docker event: ${parseError instanceof Error ? parseError.message : String(parseError)}
                                 Event data: ${jsonString}`);
                             }
                         }
                     } catch (error) {
-                        this.logger.error(`Failed to process Docker event chunk: ${error instanceof Error ? error.message : String(error)}`);
+                        this.logger.error(
+                            `Failed to process Docker event chunk: ${error instanceof Error ? error.message : String(error)}`
+                        );
                         this.logger.verbose(`Full chunk: ${chunk.toString()}`);
                     }
                 });
@@ -160,7 +162,9 @@ export class DockerEventService implements OnModuleDestroy, OnModuleInit {
                 this.logger.debug('Docker event stream active');
             }
         } catch (error) {
-            this.logger.error(`Failed to set up Docker event stream - ${error instanceof Error ? error.message : String(error)}`);
+            this.logger.error(
+                `Failed to set up Docker event stream - ${error instanceof Error ? error.message : String(error)}`
+            );
         }
     }
 
