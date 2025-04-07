@@ -27,7 +27,7 @@ import { PluginService } from '@app/unraid-api/plugin/plugin.service.js';
         GraphQLModule.forRootAsync<ApolloDriverConfig>({
             driver: ApolloDriver,
             useFactory: async () => {
-                const pluginSchemas = await PluginService.getGraphQlSchemas();
+                const pluginSchemas = await PluginService.getGraphQLSchemas();
                 const authEnumTypeDefs = getAuthEnumTypeDefs();
                 const typeDefs = [print(await loadTypeDefs([...pluginSchemas, authEnumTypeDefs]))];
                 const resolvers = {

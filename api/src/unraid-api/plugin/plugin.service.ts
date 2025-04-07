@@ -17,7 +17,7 @@ export class PluginService {
         return PluginService.plugins;
     }
 
-    static async getGraphQlSchemas() {
+    static async getGraphQLSchemas() {
         const plugins = (await PluginService.getPlugins()).filter(
             (plugin) => plugin.graphqlSchemaExtension
         );
