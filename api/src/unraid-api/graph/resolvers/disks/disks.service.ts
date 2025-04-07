@@ -5,19 +5,14 @@ import { execa } from 'execa';
 import { blockDevices, diskLayout } from 'systeminformation';
 
 import type { Disk } from '@app/graphql/generated/api/types.js';
-import { graphqlLogger } from '@app/core/log.js';
 import { DiskFsType, DiskInterfaceType, DiskSmartStatus } from '@app/graphql/generated/api/types.js';
-import { getters } from '@app/store/index.js';
 import { batchProcess } from '@app/utils.js';
 
 @Injectable()
 export class DisksService {
-    // Renamed from DiskService
-    private async getTemperature(disk: Systeminformation.DiskLayoutData): Promise<number> {
+    public async getTemperature(device: string): Promise<number | null> {
         try {
-            const stdout = await execa('smartctl', ['-A', disk.device])
-                .then(({ stdout }) => stdout)
-                .catch(() => '');
+            const { stdout } = await execa('smartctl', ['-A', device]);
             const lines = stdout.split('\n');
             const header = lines.find((line) => line.startsWith('ID#')) ?? '';
             const fields = lines.splice(lines.indexOf(header) + 1, lines.length);
@@ -27,7 +22,7 @@ export class DisksService {
             );
 
             if (!field) {
-                return -1;
+                return null;
             }
 
             if (field.includes('Min/Max')) {
@@ -36,16 +31,14 @@ export class DisksService {
 
             const line = field.split(' ');
             return Number.parseInt(line[line.length - 1], 10);
-        } catch (error) {
-            graphqlLogger.warn('Caught error fetching disk temperature: %o', error);
-            return -1;
+        } catch (error: unknown) {
+            return null;
         }
     }
 
     private async parseDisk(
         disk: Systeminformation.DiskLayoutData,
-        partitionsToParse: Systeminformation.BlockDevicesData[],
-        temperature = false
+        partitionsToParse: Systeminformation.BlockDevicesData[]
     ): Promise<Disk> {
         const partitions = partitionsToParse
             // Only get partitions from this disk
@@ -113,43 +106,23 @@ export class DisksService {
             ...disk,
             id: disk.serialNum, // Ensure id is set
             smartStatus:
-                typeof disk.smartStatus === 'string'
-                    ? (DiskSmartStatus[disk.smartStatus.toUpperCase() as keyof typeof DiskSmartStatus] ??
-                      DiskSmartStatus.UNKNOWN)
-                    : DiskSmartStatus.UNKNOWN, // Default to UNKNOWN if undefined
+                DiskSmartStatus[disk.smartStatus?.toUpperCase() as keyof typeof DiskSmartStatus] ??
+                DiskSmartStatus.UNKNOWN,
             interfaceType: mappedInterfaceType,
-            temperature: temperature ? await this.getTemperature(disk) : -1,
-            partitions, // Now correctly typed after filter
+            partitions,
         };
     }
 
     /**
      * Get all disks.
      */
-    async getDisks(options?: { temperature: boolean }): Promise<Disk[]> {
-        const vars = getters.emhttp().var;
-
-        // Return all fields but temperature
-        if (options?.temperature === false) {
-            const partitions = await blockDevices().then((devices) =>
-                devices.filter((device) => device.type === 'part')
-            );
-            const diskLayoutData = await diskLayout();
-            // Pass unraidVar to parseDisk
-            const disks = await Promise.all(
-                diskLayoutData.map((disk) => this.parseDisk(disk, partitions))
-            );
-
-            return disks;
-        }
-
+    async getDisks(): Promise<Disk[]> {
         const partitions = await blockDevices().then((devices) =>
             devices.filter((device) => device.type === 'part')
         );
 
         const { data } = await batchProcess(await diskLayout(), async (disk) =>
-            // Pass unraidVar and temperature flag to parseDisk
-            this.parseDisk(disk, partitions, true)
+            this.parseDisk(disk, partitions)
         );
         return data;
     }

@@ -203,13 +203,13 @@ describe('DisksService', () => {
     // --- Test getDisks ---
 
     describe('getDisks', () => {
-        it('should return disks without temperature when options.temperature is false', async () => {
-            const disks = await service.getDisks({ temperature: false });
+        it('should return disks without temperature', async () => {
+            const disks = await service.getDisks();
 
             expect(mockDiskLayout).toHaveBeenCalledTimes(1);
             expect(mockBlockDevices).toHaveBeenCalledTimes(1);
             expect(mockExeca).not.toHaveBeenCalled(); // Temperature should not be fetched
-            expect(mockBatchProcess).not.toHaveBeenCalled(); // Should not use batchProcess if temp is false
+            expect(mockBatchProcess).toHaveBeenCalledTimes(1); // Still uses batchProcess for parsing
 
             expect(disks).toHaveLength(mockDiskLayoutData.length);
             expect(disks[0]).toMatchObject({
@@ -221,7 +221,7 @@ describe('DisksService', () => {
                 size: 512110190592,
                 interfaceType: DiskInterfaceType.PCIE,
                 smartStatus: DiskSmartStatus.OK,
-                temperature: -1, // Expect default -1 when not fetched
+                temperature: null, // Temperature is now null by default
                 partitions: [
                     { name: 'sda1', fsType: DiskFsType.VFAT, size: 536870912 },
                     { name: 'sda2', fsType: DiskFsType.EXT4, size: 511560000000 },
@@ -232,7 +232,7 @@ describe('DisksService', () => {
                 device: '/dev/sdb',
                 interfaceType: DiskInterfaceType.SATA,
                 smartStatus: DiskSmartStatus.OK,
-                temperature: -1,
+                temperature: null,
                 partitions: [{ name: 'sdb1', fsType: DiskFsType.XFS, size: 4000787030016 }],
             });
             expect(disks[2]).toMatchObject({
@@ -240,99 +240,46 @@ describe('DisksService', () => {
                 device: '/dev/sdc',
                 interfaceType: DiskInterfaceType.UNKNOWN,
                 smartStatus: DiskSmartStatus.UNKNOWN,
-                temperature: -1,
+                temperature: null,
                 partitions: [{ name: 'sdc1', fsType: DiskFsType.NTFS, size: 1000204886016 }],
             });
         });
 
-        it('should return disks with temperature when options.temperature is true or omitted', async () => {
-            // Mock smartctl output for each disk
-            mockExeca
-                .mockResolvedValueOnce({
-                    // sda - NVMe often doesn't report via smartctl easily, simulate failure
-                    stdout: '',
-                    stderr: 'smartctl open device: /dev/sda failed: Unknown NVMe device',
-                    exitCode: 1,
-                    failed: true,
-                    command: '',
-                    cwd: '',
-                    isCanceled: false,
-                })
-                .mockResolvedValueOnce({
-                    // sdb - Standard Temp
-                    stdout: `smartctl 7.2 2020-12-30 r5155 [x86_64-linux-5.10.0-8-amd64] (local build)
-Copyright (C) 2002-20, Bruce Allen, Christian Franke, www.smartmontools.org
+        it('should handle empty disk layout or block devices', async () => {
+            mockDiskLayout.mockResolvedValue([]);
+            mockBlockDevices.mockResolvedValue([]);
 
-=== START OF READ SMART DATA SECTION ===
-SMART Attributes Data Structure revision number: 16
-Vendor Specific SMART Attributes with Thresholds:
-ID# ATTRIBUTE_NAME          FLAG     VALUE WORST THRESH TYPE      UPDATED  WHEN_FAILED RAW_VALUE
-  1 Raw_Read_Error_Rate     0x000f   119   099   006    Pre-fail  Always       -       197032872
-  ...
-194 Temperature_Celsius     0x0022   114   091   000    Old_age   Always       -       36 (Min/Max 19/58)
-199 UDMA_CRC_Error_Count    0x003e   200   200   000    Old_age   Always       -       0
-`,
-                    stderr: '',
-                    exitCode: 0,
-                    failed: false,
-                    command: '',
-                    cwd: '',
-                    isCanceled: false,
-                })
-                .mockResolvedValueOnce({
-                    // sdc - Airflow Temp + Min/Max format
-                    stdout: `ID# ATTRIBUTE_NAME          FLAG     VALUE WORST THRESH TYPE      UPDATED  WHEN_FAILED RAW_VALUE
-190 Airflow_Temperature_Cel 0x0022   065   058   045    Old_age   Always       -       35  (Min/Max 30/42 #123)
-`,
-                    stderr: '',
-                    exitCode: 0,
-                    failed: false,
-                    command: '',
-                    cwd: '',
-                    isCanceled: false,
-                });
+            const disks = await service.getDisks();
+            expect(disks).toEqual([]);
+            expect(mockBatchProcess).toHaveBeenCalledWith([], expect.any(Function));
 
-            const disks = await service.getDisks(); // Omit options, should default to temperature: true
-
-            expect(mockDiskLayout).toHaveBeenCalledTimes(1);
-            expect(mockBlockDevices).toHaveBeenCalledTimes(1);
-            // Ensure batchProcess was called correctly
-            expect(mockBatchProcess).toHaveBeenCalledTimes(1);
-            expect(mockBatchProcess).toHaveBeenCalledWith(mockDiskLayoutData, expect.any(Function));
-
-            // Check that execa was called for each disk inside the batch processor
-            expect(mockExeca).toHaveBeenCalledTimes(mockDiskLayoutData.length);
-            expect(mockExeca).toHaveBeenCalledWith('smartctl', ['-A', '/dev/sda']);
-            expect(mockExeca).toHaveBeenCalledWith('smartctl', ['-A', '/dev/sdb']);
-            expect(mockExeca).toHaveBeenCalledWith('smartctl', ['-A', '/dev/sdc']);
-
-            expect(disks).toHaveLength(mockDiskLayoutData.length);
-            expect(disks[0].temperature).toBe(-1); // Failed smartctl call
-            expect(disks[1].temperature).toBe(36); // Standard temp line
-            expect(disks[2].temperature).toBe(35); // Airflow temp line with Min/Max
-
-            // Check other fields remain correct
-            expect(disks[1]).toMatchObject({
-                id: 'WD-WCC7K7YL9876',
-                device: '/dev/sdb',
-                interfaceType: DiskInterfaceType.SATA,
-                smartStatus: DiskSmartStatus.OK,
-                partitions: [{ name: 'sdb1', fsType: DiskFsType.XFS, size: 4000787030016 }],
-            });
+            mockDiskLayout.mockResolvedValue(mockDiskLayoutData); // Restore for next check
+            mockBlockDevices.mockResolvedValue([]);
+            const disks2 = await service.getDisks();
+            expect(disks2).toHaveLength(mockDiskLayoutData.length);
+            expect(disks2[0].partitions).toEqual([]);
+            expect(disks2[1].partitions).toEqual([]);
+            expect(disks2[2].partitions).toEqual([]);
         });
+    });
 
-        it('should handle errors during temperature fetching gracefully', async () => {
-            mockExeca.mockRejectedValue(new Error('smartctl command failed'));
+    // --- Test getTemperature ---
+    describe('getTemperature', () => {
+        it('should return temperature for a disk', async () => {
+            mockExeca.mockResolvedValue({
+                stdout: `ID# ATTRIBUTE_NAME          FLAG     VALUE WORST THRESH TYPE      UPDATED  WHEN_FAILED RAW_VALUE
+194 Temperature_Celsius     0x0022   114   091   000    Old_age   Always       -       42`,
+                stderr: '',
+                exitCode: 0,
+                failed: false,
+                command: '',
+                cwd: '',
+                isCanceled: false,
+            });
 
-            const disks = await service.getDisks({ temperature: true }); // Explicitly true
-
-            expect(mockBatchProcess).toHaveBeenCalledTimes(1);
-            expect(mockExeca).toHaveBeenCalledTimes(mockDiskLayoutData.length); // Still attempts for all
-            expect(disks).toHaveLength(mockDiskLayoutData.length);
-            // All temperatures should be -1 due to errors
-            expect(disks[0].temperature).toBe(-1);
-            expect(disks[1].temperature).toBe(-1);
-            expect(disks[2].temperature).toBe(-1);
+            const temperature = await service.getTemperature('/dev/sda');
+            expect(temperature).toBe(42);
+            expect(mockExeca).toHaveBeenCalledWith('smartctl', ['-A', '/dev/sda']);
         });
 
         it('should handle case where smartctl output has no temperature field', async () => {
@@ -346,12 +293,8 @@ ID# ATTRIBUTE_NAME          FLAG     VALUE WORST THRESH TYPE      UPDATED  WHEN_
                 isCanceled: false,
             }); // No temp line
 
-            const disks = await service.getDisks({ temperature: true });
-
-            expect(disks).toHaveLength(mockDiskLayoutData.length);
-            expect(disks[0].temperature).toBe(-1);
-            expect(disks[1].temperature).toBe(-1);
-            expect(disks[2].temperature).toBe(-1);
+            const temperature = await service.getTemperature('/dev/sda');
+            expect(temperature).toBeNull();
         });
 
         it('should handle case where smartctl output has Temperature_Celsius with Min/Max format', async () => {
@@ -366,43 +309,14 @@ ID# ATTRIBUTE_NAME          FLAG     VALUE WORST THRESH TYPE      UPDATED  WHEN_
                 isCanceled: false,
             });
 
-            const disks = await service.getDisks({ temperature: true });
-
-            expect(disks[0].temperature).toBe(30);
-            expect(disks[1].temperature).toBe(30);
-            expect(disks[2].temperature).toBe(30);
+            const temperature = await service.getTemperature('/dev/sda');
+            expect(temperature).toBe(30);
         });
 
-        it('should handle empty disk layout or block devices', async () => {
-            mockDiskLayout.mockResolvedValue([]);
-            mockBlockDevices.mockResolvedValue([]);
-
-            const disks = await service.getDisks({ temperature: true });
-            expect(disks).toEqual([]);
-            expect(mockBatchProcess).toHaveBeenCalledWith([], expect.any(Function));
-
-            mockDiskLayout.mockResolvedValue(mockDiskLayoutData); // Restore for next check
-            mockBlockDevices.mockResolvedValue([]);
-            const disks2 = await service.getDisks({ temperature: false }); // Temp false path
-            expect(disks2).toHaveLength(mockDiskLayoutData.length);
-            expect(disks2[0].partitions).toEqual([]);
-            expect(disks2[1].partitions).toEqual([]);
-            expect(disks2[2].partitions).toEqual([]);
-        });
-    });
-
-    // --- Test getTemperature (Indirectly via getDisks, but can add specific mocks here if needed) ---
-    // Most cases are covered by getDisks tests above.
-    // Add specific tests for edge cases in parsing if necessary.
-    describe('getTemperature parsing (indirectly tested)', () => {
-        // Example: Test specific parsing logic if needed, though covered above.
-        it('should correctly parse standard temperature line', async () => {
-            // Mock execa for a single disk scenario if testing private method logic
-            const singleDisk = mockDiskLayoutData[1]; // WDC disk
-            mockDiskLayout.mockResolvedValue([singleDisk]);
+        it('should handle case where smartctl output has Airflow_Temperature_Cel', async () => {
             mockExeca.mockResolvedValue({
                 stdout: `ID# ATTRIBUTE_NAME          FLAG     VALUE WORST THRESH TYPE      UPDATED  WHEN_FAILED RAW_VALUE
-194 Temperature_Celsius     0x0022   114   091   000    Old_age   Always       -       42`, // Different temp
+190 Airflow_Temperature_Cel 0x0022   065   058   045    Old_age   Always       -       35  (Min/Max 30/42 #123)`,
                 stderr: '',
                 exitCode: 0,
                 failed: false,
@@ -411,9 +325,15 @@ ID# ATTRIBUTE_NAME          FLAG     VALUE WORST THRESH TYPE      UPDATED  WHEN_
                 isCanceled: false,
             });
 
-            const disks = await service.getDisks({ temperature: true });
-            expect(disks).toHaveLength(1);
-            expect(disks[0].temperature).toBe(42);
+            const temperature = await service.getTemperature('/dev/sda');
+            expect(temperature).toBe(35);
+        });
+
+        it('should handle errors during temperature fetching gracefully', async () => {
+            mockExeca.mockRejectedValue(new Error('smartctl command failed'));
+
+            const temperature = await service.getTemperature('/dev/sda');
+            expect(temperature).toBeNull();
         });
     });
 });

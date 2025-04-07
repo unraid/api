@@ -519,7 +519,7 @@ export type Disk = {
   serialNum: Scalars['String']['output'];
   size: Scalars['Long']['output'];
   smartStatus: DiskSmartStatus;
-  temperature: Scalars['Long']['output'];
+  temperature?: Maybe<Scalars['Long']['output']>;
   totalCylinders: Scalars['Long']['output'];
   totalHeads: Scalars['Long']['output'];
   totalSectors: Scalars['Long']['output'];
@@ -612,17 +612,19 @@ export type DockerContainer = {
 
 export type DockerMutations = {
   __typename?: 'DockerMutations';
-  startContainer: DockerContainer;
-  stopContainer: DockerContainer;
+  /**  Start a container  */
+  start: DockerContainer;
+  /**  Stop a container  */
+  stop: DockerContainer;
 };
 
 
-export type DockerMutationsstartContainerArgs = {
+export type DockerMutationsstartArgs = {
   id: Scalars['ID']['input'];
 };
 
 
-export type DockerMutationsstopContainerArgs = {
+export type DockerMutationsstopArgs = {
   id: Scalars['ID']['input'];
 };
 
@@ -2512,7 +2514,7 @@ export type DiskResolvers<ContextType = Context, ParentType extends ResolversPar
   serialNum?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   size?: Resolver<ResolversTypes['Long'], ParentType, ContextType>;
   smartStatus?: Resolver<ResolversTypes['DiskSmartStatus'], ParentType, ContextType>;
-  temperature?: Resolver<ResolversTypes['Long'], ParentType, ContextType>;
+  temperature?: Resolver<Maybe<ResolversTypes['Long']>, ParentType, ContextType>;
   totalCylinders?: Resolver<ResolversTypes['Long'], ParentType, ContextType>;
   totalHeads?: Resolver<ResolversTypes['Long'], ParentType, ContextType>;
   totalSectors?: Resolver<ResolversTypes['Long'], ParentType, ContextType>;
@@ -2582,8 +2584,8 @@ export type DockerContainerResolvers<ContextType = Context, ParentType extends R
 }>;
 
 export type DockerMutationsResolvers<ContextType = Context, ParentType extends ResolversParentTypes['DockerMutations'] = ResolversParentTypes['DockerMutations']> = ResolversObject<{
-  startContainer?: Resolver<ResolversTypes['DockerContainer'], ParentType, ContextType, RequireFields<DockerMutationsstartContainerArgs, 'id'>>;
-  stopContainer?: Resolver<ResolversTypes['DockerContainer'], ParentType, ContextType, RequireFields<DockerMutationsstopContainerArgs, 'id'>>;
+  start?: Resolver<ResolversTypes['DockerContainer'], ParentType, ContextType, RequireFields<DockerMutationsstartArgs, 'id'>>;
+  stop?: Resolver<ResolversTypes['DockerContainer'], ParentType, ContextType, RequireFields<DockerMutationsstopArgs, 'id'>>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
 

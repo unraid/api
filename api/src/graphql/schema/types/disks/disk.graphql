@@ -36,7 +36,7 @@ type Disk {
     serialNum: String!
     interfaceType: DiskInterfaceType!
     smartStatus: DiskSmartStatus!
-    temperature: Long!
+    temperature: Long
     partitions: [DiskPartition!]
 }
 

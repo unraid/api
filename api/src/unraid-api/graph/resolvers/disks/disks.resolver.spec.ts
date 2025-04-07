@@ -11,6 +11,7 @@ import { DisksService } from '@app/unraid-api/graph/resolvers/disks/disks.servic
 // Mock the DisksService
 const mockDisksService = {
     getDisks: vi.fn(),
+    getTemperature: vi.fn(),
 };
 
 describe('DisksResolver', () => {
@@ -70,7 +71,7 @@ describe('DisksResolver', () => {
 
             expect(result).toEqual(mockResult);
             expect(service.getDisks).toHaveBeenCalledTimes(1);
-            expect(service.getDisks).toHaveBeenCalledWith({ temperature: true });
+            expect(service.getDisks).toHaveBeenCalledWith();
         });
 
         it('should call the service', async () => {
@@ -79,7 +80,41 @@ describe('DisksResolver', () => {
             await resolver.disks();
 
             expect(service.getDisks).toHaveBeenCalledTimes(1);
-            expect(service.getDisks).toHaveBeenCalledWith({ temperature: true });
+            expect(service.getDisks).toHaveBeenCalledWith();
+        });
+    });
+
+    describe('temperature', () => {
+        it('should call getTemperature with the disk device', async () => {
+            const mockDisk: Disk = {
+                id: 'SERIAL123',
+                device: '/dev/sda',
+                type: 'SSD',
+                name: 'Samsung SSD 860 EVO 1TB',
+                vendor: 'Samsung',
+                size: 1000204886016,
+                bytesPerSector: 512,
+                totalCylinders: 121601,
+                totalHeads: 255,
+                totalSectors: 1953525168,
+                totalTracks: 31008255,
+                tracksPerCylinder: 255,
+                sectorsPerTrack: 63,
+                firmwareRevision: 'RVT04B6Q',
+                serialNum: 'SERIAL123',
+                interfaceType: DiskInterfaceType.SATA,
+                smartStatus: DiskSmartStatus.OK,
+                temperature: -1,
+                partitions: [],
+            };
+            
+            mockDisksService.getTemperature.mockResolvedValue(42);
+            
+            const result = await resolver.temperature(mockDisk);
+            
+            expect(result).toBe(42);
+            expect(service.getTemperature).toHaveBeenCalledTimes(1);
+            expect(service.getTemperature).toHaveBeenCalledWith('/dev/sda');
         });
     });
 });

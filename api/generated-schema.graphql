@@ -530,7 +530,7 @@ type Disk {
   serialNum: String!
   size: Long!
   smartStatus: DiskSmartStatus!
-  temperature: Long!
+  temperature: Long
   totalCylinders: Long!
   totalHeads: Long!
   totalSectors: Long!
@@ -595,7 +595,6 @@ type Display {
 type Docker implements Node {
   containers: [DockerContainer!]
   id: ID!
-  mutations: DockerMutations!
   networks: [DockerNetwork!]
 }
 
@@ -620,8 +619,11 @@ type DockerContainer {
 }
 
 type DockerMutations {
-  startContainer(id: ID!): DockerContainer!
-  stopContainer(id: ID!): DockerContainer!
+  """ Start a container """
+  start(id: ID!): DockerContainer!
+
+  """ Stop a container """
+  stop(id: ID!): DockerContainer!
 }
 
 type DockerNetwork {
@@ -861,6 +863,7 @@ type Mutation {
 
   """Delete a user"""
   deleteUser(input: deleteUserInput!): User
+  docker: DockerMutations
   enableDynamicRemoteAccess(input: EnableDynamicRemoteAccessInput!): Boolean!
   login(password: String!, username: String!): String
 
