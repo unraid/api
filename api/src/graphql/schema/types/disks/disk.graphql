@@ -4,6 +4,7 @@ type Query {
     """Mulitiple disks"""
     disks: [Disk]!
 }
+
 type Disk {
     id: ID!
     # /dev/sdb
