@@ -337,7 +337,7 @@ jobs:
     uses: ./.github/workflows/build-plugin.yml
     with:
       RELEASE_CREATED: false
-      TAG: ${{ github.event.pull_request.number }}
+      TAG: PR${{ github.event.pull_request.number }}
       BUCKET_PATH: ${{ github.event.pull_request.number && format('unraid-api/tag/PR{0}', github.event.pull_request.number) || 'unraid-api' }}
       BASE_URL: "https://preview.dl.unraid.net/unraid-api"
     secrets:
