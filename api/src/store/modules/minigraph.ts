@@ -87,3 +87,5 @@ export const mothership = createSlice({
 
 export const { setMothershipTimeout, receivedMothershipPing, setSelfDisconnected, setSelfReconnected } =
     mothership.actions;
+
+export const mothershipReducer = mothership.reducer;
