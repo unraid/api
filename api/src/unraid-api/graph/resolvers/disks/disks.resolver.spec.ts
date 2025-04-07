@@ -107,11 +107,11 @@ describe('DisksResolver', () => {
                 temperature: -1,
                 partitions: [],
             };
-            
+
             mockDisksService.getTemperature.mockResolvedValue(42);
-            
+
             const result = await resolver.temperature(mockDisk);
-            
+
             expect(result).toBe(42);
             expect(service.getTemperature).toHaveBeenCalledTimes(1);
             expect(service.getTemperature).toHaveBeenCalledWith('/dev/sda');
