@@ -1,13 +1,33 @@
 {
   "name": "unraid-api-plugin-health",
   "version": "1.0.0",
-  "main": "index.js",
+  "main": "dist/index.js",
   "type": "module",
+  "files": [
+    "dist"
+  ],
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "tsc",
+    "prepare": "npm run build"
   },
   "keywords": [],
   "author": "Lime Technology, Inc. <unraid.net>",
   "license": "GPL-2.0-or-later",
-  "description": "Example Health plugin for Unraid API"
+  "description": "Example Health plugin for Unraid API",
+  "devDependencies": {
+    "@nestjs/common": "^11.0.11",
+    "@nestjs/config": "^4.0.2",
+    "@nestjs/core": "^11.0.11",
+    "@nestjs/graphql": "^13.0.3",
+    "nest-authz": "^2.14.0",
+    "typescript": "^5.8.2"
+  },
+  "peerDependencies": {
+    "@nestjs/common": "^11.0.11",
+    "@nestjs/config": "^4.0.2",
+    "@nestjs/core": "^11.0.11",
+    "@nestjs/graphql": "^13.0.3",
+    "nest-authz": "^2.14.0"
+  }
 }
