@@ -123,9 +123,11 @@ export class DockerEventService implements OnModuleDestroy, OnModuleInit {
             this.logger.debug(`[${dockerEvent.from}] ${dockerEvent.Type}->${actionName}`);
 
             // For container lifecycle events, update the container cache
-            if (dockerEvent.Type === DockerEventType.CONTAINER && 
-                typeof actionName === 'string' && 
-                this.containerActions.includes(actionName as DockerEventAction)) {
+            if (
+                dockerEvent.Type === DockerEventType.CONTAINER &&
+                typeof actionName === 'string' &&
+                this.containerActions.includes(actionName as DockerEventAction)
+            ) {
                 await this.dockerService.debouncedContainerCacheUpdate();
             }
         }
