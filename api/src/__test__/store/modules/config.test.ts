@@ -1,4 +1,4 @@
-import { expect, test, vi } from 'vitest';
+import { beforeEach, expect, test, vi } from 'vitest';
 
 import { pubsub, PUBSUB_CHANNEL } from '@app/core/pubsub.js';
 import { MinigraphStatus, WAN_ACCESS_TYPE, WAN_FORWARD_TYPE } from '@app/graphql/generated/api/types.js';
@@ -10,15 +10,36 @@ import { store } from '@app/store/index.js';
 import { MyServersConfigMemory } from '@app/types/my-servers-config.js';
 
 // Mock dependencies
-vi.mock('@app/core/pubsub.js', () => ({
-    pubsub: {
-        publish: vi.fn(),
-    },
-    PUBSUB_CHANNEL: {
-        OWNER: 'OWNER',
-        SERVERS: 'SERVERS',
-    },
-}));
+vi.mock('@app/core/pubsub.js', () => {
+    const mockPublish = vi.fn();
+    return {
+        pubsub: {
+            publish: mockPublish,
+        },
+        PUBSUB_CHANNEL: {
+            OWNER: 'OWNER',
+            SERVERS: 'SERVERS',
+        },
+        __esModule: true,
+        default: {
+            pubsub: {
+                publish: mockPublish,
+            },
+            PUBSUB_CHANNEL: {
+                OWNER: 'OWNER',
+                SERVERS: 'SERVERS',
+            },
+        },
+    };
+});
+
+// Get the mock function for pubsub.publish
+const mockPublish = vi.mocked(pubsub.publish);
+
+// Clear mock before each test
+beforeEach(() => {
+    mockPublish.mockClear();
+});
 
 vi.mock('@app/mothership/graphql-client.js', () => ({
     GraphQLClient: {

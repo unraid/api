@@ -67,6 +67,7 @@ export const loginUser = createAsyncThunk<
     { state: RootState }
 >('config/login-user', async (userInfo) => {
     logger.info('Logging in user: %s', userInfo.username);
+    const { pubsub, PUBSUB_CHANNEL } = await import('@app/core/pubsub.js');
     const owner: Owner = {
         username: userInfo.username,
         avatar: userInfo.avatar,
@@ -79,7 +80,9 @@ export const logoutUser = createAsyncThunk<void, { reason?: string }, { state: R
     'config/logout-user',
     async ({ reason }) => {
         logger.info('Logging out user: %s', reason ?? 'No reason provided');
-        const { pubsub } = await import('@app/core/pubsub.js');
+        const { pubsub, PUBSUB_CHANNEL } = await import('@app/core/pubsub.js');
+        const { stopPingTimeoutJobs } = await import('@app/mothership/jobs/ping-timeout-jobs.js');
+        const { GraphQLClient } = await import('@app/mothership/graphql-client.js');
 
         // Publish to servers endpoint
         await pubsub.publish(PUBSUB_CHANNEL.SERVERS, {

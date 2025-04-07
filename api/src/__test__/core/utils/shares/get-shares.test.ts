@@ -209,6 +209,7 @@ test('Returns shares by type', async () => {
 });
 
 test('Returns shares by name', async () => {
+    await store.dispatch(loadStateFiles());
     expect(getShares('user', { name: 'domains' })).toMatchInlineSnapshot(`
 		{
 		  "allocator": "highwater",

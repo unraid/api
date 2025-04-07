@@ -1,72 +1,16 @@
-import { getAllowedOrigins, getExtraOrigins } from '@app/common/allowed-origins.js';
-import { getServerIps } from '@app/graphql/resolvers/subscription/network.js';
+import { getAllowedOrigins } from '@app/common/allowed-origins.js';
 import { store } from '@app/store/index.js';
 import { loadConfigFile } from '@app/store/modules/config.js';
 import { loadStateFiles } from '@app/store/modules/emhttp.js';
 
 import 'reflect-metadata';
 
-import { beforeEach, expect, test, vi } from 'vitest';
-
-// Mock the dependencies that provide dynamic values
-vi.mock('@app/graphql/resolvers/subscription/network.js', () => ({
-    getServerIps: vi.fn(),
-    getUrlForField: vi.fn(({ url, port, portSsl }) => {
-        if (port) return `http://${url}:${port}`;
-        if (portSsl) return `https://${url}:${portSsl}`;
-        return `https://${url}`;
-    }),
-}));
-
-vi.mock('@app/store/index.js', () => ({
-    store: {
-        getState: vi.fn(() => ({
-            emhttp: {
-                status: 'LOADED',
-                nginx: {
-                    httpPort: 8080,
-                    httpsPort: 4443,
-                },
-            },
-        })),
-        dispatch: vi.fn(),
-    },
-    getters: {
-        config: vi.fn(() => ({
-            api: {
-                extraOrigins: 'https://google.com,https://test.com',
-            },
-        })),
-    },
-}));
-
-beforeEach(() => {
-    vi.clearAllMocks();
-
-    // Mock getServerIps to return a consistent set of URLs
-    (getServerIps as any).mockReturnValue({
-        urls: [
-            { ipv4: 'https://tower.local:4443' },
-            { ipv4: 'https://192.168.1.150:4443' },
-            { ipv4: 'https://tower:4443' },
-            { ipv4: 'https://192-168-1-150.thisisfourtyrandomcharacters012345678900.myunraid.net:4443' },
-            { ipv4: 'https://10-252-0-1.hash.myunraid.net:4443' },
-            { ipv4: 'https://10-252-1-1.hash.myunraid.net:4443' },
-            { ipv4: 'https://10-253-3-1.hash.myunraid.net:4443' },
-            { ipv4: 'https://10-253-4-1.hash.myunraid.net:4443' },
-            { ipv4: 'https://10-253-5-1.hash.myunraid.net:4443' },
-            { ipv4: 'https://10-100-0-1.hash.myunraid.net:4443' },
-            { ipv4: 'https://10-100-0-2.hash.myunraid.net:4443' },
-            { ipv4: 'https://10-123-1-2.hash.myunraid.net:4443' },
-            { ipv4: 'https://221-123-121-112.hash.myunraid.net:4443' },
-        ],
-    });
-});
+import { expect, test } from 'vitest';
 
 test('Returns allowed origins', async () => {
     // Load state files into store
-    await store.dispatch(loadStateFiles());
-    await store.dispatch(loadConfigFile());
+    await store.dispatch(loadStateFiles()).unwrap();
+    await store.dispatch(loadConfigFile()).unwrap();
 
     // Get allowed origins
     const allowedOrigins = getAllowedOrigins();

@@ -1,13 +1,13 @@
 import { expect, test } from 'vitest';
 
-import { store } from '@app/store/index.js';
+import { getters, store } from '@app/store/index.js';
 import { loadRegistrationKey } from '@app/store/modules/registration.js';
 import { FileLoadStatus, StateFileKey } from '@app/store/types.js';
 
 // Preloading imports for faster tests
 
 test('Before loading key returns null', async () => {
-    const { status, keyFile } = store.getState().registration;
+    const { status, keyFile } = getters.registration();
     expect(status).toBe(FileLoadStatus.UNLOADED);
     expect(keyFile).toBe(null);
 });
@@ -17,7 +17,7 @@ test('Requires emhttp to be loaded to find key file', async () => {
     await store.dispatch(loadRegistrationKey());
 
     // Check if store has state files loaded
-    const { status, keyFile } = store.getState().registration;
+    const { status, keyFile } = getters.registration();
 
     expect(status).toBe(FileLoadStatus.LOADED);
     expect(keyFile).toBe(null);
@@ -42,7 +42,7 @@ test('Returns empty key if key location is empty', async () => {
     await store.dispatch(loadRegistrationKey());
 
     // Check if store has state files loaded
-    const { status, keyFile } = store.getState().registration;
+    const { status, keyFile } = getters.registration();
     expect(status).toBe(FileLoadStatus.LOADED);
     expect(keyFile).toBe('');
 });
