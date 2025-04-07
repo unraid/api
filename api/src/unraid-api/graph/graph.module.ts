@@ -1,9 +1,8 @@
 import type { ApolloDriverConfig } from '@nestjs/apollo';
 import { ApolloDriver } from '@nestjs/apollo';
-import { Module, UnauthorizedException } from '@nestjs/common';
+import { Module } from '@nestjs/common';
 import { GraphQLModule } from '@nestjs/graphql';
 
-import { ApolloServerPlugin } from '@apollo/server';
 import { NoUnusedVariablesRule, print } from 'graphql';
 import {
     DateTimeResolver,
@@ -12,7 +11,6 @@ import {
     URLResolver,
     UUIDResolver,
 } from 'graphql-scalars';
-import { AuthZService } from 'nest-authz';
 
 import { GraphQLLong } from '@app/graphql/resolvers/graphql-type-long.js';
 import { loadTypeDefs } from '@app/graphql/schema/loadTypesDefs.js';
@@ -31,8 +29,8 @@ import { PluginService } from '@app/unraid-api/plugin/plugin.service.js';
         GraphQLModule.forRootAsync<ApolloDriverConfig>({
             driver: ApolloDriver,
             imports: [PluginModule, AuthModule],
-            inject: [PluginService, AuthZService],
-            useFactory: async (pluginService: PluginService, authZService: AuthZService) => {
+            inject: [PluginService],
+            useFactory: async (pluginService: PluginService) => {
                 const plugins = await pluginService.getGraphQLConfiguration();
                 const authEnumTypeDefs = getAuthEnumTypeDefs();
                 const typeDefs = print(await loadTypeDefs([plugins.typeDefs, authEnumTypeDefs]));
