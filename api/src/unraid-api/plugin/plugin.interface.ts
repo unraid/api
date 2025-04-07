@@ -1,12 +1,5 @@
-
 import type { Constructor } from 'type-fest';
 import { z } from 'zod';
-
-
-export interface PluginMetadata {
-    name: string;
-    description: string;
-}
 
 const asyncArray = () => z.function().returns(z.promise(z.array(z.any())));
 const asyncString = () => z.function().returns(z.promise(z.string()));

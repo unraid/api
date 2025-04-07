@@ -1,5 +1,4 @@
 import { DynamicModule, Logger, Module } from '@nestjs/common';
-import { ConfigModule } from '@nestjs/config';
 
 import { PluginService } from '@app/unraid-api/plugin/plugin.service.js';
 
