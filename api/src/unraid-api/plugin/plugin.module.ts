@@ -40,7 +40,7 @@ export class PluginCliModule {
         PluginCliModule.logger.log(`Found ${cliModules.length} CLI plugins: ${cliList}`);
 
         return {
-            module: PluginModule,
+            module: PluginCliModule,
             imports: [...cliModules],
         };
     }
