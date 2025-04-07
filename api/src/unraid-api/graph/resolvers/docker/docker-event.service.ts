@@ -25,6 +25,14 @@ enum DockerEventType {
     CONTAINER = 'container',
 }
 
+interface DockerEvent {
+    Action?: string;
+    status?: string;
+    from?: string;
+    Type?: string;
+    [key: string]: unknown;
+}
+
 @Injectable()
 export class DockerEventService implements OnModuleDestroy, OnModuleInit {
     private client: Docker;
@@ -96,18 +104,28 @@ export class DockerEventService implements OnModuleDestroy, OnModuleInit {
         }
     }
 
-    private async handleDockerEvent(event: any): Promise<void> {
+    private async handleDockerEvent(event: unknown): Promise<void> {
+        if (typeof event !== 'object' || event === null) {
+            this.logger.error('Received non-object event', event);
+            return;
+        }
+
+        // Type assertion to DockerEvent
+        const dockerEvent = event as DockerEvent;
+
         // Check if this is an action we're watching
-        const actionName = event.Action || event.status;
+        const actionName = dockerEvent.Action || dockerEvent.status;
         const shouldProcess = this.watchedActions.some(
             (action) => typeof actionName === 'string' && actionName.startsWith(action)
         );
 
         if (shouldProcess) {
-            this.logger.debug(`[${event.from}] ${event.Type}->${actionName}`);
+            this.logger.debug(`[${dockerEvent.from}] ${dockerEvent.Type}->${actionName}`);
 
             // For container lifecycle events, update the container cache
-            if (event.Type === DockerEventType.CONTAINER && this.containerActions.includes(actionName)) {
+            if (dockerEvent.Type === DockerEventType.CONTAINER && 
+                typeof actionName === 'string' && 
+                this.containerActions.includes(actionName as DockerEventAction)) {
                 await this.dockerService.debouncedContainerCacheUpdate();
             }
         }
