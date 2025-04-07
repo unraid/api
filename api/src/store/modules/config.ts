@@ -8,14 +8,11 @@ import { isEqual, merge } from 'lodash-es';
 
 import type { Owner } from '@app/graphql/generated/api/types.js';
 import { logger } from '@app/core/log.js';
-import { pubsub, PUBSUB_CHANNEL } from '@app/core/pubsub.js';
 import { getWriteableConfig } from '@app/core/utils/files/config-file-normalizer.js';
 import { safelySerializeObjectToIni } from '@app/core/utils/files/safe-ini-serializer.js';
 import { parseConfig } from '@app/core/utils/misc/parse-config.js';
 import { NODE_ENV } from '@app/environment.js';
 import { DynamicRemoteAccessType, MinigraphStatus } from '@app/graphql/generated/api/types.js';
-import { GraphQLClient } from '@app/mothership/graphql-client.js';
-import { stopPingTimeoutJobs } from '@app/mothership/jobs/ping-timeout-jobs.js';
 import { setGraphqlConnectionStatus } from '@app/store/actions/set-minigraph-status.js';
 import { setupRemoteAccessThunk } from '@app/store/actions/setup-remote-access.js';
 import { type RootState } from '@app/store/index.js';
