@@ -1,10 +1,20 @@
-// @ts-nocheck - We're using simplified test data that doesn't match exact types
+/**
+ * Server store test coverage
+ */
 
 import { setActivePinia } from 'pinia';
 
 import { createTestingPinia } from '@pinia/testing';
 import dayjs from 'dayjs';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+
+import type { Config, ConfigErrorState, PartialCloudFragment } from '~/composables/gql/graphql';
+import type {
+  ServerconnectPluginInstalled,
+  ServerState,
+  ServerStateDataAction,
+  ServerUpdateOsResponse,
+} from '~/types/server';
 
 import { useServerStore } from '~/store/server';
 
@@ -152,7 +162,6 @@ const getStore = () => {
   // Mock store methods
   store.setServer = vi.fn((data: any) => {
     Object.entries(data).forEach(([key, value]) => {
-      // @ts-ignore
       store[key] = value;
     });
 
@@ -169,10 +178,10 @@ const getStore = () => {
 
   store.filteredKeyActions = vi.fn((filterType, filters) => {
     if (filterType === 'out') {
-      return [{ name: 'purchase', text: 'Purchase' }];
+      return [{ name: 'purchase', text: 'Purchase' }] as ServerStateDataAction[];
     } else {
       // For 'by' type, return actions based on the filter
-      return [{ name: filters[0], text: 'Action' }];
+      return [{ name: filters[0], text: 'Action' }] as ServerStateDataAction[];
     }
   });
 
@@ -284,6 +293,7 @@ vi.mock('~/composables/gql/fragment-masking', () => ({
 // Mock toRefs to return an object with value properties
 vi.mock('vue', async () => {
   const actual = await vi.importActual('vue');
+
   return {
     ...actual,
     toRefs: vi.fn((obj) => {
@@ -312,6 +322,7 @@ describe('useServerStore', () => {
 
   it('should create a store with initial state', () => {
     const store = getStore();
+
     expect(store).toBeDefined();
     expect(store.apiVersion).toBe('');
     expect(store.array).toBeUndefined();
@@ -329,10 +340,9 @@ describe('useServerStore', () => {
       osVersion: '6.10.3',
       regTy: 'Pro',
       registered: true,
-      state: 'PRO',
+      state: 'PRO' as ServerState,
     };
 
-    // @ts-ignore - Simplified mock object for testing
     store.setServer(serverData);
 
     expect(store.apiVersion).toBe('1.0.0');
@@ -393,7 +403,7 @@ describe('useServerStore', () => {
       createTestData({
         state: 'ENOKEYFILE',
         registered: false,
-        connectPluginInstalled: 'true',
+        connectPluginInstalled: 'true' as unknown as ServerconnectPluginInstalled,
       })
     );
 
@@ -410,7 +420,7 @@ describe('useServerStore', () => {
       createTestData({
         state: 'TRIAL',
         registered: true,
-        connectPluginInstalled: 'true',
+        connectPluginInstalled: 'true' as unknown as ServerconnectPluginInstalled,
       })
     );
 
@@ -423,12 +433,14 @@ describe('useServerStore', () => {
   it('should set correct stateData for EEXPIRED state', () => {
     const store = getStore();
 
-    store.setServer({
-      state: 'EEXPIRED',
-      registered: false,
-      connectPluginInstalled: 'true',
-      regGen: 0, // Makes trialExtensionEligible true
-    });
+    store.setServer(
+      createTestData({
+        state: 'EEXPIRED',
+        registered: false,
+        connectPluginInstalled: 'true' as unknown as ServerconnectPluginInstalled,
+        regGen: 0,
+      })
+    );
 
     expect(store.stateData.humanReadable).toBe('Trial Expired');
     expect(store.stateData.heading).toBe('Your Trial has expired');
@@ -439,12 +451,14 @@ describe('useServerStore', () => {
   it('should set correct stateData for PRO state', () => {
     const store = getStore();
 
-    store.setServer({
-      state: 'PRO',
-      registered: true,
-      connectPluginInstalled: 'true',
-      regExp: dayjs().add(1, 'year').unix(), // Not expired
-    });
+    store.setServer(
+      createTestData({
+        state: 'PRO',
+        registered: true,
+        connectPluginInstalled: 'true' as unknown as ServerconnectPluginInstalled,
+        regExp: dayjs().add(1, 'year').unix(), // Not expired
+      })
+    );
 
     expect(store.stateData.humanReadable).toBe('Pro');
     expect(store.stateData.heading).toBe('Thank you for choosing Unraid OS!');
@@ -461,7 +475,7 @@ describe('useServerStore', () => {
         deviceCount: 6,
         regTy: 'Plus',
         regDevs: 12,
-        config: { valid: true },
+        config: { id: 'config', valid: true, __typename: 'Config' } as Config,
       })
     );
     expect(store.tooManyDevices).toBe(false);
@@ -472,7 +486,7 @@ describe('useServerStore', () => {
         deviceCount: 15,
         regTy: 'Plus',
         regDevs: 12,
-        config: { valid: true },
+        config: { id: 'config', valid: true, __typename: 'Config' } as Config,
       })
     );
     expect(store.tooManyDevices).toBe(true);
@@ -483,7 +497,12 @@ describe('useServerStore', () => {
         deviceCount: 6,
         regTy: 'Plus',
         regDevs: 12,
-        config: { valid: false, error: 'INVALID' },
+        config: {
+          id: 'config',
+          valid: false,
+          error: 'INVALID' as ConfigErrorState,
+          __typename: 'Config',
+        } as Config,
       })
     );
     expect(store.tooManyDevices).toBe(true);
@@ -497,6 +516,7 @@ describe('useServerStore', () => {
       wanFQDN: '',
       site: 'local',
     });
+
     expect(store.isRemoteAccess).toBe(false);
 
     // Remote access via wanFQDN
@@ -504,6 +524,7 @@ describe('useServerStore', () => {
       wanFQDN: 'example.myunraid.net',
       site: 'local',
     });
+
     expect(store.isRemoteAccess).toBe(true);
 
     // Remote access via site
@@ -511,6 +532,7 @@ describe('useServerStore', () => {
       wanFQDN: '',
       site: 'www.unraid.net',
     });
+
     expect(store.isRemoteAccess).toBe(true);
   });
 
@@ -603,17 +625,19 @@ describe('useServerStore', () => {
   it('should filter key actions correctly', () => {
     const store = getStore();
 
-    store.setServer({
-      state: 'ENOKEYFILE',
-      registered: false,
-      connectPluginInstalled: 'true',
-    });
+    store.setServer(
+      createTestData({
+        state: 'ENOKEYFILE',
+        registered: false,
+        connectPluginInstalled: 'true' as unknown as ServerconnectPluginInstalled,
+      })
+    );
 
     // Set up stateData to have some actions
     const mockActions = [
       { name: 'trialStart', text: 'Start Trial' },
       { name: 'purchase', text: 'Purchase' },
-    ];
+    ] as ServerStateDataAction[];
 
     // Use vi.spyOn to mock the computed property
     vi.spyOn(store, 'stateData', 'get').mockReturnValue({
@@ -625,11 +649,13 @@ describe('useServerStore', () => {
 
     // Filter out certain actions
     const filteredOut = store.filteredKeyActions('out', ['trialStart']);
+
     expect(filteredOut?.length).toBe(1);
     expect(filteredOut?.[0].name).toBe('purchase');
 
     // Filter by certain actions
     const filteredBy = store.filteredKeyActions('by', ['trialStart']);
+
     expect(filteredBy?.length).toBe(1);
     expect(filteredBy?.[0].name).toBe('trialStart');
   });
@@ -653,20 +679,28 @@ describe('useServerStore', () => {
     vi.spyOn(store, 'refreshServerState').mockResolvedValue(true);
 
     const result = await store.refreshServerState();
+
     expect(result).toBe(true);
   });
 
   it('should set update OS response', () => {
     const store = getStore();
 
-    // @ts-ignore - Simplified mock object for testing
     const response = {
       available: true,
       version: '6.11.0',
       md5: '123456789abcdef',
       branch: 'stable',
       changeLog: 'Test changelog',
-    };
+      name: 'Test Update',
+      date: '2023-01-01',
+      isEligible: true,
+      isNewer: true,
+      md5ChecksumValid: true,
+      isUpdateAvailable: true,
+      changelog: 'Test changelog',
+      sha256: 'abcdef123456789',
+    } as ServerUpdateOsResponse;
 
     store.setUpdateOsResponse(response);
     expect(store.updateOsResponse).toEqual(response);
@@ -685,17 +719,37 @@ describe('useServerStore', () => {
     // No error when not registered
     store.setServer({
       registered: false,
-      // @ts-ignore - Simplified mock object for testing
-      cloud: { error: 'Test error' },
+      cloud: createTestData({
+        error: 'Test error',
+        __typename: 'Cloud',
+        apiKey: { valid: true, __typename: 'ApiKeyResponse' },
+        cloud: {
+          __typename: 'CloudResponse',
+          status: 'online',
+          error: null,
+        },
+        minigraphql: { __typename: 'MinigraphqlConnect' },
+      }) as unknown as PartialCloudFragment,
     });
+
     expect(store.cloudError).toBeUndefined();
 
     // Error when registered
     store.setServer({
       registered: true,
-      // @ts-ignore - Simplified mock object for testing
-      cloud: { error: 'Test error' },
+      cloud: createTestData({
+        error: 'Test error',
+        __typename: 'Cloud',
+        apiKey: { valid: true, __typename: 'ApiKeyResponse' },
+        cloud: {
+          __typename: 'CloudResponse',
+          status: 'online',
+          error: null,
+        },
+        minigraphql: { __typename: 'MinigraphqlConnect' },
+      }) as unknown as PartialCloudFragment,
     });
+
     expect(store.cloudError).toBeDefined();
     expect(store.cloudError?.message).toBe('Test error');
   });
