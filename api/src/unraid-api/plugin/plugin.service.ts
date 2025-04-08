@@ -66,12 +66,12 @@ export class PluginService {
         /** All api plugins must be npm packages whose name starts with this prefix */
         const pluginPrefix = 'unraid-api-plugin-';
         // All api plugins must be installed as dependencies of the unraid-api package
-        const { dependencies } = getPackageJson();
-        if (!dependencies) {
-            PluginService.logger.warn('Unraid-API dependencies not found; skipping plugins.');
+        const { peerDependencies } = getPackageJson();
+        if (!peerDependencies) {
+            PluginService.logger.warn('Unraid-API peer dependencies not found; skipping plugins.');
             return [];
         }
-        const plugins = Object.entries(dependencies).filter((entry): entry is [string, string] => {
+        const plugins = Object.entries(peerDependencies).filter((entry): entry is [string, string] => {
             const [pkgName, version] = entry;
             return pkgName.startsWith(pluginPrefix) && typeof version === 'string';
         });
