@@ -1,7 +1,7 @@
 import { vi } from 'vitest';
 
 // Mock @unraid/ui components and functions
-const mockCn = (...args: any[]) => args.filter(Boolean).join(' ');
+const mockCn = (...args: unknown[]) => args.filter(Boolean).join(' ');
 
 const MockBrandButton = {
   name: 'BrandButton',

@@ -10,6 +10,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import type { Config, ConfigErrorState, PartialCloudFragment } from '~/composables/gql/graphql';
 import type {
+  Server,
   ServerconnectPluginInstalled,
   ServerState,
   ServerStateDataAction,
@@ -18,10 +19,10 @@ import type {
 
 import { useServerStore } from '~/store/server';
 
-type MockServerStore = ReturnType<typeof useServerStore> & Record<string, any>;
+type MockServerStore = ReturnType<typeof useServerStore> & Record<string, unknown>;
 
 // Helper function to safely create test data with type assertions
-const createTestData = <T extends Record<string, any>>(data: T): T => data as T;
+const createTestData = <T extends Record<string, unknown>>(data: T): T => data as T;
 
 const getStore = () => {
   const pinia = createTestingPinia({
@@ -74,7 +75,7 @@ const getStore = () => {
     },
     computedRegDevs: {
       get: () => {
-        if (store.regDevs > 0) {
+        if ((store.regDevs as number) > 0) {
           return store.regDevs;
         }
 
@@ -160,17 +161,20 @@ const getStore = () => {
   });
 
   // Mock store methods
-  store.setServer = vi.fn((data: Record<string, any>) => {
+  store.setServer = vi.fn((data: Record<string, unknown> | Partial<Server>) => {
     Object.entries(data).forEach(([key, value]) => {
       store[key] = value;
     });
 
     // Special handling for cloud error to populate cloudError property
-    if (data.cloud?.error && data.registered) {
-      store.cloudError = {
-        message: data.cloud.error,
-        type: 'unraidApiState',
-      };
+    if (data.registered && typeof data.cloud === 'object' && data.cloud) {
+      const cloudData = data.cloud as Record<string, unknown>;
+      if (cloudData.error) {
+        store.cloudError = {
+          message: String(cloudData.error),
+          type: 'unraidApiState',
+        };
+      }
     }
 
     return store;
@@ -290,23 +294,6 @@ vi.mock('~/composables/gql/fragment-masking', () => ({
   useFragment: vi.fn((fragment, data) => data),
 }));
 
-// Mock toRefs to return an object with value properties
-vi.mock('vue', async () => {
-  const actual = await vi.importActual('vue');
-
-  return {
-    ...actual,
-    toRefs: vi.fn((obj) => {
-      const result: Record<string, { value: unknown }> = {};
-
-      for (const key in obj) {
-        result[key] = { value: obj[key] };
-      }
-      return result;
-    }),
-  };
-});
-
 describe('useServerStore', () => {
   beforeEach(() => {
     setActivePinia(
@@ -401,7 +388,7 @@ describe('useServerStore', () => {
 
     store.setServer(
       createTestData({
-        state: 'ENOKEYFILE',
+        state: 'ENOKEYFILE' as ServerState,
         registered: false,
         connectPluginInstalled: 'true' as ServerconnectPluginInstalled,
       })
@@ -418,7 +405,7 @@ describe('useServerStore', () => {
 
     store.setServer(
       createTestData({
-        state: 'TRIAL',
+        state: 'TRIAL' as ServerState,
         registered: true,
         connectPluginInstalled: 'true' as ServerconnectPluginInstalled,
       })
@@ -435,7 +422,7 @@ describe('useServerStore', () => {
 
     store.setServer(
       createTestData({
-        state: 'EEXPIRED',
+        state: 'EEXPIRED' as ServerState,
         registered: false,
         connectPluginInstalled: 'true' as ServerconnectPluginInstalled,
         regGen: 0,
@@ -453,7 +440,7 @@ describe('useServerStore', () => {
 
     store.setServer(
       createTestData({
-        state: 'PRO',
+        state: 'PRO' as ServerState,
         registered: true,
         connectPluginInstalled: 'true' as ServerconnectPluginInstalled,
         regExp: dayjs().add(1, 'year').unix(), // Not expired
@@ -551,7 +538,7 @@ describe('useServerStore', () => {
       registered: true,
       regExp: 1234567890,
       regTy: 'Plus',
-      state: 'PLUS',
+      state: 'PLUS' as ServerState,
       site: 'local',
     });
 
@@ -583,7 +570,7 @@ describe('useServerStore', () => {
       osVersion: '6.10.3',
       registered: true,
       regTy: 'Plus',
-      state: 'PLUS',
+      state: 'PLUS' as ServerState,
       wanFQDN: 'test.myunraid.net',
     });
 
@@ -626,9 +613,9 @@ describe('useServerStore', () => {
 
     store.setServer(
       createTestData({
-        state: 'ENOKEYFILE',
+        state: 'ENOKEYFILE' as ServerState,
         registered: false,
-        connectPluginInstalled: 'true' as unknown as ServerconnectPluginInstalled,
+        connectPluginInstalled: 'true' as ServerconnectPluginInstalled,
       })
     );
 
@@ -732,6 +719,6 @@ describe('useServerStore', () => {
       }) as PartialCloudFragment,
     });
     expect(store.cloudError).toBeDefined();
-    expect(store.cloudError?.message).toBe('Test error');
+    expect((store.cloudError as { message: string })?.message).toBe('Test error');
   });
 });
