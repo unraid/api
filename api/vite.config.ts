@@ -12,13 +12,18 @@ export default defineConfig(({ mode }): ViteUserConfig => {
         assetsInclude: ['src/**/*.graphql', 'src/**/*.patch'],
         plugins: [
             tsconfigPaths(),
-            nodeExternals(),
+            nodeExternals({
+                peerDeps: false,
+                // exclude: ['unraid-api-plugin-connect']
+
+            }),
             nodeResolve({
                 preferBuiltins: true,
                 exportConditions: ['node'],
             }),
             viteCommonjs({
                 include: ['@fastify/type-provider-typebox', 'node_modules/**'],
+                // exclude: ['unraid-api-plugin-connect/**']
             }),
             ...(mode === 'development'
                 ? VitePluginNode({
@@ -131,6 +136,7 @@ export default defineConfig(({ mode }): ViteUserConfig => {
                     'passport',
                     'passport-custom',
                     'passport-http-header-strategy',
+                    // 'unraid-api-plugin-connect',
                 ],
                 requireReturnsDefault: 'preferred',
                 strictRequires: true,
