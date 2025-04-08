@@ -340,7 +340,10 @@ const showUpdateEligibility = computed(() => {
               {{ t('New Version: {0}', [callbackUpdateRelease?.name]) }}
             </p>
 
-            <p class="text-14px italic opacity-75">
+            <p
+              v-if="callbackUpdateRelease?.version?.includes('patch')"
+              class="text-14px italic opacity-75"
+            >
               {{
                 callbackTypeDowngrade
                   ? t('This downgrade will require a reboot')
