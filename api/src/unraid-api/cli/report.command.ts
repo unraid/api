@@ -62,6 +62,17 @@ export class ReportCommand extends CommandRunner {
                     connectionStatus: { running: 'yes' | 'no' };
                 };
             config.connectionStatus.running = apiRunning ? 'yes' : 'no';
+            config.remote = {
+                ...config.remote,
+                apikey: 'REDACTED',
+                localApiKey: 'REDACTED',
+                accesstoken: 'REDACTED',
+                idtoken: 'REDACTED',
+                refreshtoken: 'REDACTED',
+                ssoSubIds: 'REDACTED',
+                allowedOrigins: 'REDACTED',
+                email: 'REDACTED',
+            };
             this.logger.clear();
             this.logger.info(JSON.stringify(config, null, 2));
         } catch (error) {
