@@ -2,7 +2,8 @@ import { Parent, Query, ResolveField, Resolver } from '@nestjs/graphql';
 
 import { AuthActionVerb, AuthPossession, UsePermissions } from 'nest-authz';
 
-import { type Disk, Resource } from '@app/graphql/generated/api/types.js';
+import type { Disk } from '@app/graphql/generated/api/types.js';
+import { Resource } from '@app/graphql/generated/api/types.js';
 import { DisksService } from '@app/unraid-api/graph/resolvers/disks/disks.service.js';
 
 @Resolver('Disk')
