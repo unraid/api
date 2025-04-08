@@ -44,7 +44,7 @@ test('Returns empty key if key location is empty', async () => {
 
     // Check if store has state files loaded
     const { status } = store.getState().registration;
-    expect(status).toBe(FileLoadStatus.LOADED);
+    expect(status).toBe(FileLoadStatus.UNLOADED);
     await expect(getKeyFile()).resolves.toBe('');
 });
 
@@ -53,10 +53,10 @@ test(
     async () => {
         const { getKeyFile } = await import('@app/core/utils/misc/get-key-file.js');
         const { loadStateFiles } = await import('@app/store/modules/emhttp.js');
-
+        const { loadRegistrationKey } = await import('@app/store/modules/registration.js');
         // Load state files into store
         await store.dispatch(loadStateFiles());
-
+        await store.dispatch(loadRegistrationKey());
         // Check if store has state files loaded
         const { status } = store.getState().registration;
         expect(status).toBe(FileLoadStatus.LOADED);

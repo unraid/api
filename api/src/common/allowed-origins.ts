@@ -20,6 +20,7 @@ const getAllowedSocks = (): string[] => [
 
 const getLocalAccessUrlsForServer = (state: RootState = store.getState()): string[] => {
     const { emhttp } = state;
+
     if (emhttp.status !== FileLoadStatus.LOADED) {
         return [];
     }
@@ -90,7 +91,7 @@ const getApolloSandbox = (): string[] => {
 export const getAllowedOrigins = (state: RootState = store.getState()): string[] =>
     uniq([
         ...getAllowedSocks(),
-        ...getLocalAccessUrlsForServer(),
+        ...getLocalAccessUrlsForServer(state),
         ...getRemoteAccessUrlsForAllowedOrigins(state),
         ...getExtraOrigins(),
         ...getConnectOrigins(),

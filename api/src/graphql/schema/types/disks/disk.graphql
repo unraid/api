@@ -4,6 +4,7 @@ type Query {
     """Mulitiple disks"""
     disks: [Disk]!
 }
+
 type Disk {
     id: ID!
     # /dev/sdb
@@ -36,7 +37,7 @@ type Disk {
     serialNum: String!
     interfaceType: DiskInterfaceType!
     smartStatus: DiskSmartStatus!
-    temperature: Long!
+    temperature: Long
     partitions: [DiskPartition!]
 }
 
@@ -51,6 +52,8 @@ enum DiskFsType {
     btrfs
     vfat
     zfs
+    ext4
+    ntfs
 }
 
 enum DiskInterfaceType {

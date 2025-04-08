@@ -65,3 +65,5 @@ export const registration = createSlice({
         });
     },
 });
+
+export const registrationReducer = registration.reducer;

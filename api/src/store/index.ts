@@ -1,30 +1,10 @@
 import { configureStore } from '@reduxjs/toolkit';
 
 import { listenerMiddleware } from '@app/store/listeners/listener-middleware.js';
-import { cache } from '@app/store/modules/cache.js';
-import { configReducer } from '@app/store/modules/config.js';
-import { dynamicRemoteAccessReducer } from '@app/store/modules/dynamic-remote-access.js';
-import { dynamix } from '@app/store/modules/dynamix.js';
-import { emhttp } from '@app/store/modules/emhttp.js';
-import { mothership } from '@app/store/modules/minigraph.js';
-import { paths } from '@app/store/modules/paths.js';
-import { registration } from '@app/store/modules/registration.js';
-import { remoteGraphQLReducer } from '@app/store/modules/remote-graphql.js';
-import { upnp } from '@app/store/modules/upnp.js';
+import { rootReducer } from '@app/store/root-reducer.js';
 
 export const store = configureStore({
-    reducer: {
-        config: configReducer,
-        dynamicRemoteAccess: dynamicRemoteAccessReducer,
-        minigraph: mothership.reducer,
-        paths: paths.reducer,
-        emhttp: emhttp.reducer,
-        registration: registration.reducer,
-        remoteGraphQL: remoteGraphQLReducer,
-        cache: cache.reducer,
-        upnp: upnp.reducer,
-        dynamix: dynamix.reducer,
-    },
+    reducer: rootReducer,
     middleware: (getDefaultMiddleware) =>
         getDefaultMiddleware({
             serializableCheck: false,

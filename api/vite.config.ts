@@ -143,7 +143,7 @@ export default defineConfig(({ mode }): ViteUserConfig => {
             },
         },
         test: {
-            isolate: false,
+            isolate: true,
             poolOptions: {
                 threads: {
                     useAtomics: true,
@@ -156,20 +156,16 @@ export default defineConfig(({ mode }): ViteUserConfig => {
                 },
             },
             maxConcurrency: 10,
-            globals: true,
             environment: 'node',
             coverage: {
                 all: true,
                 include: ['src/**/*'],
                 reporter: ['text', 'json', 'html'],
             },
-            clearMocks: true,
             setupFiles: [
                 'dotenv/config',
                 'reflect-metadata',
-                'src/__test__/setup/env-setup.ts',
-                'src/__test__/setup/keyserver-mock.ts',
-                'src/__test__/setup/config-setup.ts',
+                'src/__test__/setup.ts',
             ],
             exclude: ['**/deploy/**', '**/node_modules/**'],
         },

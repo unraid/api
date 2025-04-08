@@ -3,9 +3,48 @@ import { Test } from '@nestjs/testing';
 import { writeFile } from 'node:fs/promises';
 
 import { emptyDir } from 'fs-extra';
-import { afterAll, beforeAll, describe, it } from 'vitest';
+import { afterAll, beforeAll, describe, it, vi } from 'vitest';
 
 import { CookieService, SESSION_COOKIE_CONFIG } from '@app/unraid-api/auth/cookie.service.js';
+
+// Mock file system
+const mockFileSystem = new Map<string, string>();
+
+// Mock fs/promises
+vi.mock('node:fs/promises', () => ({
+    writeFile: vi.fn().mockImplementation((path, content) => {
+        mockFileSystem.set(path.toString(), content.toString());
+        return Promise.resolve();
+    }),
+    readFile: vi.fn().mockImplementation((path) => {
+        const content = mockFileSystem.get(path.toString());
+        if (content === undefined) {
+            return Promise.reject(new Error(`File not found: ${path}`));
+        }
+        return Promise.resolve(content);
+    }),
+    access: vi.fn().mockImplementation((path) => {
+        if (mockFileSystem.has(path.toString())) {
+            return Promise.resolve();
+        }
+        return Promise.reject(new Error(`File not found: ${path}`));
+    }),
+}));
+
+// Mock fs-extra
+vi.mock('fs-extra', () => ({
+    emptyDir: vi.fn().mockImplementation(() => {
+        mockFileSystem.clear();
+        return Promise.resolve();
+    }),
+}));
+
+// Mock file-exists utility
+vi.mock('@app/core/utils/files/file-exists.js', () => ({
+    fileExists: vi.fn().mockImplementation((path) => {
+        return Promise.resolve(mockFileSystem.has(path.toString()));
+    }),
+}));
 
 describe.concurrent('CookieService', () => {
     let service: CookieService;
