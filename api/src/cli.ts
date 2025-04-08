@@ -20,16 +20,7 @@ const getUnraidApiLocation = async () => {
 };
 
 try {
-    // Register plugins and create a dynamic module configuration
-    const dynamicModule = await CliModule.registerWithPlugins();
-
-    // Create a new class that extends CliModule with the dynamic configuration
-    const DynamicCliModule = class extends CliModule {
-        static module = dynamicModule.module;
-        static imports = dynamicModule.imports;
-        static providers = dynamicModule.providers;
-    };
-    await CommandFactory.run(DynamicCliModule, {
+    await CommandFactory.run(CliModule, {
         cliName: 'unraid-api',
         logger: LOG_LEVEL === 'TRACE' ? new LogService() : false, // - enable this to see nest initialization issues
         completion: {
