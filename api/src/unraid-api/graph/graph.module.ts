@@ -29,7 +29,7 @@ import { PluginService } from '@app/unraid-api/plugin/plugin.service.js';
             useFactory: async () => {
                 const pluginSchemas = await PluginService.getGraphQLSchemas();
                 const authEnumTypeDefs = getAuthEnumTypeDefs();
-                const typeDefs = [print(await loadTypeDefs([...pluginSchemas, authEnumTypeDefs]))];
+                const typeDefs = print(await loadTypeDefs([...pluginSchemas, authEnumTypeDefs]));
                 const resolvers = {
                     DateTime: DateTimeResolver,
                     JSON: JSONResolver,
