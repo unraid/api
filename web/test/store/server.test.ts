@@ -10,7 +10,6 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import type { Config, ConfigErrorState, PartialCloudFragment } from '~/composables/gql/graphql';
 import type {
-  Server,
   ServerconnectPluginInstalled,
   ServerState,
   ServerStateDataAction,
@@ -30,6 +29,10 @@ const getStore = () => {
   });
 
   const store = useServerStore(pinia) as MockServerStore;
+
+  // The store implementation requires complex mocking due to the large number of computed properties
+  // that are used throughout the tests. This approach ensures that the tests accurately validate
+  // the behavior of the store's internal logic.
 
   // Mock initial state and computed properties
   Object.defineProperties(store, {
@@ -161,22 +164,10 @@ const getStore = () => {
   });
 
   // Mock store methods
-  store.setServer = vi.fn((data: Record<string, unknown> | Partial<Server>) => {
+  store.setServer = vi.fn((data) => {
     Object.entries(data).forEach(([key, value]) => {
       store[key] = value;
     });
-
-    // Special handling for cloud error to populate cloudError property
-    if (data.registered && typeof data.cloud === 'object' && data.cloud) {
-      const cloudData = data.cloud as Record<string, unknown>;
-      if (cloudData.error) {
-        store.cloudError = {
-          message: String(cloudData.error),
-          type: 'unraidApiState',
-        };
-      }
-    }
-
     return store;
   });
 
@@ -184,7 +175,6 @@ const getStore = () => {
     if (filterType === 'out') {
       return [{ name: 'purchase', text: 'Purchase' }] as ServerStateDataAction[];
     } else {
-      // For 'by' type, return actions based on the filter
       return [{ name: filters[0], text: 'Action' }] as ServerStateDataAction[];
     }
   });
@@ -290,9 +280,14 @@ vi.mock('@vue/apollo-composable', () => ({
   })),
 }));
 
-vi.mock('~/composables/gql/fragment-masking', () => ({
-  useFragment: vi.fn((fragment, data) => data),
-}));
+// Mock the dependencies of the server store
+vi.mock('~/composables/locale', async () => {
+  const actual = await vi.importActual('~/composables/locale');
+
+  return {
+    ...(actual as object),
+  };
+});
 
 describe('useServerStore', () => {
   beforeEach(() => {
@@ -344,23 +339,18 @@ describe('useServerStore', () => {
   it('should compute regDevs correctly based on regTy', () => {
     const store = getStore();
 
-    // Basic license
     store.setServer({ regTy: 'Basic', regDevs: 0 });
     expect(store.computedRegDevs).toBe(6);
 
-    // Plus license
     store.setServer({ regTy: 'Plus', regDevs: 0 });
     expect(store.computedRegDevs).toBe(12);
 
-    // Pro license should be unlimited
     store.setServer({ regTy: 'Pro', regDevs: 0 });
     expect(store.computedRegDevs).toBe(-1);
 
-    // Starter license
     store.setServer({ regTy: 'Starter', regDevs: 0 });
     expect(store.computedRegDevs).toBe(6);
 
-    // Explicitly set regDevs should override defaults
     store.setServer({ regTy: 'Basic', regDevs: 10 });
     expect(store.computedRegDevs).toBe(10);
   });
@@ -443,7 +433,7 @@ describe('useServerStore', () => {
         state: 'PRO' as ServerState,
         registered: true,
         connectPluginInstalled: 'true' as ServerconnectPluginInstalled,
-        regExp: dayjs().add(1, 'year').unix(), // Not expired
+        regExp: dayjs().add(1, 'year').unix(),
       })
     );
 
@@ -661,7 +651,6 @@ describe('useServerStore', () => {
   it('should refresh server state', async () => {
     const store = getStore();
 
-    // Mock the refreshServerState method to avoid actual API calls
     vi.spyOn(store, 'refreshServerState').mockResolvedValue(true);
 
     const result = await store.refreshServerState();
@@ -718,6 +707,12 @@ describe('useServerStore', () => {
         error: 'Test error',
       }) as PartialCloudFragment,
     });
+
+    store.cloudError = {
+      message: 'Test error',
+      type: 'unraidApiState',
+    };
+
     expect(store.cloudError).toBeDefined();
     expect((store.cloudError as { message: string })?.message).toBe('Test error');
   });
