@@ -1,5 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 
+import type { SetRequired } from 'type-fest';
 import { parse } from 'graphql';
 
 import type { ApiNestPluginDefinition } from '@app/unraid-api/plugin/plugin.interface.js';
@@ -19,12 +20,12 @@ export class PluginService {
 
     static async getGraphQLSchemas() {
         const plugins = (await PluginService.getPlugins()).filter(
-            (plugin) => plugin.graphqlSchemaExtension
+            (plugin): plugin is SetRequired<ApiNestPluginDefinition, 'graphqlSchemaExtension'> =>
+                plugin.graphqlSchemaExtension !== undefined
         );
         const { data: schemas } = await batchProcess(plugins, async (plugin) => {
             try {
-                // safe to assert bc we've filtered the plugins to only include those with graphqlSchemaExtension
-                const schema = await plugin.graphqlSchemaExtension!();
+                const schema = await plugin.graphqlSchemaExtension();
                 // Validate schema by parsing it - this will throw if invalid
                 parse(schema);
                 return schema;
