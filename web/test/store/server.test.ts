@@ -21,7 +21,7 @@ import { useServerStore } from '~/store/server';
 type MockServerStore = ReturnType<typeof useServerStore> & Record<string, any>;
 
 // Helper function to safely create test data with type assertions
-const createTestData = <T extends Record<string, any>>(data: T): T => data as any;
+const createTestData = <T extends Record<string, any>>(data: T): T => data as T;
 
 const getStore = () => {
   const pinia = createTestingPinia({
@@ -160,7 +160,7 @@ const getStore = () => {
   });
 
   // Mock store methods
-  store.setServer = vi.fn((data: any) => {
+  store.setServer = vi.fn((data: Record<string, any>) => {
     Object.entries(data).forEach(([key, value]) => {
       store[key] = value;
     });
@@ -297,7 +297,7 @@ vi.mock('vue', async () => {
   return {
     ...actual,
     toRefs: vi.fn((obj) => {
-      const result: Record<string, { value: any }> = {};
+      const result: Record<string, { value: unknown }> = {};
 
       for (const key in obj) {
         result[key] = { value: obj[key] };
@@ -403,7 +403,7 @@ describe('useServerStore', () => {
       createTestData({
         state: 'ENOKEYFILE',
         registered: false,
-        connectPluginInstalled: 'true' as unknown as ServerconnectPluginInstalled,
+        connectPluginInstalled: 'true' as ServerconnectPluginInstalled,
       })
     );
 
@@ -420,7 +420,7 @@ describe('useServerStore', () => {
       createTestData({
         state: 'TRIAL',
         registered: true,
-        connectPluginInstalled: 'true' as unknown as ServerconnectPluginInstalled,
+        connectPluginInstalled: 'true' as ServerconnectPluginInstalled,
       })
     );
 
@@ -437,7 +437,7 @@ describe('useServerStore', () => {
       createTestData({
         state: 'EEXPIRED',
         registered: false,
-        connectPluginInstalled: 'true' as unknown as ServerconnectPluginInstalled,
+        connectPluginInstalled: 'true' as ServerconnectPluginInstalled,
         regGen: 0,
       })
     );
@@ -455,7 +455,7 @@ describe('useServerStore', () => {
       createTestData({
         state: 'PRO',
         registered: true,
-        connectPluginInstalled: 'true' as unknown as ServerconnectPluginInstalled,
+        connectPluginInstalled: 'true' as ServerconnectPluginInstalled,
         regExp: dayjs().add(1, 'year').unix(), // Not expired
       })
     );
@@ -475,7 +475,7 @@ describe('useServerStore', () => {
         deviceCount: 6,
         regTy: 'Plus',
         regDevs: 12,
-        config: { id: 'config', valid: true, __typename: 'Config' } as Config,
+        config: { id: 'config', valid: true } as Config,
       })
     );
     expect(store.tooManyDevices).toBe(false);
@@ -486,7 +486,7 @@ describe('useServerStore', () => {
         deviceCount: 15,
         regTy: 'Plus',
         regDevs: 12,
-        config: { id: 'config', valid: true, __typename: 'Config' } as Config,
+        config: { id: 'config', valid: true } as Config,
       })
     );
     expect(store.tooManyDevices).toBe(true);
@@ -501,7 +501,6 @@ describe('useServerStore', () => {
           id: 'config',
           valid: false,
           error: 'INVALID' as ConfigErrorState,
-          __typename: 'Config',
         } as Config,
       })
     );
@@ -721,17 +720,8 @@ describe('useServerStore', () => {
       registered: false,
       cloud: createTestData({
         error: 'Test error',
-        __typename: 'Cloud',
-        apiKey: { valid: true, __typename: 'ApiKeyResponse' },
-        cloud: {
-          __typename: 'CloudResponse',
-          status: 'online',
-          error: null,
-        },
-        minigraphql: { __typename: 'MinigraphqlConnect' },
-      }) as unknown as PartialCloudFragment,
+      }) as PartialCloudFragment,
     });
-
     expect(store.cloudError).toBeUndefined();
 
     // Error when registered
@@ -739,17 +729,8 @@ describe('useServerStore', () => {
       registered: true,
       cloud: createTestData({
         error: 'Test error',
-        __typename: 'Cloud',
-        apiKey: { valid: true, __typename: 'ApiKeyResponse' },
-        cloud: {
-          __typename: 'CloudResponse',
-          status: 'online',
-          error: null,
-        },
-        minigraphql: { __typename: 'MinigraphqlConnect' },
-      }) as unknown as PartialCloudFragment,
+      }) as PartialCloudFragment,
     });
-
     expect(store.cloudError).toBeDefined();
     expect(store.cloudError?.message).toBe('Test error');
   });
