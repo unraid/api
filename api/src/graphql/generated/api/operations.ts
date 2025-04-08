@@ -2,7 +2,7 @@
 import * as Types from '@app/graphql/generated/api/types.js';
 
 import { z } from 'zod'
-import { AccessUrl, AccessUrlInput, AddPermissionInput, AddRoleForApiKeyInput, AddRoleForUserInput, AllowedOriginInput, ApiKey, ApiKeyResponse, ApiKeyWithSecret, ApiSettingsInput, ArrayType, ArrayCapacity, ArrayDisk, ArrayDiskFsColor, ArrayDiskInput, ArrayDiskStatus, ArrayDiskType, ArrayMutations, ArrayMutationsaddDiskToArrayArgs, ArrayMutationsclearArrayDiskStatisticsArgs, ArrayMutationsmountArrayDiskArgs, ArrayMutationsremoveDiskFromArrayArgs, ArrayMutationssetStateArgs, ArrayMutationsunmountArrayDiskArgs, ArrayPendingState, ArrayState, ArrayStateInput, ArrayStateInputState, AuthActionVerb, AuthPossession, Baseboard, Capacity, Case, Cloud, CloudResponse, Config, ConfigErrorState, Connect, ConnectSettings, ConnectSettingsValues, ConnectSignInInput, ConnectUserInfoInput, ContainerHostConfig, ContainerMount, ContainerPort, ContainerPortType, ContainerState, CreateApiKeyInput, Devices, Disk, DiskFsType, DiskInterfaceType, DiskPartition, DiskSmartStatus, Display, Docker, DockerContainer, DockerMutations, DockerMutationsstartContainerArgs, DockerMutationsstopContainerArgs, DockerNetwork, DynamicRemoteAccessStatus, DynamicRemoteAccessType, EnableDynamicRemoteAccessInput, Flash, Gpu, Importance, Info, InfoApps, InfoCpu, InfoMemory, KeyFile, LogFile, LogFileContent, Me, MemoryFormFactor, MemoryLayout, MemoryType, MinigraphStatus, MinigraphqlResponse, Mount, Network, Node, Notification, NotificationCounts, NotificationData, NotificationFilter, NotificationOverview, NotificationType, Notifications, NotificationslistArgs, Os, Owner, ParityCheck, Partition, Pci, Permission, ProfileModel, Registration, RegistrationState, RelayResponse, RemoteAccess, RemoveRoleFromApiKeyInput, Resource, Role, Server, ServerStatus, Service, SetupRemoteAccessInput, Share, System, Temperature, Theme, URL_TYPE, UnassignedDevice, Uptime, Usb, User, UserAccount, Vars, Versions, VmDomain, VmMutations, VmMutationsforceStopVmArgs, VmMutationspauseVmArgs, VmMutationsrebootVmArgs, VmMutationsresetVmArgs, VmMutationsresumeVmArgs, VmMutationsstartVmArgs, VmMutationsstopVmArgs, VmState, Vms, WAN_ACCESS_TYPE, WAN_FORWARD_TYPE, Welcome, addUserInput, deleteUserInput, mdState, registrationType, usersInput } from '@app/graphql/generated/api/types.js'
+import { AccessUrl, AccessUrlInput, AddPermissionInput, AddRoleForApiKeyInput, AddRoleForUserInput, AllowedOriginInput, ApiKey, ApiKeyResponse, ApiKeyWithSecret, ApiSettingsInput, ArrayType, ArrayCapacity, ArrayDisk, ArrayDiskFsColor, ArrayDiskInput, ArrayDiskStatus, ArrayDiskType, ArrayMutations, ArrayMutationsaddDiskToArrayArgs, ArrayMutationsclearArrayDiskStatisticsArgs, ArrayMutationsmountArrayDiskArgs, ArrayMutationsremoveDiskFromArrayArgs, ArrayMutationssetStateArgs, ArrayMutationsunmountArrayDiskArgs, ArrayPendingState, ArrayState, ArrayStateInput, ArrayStateInputState, AuthActionVerb, AuthPossession, Baseboard, Capacity, Case, Cloud, CloudResponse, Config, ConfigErrorState, Connect, ConnectSettings, ConnectSettingsValues, ConnectSignInInput, ConnectUserInfoInput, ContainerHostConfig, ContainerMount, ContainerPort, ContainerPortType, ContainerState, CreateApiKeyInput, Devices, Disk, DiskFsType, DiskInterfaceType, DiskPartition, DiskSmartStatus, Display, Docker, DockerContainer, DockerMutations, DockerMutationsstartArgs, DockerMutationsstopArgs, DockerNetwork, DynamicRemoteAccessStatus, DynamicRemoteAccessType, EnableDynamicRemoteAccessInput, Flash, Gpu, Importance, Info, InfoApps, InfoCpu, InfoMemory, KeyFile, LogFile, LogFileContent, Me, MemoryFormFactor, MemoryLayout, MemoryType, MinigraphStatus, MinigraphqlResponse, Mount, Network, Node, Notification, NotificationCounts, NotificationData, NotificationFilter, NotificationOverview, NotificationType, Notifications, NotificationslistArgs, Os, Owner, ParityCheck, Partition, Pci, Permission, ProfileModel, Registration, RegistrationState, RelayResponse, RemoteAccess, RemoveRoleFromApiKeyInput, Resource, Role, Server, ServerStatus, Service, SetupRemoteAccessInput, Share, System, Temperature, Theme, URL_TYPE, UnassignedDevice, Uptime, Usb, User, UserAccount, Vars, Versions, VmDomain, VmMutations, VmMutationsforceStopVmArgs, VmMutationspauseVmArgs, VmMutationsrebootVmArgs, VmMutationsresetVmArgs, VmMutationsresumeVmArgs, VmMutationsstartVmArgs, VmMutationsstopVmArgs, VmState, Vms, WAN_ACCESS_TYPE, WAN_FORWARD_TYPE, Welcome, addUserInput, deleteUserInput, mdState, registrationType, usersInput } from '@app/graphql/generated/api/types.js'
 import { TypedDocumentNode as DocumentNode } from '@graphql-typed-document-node/core';
 
 type Properties<T> = Required<{
@@ -195,6 +195,7 @@ export function ArrayCapacitySchema(): z.ZodObject<Properties<ArrayCapacity>> {
 export function ArrayDiskSchema(): z.ZodObject<Properties<ArrayDisk>> {
   return z.object({
     __typename: z.literal('ArrayDisk').optional(),
+    color: ArrayDiskFsColorSchema.nullish(),
     comment: z.string().nullish(),
     critical: z.number().nullish(),
     device: z.string().nullish(),
@@ -455,7 +456,7 @@ export function DiskSchema(): z.ZodObject<Properties<Disk>> {
     serialNum: z.string(),
     size: z.number(),
     smartStatus: DiskSmartStatusSchema,
-    temperature: z.number(),
+    temperature: z.number().nullish(),
     totalCylinders: z.number(),
     totalHeads: z.number(),
     totalSectors: z.number(),
@@ -535,18 +536,18 @@ export function DockerContainerSchema(): z.ZodObject<Properties<DockerContainer>
 export function DockerMutationsSchema(): z.ZodObject<Properties<DockerMutations>> {
   return z.object({
     __typename: z.literal('DockerMutations').optional(),
-    startContainer: DockerContainerSchema(),
-    stopContainer: DockerContainerSchema()
+    start: DockerContainerSchema(),
+    stop: DockerContainerSchema()
   })
 }
 
-export function DockerMutationsstartContainerArgsSchema(): z.ZodObject<Properties<DockerMutationsstartContainerArgs>> {
+export function DockerMutationsstartArgsSchema(): z.ZodObject<Properties<DockerMutationsstartArgs>> {
   return z.object({
     id: z.string()
   })
 }
 
-export function DockerMutationsstopContainerArgsSchema(): z.ZodObject<Properties<DockerMutationsstopContainerArgs>> {
+export function DockerMutationsstopArgsSchema(): z.ZodObject<Properties<DockerMutationsstopArgs>> {
   return z.object({
     id: z.string()
   })
