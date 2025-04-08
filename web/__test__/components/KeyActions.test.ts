@@ -13,7 +13,7 @@ import type { ServerStateDataAction, ServerStateDataActionType } from '~/types/s
 
 import KeyActions from '../../components/KeyActions.vue';
 
-import '~/test/mocks/ui-components';
+import '~/__test__/mocks/ui-components';
 
 // Create mock store actions
 const storeKeyActions = [

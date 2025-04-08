@@ -1,13 +1,14 @@
-import { describe, it, expect } from "vitest";
+import { mergeAndDedup } from '~/helpers/apollo-cache/merge';
+import { describe, expect, it } from 'vitest';
 
-import { mergeAndDedup, type ApolloCacheItem } from "./merge";
+import type { ApolloCacheItem } from '~/helpers/apollo-cache/merge';
 
-describe("mergeAndDedup", () => {
+describe('mergeAndDedup', () => {
   const createRef = (id: unknown) => ({ __ref: `Post:${id}` });
   const getRef = (item: ApolloCacheItem) => item.__ref;
 
-  describe("basic functionality", () => {
-    it("should concatenate when there are no duplicates", () => {
+  describe('basic functionality', () => {
+    it('should concatenate when there are no duplicates', () => {
       const existing = [createRef(1), createRef(2), createRef(3)];
       const incoming = [createRef(4), createRef(5)];
 
@@ -24,7 +25,7 @@ describe("mergeAndDedup", () => {
       ]);
     });
 
-    it("should merge without duplicates when offset is 0", () => {
+    it('should merge without duplicates when offset is 0', () => {
       const existing = [createRef(1), createRef(2), createRef(3)];
 
       const incoming = [
@@ -40,7 +41,7 @@ describe("mergeAndDedup", () => {
       ]);
     });
 
-    it("should merge without duplicates when offset > 0", () => {
+    it('should merge without duplicates when offset > 0', () => {
       const existing = [createRef(1), createRef(2), createRef(3), createRef(5)];
 
       const incoming = [
@@ -58,7 +59,7 @@ describe("mergeAndDedup", () => {
       ]);
     });
 
-    it("should handle duplicates > range of replacement", () => {
+    it('should handle duplicates > range of replacement', () => {
       const existing = [createRef(1), createRef(2), createRef(3), createRef(4), createRef(2)];
 
       const incoming = [
@@ -75,7 +76,7 @@ describe("mergeAndDedup", () => {
       ]);
     });
 
-    it("should handle duplicate < range of replacement", () => {
+    it('should handle duplicate < range of replacement', () => {
       const existing = [createRef(4), createRef(2), createRef(3), createRef(1)];
 
       const incoming = [
@@ -93,8 +94,8 @@ describe("mergeAndDedup", () => {
     });
   });
 
-  describe("edge cases", () => {
-    it("should handle empty existing array", () => {
+  describe('edge cases', () => {
+    it('should handle empty existing array', () => {
       const existing = [] as ApolloCacheItem[];
       const incoming = [createRef(1), createRef(2)];
 
@@ -103,7 +104,7 @@ describe("mergeAndDedup", () => {
       expect(result).toEqual([createRef(1), createRef(2)]);
     });
 
-    it("should handle empty incoming array", () => {
+    it('should handle empty incoming array', () => {
       const existing = [createRef(1), createRef(2)];
       const incoming: ApolloCacheItem[] = [];
 
@@ -112,7 +113,7 @@ describe("mergeAndDedup", () => {
       expect(result).toEqual(existing);
     });
 
-    it("should handle undefined existing array", () => {
+    it('should handle undefined existing array', () => {
       const incoming = [createRef(1), createRef(2)];
 
       const result = mergeAndDedup(undefined, incoming, getRef, { offset: 0 });
@@ -120,7 +121,7 @@ describe("mergeAndDedup", () => {
       expect(result).toEqual(incoming);
     });
 
-    it("should handle undefined args", () => {
+    it('should handle undefined args', () => {
       const existing = [createRef(1)];
       const incoming = [createRef(2)];
 
@@ -129,7 +130,7 @@ describe("mergeAndDedup", () => {
       expect(result).toEqual([createRef(2)]);
     });
 
-    it("should handle offset larger than existing array", () => {
+    it('should handle offset larger than existing array', () => {
       const existing = [createRef(1)];
       const incoming = [createRef(2)];
 
@@ -139,8 +140,8 @@ describe("mergeAndDedup", () => {
     });
   });
 
-  describe("multiple duplicates", () => {
-    it("should not overwrite multiple duplicates in incoming data", () => {
+  describe('multiple duplicates', () => {
+    it('should not overwrite multiple duplicates in incoming data', () => {
       const existing = [createRef(1), createRef(2), createRef(3)];
 
       const incoming = [
@@ -154,7 +155,7 @@ describe("mergeAndDedup", () => {
       expect(result).toEqual([createRef(2), createRef(3), createRef(2)]);
     });
 
-    it("should handle duplicates with gaps in offset", () => {
+    it('should handle duplicates with gaps in offset', () => {
       const existing = [createRef(1), createRef(2), createRef(3), createRef(4)];
 
       const incoming = [

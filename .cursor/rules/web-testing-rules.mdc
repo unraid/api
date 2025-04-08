@@ -1,6 +1,6 @@
 ---
 description: 
-globs: **/*.test.ts,**/test/components/**/*.ts,**/test/store/**/*.ts,**/test/mocks/**/*.ts
+globs: **/*.test.ts,**/__test__/components/**/*.ts,**/__test__/store/**/*.ts,**/__test__/mocks/**/*.ts
 alwaysApply: false
 ---
 

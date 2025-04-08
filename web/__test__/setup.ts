@@ -4,10 +4,10 @@ import { createTestingPinia } from '@pinia/testing';
 import { afterAll, beforeAll, vi } from 'vitest';
 
 // Import mocks
-import './mocks/shared-callbacks.ts';
-import './mocks/ui-components.ts';
-import './mocks/stores/index.ts';
-import './mocks/services/index.ts';
+import './mocks/shared-callbacks.js';
+import './mocks/ui-components.js';
+import './mocks/stores/index.js';
+import './mocks/services/index.js';
 
 // Configure Vue Test Utils
 config.global.plugins = [
