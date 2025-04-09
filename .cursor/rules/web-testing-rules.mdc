@@ -1,0 +1,119 @@
+---
+description: 
+globs: **/*.test.ts,**/__test__/components/**/*.ts,**/__test__/store/**/*.ts,**/__test__/mocks/**/*.ts
+alwaysApply: false
+---
+
+## Vue Component Testing Best Practices
+
+- Use pnpm when running termical commands and stay within the web directory.
+- The directory for tests is located under `web/test`
+
+### Setup
+- Use `mount` from Vue Test Utils for component testing
+- Stub complex child components that aren't the focus of the test
+- Mock external dependencies and services
+
+```typescript
+import { mount } from '@vue/test-utils';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+import YourComponent from '~/components/YourComponent.vue';
+
+// Mock dependencies
+vi.mock('~/helpers/someHelper', () => ({
+  SOME_CONSTANT: 'mocked-value',
+}));
+
+describe('YourComponent', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+  
+  it('renders correctly', () => {
+    const wrapper = mount(YourComponent, {
+      global: {
+        stubs: {
+          // Stub child components when needed
+          ChildComponent: true,
+        },
+      },
+    });
+    
+    // Assertions
+    expect(wrapper.text()).toContain('Expected content');
+  });
+});
+```
+
+### Testing Patterns
+- Test component behavior and output, not implementation details
+- Verify that the expected elements are rendered
+- Test component interactions (clicks, inputs, etc.)
+- Check for expected prop handling and event emissions
+
+### Finding Elements
+- Use semantic queries like `find('button')` or `find('[data-test="id"]')` but prefer not to use data test ID's
+- Find components with `findComponent(ComponentName)`
+- Use `findAll` to check for multiple elements
+
+### Assertions
+- Assert on rendered text content with `wrapper.text()`
+- Assert on element attributes with `element.attributes()`
+- Verify element existence with `expect(element.exists()).toBe(true)`
+- Check component state through rendered output
+
+### Component Interaction
+- Trigger events with `await element.trigger('click')`
+- Set input values with `await input.setValue('value')`
+- Test emitted events with `wrapper.emitted()`
+
+### Mocking
+- Mock external services and API calls
+- Use `vi.mock()` for module-level mocks
+- Specify return values for component methods with `vi.spyOn()`
+- Reset mocks between tests with `vi.clearAllMocks()`
+- Frequently used mocks are stored under `web/test/mocks`
+
+### Async Testing
+- Use `await nextTick()` for DOM updates
+- Use `flushPromises()` for more complex promise chains
+- Always await async operations before making assertions
+
+## Store Testing with Pinia
+
+### Setup
+- Use `createTestingPinia()` to create a test Pinia instance
+- Set `createSpy: vi.fn` to automatically spy on actions
+
+```typescript
+import { createTestingPinia } from '@pinia/testing';
+import { useYourStore } from '~/store/yourStore';
+
+const pinia = createTestingPinia({
+  createSpy: vi.fn,
+});
+const store = useYourStore(pinia);
+```
+
+### Testing Actions
+- Verify actions are called with the right parameters
+- Test action side effects if not stubbed
+- Override specific action implementations when needed
+
+```typescript
+// Test action calls
+store.yourAction(params);
+expect(store.yourAction).toHaveBeenCalledWith(params);
+
+// Test with real implementation
+const pinia = createTestingPinia({
+  createSpy: vi.fn,
+  stubActions: false,
+});
+```
+
+### Testing State & Getters
+- Set initial state for focused testing
+- Test computed properties by accessing them directly
+- Verify state changes by updating the store
+

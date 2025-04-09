@@ -1,6 +1,6 @@
+import { Markdown } from '~/helpers/markdown';
 import { baseUrl } from 'marked-base-url';
 import { describe, expect, test } from 'vitest';
-import { Markdown } from './markdown';
 
 // add a random extension to the instance
 const instance = Markdown.create(baseUrl('https://unraid.net'));
