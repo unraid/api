@@ -30,6 +30,7 @@
   <!-- The archive's filename on the boot drive. Enables reproducible offline installs of the Unraid API. -->
   <!ENTITY VENDOR_STORE_FILENAME "">
   <!ENTITY TAG "">
+  <!ENTITY NODE_DIR "/usr/libexec/node">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" pluginURL="&pluginURL;"
@@ -127,6 +128,7 @@ exit 0
     <INLINE>
       NODE_FILE="&NODEJS_FILENAME;"
       VENDOR_ARCHIVE="&VENDOR_STORE_FILENAME;"
+      NODE_DIR="&NODE_DIR;"
       <![CDATA[
         # Check if the Node.js archive exists
         if [[ ! -f "/boot/config/plugins/dynamix.my.servers/${NODE_FILE}" ]]; then
@@ -139,9 +141,6 @@ exit 0
           echo "Node.js archive is corrupt or invalid"
           exit 1
         fi
-
-        # Define the target directory for Node.js
-        NODE_DIR="/usr/local/node"
 
         # Create the target directory if it doesn't exist
         mkdir -p "${NODE_DIR}" || { echo "Failed to create ${NODE_DIR}"; exit 1; }
@@ -361,6 +360,7 @@ exit 0
       TAG="&TAG;" MAINTXZ="&source;.txz"
       VENDOR_ARCHIVE="/boot/config/plugins/dynamix.my.servers/&VENDOR_STORE_FILENAME;"
       PNPM_BINARY_FILE="&PNPM_BINARY;"
+      NODE_DIR="&NODE_DIR;"
     <![CDATA[
 appendTextIfMissing() {
   FILE="$1" TEXT="$2"
@@ -818,9 +818,9 @@ fi
 
 
 # Create symlink to unraid-api binary (to allow usage elsewhere)
-ln -sf /usr/local/node/bin/node /usr/local/bin/node
-ln -sf /usr/local/node/bin/npm /usr/local/bin/npm
-ln -sf /usr/local/node/bin/corepack /usr/local/bin/corepack
+ln -sf ${NODE_DIR}/bin/node /usr/local/bin/node
+ln -sf ${NODE_DIR}/bin/npm /usr/local/bin/npm
+ln -sf ${NODE_DIR}/bin/corepack /usr/local/bin/corepack
 
 ln -sf ${unraid_binary_path} /usr/local/sbin/unraid-api
 ln -sf ${unraid_binary_path} /usr/bin/unraid-api
