@@ -8,7 +8,7 @@ flash="/boot/config/plugins/dynamix.my.servers"
 [[ ! -d "${flash}" ]] && echo "Please reinstall the Unraid Connect plugin" && exit 1
 [[ ! -f "${flash}/env" ]] && echo 'env=production' >"${flash}/env"
 unraid_binary_path="/usr/local/bin/unraid-api"
-pnpm_store_dir="/usr/.pnpm-store"
+pnpm_store_dir="/usr/local/unraid-api/node_modules"
 
 # Placeholder functions for plugin installation/uninstallation
 install() {
@@ -99,7 +99,7 @@ restore_pnpm_store() {
     return 1
   fi
 
-  echo "pnpm store restored successfully."
+  echo "node_modules restored successfully."
 }
 
 # Executes pnpm install with production dependencies and offline preference

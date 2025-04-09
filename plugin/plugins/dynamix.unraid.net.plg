@@ -156,8 +156,9 @@ exit 0
         # deprecated Apr 2025. kept to remove unused archives for users upgrading from versioned node downloads.
         find /boot/config/plugins/dynamix.my.servers/ -name "node-v*-linux-x64.tar.xz" ! -name "${NODE_FILE}" -delete
 
-        # Remove stale pnpm store archives from the boot drive
+        # Remove stale pnpm store and node_modules archives from the boot drive
         find /boot/config/plugins/dynamix.my.servers/ -name "pnpm-store-for-v*.txz" ! -name "${VENDOR_ARCHIVE}" -delete
+        find /boot/config/plugins/dynamix.my.servers/ -name "node-modules-for-v*.tar.xz" ! -name "${VENDOR_ARCHIVE}" -delete
 
         echo "Node.js installation successful"
 
@@ -830,15 +831,8 @@ cp -f "${PNPM_BINARY_FILE}" /usr/local/bin/pnpm
 chmod +x /usr/local/bin/pnpm
 
 /etc/rc.d/rc.unraid-api restore-dependencies "$VENDOR_ARCHIVE"
-echo
-echo "⚠️ Do not close this window yet"
-/etc/rc.d/rc.unraid-api pnpm-install
-echo
-echo "⚠️ Do not close this window yet"
-echo
-echo "About to start the Unraid API"
 
-
+echo "Starting flash backup (if enabled)"
 logger "Starting flash backup (if enabled)"
 echo "/etc/rc.d/rc.flash_backup start" | at -M now &>/dev/null
 . /root/.bashrc
