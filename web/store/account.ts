@@ -1,4 +1,4 @@
-import { ref } from 'vue';
+import { computed, ref, watchEffect } from 'vue';
 import { createPinia, defineStore, setActivePinia } from 'pinia';
 import { useMutation } from '@vue/apollo-composable';
 import { logErrorMessages } from '@vue/apollo-util';
@@ -18,6 +18,7 @@ import { CONNECT_SIGN_IN, CONNECT_SIGN_OUT } from './account.fragment';
  * @see https://stackoverflow.com/questions/73476371/using-pinia-with-vue-js-web-components
  * @see https://github.com/vuejs/pinia/discussions/1085
  */
+
 setActivePinia(createPinia());
 
 export interface ConnectSignInMutationPayload {
@@ -252,7 +253,8 @@ export const useAccountStore = defineStore('account', () => {
           type: 'updateOs',
         },
       ],
-      inIframe.value ? 'newTab' : autoRedirectReplace ? 'replace' : undefined
+      inIframe.value ? 'newTab' : autoRedirectReplace ? 'replace' : undefined,
+      sendType.value
     );
   };
 
