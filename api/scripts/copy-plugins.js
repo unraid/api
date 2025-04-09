@@ -54,41 +54,17 @@ for (const pkgName of workspacePlugins) {
     if (!fs.existsSync(targetPath)) {
       fs.mkdirSync(targetPath, { recursive: true });
     }
-    
-    // Copy the entire dist folder recursively
-    copyFolderRecursive(pluginDistPath, targetPath);
+
+    // Copy the entire dist folder recursively using fs.cp
+    try {
+      fs.cpSync(pluginDistPath, targetPath, { recursive: true });
+      console.log(`Successfully copied ${pkgName} dist folder`);
+    } catch (error) {
+      console.error(`Failed to copy ${pkgName} dist folder:`, error.message);
+    }
   } else {
     console.warn(`Plugin ${pkgName} dist folder not found at ${pluginDistPath}`);
   }
 }
 
 console.log('Plugin dist folders copied successfully');
-
-/**
- * Recursively copy a folder and its contents
- * @param {string} source - Source folder path
- * @param {string} target - Target folder path
- */
-function copyFolderRecursive(source, target) {
-  // Create target folder if it doesn't exist
-  if (!fs.existsSync(target)) {
-    fs.mkdirSync(target, { recursive: true });
-  }
-
-  // Read all files and folders in the source directory
-  const files = fs.readdirSync(source);
-
-  for (const file of files) {
-    const sourcePath = path.join(source, file);
-    const targetPath = path.join(target, file);
-
-    // Check if the current path is a file or a directory
-    if (fs.lstatSync(sourcePath).isDirectory()) {
-      // If it's a directory, recursively copy it
-      copyFolderRecursive(sourcePath, targetPath);
-    } else {
-      // If it's a file, copy it
-      fs.copyFileSync(sourcePath, targetPath);
-    }
-  }
-} 
