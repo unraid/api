@@ -52,7 +52,7 @@ try {
 
     const sudoCheck = await $`command -v sudo`.nothrow();
     const SUDO = sudoCheck.exitCode === 0 ? 'sudo' : '';
-    await $`${SUDO} chown -R 0:0 ../.pnpm-store`;
+    await $`${SUDO} chown -R 0:0 node_modules`;
 
     await $`XZ_OPT=-5 tar -cJf packed-node-modules.tar.xz node_modules`;
     await $`mv packed-node-modules.tar.xz ../`;

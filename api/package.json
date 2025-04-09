@@ -201,6 +201,13 @@
     "overrides": {
         "eslint": {
             "jiti": "2"
+        },
+        "@as-integrations/fastify": {
+            "fastify": "$fastify"
+        },
+        "nest-authz": {
+            "@nestjs/common": "$@nestjs/common",
+            "@nestjs/core": "$@nestjs/core"
         }
     },
     "private": true,
