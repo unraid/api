@@ -106,9 +106,6 @@ dnscheck "mothership.unraid.net"
 [[ "${DNSERR}" == "yes" && "${DNS_SERVER1}" != "8.8.8.8" ]] && echo "  Recommend navigating to Settings -> Network Settings and changing your DNS server to 8.8.8.8"
 # Note: DNS checks will fail if the network is not available at boot. Cannot exit the install when DNS checks fail.
 
-echo
-echo "⚠️ Do not close this window yet"
-echo
 exit 0
 ]]>
     </INLINE>
@@ -188,10 +185,6 @@ source /usr/local/emhttp/plugins/dynamix.my.servers/scripts/activation_code_remo
 echo "Performing cleanup operations..."
 /usr/bin/php /usr/local/emhttp/plugins/dynamix.my.servers/scripts/cleanup_operations.php
 
-echo
-echo "⚠️ Do not close this window yet"
-echo
-
 exit 0
 ]]>
     </INLINE>
@@ -232,10 +225,6 @@ echo "Uninstalling existing plugin"
 version=
 # shellcheck disable=SC1091
 source /etc/unraid-version
-
-echo
-echo "⚠️ Do not close this window yet"
-echo
 
 if [ -e /etc/rc.d/rc.unraid-api ]; then
   touch /tmp/restore-files-dynamix-unraid-net
@@ -396,9 +385,6 @@ EOF
   exit 0
 fi
 
-echo
-echo "⚠️ Do not close this window yet"
-echo
 
 # NOTE: any 'exit 1' after this point will result in a broken install
 
@@ -680,9 +666,6 @@ if [[ -n "$TAG" && "$TAG" != "" ]]; then
   sed -i "${sedcmd}" "/usr/local/emhttp/plugins/dynamix.unraid.net/README.md"
 fi
 
-echo
-echo "⚠️ Do not close this window yet"
-echo
 
 # setup env
 echo "env=\"production\"">/boot/config/plugins/dynamix.my.servers/env
@@ -768,10 +751,6 @@ if [[ "$webguiManifestTs" -gt "$plgManifestTs" ]]; then
     echo "♻️ Reverted to stock web component files"
 fi
 
-echo
-echo "⚠️ Do not close this window yet"
-echo
-
 # Activation and partner setup
 # - Must come after the web component timestamp check to avoid potentially targeting the wrong JS during this setup
 source /usr/local/emhttp/plugins/dynamix.my.servers/scripts/activation_code_setup
@@ -832,11 +811,7 @@ cp -f "${PNPM_BINARY_FILE}" /usr/local/bin/pnpm
 chmod +x /usr/local/bin/pnpm
 
 /etc/rc.d/rc.unraid-api restore-dependencies "$VENDOR_ARCHIVE"
-echo
-echo "⚠️ Do not close this window yet"
 /etc/rc.d/rc.unraid-api pnpm-install
-echo
-echo "⚠️ Do not close this window yet"
 echo
 echo "About to start the Unraid API"
 
