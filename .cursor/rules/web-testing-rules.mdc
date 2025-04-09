@@ -5,7 +5,8 @@ alwaysApply: false
 ---
 
 ## Vue Component Testing Best Practices
-
+- This is a Nuxt.js app but we are testing with vitest outside of the Nuxt environment
+- Nuxt is currently set to auto import so some vue files may need compute or ref imported
 - Use pnpm when running termical commands and stay within the web directory.
 - The directory for tests is located under `web/test`
 
@@ -82,18 +83,120 @@ describe('YourComponent', () => {
 
 ## Store Testing with Pinia
 
-### Setup
-- Use `createTestingPinia()` to create a test Pinia instance
-- Set `createSpy: vi.fn` to automatically spy on actions
+### Basic Setup
+```typescript
+import { createPinia, setActivePinia } from 'pinia';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { useYourStore } from '~/store/your-store';
+
+// Mock declarations must be at top level due to hoisting
+const mockDependencyFn = vi.fn();
+
+// Module mocks must use factory functions
+vi.mock('~/store/dependency', () => ({
+  useDependencyStore: () => ({
+    someMethod: mockDependencyFn,
+    someProperty: 'mockValue'
+  })
+}));
+
+describe('Your Store', () => {
+  let store: ReturnType<typeof useYourStore>;
+
+  beforeEach(() => {
+    setActivePinia(createPinia());
+    store = useYourStore();
+    vi.clearAllMocks();
+  });
+
+  afterEach(() => {
+    vi.resetAllMocks();
+  });
+
+  it('tests some action', () => {
+    store.someAction();
+    expect(mockDependencyFn).toHaveBeenCalled();
+  });
+});
+```
+
+### Important Guidelines
+1. **Store Initialization**
+   - Use `createPinia()` instead of `createTestingPinia()` for most cases
+   - Only use `createTestingPinia` if you specifically need its testing features
+   - Let stores initialize with their natural default state instead of forcing initial state
+
+2. **Vue Reactivity**
+   - Ensure Vue reactivity imports are maintained in store files
+   - Don't rely on Nuxt auto-imports in tests
+
+   ```typescript
+   // Required in store files, even with Nuxt auto-imports
+   import { computed, ref, watchEffect } from 'vue';
+   ```
+
+3. **Mocking Best Practices**
+   - Place all mock declarations at the top level
+   - Use factory functions for module mocks to avoid hoisting issues
+   
+   ```typescript
+   // ❌ Wrong - will cause hoisting issues
+   const mockFn = vi.fn();
+   vi.mock('module', () => ({ method: mockFn }));
+
+   // ✅ Correct - using factory function
+   vi.mock('module', () => {
+     const mockFn = vi.fn();
+     return { method: mockFn };
+   });
+   ```
+
+4. **Testing Actions**
+   - Test action side effects and state changes
+   - Verify actions are called with correct parameters
+   - Mock external dependencies appropriately
+   
+   ```typescript
+   it('should handle action correctly', () => {
+     store.yourAction();
+     expect(mockDependencyFn).toHaveBeenCalledWith(
+       expectedArg1,
+       expectedArg2
+     );
+     expect(store.someState).toBe(expectedValue);
+   });
+   ```
+
+5. **Common Pitfalls**
+   - Don't mix mock declarations and module mocks incorrectly
+   - Avoid relying on Nuxt's auto-imports in test environment
+   - Clear mocks between tests to ensure isolation
+   - Remember that `vi.mock()` calls are hoisted
+
+### Testing State & Getters
+- Test computed properties by accessing them directly
+- Verify state changes after actions
+- Test getter dependencies are properly mocked
 
 ```typescript
-import { createTestingPinia } from '@pinia/testing';
-import { useYourStore } from '~/store/yourStore';
-
-const pinia = createTestingPinia({
-  createSpy: vi.fn,
+it('computes derived state correctly', () => {
+  store.setState('new value');
+  expect(store.computedValue).toBe('expected result');
 });
-const store = useYourStore(pinia);
+```
+
+### Testing Complex Interactions
+- Test store interactions with other stores
+- Verify proper error handling
+- Test async operations completely
+
+```typescript
+it('handles async operations', async () => {
+  const promise = store.asyncAction();
+  expect(store.status).toBe('loading');
+  await promise;
+  expect(store.status).toBe('success');
+});
 ```
 
 ### Testing Actions

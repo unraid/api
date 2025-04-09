@@ -2,176 +2,182 @@
  * Account store test coverage
  */
 
-import { createTestingPinia } from '@pinia/testing';
+import { createPinia, setActivePinia } from 'pinia';
+
+import { ACCOUNT_CALLBACK } from '~/helpers/urls';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { useAccountStore } from '~/store/account';
+
+// Mock setup
+vi.mock('@vue/apollo-composable', () => {
+  const mockMutate = vi.fn();
+  const mockOnDone = vi.fn();
+  const mockOnError = vi.fn();
+  return {
+    useMutation: () => ({
+      mutate: mockMutate,
+      onDone: mockOnDone,
+      onError: mockOnError,
+    }),
+  };
+});
+
+const mockSend = vi.fn();
+const mockPurge = vi.fn();
+const mockSetError = vi.fn();
+
+vi.mock('~/store/callbackActions', () => ({
+  useCallbackActionsStore: () => ({
+    send: mockSend,
+    sendType: 'post',
+  }),
+}));
+
+vi.mock('~/store/errors', () => ({
+  useErrorsStore: () => ({
+    setError: mockSetError,
+  }),
+}));
+
+vi.mock('~/store/replaceRenew', () => ({
+  useReplaceRenewStore: () => ({
+    purgeValidationResponse: mockPurge,
+  }),
+}));
+
+vi.mock('~/store/server', () => ({
+  useServerStore: () => ({
+    serverAccountPayload: {
+      guid: 'test-guid',
+      name: 'test-server',
+    },
+    inIframe: false,
+  }),
+}));
+
+vi.mock('~/store/unraidApi', () => ({
+  useUnraidApiStore: () => ({
+    unraidApiClient: null,
+  }),
+}));
 
 describe('Account Store', () => {
   let store: ReturnType<typeof useAccountStore>;
 
   beforeEach(() => {
-    // Create a fresh testing pinia instance for each test
-    const pinia = createTestingPinia({
-      createSpy: vi.fn,
-      // Important: When testing Pinia stores with createTestingPinia,
-      // the default behavior is that actions are stubbed (replaced with spies)
-      // Setting stubActions to false would execute real actions, but we would need
-      // to mock all dependencies
-      stubActions: true,
-    });
-
-    // Get the account store
-    store = useAccountStore(pinia);
-  });
-
-  afterEach(() => {
+    setActivePinia(createPinia());
+    store = useAccountStore();
     vi.clearAllMocks();
   });
 
-  describe('State', () => {
-    it('should initialize with default values', () => {
-      expect(store.accountAction).toBeUndefined();
-      expect(store.accountActionHide).toBe(false);
-      expect(store.accountActionStatus).toBe('ready');
-    });
-  });
-
-  describe('Getters', () => {
-    it('should have accountActionType getter', () => {
-      expect(store).toHaveProperty('accountActionType');
-    });
+  afterEach(() => {
+    vi.resetAllMocks();
   });
 
   describe('Actions', () => {
-    it('should call setAccountAction with the provided action', () => {
-      const testAction = { type: 'signIn' };
-      store.setAccountAction(testAction as any);
-      expect(store.setAccountAction).toHaveBeenCalledWith(testAction);
-    });
-
-    it('should call setConnectSignInPayload with the provided payload', () => {
-      const payload = {
-        apiKey: 'test-api-key',
-        email: 'test@example.com',
-        preferred_username: 'testuser',
-      };
-
-      store.setConnectSignInPayload(payload);
-      expect(store.setConnectSignInPayload).toHaveBeenCalledWith(payload);
-    });
-
-    it('should call setQueueConnectSignOut with the provided value', () => {
-      store.setQueueConnectSignOut(true);
-      expect(store.setQueueConnectSignOut).toHaveBeenCalledWith(true);
-    });
-
-    it('should call manage action', () => {
+    it('should call manage action correctly', () => {
       store.manage();
-      expect(store.manage).toHaveBeenCalled();
+      expect(mockSend).toHaveBeenCalledTimes(1);
+      expect(mockSend).toHaveBeenCalledWith(
+        ACCOUNT_CALLBACK.toString(),
+        [{ server: { guid: 'test-guid', name: 'test-server' }, type: 'manage' }],
+        undefined,
+        'post'
+      );
     });
 
-    it('should call myKeys action', async () => {
+    it('should call myKeys action correctly', async () => {
       await store.myKeys();
-      expect(store.myKeys).toHaveBeenCalled();
+      expect(mockPurge).toHaveBeenCalledTimes(1);
+      expect(mockSend).toHaveBeenCalledTimes(1);
+      expect(mockSend).toHaveBeenCalledWith(
+        ACCOUNT_CALLBACK.toString(),
+        [{ server: { guid: 'test-guid', name: 'test-server' }, type: 'myKeys' }],
+        undefined,
+        'post'
+      );
     });
 
-    it('should call linkKey action', async () => {
+    it('should call linkKey action correctly', async () => {
       await store.linkKey();
-      expect(store.linkKey).toHaveBeenCalled();
+      expect(mockPurge).toHaveBeenCalledTimes(1);
+      expect(mockSend).toHaveBeenCalledTimes(1);
+      expect(mockSend).toHaveBeenCalledWith(
+        ACCOUNT_CALLBACK.toString(),
+        [{ server: { guid: 'test-guid', name: 'test-server' }, type: 'linkKey' }],
+        undefined,
+        'post'
+      );
     });
 
-    it('should call recover action', () => {
+    it('should call recover action correctly', () => {
       store.recover();
-      expect(store.recover).toHaveBeenCalled();
+      expect(mockSend).toHaveBeenCalledTimes(1);
+      expect(mockSend).toHaveBeenCalledWith(
+        ACCOUNT_CALLBACK.toString(),
+        [{ server: { guid: 'test-guid', name: 'test-server' }, type: 'recover' }],
+        undefined,
+        'post'
+      );
     });
 
-    it('should call replace action', () => {
-      store.replace();
-      expect(store.replace).toHaveBeenCalled();
-    });
-
-    it('should call signIn action', () => {
+    it('should call signIn action correctly', () => {
       store.signIn();
-      expect(store.signIn).toHaveBeenCalled();
+      expect(mockSend).toHaveBeenCalledTimes(1);
+      expect(mockSend).toHaveBeenCalledWith(
+        ACCOUNT_CALLBACK.toString(),
+        [{ server: { guid: 'test-guid', name: 'test-server' }, type: 'signIn' }],
+        undefined,
+        'post'
+      );
     });
 
-    it('should call signOut action', () => {
+    it('should call signOut action correctly', () => {
       store.signOut();
-      expect(store.signOut).toHaveBeenCalled();
+      expect(mockSend).toHaveBeenCalledTimes(1);
+      expect(mockSend).toHaveBeenCalledWith(
+        ACCOUNT_CALLBACK.toString(),
+        [{ server: { guid: 'test-guid', name: 'test-server' }, type: 'signOut' }],
+        undefined,
+        'post'
+      );
     });
 
-    it('should call trialExtend action', () => {
-      store.trialExtend();
-      expect(store.trialExtend).toHaveBeenCalled();
-    });
-
-    it('should call trialStart action', () => {
-      store.trialStart();
-      expect(store.trialStart).toHaveBeenCalled();
-    });
-
-    it('should call downgradeOs action', async () => {
+    it('should handle downgradeOs action with and without redirect', async () => {
       await store.downgradeOs();
-      expect(store.downgradeOs).toHaveBeenCalled();
-    });
+      expect(mockSend).toHaveBeenCalledWith(
+        ACCOUNT_CALLBACK.toString(),
+        [{ server: { guid: 'test-guid', name: 'test-server' }, type: 'downgradeOs' }],
+        undefined,
+        'post'
+      );
 
-    it('should call updateOs action', async () => {
-      await store.updateOs();
-      expect(store.updateOs).toHaveBeenCalled();
-    });
-
-    it('should call updateOs with autoRedirectReplace parameter', async () => {
-      await store.updateOs(true);
-      expect(store.updateOs).toHaveBeenCalledWith(true);
-    });
-
-    it('should call account actions with expected parameters', () => {
-      // We can verify how these methods are called
-      store.manage();
-      expect(store.manage).toHaveBeenCalled();
-
-      store.signIn();
-      expect(store.signIn).toHaveBeenCalled();
-
-      store.signOut();
-      expect(store.signOut).toHaveBeenCalled();
-    });
-  });
-
-  describe('Store API', () => {
-    it('should expose all required methods and properties', () => {
-      // Check state properties
-      expect(store).toHaveProperty('accountAction');
-      expect(store).toHaveProperty('accountActionHide');
-      expect(store).toHaveProperty('accountActionStatus');
-
-      // Check getters
-      expect(store).toHaveProperty('accountActionType');
-
-      // Check all store methods exist
-      const expectedMethods = [
-        'downgradeOs',
-        'manage',
-        'myKeys',
-        'linkKey',
-        'recover',
+      await store.downgradeOs(true);
+      expect(mockSend).toHaveBeenCalledWith(
+        ACCOUNT_CALLBACK.toString(),
+        [{ server: { guid: 'test-guid', name: 'test-server' }, type: 'downgradeOs' }],
         'replace',
-        'signIn',
-        'signOut',
-        'trialExtend',
-        'trialStart',
-        'updateOs',
-        'setAccountAction',
-        'setConnectSignInPayload',
-        'setQueueConnectSignOut',
-      ];
+        'post'
+      );
+    });
 
-      expectedMethods.forEach((method) => {
-        expect(store).toHaveProperty(method);
-        // Use type assertion to fix TypeScript error
-        expect(typeof (store as Record<string, any>)[method]).toBe('function');
-      });
+    it('should handle updateOs action with and without redirect', async () => {
+      await store.updateOs();
+      expect(mockSend).toHaveBeenCalledWith(
+        ACCOUNT_CALLBACK.toString(),
+        [{ server: { guid: 'test-guid', name: 'test-server' }, type: 'updateOs' }],
+        undefined,
+        'post'
+      );
+
+      await store.updateOs(true);
+      expect(mockSend).toHaveBeenCalledWith(
+        ACCOUNT_CALLBACK.toString(),
+        [{ server: { guid: 'test-guid', name: 'test-server' }, type: 'updateOs' }],
+        'replace',
+        'post'
+      );
     });
   });
 });
