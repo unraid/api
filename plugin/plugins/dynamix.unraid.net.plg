@@ -158,6 +158,9 @@ exit 0
         # Remove stale pnpm store archives from the boot drive
         find /boot/config/plugins/dynamix.my.servers/ -name "pnpm-store-for-v*.txz" ! -name "${VENDOR_ARCHIVE}" -delete
 
+        # Remove the legacy node directory
+        rm -rf /usr/local/node
+
         echo "Node.js installation successful"
 
         exit 0
