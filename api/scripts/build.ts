@@ -20,8 +20,6 @@ try {
     // Get package details
     const packageJson = await readFile('./package.json', 'utf-8');
     const parsedPackageJson = JSON.parse(packageJson);
-    const rootPackageJson = await readFile('./../package.json', 'utf-8');
-    const parsedRootPackageJson = JSON.parse(rootPackageJson);
 
     const deploymentVersion = await getDeploymentVersion(process.env, parsedPackageJson.version);
 
@@ -29,9 +27,6 @@ try {
     parsedPackageJson.version = deploymentVersion;
     // omit dev dependencies from release build
     parsedPackageJson.devDependencies = {};
-
-    // add all PNPM settings for pnpm install from root package.json
-    // parsedPackageJson.pnpm = parsedRootPackageJson.pnpm;
 
     // Create a temporary directory for packaging
     await mkdir('./deploy/pack/', { recursive: true });
@@ -43,7 +38,7 @@ try {
     // Change to the pack directory and install dependencies
     cd('./deploy/pack');
 
-    console.log('Building production pnpm store...');
+    console.log('Building production node_modules...');
     $.verbose = true;
     await $`npm install --omit=dev`;
 

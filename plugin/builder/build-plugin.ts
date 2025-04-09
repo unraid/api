@@ -12,7 +12,7 @@ import {
 } from "./utils/paths";
 import { PluginEnv, setupPluginEnv } from "./cli/setup-plugin-environment";
 import { cleanupPluginFiles } from "./utils/cleanup";
-import { bundlePnpmStore, getPnpmBundleName } from "./build-pnpm-store";
+import { bundleVendorStore, getVendorBundleName } from "./build-vendor-store";
 
 /**
  * Check if git is available
@@ -61,8 +61,8 @@ const buildPlugin = async ({
     pluginURL: getPluginUrl({ baseUrl, tag }),
     MAIN_TXZ: getMainTxzUrl({ baseUrl, pluginVersion, tag }),
     TXZ_SHA256: txzSha256,
-    VENDOR_STORE_URL: getAssetUrl({ baseUrl, tag }, getPnpmBundleName()),
-    VENDOR_STORE_FILENAME: getPnpmBundleName(),
+    VENDOR_STORE_URL: getAssetUrl({ baseUrl, tag }, getVendorBundleName()),
+    VENDOR_STORE_FILENAME: getVendorBundleName(),
     ...(tag ? { TAG: tag } : {}),
   };
 
@@ -108,7 +108,7 @@ const main = async () => {
 
     await buildPlugin(validatedEnv);
     await moveTxzFile(validatedEnv.txzPath, validatedEnv.pluginVersion);
-    await bundlePnpmStore();
+    await bundleVendorStore();
   } catch (error) {
     console.error(error);
     process.exit(1);

@@ -18,25 +18,25 @@ function getVersion(): string {
 }
 
 /**
- * The name of the pnpm store archive that will be vendored with the plugin.
- * @returns The name of the pnpm store bundle file
+ * The name of the node_modules archive that will be vendored with the plugin.
+ * @returns The name of the node_modules bundle file
  */
-export function getPnpmBundleName(): string {
+export function getVendorBundleName(): string {
     const version = getVersion();
-    return `node-modules-for-v${version}.tar.xz`;
+    return `node_modules-for-v${version}.tar.xz`;
 }
 
 /**
- * Prepare a versioned bundle of the API's pnpm store to vendor dependencies.
+ * Prepare a versioned bundle of the API's node_modules to vendor dependencies.
  * 
- * It expects a generic `packed-pnpm-store.txz` archive to be available in the `startingDir`.
+ * It expects a generic `packed-node-modules.tar.xz` archive to be available in the `startingDir`.
  * It copies this archive to the `deployDir` directory and adds a version to the filename.
- * It does not actually create the packed pnpm store archive; that is done inside the API's build script.
+ * It does not actually create the packed node_modules archive; that is done inside the API's build script.
  * 
- * After this operation, the vendored store will be available inside the `deployDir`.
+ * After this operation, the vendored node_modules will be available inside the `deployDir`.
  */
-export async function bundlePnpmStore(): Promise<void> {
+export async function bundleVendorStore(): Promise<void> {
     const storeArchive = join(startingDir, "packed-node-modules.tar.xz");
-    const pnpmStoreTarPath = join(deployDir, getPnpmBundleName());
-    await copyFile(storeArchive, pnpmStoreTarPath);
+    const vendorStoreTarPath = join(deployDir, getVendorBundleName());
+    await copyFile(storeArchive, vendorStoreTarPath);
 }

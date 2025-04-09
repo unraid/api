@@ -158,7 +158,7 @@ exit 0
 
         # Remove stale pnpm store and node_modules archives from the boot drive
         find /boot/config/plugins/dynamix.my.servers/ -name "pnpm-store-for-v*.txz" ! -name "${VENDOR_ARCHIVE}" -delete
-        find /boot/config/plugins/dynamix.my.servers/ -name "node-modules-for-v*.tar.xz" ! -name "${VENDOR_ARCHIVE}" -delete
+        find /boot/config/plugins/dynamix.my.servers/ -name "node_modules-for-v*.tar.xz" ! -name "${VENDOR_ARCHIVE}" -delete
 
         echo "Node.js installation successful"
 
