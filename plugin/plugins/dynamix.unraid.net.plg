@@ -255,7 +255,6 @@ if [ -e /etc/rc.d/rc.unraid-api ]; then
   rm -rf /usr/local/unraid-api
   rm -rf /var/run/unraid-api.sock
   rm -rf /usr/.pnpm-store
-  rm -f /boot/config/plugins/dynamix.my.servers/node_modules.tar.gz
 fi
     ]]>
     </INLINE>
