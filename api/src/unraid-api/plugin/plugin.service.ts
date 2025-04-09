@@ -48,25 +48,32 @@ export class PluginService {
         const pluginPackages = await PluginService.listPlugins();
         const plugins = await batchProcess(pluginPackages, async ([pkgName]) => {
             try {
-                // Try to import the plugin
-                const plugin = await import(/* @vite-ignore */ pkgName);
+                const possibleImportSources = [
+                    pkgName,
+                    /**----------------------------------------------
+                     *     Importing private workspace plugins
+                     *  
+                     *  Private workspace packages are not available in production,
+                     *  so we bundle and copy them to a plugins folder instead.
+                     * 
+                     *  See scripts/copy-plugins.js for more details.
+                     *---------------------------------------------**/
+                    `../plugins/${pkgName}/index.js`,
+                ];
+                const plugin = await Promise.any(
+                    possibleImportSources.map((source) => import(/* @vite-ignore */ source))
+                );
                 return apiNestPluginSchema.parse(plugin);
             } catch (error) {
-                // If import fails, try to use the local dist folder
-                try {
-                    // For production builds, try to import from the local dist folder
-                    const plugin = await import(/* @vite-ignore */ `../plugins/${pkgName}/index.js`);
-                    return apiNestPluginSchema.parse(plugin);
-                } catch (fallbackError) {
-                    PluginService.logger.error(`Plugin from ${pkgName} is invalid`, error);
-                    throw error;
-                }
+                PluginService.logger.error(`Plugin from ${pkgName} is invalid`, error);
+                throw error;
             }
         });
 
         if (plugins.errorOccured) {
             PluginService.logger.warn(`Failed to load ${plugins.errors.length} plugins. Ignoring them.`);
         }
+        PluginService.logger.log(`Loaded ${plugins.data.length} plugins.`);
         return plugins.data;
     }
 
