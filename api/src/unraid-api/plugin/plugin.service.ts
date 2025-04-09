@@ -52,10 +52,10 @@ export class PluginService {
                     pkgName,
                     /**----------------------------------------------
                      *     Importing private workspace plugins
-                     *  
+                     *
                      *  Private workspace packages are not available in production,
                      *  so we bundle and copy them to a plugins folder instead.
-                     * 
+                     *
                      *  See scripts/copy-plugins.js for more details.
                      *---------------------------------------------**/
                     `../plugins/${pkgName}/index.js`,

@@ -29,7 +29,7 @@ fi
 destination_directory="/usr/local/unraid-api"
 
 # Replace the value inside the rsync command with the user's input
-rsync_command="rsync -avz --progress --stats -e ssh \"$source_directory\" \"root@${server_name}:$destination_directory\""
+rsync_command="rsync -avz --delete --progress --stats -e ssh \"$source_directory\" \"root@${server_name}:$destination_directory\""
 
 echo "Executing the following command:"
 echo "$rsync_command"
