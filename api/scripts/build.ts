@@ -56,6 +56,7 @@ try {
 
     await $`XZ_OPT=-5 tar -cJf packed-node-modules.tar.xz node_modules`;
     await $`mv packed-node-modules.tar.xz ../`;
+    await $`rm -rf node_modules`;
 
     // chmod the cli
     await $`chmod +x ./dist/cli.js`;
