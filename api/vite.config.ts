@@ -6,16 +6,22 @@ import swc from 'unplugin-swc';
 import { VitePluginNode } from 'vite-plugin-node';
 import tsconfigPaths from 'vite-tsconfig-paths';
 import { defineConfig } from 'vitest/config';
+import path from 'path';
 
 export default defineConfig(({ mode }): ViteUserConfig => {
     return {
         assetsInclude: ['src/**/*.graphql', 'src/**/*.patch'],
+        resolve: {
+            alias: {
+                // Add an alias for the workspace dependency
+                'unraid-api-plugin-connect': path.resolve(__dirname, '../packages/unraid-api-plugin-connect/dist/index.js'),
+            },
+        },
         plugins: [
             tsconfigPaths(),
             nodeExternals({
                 peerDeps: false,
                 // exclude: ['unraid-api-plugin-connect']
-
             }),
             nodeResolve({
                 preferBuiltins: true,
@@ -121,6 +127,8 @@ export default defineConfig(({ mode }): ViteUserConfig => {
                     '@nestjs/passport',
                     'passport-http-header-strategy',
                     'accesscontrol',
+                    // Exclude the workspace dependency from external list
+                    // 'unraid-api-plugin-connect',
                 ],
             },
             modulePreload: false,

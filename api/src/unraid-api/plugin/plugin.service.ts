@@ -48,11 +48,19 @@ export class PluginService {
         const pluginPackages = await PluginService.listPlugins();
         const plugins = await batchProcess(pluginPackages, async ([pkgName]) => {
             try {
+                // Try to import the plugin
                 const plugin = await import(/* @vite-ignore */ pkgName);
                 return apiNestPluginSchema.parse(plugin);
             } catch (error) {
-                PluginService.logger.error(`Plugin from ${pkgName} is invalid`, error);
-                throw error;
+                // If import fails, try to use the local dist folder
+                try {
+                    // For production builds, try to import from the local dist folder
+                    const plugin = await import(/* @vite-ignore */ `../plugins/${pkgName}/index.js`);
+                    return apiNestPluginSchema.parse(plugin);
+                } catch (fallbackError) {
+                    PluginService.logger.error(`Plugin from ${pkgName} is invalid`, error);
+                    throw error;
+                }
             }
         });
 
