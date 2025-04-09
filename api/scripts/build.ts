@@ -26,14 +26,12 @@ try {
     // Get package details
     const packageJson = await readFile('./package.json', 'utf-8');
     const parsedPackageJson = JSON.parse(packageJson) as ApiPackageJson;
-    const originalPackageJson = structuredClone(parsedPackageJson);
     const deploymentVersion = await getDeploymentVersion(process.env, parsedPackageJson.version);
 
     // Update the package.json version to the deployment version
     parsedPackageJson.version = deploymentVersion;
     // omit dev & peer dependencies from pnpm store of release build
     parsedPackageJson.devDependencies = {};
-    parsedPackageJson.peerDependencies = {};
 
     // Create a temporary directory for packaging
     await mkdir('./deploy/pack/', { recursive: true });
@@ -49,8 +47,6 @@ try {
     $.verbose = true;
     await $`npm install --omit=dev`;
 
-    // Now write the package.json back to the pack directory
-    parsedPackageJson.peerDependencies = originalPackageJson.peerDependencies;
     await writeFile('package.json', JSON.stringify(parsedPackageJson, null, 4));
 
     const sudoCheck = await $`command -v sudo`.nothrow();

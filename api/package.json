@@ -139,6 +139,11 @@
     "peerDependencies": {
         "unraid-api-plugin-connect": "workspace:*"
     },
+    "peerDependenciesMeta": {
+        "unraid-api-plugin-connect": {
+            "optional": true
+        }
+    },
     "devDependencies": {
         "@eslint/js": "^9.21.0",
         "@graphql-codegen/add": "^5.0.3",
