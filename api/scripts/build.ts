@@ -20,7 +20,7 @@ try {
     // Get package details
     const packageJson = await readFile('./package.json', 'utf-8');
     const parsedPackageJson = JSON.parse(packageJson);
-
+    const originalPackageJson = structuredClone(parsedPackageJson);
     const deploymentVersion = await getDeploymentVersion(process.env, parsedPackageJson.version);
 
     // Update the package.json version to the deployment version
@@ -44,6 +44,7 @@ try {
     await $`npm install --omit=dev`;
 
     // Now write the package.json back to the pack directory
+    parsedPackageJson.peerDependencies = originalPackageJson.peerDependencies;
     await writeFile('package.json', JSON.stringify(parsedPackageJson, null, 4));
 
     const sudoCheck = await $`command -v sudo`.nothrow();
