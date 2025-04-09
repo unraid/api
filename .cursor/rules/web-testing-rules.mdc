@@ -69,6 +69,7 @@ describe('YourComponent', () => {
 
 ### Mocking
 - Mock external services and API calls
+- Prefer not using mocks whenever possible
 - Use `vi.mock()` for module-level mocks
 - Specify return values for component methods with `vi.spyOn()`
 - Reset mocks between tests with `vi.clearAllMocks()`

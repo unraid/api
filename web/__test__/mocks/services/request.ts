@@ -11,5 +11,10 @@ vi.mock('~/composables/services/request', () => {
         response: { use: vi.fn() },
       },
     })),
+    // Add the url function that's used by WebguiInstallKey
+    url: vi.fn((path) => path),
+    request: {
+      url: vi.fn((path) => path),
+    },
   };
 });
