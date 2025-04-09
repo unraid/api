@@ -23,7 +23,7 @@ function getVersion(): string {
  */
 export function getPnpmBundleName(): string {
     const version = getVersion();
-    return `pnpm-store-for-v${version}.txz`;
+    return `node-modules-for-v${version}.tar.xz`;
 }
 
 /**
@@ -36,7 +36,7 @@ export function getPnpmBundleName(): string {
  * After this operation, the vendored store will be available inside the `deployDir`.
  */
 export async function bundlePnpmStore(): Promise<void> {
-    const storeArchive = join(startingDir, "packed-pnpm-store.txz");
+    const storeArchive = join(startingDir, "packed-node-modules.tar.xz");
     const pnpmStoreTarPath = join(deployDir, getPnpmBundleName());
     await copyFile(storeArchive, pnpmStoreTarPath);
 }

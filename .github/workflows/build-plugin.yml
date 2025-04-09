@@ -103,7 +103,7 @@ jobs:
       - name: Download PNPM Store
         uses: actions/download-artifact@v4
         with:
-          name: packed-pnpm-store
+          name: packed-node-modules
           path: ${{ github.workspace }}/plugin/
       - name: Extract Unraid API
         run: |
@@ -127,6 +127,11 @@ jobs:
 
           if [ ! -f ./deploy/*.txz ]; then
             echo "Error: .txz file not found in plugin/deploy/"
+            exit 1
+          fi
+
+          if [ ! -f ./deploy/*.tar.xz ]; then
+            echo "Error: .tar.xz file not found in plugin/deploy/"
             exit 1
           fi
 
