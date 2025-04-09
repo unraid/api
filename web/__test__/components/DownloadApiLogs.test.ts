@@ -68,20 +68,20 @@ describe('DownloadApiLogs', () => {
 
     // Find all support links
     const links = wrapper.findAll('a');
-    expect(links.length).toBe(3);
+    expect(links.length).toBe(4);
 
     // Verify each link has correct href and text
-    expect(links[0].attributes('href')).toBe('http://mock-forums.local/');
-    expect(links[0].text()).toContain('Unraid Connect Forums');
+    expect(links[1].attributes('href')).toBe('http://mock-forums.local/');
+    expect(links[1].text()).toContain('Unraid Connect Forums');
 
-    expect(links[1].attributes('href')).toBe('http://mock-discord.local/');
-    expect(links[1].text()).toContain('Unraid Discord');
+    expect(links[2].attributes('href')).toBe('http://mock-discord.local/');
+    expect(links[2].text()).toContain('Unraid Discord');
 
-    expect(links[2].attributes('href')).toBe('http://mock-contact.local/');
-    expect(links[2].text()).toContain('Unraid Contact Page');
+    expect(links[3].attributes('href')).toBe('http://mock-contact.local/');
+    expect(links[3].text()).toContain('Unraid Contact Page');
 
     // Verify all links open in new tab
-    links.forEach((link) => {
+    links.slice(1).forEach((link) => {
       expect(link.attributes('target')).toBe('_blank');
       expect(link.attributes('rel')).toBe('noopener noreferrer');
     });

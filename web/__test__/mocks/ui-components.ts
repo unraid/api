@@ -17,15 +17,20 @@ const MockBrandButton = {
     'title',
   ],
   template: `
-    <button 
+    <component :is="props.href ? 'a' : 'button'"
       :class="props.class" 
       :disabled="props.disabled" 
       :href="props.href"
-      :external="props.external"
+      :target="props.external ? '_blank' : undefined"
+      :rel="props.external ? 'noopener noreferrer' : undefined"
       :title="props.title"
+      :external="props.external ? 'true' : undefined"
+      :download="props.download"
     >
+      <span v-if="props.icon" class="icon">{{ props.icon }}</span>
       {{ props.text || '' }} <slot />
-    </button>
+      <span v-if="props.iconRight" class="icon-right" :class="{ 'hover-only': props.iconRightHoverDisplay }">{{ props.iconRight }}</span>
+    </component>
   `,
   setup(props: Record<string, unknown>) {
     return { props };

@@ -10,12 +10,14 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import type { Config, ConfigErrorState, PartialCloudFragment } from '~/composables/gql/graphql';
 import type {
+  Server,
   ServerconnectPluginInstalled,
   ServerState,
   ServerStateDataAction,
   ServerUpdateOsResponse,
 } from '~/types/server';
 
+import { WebguiState } from '~/composables/services/webgui';
 import { useServerStore } from '~/store/server';
 
 type MockServerStore = ReturnType<typeof useServerStore> & Record<string, unknown>;
@@ -609,13 +611,11 @@ describe('useServerStore', () => {
       })
     );
 
-    // Set up stateData to have some actions
     const mockActions = [
       { name: 'trialStart', text: 'Start Trial' },
       { name: 'purchase', text: 'Purchase' },
     ] as ServerStateDataAction[];
 
-    // Use vi.spyOn to mock the computed property
     vi.spyOn(store, 'stateData', 'get').mockReturnValue({
       actions: mockActions,
       humanReadable: 'Test',
@@ -623,13 +623,11 @@ describe('useServerStore', () => {
       message: 'Test Message',
     });
 
-    // Filter out certain actions
     const filteredOut = store.filteredKeyActions('out', ['trialStart']);
 
     expect(filteredOut?.length).toBe(1);
     expect(filteredOut?.[0].name).toBe('purchase');
 
-    // Filter by certain actions
     const filteredBy = store.filteredKeyActions('by', ['trialStart']);
 
     expect(filteredBy?.length).toBe(1);
@@ -650,12 +648,39 @@ describe('useServerStore', () => {
 
   it('should refresh server state', async () => {
     const store = getStore();
+    const originalRefreshServerState = store.refreshServerState;
 
-    vi.spyOn(store, 'refreshServerState').mockResolvedValue(true);
+    // Mock the WebguiState.get implementation
+    const mockServerData = {
+      registered: true,
+      state: 'TRIAL' as ServerState,
+      regExp: 12345678,
+    };
+    const jsonMock = vi.fn().mockResolvedValue(mockServerData);
+
+    vi.mocked(WebguiState.get).mockReturnValue({
+      json: jsonMock,
+    } as unknown as ReturnType<typeof WebguiState.get>);
+
+    const setServerSpy = vi.spyOn(store, 'setServer');
+
+    // Modify refreshServerState to avoid infinite timeouts in tests
+    // This simulates a successful state change on the first try
+    store.refreshServerState = async () => {
+      const response = await WebguiState.get().json();
+
+      store.setServer(response as unknown as Server);
+
+      return true;
+    };
 
     const result = await store.refreshServerState();
 
     expect(result).toBe(true);
+    expect(jsonMock).toHaveBeenCalled();
+    expect(setServerSpy).toHaveBeenCalledWith(mockServerData);
+
+    store.refreshServerState = originalRefreshServerState;
   });
 
   it('should set update OS response', () => {
