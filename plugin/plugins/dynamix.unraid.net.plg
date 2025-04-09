@@ -163,7 +163,7 @@ exit 0
         # It will be rebuilt if the plugin install succeeds.
         if [ -d /usr/local/unraid-api/node_modules ]; then
           echo "Removing stale node_modules archive from the boot drive"
-          rm -f /boot/config/plugins/dynamix.unraid.net/node-modules/node_modules.tar.xz
+          rm -f /boot/config/plugins/dynamix.my.servers/node_modules.tar.gz
         fi
 
         echo "Node.js installation successful"

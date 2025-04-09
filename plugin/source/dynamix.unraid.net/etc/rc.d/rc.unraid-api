@@ -20,7 +20,7 @@ uninstall() {
 
 # Creates a backup of the global pnpm store directory
 # Args:
-#   $1 - Path to the backup file (tar.xz format)
+#   $1 - Path to the backup file (tar.gz format)
 # Returns:
 #   0 on success, 1 on failure
 backup_pnpm_store() {
@@ -130,14 +130,14 @@ pnpm_install_unraid_api() {
     return 1
   fi
 
-  local archive_file="/boot/config/plugins/dynamix.unraid.net/node-modules/node_modules.tar.xz"
+  local archive_file="/boot/config/plugins/dynamix.my.servers/node_modules.tar.gz"
   local node_modules_dir="${unraid_api_dir}/node_modules"
 
   # Check if archive exists and restore it
   if [ -f "$archive_file" ]; then
     echo "Found node_modules archive at '$archive_file'. Attempting to restore..."
     rm -rf "$node_modules_dir"
-    if tar -xJf "$archive_file" -C "$(dirname "$node_modules_dir")" --preserve-permissions; then
+    if tar -xzf "$archive_file" -C "$(dirname "$node_modules_dir")" --preserve-permissions; then
       echo "Successfully restored node_modules from archive."
       return 0
     else
@@ -149,6 +149,7 @@ pnpm_install_unraid_api() {
   rm -rf "$node_modules_dir"
   # Run pnpm install in a subshell to prevent changing the current working directory of the script
   (cd "$unraid_api_dir" && run_pnpm_install)
+  echo "⚠️ Do not close this window yet"
   archive_node_modules
 }
 
@@ -158,8 +159,8 @@ pnpm_install_unraid_api() {
 #   0 on success, 1 on failure
 archive_node_modules() {
   local source_dir="/usr/local/unraid-api/node_modules"
-  local dest_dir="/boot/config/plugins/dynamix.unraid.net/node-modules"
-  local archive_file="${dest_dir}/node_modules.tar.xz"
+  local dest_dir="/boot/config/plugins/dynamix.my.servers"
+  local archive_file="${dest_dir}/node_modules.tar.gz"
 
   # Check if source directory exists
   if [ ! -d "$source_dir" ]; then
@@ -172,8 +173,8 @@ archive_node_modules() {
 
   echo "Archiving node_modules from '$source_dir' to '$archive_file'"
 
-  # Create archive with xz compression, preserving symlinks
-  if tar -cJf "$archive_file" -C "$(dirname "$source_dir")" "$(basename "$source_dir")"; then
+  # Create archive with gzip compression level 1 (fastest), preserving symlinks
+  if tar -cf "$archive_file" -I "gzip -1" -C "$(dirname "$source_dir")" "$(basename "$source_dir")"; then
     echo "node_modules archive created successfully."
   else
     echo "Error: Failed to create node_modules archive."
