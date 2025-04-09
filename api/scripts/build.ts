@@ -47,9 +47,7 @@ try {
     $.verbose = true;
     await $`pnpm install --prod --ignore-workspace --store-dir=../.pnpm-store`;
 
-    // Now remove the onlybuilddependencies from the package json
-    delete parsedPackageJson.pnpm;
-    // Now write the package.json back to the pack directoryaw
+    // Now write the package.json back to the pack directory
     await writeFile('package.json', JSON.stringify(parsedPackageJson, null, 4));
 
     await $`rm -rf node_modules`; // Don't include node_modules in final package

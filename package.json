@@ -22,13 +22,11 @@
     },
     "onlyBuiltDependencies": [
       "@apollo/protobufjs",
-      "@nestjs/core",
+      "protobufjs",
       "@parcel/watcher",
       "@swc/core",
       "@unraid/libvirt",
-      "cpu-features",
       "esbuild",
-      "nestjs-pino",
       "ssh2",
       "vue-demi"
     ]
