@@ -1,6 +1,7 @@
 import type { NestFastifyApplication } from '@nestjs/platform-fastify';
 import { NestFactory } from '@nestjs/core';
 import { FastifyAdapter } from '@nestjs/platform-fastify/index.js';
+import { ValidationPipe } from '@nestjs/common';
 
 import fastifyCookie from '@fastify/cookie';
 import fastifyHelmet from '@fastify/helmet';
@@ -19,6 +20,16 @@ export async function bootstrapNestServer(): Promise<NestFastifyApplication> {
         bufferLogs: false,
         ...(LOG_LEVEL !== 'TRACE' ? { logger: false } : {}),
     });
+
+    // Enable validation globally
+    app.useGlobalPipes(new ValidationPipe({
+        transform: true,
+        whitelist: true,
+        forbidNonWhitelisted: true,
+        transformOptions: {
+            enableImplicitConversion: true,
+        },
+    }));
 
     const server = app.getHttpAdapter().getInstance();
 

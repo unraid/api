@@ -2,25 +2,27 @@ import { Args, Mutation, Query, Resolver } from '@nestjs/graphql';
 
 import { AuthActionVerb, AuthPossession, UsePermissions } from 'nest-authz';
 
-import type {
+import { ApiKeyService } from '@app/unraid-api/auth/api-key.service.js';
+import { AuthService } from '@app/unraid-api/auth/auth.service.js';
+
+import { Resource, Role } from '../base.model.js';
+import { validateObject } from '../validation.utils.js';
+import {
     AddRoleForApiKeyInput,
     ApiKey,
     ApiKeyWithSecret,
     CreateApiKeyInput,
     RemoveRoleFromApiKeyInput,
-} from '@app/graphql/generated/api/types.js';
-import { Resource, Role } from '@app/graphql/generated/api/types.js';
-import { ApiKeyService } from '@app/unraid-api/auth/api-key.service.js';
-import { AuthService } from '@app/unraid-api/auth/auth.service.js';
+} from './api-key.model.js';
 
-@Resolver('ApiKey')
+@Resolver(() => ApiKey)
 export class ApiKeyResolver {
     constructor(
         private authService: AuthService,
         private apiKeyService: ApiKeyService
     ) {}
 
-    @Query()
+    @Query(() => [ApiKey])
     @UsePermissions({
         action: AuthActionVerb.READ,
         resource: Resource.API_KEY,
@@ -30,7 +32,7 @@ export class ApiKeyResolver {
         return this.apiKeyService.findAll();
     }
 
-    @Query()
+    @Query(() => ApiKey, { nullable: true })
     @UsePermissions({
         action: AuthActionVerb.READ,
         resource: Resource.API_KEY,
@@ -40,7 +42,7 @@ export class ApiKeyResolver {
         return this.apiKeyService.findById(id);
     }
 
-    @Mutation()
+    @Mutation(() => ApiKeyWithSecret)
     @UsePermissions({
         action: AuthActionVerb.CREATE,
         resource: Resource.API_KEY,
@@ -48,8 +50,11 @@ export class ApiKeyResolver {
     })
     async createApiKey(
         @Args('input')
-        input: CreateApiKeyInput
+        unvalidatedInput: CreateApiKeyInput
     ): Promise<ApiKeyWithSecret> {
+        // Validate the input using class-validator
+        const input = await validateObject(CreateApiKeyInput, unvalidatedInput);
+
         const apiKey = await this.apiKeyService.create({
             name: input.name,
             description: input.description ?? undefined,
@@ -63,7 +68,7 @@ export class ApiKeyResolver {
         return apiKey;
     }
 
-    @Mutation()
+    @Mutation(() => Boolean)
     @UsePermissions({
         action: AuthActionVerb.UPDATE,
         resource: Resource.API_KEY,
@@ -73,10 +78,13 @@ export class ApiKeyResolver {
         @Args('input')
         input: AddRoleForApiKeyInput
     ): Promise<boolean> {
-        return this.authService.addRoleToApiKey(input.apiKeyId, Role[input.role]);
+        // Validate the input using class-validator
+        const validatedInput = await validateObject(AddRoleForApiKeyInput, input);
+
+        return this.authService.addRoleToApiKey(validatedInput.apiKeyId, Role[validatedInput.role]);
     }
 
-    @Mutation()
+    @Mutation(() => Boolean)
     @UsePermissions({
         action: AuthActionVerb.UPDATE,
         resource: Resource.API_KEY,
@@ -86,6 +94,8 @@ export class ApiKeyResolver {
         @Args('input')
         input: RemoveRoleFromApiKeyInput
     ): Promise<boolean> {
-        return this.authService.removeRoleFromApiKey(input.apiKeyId, Role[input.role]);
+        // Validate the input using class-validator
+        const validatedInput = await validateObject(RemoveRoleFromApiKeyInput, input);
+        return this.authService.removeRoleFromApiKey(validatedInput.apiKeyId, Role[validatedInput.role]);
     }
 }

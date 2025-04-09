@@ -2,18 +2,25 @@ import { Logger } from '@nestjs/common';
 import { readdir, readFile, writeFile } from 'fs/promises';
 import { join } from 'path';
 
-import { ensureDir, ensureDirSync } from 'fs-extra';
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { ZodError } from 'zod';
 
-import type { ApiKey, ApiKeyWithSecret } from '@app/graphql/generated/api/types.js';
+
+import { ensureDir, ensureDirSync } from 'fs-extra';
+import { AuthActionVerb } from 'nest-authz';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+
+
+
 import { environment } from '@app/environment.js';
-import { ApiKeySchema, ApiKeyWithSecretSchema } from '@app/graphql/generated/api/operations.js';
-import { AuthActionVerb, Resource, Role } from '@app/graphql/generated/api/types.js';
 import { getters, store } from '@app/store/index.js';
 import { updateUserConfig } from '@app/store/modules/config.js';
 import { FileLoadStatus } from '@app/store/types.js';
 import { ApiKeyService } from '@app/unraid-api/auth/api-key.service.js';
+import { ApiKey, ApiKeyWithSecret, Permission } from '@app/unraid-api/graph/resolvers/api-key/api-key.model.js';
+import { Resource, Role } from '@app/unraid-api/graph/resolvers/base.model.js';
+
+
+
+
 
 // Mock the store and its modules
 vi.mock('@app/store/index.js', () => ({
@@ -43,11 +50,6 @@ vi.mock('fs/promises', async () => ({
     writeFile: vi.fn(),
 }));
 
-vi.mock('@app/graphql/generated/api/operations.js', () => ({
-    ApiKeyWithSecretSchema: vi.fn(),
-    ApiKeySchema: vi.fn(),
-}));
-
 vi.mock('fs-extra', () => ({
     ensureDir: vi.fn(),
     ensureDirSync: vi.fn(),
@@ -69,7 +71,12 @@ describe('ApiKeyService', () => {
         name: 'Test API Key',
         description: 'Test API Key Description',
         roles: [Role.GUEST],
-        permissions: [],
+        permissions: [
+            {
+                resource: Resource.CONNECT,
+                actions: [AuthActionVerb.READ],
+            },
+        ],
         createdAt: new Date().toISOString(),
     };
 
@@ -131,14 +138,6 @@ describe('ApiKeyService', () => {
         vi.mock('uuid', () => ({
             v4: () => 'test-api-id',
         }));
-
-        // Add default schema mocks
-        vi.mocked(ApiKeyWithSecretSchema).mockReturnValue({
-            parse: vi.fn().mockImplementation((data) => data),
-        } as any);
-        vi.mocked(ApiKeySchema).mockReturnValue({
-            parse: vi.fn().mockImplementation((data) => data),
-        } as any);
     });
 
     afterEach(() => {
@@ -297,15 +296,33 @@ describe('ApiKeyService', () => {
             ]);
             await apiKeyService.onModuleInit();
 
-            vi.mocked(ApiKeySchema).mockReturnValue({
-                parse: vi.fn().mockReturnValue(mockApiKey),
-            } as any);
-
             const result = await apiKeyService.findAll();
-
             expect(result).toHaveLength(2);
-            expect(result[0]).toEqual(mockApiKey);
-            expect(result[1]).toEqual(mockApiKey);
+
+            const expectedApiKey1 = {
+                ...mockApiKey,
+                id: 'test-api-id',
+                permissions: [
+                    {
+                        resource: Resource.CONNECT,
+                        actions: [AuthActionVerb.READ],
+                    },
+                ],
+            };
+
+            const expectedApiKey2 = {
+                ...mockApiKey,
+                id: 'second-id',
+                permissions: [
+                    {
+                        resource: Resource.CONNECT,
+                        actions: [AuthActionVerb.READ],
+                    },
+                ],
+            };
+
+            expect(result[0]).toEqual(expectedApiKey1);
+            expect(result[1]).toEqual(expectedApiKey2);
         });
 
         it('should handle file read errors gracefully', async () => {
@@ -318,10 +335,6 @@ describe('ApiKeyService', () => {
         it('should return API key by id when found', async () => {
             vi.spyOn(apiKeyService, 'loadAllFromDisk').mockResolvedValue([mockApiKeyWithSecret]);
             await apiKeyService.onModuleInit();
-
-            vi.mocked(ApiKeySchema).mockReturnValue({
-                parse: vi.fn().mockReturnValue(mockApiKey),
-            } as any);
 
             const result = await apiKeyService.findById(mockApiKeyWithSecret.id);
 
@@ -337,27 +350,6 @@ describe('ApiKeyService', () => {
             const result = await apiKeyService.findById('non-existent-id');
 
             expect(result).toBeNull();
-        });
-
-        it('should throw error if schema validation fails', async () => {
-            vi.spyOn(apiKeyService, 'loadAllFromDisk').mockResolvedValue([mockApiKeyWithSecret]);
-            await apiKeyService.onModuleInit();
-
-            vi.mocked(ApiKeySchema).mockReturnValue({
-                parse: vi.fn().mockImplementation(() => {
-                    throw new ZodError([
-                        {
-                            code: 'custom',
-                            path: ['roles'],
-                            message: 'Invalid role',
-                        },
-                    ]);
-                }),
-            } as any);
-
-            expect(() => apiKeyService.findById(mockApiKeyWithSecret.id)).toThrow(
-                'Invalid API key structure'
-            );
         });
     });
 
@@ -404,10 +396,6 @@ describe('ApiKeyService', () => {
 
             await apiKeyService.onModuleInit();
 
-            vi.mocked(ApiKeyWithSecretSchema).mockReturnValue({
-                parse: vi.fn().mockImplementation((data) => data),
-            } as any);
-
             const result = await apiKeyService.findByKey(mockApiKeyWithSecret.key);
 
             expect(result).toEqual(mockApiKeyWithSecret);
@@ -419,10 +407,6 @@ describe('ApiKeyService', () => {
                 { ...mockApiKeyWithSecret, key: 'different-key-2' },
             ]);
             await apiKeyService.onModuleInit();
-
-            vi.mocked(ApiKeyWithSecretSchema).mockReturnValue({
-                parse: vi.fn().mockImplementation((data) => data),
-            } as any);
 
             const result = await apiKeyService.findByKey('non-existent-key');
 
@@ -442,10 +426,6 @@ describe('ApiKeyService', () => {
 
     describe('saveApiKey', () => {
         it('should save API key to file', async () => {
-            vi.mocked(ApiKeyWithSecretSchema).mockReturnValue({
-                parse: vi.fn().mockReturnValue(mockApiKeyWithSecret),
-            } as any);
-
             vi.mocked(writeFile).mockResolvedValue(undefined);
 
             await apiKeyService.saveApiKey(mockApiKeyWithSecret);
@@ -469,10 +449,6 @@ describe('ApiKeyService', () => {
         });
 
         it('should throw GraphQLError on write error', async () => {
-            vi.mocked(ApiKeyWithSecretSchema).mockReturnValue({
-                parse: vi.fn().mockReturnValue(mockApiKeyWithSecret),
-            } as any);
-
             vi.mocked(writeFile).mockRejectedValue(new Error('Write failed'));
 
             await expect(apiKeyService.saveApiKey(mockApiKeyWithSecret)).rejects.toThrow(
@@ -481,18 +457,6 @@ describe('ApiKeyService', () => {
         });
 
         it('should throw GraphQLError on invalid API key structure', async () => {
-            vi.mocked(ApiKeyWithSecretSchema).mockReturnValue({
-                parse: vi.fn().mockImplementation(() => {
-                    throw new ZodError([
-                        {
-                            code: 'custom',
-                            path: ['name'],
-                            message: 'Name cannot be empty',
-                        },
-                    ]);
-                }),
-            } as any);
-
             const invalidApiKey = {
                 ...mockApiKeyWithSecret,
                 name: '', // Invalid: name cannot be empty
@@ -503,26 +467,15 @@ describe('ApiKeyService', () => {
             );
         });
 
-        it('should throw GraphQLError when roles array is empty', async () => {
-            vi.mocked(ApiKeyWithSecretSchema).mockReturnValue({
-                parse: vi.fn().mockImplementation(() => {
-                    throw new ZodError([
-                        {
-                            code: 'custom',
-                            path: ['roles'],
-                            message: 'Roles array cannot be empty',
-                        },
-                    ]);
-                }),
-            } as any);
-
+        it('should throw GraphQLError when roles and permissions array is empty', async () => {
             const invalidApiKey = {
                 ...mockApiKeyWithSecret,
-                roles: [], // Invalid: roles cannot be empty
+                permissions: [],
+                roles: [],
             } as ApiKeyWithSecret;
 
             await expect(apiKeyService.saveApiKey(invalidApiKey)).rejects.toThrow(
-                'Failed to save API key: Invalid data structure'
+                'At least one of permissions or roles must be specified'
             );
         });
     });
@@ -533,9 +486,6 @@ describe('ApiKeyService', () => {
 
             vi.mocked(readdir).mockResolvedValue(mockFiles as any);
             vi.mocked(readFile).mockResolvedValue(JSON.stringify(mockApiKeyWithSecret));
-            vi.mocked(ApiKeyWithSecretSchema).mockReturnValue({
-                parse: vi.fn().mockReturnValue(mockApiKeyWithSecret),
-            } as any);
 
             const result = await apiKeyService.loadAllFromDisk();
 
@@ -553,14 +503,31 @@ describe('ApiKeyService', () => {
                 expect.stringContaining('Failed to read API key directory')
             );
         });
+
+        it('should ignore invalid API Key files when loading from disk', async () => {
+            vi.mocked(readdir).mockResolvedValue(['key1.json', 'badkey.json', 'key2.json', 'notakey.txt'] as any);
+            vi.mocked(readFile).mockResolvedValueOnce(JSON.stringify(mockApiKeyWithSecret))
+            .mockResolvedValueOnce(JSON.stringify({ invalid: 'structure' }))
+            .mockResolvedValueOnce(JSON.stringify({...mockApiKeyWithSecret, id: 'unique-id', key: 'unique-key' }))
+            .mockResolvedValueOnce(JSON.stringify({...mockApiKeyWithSecret, id: 'unique-id', key: 'unique-key' }));
+            const result = await apiKeyService.loadAllFromDisk();
+            expect(result).toHaveLength(2);
+            expect(result[0]).toEqual({
+                ...mockApiKey,
+                id: 'test-api-id',
+                key: 'test-api-key',
+            });
+            expect(result[1]).toEqual({
+                ...mockApiKey,
+                id: 'unique-id',
+                key: 'unique-key',
+            });
+        });
     });
 
     describe('loadApiKeyFile', () => {
         it('should load and parse a valid API key file', async () => {
             vi.mocked(readFile).mockResolvedValue(JSON.stringify(mockApiKeyWithSecret));
-            vi.mocked(ApiKeyWithSecretSchema).mockReturnValue({
-                parse: vi.fn().mockReturnValue(mockApiKeyWithSecret),
-            } as any);
 
             const result = await apiKeyService['loadApiKeyFile']('test.json');
 
@@ -589,24 +556,34 @@ describe('ApiKeyService', () => {
 
         it('should throw error on invalid API key structure', async () => {
             vi.mocked(readFile).mockResolvedValue(JSON.stringify({ invalid: 'structure' }));
-            vi.mocked(ApiKeyWithSecretSchema).mockReturnValue({
-                parse: vi.fn().mockImplementation(() => {
-                    throw new ZodError([
-                        {
-                            code: 'custom',
-                            path: [],
-                            message: 'Invalid structure',
-                        },
-                    ]);
-                }),
-            } as any);
 
             await expect(
                 apiKeyService['loadApiKeyFile']('test.json')
-            ).rejects.toThrowErrorMatchingInlineSnapshot(`[Error: Invalid API key structure]`);
+            ).rejects.toThrow('Invalid API key structure');
 
             expect(mockLogger.error).toHaveBeenCalledWith(
-                expect.stringContaining('Invalid API key structure in file test.json')
+                expect.stringContaining('Error validating API key file test.json')
+            );
+            expect(mockLogger.error).toHaveBeenCalledWith(
+                expect.stringContaining('An instance of ApiKeyWithSecret has failed the validation')
+            );
+            expect(mockLogger.error).toHaveBeenCalledWith(
+                expect.stringContaining('property key')
+            );
+            expect(mockLogger.error).toHaveBeenCalledWith(
+                expect.stringContaining('property id')
+            );
+            expect(mockLogger.error).toHaveBeenCalledWith(
+                expect.stringContaining('property name')
+            );
+            expect(mockLogger.error).toHaveBeenCalledWith(
+                expect.stringContaining('property roles')
+            );
+            expect(mockLogger.error).toHaveBeenCalledWith(
+                expect.stringContaining('property createdAt')
+            );
+            expect(mockLogger.error).toHaveBeenCalledWith(
+                expect.stringContaining('property permissions')
             );
         });
     });

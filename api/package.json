@@ -43,7 +43,9 @@
         "container:start": "pnpm run container:stop && ./scripts/dc.sh run --rm --service-ports dev",
         "container:stop": "./scripts/dc.sh stop dev",
         "container:test": "./scripts/dc.sh run --rm builder pnpm run test",
-        "container:enter": "./scripts/dc.sh exec dev /bin/bash"
+        "container:enter": "./scripts/dc.sh exec dev /bin/bash",
+        "// Migration Scripts": "",
+        "migration:codefirst": "tsx ./src/unraid-api/graph/migration-script.ts"
     },
     "bin": {
         "unraid-api": "dist/cli.js"
@@ -81,6 +83,8 @@
         "casbin": "^5.32.0",
         "change-case": "^5.4.4",
         "chokidar": "^4.0.1",
+        "class-transformer": "^0.5.1",
+        "class-validator": "^0.14.1",
         "cli-table": "^0.3.11",
         "command-exists": "^1.2.9",
         "convert": "^5.8.0",
