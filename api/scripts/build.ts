@@ -20,8 +20,6 @@ try {
     // Get package details
     const packageJson = await readFile('./package.json', 'utf-8');
     const parsedPackageJson = JSON.parse(packageJson);
-    const rootPackageJson = await readFile('./../package.json', 'utf-8');
-    const parsedRootPackageJson = JSON.parse(rootPackageJson);
 
     const deploymentVersion = await getDeploymentVersion(process.env, parsedPackageJson.version);
 
@@ -29,9 +27,6 @@ try {
     parsedPackageJson.version = deploymentVersion;
     // omit dev dependencies from release build
     parsedPackageJson.devDependencies = {};
-
-    // add all PNPM settings for pnpm install from root package.json
-    parsedPackageJson.pnpm = parsedRootPackageJson.pnpm;
 
     // Create a temporary directory for packaging
     await mkdir('./deploy/pack/', { recursive: true });
@@ -43,23 +38,20 @@ try {
     // Change to the pack directory and install dependencies
     cd('./deploy/pack');
 
-    console.log('Building production pnpm store...');
+    console.log('Building production node_modules...');
     $.verbose = true;
-    await $`pnpm install --prod --ignore-workspace --store-dir=../.pnpm-store`;
+    await $`npm install --omit=dev`;
 
-    // Now remove the onlybuilddependencies from the package json
-    delete parsedPackageJson.pnpm;
-    // Now write the package.json back to the pack directoryaw
+    // Now write the package.json back to the pack directory
     await writeFile('package.json', JSON.stringify(parsedPackageJson, null, 4));
-
-    await $`rm -rf node_modules`; // Don't include node_modules in final package
 
     const sudoCheck = await $`command -v sudo`.nothrow();
     const SUDO = sudoCheck.exitCode === 0 ? 'sudo' : '';
-    await $`${SUDO} chown -R 0:0 ../.pnpm-store`;
+    await $`${SUDO} chown -R 0:0 node_modules`;
 
-    await $`XZ_OPT=-5 tar -cJf ../packed-pnpm-store.txz ../.pnpm-store`;
-    await $`${SUDO} rm -rf ../.pnpm-store`;
+    await $`XZ_OPT=-5 tar -cJf packed-node-modules.tar.xz node_modules`;
+    await $`mv packed-node-modules.tar.xz ../`;
+    await $`${SUDO} rm -rf node_modules`;
 
     // chmod the cli
     await $`chmod +x ./dist/cli.js`;
