@@ -1,10 +1,16 @@
 #!/usr/bin/env zx
-import { mkdir, readFile, rm, writeFile } from 'fs/promises';
+import { mkdir, readFile, writeFile } from 'fs/promises';
 import { exit } from 'process';
 
+import type { PackageJson } from 'type-fest';
 import { $, cd } from 'zx';
 
 import { getDeploymentVersion } from './get-deployment-version.js';
+
+type ApiPackageJson = PackageJson & {
+    version: string;
+    peerDependencies: Record<string, string>;
+};
 
 try {
     // Create release and pack directories
@@ -19,7 +25,7 @@ try {
 
     // Get package details
     const packageJson = await readFile('./package.json', 'utf-8');
-    const parsedPackageJson = JSON.parse(packageJson);
+    const parsedPackageJson = JSON.parse(packageJson) as ApiPackageJson;
     const originalPackageJson = structuredClone(parsedPackageJson);
     const deploymentVersion = await getDeploymentVersion(process.env, parsedPackageJson.version);
 
