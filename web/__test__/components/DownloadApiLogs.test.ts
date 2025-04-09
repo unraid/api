@@ -52,7 +52,8 @@ describe('DownloadApiLogs', () => {
     expect(downloadButton.exists()).toBe(true);
     expect(downloadButton.attributes('href')).toBe(expectedUrl.toString());
     expect(downloadButton.attributes('download')).toBe('');
-    expect(downloadButton.attributes('external')).toBe('true');
+    expect(downloadButton.attributes('target')).toBe('_blank');
+    expect(downloadButton.attributes('rel')).toBe('noopener noreferrer');
     expect(downloadButton.text()).toContain('Download unraid-api Logs');
   });
 
