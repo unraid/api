@@ -108,7 +108,7 @@ restore_pnpm_store() {
 # Output: Streams install progress and logs build script warnings
 run_pnpm_install() {
   local log_file="/var/log/unraid-api/build-scripts.log"
-  stdbuf -oL pnpm install --prod --prefer-offline --reporter=append-only 2>&1 | sed -e "/^╭ Warning/,/^╰/w $log_file" -e "/^╭ Warning/,/^╰/c\Build scripts completed. See $log_file for details."
+  stdbuf -oL pnpm install --prod --offline --reporter=append-only 2>&1 | sed -e "/^╭ Warning/,/^╰/w $log_file" -e "/^╭ Warning/,/^╰/c\Build scripts completed. See $log_file for details."
   echo "Note: This warning is expected. Build scripts are intentionally ignored for security and performance reasons." >> "$log_file"
 }
 
@@ -130,10 +130,55 @@ pnpm_install_unraid_api() {
     return 1
   fi
 
+  local archive_file="/boot/config/plugins/dynamix.unraid.net/node-modules/node_modules.tar.xz"
+  local node_modules_dir="${unraid_api_dir}/node_modules"
+
+  # Check if archive exists and restore it
+  if [ -f "$archive_file" ]; then
+    echo "Found node_modules archive at '$archive_file'. Attempting to restore..."
+    rm -rf "$node_modules_dir"
+    if tar -xJf "$archive_file" -C "$(dirname "$node_modules_dir")" --preserve-permissions; then
+      echo "Successfully restored node_modules from archive."
+      return 0
+    else
+      echo "Failed to restore from archive. Falling back to pnpm install..."
+    fi
+  fi
+
   echo "Executing 'pnpm install' in $unraid_api_dir"
-  rm -rf /usr/local/unraid-api/node_modules
+  rm -rf "$node_modules_dir"
   # Run pnpm install in a subshell to prevent changing the current working directory of the script
   (cd "$unraid_api_dir" && run_pnpm_install)
+  archive_node_modules
+}
+
+# Archives the node_modules directory to a specified location
+# Args: none
+# Returns:
+#   0 on success, 1 on failure
+archive_node_modules() {
+  local source_dir="/usr/local/unraid-api/node_modules"
+  local dest_dir="/boot/config/plugins/dynamix.unraid.net/node-modules"
+  local archive_file="${dest_dir}/node_modules.tar.xz"
+
+  # Check if source directory exists
+  if [ ! -d "$source_dir" ]; then
+    echo "Error: Source node_modules directory '$source_dir' does not exist."
+    return 1
+  fi
+
+  # Create destination directory if it doesn't exist
+  mkdir -p "$dest_dir"
+
+  echo "Archiving node_modules from '$source_dir' to '$archive_file'"
+
+  # Create archive with xz compression, preserving symlinks
+  if tar -cJf "$archive_file" -C "$(dirname "$source_dir")" "$(basename "$source_dir")"; then
+    echo "node_modules archive created successfully."
+  else
+    echo "Error: Failed to create node_modules archive."
+    return 1
+  fi
 }
 
 case "$1" in
@@ -154,6 +199,9 @@ case "$1" in
   ;;
 'restore-dependencies')
   restore_pnpm_store "$2"
+  ;;
+'archive-dependencies')
+  archive_node_modules
   ;;
 *)
   # Pass all other commands to unraid-api

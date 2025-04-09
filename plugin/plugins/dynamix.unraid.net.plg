@@ -159,6 +159,13 @@ exit 0
         # Remove stale pnpm store archives from the boot drive
         find /boot/config/plugins/dynamix.my.servers/ -name "pnpm-store-for-v*.txz" ! -name "${VENDOR_ARCHIVE}" -delete
 
+        # If the unraid-api node_modules directory exists, delete the stale node_modules archive from the boot drive.
+        # It will be rebuilt if the plugin install succeeds.
+        if [ -d /usr/local/unraid-api/node_modules ]; then
+          echo "Removing stale node_modules archive from the boot drive"
+          rm -f /boot/config/plugins/dynamix.unraid.net/node-modules/node_modules.tar.xz
+        fi
+
         echo "Node.js installation successful"
 
         exit 0
