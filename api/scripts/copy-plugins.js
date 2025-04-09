@@ -1,13 +1,14 @@
 #!/usr/bin/env node
 
 /**
- * This script copies workspace plugin dist folders to the dist/plugins directory
+ * This AI-generated script copies workspace plugin dist folders to the dist/plugins directory
  * to ensure they're available for dynamic imports in production.
  */
 
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { execSync } from 'child_process';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -29,8 +30,22 @@ const workspacePlugins = Object.keys(packageJson.peerDependencies || {})
 
 // Copy each plugin's dist folder to the plugins directory
 for (const pkgName of workspacePlugins) {
-  const pluginDistPath = path.resolve(__dirname, `../../packages/${pkgName}/dist`);
+  const pluginPath = path.resolve(__dirname, `../../packages/${pkgName}`);
+  const pluginDistPath = path.resolve(pluginPath, 'dist');
   const targetPath = path.resolve(pluginsDir, pkgName);
+  
+  // Run pnpm build for the plugin
+  console.log(`Building ${pkgName}...`);
+  try {
+    execSync('pnpm build', { 
+      cwd: pluginPath,
+      stdio: 'inherit'
+    });
+    console.log(`Successfully built ${pkgName}`);
+  } catch (error) {
+    console.error(`Failed to build ${pkgName}:`, error.message);
+    continue; // Skip copying if build fails
+  }
   
   if (fs.existsSync(pluginDistPath)) {
     console.log(`Copying ${pkgName} dist folder to ${targetPath}`);
