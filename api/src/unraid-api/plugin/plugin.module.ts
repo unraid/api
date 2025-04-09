@@ -37,7 +37,7 @@ export class PluginCliModule {
             .map((plugin) => plugin.CliModule!);
 
         const cliList = cliModules.map((plugin) => plugin.name).join(', ');
-        PluginCliModule.logger.log(`Found ${cliModules.length} CLI plugins: ${cliList}`);
+        PluginCliModule.logger.debug(`Found ${cliModules.length} CLI plugins: ${cliList}`);
 
         return {
             module: PluginCliModule,
