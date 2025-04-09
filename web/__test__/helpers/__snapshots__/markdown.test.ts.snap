@@ -1,0 +1,11 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`sanitization > strips javascript 1`] = `
+"<p><img src="x"></p>
+"
+`;
+
+exports[`sanitization > strips javascript 2`] = `
+"<p><img src="x"></p>
+"
+`;

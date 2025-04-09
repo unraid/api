@@ -30,6 +30,7 @@
   <!-- The archive's filename on the boot drive. Enables reproducible offline installs of the Unraid API. -->
   <!ENTITY VENDOR_STORE_FILENAME "">
   <!ENTITY TAG "">
+  <!ENTITY NODE_DIR "/usr/libexec/node">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" pluginURL="&pluginURL;"
@@ -105,9 +106,6 @@ dnscheck "mothership.unraid.net"
 [[ "${DNSERR}" == "yes" && "${DNS_SERVER1}" != "8.8.8.8" ]] && echo "  Recommend navigating to Settings -> Network Settings and changing your DNS server to 8.8.8.8"
 # Note: DNS checks will fail if the network is not available at boot. Cannot exit the install when DNS checks fail.
 
-echo
-echo "⚠️ Do not close this window yet"
-echo
 exit 0
 ]]>
     </INLINE>
@@ -127,6 +125,7 @@ exit 0
     <INLINE>
       NODE_FILE="&NODEJS_FILENAME;"
       VENDOR_ARCHIVE="&VENDOR_STORE_FILENAME;"
+      NODE_DIR="&NODE_DIR;"
       <![CDATA[
         # Check if the Node.js archive exists
         if [[ ! -f "/boot/config/plugins/dynamix.my.servers/${NODE_FILE}" ]]; then
@@ -139,9 +138,6 @@ exit 0
           echo "Node.js archive is corrupt or invalid"
           exit 1
         fi
-
-        # Define the target directory for Node.js
-        NODE_DIR="/usr/local/node"
 
         # Create the target directory if it doesn't exist
         mkdir -p "${NODE_DIR}" || { echo "Failed to create ${NODE_DIR}"; exit 1; }
@@ -159,6 +155,9 @@ exit 0
         # Remove stale pnpm store and node_modules archives from the boot drive
         find /boot/config/plugins/dynamix.my.servers/ -name "pnpm-store-for-v*.txz" ! -name "${VENDOR_ARCHIVE}" -delete
         find /boot/config/plugins/dynamix.my.servers/ -name "node_modules-for-v*.tar.xz" ! -name "${VENDOR_ARCHIVE}" -delete
+
+        # Remove the legacy node directory
+        rm -rf /usr/local/node
 
         echo "Node.js installation successful"
 
@@ -186,10 +185,6 @@ source /usr/local/emhttp/plugins/dynamix.my.servers/scripts/activation_code_remo
 # Run cleanup operations
 echo "Performing cleanup operations..."
 /usr/bin/php /usr/local/emhttp/plugins/dynamix.my.servers/scripts/cleanup_operations.php
-
-echo
-echo "⚠️ Do not close this window yet"
-echo
 
 exit 0
 ]]>
@@ -231,10 +226,6 @@ echo "Uninstalling existing plugin"
 version=
 # shellcheck disable=SC1091
 source /etc/unraid-version
-
-echo
-echo "⚠️ Do not close this window yet"
-echo
 
 if [ -e /etc/rc.d/rc.unraid-api ]; then
   touch /tmp/restore-files-dynamix-unraid-net
@@ -362,6 +353,7 @@ exit 0
       TAG="&TAG;" MAINTXZ="&source;.txz"
       VENDOR_ARCHIVE="/boot/config/plugins/dynamix.my.servers/&VENDOR_STORE_FILENAME;"
       PNPM_BINARY_FILE="&PNPM_BINARY;"
+      NODE_DIR="&NODE_DIR;"
     <![CDATA[
 appendTextIfMissing() {
   FILE="$1" TEXT="$2"
@@ -394,9 +386,6 @@ EOF
   exit 0
 fi
 
-echo
-echo "⚠️ Do not close this window yet"
-echo
 
 # NOTE: any 'exit 1' after this point will result in a broken install
 
@@ -678,9 +667,6 @@ if [[ -n "$TAG" && "$TAG" != "" ]]; then
   sed -i "${sedcmd}" "/usr/local/emhttp/plugins/dynamix.unraid.net/README.md"
 fi
 
-echo
-echo "⚠️ Do not close this window yet"
-echo
 
 # setup env
 echo "env=\"production\"">/boot/config/plugins/dynamix.my.servers/env
@@ -766,10 +752,6 @@ if [[ "$webguiManifestTs" -gt "$plgManifestTs" ]]; then
     echo "♻️ Reverted to stock web component files"
 fi
 
-echo
-echo "⚠️ Do not close this window yet"
-echo
-
 # Activation and partner setup
 # - Must come after the web component timestamp check to avoid potentially targeting the wrong JS during this setup
 source /usr/local/emhttp/plugins/dynamix.my.servers/scripts/activation_code_setup
@@ -819,9 +801,9 @@ fi
 
 
 # Create symlink to unraid-api binary (to allow usage elsewhere)
-ln -sf /usr/local/node/bin/node /usr/local/bin/node
-ln -sf /usr/local/node/bin/npm /usr/local/bin/npm
-ln -sf /usr/local/node/bin/corepack /usr/local/bin/corepack
+ln -sf ${NODE_DIR}/bin/node /usr/local/bin/node
+ln -sf ${NODE_DIR}/bin/npm /usr/local/bin/npm
+ln -sf ${NODE_DIR}/bin/corepack /usr/local/bin/corepack
 
 ln -sf ${unraid_binary_path} /usr/local/sbin/unraid-api
 ln -sf ${unraid_binary_path} /usr/bin/unraid-api
