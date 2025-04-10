@@ -24,7 +24,7 @@ test('Returns parsed state file', async () => {
         "configErrorState": "INELIGIBLE",
         "configValid": false,
         "csrfToken": "0000000000000000",
-        "defaultFsType": "xfs",
+        "defaultFsType": "XFS",
         "deviceCount": 4,
         "domain": "",
         "domainLogin": "Administrator",

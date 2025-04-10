@@ -149,6 +149,7 @@ test('loginUser updates state and publishes to pubsub', async () => {
     expect(pubsub.publish).toHaveBeenCalledWith(PUBSUB_CHANNEL.OWNER, {
         owner: {
             username: userInfo.username,
+            url: '',
             avatar: userInfo.avatar,
         },
     });

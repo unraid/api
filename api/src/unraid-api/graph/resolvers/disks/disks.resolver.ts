@@ -1,7 +1,6 @@
-import { Args, Parent, Query, ResolveField, Resolver } from '@nestjs/graphql';
+import { Args, Int, Parent, Query, ResolveField, Resolver } from '@nestjs/graphql';
 
 import { AuthActionVerb, AuthPossession, UsePermissions } from 'nest-authz';
-import { Long } from 'node_modules/graphql-scalars/typings/typeDefs.js';
 
 import { Resource } from '@app/unraid-api/graph/resolvers/base.model.js';
 import { Disk } from '@app/unraid-api/graph/resolvers/disks/disks.model.js';
@@ -31,7 +30,7 @@ export class DisksResolver {
         return this.disksService.getDisk(id);
     }
 
-    @ResolveField(() => Long)
+    @ResolveField(() => Int)
     public async temperature(@Parent() disk: Disk) {
         return this.disksService.getTemperature(disk.device);
     }

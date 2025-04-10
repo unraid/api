@@ -201,6 +201,10 @@ describe.sequential('NotificationsService', () => {
         const isISODate = (date: string) => new Date(date).toISOString() === date;
         const created = await createNotification();
         const loaded = await findById(created.id);
+
+        console.log(created.timestamp);
+        console.log(loaded?.timestamp);
+
         expect(isISODate(created.timestamp ?? '')).toBeTruthy();
         expect(isISODate(loaded?.timestamp ?? '')).toBeTruthy();
     });
