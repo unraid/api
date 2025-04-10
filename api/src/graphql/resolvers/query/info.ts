@@ -20,17 +20,18 @@ import { vmRegExps } from '@app/core/utils/vms/domain/vm-regexps.js';
 import { filterDevices } from '@app/core/utils/vms/filter-devices.js';
 import { getPciDevices } from '@app/core/utils/vms/get-pci-devices.js';
 import { getters } from '@app/store/index.js';
-import { Temperature, Theme } from '@app/unraid-api/graph/resolvers/info/display.model.js';
 import {
-    type Devices,
-    type Display,
-    type Gpu,
-    type InfoApps,
-    type InfoCpu,
-    type InfoMemory,
-    type Os as InfoOs,
-    type MemoryLayout,
-    type Versions,
+    Devices,
+    Display,
+    Gpu,
+    InfoApps,
+    InfoCpu,
+    InfoMemory,
+    Os as InfoOs,
+    MemoryLayout,
+    Temperature,
+    Theme,
+    Versions,
 } from '@app/unraid-api/graph/resolvers/info/info.model.js';
 
 export const generateApps = async (): Promise<InfoApps> => {

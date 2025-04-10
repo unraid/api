@@ -18,7 +18,12 @@ import type { DataSlice, SettingSlice, UIElement } from '@app/unraid-api/types/j
 import { getExtraOrigins } from '@app/common/allowed-origins.js';
 import { fileExistsSync } from '@app/core/utils/files/file-exists.js';
 import { setupRemoteAccessThunk } from '@app/store/actions/setup-remote-access.js';
-import { setSsoUsers, updateAllowedOrigins, updateUserConfig } from '@app/store/modules/config.js';
+import {
+    loginUser,
+    setSsoUsers,
+    updateAllowedOrigins,
+    updateUserConfig,
+} from '@app/store/modules/config.js';
 import { setAllowedRemoteAccessUrl } from '@app/store/modules/dynamic-remote-access.js';
 import { FileLoadStatus } from '@app/store/types.js';
 import { ApiKeyService } from '@app/unraid-api/auth/api-key.service.js';
@@ -178,7 +183,7 @@ export class ConnectSettingsService {
     }
 
     async signIn(input: ConnectSignInInput) {
-        const { getters } = await import('@app/store/index.js');
+        const { getters, store } = await import('@app/store/index.js');
         if (getters.emhttp().status === FileLoadStatus.LOADED) {
             const userInfo = input.idToken ? decodeJwt(input.idToken) : (input.userInfo ?? null);
 
