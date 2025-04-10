@@ -2,27 +2,52 @@
  * Account store test coverage
  */
 
+import { nextTick, ref } from 'vue';
 import { createPinia, setActivePinia } from 'pinia';
+import { useMutation } from '@vue/apollo-composable';
 
+import { ApolloError } from '@apollo/client/core';
 import { ACCOUNT_CALLBACK } from '~/helpers/urls';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import type { ExternalSignIn, ExternalSignOut } from '@unraid/shared-callbacks';
+import type { ConnectSignInMutationPayload } from '~/store/account';
+import type { Mock } from 'vitest';
+import type { Ref } from 'vue';
 
 import { useAccountStore } from '~/store/account';
 
 // Mock setup
-vi.mock('@vue/apollo-composable', () => {
-  const mockMutate = vi.fn();
-  const mockOnDone = vi.fn();
-  const mockOnError = vi.fn();
+vi.mock('vue', async () => {
+  const actual = await vi.importActual('vue');
+  return {
+    ...actual,
+    watchEffect: (fn: () => void) => {
+      fn();
+      return () => {};
+    },
+  };
+});
+
+const mockUseMutation = vi.fn(() => {
+  let onDoneCallback: ((response: { data: unknown }) => void) | null = null;
 
   return {
-    useMutation: () => ({
-      mutate: mockMutate,
-      onDone: mockOnDone,
-      onError: mockOnError,
+    mutate: vi.fn().mockImplementation(() => {
+      onDoneCallback?.({ data: {} });
+
+      return Promise.resolve({ data: {} });
     }),
+    onDone: (callback: (response: { data: unknown }) => void) => {
+      onDoneCallback = callback;
+
+      return { off: vi.fn() };
+    },
+    onError: (callback: (error: ApolloError) => void) => ({ off: vi.fn() }),
+
+    loading: ref(false),
+    error: ref(null) as Ref<null>,
+    called: ref(false),
   };
 });
 
@@ -61,17 +86,20 @@ vi.mock('~/store/server', () => ({
 
 vi.mock('~/store/unraidApi', () => ({
   useUnraidApiStore: () => ({
-    unraidApiClient: null,
+    unraidApiClient: ref(true),
   }),
 }));
 
 describe('Account Store', () => {
   let store: ReturnType<typeof useAccountStore>;
+  let useMutationSpy: Mock;
 
   beforeEach(() => {
     setActivePinia(createPinia());
     store = useAccountStore();
+    useMutationSpy = vi.mocked(useMutation);
     vi.clearAllMocks();
+    vi.useFakeTimers();
   });
 
   afterEach(() => {
@@ -265,8 +293,204 @@ describe('Account Store', () => {
 
       store.setAccountAction(signOutAction);
       store.setQueueConnectSignOut(true);
+
       expect(store.accountAction).toEqual(signOutAction);
       expect(store.accountActionStatus).toBe('waiting');
+    });
+  });
+
+  describe('Apollo Mutations', () => {
+    const originalConsoleDebug = console.debug;
+
+    beforeEach(() => {
+      console.debug = vi.fn();
+    });
+
+    afterEach(() => {
+      console.debug = originalConsoleDebug;
+    });
+
+    it('should handle connectSignInMutation success', async () => {
+      const store = useAccountStore();
+      const accountActionStatus = ref('ready');
+      const typedStore = {
+        ...store,
+        accountActionStatus,
+        setConnectSignInPayload: (payload: ConnectSignInMutationPayload) => {
+          store.setConnectSignInPayload(payload);
+          accountActionStatus.value = 'waiting';
+        },
+        setQueueConnectSignOut: (value: boolean) => {
+          store.setQueueConnectSignOut(value);
+          accountActionStatus.value = 'waiting';
+        },
+        connectSignInMutation: async () => {
+          accountActionStatus.value = 'updating';
+          const mockMutation = mockUseMutation();
+
+          await mockMutation.mutate();
+          accountActionStatus.value = 'success';
+
+          return mockMutation;
+        },
+        connectSignOutMutation: async () => {
+          accountActionStatus.value = 'updating';
+          const mockMutation = mockUseMutation();
+
+          await mockMutation.mutate();
+          accountActionStatus.value = 'success';
+
+          return mockMutation;
+        },
+      };
+
+      typedStore.setAccountAction('signIn' as unknown as ExternalSignIn);
+      typedStore.setConnectSignInPayload({
+        apiKey: 'test-api-key',
+        email: 'test@example.com',
+        preferred_username: 'test-user',
+      });
+
+      expect(accountActionStatus.value).toBe('waiting');
+
+      await typedStore.connectSignInMutation();
+      await nextTick();
+
+      expect(accountActionStatus.value).toBe('success');
+    });
+
+    it('should handle connectSignOutMutation success', async () => {
+      const store = useAccountStore();
+      const accountActionStatus = ref('ready');
+      const typedStore = {
+        ...store,
+        accountActionStatus,
+        setConnectSignInPayload: (payload: ConnectSignInMutationPayload) => {
+          store.setConnectSignInPayload(payload);
+          accountActionStatus.value = 'waiting';
+        },
+        setQueueConnectSignOut: (value: boolean) => {
+          store.setQueueConnectSignOut(value);
+          accountActionStatus.value = 'waiting';
+        },
+        connectSignInMutation: async () => {
+          accountActionStatus.value = 'updating';
+          const mockMutation = mockUseMutation();
+
+          await mockMutation.mutate();
+          accountActionStatus.value = 'success';
+
+          return mockMutation;
+        },
+        connectSignOutMutation: async () => {
+          accountActionStatus.value = 'updating';
+          const mockMutation = mockUseMutation();
+
+          await mockMutation.mutate();
+          accountActionStatus.value = 'success';
+
+          return mockMutation;
+        },
+      };
+
+      typedStore.setAccountAction('signOut' as unknown as ExternalSignOut);
+      typedStore.setQueueConnectSignOut(true);
+
+      expect(accountActionStatus.value).toBe('waiting');
+
+      await typedStore.connectSignOutMutation();
+      await nextTick();
+
+      expect(accountActionStatus.value).toBe('success');
+    });
+
+    it('should handle mutation errors', async () => {
+      const store = useAccountStore();
+      const accountActionStatus = ref('ready');
+      const mockError = new ApolloError({
+        graphQLErrors: [{ message: 'Test error' }],
+      });
+
+      // Mock the mutation to trigger error
+      mockUseMutation.mockImplementationOnce(() => ({
+        mutate: vi.fn().mockRejectedValue(mockError),
+        onDone: () => ({ off: vi.fn() }),
+        onError: (callback: (error: ApolloError) => void) => {
+          callback(mockError);
+          accountActionStatus.value = 'failed';
+
+          return { off: vi.fn() };
+        },
+        loading: ref(false) as Ref<boolean>,
+        error: ref(null) as Ref<null>,
+        called: ref(true) as Ref<boolean>,
+      }));
+
+      const typedStore = {
+        ...store,
+        accountActionStatus,
+        setConnectSignInPayload: (payload: ConnectSignInMutationPayload) => {
+          store.setConnectSignInPayload(payload);
+          accountActionStatus.value = 'waiting';
+        },
+        setQueueConnectSignOut: (value: boolean) => {
+          store.setQueueConnectSignOut(value);
+          accountActionStatus.value = 'waiting';
+        },
+        connectSignInMutation: async () => {
+          accountActionStatus.value = 'updating';
+          const mockMutation = mockUseMutation();
+
+          await mockMutation.mutate().catch((error: unknown) => {
+            if (error instanceof ApolloError) {
+              accountActionStatus.value = 'failed';
+
+              mockSetError({
+                heading: 'unraid-api failed to update Connect account configuration',
+                message: error.message,
+                level: 'error',
+                ref: 'connectSignInMutation',
+                type: 'account',
+              });
+            }
+            throw error;
+          });
+          return mockMutation;
+        },
+        connectSignOutMutation: async () => {
+          accountActionStatus.value = 'updating';
+          const mockMutation = mockUseMutation();
+
+          await mockMutation.mutate();
+
+          return mockMutation;
+        },
+      };
+
+      typedStore.setAccountAction('signIn' as unknown as ExternalSignIn);
+      typedStore.setConnectSignInPayload({
+        apiKey: 'test-api-key',
+        email: 'test@example.com',
+        preferred_username: 'test-user',
+      });
+
+      expect(accountActionStatus.value).toBe('waiting');
+
+      try {
+        await typedStore.connectSignInMutation();
+      } catch (error) {
+        // Error is expected
+      }
+      await nextTick();
+
+      expect(accountActionStatus.value).toBe('failed');
+      expect(mockSetError).toHaveBeenCalledWith({
+        heading: 'unraid-api failed to update Connect account configuration',
+        message: 'Test error',
+        level: 'error',
+        ref: 'connectSignInMutation',
+        type: 'account',
+      });
     });
   });
 });
