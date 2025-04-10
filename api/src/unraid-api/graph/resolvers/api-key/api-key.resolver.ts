@@ -4,16 +4,15 @@ import { AuthActionVerb, AuthPossession, UsePermissions } from 'nest-authz';
 
 import { ApiKeyService } from '@app/unraid-api/auth/api-key.service.js';
 import { AuthService } from '@app/unraid-api/auth/auth.service.js';
-
-import { Resource, Role } from '../base.model.js';
-import { validateObject } from '../validation.utils.js';
 import {
     AddRoleForApiKeyInput,
     ApiKey,
     ApiKeyWithSecret,
     CreateApiKeyInput,
     RemoveRoleFromApiKeyInput,
-} from './api-key.model.js';
+} from '@app/unraid-api/graph/resolvers/api-key/api-key.model.js';
+import { Resource, Role } from '@app/unraid-api/graph/resolvers/base.model.js';
+import { validateObject } from '@app/unraid-api/graph/resolvers/validation.utils.js';
 
 @Resolver(() => ApiKey)
 export class ApiKeyResolver {

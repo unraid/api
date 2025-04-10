@@ -12,13 +12,14 @@ import { getWriteableConfig } from '@app/core/utils/files/config-file-normalizer
 import { safelySerializeObjectToIni } from '@app/core/utils/files/safe-ini-serializer.js';
 import { parseConfig } from '@app/core/utils/misc/parse-config.js';
 import { NODE_ENV } from '@app/environment.js';
-import { DynamicRemoteAccessType, MinigraphStatus } from '@app/graphql/generated/api/types.js';
 import { setGraphqlConnectionStatus } from '@app/store/actions/set-minigraph-status.js';
 import { setupRemoteAccessThunk } from '@app/store/actions/setup-remote-access.js';
 import { type RootState } from '@app/store/index.js';
 import { FileLoadStatus } from '@app/store/types.js';
 import { RecursivePartial } from '@app/types/index.js';
 import { type MyServersConfig, type MyServersConfigMemory } from '@app/types/my-servers-config.js';
+import { MinigraphStatus } from '@app/unraid-api/graph/resolvers/cloud/cloud.model.js';
+import { DynamicRemoteAccessType } from '@app/unraid-api/graph/resolvers/connect/connect.model.js';
 
 export type SliceState = {
     status: FileLoadStatus;

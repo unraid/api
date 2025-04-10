@@ -2,14 +2,15 @@ import { Args, ResolveField, Resolver } from '@nestjs/graphql';
 
 import { AuthActionVerb, AuthPossession, UsePermissions } from 'nest-authz';
 
-import { Resource } from '@app/graphql/generated/api/types.js';
+import { Resource } from '@app/unraid-api/graph/resolvers/base.model.js';
 import { DockerService } from '@app/unraid-api/graph/resolvers/docker/docker.service.js';
+import { DockerContainer, DockerMutations } from '@app/unraid-api/graph/resolvers/docker/docker.model.js';
 
-@Resolver('DockerMutations')
+@Resolver(() => DockerMutations)
 export class DockerMutationsResolver {
     constructor(private readonly dockerService: DockerService) {}
 
-    @ResolveField('start')
+    @ResolveField(() => DockerContainer, { description: 'Start a container' })
     @UsePermissions({
         action: AuthActionVerb.UPDATE,
         resource: Resource.DOCKER,
@@ -19,7 +20,7 @@ export class DockerMutationsResolver {
         return this.dockerService.start(id);
     }
 
-    @ResolveField('stop')
+    @ResolveField(() => DockerContainer, { description: 'Stop a container' })
     @UsePermissions({
         action: AuthActionVerb.UPDATE,
         resource: Resource.DOCKER,

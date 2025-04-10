@@ -16,8 +16,8 @@ import { type SmbShares } from '@app/core/types/states/smb.js';
 import { type Users } from '@app/core/types/states/user.js';
 import { type Var } from '@app/core/types/states/var.js';
 import { parseConfig } from '@app/core/utils/misc/parse-config.js';
-import { type ArrayDisk } from '@app/graphql/generated/api/types.js';
 import { FileLoadStatus, StateFileKey } from '@app/store/types.js';
+import { ArrayDisk } from '@app/unraid-api/graph/resolvers/array/array.model.js';
 
 export type SliceState = {
     status: FileLoadStatus;

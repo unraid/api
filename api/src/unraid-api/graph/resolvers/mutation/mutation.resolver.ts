@@ -1,18 +1,10 @@
-import { ResolveField, Resolver } from '@nestjs/graphql';
+import { Resolver, Mutation } from '@nestjs/graphql';
+import { Mutation as MutationType } from './mutation.model.js';
 
-@Resolver('Mutation')
+@Resolver(() => MutationType)
 export class MutationResolver {
-    @ResolveField()
-    public async array() {
-        return {
-            __typename: 'ArrayMutations',
-        };
-    }
-
-    @ResolveField()
-    public async docker() {
-        return {
-            __typename: 'DockerMutations',
-        };
+    @Mutation(() => MutationType)
+    mutation(): MutationType {
+        return new MutationType();
     }
 }

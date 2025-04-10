@@ -4,12 +4,13 @@ import { newEnforcer } from 'casbin';
 import { AuthActionVerb, AuthZService } from 'nest-authz';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import type { ApiKey, ApiKeyWithSecret, UserAccount } from '@app/graphql/generated/api/types.js';
-import { Resource, Role } from '@app/graphql/generated/api/types.js';
+import { Resource, Role } from '@app/unraid-api/graph/resolvers/base.model.js';
 import { ApiKeyService } from '@app/unraid-api/auth/api-key.service.js';
 import { AuthService } from '@app/unraid-api/auth/auth.service.js';
 import { CookieService } from '@app/unraid-api/auth/cookie.service.js';
 import { FastifyRequest } from '@app/unraid-api/types/fastify.js';
+import { ApiKey, ApiKeyWithSecret } from '@app/unraid-api/graph/resolvers/api-key/api-key.model.js';
+import { UserAccount } from '@app/unraid-api/graph/user/user.model.js';
 
 describe('AuthService', () => {
     let authService: AuthService;
@@ -18,7 +19,6 @@ describe('AuthService', () => {
     let cookieService: CookieService;
 
     const mockApiKey: ApiKey = {
-        __typename: 'ApiKey',
         id: '10f356da-1e9e-43b8-9028-a26a645539a6',
         name: 'Test API Key',
         description: 'Test API Key Description',

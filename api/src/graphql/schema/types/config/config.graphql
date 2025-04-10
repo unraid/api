@@ -7,7 +7,7 @@ type Config implements Node {
 type Query {
     config: Config!
 }
-
+`
 type Subscription {
     config: Config!
 }

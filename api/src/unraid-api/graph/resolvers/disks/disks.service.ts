@@ -1,11 +1,15 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 
 import type { Systeminformation } from 'systeminformation';
 import { execa } from 'execa';
 import { blockDevices, diskLayout } from 'systeminformation';
 
-import type { Disk } from '@app/graphql/generated/api/types.js';
-import { DiskFsType, DiskInterfaceType, DiskSmartStatus } from '@app/graphql/generated/api/types.js';
+import {
+    Disk,
+    DiskFsType,
+    DiskInterfaceType,
+    DiskSmartStatus,
+} from '@app/unraid-api/graph/resolvers/disks/disks.model.js';
 import { batchProcess } from '@app/utils.js';
 
 @Injectable()
@@ -36,10 +40,19 @@ export class DisksService {
         }
     }
 
+    public async getDisk(id: string): Promise<Disk> {
+        const disks = await this.getDisks();
+        const disk = disks.find((d) => d.id === id);
+        if (!disk) {
+            throw new NotFoundException(`Disk with id ${id} not found`);
+        }
+        return disk;
+    }
+
     private async parseDisk(
         disk: Systeminformation.DiskLayoutData,
         partitionsToParse: Systeminformation.BlockDevicesData[]
-    ): Promise<Disk> {
+    ): Promise<Omit<Disk, 'temperature'>> {
         const partitions = partitionsToParse
             // Only get partitions from this disk
             .filter((partition) => partition.name.startsWith(disk.device.split('/dev/')[1]))

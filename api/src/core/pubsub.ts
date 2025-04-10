@@ -19,6 +19,7 @@ export enum PUBSUB_CHANNEL {
     VMS = 'VMS',
     REGISTRATION = 'REGISTRATION',
     LOG_FILE = 'LOG_FILE',
+    PARITY = 'PARITY',
 }
 
 export const pubsub = new PubSub({ eventEmitter });

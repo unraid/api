@@ -2,10 +2,15 @@ import { Query, ResolveField, Resolver } from '@nestjs/graphql';
 
 import { AuthActionVerb, AuthPossession, UsePermissions } from 'nest-authz';
 
-import { Resource } from '@app/graphql/generated/api/types.js';
+import { Resource } from '@app/unraid-api/graph/resolvers/base.model.js';
+import {
+    Docker,
+    DockerContainer,
+    DockerNetwork,
+} from '@app/unraid-api/graph/resolvers/docker/docker.model.js';
 import { DockerService } from '@app/unraid-api/graph/resolvers/docker/docker.service.js';
 
-@Resolver('Docker')
+@Resolver(() => Docker)
 export class DockerResolver {
     constructor(private readonly dockerService: DockerService) {}
 
@@ -14,7 +19,7 @@ export class DockerResolver {
         resource: Resource.DOCKER,
         possession: AuthPossession.ANY,
     })
-    @Query()
+    @Query(() => Docker)
     public docker() {
         return {
             id: 'docker',
@@ -26,12 +31,17 @@ export class DockerResolver {
         resource: Resource.DOCKER,
         possession: AuthPossession.ANY,
     })
-    @ResolveField()
+    @ResolveField(() => [DockerContainer])
     public async containers() {
         return this.dockerService.getContainers({ useCache: false });
     }
 
-    @ResolveField()
+    @UsePermissions({
+        action: AuthActionVerb.READ,
+        resource: Resource.DOCKER,
+        possession: AuthPossession.ANY,
+    })
+    @ResolveField(() => [DockerNetwork])
     public async networks() {
         return this.dockerService.getNetworks({ useCache: false });
     }

@@ -3,13 +3,11 @@ import { Test } from '@nestjs/testing';
 
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import type { ArrayDiskInput, ArrayStateInput } from '@app/graphql/generated/api/types.js';
 import { getArrayData } from '@app/core/modules/array/get-array-data.js';
-import { emcmd } from '@app/core/utils/clients/emcmd.js';
-import { ArrayState, ArrayStateInputState } from '@app/graphql/generated/api/types.js';
+import { emcmd } from '@app/core/utils/clients/emcmd.js';;
 import { getters } from '@app/store/index.js';
 import { ArrayService } from '@app/unraid-api/graph/resolvers/array/array.service.js';
-
+import { ArrayDiskInput, ArrayStateInput, ArrayState, ArrayStateInputState } from '@app/unraid-api/graph/resolvers/array/array.model.js';
 vi.mock('@app/core/utils/clients/emcmd.js', () => ({
     emcmd: vi.fn(),
 }));

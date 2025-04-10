@@ -2,12 +2,13 @@ import { Query, Resolver } from '@nestjs/graphql';
 
 import { AuthActionVerb, AuthPossession, UsePermissions } from 'nest-authz';
 
-import { Resource } from '@app/graphql/generated/api/types.js';
 import { getters } from '@app/store/index.js';
+import { Resource } from '@app/unraid-api/graph/resolvers/base.model.js';
+import { Flash } from '@app/unraid-api/graph/resolvers/flash/flash.model.js';
 
-@Resolver('Flash')
+@Resolver(() => Flash)
 export class FlashResolver {
-    @Query()
+    @Query(() => Flash)
     @UsePermissions({
         action: AuthActionVerb.READ,
         resource: Resource.FLASH,
@@ -17,6 +18,7 @@ export class FlashResolver {
         const emhttp = getters.emhttp();
 
         return {
+            id: 'flash',
             guid: emhttp.var.flashGuid,
             vendor: emhttp.var.flashVendor,
             product: emhttp.var.flashProduct,

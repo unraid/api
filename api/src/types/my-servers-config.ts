@@ -1,6 +1,7 @@
+import { MinigraphStatus } from '@app/unraid-api/graph/resolvers/cloud/cloud.model.js';
+import { DynamicRemoteAccessType } from '@app/unraid-api/graph/resolvers/connect/connect.model.js';
 import { z } from 'zod';
 
-import { DynamicRemoteAccessType, MinigraphStatus } from '@app/graphql/generated/api/types.js';
 
 // Define Zod schemas
 const ApiConfigSchema = z.object({

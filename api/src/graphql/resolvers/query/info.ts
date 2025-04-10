@@ -33,6 +33,8 @@ import {
     type Versions,
 } from '@app/graphql/generated/api/types.js';
 import { getters } from '@app/store/index.js';
+import { Case } from '@app/unraid-api/graph/resolvers/info/display.model.js';
+import { getCasePathIfPresent } from '@app/core/utils/images/image-file-helpers.js';
 
 export const generateApps = async (): Promise<InfoApps> => {
     const installed = await docker
@@ -109,7 +111,7 @@ export const generateDisplay = async (): Promise<Display> => {
         critical: Number.parseInt(display.critical, 10),
         hot: Number.parseInt(display.hot, 10),
         max: Number.parseInt(display.max, 10),
-        locale: display.locale || 'en_US',
+        locale: display.locale || 'en_US'
     };
 };
 

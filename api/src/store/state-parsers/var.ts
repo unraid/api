@@ -2,12 +2,12 @@ import type { StateFileToIniParserMap } from '@app/store/types.js';
 import { type IniStringBoolean, type IniStringBooleanOrAuto } from '@app/core/types/ini.js';
 import { toNumber } from '@app/core/utils/index.js';
 import {
-    ArrayState,
     ConfigErrorState,
     DiskFsType,
     RegistrationState,
     registrationType,
 } from '@app/graphql/generated/api/types.js';
+import { ArrayState } from '@app/unraid-api/graph/resolvers/array/array.model.js';
 
 /**
  * Unraid registration check

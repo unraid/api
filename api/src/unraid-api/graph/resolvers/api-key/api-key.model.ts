@@ -14,7 +14,7 @@ import {
     ValidateNested,
 } from 'class-validator';
 
-import { Resource, Role } from '../base.model.js';
+import { Resource, Role } from '@app/unraid-api/graph/resolvers/base.model.js';
 
 @ObjectType()
 export class Permission {

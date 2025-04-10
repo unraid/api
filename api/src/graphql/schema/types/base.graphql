@@ -5,8 +5,6 @@ scalar DateTime
 scalar Port
 scalar URL
 
-directive @auth(action: AuthActionVerb!, resource: Resource!, possession: AuthPossession!) on FIELD_DEFINITION
-
 type Welcome {
     message: String!
 }

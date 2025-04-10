@@ -1,6 +1,5 @@
 import type { Subscription } from 'zen-observable-ts';
 
-import type { ArrayDisk, Share } from '@app/graphql/generated/api/types.js';
 import type { RootState } from '@app/store/index.js';
 import { type Devices } from '@app/core/types/states/devices.js';
 import { type Networks } from '@app/core/types/states/network.js';
@@ -9,7 +8,6 @@ import { type Nginx } from '@app/core/types/states/nginx.js';
 import { type SmbShares } from '@app/core/types/states/smb.js';
 import { type Users } from '@app/core/types/states/user.js';
 import { type Var } from '@app/core/types/states/var.js';
-import { MinigraphStatus } from '@app/graphql/generated/api/types.js';
 import { type DevicesIni } from '@app/store/state-parsers/devices.js';
 import { type NetworkIni } from '@app/store/state-parsers/network.js';
 import { type NfsSharesIni } from '@app/store/state-parsers/nfs.js';
@@ -19,6 +17,8 @@ import { type SlotsIni } from '@app/store/state-parsers/slots.js';
 import { type SmbIni } from '@app/store/state-parsers/smb.js';
 import { type UsersIni } from '@app/store/state-parsers/users.js';
 import { type VarIni } from '@app/store/state-parsers/var.js';
+import { ArrayDisk } from '@app/unraid-api/graph/resolvers/array/array.model.js';
+import { MinigraphStatus } from '@app/unraid-api/graph/resolvers/cloud/cloud.model.js';
 
 export enum FileLoadStatus {
     UNLOADED = 'UNLOADED',

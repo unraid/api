@@ -1,9 +1,9 @@
 import type { PayloadAction } from '@reduxjs/toolkit';
 import { createSlice } from '@reduxjs/toolkit';
 
-import type { AccessUrlInput } from '@app/graphql/generated/api/types.js';
 import { remoteAccessLogger } from '@app/core/log.js';
-import { DynamicRemoteAccessType, URL_TYPE } from '@app/graphql/generated/api/types.js';
+import { AccessUrlInput, URL_TYPE } from '@app/graphql/generated/client/graphql.js';
+import { DynamicRemoteAccessType } from '@app/unraid-api/graph/resolvers/connect/connect.model.js';
 
 interface DynamicRemoteAccessState {
     runningType: DynamicRemoteAccessType; // Is Dynamic Remote Access actively running - shows type of access currently running

@@ -2,25 +2,21 @@ import { Logger } from '@nestjs/common';
 import { readdir, readFile, writeFile } from 'fs/promises';
 import { join } from 'path';
 
-
-
 import { ensureDir, ensureDirSync } from 'fs-extra';
 import { AuthActionVerb } from 'nest-authz';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-
-
 
 import { environment } from '@app/environment.js';
 import { getters, store } from '@app/store/index.js';
 import { updateUserConfig } from '@app/store/modules/config.js';
 import { FileLoadStatus } from '@app/store/types.js';
 import { ApiKeyService } from '@app/unraid-api/auth/api-key.service.js';
-import { ApiKey, ApiKeyWithSecret, Permission } from '@app/unraid-api/graph/resolvers/api-key/api-key.model.js';
+import {
+    ApiKey,
+    ApiKeyWithSecret,
+    Permission,
+} from '@app/unraid-api/graph/resolvers/api-key/api-key.model.js';
 import { Resource, Role } from '@app/unraid-api/graph/resolvers/base.model.js';
-
-
-
-
 
 // Mock the store and its modules
 vi.mock('@app/store/index.js', () => ({
@@ -505,11 +501,21 @@ describe('ApiKeyService', () => {
         });
 
         it('should ignore invalid API Key files when loading from disk', async () => {
-            vi.mocked(readdir).mockResolvedValue(['key1.json', 'badkey.json', 'key2.json', 'notakey.txt'] as any);
-            vi.mocked(readFile).mockResolvedValueOnce(JSON.stringify(mockApiKeyWithSecret))
-            .mockResolvedValueOnce(JSON.stringify({ invalid: 'structure' }))
-            .mockResolvedValueOnce(JSON.stringify({...mockApiKeyWithSecret, id: 'unique-id', key: 'unique-key' }))
-            .mockResolvedValueOnce(JSON.stringify({...mockApiKeyWithSecret, id: 'unique-id', key: 'unique-key' }));
+            vi.mocked(readdir).mockResolvedValue([
+                'key1.json',
+                'badkey.json',
+                'key2.json',
+                'notakey.txt',
+            ] as any);
+            vi.mocked(readFile)
+                .mockResolvedValueOnce(JSON.stringify(mockApiKeyWithSecret))
+                .mockResolvedValueOnce(JSON.stringify({ invalid: 'structure' }))
+                .mockResolvedValueOnce(
+                    JSON.stringify({ ...mockApiKeyWithSecret, id: 'unique-id', key: 'unique-key' })
+                )
+                .mockResolvedValueOnce(
+                    JSON.stringify({ ...mockApiKeyWithSecret, id: 'unique-id', key: 'unique-key' })
+                );
             const result = await apiKeyService.loadAllFromDisk();
             expect(result).toHaveLength(2);
             expect(result[0]).toEqual({
@@ -557,9 +563,9 @@ describe('ApiKeyService', () => {
         it('should throw error on invalid API key structure', async () => {
             vi.mocked(readFile).mockResolvedValue(JSON.stringify({ invalid: 'structure' }));
 
-            await expect(
-                apiKeyService['loadApiKeyFile']('test.json')
-            ).rejects.toThrow('Invalid API key structure');
+            await expect(apiKeyService['loadApiKeyFile']('test.json')).rejects.toThrow(
+                'Invalid API key structure'
+            );
 
             expect(mockLogger.error).toHaveBeenCalledWith(
                 expect.stringContaining('Error validating API key file test.json')
@@ -567,21 +573,11 @@ describe('ApiKeyService', () => {
             expect(mockLogger.error).toHaveBeenCalledWith(
                 expect.stringContaining('An instance of ApiKeyWithSecret has failed the validation')
             );
-            expect(mockLogger.error).toHaveBeenCalledWith(
-                expect.stringContaining('property key')
-            );
-            expect(mockLogger.error).toHaveBeenCalledWith(
-                expect.stringContaining('property id')
-            );
-            expect(mockLogger.error).toHaveBeenCalledWith(
-                expect.stringContaining('property name')
-            );
-            expect(mockLogger.error).toHaveBeenCalledWith(
-                expect.stringContaining('property roles')
-            );
-            expect(mockLogger.error).toHaveBeenCalledWith(
-                expect.stringContaining('property createdAt')
-            );
+            expect(mockLogger.error).toHaveBeenCalledWith(expect.stringContaining('property key'));
+            expect(mockLogger.error).toHaveBeenCalledWith(expect.stringContaining('property id'));
+            expect(mockLogger.error).toHaveBeenCalledWith(expect.stringContaining('property name'));
+            expect(mockLogger.error).toHaveBeenCalledWith(expect.stringContaining('property roles'));
+            expect(mockLogger.error).toHaveBeenCalledWith(expect.stringContaining('property createdAt'));
             expect(mockLogger.error).toHaveBeenCalledWith(
                 expect.stringContaining('property permissions')
             );

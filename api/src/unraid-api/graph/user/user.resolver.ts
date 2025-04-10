@@ -2,21 +2,21 @@ import { Query, Resolver } from '@nestjs/graphql';
 
 import { AuthActionVerb, AuthPossession, UsePermissions } from 'nest-authz';
 
-import type { UserAccount } from '@app/graphql/generated/api/types.js';
-import { Me, Resource } from '@app/graphql/generated/api/types.js';
 import { GraphqlUser } from '@app/unraid-api/auth/user.decorator.js';
+import { Resource } from '@app/unraid-api/graph/resolvers/base.model.js';
+import { UserAccount } from '@app/unraid-api/graph/user/user.model.js';
 
-@Resolver('Me')
+@Resolver(() => UserAccount)
 export class MeResolver {
     constructor() {}
 
-    @Query()
+    @Query(() => UserAccount)
     @UsePermissions({
         action: AuthActionVerb.READ,
         resource: Resource.ME,
         possession: AuthPossession.ANY,
     })
-    public async me(@GraphqlUser() user: UserAccount): Promise<Me> {
+    public async me(@GraphqlUser() user: UserAccount): Promise<UserAccount> {
         return user;
     }
 }

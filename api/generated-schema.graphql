@@ -1,5 +1,3 @@
-directive @auth(action: AuthActionVerb!, possession: AuthPossession!, resource: Resource!) on FIELD_DEFINITION
-
 type AccessUrl {
   ipv4: URL
   ipv6: URL
@@ -14,47 +12,13 @@ input AccessUrlInput {
   type: URL_TYPE!
 }
 
-input AddPermissionInput {
-  actions: [String!]!
-  resource: Resource!
-}
-
-input AddRoleForApiKeyInput {
-  apiKeyId: ID!
-  role: Role!
-}
-
-input AddRoleForUserInput {
-  role: Role!
-  userId: ID!
-}
-
 input AllowedOriginInput {
   origins: [String!]!
-}
-
-type ApiKey {
-  createdAt: DateTime!
-  description: String
-  id: ID!
-  name: String!
-  permissions: [Permission!]!
-  roles: [Role!]!
 }
 
 type ApiKeyResponse {
   error: String
   valid: Boolean!
-}
-
-type ApiKeyWithSecret {
-  createdAt: DateTime!
-  description: String
-  id: ID!
-  key: String!
-  name: String!
-  permissions: [Permission!]!
-  roles: [Role!]!
 }
 
 """
@@ -87,296 +51,12 @@ input ApiSettingsInput {
   ssoUserIds: [String!]
 }
 
-type Array implements Node {
-  """Current boot disk"""
-  boot: ArrayDisk
-
-  """Caches in the current array"""
-  caches: [ArrayDisk!]!
-
-  """Current array capacity"""
-  capacity: ArrayCapacity!
-
-  """Data disks in the current array"""
-  disks: [ArrayDisk!]!
-  id: ID!
-
-  """Parity disks in the current array"""
-  parities: [ArrayDisk!]!
-
-  """Array state after this query/mutation"""
-  pendingState: ArrayPendingState
-
-  """Array state before this query/mutation"""
-  previousState: ArrayState
-
-  """Current array state"""
-  state: ArrayState!
-}
-
-type ArrayCapacity {
-  disks: Capacity!
-  kilobytes: Capacity!
-}
-
-type ArrayDisk {
-  color: ArrayDiskFsColor
-
-  """ User comment on disk """
-  comment: String
-
-  """ (%) Disk space left for critical """
-  critical: Int
-  device: String
-  exportable: Boolean
-
-  """ File format (ex MBR: 4KiB-aligned) """
-  format: String
-
-  """ (KB) Free Size on the FS (Not present on Parity type drive)"""
-  fsFree: Long
-
-  """ (KB) Total Size of the FS (Not present on Parity type drive) """
-  fsSize: Long
-
-  """ File system type for the disk """
-  fsType: String
-
-  """ (KB) Used Size on the FS (Not present on Parity type drive)"""
-  fsUsed: Long
-
-  """ Disk indentifier, only set for present disks on the system """
-  id: ID!
-
-  """ Array slot number. Parity1 is always 0 and Parity2 is always 29. Array slots will be 1 - 28. Cache slots are 30 - 53. Flash is 54. 
-  """
-  idx: Int!
-  name: String
-
-  """
-  Number of unrecoverable errors reported by the device I/O drivers. Missing data due to unrecoverable array read errors is filled in on-the-fly using parity reconstruct (and we attempt to write this data back to the sector(s) which failed). Any unrecoverable write error results in disabling the disk.
-  """
-  numErrors: Long!
-
-  """
-  Count of I/O read requests sent to the device I/O drivers. These statistics may be cleared at any time.
-  """
-  numReads: Long!
-
-  """
-  Count of I/O writes requests sent to the device I/O drivers. These statistics may be cleared at any time.
-  """
-  numWrites: Long!
-
-  """ Is the disk a HDD or SSD. """
-  rotational: Boolean
-
-  """ (KB) Disk Size total """
-  size: Long!
-  status: ArrayDiskStatus
-
-  """ Disk temp - will be NaN if array is not started or DISK_NP """
-  temp: Int
-
-  """ ata | nvme | usb | (others)"""
-  transport: String
-
-  """ Type of Disk - used to differentiate Cache / Flash / Array / Parity """
-  type: ArrayDiskType!
-
-  """ (%) Disk space left to warn """
-  warning: Int
-}
-
-enum ArrayDiskFsColor {
-  """New device, in standby mode (spun-down)"""
-  blue_blink
-
-  """New device"""
-  blue_on
-
-  """Device is in standby mode (spun-down)"""
-  green_blink
-
-  """Normal operation, device is active"""
-  green_on
-
-  """Device not present"""
-  grey_off
-
-  """
-  Device is missing (disabled) or contents emulated / Parity device is missing
-  """
-  red_off
-
-  """Device is disabled or contents emulated / Parity device is disabled"""
-  red_on
-
-  """
-  Device contents invalid or emulated / Parity is invalid, in standby mode (spun-down)
-  """
-  yellow_blink
-
-  """Device contents invalid or emulated / Parity is invalid"""
-  yellow_on
-}
-
-input ArrayDiskInput {
-  """Disk ID"""
-  id: ID!
-
-  """The slot for the disk"""
-  slot: Int
-}
-
-enum ArrayDiskStatus {
-  """ disabled, old disk still present """
-  DISK_DSBL
-
-  """ disabled, new disk present """
-  DISK_DSBL_NEW
-
-  """ enabled, disk present, but not valid """
-  DISK_INVALID
-
-  """ new disk """
-  DISK_NEW
-
-  """ no disk present, no disk configured """
-  DISK_NP
-
-  """ disabled, no disk present """
-  DISK_NP_DSBL
-
-  """ enabled, but missing """
-  DISK_NP_MISSING
-
-  """ enabled, disk present, correct, valid """
-  DISK_OK
-
-  """ enablled, disk present, but not correct disk """
-  DISK_WRONG
-}
-
-enum ArrayDiskType {
-  """Cache disk"""
-  Cache
-
-  """Data disk"""
-  Data
-
-  """Flash disk"""
-  Flash
-
-  """Parity disk"""
-  Parity
-}
-
-type ArrayMutations {
-  """Add new disk to array"""
-  addDiskToArray(input: ArrayDiskInput): Array
-  clearArrayDiskStatistics(id: ID!): JSON
-  mountArrayDisk(id: ID!): Disk
-
-  """
-  Remove existing disk from array. NOTE: The array must be stopped before running this otherwise it'll throw an error.
-  """
-  removeDiskFromArray(input: ArrayDiskInput): Array
-
-  """Set array state"""
-  setState(input: ArrayStateInput): Array
-  unmountArrayDisk(id: ID!): Disk
-}
-
-enum ArrayPendingState {
-  """Array has no data disks"""
-  no_data_disks
-
-  """Array is starting"""
-  starting
-
-  """Array is stopping"""
-  stopping
-
-  """Array has too many missing data disks"""
-  too_many_missing_disks
-}
-
-enum ArrayState {
-  """A disk is disabled in the array"""
-  DISABLE_DISK
-
-  """Too many changes to array at the same time"""
-  INVALID_EXPANSION
-
-  """Array has new disks"""
-  NEW_ARRAY
-
-  """Array has new disks they're too small"""
-  NEW_DISK_TOO_SMALL
-
-  """Array has no data disks"""
-  NO_DATA_DISKS
-
-  """Parity isn't the biggest, can't start array"""
-  PARITY_NOT_BIGGEST
-
-  """A disk is being reconstructed"""
-  RECON_DISK
-
-  """Array is running"""
-  STARTED
-
-  """Array has stopped"""
-  STOPPED
-
-  """Array is disabled"""
-  SWAP_DSBL
-
-  """Array has too many missing data disks"""
-  TOO_MANY_MISSING_DISKS
-}
-
-input ArrayStateInput {
-  """Array state"""
-  desiredState: ArrayStateInputState!
-}
-
-enum ArrayStateInputState {
-  """Start array"""
-  START
-
-  """Stop array"""
-  STOP
-}
-
-"""Available authentication action verbs"""
-enum AuthActionVerb {
-  CREATE
-  DELETE
-  READ
-  UPDATE
-}
-
-"""Available authentication possession types"""
-enum AuthPossession {
-  ANY
-  OWN
-  OWN_ANY
-}
-
 type Baseboard {
   assetTag: String
   manufacturer: String!
   model: String
   serial: String
   version: String
-}
-
-type Capacity {
-  free: String!
-  total: String!
-  used: String!
 }
 
 type Case {
@@ -496,17 +176,6 @@ enum ContainerPortType {
 enum ContainerState {
   EXITED
   RUNNING
-}
-
-input CreateApiKeyInput {
-  description: String
-  name: String!
-
-  """ This will replace the existing key if one already exists with the same name, otherwise returns the existing key 
-  """
-  overwrite: Boolean
-  permissions: [AddPermissionInput!]
-  roles: [Role!]
 }
 
 scalar DateTime
@@ -782,15 +451,6 @@ type LogFileContent {
 
 scalar Long
 
-"""The current user"""
-type Me implements UserAccount {
-  description: String!
-  id: ID!
-  name: String!
-  permissions: [Permission!]
-  roles: [Role!]!
-}
-
 enum MemoryFormFactor {
   DIMM
 }
@@ -837,10 +497,6 @@ type Mount {
 }
 
 type Mutation {
-  addPermission(input: AddPermissionInput!): Boolean!
-  addRoleForApiKey(input: AddRoleForApiKeyInput!): Boolean!
-  addRoleForUser(input: AddRoleForUserInput!): Boolean!
-
   """Add a new user"""
   addUser(input: addUserInput!): User
   archiveAll(importance: Importance): NotificationOverview!
@@ -848,13 +504,8 @@ type Mutation {
   """Marks a notification as archived."""
   archiveNotification(id: String!): Notification!
   archiveNotifications(ids: [String!]): NotificationOverview!
-  array: ArrayMutations
-
-  """Cancel parity check"""
-  cancelParityCheck: JSON
   connectSignIn(input: ConnectSignInInput!): Boolean!
   connectSignOut: Boolean!
-  createApiKey(input: CreateApiKeyInput!): ApiKeyWithSecret!
   createNotification(input: NotificationData!): Notification!
 
   """Deletes all archived notifications on server."""
@@ -866,23 +517,13 @@ type Mutation {
   docker: DockerMutations
   enableDynamicRemoteAccess(input: EnableDynamicRemoteAccessInput!): Boolean!
   login(password: String!, username: String!): String
-
-  """Pause parity check"""
-  pauseParityCheck: JSON
   reboot: String
 
   """Reads each notification to recompute & update the overview."""
   recalculateOverview: NotificationOverview!
-  removeRoleFromApiKey(input: RemoveRoleFromApiKeyInput!): Boolean!
-
-  """Resume parity check"""
-  resumeParityCheck: JSON
   setAdditionalAllowedOrigins(input: AllowedOriginInput!): [String!]!
   setupRemoteAccess(input: SetupRemoteAccessInput!): Boolean!
   shutdown: String
-
-  """Start parity check"""
-  startParityCheck(correct: Boolean): JSON
   unarchiveAll(importance: Importance): NotificationOverview!
   unarchiveNotifications(ids: [String!]): NotificationOverview!
 
@@ -997,14 +638,6 @@ type Owner {
   username: String
 }
 
-type ParityCheck {
-  date: String!
-  duration: Int!
-  errors: String!
-  speed: String!
-  status: String!
-}
-
 type Partition {
   devlinks: String
   devname: String
@@ -1078,11 +711,6 @@ type Pci {
   vendorname: String
 }
 
-type Permission {
-  actions: [String!]!
-  resource: Resource!
-}
-
 scalar Port
 
 type ProfileModel {
@@ -1093,13 +721,6 @@ type ProfileModel {
 }
 
 type Query {
-  apiKey(id: ID!): ApiKey
-  apiKeys: [ApiKey!]!
-
-  """
-  An Unraid array consisting of 1 or 2 Parity disks and a number of Data disks.
-  """
-  array: Array!
   cloud: Cloud
   config: Config!
   connect: Connect!
@@ -1131,14 +752,10 @@ type Query {
 
   """List all available log files"""
   logFiles: [LogFile!]!
-
-  """Current user account"""
-  me: Me
   network: Network
   notifications: Notifications!
   online: Boolean
   owner: Owner
-  parityHistory: [ParityCheck]
   registration: Registration
   remoteAccess: RemoteAccess!
   server: Server
@@ -1234,50 +851,6 @@ type RemoteAccess {
   port: Port
 }
 
-input RemoveRoleFromApiKeyInput {
-  apiKeyId: ID!
-  role: Role!
-}
-
-"""Available resources for permissions"""
-enum Resource {
-  API_KEY
-  ARRAY
-  CLOUD
-  CONFIG
-  CONNECT
-  CONNECT__REMOTE_ACCESS
-  CUSTOMIZATIONS
-  DASHBOARD
-  DISK
-  DISPLAY
-  DOCKER
-  FLASH
-  INFO
-  LOGS
-  ME
-  NETWORK
-  NOTIFICATIONS
-  ONLINE
-  OS
-  OWNER
-  PERMISSION
-  REGISTRATION
-  SERVERS
-  SERVICES
-  SHARE
-  VARS
-  VMS
-  WELCOME
-}
-
-"""Available roles for API keys and users"""
-enum Role {
-  ADMIN
-  CONNECT
-  GUEST
-}
-
 type Server {
   apikey: String!
   guid: String!
@@ -1344,7 +917,6 @@ type Share {
 }
 
 type Subscription {
-  array: Array!
   config: Config!
   display: Display
   dockerNetwork(id: ID!): DockerNetwork!
@@ -1357,12 +929,10 @@ type Subscription {
   @param path Path to the log file
   """
   logFile(path: String!): LogFileContent!
-  me: Me
   notificationAdded: Notification!
   notificationsOverview: NotificationOverview!
   online: Boolean!
   owner: Owner!
-  parityHistory: ParityCheck!
   ping: String!
   registration: Registration!
   server: Server
@@ -1481,16 +1051,12 @@ type User implements UserAccount {
 
   """If the account has a password set"""
   password: Boolean
-  permissions: [Permission!]
-  roles: [Role!]!
 }
 
 interface UserAccount {
   description: String!
   id: ID!
   name: String!
-  permissions: [Permission!]
-  roles: [Role!]!
 }
 
 type Vars implements Node {

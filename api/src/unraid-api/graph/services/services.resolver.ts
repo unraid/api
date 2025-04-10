@@ -2,11 +2,13 @@ import { Query, Resolver } from '@nestjs/graphql';
 
 import { AuthActionVerb, AuthPossession, UsePermissions } from 'nest-authz';
 
-import type { Service } from '@app/graphql/generated/api/types.js';
+import { DynamicRemoteAccessType } from '@app/unraid-api/graph/resolvers/connect/connect.model.js';
 import { bootTimestamp } from '@app/common/dashboard/boot-timestamp.js';
 import { API_VERSION } from '@app/environment.js';
-import { DynamicRemoteAccessType, Resource } from '@app/graphql/generated/api/types.js';
+
+import { Resource } from '@app/unraid-api/graph/resolvers/base.model.js';
 import { store } from '@app/store/index.js';
+import { Service } from '@app/unraid-api/graph/services/service.model.js';
 
 @Resolver('Services')
 export class ServicesResolver {

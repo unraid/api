@@ -14,7 +14,11 @@ import {
 
 import { GraphQLLong } from '@app/graphql/resolvers/graphql-type-long.js';
 import { getters } from '@app/store/index.js';
-import { AuthActionVerbEnum, AuthDirective, AuthPossessionEnum } from '@app/unraid-api/graph/auth/auth.enums.js';
+import {
+    AuthActionVerbEnum,
+    AuthDirective,
+    AuthPossessionEnum,
+} from '@app/unraid-api/graph/auth/auth.enums.js';
 import { idPrefixPlugin } from '@app/unraid-api/graph/id-prefix-plugin.js';
 import { PluginSchemaService } from '@app/unraid-api/graph/plugin-schema.service.js';
 import { ResolversModule } from '@app/unraid-api/graph/resolvers/resolvers.module.js';

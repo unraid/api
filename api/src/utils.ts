@@ -1,12 +1,10 @@
 import { BadRequestException, ExecutionContext, Logger, UnauthorizedException } from '@nestjs/common';
 import { GqlExecutionContext } from '@nestjs/graphql';
-import { access, constants, copyFile, unlink } from 'node:fs/promises';
-import { dirname } from 'node:path';
 
 import strftime from 'strftime';
 
-import { UserAccount } from '@app/graphql/generated/api/types.js';
 import { FastifyRequest } from '@app/unraid-api/types/fastify.js';
+import { UserAccount } from '@app/unraid-api/graph/user/user.model.js';
 
 export function notNull<T>(value: T): value is NonNullable<T> {
     return value !== null;

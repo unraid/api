@@ -3,9 +3,9 @@ import { createSlice } from '@reduxjs/toolkit';
 
 import { KEEP_ALIVE_INTERVAL_MS } from '@app/consts.js';
 import { minigraphLogger } from '@app/core/log.js';
-import { MinigraphStatus } from '@app/graphql/generated/api/types.js';
 import { setGraphqlConnectionStatus } from '@app/store/actions/set-minigraph-status.js';
 import { loginUser, logoutUser } from '@app/store/modules/config.js';
+import { MinigraphStatus } from '@app/unraid-api/graph/resolvers/cloud/cloud.model.js';
 
 export type MinigraphClientState = {
     status: MinigraphStatus;
