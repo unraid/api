@@ -7,6 +7,8 @@ import { createPinia, setActivePinia } from 'pinia';
 import { ACCOUNT_CALLBACK } from '~/helpers/urls';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
+import type { ExternalSignIn, ExternalSignOut } from '@unraid/shared-callbacks';
+
 import { useAccountStore } from '~/store/account';
 
 // Mock setup
@@ -224,6 +226,47 @@ describe('Account Store', () => {
         undefined,
         'post'
       );
+    });
+  });
+
+  describe('State Management', () => {
+    const originalConsoleDebug = console.debug;
+
+    beforeEach(() => {
+      console.debug = vi.fn();
+    });
+
+    afterEach(() => {
+      console.debug = originalConsoleDebug;
+    });
+
+    it('should set account actions and payloads', () => {
+      const signInAction: ExternalSignIn = {
+        type: 'signIn',
+        apiKey: 'test-api-key',
+        user: {
+          email: 'test@example.com',
+          preferred_username: 'test-user',
+        },
+      };
+      const signOutAction: ExternalSignOut = {
+        type: 'signOut',
+      };
+
+      store.setAccountAction(signInAction);
+      store.setConnectSignInPayload({
+        apiKey: signInAction.apiKey,
+        email: signInAction.user.email as string,
+        preferred_username: signInAction.user.preferred_username as string,
+      });
+
+      expect(store.accountAction).toEqual(signInAction);
+      expect(store.accountActionStatus).toBe('waiting');
+
+      store.setAccountAction(signOutAction);
+      store.setQueueConnectSignOut(true);
+      expect(store.accountAction).toEqual(signOutAction);
+      expect(store.accountActionStatus).toBe('waiting');
     });
   });
 });
