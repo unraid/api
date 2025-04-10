@@ -4,8 +4,8 @@ import { AuthZService } from 'nest-authz';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { Resource, Role } from '@app/unraid-api/graph/resolvers/base.model.js';
-import { MeResolver } from '@app/unraid-api/graph/user/user.resolver.js';
 import { UserAccount } from '@app/unraid-api/graph/user/user.model.js';
+import { MeResolver } from '@app/unraid-api/graph/user/user.resolver.js';
 
 describe('MeResolver', () => {
     let resolver: MeResolver;

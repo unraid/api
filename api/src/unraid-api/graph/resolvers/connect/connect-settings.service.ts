@@ -9,16 +9,16 @@ import type {
     ConnectSettingsValues,
     RemoteAccess,
     SetupRemoteAccessInput,
-} from '@app/graphql/generated/api/types.js';
+} from '@app/unraid-api/graph/resolvers/connect/connect.model.js';
 import type { DataSlice, SettingSlice, UIElement } from '@app/unraid-api/types/json-forms.js';
 import { fileExistsSync } from '@app/core/utils/files/file-exists.js';
+import { setupRemoteAccessThunk } from '@app/store/actions/setup-remote-access.js';
+import { setSsoUsers, updateAllowedOrigins, updateUserConfig } from '@app/store/modules/config.js';
 import {
     DynamicRemoteAccessType,
     WAN_ACCESS_TYPE,
     WAN_FORWARD_TYPE,
-} from '@app/graphql/generated/api/types.js';
-import { setupRemoteAccessThunk } from '@app/store/actions/setup-remote-access.js';
-import { setSsoUsers, updateAllowedOrigins, updateUserConfig } from '@app/store/modules/config.js';
+} from '@app/unraid-api/graph/resolvers/connect/connect.model.js';
 import { mergeSettingSlices } from '@app/unraid-api/types/json-forms.js';
 import { csvStringToArray } from '@app/utils.js';
 

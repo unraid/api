@@ -5,12 +5,17 @@ import camelCaseKeys from 'camelcase-keys';
 import Docker from 'dockerode';
 import { debounce } from 'lodash-es';
 
-import type { ContainerPort, DockerContainer, DockerNetwork } from '@app/graphql/generated/api/types.js';
 import { pubsub, PUBSUB_CHANNEL } from '@app/core/pubsub.js';
 import { catchHandlers } from '@app/core/utils/misc/catch-handlers.js';
 import { sleep } from '@app/core/utils/misc/sleep.js';
-import { ContainerPortType, ContainerState } from '@app/graphql/generated/api/types.js';
 import { getters } from '@app/store/index.js';
+import {
+    ContainerPort,
+    ContainerPortType,
+    ContainerState,
+    DockerContainer,
+    DockerNetwork,
+} from '@app/unraid-api/graph/resolvers/docker/docker.model.js';
 
 interface ContainerListingOptions extends Docker.ContainerListOptions {
     useCache: boolean;
@@ -77,34 +82,38 @@ export class DockerService implements OnModuleInit {
     }, 500);
 
     public transformContainer(container: Docker.ContainerInfo): DockerContainer {
-        return camelCaseKeys<DockerContainer>(
-            {
-                names: container.Names,
-                labels: container.Labels ?? {},
-                sizeRootFs: undefined,
-                imageId: container.ImageID,
-                state:
-                    typeof container.State === 'string'
-                        ? (ContainerState[container.State.toUpperCase()] ?? ContainerState.EXITED)
-                        : ContainerState.EXITED,
-                autoStart: this.autoStarts.includes(container.Names[0].split('/')[1]),
-                ports: container.Ports.map<ContainerPort>((port) => ({
-                    ...port,
-                    type: ContainerPortType[port.Type.toUpperCase()],
-                })),
-                command: container.Command,
-                created: container.Created,
-                mounts: container.Mounts,
-                networkSettings: container.NetworkSettings,
-                hostConfig: {
-                    networkMode: container.HostConfig.NetworkMode,
-                },
-                id: container.Id,
-                image: container.Image,
-                status: container.Status,
+        const transformed: DockerContainer = {
+            id: container.Id,
+            names: container.Names,
+            image: container.Image,
+            imageId: container.ImageID,
+            command: container.Command,
+            created: container.Created,
+            ports: container.Ports.map((port) => ({
+                ip: port.IP || '',
+                privatePort: port.PrivatePort,
+                publicPort: port.PublicPort,
+                type:
+                    ContainerPortType[port.Type.toUpperCase() as keyof typeof ContainerPortType] ||
+                    ContainerPortType.TCP,
+            })),
+            sizeRootFs: undefined,
+            labels: container.Labels ?? {},
+            state:
+                typeof container.State === 'string'
+                    ? (ContainerState[container.State.toUpperCase() as keyof typeof ContainerState] ??
+                      ContainerState.EXITED)
+                    : ContainerState.EXITED,
+            status: container.Status,
+            hostConfig: {
+                networkMode: container.HostConfig?.NetworkMode || '',
             },
-            { deep: true }
-        );
+            networkSettings: container.NetworkSettings,
+            mounts: container.Mounts,
+            autoStart: this.autoStarts.includes(container.Names[0].split('/')[1]),
+        };
+
+        return transformed;
     }
 
     public async getContainers(
@@ -147,11 +156,27 @@ export class DockerService implements OnModuleInit {
         return this.client
             .listNetworks()
             .catch(catchHandlers.docker)
-            .then(
-                (networks = []) =>
-                    networks.map((object) =>
-                        camelCaseKeys(object as unknown as Record<string, unknown>, { deep: true })
-                    ) as DockerNetwork[]
+            .then((networks = []) =>
+                networks.map(
+                    (network) =>
+                        ({
+                            name: network.Name || '',
+                            id: network.Id || '',
+                            created: network.Created || '',
+                            scope: network.Scope || '',
+                            driver: network.Driver || '',
+                            enableIPv6: network.EnableIPv6 || false,
+                            ipam: network.IPAM || {},
+                            internal: network.Internal || false,
+                            attachable: network.Attachable || false,
+                            ingress: network.Ingress || false,
+                            configFrom: network.ConfigFrom || {},
+                            configOnly: network.ConfigOnly || false,
+                            containers: network.Containers || {},
+                            options: network.Options || {},
+                            labels: network.Labels || {},
+                        }) as DockerNetwork
+                )
             );
     }
 

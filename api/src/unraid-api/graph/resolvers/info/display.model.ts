@@ -101,4 +101,3 @@ export class Display implements Node {
     @Field(() => String, { nullable: true })
     locale?: string;
 }
-

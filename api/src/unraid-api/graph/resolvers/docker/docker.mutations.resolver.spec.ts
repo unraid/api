@@ -3,11 +3,9 @@ import { Test } from '@nestjs/testing';
 
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-
+import { ContainerState, DockerContainer } from '@app/unraid-api/graph/resolvers/docker/docker.model.js';
 import { DockerMutationsResolver } from '@app/unraid-api/graph/resolvers/docker/docker.mutations.resolver.js';
 import { DockerService } from '@app/unraid-api/graph/resolvers/docker/docker.service.js';
-import { ContainerState } from '@app/unraid-api/graph/resolvers/docker/docker.model.js';
-import { DockerContainer } from '@app/unraid-api/graph/resolvers/docker/docker.model.js';
 
 describe('DockerMutationsResolver', () => {
     let resolver: DockerMutationsResolver;

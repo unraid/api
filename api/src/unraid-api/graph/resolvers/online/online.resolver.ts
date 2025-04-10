@@ -1,12 +1,13 @@
 import { Query, Resolver } from '@nestjs/graphql';
 
-import { AuthPossession, UsePermissions } from 'nest-authz';
+import { AuthActionVerb, AuthPossession, UsePermissions } from 'nest-authz';
 
-import { AuthActionVerb, Resource } from '@app/graphql/generated/api/types.js';
+import { Resource } from '@app/unraid-api/graph/resolvers/base.model.js';
+import { Online } from '@app/unraid-api/graph/resolvers/online/online.model.js';
 
-@Resolver('Online')
+@Resolver(() => Online)
 export class OnlineResolver {
-    @Query()
+    @Query(() => Boolean)
     @UsePermissions({
         action: AuthActionVerb.READ,
         resource: Resource.ONLINE,

@@ -19,6 +19,8 @@ import { sanitizeVendor } from '@app/core/utils/vms/domain/sanitize-vendor.js';
 import { vmRegExps } from '@app/core/utils/vms/domain/vm-regexps.js';
 import { filterDevices } from '@app/core/utils/vms/filter-devices.js';
 import { getPciDevices } from '@app/core/utils/vms/get-pci-devices.js';
+import { getters } from '@app/store/index.js';
+import { Temperature, Theme } from '@app/unraid-api/graph/resolvers/info/display.model.js';
 import {
     type Devices,
     type Display,
@@ -28,13 +30,8 @@ import {
     type InfoMemory,
     type Os as InfoOs,
     type MemoryLayout,
-    type Temperature,
-    type Theme,
     type Versions,
-} from '@app/graphql/generated/api/types.js';
-import { getters } from '@app/store/index.js';
-import { Case } from '@app/unraid-api/graph/resolvers/info/display.model.js';
-import { getCasePathIfPresent } from '@app/core/utils/images/image-file-helpers.js';
+} from '@app/unraid-api/graph/resolvers/info/info.model.js';
 
 export const generateApps = async (): Promise<InfoApps> => {
     const installed = await docker
@@ -45,13 +42,14 @@ export const generateApps = async (): Promise<InfoApps> => {
         .listContainers()
         .catch(() => [])
         .then((containers) => containers.length);
-    return { installed, started };
+    return { id: 'info/apps', installed, started };
 };
 
 export const generateOs = async (): Promise<InfoOs> => {
     const os = await osInfo();
 
     return {
+        id: 'info/os',
         ...os,
         hostname: getters.emhttp().var.name,
         uptime: bootTimestamp.toISOString(),
@@ -65,6 +63,7 @@ export const generateCpu = async (): Promise<InfoCpu> => {
         .catch(() => []);
 
     return {
+        id: 'info/cpu',
         ...rest,
         cores: physicalCores,
         threads: cores,
@@ -96,8 +95,8 @@ export const generateDisplay = async (): Promise<Display> => {
     }
     const { theme, unit, ...display } = state.display;
     return {
-        ...display,
         id: 'dynamix-config/display',
+        ...display,
         theme: theme as Theme,
         unit: unit as Temperature,
         scale: toBoolean(display.scale),
@@ -111,7 +110,7 @@ export const generateDisplay = async (): Promise<Display> => {
         critical: Number.parseInt(display.critical, 10),
         hot: Number.parseInt(display.hot, 10),
         max: Number.parseInt(display.max, 10),
-        locale: display.locale || 'en_US'
+        locale: display.locale || 'en_US',
     };
 };
 
@@ -120,6 +119,7 @@ export const generateVersions = async (): Promise<Versions> => {
     const softwareVersions = await versions();
 
     return {
+        id: 'info/versions',
         unraid,
         ...softwareVersions,
     };
@@ -167,6 +167,7 @@ export const generateMemory = async (): Promise<InfoMemory> => {
     }
 
     return {
+        id: 'info/memory',
         layout,
         max,
         ...info,
@@ -412,10 +413,9 @@ export const generateDevices = async (): Promise<Devices> => {
     };
 
     return {
+        id: 'info/devices',
         // Scsi: await scsiDevices,
         gpu: await systemGPUDevices,
-        // Move this to interfaces
-        // network: await si.networkInterfaces(),
         pci: await systemPciDevices(),
         usb: await getSystemUSBDevices(),
     };

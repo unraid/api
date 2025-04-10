@@ -6,17 +6,18 @@ import { mkdir } from 'fs/promises';
 import { execa } from 'execa';
 import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest';
 
-import type {
+import { NotificationIni } from '@app/core/types/states/notification.js';
+import {
     Notification,
     NotificationCounts,
     NotificationData,
     NotificationFilter,
+    NotificationImportance,
     NotificationOverview,
-} from '@app/graphql/generated/api/types.js';
-import { type NotificationIni } from '@app/core/types/states/notification.js';
-import { NotificationSchema } from '@app/graphql/generated/api/operations.js';
-import { Importance, NotificationType } from '@app/graphql/generated/api/types.js';
+    NotificationType,
+} from '@app/unraid-api/graph/resolvers/notifications/notifications.model.js';
 import { NotificationsService } from '@app/unraid-api/graph/resolvers/notifications/notifications.service.js';
+import { validateObject } from '@app/unraid-api/graph/resolvers/validation.utils.js';
 
 // defined outside `describe` so it's defined inside the `beforeAll`
 // needed to mock the dynamix import
@@ -25,7 +26,7 @@ const basePath = '/tmp/test/notifications';
 // we run sequentially here because this module's state depends on external, shared systems
 // rn, it's complicated to make the tests atomic & isolated
 describe.sequential('NotificationsService', () => {
-    const notificationImportance = Object.values(Importance);
+    const notificationImportance = Object.values(NotificationImportance);
     let service: NotificationsService;
     const testPaths = {
         basePath,
@@ -77,7 +78,7 @@ describe.sequential('NotificationsService', () => {
             title = 'Test Notification',
             subject = 'Test Subject',
             description = 'Test Description',
-            importance = Importance.INFO,
+            importance = NotificationImportance.INFO,
         } = data;
         return service.createNotification({ title, subject, description, importance });
     }
@@ -103,7 +104,7 @@ describe.sequential('NotificationsService', () => {
         };
     }
 
-    async function forEachImportance(action: (importance: Importance) => Promise<void>) {
+    async function forEachImportance(action: (importance: NotificationImportance) => Promise<void>) {
         for (const importance of notificationImportance) {
             await action(importance);
         }
@@ -118,7 +119,7 @@ describe.sequential('NotificationsService', () => {
     // currently unused b/c of difficulty implementing NotificationOverview tests
 
     async function forAllTypesAndImportances(
-        action: (type: NotificationType, importance: Importance) => Promise<void>
+        action: (type: NotificationType, importance: NotificationImportance) => Promise<void>
     ) {
         await forEachType(async (type) => {
             await forEachImportance(async (importance) => {
@@ -207,8 +208,8 @@ describe.sequential('NotificationsService', () => {
     it('generates gql-compatible notifications', async () => {
         const created = await createNotification();
         const loaded = await findById(created.id);
-        const { success } = NotificationSchema().safeParse(loaded);
-        expect(success).toBeTruthy();
+        const validated = await validateObject(Notification, loaded);
+        expect(validated).toEqual(loaded);
     });
 
     /**========================================================================
@@ -220,7 +221,7 @@ describe.sequential('NotificationsService', () => {
             title: 'Test Notification',
             subject: 'Test Subject',
             description: 'Test Description',
-            importance: Importance.INFO,
+            importance: NotificationImportance.INFO,
         };
         const notification = await createNotification(notificationData);
 
@@ -255,15 +256,15 @@ describe.sequential('NotificationsService', () => {
 
     it.each(notificationImportance)('loadNotifications respects %s filter', async (importance) => {
         const notifications = await Promise.all([
-            createNotification({ importance: Importance.ALERT }),
-            createNotification({ importance: Importance.ALERT }),
-            createNotification({ importance: Importance.ALERT }),
-            createNotification({ importance: Importance.INFO }),
-            createNotification({ importance: Importance.INFO }),
-            createNotification({ importance: Importance.INFO }),
-            createNotification({ importance: Importance.WARNING }),
-            createNotification({ importance: Importance.WARNING }),
-            createNotification({ importance: Importance.WARNING }),
+            createNotification({ importance: NotificationImportance.ALERT }),
+            createNotification({ importance: NotificationImportance.ALERT }),
+            createNotification({ importance: NotificationImportance.ALERT }),
+            createNotification({ importance: NotificationImportance.INFO }),
+            createNotification({ importance: NotificationImportance.INFO }),
+            createNotification({ importance: NotificationImportance.INFO }),
+            createNotification({ importance: NotificationImportance.WARNING }),
+            createNotification({ importance: NotificationImportance.WARNING }),
+            createNotification({ importance: NotificationImportance.WARNING }),
         ]);
         const { overview } = await service.recalculateOverview();
         expect(notifications.length).toEqual(9);
@@ -310,15 +311,15 @@ describe.sequential('NotificationsService', () => {
     it.each(notificationImportance)('can archiveAll & unarchiveAll %s', async (importance) => {
         const expectIn = makeExpectIn(expect);
         const notifications = await Promise.all([
-            createNotification({ importance: Importance.ALERT }),
-            createNotification({ importance: Importance.ALERT }),
-            createNotification({ importance: Importance.ALERT }),
-            createNotification({ importance: Importance.INFO }),
-            createNotification({ importance: Importance.INFO }),
-            createNotification({ importance: Importance.INFO }),
-            createNotification({ importance: Importance.WARNING }),
-            createNotification({ importance: Importance.WARNING }),
-            createNotification({ importance: Importance.WARNING }),
+            createNotification({ importance: NotificationImportance.ALERT }),
+            createNotification({ importance: NotificationImportance.ALERT }),
+            createNotification({ importance: NotificationImportance.ALERT }),
+            createNotification({ importance: NotificationImportance.INFO }),
+            createNotification({ importance: NotificationImportance.INFO }),
+            createNotification({ importance: NotificationImportance.INFO }),
+            createNotification({ importance: NotificationImportance.WARNING }),
+            createNotification({ importance: NotificationImportance.WARNING }),
+            createNotification({ importance: NotificationImportance.WARNING }),
         ]);
 
         expect(notifications.length).toEqual(9);
@@ -353,7 +354,10 @@ describe.sequential('NotificationsService', () => {
         // isn't just ignoring the filter, which would be possible if it only
         // contained the stuff it was supposed to unarchive.
 
-        const anotherImportance = importance === Importance.ALERT ? Importance.INFO : Importance.ALERT;
+        const anotherImportance =
+            importance === NotificationImportance.ALERT
+                ? NotificationImportance.INFO
+                : NotificationImportance.ALERT;
         await service.archiveAll(anotherImportance);
         await expectIn({ type: NotificationType.ARCHIVE }, 6);
         await expectIn({ type: NotificationType.UNREAD }, 3);

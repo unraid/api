@@ -1,10 +1,13 @@
-import type { AccessUrl } from '@app/graphql/generated/api/types.js';
 import { remoteAccessLogger } from '@app/core/log.js';
-import { DynamicRemoteAccessType, URL_TYPE } from '@app/graphql/generated/api/types.js';
 import { getServerIps } from '@app/graphql/resolvers/subscription/network.js';
 import { type GenericRemoteAccess } from '@app/remoteAccess/handlers/remote-access-interface.js';
 import { setWanAccessAndReloadNginx } from '@app/store/actions/set-wan-access-with-reload.js';
 import { type AppDispatch, type RootState } from '@app/store/index.js';
+import {
+    AccessUrl,
+    DynamicRemoteAccessType,
+    URL_TYPE,
+} from '@app/unraid-api/graph/resolvers/connect/connect.model.js';
 
 export class StaticRemoteAccess implements GenericRemoteAccess {
     public getRemoteAccessUrl({ getState }: { getState: () => RootState }): AccessUrl | null {

@@ -1,11 +1,11 @@
 import { isEqual } from 'lodash-es';
 
 import { minigraphLogger } from '@app/core/log.js';
-import { MinigraphStatus } from '@app/graphql/generated/api/types.js';
 import { setupNewMothershipSubscription } from '@app/mothership/subscribe-to-mothership.js';
 import { getMothershipConnectionParams } from '@app/mothership/utils/get-mothership-websocket-headers.js';
 import { setGraphqlConnectionStatus } from '@app/store/actions/set-minigraph-status.js';
 import { startAppListening } from '@app/store/listeners/listener-middleware.js';
+import { MinigraphStatus } from '@app/unraid-api/graph/resolvers/cloud/cloud.model.js';
 
 export const enableMothershipJobsListener = () =>
     startAppListening({

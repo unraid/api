@@ -4,7 +4,7 @@ import { getDirective, IResolvers, MapperKind, mapSchema } from '@graphql-tools/
 import { GraphQLEnumType, GraphQLSchema } from 'graphql';
 import { AuthActionVerb, AuthPossession, AuthZService, BatchApproval } from 'nest-authz';
 
-import { Resource } from '@app/graphql/generated/api/types.js';
+import { Resource } from '@app/unraid-api/graph/resolvers/base.model.js';
 
 /**
  * @wip : This function does not correctly apply permission to every field.

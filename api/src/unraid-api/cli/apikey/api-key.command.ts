@@ -1,13 +1,13 @@
 import { AuthActionVerb } from 'nest-authz';
 import { Command, CommandRunner, InquirerService, Option } from 'nest-commander';
 
-import type { Permission } from '@app/graphql/generated/api/types.js';
 import type { DeleteApiKeyAnswers } from '@app/unraid-api/cli/apikey/delete-api-key.questions.js';
-import { Resource, Role } from '@app/graphql/generated/api/types.js';
 import { ApiKeyService } from '@app/unraid-api/auth/api-key.service.js';
 import { AddApiKeyQuestionSet } from '@app/unraid-api/cli/apikey/add-api-key.questions.js';
 import { DeleteApiKeyQuestionSet } from '@app/unraid-api/cli/apikey/delete-api-key.questions.js';
 import { LogService } from '@app/unraid-api/cli/log.service.js';
+import { Permission } from '@app/unraid-api/graph/resolvers/api-key/api-key.model.js';
+import { Resource, Role } from '@app/unraid-api/graph/resolvers/base.model.js';
 
 interface KeyOptions {
     name: string;
@@ -101,7 +101,7 @@ ACTIONS: ${Object.values(AuthActionVerb).join(', ')}`,
 
     /** Prompt the user to select API keys to delete. Then, delete the selected keys. */
     private async deleteKeys() {
-        const allKeys = this.apiKeyService.findAll();
+        const allKeys = await this.apiKeyService.findAll();
         if (allKeys.length === 0) {
             this.logger.log('No API keys found to delete');
             return;

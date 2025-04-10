@@ -1,6 +1,6 @@
 import { createAction } from '@reduxjs/toolkit';
 
-import { type MinigraphStatus } from '@app/graphql/generated/api/types.js';
+import { MinigraphStatus } from '@app/unraid-api/graph/resolvers/cloud/cloud.model.js';
 
 export const setGraphqlConnectionStatus = createAction<{
     status: MinigraphStatus;

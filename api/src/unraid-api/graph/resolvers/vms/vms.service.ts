@@ -7,8 +7,8 @@ import { ConnectListAllDomainsFlags, DomainState, Hypervisor } from '@unraid/lib
 import { GraphQLError } from 'graphql';
 
 import { libvirtLogger } from '@app/core/log.js';
-import { VmDomain, VmState } from '@app/graphql/generated/api/types.js';
 import { getters } from '@app/store/index.js';
+import { VmDomain, VmState } from '@app/unraid-api/graph/resolvers/vms/vms.model.js';
 
 @Injectable()
 export class VmsService implements OnModuleInit {

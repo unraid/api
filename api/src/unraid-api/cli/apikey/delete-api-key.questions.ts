@@ -27,7 +27,8 @@ export class DeleteApiKeyQuestionSet {
 
     @ChoicesFor({ name: 'selectedKeys' })
     async getKeys() {
-        return this.apiKeyService.findAll().map((key) => ({
+        const keys = await this.apiKeyService.findAll();
+        return keys.map((key) => ({
             name: `${key.name} (${key.description ?? ''}) [${key.id}]`,
             value: key.id,
         }));

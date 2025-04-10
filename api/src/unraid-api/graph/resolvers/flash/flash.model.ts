@@ -1,6 +1,6 @@
-import { Field, ID, ObjectType } from "@nestjs/graphql";
+import { Field, ID, ObjectType } from '@nestjs/graphql';
 
-import { Node } from "@app/unraid-api/graph/resolvers/base.model.js";
+import { Node } from '@app/unraid-api/graph/resolvers/base.model.js';
 
 @ObjectType()
 export class Flash implements Node {

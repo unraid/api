@@ -1,6 +1,7 @@
-import { IsString, IsNumber, IsEnum, IsOptional, IsArray, ValidateNested } from 'class-validator';
-import { Type } from 'class-transformer';
 import { Field, ObjectType, registerEnumType } from '@nestjs/graphql';
+
+import { Type } from 'class-transformer';
+import { IsArray, IsEnum, IsNumber, IsOptional, IsString, ValidateNested } from 'class-validator';
 
 export enum DiskFsType {
     XFS = 'XFS',
@@ -8,12 +9,12 @@ export enum DiskFsType {
     VFAT = 'VFAT',
     ZFS = 'ZFS',
     EXT4 = 'EXT4',
-    NTFS = 'NTFS'
+    NTFS = 'NTFS',
 }
 
 registerEnumType(DiskFsType, {
     name: 'DiskFsType',
-    description: 'The type of filesystem on the disk partition'
+    description: 'The type of filesystem on the disk partition',
 });
 
 export enum DiskInterfaceType {
@@ -21,22 +22,22 @@ export enum DiskInterfaceType {
     SATA = 'SATA',
     USB = 'USB',
     PCIE = 'PCIE',
-    UNKNOWN = 'UNKNOWN'
+    UNKNOWN = 'UNKNOWN',
 }
 
 registerEnumType(DiskInterfaceType, {
     name: 'DiskInterfaceType',
-    description: 'The type of interface the disk uses to connect to the system'
+    description: 'The type of interface the disk uses to connect to the system',
 });
 
 export enum DiskSmartStatus {
     OK = 'OK',
-    UNKNOWN = 'UNKNOWN'
+    UNKNOWN = 'UNKNOWN',
 }
 
 registerEnumType(DiskSmartStatus, {
     name: 'DiskSmartStatus',
-    description: 'The SMART (Self-Monitoring, Analysis and Reporting Technology) status of the disk'
+    description: 'The SMART (Self-Monitoring, Analysis and Reporting Technology) status of the disk',
 });
 
 @ObjectType()
@@ -124,7 +125,10 @@ export class Disk {
     @IsEnum(DiskSmartStatus)
     smartStatus!: DiskSmartStatus;
 
-    @Field(() => Number, { description: 'The current temperature of the disk in Celsius', nullable: true })
+    @Field(() => Number, {
+        description: 'The current temperature of the disk in Celsius',
+        nullable: true,
+    })
     @IsOptional()
     @IsNumber()
     temperature?: number;

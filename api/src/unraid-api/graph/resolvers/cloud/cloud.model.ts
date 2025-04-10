@@ -5,7 +5,7 @@ export enum MinigraphStatus {
     CONNECTING = 'CONNECTING',
     CONNECTED = 'CONNECTED',
     PING_FAILURE = 'PING_FAILURE',
-    ERROR_RETRYING = 'ERROR_RETRYING'
+    ERROR_RETRYING = 'ERROR_RETRYING',
 }
 
 @ObjectType()
@@ -23,10 +23,10 @@ export class MinigraphqlResponse {
     status!: MinigraphStatus;
 
     @Field(() => Int, { nullable: true })
-    timeout?: number;
+    timeout?: number | null;
 
     @Field(() => String, { nullable: true })
-    error?: string;
+    error?: string | null;
 }
 
 @ObjectType()
@@ -38,7 +38,7 @@ export class CloudResponse {
     ip?: string;
 
     @Field(() => String, { nullable: true })
-    error?: string;
+    error?: string | null;
 }
 
 @ObjectType()
@@ -72,4 +72,4 @@ export class Cloud {
 
     @Field(() => [String])
     allowedOrigins!: string[];
-} 
+}

@@ -3,8 +3,7 @@ import { Args, Mutation, Query, Resolver, Subscription } from '@nestjs/graphql';
 import { PubSub } from 'graphql-subscriptions';
 
 import { PUBSUB_CHANNEL } from '@app/core/pubsub.js';
-
-import { ParityCheck } from './parity.model.js';
+import { ParityCheck } from '@app/unraid-api/graph/resolvers/array/parity.model.js';
 
 const pubSub = new PubSub();
 
@@ -16,22 +15,22 @@ export class ParityResolver {
     }
 
     @Mutation(() => Object)
-    async startParityCheck(@Args('correct') correct: boolean): Promise<Object> {
+    async startParityCheck(@Args('correct') correct: boolean): Promise<object> {
         throw new Error('Not implemented');
     }
 
     @Mutation(() => Object)
-    async pauseParityCheck(): Promise<Object> {
+    async pauseParityCheck(): Promise<object> {
         throw new Error('Not implemented');
     }
 
     @Mutation(() => Object)
-    async resumeParityCheck(): Promise<Object> {
+    async resumeParityCheck(): Promise<object> {
         throw new Error('Not implemented');
     }
 
     @Mutation(() => Object)
-    async cancelParityCheck(): Promise<Object> {
+    async cancelParityCheck(): Promise<object> {
         throw new Error('Not implemented');
     }
 

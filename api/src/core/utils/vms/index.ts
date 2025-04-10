@@ -2,4 +2,3 @@
 
 export * from './filter-devices.js';
 export * from './get-pci-devices.js';
-export * from './system-network-interfaces.js';

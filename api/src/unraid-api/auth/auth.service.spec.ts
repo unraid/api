@@ -4,13 +4,13 @@ import { newEnforcer } from 'casbin';
 import { AuthActionVerb, AuthZService } from 'nest-authz';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { Resource, Role } from '@app/unraid-api/graph/resolvers/base.model.js';
 import { ApiKeyService } from '@app/unraid-api/auth/api-key.service.js';
 import { AuthService } from '@app/unraid-api/auth/auth.service.js';
 import { CookieService } from '@app/unraid-api/auth/cookie.service.js';
-import { FastifyRequest } from '@app/unraid-api/types/fastify.js';
 import { ApiKey, ApiKeyWithSecret } from '@app/unraid-api/graph/resolvers/api-key/api-key.model.js';
+import { Resource, Role } from '@app/unraid-api/graph/resolvers/base.model.js';
 import { UserAccount } from '@app/unraid-api/graph/user/user.model.js';
+import { FastifyRequest } from '@app/unraid-api/types/fastify.js';
 
 describe('AuthService', () => {
     let authService: AuthService;

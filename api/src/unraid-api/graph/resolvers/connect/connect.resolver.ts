@@ -8,19 +8,22 @@ import { getAllowedOrigins, getExtraOrigins } from '@app/common/allowed-origins.
 import { RemoteAccessController } from '@app/remoteAccess/remote-access-controller.js';
 import { setupRemoteAccessThunk } from '@app/store/actions/setup-remote-access.js';
 import { getters, store } from '@app/store/index.js';
-import { loginUser, logoutUser, updateAllowedOrigins } from '@app/store/modules/config.js';
+import { logoutUser, updateAllowedOrigins } from '@app/store/modules/config.js';
 import { setAllowedRemoteAccessUrl } from '@app/store/modules/dynamic-remote-access.js';
 import { Resource } from '@app/unraid-api/graph/resolvers/base.model.js';
 import { ConnectSettingsService } from '@app/unraid-api/graph/resolvers/connect/connect-settings.service.js';
 import {
+    AllowedOriginInput,
     ApiSettingsInput,
     Connect,
     ConnectSettings,
     ConnectSignInInput,
     DynamicRemoteAccessStatus,
     DynamicRemoteAccessType,
+    EnableDynamicRemoteAccessInput,
     RemoteAccess,
     SetupRemoteAccessInput,
+    URL_TYPE,
     WAN_ACCESS_TYPE,
     WAN_FORWARD_TYPE,
 } from '@app/unraid-api/graph/resolvers/connect/connect.model.js';
@@ -143,7 +146,14 @@ export class ConnectResolver {
             return true;
         } else if (controller.getRunningRemoteAccessType() === DynamicRemoteAccessType.DISABLED) {
             if (dynamicRemoteAccessInput.url) {
-                store.dispatch(setAllowedRemoteAccessUrl(dynamicRemoteAccessInput.url));
+                store.dispatch(
+                    setAllowedRemoteAccessUrl({
+                        type: URL_TYPE.WAN,
+                        name: 'Dynamic Remote Access',
+                        ipv4: dynamicRemoteAccessInput.url,
+                        ipv6: null,
+                    })
+                );
             }
             controller.beginRemoteAccess({
                 getState: store.getState,

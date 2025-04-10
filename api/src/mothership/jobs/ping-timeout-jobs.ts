@@ -2,12 +2,13 @@ import { CronJob } from 'cron';
 
 import { KEEP_ALIVE_INTERVAL_MS, ONE_MINUTE_MS } from '@app/consts.js';
 import { minigraphLogger, mothershipLogger, remoteAccessLogger } from '@app/core/log.js';
-import { DynamicRemoteAccessType, MinigraphStatus } from '@app/graphql/generated/api/types.js';
 import { isAPIStateDataFullyLoaded } from '@app/mothership/graphql-client.js';
 import { setGraphqlConnectionStatus } from '@app/store/actions/set-minigraph-status.js';
 import { store } from '@app/store/index.js';
 import { setRemoteAccessRunningType } from '@app/store/modules/dynamic-remote-access.js';
 import { clearSubscription } from '@app/store/modules/remote-graphql.js';
+import { MinigraphStatus } from '@app/unraid-api/graph/resolvers/cloud/cloud.model.js';
+import { DynamicRemoteAccessType } from '@app/unraid-api/graph/resolvers/connect/connect.model.js';
 
 class PingTimeoutJobs {
     private cronJob: CronJob;

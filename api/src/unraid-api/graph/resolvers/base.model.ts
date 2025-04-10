@@ -1,10 +1,6 @@
 import { Field, ID, ObjectType, registerEnumType, Scalar } from '@nestjs/graphql';
-import { ValueNode } from 'graphql';
-import { GraphQLScalarType } from 'graphql';
 
-
-
-
+import { GraphQLScalarType, ValueNode } from 'graphql';
 
 // Register enums
 export enum Resource {

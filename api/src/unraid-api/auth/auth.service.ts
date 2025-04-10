@@ -2,11 +2,12 @@ import { Injectable, Logger, UnauthorizedException } from '@nestjs/common';
 
 import { AuthZService } from 'nest-authz';
 
-import type { Permission, UserAccount } from '@app/graphql/generated/api/types.js';
-import { Role } from '@app/graphql/generated/api/types.js';
 import { getters } from '@app/store/index.js';
 import { ApiKeyService } from '@app/unraid-api/auth/api-key.service.js';
 import { CookieService } from '@app/unraid-api/auth/cookie.service.js';
+import { Permission } from '@app/unraid-api/graph/resolvers/api-key/api-key.model.js';
+import { Role } from '@app/unraid-api/graph/resolvers/base.model.js';
+import { UserAccount } from '@app/unraid-api/graph/user/user.model.js';
 import { FastifyRequest } from '@app/unraid-api/types/fastify.js';
 import { batchProcess, handleAuthError } from '@app/utils.js';
 

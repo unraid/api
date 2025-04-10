@@ -2,10 +2,11 @@ import { Query, ResolveField, Resolver } from '@nestjs/graphql';
 
 import { AuthActionVerb, AuthPossession, UsePermissions } from 'nest-authz';
 
-import { AccessUrl, Network, Resource } from '@app/graphql/generated/api/types.js';
 import { getServerIps } from '@app/graphql/resolvers/subscription/network.js';
+import { Resource } from '@app/unraid-api/graph/resolvers/base.model.js';
+import { AccessUrl, Network } from '@app/unraid-api/graph/resolvers/connect/connect.model.js';
 
-@Resolver('Network')
+@Resolver(() => Network)
 export class NetworkResolver {
     constructor() {}
 
@@ -14,16 +15,21 @@ export class NetworkResolver {
         resource: Resource.NETWORK,
         possession: AuthPossession.ANY,
     })
-    @Query('network')
+    @Query(() => Network)
     public async network(): Promise<Network> {
         return {
             id: 'network',
         };
     }
 
-    @ResolveField()
+    @ResolveField(() => [AccessUrl])
     public async accessUrls(): Promise<AccessUrl[]> {
         const ips = await getServerIps();
-        return ips.urls;
+        return ips.urls.map((url) => ({
+            type: url.type,
+            name: url.name,
+            ipv4: url.ipv4,
+            ipv6: url.ipv6,
+        }));
     }
 }

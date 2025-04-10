@@ -1,5 +1,5 @@
-import { type AccessUrl } from '@app/graphql/generated/api/types.js';
 import { type AppDispatch, type RootState } from '@app/store/index.js';
+import { AccessUrl } from '@app/unraid-api/graph/resolvers/connect/connect.model.js';
 
 export interface GenericRemoteAccess {
     beginRemoteAccess({

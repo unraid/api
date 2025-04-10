@@ -3,8 +3,8 @@ import { PassportStrategy } from '@nestjs/passport';
 
 import { Strategy } from 'passport-http-header-strategy';
 
-import { User } from '@app/graphql/generated/api/types.js';
 import { AuthService } from '@app/unraid-api/auth/auth.service.js';
+import { UserAccount } from '@app/unraid-api/graph/user/user.model.js';
 
 @Injectable()
 export class ServerHeaderStrategy extends PassportStrategy(Strategy, 'server-http-header') {
@@ -18,7 +18,7 @@ export class ServerHeaderStrategy extends PassportStrategy(Strategy, 'server-htt
         });
     }
 
-    async validate(req: any): Promise<User | null> {
+    async validate(req: any): Promise<UserAccount | null> {
         const request = req.req || req;
         const key = request.headers?.['x-api-key'];
 

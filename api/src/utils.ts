@@ -3,8 +3,8 @@ import { GqlExecutionContext } from '@nestjs/graphql';
 
 import strftime from 'strftime';
 
-import { FastifyRequest } from '@app/unraid-api/types/fastify.js';
 import { UserAccount } from '@app/unraid-api/graph/user/user.model.js';
+import { FastifyRequest } from '@app/unraid-api/types/fastify.js';
 
 export function notNull<T>(value: T): value is NonNullable<T> {
     return value !== null;

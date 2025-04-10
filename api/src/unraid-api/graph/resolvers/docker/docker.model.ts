@@ -186,4 +186,3 @@ export class DockerMutations {
     @Field(() => DockerContainer, { description: 'Stop a container' })
     stop!: DockerContainer;
 }
-

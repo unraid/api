@@ -4,7 +4,7 @@ import { Test } from '@nestjs/testing';
 import Docker from 'dockerode';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { ContainerState } from '@app/graphql/generated/api/types.js';
+import { ContainerState } from '@app/unraid-api/graph/resolvers/docker/docker.model.js';
 import { DockerService } from '@app/unraid-api/graph/resolvers/docker/docker.service.js';
 
 // Mock pubsub

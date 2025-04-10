@@ -1,13 +1,13 @@
 import type { StateFileToIniParserMap } from '@app/store/types.js';
 import { type IniStringBoolean, type IniStringBooleanOrAuto } from '@app/core/types/ini.js';
 import { toNumber } from '@app/core/utils/index.js';
-import {
-    ConfigErrorState,
-    DiskFsType,
-    RegistrationState,
-    registrationType,
-} from '@app/graphql/generated/api/types.js';
 import { ArrayState } from '@app/unraid-api/graph/resolvers/array/array.model.js';
+import { DiskFsType } from '@app/unraid-api/graph/resolvers/disks/disks.model.js';
+import {
+    RegistrationState,
+    RegistrationType,
+} from '@app/unraid-api/graph/resolvers/registration/registration.model.js';
+import { ConfigErrorState } from '@app/unraid-api/graph/resolvers/vars/vars.model.js';
 
 /**
  * Unraid registration check
@@ -248,7 +248,7 @@ export const parse: StateFileToIniParserMap['var'] = (iniFile) => {
         portssl: toNumber(iniFile.portssl),
         porttelnet: toNumber(iniFile.porttelnet),
         regCheck: iniFile.regCheck === '' ? 'Valid' : 'Error',
-        regTy: registrationType[iniFile.regTy?.toUpperCase()] ?? registrationType.INVALID,
+        regTy: RegistrationType[iniFile.regTy?.toUpperCase()] ?? RegistrationType.INVALID,
         regExp: iniFile.regExp ?? null,
         // Make sure to use a || not a ?? as regCheck can be an empty string
         regState:

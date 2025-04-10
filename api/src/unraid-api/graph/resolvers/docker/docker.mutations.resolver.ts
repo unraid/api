@@ -3,8 +3,11 @@ import { Args, ResolveField, Resolver } from '@nestjs/graphql';
 import { AuthActionVerb, AuthPossession, UsePermissions } from 'nest-authz';
 
 import { Resource } from '@app/unraid-api/graph/resolvers/base.model.js';
+import {
+    DockerContainer,
+    DockerMutations,
+} from '@app/unraid-api/graph/resolvers/docker/docker.model.js';
 import { DockerService } from '@app/unraid-api/graph/resolvers/docker/docker.service.js';
-import { DockerContainer, DockerMutations } from '@app/unraid-api/graph/resolvers/docker/docker.model.js';
 
 @Resolver(() => DockerMutations)
 export class DockerMutationsResolver {

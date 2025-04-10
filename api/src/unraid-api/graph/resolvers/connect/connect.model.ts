@@ -1,21 +1,37 @@
-import { Field, InputType, ObjectType, ID, Int } from '@nestjs/graphql';
-import { IsString, IsEmail, IsOptional, IsArray, IsEnum, IsBoolean, IsNumber, IsPort, IsNotEmpty, IsObject, ValidateNested, ArrayMinSize } from 'class-validator';
+import { Field, ID, InputType, Int, ObjectType, registerEnumType } from '@nestjs/graphql';
+
+import {
+    ArrayMinSize,
+    IsArray,
+    IsBoolean,
+    IsEmail,
+    IsEnum,
+    IsNotEmpty,
+    IsNumber,
+    IsObject,
+    IsOptional,
+    IsPort,
+    IsString,
+    ValidateNested,
+} from 'class-validator';
+
+import { Node } from '@app/unraid-api/graph/resolvers/base.model.js';
 
 export enum WAN_ACCESS_TYPE {
     DYNAMIC = 'DYNAMIC',
     ALWAYS = 'ALWAYS',
-    DISABLED = 'DISABLED'
+    DISABLED = 'DISABLED',
 }
 
 export enum WAN_FORWARD_TYPE {
     UPNP = 'UPNP',
-    STATIC = 'STATIC'
+    STATIC = 'STATIC',
 }
 
 export enum DynamicRemoteAccessType {
     STATIC = 'STATIC',
     UPNP = 'UPNP',
-    DISABLED = 'DISABLED'
+    DISABLED = 'DISABLED',
 }
 
 @InputType()
@@ -48,7 +64,10 @@ export class ConnectSignInInput {
     @IsOptional()
     idToken?: string;
 
-    @Field(() => ConnectUserInfoInput, { nullable: true, description: 'User information for the sign-in' })
+    @Field(() => ConnectUserInfoInput, {
+        nullable: true,
+        description: 'User information for the sign-in',
+    })
     @ValidateNested()
     @IsOptional()
     userInfo?: ConnectUserInfoInput;
@@ -79,7 +98,10 @@ export class RemoteAccess {
     @IsEnum(WAN_ACCESS_TYPE)
     accessType!: WAN_ACCESS_TYPE;
 
-    @Field(() => WAN_FORWARD_TYPE, { nullable: true, description: 'The type of port forwarding used for Remote Access' })
+    @Field(() => WAN_FORWARD_TYPE, {
+        nullable: true,
+        description: 'The type of port forwarding used for Remote Access',
+    })
     @IsEnum(WAN_FORWARD_TYPE)
     @IsOptional()
     forwardType?: WAN_FORWARD_TYPE;
@@ -87,7 +109,7 @@ export class RemoteAccess {
     @Field(() => Int, { nullable: true, description: 'The port used for Remote Access' })
     @IsPort()
     @IsOptional()
-    port?: number;
+    port?: number | null;
 }
 
 @InputType()
@@ -96,23 +118,29 @@ export class SetupRemoteAccessInput {
     @IsEnum(WAN_ACCESS_TYPE)
     accessType!: WAN_ACCESS_TYPE;
 
-    @Field(() => WAN_FORWARD_TYPE, { nullable: true, description: 'The type of port forwarding to use for Remote Access' })
+    @Field(() => WAN_FORWARD_TYPE, {
+        nullable: true,
+        description: 'The type of port forwarding to use for Remote Access',
+    })
     @IsEnum(WAN_FORWARD_TYPE)
     @IsOptional()
-    forwardType?: WAN_FORWARD_TYPE;
+    forwardType?: WAN_FORWARD_TYPE | null;
 
-    @Field(() => Int, { nullable: true, description: 'The port to use for Remote Access. Not required for UPNP forwardType. Required for STATIC forwardType. Ignored if accessType is DISABLED or forwardType is UPNP.' })
+    @Field(() => Int, {
+        nullable: true,
+        description:
+            'The port to use for Remote Access. Not required for UPNP forwardType. Required for STATIC forwardType. Ignored if accessType is DISABLED or forwardType is UPNP.',
+    })
     @IsPort()
     @IsOptional()
-    port?: number;
+    port?: number | null;
 }
 
 @InputType()
 export class EnableDynamicRemoteAccessInput {
-    @Field({ description: 'The URL for dynamic remote access' })
-    @IsString()
+    @Field(() => URL, { description: 'The URL for dynamic remote access' })
     @IsNotEmpty()
-    url!: string;
+    url!: URL;
 
     @Field({ description: 'Whether to enable or disable dynamic remote access' })
     @IsBoolean()
@@ -121,15 +149,22 @@ export class EnableDynamicRemoteAccessInput {
 
 @ObjectType()
 export class DynamicRemoteAccessStatus {
-    @Field(() => DynamicRemoteAccessType, { description: 'The type of dynamic remote access that is enabled' })
+    @Field(() => DynamicRemoteAccessType, {
+        description: 'The type of dynamic remote access that is enabled',
+    })
     @IsEnum(DynamicRemoteAccessType)
     enabledType!: DynamicRemoteAccessType;
 
-    @Field(() => DynamicRemoteAccessType, { description: 'The type of dynamic remote access that is currently running' })
+    @Field(() => DynamicRemoteAccessType, {
+        description: 'The type of dynamic remote access that is currently running',
+    })
     @IsEnum(DynamicRemoteAccessType)
     runningType!: DynamicRemoteAccessType;
 
-    @Field({ nullable: true, description: 'Any error message associated with the dynamic remote access' })
+    @Field({
+        nullable: true,
+        description: 'Any error message associated with the dynamic remote access',
+    })
     @IsString()
     @IsOptional()
     error?: string;
@@ -137,7 +172,10 @@ export class DynamicRemoteAccessStatus {
 
 @ObjectType()
 export class ConnectSettingsValues {
-    @Field({ description: 'If true, the GraphQL sandbox is enabled and available at /graphql. If false, the GraphQL sandbox is disabled and only the production API will be available.' })
+    @Field({
+        description:
+            'If true, the GraphQL sandbox is enabled and available at /graphql. If false, the GraphQL sandbox is disabled and only the production API will be available.',
+    })
     @IsBoolean()
     sandbox!: boolean;
 
@@ -150,7 +188,10 @@ export class ConnectSettingsValues {
     @IsEnum(WAN_ACCESS_TYPE)
     accessType!: WAN_ACCESS_TYPE;
 
-    @Field(() => WAN_FORWARD_TYPE, { nullable: true, description: 'The type of port forwarding used for Remote Access' })
+    @Field(() => WAN_FORWARD_TYPE, {
+        nullable: true,
+        description: 'The type of port forwarding used for Remote Access',
+    })
     @IsEnum(WAN_FORWARD_TYPE)
     @IsOptional()
     forwardType?: WAN_FORWARD_TYPE;
@@ -158,9 +199,9 @@ export class ConnectSettingsValues {
     @Field(() => Int, { nullable: true, description: 'The port used for Remote Access' })
     @IsPort()
     @IsOptional()
-    port?: number;
+    port?: number | null;
 
-    @Field(() => [String], { description: 'A list of Unique Unraid Account ID\'s' })
+    @Field(() => [String], { description: "A list of Unique Unraid Account ID's" })
     @IsArray()
     @IsString({ each: true })
     ssoUserIds!: string[];
@@ -168,37 +209,54 @@ export class ConnectSettingsValues {
 
 @InputType()
 export class ApiSettingsInput {
-    @Field({ nullable: true, description: 'If true, the GraphQL sandbox will be enabled and available at /graphql. If false, the GraphQL sandbox will be disabled and only the production API will be available.' })
+    @Field({
+        nullable: true,
+        description:
+            'If true, the GraphQL sandbox will be enabled and available at /graphql. If false, the GraphQL sandbox will be disabled and only the production API will be available.',
+    })
     @IsBoolean()
     @IsOptional()
-    sandbox?: boolean;
+    sandbox?: boolean | null;
 
-    @Field(() => [String], { nullable: true, description: 'A list of origins allowed to interact with the API' })
+    @Field(() => [String], {
+        nullable: true,
+        description: 'A list of origins allowed to interact with the API',
+    })
     @IsArray()
     @IsString({ each: true })
     @IsOptional()
-    extraOrigins?: string[];
+    extraOrigins?: string[] | null;
 
-    @Field(() => WAN_ACCESS_TYPE, { nullable: true, description: 'The type of WAN access to use for Remote Access' })
+    @Field(() => WAN_ACCESS_TYPE, {
+        nullable: true,
+        description: 'The type of WAN access to use for Remote Access',
+    })
     @IsEnum(WAN_ACCESS_TYPE)
     @IsOptional()
-    accessType?: WAN_ACCESS_TYPE;
+    accessType?: WAN_ACCESS_TYPE | null;
 
-    @Field(() => WAN_FORWARD_TYPE, { nullable: true, description: 'The type of port forwarding to use for Remote Access' })
+    @Field(() => WAN_FORWARD_TYPE, {
+        nullable: true,
+        description: 'The type of port forwarding to use for Remote Access',
+    })
     @IsEnum(WAN_FORWARD_TYPE)
     @IsOptional()
-    forwardType?: WAN_FORWARD_TYPE;
+    forwardType?: WAN_FORWARD_TYPE | null;
 
-    @Field(() => Int, { nullable: true, description: 'The port to use for Remote Access. Not required for UPNP forwardType. Required for STATIC forwardType. Ignored if accessType is DISABLED or forwardType is UPNP.' })
+    @Field(() => Int, {
+        nullable: true,
+        description:
+            'The port to use for Remote Access. Not required for UPNP forwardType. Required for STATIC forwardType. Ignored if accessType is DISABLED or forwardType is UPNP.',
+    })
     @IsPort()
     @IsOptional()
-    port?: number;
+    port?: number | null;
 
-    @Field(() => [String], { nullable: true, description: 'A list of Unique Unraid Account ID\'s' })
+    @Field(() => [String], { nullable: true, description: "A list of Unique Unraid Account ID's" })
     @IsArray()
     @IsString({ each: true })
     @IsOptional()
-    ssoUserIds?: string[];
+    ssoUserIds?: string[] | null;
 }
 
 @ObjectType()
@@ -235,4 +293,59 @@ export class Connect {
     @Field(() => ConnectSettings, { description: 'The settings for the Connect instance' })
     @ValidateNested()
     settings!: ConnectSettings;
+}
+
+export enum URL_TYPE {
+    LAN = 'LAN',
+    WIREGUARD = 'WIREGUARD',
+    WAN = 'WAN',
+    MDNS = 'MDNS',
+    OTHER = 'OTHER',
+    DEFAULT = 'DEFAULT',
+}
+
+registerEnumType(URL_TYPE, {
+    name: 'URL_TYPE',
+});
+
+@InputType()
+export class AccessUrlInput {
+    @Field(() => URL_TYPE)
+    type!: URL_TYPE;
+
+    @Field(() => String, { nullable: true })
+    name?: string | null;
+
+    @Field(() => URL, { nullable: true })
+    ipv4?: URL | null;
+
+    @Field(() => URL, { nullable: true })
+    ipv6?: URL | null;
+}
+
+/**
+ * This defines the LOCAL server Access URLs - these are sent to Connect if needed to share access routes
+ */
+@ObjectType()
+export class AccessUrl {
+    @Field(() => URL_TYPE)
+    type!: URL_TYPE;
+
+    @Field(() => String, { nullable: true })
+    name?: string | null;
+
+    @Field(() => URL, { nullable: true })
+    ipv4?: URL | null;
+
+    @Field(() => URL, { nullable: true })
+    ipv6?: URL | null;
+}
+
+@ObjectType()
+export class Network implements Node {
+    @Field(() => ID)
+    id!: string;
+
+    @Field(() => [AccessUrl], { nullable: true })
+    accessUrls?: AccessUrl[];
 }

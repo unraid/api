@@ -1,10 +1,10 @@
-import type {
-    ArrayState,
-    DiskFsType,
+import { ArrayState } from '@app/unraid-api/graph/resolvers/array/array.model.js';
+import { DiskFsType } from '@app/unraid-api/graph/resolvers/disks/disks.model.js';
+import {
     RegistrationState,
-    registrationType,
-} from '@app/graphql/generated/api/types.js';
-import { ConfigErrorState } from '@app/graphql/generated/api/types.js';
+    RegistrationType,
+} from '@app/unraid-api/graph/resolvers/registration/registration.model.js';
+import { ConfigErrorState } from '@app/unraid-api/graph/resolvers/vars/vars.model.js';
 
 /**
  * Global vars
@@ -128,7 +128,7 @@ export type Var = {
     /** Who the current Unraid key is registered to. */
     regTo: string;
     /** Which type of key this is. */
-    regTy: registrationType;
+    regTy: RegistrationType;
     /** Is the server currently in safe mode. */
     safeMode: boolean;
     sbClean: boolean;

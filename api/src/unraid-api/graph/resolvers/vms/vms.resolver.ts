@@ -2,15 +2,15 @@ import { Query, ResolveField, Resolver } from '@nestjs/graphql';
 
 import { AuthActionVerb, AuthPossession, UsePermissions } from 'nest-authz';
 
-import type { VmDomain } from '@app/graphql/generated/api/types.js';
-import { Resource } from '@app/graphql/generated/api/types.js';
+import { Resource } from '@app/unraid-api/graph/resolvers/base.model.js';
+import { VmDomain, Vms } from '@app/unraid-api/graph/resolvers/vms/vms.model.js';
 import { VmsService } from '@app/unraid-api/graph/resolvers/vms/vms.service.js';
 
-@Resolver('Vms')
+@Resolver(() => Vms)
 export class VmsResolver {
     constructor(private readonly vmsService: VmsService) {}
 
-    @Query()
+    @Query(() => Vms)
     @UsePermissions({
         action: AuthActionVerb.READ,
         resource: Resource.VMS,
@@ -22,12 +22,11 @@ export class VmsResolver {
         };
     }
 
-    @ResolveField('domain')
-    public async domain(): Promise<Array<VmDomain>> {
+    @ResolveField(() => [VmDomain])
+    public async domains(): Promise<Array<VmDomain>> {
         try {
             return await this.vmsService.getDomains();
         } catch (error) {
-            // Consider using a proper logger here
             throw new Error(
                 `Failed to retrieve VM domains: ${error instanceof Error ? error.message : 'Unknown error'}`
             );

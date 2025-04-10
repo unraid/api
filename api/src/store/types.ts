@@ -17,7 +17,7 @@ import { type SlotsIni } from '@app/store/state-parsers/slots.js';
 import { type SmbIni } from '@app/store/state-parsers/smb.js';
 import { type UsersIni } from '@app/store/state-parsers/users.js';
 import { type VarIni } from '@app/store/state-parsers/var.js';
-import { ArrayDisk } from '@app/unraid-api/graph/resolvers/array/array.model.js';
+import { ArrayDisk, Share } from '@app/unraid-api/graph/resolvers/array/array.model.js';
 import { MinigraphStatus } from '@app/unraid-api/graph/resolvers/cloud/cloud.model.js';
 
 export enum FileLoadStatus {

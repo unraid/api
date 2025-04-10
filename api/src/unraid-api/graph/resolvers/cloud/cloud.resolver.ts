@@ -1,11 +1,13 @@
 import { Query, Resolver } from '@nestjs/graphql';
+
 import { AuthActionVerb, AuthPossession, UsePermissions } from 'nest-authz';
+
+import { getAllowedOrigins } from '@app/common/allowed-origins.js';
 import { checkApi } from '@app/graphql/resolvers/query/cloud/check-api.js';
 import { checkCloud } from '@app/graphql/resolvers/query/cloud/check-cloud.js';
 import { checkMinigraphql } from '@app/graphql/resolvers/query/cloud/check-minigraphql.js';
-import { getAllowedOrigins } from '@app/common/allowed-origins.js';
-import { Cloud } from './cloud.model.js';
 import { Resource } from '@app/unraid-api/graph/resolvers/base.model.js';
+import { Cloud } from '@app/unraid-api/graph/resolvers/cloud/cloud.model.js';
 
 @Resolver(() => Cloud)
 export class CloudResolver {

@@ -1,7 +1,7 @@
 import { Query, ResolveField, Resolver, Subscription } from '@nestjs/graphql';
 
 import { AuthActionVerb, AuthPossession, UsePermissions } from 'nest-authz';
-import { baseboard, system } from 'systeminformation';
+import { baseboard as getBaseboard, system as getSystem } from 'systeminformation';
 
 import { createSubscription, PUBSUB_CHANNEL } from '@app/core/pubsub.js';
 import { getMachineId } from '@app/core/utils/misc/get-machine-id.js';
@@ -65,7 +65,11 @@ export class InfoResolver {
 
     @ResolveField(() => Baseboard)
     public async baseboard(): Promise<Baseboard> {
-        return baseboard();
+        const baseboard = await getBaseboard();
+        return {
+            id: 'baseboard',
+            ...baseboard,
+        };
     }
 
     @ResolveField(() => InfoCpu)
@@ -100,7 +104,11 @@ export class InfoResolver {
 
     @ResolveField(() => System)
     public async system(): Promise<System> {
-        return system();
+        const system = await getSystem();
+        return {
+            id: 'system',
+            ...system,
+        };
     }
 
     @ResolveField(() => Versions)
