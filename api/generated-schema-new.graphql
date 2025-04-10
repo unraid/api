@@ -861,6 +861,40 @@ type DockerMutations {
   stop(id: String!): DockerContainer!
 }
 
+type ParityCheck {
+  """Date of the parity check"""
+  date: DateTime
+
+  """Duration of the parity check in seconds"""
+  duration: Int
+
+  """Speed of the parity check, in MB/s"""
+  speed: String
+
+  """Status of the parity check"""
+  status: String
+
+  """Number of errors during the parity check"""
+  errors: Int
+
+  """Progress percentage of the parity check"""
+  progress: Int
+
+  """Whether corrections are being written to parity"""
+  correcting: Boolean
+
+  """Whether the parity check is paused"""
+  paused: Boolean
+
+  """Whether the parity check is running"""
+  running: Boolean
+}
+
+"""
+A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date-time format.
+"""
+scalar DateTime
+
 type Config implements Node {
   id: ID!
   valid: Boolean
@@ -1088,11 +1122,6 @@ type Info implements Node {
   versions: Versions!
 }
 
-"""
-A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date-time format.
-"""
-scalar DateTime
-
 type ContainerPort {
   ip: String
   privatePort: Int!
@@ -1317,7 +1346,6 @@ type UserAccount {
 type Query {
   apiKeys: [ApiKey!]!
   apiKey(id: String!): ApiKey
-  array: UnraidArray!
   cloud: Cloud!
   config: Config!
   display: Display!
@@ -1339,6 +1367,8 @@ type Query {
   shares: [Share!]!
   vars: Vars!
   vms: Vms!
+  parityHistory: [ParityCheck!]!
+  array: UnraidArray!
   connect: Connect!
   remoteAccess: RemoteAccess!
   extraAllowedOrigins: [String!]!
@@ -1394,6 +1424,10 @@ type Mutation {
 
   """Reset a virtual machine"""
   resetVm(id: String!): Boolean!
+  startParityCheck(correct: Boolean!): JSON!
+  pauseParityCheck: JSON!
+  resumeParityCheck: JSON!
+  cancelParityCheck: JSON!
   updateApiSettings(input: ApiSettingsInput!): ConnectSettingsValues!
   connectSignIn(input: ConnectSignInInput!): Boolean!
   connectSignOut: Boolean!
@@ -1516,7 +1550,6 @@ input EnableDynamicRemoteAccessInput {
 }
 
 type Subscription {
-  arraySubscription: UnraidArray!
   displaySubscription: Display!
   infoSubscription: Info!
   logFile(path: String!): LogFileContent!
@@ -1525,4 +1558,6 @@ type Subscription {
   ownerSubscription: Owner!
   registrationSubscription: Registration!
   serversSubscription: Server!
+  parityHistorySubscription: ParityCheck!
+  arraySubscription: UnraidArray!
 }

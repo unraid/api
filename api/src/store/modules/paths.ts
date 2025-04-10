@@ -10,7 +10,9 @@ const initialState = {
     ),
     'docker-autostart': '/var/lib/docker/unraid-autostart' as const,
     'docker-socket': '/var/run/docker.sock' as const,
-    'parity-checks': '/boot/config/parity-checks.log' as const,
+    'parity-checks': resolvePath(
+        process.env.PATHS_PARITY_CHECKS ?? ('/boot/config/parity-checks.log' as const)
+    ),
     htpasswd: '/etc/nginx/htpasswd' as const,
     'emhttpd-socket': '/var/run/emhttpd.socket' as const,
     states: resolvePath(process.env.PATHS_STATES ?? ('/usr/local/emhttp/state/' as const)),

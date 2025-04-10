@@ -1,25 +1,34 @@
-import { Field, ObjectType } from '@nestjs/graphql';
+import { Field, GraphQLISODateTime, Int, ObjectType } from '@nestjs/graphql';
 
 @ObjectType()
 export class ParityCheck {
-    @Field(() => String, { nullable: true })
-    date?: string;
+    @Field(() => GraphQLISODateTime, { nullable: true, description: 'Date of the parity check' })
+    date?: Date;
 
-    @Field(() => Number, { nullable: true })
+    @Field(() => Int, { nullable: true, description: 'Duration of the parity check in seconds' })
     duration?: number;
 
-    @Field(() => String, { nullable: true })
+    @Field(() => String, { nullable: true, description: 'Speed of the parity check, in MB/s' })
     speed?: string;
 
-    @Field(() => String, { nullable: true })
+    @Field(() => String, { nullable: true, description: 'Status of the parity check' })
     status?: string;
 
-    @Field(() => String, { nullable: true })
-    errors?: string;
-}
+    @Field(() => Int, { nullable: true, description: 'Number of errors during the parity check' })
+    errors?: number;
 
-@ObjectType()
-export class ParityCheckHistory {
-    @Field(() => [ParityCheck])
-    parityChecks: ParityCheck[] = [];
+    @Field(() => Int, { nullable: true, description: 'Progress percentage of the parity check' })
+    progress?: number;
+
+    @Field(() => Boolean, {
+        nullable: true,
+        description: 'Whether corrections are being written to parity',
+    })
+    correcting?: boolean;
+
+    @Field(() => Boolean, { nullable: true, description: 'Whether the parity check is paused' })
+    paused?: boolean;
+
+    @Field(() => Boolean, { nullable: true, description: 'Whether the parity check is running' })
+    running?: boolean;
 }
