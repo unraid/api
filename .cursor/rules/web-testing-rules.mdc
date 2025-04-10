@@ -8,7 +8,7 @@ alwaysApply: false
 - This is a Nuxt.js app but we are testing with vitest outside of the Nuxt environment
 - Nuxt is currently set to auto import so some vue files may need compute or ref imported
 - Use pnpm when running termical commands and stay within the web directory.
-- The directory for tests is located under `web/test`
+- The directory for tests is located under `web/test` when running test just run `pnpm test`
 
 ### Setup
 - Use `mount` from Vue Test Utils for component testing
@@ -125,6 +125,7 @@ describe('Your Store', () => {
    - Use `createPinia()` instead of `createTestingPinia()` for most cases
    - Only use `createTestingPinia` if you specifically need its testing features
    - Let stores initialize with their natural default state instead of forcing initial state
+   - Do not mock the store we're actually testing in the test file. That's why we're using `createPinia()`
 
 2. **Vue Reactivity**
    - Ensure Vue reactivity imports are added to original store files as they may be missing because Nuxt auto import was turned on

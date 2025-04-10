@@ -6,9 +6,23 @@ import { nextTick, ref } from 'vue';
 import { createPinia, setActivePinia } from 'pinia';
 
 import { ACTIVATION_CODE_MODAL_HIDDEN_STORAGE_KEY } from '~/consts';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { useActivationCodeStore } from '~/store/activationCode';
+
+// Mock console methods to suppress output
+const originalConsoleDebug = console.debug;
+const originalConsoleError = console.error;
+
+beforeAll(() => {
+  console.debug = vi.fn();
+  console.error = vi.fn();
+});
+
+afterAll(() => {
+  console.debug = originalConsoleDebug;
+  console.error = originalConsoleError;
+});
 
 // Mock sessionStorage
 const mockStorage = new Map<string, string>();
