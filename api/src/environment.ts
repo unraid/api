@@ -86,4 +86,3 @@ export const MOTHERSHIP_GRAPHQL_LINK = process.env.MOTHERSHIP_GRAPHQL_LINK
       : 'https://mothership.unraid.net/ws';
 
 export const PM2_HOME = process.env.PM2_HOME ?? join(homedir(), '.pm2');
-export const CONFIG_MODULES_HOME = process.env.CONFIG_MODULES_HOME!;
