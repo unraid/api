@@ -7,7 +7,6 @@ import {
     IsEmail,
     IsEnum,
     IsNotEmpty,
-    IsNumber,
     IsObject,
     IsOptional,
     IsPort,
@@ -34,19 +33,31 @@ export enum DynamicRemoteAccessType {
     DISABLED = 'DISABLED',
 }
 
+registerEnumType(DynamicRemoteAccessType, {
+    name: 'DynamicRemoteAccessType',
+});
+
+registerEnumType(WAN_ACCESS_TYPE, {
+    name: 'WAN_ACCESS_TYPE',
+});
+
+registerEnumType(WAN_FORWARD_TYPE, {
+    name: 'WAN_FORWARD_TYPE',
+});
+
 @InputType()
 export class ConnectUserInfoInput {
-    @Field({ description: 'The preferred username of the user' })
+    @Field(() => String, { description: 'The preferred username of the user' })
     @IsString()
     @IsNotEmpty()
     preferred_username!: string;
 
-    @Field({ description: 'The email address of the user' })
+    @Field(() => String, { description: 'The email address of the user' })
     @IsEmail()
     @IsNotEmpty()
     email!: string;
 
-    @Field({ nullable: true, description: 'The avatar URL of the user' })
+    @Field(() => String, { nullable: true, description: 'The avatar URL of the user' })
     @IsString()
     @IsOptional()
     avatar?: string;
@@ -54,12 +65,12 @@ export class ConnectUserInfoInput {
 
 @InputType()
 export class ConnectSignInInput {
-    @Field({ description: 'The API key for authentication' })
+    @Field(() => String, { description: 'The API key for authentication' })
     @IsString()
     @IsNotEmpty()
     apiKey!: string;
 
-    @Field({ nullable: true, description: 'The ID token for authentication' })
+    @Field(() => String, { nullable: true, description: 'The ID token for authentication' })
     @IsString()
     @IsOptional()
     idToken?: string;
@@ -72,12 +83,12 @@ export class ConnectSignInInput {
     @IsOptional()
     userInfo?: ConnectUserInfoInput;
 
-    @Field({ nullable: true, description: 'The access token for authentication' })
+    @Field(() => String, { nullable: true, description: 'The access token for authentication' })
     @IsString()
     @IsOptional()
     accessToken?: string;
 
-    @Field({ nullable: true, description: 'The refresh token for authentication' })
+    @Field(() => String, { nullable: true, description: 'The refresh token for authentication' })
     @IsString()
     @IsOptional()
     refreshToken?: string;
@@ -142,7 +153,7 @@ export class EnableDynamicRemoteAccessInput {
     @IsNotEmpty()
     url!: URL;
 
-    @Field({ description: 'Whether to enable or disable dynamic remote access' })
+    @Field(() => Boolean, { description: 'Whether to enable or disable dynamic remote access' })
     @IsBoolean()
     enabled!: boolean;
 }
@@ -161,7 +172,7 @@ export class DynamicRemoteAccessStatus {
     @IsEnum(DynamicRemoteAccessType)
     runningType!: DynamicRemoteAccessType;
 
-    @Field({
+    @Field(() => String, {
         nullable: true,
         description: 'Any error message associated with the dynamic remote access',
     })
@@ -172,7 +183,7 @@ export class DynamicRemoteAccessStatus {
 
 @ObjectType()
 export class ConnectSettingsValues {
-    @Field({
+    @Field(() => Boolean, {
         description:
             'If true, the GraphQL sandbox is enabled and available at /graphql. If false, the GraphQL sandbox is disabled and only the production API will be available.',
     })
@@ -209,7 +220,7 @@ export class ConnectSettingsValues {
 
 @InputType()
 export class ApiSettingsInput {
-    @Field({
+    @Field(() => Boolean, {
         nullable: true,
         description:
             'If true, the GraphQL sandbox will be enabled and available at /graphql. If false, the GraphQL sandbox will be disabled and only the production API will be available.',

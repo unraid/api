@@ -28,7 +28,9 @@ import { sandboxPlugin } from '@app/unraid-api/graph/sandbox-plugin.js';
             inject: [],
             useFactory: async () => {
                 return {
-                    autoSchemaFile: true, // This will generate the schema in memory
+                    autoSchemaFile: {
+                        path: '../generated-schema-new.graphql',
+                    }, // This will generate the schema in memory
                     introspection: getters.config()?.local?.sandbox === 'yes',
                     playground: false,
                     context: async ({ req, connectionParams, extra }) => {
@@ -54,7 +56,6 @@ import { sandboxPlugin } from '@app/unraid-api/graph/sandbox-plugin.js';
                     },
                     buildSchemaOptions: {
                         directives: [AuthDirective],
-                        numberScalarMode: 'integer',
                     },
                     validationRules: [NoUnusedVariablesRule],
                 };

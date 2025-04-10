@@ -8,7 +8,7 @@ import { Config } from '@app/unraid-api/graph/resolvers/config/config.model.js';
 
 @Resolver(() => Config)
 export class ConfigResolver {
-    @Query()
+    @Query(() => Config)
     @UsePermissions({
         action: AuthActionVerb.READ,
         resource: Resource.CONFIG,

@@ -5,13 +5,13 @@ import { Node } from '@app/unraid-api/graph/resolvers/base.model.js';
 
 @ObjectType()
 export class Capacity {
-    @Field({ description: 'Free capacity' })
+    @Field(() => String, { description: 'Free capacity' })
     free: string = '';
 
-    @Field({ description: 'Used capacity' })
+    @Field(() => String, { description: 'Used capacity' })
     used: string = '';
 
-    @Field({ description: 'Total capacity' })
+    @Field(() => String, { description: 'Total capacity' })
     total: string = '';
 }
 
@@ -35,10 +35,10 @@ export class ArrayDisk {
     })
     idx: number = 0;
 
-    @Field({ nullable: true })
+    @Field(() => String, { nullable: true })
     name?: string;
 
-    @Field({ nullable: true })
+    @Field(() => String, { nullable: true })
     device?: string;
 
     @Field(() => Float, { description: '(KB) Disk Size total' })
@@ -47,7 +47,7 @@ export class ArrayDisk {
     @Field(() => ArrayDiskStatus, { nullable: true })
     status?: ArrayDiskStatus;
 
-    @Field({ nullable: true, description: 'Is the disk a HDD or SSD.' })
+    @Field(() => Boolean, { nullable: true, description: 'Is the disk a HDD or SSD.' })
     rotational?: boolean;
 
     @Field(() => Int, {
@@ -92,7 +92,7 @@ export class ArrayDisk {
     })
     fsUsed?: number | null;
 
-    @Field({ nullable: true })
+    @Field(() => Boolean, { nullable: true })
     exportable?: boolean;
 
     @Field(() => ArrayDiskType, {
@@ -106,16 +106,16 @@ export class ArrayDisk {
     @Field(() => Int, { nullable: true, description: '(%) Disk space left for critical' })
     critical?: number | null;
 
-    @Field({ nullable: true, description: 'File system type for the disk' })
+    @Field(() => String, { nullable: true, description: 'File system type for the disk' })
     fsType?: string | null;
 
-    @Field({ nullable: true, description: 'User comment on disk' })
+    @Field(() => String, { nullable: true, description: 'User comment on disk' })
     comment?: string | null;
 
-    @Field({ nullable: true, description: 'File format (ex MBR: 4KiB-aligned)' })
+    @Field(() => String, { nullable: true, description: 'File format (ex MBR: 4KiB-aligned)' })
     format?: string | null;
 
-    @Field({ nullable: true, description: 'ata | nvme | usb | (others)' })
+    @Field(() => String, { nullable: true, description: 'ata | nvme | usb | (others)' })
     transport?: string | null;
 
     @Field(() => ArrayDiskFsColor, { nullable: true })

@@ -1,6 +1,5 @@
 import { Module } from '@nestjs/common';
 
-import { ApiKeyService } from '@app/unraid-api/auth/api-key.service.js';
 import { AuthModule } from '@app/unraid-api/auth/auth.module.js';
 import { ApiKeyResolver } from '@app/unraid-api/graph/resolvers/api-key/api-key.resolver.js';
 import { ArrayMutationsResolver } from '@app/unraid-api/graph/resolvers/array/array.mutations.resolver.js';
@@ -35,7 +34,7 @@ import { SharesResolver } from '@app/unraid-api/graph/shares/shares.resolver.js'
 import { MeResolver } from '@app/unraid-api/graph/user/user.resolver.js';
 
 @Module({
-    imports: [AuthModule, ApiKeyService, DockerModule, DisksModule],
+    imports: [AuthModule, DockerModule, DisksModule],
     providers: [
         ApiKeyResolver,
         ArrayMutationsResolver,

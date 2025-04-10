@@ -9,7 +9,7 @@ import { Resource } from '@app/unraid-api/graph/resolvers/base.model.js';
 import { DynamicRemoteAccessType } from '@app/unraid-api/graph/resolvers/connect/connect.model.js';
 import { Service } from '@app/unraid-api/graph/services/service.model.js';
 
-@Resolver('Services')
+@Resolver(() => Service)
 export class ServicesResolver {
     constructor() {}
 
@@ -40,7 +40,7 @@ export class ServicesResolver {
         };
     };
 
-    @Query('services')
+    @Query(() => [Service])
     @UsePermissions({
         action: AuthActionVerb.READ,
         resource: Resource.SERVICES,

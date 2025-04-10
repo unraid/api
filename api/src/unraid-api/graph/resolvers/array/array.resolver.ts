@@ -13,7 +13,7 @@ import { Resource } from '@app/unraid-api/graph/resolvers/base.model.js';
 export class ArrayResolver {
     constructor(private readonly arrayService: ArrayService) {}
 
-    @Query()
+    @Query(() => UnraidArray)
     @UsePermissions({
         action: AuthActionVerb.READ,
         resource: Resource.ARRAY,
