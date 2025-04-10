@@ -1,4 +1,4 @@
-import { Field, ID, ObjectType } from '@nestjs/graphql';
+import { Field, ID, ObjectType, registerEnumType } from '@nestjs/graphql';
 
 @ObjectType()
 export class ProfileModel {
@@ -20,6 +20,10 @@ export enum ServerStatus {
     OFFLINE = 'OFFLINE',
     NEVER_CONNECTED = 'NEVER_CONNECTED',
 }
+
+registerEnumType(ServerStatus, {
+    name: 'ServerStatus',
+});
 
 @ObjectType()
 export class Server {

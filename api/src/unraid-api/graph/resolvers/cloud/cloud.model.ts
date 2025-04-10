@@ -1,4 +1,4 @@
-import { Field, Int, ObjectType } from '@nestjs/graphql';
+import { Field, Int, ObjectType, registerEnumType } from '@nestjs/graphql';
 
 export enum MinigraphStatus {
     PRE_INIT = 'PRE_INIT',
@@ -7,6 +7,10 @@ export enum MinigraphStatus {
     PING_FAILURE = 'PING_FAILURE',
     ERROR_RETRYING = 'ERROR_RETRYING',
 }
+
+registerEnumType(MinigraphStatus, {
+    name: 'MinigraphStatus',
+});
 
 @ObjectType()
 export class ApiKeyResponse {

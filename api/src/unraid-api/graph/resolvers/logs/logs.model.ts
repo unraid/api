@@ -1,6 +1,4 @@
-import { Field, InputType, Int, ObjectType, Scalar } from '@nestjs/graphql';
-
-import { DateTimeScalar } from '@app/unraid-api/graph/resolvers/base.model.js';
+import { Field, GraphQLISODateTime, InputType, Int, ObjectType } from '@nestjs/graphql';
 
 @ObjectType()
 export class LogFile {
@@ -13,7 +11,7 @@ export class LogFile {
     @Field(() => Int, { description: 'Size of the log file in bytes' })
     size!: number;
 
-    @Field(() => DateTimeScalar, { description: 'Last modified timestamp' })
+    @Field(() => GraphQLISODateTime, { description: 'Last modified timestamp' })
     modifiedAt!: Date;
 }
 

@@ -2,20 +2,20 @@ import { Field, ObjectType } from '@nestjs/graphql';
 
 @ObjectType()
 export class ParityCheck {
-    @Field()
-    date: string = '';
+    @Field(() => String, { nullable: true })
+    date?: string;
 
-    @Field()
-    duration: number = 0;
+    @Field(() => Number, { nullable: true })
+    duration?: number;
 
-    @Field()
-    speed: string = '';
+    @Field(() => String, { nullable: true })
+    speed?: string;
 
-    @Field()
-    status: string = '';
+    @Field(() => String, { nullable: true })
+    status?: string;
 
-    @Field()
-    errors: string = '';
+    @Field(() => String, { nullable: true })
+    errors?: string;
 }
 
 @ObjectType()

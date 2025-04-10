@@ -8,7 +8,7 @@ import { AuthActionVerb, AuthPossession, UsePermissions } from 'nest-authz';
 import { createSubscription, PUBSUB_CHANNEL } from '@app/core/pubsub.js';
 import { getters } from '@app/store/index.js';
 import { Resource } from '@app/unraid-api/graph/resolvers/base.model.js';
-import { Display } from '@app/unraid-api/graph/resolvers/info/display.model.js';
+import { Display } from '@app/unraid-api/graph/resolvers/info/info.model.js';
 
 const states = {
     // Success

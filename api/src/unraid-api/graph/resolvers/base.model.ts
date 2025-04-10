@@ -1,6 +1,4 @@
-import { Field, ID, ObjectType, registerEnumType, Scalar } from '@nestjs/graphql';
-
-import { GraphQLScalarType, ValueNode } from 'graphql';
+import { Field, ID, InterfaceType, registerEnumType } from '@nestjs/graphql';
 
 // Register enums
 export enum Resource {
@@ -40,7 +38,7 @@ export enum Role {
     GUEST = 'GUEST',
 }
 
-@ObjectType()
+@InterfaceType()
 export class Node {
     @Field(() => ID)
     id!: string;
@@ -55,31 +53,3 @@ registerEnumType(Role, {
     name: 'Role',
     description: 'Available roles for API keys and users',
 });
-
-@Scalar('DateTime')
-export class DateTimeScalar extends GraphQLScalarType {
-    constructor() {
-        super({
-            name: 'DateTime',
-            description: 'Date custom scalar type',
-            serialize(value: unknown): string {
-                if (value instanceof Date) {
-                    return value.toISOString();
-                }
-                throw new Error('DateTime scalar can only serialize Date objects');
-            },
-            parseValue(value: unknown): Date {
-                if (typeof value === 'string') {
-                    return new Date(value);
-                }
-                throw new Error('DateTime scalar can only parse string values');
-            },
-            parseLiteral(ast: ValueNode): Date | null {
-                if (ast.kind === 'StringValue') {
-                    return new Date(ast.value);
-                }
-                return null;
-            },
-        });
-    }
-}

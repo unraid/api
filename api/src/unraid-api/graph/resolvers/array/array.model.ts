@@ -1,4 +1,6 @@
-import { Field, Float, ID, InputType, Int, ObjectType } from '@nestjs/graphql';
+import { Field, Float, ID, InputType, Int, ObjectType, registerEnumType } from '@nestjs/graphql';
+
+import { GraphQLJSON } from 'graphql-scalars';
 
 import { GraphQLLong } from '@app/graphql/resolvers/graphql-type-long.js';
 import { Node } from '@app/unraid-api/graph/resolvers/base.model.js';
@@ -170,35 +172,14 @@ export class ArrayStateInput {
     desiredState: ArrayStateInputState = ArrayStateInputState.STOP;
 }
 
-@ObjectType()
-export class ArrayMutations {
-    @Field(() => UnraidArray, { nullable: true, description: 'Set array state' })
-    setState?: (input: ArrayStateInput) => Promise<UnraidArray>;
-
-    @Field(() => UnraidArray, { nullable: true, description: 'Add new disk to array' })
-    addDiskToArray?: (input: ArrayDiskInput) => Promise<UnraidArray>;
-
-    @Field(() => UnraidArray, {
-        nullable: true,
-        description:
-            "Remove existing disk from array. NOTE: The array must be stopped before running this otherwise it'll throw an error.",
-    })
-    removeDiskFromArray?: (input: ArrayDiskInput) => Promise<UnraidArray>;
-
-    @Field(() => ArrayDisk, { nullable: true })
-    mountArrayDisk?: (id: string) => Promise<ArrayDisk>;
-
-    @Field(() => ArrayDisk, { nullable: true })
-    unmountArrayDisk?: (id: string) => Promise<ArrayDisk>;
-
-    @Field(() => Object, { nullable: true })
-    clearArrayDiskStatistics?: (id: string) => Promise<any>;
-}
-
 export enum ArrayStateInputState {
     START = 'START',
     STOP = 'STOP',
 }
+
+registerEnumType(ArrayStateInputState, {
+    name: 'ArrayStateInputState',
+});
 
 export enum ArrayState {
     STARTED = 'STARTED',
@@ -214,6 +195,10 @@ export enum ArrayState {
     NO_DATA_DISKS = 'NO_DATA_DISKS',
 }
 
+registerEnumType(ArrayState, {
+    name: 'ArrayState',
+});
+
 export enum ArrayDiskStatus {
     DISK_NP = 'DISK_NP',
     DISK_OK = 'DISK_OK',
@@ -226,6 +211,10 @@ export enum ArrayDiskStatus {
     DISK_NEW = 'DISK_NEW',
 }
 
+registerEnumType(ArrayDiskStatus, {
+    name: 'ArrayDiskStatus',
+});
+
 export enum ArrayPendingState {
     STARTING = 'STARTING',
     STOPPING = 'STOPPING',
@@ -233,12 +222,20 @@ export enum ArrayPendingState {
     TOO_MANY_MISSING_DISKS = 'TOO_MANY_MISSING_DISKS',
 }
 
+registerEnumType(ArrayPendingState, {
+    name: 'ArrayPendingState',
+});
+
 export enum ArrayDiskType {
     DATA = 'DATA',
     PARITY = 'PARITY',
     FLASH = 'FLASH',
     CACHE = 'CACHE',
 }
+
+registerEnumType(ArrayDiskType, {
+    name: 'ArrayDiskType',
+});
 
 export enum ArrayDiskFsColor {
     GREEN_ON = 'GREEN_ON',
@@ -251,6 +248,10 @@ export enum ArrayDiskFsColor {
     RED_OFF = 'RED_OFF',
     GREY_OFF = 'GREY_OFF',
 }
+
+registerEnumType(ArrayDiskFsColor, {
+    name: 'ArrayDiskFsColor',
+});
 
 @ObjectType()
 export class Share implements Node {

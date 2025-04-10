@@ -1,7 +1,35 @@
-import { Field, Float, GraphQLISODateTime, ID, Int, ObjectType } from '@nestjs/graphql';
+import {
+    Field,
+    Float,
+    GraphQLISODateTime,
+    ID,
+    Int,
+    ObjectType,
+    registerEnumType,
+} from '@nestjs/graphql';
+
+import { GraphQLJSON } from 'graphql-scalars';
 
 import { Node } from '@app/unraid-api/graph/resolvers/base.model.js';
-import { Temperature, Theme } from '@app/unraid-api/graph/resolvers/info/display.model.js';
+
+export enum Temperature {
+    C = 'C',
+    F = 'F',
+}
+
+export enum Theme {
+    white = 'white',
+}
+
+registerEnumType(Temperature, {
+    name: 'Temperature',
+    description: 'Temperature unit (Celsius or Fahrenheit)',
+});
+
+registerEnumType(Theme, {
+    name: 'Theme',
+    description: 'Display theme',
+});
 
 @ObjectType()
 export class InfoApps implements Node {
@@ -86,7 +114,7 @@ export class InfoCpu implements Node {
     @Field(() => String)
     socket!: string;
 
-    @Field(() => Object)
+    @Field(() => GraphQLJSON)
     cache!: Record<string, any>;
 
     @Field(() => [String])
@@ -214,9 +242,27 @@ export class Devices implements Node {
 }
 
 @ObjectType()
+export class Case {
+    @Field(() => String, { nullable: true })
+    icon?: string;
+
+    @Field(() => String, { nullable: true })
+    url?: string;
+
+    @Field(() => String, { nullable: true })
+    error?: string;
+
+    @Field(() => String, { nullable: true })
+    base64?: string;
+}
+
+@ObjectType()
 export class Display implements Node {
-    @Field(() => ID)
+    @Field(() => ID, { nullable: false })
     id!: string;
+
+    @Field(() => Case, { nullable: true })
+    case?: Case;
 
     @Field(() => String, { nullable: true })
     date?: string;
@@ -276,16 +322,6 @@ export class Display implements Node {
     locale?: string;
 }
 
-export enum MemoryType {
-    DDR2 = 'DDR2',
-    DDR3 = 'DDR3',
-    DDR4 = 'DDR4',
-}
-
-export enum MemoryFormFactor {
-    DIMM = 'DIMM',
-}
-
 @ObjectType()
 export class MemoryLayout {
     @Field(() => Int)
@@ -294,14 +330,14 @@ export class MemoryLayout {
     @Field(() => String, { nullable: true })
     bank?: string;
 
-    @Field(() => MemoryType, { nullable: true })
-    type?: MemoryType;
+    @Field(() => String, { nullable: true })
+    type?: string;
 
     @Field(() => Int, { nullable: true })
     clockSpeed?: number;
 
-    @Field(() => MemoryFormFactor, { nullable: true })
-    formFactor?: MemoryFormFactor;
+    @Field(() => String, { nullable: true })
+    formFactor?: string;
 
     @Field(() => String, { nullable: true })
     manufacturer?: string;

@@ -47,15 +47,12 @@ import { sandboxPlugin } from '@app/unraid-api/graph/sandbox-plugin.js';
                         },
                     },
                     resolvers: {
-                        DateTime: DateTimeResolver,
                         JSON: JSONResolver,
                         Long: GraphQLLong,
-                        Port: PortResolver,
                         URL: URLResolver,
-                        UUID: UUIDResolver,
                     },
                     buildSchemaOptions: {
-                        directives: [AuthDirective],
+                        dateScalarMode: 'isoDate',
                     },
                     validationRules: [NoUnusedVariablesRule],
                 };

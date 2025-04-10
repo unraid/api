@@ -13,6 +13,7 @@ import {
     IsString,
     ValidateNested,
 } from 'class-validator';
+import { GraphQLJSON, GraphQLURL } from 'graphql-scalars';
 
 import { Node } from '@app/unraid-api/graph/resolvers/base.model.js';
 
@@ -149,7 +150,7 @@ export class SetupRemoteAccessInput {
 
 @InputType()
 export class EnableDynamicRemoteAccessInput {
-    @Field(() => URL, { description: 'The URL for dynamic remote access' })
+    @Field(() => GraphQLURL, { description: 'The URL for dynamic remote access' })
     @IsNotEmpty()
     url!: URL;
 
@@ -277,11 +278,11 @@ export class ConnectSettings {
     @IsNotEmpty()
     id!: string;
 
-    @Field(() => Object, { description: 'The data schema for the Connect settings' })
+    @Field(() => GraphQLJSON, { description: 'The data schema for the Connect settings' })
     @IsObject()
     dataSchema!: Record<string, any>;
 
-    @Field(() => Object, { description: 'The UI schema for the Connect settings' })
+    @Field(() => GraphQLJSON, { description: 'The UI schema for the Connect settings' })
     @IsObject()
     uiSchema!: Record<string, any>;
 
@@ -327,10 +328,10 @@ export class AccessUrlInput {
     @Field(() => String, { nullable: true })
     name?: string | null;
 
-    @Field(() => URL, { nullable: true })
+    @Field(() => GraphQLURL, { nullable: true })
     ipv4?: URL | null;
 
-    @Field(() => URL, { nullable: true })
+    @Field(() => GraphQLURL, { nullable: true })
     ipv6?: URL | null;
 }
 
@@ -345,10 +346,10 @@ export class AccessUrl {
     @Field(() => String, { nullable: true })
     name?: string | null;
 
-    @Field(() => URL, { nullable: true })
+    @Field(() => GraphQLURL, { nullable: true })
     ipv4?: URL | null;
 
-    @Field(() => URL, { nullable: true })
+    @Field(() => GraphQLURL, { nullable: true })
     ipv6?: URL | null;
 }
 

@@ -15,7 +15,7 @@ registerEnumType(ContainerPortType, {
 
 @ObjectType()
 export class ContainerPort {
-    @Field({ nullable: true })
+    @Field(() => String, { nullable: true })
     ip?: string;
 
     @Field(() => Int)
@@ -39,34 +39,34 @@ registerEnumType(ContainerState, {
 
 @ObjectType()
 export class ContainerHostConfig {
-    @Field()
+    @Field(() => String)
     networkMode!: string;
 }
 
 @ObjectType()
 export class ContainerMount {
-    @Field()
+    @Field(() => String)
     type!: string;
 
-    @Field()
+    @Field(() => String)
     name!: string;
 
-    @Field()
+    @Field(() => String)
     source!: string;
 
-    @Field()
+    @Field(() => String)
     destination!: string;
 
-    @Field()
+    @Field(() => String)
     driver!: string;
 
-    @Field()
+    @Field(() => String)
     mode!: string;
 
-    @Field()
+    @Field(() => Boolean)
     rw!: boolean;
 
-    @Field()
+    @Field(() => String)
     propagation!: string;
 }
 
@@ -78,13 +78,13 @@ export class DockerContainer {
     @Field(() => [String])
     names!: string[];
 
-    @Field()
+    @Field(() => String)
     image!: string;
 
-    @Field()
+    @Field(() => String)
     imageId!: string;
 
-    @Field()
+    @Field(() => String)
     command!: string;
 
     @Field(() => Int)
@@ -102,7 +102,7 @@ export class DockerContainer {
     @Field(() => ContainerState)
     state!: ContainerState;
 
-    @Field()
+    @Field(() => String)
     status!: string;
 
     @Field(() => ContainerHostConfig, { nullable: true })
@@ -114,46 +114,46 @@ export class DockerContainer {
     @Field(() => [GraphQLJSONObject], { nullable: true })
     mounts?: Record<string, any>[];
 
-    @Field()
+    @Field(() => Boolean)
     autoStart!: boolean;
 }
 
 @ObjectType()
 export class DockerNetwork {
-    @Field()
+    @Field(() => String)
     name!: string;
 
     @Field(() => ID)
     id!: string;
 
-    @Field()
+    @Field(() => String)
     created!: string;
 
-    @Field()
+    @Field(() => String)
     scope!: string;
 
-    @Field()
+    @Field(() => String)
     driver!: string;
 
-    @Field()
+    @Field(() => Boolean)
     enableIPv6!: boolean;
 
     @Field(() => GraphQLJSONObject)
     ipam!: Record<string, any>;
 
-    @Field()
+    @Field(() => Boolean)
     internal!: boolean;
 
-    @Field()
+    @Field(() => Boolean)
     attachable!: boolean;
 
-    @Field()
+    @Field(() => Boolean)
     ingress!: boolean;
 
     @Field(() => GraphQLJSONObject)
     configFrom!: Record<string, any>;
 
-    @Field()
+    @Field(() => Boolean)
     configOnly!: boolean;
 
     @Field(() => GraphQLJSONObject)
@@ -176,13 +176,4 @@ export class Docker implements Node {
 
     @Field(() => [DockerNetwork])
     networks!: DockerNetwork[];
-}
-
-@ObjectType()
-export class DockerMutations {
-    @Field(() => DockerContainer, { description: 'Start a container' })
-    start!: DockerContainer;
-
-    @Field(() => DockerContainer, { description: 'Stop a container' })
-    stop!: DockerContainer;
 }

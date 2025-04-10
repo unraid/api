@@ -17,7 +17,6 @@ import { FlashResolver } from '@app/unraid-api/graph/resolvers/flash/flash.resol
 import { InfoResolver } from '@app/unraid-api/graph/resolvers/info/info.resolver.js';
 import { LogsResolver } from '@app/unraid-api/graph/resolvers/logs/logs.resolver.js';
 import { LogsService } from '@app/unraid-api/graph/resolvers/logs/logs.service.js';
-import { MutationResolver } from '@app/unraid-api/graph/resolvers/mutation/mutation.resolver.js';
 import { NetworkResolver } from '@app/unraid-api/graph/resolvers/network/network.resolver.js';
 import { NotificationsResolver } from '@app/unraid-api/graph/resolvers/notifications/notifications.resolver.js';
 import { NotificationsService } from '@app/unraid-api/graph/resolvers/notifications/notifications.service.js';
@@ -51,7 +50,6 @@ import { MeResolver } from '@app/unraid-api/graph/user/user.resolver.js';
         LogsResolver,
         LogsService,
         MeResolver,
-        MutationResolver,
         NetworkResolver,
         NotificationsResolver,
         NotificationsService,

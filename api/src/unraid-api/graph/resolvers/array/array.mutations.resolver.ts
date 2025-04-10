@@ -6,12 +6,12 @@ import { AuthActionVerb, AuthPossession, UsePermissions } from 'nest-authz';
 import {
     ArrayDisk,
     ArrayDiskInput,
-    ArrayMutations,
     ArrayStateInput,
     UnraidArray,
 } from '@app/unraid-api/graph/resolvers/array/array.model.js';
 import { ArrayService } from '@app/unraid-api/graph/resolvers/array/array.service.js';
 import { Resource } from '@app/unraid-api/graph/resolvers/base.model.js';
+import { ArrayMutations } from '@app/unraid-api/graph/resolvers/mutation/mutation.model.js';
 
 @Resolver(() => ArrayMutations)
 export class ArrayMutationsResolver {
