@@ -6,7 +6,6 @@ import swc from 'unplugin-swc';
 import { VitePluginNode } from 'vite-plugin-node';
 import tsconfigPaths from 'vite-tsconfig-paths';
 import { defineConfig } from 'vitest/config';
-import path from 'path';
 
 export default defineConfig(({ mode }): ViteUserConfig => {
     return {
