@@ -14,6 +14,7 @@ vi.mock('@vue/apollo-composable', () => {
   const mockMutate = vi.fn();
   const mockOnDone = vi.fn();
   const mockOnError = vi.fn();
+
   return {
     useMutation: () => ({
       mutate: mockMutate,
@@ -78,6 +79,7 @@ describe('Account Store', () => {
   describe('Actions', () => {
     it('should call manage action correctly', () => {
       store.manage();
+
       expect(mockSend).toHaveBeenCalledTimes(1);
       expect(mockSend).toHaveBeenCalledWith(
         ACCOUNT_CALLBACK.toString(),
@@ -89,6 +91,7 @@ describe('Account Store', () => {
 
     it('should call myKeys action correctly', async () => {
       await store.myKeys();
+
       expect(mockPurge).toHaveBeenCalledTimes(1);
       expect(mockSend).toHaveBeenCalledTimes(1);
       expect(mockSend).toHaveBeenCalledWith(
@@ -101,6 +104,7 @@ describe('Account Store', () => {
 
     it('should call linkKey action correctly', async () => {
       await store.linkKey();
+
       expect(mockPurge).toHaveBeenCalledTimes(1);
       expect(mockSend).toHaveBeenCalledTimes(1);
       expect(mockSend).toHaveBeenCalledWith(
@@ -124,6 +128,7 @@ describe('Account Store', () => {
 
     it('should call signIn action correctly', () => {
       store.signIn();
+
       expect(mockSend).toHaveBeenCalledTimes(1);
       expect(mockSend).toHaveBeenCalledWith(
         ACCOUNT_CALLBACK.toString(),
@@ -135,6 +140,7 @@ describe('Account Store', () => {
 
     it('should call signOut action correctly', () => {
       store.signOut();
+
       expect(mockSend).toHaveBeenCalledTimes(1);
       expect(mockSend).toHaveBeenCalledWith(
         ACCOUNT_CALLBACK.toString(),
@@ -146,6 +152,7 @@ describe('Account Store', () => {
 
     it('should handle downgradeOs action with and without redirect', async () => {
       await store.downgradeOs();
+
       expect(mockSend).toHaveBeenCalledWith(
         ACCOUNT_CALLBACK.toString(),
         [{ server: { guid: 'test-guid', name: 'test-server' }, type: 'downgradeOs' }],
@@ -154,6 +161,7 @@ describe('Account Store', () => {
       );
 
       await store.downgradeOs(true);
+
       expect(mockSend).toHaveBeenCalledWith(
         ACCOUNT_CALLBACK.toString(),
         [{ server: { guid: 'test-guid', name: 'test-server' }, type: 'downgradeOs' }],
@@ -164,6 +172,7 @@ describe('Account Store', () => {
 
     it('should handle updateOs action with and without redirect', async () => {
       await store.updateOs();
+
       expect(mockSend).toHaveBeenCalledWith(
         ACCOUNT_CALLBACK.toString(),
         [{ server: { guid: 'test-guid', name: 'test-server' }, type: 'updateOs' }],
@@ -172,6 +181,7 @@ describe('Account Store', () => {
       );
 
       await store.updateOs(true);
+
       expect(mockSend).toHaveBeenCalledWith(
         ACCOUNT_CALLBACK.toString(),
         [{ server: { guid: 'test-guid', name: 'test-server' }, type: 'updateOs' }],

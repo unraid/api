@@ -1,7 +1,10 @@
-import { defineStore, createPinia, setActivePinia } from 'pinia';
+import { computed, ref, watch } from 'vue';
+import { createPinia, defineStore, setActivePinia, storeToRefs } from 'pinia';
+
 import { ACTIVATION_CODE_MODAL_HIDDEN_STORAGE_KEY } from '~/consts';
-import { useServerStore } from '~/store/server';
+
 import { useCallbackActionsStore } from '~/store/callbackActions';
+import { useServerStore } from '~/store/server';
 
 setActivePinia(createPinia()); /** required in web component context */
 
@@ -31,12 +34,18 @@ export const useActivationCodeStore = defineStore('activationCode', () => {
   const code = computed<string | null>(() => data.value?.code || null);
   const partnerName = computed<string | null>(() => data.value?.partnerName || null);
   const partnerUrl = computed<string | null>(() => data.value?.partnerUrl || null);
-  const partnerLogo = computed<string | null>(() => data.value?.partnerLogo ? `/webGui/images/partner-logo.svg` : null);
+  const partnerLogo = computed<string | null>(() =>
+    data.value?.partnerLogo ? `/webGui/images/partner-logo.svg` : null
+  );
 
-  const activationModalHidden = ref<boolean>(sessionStorage.getItem(ACTIVATION_CODE_MODAL_HIDDEN_STORAGE_KEY) === 'true');
-  const setActivationModalHidden = (value: boolean) => activationModalHidden.value = value;
+  const activationModalHidden = ref<boolean>(
+    sessionStorage.getItem(ACTIVATION_CODE_MODAL_HIDDEN_STORAGE_KEY) === 'true'
+  );
+  const setActivationModalHidden = (value: boolean) => (activationModalHidden.value = value);
   watch(activationModalHidden, (newVal) => {
-    return newVal ? sessionStorage.setItem(ACTIVATION_CODE_MODAL_HIDDEN_STORAGE_KEY, 'true') : sessionStorage.removeItem(ACTIVATION_CODE_MODAL_HIDDEN_STORAGE_KEY);
+    return newVal
+      ? sessionStorage.setItem(ACTIVATION_CODE_MODAL_HIDDEN_STORAGE_KEY, 'true')
+      : sessionStorage.removeItem(ACTIVATION_CODE_MODAL_HIDDEN_STORAGE_KEY);
   });
   /**
    * Should only see this if
