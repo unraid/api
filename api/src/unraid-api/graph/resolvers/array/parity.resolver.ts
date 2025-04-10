@@ -42,6 +42,11 @@ export class ParityResolver {
         });
     }
 
+    @UsePermissions({
+        action: AuthActionVerb.UPDATE,
+        resource: Resource.ARRAY,
+        possession: AuthPossession.ANY,
+    })
     @Mutation(() => GraphQLJSON)
     async pauseParityCheck(): Promise<object> {
         return this.arrayService.updateParityCheck({
@@ -50,6 +55,11 @@ export class ParityResolver {
         });
     }
 
+    @UsePermissions({
+        action: AuthActionVerb.UPDATE,
+        resource: Resource.ARRAY,
+        possession: AuthPossession.ANY,
+    })
     @Mutation(() => GraphQLJSON)
     async resumeParityCheck(): Promise<object> {
         return this.arrayService.updateParityCheck({
@@ -58,6 +68,11 @@ export class ParityResolver {
         });
     }
 
+    @UsePermissions({
+        action: AuthActionVerb.UPDATE,
+        resource: Resource.ARRAY,
+        possession: AuthPossession.ANY,
+    })
     @Mutation(() => GraphQLJSON)
     async cancelParityCheck(): Promise<object> {
         return this.arrayService.updateParityCheck({
@@ -66,6 +81,11 @@ export class ParityResolver {
         });
     }
 
+    @UsePermissions({
+        action: AuthActionVerb.READ,
+        resource: Resource.ARRAY,
+        possession: AuthPossession.ANY,
+    })
     @Subscription(() => ParityCheck)
     parityHistorySubscription() {
         return pubSub.asyncIterableIterator(PUBSUB_CHANNEL.PARITY);
