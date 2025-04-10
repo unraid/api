@@ -45,7 +45,13 @@ function verifyUsernamePasswordAndSSO(string $username, string $password): bool 
         }
 
         try {
-            $response = json_decode($output[0], true);
+            // Split on first { and take everything after it
+            const jsonPart = $output[0].split('{', 2);
+            if (jsonPart.length < 2) {
+                my_logger("SSO Login Attempt Failed: No JSON found in response");
+                return false;
+            }
+            $response = json_decode('{' + $jsonPart[1], true);
             if (isset($response['valid']) && $response['valid'] === true) {
                 return true;
             }
