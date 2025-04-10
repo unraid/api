@@ -127,7 +127,7 @@ describe('Your Store', () => {
    - Let stores initialize with their natural default state instead of forcing initial state
 
 2. **Vue Reactivity**
-   - Ensure Vue reactivity imports are maintained in store files
+   - Ensure Vue reactivity imports are added to original store files as they may be missing because Nuxt auto import was turned on
    - Don't rely on Nuxt auto-imports in tests
 
    ```typescript
