@@ -6,7 +6,7 @@ import { nextTick, ref } from 'vue';
 import { createPinia, setActivePinia } from 'pinia';
 
 import { ACTIVATION_CODE_MODAL_HIDDEN_STORAGE_KEY } from '~/consts';
-import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { useActivationCodeStore } from '~/store/activationCode';
 

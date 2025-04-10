@@ -189,5 +189,41 @@ describe('Account Store', () => {
         'post'
       );
     });
+
+    it('should call replace action correctly', () => {
+      store.replace();
+
+      expect(mockSend).toHaveBeenCalledTimes(1);
+      expect(mockSend).toHaveBeenCalledWith(
+        ACCOUNT_CALLBACK.toString(),
+        [{ server: { guid: 'test-guid', name: 'test-server' }, type: 'replace' }],
+        undefined,
+        'post'
+      );
+    });
+
+    it('should call trialExtend action correctly', () => {
+      store.trialExtend();
+
+      expect(mockSend).toHaveBeenCalledTimes(1);
+      expect(mockSend).toHaveBeenCalledWith(
+        ACCOUNT_CALLBACK.toString(),
+        [{ server: { guid: 'test-guid', name: 'test-server' }, type: 'trialExtend' }],
+        undefined,
+        'post'
+      );
+    });
+
+    it('should call trialStart action correctly', () => {
+      store.trialStart();
+
+      expect(mockSend).toHaveBeenCalledTimes(1);
+      expect(mockSend).toHaveBeenCalledWith(
+        ACCOUNT_CALLBACK.toString(),
+        [{ server: { guid: 'test-guid', name: 'test-server' }, type: 'trialStart' }],
+        undefined,
+        'post'
+      );
+    });
   });
 });
