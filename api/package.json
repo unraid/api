@@ -20,7 +20,7 @@
         "command:raw": "./dist/cli.js",
         "// Build and Deploy": "",
         "build": "vite build --mode=production",
-        "postbuild": "chmod +x dist/main.js && chmod +x dist/cli.js",
+        "postbuild": "chmod +x dist/main.js && chmod +x dist/cli.js && node scripts/copy-plugins.js",
         "build:watch": "nodemon --watch src --ext ts,js,json --exec 'tsx ./scripts/build.ts'",
         "build:docker": "./scripts/dc.sh run --rm builder",
         "build:release": "tsx ./scripts/build.ts",
@@ -135,6 +135,14 @@
         "ws": "^8.18.0",
         "zen-observable-ts": "^1.1.0",
         "zod": "^3.23.8"
+    },
+    "peerDependencies": {
+        "unraid-api-plugin-connect": "workspace:*"
+    },
+    "peerDependenciesMeta": {
+        "unraid-api-plugin-connect": {
+            "optional": true
+        }
     },
     "devDependencies": {
         "@eslint/js": "^9.21.0",

@@ -1,10 +1,16 @@
 #!/usr/bin/env zx
-import { mkdir, readFile, rm, writeFile } from 'fs/promises';
+import { mkdir, readFile, writeFile } from 'fs/promises';
 import { exit } from 'process';
 
+import type { PackageJson } from 'type-fest';
 import { $, cd } from 'zx';
 
 import { getDeploymentVersion } from './get-deployment-version.js';
+
+type ApiPackageJson = PackageJson & {
+    version: string;
+    peerDependencies: Record<string, string>;
+};
 
 try {
     // Create release and pack directories
@@ -19,13 +25,12 @@ try {
 
     // Get package details
     const packageJson = await readFile('./package.json', 'utf-8');
-    const parsedPackageJson = JSON.parse(packageJson);
-
+    const parsedPackageJson = JSON.parse(packageJson) as ApiPackageJson;
     const deploymentVersion = await getDeploymentVersion(process.env, parsedPackageJson.version);
 
     // Update the package.json version to the deployment version
     parsedPackageJson.version = deploymentVersion;
-    // omit dev dependencies from release build
+    // omit dev dependencies from vendored dependencies in release build
     parsedPackageJson.devDependencies = {};
 
     // Create a temporary directory for packaging
@@ -42,7 +47,6 @@ try {
     $.verbose = true;
     await $`npm install --omit=dev`;
 
-    // Now write the package.json back to the pack directory
     await writeFile('package.json', JSON.stringify(parsedPackageJson, null, 4));
 
     const sudoCheck = await $`command -v sudo`.nothrow();
