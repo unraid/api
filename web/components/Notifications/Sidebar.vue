@@ -23,7 +23,7 @@ import {
 
 import { useTrackLatestSeenNotification } from '~/composables/api/use-notifications';
 import { useFragment } from '~/composables/gql';
-import { Importance, NotificationType } from '~/composables/gql/graphql';
+import { NotificationImportance as Importance, NotificationType } from '~/composables/gql/graphql';
 import {
   archiveAllNotifications,
   deleteArchivedNotifications,

@@ -35,7 +35,7 @@ export class Vms {
     id!: string;
 
     @Field(() => [VmDomain])
-    domain!: VmDomain[];
+    domains?: VmDomain[];
 }
 
 @ObjectType()

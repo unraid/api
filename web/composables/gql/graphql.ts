@@ -14,18 +14,16 @@ export type Scalars = {
   Boolean: { input: boolean; output: boolean; }
   Int: { input: number; output: number; }
   Float: { input: number; output: number; }
-  /** A date-time string at UTC, such as 2007-12-03T10:15:30Z, compliant with the `date-time` format outlined in section 5.6 of the RFC 3339 profile of the ISO 8601 standard for representation of dates and times using the Gregorian calendar. */
+  /** A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date-time format. */
   DateTime: { input: string; output: string; }
   /** The `JSON` scalar type represents JSON values as specified by [ECMA-404](http://www.ecma-international.org/publications/files/ECMA-ST/ECMA-404.pdf). */
   JSON: { input: any; output: any; }
+  /** The `JSONObject` scalar type represents JSON objects as specified by [ECMA-404](http://www.ecma-international.org/publications/files/ECMA-ST/ECMA-404.pdf). */
+  JSONObject: { input: any; output: any; }
   /** The `Long` scalar type represents 52-bit integers */
   Long: { input: number; output: number; }
-  /** A field whose value is a valid TCP port within the range of 0 to 65535: https://en.wikipedia.org/wiki/Transmission_Control_Protocol#TCP_ports */
-  Port: { input: number; output: number; }
   /** A field whose value conforms to the standard URL format as specified in RFC3986: https://www.ietf.org/rfc/rfc3986.txt. */
   URL: { input: URL; output: URL; }
-  /** A field whose value is a generic Universally Unique Identifier: https://en.wikipedia.org/wiki/Universally_unique_identifier. */
-  UUID: { input: string; output: string; }
 };
 
 export type AccessUrl = {
@@ -33,13 +31,6 @@ export type AccessUrl = {
   ipv4?: Maybe<Scalars['URL']['output']>;
   ipv6?: Maybe<Scalars['URL']['output']>;
   name?: Maybe<Scalars['String']['output']>;
-  type: URL_TYPE;
-};
-
-export type AccessUrlInput = {
-  ipv4?: InputMaybe<Scalars['URL']['input']>;
-  ipv6?: InputMaybe<Scalars['URL']['input']>;
-  name?: InputMaybe<Scalars['String']['input']>;
   type: URL_TYPE;
 };
 
@@ -53,18 +44,14 @@ export type AddRoleForApiKeyInput = {
   role: Role;
 };
 
-export type AddRoleForUserInput = {
-  role: Role;
-  userId: Scalars['ID']['input'];
-};
-
 export type AllowedOriginInput = {
+  /** A list of origins allowed to interact with the API */
   origins: Array<Scalars['String']['input']>;
 };
 
 export type ApiKey = {
   __typename?: 'ApiKey';
-  createdAt: Scalars['DateTime']['output'];
+  createdAt: Scalars['String']['output'];
   description?: Maybe<Scalars['String']['output']>;
   id: Scalars['ID']['output'];
   name: Scalars['String']['output'];
@@ -80,7 +67,7 @@ export type ApiKeyResponse = {
 
 export type ApiKeyWithSecret = {
   __typename?: 'ApiKeyWithSecret';
-  createdAt: Scalars['DateTime']['output'];
+  createdAt: Scalars['String']['output'];
   description?: Maybe<Scalars['String']['output']>;
   id: Scalars['ID']['output'];
   key: Scalars['String']['output'];
@@ -89,111 +76,84 @@ export type ApiKeyWithSecret = {
   roles: Array<Role>;
 };
 
-/**
- * Input should be a subset of ApiSettings that can be updated.
- * Some field combinations may be required or disallowed. Please refer to each field for more information.
- */
 export type ApiSettingsInput = {
-  /** The type of WAN access to use for Remote Access. */
+  /** The type of WAN access to use for Remote Access */
   accessType?: InputMaybe<WAN_ACCESS_TYPE>;
-  /** A list of origins allowed to interact with the API. */
+  /** A list of origins allowed to interact with the API */
   extraOrigins?: InputMaybe<Array<Scalars['String']['input']>>;
-  /** The type of port forwarding to use for Remote Access. */
+  /** The type of port forwarding to use for Remote Access */
   forwardType?: InputMaybe<WAN_FORWARD_TYPE>;
-  /**
-   * The port to use for Remote Access. Not required for UPNP forwardType. Required for STATIC forwardType.
-   * Ignored if accessType is DISABLED or forwardType is UPNP.
-   */
-  port?: InputMaybe<Scalars['Port']['input']>;
-  /**
-   * If true, the GraphQL sandbox will be enabled and available at /graphql.
-   * If false, the GraphQL sandbox will be disabled and only the production API will be available.
-   */
+  /** The port to use for Remote Access. Not required for UPNP forwardType. Required for STATIC forwardType. Ignored if accessType is DISABLED or forwardType is UPNP. */
+  port?: InputMaybe<Scalars['Int']['input']>;
+  /** If true, the GraphQL sandbox will be enabled and available at /graphql. If false, the GraphQL sandbox will be disabled and only the production API will be available. */
   sandbox?: InputMaybe<Scalars['Boolean']['input']>;
-  /** A list of Unique Unraid Account ID's. */
+  /** A list of Unique Unraid Account ID's */
   ssoUserIds?: InputMaybe<Array<Scalars['String']['input']>>;
-};
-
-export type ArrayType = Node & {
-  __typename?: 'Array';
-  /** Current boot disk */
-  boot?: Maybe<ArrayDisk>;
-  /** Caches in the current array */
-  caches: Array<ArrayDisk>;
-  /** Current array capacity */
-  capacity: ArrayCapacity;
-  /** Data disks in the current array */
-  disks: Array<ArrayDisk>;
-  id: Scalars['ID']['output'];
-  /** Parity disks in the current array */
-  parities: Array<ArrayDisk>;
-  /** Array state after this query/mutation */
-  pendingState?: Maybe<ArrayPendingState>;
-  /** Array state before this query/mutation */
-  previousState?: Maybe<ArrayState>;
-  /** Current array state */
-  state: ArrayState;
 };
 
 export type ArrayCapacity = {
   __typename?: 'ArrayCapacity';
+  /** Capacity in number of disks */
   disks: Capacity;
+  /** Capacity in kilobytes */
   kilobytes: Capacity;
 };
 
-export type ArrayDisk = {
+export type ArrayDisk = Node & {
   __typename?: 'ArrayDisk';
-  /**  User comment on disk  */
+  color?: Maybe<ArrayDiskFsColor>;
+  /** User comment on disk */
   comment?: Maybe<Scalars['String']['output']>;
-  /**  (%) Disk space left for critical  */
+  /** (%) Disk space left for critical */
   critical?: Maybe<Scalars['Int']['output']>;
   device?: Maybe<Scalars['String']['output']>;
   exportable?: Maybe<Scalars['Boolean']['output']>;
-  /**  File format (ex MBR: 4KiB-aligned)  */
+  /** File format (ex MBR: 4KiB-aligned) */
   format?: Maybe<Scalars['String']['output']>;
-  /**  (KB) Free Size on the FS (Not present on Parity type drive) */
-  fsFree?: Maybe<Scalars['Long']['output']>;
-  /**  (KB) Total Size of the FS (Not present on Parity type drive)  */
-  fsSize?: Maybe<Scalars['Long']['output']>;
-  /**  File system type for the disk  */
+  /** (KB) Free Size on the FS (Not present on Parity type drive) */
+  fsFree?: Maybe<Scalars['Float']['output']>;
+  /** (KB) Total Size of the FS (Not present on Parity type drive) */
+  fsSize?: Maybe<Scalars['Float']['output']>;
+  /** File system type for the disk */
   fsType?: Maybe<Scalars['String']['output']>;
-  /**  (KB) Used Size on the FS (Not present on Parity type drive) */
-  fsUsed?: Maybe<Scalars['Long']['output']>;
-  /**  Disk indentifier, only set for present disks on the system  */
+  /** (KB) Used Size on the FS (Not present on Parity type drive) */
+  fsUsed?: Maybe<Scalars['Float']['output']>;
+  /** Disk identifier, only set for present disks on the system */
   id: Scalars['ID']['output'];
-  /**  Array slot number. Parity1 is always 0 and Parity2 is always 29. Array slots will be 1 - 28. Cache slots are 30 - 53. Flash is 54.  */
+  /** Array slot number. Parity1 is always 0 and Parity2 is always 29. Array slots will be 1 - 28. Cache slots are 30 - 53. Flash is 54. */
   idx: Scalars['Int']['output'];
   name?: Maybe<Scalars['String']['output']>;
   /** Number of unrecoverable errors reported by the device I/O drivers. Missing data due to unrecoverable array read errors is filled in on-the-fly using parity reconstruct (and we attempt to write this data back to the sector(s) which failed). Any unrecoverable write error results in disabling the disk. */
-  numErrors: Scalars['Long']['output'];
+  numErrors?: Maybe<Scalars['Float']['output']>;
   /** Count of I/O read requests sent to the device I/O drivers. These statistics may be cleared at any time. */
-  numReads: Scalars['Long']['output'];
+  numReads?: Maybe<Scalars['Float']['output']>;
   /** Count of I/O writes requests sent to the device I/O drivers. These statistics may be cleared at any time. */
-  numWrites: Scalars['Long']['output'];
-  /**  Is the disk a HDD or SSD.  */
+  numWrites?: Maybe<Scalars['Float']['output']>;
+  /** Is the disk a HDD or SSD. */
   rotational?: Maybe<Scalars['Boolean']['output']>;
-  /**  (KB) Disk Size total  */
-  size: Scalars['Long']['output'];
+  /** (KB) Disk Size total */
+  size?: Maybe<Scalars['Float']['output']>;
   status?: Maybe<ArrayDiskStatus>;
-  /**  Disk temp - will be NaN if array is not started or DISK_NP  */
+  /** Disk temp - will be NaN if array is not started or DISK_NP */
   temp?: Maybe<Scalars['Int']['output']>;
-  /**  ata | nvme | usb | (others) */
+  /** ata | nvme | usb | (others) */
   transport?: Maybe<Scalars['String']['output']>;
-  /**  Type of Disk - used to differentiate Cache / Flash / Array / Parity  */
+  /** Type of Disk - used to differentiate Cache / Flash / Array / Parity */
   type: ArrayDiskType;
-  /**  (%) Disk space left to warn  */
+  /** (%) Disk space left to warn */
   warning?: Maybe<Scalars['Int']['output']>;
 };
 
 export enum ArrayDiskFsColor {
-  /** Disk is OK and not running */
-  GreenOff = 'green_off',
-  /** Disk is OK and running */
-  GreenOn = 'green_on',
-  RedOff = 'red_off',
-  RedOn = 'red_on',
-  YellowOff = 'yellow_off',
-  YellowOn = 'yellow_on'
+  BlueBlink = 'BLUE_BLINK',
+  BlueOn = 'BLUE_ON',
+  GreenBlink = 'GREEN_BLINK',
+  GreenOn = 'GREEN_ON',
+  GreyOff = 'GREY_OFF',
+  RedOff = 'RED_OFF',
+  RedOn = 'RED_ON',
+  YellowBlink = 'YELLOW_BLINK',
+  YellowOn = 'YELLOW_ON'
 }
 
 export type ArrayDiskInput = {
@@ -204,113 +164,88 @@ export type ArrayDiskInput = {
 };
 
 export enum ArrayDiskStatus {
-  /**  disabled, old disk still present  */
   DiskDsbl = 'DISK_DSBL',
-  /**  disabled, new disk present  */
   DiskDsblNew = 'DISK_DSBL_NEW',
-  /**  enabled, disk present, but not valid  */
   DiskInvalid = 'DISK_INVALID',
-  /**  new disk  */
   DiskNew = 'DISK_NEW',
-  /**  no disk present, no disk configured  */
   DiskNp = 'DISK_NP',
-  /**  disabled, no disk present  */
   DiskNpDsbl = 'DISK_NP_DSBL',
-  /**  enabled, but missing  */
   DiskNpMissing = 'DISK_NP_MISSING',
-  /**  enabled, disk present, correct, valid  */
   DiskOk = 'DISK_OK',
-  /**  enablled, disk present, but not correct disk  */
   DiskWrong = 'DISK_WRONG'
 }
 
 export enum ArrayDiskType {
-  /** Cache disk */
-  Cache = 'Cache',
-  /** Data disk */
-  Data = 'Data',
-  /** Flash disk */
-  Flash = 'Flash',
-  /** Parity disk */
-  Parity = 'Parity'
+  Cache = 'CACHE',
+  Data = 'DATA',
+  Flash = 'FLASH',
+  Parity = 'PARITY'
 }
 
 export type ArrayMutations = {
   __typename?: 'ArrayMutations';
   /** Add new disk to array */
-  addDiskToArray?: Maybe<ArrayType>;
-  clearArrayDiskStatistics?: Maybe<Scalars['JSON']['output']>;
-  mountArrayDisk?: Maybe<Disk>;
+  addDiskToArray: UnraidArray;
+  /** Clear statistics for a disk in the array */
+  clearArrayDiskStatistics: Scalars['Boolean']['output'];
+  /** Mount a disk in the array */
+  mountArrayDisk: ArrayDisk;
   /** Remove existing disk from array. NOTE: The array must be stopped before running this otherwise it'll throw an error. */
-  removeDiskFromArray?: Maybe<ArrayType>;
+  removeDiskFromArray: UnraidArray;
   /** Set array state */
-  setState?: Maybe<ArrayType>;
-  unmountArrayDisk?: Maybe<Disk>;
+  setState: UnraidArray;
+  /** Unmount a disk from the array */
+  unmountArrayDisk: ArrayDisk;
 };
 
 
 export type ArrayMutationsaddDiskToArrayArgs = {
-  input?: InputMaybe<ArrayDiskInput>;
+  input: ArrayDiskInput;
 };
 
 
 export type ArrayMutationsclearArrayDiskStatisticsArgs = {
-  id: Scalars['ID']['input'];
+  id: Scalars['String']['input'];
 };
 
 
 export type ArrayMutationsmountArrayDiskArgs = {
-  id: Scalars['ID']['input'];
+  id: Scalars['String']['input'];
 };
 
 
 export type ArrayMutationsremoveDiskFromArrayArgs = {
-  input?: InputMaybe<ArrayDiskInput>;
+  input: ArrayDiskInput;
 };
 
 
 export type ArrayMutationssetStateArgs = {
-  input?: InputMaybe<ArrayStateInput>;
+  input: ArrayStateInput;
 };
 
 
 export type ArrayMutationsunmountArrayDiskArgs = {
-  id: Scalars['ID']['input'];
+  id: Scalars['String']['input'];
 };
 
 export enum ArrayPendingState {
-  /** Array has no data disks */
-  NoDataDisks = 'no_data_disks',
-  /** Array is starting */
-  Starting = 'starting',
-  /** Array is stopping */
-  Stopping = 'stopping',
-  /** Array has too many missing data disks */
-  TooManyMissingDisks = 'too_many_missing_disks'
+  NoDataDisks = 'NO_DATA_DISKS',
+  Starting = 'STARTING',
+  Stopping = 'STOPPING',
+  TooManyMissingDisks = 'TOO_MANY_MISSING_DISKS'
 }
 
 export enum ArrayState {
-  /** A disk is disabled in the array */
   DisableDisk = 'DISABLE_DISK',
-  /** Too many changes to array at the same time */
   InvalidExpansion = 'INVALID_EXPANSION',
-  /** Array has new disks */
   NewArray = 'NEW_ARRAY',
-  /** Array has new disks they're too small */
   NewDiskTooSmall = 'NEW_DISK_TOO_SMALL',
-  /** Array has no data disks */
   NoDataDisks = 'NO_DATA_DISKS',
-  /** Parity isn't the biggest, can't start array */
   ParityNotBiggest = 'PARITY_NOT_BIGGEST',
-  /** A disk is being reconstructed */
   ReconDisk = 'RECON_DISK',
-  /** Array is running */
   Started = 'STARTED',
-  /** Array has stopped */
   Stopped = 'STOPPED',
-  /** Array is disabled */
   SwapDsbl = 'SWAP_DSBL',
-  /** Array has too many missing data disks */
   TooManyMissingDisks = 'TOO_MANY_MISSING_DISKS'
 }
 
@@ -320,30 +255,14 @@ export type ArrayStateInput = {
 };
 
 export enum ArrayStateInputState {
-  /** Start array */
   Start = 'START',
-  /** Stop array */
   Stop = 'STOP'
 }
 
-/** Available authentication action verbs */
-export enum AuthActionVerb {
-  Create = 'CREATE',
-  Delete = 'DELETE',
-  Read = 'READ',
-  Update = 'UPDATE'
-}
-
-/** Available authentication possession types */
-export enum AuthPossession {
-  Any = 'ANY',
-  Own = 'OWN',
-  OwnAny = 'OWN_ANY'
-}
-
-export type Baseboard = {
+export type Baseboard = Node & {
   __typename?: 'Baseboard';
   assetTag?: Maybe<Scalars['String']['output']>;
+  id: Scalars['ID']['output'];
   manufacturer: Scalars['String']['output'];
   model?: Maybe<Scalars['String']['output']>;
   serial?: Maybe<Scalars['String']['output']>;
@@ -352,16 +271,20 @@ export type Baseboard = {
 
 export type Capacity = {
   __typename?: 'Capacity';
+  /** Free capacity */
   free: Scalars['String']['output'];
+  /** Total capacity */
   total: Scalars['String']['output'];
+  /** Used capacity */
   used: Scalars['String']['output'];
 };
 
-export type Case = {
+export type Case = Node & {
   __typename?: 'Case';
   base64?: Maybe<Scalars['String']['output']>;
   error?: Maybe<Scalars['String']['output']>;
   icon?: Maybe<Scalars['String']['output']>;
+  id: Scalars['ID']['output'];
   url?: Maybe<Scalars['String']['output']>;
 };
 
@@ -384,11 +307,12 @@ export type CloudResponse = {
 
 export type Config = Node & {
   __typename?: 'Config';
-  error?: Maybe<ConfigErrorState>;
+  error?: Maybe<Scalars['String']['output']>;
   id: Scalars['ID']['output'];
   valid?: Maybe<Scalars['Boolean']['output']>;
 };
 
+/** Possible error states for configuration */
 export enum ConfigErrorState {
   Ineligible = 'INELIGIBLE',
   Invalid = 'INVALID',
@@ -399,50 +323,61 @@ export enum ConfigErrorState {
 
 export type Connect = Node & {
   __typename?: 'Connect';
+  /** The status of dynamic remote access */
   dynamicRemoteAccess: DynamicRemoteAccessStatus;
+  /** The unique identifier for the Connect instance */
   id: Scalars['ID']['output'];
+  /** The settings for the Connect instance */
   settings: ConnectSettings;
 };
 
 export type ConnectSettings = Node & {
   __typename?: 'ConnectSettings';
+  /** The data schema for the Connect settings */
   dataSchema: Scalars['JSON']['output'];
+  /** The unique identifier for the Connect settings */
   id: Scalars['ID']['output'];
+  /** The UI schema for the Connect settings */
   uiSchema: Scalars['JSON']['output'];
+  /** The values for the Connect settings */
   values: ConnectSettingsValues;
 };
 
-/** Intersection type of ApiSettings and RemoteAccess */
 export type ConnectSettingsValues = {
   __typename?: 'ConnectSettingsValues';
-  /** The type of WAN access used for Remote Access. */
+  /** The type of WAN access used for Remote Access */
   accessType: WAN_ACCESS_TYPE;
-  /** A list of origins allowed to interact with the API. */
+  /** A list of origins allowed to interact with the API */
   extraOrigins: Array<Scalars['String']['output']>;
-  /** The type of port forwarding used for Remote Access. */
+  /** The type of port forwarding used for Remote Access */
   forwardType?: Maybe<WAN_FORWARD_TYPE>;
-  /** The port used for Remote Access. */
-  port?: Maybe<Scalars['Port']['output']>;
-  /**
-   * If true, the GraphQL sandbox is enabled and available at /graphql.
-   * If false, the GraphQL sandbox is disabled and only the production API will be available.
-   */
+  /** The port used for Remote Access */
+  port?: Maybe<Scalars['Int']['output']>;
+  /** If true, the GraphQL sandbox is enabled and available at /graphql. If false, the GraphQL sandbox is disabled and only the production API will be available. */
   sandbox: Scalars['Boolean']['output'];
-  /** A list of Unique Unraid Account ID's. */
+  /** A list of Unique Unraid Account ID's */
   ssoUserIds: Array<Scalars['String']['output']>;
 };
 
 export type ConnectSignInInput = {
+  /** The access token for authentication */
   accessToken?: InputMaybe<Scalars['String']['input']>;
+  /** The API key for authentication */
   apiKey: Scalars['String']['input'];
+  /** The ID token for authentication */
   idToken?: InputMaybe<Scalars['String']['input']>;
+  /** The refresh token for authentication */
   refreshToken?: InputMaybe<Scalars['String']['input']>;
+  /** User information for the sign-in */
   userInfo?: InputMaybe<ConnectUserInfoInput>;
 };
 
 export type ConnectUserInfoInput = {
+  /** The avatar URL of the user */
   avatar?: InputMaybe<Scalars['String']['input']>;
+  /** The email address of the user */
   email: Scalars['String']['input'];
+  /** The preferred username of the user */
   preferred_username: Scalars['String']['input'];
 };
 
@@ -451,24 +386,12 @@ export type ContainerHostConfig = {
   networkMode: Scalars['String']['output'];
 };
 
-export type ContainerMount = {
-  __typename?: 'ContainerMount';
-  destination: Scalars['String']['output'];
-  driver: Scalars['String']['output'];
-  mode: Scalars['String']['output'];
-  name: Scalars['String']['output'];
-  propagation: Scalars['String']['output'];
-  rw: Scalars['Boolean']['output'];
-  source: Scalars['String']['output'];
-  type: Scalars['String']['output'];
-};
-
 export type ContainerPort = {
   __typename?: 'ContainerPort';
   ip?: Maybe<Scalars['String']['output']>;
-  privatePort?: Maybe<Scalars['Int']['output']>;
-  publicPort?: Maybe<Scalars['Int']['output']>;
-  type?: Maybe<ContainerPortType>;
+  privatePort: Scalars['Int']['output'];
+  publicPort: Scalars['Int']['output'];
+  type: ContainerPortType;
 };
 
 export enum ContainerPortType {
@@ -484,52 +407,75 @@ export enum ContainerState {
 export type CreateApiKeyInput = {
   description?: InputMaybe<Scalars['String']['input']>;
   name: Scalars['String']['input'];
-  /**  This will replace the existing key if one already exists with the same name, otherwise returns the existing key  */
+  /** This will replace the existing key if one already exists with the same name, otherwise returns the existing key */
   overwrite?: InputMaybe<Scalars['Boolean']['input']>;
   permissions?: InputMaybe<Array<AddPermissionInput>>;
   roles?: InputMaybe<Array<Role>>;
 };
 
-export type Devices = {
+export type Devices = Node & {
   __typename?: 'Devices';
-  gpu?: Maybe<Array<Maybe<Gpu>>>;
-  network?: Maybe<Array<Maybe<Network>>>;
-  pci?: Maybe<Array<Maybe<Pci>>>;
-  usb?: Maybe<Array<Maybe<Usb>>>;
+  gpu: Array<Gpu>;
+  id: Scalars['ID']['output'];
+  pci: Array<Pci>;
+  usb: Array<Usb>;
 };
 
 export type Disk = {
   __typename?: 'Disk';
-  bytesPerSector: Scalars['Long']['output'];
+  /** The number of bytes per sector */
+  bytesPerSector: Scalars['Float']['output'];
+  /** The device path of the disk (e.g. /dev/sdb) */
   device: Scalars['String']['output'];
+  /** The firmware revision of the disk */
   firmwareRevision: Scalars['String']['output'];
-  id: Scalars['ID']['output'];
+  /** The unique identifier of the disk */
+  id: Scalars['String']['output'];
+  /** The interface type of the disk */
   interfaceType: DiskInterfaceType;
+  /** The model name of the disk */
   name: Scalars['String']['output'];
-  partitions?: Maybe<Array<DiskPartition>>;
-  sectorsPerTrack: Scalars['Long']['output'];
+  /** The partitions on the disk */
+  partitions: Array<DiskPartition>;
+  /** The number of sectors per track */
+  sectorsPerTrack: Scalars['Float']['output'];
+  /** The serial number of the disk */
   serialNum: Scalars['String']['output'];
-  size: Scalars['Long']['output'];
+  /** The total size of the disk in bytes */
+  size: Scalars['Float']['output'];
+  /** The SMART status of the disk */
   smartStatus: DiskSmartStatus;
-  temperature: Scalars['Long']['output'];
-  totalCylinders: Scalars['Long']['output'];
-  totalHeads: Scalars['Long']['output'];
-  totalSectors: Scalars['Long']['output'];
-  totalTracks: Scalars['Long']['output'];
-  tracksPerCylinder: Scalars['Long']['output'];
+  /** The current temperature of the disk in Celsius */
+  temperature?: Maybe<Scalars['Float']['output']>;
+  /** The total number of cylinders on the disk */
+  totalCylinders: Scalars['Float']['output'];
+  /** The total number of heads on the disk */
+  totalHeads: Scalars['Float']['output'];
+  /** The total number of sectors on the disk */
+  totalSectors: Scalars['Float']['output'];
+  /** The total number of tracks on the disk */
+  totalTracks: Scalars['Float']['output'];
+  /** The number of tracks per cylinder */
+  tracksPerCylinder: Scalars['Float']['output'];
+  /** The type of disk (e.g. SSD, HDD) */
   type: Scalars['String']['output'];
+  /** The manufacturer of the disk */
   vendor: Scalars['String']['output'];
 };
 
+/** The type of filesystem on the disk partition */
 export enum DiskFsType {
-  Btrfs = 'btrfs',
-  Vfat = 'vfat',
-  Xfs = 'xfs',
-  Zfs = 'zfs'
+  Btrfs = 'BTRFS',
+  Ext4 = 'EXT4',
+  Ntfs = 'NTFS',
+  Vfat = 'VFAT',
+  Xfs = 'XFS',
+  Zfs = 'ZFS'
 }
 
+/** The type of interface the disk uses to connect to the system */
 export enum DiskInterfaceType {
-  PcIe = 'PCIe',
+  Pcie = 'PCIE',
   Sas = 'SAS',
   Sata = 'SATA',
   Unknown = 'UNKNOWN',
@@ -538,17 +484,21 @@ export enum DiskInterfaceType {
 
 export type DiskPartition = {
   __typename?: 'DiskPartition';
+  /** The filesystem type of the partition */
   fsType: DiskFsType;
+  /** The name of the partition */
   name: Scalars['String']['output'];
-  size: Scalars['Long']['output'];
+  /** The size of the partition in bytes */
+  size: Scalars['Float']['output'];
 };
 
+/** The SMART (Self-Monitoring, Analysis and Reporting Technology) status of the disk */
 export enum DiskSmartStatus {
   Ok = 'OK',
   Unknown = 'UNKNOWN'
 }
 
-export type Display = {
+export type Display = Node & {
   __typename?: 'Display';
   banner?: Maybe<Scalars['String']['output']>;
   case?: Maybe<Case>;
@@ -575,10 +525,9 @@ export type Display = {
 
 export type Docker = Node & {
   __typename?: 'Docker';
-  containers?: Maybe<Array<DockerContainer>>;
+  containers: Array<DockerContainer>;
   id: Scalars['ID']['output'];
-  mutations: DockerMutations;
-  networks?: Maybe<Array<DockerNetwork>>;
+  networks: Array<DockerNetwork>;
 };
 
 export type DockerContainer = {
@@ -590,56 +539,61 @@ export type DockerContainer = {
   id: Scalars['ID']['output'];
   image: Scalars['String']['output'];
   imageId: Scalars['String']['output'];
-  labels?: Maybe<Scalars['JSON']['output']>;
-  mounts?: Maybe<Array<Maybe<Scalars['JSON']['output']>>>;
-  names?: Maybe<Array<Scalars['String']['output']>>;
-  networkSettings?: Maybe<Scalars['JSON']['output']>;
+  labels?: Maybe<Scalars['JSONObject']['output']>;
+  mounts?: Maybe<Array<Scalars['JSONObject']['output']>>;
+  names: Array<Scalars['String']['output']>;
+  networkSettings?: Maybe<Scalars['JSONObject']['output']>;
   ports: Array<ContainerPort>;
-  /**  (B) Total size of all the files in the container  */
-  sizeRootFs?: Maybe<Scalars['Long']['output']>;
+  /** Total size of all the files in the container */
+  sizeRootFs?: Maybe<Scalars['Int']['output']>;
   state: ContainerState;
   status: Scalars['String']['output'];
 };
 
 export type DockerMutations = {
   __typename?: 'DockerMutations';
-  startContainer: DockerContainer;
-  stopContainer: DockerContainer;
+  /** Start a container */
+  start: DockerContainer;
+  /** Stop a container */
+  stop: DockerContainer;
 };
 
 
-export type DockerMutationsstartContainerArgs = {
-  id: Scalars['ID']['input'];
+export type DockerMutationsstartArgs = {
+  id: Scalars['String']['input'];
 };
 
 
-export type DockerMutationsstopContainerArgs = {
-  id: Scalars['ID']['input'];
+export type DockerMutationsstopArgs = {
+  id: Scalars['String']['input'];
 };
 
 export type DockerNetwork = {
   __typename?: 'DockerNetwork';
   attachable: Scalars['Boolean']['output'];
-  configFrom?: Maybe<Scalars['JSON']['output']>;
+  configFrom: Scalars['JSONObject']['output'];
   configOnly: Scalars['Boolean']['output'];
-  containers?: Maybe<Scalars['JSON']['output']>;
-  created?: Maybe<Scalars['String']['output']>;
-  driver?: Maybe<Scalars['String']['output']>;
+  containers: Scalars['JSONObject']['output'];
+  created: Scalars['String']['output'];
+  driver: Scalars['String']['output'];
   enableIPv6: Scalars['Boolean']['output'];
-  id?: Maybe<Scalars['ID']['output']>;
+  id: Scalars['ID']['output'];
   ingress: Scalars['Boolean']['output'];
   internal: Scalars['Boolean']['output'];
-  ipam?: Maybe<Scalars['JSON']['output']>;
-  labels?: Maybe<Scalars['JSON']['output']>;
-  name?: Maybe<Scalars['String']['output']>;
-  options?: Maybe<Scalars['JSON']['output']>;
-  scope?: Maybe<Scalars['String']['output']>;
+  ipam: Scalars['JSONObject']['output'];
+  labels: Scalars['JSONObject']['output'];
+  name: Scalars['String']['output'];
+  options: Scalars['JSONObject']['output'];
+  scope: Scalars['String']['output'];
 };
 
 export type DynamicRemoteAccessStatus = {
   __typename?: 'DynamicRemoteAccessStatus';
+  /** The type of dynamic remote access that is enabled */
   enabledType: DynamicRemoteAccessType;
+  /** Any error message associated with the dynamic remote access */
   error?: Maybe<Scalars['String']['output']>;
+  /** The type of dynamic remote access that is currently running */
   runningType: DynamicRemoteAccessType;
 };
 
@@ -650,18 +604,21 @@ export enum DynamicRemoteAccessType {
 }
 
 export type EnableDynamicRemoteAccessInput = {
+  /** Whether to enable or disable dynamic remote access */
   enabled: Scalars['Boolean']['input'];
-  url: AccessUrlInput;
+  /** The URL for dynamic remote access */
+  url: Scalars['URL']['input'];
 };
 
-export type Flash = {
+export type Flash = Node & {
   __typename?: 'Flash';
-  guid?: Maybe<Scalars['String']['output']>;
-  product?: Maybe<Scalars['String']['output']>;
-  vendor?: Maybe<Scalars['String']['output']>;
+  guid: Scalars['String']['output'];
+  id: Scalars['ID']['output'];
+  product: Scalars['String']['output'];
+  vendor: Scalars['String']['output'];
 };
 
-export type Gpu = {
+export type Gpu = Node & {
   __typename?: 'Gpu';
   blacklisted: Scalars['Boolean']['output'];
   class: Scalars['String']['output'];
@@ -672,48 +629,44 @@ export type Gpu = {
   vendorname: Scalars['String']['output'];
 };
 
-export enum Importance {
-  Alert = 'ALERT',
-  Info = 'INFO',
-  Warning = 'WARNING'
-}
-
 export type Info = Node & {
   __typename?: 'Info';
   /** Count of docker containers */
-  apps?: Maybe<InfoApps>;
-  baseboard?: Maybe<Baseboard>;
-  cpu?: Maybe<InfoCpu>;
-  devices?: Maybe<Devices>;
-  display?: Maybe<Display>;
+  apps: InfoApps;
+  baseboard: Baseboard;
+  cpu: InfoCpu;
+  devices: Devices;
+  display: Display;
   id: Scalars['ID']['output'];
   /** Machine ID */
   machineId?: Maybe<Scalars['ID']['output']>;
-  memory?: Maybe<InfoMemory>;
-  os?: Maybe<Os>;
-  system?: Maybe<System>;
+  memory: InfoMemory;
+  os: Os;
+  system: System;
   time: Scalars['DateTime']['output'];
-  versions?: Maybe<Versions>;
+  versions: Versions;
 };
 
-export type InfoApps = {
+export type InfoApps = Node & {
   __typename?: 'InfoApps';
+  id: Scalars['ID']['output'];
   /** How many docker containers are installed */
-  installed?: Maybe<Scalars['Int']['output']>;
+  installed: Scalars['Int']['output'];
   /** How many docker containers are running */
-  started?: Maybe<Scalars['Int']['output']>;
+  started: Scalars['Int']['output'];
 };
 
-export type InfoCpu = {
+export type InfoCpu = Node & {
   __typename?: 'InfoCpu';
   brand: Scalars['String']['output'];
   cache: Scalars['JSON']['output'];
   cores: Scalars['Int']['output'];
   family: Scalars['String']['output'];
-  flags?: Maybe<Array<Scalars['String']['output']>>;
+  flags: Array<Scalars['String']['output']>;
+  id: Scalars['ID']['output'];
   manufacturer: Scalars['String']['output'];
   model: Scalars['String']['output'];
-  processors: Scalars['Long']['output'];
+  processors: Scalars['Int']['output'];
   revision: Scalars['String']['output'];
   socket: Scalars['String']['output'];
   speed: Scalars['Float']['output'];
@@ -725,19 +678,20 @@ export type InfoCpu = {
   voltage?: Maybe<Scalars['String']['output']>;
 };
 
-export type InfoMemory = {
+export type InfoMemory = Node & {
   __typename?: 'InfoMemory';
-  active: Scalars['Long']['output'];
-  available: Scalars['Long']['output'];
-  buffcache: Scalars['Long']['output'];
-  free: Scalars['Long']['output'];
-  layout?: Maybe<Array<MemoryLayout>>;
-  max: Scalars['Long']['output'];
-  swapfree: Scalars['Long']['output'];
-  swaptotal: Scalars['Long']['output'];
-  swapused: Scalars['Long']['output'];
-  total: Scalars['Long']['output'];
-  used: Scalars['Long']['output'];
+  active: Scalars['Int']['output'];
+  available: Scalars['Int']['output'];
+  buffcache: Scalars['Int']['output'];
+  free: Scalars['Int']['output'];
+  id: Scalars['ID']['output'];
+  layout: Array<MemoryLayout>;
+  max: Scalars['Int']['output'];
+  swapfree: Scalars['Int']['output'];
+  swaptotal: Scalars['Int']['output'];
+  swapused: Scalars['Int']['output'];
+  total: Scalars['Int']['output'];
+  used: Scalars['Int']['output'];
 };
 
 export type KeyFile = {
@@ -746,7 +700,6 @@ export type KeyFile = {
   location?: Maybe<Scalars['String']['output']>;
 };
 
-/** Represents a log file in the system */
 export type LogFile = {
   __typename?: 'LogFile';
   /** Last modified timestamp */
@@ -759,7 +712,6 @@ export type LogFile = {
   size: Scalars['Int']['output'];
 };
 
-/** Content of a log file */
 export type LogFileContent = {
   __typename?: 'LogFileContent';
   /** Content of the log file */
@@ -772,40 +724,20 @@ export type LogFileContent = {
   totalLines: Scalars['Int']['output'];
 };
 
-/** The current user */
-export type Me = UserAccount & {
-  __typename?: 'Me';
-  description: Scalars['String']['output'];
-  id: Scalars['ID']['output'];
-  name: Scalars['String']['output'];
-  permissions?: Maybe<Array<Permission>>;
-  roles: Array<Role>;
-};
-
-export enum MemoryFormFactor {
-  Dimm = 'DIMM'
-}
-
 export type MemoryLayout = {
   __typename?: 'MemoryLayout';
   bank?: Maybe<Scalars['String']['output']>;
-  clockSpeed?: Maybe<Scalars['Long']['output']>;
-  formFactor?: Maybe<MemoryFormFactor>;
+  clockSpeed?: Maybe<Scalars['Int']['output']>;
+  formFactor?: Maybe<Scalars['String']['output']>;
   manufacturer?: Maybe<Scalars['String']['output']>;
   partNum?: Maybe<Scalars['String']['output']>;
   serialNum?: Maybe<Scalars['String']['output']>;
-  size: Scalars['Long']['output'];
-  type?: Maybe<MemoryType>;
-  voltageConfigured?: Maybe<Scalars['Long']['output']>;
-  voltageMax?: Maybe<Scalars['Long']['output']>;
-  voltageMin?: Maybe<Scalars['Long']['output']>;
+  size: Scalars['Int']['output'];
+  type?: Maybe<Scalars['String']['output']>;
+  voltageConfigured?: Maybe<Scalars['Int']['output']>;
+  voltageMax?: Maybe<Scalars['Int']['output']>;
+  voltageMin?: Maybe<Scalars['Int']['output']>;
 };
-
-export enum MemoryType {
-  Ddr2 = 'DDR2',
-  Ddr3 = 'DDR3',
-  Ddr4 = 'DDR4'
-}
 
 export enum MinigraphStatus {
   Connected = 'CONNECTED',
@@ -822,76 +754,48 @@ export type MinigraphqlResponse = {
   timeout?: Maybe<Scalars['Int']['output']>;
 };
 
-export type Mount = {
-  __typename?: 'Mount';
-  directory?: Maybe<Scalars['String']['output']>;
-  name?: Maybe<Scalars['String']['output']>;
-  permissions?: Maybe<Scalars['String']['output']>;
-  type?: Maybe<Scalars['String']['output']>;
-};
-
 export type Mutation = {
   __typename?: 'Mutation';
-  addPermission: Scalars['Boolean']['output'];
   addRoleForApiKey: Scalars['Boolean']['output'];
-  addRoleForUser: Scalars['Boolean']['output'];
-  /** Add a new user */
-  addUser?: Maybe<User>;
   archiveAll: NotificationOverview;
   /** Marks a notification as archived. */
   archiveNotification: Notification;
   archiveNotifications: NotificationOverview;
-  array?: Maybe<ArrayMutations>;
-  /** Cancel parity check */
-  cancelParityCheck?: Maybe<Scalars['JSON']['output']>;
+  array: ArrayMutations;
   connectSignIn: Scalars['Boolean']['output'];
   connectSignOut: Scalars['Boolean']['output'];
   createApiKey: ApiKeyWithSecret;
+  /** Creates a new notification record */
   createNotification: Notification;
   /** Deletes all archived notifications on server. */
   deleteArchivedNotifications: NotificationOverview;
   deleteNotification: NotificationOverview;
-  /** Delete a user */
-  deleteUser?: Maybe<User>;
+  docker: DockerMutations;
   enableDynamicRemoteAccess: Scalars['Boolean']['output'];
-  login?: Maybe<Scalars['String']['output']>;
-  /** Pause parity check */
-  pauseParityCheck?: Maybe<Scalars['JSON']['output']>;
-  reboot?: Maybe<Scalars['String']['output']>;
+  /** Force stop a virtual machine */
+  forceStopVm: Scalars['Boolean']['output'];
+  /** Pause a virtual machine */
+  pauseVm: Scalars['Boolean']['output'];
+  /** Reboot a virtual machine */
+  rebootVm: Scalars['Boolean']['output'];
   /** Reads each notification to recompute & update the overview. */
   recalculateOverview: NotificationOverview;
   removeRoleFromApiKey: Scalars['Boolean']['output'];
-  /** Resume parity check */
-  resumeParityCheck?: Maybe<Scalars['JSON']['output']>;
+  /** Reset a virtual machine */
+  resetVm: Scalars['Boolean']['output'];
+  /** Resume a virtual machine */
+  resumeVm: Scalars['Boolean']['output'];
   setAdditionalAllowedOrigins: Array<Scalars['String']['output']>;
   setupRemoteAccess: Scalars['Boolean']['output'];
-  shutdown?: Maybe<Scalars['String']['output']>;
-  /** Start parity check */
-  startParityCheck?: Maybe<Scalars['JSON']['output']>;
+  /** Start a virtual machine */
+  startVm: Scalars['Boolean']['output'];
+  /** Stop a virtual machine */
+  stopVm: Scalars['Boolean']['output'];
   unarchiveAll: NotificationOverview;
   unarchiveNotifications: NotificationOverview;
   /** Marks a notification as unread. */
   unreadNotification: Notification;
-  /**
-   * Update the API settings.
-   * Some setting combinations may be required or disallowed. Please refer to each setting for more information.
-   */
   updateApiSettings: ConnectSettingsValues;
-  /**
-   * Virtual machine mutations
-   *
-   * #### Required Permissions:
-   *
-   * - Action: **READ**
-   * - Resource: **VMS**
-   * - Possession: **ANY**
-   */
-  vms?: Maybe<VmMutations>;
-};
-
-
-export type MutationaddPermissionArgs = {
-  input: AddPermissionInput;
 };
 
 
@@ -900,18 +804,8 @@ export type MutationaddRoleForApiKeyArgs = {
 };
 
 
-export type MutationaddRoleForUserArgs = {
-  input: AddRoleForUserInput;
-};
-
-
-export type MutationaddUserArgs = {
-  input: addUserInput;
-};
-
-
 export type MutationarchiveAllArgs = {
-  importance?: InputMaybe<Importance>;
+  importance?: InputMaybe<NotificationImportance>;
 };
 
 
@@ -921,7 +815,7 @@ export type MutationarchiveNotificationArgs = {
 
 
 export type MutationarchiveNotificationsArgs = {
-  ids?: InputMaybe<Array<Scalars['String']['input']>>;
+  ids: Array<Scalars['String']['input']>;
 };
 
 
@@ -946,24 +840,38 @@ export type MutationdeleteNotificationArgs = {
 };
 
 
-export type MutationdeleteUserArgs = {
-  input: deleteUserInput;
-};
-
-
 export type MutationenableDynamicRemoteAccessArgs = {
   input: EnableDynamicRemoteAccessInput;
 };
 
 
-export type MutationloginArgs = {
-  password: Scalars['String']['input'];
-  username: Scalars['String']['input'];
+export type MutationforceStopVmArgs = {
+  id: Scalars['String']['input'];
+};
+
+
+export type MutationpauseVmArgs = {
+  id: Scalars['String']['input'];
+};
+
+
+export type MutationrebootVmArgs = {
+  id: Scalars['String']['input'];
 };
 
 
 export type MutationremoveRoleFromApiKeyArgs = {
   input: RemoveRoleFromApiKeyInput;
+};
+
+
+export type MutationresetVmArgs = {
+  id: Scalars['String']['input'];
+};
+
+
+export type MutationresumeVmArgs = {
+  id: Scalars['String']['input'];
 };
 
 
@@ -977,18 +885,23 @@ export type MutationsetupRemoteAccessArgs = {
 };
 
 
-export type MutationstartParityCheckArgs = {
-  correct?: InputMaybe<Scalars['Boolean']['input']>;
+export type MutationstartVmArgs = {
+  id: Scalars['String']['input'];
+};
+
+
+export type MutationstopVmArgs = {
+  id: Scalars['String']['input'];
 };
 
 
 export type MutationunarchiveAllArgs = {
-  importance?: InputMaybe<Importance>;
+  importance?: InputMaybe<NotificationImportance>;
 };
 
 
 export type MutationunarchiveNotificationsArgs = {
-  ids?: InputMaybe<Array<Scalars['String']['input']>>;
+  ids: Array<Scalars['String']['input']>;
 };
 
 
@@ -1004,31 +917,19 @@ export type MutationupdateApiSettingsArgs = {
 export type Network = Node & {
   __typename?: 'Network';
   accessUrls?: Maybe<Array<AccessUrl>>;
-  carrierChanges?: Maybe<Scalars['String']['output']>;
-  duplex?: Maybe<Scalars['String']['output']>;
   id: Scalars['ID']['output'];
-  iface?: Maybe<Scalars['String']['output']>;
-  ifaceName?: Maybe<Scalars['String']['output']>;
-  internal?: Maybe<Scalars['String']['output']>;
-  ipv4?: Maybe<Scalars['String']['output']>;
-  ipv6?: Maybe<Scalars['String']['output']>;
-  mac?: Maybe<Scalars['String']['output']>;
-  mtu?: Maybe<Scalars['String']['output']>;
-  operstate?: Maybe<Scalars['String']['output']>;
-  speed?: Maybe<Scalars['String']['output']>;
-  type?: Maybe<Scalars['String']['output']>;
 };
 
 export type Node = {
   id: Scalars['ID']['output'];
 };
 
-export type Notification = Node & {
+export type Notification = {
   __typename?: 'Notification';
   description: Scalars['String']['output'];
   formattedTimestamp?: Maybe<Scalars['String']['output']>;
   id: Scalars['ID']['output'];
-  importance: Importance;
+  importance: NotificationImportance;
   link?: Maybe<Scalars['String']['output']>;
   subject: Scalars['String']['output'];
   /** ISO Timestamp for when the notification occurred */
@@ -1048,18 +949,24 @@ export type NotificationCounts = {
 
 export type NotificationData = {
   description: Scalars['String']['input'];
-  importance: Importance;
+  importance: NotificationImportance;
   link?: InputMaybe<Scalars['String']['input']>;
   subject: Scalars['String']['input'];
   title: Scalars['String']['input'];
 };
 
 export type NotificationFilter = {
-  importance?: InputMaybe<Importance>;
+  importance?: InputMaybe<NotificationImportance>;
   limit: Scalars['Int']['input'];
   offset: Scalars['Int']['input'];
-  type?: InputMaybe<NotificationType>;
+  type: NotificationType;
 };
+
+export enum NotificationImportance {
+  Alert = 'ALERT',
+  Info = 'INFO',
+  Warning = 'WARNING'
+}
 
 export type NotificationOverview = {
   __typename?: 'NotificationOverview';
@@ -1072,7 +979,7 @@ export enum NotificationType {
   Unread = 'UNREAD'
 }
 
-export type Notifications = Node & {
+export type Notifications = {
   __typename?: 'Notifications';
   id: Scalars['ID']['output'];
   list: Array<Notification>;
@@ -1085,7 +992,7 @@ export type NotificationslistArgs = {
   filter: NotificationFilter;
 };
 
-export type Os = {
+export type Os = Node & {
   __typename?: 'Os';
   arch?: Maybe<Scalars['String']['output']>;
   build?: Maybe<Scalars['String']['output']>;
@@ -1093,93 +1000,23 @@ export type Os = {
   codepage?: Maybe<Scalars['String']['output']>;
   distro?: Maybe<Scalars['String']['output']>;
   hostname?: Maybe<Scalars['String']['output']>;
+  id: Scalars['ID']['output'];
   kernel?: Maybe<Scalars['String']['output']>;
   logofile?: Maybe<Scalars['String']['output']>;
   platform?: Maybe<Scalars['String']['output']>;
   release?: Maybe<Scalars['String']['output']>;
   serial?: Maybe<Scalars['String']['output']>;
-  uptime?: Maybe<Scalars['DateTime']['output']>;
+  uptime?: Maybe<Scalars['String']['output']>;
 };
 
 export type Owner = {
   __typename?: 'Owner';
-  avatar?: Maybe<Scalars['String']['output']>;
-  url?: Maybe<Scalars['String']['output']>;
-  username?: Maybe<Scalars['String']['output']>;
+  avatar: Scalars['String']['output'];
+  url: Scalars['String']['output'];
+  username: Scalars['String']['output'];
 };
 
-export type ParityCheck = {
-  __typename?: 'ParityCheck';
-  date: Scalars['String']['output'];
-  duration: Scalars['Int']['output'];
-  errors: Scalars['String']['output'];
-  speed: Scalars['String']['output'];
-  status: Scalars['String']['output'];
-};
-
-export type Partition = {
-  __typename?: 'Partition';
-  devlinks?: Maybe<Scalars['String']['output']>;
-  devname?: Maybe<Scalars['String']['output']>;
-  devpath?: Maybe<Scalars['String']['output']>;
-  devtype?: Maybe<Scalars['String']['output']>;
-  idAta?: Maybe<Scalars['String']['output']>;
-  idAtaDownloadMicrocode?: Maybe<Scalars['String']['output']>;
-  idAtaFeatureSetAam?: Maybe<Scalars['String']['output']>;
-  idAtaFeatureSetAamCurrentValue?: Maybe<Scalars['String']['output']>;
-  idAtaFeatureSetAamEnabled?: Maybe<Scalars['String']['output']>;
-  idAtaFeatureSetAamVendorRecommendedValue?: Maybe<Scalars['String']['output']>;
-  idAtaFeatureSetApm?: Maybe<Scalars['String']['output']>;
-  idAtaFeatureSetApmCurrentValue?: Maybe<Scalars['String']['output']>;
-  idAtaFeatureSetApmEnabled?: Maybe<Scalars['String']['output']>;
-  idAtaFeatureSetHpa?: Maybe<Scalars['String']['output']>;
-  idAtaFeatureSetHpaEnabled?: Maybe<Scalars['String']['output']>;
-  idAtaFeatureSetPm?: Maybe<Scalars['String']['output']>;
-  idAtaFeatureSetPmEnabled?: Maybe<Scalars['String']['output']>;
-  idAtaFeatureSetPuis?: Maybe<Scalars['String']['output']>;
-  idAtaFeatureSetPuisEnabled?: Maybe<Scalars['String']['output']>;
-  idAtaFeatureSetSecurity?: Maybe<Scalars['String']['output']>;
-  idAtaFeatureSetSecurityEnabled?: Maybe<Scalars['String']['output']>;
-  idAtaFeatureSetSecurityEnhancedEraseUnitMin?: Maybe<Scalars['String']['output']>;
-  idAtaFeatureSetSecurityEraseUnitMin?: Maybe<Scalars['String']['output']>;
-  idAtaFeatureSetSmart?: Maybe<Scalars['String']['output']>;
-  idAtaFeatureSetSmartEnabled?: Maybe<Scalars['String']['output']>;
-  idAtaRotationRateRpm?: Maybe<Scalars['String']['output']>;
-  idAtaSata?: Maybe<Scalars['String']['output']>;
-  idAtaSataSignalRateGen1?: Maybe<Scalars['String']['output']>;
-  idAtaSataSignalRateGen2?: Maybe<Scalars['String']['output']>;
-  idAtaWriteCache?: Maybe<Scalars['String']['output']>;
-  idAtaWriteCacheEnabled?: Maybe<Scalars['String']['output']>;
-  idBus?: Maybe<Scalars['String']['output']>;
-  idFsType?: Maybe<Scalars['String']['output']>;
-  idFsUsage?: Maybe<Scalars['String']['output']>;
-  idFsUuid?: Maybe<Scalars['String']['output']>;
-  idFsUuidEnc?: Maybe<Scalars['String']['output']>;
-  idModel?: Maybe<Scalars['String']['output']>;
-  idModelEnc?: Maybe<Scalars['String']['output']>;
-  idPartEntryDisk?: Maybe<Scalars['String']['output']>;
-  idPartEntryNumber?: Maybe<Scalars['String']['output']>;
-  idPartEntryOffset?: Maybe<Scalars['String']['output']>;
-  idPartEntryScheme?: Maybe<Scalars['String']['output']>;
-  idPartEntrySize?: Maybe<Scalars['String']['output']>;
-  idPartEntryType?: Maybe<Scalars['String']['output']>;
-  idPartTableType?: Maybe<Scalars['String']['output']>;
-  idPath?: Maybe<Scalars['String']['output']>;
-  idPathTag?: Maybe<Scalars['String']['output']>;
-  idRevision?: Maybe<Scalars['String']['output']>;
-  idSerial?: Maybe<Scalars['String']['output']>;
-  idSerialShort?: Maybe<Scalars['String']['output']>;
-  idType?: Maybe<Scalars['String']['output']>;
-  idWwn?: Maybe<Scalars['String']['output']>;
-  idWwnWithExtension?: Maybe<Scalars['String']['output']>;
-  major?: Maybe<Scalars['String']['output']>;
-  minor?: Maybe<Scalars['String']['output']>;
-  partn?: Maybe<Scalars['String']['output']>;
-  subsystem?: Maybe<Scalars['String']['output']>;
-  usecInitialized?: Maybe<Scalars['String']['output']>;
-};
-
-export type Pci = {
+export type Pci = Node & {
   __typename?: 'Pci';
   blacklisted?: Maybe<Scalars['String']['output']>;
   class?: Maybe<Scalars['String']['output']>;
@@ -1200,100 +1037,53 @@ export type Permission = {
 
 export type ProfileModel = {
   __typename?: 'ProfileModel';
-  avatar?: Maybe<Scalars['String']['output']>;
-  url?: Maybe<Scalars['String']['output']>;
+  avatar: Scalars['String']['output'];
+  url: Scalars['String']['output'];
   userId?: Maybe<Scalars['ID']['output']>;
-  username?: Maybe<Scalars['String']['output']>;
+  username: Scalars['String']['output'];
 };
 
 export type Query = {
   __typename?: 'Query';
   apiKey?: Maybe<ApiKey>;
   apiKeys: Array<ApiKey>;
-  /** An Unraid array consisting of 1 or 2 Parity disks and a number of Data disks. */
-  array: ArrayType;
-  cloud?: Maybe<Cloud>;
+  array: UnraidArray;
+  cloud: Cloud;
   config: Config;
   connect: Connect;
-  /** Single disk */
-  disk?: Maybe<Disk>;
-  /** Mulitiple disks */
-  disks: Array<Maybe<Disk>>;
-  display?: Maybe<Display>;
+  disk: Disk;
+  disks: Array<Disk>;
+  display: Display;
   docker: Docker;
-  /** All Docker containers */
-  dockerContainers: Array<DockerContainer>;
-  /** Docker network */
-  dockerNetwork: DockerNetwork;
-  /** All Docker networks */
-  dockerNetworks: Array<Maybe<DockerNetwork>>;
   extraAllowedOrigins: Array<Scalars['String']['output']>;
-  flash?: Maybe<Flash>;
-  info?: Maybe<Info>;
-  /**
-   * Get the content of a specific log file
-   * @param path Path to the log file
-   * @param lines Number of lines to read from the end of the file (default: 100)
-   * @param startLine Optional starting line number (1-indexed)
-   */
+  flash: Flash;
+  info: Info;
   logFile: LogFileContent;
-  /** List all available log files */
   logFiles: Array<LogFile>;
-  /** Current user account */
-  me?: Maybe<Me>;
-  network?: Maybe<Network>;
+  me: UserAccount;
+  network: Network;
+  /** Get all notifications */
   notifications: Notifications;
-  online?: Maybe<Scalars['Boolean']['output']>;
-  owner?: Maybe<Owner>;
-  parityHistory?: Maybe<Array<Maybe<ParityCheck>>>;
+  online: Scalars['Boolean']['output'];
+  owner: Owner;
   registration?: Maybe<Registration>;
   remoteAccess: RemoteAccess;
   server?: Maybe<Server>;
   servers: Array<Server>;
   services: Array<Service>;
-  /** Network Shares */
-  shares?: Maybe<Array<Maybe<Share>>>;
-  unassignedDevices?: Maybe<Array<Maybe<UnassignedDevice>>>;
-  /** User account */
-  user?: Maybe<User>;
-  /** User accounts */
-  users: Array<User>;
-  vars?: Maybe<Vars>;
-  /**
-   * Virtual machines
-   *
-   * #### Required Permissions:
-   *
-   * - Action: **READ**
-   * - Resource: **VMS**
-   * - Possession: **ANY**
-   */
-  vms?: Maybe<Vms>;
+  shares: Array<Share>;
+  vars: Vars;
+  vms: Vms;
 };
 
 
 export type QueryapiKeyArgs = {
-  id: Scalars['ID']['input'];
+  id: Scalars['String']['input'];
 };
 
 
 export type QuerydiskArgs = {
-  id: Scalars['ID']['input'];
-};
-
-
-export type QuerydockerContainersArgs = {
-  all?: InputMaybe<Scalars['Boolean']['input']>;
-};
-
-
-export type QuerydockerNetworkArgs = {
-  id: Scalars['ID']['input'];
-};
-
-
-export type QuerydockerNetworksArgs = {
-  all?: InputMaybe<Scalars['Boolean']['input']>;
+  id: Scalars['String']['input'];
 };
 
 
@@ -1303,20 +1093,10 @@ export type QuerylogFileArgs = {
   startLine?: InputMaybe<Scalars['Int']['input']>;
 };
 
-
-export type QueryuserArgs = {
-  id: Scalars['ID']['input'];
-};
-
-
-export type QueryusersArgs = {
-  input?: InputMaybe<usersInput>;
-};
-
 export type Registration = {
   __typename?: 'Registration';
   expiration?: Maybe<Scalars['String']['output']>;
-  guid?: Maybe<Scalars['String']['output']>;
+  guid?: Maybe<Scalars['ID']['output']>;
   keyFile?: Maybe<KeyFile>;
   state?: Maybe<RegistrationState>;
   type?: Maybe<registrationType>;
@@ -1325,21 +1105,13 @@ export type Registration = {
 
 export enum RegistrationState {
   Basic = 'BASIC',
-  /** BLACKLISTED */
   Eblacklisted = 'EBLACKLISTED',
-  /** BLACKLISTED */
   Eblacklisted1 = 'EBLACKLISTED1',
-  /** BLACKLISTED */
   Eblacklisted2 = 'EBLACKLISTED2',
-  /** Trial Expired */
   Eexpired = 'EEXPIRED',
-  /** GUID Error */
   Eguid = 'EGUID',
-  /** Multiple License Keys Present */
   Eguid1 = 'EGUID1',
-  /** Trial Requires Internet Connection */
   Enoconn = 'ENOCONN',
-  /** No Flash */
   Enoflash = 'ENOFLASH',
   Enoflash1 = 'ENOFLASH1',
   Enoflash2 = 'ENOFLASH2',
@@ -1348,13 +1120,9 @@ export enum RegistrationState {
   Enoflash5 = 'ENOFLASH5',
   Enoflash6 = 'ENOFLASH6',
   Enoflash7 = 'ENOFLASH7',
-  /** No Keyfile */
   Enokeyfile = 'ENOKEYFILE',
-  /** No Keyfile */
   Enokeyfile1 = 'ENOKEYFILE1',
-  /** Missing key file */
   Enokeyfile2 = 'ENOKEYFILE2',
-  /** Invalid installation */
   Etrial = 'ETRIAL',
   Lifetime = 'LIFETIME',
   Plus = 'PLUS',
@@ -1373,9 +1141,12 @@ export type RelayResponse = {
 
 export type RemoteAccess = {
   __typename?: 'RemoteAccess';
+  /** The type of WAN access used for Remote Access */
   accessType: WAN_ACCESS_TYPE;
+  /** The type of port forwarding used for Remote Access */
   forwardType?: Maybe<WAN_FORWARD_TYPE>;
-  port?: Maybe<Scalars['Port']['output']>;
+  /** The port used for Remote Access */
+  port?: Maybe<Scalars['Int']['output']>;
 };
 
 export type RemoveRoleFromApiKeyInput = {
@@ -1436,9 +1207,9 @@ export type Server = {
 };
 
 export enum ServerStatus {
-  NeverConnected = 'never_connected',
-  Offline = 'offline',
-  Online = 'online'
+  NeverConnected = 'NEVER_CONNECTED',
+  Offline = 'OFFLINE',
+  Online = 'ONLINE'
 }
 
 export type Service = Node & {
@@ -1451,33 +1222,44 @@ export type Service = Node & {
 };
 
 export type SetupRemoteAccessInput = {
+  /** The type of WAN access to use for Remote Access */
   accessType: WAN_ACCESS_TYPE;
+  /** The type of port forwarding to use for Remote Access */
   forwardType?: InputMaybe<WAN_FORWARD_TYPE>;
-  port?: InputMaybe<Scalars['Port']['input']>;
+  /** The port to use for Remote Access. Not required for UPNP forwardType. Required for STATIC forwardType. Ignored if accessType is DISABLED or forwardType is UPNP. */
+  port?: InputMaybe<Scalars['Int']['input']>;
 };
 
-/** Network Share */
-export type Share = {
+export type Share = Node & {
   __typename?: 'Share';
+  /** Allocator */
   allocator?: Maybe<Scalars['String']['output']>;
+  /** Is this share cached */
   cache?: Maybe<Scalars['Boolean']['output']>;
+  /** Color */
   color?: Maybe<Scalars['String']['output']>;
   /** User comment */
   comment?: Maybe<Scalars['String']['output']>;
+  /** COW */
   cow?: Maybe<Scalars['String']['output']>;
-  /** Disks that're excluded from this share */
-  exclude?: Maybe<Array<Maybe<Scalars['String']['output']>>>;
+  /** Disks that are excluded from this share */
+  exclude?: Maybe<Array<Scalars['String']['output']>>;
+  /** Floor */
   floor?: Maybe<Scalars['String']['output']>;
   /** (KB) Free space */
   free?: Maybe<Scalars['Long']['output']>;
-  /** Disks that're included in this share */
-  include?: Maybe<Array<Maybe<Scalars['String']['output']>>>;
+  id: Scalars['ID']['output'];
+  /** Disks that are included in this share */
+  include?: Maybe<Array<Scalars['String']['output']>>;
+  /** LUKS status */
   luksStatus?: Maybe<Scalars['String']['output']>;
   /** Display name */
   name?: Maybe<Scalars['String']['output']>;
+  /** Original name */
   nameOrig?: Maybe<Scalars['String']['output']>;
   /** (KB) Total size */
   size?: Maybe<Scalars['Long']['output']>;
+  /** Split level */
   splitLevel?: Maybe<Scalars['String']['output']>;
   /** (KB) Used Size */
   used?: Maybe<Scalars['Long']['output']>;
@@ -1485,56 +1267,15 @@ export type Share = {
 
 export type Subscription = {
   __typename?: 'Subscription';
-  array: ArrayType;
-  config: Config;
-  display?: Maybe<Display>;
-  dockerContainer: DockerContainer;
-  dockerContainers?: Maybe<Array<Maybe<DockerContainer>>>;
-  dockerNetwork: DockerNetwork;
-  dockerNetworks: Array<Maybe<DockerNetwork>>;
-  flash: Flash;
-  info: Info;
-  /**
-   * Subscribe to changes in a log file
-   * @param path Path to the log file
-   */
+  arraySubscription: UnraidArray;
+  displaySubscription: Display;
+  infoSubscription: Info;
   logFile: LogFileContent;
-  me?: Maybe<Me>;
   notificationAdded: Notification;
   notificationsOverview: NotificationOverview;
-  online: Scalars['Boolean']['output'];
-  owner: Owner;
-  parityHistory: ParityCheck;
-  ping: Scalars['String']['output'];
-  registration: Registration;
-  server?: Maybe<Server>;
-  service?: Maybe<Array<Service>>;
-  share: Share;
-  shares?: Maybe<Array<Share>>;
-  unassignedDevices?: Maybe<Array<UnassignedDevice>>;
-  user: User;
-  users: Array<Maybe<User>>;
-  vars: Vars;
-  /**
-   *
-   *
-   * #### Required Permissions:
-   *
-   * - Action: **READ**
-   * - Resource: **VMS**
-   * - Possession: **ANY**
-   */
-  vms?: Maybe<Vms>;
-};
-
-
-export type SubscriptiondockerContainerArgs = {
-  id: Scalars['ID']['input'];
-};
-
-
-export type SubscriptiondockerNetworkArgs = {
-  id: Scalars['ID']['input'];
+  ownerSubscription: Owner;
+  registrationSubscription: Registration;
+  serversSubscription: Server;
 };
 
 
@@ -1542,23 +1283,9 @@ export type SubscriptionlogFileArgs = {
   path: Scalars['String']['input'];
 };
 
-
-export type SubscriptionserviceArgs = {
-  name: Scalars['String']['input'];
-};
-
-
-export type SubscriptionshareArgs = {
-  id: Scalars['ID']['input'];
-};
-
-
-export type SubscriptionuserArgs = {
-  id: Scalars['ID']['input'];
-};
-
-export type System = {
+export type System = Node & {
   __typename?: 'System';
+  id: Scalars['ID']['output'];
   manufacturer?: Maybe<Scalars['String']['output']>;
   model?: Maybe<Scalars['String']['output']>;
   serial?: Maybe<Scalars['String']['output']>;
@@ -1567,11 +1294,13 @@ export type System = {
   version?: Maybe<Scalars['String']['output']>;
 };
 
+/** Temperature unit (Celsius or Fahrenheit) */
 export enum Temperature {
   C = 'C',
   F = 'F'
 }
 
+/** Display theme */
 export enum Theme {
   White = 'white'
 }
@@ -1585,60 +1314,25 @@ export enum URL_TYPE {
   Wireguard = 'WIREGUARD'
 }
 
-export type UnassignedDevice = {
-  __typename?: 'UnassignedDevice';
-  devlinks?: Maybe<Scalars['String']['output']>;
-  devname?: Maybe<Scalars['String']['output']>;
-  devpath?: Maybe<Scalars['String']['output']>;
-  devtype?: Maybe<Scalars['String']['output']>;
-  idAta?: Maybe<Scalars['String']['output']>;
-  idAtaDownloadMicrocode?: Maybe<Scalars['String']['output']>;
-  idAtaFeatureSetAam?: Maybe<Scalars['String']['output']>;
-  idAtaFeatureSetAamCurrentValue?: Maybe<Scalars['String']['output']>;
-  idAtaFeatureSetAamEnabled?: Maybe<Scalars['String']['output']>;
-  idAtaFeatureSetAamVendorRecommendedValue?: Maybe<Scalars['String']['output']>;
-  idAtaFeatureSetApm?: Maybe<Scalars['String']['output']>;
-  idAtaFeatureSetApmCurrentValue?: Maybe<Scalars['String']['output']>;
-  idAtaFeatureSetApmEnabled?: Maybe<Scalars['String']['output']>;
-  idAtaFeatureSetHpa?: Maybe<Scalars['String']['output']>;
-  idAtaFeatureSetHpaEnabled?: Maybe<Scalars['String']['output']>;
-  idAtaFeatureSetPm?: Maybe<Scalars['String']['output']>;
-  idAtaFeatureSetPmEnabled?: Maybe<Scalars['String']['output']>;
-  idAtaFeatureSetPuis?: Maybe<Scalars['String']['output']>;
-  idAtaFeatureSetPuisEnabled?: Maybe<Scalars['String']['output']>;
-  idAtaFeatureSetSecurity?: Maybe<Scalars['String']['output']>;
-  idAtaFeatureSetSecurityEnabled?: Maybe<Scalars['String']['output']>;
-  idAtaFeatureSetSecurityEnhancedEraseUnitMin?: Maybe<Scalars['String']['output']>;
-  idAtaFeatureSetSecurityEraseUnitMin?: Maybe<Scalars['String']['output']>;
-  idAtaFeatureSetSmart?: Maybe<Scalars['String']['output']>;
-  idAtaFeatureSetSmartEnabled?: Maybe<Scalars['String']['output']>;
-  idAtaRotationRateRpm?: Maybe<Scalars['String']['output']>;
-  idAtaSata?: Maybe<Scalars['String']['output']>;
-  idAtaSataSignalRateGen1?: Maybe<Scalars['String']['output']>;
-  idAtaSataSignalRateGen2?: Maybe<Scalars['String']['output']>;
-  idAtaWriteCache?: Maybe<Scalars['String']['output']>;
-  idAtaWriteCacheEnabled?: Maybe<Scalars['String']['output']>;
-  idBus?: Maybe<Scalars['String']['output']>;
-  idModel?: Maybe<Scalars['String']['output']>;
-  idModelEnc?: Maybe<Scalars['String']['output']>;
-  idPartTableType?: Maybe<Scalars['String']['output']>;
-  idPath?: Maybe<Scalars['String']['output']>;
-  idPathTag?: Maybe<Scalars['String']['output']>;
-  idRevision?: Maybe<Scalars['String']['output']>;
-  idSerial?: Maybe<Scalars['String']['output']>;
-  idSerialShort?: Maybe<Scalars['String']['output']>;
-  idType?: Maybe<Scalars['String']['output']>;
-  idWwn?: Maybe<Scalars['String']['output']>;
-  idWwnWithExtension?: Maybe<Scalars['String']['output']>;
-  major?: Maybe<Scalars['String']['output']>;
-  minor?: Maybe<Scalars['String']['output']>;
-  mount?: Maybe<Mount>;
-  mounted?: Maybe<Scalars['Boolean']['output']>;
-  name?: Maybe<Scalars['String']['output']>;
-  partitions?: Maybe<Array<Maybe<Partition>>>;
-  subsystem?: Maybe<Scalars['String']['output']>;
-  temp?: Maybe<Scalars['Int']['output']>;
-  usecInitialized?: Maybe<Scalars['String']['output']>;
+export type UnraidArray = Node & {
+  __typename?: 'UnraidArray';
+  /** Current boot disk */
+  boot?: Maybe<ArrayDisk>;
+  /** Caches in the current array */
+  caches: Array<ArrayDisk>;
+  /** Current array capacity */
+  capacity: ArrayCapacity;
+  /** Data disks in the current array */
+  disks: Array<ArrayDisk>;
+  id: Scalars['ID']['output'];
+  /** Parity disks in the current array */
+  parities: Array<ArrayDisk>;
+  /** Array state after this query/mutation */
+  pendingState?: Maybe<ArrayPendingState>;
+  /** Array state before this query/mutation */
+  previousState?: Maybe<ArrayState>;
+  /** Current array state */
+  state: ArrayState;
 };
 
 export type Uptime = {
@@ -1652,24 +1346,17 @@ export type Usb = {
   name?: Maybe<Scalars['String']['output']>;
 };
 
-/** A local user account */
-export type User = UserAccount & {
-  __typename?: 'User';
-  description: Scalars['String']['output'];
-  id: Scalars['ID']['output'];
-  /** A unique name for the user */
-  name: Scalars['String']['output'];
-  /** If the account has a password set */
-  password?: Maybe<Scalars['Boolean']['output']>;
-  permissions?: Maybe<Array<Permission>>;
-  roles: Array<Role>;
-};
-
 export type UserAccount = {
+  __typename?: 'UserAccount';
+  /** A description of the user */
   description: Scalars['String']['output'];
+  /** A unique identifier for the user */
   id: Scalars['ID']['output'];
+  /** The name of the user */
   name: Scalars['String']['output'];
+  /** The permissions of the user */
   permissions?: Maybe<Array<Permission>>;
+  /** The roles of the user */
   roles: Array<Role>;
 };
 
@@ -1774,7 +1461,7 @@ export type Vars = Node & {
   regTm2?: Maybe<Scalars['String']['output']>;
   /** Registration owner */
   regTo?: Maybe<Scalars['String']['output']>;
-  regTy?: Maybe<Scalars['String']['output']>;
+  regTy?: Maybe<registrationType>;
   safeMode?: Maybe<Scalars['Boolean']['output']>;
   sbClean?: Maybe<Scalars['Boolean']['output']>;
   sbEvents?: Maybe<Scalars['Int']['output']>;
@@ -1837,7 +1524,7 @@ export type Vars = Node & {
   workgroup?: Maybe<Scalars['String']['output']>;
 };
 
-export type Versions = {
+export type Versions = Node & {
   __typename?: 'Versions';
   apache?: Maybe<Scalars['String']['output']>;
   docker?: Maybe<Scalars['String']['output']>;
@@ -1845,6 +1532,7 @@ export type Versions = {
   git?: Maybe<Scalars['String']['output']>;
   grunt?: Maybe<Scalars['String']['output']>;
   gulp?: Maybe<Scalars['String']['output']>;
+  id: Scalars['ID']['output'];
   kernel?: Maybe<Scalars['String']['output']>;
   mongodb?: Maybe<Scalars['String']['output']>;
   mysql?: Maybe<Scalars['String']['output']>;
@@ -1867,7 +1555,6 @@ export type Versions = {
   yarn?: Maybe<Scalars['String']['output']>;
 };
 
-/** A virtual machine */
 export type VmDomain = {
   __typename?: 'VmDomain';
   /** A friendly name for the vm */
@@ -1877,115 +1564,7 @@ export type VmDomain = {
   uuid: Scalars['ID']['output'];
 };
 
-export type VmMutations = {
-  __typename?: 'VmMutations';
-  /**
-   * Force stop a virtual machine
-   *
-   * #### Required Permissions:
-   *
-   * - Action: **UPDATE**
-   * - Resource: **VMS**
-   * - Possession: **ANY**
-   */
-  forceStopVm: Scalars['Boolean']['output'];
-  /**
-   * Pause a virtual machine
-   *
-   * #### Required Permissions:
-   *
-   * - Action: **UPDATE**
-   * - Resource: **VMS**
-   * - Possession: **ANY**
-   */
-  pauseVm: Scalars['Boolean']['output'];
-  /**
-   * Reboot a virtual machine
-   *
-   * #### Required Permissions:
-   *
-   * - Action: **UPDATE**
-   * - Resource: **VMS**
-   * - Possession: **ANY**
-   */
-  rebootVm: Scalars['Boolean']['output'];
-  /**
-   * Reset a virtual machine
-   *
-   * #### Required Permissions:
-   *
-   * - Action: **UPDATE**
-   * - Resource: **VMS**
-   * - Possession: **ANY**
-   */
-  resetVm: Scalars['Boolean']['output'];
-  /**
-   * Resume a virtual machine
-   *
-   * #### Required Permissions:
-   *
-   * - Action: **UPDATE**
-   * - Resource: **VMS**
-   * - Possession: **ANY**
-   */
-  resumeVm: Scalars['Boolean']['output'];
-  /**
-   * Start a virtual machine
-   *
-   * #### Required Permissions:
-   *
-   * - Action: **UPDATE**
-   * - Resource: **VMS**
-   * - Possession: **ANY**
-   */
-  startVm: Scalars['Boolean']['output'];
-  /**
-   * Stop a virtual machine
-   *
-   * #### Required Permissions:
-   *
-   * - Action: **UPDATE**
-   * - Resource: **VMS**
-   * - Possession: **ANY**
-   */
-  stopVm: Scalars['Boolean']['output'];
-};
-
-
-export type VmMutationsforceStopVmArgs = {
-  id: Scalars['ID']['input'];
-};
-
-
-export type VmMutationspauseVmArgs = {
-  id: Scalars['ID']['input'];
-};
-
-
-export type VmMutationsrebootVmArgs = {
-  id: Scalars['ID']['input'];
-};
-
-
-export type VmMutationsresetVmArgs = {
-  id: Scalars['ID']['input'];
-};
-
-
-export type VmMutationsresumeVmArgs = {
-  id: Scalars['ID']['input'];
-};
-
-
-export type VmMutationsstartVmArgs = {
-  id: Scalars['ID']['input'];
-};
-
-
-export type VmMutationsstopVmArgs = {
-  id: Scalars['ID']['input'];
-};
-
+/** The state of a virtual machine */
 export enum VmState {
   Crashed = 'CRASHED',
   Idle = 'IDLE',
@@ -1999,16 +1578,7 @@ export enum VmState {
 
 export type Vms = {
   __typename?: 'Vms';
-  /**
-   *
-   *
-   * #### Required Permissions:
-   *
-   * - Action: **READ**
-   * - Resource: **VMS**
-   * - Possession: **ANY**
-   */
-  domain?: Maybe<Array<VmDomain>>;
+  domains: Array<VmDomain>;
   id: Scalars['ID']['output'];
 };
 
@@ -2023,26 +1593,6 @@ export enum WAN_FORWARD_TYPE {
   Upnp = 'UPNP'
 }
 
-export type Welcome = {
-  __typename?: 'Welcome';
-  message: Scalars['String']['output'];
-};
-
-export type addUserInput = {
-  description?: InputMaybe<Scalars['String']['input']>;
-  name: Scalars['String']['input'];
-  password: Scalars['String']['input'];
-};
-
-export type deleteUserInput = {
-  name: Scalars['String']['input'];
-};
-
-export enum mdState {
-  Started = 'STARTED',
-  SwapDsbl = 'SWAP_DSBL'
-}
-
 export enum registrationType {
   Basic = 'BASIC',
   Invalid = 'INVALID',
@@ -2053,10 +1603,6 @@ export enum registrationType {
   Trial = 'TRIAL',
   Unleashed = 'UNLEASHED'
 }
-
-export type usersInput = {
-  slim?: InputMaybe<Scalars['Boolean']['input']>;
-};
 
 export type GetConnectSettingsFormQueryVariables = Exact<{ [key: string]: never; }>;
 
@@ -2091,7 +1637,7 @@ export type LogFileSubscriptionSubscriptionVariables = Exact<{
 
 export type LogFileSubscriptionSubscription = { __typename?: 'Subscription', logFile: { __typename?: 'LogFileContent', path: string, content: string, totalLines: number } };
 
-export type NotificationFragmentFragment = { __typename?: 'Notification', id: string, title: string, subject: string, description: string, importance: Importance, link?: string | null, type: NotificationType, timestamp?: string | null, formattedTimestamp?: string | null } & { ' $fragmentName'?: 'NotificationFragmentFragment' };
+export type NotificationFragmentFragment = { __typename?: 'Notification', id: string, title: string, subject: string, description: string, importance: NotificationImportance, link?: string | null, type: NotificationType, timestamp?: string | null, formattedTimestamp?: string | null } & { ' $fragmentName'?: 'NotificationFragmentFragment' };
 
 export type NotificationCountFragmentFragment = { __typename?: 'NotificationCounts', total: number, info: number, warning: number, alert: number } & { ' $fragmentName'?: 'NotificationCountFragmentFragment' };
 
@@ -2185,10 +1731,10 @@ export type PartialCloudFragment = { __typename?: 'Cloud', error?: string | null
 export type serverStateQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type serverStateQuery = { __typename?: 'Query', cloud?: (
+export type serverStateQuery = { __typename?: 'Query', cloud: (
     { __typename?: 'Cloud' }
     & { ' $fragmentRefs'?: { 'PartialCloudFragment': PartialCloudFragment } }
-  ) | null, config: { __typename?: 'Config', error?: ConfigErrorState | null, valid?: boolean | null }, info?: { __typename?: 'Info', os?: { __typename?: 'Os', hostname?: string | null } | null } | null, owner?: { __typename?: 'Owner', avatar?: string | null, username?: string | null } | null, registration?: { __typename?: 'Registration', state?: RegistrationState | null, expiration?: string | null, updateExpiration?: string | null, keyFile?: { __typename?: 'KeyFile', contents?: string | null } | null } | null, vars?: { __typename?: 'Vars', regGen?: string | null, regState?: RegistrationState | null, configError?: ConfigErrorState | null, configValid?: boolean | null } | null };
+  ), config: { __typename?: 'Config', error?: string | null, valid?: boolean | null }, info: { __typename?: 'Info', os: { __typename?: 'Os', hostname?: string | null } }, owner: { __typename?: 'Owner', avatar: string, username: string }, registration?: { __typename?: 'Registration', state?: RegistrationState | null, expiration?: string | null, updateExpiration?: string | null, keyFile?: { __typename?: 'KeyFile', contents?: string | null } | null } | null, vars: { __typename?: 'Vars', regGen?: string | null, regState?: RegistrationState | null, configError?: ConfigErrorState | null, configValid?: boolean | null } };
 
 export type getExtraAllowedOriginsQueryVariables = Exact<{ [key: string]: never; }>;
 

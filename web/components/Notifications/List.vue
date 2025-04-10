@@ -5,7 +5,7 @@ import { vInfiniteScroll } from '@vueuse/components';
 import { CheckIcon } from '@heroicons/vue/24/solid';
 import { Error as LoadingError, Spinner as LoadingSpinner } from '@unraid/ui';
 
-import type { Importance, NotificationType } from '~/composables/gql/graphql';
+import type { NotificationImportance as Importance, NotificationType } from '~/composables/gql/graphql';
 
 import { useHaveSeenNotifications } from '~/composables/api/use-notifications';
 import { useFragment } from '~/composables/gql/fragment-masking';

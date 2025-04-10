@@ -31,7 +31,9 @@ registerEnumType(Theme, {
     description: 'Display theme',
 });
 
-@ObjectType()
+@ObjectType({
+    implements: () => Node,
+})
 export class InfoApps implements Node {
     @Field(() => ID)
     id!: string;
@@ -43,7 +45,9 @@ export class InfoApps implements Node {
     started!: number;
 }
 
-@ObjectType()
+@ObjectType({
+    implements: () => Node,
+})
 export class Baseboard implements Node {
     @Field(() => ID)
     id!: string;
@@ -64,7 +68,9 @@ export class Baseboard implements Node {
     assetTag?: string;
 }
 
-@ObjectType()
+@ObjectType({
+    implements: () => Node,
+})
 export class InfoCpu implements Node {
     @Field(() => ID)
     id!: string;
@@ -121,7 +127,9 @@ export class InfoCpu implements Node {
     flags!: string[];
 }
 
-@ObjectType()
+@ObjectType({
+    implements: () => Node,
+})
 export class Gpu implements Node {
     @Field(() => ID)
     id!: string;
@@ -145,7 +153,9 @@ export class Gpu implements Node {
     class!: string;
 }
 
-@ObjectType()
+@ObjectType({
+    implements: () => Node,
+})
 export class Network implements Node {
     @Field(() => ID)
     id!: string;
@@ -187,7 +197,9 @@ export class Network implements Node {
     carrierChanges?: string;
 }
 
-@ObjectType()
+@ObjectType({
+    implements: () => Node,
+})
 export class Pci implements Node {
     @Field(() => ID)
     id!: string;
@@ -226,7 +238,9 @@ export class Usb {
     name?: string;
 }
 
-@ObjectType()
+@ObjectType({
+    implements: () => Node,
+})
 export class Devices implements Node {
     @Field(() => ID)
     id!: string;
@@ -241,7 +255,9 @@ export class Devices implements Node {
     usb!: Usb[];
 }
 
-@ObjectType()
+@ObjectType({
+    implements: () => Node,
+})
 export class Case {
     @Field(() => String, { nullable: true })
     icon?: string;
@@ -256,7 +272,9 @@ export class Case {
     base64?: string;
 }
 
-@ObjectType()
+@ObjectType({
+    implements: () => Node,
+})
 export class Display implements Node {
     @Field(() => ID, { nullable: false })
     id!: string;
@@ -358,7 +376,9 @@ export class MemoryLayout {
     voltageMax?: number;
 }
 
-@ObjectType()
+@ObjectType({
+    implements: () => Node,
+})
 export class InfoMemory implements Node {
     @Field(() => ID)
     id!: string;
@@ -397,7 +417,9 @@ export class InfoMemory implements Node {
     layout!: MemoryLayout[];
 }
 
-@ObjectType()
+@ObjectType({
+    implements: () => Node,
+})
 export class Os implements Node {
     @Field(() => ID)
     id!: string;
@@ -439,7 +461,9 @@ export class Os implements Node {
     uptime?: string;
 }
 
-@ObjectType()
+@ObjectType({
+    implements: () => Node,
+})
 export class System implements Node {
     @Field(() => ID)
     id!: string;
@@ -463,7 +487,9 @@ export class System implements Node {
     sku?: string;
 }
 
-@ObjectType()
+@ObjectType({
+    implements: () => Node,
+})
 export class Versions implements Node {
     @Field(() => ID)
     id!: string;
@@ -547,7 +573,9 @@ export class Versions implements Node {
     unraid?: string;
 }
 
-@ObjectType()
+@ObjectType({
+    implements: () => Node,
+})
 export class Info implements Node {
     @Field(() => ID)
     id!: string;

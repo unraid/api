@@ -166,7 +166,9 @@ export class DockerNetwork {
     labels!: Record<string, any>;
 }
 
-@ObjectType()
+@ObjectType({
+    implements: () => Node,
+})
 export class Docker implements Node {
     @Field(() => ID)
     id!: string;

@@ -1,4 +1,4 @@
-import { Args, Query, Resolver, Subscription } from '@nestjs/graphql';
+import { Args, Int, Query, Resolver, Subscription } from '@nestjs/graphql';
 
 import { AuthActionVerb, AuthPossession, UsePermissions } from 'nest-authz';
 
@@ -29,13 +29,13 @@ export class LogsResolver {
     })
     async logFile(
         @Args('path') path: string,
-        @Args('lines', { nullable: true }) lines?: number,
-        @Args('startLine', { nullable: true }) startLine?: number
+        @Args('lines', { nullable: true, type: () => Int }) lines?: number,
+        @Args('startLine', { nullable: true, type: () => Int }) startLine?: number
     ): Promise<LogFileContent> {
         return this.logsService.getLogFileContent(path, lines, startLine);
     }
 
-    @Subscription(() => LogFileContent)
+    @Subscription(() => LogFileContent, { name: 'logFile'})
     @UsePermissions({
         action: AuthActionVerb.READ,
         resource: Resource.LOGS,

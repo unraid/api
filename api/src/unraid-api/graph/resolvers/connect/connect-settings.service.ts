@@ -1,21 +1,30 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 
 import type { SchemaBasedCondition } from '@jsonforms/core';
 import { RuleEffect } from '@jsonforms/core';
+import { execa } from 'execa';
 import { GraphQLError } from 'graphql/error/GraphQLError.js';
+import { decodeJwt } from 'jose';
 
 import type {
     ApiSettingsInput,
     ConnectSettingsValues,
+    ConnectSignInInput,
+    EnableDynamicRemoteAccessInput,
     RemoteAccess,
     SetupRemoteAccessInput,
 } from '@app/unraid-api/graph/resolvers/connect/connect.model.js';
 import type { DataSlice, SettingSlice, UIElement } from '@app/unraid-api/types/json-forms.js';
+import { getExtraOrigins } from '@app/common/allowed-origins.js';
 import { fileExistsSync } from '@app/core/utils/files/file-exists.js';
 import { setupRemoteAccessThunk } from '@app/store/actions/setup-remote-access.js';
 import { setSsoUsers, updateAllowedOrigins, updateUserConfig } from '@app/store/modules/config.js';
+import { setAllowedRemoteAccessUrl } from '@app/store/modules/dynamic-remote-access.js';
+import { FileLoadStatus } from '@app/store/types.js';
+import { ApiKeyService } from '@app/unraid-api/auth/api-key.service.js';
 import {
     DynamicRemoteAccessType,
+    URL_TYPE,
     WAN_ACCESS_TYPE,
     WAN_FORWARD_TYPE,
 } from '@app/unraid-api/graph/resolvers/connect/connect.model.js';
@@ -24,11 +33,73 @@ import { csvStringToArray } from '@app/utils.js';
 
 @Injectable()
 export class ConnectSettingsService {
+    constructor(private readonly apiKeyService: ApiKeyService) {}
+
+    private readonly logger = new Logger(ConnectSettingsService.name);
+
+    async restartApi() {
+        try {
+            await execa('unraid-api', ['restart'], { shell: 'bash', stdio: 'ignore' });
+        } catch (error) {
+            this.logger.error(error);
+        }
+    }
+
+    public async extraAllowedOrigins(): Promise<Array<string>> {
+        const extraOrigins = getExtraOrigins();
+        return extraOrigins;
+    }
+
     isConnectPluginInstalled(): boolean {
         // logic ported from webguid
         return ['/var/lib/pkgtools/packages/dynamix.unraid.net', '/usr/local/sbin/unraid-api'].every(
             (path) => fileExistsSync(path)
         );
+    }
+
+    public async enableDynamicRemoteAccess(input: EnableDynamicRemoteAccessInput): Promise<boolean> {
+        const { store } = await import('@app/store/index.js');
+        const { RemoteAccessController } = await import('@app/remoteAccess/remote-access-controller.js');
+        // Start or extend dynamic remote access
+        const state = store.getState();
+
+        const { dynamicRemoteAccessType } = state.config.remote;
+        if (!dynamicRemoteAccessType || dynamicRemoteAccessType === DynamicRemoteAccessType.DISABLED) {
+            throw new GraphQLError('Dynamic Remote Access is not enabled.', {
+                extensions: { code: 'FORBIDDEN' },
+            });
+        }
+
+        const controller = RemoteAccessController.instance;
+
+        if (input.enabled === false) {
+            controller.stopRemoteAccess({
+                getState: store.getState,
+                dispatch: store.dispatch,
+            });
+            return true;
+        } else if (controller.getRunningRemoteAccessType() === DynamicRemoteAccessType.DISABLED) {
+            if (input.url) {
+                store.dispatch(
+                    setAllowedRemoteAccessUrl({
+                        type: URL_TYPE.WAN,
+                        name: 'Dynamic Remote Access',
+                        ipv4: input.url,
+                        ipv6: null,
+                    })
+                );
+            }
+            controller.beginRemoteAccess({
+                getState: store.getState,
+                dispatch: store.dispatch,
+            });
+        } else {
+            controller.extendRemoteAccess({
+                getState: store.getState,
+                dispatch: store.dispatch,
+            });
+        }
+        return true;
     }
 
     async isSignedIn(): Promise<boolean> {
@@ -106,6 +177,57 @@ export class ConnectSettingsService {
         store.dispatch(updateAllowedOrigins(origins));
     }
 
+    async signIn(input: ConnectSignInInput) {
+        const { getters } = await import('@app/store/index.js');
+        if (getters.emhttp().status === FileLoadStatus.LOADED) {
+            const userInfo = input.idToken ? decodeJwt(input.idToken) : (input.userInfo ?? null);
+
+            if (
+                !userInfo ||
+                !userInfo.preferred_username ||
+                !userInfo.email ||
+                typeof userInfo.preferred_username !== 'string' ||
+                typeof userInfo.email !== 'string'
+            ) {
+                throw new Error('Missing User Attributes');
+            }
+
+            try {
+                const { remote } = getters.config();
+                const { localApiKey: localApiKeyFromConfig } = remote;
+
+                let localApiKeyToUse = localApiKeyFromConfig;
+
+                if (localApiKeyFromConfig == '') {
+                    // Create local API key
+                    const localApiKey = await this.apiKeyService.createLocalConnectApiKey();
+
+                    if (!localApiKey?.key) {
+                        throw new Error('Failed to create local API key');
+                    }
+
+                    localApiKeyToUse = localApiKey.key;
+                }
+
+                await store.dispatch(
+                    loginUser({
+                        avatar: typeof userInfo.avatar === 'string' ? userInfo.avatar : '',
+                        username: userInfo.preferred_username,
+                        email: userInfo.email,
+                        apikey: input.apiKey,
+                        localApiKey: localApiKeyToUse,
+                    })
+                );
+
+                return true;
+            } catch (error) {
+                throw new Error(`Failed to login user: ${error}`);
+            }
+        } else {
+            return false;
+        }
+    }
+
     /**
      * Sets the sandbox mode and returns true if the mode was changed
      * @param sandboxEnabled - Whether to enable sandbox mode
@@ -152,7 +274,7 @@ export class ConnectSettingsService {
         return true;
     }
 
-    private async dynamicRemoteAccessSettings(): Promise<Omit<RemoteAccess, '__typename'>> {
+    public async dynamicRemoteAccessSettings(): Promise<RemoteAccess> {
         const { getters } = await import('@app/store/index.js');
         const hasWanAccess = getters.config().remote.wanaccess === 'yes';
         return {

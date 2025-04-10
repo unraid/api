@@ -8,7 +8,9 @@ export class Uptime {
     timestamp?: string;
 }
 
-@ObjectType()
+@ObjectType({
+    implements: () => Node,
+})
 export class Service implements Node {
     @Field(() => ID)
     id!: string;

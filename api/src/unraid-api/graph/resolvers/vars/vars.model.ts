@@ -1,7 +1,7 @@
 import { Field, ID, Int, ObjectType, registerEnumType } from '@nestjs/graphql';
 
 import { Node } from '@app/unraid-api/graph/resolvers/base.model.js';
-import { RegistrationType } from '@app/unraid-api/graph/resolvers/registration/registration.model.js';
+import { RegistrationState, RegistrationType } from '@app/unraid-api/graph/resolvers/registration/registration.model.js';
 
 export enum ConfigErrorState {
     UNKNOWN_ERROR = 'UNKNOWN_ERROR',
@@ -26,7 +26,9 @@ registerEnumType(MdState, {
     description: 'Possible states for MD (Multiple Device)',
 });
 
-@ObjectType()
+@ObjectType({
+    implements: () => Node,
+})
 export class Vars implements Node {
     @Field(() => ID)
     id!: string;
@@ -319,8 +321,8 @@ export class Vars implements Node {
     @Field(() => RegistrationType, { nullable: true })
     regTy?: RegistrationType;
 
-    @Field({ nullable: true })
-    regState?: string;
+    @Field(() => RegistrationState, { nullable: true })
+    regState?: RegistrationState;
 
     @Field({ nullable: true, description: 'Registration owner' })
     regTo?: string;

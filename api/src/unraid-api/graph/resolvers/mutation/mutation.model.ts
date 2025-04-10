@@ -1,16 +1,10 @@
 import { Field, ObjectType } from '@nestjs/graphql';
 
 @ObjectType()
-export class ArrayMutations {
-    @Field(() => Boolean, { description: 'Placeholder field to ensure the type is not empty' })
-    _: boolean = false;
-}
+export class ArrayMutations {}
 
 @ObjectType()
-export class DockerMutations {
-    @Field(() => Boolean, { description: 'Placeholder field to ensure the type is not empty' })
-    _: boolean = false;
-}
+export class DockerMutations {}
 
 @ObjectType()
 export class RootMutations {

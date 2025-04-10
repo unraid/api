@@ -2,7 +2,9 @@ import { Field, ID, ObjectType } from '@nestjs/graphql';
 
 import { Node } from '@app/unraid-api/graph/resolvers/base.model.js';
 
-@ObjectType()
+@ObjectType({
+    implements: () => Node,
+})
 export class Config implements Node {
     @Field(() => ID)
     id!: string;

@@ -4,7 +4,7 @@ import { cn } from '@unraid/ui';
 
 import type { OverviewQuery } from '~/composables/gql/graphql';
 
-import { Importance } from '~/composables/gql/graphql';
+import { NotificationImportance as Importance } from '~/composables/gql/graphql';
 
 const props = defineProps<{ overview?: OverviewQuery['notifications']['overview']; seen?: boolean }>();
 

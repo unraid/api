@@ -23,7 +23,7 @@ const config: CodegenConfig = {
       config: {
         useTypeImports: true,
       },
-      schema: '../api/generated-schema.graphql',
+      schema: '../api/generated-schema-new.graphql',
       plugins: [
         {
           add: {

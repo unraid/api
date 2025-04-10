@@ -7,6 +7,9 @@ import { DockerContainer } from '@app/unraid-api/graph/resolvers/docker/docker.m
 import { DockerService } from '@app/unraid-api/graph/resolvers/docker/docker.service.js';
 import { DockerMutations } from '@app/unraid-api/graph/resolvers/mutation/mutation.model.js';
 
+/**
+ * Nested Resolvers for Mutations MUST use @ResolveField() instead of @Mutation()
+ */
 @Resolver(() => DockerMutations)
 export class DockerMutationsResolver {
     constructor(private readonly dockerService: DockerService) {}

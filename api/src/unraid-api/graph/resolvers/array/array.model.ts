@@ -1,41 +1,41 @@
 import { Field, Float, ID, InputType, Int, ObjectType, registerEnumType } from '@nestjs/graphql';
 
-import { GraphQLJSON } from 'graphql-scalars';
-
 import { GraphQLLong } from '@app/graphql/resolvers/graphql-type-long.js';
 import { Node } from '@app/unraid-api/graph/resolvers/base.model.js';
 
 @ObjectType()
 export class Capacity {
     @Field(() => String, { description: 'Free capacity' })
-    free: string = '';
+    free!: string;
 
     @Field(() => String, { description: 'Used capacity' })
-    used: string = '';
+    used!: string;
 
     @Field(() => String, { description: 'Total capacity' })
-    total: string = '';
+    total!: string;
 }
 
 @ObjectType()
 export class ArrayCapacity {
     @Field(() => Capacity, { description: 'Capacity in kilobytes' })
-    kilobytes: Capacity = new Capacity();
+    kilobytes!: Capacity;
 
     @Field(() => Capacity, { description: 'Capacity in number of disks' })
-    disks: Capacity = new Capacity();
+    disks!: Capacity;
 }
 
-@ObjectType()
-export class ArrayDisk {
+@ObjectType({
+    implements: () => Node,
+})
+export class ArrayDisk implements Node {
     @Field(() => ID, { description: 'Disk identifier, only set for present disks on the system' })
-    id: string = '';
+    id!: string;
 
     @Field(() => Int, {
         description:
             'Array slot number. Parity1 is always 0 and Parity2 is always 29. Array slots will be 1 - 28. Cache slots are 30 - 53. Flash is 54.',
     })
-    idx: number = 0;
+    idx!: number;
 
     @Field(() => String, { nullable: true })
     name?: string;
@@ -43,8 +43,8 @@ export class ArrayDisk {
     @Field(() => String, { nullable: true })
     device?: string;
 
-    @Field(() => Float, { description: '(KB) Disk Size total' })
-    size: number = 0;
+    @Field(() => Float, { description: '(KB) Disk Size total', nullable: true })
+    size?: number | null;
 
     @Field(() => ArrayDiskStatus, { nullable: true })
     status?: ArrayDiskStatus;
@@ -59,22 +59,25 @@ export class ArrayDisk {
     temp?: number | null;
 
     @Field(() => Float, {
+        nullable: true,
         description:
             'Count of I/O read requests sent to the device I/O drivers. These statistics may be cleared at any time.',
     })
-    numReads: number = 0;
+    numReads?: number | null;
 
     @Field(() => Float, {
+        nullable: true,
         description:
             'Count of I/O writes requests sent to the device I/O drivers. These statistics may be cleared at any time.',
     })
-    numWrites: number = 0;
+    numWrites?: number | null;
 
     @Field(() => Float, {
+        nullable: true,
         description:
             'Number of unrecoverable errors reported by the device I/O drivers. Missing data due to unrecoverable array read errors is filled in on-the-fly using parity reconstruct (and we attempt to write this data back to the sector(s) which failed). Any unrecoverable write error results in disabling the disk.',
     })
-    numErrors: number = 0;
+    numErrors?: number | null;
 
     @Field(() => Float, {
         nullable: true,
@@ -100,7 +103,7 @@ export class ArrayDisk {
     @Field(() => ArrayDiskType, {
         description: 'Type of Disk - used to differentiate Cache / Flash / Array / Parity',
     })
-    type: ArrayDiskType = ArrayDiskType.DATA;
+    type!: ArrayDiskType;
 
     @Field(() => Int, { nullable: true, description: '(%) Disk space left to warn' })
     warning?: number | null;
@@ -124,10 +127,12 @@ export class ArrayDisk {
     color?: ArrayDiskFsColor | null;
 }
 
-@ObjectType()
+@ObjectType({
+    implements: () => Node,
+})
 export class UnraidArray implements Node {
     @Field(() => ID)
-    id: string = '';
+    id!: string;
 
     @Field(() => ArrayState, { nullable: true, description: 'Array state before this query/mutation' })
     previousState?: ArrayState;
@@ -139,28 +144,28 @@ export class UnraidArray implements Node {
     pendingState?: ArrayPendingState;
 
     @Field(() => ArrayState, { description: 'Current array state' })
-    state: ArrayState = ArrayState.STOPPED;
+    state!: ArrayState;
 
     @Field(() => ArrayCapacity, { description: 'Current array capacity' })
-    capacity: ArrayCapacity = new ArrayCapacity();
+    capacity!: ArrayCapacity;
 
     @Field(() => ArrayDisk, { nullable: true, description: 'Current boot disk' })
     boot?: ArrayDisk;
 
     @Field(() => [ArrayDisk], { description: 'Parity disks in the current array' })
-    parities: ArrayDisk[] = [];
+    parities!: ArrayDisk[];
 
     @Field(() => [ArrayDisk], { description: 'Data disks in the current array' })
-    disks: ArrayDisk[] = [];
+    disks!: ArrayDisk[];
 
     @Field(() => [ArrayDisk], { description: 'Caches in the current array' })
-    caches: ArrayDisk[] = [];
+    caches!: ArrayDisk[];
 }
 
 @InputType()
 export class ArrayDiskInput {
     @Field(() => ID, { description: 'Disk ID' })
-    id: string = '';
+    id!: string;
 
     @Field(() => Int, { nullable: true, description: 'The slot for the disk' })
     slot?: number;
@@ -169,7 +174,7 @@ export class ArrayDiskInput {
 @InputType()
 export class ArrayStateInput {
     @Field(() => ArrayStateInputState, { description: 'Array state' })
-    desiredState: ArrayStateInputState = ArrayStateInputState.STOP;
+    desiredState!: ArrayStateInputState;
 }
 
 export enum ArrayStateInputState {
@@ -253,7 +258,9 @@ registerEnumType(ArrayDiskFsColor, {
     name: 'ArrayDiskFsColor',
 });
 
-@ObjectType()
+@ObjectType({
+    implements: () => Node,
+})
 export class Share implements Node {
     @Field(() => ID)
     id!: string;

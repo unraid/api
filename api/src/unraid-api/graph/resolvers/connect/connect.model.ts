@@ -271,8 +271,10 @@ export class ApiSettingsInput {
     ssoUserIds?: string[] | null;
 }
 
-@ObjectType()
-export class ConnectSettings {
+@ObjectType({
+    implements: () => Node,
+})
+export class ConnectSettings implements Node {
     @Field(() => ID, { description: 'The unique identifier for the Connect settings' })
     @IsString()
     @IsNotEmpty()
@@ -291,7 +293,9 @@ export class ConnectSettings {
     values!: ConnectSettingsValues;
 }
 
-@ObjectType()
+@ObjectType({
+    implements: () => Node,
+})
 export class Connect {
     @Field(() => ID, { description: 'The unique identifier for the Connect instance' })
     @IsString()
@@ -300,11 +304,11 @@ export class Connect {
 
     @Field(() => DynamicRemoteAccessStatus, { description: 'The status of dynamic remote access' })
     @ValidateNested()
-    dynamicRemoteAccess!: DynamicRemoteAccessStatus;
+    dynamicRemoteAccess?: DynamicRemoteAccessStatus;
 
     @Field(() => ConnectSettings, { description: 'The settings for the Connect instance' })
     @ValidateNested()
-    settings!: ConnectSettings;
+    settings?: ConnectSettings;
 }
 
 export enum URL_TYPE {
@@ -353,7 +357,9 @@ export class AccessUrl {
     ipv6?: URL | null;
 }
 
-@ObjectType()
+@ObjectType({
+    implements: () => Node,
+})
 export class Network implements Node {
     @Field(() => ID)
     id!: string;
