@@ -1,7 +1,10 @@
 import { Field, ID, Int, ObjectType, registerEnumType } from '@nestjs/graphql';
 
 import { Node } from '@app/unraid-api/graph/resolvers/base.model.js';
-import { RegistrationState, RegistrationType } from '@app/unraid-api/graph/resolvers/registration/registration.model.js';
+import {
+    RegistrationState,
+    RegistrationType,
+} from '@app/unraid-api/graph/resolvers/registration/registration.model.js';
 
 export enum ConfigErrorState {
     UNKNOWN_ERROR = 'UNKNOWN_ERROR',

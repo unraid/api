@@ -35,7 +35,7 @@ export class LogsResolver {
         return this.logsService.getLogFileContent(path, lines, startLine);
     }
 
-    @Subscription(() => LogFileContent, { name: 'logFile'})
+    @Subscription(() => LogFileContent, { name: 'logFile' })
     @UsePermissions({
         action: AuthActionVerb.READ,
         resource: Resource.LOGS,
