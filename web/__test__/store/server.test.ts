@@ -30,20 +30,20 @@ const originalConsoleDebug = console.debug;
 const originalConsoleError = console.error;
 const originalConsoleWarn = console.warn;
 
-// Mock Vue's toRefs to prevent warnings
 vi.mock('vue', async () => {
   const actual = await vi.importActual('vue');
   return {
     ...actual,
-    toRefs: (obj: any) => {
+    toRefs: (obj: Record<string, unknown>) => {
       // Handle non-reactive objects to prevent warnings
       if (!obj || typeof obj !== 'object') {
         return {};
       }
-      return (actual as any).toRefs(obj);
+      return (
+        actual as unknown as { toRefs: (obj: Record<string, unknown>) => Record<string, unknown> }
+      ).toRefs(obj);
     },
     watchEffect: (fn: () => void) => {
-      // Execute the function once but don't set up reactivity
       fn();
       return () => {};
     },

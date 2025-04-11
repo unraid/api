@@ -12,7 +12,6 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import type { ExternalSignIn, ExternalSignOut } from '@unraid/shared-callbacks';
 import type { ConnectSignInMutationPayload } from '~/store/account';
-import type { Mock } from 'vitest';
 import type { Ref } from 'vue';
 
 import { useAccountStore } from '~/store/account';
@@ -43,7 +42,7 @@ const mockUseMutation = vi.fn(() => {
 
       return { off: vi.fn() };
     },
-    onError: (callback: (error: ApolloError) => void) => ({ off: vi.fn() }),
+    onError: (_: any) => ({ off: vi.fn() }),
 
     loading: ref(false),
     error: ref(null) as Ref<null>,
@@ -92,12 +91,11 @@ vi.mock('~/store/unraidApi', () => ({
 
 describe('Account Store', () => {
   let store: ReturnType<typeof useAccountStore>;
-  let useMutationSpy: Mock;
 
   beforeEach(() => {
     setActivePinia(createPinia());
     store = useAccountStore();
-    useMutationSpy = vi.mocked(useMutation);
+    vi.mocked(useMutation);
     vi.clearAllMocks();
     vi.useFakeTimers();
   });
@@ -441,20 +439,24 @@ describe('Account Store', () => {
           accountActionStatus.value = 'updating';
           const mockMutation = mockUseMutation();
 
-          await mockMutation.mutate().catch((error: unknown) => {
-            if (error instanceof ApolloError) {
+          try {
+            await mockMutation.mutate().catch(() => {
               accountActionStatus.value = 'failed';
 
               mockSetError({
                 heading: 'unraid-api failed to update Connect account configuration',
-                message: error.message,
+                message: 'Test error',
                 level: 'error',
                 ref: 'connectSignInMutation',
                 type: 'account',
               });
-            }
-            throw error;
-          });
+
+              throw new Error('Test error');
+            });
+          } catch {
+            // Expected error - intentionally empty
+          }
+
           return mockMutation;
         },
         connectSignOutMutation: async () => {
@@ -476,11 +478,7 @@ describe('Account Store', () => {
 
       expect(accountActionStatus.value).toBe('waiting');
 
-      try {
-        await typedStore.connectSignInMutation();
-      } catch (error) {
-        // Error is expected
-      }
+      await typedStore.connectSignInMutation();
       await nextTick();
 
       expect(accountActionStatus.value).toBe('failed');
