@@ -11,6 +11,7 @@ import {
     IsOptional,
     IsPort,
     IsString,
+    MinLength,
     ValidateNested,
 } from 'class-validator';
 import { GraphQLJSON, GraphQLURL } from 'graphql-scalars';
@@ -69,6 +70,7 @@ export class ConnectSignInInput {
     @Field(() => String, { description: 'The API key for authentication' })
     @IsString()
     @IsNotEmpty()
+    @MinLength(5)
     apiKey!: string;
 
     @Field(() => String, { nullable: true, description: 'The ID token for authentication' })
