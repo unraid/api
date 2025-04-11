@@ -1,17 +1,17 @@
-import { Injectable, OnModuleInit } from '@nestjs/common';
+import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { constants } from 'fs';
 import { access } from 'fs/promises';
 
-import type { Domain, DomainInfo, Hypervisor as HypervisorClass } from '@unraid/libvirt';
+import type { Domain, Hypervisor as HypervisorClass } from '@unraid/libvirt';
 import { ConnectListAllDomainsFlags, DomainState, Hypervisor } from '@unraid/libvirt';
 import { GraphQLError } from 'graphql';
 
-import { libvirtLogger } from '@app/core/log.js';
 import { getters } from '@app/store/index.js';
 import { VmDomain, VmState } from '@app/unraid-api/graph/resolvers/vms/vms.model.js';
 
 @Injectable()
 export class VmsService implements OnModuleInit {
+    private readonly logger = new Logger(VmsService.name);
     private hypervisor: InstanceType<typeof HypervisorClass> | null = null;
     private isVmsAvailable: boolean = false;
     private uri: string;
@@ -36,33 +36,33 @@ export class VmsService implements OnModuleInit {
 
     async onModuleInit() {
         try {
-            libvirtLogger.info(`Initializing VMs service with URI: ${this.uri}`);
+            this.logger.debug(`Initializing VMs service with URI: ${this.uri}`);
             await this.initializeHypervisor();
             this.isVmsAvailable = true;
-            libvirtLogger.info(`VMs service initialized successfully with URI: ${this.uri}`);
+            this.logger.debug(`VMs service initialized successfully with URI: ${this.uri}`);
         } catch (error) {
             this.isVmsAvailable = false;
-            libvirtLogger.warn(
+            this.logger.warn(
                 `VMs are not available: ${error instanceof Error ? error.message : 'Unknown error'}`
             );
         }
     }
 
     private async initializeHypervisor(): Promise<void> {
-        libvirtLogger.info('Checking if libvirt is running...');
+        this.logger.debug('Checking if libvirt is running...');
         const running = await this.isLibvirtRunning();
         if (!running) {
             throw new Error('Libvirt is not running');
         }
-        libvirtLogger.info('Libvirt is running, creating hypervisor instance...');
+        this.logger.debug('Libvirt is running, creating hypervisor instance...');
 
         this.hypervisor = new Hypervisor({ uri: this.uri });
         try {
-            libvirtLogger.info('Attempting to connect to hypervisor...');
+            this.logger.debug('Attempting to connect to hypervisor...');
             await this.hypervisor.connectOpen();
-            libvirtLogger.info('Successfully connected to hypervisor');
+            this.logger.debug('Successfully connected to hypervisor');
         } catch (error) {
-            libvirtLogger.error(
+            this.logger.error(
                 `Failed starting VM hypervisor connection with "${(error as Error).message}"`
             );
             throw error;
@@ -79,11 +79,11 @@ export class VmsService implements OnModuleInit {
         }
 
         try {
-            libvirtLogger.info(`Looking up domain with UUID: ${uuid}`);
+            this.logger.debug(`Looking up domain with UUID: ${uuid}`);
             const domain = await this.hypervisor.domainLookupByUUIDString(uuid);
-            libvirtLogger.info(`Found domain, getting info...`);
+            this.logger.debug(`Found domain, getting info...`);
             const info = await domain.getInfo();
-            libvirtLogger.info(`Current domain state: ${info.state}`);
+            this.logger.debug(`Current domain state: ${info.state}`);
 
             // Map VmState to DomainState for comparison
             const currentState = this.mapDomainStateToVmState(info.state);
@@ -97,28 +97,28 @@ export class VmsService implements OnModuleInit {
             switch (targetState) {
                 case VmState.RUNNING:
                     if (currentState === VmState.SHUTOFF) {
-                        libvirtLogger.info(`Starting domain...`);
+                        this.logger.debug(`Starting domain...`);
                         await domain.create();
                     } else if (currentState === VmState.PAUSED) {
-                        libvirtLogger.info(`Resuming domain...`);
+                        this.logger.debug(`Resuming domain...`);
                         await domain.resume();
                     }
                     break;
                 case VmState.SHUTOFF:
                     if (currentState === VmState.RUNNING || currentState === VmState.PAUSED) {
-                        libvirtLogger.info(`Initiating graceful shutdown for domain...`);
+                        this.logger.debug(`Initiating graceful shutdown for domain...`);
                         await domain.shutdown();
 
                         const shutdownSuccess = await this.waitForDomainShutdown(domain);
                         if (!shutdownSuccess) {
-                            libvirtLogger.info('Graceful shutdown failed, forcing domain stop...');
+                            this.logger.debug('Graceful shutdown failed, forcing domain stop...');
                             await domain.destroy();
                         }
                     }
                     break;
                 case VmState.PAUSED:
                     if (currentState === VmState.RUNNING) {
-                        libvirtLogger.info(`Pausing domain...`);
+                        this.logger.debug(`Pausing domain...`);
                         await domain.suspend();
                     }
                     break;
@@ -193,9 +193,9 @@ export class VmsService implements OnModuleInit {
         }
 
         try {
-            libvirtLogger.info(`Looking up domain with UUID: ${uuid}`);
+            this.logger.debug(`Looking up domain with UUID: ${uuid}`);
             const domain = await this.hypervisor.domainLookupByUUIDString(uuid);
-            libvirtLogger.info(`Found domain, force stopping...`);
+            this.logger.debug(`Found domain, force stopping...`);
 
             await domain.destroy();
             return true;
@@ -212,9 +212,9 @@ export class VmsService implements OnModuleInit {
         }
 
         try {
-            libvirtLogger.info(`Looking up domain with UUID: ${uuid}`);
+            this.logger.debug(`Looking up domain with UUID: ${uuid}`);
             const domain = await this.hypervisor.domainLookupByUUIDString(uuid);
-            libvirtLogger.info(`Found domain, rebooting...`);
+            this.logger.debug(`Found domain, rebooting...`);
 
             // First try graceful shutdown
             await domain.shutdown();
@@ -241,9 +241,9 @@ export class VmsService implements OnModuleInit {
         }
 
         try {
-            libvirtLogger.info(`Looking up domain with UUID: ${uuid}`);
+            this.logger.debug(`Looking up domain with UUID: ${uuid}`);
             const domain = await this.hypervisor.domainLookupByUUIDString(uuid);
-            libvirtLogger.info(`Found domain, resetting...`);
+            this.logger.debug(`Found domain, resetting...`);
 
             // Force stop the domain
             await domain.destroy();
@@ -268,19 +268,19 @@ export class VmsService implements OnModuleInit {
 
         try {
             const hypervisor = this.hypervisor;
-            libvirtLogger.info('Getting all domains...');
+            this.logger.debug('Getting all domains...');
             // Get both active and inactive domains
             const domains = await hypervisor.connectListAllDomains(
                 ConnectListAllDomainsFlags.ACTIVE | ConnectListAllDomainsFlags.INACTIVE
             );
-            libvirtLogger.info(`Found ${domains.length} domains`);
+            this.logger.debug(`Found ${domains.length} domains`);
 
             const resolvedDomains: Array<VmDomain> = await Promise.all(
                 domains.map(async (domain) => {
                     const info = await domain.getInfo();
                     const name = await domain.getName();
                     const uuid = await domain.getUUIDString();
-                    libvirtLogger.info(
+                    this.logger.debug(
                         `Found domain: ${name} (${uuid}) with state ${DomainState[info.state]}`
                     );
 
@@ -299,7 +299,7 @@ export class VmsService implements OnModuleInit {
         } catch (error: unknown) {
             // If we hit an error expect libvirt to be offline
             this.isVmsAvailable = false;
-            libvirtLogger.error(
+            this.logger.error(
                 `Failed to get domains: ${error instanceof Error ? error.message : 'Unknown error'}`
             );
             throw new GraphQLError(
@@ -316,13 +316,13 @@ export class VmsService implements OnModuleInit {
         for (let i = 0; i < maxRetries; i++) {
             const currentInfo = await this.hypervisor.domainGetInfo(domain);
             if (currentInfo.state === DomainState.SHUTOFF) {
-                libvirtLogger.info('Domain shutdown completed successfully');
+                this.logger.debug('Domain shutdown completed successfully');
                 return true;
             }
-            libvirtLogger.debug(`Waiting for domain shutdown... (attempt ${i + 1}/${maxRetries})`);
+            this.logger.debug(`Waiting for domain shutdown... (attempt ${i + 1}/${maxRetries})`);
             await new Promise((resolve) => setTimeout(resolve, 1000));
         }
-        libvirtLogger.warn(`Domain shutdown timed out after ${maxRetries} attempts`);
+        this.logger.warn(`Domain shutdown timed out after ${maxRetries} attempts`);
         return false;
     }
 }
