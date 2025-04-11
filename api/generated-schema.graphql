@@ -861,6 +861,46 @@ type DockerMutations {
   stop(id: String!): DockerContainer!
 }
 
+type VmMutations {
+  """Start a virtual machine"""
+  start(id: String!): Boolean!
+
+  """Stop a virtual machine"""
+  stop(id: String!): Boolean!
+
+  """Pause a virtual machine"""
+  pause(id: String!): Boolean!
+
+  """Resume a virtual machine"""
+  resume(id: String!): Boolean!
+
+  """Force stop a virtual machine"""
+  forceStop(id: String!): Boolean!
+
+  """Reboot a virtual machine"""
+  reboot(id: String!): Boolean!
+
+  """Reset a virtual machine"""
+  reset(id: String!): Boolean!
+}
+
+"""
+Parity check related mutations, WIP, response types and functionaliy will change
+"""
+type ParityCheckMutations {
+  """Start a parity check"""
+  start(correct: Boolean!): JSON!
+
+  """Pause a parity check"""
+  pause: JSON!
+
+  """Resume a parity check"""
+  resume: JSON!
+
+  """Cancel a parity check"""
+  cancel: JSON!
+}
+
 type ParityCheck {
   """Date of the parity check"""
   date: DateTime
@@ -1403,31 +1443,8 @@ type Mutation {
   recalculateOverview: NotificationOverview!
   array: ArrayMutations!
   docker: DockerMutations!
-
-  """Start a virtual machine"""
-  startVm(id: String!): Boolean!
-
-  """Stop a virtual machine"""
-  stopVm(id: String!): Boolean!
-
-  """Pause a virtual machine"""
-  pauseVm(id: String!): Boolean!
-
-  """Resume a virtual machine"""
-  resumeVm(id: String!): Boolean!
-
-  """Force stop a virtual machine"""
-  forceStopVm(id: String!): Boolean!
-
-  """Reboot a virtual machine"""
-  rebootVm(id: String!): Boolean!
-
-  """Reset a virtual machine"""
-  resetVm(id: String!): Boolean!
-  startParityCheck(correct: Boolean!): JSON!
-  pauseParityCheck: JSON!
-  resumeParityCheck: JSON!
-  cancelParityCheck: JSON!
+  vm: VmMutations!
+  parityCheck: ParityCheckMutations!
   updateApiSettings(input: ApiSettingsInput!): ConnectSettingsValues!
   connectSignIn(input: ConnectSignInInput!): Boolean!
   connectSignOut: Boolean!

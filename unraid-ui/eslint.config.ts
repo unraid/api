@@ -15,8 +15,8 @@ export default tseslint.config(eslint.configs.recommended, ...tseslint.configs.r
       ecmaVersion: 'latest',
       sourceType: 'module',
       ecmaFeatures: {
-        jsx: true
-      }
+        jsx: true,
+      },
     },
     globals: {
       browser: true,
@@ -24,7 +24,7 @@ export default tseslint.config(eslint.configs.recommended, ...tseslint.configs.r
       document: true,
       es2022: true,
       HTMLElement: true,
-    }
+    },
   },
   plugins: {
     'no-relative-import-paths': noRelativeImportPaths,
@@ -73,10 +73,13 @@ export default tseslint.config(eslint.configs.recommended, ...tseslint.configs.r
       },
     ],
     'vue/no-undef-components': ['error'],
-    'vue/no-unused-properties': ['error', {
-      groups: ['props'],
-      deepData: false,
-    }],
+    'vue/no-unused-properties': [
+      'error',
+      {
+        groups: ['props'],
+        deepData: false,
+      },
+    ],
     // Allow empty object types and any types in Vue component definitions
     '@typescript-eslint/no-explicit-any': [
       'error',

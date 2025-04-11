@@ -30,58 +30,6 @@ export class ParityResolver {
     }
 
     @UsePermissions({
-        action: AuthActionVerb.UPDATE,
-        resource: Resource.ARRAY,
-        possession: AuthPossession.ANY,
-    })
-    @Mutation(() => GraphQLJSON)
-    async startParityCheck(@Args('correct') correct: boolean): Promise<object> {
-        return this.arrayService.updateParityCheck({
-            wantedState: 'start',
-            correct,
-        });
-    }
-
-    @UsePermissions({
-        action: AuthActionVerb.UPDATE,
-        resource: Resource.ARRAY,
-        possession: AuthPossession.ANY,
-    })
-    @Mutation(() => GraphQLJSON)
-    async pauseParityCheck(): Promise<object> {
-        return this.arrayService.updateParityCheck({
-            wantedState: 'pause',
-            correct: false,
-        });
-    }
-
-    @UsePermissions({
-        action: AuthActionVerb.UPDATE,
-        resource: Resource.ARRAY,
-        possession: AuthPossession.ANY,
-    })
-    @Mutation(() => GraphQLJSON)
-    async resumeParityCheck(): Promise<object> {
-        return this.arrayService.updateParityCheck({
-            wantedState: 'resume',
-            correct: false,
-        });
-    }
-
-    @UsePermissions({
-        action: AuthActionVerb.UPDATE,
-        resource: Resource.ARRAY,
-        possession: AuthPossession.ANY,
-    })
-    @Mutation(() => GraphQLJSON)
-    async cancelParityCheck(): Promise<object> {
-        return this.arrayService.updateParityCheck({
-            wantedState: 'cancel',
-            correct: false,
-        });
-    }
-
-    @UsePermissions({
         action: AuthActionVerb.READ,
         resource: Resource.ARRAY,
         possession: AuthPossession.ANY,
