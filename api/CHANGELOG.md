@@ -1,5 +1,23 @@
 # Changelog
 
+## [4.7.0](https://github.com/unraid/api/compare/v4.6.6...v4.7.0) (2025-04-11)
+
+
+### Features
+
+* add basic docker network listing ([#1317](https://github.com/unraid/api/issues/1317)) ([c4fdff8](https://github.com/unraid/api/commit/c4fdff8149eb2812707605b3a98eabc795d18c5e))
+* basic vm controls ([#1293](https://github.com/unraid/api/issues/1293)) ([bc3ca92](https://github.com/unraid/api/commit/bc3ca92fb02387bc019bb001809df96974737b50))
+* code first graphql ([#1347](https://github.com/unraid/api/issues/1347)) ([f5724ab](https://github.com/unraid/api/commit/f5724abffbcb8c8a4885c487df4119787fd1d541))
+
+
+### Bug Fixes
+
+* container names always null ([#1335](https://github.com/unraid/api/issues/1335)) ([8a5b238](https://github.com/unraid/api/commit/8a5b23856c006827229812e558f7d1af92be80e0))
+* hide reboot notice for patch releases ([#1341](https://github.com/unraid/api/issues/1341)) ([4b57439](https://github.com/unraid/api/commit/4b5743906a172f84bb46011fe2c3e0c8f64059a2))
+* move docker mutations to the mutations resolver ([#1333](https://github.com/unraid/api/issues/1333)) ([1bbe7d2](https://github.com/unraid/api/commit/1bbe7d27b0e87b5ffcd57ac9cc28e64b046055be))
+* PR build issue ([457d338](https://github.com/unraid/api/commit/457d338150774ddc14cde6562e226a6a565aca48))
+* remove some unused fields from the report object ([#1342](https://github.com/unraid/api/issues/1342)) ([cd323ac](https://github.com/unraid/api/commit/cd323acd4905a558786b029ff5a30371c4512956))
+
 ## [4.6.6](https://github.com/unraid/api/compare/v4.6.5...v4.6.6) (2025-04-03)
 
 
