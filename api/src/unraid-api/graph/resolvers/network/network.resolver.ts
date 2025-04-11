@@ -1,8 +1,11 @@
 import { Query, ResolveField, Resolver } from '@nestjs/graphql';
 
-import { AuthActionVerb, AuthPossession, UsePermissions } from 'nest-authz';
-
 import { getServerIps } from '@app/graphql/resolvers/subscription/network.js';
+import {
+    AuthActionVerb,
+    AuthPossession,
+    UsePermissions,
+} from '@app/unraid-api/graph/directives/use-permissions.directive.js';
 import { Resource } from '@app/unraid-api/graph/resolvers/base.model.js';
 import { AccessUrl, Network } from '@app/unraid-api/graph/resolvers/connect/connect.model.js';
 
