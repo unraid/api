@@ -1,0 +1,52 @@
+{
+  "name": "@unraid/api-config",
+  "version": "1.0.0",
+  "main": "dist/index.js",
+  "type": "module",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "typesVersions": {
+    "*": {
+      "*": [
+        "dist/*"
+      ]
+    }
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "tsc",
+    "prepare": "npm run build"
+  },
+  "keywords": [],
+  "author": "Lime Technology, Inc. <unraid.net>",
+  "license": "GPL-2.0-or-later",
+  "description": "Example Health plugin for Unraid API",
+  "devDependencies": {
+    "@nestjs/common": "^11.0.11",
+    "@nestjs/config": "^4.0.2",
+    "@nestjs/core": "^11.0.11",
+    "@nestjs/graphql": "^13.0.3",
+    "@nestjs/schedule": "^5.0.0",
+    "@types/node": "^22.14.0",
+    "nest-authz": "^2.14.0",
+    "typescript": "^5.8.2",
+    "zod": "^3.23.8"
+  },
+  "peerDependencies": {
+    "@nestjs/common": "^11.0.11",
+    "@nestjs/config": "^4.0.2",
+    "@nestjs/core": "^11.0.11",
+    "@nestjs/graphql": "^13.0.3",
+    "@nestjs/schedule": "^5.0.0",
+    "nest-authz": "^2.14.0",
+    "zod": "^3.23.8"
+  }
+}
