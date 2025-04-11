@@ -3,7 +3,7 @@ import 'global-agent/bootstrap.js';
 import '@app/dotenv.js';
 
 import { type NestFastifyApplication } from '@nestjs/platform-fastify';
-import { unlinkSync, mkdirSync } from 'fs';
+import { mkdirSync, unlinkSync } from 'fs';
 import http from 'http';
 import https from 'https';
 
@@ -14,7 +14,7 @@ import { WebSocket } from 'ws';
 
 import { logger } from '@app/core/log.js';
 import { fileExistsSync } from '@app/core/utils/files/file-exists.js';
-import { environment, PORT, CONFIG_MODULES_HOME } from '@app/environment.js';
+import { CONFIG_MODULES_HOME, environment, PORT } from '@app/environment.js';
 import * as envVars from '@app/environment.js';
 import { setupNewMothershipSubscription } from '@app/mothership/subscribe-to-mothership.js';
 import { loadDynamixConfigFile } from '@app/store/actions/load-dynamix-config-file.js';
