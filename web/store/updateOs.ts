@@ -1,15 +1,15 @@
+import { computed, ref } from 'vue';
+import { createPinia, defineStore, setActivePinia } from 'pinia';
+
 import dayjs, { extend } from 'dayjs';
 import customParseFormat from 'dayjs/plugin/customParseFormat';
 import relativeTime from 'dayjs/plugin/relativeTime';
-import { defineStore, createPinia, setActivePinia } from 'pinia';
-import { computed } from 'vue';
 
-import {
-  WebguiCheckForUpdate,
-  WebguiUpdateCancel,
-} from '~/composables/services/webgui';
-import { useServerStore } from '~/store/server';
 import type { ServerUpdateOsResponse } from '~/types/server';
+
+import { WebguiCheckForUpdate, WebguiUpdateCancel } from '~/composables/services/webgui';
+import { useServerStore } from '~/store/server';
+
 /**
  * @see https://stackoverflow.com/questions/73476371/using-pinia-with-vue-js-web-components
  * @see https://github.com/vuejs/pinia/discussions/1085
@@ -47,12 +47,12 @@ export const useUpdateOsStore = defineStore('updateOs', () => {
       return undefined;
     }
 
-    return !updateOsResponse.value?.isEligible
-      ? updateOsResponse.value.version
-      : undefined;
+    return !updateOsResponse.value?.isEligible ? updateOsResponse.value.version : undefined;
   });
 
-  const availableReleaseDate = computed(() => updateOsResponse.value?.date ? dayjs(updateOsResponse.value.date, 'YYYY-MM-DD') : undefined);
+  const availableReleaseDate = computed(() =>
+    updateOsResponse.value?.date ? dayjs(updateOsResponse.value.date, 'YYYY-MM-DD') : undefined
+  );
 
   /**
    * If the updateOsResponse does not have a sha256, then the user is required to authenticate to download the update
@@ -69,7 +69,7 @@ export const useUpdateOsStore = defineStore('updateOs', () => {
       serverStore.setUpdateOsResponse(response as ServerUpdateOsResponse);
       checkForUpdatesLoading.value = false;
     } catch (error) {
-      throw new Error("[localCheckForUpdate] Error checking for updates\n" + JSON.stringify(error));
+      throw new Error('[localCheckForUpdate] Error checking for updates\n' + JSON.stringify(error));
     }
   };
 
@@ -88,7 +88,9 @@ export const useUpdateOsStore = defineStore('updateOs', () => {
       // otherwise refresh the page
       window.location.reload();
     } catch (error) {
-      throw new Error(`[cancelUpdate] Error cancelling update with error: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      throw new Error(
+        `[cancelUpdate] Error cancelling update with error: ${error instanceof Error ? error.message : 'Unknown error'}`
+      );
     }
   };
 

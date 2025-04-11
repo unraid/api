@@ -25,6 +25,31 @@ type MockServerStore = ReturnType<typeof useServerStore> & Record<string, unknow
 // Helper function to safely create test data with type assertions
 const createTestData = <T extends Record<string, unknown>>(data: T): T => data as T;
 
+// Save original console methods
+const originalConsoleDebug = console.debug;
+const originalConsoleError = console.error;
+const originalConsoleWarn = console.warn;
+
+vi.mock('vue', async () => {
+  const actual = await vi.importActual('vue');
+  return {
+    ...actual,
+    toRefs: (obj: Record<string, unknown>) => {
+      // Handle non-reactive objects to prevent warnings
+      if (!obj || typeof obj !== 'object') {
+        return {};
+      }
+      return (
+        actual as unknown as { toRefs: (obj: Record<string, unknown>) => Record<string, unknown> }
+      ).toRefs(obj);
+    },
+    watchEffect: (fn: () => void) => {
+      fn();
+      return () => {};
+    },
+  };
+});
+
 const getStore = () => {
   const pinia = createTestingPinia({
     createSpy: vi.fn,
@@ -293,6 +318,11 @@ vi.mock('~/composables/locale', async () => {
 
 describe('useServerStore', () => {
   beforeEach(() => {
+    // Silence console logs
+    console.debug = vi.fn();
+    console.error = vi.fn();
+    console.warn = vi.fn();
+
     setActivePinia(
       createTestingPinia({
         createSpy: vi.fn,
@@ -301,6 +331,11 @@ describe('useServerStore', () => {
   });
 
   afterEach(() => {
+    // Restore console functions
+    console.debug = originalConsoleDebug;
+    console.error = originalConsoleError;
+    console.warn = originalConsoleWarn;
+
     vi.resetAllMocks();
   });
 

@@ -1,7 +1,7 @@
 /**
  * @todo Check OS and Connect Plugin versions against latest via API every session
  */
-import { computed, ref, toRefs, watch } from 'vue';
+import { computed, ref, toRefs, watch, watchEffect } from 'vue';
 import { createPinia, defineStore, setActivePinia } from 'pinia';
 import { useLazyQuery } from '@vue/apollo-composable';
 

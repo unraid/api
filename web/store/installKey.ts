@@ -1,7 +1,11 @@
-import { defineStore, createPinia, setActivePinia } from 'pinia';
+import { computed, ref } from 'vue';
+import { createPinia, defineStore, setActivePinia } from 'pinia';
+
+import type { ExternalKeyActions } from '@unraid/shared-callbacks';
+
 import { WebguiInstallKey } from '~/composables/services/webgui';
 import { useErrorsStore } from '~/store/errors';
-import type { ExternalKeyActions } from '@unraid/shared-callbacks';
+
 /**
  * @see https://stackoverflow.com/questions/73476371/using-pinia-with-vue-js-web-components
  * @see https://github.com/vuejs/pinia/discussions/1085
@@ -20,7 +24,9 @@ export const useInstallKeyStore = defineStore('installKey', () => {
    * Extracts key type from key url. Works for both .key and .unkey.
    */
   const keyType = computed((): string | undefined => {
-    if (!keyUrl.value) { return undefined; }
+    if (!keyUrl.value) {
+      return undefined;
+    }
     const parts = keyUrl.value.split('/');
     return parts[parts.length - 1].replace(/\.key|\.unkey/g, '');
   });
@@ -36,9 +42,7 @@ export const useInstallKeyStore = defineStore('installKey', () => {
     }
 
     try {
-      const installResponse = await WebguiInstallKey
-        .query({ url: keyUrl.value })
-        .get();
+      const installResponse = await WebguiInstallKey.query({ url: keyUrl.value }).get();
       console.log('[install] WebguiInstallKey installResponse', installResponse);
 
       keyInstallStatus.value = 'success';
