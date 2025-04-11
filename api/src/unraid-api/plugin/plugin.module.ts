@@ -1,5 +1,8 @@
 import { DynamicModule, Logger, Module } from '@nestjs/common';
 
+import { z } from 'zod';
+
+import { CONFIG_MODULES_HOME } from '@app/environment.js';
 import { PluginService } from '@app/unraid-api/plugin/plugin.service.js';
 
 @Module({})
@@ -19,8 +22,14 @@ export class PluginModule {
         return {
             module: PluginModule,
             imports: [...apiModules],
-            providers: [PluginService],
-            exports: [PluginService],
+            providers: [
+                PluginService,
+                {
+                    provide: 'CONFIG_MODULES_HOME',
+                    useValue: CONFIG_MODULES_HOME,
+                },
+            ],
+            exports: [PluginService, 'CONFIG_MODULES_HOME'],
             global: true,
         };
     }

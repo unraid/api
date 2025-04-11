@@ -137,9 +137,13 @@
         "zod": "^3.23.8"
     },
     "peerDependencies": {
+        "@unraid/api-config": "workspace:*",
         "unraid-api-plugin-connect": "workspace:*"
     },
     "peerDependenciesMeta": {
+        "@unraid/api-config": {
+            "optional": true
+        },
         "unraid-api-plugin-connect": {
             "optional": true
         }

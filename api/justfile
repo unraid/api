@@ -14,3 +14,7 @@ default:
 
 alias b := build
 alias d := deploy
+
+sync-env server:
+    rsync -avz --progress --stats -e ssh .env* root@{{server}}:/usr/local/unraid-api
+    ssh root@{{server}} 'cp /usr/local/unraid-api/.env.staging /usr/local/unraid-api/.env'
