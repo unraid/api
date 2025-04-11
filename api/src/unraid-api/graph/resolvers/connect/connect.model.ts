@@ -35,6 +35,19 @@ export enum DynamicRemoteAccessType {
     DISABLED = 'DISABLED',
 }
 
+export enum URL_TYPE {
+    LAN = 'LAN',
+    WIREGUARD = 'WIREGUARD',
+    WAN = 'WAN',
+    MDNS = 'MDNS',
+    OTHER = 'OTHER',
+    DEFAULT = 'DEFAULT',
+}
+
+registerEnumType(URL_TYPE, {
+    name: 'URL_TYPE',
+});
+
 registerEnumType(DynamicRemoteAccessType, {
     name: 'DynamicRemoteAccessType',
 });
@@ -50,15 +63,19 @@ registerEnumType(WAN_FORWARD_TYPE, {
 @InputType()
 export class AccessUrlInput {
     @Field(() => URL_TYPE)
+    @IsEnum(URL_TYPE)
     type!: URL_TYPE;
 
     @Field(() => String, { nullable: true })
+    @IsOptional()
     name?: string | null;
 
     @Field(() => GraphQLURL, { nullable: true })
+    @IsOptional()
     ipv4?: URL | null;
 
     @Field(() => GraphQLURL, { nullable: true })
+    @IsOptional()
     ipv6?: URL | null;
 }
 
@@ -187,7 +204,6 @@ export class SetupRemoteAccessInput {
 export class EnableDynamicRemoteAccessInput {
     @Field(() => AccessUrlInput, { description: 'The AccessURL Input for dynamic remote access' })
     @ValidateNested()
-    @IsNotEmpty()
     url!: AccessUrlInput;
 
     @Field(() => Boolean, { description: 'Whether to enable or disable dynamic remote access' })
@@ -346,19 +362,6 @@ export class Connect {
     @ValidateNested()
     settings?: ConnectSettings;
 }
-
-export enum URL_TYPE {
-    LAN = 'LAN',
-    WIREGUARD = 'WIREGUARD',
-    WAN = 'WAN',
-    MDNS = 'MDNS',
-    OTHER = 'OTHER',
-    DEFAULT = 'DEFAULT',
-}
-
-registerEnumType(URL_TYPE, {
-    name: 'URL_TYPE',
-});
 
 @ObjectType({
     implements: () => Node,

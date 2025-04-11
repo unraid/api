@@ -149,6 +149,7 @@ export class ConnectSettingsResolver {
     public async enableDynamicRemoteAccess(
         @Args('input') dynamicRemoteAccessInput: EnableDynamicRemoteAccessInput
     ): Promise<boolean> {
+        console.log('enableDynamicRemoteAccess', dynamicRemoteAccessInput);
         return this.connectSettingsService.enableDynamicRemoteAccess(dynamicRemoteAccessInput);
     }
 }
