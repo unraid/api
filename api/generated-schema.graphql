@@ -1164,10 +1164,15 @@ type Info implements Node {
 
 type ContainerPort {
   ip: String
-  privatePort: Int!
-  publicPort: Int!
+  privatePort: Port
+  publicPort: Port
   type: ContainerPortType!
 }
+
+"""
+A field whose value is a valid TCP port within the range of 0 to 65535: https://en.wikipedia.org/wiki/Transmission_Control_Protocol#TCP_ports
+"""
+scalar Port
 
 enum ContainerPortType {
   TCP
@@ -1352,6 +1357,7 @@ enum VmState {
 type Vms {
   id: ID!
   domains: [VmDomain!]
+  domain: [VmDomain!]
 }
 
 type Uptime {

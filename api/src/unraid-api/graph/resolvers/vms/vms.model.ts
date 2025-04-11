@@ -36,4 +36,7 @@ export class Vms {
 
     @Field(() => [VmDomain], { nullable: true })
     domains?: VmDomain[];
+
+    @Field(() => [VmDomain], { nullable: true })
+    domain?: VmDomain[];
 }

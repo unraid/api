@@ -1,5 +1,6 @@
 import { Field, ID, Int, ObjectType, registerEnumType } from '@nestjs/graphql';
 
+import { GraphQLPort } from 'graphql-scalars';
 import { GraphQLJSONObject } from 'graphql-type-json';
 
 import { Node } from '@app/unraid-api/graph/resolvers/base.model.js';
@@ -18,11 +19,11 @@ export class ContainerPort {
     @Field(() => String, { nullable: true })
     ip?: string;
 
-    @Field(() => Int)
-    privatePort!: number;
+    @Field(() => GraphQLPort, { nullable: true })
+    privatePort?: number;
 
-    @Field(() => Int)
-    publicPort!: number;
+    @Field(() => GraphQLPort, { nullable: true })
+    publicPort?: number;
 
     @Field(() => ContainerPortType)
     type!: ContainerPortType;
