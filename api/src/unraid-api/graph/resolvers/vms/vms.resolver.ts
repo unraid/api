@@ -38,12 +38,6 @@ export class VmsResolver {
 
     @ResolveField(() => [VmDomain])
     public async domain(): Promise<Array<VmDomain>> {
-        try {
-            return await this.vmsService.getDomains();
-        } catch (error) {
-            throw new Error(
-                `Failed to retrieve VM domains: ${error instanceof Error ? error.message : 'Unknown error'}`
-            );
-        }
+        return this.domains();
     }
 }
