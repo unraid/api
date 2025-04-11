@@ -20,14 +20,19 @@
     "@nestjs/config": "^4.0.2",
     "@nestjs/core": "^11.0.11",
     "@nestjs/graphql": "^13.0.3",
+    "@types/node": "^22.14.0",
     "nest-authz": "^2.14.0",
-    "typescript": "^5.8.2"
+    "rxjs": "^7.8.2",
+    "typescript": "^5.8.2",
+    "zod": "^3.23.8"
   },
   "peerDependencies": {
     "@nestjs/common": "^11.0.11",
     "@nestjs/config": "^4.0.2",
     "@nestjs/core": "^11.0.11",
     "@nestjs/graphql": "^13.0.3",
-    "nest-authz": "^2.14.0"
+    "nest-authz": "^2.14.0",
+    "rxjs": "^7.8.2",
+    "zod": "^3.23.8"
   }
 }
