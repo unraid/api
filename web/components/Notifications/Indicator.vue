@@ -4,7 +4,7 @@ import { cn } from '@unraid/ui';
 
 import type { OverviewQuery } from '~/composables/gql/graphql';
 
-import { Importance } from '~/composables/gql/graphql';
+import { NotificationImportance as Importance } from '~/composables/gql/graphql';
 
 const props = defineProps<{ overview?: OverviewQuery['notifications']['overview']; seen?: boolean }>();
 
@@ -14,9 +14,9 @@ const indicatorLevel = computed(() => {
   }
   switch (true) {
     case props.overview.unread.alert > 0:
-      return Importance.Alert;
+      return Importance.ALERT;
     case props.overview.unread.warning > 0:
-      return Importance.Warning;
+      return Importance.WARNING;
     case props.overview.unread.total > 0:
       return 'UNREAD';
     default:
@@ -26,12 +26,12 @@ const indicatorLevel = computed(() => {
 
 const icon = computed<{ component: Component; color: string } | null>(() => {
   switch (indicatorLevel.value) {
-    case Importance.Warning:
+    case Importance.WARNING:
       return {
         component: ExclamationTriangleIcon,
         color: 'text-yellow-500 translate-y-0.5',
       };
-    case Importance.Alert:
+    case Importance.ALERT:
       return {
         component: ShieldExclamationIcon,
         color: 'text-unraid-red',

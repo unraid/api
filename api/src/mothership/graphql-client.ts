@@ -10,7 +10,6 @@ import { WebSocket } from 'ws';
 import { FIVE_MINUTES_MS } from '@app/consts.js';
 import { minigraphLogger } from '@app/core/log.js';
 import { API_VERSION, MOTHERSHIP_GRAPHQL_LINK } from '@app/environment.js';
-import { MinigraphStatus } from '@app/graphql/generated/api/types.js';
 import { buildDelayFunction } from '@app/mothership/utils/delay-function.js';
 import {
     getMothershipConnectionParams,
@@ -20,6 +19,7 @@ import { setGraphqlConnectionStatus } from '@app/store/actions/set-minigraph-sta
 import { getters, store } from '@app/store/index.js';
 import { logoutUser } from '@app/store/modules/config.js';
 import { receivedMothershipPing, setMothershipTimeout } from '@app/store/modules/minigraph.js';
+import { MinigraphStatus } from '@app/unraid-api/graph/resolvers/cloud/cloud.model.js';
 
 const getWebsocketWithMothershipHeaders = () => {
     return class WebsocketWithMothershipHeaders extends WebSocket {

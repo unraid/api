@@ -1,10 +1,14 @@
-import { InMemoryCache, type InMemoryCacheConfig } from '@apollo/client/core/index.js';
+import { InMemoryCache } from '@apollo/client/core/index.js';
+
+import type { InMemoryCacheConfig } from '@apollo/client/core/index.js';
+import type { NotificationOverview } from '~/composables/gql/graphql';
+
 import {
   getNotifications,
   notificationsOverview,
 } from '~/components/Notifications/graphql/notification.query';
-import { NotificationType, type NotificationOverview } from '~/composables/gql/graphql';
-import { NotificationType as NotificationCacheType } from '~/composables/gql/typename';
+import { NotificationType } from '~/composables/gql/graphql';
+import { NotificationTypename } from '~/composables/gql/typename';
 import { mergeAndDedup } from './merge';
 
 /**------------------------------------------------------------------------
@@ -123,7 +127,7 @@ const defaultCacheConfig: InMemoryCacheConfig = {
            * Note: This may cause temporary jitter with infinite scroll.
            *
            * This function:
-           * 
+           *
            * 1. Optimistically updates notification overview
            * 2. Checks if the cache has an archive list. If not, this function is a no-op.
            * 3. If the list has items, evicts just the archive list
@@ -147,7 +151,7 @@ const defaultCacheConfig: InMemoryCacheConfig = {
             const archiveQuery = cache.readQuery({
               query: getNotifications,
               // @ts-expect-error the cache only uses the filter type; the limit & offset are superfluous.
-              variables: { filter: { type: NotificationType.Archive } },
+              variables: { filter: { type: NotificationType.ARCHIVE } },
             });
             if (!archiveQuery) return incoming;
 
@@ -157,7 +161,7 @@ const defaultCacheConfig: InMemoryCacheConfig = {
               cache.evict({
                 id: archiveQuery.notifications.id,
                 fieldName: 'list',
-                args: { filter: { type: NotificationType.Archive } },
+                args: { filter: { type: NotificationType.ARCHIVE } },
               });
             }
             cache.gc();
@@ -177,7 +181,7 @@ const defaultCacheConfig: InMemoryCacheConfig = {
            */
           merge(_, incoming, { cache, args }) {
             if (args?.id) {
-              const id = cache.identify({ id: args.id, __typename: NotificationCacheType });
+              const id = cache.identify({ id: args.id, __typename: NotificationTypename });
               cache.evict({ id });
             }
             // Removes references to evicted notification, preventing dangling references

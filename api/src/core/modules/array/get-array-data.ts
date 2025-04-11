@@ -1,12 +1,16 @@
 import { GraphQLError } from 'graphql';
 import { sum } from 'lodash-es';
 
-import type { ArrayCapacity, ArrayType } from '@app/graphql/generated/api/types.js';
-import { ArrayDiskType } from '@app/graphql/generated/api/types.js';
 import { store } from '@app/store/index.js';
 import { FileLoadStatus } from '@app/store/types.js';
+import {
+    ArrayCapacity,
+    ArrayDiskType,
+    ArrayState,
+    UnraidArray,
+} from '@app/unraid-api/graph/resolvers/array/array.model.js';
 
-export const getArrayData = (getState = store.getState): ArrayType => {
+export const getArrayData = (getState = store.getState): UnraidArray => {
     // Var state isn't loaded
     const state = getState();
     if (
@@ -51,7 +55,7 @@ export const getArrayData = (getState = store.getState): ArrayType => {
 
     return {
         id: 'array',
-        state: emhttp.var.mdState,
+        state: emhttp.var.mdState as ArrayState,
         capacity,
         boot,
         parities,

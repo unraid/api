@@ -2,5 +2,5 @@
  * The magic 'Notification' prefix comes from inspecting the apollo cache.
  * I think it comes from the __typename when apollo caches an object (by default)
  */
-export const NotificationType = "Notification";
+export const NotificationTypename = "Notification";
 

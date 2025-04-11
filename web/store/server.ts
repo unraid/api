@@ -23,7 +23,7 @@ import dayjs from 'dayjs';
 import prerelease from 'semver/functions/prerelease';
 
 import type { ApolloQueryResult } from '@apollo/client/core/index.js';
-import type { Config, PartialCloudFragment, serverStateQuery } from '~/composables/gql/graphql';
+import type { Config, PartialCloudFragment, ServerStateQuery } from '~/composables/gql/graphql';
 import type { Error } from '~/store/errors';
 import type { Theme } from '~/themes/types';
 import type {
@@ -167,7 +167,7 @@ export const useServerStore = defineStore('server', () => {
     ref<
       (
         variables?: Record<string, never> | undefined
-      ) => Promise<ApolloQueryResult<serverStateQuery>> | undefined
+      ) => Promise<ApolloQueryResult<ServerStateQuery>> | undefined
     >();
 
   /**
@@ -1133,7 +1133,7 @@ export const useServerStore = defineStore('server', () => {
     updateOsResponse.value = response;
   };
 
-  const mutateServerStateFromApi = (data: serverStateQuery): Server => {
+  const mutateServerStateFromApi = (data: ServerStateQuery): Server => {
     console.debug('mutateServerStateFromApi', data);
     const mutatedData: Server = {
       // if we get an owners obj back and the username is root we don't want to overwrite the values

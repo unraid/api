@@ -3,34 +3,33 @@ import { Query, Resolver, Subscription } from '@nestjs/graphql';
 import { AuthActionVerb, AuthPossession, UsePermissions } from 'nest-authz';
 
 import { createSubscription, PUBSUB_CHANNEL } from '@app/core/pubsub.js';
-import { Resource } from '@app/graphql/generated/api/types.js';
-import { type Server } from '@app/graphql/generated/client/graphql.js';
 import { getLocalServer } from '@app/graphql/schema/utils.js';
+import { Resource } from '@app/unraid-api/graph/resolvers/base.model.js';
+import { Server as ServerModel } from '@app/unraid-api/graph/resolvers/servers/server.model.js';
 
-@Resolver('Server')
+@Resolver(() => ServerModel)
 export class ServerResolver {
-    @Query()
+    @Query(() => ServerModel, { nullable: true })
     @UsePermissions({
         action: AuthActionVerb.READ,
         resource: Resource.SERVERS,
         possession: AuthPossession.ANY,
     })
-    public async server(): Promise<Server | null> {
+    public async server(): Promise<ServerModel | null> {
         return getLocalServer()[0];
     }
 
-    @Resolver('servers')
-    @Query()
+    @Query(() => [ServerModel])
     @UsePermissions({
         action: AuthActionVerb.READ,
         resource: Resource.SERVERS,
         possession: AuthPossession.ANY,
     })
-    public async servers(): Promise<Server[]> {
+    public async servers(): Promise<ServerModel[]> {
         return getLocalServer();
     }
 
-    @Subscription('server')
+    @Subscription(() => ServerModel)
     @UsePermissions({
         action: AuthActionVerb.READ,
         resource: Resource.SERVERS,

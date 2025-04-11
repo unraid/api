@@ -2,7 +2,6 @@ import { expect, test, vi } from 'vitest';
 
 import type { NginxUrlFields } from '@app/graphql/resolvers/subscription/network.js';
 import { type Nginx } from '@app/core/types/states/nginx.js';
-import { URL_TYPE } from '@app/graphql/generated/client/graphql.js';
 import {
     getServerIps,
     getUrlForField,
@@ -11,6 +10,7 @@ import {
 import { store } from '@app/store/index.js';
 import { loadConfigFile } from '@app/store/modules/config.js';
 import { loadStateFiles } from '@app/store/modules/emhttp.js';
+import { URL_TYPE } from '@app/unraid-api/graph/resolvers/connect/connect.model.js';
 
 test.each([
     [{ httpPort: 80, httpsPort: 443, url: 'my-default-url.com' }],

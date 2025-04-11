@@ -10,22 +10,23 @@ import { emptyDir } from 'fs-extra';
 import { encode as encodeIni } from 'ini';
 import { v7 as uuidv7 } from 'uuid';
 
-import type {
-    Notification,
-    NotificationCounts,
-    NotificationData,
-    NotificationFilter,
-    NotificationOverview,
-} from '@app/graphql/generated/api/types.js';
 import { AppError } from '@app/core/errors/app-error.js';
 import { pubsub, PUBSUB_CHANNEL } from '@app/core/pubsub.js';
 import { NotificationIni } from '@app/core/types/states/notification.js';
 import { fileExists } from '@app/core/utils/files/file-exists.js';
 import { parseConfig } from '@app/core/utils/misc/parse-config.js';
 import { CHOKIDAR_USEPOLLING } from '@app/environment.js';
-import { NotificationSchema } from '@app/graphql/generated/api/operations.js';
-import { Importance, NotificationType } from '@app/graphql/generated/api/types.js';
 import { getters } from '@app/store/index.js';
+import {
+    Notification,
+    NotificationCounts,
+    NotificationData,
+    NotificationFilter,
+    NotificationImportance,
+    NotificationOverview,
+    NotificationType,
+} from '@app/unraid-api/graph/resolvers/notifications/notifications.model.js';
+import { validateObject } from '@app/unraid-api/graph/resolvers/validation.utils.js';
 import { SortFn } from '@app/unraid-api/types/util.js';
 import { batchProcess, formatDatetime, isFulfilled, isRejected, unraidTimestamp } from '@app/utils.js';
 
@@ -140,12 +141,12 @@ export class NotificationsService {
         });
     }
 
-    private increment(importance: Importance, collector: NotificationCounts) {
+    private increment(importance: NotificationImportance, collector: NotificationCounts) {
         collector[importance.toLowerCase()] += 1;
         collector['total'] += 1;
     }
 
-    private decrement(importance: Importance, collector: NotificationCounts) {
+    private decrement(importance: NotificationImportance, collector: NotificationCounts) {
         collector[importance.toLowerCase()] -= 1;
         collector['total'] -= 1;
     }
@@ -462,7 +463,7 @@ export class NotificationsService {
         };
     }
 
-    public async archiveAll(importance?: Importance) {
+    public async archiveAll(importance?: NotificationImportance) {
         const { UNREAD } = this.paths();
 
         if (!importance) {
@@ -483,7 +484,7 @@ export class NotificationsService {
         return { ...stats, overview: overviewSnapshot };
     }
 
-    public async unarchiveAll(importance?: Importance) {
+    public async unarchiveAll(importance?: NotificationImportance) {
         const { ARCHIVE } = this.paths();
 
         if (!importance) {
@@ -655,7 +656,8 @@ export class NotificationsService {
         // The contents of the file, and therefore the notification, may not always be a valid notification.
         // so we parse it through the schema to make sure it is
 
-        return NotificationSchema().parse(notification);
+        const validatedNotification = await validateObject(Notification, notification);
+        return validatedNotification;
     }
 
     private getIdFromPath(path: string) {
@@ -691,22 +693,26 @@ export class NotificationsService {
         };
     }
 
-    private fileImportanceToGqlImportance(importance: NotificationIni['importance']): Importance {
+    private fileImportanceToGqlImportance(
+        importance: NotificationIni['importance']
+    ): NotificationImportance {
         switch (importance) {
             case 'alert':
-                return Importance.ALERT;
+                return NotificationImportance.ALERT;
             case 'warning':
-                return Importance.WARNING;
+                return NotificationImportance.WARNING;
             default:
-                return Importance.INFO;
+                return NotificationImportance.INFO;
         }
     }
 
-    private gqlImportanceToFileImportance(importance: Importance): NotificationIni['importance'] {
+    private gqlImportanceToFileImportance(
+        importance: NotificationImportance
+    ): NotificationIni['importance'] {
         switch (importance) {
-            case Importance.ALERT:
+            case NotificationImportance.ALERT:
                 return 'alert';
-            case Importance.WARNING:
+            case NotificationImportance.WARNING:
                 return 'warning';
             default:
                 return 'normal';

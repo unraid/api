@@ -2,10 +2,14 @@ import { Args, ResolveField, Resolver } from '@nestjs/graphql';
 
 import { AuthActionVerb, AuthPossession, UsePermissions } from 'nest-authz';
 
-import { Resource } from '@app/graphql/generated/api/types.js';
+import { Resource } from '@app/unraid-api/graph/resolvers/base.model.js';
+import { VmMutations } from '@app/unraid-api/graph/resolvers/mutation/mutation.model.js';
 import { VmsService } from '@app/unraid-api/graph/resolvers/vms/vms.service.js';
 
-@Resolver('VmMutations')
+/**
+ * Nested Resolvers for Mutations MUST use @ResolveField() instead of @Mutation()
+ */
+@Resolver(() => VmMutations)
 export class VmMutationsResolver {
     constructor(private readonly vmsService: VmsService) {}
 
@@ -14,8 +18,8 @@ export class VmMutationsResolver {
         resource: Resource.VMS,
         possession: AuthPossession.ANY,
     })
-    @ResolveField('startVm')
-    async startVm(@Args('id') id: string): Promise<boolean> {
+    @ResolveField(() => Boolean, { description: 'Start a virtual machine' })
+    async start(@Args('id') id: string): Promise<boolean> {
         return this.vmsService.startVm(id);
     }
 
@@ -24,8 +28,8 @@ export class VmMutationsResolver {
         resource: Resource.VMS,
         possession: AuthPossession.ANY,
     })
-    @ResolveField('stopVm')
-    async stopVm(@Args('id') id: string): Promise<boolean> {
+    @ResolveField(() => Boolean, { description: 'Stop a virtual machine' })
+    async stop(@Args('id') id: string): Promise<boolean> {
         return this.vmsService.stopVm(id);
     }
 
@@ -34,8 +38,8 @@ export class VmMutationsResolver {
         resource: Resource.VMS,
         possession: AuthPossession.ANY,
     })
-    @ResolveField('pauseVm')
-    async pauseVm(@Args('id') id: string): Promise<boolean> {
+    @ResolveField(() => Boolean, { description: 'Pause a virtual machine' })
+    async pause(@Args('id') id: string): Promise<boolean> {
         return this.vmsService.pauseVm(id);
     }
 
@@ -44,8 +48,8 @@ export class VmMutationsResolver {
         resource: Resource.VMS,
         possession: AuthPossession.ANY,
     })
-    @ResolveField('resumeVm')
-    async resumeVm(@Args('id') id: string): Promise<boolean> {
+    @ResolveField(() => Boolean, { description: 'Resume a virtual machine' })
+    async resume(@Args('id') id: string): Promise<boolean> {
         return this.vmsService.resumeVm(id);
     }
 
@@ -54,8 +58,8 @@ export class VmMutationsResolver {
         resource: Resource.VMS,
         possession: AuthPossession.ANY,
     })
-    @ResolveField('forceStopVm')
-    async forceStopVm(@Args('id') id: string): Promise<boolean> {
+    @ResolveField(() => Boolean, { description: 'Force stop a virtual machine' })
+    async forceStop(@Args('id') id: string): Promise<boolean> {
         return this.vmsService.forceStopVm(id);
     }
 
@@ -64,8 +68,8 @@ export class VmMutationsResolver {
         resource: Resource.VMS,
         possession: AuthPossession.ANY,
     })
-    @ResolveField('rebootVm')
-    async rebootVm(@Args('id') id: string): Promise<boolean> {
+    @ResolveField(() => Boolean, { description: 'Reboot a virtual machine' })
+    async reboot(@Args('id') id: string): Promise<boolean> {
         return this.vmsService.rebootVm(id);
     }
 
@@ -74,8 +78,8 @@ export class VmMutationsResolver {
         resource: Resource.VMS,
         possession: AuthPossession.ANY,
     })
-    @ResolveField('resetVm')
-    async resetVm(@Args('id') id: string): Promise<boolean> {
+    @ResolveField(() => Boolean, { description: 'Reset a virtual machine' })
+    async reset(@Args('id') id: string): Promise<boolean> {
         return this.vmsService.resetVm(id);
     }
 }

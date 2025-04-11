@@ -1,9 +1,9 @@
 import { createAsyncThunk } from '@reduxjs/toolkit';
 
-import type { RemoteGraphQLEventFragmentFragment } from '@app/graphql/generated/client/graphql.js';
+import type { RemoteGraphQlEventFragmentFragment } from '@app/graphql/generated/client/graphql.js';
 import { remoteQueryLogger } from '@app/core/log.js';
 import { getApiApolloClient } from '@app/graphql/client/api/get-api-client.js';
-import { RemoteGraphQLEventType } from '@app/graphql/generated/client/graphql.js';
+import { RemoteGraphQlEventType } from '@app/graphql/generated/client/graphql.js';
 import { SEND_REMOTE_QUERY_RESPONSE } from '@app/graphql/mothership/mutations.js';
 import { parseGraphQLQuery } from '@app/graphql/resolvers/subscription/remote-graphql/remote-graphql-helpers.js';
 import { GraphQLClient } from '@app/mothership/graphql-client.js';
@@ -13,7 +13,7 @@ import { type SubscriptionWithSha256 } from '@app/store/types.js';
 
 export const addRemoteSubscription = createAsyncThunk<
     SubscriptionWithSha256,
-    RemoteGraphQLEventFragmentFragment['remoteGraphQLEventData'],
+    RemoteGraphQlEventFragmentFragment['remoteGraphQLEventData'],
     { state: RootState; dispatch: AppDispatch }
 >('remoteGraphQL/addRemoteSubscription', async (data, { getState }) => {
     if (hasRemoteSubscription(data.sha256, getState())) {
@@ -48,7 +48,7 @@ export const addRemoteSubscription = createAsyncThunk<
                         input: {
                             sha256: data.sha256,
                             body: JSON.stringify({ data: val.data }),
-                            type: RemoteGraphQLEventType.REMOTE_SUBSCRIPTION_EVENT,
+                            type: RemoteGraphQlEventType.REMOTE_SUBSCRIPTION_EVENT,
                         },
                     },
                 });
@@ -63,7 +63,7 @@ export const addRemoteSubscription = createAsyncThunk<
                         input: {
                             sha256: data.sha256,
                             body: JSON.stringify({ errors: errorValue }),
-                            type: RemoteGraphQLEventType.REMOTE_SUBSCRIPTION_EVENT,
+                            type: RemoteGraphQlEventType.REMOTE_SUBSCRIPTION_EVENT,
                         },
                     },
                 });

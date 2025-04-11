@@ -1,26 +1,27 @@
-import { Args, Query, Resolver, Subscription } from '@nestjs/graphql';
+import { Args, Int, Query, Resolver, Subscription } from '@nestjs/graphql';
 
 import { AuthActionVerb, AuthPossession, UsePermissions } from 'nest-authz';
 
 import { createSubscription, PUBSUB_CHANNEL } from '@app/core/pubsub.js';
-import { Resource } from '@app/graphql/generated/api/types.js';
+import { Resource } from '@app/unraid-api/graph/resolvers/base.model.js';
+import { LogFile, LogFileContent } from '@app/unraid-api/graph/resolvers/logs/logs.model.js';
 import { LogsService } from '@app/unraid-api/graph/resolvers/logs/logs.service.js';
 
-@Resolver('Logs')
+@Resolver(() => LogFile)
 export class LogsResolver {
     constructor(private readonly logsService: LogsService) {}
 
-    @Query()
+    @Query(() => [LogFile])
     @UsePermissions({
         action: AuthActionVerb.READ,
         resource: Resource.LOGS,
         possession: AuthPossession.ANY,
     })
-    async logFiles() {
+    async logFiles(): Promise<LogFile[]> {
         return this.logsService.listLogFiles();
     }
 
-    @Query()
+    @Query(() => LogFileContent)
     @UsePermissions({
         action: AuthActionVerb.READ,
         resource: Resource.LOGS,
@@ -28,13 +29,13 @@ export class LogsResolver {
     })
     async logFile(
         @Args('path') path: string,
-        @Args('lines') lines?: number,
-        @Args('startLine') startLine?: number
-    ) {
+        @Args('lines', { nullable: true, type: () => Int }) lines?: number,
+        @Args('startLine', { nullable: true, type: () => Int }) startLine?: number
+    ): Promise<LogFileContent> {
         return this.logsService.getLogFileContent(path, lines, startLine);
     }
 
-    @Subscription('logFile')
+    @Subscription(() => LogFileContent, { name: 'logFile' })
     @UsePermissions({
         action: AuthActionVerb.READ,
         resource: Resource.LOGS,

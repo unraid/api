@@ -4,7 +4,7 @@ import { Test } from '@nestjs/testing';
 import Docker from 'dockerode';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { ContainerState } from '@app/graphql/generated/api/types.js';
+import { ContainerState } from '@app/unraid-api/graph/resolvers/docker/docker.model.js';
 import { DockerService } from '@app/unraid-api/graph/resolvers/docker/docker.service.js';
 
 // Mock pubsub
@@ -309,42 +309,44 @@ describe('DockerService', () => {
 
         const result = await service.getNetworks({ useCache: false });
 
-        expect(result).toEqual([
+        expect(result).toMatchInlineSnapshot(`
+          [
             {
-                id: 'network1',
-                name: 'bridge',
-                created: '2023-01-01T00:00:00Z',
-                scope: 'local',
-                driver: 'bridge',
-                enableIpv6: false,
-                ipam: {
-                    driver: 'default',
-                    config: [
-                        {
-                            subnet: '172.17.0.0/16',
-                            gateway: '172.17.0.1',
-                        },
-                    ],
-                },
-                internal: false,
-                attachable: false,
-                ingress: false,
-                configFrom: {
-                    network: '',
-                },
-                configOnly: false,
-                containers: {},
-                options: {
-                    comDockerNetworkBridgeDefaultBridge: 'true',
-                    comDockerNetworkBridgeEnableIcc: 'true',
-                    comDockerNetworkBridgeEnableIpMasquerade: 'true',
-                    comDockerNetworkBridgeHostBindingIpv4: '0.0.0.0',
-                    comDockerNetworkBridgeName: 'docker0',
-                    comDockerNetworkDriverMtu: '1500',
-                },
-                labels: {},
+              "attachable": false,
+              "configFrom": {
+                "Network": "",
+              },
+              "configOnly": false,
+              "containers": {},
+              "created": "2023-01-01T00:00:00Z",
+              "driver": "bridge",
+              "enableIPv6": false,
+              "id": "network1",
+              "ingress": false,
+              "internal": false,
+              "ipam": {
+                "Config": [
+                  {
+                    "Gateway": "172.17.0.1",
+                    "Subnet": "172.17.0.0/16",
+                  },
+                ],
+                "Driver": "default",
+              },
+              "labels": {},
+              "name": "bridge",
+              "options": {
+                "com.docker.network.bridge.default_bridge": "true",
+                "com.docker.network.bridge.enable_icc": "true",
+                "com.docker.network.bridge.enable_ip_masquerade": "true",
+                "com.docker.network.bridge.host_binding_ipv4": "0.0.0.0",
+                "com.docker.network.bridge.name": "docker0",
+                "com.docker.network.driver.mtu": "1500",
+              },
+              "scope": "local",
             },
-        ]);
+          ]
+        `);
 
         expect(mockListNetworks).toHaveBeenCalled();
     });

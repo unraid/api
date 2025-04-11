@@ -8,7 +8,7 @@ import { join } from 'path';
 import { ConnectListAllDomainsFlags, Hypervisor } from '@unraid/libvirt';
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 
-import { VmDomain } from '@app/graphql/generated/api/types.js';
+import { VmDomain } from '@app/unraid-api/graph/resolvers/vms/vms.model.js';
 import { VmsService } from '@app/unraid-api/graph/resolvers/vms/vms.service.js';
 
 const TEST_VM_NAME = 'test-integration-vm';

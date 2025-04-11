@@ -1,13 +1,17 @@
 import { beforeEach, expect, test, vi } from 'vitest';
 
 import { pubsub, PUBSUB_CHANNEL } from '@app/core/pubsub.js';
-import { MinigraphStatus, WAN_ACCESS_TYPE, WAN_FORWARD_TYPE } from '@app/graphql/generated/api/types.js';
 import { GraphQLClient } from '@app/mothership/graphql-client.js';
 import { stopPingTimeoutJobs } from '@app/mothership/jobs/ping-timeout-jobs.js';
 import { setGraphqlConnectionStatus } from '@app/store/actions/set-minigraph-status.js';
 import { setupRemoteAccessThunk } from '@app/store/actions/setup-remote-access.js';
 import { store } from '@app/store/index.js';
 import { MyServersConfigMemory } from '@app/types/my-servers-config.js';
+import { MinigraphStatus } from '@app/unraid-api/graph/resolvers/cloud/cloud.model.js';
+import {
+    WAN_ACCESS_TYPE,
+    WAN_FORWARD_TYPE,
+} from '@app/unraid-api/graph/resolvers/connect/connect.model.js';
 
 // Mock dependencies
 vi.mock('@app/core/pubsub.js', () => {
@@ -145,6 +149,7 @@ test('loginUser updates state and publishes to pubsub', async () => {
     expect(pubsub.publish).toHaveBeenCalledWith(PUBSUB_CHANNEL.OWNER, {
         owner: {
             username: userInfo.username,
+            url: '',
             avatar: userInfo.avatar,
         },
     });

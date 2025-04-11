@@ -48,7 +48,7 @@ export function useTrackLatestSeenNotification() {
     filter: {
       offset: 0,
       limit: 1,
-      type: NotificationType.Unread,
+      type: NotificationType.UNREAD,
     },
   }));
   const latestNotification = computed(() => {

@@ -1,12 +1,12 @@
 import { isAnyOf } from '@reduxjs/toolkit';
 
 import { remoteAccessLogger } from '@app/core/log.js';
-import { DynamicRemoteAccessType } from '@app/graphql/generated/api/types.js';
 import { RemoteAccessController } from '@app/remoteAccess/remote-access-controller.js';
 import { type RootState } from '@app/store/index.js';
 import { startAppListening } from '@app/store/listeners/listener-middleware.js';
 import { loadConfigFile } from '@app/store/modules/config.js';
 import { FileLoadStatus } from '@app/store/types.js';
+import { DynamicRemoteAccessType } from '@app/unraid-api/graph/resolvers/connect/connect.model.js';
 
 const shouldDynamicRemoteAccessBeEnabled = (state: RootState | null): boolean => {
     if (

@@ -143,6 +143,10 @@ export default defineConfig(({ mode }): ViteUserConfig => {
             },
         },
         test: {
+            browser: {
+                enabled: false,
+            },
+            open: false,
             isolate: true,
             poolOptions: {
                 threads: {

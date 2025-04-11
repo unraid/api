@@ -1,15 +1,14 @@
 import { got } from 'got';
 
-import type { CloudResponse } from '@app/graphql/generated/api/types.js';
 import { FIVE_DAYS_SECS, ONE_DAY_SECS } from '@app/consts.js';
 import { logger } from '@app/core/log.js';
 import { API_VERSION, MOTHERSHIP_GRAPHQL_LINK } from '@app/environment.js';
-import { MinigraphStatus } from '@app/graphql/generated/api/types.js';
 import { checkDNS } from '@app/graphql/resolvers/query/cloud/check-dns.js';
 import { checkMothershipAuthentication } from '@app/graphql/resolvers/query/cloud/check-mothership-authentication.js';
 import { getCloudCache, getDnsCache } from '@app/store/getters/index.js';
 import { getters, store } from '@app/store/index.js';
 import { setCloudCheck, setDNSCheck } from '@app/store/modules/cache.js';
+import { CloudResponse, MinigraphStatus } from '@app/unraid-api/graph/resolvers/cloud/cloud.model.js';
 
 const mothershipBaseUrl = new URL(MOTHERSHIP_GRAPHQL_LINK).origin;
 

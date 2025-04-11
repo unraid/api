@@ -1,5 +1,5 @@
-import { ArrayState } from '@app/graphql/generated/api/types.js';
 import { getters } from '@app/store/index.js';
+import { ArrayState } from '@app/unraid-api/graph/resolvers/array/array.model.js';
 
 /**
  * Is the array running?

@@ -3,8 +3,8 @@ import { Controller, Get, Logger, Param, Res } from '@nestjs/common';
 import { AuthActionVerb, AuthPossession, UsePermissions } from 'nest-authz';
 
 import type { FastifyReply } from '@app/unraid-api/types/fastify.js';
-import { Resource } from '@app/graphql/generated/api/types.js';
 import { Public } from '@app/unraid-api/auth/public.decorator.js';
+import { Resource } from '@app/unraid-api/graph/resolvers/base.model.js';
 import { RestService } from '@app/unraid-api/rest/rest.service.js';
 
 @Controller()

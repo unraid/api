@@ -6,8 +6,12 @@ import { blockDevices, diskLayout } from 'systeminformation';
 // Vitest imports
 import { beforeEach, describe, expect, it, Mock, MockedFunction, vi } from 'vitest';
 
-import type { Disk } from '@app/graphql/generated/api/types.js';
-import { DiskFsType, DiskInterfaceType, DiskSmartStatus } from '@app/graphql/generated/api/types.js';
+import {
+    Disk,
+    DiskFsType,
+    DiskInterfaceType,
+    DiskSmartStatus,
+} from '@app/unraid-api/graph/resolvers/disks/disks.model.js';
 import { DisksService } from '@app/unraid-api/graph/resolvers/disks/disks.service.js';
 import { batchProcess } from '@app/utils.js';
 

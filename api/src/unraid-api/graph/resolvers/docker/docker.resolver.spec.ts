@@ -3,8 +3,7 @@ import { Test } from '@nestjs/testing';
 
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import type { DockerContainer } from '@app/graphql/generated/api/types.js';
-import { ContainerState } from '@app/graphql/generated/api/types.js';
+import { ContainerState, DockerContainer } from '@app/unraid-api/graph/resolvers/docker/docker.model.js';
 import { DockerResolver } from '@app/unraid-api/graph/resolvers/docker/docker.resolver.js';
 import { DockerService } from '@app/unraid-api/graph/resolvers/docker/docker.service.js';
 
@@ -44,6 +43,7 @@ describe('DockerResolver', () => {
                 id: '1',
                 autoStart: false,
                 command: 'test',
+                names: ['test-container'],
                 created: 1234567890,
                 image: 'test-image',
                 imageId: 'test-image-id',
@@ -55,6 +55,7 @@ describe('DockerResolver', () => {
                 id: '2',
                 autoStart: true,
                 command: 'test2',
+                names: ['test-container2'],
                 created: 1234567891,
                 image: 'test-image2',
                 imageId: 'test-image-id2',

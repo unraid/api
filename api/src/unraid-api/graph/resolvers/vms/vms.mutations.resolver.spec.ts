@@ -37,7 +37,7 @@ describe('VmMutationsResolver', () => {
             const vmId = 'test-vm-id';
             vi.mocked(vmsService.startVm).mockResolvedValue(true);
 
-            const result = await resolver.startVm(vmId);
+            const result = await resolver.start(vmId);
 
             expect(result).toBe(true);
             expect(vmsService.startVm).toHaveBeenCalledWith(vmId);
@@ -48,7 +48,7 @@ describe('VmMutationsResolver', () => {
             const error = new Error('Failed to start VM');
             vi.mocked(vmsService.startVm).mockRejectedValue(error);
 
-            await expect(resolver.startVm(vmId)).rejects.toThrow('Failed to start VM');
+            await expect(resolver.start(vmId)).rejects.toThrow('Failed to start VM');
         });
     });
 
@@ -57,7 +57,7 @@ describe('VmMutationsResolver', () => {
             const vmId = 'test-vm-id';
             vi.mocked(vmsService.stopVm).mockResolvedValue(true);
 
-            const result = await resolver.stopVm(vmId);
+            const result = await resolver.stop(vmId);
 
             expect(result).toBe(true);
             expect(vmsService.stopVm).toHaveBeenCalledWith(vmId);
@@ -68,7 +68,7 @@ describe('VmMutationsResolver', () => {
             const error = new Error('Failed to stop VM');
             vi.mocked(vmsService.stopVm).mockRejectedValue(error);
 
-            await expect(resolver.stopVm(vmId)).rejects.toThrow('Failed to stop VM');
+            await expect(resolver.stop(vmId)).rejects.toThrow('Failed to stop VM');
         });
     });
 });

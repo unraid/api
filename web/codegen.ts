@@ -1,12 +1,17 @@
 import type { CodegenConfig } from '@graphql-codegen/cli';
 
+
+
+
+
 const config: CodegenConfig = {
   overwrite: true,
   documents: ['./**/**/*.ts'],
   ignoreNoDocuments: false,
   config: {
     namingConvention: {
-      typeNames: './fix-array-type.js',
+      enumValues: 'change-case-all#upperCase',
+      transformUnderscore: true,
     },
     scalars: {
       DateTime: 'string',

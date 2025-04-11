@@ -1,11 +1,8 @@
-import type { AccessUrlInput } from '@app/graphql/generated/client/graphql.js';
 import type { RootState } from '@app/store/index.js';
 import { logger } from '@app/core/log.js';
 import { type Nginx } from '@app/core/types/states/nginx.js';
-import { type AccessUrl } from '@app/graphql/generated/api/types.js';
-import { URL_TYPE } from '@app/graphql/generated/client/graphql.js';
-import { AccessUrlInputSchema } from '@app/graphql/generated/client/validators.js';
 import { store } from '@app/store/index.js';
+import { AccessUrl, URL_TYPE } from '@app/unraid-api/graph/resolvers/connect/connect.model.js';
 
 interface UrlForFieldInput {
     url: string;
@@ -126,7 +123,7 @@ export const getServerIps = (
     }
 
     const errors: Error[] = [];
-    const urls: AccessUrlInput[] = [];
+    const urls: AccessUrl[] = [];
 
     try {
         // Default URL
@@ -232,16 +229,5 @@ export const getServerIps = (
         }
     });
 
-    const safeUrls = urls
-        .map((url) => AccessUrlInputSchema().safeParse(url))
-        .reduce<AccessUrlInput[]>((acc, curr) => {
-            if (curr.success) {
-                acc.push(curr.data);
-            } else {
-                errors.push(curr.error);
-            }
-            return acc;
-        }, []);
-
-    return { urls: safeUrls, errors };
+    return { urls, errors };
 };

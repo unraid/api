@@ -23,7 +23,7 @@ import {
 
 import { useTrackLatestSeenNotification } from '~/composables/api/use-notifications';
 import { useFragment } from '~/composables/gql';
-import { Importance, NotificationType } from '~/composables/gql/graphql';
+import { NotificationImportance as Importance, NotificationType } from '~/composables/gql/graphql';
 import {
   archiveAllNotifications,
   deleteArchivedNotifications,
@@ -73,7 +73,7 @@ const { onResult: onNotificationAdded } = useSubscription(notificationAddedSubsc
 onNotificationAdded(({ data }) => {
   if (!data) return;
   const notif = useFragment(NOTIFICATION_FRAGMENT, data.notificationAdded);
-  if (notif.type !== NotificationType.Unread) return;
+  if (notif.type !== NotificationType.UNREAD) return;
 
   if (notif.timestamp) {
     latestNotificationTimestamp.value = notif.timestamp;
@@ -85,9 +85,9 @@ onNotificationAdded(({ data }) => {
   }
 
   const funcMapping: Record<Importance, (typeof globalThis)['toast']['info' | 'error' | 'warning']> = {
-    [Importance.Alert]: globalThis.toast.error,
-    [Importance.Warning]: globalThis.toast.warning,
-    [Importance.Info]: globalThis.toast.info,
+    [Importance.ALERT]: globalThis.toast.error,
+    [Importance.WARNING]: globalThis.toast.warning,
+    [Importance.INFO]: globalThis.toast.info,
   };
   const toast = funcMapping[notif.importance];
   const createOpener = () => ({ label: 'Open', onClick: () => location.assign(notif.link as string) });
@@ -190,20 +190,20 @@ const prepareToViewNotifications = () => {
                 <SelectGroup>
                   <SelectLabel>Notification Types</SelectLabel>
                   <SelectItem value="all">All Types</SelectItem>
-                  <SelectItem :value="Importance.Alert"> Alert </SelectItem>
-                  <SelectItem :value="Importance.Info">Info</SelectItem>
-                  <SelectItem :value="Importance.Warning">Warning</SelectItem>
+                  <SelectItem :value="Importance.ALERT"> Alert </SelectItem>
+                  <SelectItem :value="Importance.INFO">Info</SelectItem>
+                  <SelectItem :value="Importance.WARNING">Warning</SelectItem>
                 </SelectGroup>
               </SelectContent>
             </Select>
           </div>
 
           <TabsContent value="unread" class="flex-col flex-1 min-h-0">
-            <NotificationsList :importance="importance" :type="NotificationType.Unread" />
+            <NotificationsList :importance="importance" :type="NotificationType.UNREAD" />
           </TabsContent>
 
           <TabsContent value="archived" class="flex-col flex-1 min-h-0">
-            <NotificationsList :importance="importance" :type="NotificationType.Archive" />
+            <NotificationsList :importance="importance" :type="NotificationType.ARCHIVE" />
           </TabsContent>
         </Tabs>
       </div>

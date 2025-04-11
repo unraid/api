@@ -3,8 +3,11 @@ import { Test } from '@nestjs/testing';
 
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import type { Disk } from '@app/graphql/generated/api/types.js';
-import { DiskInterfaceType, DiskSmartStatus } from '@app/graphql/generated/api/types.js';
+import {
+    Disk,
+    DiskInterfaceType,
+    DiskSmartStatus,
+} from '@app/unraid-api/graph/resolvers/disks/disks.model.js';
 import { DisksResolver } from '@app/unraid-api/graph/resolvers/disks/disks.resolver.js';
 import { DisksService } from '@app/unraid-api/graph/resolvers/disks/disks.service.js'; // Renamed from DiskService
 

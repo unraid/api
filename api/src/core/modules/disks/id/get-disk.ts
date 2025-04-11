@@ -1,6 +1,6 @@
 import { AppError } from '@app/core/errors/app-error.js';
 import { type CoreContext, type CoreResult } from '@app/core/types/index.js';
-import { Disk } from '@app/graphql/generated/api/types.js';
+import { ArrayDisk } from '@app/unraid-api/graph/resolvers/array/array.model.js';
 
 interface Context extends CoreContext {
     params: {
@@ -11,7 +11,7 @@ interface Context extends CoreContext {
 /**
  * Get a single disk.
  */
-export const getDisk = async (context: Context, Disks: Disk[]): Promise<CoreResult> => {
+export const getDisk = async (context: Context, Disks: ArrayDisk[]): Promise<CoreResult> => {
     const { params } = context;
 
     const { id } = params;

@@ -3,17 +3,19 @@ import { BadRequestException, Injectable } from '@nestjs/common';
 import { capitalCase, constantCase } from 'change-case';
 import { GraphQLError } from 'graphql';
 
-import type { ArrayDiskInput, ArrayStateInput, ArrayType } from '@app/graphql/generated/api/types.js';
 import { AppError } from '@app/core/errors/app-error.js';
 import { ArrayRunningError } from '@app/core/errors/array-running-error.js';
-import { getArrayData } from '@app/core/modules/array/get-array-data.js';
+import { getArrayData as getArrayDataUtil } from '@app/core/modules/array/get-array-data.js';
 import { emcmd } from '@app/core/utils/clients/emcmd.js';
 import { arrayIsRunning as arrayIsRunningUtil } from '@app/core/utils/index.js';
 import {
+    ArrayDiskInput,
     ArrayPendingState,
     ArrayState,
+    ArrayStateInput,
     ArrayStateInputState,
-} from '@app/graphql/generated/api/types.js';
+    UnraidArray,
+} from '@app/unraid-api/graph/resolvers/array/array.model.js';
 
 @Injectable()
 export class ArrayService {
@@ -27,7 +29,11 @@ export class ArrayService {
         return arrayIsRunningUtil();
     }
 
-    async updateArrayState({ desiredState }: ArrayStateInput): Promise<ArrayType> {
+    public getArrayData() {
+        return getArrayDataUtil();
+    }
+
+    async updateArrayState({ desiredState }: ArrayStateInput): Promise<UnraidArray> {
         const startState = this.arrayIsRunning() ? ArrayState.STARTED : ArrayState.STOPPED;
         const pendingState =
             desiredState === ArrayStateInputState.STOP
@@ -63,12 +69,12 @@ export class ArrayService {
         }
 
         // Get new array JSON
-        const array = getArrayData();
+        const array = this.getArrayData();
 
         return array;
     }
 
-    async addDiskToArray(input: ArrayDiskInput): Promise<ArrayType> {
+    async addDiskToArray(input: ArrayDiskInput): Promise<UnraidArray> {
         if (this.arrayIsRunning()) {
             throw new ArrayRunningError();
         }
@@ -82,10 +88,10 @@ export class ArrayService {
             [`slotId.${slot}`]: diskId,
         });
 
-        return getArrayData();
+        return this.getArrayData();
     }
 
-    async removeDiskFromArray(input: ArrayDiskInput): Promise<ArrayType> {
+    async removeDiskFromArray(input: ArrayDiskInput): Promise<UnraidArray> {
         if (this.arrayIsRunning()) {
             throw new ArrayRunningError();
         }
@@ -99,10 +105,10 @@ export class ArrayService {
             [`slotId.${slotStr}`]: '',
         });
 
-        return getArrayData();
+        return this.getArrayData();
     }
 
-    async mountArrayDisk(id: string): Promise<ArrayType> {
+    async mountArrayDisk(id: string): Promise<UnraidArray> {
         if (!this.arrayIsRunning()) {
             throw new BadRequestException('Array must be running to mount disks');
         }
@@ -113,10 +119,10 @@ export class ArrayService {
             [`diskId.${id}`]: '1',
         });
 
-        return getArrayData();
+        return this.getArrayData();
     }
 
-    async unmountArrayDisk(id: string): Promise<ArrayType> {
+    async unmountArrayDisk(id: string): Promise<UnraidArray> {
         if (!this.arrayIsRunning()) {
             throw new BadRequestException('Array must be running to unmount disks');
         }
@@ -127,10 +133,10 @@ export class ArrayService {
             [`diskId.${id}`]: '1',
         });
 
-        return getArrayData();
+        return this.getArrayData();
     }
 
-    async clearArrayDiskStatistics(id: string): Promise<ArrayType> {
+    async clearArrayDiskStatistics(id: string): Promise<UnraidArray> {
         if (!this.arrayIsRunning()) {
             throw new BadRequestException('Array must be running to clear disk statistics');
         }
@@ -141,67 +147,6 @@ export class ArrayService {
             [`diskId.${id}`]: '1',
         });
 
-        return getArrayData();
-    }
-
-    /**
-     * Updates the parity check state
-     * @param wantedState - The desired state for the parity check ('pause', 'resume', 'cancel', 'start')
-     * @param correct - Whether to write corrections to parity (only applicable for 'start' state)
-     * @returns The updated array data
-     */
-    async updateParityCheck({
-        wantedState,
-        correct,
-    }: {
-        wantedState: 'pause' | 'resume' | 'cancel' | 'start';
-        correct: boolean;
-    }): Promise<ArrayType> {
-        const { getters } = await import('@app/store/index.js');
-        const running = getters.emhttp().var.mdResync !== 0;
-        const states = {
-            pause: {
-                cmdNoCheck: 'Pause',
-            },
-            resume: {
-                cmdCheck: 'Resume',
-            },
-            cancel: {
-                cmdNoCheck: 'Cancel',
-            },
-            start: {
-                cmdCheck: 'Check',
-            },
-        };
-
-        let allowedStates = Object.keys(states);
-
-        // Only allow starting a check if there isn't already one running
-        if (running) {
-            // Remove 'start' from allowed states when a check is already running
-            allowedStates = allowedStates.filter((state) => state !== 'start');
-        }
-
-        // Only allow states from states object
-        if (!allowedStates.includes(wantedState)) {
-            throw new GraphQLError(`Invalid parity check state: ${wantedState}`);
-        }
-
-        // Should we write correction to the parity during the check
-        const writeCorrectionsToParity = wantedState === 'start' && correct;
-
-        try {
-            await emcmd({
-                startState: 'STARTED',
-                ...states[wantedState],
-                ...(writeCorrectionsToParity ? { optionCorrect: 'correct' } : {}),
-            });
-        } catch (error) {
-            throw new GraphQLError(
-                `Failed to update parity check: ${error instanceof Error ? error.message : 'Unknown error'}`
-            );
-        }
-
-        return getArrayData();
+        return this.getArrayData();
     }
 }

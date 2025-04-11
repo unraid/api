@@ -1,6 +1,6 @@
 import type { StateFileToIniParserMap } from '@app/store/types.js';
 import { toNumberOrNullConvert } from '@app/core/utils/casting.js';
-import { type Share } from '@app/graphql/generated/api/types.js';
+import { Share } from '@app/unraid-api/graph/resolvers/array/array.model.js';
 
 export type SharesIni = Array<{
     name: string;
@@ -16,7 +16,8 @@ export const parse: StateFileToIniParserMap['shares'] = (state) =>
     Object.values(state).map((item) => {
         const { name, free, used, size, include, exclude, useCache, ...rest } = item;
         const share: Share = {
-            name: name ?? '',
+            id: name,
+            name: name ?? null,
             free:
                 toNumberOrNullConvert(free, {
                     startingUnit: 'KiB',

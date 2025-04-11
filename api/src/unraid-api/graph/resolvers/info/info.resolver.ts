@@ -1,11 +1,10 @@
 import { Query, ResolveField, Resolver, Subscription } from '@nestjs/graphql';
 
 import { AuthActionVerb, AuthPossession, UsePermissions } from 'nest-authz';
-import { baseboard, system } from 'systeminformation';
+import { baseboard as getBaseboard, system as getSystem } from 'systeminformation';
 
 import { createSubscription, PUBSUB_CHANNEL } from '@app/core/pubsub.js';
 import { getMachineId } from '@app/core/utils/misc/get-machine-id.js';
-import { Resource } from '@app/graphql/generated/api/types.js';
 import {
     generateApps,
     generateCpu,
@@ -15,76 +14,109 @@ import {
     generateOs,
     generateVersions,
 } from '@app/graphql/resolvers/query/info.js';
+import { Resource } from '@app/unraid-api/graph/resolvers/base.model.js';
+import {
+    Baseboard,
+    Devices,
+    Display,
+    Info,
+    InfoApps,
+    InfoCpu,
+    InfoMemory,
+    Os,
+    System,
+    Versions,
+} from '@app/unraid-api/graph/resolvers/info/info.model.js';
 
-@Resolver('Info')
+@Resolver(() => Info)
 export class InfoResolver {
-    @Query()
+    @Query(() => Info)
     @UsePermissions({
         action: AuthActionVerb.READ,
         resource: Resource.INFO,
         possession: AuthPossession.ANY,
     })
-    public async info() {
+    public async info(): Promise<Info> {
         return {
             id: 'info',
+            time: new Date(),
+            apps: await this.apps(),
+            baseboard: await this.baseboard(),
+            cpu: await this.cpu(),
+            devices: await this.devices(),
+            display: await this.display(),
+            machineId: await this.machineId(),
+            memory: await this.memory(),
+            os: await this.os(),
+            system: await this.system(),
+            versions: await this.versions(),
         };
     }
 
-    @ResolveField('time')
-    public async now() {
-        return new Date().toISOString();
+    @ResolveField(() => Date)
+    public async time(): Promise<Date> {
+        return new Date();
     }
 
-    @ResolveField('apps')
-    public async apps() {
+    @ResolveField(() => InfoApps)
+    public async apps(): Promise<InfoApps> {
         return generateApps();
     }
 
-    @ResolveField('baseboard')
-    public async baseboard() {
-        return baseboard();
+    @ResolveField(() => Baseboard)
+    public async baseboard(): Promise<Baseboard> {
+        const baseboard = await getBaseboard();
+        return {
+            id: 'baseboard',
+            ...baseboard,
+        };
     }
 
-    @ResolveField('cpu')
-    public async cpu() {
+    @ResolveField(() => InfoCpu)
+    public async cpu(): Promise<InfoCpu> {
         return generateCpu();
     }
 
-    @ResolveField('devices')
-    public async devices() {
+    @ResolveField(() => Devices)
+    public async devices(): Promise<Devices> {
         return generateDevices();
     }
 
-    @ResolveField('display')
-    public async display() {
+    @ResolveField(() => Display)
+    public async display(): Promise<Display> {
         return generateDisplay();
     }
 
-    @ResolveField('machineId')
-    public async machineId() {
+    @ResolveField(() => String, { nullable: true })
+    public async machineId(): Promise<string | undefined> {
         return getMachineId();
     }
 
-    @ResolveField('memory')
-    public async memory() {
+    @ResolveField(() => InfoMemory)
+    public async memory(): Promise<InfoMemory> {
         return generateMemory();
     }
 
-    @ResolveField('os')
-    public async os() {
+    @ResolveField(() => Os)
+    public async os(): Promise<Os> {
         return generateOs();
     }
 
-    @ResolveField('system')
-    public async system() {
-        return system();
+    @ResolveField(() => System)
+    public async system(): Promise<System> {
+        const system = await getSystem();
+        return {
+            id: 'system',
+            ...system,
+        };
     }
-    @ResolveField('versions')
-    public async versions() {
+
+    @ResolveField(() => Versions)
+    public async versions(): Promise<Versions> {
         return generateVersions();
     }
 
-    @Subscription('info')
+    @Subscription(() => Info)
     @UsePermissions({
         action: AuthActionVerb.READ,
         resource: Resource.INFO,

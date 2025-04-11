@@ -1,16 +1,16 @@
-import { Parent, Query, ResolveField, Resolver } from '@nestjs/graphql';
+import { Args, Int, Parent, Query, ResolveField, Resolver } from '@nestjs/graphql';
 
 import { AuthActionVerb, AuthPossession, UsePermissions } from 'nest-authz';
 
-import type { Disk } from '@app/graphql/generated/api/types.js';
-import { Resource } from '@app/graphql/generated/api/types.js';
+import { Resource } from '@app/unraid-api/graph/resolvers/base.model.js';
+import { Disk } from '@app/unraid-api/graph/resolvers/disks/disks.model.js';
 import { DisksService } from '@app/unraid-api/graph/resolvers/disks/disks.service.js';
 
-@Resolver('Disk')
+@Resolver(() => Disk)
 export class DisksResolver {
     constructor(private readonly disksService: DisksService) {}
 
-    @Query('disks')
+    @Query(() => [Disk])
     @UsePermissions({
         action: AuthActionVerb.READ,
         resource: Resource.DISK,
@@ -20,7 +20,17 @@ export class DisksResolver {
         return this.disksService.getDisks();
     }
 
-    @ResolveField('temperature')
+    @Query(() => Disk)
+    @UsePermissions({
+        action: AuthActionVerb.READ,
+        resource: Resource.DISK,
+        possession: AuthPossession.ANY,
+    })
+    public async disk(@Args('id') id: string) {
+        return this.disksService.getDisk(id);
+    }
+
+    @ResolveField(() => Int)
     public async temperature(@Parent() disk: Disk) {
         return this.disksService.getTemperature(disk.device);
     }

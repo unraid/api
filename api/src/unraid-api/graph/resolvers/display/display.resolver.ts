@@ -5,10 +5,10 @@ import { join } from 'node:path';
 
 import { AuthActionVerb, AuthPossession, UsePermissions } from 'nest-authz';
 
-import type { Display } from '@app/graphql/generated/api/types.js';
 import { createSubscription, PUBSUB_CHANNEL } from '@app/core/pubsub.js';
-import { Resource } from '@app/graphql/generated/api/types.js';
 import { getters } from '@app/store/index.js';
+import { Resource } from '@app/unraid-api/graph/resolvers/base.model.js';
+import { Display } from '@app/unraid-api/graph/resolvers/info/info.model.js';
 
 const states = {
     // Success
@@ -58,9 +58,9 @@ const states = {
     },
 };
 
-@Resolver('Display')
+@Resolver(() => Display)
 export class DisplayResolver {
-    @Query()
+    @Query(() => Display)
     @UsePermissions({
         action: AuthActionVerb.READ,
         resource: Resource.DISPLAY,
@@ -110,7 +110,7 @@ export class DisplayResolver {
         };
     }
 
-    @Subscription('display')
+    @Subscription(() => Display)
     @UsePermissions({
         action: AuthActionVerb.READ,
         resource: Resource.DISPLAY,

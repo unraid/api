@@ -4,25 +4,24 @@ import { readdir, readFile, unlink, writeFile } from 'fs/promises';
 import { join } from 'path';
 
 import { watch } from 'chokidar';
+import { ValidationError } from 'class-validator';
 import { ensureDirSync } from 'fs-extra';
 import { GraphQLError } from 'graphql';
 import { AuthActionVerb } from 'nest-authz';
 import { v4 as uuidv4 } from 'uuid';
-import { ZodError } from 'zod';
 
-import type { Permission } from '@app/graphql/generated/api/types.js';
 import { environment } from '@app/environment.js';
-import { ApiKeySchema, ApiKeyWithSecretSchema } from '@app/graphql/generated/api/operations.js';
+import { getters, store } from '@app/store/index.js';
+import { setLocalApiKey } from '@app/store/modules/config.js';
+import { FileLoadStatus } from '@app/store/types.js';
 import {
     AddPermissionInput,
     ApiKey,
     ApiKeyWithSecret,
-    Resource,
-    Role,
-} from '@app/graphql/generated/api/types.js';
-import { getters, store } from '@app/store/index.js';
-import { setLocalApiKey } from '@app/store/modules/config.js';
-import { FileLoadStatus } from '@app/store/types.js';
+    Permission,
+} from '@app/unraid-api/graph/resolvers/api-key/api-key.model.js';
+import { Resource, Role } from '@app/unraid-api/graph/resolvers/base.model.js';
+import { validateObject } from '@app/unraid-api/graph/resolvers/validation.utils.js';
 import { batchProcess } from '@app/utils.js';
 
 @Injectable()
@@ -45,8 +44,18 @@ export class ApiKeyService implements OnModuleInit {
         }
     }
 
-    public findAll(): ApiKey[] {
-        return this.memoryApiKeys.map((key) => ApiKeySchema().parse(key));
+    public convertApiKeyWithSecretToApiKey(key: ApiKeyWithSecret): ApiKey {
+        const { key: _, ...rest } = key;
+        return rest;
+    }
+
+    public async findAll(): Promise<ApiKey[]> {
+        return Promise.all(
+            this.memoryApiKeys.map(async (key) => {
+                const keyWithoutSecret = this.convertApiKeyWithSecretToApiKey(key);
+                return keyWithoutSecret;
+            })
+        );
     }
 
     private setupWatch() {
@@ -211,24 +220,30 @@ export class ApiKeyService implements OnModuleInit {
         return apiKeys;
     }
 
+    /**
+     * Loads an API key file from the disk and validates it
+     * @param file The file to load
+     * @returns The API key with secret
+     */
     private async loadApiKeyFile(file: string): Promise<ApiKeyWithSecret | null> {
         try {
             const content = await readFile(join(this.basePath, file), 'utf8');
 
             // First convert all the strings in roles and permissions to uppercase (this ensures that casing is never an issue)
             const parsedContent = JSON.parse(content);
+
             if (parsedContent.roles) {
                 parsedContent.roles = parsedContent.roles.map((role: string) => role.toUpperCase());
             }
-            return ApiKeyWithSecretSchema().parse(parsedContent);
+            return await validateObject(ApiKeyWithSecret, parsedContent);
         } catch (error) {
             if (error instanceof SyntaxError) {
                 this.logger.error(`Corrupted key file: ${file}`);
                 throw new Error('Authentication system error: Corrupted key file');
             }
 
-            if (error instanceof ZodError) {
-                this.logApiKeyZodError(file, error);
+            if (error instanceof ValidationError) {
+                this.logger.error(`Error validating API key file ${file}: ${error}`);
                 throw new Error('Invalid API key structure');
             }
 
@@ -238,17 +253,17 @@ export class ApiKeyService implements OnModuleInit {
         }
     }
 
-    findById(id: string): ApiKey | null {
+    async findById(id: string): Promise<ApiKey | null> {
         try {
             const key = this.findByField('id', id);
 
             if (key) {
-                return ApiKeySchema().parse(key);
+                return this.convertApiKeyWithSecretToApiKey(key);
             }
             return null;
         } catch (error) {
-            if (error instanceof ZodError) {
-                this.logApiKeyZodError(id, error);
+            if (error instanceof ValidationError) {
+                this.logApiKeyValidationError(id, error);
                 throw new Error('Invalid API key structure');
             }
             throw error;
@@ -273,9 +288,9 @@ export class ApiKeyService implements OnModuleInit {
         return crypto.randomBytes(32).toString('hex');
     }
 
-    private logApiKeyZodError(file: string, error: ZodError): void {
+    private logApiKeyValidationError(file: string, error: ValidationError): void {
         this.logger.error(`Invalid API key structure in file ${file}.
-                    Errors: ${JSON.stringify(error.errors, null, 2)}`);
+                    Errors: ${JSON.stringify(error.constraints, null, 2)}`);
     }
 
     public async createLocalConnectApiKey(): Promise<ApiKeyWithSecret | null> {
@@ -294,7 +309,10 @@ export class ApiKeyService implements OnModuleInit {
 
     public async saveApiKey(apiKey: ApiKeyWithSecret): Promise<void> {
         try {
-            const validatedApiKey = ApiKeyWithSecretSchema().parse(apiKey);
+            const validatedApiKey = await validateObject(ApiKeyWithSecret, apiKey);
+            if (!validatedApiKey.permissions?.length && !validatedApiKey.roles?.length) {
+                throw new GraphQLError('At least one of permissions or roles must be specified');
+            }
 
             const sortedApiKey = Object.keys(validatedApiKey)
                 .sort()
@@ -308,8 +326,8 @@ export class ApiKeyService implements OnModuleInit {
                 JSON.stringify(sortedApiKey, null, 2)
             );
         } catch (error: unknown) {
-            if (error instanceof ZodError) {
-                this.logApiKeyZodError(apiKey.id, error);
+            if (error instanceof ValidationError) {
+                this.logApiKeyValidationError(apiKey.id, error);
                 throw new GraphQLError('Failed to save API key: Invalid data structure');
             } else if (error instanceof Error) {
                 throw new GraphQLError(`Failed to save API key: ${error.message}`);
