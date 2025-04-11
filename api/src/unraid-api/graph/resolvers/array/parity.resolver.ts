@@ -1,10 +1,13 @@
-import { Args, Mutation, Query, Resolver, Subscription } from '@nestjs/graphql';
+import { Query, Resolver, Subscription } from '@nestjs/graphql';
 
-import { GraphQLJSON } from 'graphql-scalars';
 import { PubSub } from 'graphql-subscriptions';
-import { AuthActionVerb, AuthPossession, UsePermissions } from 'nest-authz';
 
 import { PUBSUB_CHANNEL } from '@app/core/pubsub.js';
+import {
+    AuthActionVerb,
+    AuthPossession,
+    UsePermissions,
+} from '@app/unraid-api/graph/directives/use-permissions.directive.js';
 import { ArrayService } from '@app/unraid-api/graph/resolvers/array/array.service.js';
 import { ParityCheck } from '@app/unraid-api/graph/resolvers/array/parity.model.js';
 import { ParityService } from '@app/unraid-api/graph/resolvers/array/parity.service.js';

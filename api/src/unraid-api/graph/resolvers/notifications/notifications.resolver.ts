@@ -1,9 +1,12 @@
 import { Args, Mutation, Query, ResolveField, Resolver, Subscription } from '@nestjs/graphql';
 
-import { AuthActionVerb, AuthPossession, UsePermissions } from 'nest-authz';
-
 import { AppError } from '@app/core/errors/app-error.js';
 import { createSubscription, PUBSUB_CHANNEL } from '@app/core/pubsub.js';
+import {
+    AuthActionVerb,
+    AuthPossession,
+    UsePermissions,
+} from '@app/unraid-api/graph/directives/use-permissions.directive.js';
 import { Resource } from '@app/unraid-api/graph/resolvers/base.model.js';
 import {
     Notification,

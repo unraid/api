@@ -3,10 +3,13 @@ import { existsSync } from 'node:fs';
 import { readFile } from 'node:fs/promises';
 import { join } from 'node:path';
 
-import { AuthActionVerb, AuthPossession, UsePermissions } from 'nest-authz';
-
 import { createSubscription, PUBSUB_CHANNEL } from '@app/core/pubsub.js';
 import { getters } from '@app/store/index.js';
+import {
+    AuthActionVerb,
+    AuthPossession,
+    UsePermissions,
+} from '@app/unraid-api/graph/directives/use-permissions.directive.js';
 import { Resource } from '@app/unraid-api/graph/resolvers/base.model.js';
 import { Display } from '@app/unraid-api/graph/resolvers/info/info.model.js';
 
@@ -60,12 +63,12 @@ const states = {
 
 @Resolver(() => Display)
 export class DisplayResolver {
-    @Query(() => Display)
     @UsePermissions({
         action: AuthActionVerb.READ,
         resource: Resource.DISPLAY,
         possession: AuthPossession.ANY,
     })
+    @Query(() => Display)
     public async display(): Promise<Display> {
         /**
          * This is deprecated, remove it eventually
