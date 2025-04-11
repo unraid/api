@@ -42,7 +42,7 @@ const mockUseMutation = vi.fn(() => {
 
       return { off: vi.fn() };
     },
-    onError: (_: any) => ({ off: vi.fn() }),
+    onError: (_: unknown) => ({ off: vi.fn() }),
 
     loading: ref(false),
     error: ref(null) as Ref<null>,
