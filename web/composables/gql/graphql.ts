@@ -31,7 +31,7 @@ export type AccessUrl = {
   ipv4?: Maybe<Scalars['URL']['output']>;
   ipv6?: Maybe<Scalars['URL']['output']>;
   name?: Maybe<Scalars['String']['output']>;
-  type: URL_TYPE;
+  type: UrlType;
 };
 
 export type AddPermissionInput = {
@@ -78,11 +78,11 @@ export type ApiKeyWithSecret = {
 
 export type ApiSettingsInput = {
   /** The type of WAN access to use for Remote Access */
-  accessType?: InputMaybe<WAN_ACCESS_TYPE>;
+  accessType?: InputMaybe<WanAccessType>;
   /** A list of origins allowed to interact with the API */
   extraOrigins?: InputMaybe<Array<Scalars['String']['input']>>;
   /** The type of port forwarding to use for Remote Access */
-  forwardType?: InputMaybe<WAN_FORWARD_TYPE>;
+  forwardType?: InputMaybe<WanForwardType>;
   /** The port to use for Remote Access. Not required for UPNP forwardType. Required for STATIC forwardType. Ignored if accessType is DISABLED or forwardType is UPNP. */
   port?: InputMaybe<Scalars['Int']['input']>;
   /** If true, the GraphQL sandbox will be enabled and available at /graphql. If false, the GraphQL sandbox will be disabled and only the production API will be available. */
@@ -111,28 +111,28 @@ export type ArrayDisk = Node & {
   /** File format (ex MBR: 4KiB-aligned) */
   format?: Maybe<Scalars['String']['output']>;
   /** (KB) Free Size on the FS (Not present on Parity type drive) */
-  fsFree?: Maybe<Scalars['Float']['output']>;
+  fsFree?: Maybe<Scalars['Long']['output']>;
   /** (KB) Total Size of the FS (Not present on Parity type drive) */
-  fsSize?: Maybe<Scalars['Float']['output']>;
+  fsSize?: Maybe<Scalars['Long']['output']>;
   /** File system type for the disk */
   fsType?: Maybe<Scalars['String']['output']>;
   /** (KB) Used Size on the FS (Not present on Parity type drive) */
-  fsUsed?: Maybe<Scalars['Float']['output']>;
+  fsUsed?: Maybe<Scalars['Long']['output']>;
   /** Disk identifier, only set for present disks on the system */
   id: Scalars['ID']['output'];
   /** Array slot number. Parity1 is always 0 and Parity2 is always 29. Array slots will be 1 - 28. Cache slots are 30 - 53. Flash is 54. */
   idx: Scalars['Int']['output'];
   name?: Maybe<Scalars['String']['output']>;
   /** Number of unrecoverable errors reported by the device I/O drivers. Missing data due to unrecoverable array read errors is filled in on-the-fly using parity reconstruct (and we attempt to write this data back to the sector(s) which failed). Any unrecoverable write error results in disabling the disk. */
-  numErrors?: Maybe<Scalars['Float']['output']>;
+  numErrors?: Maybe<Scalars['Long']['output']>;
   /** Count of I/O read requests sent to the device I/O drivers. These statistics may be cleared at any time. */
-  numReads?: Maybe<Scalars['Float']['output']>;
+  numReads?: Maybe<Scalars['Long']['output']>;
   /** Count of I/O writes requests sent to the device I/O drivers. These statistics may be cleared at any time. */
-  numWrites?: Maybe<Scalars['Float']['output']>;
+  numWrites?: Maybe<Scalars['Long']['output']>;
   /** Is the disk a HDD or SSD. */
   rotational?: Maybe<Scalars['Boolean']['output']>;
   /** (KB) Disk Size total */
-  size?: Maybe<Scalars['Float']['output']>;
+  size?: Maybe<Scalars['Long']['output']>;
   status?: Maybe<ArrayDiskStatus>;
   /** Disk temp - will be NaN if array is not started or DISK_NP */
   temp?: Maybe<Scalars['Int']['output']>;
@@ -145,15 +145,15 @@ export type ArrayDisk = Node & {
 };
 
 export enum ArrayDiskFsColor {
-  BlueBlink = 'BLUE_BLINK',
-  BlueOn = 'BLUE_ON',
-  GreenBlink = 'GREEN_BLINK',
-  GreenOn = 'GREEN_ON',
-  GreyOff = 'GREY_OFF',
-  RedOff = 'RED_OFF',
-  RedOn = 'RED_ON',
-  YellowBlink = 'YELLOW_BLINK',
-  YellowOn = 'YELLOW_ON'
+  BLUE_BLINK = 'BLUE_BLINK',
+  BLUE_ON = 'BLUE_ON',
+  GREEN_BLINK = 'GREEN_BLINK',
+  GREEN_ON = 'GREEN_ON',
+  GREY_OFF = 'GREY_OFF',
+  RED_OFF = 'RED_OFF',
+  RED_ON = 'RED_ON',
+  YELLOW_BLINK = 'YELLOW_BLINK',
+  YELLOW_ON = 'YELLOW_ON'
 }
 
 export type ArrayDiskInput = {
@@ -164,22 +164,22 @@ export type ArrayDiskInput = {
 };
 
 export enum ArrayDiskStatus {
-  DiskDsbl = 'DISK_DSBL',
-  DiskDsblNew = 'DISK_DSBL_NEW',
-  DiskInvalid = 'DISK_INVALID',
-  DiskNew = 'DISK_NEW',
-  DiskNp = 'DISK_NP',
-  DiskNpDsbl = 'DISK_NP_DSBL',
-  DiskNpMissing = 'DISK_NP_MISSING',
-  DiskOk = 'DISK_OK',
-  DiskWrong = 'DISK_WRONG'
+  DISK_DSBL = 'DISK_DSBL',
+  DISK_DSBL_NEW = 'DISK_DSBL_NEW',
+  DISK_INVALID = 'DISK_INVALID',
+  DISK_NEW = 'DISK_NEW',
+  DISK_NP = 'DISK_NP',
+  DISK_NP_DSBL = 'DISK_NP_DSBL',
+  DISK_NP_MISSING = 'DISK_NP_MISSING',
+  DISK_OK = 'DISK_OK',
+  DISK_WRONG = 'DISK_WRONG'
 }
 
 export enum ArrayDiskType {
-  Cache = 'CACHE',
-  Data = 'DATA',
-  Flash = 'FLASH',
-  Parity = 'PARITY'
+  CACHE = 'CACHE',
+  DATA = 'DATA',
+  FLASH = 'FLASH',
+  PARITY = 'PARITY'
 }
 
 export type ArrayMutations = {
@@ -199,54 +199,54 @@ export type ArrayMutations = {
 };
 
 
-export type ArrayMutationsaddDiskToArrayArgs = {
+export type ArrayMutationsAddDiskToArrayArgs = {
   input: ArrayDiskInput;
 };
 
 
-export type ArrayMutationsclearArrayDiskStatisticsArgs = {
+export type ArrayMutationsClearArrayDiskStatisticsArgs = {
   id: Scalars['String']['input'];
 };
 
 
-export type ArrayMutationsmountArrayDiskArgs = {
+export type ArrayMutationsMountArrayDiskArgs = {
   id: Scalars['String']['input'];
 };
 
 
-export type ArrayMutationsremoveDiskFromArrayArgs = {
+export type ArrayMutationsRemoveDiskFromArrayArgs = {
   input: ArrayDiskInput;
 };
 
 
-export type ArrayMutationssetStateArgs = {
+export type ArrayMutationsSetStateArgs = {
   input: ArrayStateInput;
 };
 
 
-export type ArrayMutationsunmountArrayDiskArgs = {
+export type ArrayMutationsUnmountArrayDiskArgs = {
   id: Scalars['String']['input'];
 };
 
 export enum ArrayPendingState {
-  NoDataDisks = 'NO_DATA_DISKS',
-  Starting = 'STARTING',
-  Stopping = 'STOPPING',
-  TooManyMissingDisks = 'TOO_MANY_MISSING_DISKS'
+  NO_DATA_DISKS = 'NO_DATA_DISKS',
+  STARTING = 'STARTING',
+  STOPPING = 'STOPPING',
+  TOO_MANY_MISSING_DISKS = 'TOO_MANY_MISSING_DISKS'
 }
 
 export enum ArrayState {
-  DisableDisk = 'DISABLE_DISK',
-  InvalidExpansion = 'INVALID_EXPANSION',
-  NewArray = 'NEW_ARRAY',
-  NewDiskTooSmall = 'NEW_DISK_TOO_SMALL',
-  NoDataDisks = 'NO_DATA_DISKS',
-  ParityNotBiggest = 'PARITY_NOT_BIGGEST',
-  ReconDisk = 'RECON_DISK',
-  Started = 'STARTED',
-  Stopped = 'STOPPED',
-  SwapDsbl = 'SWAP_DSBL',
-  TooManyMissingDisks = 'TOO_MANY_MISSING_DISKS'
+  DISABLE_DISK = 'DISABLE_DISK',
+  INVALID_EXPANSION = 'INVALID_EXPANSION',
+  NEW_ARRAY = 'NEW_ARRAY',
+  NEW_DISK_TOO_SMALL = 'NEW_DISK_TOO_SMALL',
+  NO_DATA_DISKS = 'NO_DATA_DISKS',
+  PARITY_NOT_BIGGEST = 'PARITY_NOT_BIGGEST',
+  RECON_DISK = 'RECON_DISK',
+  STARTED = 'STARTED',
+  STOPPED = 'STOPPED',
+  SWAP_DSBL = 'SWAP_DSBL',
+  TOO_MANY_MISSING_DISKS = 'TOO_MANY_MISSING_DISKS'
 }
 
 export type ArrayStateInput = {
@@ -255,8 +255,8 @@ export type ArrayStateInput = {
 };
 
 export enum ArrayStateInputState {
-  Start = 'START',
-  Stop = 'STOP'
+  START = 'START',
+  STOP = 'STOP'
 }
 
 export type Baseboard = Node & {
@@ -314,11 +314,11 @@ export type Config = Node & {
 
 /** Possible error states for configuration */
 export enum ConfigErrorState {
-  Ineligible = 'INELIGIBLE',
-  Invalid = 'INVALID',
-  NoKeyServer = 'NO_KEY_SERVER',
-  UnknownError = 'UNKNOWN_ERROR',
-  Withdrawn = 'WITHDRAWN'
+  INELIGIBLE = 'INELIGIBLE',
+  INVALID = 'INVALID',
+  NO_KEY_SERVER = 'NO_KEY_SERVER',
+  UNKNOWN_ERROR = 'UNKNOWN_ERROR',
+  WITHDRAWN = 'WITHDRAWN'
 }
 
 export type Connect = Node & {
@@ -346,11 +346,11 @@ export type ConnectSettings = Node & {
 export type ConnectSettingsValues = {
   __typename?: 'ConnectSettingsValues';
   /** The type of WAN access used for Remote Access */
-  accessType: WAN_ACCESS_TYPE;
+  accessType: WanAccessType;
   /** A list of origins allowed to interact with the API */
   extraOrigins: Array<Scalars['String']['output']>;
   /** The type of port forwarding used for Remote Access */
-  forwardType?: Maybe<WAN_FORWARD_TYPE>;
+  forwardType?: Maybe<WanForwardType>;
   /** The port used for Remote Access */
   port?: Maybe<Scalars['Int']['output']>;
   /** If true, the GraphQL sandbox is enabled and available at /graphql. If false, the GraphQL sandbox is disabled and only the production API will be available. */
@@ -395,13 +395,13 @@ export type ContainerPort = {
 };
 
 export enum ContainerPortType {
-  Tcp = 'TCP',
-  Udp = 'UDP'
+  TCP = 'TCP',
+  UDP = 'UDP'
 }
 
 export enum ContainerState {
-  Exited = 'EXITED',
-  Running = 'RUNNING'
+  EXITED = 'EXITED',
+  RUNNING = 'RUNNING'
 }
 
 export type CreateApiKeyInput = {
@@ -465,21 +465,21 @@ export type Disk = {
 
 /** The type of filesystem on the disk partition */
 export enum DiskFsType {
-  Btrfs = 'BTRFS',
-  Ext4 = 'EXT4',
-  Ntfs = 'NTFS',
-  Vfat = 'VFAT',
-  Xfs = 'XFS',
-  Zfs = 'ZFS'
+  BTRFS = 'BTRFS',
+  EXT4 = 'EXT4',
+  NTFS = 'NTFS',
+  VFAT = 'VFAT',
+  XFS = 'XFS',
+  ZFS = 'ZFS'
 }
 
 /** The type of interface the disk uses to connect to the system */
 export enum DiskInterfaceType {
-  Pcie = 'PCIE',
-  Sas = 'SAS',
-  Sata = 'SATA',
-  Unknown = 'UNKNOWN',
-  Usb = 'USB'
+  PCIE = 'PCIE',
+  SAS = 'SAS',
+  SATA = 'SATA',
+  UNKNOWN = 'UNKNOWN',
+  USB = 'USB'
 }
 
 export type DiskPartition = {
@@ -494,8 +494,8 @@ export type DiskPartition = {
 
 /** The SMART (Self-Monitoring, Analysis and Reporting Technology) status of the disk */
 export enum DiskSmartStatus {
-  Ok = 'OK',
-  Unknown = 'UNKNOWN'
+  OK = 'OK',
+  UNKNOWN = 'UNKNOWN'
 }
 
 export type Display = Node & {
@@ -559,12 +559,12 @@ export type DockerMutations = {
 };
 
 
-export type DockerMutationsstartArgs = {
+export type DockerMutationsStartArgs = {
   id: Scalars['String']['input'];
 };
 
 
-export type DockerMutationsstopArgs = {
+export type DockerMutationsStopArgs = {
   id: Scalars['String']['input'];
 };
 
@@ -598,9 +598,9 @@ export type DynamicRemoteAccessStatus = {
 };
 
 export enum DynamicRemoteAccessType {
-  Disabled = 'DISABLED',
-  Static = 'STATIC',
-  Upnp = 'UPNP'
+  DISABLED = 'DISABLED',
+  STATIC = 'STATIC',
+  UPNP = 'UPNP'
 }
 
 export type EnableDynamicRemoteAccessInput = {
@@ -740,11 +740,11 @@ export type MemoryLayout = {
 };
 
 export enum MinigraphStatus {
-  Connected = 'CONNECTED',
-  Connecting = 'CONNECTING',
-  ErrorRetrying = 'ERROR_RETRYING',
-  PingFailure = 'PING_FAILURE',
-  PreInit = 'PRE_INIT'
+  CONNECTED = 'CONNECTED',
+  CONNECTING = 'CONNECTING',
+  ERROR_RETRYING = 'ERROR_RETRYING',
+  PING_FAILURE = 'PING_FAILURE',
+  PRE_INIT = 'PRE_INIT'
 }
 
 export type MinigraphqlResponse = {
@@ -762,6 +762,7 @@ export type Mutation = {
   archiveNotification: Notification;
   archiveNotifications: NotificationOverview;
   array: ArrayMutations;
+  cancelParityCheck: Scalars['JSON']['output'];
   connectSignIn: Scalars['Boolean']['output'];
   connectSignOut: Scalars['Boolean']['output'];
   createApiKey: ApiKeyWithSecret;
@@ -774,6 +775,7 @@ export type Mutation = {
   enableDynamicRemoteAccess: Scalars['Boolean']['output'];
   /** Force stop a virtual machine */
   forceStopVm: Scalars['Boolean']['output'];
+  pauseParityCheck: Scalars['JSON']['output'];
   /** Pause a virtual machine */
   pauseVm: Scalars['Boolean']['output'];
   /** Reboot a virtual machine */
@@ -783,10 +785,12 @@ export type Mutation = {
   removeRoleFromApiKey: Scalars['Boolean']['output'];
   /** Reset a virtual machine */
   resetVm: Scalars['Boolean']['output'];
+  resumeParityCheck: Scalars['JSON']['output'];
   /** Resume a virtual machine */
   resumeVm: Scalars['Boolean']['output'];
   setAdditionalAllowedOrigins: Array<Scalars['String']['output']>;
   setupRemoteAccess: Scalars['Boolean']['output'];
+  startParityCheck: Scalars['JSON']['output'];
   /** Start a virtual machine */
   startVm: Scalars['Boolean']['output'];
   /** Stop a virtual machine */
@@ -799,118 +803,123 @@ export type Mutation = {
 };
 
 
-export type MutationaddRoleForApiKeyArgs = {
+export type MutationAddRoleForApiKeyArgs = {
   input: AddRoleForApiKeyInput;
 };
 
 
-export type MutationarchiveAllArgs = {
+export type MutationArchiveAllArgs = {
   importance?: InputMaybe<NotificationImportance>;
 };
 
 
-export type MutationarchiveNotificationArgs = {
+export type MutationArchiveNotificationArgs = {
   id: Scalars['String']['input'];
 };
 
 
-export type MutationarchiveNotificationsArgs = {
+export type MutationArchiveNotificationsArgs = {
   ids: Array<Scalars['String']['input']>;
 };
 
 
-export type MutationconnectSignInArgs = {
+export type MutationConnectSignInArgs = {
   input: ConnectSignInInput;
 };
 
 
-export type MutationcreateApiKeyArgs = {
+export type MutationCreateApiKeyArgs = {
   input: CreateApiKeyInput;
 };
 
 
-export type MutationcreateNotificationArgs = {
+export type MutationCreateNotificationArgs = {
   input: NotificationData;
 };
 
 
-export type MutationdeleteNotificationArgs = {
+export type MutationDeleteNotificationArgs = {
   id: Scalars['String']['input'];
   type: NotificationType;
 };
 
 
-export type MutationenableDynamicRemoteAccessArgs = {
+export type MutationEnableDynamicRemoteAccessArgs = {
   input: EnableDynamicRemoteAccessInput;
 };
 
 
-export type MutationforceStopVmArgs = {
+export type MutationForceStopVmArgs = {
   id: Scalars['String']['input'];
 };
 
 
-export type MutationpauseVmArgs = {
+export type MutationPauseVmArgs = {
   id: Scalars['String']['input'];
 };
 
 
-export type MutationrebootVmArgs = {
+export type MutationRebootVmArgs = {
   id: Scalars['String']['input'];
 };
 
 
-export type MutationremoveRoleFromApiKeyArgs = {
+export type MutationRemoveRoleFromApiKeyArgs = {
   input: RemoveRoleFromApiKeyInput;
 };
 
 
-export type MutationresetVmArgs = {
+export type MutationResetVmArgs = {
   id: Scalars['String']['input'];
 };
 
 
-export type MutationresumeVmArgs = {
+export type MutationResumeVmArgs = {
   id: Scalars['String']['input'];
 };
 
 
-export type MutationsetAdditionalAllowedOriginsArgs = {
+export type MutationSetAdditionalAllowedOriginsArgs = {
   input: AllowedOriginInput;
 };
 
 
-export type MutationsetupRemoteAccessArgs = {
+export type MutationSetupRemoteAccessArgs = {
   input: SetupRemoteAccessInput;
 };
 
 
-export type MutationstartVmArgs = {
+export type MutationStartParityCheckArgs = {
+  correct: Scalars['Boolean']['input'];
+};
+
+
+export type MutationStartVmArgs = {
   id: Scalars['String']['input'];
 };
 
 
-export type MutationstopVmArgs = {
+export type MutationStopVmArgs = {
   id: Scalars['String']['input'];
 };
 
 
-export type MutationunarchiveAllArgs = {
+export type MutationUnarchiveAllArgs = {
   importance?: InputMaybe<NotificationImportance>;
 };
 
 
-export type MutationunarchiveNotificationsArgs = {
+export type MutationUnarchiveNotificationsArgs = {
   ids: Array<Scalars['String']['input']>;
 };
 
 
-export type MutationunreadNotificationArgs = {
+export type MutationUnreadNotificationArgs = {
   id: Scalars['String']['input'];
 };
 
 
-export type MutationupdateApiSettingsArgs = {
+export type MutationUpdateApiSettingsArgs = {
   input: ApiSettingsInput;
 };
 
@@ -963,9 +972,9 @@ export type NotificationFilter = {
 };
 
 export enum NotificationImportance {
-  Alert = 'ALERT',
-  Info = 'INFO',
-  Warning = 'WARNING'
+  ALERT = 'ALERT',
+  INFO = 'INFO',
+  WARNING = 'WARNING'
 }
 
 export type NotificationOverview = {
@@ -975,8 +984,8 @@ export type NotificationOverview = {
 };
 
 export enum NotificationType {
-  Archive = 'ARCHIVE',
-  Unread = 'UNREAD'
+  ARCHIVE = 'ARCHIVE',
+  UNREAD = 'UNREAD'
 }
 
 export type Notifications = {
@@ -988,7 +997,7 @@ export type Notifications = {
 };
 
 
-export type NotificationslistArgs = {
+export type NotificationsListArgs = {
   filter: NotificationFilter;
 };
 
@@ -1014,6 +1023,28 @@ export type Owner = {
   avatar: Scalars['String']['output'];
   url: Scalars['String']['output'];
   username: Scalars['String']['output'];
+};
+
+export type ParityCheck = {
+  __typename?: 'ParityCheck';
+  /** Whether corrections are being written to parity */
+  correcting?: Maybe<Scalars['Boolean']['output']>;
+  /** Date of the parity check */
+  date?: Maybe<Scalars['DateTime']['output']>;
+  /** Duration of the parity check in seconds */
+  duration?: Maybe<Scalars['Int']['output']>;
+  /** Number of errors during the parity check */
+  errors?: Maybe<Scalars['Int']['output']>;
+  /** Whether the parity check is paused */
+  paused?: Maybe<Scalars['Boolean']['output']>;
+  /** Progress percentage of the parity check */
+  progress?: Maybe<Scalars['Int']['output']>;
+  /** Whether the parity check is running */
+  running?: Maybe<Scalars['Boolean']['output']>;
+  /** Speed of the parity check, in MB/s */
+  speed?: Maybe<Scalars['String']['output']>;
+  /** Status of the parity check */
+  status?: Maybe<Scalars['String']['output']>;
 };
 
 export type Pci = Node & {
@@ -1066,6 +1097,7 @@ export type Query = {
   notifications: Notifications;
   online: Scalars['Boolean']['output'];
   owner: Owner;
+  parityHistory: Array<ParityCheck>;
   registration?: Maybe<Registration>;
   remoteAccess: RemoteAccess;
   server?: Maybe<Server>;
@@ -1077,17 +1109,17 @@ export type Query = {
 };
 
 
-export type QueryapiKeyArgs = {
+export type QueryApiKeyArgs = {
   id: Scalars['String']['input'];
 };
 
 
-export type QuerydiskArgs = {
+export type QueryDiskArgs = {
   id: Scalars['String']['input'];
 };
 
 
-export type QuerylogFileArgs = {
+export type QueryLogFileArgs = {
   lines?: InputMaybe<Scalars['Int']['input']>;
   path: Scalars['String']['input'];
   startLine?: InputMaybe<Scalars['Int']['input']>;
@@ -1099,37 +1131,37 @@ export type Registration = {
   guid?: Maybe<Scalars['ID']['output']>;
   keyFile?: Maybe<KeyFile>;
   state?: Maybe<RegistrationState>;
-  type?: Maybe<registrationType>;
+  type?: Maybe<RegistrationType>;
   updateExpiration?: Maybe<Scalars['String']['output']>;
 };
 
 export enum RegistrationState {
-  Basic = 'BASIC',
-  Eblacklisted = 'EBLACKLISTED',
-  Eblacklisted1 = 'EBLACKLISTED1',
-  Eblacklisted2 = 'EBLACKLISTED2',
-  Eexpired = 'EEXPIRED',
-  Eguid = 'EGUID',
-  Eguid1 = 'EGUID1',
-  Enoconn = 'ENOCONN',
-  Enoflash = 'ENOFLASH',
-  Enoflash1 = 'ENOFLASH1',
-  Enoflash2 = 'ENOFLASH2',
-  Enoflash3 = 'ENOFLASH3',
-  Enoflash4 = 'ENOFLASH4',
-  Enoflash5 = 'ENOFLASH5',
-  Enoflash6 = 'ENOFLASH6',
-  Enoflash7 = 'ENOFLASH7',
-  Enokeyfile = 'ENOKEYFILE',
-  Enokeyfile1 = 'ENOKEYFILE1',
-  Enokeyfile2 = 'ENOKEYFILE2',
-  Etrial = 'ETRIAL',
-  Lifetime = 'LIFETIME',
-  Plus = 'PLUS',
-  Pro = 'PRO',
-  Starter = 'STARTER',
-  Trial = 'TRIAL',
-  Unleashed = 'UNLEASHED'
+  BASIC = 'BASIC',
+  EBLACKLISTED = 'EBLACKLISTED',
+  EBLACKLISTED1 = 'EBLACKLISTED1',
+  EBLACKLISTED2 = 'EBLACKLISTED2',
+  EEXPIRED = 'EEXPIRED',
+  EGUID = 'EGUID',
+  EGUID1 = 'EGUID1',
+  ENOCONN = 'ENOCONN',
+  ENOFLASH = 'ENOFLASH',
+  ENOFLASH1 = 'ENOFLASH1',
+  ENOFLASH2 = 'ENOFLASH2',
+  ENOFLASH3 = 'ENOFLASH3',
+  ENOFLASH4 = 'ENOFLASH4',
+  ENOFLASH5 = 'ENOFLASH5',
+  ENOFLASH6 = 'ENOFLASH6',
+  ENOFLASH7 = 'ENOFLASH7',
+  ENOKEYFILE = 'ENOKEYFILE',
+  ENOKEYFILE1 = 'ENOKEYFILE1',
+  ENOKEYFILE2 = 'ENOKEYFILE2',
+  ETRIAL = 'ETRIAL',
+  LIFETIME = 'LIFETIME',
+  PLUS = 'PLUS',
+  PRO = 'PRO',
+  STARTER = 'STARTER',
+  TRIAL = 'TRIAL',
+  UNLEASHED = 'UNLEASHED'
 }
 
 export type RelayResponse = {
@@ -1142,9 +1174,9 @@ export type RelayResponse = {
 export type RemoteAccess = {
   __typename?: 'RemoteAccess';
   /** The type of WAN access used for Remote Access */
-  accessType: WAN_ACCESS_TYPE;
+  accessType: WanAccessType;
   /** The type of port forwarding used for Remote Access */
-  forwardType?: Maybe<WAN_FORWARD_TYPE>;
+  forwardType?: Maybe<WanForwardType>;
   /** The port used for Remote Access */
   port?: Maybe<Scalars['Int']['output']>;
 };
@@ -1156,41 +1188,41 @@ export type RemoveRoleFromApiKeyInput = {
 
 /** Available resources for permissions */
 export enum Resource {
-  ApiKey = 'API_KEY',
-  Array = 'ARRAY',
-  Cloud = 'CLOUD',
-  Config = 'CONFIG',
-  Connect = 'CONNECT',
-  ConnectRemoteAccess = 'CONNECT__REMOTE_ACCESS',
-  Customizations = 'CUSTOMIZATIONS',
-  Dashboard = 'DASHBOARD',
-  Disk = 'DISK',
-  Display = 'DISPLAY',
-  Docker = 'DOCKER',
-  Flash = 'FLASH',
-  Info = 'INFO',
-  Logs = 'LOGS',
-  Me = 'ME',
-  Network = 'NETWORK',
-  Notifications = 'NOTIFICATIONS',
-  Online = 'ONLINE',
-  Os = 'OS',
-  Owner = 'OWNER',
-  Permission = 'PERMISSION',
-  Registration = 'REGISTRATION',
-  Servers = 'SERVERS',
-  Services = 'SERVICES',
-  Share = 'SHARE',
-  Vars = 'VARS',
-  Vms = 'VMS',
-  Welcome = 'WELCOME'
+  API_KEY = 'API_KEY',
+  ARRAY = 'ARRAY',
+  CLOUD = 'CLOUD',
+  CONFIG = 'CONFIG',
+  CONNECT = 'CONNECT',
+  CONNECT__REMOTE_ACCESS = 'CONNECT__REMOTE_ACCESS',
+  CUSTOMIZATIONS = 'CUSTOMIZATIONS',
+  DASHBOARD = 'DASHBOARD',
+  DISK = 'DISK',
+  DISPLAY = 'DISPLAY',
+  DOCKER = 'DOCKER',
+  FLASH = 'FLASH',
+  INFO = 'INFO',
+  LOGS = 'LOGS',
+  ME = 'ME',
+  NETWORK = 'NETWORK',
+  NOTIFICATIONS = 'NOTIFICATIONS',
+  ONLINE = 'ONLINE',
+  OS = 'OS',
+  OWNER = 'OWNER',
+  PERMISSION = 'PERMISSION',
+  REGISTRATION = 'REGISTRATION',
+  SERVERS = 'SERVERS',
+  SERVICES = 'SERVICES',
+  SHARE = 'SHARE',
+  VARS = 'VARS',
+  VMS = 'VMS',
+  WELCOME = 'WELCOME'
 }
 
 /** Available roles for API keys and users */
 export enum Role {
-  Admin = 'ADMIN',
-  Connect = 'CONNECT',
-  Guest = 'GUEST'
+  ADMIN = 'ADMIN',
+  CONNECT = 'CONNECT',
+  GUEST = 'GUEST'
 }
 
 export type Server = {
@@ -1207,9 +1239,9 @@ export type Server = {
 };
 
 export enum ServerStatus {
-  NeverConnected = 'NEVER_CONNECTED',
-  Offline = 'OFFLINE',
-  Online = 'ONLINE'
+  NEVER_CONNECTED = 'NEVER_CONNECTED',
+  OFFLINE = 'OFFLINE',
+  ONLINE = 'ONLINE'
 }
 
 export type Service = Node & {
@@ -1223,9 +1255,9 @@ export type Service = Node & {
 
 export type SetupRemoteAccessInput = {
   /** The type of WAN access to use for Remote Access */
-  accessType: WAN_ACCESS_TYPE;
+  accessType: WanAccessType;
   /** The type of port forwarding to use for Remote Access */
-  forwardType?: InputMaybe<WAN_FORWARD_TYPE>;
+  forwardType?: InputMaybe<WanForwardType>;
   /** The port to use for Remote Access. Not required for UPNP forwardType. Required for STATIC forwardType. Ignored if accessType is DISABLED or forwardType is UPNP. */
   port?: InputMaybe<Scalars['Int']['input']>;
 };
@@ -1274,12 +1306,13 @@ export type Subscription = {
   notificationAdded: Notification;
   notificationsOverview: NotificationOverview;
   ownerSubscription: Owner;
+  parityHistorySubscription: ParityCheck;
   registrationSubscription: Registration;
   serversSubscription: Server;
 };
 
 
-export type SubscriptionlogFileArgs = {
+export type SubscriptionLogFileArgs = {
   path: Scalars['String']['input'];
 };
 
@@ -1302,16 +1335,16 @@ export enum Temperature {
 
 /** Display theme */
 export enum Theme {
-  White = 'white'
+  WHITE = 'white'
 }
 
-export enum URL_TYPE {
-  Default = 'DEFAULT',
-  Lan = 'LAN',
-  Mdns = 'MDNS',
-  Other = 'OTHER',
-  Wan = 'WAN',
-  Wireguard = 'WIREGUARD'
+export enum UrlType {
+  DEFAULT = 'DEFAULT',
+  LAN = 'LAN',
+  MDNS = 'MDNS',
+  OTHER = 'OTHER',
+  WAN = 'WAN',
+  WIREGUARD = 'WIREGUARD'
 }
 
 export type UnraidArray = Node & {
@@ -1461,7 +1494,7 @@ export type Vars = Node & {
   regTm2?: Maybe<Scalars['String']['output']>;
   /** Registration owner */
   regTo?: Maybe<Scalars['String']['output']>;
-  regTy?: Maybe<registrationType>;
+  regTy?: Maybe<RegistrationType>;
   safeMode?: Maybe<Scalars['Boolean']['output']>;
   sbClean?: Maybe<Scalars['Boolean']['output']>;
   sbEvents?: Maybe<Scalars['Int']['output']>;
@@ -1566,55 +1599,55 @@ export type VmDomain = {
 
 /** The state of a virtual machine */
 export enum VmState {
-  Crashed = 'CRASHED',
-  Idle = 'IDLE',
-  Nostate = 'NOSTATE',
-  Paused = 'PAUSED',
-  Pmsuspended = 'PMSUSPENDED',
-  Running = 'RUNNING',
-  Shutdown = 'SHUTDOWN',
-  Shutoff = 'SHUTOFF'
+  CRASHED = 'CRASHED',
+  IDLE = 'IDLE',
+  NOSTATE = 'NOSTATE',
+  PAUSED = 'PAUSED',
+  PMSUSPENDED = 'PMSUSPENDED',
+  RUNNING = 'RUNNING',
+  SHUTDOWN = 'SHUTDOWN',
+  SHUTOFF = 'SHUTOFF'
 }
 
 export type Vms = {
   __typename?: 'Vms';
-  domains: Array<VmDomain>;
+  domains?: Maybe<Array<VmDomain>>;
   id: Scalars['ID']['output'];
 };
 
-export enum WAN_ACCESS_TYPE {
-  Always = 'ALWAYS',
-  Disabled = 'DISABLED',
-  Dynamic = 'DYNAMIC'
+export enum WanAccessType {
+  ALWAYS = 'ALWAYS',
+  DISABLED = 'DISABLED',
+  DYNAMIC = 'DYNAMIC'
 }
 
-export enum WAN_FORWARD_TYPE {
-  Static = 'STATIC',
-  Upnp = 'UPNP'
+export enum WanForwardType {
+  STATIC = 'STATIC',
+  UPNP = 'UPNP'
 }
 
-export enum registrationType {
-  Basic = 'BASIC',
-  Invalid = 'INVALID',
-  Lifetime = 'LIFETIME',
-  Plus = 'PLUS',
-  Pro = 'PRO',
-  Starter = 'STARTER',
-  Trial = 'TRIAL',
-  Unleashed = 'UNLEASHED'
+export enum RegistrationType {
+  BASIC = 'BASIC',
+  INVALID = 'INVALID',
+  LIFETIME = 'LIFETIME',
+  PLUS = 'PLUS',
+  PRO = 'PRO',
+  STARTER = 'STARTER',
+  TRIAL = 'TRIAL',
+  UNLEASHED = 'UNLEASHED'
 }
 
 export type GetConnectSettingsFormQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type GetConnectSettingsFormQuery = { __typename?: 'Query', connect: { __typename?: 'Connect', id: string, settings: { __typename?: 'ConnectSettings', id: string, dataSchema: any, uiSchema: any, values: { __typename?: 'ConnectSettingsValues', sandbox: boolean, extraOrigins: Array<string>, accessType: WAN_ACCESS_TYPE, forwardType?: WAN_FORWARD_TYPE | null, port?: number | null, ssoUserIds: Array<string> } } } };
+export type GetConnectSettingsFormQuery = { __typename?: 'Query', connect: { __typename?: 'Connect', id: string, settings: { __typename?: 'ConnectSettings', id: string, dataSchema: any, uiSchema: any, values: { __typename?: 'ConnectSettingsValues', sandbox: boolean, extraOrigins: Array<string>, accessType: WanAccessType, forwardType?: WanForwardType | null, port?: number | null, ssoUserIds: Array<string> } } } };
 
 export type UpdateConnectSettingsMutationVariables = Exact<{
   input: ApiSettingsInput;
 }>;
 
 
-export type UpdateConnectSettingsMutation = { __typename?: 'Mutation', updateApiSettings: { __typename?: 'ConnectSettingsValues', sandbox: boolean, extraOrigins: Array<string>, accessType: WAN_ACCESS_TYPE, forwardType?: WAN_FORWARD_TYPE | null, port?: number | null, ssoUserIds: Array<string> } };
+export type UpdateConnectSettingsMutation = { __typename?: 'Mutation', updateApiSettings: { __typename?: 'ConnectSettingsValues', sandbox: boolean, extraOrigins: Array<string>, accessType: WanAccessType, forwardType?: WanForwardType | null, port?: number | null, ssoUserIds: Array<string> } };
 
 export type LogFilesQueryVariables = Exact<{ [key: string]: never; }>;
 
@@ -1728,37 +1761,37 @@ export type SignOutMutation = { __typename?: 'Mutation', connectSignOut: boolean
 
 export type PartialCloudFragment = { __typename?: 'Cloud', error?: string | null, apiKey: { __typename?: 'ApiKeyResponse', valid: boolean, error?: string | null }, cloud: { __typename?: 'CloudResponse', status: string, error?: string | null }, minigraphql: { __typename?: 'MinigraphqlResponse', status: MinigraphStatus, error?: string | null }, relay?: { __typename?: 'RelayResponse', status: string, error?: string | null } | null } & { ' $fragmentName'?: 'PartialCloudFragment' };
 
-export type serverStateQueryVariables = Exact<{ [key: string]: never; }>;
+export type ServerStateQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type serverStateQuery = { __typename?: 'Query', cloud: (
+export type ServerStateQuery = { __typename?: 'Query', cloud: (
     { __typename?: 'Cloud' }
     & { ' $fragmentRefs'?: { 'PartialCloudFragment': PartialCloudFragment } }
   ), config: { __typename?: 'Config', error?: string | null, valid?: boolean | null }, info: { __typename?: 'Info', os: { __typename?: 'Os', hostname?: string | null } }, owner: { __typename?: 'Owner', avatar: string, username: string }, registration?: { __typename?: 'Registration', state?: RegistrationState | null, expiration?: string | null, updateExpiration?: string | null, keyFile?: { __typename?: 'KeyFile', contents?: string | null } | null } | null, vars: { __typename?: 'Vars', regGen?: string | null, regState?: RegistrationState | null, configError?: ConfigErrorState | null, configValid?: boolean | null } };
 
-export type getExtraAllowedOriginsQueryVariables = Exact<{ [key: string]: never; }>;
+export type GetExtraAllowedOriginsQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type getExtraAllowedOriginsQuery = { __typename?: 'Query', extraAllowedOrigins: Array<string> };
+export type GetExtraAllowedOriginsQuery = { __typename?: 'Query', extraAllowedOrigins: Array<string> };
 
-export type getRemoteAccessQueryVariables = Exact<{ [key: string]: never; }>;
+export type GetRemoteAccessQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type getRemoteAccessQuery = { __typename?: 'Query', remoteAccess: { __typename?: 'RemoteAccess', accessType: WAN_ACCESS_TYPE, forwardType?: WAN_FORWARD_TYPE | null, port?: number | null } };
+export type GetRemoteAccessQuery = { __typename?: 'Query', remoteAccess: { __typename?: 'RemoteAccess', accessType: WanAccessType, forwardType?: WanForwardType | null, port?: number | null } };
 
-export type setAdditionalAllowedOriginsMutationVariables = Exact<{
+export type SetAdditionalAllowedOriginsMutationVariables = Exact<{
   input: AllowedOriginInput;
 }>;
 
 
-export type setAdditionalAllowedOriginsMutation = { __typename?: 'Mutation', setAdditionalAllowedOrigins: Array<string> };
+export type SetAdditionalAllowedOriginsMutation = { __typename?: 'Mutation', setAdditionalAllowedOrigins: Array<string> };
 
-export type setupRemoteAccessMutationVariables = Exact<{
+export type SetupRemoteAccessMutationVariables = Exact<{
   input: SetupRemoteAccessInput;
 }>;
 
 
-export type setupRemoteAccessMutation = { __typename?: 'Mutation', setupRemoteAccess: boolean };
+export type SetupRemoteAccessMutation = { __typename?: 'Mutation', setupRemoteAccess: boolean };
 
 export const NotificationFragmentFragmentDoc = {"kind":"Document","definitions":[{"kind":"FragmentDefinition","name":{"kind":"Name","value":"NotificationFragment"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"Notification"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"title"}},{"kind":"Field","name":{"kind":"Name","value":"subject"}},{"kind":"Field","name":{"kind":"Name","value":"description"}},{"kind":"Field","name":{"kind":"Name","value":"importance"}},{"kind":"Field","name":{"kind":"Name","value":"link"}},{"kind":"Field","name":{"kind":"Name","value":"type"}},{"kind":"Field","name":{"kind":"Name","value":"timestamp"}},{"kind":"Field","name":{"kind":"Name","value":"formattedTimestamp"}}]}}]} as unknown as DocumentNode<NotificationFragmentFragment, unknown>;
 export const NotificationCountFragmentFragmentDoc = {"kind":"Document","definitions":[{"kind":"FragmentDefinition","name":{"kind":"Name","value":"NotificationCountFragment"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"NotificationCounts"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"total"}},{"kind":"Field","name":{"kind":"Name","value":"info"}},{"kind":"Field","name":{"kind":"Name","value":"warning"}},{"kind":"Field","name":{"kind":"Name","value":"alert"}}]}}]} as unknown as DocumentNode<NotificationCountFragmentFragment, unknown>;
@@ -1779,8 +1812,8 @@ export const NotificationAddedSubDocument = {"kind":"Document","definitions":[{"
 export const NotificationOverviewSubDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"subscription","name":{"kind":"Name","value":"NotificationOverviewSub"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"notificationsOverview"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"archive"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"NotificationCountFragment"}}]}},{"kind":"Field","name":{"kind":"Name","value":"unread"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"NotificationCountFragment"}}]}}]}}]}},{"kind":"FragmentDefinition","name":{"kind":"Name","value":"NotificationCountFragment"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"NotificationCounts"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"total"}},{"kind":"Field","name":{"kind":"Name","value":"info"}},{"kind":"Field","name":{"kind":"Name","value":"warning"}},{"kind":"Field","name":{"kind":"Name","value":"alert"}}]}}]} as unknown as DocumentNode<NotificationOverviewSubSubscription, NotificationOverviewSubSubscriptionVariables>;
 export const ConnectSignInDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"ConnectSignIn"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"input"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"ConnectSignInInput"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"connectSignIn"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"input"},"value":{"kind":"Variable","name":{"kind":"Name","value":"input"}}}]}]}}]} as unknown as DocumentNode<ConnectSignInMutation, ConnectSignInMutationVariables>;
 export const SignOutDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"SignOut"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"connectSignOut"}}]}}]} as unknown as DocumentNode<SignOutMutation, SignOutMutationVariables>;
-export const serverStateDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"serverState"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"cloud"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"PartialCloud"}}]}},{"kind":"Field","name":{"kind":"Name","value":"config"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"error"}},{"kind":"Field","name":{"kind":"Name","value":"valid"}}]}},{"kind":"Field","name":{"kind":"Name","value":"info"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"os"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"hostname"}}]}}]}},{"kind":"Field","name":{"kind":"Name","value":"owner"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"avatar"}},{"kind":"Field","name":{"kind":"Name","value":"username"}}]}},{"kind":"Field","name":{"kind":"Name","value":"registration"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"state"}},{"kind":"Field","name":{"kind":"Name","value":"expiration"}},{"kind":"Field","name":{"kind":"Name","value":"keyFile"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"contents"}}]}},{"kind":"Field","name":{"kind":"Name","value":"updateExpiration"}}]}},{"kind":"Field","name":{"kind":"Name","value":"vars"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"regGen"}},{"kind":"Field","name":{"kind":"Name","value":"regState"}},{"kind":"Field","name":{"kind":"Name","value":"configError"}},{"kind":"Field","name":{"kind":"Name","value":"configValid"}}]}}]}},{"kind":"FragmentDefinition","name":{"kind":"Name","value":"PartialCloud"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"Cloud"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"error"}},{"kind":"Field","name":{"kind":"Name","value":"apiKey"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"valid"}},{"kind":"Field","name":{"kind":"Name","value":"error"}}]}},{"kind":"Field","name":{"kind":"Name","value":"cloud"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"status"}},{"kind":"Field","name":{"kind":"Name","value":"error"}}]}},{"kind":"Field","name":{"kind":"Name","value":"minigraphql"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"status"}},{"kind":"Field","name":{"kind":"Name","value":"error"}}]}},{"kind":"Field","name":{"kind":"Name","value":"relay"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"status"}},{"kind":"Field","name":{"kind":"Name","value":"error"}}]}}]}}]} as unknown as DocumentNode<serverStateQuery, serverStateQueryVariables>;
-export const getExtraAllowedOriginsDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"getExtraAllowedOrigins"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"extraAllowedOrigins"}}]}}]} as unknown as DocumentNode<getExtraAllowedOriginsQuery, getExtraAllowedOriginsQueryVariables>;
-export const getRemoteAccessDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"getRemoteAccess"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"remoteAccess"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"accessType"}},{"kind":"Field","name":{"kind":"Name","value":"forwardType"}},{"kind":"Field","name":{"kind":"Name","value":"port"}}]}}]}}]} as unknown as DocumentNode<getRemoteAccessQuery, getRemoteAccessQueryVariables>;
-export const setAdditionalAllowedOriginsDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"setAdditionalAllowedOrigins"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"input"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"AllowedOriginInput"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"setAdditionalAllowedOrigins"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"input"},"value":{"kind":"Variable","name":{"kind":"Name","value":"input"}}}]}]}}]} as unknown as DocumentNode<setAdditionalAllowedOriginsMutation, setAdditionalAllowedOriginsMutationVariables>;
-export const setupRemoteAccessDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"setupRemoteAccess"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"input"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"SetupRemoteAccessInput"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"setupRemoteAccess"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"input"},"value":{"kind":"Variable","name":{"kind":"Name","value":"input"}}}]}]}}]} as unknown as DocumentNode<setupRemoteAccessMutation, setupRemoteAccessMutationVariables>;
+export const ServerStateDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"serverState"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"cloud"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"PartialCloud"}}]}},{"kind":"Field","name":{"kind":"Name","value":"config"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"error"}},{"kind":"Field","name":{"kind":"Name","value":"valid"}}]}},{"kind":"Field","name":{"kind":"Name","value":"info"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"os"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"hostname"}}]}}]}},{"kind":"Field","name":{"kind":"Name","value":"owner"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"avatar"}},{"kind":"Field","name":{"kind":"Name","value":"username"}}]}},{"kind":"Field","name":{"kind":"Name","value":"registration"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"state"}},{"kind":"Field","name":{"kind":"Name","value":"expiration"}},{"kind":"Field","name":{"kind":"Name","value":"keyFile"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"contents"}}]}},{"kind":"Field","name":{"kind":"Name","value":"updateExpiration"}}]}},{"kind":"Field","name":{"kind":"Name","value":"vars"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"regGen"}},{"kind":"Field","name":{"kind":"Name","value":"regState"}},{"kind":"Field","name":{"kind":"Name","value":"configError"}},{"kind":"Field","name":{"kind":"Name","value":"configValid"}}]}}]}},{"kind":"FragmentDefinition","name":{"kind":"Name","value":"PartialCloud"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"Cloud"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"error"}},{"kind":"Field","name":{"kind":"Name","value":"apiKey"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"valid"}},{"kind":"Field","name":{"kind":"Name","value":"error"}}]}},{"kind":"Field","name":{"kind":"Name","value":"cloud"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"status"}},{"kind":"Field","name":{"kind":"Name","value":"error"}}]}},{"kind":"Field","name":{"kind":"Name","value":"minigraphql"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"status"}},{"kind":"Field","name":{"kind":"Name","value":"error"}}]}},{"kind":"Field","name":{"kind":"Name","value":"relay"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"status"}},{"kind":"Field","name":{"kind":"Name","value":"error"}}]}}]}}]} as unknown as DocumentNode<ServerStateQuery, ServerStateQueryVariables>;
+export const GetExtraAllowedOriginsDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"getExtraAllowedOrigins"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"extraAllowedOrigins"}}]}}]} as unknown as DocumentNode<GetExtraAllowedOriginsQuery, GetExtraAllowedOriginsQueryVariables>;
+export const GetRemoteAccessDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"getRemoteAccess"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"remoteAccess"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"accessType"}},{"kind":"Field","name":{"kind":"Name","value":"forwardType"}},{"kind":"Field","name":{"kind":"Name","value":"port"}}]}}]}}]} as unknown as DocumentNode<GetRemoteAccessQuery, GetRemoteAccessQueryVariables>;
+export const SetAdditionalAllowedOriginsDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"setAdditionalAllowedOrigins"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"input"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"AllowedOriginInput"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"setAdditionalAllowedOrigins"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"input"},"value":{"kind":"Variable","name":{"kind":"Name","value":"input"}}}]}]}}]} as unknown as DocumentNode<SetAdditionalAllowedOriginsMutation, SetAdditionalAllowedOriginsMutationVariables>;
+export const SetupRemoteAccessDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"setupRemoteAccess"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"input"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"SetupRemoteAccessInput"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"setupRemoteAccess"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"input"},"value":{"kind":"Variable","name":{"kind":"Name","value":"input"}}}]}]}}]} as unknown as DocumentNode<SetupRemoteAccessMutation, SetupRemoteAccessMutationVariables>;

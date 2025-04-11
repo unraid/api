@@ -1,14 +1,14 @@
-import type { RemoteGraphQLEventFragmentFragment } from '@app/graphql/generated/client/graphql.js';
+import type { RemoteGraphQlEventFragmentFragment } from '@app/graphql/generated/client/graphql.js';
 import { remoteQueryLogger } from '@app/core/log.js';
 import { getApiApolloClient } from '@app/graphql/client/api/get-api-client.js';
-import { RemoteGraphQLEventType } from '@app/graphql/generated/client/graphql.js';
+import { RemoteGraphQlEventType } from '@app/graphql/generated/client/graphql.js';
 import { SEND_REMOTE_QUERY_RESPONSE } from '@app/graphql/mothership/mutations.js';
 import { parseGraphQLQuery } from '@app/graphql/resolvers/subscription/remote-graphql/remote-graphql-helpers.js';
 import { GraphQLClient } from '@app/mothership/graphql-client.js';
 import { getters } from '@app/store/index.js';
 
 export const executeRemoteGraphQLQuery = async (
-    data: RemoteGraphQLEventFragmentFragment['remoteGraphQLEventData']
+    data: RemoteGraphQlEventFragmentFragment['remoteGraphQLEventData']
 ) => {
     remoteQueryLogger.debug({ query: data }, 'Executing remote query');
     const client = GraphQLClient.getInstance();
@@ -44,7 +44,7 @@ export const executeRemoteGraphQLQuery = async (
                     input: {
                         sha256: data.sha256,
                         body: JSON.stringify({ data: localResult.data }),
-                        type: RemoteGraphQLEventType.REMOTE_QUERY_EVENT,
+                        type: RemoteGraphQlEventType.REMOTE_QUERY_EVENT,
                     },
                 },
                 errorPolicy: 'none',
@@ -57,7 +57,7 @@ export const executeRemoteGraphQLQuery = async (
                     input: {
                         sha256: data.sha256,
                         body: JSON.stringify({ errors: localResult.error }),
-                        type: RemoteGraphQLEventType.REMOTE_QUERY_EVENT,
+                        type: RemoteGraphQlEventType.REMOTE_QUERY_EVENT,
                     },
                 },
             });
@@ -70,7 +70,7 @@ export const executeRemoteGraphQLQuery = async (
                     input: {
                         sha256: data.sha256,
                         body: JSON.stringify({ errors: err }),
-                        type: RemoteGraphQLEventType.REMOTE_QUERY_EVENT,
+                        type: RemoteGraphQlEventType.REMOTE_QUERY_EVENT,
                     },
                 },
             });

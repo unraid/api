@@ -4,17 +4,11 @@ import { Module } from '@nestjs/common';
 import { GraphQLModule } from '@nestjs/graphql';
 
 import { NoUnusedVariablesRule } from 'graphql';
-import {
-    DateTimeResolver,
-    JSONResolver,
-    PortResolver,
-    URLResolver,
-    UUIDResolver,
-} from 'graphql-scalars';
+import { JSONResolver, URLResolver } from 'graphql-scalars';
 
+import { ENVIRONMENT } from '@app/environment.js';
 import { GraphQLLong } from '@app/graphql/resolvers/graphql-type-long.js';
 import { getters } from '@app/store/index.js';
-import { AuthDirective } from '@app/unraid-api/graph/auth/auth.enums.js';
 import { idPrefixPlugin } from '@app/unraid-api/graph/id-prefix-plugin.js';
 import { ResolversModule } from '@app/unraid-api/graph/resolvers/resolvers.module.js';
 import { sandboxPlugin } from '@app/unraid-api/graph/sandbox-plugin.js';
@@ -28,9 +22,12 @@ import { sandboxPlugin } from '@app/unraid-api/graph/sandbox-plugin.js';
             inject: [],
             useFactory: async () => {
                 return {
-                    autoSchemaFile: {
-                        path: './generated-schema-new.graphql',
-                    }, // This will generate the schema in memory
+                    autoSchemaFile:
+                        ENVIRONMENT === 'development'
+                            ? {
+                                  path: './generated-schema.graphql',
+                              }
+                            : true,
                     introspection: getters.config()?.local?.sandbox === 'yes',
                     playground: false,
                     context: async ({ req, connectionParams, extra }) => {

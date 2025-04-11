@@ -1,816 +1,550 @@
-type AccessUrl {
-  ipv4: URL
-  ipv6: URL
-  name: String
-  type: URL_TYPE!
-}
-
-input AccessUrlInput {
-  ipv4: URL
-  ipv6: URL
-  name: String
-  type: URL_TYPE!
-}
-
-input AllowedOriginInput {
-  origins: [String!]!
-}
+# ------------------------------------------------------
+# THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
+# ------------------------------------------------------
 
 type ApiKeyResponse {
-  error: String
   valid: Boolean!
-}
-
-"""
-Input should be a subset of ApiSettings that can be updated.
-Some field combinations may be required or disallowed. Please refer to each field for more information.
-"""
-input ApiSettingsInput {
-  """The type of WAN access to use for Remote Access."""
-  accessType: WAN_ACCESS_TYPE
-
-  """A list of origins allowed to interact with the API."""
-  extraOrigins: [String!]
-
-  """The type of port forwarding to use for Remote Access."""
-  forwardType: WAN_FORWARD_TYPE
-
-  """
-  The port to use for Remote Access. Not required for UPNP forwardType. Required for STATIC forwardType.
-  Ignored if accessType is DISABLED or forwardType is UPNP.
-  """
-  port: Port
-
-  """
-  If true, the GraphQL sandbox will be enabled and available at /graphql.
-  If false, the GraphQL sandbox will be disabled and only the production API will be available.
-  """
-  sandbox: Boolean
-
-  """A list of Unique Unraid Account ID's."""
-  ssoUserIds: [String!]
-}
-
-type Baseboard {
-  assetTag: String
-  manufacturer: String!
-  model: String
-  serial: String
-  version: String
-}
-
-type Case {
-  base64: String
   error: String
-  icon: String
-  url: String
-}
-
-type Cloud {
-  allowedOrigins: [String!]!
-  apiKey: ApiKeyResponse!
-  cloud: CloudResponse!
-  error: String
-  minigraphql: MinigraphqlResponse!
-  relay: RelayResponse
-}
-
-type CloudResponse {
-  error: String
-  ip: String
-  status: String!
-}
-
-type Config implements Node {
-  error: ConfigErrorState
-  id: ID!
-  valid: Boolean
-}
-
-enum ConfigErrorState {
-  INELIGIBLE
-  INVALID
-  NO_KEY_SERVER
-  UNKNOWN_ERROR
-  WITHDRAWN
-}
-
-type Connect implements Node {
-  dynamicRemoteAccess: DynamicRemoteAccessStatus!
-  id: ID!
-  settings: ConnectSettings!
-}
-
-type ConnectSettings implements Node {
-  dataSchema: JSON!
-  id: ID!
-  uiSchema: JSON!
-  values: ConnectSettingsValues!
-}
-
-"""Intersection type of ApiSettings and RemoteAccess"""
-type ConnectSettingsValues {
-  """The type of WAN access used for Remote Access."""
-  accessType: WAN_ACCESS_TYPE!
-
-  """A list of origins allowed to interact with the API."""
-  extraOrigins: [String!]!
-
-  """The type of port forwarding used for Remote Access."""
-  forwardType: WAN_FORWARD_TYPE
-
-  """The port used for Remote Access."""
-  port: Port
-
-  """
-  If true, the GraphQL sandbox is enabled and available at /graphql.
-  If false, the GraphQL sandbox is disabled and only the production API will be available.
-  """
-  sandbox: Boolean!
-
-  """A list of Unique Unraid Account ID's."""
-  ssoUserIds: [String!]!
-}
-
-input ConnectSignInInput {
-  accessToken: String
-  apiKey: String!
-  idToken: String
-  refreshToken: String
-  userInfo: ConnectUserInfoInput
-}
-
-input ConnectUserInfoInput {
-  avatar: String
-  email: String!
-  preferred_username: String!
-}
-
-type ContainerHostConfig {
-  networkMode: String!
-}
-
-type ContainerMount {
-  destination: String!
-  driver: String!
-  mode: String!
-  name: String!
-  propagation: String!
-  rw: Boolean!
-  source: String!
-  type: String!
-}
-
-type ContainerPort {
-  ip: String
-  privatePort: Int
-  publicPort: Int
-  type: ContainerPortType
-}
-
-enum ContainerPortType {
-  TCP
-  UDP
-}
-
-enum ContainerState {
-  EXITED
-  RUNNING
-}
-
-scalar DateTime
-
-type Devices {
-  gpu: [Gpu]
-  network: [Network]
-  pci: [Pci]
-  usb: [Usb]
-}
-
-type Disk {
-  bytesPerSector: Long!
-  device: String!
-  firmwareRevision: String!
-  id: ID!
-  interfaceType: DiskInterfaceType!
-  name: String!
-  partitions: [DiskPartition!]
-  sectorsPerTrack: Long!
-  serialNum: String!
-  size: Long!
-  smartStatus: DiskSmartStatus!
-  temperature: Long
-  totalCylinders: Long!
-  totalHeads: Long!
-  totalSectors: Long!
-  totalTracks: Long!
-  tracksPerCylinder: Long!
-  type: String!
-  vendor: String!
-}
-
-enum DiskFsType {
-  btrfs
-  ext4
-  ntfs
-  vfat
-  xfs
-  zfs
-}
-
-enum DiskInterfaceType {
-  PCIe
-  SAS
-  SATA
-  UNKNOWN
-  USB
-}
-
-type DiskPartition {
-  fsType: DiskFsType!
-  name: String!
-  size: Long!
-}
-
-enum DiskSmartStatus {
-  OK
-  UNKNOWN
-}
-
-type Display {
-  banner: String
-  case: Case
-  critical: Int
-  dashapps: String
-  date: String
-  hot: Int
-  id: ID!
-  locale: String
-  max: Int
-  number: String
-  resize: Boolean
-  scale: Boolean
-  tabs: Boolean
-  text: Boolean
-  theme: Theme
-  total: Boolean
-  unit: Temperature
-  usage: Boolean
-  users: String
-  warning: Int
-  wwn: Boolean
-}
-
-type Docker implements Node {
-  containers: [DockerContainer!]
-  id: ID!
-  networks: [DockerNetwork!]
-}
-
-type DockerContainer {
-  autoStart: Boolean!
-  command: String!
-  created: Int!
-  hostConfig: ContainerHostConfig
-  id: ID!
-  image: String!
-  imageId: String!
-  labels: JSON
-  mounts: [JSON]
-  names: [String!]
-  networkSettings: JSON
-  ports: [ContainerPort!]!
-
-  """ (B) Total size of all the files in the container """
-  sizeRootFs: Long
-  state: ContainerState!
-  status: String!
-}
-
-type DockerMutations {
-  """ Start a container """
-  start(id: ID!): DockerContainer!
-
-  """ Stop a container """
-  stop(id: ID!): DockerContainer!
-}
-
-type DockerNetwork {
-  attachable: Boolean!
-  configFrom: JSON
-  configOnly: Boolean!
-  containers: JSON
-  created: String
-  driver: String
-  enableIPv6: Boolean!
-  id: ID
-  ingress: Boolean!
-  internal: Boolean!
-  ipam: JSON
-  labels: JSON
-  name: String
-  options: JSON
-  scope: String
-}
-
-type DynamicRemoteAccessStatus {
-  enabledType: DynamicRemoteAccessType!
-  error: String
-  runningType: DynamicRemoteAccessType!
-}
-
-enum DynamicRemoteAccessType {
-  DISABLED
-  STATIC
-  UPNP
-}
-
-input EnableDynamicRemoteAccessInput {
-  enabled: Boolean!
-  url: AccessUrlInput!
-}
-
-type Flash {
-  guid: String
-  product: String
-  vendor: String
-}
-
-type Gpu {
-  blacklisted: Boolean!
-  class: String!
-  id: ID!
-  productid: String!
-  type: String!
-  typeid: String!
-  vendorname: String!
-}
-
-enum Importance {
-  ALERT
-  INFO
-  WARNING
-}
-
-type Info implements Node {
-  """Count of docker containers"""
-  apps: InfoApps
-  baseboard: Baseboard
-  cpu: InfoCpu
-  devices: Devices
-  display: Display
-  id: ID!
-
-  """Machine ID"""
-  machineId: ID
-  memory: InfoMemory
-  os: Os
-  system: System
-  time: DateTime!
-  versions: Versions
-}
-
-type InfoApps {
-  """How many docker containers are installed"""
-  installed: Int
-
-  """How many docker containers are running"""
-  started: Int
-}
-
-type InfoCpu {
-  brand: String!
-  cache: JSON!
-  cores: Int!
-  family: String!
-  flags: [String!]
-  manufacturer: String!
-  model: String!
-  processors: Long!
-  revision: String!
-  socket: String!
-  speed: Float!
-  speedmax: Float!
-  speedmin: Float!
-  stepping: Int!
-  threads: Int!
-  vendor: String!
-  voltage: String
-}
-
-type InfoMemory {
-  active: Long!
-  available: Long!
-  buffcache: Long!
-  free: Long!
-  layout: [MemoryLayout!]
-  max: Long!
-  swapfree: Long!
-  swaptotal: Long!
-  swapused: Long!
-  total: Long!
-  used: Long!
-}
-
-scalar JSON
-
-type KeyFile {
-  contents: String
-  location: String
-}
-
-"""Represents a log file in the system"""
-type LogFile {
-  """Last modified timestamp"""
-  modifiedAt: DateTime!
-
-  """Name of the log file"""
-  name: String!
-
-  """Full path to the log file"""
-  path: String!
-
-  """Size of the log file in bytes"""
-  size: Int!
-}
-
-"""Content of a log file"""
-type LogFileContent {
-  """Content of the log file"""
-  content: String!
-
-  """Path to the log file"""
-  path: String!
-
-  """Starting line number of the content (1-indexed)"""
-  startLine: Int
-
-  """Total number of lines in the file"""
-  totalLines: Int!
-}
-
-scalar Long
-
-enum MemoryFormFactor {
-  DIMM
-}
-
-type MemoryLayout {
-  bank: String
-  clockSpeed: Long
-  formFactor: MemoryFormFactor
-  manufacturer: String
-  partNum: String
-  serialNum: String
-  size: Long!
-  type: MemoryType
-  voltageConfigured: Long
-  voltageMax: Long
-  voltageMin: Long
-}
-
-enum MemoryType {
-  DDR2
-  DDR3
-  DDR4
-}
-
-enum MinigraphStatus {
-  CONNECTED
-  CONNECTING
-  ERROR_RETRYING
-  PING_FAILURE
-  PRE_INIT
 }
 
 type MinigraphqlResponse {
-  error: String
   status: MinigraphStatus!
   timeout: Int
+  error: String
 }
 
-type Mount {
-  directory: String
-  name: String
-  permissions: String
-  type: String
+enum MinigraphStatus {
+  PRE_INIT
+  CONNECTING
+  CONNECTED
+  PING_FAILURE
+  ERROR_RETRYING
 }
 
-type Mutation {
-  """Add a new user"""
-  addUser(input: addUserInput!): User
-  archiveAll(importance: Importance): NotificationOverview!
-
-  """Marks a notification as archived."""
-  archiveNotification(id: String!): Notification!
-  archiveNotifications(ids: [String!]): NotificationOverview!
-  connectSignIn(input: ConnectSignInInput!): Boolean!
-  connectSignOut: Boolean!
-  createNotification(input: NotificationData!): Notification!
-
-  """Deletes all archived notifications on server."""
-  deleteArchivedNotifications: NotificationOverview!
-  deleteNotification(id: String!, type: NotificationType!): NotificationOverview!
-
-  """Delete a user"""
-  deleteUser(input: deleteUserInput!): User
-  docker: DockerMutations
-  enableDynamicRemoteAccess(input: EnableDynamicRemoteAccessInput!): Boolean!
-  login(password: String!, username: String!): String
-  reboot: String
-
-  """Reads each notification to recompute & update the overview."""
-  recalculateOverview: NotificationOverview!
-  setAdditionalAllowedOrigins(input: AllowedOriginInput!): [String!]!
-  setupRemoteAccess(input: SetupRemoteAccessInput!): Boolean!
-  shutdown: String
-  unarchiveAll(importance: Importance): NotificationOverview!
-  unarchiveNotifications(ids: [String!]): NotificationOverview!
-
-  """Marks a notification as unread."""
-  unreadNotification(id: String!): Notification!
-
-  """
-  Update the API settings.
-  Some setting combinations may be required or disallowed. Please refer to each setting for more information.
-  """
-  updateApiSettings(input: ApiSettingsInput!): ConnectSettingsValues!
-
-  """Virtual machine mutations"""
-  vms: VmMutations
+type CloudResponse {
+  status: String!
+  ip: String
+  error: String
 }
 
-type Network implements Node {
-  accessUrls: [AccessUrl!]
-  carrierChanges: String
-  duplex: String
+type RelayResponse {
+  status: String!
+  timeout: String
+  error: String
+}
+
+type Cloud {
+  error: String
+  apiKey: ApiKeyResponse!
+  relay: RelayResponse
+  minigraphql: MinigraphqlResponse!
+  cloud: CloudResponse!
+  allowedOrigins: [String!]!
+}
+
+type Capacity {
+  """Free capacity"""
+  free: String!
+
+  """Used capacity"""
+  used: String!
+
+  """Total capacity"""
+  total: String!
+}
+
+type ArrayCapacity {
+  """Capacity in kilobytes"""
+  kilobytes: Capacity!
+
+  """Capacity in number of disks"""
+  disks: Capacity!
+}
+
+type ArrayDisk implements Node {
+  """Disk identifier, only set for present disks on the system"""
   id: ID!
-  iface: String
-  ifaceName: String
-  internal: String
-  ipv4: String
-  ipv6: String
-  mac: String
-  mtu: String
-  operstate: String
-  speed: String
-  type: String
+
+  """
+  Array slot number. Parity1 is always 0 and Parity2 is always 29. Array slots will be 1 - 28. Cache slots are 30 - 53. Flash is 54.
+  """
+  idx: Int!
+  name: String
+  device: String
+
+  """(KB) Disk Size total"""
+  size: Long
+  status: ArrayDiskStatus
+
+  """Is the disk a HDD or SSD."""
+  rotational: Boolean
+
+  """Disk temp - will be NaN if array is not started or DISK_NP"""
+  temp: Int
+
+  """
+  Count of I/O read requests sent to the device I/O drivers. These statistics may be cleared at any time.
+  """
+  numReads: Long
+
+  """
+  Count of I/O writes requests sent to the device I/O drivers. These statistics may be cleared at any time.
+  """
+  numWrites: Long
+
+  """
+  Number of unrecoverable errors reported by the device I/O drivers. Missing data due to unrecoverable array read errors is filled in on-the-fly using parity reconstruct (and we attempt to write this data back to the sector(s) which failed). Any unrecoverable write error results in disabling the disk.
+  """
+  numErrors: Long
+
+  """(KB) Total Size of the FS (Not present on Parity type drive)"""
+  fsSize: Long
+
+  """(KB) Free Size on the FS (Not present on Parity type drive)"""
+  fsFree: Long
+
+  """(KB) Used Size on the FS (Not present on Parity type drive)"""
+  fsUsed: Long
+  exportable: Boolean
+
+  """Type of Disk - used to differentiate Cache / Flash / Array / Parity"""
+  type: ArrayDiskType!
+
+  """(%) Disk space left to warn"""
+  warning: Int
+
+  """(%) Disk space left for critical"""
+  critical: Int
+
+  """File system type for the disk"""
+  fsType: String
+
+  """User comment on disk"""
+  comment: String
+
+  """File format (ex MBR: 4KiB-aligned)"""
+  format: String
+
+  """ata | nvme | usb | (others)"""
+  transport: String
+  color: ArrayDiskFsColor
 }
 
 interface Node {
   id: ID!
 }
 
-type Notification implements Node {
-  description: String!
-  formattedTimestamp: String
+"""The `Long` scalar type represents 52-bit integers"""
+scalar Long
+
+enum ArrayDiskStatus {
+  DISK_NP
+  DISK_OK
+  DISK_NP_MISSING
+  DISK_INVALID
+  DISK_WRONG
+  DISK_DSBL
+  DISK_NP_DSBL
+  DISK_DSBL_NEW
+  DISK_NEW
+}
+
+enum ArrayDiskType {
+  DATA
+  PARITY
+  FLASH
+  CACHE
+}
+
+enum ArrayDiskFsColor {
+  GREEN_ON
+  GREEN_BLINK
+  BLUE_ON
+  BLUE_BLINK
+  YELLOW_ON
+  YELLOW_BLINK
+  RED_ON
+  RED_OFF
+  GREY_OFF
+}
+
+type UnraidArray implements Node {
   id: ID!
-  importance: Importance!
-  link: String
-  subject: String!
 
-  """ISO Timestamp for when the notification occurred"""
-  timestamp: String
+  """Array state before this query/mutation"""
+  previousState: ArrayState
 
-  """Also known as 'event'"""
-  title: String!
-  type: NotificationType!
+  """Array state after this query/mutation"""
+  pendingState: ArrayPendingState
+
+  """Current array state"""
+  state: ArrayState!
+
+  """Current array capacity"""
+  capacity: ArrayCapacity!
+
+  """Current boot disk"""
+  boot: ArrayDisk
+
+  """Parity disks in the current array"""
+  parities: [ArrayDisk!]!
+
+  """Data disks in the current array"""
+  disks: [ArrayDisk!]!
+
+  """Caches in the current array"""
+  caches: [ArrayDisk!]!
 }
 
-type NotificationCounts {
-  alert: Int!
-  info: Int!
-  total: Int!
-  warning: Int!
+enum ArrayState {
+  STARTED
+  STOPPED
+  NEW_ARRAY
+  RECON_DISK
+  DISABLE_DISK
+  SWAP_DSBL
+  INVALID_EXPANSION
+  PARITY_NOT_BIGGEST
+  TOO_MANY_MISSING_DISKS
+  NEW_DISK_TOO_SMALL
+  NO_DATA_DISKS
 }
 
-input NotificationData {
-  description: String!
-  importance: Importance!
-  link: String
-  subject: String!
-  title: String!
+enum ArrayPendingState {
+  STARTING
+  STOPPING
+  NO_DATA_DISKS
+  TOO_MANY_MISSING_DISKS
 }
 
-input NotificationFilter {
-  importance: Importance
-  limit: Int!
-  offset: Int!
-  type: NotificationType
-}
-
-type NotificationOverview {
-  archive: NotificationCounts!
-  unread: NotificationCounts!
-}
-
-enum NotificationType {
-  ARCHIVE
-  UNREAD
-}
-
-type Notifications implements Node {
+type Share implements Node {
   id: ID!
-  list(filter: NotificationFilter!): [Notification!]!
 
-  """A cached overview of the notifications in the system & their severity."""
-  overview: NotificationOverview!
+  """Display name"""
+  name: String
+
+  """(KB) Free space"""
+  free: Long
+
+  """(KB) Used Size"""
+  used: Long
+
+  """(KB) Total size"""
+  size: Long
+
+  """Disks that are included in this share"""
+  include: [String!]
+
+  """Disks that are excluded from this share"""
+  exclude: [String!]
+
+  """Is this share cached"""
+  cache: Boolean
+
+  """Original name"""
+  nameOrig: String
+
+  """User comment"""
+  comment: String
+
+  """Allocator"""
+  allocator: String
+
+  """Split level"""
+  splitLevel: String
+
+  """Floor"""
+  floor: String
+
+  """COW"""
+  cow: String
+
+  """Color"""
+  color: String
+
+  """LUKS status"""
+  luksStatus: String
 }
 
-type Os {
-  arch: String
-  build: String
-  codename: String
-  codepage: String
-  distro: String
-  hostname: String
-  kernel: String
-  logofile: String
-  platform: String
-  release: String
-  serial: String
-  uptime: DateTime
+type RemoteAccess {
+  """The type of WAN access used for Remote Access"""
+  accessType: WAN_ACCESS_TYPE!
+
+  """The type of port forwarding used for Remote Access"""
+  forwardType: WAN_FORWARD_TYPE
+
+  """The port used for Remote Access"""
+  port: Int
 }
 
-type Owner {
-  avatar: String
-  url: String
-  username: String
+enum WAN_ACCESS_TYPE {
+  DYNAMIC
+  ALWAYS
+  DISABLED
 }
 
-type Partition {
-  devlinks: String
-  devname: String
-  devpath: String
-  devtype: String
-  idAta: String
-  idAtaDownloadMicrocode: String
-  idAtaFeatureSetAam: String
-  idAtaFeatureSetAamCurrentValue: String
-  idAtaFeatureSetAamEnabled: String
-  idAtaFeatureSetAamVendorRecommendedValue: String
-  idAtaFeatureSetApm: String
-  idAtaFeatureSetApmCurrentValue: String
-  idAtaFeatureSetApmEnabled: String
-  idAtaFeatureSetHpa: String
-  idAtaFeatureSetHpaEnabled: String
-  idAtaFeatureSetPm: String
-  idAtaFeatureSetPmEnabled: String
-  idAtaFeatureSetPuis: String
-  idAtaFeatureSetPuisEnabled: String
-  idAtaFeatureSetSecurity: String
-  idAtaFeatureSetSecurityEnabled: String
-  idAtaFeatureSetSecurityEnhancedEraseUnitMin: String
-  idAtaFeatureSetSecurityEraseUnitMin: String
-  idAtaFeatureSetSmart: String
-  idAtaFeatureSetSmartEnabled: String
-  idAtaRotationRateRpm: String
-  idAtaSata: String
-  idAtaSataSignalRateGen1: String
-  idAtaSataSignalRateGen2: String
-  idAtaWriteCache: String
-  idAtaWriteCacheEnabled: String
-  idBus: String
-  idFsType: String
-  idFsUsage: String
-  idFsUuid: String
-  idFsUuidEnc: String
-  idModel: String
-  idModelEnc: String
-  idPartEntryDisk: String
-  idPartEntryNumber: String
-  idPartEntryOffset: String
-  idPartEntryScheme: String
-  idPartEntrySize: String
-  idPartEntryType: String
-  idPartTableType: String
-  idPath: String
-  idPathTag: String
-  idRevision: String
-  idSerial: String
-  idSerialShort: String
-  idType: String
-  idWwn: String
-  idWwnWithExtension: String
-  major: String
-  minor: String
-  partn: String
-  subsystem: String
-  usecInitialized: String
+enum WAN_FORWARD_TYPE {
+  UPNP
+  STATIC
 }
 
-type Pci {
-  blacklisted: String
-  class: String
+type DynamicRemoteAccessStatus {
+  """The type of dynamic remote access that is enabled"""
+  enabledType: DynamicRemoteAccessType!
+
+  """The type of dynamic remote access that is currently running"""
+  runningType: DynamicRemoteAccessType!
+
+  """Any error message associated with the dynamic remote access"""
+  error: String
+}
+
+enum DynamicRemoteAccessType {
+  STATIC
+  UPNP
+  DISABLED
+}
+
+type ConnectSettingsValues {
+  """
+  If true, the GraphQL sandbox is enabled and available at /graphql. If false, the GraphQL sandbox is disabled and only the production API will be available.
+  """
+  sandbox: Boolean!
+
+  """A list of origins allowed to interact with the API"""
+  extraOrigins: [String!]!
+
+  """The type of WAN access used for Remote Access"""
+  accessType: WAN_ACCESS_TYPE!
+
+  """The type of port forwarding used for Remote Access"""
+  forwardType: WAN_FORWARD_TYPE
+
+  """The port used for Remote Access"""
+  port: Int
+
+  """A list of Unique Unraid Account ID's"""
+  ssoUserIds: [String!]!
+}
+
+type ConnectSettings implements Node {
+  """The unique identifier for the Connect settings"""
   id: ID!
-  productid: String
-  productname: String
-  type: String
-  typeid: String
-  vendorid: String
-  vendorname: String
+
+  """The data schema for the Connect settings"""
+  dataSchema: JSON!
+
+  """The UI schema for the Connect settings"""
+  uiSchema: JSON!
+
+  """The values for the Connect settings"""
+  values: ConnectSettingsValues!
 }
 
-scalar Port
+"""
+The `JSON` scalar type represents JSON values as specified by [ECMA-404](http://www.ecma-international.org/publications/files/ECMA-ST/ECMA-404.pdf).
+"""
+scalar JSON @specifiedBy(url: "http://www.ecma-international.org/publications/files/ECMA-ST/ECMA-404.pdf")
+
+type Connect implements Node {
+  """The unique identifier for the Connect instance"""
+  id: ID!
+
+  """The status of dynamic remote access"""
+  dynamicRemoteAccess: DynamicRemoteAccessStatus!
+
+  """The settings for the Connect instance"""
+  settings: ConnectSettings!
+}
+
+type AccessUrl {
+  type: URL_TYPE!
+  name: String
+  ipv4: URL
+  ipv6: URL
+}
+
+enum URL_TYPE {
+  LAN
+  WIREGUARD
+  WAN
+  MDNS
+  OTHER
+  DEFAULT
+}
+
+"""
+A field whose value conforms to the standard URL format as specified in RFC3986: https://www.ietf.org/rfc/rfc3986.txt.
+"""
+scalar URL
+
+type Network implements Node {
+  id: ID!
+  accessUrls: [AccessUrl!]
+}
 
 type ProfileModel {
-  avatar: String
-  url: String
   userId: ID
-  username: String
+  username: String!
+  url: String!
+  avatar: String!
 }
 
-type Query {
-  cloud: Cloud
-  config: Config!
-  connect: Connect!
+type Server {
+  owner: ProfileModel!
+  guid: String!
+  apikey: String!
+  name: String!
+  status: ServerStatus!
+  wanip: String!
+  lanip: String!
+  localurl: String!
+  remoteurl: String!
+}
 
-  """Single disk"""
-  disk(id: ID!): Disk
+enum ServerStatus {
+  ONLINE
+  OFFLINE
+  NEVER_CONNECTED
+}
 
-  """Mulitiple disks"""
-  disks: [Disk]!
-  display: Display
-  docker: Docker!
+type DiskPartition {
+  """The name of the partition"""
+  name: String!
 
-  """Docker network"""
-  dockerNetwork(id: ID!): DockerNetwork!
+  """The filesystem type of the partition"""
+  fsType: DiskFsType!
 
-  """All Docker networks"""
-  dockerNetworks(all: Boolean): [DockerNetwork]!
-  extraAllowedOrigins: [String!]!
-  flash: Flash
-  info: Info
+  """The size of the partition in bytes"""
+  size: Float!
+}
 
-  """
-  Get the content of a specific log file
-  @param path Path to the log file
-  @param lines Number of lines to read from the end of the file (default: 100)
-  @param startLine Optional starting line number (1-indexed)
-  """
-  logFile(lines: Int, path: String!, startLine: Int): LogFileContent!
+"""The type of filesystem on the disk partition"""
+enum DiskFsType {
+  XFS
+  BTRFS
+  VFAT
+  ZFS
+  EXT4
+  NTFS
+}
 
-  """List all available log files"""
-  logFiles: [LogFile!]!
-  network: Network
-  notifications: Notifications!
-  online: Boolean
-  owner: Owner
-  registration: Registration
-  remoteAccess: RemoteAccess!
-  server: Server
-  servers: [Server!]!
-  services: [Service!]!
+type Disk {
+  """The unique identifier of the disk"""
+  id: String!
 
-  """Network Shares"""
-  shares: [Share]
-  unassignedDevices: [UnassignedDevice]
+  """The device path of the disk (e.g. /dev/sdb)"""
+  device: String!
 
-  """User account"""
-  user(id: ID!): User
+  """The type of disk (e.g. SSD, HDD)"""
+  type: String!
 
-  """User accounts"""
-  users(input: usersInput): [User!]!
-  vars: Vars
+  """The model name of the disk"""
+  name: String!
 
-  """Virtual machines"""
-  vms: Vms
+  """The manufacturer of the disk"""
+  vendor: String!
+
+  """The total size of the disk in bytes"""
+  size: Float!
+
+  """The number of bytes per sector"""
+  bytesPerSector: Float!
+
+  """The total number of cylinders on the disk"""
+  totalCylinders: Float!
+
+  """The total number of heads on the disk"""
+  totalHeads: Float!
+
+  """The total number of sectors on the disk"""
+  totalSectors: Float!
+
+  """The total number of tracks on the disk"""
+  totalTracks: Float!
+
+  """The number of tracks per cylinder"""
+  tracksPerCylinder: Float!
+
+  """The number of sectors per track"""
+  sectorsPerTrack: Float!
+
+  """The firmware revision of the disk"""
+  firmwareRevision: String!
+
+  """The serial number of the disk"""
+  serialNum: String!
+
+  """The interface type of the disk"""
+  interfaceType: DiskInterfaceType!
+
+  """The SMART status of the disk"""
+  smartStatus: DiskSmartStatus!
+
+  """The current temperature of the disk in Celsius"""
+  temperature: Float
+
+  """The partitions on the disk"""
+  partitions: [DiskPartition!]!
+}
+
+"""The type of interface the disk uses to connect to the system"""
+enum DiskInterfaceType {
+  SAS
+  SATA
+  USB
+  PCIE
+  UNKNOWN
+}
+
+"""
+The SMART (Self-Monitoring, Analysis and Reporting Technology) status of the disk
+"""
+enum DiskSmartStatus {
+  OK
+  UNKNOWN
+}
+
+type KeyFile {
+  location: String
+  contents: String
 }
 
 type Registration {
-  expiration: String
-  guid: String
+  guid: ID
+  type: registrationType
   keyFile: KeyFile
   state: RegistrationState
-  type: registrationType
+  expiration: String
   updateExpiration: String
 }
 
-enum RegistrationState {
+enum registrationType {
   BASIC
+  PLUS
+  PRO
+  STARTER
+  UNLEASHED
+  LIFETIME
+  INVALID
+  TRIAL
+}
 
-  """BLACKLISTED"""
-  EBLACKLISTED
-
-  """BLACKLISTED"""
-  EBLACKLISTED1
-
-  """BLACKLISTED"""
-  EBLACKLISTED2
-
-  """Trial Expired"""
+enum RegistrationState {
+  TRIAL
+  BASIC
+  PLUS
+  PRO
+  STARTER
+  UNLEASHED
+  LIFETIME
   EEXPIRED
-
-  """GUID Error"""
   EGUID
-
-  """Multiple License Keys Present"""
   EGUID1
-
-  """Trial Requires Internet Connection"""
-  ENOCONN
-
-  """No Flash"""
+  ETRIAL
+  ENOKEYFILE
+  ENOKEYFILE1
+  ENOKEYFILE2
   ENOFLASH
   ENOFLASH1
   ENOFLASH2
@@ -819,324 +553,34 @@ enum RegistrationState {
   ENOFLASH5
   ENOFLASH6
   ENOFLASH7
-
-  """No Keyfile"""
-  ENOKEYFILE
-
-  """No Keyfile"""
-  ENOKEYFILE1
-
-  """Missing key file"""
-  ENOKEYFILE2
-
-  """Invalid installation"""
-  ETRIAL
-  LIFETIME
-  PLUS
-  PRO
-  STARTER
-  TRIAL
-  UNLEASHED
-}
-
-type RelayResponse {
-  error: String
-  status: String!
-  timeout: String
-}
-
-type RemoteAccess {
-  accessType: WAN_ACCESS_TYPE!
-  forwardType: WAN_FORWARD_TYPE
-  port: Port
-}
-
-type Server {
-  apikey: String!
-  guid: String!
-  lanip: String!
-  localurl: String!
-  name: String!
-  owner: ProfileModel!
-  remoteurl: String!
-  status: ServerStatus!
-  wanip: String!
-}
-
-enum ServerStatus {
-  never_connected
-  offline
-  online
-}
-
-type Service implements Node {
-  id: ID!
-  name: String
-  online: Boolean
-  uptime: Uptime
-  version: String
-}
-
-input SetupRemoteAccessInput {
-  accessType: WAN_ACCESS_TYPE!
-  forwardType: WAN_FORWARD_TYPE
-  port: Port
-}
-
-"""Network Share"""
-type Share {
-  allocator: String
-  cache: Boolean
-  color: String
-
-  """User comment"""
-  comment: String
-  cow: String
-
-  """Disks that're excluded from this share"""
-  exclude: [String]
-  floor: String
-
-  """(KB) Free space"""
-  free: Long
-
-  """Disks that're included in this share"""
-  include: [String]
-  luksStatus: String
-
-  """Display name"""
-  name: String
-  nameOrig: String
-
-  """(KB) Total size"""
-  size: Long
-  splitLevel: String
-
-  """(KB) Used Size"""
-  used: Long
-}
-
-type Subscription {
-  config: Config!
-  display: Display
-  dockerNetwork(id: ID!): DockerNetwork!
-  dockerNetworks: [DockerNetwork]!
-  flash: Flash!
-  info: Info!
-
-  """
-  Subscribe to changes in a log file
-  @param path Path to the log file
-  """
-  logFile(path: String!): LogFileContent!
-  notificationAdded: Notification!
-  notificationsOverview: NotificationOverview!
-  online: Boolean!
-  owner: Owner!
-  ping: String!
-  registration: Registration!
-  server: Server
-  service(name: String!): [Service!]
-  share(id: ID!): Share!
-  shares: [Share!]
-  unassignedDevices: [UnassignedDevice!]
-  user(id: ID!): User!
-  users: [User]!
-  vars: Vars!
-  vms: Vms
-}
-
-type System {
-  manufacturer: String
-  model: String
-  serial: String
-  sku: String
-  uuid: String
-  version: String
-}
-
-enum Temperature {
-  C
-  F
-}
-
-enum Theme {
-  white
-}
-
-scalar URL
-
-enum URL_TYPE {
-  DEFAULT
-  LAN
-  MDNS
-  OTHER
-  WAN
-  WIREGUARD
-}
-
-scalar UUID
-
-type UnassignedDevice {
-  devlinks: String
-  devname: String
-  devpath: String
-  devtype: String
-  idAta: String
-  idAtaDownloadMicrocode: String
-  idAtaFeatureSetAam: String
-  idAtaFeatureSetAamCurrentValue: String
-  idAtaFeatureSetAamEnabled: String
-  idAtaFeatureSetAamVendorRecommendedValue: String
-  idAtaFeatureSetApm: String
-  idAtaFeatureSetApmCurrentValue: String
-  idAtaFeatureSetApmEnabled: String
-  idAtaFeatureSetHpa: String
-  idAtaFeatureSetHpaEnabled: String
-  idAtaFeatureSetPm: String
-  idAtaFeatureSetPmEnabled: String
-  idAtaFeatureSetPuis: String
-  idAtaFeatureSetPuisEnabled: String
-  idAtaFeatureSetSecurity: String
-  idAtaFeatureSetSecurityEnabled: String
-  idAtaFeatureSetSecurityEnhancedEraseUnitMin: String
-  idAtaFeatureSetSecurityEraseUnitMin: String
-  idAtaFeatureSetSmart: String
-  idAtaFeatureSetSmartEnabled: String
-  idAtaRotationRateRpm: String
-  idAtaSata: String
-  idAtaSataSignalRateGen1: String
-  idAtaSataSignalRateGen2: String
-  idAtaWriteCache: String
-  idAtaWriteCacheEnabled: String
-  idBus: String
-  idModel: String
-  idModelEnc: String
-  idPartTableType: String
-  idPath: String
-  idPathTag: String
-  idRevision: String
-  idSerial: String
-  idSerialShort: String
-  idType: String
-  idWwn: String
-  idWwnWithExtension: String
-  major: String
-  minor: String
-  mount: Mount
-  mounted: Boolean
-  name: String
-  partitions: [Partition]
-  subsystem: String
-  temp: Int
-  usecInitialized: String
-}
-
-type Uptime {
-  timestamp: String
-}
-
-type Usb {
-  id: ID!
-  name: String
-}
-
-"""A local user account"""
-type User implements UserAccount {
-  description: String!
-  id: ID!
-
-  """A unique name for the user"""
-  name: String!
-
-  """If the account has a password set"""
-  password: Boolean
-}
-
-interface UserAccount {
-  description: String!
-  id: ID!
-  name: String!
+  EBLACKLISTED
+  EBLACKLISTED1
+  EBLACKLISTED2
+  ENOCONN
 }
 
 type Vars implements Node {
-  bindMgt: Boolean
-  cacheNumDevices: Int
-  cacheSbNumDisks: Int
-  comment: String
-  configError: ConfigErrorState
-  configValid: Boolean
-  csrfToken: String
-  defaultFormat: String
-  defaultFsType: String
-  deviceCount: Int
-  domain: String
-  domainLogin: String
-  domainShort: String
-  enableFruit: String
-  flashGuid: String
-  flashProduct: String
-  flashVendor: String
-
-  """
-  Percentage from 0 - 100 while upgrading a disk or swapping parity drives
-  """
-  fsCopyPrcnt: Int
-  fsNumMounted: Int
-  fsNumUnmountable: Int
-
-  """Human friendly string of array events happening"""
-  fsProgress: String
-  fsState: String
-  fsUnmountableMask: String
-  fuseDirectio: String
-  fuseDirectioDefault: String
-  fuseDirectioStatus: String
-  fuseRemember: String
-  fuseRememberDefault: String
-  fuseRememberStatus: String
-  hideDotFiles: Boolean
   id: ID!
-  joinStatus: String
-  localMaster: Boolean
-  localTld: String
-  luksKeyfile: String
+
+  """Unraid version"""
+  version: String
   maxArraysz: Int
   maxCachesz: Int
-  mdColor: String
-  mdNumDisabled: Int
-  mdNumDisks: Int
-  mdNumErased: Int
-  mdNumInvalid: Int
-  mdNumMissing: Int
-  mdNumNew: Int
-  mdNumStripes: Int
-  mdNumStripesDefault: Int
-  mdNumStripesStatus: String
-  mdResync: Int
-  mdResyncAction: String
-  mdResyncCorr: String
-  mdResyncDb: String
-  mdResyncDt: String
-  mdResyncPos: String
-  mdResyncSize: Int
-  mdState: String
-  mdSyncThresh: Int
-  mdSyncThreshDefault: Int
-  mdSyncThreshStatus: String
-  mdSyncWindow: Int
-  mdSyncWindowDefault: Int
-  mdSyncWindowStatus: String
-  mdVersion: String
-  mdWriteMethod: Int
-  mdWriteMethodDefault: String
-  mdWriteMethodStatus: String
 
   """Machine hostname"""
   name: String
-  nrRequests: Int
-  nrRequestsDefault: Int
-  nrRequestsStatus: String
+  timeZone: String
+  comment: String
+  security: String
+  workgroup: String
+  domain: String
+  domainShort: String
+  hideDotFiles: Boolean
+  localMaster: Boolean
+  enableFruit: String
+
+  """Should a NTP server be used for time sync?"""
+  useNtp: Boolean
 
   """NTP Server 1"""
   ntpServer1: String
@@ -1149,217 +593,971 @@ type Vars implements Node {
 
   """NTP Server 4"""
   ntpServer4: String
-  pollAttributes: String
-  pollAttributesDefault: String
-  pollAttributesStatus: String
-
-  """Port for the webui via HTTP"""
-  port: Int
-  portssh: Int
-
-  """Port for the webui via HTTPS"""
-  portssl: Int
-  porttelnet: Int
-  queueDepth: String
-  regCheck: String
-  regFile: String
-  regGen: String
-  regGuid: String
-  regState: RegistrationState
-  regTm: String
-  regTm2: String
-
-  """Registration owner"""
-  regTo: String
-  regTy: String
-  safeMode: Boolean
-  sbClean: Boolean
-  sbEvents: Int
-  sbName: String
-  sbNumDisks: Int
-  sbState: String
-  sbSyncErrs: Int
-  sbSyncExit: String
-  sbSynced: Int
-  sbSynced2: Int
-  sbUpdated: String
-  sbVersion: String
-  security: String
-
-  """Total amount shares with AFP enabled"""
-  shareAfpCount: Int
-  shareAfpEnabled: Boolean
-  shareAvahiAfpModel: String
-  shareAvahiAfpName: String
-  shareAvahiEnabled: Boolean
-  shareAvahiSmbModel: String
-  shareAvahiSmbName: String
-  shareCacheEnabled: Boolean
-  shareCacheFloor: String
-
-  """Total amount of user shares"""
-  shareCount: Int
-  shareDisk: String
-  shareInitialGroup: String
-  shareInitialOwner: String
-  shareMoverActive: Boolean
-  shareMoverLogging: Boolean
-  shareMoverSchedule: String
-
-  """Total amount shares with NFS enabled"""
-  shareNfsCount: Int
-  shareNfsEnabled: Boolean
-
-  """Total amount shares with SMB enabled"""
-  shareSmbCount: Int
-  shareSmbEnabled: Boolean
-  shareUser: String
-  shareUserExclude: String
-  shareUserInclude: String
-  shutdownTimeout: Int
-  spindownDelay: String
-  spinupGroups: Boolean
-  startArray: Boolean
-  startMode: String
-  startPage: String
+  domainLogin: String
+  sysModel: String
   sysArraySlots: Int
   sysCacheSlots: Int
   sysFlashSlots: Int
-  sysModel: String
-  timeZone: String
-
-  """Should a NTP server be used for time sync?"""
-  useNtp: Boolean
-  useSsh: Boolean
   useSsl: Boolean
+
+  """Port for the webui via HTTP"""
+  port: Int
+
+  """Port for the webui via HTTPS"""
+  portssl: Int
+  localTld: String
+  bindMgt: Boolean
 
   """Should telnet be enabled?"""
   useTelnet: Boolean
+  porttelnet: Int
+  useSsh: Boolean
+  portssh: Int
+  startPage: String
+  startArray: Boolean
+  spindownDelay: String
+  queueDepth: String
+  spinupGroups: Boolean
+  defaultFormat: String
+  defaultFsType: String
+  shutdownTimeout: Int
+  luksKeyfile: String
+  pollAttributes: String
+  pollAttributesDefault: String
+  pollAttributesStatus: String
+  nrRequests: Int
+  nrRequestsDefault: Int
+  nrRequestsStatus: String
+  mdNumStripes: Int
+  mdNumStripesDefault: Int
+  mdNumStripesStatus: String
+  mdSyncWindow: Int
+  mdSyncWindowDefault: Int
+  mdSyncWindowStatus: String
+  mdSyncThresh: Int
+  mdSyncThreshDefault: Int
+  mdSyncThreshStatus: String
+  mdWriteMethod: Int
+  mdWriteMethodDefault: String
+  mdWriteMethodStatus: String
+  shareDisk: String
+  shareUser: String
+  shareUserInclude: String
+  shareUserExclude: String
+  shareSmbEnabled: Boolean
+  shareNfsEnabled: Boolean
+  shareAfpEnabled: Boolean
+  shareInitialOwner: String
+  shareInitialGroup: String
+  shareCacheEnabled: Boolean
+  shareCacheFloor: String
+  shareMoverSchedule: String
+  shareMoverLogging: Boolean
+  fuseRemember: String
+  fuseRememberDefault: String
+  fuseRememberStatus: String
+  fuseDirectio: String
+  fuseDirectioDefault: String
+  fuseDirectioStatus: String
+  shareAvahiEnabled: Boolean
+  shareAvahiSmbName: String
+  shareAvahiSmbModel: String
+  shareAvahiAfpName: String
+  shareAvahiAfpModel: String
+  safeMode: Boolean
+  startMode: String
+  configValid: Boolean
+  configError: ConfigErrorState
+  joinStatus: String
+  deviceCount: Int
+  flashGuid: String
+  flashProduct: String
+  flashVendor: String
+  regCheck: String
+  regFile: String
+  regGuid: String
+  regTy: registrationType
+  regState: RegistrationState
 
-  """Unraid version"""
-  version: String
-  workgroup: String
+  """Registration owner"""
+  regTo: String
+  regTm: String
+  regTm2: String
+  regGen: String
+  sbName: String
+  sbVersion: String
+  sbUpdated: String
+  sbEvents: Int
+  sbState: String
+  sbClean: Boolean
+  sbSynced: Int
+  sbSyncErrs: Int
+  sbSynced2: Int
+  sbSyncExit: String
+  sbNumDisks: Int
+  mdColor: String
+  mdNumDisks: Int
+  mdNumDisabled: Int
+  mdNumInvalid: Int
+  mdNumMissing: Int
+  mdNumNew: Int
+  mdNumErased: Int
+  mdResync: Int
+  mdResyncCorr: String
+  mdResyncPos: String
+  mdResyncDb: String
+  mdResyncDt: String
+  mdResyncAction: String
+  mdResyncSize: Int
+  mdState: String
+  mdVersion: String
+  cacheNumDevices: Int
+  cacheSbNumDisks: Int
+  fsState: String
+
+  """Human friendly string of array events happening"""
+  fsProgress: String
+
+  """
+  Percentage from 0 - 100 while upgrading a disk or swapping parity drives
+  """
+  fsCopyPrcnt: Int
+  fsNumMounted: Int
+  fsNumUnmountable: Int
+  fsUnmountableMask: String
+
+  """Total amount of user shares"""
+  shareCount: Int
+
+  """Total amount shares with SMB enabled"""
+  shareSmbCount: Int
+
+  """Total amount shares with NFS enabled"""
+  shareNfsCount: Int
+
+  """Total amount shares with AFP enabled"""
+  shareAfpCount: Int
+  shareMoverActive: Boolean
+  csrfToken: String
 }
 
-type Versions {
-  apache: String
-  docker: String
-  gcc: String
-  git: String
-  grunt: String
-  gulp: String
+"""Possible error states for configuration"""
+enum ConfigErrorState {
+  UNKNOWN_ERROR
+  INELIGIBLE
+  INVALID
+  NO_KEY_SERVER
+  WITHDRAWN
+}
+
+type Permission {
+  resource: Resource!
+  actions: [String!]!
+}
+
+"""Available resources for permissions"""
+enum Resource {
+  API_KEY
+  ARRAY
+  CLOUD
+  CONFIG
+  CONNECT
+  CONNECT__REMOTE_ACCESS
+  CUSTOMIZATIONS
+  DASHBOARD
+  DISK
+  DISPLAY
+  DOCKER
+  FLASH
+  INFO
+  LOGS
+  ME
+  NETWORK
+  NOTIFICATIONS
+  ONLINE
+  OS
+  OWNER
+  PERMISSION
+  REGISTRATION
+  SERVERS
+  SERVICES
+  SHARE
+  VARS
+  VMS
+  WELCOME
+}
+
+type ApiKey {
+  id: ID!
+  name: String!
+  description: String
+  roles: [Role!]!
+  createdAt: String!
+  permissions: [Permission!]!
+}
+
+"""Available roles for API keys and users"""
+enum Role {
+  ADMIN
+  CONNECT
+  GUEST
+}
+
+type ApiKeyWithSecret {
+  id: ID!
+  name: String!
+  description: String
+  roles: [Role!]!
+  createdAt: String!
+  permissions: [Permission!]!
+  key: String!
+}
+
+type ArrayMutations {
+  """Set array state"""
+  setState(input: ArrayStateInput!): UnraidArray!
+
+  """Add new disk to array"""
+  addDiskToArray(input: ArrayDiskInput!): UnraidArray!
+
+  """
+  Remove existing disk from array. NOTE: The array must be stopped before running this otherwise it'll throw an error.
+  """
+  removeDiskFromArray(input: ArrayDiskInput!): UnraidArray!
+
+  """Mount a disk in the array"""
+  mountArrayDisk(id: String!): ArrayDisk!
+
+  """Unmount a disk from the array"""
+  unmountArrayDisk(id: String!): ArrayDisk!
+
+  """Clear statistics for a disk in the array"""
+  clearArrayDiskStatistics(id: String!): Boolean!
+}
+
+input ArrayStateInput {
+  """Array state"""
+  desiredState: ArrayStateInputState!
+}
+
+enum ArrayStateInputState {
+  START
+  STOP
+}
+
+input ArrayDiskInput {
+  """Disk ID"""
+  id: ID!
+
+  """The slot for the disk"""
+  slot: Int
+}
+
+type DockerMutations {
+  """Start a container"""
+  start(id: String!): DockerContainer!
+
+  """Stop a container"""
+  stop(id: String!): DockerContainer!
+}
+
+type ParityCheck {
+  """Date of the parity check"""
+  date: DateTime
+
+  """Duration of the parity check in seconds"""
+  duration: Int
+
+  """Speed of the parity check, in MB/s"""
+  speed: String
+
+  """Status of the parity check"""
+  status: String
+
+  """Number of errors during the parity check"""
+  errors: Int
+
+  """Progress percentage of the parity check"""
+  progress: Int
+
+  """Whether corrections are being written to parity"""
+  correcting: Boolean
+
+  """Whether the parity check is paused"""
+  paused: Boolean
+
+  """Whether the parity check is running"""
+  running: Boolean
+}
+
+"""
+A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date-time format.
+"""
+scalar DateTime
+
+type Config implements Node {
+  id: ID!
+  valid: Boolean
+  error: String
+}
+
+type InfoApps implements Node {
+  id: ID!
+
+  """How many docker containers are installed"""
+  installed: Int!
+
+  """How many docker containers are running"""
+  started: Int!
+}
+
+type Baseboard implements Node {
+  id: ID!
+  manufacturer: String!
+  model: String
+  version: String
+  serial: String
+  assetTag: String
+}
+
+type InfoCpu implements Node {
+  id: ID!
+  manufacturer: String!
+  brand: String!
+  vendor: String!
+  family: String!
+  model: String!
+  stepping: Int!
+  revision: String!
+  voltage: String
+  speed: Float!
+  speedmin: Float!
+  speedmax: Float!
+  threads: Int!
+  cores: Int!
+  processors: Int!
+  socket: String!
+  cache: JSON!
+  flags: [String!]!
+}
+
+type Gpu implements Node {
+  id: ID!
+  type: String!
+  typeid: String!
+  vendorname: String!
+  productid: String!
+  blacklisted: Boolean!
+  class: String!
+}
+
+type Pci implements Node {
+  id: ID!
+  type: String
+  typeid: String
+  vendorname: String
+  vendorid: String
+  productname: String
+  productid: String
+  blacklisted: String
+  class: String
+}
+
+type Usb {
+  id: ID!
+  name: String
+}
+
+type Devices implements Node {
+  id: ID!
+  gpu: [Gpu!]!
+  pci: [Pci!]!
+  usb: [Usb!]!
+}
+
+type Case implements Node {
+  id: ID!
+  icon: String
+  url: String
+  error: String
+  base64: String
+}
+
+type Display implements Node {
+  id: ID!
+  case: Case
+  date: String
+  number: String
+  scale: Boolean
+  tabs: Boolean
+  users: String
+  resize: Boolean
+  wwn: Boolean
+  total: Boolean
+  usage: Boolean
+  banner: String
+  dashapps: String
+  theme: Theme
+  text: Boolean
+  unit: Temperature
+  warning: Int
+  critical: Int
+  hot: Int
+  max: Int
+  locale: String
+}
+
+"""Display theme"""
+enum Theme {
+  white
+}
+
+"""Temperature unit (Celsius or Fahrenheit)"""
+enum Temperature {
+  C
+  F
+}
+
+type MemoryLayout {
+  size: Int!
+  bank: String
+  type: String
+  clockSpeed: Int
+  formFactor: String
+  manufacturer: String
+  partNum: String
+  serialNum: String
+  voltageConfigured: Int
+  voltageMin: Int
+  voltageMax: Int
+}
+
+type InfoMemory implements Node {
+  id: ID!
+  max: Int!
+  total: Int!
+  free: Int!
+  used: Int!
+  active: Int!
+  available: Int!
+  buffcache: Int!
+  swaptotal: Int!
+  swapused: Int!
+  swapfree: Int!
+  layout: [MemoryLayout!]!
+}
+
+type Os implements Node {
+  id: ID!
+  platform: String
+  distro: String
+  release: String
+  codename: String
   kernel: String
-  mongodb: String
-  mysql: String
-  nginx: String
-  node: String
-  npm: String
+  arch: String
+  hostname: String
+  codepage: String
+  logofile: String
+  serial: String
+  build: String
+  uptime: String
+}
+
+type System implements Node {
+  id: ID!
+  manufacturer: String
+  model: String
+  version: String
+  serial: String
+  uuid: String
+  sku: String
+}
+
+type Versions implements Node {
+  id: ID!
+  kernel: String
   openssl: String
-  perl: String
-  php: String
-  pm2: String
-  postfix: String
-  postgresql: String
-  python: String
-  redis: String
   systemOpenssl: String
   systemOpensslLib: String
-  tsc: String
-  unraid: String
+  node: String
   v8: String
+  npm: String
   yarn: String
+  pm2: String
+  gulp: String
+  grunt: String
+  git: String
+  tsc: String
+  mysql: String
+  redis: String
+  mongodb: String
+  apache: String
+  nginx: String
+  php: String
+  docker: String
+  postfix: String
+  postgresql: String
+  perl: String
+  python: String
+  gcc: String
+  unraid: String
 }
 
-"""A virtual machine"""
+type Info implements Node {
+  id: ID!
+
+  """Count of docker containers"""
+  apps: InfoApps!
+  baseboard: Baseboard!
+  cpu: InfoCpu!
+  devices: Devices!
+  display: Display!
+
+  """Machine ID"""
+  machineId: ID
+  memory: InfoMemory!
+  os: Os!
+  system: System!
+  time: DateTime!
+  versions: Versions!
+}
+
+type ContainerPort {
+  ip: String
+  privatePort: Int!
+  publicPort: Int!
+  type: ContainerPortType!
+}
+
+enum ContainerPortType {
+  TCP
+  UDP
+}
+
+type ContainerHostConfig {
+  networkMode: String!
+}
+
+type DockerContainer {
+  id: ID!
+  names: [String!]!
+  image: String!
+  imageId: String!
+  command: String!
+  created: Int!
+  ports: [ContainerPort!]!
+
+  """Total size of all the files in the container"""
+  sizeRootFs: Int
+  labels: JSONObject
+  state: ContainerState!
+  status: String!
+  hostConfig: ContainerHostConfig
+  networkSettings: JSONObject
+  mounts: [JSONObject!]
+  autoStart: Boolean!
+}
+
+"""
+The `JSONObject` scalar type represents JSON objects as specified by [ECMA-404](http://www.ecma-international.org/publications/files/ECMA-ST/ECMA-404.pdf).
+"""
+scalar JSONObject
+
+enum ContainerState {
+  RUNNING
+  EXITED
+}
+
+type DockerNetwork {
+  name: String!
+  id: ID!
+  created: String!
+  scope: String!
+  driver: String!
+  enableIPv6: Boolean!
+  ipam: JSONObject!
+  internal: Boolean!
+  attachable: Boolean!
+  ingress: Boolean!
+  configFrom: JSONObject!
+  configOnly: Boolean!
+  containers: JSONObject!
+  options: JSONObject!
+  labels: JSONObject!
+}
+
+type Docker implements Node {
+  id: ID!
+  containers: [DockerContainer!]!
+  networks: [DockerNetwork!]!
+}
+
+type Flash implements Node {
+  id: ID!
+  guid: String!
+  vendor: String!
+  product: String!
+}
+
+type LogFile {
+  """Name of the log file"""
+  name: String!
+
+  """Full path to the log file"""
+  path: String!
+
+  """Size of the log file in bytes"""
+  size: Int!
+
+  """Last modified timestamp"""
+  modifiedAt: DateTime!
+}
+
+type LogFileContent {
+  """Path to the log file"""
+  path: String!
+
+  """Content of the log file"""
+  content: String!
+
+  """Total number of lines in the file"""
+  totalLines: Int!
+
+  """Starting line number of the content (1-indexed)"""
+  startLine: Int
+}
+
+type NotificationCounts {
+  info: Int!
+  warning: Int!
+  alert: Int!
+  total: Int!
+}
+
+type NotificationOverview {
+  unread: NotificationCounts!
+  archive: NotificationCounts!
+}
+
+type Notification {
+  id: ID!
+
+  """Also known as 'event'"""
+  title: String!
+  subject: String!
+  description: String!
+  importance: NotificationImportance!
+  link: String
+  type: NotificationType!
+
+  """ISO Timestamp for when the notification occurred"""
+  timestamp: String
+  formattedTimestamp: String
+}
+
+enum NotificationImportance {
+  ALERT
+  INFO
+  WARNING
+}
+
+enum NotificationType {
+  UNREAD
+  ARCHIVE
+}
+
+type Notifications {
+  id: ID!
+
+  """A cached overview of the notifications in the system & their severity."""
+  overview: NotificationOverview!
+  list(filter: NotificationFilter!): [Notification!]!
+}
+
+input NotificationFilter {
+  importance: NotificationImportance
+  type: NotificationType!
+  offset: Int!
+  limit: Int!
+}
+
+type Owner {
+  username: String!
+  url: String!
+  avatar: String!
+}
+
 type VmDomain {
+  uuid: ID!
+
   """A friendly name for the vm"""
   name: String
 
   """Current domain vm state"""
   state: VmState!
-  uuid: ID!
 }
 
-type VmMutations {
-  """Force stop a virtual machine"""
-  forceStopVm(id: ID!): Boolean!
-
-  """Pause a virtual machine"""
-  pauseVm(id: ID!): Boolean!
-
-  """Reboot a virtual machine"""
-  rebootVm(id: ID!): Boolean!
-
-  """Reset a virtual machine"""
-  resetVm(id: ID!): Boolean!
-
-  """Resume a virtual machine"""
-  resumeVm(id: ID!): Boolean!
-
-  """Start a virtual machine"""
-  startVm(id: ID!): Boolean!
-
-  """Stop a virtual machine"""
-  stopVm(id: ID!): Boolean!
-}
-
+"""The state of a virtual machine"""
 enum VmState {
-  CRASHED
-  IDLE
   NOSTATE
-  PAUSED
-  PMSUSPENDED
   RUNNING
+  IDLE
+  PAUSED
   SHUTDOWN
   SHUTOFF
+  CRASHED
+  PMSUSPENDED
 }
 
 type Vms {
-  domain: [VmDomain!]
   id: ID!
+  domains: [VmDomain!]
 }
 
-enum WAN_ACCESS_TYPE {
-  ALWAYS
-  DISABLED
-  DYNAMIC
+type Uptime {
+  timestamp: String
 }
 
-enum WAN_FORWARD_TYPE {
-  STATIC
-  UPNP
+type Service implements Node {
+  id: ID!
+  name: String
+  online: Boolean
+  uptime: Uptime
+  version: String
 }
 
-type Welcome {
-  message: String!
+type UserAccount {
+  """A unique identifier for the user"""
+  id: ID!
+
+  """The name of the user"""
+  name: String!
+
+  """A description of the user"""
+  description: String!
+
+  """The roles of the user"""
+  roles: [Role!]!
+
+  """The permissions of the user"""
+  permissions: [Permission!]
 }
 
-input addUserInput {
+type Query {
+  apiKeys: [ApiKey!]!
+  apiKey(id: String!): ApiKey
+  cloud: Cloud!
+  config: Config!
+  display: Display!
+  flash: Flash!
+  info: Info!
+  logFiles: [LogFile!]!
+  logFile(path: String!, lines: Int, startLine: Int): LogFileContent!
+  me: UserAccount!
+  network: Network!
+
+  """Get all notifications"""
+  notifications: Notifications!
+  online: Boolean!
+  owner: Owner!
+  registration: Registration
+  server: Server
+  servers: [Server!]!
+  services: [Service!]!
+  shares: [Share!]!
+  vars: Vars!
+  vms: Vms!
+  parityHistory: [ParityCheck!]!
+  array: UnraidArray!
+  connect: Connect!
+  remoteAccess: RemoteAccess!
+  extraAllowedOrigins: [String!]!
+  docker: Docker!
+  disks: [Disk!]!
+  disk(id: String!): Disk!
+}
+
+type Mutation {
+  createApiKey(input: CreateApiKeyInput!): ApiKeyWithSecret!
+  addRoleForApiKey(input: AddRoleForApiKeyInput!): Boolean!
+  removeRoleFromApiKey(input: RemoveRoleFromApiKeyInput!): Boolean!
+
+  """Creates a new notification record"""
+  createNotification(input: NotificationData!): Notification!
+  deleteNotification(id: String!, type: NotificationType!): NotificationOverview!
+
+  """Deletes all archived notifications on server."""
+  deleteArchivedNotifications: NotificationOverview!
+
+  """Marks a notification as archived."""
+  archiveNotification(id: String!): Notification!
+  archiveNotifications(ids: [String!]!): NotificationOverview!
+  archiveAll(importance: NotificationImportance): NotificationOverview!
+
+  """Marks a notification as unread."""
+  unreadNotification(id: String!): Notification!
+  unarchiveNotifications(ids: [String!]!): NotificationOverview!
+  unarchiveAll(importance: NotificationImportance): NotificationOverview!
+
+  """Reads each notification to recompute & update the overview."""
+  recalculateOverview: NotificationOverview!
+  array: ArrayMutations!
+  docker: DockerMutations!
+
+  """Start a virtual machine"""
+  startVm(id: String!): Boolean!
+
+  """Stop a virtual machine"""
+  stopVm(id: String!): Boolean!
+
+  """Pause a virtual machine"""
+  pauseVm(id: String!): Boolean!
+
+  """Resume a virtual machine"""
+  resumeVm(id: String!): Boolean!
+
+  """Force stop a virtual machine"""
+  forceStopVm(id: String!): Boolean!
+
+  """Reboot a virtual machine"""
+  rebootVm(id: String!): Boolean!
+
+  """Reset a virtual machine"""
+  resetVm(id: String!): Boolean!
+  startParityCheck(correct: Boolean!): JSON!
+  pauseParityCheck: JSON!
+  resumeParityCheck: JSON!
+  cancelParityCheck: JSON!
+  updateApiSettings(input: ApiSettingsInput!): ConnectSettingsValues!
+  connectSignIn(input: ConnectSignInInput!): Boolean!
+  connectSignOut: Boolean!
+  setupRemoteAccess(input: SetupRemoteAccessInput!): Boolean!
+  setAdditionalAllowedOrigins(input: AllowedOriginInput!): [String!]!
+  enableDynamicRemoteAccess(input: EnableDynamicRemoteAccessInput!): Boolean!
+}
+
+input CreateApiKeyInput {
+  name: String!
   description: String
-  name: String!
-  password: String!
+  roles: [Role!]
+  permissions: [AddPermissionInput!]
+
+  """
+  This will replace the existing key if one already exists with the same name, otherwise returns the existing key
+  """
+  overwrite: Boolean
 }
 
-input deleteUserInput {
-  name: String!
+input AddPermissionInput {
+  resource: Resource!
+  actions: [String!]!
 }
 
-enum mdState {
-  STARTED
-  SWAP_DSBL
+input AddRoleForApiKeyInput {
+  apiKeyId: ID!
+  role: Role!
 }
 
-enum registrationType {
-  BASIC
-  INVALID
-  LIFETIME
-  PLUS
-  PRO
-  STARTER
-  TRIAL
-  UNLEASHED
+input RemoveRoleFromApiKeyInput {
+  apiKeyId: ID!
+  role: Role!
 }
 
-input usersInput {
-  slim: Boolean
+input NotificationData {
+  title: String!
+  subject: String!
+  description: String!
+  importance: NotificationImportance!
+  link: String
+}
+
+input ApiSettingsInput {
+  """
+  If true, the GraphQL sandbox will be enabled and available at /graphql. If false, the GraphQL sandbox will be disabled and only the production API will be available.
+  """
+  sandbox: Boolean
+
+  """A list of origins allowed to interact with the API"""
+  extraOrigins: [String!]
+
+  """The type of WAN access to use for Remote Access"""
+  accessType: WAN_ACCESS_TYPE
+
+  """The type of port forwarding to use for Remote Access"""
+  forwardType: WAN_FORWARD_TYPE
+
+  """
+  The port to use for Remote Access. Not required for UPNP forwardType. Required for STATIC forwardType. Ignored if accessType is DISABLED or forwardType is UPNP.
+  """
+  port: Int
+
+  """A list of Unique Unraid Account ID's"""
+  ssoUserIds: [String!]
+}
+
+input ConnectSignInInput {
+  """The API key for authentication"""
+  apiKey: String!
+
+  """The ID token for authentication"""
+  idToken: String
+
+  """User information for the sign-in"""
+  userInfo: ConnectUserInfoInput
+
+  """The access token for authentication"""
+  accessToken: String
+
+  """The refresh token for authentication"""
+  refreshToken: String
+}
+
+input ConnectUserInfoInput {
+  """The preferred username of the user"""
+  preferred_username: String!
+
+  """The email address of the user"""
+  email: String!
+
+  """The avatar URL of the user"""
+  avatar: String
+}
+
+input SetupRemoteAccessInput {
+  """The type of WAN access to use for Remote Access"""
+  accessType: WAN_ACCESS_TYPE!
+
+  """The type of port forwarding to use for Remote Access"""
+  forwardType: WAN_FORWARD_TYPE
+
+  """
+  The port to use for Remote Access. Not required for UPNP forwardType. Required for STATIC forwardType. Ignored if accessType is DISABLED or forwardType is UPNP.
+  """
+  port: Int
+}
+
+input AllowedOriginInput {
+  """A list of origins allowed to interact with the API"""
+  origins: [String!]!
+}
+
+input EnableDynamicRemoteAccessInput {
+  """The URL for dynamic remote access"""
+  url: URL!
+
+  """Whether to enable or disable dynamic remote access"""
+  enabled: Boolean!
+}
+
+type Subscription {
+  displaySubscription: Display!
+  infoSubscription: Info!
+  logFile(path: String!): LogFileContent!
+  notificationAdded: Notification!
+  notificationsOverview: NotificationOverview!
+  ownerSubscription: Owner!
+  registrationSubscription: Registration!
+  serversSubscription: Server!
+  parityHistorySubscription: ParityCheck!
+  arraySubscription: UnraidArray!
 }

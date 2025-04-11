@@ -6,8 +6,8 @@ const config: CodegenConfig = {
     verbose: true,
     config: {
         namingConvention: {
-            typeNames: './fix-array-type.cjs',
-            enumValues: 'change-case#upperCase',
+            enumValues: 'change-case-all#upperCase',
+            transformUnderscore: true,
             useTypeImports: true,
         },
         scalars: {

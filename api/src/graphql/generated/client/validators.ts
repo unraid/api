@@ -1,6 +1,6 @@
 /* eslint-disable */
 import { z } from 'zod'
-import { AccessUrlInput, ArrayCapacityBytesInput, ArrayCapacityInput, ClientType, ConfigErrorState, DashboardAppsInput, DashboardArrayInput, DashboardCaseInput, DashboardConfigInput, DashboardDisplayInput, DashboardInput, DashboardOsInput, DashboardServiceInput, DashboardServiceUptimeInput, DashboardTwoFactorInput, DashboardTwoFactorLocalInput, DashboardTwoFactorRemoteInput, DashboardVarsInput, DashboardVersionsInput, DashboardVmsInput, EventType, Importance, NetworkInput, NotificationInput, NotificationStatus, PingEventSource, RegistrationState, RemoteAccessEventActionType, RemoteAccessInput, RemoteGraphQLClientInput, RemoteGraphQLEventType, RemoteGraphQLServerInput, ServerStatus, URL_TYPE, UpdateType } from '@app/graphql/generated/client/graphql.js'
+import { AccessUrlInput, ArrayCapacityBytesInput, ArrayCapacityInput, ClientType, ConfigErrorState, DashboardAppsInput, DashboardArrayInput, DashboardCaseInput, DashboardConfigInput, DashboardDisplayInput, DashboardInput, DashboardOsInput, DashboardServiceInput, DashboardServiceUptimeInput, DashboardTwoFactorInput, DashboardTwoFactorLocalInput, DashboardTwoFactorRemoteInput, DashboardVarsInput, DashboardVersionsInput, DashboardVmsInput, EventType, Importance, NetworkInput, NotificationInput, NotificationStatus, PingEventSource, RegistrationState, RemoteAccessEventActionType, RemoteAccessInput, RemoteGraphQlClientInput, RemoteGraphQlEventType, RemoteGraphQlServerInput, ServerStatus, UrlType, UpdateType } from '@app/graphql/generated/client/graphql.js'
 
 type Properties<T> = Required<{
   [K in keyof T]: z.ZodType<T[K], any, T[K]>;
@@ -28,11 +28,11 @@ export const RegistrationStateSchema = z.nativeEnum(RegistrationState);
 
 export const RemoteAccessEventActionTypeSchema = z.nativeEnum(RemoteAccessEventActionType);
 
-export const RemoteGraphQLEventTypeSchema = z.nativeEnum(RemoteGraphQLEventType);
+export const RemoteGraphQlEventTypeSchema = z.nativeEnum(RemoteGraphQlEventType);
 
 export const ServerStatusSchema = z.nativeEnum(ServerStatus);
 
-export const URL_TYPESchema = z.nativeEnum(URL_TYPE);
+export const UrlTypeSchema = z.nativeEnum(UrlType);
 
 export const UpdateTypeSchema = z.nativeEnum(UpdateType);
 
@@ -41,7 +41,7 @@ export function AccessUrlInputSchema(): z.ZodObject<Properties<AccessUrlInput>> 
     ipv4: z.instanceof(URL).nullish(),
     ipv6: z.instanceof(URL).nullish(),
     name: z.string().nullish(),
-    type: URL_TYPESchema
+    type: UrlTypeSchema
   })
 }
 
@@ -198,7 +198,7 @@ export function RemoteAccessInputSchema(): z.ZodObject<Properties<RemoteAccessIn
   })
 }
 
-export function RemoteGraphQLClientInputSchema(): z.ZodObject<Properties<RemoteGraphQLClientInput>> {
+export function RemoteGraphQlClientInputSchema(): z.ZodObject<Properties<RemoteGraphQlClientInput>> {
   return z.object({
     apiKey: z.string(),
     body: z.string(),
@@ -207,10 +207,10 @@ export function RemoteGraphQLClientInputSchema(): z.ZodObject<Properties<RemoteG
   })
 }
 
-export function RemoteGraphQLServerInputSchema(): z.ZodObject<Properties<RemoteGraphQLServerInput>> {
+export function RemoteGraphQlServerInputSchema(): z.ZodObject<Properties<RemoteGraphQlServerInput>> {
   return z.object({
     body: z.string(),
     sha256: z.string(),
-    type: RemoteGraphQLEventTypeSchema
+    type: RemoteGraphQlEventTypeSchema
   })
 }

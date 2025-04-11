@@ -157,7 +157,7 @@ const defaultCacheConfig: InMemoryCacheConfig = {
               cache.evict({
                 id: archiveQuery.notifications.id,
                 fieldName: 'list',
-                args: { filter: { type: NotificationType.Archive } },
+                args: { filter: { type: NotificationType.ARCHIVE } },
               });
             }
             cache.gc();
