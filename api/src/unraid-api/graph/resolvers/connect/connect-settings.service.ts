@@ -182,6 +182,21 @@ export class ConnectSettingsService {
         store.dispatch(updateAllowedOrigins(origins));
     }
 
+    private async getOrCreateLocalApiKey() {
+        const { getters } = await import('@app/store/index.js');
+        const { localApiKey: localApiKeyFromConfig } = getters.config().remote;
+        if (localApiKeyFromConfig === '') {
+            const localApiKey = await this.apiKeyService.createLocalConnectApiKey();
+            if (!localApiKey?.key) {
+                throw new GraphQLError('Failed to create local API key', {
+                    extensions: { code: 'INTERNAL_SERVER_ERROR' },
+                });
+            }
+            return localApiKey.key;
+        }
+        return localApiKeyFromConfig;
+    }
+
     async signIn(input: ConnectSignInInput) {
         const { getters, store } = await import('@app/store/index.js');
         if (getters.emhttp().status === FileLoadStatus.LOADED) {
@@ -194,25 +209,13 @@ export class ConnectSettingsService {
                 typeof userInfo.preferred_username !== 'string' ||
                 typeof userInfo.email !== 'string'
             ) {
-                throw new Error('Missing User Attributes');
+                throw new GraphQLError('Missing User Attributes', {
+                    extensions: { code: 'BAD_REQUEST' },
+                });
             }
 
             try {
-                const { remote } = getters.config();
-                const { localApiKey: localApiKeyFromConfig } = remote;
-
-                let localApiKeyToUse = localApiKeyFromConfig;
-
-                if (localApiKeyFromConfig == '') {
-                    // Create local API key
-                    const localApiKey = await this.apiKeyService.createLocalConnectApiKey();
-
-                    if (!localApiKey?.key) {
-                        throw new Error('Failed to create local API key');
-                    }
-
-                    localApiKeyToUse = localApiKey.key;
-                }
+                const localApiKey = await this.getOrCreateLocalApiKey();
 
                 await store.dispatch(
                     loginUser({
@@ -220,13 +223,15 @@ export class ConnectSettingsService {
                         username: userInfo.preferred_username,
                         email: userInfo.email,
                         apikey: input.apiKey,
-                        localApiKey: localApiKeyToUse,
+                        localApiKey,
                     })
                 );
 
                 return true;
             } catch (error) {
-                throw new Error(`Failed to login user: ${error}`);
+                throw new GraphQLError(`Failed to login user: ${error}`, {
+                    extensions: { code: 'INTERNAL_SERVER_ERROR' },
+                });
             }
         } else {
             return false;
