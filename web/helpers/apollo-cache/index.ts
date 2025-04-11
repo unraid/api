@@ -147,7 +147,7 @@ const defaultCacheConfig: InMemoryCacheConfig = {
             const archiveQuery = cache.readQuery({
               query: getNotifications,
               // @ts-expect-error the cache only uses the filter type; the limit & offset are superfluous.
-              variables: { filter: { type: NotificationType.Archive } },
+              variables: { filter: { type: NotificationType.ARCHIVE } },
             });
             if (!archiveQuery) return incoming;
 

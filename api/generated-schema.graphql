@@ -266,6 +266,27 @@ type Share implements Node {
   luksStatus: String
 }
 
+type AccessUrl {
+  type: URL_TYPE!
+  name: String
+  ipv4: URL
+  ipv6: URL
+}
+
+enum URL_TYPE {
+  LAN
+  WIREGUARD
+  WAN
+  MDNS
+  OTHER
+  DEFAULT
+}
+
+"""
+A field whose value conforms to the standard URL format as specified in RFC3986: https://www.ietf.org/rfc/rfc3986.txt.
+"""
+scalar URL
+
 type RemoteAccess {
   """The type of WAN access used for Remote Access"""
   accessType: WAN_ACCESS_TYPE!
@@ -356,27 +377,6 @@ type Connect implements Node {
   """The settings for the Connect instance"""
   settings: ConnectSettings!
 }
-
-type AccessUrl {
-  type: URL_TYPE!
-  name: String
-  ipv4: URL
-  ipv6: URL
-}
-
-enum URL_TYPE {
-  LAN
-  WIREGUARD
-  WAN
-  MDNS
-  OTHER
-  DEFAULT
-}
-
-"""
-A field whose value conforms to the standard URL format as specified in RFC3986: https://www.ietf.org/rfc/rfc3986.txt.
-"""
-scalar URL
 
 type Network implements Node {
   id: ID!
@@ -1565,11 +1565,18 @@ input AllowedOriginInput {
 }
 
 input EnableDynamicRemoteAccessInput {
-  """The URL for dynamic remote access"""
-  url: URL!
+  """The AccessURL Input for dynamic remote access"""
+  url: AccessUrlInput!
 
   """Whether to enable or disable dynamic remote access"""
   enabled: Boolean!
+}
+
+input AccessUrlInput {
+  type: URL_TYPE!
+  name: String
+  ipv4: URL
+  ipv6: URL
 }
 
 type Subscription {

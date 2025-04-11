@@ -85,14 +85,7 @@ export class ConnectSettingsService {
             return true;
         } else if (controller.getRunningRemoteAccessType() === DynamicRemoteAccessType.DISABLED) {
             if (input.url) {
-                store.dispatch(
-                    setAllowedRemoteAccessUrl({
-                        type: URL_TYPE.WAN,
-                        name: 'Dynamic Remote Access',
-                        ipv4: input.url,
-                        ipv6: null,
-                    })
-                );
+                store.dispatch(setAllowedRemoteAccessUrl(input.url));
             }
             await controller.beginRemoteAccess({
                 getState: store.getState,

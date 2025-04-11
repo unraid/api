@@ -48,6 +48,39 @@ registerEnumType(WAN_FORWARD_TYPE, {
 });
 
 @InputType()
+export class AccessUrlInput {
+    @Field(() => URL_TYPE)
+    type!: URL_TYPE;
+
+    @Field(() => String, { nullable: true })
+    name?: string | null;
+
+    @Field(() => GraphQLURL, { nullable: true })
+    ipv4?: URL | null;
+
+    @Field(() => GraphQLURL, { nullable: true })
+    ipv6?: URL | null;
+}
+
+/**
+ * This defines the LOCAL server Access URLs - these are sent to Connect if needed to share access routes
+ */
+@ObjectType()
+export class AccessUrl {
+    @Field(() => URL_TYPE)
+    type!: URL_TYPE;
+
+    @Field(() => String, { nullable: true })
+    name?: string | null;
+
+    @Field(() => GraphQLURL, { nullable: true })
+    ipv4?: URL | null;
+
+    @Field(() => GraphQLURL, { nullable: true })
+    ipv6?: URL | null;
+}
+
+@InputType()
 export class ConnectUserInfoInput {
     @Field(() => String, { description: 'The preferred username of the user' })
     @IsString()
@@ -152,9 +185,10 @@ export class SetupRemoteAccessInput {
 
 @InputType()
 export class EnableDynamicRemoteAccessInput {
-    @Field(() => GraphQLURL, { description: 'The URL for dynamic remote access' })
+    @Field(() => AccessUrlInput, { description: 'The AccessURL Input for dynamic remote access' })
+    @ValidateNested()
     @IsNotEmpty()
-    url!: URL;
+    url!: AccessUrlInput;
 
     @Field(() => Boolean, { description: 'Whether to enable or disable dynamic remote access' })
     @IsBoolean()
@@ -325,39 +359,6 @@ export enum URL_TYPE {
 registerEnumType(URL_TYPE, {
     name: 'URL_TYPE',
 });
-
-@InputType()
-export class AccessUrlInput {
-    @Field(() => URL_TYPE)
-    type!: URL_TYPE;
-
-    @Field(() => String, { nullable: true })
-    name?: string | null;
-
-    @Field(() => GraphQLURL, { nullable: true })
-    ipv4?: URL | null;
-
-    @Field(() => GraphQLURL, { nullable: true })
-    ipv6?: URL | null;
-}
-
-/**
- * This defines the LOCAL server Access URLs - these are sent to Connect if needed to share access routes
- */
-@ObjectType()
-export class AccessUrl {
-    @Field(() => URL_TYPE)
-    type!: URL_TYPE;
-
-    @Field(() => String, { nullable: true })
-    name?: string | null;
-
-    @Field(() => GraphQLURL, { nullable: true })
-    ipv4?: URL | null;
-
-    @Field(() => GraphQLURL, { nullable: true })
-    ipv6?: URL | null;
-}
 
 @ObjectType({
     implements: () => Node,
