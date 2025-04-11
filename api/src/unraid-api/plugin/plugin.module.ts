@@ -1,6 +1,5 @@
 import { DynamicModule, Logger, Module } from '@nestjs/common';
 
-import { ApiStateConfigModule } from '@unraid/api-config';
 import { z } from 'zod';
 
 import { CONFIG_MODULES_HOME } from '@app/environment.js';
@@ -22,18 +21,7 @@ export class PluginModule {
 
         return {
             module: PluginModule,
-            imports: [
-                ApiStateConfigModule.register({
-                    name: 'demoState',
-                    zodSchema: z.object({
-                        demo: z.string(),
-                    }),
-                    defaultConfig: {
-                        demo: 'demo',
-                    },
-                }),
-                ...apiModules,
-            ],
+            imports: [...apiModules],
             providers: [
                 PluginService,
                 {
