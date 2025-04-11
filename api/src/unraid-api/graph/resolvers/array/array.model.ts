@@ -1,4 +1,4 @@
-import { Field, Float, ID, InputType, Int, ObjectType, registerEnumType } from '@nestjs/graphql';
+import { Field, ID, InputType, Int, ObjectType, registerEnumType } from '@nestjs/graphql';
 
 import { GraphQLLong } from '@app/graphql/resolvers/graphql-type-long.js';
 import { Node } from '@app/unraid-api/graph/resolvers/base.model.js';
@@ -43,7 +43,7 @@ export class ArrayDisk implements Node {
     @Field(() => String, { nullable: true })
     device?: string;
 
-    @Field(() => Float, { description: '(KB) Disk Size total', nullable: true })
+    @Field(() => GraphQLLong, { description: '(KB) Disk Size total', nullable: true })
     size?: number | null;
 
     @Field(() => ArrayDiskStatus, { nullable: true })
@@ -58,40 +58,40 @@ export class ArrayDisk implements Node {
     })
     temp?: number | null;
 
-    @Field(() => Float, {
+    @Field(() => GraphQLLong, {
         nullable: true,
         description:
             'Count of I/O read requests sent to the device I/O drivers. These statistics may be cleared at any time.',
     })
     numReads?: number | null;
 
-    @Field(() => Float, {
+    @Field(() => GraphQLLong, {
         nullable: true,
         description:
             'Count of I/O writes requests sent to the device I/O drivers. These statistics may be cleared at any time.',
     })
     numWrites?: number | null;
 
-    @Field(() => Float, {
+    @Field(() => GraphQLLong, {
         nullable: true,
         description:
             'Number of unrecoverable errors reported by the device I/O drivers. Missing data due to unrecoverable array read errors is filled in on-the-fly using parity reconstruct (and we attempt to write this data back to the sector(s) which failed). Any unrecoverable write error results in disabling the disk.',
     })
     numErrors?: number | null;
 
-    @Field(() => Float, {
+    @Field(() => GraphQLLong, {
         nullable: true,
         description: '(KB) Total Size of the FS (Not present on Parity type drive)',
     })
     fsSize?: number | null;
 
-    @Field(() => Float, {
+    @Field(() => GraphQLLong, {
         nullable: true,
         description: '(KB) Free Size on the FS (Not present on Parity type drive)',
     })
     fsFree?: number | null;
 
-    @Field(() => Float, {
+    @Field(() => GraphQLLong, {
         nullable: true,
         description: '(KB) Used Size on the FS (Not present on Parity type drive)',
     })

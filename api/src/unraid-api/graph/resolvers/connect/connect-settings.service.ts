@@ -78,7 +78,7 @@ export class ConnectSettingsService {
         const controller = RemoteAccessController.instance;
 
         if (input.enabled === false) {
-            controller.stopRemoteAccess({
+            await controller.stopRemoteAccess({
                 getState: store.getState,
                 dispatch: store.dispatch,
             });
@@ -94,7 +94,7 @@ export class ConnectSettingsService {
                     })
                 );
             }
-            controller.beginRemoteAccess({
+            await controller.beginRemoteAccess({
                 getState: store.getState,
                 dispatch: store.dispatch,
             });

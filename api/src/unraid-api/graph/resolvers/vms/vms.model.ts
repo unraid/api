@@ -34,7 +34,7 @@ export class Vms {
     @Field(() => ID)
     id!: string;
 
-    @Field(() => [VmDomain])
+    @Field(() => [VmDomain], { nullable: true })
     domains?: VmDomain[];
 }
 

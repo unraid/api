@@ -73,7 +73,7 @@ type ArrayDisk implements Node {
   device: String
 
   """(KB) Disk Size total"""
-  size: Float
+  size: Long
   status: ArrayDiskStatus
 
   """Is the disk a HDD or SSD."""
@@ -85,26 +85,26 @@ type ArrayDisk implements Node {
   """
   Count of I/O read requests sent to the device I/O drivers. These statistics may be cleared at any time.
   """
-  numReads: Float
+  numReads: Long
 
   """
   Count of I/O writes requests sent to the device I/O drivers. These statistics may be cleared at any time.
   """
-  numWrites: Float
+  numWrites: Long
 
   """
   Number of unrecoverable errors reported by the device I/O drivers. Missing data due to unrecoverable array read errors is filled in on-the-fly using parity reconstruct (and we attempt to write this data back to the sector(s) which failed). Any unrecoverable write error results in disabling the disk.
   """
-  numErrors: Float
+  numErrors: Long
 
   """(KB) Total Size of the FS (Not present on Parity type drive)"""
-  fsSize: Float
+  fsSize: Long
 
   """(KB) Free Size on the FS (Not present on Parity type drive)"""
-  fsFree: Float
+  fsFree: Long
 
   """(KB) Used Size on the FS (Not present on Parity type drive)"""
-  fsUsed: Float
+  fsUsed: Long
   exportable: Boolean
 
   """Type of Disk - used to differentiate Cache / Flash / Array / Parity"""
@@ -133,6 +133,9 @@ type ArrayDisk implements Node {
 interface Node {
   id: ID!
 }
+
+"""The `Long` scalar type represents 52-bit integers"""
+scalar Long
 
 enum ArrayDiskStatus {
   DISK_NP
@@ -262,9 +265,6 @@ type Share implements Node {
   """LUKS status"""
   luksStatus: String
 }
-
-"""The `Long` scalar type represents 52-bit integers"""
-scalar Long
 
 type RemoteAccess {
   """The type of WAN access used for Remote Access"""
@@ -1311,7 +1311,7 @@ enum VmState {
 
 type Vms {
   id: ID!
-  domains: [VmDomain!]!
+  domains: [VmDomain!]
 }
 
 type Uptime {
