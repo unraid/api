@@ -7,6 +7,9 @@ export class ArrayMutations {}
 export class DockerMutations {}
 
 @ObjectType()
+export class VmMutations {}
+
+@ObjectType()
 export class RootMutations {
     @Field(() => ArrayMutations, { description: 'Array related mutations' })
     array: ArrayMutations = new ArrayMutations();
