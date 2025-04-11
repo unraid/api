@@ -1,13 +1,10 @@
 import { config } from '@vue/test-utils';
 
 import { createTestingPinia } from '@pinia/testing';
-import { afterAll, beforeAll, vi } from 'vitest';
+import { vi } from 'vitest';
 
 // Import mocks
-import './mocks/shared-callbacks.js';
 import './mocks/ui-components.js';
-import './mocks/stores/index.js';
-import './mocks/services/index.js';
 
 // Configure Vue Test Utils
 config.global.plugins = [
@@ -34,7 +31,3 @@ globalThis.fetch = vi.fn(() =>
     text: () => Promise.resolve(''),
   } as Response)
 );
-
-// Global setup and cleanup
-beforeAll(() => {});
-afterAll(() => {});
