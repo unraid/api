@@ -1,9 +1,12 @@
 import { Args, Mutation, Query, Resolver } from '@nestjs/graphql';
 
-import { AuthActionVerb, AuthPossession, UsePermissions } from 'nest-authz';
-
 import { ApiKeyService } from '@app/unraid-api/auth/api-key.service.js';
 import { AuthService } from '@app/unraid-api/auth/auth.service.js';
+import {
+    AuthActionVerb,
+    AuthPossession,
+    UsePermissions,
+} from '@app/unraid-api/graph/directives/use-permissions.directive.js';
 import {
     AddRoleForApiKeyInput,
     ApiKey,
