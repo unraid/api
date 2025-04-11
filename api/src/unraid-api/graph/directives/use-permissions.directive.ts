@@ -13,11 +13,12 @@ import { AuthActionVerb, AuthPossession, UsePermissions as NestAuthzUsePermissio
 // Re-export the types from nest-authz
 export { AuthActionVerb, AuthPossession };
 
-// Create GraphQL enum types for auth action verbs and possessions
-const AuthActionVerbEnum = new GraphQLEnumType({
-    name: 'AuthActionVerb',
-    description: 'Available authentication action verbs',
-    values: Object.entries(AuthActionVerb)
+const buildGraphQLEnum = (
+    enumObj: Record<string, string | number>,
+    name: string,
+    description: string
+) => {
+    const values = Object.entries(enumObj)
         .filter(([key]) => isNaN(Number(key)))
         .reduce(
             (acc, [key]) => {
@@ -25,22 +26,23 @@ const AuthActionVerbEnum = new GraphQLEnumType({
                 return acc;
             },
             {} as Record<string, { value: string }>
-        ),
-});
+        );
 
-const AuthPossessionEnum = new GraphQLEnumType({
-    name: 'AuthPossession',
-    description: 'Available authentication possession types',
-    values: Object.entries(AuthPossession)
-        .filter(([key]) => isNaN(Number(key)))
-        .reduce(
-            (acc, [key]) => {
-                acc[key] = { value: key };
-                return acc;
-            },
-            {} as Record<string, { value: string }>
-        ),
-});
+    return new GraphQLEnumType({ name, description, values });
+};
+
+// Create GraphQL enum types for auth action verbs and possessions
+const AuthActionVerbEnum = buildGraphQLEnum(
+    AuthActionVerb,
+    'AuthActionVerb',
+    'Available authentication action verbs'
+);
+
+const AuthPossessionEnum = buildGraphQLEnum(
+    AuthPossession,
+    'AuthPossession',
+    'Available authentication possession types'
+);
 
 // Create the auth directive
 export const UsePermissionsDirective = new GraphQLDirective({
