@@ -1,10 +1,13 @@
 import { Query, Resolver } from '@nestjs/graphql';
 
-import { AuthActionVerb, AuthPossession, UsePermissions } from 'nest-authz';
-
 import { bootTimestamp } from '@app/common/dashboard/boot-timestamp.js';
 import { API_VERSION } from '@app/environment.js';
 import { store } from '@app/store/index.js';
+import {
+    AuthActionVerb,
+    AuthPossession,
+    UsePermissions,
+} from '@app/unraid-api/graph/directives/use-permissions.directive.js';
 import { Resource } from '@app/unraid-api/graph/resolvers/base.model.js';
 import { DynamicRemoteAccessType } from '@app/unraid-api/graph/resolvers/connect/connect.model.js';
 import { Service } from '@app/unraid-api/graph/services/service.model.js';

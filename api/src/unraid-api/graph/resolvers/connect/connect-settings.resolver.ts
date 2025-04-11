@@ -3,11 +3,15 @@ import { Args, ID, Mutation, Query, ResolveField, Resolver } from '@nestjs/graph
 
 import { Layout } from '@jsonforms/core';
 import { GraphQLJSON, GraphQLJSONObject } from 'graphql-scalars';
-import { AuthActionVerb, AuthPossession, UsePermissions } from 'nest-authz';
 
 import { getAllowedOrigins } from '@app/common/allowed-origins.js';
 import { setupRemoteAccessThunk } from '@app/store/actions/setup-remote-access.js';
 import { logoutUser, updateAllowedOrigins } from '@app/store/modules/config.js';
+import {
+    AuthActionVerb,
+    AuthPossession,
+    UsePermissions,
+} from '@app/unraid-api/graph/directives/use-permissions.directive.js';
 import { Resource } from '@app/unraid-api/graph/resolvers/base.model.js';
 import { ConnectSettingsService } from '@app/unraid-api/graph/resolvers/connect/connect-settings.service.js';
 import {

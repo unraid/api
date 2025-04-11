@@ -2,6 +2,18 @@
 # THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
 # ------------------------------------------------------
 
+"""Directive to document required permissions for fields"""
+directive @usePermissions(
+  """The action verb required for access"""
+  action: AuthActionVerb
+
+  """The resource required for access"""
+  resource: String
+
+  """The possession type required for access"""
+  possession: AuthPossession
+) on FIELD_DEFINITION
+
 type ApiKeyResponse {
   valid: Boolean!
   error: String
@@ -1590,4 +1602,19 @@ type Subscription {
   serversSubscription: Server!
   parityHistorySubscription: ParityCheck!
   arraySubscription: UnraidArray!
+}
+
+"""Available authentication action verbs"""
+enum AuthActionVerb {
+  CREATE
+  UPDATE
+  DELETE
+  READ
+}
+
+"""Available authentication possession types"""
+enum AuthPossession {
+  ANY
+  OWN
+  OWN_ANY
 }
