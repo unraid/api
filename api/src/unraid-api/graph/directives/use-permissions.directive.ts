@@ -89,7 +89,6 @@ export function usePermissionsSchemaTransformer(schema: GraphQLSchema) {
     return mapSchema(schema, {
         [MapperKind.OBJECT_FIELD]: (fieldConfig, fieldName, typeName) => {
             const usePermissionsDirective = getDirective(schema, fieldConfig, 'usePermissions')?.[0];
-            console.log('usePermissionsDirective', usePermissionsDirective);
             if (usePermissionsDirective) {
                 const {
                     action: actionValue,
