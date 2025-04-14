@@ -1,4 +1,5 @@
-import { Field, ID, InputType, Int, ObjectType, registerEnumType } from '@nestjs/graphql';
+import { Field, InputType, Int, ObjectType, registerEnumType } from '@nestjs/graphql';
+import { Node } from '@app/unraid-api/graph/resolvers/base.model.js';
 
 import { IsEnum, IsInt, IsNotEmpty, IsOptional, IsString, Min } from 'class-validator';
 
@@ -109,12 +110,9 @@ export class NotificationOverview {
     archive!: NotificationCounts;
 }
 
-@ObjectType('Notification')
-export class Notification {
-    @Field(() => ID)
-    @IsString()
-    @IsNotEmpty()
-    id!: string;
+@ObjectType({ implements: () => Node })
+export class Notification extends Node {
+    @Field({ description: "Also known as 'event'" })
 
     @Field({ description: "Also known as 'event'" })
     @IsString()
@@ -157,13 +155,8 @@ export class Notification {
     formattedTimestamp?: string;
 }
 
-@ObjectType('Notifications')
-export class Notifications {
-    @Field(() => ID)
-    @IsString()
-    @IsNotEmpty()
-    id!: string;
-
+@ObjectType({ implements: () => Node })
+export class Notifications extends Node {
     @Field(() => NotificationOverview, {
         description: 'A cached overview of the notifications in the system & their severity.',
     })

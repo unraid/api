@@ -32,10 +32,7 @@ registerEnumType(MdState, {
 @ObjectType({
     implements: () => Node,
 })
-export class Vars implements Node {
-    @Field(() => ID)
-    id!: string;
-
+export class Vars extends Node {
     @Field({ nullable: true, description: 'Unraid version' })
     version?: string;
 

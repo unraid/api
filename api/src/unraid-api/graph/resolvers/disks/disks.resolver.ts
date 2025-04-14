@@ -8,6 +8,7 @@ import {
 import { Resource } from '@app/unraid-api/graph/resolvers/base.model.js';
 import { Disk } from '@app/unraid-api/graph/resolvers/disks/disks.model.js';
 import { DisksService } from '@app/unraid-api/graph/resolvers/disks/disks.service.js';
+import { PrefixedID } from '@app/unraid-api/graph/scalars/graphql-type-prefixed-id.js';
 
 @Resolver(() => Disk)
 export class DisksResolver {
@@ -29,7 +30,7 @@ export class DisksResolver {
         resource: Resource.DISK,
         possession: AuthPossession.ANY,
     })
-    public async disk(@Args('id') id: string) {
+    public async disk(@Args('id', { type: () => PrefixedID }) id: string) {
         return this.disksService.getDisk(id);
     }
 

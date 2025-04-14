@@ -71,10 +71,8 @@ export class ContainerMount {
     propagation!: string;
 }
 
-@ObjectType()
-export class DockerContainer {
-    @Field(() => ID)
-    id!: string;
+@ObjectType({ implements: () => Node })
+export class DockerContainer extends Node {
 
     @Field(() => [String])
     names!: string[];
@@ -119,13 +117,10 @@ export class DockerContainer {
     autoStart!: boolean;
 }
 
-@ObjectType()
-export class DockerNetwork {
+@ObjectType({ implements: () => Node })
+export class DockerNetwork extends Node {
     @Field(() => String)
     name!: string;
-
-    @Field(() => ID)
-    id!: string;
 
     @Field(() => String)
     created!: string;
@@ -170,10 +165,7 @@ export class DockerNetwork {
 @ObjectType({
     implements: () => Node,
 })
-export class Docker implements Node {
-    @Field(() => ID)
-    id!: string;
-
+export class Docker extends Node {
     @Field(() => [DockerContainer])
     containers!: DockerContainer[];
 
