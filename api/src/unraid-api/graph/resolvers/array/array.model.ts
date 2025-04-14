@@ -136,15 +136,6 @@ export class UnraidArray implements Node {
     @Field(() => ID)
     id!: string;
 
-    @Field(() => ArrayState, { nullable: true, description: 'Array state before this query/mutation' })
-    previousState?: ArrayState;
-
-    @Field(() => ArrayPendingState, {
-        nullable: true,
-        description: 'Array state after this query/mutation',
-    })
-    pendingState?: ArrayPendingState;
-
     @Field(() => ArrayState, { description: 'Current array state' })
     state!: ArrayState;
 
