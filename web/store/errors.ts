@@ -1,3 +1,4 @@
+import { ref } from 'vue';
 import { createPinia, defineStore, setActivePinia } from 'pinia';
 
 import { OBJ_TO_STR } from '~/helpers/functions';
