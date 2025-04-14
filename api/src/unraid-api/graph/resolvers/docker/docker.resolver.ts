@@ -35,7 +35,9 @@ export class DockerResolver {
         possession: AuthPossession.ANY,
     })
     @ResolveField(() => [DockerContainer])
-    public async containers(@Args('skipCache', { defaultValue: false, type: () => Boolean }) skipCache: boolean) {
+    public async containers(
+        @Args('skipCache', { defaultValue: false, type: () => Boolean }) skipCache: boolean
+    ) {
         return this.dockerService.getContainers({ skipCache });
     }
 
@@ -45,7 +47,9 @@ export class DockerResolver {
         possession: AuthPossession.ANY,
     })
     @ResolveField(() => [DockerNetwork])
-    public async networks(@Args('skipCache', { defaultValue: false, type: () => Boolean }) skipCache: boolean) {
+    public async networks(
+        @Args('skipCache', { defaultValue: false, type: () => Boolean }) skipCache: boolean
+    ) {
         return this.dockerService.getNetworks({ skipCache });
     }
 }

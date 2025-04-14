@@ -4,9 +4,9 @@ import { Readable } from 'stream';
 import { watch } from 'chokidar';
 import Docker from 'dockerode';
 
+import { pubsub, PUBSUB_CHANNEL } from '@app/core/pubsub.js';
 import { getters } from '@app/store/index.js';
 import { DockerService } from '@app/unraid-api/graph/resolvers/docker/docker.service.js';
-import { pubsub, PUBSUB_CHANNEL } from '@app/core/pubsub.js';
 
 enum DockerEventAction {
     DIE = 'die',

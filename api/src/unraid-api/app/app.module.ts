@@ -1,7 +1,7 @@
+import { CacheModule } from '@nestjs/cache-manager';
 import { Module } from '@nestjs/common';
 import { APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
 import { ThrottlerModule } from '@nestjs/throttler';
-import { CacheModule } from '@nestjs/cache-manager';
 
 import { AuthZGuard } from 'nest-authz';
 import { LoggerModule } from 'nestjs-pino';
@@ -39,7 +39,7 @@ import { UnraidFileModifierModule } from '@app/unraid-api/unraid-file-modifier/u
         }),
         AuthModule,
         CronModule,
-        CacheModule.register(),
+        CacheModule.register({ isGlobal: true }),
         GraphModule,
         RestModule,
         ThrottlerModule.forRoot([

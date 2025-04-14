@@ -5,6 +5,8 @@ import { PassThrough, Readable } from 'stream';
 import Docker from 'dockerode';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
+// Import pubsub for use in tests
+import { pubsub, PUBSUB_CHANNEL } from '@app/core/pubsub.js';
 import { DockerEventService } from '@app/unraid-api/graph/resolvers/docker/docker-event.service.js';
 import { DockerService } from '@app/unraid-api/graph/resolvers/docker/docker.service.js';
 
@@ -57,9 +59,6 @@ vi.mock('./docker.service.js', () => ({
         getAppInfo: vi.fn().mockResolvedValue({ info: { apps: { installed: 1, running: 1 } } }),
     })),
 }));
-
-// Import pubsub for use in tests
-import { pubsub, PUBSUB_CHANNEL } from '@app/core/pubsub.js';
 
 describe('DockerEventService', () => {
     let service: DockerEventService;

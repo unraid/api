@@ -2,17 +2,14 @@ import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { Inject, Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { readFile } from 'fs/promises';
 
-import { Cache } from 'cache-manager';
-import camelCaseKeys from 'camelcase-keys';
+import { type Cache } from 'cache-manager';
 import Docker from 'dockerode';
-import { debounce } from 'lodash-es';
 
 import { pubsub, PUBSUB_CHANNEL } from '@app/core/pubsub.js';
 import { catchHandlers } from '@app/core/utils/misc/catch-handlers.js';
 import { sleep } from '@app/core/utils/misc/sleep.js';
 import { getters } from '@app/store/index.js';
 import {
-    ContainerPort,
     ContainerPortType,
     ContainerState,
     DockerContainer,
@@ -50,7 +47,9 @@ export class DockerService implements OnModuleInit {
     async getAppInfo() {
         const containers = await this.getContainers({ skipCache: false });
         const installedCount = containers.length;
-        const runningCount = containers.filter((container) => container.state === ContainerState.RUNNING).length;
+        const runningCount = containers.filter(
+            (container) => container.state === ContainerState.RUNNING
+        ).length;
         return {
             info: {
                 apps: { installed: installedCount, running: runningCount },
@@ -124,7 +123,9 @@ export class DockerService implements OnModuleInit {
         }: Partial<ContainerListingOptions> = { skipCache: false }
     ): Promise<DockerContainer[]> {
         if (!skipCache) {
-            const cachedContainers = await this.cacheManager.get<DockerContainer[]>(DockerService.CONTAINER_CACHE_KEY);
+            const cachedContainers = await this.cacheManager.get<DockerContainer[]>(
+                DockerService.CONTAINER_CACHE_KEY
+            );
             if (cachedContainers) {
                 this.logger.debug('Using docker container cache');
                 return cachedContainers;
@@ -143,7 +144,11 @@ export class DockerService implements OnModuleInit {
         this.autoStarts = await this.getAutoStarts();
         const containers = rawContainers.map((container) => this.transformContainer(container));
 
-        await this.cacheManager.set(DockerService.CONTAINER_CACHE_KEY, containers, DockerService.CACHE_TTL_SECONDS * 1000);
+        await this.cacheManager.set(
+            DockerService.CONTAINER_CACHE_KEY,
+            containers,
+            DockerService.CACHE_TTL_SECONDS * 1000
+        );
         return containers;
     }
 
@@ -154,7 +159,9 @@ export class DockerService implements OnModuleInit {
      */
     public async getNetworks({ skipCache }: NetworkListingOptions): Promise<DockerNetwork[]> {
         if (!skipCache) {
-            const cachedNetworks = await this.cacheManager.get<DockerNetwork[]>(DockerService.NETWORK_CACHE_KEY);
+            const cachedNetworks = await this.cacheManager.get<DockerNetwork[]>(
+                DockerService.NETWORK_CACHE_KEY
+            );
             if (cachedNetworks) {
                 this.logger.debug('Using docker network cache');
                 return cachedNetworks;
@@ -184,7 +191,11 @@ export class DockerService implements OnModuleInit {
                 }) as DockerNetwork
         );
 
-        await this.cacheManager.set(DockerService.NETWORK_CACHE_KEY, networks, DockerService.CACHE_TTL_SECONDS * 1000);
+        await this.cacheManager.set(
+            DockerService.NETWORK_CACHE_KEY,
+            networks,
+            DockerService.CACHE_TTL_SECONDS * 1000
+        );
         return networks;
     }
 
