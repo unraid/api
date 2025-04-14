@@ -214,17 +214,6 @@ registerEnumType(ArrayDiskStatus, {
     name: 'ArrayDiskStatus',
 });
 
-export enum ArrayPendingState {
-    STARTING = 'STARTING',
-    STOPPING = 'STOPPING',
-    NO_DATA_DISKS = 'NO_DATA_DISKS',
-    TOO_MANY_MISSING_DISKS = 'TOO_MANY_MISSING_DISKS',
-}
-
-registerEnumType(ArrayPendingState, {
-    name: 'ArrayPendingState',
-});
-
 export enum ArrayDiskType {
     DATA = 'DATA',
     PARITY = 'PARITY',
