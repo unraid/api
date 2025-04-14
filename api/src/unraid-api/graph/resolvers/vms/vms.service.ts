@@ -1,33 +1,37 @@
-import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
+import { Injectable, Logger, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
 import { constants } from 'fs';
 import { access } from 'fs/promises';
 
 import type { Domain, Hypervisor as HypervisorClass } from '@unraid/libvirt';
 import { ConnectListAllDomainsFlags, DomainState, Hypervisor } from '@unraid/libvirt';
+import { FSWatcher, watch } from 'chokidar';
 import { GraphQLError } from 'graphql';
 
 import { getters } from '@app/store/index.js';
 import { VmDomain, VmState } from '@app/unraid-api/graph/resolvers/vms/vms.model.js';
 
 @Injectable()
-export class VmsService implements OnModuleInit {
+export class VmsService implements OnModuleInit, OnModuleDestroy {
     private readonly logger = new Logger(VmsService.name);
     private hypervisor: InstanceType<typeof HypervisorClass> | null = null;
     private isVmsAvailable: boolean = false;
+    private watcher: FSWatcher | null = null;
     private uri: string;
+    private pidPath: string;
 
     constructor() {
         this.uri = process.env.LIBVIRT_URI ?? 'qemu:///system';
+        this.pidPath = getters.paths()?.['libvirt-pid'] ?? '/var/run/libvirt/libvirtd.pid';
+        this.logger.debug(`Using libvirt PID path: ${this.pidPath}`);
     }
 
     private async isLibvirtRunning(): Promise<boolean> {
-        // Skip PID check for session URIs
         if (this.uri.includes('session')) {
             return true;
         }
 
         try {
-            await access(getters.paths()['libvirt-pid'], constants.F_OK | constants.R_OK);
+            await access(this.pidPath, constants.F_OK | constants.R_OK);
             return true;
         } catch (error) {
             return false;
@@ -35,28 +39,115 @@ export class VmsService implements OnModuleInit {
     }
 
     async onModuleInit() {
+        this.logger.debug(`Initializing VMs service with URI: ${this.uri}`);
+        await this.attemptHypervisorInitializationAndWatch();
+    }
+
+    async onModuleDestroy() {
+        this.logger.debug('Closing file watcher...');
+        await this.watcher?.close();
+        this.logger.debug('Closing hypervisor connection...');
         try {
-            this.logger.debug(`Initializing VMs service with URI: ${this.uri}`);
+            await this.hypervisor?.connectClose();
+        } catch (error) {
+            this.logger.warn(`Error closing hypervisor connection: ${(error as Error).message}`);
+        }
+        this.hypervisor = null;
+        this.isVmsAvailable = false;
+        this.logger.debug('VMs service cleanup complete.');
+    }
+
+    private async attemptHypervisorInitializationAndWatch(): Promise<void> {
+        try {
             await this.initializeHypervisor();
             this.isVmsAvailable = true;
             this.logger.debug(`VMs service initialized successfully with URI: ${this.uri}`);
+            this.setupWatcher();
         } catch (error) {
             this.isVmsAvailable = false;
             this.logger.warn(
-                `VMs are not available: ${error instanceof Error ? error.message : 'Unknown error'}`
+                `Initial hypervisor connection failed: ${error instanceof Error ? error.message : 'Unknown error'}. Setting up watcher.`
             );
+            this.setupWatcher();
         }
     }
 
+    private setupWatcher(): void {
+        if (this.watcher) {
+            this.logger.debug('Closing existing file watcher before setting up a new one.');
+            this.watcher.close();
+        }
+
+        this.logger.debug(`Setting up watcher for PID file: ${this.pidPath}`);
+        this.watcher = watch(this.pidPath, {
+            persistent: true,
+            ignoreInitial: true,
+            atomic: true,
+            awaitWriteFinish: {
+                stabilityThreshold: 2000,
+                pollInterval: 100,
+            },
+        });
+
+        this.watcher
+            .on('add', async () => {
+                this.logger.log(
+                    `Libvirt PID file detected at ${this.pidPath}. Attempting connection...`
+                );
+                try {
+                    await this.initializeHypervisor();
+                    this.isVmsAvailable = true;
+                    this.logger.log(
+                        'Hypervisor connection established successfully after PID file detection.'
+                    );
+                } catch (error) {
+                    this.isVmsAvailable = false;
+                    this.logger.error(
+                        `Failed to initialize hypervisor after PID file detection: ${error instanceof Error ? error.message : 'Unknown error'}`
+                    );
+                }
+            })
+            .on('unlink', async () => {
+                this.logger.warn(
+                    `Libvirt PID file removed from ${this.pidPath}. Hypervisor likely stopped.`
+                );
+                this.isVmsAvailable = false;
+                try {
+                    if (this.hypervisor) {
+                        await this.hypervisor.connectClose();
+                        this.logger.debug('Hypervisor connection closed due to PID file removal.');
+                    }
+                } catch (closeError) {
+                    this.logger.error(
+                        `Error closing hypervisor connection after PID unlink: ${closeError instanceof Error ? closeError.message : 'Unknown error'}`
+                    );
+                }
+                this.hypervisor = null;
+            })
+            .on('error', (error: unknown) => {
+                this.logger.error(
+                    `Watcher error for ${this.pidPath}: ${error instanceof Error ? error.message : error}`
+                );
+            });
+    }
+
     private async initializeHypervisor(): Promise<void> {
-        this.logger.debug('Checking if libvirt is running...');
+        if (this.hypervisor && this.isVmsAvailable) {
+            this.logger.debug('Hypervisor connection assumed active based on availability flag.');
+            return;
+        }
+
+        this.logger.debug('Checking if libvirt process is running via PID file...');
         const running = await this.isLibvirtRunning();
         if (!running) {
             throw new Error('Libvirt is not running');
         }
-        this.logger.debug('Libvirt is running, creating hypervisor instance...');
+        this.logger.debug('Libvirt appears to be running, creating hypervisor instance...');
 
-        this.hypervisor = new Hypervisor({ uri: this.uri });
+        if (!this.hypervisor) {
+            this.hypervisor = new Hypervisor({ uri: this.uri });
+        }
+
         try {
             this.logger.debug('Attempting to connect to hypervisor...');
             await this.hypervisor.connectOpen();
@@ -85,15 +176,12 @@ export class VmsService implements OnModuleInit {
             const info = await domain.getInfo();
             this.logger.debug(`Current domain state: ${info.state}`);
 
-            // Map VmState to DomainState for comparison
             const currentState = this.mapDomainStateToVmState(info.state);
 
-            // Validate state transition
             if (!this.isValidStateTransition(currentState, targetState)) {
                 throw new Error(`Invalid state transition from ${currentState} to ${targetState}`);
             }
 
-            // Perform state transition
             switch (targetState) {
                 case VmState.RUNNING:
                     if (currentState === VmState.SHUTOFF) {
@@ -156,7 +244,6 @@ export class VmsService implements OnModuleInit {
     }
 
     private isValidStateTransition(currentState: VmState, targetState: VmState): boolean {
-        // Define valid state transitions
         const validTransitions: Record<VmState, VmState[]> = {
             [VmState.NOSTATE]: [VmState.RUNNING, VmState.SHUTOFF],
             [VmState.RUNNING]: [VmState.PAUSED, VmState.SHUTOFF],
@@ -216,16 +303,13 @@ export class VmsService implements OnModuleInit {
             const domain = await this.hypervisor.domainLookupByUUIDString(uuid);
             this.logger.debug(`Found domain, rebooting...`);
 
-            // First try graceful shutdown
             await domain.shutdown();
 
-            // Wait for shutdown to complete
             const shutdownSuccess = await this.waitForDomainShutdown(domain);
             if (!shutdownSuccess) {
                 throw new Error('Graceful shutdown failed, please force stop the VM and try again');
             }
 
-            // Start the domain again
             await domain.create();
             return true;
         } catch (error) {
@@ -245,10 +329,8 @@ export class VmsService implements OnModuleInit {
             const domain = await this.hypervisor.domainLookupByUUIDString(uuid);
             this.logger.debug(`Found domain, resetting...`);
 
-            // Force stop the domain
             await domain.destroy();
 
-            // Start the domain again
             await domain.create();
             return true;
         } catch (error) {
@@ -269,7 +351,6 @@ export class VmsService implements OnModuleInit {
         try {
             const hypervisor = this.hypervisor;
             this.logger.debug('Getting all domains...');
-            // Get both active and inactive domains
             const domains = await hypervisor.connectListAllDomains(
                 ConnectListAllDomainsFlags.ACTIVE | ConnectListAllDomainsFlags.INACTIVE
             );
@@ -280,11 +361,6 @@ export class VmsService implements OnModuleInit {
                     const info = await domain.getInfo();
                     const name = await domain.getName();
                     const uuid = await domain.getUUIDString();
-                    this.logger.debug(
-                        `Found domain: ${name} (${uuid}) with state ${DomainState[info.state]}`
-                    );
-
-                    // Map DomainState to VmState using our existing function
                     const state = this.mapDomainStateToVmState(info.state);
 
                     return {
@@ -297,11 +373,15 @@ export class VmsService implements OnModuleInit {
 
             return resolvedDomains;
         } catch (error: unknown) {
-            // If we hit an error expect libvirt to be offline
-            this.isVmsAvailable = false;
-            this.logger.error(
-                `Failed to get domains: ${error instanceof Error ? error.message : 'Unknown error'}`
-            );
+            if (error instanceof Error && error.message.includes('virConnectListAllDomains')) {
+                this.logger.error(
+                    `Failed to list domains, possibly due to connection issue: ${error.message}`
+                );
+            } else {
+                this.logger.error(
+                    `Failed to get domains: ${error instanceof Error ? error.message : 'Unknown error'}`
+                );
+            }
             throw new GraphQLError(
                 `Failed to get domains: ${error instanceof Error ? error.message : 'Unknown error'}`
             );
