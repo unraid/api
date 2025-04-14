@@ -1,5 +1,7 @@
 import { Field, ID, InputType, Int, ObjectType, registerEnumType } from '@nestjs/graphql';
 
+import { IsEnum } from 'class-validator';
+
 import { GraphQLLong } from '@app/graphql/resolvers/graphql-type-long.js';
 import { Node } from '@app/unraid-api/graph/resolvers/base.model.js';
 
@@ -134,15 +136,6 @@ export class UnraidArray implements Node {
     @Field(() => ID)
     id!: string;
 
-    @Field(() => ArrayState, { nullable: true, description: 'Array state before this query/mutation' })
-    previousState?: ArrayState;
-
-    @Field(() => ArrayPendingState, {
-        nullable: true,
-        description: 'Array state after this query/mutation',
-    })
-    pendingState?: ArrayPendingState;
-
     @Field(() => ArrayState, { description: 'Current array state' })
     state!: ArrayState;
 
@@ -171,12 +164,6 @@ export class ArrayDiskInput {
     slot?: number;
 }
 
-@InputType()
-export class ArrayStateInput {
-    @Field(() => ArrayStateInputState, { description: 'Array state' })
-    desiredState!: ArrayStateInputState;
-}
-
 export enum ArrayStateInputState {
     START = 'START',
     STOP = 'STOP',
@@ -185,6 +172,13 @@ export enum ArrayStateInputState {
 registerEnumType(ArrayStateInputState, {
     name: 'ArrayStateInputState',
 });
+
+@InputType()
+export class ArrayStateInput {
+    @Field(() => ArrayStateInputState, { description: 'Array state' })
+    @IsEnum(ArrayStateInputState)
+    desiredState!: ArrayStateInputState;
+}
 
 export enum ArrayState {
     STARTED = 'STARTED',
@@ -218,17 +212,6 @@ export enum ArrayDiskStatus {
 
 registerEnumType(ArrayDiskStatus, {
     name: 'ArrayDiskStatus',
-});
-
-export enum ArrayPendingState {
-    STARTING = 'STARTING',
-    STOPPING = 'STOPPING',
-    NO_DATA_DISKS = 'NO_DATA_DISKS',
-    TOO_MANY_MISSING_DISKS = 'TOO_MANY_MISSING_DISKS',
-}
-
-registerEnumType(ArrayPendingState, {
-    name: 'ArrayPendingState',
 });
 
 export enum ArrayDiskType {

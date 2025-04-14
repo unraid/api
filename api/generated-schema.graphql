@@ -183,12 +183,6 @@ enum ArrayDiskFsColor {
 type UnraidArray implements Node {
   id: ID!
 
-  """Array state before this query/mutation"""
-  previousState: ArrayState
-
-  """Array state after this query/mutation"""
-  pendingState: ArrayPendingState
-
   """Current array state"""
   state: ArrayState!
 
@@ -220,13 +214,6 @@ enum ArrayState {
   TOO_MANY_MISSING_DISKS
   NEW_DISK_TOO_SMALL
   NO_DATA_DISKS
-}
-
-enum ArrayPendingState {
-  STARTING
-  STOPPING
-  NO_DATA_DISKS
-  TOO_MANY_MISSING_DISKS
 }
 
 type Share implements Node {
