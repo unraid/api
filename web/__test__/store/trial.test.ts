@@ -23,7 +23,7 @@ vi.mock('~/composables/preventClose', () => ({
 }));
 
 vi.mock('~/composables/services/keyServer', () => ({
-  startTrial: (payload: any) => mockStartTrial(payload),
+  startTrial: (payload: unknown) => mockStartTrial(payload),
 }));
 
 vi.mock('~/store/callbackActions', () => ({
