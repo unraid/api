@@ -426,9 +426,9 @@ enum DiskFsType {
   NTFS
 }
 
-type Disk {
+type Disk implements Node {
   """The unique identifier of the disk"""
-  id: String!
+  id: PrefixedID!
 
   """The device path of the disk (e.g. /dev/sdb)"""
   device: String!
@@ -507,8 +507,8 @@ type KeyFile {
   contents: String
 }
 
-type Registration {
-  guid: ID
+type Registration implements Node {
+  id: PrefixedID!
   type: registrationType
   keyFile: KeyFile
   state: RegistrationState
@@ -823,13 +823,13 @@ type ArrayMutations {
   removeDiskFromArray(input: ArrayDiskInput!): UnraidArray!
 
   """Mount a disk in the array"""
-  mountArrayDisk(id: String!): ArrayDisk!
+  mountArrayDisk(id: PrefixedID!): ArrayDisk!
 
   """Unmount a disk from the array"""
-  unmountArrayDisk(id: String!): ArrayDisk!
+  unmountArrayDisk(id: PrefixedID!): ArrayDisk!
 
   """Clear statistics for a disk in the array"""
-  clearArrayDiskStatistics(id: String!): Boolean!
+  clearArrayDiskStatistics(id: PrefixedID!): Boolean!
 }
 
 input ArrayStateInput {
@@ -852,10 +852,10 @@ input ArrayDiskInput {
 
 type DockerMutations {
   """Start a container"""
-  start(id: String!): DockerContainer!
+  start(id: PrefixedID!): DockerContainer!
 
   """Stop a container"""
-  stop(id: String!): DockerContainer!
+  stop(id: PrefixedID!): DockerContainer!
 }
 
 type VmMutations {
@@ -1152,7 +1152,7 @@ type Info implements Node {
   display: Display!
 
   """Machine ID"""
-  machineId: ID
+  machineId: PrefixedID
   memory: InfoMemory!
   os: Os!
   system: System!
@@ -1392,7 +1392,7 @@ scalar PrefixedID
 
 type Query {
   apiKeys: [ApiKey!]!
-  apiKey(id: String!): ApiKey
+  apiKey(id: PrefixedID!): ApiKey
   cloud: Cloud!
   config: Config!
   display: Display!
@@ -1423,7 +1423,7 @@ type Query {
   extraAllowedOrigins: [String!]!
   docker: Docker!
   disks: [Disk!]!
-  disk(id: String!): Disk!
+  disk(id: PrefixedID!): Disk!
   health: String!
 }
 
@@ -1434,19 +1434,19 @@ type Mutation {
 
   """Creates a new notification record"""
   createNotification(input: NotificationData!): Notification!
-  deleteNotification(id: String!, type: NotificationType!): NotificationOverview!
+  deleteNotification(id: PrefixedID!, type: NotificationType!): NotificationOverview!
 
   """Deletes all archived notifications on server."""
   deleteArchivedNotifications: NotificationOverview!
 
   """Marks a notification as archived."""
-  archiveNotification(id: String!): Notification!
-  archiveNotifications(ids: [String!]!): NotificationOverview!
+  archiveNotification(id: PrefixedID!): Notification!
+  archiveNotifications(ids: [PrefixedID!]!): NotificationOverview!
   archiveAll(importance: NotificationImportance): NotificationOverview!
 
   """Marks a notification as unread."""
-  unreadNotification(id: String!): Notification!
-  unarchiveNotifications(ids: [String!]!): NotificationOverview!
+  unreadNotification(id: PrefixedID!): Notification!
+  unarchiveNotifications(ids: [PrefixedID!]!): NotificationOverview!
   unarchiveAll(importance: NotificationImportance): NotificationOverview!
 
   """Reads each notification to recompute & update the overview."""
