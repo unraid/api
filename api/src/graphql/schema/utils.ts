@@ -83,7 +83,9 @@ export const getLocalServer = (getState = store.getState): Array<Server> => {
 
     return [
         {
+            id: 'local',
             owner: {
+                id: 'local',
                 username: config.remote.username ?? 'root',
                 url: '',
                 avatar: '',
