@@ -154,7 +154,6 @@ export class DockerService implements OnModuleInit {
 
     /**
      * Get all Docker networks
-     * @todo filtering / cache / proper typing
      * @returns All the in/active Docker networks on the system.
      */
     public async getNetworks({ skipCache }: NetworkListingOptions): Promise<DockerNetwork[]> {
