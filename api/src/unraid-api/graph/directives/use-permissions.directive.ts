@@ -105,16 +105,19 @@ export function usePermissionsSchemaTransformer(schema: GraphQLSchema) {
 
                 // Append permission information to the field description
                 const permissionDoc = `
-                
 #### Required Permissions:
 
 - Action: **${actionValue}**
 - Resource: **${resourceValue}**
 - Possession: **${possessionValue}**`;
-                const newDescription = fieldConfig.description
-                    ? `${fieldConfig.description}${permissionDoc}`
-                    : permissionDoc;
-                fieldConfig.description = newDescription;
+                const descriptionDoc = fieldConfig.description
+                    ? `
+
+#### Description:
+
+${fieldConfig.description}`
+                    : '';
+                fieldConfig.description = permissionDoc + descriptionDoc;
             }
 
             return fieldConfig;

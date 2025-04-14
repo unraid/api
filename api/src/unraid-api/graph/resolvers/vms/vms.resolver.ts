@@ -13,7 +13,7 @@ import { VmsService } from '@app/unraid-api/graph/resolvers/vms/vms.service.js';
 export class VmsResolver {
     constructor(private readonly vmsService: VmsService) {}
 
-    @Query(() => Vms)
+    @Query(() => Vms, { description: 'Get information about all VMs on the system' })
     @UsePermissions({
         action: AuthActionVerb.READ,
         resource: Resource.VMS,

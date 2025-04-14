@@ -1424,6 +1424,8 @@ type Query {
   services: [Service!]!
   shares: [Share!]!
   vars: Vars!
+
+  """Get information about all VMs on the system"""
   vms: Vms!
   parityHistory: [ParityCheck!]!
   array: UnraidArray!
@@ -1433,6 +1435,7 @@ type Query {
   docker: Docker!
   disks: [Disk!]!
   disk(id: String!): Disk!
+  health: String!
 }
 
 type Mutation {
