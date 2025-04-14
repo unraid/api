@@ -2,13 +2,11 @@ import { DynamicModule, Logger, Module } from '@nestjs/common';
 
 import { z } from 'zod';
 
-import { CONFIG_MODULES_HOME } from '@app/environment.js';
 import { PluginService } from '@app/unraid-api/plugin/plugin.service.js';
 
 @Module({})
 export class PluginModule {
     private static readonly logger = new Logger(PluginModule.name);
-    constructor(private readonly pluginService: PluginService) {}
 
     static async register(): Promise<DynamicModule> {
         const plugins = await PluginService.getPlugins();
@@ -22,14 +20,8 @@ export class PluginModule {
         return {
             module: PluginModule,
             imports: [...apiModules],
-            providers: [
-                PluginService,
-                {
-                    provide: 'CONFIG_MODULES_HOME',
-                    useValue: CONFIG_MODULES_HOME,
-                },
-            ],
-            exports: [PluginService, 'CONFIG_MODULES_HOME'],
+            providers: [PluginService],
+            exports: [PluginService],
             global: true,
         };
     }
