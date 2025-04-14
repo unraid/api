@@ -1,7 +1,7 @@
 import { Module, Logger, Inject, Injectable } from "@nestjs/common";
 import { ConfigModule, ConfigService, registerAs } from "@nestjs/config";
 import { Resolver, Query, Mutation } from "@nestjs/graphql";
-import { existsSync, writeFile } from "fs";
+import { existsSync, readFileSync, writeFile } from "fs";
 import path from "path";
 import { debounceTime } from "rxjs/operators";
 
@@ -10,6 +10,7 @@ export const adapter = "nestjs";
 export const graphqlSchemaExtension = async () => `
   type Query {
     health: String
+    getDemo: String
   }
 
   type Mutation {
@@ -27,6 +28,11 @@ export class HealthResolver {
     return "I am healthy!";
   }
 
+  @Query(() => String)
+  getDemo() {
+    return this.configService.get("connect.demo");
+  }
+
   @Mutation(() => String)
   async setDemo() {
     const newValue = new Date().toISOString();
@@ -41,22 +47,28 @@ const config = registerAs("connect", () => ({
 
 @Injectable()
 class ConnectConfigPersister {
-  constructor(
-    private readonly configService: ConfigService,
-    @Inject("CONFIG_MODULES_HOME") private readonly configModulesHome: string
-  ) {}
+  constructor(private readonly configService: ConfigService) {}
 
   private logger = new Logger(ConnectConfigPersister.name);
   get configPath() {
-    return path.join(this.configModulesHome, "connect.json");
+    return path.join(
+      this.configService.get("CONFIG_MODULES_HOME")!,
+      "connect.json"
+    );
   }
 
   onModuleInit() {
     this.logger.log(`Config path: ${this.configPath}`);
-    if (!existsSync(this.configPath)) {
+      // Load the config, else initialize it by persisting to filesystem.
+    if (existsSync(this.configPath)) {
+      const config = JSON.parse(readFileSync(this.configPath, "utf8"));
+      this.configService.set("connect", config);
+      this.logger.verbose(`Config loaded from ${this.configPath}`);
+    } else {
       this.logger.verbose(`Config file does not exist. Writing...`);
       this.persist();
     }
+    // Persist changes to the config.
     this.configService.changes$.pipe(debounceTime(500)).subscribe({
       next: ({ newValue, oldValue, path }) => {
         if (newValue !== oldValue) {
