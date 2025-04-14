@@ -12,7 +12,7 @@ export default class SSOFileModification extends FileModification {
     protected async generatePatch(overridePath?: string): Promise<string> {
         // Define the new PHP function to insert
         /* eslint-disable no-useless-escape */
-        const newFunction = `
+        const newFunction = /** PHP */ `
 function verifyUsernamePasswordAndSSO(string $username, string $password): bool {
     if ($username != "root") return false;
 
@@ -45,7 +45,13 @@ function verifyUsernamePasswordAndSSO(string $username, string $password): bool 
         }
 
         try {
-            $response = json_decode($output[0], true);
+            // Split on first { and take everything after it
+            $jsonParts = explode('{', $output[0], 2);
+            if (count($jsonParts) < 2) {
+                my_logger("SSO Login Attempt Failed: No JSON found in response");
+                return false;
+            }
+            $response = json_decode('{' . $jsonParts[1], true);
             if (isset($response['valid']) && $response['valid'] === true) {
                 return true;
             }
