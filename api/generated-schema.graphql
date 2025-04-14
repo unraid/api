@@ -1421,6 +1421,8 @@ type Query {
   docker: Docker!
   disks: [Disk!]!
   disk(id: String!): Disk!
+  health: String!
+  getDemo: String!
 }
 
 type Mutation {
@@ -1457,6 +1459,7 @@ type Mutation {
   setupRemoteAccess(input: SetupRemoteAccessInput!): Boolean!
   setAdditionalAllowedOrigins(input: AllowedOriginInput!): [String!]!
   enableDynamicRemoteAccess(input: EnableDynamicRemoteAccessInput!): Boolean!
+  setDemo: String!
 }
 
 input CreateApiKeyInput {

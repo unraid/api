@@ -4,8 +4,14 @@ import { Resolver, Query, Mutation } from "@nestjs/graphql";
 import { existsSync, readFileSync, writeFile } from "fs";
 import path from "path";
 import { debounceTime } from "rxjs/operators";
+import { Field } from "@nestjs/graphql";
 
 export const adapter = "nestjs";
+
+class ConnectConfig {
+  @Field(() => String)
+  demo!: string;
+}
 
 export const graphqlSchemaExtension = async () => `
   type Query {
@@ -59,7 +65,7 @@ class ConnectConfigPersister {
 
   onModuleInit() {
     this.logger.log(`Config path: ${this.configPath}`);
-      // Load the config, else initialize it by persisting to filesystem.
+    // Load the config, else initialize it by persisting to filesystem.
     if (existsSync(this.configPath)) {
       const config = JSON.parse(readFileSync(this.configPath, "utf8"));
       this.configService.set("connect", config);

@@ -1,7 +1,7 @@
 import { Inject } from '@nestjs/common';
 
-import type { ConfigFeatures } from './config.interface.js';
-import { ConfigRegistry } from './config.registry.js';
+import type { ConfigFeatures } from '@app/unraid-api/config/config.interface.js';
+import { ConfigRegistry } from '@app/unraid-api/config/config.registry.js';
 
 /**
  * Custom decorator to inject a config by name.

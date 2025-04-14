@@ -12,13 +12,14 @@ import { getters } from '@app/store/index.js';
 import { idPrefixPlugin } from '@app/unraid-api/graph/id-prefix-plugin.js';
 import { ResolversModule } from '@app/unraid-api/graph/resolvers/resolvers.module.js';
 import { sandboxPlugin } from '@app/unraid-api/graph/sandbox-plugin.js';
+import { PluginModule } from '@app/unraid-api/plugin/plugin.module.js';
 
 @Module({
     imports: [
         ResolversModule,
         GraphQLModule.forRootAsync<ApolloDriverConfig>({
             driver: ApolloDriver,
-            imports: [],
+            imports: [PluginModule.register()],
             inject: [],
             useFactory: async () => {
                 return {

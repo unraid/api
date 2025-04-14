@@ -1,8 +1,8 @@
 import { Logger } from '@nestjs/common';
 import { SchedulerRegistry } from '@nestjs/schedule';
 
-import type { ApiStateConfig } from './api-state.model.js';
-import { makeConfigToken } from './config.registry.js';
+import type { ApiStateConfig } from '@app/unraid-api/config/api-state.model.js';
+import { makeConfigToken } from '@app/unraid-api/config/config.registry.js';
 
 export interface ApiStateConfigPersistenceOptions {
     /** How often to persist the config to the file system, in milliseconds. Defaults to 10 seconds. */

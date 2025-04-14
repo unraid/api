@@ -1,10 +1,10 @@
 import { DynamicModule, Logger } from '@nestjs/common';
 import { SchedulerRegistry } from '@nestjs/schedule';
 
-import type { ApiStateConfigOptions } from './api-state.model.js';
-import type { ApiStateConfigPersistenceOptions } from './api-state.service.js';
-import { ApiStateConfig } from './api-state.model.js';
-import { ScheduledConfigPersistence } from './api-state.service.js';
+import type { ApiStateConfigOptions } from '@app/unraid-api/config/api-state.model.js';
+import type { ApiStateConfigPersistenceOptions } from '@app/unraid-api/config/api-state.service.js';
+import { ApiStateConfig } from '@app/unraid-api/config/api-state.model.js';
+import { ScheduledConfigPersistence } from '@app/unraid-api/config/api-state.service.js';
 
 type ApiStateRegisterOptions<ConfigType> = ApiStateConfigOptions<ConfigType> & {
     persistence?: ApiStateConfigPersistenceOptions;

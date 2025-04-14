@@ -6,8 +6,7 @@ import type { ZodType } from 'zod';
 
 import { fileExists } from '@app/core/utils/files/file-exists.js';
 import { CONFIG_MODULES_HOME } from '@app/environment.js';
-
-import { ConfigRegistry } from './config.registry.js';
+import { ConfigRegistry } from '@app/unraid-api/config/config.registry.js';
 
 export interface ApiStateConfigOptions<T> {
     /** The name of the config. Must be unique. Used for logging and dependency injection. */
