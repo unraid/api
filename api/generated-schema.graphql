@@ -1421,6 +1421,7 @@ type Query {
   docker: Docker!
   disks: [Disk!]!
   disk(id: String!): Disk!
+  health: String!
 }
 
 type Mutation {
