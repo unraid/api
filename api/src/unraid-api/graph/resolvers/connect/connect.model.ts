@@ -1,4 +1,5 @@
 import { Field, ID, InputType, Int, ObjectType, registerEnumType } from '@nestjs/graphql';
+import { PrefixedID } from '@app/unraid-api/graph/scalars/graphql-type-prefixed-id.js';
 
 import {
     ArrayMinSize,
@@ -326,12 +327,7 @@ export class ApiSettingsInput {
 @ObjectType({
     implements: () => Node,
 })
-export class ConnectSettings implements Node {
-    @Field(() => ID, { description: 'The unique identifier for the Connect settings' })
-    @IsString()
-    @IsNotEmpty()
-    id!: string;
-
+export class ConnectSettings extends Node {
     @Field(() => GraphQLJSON, { description: 'The data schema for the Connect settings' })
     @IsObject()
     dataSchema!: Record<string, any>;
@@ -348,11 +344,8 @@ export class ConnectSettings implements Node {
 @ObjectType({
     implements: () => Node,
 })
-export class Connect {
-    @Field(() => ID, { description: 'The unique identifier for the Connect instance' })
-    @IsString()
-    @IsNotEmpty()
-    id!: string;
+export class Connect extends Node {
+    @Field(() => DynamicRemoteAccessStatus, { description: 'The status of dynamic remote access' })
 
     @Field(() => DynamicRemoteAccessStatus, { description: 'The status of dynamic remote access' })
     @ValidateNested()
@@ -366,9 +359,7 @@ export class Connect {
 @ObjectType({
     implements: () => Node,
 })
-export class Network implements Node {
-    @Field(() => ID)
-    id!: string;
+export class Network extends Node {
 
     @Field(() => [AccessUrl], { nullable: true })
     accessUrls?: AccessUrl[];

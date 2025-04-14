@@ -74,8 +74,7 @@ type ArrayCapacity {
 }
 
 type ArrayDisk implements Node {
-  """Disk identifier, only set for present disks on the system"""
-  id: ID!
+  id: PrefixedID!
 
   """
   Array slot number. Parity1 is always 0 and Parity2 is always 29. Array slots will be 1 - 28. Cache slots are 30 - 53. Flash is 54.
@@ -143,7 +142,7 @@ type ArrayDisk implements Node {
 }
 
 interface Node {
-  id: ID!
+  id: PrefixedID!
 }
 
 """The `Long` scalar type represents 52-bit integers"""
@@ -181,7 +180,7 @@ enum ArrayDiskFsColor {
 }
 
 type UnraidArray implements Node {
-  id: ID!
+  id: PrefixedID!
 
   """Current array state"""
   state: ArrayState!
@@ -217,7 +216,7 @@ enum ArrayState {
 }
 
 type Share implements Node {
-  id: ID!
+  id: PrefixedID!
 
   """Display name"""
   name: String
@@ -348,8 +347,7 @@ type ConnectSettingsValues {
 }
 
 type ConnectSettings implements Node {
-  """The unique identifier for the Connect settings"""
-  id: ID!
+  id: PrefixedID!
 
   """The data schema for the Connect settings"""
   dataSchema: JSON!
@@ -367,8 +365,7 @@ The `JSON` scalar type represents JSON values as specified by [ECMA-404](http://
 scalar JSON @specifiedBy(url: "http://www.ecma-international.org/publications/files/ECMA-ST/ECMA-404.pdf")
 
 type Connect implements Node {
-  """The unique identifier for the Connect instance"""
-  id: ID!
+  id: PrefixedID!
 
   """The status of dynamic remote access"""
   dynamicRemoteAccess: DynamicRemoteAccessStatus!
@@ -378,18 +375,19 @@ type Connect implements Node {
 }
 
 type Network implements Node {
-  id: ID!
+  id: PrefixedID!
   accessUrls: [AccessUrl!]
 }
 
-type ProfileModel {
-  userId: ID
+type ProfileModel implements Node {
+  id: PrefixedID!
   username: String!
   url: String!
   avatar: String!
 }
 
-type Server {
+type Server implements Node {
+  id: PrefixedID!
   owner: ProfileModel!
   guid: String!
   apikey: String!
@@ -428,9 +426,9 @@ enum DiskFsType {
   NTFS
 }
 
-type Disk {
+type Disk implements Node {
   """The unique identifier of the disk"""
-  id: String!
+  id: PrefixedID!
 
   """The device path of the disk (e.g. /dev/sdb)"""
   device: String!
@@ -509,8 +507,8 @@ type KeyFile {
   contents: String
 }
 
-type Registration {
-  guid: ID
+type Registration implements Node {
+  id: PrefixedID!
   type: registrationType
   keyFile: KeyFile
   state: RegistrationState
@@ -559,7 +557,7 @@ enum RegistrationState {
 }
 
 type Vars implements Node {
-  id: ID!
+  id: PrefixedID!
 
   """Unraid version"""
   version: String
@@ -786,8 +784,8 @@ enum Resource {
   WELCOME
 }
 
-type ApiKey {
-  id: ID!
+type ApiKey implements Node {
+  id: PrefixedID!
   name: String!
   description: String
   roles: [Role!]!
@@ -802,8 +800,8 @@ enum Role {
   GUEST
 }
 
-type ApiKeyWithSecret {
-  id: ID!
+type ApiKeyWithSecret implements Node {
+  id: PrefixedID!
   name: String!
   description: String
   roles: [Role!]!
@@ -825,13 +823,13 @@ type ArrayMutations {
   removeDiskFromArray(input: ArrayDiskInput!): UnraidArray!
 
   """Mount a disk in the array"""
-  mountArrayDisk(id: String!): ArrayDisk!
+  mountArrayDisk(id: PrefixedID!): ArrayDisk!
 
   """Unmount a disk from the array"""
-  unmountArrayDisk(id: String!): ArrayDisk!
+  unmountArrayDisk(id: PrefixedID!): ArrayDisk!
 
   """Clear statistics for a disk in the array"""
-  clearArrayDiskStatistics(id: String!): Boolean!
+  clearArrayDiskStatistics(id: PrefixedID!): Boolean!
 }
 
 input ArrayStateInput {
@@ -846,7 +844,7 @@ enum ArrayStateInputState {
 
 input ArrayDiskInput {
   """Disk ID"""
-  id: ID!
+  id: PrefixedID!
 
   """The slot for the disk"""
   slot: Int
@@ -854,33 +852,33 @@ input ArrayDiskInput {
 
 type DockerMutations {
   """Start a container"""
-  start(id: String!): DockerContainer!
+  start(id: PrefixedID!): DockerContainer!
 
   """Stop a container"""
-  stop(id: String!): DockerContainer!
+  stop(id: PrefixedID!): DockerContainer!
 }
 
 type VmMutations {
   """Start a virtual machine"""
-  start(id: String!): Boolean!
+  start(id: PrefixedID!): Boolean!
 
   """Stop a virtual machine"""
-  stop(id: String!): Boolean!
+  stop(id: PrefixedID!): Boolean!
 
   """Pause a virtual machine"""
-  pause(id: String!): Boolean!
+  pause(id: PrefixedID!): Boolean!
 
   """Resume a virtual machine"""
-  resume(id: String!): Boolean!
+  resume(id: PrefixedID!): Boolean!
 
   """Force stop a virtual machine"""
-  forceStop(id: String!): Boolean!
+  forceStop(id: PrefixedID!): Boolean!
 
   """Reboot a virtual machine"""
-  reboot(id: String!): Boolean!
+  reboot(id: PrefixedID!): Boolean!
 
   """Reset a virtual machine"""
-  reset(id: String!): Boolean!
+  reset(id: PrefixedID!): Boolean!
 }
 
 """
@@ -935,13 +933,13 @@ A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date
 scalar DateTime
 
 type Config implements Node {
-  id: ID!
+  id: PrefixedID!
   valid: Boolean
   error: String
 }
 
 type InfoApps implements Node {
-  id: ID!
+  id: PrefixedID!
 
   """How many docker containers are installed"""
   installed: Int!
@@ -951,7 +949,7 @@ type InfoApps implements Node {
 }
 
 type Baseboard implements Node {
-  id: ID!
+  id: PrefixedID!
   manufacturer: String!
   model: String
   version: String
@@ -960,7 +958,7 @@ type Baseboard implements Node {
 }
 
 type InfoCpu implements Node {
-  id: ID!
+  id: PrefixedID!
   manufacturer: String!
   brand: String!
   vendor: String!
@@ -981,7 +979,7 @@ type InfoCpu implements Node {
 }
 
 type Gpu implements Node {
-  id: ID!
+  id: PrefixedID!
   type: String!
   typeid: String!
   vendorname: String!
@@ -991,7 +989,7 @@ type Gpu implements Node {
 }
 
 type Pci implements Node {
-  id: ID!
+  id: PrefixedID!
   type: String
   typeid: String
   vendorname: String
@@ -1002,20 +1000,20 @@ type Pci implements Node {
   class: String
 }
 
-type Usb {
-  id: ID!
+type Usb implements Node {
+  id: PrefixedID!
   name: String
 }
 
 type Devices implements Node {
-  id: ID!
+  id: PrefixedID!
   gpu: [Gpu!]!
   pci: [Pci!]!
   usb: [Usb!]!
 }
 
 type Case implements Node {
-  id: ID!
+  id: PrefixedID!
   icon: String
   url: String
   error: String
@@ -1023,7 +1021,7 @@ type Case implements Node {
 }
 
 type Display implements Node {
-  id: ID!
+  id: PrefixedID!
   case: Case
   date: String
   number: String
@@ -1057,7 +1055,8 @@ enum Temperature {
   F
 }
 
-type MemoryLayout {
+type MemoryLayout implements Node {
+  id: PrefixedID!
   size: Int!
   bank: String
   type: String
@@ -1072,7 +1071,7 @@ type MemoryLayout {
 }
 
 type InfoMemory implements Node {
-  id: ID!
+  id: PrefixedID!
   max: Int!
   total: Int!
   free: Int!
@@ -1087,7 +1086,7 @@ type InfoMemory implements Node {
 }
 
 type Os implements Node {
-  id: ID!
+  id: PrefixedID!
   platform: String
   distro: String
   release: String
@@ -1103,7 +1102,7 @@ type Os implements Node {
 }
 
 type System implements Node {
-  id: ID!
+  id: PrefixedID!
   manufacturer: String
   model: String
   version: String
@@ -1113,7 +1112,7 @@ type System implements Node {
 }
 
 type Versions implements Node {
-  id: ID!
+  id: PrefixedID!
   kernel: String
   openssl: String
   systemOpenssl: String
@@ -1143,7 +1142,7 @@ type Versions implements Node {
 }
 
 type Info implements Node {
-  id: ID!
+  id: PrefixedID!
 
   """Count of docker containers"""
   apps: InfoApps!
@@ -1153,7 +1152,7 @@ type Info implements Node {
   display: Display!
 
   """Machine ID"""
-  machineId: ID
+  machineId: PrefixedID
   memory: InfoMemory!
   os: Os!
   system: System!
@@ -1182,8 +1181,8 @@ type ContainerHostConfig {
   networkMode: String!
 }
 
-type DockerContainer {
-  id: ID!
+type DockerContainer implements Node {
+  id: PrefixedID!
   names: [String!]!
   image: String!
   imageId: String!
@@ -1212,9 +1211,9 @@ enum ContainerState {
   EXITED
 }
 
-type DockerNetwork {
+type DockerNetwork implements Node {
+  id: PrefixedID!
   name: String!
-  id: ID!
   created: String!
   scope: String!
   driver: String!
@@ -1231,13 +1230,13 @@ type DockerNetwork {
 }
 
 type Docker implements Node {
-  id: ID!
+  id: PrefixedID!
   containers(skipCache: Boolean! = false): [DockerContainer!]!
   networks(skipCache: Boolean! = false): [DockerNetwork!]!
 }
 
 type Flash implements Node {
-  id: ID!
+  id: PrefixedID!
   guid: String!
   vendor: String!
   product: String!
@@ -1283,8 +1282,8 @@ type NotificationOverview {
   archive: NotificationCounts!
 }
 
-type Notification {
-  id: ID!
+type Notification implements Node {
+  id: PrefixedID!
 
   """Also known as 'event'"""
   title: String!
@@ -1310,8 +1309,8 @@ enum NotificationType {
   ARCHIVE
 }
 
-type Notifications {
-  id: ID!
+type Notifications implements Node {
+  id: PrefixedID!
 
   """A cached overview of the notifications in the system & their severity."""
   overview: NotificationOverview!
@@ -1331,8 +1330,9 @@ type Owner {
   avatar: String!
 }
 
-type VmDomain {
-  uuid: ID!
+type VmDomain implements Node {
+  """The unique identifier for the vm (uuid)"""
+  id: PrefixedID!
 
   """A friendly name for the vm"""
   name: String
@@ -1353,8 +1353,8 @@ enum VmState {
   PMSUSPENDED
 }
 
-type Vms {
-  id: ID!
+type Vms implements Node {
+  id: PrefixedID!
   domains: [VmDomain!]
   domain: [VmDomain!]
 }
@@ -1364,16 +1364,15 @@ type Uptime {
 }
 
 type Service implements Node {
-  id: ID!
+  id: PrefixedID!
   name: String
   online: Boolean
   uptime: Uptime
   version: String
 }
 
-type UserAccount {
-  """A unique identifier for the user"""
-  id: ID!
+type UserAccount implements Node {
+  id: PrefixedID!
 
   """The name of the user"""
   name: String!
@@ -1388,9 +1387,12 @@ type UserAccount {
   permissions: [Permission!]
 }
 
+"\n### Description:\n\nID scalar type that prefixes the underlying ID with the server identifier on output and strips it on input.\n\nWe use this scalar type to ensure that the ID is unique across all servers, allowing the same underlying resource ID to be used across different server instances.\n\n#### Input Behavior:\n\nWhen providing an ID as input (e.g., in arguments or input objects), the server identifier prefix ('<serverId>:') is optional.\n\n- If the prefix is present (e.g., '123:456'), it will be automatically stripped, and only the underlying ID ('456') will be used internally.\n- If the prefix is absent (e.g., '456'), the ID will be used as-is.\n\nThis makes it flexible for clients, as they don't strictly need to know or provide the server ID.\n\n#### Output Behavior:\n\nWhen an ID is returned in the response (output), it will *always* be prefixed with the current server's unique identifier (e.g., '123:456').\n\n#### Example:\n\nNote: The server identifier is '123' in this example.\n\n##### Input (Prefix Optional):\n```graphql\n# Both of these are valid inputs resolving to internal ID '456'\n{\n  someQuery(id: \"123:456\") { ... }\n  anotherQuery(id: \"456\") { ... }\n}\n```\n\n##### Output (Prefix Always Added):\n```graphql\n# Assuming internal ID is '456'\n{\n  \"data\": {\n    \"someResource\": {\n      \"id\": \"123:456\" \n    }\n  }\n}\n```\n        "
+scalar PrefixedID
+
 type Query {
   apiKeys: [ApiKey!]!
-  apiKey(id: String!): ApiKey
+  apiKey(id: PrefixedID!): ApiKey
   cloud: Cloud!
   config: Config!
   display: Display!
@@ -1421,7 +1423,7 @@ type Query {
   extraAllowedOrigins: [String!]!
   docker: Docker!
   disks: [Disk!]!
-  disk(id: String!): Disk!
+  disk(id: PrefixedID!): Disk!
   health: String!
   getDemo: String!
 }
@@ -1433,19 +1435,19 @@ type Mutation {
 
   """Creates a new notification record"""
   createNotification(input: NotificationData!): Notification!
-  deleteNotification(id: String!, type: NotificationType!): NotificationOverview!
+  deleteNotification(id: PrefixedID!, type: NotificationType!): NotificationOverview!
 
   """Deletes all archived notifications on server."""
   deleteArchivedNotifications: NotificationOverview!
 
   """Marks a notification as archived."""
-  archiveNotification(id: String!): Notification!
-  archiveNotifications(ids: [String!]!): NotificationOverview!
+  archiveNotification(id: PrefixedID!): Notification!
+  archiveNotifications(ids: [PrefixedID!]!): NotificationOverview!
   archiveAll(importance: NotificationImportance): NotificationOverview!
 
   """Marks a notification as unread."""
-  unreadNotification(id: String!): Notification!
-  unarchiveNotifications(ids: [String!]!): NotificationOverview!
+  unreadNotification(id: PrefixedID!): Notification!
+  unarchiveNotifications(ids: [PrefixedID!]!): NotificationOverview!
   unarchiveAll(importance: NotificationImportance): NotificationOverview!
 
   """Reads each notification to recompute & update the overview."""
@@ -1481,12 +1483,12 @@ input AddPermissionInput {
 }
 
 input AddRoleForApiKeyInput {
-  apiKeyId: ID!
+  apiKeyId: PrefixedID!
   role: Role!
 }
 
 input RemoveRoleFromApiKeyInput {
-  apiKeyId: ID!
+  apiKeyId: PrefixedID!
   role: Role!
 }
 

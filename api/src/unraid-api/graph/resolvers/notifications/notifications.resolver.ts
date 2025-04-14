@@ -18,6 +18,7 @@ import {
     NotificationType,
 } from '@app/unraid-api/graph/resolvers/notifications/notifications.model.js';
 import { NotificationsService } from '@app/unraid-api/graph/resolvers/notifications/notifications.service.js';
+import { PrefixedID } from '@app/unraid-api/graph/scalars/graphql-type-prefixed-id.js';
 
 @Resolver(() => Notifications)
 export class NotificationsResolver {
@@ -66,7 +67,7 @@ export class NotificationsResolver {
 
     @Mutation(() => NotificationOverview)
     public async deleteNotification(
-        @Args('id', { type: () => String })
+        @Args('id', { type: () => PrefixedID })
         id: string,
         @Args('type', { type: () => NotificationType })
         type: NotificationType
@@ -84,7 +85,7 @@ export class NotificationsResolver {
 
     @Mutation(() => Notification, { description: 'Marks a notification as archived.' })
     public archiveNotification(
-        @Args('id', { type: () => String })
+        @Args('id', { type: () => PrefixedID })
         id: string
     ): Promise<Notification> {
         return this.notificationsService.archiveNotification({ id });
@@ -92,7 +93,7 @@ export class NotificationsResolver {
 
     @Mutation(() => NotificationOverview)
     public async archiveNotifications(
-        @Args('ids', { type: () => [String] })
+        @Args('ids', { type: () => [PrefixedID] })
         ids: string[]
     ): Promise<NotificationOverview> {
         await this.notificationsService.archiveIds(ids);
@@ -110,7 +111,7 @@ export class NotificationsResolver {
 
     @Mutation(() => Notification, { description: 'Marks a notification as unread.' })
     public unreadNotification(
-        @Args('id', { type: () => String })
+        @Args('id', { type: () => PrefixedID })
         id: string
     ): Promise<Notification> {
         return this.notificationsService.markAsUnread({ id });
@@ -118,7 +119,7 @@ export class NotificationsResolver {
 
     @Mutation(() => NotificationOverview)
     public async unarchiveNotifications(
-        @Args('ids', { type: () => [String] })
+        @Args('ids', { type: () => [PrefixedID] })
         ids: string[]
     ): Promise<NotificationOverview> {
         await this.notificationsService.unarchiveIds(ids);

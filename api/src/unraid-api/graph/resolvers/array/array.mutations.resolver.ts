@@ -15,6 +15,7 @@ import {
 import { ArrayService } from '@app/unraid-api/graph/resolvers/array/array.service.js';
 import { Resource } from '@app/unraid-api/graph/resolvers/base.model.js';
 import { ArrayMutations } from '@app/unraid-api/graph/resolvers/mutation/mutation.model.js';
+import { PrefixedID } from '@app/unraid-api/graph/scalars/graphql-type-prefixed-id.js';
 
 /**
  * Nested Resolvers for Mutations MUST use @ResolveField() instead of @Mutation()
@@ -62,7 +63,7 @@ export class ArrayMutationsResolver {
         resource: Resource.ARRAY,
         possession: AuthPossession.ANY,
     })
-    public async mountArrayDisk(@Args('id') id: string): Promise<ArrayDisk> {
+    public async mountArrayDisk(@Args('id', { type: () => PrefixedID }) id: string): Promise<ArrayDisk> {
         const array = await this.arrayService.mountArrayDisk(id);
         const disk =
             array.disks.find((disk) => disk.id === id) ||
@@ -82,7 +83,7 @@ export class ArrayMutationsResolver {
         resource: Resource.ARRAY,
         possession: AuthPossession.ANY,
     })
-    public async unmountArrayDisk(@Args('id') id: string): Promise<ArrayDisk> {
+    public async unmountArrayDisk(@Args('id', { type: () => PrefixedID }) id: string): Promise<ArrayDisk> {
         const array = await this.arrayService.unmountArrayDisk(id);
         const disk =
             array.disks.find((disk) => disk.id === id) ||
@@ -102,7 +103,7 @@ export class ArrayMutationsResolver {
         resource: Resource.ARRAY,
         possession: AuthPossession.ANY,
     })
-    public async clearArrayDiskStatistics(@Args('id') id: string): Promise<boolean> {
+    public async clearArrayDiskStatistics(@Args('id', { type: () => PrefixedID }) id: string): Promise<boolean> {
         await this.arrayService.clearArrayDiskStatistics(id);
         return true;
     }

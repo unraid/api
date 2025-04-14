@@ -1,18 +1,17 @@
-import { Field, ID, InputType, ObjectType } from '@nestjs/graphql';
-
+import { Field, InputType, ObjectType } from '@nestjs/graphql';
+import { Node } from '@app/unraid-api/graph/resolvers/base.model.js';
 import { Transform, Type } from 'class-transformer';
 import {
     ArrayMinSize,
     IsArray,
     IsBoolean,
-    IsDate,
     IsEnum,
     IsNotEmpty,
     IsOptional,
     IsString,
-    ValidateIf,
     ValidateNested,
 } from 'class-validator';
+import { PrefixedID } from '@app/unraid-api/graph/scalars/graphql-type-prefixed-id.js';
 
 import { Resource, Role } from '@app/unraid-api/graph/resolvers/base.model.js';
 
@@ -29,13 +28,8 @@ export class Permission {
     actions!: string[];
 }
 
-@ObjectType()
-export class ApiKey {
-    @Field(() => ID)
-    @IsString()
-    @IsNotEmpty()
-    id!: string;
-
+@ObjectType({ implements: Node })
+export class ApiKey extends Node {
     @Field()
     @IsString()
     @IsNotEmpty()
@@ -119,7 +113,7 @@ export class CreateApiKeyInput {
 
 @InputType()
 export class AddRoleForApiKeyInput {
-    @Field(() => ID)
+    @Field(() => PrefixedID)
     @IsString()
     apiKeyId!: string;
 
@@ -130,7 +124,7 @@ export class AddRoleForApiKeyInput {
 
 @InputType()
 export class RemoveRoleFromApiKeyInput {
-    @Field(() => ID)
+    @Field(() => PrefixedID)
     @IsString()
     apiKeyId!: string;
 

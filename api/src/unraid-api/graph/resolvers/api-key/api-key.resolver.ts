@@ -1,4 +1,5 @@
 import { Args, Mutation, Query, Resolver } from '@nestjs/graphql';
+import { PrefixedID } from '@app/unraid-api/graph/scalars/graphql-type-prefixed-id.js';
 
 import { ApiKeyService } from '@app/unraid-api/auth/api-key.service.js';
 import { AuthService } from '@app/unraid-api/auth/auth.service.js';
@@ -40,7 +41,10 @@ export class ApiKeyResolver {
         resource: Resource.API_KEY,
         possession: AuthPossession.ANY,
     })
-    async apiKey(@Args('id') id: string): Promise<ApiKey | null> {
+    async apiKey(
+        @Args('id', { type: () => PrefixedID })
+        id: string
+    ): Promise<ApiKey | null> {
         return this.apiKeyService.findById(id);
     }
 

@@ -1,4 +1,6 @@
 import { Field, ID, ObjectType, registerEnumType } from '@nestjs/graphql';
+import { Node } from '@app/unraid-api/graph/resolvers/base.model.js';
+import { PrefixedID } from '@app/unraid-api/graph/scalars/graphql-type-prefixed-id.js';
 
 export enum RegistrationType {
     BASIC = 'BASIC',
@@ -83,10 +85,10 @@ export class KeyFile {
     contents?: string;
 }
 
-@ObjectType()
-export class Registration {
-    @Field(() => ID, { nullable: true })
-    guid?: string;
+@ObjectType({ implements: () => Node })
+export class Registration implements Node {
+    @Field(() => PrefixedID)
+    id!: string;
 
     @Field(() => RegistrationType, { nullable: true })
     type?: RegistrationType;

@@ -360,8 +360,8 @@ export class VmsService implements OnModuleInit, OnModuleDestroy {
                     const state = this.mapDomainStateToVmState(info.state);
 
                     return {
+                        id: uuid,
                         name,
-                        uuid,
                         state,
                     };
                 })
