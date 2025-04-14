@@ -1,17 +1,19 @@
-import { defineStore, createPinia, setActivePinia } from 'pinia';
+import { computed, ref, watch } from 'vue';
+import { createPinia, defineStore, setActivePinia } from 'pinia';
+
+import type { ExternalPayload, TrialExtend, TrialStart } from '@unraid/shared-callbacks';
+import type { StartTrialResponse } from '~/composables/services/keyServer';
 
 import { addPreventClose, removePreventClose } from '~/composables/preventClose';
-import { startTrial, type StartTrialResponse } from '~/composables/services/keyServer';
-
+import { startTrial } from '~/composables/services/keyServer';
 import { useCallbackActionsStore } from '~/store/callbackActions';
 import { useDropdownStore } from '~/store/dropdown';
 import { useServerStore } from '~/store/server';
-import type { ExternalPayload, TrialExtend, TrialStart } from '@unraid/shared-callbacks';
 
 /**
  * @see https://stackoverflow.com/questions/73476371/using-pinia-with-vue-js-web-components
  * @see https://github.com/vuejs/pinia/discussions/1085
-*/
+ */
 setActivePinia(createPinia());
 
 export const useTrialStore = defineStore('trial', () => {
@@ -22,8 +24,15 @@ export const useTrialStore = defineStore('trial', () => {
   type TrialStatus = 'failed' | 'ready' | TrialExtend | TrialStart | 'success';
   const trialStatus = ref<TrialStatus>('ready');
 
-  const trialModalLoading = computed(() => trialStatus.value === 'trialExtend' || trialStatus.value === 'trialStart');
-  const trialModalVisible = computed(() => trialStatus.value === 'failed' || trialStatus.value === 'trialExtend' || trialStatus.value === 'trialStart');
+  const trialModalLoading = computed(
+    () => trialStatus.value === 'trialExtend' || trialStatus.value === 'trialStart'
+  );
+  const trialModalVisible = computed(
+    () =>
+      trialStatus.value === 'failed' ||
+      trialStatus.value === 'trialExtend' ||
+      trialStatus.value === 'trialStart'
+  );
 
   const requestTrial = async (type?: TrialExtend | TrialStart) => {
     try {
