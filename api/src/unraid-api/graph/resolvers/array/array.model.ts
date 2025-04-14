@@ -136,15 +136,6 @@ export class UnraidArray implements Node {
     @Field(() => ID)
     id!: string;
 
-    @Field(() => ArrayState, { nullable: true, description: 'Array state before this query/mutation' })
-    previousState?: ArrayState;
-
-    @Field(() => ArrayPendingState, {
-        nullable: true,
-        description: 'Array state after this query/mutation',
-    })
-    pendingState?: ArrayPendingState;
-
     @Field(() => ArrayState, { description: 'Current array state' })
     state!: ArrayState;
 
@@ -221,17 +212,6 @@ export enum ArrayDiskStatus {
 
 registerEnumType(ArrayDiskStatus, {
     name: 'ArrayDiskStatus',
-});
-
-export enum ArrayPendingState {
-    STARTING = 'STARTING',
-    STOPPING = 'STOPPING',
-    NO_DATA_DISKS = 'NO_DATA_DISKS',
-    TOO_MANY_MISSING_DISKS = 'TOO_MANY_MISSING_DISKS',
-}
-
-registerEnumType(ArrayPendingState, {
-    name: 'ArrayPendingState',
 });
 
 export enum ArrayDiskType {
