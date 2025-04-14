@@ -1245,7 +1245,7 @@ type DockerNetwork {
 
 type Docker implements Node {
   id: ID!
-  containers: [DockerContainer!]!
+  containers(useCache: Boolean! = true): [DockerContainer!]!
   networks: [DockerNetwork!]!
 }
 
