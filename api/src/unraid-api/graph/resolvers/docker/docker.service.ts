@@ -133,13 +133,14 @@ export class DockerService implements OnModuleInit {
         }
 
         this.logger.debug('Updating docker container cache');
-        const rawContainers = await this.client
-            .listContainers({
-                all,
-                size,
-                ...listOptions,
-            })
-            .catch(catchHandlers.docker);
+        const rawContainers =
+            (await this.client
+                .listContainers({
+                    all,
+                    size,
+                    ...listOptions,
+                })
+                .catch(catchHandlers.docker)) ?? [];
 
         this.autoStarts = await this.getAutoStarts();
         const containers = rawContainers.map((container) => this.transformContainer(container));
