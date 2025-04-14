@@ -8,7 +8,6 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { useModalStore } from '~/store/modal';
 
-// Mock useToggle from @vueuse/core
 vi.mock('@vueuse/core', () => ({
   useToggle: vi.fn((value) => () => {
     value.value = !value.value;
@@ -37,7 +36,6 @@ describe('Modal Store', () => {
     });
 
     it('should show modal', () => {
-      // First set to false to test the show functionality
       store.modalHide();
       expect(store.modalVisible).toBe(false);
 
@@ -46,14 +44,11 @@ describe('Modal Store', () => {
     });
 
     it('should toggle modal visibility', () => {
-      // Initially true
       expect(store.modalVisible).toBe(true);
 
-      // First toggle - should become false
       store.modalToggle();
       expect(store.modalVisible).toBe(false);
 
-      // Second toggle - should become true again
       store.modalToggle();
       expect(store.modalVisible).toBe(true);
     });
