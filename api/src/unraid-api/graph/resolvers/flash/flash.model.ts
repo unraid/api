@@ -6,7 +6,6 @@ import { Node } from '@app/unraid-api/graph/resolvers/base.model.js';
     implements: () => Node,
 })
 export class Flash extends Node {
-
     @Field(() => String)
     guid!: string;
 

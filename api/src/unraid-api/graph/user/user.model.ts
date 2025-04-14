@@ -1,8 +1,7 @@
 import { Field, ObjectType } from '@nestjs/graphql';
 
 import { Permission } from '@app/unraid-api/graph/resolvers/api-key/api-key.model.js';
-import { Role } from '@app/unraid-api/graph/resolvers/base.model.js';
-import { Node } from '@app/unraid-api/graph/resolvers/base.model.js';
+import { Node, Role } from '@app/unraid-api/graph/resolvers/base.model.js';
 
 @ObjectType({ implements: () => Node })
 export class UserAccount extends Node {

@@ -6,8 +6,7 @@ import { getServerIdentifier } from '@app/core/utils/server-identifier.js';
 
 @Scalar('PrefixedID', () => PrefixedID)
 export class PrefixedID implements CustomScalar<string, string> {
-    description: string =
-        `
+    description: string = `
 ### Description:
 
 ID scalar type that prefixes the underlying ID with the server identifier on output and strips it on input.

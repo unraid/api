@@ -83,7 +83,9 @@ export class ArrayMutationsResolver {
         resource: Resource.ARRAY,
         possession: AuthPossession.ANY,
     })
-    public async unmountArrayDisk(@Args('id', { type: () => PrefixedID }) id: string): Promise<ArrayDisk> {
+    public async unmountArrayDisk(
+        @Args('id', { type: () => PrefixedID }) id: string
+    ): Promise<ArrayDisk> {
         const array = await this.arrayService.unmountArrayDisk(id);
         const disk =
             array.disks.find((disk) => disk.id === id) ||
@@ -103,7 +105,9 @@ export class ArrayMutationsResolver {
         resource: Resource.ARRAY,
         possession: AuthPossession.ANY,
     })
-    public async clearArrayDiskStatistics(@Args('id', { type: () => PrefixedID }) id: string): Promise<boolean> {
+    public async clearArrayDiskStatistics(
+        @Args('id', { type: () => PrefixedID }) id: string
+    ): Promise<boolean> {
         await this.arrayService.clearArrayDiskStatistics(id);
         return true;
     }

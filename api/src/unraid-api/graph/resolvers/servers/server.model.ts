@@ -1,4 +1,5 @@
 import { Field, ID, ObjectType, registerEnumType } from '@nestjs/graphql';
+
 import { Node } from '@app/unraid-api/graph/resolvers/base.model.js';
 
 @ObjectType({ implements: () => Node })

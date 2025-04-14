@@ -1,8 +1,9 @@
 import { Field, InputType, ObjectType, registerEnumType } from '@nestjs/graphql';
+
+import { IsNotEmpty, IsString } from 'class-validator';
+
 import { Node } from '@app/unraid-api/graph/resolvers/base.model.js';
 import { PrefixedID } from '@app/unraid-api/graph/scalars/graphql-type-prefixed-id.js';
-import { IsString } from 'class-validator';
-import { IsNotEmpty } from 'class-validator';
 
 // Register the VmState enum
 export enum VmState {
@@ -37,7 +38,6 @@ export class VmDomain implements Node {
 
 @ObjectType({ implements: () => Node })
 export class Vms extends Node {
-
     @Field(() => [VmDomain], { nullable: true })
     domains?: VmDomain[];
 
