@@ -6,6 +6,8 @@ import { createPinia, setActivePinia } from 'pinia';
 
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
+import type { ValidateGuidResponse } from '~/composables/services/keyServer';
+
 import { validateGuid } from '~/composables/services/keyServer';
 import { REPLACE_CHECK_LOCAL_STORAGE_KEY, useReplaceRenewStore } from '~/store/replaceRenew';
 import { useServerStore } from '~/store/server';
@@ -94,7 +96,7 @@ describe('ReplaceRenew Store', () => {
 
       store.keyLinkedStatus = 'error';
       expect(store.keyLinkedOutput.variant).toBe('red');
-      expect(store.keyLinkedOutput.text).toBe('Unknown error'); // Default error message
+      expect(store.keyLinkedOutput.text).toBe('Unknown error');
     });
 
     it('should return correct replaceStatusOutput for each status', () => {
@@ -114,7 +116,7 @@ describe('ReplaceRenew Store', () => {
 
       store.replaceStatus = 'error';
       expect(store.replaceStatusOutput?.variant).toBe('red');
-      expect(store.replaceStatusOutput?.text).toBe('Unknown error'); // Default error message
+      expect(store.replaceStatusOutput?.text).toBe('Unknown error');
     });
   });
 
@@ -141,7 +143,7 @@ describe('ReplaceRenew Store', () => {
       };
 
       beforeEach(() => {
-        vi.mocked(validateGuid).mockResolvedValue(mockResponse as any);
+        vi.mocked(validateGuid).mockResolvedValue(mockResponse as unknown as ValidateGuidResponse);
         mockSessionStorage.getItem.mockReturnValue(null);
       });
 
