@@ -60,6 +60,9 @@ vi.mock('./docker.service.js', () => ({
     })),
 }));
 
+// Import pubsub for use in tests
+import { pubsub, PUBSUB_CHANNEL } from '@app/core/pubsub.js';
+
 describe('DockerEventService', () => {
     let service: DockerEventService;
     let dockerService: DockerService;
