@@ -7,7 +7,6 @@ import { AppError } from '@app/core/errors/app-error.js';
 import { ArrayRunningError } from '@app/core/errors/array-running-error.js';
 import { getArrayData as getArrayDataUtil } from '@app/core/modules/array/get-array-data.js';
 import { emcmd } from '@app/core/utils/clients/emcmd.js';
-import { arrayIsRunning as arrayIsRunningUtil } from '@app/core/utils/index.js';
 import {
     ArrayDiskInput,
     ArrayPendingState,
@@ -25,38 +24,47 @@ export class ArrayService {
      * Is the array running?
      * @todo Refactor this to include this util in the service directly
      */
-    private arrayIsRunning() {
-        return arrayIsRunningUtil();
-    }
+    private arrayIsRunning = async () => {
+        const { getters } = await import('@app/store/index.js');
+        const emhttp = getters.emhttp();
+        return emhttp.var.mdState === ArrayState.STARTED;
+    };
 
-    public getArrayData() {
-        return getArrayDataUtil();
+    private getArrayState = async () => {
+        const { getters } = await import('@app/store/index.js');
+        const emhttp = getters.emhttp();
+        return emhttp.var.mdState;
+    };
+
+    public async getArrayData(): Promise<UnraidArray> {
+        const { store } = await import('@app/store/index.js');
+        return getArrayDataUtil(store.getState);
     }
 
     async updateArrayState({ desiredState }: ArrayStateInput): Promise<UnraidArray> {
-        const startState = this.arrayIsRunning() ? ArrayState.STARTED : ArrayState.STOPPED;
-        const pendingState =
+        if (this.pendingState) {
+            throw new BadRequestException(
+                new AppError(`Array state is still being updated. Changing to ${this.pendingState}`)
+            );
+        }
+        const isRunning = await this.arrayIsRunning();
+        const startState = isRunning ? ArrayState.STARTED : ArrayState.STOPPED;
+        const newPendingState =
             desiredState === ArrayStateInputState.STOP
                 ? ArrayPendingState.STOPPING
                 : ArrayPendingState.STARTING;
 
-        // Prevent this running multiple times at once
-        if (this.pendingState) {
-            throw new BadRequestException(
-                new AppError(`Array state is still being updated. Changing to ${pendingState}`)
-            );
-        }
-
         // Prevent starting/stopping array when it's already in the same state
+
         if (
-            (this.arrayIsRunning() && desiredState === ArrayStateInputState.START) ||
-            (!this.arrayIsRunning() && desiredState === ArrayStateInputState.STOP)
+            (isRunning && desiredState === ArrayStateInputState.START) ||
+            (!isRunning && desiredState === ArrayStateInputState.STOP)
         ) {
             throw new BadRequestException(new AppError(`The array is already ${startState}`));
         }
 
         // Set lock then start/stop array
-        this.pendingState = pendingState;
+        this.pendingState = newPendingState;
         const command = {
             [`cmd${capitalCase(desiredState)}`]: capitalCase(desiredState),
             startState: constantCase(startState),
@@ -75,7 +83,7 @@ export class ArrayService {
     }
 
     async addDiskToArray(input: ArrayDiskInput): Promise<UnraidArray> {
-        if (this.arrayIsRunning()) {
+        if (await this.arrayIsRunning()) {
             throw new ArrayRunningError();
         }
 
@@ -92,7 +100,7 @@ export class ArrayService {
     }
 
     async removeDiskFromArray(input: ArrayDiskInput): Promise<UnraidArray> {
-        if (this.arrayIsRunning()) {
+        if (await this.arrayIsRunning()) {
             throw new ArrayRunningError();
         }
 
@@ -109,7 +117,7 @@ export class ArrayService {
     }
 
     async mountArrayDisk(id: string): Promise<UnraidArray> {
-        if (!this.arrayIsRunning()) {
+        if (!(await this.arrayIsRunning())) {
             throw new BadRequestException('Array must be running to mount disks');
         }
 
@@ -123,7 +131,7 @@ export class ArrayService {
     }
 
     async unmountArrayDisk(id: string): Promise<UnraidArray> {
-        if (!this.arrayIsRunning()) {
+        if (!(await this.arrayIsRunning())) {
             throw new BadRequestException('Array must be running to unmount disks');
         }
 
@@ -137,7 +145,7 @@ export class ArrayService {
     }
 
     async clearArrayDiskStatistics(id: string): Promise<UnraidArray> {
-        if (!this.arrayIsRunning()) {
+        if (!(await this.arrayIsRunning())) {
             throw new BadRequestException('Array must be running to clear disk statistics');
         }
 
