@@ -1,7 +1,10 @@
 import { Query, ResolveField, Resolver } from '@nestjs/graphql';
 
-import { AuthActionVerb, AuthPossession, UsePermissions } from 'nest-authz';
-
+import {
+    AuthActionVerb,
+    AuthPossession,
+    UsePermissions,
+} from '@app/unraid-api/graph/directives/use-permissions.directive.js';
 import { Resource } from '@app/unraid-api/graph/resolvers/base.model.js';
 import { VmDomain, Vms } from '@app/unraid-api/graph/resolvers/vms/vms.model.js';
 import { VmsService } from '@app/unraid-api/graph/resolvers/vms/vms.service.js';
@@ -10,7 +13,7 @@ import { VmsService } from '@app/unraid-api/graph/resolvers/vms/vms.service.js';
 export class VmsResolver {
     constructor(private readonly vmsService: VmsService) {}
 
-    @Query(() => Vms)
+    @Query(() => Vms, { description: 'Get information about all VMs on the system' })
     @UsePermissions({
         action: AuthActionVerb.READ,
         resource: Resource.VMS,
@@ -35,12 +38,6 @@ export class VmsResolver {
 
     @ResolveField(() => [VmDomain])
     public async domain(): Promise<Array<VmDomain>> {
-        try {
-            return await this.vmsService.getDomains();
-        } catch (error) {
-            throw new Error(
-                `Failed to retrieve VM domains: ${error instanceof Error ? error.message : 'Unknown error'}`
-            );
-        }
+        return this.domains();
     }
 }

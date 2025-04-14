@@ -1,7 +1,10 @@
 import { Args, Int, Parent, Query, ResolveField, Resolver } from '@nestjs/graphql';
 
-import { AuthActionVerb, AuthPossession, UsePermissions } from 'nest-authz';
-
+import {
+    AuthActionVerb,
+    AuthPossession,
+    UsePermissions,
+} from '@app/unraid-api/graph/directives/use-permissions.directive.js';
 import { Resource } from '@app/unraid-api/graph/resolvers/base.model.js';
 import { Disk } from '@app/unraid-api/graph/resolvers/disks/disks.model.js';
 import { DisksService } from '@app/unraid-api/graph/resolvers/disks/disks.service.js';
