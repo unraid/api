@@ -12,7 +12,7 @@ export default class SSOFileModification extends FileModification {
     protected async generatePatch(overridePath?: string): Promise<string> {
         // Define the new PHP function to insert
         /* eslint-disable no-useless-escape */
-        const newFunction = /** PHP */`
+        const newFunction = /** PHP */ `
 function verifyUsernamePasswordAndSSO(string $username, string $password): bool {
     if ($username != "root") return false;
 
