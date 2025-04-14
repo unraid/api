@@ -1,10 +1,9 @@
-import { Field, ID, InputType, Int, ObjectType, registerEnumType } from '@nestjs/graphql';
+import { Field, InputType, Int, ObjectType, registerEnumType } from '@nestjs/graphql';
 
-import { IsEnum } from 'class-validator';
-
-import { GraphQLLong } from '@app/unraid-api/graph/scalars/graphql-type-long.js';
 import { Node } from '@app/unraid-api/graph/resolvers/base.model.js';
+import { GraphQLLong } from '@app/unraid-api/graph/scalars/graphql-type-long.js';
 import { PrefixedID } from '@app/unraid-api/graph/scalars/graphql-type-prefixed-id.js';
+import { IsEnum } from 'class-validator';
 
 @ObjectType()
 export class Capacity {
@@ -240,7 +239,6 @@ registerEnumType(ArrayDiskFsColor, {
     implements: () => Node,
 })
 export class Share extends Node {
-
     @Field(() => String, { description: 'Display name', nullable: true })
     name?: string | null;
 

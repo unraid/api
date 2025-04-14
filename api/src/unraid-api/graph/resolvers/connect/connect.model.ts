@@ -1,5 +1,4 @@
 import { Field, ID, InputType, Int, ObjectType, registerEnumType } from '@nestjs/graphql';
-import { PrefixedID } from '@app/unraid-api/graph/scalars/graphql-type-prefixed-id.js';
 
 import {
     ArrayMinSize,
@@ -18,6 +17,7 @@ import {
 import { GraphQLJSON, GraphQLURL } from 'graphql-scalars';
 
 import { Node } from '@app/unraid-api/graph/resolvers/base.model.js';
+import { PrefixedID } from '@app/unraid-api/graph/scalars/graphql-type-prefixed-id.js';
 
 export enum WAN_ACCESS_TYPE {
     DYNAMIC = 'DYNAMIC',
@@ -346,7 +346,6 @@ export class ConnectSettings extends Node {
 })
 export class Connect extends Node {
     @Field(() => DynamicRemoteAccessStatus, { description: 'The status of dynamic remote access' })
-
     @Field(() => DynamicRemoteAccessStatus, { description: 'The status of dynamic remote access' })
     @ValidateNested()
     dynamicRemoteAccess?: DynamicRemoteAccessStatus;
@@ -360,7 +359,6 @@ export class Connect extends Node {
     implements: () => Node,
 })
 export class Network extends Node {
-
     @Field(() => [AccessUrl], { nullable: true })
     accessUrls?: AccessUrl[];
 }

@@ -73,7 +73,6 @@ export class ContainerMount {
 
 @ObjectType({ implements: () => Node })
 export class DockerContainer extends Node {
-
     @Field(() => [String])
     names!: string[];
 

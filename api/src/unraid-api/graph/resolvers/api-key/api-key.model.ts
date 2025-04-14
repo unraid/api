@@ -1,5 +1,5 @@
 import { Field, InputType, ObjectType } from '@nestjs/graphql';
-import { Node } from '@app/unraid-api/graph/resolvers/base.model.js';
+
 import { Transform, Type } from 'class-transformer';
 import {
     ArrayMinSize,
@@ -11,9 +11,9 @@ import {
     IsString,
     ValidateNested,
 } from 'class-validator';
-import { PrefixedID } from '@app/unraid-api/graph/scalars/graphql-type-prefixed-id.js';
 
-import { Resource, Role } from '@app/unraid-api/graph/resolvers/base.model.js';
+import { Node, Resource, Role } from '@app/unraid-api/graph/resolvers/base.model.js';
+import { PrefixedID } from '@app/unraid-api/graph/scalars/graphql-type-prefixed-id.js';
 
 @ObjectType()
 export class Permission {
