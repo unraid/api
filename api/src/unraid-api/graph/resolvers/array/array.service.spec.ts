@@ -4,7 +4,6 @@ import { Test } from '@nestjs/testing';
 
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { AppError } from '@app/core/errors/app-error.js';
 import { ArrayRunningError } from '@app/core/errors/array-running-error.js';
 import { getArrayData as getArrayDataUtil } from '@app/core/modules/array/get-array-data.js';
 import { emcmd } from '@app/core/utils/clients/emcmd.js';
