@@ -9,12 +9,16 @@ import { getArrayData as getArrayDataUtil } from '@app/core/modules/array/get-ar
 import { emcmd } from '@app/core/utils/clients/emcmd.js';
 import {
     ArrayDiskInput,
-    ArrayPendingState,
     ArrayState,
     ArrayStateInput,
     ArrayStateInputState,
     UnraidArray,
 } from '@app/unraid-api/graph/resolvers/array/array.model.js';
+
+enum ArrayPendingState {
+    STARTING = 'STARTING',
+    STOPPING = 'STOPPING',
+}
 
 @Injectable()
 export class ArrayService {
