@@ -62,31 +62,27 @@ export class VmsService implements OnModuleInit, OnModuleDestroy {
             await this.initializeHypervisor();
             this.isVmsAvailable = true;
             this.logger.debug(`VMs service initialized successfully with URI: ${this.uri}`);
-            this.setupWatcher();
+            await this.setupWatcher();
         } catch (error) {
             this.isVmsAvailable = false;
             this.logger.warn(
                 `Initial hypervisor connection failed: ${error instanceof Error ? error.message : 'Unknown error'}. Setting up watcher.`
             );
-            this.setupWatcher();
+            await this.setupWatcher();
         }
     }
 
-    private setupWatcher(): void {
+    private async setupWatcher(): Promise<void> {
         if (this.watcher) {
             this.logger.debug('Closing existing file watcher before setting up a new one.');
-            this.watcher.close();
+            await this.watcher.close();
         }
 
         this.logger.debug(`Setting up watcher for PID file: ${this.pidPath}`);
         this.watcher = watch(this.pidPath, {
-            persistent: true,
             ignoreInitial: true,
             atomic: true,
-            awaitWriteFinish: {
-                stabilityThreshold: 2000,
-                pollInterval: 100,
-            },
+            awaitWriteFinish: true,
         });
 
         this.watcher
