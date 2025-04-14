@@ -16,18 +16,6 @@ import type { Ref } from 'vue';
 
 import { useAccountStore } from '~/store/account';
 
-// Mock setup
-vi.mock('vue', async () => {
-  const actual = await vi.importActual('vue');
-  return {
-    ...actual,
-    watchEffect: (fn: () => void) => {
-      fn();
-      return () => {};
-    },
-  };
-});
-
 const mockUseMutation = vi.fn(() => {
   let onDoneCallback: ((response: { data: unknown }) => void) | null = null;
 
