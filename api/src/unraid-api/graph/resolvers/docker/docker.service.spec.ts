@@ -1,7 +1,6 @@
 import type { TestingModule } from '@nestjs/testing';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { Test } from '@nestjs/testing';
-import { CACHE_MANAGER } from '@nestjs/cache-manager';
 
 import Docker from 'dockerode';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
@@ -10,8 +9,6 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { pubsub, PUBSUB_CHANNEL } from '@app/core/pubsub.js';
 import { ContainerState, DockerContainer } from '@app/unraid-api/graph/resolvers/docker/docker.model.js';
 import { DockerService } from '@app/unraid-api/graph/resolvers/docker/docker.service.js';
-// Import the mocked pubsub parts
-import { pubsub, PUBSUB_CHANNEL } from '@app/core/pubsub.js';
 
 // Mock pubsub
 vi.mock('@app/core/pubsub.js', () => ({
