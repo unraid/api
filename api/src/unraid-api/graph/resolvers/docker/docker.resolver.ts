@@ -1,4 +1,4 @@
-import { Query, ResolveField, Resolver } from '@nestjs/graphql';
+import { Args, Query, ResolveField, Resolver } from '@nestjs/graphql';
 
 import {
     AuthActionVerb,
@@ -35,8 +35,10 @@ export class DockerResolver {
         possession: AuthPossession.ANY,
     })
     @ResolveField(() => [DockerContainer])
-    public async containers() {
-        return this.dockerService.getContainers({ useCache: false });
+    public async containers(
+        @Args('skipCache', { defaultValue: false, type: () => Boolean }) skipCache: boolean
+    ) {
+        return this.dockerService.getContainers({ skipCache });
     }
 
     @UsePermissions({
@@ -45,7 +47,9 @@ export class DockerResolver {
         possession: AuthPossession.ANY,
     })
     @ResolveField(() => [DockerNetwork])
-    public async networks() {
-        return this.dockerService.getNetworks({ useCache: false });
+    public async networks(
+        @Args('skipCache', { defaultValue: false, type: () => Boolean }) skipCache: boolean
+    ) {
+        return this.dockerService.getNetworks({ skipCache });
     }
 }

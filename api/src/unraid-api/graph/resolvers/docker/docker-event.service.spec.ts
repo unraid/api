@@ -5,6 +5,8 @@ import { PassThrough, Readable } from 'stream';
 import Docker from 'dockerode';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
+// Import pubsub for use in tests
+import { pubsub, PUBSUB_CHANNEL } from '@app/core/pubsub.js';
 import { DockerEventService } from '@app/unraid-api/graph/resolvers/docker/docker-event.service.js';
 import { DockerService } from '@app/unraid-api/graph/resolvers/docker/docker.service.js';
 
@@ -39,11 +41,22 @@ vi.mock('@app/store/index.js', () => ({
     },
 }));
 
+// Mock pubsub
+vi.mock('@app/core/pubsub.js', () => ({
+    pubsub: {
+        publish: vi.fn().mockResolvedValue(undefined),
+    },
+    PUBSUB_CHANNEL: {
+        INFO: 'info',
+    },
+}));
+
 // Mock DockerService
 vi.mock('./docker.service.js', () => ({
     DockerService: vi.fn().mockImplementation(() => ({
         getDockerClient: vi.fn(),
-        debouncedContainerCacheUpdate: vi.fn(),
+        clearContainerCache: vi.fn(),
+        getAppInfo: vi.fn().mockResolvedValue({ info: { apps: { installed: 1, running: 1 } } }),
     })),
 }));
 
@@ -64,7 +77,8 @@ describe('DockerEventService', () => {
         // Create a mock Docker service *instance*
         const mockDockerServiceImpl = {
             getDockerClient: vi.fn().mockReturnValue(mockDockerClient),
-            debouncedContainerCacheUpdate: vi.fn(),
+            clearContainerCache: vi.fn(),
+            getAppInfo: vi.fn().mockResolvedValue({ info: { apps: { installed: 1, running: 1 } } }),
         };
 
         // Create a mock event stream
@@ -124,7 +138,9 @@ describe('DockerEventService', () => {
 
         await waitForEventProcessing();
 
-        expect(dockerService.debouncedContainerCacheUpdate).toHaveBeenCalled();
+        expect(dockerService.clearContainerCache).toHaveBeenCalled();
+        expect(dockerService.getAppInfo).toHaveBeenCalled();
+        expect(pubsub.publish).toHaveBeenCalledWith(PUBSUB_CHANNEL.INFO, expect.any(Object));
     });
 
     it('should ignore non-watched actions', async () => {
@@ -144,7 +160,9 @@ describe('DockerEventService', () => {
 
         await waitForEventProcessing();
 
-        expect(dockerService.debouncedContainerCacheUpdate).not.toHaveBeenCalled();
+        expect(dockerService.clearContainerCache).not.toHaveBeenCalled();
+        expect(dockerService.getAppInfo).not.toHaveBeenCalled();
+        expect(pubsub.publish).not.toHaveBeenCalled();
     });
 
     it('should handle malformed JSON gracefully', async () => {
@@ -160,7 +178,9 @@ describe('DockerEventService', () => {
         await waitForEventProcessing();
 
         expect(service.isActive()).toBe(true);
-        expect(dockerService.debouncedContainerCacheUpdate).toHaveBeenCalledTimes(1);
+        expect(dockerService.clearContainerCache).toHaveBeenCalledTimes(1);
+        expect(dockerService.getAppInfo).toHaveBeenCalledTimes(1);
+        expect(pubsub.publish).toHaveBeenCalledTimes(1);
     });
 
     it('should handle multiple JSON bodies in a single chunk', async () => {
@@ -176,7 +196,9 @@ describe('DockerEventService', () => {
 
         await waitForEventProcessing();
 
-        expect(dockerService.debouncedContainerCacheUpdate).toHaveBeenCalledTimes(2);
+        expect(dockerService.clearContainerCache).toHaveBeenCalledTimes(2);
+        expect(dockerService.getAppInfo).toHaveBeenCalledTimes(2);
+        expect(pubsub.publish).toHaveBeenCalledTimes(2);
     });
 
     it('should handle mixed valid and invalid JSON in a single chunk', async () => {
@@ -190,7 +212,9 @@ describe('DockerEventService', () => {
 
         await waitForEventProcessing();
 
-        expect(dockerService.debouncedContainerCacheUpdate).toHaveBeenCalledTimes(1);
+        expect(dockerService.clearContainerCache).toHaveBeenCalledTimes(1);
+        expect(dockerService.getAppInfo).toHaveBeenCalledTimes(1);
+        expect(pubsub.publish).toHaveBeenCalledTimes(1);
 
         expect(service.isActive()).toBe(true);
     });
@@ -205,7 +229,9 @@ describe('DockerEventService', () => {
 
         await waitForEventProcessing();
 
-        expect(dockerService.debouncedContainerCacheUpdate).toHaveBeenCalledTimes(1);
+        expect(dockerService.clearContainerCache).toHaveBeenCalledTimes(1);
+        expect(dockerService.getAppInfo).toHaveBeenCalledTimes(1);
+        expect(pubsub.publish).toHaveBeenCalledTimes(1);
 
         expect(service.isActive()).toBe(true);
     });
