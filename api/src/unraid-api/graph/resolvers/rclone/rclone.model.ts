@@ -1,17 +1,9 @@
 import { Field, ID, InputType, ObjectType } from '@nestjs/graphql';
 
-
-
 import { type Layout } from '@jsonforms/core';
 import { GraphQLJSON } from 'graphql-scalars';
 
-
-
 import { DataSlice } from '@app/unraid-api/types/json-forms.js';
-
-
-
-
 
 @ObjectType()
 export class RCloneDrive {
@@ -169,7 +161,7 @@ export class RCloneBackupSettings {
 
     @Field(() => [RCloneDrive])
     drives!: RCloneDrive[];
-    
+
     @Field(() => [String])
     remotes!: string[];
 }
@@ -178,10 +170,10 @@ export class RCloneBackupSettings {
 export class RCloneRemote {
     @Field(() => String)
     name!: string;
-    
+
     @Field(() => String)
     type!: string;
-    
+
     @Field(() => GraphQLJSON)
     config!: Record<string, unknown>;
 }
@@ -190,10 +182,10 @@ export class RCloneRemote {
 export class CreateRCloneRemoteInput {
     @Field(() => String)
     name!: string;
-    
+
     @Field(() => String)
     type!: string;
-    
+
     @Field(() => GraphQLJSON)
-    config!: Record<string, unknown>;
+    parameters!: Record<string, unknown>;
 }

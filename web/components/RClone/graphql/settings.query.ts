@@ -2,9 +2,9 @@ import { graphql } from "~/composables/gql/gql";
 
 
 export const GET_RCLONE_CONFIG_FORM = graphql(/* GraphQL */ `
-  query GetRCloneConfigForm {
+  query GetRCloneConfigForm($providerType: String, $parameters: JSON) {
     rcloneBackup {
-      configForm {    
+      configForm(providerType: $providerType, parameters: $parameters) {    
         dataSchema
         uiSchema
       }
