@@ -59,11 +59,7 @@ export class DiskPartition {
 }
 
 @ObjectType({ implements: () => Node })
-export class Disk implements Node {
-    @Field(() => PrefixedID, { description: 'The unique identifier of the disk' })
-    @IsString()
-    id!: string;
-
+export class Disk extends Node {
     @Field(() => String, { description: 'The device path of the disk (e.g. /dev/sdb)' })
     @IsString()
     device!: string;
