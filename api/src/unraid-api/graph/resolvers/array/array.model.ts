@@ -1,9 +1,10 @@
 import { Field, InputType, Int, ObjectType, registerEnumType } from '@nestjs/graphql';
 
+import { IsEnum } from 'class-validator';
+
 import { Node } from '@app/unraid-api/graph/resolvers/base.model.js';
 import { GraphQLLong } from '@app/unraid-api/graph/scalars/graphql-type-long.js';
 import { PrefixedID } from '@app/unraid-api/graph/scalars/graphql-type-prefixed-id.js';
-import { IsEnum } from 'class-validator';
 
 @ObjectType()
 export class Capacity {
