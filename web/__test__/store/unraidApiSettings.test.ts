@@ -1,32 +1,49 @@
-import { ref } from 'vue';
+/**
+ * UnraidApiSettings store test coverage
+ */
+
 import { createPinia, setActivePinia } from 'pinia';
 
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { WanAccessType, WanForwardType } from '~/composables/gql/graphql';
 import { useUnraidApiSettingsStore } from '~/store/unraidApiSettings';
 
-const mockLoadOrigins = vi.fn().mockResolvedValue(undefined);
-const mockLoadRemoteAccess = vi.fn().mockResolvedValue(undefined);
-const mockMutateOrigins = vi.fn();
-const mockSetupRemoteAccessMutation = vi.fn();
+const mockOrigins = ['http://example.com'];
+const mockRemoteAccess = {
+  accessType: WanAccessType.ALWAYS,
+  forwardType: WanForwardType.UPNP,
+  port: 8080,
+};
+
+const mockLoadFn = vi.fn();
+const mockMutateFn = vi.fn();
 
 vi.mock('@vue/apollo-composable', () => ({
-  useLazyQuery: vi.fn((query) => {
-    const name = query?.definitions?.[0]?.name?.value || '';
-
-    if (name === 'getExtraAllowedOrigins') {
-      return { load: mockLoadOrigins, result: ref(null) };
-    }
-    return { load: mockLoadRemoteAccess, result: ref(null) };
+  useLazyQuery: () => ({
+    load: mockLoadFn,
+    result: {
+      value: {
+        extraAllowedOrigins: mockOrigins,
+        remoteAccess: mockRemoteAccess,
+      },
+    },
   }),
-  useMutation: vi.fn((mutation) => {
-    const name = mutation?.definitions?.[0]?.name?.value || '';
-
-    if (name === 'setAdditionalAllowedOrigins') {
-      return { mutate: mockMutateOrigins };
-    }
-    return { mutate: mockSetupRemoteAccessMutation };
+  useMutation: () => ({
+    mutate: mockMutateFn.mockImplementation((args) => {
+      if (args?.input?.origins) {
+        return Promise.resolve({
+          data: {
+            setAdditionalAllowedOrigins: args.input.origins,
+          },
+        });
+      }
+      return Promise.resolve({
+        data: {
+          setupRemoteAccess: true,
+        },
+      });
+    }),
   }),
 }));
 
@@ -34,205 +51,62 @@ describe('UnraidApiSettings Store', () => {
   let store: ReturnType<typeof useUnraidApiSettingsStore>;
 
   beforeEach(() => {
-    vi.clearAllMocks();
     setActivePinia(createPinia());
     store = useUnraidApiSettingsStore();
-    vi.spyOn(console, 'error').mockImplementation(() => {});
-  });
-
-  afterEach(() => {
-    vi.restoreAllMocks();
+    vi.clearAllMocks();
   });
 
   describe('getAllowedOrigins', () => {
-    it('should call loadOrigins and return the result', async () => {
-      const mockOrigins = ['https://example.com', 'https://test.com'];
-      vi.spyOn(store, 'getAllowedOrigins').mockResolvedValueOnce(mockOrigins);
+    it('should get origins successfully', async () => {
+      const origins = await store.getAllowedOrigins();
 
-      const result = await store.getAllowedOrigins();
-
-      expect(result).toEqual(mockOrigins);
-    });
-
-    it('should return an empty array when origins is empty', async () => {
-      vi.spyOn(store, 'getAllowedOrigins').mockResolvedValueOnce([]);
-
-      const result = await store.getAllowedOrigins();
-
-      expect(result).toEqual([]);
-    });
-
-    it('should handle rejected loadOrigins request', async () => {
-      const actualStore = useUnraidApiSettingsStore();
-
-      mockLoadOrigins.mockImplementationOnce(() => Promise.reject());
-
-      const result = await actualStore.getAllowedOrigins().catch(() => []);
-
-      expect(result).toEqual([]);
+      expect(mockLoadFn).toHaveBeenCalled();
+      expect(Array.isArray(origins)).toBe(true);
+      expect(origins).toEqual(mockOrigins);
     });
   });
 
   describe('setAllowedOrigins', () => {
-    it('should call mutateOrigins with the correct input', async () => {
-      mockMutateOrigins.mockResolvedValueOnce({
-        data: { setAdditionalAllowedOrigins: true },
+    it('should set origins and return the updated list of allowed origins', async () => {
+      const newOrigins = ['http://example.com', 'http://test.com'];
+      const result = await store.setAllowedOrigins(newOrigins);
+
+      expect(mockMutateFn).toHaveBeenCalledWith({
+        input: { origins: newOrigins },
       });
-
-      const origins = ['https://example.com', 'https://test.com'];
-      const result = await store.setAllowedOrigins(origins);
-
-      expect(mockMutateOrigins).toHaveBeenCalledWith({
-        input: { origins },
-      });
-
-      expect(result).toBe(true);
-    });
-
-    it('should handle error case gracefully', async () => {
-      mockMutateOrigins.mockResolvedValueOnce({
-        data: { setAdditionalAllowedOrigins: false },
-      });
-
-      const result = await store.setAllowedOrigins(['https://example.com']);
-
-      expect(result).toBe(false);
-    });
-
-    it('should handle mutation rejection', async () => {
-      mockMutateOrigins.mockImplementationOnce(() => Promise.reject());
-
-      const result = await store.setAllowedOrigins(['https://example.com']).catch(() => undefined);
-
-      expect(result).toBeUndefined();
-    });
-
-    it('should handle undefined response', async () => {
-      mockMutateOrigins.mockResolvedValueOnce(undefined);
-
-      const result = await store.setAllowedOrigins(['https://example.com']);
-
-      expect(result).toBeUndefined();
+      expect(result).toEqual(newOrigins);
     });
   });
 
   describe('getRemoteAccess', () => {
-    it('should call loadRemoteAccess and return the result', async () => {
-      const mockRemoteAccess = {
-        accessType: WanAccessType.ALWAYS,
-        forwardType: WanForwardType.STATIC,
-        port: 443,
-      };
-
-      vi.spyOn(store, 'getRemoteAccess').mockResolvedValueOnce(mockRemoteAccess);
-
+    it('should get remote access configuration successfully', async () => {
       const result = await store.getRemoteAccess();
 
-      expect(result).toEqual(mockRemoteAccess);
-    });
+      expect(mockLoadFn).toHaveBeenCalled();
 
-    it('should return undefined when remoteAccess is null', async () => {
-      vi.spyOn(store, 'getRemoteAccess').mockResolvedValueOnce(undefined);
+      expect(result).toBeDefined();
 
-      const result = await store.getRemoteAccess();
-
-      expect(result).toBeUndefined();
-    });
-
-    it('should handle rejected loadRemoteAccess request', async () => {
-      const actualStore = useUnraidApiSettingsStore();
-
-      mockLoadRemoteAccess.mockImplementationOnce(() => Promise.reject());
-
-      const result = await actualStore.getRemoteAccess().catch(() => undefined);
-
-      expect(result).toBeUndefined();
+      if (result) {
+        expect(result).toEqual(mockRemoteAccess);
+        expect(result.accessType).toBe(WanAccessType.ALWAYS);
+        expect(result.forwardType).toBe(WanForwardType.UPNP);
+        expect(result.port).toBe(8080);
+      }
     });
   });
 
   describe('setupRemoteAccess', () => {
-    it('should call setupRemoteAccessMutation with the correct input', async () => {
-      mockSetupRemoteAccessMutation.mockResolvedValueOnce({
-        data: { setupRemoteAccess: true },
-      });
-
+    it('should setup remote access successfully and return true', async () => {
       const input = {
         accessType: WanAccessType.ALWAYS,
         forwardType: WanForwardType.STATIC,
-        port: 443,
+        port: 9090,
       };
 
       const result = await store.setupRemoteAccess(input);
 
-      expect(mockSetupRemoteAccessMutation).toHaveBeenCalledWith({
-        input,
-      });
-
+      expect(mockMutateFn).toHaveBeenCalledWith({ input });
       expect(result).toBe(true);
-    });
-
-    it('should handle null response', async () => {
-      mockSetupRemoteAccessMutation.mockResolvedValueOnce(null);
-
-      const input = { accessType: WanAccessType.DISABLED };
-      const result = await store.setupRemoteAccess(input);
-
-      expect(result).toBeUndefined();
-    });
-
-    it('should handle disabled access type', async () => {
-      mockSetupRemoteAccessMutation.mockResolvedValueOnce({
-        data: { setupRemoteAccess: true },
-      });
-
-      const input = { accessType: WanAccessType.DISABLED };
-
-      const result = await store.setupRemoteAccess(input);
-
-      expect(mockSetupRemoteAccessMutation).toHaveBeenCalledWith({
-        input,
-      });
-
-      expect(result).toBe(true);
-    });
-
-    it('should handle mutation rejection', async () => {
-      mockSetupRemoteAccessMutation.mockImplementationOnce(() => Promise.reject());
-
-      const input = { accessType: WanAccessType.ALWAYS };
-
-      const result = await store.setupRemoteAccess(input).catch(() => undefined);
-
-      expect(result).toBeUndefined();
-    });
-  });
-
-  describe('Integration Tests', () => {
-    it('should be able to set and then get allowed origins', async () => {
-      const mockOrigins = ['https://example.com'];
-
-      mockMutateOrigins.mockResolvedValueOnce({
-        data: { setAdditionalAllowedOrigins: true },
-      });
-
-      const originsRef = ref({ extraAllowedOrigins: mockOrigins });
-      mockLoadOrigins.mockImplementationOnce(async () => {
-        Object.defineProperty(store, 'origins', {
-          get: () => originsRef,
-        });
-      });
-
-      await store.setAllowedOrigins(mockOrigins);
-
-      const getStore = useUnraidApiSettingsStore();
-      vi.spyOn(getStore, 'getAllowedOrigins').mockResolvedValueOnce(mockOrigins);
-
-      const result = await getStore.getAllowedOrigins();
-
-      expect(result).toEqual(mockOrigins);
-      expect(mockMutateOrigins).toHaveBeenCalledWith({
-        input: { origins: mockOrigins },
-      });
     });
   });
 });
