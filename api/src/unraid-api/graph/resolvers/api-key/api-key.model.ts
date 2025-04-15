@@ -28,7 +28,7 @@ export class Permission {
     actions!: string[];
 }
 
-@ObjectType({ implements: Node })
+@ObjectType({ implements: () => Node })
 export class ApiKey extends Node {
     @Field()
     @IsString()
