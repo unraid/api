@@ -8,10 +8,6 @@ export const GET_RCLONE_CONFIG_FORM = graphql(/* GraphQL */ `
         dataSchema
         uiSchema
       }
-      drives {
-        name
-        options
-      }
     }
   }
 `);

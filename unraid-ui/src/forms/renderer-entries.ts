@@ -3,6 +3,7 @@ import PreconditionsLabel from '@/forms/PreconditionsLabel.vue';
 import selectRenderer from '@/forms/Select.vue';
 import StringArrayField from '@/forms/StringArrayField.vue';
 import switchRenderer from '@/forms/Switch.vue';
+import inputFieldRenderer from '@/forms/InputField.vue';
 import {
   and,
   isBooleanControl,
@@ -10,6 +11,7 @@ import {
   isEnumControl,
   isIntegerControl,
   isNumberControl,
+  isStringControl,
   optionIs,
   or,
   rankWith,
@@ -37,6 +39,11 @@ export const formSelectEntry: JsonFormsRendererRegistryEntry = {
 export const numberFieldEntry: JsonFormsRendererRegistryEntry = {
   renderer: numberFieldRenderer,
   tester: rankWith(4, or(isNumberControl, isIntegerControl)),
+};
+
+export const inputFieldEntry: JsonFormsRendererRegistryEntry = {
+  renderer: inputFieldRenderer,
+  tester: rankWith(3, isStringControl),
 };
 
 export const stringArrayEntry: JsonFormsRendererRegistryEntry = {
