@@ -1,18 +1,19 @@
+import { computed, ref, watchEffect } from 'vue';
+import { createPinia, defineStore, setActivePinia } from 'pinia';
+
 import { ArrowPathIcon, BellAlertIcon } from '@heroicons/vue/24/solid';
-import { defineStore, createPinia, setActivePinia } from 'pinia';
-
-import useInstallPlugin from '~/composables/installPlugin';
-import { getOsReleaseBySha256, type GetOsReleaseBySha256Payload } from '~/composables/services/releases';
-
 import { WEBGUI_TOOLS_UPDATE } from '~/helpers/urls';
 
+import type { ExternalUpdateOsAction } from '@unraid/shared-callbacks';
+import type { GetOsReleaseBySha256Payload } from '~/composables/services/releases';
+import type { UserProfileLink } from '~/types/userProfile';
+
+import useInstallPlugin from '~/composables/installPlugin';
+import { getOsReleaseBySha256 } from '~/composables/services/releases';
 import { useAccountStore } from '~/store/account';
 // import { useErrorsStore } from '~/store/errors';
 import { useServerStore } from '~/store/server';
 import { useUpdateOsStore } from '~/store/updateOs';
-
-import type { ExternalUpdateOsAction } from '@unraid/shared-callbacks';
-import type { UserProfileLink } from '~/types/userProfile';
 
 /**
  * @see https://stackoverflow.com/questions/73476371/using-pinia-with-vue-js-web-components
@@ -56,7 +57,16 @@ export const useUpdateOsActionsStore = defineStore('updateOsActions', () => {
 
   const updateOsAvailable = computed(() => updateOsStore.available);
   /** used when coming back from callback, this will be the release to install */
-  const status = ref<'confirming' | 'checking' | 'ineligible' | 'failed' | 'ready' | 'success' | 'updating' | 'downgrading'>('ready');
+  const status = ref<
+    | 'confirming'
+    | 'checking'
+    | 'ineligible'
+    | 'failed'
+    | 'ready'
+    | 'success'
+    | 'updating'
+    | 'downgrading'
+  >('ready');
   const callbackTypeDowngrade = ref<boolean>(false);
   const callbackUpdateRelease = ref<Release | null>(null);
   const rebootType = computed(() => serverStore.rebootType);
@@ -74,8 +84,11 @@ export const useUpdateOsActionsStore = defineStore('updateOsActions', () => {
     }
   });
 
-  const ineligible = computed(() => !guid.value || !keyfile.value || !osVersion.value || regUpdatesExpired.value);
-  const ineligibleText = computed(() => { // translated in components
+  const ineligible = computed(
+    () => !guid.value || !keyfile.value || !osVersion.value || regUpdatesExpired.value
+  );
+  const ineligibleText = computed(() => {
+    // translated in components
     if (!guid.value) {
       return 'A valid GUID is required to check for OS updates.';
     }
@@ -86,8 +99,10 @@ export const useUpdateOsActionsStore = defineStore('updateOsActions', () => {
       return 'A valid OS version is required to check for OS updates.';
     }
     if (regUpdatesExpired.value) {
-      const base = 'Your {0} license included one year of free updates at the time of purchase. You are now eligible to extend your license and access the latest OS updates.';
-      const addtlText = 'You are still eligible to access OS updates that were published on or before {1}.';
+      const base =
+        'Your {0} license included one year of free updates at the time of purchase. You are now eligible to extend your license and access the latest OS updates.';
+      const addtlText =
+        'You are still eligible to access OS updates that were published on or before {1}.';
       return updateOsAvailable.value ? `${base} ${addtlText}` : base;
     }
     return '';
@@ -121,7 +136,8 @@ export const useUpdateOsActionsStore = defineStore('updateOsActions', () => {
     };
   };
 
-  const setUpdateOsAction = (payload: ExternalUpdateOsAction | undefined) => (updateAction.value = payload);
+  const setUpdateOsAction = (payload: ExternalUpdateOsAction | undefined) =>
+    (updateAction.value = payload);
   /**
    * @description When receiving the callback the Account update page we'll use the provided sha256 of the release to get the release from the keyserver
    */
@@ -164,7 +180,7 @@ export const useUpdateOsActionsStore = defineStore('updateOsActions', () => {
       throw new Error('Release not found');
     }
     if (foundRelease.version === osVersion.value) {
-      throw new Error('Release version is the same as the server\'s current version');
+      throw new Error("Release version is the same as the server's current version");
     }
     confirmUpdateOs(foundRelease);
   };
@@ -176,7 +192,9 @@ export const useUpdateOsActionsStore = defineStore('updateOsActions', () => {
 
     setStatus('updating');
     installPlugin({
-      modalTitle: callbackTypeDowngrade.value ? `${callbackUpdateRelease.value.name} Downgrade` : `${callbackUpdateRelease.value.name} Update`,
+      modalTitle: callbackTypeDowngrade.value
+        ? `${callbackUpdateRelease.value.name} Downgrade`
+        : `${callbackUpdateRelease.value.name} Update`,
       pluginUrl: callbackUpdateRelease.value.plugin_url,
       update: false,
     });
@@ -189,7 +207,7 @@ export const useUpdateOsActionsStore = defineStore('updateOsActions', () => {
   /**
    * By default this will display current version's release notes
    */
-  const viewReleaseNotes = (modalTitle:string, webguiFilePath?:string|undefined) => {
+  const viewReleaseNotes = (modalTitle: string, webguiFilePath?: string | undefined) => {
     // @ts-expect-error • global set in the webgui
     if (typeof openChanges === 'function') {
       // @ts-expect-error • global set in the webgui
@@ -197,7 +215,12 @@ export const useUpdateOsActionsStore = defineStore('updateOsActions', () => {
       // @ts-expect-error • global set in the webgui
     } else if (typeof openBox === 'function') {
       // @ts-expect-error • global set in the webgui
-      openBox(`/plugins/dynamix.plugin.manager/include/ShowChanges.php?file=${webguiFilePath ?? '/var/tmp/unRAIDServer.txt'}`, modalTitle, 600, 900);
+      openBox(
+        `/plugins/dynamix.plugin.manager/include/ShowChanges.php?file=${webguiFilePath ?? '/var/tmp/unRAIDServer.txt'}`,
+        modalTitle,
+        600,
+        900
+      );
     } else {
       alert('Unable to open release notes');
     }
