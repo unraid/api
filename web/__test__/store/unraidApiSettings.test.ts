@@ -83,7 +83,6 @@ describe('UnraidApiSettings Store', () => {
       const result = await store.getRemoteAccess();
 
       expect(mockLoadFn).toHaveBeenCalled();
-
       expect(result).toBeDefined();
 
       if (result) {

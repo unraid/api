@@ -98,5 +98,102 @@ describe('UpdateOs Store', () => {
       store.setModalOpen(false);
       expect(store.modalOpen).toBe(false);
     });
+
+    it('should handle errors when checking for updates', async () => {
+      const { WebguiCheckForUpdate } = await import('~/composables/services/webgui');
+
+      vi.mocked(WebguiCheckForUpdate).mockRejectedValueOnce(new Error('Network error'));
+
+      await expect(store.localCheckForUpdate()).rejects.toThrow(
+        '[localCheckForUpdate] Error checking for updates'
+      );
+
+      expect(WebguiCheckForUpdate).toHaveBeenCalled();
+    });
+
+    it('should successfully cancel an update', async () => {
+      const { WebguiUpdateCancel } = await import('~/composables/services/webgui');
+      const originalLocation = window.location;
+      const mockReload = vi.fn();
+
+      // Mock window.location
+      Object.defineProperty(window, 'location', {
+        configurable: true,
+        value: {
+          ...originalLocation,
+          pathname: '/some/other/path',
+          reload: mockReload,
+        },
+      });
+
+      vi.mocked(WebguiUpdateCancel).mockResolvedValueOnce({ success: true });
+
+      await store.cancelUpdate();
+
+      expect(WebguiUpdateCancel).toHaveBeenCalled();
+      expect(mockReload).toHaveBeenCalled();
+
+      // Restore original location
+      Object.defineProperty(window, 'location', {
+        configurable: true,
+        value: originalLocation,
+      });
+    });
+
+    it('should redirect to /Tools when cancelling update from /Tools/Update path', async () => {
+      const { WebguiUpdateCancel } = await import('~/composables/services/webgui');
+      const originalLocation = window.location;
+      let hrefValue = '';
+
+      // Mock window.location
+      Object.defineProperty(window, 'location', {
+        configurable: true,
+        value: {
+          ...originalLocation,
+          pathname: '/Tools/Update',
+          get href() {
+            return hrefValue;
+          },
+          set href(value) {
+            hrefValue = value;
+          },
+        },
+      });
+
+      vi.mocked(WebguiUpdateCancel).mockResolvedValueOnce({ success: true });
+
+      await store.cancelUpdate();
+
+      expect(WebguiUpdateCancel).toHaveBeenCalled();
+      expect(hrefValue).toBe('/Tools');
+
+      // Restore original location
+      Object.defineProperty(window, 'location', {
+        configurable: true,
+        value: originalLocation,
+      });
+    });
+
+    it('should throw an error when cancel update is unsuccessful', async () => {
+      const { WebguiUpdateCancel } = await import('~/composables/services/webgui');
+
+      vi.mocked(WebguiUpdateCancel).mockResolvedValueOnce({ success: false });
+
+      await expect(store.cancelUpdate()).rejects.toThrow('Unable to cancel update');
+
+      expect(WebguiUpdateCancel).toHaveBeenCalled();
+    });
+
+    it('should throw an error when WebguiUpdateCancel fails', async () => {
+      const { WebguiUpdateCancel } = await import('~/composables/services/webgui');
+
+      vi.mocked(WebguiUpdateCancel).mockRejectedValueOnce(new Error('API error'));
+
+      await expect(store.cancelUpdate()).rejects.toThrow(
+        '[cancelUpdate] Error cancelling update with error: API error'
+      );
+
+      expect(WebguiUpdateCancel).toHaveBeenCalled();
+    });
   });
 });
