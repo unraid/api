@@ -1,4 +1,4 @@
-import { Args, Mutation, Parent, ResolveField, Resolver } from '@nestjs/graphql';
+import { Args, Context, Mutation, Parent, ResolveField, Resolver } from '@nestjs/graphql';
 import { Logger } from '@nestjs/common';
 
 import { Layout } from '@jsonforms/core';
@@ -28,18 +28,94 @@ export class RCloneConfigResolver {
 
     @ResolveField(() => GraphQLJSON)
     async dataSchema(
-        @Parent() _parent: RCloneBackupConfigForm
+        @Parent() _parent: RCloneBackupConfigForm,
+        @Args('providerType', { nullable: true }) argProviderType?: string,
+        @Args('parameters', { type: () => GraphQLJSON, nullable: true }) argParameters?: Record<string, unknown>,
+        @Context() context?: any
     ): Promise<{ properties: DataSlice; type: 'object' }> {
-        const schema = await this.rcloneFormService.dataSchema();
-        return {
-            properties: schema.properties as DataSlice,
-            type: 'object',
-        };
+        try {
+            // Get providerType and parameters from parent query if not provided directly
+            let providerType = argProviderType || '';
+            let parameters = argParameters || {};
+            
+            // Check for these values in the parent query context
+            if (context?.variableValues) {
+                providerType = providerType || context.variableValues.providerType || '';
+                parameters = parameters || context.variableValues.parameters || {};
+            }
+            
+            this.logger.debug(`dataSchema using providerType: ${providerType}, parameters: ${JSON.stringify(parameters)}`);
+            
+            // Get provided types
+            let providerTypes: string[] = [];
+            try {
+                const providers = await this.rcloneApiService.getProviderTypes();
+                providerTypes = providers.types;
+            } catch (error) {
+                this.logger.warn(`Could not get provider types for dataSchema: ${error}`);
+            }
+            
+            // Get the schema with provider information
+            const schema = await this.rcloneFormService.dataSchema(
+                providerTypes,
+                providerType,
+                parameters
+            );
+            
+            return {
+                properties: schema.properties as DataSlice,
+                type: 'object',
+            };
+        } catch (error) {
+            this.logger.error(`Error generating dataSchema: ${error}`);
+            return {
+                properties: {} as DataSlice,
+                type: 'object',
+            };
+        }
     }
 
     @ResolveField(() => GraphQLJSON)
-    async uiSchema(@Parent() _parent: RCloneBackupConfigForm): Promise<Layout> {
-        return this.rcloneFormService.uiSchema();
+    async uiSchema(
+        @Parent() _parent: RCloneBackupConfigForm,
+        @Args('providerType', { nullable: true }) argProviderType?: string,
+        @Args('parameters', { type: () => GraphQLJSON, nullable: true }) argParameters?: Record<string, unknown>,
+        @Context() context?: any
+    ): Promise<Layout> {
+        try {
+            // Get providerType and parameters from parent query if not provided directly
+            let providerType = argProviderType || '';
+            let parameters = argParameters || {};
+            
+            // Check for these values in the parent query context
+            if (context?.variableValues) {
+                providerType = providerType || context.variableValues.providerType || '';
+                parameters = parameters || context.variableValues.parameters || {};
+            }
+            
+            this.logger.debug(`uiSchema using providerType: ${providerType}, parameters: ${JSON.stringify(parameters)}`);
+            
+            // Get provided types
+            let providerTypes: string[] = [];
+            try {
+                const providers = await this.rcloneApiService.getProviderTypes();
+                providerTypes = providers.types;
+            } catch (error) {
+                this.logger.warn(`Could not get provider types for uiSchema: ${error}`);
+            }
+            
+            return this.rcloneFormService.uiSchema(
+                providerTypes,
+                providerType,
+                parameters
+            );
+        } catch (error) {
+            this.logger.error(`Error generating uiSchema: ${error}`);
+            return {
+                type: 'VerticalLayout',
+                elements: [],
+            };
+        }
     }
 
     @Mutation(() => RCloneRemote)

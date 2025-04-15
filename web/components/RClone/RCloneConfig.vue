@@ -1,9 +1,11 @@
 <script lang="ts" setup>
-import { computed, ref } from 'vue';
+import { computed, ref, watch } from 'vue';
 import { useMutation, useQuery } from '@vue/apollo-composable';
 
 import { BrandButton, jsonFormsRenderers } from '@unraid/ui';
 import { JsonForms } from '@jsonforms/vue';
+
+import type { CreateRCloneRemoteInput } from '~/composables/gql/graphql';
 
 import {
   CREATE_REMOTE,
@@ -11,8 +13,8 @@ import {
   LIST_REMOTES,
 } from '~/components/RClone/graphql/settings.query';
 import { useUnraidApiStore } from '~/store/unraidApi';
-import type { RCloneRemote } from '~/composables/gql/graphql';
-const { offlineError, unraidApiStatus } = useUnraidApiStore();
+
+const { offlineError: _offlineError, unraidApiStatus: _unraidApiStatus } = useUnraidApiStore();
 
 // Form state
 const formState = ref({
@@ -23,12 +25,43 @@ const formState = ref({
   parameters: {},
 });
 
+// Track provider changes to update form schema
+const providerType = computed(() => formState.value.type || '');
+const {
+  result: formResult,
+  loading: formLoading,
+  refetch: updateFormSchema,
+} = useQuery(GET_RCLONE_CONFIG_FORM, () => ({
+  providerType: formState.value.type,
+  parameters: formState.value.parameters,
+}));
 
-// Load form schema from API
-const { result: formResult, loading: formLoading } = useQuery(GET_RCLONE_CONFIG_FORM);
+// Watch for provider type changes to update schema
+watch(providerType, async (newType) => {
+  if (newType) {
+    await updateFormSchema();
+  }
+});
 
-// Query existing remotes
-const { result, refetch: refetchRemotes } = useQuery(LIST_REMOTES);
+// Watch for step changes to update schema if needed
+watch(
+  () => formState.value.configStep,
+  async (newStep) => {
+    if (newStep > 0) {
+      await updateFormSchema();
+    }
+  }
+);
+
+const { result: remotesResult, refetch: refetchRemotes } = useQuery(LIST_REMOTES);
+
+// Define type for the remotes result
+interface RemotesResult {
+  rcloneBackup?: {
+    remotes?: string[];
+  };
+}
+
 /**
  * Form submission and mutation handling
  */
@@ -47,7 +80,7 @@ const submitForm = async () => {
         name: formState.value.name,
         type: formState.value.type,
         parameters: formState.value.parameters,
-      },
+      } as CreateRCloneRemoteInput,
     });
   } catch (error) {
     console.error('Error creating remote:', error);
@@ -92,12 +125,16 @@ const onChange = ({ data }: { data: Record<string, unknown> }) => {
 const goToNextStep = () => {
   if (formState.value.configStep < 2) {
     formState.value.configStep++;
+    // Update form schema when moving to the next step
+    updateFormSchema();
   }
 };
 
 const goToPreviousStep = () => {
   if (formState.value.configStep > 0) {
     formState.value.configStep--;
+    // Update form schema when moving to the previous step
+    updateFormSchema();
   }
 };
 
@@ -119,6 +156,13 @@ const canProceedToNextStep = computed(() => {
 // Check if form can be submitted (on last step)
 const canSubmitForm = computed(() => {
   return formState.value.configStep === 2 && !!formState.value.name && !!formState.value.type;
+});
+
+// Existing remotes - safely extract from query result
+const existingRemotes = computed(() => {
+  // Type assertion needed for the codegen types
+  const result = remotesResult.value as RemotesResult | undefined;
+  return result?.rcloneBackup?.remotes || [];
 });
 </script>
 
@@ -189,18 +233,17 @@ const canSubmitForm = computed(() => {
       </div>
 
       <!-- Existing remotes list -->
-      <div v-if="existingRemotes?.length > 0" class="mt-10">
+      <div v-if="remotesResult?.rcloneBackup?.remotes?.length ?? 0 > 0" class="mt-10">
         <h3 class="text-lg font-medium mb-4">Configured Remotes</h3>
         <div class="space-y-4">
           <div
-            v-for="remote in existingRemotes"
-            :key="remote.name"
+            v-for="remote in remotesResult?.rcloneBackup?.remotes ?? []"
+            :key="remote"
             class="p-4 border border-gray-200 rounded-md"
           >
             <div class="flex justify-between items-center">
               <div>
-                <h4 class="font-medium">{{ remote.name }}</h4>
-                <div class="text-sm text-gray-500">Type: {{ remote.type }}</div>
+                <h4 class="font-medium">{{ remote }}</h4>
               </div>
             </div>
           </div>

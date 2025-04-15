@@ -1,5 +1,6 @@
 import { Logger } from '@nestjs/common';
-import { Parent, Query, ResolveField, Resolver } from '@nestjs/graphql';
+import { Args, Parent, Query, ResolveField, Resolver } from '@nestjs/graphql';
+import { GraphQLJSON } from 'graphql-scalars';
 
 import {
     AuthActionVerb,
@@ -15,6 +16,7 @@ import {
 } from '@app/unraid-api/graph/resolvers/rclone/rclone.model.js';
 
 import { RCloneService } from './rclone.service.js';
+import { RCloneFormService } from './rclone-form.service.js';
 
 @Resolver(() => RCloneBackupSettings)
 export class RCloneBackupSettingsResolver {
@@ -22,7 +24,8 @@ export class RCloneBackupSettingsResolver {
 
     constructor(
         private readonly rcloneService: RCloneService,
-        private readonly rcloneApiService: RCloneApiService
+        private readonly rcloneApiService: RCloneApiService,
+        private readonly rcloneFormService: RCloneFormService
     ) {}
 
     @Query(() => RCloneBackupSettings)
@@ -36,7 +39,12 @@ export class RCloneBackupSettingsResolver {
     }
 
     @ResolveField(() => RCloneBackupConfigForm)
-    async configForm(@Parent() _parent: RCloneBackupSettings): Promise<RCloneBackupConfigForm> {
+    async configForm(
+        @Parent() _parent: RCloneBackupSettings, 
+        @Args('providerType', { nullable: true }) providerType?: string, 
+        @Args('parameters', { type: () => GraphQLJSON, nullable: true }) parameters?: Record<string, unknown>
+    ): Promise<RCloneBackupConfigForm> {
+        // Return basic form info without generating schema data - this will be handled by RCloneConfigResolver
         return {
             id: 'rcloneBackupConfigForm',
         } as RCloneBackupConfigForm;
@@ -47,9 +55,9 @@ export class RCloneBackupSettingsResolver {
         try {
             const providers = await this.rcloneApiService.getProviders();
 
-            return Object.entries(providers).map(([name, options]) => ({
-                name,
-                options: options as Record<string, unknown>,
+            return providers.map(provider => ({
+                name: provider.name,
+                options: provider.options as unknown as Record<string, unknown>,
             }));
         } catch (error) {
             this.logger.error(`Error getting providers: ${error}`);

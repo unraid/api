@@ -1379,12 +1379,12 @@ type RCloneProviderOptionExample {
 
 type RCloneBackupConfigForm {
   id: ID!
-  dataSchema: JSON!
-  uiSchema: JSON!
+  dataSchema(providerType: String, parameters: JSON): JSON!
+  uiSchema(providerType: String, parameters: JSON): JSON!
 }
 
 type RCloneBackupSettings {
-  configForm: RCloneBackupConfigForm!
+  configForm(providerType: String, parameters: JSON): RCloneBackupConfigForm!
   drives: [RCloneDrive!]!
   remotes: [String!]!
 }
@@ -1751,7 +1751,7 @@ input InitiateFlashBackupInput {
 input CreateRCloneRemoteInput {
   name: String!
   type: String!
-  config: JSON!
+  parameters: JSON!
 }
 
 type Subscription {
