@@ -1,8 +1,8 @@
 import { Logger } from '@nestjs/common';
 import { Args, Mutation, Query, ResolveField, Resolver } from '@nestjs/graphql';
 
-import { Layout } from '@jsonforms/core';
-import { GraphQLJSON, GraphQLJSONObject } from 'graphql-scalars';
+import { type Layout } from '@jsonforms/core';
+import { GraphQLJSON } from 'graphql-scalars';
 
 import { getAllowedOrigins } from '@app/common/allowed-origins.js';
 import { setupRemoteAccessThunk } from '@app/store/actions/setup-remote-access.js';
@@ -46,7 +46,7 @@ export class ConnectSettingsResolver {
         };
     }
 
-    @ResolveField(() => GraphQLJSONObject)
+    @ResolveField(() => GraphQLJSON)
     public async uiSchema(): Promise<Layout> {
         const { elements } = await this.connectSettingsService.buildSettingsSchema();
         return {

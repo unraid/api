@@ -20,8 +20,6 @@ export type Scalars = {
   DateTime: { input: string; output: string; }
   /** The `JSON` scalar type represents JSON values as specified by [ECMA-404](http://www.ecma-international.org/publications/files/ECMA-ST/ECMA-404.pdf). */
   JSON: { input: any; output: any; }
-  /** The `JSONObject` scalar type represents JSON objects as specified by [ECMA-404](http://www.ecma-international.org/publications/files/ECMA-ST/ECMA-404.pdf). */
-  JSONObject: { input: any; output: any; }
   /** A field whose value is a valid TCP port within the range of 0 to 65535: https://en.wikipedia.org/wiki/Transmission_Control_Protocol#TCP_ports */
   Port: { input: number; output: number; }
   /**
@@ -527,6 +525,12 @@ export type CreateApiKeyInput = {
   roles?: InputMaybe<Array<Role>>;
 };
 
+export type CreateRCloneRemoteInput = {
+  config: Scalars['JSON']['input'];
+  name: Scalars['String']['input'];
+  type: Scalars['String']['input'];
+};
+
 export type Customization = {
   __typename?: 'Customization';
   activationCode?: Maybe<ActivationCode>;
@@ -673,10 +677,10 @@ export type DockerContainer = Node & {
   id: Scalars['PrefixedID']['output'];
   image: Scalars['String']['output'];
   imageId: Scalars['String']['output'];
-  labels?: Maybe<Scalars['JSONObject']['output']>;
-  mounts?: Maybe<Array<Scalars['JSONObject']['output']>>;
+  labels?: Maybe<Scalars['JSON']['output']>;
+  mounts?: Maybe<Array<Scalars['JSON']['output']>>;
   names: Array<Scalars['String']['output']>;
-  networkSettings?: Maybe<Scalars['JSONObject']['output']>;
+  networkSettings?: Maybe<Scalars['JSON']['output']>;
   ports: Array<ContainerPort>;
   /** Total size of all the files in the container */
   sizeRootFs?: Maybe<Scalars['Int']['output']>;
@@ -705,19 +709,19 @@ export type DockerMutationsStopArgs = {
 export type DockerNetwork = Node & {
   __typename?: 'DockerNetwork';
   attachable: Scalars['Boolean']['output'];
-  configFrom: Scalars['JSONObject']['output'];
+  configFrom: Scalars['JSON']['output'];
   configOnly: Scalars['Boolean']['output'];
-  containers: Scalars['JSONObject']['output'];
+  containers: Scalars['JSON']['output'];
   created: Scalars['String']['output'];
   driver: Scalars['String']['output'];
   enableIPv6: Scalars['Boolean']['output'];
   id: Scalars['PrefixedID']['output'];
   ingress: Scalars['Boolean']['output'];
   internal: Scalars['Boolean']['output'];
-  ipam: Scalars['JSONObject']['output'];
-  labels: Scalars['JSONObject']['output'];
+  ipam: Scalars['JSON']['output'];
+  labels: Scalars['JSON']['output'];
   name: Scalars['String']['output'];
-  options: Scalars['JSONObject']['output'];
+  options: Scalars['JSON']['output'];
   scope: Scalars['String']['output'];
 };
 
@@ -750,6 +754,14 @@ export type Flash = Node & {
   id: Scalars['PrefixedID']['output'];
   product: Scalars['String']['output'];
   vendor: Scalars['String']['output'];
+};
+
+export type FlashBackupStatus = {
+  __typename?: 'FlashBackupStatus';
+  /** Job ID if available, can be used to check job status. */
+  jobId?: Maybe<Scalars['String']['output']>;
+  /** Status message indicating the outcome of the backup initiation. */
+  status: Scalars['String']['output'];
 };
 
 export type Gpu = Node & {
@@ -828,6 +840,17 @@ export type InfoMemory = Node & {
   used: Scalars['BigInt']['output'];
 };
 
+export type InitiateFlashBackupInput = {
+  /** Destination path on the remote. */
+  destinationPath: Scalars['String']['input'];
+  /** Additional options for the backup operation, such as --dry-run or --transfers. */
+  options?: InputMaybe<Scalars['JSON']['input']>;
+  /** The name of the remote configuration to use for the backup. */
+  remoteName: Scalars['String']['input'];
+  /** Source path to backup (typically the flash drive). */
+  sourcePath: Scalars['String']['input'];
+};
+
 export type KeyFile = {
   __typename?: 'KeyFile';
   contents?: Maybe<Scalars['String']['output']>;
@@ -901,11 +924,14 @@ export type Mutation = {
   connectSignOut: Scalars['Boolean']['output'];
   /** Creates a new notification record */
   createNotification: Notification;
+  createRCloneRemote: RCloneRemote;
   /** Deletes all archived notifications on server. */
   deleteArchivedNotifications: NotificationOverview;
   deleteNotification: NotificationOverview;
   docker: DockerMutations;
   enableDynamicRemoteAccess: Scalars['Boolean']['output'];
+  /** Initiates a flash drive backup using a configured remote. */
+  initiateFlashBackup: FlashBackupStatus;
   parityCheck: ParityCheckMutations;
   /** Reads each notification to recompute & update the overview. */
   recalculateOverview: NotificationOverview;
@@ -946,6 +972,11 @@ export type MutationCreateNotificationArgs = {
 };
 
 
+export type MutationCreateRCloneRemoteArgs = {
+  input: CreateRCloneRemoteInput;
+};
+
+
 export type MutationDeleteNotificationArgs = {
   id: Scalars['PrefixedID']['input'];
   type: NotificationType;
@@ -954,6 +985,16 @@ export type MutationDeleteNotificationArgs = {
 
 export type MutationEnableDynamicRemoteAccessArgs = {
   input: EnableDynamicRemoteAccessInput;
+};
+
+
+export type MutationInitiateFlashBackupArgs = {
+  input: InitiateFlashBackupInput;
+};
+
+
+export type MutationRemoveRoleFromApiKeyArgs = {
+  input: RemoveRoleFromApiKeyInput;
 };
 
 
@@ -1199,6 +1240,7 @@ export type Query = {
   parityHistory: Array<ParityCheck>;
   publicPartnerInfo?: Maybe<PublicPartnerInfo>;
   publicTheme: Theme;
+  rcloneBackup: RCloneBackupSettings;
   registration?: Maybe<Registration>;
   remoteAccess: RemoteAccess;
   server?: Maybe<Server>;
@@ -1225,6 +1267,61 @@ export type QueryLogFileArgs = {
   lines?: InputMaybe<Scalars['Int']['input']>;
   path: Scalars['String']['input'];
   startLine?: InputMaybe<Scalars['Int']['input']>;
+};
+
+export type RCloneBackupConfigForm = {
+  __typename?: 'RCloneBackupConfigForm';
+  dataSchema: Scalars['JSON']['output'];
+  id: Scalars['ID']['output'];
+  uiSchema: Scalars['JSON']['output'];
+};
+
+export type RCloneBackupSettings = {
+  __typename?: 'RCloneBackupSettings';
+  configForm: RCloneBackupConfigForm;
+  drives: Array<RCloneDrive>;
+  remotes: Array<Scalars['String']['output']>;
+};
+
+export type RCloneDrive = {
+  __typename?: 'RCloneDrive';
+  /** Provider name */
+  name: Scalars['String']['output'];
+  /** Provider options and configuration schema */
+  options: Scalars['JSON']['output'];
+};
+
+export type RCloneProviderOption = {
+  __typename?: 'RCloneProviderOption';
+  advanced?: Maybe<Scalars['Boolean']['output']>;
+  default?: Maybe<Scalars['JSON']['output']>;
+  defaultStr?: Maybe<Scalars['String']['output']>;
+  examples?: Maybe<Array<RCloneProviderOptionExample>>;
+  help: Scalars['String']['output'];
+  hide?: Maybe<Scalars['Boolean']['output']>;
+  isPassword?: Maybe<Scalars['Boolean']['output']>;
+  name: Scalars['String']['output'];
+  noPrefix?: Maybe<Scalars['Boolean']['output']>;
+  provider: Scalars['String']['output'];
+  required?: Maybe<Scalars['Boolean']['output']>;
+  shortOpt?: Maybe<Scalars['String']['output']>;
+  type?: Maybe<Scalars['String']['output']>;
+  value?: Maybe<Scalars['JSON']['output']>;
+  valueStr?: Maybe<Scalars['String']['output']>;
+};
+
+export type RCloneProviderOptionExample = {
+  __typename?: 'RCloneProviderOptionExample';
+  help: Scalars['String']['output'];
+  provider: Scalars['String']['output'];
+  value: Scalars['String']['output'];
+};
+
+export type RCloneRemote = {
+  __typename?: 'RCloneRemote';
+  config: Scalars['JSON']['output'];
+  name: Scalars['String']['output'];
+  type: Scalars['String']['output'];
 };
 
 export type Registration = Node & {
@@ -1961,6 +2058,23 @@ export type NotificationOverviewSubSubscription = { __typename?: 'Subscription',
       & { ' $fragmentRefs'?: { 'NotificationCountFragmentFragment': NotificationCountFragmentFragment } }
     ) } };
 
+export type GetRCloneConfigFormQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type GetRCloneConfigFormQuery = { __typename?: 'Query', rcloneBackup: { __typename?: 'RCloneBackupSettings', configForm: { __typename?: 'RCloneBackupConfigForm', dataSchema: any, uiSchema: any }, drives: Array<{ __typename?: 'RCloneDrive', name: string, options: any }> } };
+
+export type ListRCloneRemotesQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type ListRCloneRemotesQuery = { __typename?: 'Query', rcloneBackup: { __typename?: 'RCloneBackupSettings', remotes: Array<string> } };
+
+export type CreateRCloneRemoteMutationVariables = Exact<{
+  input: CreateRCloneRemoteInput;
+}>;
+
+
+export type CreateRCloneRemoteMutation = { __typename?: 'Mutation', createRCloneRemote: { __typename?: 'RCloneRemote', name: string, type: string, config: any } };
+
 export type ConnectSignInMutationVariables = Exact<{
   input: ConnectSignInInput;
 }>;
@@ -2035,6 +2149,9 @@ export const OverviewDocument = {"kind":"Document","definitions":[{"kind":"Opera
 export const RecomputeOverviewDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"RecomputeOverview"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"recalculateOverview"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"archive"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"NotificationCountFragment"}}]}},{"kind":"Field","name":{"kind":"Name","value":"unread"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"NotificationCountFragment"}}]}}]}}]}},{"kind":"FragmentDefinition","name":{"kind":"Name","value":"NotificationCountFragment"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"NotificationCounts"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"total"}},{"kind":"Field","name":{"kind":"Name","value":"info"}},{"kind":"Field","name":{"kind":"Name","value":"warning"}},{"kind":"Field","name":{"kind":"Name","value":"alert"}}]}}]} as unknown as DocumentNode<RecomputeOverviewMutation, RecomputeOverviewMutationVariables>;
 export const NotificationAddedSubDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"subscription","name":{"kind":"Name","value":"NotificationAddedSub"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"notificationAdded"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"NotificationFragment"}}]}}]}},{"kind":"FragmentDefinition","name":{"kind":"Name","value":"NotificationFragment"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"Notification"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"title"}},{"kind":"Field","name":{"kind":"Name","value":"subject"}},{"kind":"Field","name":{"kind":"Name","value":"description"}},{"kind":"Field","name":{"kind":"Name","value":"importance"}},{"kind":"Field","name":{"kind":"Name","value":"link"}},{"kind":"Field","name":{"kind":"Name","value":"type"}},{"kind":"Field","name":{"kind":"Name","value":"timestamp"}},{"kind":"Field","name":{"kind":"Name","value":"formattedTimestamp"}}]}}]} as unknown as DocumentNode<NotificationAddedSubSubscription, NotificationAddedSubSubscriptionVariables>;
 export const NotificationOverviewSubDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"subscription","name":{"kind":"Name","value":"NotificationOverviewSub"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"notificationsOverview"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"archive"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"NotificationCountFragment"}}]}},{"kind":"Field","name":{"kind":"Name","value":"unread"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"NotificationCountFragment"}}]}}]}}]}},{"kind":"FragmentDefinition","name":{"kind":"Name","value":"NotificationCountFragment"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"NotificationCounts"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"total"}},{"kind":"Field","name":{"kind":"Name","value":"info"}},{"kind":"Field","name":{"kind":"Name","value":"warning"}},{"kind":"Field","name":{"kind":"Name","value":"alert"}}]}}]} as unknown as DocumentNode<NotificationOverviewSubSubscription, NotificationOverviewSubSubscriptionVariables>;
+export const GetRCloneConfigFormDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"GetRCloneConfigForm"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"rcloneBackup"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"configForm"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"dataSchema"}},{"kind":"Field","name":{"kind":"Name","value":"uiSchema"}}]}},{"kind":"Field","name":{"kind":"Name","value":"drives"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"options"}}]}}]}}]}}]} as unknown as DocumentNode<GetRCloneConfigFormQuery, GetRCloneConfigFormQueryVariables>;
+export const ListRCloneRemotesDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"ListRCloneRemotes"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"rcloneBackup"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"remotes"}}]}}]}}]} as unknown as DocumentNode<ListRCloneRemotesQuery, ListRCloneRemotesQueryVariables>;
+export const CreateRCloneRemoteDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"CreateRCloneRemote"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"input"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"CreateRCloneRemoteInput"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"createRCloneRemote"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"input"},"value":{"kind":"Variable","name":{"kind":"Name","value":"input"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"type"}},{"kind":"Field","name":{"kind":"Name","value":"config"}}]}}]}}]} as unknown as DocumentNode<CreateRCloneRemoteMutation, CreateRCloneRemoteMutationVariables>;
 export const ConnectSignInDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"ConnectSignIn"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"input"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"ConnectSignInInput"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"connectSignIn"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"input"},"value":{"kind":"Variable","name":{"kind":"Name","value":"input"}}}]}]}}]} as unknown as DocumentNode<ConnectSignInMutation, ConnectSignInMutationVariables>;
 export const SignOutDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"SignOut"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"connectSignOut"}}]}}]} as unknown as DocumentNode<SignOutMutation, SignOutMutationVariables>;
 export const ServerStateDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"serverState"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"cloud"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"PartialCloud"}}]}},{"kind":"Field","name":{"kind":"Name","value":"config"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"error"}},{"kind":"Field","name":{"kind":"Name","value":"valid"}}]}},{"kind":"Field","name":{"kind":"Name","value":"info"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"os"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"hostname"}}]}}]}},{"kind":"Field","name":{"kind":"Name","value":"owner"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"avatar"}},{"kind":"Field","name":{"kind":"Name","value":"username"}}]}},{"kind":"Field","name":{"kind":"Name","value":"registration"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"state"}},{"kind":"Field","name":{"kind":"Name","value":"expiration"}},{"kind":"Field","name":{"kind":"Name","value":"keyFile"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"contents"}}]}},{"kind":"Field","name":{"kind":"Name","value":"updateExpiration"}}]}},{"kind":"Field","name":{"kind":"Name","value":"vars"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"regGen"}},{"kind":"Field","name":{"kind":"Name","value":"regState"}},{"kind":"Field","name":{"kind":"Name","value":"configError"}},{"kind":"Field","name":{"kind":"Name","value":"configValid"}}]}}]}},{"kind":"FragmentDefinition","name":{"kind":"Name","value":"PartialCloud"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"Cloud"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"error"}},{"kind":"Field","name":{"kind":"Name","value":"apiKey"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"valid"}},{"kind":"Field","name":{"kind":"Name","value":"error"}}]}},{"kind":"Field","name":{"kind":"Name","value":"cloud"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"status"}},{"kind":"Field","name":{"kind":"Name","value":"error"}}]}},{"kind":"Field","name":{"kind":"Name","value":"minigraphql"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"status"}},{"kind":"Field","name":{"kind":"Name","value":"error"}}]}},{"kind":"Field","name":{"kind":"Name","value":"relay"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"status"}},{"kind":"Field","name":{"kind":"Name","value":"error"}}]}}]}}]} as unknown as DocumentNode<ServerStateQuery, ServerStateQueryVariables>;

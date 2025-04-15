@@ -21,6 +21,9 @@ const initialState = {
     ),
     'docker-autostart': '/var/lib/docker/unraid-autostart' as const,
     'docker-socket': '/var/run/docker.sock' as const,
+    'rclone-socket': resolvePath(
+        process.env.PATHS_RCLONE_SOCKET ?? ('/var/run/rclone.socket' as const)
+    ),
     'parity-checks': resolvePath(
         process.env.PATHS_PARITY_CHECKS ?? ('/boot/config/parity-checks.log' as const)
     ),
@@ -54,8 +57,8 @@ const initialState = {
         ('/boot/config/plugins/dynamix.my.servers/fb_keepalive' as const),
     'keyfile-base': resolvePath(process.env.PATHS_KEYFILE_BASE ?? ('/boot/config' as const)),
     'machine-id': resolvePath(process.env.PATHS_MACHINE_ID ?? ('/var/lib/dbus/machine-id' as const)),
-    'log-base': resolvePath('/var/log/unraid-api/' as const),
-    'unraid-log-base': resolvePath('/var/log/' as const),
+    'log-base': process.env.PATHS_LOG_BASE ?? resolvePath('/var/log/unraid-api/' as const),
+    'unraid-log-base': process.env.PATHS_UNRAID_LOG_BASE ?? resolvePath('/var/log/' as const),
     'var-run': '/var/run' as const,
     // contains sess_ files that correspond to authenticated user sessions
     'auth-sessions': process.env.PATHS_AUTH_SESSIONS ?? '/var/lib/php',

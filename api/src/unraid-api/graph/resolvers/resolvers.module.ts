@@ -4,9 +4,6 @@ import { AuthModule } from '@app/unraid-api/auth/auth.module.js';
 import { ApiKeyModule } from '@app/unraid-api/graph/resolvers/api-key/api-key.module.js';
 import { ApiKeyResolver } from '@app/unraid-api/graph/resolvers/api-key/api-key.resolver.js';
 import { ArrayModule } from '@app/unraid-api/graph/resolvers/array/array.module.js';
-import { ArrayMutationsResolver } from '@app/unraid-api/graph/resolvers/array/array.mutations.resolver.js';
-import { ArrayResolver } from '@app/unraid-api/graph/resolvers/array/array.resolver.js';
-import { ArrayService } from '@app/unraid-api/graph/resolvers/array/array.service.js';
 import { CloudResolver } from '@app/unraid-api/graph/resolvers/cloud/cloud.resolver.js';
 import { ConfigResolver } from '@app/unraid-api/graph/resolvers/config/config.resolver.js';
 import { ConnectModule } from '@app/unraid-api/graph/resolvers/connect/connect.module.js';
@@ -14,6 +11,7 @@ import { CustomizationModule } from '@app/unraid-api/graph/resolvers/customizati
 import { DisksModule } from '@app/unraid-api/graph/resolvers/disks/disks.module.js';
 import { DisplayResolver } from '@app/unraid-api/graph/resolvers/display/display.resolver.js';
 import { DockerModule } from '@app/unraid-api/graph/resolvers/docker/docker.module.js';
+import { FlashBackupModule } from '@app/unraid-api/graph/resolvers/flash-backup/flash-backup.module.js';
 import { FlashResolver } from '@app/unraid-api/graph/resolvers/flash/flash.resolver.js';
 import { InfoResolver } from '@app/unraid-api/graph/resolvers/info/info.resolver.js';
 import { LogsResolver } from '@app/unraid-api/graph/resolvers/logs/logs.resolver.js';
@@ -24,6 +22,7 @@ import { NotificationsResolver } from '@app/unraid-api/graph/resolvers/notificat
 import { NotificationsService } from '@app/unraid-api/graph/resolvers/notifications/notifications.service.js';
 import { OnlineResolver } from '@app/unraid-api/graph/resolvers/online/online.resolver.js';
 import { OwnerResolver } from '@app/unraid-api/graph/resolvers/owner/owner.resolver.js';
+import { RCloneModule } from '@app/unraid-api/graph/resolvers/rclone/rclone.module.js';
 import { RegistrationResolver } from '@app/unraid-api/graph/resolvers/registration/registration.resolver.js';
 import { ServerResolver } from '@app/unraid-api/graph/resolvers/servers/server.resolver.js';
 import { VarsResolver } from '@app/unraid-api/graph/resolvers/vars/vars.resolver.js';
@@ -35,7 +34,17 @@ import { SharesResolver } from '@app/unraid-api/graph/shares/shares.resolver.js'
 import { MeResolver } from '@app/unraid-api/graph/user/user.resolver.js';
 
 @Module({
-    imports: [ArrayModule, ApiKeyModule, ConnectModule, CustomizationModule, DockerModule, DisksModule],
+    imports: [
+        ArrayModule,
+        ApiKeyModule,
+        AuthModule,
+        ConnectModule,
+        CustomizationModule,
+        DockerModule,
+        DisksModule,
+        FlashBackupModule,
+        RCloneModule,
+    ],
     providers: [
         CloudResolver,
         ConfigResolver,

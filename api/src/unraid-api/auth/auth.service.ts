@@ -52,7 +52,7 @@ export class AuthService {
 
     async validateCookiesWithCsrfToken(request: FastifyRequest): Promise<UserAccount> {
         try {
-            if (!this.validateCsrfToken(request.headers['x-csrf-token'] || request.query.csrf_token)) {
+            if (request.method !== 'GET' && !request.url.startsWith('/graphql/api/rclone-webgui/') && (!this.validateCsrfToken(request.headers['x-csrf-token'] || request.query.csrf_token))) {
                 throw new UnauthorizedException('Invalid CSRF token');
             }
 
