@@ -70,12 +70,15 @@ const retryLink = new RetryLink({
 const disableClientLink = new ApolloLink((operation, forward) => {
   const serverStore = useServerStore();
   const { connectPluginInstalled } = toRefs(serverStore);
+  
+  /*  DO NOT COMMIT THIS
+  
   if (!connectPluginInstalled?.value) {
     return new Observable((observer) => {
       console.warn('connectPluginInstalled is false, aborting request');
       observer.complete();
     });
-  }
+  } */
   return forward(operation);
 });
 

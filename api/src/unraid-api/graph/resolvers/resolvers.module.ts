@@ -31,9 +31,11 @@ import { VmsService } from '@app/unraid-api/graph/resolvers/vms/vms.service.js';
 import { ServicesResolver } from '@app/unraid-api/graph/services/services.resolver.js';
 import { SharesResolver } from '@app/unraid-api/graph/shares/shares.resolver.js';
 import { MeResolver } from '@app/unraid-api/graph/user/user.resolver.js';
+import { FlashBackupModule } from '@app/unraid-api/graph/resolvers/flash-backup/flash-backup.module.js';
+import { RCloneModule } from '@app/unraid-api/graph/resolvers/rclone/rclone.module.js';
 
 @Module({
-    imports: [ArrayModule, AuthModule, ConnectModule, DockerModule, DisksModule],
+    imports: [ArrayModule, AuthModule, ConnectModule, DockerModule, DisksModule, FlashBackupModule, RCloneModule],
     providers: [
         ApiKeyResolver,
         CloudResolver,

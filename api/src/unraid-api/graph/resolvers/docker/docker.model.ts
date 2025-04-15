@@ -1,7 +1,6 @@
 import { Field, ID, Int, ObjectType, registerEnumType } from '@nestjs/graphql';
 
-import { GraphQLPort } from 'graphql-scalars';
-import { GraphQLJSONObject } from 'graphql-type-json';
+import { GraphQLJSON, GraphQLPort } from 'graphql-scalars';
 
 import { Node } from '@app/unraid-api/graph/resolvers/base.model.js';
 
@@ -97,7 +96,7 @@ export class DockerContainer {
     @Field(() => Int, { nullable: true, description: 'Total size of all the files in the container' })
     sizeRootFs?: number;
 
-    @Field(() => GraphQLJSONObject, { nullable: true })
+    @Field(() => GraphQLJSON, { nullable: true })
     labels?: Record<string, any>;
 
     @Field(() => ContainerState)
@@ -109,10 +108,10 @@ export class DockerContainer {
     @Field(() => ContainerHostConfig, { nullable: true })
     hostConfig?: ContainerHostConfig;
 
-    @Field(() => GraphQLJSONObject, { nullable: true })
+    @Field(() => GraphQLJSON, { nullable: true })
     networkSettings?: Record<string, any>;
 
-    @Field(() => [GraphQLJSONObject], { nullable: true })
+    @Field(() => [GraphQLJSON], { nullable: true })
     mounts?: Record<string, any>[];
 
     @Field(() => Boolean)
@@ -139,7 +138,7 @@ export class DockerNetwork {
     @Field(() => Boolean)
     enableIPv6!: boolean;
 
-    @Field(() => GraphQLJSONObject)
+    @Field(() => GraphQLJSON)
     ipam!: Record<string, any>;
 
     @Field(() => Boolean)
@@ -151,19 +150,19 @@ export class DockerNetwork {
     @Field(() => Boolean)
     ingress!: boolean;
 
-    @Field(() => GraphQLJSONObject)
+    @Field(() => GraphQLJSON)
     configFrom!: Record<string, any>;
 
     @Field(() => Boolean)
     configOnly!: boolean;
 
-    @Field(() => GraphQLJSONObject)
+    @Field(() => GraphQLJSON)
     containers!: Record<string, any>;
 
-    @Field(() => GraphQLJSONObject)
+    @Field(() => GraphQLJSON)
     options!: Record<string, any>;
 
-    @Field(() => GraphQLJSONObject)
+    @Field(() => GraphQLJSON)
     labels!: Record<string, any>;
 }
 
