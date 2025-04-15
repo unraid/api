@@ -466,8 +466,8 @@ importers:
         specifier: ^6.0.0
         version: 6.2.3(@types/node@22.13.13)(jiti@2.4.2)(stylus@0.57.0)(terser@5.39.0)(tsx@4.19.3)(yaml@2.7.0)
       vite-plugin-node:
-        specifier: ^4.0.0
-        version: 4.0.0(@swc/core@1.11.13(@swc/helpers@0.5.15))(vite@6.2.3(@types/node@22.13.13)(jiti@2.4.2)(stylus@0.57.0)(terser@5.39.0)(tsx@4.19.3)(yaml@2.7.0))
+        specifier: ^5.0.0
+        version: 5.0.0(@swc/core@1.11.13(@swc/helpers@0.5.15))(vite@6.2.3(@types/node@22.13.13)(jiti@2.4.2)(stylus@0.57.0)(terser@5.39.0)(tsx@4.19.3)(yaml@2.7.0))
       vite-tsconfig-paths:
         specifier: ^5.1.0
         version: 5.1.4(typescript@5.8.2)(vite@6.2.3(@types/node@22.13.13)(jiti@2.4.2)(stylus@0.57.0)(terser@5.39.0)(tsx@4.19.3)(yaml@2.7.0))
@@ -11289,11 +11289,11 @@ packages:
       '@nuxt/kit':
         optional: true
 
-  vite-plugin-node@4.0.0:
-    resolution: {integrity: sha512-KwINBvYBjNqYml/dSmBWJo2rSr+qrRbqbuuG5oNhu7+R3R5Rh9fibpslvr3LUwOjjkreIb9VId/37Rf7KL96qg==}
+  vite-plugin-node@5.0.0:
+    resolution: {integrity: sha512-xvfx5SH4hhzGj3fR9OAohW5KAH0iAvZkcB35xBGG6FGZ7qlV8C7BXC4HZsOalkYzgASzveQPoq7D3ffU1Nx54Q==}
     peerDependencies:
       '@swc/core': ^1.7.26
-      vite: ^5.0.0
+      vite: 'catalog:'
     peerDependenciesMeta:
       '@swc/core':
         optional: true
@@ -23932,7 +23932,7 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  vite-plugin-node@4.0.0(@swc/core@1.11.13(@swc/helpers@0.5.15))(vite@6.2.3(@types/node@22.13.13)(jiti@2.4.2)(stylus@0.57.0)(terser@5.39.0)(tsx@4.19.3)(yaml@2.7.0)):
+  vite-plugin-node@5.0.0(@swc/core@1.11.13(@swc/helpers@0.5.15))(vite@6.2.3(@types/node@22.13.13)(jiti@2.4.2)(stylus@0.57.0)(terser@5.39.0)(tsx@4.19.3)(yaml@2.7.0)):
     dependencies:
       '@rollup/pluginutils': 4.2.1
       chalk: 4.1.2
