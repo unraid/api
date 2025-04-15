@@ -1,12 +1,16 @@
-import type { ApolloClient as ApolloClientType, NormalizedCacheObject } from '@apollo/client';
-import { ArrowPathIcon } from '@heroicons/vue/24/solid';
-import { WebguiUnraidApiCommand } from '~/composables/services/webgui';
-import { client } from '~/helpers/create-apollo-client';
-import { useErrorsStore } from '~/store/errors';
-import { useServerStore } from '~/store/server';
-import type { UserProfileLink } from '~/types/userProfile';
+import { computed, ref, watch } from 'vue';
 // import { logErrorMessages } from '@vue/apollo-util';
 import { createPinia, defineStore, setActivePinia } from 'pinia';
+
+import { ArrowPathIcon } from '@heroicons/vue/24/solid';
+import { client } from '~/helpers/create-apollo-client';
+
+import type { ApolloClient as ApolloClientType, NormalizedCacheObject } from '@apollo/client';
+import type { UserProfileLink } from '~/types/userProfile';
+
+import { WebguiUnraidApiCommand } from '~/composables/services/webgui';
+import { useErrorsStore } from '~/store/errors';
+import { useServerStore } from '~/store/server';
 
 /**
  * @see https://stackoverflow.com/questions/73476371/using-pinia-with-vue-js-web-components
