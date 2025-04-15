@@ -152,12 +152,12 @@ describe('UpdateOsChangelog Store', () => {
 
     it('should have proper error handling for failed requests', async () => {
       mockRequestText.mockRejectedValueOnce(new Error('Network error'));
-
       store.setReleaseForUpdate(mockStableRelease as ServerUpdateOsResponse);
 
-      await new Promise((resolve) => setTimeout(resolve, 0));
+      await nextTick();
 
-      expect(typeof store.parseChangelogFailed).toBe('string');
+      expect(store.parseChangelogFailed).toBeTruthy();
+      expect(store.parseChangelogFailed).toContain('error');
     });
 
     it('should fetch and parse changelog when releaseForUpdate changes', async () => {
