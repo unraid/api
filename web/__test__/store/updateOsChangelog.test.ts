@@ -2,6 +2,7 @@
  * UpdateOsChangelog store test coverage
  */
 
+import { nextTick } from 'vue';
 import { createPinia, setActivePinia } from 'pinia';
 
 import { beforeEach, describe, expect, it, vi } from 'vitest';
@@ -123,7 +124,9 @@ describe('UpdateOsChangelog Store', () => {
       );
     });
 
-    it('should have computed properties for changelog display', () => {
+    it('should have computed properties for changelog display', async () => {
+      store.setReleaseForUpdate(mockStableRelease as ServerUpdateOsResponse);
+
       expect(typeof store.mutatedParsedChangelog).toBe('string');
       expect(typeof store.parsedChangelogTitle).toBe('string');
     });
@@ -157,6 +160,40 @@ describe('UpdateOsChangelog Store', () => {
       await new Promise((resolve) => setTimeout(resolve, 0));
 
       expect(typeof store.parseChangelogFailed).toBe('string');
+    });
+
+    it('should fetch and parse changelog when releaseForUpdate changes', async () => {
+      const internalStore = useUpdateOsChangelogStore();
+
+      vi.clearAllMocks();
+
+      internalStore.setReleaseForUpdate(mockStableRelease as ServerUpdateOsResponse);
+
+      await nextTick();
+
+      expect(mockRequestText).toHaveBeenCalled();
+
+      mockRequestText.mockClear();
+
+      const differentRelease = {
+        ...mockStableRelease,
+        version: '6.12.6',
+        changelog: 'https://example.com/different-changelog.md',
+      };
+
+      internalStore.setReleaseForUpdate(differentRelease as ServerUpdateOsResponse);
+
+      await nextTick();
+
+      expect(mockRequestText).toHaveBeenCalled();
+
+      mockRequestText.mockClear();
+
+      internalStore.setReleaseForUpdate(null);
+
+      await nextTick();
+
+      expect(mockRequestText).not.toHaveBeenCalled();
     });
   });
 });
