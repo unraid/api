@@ -31,9 +31,7 @@ vi.mock('marked-base-url', () => ({
 }));
 
 vi.mock('semver/functions/prerelease', () => ({
-  default: vi
-    .fn()
-    .mockImplementation((version) => (version && version.includes('-') ? ['beta', '1'] : null)),
+  default: vi.fn((version) => (version && version.includes('-') ? ['beta', '1'] : null)),
 }));
 
 const mockRequestText = vi.fn().mockResolvedValue('# Test Changelog\n\nTest content');
@@ -102,7 +100,7 @@ describe('UpdateOsChangelog Store', () => {
 
       store.setReleaseForUpdate(mockStableRelease as ServerUpdateOsResponse);
 
-      expect(typeof store.isReleaseForUpdateStable).toBe('boolean');
+      expect(store.isReleaseForUpdateStable).toBe(true);
 
       store.setReleaseForUpdate(mockBetaRelease as ServerUpdateOsResponse);
       expect(store.isReleaseForUpdateStable).toBe(false);
