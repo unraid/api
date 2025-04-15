@@ -74,6 +74,7 @@ const splitLinks = split(
   wsLink,
   httpLink
 );
+
 /**
  * @todo as we add retries, determine which we'll need
  * https://www.apollographql.com/docs/react/api/link/introduction/#additive-composition

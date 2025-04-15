@@ -96,8 +96,8 @@ export class ConnectSettingsService {
                 getState: store.getState,
                 dispatch: store.dispatch,
             });
-        }
-        return true;
+    }
+    return true;
     }
 
     async isSignedIn(): Promise<boolean> {
