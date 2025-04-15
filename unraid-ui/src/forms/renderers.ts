@@ -1,6 +1,7 @@
 import {
   formSelectEntry,
   formSwitchEntry,
+  inputFieldEntry,
   numberFieldEntry,
   preconditionsLabelEntry,
   stringArrayEntry,
@@ -18,6 +19,7 @@ export const jsonFormsRenderers = [
   ...vanillaRenderers,
   formSwitchEntry,
   formSelectEntry,
+  inputFieldEntry,
   numberFieldEntry,
   preconditionsLabelEntry,
   stringArrayEntry,
