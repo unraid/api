@@ -4,7 +4,6 @@ import { RCloneService } from '@app/unraid-api/graph/resolvers/rclone/rclone.ser
 import { RCloneApiService } from '@app/unraid-api/graph/resolvers/rclone/rclone-api.service.js';
 import { RCloneFormService } from '@app/unraid-api/graph/resolvers/rclone/rclone-form.service.js';
 import { RCloneBackupSettingsResolver } from '@app/unraid-api/graph/resolvers/rclone/rclone.resolver.js';
-import { RCloneConfigResolver } from '@app/unraid-api/graph/resolvers/rclone/rclone-config.resolver.js';
 
 @Module({
     imports: [],    
@@ -13,7 +12,6 @@ import { RCloneConfigResolver } from '@app/unraid-api/graph/resolvers/rclone/rcl
         RCloneApiService, 
         RCloneFormService,
         RCloneBackupSettingsResolver,
-        RCloneConfigResolver
     ],
     exports: [RCloneService, RCloneApiService]
 })

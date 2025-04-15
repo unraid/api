@@ -1,38 +1,14 @@
-import { RuleEffect, type SchemaBasedCondition, type JsonSchema, JsonSchema7 } from '@jsonforms/core';
+import type { SchemaBasedCondition } from '@jsonforms/core';
+import { JsonSchema7, RuleEffect } from '@jsonforms/core';
+
 import type { DataSlice, SettingSlice, UIElement } from '@app/unraid-api/types/json-forms.js';
+import { RCloneProviderOptionResponse } from '@app/unraid-api/graph/resolvers/rclone/rclone.model.js';
 import { mergeSettingSlices } from '@app/unraid-api/types/json-forms.js';
-import { config as rcloneConfig } from './config.js';
-
-/**
- * Type definitions for RClone config options
- */
-export interface RCloneOptionDef {
-    Name: string;
-    Help: string;
-    Provider: string;
-    Default: any;
-    Value: any | null;
-    ShortOpt: string;
-    Hide: number;
-    Required: boolean;
-    IsPassword: boolean;
-    NoPrefix: boolean;
-    Advanced: boolean;
-    Type?: string;
-    Options?: string[];
-}
-
-export interface RCloneProviderDef {
-    Name: string;
-    Description: string;
-    Prefix: string;
-    Options: RCloneOptionDef[];
-}
 
 /**
  * Translates RClone config option to JsonSchema properties
  */
-function translateRCloneOptionToJsonSchema(option: RCloneOptionDef): JsonSchema7 {
+function translateRCloneOptionToJsonSchema(option: RCloneProviderOptionResponse): JsonSchema7 {
     const schema: JsonSchema7 = {
         type: getJsonSchemaType(option.Type || 'string'),
         title: option.Name,
@@ -41,44 +17,69 @@ function translateRCloneOptionToJsonSchema(option: RCloneOptionDef): JsonSchema7
 
     // Add default value if available
     if (option.Default !== undefined && option.Default !== '') {
-        schema.default = option.Default;
+        // RClone uses 'off' for SizeSuffix/Duration defaults sometimes
+        if ((option.Type === 'SizeSuffix' || option.Type === 'Duration') && option.Default === 'off') {
+            schema.default = 'off';
+        } else if (schema.type === 'number' && typeof option.Default === 'number') {
+            schema.default = option.Default;
+        } else if (schema.type === 'integer' && Number.isInteger(option.Default)) {
+            schema.default = option.Default;
+        } else if (schema.type === 'boolean' && typeof option.Default === 'boolean') {
+            schema.default = option.Default;
+        } else if (schema.type === 'string') {
+            // Ensure default is a string if the type is string
+            schema.default = String(option.Default);
+        }
+        // If type doesn't match, we might skip the default or log a warning
     }
 
-    // Add enum values if available
-    if (option.Options && option.Options.length > 0) {
-        schema.enum = option.Options;
+    // Add enum values if available (used for dropdowns)
+    if (option.Examples && option.Examples.length > 0) {
+        schema.enum = option.Examples.map((example) => example.Value);
     }
 
-    // Add validation constraints
+    // Add format hints
+    const format = getJsonFormElementForType(
+        option.Type,
+        option.Examples?.map((example) => example.Value),
+        option.IsPassword
+    );
+    if (format && format !== schema.type) {
+        // Don't add format if it's just the type (e.g., 'number')
+        schema.format = format;
+    }
+
+    // Add validation constraints and patterns
     if (option.Required) {
+        // Make '0' valid for required number/integer fields unless explicitly disallowed
         if (schema.type === 'string') {
             schema.minLength = 1;
-        } else if (schema.type === 'number') {
-            schema.minimum = 0;
         }
+        // Note: 'required' is usually handled at the object level in JSON Schema,
+        // but minLength/minimum provide basic non-empty checks.
+    }
+
+    // Specific type-based validation
+    switch (option.Type?.toLowerCase()) {
+        case 'int':
+            // Handled by type: 'integer' in getJsonSchemaType
+            break;
+        case 'sizesuffix':
+            // Pattern allows 'off' or digits followed by optional size units (K, M, G, T, P) and optional iB/B
+            // Allows multiple concatenated values like 1G100M
+            schema.pattern = '^(off|(\\d+([KMGTPE]i?B?)?)+)$';
+            schema.errorMessage = 'Invalid size format. Examples: "10G", "100M", "1.5GiB", "off".';
+            break;
+        case 'duration':
+            // Pattern allows 'off' or digits (with optional decimal) followed by time units (ns, us, ms, s, m, h)
+            // Allows multiple concatenated values like 1h15m
+            schema.pattern = '^(off|(\\d+(\\.\\d+)?(ns|us|\\u00b5s|ms|s|m|h))+)$'; // \u00b5s is µs
+            schema.errorMessage =
+                'Invalid duration format. Examples: "10s", "1.5m", "100ms", "1h15m", "off".';
+            break;
     }
 
     return schema;
-}
-
-/**
- * Get available provider types from RClone config
- */
-export function getAvailableProviderTypes(): string[] {
-    return rcloneConfig.map(provider => provider.Name);
-}
-
-/**
- * Get provider options for a specific provider
- */
-export function getProviderOptions(providerName: string): Record<string, RCloneOptionDef> {
-    const provider = rcloneConfig.find(p => p.Name === providerName);
-    if (!provider) return {};
-
-    return provider.Options.reduce((acc, option) => {
-        acc[option.Name] = option;
-        return acc;
-    }, {} as Record<string, RCloneOptionDef>);
 }
 
 /**
@@ -87,18 +88,14 @@ export function getProviderOptions(providerName: string): Record<string, RCloneO
 export function getRcloneConfigFormSchema(
     providerTypes: string[] = [],
     selectedProvider: string = '',
-    providerOptions: Record<string, RCloneOptionDef> = {}
+    providerOptions: Record<string, RCloneProviderOptionResponse[]> = {}
 ): SettingSlice {
-    // If provider types not provided, get from config
-    if (providerTypes.length === 0) {
-        providerTypes = getAvailableProviderTypes();
-    }
-
     // Combine all form slices for the complete schema
+    const options = providerOptions[selectedProvider];
     const slices = [
         getBasicConfigSlice(providerTypes),
-        getProviderConfigSlice(selectedProvider, providerOptions),
-        getAdvancedConfigSlice(selectedProvider, providerOptions),
+        getProviderConfigSlice(selectedProvider, options, false), // Standard options
+        getProviderConfigSlice(selectedProvider, options, true), // Advanced options
     ];
 
     return mergeSettingSlices(slices);
@@ -116,6 +113,7 @@ function getBasicConfigSlice(providerTypes: string[]): SettingSlice {
             label: 'Name of this remote (For your reference)',
             options: {
                 placeholder: 'Enter a name',
+                format: 'string',
             },
         },
         {
@@ -123,7 +121,6 @@ function getBasicConfigSlice(providerTypes: string[]): SettingSlice {
             scope: '#/properties/type',
             label: 'Storage Provider Type',
             options: {
-                format: 'dropdown',
                 description: 'Select the cloud storage provider to use for this remote.',
             },
         },
@@ -132,7 +129,8 @@ function getBasicConfigSlice(providerTypes: string[]): SettingSlice {
             text: 'Documentation',
             options: {
                 format: 'documentation',
-                description: 'For more information, refer to the <a href="https://rclone.org/commands/rclone_config/" target="_blank">RClone Config Documentation</a>.',
+                description:
+                    'For more information, refer to the <a href="https://rclone.org/commands/rclone_config/" target="_blank">RClone Config Documentation</a>.',
             },
         },
     ];
@@ -151,7 +149,7 @@ function getBasicConfigSlice(providerTypes: string[]): SettingSlice {
             type: 'string',
             title: 'Provider Type',
             default: providerTypes.length > 0 ? providerTypes[0] : '',
-            oneOf: providerTypes.map(type => ({ const: type, title: type }))
+            enum: providerTypes,
         },
     };
 
@@ -162,74 +160,82 @@ function getBasicConfigSlice(providerTypes: string[]): SettingSlice {
 }
 
 /**
- * Step 2: Provider-specific configuration based on the selected provider
+ * Step 2/3: Provider-specific configuration based on the selected provider and whether to show advanced options
+ *
+ * @param selectedProvider - The selected provider type
+ * @param providerOptions - The provider options for the selected provider
  */
 function getProviderConfigSlice(
     selectedProvider: string,
-    providerOptions: Record<string, RCloneOptionDef>
+    providerOptions: RCloneProviderOptionResponse[],
+    showAdvancedOptions: boolean = false
 ): SettingSlice {
     // Default elements for when a provider isn't selected or options aren't loaded
-    let providerConfigElements: UIElement[] = [
+    let configElements: UIElement[] = [
         {
             type: 'Label',
-            text: 'Provider Configuration',
+            text: `${showAdvancedOptions ? 'Advanced' : 'Provider'} Configuration`,
             options: {
-                format: 'loading',
-                description: 'Select a provider type first to see provider-specific options.',
+                format: 'loading', // Or 'note' if preferred
+                description: `Select a provider type first to see ${showAdvancedOptions ? 'advanced' : 'standard'} options.`,
             },
         },
     ];
 
     // Default properties when no provider is selected
-    let providerConfigProperties: Record<string, JsonSchema7> = {};
+    let configProperties: Record<string, JsonSchema7> = {};
 
-    // If we have a selected provider and options for it
-    if (selectedProvider && Object.keys(providerOptions).length > 0) {
-        // Create dynamic UI elements based on provider options
-        providerConfigElements = Object.entries(providerOptions).map(([key, option]) => {
-            if (option.Advanced === true) {
-                return null; // Skip advanced options for this step
-            }
+    if (!selectedProvider || providerOptions.length === 0) {
+        return {
+            properties: configProperties as unknown as DataSlice,
+            elements: [],
+        };
+    }
 
-            return {
-                type: 'Control',
-                scope: `#/properties/parameters/properties/${key}`,
-                label: option.Help || key,
-                options: {
-                    placeholder: option.Default?.toString() || '',
-                    description: option.Help || '',
-                    required: option.Required || false,
-                    format: getFormatForType(option.Type, option.Options),
-                    hide: option.Hide === 1,
-                },
-            };
-        }).filter(Boolean) as UIElement[];
-
-        // No options available case
-        if (providerConfigElements.length === 0) {
-            providerConfigElements = [
-                {
-                    type: 'Label',
-                    text: 'No Configuration Required',
-                    options: {
-                        description: 'This provider does not require additional configuration, or all options are advanced.',
-                    },
-                },
-            ];
+    // Filter options based on the showAdvancedOptions flag
+    const filteredOptions = providerOptions.filter((option) => {
+        if (showAdvancedOptions && option.Advanced === true) {
+            return true;
+        } else if (!showAdvancedOptions && option.Advanced !== true) {
+            return true;
         }
+        return false;
+    });
 
-        // Create dynamic properties schema based on provider options
-        const paramProperties: Record<string, JsonSchema7> = {};
-        
-        Object.entries(providerOptions).forEach(([key, option]) => {
-            if (option.Advanced === true) {
-                return; // Skip advanced options for this step
-            }
+    // Create dynamic UI elements based on filtered provider options
+    const elements = filteredOptions.map<UIElement>((option) => {
+        return {
+            type: 'Control',
+            scope: `#/properties/parameters/properties/${option.Name}`,
+            label: option.Help || option.Name, // Use Help as primary label if available
+            options: {
+                placeholder: option.Default?.toString() || '',
+                description: option.Help || '', // Redundant? Keep for potential differences
+                required: option.Required || false,
+                format: getJsonFormElementForType(
+                    option.Type,
+                    option.Examples?.map((example) => example.Value),
+                    option.IsPassword
+                ),
+                hide: option.Hide === 1,
+            },
+        };
+    });
 
-            paramProperties[key] = translateRCloneOptionToJsonSchema(option);
-        });
+    // Create dynamic properties schema based on filtered provider options
+    const paramProperties: Record<string, JsonSchema7> = {};
+    filteredOptions.forEach((option) => {
+        if (option) {
+            // Ensure option exists before translating
+            paramProperties[option.Name] = translateRCloneOptionToJsonSchema(option);
+        }
+    });
 
-        providerConfigProperties = {
+    console.log('paramProperties', paramProperties);
+
+    // Only add parameters object if there are properties
+    if (Object.keys(paramProperties).length > 0) {
+        configProperties = {
             parameters: {
                 type: 'object',
                 properties: paramProperties,
@@ -238,85 +244,8 @@ function getProviderConfigSlice(
     }
 
     return {
-        properties: providerConfigProperties as unknown as DataSlice,
-        elements: providerConfigElements,
-    };
-}
-
-/**
- * Step 3: Advanced configuration options for the selected provider
- */
-function getAdvancedConfigSlice(
-    selectedProvider: string,
-    providerOptions: Record<string, RCloneOptionDef>
-): SettingSlice {
-    // Default elements when no advanced options are available
-    let advancedConfigElements: UIElement[] = [
-        {
-            type: 'Label',
-            text: 'Advanced Configuration',
-            options: {
-                format: 'note',
-                description: 'No advanced options available for this provider.',
-            },
-        },
-    ];
-
-    // Default properties
-    let advancedConfigProperties: Record<string, JsonSchema7> = {};
-
-    // If we have a selected provider and options
-    if (selectedProvider && Object.keys(providerOptions).length > 0) {
-        // Create dynamic UI elements for advanced options
-        const advancedElements = Object.entries(providerOptions).map(([key, option]) => {
-            if (!option.Advanced) {
-                return null; // Skip non-advanced options
-            }
-
-            return {
-                type: 'Control',
-                scope: `#/properties/parameters/properties/${key}`,
-                label: option.Help || key,
-                options: {
-                    placeholder: option.Default?.toString() || '',
-                    description: option.Help || '',
-                    required: option.Required || false,
-                    format: getFormatForType(option.Type, option.Options),
-                    hide: option.Hide === 1,
-                },
-            };
-        }).filter(Boolean) as UIElement[];
-
-        // Use default message if no advanced options
-        if (advancedElements.length > 0) {
-            advancedConfigElements = advancedElements;
-        }
-
-        // Create dynamic properties schema for advanced options
-        const advancedProperties: Record<string, JsonSchema7> = {};
-        
-        Object.entries(providerOptions).forEach(([key, option]) => {
-            if (!option.Advanced) {
-                return; // Skip non-advanced options
-            }
-
-            advancedProperties[key] = translateRCloneOptionToJsonSchema(option);
-        });
-
-        // Only add if we have advanced options
-        if (Object.keys(advancedProperties).length > 0) {
-            advancedConfigProperties = {
-                parameters: {
-                    type: 'object',
-                    properties: advancedProperties,
-                },
-            };
-        }
-    }
-
-    return {
-        properties: advancedConfigProperties as unknown as DataSlice,
-        elements: advancedConfigElements,
+        properties: configProperties,
+        elements,
     };
 }
 
@@ -326,14 +255,21 @@ function getAdvancedConfigSlice(
 function getJsonSchemaType(rcloneType: string): string {
     switch (rcloneType?.toLowerCase()) {
         case 'int':
-        case 'size':
-        case 'duration':
+            return 'integer'; // Use 'integer' for whole numbers
+        case 'size': // Assuming 'size' might imply large numbers, but 'number' is safer if decimals possible
+        case 'number': // If rclone explicitly uses 'number'
             return 'number';
+        case 'sizesuffix':
+        case 'duration':
+            // Represent these as strings, validation handled by pattern/format
+            return 'string';
         case 'bool':
             return 'boolean';
         case 'string':
-        case 'text':
+        case 'text': // Treat 'text' (multi-line) as 'string' in schema type
+        case 'password': // Passwords are strings
         default:
+            // Default to string if type is unknown or not provided
             return 'string';
     }
 }
@@ -341,25 +277,37 @@ function getJsonSchemaType(rcloneType: string): string {
 /**
  * Helper function to get the appropriate UI format based on RClone option type
  */
-function getFormatForType(rcloneType: string = '', options: string[] | null = null): string {
+function getJsonFormElementForType(
+    rcloneType: string = '',
+    options: string[] | null = null,
+    isPassword: boolean = false
+): string | undefined {
+    if (isPassword) {
+        return 'password';
+    }
     if (options && options.length > 0) {
-        return 'dropdown';
+        return 'dropdown'; // Use enum for dropdowns
     }
 
     switch (rcloneType?.toLowerCase()) {
         case 'int':
+            return 'number'; // Use NumberField
         case 'size':
-            return 'number';
+            return 'number'; // Use NumberField
+        case 'sizesuffix':
+            return undefined; // Use default InputField (via isStringControl)
         case 'duration':
-            return 'duration';
+            return undefined; // Use default InputField (via isStringControl)
         case 'bool':
-            return 'checkbox';
-        case 'password':
-            return 'password';
+            return 'checkbox'; // Matches Switch.vue if toggle=true, else default bool render
         case 'text':
-            return 'textarea';
+            // Consider 'textarea' format later if needed
+            return undefined; // Use default InputField (via isStringControl)
+        case 'password':
+            return 'password'; // Explicit format for password managers etc.
+        case 'string':
         default:
-            return 'text';
+            return undefined; // Use default InputField (via isStringControl)
     }
 }
 
@@ -373,7 +321,8 @@ export function getRcloneConfigSlice(): SettingSlice {
             text: 'Configure RClone Backup',
             options: {
                 format: 'title',
-                description: 'This 3-step process will guide you through setting up your RClone backup configuration.',
+                description:
+                    'This 3-step process will guide you through setting up your RClone backup configuration.',
             },
         },
         {
@@ -400,7 +349,7 @@ export function getRcloneConfigSlice(): SettingSlice {
                 effect: RuleEffect.SHOW,
                 condition: {
                     scope: '#/properties/configStep',
-                    schema: { enum: [1] } // Only show on step 2
+                    schema: { enum: [1] }, // Only show on step 2
                 } as SchemaBasedCondition,
             },
         },

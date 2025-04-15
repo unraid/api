@@ -2,7 +2,7 @@
 import { computed, ref, watch } from 'vue';
 import { useMutation, useQuery } from '@vue/apollo-composable';
 
-import { BrandButton, jsonFormsRenderers } from '@unraid/ui';
+import { BrandButton, Input, jsonFormsRenderers } from '@unraid/ui';
 import { JsonForms } from '@jsonforms/vue';
 
 import type { CreateRCloneRemoteInput } from '~/composables/gql/graphql';
@@ -31,15 +31,18 @@ const {
   result: formResult,
   loading: formLoading,
   refetch: updateFormSchema,
-} = useQuery(GET_RCLONE_CONFIG_FORM, () => ({
+} = useQuery(GET_RCLONE_CONFIG_FORM, {
   providerType: formState.value.type,
   parameters: formState.value.parameters,
-}));
+});
 
 // Watch for provider type changes to update schema
 watch(providerType, async (newType) => {
   if (newType) {
-    await updateFormSchema();
+    await updateFormSchema({
+      providerType: newType,
+      parameters: formState.value.parameters,
+    });
   }
 });
 
@@ -48,7 +51,10 @@ watch(
   () => formState.value.configStep,
   async (newStep) => {
     if (newStep > 0) {
-      await updateFormSchema();
+      await updateFormSchema({
+        providerType: formState.value.type,
+        parameters: formState.value.parameters,
+      });
     }
   }
 );

@@ -1353,34 +1353,12 @@ type RCloneDrive {
   options: JSON!
 }
 
-type RCloneProviderOption {
-  name: String!
-  help: String!
-  provider: String!
-  default: JSON
-  value: JSON
-  shortOpt: String
-  hide: Boolean
-  required: Boolean
-  isPassword: Boolean
-  noPrefix: Boolean
-  advanced: Boolean
-  defaultStr: String
-  valueStr: String
-  type: String
-  examples: [RCloneProviderOptionExample!]
-}
-
-type RCloneProviderOptionExample {
-  value: String!
-  help: String!
-  provider: String!
-}
-
 type RCloneBackupConfigForm {
   id: ID!
-  dataSchema(providerType: String, parameters: JSON): JSON!
-  uiSchema(providerType: String, parameters: JSON): JSON!
+  dataSchema: JSON!
+  uiSchema: JSON!
+  providerType: String
+  parameters: JSON
 }
 
 type RCloneBackupSettings {
@@ -1392,7 +1370,7 @@ type RCloneBackupSettings {
 type RCloneRemote {
   name: String!
   type: String!
-  config: JSON!
+  parameters: JSON!
 }
 
 type Flash implements Node {

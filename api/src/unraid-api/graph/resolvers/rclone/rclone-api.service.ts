@@ -4,9 +4,18 @@ import { existsSync } from 'node:fs';
 import { mkdir, writeFile } from 'node:fs/promises';
 import { dirname, join } from 'node:path';
 
+
+
 import { execa } from 'execa';
 import got from 'got';
-import { RCloneProvider, RCloneProviderOption, RCloneProviderOptionExample, RCloneProviderResponse, RCloneProviderOptionResponse, RCloneProviderTypes } from '@app/unraid-api/graph/resolvers/rclone/rclone.model.js';
+
+
+
+import { RCloneProvider, RCloneProviderOption, RCloneProviderOptionExample, RCloneProviderOptionResponse, RCloneProviderResponse, RCloneProviderTypes } from '@app/unraid-api/graph/resolvers/rclone/rclone.model.js';
+
+
+
+
 
 @Injectable()
 export class RCloneApiService implements OnModuleInit, OnModuleDestroy {
@@ -103,23 +112,9 @@ export class RCloneApiService implements OnModuleInit, OnModuleDestroy {
     /**
      * Get providers supported by RClone
      */
-    async getProviders(): Promise<RCloneProvider[]> {
+    async getProviders(): Promise<RCloneProviderResponse[]> {
         const response = await this.callRcloneApi('config/providers') as { providers: RCloneProviderResponse[] };
-        return response?.providers?.map(provider => ({
-            name: provider.Name,
-            description: provider.Description,
-            prefix: provider.Prefix,
-            options: this.mapProviderOptions(provider.Options),
-        })) || [];
-    }
-
-    /**
-     * Get provider types as a simple array
-     */
-    async getProviderTypes(): Promise<RCloneProviderTypes> {
-        const providers = await this.getProviders();
-        const types: string[] = providers.map(provider => provider.prefix);
-        return { types };
+        return response?.providers || [];
     }
 
     /**

@@ -1,0 +1,36 @@
+<script setup lang="ts">
+import { Input } from '@/components/form/input';
+import ControlLayout from '@/forms/ControlLayout.vue';
+import { cn } from '@/lib/utils';
+import type { ControlElement } from '@jsonforms/core';
+import type { RendererProps } from '@jsonforms/vue';
+import { useJsonFormsControl } from '@jsonforms/vue';
+import { computed } from 'vue';
+
+const props = defineProps<RendererProps<ControlElement>>();
+const { control, handleChange } = useJsonFormsControl(props);
+
+// Bind the input field's value to JSONForms data
+const value = computed({
+  get: () => control.value.data ?? control.value.schema.default ?? '',
+  set: (newValue: string) => handleChange(control.value.path, newValue || undefined),
+});
+
+const classOverride = computed(() => {
+  return cn(control.value.uischema?.options?.class, {
+    'max-w-[25ch]': control.value.uischema?.options?.format === 'short',
+  });
+});
+</script>
+
+<template>
+  <ControlLayout v-if="control.visible" :label="control.label" :errors="control.errors">
+    <Input
+      v-model="value"
+      :class="classOverride"
+      :disabled="!control.enabled"
+      :required="control.required"
+      :placeholder="control.schema.description"
+    />
+  </ControlLayout>
+</template>
