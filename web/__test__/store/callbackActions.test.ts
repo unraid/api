@@ -12,6 +12,7 @@ import type { Mock } from 'vitest';
 
 import { useAccountStore } from '~/store/account';
 import { useCallbackActionsStore } from '~/store/callbackActions';
+import { useInstallKeyStore } from '~/store/installKey';
 import { useServerStore } from '~/store/server';
 import { useUpdateOsActionsStore } from '~/store/updateOsActions';
 
@@ -122,6 +123,18 @@ vi.mock('~/store/updateOsActions', () => {
   };
 });
 
+vi.mock('~/store/updateOs', () => {
+  return {
+    useUpdateOsStore: vi.fn(() => ({
+      $state: {},
+      $patch: vi.fn(),
+      $reset: vi.fn(),
+      $subscribe: vi.fn(),
+      $dispose: vi.fn(),
+    })),
+  };
+});
+
 describe('Callback Actions Store', () => {
   let store: ReturnType<typeof useCallbackActionsStore>;
   let preventClose: { addPreventClose: Mock; removePreventClose: Mock };
@@ -218,7 +231,7 @@ describe('Callback Actions Store', () => {
       expect(store.callbackStatus).toBe('ready');
     });
 
-    it('should handle invalid callback type', () => {
+    it('should handle invalid callback type', async () => {
       const mockData = {
         type: 'fromUpc',
         actions: [],
@@ -227,12 +240,14 @@ describe('Callback Actions Store', () => {
       const consoleSpy = vi.spyOn(console, 'error');
 
       store.saveCallbackData(mockData);
+      await nextTick();
 
       expect(consoleSpy).toHaveBeenCalledWith(
         '[redirectToCallbackType]',
         'Callback redirect type not present or incorrect'
       );
       expect(store.callbackStatus).toBe('ready');
+      expect(store.$state.callbackError).toBe('Callback redirect type not present or incorrect');
     });
   });
 
@@ -281,6 +296,25 @@ describe('Callback Actions Store', () => {
       expect(vi.mocked(useServerStore)().refreshServerState).toHaveBeenCalled();
     });
 
+    it('should handle oemSignOut action', async () => {
+      const mockData: QueryPayloads = {
+        type: 'forUpc',
+        actions: [
+          {
+            type: 'oemSignOut',
+          },
+        ],
+        sender: 'test',
+      };
+
+      store.saveCallbackData(mockData);
+      await nextTick();
+
+      expect(vi.mocked(useAccountStore)().setAccountAction).toHaveBeenCalled();
+      expect(vi.mocked(useAccountStore)().setQueueConnectSignOut).toHaveBeenCalledWith(true);
+      expect(vi.mocked(useServerStore)().refreshServerState).toHaveBeenCalled();
+    });
+
     it('should handle updateOs action', async () => {
       const mockData: QueryPayloads = {
         type: 'forUpc',
@@ -303,6 +337,32 @@ describe('Callback Actions Store', () => {
 
       expect(vi.mocked(useUpdateOsActionsStore)().setUpdateOsAction).toHaveBeenCalled();
       expect(vi.mocked(useUpdateOsActionsStore)().actOnUpdateOsAction).toHaveBeenCalled();
+      expect(vi.mocked(useServerStore)().refreshServerState).not.toHaveBeenCalled(); // Single action, no refresh needed
+    });
+
+    it('should handle downgradeOs action', async () => {
+      const mockData: QueryPayloads = {
+        type: 'forUpc',
+        actions: [
+          {
+            type: 'downgradeOs',
+            server: {
+              guid: 'test-guid',
+              name: 'test-server',
+            },
+            sha256: 'test-sha256',
+            version: '6.11.5',
+          } as ExternalUpdateOsAction,
+        ],
+        sender: 'test',
+      };
+      const mockUpdateOsActionsStore = useUpdateOsActionsStore();
+
+      store.saveCallbackData(mockData);
+      await nextTick();
+
+      expect(mockUpdateOsActionsStore.setUpdateOsAction).toHaveBeenCalled();
+      expect(mockUpdateOsActionsStore.actOnUpdateOsAction).toHaveBeenCalledWith(true);
       expect(vi.mocked(useServerStore)().refreshServerState).not.toHaveBeenCalled(); // Single action, no refresh needed
     });
 
@@ -333,6 +393,28 @@ describe('Callback Actions Store', () => {
 
       expect(vi.mocked(useAccountStore)().setAccountAction).toHaveBeenCalled();
       expect(vi.mocked(useUpdateOsActionsStore)().setUpdateOsAction).toHaveBeenCalled();
+      expect(vi.mocked(useServerStore)().refreshServerState).toHaveBeenCalled();
+    });
+
+    it('should handle key install action (e.g., purchase)', async () => {
+      const mockData: QueryPayloads = {
+        type: 'forUpc',
+        actions: [
+          {
+            type: 'purchase',
+            keyUrl: 'mock-key-url',
+          },
+        ],
+        sender: 'test',
+      };
+      const mockInstallKeyStore = useInstallKeyStore();
+
+      store.saveCallbackData(mockData);
+      await nextTick();
+
+      expect(mockInstallKeyStore.install).toHaveBeenCalledWith(mockData.actions[0]);
+      expect(vi.mocked(useAccountStore)().setAccountAction).not.toHaveBeenCalled();
+      expect(vi.mocked(useUpdateOsActionsStore)().setUpdateOsAction).not.toHaveBeenCalled();
       expect(vi.mocked(useServerStore)().refreshServerState).toHaveBeenCalled();
     });
   });
