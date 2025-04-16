@@ -34,7 +34,10 @@
     "preunraid:deploy": "pnpm build:wc",
     "unraid:deploy": "just deploy",
     "// Storybook": "",
+    "prestorybook": "pnpm storybook:css",
     "storybook": "storybook dev -p 6006",
+    "storybook:css": "node scripts/build-style.mjs",
+    "prebuild-storybook": "pnpm storybook:css",
     "build-storybook": "storybook build"
   },
   "peerDependencies": {
@@ -89,6 +92,7 @@
     "eslint-plugin-vue": "^10.0.0",
     "happy-dom": "^17.0.0",
     "postcss": "^8.4.49",
+    "postcss-import": "^16.1.0",
     "prettier": "3.5.3",
     "prettier-plugin-tailwindcss": "^0.6.11",
     "rimraf": "^6.0.1",
