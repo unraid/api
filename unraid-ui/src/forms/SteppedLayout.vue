@@ -8,62 +8,42 @@ import StepperTitle from '@/components/common/stepper/StepperTitle.vue';
 import StepperTrigger from '@/components/common/stepper/StepperTrigger.vue';
 import { CheckIcon } from '@heroicons/vue/24/solid'; // Example icon
 import {
-  // ControlElement, // No longer needed here, DispatchRenderer handles it
   type JsonSchema,
   type Layout,
   type UISchemaElement,
+  // Actions, // No longer needed
 } from '@jsonforms/core';
 import { DispatchRenderer, useJsonFormsLayout, type RendererProps } from '@jsonforms/vue';
-import { computed, inject } from 'vue';
+import { computed, ref } from 'vue'; // Import ref, remove inject/onMounted
 
 // Define props based on RendererProps<Layout>
 const props = defineProps<RendererProps<Layout>>();
 
 // --- JSON Forms Composables and Context ---
 const { layout } = useJsonFormsLayout(props);
-// Inject core jsonforms functionality (safer than relying on potentially non-exported composables)
-const jsonforms = inject<any>('jsonforms');
-const core = computed(() => jsonforms?.core);
-const dispatch = computed(() => jsonforms?.dispatch);
 
 // --- Step Configuration ---
 
 // Expect options.steps: [{ label: string, description: string }, ...]
 const stepsConfig = computed(() => props.uischema.options?.steps || []);
 
-// Get the path to the step control property from uischema options (e.g., '#/properties/configStep')
-const stepControlPath = computed(() => props.uischema.options?.stepControl as string | undefined);
-
 // --- Current Step Logic ---
 
-// Function to safely extract the step value from the data without lodash
-const getCurrentStep = () => {
-  if (!stepControlPath.value || !core?.value?.data) return 0;
-  const pathSegments = stepControlPath.value.startsWith('#/')
-    ? stepControlPath.value.substring(2).split('/')
-    : stepControlPath.value.split('.'); // Allow dot notation too
+// Use local state for the current step index
+const localCurrentStep = ref(0);
 
-  let currentData = core.value.data;
-  for (const segment of pathSegments) {
-    if (currentData === null || typeof currentData !== 'object' || !(segment in currentData)) {
-      return 0; // Path not found or data structure incorrect, default to step 0
-    }
-    currentData = currentData[segment];
-  }
-  return typeof currentData === 'number' ? currentData : 0; // Return step number or default
-};
-
-const currentStep = computed(getCurrentStep);
+// currentStep now reflects the local state
+const currentStep = computed(() => localCurrentStep.value);
 
 // --- Step Update Logic ---
 
 const updateStep = (newStep: number) => {
-  if (!stepControlPath.value || !dispatch?.value || newStep < 0 || newStep >= stepsConfig.value.length)
+  // Validate step index bounds
+  if (newStep < 0 || newStep >= stepsConfig.value.length) {
     return;
-
-  // Use Actions.update to modify the data property controlling the step
-  const updateAction = jsonforms.Actions.update(stepControlPath.value, newStep);
-  dispatch.value(updateAction);
+  }
+  // Simply update the local state
+  localCurrentStep.value = newStep;
 };
 
 // --- Filtered Elements for Current Step ---
@@ -91,7 +71,6 @@ const getStepState = (stepIndex: number): StepState => {
       <StepperItem
         v-for="(step, index) in stepsConfig"
         :key="index"
-        v-slot="{ state }"
         class="relative flex w-full flex-col items-center justify-center"
         :step="index + 1"
         :disabled="getStepState(index) === 'inactive'"

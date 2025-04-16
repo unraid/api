@@ -93,41 +93,8 @@ function translateRCloneOptionToJsonSchema({
 }
 
 /**
- * Generates the UI schema for RClone remote configuration using Categorization for provider options.
- */
-export function getRcloneConfigFormSchema({
-    providerTypes = [],
-    selectedProvider = '',
-    providerOptions = {},
-}: {
-    providerTypes?: string[];
-    selectedProvider?: string;
-    providerOptions?: Record<string, RCloneProviderOptionResponse[]>;
-}): SettingSlice {
-    const options = providerOptions[selectedProvider] || [];
-
-    const basicSlice = getBasicConfigSlice({ providerTypes });
-    const standardConfigSlice = getProviderConfigSlice({
-        selectedProvider,
-        providerOptions: options,
-        type: 'standard',
-    });
-    const advancedConfigSlice = getProviderConfigSlice({
-        selectedProvider,
-        providerOptions: options,
-        type: 'advanced',
-    });
-
-    const mergedProperties = mergeSettingSlices([basicSlice, standardConfigSlice, advancedConfigSlice]);
-
-    return {
-        properties: mergedProperties.properties,
-        elements: mergedProperties.elements,
-    };
-}
-
-/**
  * Step 1: Basic configuration - name and type selection
+ * Returns a SettingSlice containing properties and a VerticalLayout UI element with options.step = 0.
  */
 function getBasicConfigSlice({ providerTypes }: { providerTypes: string[] }): SettingSlice {
     // Create UI elements for basic configuration (Step 1)
@@ -178,30 +145,33 @@ function getBasicConfigSlice({ providerTypes }: { providerTypes: string[] }): Se
         },
     };
 
-    // Wrap the basic elements in a VerticalLayout
+    // Wrap the basic elements in a VerticalLayout marked for step 0
     const verticalLayoutElement: UIElement = {
         type: 'VerticalLayout',
         elements: basicConfigElements,
+        options: { step: 0 }, // Assign to step 0
     };
 
     return {
         properties: basicConfigProperties as unknown as DataSlice,
-        // Return the VerticalLayout as the single element for this slice
-        elements: [verticalLayoutElement],
+        elements: [verticalLayoutElement], // Return the VerticalLayout as the single element
     };
 }
 
 /**
- * Step 2/3: Provider-specific configuration based on the selected provider and whether to show advanced options
+ * Step 2/3: Provider-specific configuration based on the selected provider and type (standard/advanced).
+ * Returns a SettingSlice containing properties and a VerticalLayout UI element with options.step = stepIndex.
  */
-export function getProviderConfigSlice({
+function getProviderConfigSlice({
     selectedProvider,
     providerOptions,
     type = 'standard',
+    stepIndex, // Added stepIndex parameter
 }: {
     selectedProvider: string;
     providerOptions: RCloneProviderOptionResponse[];
     type?: 'standard' | 'advanced';
+    stepIndex: number; // Required step index for the rule
 }): SettingSlice {
     // Default properties when no provider is selected
     let configProperties: DataSlice = {};
@@ -213,7 +183,7 @@ export function getProviderConfigSlice({
         };
     }
 
-    // Filter options based on the showAdvancedOptions flag
+    // Filter options based on the type (standard/advanced)
     const filteredOptions = providerOptions.filter((option) => {
         if (type === 'advanced' && option.Advanced === true) {
             return true;
@@ -233,8 +203,7 @@ export function getProviderConfigSlice({
         return acc;
     }, [] as RCloneProviderOptionResponse[]);
 
-    // If no options match the filter (e.g., asking for advanced but none exist), return empty
-    // Use uniqueOptionsByName instead of filteredOptions from here on
+    // If no options match the filter, return empty
     if (uniqueOptionsByName.length === 0) {
         return {
             properties: configProperties,
@@ -242,7 +211,7 @@ export function getProviderConfigSlice({
         };
     }
 
-    // Create dynamic UI elements based on unique provider options
+    // Create dynamic UI control elements based on unique provider options
     const controlElements = uniqueOptionsByName.map<UIElement>((option) => {
         const format = getJsonFormElementForType({
             rcloneType: option.Type,
@@ -278,7 +247,7 @@ export function getProviderConfigSlice({
         }
 
         // --- Start: Add dynamic visibility rule based on Provider --- //
-        let rule: { effect: RuleEffect; condition: SchemaBasedCondition } | undefined = undefined;
+        let providerRule: { effect: RuleEffect; condition: SchemaBasedCondition } | undefined = undefined;
         const providerFilter = option.Provider?.trim();
 
         if (providerFilter) {
@@ -293,12 +262,12 @@ export function getProviderConfigSlice({
                     ? { not: { enum: providers } } // Show if type is NOT in the list
                     : { enum: providers }; // Show if type IS in the list
 
-                rule = {
+                providerRule = {
                     effect: RuleEffect.SHOW,
                     condition: {
                         scope: '#/properties/type',
                         schema: conditionSchema,
-                    },
+                    } as SchemaBasedCondition,
                 };
             }
         }
@@ -309,8 +278,8 @@ export function getProviderConfigSlice({
             scope: `#/properties/parameters/properties/${option.Name}`,
             label: option.Help || option.Name,
             options: controlOptions,
-            // Add the rule if it was generated
-            ...(rule && { rule }),
+            // Add the provider-specific rule if it was generated
+            ...(providerRule && { rule: providerRule }),
         };
         return uiElement;
     });
@@ -319,30 +288,36 @@ export function getProviderConfigSlice({
     const paramProperties: Record<string, JsonSchema7> = {};
     uniqueOptionsByName.forEach((option) => {
         if (option) {
-            // Ensure option exists before translating
             paramProperties[option.Name] = translateRCloneOptionToJsonSchema({ option });
+            console.log('paramProperties', option.Name, paramProperties[option.Name]);
         }
     });
 
     // Only add parameters object if there are properties
     if (Object.keys(paramProperties).length > 0) {
-        // Initialize parameters object if it doesn't exist
+        // Ensure parameters object exists and has a properties key
         if (!configProperties.parameters) {
-            configProperties.parameters = {
-                type: 'object',
-                properties: {} as Record<string, JsonSchema7>,
-            } as unknown as DataSlice;
+            configProperties.parameters = { type: 'object', properties: {} } as any;
+        } else if (!(configProperties.parameters as any).properties) {
+            (configProperties.parameters as any).properties = {};
         }
-
-        // Merge the properties into the existing parameters object
+        // Merge the new paramProperties into the existing parameters.properties
         (configProperties.parameters as any).properties = {
             ...(configProperties.parameters as any).properties,
             ...paramProperties,
         };
     }
+
+    // Wrap the control elements in a VerticalLayout marked for the specified stepIndex
+    const verticalLayoutElement: UIElement = {
+        type: 'VerticalLayout',
+        elements: controlElements,
+        options: { step: stepIndex }, // Assign to the specified stepIndex
+    };
+
     return {
         properties: configProperties,
-        elements: controlElements,
+        elements: [verticalLayoutElement], // Return the VerticalLayout as the single element
     };
 }
 
@@ -418,90 +393,8 @@ function getJsonFormElementForType({
 }
 
 /**
- * Returns a combined form schema for the rclone backup configuration UI
- */
-export function getRcloneConfigSlice(): SettingSlice {
-    const elements: UIElement[] = [
-        {
-            type: 'Label',
-            text: 'Configure RClone Backup',
-            options: {
-                format: 'title',
-                description:
-                    'This 3-step process will guide you through setting up your RClone backup configuration.',
-            },
-        },
-        {
-            type: 'SteppedLayout',
-            options: {
-                stepControl: '#/properties/configStep',
-                steps: [
-                    { label: 'Set up Remote Config', description: 'Name and provider selection' },
-                    { label: 'Set up Drive', description: 'Provider-specific configuration' },
-                    { label: 'Advanced Config', description: 'Optional advanced settings' },
-                ],
-            },
-        },
-    ];
-
-    // Basic properties for the rclone backup configuration
-    const properties: Record<string, JsonSchema7> = {
-        configStep: {
-            type: 'number',
-            minimum: 0,
-            maximum: 2,
-            default: 0,
-        },
-    };
-
-    return {
-        properties: properties as unknown as DataSlice,
-        elements,
-    };
-}
-
-/**
- * Returns the complete form schemas (data and UI) for the RClone configuration
- */
-export function getRcloneConfigSchemas(
-    properties: DataSlice,
-    elements: UIElement[]
-): {
-    dataSchema: Record<string, any>;
-    uiSchema: Layout;
-} {
-    return {
-        dataSchema: {
-            type: 'object',
-            properties,
-        },
-        uiSchema: {
-            type: 'SteppedLayout',
-            options: {
-                stepControl: '#/properties/configStep',
-                steps: [
-                    { label: 'Set up Remote Config', description: 'Name and provider selection' },
-                    { label: 'Set up Drive', description: 'Provider-specific configuration' },
-                    { label: 'Advanced Config', description: 'Optional advanced settings' },
-                ],
-            },
-            elements: [
-                {
-                    type: 'Label',
-                    options: {
-                        format: 'title',
-                        description:
-                            'This 3-step process will guide you through setting up your RClone backup configuration.',
-                    },
-                },
-                ...elements,
-            ],
-        },
-    };
-}
-
-/**
- * Builds the complete settings schema for a given provider
+ * Builds the complete settings schema for the RClone config UI, returning the final dataSchema and uiSchema.
+ * Integrates step-specific elements directly into the SteppedLayout's elements array.
  */
 export function buildRcloneConfigSchema({
     providerTypes = [],
@@ -511,14 +404,105 @@ export function buildRcloneConfigSchema({
     providerTypes?: string[];
     selectedProvider?: string;
     providerOptions?: Record<string, RCloneProviderOptionResponse[]>;
-}): SettingSlice {
-    // Get the base slice and form schema
-    const baseSlice = getRcloneConfigSlice();
-    const formSlice = getRcloneConfigFormSchema({
-        providerTypes,
+}): {
+    dataSchema: Record<string, any>;
+    uiSchema: Layout;
+} {
+    // --- Schema Definition ---
+
+    // Define the step control property - REMOVED as SteppedLayout uses local state
+    // const stepControlProperty: Record<string, JsonSchema7> = {
+    //     configStep: {
+    //         type: 'number',
+    //         minimum: 0,
+    //         maximum: 2, // 3 steps: 0, 1, 2
+    //         default: 0,
+    //     },
+    // };
+
+    // --- Step Content Generation ---
+
+    const optionsForProvider = providerOptions[selectedProvider] || [];
+
+    // Step 0: Basic Config
+    const basicSlice = getBasicConfigSlice({ providerTypes });
+
+    // Step 1: Standard Provider Config
+    const standardConfigSlice = getProviderConfigSlice({
         selectedProvider,
-        providerOptions,
+        providerOptions: optionsForProvider,
+        type: 'standard',
+        stepIndex: 1, // Assign to step 1
     });
 
-    return mergeSettingSlices([baseSlice, formSlice]);
+    // Step 2: Advanced Provider Config
+    const advancedConfigSlice = getProviderConfigSlice({
+        selectedProvider,
+        providerOptions: optionsForProvider,
+        type: 'advanced',
+        stepIndex: 2, // Assign to step 2
+    });
+
+    // --- UI Schema Definition ---
+
+    // Define the SteppedLayout UI element, now containing step content elements
+    const steppedLayoutElement: UIElement = {
+        type: 'SteppedLayout',
+        options: {
+            steps: [
+                { label: 'Set up Remote Config', description: 'Name and provider selection' },
+                { label: 'Set up Drive', description: 'Provider-specific configuration' },
+                { label: 'Advanced Config', description: 'Optional advanced settings' },
+            ],
+        },
+        // Nest the step content elements directly inside the SteppedLayout
+        elements: [
+            ...(basicSlice.elements || []),
+            ...(standardConfigSlice.elements || []),
+            ...(advancedConfigSlice.elements || []),
+        ],
+    };
+
+    // Define the overall title label
+    const titleLabel: UIElement = {
+        type: 'Label',
+        text: 'Configure RClone Remote',
+        options: {
+            format: 'title',
+            description:
+                'This 3-step process will guide you through setting up your RClone remote configuration.',
+        },
+    };
+
+    // --- Merging and Final Output ---
+
+    // Merge all properties: basic + standard + advanced
+    const mergedProperties = mergeSettingSlices([
+        basicSlice,
+        standardConfigSlice,
+        advancedConfigSlice,
+    ]);
+
+    // Construct the final dataSchema
+    const dataSchema = {
+        type: 'object',
+        properties: mergedProperties.properties,
+        // Add required fields if necessary, e.g., ['name', 'type']
+        // required: ['name', 'type'], // Example: Make name and type required globally
+    };
+
+    // Construct the final uiSchema with Title + SteppedLayout (containing steps)
+    const uiSchema: Layout = {
+        type: 'VerticalLayout',
+        elements: [
+            titleLabel,
+            steppedLayoutElement, // The Stepper control, now containing its step elements
+            // Step content elements are now *inside* steppedLayoutElement.elements
+        ],
+    };
+
+    return { dataSchema, uiSchema };
 }
+
+// Add optional console log for debugging
+// console.log('Generated RClone Config Schema:', JSON.stringify({ dataSchema, uiSchema }, null, 2));
