@@ -11,7 +11,6 @@ const useTeleport = () => {
     if (!potentialTarget) return;
 
     teleportTarget.value = potentialTarget;
-    console.log("[determineTeleportTarget] teleportTarget", teleportTarget.value);
   };
 
   onMounted(() => {
