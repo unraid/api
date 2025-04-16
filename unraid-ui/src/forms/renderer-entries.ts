@@ -1,12 +1,16 @@
+import CategorizationAccordionRenderer from '@/forms/CategorizationAccordionRenderer.vue';
+import comboBoxRenderer from '@/forms/ComboBoxField.vue';
+import inputFieldRenderer from '@/forms/InputField.vue';
+import MissingRenderer from '@/forms/MissingRenderer.vue';
 import numberFieldRenderer from '@/forms/NumberField.vue';
 import PreconditionsLabel from '@/forms/PreconditionsLabel.vue';
 import selectRenderer from '@/forms/Select.vue';
 import StringArrayField from '@/forms/StringArrayField.vue';
 import switchRenderer from '@/forms/Switch.vue';
-import inputFieldRenderer from '@/forms/InputField.vue';
 import {
   and,
   isBooleanControl,
+  isCategorization,
   isControl,
   isEnumControl,
   isIntegerControl,
@@ -36,6 +40,11 @@ export const formSelectEntry: JsonFormsRendererRegistryEntry = {
   tester: rankWith(4, and(isEnumControl)),
 };
 
+export const formComboBoxEntry: JsonFormsRendererRegistryEntry = {
+  renderer: comboBoxRenderer,
+  tester: rankWith(4, and(isEnumControl, optionIs('type', 'combobox'))),
+};
+
 export const numberFieldEntry: JsonFormsRendererRegistryEntry = {
   renderer: numberFieldRenderer,
   tester: rankWith(4, or(isNumberControl, isIntegerControl)),
@@ -54,4 +63,14 @@ export const stringArrayEntry: JsonFormsRendererRegistryEntry = {
 export const preconditionsLabelEntry: JsonFormsRendererRegistryEntry = {
   renderer: PreconditionsLabel,
   tester: rankWith(3, and(uiTypeIs('Label'), optionIs('format', 'preconditions'))),
+};
+
+export const missingRendererEntry: JsonFormsRendererRegistryEntry = {
+  renderer: MissingRenderer,
+  tester: rankWith(3, isControl),
+};
+
+export const categorizationAccordionEntry: JsonFormsRendererRegistryEntry = {
+  renderer: CategorizationAccordionRenderer,
+  tester: rankWith(5, isCategorization),
 };

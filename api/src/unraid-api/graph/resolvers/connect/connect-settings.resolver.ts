@@ -54,6 +54,7 @@ export class ConnectSettingsResolver {
             elements,
         };
     }
+
     @ResolveField(() => ConnectSettingsValues)
     public async values(): Promise<ConnectSettingsValues> {
         return await this.connectSettingsService.getCurrentSettings();
