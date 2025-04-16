@@ -8,13 +8,8 @@
 <script setup lang="ts">
 import { defineProps } from 'vue';
 
-const props = defineProps({
-  // Define props based on what JsonForms passes to renderers
-  // Typically includes 'schema', 'uischema', 'path', 'data', 'errors', etc.
-  // Add specific props as needed, or leave it generic for now
-});
+const props = defineProps();
 
-// eslint-disable-next-line no-console
 console.warn('Missing renderer used for:', props);
 </script>
 
