@@ -13,12 +13,10 @@ import { useErrorsStore } from '~/store/errors';
 
 const mockFeedbackButton = vi.fn();
 
-// Mock OBJ_TO_STR function
 vi.mock('~/helpers/functions', () => ({
   OBJ_TO_STR: (obj: unknown) => JSON.stringify(obj),
 }));
 
-// Mock FeedbackButton global
 vi.stubGlobal('FeedbackButton', mockFeedbackButton);
 
 describe('Errors Store', () => {
@@ -93,11 +91,34 @@ describe('Errors Store', () => {
 
       expect(store.errors).toHaveLength(0);
     });
+
+    it('should not change errors when removing by non-existent index', async () => {
+      store.setError(mockError);
+      const initialErrors = [...store.errors];
+      expect(initialErrors).toHaveLength(1);
+
+      store.removeErrorByIndex(99);
+      await nextTick();
+
+      expect(store.errors).toHaveLength(1);
+      expect(store.errors).toEqual(initialErrors);
+    });
+
+    it('should not change errors when removing by non-existent ref', async () => {
+      store.setError(mockError);
+      const initialErrors = [...store.errors];
+      expect(initialErrors).toHaveLength(1);
+
+      store.removeErrorByRef('non-existent-ref');
+      await nextTick();
+
+      expect(store.errors).toHaveLength(1);
+      expect(store.errors).toEqual(initialErrors);
+    });
   });
 
   describe('Troubleshoot Feature', () => {
     beforeEach(() => {
-      // Mock the DOM elements needed for troubleshoot
       const mockModal = document.createElement('div');
       mockModal.className = 'sweet-alert visible';
 
@@ -126,8 +147,18 @@ describe('Errors Store', () => {
       document.body.innerHTML = '';
     });
 
-    it('should open troubleshoot with error details', async () => {
-      store.setError(mockError);
+    it('should open troubleshoot with multiple error details including debugServer', async () => {
+      const error1: Error = { ...mockError, ref: 'err1' };
+      const error2: Error = {
+        heading: 'Second Error',
+        level: 'warning',
+        message: 'Another message',
+        type: 'serverState',
+        ref: 'err2',
+        debugServer: { guid: 'debug-guid', name: 'debug-server' },
+      };
+      store.setError(error1);
+      store.setError(error2);
       await nextTick();
 
       await store.openTroubleshoot({
@@ -141,12 +172,57 @@ describe('Errors Store', () => {
       const panel = document.querySelector('#troubleshoot_panel') as HTMLElement;
 
       expect(mockFeedbackButton).toHaveBeenCalled();
-      expect(textarea.value).toContain('Debug Details – Component Errors 1');
+      expect(textarea.value).toContain('Debug Details – Component Errors 2');
       expect(textarea.value).toContain('Error 1: Test Error');
       expect(textarea.value).toContain('Error 1 Message: Test message');
+      expect(textarea.value).toContain('Error 1 Ref: err1');
+      expect(textarea.value).not.toContain('Error 1 Debug Server');
+      expect(textarea.value).toContain('\n***************\n');
+      expect(textarea.value).toContain('Error 2: Second Error');
+      expect(textarea.value).toContain('Error 2 Message: Another message');
+      expect(textarea.value).toContain('Error 2 Level: warning');
+      expect(textarea.value).toContain('Error 2 Type: serverState');
+      expect(textarea.value).toContain('Error 2 Ref: err2');
+      expect(textarea.value).toContain(
+        'Error 2 Debug Server:\n{"guid":"debug-guid","name":"debug-server"}'
+      );
+
       expect(emailInput.value).toBe('test@example.com');
       expect(radio.checked).toBe(true);
       expect(panel.style.display).toBe('block');
+    });
+
+    it('should focus email input if no email provided', async () => {
+      const focusSpy = vi.spyOn(HTMLInputElement.prototype, 'focus');
+
+      await store.openTroubleshoot({
+        email: '',
+        includeUnraidApiLogs: true,
+      });
+
+      const emailInput = document.querySelector('#troubleshootEmail') as HTMLInputElement;
+
+      expect(focusSpy).toHaveBeenCalled();
+      expect(emailInput.value).toBe('');
+
+      focusSpy.mockRestore();
+    });
+
+    it('should handle errors during troubleshoot opening', async () => {
+      const testError = new Error('FeedbackButton failed');
+      mockFeedbackButton.mockRejectedValueOnce(testError);
+
+      const consoleSpy = vi.spyOn(console, 'error');
+
+      await store.openTroubleshoot({
+        email: 'test@example.com',
+        includeUnraidApiLogs: true,
+      });
+
+      expect(mockFeedbackButton).toHaveBeenCalled();
+      expect(consoleSpy).toHaveBeenCalledWith('[openTroubleshoot]', testError);
+
+      consoleSpy.mockRestore();
     });
   });
 });
