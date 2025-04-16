@@ -4,7 +4,7 @@ import { type Layout } from '@jsonforms/core';
 
 import { RCloneProviderOptionResponse } from '@app/unraid-api/graph/resolvers/rclone/rclone.model.js';
 
-import { buildRcloneConfigSchema, getRcloneConfigSchemas } from './jsonforms/rclone-jsonforms-config.js';
+import { buildRcloneConfigSchema } from './jsonforms/rclone-jsonforms-config.js';
 import { RCloneApiService } from './rclone-api.service.js';
 
 /**
@@ -51,12 +51,10 @@ export class RCloneFormService {
             await this.loadProviderInfo();
         }
 
-        const { properties, elements } = buildRcloneConfigSchema({
+        return buildRcloneConfigSchema({
             providerTypes: this.providerNames,
             selectedProvider,
             providerOptions: this.providerOptions,
         });
-
-        return getRcloneConfigSchemas(properties, elements);
     }
 }

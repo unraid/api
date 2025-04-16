@@ -13,7 +13,7 @@
  * @prop renderers - Available renderers
  * @prop cells - Available cells
  */
-import { Label } from '@/components/form/label';
+
 import type { VerticalLayout } from '@jsonforms/core';
 import { DispatchRenderer, type RendererProps } from '@jsonforms/vue';
 import { computed } from 'vue';
@@ -21,14 +21,14 @@ import { computed } from 'vue';
 const props = defineProps<RendererProps<VerticalLayout>>();
 
 const elements = computed(() => {
+  console.log('elements', props.uischema?.elements);
   return props.uischema?.elements || [];
 });
 </script>
 
 <template>
-  <div class="grid grid-cols-settings items-baseline gap-y-6">
+  <div class="flex flex-col gap-y-2">
     <template v-for="(element, index) in elements" :key="index">
-      <Label v-if="element.label" class="text-end">{{ element.label ?? index }}</Label>
       <DispatchRenderer
         class="ml-10"
         :schema="props.schema"
