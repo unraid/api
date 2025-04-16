@@ -1,6 +1,6 @@
 {
   "name": "@unraid/web",
-  "version": "4.6.6",
+  "version": "4.7.0",
   "private": true,
   "license": "GPL-2.0-or-later",
   "scripts": {

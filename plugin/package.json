@@ -1,6 +1,6 @@
 {
   "name": "@unraid/connect-plugin",
-  "version": "4.6.6",
+  "version": "4.7.0",
   "private": true,
   "dependencies": {
     "commander": "^13.1.0",
