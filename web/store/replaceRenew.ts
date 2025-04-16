@@ -263,5 +263,6 @@ export const useReplaceRenewStore = defineStore('replaceRenewCheck', () => {
     purgeValidationResponse,
     setReplaceStatus,
     setRenewStatus,
+    error,
   };
 });

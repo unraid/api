@@ -63,7 +63,6 @@ describe('ReplaceRenew Store', () => {
     });
 
     it('should initialize with error state when guid is missing', () => {
-      // Setup mock for test with missing guid
       vi.mocked(useServerStore).mockReturnValueOnce({
         guid: undefined,
         keyfile: mockKeyfile,
@@ -95,8 +94,10 @@ describe('ReplaceRenew Store', () => {
       expect(store.keyLinkedOutput.text).toBe('Not Linked');
 
       store.keyLinkedStatus = 'error';
+      // Test with a specific error message
+      store.error = { name: 'TestError', message: 'Specific Linked Error' };
       expect(store.keyLinkedOutput.variant).toBe('red');
-      expect(store.keyLinkedOutput.text).toBe('Unknown error');
+      expect(store.keyLinkedOutput.text).toBe('Specific Linked Error');
     });
 
     it('should return correct replaceStatusOutput for each status', () => {
@@ -115,8 +116,10 @@ describe('ReplaceRenew Store', () => {
       expect(store.replaceStatusOutput?.text).toBe('Ineligible for self-replacement');
 
       store.replaceStatus = 'error';
+      store.error = { name: 'TestError', message: 'Specific Replace Error' };
+
       expect(store.replaceStatusOutput?.variant).toBe('red');
-      expect(store.replaceStatusOutput?.text).toBe('Unknown error');
+      expect(store.replaceStatusOutput?.text).toBe('Specific Replace Error');
     });
   });
 
@@ -145,6 +148,13 @@ describe('ReplaceRenew Store', () => {
       beforeEach(() => {
         vi.mocked(validateGuid).mockResolvedValue(mockResponse as unknown as ValidateGuidResponse);
         mockSessionStorage.getItem.mockReturnValue(null);
+        vi.mocked(useServerStore).mockReturnValue({
+          guid: 'test-guid',
+          keyfile: 'test-keyfile.key',
+        } as unknown as ReturnType<typeof useServerStore>);
+
+        setActivePinia(createPinia());
+        store = useReplaceRenewStore();
       });
 
       it('should handle missing guid', async () => {
@@ -163,6 +173,102 @@ describe('ReplaceRenew Store', () => {
         testStore.setReplaceStatus('error');
 
         expect(testStore.replaceStatus).toBe('error');
+      });
+
+      it('should use cached response if available and valid', async () => {
+        const cachedResponse = {
+          key: 'eyfile.key',
+          timestamp: Date.now(),
+          hasNewerKeyfile: false,
+          linked: false,
+          replaceable: false,
+        };
+
+        mockSessionStorage.getItem.mockReturnValue(JSON.stringify(cachedResponse));
+        setActivePinia(createPinia());
+        const testStore = useReplaceRenewStore();
+
+        await testStore.check();
+
+        expect(validateGuid).not.toHaveBeenCalled();
+
+        expect(testStore.keyLinkedStatus).toBe('notLinked');
+        expect(testStore.replaceStatus).toBe('ineligible');
+
+        expect(mockSessionStorage.removeItem).not.toHaveBeenCalled();
+      });
+
+      it('should purge cache and re-fetch if timestamp is expired', async () => {
+        vi.useFakeTimers();
+        const expiredTimestamp = Date.now() - 8 * 24 * 60 * 60 * 1000;
+        const cachedResponse = {
+          key: 'eyfile.key',
+          timestamp: expiredTimestamp,
+          hasNewerKeyfile: false,
+          linked: false,
+          replaceable: false,
+        };
+
+        mockSessionStorage.getItem.mockReturnValue(JSON.stringify(cachedResponse));
+        vi.mocked(validateGuid).mockResolvedValue(mockResponse as unknown as ValidateGuidResponse);
+
+        setActivePinia(createPinia());
+        const testStore = useReplaceRenewStore();
+
+        await testStore.check();
+
+        expect(mockSessionStorage.removeItem).toHaveBeenCalledWith(REPLACE_CHECK_LOCAL_STORAGE_KEY);
+
+        expect(validateGuid).toHaveBeenCalled();
+        expect(testStore.keyLinkedStatus).toBe('linked');
+        expect(testStore.replaceStatus).toBe('eligible');
+
+        vi.useRealTimers();
+      });
+
+      it('should purge cache and re-fetch if key is missing in cache', async () => {
+        const cachedResponse = {
+          timestamp: Date.now(),
+          hasNewerKeyfile: false,
+          linked: false,
+          replaceable: false,
+        };
+
+        mockSessionStorage.getItem.mockReturnValue(JSON.stringify(cachedResponse));
+        vi.mocked(validateGuid).mockResolvedValue(mockResponse as unknown as ValidateGuidResponse);
+
+        setActivePinia(createPinia());
+        const testStore = useReplaceRenewStore();
+
+        await testStore.check();
+
+        expect(mockSessionStorage.removeItem).toHaveBeenCalledWith(REPLACE_CHECK_LOCAL_STORAGE_KEY);
+        expect(validateGuid).toHaveBeenCalled();
+        expect(testStore.keyLinkedStatus).toBe('linked');
+        expect(testStore.replaceStatus).toBe('eligible');
+      });
+
+      it('should purge cache and re-fetch if key in cache mismatches current keyfile', async () => {
+        const cachedResponse = {
+          key: 'mismatched',
+          timestamp: Date.now(),
+          hasNewerKeyfile: false,
+          linked: false,
+          replaceable: false,
+        };
+
+        mockSessionStorage.getItem.mockReturnValue(JSON.stringify(cachedResponse));
+        vi.mocked(validateGuid).mockResolvedValue(mockResponse as unknown as ValidateGuidResponse);
+        setActivePinia(createPinia());
+
+        const testStore = useReplaceRenewStore();
+
+        await testStore.check();
+
+        expect(mockSessionStorage.removeItem).toHaveBeenCalledWith(REPLACE_CHECK_LOCAL_STORAGE_KEY);
+        expect(validateGuid).toHaveBeenCalled();
+        expect(testStore.keyLinkedStatus).toBe('linked');
+        expect(testStore.replaceStatus).toBe('eligible');
       });
 
       it('should call validateGuid with correct parameters', async () => {
@@ -184,7 +290,6 @@ describe('ReplaceRenew Store', () => {
       it('should cache the validation response', async () => {
         vi.useFakeTimers();
         const now = new Date('2023-01-01').getTime();
-
         vi.setSystemTime(now);
 
         await store.check();
@@ -192,7 +297,7 @@ describe('ReplaceRenew Store', () => {
         expect(mockSessionStorage.setItem).toHaveBeenCalledWith(
           REPLACE_CHECK_LOCAL_STORAGE_KEY,
           JSON.stringify({
-            key: 'eyfile.key', // Last 10 chars of keyfile
+            key: 'eyfile.key',
             timestamp: now,
             ...mockResponse,
           })
@@ -202,9 +307,16 @@ describe('ReplaceRenew Store', () => {
       });
 
       it('should purge cache when skipCache is true', async () => {
-        await store.check(true);
+        mockSessionStorage.getItem.mockReturnValue(
+          JSON.stringify({ key: 'eyfile.key', timestamp: Date.now() })
+        );
+        setActivePinia(createPinia());
+        const testStore = useReplaceRenewStore();
+
+        await testStore.check(true);
 
         expect(mockSessionStorage.removeItem).toHaveBeenCalledWith(REPLACE_CHECK_LOCAL_STORAGE_KEY);
+        expect(validateGuid).toHaveBeenCalled();
       });
 
       it('should handle errors during check', async () => {
@@ -215,6 +327,7 @@ describe('ReplaceRenew Store', () => {
 
         expect(store.replaceStatus).toBe('error');
         expect(console.error).toHaveBeenCalledWith('[ReplaceCheck.check]', testError);
+        expect(store.error).toEqual(testError);
       });
     });
   });
