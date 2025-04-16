@@ -1,238 +1,304 @@
-import type { ControlElement, Layout, SchemaBasedCondition } from '@jsonforms/core'; // Removed CategorizationLayout, using Layout
-import { describe, expect, it } from 'vitest';
+import { describe, it, expect, beforeEach } from 'vitest';
 
-// Added .js extension
-import type { RCloneProviderOptionResponse } from '../rclone.model.js'; // Adjusted path and added .js
-import { config as mockRcloneConfigData } from './config.js'; // Added .js extension
-import { getRcloneConfigFormSchema, getRcloneConfigSlice } from './rclone-jsonforms-config.js';
+import { config as rawProviderConfig } from './config.js'; // Added .js extension
+import { getProviderConfigSlice } from './rclone-jsonforms-config.js'; // Added .js extension
+// Adjusted path assuming rclone.model.ts is sibling to jsonforms dir
+import type { RCloneProviderOptionResponse } from '../rclone.model.js';
+import type { JsonSchema7, Layout, SchemaBasedCondition } from '@jsonforms/core';
 
-// Helper to process mock data from config.ts into the expected format
-const processMockConfig = (
-    mockConfig: any[]
-): {
-    providerNames: string[];
-    providerOptions: Record<string, RCloneProviderOptionResponse[]>;
-} => {
-    const providerNames = mockConfig.map((p) => p.Name);
-    const providerOptions = mockConfig.reduce(
-        (acc, provider) => {
-            // Map options, ensuring all required fields from RCloneProviderOptionResponse exist
-            acc[provider.Name] = provider.Options.map(
-                (opt: any): RCloneProviderOptionResponse => ({
-                    Name: opt.Name,
-                    Help: opt.Help || '',
-                    Default: opt.Default,
-                    Required: opt.Required || false,
-                    Advanced: opt.Advanced || false,
-                    Examples: opt.Examples || null,
-                    IsPassword: opt.IsPassword || false,
-                    Type: opt.Type || 'string',
-                    Hide: opt.Hide || 0,
-                    Provider: opt.Provider || '',
-                    Value: opt.Value !== undefined ? opt.Value : null,
-                    ShortOpt: opt.ShortOpt || '',
-                    NoPrefix: opt.NoPrefix || false,
-                    DefaultStr: opt.DefaultStr || '',
-                })
-            );
-            return acc;
-        },
-        {} as Record<string, RCloneProviderOptionResponse[]>
-    );
-    return { providerNames, providerOptions };
+// Placeholder type for UIElement if the original path doesn't resolve in tests
+// Make placeholder more specific to include expected properties
+type UIElement = {
+    type: string;
+    scope: string;
+    label: string;
+    options?: Record<string, any>;
+    rule?: {
+        effect: string; // RuleEffect is an enum, use string for simplicity in test type
+        condition: SchemaBasedCondition & { // Assert that it's SchemaBased
+            scope: string;
+            schema: JsonSchema7;
+        };
+    };
+    // Add other potential properties if needed
+    [key: string]: any; // Allow other properties
 };
+// import type { UIElement } from '@app/unraid-api/types/json-forms'; // Original import commented out
 
-// Process the mock data once
-const { providerNames: mockProviderNames, providerOptions: mockProviderOptions } =
-    processMockConfig(mockRcloneConfigData);
+// --- Data Processing ---
 
-describe('RClone JSONForms Config Generation', () => {
-    describe('getRcloneConfigSlice', () => {
-        it('should return the base configuration slice without stepper/advanced controls', () => {
-            const slice = getRcloneConfigSlice();
+// Type assertion for the imported config
+interface RawProviderConfigEntry {
+    Name: string;
+    Options: RCloneProviderOptionResponse[];
+    // Add other properties from config.ts if needed, though Name and Options are primary
+}
 
-            // Check properties
-            expect(slice.properties).toHaveProperty('configStep');
-            expect(slice.properties.configStep.type).toBe('number');
-            expect(slice.properties).not.toHaveProperty('showAdvanced');
+// Process the raw config into the format expected by the functions under test
+const providerOptionsMap: Record<string, RCloneProviderOptionResponse[]> = (
+    rawProviderConfig as RawProviderConfigEntry[]
+).reduce((acc, provider) => {
+    if (provider.Name && Array.isArray(provider.Options)) {
+        // Ensure options conform to the expected type structure if necessary
+        // For now, we assume the structure matches RCloneProviderOptionResponse
+        acc[provider.Name] = provider.Options;
+    }
+    return acc;
+}, {} as Record<string, RCloneProviderOptionResponse[]>);
 
-            // Check elements (only the title Label should remain from this slice)
-            expect(slice.elements.length).toBe(1);
-            expect(slice.elements[0].type).toBe('Label');
-            expect((slice.elements[0] as any).text).toBe('Configure RClone Backup');
-            // Check that controls for configStep and showAdvanced are NOT present
-            const controls = slice.elements.filter((e) => e.type === 'Control');
-            expect(controls.length).toBe(0);
+const providerNames = Object.keys(providerOptionsMap);
+
+// --- Test Suite ---
+
+describe('getProviderConfigSlice', () => {
+    // Example provider to use in tests - choose one with both standard and advanced options
+    const testProvider = 's3'; // S3 usually has a good mix
+    let s3Options: RCloneProviderOptionResponse[];
+
+    beforeEach(() => {
+        // Ensure we have the options for the test provider
+        s3Options = providerOptionsMap[testProvider];
+        expect(s3Options).toBeDefined();
+        expect(s3Options.length).toBeGreaterThan(0);
+    });
+
+    it('should return an empty slice if the provider name is invalid', () => {
+        const result = getProviderConfigSlice({
+            selectedProvider: 'invalid-provider-name',
+            providerOptions: [], // Doesn't matter for this case
+            type: 'standard',
+        });
+        expect(result.properties).toEqual({});
+        expect(result.elements).toEqual([]);
+    });
+
+     it('should return an empty slice if providerOptions are empty', () => {
+        const result = getProviderConfigSlice({
+            selectedProvider: testProvider, // Valid provider
+            providerOptions: [], // Empty options
+            type: 'standard',
+        });
+        expect(result.properties).toEqual({});
+        expect(result.elements).toEqual([]);
+    });
+
+    it('should return only standard options when type is \'standard\'', () => {
+        const result = getProviderConfigSlice({
+            selectedProvider: testProvider,
+            providerOptions: s3Options,
+            type: 'standard',
+        });
+
+        // Check properties schema
+        expect(result.properties).toBeDefined();
+        expect(result.properties.parameters).toBeDefined();
+        const paramProps = result.properties.parameters?.properties || {};
+        expect(Object.keys(paramProps).length).toBeGreaterThan(0);
+
+        // Check that all properties included are standard (Advanced !== true)
+        const standardOptions = s3Options.filter(opt => opt.Advanced !== true);
+        const uniqueStandardOptionNames = [...new Set(standardOptions.map(opt => opt.Name))];
+
+        // Assert against the count of UNIQUE standard option names
+        expect(Object.keys(paramProps).length).toEqual(uniqueStandardOptionNames.length);
+
+        // Check that each unique standard option name exists in the generated props
+        uniqueStandardOptionNames.forEach(name => {
+            expect(paramProps[name]).toBeDefined();
+            // Find the first option with this name to check title (or implement more complex logic if needed)
+            const correspondingOption = standardOptions.find(opt => opt.Name === name);
+            expect(paramProps[name]?.title).toEqual(correspondingOption?.Name);
+        });
+
+        // Check UI elements - compare count against unique names
+        expect(result.elements).toBeDefined();
+        expect(Array.isArray(result.elements)).toBe(true);
+        expect(result.elements.length).toEqual(uniqueStandardOptionNames.length);
+
+        // Check elements based on unique names
+        uniqueStandardOptionNames.forEach(name => {
+            // Use `as any` for type assertion on the result elements array
+            const elementsArray = result.elements as any[];
+            // Find element by scope instead of label
+            const expectedScope = `#/properties/parameters/properties/${name}`;
+            const element = elementsArray.find((el) => el.scope === expectedScope);
+            expect(element).toBeDefined(); // Check if element was found
+            if (element) { // Basic check
+                expect(element.type).toEqual('Control');
+            }
         });
     });
 
-    describe('getRcloneConfigFormSchema', () => {
-        it('should generate schema with only basic config when no provider selected', () => {
-            const result = getRcloneConfigFormSchema(mockProviderNames, '', {});
-
-            // Check properties
-            expect(result.properties).toHaveProperty('name');
-            expect(result.properties).toHaveProperty('type');
-            expect(result.properties).not.toHaveProperty('parameters'); // No provider options
-
-            // Check elements
-            expect(result.elements.length).toBe(1); // Only the basic VerticalLayout
-            expect(result.elements[0].type).toBe('VerticalLayout');
-            const basicLayout = result.elements[0] as Layout;
-            expect(basicLayout.elements.length).toBe(3); // name control, type control, docs label
-            expect((basicLayout.elements[0] as ControlElement).scope).toBe('#/properties/name');
-            expect((basicLayout.elements[1] as ControlElement).scope).toBe('#/properties/type');
-            expect(basicLayout.elements[2].type).toBe('Label'); // Docs label
+    it('should return only advanced options when type is \'advanced\'', () => {
+        const result = getProviderConfigSlice({
+            selectedProvider: testProvider,
+            providerOptions: s3Options,
+            type: 'advanced',
         });
 
-        it('should generate schema with basic config and empty categorization for provider with no options', () => {
-            const providerName = 'providerWithNoOptions';
-            const customProviderNames = [...mockProviderNames, providerName];
-            const customProviderOptions = { ...mockProviderOptions, [providerName]: [] };
-            const result = getRcloneConfigFormSchema(
-                customProviderNames,
-                providerName,
-                customProviderOptions
-            );
+        // Check properties schema
+        expect(result.properties).toBeDefined();
+        expect(result.properties.parameters).toBeDefined();
+        const paramProps = result.properties.parameters?.properties || {};
+        expect(Object.keys(paramProps).length).toBeGreaterThan(0);
 
-            expect(result.properties).toHaveProperty('name');
-            expect(result.properties).toHaveProperty('type');
-            // Parameters object might be added but should be empty if providerOptions is empty
-            expect(result.properties.parameters?.properties).toEqual({});
+        // Check that all properties included are advanced (Advanced === true)
+        const advancedOptions = s3Options.filter(opt => opt.Advanced === true);
+        const uniqueAdvancedOptionNames = [...new Set(advancedOptions.map(opt => opt.Name))];
 
-            // Check elements: Only basic config, no Categorization should be added if no provider options exist
-            expect(result.elements.length).toBe(1);
-            expect(result.elements[0].type).toBe('VerticalLayout');
+        // Assert against the count of UNIQUE advanced option names
+        expect(Object.keys(paramProps).length).toEqual(uniqueAdvancedOptionNames.length);
+
+        // Check that each unique advanced option name exists in the generated props
+        uniqueAdvancedOptionNames.forEach(name => {
+            expect(paramProps[name]).toBeDefined();
+            const correspondingOption = advancedOptions.find(opt => opt.Name === name);
+            expect(paramProps[name]?.title).toEqual(correspondingOption?.Name);
         });
 
-        it('should generate schema with Categorization for "drive" provider', () => {
-            const result = getRcloneConfigFormSchema(mockProviderNames, 'drive', mockProviderOptions);
+        // Check UI elements - compare count against unique names
+        expect(result.elements).toBeDefined();
+        expect(Array.isArray(result.elements)).toBe(true);
+        expect(result.elements.length).toEqual(uniqueAdvancedOptionNames.length);
 
-            // Check Combined Properties
-            expect(result.properties).toHaveProperty('name');
-            expect(result.properties).toHaveProperty('type');
-            expect(result.properties).toHaveProperty('parameters');
-            expect(result.properties.parameters.type).toBe('object');
-            expect(result.properties.parameters.properties).toHaveProperty('client_id');
-            expect(result.properties.parameters.properties?.client_id?.type).toBe('string');
-            expect(result.properties.parameters.properties).toHaveProperty('chunk_size');
-            expect(result.properties.parameters.properties?.chunk_size?.type).toBe('number');
-
-            // Check Elements Structure
-            expect(result.elements.length).toBe(2);
-            expect(result.elements[0].type).toBe('VerticalLayout'); // Basic Config part
-            expect(result.elements[1].type).toBe('Categorization'); // Provider config part
-
-            const categorization = result.elements[1] as Layout;
-            // Check visibility rule for categorization
-            const condition = categorization.rule?.condition as SchemaBasedCondition;
-            expect(condition?.scope).toBe('#/properties/configStep');
-            expect(condition?.schema.const).toBe(1);
-            expect(categorization.elements?.length).toBe(2); // Should have Standard + Advanced Categories
-
-            // Check Standard Category
-            const standardCategory = categorization.elements?.[0] as any;
-            expect(standardCategory.type).toBe('Category');
-            expect(standardCategory.label).toBe('Standard Configuration');
-            expect(standardCategory.elements.length).toBe(1);
-            expect(standardCategory.elements[0].type).toBe('VerticalLayout');
-            const standardLayout = standardCategory.elements[0] as Layout;
-            const standardScopes = standardLayout.elements.map((e) => (e as ControlElement).scope);
-            expect(standardScopes).toContain('#/properties/parameters/properties/client_id');
-            expect(standardScopes).not.toContain('#/properties/parameters/properties/chunk_size');
-
-            // Check Advanced Category
-            const advancedCategory = categorization.elements?.[1] as any;
-            expect(advancedCategory.type).toBe('Category');
-            expect(advancedCategory.label).toBe('Advanced Configuration');
-            expect(advancedCategory.elements.length).toBe(1);
-            expect(advancedCategory.elements[0].type).toBe('VerticalLayout');
-            const advancedLayout = advancedCategory.elements[0] as Layout;
-            const advancedScopes = advancedLayout.elements.map((e) => (e as ControlElement).scope);
-            expect(advancedScopes).not.toContain('#/properties/parameters/properties/client_id');
-            expect(advancedScopes).toContain('#/properties/parameters/properties/chunk_size');
-        });
-
-        it('should correctly translate various option types using "sftp" as example', () => {
-            const result = getRcloneConfigFormSchema(mockProviderNames, 'sftp', mockProviderOptions);
-            const params = result.properties.parameters.properties;
-
-            // Check basic string translation
-            expect(params?.host?.type).toBe('string');
-            expect(params?.host?.title).toBe('host');
-            expect(params?.host?.description).toBe('SSH host to connect to');
-            expect(params?.host?.pattern).toBeUndefined(); // No special pattern for plain string
-            expect(params?.host?.minLength).toBe(1); // Required string
-
-            // Check number translation (port in sftp is string-like in rclone config, schema should reflect that)
-            expect(params?.port?.type).toBe('string');
-
-            // Check password translation
-            expect(params?.pass?.type).toBe('string');
-            expect(params?.pass?.format).toBe('password'); // Check format hint
-            // It's required=false in the mock, so no minLength expected here
-            // expect(params?.pass?.minLength).toBe(1);
-
-            // Check boolean translation
-            expect(params?.key_use_agent?.type).toBe('boolean');
-            expect(params?.key_use_agent?.default).toBe(false);
-            expect(params?.key_use_agent?.format).toBe('checkbox'); // Check UI hint for boolean
-        });
-
-        it('should correctly translate enum/examples using "drive" scope option', () => {
-            const result = getRcloneConfigFormSchema(mockProviderNames, 'drive', mockProviderOptions);
-            const driveParams = result.properties.parameters.properties;
-            expect(driveParams?.scope?.type).toBe('string');
-            expect(driveParams?.scope?.enum).toEqual([
-                'drive',
-                'drive.readonly',
-                'drive.file',
-                'drive.appfolder',
-                'drive.metadata.readonly',
-            ]);
-            expect(driveParams?.scope?.format).toBe('dropdown'); // Check UI hint for enum
-        });
-
-        it('should correctly translate SizeSuffix/Duration types using "b2" options', () => {
-            const result = getRcloneConfigFormSchema(mockProviderNames, 'b2', mockProviderOptions);
-            const b2Params = result.properties.parameters.properties;
-
-            // B2 upload_cutoff is SizeSuffix
-            expect(b2Params?.upload_cutoff?.type).toBe('string'); // Schema type is string
-            expect(b2Params?.upload_cutoff?.pattern).toBe('^(off|(\d+([KMGTPE]i?B?)?)+)$'); // Pattern check
-            expect(b2Params?.upload_cutoff?.format).toBeUndefined(); // Default input, no specific format
-            expect(b2Params?.upload_cutoff?.default).toBe(209715200); // Default value check
-
-            // Check a duration type (if b2 had one, let's use 'cache' provider for example)
-            const cacheResult = getRcloneConfigFormSchema(
-                mockProviderNames,
-                'cache',
-                mockProviderOptions
-            );
-            const cacheParams = cacheResult.properties.parameters.properties;
-            expect(cacheParams?.info_age?.type).toBe('string'); // Type should be string for duration
-            expect(cacheParams?.info_age?.pattern).toBe(
-                '^(off|(\d+(\.\d+)?(ns|us|\u00b5s|ms|s|m|h))+)$'
-            ); // Pattern check
-            expect(cacheParams?.info_age?.default).toBe(21600000000000); // Default value
-        });
-
-        it('should handle default values correctly (string, number, boolean, "off")', () => {
-            const driveResult = getRcloneConfigFormSchema(
-                mockProviderNames,
-                'drive',
-                mockProviderOptions
-            );
-            const driveParams = driveResult.properties.parameters.properties;
-            expect(driveParams?.use_trash?.default).toBe(true); // Boolean default
-            expect(driveParams?.chunk_size?.default).toBe(8388608); // Number default
-            expect(driveParams?.export_formats?.default).toBe('docx,xlsx,pptx,svg'); // String default
-
-            // Check 'off' default for SizeSuffix/Duration (using 'cache' provider)
-            // Note: The mock data for cache doesn't seem to have an 'off' default.
-            // We can simulate one if needed, or trust the translate function's logic tested elsewhere/directly.
+        // Check elements based on unique names
+        uniqueAdvancedOptionNames.forEach(name => {
+            // Use `as any` for type assertion on the result elements array
+            const elementsArray = result.elements as any[];
+            // Find element by scope instead of label
+            const expectedScope = `#/properties/parameters/properties/${name}`;
+            const element = elementsArray.find((el) => el.scope === expectedScope);
+            expect(element).toBeDefined(); // Check if element was found
+            if (element) { // Basic check
+                expect(element.type).toEqual('Control');
+            }
         });
     });
 
-    // Optional: Add direct tests for translateRCloneOptionToJsonSchema if complex cases aren't covered above
+    it('should return an empty slice for advanced options if none exist for the provider', () => {
+        const testProviderNoAdvanced = 'alias'; // 'alias' provider typically has no advanced options
+        const aliasOptions = providerOptionsMap[testProviderNoAdvanced];
+
+        // Pre-check: Verify that the chosen provider actually has no advanced options in our data
+        const hasAdvanced = aliasOptions?.some(opt => opt.Advanced === true);
+        expect(hasAdvanced).toBe(false); // Ensure our assumption about 'alias' holds
+
+        const result = getProviderConfigSlice({
+            selectedProvider: testProviderNoAdvanced,
+            providerOptions: aliasOptions || [],
+            type: 'advanced',
+        });
+
+        // Expect empty results because no advanced options should be found
+        expect(result.properties).toEqual({}); // Should not even have parameters object
+        expect(result.elements).toEqual([]);
+    });
+
+    it('should handle duplicate option names within the same type (standard/advanced)', () => {
+        const duplicateOptions: RCloneProviderOptionResponse[] = [
+            { Name: 'test_opt', Help: 'First', Advanced: false, Provider: '' },
+            { Name: 'duplicate_opt', Help: 'Keep this one', Advanced: false, Provider: '' },
+            { Name: 'duplicate_opt', Help: 'Skip this one', Advanced: false, Provider: '' },
+            { Name: 'another_opt', Help: 'Another', Advanced: false, Provider: '' },
+        ];
+
+        const result = getProviderConfigSlice({
+            selectedProvider: 'test',
+            providerOptions: duplicateOptions,
+            type: 'standard',
+        });
+
+        // Check properties - should only contain unique names
+        const paramProps = result.properties.parameters?.properties || {};
+        expect(Object.keys(paramProps)).toEqual(['test_opt', 'duplicate_opt', 'another_opt']);
+        expect(paramProps['duplicate_opt']?.description).toBe('Keep this one'); // Check it kept the first one
+
+        // Check elements - should only contain unique names
+        expect(result.elements.length).toBe(3);
+        const elementLabels = result.elements.map((el: any) => el.label);
+        expect(elementLabels).toContain('Keep this one'); // Based on Help text as label fallback
+        expect(elementLabels).not.toContain('Skip this one');
+        expect(result.elements.find((el: any) => el.scope.includes('duplicate_opt'))).toBeDefined();
+    });
+
+    it('should add a SHOW rule for positive Provider filters', () => {
+        const providerSpecificOptions: RCloneProviderOptionResponse[] = [
+            { Name: 'always_show', Help: 'Always Visible', Provider: '' },
+            { Name: 's3_only', Help: 'S3 Specific', Provider: 's3' },
+            { Name: 'gdrive_only', Help: 'GDrive Specific', Provider: 'google drive' }, // Check space handling
+        ];
+
+        const result = getProviderConfigSlice({
+            selectedProvider: 'anyProvider',
+            providerOptions: providerSpecificOptions,
+            type: 'standard',
+        });
+
+        expect(result.elements.length).toBe(3);
+
+        const alwaysShowEl = result.elements.find((el: any) => el.scope.includes('always_show'));
+        const s3OnlyEl = result.elements.find((el: any) => el.scope.includes('s3_only'));
+        const gdriveOnlyEl = result.elements.find((el: any) => el.scope.includes('gdrive_only'));
+
+        expect(alwaysShowEl).toBeDefined();
+        expect(s3OnlyEl).toBeDefined();
+        expect(gdriveOnlyEl).toBeDefined();
+
+        expect(alwaysShowEl!.rule).toBeUndefined();
+
+        expect(s3OnlyEl!.rule).toBeDefined();
+        expect(s3OnlyEl!.rule!.effect).toBe('SHOW');
+        // Explicitly cast condition to SchemaBasedCondition
+        const s3Condition = s3OnlyEl!.rule!.condition as SchemaBasedCondition;
+        expect(s3Condition.scope).toBe('#/properties/type');
+        expect(s3Condition.schema).toEqual({ enum: ['s3'] });
+
+        expect(gdriveOnlyEl!.rule).toBeDefined();
+        expect(gdriveOnlyEl!.rule!.effect).toBe('SHOW');
+        // Explicitly cast condition to SchemaBasedCondition
+        const gdriveCondition = gdriveOnlyEl!.rule!.condition as SchemaBasedCondition;
+        expect(gdriveCondition.scope).toBe('#/properties/type');
+        expect(gdriveCondition.schema).toEqual({ enum: ['google drive'] });
+    });
+
+    it('should add a SHOW rule with negated condition for negative Provider filters', () => {
+        const providerSpecificOptions: RCloneProviderOptionResponse[] = [
+            { Name: 'not_s3', Help: 'Not S3', Provider: '!s3' },
+            {
+                Name: 'not_s3_or_gdrive',
+                Help: 'Not S3 or GDrive',
+                Provider: '!s3, google drive ',
+            }, // Check trimming
+        ];
+
+        const result = getProviderConfigSlice({
+            selectedProvider: 'anyProvider',
+            providerOptions: providerSpecificOptions,
+            type: 'standard',
+        });
+
+        expect(result.elements.length).toBe(2);
+
+        const notS3El = result.elements.find((el: any) => el.scope.includes('not_s3'));
+        const notS3OrGDriveEl = result.elements.find((el: any) => el.scope.includes('not_s3_or_gdrive'));
+
+        expect(notS3El).toBeDefined();
+        expect(notS3OrGDriveEl).toBeDefined();
+
+        expect(notS3El!.rule).toBeDefined();
+        expect(notS3El!.rule!.effect).toBe('SHOW');
+        // Explicitly cast condition to SchemaBasedCondition
+        const notS3Condition = notS3El!.rule!.condition as SchemaBasedCondition;
+        expect(notS3Condition.scope).toBe('#/properties/type');
+        expect(notS3Condition.schema).toEqual({ not: { enum: ['s3'] } });
+
+        expect(notS3OrGDriveEl!.rule).toBeDefined();
+        expect(notS3OrGDriveEl!.rule!.effect).toBe('SHOW');
+        // Explicitly cast condition to SchemaBasedCondition
+        const notS3OrGDriveCondition = notS3OrGDriveEl!.rule!.condition as SchemaBasedCondition;
+        expect(notS3OrGDriveCondition.scope).toBe('#/properties/type');
+        expect(notS3OrGDriveCondition.schema).toEqual({ not: { enum: ['s3', 'google drive'] } });
+    });
+
+    // More tests will be added here...
 });

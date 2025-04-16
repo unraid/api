@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import Button from '@/components/common/button/Button.vue';
 import Stepper from '@/components/common/stepper/Stepper.vue';
 import StepperDescription from '@/components/common/stepper/StepperDescription.vue';
 import StepperItem from '@/components/common/stepper/StepperItem.vue';
