@@ -8,7 +8,6 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { useUpdateOsStore } from '~/store/updateOs';
 
-// Mock the WebGUI services
 vi.mock('~/composables/services/webgui', () => {
   return {
     WebguiCheckForUpdate: vi.fn().mockResolvedValue({
@@ -24,7 +23,6 @@ vi.mock('~/composables/services/webgui', () => {
   };
 });
 
-// Mock the server store
 vi.mock('~/store/server', () => {
   return {
     useServerStore: () => ({
@@ -116,7 +114,6 @@ describe('UpdateOs Store', () => {
       const originalLocation = window.location;
       const mockReload = vi.fn();
 
-      // Mock window.location
       Object.defineProperty(window, 'location', {
         configurable: true,
         value: {
@@ -133,7 +130,6 @@ describe('UpdateOs Store', () => {
       expect(WebguiUpdateCancel).toHaveBeenCalled();
       expect(mockReload).toHaveBeenCalled();
 
-      // Restore original location
       Object.defineProperty(window, 'location', {
         configurable: true,
         value: originalLocation,
@@ -145,7 +141,6 @@ describe('UpdateOs Store', () => {
       const originalLocation = window.location;
       let hrefValue = '';
 
-      // Mock window.location
       Object.defineProperty(window, 'location', {
         configurable: true,
         value: {
@@ -167,7 +162,6 @@ describe('UpdateOs Store', () => {
       expect(WebguiUpdateCancel).toHaveBeenCalled();
       expect(hrefValue).toBe('/Tools');
 
-      // Restore original location
       Object.defineProperty(window, 'location', {
         configurable: true,
         value: originalLocation,
