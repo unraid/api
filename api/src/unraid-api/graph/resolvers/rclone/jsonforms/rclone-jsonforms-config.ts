@@ -1,5 +1,6 @@
 import type { Layout, SchemaBasedCondition } from '@jsonforms/core';
 import { JsonSchema7, RuleEffect } from '@jsonforms/core';
+import { filter } from 'rxjs';
 
 import type { DataSlice, SettingSlice, UIElement } from '@app/unraid-api/types/json-forms.js';
 import { RCloneProviderOptionResponse } from '@app/unraid-api/graph/resolvers/rclone/rclone.model.js';
@@ -34,18 +35,15 @@ function translateRCloneOptionToJsonSchema({
             // Ensure default is a string if the type is string
             schema.default = String(option.Default);
         }
-        // If type doesn't match, we might skip the default or log a warning
     }
 
     // Add examples to description if available
     if (option.Examples && option.Examples.length > 0) {
-        const examplesText = option.Examples
-            .map((example) => {
-                const helpText = example.Help ? ` (${example.Help})` : '';
-                return `- ${example.Value}${helpText}`;
-            })
-            .join('\n');
-        schema.description = schema.description 
+        const examplesText = option.Examples.map((example) => {
+            const helpText = example.Help ? ` (${example.Help})` : '';
+            return `- ${example.Value}${helpText}`;
+        }).join('\n');
+        schema.description = schema.description
             ? `${schema.description}\n\nExamples:\n${examplesText}`
             : `Examples:\n${examplesText}`;
     }
@@ -112,73 +110,19 @@ export function getRcloneConfigFormSchema({
     const standardConfigSlice = getProviderConfigSlice({
         selectedProvider,
         providerOptions: options,
-        showAdvancedOptions: false,
+        type: 'standard',
     });
     const advancedConfigSlice = getProviderConfigSlice({
         selectedProvider,
         providerOptions: options,
-        showAdvancedOptions: true,
+        type: 'advanced',
     });
 
-    const categories: UIElement[] = [];
-
-    // Standard Category
-    if (
-        standardConfigSlice.elements.length > 0 &&
-        (standardConfigSlice.elements[0] as Layout).elements?.length > 0
-    ) {
-        categories.push({
-            type: 'Category',
-            label: 'Standard Configuration',
-            elements: standardConfigSlice.elements,
-        } as any);
-    }
-
-    // Advanced Category
-    if (
-        advancedConfigSlice.elements.length > 0 &&
-        (advancedConfigSlice.elements[0] as Layout).elements?.length > 0
-    ) {
-        categories.push({
-            type: 'Category',
-            label: 'Advanced Configuration',
-            elements: advancedConfigSlice.elements,
-        } as any);
-    }
-
-    const categorizationElement: UIElement | null =
-        categories.length > 0
-            ? {
-                  type: 'Categorization',
-                  elements: categories,
-                  rule: {
-                      effect: RuleEffect.SHOW,
-                      condition: {
-                          scope: '#/properties/configStep',
-                          schema: { const: 1 },
-                      } as SchemaBasedCondition,
-                  },
-              }
-            : null;
-
-    const mergedProperties = mergeSettingSlices([
-        basicSlice,
-        standardConfigSlice,
-        advancedConfigSlice,
-    ]).properties;
-
-    const combinedElements = [
-        ...basicSlice.elements,
-        ...standardConfigSlice.elements,
-        ...advancedConfigSlice.elements,
-    ];
-    if (categorizationElement) {
-        combinedElements.push(categorizationElement);
-    }
+    const mergedProperties = mergeSettingSlices([basicSlice, standardConfigSlice, advancedConfigSlice]);
 
     return {
-        properties: mergedProperties,
-        elements: combinedElements,
+        properties: mergedProperties.properties,
+        elements: mergedProperties.elements,
     };
 }
 
@@ -250,14 +194,14 @@ function getBasicConfigSlice({ providerTypes }: { providerTypes: string[] }): Se
 /**
  * Step 2/3: Provider-specific configuration based on the selected provider and whether to show advanced options
  */
-function getProviderConfigSlice({
+export function getProviderConfigSlice({
     selectedProvider,
     providerOptions,
-    showAdvancedOptions = false,
+    type = 'standard',
 }: {
     selectedProvider: string;
     providerOptions: RCloneProviderOptionResponse[];
-    showAdvancedOptions?: boolean;
+    type?: 'standard' | 'advanced';
 }): SettingSlice {
     // Default properties when no provider is selected
     let configProperties: DataSlice = {};
@@ -271,24 +215,35 @@ function getProviderConfigSlice({
 
     // Filter options based on the showAdvancedOptions flag
     const filteredOptions = providerOptions.filter((option) => {
-        if (showAdvancedOptions && option.Advanced === true) {
+        if (type === 'advanced' && option.Advanced === true) {
             return true;
-        } else if (!showAdvancedOptions && option.Advanced !== true) {
+        } else if (type === 'standard' && option.Advanced !== true) {
             return true;
         }
         return false;
     });
 
+    // Ensure uniqueness based on Name *within this slice* to prevent overwrites
+    const uniqueOptionsByName = filteredOptions.reduce((acc, current) => {
+        if (!acc.find((item) => item.Name === current.Name)) {
+            acc.push(current);
+        } else {
+            console.warn(`Duplicate RClone option name skipped in ${type} slice: ${current.Name}`);
+        }
+        return acc;
+    }, [] as RCloneProviderOptionResponse[]);
+
     // If no options match the filter (e.g., asking for advanced but none exist), return empty
-    if (filteredOptions.length === 0) {
+    // Use uniqueOptionsByName instead of filteredOptions from here on
+    if (uniqueOptionsByName.length === 0) {
         return {
             properties: configProperties,
             elements: [],
         };
     }
 
-    // Create dynamic UI elements based on filtered provider options
-    const controlElements = filteredOptions.map<UIElement>((option) => {
+    // Create dynamic UI elements based on unique provider options
+    const controlElements = uniqueOptionsByName.map<UIElement>((option) => {
         const format = getJsonFormElementForType({
             rcloneType: option.Type,
             examples: option.Examples?.map((example) => example.Value),
@@ -297,11 +252,17 @@ function getProviderConfigSlice({
 
         const controlOptions: Record<string, any> = {
             placeholder: option.Default?.toString() || '',
-            description: option.Help || '', // Redundant? Keep for potential differences
+            help: option.Help || '',
             required: option.Required || false,
             format,
             hide: option.Hide === 1,
         };
+
+        // Use examples for placeholder if available
+        if (option.Examples && option.Examples.length > 0) {
+            const exampleValues = option.Examples.map((example) => example.Value).join(', ');
+            controlOptions.placeholder = `e.g., ${exampleValues}`;
+        }
 
         // Only add toggle option for boolean fields without examples
         if (format === 'checkbox' && (!option.Examples || option.Examples.length === 0)) {
@@ -310,23 +271,53 @@ function getProviderConfigSlice({
 
         // Add examples as suggestions for combobox
         if (format === 'combobox' && option.Examples && option.Examples.length > 0) {
-            controlOptions.suggestions = option.Examples.map(example => ({
+            controlOptions.suggestions = option.Examples.map((example) => ({
                 value: example.Value,
-                label: example.Help ? `${example.Value} (${example.Help})` : example.Value
+                label: example.Help ? `${example.Value} (${example.Help})` : example.Value,
             }));
         }
 
-        return {
+        // --- Start: Add dynamic visibility rule based on Provider --- //
+        let rule: { effect: RuleEffect; condition: SchemaBasedCondition } | undefined = undefined;
+        const providerFilter = option.Provider?.trim();
+
+        if (providerFilter) {
+            const isNegated = providerFilter.startsWith('!');
+            const providers = (isNegated ? providerFilter.substring(1) : providerFilter)
+                .split(',')
+                .map((p) => p.trim())
+                .filter((p) => p);
+
+            if (providers.length > 0) {
+                const conditionSchema = isNegated
+                    ? { not: { enum: providers } } // Show if type is NOT in the list
+                    : { enum: providers }; // Show if type IS in the list
+
+                rule = {
+                    effect: RuleEffect.SHOW,
+                    condition: {
+                        scope: '#/properties/type',
+                        schema: conditionSchema,
+                    },
+                };
+            }
+        }
+        // --- End: Add dynamic visibility rule based on Provider --- //
+
+        const uiElement: UIElement = {
             type: 'Control',
             scope: `#/properties/parameters/properties/${option.Name}`,
-            label: option.Help || option.Name, // Use Help as primary label if available
+            label: option.Help || option.Name,
             options: controlOptions,
+            // Add the rule if it was generated
+            ...(rule && { rule }),
         };
+        return uiElement;
     });
 
-    // Create dynamic properties schema based on filtered provider options
+    // Create dynamic properties schema based on unique provider options
     const paramProperties: Record<string, JsonSchema7> = {};
-    filteredOptions.forEach((option) => {
+    uniqueOptionsByName.forEach((option) => {
         if (option) {
             // Ensure option exists before translating
             paramProperties[option.Name] = translateRCloneOptionToJsonSchema({ option });
@@ -342,14 +333,13 @@ function getProviderConfigSlice({
                 properties: {} as Record<string, JsonSchema7>,
             } as unknown as DataSlice;
         }
-        
+
         // Merge the properties into the existing parameters object
         (configProperties.parameters as any).properties = {
             ...(configProperties.parameters as any).properties,
             ...paramProperties,
         };
     }
-
     return {
         properties: configProperties,
         elements: controlElements,
@@ -504,7 +494,7 @@ export function getRcloneConfigSchemas(
                             'This 3-step process will guide you through setting up your RClone backup configuration.',
                     },
                 },
-                ...elements
+                ...elements,
             ],
         },
     };
