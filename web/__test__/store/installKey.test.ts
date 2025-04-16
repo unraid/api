@@ -68,6 +68,8 @@ describe('InstallKey Store', () => {
 
       expect(store.keyInstallStatus).toBe('failed');
       expect(console.error).toHaveBeenCalledWith('[install] no key to install');
+      expect(store.keyType).toBeUndefined();
+      expect(store.keyUrl).toBeUndefined();
     });
 
     it('should set status to installing when install is called', async () => {
@@ -85,17 +87,23 @@ describe('InstallKey Store', () => {
       await promise;
     });
 
-    it('should call WebguiInstallKey.query with correct url', async () => {
+    it('should handle successful install and update state', async () => {
       mockGetFn.mockResolvedValueOnce({ success: true });
+      const action = createTestAction({
+        type: 'purchase',
+        keyUrl: 'https://example.com/license.key',
+      });
 
-      await store.install(
-        createTestAction({
-          type: 'purchase',
-          keyUrl: 'https://example.com/license.key',
-        })
-      );
+      await store.install(action);
 
+      const { WebguiInstallKey } = await import('~/composables/services/webgui');
+
+      expect(WebguiInstallKey.query).toHaveBeenCalledWith({ url: action.keyUrl });
+      expect(mockGetFn).toHaveBeenCalled();
       expect(store.keyInstallStatus).toBe('success');
+      expect(store.keyActionType).toBe('purchase');
+      expect(store.keyUrl).toBe('https://example.com/license.key');
+      expect(store.keyType).toBe('license');
     });
 
     it('should extract key type from .key URL', async () => {
