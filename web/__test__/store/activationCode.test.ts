@@ -8,7 +8,12 @@ import { createPinia, setActivePinia } from 'pinia';
 import { ACTIVATION_CODE_MODAL_HIDDEN_STORAGE_KEY } from '~/consts';
 import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 
+import type { QueryPayloads } from '@unraid/shared-callbacks';
+
 import { useActivationCodeStore } from '~/store/activationCode';
+
+// Mock the shared-callbacks module to prevent crypto-js issues in test
+vi.mock('@unraid/shared-callbacks', () => ({}));
 
 // Mock console methods to suppress output
 const originalConsoleDebug = console.debug;
@@ -24,7 +29,6 @@ afterAll(() => {
   console.error = originalConsoleError;
 });
 
-// Mock sessionStorage
 const mockStorage = new Map<string, string>();
 vi.stubGlobal('sessionStorage', {
   getItem: (key: string) => mockStorage.get(key) ?? null,
@@ -34,27 +38,19 @@ vi.stubGlobal('sessionStorage', {
 });
 
 // Mock dependencies
-vi.mock('pinia', async () => {
-  const mod = await vi.importActual<typeof import('pinia')>('pinia');
-
-  return {
-    ...mod,
-    storeToRefs: () => ({
-      state: ref('ENOKEYFILE'),
-      callbackData: ref(null),
-    }),
-  };
-});
-
+// NOTE: Mocks need to be hoistable, so use factory functions
+// We need refs here to allow changing the values in tests
+const mockServerState = ref('ENOKEYFILE');
 vi.mock('~/store/server', () => ({
   useServerStore: () => ({
-    state: 'ENOKEYFILE',
+    state: mockServerState,
   }),
 }));
 
+const mockCallbackData = ref<QueryPayloads | null>(null);
 vi.mock('~/store/callbackActions', () => ({
   useCallbackActionsStore: () => ({
-    callbackData: null,
+    callbackData: mockCallbackData,
   }),
 }));
 
@@ -63,6 +59,9 @@ describe('Activation Code Store', () => {
 
   beforeEach(() => {
     setActivePinia(createPinia());
+
+    mockServerState.value = 'ENOKEYFILE';
+    mockCallbackData.value = null;
 
     store = useActivationCodeStore();
     vi.clearAllMocks();
@@ -106,11 +105,25 @@ describe('Activation Code Store', () => {
   describe('Modal Visibility', () => {
     it('should show activation modal by default when conditions are met', () => {
       store.setData({ code: 'TEST123' });
-
       expect(store.showActivationModal).toBe(true);
     });
 
     it('should not show modal when data is null', () => {
+      // store.data is null by default after beforeEach resets
+      expect(store.showActivationModal).toBe(false);
+    });
+
+    it('should not show modal when server state is not ENOKEYFILE', async () => {
+      store.setData({ code: 'TEST123' });
+      mockServerState.value = 'RUNNING';
+      await nextTick();
+      expect(store.showActivationModal).toBe(false);
+    });
+
+    it('should not show modal when callback data exists', async () => {
+      store.setData({ code: 'TEST123' });
+      mockCallbackData.value = { some: 'data' } as unknown as QueryPayloads;
+      await nextTick();
       expect(store.showActivationModal).toBe(false);
     });
 
@@ -119,16 +132,31 @@ describe('Activation Code Store', () => {
       expect(store.showActivationModal).toBe(true);
 
       store.setActivationModalHidden(true);
+
       await nextTick();
 
       expect(store.showActivationModal).toBe(false);
       expect(sessionStorage.getItem(ACTIVATION_CODE_MODAL_HIDDEN_STORAGE_KEY)).toBe('true');
 
       store.setActivationModalHidden(false);
+
       await nextTick();
 
       expect(store.showActivationModal).toBe(true);
       expect(sessionStorage.getItem(ACTIVATION_CODE_MODAL_HIDDEN_STORAGE_KEY)).toBeNull();
+
+      // Set data again before hiding and changing other states
+      store.setData({ code: 'TEST123' });
+      store.setActivationModalHidden(true);
+
+      await nextTick();
+
+      mockServerState.value = 'STOPPED';
+      mockCallbackData.value = { other: 'info' } as unknown as QueryPayloads;
+
+      await nextTick();
+
+      expect(store.showActivationModal).toBe(false);
     });
   });
 });

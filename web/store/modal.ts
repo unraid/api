@@ -1,5 +1,6 @@
+import { ref } from 'vue';
+import { createPinia, defineStore, setActivePinia } from 'pinia';
 import { useToggle } from '@vueuse/core';
-import { defineStore, createPinia, setActivePinia } from 'pinia';
 
 /**
  * @see https://stackoverflow.com/questions/73476371/using-pinia-with-vue-js-web-components
@@ -10,8 +11,12 @@ setActivePinia(createPinia());
 export const useModalStore = defineStore('modal', () => {
   const modalVisible = ref<boolean>(true);
 
-  const modalHide = () => { modalVisible.value = false; };
-  const modalShow = () => { modalVisible.value = true; };
+  const modalHide = () => {
+    modalVisible.value = false;
+  };
+  const modalShow = () => {
+    modalVisible.value = true;
+  };
   const modalToggle = useToggle(modalVisible);
 
   return {

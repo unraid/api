@@ -179,5 +179,6 @@ export const useCallbackActionsStore = defineStore('callbackActions', () => {
     // helpers
     sendType: 'fromUpc',
     encryptionKey: import.meta.env.VITE_CALLBACK_KEY,
+    callbackError,
   };
 });

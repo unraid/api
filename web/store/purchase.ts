@@ -1,6 +1,8 @@
-import { defineStore, createPinia, setActivePinia } from 'pinia';
+import { computed } from 'vue';
+import { createPinia, defineStore, setActivePinia } from 'pinia';
 
 import { PURCHASE_CALLBACK } from '~/helpers/urls';
+
 import { useCallbackActionsStore } from '~/store/callbackActions';
 import { useServerStore } from '~/store/server';
 
@@ -21,66 +23,76 @@ export const usePurchaseStore = defineStore('purchase', () => {
   const activate = () => {
     callbackStore.send(
       PURCHASE_CALLBACK.toString(),
-      [{
-        server: {
-          ...serverPurchasePayload.value,
+      [
+        {
+          server: {
+            ...serverPurchasePayload.value,
+          },
+          type: 'activate',
         },
-        type: 'activate',
-      }],
+      ],
       inIframe.value ? 'newTab' : undefined,
-      sendType.value,
+      sendType.value
     );
   };
   const redeem = () => {
     callbackStore.send(
       PURCHASE_CALLBACK.toString(),
-      [{
-        server: {
-          ...serverPurchasePayload.value,
+      [
+        {
+          server: {
+            ...serverPurchasePayload.value,
+          },
+          type: 'redeem',
         },
-        type: 'redeem',
-      }],
+      ],
       inIframe.value ? 'newTab' : undefined,
-      sendType.value,
+      sendType.value
     );
   };
   const purchase = () => {
     callbackStore.send(
       PURCHASE_CALLBACK.toString(),
-      [{
-        server: {
-          ...serverPurchasePayload.value,
+      [
+        {
+          server: {
+            ...serverPurchasePayload.value,
+          },
+          type: 'purchase',
         },
-        type: 'purchase',
-      }],
+      ],
       inIframe.value ? 'newTab' : undefined,
-      sendType.value,
+      sendType.value
     );
   };
   const upgrade = () => {
     callbackStore.send(
       PURCHASE_CALLBACK.toString(),
-      [{
-        server: {
-          ...serverPurchasePayload.value,
+      [
+        {
+          server: {
+            ...serverPurchasePayload.value,
+          },
+          type: 'upgrade',
         },
-        type: 'upgrade',
-      }],
+      ],
       inIframe.value ? 'newTab' : undefined,
-      sendType.value,
+      sendType.value
     );
   };
   const renew = () => {
     callbackStore.send(
       PURCHASE_CALLBACK.toString(),
-      [{
-        server: {
-          ...serverPurchasePayload.value,
+      [
+        {
+          server: {
+            ...serverPurchasePayload.value,
+          },
+          type: 'renew',
         },
-        type: 'renew',
-      }],
+      ],
       inIframe.value ? 'newTab' : undefined,
-      sendType.value,
+      sendType.value
     );
   };
 
