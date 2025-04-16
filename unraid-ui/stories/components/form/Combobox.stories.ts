@@ -1,6 +1,7 @@
 import type { Meta, StoryObj } from '@storybook/vue3';
 import {
   Combobox as ComboboxComponent,
+  ComboboxAnchor,
   ComboboxEmpty,
   ComboboxGroup,
   ComboboxInput,
@@ -22,6 +23,7 @@ export const Combobox: Story = {
   render: (args) => ({
     components: {
       ComboboxComponent,
+      ComboboxAnchor,
       ComboboxTrigger,
       ComboboxInput,
       ComboboxList,
@@ -33,10 +35,12 @@ export const Combobox: Story = {
     },
     template: `
       <ComboboxComponent>
-        <ComboboxTrigger class="w-[180px]">
+        <ComboboxAnchor class="w-[180px]">
+          <ComboboxTrigger>
             <ComboboxInput placeholder="Select a fruit" />
-        </ComboboxTrigger>
-          <ComboboxList>
+          </ComboboxTrigger>
+        </ComboboxAnchor>
+        <ComboboxList>
             <ComboboxGroup>
               <ComboboxItem value="apple">Apple</ComboboxItem>
               <ComboboxItem value="banana">Banana</ComboboxItem>
