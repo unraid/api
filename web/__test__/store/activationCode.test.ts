@@ -103,11 +103,8 @@ describe('Activation Code Store', () => {
   });
 
   describe('Modal Visibility', () => {
-    beforeEach(() => {
-      store.setData({ code: 'TEST123' });
-    });
-
     it('should show activation modal by default when conditions are met', () => {
+      store.setData({ code: 'TEST123' });
       expect(store.showActivationModal).toBe(true);
     });
 
@@ -117,18 +114,21 @@ describe('Activation Code Store', () => {
     });
 
     it('should not show modal when server state is not ENOKEYFILE', async () => {
+      store.setData({ code: 'TEST123' });
       mockServerState.value = 'RUNNING';
       await nextTick();
       expect(store.showActivationModal).toBe(false);
     });
 
     it('should not show modal when callback data exists', async () => {
+      store.setData({ code: 'TEST123' });
       mockCallbackData.value = { some: 'data' } as unknown as QueryPayloads;
       await nextTick();
       expect(store.showActivationModal).toBe(false);
     });
 
     it('should handle modal visibility state in session storage', async () => {
+      store.setData({ code: 'TEST123' });
       expect(store.showActivationModal).toBe(true);
 
       store.setActivationModalHidden(true);
@@ -145,6 +145,8 @@ describe('Activation Code Store', () => {
       expect(store.showActivationModal).toBe(true);
       expect(sessionStorage.getItem(ACTIVATION_CODE_MODAL_HIDDEN_STORAGE_KEY)).toBeNull();
 
+      // Set data again before hiding and changing other states
+      store.setData({ code: 'TEST123' });
       store.setActivationModalHidden(true);
 
       await nextTick();
