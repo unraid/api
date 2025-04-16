@@ -113,7 +113,7 @@ describe('Activation Code Store', () => {
     });
 
     it('should not show modal when data is null', () => {
-      store.setData(null as unknown as ActivationCodeData);
+      // store.data is null by default after beforeEach resets
       expect(store.showActivationModal).toBe(false);
     });
 
