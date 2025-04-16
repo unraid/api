@@ -22,15 +22,18 @@ const config: StorybookConfig = {
     autodocs: "tag",
   },
   async viteFinal(config) {
-    config.root = dirname(require.resolve('@storybook/builder-vite'));
     return {
       ...config,
+      root: dirname(require.resolve('@storybook/builder-vite')),
       resolve: {
         alias: {
           '@': join(dirname(new URL(import.meta.url).pathname), '../src'),
           '@/components': join(dirname(new URL(import.meta.url).pathname), '../src/components'),
           '@/lib': join(dirname(new URL(import.meta.url).pathname), '../src/lib'),
         },
+      },
+      optimizeDeps: {
+        include: [...(config.optimizeDeps?.include ?? []), '@unraid/tailwind-rem-to-rem'],
       },
       css: {
         postcss: {

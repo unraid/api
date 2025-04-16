@@ -31,7 +31,7 @@
       "node",
       "happy-dom",
       "@vue/test-utils",
-      "@testing-library/vue"
+      "@testing-library/vue",
     ],
     "forceConsistentCasingInFileNames": true
   },
@@ -44,7 +44,10 @@
     "tailwind.config.ts",
     "src/theme/**/*.ts",
     "**/*.config.ts",
-    "eslint.config.ts"
+    "eslint.config.ts",
+    "stories/**/*.ts",
+    "stories/**/*.tsx",
+    "stories/**/*.vue"
   ],
   "exclude": [
     "node_modules",

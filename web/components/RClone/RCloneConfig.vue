@@ -10,7 +10,6 @@ import type { CreateRCloneRemoteInput } from '~/composables/gql/graphql';
 import {
   CREATE_REMOTE,
   GET_RCLONE_CONFIG_FORM,
-  LIST_REMOTES,
 } from '~/components/RClone/graphql/settings.query';
 import { useUnraidApiStore } from '~/store/unraidApi';
 

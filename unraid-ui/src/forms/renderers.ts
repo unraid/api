@@ -1,4 +1,3 @@
-import CategorizationAccordionRenderer from '@/forms/CategorizationAccordionRenderer.vue';
 import comboBoxRenderer from '@/forms/ComboBoxField.vue';
 import inputFieldRenderer from '@/forms/InputField.vue';
 import MissingRenderer from '@/forms/MissingRenderer.vue';
@@ -12,7 +11,6 @@ import VerticalLayout from '@/forms/VerticalLayout.vue';
 import {
   and,
   isBooleanControl,
-  isCategorization,
   isControl,
   isEnumControl,
   isIntegerControl,
@@ -26,6 +24,7 @@ import {
   uiTypeIs,
 } from '@jsonforms/core';
 import type { JsonFormsRendererRegistryEntry, JsonSchema } from '@jsonforms/core';
+import { LabelRenderer } from '@jsonforms/vue-vanilla';
 
 const isStringArray = (schema: JsonSchema): boolean => {
   if (!schema || typeof schema !== 'object' || Array.isArray(schema)) return false;
@@ -45,7 +44,7 @@ const formSelectEntry: JsonFormsRendererRegistryEntry = {
 
 const formComboBoxEntry: JsonFormsRendererRegistryEntry = {
   renderer: comboBoxRenderer,
-  tester: rankWith(4, and(isControl, optionIs('type', 'combobox'))),
+  tester: rankWith(4, and(isControl, optionIs('format', 'combobox'))),
 };
 
 const numberFieldEntry: JsonFormsRendererRegistryEntry = {
@@ -73,11 +72,6 @@ const missingRendererEntry: JsonFormsRendererRegistryEntry = {
   tester: rankWith(3, isControl),
 };
 
-const categorizationAccordionEntry: JsonFormsRendererRegistryEntry = {
-  renderer: CategorizationAccordionRenderer,
-  tester: rankWith(5, isCategorization),
-};
-
 const verticalLayoutEntry: JsonFormsRendererRegistryEntry = {
   renderer: VerticalLayout,
   tester: rankWith(2, and(isLayout, uiTypeIs('VerticalLayout'))),
@@ -88,14 +82,13 @@ const steppedLayoutEntry: JsonFormsRendererRegistryEntry = {
   tester: rankWith(3, and(isLayout, uiTypeIs('SteppedLayout'))),
 };
 
-/**
- * JSONForms renderers for Unraid UI
- *
- * This file exports a list of JSONForms renderers that are used in the Unraid UI.
- * It combines the vanilla renderers with the custom renderers defined in
- * `@unraid/ui/src/forms/renderer-entries.ts`.
- */
+const labelRendererEntry: JsonFormsRendererRegistryEntry = {
+  renderer: LabelRenderer,
+  tester: rankWith(3, and(uiTypeIs('Label'))),
+};
+
 export const jsonFormsRenderers = [
+  labelRendererEntry,
   verticalLayoutEntry,
   steppedLayoutEntry,
   formSwitchEntry,
@@ -106,5 +99,4 @@ export const jsonFormsRenderers = [
   preconditionsLabelEntry,
   stringArrayEntry,
   missingRendererEntry,
-  categorizationAccordionEntry,
 ];
