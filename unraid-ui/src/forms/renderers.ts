@@ -1,7 +1,10 @@
 import {
+  categorizationAccordionEntry,
+  formComboBoxEntry,
   formSelectEntry,
   formSwitchEntry,
   inputFieldEntry,
+  missingRendererEntry,
   numberFieldEntry,
   preconditionsLabelEntry,
   stringArrayEntry,
@@ -19,8 +22,11 @@ export const jsonFormsRenderers = [
   ...vanillaRenderers,
   formSwitchEntry,
   formSelectEntry,
+  formComboBoxEntry,
   inputFieldEntry,
   numberFieldEntry,
   preconditionsLabelEntry,
   stringArrayEntry,
+  missingRendererEntry,
+  categorizationAccordionEntry,
 ];
