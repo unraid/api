@@ -37,17 +37,6 @@ function translateRCloneOptionToJsonSchema({
         }
     }
 
-    // Add examples to description if available
-    if (option.Examples && option.Examples.length > 0) {
-        const examplesText = option.Examples.map((example) => {
-            const helpText = example.Help ? ` (${example.Help})` : '';
-            return `- ${example.Value}${helpText}`;
-        }).join('\n');
-        schema.description = schema.description
-            ? `${schema.description}\n\nExamples:\n${examplesText}`
-            : `Examples:\n${examplesText}`;
-    }
-
     // Add format hints
     const format = getJsonFormElementForType({
         rcloneType: option.Type,
@@ -118,11 +107,9 @@ function getBasicConfigSlice({ providerTypes }: { providerTypes: string[] }): Se
         },
         {
             type: 'Label',
-            text: 'Documentation',
+            text: 'Documentation Link',
             options: {
-                format: 'documentation',
-                description:
-                    'For more information, refer to the <a href="https://rclone.org/commands/rclone_config/" target="_blank">RClone Config Documentation</a>.',
+                description: 'For more information, refer to the [RClone Config Documentation](https://rclone.org/commands/rclone_config/).',
             },
         },
     ];
@@ -162,7 +149,7 @@ function getBasicConfigSlice({ providerTypes }: { providerTypes: string[] }): Se
  * Step 2/3: Provider-specific configuration based on the selected provider and type (standard/advanced).
  * Returns a SettingSlice containing properties and a VerticalLayout UI element with options.step = stepIndex.
  */
-function getProviderConfigSlice({
+export function getProviderConfigSlice({
     selectedProvider,
     providerOptions,
     type = 'standard',
@@ -242,12 +229,14 @@ function getProviderConfigSlice({
         if (format === 'combobox' && option.Examples && option.Examples.length > 0) {
             controlOptions.suggestions = option.Examples.map((example) => ({
                 value: example.Value,
-                label: example.Help ? `${example.Value} (${example.Help})` : example.Value,
+                label: example.Value, // Set label to just the value
+                tooltip: example.Help || '', // Add tooltip with help text
             }));
         }
 
         // --- Start: Add dynamic visibility rule based on Provider --- //
-        let providerRule: { effect: RuleEffect; condition: SchemaBasedCondition } | undefined = undefined;
+        let providerRule: { effect: RuleEffect; condition: SchemaBasedCondition } | undefined =
+            undefined;
         const providerFilter = option.Provider?.trim();
 
         if (providerFilter) {
@@ -443,6 +432,17 @@ export function buildRcloneConfigSchema({
         stepIndex: 2, // Assign to step 2
     });
 
+    // Merge all properties: basic + standard + advanced
+    const mergedProperties = mergeSettingSlices([basicSlice, standardConfigSlice, advancedConfigSlice]);
+
+    // Construct the final dataSchema
+    const dataSchema = {
+        type: 'object',
+        properties: mergedProperties.properties,
+        // Add required fields if necessary, e.g., ['name', 'type']
+        // required: ['name', 'type'], // Example: Make name and type required globally
+    };
+
     // --- UI Schema Definition ---
 
     // Define the SteppedLayout UI element, now containing step content elements
@@ -456,11 +456,7 @@ export function buildRcloneConfigSchema({
             ],
         },
         // Nest the step content elements directly inside the SteppedLayout
-        elements: [
-            ...(basicSlice.elements || []),
-            ...(standardConfigSlice.elements || []),
-            ...(advancedConfigSlice.elements || []),
-        ],
+        elements: mergedProperties.elements,
     };
 
     // Define the overall title label
@@ -469,27 +465,11 @@ export function buildRcloneConfigSchema({
         text: 'Configure RClone Remote',
         options: {
             format: 'title',
-            description:
-                'This 3-step process will guide you through setting up your RClone remote configuration.',
+            description: 'This 3-step process will guide you through setting up your RClone remote configuration.',
         },
     };
 
     // --- Merging and Final Output ---
-
-    // Merge all properties: basic + standard + advanced
-    const mergedProperties = mergeSettingSlices([
-        basicSlice,
-        standardConfigSlice,
-        advancedConfigSlice,
-    ]);
-
-    // Construct the final dataSchema
-    const dataSchema = {
-        type: 'object',
-        properties: mergedProperties.properties,
-        // Add required fields if necessary, e.g., ['name', 'type']
-        // required: ['name', 'type'], // Example: Make name and type required globally
-    };
 
     // Construct the final uiSchema with Title + SteppedLayout (containing steps)
     const uiSchema: Layout = {
@@ -503,6 +483,3 @@ export function buildRcloneConfigSchema({
 
     return { dataSchema, uiSchema };
 }
-
-// Add optional console log for debugging
-// console.log('Generated RClone Config Schema:', JSON.stringify({ dataSchema, uiSchema }, null, 2));
