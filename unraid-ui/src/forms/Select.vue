@@ -9,7 +9,6 @@ import {
   SelectValue,
 } from '@/components/form/select';
 import useTeleport from '@/composables/useTeleport';
-import ControlLayout from '@/forms/ControlLayout.vue';
 import type { ControlElement } from '@jsonforms/core';
 import { useJsonFormsControl } from '@jsonforms/vue';
 import type { RendererProps } from '@jsonforms/vue';
@@ -42,39 +41,38 @@ const onSelectOpen = () => {
 </script>
 
 <template>
-  <ControlLayout v-if="control.visible" :label="control.label" :errors="control.errors">
-    <Select
-      v-model="selected"
-      :disabled="!control.enabled"
-      :required="control.required"
-      @update:model-value="onChange"
-      @update:open="onSelectOpen"
-    >
-      <!-- The trigger shows the currently selected value (if any) -->
-      <SelectTrigger>
-        <SelectValue v-if="selected">{{ selected }}</SelectValue>
-        <span v-else>{{ control.schema.default ?? 'Select an option' }}</span>
-      </SelectTrigger>
-      <!-- The content includes the selectable options -->
-      <SelectContent :to="teleportTarget">
-        <template v-for="option in options" :key="option.value">
-          <TooltipProvider v-if="option.tooltip" :delay-duration="50">
-            <Tooltip>
-              <TooltipTrigger as-child>
-                <SelectItem :value="option.value">
-                  <SelectItemText>{{ option.label }}</SelectItemText>
-                </SelectItem>
-              </TooltipTrigger>
-              <TooltipContent :to="teleportTarget" side="right" :side-offset="5">
-                <p class="max-w-xs">{{ option.tooltip }}</p>
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
-          <SelectItem v-else :value="option.value">
-            <SelectItemText>{{ option.label }}</SelectItemText>
-          </SelectItem>
-        </template>
-      </SelectContent>
-    </Select>
-  </ControlLayout>
+  <!-- The ControlWrapper now handles the v-if based on control.visible -->
+  <Select
+    v-model="selected"
+    :disabled="!control.enabled"
+    :required="control.required"
+    @update:model-value="onChange"
+    @update:open="onSelectOpen"
+  >
+    <!-- The trigger shows the currently selected value (if any) -->
+    <SelectTrigger>
+      <SelectValue v-if="selected">{{ selected }}</SelectValue>
+      <span v-else>{{ control.schema.default ?? 'Select an option' }}</span>
+    </SelectTrigger>
+    <!-- The content includes the selectable options -->
+    <SelectContent :to="teleportTarget">
+      <template v-for="option in options" :key="option.value">
+        <TooltipProvider v-if="option.tooltip" :delay-duration="50">
+          <Tooltip>
+            <TooltipTrigger as-child>
+              <SelectItem :value="option.value">
+                <SelectItemText>{{ option.label }}</SelectItemText>
+              </SelectItem>
+            </TooltipTrigger>
+            <TooltipContent :to="teleportTarget" side="right" :side-offset="5">
+              <p class="max-w-xs">{{ option.tooltip }}</p>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+        <SelectItem v-else :value="option.value">
+          <SelectItemText>{{ option.label }}</SelectItemText>
+        </SelectItem>
+      </template>
+    </SelectContent>
+  </Select>
 </template>

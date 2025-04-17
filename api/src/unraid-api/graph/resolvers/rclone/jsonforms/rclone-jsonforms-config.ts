@@ -1,4 +1,4 @@
-import type { Layout, SchemaBasedCondition } from '@jsonforms/core';
+import type { Layout, SchemaBasedCondition, ControlElement, LabelElement } from '@jsonforms/core';
 import { JsonSchema7, RuleEffect } from '@jsonforms/core';
 import { filter } from 'rxjs';
 
@@ -87,16 +87,30 @@ function translateRCloneOptionToJsonSchema({
  */
 function getBasicConfigSlice({ providerTypes }: { providerTypes: string[] }): SettingSlice {
     // Create UI elements for basic configuration (Step 1)
-    const basicConfigElements: UIElement[] = [
+    const basicConfigElements: (ControlElement | LabelElement | Layout)[] = [
         {
-            type: 'Control',
+            type: 'HorizontalLayout',
             scope: '#/properties/name',
-            label: 'Name of this remote (For your reference)',
-            options: {
-                placeholder: 'Enter a name',
-                format: 'string',
-            },
-        },
+            elements: [
+                {
+                    type: 'Label',
+                    scope: '#/properties/name',
+                    text: 'Remote Name',
+                    options: {
+                        // Optional styling
+                    },
+                } as LabelElement,
+                {
+                    type: 'Control',
+                    scope: '#/properties/name',
+                    options: {
+                        placeholder: 'Enter a name',
+                        format: 'string',
+                        description: 'Name to identify this remote configuration (e.g., my_google_drive). Use only letters, numbers, hyphens, and underscores.',
+                    },
+                } as ControlElement,
+            ],
+        } as Layout,
         {
             type: 'Control',
             scope: '#/properties/type',
@@ -109,9 +123,35 @@ function getBasicConfigSlice({ providerTypes }: { providerTypes: string[] }): Se
             type: 'Label',
             text: 'Documentation Link',
             options: {
-                description: 'For more information, refer to the [RClone Config Documentation](https://rclone.org/commands/rclone_config/).',
+                description:
+                    'For more information, refer to the [RClone Config Documentation](https://rclone.org/commands/rclone_config/).',
             },
         },
+        // --- START: Added HorizontalLayout with visibility rule for testing ---
+        {
+            type: 'HorizontalLayout',
+            rule: {
+                effect: RuleEffect.HIDE,
+                condition: {
+                    scope: '#/properties/name',
+                    schema: { const: 'hide_me' }, // Hide if name is exactly 'hide_me'
+                },
+            },
+            elements: [
+                {
+                    type: 'Label',
+                    text: 'Hidden Field Label',
+                } as LabelElement,
+                {
+                    type: 'Control',
+                    scope: '#/properties/hiddenField', // Needs corresponding schema property
+                    options: {
+                        placeholder: 'This field is hidden if name is hide_me',
+                    },
+                } as ControlElement,
+            ],
+        } as Layout,
+        // --- END: Added HorizontalLayout with visibility rule for testing ---
     ];
 
     // Define the data schema for basic configuration
@@ -130,6 +170,13 @@ function getBasicConfigSlice({ providerTypes }: { providerTypes: string[] }): Se
             default: providerTypes.length > 0 ? providerTypes[0] : '',
             enum: providerTypes,
         },
+        // --- START: Added schema property for the hidden field ---
+        hiddenField: {
+            type: 'string',
+            title: 'Hidden Field',
+            description: 'This field should only be visible when the name is not \'hide_me\'',
+        },
+        // --- END: Added schema property for the hidden field ---
     };
 
     // Wrap the basic elements in a VerticalLayout marked for step 0
@@ -161,7 +208,7 @@ export function getProviderConfigSlice({
     stepIndex: number; // Required step index for the rule
 }): SettingSlice {
     // Default properties when no provider is selected
-    let configProperties: DataSlice = {};
+    const configProperties: DataSlice = {};
 
     if (!selectedProvider || !providerOptions || providerOptions.length === 0) {
         return {
@@ -465,7 +512,8 @@ export function buildRcloneConfigSchema({
         text: 'Configure RClone Remote',
         options: {
             format: 'title',
-            description: 'This 3-step process will guide you through setting up your RClone remote configuration.',
+            description:
+                'This 3-step process will guide you through setting up your RClone remote configuration.',
         },
     };
 

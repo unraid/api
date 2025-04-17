@@ -1,9 +1,9 @@
 import { Injectable, Logger, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
 import crypto from 'crypto';
+import { ChildProcess } from 'node:child_process';
 import { existsSync } from 'node:fs';
 import { mkdir, rm, writeFile } from 'node:fs/promises';
 import { dirname, join } from 'node:path';
-import { ChildProcess } from 'node:child_process';
 
 import { execa } from 'execa';
 import got from 'got';
@@ -115,7 +115,7 @@ export class RCloneApiService implements OnModuleInit, OnModuleDestroy {
                     '--rc-pass',
                     this.rclonePassword,
                     '--log-file',
-                    logFilePath
+                    logFilePath,
                 ],
                 { detached: false } // Keep attached to manage lifecycle
             );
@@ -129,7 +129,9 @@ export class RCloneApiService implements OnModuleInit, OnModuleDestroy {
 
             // Handle unexpected exit
             this.rcloneProcess.on('exit', (code, signal) => {
-                this.logger.warn(`RClone process exited unexpectedly with code: ${code}, signal: ${signal}`);
+                this.logger.warn(
+                    `RClone process exited unexpectedly with code: ${code}, signal: ${signal}`
+                );
                 this.rcloneProcess = null;
                 this.isInitialized = false;
             });

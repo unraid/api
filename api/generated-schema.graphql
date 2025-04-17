@@ -1231,6 +1231,42 @@ type Docker implements Node {
   networks(skipCache: Boolean! = false): [DockerNetwork!]!
 }
 
+type FlashBackupStatus {
+  """Status message indicating the outcome of the backup initiation."""
+  status: String!
+
+  """Job ID if available, can be used to check job status."""
+  jobId: String
+}
+
+type RCloneDrive {
+  """Provider name"""
+  name: String!
+
+  """Provider options and configuration schema"""
+  options: JSON!
+}
+
+type RCloneBackupConfigForm {
+  id: ID!
+  dataSchema: JSON!
+  uiSchema: JSON!
+  providerType: String
+  parameters: JSON
+}
+
+type RCloneBackupSettings {
+  configForm(providerType: String, parameters: JSON): RCloneBackupConfigForm!
+  drives: [RCloneDrive!]!
+  remotes: [String!]!
+}
+
+type RCloneRemote {
+  name: String!
+  type: String!
+  parameters: JSON!
+}
+
 type Flash implements Node {
   id: ID!
   guid: String!
@@ -1381,42 +1417,6 @@ type UserAccount {
 
   """The permissions of the user"""
   permissions: [Permission!]
-}
-
-type FlashBackupStatus {
-  """Status message indicating the outcome of the backup initiation."""
-  status: String!
-
-  """Job ID if available, can be used to check job status."""
-  jobId: String
-}
-
-type RCloneDrive {
-  """Provider name"""
-  name: String!
-
-  """Provider options and configuration schema"""
-  options: JSON!
-}
-
-type RCloneBackupConfigForm {
-  id: ID!
-  dataSchema: JSON!
-  uiSchema: JSON!
-  providerType: String
-  parameters: JSON
-}
-
-type RCloneBackupSettings {
-  configForm(providerType: String, parameters: JSON): RCloneBackupConfigForm!
-  drives: [RCloneDrive!]!
-  remotes: [String!]!
-}
-
-type RCloneRemote {
-  name: String!
-  type: String!
-  parameters: JSON!
 }
 
 type Query {
