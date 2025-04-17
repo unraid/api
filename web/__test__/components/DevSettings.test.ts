@@ -40,11 +40,12 @@ describe('DevSettings', () => {
         stubs: { DummyServerSwitcher: true, PopoverContent: true },
       },
     });
-
     const triggerButton = wrapper.findComponent(PopoverTrigger).findComponent(Button);
 
     await triggerButton.trigger('click');
     await new Promise((resolve) => setTimeout(resolve, 0));
     await nextTick();
+
+    // No assertion needed here, the test passes if no error is thrown during the click simulation.
   });
 });

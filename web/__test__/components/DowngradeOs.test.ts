@@ -24,6 +24,7 @@ vi.mock('@unraid/shared-callbacks', () => ({
 
 vi.mock('@unraid/ui', async (importOriginal) => {
   const actual = await importOriginal<typeof import('@unraid/ui')>();
+
   return {
     ...actual,
   };
@@ -56,6 +57,7 @@ describe('DowngradeOs', () => {
 
   beforeEach(() => {
     const pinia = createTestingPinia({ createSpy: vi.fn });
+
     setActivePinia(pinia);
     serverStore = useServerStore();
     vi.clearAllMocks();
@@ -63,6 +65,7 @@ describe('DowngradeOs', () => {
 
   it('calls setRebootVersion on mount with prop value', () => {
     const rebootVersionProp = '6.10.0';
+
     mount(DowngradeOs, {
       props: {
         rebootVersion: rebootVersionProp,
@@ -151,6 +154,7 @@ describe('DowngradeOs', () => {
 
   it('passes correct subtitle to UpdateOsStatus when rebootType is update', () => {
     serverStore.rebootType = 'update';
+
     const wrapper = mount(DowngradeOs, {
       global: {
         stubs: {
