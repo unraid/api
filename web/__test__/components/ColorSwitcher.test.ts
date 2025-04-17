@@ -6,16 +6,7 @@ import { nextTick } from 'vue';
 import { setActivePinia } from 'pinia';
 import { mount } from '@vue/test-utils';
 
-import {
-  Input,
-  Label,
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-  Switch,
-} from '@unraid/ui';
+import { Input, Label, Select, SelectTrigger, Switch } from '@unraid/ui';
 import { createTestingPinia } from '@pinia/testing';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
