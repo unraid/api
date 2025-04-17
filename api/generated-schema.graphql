@@ -1232,8 +1232,8 @@ type DockerNetwork {
 
 type Docker implements Node {
   id: ID!
-  containers(useCache: Boolean! = true): [DockerContainer!]!
-  networks: [DockerNetwork!]!
+  containers(skipCache: Boolean! = false): [DockerContainer!]!
+  networks(skipCache: Boolean! = false): [DockerNetwork!]!
 }
 
 type Flash implements Node {

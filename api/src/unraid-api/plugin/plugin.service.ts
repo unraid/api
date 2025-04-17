@@ -1,8 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
 
-import type { SetRequired } from 'type-fest';
-import { parse } from 'graphql';
-
 import type { ApiNestPluginDefinition } from '@app/unraid-api/plugin/plugin.interface.js';
 import { getPackageJson } from '@app/environment.js';
 import { apiNestPluginSchema } from '@app/unraid-api/plugin/plugin.interface.js';

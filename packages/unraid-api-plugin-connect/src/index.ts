@@ -1,7 +1,7 @@
 import { Module, Logger, Inject } from "@nestjs/common";
 import { ConfigModule, ConfigService } from "@nestjs/config";
 import { ConnectConfigPersister } from "./config.persistence.js";
-import { configFeature } from "./config.model.js";
+import { configFeature } from "./config.entity.js";
 import { HealthResolver } from "./connect.resolver.js";
 
 export const adapter = "nestjs";
