@@ -18,29 +18,6 @@ export class PluginService {
         return PluginService.plugins;
     }
 
-    static async getGraphQLSchemas() {
-        const plugins = (await PluginService.getPlugins()).filter(
-            (plugin): plugin is SetRequired<ApiNestPluginDefinition, 'graphqlSchemaExtension'> =>
-                plugin.graphqlSchemaExtension !== undefined
-        );
-        const { data: schemas } = await batchProcess(plugins, async (plugin) => {
-            try {
-                const schema = await plugin.graphqlSchemaExtension();
-                // Validate schema by parsing it - this will throw if invalid
-                parse(schema);
-                return schema;
-            } catch (error) {
-                // we can safely assert ApiModule's presence since we validate the plugin schema upon importing it.
-                // ApiModule must be defined when graphqlSchemaExtension is defined.
-                PluginService.logger.error(
-                    `Error parsing GraphQL schema from ${plugin.ApiModule!.name}: ${JSON.stringify(error, null, 2)}`
-                );
-                throw error;
-            }
-        });
-        return schemas;
-    }
-
     private static async importPlugins() {
         if (PluginService.plugins) {
             return PluginService.plugins;
