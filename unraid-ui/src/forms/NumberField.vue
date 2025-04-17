@@ -5,7 +5,6 @@ import {
   NumberFieldIncrement,
   NumberFieldInput,
 } from '@/components/form/number';
-import ControlLayout from '@/forms/ControlLayout.vue';
 import { cn } from '@/lib/utils';
 import type { ControlElement } from '@jsonforms/core';
 import type { RendererProps } from '@jsonforms/vue';
@@ -34,7 +33,6 @@ const classOverride = computed(() => {
 </script>
 
 <template>
-  <ControlLayout v-if="control.visible" :label="control.label" :errors="control.errors">
     <NumberField
       v-model="value"
       :min="min"
@@ -49,7 +47,6 @@ const classOverride = computed(() => {
     >
       <NumberFieldDecrement v-if="stepperEnabled" />
       <NumberFieldInput />
-      <NumberFieldIncrement v-if="stepperEnabled" />
-    </NumberField>
-  </ControlLayout>
+    <NumberFieldIncrement v-if="stepperEnabled" />
+  </NumberField>
 </template>

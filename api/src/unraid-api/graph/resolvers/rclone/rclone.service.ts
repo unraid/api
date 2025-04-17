@@ -1,18 +1,10 @@
 import { Injectable, Logger } from '@nestjs/common';
 
-
-
 import { type Layout } from '@jsonforms/core';
-
-
 
 import type { SettingSlice } from '@app/unraid-api/types/json-forms.js';
 import { RCloneApiService } from '@app/unraid-api/graph/resolvers/rclone/rclone-api.service.js';
 import { RCloneFormService } from '@app/unraid-api/graph/resolvers/rclone/rclone-form.service.js';
-
-
-
-
 
 /**
  * Types for rclone backup configuration UI
@@ -69,7 +61,7 @@ export class RCloneService {
             const providersResponse = await this.rcloneApiService.getProviders();
             if (providersResponse) {
                 // Extract provider types
-                this._providerTypes = providersResponse.map((provider) => provider.Name);  
+                this._providerTypes = providersResponse.map((provider) => provider.Name);
                 this._providerOptions = providersResponse;
                 this.logger.debug(`Loaded ${this._providerTypes.length} provider types`);
             }

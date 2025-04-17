@@ -1,11 +1,10 @@
 import { Inject, Logger } from '@nestjs/common';
 import { Args, Mutation, Resolver } from '@nestjs/graphql';
 
-
 import {
     FlashBackupStatus,
     InitiateFlashBackupInput,
-} from './flash-backup.model.js';
+} from '@app/unraid-api/graph/resolvers/flash-backup/flash-backup.model.js';
 import { RCloneService } from '@app/unraid-api/graph/resolvers/rclone/rclone.service.js';
 
 @Resolver()

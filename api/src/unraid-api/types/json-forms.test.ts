@@ -1,6 +1,7 @@
-import { describe, it, expect } from 'vitest';
-import { mergeSettingSlices, createEmptySettingSlice } from './json-forms.js';
-import type { SettingSlice, DataSlice, UIElement } from './json-forms.js';
+import { describe, expect, it } from 'vitest';
+
+import type { DataSlice, SettingSlice, UIElement } from '@app/unraid-api/types/json-forms.js';
+import { createEmptySettingSlice, mergeSettingSlices } from '@app/unraid-api/types/json-forms.js';
 
 describe('mergeSettingSlices', () => {
     it('should return an empty slice when merging an empty array', () => {
@@ -87,4 +88,4 @@ describe('mergeSettingSlices', () => {
         expect(mergedSlice.properties).toEqual(expectedProperties);
         expect(mergedSlice.elements).toEqual(expectedElements);
     });
-}); 
+});

@@ -1,19 +1,17 @@
-import { Controller, Get, Logger, Param, Res, Req, All } from '@nestjs/common';
+import { All, Controller, Get, Logger, Param, Req, Res } from '@nestjs/common';
 
+import got from 'got';
 import { AuthActionVerb, AuthPossession, UsePermissions } from 'nest-authz';
 
 import type { FastifyReply, FastifyRequest } from '@app/unraid-api/types/fastify.js';
 import { Public } from '@app/unraid-api/auth/public.decorator.js';
 import { Resource } from '@app/unraid-api/graph/resolvers/base.model.js';
 import { RestService } from '@app/unraid-api/rest/rest.service.js';
-import got from 'got';
 
 @Controller()
 export class RestController {
     protected logger = new Logger(RestController.name);
-    constructor(
-        private readonly restService: RestService,
-    ) {}
+    constructor(private readonly restService: RestService) {}
 
     @Get('/')
     @Public()
@@ -56,7 +54,7 @@ export class RestController {
             return res.status(500).send(`Error: Failed to get customizations`);
         }
     }
-/*
+    /*
     @All('/graphql/api/rclone-webgui/*')
     @UsePermissions({
         action: AuthActionVerb.READ,

@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import ControlLayout from '@/forms/ControlLayout.vue';
 import type { LabelElement } from '@jsonforms/core';
 import type { RendererProps } from '@jsonforms/vue';
 import { computed } from 'vue';
@@ -23,13 +22,11 @@ type PreconditionsLabelElement = LabelElement & {
 // Each item should have a `text` and a `status` (boolean) property.
 const props = defineProps<RendererProps<PreconditionsLabelElement>>();
 
-const labelText = computed(() => props.uischema.text);
 const items = computed(() => props.uischema.options?.items || []);
 const description = computed(() => props.uischema.options?.description);
 </script>
 
 <template>
-  <ControlLayout :label="labelText">
     <!-- Render each precondition as a list item with an icon bullet -->
     <p v-if="description" class="mb-2">{{ description }}</p>
     <ul class="list-none space-y-1">
@@ -39,5 +36,4 @@ const description = computed(() => props.uischema.options?.description);
         <span>{{ item.text }}</span>
       </li>
     </ul>
-  </ControlLayout>
 </template>

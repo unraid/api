@@ -11,47 +11,56 @@ import {
   type JsonSchema,
   type Layout,
   type UISchemaElement,
-  // Actions, // No longer needed
+  Actions, type CoreActions, type JsonFormsSubStates
 } from '@jsonforms/core';
 import { DispatchRenderer, useJsonFormsLayout, type RendererProps } from '@jsonforms/vue';
-import { computed, ref } from 'vue'; // Import ref, remove inject/onMounted
+import { computed, inject } from 'vue';
 
 // Define props based on RendererProps<Layout>
 const props = defineProps<RendererProps<Layout>>();
 
-// --- JSON Forms Composables and Context ---
+// --- JSON Forms Context Injection ---
+const jsonforms = inject<JsonFormsSubStates>('jsonforms');
+const dispatch = inject<(action: CoreActions) => void>('dispatch'); // Inject dispatch separately
+
+if (!jsonforms || !dispatch) {
+  throw new Error("'jsonforms' or 'dispatch' context wasn't provided. Are you within JsonForms?");
+}
+const { core } = jsonforms; // Extract core state
+
+// --- Layout Specific Composables ---
 const { layout } = useJsonFormsLayout(props);
 
-// --- Step Configuration ---
-
-// Expect options.steps: [{ label: string, description: string }, ...]
+// --- Step Configuration --- Use props.uischema
 const stepsConfig = computed(() => props.uischema.options?.steps || []);
+const numSteps = computed(() => stepsConfig.value.length);
 
-// --- Current Step Logic ---
-
-// Use local state for the current step index
-const localCurrentStep = ref(0);
-
-// currentStep now reflects the local state
-const currentStep = computed(() => localCurrentStep.value);
+// --- Current Step Logic --- Use injected core.data
+const currentStep = computed(() => {
+  console.log('[SteppedLayout] currentStep computed. core.data.configStep:', core?.data?.configStep);
+  return core!.data?.configStep ?? 0;
+});
+const isLastStep = computed(() => currentStep.value === numSteps.value - 1);
 
 // --- Step Update Logic ---
-
 const updateStep = (newStep: number) => {
   // Validate step index bounds
-  if (newStep < 0 || newStep >= stepsConfig.value.length) {
+  if (newStep < 0 || newStep >= numSteps.value) {
     return;
   }
-  // Simply update the local state
-  localCurrentStep.value = newStep;
+  // Update the 'configStep' property in the JSON Forms data
+  dispatch(Actions.update('configStep', () => newStep));
 };
 
 // --- Filtered Elements for Current Step ---
-
 const currentStepElements = computed(() => {
-  return (props.uischema.elements || []).filter((element: UISchemaElement) => {
+  const filtered = (props.uischema.elements || []).filter((element: UISchemaElement) => {
     return element.options?.step === currentStep.value;
   });
+
+  console.log(`[SteppedLayout] currentStepElements computed for step ${currentStep.value}. Found elements:`, JSON.stringify(filtered.map(el => ({ type: el.type, scope: (el as any).scope })))); // Log type/scope
+
+  return filtered;
 });
 
 // --- Stepper State Logic ---
@@ -65,7 +74,7 @@ const getStepState = (stepIndex: number): StepState => {
 </script>
 
 <template>
-  <div v-if="layout.visible" class="stepped-layout space-y-6">
+  <div v-if="layout.visible" :key="currentStep" class="stepped-layout space-y-6">
     <!-- Stepper Indicators -->
     <Stepper :modelValue="currentStep + 1" class="text-foreground flex w-full items-start gap-2 text-sm">
       <StepperItem
@@ -109,6 +118,10 @@ const getStepState = (stepIndex: number): StepState => {
       </StepperItem>
     </Stepper>
 
+    <!-- Add logging here -->
+    {{ console.log(`[SteppedLayout Template] Rendering step: ${currentStep}`) }}
+    {{ console.log(`[SteppedLayout Template] Elements for step ${currentStep}:`, JSON.stringify(currentStepElements.map(el => ({ type: el.type, scope: (el as any).scope })))) }}
+
     <!-- Render elements for the current step -->
     <div class="current-step-content rounded-md border p-4 shadow">
       <DispatchRenderer
@@ -128,7 +141,7 @@ const getStepState = (stepIndex: number): StepState => {
       <Button variant="outline" @click="updateStep(currentStep - 1)" :disabled="currentStep === 0">
         Previous
       </Button>
-      <Button @click="updateStep(currentStep + 1)" :disabled="currentStep >= stepsConfig.length - 1">
+      <Button v-if="!isLastStep" @click="updateStep(currentStep + 1)">
         Next
       </Button>
     </div>

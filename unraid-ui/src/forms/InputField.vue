@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { Input } from '@/components/form/input';
-import ControlLayout from '@/forms/ControlLayout.vue';
 import { cn } from '@/lib/utils';
 import type { ControlElement } from '@jsonforms/core';
 import type { RendererProps } from '@jsonforms/vue';
@@ -29,7 +28,6 @@ const classOverride = computed(() => {
 </script>
 
 <template>
-  <ControlLayout v-if="control.visible" :label="control.label" :errors="control.errors">
     <Input
       v-model="value"
       :type="inputType"
@@ -38,5 +36,4 @@ const classOverride = computed(() => {
       :required="control.required"
       :placeholder="control.schema.description"
     />
-  </ControlLayout>
 </template>
