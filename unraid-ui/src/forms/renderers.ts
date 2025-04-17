@@ -7,6 +7,7 @@ import selectRenderer from '@/forms/Select.vue';
 import SteppedLayout from '@/forms/SteppedLayout.vue';
 import StringArrayField from '@/forms/StringArrayField.vue';
 import switchRenderer from '@/forms/Switch.vue';
+import LabelRenderer from '@/forms/LabelRenderer.vue';
 import VerticalLayout from '@/forms/VerticalLayout.vue';
 import {
   and,
@@ -24,7 +25,6 @@ import {
   uiTypeIs,
 } from '@jsonforms/core';
 import type { JsonFormsRendererRegistryEntry, JsonSchema } from '@jsonforms/core';
-import { LabelRenderer } from '@jsonforms/vue-vanilla';
 
 const isStringArray = (schema: JsonSchema): boolean => {
   if (!schema || typeof schema !== 'object' || Array.isArray(schema)) return false;

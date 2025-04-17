@@ -21,7 +21,6 @@ import { computed } from 'vue';
 const props = defineProps<RendererProps<VerticalLayout>>();
 
 const elements = computed(() => {
-  console.log('elements', props.uischema?.elements);
   return props.uischema?.elements || [];
 });
 </script>

@@ -16,6 +16,11 @@ const value = computed({
   set: (newValue: string) => handleChange(control.value.path, newValue || undefined),
 });
 
+// Determine the input type based on schema format
+const inputType = computed(() => {
+  return control.value.schema.format === 'password' ? 'password' : 'text';
+});
+
 const classOverride = computed(() => {
   return cn(control.value.uischema?.options?.class, {
     'max-w-[25ch]': control.value.uischema?.options?.format === 'short',
@@ -27,6 +32,7 @@ const classOverride = computed(() => {
   <ControlLayout v-if="control.visible" :label="control.label" :errors="control.errors">
     <Input
       v-model="value"
+      :type="inputType"
       :class="classOverride"
       :disabled="!control.enabled"
       :required="control.required"
