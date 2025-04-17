@@ -1,6 +1,5 @@
 import { config } from '@vue/test-utils';
 
-import { createTestingPinia } from '@pinia/testing';
 import { vi } from 'vitest';
 
 // Import mocks
@@ -8,7 +7,6 @@ import './mocks/ui-components.js';
 
 // Configure Vue Test Utils
 config.global.plugins = [
-  // Simple mock for i18n
   {
     install: vi.fn(),
   },
