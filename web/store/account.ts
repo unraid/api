@@ -1,19 +1,24 @@
+import { computed, ref, watchEffect } from 'vue';
+import { createPinia, defineStore, setActivePinia } from 'pinia';
 import { useMutation } from '@vue/apollo-composable';
 import { logErrorMessages } from '@vue/apollo-util';
-import { defineStore, createPinia, setActivePinia } from 'pinia';
 
-import { CONNECT_SIGN_IN, CONNECT_SIGN_OUT } from './account.fragment';
+import { ACCOUNT_CALLBACK } from '~/helpers/urls';
+
+import type { ExternalSignIn, ExternalSignOut } from '@unraid/shared-callbacks';
+
 import { useCallbackActionsStore } from '~/store/callbackActions';
 import { useErrorsStore } from '~/store/errors';
 import { useReplaceRenewStore } from '~/store/replaceRenew';
 import { useServerStore } from '~/store/server';
 import { useUnraidApiStore } from '~/store/unraidApi';
-import { ACCOUNT_CALLBACK } from '~/helpers/urls';
-import type { ExternalSignIn, ExternalSignOut } from '@unraid/shared-callbacks';
+import { CONNECT_SIGN_IN, CONNECT_SIGN_OUT } from './account.fragment';
+
 /**
  * @see https://stackoverflow.com/questions/73476371/using-pinia-with-vue-js-web-components
  * @see https://github.com/vuejs/pinia/discussions/1085
  */
+
 setActivePinia(createPinia());
 
 export interface ConnectSignInMutationPayload {
@@ -78,28 +83,32 @@ export const useAccountStore = defineStore('account', () => {
   const downgradeOs = async (autoRedirectReplace?: boolean) => {
     await callbackStore.send(
       ACCOUNT_CALLBACK.toString(),
-      [{
-        server: {
-          ...serverAccountPayload.value,
+      [
+        {
+          server: {
+            ...serverAccountPayload.value,
+          },
+          type: 'downgradeOs',
         },
-        type: 'downgradeOs',
-      }],
-      inIframe.value ? 'newTab' : (autoRedirectReplace ? 'replace' : undefined),
-      sendType.value,
+      ],
+      inIframe.value ? 'newTab' : autoRedirectReplace ? 'replace' : undefined,
+      sendType.value
     );
   };
 
   const manage = () => {
     callbackStore.send(
       ACCOUNT_CALLBACK.toString(),
-      [{
-        server: {
-          ...serverAccountPayload.value,
+      [
+        {
+          server: {
+            ...serverAccountPayload.value,
+          },
+          type: 'manage',
         },
-        type: 'manage',
-      }],
+      ],
       inIframe.value ? 'newTab' : undefined,
-      sendType.value,
+      sendType.value
     );
   };
   const myKeys = async () => {
@@ -110,14 +119,16 @@ export const useAccountStore = defineStore('account', () => {
 
     callbackStore.send(
       ACCOUNT_CALLBACK.toString(),
-      [{
-        server: {
-          ...serverAccountPayload.value,
+      [
+        {
+          server: {
+            ...serverAccountPayload.value,
+          },
+          type: 'myKeys',
         },
-        type: 'myKeys',
-      }],
+      ],
       inIframe.value ? 'newTab' : undefined,
-      sendType.value,
+      sendType.value
     );
   };
   const linkKey = async () => {
@@ -128,127 +139,152 @@ export const useAccountStore = defineStore('account', () => {
 
     callbackStore.send(
       ACCOUNT_CALLBACK.toString(),
-      [{
-        server: {
-          ...serverAccountPayload.value,
+      [
+        {
+          server: {
+            ...serverAccountPayload.value,
+          },
+          type: 'linkKey',
         },
-        type: 'linkKey',
-      }],
+      ],
       inIframe.value ? 'newTab' : undefined,
-      sendType.value,
+      sendType.value
     );
   };
   const recover = () => {
     callbackStore.send(
       ACCOUNT_CALLBACK.toString(),
-      [{
-        server: {
-          ...serverAccountPayload.value,
+      [
+        {
+          server: {
+            ...serverAccountPayload.value,
+          },
+          type: 'recover',
         },
-        type: 'recover',
-      }],
+      ],
       inIframe.value ? 'newTab' : undefined,
-      sendType.value,
+      sendType.value
     );
   };
   const replace = () => {
     callbackStore.send(
       ACCOUNT_CALLBACK.toString(),
-      [{
-        server: {
-          ...serverAccountPayload.value,
+      [
+        {
+          server: {
+            ...serverAccountPayload.value,
+          },
+          type: 'replace',
         },
-        type: 'replace',
-      }],
+      ],
       inIframe.value ? 'newTab' : undefined,
-      sendType.value,
+      sendType.value
     );
   };
   const signIn = () => {
     callbackStore.send(
       ACCOUNT_CALLBACK.toString(),
-      [{
-        server: {
-          ...serverAccountPayload.value,
+      [
+        {
+          server: {
+            ...serverAccountPayload.value,
+          },
+          type: 'signIn',
         },
-        type: 'signIn',
-      }],
+      ],
       inIframe.value ? 'newTab' : undefined,
-      sendType.value,
+      sendType.value
     );
   };
   const signOut = () => {
     callbackStore.send(
       ACCOUNT_CALLBACK.toString(),
-      [{
-        server: {
-          ...serverAccountPayload.value,
+      [
+        {
+          server: {
+            ...serverAccountPayload.value,
+          },
+          type: 'signOut',
         },
-        type: 'signOut',
-      }],
+      ],
       inIframe.value ? 'newTab' : undefined,
-      sendType.value,
+      sendType.value
     );
   };
   const trialExtend = () => {
     callbackStore.send(
       ACCOUNT_CALLBACK.toString(),
-      [{
-        server: {
-          ...serverAccountPayload.value,
+      [
+        {
+          server: {
+            ...serverAccountPayload.value,
+          },
+          type: 'trialExtend',
         },
-        type: 'trialExtend',
-      }],
+      ],
       inIframe.value ? 'newTab' : undefined,
-      sendType.value,
+      sendType.value
     );
   };
   const trialStart = () => {
     callbackStore.send(
       ACCOUNT_CALLBACK.toString(),
-      [{
-        server: {
-          ...serverAccountPayload.value,
+      [
+        {
+          server: {
+            ...serverAccountPayload.value,
+          },
+          type: 'trialStart',
         },
-        type: 'trialStart',
-      }],
+      ],
       inIframe.value ? 'newTab' : undefined,
-      sendType.value,
+      sendType.value
     );
   };
 
   const updateOs = async (autoRedirectReplace?: boolean) => {
     await callbackStore.send(
       ACCOUNT_CALLBACK.toString(),
-      [{
-        server: {
-          ...serverAccountPayload.value,
+      [
+        {
+          server: {
+            ...serverAccountPayload.value,
+          },
+          type: 'updateOs',
         },
-        type: 'updateOs',
-      }],
-      inIframe.value ? 'newTab' : (autoRedirectReplace ? 'replace' : undefined),
+      ],
+      inIframe.value ? 'newTab' : autoRedirectReplace ? 'replace' : undefined,
+      sendType.value
     );
   };
 
   const connectSignInMutation = async () => {
-    if (!connectSignInPayload.value ||
-      (connectSignInPayload.value && (!connectSignInPayload.value.apiKey || !connectSignInPayload.value.email || !connectSignInPayload.value.preferred_username))
+    if (
+      !connectSignInPayload.value ||
+      (connectSignInPayload.value &&
+        (!connectSignInPayload.value.apiKey ||
+          !connectSignInPayload.value.email ||
+          !connectSignInPayload.value.preferred_username))
     ) {
       accountActionStatus.value = 'failed';
       return console.error('[connectSignInMutation] incorrect payload', connectSignInPayload.value);
     }
 
     accountActionStatus.value = 'updating';
-    const { mutate: signInMutation, onDone, onError } = await useMutation(CONNECT_SIGN_IN, {
+    const {
+      mutate: signInMutation,
+      onDone,
+      onError,
+    } = await useMutation(CONNECT_SIGN_IN, {
       variables: {
         input: {
           apiKey: connectSignInPayload.value.apiKey,
           userInfo: {
             email: connectSignInPayload.value.email,
             preferred_username: connectSignInPayload.value.preferred_username,
-          }
-        }
-      }
+          },
+        },
+      },
     });
 
     signInMutation();
@@ -314,7 +350,7 @@ export const useAccountStore = defineStore('account', () => {
     });
   };
 
-  const setAccountAction = (action: ExternalSignIn|ExternalSignOut) => {
+  const setAccountAction = (action: ExternalSignIn | ExternalSignOut) => {
     console.debug('[setAccountAction]', { action });
     accountAction.value = action;
   };

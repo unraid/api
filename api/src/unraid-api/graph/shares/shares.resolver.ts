@@ -1,8 +1,11 @@
 import { Query, Resolver } from '@nestjs/graphql';
 
-import { AuthActionVerb, AuthPossession, UsePermissions } from 'nest-authz';
-
 import { getShares } from '@app/core/utils/shares/get-shares.js';
+import {
+    AuthActionVerb,
+    AuthPossession,
+    UsePermissions,
+} from '@app/unraid-api/graph/directives/use-permissions.directive.js';
 import { Share } from '@app/unraid-api/graph/resolvers/array/array.model.js';
 import { Resource } from '@app/unraid-api/graph/resolvers/base.model.js';
 

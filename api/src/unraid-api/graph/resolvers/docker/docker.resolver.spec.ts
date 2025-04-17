@@ -19,6 +19,7 @@ describe('DockerResolver', () => {
                     provide: DockerService,
                     useValue: {
                         getContainers: vi.fn(),
+                        getNetworks: vi.fn(),
                     },
                 },
             ],
@@ -66,8 +67,8 @@ describe('DockerResolver', () => {
         ];
         vi.mocked(dockerService.getContainers).mockResolvedValue(mockContainers);
 
-        const result = await resolver.containers();
+        const result = await resolver.containers(false);
         expect(result).toEqual(mockContainers);
-        expect(dockerService.getContainers).toHaveBeenCalledWith({ useCache: false });
+        expect(dockerService.getContainers).toHaveBeenCalledWith({ skipCache: false });
     });
 });

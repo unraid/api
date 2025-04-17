@@ -1,3 +1,4 @@
+import { computed, ref, watch } from 'vue';
 import { createPinia, defineStore, setActivePinia } from 'pinia';
 
 import { defaultColors } from '~/themes/default';

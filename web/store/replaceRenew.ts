@@ -4,7 +4,7 @@
  * New key replacement, should happen also on server side.
  * Cron to run hourly, check on how many days are left until regExp…within X days then allow request to be done
  */
-import { h } from 'vue';
+import { computed, h, ref } from 'vue';
 import { createPinia, defineStore, setActivePinia } from 'pinia';
 
 import {
@@ -263,5 +263,6 @@ export const useReplaceRenewStore = defineStore('replaceRenewCheck', () => {
     purgeValidationResponse,
     setReplaceStatus,
     setRenewStatus,
+    error,
   };
 });

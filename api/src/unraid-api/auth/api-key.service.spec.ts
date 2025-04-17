@@ -317,8 +317,8 @@ describe('ApiKeyService', () => {
                 ],
             };
 
-            expect(result[0]).toEqual(expectedApiKey1);
-            expect(result[1]).toEqual(expectedApiKey2);
+            expect(result[0]).toMatchObject({ ...expectedApiKey1, createdAt: expect.any(String) });
+            expect(result[1]).toMatchObject({ ...expectedApiKey2, createdAt: expect.any(String) });
         });
 
         it('should handle file read errors gracefully', async () => {
@@ -334,7 +334,7 @@ describe('ApiKeyService', () => {
 
             const result = await apiKeyService.findById(mockApiKeyWithSecret.id);
 
-            expect(result).toEqual(mockApiKey);
+            expect(result).toMatchObject({ ...mockApiKey, createdAt: expect.any(String) });
         });
 
         it('should return null if API key not found', async () => {

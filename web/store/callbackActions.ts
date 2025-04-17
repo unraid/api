@@ -1,3 +1,4 @@
+import { computed, ref, watch, watchEffect } from 'vue';
 import { createPinia, defineStore, setActivePinia } from 'pinia';
 
 import { useCallback } from '@unraid/shared-callbacks';
@@ -178,5 +179,6 @@ export const useCallbackActionsStore = defineStore('callbackActions', () => {
     // helpers
     sendType: 'fromUpc',
     encryptionKey: import.meta.env.VITE_CALLBACK_KEY,
+    callbackError,
   };
 });

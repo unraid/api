@@ -1,16 +1,15 @@
-import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
+import { CACHE_MANAGER } from '@nestjs/cache-manager';
+import { Inject, Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { readFile } from 'fs/promises';
 
-import camelCaseKeys from 'camelcase-keys';
+import { type Cache } from 'cache-manager';
 import Docker from 'dockerode';
-import { debounce } from 'lodash-es';
 
 import { pubsub, PUBSUB_CHANNEL } from '@app/core/pubsub.js';
 import { catchHandlers } from '@app/core/utils/misc/catch-handlers.js';
 import { sleep } from '@app/core/utils/misc/sleep.js';
 import { getters } from '@app/store/index.js';
 import {
-    ContainerPort,
     ContainerPortType,
     ContainerState,
     DockerContainer,
@@ -18,21 +17,24 @@ import {
 } from '@app/unraid-api/graph/resolvers/docker/docker.model.js';
 
 interface ContainerListingOptions extends Docker.ContainerListOptions {
-    useCache: boolean;
+    skipCache: boolean;
 }
 
 interface NetworkListingOptions {
-    useCache: boolean;
+    skipCache: boolean;
 }
 
 @Injectable()
 export class DockerService implements OnModuleInit {
     private client: Docker;
-    private containerCache: Array<DockerContainer> = [];
     private autoStarts: string[] = [];
     private readonly logger = new Logger(DockerService.name);
 
-    constructor() {
+    public static readonly CONTAINER_CACHE_KEY = 'docker_containers';
+    public static readonly NETWORK_CACHE_KEY = 'docker_networks';
+    public static readonly CACHE_TTL_SECONDS = 60; // Cache for 60 seconds
+
+    constructor(@Inject(CACHE_MANAGER) private cacheManager: Cache) {
         this.client = this.getDockerClient();
     }
 
@@ -42,25 +44,26 @@ export class DockerService implements OnModuleInit {
         });
     }
 
-    get installed() {
-        return this.containerCache.length;
-    }
-
-    get running() {
-        return this.containerCache.filter((container) => container.state === ContainerState.RUNNING)
-            .length;
-    }
-
-    get appUpdateEvent() {
+    async getAppInfo() {
+        const containers = await this.getContainers({ skipCache: false });
+        const installedCount = containers.length;
+        const runningCount = containers.filter(
+            (container) => container.state === ContainerState.RUNNING
+        ).length;
         return {
             info: {
-                apps: { installed: this.installed, running: this.running },
+                apps: { installed: installedCount, running: runningCount },
             },
         };
     }
 
     public async onModuleInit() {
-        await this.debouncedContainerCacheUpdate();
+        this.logger.debug('Warming Docker cache on startup...');
+        await this.getContainers({ skipCache: true });
+        await this.getNetworks({ skipCache: true });
+        this.logger.debug('Docker cache warming complete.');
+        const appInfo = await this.getAppInfo();
+        await pubsub.publish(PUBSUB_CHANNEL.INFO, appInfo);
     }
 
     /**
@@ -75,11 +78,6 @@ export class DockerService implements OnModuleInit {
             .catch(() => '');
         return autoStartFile.split('\n');
     }
-
-    public debouncedContainerCacheUpdate = debounce(async () => {
-        await this.getContainers({ useCache: false });
-        await pubsub.publish(PUBSUB_CHANNEL.INFO, this.appUpdateEvent);
-    }, 500);
 
     public transformContainer(container: Docker.ContainerInfo): DockerContainer {
         const transformed: DockerContainer = {
@@ -118,99 +116,136 @@ export class DockerService implements OnModuleInit {
 
     public async getContainers(
         {
-            useCache = false,
+            skipCache = false,
             all = true,
             size = true,
             ...listOptions
-        }: Partial<ContainerListingOptions> = { useCache: false }
+        }: Partial<ContainerListingOptions> = { skipCache: false }
     ): Promise<DockerContainer[]> {
-        if (useCache && this.containerCache.length > 0) {
-            this.logger.debug('Using docker container cache');
-            return this.containerCache;
+        if (!skipCache) {
+            const cachedContainers = await this.cacheManager.get<DockerContainer[]>(
+                DockerService.CONTAINER_CACHE_KEY
+            );
+            if (cachedContainers) {
+                this.logger.debug('Using docker container cache');
+                return cachedContainers;
+            }
         }
 
         this.logger.debug('Updating docker container cache');
-        const rawContainers = await this.client
-            .listContainers({
-                all,
-                size,
-                ...listOptions,
-            })
-            // If docker throws an error return no containers
-            .catch(catchHandlers.docker);
+        const rawContainers =
+            (await this.client
+                .listContainers({
+                    all,
+                    size,
+                    ...listOptions,
+                })
+                .catch(catchHandlers.docker)) ?? [];
+
         this.autoStarts = await this.getAutoStarts();
-        // Cleanup container object
-        this.containerCache = rawContainers.map((container) => {
-            const containerData: DockerContainer = this.transformContainer(container);
-            return containerData;
-        });
-        return this.containerCache;
+        const containers = rawContainers.map((container) => this.transformContainer(container));
+
+        await this.cacheManager.set(
+            DockerService.CONTAINER_CACHE_KEY,
+            containers,
+            DockerService.CACHE_TTL_SECONDS * 1000
+        );
+        return containers;
     }
 
     /**
      * Get all Docker networks
-     * @todo filtering / cache / proper typing
      * @returns All the in/active Docker networks on the system.
      */
-    public async getNetworks({ useCache }: NetworkListingOptions): Promise<DockerNetwork[]> {
-        return this.client
-            .listNetworks()
-            .catch(catchHandlers.docker)
-            .then((networks = []) =>
-                networks.map(
-                    (network) =>
-                        ({
-                            name: network.Name || '',
-                            id: network.Id || '',
-                            created: network.Created || '',
-                            scope: network.Scope || '',
-                            driver: network.Driver || '',
-                            enableIPv6: network.EnableIPv6 || false,
-                            ipam: network.IPAM || {},
-                            internal: network.Internal || false,
-                            attachable: network.Attachable || false,
-                            ingress: network.Ingress || false,
-                            configFrom: network.ConfigFrom || {},
-                            configOnly: network.ConfigOnly || false,
-                            containers: network.Containers || {},
-                            options: network.Options || {},
-                            labels: network.Labels || {},
-                        }) as DockerNetwork
-                )
+    public async getNetworks({ skipCache }: NetworkListingOptions): Promise<DockerNetwork[]> {
+        if (!skipCache) {
+            const cachedNetworks = await this.cacheManager.get<DockerNetwork[]>(
+                DockerService.NETWORK_CACHE_KEY
             );
+            if (cachedNetworks) {
+                this.logger.debug('Using docker network cache');
+                return cachedNetworks;
+            }
+        }
+
+        this.logger.debug('Updating docker network cache');
+        const rawNetworks = await this.client.listNetworks().catch(catchHandlers.docker);
+        const networks = rawNetworks.map(
+            (network) =>
+                ({
+                    name: network.Name || '',
+                    id: network.Id || '',
+                    created: network.Created || '',
+                    scope: network.Scope || '',
+                    driver: network.Driver || '',
+                    enableIPv6: network.EnableIPv6 || false,
+                    ipam: network.IPAM || {},
+                    internal: network.Internal || false,
+                    attachable: network.Attachable || false,
+                    ingress: network.Ingress || false,
+                    configFrom: network.ConfigFrom || {},
+                    configOnly: network.ConfigOnly || false,
+                    containers: network.Containers || {},
+                    options: network.Options || {},
+                    labels: network.Labels || {},
+                }) as DockerNetwork
+        );
+
+        await this.cacheManager.set(
+            DockerService.NETWORK_CACHE_KEY,
+            networks,
+            DockerService.CACHE_TTL_SECONDS * 1000
+        );
+        return networks;
+    }
+
+    public async clearContainerCache(): Promise<void> {
+        await this.cacheManager.del(DockerService.CONTAINER_CACHE_KEY);
+        this.logger.debug('Invalidated container cache due to external event.');
     }
 
     public async start(id: string): Promise<DockerContainer> {
         const container = this.client.getContainer(id);
         await container.start();
-        const containers = await this.getContainers({ useCache: false });
+        await this.cacheManager.del(DockerService.CONTAINER_CACHE_KEY);
+        this.logger.debug(`Invalidated container cache after starting ${id}`);
+        const containers = await this.getContainers({ skipCache: true });
         const updatedContainer = containers.find((c) => c.id === id);
         if (!updatedContainer) {
             throw new Error(`Container ${id} not found after starting`);
         }
+        const appInfo = await this.getAppInfo();
+        await pubsub.publish(PUBSUB_CHANNEL.INFO, appInfo);
         return updatedContainer;
     }
 
     public async stop(id: string): Promise<DockerContainer> {
         const container = this.client.getContainer(id);
         await container.stop({ t: 10 });
-        let containers = await this.getContainers({ useCache: false });
+        await this.cacheManager.del(DockerService.CONTAINER_CACHE_KEY);
+        this.logger.debug(`Invalidated container cache after stopping ${id}`);
+
+        let containers = await this.getContainers({ skipCache: true });
         let updatedContainer: DockerContainer | undefined;
         for (let i = 0; i < 5; i++) {
             await sleep(500);
-            // Refresh the containers list on each attempt
-            containers = await this.getContainers({ useCache: false });
+            containers = await this.getContainers({ skipCache: true });
             updatedContainer = containers.find((c) => c.id === id);
             this.logger.debug(
                 `Container ${id} state after stop attempt ${i + 1}: ${updatedContainer?.state}`
             );
             if (updatedContainer?.state === ContainerState.EXITED) {
-                return updatedContainer;
+                break;
             }
         }
+
         if (!updatedContainer) {
             throw new Error(`Container ${id} not found after stopping`);
+        } else if (updatedContainer.state !== ContainerState.EXITED) {
+            this.logger.warn(`Container ${id} did not reach EXITED state after stop command.`);
         }
+        const appInfo = await this.getAppInfo();
+        await pubsub.publish(PUBSUB_CHANNEL.INFO, appInfo);
         return updatedContainer;
     }
 }

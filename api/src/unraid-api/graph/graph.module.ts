@@ -9,6 +9,10 @@ import { JSONResolver, URLResolver } from 'graphql-scalars';
 import { ENVIRONMENT } from '@app/environment.js';
 import { GraphQLLong } from '@app/graphql/resolvers/graphql-type-long.js';
 import { getters } from '@app/store/index.js';
+import {
+    UsePermissionsDirective,
+    usePermissionsSchemaTransformer,
+} from '@app/unraid-api/graph/directives/use-permissions.directive.js';
 import { idPrefixPlugin } from '@app/unraid-api/graph/id-prefix-plugin.js';
 import { ResolversModule } from '@app/unraid-api/graph/resolvers/resolvers.module.js';
 import { sandboxPlugin } from '@app/unraid-api/graph/sandbox-plugin.js';
@@ -51,7 +55,9 @@ import { PluginModule } from '@app/unraid-api/plugin/plugin.module.js';
                     },
                     buildSchemaOptions: {
                         dateScalarMode: 'isoDate',
+                        directives: [UsePermissionsDirective],
                     },
+                    transformSchema: usePermissionsSchemaTransformer,
                     validationRules: [NoUnusedVariablesRule],
                 };
             },
