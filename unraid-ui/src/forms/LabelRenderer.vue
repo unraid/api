@@ -1,7 +1,9 @@
 <script setup lang="ts">
-import { rankWith, uiTypeIs, type UISchemaElement } from '@jsonforms/core';
+import Label from '@/components/form/label/Label.vue';
+import { Markdown } from '@/lib/utils';
+import { type UISchemaElement } from '@jsonforms/core';
 import { rendererProps, useJsonFormsRenderer } from '@jsonforms/vue';
-import { computed } from 'vue';
+import { computed, ref, watchEffect } from 'vue';
 
 // Define a type for our specific Label UI Schema
 interface LabelUISchema extends UISchemaElement {
@@ -16,7 +18,6 @@ const props = defineProps(rendererProps<UISchemaElement>());
 
 // Destructure the renderer ref from the hook's return value
 const { renderer } = useJsonFormsRenderer(props);
-
 // Cast the uischema inside the computed ref to our specific type
 const typedUISchema = computed(() => renderer.value.uischema as LabelUISchema);
 
@@ -25,8 +26,25 @@ const labelText = computed(() => typedUISchema.value.text);
 const descriptionText = computed(() => typedUISchema.value.options?.description);
 const labelFormat = computed(() => typedUISchema.value.options?.format);
 
-// --- Access visibility via renderer.value ---
-const isVisible = computed(() => renderer.value.visible); // Use renderer.value.visible for visibility check
+// --- Parsed Description ---
+const parsedDescription = ref<string | null>(null);
+
+watchEffect(async () => {
+  // console.log('descriptionText', descriptionText.value); // Removed
+  const desc = descriptionText.value;
+  if (desc) {
+    try {
+      parsedDescription.value = await Markdown.parse(desc);
+      // console.log('parsedDescription after parse:', parsedDescription.value); // Removed
+    } catch (error) {
+      console.error('Error parsing markdown in LabelRenderer:', error);
+      // Fallback to plain text if parsing fails
+      parsedDescription.value = desc;
+    }
+  } else {
+    parsedDescription.value = null;
+  }
+});
 
 // Conditional classes or elements based on format
 const labelClass = computed(() => {
@@ -49,23 +67,14 @@ const descriptionClass = computed(() => {
   }
 });
 
-// Use v-html for description if it might contain HTML (like the documentation link)
-// Ensure any HTML is sanitized if it comes from untrusted sources.
-// Assuming the documentation link is safe here.
-const allowHtml = computed(() => labelFormat.value === 'documentation');
-
-// --- Tester Export ---
-export const labelRendererTester = rankWith(
-  10, // Adjust rank as needed
-  uiTypeIs('Label')
-);
 </script>
 
 <template>
   <!-- Use the computed isVisible based on renderer.value.visible -->
-  <div v-if="isVisible" class="my-2">
-    <label v-if="labelText" :class="labelClass">{{ labelText }}</label>
-    <p v-if="descriptionText && allowHtml" :class="descriptionClass" v-html="descriptionText" />
-    <p v-else-if="descriptionText" :class="descriptionClass">{{ descriptionText }}</p>
+  <div class="my-2">
+    <!-- Replace native label with the Label component -->
+    <Label v-if="labelText" :class="labelClass">{{ labelText }}</Label>
+    <!-- Use v-html with the parsedDescription ref -->
+    <p v-if="parsedDescription" :class="descriptionClass" v-html="parsedDescription" />
   </div>
 </template>

@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/common/tooltip';
 import {
   Select,
   SelectContent,
@@ -20,9 +21,12 @@ const { control, handleChange } = useJsonFormsControl(props);
 const selected = computed(() => control.value.data);
 const options = computed(() => {
   const enumValues: string[] = control.value.schema.enum || [];
-  return enumValues.map((value) => ({
+  const tooltips: string[] | undefined = control.value.uischema.options?.tooltips;
+
+  return enumValues.map((value, index) => ({
     value,
     label: value,
+    tooltip: tooltips && tooltips[index] ? tooltips[index] : undefined,
   }));
 });
 
@@ -53,9 +57,23 @@ const onSelectOpen = () => {
       </SelectTrigger>
       <!-- The content includes the selectable options -->
       <SelectContent :to="teleportTarget">
-        <SelectItem v-for="option in options" :key="option.value" :value="option.value">
-          <SelectItemText>{{ option.label }}</SelectItemText>
-        </SelectItem>
+        <template v-for="option in options" :key="option.value">
+          <TooltipProvider v-if="option.tooltip" :delay-duration="50">
+            <Tooltip>
+              <TooltipTrigger as-child>
+                <SelectItem :value="option.value">
+                  <SelectItemText>{{ option.label }}</SelectItemText>
+                </SelectItem>
+              </TooltipTrigger>
+              <TooltipContent :to="teleportTarget" side="right" :side-offset="5">
+                <p class="max-w-xs">{{ option.tooltip }}</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+          <SelectItem v-else :value="option.value">
+            <SelectItemText>{{ option.label }}</SelectItemText>
+          </SelectItem>
+        </template>
       </SelectContent>
     </Select>
   </ControlLayout>

@@ -4,8 +4,7 @@ import { useDummyServerStore } from '~/_data/serverState';
 
 const { registerEntry } = useCustomElements();
 
-const serverStore = useDummyServerStore();
-const { serverState } = storeToRefs(serverStore);
+useDummyServerStore();
 
 onBeforeMount(() => {
   registerEntry('UnraidComponents');
@@ -18,7 +17,6 @@ onMounted(() => {
 
 <template>
   <div>
-    {{ serverState.connectPluginInstalled }}
     <RCloneConfig />
   </div>
 </template>

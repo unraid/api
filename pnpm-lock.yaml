@@ -681,12 +681,18 @@ importers:
       clsx:
         specifier: ^2.1.1
         version: 2.1.1
+      dompurify:
+        specifier: ^3.2.5
+        version: 3.2.5
       kebab-case:
         specifier: ^2.0.1
         version: 2.0.1
       lucide-vue-next:
         specifier: ^0.511.0
         version: 0.511.0(vue@3.5.13(typescript@5.8.3))
+      marked:
+        specifier: ^15.0.0
+        version: 15.0.7
       reka-ui:
         specifier: ^2.1.1
         version: 2.1.1(typescript@5.8.3)(vue@3.5.13(typescript@5.8.3))
@@ -6299,6 +6305,9 @@ packages:
 
   dompurify@3.2.4:
     resolution: {integrity: sha512-ysFSFEDVduQpyhzAob/kkuJjf5zWkZD8/A9ywSp1byueyuCfHamrCBa14/Oc2iiB0e51B+NpxSl5gmzn+Ms/mg==}
+
+  dompurify@3.2.5:
+    resolution: {integrity: sha512-mLPd29uoRe9HpvwP2TxClGQBzGXeEC/we/q+bFlmPPmj2p2Ugl3r6ATu/UU1v77DXNcehiBg9zsr1dREyA/dJQ==}
 
   domutils@2.8.0:
     resolution: {integrity: sha512-w96Cjofp72M5IIhpjgobBimYEfoPjx1Vx0BSX9P30WBdZW2WIKU0T1Bd0kz2eNZ9ikjKgHbEyKx8BB6H1L3h3A==}
@@ -18538,6 +18547,10 @@ snapshots:
       domelementtype: 2.3.0
 
   dompurify@3.2.4:
+    optionalDependencies:
+      '@types/trusted-types': 2.0.7
+
+  dompurify@3.2.5:
     optionalDependencies:
       '@types/trusted-types': 2.0.7
 

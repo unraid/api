@@ -17,5 +17,4 @@ export * from '@/components/common/tabs';
 export * from '@/components/common/tooltip';
 export * from '@/components/common/toast';
 export * from '@/components/common/popover';
-export * from '@/components/brand';
 export * from '@/components/modals';
