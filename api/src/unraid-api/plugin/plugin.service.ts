@@ -51,7 +51,7 @@ export class PluginService {
         return plugins.data;
     }
 
-    private static async listPlugins(): Promise<[string, string][]> {
+    static async listPlugins(): Promise<[string, string][]> {
         /** All api plugins must be npm packages whose name starts with this prefix */
         const pluginPrefix = 'unraid-api-plugin-';
         // All api plugins must be installed as dependencies of the unraid-api package

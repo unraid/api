@@ -5,40 +5,49 @@ import { fileURLToPath } from 'node:url';
 
 import type { PackageJson, SetRequired } from 'type-fest';
 
+import { fileExistsSync } from '@app/core/utils/files/file-exists.js';
+
 /**
- * Tries to get the package.json at the given location.
- * @param location - The location of the package.json file, relative to the current file
- * @returns The package.json object or undefined if unable to read
+ * Returns the absolute path to the given file.
+ * @param location - The location of the file, relative to the current file
+ * @returns The absolute path to the file
  */
-function readPackageJson(location: string): PackageJson | undefined {
+function getAbsolutePath(location: string): string {
     try {
-        let packageJsonPath: string;
-        try {
-            const packageJsonUrl = import.meta.resolve(location);
-            packageJsonPath = fileURLToPath(packageJsonUrl);
-        } catch {
-            // Fallback (e.g. for local development): resolve the path relative to this module
-            packageJsonPath = fileURLToPath(new URL(location, import.meta.url));
-        }
-        const packageJsonRaw = readFileSync(packageJsonPath, 'utf-8');
-        return JSON.parse(packageJsonRaw) as PackageJson;
+        const fileUrl = import.meta.resolve(location);
+        return fileURLToPath(fileUrl);
     } catch {
-        return undefined;
+        return fileURLToPath(new URL(location, import.meta.url));
     }
+}
+/**
+ * Returns the path to the api's package.json file. Throws if unable to find.
+ * @param possiblePaths - The possible locations of the package.json file, relative to the current file
+ * @returns The absolute path to the package.json file
+ */
+export function getPackageJsonPath(possiblePaths = ['../package.json', '../../package.json']): string {
+    for (const location of possiblePaths) {
+        const packageJsonPath = getAbsolutePath(location);
+        if (fileExistsSync(packageJsonPath)) {
+            return packageJsonPath;
+        }
+    }
+    throw new Error(
+        `Could not find package.json in any of the expected locations: ${possiblePaths.join(', ')}`
+    );
 }
 
 /**
- * Retrieves the Unraid API package.json. Throws if unable to find.
+ * Retrieves the Unraid API package.json. Throws if unable to find or parse.
  * This should be considered a fatal error.
  *
+ * @param pathOverride - The path to the package.json file. If not provided, the default path will be found & used.
  * @returns The package.json object
  */
-export const getPackageJson = () => {
-    const packageJson = readPackageJson('../package.json') || readPackageJson('../../package.json');
-    if (!packageJson) {
-        throw new Error('Could not find package.json in any of the expected locations');
-    }
-    return packageJson as SetRequired<PackageJson, 'version' | 'dependencies'>;
+export const getPackageJson = (pathOverride?: string) => {
+    const packageJsonPath = pathOverride ?? getPackageJsonPath();
+    const packageJsonRaw = readFileSync(packageJsonPath, 'utf-8');
+    return JSON.parse(packageJsonRaw) as SetRequired<PackageJson, 'version' | 'dependencies'>;
 };
 
 /**
