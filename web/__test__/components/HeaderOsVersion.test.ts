@@ -4,20 +4,20 @@
 
 import { nextTick } from 'vue';
 import { setActivePinia } from 'pinia';
-import { mount, VueWrapper } from '@vue/test-utils';
+import { mount } from '@vue/test-utils';
 
 import { Badge } from '@unraid/ui';
 import { createTestingPinia } from '@pinia/testing';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import type { TestingPinia } from '@pinia/testing';
+import type { VueWrapper } from '@vue/test-utils';
 import type { Error as CustomApiError } from '~/store/errors';
 import type { ServerUpdateOsResponse } from '~/types/server';
 
 import HeaderOsVersion from '~/components/HeaderOsVersion.ce.vue';
 import { useErrorsStore } from '~/store/errors';
 import { useServerStore } from '~/store/server';
-import { useUpdateOsStore } from '~/store/updateOs';
 
 const testMockReleaseNotesUrl = 'http://mock.release.notes/v';
 
@@ -75,11 +75,10 @@ vi.mock('@unraid/ui', async (importOriginal) => {
 });
 
 describe('HeaderOsVersion', () => {
-  let wrapper: VueWrapper<any>;
+  let wrapper: VueWrapper<unknown>;
   let testingPinia: TestingPinia;
   let serverStore: ReturnType<typeof useServerStore>;
   let errorsStore: ReturnType<typeof useErrorsStore>;
-  let updateOsStore: ReturnType<typeof useUpdateOsStore>;
 
   const findUpdateStatusComponent = () => {
     const statusElement = wrapper.find('a.group:not([title*="release notes"]), button.group');
@@ -91,7 +90,6 @@ describe('HeaderOsVersion', () => {
     setActivePinia(testingPinia);
 
     serverStore = useServerStore();
-    updateOsStore = useUpdateOsStore();
     errorsStore = useErrorsStore();
 
     serverStore.osVersion = '6.12.0';

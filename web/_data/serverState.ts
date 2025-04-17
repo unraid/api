@@ -9,9 +9,6 @@
 import { computed, ref } from 'vue';
 import { defineStore } from 'pinia';
 
-import { CONNECT_FORUMS, CONTACT, DISCORD } from '~/helpers/urls';
-
-import type { KeyIcon } from '@heroicons/vue/24/solid';
 import type {
   Server,
   ServerState,
