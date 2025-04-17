@@ -6,6 +6,7 @@
           {{ formatRouteName(route.name) }}
         </NuxtLink>
       </template>
+        <div id="modals"></div>
     </div>
     <slot />
   </client-only>

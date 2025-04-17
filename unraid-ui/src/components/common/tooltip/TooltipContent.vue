@@ -33,7 +33,7 @@ const { teleportTarget } = useTeleport();
 </script>
 
 <template>
-  <TooltipPortal :to="teleportTarget as HTMLElement" defer>
+  <TooltipPortal :to="teleportTarget" defer>
     <TooltipContent
       v-bind="{ ...forwarded, ...$attrs }"
       :class="

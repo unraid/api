@@ -11,6 +11,7 @@ test('Returns paths', async () => {
         "unraid-data",
         "docker-autostart",
         "docker-socket",
+        "rclone-socket",
         "parity-checks",
         "htpasswd",
         "emhttpd-socket",

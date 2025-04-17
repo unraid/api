@@ -1193,19 +1193,14 @@ type DockerContainer {
 
   """Total size of all the files in the container"""
   sizeRootFs: Int
-  labels: JSONObject
+  labels: JSON
   state: ContainerState!
   status: String!
   hostConfig: ContainerHostConfig
-  networkSettings: JSONObject
-  mounts: [JSONObject!]
+  networkSettings: JSON
+  mounts: [JSON!]
   autoStart: Boolean!
 }
-
-"""
-The `JSONObject` scalar type represents JSON objects as specified by [ECMA-404](http://www.ecma-international.org/publications/files/ECMA-ST/ECMA-404.pdf).
-"""
-scalar JSONObject
 
 enum ContainerState {
   RUNNING
@@ -1219,21 +1214,57 @@ type DockerNetwork {
   scope: String!
   driver: String!
   enableIPv6: Boolean!
-  ipam: JSONObject!
+  ipam: JSON!
   internal: Boolean!
   attachable: Boolean!
   ingress: Boolean!
-  configFrom: JSONObject!
+  configFrom: JSON!
   configOnly: Boolean!
-  containers: JSONObject!
-  options: JSONObject!
-  labels: JSONObject!
+  containers: JSON!
+  options: JSON!
+  labels: JSON!
 }
 
 type Docker implements Node {
   id: ID!
-  containers(useCache: Boolean! = true): [DockerContainer!]!
-  networks: [DockerNetwork!]!
+  containers(skipCache: Boolean! = false): [DockerContainer!]!
+  networks(skipCache: Boolean! = false): [DockerNetwork!]!
+}
+
+type FlashBackupStatus {
+  """Status message indicating the outcome of the backup initiation."""
+  status: String!
+
+  """Job ID if available, can be used to check job status."""
+  jobId: String
+}
+
+type RCloneDrive {
+  """Provider name"""
+  name: String!
+
+  """Provider options and configuration schema"""
+  options: JSON!
+}
+
+type RCloneBackupConfigForm {
+  id: ID!
+  dataSchema: JSON!
+  uiSchema: JSON!
+  providerType: String
+  parameters: JSON
+}
+
+type RCloneBackupSettings {
+  configForm(providerType: String, parameters: JSON): RCloneBackupConfigForm!
+  drives: [RCloneDrive!]!
+  remotes: [String!]!
+}
+
+type RCloneRemote {
+  name: String!
+  type: String!
+  parameters: JSON!
 }
 
 type Flash implements Node {
@@ -1422,6 +1453,7 @@ type Query {
   docker: Docker!
   disks: [Disk!]!
   disk(id: String!): Disk!
+  rcloneBackup: RCloneBackupSettings!
   health: String!
 }
 
@@ -1459,6 +1491,10 @@ type Mutation {
   setupRemoteAccess(input: SetupRemoteAccessInput!): Boolean!
   setAdditionalAllowedOrigins(input: AllowedOriginInput!): [String!]!
   enableDynamicRemoteAccess(input: EnableDynamicRemoteAccessInput!): Boolean!
+
+  """Initiates a flash drive backup using a configured remote."""
+  initiateFlashBackup(input: InitiateFlashBackupInput!): FlashBackupStatus!
+  createRCloneRemote(input: CreateRCloneRemoteInput!): RCloneRemote!
 }
 
 input CreateApiKeyInput {
@@ -1579,6 +1615,28 @@ input AccessUrlInput {
   name: String
   ipv4: URL
   ipv6: URL
+}
+
+input InitiateFlashBackupInput {
+  """The name of the remote configuration to use for the backup."""
+  remoteName: String!
+
+  """Source path to backup (typically the flash drive)."""
+  sourcePath: String!
+
+  """Destination path on the remote."""
+  destinationPath: String!
+
+  """
+  Additional options for the backup operation, such as --dry-run or --transfers.
+  """
+  options: JSON
+}
+
+input CreateRCloneRemoteInput {
+  name: String!
+  type: String!
+  parameters: JSON!
 }
 
 type Subscription {

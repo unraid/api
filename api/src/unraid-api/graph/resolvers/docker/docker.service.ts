@@ -59,11 +59,15 @@ export class DockerService implements OnModuleInit {
 
     public async onModuleInit() {
         this.logger.debug('Warming Docker cache on startup...');
-        await this.getContainers({ skipCache: true });
-        await this.getNetworks({ skipCache: true });
-        this.logger.debug('Docker cache warming complete.');
-        const appInfo = await this.getAppInfo();
-        await pubsub.publish(PUBSUB_CHANNEL.INFO, appInfo);
+        try {
+            await this.getContainers({ skipCache: true });
+            await this.getNetworks({ skipCache: true });
+            this.logger.debug('Docker cache warming complete.');
+            const appInfo = await this.getAppInfo();
+            await pubsub.publish(PUBSUB_CHANNEL.INFO, appInfo);
+        } catch (err) {
+            this.logger.error('Error warming Docker cache on startup:', err);
+        }
     }
 
     /**
