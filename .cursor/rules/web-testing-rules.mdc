@@ -8,7 +8,7 @@ alwaysApply: false
 - This is a Nuxt.js app but we are testing with vitest outside of the Nuxt environment
 - Nuxt is currently set to auto import so some vue files may need compute or ref imported
 - Use pnpm when running termical commands and stay within the web directory.
-- The directory for tests is located under `web/test` when running test just run `pnpm test`
+- The directory for tests is located under `web/__test__` when running test just run `pnpm test`
 
 ### Setup
 - Use `mount` from Vue Test Utils for component testing
@@ -18,6 +18,8 @@ alwaysApply: false
 ```typescript
 import { mount } from '@vue/test-utils';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { createTestingPinia } from '@pinia/testing'
+import { useSomeStore } from '@/stores/myStore'
 import YourComponent from '~/components/YourComponent.vue';
 
 // Mock dependencies
@@ -33,14 +35,25 @@ describe('YourComponent', () => {
   it('renders correctly', () => {
     const wrapper = mount(YourComponent, {
       global: {
+        plugins: [createTestingPinia()],
         stubs: {
           // Stub child components when needed
           ChildComponent: true,
         },
       },
     });
+
+    const store = useSomeStore() // uses the testing pinia!
+    // state can be directly manipulated
+    store.name = 'my new name'
+
+    // actions are stubbed by default, meaning they don't execute their code by default.
+    // See below to customize this behavior.
+    store.someAction()
+
+    expect(store.someAction).toHaveBeenCalledTimes(1)
     
-    // Assertions
+    // Assertions on components
     expect(wrapper.text()).toContain('Expected content');
   });
 });
@@ -51,6 +64,7 @@ describe('YourComponent', () => {
 - Verify that the expected elements are rendered
 - Test component interactions (clicks, inputs, etc.)
 - Check for expected prop handling and event emissions
+- Use `createTestingPinia()` for mocking stores in components
 
 ### Finding Elements
 - Use semantic queries like `find('button')` or `find('[data-test="id"]')` but prefer not to use data test ID's
@@ -84,6 +98,8 @@ describe('YourComponent', () => {
 ## Store Testing with Pinia
 
 ### Basic Setup
+- When testing Store files use `createPinia` and `setActivePinia`
+
 ```typescript
 import { createPinia, setActivePinia } from 'pinia';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';

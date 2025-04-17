@@ -6,12 +6,14 @@
 // import QueryStringAddon from 'wretch/addons/queryString';
 
 // import { OS_RELEASES } from '~/helpers/urls';
+import { computed, ref } from 'vue';
+import { defineStore } from 'pinia';
+
 import type {
   Server,
   ServerState,
   // ServerUpdateOsResponse,
 } from '~/types/server';
-import { defineStore } from 'pinia'
 
 // dayjs plugins
 // extend(customParseFormat);
@@ -194,7 +196,7 @@ const baseServerState: Server = {
 };
 
 export type ServerSelector = 'default' | 'oemActivation';
-const defaultServer: ServerSelector = 'default';
+export const defaultServer: ServerSelector = 'default';
 
 const servers: Record<ServerSelector, Server> = {
   default: baseServerState,
@@ -217,8 +219,8 @@ const servers: Record<ServerSelector, Server> = {
   },
 };
 
-export const useDummyServerStore = defineStore('_dummyServer',() => {
+export const useDummyServerStore = defineStore('_dummyServer', () => {
   const selector = ref<ServerSelector>(defaultServer);
   const serverState = computed(() => servers[selector.value] ?? servers.default);
   return { selector, serverState };
-})
+});
