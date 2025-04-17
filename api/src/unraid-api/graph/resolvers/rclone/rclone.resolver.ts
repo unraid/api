@@ -1,22 +1,23 @@
 import { Logger } from '@nestjs/common';
 import { Args, Mutation, Parent, Query, ResolveField, Resolver } from '@nestjs/graphql';
 
-
-
 import { GraphQLJSON } from 'graphql-scalars';
 
-
-
-import { AuthActionVerb, AuthPossession, UsePermissions } from '@app/unraid-api/graph/directives/use-permissions.directive.js';
+import {
+    AuthActionVerb,
+    AuthPossession,
+    UsePermissions,
+} from '@app/unraid-api/graph/directives/use-permissions.directive.js';
 import { Resource } from '@app/unraid-api/graph/resolvers/base.model.js';
 import { RCloneApiService } from '@app/unraid-api/graph/resolvers/rclone/rclone-api.service.js';
-import { CreateRCloneRemoteInput, RCloneBackupConfigForm, RCloneBackupSettings, RCloneRemote } from '@app/unraid-api/graph/resolvers/rclone/rclone.model.js';
-
-
-
-import { RCloneFormService } from './rclone-form.service.js';
-import { RCloneService } from './rclone.service.js';
-
+import { RCloneFormService } from '@app/unraid-api/graph/resolvers/rclone/rclone-form.service.js';
+import {
+    CreateRCloneRemoteInput,
+    RCloneBackupConfigForm,
+    RCloneBackupSettings,
+    RCloneRemote,
+} from '@app/unraid-api/graph/resolvers/rclone/rclone.model.js';
+import { RCloneService } from '@app/unraid-api/graph/resolvers/rclone/rclone.service.js';
 
 @Resolver(() => RCloneBackupSettings)
 export class RCloneBackupSettingsResolver {

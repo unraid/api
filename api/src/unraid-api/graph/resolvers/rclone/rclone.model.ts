@@ -59,10 +59,10 @@ export class RCloneBackupConfigForm {
 
     @Field(() => GraphQLJSON)
     uiSchema!: Layout;
-    
+
     @Field(() => String, { nullable: true })
     providerType?: string;
-    
+
     @Field(() => GraphQLJSON, { nullable: true })
     parameters?: Record<string, unknown>;
 }

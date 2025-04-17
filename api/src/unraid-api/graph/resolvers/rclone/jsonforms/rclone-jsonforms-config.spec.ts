@@ -1,10 +1,10 @@
-import { describe, it, expect, beforeEach } from 'vitest';
-
-import { config as rawProviderConfig } from './config.js'; // Added .js extension
-import { getProviderConfigSlice } from './rclone-jsonforms-config.js'; // Added .js extension
-// Adjusted path assuming rclone.model.ts is sibling to jsonforms dir
-import type { RCloneProviderOptionResponse } from '../rclone.model.js';
 import type { JsonSchema7, Layout, SchemaBasedCondition } from '@jsonforms/core';
+import { beforeEach, describe, expect, it } from 'vitest';
+
+// Adjusted path assuming rclone.model.ts is sibling to jsonforms dir
+import type { RCloneProviderOptionResponse } from '@app/unraid-api/graph/resolvers/rclone/rclone.model.js';
+import { config as rawProviderConfig } from '@app/unraid-api/graph/resolvers/rclone/jsonforms/config.js'; // Added .js extension
+import { getProviderConfigSlice } from '@app/unraid-api/graph/resolvers/rclone/jsonforms/rclone-jsonforms-config.js'; // Added .js extension
 
 // Placeholder type for UIElement if the original path doesn't resolve in tests
 // Make placeholder more specific to include expected properties
@@ -15,7 +15,8 @@ type UIElement = {
     options?: Record<string, any>;
     rule?: {
         effect: string; // RuleEffect is an enum, use string for simplicity in test type
-        condition: SchemaBasedCondition & { // Assert that it's SchemaBased
+        condition: SchemaBasedCondition & {
+            // Assert that it's SchemaBased
             scope: string;
             schema: JsonSchema7;
         };
@@ -37,14 +38,17 @@ interface RawProviderConfigEntry {
 // Process the raw config into the format expected by the functions under test
 const providerOptionsMap: Record<string, RCloneProviderOptionResponse[]> = (
     rawProviderConfig as RawProviderConfigEntry[]
-).reduce((acc, provider) => {
-    if (provider.Name && Array.isArray(provider.Options)) {
-        // Ensure options conform to the expected type structure if necessary
-        // For now, we assume the structure matches RCloneProviderOptionResponse
-        acc[provider.Name] = provider.Options;
-    }
-    return acc;
-}, {} as Record<string, RCloneProviderOptionResponse[]>);
+).reduce(
+    (acc, provider) => {
+        if (provider.Name && Array.isArray(provider.Options)) {
+            // Ensure options conform to the expected type structure if necessary
+            // For now, we assume the structure matches RCloneProviderOptionResponse
+            acc[provider.Name] = provider.Options;
+        }
+        return acc;
+    },
+    {} as Record<string, RCloneProviderOptionResponse[]>
+);
 
 const providerNames = Object.keys(providerOptionsMap);
 
@@ -72,7 +76,7 @@ describe('getProviderConfigSlice', () => {
         expect(result.elements).toEqual([]);
     });
 
-     it('should return an empty slice if providerOptions are empty', () => {
+    it('should return an empty slice if providerOptions are empty', () => {
         const result = getProviderConfigSlice({
             selectedProvider: testProvider, // Valid provider
             providerOptions: [], // Empty options
@@ -82,7 +86,7 @@ describe('getProviderConfigSlice', () => {
         expect(result.elements).toEqual([]);
     });
 
-    it('should return only standard options when type is \'standard\'', () => {
+    it("should return only standard options when type is 'standard'", () => {
         const result = getProviderConfigSlice({
             selectedProvider: testProvider,
             providerOptions: s3Options,
@@ -96,17 +100,17 @@ describe('getProviderConfigSlice', () => {
         expect(Object.keys(paramProps).length).toBeGreaterThan(0);
 
         // Check that all properties included are standard (Advanced !== true)
-        const standardOptions = s3Options.filter(opt => opt.Advanced !== true);
-        const uniqueStandardOptionNames = [...new Set(standardOptions.map(opt => opt.Name))];
+        const standardOptions = s3Options.filter((opt) => opt.Advanced !== true);
+        const uniqueStandardOptionNames = [...new Set(standardOptions.map((opt) => opt.Name))];
 
         // Assert against the count of UNIQUE standard option names
         expect(Object.keys(paramProps).length).toEqual(uniqueStandardOptionNames.length);
 
         // Check that each unique standard option name exists in the generated props
-        uniqueStandardOptionNames.forEach(name => {
+        uniqueStandardOptionNames.forEach((name) => {
             expect(paramProps[name]).toBeDefined();
             // Find the first option with this name to check title (or implement more complex logic if needed)
-            const correspondingOption = standardOptions.find(opt => opt.Name === name);
+            const correspondingOption = standardOptions.find((opt) => opt.Name === name);
             expect(paramProps[name]?.title).toEqual(correspondingOption?.Name);
         });
 
@@ -116,20 +120,21 @@ describe('getProviderConfigSlice', () => {
         expect(result.elements.length).toEqual(uniqueStandardOptionNames.length);
 
         // Check elements based on unique names
-        uniqueStandardOptionNames.forEach(name => {
+        uniqueStandardOptionNames.forEach((name) => {
             // Use `as any` for type assertion on the result elements array
             const elementsArray = result.elements as any[];
             // Find element by scope instead of label
             const expectedScope = `#/properties/parameters/properties/${name}`;
             const element = elementsArray.find((el) => el.scope === expectedScope);
             expect(element).toBeDefined(); // Check if element was found
-            if (element) { // Basic check
+            if (element) {
+                // Basic check
                 expect(element.type).toEqual('Control');
             }
         });
     });
 
-    it('should return only advanced options when type is \'advanced\'', () => {
+    it("should return only advanced options when type is 'advanced'", () => {
         const result = getProviderConfigSlice({
             selectedProvider: testProvider,
             providerOptions: s3Options,
@@ -143,16 +148,16 @@ describe('getProviderConfigSlice', () => {
         expect(Object.keys(paramProps).length).toBeGreaterThan(0);
 
         // Check that all properties included are advanced (Advanced === true)
-        const advancedOptions = s3Options.filter(opt => opt.Advanced === true);
-        const uniqueAdvancedOptionNames = [...new Set(advancedOptions.map(opt => opt.Name))];
+        const advancedOptions = s3Options.filter((opt) => opt.Advanced === true);
+        const uniqueAdvancedOptionNames = [...new Set(advancedOptions.map((opt) => opt.Name))];
 
         // Assert against the count of UNIQUE advanced option names
         expect(Object.keys(paramProps).length).toEqual(uniqueAdvancedOptionNames.length);
 
         // Check that each unique advanced option name exists in the generated props
-        uniqueAdvancedOptionNames.forEach(name => {
+        uniqueAdvancedOptionNames.forEach((name) => {
             expect(paramProps[name]).toBeDefined();
-            const correspondingOption = advancedOptions.find(opt => opt.Name === name);
+            const correspondingOption = advancedOptions.find((opt) => opt.Name === name);
             expect(paramProps[name]?.title).toEqual(correspondingOption?.Name);
         });
 
@@ -162,14 +167,15 @@ describe('getProviderConfigSlice', () => {
         expect(result.elements.length).toEqual(uniqueAdvancedOptionNames.length);
 
         // Check elements based on unique names
-        uniqueAdvancedOptionNames.forEach(name => {
+        uniqueAdvancedOptionNames.forEach((name) => {
             // Use `as any` for type assertion on the result elements array
             const elementsArray = result.elements as any[];
             // Find element by scope instead of label
             const expectedScope = `#/properties/parameters/properties/${name}`;
             const element = elementsArray.find((el) => el.scope === expectedScope);
             expect(element).toBeDefined(); // Check if element was found
-            if (element) { // Basic check
+            if (element) {
+                // Basic check
                 expect(element.type).toEqual('Control');
             }
         });
@@ -180,7 +186,7 @@ describe('getProviderConfigSlice', () => {
         const aliasOptions = providerOptionsMap[testProviderNoAdvanced];
 
         // Pre-check: Verify that the chosen provider actually has no advanced options in our data
-        const hasAdvanced = aliasOptions?.some(opt => opt.Advanced === true);
+        const hasAdvanced = aliasOptions?.some((opt) => opt.Advanced === true);
         expect(hasAdvanced).toBe(false); // Ensure our assumption about 'alias' holds
 
         const result = getProviderConfigSlice({

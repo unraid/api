@@ -1,8 +1,8 @@
 <script lang="ts" setup>
 /**
- * VerticalLayout component
+ * HorizontalLayout component
  *
- * Renders form elements in a vertical layout with labels aligned to the right
+ * Renders form elements in a horizontal layout with labels aligned to the right
  * and fields to the left. Consumes JSON Schema uischema to determine what elements
  * to render.
  *
@@ -14,22 +14,25 @@
  * @prop cells - Available cells
  */
 
-import type { VerticalLayout } from '@jsonforms/core';
+import type { HorizontalLayout } from '@jsonforms/core';
 import { DispatchRenderer, type RendererProps } from '@jsonforms/vue';
 import { computed } from 'vue';
 import { useJsonFormsVisibility } from './composables/useJsonFormsVisibility';
 
-const props = defineProps<RendererProps<VerticalLayout>>();
+const props = defineProps<RendererProps<HorizontalLayout>>();
 
+// Use the new composable
 const { layout, isVisible } = useJsonFormsVisibility({ rendererProps: props });
 
 const elements = computed(() => {
+  // Access elements from the layout object returned by the composable
   return layout.layout.value.uischema.elements || [];
 });
+
 </script>
 
 <template>
-  <div v-if="isVisible" class="flex flex-col gap-y-2">
+  <div v-if="isVisible" class="flex flex-row gap-x-2">
     <template v-for="(element, index) in elements" :key="index">
       <DispatchRenderer
         class="ml-10"

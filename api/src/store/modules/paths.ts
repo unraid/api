@@ -21,9 +21,7 @@ const initialState = {
     ),
     'docker-autostart': '/var/lib/docker/unraid-autostart' as const,
     'docker-socket': '/var/run/docker.sock' as const,
-    'rclone-socket': resolvePath(
-        process.env.PATHS_RCLONE_SOCKET ?? ('/var/run/rclone.socket' as const)
-    ),
+    'rclone-socket': resolvePath(process.env.PATHS_RCLONE_SOCKET ?? ('/var/run/rclone.socket' as const)),
     'parity-checks': resolvePath(
         process.env.PATHS_PARITY_CHECKS ?? ('/boot/config/parity-checks.log' as const)
     ),

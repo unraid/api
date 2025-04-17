@@ -2,10 +2,9 @@ import { Injectable, Logger } from '@nestjs/common';
 
 import { type Layout } from '@jsonforms/core';
 
+import { buildRcloneConfigSchema } from '@app/unraid-api/graph/resolvers/rclone/jsonforms/rclone-jsonforms-config.js';
+import { RCloneApiService } from '@app/unraid-api/graph/resolvers/rclone/rclone-api.service.js';
 import { RCloneProviderOptionResponse } from '@app/unraid-api/graph/resolvers/rclone/rclone.model.js';
-
-import { buildRcloneConfigSchema } from './jsonforms/rclone-jsonforms-config.js';
-import { RCloneApiService } from './rclone-api.service.js';
 
 /**
  * Service responsible for generating form UI schemas and form logic

@@ -2,7 +2,7 @@
 import { computed, ref, watch } from 'vue';
 import { useMutation, useQuery } from '@vue/apollo-composable';
 
-import { jsonFormsRenderers } from '@unraid/ui';
+import { Button, jsonFormsRenderers } from '@unraid/ui';
 import { JsonForms } from '@jsonforms/vue';
 
 import type { CreateRCloneRemoteInput } from '~/composables/gql/graphql';
@@ -112,8 +112,28 @@ const renderers = [...jsonFormsRenderers];
 
 // Handle form data changes
 const onChange = ({ data }: { data: Record<string, unknown> }) => {
+  console.log('[RCloneConfig] onChange received data:', JSON.stringify(data));
   formState.value = data as typeof formState.value;
 };
+
+// --- Submit Button Logic ---
+const uiSchema = computed(() => formResult.value?.rcloneBackup?.configForm?.uiSchema);
+// Assuming the stepped layout is the first element and its type indicates steps
+const numSteps = computed(() => {
+  // Adjust selector based on actual UI schema structure if needed
+  if (uiSchema.value?.type === 'SteppedLayout') {
+    return uiSchema.value?.options?.steps?.length ?? 0;
+  } else if (uiSchema.value?.elements?.[0]?.type === 'SteppedLayout') {
+    // Check if it's the first element
+    return uiSchema.value?.elements[0].options?.steps?.length ?? 0;
+  }
+  return 0; // Default or indicate error/no steps
+});
+
+const isLastStep = computed(() => {
+  if (numSteps.value === 0) return false;
+  return formState.value.configStep === numSteps.value - 1;
+});
 </script>
 
 <template>
@@ -140,6 +160,14 @@ const onChange = ({ data }: { data: Record<string, unknown> }) => {
           @change="onChange"
         />
       </div>
+
+      <!-- Submit Button (visible only on the last step) -->
+      <div v-if="!formLoading && uiSchema && isLastStep" class="mt-6 flex justify-end border-t border-gray-200 pt-6">
+        <Button :loading="isCreating" @click="submitForm">
+          Submit Configuration
+        </Button>
+      </div>
+
     </div>
   </div>
 </template>

@@ -59,7 +59,6 @@ export class DockerService implements OnModuleInit {
 
     public async onModuleInit() {
         try {
-            this.logger.debug('Warming Docker cache on startup...');
             await this.getContainers({ skipCache: true });
             await this.getNetworks({ skipCache: true });
             this.logger.debug('Docker cache warming complete.');
