@@ -16,6 +16,7 @@ import {
 } from '@app/unraid-api/graph/resolvers/api-key/api-key.model.js';
 import { Resource, Role } from '@app/unraid-api/graph/resolvers/base.model.js';
 import { validateObject } from '@app/unraid-api/graph/resolvers/validation.utils.js';
+import { PrefixedID } from '@app/unraid-api/graph/scalars/graphql-type-prefixed-id.js';
 
 @Resolver(() => ApiKey)
 export class ApiKeyResolver {
@@ -40,7 +41,10 @@ export class ApiKeyResolver {
         resource: Resource.API_KEY,
         possession: AuthPossession.ANY,
     })
-    async apiKey(@Args('id') id: string): Promise<ApiKey | null> {
+    async apiKey(
+        @Args('id', { type: () => PrefixedID })
+        id: string
+    ): Promise<ApiKey | null> {
         return this.apiKeyService.findById(id);
     }
 

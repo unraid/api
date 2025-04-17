@@ -1,9 +1,10 @@
-import { Field, ID, InputType, Int, ObjectType, registerEnumType } from '@nestjs/graphql';
+import { Field, InputType, Int, ObjectType, registerEnumType } from '@nestjs/graphql';
 
 import { IsEnum } from 'class-validator';
 
-import { GraphQLLong } from '@app/graphql/resolvers/graphql-type-long.js';
 import { Node } from '@app/unraid-api/graph/resolvers/base.model.js';
+import { GraphQLLong } from '@app/unraid-api/graph/scalars/graphql-type-long.js';
+import { PrefixedID } from '@app/unraid-api/graph/scalars/graphql-type-prefixed-id.js';
 
 @ObjectType()
 export class Capacity {
@@ -29,10 +30,7 @@ export class ArrayCapacity {
 @ObjectType({
     implements: () => Node,
 })
-export class ArrayDisk implements Node {
-    @Field(() => ID, { description: 'Disk identifier, only set for present disks on the system' })
-    id!: string;
-
+export class ArrayDisk extends Node {
     @Field(() => Int, {
         description:
             'Array slot number. Parity1 is always 0 and Parity2 is always 29. Array slots will be 1 - 28. Cache slots are 30 - 53. Flash is 54.',
@@ -132,10 +130,7 @@ export class ArrayDisk implements Node {
 @ObjectType({
     implements: () => Node,
 })
-export class UnraidArray implements Node {
-    @Field(() => ID)
-    id!: string;
-
+export class UnraidArray extends Node {
     @Field(() => ArrayState, { description: 'Current array state' })
     state!: ArrayState;
 
@@ -157,7 +152,7 @@ export class UnraidArray implements Node {
 
 @InputType()
 export class ArrayDiskInput {
-    @Field(() => ID, { description: 'Disk ID' })
+    @Field(() => PrefixedID, { description: 'Disk ID' })
     id!: string;
 
     @Field(() => Int, { nullable: true, description: 'The slot for the disk' })
@@ -244,10 +239,7 @@ registerEnumType(ArrayDiskFsColor, {
 @ObjectType({
     implements: () => Node,
 })
-export class Share implements Node {
-    @Field(() => ID)
-    id!: string;
-
+export class Share extends Node {
     @Field(() => String, { description: 'Display name', nullable: true })
     name?: string | null;
 

@@ -1,13 +1,10 @@
-import { Field, ID, ObjectType } from '@nestjs/graphql';
+import { Field, ObjectType } from '@nestjs/graphql';
 
 import { Permission } from '@app/unraid-api/graph/resolvers/api-key/api-key.model.js';
-import { Role } from '@app/unraid-api/graph/resolvers/base.model.js';
+import { Node, Role } from '@app/unraid-api/graph/resolvers/base.model.js';
 
-@ObjectType()
-export class UserAccount {
-    @Field(() => ID, { description: 'A unique identifier for the user' })
-    id!: string;
-
+@ObjectType({ implements: () => Node })
+export class UserAccount extends Node {
     @Field({ description: 'The name of the user' })
     name!: string;
 

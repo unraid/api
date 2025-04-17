@@ -3,6 +3,9 @@ import { Field, ObjectType, registerEnumType } from '@nestjs/graphql';
 import { Type } from 'class-transformer';
 import { IsArray, IsEnum, IsNumber, IsOptional, IsString, ValidateNested } from 'class-validator';
 
+import { Node } from '@app/unraid-api/graph/resolvers/base.model.js';
+import { PrefixedID } from '@app/unraid-api/graph/scalars/graphql-type-prefixed-id.js';
+
 export enum DiskFsType {
     XFS = 'XFS',
     BTRFS = 'BTRFS',
@@ -55,12 +58,8 @@ export class DiskPartition {
     size!: number;
 }
 
-@ObjectType()
-export class Disk {
-    @Field(() => String, { description: 'The unique identifier of the disk' })
-    @IsString()
-    id!: string;
-
+@ObjectType({ implements: () => Node })
+export class Disk extends Node {
     @Field(() => String, { description: 'The device path of the disk (e.g. /dev/sdb)' })
     @IsString()
     device!: string;

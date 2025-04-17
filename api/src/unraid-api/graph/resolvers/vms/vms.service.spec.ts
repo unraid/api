@@ -261,10 +261,10 @@ describe('VmsService', () => {
 
     it('should start and stop the test VM', async () => {
         expect(testVm).toBeDefined();
-        expect(testVm?.uuid).toBeDefined();
+        expect(testVm?.id).toBeDefined();
 
         // Start the VM
-        const startResult = await service.startVm(testVm!.uuid);
+        const startResult = await service.startVm(testVm!.id);
         expect(startResult).toBe(true);
 
         // Wait for VM to start with a more targeted approach
@@ -282,7 +282,7 @@ describe('VmsService', () => {
         expect(isRunning).toBe(true);
 
         // Stop the VM
-        const stopResult = await service.stopVm(testVm!.uuid);
+        const stopResult = await service.stopVm(testVm!.id);
         expect(stopResult).toBe(true);
 
         // Wait for VM to stop with a more targeted approach

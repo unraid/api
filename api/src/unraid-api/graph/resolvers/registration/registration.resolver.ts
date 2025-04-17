@@ -33,7 +33,7 @@ export class RegistrationResolver {
         const isExpired = emhttp.var.regTy.includes('expired');
 
         const registration: Registration = {
-            guid: emhttp.var.regGuid,
+            id: emhttp.var.regGuid,
             type: emhttp.var.regTy,
             state: emhttp.var.regState,
             // Based on https://github.com/unraid/dynamix.unraid.net/blob/c565217fa8b2acf23943dc5c22a12d526cdf70a1/source/dynamix.unraid.net/usr/local/emhttp/plugins/dynamix.my.servers/include/state.php#L64

@@ -1,5 +1,5 @@
 import { Logger } from '@nestjs/common';
-import { Args, ID, Mutation, Query, ResolveField, Resolver } from '@nestjs/graphql';
+import { Args, Mutation, Query, ResolveField, Resolver } from '@nestjs/graphql';
 
 import { Layout } from '@jsonforms/core';
 import { GraphQLJSON, GraphQLJSONObject } from 'graphql-scalars';
@@ -24,6 +24,7 @@ import {
     RemoteAccess,
     SetupRemoteAccessInput,
 } from '@app/unraid-api/graph/resolvers/connect/connect.model.js';
+import { PrefixedID } from '@app/unraid-api/graph/scalars/graphql-type-prefixed-id.js';
 import { DataSlice } from '@app/unraid-api/types/json-forms.js';
 
 @Resolver(() => ConnectSettings)
@@ -31,7 +32,7 @@ export class ConnectSettingsResolver {
     private readonly logger = new Logger(ConnectSettingsResolver.name);
     constructor(private readonly connectSettingsService: ConnectSettingsService) {}
 
-    @ResolveField(() => ID)
+    @ResolveField(() => PrefixedID)
     public async id(): Promise<string> {
         return 'connectSettingsForm';
     }
