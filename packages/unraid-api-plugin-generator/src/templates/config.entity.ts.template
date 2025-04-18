@@ -5,15 +5,15 @@ import { IsBoolean } from "class-validator";
 
 @Exclude() // Exclude properties by default
 @ObjectType()
-export class {{pascalName}}Config {
+export class PluginNameConfig {
   @Expose() // Expose this property for transformation
   @Field(() => Boolean, { description: "Whether the plugin is enabled" })
   @IsBoolean()
   enabled!: boolean;
 }
 
-// This function provides the default config and registers it under the '{{kebabName}}' key.
-export const configFeature = registerAs<{{pascalName}}Config>("{{kebabName}}", () => {
+// This function provides the default config and registers it under the 'plugin-name' key.
+export const configFeature = registerAs<PluginNameConfig>("plugin-name", () => {
   return {
     enabled: true,
   };

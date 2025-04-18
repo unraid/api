@@ -93,8 +93,8 @@ export async function createPlugin(pluginName: string, targetDir: string = proce
 
   const replaceNames = (template: string) => {
     return template
-    .replace(/\{\{pascalName\}\}/g, pascalName)
-    .replace(/\{\{kebabName\}\}/g, kebabName);
+      .replace(/PluginName/g, pascalName)
+      .replace(/plugin-name/g, kebabName);
   };
   
   // Create index.ts from template

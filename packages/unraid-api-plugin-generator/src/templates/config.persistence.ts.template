@@ -3,19 +3,19 @@ import { ConfigService } from "@nestjs/config";
 import { existsSync, readFileSync, writeFile } from "fs";
 import path from "path";
 import { debounceTime } from "rxjs/operators";
-import { {{pascalName}}Config } from "./config.entity.js";
+import { PluginNameConfig } from "./config.entity.js";
 
 @Injectable()
-export class {{pascalName}}ConfigPersister {
+export class PluginNameConfigPersister {
   constructor(private readonly configService: ConfigService) {}
 
-  private logger = new Logger({{pascalName}}ConfigPersister.name);
+  private logger = new Logger(PluginNameConfigPersister.name);
   
   /** the file path to the config file for this plugin */
   get configPath() {
     return path.join(
       this.configService.get("CONFIG_MODULES_HOME")!, 
-      '{{kebabName}}.json' // Use kebab-case for the filename
+      'plugin-name.json' // Use kebab-case for the filename
     );
   }
 
@@ -25,7 +25,7 @@ export class {{pascalName}}ConfigPersister {
     if (existsSync(this.configPath)) {
       try {
         const configFromFile = JSON.parse(readFileSync(this.configPath, "utf8"));
-        this.configService.set("{{kebabName}}", configFromFile); 
+        this.configService.set("plugin-name", configFromFile); 
         this.logger.verbose(`Config loaded from ${this.configPath}`);
       } catch (error) {
          this.logger.error(`Error reading or parsing config file at ${this.configPath}. Using defaults.`, error);
@@ -45,7 +45,7 @@ export class {{pascalName}}ConfigPersister {
       .subscribe({
         next: ({ newValue, oldValue, path: changedPath }) => {
           // Only persist if the change is within this plugin's config namespace
-          if (changedPath.startsWith("{{kebabName}}.") && newValue !== oldValue) {
+          if (changedPath.startsWith("plugin-name.") && newValue !== oldValue) {
             this.logger.debug(`Config changed: ${changedPath}`, { newValue, oldValue });
             // Persist the entire config object for this plugin
             this.persist(); 
@@ -57,7 +57,7 @@ export class {{pascalName}}ConfigPersister {
       });
   }
 
-  async persist(config = this.configService.get<{{pascalName}}Config>("{{kebabName}}")) {
+  async persist(config = this.configService.get<PluginNameConfig>("plugin-name")) {
     const data = JSON.stringify(config, null, 2);
     this.logger.verbose(`Persisting config to ${this.configPath}: ${data}`);
     writeFile(this.configPath, data, (err) => {

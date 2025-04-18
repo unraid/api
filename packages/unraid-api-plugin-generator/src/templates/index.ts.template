@@ -1,17 +1,17 @@
 import { Module, Logger, Inject } from "@nestjs/common";
 import { ConfigModule, ConfigService } from "@nestjs/config";
-import { {{pascalName}}ConfigPersister } from "./config.persistence.js";
+import { PluginNameConfigPersister } from "./config.persistence.js";
 import { configFeature } from "./config.entity.js";
-import { {{pascalName}}Resolver } from "./{{kebabName}}.resolver.js";
+import { PluginNameResolver } from "./plugin-name.resolver.js";
 
 export const adapter = "nestjs";
 
 @Module({
   imports: [ConfigModule.forFeature(configFeature)],
-  providers: [{{pascalName}}Resolver, {{pascalName}}ConfigPersister],
+  providers: [PluginNameResolver, PluginNameConfigPersister],
 })
-class {{pascalName}}PluginModule {
-  logger = new Logger({{pascalName}}PluginModule.name);
+class PluginNamePluginModule {
+  logger = new Logger(PluginNamePluginModule.name);
 
   constructor(
     @Inject(ConfigService) private readonly configService: ConfigService
@@ -19,10 +19,10 @@ class {{pascalName}}PluginModule {
 
   onModuleInit() {
     this.logger.log(
-      "{{pascalName}} plugin initialized with %o",
-      this.configService.get("{{kebabName}}")
+      "PluginName plugin initialized with %o",
+      this.configService.get("plugin-name")
     );
   }
 }
 
-export const ApiModule = {{pascalName}}PluginModule; 
+export const ApiModule = PluginNamePluginModule; 
