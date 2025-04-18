@@ -97,25 +97,18 @@ export async function createPlugin(pluginName: string, targetDir: string = proce
       .replace(/plugin-name/g, kebabName);
   };
   
-  // Create index.ts from template
-  const indexTemplate = await fs.readFile(path.join(templatesDir, 'index.ts.template'), 'utf8');
-  const indexContent = replaceNames(indexTemplate);
-  await fs.writeFile(path.join(pluginDir, 'src', 'index.ts'), indexContent);
-
-  // Create resolver from template
-  const resolverTemplate = await fs.readFile(path.join(templatesDir, 'resolver.ts.template'), 'utf8');
-  const resolverContent = replaceNames(resolverTemplate);
-  await fs.writeFile(path.join(pluginDir, 'src', `${kebabName}.resolver.ts`), resolverContent);
-
-  // Create config entity from template
-  const configEntityTemplate = await fs.readFile(path.join(templatesDir, 'config.entity.ts.template'), 'utf8');
-  const configEntityContent = replaceNames(configEntityTemplate);
-  await fs.writeFile(path.join(pluginDir, 'src', 'config.entity.ts'), configEntityContent);
-
-  // Create config persister from template
-  const configPersisterTemplate = await fs.readFile(path.join(templatesDir, 'config.persistence.ts.template'), 'utf8');
-  const configPersisterContent = replaceNames(configPersisterTemplate);
-  await fs.writeFile(path.join(pluginDir, 'src', 'config.persistence.ts'), configPersisterContent);
+  // Process all template files
+  const templateFiles = await fs.readdir(templatesDir);
+  
+  for (const templateFile of templateFiles) {
+    // Read template content
+    const templateContent = await fs.readFile(path.join(templatesDir, templateFile), 'utf8');
+    const processedContent = replaceNames(templateContent);
+    const outputFileName = replaceNames(templateFile);
+    
+    // Write to target directory
+    await fs.writeFile(path.join(pluginDir, 'src', outputFileName), processedContent);
+  }
 
   return pluginDir;
 } 

@@ -4,9 +4,6 @@ settings:
   autoInstallPeers: true
   excludeLinksFromLockfile: false
 
-overrides:
-  '@unraid/create-api-plugin': link:../../../Library/pnpm/global/5/node_modules/@unraid/create-api-plugin
-
 importers:
 
   .:
@@ -14,9 +11,6 @@ importers:
       '@manypkg/cli':
         specifier: ^0.23.0
         version: 0.23.0
-      '@unraid/create-api-plugin':
-        specifier: link:../../../Library/pnpm/global/5/node_modules/@unraid/create-api-plugin
-        version: link:../../../Library/pnpm/global/5/node_modules/@unraid/create-api-plugin
       chalk:
         specifier: ^5.0.0
         version: 5.4.1
@@ -550,6 +544,18 @@ importers:
         specifier: ^12.5.2
         version: 12.5.2(@types/node@22.14.1)
     devDependencies:
+      '@nestjs/common':
+        specifier: ^11.0.11
+        version: 11.0.12(class-transformer@0.5.1)(class-validator@0.14.1)(reflect-metadata@0.1.14)(rxjs@7.8.2)
+      '@nestjs/config':
+        specifier: ^4.0.2
+        version: 4.0.2(@nestjs/common@11.0.12(class-transformer@0.5.1)(class-validator@0.14.1)(reflect-metadata@0.1.14)(rxjs@7.8.2))(rxjs@7.8.2)
+      '@nestjs/core':
+        specifier: ^11.0.11
+        version: 11.0.12(@nestjs/common@11.0.12(class-transformer@0.5.1)(class-validator@0.14.1)(reflect-metadata@0.1.14)(rxjs@7.8.2))(reflect-metadata@0.1.14)(rxjs@7.8.2)
+      '@nestjs/graphql':
+        specifier: ^13.0.3
+        version: 13.0.4(@nestjs/common@11.0.12(class-transformer@0.5.1)(class-validator@0.14.1)(reflect-metadata@0.1.14)(rxjs@7.8.2))(@nestjs/core@11.0.12(@nestjs/common@11.0.12(class-transformer@0.5.1)(class-validator@0.14.1)(reflect-metadata@0.1.14)(rxjs@7.8.2))(reflect-metadata@0.1.14)(rxjs@7.8.2))(class-transformer@0.5.1)(class-validator@0.14.1)(graphql@16.10.0)(reflect-metadata@0.1.14)(ts-morph@24.0.0)
       '@types/fs-extra':
         specifier: ^11.0.4
         version: 11.0.4
@@ -559,6 +565,12 @@ importers:
       '@types/node':
         specifier: ^22.14.1
         version: 22.14.1
+      class-transformer:
+        specifier: ^0.5.1
+        version: 0.5.1
+      class-validator:
+        specifier: ^0.14.1
+        version: 0.14.1
       typescript:
         specifier: ^5.8.3
         version: 5.8.3

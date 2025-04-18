@@ -6,7 +6,7 @@
     "create-api-plugin": "./dist/index.js"
   },
   "scripts": {
-    "build": "tsc",
+    "build": "tsc -p tsconfig.build.json",
     "prepare": "npm run build"
   },
   "dependencies": {
@@ -18,9 +18,15 @@
     "inquirer": "^12.5.2"
   },
   "devDependencies": {
+    "@nestjs/common": "^11.0.11",
+    "@nestjs/config": "^4.0.2",
+    "@nestjs/core": "^11.0.11",
+    "@nestjs/graphql": "^13.0.3",
     "@types/fs-extra": "^11.0.4",
     "@types/inquirer": "^9.0.7",
     "@types/node": "^22.14.1",
+    "class-transformer": "^0.5.1",
+    "class-validator": "^0.14.1",
     "typescript": "^5.8.3"
   }
 }
