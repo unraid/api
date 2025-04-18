@@ -593,8 +593,8 @@ importers:
         specifier: ^2.0.1
         version: 2.0.1
       lucide-vue-next:
-        specifier: ^0.488.0
-        version: 0.488.0(vue@3.5.13(typescript@5.8.2))
+        specifier: ^0.501.0
+        version: 0.501.0(vue@3.5.13(typescript@5.8.2))
       reka-ui:
         specifier: ^2.1.0
         version: 2.1.1(typescript@5.8.2)(vue@3.5.13(typescript@5.8.2))
@@ -829,8 +829,8 @@ importers:
         specifier: ^2.19.0
         version: 2.22.0
       lucide-vue-next:
-        specifier: ^0.488.0
-        version: 0.488.0(vue@3.5.13(typescript@5.8.2))
+        specifier: ^0.501.0
+        version: 0.501.0(vue@3.5.13(typescript@5.8.2))
       marked:
         specifier: ^15.0.0
         version: 15.0.7
@@ -8218,8 +8218,8 @@ packages:
     resolution: {integrity: sha512-MhWWlVnuab1RG5/zMRRcVGXZLCXrZTgfwMikgzCegsPnG62yDQo5JnqKkrK4jO5iKqDAZGItAqN5CtKBCBWRUA==}
     engines: {node: '>=16.14'}
 
-  lucide-vue-next@0.488.0:
-    resolution: {integrity: sha512-Za02FzR1r+XN2oxOQerH7HvZwLJz27qPfzbauYzphtewy1g59Bm2DraVS5Sb9iHcIe3Pqf8cTVufvpwqAKlsew==}
+  lucide-vue-next@0.501.0:
+    resolution: {integrity: sha512-SFOkh2YFQYQjg5+jJH4F1aC7JvjrrRmNVGQnWkTUb6chkTFmUteMDf7lJFe2SKoOv10RRT1xLFYNKJiAXzeOeA==}
     peerDependencies:
       vue: '>=3.0.1'
 
@@ -9985,6 +9985,7 @@ packages:
 
   rspack-resolver@1.2.1:
     resolution: {integrity: sha512-yTaWGUvHOjcoyFMdVTdYt2nq2Hu8sw6ia3X9szloXFJlWLQZnQ9g/4TPhL3Bb3qN58Mkye8mFG7MCaKhya7fOw==}
+    deprecated: Please migrate to the brand new `@rspack/resolver` or `unrs-resolver` instead
 
   run-applescript@7.0.0:
     resolution: {integrity: sha512-9by4Ij99JUr/MCFBUkDKLWK3G9HVXmabKz9U5MlIAIuvuzkiOicRYs8XJLxX+xahD+mLiiCYDqF9dKAgtzKP1A==}
@@ -20400,7 +20401,7 @@ snapshots:
 
   lru-cache@8.0.5: {}
 
-  lucide-vue-next@0.488.0(vue@3.5.13(typescript@5.8.2)):
+  lucide-vue-next@0.501.0(vue@3.5.13(typescript@5.8.2)):
     dependencies:
       vue: 3.5.13(typescript@5.8.2)
 
