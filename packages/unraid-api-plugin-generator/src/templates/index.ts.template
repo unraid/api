@@ -1,0 +1,28 @@
+import { Module, Logger, Inject } from "@nestjs/common";
+import { ConfigModule, ConfigService } from "@nestjs/config";
+import { {{pascalName}}ConfigPersister } from "./config.persistence.js";
+import { configFeature } from "./config.entity.js";
+import { {{pascalName}}Resolver } from "./{{kebabName}}.resolver.js";
+
+export const adapter = "nestjs";
+
+@Module({
+  imports: [ConfigModule.forFeature(configFeature)],
+  providers: [{{pascalName}}Resolver, {{pascalName}}ConfigPersister],
+})
+class {{pascalName}}PluginModule {
+  logger = new Logger({{pascalName}}PluginModule.name);
+
+  constructor(
+    @Inject(ConfigService) private readonly configService: ConfigService
+  ) {}
+
+  onModuleInit() {
+    this.logger.log(
+      "{{pascalName}} plugin initialized with %o",
+      this.configService.get("{{kebabName}}")
+    );
+  }
+}
+
+export const ApiModule = {{pascalName}}PluginModule; 
