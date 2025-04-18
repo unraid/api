@@ -1,6 +1,6 @@
 import { CacheModule } from '@nestjs/cache-manager';
 import { Module } from '@nestjs/common';
-import { APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
+import { APP_GUARD } from '@nestjs/core';
 import { ThrottlerModule } from '@nestjs/throttler';
 
 import { AuthZGuard } from 'nest-authz';
@@ -12,7 +12,6 @@ import { AuthModule } from '@app/unraid-api/auth/auth.module.js';
 import { AuthenticationGuard } from '@app/unraid-api/auth/authentication.guard.js';
 import { CronModule } from '@app/unraid-api/cron/cron.module.js';
 import { GraphModule } from '@app/unraid-api/graph/graph.module.js';
-import { PluginModule } from '@app/unraid-api/plugin/plugin.module.js';
 import { RestModule } from '@app/unraid-api/rest/rest.module.js';
 import { UnraidFileModifierModule } from '@app/unraid-api/unraid-file-modifier/unraid-file-modifier.module.js';
 
@@ -49,7 +48,6 @@ import { UnraidFileModifierModule } from '@app/unraid-api/unraid-file-modifier/u
             },
         ]),
         UnraidFileModifierModule,
-        PluginModule.register(),
     ],
     controllers: [],
     providers: [

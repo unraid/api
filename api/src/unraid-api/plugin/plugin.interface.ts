@@ -42,7 +42,6 @@ export const apiNestPluginSchema = z
                 message: 'Invalid NestJS module: expected a class constructor',
             })
             .optional(),
-        graphqlSchemaExtension: asyncString().optional(),
     })
     .superRefine((data, ctx) => {
         // Ensure that at least one of ApiModule or CliModule is defined.
@@ -51,14 +50,6 @@ export const apiNestPluginSchema = z
                 code: z.ZodIssueCode.custom,
                 message: 'At least one of ApiModule or CliModule must be defined',
                 path: ['ApiModule', 'CliModule'],
-            });
-        }
-        // If graphqlSchemaExtension is provided, ensure that ApiModule is defined.
-        if (data.graphqlSchemaExtension && !data.ApiModule) {
-            ctx.addIssue({
-                code: z.ZodIssueCode.custom,
-                message: 'If graphqlSchemaExtension is provided, ApiModule must be defined',
-                path: ['graphqlSchemaExtension'],
             });
         }
     });
