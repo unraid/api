@@ -59,10 +59,14 @@ export class ConnectConfigPersister implements OnModuleInit, OnModuleDestroy {
    * @param config - The config object to persist.
    * @returns `true` if the config was persisted, `false` otherwise.
    */
-  async persist(config = this.configService.get<{ demo: string }>("connect")) {
-    if (isEqual(config, await this.loadConfig())) {
-      this.logger.verbose(`Config is unchanged, skipping persistence`);
-      return false;
+  async persist(config = this.configService.get<MyServersConfig>("connect")) {
+    try {
+      if (isEqual(config, await this.loadConfig())) {
+        this.logger.verbose(`Config is unchanged, skipping persistence`);
+        return false;
+      }
+    } catch (error) {
+      this.logger.error(`Error loading config (will overwrite file):`, error);
     }
     const data = JSON.stringify(config, null, 2);
     this.logger.verbose(`Persisting config to ${this.configPath}: ${data}`);
