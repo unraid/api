@@ -3,7 +3,8 @@ import 'global-agent/bootstrap.js';
 import '@app/dotenv.js';
 
 import { type NestFastifyApplication } from '@nestjs/platform-fastify';
-import { mkdirSync, unlinkSync } from 'fs';
+import { unlinkSync } from 'fs';
+import { mkdir } from 'fs/promises';
 import http from 'http';
 import https from 'https';
 
@@ -44,7 +45,7 @@ export const viteNodeApp = async () => {
         logger.info('ENV %o', envVars);
         logger.info('PATHS %o', store.getState().paths);
 
-        mkdirSync(CONFIG_MODULES_HOME, { recursive: true });
+        await mkdir(CONFIG_MODULES_HOME, { recursive: true });
 
         const cacheable = new CacheableLookup();
 

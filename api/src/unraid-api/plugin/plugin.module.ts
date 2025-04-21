@@ -1,7 +1,5 @@
 import { DynamicModule, Logger, Module } from '@nestjs/common';
 
-import { z } from 'zod';
-
 import { PluginService } from '@app/unraid-api/plugin/plugin.service.js';
 
 @Module({})
