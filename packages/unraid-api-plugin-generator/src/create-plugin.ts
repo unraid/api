@@ -2,11 +2,13 @@ import fs from 'fs-extra';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { pascalCase, kebabCase } from 'change-case';
+import validateNpmPackageName from 'validate-npm-package-name';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 export const isValidName = (name: string) => {
-  return /^[a-z0-9-]+$/.test(name) && !name.startsWith("-");
+  const { validForNewPackages } = validateNpmPackageName(name);
+  return validForNewPackages;
 };
 
 export async function createPlugin(pluginName: string, targetDir: string = process.cwd()) {
