@@ -1,6 +1,6 @@
 import { Command, CommandRunner, Option, SubCommand } from 'nest-commander';
 
-import { DependencyService } from '@app/unraid-api/cli/dependency.service.js';
+import { DependencyService } from '@app/unraid-api/cli/plugins/dependency.service.js';
 import { LogService } from '@app/unraid-api/cli/log.service.js';
 import { RestartCommand } from '@app/unraid-api/cli/restart.command.js';
 import { PluginService } from '@app/unraid-api/plugin/plugin.service.js';
@@ -35,7 +35,6 @@ export class InstallPluginCommand extends CommandRunner {
             await this.dependencyService.addPeerDependency(packageName, options.bundled);
             this.logService.log(`Added ${packageName} as a peer dependency.`);
             if (!options.bundled) {
-                await this.dependencyService.npmInstall();
                 await this.dependencyService.rebuildVendorArchive();
             }
             await this.restartCommand.run();

@@ -53,7 +53,7 @@ export class DependencyService {
         packageArg: string,
         bundled: boolean
     ): Promise<{ name: string; version: string; bundled: boolean }> {
-        const { name, version } = this.parsePackageArg(packageArg);
+        const { name } = this.parsePackageArg(packageArg);
         if (!name) {
             throw new Error('Invalid package name provided.');
         }
@@ -70,12 +70,9 @@ export class DependencyService {
             return { name, version: finalVersion, bundled };
         }
 
-        finalVersion = version || '*';
-        packageJson.peerDependencies[name] = finalVersion;
-        if (packageJson.peerDependenciesMeta?.[name]) {
-            delete packageJson.peerDependenciesMeta[name];
-        }
-        await this.writePackageJson(packageJson);
+        await execa('npm', ['install', '--save-peer', '--save-exact', packageArg], {
+            cwd: path.dirname(getPackageJsonPath()),
+        });
         return { name, version: finalVersion, bundled };
     }
 
