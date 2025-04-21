@@ -4,12 +4,18 @@ import { join } from 'path';
 
 import { fileExists } from '@app/core/utils/files/file-exists.js';
 import { CONFIG_MODULES_HOME } from '@app/environment.js';
-import { ConfigRegistry } from '@app/unraid-api/config/config.registry.js';
+import { makeConfigToken } from '@app/unraid-api/config/config.injection.js';
 
 import { ConfigPersistenceHelper } from './persistence.helper.js';
 
 export interface ApiStateConfigOptions<T> {
-    /** The name of the config. Must be unique. Used for logging and dependency injection. */
+    /**
+     * The name of the config.
+     *
+     * - Must be unique.
+     * - Should be the key representing this config in the `ConfigFeatures` interface.
+     * - Used for logging and dependency injection.
+     */
     name: string;
     defaultConfig: T;
     parse: (data: unknown) => T;
@@ -23,8 +29,6 @@ export class ApiStateConfig<T> {
         readonly options: ApiStateConfigOptions<T>,
         readonly persistenceHelper: ConfigPersistenceHelper
     ) {
-        // config registration must be first. otherwise, the unique token will not be registered/available.
-        ConfigRegistry.register(this.options.name, ApiStateConfig.name);
         // avoid sharing a reference with the given default config. This allows us to re-use it.
         this.config = structuredClone(options.defaultConfig);
         this.logger = new Logger(this.token);
@@ -32,7 +36,7 @@ export class ApiStateConfig<T> {
 
     /** Unique token for this config. Used for Dependency Injection & logging. */
     get token() {
-        return ConfigRegistry.getConfigToken(this.options.name);
+        return makeConfigToken(this.options.name);
     }
 
     get fileName() {

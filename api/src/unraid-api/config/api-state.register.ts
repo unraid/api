@@ -6,7 +6,7 @@ import type { ApiStateConfigPersistenceOptions } from '@app/unraid-api/config/ap
 import { ApiStateConfig } from '@app/unraid-api/config/api-state.model.js';
 import { ScheduledConfigPersistence } from '@app/unraid-api/config/api-state.service.js';
 import { ConfigPersistenceHelper } from '@app/unraid-api/config/persistence.helper.js';
-import { makeConfigToken } from '@app/unraid-api/config/config.registry.js';
+import { makeConfigToken } from '@app/unraid-api/config/config.injection.js';
 
 type ApiStateRegisterOptions<ConfigType> = ApiStateConfigOptions<ConfigType> & {
     persistence?: ApiStateConfigPersistenceOptions;
@@ -17,7 +17,7 @@ export class ApiStateConfigModule {
         options: ApiStateRegisterOptions<ConfigType>
     ): Promise<DynamicModule> {
         const { persistence, ...configOptions } = options;
-        const configToken = makeConfigToken(options.name, ApiStateConfig.name);
+        const configToken = makeConfigToken(options.name);
         const ConfigProvider = {
             provide: configToken,
             useFactory: async (helper: ConfigPersistenceHelper) => {
