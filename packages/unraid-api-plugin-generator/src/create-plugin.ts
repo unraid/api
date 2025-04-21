@@ -31,6 +31,10 @@ export async function createPlugin(pluginName: string, targetDir: string = proce
   const packageJson = {
     name: packageName,
     version: "1.0.0",
+    "unraidVersion": {
+      "min": "^6.12.15",
+      "max": "~7.1.0"
+    },
     main: "dist/index.js",
     type: "module",
     files: ["dist"],
