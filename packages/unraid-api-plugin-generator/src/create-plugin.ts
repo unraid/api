@@ -5,7 +5,15 @@ import { pascalCase, kebabCase } from 'change-case';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
+export const isValidName = (name: string) => {
+  return /^[a-z0-9-]+$/.test(name) && !name.startsWith("-");
+};
+
 export async function createPlugin(pluginName: string, targetDir: string = process.cwd()) {
+  if (!isValidName(pluginName)) {
+    throw new Error("Invalid plugin name");
+  }
+
   const pascalName = pascalCase(pluginName);
   const kebabName = kebabCase(pluginName);
   const packageName = `unraid-api-plugin-${kebabName}`;

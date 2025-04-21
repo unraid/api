@@ -1,16 +1,34 @@
 #!/usr/bin/env node
 import { Command } from "commander";
-import { createPlugin } from "./create-plugin.js";
+import { createPlugin, isValidName } from "./create-plugin.js";
 import chalk from "chalk";
-import path from "path";
-import { fileURLToPath } from "url";
 import { exec } from "child_process";
 import { promisify } from "util";
 
 const execAsync = promisify(exec);
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 const program = new Command();
+
+async function getPluginName(name: string | undefined) {
+  if (name && isValidName(name)) return name;
+  const { pluginName } = await import("inquirer").then(
+    ({ default: inquirer }) =>
+      inquirer.prompt([
+        {
+          type: "input",
+          name: "pluginName",
+          message: "What would you like to name your plugin?",
+          validate: (input: string) => {
+            if (!input) return "Plugin name is required";
+            if (!isValidName(input))
+              return "Plugin name should only contain lowercase letters, numbers, and hyphens, and may not start with a hyphen";
+            return true;
+          },
+        },
+      ])
+  );
+  return pluginName;
+}
 
 program
   .name("create-api-plugin")
@@ -37,34 +55,7 @@ program
       options: { dir: string; packageManager: string; install: boolean }
     ) => {
       try {
-        let pluginName: string;
-        if (!name || name.startsWith("-")) {
-          console.log(
-            chalk.yellow(
-              "No plugin name provided or invalid name detected. Please provide a name:"
-            )
-          );
-          const { pluginName: inputName } = await import("inquirer").then(
-            ({ default: inquirer }) =>
-              inquirer.prompt([
-                {
-                  type: "input",
-                  name: "pluginName",
-                  message: "What would you like to name your plugin?",
-                  validate: (input: string) => {
-                    if (!input) return "Plugin name is required";
-                    if (!/^[a-z0-9-]+$/.test(input))
-                      return "Plugin name can only contain lowercase letters, numbers, and hyphens";
-                    return true;
-                  },
-                },
-              ])
-          );
-          pluginName = inputName;
-        } else {
-          pluginName = name;
-        }
-
+        const pluginName = await getPluginName(name);
         const pluginDir = await createPlugin(pluginName, options.dir);
         console.log(chalk.green(`Successfully created plugin: ${pluginName}`));
 
