@@ -109,8 +109,7 @@ export class ConnectConfigPersister implements OnModuleInit, OnModuleDestroy {
    * @throws {Error} - If the config file is not valid.
    */
   private async loadConfig(configFilePath = this.configPath) {
-    if (!existsSync(configFilePath))
-      throw `Config file does not exist at '${configFilePath}'`;
+    if (!existsSync(configFilePath)) throw new Error(`Config file does not exist at '${configFilePath}'`);
     const config = this.validate(JSON.parse(readFileSync(configFilePath, "utf8")));
     this.configService.set("connect", config);
     this.logger.verbose(`Config loaded from ${configFilePath}`);
@@ -118,6 +117,8 @@ export class ConnectConfigPersister implements OnModuleInit, OnModuleDestroy {
 
   /**
    * Migrate the legacy config file to the new config format.
+   * Loads into memory, but does not persist.
+   * 
    * @throws {Error} - If the legacy config file does not exist.
    * @throws {Error} - If the legacy config file is not parse-able.
    */
