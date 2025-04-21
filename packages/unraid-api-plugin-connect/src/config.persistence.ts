@@ -9,11 +9,11 @@ import { existsSync, readFileSync } from "fs";
 import { writeFile } from "fs/promises";
 import path from "path";
 import { debounceTime } from "rxjs/operators";
-import { parseConfig } from "./helpers/parse-ini-config.js";
 import type { MyServersConfig as LegacyConfig } from "./helpers/my-servers-config.js";
 import { MyServersConfig } from "./config.entity.js";
 import { plainToInstance } from "class-transformer";
 import { csvStringToArray } from "./helpers/utils.js";
+import { parse as parseIni } from 'ini';
 
 @Injectable()
 export class ConnectConfigPersister implements OnModuleInit, OnModuleDestroy {
@@ -148,7 +148,7 @@ export class ConnectConfigPersister implements OnModuleInit, OnModuleDestroy {
     if (!existsSync(filePath)) {
       throw new Error(`Legacy config file does not exist: ${filePath}`);
     }
-    const config = parseConfig<LegacyConfig>({ filePath, type: "ini" });
+    const config = parseIni(readFileSync(filePath, "utf8")) as LegacyConfig;
     return this.validate({
       ...config.api,
       ...config.local,
