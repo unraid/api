@@ -1,85 +1,61 @@
 // Schema for the legacy myservers.cfg configuration file.
 
-import { z } from 'zod';
-
 enum MinigraphStatus {
-    PRE_INIT = 'PRE_INIT',
-    CONNECTING = 'CONNECTING',
-    CONNECTED = 'CONNECTED',
-    PING_FAILURE = 'PING_FAILURE',
-    ERROR_RETRYING = 'ERROR_RETRYING',
+  PRE_INIT = "PRE_INIT",
+  CONNECTING = "CONNECTING",
+  CONNECTED = "CONNECTED",
+  PING_FAILURE = "PING_FAILURE",
+  ERROR_RETRYING = "ERROR_RETRYING",
 }
+
 enum DynamicRemoteAccessType {
-    STATIC = 'STATIC',
-    UPNP = 'UPNP',
-    DISABLED = 'DISABLED',
+  STATIC = "STATIC",
+  UPNP = "UPNP",
+  DISABLED = "DISABLED",
 }
 
-// Define Zod schemas
-const ApiConfigSchema = z.object({
-    version: z.string(),
-    extraOrigins: z.string(),
-});
+// TODO Currently registered in the main api, but this will eventually be the source of truth.
+//
+// registerEnumType(MinigraphStatus, {
+//   name: "MinigraphStatus",
+//   description: "The status of the minigraph",
+// });
+//
+// registerEnumType(DynamicRemoteAccessType, {
+//   name: "DynamicRemoteAccessType",
+//   description: "The type of dynamic remote access",
+// });
 
-const RemoteConfigSchema = z.object({
-    wanaccess: z.string(),
-    wanport: z.string(),
-    upnpEnabled: z.string(),
-    apikey: z.string(),
-    localApiKey: z.string(),
-    email: z.string(),
-    username: z.string(),
-    avatar: z.string(),
-    regWizTime: z.string(),
-    accesstoken: z.string(),
-    idtoken: z.string(),
-    refreshtoken: z.string(),
-    dynamicRemoteAccessType: z.nativeEnum(DynamicRemoteAccessType),
-    ssoSubIds: z
-        .string()
-        .transform((val) => {
-            // If valid, return as is
-            if (val === '' || val.split(',').every((id) => id.trim().match(/^[a-zA-Z0-9-]+$/))) {
-                return val;
-            }
-            // Otherwise, replace with an empty string
-            return '';
-        })
-        .refine(
-            (val) => val === '' || val.split(',').every((id) => id.trim().match(/^[a-zA-Z0-9-]+$/)),
-            {
-                message:
-                    'ssoSubIds must be empty or a comma-separated list of alphanumeric strings with dashes',
-            }
-        ),
-});
+export type MyServersConfig = {
+  api: {
+    version: string;
+    extraOrigins: string;
+  };
+  local: {
+    sandbox: "yes" | "no";
+  };
+  remote: {
+    wanaccess: string;
+    wanport: string;
+    upnpEnabled: string;
+    apikey: string;
+    localApiKey: string;
+    email: string;
+    username: string;
+    avatar: string;
+    regWizTime: string;
+    accesstoken: string;
+    idtoken: string;
+    refreshtoken: string;
+    dynamicRemoteAccessType: DynamicRemoteAccessType;
+    ssoSubIds: string;
+  };
+};
 
-const LocalConfigSchema = z.object({
-    sandbox: z.enum(['yes', 'no']).default('no'),
-});
-
-// Base config schema
-export const MyServersConfigSchema = z
-    .object({
-        api: ApiConfigSchema,
-        local: LocalConfigSchema,
-        remote: RemoteConfigSchema,
-    })
-    .strip();
-
-// Memory config schema
-export const ConnectionStatusSchema = z.object({
-    minigraph: z.nativeEnum(MinigraphStatus),
-    upnpStatus: z.string().nullable().optional(),
-});
-
-export const MyServersConfigMemorySchema = MyServersConfigSchema.extend({
-    connectionStatus: ConnectionStatusSchema,
-    remote: RemoteConfigSchema.extend({
-        allowedOrigins: z.string(),
-    }),
-}).strip();
-
-// Infer and export types from Zod schemas
-export type MyServersConfig = z.infer<typeof MyServersConfigSchema>;
-export type MyServersConfigMemory = z.infer<typeof MyServersConfigMemorySchema>;
+/** In-Memory representation of the legacy myservers.cfg configuration file */
+export type MyServersConfigMemory = MyServersConfig & {
+  connectionStatus: {
+    minigraph: MinigraphStatus;
+    upnpStatus?: string | null;
+  };
+};

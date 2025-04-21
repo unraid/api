@@ -30,8 +30,7 @@
     "lodash-es": "^4.17.21",
     "nest-authz": "^2.14.0",
     "rxjs": "^7.8.2",
-    "typescript": "^5.8.2",
-    "zod": "^3.23.8"
+    "typescript": "^5.8.2"
   },
   "peerDependencies": {
     "@nestjs/common": "^11.0.11",
@@ -44,7 +43,6 @@
     "ini": "^5.0.0",
     "lodash-es": "^4.17.21",
     "nest-authz": "^2.14.0",
-    "rxjs": "^7.8.2",
-    "zod": "^3.23.8"
+    "rxjs": "^7.8.2"
   }
 }
