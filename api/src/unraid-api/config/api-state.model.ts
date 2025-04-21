@@ -1,25 +1,28 @@
 import { Logger } from '@nestjs/common';
-import { readFile, writeFile } from 'node:fs/promises';
+import { readFile } from 'node:fs/promises';
 import { join } from 'path';
-
-import type { ZodType } from 'zod';
 
 import { fileExists } from '@app/core/utils/files/file-exists.js';
 import { CONFIG_MODULES_HOME } from '@app/environment.js';
 import { ConfigRegistry } from '@app/unraid-api/config/config.registry.js';
 
+import { ConfigPersistenceHelper } from './persistence.helper.js';
+
 export interface ApiStateConfigOptions<T> {
     /** The name of the config. Must be unique. Used for logging and dependency injection. */
     name: string;
-    zodSchema: ZodType<T>;
     defaultConfig: T;
+    parse: (data: unknown) => T;
 }
 
 export class ApiStateConfig<T> {
     private config: T;
     private logger: Logger;
 
-    constructor(readonly options: ApiStateConfigOptions<T>) {
+    constructor(
+        readonly options: ApiStateConfigOptions<T>,
+        readonly persistenceHelper: ConfigPersistenceHelper
+    ) {
         // config registration must be first. otherwise, the unique token will not be registered/available.
         ConfigRegistry.register(this.options.name, ApiStateConfig.name);
         // avoid sharing a reference with the given default config. This allows us to re-use it.
@@ -40,10 +43,6 @@ export class ApiStateConfig<T> {
         return join(CONFIG_MODULES_HOME, this.fileName);
     }
 
-    get schema() {
-        return this.options.zodSchema;
-    }
-
     /**
      * Persists the config to the file system. Will never throw.
      * @param config - The config to persist.
@@ -51,7 +50,7 @@ export class ApiStateConfig<T> {
      */
     async persist(config = this.config) {
         try {
-            await writeFile(this.filePath, JSON.stringify(config, null, 2));
+            await this.persistenceHelper.persistIfChanged(this.filePath, config);
             return true;
         } catch (error) {
             this.logger.error(error, `Could not write config to ${this.filePath}.`);
@@ -71,7 +70,7 @@ export class ApiStateConfig<T> {
         if (!(await fileExists(filePath))) return undefined;
 
         const rawConfig = JSON.parse(await readFile(filePath, 'utf8'));
-        return this.options.zodSchema.parse(rawConfig);
+        return this.options.parse(rawConfig);
     }
 
     /**
@@ -96,7 +95,7 @@ export class ApiStateConfig<T> {
     }
 
     update(config: Partial<T>) {
-        const proposedConfig = this.schema.parse({ ...this.config, ...config });
+        const proposedConfig = this.options.parse({ ...this.config, ...config });
         this.config = proposedConfig;
     }
 }

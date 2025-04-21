@@ -51,8 +51,15 @@ export class ScheduledConfigPersistence<T> {
     }
 
     setup() {
-        const TEN_SECONDS = 10_000;
-        const { intervalMs = TEN_SECONDS, maxConsecutiveFailures = 5 } = this.options;
+        const interval = this.schedulerRegistry.getInterval(this.token);
+        if (interval) {
+            this.logger.warn(
+                `Persistence interval for '${this.token}' already exists. Aborting setup.`
+            );
+            return;
+        }
+        const ONE_MINUTE = 60_000;
+        const { intervalMs = ONE_MINUTE, maxConsecutiveFailures = 3 } = this.options;
 
         const callback = async () => {
             const success = await this.config.persist();
