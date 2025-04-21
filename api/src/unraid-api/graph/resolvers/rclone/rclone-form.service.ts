@@ -4,7 +4,11 @@ import { type Layout } from '@jsonforms/core';
 
 import { buildRcloneConfigSchema } from '@app/unraid-api/graph/resolvers/rclone/jsonforms/rclone-jsonforms-config.js';
 import { RCloneApiService } from '@app/unraid-api/graph/resolvers/rclone/rclone-api.service.js';
-import { RCloneProviderOptionResponse } from '@app/unraid-api/graph/resolvers/rclone/rclone.model.js';
+import {
+    RCloneConfigFormInput,
+    RCloneProviderOptionResponse,
+} from '@app/unraid-api/graph/resolvers/rclone/rclone.model.js';
+import { DataSlice } from '@app/unraid-api/types/json-forms.js';
 
 /**
  * Service responsible for generating form UI schemas and form logic
@@ -41,10 +45,12 @@ export class RCloneFormService {
     /**
      * Returns both data schema and UI schema for the form
      */
-    async getFormSchemas(selectedProvider: string = ''): Promise<{
-        dataSchema: Record<string, any>;
+    async getFormSchemas(options: RCloneConfigFormInput): Promise<{
+        dataSchema: { properties: DataSlice; type: 'object' };
         uiSchema: Layout;
     }> {
+        const { providerType: selectedProvider = '', showAdvanced = false } = options;
+
         // Ensure provider info is loaded
         if (Object.keys(this.providerOptions).length === 0) {
             await this.loadProviderInfo();
@@ -54,6 +60,7 @@ export class RCloneFormService {
             providerTypes: this.providerNames,
             selectedProvider,
             providerOptions: this.providerOptions,
+            showAdvanced,
         });
     }
 }

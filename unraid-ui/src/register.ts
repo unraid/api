@@ -13,14 +13,14 @@ type RegisterParams = {
 // Type for our simplified Vue component representation
 type CustomElementComponent = {
   styles?: string[];
-  render?: Function;
-  setup?: Function;
-  [key: string]: any;
+  render?: () => unknown;
+  setup?: () => unknown;
+  [key: string]: unknown;
 };
 
 export function registerAllComponents(params: RegisterParams = {}) {
   const { namePrefix = 'uui', pathToSharedCss = './src/styles/index.css' } = params;
-  
+
   Object.entries(Components).forEach(([name, originalComponent]) => {
     // Use explicit type assertion instead of type predicates
     try {
@@ -31,7 +31,7 @@ export function registerAllComponents(params: RegisterParams = {}) {
         }
         return;
       }
-      
+
       // Skip function values
       if (typeof originalComponent === 'function') {
         if (debugImports) {
@@ -39,7 +39,7 @@ export function registerAllComponents(params: RegisterParams = {}) {
         }
         return;
       }
-      
+
       // Skip if not a Vue component
       if (!('render' in originalComponent || 'setup' in originalComponent)) {
         if (debugImports) {
@@ -50,7 +50,7 @@ export function registerAllComponents(params: RegisterParams = {}) {
 
       // Now we can safely use type assertion since we've validated the component
       const component = originalComponent as CustomElementComponent;
-      
+
       // add our shared css to each web component
       component.styles ??= [];
       component.styles.unshift(`@import "${pathToSharedCss}"`);
@@ -67,9 +67,9 @@ export function registerAllComponents(params: RegisterParams = {}) {
       if (debugImports) {
         console.log(name, elementName, component.styles);
       }
-      
+
       // Use appropriate casting for defineCustomElement
-      customElements.define(elementName, defineCustomElement(component as any));
+      customElements.define(elementName, defineCustomElement(component as object));
     } catch (error) {
       console.error(`[register components] Error registering component ${name}:`, error);
     }

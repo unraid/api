@@ -14,10 +14,10 @@
  * @prop cells - Available cells
  */
 
+import { useJsonFormsVisibility } from '@/forms/composables/useJsonFormsVisibility';
 import type { HorizontalLayout } from '@jsonforms/core';
 import { DispatchRenderer, type RendererProps } from '@jsonforms/vue';
 import { computed } from 'vue';
-import { useJsonFormsVisibility } from './composables/useJsonFormsVisibility';
 
 const props = defineProps<RendererProps<HorizontalLayout>>();
 
@@ -28,14 +28,12 @@ const elements = computed(() => {
   // Access elements from the layout object returned by the composable
   return layout.layout.value.uischema.elements || [];
 });
-
 </script>
 
 <template>
-  <div v-if="isVisible" class="flex flex-row gap-x-2">
-    <template v-for="(element, index) in elements" :key="index">
+  <div v-if="isVisible" class="flex flex-row gap-2 items-baseline">
+    <template v-for="(element, _i) in elements" :key="_i">
       <DispatchRenderer
-        class="ml-10"
         :schema="layout.layout.value.schema"
         :uischema="element"
         :path="layout.layout.value.path"

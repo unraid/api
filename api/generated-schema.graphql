@@ -1357,14 +1357,18 @@ type RCloneBackupConfigForm {
   id: ID!
   dataSchema: JSON!
   uiSchema: JSON!
-  providerType: String
-  parameters: JSON
 }
 
 type RCloneBackupSettings {
-  configForm(providerType: String, parameters: JSON): RCloneBackupConfigForm!
+  configForm(formOptions: RCloneConfigFormInput): RCloneBackupConfigForm!
   drives: [RCloneDrive!]!
   remotes: [String!]!
+}
+
+input RCloneConfigFormInput {
+  providerType: String
+  showAdvanced: Boolean = false
+  parameters: JSON
 }
 
 type RCloneRemote {

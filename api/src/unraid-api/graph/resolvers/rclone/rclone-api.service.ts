@@ -6,7 +6,7 @@ import { mkdir, rm, writeFile } from 'node:fs/promises';
 import { dirname, join } from 'node:path';
 
 import { execa } from 'execa';
-import got from 'got';
+import got, { HTTPError } from 'got';
 
 import {
     RCloneProviderOptionResponse,
@@ -270,15 +270,20 @@ export class RCloneApiService implements OnModuleInit, OnModuleDestroy {
      * Create a new remote configuration
      */
     async createRemote(name: string, type: string, parameters: Record<string, any> = {}): Promise<any> {
-        // Combine the required parameters for the create request
+        // Structure the payload as expected by Rclone API
         const params = {
             name,
             type,
-            ...parameters,
+            parameters: parameters, // Nest the parameters object under the 'parameters' key
         };
 
-        this.logger.log(`Creating new remote: ${name} of type: ${type}`);
-        return this.callRcloneApi('config/create', params);
+        this.logger.log(
+            `Creating new remote: ${name} of type: ${type} with params: ${JSON.stringify(params)}`
+        ); // Added params logging
+        const result = await this.callRcloneApi('config/create', params);
+        // console.log('Result was: ', result); // Result is usually empty on success, potentially remove
+        this.logger.log(`Successfully created remote: ${name}`); // Improved success log
+        return result; // Rclone 'config/create' usually returns an empty object on success
     }
 
     /**
@@ -339,8 +344,8 @@ export class RCloneApiService implements OnModuleInit, OnModuleDestroy {
      * Generic method to call the RClone RC API
      */
     private async callRcloneApi(endpoint: string, params: Record<string, any> = {}): Promise<any> {
+        const url = `${this.rcloneBaseUrl}/${endpoint}`;
         try {
-            const url = `${this.rcloneBaseUrl}/${endpoint}`;
             this.logger.debug(`Calling RClone API: ${url} with params: ${JSON.stringify(params)}`);
 
             const response = await got.post(url, {
@@ -350,13 +355,67 @@ export class RCloneApiService implements OnModuleInit, OnModuleDestroy {
                 headers: {
                     Authorization: `Basic ${Buffer.from(`${this.rcloneUsername}:${this.rclonePassword}`).toString('base64')}`,
                 },
+                // Add timeout? retry logic? Consider these based on need.
             });
 
             return response.body;
         } catch (error: unknown) {
-            const errorMessage = error instanceof Error ? error.message : String(error);
-            this.logger.error(`Error calling RClone API (${endpoint}): ${errorMessage} ${error}`);
-            throw error;
+            let detailedErrorMessage = 'An unknown error occurred';
+            if (error instanceof HTTPError) {
+                const statusCode = error.response.statusCode;
+                let rcloneError = 'Could not extract Rclone error details.';
+                const responseBody = error.response.body; // Get the body
+
+                try {
+                    let errorBody: any;
+                    // Check if the body is a string that needs parsing or already an object
+                    if (typeof responseBody === 'string') {
+                        errorBody = JSON.parse(responseBody);
+                    } else if (typeof responseBody === 'object' && responseBody !== null) {
+                        errorBody = responseBody; // It's already an object
+                    }
+
+                    if (errorBody && errorBody.error) {
+                        rcloneError = `Rclone Error: ${errorBody.error}`;
+                        // Add input details if available, check for different structures
+                        if (errorBody.input) {
+                            rcloneError += ` | Input: ${JSON.stringify(errorBody.input)}`;
+                        } else if (params) {
+                            // Fallback to original params if errorBody.input is missing
+                            rcloneError += ` | Original Params: ${JSON.stringify(params)}`;
+                        }
+                    } else if (responseBody) {
+                        // Body exists but doesn't match expected error structure
+                        rcloneError = `Non-standard error response body: ${typeof responseBody === 'string' ? responseBody : JSON.stringify(responseBody)}`;
+                    } else {
+                        rcloneError = 'Empty error response body received.';
+                    }
+                } catch (parseOrAccessError) {
+                    // Handle errors during parsing or accessing properties
+                    rcloneError = `Failed to process error response body. Raw body: ${typeof responseBody === 'string' ? responseBody : JSON.stringify(responseBody)}`;
+                }
+                // Construct the detailed message for the new error
+                detailedErrorMessage = `Rclone API Error (${endpoint}, HTTP ${statusCode}): ${rcloneError}`;
+
+                // Log the detailed error including the original stack if available
+                this.logger.error(
+                    `Original ${detailedErrorMessage} | Params: ${JSON.stringify(params)}`,
+                    error.stack // Log the original HTTPError stack
+                );
+
+                // Throw a NEW error with the detailed Rclone message
+                throw new Error(detailedErrorMessage);
+            } else if (error instanceof Error) {
+                // For non-HTTP errors, log and re-throw as before
+                detailedErrorMessage = `Error calling RClone API (${endpoint}) with params ${JSON.stringify(params)}: ${error.message}`;
+                this.logger.error(detailedErrorMessage, error.stack);
+                throw error; // Re-throw original non-HTTP error
+            } else {
+                // Handle unknown error types
+                detailedErrorMessage = `Unknown error calling RClone API (${endpoint}) with params ${JSON.stringify(params)}: ${String(error)}`;
+                this.logger.error(detailedErrorMessage);
+                throw new Error(detailedErrorMessage); // Throw a new error for unknown types
+            }
         }
     }
 

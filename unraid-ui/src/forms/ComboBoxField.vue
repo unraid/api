@@ -79,61 +79,47 @@ if (control.value.data !== undefined && control.value.data !== null) {
 </script>
 
 <template>
-  <div v-if="control.visible" class="flex flex-col gap-2">
-    <label v-if="control.label" :for="control.id" class="text-sm font-medium">
-      {{ control.label }}
-    </label>
+  <Combobox :open="isOpen" @update:open="handleOpenChange">
+    <ComboboxAnchor>
+      <ComboboxTrigger>
+        <ComboboxInput
+          :id="control.id"
+          :value="inputValue"
+          @input="handleInput"
+          :placeholder="control.uischema.options?.placeholder"
+          :disabled="!control.enabled"
+        />
+      </ComboboxTrigger>
+    </ComboboxAnchor>
+    <ComboboxList>
+      <ComboboxEmpty class="p-2 text-sm text-muted-foreground"> No suggestions found </ComboboxEmpty>
 
-    <Combobox :open="isOpen" @update:open="handleOpenChange">
-      <ComboboxAnchor>
-        <ComboboxTrigger>
-          <ComboboxInput
-            :id="control.id"
-            :value="inputValue"
-            @input="handleInput"
-            :placeholder="control.uischema.options?.placeholder"
-            :disabled="!control.enabled"
-          />
-        </ComboboxTrigger>
-      </ComboboxAnchor>
-      <ComboboxList>
-        <ComboboxEmpty class="p-2 text-sm text-muted-foreground"> No suggestions found </ComboboxEmpty>
-
-        <template v-for="suggestion in suggestions" :key="suggestion.value">
-          <TooltipProvider v-if="suggestion.tooltip">
-            <Tooltip :delay-duration="50">
-              <TooltipTrigger as-child>
-                <ComboboxItem
-                  :value="suggestion.value"
-                  @select="handleSelect"
-                  class="relative flex cursor-default select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none hover:bg-accent hover:text-accent-foreground data-[highlighted]:bg-accent data-[highlighted]:text-accent-foreground"
-                >
-                  <span>{{ suggestion.label || suggestion.value }}</span>
-                </ComboboxItem>
-              </TooltipTrigger>
-              <TooltipContent :to="teleportTarget" side="right" :side-offset="5">
-                <p class="max-w-xs">{{ suggestion.tooltip }}</p>
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
-          <ComboboxItem
-            v-else
-            :value="suggestion.value"
-            @select="handleSelect"
-            class="relative flex cursor-default select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none hover:bg-accent hover:text-accent-foreground data-[highlighted]:bg-accent data-[highlighted]:text-accent-foreground"
-          >
-            <span>{{ suggestion.label || suggestion.value }}</span>
-          </ComboboxItem>
-        </template>
-      </ComboboxList>
-    </Combobox>
-
-    <div v-if="control.errors" class="text-sm text-destructive">
-      {{ control.errors }}
-    </div>
-
-    <div v-if="control.description" class="text-sm text-muted-foreground">
-      {{ control.description }}
-    </div>
-  </div>
+      <template v-for="suggestion in suggestions" :key="suggestion.value">
+        <TooltipProvider v-if="suggestion.tooltip">
+          <Tooltip :delay-duration="50">
+            <TooltipTrigger as-child>
+              <ComboboxItem
+                :value="suggestion.value"
+                @select="handleSelect"
+                class="relative flex cursor-default select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none hover:bg-accent hover:text-accent-foreground data-[highlighted]:bg-accent data-[highlighted]:text-accent-foreground"
+              >
+                <span>{{ suggestion.label || suggestion.value }}</span>
+              </ComboboxItem>
+            </TooltipTrigger>
+            <TooltipContent :to="teleportTarget" side="right" :side-offset="5">
+              <p class="max-w-xs">{{ suggestion.tooltip }}</p>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+        <ComboboxItem
+          v-else
+          :value="suggestion.value"
+          @select="handleSelect"
+          class="relative flex cursor-default select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none hover:bg-accent hover:text-accent-foreground data-[highlighted]:bg-accent data-[highlighted]:text-accent-foreground"
+        >
+          <span>{{ suggestion.label || suggestion.value }}</span>
+        </ComboboxItem>
+      </template>
+    </ComboboxList>
+  </Combobox>
 </template>

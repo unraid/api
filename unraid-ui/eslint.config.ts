@@ -71,13 +71,19 @@ const vueRules = {
 const commonLanguageOptions = {
   ecmaVersion: 'latest',
   sourceType: 'module',
-  globals: {
-    browser: true,
-    window: true,
-    document: true,
-    es2022: true,
-    HTMLElement: true,
-  },
+};
+
+// Define globals separately
+const commonGlobals = {
+  browser: true,
+  window: true,
+  document: true,
+  console: true,
+  Event: true,
+  HTMLElement: true,
+  HTMLInputElement: true,
+  CustomEvent: true,
+  es2022: true,
 };
 
 export default [
@@ -95,6 +101,9 @@ export default [
         ecmaFeatures: {
           jsx: true,
         },
+      },
+      globals: {
+        ...commonGlobals
       },
     },
     plugins: {
@@ -118,6 +127,9 @@ export default [
         ecmaFeatures: {
           jsx: true,
         },
+      },
+      globals: {
+        ...commonGlobals
       },
     },
     plugins: {

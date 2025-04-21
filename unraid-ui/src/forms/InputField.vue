@@ -28,12 +28,12 @@ const classOverride = computed(() => {
 </script>
 
 <template>
-    <Input
-      v-model="value"
-      :type="inputType"
-      :class="classOverride"
-      :disabled="!control.enabled"
-      :required="control.required"
-      :placeholder="control.schema.description"
-    />
+  <Input
+    v-model="value"
+    :type="inputType"
+    :class="cn('flex-grow', classOverride)"
+    :disabled="!control.enabled"
+    :required="control.required"
+    :placeholder="control.schema.description"
+  />
 </template>

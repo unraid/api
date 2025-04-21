@@ -25,7 +25,7 @@ const defaultMarkedExtension: MarkedExtension = {
  * - Use `Markdown.create` to extend or customize parsing functionality.
  * - Use `Markdown.parse` to conveniently parse markdown to safe html.
  */
-// eslint-disable-next-line @typescript-eslint/no-extraneous-class
+
 export class Markdown {
   private static instance = Markdown.create();
 

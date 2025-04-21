@@ -14,14 +14,18 @@
  * @prop cells - Available cells
  */
 
+import { useJsonFormsVisibility } from '@/forms/composables/useJsonFormsVisibility';
 import type { VerticalLayout } from '@jsonforms/core';
 import { DispatchRenderer, type RendererProps } from '@jsonforms/vue';
 import { computed } from 'vue';
-import { useJsonFormsVisibility } from './composables/useJsonFormsVisibility';
 
 const props = defineProps<RendererProps<VerticalLayout>>();
 
 const { layout, isVisible } = useJsonFormsVisibility({ rendererProps: props });
+
+const showDividers = computed(() => {
+  return !!layout.layout.value.uischema.options?.showDividers;
+});
 
 const elements = computed(() => {
   return layout.layout.value.uischema.elements || [];
@@ -29,10 +33,15 @@ const elements = computed(() => {
 </script>
 
 <template>
-  <div v-if="isVisible" class="flex flex-col gap-y-2">
-    <template v-for="(element, index) in elements" :key="index">
+  <div
+    v-if="isVisible"
+    class="flex flex-col items-stretch gap-4"
+    :class="{
+      'divide-y divide-gray-200 dark:divide-gray-700': showDividers,
+    }"
+  >
+    <template v-for="(element, _i) in elements" :key="_i">
       <DispatchRenderer
-        class="ml-10"
         :schema="layout.layout.value.schema"
         :uischema="element"
         :path="layout.layout.value.path"

@@ -1,6 +1,7 @@
 import { Field, ID, InputType, ObjectType } from '@nestjs/graphql';
 
 import { type Layout } from '@jsonforms/core';
+import { IsBoolean, IsObject, IsOptional, IsString } from 'class-validator';
 import { GraphQLJSON } from 'graphql-scalars';
 
 import { DataSlice } from '@app/unraid-api/types/json-forms.js';
@@ -49,6 +50,24 @@ export interface RCloneProviderOptionResponse {
     Examples?: Array<{ Value: string; Help: string; Provider: string }>;
 }
 
+@InputType()
+export class RCloneConfigFormInput {
+    @Field(() => String, { nullable: true })
+    @IsOptional()
+    @IsString()
+    providerType?: string;
+
+    @Field(() => Boolean, { defaultValue: false, nullable: true })
+    @IsOptional()
+    @IsBoolean()
+    showAdvanced?: boolean;
+
+    @Field(() => GraphQLJSON, { nullable: true })
+    @IsOptional()
+    @IsObject()
+    parameters?: Record<string, unknown>;
+}
+
 @ObjectType()
 export class RCloneBackupConfigForm {
     @Field(() => ID)
@@ -59,12 +78,6 @@ export class RCloneBackupConfigForm {
 
     @Field(() => GraphQLJSON)
     uiSchema!: Layout;
-
-    @Field(() => String, { nullable: true })
-    providerType?: string;
-
-    @Field(() => GraphQLJSON, { nullable: true })
-    parameters?: Record<string, unknown>;
 }
 
 @ObjectType()
@@ -94,11 +107,14 @@ export class RCloneRemote {
 @InputType()
 export class CreateRCloneRemoteInput {
     @Field(() => String)
+    @IsString()
     name!: string;
 
     @Field(() => String)
+    @IsString()
     type!: string;
 
     @Field(() => GraphQLJSON)
+    @IsObject()
     parameters!: Record<string, unknown>;
 }

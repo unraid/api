@@ -8,13 +8,15 @@ import StepperTitle from '@/components/common/stepper/StepperTitle.vue';
 import StepperTrigger from '@/components/common/stepper/StepperTrigger.vue';
 import { CheckIcon } from '@heroicons/vue/24/solid'; // Example icon
 import {
+  Actions,
+  type CoreActions,
+  type JsonFormsSubStates,
   type JsonSchema,
   type Layout,
   type UISchemaElement,
-  Actions, type CoreActions, type JsonFormsSubStates
 } from '@jsonforms/core';
 import { DispatchRenderer, useJsonFormsLayout, type RendererProps } from '@jsonforms/vue';
-import { computed, inject } from 'vue';
+import { computed, inject, ref, type Ref } from 'vue';
 
 // Define props based on RendererProps<Layout>
 const props = defineProps<RendererProps<Layout>>();
@@ -22,6 +24,14 @@ const props = defineProps<RendererProps<Layout>>();
 // --- JSON Forms Context Injection ---
 const jsonforms = inject<JsonFormsSubStates>('jsonforms');
 const dispatch = inject<(action: CoreActions) => void>('dispatch'); // Inject dispatch separately
+
+// --- START: Inject submission logic from parent ---
+const submitForm = inject<() => Promise<void>>('submitForm', () => {
+  console.warn('SteppedLayout: submitForm function not provided');
+  return Promise.resolve(); // Provide a default no-op function
+});
+const isSubmitting = inject<Ref<boolean>>('isSubmitting', ref(false)); // Provide a default non-reactive ref
+// --- END: Inject submission logic from parent ---
 
 if (!jsonforms || !dispatch) {
   throw new Error("'jsonforms' or 'dispatch' context wasn't provided. Are you within JsonForms?");
@@ -37,10 +47,17 @@ const numSteps = computed(() => stepsConfig.value.length);
 
 // --- Current Step Logic --- Use injected core.data
 const currentStep = computed(() => {
-  console.log('[SteppedLayout] currentStep computed. core.data.configStep:', core?.data?.configStep);
-  return core!.data?.configStep ?? 0;
+  const stepData = core!.data?.configStep;
+  // Handle both the new object format and the old number format
+  if (typeof stepData === 'object' && stepData !== null && typeof stepData.current === 'number') {
+    // Ensure step is within bounds
+    return Math.max(0, Math.min(stepData.current, numSteps.value - 1));
+  }
+  // Fallback for initial state or old number format
+  const numericStep = typeof stepData === 'number' ? stepData : 0;
+  return Math.max(0, Math.min(numericStep, numSteps.value - 1));
 });
-const isLastStep = computed(() => currentStep.value === numSteps.value - 1);
+const isLastStep = computed(() => numSteps.value > 0 && currentStep.value === numSteps.value - 1);
 
 // --- Step Update Logic ---
 const updateStep = (newStep: number) => {
@@ -48,18 +65,22 @@ const updateStep = (newStep: number) => {
   if (newStep < 0 || newStep >= numSteps.value) {
     return;
   }
-  // Update the 'configStep' property in the JSON Forms data
-  dispatch(Actions.update('configStep', () => newStep));
+  // Make total zero-indexed
+  const total = numSteps.value > 0 ? numSteps.value - 1 : 0;
+  // Update the 'configStep' property in the JSON Forms data with the new object structure
+  dispatch(Actions.update('configStep', () => ({ current: newStep, total })));
 };
 
 // --- Filtered Elements for Current Step ---
 const currentStepElements = computed(() => {
   const filtered = (props.uischema.elements || []).filter((element: UISchemaElement) => {
-    return element.options?.step === currentStep.value;
+    // Check if the element has an 'options' object and an 'step' property
+    return (
+      typeof element.options === 'object' &&
+      element.options !== null &&
+      element.options.step === currentStep.value
+    );
   });
-
-  console.log(`[SteppedLayout] currentStepElements computed for step ${currentStep.value}. Found elements:`, JSON.stringify(filtered.map(el => ({ type: el.type, scope: (el as any).scope })))); // Log type/scope
-
   return filtered;
 });
 
@@ -74,9 +95,13 @@ const getStepState = (stepIndex: number): StepState => {
 </script>
 
 <template>
-  <div v-if="layout.visible" :key="currentStep" class="stepped-layout space-y-6">
+  <div v-if="layout.visible" class="stepped-layout space-y-6">
     <!-- Stepper Indicators -->
-    <Stepper :modelValue="currentStep + 1" class="text-foreground flex w-full items-start gap-2 text-sm">
+    <Stepper
+      v-if="numSteps > 0"
+      :modelValue="currentStep + 1"
+      class="text-foreground flex w-full items-start gap-2 text-sm"
+    >
       <StepperItem
         v-for="(step, index) in stepsConfig"
         :key="index"
@@ -118,12 +143,9 @@ const getStepState = (stepIndex: number): StepState => {
       </StepperItem>
     </Stepper>
 
-    <!-- Add logging here -->
-    {{ console.log(`[SteppedLayout Template] Rendering step: ${currentStep}`) }}
-    {{ console.log(`[SteppedLayout Template] Elements for step ${currentStep}:`, JSON.stringify(currentStepElements.map(el => ({ type: el.type, scope: (el as any).scope })))) }}
-
     <!-- Render elements for the current step -->
-    <div class="current-step-content rounded-md border p-4 shadow">
+    <!-- Added key to force re-render on step change, ensuring correct elements display -->
+    <div class="current-step-content rounded-md border p-4 shadow" :key="`step-content-${currentStep}`">
       <DispatchRenderer
         v-for="(element, index) in currentStepElements"
         :key="`${layout.path}-${index}-step-${currentStep}`"
@@ -132,17 +154,26 @@ const getStepState = (stepIndex: number): StepState => {
         :path="layout.path || ''"
         :renderers="layout.renderers"
         :cells="layout.cells"
-        :enabled="layout.enabled"
+        :enabled="layout.enabled && !isSubmitting"
       />
     </div>
 
     <!-- Navigation Buttons -->
     <div class="mt-4 flex justify-end space-x-2">
-      <Button variant="outline" @click="updateStep(currentStep - 1)" :disabled="currentStep === 0">
+      <Button
+        variant="outline"
+        @click="updateStep(currentStep - 1)"
+        :disabled="currentStep === 0 || isSubmitting"
+      >
         Previous
       </Button>
-      <Button v-if="!isLastStep" @click="updateStep(currentStep + 1)">
+      <!-- Show Next button only if not the last step -->
+      <Button v-if="!isLastStep" @click="updateStep(currentStep + 1)" :disabled="isSubmitting">
         Next
+      </Button>
+      <!-- Show Submit button only on the last step -->
+      <Button v-if="isLastStep" @click="submitForm" :loading="isSubmitting" :disabled="isSubmitting">
+        Submit Configuration
       </Button>
     </div>
   </div>

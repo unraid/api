@@ -11,7 +11,9 @@ interface UseJsonFormsVisibilityReturn {
   isVisible: ComputedRef<boolean>;
 }
 
-export function useJsonFormsVisibility<T extends Layout>(props: UseJsonFormsVisibilityProps<T>): UseJsonFormsVisibilityReturn {
+export function useJsonFormsVisibility<T extends Layout>(
+  props: UseJsonFormsVisibilityProps<T>
+): UseJsonFormsVisibilityReturn {
   const layout = useJsonFormsLayout(props.rendererProps);
 
   const isVisible = computed(() => {
@@ -24,4 +26,4 @@ export function useJsonFormsVisibility<T extends Layout>(props: UseJsonFormsVisi
     layout,
     isVisible,
   };
-} 
+}

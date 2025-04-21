@@ -1,8 +1,6 @@
 import { Logger } from '@nestjs/common';
 import { Args, Mutation, Parent, Query, ResolveField, Resolver } from '@nestjs/graphql';
 
-import { GraphQLJSON } from 'graphql-scalars';
-
 import {
     AuthActionVerb,
     AuthPossession,
@@ -15,9 +13,11 @@ import {
     CreateRCloneRemoteInput,
     RCloneBackupConfigForm,
     RCloneBackupSettings,
+    RCloneConfigFormInput,
     RCloneRemote,
 } from '@app/unraid-api/graph/resolvers/rclone/rclone.model.js';
 import { RCloneService } from '@app/unraid-api/graph/resolvers/rclone/rclone.service.js';
+import { DataSlice } from '@app/unraid-api/types/json-forms.js';
 
 @Resolver(() => RCloneBackupSettings)
 export class RCloneBackupSettingsResolver {
@@ -42,20 +42,15 @@ export class RCloneBackupSettingsResolver {
     @ResolveField(() => RCloneBackupConfigForm)
     async configForm(
         @Parent() _parent: RCloneBackupSettings,
-        @Args('providerType', { nullable: true }) providerType?: string,
-        @Args('parameters', { type: () => GraphQLJSON, nullable: true })
-        parameters?: Record<string, unknown>
+        @Args('formOptions', { type: () => RCloneConfigFormInput, nullable: true })
+        formOptions?: RCloneConfigFormInput
     ): Promise<RCloneBackupConfigForm> {
-        // Return form info with the provided arguments
-
-        const form = await this.rcloneFormService.getFormSchemas(providerType);
+        const form = await this.rcloneFormService.getFormSchemas(formOptions ?? {});
         return {
             id: 'rcloneBackupConfigForm',
-            dataSchema: form.dataSchema,
+            dataSchema: form.dataSchema as { properties: DataSlice; type: 'object' },
             uiSchema: form.uiSchema,
-            providerType,
-            parameters,
-        } as RCloneBackupConfigForm;
+        };
     }
 
     @Mutation(() => RCloneRemote)
