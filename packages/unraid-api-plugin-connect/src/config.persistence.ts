@@ -1,6 +1,7 @@
 import { Logger, Injectable, OnModuleInit } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
-import { existsSync, readFileSync, writeFile } from "fs";
+import { existsSync, readFileSync } from "fs";
+import { writeFile } from "fs/promises";
 import path from "path";
 import { debounceTime } from "rxjs/operators";
 import { parseConfig } from "./helpers/parse-ini-config.js";
@@ -21,7 +22,7 @@ export class ConnectConfigPersister implements OnModuleInit {
     );
   }
 
-  onModuleInit() {
+  async onModuleInit() {
     this.logger.debug(`Config path: ${this.configPath}`);
     // Load the config, else initialize it by persisting to filesystem.
     if (existsSync(this.configPath)) {
@@ -35,19 +36,16 @@ export class ConnectConfigPersister implements OnModuleInit {
         demo: new Date().toISOString(),
         ...legacyConfig,
       });
-      this.persist();
+      await this.persist();
     }
 
     // Persist changes to the config.
     const HALF_SECOND = 500;
     this.configService.changes$.pipe(debounceTime(HALF_SECOND)).subscribe({
-      next: ({ newValue, oldValue, path }) => {
+      next: async ({ newValue, oldValue, path }) => {
         if (path.startsWith("connect.")) {
-          this.logger.debug(`Config changed: ${path}`, {
-            newValue,
-            oldValue,
-          });
-          this.persist();
+          this.logger.debug(`Config changed: ${path} from ${oldValue} to ${newValue}`);
+          await this.persist();
         }
       },
       error: (err) => {
@@ -59,13 +57,12 @@ export class ConnectConfigPersister implements OnModuleInit {
   async persist(config = this.configService.get<{ demo: string }>("connect")) {
     const data = JSON.stringify(config, null, 2);
     this.logger.verbose(`Persisting config to ${this.configPath}: ${data}`);
-    writeFile(this.configPath, data, (err) => {
-      if (err) {
-        this.logger.error("Error writing config change to disk:", err);
-      } else {
-        this.logger.verbose(`Config change persisted to ${this.configPath}`);
-      }
-    });
+    try {
+      await writeFile(this.configPath, data);
+      this.logger.verbose(`Config change persisted to ${this.configPath}`);
+    } catch (error) {
+      this.logger.error(`Error persisting config to '${this.configPath}':`, error);
+    }
   }
 
   private parseLegacyConfig(filePath?: string): MyServersConfig {
