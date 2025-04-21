@@ -1,12 +1,12 @@
-import { Logger, Injectable } from "@nestjs/common";
+import { Logger, Injectable, OnModuleInit } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { existsSync, readFileSync, writeFile } from "fs";
 import path from "path";
-import { debounceTime, map } from "rxjs/operators";
+import { debounceTime } from "rxjs/operators";
 import { PluginNameConfig } from "./config.entity.js";
 
 @Injectable()
-export class PluginNameConfigPersister {
+export class PluginNameConfigPersister implements OnModuleInit {
   constructor(private readonly configService: ConfigService) {}
 
   private logger = new Logger(PluginNameConfigPersister.name);

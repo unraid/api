@@ -1,4 +1,4 @@
-import { Logger, Injectable } from "@nestjs/common";
+import { Logger, Injectable, OnModuleInit } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { existsSync, readFileSync, writeFile } from "fs";
 import path from "path";
@@ -10,7 +10,7 @@ import { plainToInstance } from "class-transformer";
 import { csvStringToArray } from "./helpers/utils.js";
 
 @Injectable()
-export class ConnectConfigPersister {
+export class ConnectConfigPersister implements OnModuleInit {
   constructor(private readonly configService: ConfigService) {}
 
   private logger = new Logger(ConnectConfigPersister.name);
