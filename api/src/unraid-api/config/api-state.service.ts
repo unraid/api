@@ -47,15 +47,15 @@ export class ScheduledConfigPersistence<T> {
     }
 
     stop() {
-        this.schedulerRegistry.deleteInterval(this.token);
+        if (this.schedulerRegistry.getInterval(this.token)) {
+            this.schedulerRegistry.deleteInterval(this.token);
+        }
     }
 
     setup() {
         const interval = this.schedulerRegistry.getInterval(this.token);
         if (interval) {
-            this.logger.warn(
-                `Persistence interval for '${this.token}' already exists. Aborting setup.`
-            );
+            this.logger.warn(`Persistence interval for '${this.token}' already exists. Aborting setup.`);
             return;
         }
         const ONE_MINUTE = 60_000;
