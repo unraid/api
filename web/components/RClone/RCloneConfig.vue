@@ -1,16 +1,11 @@
 <script lang="ts" setup>
-import { computed, ref, watch } from 'vue';
+import { computed, provide, ref, watch } from 'vue';
 import { useMutation, useQuery } from '@vue/apollo-composable';
 
 import { Button, jsonFormsRenderers } from '@unraid/ui';
 import { JsonForms } from '@jsonforms/vue';
 
-import type { CreateRCloneRemoteInput } from '~/composables/gql/graphql';
-
-import {
-  CREATE_REMOTE,
-  GET_RCLONE_CONFIG_FORM,
-} from '~/components/RClone/graphql/settings.query';
+import { CREATE_REMOTE, GET_RCLONE_CONFIG_FORM } from '~/components/RClone/graphql/settings.query';
 import { useUnraidApiStore } from '~/store/unraidApi';
 
 const { offlineError: _offlineError, unraidApiStatus: _unraidApiStatus } = useUnraidApiStore();
@@ -31,31 +26,46 @@ const {
   loading: formLoading,
   refetch: updateFormSchema,
 } = useQuery(GET_RCLONE_CONFIG_FORM, {
-  providerType: formState.value.type,
-  parameters: formState.value.parameters,
+  formOptions: {
+    providerType: formState.value.type,
+    parameters: formState.value.parameters,
+    showAdvanced: formState.value.showAdvanced,
+  },
 });
 
 // Watch for provider type changes to update schema
 watch(providerType, async (newType) => {
   if (newType) {
     await updateFormSchema({
-      providerType: newType,
-      parameters: formState.value.parameters,
+      formOptions: {
+        providerType: newType,
+        parameters: formState.value.parameters,
+        showAdvanced: formState.value.showAdvanced,
+      },
     });
   }
 });
 
 // Watch for step changes to update schema if needed
 watch(
-  () => formState.value.configStep,
-  async (newStep) => {
-    if (newStep > 0) {
+  formState,
+  async (previousValue, newValue) => {
+    // Always refetch when step changes to ensure schema matches
+    if (
+      previousValue.configStep !== newValue.configStep ||
+      previousValue.showAdvanced !== newValue.showAdvanced
+    ) {
+      console.log('[RCloneConfig] Refetching form schema');
       await updateFormSchema({
-        providerType: formState.value.type,
-        parameters: formState.value.parameters,
+        formOptions: {
+          providerType: formState.value.type,
+          parameters: formState.value.parameters,
+          showAdvanced: formState.value.showAdvanced,
+        },
       });
     }
-  }
+  },
+  { deep: true }
 );
 
 /**
@@ -76,7 +86,7 @@ const submitForm = async () => {
         name: formState.value.name,
         type: formState.value.type,
         parameters: formState.value.parameters,
-      } as CreateRCloneRemoteInput,
+      },
     });
   } catch (error) {
     console.error('Error creating remote:', error);
@@ -134,6 +144,10 @@ const isLastStep = computed(() => {
   if (numSteps.value === 0) return false;
   return formState.value.configStep === numSteps.value - 1;
 });
+
+// --- Provide submission logic to SteppedLayout ---
+provide('submitForm', submitForm);
+provide('isSubmitting', isCreating); // Provide the loading state ref
 </script>
 
 <template>
@@ -162,12 +176,12 @@ const isLastStep = computed(() => {
       </div>
 
       <!-- Submit Button (visible only on the last step) -->
-      <div v-if="!formLoading && uiSchema && isLastStep" class="mt-6 flex justify-end border-t border-gray-200 pt-6">
-        <Button :loading="isCreating" @click="submitForm">
-          Submit Configuration
-        </Button>
+      <div
+        v-if="!formLoading && uiSchema && isLastStep"
+        class="mt-6 flex justify-end border-t border-gray-200 pt-6"
+      >
+        <Button :loading="isCreating" @click="submitForm"> Submit Configuration </Button>
       </div>
-
     </div>
   </div>
 </template>

@@ -27,13 +27,13 @@ const description = computed(() => props.uischema.options?.description);
 </script>
 
 <template>
-    <!-- Render each precondition as a list item with an icon bullet -->
-    <p v-if="description" class="mb-2">{{ description }}</p>
-    <ul class="list-none space-y-1">
-      <li v-for="(item, index) in items" :key="index" class="flex items-center">
-        <span v-if="item.status" class="text-green-500 mr-2 font-bold">✓</span>
-        <span v-else class="text-red-500 mr-2 font-extrabold">✕</span>
-        <span>{{ item.text }}</span>
-      </li>
-    </ul>
+  <!-- Render each precondition as a list item with an icon bullet -->
+  <p v-if="description" class="mb-2">{{ description }}</p>
+  <ul class="list-none space-y-1">
+    <li v-for="(item, index) in items" :key="index" class="flex items-center">
+      <span v-if="item.status" class="text-green-500 mr-2 font-bold">✓</span>
+      <span v-else class="text-red-500 mr-2 font-extrabold">✕</span>
+      <span>{{ item.text }}</span>
+    </li>
+  </ul>
 </template>

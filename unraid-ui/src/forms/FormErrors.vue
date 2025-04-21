@@ -15,4 +15,4 @@ const normalizedErrors = computed(() => {
   <div v-if="normalizedErrors.length > 0" class="mt-2 text-red-500 text-sm">
     <p v-for="error in normalizedErrors" :key="error">{{ error }}</p>
   </div>
-</template> 
+</template>

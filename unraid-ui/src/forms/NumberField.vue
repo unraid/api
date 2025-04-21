@@ -33,20 +33,20 @@ const classOverride = computed(() => {
 </script>
 
 <template>
-    <NumberField
-      v-model="value"
-      :min="min"
-      :max="max"
-      :step="step"
-      :format-options="formatOptions"
-      :class="classOverride"
-      :disabled="!control.enabled"
-      :required="control.required"
-      blah="true"
-      :blah-2="true"
-    >
-      <NumberFieldDecrement v-if="stepperEnabled" />
-      <NumberFieldInput />
+  <NumberField
+    v-model="value"
+    :min="min"
+    :max="max"
+    :step="step"
+    :format-options="formatOptions"
+    :class="classOverride"
+    :disabled="!control.enabled"
+    :required="control.required"
+    blah="true"
+    :blah-2="true"
+  >
+    <NumberFieldDecrement v-if="stepperEnabled" />
+    <NumberFieldInput />
     <NumberFieldIncrement v-if="stepperEnabled" />
   </NumberField>
 </template>

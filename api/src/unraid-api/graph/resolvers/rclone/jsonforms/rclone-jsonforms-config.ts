@@ -1,10 +1,57 @@
-import type { Layout, SchemaBasedCondition, ControlElement, LabelElement } from '@jsonforms/core';
+import type { ControlElement, LabelElement, Layout, Rule, SchemaBasedCondition } from '@jsonforms/core';
 import { JsonSchema7, RuleEffect } from '@jsonforms/core';
 import { filter } from 'rxjs';
 
 import type { DataSlice, SettingSlice, UIElement } from '@app/unraid-api/types/json-forms.js';
 import { RCloneProviderOptionResponse } from '@app/unraid-api/graph/resolvers/rclone/rclone.model.js';
 import { mergeSettingSlices } from '@app/unraid-api/types/json-forms.js';
+
+// --- START: Added Helper Function ---
+/**
+ * Creates a HorizontalLayout containing a Label and a Control element.
+ */
+function createLabeledControl({
+    scope,
+    label,
+    description,
+    controlOptions,
+    labelOptions,
+    layoutOptions,
+    rule,
+}: {
+    scope: string;
+    label: string;
+    description?: string;
+    controlOptions: ControlElement['options'];
+    labelOptions?: LabelElement['options'];
+    layoutOptions?: Layout['options'];
+    rule?: Rule;
+}): Layout {
+    const layout: Layout & { scope?: string } = {
+        type: 'UnraidSettingsLayout',
+        scope: scope, // Apply scope to the layout for potential rules/visibility based on the field itself
+        options: layoutOptions,
+        elements: [
+            {
+                type: 'Label',
+                text: label,
+                scope: scope, // Scope might be needed for specific label behaviors
+                options: { ...labelOptions, description },
+            } as LabelElement,
+            {
+                type: 'Control',
+                scope: scope,
+                options: controlOptions,
+            } as ControlElement,
+        ],
+    };
+    // Conditionally add the rule to the layout if provided
+    if (rule) {
+        layout.rule = rule;
+    }
+    return layout;
+}
+// --- END: Added Helper Function ---
 
 /**
  * Translates RClone config option to JsonSchema properties
@@ -43,8 +90,9 @@ function translateRCloneOptionToJsonSchema({
         examples: option.Examples?.map((example) => example.Value),
         isPassword: option.IsPassword,
     });
-    if (format && format !== schema.type) {
+    if (format && format !== schema.type && format !== 'combobox') {
         // Don't add format if it's just the type (e.g., 'number')
+        // Don't add non-standard UI hints like 'combobox' to the schema format
         schema.format = format;
     }
 
@@ -66,13 +114,13 @@ function translateRCloneOptionToJsonSchema({
         case 'sizesuffix':
             // Pattern allows 'off' or digits followed by optional size units (K, M, G, T, P) and optional iB/B
             // Allows multiple concatenated values like 1G100M
-            schema.pattern = '^(off|(\d+([KMGTPE]i?B?)?)+)$';
+            schema.pattern = '^(off|(d+([KMGTPE]i?B?)?)+)$';
             schema.errorMessage = 'Invalid size format. Examples: "10G", "100M", "1.5GiB", "off".';
             break;
         case 'duration':
             // Pattern allows 'off' or digits (with optional decimal) followed by time units (ns, us, ms, s, m, h)
             // Allows multiple concatenated values like 1h15m
-            schema.pattern = '^(off|(\d+(\.\d+)?(ns|us|\u00b5s|ms|s|m|h))+)$'; // µs is µs
+            schema.pattern = '^(off|(d+(.d+)?(ns|us|\u00b5s|ms|s|m|h))+)$';
             schema.errorMessage =
                 'Invalid duration format. Examples: "10s", "1.5m", "100ms", "1h15m", "off".';
             break;
@@ -87,38 +135,28 @@ function translateRCloneOptionToJsonSchema({
  */
 function getBasicConfigSlice({ providerTypes }: { providerTypes: string[] }): SettingSlice {
     // Create UI elements for basic configuration (Step 1)
-    const basicConfigElements: (ControlElement | LabelElement | Layout)[] = [
-        {
-            type: 'HorizontalLayout',
+    const basicConfigElements: UIElement[] = [
+        // --- START: Refactored 'name' field using helper ---
+        createLabeledControl({
             scope: '#/properties/name',
-            elements: [
-                {
-                    type: 'Label',
-                    scope: '#/properties/name',
-                    text: 'Remote Name',
-                    options: {
-                        // Optional styling
-                    },
-                } as LabelElement,
-                {
-                    type: 'Control',
-                    scope: '#/properties/name',
-                    options: {
-                        placeholder: 'Enter a name',
-                        format: 'string',
-                        description: 'Name to identify this remote configuration (e.g., my_google_drive). Use only letters, numbers, hyphens, and underscores.',
-                    },
-                } as ControlElement,
-            ],
-        } as Layout,
-        {
-            type: 'Control',
+            label: 'Remote Name',
+            description:
+                'Name to identify this remote configuration (e.g., my_google_drive). Use only letters, numbers, hyphens, and underscores.',
+            controlOptions: {
+                placeholder: 'Enter a name',
+                format: 'string',
+            },
+            // Add layoutOptions if needed, e.g., layoutOptions: { style: 'margin-bottom: 1em;' }
+        }),
+        // --- END: Refactored 'name' field using helper ---
+
+        // --- START: Refactored 'type' field using helper ---
+        createLabeledControl({
             scope: '#/properties/type',
             label: 'Storage Provider Type',
-            options: {
-                description: 'Select the cloud storage provider to use for this remote.',
-            },
-        },
+            description: 'Select the cloud storage provider to use for this remote.',
+            controlOptions: {},
+        }),
         {
             type: 'Label',
             text: 'Documentation Link',
@@ -126,35 +164,20 @@ function getBasicConfigSlice({ providerTypes }: { providerTypes: string[] }): Se
                 description:
                     'For more information, refer to the [RClone Config Documentation](https://rclone.org/commands/rclone_config/).',
             },
-        },
-        // --- START: Added HorizontalLayout with visibility rule for testing ---
-        {
-            type: 'HorizontalLayout',
-            rule: {
-                effect: RuleEffect.HIDE,
-                condition: {
-                    scope: '#/properties/name',
-                    schema: { const: 'hide_me' }, // Hide if name is exactly 'hide_me'
-                },
+        } as LabelElement,
+        createLabeledControl({
+            scope: '#/properties/showAdvanced',
+            label: 'Show Advanced Options',
+            description: 'Display additional configuration options for experts.',
+            controlOptions: {
+                toggle: true,
             },
-            elements: [
-                {
-                    type: 'Label',
-                    text: 'Hidden Field Label',
-                } as LabelElement,
-                {
-                    type: 'Control',
-                    scope: '#/properties/hiddenField', // Needs corresponding schema property
-                    options: {
-                        placeholder: 'This field is hidden if name is hide_me',
-                    },
-                } as ControlElement,
-            ],
-        } as Layout,
-        // --- END: Added HorizontalLayout with visibility rule for testing ---
+            layoutOptions: {
+                style: 'margin-top: 1em;',
+            },
+        }),
     ];
 
-    // Define the data schema for basic configuration
     const basicConfigProperties: Record<string, JsonSchema7> = {
         name: {
             type: 'string',
@@ -170,41 +193,39 @@ function getBasicConfigSlice({ providerTypes }: { providerTypes: string[] }): Se
             default: providerTypes.length > 0 ? providerTypes[0] : '',
             enum: providerTypes,
         },
-        // --- START: Added schema property for the hidden field ---
-        hiddenField: {
-            type: 'string',
-            title: 'Hidden Field',
-            description: 'This field should only be visible when the name is not \'hide_me\'',
+        showAdvanced: {
+            type: 'boolean',
+            title: 'Show Advanced Options',
+            description: 'Whether to show advanced configuration options.',
+            default: false,
         },
-        // --- END: Added schema property for the hidden field ---
     };
 
-    // Wrap the basic elements in a VerticalLayout marked for step 0
     const verticalLayoutElement: UIElement = {
         type: 'VerticalLayout',
         elements: basicConfigElements,
-        options: { step: 0 }, // Assign to step 0
+        options: { step: 0 },
     };
 
     return {
         properties: basicConfigProperties as unknown as DataSlice,
-        elements: [verticalLayoutElement], // Return the VerticalLayout as the single element
+        elements: [verticalLayoutElement],
     };
 }
 
 /**
- * Step 2/3: Provider-specific configuration based on the selected provider and type (standard/advanced).
+ * Step 1/2: Provider-specific configuration (standard or advanced).
  * Returns a SettingSlice containing properties and a VerticalLayout UI element with options.step = stepIndex.
  */
 export function getProviderConfigSlice({
     selectedProvider,
     providerOptions,
-    type = 'standard',
-    stepIndex, // Added stepIndex parameter
+    isAdvancedStep, // Flag to determine if this is for the advanced step
+    stepIndex,
 }: {
     selectedProvider: string;
     providerOptions: RCloneProviderOptionResponse[];
-    type?: 'standard' | 'advanced';
+    isAdvancedStep: boolean; // True if fetching advanced options, false for standard
     stepIndex: number; // Required step index for the rule
 }): SettingSlice {
     // Default properties when no provider is selected
@@ -217,14 +238,16 @@ export function getProviderConfigSlice({
         };
     }
 
-    // Filter options based on the type (standard/advanced)
+    // Filter options based on whether we are fetching standard or advanced options
     const filteredOptions = providerOptions.filter((option) => {
-        if (type === 'advanced' && option.Advanced === true) {
-            return true;
-        } else if (type === 'standard' && option.Advanced !== true) {
-            return true;
+        // If fetching advanced, include only options marked as Advanced
+        if (isAdvancedStep) {
+            return option.Advanced === true;
         }
-        return false;
+        // If fetching standard, include only options *not* marked as Advanced
+        else {
+            return option.Advanced !== true;
+        }
     });
 
     // Ensure uniqueness based on Name *within this slice* to prevent overwrites
@@ -232,7 +255,9 @@ export function getProviderConfigSlice({
         if (!acc.find((item) => item.Name === current.Name)) {
             acc.push(current);
         } else {
-            console.warn(`Duplicate RClone option name skipped in ${type} slice: ${current.Name}`);
+            console.warn(
+                `Duplicate RClone option name skipped in ${isAdvancedStep ? 'advanced' : 'standard'} slice: ${current.Name}`
+            );
         }
         return acc;
     }, [] as RCloneProviderOptionResponse[]);
@@ -246,79 +271,113 @@ export function getProviderConfigSlice({
     }
 
     // Create dynamic UI control elements based on unique provider options
-    const controlElements = uniqueOptionsByName.map<UIElement>((option) => {
-        const format = getJsonFormElementForType({
-            rcloneType: option.Type,
-            examples: option.Examples?.map((example) => example.Value),
-            isPassword: option.IsPassword,
-        });
+    const controlElements = uniqueOptionsByName
+        // Filter out elements that are always hidden (Hide=1 without a provider filter)
+        .filter((option) => {
+            const providerFilter = option.Provider?.trim();
+            return !(option.Hide === 1 && !providerFilter);
+        })
+        .map((option): UIElement => {
+            const format = getJsonFormElementForType({
+                rcloneType: option.Type,
+                examples: option.Examples?.map((example) => example.Value),
+                isPassword: option.IsPassword,
+            });
 
-        const controlOptions: Record<string, any> = {
-            placeholder: option.Default?.toString() || '',
-            help: option.Help || '',
-            required: option.Required || false,
-            format,
-            hide: option.Hide === 1,
-        };
+            const controlOptions: Record<string, any> = {
+                placeholder: option.Default?.toString() || '',
+                // help: option.Help || '', // Help/Description should now be part of the control options for tooltip/aria
+                required: option.Required || false,
+                format, // Pass format hint
+                // hide: option.Hide === 1, // Hiding is handled by the rule effect below if needed, or potentially JSON Forms renderer behavior
+            };
 
-        // Use examples for placeholder if available
-        if (option.Examples && option.Examples.length > 0) {
-            const exampleValues = option.Examples.map((example) => example.Value).join(', ');
-            controlOptions.placeholder = `e.g., ${exampleValues}`;
-        }
-
-        // Only add toggle option for boolean fields without examples
-        if (format === 'checkbox' && (!option.Examples || option.Examples.length === 0)) {
-            controlOptions.toggle = true;
-        }
-
-        // Add examples as suggestions for combobox
-        if (format === 'combobox' && option.Examples && option.Examples.length > 0) {
-            controlOptions.suggestions = option.Examples.map((example) => ({
-                value: example.Value,
-                label: example.Value, // Set label to just the value
-                tooltip: example.Help || '', // Add tooltip with help text
-            }));
-        }
-
-        // --- Start: Add dynamic visibility rule based on Provider --- //
-        let providerRule: { effect: RuleEffect; condition: SchemaBasedCondition } | undefined =
-            undefined;
-        const providerFilter = option.Provider?.trim();
-
-        if (providerFilter) {
-            const isNegated = providerFilter.startsWith('!');
-            const providers = (isNegated ? providerFilter.substring(1) : providerFilter)
-                .split(',')
-                .map((p) => p.trim())
-                .filter((p) => p);
-
-            if (providers.length > 0) {
-                const conditionSchema = isNegated
-                    ? { not: { enum: providers } } // Show if type is NOT in the list
-                    : { enum: providers }; // Show if type IS in the list
-
-                providerRule = {
-                    effect: RuleEffect.SHOW,
-                    condition: {
-                        scope: '#/properties/type',
-                        schema: conditionSchema,
-                    } as SchemaBasedCondition,
-                };
+            // Use examples for placeholder if available
+            if (option.Examples && option.Examples.length > 0) {
+                const exampleValues = option.Examples.map((example) => example.Value).join(', ');
+                controlOptions.placeholder = `e.g., ${exampleValues}`;
             }
-        }
-        // --- End: Add dynamic visibility rule based on Provider --- //
 
-        const uiElement: UIElement = {
-            type: 'Control',
-            scope: `#/properties/parameters/properties/${option.Name}`,
-            label: option.Help || option.Name,
-            options: controlOptions,
-            // Add the provider-specific rule if it was generated
-            ...(providerRule && { rule: providerRule }),
-        };
-        return uiElement;
-    });
+            // Only add toggle option for boolean fields without examples
+            if (format === 'checkbox' && (!option.Examples || option.Examples.length === 0)) {
+                controlOptions.toggle = true;
+            }
+
+            // Add examples as suggestions for combobox
+            if (format === 'combobox' && option.Examples && option.Examples.length > 0) {
+                // Check if the underlying type is boolean, handle undefined option.Type
+                const isBooleanType = getJsonSchemaType(option.Type ?? '') === 'boolean';
+                controlOptions.suggestions = option.Examples.map((example) => ({
+                    // Parse string "true"/"false" to boolean if the type is boolean, handle potential null/undefined
+                    value: isBooleanType
+                        ? String(example.Value ?? '').toLowerCase() === 'true'
+                        : example.Value,
+                    // Ensure label is also a string, even if value is null/undefined
+                    label: String(example.Value ?? ''),
+                    tooltip: example.Help || '',
+                }));
+            }
+
+            // --- Start: Add dynamic visibility rule based on Provider --- //
+            let providerRule: Rule | undefined = undefined; // Define rule type explicitly
+            const providerFilter = option.Provider?.trim();
+
+            if (providerFilter) {
+                const isNegated = providerFilter.startsWith('!');
+                const providers = (isNegated ? providerFilter.substring(1) : providerFilter)
+                    .split(',')
+                    .map((p) => p.trim())
+                    .filter((p) => p);
+
+                if (providers.length > 0) {
+                    const conditionSchema = isNegated
+                        ? { not: { enum: providers } }
+                        : { enum: providers };
+
+                    // Show/Hide logic: If option.Hide === 1, we HIDE, otherwise default SHOW based on provider type
+                    const effect = option.Hide === 1 ? RuleEffect.HIDE : RuleEffect.SHOW;
+
+                    providerRule = {
+                        effect: effect,
+                        condition: {
+                            scope: '#/properties/type',
+                            schema: conditionSchema,
+                        } as SchemaBasedCondition,
+                    };
+                }
+            } else if (option.Hide === 1) {
+                // If no provider filter, but Hide is set, create a rule to always hide
+                // This needs a condition that is always true, which is tricky.
+                // A simple approach is a condition that will likely always evaluate based on the schema.
+                // Alternatively, rely on JSON Forms renderer interpretation of a missing rule but Hide=1 property.
+                // For robustness, let's add a rule that hides if the field itself exists (which it always will if rendered).
+                // Note: This specific 'always hide' might need adjustment based on JSON Forms implementation details.
+                // A more direct approach might be filtering these out *before* mapping if always hidden.
+                // Let's assume for now `option.Hide=1` without a provider filter means it's *always* hidden.
+                // We can filter these out instead of creating a complex rule.
+                // Revisit this if hidden fields without provider filters are needed dynamically.
+
+                // --- Simplified Logic: Filter out permanently hidden fields ---
+                if (option.Hide === 1 && !providerFilter) {
+                    // Skip creating a UI element for this option entirely
+                    // This case is now handled by the filter above
+                }
+            }
+            // --- End: Add dynamic visibility rule based on Provider --- //
+
+            // --- Use the helper function ---
+            const labeledControl = createLabeledControl({
+                scope: `#/properties/parameters/properties/${option.Name}`,
+                // Use Name as fallback label if Help is empty, otherwise use Help for label
+                label: option.Name, // Use Name for the label text
+                description: option.Help || undefined,
+                controlOptions: controlOptions,
+                rule: providerRule, // Apply the rule to the HorizontalLayout wrapper
+            });
+
+            // Layout is a valid UIElement, no cast needed if filter handles nulls
+            return labeledControl;
+        });
 
     // Create dynamic properties schema based on unique provider options
     const paramProperties: Record<string, JsonSchema7> = {};
@@ -347,8 +406,8 @@ export function getProviderConfigSlice({
     // Wrap the control elements in a VerticalLayout marked for the specified stepIndex
     const verticalLayoutElement: UIElement = {
         type: 'VerticalLayout',
-        elements: controlElements,
-        options: { step: stepIndex }, // Assign to the specified stepIndex
+        elements: controlElements, // Use the refactored elements
+        options: { step: stepIndex, showDividers: true }, // Assign stepIndex and add showDividers
     };
 
     return {
@@ -358,7 +417,7 @@ export function getProviderConfigSlice({
 }
 
 /**
- * Helper function to convert RClone option types to JSON Schema types
+ * Helper function to convert RClone type to a basic JSON Schema type string (e.g., 'string', 'number', 'boolean').
  */
 function getJsonSchemaType(rcloneType: string): string {
     switch (rcloneType?.toLowerCase()) {
@@ -400,19 +459,18 @@ function getJsonFormElementForType({
 
     switch (rcloneType?.toLowerCase()) {
         case 'int':
-            return 'number'; // Use NumberField
         case 'size':
-            return 'number'; // Use NumberField
+            // Schema type 'integer'/'number' is sufficient.
+            // UI framework should infer NumberField from schema type.
+            return undefined;
         case 'sizesuffix':
             return undefined; // Use default InputField (via isStringControl)
         case 'duration':
             return undefined; // Use default InputField (via isStringControl)
         case 'bool':
-            // Only use checkbox/toggle for boolean fields without examples
-            if (!examples || examples.length === 0) {
-                return 'checkbox';
-            }
-            return 'combobox'; // Use combobox for boolean fields with examples
+            // ALWAYS use checkbox/toggle for boolean fields, regardless of examples.
+            // RClone examples ("true"/"false") don't map well to UI boolean controls.
+            return 'toggle';
         case 'text':
             // Consider 'textarea' format later if needed
             return undefined; // Use default InputField (via isStringControl)
@@ -436,74 +494,95 @@ export function buildRcloneConfigSchema({
     providerTypes = [],
     selectedProvider = '',
     providerOptions = {},
+    showAdvanced = false,
 }: {
     providerTypes?: string[];
     selectedProvider?: string;
     providerOptions?: Record<string, RCloneProviderOptionResponse[]>;
+    showAdvanced?: boolean;
 }): {
-    dataSchema: Record<string, any>;
+    dataSchema: { properties: DataSlice; type: 'object' };
     uiSchema: Layout;
 } {
-    // --- Schema Definition ---
-
-    // Define the step control property - REMOVED as SteppedLayout uses local state
-    // const stepControlProperty: Record<string, JsonSchema7> = {
-    //     configStep: {
-    //         type: 'number',
-    //         minimum: 0,
-    //         maximum: 2, // 3 steps: 0, 1, 2
-    //         default: 0,
-    //     },
-    // };
-
-    // --- Step Content Generation ---
-
     const optionsForProvider = providerOptions[selectedProvider] || [];
+    const slicesToMerge: SettingSlice[] = [];
 
-    // Step 0: Basic Config
+    // Step 0: Basic Config (Always included)
     const basicSlice = getBasicConfigSlice({ providerTypes });
+    slicesToMerge.push(basicSlice);
 
-    // Step 1: Standard Provider Config
-    const standardConfigSlice = getProviderConfigSlice({
-        selectedProvider,
-        providerOptions: optionsForProvider,
-        type: 'standard',
-        stepIndex: 1, // Assign to step 1
-    });
+    // Step 1: Standard Provider Config (Always included if provider selected)
+    if (selectedProvider && optionsForProvider.length > 0) {
+        const standardConfigSlice = getProviderConfigSlice({
+            selectedProvider,
+            providerOptions: optionsForProvider,
+            isAdvancedStep: false, // Fetch standard options
+            stepIndex: 1,
+        });
+        // Only add if there are actual standard options
+        if (
+            standardConfigSlice.elements.length > 0 ||
+            Object.keys(standardConfigSlice.properties).length > 0
+        ) {
+            slicesToMerge.push(standardConfigSlice);
+        }
+    }
 
-    // Step 2: Advanced Provider Config
-    const advancedConfigSlice = getProviderConfigSlice({
-        selectedProvider,
-        providerOptions: optionsForProvider,
-        type: 'advanced',
-        stepIndex: 2, // Assign to step 2
-    });
+    // Step 2: Advanced Provider Config (Conditionally included)
+    let advancedConfigSlice: SettingSlice | null = null;
+    if (showAdvanced && selectedProvider && optionsForProvider.length > 0) {
+        advancedConfigSlice = getProviderConfigSlice({
+            selectedProvider,
+            providerOptions: optionsForProvider,
+            isAdvancedStep: true, // Fetch advanced options
+            stepIndex: 2,
+        });
+        // Only add if there are actual advanced options
+        if (
+            advancedConfigSlice.elements.length > 0 ||
+            Object.keys(advancedConfigSlice.properties).length > 0
+        ) {
+            slicesToMerge.push(advancedConfigSlice);
+        }
+    }
 
-    // Merge all properties: basic + standard + advanced
-    const mergedProperties = mergeSettingSlices([basicSlice, standardConfigSlice, advancedConfigSlice]);
+    // Merge all relevant slices
+    const mergedSlices = mergeSettingSlices(slicesToMerge);
 
     // Construct the final dataSchema
-    const dataSchema = {
+    // Add explicit type annotation to satisfy stricter type checking
+    const dataSchema: { properties: DataSlice; type: 'object' } = {
         type: 'object',
-        properties: mergedProperties.properties,
+        properties: mergedSlices.properties,
         // Add required fields if necessary, e.g., ['name', 'type']
         // required: ['name', 'type'], // Example: Make name and type required globally
     };
 
     // --- UI Schema Definition ---
 
-    // Define the SteppedLayout UI element, now containing step content elements
+    // Define steps based on whether advanced options are shown
+    const steps = [{ label: 'Set up Remote Config', description: 'Name and provider selection' }];
+
+    if (selectedProvider) {
+        steps.push({ label: 'Set up Drive', description: 'Provider-specific configuration' });
+    }
+    if (
+        showAdvanced &&
+        advancedConfigSlice &&
+        (advancedConfigSlice.elements.length > 0 ||
+            Object.keys(advancedConfigSlice.properties).length > 0)
+    ) {
+        steps.push({ label: 'Advanced Config', description: 'Optional advanced settings' });
+    }
+
+    // Define the SteppedLayout UI element
     const steppedLayoutElement: UIElement = {
         type: 'SteppedLayout',
         options: {
-            steps: [
-                { label: 'Set up Remote Config', description: 'Name and provider selection' },
-                { label: 'Set up Drive', description: 'Provider-specific configuration' },
-                { label: 'Advanced Config', description: 'Optional advanced settings' },
-            ],
+            steps: steps, // Use dynamically generated steps
         },
         // Nest the step content elements directly inside the SteppedLayout
-        elements: mergedProperties.elements,
+        elements: mergedSlices.elements,
     };
 
     // Define the overall title label

@@ -10,6 +10,7 @@ import selectRenderer from '@/forms/Select.vue';
 import SteppedLayout from '@/forms/SteppedLayout.vue';
 import StringArrayField from '@/forms/StringArrayField.vue';
 import switchRenderer from '@/forms/Switch.vue';
+import UnraidSettingsLayout from '@/forms/UnraidSettingsLayout.vue';
 import VerticalLayout from '@/forms/VerticalLayout.vue';
 import {
   and,
@@ -28,11 +29,11 @@ import {
 } from '@jsonforms/core';
 import type { ControlElement, JsonFormsRendererRegistryEntry, JsonSchema } from '@jsonforms/core';
 import type { RendererProps } from '@jsonforms/vue';
-import { h, markRaw } from 'vue';
+import { h, markRaw, type Component } from 'vue';
 
 // Helper function to wrap control renderers with error display
 // Returns a functional component
-const withErrorWrapper = (RendererComponent: any) => {
+const withErrorWrapper = (RendererComponent: Component) => {
   return (props: RendererProps<ControlElement>) => {
     return h(ControlWrapper, props, {
       default: () => h(RendererComponent, props),
@@ -60,10 +61,18 @@ export const jsonFormsRenderers: JsonFormsRendererRegistryEntry[] = [
     renderer: markRaw(SteppedLayout),
     tester: rankWith(3, and(isLayout, uiTypeIs('SteppedLayout'))),
   },
+  {
+    renderer: markRaw(UnraidSettingsLayout),
+    tester: rankWith(3, and(isLayout, uiTypeIs('UnraidSettingsLayout'))),
+  },
   // Controls
   {
     renderer: markRaw(withErrorWrapper(switchRenderer)),
     tester: rankWith(4, and(isBooleanControl, optionIs('toggle', true))),
+  },
+  {
+    renderer: markRaw(withErrorWrapper(switchRenderer)),
+    tester: rankWith(4, and(isBooleanControl, optionIs('format', 'toggle'))),
   },
   {
     renderer: markRaw(withErrorWrapper(selectRenderer)),

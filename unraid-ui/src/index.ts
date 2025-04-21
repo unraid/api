@@ -15,4 +15,3 @@ export { default as tailwindConfig } from '../tailwind.config';
 
 // Composables
 export { default as useTeleport } from '@/composables/useTeleport';
-
