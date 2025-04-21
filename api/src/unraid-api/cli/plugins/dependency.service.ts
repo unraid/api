@@ -73,7 +73,8 @@ export class DependencyService {
         await execa('npm', ['install', '--save-peer', '--save-exact', packageArg], {
             cwd: path.dirname(getPackageJsonPath()),
         });
-        return { name, version: finalVersion, bundled };
+        const updatedPackageJson = getPackageJson();
+        return { name, version: updatedPackageJson.peerDependencies?.[name] ?? 'unknown', bundled };
     }
 
     /**
@@ -110,7 +111,7 @@ export class DependencyService {
      */
     async npmInstall(): Promise<void> {
         const packageJsonPath = getPackageJsonPath();
-        await execa(`npm install`, { cwd: path.dirname(packageJsonPath) });
+        await execa('npm', ['install'], { cwd: path.dirname(packageJsonPath) });
     }
 
     /**

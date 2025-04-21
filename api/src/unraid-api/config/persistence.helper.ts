@@ -18,7 +18,7 @@ export class ConfigPersistenceHelper {
      * @throws {Error} if given data is not JSON (de)serializable.
      * @throws {Error} if the config file is not writable.
      */
-    async persistIfChanged(filePath: string, data: unknown) {
+    async persistIfChanged(filePath: string, data: unknown): Promise<boolean> {
         const currentData = JSON.parse(await readFile(filePath, 'utf8'));
         const stagedData = JSON.parse(JSON.stringify(data));
         if (isEqual(currentData, stagedData)) {
