@@ -42,8 +42,11 @@ export class ConnectConfigPersister {
     const HALF_SECOND = 500;
     this.configService.changes$.pipe(debounceTime(HALF_SECOND)).subscribe({
       next: ({ newValue, oldValue, path }) => {
-        if (newValue !== oldValue) {
-          this.logger.debug(`Config changed: ${path}`, { newValue, oldValue });
+        if (path.startsWith("connect.")) {
+          this.logger.debug(`Config changed: ${path}`, {
+            newValue,
+            oldValue,
+          });
           this.persist();
         }
       },
@@ -64,6 +67,7 @@ export class ConnectConfigPersister {
       }
     });
   }
+
   private parseLegacyConfig(filePath?: string): MyServersConfig {
     filePath ??= this.configService.get(
       "PATHS_MY_SERVERS_CONFIG",

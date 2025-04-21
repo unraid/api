@@ -1,6 +1,5 @@
 import { Resolver, Query, Mutation } from "@nestjs/graphql";
 import { ConfigService } from "@nestjs/config";
-import { PluginNameConfig } from "./config.entity.js";
 
 @Resolver()
 export class PluginNameResolver {
@@ -21,4 +20,4 @@ export class PluginNameResolver {
     // The config persister will automatically save the changes.
     return newStatus;
   }
-} 
+}

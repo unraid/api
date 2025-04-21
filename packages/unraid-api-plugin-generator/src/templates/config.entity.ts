@@ -17,4 +17,4 @@ export const configFeature = registerAs<PluginNameConfig>("plugin-name", () => {
   return {
     enabled: true,
   };
-}); 
+});

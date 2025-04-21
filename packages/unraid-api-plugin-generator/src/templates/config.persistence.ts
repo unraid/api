@@ -2,7 +2,7 @@ import { Logger, Injectable } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { existsSync, readFileSync, writeFile } from "fs";
 import path from "path";
-import { debounceTime } from "rxjs/operators";
+import { debounceTime, map } from "rxjs/operators";
 import { PluginNameConfig } from "./config.entity.js";
 
 @Injectable()
@@ -68,4 +68,4 @@ export class PluginNameConfigPersister {
       }
     });
   }
-} 
+}
