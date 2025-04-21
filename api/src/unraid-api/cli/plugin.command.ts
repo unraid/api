@@ -35,13 +35,12 @@ export class InstallPluginCommand extends CommandRunner {
             await this.dependencyService.addPeerDependency(packageName, options.bundled);
             this.logService.log(`Added ${packageName} as a peer dependency.`);
             if (!options.bundled) {
-                throw 'Feature disabled: Remote API plugins. Use --bundled to install a vendored plugin.';
                 await this.dependencyService.npmInstall();
                 await this.dependencyService.rebuildVendorArchive();
             }
             await this.restartCommand.run();
-        } catch (error: unknown) {
-            this.logService.error(error as string);
+        } catch (error) {
+            this.logService.error(error);
             process.exitCode = 1;
         }
     }

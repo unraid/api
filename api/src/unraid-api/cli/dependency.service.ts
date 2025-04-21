@@ -13,6 +13,12 @@ import { LogService } from '@app/unraid-api/cli/log.service.js';
 export class DependencyService {
     constructor(private readonly logger: LogService) {}
 
+    /**
+     * Writes the package.json file for the api.
+     *
+     * @param data - The data to write to the package.json file.
+     * @throws {Error} from fs.writeFile if the file cannot be written.
+     */
     private async writePackageJson(data: PackageJson): Promise<void> {
         const packageJsonPath = getPackageJsonPath();
         await fs.writeFile(packageJsonPath, JSON.stringify(data, null, 2) + '\n');
@@ -35,6 +41,14 @@ export class DependencyService {
         return { name: packageArg }; // No version or scoped package without version
     }
 
+    /**
+     * Adds a peer dependency to the api. If bundled is true, the vendored package will be used.
+     * Note that this function does not check whether the package is, in fact, bundled.
+     *
+     * @param packageArg - The package name and version to add.
+     * @param bundled - Whether the package is bundled with the api.
+     * @returns The name, version, and bundled status of the added dependency.
+     */
     async addPeerDependency(
         packageArg: string,
         bundled: boolean
@@ -65,6 +79,12 @@ export class DependencyService {
         return { name, version: finalVersion, bundled };
     }
 
+    /**
+     * Removes a peer dependency from the api.
+     *
+     * @param packageName - The name of the package to remove.
+     * @throws {Error} if the package name is invalid.
+     */
     async removePeerDependency(packageName: string): Promise<void> {
         const packageJson = getPackageJson();
         const { name } = this.parsePackageArg(packageName);
@@ -86,11 +106,22 @@ export class DependencyService {
         await this.writePackageJson(packageJson);
     }
 
+    /**
+     * Installs dependencies for the api using npm.
+     *
+     * @throws {Error} from execa if the npm install command fails.
+     */
     async npmInstall(): Promise<void> {
         const packageJsonPath = getPackageJsonPath();
         await execa(`npm install`, { cwd: path.dirname(packageJsonPath) });
     }
 
+    /**
+     * Rebuilds the vendored dependency archive for the api and stores it on the boot drive.
+     * If the rc.unraid-api script is not found, no action is taken, but a warning is logged.
+     *
+     * @throws {Error} from execa if the rc.unraid-api command fails.
+     */
     async rebuildVendorArchive(): Promise<void> {
         const rcUnraidApi = '/etc/rc.d/rc.unraid-api';
         if (!(await fileExists(rcUnraidApi))) {
