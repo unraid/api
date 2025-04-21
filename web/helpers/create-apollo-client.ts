@@ -10,6 +10,7 @@ import { WEBGUI_GRAPHQL } from './urls';
 
 const httpEndpoint = WEBGUI_GRAPHQL;
 const wsEndpoint = new URL(WEBGUI_GRAPHQL.toString().replace('http', 'ws'));
+const DEV_MODE = (globalThis as unknown as { __DEV__: boolean }).__DEV__ ?? false;
 
 const headers = {
   'x-csrf-token': globalThis.csrf_token ?? '0000000000000000',
