@@ -14,6 +14,7 @@ import { MyServersConfig } from "./config.entity.js";
 import { plainToInstance } from "class-transformer";
 import { csvStringToArray } from "./helpers/utils.js";
 import { parse as parseIni } from 'ini';
+import { isEqual } from "lodash-es";
 
 @Injectable()
 export class ConnectConfigPersister implements OnModuleInit, OnModuleDestroy {
@@ -51,7 +52,18 @@ export class ConnectConfigPersister implements OnModuleInit, OnModuleDestroy {
     });
   }
 
+  /**
+   * Persist the config to disk if the given data is different from the data on-disk.
+   * This helps preserve the boot flash drive's life by avoiding unnecessary writes.
+   * 
+   * @param config - The config object to persist.
+   * @returns `true` if the config was persisted, `false` otherwise.
+   */
   async persist(config = this.configService.get<{ demo: string }>("connect")) {
+    if (isEqual(config, await this.loadConfig())) {
+      this.logger.verbose(`Config is unchanged, skipping persistence`);
+      return false;
+    }
     const data = JSON.stringify(config, null, 2);
     this.logger.verbose(`Persisting config to ${this.configPath}: ${data}`);
     try {
@@ -83,7 +95,9 @@ export class ConnectConfigPersister implements OnModuleInit, OnModuleDestroy {
    */
   private async loadOrMigrateConfig() {
     try {
-      await this.loadConfig();
+      const config = await this.loadConfig();
+      this.configService.set("connect", config);
+      this.logger.verbose(`Config loaded from ${this.configPath}`);
       return true;
     } catch (error) {
       this.logger.warn("Error loading config:", error);
@@ -110,9 +124,7 @@ export class ConnectConfigPersister implements OnModuleInit, OnModuleDestroy {
    */
   private async loadConfig(configFilePath = this.configPath) {
     if (!existsSync(configFilePath)) throw new Error(`Config file does not exist at '${configFilePath}'`);
-    const config = this.validate(JSON.parse(readFileSync(configFilePath, "utf8")));
-    this.configService.set("connect", config);
-    this.logger.verbose(`Config loaded from ${configFilePath}`);
+    return this.validate(JSON.parse(readFileSync(configFilePath, "utf8")));
   }
 
   /**

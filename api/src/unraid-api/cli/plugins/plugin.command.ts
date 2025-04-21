@@ -1,7 +1,7 @@
 import { Command, CommandRunner, Option, SubCommand } from 'nest-commander';
 
-import { DependencyService } from '@app/unraid-api/cli/plugins/dependency.service.js';
 import { LogService } from '@app/unraid-api/cli/log.service.js';
+import { DependencyService } from '@app/unraid-api/cli/plugins/dependency.service.js';
 import { RestartCommand } from '@app/unraid-api/cli/restart.command.js';
 import { PluginService } from '@app/unraid-api/plugin/plugin.service.js';
 
