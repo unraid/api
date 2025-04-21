@@ -80,8 +80,8 @@ export class RemovePluginCommand extends CommandRunner {
         try {
             await this.pluginService.removePeerDependency(packageName);
             await this.restartCommand.run();
-        } catch (error: unknown) {
-            this.logService.error(`Failed to remove plugin: ${(error as Error).message}`);
+        } catch (error) {
+            this.logService.error(`Failed to remove plugin '${packageName}':`, error);
             process.exitCode = 1;
         }
     }
