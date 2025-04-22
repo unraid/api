@@ -88,7 +88,7 @@ describe('getProviderConfigSlice', () => {
         expect(result.elements).toEqual([]);
     });
 
-    it("should return only standard options when isAdvancedStep is false", () => {
+    it('should return only standard options when isAdvancedStep is false', () => {
         const result = getProviderConfigSlice({
             selectedProvider: testProvider,
             providerOptions: s3Options,
@@ -142,7 +142,7 @@ describe('getProviderConfigSlice', () => {
         });
     });
 
-    it("should return only advanced options when isAdvancedStep is true", () => {
+    it('should return only advanced options when isAdvancedStep is true', () => {
         const result = getProviderConfigSlice({
             selectedProvider: testProvider,
             providerOptions: s3Options,
@@ -244,8 +244,8 @@ describe('getProviderConfigSlice', () => {
         expect(verticalLayoutDup.elements.length).toBe(3);
 
         // Adjusted check to find label within the UnraidSettingsLayout
-        const foundDuplicateElement = verticalLayoutDup.elements.find(
-            (el: any) => el.scope?.includes('duplicate_opt')
+        const foundDuplicateElement = verticalLayoutDup.elements.find((el: any) =>
+            el.scope?.includes('duplicate_opt')
         );
         expect(foundDuplicateElement).toBeDefined();
         // Check the label within the found element's inner elements
@@ -284,9 +284,13 @@ describe('getProviderConfigSlice', () => {
         expect(verticalLayoutPos.type).toBe('VerticalLayout');
         expect(verticalLayoutPos.elements.length).toBe(3);
 
-        const alwaysShowEl = verticalLayoutPos.elements.find((el: any) => el.scope.includes('always_show'));
+        const alwaysShowEl = verticalLayoutPos.elements.find((el: any) =>
+            el.scope.includes('always_show')
+        );
         const s3OnlyEl = verticalLayoutPos.elements.find((el: any) => el.scope.includes('s3_only'));
-        const gdriveOnlyEl = verticalLayoutPos.elements.find((el: any) => el.scope.includes('gdrive_only'));
+        const gdriveOnlyEl = verticalLayoutPos.elements.find((el: any) =>
+            el.scope.includes('gdrive_only')
+        );
 
         expect(alwaysShowEl).toBeDefined();
         expect(s3OnlyEl).toBeDefined();
