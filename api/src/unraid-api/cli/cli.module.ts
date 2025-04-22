@@ -9,7 +9,7 @@ import { DeveloperCommand } from '@app/unraid-api/cli/developer/developer.comman
 import { DeveloperQuestions } from '@app/unraid-api/cli/developer/developer.questions.js';
 import { LogService } from '@app/unraid-api/cli/log.service.js';
 import { LogsCommand } from '@app/unraid-api/cli/logs.command.js';
-import { PluginCommandModule } from '@app/unraid-api/cli/plugins/plugin.module.js';
+import { PluginCommandModule } from '@app/unraid-api/cli/plugins/plugin.cli.module.js';
 import { PM2Service } from '@app/unraid-api/cli/pm2.service.js';
 import { ReportCommand } from '@app/unraid-api/cli/report.command.js';
 import { RestartCommand } from '@app/unraid-api/cli/restart.command.js';
