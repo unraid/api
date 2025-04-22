@@ -1,3 +1,4 @@
+import type { OnModuleDestroy, OnModuleInit } from '@nestjs/common';
 import { Logger } from '@nestjs/common';
 import { SchedulerRegistry } from '@nestjs/schedule';
 
@@ -15,7 +16,7 @@ export interface ApiStateConfigPersistenceOptions {
     disableLifecycleHooks?: boolean;
 }
 
-export class ScheduledConfigPersistence<T> {
+export class ScheduledConfigPersistence<T> implements OnModuleInit, OnModuleDestroy {
     private consecutiveFailures = 0;
     private logger: Logger;
 
