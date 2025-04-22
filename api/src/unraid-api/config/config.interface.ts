@@ -10,6 +10,6 @@ export interface ConfigMetadata<T = unknown> {
     token: string;
     /** The path to the config file. */
     filePath?: string;
-    /** Synchronously validates a config of type `T`. */
-    validate: (config: unknown) => T | void;
+    /** Validates a config of type `T`. */
+    validate: (config: unknown) => Promise<T>;
 }
