@@ -5,7 +5,6 @@ import { PluginService } from '@app/unraid-api/plugin/plugin.service.js';
 @Module({})
 export class PluginModule {
     private static readonly logger = new Logger(PluginModule.name);
-    constructor(private readonly pluginService: PluginService) {}
 
     static async register(): Promise<DynamicModule> {
         const plugins = await PluginService.getPlugins();

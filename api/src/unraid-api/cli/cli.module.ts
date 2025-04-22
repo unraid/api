@@ -9,6 +9,7 @@ import { DeveloperCommand } from '@app/unraid-api/cli/developer/developer.comman
 import { DeveloperQuestions } from '@app/unraid-api/cli/developer/developer.questions.js';
 import { LogService } from '@app/unraid-api/cli/log.service.js';
 import { LogsCommand } from '@app/unraid-api/cli/logs.command.js';
+import { PluginCommandModule } from '@app/unraid-api/cli/plugins/plugin.cli.module.js';
 import { PM2Service } from '@app/unraid-api/cli/pm2.service.js';
 import { ReportCommand } from '@app/unraid-api/cli/report.command.js';
 import { RestartCommand } from '@app/unraid-api/cli/restart.command.js';
@@ -25,6 +26,9 @@ import { StopCommand } from '@app/unraid-api/cli/stop.command.js';
 import { SwitchEnvCommand } from '@app/unraid-api/cli/switch-env.command.js';
 import { VersionCommand } from '@app/unraid-api/cli/version.command.js';
 import { PluginCliModule } from '@app/unraid-api/plugin/plugin.module.js';
+
+// cli - plugin add/remove
+// plugin generator
 
 const DEFAULT_COMMANDS = [
     ApiKeyCommand,
@@ -57,7 +61,7 @@ const DEFAULT_PROVIDERS = [
 ] as const;
 
 @Module({
-    imports: [PluginCliModule.register()],
+    imports: [PluginCliModule.register(), PluginCommandModule],
     providers: [...DEFAULT_COMMANDS, ...DEFAULT_PROVIDERS],
 })
 export class CliModule {}

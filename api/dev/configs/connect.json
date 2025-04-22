@@ -1,0 +1,23 @@
+{
+  "demo": "2025-04-21T14:27:27.631Z",
+  "wanaccess": "yes",
+  "wanport": "8443",
+  "upnpEnabled": "no",
+  "apikey": "_______________________BIG_API_KEY_HERE_________________________",
+  "localApiKey": "_______________________LOCAL_API_KEY_HERE_________________________",
+  "email": "test@example.com",
+  "username": "zspearmint",
+  "avatar": "https://via.placeholder.com/200",
+  "regWizTime": "1611175408732_0951-1653-3509-FBA155FA23C0",
+  "accesstoken": "",
+  "idtoken": "",
+  "refreshtoken": "",
+  "dynamicRemoteAccessType": "DISABLED",
+  "ssoSubIds": "",
+  "version": "4.6.6",
+  "extraOrigins": [
+    "https://google.com",
+    "https://test.com"
+  ],
+  "sandbox": "yes"
+}

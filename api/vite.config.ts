@@ -166,11 +166,7 @@ export default defineConfig(({ mode }): ViteUserConfig => {
                 include: ['src/**/*'],
                 reporter: ['text', 'json', 'html'],
             },
-            setupFiles: [
-                'dotenv/config',
-                'reflect-metadata',
-                'src/__test__/setup.ts',
-            ],
+            setupFiles: ['dotenv/config', 'reflect-metadata', 'src/__test__/setup.ts'],
             exclude: ['**/deploy/**', '**/node_modules/**'],
         },
     };

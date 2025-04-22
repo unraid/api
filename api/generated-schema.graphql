@@ -1232,8 +1232,8 @@ type DockerNetwork {
 
 type Docker implements Node {
   id: ID!
-  containers(useCache: Boolean! = true): [DockerContainer!]!
-  networks: [DockerNetwork!]!
+  containers(skipCache: Boolean! = false): [DockerContainer!]!
+  networks(skipCache: Boolean! = false): [DockerNetwork!]!
 }
 
 type Flash implements Node {
@@ -1423,6 +1423,7 @@ type Query {
   disks: [Disk!]!
   disk(id: String!): Disk!
   health: String!
+  getDemo: String!
 }
 
 type Mutation {
@@ -1459,6 +1460,7 @@ type Mutation {
   setupRemoteAccess(input: SetupRemoteAccessInput!): Boolean!
   setAdditionalAllowedOrigins(input: AllowedOriginInput!): [String!]!
   enableDynamicRemoteAccess(input: EnableDynamicRemoteAccessInput!): Boolean!
+  setDemo: String!
 }
 
 input CreateApiKeyInput {
