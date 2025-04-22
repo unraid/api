@@ -3,7 +3,7 @@ import { readFile } from 'node:fs/promises';
 import { join } from 'path';
 
 import { fileExists } from '@app/core/utils/files/file-exists.js';
-import { CONFIG_MODULES_HOME } from '@app/environment.js';
+import { PATHS_CONFIG_MODULES } from '@app/environment.js';
 import { makeConfigToken } from '@app/unraid-api/config/config.injection.js';
 import { ConfigPersistenceHelper } from '@app/unraid-api/config/persistence.helper.js';
 
@@ -43,7 +43,7 @@ export class ApiStateConfig<T> {
     }
 
     get filePath() {
-        return join(CONFIG_MODULES_HOME, this.fileName);
+        return join(PATHS_CONFIG_MODULES, this.fileName);
     }
 
     /**

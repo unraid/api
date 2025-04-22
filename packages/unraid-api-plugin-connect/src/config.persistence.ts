@@ -22,8 +22,10 @@ export class ConnectConfigPersister implements OnModuleInit, OnModuleDestroy {
 
   private logger = new Logger(ConnectConfigPersister.name);
   get configPath() {
+    // PATHS_CONFIG_MODULES is a required environment variable.
+    // It is the directory where custom config files are stored.
     return path.join(
-      this.configService.get("CONFIG_MODULES_HOME")!,
+      this.configService.get("PATHS_CONFIG_MODULES")!,
       "connect.json"
     );
   }

@@ -15,7 +15,7 @@ import { WebSocket } from 'ws';
 
 import { logger } from '@app/core/log.js';
 import { fileExistsSync } from '@app/core/utils/files/file-exists.js';
-import { CONFIG_MODULES_HOME, environment, PORT } from '@app/environment.js';
+import { environment, PATHS_CONFIG_MODULES, PORT } from '@app/environment.js';
 import * as envVars from '@app/environment.js';
 import { setupNewMothershipSubscription } from '@app/mothership/subscribe-to-mothership.js';
 import { loadDynamixConfigFile } from '@app/store/actions/load-dynamix-config-file.js';
@@ -45,7 +45,7 @@ export const viteNodeApp = async () => {
         logger.info('ENV %o', envVars);
         logger.info('PATHS %o', store.getState().paths);
 
-        await mkdir(CONFIG_MODULES_HOME, { recursive: true });
+        await mkdir(PATHS_CONFIG_MODULES, { recursive: true });
 
         const cacheable = new CacheableLookup();
 

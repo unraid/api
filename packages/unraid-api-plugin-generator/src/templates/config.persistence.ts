@@ -15,7 +15,7 @@ export class PluginNameConfigPersister implements OnModuleInit {
   /** the file path to the config file for this plugin */
   get configPath() {
     return path.join(
-      this.configService.get("CONFIG_MODULES_HOME")!,
+      this.configService.get("PATHS_CONFIG_MODULES")!,
       "plugin-name.json" // Use kebab-case for the filename
     );
   }
