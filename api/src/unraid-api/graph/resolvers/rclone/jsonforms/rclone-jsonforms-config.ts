@@ -1,57 +1,10 @@
-import type { ControlElement, LabelElement, Layout, Rule, SchemaBasedCondition } from '@jsonforms/core';
+import type { LabelElement, Layout, Rule, SchemaBasedCondition } from '@jsonforms/core';
 import { JsonSchema7, RuleEffect } from '@jsonforms/core';
-import { filter } from 'rxjs';
 
 import type { DataSlice, SettingSlice, UIElement } from '@app/unraid-api/types/json-forms.js';
 import { RCloneProviderOptionResponse } from '@app/unraid-api/graph/resolvers/rclone/rclone.model.js';
+import { createLabeledControl } from '@app/unraid-api/graph/utils/form-utils.js';
 import { mergeSettingSlices } from '@app/unraid-api/types/json-forms.js';
-
-// --- START: Added Helper Function ---
-/**
- * Creates a HorizontalLayout containing a Label and a Control element.
- */
-function createLabeledControl({
-    scope,
-    label,
-    description,
-    controlOptions,
-    labelOptions,
-    layoutOptions,
-    rule,
-}: {
-    scope: string;
-    label: string;
-    description?: string;
-    controlOptions: ControlElement['options'];
-    labelOptions?: LabelElement['options'];
-    layoutOptions?: Layout['options'];
-    rule?: Rule;
-}): Layout {
-    const layout: Layout & { scope?: string } = {
-        type: 'UnraidSettingsLayout',
-        scope: scope, // Apply scope to the layout for potential rules/visibility based on the field itself
-        options: layoutOptions,
-        elements: [
-            {
-                type: 'Label',
-                text: label,
-                scope: scope, // Scope might be needed for specific label behaviors
-                options: { ...labelOptions, description },
-            } as LabelElement,
-            {
-                type: 'Control',
-                scope: scope,
-                options: controlOptions,
-            } as ControlElement,
-        ],
-    };
-    // Conditionally add the rule to the layout if provided
-    if (rule) {
-        layout.rule = rule;
-    }
-    return layout;
-}
-// --- END: Added Helper Function ---
 
 /**
  * Translates RClone config option to JsonSchema properties
@@ -384,7 +337,6 @@ export function getProviderConfigSlice({
     uniqueOptionsByName.forEach((option) => {
         if (option) {
             paramProperties[option.Name] = translateRCloneOptionToJsonSchema({ option });
-            console.log('paramProperties', option.Name, paramProperties[option.Name]);
         }
     });
 

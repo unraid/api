@@ -1,0 +1,6 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+Never add comments for obvious things, and avoid commenting when starting and ending code blocks
