@@ -70,7 +70,8 @@ describe('getProviderConfigSlice', () => {
         const result = getProviderConfigSlice({
             selectedProvider: 'invalid-provider-name',
             providerOptions: [], // Doesn't matter for this case
-            type: 'standard',
+            isAdvancedStep: false,
+            stepIndex: 1,
         });
         expect(result.properties).toEqual({});
         expect(result.elements).toEqual([]);
@@ -80,17 +81,19 @@ describe('getProviderConfigSlice', () => {
         const result = getProviderConfigSlice({
             selectedProvider: testProvider, // Valid provider
             providerOptions: [], // Empty options
-            type: 'standard',
+            isAdvancedStep: false,
+            stepIndex: 1,
         });
         expect(result.properties).toEqual({});
         expect(result.elements).toEqual([]);
     });
 
-    it("should return only standard options when type is 'standard'", () => {
+    it("should return only standard options when isAdvancedStep is false", () => {
         const result = getProviderConfigSlice({
             selectedProvider: testProvider,
             providerOptions: s3Options,
-            type: 'standard',
+            isAdvancedStep: false,
+            stepIndex: 1,
         });
 
         // Check properties schema
@@ -116,29 +119,35 @@ describe('getProviderConfigSlice', () => {
 
         // Check UI elements - compare count against unique names
         expect(result.elements).toBeDefined();
-        expect(Array.isArray(result.elements)).toBe(true);
-        expect(result.elements.length).toEqual(uniqueStandardOptionNames.length);
+        // Expect a single VerticalLayout containing the actual elements
+        expect(result.elements).toHaveLength(1);
+        const verticalLayoutStd = result.elements[0];
+        expect(verticalLayoutStd.type).toBe('VerticalLayout');
+        expect(Array.isArray(verticalLayoutStd.elements)).toBe(true);
+        expect(verticalLayoutStd.elements.length).toEqual(uniqueStandardOptionNames.length);
 
         // Check elements based on unique names
         uniqueStandardOptionNames.forEach((name) => {
             // Use `as any` for type assertion on the result elements array
-            const elementsArray = result.elements as any[];
+            // Adjust to check within the VerticalLayout's elements
+            const elementsArray = verticalLayoutStd.elements as any[];
             // Find element by scope instead of label
             const expectedScope = `#/properties/parameters/properties/${name}`;
             const element = elementsArray.find((el) => el.scope === expectedScope);
             expect(element).toBeDefined(); // Check if element was found
             if (element) {
-                // Basic check
-                expect(element.type).toEqual('Control');
+                // Check the type of the wrapper layout
+                expect(element.type).toEqual('UnraidSettingsLayout');
             }
         });
     });
 
-    it("should return only advanced options when type is 'advanced'", () => {
+    it("should return only advanced options when isAdvancedStep is true", () => {
         const result = getProviderConfigSlice({
             selectedProvider: testProvider,
             providerOptions: s3Options,
-            type: 'advanced',
+            isAdvancedStep: true,
+            stepIndex: 2,
         });
 
         // Check properties schema
@@ -163,20 +172,25 @@ describe('getProviderConfigSlice', () => {
 
         // Check UI elements - compare count against unique names
         expect(result.elements).toBeDefined();
-        expect(Array.isArray(result.elements)).toBe(true);
-        expect(result.elements.length).toEqual(uniqueAdvancedOptionNames.length);
+        // Expect a single VerticalLayout containing the actual elements
+        expect(result.elements).toHaveLength(1);
+        const verticalLayoutAdv = result.elements[0];
+        expect(verticalLayoutAdv.type).toBe('VerticalLayout');
+        expect(Array.isArray(verticalLayoutAdv.elements)).toBe(true);
+        expect(verticalLayoutAdv.elements.length).toEqual(uniqueAdvancedOptionNames.length);
 
         // Check elements based on unique names
         uniqueAdvancedOptionNames.forEach((name) => {
             // Use `as any` for type assertion on the result elements array
-            const elementsArray = result.elements as any[];
+            // Adjust to check within the VerticalLayout's elements
+            const elementsArray = verticalLayoutAdv.elements as any[];
             // Find element by scope instead of label
             const expectedScope = `#/properties/parameters/properties/${name}`;
             const element = elementsArray.find((el) => el.scope === expectedScope);
             expect(element).toBeDefined(); // Check if element was found
             if (element) {
-                // Basic check
-                expect(element.type).toEqual('Control');
+                // Check the type of the wrapper layout
+                expect(element.type).toEqual('UnraidSettingsLayout');
             }
         });
     });
@@ -192,7 +206,8 @@ describe('getProviderConfigSlice', () => {
         const result = getProviderConfigSlice({
             selectedProvider: testProviderNoAdvanced,
             providerOptions: aliasOptions || [],
-            type: 'advanced',
+            isAdvancedStep: true,
+            stepIndex: 2,
         });
 
         // Expect empty results because no advanced options should be found
@@ -211,7 +226,8 @@ describe('getProviderConfigSlice', () => {
         const result = getProviderConfigSlice({
             selectedProvider: 'test',
             providerOptions: duplicateOptions,
-            type: 'standard',
+            isAdvancedStep: false,
+            stepIndex: 1,
         });
 
         // Check properties - should only contain unique names
@@ -220,11 +236,32 @@ describe('getProviderConfigSlice', () => {
         expect(paramProps['duplicate_opt']?.description).toBe('Keep this one'); // Check it kept the first one
 
         // Check elements - should only contain unique names
-        expect(result.elements.length).toBe(3);
-        const elementLabels = result.elements.map((el: any) => el.label);
-        expect(elementLabels).toContain('Keep this one'); // Based on Help text as label fallback
-        expect(elementLabels).not.toContain('Skip this one');
-        expect(result.elements.find((el: any) => el.scope.includes('duplicate_opt'))).toBeDefined();
+        // Expect a single VerticalLayout containing the actual elements
+        expect(result.elements).toHaveLength(1);
+        const verticalLayoutDup = result.elements[0];
+        expect(verticalLayoutDup.type).toBe('VerticalLayout');
+        expect(Array.isArray(verticalLayoutDup.elements)).toBe(true);
+        expect(verticalLayoutDup.elements.length).toBe(3);
+
+        // Adjusted check to find label within the UnraidSettingsLayout
+        const foundDuplicateElement = verticalLayoutDup.elements.find(
+            (el: any) => el.scope?.includes('duplicate_opt')
+        );
+        expect(foundDuplicateElement).toBeDefined();
+        // Check the label within the found element's inner elements
+        const duplicateLabelElement = foundDuplicateElement?.elements?.find(
+            (innerEl: any) => innerEl.type === 'Label'
+        );
+        // Check the description within the label options
+        expect(duplicateLabelElement?.options?.description).toBe('Keep this one');
+        // Check that the other duplicate label is not present by description
+        const containsSkipped = verticalLayoutDup.elements.some((el: any) =>
+            el.elements?.some(
+                (innerEl: any) =>
+                    innerEl.type === 'Label' && innerEl.options?.description === 'Skip this one'
+            )
+        );
+        expect(containsSkipped).toBe(false);
     });
 
     it('should add a SHOW rule for positive Provider filters', () => {
@@ -237,14 +274,19 @@ describe('getProviderConfigSlice', () => {
         const result = getProviderConfigSlice({
             selectedProvider: 'anyProvider',
             providerOptions: providerSpecificOptions,
-            type: 'standard',
+            isAdvancedStep: false,
+            stepIndex: 1,
         });
 
-        expect(result.elements.length).toBe(3);
+        // Expect a single VerticalLayout containing the actual elements
+        expect(result.elements).toHaveLength(1);
+        const verticalLayoutPos = result.elements[0];
+        expect(verticalLayoutPos.type).toBe('VerticalLayout');
+        expect(verticalLayoutPos.elements.length).toBe(3);
 
-        const alwaysShowEl = result.elements.find((el: any) => el.scope.includes('always_show'));
-        const s3OnlyEl = result.elements.find((el: any) => el.scope.includes('s3_only'));
-        const gdriveOnlyEl = result.elements.find((el: any) => el.scope.includes('gdrive_only'));
+        const alwaysShowEl = verticalLayoutPos.elements.find((el: any) => el.scope.includes('always_show'));
+        const s3OnlyEl = verticalLayoutPos.elements.find((el: any) => el.scope.includes('s3_only'));
+        const gdriveOnlyEl = verticalLayoutPos.elements.find((el: any) => el.scope.includes('gdrive_only'));
 
         expect(alwaysShowEl).toBeDefined();
         expect(s3OnlyEl).toBeDefined();
@@ -280,13 +322,20 @@ describe('getProviderConfigSlice', () => {
         const result = getProviderConfigSlice({
             selectedProvider: 'anyProvider',
             providerOptions: providerSpecificOptions,
-            type: 'standard',
+            isAdvancedStep: false,
+            stepIndex: 1,
         });
 
-        expect(result.elements.length).toBe(2);
+        // Expect a single VerticalLayout containing the actual elements
+        expect(result.elements).toHaveLength(1);
+        const verticalLayoutNeg = result.elements[0];
+        expect(verticalLayoutNeg.type).toBe('VerticalLayout');
+        expect(verticalLayoutNeg.elements.length).toBe(2);
 
-        const notS3El = result.elements.find((el: any) => el.scope.includes('not_s3'));
-        const notS3OrGDriveEl = result.elements.find((el: any) => el.scope.includes('not_s3_or_gdrive'));
+        const notS3El = verticalLayoutNeg.elements.find((el: any) => el.scope.includes('not_s3'));
+        const notS3OrGDriveEl = verticalLayoutNeg.elements.find((el: any) =>
+            el.scope.includes('not_s3_or_gdrive')
+        );
 
         expect(notS3El).toBeDefined();
         expect(notS3OrGDriveEl).toBeDefined();
