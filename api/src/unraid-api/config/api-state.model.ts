@@ -5,8 +5,7 @@ import { join } from 'path';
 import { fileExists } from '@app/core/utils/files/file-exists.js';
 import { CONFIG_MODULES_HOME } from '@app/environment.js';
 import { makeConfigToken } from '@app/unraid-api/config/config.injection.js';
-
-import { ConfigPersistenceHelper } from './persistence.helper.js';
+import { ConfigPersistenceHelper } from '@app/unraid-api/config/persistence.helper.js';
 
 export interface ApiStateConfigOptions<T> {
     /**
@@ -101,5 +100,6 @@ export class ApiStateConfig<T> {
     update(config: Partial<T>) {
         const proposedConfig = this.options.parse({ ...this.config, ...config });
         this.config = proposedConfig;
+        return this;
     }
 }
