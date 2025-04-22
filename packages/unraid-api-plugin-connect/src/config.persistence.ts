@@ -15,6 +15,7 @@ import { plainToInstance } from "class-transformer";
 import { csvStringToArray } from "./helpers/utils.js";
 import { parse as parseIni } from 'ini';
 import { isEqual } from "lodash-es";
+import { validateOrReject } from "class-validator";
 
 @Injectable()
 export class ConnectConfigPersister implements OnModuleInit, OnModuleDestroy {
@@ -90,8 +91,15 @@ export class ConnectConfigPersister implements OnModuleInit, OnModuleDestroy {
    * @param config - The config object to validate.
    * @returns The validated config instance.
    */
-  private validate(config: object) {
-    return plainToInstance(MyServersConfig, config);
+  private async validate(config: object) {
+    let instance: MyServersConfig;
+    if (config instanceof MyServersConfig) {
+      instance = config;
+    } else {
+      instance = plainToInstance(MyServersConfig, config, { enableImplicitConversion: true });
+    }
+    await validateOrReject(instance);
+    return instance;
   }
 
   /**
@@ -141,7 +149,7 @@ export class ConnectConfigPersister implements OnModuleInit, OnModuleDestroy {
    * @throws {Error} - If the legacy config file is not parse-able.
    */
   private async migrateLegacyConfig() {
-    const legacyConfig = this.parseLegacyConfig();
+    const legacyConfig = await this.parseLegacyConfig();
     this.configService.set("connect", {
       demo: new Date().toISOString(),
       ...legacyConfig,
@@ -155,7 +163,7 @@ export class ConnectConfigPersister implements OnModuleInit, OnModuleDestroy {
    * @throws {Error} - If the legacy config file does not exist.
    * @throws {Error} - If the legacy config file is not parse-able.
    */
-  private parseLegacyConfig(filePath?: string): MyServersConfig {
+  private async parseLegacyConfig(filePath?: string): Promise<MyServersConfig> {
     filePath ??= this.configService.get(
       "PATHS_MY_SERVERS_CONFIG",
       "/boot/config/plugins/dynamix.my.servers/myservers.cfg"
