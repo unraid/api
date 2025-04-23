@@ -8,6 +8,7 @@ import { LoggerModule } from 'nestjs-pino';
 
 import { apiLogger } from '@app/core/log.js';
 import { LOG_LEVEL } from '@app/environment.js';
+import { PubSubModule } from '@app/unraid-api/app/pubsub.module.js';
 import { AuthModule } from '@app/unraid-api/auth/auth.module.js';
 import { AuthenticationGuard } from '@app/unraid-api/auth/authentication.guard.js';
 import { LegacyConfigModule } from '@app/unraid-api/config/legacy-config.module.js';
@@ -19,6 +20,7 @@ import { UnraidFileModifierModule } from '@app/unraid-api/unraid-file-modifier/u
 @Module({
     imports: [
         LegacyConfigModule,
+        PubSubModule,
         LoggerModule.forRoot({
             pinoHttp: {
                 logger: apiLogger,
