@@ -65,7 +65,7 @@ export class MothershipConnectionService {
             unraidVersion: this.unraidVersion,
             flashGuid: this.flashGuid,
             apiVersion: this.apiVersion,
-            apiKey: this.configService.get<MyServersConfig>('connect')?.apikey,
+            apiKey: this.configService.get<MyServersConfig>('connect.config')?.apikey,
         };
         const isLoaded = Object.values(state).every(Boolean);
         return isLoaded ? { state: state as IdentityState, isLoaded: true } : { state, isLoaded: false };
