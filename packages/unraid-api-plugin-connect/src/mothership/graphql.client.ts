@@ -22,6 +22,8 @@ import { buildDelayFunction } from './delay-function.js';
 
 const FIVE_MINUTES_MS = 5 * 60 * 1000;
 
+type Unsubscribe = () => void;
+
 @Injectable()
 export class GraphqlClientService implements OnModuleInit, OnModuleDestroy {
     private logger = new Logger(GraphqlClientService.name);
@@ -33,6 +35,7 @@ export class GraphqlClientService implements OnModuleInit, OnModuleDestroy {
         initial: 10_000,
     });
     private isStateValid = () => this.connectionService.getIdentityState().isLoaded;
+    private disposalQueue: Unsubscribe[] = [];
 
     get apiVersion() {
         return this.configService.getOrThrow('API_VERSION');
@@ -257,7 +260,7 @@ export class GraphqlClientService implements OnModuleInit, OnModuleDestroy {
     private initEventHandlers(): void {
         if (!this.wsClient) return;
 
-        this.wsClient.on('connecting', () => {
+        const disposeConnecting = this.wsClient.on('connecting', () => {
             this.connectionService.setConnectionStatus({
                 status: MinigraphStatus.CONNECTING,
                 error: null,
@@ -265,11 +268,11 @@ export class GraphqlClientService implements OnModuleInit, OnModuleDestroy {
             this.logger.log('Connecting to %s', this.mothershipGraphqlLink.replace('http', 'ws'));
         });
 
-        this.wsClient.on('error', (err) => {
+        const disposeError = this.wsClient.on('error', (err) => {
             this.logger.error('GraphQL Client Error: %o', err);
         });
 
-        this.wsClient.on('connected', () => {
+        const disposeConnected = this.wsClient.on('connected', () => {
             this.connectionService.setConnectionStatus({
                 status: MinigraphStatus.CONNECTED,
                 error: null,
@@ -277,10 +280,12 @@ export class GraphqlClientService implements OnModuleInit, OnModuleDestroy {
             this.logger.log('Connected to %s', this.mothershipGraphqlLink.replace('http', 'ws'));
         });
 
-        this.wsClient.on('ping', () => {
+        const disposePing = this.wsClient.on('ping', () => {
             this.logger.verbose('ping');
             this.connectionService.receivePing();
         });
+
+        this.disposalQueue.push(disposeConnecting, disposeConnected, disposePing, disposeError);
     }
 
     /**
@@ -295,6 +300,9 @@ export class GraphqlClientService implements OnModuleInit, OnModuleDestroy {
         ]
     ): void {
         if (!this.wsClient) return;
-        events.forEach((eventName) => this.wsClient!.on(eventName, () => {}));
+        while (this.disposalQueue.length > 0) {
+            const dispose = this.disposalQueue.shift();
+            dispose?.();
+        }
     }
 }
