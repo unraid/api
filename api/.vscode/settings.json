@@ -3,5 +3,7 @@
     "eslint.options": {
         "flags": ["unstable_ts_config"],
         "overrideConfigFile": ".eslintrc.ts"
-    }
+    },
+    "typescript.preferences.importModuleSpecifier": "non-relative",
+    "javascript.preferences.importModuleSpecifier": "non-relative"
 }
