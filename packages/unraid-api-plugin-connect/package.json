@@ -16,6 +16,7 @@
   "license": "GPL-2.0-or-later",
   "description": "Example Health plugin for Unraid API",
   "devDependencies": {
+    "@ianvs/prettier-plugin-sort-imports": "^4.4.1",
     "@nestjs/common": "^11.0.11",
     "@nestjs/config": "^4.0.2",
     "@nestjs/core": "^11.0.11",
@@ -29,6 +30,7 @@
     "ini": "^5.0.0",
     "lodash-es": "^4.17.21",
     "nest-authz": "^2.14.0",
+    "prettier": "^3.5.3",
     "rxjs": "^7.8.2",
     "typescript": "^5.8.2"
   },
