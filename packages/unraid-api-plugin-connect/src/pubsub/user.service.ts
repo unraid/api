@@ -1,4 +1,4 @@
-import { Inject, Injectable, Logger } from '@nestjs/common';
+import { Inject, Injectable, Logger, OnModuleDestroy } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { EventEmitter2, OnEvent } from '@nestjs/event-emitter';
 
@@ -10,7 +10,7 @@ import { EVENTS, GRAPHQL_PUB_SUB_TOKEN, PUBSUB_CHANNEL } from './consts.js';
 import { MinigraphStatus } from '../config.entity.js';
 
 @Injectable()
-export class UserService {
+export class UserService implements OnModuleDestroy {
     private readonly logger = new Logger(UserService.name);
 
     constructor(
@@ -21,6 +21,10 @@ export class UserService {
         @Inject(GRAPHQL_PUB_SUB_TOKEN)
         private readonly legacyPubSub: PubSub
     ) {}
+
+    async onModuleDestroy() {
+        await this.resetMothershipConnection();
+    }
 
     /**
      * First listener triggered when the user logs out.
@@ -43,11 +47,6 @@ export class UserService {
 
     private async resetMothershipConnection() {
         await this.clientService.clearInstance();
-        this.configService.set('connect.mothership.status', MinigraphStatus.PRE_INIT);
-        this.configService.set('connect.mothership.error', null);
-        this.configService.set('connect.mothership.lastPing', null);
-        this.configService.set('connect.mothership.selfDisconnectedSince', null);
-        this.configService.set('connect.mothership.timeout', null);
-        this.configService.set('connect.mothership.timeoutStart', null);
+        this.connectionService.resetMetadata();
     }
 }

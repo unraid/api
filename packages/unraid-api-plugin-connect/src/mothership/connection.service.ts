@@ -2,7 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import type { OutgoingHttpHeaders } from 'node:http2';
 
-import type { ConnectionMetadata, MinigraphStatus, MyServersConfig } from '../config.entity.js';
+import { ConnectionMetadata, MinigraphStatus, MyServersConfig } from '../config.entity.js';
 
 interface MothershipWebsocketHeaders extends OutgoingHttpHeaders {
     'x-api-key': string;
@@ -50,6 +50,17 @@ export class MothershipConnectionService {
     private apiVersion: string = '';
 
     constructor(private readonly configService: ConfigService) {}
+
+    private updateMetadata(data: Partial<ConnectionMetadata>) {
+        this.configService.set('connect.mothership', {
+            ...this.configService.get<ConnectionMetadata>('connect.mothership'),
+            ...data,
+        });
+    }
+
+    private setMetadata(data: ConnectionMetadata) {
+        this.configService.set('connect.mothership', data);
+    }
 
     async onModuleInit() {
         // Crash on startup if these config values are not set
@@ -112,11 +123,14 @@ export class MothershipConnectionService {
     }
 
     setConnectionStatus({ status, error }: ConnectionStatus) {
-        this.configService.set('connect.mothership.status', status);
-        this.configService.set('connect.mothership.error', error);
+        this.updateMetadata({ status, error });
+    }
+
+    resetMetadata() {
+        this.setMetadata({ status: MinigraphStatus.PRE_INIT });
     }
 
     receivePing() {
-        this.configService.set('connect.mothership.lastPing', Date.now());
+        this.updateMetadata({ lastPing: Date.now() });
     }
 }
