@@ -1,5 +1,27 @@
 # Changelog
 
+## [4.7.0](https://github.com/unraid/api/compare/v4.6.6...v4.7.0) (2025-04-24)
+
+
+### Features
+
+* add basic docker network listing ([#1317](https://github.com/unraid/api/issues/1317)) ([c4fdff8](https://github.com/unraid/api/commit/c4fdff8149eb2812707605b3a98eabc795d18c5e))
+* add permission documentation by using a custom decorator ([#1355](https://github.com/unraid/api/issues/1355)) ([45ecab6](https://github.com/unraid/api/commit/45ecab6914e2e4dd48438352eb9a5084a6a4b996))
+* basic vm controls ([#1293](https://github.com/unraid/api/issues/1293)) ([bc3ca92](https://github.com/unraid/api/commit/bc3ca92fb02387bc019bb001809df96974737b50))
+* code first graphql ([#1347](https://github.com/unraid/api/issues/1347)) ([f5724ab](https://github.com/unraid/api/commit/f5724abffbcb8c8a4885c487df4119787fd1d541))
+
+
+### Bug Fixes
+
+* container names always null ([#1335](https://github.com/unraid/api/issues/1335)) ([8a5b238](https://github.com/unraid/api/commit/8a5b23856c006827229812e558f7d1af92be80e0))
+* **deps:** update all non-major dependencies ([#1337](https://github.com/unraid/api/issues/1337)) ([2345732](https://github.com/unraid/api/commit/234573264cfed1409a767927ff95f132be393ea9))
+* hide reboot notice for patch releases ([#1341](https://github.com/unraid/api/issues/1341)) ([4b57439](https://github.com/unraid/api/commit/4b5743906a172f84bb46011fe2c3e0c8f64059a2))
+* move docker mutations to the mutations resolver ([#1333](https://github.com/unraid/api/issues/1333)) ([1bbe7d2](https://github.com/unraid/api/commit/1bbe7d27b0e87b5ffcd57ac9cc28e64b046055be))
+* PR build issue ([457d338](https://github.com/unraid/api/commit/457d338150774ddc14cde6562e226a6a565aca48))
+* remove some unused fields from the report object ([#1342](https://github.com/unraid/api/issues/1342)) ([cd323ac](https://github.com/unraid/api/commit/cd323acd4905a558786b029ff5a30371c4512956))
+* sso unreliable if API outputs more than raw json ([#1353](https://github.com/unraid/api/issues/1353)) ([e65775f](https://github.com/unraid/api/commit/e65775f8782714d1cc29c8f2801244b5a4043409))
+* vms now can detect starting of libvirt and start local hypervisor ([#1356](https://github.com/unraid/api/issues/1356)) ([ad0f4c8](https://github.com/unraid/api/commit/ad0f4c8b55c7f7e94fbae2108f17715b1373a3ef))
+
 ## [4.6.6](https://github.com/unraid/api/compare/v4.6.5...v4.6.6) (2025-04-03)
 
 
