@@ -34,7 +34,7 @@ export default class DefaultPageLayoutModification extends FileModification {
 
     private prependDoctypeWithPhp(source: string, phpToAdd: string): string {
         // The regex to find the target string `?>\s*<!DOCTYPE html>` at the beginning of a line
-        const targetRegex = /^\?>\s*<!DOCTYPE html>/m;
+        const targetRegex = /^\s*\?>\s*<!DOCTYPE html>/m;
 
         // Prepend the phpToAdd before the matched string
         return source.replace(targetRegex, (match) => `${phpToAdd}\n${match}`);
@@ -44,11 +44,17 @@ export default class DefaultPageLayoutModification extends FileModification {
         // prettier-ignore
         const newPhpCode =
 `
-if (session_status() == PHP_SESSION_NONE) {
+function is_localhost() {
+  $server_name = strtok($_SERVER['HTTP_HOST'], ":");
+  return $server_name == 'localhost' || $server_name == '127.0.0.1';
+}
+function is_good_session() {
+  return isset($_SESSION) && isset($_SESSION['unraid_user']) && isset($_SESSION['unraid_login']);
+}
+if (is_localhost() && !is_good_session()) {
   session_start();
   $_SESSION['unraid_login'] = time();
   $_SESSION['unraid_user'] = 'root';
-  session_regenerate_id(true);
   session_write_close();
   # This situation should only be possible when booting into GUI mode
   my_logger("Page accessed without session; created session for root user.");

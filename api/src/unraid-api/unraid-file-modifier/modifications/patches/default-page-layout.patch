@@ -2,18 +2,24 @@ Index: /usr/local/emhttp/plugins/dynamix/include/DefaultPageLayout.php
 ===================================================================
 --- /usr/local/emhttp/plugins/dynamix/include/DefaultPageLayout.php	original
 +++ /usr/local/emhttp/plugins/dynamix/include/DefaultPageLayout.php	modified
-@@ -29,10 +29,20 @@
+@@ -29,10 +29,26 @@
  // adjust the text color in docker log window
  $fgcolor = in_array($theme,['white','azure']) ? '#1c1c1c' : '#f2f2f2';
  exec("sed -ri 's/^\.logLine\{color:#......;/.logLine{color:$fgcolor;/' $docroot/plugins/dynamix.docker.manager/log.htm >/dev/null &");
  
  function annotate($text) {echo "\n<!--\n",str_repeat("#",strlen($text)),"\n$text\n",str_repeat("#",strlen($text)),"\n-->\n";}
 +
-+if (session_status() == PHP_SESSION_NONE) {
++function is_localhost() {
++  $server_name = strtok($_SERVER['HTTP_HOST'], ":");
++  return $server_name == 'localhost' || $server_name == '127.0.0.1';
++}
++function is_good_session() {
++  return isset($_SESSION) && isset($_SESSION['unraid_user']) && isset($_SESSION['unraid_login']);
++}
++if (is_localhost() && !is_good_session()) {
 +  session_start();
 +  $_SESSION['unraid_login'] = time();
 +  $_SESSION['unraid_user'] = 'root';
-+  session_regenerate_id(true);
 +  session_write_close();
 +  # This situation should only be possible when booting into GUI mode
 +  my_logger("Page accessed without session; created session for root user.");
@@ -23,7 +29,7 @@ Index: /usr/local/emhttp/plugins/dynamix/include/DefaultPageLayout.php
  <html <?=$display['rtl']?>lang="<?=strtok($locale,'_')?:'en'?>" class="<?= $themeHtmlClass ?>">
  <head>
  <title><?=_var($var,'NAME')?>/<?=_var($myPage,'name')?></title>
-@@ -602,20 +612,11 @@
+@@ -602,20 +618,11 @@
  }
  
  function openNotifier() {
@@ -45,7 +51,7 @@ Index: /usr/local/emhttp/plugins/dynamix/include/DefaultPageLayout.php
  }
  
  function closeNotifier() {
-@@ -748,12 +749,12 @@
+@@ -748,12 +755,12 @@
    }
    // create list of nchan scripts to be started
    if (isset($button['Nchan'])) nchan_merge($button['root'], $button['Nchan']);
@@ -59,7 +65,7 @@ Index: /usr/local/emhttp/plugins/dynamix/include/DefaultPageLayout.php
  foreach ($buttons as $button) {
    annotate($button['file']);
    // include page specific stylesheets (if existing)
-@@ -937,26 +938,18 @@
+@@ -937,26 +944,18 @@
          case 'warning': bell2++; break;
          case 'normal' : bell3++; break;
        }
@@ -91,7 +97,7 @@ Index: /usr/local/emhttp/plugins/dynamix/include/DefaultPageLayout.php
  });
  
  <?if ($wlan0):?>
-@@ -1337,7 +1330,8 @@
+@@ -1337,7 +1336,8 @@
        }
      }
    }
