@@ -16,6 +16,7 @@ test('Returns paths', async () => {
         "emhttpd-socket",
         "states",
         "dynamix-base",
+        "dynamixCaseModelConfig",
         "dynamix-config",
         "myservers-base",
         "myservers-config",
@@ -30,6 +31,9 @@ test('Returns paths', async () => {
         "auth-sessions",
         "auth-keys",
         "libvirt-pid",
+        "activationBase",
+        "webguiImagesBase",
+        "identConfig",
       ]
     `);
 });

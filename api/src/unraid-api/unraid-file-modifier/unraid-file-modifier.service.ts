@@ -1,12 +1,6 @@
 import { Injectable, Logger, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
 
 import { FileModification } from '@app/unraid-api/unraid-file-modifier/file-modification.js';
-import AuthRequestModification from '@app/unraid-api/unraid-file-modifier/modifications/auth-request.modification.js';
-import DefaultPageLayoutModification from '@app/unraid-api/unraid-file-modifier/modifications/default-page-layout.modification.js';
-import { LogRotateModification } from '@app/unraid-api/unraid-file-modifier/modifications/log-rotate.modification.js';
-import { LogViewerModification } from '@app/unraid-api/unraid-file-modifier/modifications/log-viewer.modification.js';
-import NotificationsPageModification from '@app/unraid-api/unraid-file-modifier/modifications/notifications-page.modification.js';
-import SSOFileModification from '@app/unraid-api/unraid-file-modifier/modifications/sso.modification.js';
 
 @Injectable()
 export class UnraidFileModificationService implements OnModuleInit, OnModuleDestroy {
@@ -42,17 +36,17 @@ export class UnraidFileModificationService implements OnModuleInit, OnModuleDest
      */
     async loadModifications(): Promise<FileModification[]> {
         const modifications: FileModification[] = [];
-        const modificationClasses: Array<new (logger: Logger) => FileModification> = [
-            LogViewerModification,
-            LogRotateModification,
-            AuthRequestModification,
-            SSOFileModification,
-            DefaultPageLayoutModification,
-            NotificationsPageModification,
-        ];
-        for (const ModificationClass of modificationClasses) {
-            const instance = new ModificationClass(this.logger);
-            modifications.push(instance);
+        const modificationModules = import.meta.glob<{
+            default: new (logger: Logger) => FileModification;
+        }>('./modifications/*.modification.ts', { eager: true });
+
+        for (const path in modificationModules) {
+            const module = modificationModules[path];
+            if (module.default) {
+                const ModificationClass = module.default;
+                const instance = new ModificationClass(this.logger);
+                modifications.push(instance);
+            }
         }
         return modifications;
     }

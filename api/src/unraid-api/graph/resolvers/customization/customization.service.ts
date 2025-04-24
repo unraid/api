@@ -1,0 +1,408 @@
+import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
+import * as fs from 'fs/promises';
+import * as path from 'path';
+
+import { plainToClass } from 'class-transformer';
+import { validateOrReject } from 'class-validator';
+import * as ini from 'ini';
+
+import { emcmd } from '@app/core/utils/clients/emcmd.js';
+import { fileExists } from '@app/core/utils/files/file-exists.js';
+import { ActivationCodeDto } from '@app/unraid-api/graph/resolvers/customization/activation-code.dto.js';
+
+@Injectable()
+export class CustomizationService implements OnModuleInit {
+    private readonly logger = new Logger(CustomizationService.name);
+    private readonly activationJsonExtension = '.activationcode';
+
+    // Path properties - will be initialized in onModuleInit
+    private activationDir!: string;
+    private assetsDir!: string;
+    private hasRunFirstBootSetup!: string;
+    private webguiImagesDir!: string;
+    private configFile!: string;
+    private caseModelCfg!: string;
+    private identCfg!: string;
+
+    private activationData: ActivationCodeDto | null = null; // Store validated data here
+
+    constructor() {}
+
+    async createOrGetFirstBootSetupFlag(): Promise<boolean> {
+        // Ensure directory exists first
+        // Note: this.activationDir might not be initialized yet if called before onModuleInit
+        // It relies on being called within or after onModuleInit workflow.
+        // If called independently, it needs the path value passed or initialized differently.
+        await fs.mkdir(this.activationDir, { recursive: true });
+        if (await fileExists(this.hasRunFirstBootSetup)) {
+            this.logger.log('First boot setup flag file already exists.');
+            return true; // Indicate setup was already done based on flag presence
+        }
+        await fs.writeFile(this.hasRunFirstBootSetup, 'true');
+        this.logger.log('First boot setup flag file created.');
+        return false; // Indicate setup was just marked as done
+    }
+
+    async onModuleInit() {
+        // Dynamically import getters and initialize paths
+        const { getters } = await import('@app/store/index.js');
+        const paths = getters.paths();
+
+        this.activationDir = paths.activationBase;
+        this.assetsDir = path.join(this.activationDir, 'assets');
+        this.hasRunFirstBootSetup = path.join(this.activationDir, '.done');
+        this.webguiImagesDir = paths.webguiImagesBase;
+        // Ensure 'dynamix-config' exists and has index 1 before accessing
+        this.configFile = paths['dynamix-config']?.[1];
+        if (!this.configFile) {
+            this.logger.error(
+                "Could not resolve user dynamix config path (paths['dynamix-config'][1]) from store."
+            );
+            // Handle error appropriately - maybe throw, or use a default?
+            // For now, we'll let subsequent operations fail if configFile is needed.
+            return; // Stop initialization if critical path is missing
+        }
+        this.caseModelCfg = paths.dynamixCaseModelConfig;
+        this.identCfg = paths.identConfig;
+
+        this.logger.log('CustomizationService initialized with paths from store.');
+
+        try {
+            // Check if activation dir exists using the initialized path
+            try {
+                await fs.access(this.activationDir);
+                this.logger.log(`Activation directory found: ${this.activationDir}`);
+            } catch (dirError: any) {
+                if (dirError.code === 'ENOENT') {
+                    this.logger.log(`Activation directory ${this.activationDir} not found. Skipping activation setup.`);
+                    return; // Exit if activation dir doesn't exist
+                }
+                throw dirError; // Rethrow other access errors
+            }
+
+            // Proceed with first boot check and activation data retrieval ONLY if dir exists
+            const hasRunFirstBootSetup = await this.createOrGetFirstBootSetupFlag();
+            if (hasRunFirstBootSetup) {
+                this.logger.log('First boot setup previously completed, skipping customizations.');
+                return;
+            }
+
+            this.activationData = await this.getActivationData(); // This now uses this.activationDir
+            await this.applyActivationCustomizations(); // This uses this.activationData and paths
+        } catch (error: any) {
+            // Catch errors specifically from the activation setup logic post-path init
+             if (error.code === 'ENOENT' && error.path === this.activationDir) {
+                 // This case should be handled by the access check above, but keep for safety.
+                this.logger.log('Activation directory check failed within setup logic.');
+            } else {
+                this.logger.error('Error during activation check/setup on init:', error);
+            }
+        }
+    }
+
+    private async getActivationJsonPath(): Promise<string | null> {
+        try {
+            // Check if dir exists first (using the initialized path)
+            await fs.access(this.activationDir);
+
+            const files = await fs.readdir(this.activationDir);
+            const jsonFile = files.find((file) => file.endsWith(this.activationJsonExtension));
+            return jsonFile ? path.join(this.activationDir, jsonFile) : null;
+        } catch (error: any) {
+             if (error.code === 'ENOENT') {
+                 this.logger.warn(`Activation directory ${this.activationDir} not found when searching for JSON file.`);
+             } else {
+                this.logger.error('Error accessing activation directory or reading its content.', error);
+             }
+            return null;
+        }
+    }
+
+    /**
+     * Get the activation data from the activation directory.
+     * @returns The activation data or null if the file is not found or invalid.
+     * @throws Error if the directory does not exist.
+     */
+    async getActivationData(): Promise<ActivationCodeDto | null> {
+        const activationJsonPath = await this.getActivationJsonPath();
+
+        if (!activationJsonPath) {
+            this.logger.warn('No activation JSON file found.');
+            return null;
+        }
+
+        const fileContent = await fs.readFile(activationJsonPath, 'utf-8');
+        const activationDataRaw = JSON.parse(fileContent);
+
+        const activationDataDto = plainToClass(ActivationCodeDto, activationDataRaw);
+        await validateOrReject(activationDataDto);
+
+        return activationDataDto;
+    }
+
+    async applyActivationCustomizations() {
+        this.logger.log('Applying activation customizations if data is available...');
+
+        if (!this.activationData) {
+            this.logger.log('No valid activation data found. Skipping customizations.');
+            return;
+        }
+
+        try {
+            // Check if activation dir exists (redundant if onModuleInit succeeded, but safe)
+            try {
+                await fs.access(this.activationDir);
+            } catch (dirError: any) {
+                if (dirError.code === 'ENOENT') {
+                    this.logger.warn('Activation directory disappeared after init? Skipping.');
+                    return;
+                }
+                throw dirError; // Rethrow other errors
+            }
+
+            this.logger.log(`Using validated activation data to apply customizations.`);
+
+            await this.setupPartnerBanner();
+            await this.applyDisplaySettings();
+            await this.applyCaseModelConfig();
+            await this.applyServerIdentity();
+
+            this.logger.log('Activation setup complete.');
+        } catch (error: any) {
+            // Added type annotation
+            // Initial dir check removed as it's handled in onModuleInit or the inner try block
+            this.logger.error('Error during activation setup:', error);
+        }
+    }
+
+    private async setupPartnerBanner() {
+        this.logger.log('Setting up partner banner...');
+        const partnerBanner = path.join(this.assetsDir, 'banner.png');
+        const webguiBannerOg = path.join(this.webguiImagesDir, 'banner.png');
+
+        try {
+            // Always overwrite if partner banner exists
+            if (await fileExists(partnerBanner)) {
+                this.logger.log(`Partner banner found at ${partnerBanner}, overwriting original.`);
+                try {
+                    await fs.copyFile(partnerBanner, webguiBannerOg);
+                    this.logger.log('Partner banner copied over the original banner.');
+                } catch (copyError: any) {
+                    this.logger.warn(
+                        `Failed to replace the original banner with the partner banner: ${copyError.message}`
+                    );
+                }
+            } else {
+                this.logger.log('Partner banner file not found, skipping banner setup.');
+            }
+        } catch (error) {
+            this.logger.error('Error setting up partner banner:', error);
+        }
+    }
+
+    private async applyDisplaySettings() {
+        const { getters } = await import('@app/store/index.js');
+        if (!this.activationData) {
+            this.logger.warn('No activation data available for display settings.');
+            return;
+        }
+
+        this.logger.log('Applying display settings...');
+        // Use Redux store for current settings and activationData for new ones
+        // Note: Adjust 'dynamix.display' based on the actual store structure. Added optional chaining.
+        const currentDisplaySettings = getters.dynamix()?.display || {};
+        this.logger.debug('Current display settings from store:', currentDisplaySettings);
+
+        const settingsToUpdate: Record<string, string> = {};
+
+        // Use DTO properties
+        const headerTextColor = this.activationData.header;
+        const headerMetaColor = this.activationData.headermetacolor;
+        const headerBgColor = this.activationData.background;
+        const showBannerGradient = this.activationData.showBannerGradient;
+        const webguiTheme = this.activationData.theme;
+
+        if (headerTextColor) settingsToUpdate['header'] = headerTextColor.replace('#', '');
+        if (headerMetaColor) settingsToUpdate['headermetacolor'] = headerMetaColor.replace('#', '');
+        if (headerBgColor) settingsToUpdate['background'] = headerBgColor.replace('#', '');
+        if (showBannerGradient) settingsToUpdate['showBannerGradient'] = showBannerGradient;
+        if (webguiTheme) settingsToUpdate['theme'] = webguiTheme;
+        settingsToUpdate['banner'] = 'image';
+
+        if (Object.keys(settingsToUpdate).length === 0) {
+            this.logger.log('No new display settings found in activation data.');
+            return;
+        }
+
+        this.logger.log('Updating display settings:', settingsToUpdate);
+
+        try {
+            await this.updateCfgFile(this.configFile, 'display', settingsToUpdate);
+            this.logger.log('Display settings updated in config file.');
+            // @todo: Consider dispatching an action to update Redux store if needed immediately
+        } catch (error) {
+            this.logger.error('Error applying display settings:', error);
+        }
+    }
+
+    private async applyCaseModelConfig() {
+        if (!this.activationData) {
+            this.logger.warn('No activation data available for case model setup.');
+            return;
+        }
+
+        this.logger.log('Applying case model...');
+        const customCaseFileName = 'case-model.png';
+        const customCaseModelPath = path.join(this.assetsDir, customCaseFileName);
+        const partnerCaseIcon = this.activationData.caseIcon;
+
+        try {
+            let currentCaseModel = '';
+            try {
+                currentCaseModel = await fs.readFile(this.caseModelCfg, 'utf-8');
+            } catch (readError: any) {
+                // Added type annotation
+                if (readError.code !== 'ENOENT') throw readError; // Rethrow if not a file not found error
+                this.logger.log(`${this.caseModelCfg} not found, assuming no case model set.`);
+            }
+
+            this.logger.debug(`Current case model: ${currentCaseModel}`);
+
+            let modelToSet: string | null = null;
+
+            // Check if the custom image file exists in assets
+            if (await fileExists(customCaseModelPath)) {
+                // The actual copying is handled by CaseModelCopierModification
+                // We just need to set the config to use the custom file name
+                modelToSet = customCaseFileName;
+                this.logger.log('Custom case model file found in assets, config will be set.');
+            } else if (partnerCaseIcon) {
+                // Use icon name specified in activation JSON
+                modelToSet = partnerCaseIcon;
+                this.logger.log(`Using included case icon: ${partnerCaseIcon}`);
+            } else {
+                this.logger.log('No custom case model file or included icon specified.');
+            }
+
+            // If a model was determined, write it to the config file
+            if (modelToSet) {
+                try {
+                    await fs.writeFile(this.caseModelCfg, modelToSet);
+                    this.logger.log(`Case model set to ${modelToSet} in ${this.caseModelCfg}`);
+                } catch (writeError: any) {
+                    // Added type annotation
+                    this.logger.error(`Failed to write case model config: ${writeError.message}`);
+                }
+            }
+        } catch (error) {
+            this.logger.error('Error applying case model:', error);
+        }
+    }
+
+    private async applyServerIdentity() {
+        const { getters } = await import('@app/store/index.js');
+        if (!this.activationData) {
+            this.logger.warn('No activation data available for server identity setup.');
+            return;
+        }
+
+        this.logger.log('Applying server identity...');
+        // Ideally, get current values from Redux store instead of var.ini
+        // Assuming EmhttpState type provides structure for emhttp slice. Adjust if necessary.
+        // Using optional chaining ?. in case emhttp or var is not defined in the state yet.
+        const currentEmhttpState = getters.emhttp();
+        const currentName = currentEmhttpState?.var?.name || '';
+        const currentSysModel = currentEmhttpState?.var?.sysModel || '';
+        const currentComment = currentEmhttpState?.var?.comment || '';
+
+        this.logger.debug(
+            `Current identity - Name: ${currentName}, Model: ${currentSysModel}, Comment: ${currentComment}`
+        );
+
+        const partnerServerName = this.activationData.serverName;
+        const partnerSysModel = this.activationData.sysModel;
+        const partnerComment = this.activationData.comment;
+
+        const paramsToUpdate: Record<string, string> = {};
+        if (partnerServerName) paramsToUpdate['NAME'] = partnerServerName;
+        if (partnerSysModel) paramsToUpdate['SYS_MODEL'] = partnerSysModel;
+        if (partnerComment) paramsToUpdate['COMMENT'] = partnerComment;
+
+        if (Object.keys(paramsToUpdate).length === 0) {
+            this.logger.log('No server identity information found in activation data.');
+            return;
+        }
+
+        this.logger.log('Updating server identity:', paramsToUpdate);
+
+        try {
+            // Update ident.cfg first
+            await this.updateCfgFile(this.identCfg, null, paramsToUpdate); // Update keys directly in the file
+            this.logger.log(`Server identity updated in ${this.identCfg}`);
+
+            // Trigger emhttp update via emcmd
+            const updateParams = { ...paramsToUpdate, changeNames: 'Apply' }; // Prepare params for emcmd
+            this.logger.log(`Calling emcmd with params:`, updateParams); // Log the params
+            await emcmd(updateParams); // Use emcmd utility
+            this.logger.log('emcmd executed successfully.');
+        } catch (error) {
+            this.logger.error('Error applying server identity:', error);
+        }
+    }
+
+    // Helper function to update .cfg files (like dynamix.cfg or ident.cfg) using the ini library
+    private async updateCfgFile(
+        filePath: string,
+        section: string | null,
+        updates: Record<string, string>
+    ) {
+        let configData: any = {}; // Use 'any' for flexibility with ini structure
+        try {
+            const content = await fs.readFile(filePath, 'utf-8');
+            // Parse the INI file content. Note: ini library parses values as strings by default.
+            // It might interpret numbers/booleans if not quoted, but our values are always quoted.
+            configData = ini.parse(content);
+        } catch (error: any) {
+            if (error.code === 'ENOENT') {
+                this.logger.log(`Config file ${filePath} not found, will create it.`);
+                // Initialize configData as an empty object if file doesn't exist
+            } else {
+                this.logger.error(`Error reading config file ${filePath}:`, error);
+                throw error; // Re-throw other errors
+            }
+        }
+
+        if (section) {
+            // Ensure the section exists
+            if (!configData[section]) {
+                configData[section] = {};
+            }
+            // Update keys within the specified section using Object.entries
+            Object.entries(updates).forEach(([key, value]) => {
+                // ini.stringify will handle quoting, so just assign the string value
+                configData[section][key] = value;
+            });
+        } else {
+            // Update keys at the root level (for files like ident.cfg) using Object.entries
+            Object.entries(updates).forEach(([key, value]) => {
+                configData[key] = value;
+            });
+        }
+
+        try {
+            // Stringify the updated object back into INI format.
+            // The 'ini' library defaults to section/key=value format, but options exist if needed.
+            // It will automatically add quotes around values containing special characters,
+            // but might not quote simple strings - however, Unraid's parser seems fine with this.
+            // If strict KEY="value" quoting is absolutely required, manual formatting might be needed again.
+            const newContent = ini.stringify(configData);
+
+            // Write the updated content back to the file
+            await fs.writeFile(filePath, newContent + '\n'); // Ensure trailing newline
+            this.logger.log(`Config file ${filePath} updated successfully.`);
+        } catch (error) {
+            this.logger.error(`Error writing config file ${filePath}:`, error);
+            throw error; // Re-throw write errors
+        }
+    }
+}
