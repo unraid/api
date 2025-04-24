@@ -1,7 +1,6 @@
 import { Field, ID, Int, ObjectType, registerEnumType } from '@nestjs/graphql';
 
-import { GraphQLPort } from 'graphql-scalars';
-import { GraphQLJSONObject } from 'graphql-type-json';
+import { GraphQLJSONObject, GraphQLPort } from 'graphql-scalars';
 
 import { Node } from '@app/unraid-api/graph/resolvers/base.model.js';
 

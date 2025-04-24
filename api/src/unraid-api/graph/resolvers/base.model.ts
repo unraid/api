@@ -6,6 +6,7 @@ import { PrefixedID } from '@app/unraid-api/graph/scalars/graphql-type-prefixed-
 
 // Register enums
 export enum Resource {
+    ACTIVATION_CODE = 'ACTIVATION_CODE',
     API_KEY = 'API_KEY',
     ARRAY = 'ARRAY',
     CLOUD = 'CLOUD',

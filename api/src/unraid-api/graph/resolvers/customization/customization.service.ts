@@ -8,6 +8,7 @@ import * as ini from 'ini';
 
 import { emcmd } from '@app/core/utils/clients/emcmd.js';
 import { fileExists } from '@app/core/utils/files/file-exists.js';
+import { getters } from '@app/store/index.js';
 import { ActivationCodeDto } from '@app/unraid-api/graph/resolvers/customization/activation-code.dto.js';
 
 @Injectable()
@@ -15,11 +16,9 @@ export class CustomizationService implements OnModuleInit {
     private readonly logger = new Logger(CustomizationService.name);
     private readonly activationJsonExtension = '.activationcode';
 
-    // Path properties - will be initialized in onModuleInit
+    // Path properties - will be initialized in onModuleInit or from getters
     private activationDir!: string;
-    private assetsDir!: string;
     private hasRunFirstBootSetup!: string;
-    private webguiImagesDir!: string;
     private configFile!: string;
     private caseModelCfg!: string;
     private identCfg!: string;
@@ -45,13 +44,10 @@ export class CustomizationService implements OnModuleInit {
 
     async onModuleInit() {
         // Dynamically import getters and initialize paths
-        const { getters } = await import('@app/store/index.js');
         const paths = getters.paths();
 
         this.activationDir = paths.activationBase;
-        this.assetsDir = path.join(this.activationDir, 'assets');
         this.hasRunFirstBootSetup = path.join(this.activationDir, '.done');
-        this.webguiImagesDir = paths.webguiImagesBase;
         // Ensure 'dynamix-config' exists and has index 1 before accessing
         this.configFile = paths['dynamix-config']?.[1];
         if (!this.configFile) {
@@ -74,7 +70,9 @@ export class CustomizationService implements OnModuleInit {
                 this.logger.log(`Activation directory found: ${this.activationDir}`);
             } catch (dirError: any) {
                 if (dirError.code === 'ENOENT') {
-                    this.logger.log(`Activation directory ${this.activationDir} not found. Skipping activation setup.`);
+                    this.logger.log(
+                        `Activation directory ${this.activationDir} not found. Skipping activation setup.`
+                    );
                     return; // Exit if activation dir doesn't exist
                 }
                 throw dirError; // Rethrow other access errors
@@ -91,8 +89,8 @@ export class CustomizationService implements OnModuleInit {
             await this.applyActivationCustomizations(); // This uses this.activationData and paths
         } catch (error: any) {
             // Catch errors specifically from the activation setup logic post-path init
-             if (error.code === 'ENOENT' && error.path === this.activationDir) {
-                 // This case should be handled by the access check above, but keep for safety.
+            if (error.code === 'ENOENT' && error.path === this.activationDir) {
+                // This case should be handled by the access check above, but keep for safety.
                 this.logger.log('Activation directory check failed within setup logic.');
             } else {
                 this.logger.error('Error during activation check/setup on init:', error);
@@ -109,11 +107,13 @@ export class CustomizationService implements OnModuleInit {
             const jsonFile = files.find((file) => file.endsWith(this.activationJsonExtension));
             return jsonFile ? path.join(this.activationDir, jsonFile) : null;
         } catch (error: any) {
-             if (error.code === 'ENOENT') {
-                 this.logger.warn(`Activation directory ${this.activationDir} not found when searching for JSON file.`);
-             } else {
+            if (error.code === 'ENOENT') {
+                this.logger.warn(
+                    `Activation directory ${this.activationDir} not found when searching for JSON file.`
+                );
+            } else {
                 this.logger.error('Error accessing activation directory or reading its content.', error);
-             }
+            }
             return null;
         }
     }
@@ -138,6 +138,22 @@ export class CustomizationService implements OnModuleInit {
         await validateOrReject(activationDataDto);
 
         return activationDataDto;
+    }
+
+    public async getCaseIconWebguiPath(): Promise<string | null> {
+        const paths = getters.paths();
+        if (await fileExists(paths.caseModelSource)) {
+            return path.basename(paths.caseModelTarget);
+        }
+        return null;
+    }
+
+    public async getPartnerLogoWebguiPath(): Promise<string | null> {
+        const paths = getters.paths();
+        if (await fileExists(paths.partnerLogoSource)) {
+            return path.basename(paths.partnerLogoTarget);
+        }
+        return null;
     }
 
     async applyActivationCustomizations() {
@@ -177,15 +193,16 @@ export class CustomizationService implements OnModuleInit {
 
     private async setupPartnerBanner() {
         this.logger.log('Setting up partner banner...');
-        const partnerBanner = path.join(this.assetsDir, 'banner.png');
-        const webguiBannerOg = path.join(this.webguiImagesDir, 'banner.png');
+        const paths = getters.paths();
+        const partnerBannerSource = paths.partnerBannerSource;
+        const partnerBannerTarget = paths.partnerBannerTarget;
 
         try {
             // Always overwrite if partner banner exists
-            if (await fileExists(partnerBanner)) {
-                this.logger.log(`Partner banner found at ${partnerBanner}, overwriting original.`);
+            if (await fileExists(partnerBannerSource)) {
+                this.logger.log(`Partner banner found at ${partnerBannerSource}, overwriting original.`);
                 try {
-                    await fs.copyFile(partnerBanner, webguiBannerOg);
+                    await fs.copyFile(partnerBannerSource, partnerBannerTarget);
                     this.logger.log('Partner banner copied over the original banner.');
                 } catch (copyError: any) {
                     this.logger.warn(
@@ -208,8 +225,6 @@ export class CustomizationService implements OnModuleInit {
         }
 
         this.logger.log('Applying display settings...');
-        // Use Redux store for current settings and activationData for new ones
-        // Note: Adjust 'dynamix.display' based on the actual store structure. Added optional chaining.
         const currentDisplaySettings = getters.dynamix()?.display || {};
         this.logger.debug('Current display settings from store:', currentDisplaySettings);
 
@@ -227,10 +242,25 @@ export class CustomizationService implements OnModuleInit {
         if (headerBgColor) settingsToUpdate['background'] = headerBgColor.replace('#', '');
         if (showBannerGradient) settingsToUpdate['showBannerGradient'] = showBannerGradient;
         if (webguiTheme) settingsToUpdate['theme'] = webguiTheme;
-        settingsToUpdate['banner'] = 'image';
+
+        // Only set banner='image' if the banner file actually exists in the webgui images directory
+        // This assumes setupPartnerBanner has already attempted to copy it if necessary.
+        const paths = getters.paths();
+        const partnerBannerTarget = paths.partnerBannerTarget;
+
+        if (await fileExists(partnerBannerTarget)) {
+            settingsToUpdate['banner'] = 'image';
+            this.logger.debug(`Webgui banner exists at ${partnerBannerTarget}, setting banner=image.`);
+        } else {
+            this.logger.debug(
+                `Webgui banner does not exist at ${partnerBannerTarget}, skipping banner=image setting.`
+            );
+        }
 
         if (Object.keys(settingsToUpdate).length === 0) {
-            this.logger.log('No new display settings found in activation data.');
+            this.logger.log(
+                'No new display settings found in activation data or derived from banner state.'
+            );
             return;
         }
 
@@ -252,8 +282,8 @@ export class CustomizationService implements OnModuleInit {
         }
 
         this.logger.log('Applying case model...');
-        const customCaseFileName = 'case-model.png';
-        const customCaseModelPath = path.join(this.assetsDir, customCaseFileName);
+        const paths = getters.paths();
+        const caseModelSource = paths.caseModelSource;
         const partnerCaseIcon = this.activationData.caseIcon;
 
         try {
@@ -271,10 +301,9 @@ export class CustomizationService implements OnModuleInit {
             let modelToSet: string | null = null;
 
             // Check if the custom image file exists in assets
-            if (await fileExists(customCaseModelPath)) {
-                // The actual copying is handled by CaseModelCopierModification
-                // We just need to set the config to use the custom file name
-                modelToSet = customCaseFileName;
+            if (await fileExists(caseModelSource)) {
+                // Use the *target* filename which CaseModelCopierModification will create
+                modelToSet = path.basename(paths.caseModelTarget); // e.g., 'case-model.png'
                 this.logger.log('Custom case model file found in assets, config will be set.');
             } else if (partnerCaseIcon) {
                 // Use icon name specified in activation JSON

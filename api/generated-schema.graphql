@@ -753,6 +753,7 @@ type Permission {
 
 """Available resources for permissions"""
 enum Resource {
+  ACTIVATION_CODE
   API_KEY
   ARRAY
   CLOUD
@@ -935,6 +936,40 @@ type Config implements Node {
   id: PrefixedID!
   valid: Boolean
   error: String
+}
+
+type PublicPartnerInfoDto {
+  partnerName: String
+
+  """Indicates if a partner logo exists"""
+  hasPartnerLogo: Boolean!
+}
+
+type ActivationCodeDto {
+  code: String
+  partnerName: String
+  serverName: String
+  sysModel: String
+  comment: String
+  header: String
+  headermetacolor: String
+  background: String
+  showBannerGradient: String
+  theme: String
+}
+
+type Customization {
+  activationCode: ActivationCodeDto
+
+  """
+  The path to the case icon image on the flash drive, relative to the activation code file
+  """
+  caseIcon: String
+
+  """
+  The path to the partner logo image on the flash drive, relative to the activation code file
+  """
+  partnerLogo: String
 }
 
 type InfoApps implements Node {
@@ -1203,7 +1238,7 @@ type DockerContainer implements Node {
 """
 The `JSONObject` scalar type represents JSON objects as specified by [ECMA-404](http://www.ecma-international.org/publications/files/ECMA-ST/ECMA-404.pdf).
 """
-scalar JSONObject
+scalar JSONObject @specifiedBy(url: "http://www.ecma-international.org/publications/files/ECMA-ST/ECMA-404.pdf")
 
 enum ContainerState {
   RUNNING
@@ -1423,6 +1458,8 @@ type Query {
   connect: Connect!
   remoteAccess: RemoteAccess!
   extraAllowedOrigins: [String!]!
+  getActivationData: Customization
+  partnerInfo: PublicPartnerInfoDto
   docker: Docker!
   disks: [Disk!]!
   disk(id: PrefixedID!): Disk!

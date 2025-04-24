@@ -9,6 +9,7 @@ import { ArrayService } from '@app/unraid-api/graph/resolvers/array/array.servic
 import { CloudResolver } from '@app/unraid-api/graph/resolvers/cloud/cloud.resolver.js';
 import { ConfigResolver } from '@app/unraid-api/graph/resolvers/config/config.resolver.js';
 import { ConnectModule } from '@app/unraid-api/graph/resolvers/connect/connect.module.js';
+import { CustomizationModule } from '@app/unraid-api/graph/resolvers/customization/customization.module.js';
 import { DisksModule } from '@app/unraid-api/graph/resolvers/disks/disks.module.js';
 import { DisplayResolver } from '@app/unraid-api/graph/resolvers/display/display.resolver.js';
 import { DockerModule } from '@app/unraid-api/graph/resolvers/docker/docker.module.js';
@@ -33,7 +34,7 @@ import { SharesResolver } from '@app/unraid-api/graph/shares/shares.resolver.js'
 import { MeResolver } from '@app/unraid-api/graph/user/user.resolver.js';
 
 @Module({
-    imports: [ArrayModule, AuthModule, ConnectModule, DockerModule, DisksModule],
+    imports: [ArrayModule, AuthModule, ConnectModule, CustomizationModule, DockerModule, DisksModule],
     providers: [
         ApiKeyResolver,
         CloudResolver,

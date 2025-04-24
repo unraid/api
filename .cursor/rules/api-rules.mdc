@@ -9,3 +9,4 @@ alwaysApply: false
 * prefer adding new files to the nest repo located at api/src/unraid-api/ instead of the legacy code
 * Test suite is VITEST, do not use jest
 * Prefer to not mock simple dependencies
+

@@ -19,7 +19,7 @@ const initialState = {
     'dynamix-base': resolvePath(
         process.env.PATHS_DYNAMIX_BASE ?? ('/boot/config/plugins/dynamix/' as const)
     ),
-    'dynamixCaseModelConfig': resolvePath(
+    dynamixCaseModelConfig: resolvePath(
         process.env.PATHS_DYNAMIX_CASE_MODEL_CONFIG ??
             ('/boot/config/plugins/dynamix/case-model.cfg' as const)
     ),
@@ -73,15 +73,44 @@ const initialState = {
     'auth-keys': resolvePath(
         process.env.PATHS_AUTH_KEY ?? ('/boot/config/plugins/dynamix.my.servers/keys' as const)
     ),
+    passwd: resolvePath(process.env.PATHS_PASSWD ?? ('/boot/config/passwd' as const)),
     'libvirt-pid': '/var/run/libvirt/libvirtd.pid' as const,
     // Customization paths
-    'activationBase': '/boot/config/activation' as const,
-    'webguiImagesBase': '/usr/local/emhttp/webGui/images' as const,
-    'identConfig': resolvePath(process.env.PATHS_IDENT_CONFIG ?? ('/boot/config/ident.cfg' as const)),
+    activationBase: resolvePath(
+        process.env.PATHS_ACTIVATION_BASE ?? ('/boot/config/activation-code' as const)
+    ),
+    webguiImagesBase: '/usr/local/emhttp/webGui/images' as const,
+    identConfig: resolvePath(process.env.PATHS_IDENT_CONFIG ?? ('/boot/config/ident.cfg' as const)),
 };
+
+// Derive asset paths from base paths
+const derivedPaths = {
+    activationAssets: join(initialState.activationBase, 'assets'),
+    get partnerLogoSource() {
+        return join(this.activationAssets, 'logo.svg');
+    },
+    get partnerLogoTarget() {
+        return join(initialState.webguiImagesBase, 'partner-logo.svg');
+    },
+    get caseModelSource() {
+        return join(this.activationAssets, 'case-model.png');
+    },
+    get caseModelTarget() {
+        return join(initialState.webguiImagesBase, 'case-model.png');
+    },
+    get partnerBannerSource() {
+        return join(this.activationAssets, 'banner.png');
+    },
+    get partnerBannerTarget() {
+        return join(initialState.webguiImagesBase, 'banner.png');
+    },
+};
+
+// Combine initial and derived paths
+const combinedState = { ...initialState, ...derivedPaths };
 
 export const paths = createSlice({
     name: 'paths',
-    initialState,
+    initialState: combinedState,
     reducers: {},
 });

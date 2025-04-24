@@ -1,6 +1,10 @@
-import { Transform } from 'class-transformer';
-import { IsBoolean, IsHexColor, IsIn, IsOptional, IsString, IsUrl } from 'class-validator';
+import { Field, ObjectType } from '@nestjs/graphql';
 
+import { Transform } from 'class-transformer';
+import { IsBoolean, IsIn, IsOptional, IsString, IsUrl } from 'class-validator';
+
+// Helper function to check if a string is a valid hex color
+const isHexColor = (value: string): boolean => /^#([0-9A-F]{3}){1,2}$/i.test(value);
 
 const sanitizeString = (value: any): any => {
     if (typeof value === 'string') {
@@ -9,68 +13,117 @@ const sanitizeString = (value: any): any => {
     return value;
 };
 
+// New transformer for hex colors
+const sanitizeAndValidateHexColor = (value: any): string => {
+    let sanitized = sanitizeString(value);
+    if (typeof sanitized === 'string') {
+        // Check if it's a 3 or 6 character hex string without '#'
+        if (/^([0-9A-F]{3}){1,2}$/i.test(sanitized)) {
+            sanitized = `#${sanitized}`; // Prepend '#'
+        }
+        // Now validate if it's a standard hex color format
+        if (isHexColor(sanitized)) {
+            return sanitized;
+        }
+    }
+    return ''; // Return empty string if not a valid hex color after potential modification
+};
+
+@ObjectType()
+export class PublicPartnerInfoDto {
+    @Field(() => String, { nullable: true })
+    partnerName?: string;
+
+    @Field(() => Boolean, { description: 'Indicates if a partner logo exists' })
+    @IsBoolean()
+    hasPartnerLogo?: boolean;
+}
+
+@ObjectType()
 export class ActivationCodeDto {
+    @Field(() => String, { nullable: true })
     @IsOptional()
     @IsString()
     @Transform(({ value }) => sanitizeString(value))
     code?: string;
 
+    @Field(() => String, { nullable: true })
     @IsOptional()
     @IsString()
     @Transform(({ value }) => sanitizeString(value))
     partnerName?: string;
 
-    @IsOptional()
-    @IsUrl()
-    @Transform(({ value }) => sanitizeString(value))
-    partnerUrl?: string;
-
+    @Field(() => String, { nullable: true })
     @IsOptional()
     @IsString()
     @Transform(({ value }) => sanitizeString(value))
     serverName?: string;
 
+    @Field(() => String, { nullable: true })
     @IsOptional()
     @IsString()
     @Transform(({ value }) => sanitizeString(value))
     sysModel?: string;
 
+    @Field(() => String, { nullable: true })
     @IsOptional()
     @IsString()
     @Transform(({ value }) => sanitizeString(value))
     comment?: string;
 
+    @Field(() => String, { nullable: true })
+    @IsOptional()
+    @IsString() // Keep IsString to ensure it's a string after transformation
+    @Transform(({ value }) => sanitizeAndValidateHexColor(value))
+    header?: string;
+
+    @Field(() => String, { nullable: true })
+    @IsOptional()
+    @IsString() // Keep IsString
+    @Transform(({ value }) => sanitizeAndValidateHexColor(value))
+    headermetacolor?: string;
+
+    @Field(() => String, { nullable: true })
+    @IsOptional()
+    @IsString() // Keep IsString
+    @Transform(({ value }) => sanitizeAndValidateHexColor(value))
+    background?: string;
+
+    @Field(() => String, { nullable: true })
+    @IsOptional()
+    @IsIn(['yes', 'no'])
+    @Transform(({ value }) => sanitizeString(value))
+    showBannerGradient?: 'yes' | 'no' = 'yes';
+
+    @Field(() => String, { nullable: true })
+    @IsOptional()
+    @IsIn(['azure', 'black', 'gray', 'white'])
+    @Transform(({ value }) => sanitizeString(value))
+    theme?: 'azure' | 'black' | 'gray' | 'white';
+}
+
+@ObjectType()
+export class Customization {
+    @Field(() => ActivationCodeDto, { nullable: true })
+    activationCode?: ActivationCodeDto;
+
+    @Field(() => String, {
+        nullable: true,
+        description:
+            'The path to the case icon image on the flash drive, relative to the activation code file',
+    })
     @IsOptional()
     @IsString() // Assuming this is a file path/name
     @Transform(({ value }) => sanitizeString(value))
     caseIcon?: string;
 
+    @Field(() => String, {
+        nullable: true,
+        description:
+            'The path to the partner logo image on the flash drive, relative to the activation code file',
+    })
     @IsOptional()
-    @IsHexColor()
+    @IsString() // Assuming this is a file path/name
     @Transform(({ value }) => sanitizeString(value))
-    header?: string;
-
-    @IsOptional()
-    @IsHexColor()
-    @Transform(({ value }) => sanitizeString(value))
-    headermetacolor?: string;
-
-    @IsOptional()
-    @IsHexColor()
-    @Transform(({ value }) => sanitizeString(value))
-    background?: string;
-
-    @IsOptional()
-    @IsIn(['yes'])
-    @Transform(({ value }) => sanitizeString(value))
-    showBannerGradient?: 'yes';
-
-    @IsOptional()
-    @IsIn(['azure', 'black', 'gray', 'white'])
-    @Transform(({ value }) => sanitizeString(value))
-    theme?: 'azure' | 'black' | 'gray' | 'white';
-
-    @IsOptional()
-    @IsBoolean()
-    partnerLogo?: boolean = false;
+    partnerLogo?: string;
 }
