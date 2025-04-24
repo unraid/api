@@ -54,7 +54,6 @@ function annotate($text) {echo "\n<!--\n",str_repeat("#",strlen($text)),"\n$text
 <link type="text/css" rel="stylesheet" href="<?autov("/webGui/styles/default-color-palette.css")?>">
 <link type="text/css" rel="stylesheet" href="<?autov("/webGui/styles/default-base.css")?>">
 <link type="text/css" rel="stylesheet" href="<?autov("/webGui/styles/default-dynamix.css")?>">
-<link type="text/css" rel="stylesheet" href="<?autov("/plugins/dynamix/styles/dynamix-jquery-ui.css")?>">
 <link type="text/css" rel="stylesheet" href="<?autov("/webGui/styles/themes/{$display['theme']}.css")?>">
 
 <style>
@@ -1292,7 +1291,11 @@ document.addEventListener("visibilitychange", (event) => {
   if (document.hidden) {
     nchanFocusStop();
   } else {
-    nchanFocusStart();
+    <? if (isset($myPage['Load']) && $myPage['Load'] > 0):?>
+      window.location.reload();
+    <?else:?>
+      nchanFocusStart();
+    <?endif;?>
   }
 <?endif;?>
 });

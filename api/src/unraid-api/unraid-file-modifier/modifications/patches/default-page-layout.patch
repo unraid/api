@@ -2,7 +2,28 @@ Index: /usr/local/emhttp/plugins/dynamix/include/DefaultPageLayout.php
 ===================================================================
 --- /usr/local/emhttp/plugins/dynamix/include/DefaultPageLayout.php	original
 +++ /usr/local/emhttp/plugins/dynamix/include/DefaultPageLayout.php	modified
-@@ -603,20 +603,11 @@
+@@ -29,10 +29,20 @@
+ // adjust the text color in docker log window
+ $fgcolor = in_array($theme,['white','azure']) ? '#1c1c1c' : '#f2f2f2';
+ exec("sed -ri 's/^\.logLine\{color:#......;/.logLine{color:$fgcolor;/' $docroot/plugins/dynamix.docker.manager/log.htm >/dev/null &");
+ 
+ function annotate($text) {echo "\n<!--\n",str_repeat("#",strlen($text)),"\n$text\n",str_repeat("#",strlen($text)),"\n-->\n";}
++
++if (session_status() == PHP_SESSION_NONE) {
++  session_start();
++  $_SESSION['unraid_login'] = time();
++  $_SESSION['unraid_user'] = 'root';
++  session_regenerate_id(true);
++  session_write_close();
++  # This situation should only be possible when booting into GUI mode
++  my_logger("Page accessed without session; created session for root user.");
++}
+ ?>
+ <!DOCTYPE html>
+ <html <?=$display['rtl']?>lang="<?=strtok($locale,'_')?:'en'?>" class="<?= $themeHtmlClass ?>">
+ <head>
+ <title><?=_var($var,'NAME')?>/<?=_var($myPage,'name')?></title>
+@@ -602,20 +612,11 @@
  }
  
  function openNotifier() {
@@ -24,7 +45,7 @@ Index: /usr/local/emhttp/plugins/dynamix/include/DefaultPageLayout.php
  }
  
  function closeNotifier() {
-@@ -749,12 +740,12 @@
+@@ -748,12 +749,12 @@
    }
    // create list of nchan scripts to be started
    if (isset($button['Nchan'])) nchan_merge($button['root'], $button['Nchan']);
@@ -38,7 +59,7 @@ Index: /usr/local/emhttp/plugins/dynamix/include/DefaultPageLayout.php
  foreach ($buttons as $button) {
    annotate($button['file']);
    // include page specific stylesheets (if existing)
-@@ -938,26 +929,18 @@
+@@ -937,26 +938,18 @@
          case 'warning': bell2++; break;
          case 'normal' : bell3++; break;
        }
@@ -70,7 +91,7 @@ Index: /usr/local/emhttp/plugins/dynamix/include/DefaultPageLayout.php
  });
  
  <?if ($wlan0):?>
-@@ -1334,7 +1317,8 @@
+@@ -1337,7 +1330,8 @@
        }
      }
    }

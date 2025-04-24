@@ -32,11 +32,37 @@ export default class DefaultPageLayoutModification extends FileModification {
         return source.replace(jGrowlPattern, '');
     }
 
+    private prependDoctypeWithPhp(source: string, phpToAdd: string): string {
+        // The regex to find the target string `?>\s*<!DOCTYPE html>` at the beginning of a line
+        const targetRegex = /^\?>\s*<!DOCTYPE html>/m;
+
+        // Prepend the phpToAdd before the matched string
+        return source.replace(targetRegex, (match) => `${phpToAdd}\n${match}`);
+    }
+
+    private patchGuiBootAuth(source: string): string {
+        // prettier-ignore
+        const newPhpCode =
+`
+if (session_status() == PHP_SESSION_NONE) {
+  session_start();
+  $_SESSION['unraid_login'] = time();
+  $_SESSION['unraid_user'] = 'root';
+  session_regenerate_id(true);
+  session_write_close();
+  # This situation should only be possible when booting into GUI mode
+  my_logger("Page accessed without session; created session for root user.");
+}`;
+        // Add the PHP code before the DOCTYPE declaration
+        return this.prependDoctypeWithPhp(source, newPhpCode);
+    }
+
     private applyToSource(fileContent: string): string {
         const transformers = [
             this.removeNotificationBell.bind(this),
             this.replaceToasts.bind(this),
             this.addToaster.bind(this),
+            this.patchGuiBootAuth.bind(this),
         ];
         return transformers.reduce((content, fn) => fn(content), fileContent);
     }

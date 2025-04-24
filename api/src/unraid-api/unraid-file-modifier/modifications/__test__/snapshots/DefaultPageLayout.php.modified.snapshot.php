@@ -31,6 +31,16 @@ $fgcolor = in_array($theme,['white','azure']) ? '#1c1c1c' : '#f2f2f2';
 exec("sed -ri 's/^\.logLine\{color:#......;/.logLine{color:$fgcolor;/' $docroot/plugins/dynamix.docker.manager/log.htm >/dev/null &");
 
 function annotate($text) {echo "\n<!--\n",str_repeat("#",strlen($text)),"\n$text\n",str_repeat("#",strlen($text)),"\n-->\n";}
+
+if (session_status() == PHP_SESSION_NONE) {
+  session_start();
+  $_SESSION['unraid_login'] = time();
+  $_SESSION['unraid_user'] = 'root';
+  session_regenerate_id(true);
+  session_write_close();
+  # This situation should only be possible when booting into GUI mode
+  my_logger("Page accessed without session; created session for root user.");
+}
 ?>
 <!DOCTYPE html>
 <html <?=$display['rtl']?>lang="<?=strtok($locale,'_')?:'en'?>" class="<?= $themeHtmlClass ?>">
@@ -54,7 +64,6 @@ function annotate($text) {echo "\n<!--\n",str_repeat("#",strlen($text)),"\n$text
 <link type="text/css" rel="stylesheet" href="<?autov("/webGui/styles/default-color-palette.css")?>">
 <link type="text/css" rel="stylesheet" href="<?autov("/webGui/styles/default-base.css")?>">
 <link type="text/css" rel="stylesheet" href="<?autov("/webGui/styles/default-dynamix.css")?>">
-<link type="text/css" rel="stylesheet" href="<?autov("/plugins/dynamix/styles/dynamix-jquery-ui.css")?>">
 <link type="text/css" rel="stylesheet" href="<?autov("/webGui/styles/themes/{$display['theme']}.css")?>">
 
 <style>
@@ -1275,7 +1284,11 @@ document.addEventListener("visibilitychange", (event) => {
   if (document.hidden) {
     nchanFocusStop();
   } else {
-    nchanFocusStart();
+    <? if (isset($myPage['Load']) && $myPage['Load'] > 0):?>
+      window.location.reload();
+    <?else:?>
+      nchanFocusStart();
+    <?endif;?>
   }
 <?endif;?>
 });
