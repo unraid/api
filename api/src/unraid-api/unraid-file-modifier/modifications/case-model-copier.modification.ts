@@ -3,8 +3,8 @@ import * as fs from 'fs/promises';
 import * as path from 'path';
 
 import { fileExists } from '@app/core/utils/files/file-exists.js';
-import { ShouldApplyWithReason } from '@app/unraid-api/unraid-file-modifier/file-modification.js';
 import { store } from '@app/store/index.js'; // Import the store
+import { ShouldApplyWithReason } from '@app/unraid-api/unraid-file-modifier/file-modification.js';
 
 @Injectable()
 export class CaseModelCopierModification {
