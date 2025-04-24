@@ -938,14 +938,14 @@ type Config implements Node {
   error: String
 }
 
-type PublicPartnerInfoDto {
+type PublicPartnerInfo {
   partnerName: String
 
   """Indicates if a partner logo exists"""
   hasPartnerLogo: Boolean!
 }
 
-type ActivationCodeDto {
+type ActivationCode {
   code: String
   partnerName: String
   serverName: String
@@ -959,7 +959,8 @@ type ActivationCodeDto {
 }
 
 type Customization {
-  activationCode: ActivationCodeDto
+  activationCode: ActivationCode
+  partnerInfo: PublicPartnerInfo
 
   """
   The path to the case icon image on the flash drive, relative to the activation code file
@@ -1458,8 +1459,8 @@ type Query {
   connect: Connect!
   remoteAccess: RemoteAccess!
   extraAllowedOrigins: [String!]!
-  getActivationData: Customization
-  partnerInfo: PublicPartnerInfoDto
+  customization: Customization
+  publicPartnerInfo: PublicPartnerInfo
   docker: Docker!
   disks: [Disk!]!
   disk(id: PrefixedID!): Disk!

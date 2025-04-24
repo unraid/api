@@ -1,26 +1,37 @@
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n';
-import { storeToRefs } from 'pinia';
+import { useQuery } from '@vue/apollo-composable';
 
 import { BrandButton } from '@unraid/ui';
+import gql from 'graphql-tag';
 
-import type { Server } from '~/types/server';
-
-import ActivationSteps from '~/components/Activation/Steps.vue';
-import { useActivationCodeStore } from '~/store/activationCode';
-import { useServerStore } from '~/store/server';
+import ActivationSteps from '~/components/Activation/ActivationSteps.vue';
 
 const { t } = useI18n();
 
-export interface Props {
-  server?: Server | string;
-}
-const props = defineProps<Props>();
+const PARTNER_INFO_QUERY = gql`
+  query PartnerInfo {
+    publicPartnerInfo {
+      hasPartnerLogo
+      partnerName
+    }
+  }
+`;
 
-const activationCodeStore = useActivationCodeStore();
-const serverStore = useServerStore();
+const {
+  result: partnerInfoResult,
+  loading: partnerInfoLoading,
+  error: partnerInfoError,
+} = useQuery(PARTNER_INFO_QUERY);
 
-const { partnerLogo, partnerName } = storeToRefs(activationCodeStore);
+watch(partnerInfoError, (errorValue) => {
+  if (errorValue) {
+    console.error('Error fetching partner info:', errorValue);
+  }
+});
+
+const partnerName = computed(() => partnerInfoResult.value?.partnerInfo?.partnerName);
+const hasPartnerLogo = computed(() => partnerInfoResult.value?.partnerInfo?.hasPartnerLogo ?? false);
 
 const title = computed<string>(() =>
   partnerName.value
@@ -48,29 +59,14 @@ watchEffect(() => {
    * The /login page doesn't do this.
    * So we'll target the HTML element and toggle the font-size to be 62.5% when the modal is open and 100% when it's closed.
    * */
-  const $confirmPasswordField = window.document.querySelector('#confirmPassword');
+  const confirmPasswordField = window.document.querySelector('#confirmPassword');
 
-  if ($confirmPasswordField) {
+  if (confirmPasswordField) {
     if (showModal.value) {
       window.document.documentElement.style.setProperty('font-size', '62.5%');
     } else {
       window.document.documentElement.style.setProperty('font-size', '100%');
     }
-  }
-});
-
-onBeforeMount(() => {
-  if (!props.server) {
-    throw new Error('Server data not present');
-  }
-
-  if (typeof props.server === 'object') {
-    // Handles the testing dev Vue component
-    serverStore.setServer(props.server);
-  } else if (typeof props.server === 'string') {
-    // Handle web component
-    const parsedServerProp = JSON.parse(props.server);
-    serverStore.setServer(parsedServerProp);
   }
 });
 </script>
@@ -83,7 +79,7 @@ onBeforeMount(() => {
       :open="showModal"
       :show-close-x="false"
       :title="title"
-      :title-in-main="!!partnerLogo"
+      :title-in-main="hasPartnerLogo"
       :description="description"
       overlay-color="bg-background"
       overlay-opacity="bg-opacity-100"
@@ -93,13 +89,17 @@ onBeforeMount(() => {
       :disable-overlay-close="true"
       @close="dropdownHide"
     >
-      <template v-if="partnerLogo" #header>
+      <template v-if="hasPartnerLogo" #header>
         <ActivationPartnerLogo />
       </template>
 
       <template #footer>
         <div class="w-full flex gap-8px justify-center mx-auto">
-          <BrandButton :text="t('Create a password')" @click="dropdownHide" />
+          <BrandButton
+            :text="t('Create a password')"
+            :disabled="partnerInfoLoading"
+            @click="dropdownHide"
+          />
         </div>
       </template>
 

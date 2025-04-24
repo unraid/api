@@ -1,5 +1,6 @@
 <script lang="ts" setup>
 import { storeToRefs } from 'pinia';
+import { useQuery } from '@vue/apollo-composable';
 
 import { ArrowTopRightOnSquareIcon } from '@heroicons/vue/24/solid';
 import { BrandButton } from '@unraid/ui';
@@ -7,9 +8,10 @@ import { BrandButton } from '@unraid/ui';
 import type { BrandButtonProps } from '@unraid/ui';
 import type { ComposerTranslation } from 'vue-i18n';
 
-import ActivationPartnerLogo from '~/components/Activation/PartnerLogo.vue';
-import { useActivationCodeStore } from '~/store/activationCode';
+import ActivationPartnerLogo from '~/components/Activation/ActivationPartnerLogo.vue';
+import { useActivationCodeModalStore } from '~/components/Activation/store/activationCodeModal';
 import { usePurchaseStore } from '~/store/purchase';
+import { PARTNER_INFO_QUERY } from '~/components/Activation/graphql/activationcode.query';
 
 export interface Props {
   t: ComposerTranslation;
@@ -17,9 +19,17 @@ export interface Props {
 
 const props = defineProps<Props>();
 
-const activationCodeStore = useActivationCodeStore();
-const { partnerLogo, showActivationModal } = storeToRefs(activationCodeStore);
+const { showActivationModal } = storeToRefs(useActivationCodeModalStore());
 const purchaseStore = usePurchaseStore();
+
+const { result: partnerInfoResult, loading: partnerInfoLoading, error: partnerInfoError } = useQuery(PARTNER_INFO_QUERY);
+
+const partnerData = computed(() => {  
+  if (partnerInfoLoading.value || partnerInfoError.value || !partnerInfoResult.value?.partnerInfo) {
+    return { hasPartnerLogo: false, partnerName: null };
+  }
+  return partnerInfoResult.value.partnerInfo;
+});
 
 const title = computed<string>(() => props.t("Let's activate your Unraid OS License"));
 const description = computed<string>(() =>
@@ -48,43 +58,6 @@ const docsButtons = computed<BrandButtonProps[]>(() => {
   ];
 });
 
-/**
- * Listen for konami code sequence to close the modal
- */
-const keySequence = [
-  'ArrowUp',
-  'ArrowUp',
-  'ArrowDown',
-  'ArrowDown',
-  'ArrowLeft',
-  'ArrowRight',
-  'ArrowLeft',
-  'ArrowRight',
-  'b',
-  'a',
-];
-let sequenceIndex = 0;
-
-const handleKeydown = (event: KeyboardEvent) => {
-  if (event.key === keySequence[sequenceIndex]) {
-    sequenceIndex++;
-  } else {
-    sequenceIndex = 0;
-  }
-
-  if (sequenceIndex === keySequence.length) {
-    activationCodeStore.setActivationModalHidden(true);
-      window.location.href = '/Tools/Registration';
-  }
-};
-
-onMounted(() => {
-  window?.addEventListener('keydown', handleKeydown);
-});
-
-onUnmounted(() => {
-  window?.removeEventListener('keydown', handleKeydown);
-});
 </script>
 
 <template>
@@ -94,7 +67,7 @@ onUnmounted(() => {
     :open="showActivationModal"
     :show-close-x="false"
     :title="title"
-    :title-in-main="!!partnerLogo"
+    :title-in-main="partnerData.hasPartnerLogo"
     :description="description"
     overlay-color="bg-background"
     overlay-opacity="bg-opacity-100"
@@ -102,8 +75,8 @@ onUnmounted(() => {
     :modal-vertical-center="false"
     :disable-shadow="true"
   >
-    <template v-if="partnerLogo" #header>
-      <ActivationPartnerLogo />
+    <template v-if="partnerData.hasPartnerLogo" #header>
+      <ActivationPartnerLogo :name="partnerData.partnerName" />
     </template>
 
     <template #footer>

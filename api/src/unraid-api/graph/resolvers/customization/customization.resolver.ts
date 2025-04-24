@@ -1,8 +1,4 @@
-import { Field, ObjectType, Query, Resolver } from '@nestjs/graphql';
-
-import { GraphQLError } from 'graphql';
-
-// No direct import of fs/promises needed if only using fileExists
+import { Query, ResolveField, Resolver } from '@nestjs/graphql';
 
 import { fileExists } from '@app/core/utils/files/file-exists.js'; // Import utility
 
@@ -15,58 +11,75 @@ import {
     UsePermissions,
 } from '@app/unraid-api/graph/directives/use-permissions.directive.js';
 import { Resource } from '@app/unraid-api/graph/resolvers/base.model.js';
-import {
-    Customization,
-    PublicPartnerInfoDto,
-} from '@app/unraid-api/graph/resolvers/customization/activation-code.dto.js';
 import { CustomizationService } from '@app/unraid-api/graph/resolvers/customization/customization.service.js';
 
-// Define a new DTO for the partner info
+import { ActivationCode, Customization, PublicPartnerInfo } from './activation-code.model.js';
 
 @Resolver(() => Customization)
 export class CustomizationResolver {
     constructor(private readonly customizationService: CustomizationService) {}
 
+    private async _getPublicPartnerInfoInternal(): Promise<PublicPartnerInfo | null> {
+        // Check logo existence independently
+        const hasPartnerLogo = (await this.customizationService.getPartnerLogoWebguiPath()) !== null;
+        const activationData = await this.customizationService.getActivationData();
+
+        // Activation data exists, use its partnerName and the checked logo status
+        return {
+            hasPartnerLogo: hasPartnerLogo,
+            partnerName: activationData?.partnerName,
+        };
+    }
+
+    private async isPasswordSet(): Promise<boolean> {
+        const paths = store.getState().paths;
+        const hasPasswd = await fileExists(paths.passwd);
+        return hasPasswd;
+    }
+
+    // Authenticated query
     @Query(() => Customization, { nullable: true })
+    async customization(): Promise<Customization | null> {
+        // We return an empty object because the fields are resolved by @ResolveField
+        return {};
+    }
+
+    // Dedicated public query - calls the internal helper
+    @Query(() => PublicPartnerInfo, { nullable: true })
+    @Public()
+    async publicPartnerInfo(): Promise<PublicPartnerInfo | null> {
+        if (!(await this.isPasswordSet())) {
+            return this._getPublicPartnerInfoInternal();
+        }
+        return null;
+    }
+
+    // ResolveField for partnerInfo within the authenticated Customization object - calls the internal helper
+    @ResolveField(() => PublicPartnerInfo, { nullable: true, name: 'partnerInfo' })
+    // No @Public() decorator here - relies on parent query authentication
+    async resolvePartnerInfo(): Promise<PublicPartnerInfo | null> {
+        return this._getPublicPartnerInfoInternal();
+    }
+
+    @ResolveField(() => ActivationCode, { nullable: true, name: 'activationCode' })
     @UsePermissions({
         action: AuthActionVerb.READ,
         resource: Resource.ACTIVATION_CODE,
         possession: AuthPossession.ANY,
     })
-    async getActivationData(): Promise<Customization | null> {
-        // The service already caches the data after onModuleInit or fetches it on demand
-        return {
-            activationCode: (await this.customizationService.getActivationData()) ?? undefined,
-            caseIcon: (await this.customizationService.getCaseIconWebguiPath()) ?? undefined,
-            partnerLogo: (await this.customizationService.getPartnerLogoWebguiPath()) ?? undefined,
-        };
+    async activationCode(): Promise<ActivationCode | null> {
+        return this.customizationService.getActivationData();
     }
 
-    // Add the new query
-    @Query(() => PublicPartnerInfoDto, { nullable: true, name: 'partnerInfo' })
+    @ResolveField(() => String, { nullable: true, name: 'caseIcon' })
     @Public()
-    async getPartnerInfo(): Promise<PublicPartnerInfoDto | null> {
-        const paths = store.getState().paths; // Get paths from store state
-        const hasPasswd = await fileExists(paths.passwd); // Use fileExists utility
+    async caseIcon(): Promise<string | null> {
+        return this.customizationService.getCaseIconWebguiPath();
+    }
 
-        // Only return partner info if the passwd file *does not* exist
-        if (hasPasswd) {
-            return null;
-        }
-
-        const activationData = await this.customizationService.getActivationData();
-        const hasPartnerLogo = await this.customizationService.getPartnerLogoWebguiPath(); // Returns boolean
-
-        if (!activationData) {
-            // If no activation data, we can still potentially return logo status if it exists independently
-            // but partnerName requires activationData. Return null if no activation data.
-            return null;
-        }
-
-        // Return only the requested fields (partnerLogo is now boolean)
-        return {
-            hasPartnerLogo: hasPartnerLogo !== null,
-            partnerName: activationData.partnerName,
-        };
+    @ResolveField(() => String, { nullable: true, name: 'partnerLogo' })
+    @Public()
+    async partnerLogo(): Promise<string | null> {
+        return this.customizationService.getPartnerLogoWebguiPath();
     }
 }

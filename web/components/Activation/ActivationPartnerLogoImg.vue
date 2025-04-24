@@ -5,7 +5,7 @@
  */
 import { storeToRefs } from "pinia";
 
-import { useActivationCodeStore } from "~/store/activationCode";
+import { useActivationCodeStore } from "~/components/Activation/store/activationCodeModal";
 import { useThemeStore } from "~/store/theme";
 
 const { partnerLogo } = storeToRefs(useActivationCodeStore());

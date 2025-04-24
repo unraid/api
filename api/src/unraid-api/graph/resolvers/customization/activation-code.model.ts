@@ -30,7 +30,7 @@ const sanitizeAndValidateHexColor = (value: any): string => {
 };
 
 @ObjectType()
-export class PublicPartnerInfoDto {
+export class PublicPartnerInfo {
     @Field(() => String, { nullable: true })
     partnerName?: string;
 
@@ -40,7 +40,7 @@ export class PublicPartnerInfoDto {
 }
 
 @ObjectType()
-export class ActivationCodeDto {
+export class ActivationCode {
     @Field(() => String, { nullable: true })
     @IsOptional()
     @IsString()
@@ -104,8 +104,11 @@ export class ActivationCodeDto {
 
 @ObjectType()
 export class Customization {
-    @Field(() => ActivationCodeDto, { nullable: true })
-    activationCode?: ActivationCodeDto;
+    @Field(() => ActivationCode, { nullable: true })
+    activationCode?: ActivationCode;
+
+    @Field(() => PublicPartnerInfo, { nullable: true })
+    partnerInfo?: PublicPartnerInfo;
 
     @Field(() => String, {
         nullable: true,

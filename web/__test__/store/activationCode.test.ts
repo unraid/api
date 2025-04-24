@@ -10,7 +10,7 @@ import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from 'vites
 
 import type { QueryPayloads } from '@unraid/shared-callbacks';
 
-import { useActivationCodeStore } from '~/store/activationCode';
+import { useActivationCodeModalStore } from '~/components/Activation/store/activationCodeModal';
 
 // Mock the shared-callbacks module to prevent crypto-js issues in test
 vi.mock('@unraid/shared-callbacks', () => ({}));

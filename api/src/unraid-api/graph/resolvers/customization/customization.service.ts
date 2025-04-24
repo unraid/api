@@ -9,7 +9,7 @@ import * as ini from 'ini';
 import { emcmd } from '@app/core/utils/clients/emcmd.js';
 import { fileExists } from '@app/core/utils/files/file-exists.js';
 import { getters } from '@app/store/index.js';
-import { ActivationCodeDto } from '@app/unraid-api/graph/resolvers/customization/activation-code.dto.js';
+import { ActivationCode } from '@app/unraid-api/graph/resolvers/customization/activation-code.model.js';
 
 @Injectable()
 export class CustomizationService implements OnModuleInit {
@@ -23,7 +23,7 @@ export class CustomizationService implements OnModuleInit {
     private caseModelCfg!: string;
     private identCfg!: string;
 
-    private activationData: ActivationCodeDto | null = null; // Store validated data here
+    private activationData: ActivationCode | null = null; // Store validated data here
 
     constructor() {}
 
@@ -123,7 +123,14 @@ export class CustomizationService implements OnModuleInit {
      * @returns The activation data or null if the file is not found or invalid.
      * @throws Error if the directory does not exist.
      */
-    async getActivationData(): Promise<ActivationCodeDto | null> {
+    async getActivationData(): Promise<ActivationCode | null> {
+        // Return cached data if available
+        if (this.activationData) {
+            this.logger.debug('Returning cached activation data.');
+            return this.activationData;
+        }
+
+        this.logger.debug('Fetching activation data from disk...');
         const activationJsonPath = await this.getActivationJsonPath();
 
         if (!activationJsonPath) {
@@ -131,13 +138,22 @@ export class CustomizationService implements OnModuleInit {
             return null;
         }
 
-        const fileContent = await fs.readFile(activationJsonPath, 'utf-8');
-        const activationDataRaw = JSON.parse(fileContent);
+        try {
+            const fileContent = await fs.readFile(activationJsonPath, 'utf-8');
+            const activationDataRaw = JSON.parse(fileContent);
 
-        const activationDataDto = plainToClass(ActivationCodeDto, activationDataRaw);
-        await validateOrReject(activationDataDto);
+            const activationDataDto = plainToClass(ActivationCode, activationDataRaw);
+            await validateOrReject(activationDataDto);
 
-        return activationDataDto;
+            // Cache the validated data
+            this.activationData = activationDataDto;
+            this.logger.debug('Activation data fetched and cached.');
+            return this.activationData;
+        } catch (error) {
+            this.logger.error(`Error processing activation file ${activationJsonPath}:`, error);
+            // Do not cache in case of error
+            return null;
+        }
     }
 
     public async getCaseIconWebguiPath(): Promise<string | null> {
@@ -284,7 +300,6 @@ export class CustomizationService implements OnModuleInit {
         this.logger.log('Applying case model...');
         const paths = getters.paths();
         const caseModelSource = paths.caseModelSource;
-        const partnerCaseIcon = this.activationData.caseIcon;
 
         try {
             let currentCaseModel = '';
@@ -305,12 +320,8 @@ export class CustomizationService implements OnModuleInit {
                 // Use the *target* filename which CaseModelCopierModification will create
                 modelToSet = path.basename(paths.caseModelTarget); // e.g., 'case-model.png'
                 this.logger.log('Custom case model file found in assets, config will be set.');
-            } else if (partnerCaseIcon) {
-                // Use icon name specified in activation JSON
-                modelToSet = partnerCaseIcon;
-                this.logger.log(`Using included case icon: ${partnerCaseIcon}`);
             } else {
-                this.logger.log('No custom case model file or included icon specified.');
+                this.logger.log('No custom case model file found in assets.');
             }
 
             // If a model was determined, write it to the config file

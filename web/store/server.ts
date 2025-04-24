@@ -45,7 +45,7 @@ import type {
 import { useFragment } from '~/composables/gql/fragment-masking';
 import { WebguiState, WebguiUpdateIgnore } from '~/composables/services/webgui';
 import { useAccountStore } from '~/store/account';
-import { useActivationCodeStore } from '~/store/activationCode';
+import { useActivationCodeStore } from '~/components/Activation/store/activationCodeModal';
 import { useErrorsStore } from '~/store/errors';
 import { usePurchaseStore } from '~/store/purchase';
 import { useThemeStore } from '~/store/theme';
@@ -266,16 +266,6 @@ export const useServerStore = defineStore('server', () => {
       state: state.value,
       site: site.value,
     };
-
-    const { code, partnerName } = storeToRefs(useActivationCodeStore());
-    if (code.value) {
-      server['activationCodeData'] = {
-        code: code.value,
-      };
-      if (partnerName.value) {
-        server['activationCodeData']['partnerName'] = partnerName.value;
-      }
-    }
     return server;
   });
 

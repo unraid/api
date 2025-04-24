@@ -10,7 +10,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { emcmd } from '@app/core/utils/clients/emcmd.js';
 import { fileExists } from '@app/core/utils/files/file-exists.js';
-import { ActivationCodeDto } from '@app/unraid-api/graph/resolvers/customization/activation-code.dto.js';
+import { ActivationCode } from '@app/unraid-api/graph/resolvers/customization/activation-code.model.js';
 import { CustomizationService } from '@app/unraid-api/graph/resolvers/customization/customization.service.js';
 
 // Mocks
@@ -25,6 +25,10 @@ const mockPaths = {
     dynamixCaseModelConfig: '/mock/user/case-model.cfg',
     identConfig: '/mock/user/ident.cfg',
     webguiImagesBase: '/mock/webgui/images',
+    partnerBannerSource: '/mock/boot/config/activation/assets/banner.png',
+    partnerBannerTarget: '/mock/webgui/images/banner.png',
+    caseModelSource: '/mock/boot/config/activation/assets/case-model.png',
+    caseModelTarget: '/mock/webgui/images/case-model.png',
 };
 const mockDynamixState = { display: { theme: 'azure', header: 'FFFFFF' } };
 const mockEmhttpState = { var: { name: 'Tower', sysModel: 'Custom', comment: 'Default' } };
@@ -84,14 +88,14 @@ describe('CustomizationService', () => {
     const bannerAssetPath = path.join(assetsDir, 'banner.png');
     const bannerDestPath = path.join(webguiImagesDir, 'banner.png');
     const caseModelAssetPath = path.join(assetsDir, 'case-model.png');
+    const caseModelDestPath = path.join(webguiImagesDir, 'case-model.png');
 
-    const mockActivationData: ActivationCodeDto = {
+    const mockActivationData: ActivationCode = {
         header: '#112233',
         headermetacolor: '#445566',
         background: '#778899',
         showBannerGradient: 'yes',
         theme: 'black',
-        caseIcon: 'included-icon.png',
         serverName: 'PartnerServer',
         sysModel: 'PartnerModel',
         comment: 'Partner Comment',
@@ -115,9 +119,7 @@ describe('CustomizationService', () => {
         // Re-assign paths manually in beforeEach AFTER mocks are cleared and service instantiated
         // This simulates the dynamic import within onModuleInit
         (service as any).activationDir = activationDir;
-        (service as any).assetsDir = assetsDir;
         (service as any).hasRunFirstBootSetup = doneFlag;
-        (service as any).webguiImagesDir = webguiImagesDir;
         (service as any).configFile = userDynamixCfg;
         (service as any).caseModelCfg = caseModelCfg;
         (service as any).identCfg = identCfg;
@@ -201,7 +203,7 @@ describe('CustomizationService', () => {
 
             // Check customizations applied (verify mocks were called)
             expect(fs.copyFile).toHaveBeenCalledWith(bannerAssetPath, bannerDestPath); // Banner copied
-            expect(fs.writeFile).toHaveBeenCalledWith(caseModelCfg, 'case-model.png'); // Case model cfg updated
+            expect(fs.writeFile).toHaveBeenCalledWith(caseModelCfg, path.basename(caseModelDestPath));
             expect(fs.writeFile).toHaveBeenCalledWith(
                 userDynamixCfg,
                 expect.stringContaining('theme=black')
@@ -309,7 +311,7 @@ describe('CustomizationService', () => {
             // Validation should now pass because the transformer handles the invalid value
             const result = await service.getActivationData();
 
-            expect(result).toBeInstanceOf(ActivationCodeDto);
+            expect(result).toBeInstanceOf(ActivationCode);
             // Check that the invalid hex was transformed to an empty string
             expect(result?.header).toBe('');
             // Check other valid fields remain
@@ -331,7 +333,7 @@ describe('CustomizationService', () => {
 
             const result = await service.getActivationData();
 
-            expect(result).toBeInstanceOf(ActivationCodeDto);
+            expect(result).toBeInstanceOf(ActivationCode);
             expect(result?.header).toBe('#ABCDEF');
             expect(result?.headermetacolor).toBe('#123');
         });
@@ -344,7 +346,7 @@ describe('CustomizationService', () => {
 
             const result = await service.getActivationData();
 
-            expect(result).toBeInstanceOf(ActivationCodeDto);
+            expect(result).toBeInstanceOf(ActivationCode);
             // Use toStrictEqual for potentially nested objects/arrays if needed, but objectContaining is fine here
             expect(result).toEqual(expect.objectContaining(mockActivationData));
         });
@@ -357,13 +359,12 @@ describe('CustomizationService', () => {
         beforeEach(() => {
             // Setup service state as if onModuleInit ran successfully before customizations
             (service as any).activationDir = activationDir;
-            (service as any).assetsDir = assetsDir;
-            (service as any).webguiImagesDir = webguiImagesDir;
+            (service as any).hasRunFirstBootSetup = doneFlag;
             (service as any).configFile = userDynamixCfg;
             (service as any).caseModelCfg = caseModelCfg;
             (service as any).identCfg = identCfg;
             // Use plainToInstance to mimic real data flow including transformations
-            (service as any).activationData = plainToInstance(ActivationCodeDto, {
+            (service as any).activationData = plainToInstance(ActivationCode, {
                 ...mockActivationData,
             });
             // Mock necessary file reads/writes
@@ -432,7 +433,7 @@ describe('CustomizationService', () => {
         it('applyDisplaySettings should skip if no relevant activation data', async () => {
             const updateSpy = vi.spyOn(service as any, 'updateCfgFile');
             // Simulate empty DTO after plainToClass
-            (service as any).activationData = plainToInstance(ActivationCodeDto, {});
+            (service as any).activationData = plainToInstance(ActivationCode, {});
             vi.mocked(fileExists).mockResolvedValue(true); // Assume banner file exists
             await (service as any).setupPartnerBanner(); // Ensure banner='image' logic runs
             await (service as any).applyDisplaySettings();
@@ -447,7 +448,7 @@ describe('CustomizationService', () => {
 
         it('applyDisplaySettings should skip banner field if banner file does not exist', async () => {
             const updateSpy = vi.spyOn(service as any, 'updateCfgFile');
-            (service as any).activationData = plainToInstance(ActivationCodeDto, { theme: 'white' }); // Some data, but no banner
+            (service as any).activationData = plainToInstance(ActivationCode, { theme: 'white' }); // Some data, but no banner
 
             // Clear any previous mocks for fileExists and set a specific one for this test
             vi.mocked(fileExists).mockClear();
@@ -476,7 +477,7 @@ describe('CustomizationService', () => {
         it('applyDisplaySettings should handle empty string for invalid hex colors (skipping fields)', async () => {
             const updateSpy = vi.spyOn(service as any, 'updateCfgFile');
             // Simulate data after transformation results in empty strings
-            (service as any).activationData = plainToInstance(ActivationCodeDto, {
+            (service as any).activationData = plainToInstance(ActivationCode, {
                 ...mockActivationData,
                 header: '', // Was invalid, transformed to empty
                 headermetacolor: '#445566', // Valid
@@ -502,7 +503,7 @@ describe('CustomizationService', () => {
         it('applyDisplaySettings should handle hex colors where # was prepended (stripping #)', async () => {
             const updateSpy = vi.spyOn(service as any, 'updateCfgFile');
             // Simulate data after transformation where # was added
-            (service as any).activationData = plainToInstance(ActivationCodeDto, {
+            (service as any).activationData = plainToInstance(ActivationCode, {
                 ...mockActivationData,
                 header: '#ABCDEF', // Originally 'ABCDEF', now includes #
                 headermetacolor: '#123', // Originally '123', now includes #
@@ -525,31 +526,20 @@ describe('CustomizationService', () => {
         });
 
         it('applyCaseModelConfig should set model from asset if exists', async () => {
-            vi.mocked(fileExists).mockResolvedValue(true); // Asset exists
+            vi.mocked(fileExists).mockImplementation(async (p) => p === caseModelAssetPath); // Asset exists
             await (service as any).applyCaseModelConfig();
-            expect(fs.writeFile).toHaveBeenCalledWith(caseModelCfg, 'case-model.png');
+            expect(fs.writeFile).toHaveBeenCalledWith(caseModelCfg, path.basename(caseModelDestPath));
             expect(loggerLogSpy).toHaveBeenCalledWith(
-                `Case model set to case-model.png in ${caseModelCfg}`
+                `Case model set to ${path.basename(caseModelDestPath)} in ${caseModelCfg}`
             );
         });
 
-        it('applyCaseModelConfig should set model from activationData if asset missing', async () => {
+        it('applyCaseModelConfig should do nothing if asset missing', async () => {
             vi.mocked(fileExists).mockResolvedValue(false); // Asset missing
             await (service as any).applyCaseModelConfig();
-            expect(fs.writeFile).toHaveBeenCalledWith(caseModelCfg, mockActivationData.caseIcon);
+            expect(fs.writeFile).not.toHaveBeenCalledWith(caseModelCfg, expect.any(String)); // Should not write
             expect(loggerLogSpy).toHaveBeenCalledWith(
-                `Case model set to ${mockActivationData.caseIcon} in ${caseModelCfg}`
-            );
-        });
-
-        it('applyCaseModelConfig should do nothing if no asset and no activation icon', async () => {
-            vi.mocked(fileExists).mockResolvedValue(false); // Asset missing
-            // Simulate empty DTO or DTO without caseIcon
-            (service as any).activationData = plainToInstance(ActivationCodeDto, { serverName: 'Test' }); // No caseIcon
-            await (service as any).applyCaseModelConfig();
-            expect(fs.writeFile).not.toHaveBeenCalledWith(caseModelCfg, expect.any(String));
-            expect(loggerLogSpy).toHaveBeenCalledWith(
-                'No custom case model file or included icon specified.'
+                'No custom case model file found in assets.' // Updated log message check
             );
         });
 
@@ -575,7 +565,7 @@ describe('CustomizationService', () => {
         it('applyServerIdentity should skip if no relevant activation data', async () => {
             const updateSpy = vi.spyOn(service as any, 'updateCfgFile');
             // Simulate empty DTO
-            (service as any).activationData = plainToInstance(ActivationCodeDto, {});
+            (service as any).activationData = plainToInstance(ActivationCode, {});
             await (service as any).applyServerIdentity();
             expect(updateSpy).not.toHaveBeenCalled();
             expect(emcmd).not.toHaveBeenCalled();
@@ -747,3 +737,4 @@ describe('CustomizationService - updateCfgFile', () => {
         );
     });
 });
+
