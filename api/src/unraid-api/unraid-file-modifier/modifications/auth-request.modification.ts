@@ -6,6 +6,7 @@ import {
     FileModification,
     ShouldApplyWithReason,
 } from '@app/unraid-api/unraid-file-modifier/file-modification.js';
+import { convertWebGuiPathToAssetPath } from '@app/utils.js';
 
 export default class AuthRequestModification extends FileModification {
     public filePath: string = '/usr/local/emhttp/auth-request.php' as const;
@@ -39,10 +40,11 @@ export default class AuthRequestModification extends FileModification {
      * @returns The patch for the auth-request.php file
      */
     protected async generatePatch(overridePath?: string): Promise<string> {
+        const { getters } = await import('@app/store/index.js');
         const jsFiles = await this.getJsFiles(this.webComponentsDirectory);
         this.logger.debug(`Found ${jsFiles.length} .js files in ${this.webComponentsDirectory}`);
 
-        const filesToAdd = ['/webGui/images/partner-logo.svg', ...jsFiles];
+        const filesToAdd = [convertWebGuiPathToAssetPath(getters.paths().partnerLogoTarget), ...jsFiles];
 
         if (!existsSync(this.filePath)) {
             throw new Error(`File ${this.filePath} not found.`);

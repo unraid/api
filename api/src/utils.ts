@@ -1,10 +1,18 @@
 import { BadRequestException, ExecutionContext, Logger, UnauthorizedException } from '@nestjs/common';
 import { GqlExecutionContext } from '@nestjs/graphql';
 
+
+
 import strftime from 'strftime';
+
+
 
 import { UserAccount } from '@app/unraid-api/graph/user/user.model.js';
 import { FastifyRequest } from '@app/unraid-api/types/fastify.js';
+
+
+
+
 
 export function notNull<T>(value: T): value is NonNullable<T> {
     return value !== null;
@@ -270,3 +278,15 @@ export function csvStringToArray(
     }
     return result;
 }
+
+/**
+ * Converts a webgui path to an asset path.
+ *
+ * @param webGuiPath - The webgui path to convert
+ * @returns The asset path
+ */
+export const convertWebGuiPathToAssetPath = (webGuiPath: string): string => {
+    // Strip the leading /usr/local/emhttp/ from the path
+    const assetPath = webGuiPath.replace('/usr/local/emhttp/', '/');
+    return assetPath;
+};

@@ -31,7 +31,6 @@ export class CustomizationResolver {
             partnerName: activationData?.partnerName,
             partnerUrl: activationData?.partnerUrl,
             partnerLogoUrl: (await this.customizationService.getPartnerLogoWebguiPath()) ?? undefined,
-            partnerLogoRaw: await this.customizationService.getPartnerLogoRaw() ?? undefined,
         };
     }
 

@@ -53,16 +53,6 @@ export class PublicPartnerInfo {
     @IsString()
     @Transform(({ value }) => sanitizeString(value))
     partnerLogoUrl?: string;
-
-    @Field(() => String, {
-        nullable: true,
-        description:
-            'The plaintext version of the partner logo in base64 format - will render the default Unraid logo if not provided',
-    })
-    @IsOptional()
-    @IsString()
-    @Transform(({ value }) => sanitizeString(value))
-    partnerLogoRaw?: string;
 }
 
 @ObjectType()

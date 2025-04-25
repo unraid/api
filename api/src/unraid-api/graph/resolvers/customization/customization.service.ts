@@ -11,6 +11,7 @@ import { fileExists } from '@app/core/utils/files/file-exists.js';
 import { reloadNginxAndUpdateDNS } from '@app/store/actions/reload-nginx-and-update-dns.js';
 import { getters } from '@app/store/index.js';
 import { ActivationCode } from '@app/unraid-api/graph/resolvers/customization/activation-code.model.js';
+import { convertWebGuiPathToAssetPath } from '@app/utils.js';
 
 @Injectable()
 export class CustomizationService implements OnModuleInit {
@@ -148,16 +149,11 @@ export class CustomizationService implements OnModuleInit {
         }
     }
 
-    public convertWebGuiPathToAssetPath(webGuiPath: string): string {
-        // Strip the leading /usr/local/emhttp/ from the path
-        const assetPath = webGuiPath.replace('/usr/local/emhttp/', '/');
-        return assetPath;
-    }
 
     public async getCaseIconWebguiPath(): Promise<string | null> {
         const paths = getters.paths();
         if (await fileExists(paths.caseModelSource)) {
-            return this.convertWebGuiPathToAssetPath(paths.caseModelTarget);
+            return convertWebGuiPathToAssetPath(paths.caseModelTarget);
         }
         return null;
     }
@@ -165,20 +161,7 @@ export class CustomizationService implements OnModuleInit {
     public async getPartnerLogoWebguiPath(): Promise<string | null> {
         const paths = getters.paths();
         if (await fileExists(paths.partnerLogoSource)) {
-            return this.convertWebGuiPathToAssetPath(paths.partnerLogoTarget);
-        }
-        return null;
-    }
-
-    /**
-     * Get the raw partner logo from the partner logo file.
-     * @returns The raw partner logo in base64 format if the file exists, otherwise null.
-     */
-    public async getPartnerLogoRaw(): Promise<string | null> {
-        const path = getters.paths().partnerLogoTarget;
-        if (await fileExists(path)) {
-            const fileContent = await fs.readFile(path, 'base64');
-            return fileContent;
+            return convertWebGuiPathToAssetPath(paths.partnerLogoTarget);
         }
         return null;
     }
