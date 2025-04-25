@@ -7,6 +7,7 @@ import { BellAlertIcon, ExclamationTriangleIcon, InformationCircleIcon } from '@
 import { Badge } from '@unraid/ui';
 import { getReleaseNotesUrl, WEBGUI_TOOLS_DOWNGRADE, WEBGUI_TOOLS_UPDATE } from '~/helpers/urls';
 
+import { useActivationCodeDataStore } from '~/components/Activation/store/activationCodeData';
 import { useServerStore } from '~/store/server';
 import { useUpdateOsStore } from '~/store/updateOs';
 import { useUpdateOsActionsStore } from '~/store/updateOsActions';
@@ -22,11 +23,11 @@ const { osVersion, rebootType, stateDataError } = storeToRefs(serverStore);
 const { available, availableWithRenewal } = storeToRefs(updateOsStore);
 const { rebootTypeText } = storeToRefs(updateOsActionsStore);
 
-const logoUrl = computed(() => {
-  if (partnerInfo.value?.partnerUrl) {
-    return partnerInfo.value.partnerUrl;
+watch(partnerInfo, (newVal) => {
+  const unraidLogoHeader = document.querySelector('#unraid-logo-header');
+  if (unraidLogoHeader) {
+    (unraidLogoHeader as HTMLAnchorElement).href = newVal?.partnerUrl ?? 'https://unraid.net';
   }
-  return 'https://unraid.net';
 });
 
 const updateOsStatus = computed(() => {
@@ -70,49 +71,44 @@ const updateOsStatus = computed(() => {
 </script>
 
 <template>
-  <div>
-    <a :href="logoUrl" target="_blank">
-      <img :src="'/webGui/images/UN-logotype-gradient.svg'" class="w-[100px] sm:w-[150px]" />
+  <div class="flex flex-row justify-start gap-x-4px">
+    <a
+      class="group leading-none"
+      :title="t('View release notes')"
+      :href="getReleaseNotesUrl(osVersion).toString()"
+      target="_blank"
+      rel="noopener"
+    >
+      <Badge
+        variant="custom"
+        :icon="InformationCircleIcon"
+        icon-styles="text-header-text-secondary"
+        size="sm"
+        class="text-header-text-secondary group-hover:text-orange-dark group-focus:text-orange-dark group-hover:underline group-focus:underline"
+      >
+        {{ osVersion }}
+      </Badge>
     </a>
-    <div class="flex flex-row justify-start gap-x-4px">
-      <a
-        class="group leading-none"
-        :title="t('View release notes')"
-        :href="getReleaseNotesUrl(osVersion).toString()"
-        target="_blank"
-        rel="noopener"
+    <component
+      :is="updateOsStatus.href ? 'a' : 'button'"
+      v-if="updateOsStatus"
+      :href="updateOsStatus.href ?? undefined"
+      :title="updateOsStatus.title ?? undefined"
+      class="group"
+      @click="updateOsStatus.click?.()"
+    >
+      <Badge
+        v-if="updateOsStatus.badge"
+        :color="updateOsStatus.badge.color"
+        :icon="updateOsStatus.badge.icon"
+        size="xs"
       >
-        <Badge
-          variant="custom"
-          :icon="InformationCircleIcon"
-          icon-styles="text-header-text-secondary"
-          size="sm"
-          class="text-header-text-secondary group-hover:text-orange-dark group-focus:text-orange-dark group-hover:underline group-focus:underline"
-        >
-          {{ osVersion }}
-        </Badge>
-      </a>
-      <component
-        :is="updateOsStatus.href ? 'a' : 'button'"
-        v-if="updateOsStatus"
-        :href="updateOsStatus.href ?? undefined"
-        :title="updateOsStatus.title ?? undefined"
-        class="group"
-        @click="updateOsStatus.click?.()"
-      >
-        <Badge
-          v-if="updateOsStatus.badge"
-          :color="updateOsStatus.badge.color"
-          :icon="updateOsStatus.badge.icon"
-          size="xs"
-        >
-          {{ updateOsStatus.text }}
-        </Badge>
-        <template v-else>
-          {{ updateOsStatus.text }}
-        </template>
-      </component>
-    </div>
+        {{ updateOsStatus.text }}
+      </Badge>
+      <template v-else>
+        {{ updateOsStatus.text }}
+      </template>
+    </component>
   </div>
 </template>
 

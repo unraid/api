@@ -68,7 +68,8 @@ if (is_localhost() && !is_good_session()) {
     private injectPartnerLogo(source: string): string {
         const findString =
             '<a href="https://unraid.net" target="_blank"><?readfile("$docroot/webGui/images/UN-logotype-gradient.svg")?></a>';
-        const replaceString = '';
+        const replaceString =
+            '<a id="unraid-logo-header" href="https://unraid.net" target="_blank"><?readfile("$docroot/webGui/images/UN-logotype-gradient.svg")?></a>';
 
         if (source.includes(findString) && !source.includes(replaceString)) {
             return source.replace(findString, replaceString);
