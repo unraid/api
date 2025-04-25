@@ -698,7 +698,7 @@ describe('CustomizationService', () => {
             expect(updateSpy).toHaveBeenCalled(); // Still attempts updateCfgFile
             expect(emcmd).toHaveBeenCalled();
             // Match the actual log message from the service
-            expect(loggerErrorSpy).toHaveBeenCalledWith('Error applying server identity:', emcmdError);
+            expect(loggerErrorSpy).toHaveBeenCalledWith('Error applying server identity: %o', emcmdError);
         });
     });
 });
@@ -912,7 +912,7 @@ describe('applyActivationCustomizations specific tests', () => {
         expect(loggerLogSpy).toHaveBeenCalledWith('Applying case model...');
 
         // applyServerIdentity should fail and log
-        expect(loggerErrorSpy).toHaveBeenCalledWith('Error applying server identity:', updateError);
+        expect(loggerErrorSpy).toHaveBeenCalledWith('Error applying server identity: %o', updateError);
         expect(emcmd).not.toHaveBeenCalled(); // emcmd should not be called if updateCfgFile fails
 
         // Overall error from applyActivationCustomizations' catch block
