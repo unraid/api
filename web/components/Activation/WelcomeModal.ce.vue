@@ -1,41 +1,19 @@
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n';
-import { useQuery } from '@vue/apollo-composable';
 
 import { BrandButton } from '@unraid/ui';
-import gql from 'graphql-tag';
 
+import ActivationPartnerLogo from '~/components/Activation/ActivationPartnerLogo.vue';
 import ActivationSteps from '~/components/Activation/ActivationSteps.vue';
+import { useActivationCodeDataStore } from '~/components/Activation/store/activationCodeData';
 
 const { t } = useI18n();
 
-const PARTNER_INFO_QUERY = gql`
-  query PartnerInfo {
-    publicPartnerInfo {
-      hasPartnerLogo
-      partnerName
-    }
-  }
-`;
-
-const {
-  result: partnerInfoResult,
-  loading: partnerInfoLoading,
-  error: partnerInfoError,
-} = useQuery(PARTNER_INFO_QUERY);
-
-watch(partnerInfoError, (errorValue) => {
-  if (errorValue) {
-    console.error('Error fetching partner info:', errorValue);
-  }
-});
-
-const partnerName = computed(() => partnerInfoResult.value?.partnerInfo?.partnerName);
-const hasPartnerLogo = computed(() => partnerInfoResult.value?.partnerInfo?.hasPartnerLogo ?? false);
+const { partnerInfo, loading } = storeToRefs(useActivationCodeDataStore());
 
 const title = computed<string>(() =>
-  partnerName.value
-    ? t(`Welcome to your new {0} system, powered by Unraid!`, [partnerName.value])
+  partnerInfo.value?.partnerName
+    ? t(`Welcome to your new {0} system, powered by Unraid!`, [partnerInfo.value?.partnerName])
     : t('Welcome to Unraid!')
 );
 
@@ -79,7 +57,7 @@ watchEffect(() => {
       :open="showModal"
       :show-close-x="false"
       :title="title"
-      :title-in-main="hasPartnerLogo"
+      :title-in-main="partnerInfo?.hasPartnerLogo"
       :description="description"
       overlay-color="bg-background"
       overlay-opacity="bg-opacity-100"
@@ -89,17 +67,13 @@ watchEffect(() => {
       :disable-overlay-close="true"
       @close="dropdownHide"
     >
-      <template v-if="hasPartnerLogo" #header>
+      <template v-if="partnerInfo?.hasPartnerLogo" #header>
         <ActivationPartnerLogo />
       </template>
 
       <template #footer>
         <div class="w-full flex gap-8px justify-center mx-auto">
-          <BrandButton
-            :text="t('Create a password')"
-            :disabled="partnerInfoLoading"
-            @click="dropdownHide"
-          />
+          <BrandButton :text="t('Create a password')" :disabled="loading" @click="dropdownHide" />
         </div>
       </template>
 

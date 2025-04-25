@@ -37,6 +37,22 @@ export class PublicPartnerInfo {
     @Field(() => Boolean, { description: 'Indicates if a partner logo exists' })
     @IsBoolean()
     hasPartnerLogo?: boolean;
+
+    @Field(() => String, { nullable: true })
+    @IsOptional()
+    @IsString()
+    @Transform(({ value }) => sanitizeString(value))
+    partnerUrl?: string;
+
+    @Field(() => String, {
+        nullable: true,
+        description:
+            'The path to the partner logo image on the flash drive, relative to the activation code file',
+    })
+    @IsOptional()
+    @IsString() // Assuming this is a file path/name
+    @Transform(({ value }) => sanitizeString(value))
+    partnerLogoUrl?: string;
 }
 
 @ObjectType()
@@ -52,6 +68,12 @@ export class ActivationCode {
     @IsString()
     @Transform(({ value }) => sanitizeString(value))
     partnerName?: string;
+
+    @Field(() => String, { nullable: true })
+    @IsOptional()
+    @IsString()
+    @Transform(({ value }) => sanitizeString(value))
+    partnerUrl?: string;
 
     @Field(() => String, { nullable: true })
     @IsOptional()
@@ -109,24 +131,4 @@ export class Customization {
 
     @Field(() => PublicPartnerInfo, { nullable: true })
     partnerInfo?: PublicPartnerInfo;
-
-    @Field(() => String, {
-        nullable: true,
-        description:
-            'The path to the case icon image on the flash drive, relative to the activation code file',
-    })
-    @IsOptional()
-    @IsString() // Assuming this is a file path/name
-    @Transform(({ value }) => sanitizeString(value))
-    caseIcon?: string;
-
-    @Field(() => String, {
-        nullable: true,
-        description:
-            'The path to the partner logo image on the flash drive, relative to the activation code file',
-    })
-    @IsOptional()
-    @IsString() // Assuming this is a file path/name
-    @Transform(({ value }) => sanitizeString(value))
-    partnerLogo?: string;
 }

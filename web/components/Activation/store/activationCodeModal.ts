@@ -5,7 +5,6 @@ import { useSessionStorage } from '@vueuse/core';
 import { ACTIVATION_CODE_MODAL_HIDDEN_STORAGE_KEY } from '~/consts';
 
 import { useActivationCodeDataStore } from '~/components/Activation/store/activationCodeData';
-import { RegistrationState } from '~/composables/gql/graphql';
 import { useCallbackActionsStore } from '~/store/callbackActions';
 
 setActivePinia(createPinia()); /** required in web component context */

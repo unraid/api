@@ -1,10 +1,13 @@
 import { graphql } from '~/composables/gql/gql';
 
+
 export const PARTNER_INFO_QUERY = graphql(/* GraphQL */ `
   query PartnerInfo {
     publicPartnerInfo {
       hasPartnerLogo
       partnerName
+      partnerUrl
+      partnerLogoUrl
     }
   }
 `);
@@ -26,6 +29,12 @@ export const ACTIVATION_CODE_QUERY = graphql(/* GraphQL */ `
         background
         showBannerGradient
         theme
+      }
+      partnerInfo {
+        hasPartnerLogo
+        partnerName
+        partnerUrl
+        partnerLogoUrl
       }
     }
   }

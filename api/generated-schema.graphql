@@ -943,11 +943,18 @@ type PublicPartnerInfo {
 
   """Indicates if a partner logo exists"""
   hasPartnerLogo: Boolean!
+  partnerUrl: String
+
+  """
+  The path to the partner logo image on the flash drive, relative to the activation code file
+  """
+  partnerLogoUrl: String
 }
 
 type ActivationCode {
   code: String
   partnerName: String
+  partnerUrl: String
   serverName: String
   sysModel: String
   comment: String
@@ -961,16 +968,6 @@ type ActivationCode {
 type Customization {
   activationCode: ActivationCode
   partnerInfo: PublicPartnerInfo
-
-  """
-  The path to the case icon image on the flash drive, relative to the activation code file
-  """
-  caseIcon: String
-
-  """
-  The path to the partner logo image on the flash drive, relative to the activation code file
-  """
-  partnerLogo: String
 }
 
 type InfoApps implements Node {

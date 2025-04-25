@@ -11,23 +11,26 @@ import {
     UsePermissions,
 } from '@app/unraid-api/graph/directives/use-permissions.directive.js';
 import { Resource } from '@app/unraid-api/graph/resolvers/base.model.js';
+import {
+    ActivationCode,
+    Customization,
+    PublicPartnerInfo,
+} from '@app/unraid-api/graph/resolvers/customization/activation-code.model.js';
 import { CustomizationService } from '@app/unraid-api/graph/resolvers/customization/customization.service.js';
-
-import { ActivationCode, Customization, PublicPartnerInfo } from './activation-code.model.js';
 
 @Resolver(() => Customization)
 export class CustomizationResolver {
     constructor(private readonly customizationService: CustomizationService) {}
 
     private async _getPublicPartnerInfoInternal(): Promise<PublicPartnerInfo | null> {
-        // Check logo existence independently
         const hasPartnerLogo = (await this.customizationService.getPartnerLogoWebguiPath()) !== null;
         const activationData = await this.customizationService.getActivationData();
 
-        // Activation data exists, use its partnerName and the checked logo status
         return {
             hasPartnerLogo: hasPartnerLogo,
             partnerName: activationData?.partnerName,
+            partnerUrl: activationData?.partnerUrl,
+            partnerLogoUrl: (await this.customizationService.getPartnerLogoWebguiPath()) ?? undefined,
         };
     }
 
@@ -39,6 +42,11 @@ export class CustomizationResolver {
 
     // Authenticated query
     @Query(() => Customization, { nullable: true })
+    @UsePermissions({
+        action: AuthActionVerb.READ,
+        resource: Resource.CUSTOMIZATIONS,
+        possession: AuthPossession.ANY,
+    })
     async customization(): Promise<Customization | null> {
         // We return an empty object because the fields are resolved by @ResolveField
         return {};
@@ -54,9 +62,7 @@ export class CustomizationResolver {
         return null;
     }
 
-    // ResolveField for partnerInfo within the authenticated Customization object - calls the internal helper
     @ResolveField(() => PublicPartnerInfo, { nullable: true, name: 'partnerInfo' })
-    // No @Public() decorator here - relies on parent query authentication
     async resolvePartnerInfo(): Promise<PublicPartnerInfo | null> {
         return this._getPublicPartnerInfoInternal();
     }
@@ -69,17 +75,5 @@ export class CustomizationResolver {
     })
     async activationCode(): Promise<ActivationCode | null> {
         return this.customizationService.getActivationData();
-    }
-
-    @ResolveField(() => String, { nullable: true, name: 'caseIcon' })
-    @Public()
-    async caseIcon(): Promise<string | null> {
-        return this.customizationService.getCaseIconWebguiPath();
-    }
-
-    @ResolveField(() => String, { nullable: true, name: 'partnerLogo' })
-    @Public()
-    async partnerLogo(): Promise<string | null> {
-        return this.customizationService.getPartnerLogoWebguiPath();
     }
 }

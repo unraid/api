@@ -1,15 +1,21 @@
 <script lang="ts" setup>
-import { storeToRefs } from "pinia";
+import { storeToRefs } from 'pinia';
 
-import { useActivationCodeDataStore } from "~/components/Activation/store/activationCodeData";
-import ActivationPartnerLogoImg from "~/components/Activation/PartnerLogoImg.vue";
+import ActivationPartnerLogoImg from '~/components/Activation/ActivationPartnerLogoImg.vue';
+import { useActivationCodeDataStore } from '~/components/Activation/store/activationCodeData';
 
-const { activationCode} = storeToRefs(useActivationCodeDataStore());
+const { partnerInfo } = storeToRefs(useActivationCodeDataStore());
 </script>
 
 <template>
-  <template v-if="">
-    <a v-if="partnerUrl" :href="partnerUrl" class="opacity-100 hover:opacity-75 focus:opacity-75" target="_blank" rel="noopener noreferrer">
+  <template v-if="partnerInfo?.partnerUrl">
+    <a
+      v-if="partnerInfo?.partnerUrl"
+      :href="partnerInfo?.partnerUrl"
+      class="opacity-100 hover:opacity-75 focus:opacity-75"
+      target="_blank"
+      rel="noopener noreferrer"
+    >
       <ActivationPartnerLogoImg />
     </a>
     <ActivationPartnerLogoImg v-else />
