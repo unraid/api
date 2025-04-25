@@ -4,19 +4,8 @@ import { storeToRefs } from 'pinia';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@unraid/ui';
 import { useDummyServerStore } from '~/_data/serverState';
 
-import type { ServerSelector } from '~/_data/serverState';
-
-// Define the same type locally as in reka-ui
-type AcceptableValue = string | number | Record<string, unknown> | null;
-
 const store = useDummyServerStore();
 const { selector, serverState } = storeToRefs(store);
-
-const updateSelector = (val: AcceptableValue) => {
-  if (typeof val === 'string') {
-    selector.value = val as ServerSelector;
-  }
-};
 </script>
 
 <template>
@@ -26,7 +15,7 @@ const updateSelector = (val: AcceptableValue) => {
       <summary>Initial Server State: {{ selector }}</summary>
       <pre>{{ JSON.stringify(serverState, null, 4) }}</pre>
     </details>
-    <Select v-model="selector" @update:model-value="updateSelector">
+    <Select v-model="selector">
       <SelectTrigger>
         <SelectValue placeholder="Select an initial state" />
       </SelectTrigger>

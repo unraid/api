@@ -4,7 +4,6 @@ import * as fs from 'fs/promises';
 import * as path from 'path';
 
 import { plainToInstance } from 'class-transformer';
-import { validateOrReject } from 'class-validator';
 import * as ini from 'ini';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
@@ -89,7 +88,10 @@ describe('CustomizationService', () => {
     const bannerDestPath = path.join(webguiImagesDir, 'banner.png');
     const caseModelAssetPath = path.join(assetsDir, 'case-model.png');
     const caseModelDestPath = path.join(webguiImagesDir, 'case-model.png');
+    const partnerBannerSource = mockPaths.partnerBannerSource;
+    const caseModelSource = mockPaths.caseModelSource;
 
+    // Add mockActivationData definition here
     const mockActivationData: ActivationCode = {
         header: '#112233',
         headermetacolor: '#445566',
@@ -123,6 +125,17 @@ describe('CustomizationService', () => {
         (service as any).configFile = userDynamixCfg;
         (service as any).caseModelCfg = caseModelCfg;
         (service as any).identCfg = identCfg;
+
+        // Mock fileExists needed by customization methods
+        vi.mocked(fileExists).mockImplementation(async (p) => {
+            // Assume assets exist by default for these tests unless overridden
+            return (
+                p === partnerBannerSource ||
+                p === bannerAssetPath ||
+                p === caseModelAssetPath ||
+                p === bannerDestPath
+            );
+        });
     });
 
     it('should be defined', () => {
@@ -146,6 +159,38 @@ describe('CustomizationService', () => {
             // We assume the mechanism works but cannot easily isolate this specific error log trigger
             // in this setup without modifying the core mocking strategy.
             // Skipping direct assertion for now.
+
+            // --- NEW IMPLEMENTATION ---
+            // Mock getters to return paths without dynamix-config[1]
+            const { getters: originalGetters } = await import('@app/store/index.js');
+            const originalPaths = originalGetters.paths(); // Get the full mock paths object
+            const pathsWithoutDynamixUser = {
+                ...originalPaths,
+                'dynamix-config': [originalPaths['dynamix-config'][0]],
+            }; // Modify it
+            vi.mocked(originalGetters.paths).mockReturnValueOnce(pathsWithoutDynamixUser); // Mock the return value
+
+            // Re-create service instance to pick up mocked paths during constructor/init phase if applicable
+            await service.onModuleInit();
+
+            expect(loggerErrorSpy).toHaveBeenCalledWith(
+                "Could not resolve user dynamix config path (paths['dynamix-config'][1]) from store."
+            );
+            // Expect subsequent operations that rely on configFile to potentially fail or not run
+            expect(fs.writeFile).not.toHaveBeenCalledWith(doneFlag, 'true'); // Setup should bail early
+        });
+
+        it('should log error and rethrow non-ENOENT errors during activation dir access', async () => {
+            const accessError = new Error('Permission denied');
+            vi.mocked(fs.access).mockRejectedValueOnce(accessError); // Fail first access check
+
+            await expect(service.onModuleInit()).resolves.toBeUndefined(); // onModuleInit catches and logs
+
+            expect(loggerErrorSpy).toHaveBeenCalledWith(
+                'Error during activation check/setup on init:',
+                accessError
+            );
+            expect(fs.writeFile).not.toHaveBeenCalledWith(doneFlag, 'true'); // Should not proceed
         });
 
         it('should skip setup if activation directory does not exist', async () => {
@@ -219,27 +264,73 @@ describe('CustomizationService', () => {
             expect(loggerLogSpy).toHaveBeenCalledWith('Activation setup complete.');
         });
 
-        it.skip('should handle errors during activation setup', async () => {
-            // Skipping this test as the error handling in onModuleInit logs the overall error,
-            // but continuing individual steps might lead to complex states.
-            // Testing individual method error handling is preferred (like below).
+        it('should handle errors during activation setup', async () => {
             const setupError = new Error('Failed to apply settings');
-            vi.mocked(fs.access).mockResolvedValue(undefined); // Dir exists
-            vi.mocked(fileExists).mockResolvedValue(false); // .done missing
-            vi.mocked(fs.readdir).mockResolvedValue([activationJsonFile as any]); // JSON exists
-            vi.mocked(fs.readFile).mockResolvedValue(JSON.stringify(mockActivationData)); // Read JSON ok
-            vi.mocked(fs.copyFile).mockRejectedValue(setupError); // Make banner copy fail
+            const bannerCopyError = new Error('Failed to copy banner');
 
+            // Setup mocks: dir exists, .done missing, JSON exists, read JSON ok
+            vi.mocked(fileExists).mockImplementation(async (p) => {
+                // .done is missing, banner asset exists
+                return p === bannerAssetPath;
+            });
+            vi.mocked(fs.access).mockResolvedValue(undefined);
+            vi.mocked(fs.readdir).mockResolvedValue([activationJsonFile as any]);
+            vi.mocked(fs.readFile).mockImplementation(async (p) => {
+                if (p === activationJsonPath) return JSON.stringify(mockActivationData);
+                if (p === userDynamixCfg) return ini.stringify({});
+                if (p === identCfg) return ini.stringify({});
+                if (p === caseModelCfg) throw { code: 'ENOENT' };
+                throw new Error(`Unexpected readFile: ${p}`);
+            });
+            vi.mocked(fs.writeFile).mockResolvedValue(undefined); // Assume writes succeed initially
+
+            // --- Introduce failure point ---
+            // Mock fs.copyFile used by setupPartnerBanner to fail
+            vi.mocked(fs.copyFile).mockImplementation(async (source, dest) => {
+                if (source === bannerAssetPath && dest === bannerDestPath) {
+                    throw bannerCopyError;
+                }
+                // Allow other potential copy operations (if any)
+            });
+
+            // --- Spy on subsequent steps to ensure they are still called ---
+            // We already mock fs.writeFile, so we can check calls to userDynamixCfg and identCfg
+            const applyDisplaySettingsSpy = vi.spyOn(service as any, 'applyDisplaySettings');
+            const applyServerIdentitySpy = vi.spyOn(service as any, 'applyServerIdentity');
+            const updateCfgFileSpy = vi.spyOn(service as any, 'updateCfgFile');
+
+            // --- Execute ---
             await service.onModuleInit();
 
-            expect(fs.writeFile).toHaveBeenCalledWith(doneFlag, 'true'); // .done still created
-            // Banner copy error should be logged by setupPartnerBanner (tested elsewhere)
-            // Other steps should still be attempted by applyActivationCustomizations
-            expect(fs.writeFile).toHaveBeenCalledWith(userDynamixCfg, expect.any(String));
-            expect(loggerErrorSpy).toHaveBeenCalledWith(
-                'Error during activation check/setup on init:',
-                expect.any(Error)
-            ); // Overall init error logged
+            // --- Assertions ---
+            // 1. .done flag is still created
+            expect(fs.writeFile).toHaveBeenCalledWith(doneFlag, 'true');
+            expect(loggerLogSpy).toHaveBeenCalledWith('First boot setup flag file created.');
+
+            // 2. Activation data loaded
+            expect(loggerLogSpy).toHaveBeenCalledWith(
+                'Applying activation customizations if data is available...'
+            );
+            expect((service as any).activationData).toEqual(expect.objectContaining(mockActivationData));
+
+            // 3. The specific error from the failing step (banner copy) is logged
+            // setupPartnerBanner logs a warning on failure
+            expect(loggerWarnSpy).toHaveBeenCalledWith(
+                // Match the single string argument logged by the service
+                `Failed to replace the original banner with the partner banner: ${bannerCopyError.message}`
+            );
+
+            // 4. Subsequent customization steps are still attempted
+            expect(applyDisplaySettingsSpy).toHaveBeenCalled();
+            // Check that applyDisplaySettings called updateCfgFile for userDynamixCfg
+            expect(updateCfgFileSpy).toHaveBeenCalledWith(userDynamixCfg, 'display', expect.any(Object));
+
+            expect(applyServerIdentitySpy).toHaveBeenCalled();
+            // Check that applyServerIdentity called updateCfgFile for identCfg and emcmd
+            expect(updateCfgFileSpy).toHaveBeenCalledWith(identCfg, null, expect.any(Object));
+            expect(emcmd).toHaveBeenCalledWith(expect.any(Object)); // emcmd should still be called
+
+            // 5. The catch block in applyActivationCustomizations is NOT reached because the error is handled internally by setupPartnerBanner.
         });
     });
 
@@ -280,24 +371,33 @@ describe('CustomizationService', () => {
             );
         });
 
-        it('should throw error on readFile failure', async () => {
+        it('should return null and log error on readFile failure', async () => {
             const readFileError = new Error('Read file permission denied');
             vi.mocked(fs.access).mockResolvedValue(undefined);
             vi.mocked(fs.readdir).mockResolvedValue([activationJsonFile as any]);
             vi.mocked(fs.readFile).mockRejectedValue(readFileError); // Simulate read failure
-            await expect(service.getActivationData()).rejects.toThrow(readFileError);
-            // Error logging happens in the calling function (e.g., onModuleInit), not within getActivationData
-            // expect(loggerErrorSpy).toHaveBeenCalledWith(...); // Removed
+
+            const result = await service.getActivationData();
+            expect(result).toBeNull();
+            expect(loggerErrorSpy).toHaveBeenCalledWith(
+                `Error processing activation file ${activationJsonPath}:`,
+                readFileError
+            );
         });
 
-        it('should throw error for invalid JSON', async () => {
+        it('should return null and log error for invalid JSON', async () => {
+            const jsonError = new SyntaxError('Unexpected token i in JSON at position 1');
             vi.mocked(fs.access).mockResolvedValue(undefined);
             vi.mocked(fs.readdir).mockResolvedValue([activationJsonFile as any]);
             vi.mocked(fs.readFile).mockResolvedValue('{invalid json'); // Invalid JSON
 
-            await expect(service.getActivationData()).rejects.toThrow(SyntaxError);
-            // Error logging happens in the calling function (e.g., onModuleInit), not within getActivationData
-            // expect(loggerErrorSpy).toHaveBeenCalledWith(...); // Removed
+            const result = await service.getActivationData();
+            expect(result).toBeNull();
+            // Check that the logged error includes the expected SyntaxError instance
+            expect(loggerErrorSpy).toHaveBeenCalledWith(
+                `Error processing activation file ${activationJsonPath}:`,
+                expect.any(SyntaxError) // Or expect.objectContaining({ message: jsonError.message }) for more specific check
+            );
         });
 
         // Updated Test: Invalid hex colors are transformed to empty strings, which should pass validation
@@ -363,10 +463,7 @@ describe('CustomizationService', () => {
             (service as any).configFile = userDynamixCfg;
             (service as any).caseModelCfg = caseModelCfg;
             (service as any).identCfg = identCfg;
-            // Use plainToInstance to mimic real data flow including transformations
-            (service as any).activationData = plainToInstance(ActivationCode, {
-                ...mockActivationData,
-            });
+            (service as any).activationData = plainToInstance(ActivationCode, { ...mockActivationData });
             // Mock necessary file reads/writes
             vi.mocked(fs.readFile).mockImplementation(async (p) => {
                 if (p === userDynamixCfg) return ini.stringify({ display: { existing: 'value' } });
@@ -400,6 +497,31 @@ describe('CustomizationService', () => {
             expect(loggerLogSpy).toHaveBeenCalledWith(
                 'Partner banner file not found, skipping banner setup.'
             );
+        });
+
+        it('setupPartnerBanner should log warning and skip if activation dir disappears after init', async () => {
+            const accessError = new Error('ENOENT') as NodeJS.ErrnoException;
+            accessError.code = 'ENOENT';
+            // Mock access to succeed in onModuleInit context (implicit), but fail here
+            vi.mocked(fs.access).mockRejectedValue(accessError);
+
+            await (service as any).applyActivationCustomizations();
+
+            expect(loggerWarnSpy).toHaveBeenCalledWith(
+                'Activation directory disappeared after init? Skipping.'
+            );
+            // Ensure no customization methods were called
+            expect(fs.copyFile).not.toHaveBeenCalled();
+            expect(fs.writeFile).not.toHaveBeenCalled();
+            expect(emcmd).not.toHaveBeenCalled();
+        });
+
+        it('setupPartnerBanner should log error on fileExists failure', async () => {
+            const existsError = new Error('fs.stat failed');
+            vi.mocked(fileExists).mockRejectedValue(existsError); // fileExists fails
+            await (service as any).setupPartnerBanner();
+            expect(fs.copyFile).not.toHaveBeenCalled(); // Should not attempt copy
+            expect(loggerErrorSpy).toHaveBeenCalledWith('Error setting up partner banner:', existsError);
         });
 
         it('setupPartnerBanner should log warning on copy failure', async () => {
@@ -574,6 +696,18 @@ describe('CustomizationService', () => {
             );
         });
 
+        it('applyServerIdentity should skip if activation data has no relevant fields', async () => {
+            const updateSpy = vi.spyOn(service as any, 'updateCfgFile');
+            // Simulate DTO with non-identity fields
+            (service as any).activationData = plainToInstance(ActivationCode, { theme: 'white' });
+            await (service as any).applyServerIdentity();
+            expect(updateSpy).not.toHaveBeenCalled();
+            expect(emcmd).not.toHaveBeenCalled();
+            expect(loggerLogSpy).toHaveBeenCalledWith(
+                'No server identity information found in activation data.'
+            );
+        });
+
         it('applyServerIdentity should log error on emcmd failure', async () => {
             const emcmdError = new Error('Command failed');
             vi.mocked(emcmd).mockRejectedValue(emcmdError);
@@ -586,6 +720,223 @@ describe('CustomizationService', () => {
             // Match the actual log message from the service
             expect(loggerErrorSpy).toHaveBeenCalledWith('Error applying server identity:', emcmdError);
         });
+    });
+});
+
+describe('applyActivationCustomizations specific tests', () => {
+    let service: CustomizationService;
+    let loggerLogSpy;
+    let loggerWarnSpy;
+    let loggerErrorSpy;
+    let loggerDebugSpy;
+
+    // Resolved mock paths
+    const activationDir = mockPaths.activationBase;
+    const userDynamixCfg = mockPaths['dynamix-config'][1];
+    const caseModelCfg = mockPaths.dynamixCaseModelConfig;
+    const identCfg = mockPaths.identConfig;
+    const bannerAssetPath = path.join(activationDir, 'assets', 'banner.png');
+    const bannerDestPath = path.join(mockPaths.webguiImagesBase, 'banner.png');
+    const caseModelAssetPath = path.join(activationDir, 'assets', 'case-model.png');
+    const caseModelDestPath = path.join(mockPaths.webguiImagesBase, 'case-model.png');
+    const partnerBannerSource = mockPaths.partnerBannerSource;
+    const caseModelSource = mockPaths.caseModelSource;
+
+    // Add mockActivationData definition here
+    const mockActivationData: ActivationCode = {
+        header: '#112233',
+        headermetacolor: '#445566',
+        background: '#778899',
+        showBannerGradient: 'yes',
+        theme: 'black',
+        serverName: 'PartnerServer',
+        sysModel: 'PartnerModel',
+        comment: 'Partner Comment',
+    };
+
+    beforeEach(async () => {
+        // Re-initialize spies and service for this specific describe block
+        vi.clearAllMocks();
+        loggerDebugSpy = vi.spyOn(Logger.prototype, 'debug').mockImplementation(() => {});
+        loggerLogSpy = vi.spyOn(Logger.prototype, 'log').mockImplementation(() => {});
+        loggerWarnSpy = vi.spyOn(Logger.prototype, 'warn').mockImplementation(() => {});
+        loggerErrorSpy = vi.spyOn(Logger.prototype, 'error').mockImplementation(() => {});
+
+        const module: TestingModule = await Test.createTestingModule({
+            providers: [CustomizationService],
+        }).compile();
+        service = module.get<CustomizationService>(CustomizationService);
+
+        // Setup basic service state needed for applyActivationCustomizations tests
+        (service as any).activationDir = activationDir;
+        (service as any).configFile = userDynamixCfg;
+        (service as any).caseModelCfg = caseModelCfg;
+        (service as any).identCfg = identCfg;
+        (service as any).activationData = plainToInstance(ActivationCode, { ...mockActivationData });
+
+        // Default mocks for dependencies, override in specific tests if needed
+        vi.mocked(fs.copyFile).mockResolvedValue(undefined);
+        vi.mocked(fs.writeFile).mockResolvedValue(undefined);
+        vi.mocked(emcmd).mockResolvedValue({ body: '', ok: true } as any);
+        vi.mocked(fs.access).mockResolvedValue(undefined); // Assume dirs/files accessible by default
+        vi.mocked(fs.readFile).mockImplementation(async (p) => {
+            if (p === userDynamixCfg) return ini.stringify({});
+            if (p === identCfg) return ini.stringify({});
+            if (p === caseModelCfg) return ''; // Assume empty or non-existent
+            return '';
+        });
+        vi.mocked(fileExists).mockImplementation(async (p) => {
+            // Assume relevant assets/targets exist unless overridden
+            return p === partnerBannerSource || p === caseModelSource || p === bannerDestPath;
+        });
+    });
+
+    it('should log warning and skip if activation dir disappears after init', async () => {
+        const accessError = new Error('ENOENT') as NodeJS.ErrnoException;
+        accessError.code = 'ENOENT';
+        // Mock access inside applyActivationCustomizations to fail
+        vi.mocked(fs.access).mockRejectedValue(accessError);
+
+        await (service as any).applyActivationCustomizations();
+
+        expect(loggerWarnSpy).toHaveBeenCalledWith(
+            'Activation directory disappeared after init? Skipping.'
+        );
+        // Ensure no customization methods were called implicitly by checking their side effects
+        const setupPartnerBannerSpy = vi.spyOn(service as any, 'setupPartnerBanner');
+        const applyDisplaySettingsSpy = vi.spyOn(service as any, 'applyDisplaySettings');
+        expect(setupPartnerBannerSpy).not.toHaveBeenCalled();
+        expect(applyDisplaySettingsSpy).not.toHaveBeenCalled();
+    });
+
+    it('should log error if applyDisplaySettings fails during updateCfgFile', async () => {
+        const updateError = new Error('Failed to write display config');
+        // Mock updateCfgFile directly as it's a private method called internally
+        vi.spyOn(service as any, 'updateCfgFile').mockImplementation(async (filePath) => {
+            if (filePath === userDynamixCfg) throw updateError;
+            // Allow other calls (like for ident.cfg) to pass if needed, though this mock is broad
+        });
+
+        await (service as any).applyActivationCustomizations();
+
+        // setupPartnerBanner should still run (assuming its dependencies resolve)
+        expect(loggerLogSpy).toHaveBeenCalledWith('Setting up partner banner...');
+
+        // applyDisplaySettings should be called and fail internally, logging the error
+        expect(loggerErrorSpy).toHaveBeenCalledWith('Error applying display settings:', updateError);
+
+        // Other steps after display settings should still be attempted
+        expect(loggerLogSpy).toHaveBeenCalledWith('Applying case model...'); // Check if next step's log appears
+        expect(loggerLogSpy).toHaveBeenCalledWith('Applying server identity...');
+
+        // Overall error from applyActivationCustomizations' catch block
+        // REMOVED: expect(loggerErrorSpy).toHaveBeenCalledWith('Error during activation setup:', updateError);
+    });
+
+    it('should log error if applyCaseModelConfig fails during readFile (non-ENOENT)', async () => {
+        const readError = new Error('Read permission denied');
+        vi.mocked(fs.readFile).mockImplementation(async (p) => {
+            if (p === caseModelCfg) throw readError;
+            if (p === userDynamixCfg) return ini.stringify({}); // Mock needed for applyDisplaySettings
+            if (p === identCfg) return ini.stringify({}); // Mock needed for applyServerIdentity
+            return '';
+        });
+
+        await (service as any).applyActivationCustomizations();
+
+        // Check specific log from applyCaseModelConfig's catch block
+        expect(loggerErrorSpy).toHaveBeenCalledWith('Error applying case model:', readError);
+        // Check that the write step wasn't reached
+        expect(fs.writeFile).not.toHaveBeenCalledWith(caseModelCfg, expect.any(String));
+
+        // Other steps should still run
+        expect(loggerLogSpy).toHaveBeenCalledWith('Setting up partner banner...');
+        expect(loggerLogSpy).toHaveBeenCalledWith('Applying display settings...');
+        expect(loggerLogSpy).toHaveBeenCalledWith('Applying server identity...');
+
+        // Overall error from applyActivationCustomizations' catch block
+        // REMOVED: expect(loggerErrorSpy).toHaveBeenCalledWith('Error during activation setup:', readError);
+    });
+
+    it('should log error if applyCaseModelConfig fails during writeFile', async () => {
+        const writeError = new Error('Write permission denied');
+        vi.mocked(fileExists).mockImplementation(async (p) => p === caseModelSource); // Ensure model asset exists
+        vi.mocked(fs.writeFile).mockImplementation(async (p, data) => {
+            if (p === caseModelCfg) throw writeError;
+            // Allow other writes (like userDynamixCfg) to pass
+        });
+
+        await (service as any).applyActivationCustomizations();
+
+        // Check specific log from applyCaseModelConfig's *inner* catch block
+        expect(loggerErrorSpy).toHaveBeenCalledWith(
+            `Failed to write case model config: ${writeError.message}`
+        );
+        // Other steps should still run
+        expect(loggerLogSpy).toHaveBeenCalledWith('Setting up partner banner...');
+        expect(loggerLogSpy).toHaveBeenCalledWith('Applying display settings...');
+        expect(loggerLogSpy).toHaveBeenCalledWith('Applying server identity...');
+
+        // NO overall error logged because the writeFile error is caught internally
+        expect(loggerErrorSpy).not.toHaveBeenCalledWith(
+            'Error during activation setup:',
+            expect.any(Error)
+        ); // This line should remain
+    });
+
+    it('should log error if applyCaseModelConfig fails during fileExists check', async () => {
+        const existsError = new Error('fileExists failed');
+        vi.mocked(fileExists).mockImplementation(async (p) => {
+            if (p === caseModelSource) throw existsError;
+            // Assume other relevant files exist
+            return p === partnerBannerSource || p === bannerDestPath;
+        });
+
+        await (service as any).applyActivationCustomizations();
+
+        // Check specific log from applyCaseModelConfig's catch block
+        expect(loggerErrorSpy).toHaveBeenCalledWith('Error applying case model:', existsError);
+
+        // Other steps should still run
+        expect(loggerLogSpy).toHaveBeenCalledWith('Setting up partner banner...');
+        expect(loggerLogSpy).toHaveBeenCalledWith('Applying display settings...');
+        expect(loggerLogSpy).toHaveBeenCalledWith('Applying server identity...');
+
+        // Overall error from applyActivationCustomizations' catch block
+        // REMOVED: expect(loggerErrorSpy).toHaveBeenCalledWith('Error during activation setup:', existsError);
+    });
+
+    it('should log error if applyServerIdentity fails during updateCfgFile', async () => {
+        const updateError = new Error('Failed to write ident config');
+        // Mock updateCfgFile to throw only when called for identCfg
+        const originalUpdateCfgFile = (service as any).updateCfgFile.bind(service);
+        vi.spyOn(service as any, 'updateCfgFile').mockImplementation(
+            async (filePath, section, updates) => {
+                if (filePath === identCfg) {
+                    throw updateError;
+                }
+                // Ensure the call for display settings passes
+                if (filePath === userDynamixCfg) {
+                    return originalUpdateCfgFile(filePath, section, updates);
+                }
+                // Potentially handle other unexpected calls if necessary
+                throw new Error(`Unexpected updateCfgFile call: ${filePath}`);
+            }
+        );
+
+        await (service as any).applyActivationCustomizations();
+
+        // Previous steps should run
+        expect(loggerLogSpy).toHaveBeenCalledWith('Setting up partner banner...');
+        expect(loggerLogSpy).toHaveBeenCalledWith('Applying display settings...');
+        expect(loggerLogSpy).toHaveBeenCalledWith('Applying case model...');
+
+        // applyServerIdentity should fail and log
+        expect(loggerErrorSpy).toHaveBeenCalledWith('Error applying server identity:', updateError);
+        expect(emcmd).not.toHaveBeenCalled(); // emcmd should not be called if updateCfgFile fails
+
+        // Overall error from applyActivationCustomizations' catch block
+        // REMOVED: expect(loggerErrorSpy).toHaveBeenCalledWith('Error during activation setup:', updateError);
     });
 });
 
@@ -624,11 +975,11 @@ describe('CustomizationService - updateCfgFile', () => {
         const updates = { key1: 'newValue1', key2: 'newValue2' };
         await (service as any).updateCfgFile(filePath, section, updates);
 
-        // Snapshot test for file content
         expect(fs.writeFile).toHaveBeenCalledOnce();
         const writeArgs = vi.mocked(fs.writeFile).mock.calls[0];
         expect(writeArgs[0]).toBe(filePath); // Check file path
-        expect(writeArgs[1]).toMatchSnapshot(); // Check content via snapshot
+        const writtenContent = ini.parse(writeArgs[1] as string);
+        expect(writtenContent).toEqual({ [section]: updates });
 
         expect(loggerLogSpy).toHaveBeenCalledWith(`Config file ${filePath} not found, will create it.`);
         expect(loggerLogSpy).toHaveBeenCalledWith(`Config file ${filePath} updated successfully.`);
@@ -638,11 +989,11 @@ describe('CustomizationService - updateCfgFile', () => {
         const updates = { key1: 'newValue1', key2: 'newValue2' };
         await (service as any).updateCfgFile(filePath, null, updates);
 
-        // Snapshot test for file content
         expect(fs.writeFile).toHaveBeenCalledOnce();
         const writeArgs = vi.mocked(fs.writeFile).mock.calls[0];
         expect(writeArgs[0]).toBe(filePath); // Check file path
-        expect(writeArgs[1]).toMatchSnapshot(); // Check content via snapshot
+        const writtenContent = ini.parse(writeArgs[1] as string);
+        expect(writtenContent).toEqual(updates);
 
         expect(loggerLogSpy).toHaveBeenCalledWith(`Config file ${filePath} not found, will create it.`);
         expect(loggerLogSpy).toHaveBeenCalledWith(`Config file ${filePath} updated successfully.`);
@@ -651,19 +1002,22 @@ describe('CustomizationService - updateCfgFile', () => {
     it('should merge updates with existing content (with section)', async () => {
         const section = 'mySection';
         const updates = { key1: 'newValue1', key3: 'newValue3' };
-        const existingContent = {
+        const existingData = {
             [section]: { key1: 'oldValue1', key2: 'oldValue2' },
             otherSection: { keyA: 'valA' },
         };
-        vi.mocked(fs.readFile).mockResolvedValue(ini.stringify(existingContent)); // Mock read success
+        vi.mocked(fs.readFile).mockResolvedValue(ini.stringify(existingData)); // Mock read success
 
         await (service as any).updateCfgFile(filePath, section, updates);
 
-        // Snapshot test for file content
         expect(fs.writeFile).toHaveBeenCalledOnce();
         const writeArgs = vi.mocked(fs.writeFile).mock.calls[0];
         expect(writeArgs[0]).toBe(filePath); // Check file path
-        expect(writeArgs[1]).toMatchSnapshot(); // Check content via snapshot
+        const writtenContent = ini.parse(writeArgs[1] as string);
+        expect(writtenContent).toEqual({
+            [section]: { key1: 'newValue1', key2: 'oldValue2', key3: 'newValue3' },
+            otherSection: { keyA: 'valA' },
+        });
 
         expect(loggerLogSpy).toHaveBeenCalledWith(`Config file ${filePath} updated successfully.`);
         expect(loggerLogSpy).not.toHaveBeenCalledWith(
@@ -673,16 +1027,16 @@ describe('CustomizationService - updateCfgFile', () => {
 
     it('should merge updates with existing content (no section)', async () => {
         const updates = { key1: 'newValue1', key3: 'newValue3' };
-        const existingContent = { key1: 'oldValue1', key2: 'oldValue2' };
-        vi.mocked(fs.readFile).mockResolvedValue(ini.stringify(existingContent)); // Mock read success
+        const existingData = { key1: 'oldValue1', key2: 'oldValue2' };
+        vi.mocked(fs.readFile).mockResolvedValue(ini.stringify(existingData)); // Mock read success
 
         await (service as any).updateCfgFile(filePath, null, updates);
 
-        // Snapshot test for file content
         expect(fs.writeFile).toHaveBeenCalledOnce();
         const writeArgs = vi.mocked(fs.writeFile).mock.calls[0];
         expect(writeArgs[0]).toBe(filePath); // Check file path
-        expect(writeArgs[1]).toMatchSnapshot(); // Check content via snapshot
+        const writtenContent = ini.parse(writeArgs[1] as string);
+        expect(writtenContent).toEqual({ key1: 'newValue1', key2: 'oldValue2', key3: 'newValue3' });
 
         expect(loggerLogSpy).toHaveBeenCalledWith(`Config file ${filePath} updated successfully.`);
         expect(loggerLogSpy).not.toHaveBeenCalledWith(
@@ -693,16 +1047,19 @@ describe('CustomizationService - updateCfgFile', () => {
     it('should add section if it does not exist in existing file', async () => {
         const section = 'newSection';
         const updates = { key1: 'newValue1' };
-        const existingContent = { otherSection: { keyA: 'valA' } };
-        vi.mocked(fs.readFile).mockResolvedValue(ini.stringify(existingContent)); // Mock read success
+        const existingData = { otherSection: { keyA: 'valA' } };
+        vi.mocked(fs.readFile).mockResolvedValue(ini.stringify(existingData)); // Mock read success
 
         await (service as any).updateCfgFile(filePath, section, updates);
 
-        // Snapshot test for file content
         expect(fs.writeFile).toHaveBeenCalledOnce();
         const writeArgs = vi.mocked(fs.writeFile).mock.calls[0];
         expect(writeArgs[0]).toBe(filePath); // Check file path
-        expect(writeArgs[1]).toMatchSnapshot(); // Check content via snapshot
+        const writtenContent = ini.parse(writeArgs[1] as string);
+        expect(writtenContent).toEqual({
+            [section]: updates,
+            otherSection: { keyA: 'valA' },
+        });
 
         expect(loggerLogSpy).toHaveBeenCalledWith(`Config file ${filePath} updated successfully.`);
         expect(loggerLogSpy).not.toHaveBeenCalledWith(

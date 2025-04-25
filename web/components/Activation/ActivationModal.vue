@@ -1,6 +1,5 @@
 <script lang="ts" setup>
 import { storeToRefs } from 'pinia';
-import { useQuery } from '@vue/apollo-composable';
 
 import { ArrowTopRightOnSquareIcon } from '@heroicons/vue/24/solid';
 import { BrandButton } from '@unraid/ui';
@@ -9,9 +8,9 @@ import type { BrandButtonProps } from '@unraid/ui';
 import type { ComposerTranslation } from 'vue-i18n';
 
 import ActivationPartnerLogo from '~/components/Activation/ActivationPartnerLogo.vue';
+import { useActivationCodeDataStore } from '~/components/Activation/store/activationCodeData';
 import { useActivationCodeModalStore } from '~/components/Activation/store/activationCodeModal';
 import { usePurchaseStore } from '~/store/purchase';
-import { PARTNER_INFO_QUERY } from '~/components/Activation/graphql/activationcode.query';
 
 export interface Props {
   t: ComposerTranslation;
@@ -19,17 +18,9 @@ export interface Props {
 
 const props = defineProps<Props>();
 
-const { showActivationModal } = storeToRefs(useActivationCodeModalStore());
+const { isVisible } = storeToRefs(useActivationCodeModalStore());
+const { partnerInfo } = storeToRefs(useActivationCodeDataStore());
 const purchaseStore = usePurchaseStore();
-
-const { result: partnerInfoResult, loading: partnerInfoLoading, error: partnerInfoError } = useQuery(PARTNER_INFO_QUERY);
-
-const partnerData = computed(() => {  
-  if (partnerInfoLoading.value || partnerInfoError.value || !partnerInfoResult.value?.partnerInfo) {
-    return { hasPartnerLogo: false, partnerName: null };
-  }
-  return partnerInfoResult.value.partnerInfo;
-});
 
 const title = computed<string>(() => props.t("Let's activate your Unraid OS License"));
 const description = computed<string>(() =>
@@ -57,17 +48,16 @@ const docsButtons = computed<BrandButtonProps[]>(() => {
     },
   ];
 });
-
 </script>
 
 <template>
   <Modal
-    v-if="showActivationModal"
+    v-if="isVisible"
     :t="t"
-    :open="showActivationModal"
+    :open="isVisible"
     :show-close-x="false"
     :title="title"
-    :title-in-main="partnerData.hasPartnerLogo"
+    :title-in-main="partnerInfo?.hasPartnerLogo"
     :description="description"
     overlay-color="bg-background"
     overlay-opacity="bg-opacity-100"
@@ -75,8 +65,8 @@ const docsButtons = computed<BrandButtonProps[]>(() => {
     :modal-vertical-center="false"
     :disable-shadow="true"
   >
-    <template v-if="partnerData.hasPartnerLogo" #header>
-      <ActivationPartnerLogo :name="partnerData.partnerName" />
+    <template v-if="partnerInfo?.hasPartnerLogo" #header>
+      <ActivationPartnerLogo :name="partnerInfo.partnerName" />
     </template>
 
     <template #footer>

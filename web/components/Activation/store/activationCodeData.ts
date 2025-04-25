@@ -4,7 +4,7 @@ import { useQuery } from '@vue/apollo-composable';
 import {
   ACTIVATION_CODE_QUERY,
   PARTNER_INFO_QUERY,
-} from '~/components/Activation/graphql/activationcode.query';
+} from '~/components/Activation/graphql/activationCode.query';
 import { RegistrationState } from '~/composables/gql/graphql';
 
 setActivePinia(createPinia()); /** required in web component context */

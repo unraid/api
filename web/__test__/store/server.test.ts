@@ -275,18 +275,6 @@ vi.mock('~/store/unraidApi', () => ({
   })),
 }));
 
-vi.mock('~/store/activationCode', () => ({
-  useActivationCodeStore: vi.fn(() => ({
-    code: '',
-    partnerName: '',
-    setData: vi.fn(),
-  })),
-  storeToRefs: vi.fn(() => ({
-    code: { value: '' },
-    partnerName: { value: '' },
-  })),
-}));
-
 vi.mock('~/composables/services/webgui', () => ({
   WebguiState: {
     get: vi.fn().mockReturnValue({

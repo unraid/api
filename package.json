@@ -22,11 +22,13 @@
     },
     "onlyBuiltDependencies": [
       "@apollo/protobufjs",
-      "protobufjs",
       "@parcel/watcher",
       "@swc/core",
       "@unraid/libvirt",
+      "core-js",
+      "es5-ext",
       "esbuild",
+      "protobufjs",
       "ssh2",
       "vue-demi"
     ]

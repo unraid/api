@@ -1,34 +1,47 @@
-import { computed } from 'vue';
+import { computed, onMounted, onUnmounted } from 'vue';
 import { createPinia, defineStore, setActivePinia, storeToRefs } from 'pinia';
 import { useSessionStorage } from '@vueuse/core';
 
+
+
 import { ACTIVATION_CODE_MODAL_HIDDEN_STORAGE_KEY } from '~/consts';
+
+
 
 import { useActivationCodeDataStore } from '~/components/Activation/store/activationCodeData';
 import { useCallbackActionsStore } from '~/store/callbackActions';
 
+
 setActivePinia(createPinia()); /** required in web component context */
 
 export const useActivationCodeModalStore = defineStore('activationCodeModal', () => {
-  const activationModalHidden = useSessionStorage<boolean>(
+  const isHidden = useSessionStorage<boolean | null>(
     ACTIVATION_CODE_MODAL_HIDDEN_STORAGE_KEY,
-    false
+    null
   );
 
   const { isFreshInstall } = storeToRefs(useActivationCodeDataStore());
   const { callbackData } = storeToRefs(useCallbackActionsStore());
 
-  const setActivationModalHidden = (value: boolean) => (activationModalHidden.value = value);
+  const setIsHidden = (value: boolean | null) => {
+    isHidden.value = value;
+  }
 
   /**
    * Should only see this if
-   * 1. fresh server install where no keyfile has been present before
-   * 2. there's not callback data
-   * 3. we're not on the registration page
-   * 4. it's not been manually hidden
+   * 1. It's explicitly set to show (isHidden === false)
+   * OR
+   * 2. It's a fresh server install where no keyfile has been present before
+   * 3. there's not callback data
+   * 4. it's not been explicitly hidden (isHidden === null)
    */
-  const showActivationModal = computed<boolean>(() => {
-    return isFreshInstall.value && !callbackData.value && !activationModalHidden.value;
+  const isVisible = computed<boolean>(() => {
+    // Force show if explicitly set to false
+    if (isHidden.value === false) {
+      return true;
+    }
+    // Default visibility logic (show if not explicitly hidden AND fresh install AND no callback data)
+    return isHidden.value === null && isFreshInstall.value && !callbackData.value;
   });
 
   /**
@@ -56,7 +69,8 @@ export const useActivationCodeModalStore = defineStore('activationCodeModal', ()
     }
 
     if (sequenceIndex === keySequence.length) {
-      setActivationModalHidden(true);
+      setIsHidden(true);
+      // Redirect only if explicitly hidden via konami code, not just closed normally
       window.location.href = '/Tools/Registration';
     }
   };
@@ -70,7 +84,7 @@ export const useActivationCodeModalStore = defineStore('activationCodeModal', ()
   });
 
   return {
-    showActivationModal,
-    setActivationModalHidden,
+    isVisible,
+    setIsHidden,
   };
 });

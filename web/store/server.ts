@@ -42,10 +42,10 @@ import type {
   ServerUpdateOsResponse,
 } from '~/types/server';
 
+import { useActivationCodeDataStore } from '~/components/Activation/store/activationCodeData';
 import { useFragment } from '~/composables/gql/fragment-masking';
 import { WebguiState, WebguiUpdateIgnore } from '~/composables/services/webgui';
 import { useAccountStore } from '~/store/account';
-import { useActivationCodeStore } from '~/components/Activation/store/activationCodeModal';
 import { useErrorsStore } from '~/store/errors';
 import { usePurchaseStore } from '~/store/purchase';
 import { useThemeStore } from '~/store/theme';
@@ -388,10 +388,10 @@ export const useServerStore = defineStore('server', () => {
     };
   });
   const redeemAction = computed((): ServerStateDataAction => {
-    const { code } = storeToRefs(useActivationCodeStore());
+    const { activationCode } = storeToRefs(useActivationCodeDataStore());
     return {
       click: () => {
-        if (code.value) {
+        if (activationCode.value?.code) {
           purchaseStore.activate();
         } else {
           purchaseStore.redeem();
@@ -400,8 +400,8 @@ export const useServerStore = defineStore('server', () => {
       disabled: serverActionsDisable.value.disable,
       external: true,
       icon: KeyIcon,
-      name: code.value ? 'activate' : 'redeem',
-      text: code.value ? 'Activate Now' : 'Redeem Activation Code',
+      name: activationCode.value?.code ? 'activate' : 'redeem',
+      text: activationCode.value?.code ? 'Activate Now' : 'Redeem Activation Code',
       title: serverActionsDisable.value.title,
     };
   });
@@ -1111,11 +1111,6 @@ export const useServerStore = defineStore('server', () => {
     }
     if (typeof data?.ssoEnabled !== 'undefined') {
       ssoEnabled.value = Boolean(data.ssoEnabled);
-    }
-
-    if (typeof data.activationCodeData !== 'undefined') {
-      const activationCodeStore = useActivationCodeStore();
-      activationCodeStore.setData(data.activationCodeData);
     }
   };
 
