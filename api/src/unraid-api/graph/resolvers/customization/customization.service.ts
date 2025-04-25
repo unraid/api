@@ -8,6 +8,7 @@ import * as ini from 'ini';
 
 import { emcmd } from '@app/core/utils/clients/emcmd.js';
 import { fileExists } from '@app/core/utils/files/file-exists.js';
+import { reloadNginxAndUpdateDNS } from '@app/store/actions/reload-nginx-and-update-dns.js';
 import { getters } from '@app/store/index.js';
 import { ActivationCode } from '@app/unraid-api/graph/resolvers/customization/activation-code.model.js';
 
@@ -24,10 +25,6 @@ export class CustomizationService implements OnModuleInit {
     private activationData: ActivationCode | null = null;
 
     async createOrGetFirstBootSetupFlag(): Promise<boolean> {
-        // Ensure directory exists first
-        // Note: this.activationDir might not be initialized yet if called before onModuleInit
-        // It relies on being called within or after onModuleInit workflow.
-        // If called independently, it needs the path value passed or initialized differently.
         await fs.mkdir(this.activationDir, { recursive: true });
         if (await fileExists(this.hasRunFirstBootSetup)) {
             this.logger.log('First boot setup flag file already exists.');
@@ -153,7 +150,7 @@ export class CustomizationService implements OnModuleInit {
 
     public convertWebGuiPathToAssetPath(webGuiPath: string): string {
         // Strip the leading /usr/local/emhttp/ from the path
-        const assetPath = webGuiPath.replace('/usr/local/emhttp/', '');
+        const assetPath = webGuiPath.replace('/usr/local/emhttp/', '/');
         return assetPath;
     }
 
@@ -365,7 +362,7 @@ export class CustomizationService implements OnModuleInit {
     }
 
     private async applyServerIdentity() {
-        const { getters } = await import('@app/store/index.js');
+        const { getters, store } = await import('@app/store/index.js');
         if (!this.activationData) {
             this.logger.warn('No activation data available for server identity setup.');
             return;
@@ -402,14 +399,18 @@ export class CustomizationService implements OnModuleInit {
 
         try {
             // Update ident.cfg first
-            await this.updateCfgFile(this.identCfg, null, paramsToUpdate); // Update keys directly in the file
+            await this.updateCfgFile(this.identCfg, null, paramsToUpdate);
             this.logger.log(`Server identity updated in ${this.identCfg}`);
 
             // Trigger emhttp update via emcmd
-            const updateParams = { ...paramsToUpdate, changeNames: 'Apply' }; // Prepare params for emcmd
-            this.logger.log(`Calling emcmd with params:`, updateParams); // Log the params
-            await emcmd(updateParams); // Use emcmd utility
+            const updateParams = { ...paramsToUpdate, changeNames: 'Apply' };
+            this.logger.log(`Calling emcmd with params:`, updateParams);
+            await emcmd(updateParams);
             this.logger.log('emcmd executed successfully.');
+
+            // Reload nginx and update DNS
+            await store.dispatch(reloadNginxAndUpdateDNS());
+            this.logger.log('Nginx reloaded and DNS updated successfully.');
         } catch (error) {
             this.logger.error('Error applying server identity:', error);
         }

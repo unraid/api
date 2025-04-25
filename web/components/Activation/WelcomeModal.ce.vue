@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n';
+import { storeToRefs } from 'pinia';
 
 import { BrandButton } from '@unraid/ui';
 
@@ -7,11 +8,13 @@ import ActivationPartnerLogo from '~/components/Activation/ActivationPartnerLogo
 import ActivationSteps from '~/components/Activation/ActivationSteps.vue';
 import { useActivationCodeDataStore } from '~/components/Activation/store/activationCodeData';
 import Modal from '~/components/Modal.vue';
-import { storeToRefs } from 'pinia';
+import { useThemeStore } from '~/store/theme';
 
 const { t } = useI18n();
 
 const { partnerInfo, loading } = storeToRefs(useActivationCodeDataStore());
+
+useThemeStore();
 
 const title = computed<string>(() =>
   partnerInfo.value?.partnerName
