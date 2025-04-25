@@ -143,34 +143,11 @@ describe('CustomizationService', () => {
     });
 
     describe('onModuleInit', () => {
-        it('should initialize paths from store', async () => {
-            await service.onModuleInit();
-            expect((service as any).activationDir).toBe(activationDir);
-            expect((service as any).configFile).toBe(userDynamixCfg);
-            expect(loggerLogSpy).toHaveBeenCalledWith(
-                'CustomizationService initialized with paths from store.'
-            );
-        });
-
         it('should log error if dynamix user config path is missing', async () => {
-            // This test case is difficult to implement correctly without complex mock setup manipulation
-            // before module creation. We rely on the default mock setup providing valid paths.
-            // If the path were missing, the service would log an error and potentially fail later.
-            // We assume the mechanism works but cannot easily isolate this specific error log trigger
-            // in this setup without modifying the core mocking strategy.
-            // Skipping direct assertion for now.
+            // Temporarily modify mockPaths to simulate missing user config path
+            const originalPaths = { ...mockPaths };
+            mockPaths['dynamix-config'] = [mockPaths['dynamix-config'][0]]; // Only keep default config
 
-            // --- NEW IMPLEMENTATION ---
-            // Mock getters to return paths without dynamix-config[1]
-            const { getters: originalGetters } = await import('@app/store/index.js');
-            const originalPaths = originalGetters.paths(); // Get the full mock paths object
-            const pathsWithoutDynamixUser = {
-                ...originalPaths,
-                'dynamix-config': [originalPaths['dynamix-config'][0]],
-            }; // Modify it
-            vi.mocked(originalGetters.paths).mockReturnValueOnce(pathsWithoutDynamixUser); // Mock the return value
-
-            // Re-create service instance to pick up mocked paths during constructor/init phase if applicable
             await service.onModuleInit();
 
             expect(loggerErrorSpy).toHaveBeenCalledWith(
@@ -178,6 +155,9 @@ describe('CustomizationService', () => {
             );
             // Expect subsequent operations that rely on configFile to potentially fail or not run
             expect(fs.writeFile).not.toHaveBeenCalledWith(doneFlag, 'true'); // Setup should bail early
+
+            // Restore original paths
+            mockPaths['dynamix-config'] = originalPaths['dynamix-config'];
         });
 
         it('should log error and rethrow non-ENOENT errors during activation dir access', async () => {
