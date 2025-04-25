@@ -48,24 +48,4 @@ export class PartnerLogoCopierModification {
             reason: 'Always apply the allowed file changes to ensure compatibility.',
         };
     }
-
-    async rollback() {
-        this.logger.log('Rolling back partner logo setup...');
-        try {
-            // Check if the symlink exists before trying to remove it
-            const stats = await fs.lstat(this.partnerLogoTarget); // Use lstat to check the link itself
-            if (stats.isSymbolicLink()) {
-                await fs.unlink(this.partnerLogoTarget);
-                this.logger.log(`Partner logo symlink removed from ${this.partnerLogoTarget}`);
-            } else {
-                this.logger.log(`No partner logo symlink found at ${this.partnerLogoTarget} to remove.`);
-            }
-        } catch (error: any) {
-            if (error.code === 'ENOENT') {
-                this.logger.log(`No partner logo symlink found at ${this.partnerLogoTarget} to remove.`);
-            } else {
-                this.logger.error('Error rolling back partner logo setup:', error);
-            }
-        }
-    }
 }

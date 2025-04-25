@@ -1,9 +1,5 @@
-import type { Logger } from '@nestjs/common';
 import { readFile } from 'node:fs/promises';
 
-import { createPatch } from 'diff';
-
-import isGuiMode from '@app/core/utils/validation/is-gui-mode.js';
 import {
     FileModification,
     ShouldApplyWithReason,

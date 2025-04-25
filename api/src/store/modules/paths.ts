@@ -90,7 +90,7 @@ const derivedPaths = {
         return join(this.activationAssets, 'logo.svg');
     },
     get partnerLogoTarget() {
-        return join(initialState.webguiImagesBase, 'partner-logo.svg');
+        return join(initialState.webguiImagesBase, 'UN-logotype-gradient.svg');
     },
     get caseModelSource() {
         return join(this.activationAssets, 'case-model.png');

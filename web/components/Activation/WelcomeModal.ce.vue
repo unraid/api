@@ -7,6 +7,7 @@ import ActivationPartnerLogo from '~/components/Activation/ActivationPartnerLogo
 import ActivationSteps from '~/components/Activation/ActivationSteps.vue';
 import { useActivationCodeDataStore } from '~/components/Activation/store/activationCodeData';
 import Modal from '~/components/Modal.vue';
+import { storeToRefs } from 'pinia';
 
 const { t } = useI18n();
 
