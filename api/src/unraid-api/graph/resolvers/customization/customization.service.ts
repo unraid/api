@@ -279,14 +279,14 @@ export class CustomizationService implements OnModuleInit {
         // Only set banner='image' if the banner file actually exists in the webgui images directory
         // This assumes setupPartnerBanner has already attempted to copy it if necessary.
         const paths = getters.paths();
-        const partnerBannerTarget = paths.partnerBannerTarget;
+        const partnerBannerSource = paths.partnerBannerSource;
 
-        if (await fileExists(partnerBannerTarget)) {
+        if (await fileExists(partnerBannerSource)) {
             settingsToUpdate['banner'] = 'image';
-            this.logger.debug(`Webgui banner exists at ${partnerBannerTarget}, setting banner=image.`);
+            this.logger.debug(`Webgui banner exists at ${partnerBannerSource}, setting banner=image.`);
         } else {
             this.logger.debug(
-                `Webgui banner does not exist at ${partnerBannerTarget}, skipping banner=image setting.`
+                `Webgui banner does not exist at ${partnerBannerSource}, skipping banner=image setting.`
             );
         }
 
@@ -302,7 +302,6 @@ export class CustomizationService implements OnModuleInit {
         try {
             await this.updateCfgFile(this.configFile, 'display', settingsToUpdate);
             this.logger.log('Display settings updated in config file.');
-            // @todo: Consider dispatching an action to update Redux store if needed immediately
         } catch (error) {
             this.logger.error('Error applying display settings:', error);
         }
@@ -390,7 +389,7 @@ export class CustomizationService implements OnModuleInit {
             return;
         }
 
-        this.logger.log('Updating server identity:', paramsToUpdate);
+        this.logger.log('Updating server identity: %o', paramsToUpdate);
 
         try {
             // Update ident.cfg first
@@ -399,7 +398,7 @@ export class CustomizationService implements OnModuleInit {
 
             // Trigger emhttp update via emcmd
             const updateParams = { ...paramsToUpdate, changeNames: 'Apply' };
-            this.logger.log(`Calling emcmd with params:`, updateParams);
+            this.logger.log(`Calling emcmd with params: %o`, updateParams);
             await emcmd(updateParams);
             this.logger.log('emcmd executed successfully.');
 
@@ -407,7 +406,7 @@ export class CustomizationService implements OnModuleInit {
             await store.dispatch(reloadNginxAndUpdateDNS());
             this.logger.log('Nginx reloaded and DNS updated successfully.');
         } catch (error) {
-            this.logger.error('Error applying server identity:', error);
+            this.logger.error('Error applying server identity: %o', error);
         }
     }
 
