@@ -6,6 +6,7 @@ import { BrandButton } from '@unraid/ui';
 import ActivationPartnerLogo from '~/components/Activation/ActivationPartnerLogo.vue';
 import ActivationSteps from '~/components/Activation/ActivationSteps.vue';
 import { useActivationCodeDataStore } from '~/components/Activation/store/activationCodeData';
+import Modal from '~/components/Modal.vue';
 
 const { t } = useI18n();
 

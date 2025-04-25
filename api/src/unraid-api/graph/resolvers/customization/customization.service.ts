@@ -15,17 +15,13 @@ import { ActivationCode } from '@app/unraid-api/graph/resolvers/customization/ac
 export class CustomizationService implements OnModuleInit {
     private readonly logger = new Logger(CustomizationService.name);
     private readonly activationJsonExtension = '.activationcode';
-
-    // Path properties - will be initialized in onModuleInit or from getters
     private activationDir!: string;
     private hasRunFirstBootSetup!: string;
     private configFile!: string;
     private caseModelCfg!: string;
     private identCfg!: string;
 
-    private activationData: ActivationCode | null = null; // Store validated data here
-
-    constructor() {}
+    private activationData: ActivationCode | null = null;
 
     async createOrGetFirstBootSetupFlag(): Promise<boolean> {
         // Ensure directory exists first
@@ -48,7 +44,6 @@ export class CustomizationService implements OnModuleInit {
 
         this.activationDir = paths.activationBase;
         this.hasRunFirstBootSetup = path.join(this.activationDir, '.done');
-        // Ensure 'dynamix-config' exists and has index 1 before accessing
         this.configFile = paths['dynamix-config']?.[1];
         if (!this.configFile) {
             this.logger.error(

@@ -77,7 +77,7 @@ const initialState = {
     'libvirt-pid': '/var/run/libvirt/libvirtd.pid' as const,
     // Customization paths
     activationBase: resolvePath(
-        process.env.PATHS_ACTIVATION_BASE ?? ('/boot/config/activation-code' as const)
+        process.env.PATHS_ACTIVATION_BASE ?? ('/boot/config/activation' as const)
     ),
     webguiImagesBase: '/usr/local/emhttp/webGui/images' as const,
     identConfig: resolvePath(process.env.PATHS_IDENT_CONFIG ?? ('/boot/config/ident.cfg' as const)),
