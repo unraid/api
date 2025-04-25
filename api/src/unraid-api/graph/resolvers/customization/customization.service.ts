@@ -149,7 +149,6 @@ export class CustomizationService implements OnModuleInit {
         }
     }
 
-
     public async getCaseIconWebguiPath(): Promise<string | null> {
         const paths = getters.paths();
         if (await fileExists(paths.caseModelSource)) {
