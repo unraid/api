@@ -6,9 +6,10 @@ import { IsBoolean, IsIn, IsOptional, IsString, IsUrl } from 'class-validator';
 // Helper function to check if a string is a valid hex color
 const isHexColor = (value: string): boolean => /^#([0-9A-F]{3}){1,2}$/i.test(value);
 
-const sanitizeString = (value: any): any => {
+const sanitizeString = (value: any, maxLength?: number): any => {
     if (typeof value === 'string') {
-        return value.replace(/[\\"']/g, ''); // Remove backslashes, double quotes, and single quotes
+        const sanitized = value.replace(/[\\"']/g, ''); // Remove backslashes, double quotes, and single quotes
+        return maxLength ? sanitized.slice(0, maxLength) : sanitized;
     }
     return value;
 };
@@ -78,7 +79,7 @@ export class ActivationCode {
     @Field(() => String, { nullable: true })
     @IsOptional()
     @IsString()
-    @Transform(({ value }) => sanitizeString(value))
+    @Transform(({ value }) => sanitizeString(value, 16))
     serverName?: string;
 
     @Field(() => String, { nullable: true })
