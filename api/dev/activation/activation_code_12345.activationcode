@@ -5,11 +5,9 @@
   "serverName": "MyAwesomeServer",
   "sysModel": "CustomBuild v1.0",
   "comment": "This is a test activation code for development.",
-  "caseIcon": true,
   "header": "#336699",
   "headermetacolor": "#FFFFFF",
   "background": "#F0F0F0",
   "showBannerGradient": "yes",
-  "theme": "azure",
-  "partnerLogo": true
+  "theme": "azure"
 }
