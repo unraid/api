@@ -151,10 +151,16 @@ export class CustomizationService implements OnModuleInit {
         }
     }
 
+    public convertWebGuiPathToAssetPath(webGuiPath: string): string {
+        // Strip the leading /usr/local/emhttp/ from the path
+        const assetPath = webGuiPath.replace('/usr/local/emhttp/', '');
+        return assetPath;
+    }
+
     public async getCaseIconWebguiPath(): Promise<string | null> {
         const paths = getters.paths();
         if (await fileExists(paths.caseModelSource)) {
-            return path.basename(paths.caseModelTarget);
+            return this.convertWebGuiPathToAssetPath(paths.caseModelTarget);
         }
         return null;
     }
@@ -162,7 +168,7 @@ export class CustomizationService implements OnModuleInit {
     public async getPartnerLogoWebguiPath(): Promise<string | null> {
         const paths = getters.paths();
         if (await fileExists(paths.partnerLogoSource)) {
-            return path.basename(paths.partnerLogoTarget);
+            return this.convertWebGuiPathToAssetPath(paths.partnerLogoTarget);
         }
         return null;
     }

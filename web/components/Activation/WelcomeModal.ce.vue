@@ -66,6 +66,7 @@ watchEffect(() => {
       :disable-shadow="true"
       :modal-vertical-center="false"
       :disable-overlay-close="true"
+      class="bg-background"
       @close="dropdownHide"
     >
       <template v-if="partnerInfo?.hasPartnerLogo" #header>
