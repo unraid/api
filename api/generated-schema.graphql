@@ -961,7 +961,7 @@ type ActivationCode {
   header: String
   headermetacolor: String
   background: String
-  showBannerGradient: String
+  showBannerGradient: Boolean
   theme: String
 }
 

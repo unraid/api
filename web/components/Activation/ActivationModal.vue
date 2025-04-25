@@ -11,6 +11,7 @@ import ActivationPartnerLogo from '~/components/Activation/ActivationPartnerLogo
 import { useActivationCodeDataStore } from '~/components/Activation/store/activationCodeData';
 import { useActivationCodeModalStore } from '~/components/Activation/store/activationCodeModal';
 import { usePurchaseStore } from '~/store/purchase';
+import { useThemeStore } from '~/store/theme';
 
 export interface Props {
   t: ComposerTranslation;
@@ -21,6 +22,8 @@ const props = defineProps<Props>();
 const { isVisible } = storeToRefs(useActivationCodeModalStore());
 const { partnerInfo } = storeToRefs(useActivationCodeDataStore());
 const purchaseStore = usePurchaseStore();
+
+useThemeStore();
 
 const title = computed<string>(() => props.t("Let's activate your Unraid OS License"));
 const description = computed<string>(() =>

@@ -69,7 +69,7 @@ if (is_localhost() && !is_good_session()) {
         const findString =
             '<a href="https://unraid.net" target="_blank"><?readfile("$docroot/webGui/images/UN-logotype-gradient.svg")?></a>';
         const replaceString =
-            '<?include "$docroot/plugins/dynamix.my.servers/include/partner-logo.php"?>';
+            '';
 
         if (source.includes(findString) && !source.includes(replaceString)) {
             return source.replace(findString, replaceString);

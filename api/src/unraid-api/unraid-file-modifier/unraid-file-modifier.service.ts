@@ -40,9 +40,11 @@ export class UnraidFileModificationService implements OnModuleInit, OnModuleDest
             default: new (logger: Logger) => FileModification;
         }>('./modifications/*.modification.ts', { eager: true });
 
+        this.logger.debug(`Loading ${Object.keys(modificationModules).length} modifications...`);
         for (const path in modificationModules) {
             const module = modificationModules[path];
             if (module.default) {
+                this.logger.debug(`Loading modification: ${module.default.name}`);
                 const ModificationClass = module.default;
                 const instance = new ModificationClass(this.logger);
                 modifications.push(instance);

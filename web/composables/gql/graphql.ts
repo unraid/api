@@ -101,7 +101,7 @@ export type ActivationCode = {
   partnerName?: Maybe<Scalars['String']['output']>;
   partnerUrl?: Maybe<Scalars['String']['output']>;
   serverName?: Maybe<Scalars['String']['output']>;
-  showBannerGradient?: Maybe<Scalars['String']['output']>;
+  showBannerGradient?: Maybe<Scalars['Boolean']['output']>;
   sysModel?: Maybe<Scalars['String']['output']>;
   theme?: Maybe<Scalars['String']['output']>;
 };
@@ -1774,7 +1774,7 @@ export type PartnerInfoQuery = { __typename?: 'Query', publicPartnerInfo?: { __t
 export type ActivationCodeQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type ActivationCodeQuery = { __typename?: 'Query', vars: { __typename?: 'Vars', regState?: RegistrationState | null }, customization?: { __typename?: 'Customization', activationCode?: { __typename?: 'ActivationCode', code?: string | null, partnerName?: string | null, serverName?: string | null, sysModel?: string | null, comment?: string | null, header?: string | null, headermetacolor?: string | null, background?: string | null, showBannerGradient?: string | null, theme?: string | null } | null, partnerInfo?: { __typename?: 'PublicPartnerInfo', hasPartnerLogo: boolean, partnerName?: string | null, partnerUrl?: string | null, partnerLogoUrl?: string | null } | null } | null };
+export type ActivationCodeQuery = { __typename?: 'Query', vars: { __typename?: 'Vars', regState?: RegistrationState | null }, customization?: { __typename?: 'Customization', activationCode?: { __typename?: 'ActivationCode', code?: string | null, partnerName?: string | null, serverName?: string | null, sysModel?: string | null, comment?: string | null, header?: string | null, headermetacolor?: string | null, background?: string | null, showBannerGradient?: boolean | null, theme?: string | null } | null, partnerInfo?: { __typename?: 'PublicPartnerInfo', hasPartnerLogo: boolean, partnerName?: string | null, partnerUrl?: string | null, partnerLogoUrl?: string | null } | null } | null };
 
 export type GetConnectSettingsFormQueryVariables = Exact<{ [key: string]: never; }>;
 

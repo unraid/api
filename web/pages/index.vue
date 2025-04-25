@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import { ExclamationTriangleIcon } from '@heroicons/vue/24/solid';
-import { BrandButton, BrandLogo, Toaster } from '@unraid/ui';
+import { BrandButton, Toaster } from '@unraid/ui';
 import { useDummyServerStore } from '~/_data/serverState';
 import AES from 'crypto-js/aes';
 
@@ -111,10 +111,7 @@ watch(
               backgroundPosition: 'center',
             }"
           >
-            <div class="inline-flex flex-col gap-4 items-start px-4">
-              <a href="https://unraid.net" target="_blank">
-                <BrandLogo class="w-[100px] sm:w-[150px]" />
-              </a>
+            <div class="inline-flex flex-col gap-4 items-start">
               <HeaderOsVersionCe />
             </div>
             <UserProfileCe :server="serverState" />

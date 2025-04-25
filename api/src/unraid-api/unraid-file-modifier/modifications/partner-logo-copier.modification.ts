@@ -4,22 +4,31 @@ import * as path from 'path';
 
 import { fileExists } from '@app/core/utils/files/file-exists.js';
 import { getters } from '@app/store/index.js';
-import { ShouldApplyWithReason } from '@app/unraid-api/unraid-file-modifier/file-modification.js';
+import {
+    FileModification,
+    ShouldApplyWithReason,
+} from '@app/unraid-api/unraid-file-modifier/file-modification.js';
 
-@Injectable()
-export class PartnerLogoCopierModification {
-    private readonly logger = new Logger(PartnerLogoCopierModification.name);
+export default class PartnerLogoCopierModification extends FileModification {
+    id: string = 'partner-logo-copier';
+    public filePath: string = '/usr/local/emhttp/plugins/dynamix/images/partner-logo.png';
+
     private readonly partnerLogoSource: string;
     private readonly partnerLogoTarget: string;
 
-    constructor() {
+    constructor(logger: Logger) {
+        super(logger);
         const paths = getters.paths();
         this.partnerLogoSource = paths.partnerLogoSource;
         this.partnerLogoTarget = paths.partnerLogoTarget;
         this.logger.debug('PartnerLogoCopierModification initialized with paths from store.');
     }
 
-    async apply() {
+    protected async generatePatch(overridePath?: string): Promise<string> {
+        throw new Error('Method not implemented.');
+    }
+
+    async apply(): Promise<string> {
         this.logger.log('Setting up partner logo...');
         try {
             if (await fileExists(this.partnerLogoSource)) {
@@ -33,12 +42,14 @@ export class PartnerLogoCopierModification {
                 }
                 await fs.symlink(this.partnerLogoSource, this.partnerLogoTarget);
                 this.logger.log(`Partner logo symlinked to ${this.partnerLogoTarget}`);
+                return '';
             } else {
                 this.logger.log('No partner logo found.');
+                return '';
             }
         } catch (error) {
             this.logger.error('Error setting up partner logo:', error);
-            // Optionally re-throw or handle the error appropriately
+            return '';
         }
     }
 
@@ -47,5 +58,9 @@ export class PartnerLogoCopierModification {
             shouldApply: true,
             reason: 'Always apply the allowed file changes to ensure compatibility.',
         };
+    }
+
+    async rollback(): Promise<void> {
+        return;
     }
 }

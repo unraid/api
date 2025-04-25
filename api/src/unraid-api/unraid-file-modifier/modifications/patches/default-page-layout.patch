@@ -53,19 +53,6 @@ Index: /usr/local/emhttp/plugins/dynamix/include/DefaultPageLayout.php
  }
  
  function closeNotifier() {
-@@ -699,11 +708,11 @@
- <body>
-  <div id="displaybox">
-   <div class="upgrade_notice" style="display:none"></div>
-   <div id="header" class="<?=$display['banner']?>">
-     <div class="logo">
--      <a href="https://unraid.net" target="_blank"><?readfile("$docroot/webGui/images/UN-logotype-gradient.svg")?></a>
-+      <?include "$docroot/plugins/dynamix.my.servers/include/partner-logo.php"?>
-       <unraid-i18n-host><unraid-header-os-version></unraid-header-os-version></unraid-i18n-host>
-     </div>
-     <?include "$docroot/plugins/dynamix.my.servers/include/myservers2.php"?>
-   </div>
-   <a href="#" class="move_to_end" title="<?=_('Move To End')?>"><i class="fa fa-arrow-circle-down"></i></a>
 @@ -748,12 +757,12 @@
    }
    // create list of nchan scripts to be started
