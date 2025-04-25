@@ -41,7 +41,7 @@ test('Returns paths', async () => {
         identConfig: '/boot/config/ident.cfg',
         activationAssets: expect.stringContaining('api/dev/activation/assets'),
         partnerLogoSource: expect.stringContaining('api/dev/activation/assets/logo.svg'),
-        partnerLogoTarget: '/usr/local/emhttp/webGui/images/partner-logo.svg',
+        partnerLogoTarget: '/usr/local/emhttp/webGui/images/UN-logotype-gradient.svg',
         caseModelSource: expect.stringContaining('api/dev/activation/assets/case-model.png'),
         caseModelTarget: '/usr/local/emhttp/webGui/images/case-model.png',
         partnerBannerSource: expect.stringContaining('api/dev/activation/assets/banner.png'),
