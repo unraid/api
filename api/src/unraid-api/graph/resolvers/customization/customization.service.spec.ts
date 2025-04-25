@@ -698,7 +698,10 @@ describe('CustomizationService', () => {
             expect(updateSpy).toHaveBeenCalled(); // Still attempts updateCfgFile
             expect(emcmd).toHaveBeenCalled();
             // Match the actual log message from the service
-            expect(loggerErrorSpy).toHaveBeenCalledWith('Error applying server identity: %o', emcmdError);
+            expect(loggerErrorSpy).toHaveBeenCalledWith(
+                'Error applying server identity: %o',
+                emcmdError
+            );
         });
     });
 });

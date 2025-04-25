@@ -399,6 +399,12 @@ export class CustomizationService implements OnModuleInit {
             // Trigger emhttp update via emcmd
             const updateParams = { ...paramsToUpdate, changeNames: 'Apply' };
             this.logger.log(`Calling emcmd with params: %o`, updateParams);
+
+            // Log the socket path and csrf token for debugging
+            const socketPath = getters.paths()['emhttpd-socket'];
+            const csrfToken = getters.emhttp().var.csrfToken;
+            this.logger.log(`Socket path: ${socketPath}, CSRF token: ${csrfToken}`);
+
             await emcmd(updateParams);
             this.logger.log('emcmd executed successfully.');
 
