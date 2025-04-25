@@ -10,12 +10,18 @@ import { useThemeStore } from '~/store/theme';
 
 const { partnerInfo } = storeToRefs(useActivationCodeDataStore());
 const { darkMode } = storeToRefs(useThemeStore());
+
+const partnerLogoUrl = computed(() => {
+  if (!partnerInfo.value?.partnerLogoRaw) return '';
+  return `data:image/svg+xml;base64,${partnerInfo.value.partnerLogoRaw}`;
+});
+
 </script>
 
 <template>
   <img
-    v-if="partnerInfo?.partnerLogoUrl"
-    :src="partnerInfo?.partnerLogoUrl"
+    v-if="partnerInfo?.partnerLogoRaw"
+    :src="partnerLogoUrl"
     class="w-72"
     :class="{ invert: darkMode }"
   />

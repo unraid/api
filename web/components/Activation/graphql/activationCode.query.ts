@@ -8,6 +8,7 @@ export const PARTNER_INFO_QUERY = graphql(/* GraphQL */ `
       partnerName
       partnerUrl
       partnerLogoUrl
+      partnerLogoRaw
     }
   }
 `);
@@ -35,6 +36,7 @@ export const ACTIVATION_CODE_QUERY = graphql(/* GraphQL */ `
         partnerName
         partnerUrl
         partnerLogoUrl
+        partnerLogoRaw
       }
     }
   }

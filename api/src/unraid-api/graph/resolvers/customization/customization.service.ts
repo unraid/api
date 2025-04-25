@@ -170,6 +170,19 @@ export class CustomizationService implements OnModuleInit {
         return null;
     }
 
+    /**
+     * Get the raw partner logo from the partner logo file.
+     * @returns The raw partner logo in base64 format if the file exists, otherwise null.
+     */
+    public async getPartnerLogoRaw(): Promise<string | null> {
+        const path = getters.paths().partnerLogoTarget;
+        if (await fileExists(path)) {
+            const fileContent = await fs.readFile(path, 'base64');
+            return fileContent;
+        }
+        return null;
+    }
+
     async applyActivationCustomizations() {
         this.logger.log('Applying activation customizations if data is available...');
 

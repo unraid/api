@@ -949,6 +949,11 @@ type PublicPartnerInfo {
   The path to the partner logo image on the flash drive, relative to the activation code file
   """
   partnerLogoUrl: String
+
+  """
+  The plaintext version of the partner logo in base64 format - will render the default Unraid logo if not provided
+  """
+  partnerLogoRaw: String
 }
 
 type ActivationCode {

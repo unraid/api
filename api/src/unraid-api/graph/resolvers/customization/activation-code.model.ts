@@ -50,9 +50,19 @@ export class PublicPartnerInfo {
             'The path to the partner logo image on the flash drive, relative to the activation code file',
     })
     @IsOptional()
-    @IsString() // Assuming this is a file path/name
+    @IsString()
     @Transform(({ value }) => sanitizeString(value))
     partnerLogoUrl?: string;
+
+    @Field(() => String, {
+        nullable: true,
+        description:
+            'The plaintext version of the partner logo in base64 format - will render the default Unraid logo if not provided',
+    })
+    @IsOptional()
+    @IsString()
+    @Transform(({ value }) => sanitizeString(value))
+    partnerLogoRaw?: string;
 }
 
 @ObjectType()

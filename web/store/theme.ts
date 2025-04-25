@@ -124,5 +124,6 @@ export const useThemeStore = defineStore('theme', () => {
     theme,
     // actions
     setTheme,
+    setCssVars,
   };
 });
