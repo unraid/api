@@ -41,6 +41,9 @@ export default class DefaultPageLayoutModification extends FileModification {
     }
 
     private patchGuiBootAuth(source: string): string {
+        if (source.includes('if (is_localhost() && !is_good_session())')) {
+            return source;
+        }
         // prettier-ignore
         const newPhpCode =
 `
