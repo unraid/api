@@ -24,7 +24,7 @@ const { available, availableWithRenewal } = storeToRefs(updateOsStore);
 const { rebootTypeText } = storeToRefs(updateOsActionsStore);
 
 watch(partnerInfo, (newVal) => {
-  const unraidLogoHeader = document.querySelector('#unraid-logo-header');
+  const unraidLogoHeader = document.querySelector('a[href="https://unraid.net"]');
   if (unraidLogoHeader) {
     (unraidLogoHeader as HTMLAnchorElement).href = newVal?.partnerUrl ?? 'https://unraid.net';
   }

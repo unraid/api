@@ -85,6 +85,7 @@ if (is_localhost() && !is_good_session()) {
             this.patchGuiBootAuth.bind(this),
             this.injectPartnerLogo.bind(this),
         ];
+        
         return transformers.reduce((content, transformer) => 
             transformer(content)
         , fileContent);
