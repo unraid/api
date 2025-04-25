@@ -17,6 +17,9 @@ vi.mock('fs/promises');
 vi.mock('@app/core/utils/clients/emcmd.js');
 vi.mock('@app/core/utils/files/file-exists.js');
 
+// Enable fake timers
+vi.useFakeTimers();
+
 // Mock store dynamically
 const mockPaths = {
     activationBase: '/mock/boot/config/activation',
@@ -214,7 +217,9 @@ describe('CustomizationService', () => {
             });
             vi.mocked(fs.writeFile).mockResolvedValue(undefined); // Ensure writeFile resolves
 
-            await service.onModuleInit();
+            const promise = service.onModuleInit();
+            await vi.runAllTimers();
+            await promise;
 
             // Check .done flag creation
             expect(fs.writeFile).toHaveBeenCalledWith(doneFlag, 'true');
@@ -237,6 +242,9 @@ describe('CustomizationService', () => {
                 identCfg,
                 expect.stringContaining('NAME=PartnerServer')
             ); // Ident settings updated
+
+            // Run timers again to ensure emcmd is called
+            await vi.runAllTimers();
             expect(emcmd).toHaveBeenCalledWith(
                 expect.objectContaining({ NAME: 'PartnerServer', changeNames: 'Apply' })
             ); // emcmd called
@@ -280,7 +288,9 @@ describe('CustomizationService', () => {
             const updateCfgFileSpy = vi.spyOn(service as any, 'updateCfgFile');
 
             // --- Execute ---
-            await service.onModuleInit();
+            const promise = service.onModuleInit();
+            await vi.runAllTimers();
+            await promise;
 
             // --- Assertions ---
             // 1. .done flag is still created
@@ -308,9 +318,10 @@ describe('CustomizationService', () => {
             expect(applyServerIdentitySpy).toHaveBeenCalled();
             // Check that applyServerIdentity called updateCfgFile for identCfg and emcmd
             expect(updateCfgFileSpy).toHaveBeenCalledWith(identCfg, null, expect.any(Object));
-            expect(emcmd).toHaveBeenCalledWith(expect.any(Object)); // emcmd should still be called
 
-            // 5. The catch block in applyActivationCustomizations is NOT reached because the error is handled internally by setupPartnerBanner.
+            // Run timers again to ensure emcmd is called
+            await vi.runAllTimers();
+            expect(emcmd).toHaveBeenCalledWith(expect.any(Object)); // emcmd should still be called
         });
     });
 
@@ -647,14 +658,19 @@ describe('CustomizationService', () => {
 
         it('applyServerIdentity should call updateCfgFile and emcmd', async () => {
             const updateSpy = vi.spyOn(service as any, 'updateCfgFile');
-            await (service as any).applyServerIdentity();
+            const promise = (service as any).applyServerIdentity();
+            await vi.runAllTimers();
+            await promise;
+
             expect(updateSpy).toHaveBeenCalledWith(identCfg, null, {
-                // null section for ident.cfg
                 NAME: 'PartnerServer',
                 SYS_MODEL: 'PartnerModel',
                 COMMENT: 'Partner Comment',
             });
             expect(loggerLogSpy).toHaveBeenCalledWith(`Server identity updated in ${identCfg}`);
+
+            // Run timers again to ensure emcmd is called
+            await vi.runAllTimers();
             expect(emcmd).toHaveBeenCalledWith({
                 NAME: 'PartnerServer',
                 SYS_MODEL: 'PartnerModel',
@@ -693,11 +709,15 @@ describe('CustomizationService', () => {
             vi.mocked(emcmd).mockRejectedValue(emcmdError);
             const updateSpy = vi.spyOn(service as any, 'updateCfgFile');
 
-            await (service as any).applyServerIdentity();
+            const promise = (service as any).applyServerIdentity();
+            await vi.runAllTimers();
+            await promise;
 
             expect(updateSpy).toHaveBeenCalled(); // Still attempts updateCfgFile
+
+            // Run timers again to ensure emcmd is called
+            await vi.runAllTimers();
             expect(emcmd).toHaveBeenCalled();
-            // Match the actual log message from the service
             expect(loggerErrorSpy).toHaveBeenCalledWith(
                 'Error applying server identity: %o',
                 emcmdError

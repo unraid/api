@@ -4,12 +4,12 @@ import { AppError } from '@app/core/errors/app-error.js';
 import { logger } from '@app/core/log.js';
 import { type LooseObject } from '@app/core/types/index.js';
 import { DRY_RUN } from '@app/environment.js';
-import { getters } from '@app/store/index.js';
 
 /**
  * Run a command with emcmd.
  */
 export const emcmd = async (commands: LooseObject) => {
+    const { getters } = await import('@app/store/index.js');
     const socketPath = getters.paths()['emhttpd-socket'];
     const { csrfToken } = getters.emhttp().var;
 

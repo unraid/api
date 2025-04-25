@@ -375,21 +375,19 @@ export class CustomizationService implements OnModuleInit {
             `Current identity - Name: ${currentName}, Model: ${currentSysModel}, Comment: ${currentComment}`
         );
 
-        const partnerServerName = this.activationData.serverName;
-        const partnerSysModel = this.activationData.sysModel;
-        const partnerComment = this.activationData.comment;
-
-        const paramsToUpdate: Record<string, string> = {};
-        if (partnerServerName) paramsToUpdate['NAME'] = partnerServerName;
-        if (partnerSysModel) paramsToUpdate['SYS_MODEL'] = partnerSysModel;
-        if (partnerComment) paramsToUpdate['COMMENT'] = partnerComment;
+        const { serverName, sysModel, comment } = this.activationData;
+        const paramsToUpdate: Record<string, string> = {
+            ...(serverName && { NAME: serverName }),
+            ...(sysModel && { SYS_MODEL: sysModel }),
+            ...(comment && { COMMENT: comment }),
+        };
 
         if (Object.keys(paramsToUpdate).length === 0) {
             this.logger.log('No server identity information found in activation data.');
             return;
         }
 
-        this.logger.log('Updating server identity: %o', paramsToUpdate);
+        this.logger.log('Updating server identity:', paramsToUpdate);
 
         try {
             // Update ident.cfg first
@@ -405,12 +403,19 @@ export class CustomizationService implements OnModuleInit {
             const csrfToken = getters.emhttp().var.csrfToken;
             this.logger.log(`Socket path: ${socketPath}, CSRF token: ${csrfToken}`);
 
-            await emcmd(updateParams);
-            this.logger.log('emcmd executed successfully.');
+            setTimeout(async () => {
+                try {
+                    // On first boot give 5 seconds for emcmd to be ready
+                    await emcmd(updateParams);
+                    this.logger.log('emcmd executed successfully.');
 
-            // Reload nginx and update DNS
-            await store.dispatch(reloadNginxAndUpdateDNS());
-            this.logger.log('Nginx reloaded and DNS updated successfully.');
+                    // Reload nginx and update DNS
+                    await store.dispatch(reloadNginxAndUpdateDNS());
+                    this.logger.log('Nginx reloaded and DNS updated successfully.');
+                } catch (error) {
+                    this.logger.error('Error applying server identity: %o', error);
+                }
+            }, 5000);
         } catch (error) {
             this.logger.error('Error applying server identity: %o', error);
         }
