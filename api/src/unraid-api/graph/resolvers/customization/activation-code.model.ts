@@ -111,11 +111,14 @@ export class ActivationCode {
     @Transform(({ value }) => sanitizeAndValidateHexColor(value))
     background?: string;
 
-    @Field(() => String, { nullable: true })
+    @Field(() => Boolean, { nullable: true })
     @IsOptional()
-    @IsIn(['yes', 'no'])
-    @Transform(({ value }) => sanitizeString(value))
-    showBannerGradient?: 'yes' | 'no' = 'yes';
+    @Transform(({ value }) => {
+        if (typeof value === 'boolean') return value;
+        const sanitized = sanitizeString(value);
+        return sanitized === 'yes';
+    })
+    showBannerGradient?: boolean = true;
 
     @Field(() => String, { nullable: true })
     @IsOptional()

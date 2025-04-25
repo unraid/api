@@ -203,19 +203,6 @@ const servers: Record<ServerSelector, Server> = {
   /** shows oem activation flow */
   oemActivation: {
     ...baseServerState,
-    activationCodeData: {
-      code: 'CC2KP3TDRF',
-      partnerName: 'OEM Partner',
-      partnerUrl: 'https://unraid.net/OEM+Partner',
-      sysModel: 'OEM Partner v1',
-      comment: 'OEM Partner NAS',
-      caseIcon: 'case-model.png',
-      header: '#ffffff',
-      headermetacolor: '#eeeeee',
-      background: '#000000',
-      showBannerGradient: 'yes',
-      partnerLogo: true,
-    },
   },
 };
 

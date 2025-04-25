@@ -92,11 +92,11 @@ describe('CustomizationService', () => {
     const caseModelSource = mockPaths.caseModelSource;
 
     // Add mockActivationData definition here
-    const mockActivationData: ActivationCode = {
+    const mockActivationData = {
         header: '#112233',
         headermetacolor: '#445566',
         background: '#778899',
-        showBannerGradient: 'yes',
+        showBannerGradient: true,
         theme: 'black',
         serverName: 'PartnerServer',
         sysModel: 'PartnerModel',
@@ -743,11 +743,11 @@ describe('applyActivationCustomizations specific tests', () => {
     const caseModelSource = mockPaths.caseModelSource;
 
     // Add mockActivationData definition here
-    const mockActivationData: ActivationCode = {
+    const mockActivationData = {
         header: '#112233',
         headermetacolor: '#445566',
         background: '#778899',
-        showBannerGradient: 'yes',
+        showBannerGradient: true,
         theme: 'black',
         serverName: 'PartnerServer',
         sysModel: 'PartnerModel',

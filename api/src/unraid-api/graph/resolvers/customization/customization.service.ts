@@ -246,18 +246,42 @@ export class CustomizationService implements OnModuleInit {
 
         const settingsToUpdate: Record<string, string> = {};
 
-        // Use DTO properties
-        const headerTextColor = this.activationData.header;
-        const headerMetaColor = this.activationData.headermetacolor;
-        const headerBgColor = this.activationData.background;
-        const showBannerGradient = this.activationData.showBannerGradient;
-        const webguiTheme = this.activationData.theme;
+        // Map activation data properties to their corresponding config keys
+        type DisplayMapping = {
+            key: string;
+            transform?: (v: any) => string;
+            skipIfEmpty?: boolean;
+        };
 
-        if (headerTextColor) settingsToUpdate['header'] = headerTextColor.replace('#', '');
-        if (headerMetaColor) settingsToUpdate['headermetacolor'] = headerMetaColor.replace('#', '');
-        if (headerBgColor) settingsToUpdate['background'] = headerBgColor.replace('#', '');
-        if (showBannerGradient) settingsToUpdate['showBannerGradient'] = showBannerGradient;
-        if (webguiTheme) settingsToUpdate['theme'] = webguiTheme;
+        const displayMappings: Record<string, DisplayMapping> = {
+            header: { key: 'header', transform: (v: string) => v.replace('#', ''), skipIfEmpty: true },
+            headermetacolor: {
+                key: 'headermetacolor',
+                transform: (v: string) => v.replace('#', ''),
+                skipIfEmpty: true,
+            },
+            background: {
+                key: 'background',
+                transform: (v: string) => v.replace('#', ''),
+                skipIfEmpty: true,
+            },
+            showBannerGradient: {
+                key: 'showBannerGradient',
+                transform: (v: boolean) => (v ? 'yes' : 'no'),
+            },
+            theme: { key: 'theme' },
+        };
+
+        // Apply mappings
+        Object.entries(displayMappings).forEach(([prop, mapping]) => {
+            const value = this.activationData?.[prop];
+            if (value !== undefined && value !== null) {
+                const transformedValue = mapping.transform ? mapping.transform(value) : value;
+                if (!mapping.skipIfEmpty || transformedValue) {
+                    settingsToUpdate[mapping.key] = transformedValue;
+                }
+            }
+        });
 
         // Only set banner='image' if the banner file actually exists in the webgui images directory
         // This assumes setupPartnerBanner has already attempted to copy it if necessary.

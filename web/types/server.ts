@@ -1,5 +1,4 @@
 import type { Config, PartialCloudFragment } from '~/composables/gql/graphql';
-import type { ActivationCodeData } from '~/components/Activation/store/activationCodeModal';
 import type { Theme } from '~/themes/types';
 import type { UserProfileLink } from '~/types/userProfile';
 
@@ -68,7 +67,6 @@ export interface ServerStateArray {
 }
 
 export interface Server {
-  activationCodeData?: ActivationCodeData;
   apiVersion?: string;
   array?: ServerStateArray;
   avatar?: string;
@@ -154,7 +152,6 @@ export interface ServerAccountCallbackSendPayload {
 export type ServerKeyTypeForPurchase = 'Basic' | 'Plus' | 'Pro' | 'Starter' | 'Trial' | 'Unleashed';
 
 export interface ServerPurchaseCallbackSendPayload {
-  activationCodeData?: ActivationCodeData;
   apiVersion?: string;
   connectPluginVersion?: string;
   deviceCount: number;
