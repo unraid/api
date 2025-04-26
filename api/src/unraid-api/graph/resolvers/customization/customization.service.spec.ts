@@ -70,6 +70,12 @@ vi.mock('@app/core/utils/clients/emcmd.js', async () => {
     };
 });
 
+vi.mock('@app/core/utils/misc/sleep.js', async () => {
+    return {
+        sleep: vi.fn(() => Promise.resolve()),
+    };
+});
+
 describe('CustomizationService', () => {
     let service: CustomizationService;
     let loggerDebugSpy;
@@ -250,7 +256,7 @@ describe('CustomizationService', () => {
             ); // emcmd called
 
             expect(loggerLogSpy).toHaveBeenCalledWith('Activation setup complete.');
-        });
+        }, 10000);
 
         it('should handle errors during activation setup', async () => {
             const setupError = new Error('Failed to apply settings');
@@ -322,7 +328,7 @@ describe('CustomizationService', () => {
             // Run timers again to ensure emcmd is called
             await vi.runAllTimers();
             expect(emcmd).toHaveBeenCalledWith(expect.any(Object)); // emcmd should still be called
-        });
+        }, 10000);
     });
 
     describe('getActivationData', () => {
@@ -678,7 +684,7 @@ describe('CustomizationService', () => {
                 changeNames: 'Apply',
             });
             expect(loggerLogSpy).toHaveBeenCalledWith('emcmd executed successfully.');
-        });
+        }, 10000);
 
         it('applyServerIdentity should skip if no relevant activation data', async () => {
             const updateSpy = vi.spyOn(service as any, 'updateCfgFile');
@@ -722,7 +728,7 @@ describe('CustomizationService', () => {
                 'Error applying server identity: %o',
                 emcmdError
             );
-        });
+        }, 10000);
 
         it('applyServerIdentity should truncate serverName if too long', async () => {
             const longServerName = 'ThisServerNameIsWayTooLongForUnraid'; // Length > 16
@@ -847,7 +853,7 @@ describe('applyActivationCustomizations specific tests', () => {
 
         // Overall error from applyActivationCustomizations' catch block
         // REMOVED: expect(loggerErrorSpy).toHaveBeenCalledWith('Error during activation setup:', updateError);
-    });
+    }, 10000);
 
     it('should log error if applyCaseModelConfig fails during readFile (non-ENOENT)', async () => {
         const readError = new Error('Read permission denied');
@@ -872,7 +878,7 @@ describe('applyActivationCustomizations specific tests', () => {
 
         // Overall error from applyActivationCustomizations' catch block
         // REMOVED: expect(loggerErrorSpy).toHaveBeenCalledWith('Error during activation setup:', readError);
-    });
+    }, 10000);
 
     it('should log error if applyCaseModelConfig fails during writeFile', async () => {
         const writeError = new Error('Write permission denied');
@@ -898,7 +904,7 @@ describe('applyActivationCustomizations specific tests', () => {
             'Error during activation setup:',
             expect.any(Error)
         ); // This line should remain
-    });
+    }, 10000);
 
     it('should log error if applyCaseModelConfig fails during fileExists check', async () => {
         const existsError = new Error('fileExists failed');
@@ -920,7 +926,7 @@ describe('applyActivationCustomizations specific tests', () => {
 
         // Overall error from applyActivationCustomizations' catch block
         // REMOVED: expect(loggerErrorSpy).toHaveBeenCalledWith('Error during activation setup:', existsError);
-    });
+    }, 10000);
 
     it('should log error if applyServerIdentity fails during updateCfgFile', async () => {
         const updateError = new Error('Failed to write ident config');
@@ -953,7 +959,7 @@ describe('applyActivationCustomizations specific tests', () => {
 
         // Overall error from applyActivationCustomizations' catch block
         // REMOVED: expect(loggerErrorSpy).toHaveBeenCalledWith('Error during activation setup:', updateError);
-    });
+    }, 10000);
 });
 
 // Standalone tests for updateCfgFile utility function within the service

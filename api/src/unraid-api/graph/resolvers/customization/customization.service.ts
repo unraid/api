@@ -8,6 +8,7 @@ import * as ini from 'ini';
 
 import { emcmd } from '@app/core/utils/clients/emcmd.js';
 import { fileExists } from '@app/core/utils/files/file-exists.js';
+import { sleep } from '@app/core/utils/misc/sleep.js';
 import { reloadNginxAndUpdateDNS } from '@app/store/actions/reload-nginx-and-update-dns.js';
 import { getters } from '@app/store/index.js';
 import { ActivationCode } from '@app/unraid-api/graph/resolvers/customization/activation-code.model.js';
@@ -398,24 +399,13 @@ export class CustomizationService implements OnModuleInit {
             const updateParams = { ...paramsToUpdate, changeNames: 'Apply' };
             this.logger.log(`Calling emcmd with params: %o`, updateParams);
 
-            // Log the socket path and csrf token for debugging
-            const socketPath = getters.paths()['emhttpd-socket'];
-            const csrfToken = getters.emhttp().var.csrfToken;
-            this.logger.log(`Socket path: ${socketPath}, CSRF token: ${csrfToken}`);
+            await sleep(10000);
+            await emcmd(updateParams);
 
-            setTimeout(async () => {
-                try {
-                    // On first boot give 5 seconds for emcmd to be ready
-                    await emcmd(updateParams);
-                    this.logger.log('emcmd executed successfully.');
+            this.logger.log('emcmd executed successfully.');
 
-                    // Reload nginx and update DNS
-                    await store.dispatch(reloadNginxAndUpdateDNS());
-                    this.logger.log('Nginx reloaded and DNS updated successfully.');
-                } catch (error) {
-                    this.logger.error('Error applying server identity: %o', error);
-                }
-            }, 5000);
+            await store.dispatch(reloadNginxAndUpdateDNS());
+            this.logger.log('Nginx reloaded and DNS updated successfully.');
         } catch (error) {
             this.logger.error('Error applying server identity: %o', error);
         }
