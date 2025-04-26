@@ -134,10 +134,10 @@ export const loadSingleStateFile = createAsyncThunk<
             case StateFileKey.sec_nfs:
                 return { nfsShares: config } as { nfsShares: NfsShares };
             default:
-                return null;
+                throw new Error(`Unknown state file key: ${stateFileKey}`);
         }
     } else {
-        return null;
+        throw new Error(`Failed to load state file: ${stateFileKey}`);
     }
 });
 /**
