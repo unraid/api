@@ -10,7 +10,7 @@ import { emcmd } from '@app/core/utils/clients/emcmd.js';
 import { fileExists } from '@app/core/utils/files/file-exists.js';
 import { sleep } from '@app/core/utils/misc/sleep.js';
 import { reloadNginxAndUpdateDNS } from '@app/store/actions/reload-nginx-and-update-dns.js';
-import { getters } from '@app/store/index.js';
+import { getters, store } from '@app/store/index.js';
 import { ActivationCode } from '@app/unraid-api/graph/resolvers/customization/activation-code.model.js';
 import { convertWebGuiPathToAssetPath } from '@app/utils.js';
 
@@ -228,7 +228,6 @@ export class CustomizationService implements OnModuleInit {
     }
 
     private async applyDisplaySettings() {
-        const { getters } = await import('@app/store/index.js');
         if (!this.activationData) {
             this.logger.warn('No activation data available for display settings.');
             return;
@@ -357,7 +356,6 @@ export class CustomizationService implements OnModuleInit {
     }
 
     private async applyServerIdentity() {
-        const { getters, store } = await import('@app/store/index.js');
         if (!this.activationData) {
             this.logger.warn('No activation data available for server identity setup.');
             return;

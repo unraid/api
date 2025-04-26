@@ -1,7 +1,11 @@
 import { got } from 'got';
 
 import { AppError } from '@app/core/errors/app-error.js';
+import { appLogger } from '@app/core/log.js';
 import { type LooseObject } from '@app/core/types/index.js';
+import { store } from '@app/store/index.js';
+import { loadSingleStateFile } from '@app/store/modules/emhttp.js';
+import { StateFileKey } from '@app/store/types.js';
 
 /**
  * Run a command with emcmd.
@@ -14,10 +18,17 @@ export const emcmd = async (commands: LooseObject) => {
         throw new AppError('No emhttpd socket path found');
     }
 
-    const { csrfToken } = getters.emhttp().var;
+    let { csrfToken } = getters.emhttp().var;
 
     if (!csrfToken) {
-        throw new AppError('No CSRF token found');
+        appLogger.warn('No CSRF token found - attempting to load var state file manually');
+        const state = await store.dispatch(loadSingleStateFile(StateFileKey.var)).unwrap();
+        if (state && 'var' in state) {
+            csrfToken = state.var.csrfToken;
+        }
+        if (!csrfToken) {
+            throw new AppError('No CSRF token found');
+        }
     }
 
     const url = `http://unix:${socketPath}:/update.htm`;
