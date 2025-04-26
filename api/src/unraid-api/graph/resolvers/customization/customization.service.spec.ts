@@ -252,7 +252,8 @@ describe('CustomizationService', () => {
             // Run timers again to ensure emcmd is called
             await vi.runAllTimers();
             expect(emcmd).toHaveBeenCalledWith(
-                expect.objectContaining({ NAME: 'PartnerServer', changeNames: 'Apply' })
+                expect.objectContaining({ NAME: 'PartnerServer', changeNames: 'Apply' }),
+                { waitForToken: true }
             ); // emcmd called
 
             expect(loggerLogSpy).toHaveBeenCalledWith('Activation setup complete.');
@@ -327,7 +328,7 @@ describe('CustomizationService', () => {
 
             // Run timers again to ensure emcmd is called
             await vi.runAllTimers();
-            expect(emcmd).toHaveBeenCalledWith(expect.any(Object)); // emcmd should still be called
+            expect(emcmd).toHaveBeenCalledWith(expect.any(Object), { waitForToken: true }); // emcmd should still be called
         }, 10000);
     });
 
@@ -677,12 +678,15 @@ describe('CustomizationService', () => {
 
             // Run timers again to ensure emcmd is called
             await vi.runAllTimers();
-            expect(emcmd).toHaveBeenCalledWith({
-                NAME: 'PartnerServer',
-                SYS_MODEL: 'PartnerModel',
-                COMMENT: 'Partner Comment',
-                changeNames: 'Apply',
-            });
+            expect(emcmd).toHaveBeenCalledWith(
+                {
+                    NAME: 'PartnerServer',
+                    SYS_MODEL: 'PartnerModel',
+                    COMMENT: 'Partner Comment',
+                    changeNames: 'Apply',
+                },
+                { waitForToken: true }
+            );
             expect(loggerLogSpy).toHaveBeenCalledWith('emcmd executed successfully.');
         }, 10000);
 
