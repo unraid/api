@@ -27,26 +27,26 @@ export const emcmd = async (
     let { csrfToken } = getters.emhttp().var;
 
     if (!csrfToken && waitForToken) {
-        await retry(
+        csrfToken = await retry(
             async (retries) => {
                 if (retries > 1) {
                     appLogger.info('Waiting for CSRF token...');
                 }
                 const loadedState = await store.dispatch(loadSingleStateFile(StateFileKey.var)).unwrap();
 
+                let token: string | undefined;
                 if (loadedState && 'var' in loadedState) {
-                    csrfToken = loadedState.var.csrfToken;
+                    token = loadedState.var.csrfToken;
                 }
-                if (!csrfToken) {
+                if (!token) {
                     throw new Error('CSRF token not found yet');
                 }
-                return;
+                return token;
             },
             {
-                factor: 2,
                 minTimeout: 5000,
                 maxTimeout: 10000,
-                retries: 5,
+                retries: 10,
             }
         ).catch(() => {
             throw new AppError('Failed to load CSRF token after multiple retries');
