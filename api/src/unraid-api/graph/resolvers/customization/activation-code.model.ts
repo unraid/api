@@ -79,7 +79,7 @@ export class ActivationCode {
     @Field(() => String, { nullable: true })
     @IsOptional()
     @IsString()
-    @Transform(({ value }) => sanitizeString(value, 16))
+    @Transform(({ value }) => sanitizeString(value, 15))
     serverName?: string;
 
     @Field(() => String, { nullable: true })

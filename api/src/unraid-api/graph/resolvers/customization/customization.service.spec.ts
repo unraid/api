@@ -723,6 +723,19 @@ describe('CustomizationService', () => {
                 emcmdError
             );
         });
+
+        it('applyServerIdentity should truncate serverName if too long', async () => {
+            const longServerName = 'ThisServerNameIsWayTooLongForUnraid'; // Length > 16
+            const truncatedServerName = longServerName.slice(0, 15); // Expected truncated length
+            // Simulate DTO with long serverName after plainToClass
+
+            const testActivationParser = await plainToInstance(ActivationCode, {
+                ...mockActivationData,
+                serverName: longServerName,
+            });
+
+            expect(testActivationParser.serverName).toBe(truncatedServerName);
+        });
     });
 });
 
