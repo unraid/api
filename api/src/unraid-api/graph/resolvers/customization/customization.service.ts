@@ -396,14 +396,8 @@ export class CustomizationService implements OnModuleInit {
             // Trigger emhttp update via emcmd
             const updateParams = { ...paramsToUpdate, changeNames: 'Apply' };
             this.logger.log(`Calling emcmd with params: %o`, updateParams);
-
-            await sleep(10000);
-            await emcmd(updateParams);
-
+            await emcmd(updateParams, { waitForToken: true });
             this.logger.log('emcmd executed successfully.');
-
-            await store.dispatch(reloadNginxAndUpdateDNS());
-            this.logger.log('Nginx reloaded and DNS updated successfully.');
         } catch (error) {
             this.logger.error('Error applying server identity: %o', error);
         }

@@ -1,16 +1,22 @@
 import { got } from 'got';
+import retry from 'p-retry';
 
 import { AppError } from '@app/core/errors/app-error.js';
 import { appLogger } from '@app/core/log.js';
 import { type LooseObject } from '@app/core/types/index.js';
+import { type Var } from '@app/core/types/states/var.js';
 import { store } from '@app/store/index.js';
 import { loadSingleStateFile } from '@app/store/modules/emhttp.js';
-import { StateFileKey } from '@app/store/types.js';
+import { FileLoadStatus, StateFileKey } from '@app/store/types.js';
+import { ArrayDisk } from '@app/unraid-api/graph/resolvers/array/array.model.js';
 
 /**
  * Run a command with emcmd.
  */
-export const emcmd = async (commands: LooseObject) => {
+export const emcmd = async (
+    commands: LooseObject,
+    { waitForToken = false }: { waitForToken?: boolean } = {}
+) => {
     const { getters } = await import('@app/store/index.js');
     const socketPath = getters.paths()['emhttpd-socket'];
 
@@ -20,27 +26,35 @@ export const emcmd = async (commands: LooseObject) => {
 
     let { csrfToken } = getters.emhttp().var;
 
-    if (!csrfToken) {
-        appLogger.warn('No CSRF token found - attempting to load var state file manually');
-        const state = await store.dispatch(loadSingleStateFile(StateFileKey.var)).unwrap();
-        if (state && 'var' in state) {
-            csrfToken = state.var.csrfToken;
-        }
-        if (!csrfToken) {
-            throw new AppError('No CSRF token found');
-        }
+    if (!csrfToken && waitForToken) {
+        await retry(
+            async (retries) => {
+                if (retries > 1) {
+                    appLogger.info('Waiting for CSRF token...');
+                }
+                const loadedState = await store.dispatch(loadSingleStateFile(StateFileKey.var)).unwrap();
+
+                if (loadedState && 'var' in loadedState) {
+                    csrfToken = loadedState.var.csrfToken;
+                }
+                if (!csrfToken) {
+                    throw new Error('CSRF token not found yet');
+                }
+                return;
+            },
+            {
+                factor: 2,
+                minTimeout: 5000,
+                maxTimeout: 10000,
+                retries: 5,
+            }
+        ).catch(() => {
+            throw new AppError('Failed to load CSRF token after multiple retries');
+        });
     }
 
-    const url = `http://unix:${socketPath}:/update.htm`;
-    const options = {
-        qs: {
-            ...commands,
-            csrf_token: csrfToken,
-        },
-    };
-
     return got
-        .post(url, {
+        .post(`http://unix:${socketPath}:/update.htm`, {
             enableUnixSockets: true,
             searchParams: { ...commands, csrf_token: csrfToken },
         })
