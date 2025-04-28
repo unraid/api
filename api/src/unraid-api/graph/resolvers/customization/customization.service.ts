@@ -8,8 +8,11 @@ import * as ini from 'ini';
 
 import { emcmd } from '@app/core/utils/clients/emcmd.js';
 import { fileExists } from '@app/core/utils/files/file-exists.js';
-import { getters } from '@app/store/index.js';
-import { ActivationCode } from '@app/unraid-api/graph/resolvers/customization/activation-code.model.js';
+import { getters, store } from '@app/store/index.js';
+import {
+    ActivationCode,
+    PublicPartnerInfo,
+} from '@app/unraid-api/graph/resolvers/customization/activation-code.model.js';
 import { convertWebGuiPathToAssetPath } from '@app/utils.js';
 
 @Injectable()
@@ -46,6 +49,7 @@ export class CustomizationService implements OnModuleInit {
             this.logger.error(
                 "Could not resolve user dynamix config path (paths['dynamix-config'][1]) from store."
             );
+
             return; // Stop initialization if critical path is missing
         }
         this.caseModelCfg = paths.dynamixCaseModelConfig;
@@ -106,6 +110,23 @@ export class CustomizationService implements OnModuleInit {
             }
             return null;
         }
+    }
+
+    public async getPublicPartnerInfo(): Promise<PublicPartnerInfo | null> {
+        const activationData = await this.getActivationData();
+
+        return {
+            hasPartnerLogo: (await this.getPartnerLogoWebguiPath()) !== null,
+            partnerName: activationData?.partnerName,
+            partnerUrl: activationData?.partnerUrl,
+            partnerLogoUrl: await this.getPartnerLogoWebguiPath(),
+        };
+    }
+
+    public async isPasswordSet(): Promise<boolean> {
+        const paths = store.getState().paths;
+        const hasPasswd = await fileExists(paths.passwd);
+        return hasPasswd;
     }
 
     /**
