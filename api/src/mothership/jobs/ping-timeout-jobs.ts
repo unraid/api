@@ -2,6 +2,7 @@ import { CronJob } from 'cron';
 
 import { KEEP_ALIVE_INTERVAL_MS, ONE_MINUTE_MS } from '@app/consts.js';
 import { minigraphLogger, mothershipLogger, remoteAccessLogger } from '@app/core/log.js';
+import { CONNECT_ENABLED } from '@app/environment.js';
 import { isAPIStateDataFullyLoaded } from '@app/mothership/graphql-client.js';
 import { setGraphqlConnectionStatus } from '@app/store/actions/set-minigraph-status.js';
 import { store } from '@app/store/index.js';
@@ -20,6 +21,13 @@ class PingTimeoutJobs {
     }
 
     async checkForPingTimeouts() {
+        if (!CONNECT_ENABLED) {
+            mothershipLogger.warn(
+                'Connect is not enabled, but the ping timeout job attempted to start. Please notify the devs (e.g. via discord in the #connect-help channel).'
+            );
+            return;
+        }
+
         const state = store.getState();
         if (!isAPIStateDataFullyLoaded(state)) {
             mothershipLogger.warn('State data not fully loaded, but job has been started');
