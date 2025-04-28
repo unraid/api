@@ -70,7 +70,9 @@ export const viteNodeApp = async () => {
         // Load my dynamix config file into store
         await store.dispatch(loadDynamixConfigFile());
 
-        await setupNewMothershipSubscription();
+        if (envVars.CONNECT_ENABLED) {
+            await setupNewMothershipSubscription();
+        }
 
         // Start listening to file updates
         StateManager.getInstance();

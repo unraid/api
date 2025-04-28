@@ -96,3 +96,4 @@ export const MOTHERSHIP_GRAPHQL_LINK = process.env.MOTHERSHIP_GRAPHQL_LINK
 
 export const PM2_HOME = process.env.PM2_HOME ?? join(homedir(), '.pm2');
 export const PATHS_CONFIG_MODULES = process.env.PATHS_CONFIG_MODULES!;
+export const CONNECT_ENABLED = process.env.CONNECT_ENABLED === 'true';
