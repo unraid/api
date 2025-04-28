@@ -36,6 +36,13 @@ vi.mock('@app/store/index.js', async () => {
             dynamix: vi.fn(() => ({ display: { theme: 'azure', header: 'FFFFFF' } })),
             emhttp: vi.fn(() => ({ var: { name: 'Tower', sysModel: 'Custom', comment: 'Default' } })),
         },
+        store: {
+            getState: vi.fn(() => ({
+                paths: mockPaths,
+                dynamix: { display: { theme: 'azure', header: 'FFFFFF' } },
+                emhttp: { var: { name: 'Tower', sysModel: 'Custom', comment: 'Default' } },
+            })),
+        },
     };
 });
 
