@@ -339,6 +339,7 @@ export class CustomizationService implements OnModuleInit {
             if (await fileExists(caseModelSource)) {
                 // Use the *target* filename which CaseModelCopierModification will create
                 const modelToSet = path.basename(paths.caseModelTarget); // e.g., 'case-model.png'
+                await fs.mkdir(path.dirname(this.caseModelCfg), { recursive: true });
                 await fs.writeFile(this.caseModelCfg, modelToSet);
                 this.logger.log(`Case model set to ${modelToSet} in ${this.caseModelCfg}`);
             } else {
