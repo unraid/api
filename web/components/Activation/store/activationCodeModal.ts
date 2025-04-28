@@ -2,30 +2,22 @@ import { computed, onMounted, onUnmounted } from 'vue';
 import { createPinia, defineStore, setActivePinia, storeToRefs } from 'pinia';
 import { useSessionStorage } from '@vueuse/core';
 
-
-
 import { ACTIVATION_CODE_MODAL_HIDDEN_STORAGE_KEY } from '~/consts';
-
-
 
 import { useActivationCodeDataStore } from '~/components/Activation/store/activationCodeData';
 import { useCallbackActionsStore } from '~/store/callbackActions';
 
-
 setActivePinia(createPinia()); /** required in web component context */
 
 export const useActivationCodeModalStore = defineStore('activationCodeModal', () => {
-  const isHidden = useSessionStorage<boolean | null>(
-    ACTIVATION_CODE_MODAL_HIDDEN_STORAGE_KEY,
-    null
-  );
+  const isHidden = useSessionStorage<boolean | null>(ACTIVATION_CODE_MODAL_HIDDEN_STORAGE_KEY, null);
 
   const { isFreshInstall } = storeToRefs(useActivationCodeDataStore());
   const { callbackData } = storeToRefs(useCallbackActionsStore());
 
   const setIsHidden = (value: boolean | null) => {
     isHidden.value = value;
-  }
+  };
 
   /**
    * Should only see this if

@@ -46,8 +46,6 @@ export class CustomizationService implements OnModuleInit {
             this.logger.error(
                 "Could not resolve user dynamix config path (paths['dynamix-config'][1]) from store."
             );
-            // Handle error appropriately - maybe throw, or use a default?
-            // For now, we'll let subsequent operations fail if configFile is needed.
             return; // Stop initialization if critical path is missing
         }
         this.caseModelCfg = paths.dynamixCaseModelConfig;

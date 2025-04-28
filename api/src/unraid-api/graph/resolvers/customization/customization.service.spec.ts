@@ -14,13 +14,8 @@ import { CustomizationService } from '@app/unraid-api/graph/resolvers/customizat
 
 // Mocks
 vi.mock('fs/promises');
-vi.mock('@app/core/utils/clients/emcmd.js');
 vi.mock('@app/core/utils/files/file-exists.js');
 
-// Enable fake timers
-vi.useFakeTimers();
-
-// Mock store dynamically
 const mockPaths = {
     activationBase: '/mock/boot/config/activation',
     'dynamix-config': ['/mock/default.cfg', '/mock/user/dynamix.cfg'],
@@ -32,9 +27,6 @@ const mockPaths = {
     caseModelSource: '/mock/boot/config/activation/assets/case-model.png',
     caseModelTarget: '/mock/webgui/images/case-model.png',
 };
-const mockDynamixState = { display: { theme: 'azure', header: 'FFFFFF' } };
-const mockEmhttpState = { var: { name: 'Tower', sysModel: 'Custom', comment: 'Default' } };
-
 vi.mock('@app/store/index.js', async () => {
     const actual = await vi.importActual('@app/store/index.js');
     return {
@@ -75,6 +67,12 @@ vi.mock('@app/core/utils/misc/sleep.js', async () => {
         sleep: vi.fn(() => Promise.resolve()),
     };
 });
+// Enable fake timers
+vi.useFakeTimers();
+
+// Mock store dynamically
+const mockDynamixState = { display: { theme: 'azure', header: 'FFFFFF' } };
+const mockEmhttpState = { var: { name: 'Tower', sysModel: 'Custom', comment: 'Default' } };
 
 describe('CustomizationService', () => {
     let service: CustomizationService;
@@ -127,14 +125,6 @@ describe('CustomizationService', () => {
 
         service = module.get<CustomizationService>(CustomizationService);
 
-        // Re-assign paths manually in beforeEach AFTER mocks are cleared and service instantiated
-        // This simulates the dynamic import within onModuleInit
-        (service as any).activationDir = activationDir;
-        (service as any).hasRunFirstBootSetup = doneFlag;
-        (service as any).configFile = userDynamixCfg;
-        (service as any).caseModelCfg = caseModelCfg;
-        (service as any).identCfg = identCfg;
-
         // Mock fileExists needed by customization methods
         vi.mocked(fileExists).mockImplementation(async (p) => {
             // Assume assets exist by default for these tests unless overridden
@@ -153,20 +143,17 @@ describe('CustomizationService', () => {
 
     describe('onModuleInit', () => {
         it('should log error if dynamix user config path is missing', async () => {
-            // Temporarily modify mockPaths to simulate missing user config path
-            const originalPaths = { ...mockPaths };
-            mockPaths['dynamix-config'] = [mockPaths['dynamix-config'][0]]; // Only keep default config
+            const originalDynamixConfig = [...mockPaths['dynamix-config']];
+            mockPaths['dynamix-config'] = [originalDynamixConfig[0]];
 
             await service.onModuleInit();
 
             expect(loggerErrorSpy).toHaveBeenCalledWith(
                 "Could not resolve user dynamix config path (paths['dynamix-config'][1]) from store."
             );
-            // Expect subsequent operations that rely on configFile to potentially fail or not run
-            expect(fs.writeFile).not.toHaveBeenCalledWith(doneFlag, 'true'); // Setup should bail early
+            expect(fs.writeFile).not.toHaveBeenCalledWith(doneFlag, 'true');
 
-            // Restore original paths
-            mockPaths['dynamix-config'] = originalPaths['dynamix-config'];
+            mockPaths['dynamix-config'] = originalDynamixConfig;
         });
 
         it('should log error and rethrow non-ENOENT errors during activation dir access', async () => {
@@ -500,18 +487,21 @@ describe('CustomizationService', () => {
         it('setupPartnerBanner should log warning and skip if activation dir disappears after init', async () => {
             const accessError = new Error('ENOENT') as NodeJS.ErrnoException;
             accessError.code = 'ENOENT';
-            // Mock access to succeed in onModuleInit context (implicit), but fail here
+            // Mock access inside applyActivationCustomizations to fail
             vi.mocked(fs.access).mockRejectedValue(accessError);
+
+            // Set up spies BEFORE calling the method
+            const setupPartnerBannerSpy = vi.spyOn(service as any, 'setupPartnerBanner');
+            const applyDisplaySettingsSpy = vi.spyOn(service as any, 'applyDisplaySettings');
 
             await (service as any).applyActivationCustomizations();
 
             expect(loggerWarnSpy).toHaveBeenCalledWith(
                 'Activation directory disappeared after init? Skipping.'
             );
-            // Ensure no customization methods were called
-            expect(fs.copyFile).not.toHaveBeenCalled();
-            expect(fs.writeFile).not.toHaveBeenCalled();
-            expect(emcmd).not.toHaveBeenCalled();
+            // Ensure no customization methods were called implicitly by checking their side effects
+            expect(setupPartnerBannerSpy).not.toHaveBeenCalled();
+            expect(applyDisplaySettingsSpy).not.toHaveBeenCalled();
         });
 
         it('setupPartnerBanner should log error on fileExists failure', async () => {
@@ -823,14 +813,16 @@ describe('applyActivationCustomizations specific tests', () => {
         // Mock access inside applyActivationCustomizations to fail
         vi.mocked(fs.access).mockRejectedValue(accessError);
 
+        // Set up spies BEFORE calling the method
+        const setupPartnerBannerSpy = vi.spyOn(service as any, 'setupPartnerBanner');
+        const applyDisplaySettingsSpy = vi.spyOn(service as any, 'applyDisplaySettings');
+
         await (service as any).applyActivationCustomizations();
 
         expect(loggerWarnSpy).toHaveBeenCalledWith(
             'Activation directory disappeared after init? Skipping.'
         );
         // Ensure no customization methods were called implicitly by checking their side effects
-        const setupPartnerBannerSpy = vi.spyOn(service as any, 'setupPartnerBanner');
-        const applyDisplaySettingsSpy = vi.spyOn(service as any, 'applyDisplaySettings');
         expect(setupPartnerBannerSpy).not.toHaveBeenCalled();
         expect(applyDisplaySettingsSpy).not.toHaveBeenCalled();
     });

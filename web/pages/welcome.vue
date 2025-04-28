@@ -14,10 +14,15 @@ const { isVisible } = storeToRefs(modalStore);
 const { isFreshInstall } = storeToRefs(useActivationCodeDataStore());
 const { callbackData } = storeToRefs(useCallbackActionsStore());
 
-const toggleActivationModalHidden = () => {
-  console.log('toggleActivationModalHidden', isVisible.value);
-  modalStore.setIsHidden(isVisible.value);
+/**
+ * Forces the activation modal to show - this flag overrides the default logic
+ * which only shows the modal if the server is a fresh install and there is no
+ * callback data.
+ */
+const showActivationModal = () => {
+  modalStore.setIsHidden(false);
 };
+
 
 </script>
 
@@ -36,9 +41,9 @@ const toggleActivationModalHidden = () => {
       </ul>
       <button
         class="mt-2 px-4 py-2 rounded bg-blue-500 text-white hover:bg-blue-600"
-        @click="toggleActivationModalHidden"
+        @click="showActivationModal"
       >
-        Toggle `isVisible` (Currently: {{ isVisible }})
+        Show Activation Modal
       </button>
     </div>
 
