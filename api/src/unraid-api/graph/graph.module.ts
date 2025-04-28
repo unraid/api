@@ -14,9 +14,9 @@ import {
 } from '@app/unraid-api/graph/directives/use-permissions.directive.js';
 import { ResolversModule } from '@app/unraid-api/graph/resolvers/resolvers.module.js';
 import { sandboxPlugin } from '@app/unraid-api/graph/sandbox-plugin.js';
-import { PluginModule } from '@app/unraid-api/plugin/plugin.module.js';
 import { GraphQLLong } from '@app/unraid-api/graph/scalars/graphql-type-long.js';
 import { PrefixedID as PrefixedIDScalar } from '@app/unraid-api/graph/scalars/graphql-type-prefixed-id.js';
+import { PluginModule } from '@app/unraid-api/plugin/plugin.module.js';
 
 @Module({
     imports: [
