@@ -5,7 +5,7 @@ import * as path from 'path';
 
 import { plainToInstance } from 'class-transformer';
 import * as ini from 'ini';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { emcmd } from '@app/core/utils/clients/emcmd.js';
 import { fileExists } from '@app/core/utils/files/file-exists.js';
@@ -33,8 +33,8 @@ vi.mock('@app/store/index.js', async () => {
         ...actual,
         getters: {
             paths: vi.fn(() => mockPaths),
-            dynamix: vi.fn(() => mockDynamixState),
-            emhttp: vi.fn(() => mockEmhttpState),
+            dynamix: vi.fn(() => ({ display: { theme: 'azure', header: 'FFFFFF' } })),
+            emhttp: vi.fn(() => ({ var: { name: 'Tower', sysModel: 'Custom', comment: 'Default' } })),
         },
     };
 });
@@ -67,12 +67,6 @@ vi.mock('@app/core/utils/misc/sleep.js', async () => {
         sleep: vi.fn(() => Promise.resolve()),
     };
 });
-// Enable fake timers
-vi.useFakeTimers();
-
-// Mock store dynamically
-const mockDynamixState = { display: { theme: 'azure', header: 'FFFFFF' } };
-const mockEmhttpState = { var: { name: 'Tower', sysModel: 'Custom', comment: 'Default' } };
 
 describe('CustomizationService', () => {
     let service: CustomizationService;
@@ -112,7 +106,7 @@ describe('CustomizationService', () => {
 
     beforeEach(async () => {
         vi.clearAllMocks(); // Clear mocks before each test
-
+        vi.useFakeTimers();
         // Spy on logger methods
         loggerDebugSpy = vi.spyOn(Logger.prototype, 'debug').mockImplementation(() => {});
         loggerLogSpy = vi.spyOn(Logger.prototype, 'log').mockImplementation(() => {});
@@ -135,6 +129,10 @@ describe('CustomizationService', () => {
                 p === bannerDestPath
             );
         });
+    });
+
+    afterEach(() => {
+        vi.useRealTimers();
     });
 
     it('should be defined', () => {
