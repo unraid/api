@@ -21,13 +21,6 @@ class PingTimeoutJobs {
     }
 
     async checkForPingTimeouts() {
-        if (!CONNECT_ENABLED) {
-            mothershipLogger.warn(
-                'Connect is not enabled, but the ping timeout job attempted to start. Please notify the devs (e.g. via discord in the #connect-help channel).'
-            );
-            return;
-        }
-
         const state = store.getState();
         if (!isAPIStateDataFullyLoaded(state)) {
             mothershipLogger.warn('State data not fully loaded, but job has been started');
@@ -115,6 +108,13 @@ class PingTimeoutJobs {
 let pingTimeoutJobs: PingTimeoutJobs | null = null;
 
 export const initPingTimeoutJobs = (): boolean => {
+    if (!CONNECT_ENABLED) {
+        minigraphLogger.warn(
+            'Connect is not enabled, but the ping timeout job attempted to start. Please notify the devs (e.g. via discord in the #connect-help channel).'
+        );
+        return false;
+    }
+
     if (!pingTimeoutJobs) {
         pingTimeoutJobs = new PingTimeoutJobs();
     }
