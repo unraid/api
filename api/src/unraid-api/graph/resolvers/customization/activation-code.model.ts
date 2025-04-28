@@ -33,6 +33,9 @@ const sanitizeAndValidateHexColor = (value: any): string => {
 @ObjectType()
 export class PublicPartnerInfo {
     @Field(() => String, { nullable: true })
+    @IsOptional()
+    @IsString()
+    @Transform(({ value }) => sanitizeString(value))
     partnerName?: string;
 
     @Field(() => Boolean, { description: 'Indicates if a partner logo exists' })
