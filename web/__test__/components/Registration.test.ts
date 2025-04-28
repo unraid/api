@@ -10,9 +10,12 @@ import { createTestingPinia } from '@pinia/testing';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import type { VueWrapper } from '@vue/test-utils';
+import type { ServerconnectPluginInstalled } from '~/types/server';
 import type { Pinia } from 'pinia';
 
 import Registration from '~/components/Registration.ce.vue';
+import MockedRegistrationItem from '~/components/Registration/Item.vue';
+import { usePurchaseStore } from '~/store/purchase';
 import { useReplaceRenewStore } from '~/store/replaceRenew';
 import { useServerStore } from '~/store/server';
 
@@ -62,6 +65,7 @@ vi.mock('~/components/UserProfile/UptimeExpire.vue', () => ({
 vi.mock('~/components/Registration/Item.vue', () => ({
   default: defineComponent({
     props: ['label', 'text', 'component', 'componentProps', 'error', 'warning', 'componentOpacity'],
+    name: 'RegistrationItem',
     template: `
       <div class="registration-item">
         <dt v-if="label">{{ label }}</dt>
@@ -118,6 +122,7 @@ describe('Registration.ce.vue', () => {
   let pinia: Pinia;
   let serverStore: ReturnType<typeof useServerStore>;
   let replaceRenewStore: ReturnType<typeof useReplaceRenewStore>;
+  let purchaseStore: ReturnType<typeof usePurchaseStore>;
 
   const findItemByLabel = (labelKey: string) => {
     const items = wrapper.findAllComponents({ name: 'RegistrationItem' });
@@ -137,6 +142,7 @@ describe('Registration.ce.vue', () => {
 
     serverStore = useServerStore();
     replaceRenewStore = useReplaceRenewStore();
+    purchaseStore = usePurchaseStore();
 
     serverStore.deprecatedUnraidSSL = undefined;
 
@@ -148,6 +154,9 @@ describe('Registration.ce.vue', () => {
     wrapper = mount(Registration, {
       global: {
         plugins: [pinia],
+        components: {
+          RegistrationItem: MockedRegistrationItem,
+        },
       },
     });
   });
@@ -165,8 +174,68 @@ describe('Registration.ce.vue', () => {
     expect(subheading.text()).toContain('Choose an option below');
     expect(findItemByLabel(t('License key type'))).toBeUndefined();
     expect(findItemByLabel(t('Flash GUID'))).toBeUndefined();
-    expect(wrapper.find('[data-testid="key-actions"]').exists()).toBe(false);
+    expect(wrapper.find('[data-testid="key-actions"]').exists()).toBe(true);
     expect(wrapper.find('[data-testid="replace-check"]').exists()).toBe(false);
     expect(wrapper.find('[data-testid="key-linked-status"]').exists()).toBe(false);
+  });
+
+  it('triggers expected action when key action is clicked', async () => {
+    serverStore.state = 'TRIAL';
+
+    await wrapper.vm.$nextTick();
+
+    const items = wrapper.findAllComponents({ name: 'RegistrationItem' });
+    const keyActionsItem = items.find((item) => {
+      const componentProp = item.props('component');
+
+      return componentProp?.template?.includes('data-testid="key-actions"');
+    });
+
+    expect(keyActionsItem, 'RegistrationItem for KeyActions not found').toBeDefined();
+
+    const componentProps = keyActionsItem!.props('componentProps') as {
+      filterOut?: string[];
+      t: unknown;
+    };
+    const expectedActions = serverStore.keyActions?.filter(
+      (action) => !componentProps?.filterOut?.includes(action.name)
+    );
+
+    expect(expectedActions, 'No expected actions found in store for TRIAL state').toBeDefined();
+    expect(expectedActions!.length).toBeGreaterThan(0);
+
+    const purchaseAction = expectedActions!.find((a) => a.name === 'purchase');
+
+    expect(purchaseAction, 'Purchase action not found in expected actions').toBeDefined();
+
+    purchaseAction!.click?.();
+
+    expect(purchaseStore.purchase).toHaveBeenCalled();
+  });
+
+  it('renders registered state information when state is PRO', async () => {
+    serverStore.state = 'PRO';
+    serverStore.regTy = 'Pro';
+    serverStore.regTo = 'Test User';
+    serverStore.regGuid = '12345-ABCDE';
+    serverStore.registered = true;
+    serverStore.connectPluginInstalled = 'INSTALLED' as ServerconnectPluginInstalled;
+    serverStore.guid = 'FLASH-GUID-123';
+    serverStore.deviceCount = 5;
+
+    await wrapper.vm.$nextTick();
+
+    const keyTypeItem = findItemByLabel(t('License key type'));
+
+    expect(keyTypeItem).toBeDefined();
+    expect(keyTypeItem?.props('text')).toBe('Pro');
+
+    const registeredToItem = findItemByLabel(t('Registered to'));
+
+    expect(registeredToItem).toBeDefined();
+    expect(registeredToItem?.props('text')).toBe('Test User');
+    expect(findItemByLabel(t('Flash GUID'))).toBeDefined();
+    expect(findItemByLabel(t('Attached Storage Devices'))).toBeDefined();
+    expect(wrapper.find('[data-testid="key-actions"]').exists()).toBe(false);
   });
 });
