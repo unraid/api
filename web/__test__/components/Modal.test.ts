@@ -7,16 +7,18 @@ import { mount } from '@vue/test-utils';
 
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import type { VueWrapper } from '@vue/test-utils';
+import type { MountingOptions, VueWrapper } from '@vue/test-utils';
+import type { Props as ModalProps } from '~/components/Modal.vue';
 
 import Modal from '~/components/Modal.vue';
 
 vi.mock('@unraid/ui', () => ({
-  cn: (...args: any[]) => args.filter(Boolean).join(' '),
+  cn: (...args: unknown[]) => args.filter(Boolean).join(' '),
 }));
 
 const mockSetProperty = vi.fn();
 const mockRemoveProperty = vi.fn();
+
 Object.defineProperty(document.body.style, 'setProperty', {
   value: mockSetProperty,
   writable: true,
@@ -29,7 +31,7 @@ Object.defineProperty(document.body.style, 'removeProperty', {
 const t = (key: string) => key;
 
 describe('Modal', () => {
-  let wrapper: VueWrapper<any>;
+  let wrapper: VueWrapper<unknown>;
 
   beforeEach(() => {
     vi.clearAllMocks();
@@ -41,14 +43,16 @@ describe('Modal', () => {
     vi.restoreAllMocks();
   });
 
-  const mountModal = (options: any = {}) => {
+  const mountModal = (options: MountingOptions<ModalProps> = {}) => {
+    const { slots, ...restOptions } = options;
+
     return mount(Modal, {
       props: {
         t,
         open: true,
-        ...options.props,
+        ...((options.props as Partial<ModalProps>) || {}),
       },
-      slots: options.slots,
+      slots: slots as Record<string, any>,
       global: {
         stubs: {
           TransitionRoot: {
@@ -58,11 +62,11 @@ describe('Modal', () => {
           TransitionChild: {
             template: '<div><slot /></div>',
           },
-          ...(options.global?.stubs || {}),
+          ...(restOptions.global?.stubs || {}),
         },
-        ...(options.global || {}),
+        ...(restOptions.global || {}),
       },
-      attachTo: options.attachTo,
+      attachTo: restOptions.attachTo,
     });
   };
 
@@ -94,7 +98,8 @@ describe('Modal', () => {
 
   it('renders description in main content', async () => {
     const testDescription = 'This is the modal description.';
-    wrapper = mountModal({ props: { description: testDescription } });
+
+    wrapper = mountModal({ props: { t, description: testDescription } });
 
     const main = wrapper.find('[class*="max-h-"]');
 
@@ -103,9 +108,10 @@ describe('Modal', () => {
   });
 
   it('does not emit close event on overlay click when disableOverlayClose is true', async () => {
-    wrapper = mountModal({ props: { disableOverlayClose: true } });
+    wrapper = mountModal({ props: { t, disableOverlayClose: true } });
 
     const overlay = wrapper.find('[class*="fixed inset-0 z-0"]');
+
     await overlay.trigger('click');
 
     expect(wrapper.emitted('close')).toBeUndefined();
@@ -129,6 +135,7 @@ describe('Modal', () => {
         maxWidth,
       },
     });
+
     await nextTick();
 
     expect(wrapper.find('[class*="sm:max-w-"]').classes()).toContain(maxWidth);
@@ -142,6 +149,7 @@ describe('Modal', () => {
         error: true,
       },
     });
+
     await nextTick();
 
     let modalDiv = wrapper.find('[class*="text-left relative z-10"]');
@@ -167,6 +175,7 @@ describe('Modal', () => {
         disableShadow: true,
       },
     });
+
     await nextTick();
 
     const modalDiv = wrapper.find('[class*="text-left relative z-10"]');
@@ -183,12 +192,14 @@ describe('Modal', () => {
         headerJustifyCenter: false,
       },
     });
+
     await nextTick();
 
     expect(wrapper.find('header').classes()).toContain('justify-between');
     expect(wrapper.find('header').classes()).not.toContain('justify-center');
 
     wrapper.setProps({ headerJustifyCenter: true });
+
     await nextTick();
 
     expect(wrapper.find('header').classes()).toContain('justify-center');
@@ -207,6 +218,7 @@ describe('Modal', () => {
         overlayOpacity,
       },
     });
+
     await nextTick();
 
     const overlay = wrapper.find('[class*="fixed inset-0 z-0"]');
