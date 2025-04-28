@@ -19,4 +19,6 @@ export const GRAPHQL_PUB_SUB_TOKEN = 'GRAPHQL_PUB_SUB';
 export enum EVENTS {
     LOGIN = 'connect.login',
     LOGOUT = 'connect.logout',
+    IDENTITY_CHANGED = 'connect.identity.changed',
+    METADATA_CHANGED = 'connect.mothership.changed',
 }

@@ -1,8 +1,13 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 import type { OutgoingHttpHeaders } from 'node:http2';
 
+import { Subscription } from 'rxjs';
+import { debounceTime, filter } from 'rxjs/operators';
+
 import { ConnectionMetadata, MinigraphStatus, MyServersConfig } from '../config.entity.js';
+import { EVENTS } from '../pubsub/consts.js';
 
 interface MothershipWebsocketHeaders extends OutgoingHttpHeaders {
     'x-api-key': string;
@@ -43,13 +48,24 @@ type ConnectionStatus =
       };
 
 @Injectable()
-export class MothershipConnectionService {
+export class MothershipConnectionService implements OnModuleInit, OnModuleDestroy {
     private readonly logger = new Logger(MothershipConnectionService.name);
-    private unraidVersion: string = '';
-    private flashGuid: string = '';
-    private apiVersion: string = '';
+    private readonly configKeys = {
+        unraidVersion: 'store.emhttp.var.version',
+        flashGuid: 'store.emhttp.var.flashGuid',
+        apiVersion: 'API_VERSION',
+        apiKey: 'connect.config.apikey',
+    };
 
-    constructor(private readonly configService: ConfigService) {}
+    private identitySubscription: Subscription | null = null;
+    private metadataChangedSubscription: Subscription | null = null;
+
+    constructor(
+        private readonly configService: ConfigService,
+        private readonly eventEmitter: EventEmitter2
+    ) {}
+
+    private async setupNewMothershipSubscription() {}
 
     private updateMetadata(data: Partial<ConnectionMetadata>) {
         this.configService.set('connect.mothership', {
@@ -62,21 +78,81 @@ export class MothershipConnectionService {
         this.configService.set('connect.mothership', data);
     }
 
-    async onModuleInit() {
-        // Crash on startup if these config values are not set
-        this.unraidVersion = this.configService.getOrThrow('store.emhttp.var.version');
-        this.flashGuid = this.configService.getOrThrow('store.emhttp.var.flashGuid');
-        this.apiVersion = this.configService.getOrThrow('API_VERSION');
+    private setupIdentitySubscription() {
+        if (this.identitySubscription) {
+            this.identitySubscription.unsubscribe();
+        }
+        const debounceTimeMs = 100;
+        this.identitySubscription = this.configService.changes$
+            .pipe(
+                filter((change) => Object.values(this.configKeys).includes(change.path)),
+                debounceTime(debounceTimeMs)
+            )
+            .subscribe({
+                next: () => {
+                    const success = this.eventEmitter.emit(EVENTS.IDENTITY_CHANGED);
+                    if (!success) {
+                        this.logger.warn('Failed to emit IDENTITY_CHANGED event');
+                    }
+                },
+                error: (err) => {
+                    this.logger.error('Error in identity state subscription: %o', err);
+                },
+            });
     }
 
+    private setupMetadataChangedEvent() {
+        if (this.metadataChangedSubscription) {
+            this.metadataChangedSubscription.unsubscribe();
+        }
+        this.metadataChangedSubscription = this.configService.changes$
+            .pipe(filter((change) => change.path.startsWith('connect.mothership')))
+            .subscribe({
+                next: () => {
+                    const success = this.eventEmitter.emit(EVENTS.METADATA_CHANGED);
+                    if (!success) {
+                        this.logger.warn('Failed to emit METADATA_CHANGED event');
+                    }
+                },
+                error: (err) => {
+                    this.logger.error('Error in metadata changed subscription: %o', err);
+                },
+            });
+    }
+
+    async onModuleInit() {
+        // Crash on startup if these config values are not set initially
+        const { unraidVersion, flashGuid, apiVersion } = this.configKeys;
+        [unraidVersion, flashGuid, apiVersion].forEach((key) => {
+            this.configService.getOrThrow(key);
+        });
+        // Setup IDENTITY_CHANGED & METADATA_CHANGED events
+        this.setupIdentitySubscription();
+        this.setupMetadataChangedEvent();
+    }
+
+    async onModuleDestroy() {
+        if (this.identitySubscription) {
+            this.identitySubscription.unsubscribe();
+            this.identitySubscription = null;
+        }
+        if (this.metadataChangedSubscription) {
+            this.metadataChangedSubscription.unsubscribe();
+            this.metadataChangedSubscription = null;
+        }
+    }
+
+    /**
+     * Fetches the current identity state directly from ConfigService.
+     */
     getIdentityState():
         | { state: IdentityState; isLoaded: true }
         | { state: Partial<IdentityState>; isLoaded: false } {
         const state = {
-            unraidVersion: this.unraidVersion,
-            flashGuid: this.flashGuid,
-            apiVersion: this.apiVersion,
-            apiKey: this.configService.get<MyServersConfig>('connect.config')?.apikey,
+            unraidVersion: this.configService.get<string>(this.configKeys.unraidVersion),
+            flashGuid: this.configService.get<string>(this.configKeys.flashGuid),
+            apiVersion: this.configService.get<string>(this.configKeys.apiVersion),
+            apiKey: this.configService.get<string>(this.configKeys.apiKey),
         };
         const isLoaded = Object.values(state).every(Boolean);
         return isLoaded ? { state: state as IdentityState, isLoaded: true } : { state, isLoaded: false };

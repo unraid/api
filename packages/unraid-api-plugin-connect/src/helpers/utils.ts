@@ -2,6 +2,8 @@ import { accessSync } from 'fs';
 import { access } from 'fs/promises';
 import { F_OK } from 'node:constants';
 
+import type { Get } from 'type-fest';
+
 export const fileExists = async (path: string) =>
     access(path, F_OK)
         .then(() => true)
@@ -40,4 +42,24 @@ export function csvStringToArray(
         return result.filter((item) => item !== '');
     }
     return result;
+}
+
+/**
+ * Retrieves a nested value from an object using a dot notation path.
+ *
+ * @example
+ * const obj = { a: { b: { c: 'value' } } };
+ * getNestedValue(obj, 'a.b.c') // 'value'
+ * getNestedValue(obj, 'a.b') // { c: 'value' }
+ * getNestedValue(obj, 'a.b.d') // undefined
+ *
+ * @param obj - The object to retrieve the value from
+ * @param path - The dot notation path to the value
+ * @returns The nested value or undefined if the path is invalid
+ */
+export function getNestedValue<TObj extends object, TPath extends string>(
+    obj: TObj,
+    path: TPath
+): Get<TObj, TPath> {
+    return path.split('.').reduce((acc, part) => acc?.[part], obj as any) as Get<TObj, TPath>;
 }

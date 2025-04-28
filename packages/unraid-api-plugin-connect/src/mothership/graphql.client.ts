@@ -75,19 +75,15 @@ export class GraphqlClientService implements OnModuleInit, OnModuleDestroy {
         if (this.isStateValid()) {
             return this.apolloClient;
         }
-        this.logger.error('GraphQL Client is not valid. Returning null for instance');
+        this.logger.debug('Identity state is not valid. Returning null client instance');
         return null;
     }
 
     /**
      * Create a new Apollo client instance if one doesn't exist and state is valid
      */
-    async createClientInstance(): Promise<ApolloClient<NormalizedCacheObject> | null> {
-        if (!this.apolloClient && this.isStateValid()) {
-            this.logger.verbose('Creating a new Apollo Client Instance');
-            this.apolloClient = this.createGraphqlClient();
-        }
-        return this.apolloClient;
+    async createClientInstance(): Promise<ApolloClient<NormalizedCacheObject>> {
+        return this.getClient() ?? this.createGraphqlClient();
     }
 
     /**
@@ -114,6 +110,7 @@ export class GraphqlClientService implements OnModuleInit, OnModuleDestroy {
      * Create a new Apollo client with WebSocket link
      */
     private createGraphqlClient(): ApolloClient<NormalizedCacheObject> {
+        this.logger.verbose('Creating a new Apollo Client Instance');
         this.wsClient = createClient({
             url: this.mothershipGraphqlLink.replace('http', 'ws'),
             webSocketImpl: this.getWebsocketWithMothershipHeaders(),
