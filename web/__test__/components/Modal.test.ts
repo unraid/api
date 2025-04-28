@@ -50,9 +50,9 @@ describe('Modal', () => {
       props: {
         t,
         open: true,
-        ...((options.props as Partial<ModalProps>) || {}),
+        ...(restOptions.props || {}),
       },
-      slots: slots as Record<string, any>,
+      slots: slots as Record<string, string>,
       global: {
         stubs: {
           TransitionRoot: {
