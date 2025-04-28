@@ -23,14 +23,13 @@ export class CustomizationResolver {
     constructor(private readonly customizationService: CustomizationService) {}
 
     private async _getPublicPartnerInfoInternal(): Promise<PublicPartnerInfo | null> {
-        const hasPartnerLogo = (await this.customizationService.getPartnerLogoWebguiPath()) !== null;
         const activationData = await this.customizationService.getActivationData();
 
         return {
-            hasPartnerLogo: hasPartnerLogo,
+            hasPartnerLogo: (await this.customizationService.getPartnerLogoWebguiPath()) !== null,
             partnerName: activationData?.partnerName,
             partnerUrl: activationData?.partnerUrl,
-            partnerLogoUrl: (await this.customizationService.getPartnerLogoWebguiPath()) ?? undefined,
+            partnerLogoUrl: await this.customizationService.getPartnerLogoWebguiPath(),
         };
     }
 

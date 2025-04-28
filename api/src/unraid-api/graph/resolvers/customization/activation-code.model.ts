@@ -36,17 +36,17 @@ export class PublicPartnerInfo {
     @IsOptional()
     @IsString()
     @Transform(({ value }) => sanitizeString(value))
-    partnerName?: string;
+    partnerName?: string | null;
 
     @Field(() => Boolean, { description: 'Indicates if a partner logo exists' })
     @IsBoolean()
-    hasPartnerLogo?: boolean;
+    hasPartnerLogo?: boolean | null;
 
     @Field(() => String, { nullable: true })
     @IsOptional()
     @IsString()
     @Transform(({ value }) => sanitizeString(value))
-    partnerUrl?: string;
+    partnerUrl?: string | null;
 
     @Field(() => String, {
         nullable: true,
@@ -56,7 +56,7 @@ export class PublicPartnerInfo {
     @IsOptional()
     @IsString()
     @Transform(({ value }) => sanitizeString(value))
-    partnerLogoUrl?: string;
+    partnerLogoUrl?: string | null;
 }
 
 @ObjectType()
