@@ -39,18 +39,18 @@ export class MothershipHandler implements OnModuleDestroy {
         // todo: init ping timeout jobs
     }
 
-    @OnEvent(EVENTS.METADATA_CHANGED)
-    async onMetadataChanged() {
-        const state = this.connectionService.getConnectionState();
-        if (state && [MinigraphStatus.PING_FAILURE, MinigraphStatus.PRE_INIT].includes(state.status)) {
-            await this.setup();
-        }
-    }
-
     @OnEvent(EVENTS.IDENTITY_CHANGED)
     async onIdentityChanged() {
         const { state } = this.connectionService.getIdentityState();
         if (state.apiKey) {
+            await this.setup();
+        }
+    }
+
+    @OnEvent(EVENTS.MOTHERSHIP_CONNECTION_STATUS_CHANGED)
+    async onMothershipConnectionStatusChanged() {
+        const state = this.connectionService.getConnectionState();
+        if (state && [MinigraphStatus.PING_FAILURE, MinigraphStatus.PRE_INIT].includes(state.status)) {
             await this.setup();
         }
     }

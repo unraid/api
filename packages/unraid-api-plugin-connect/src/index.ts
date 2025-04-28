@@ -4,12 +4,22 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { configFeature } from './config.entity.js';
 import { ConnectConfigPersister } from './config.persistence.js';
 import { HealthResolver } from './connect.resolver.js';
+import { MothershipConnectionService } from './mothership/connection.service.js';
+import { GraphqlClientService } from './mothership/graphql.client.js';
+import { MothershipHandler } from './mothership/mothership.handler.js';
 
 export const adapter = 'nestjs';
 
 @Module({
     imports: [ConfigModule.forFeature(configFeature)],
-    providers: [HealthResolver, ConnectConfigPersister],
+    providers: [
+        HealthResolver,
+        ConnectConfigPersister,
+        // Disabled for an experiment
+        // MothershipHandler,
+        // MothershipConnectionService,
+        // GraphqlClientService,
+    ],
 })
 class ConnectPluginModule {
     logger = new Logger(ConnectPluginModule.name);

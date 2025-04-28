@@ -4,7 +4,7 @@ import { join } from 'path';
 
 import { fileExists } from '@app/core/utils/files/file-exists.js';
 import { PATHS_CONFIG_MODULES } from '@app/environment.js';
-import { makeConfigToken } from '@app/unraid-api/config/config.injection.js';
+import { makeConfigToken } from '@app/unraid-api/config/factory/config.injection.js';
 import { ConfigPersistenceHelper } from '@app/unraid-api/config/persistence.helper.js';
 
 export interface ApiStateConfigOptions<T> {

@@ -1,11 +1,11 @@
 import type { DynamicModule, Provider } from '@nestjs/common';
 import { SchedulerRegistry } from '@nestjs/schedule';
 
-import type { ApiStateConfigOptions } from '@app/unraid-api/config/api-state.model.js';
-import type { ApiStateConfigPersistenceOptions } from '@app/unraid-api/config/api-state.service.js';
-import { ApiStateConfig } from '@app/unraid-api/config/api-state.model.js';
-import { ScheduledConfigPersistence } from '@app/unraid-api/config/api-state.service.js';
-import { makeConfigToken } from '@app/unraid-api/config/config.injection.js';
+import type { ApiStateConfigOptions } from '@app/unraid-api/config/factory/api-state.model.js';
+import type { ApiStateConfigPersistenceOptions } from '@app/unraid-api/config/factory/api-state.service.js';
+import { ApiStateConfig } from '@app/unraid-api/config/factory/api-state.model.js';
+import { ScheduledConfigPersistence } from '@app/unraid-api/config/factory/api-state.service.js';
+import { makeConfigToken } from '@app/unraid-api/config/factory/config.injection.js';
 import { ConfigPersistenceHelper } from '@app/unraid-api/config/persistence.helper.js';
 
 type ApiStateRegisterOptions<ConfigType> = ApiStateConfigOptions<ConfigType> & {

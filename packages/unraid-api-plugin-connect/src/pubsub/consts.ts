@@ -20,5 +20,5 @@ export enum EVENTS {
     LOGIN = 'connect.login',
     LOGOUT = 'connect.logout',
     IDENTITY_CHANGED = 'connect.identity.changed',
-    METADATA_CHANGED = 'connect.mothership.changed',
+    MOTHERSHIP_CONNECTION_STATUS_CHANGED = 'connect.mothership.changed',
 }

@@ -65,8 +65,6 @@ export class MothershipConnectionService implements OnModuleInit, OnModuleDestro
         private readonly eventEmitter: EventEmitter2
     ) {}
 
-    private async setupNewMothershipSubscription() {}
-
     private updateMetadata(data: Partial<ConnectionMetadata>) {
         this.configService.set('connect.mothership', {
             ...this.configService.get<ConnectionMetadata>('connect.mothership'),
@@ -109,7 +107,7 @@ export class MothershipConnectionService implements OnModuleInit, OnModuleDestro
             .pipe(filter((change) => change.path.startsWith('connect.mothership')))
             .subscribe({
                 next: () => {
-                    const success = this.eventEmitter.emit(EVENTS.METADATA_CHANGED);
+                    const success = this.eventEmitter.emit(EVENTS.MOTHERSHIP_CONNECTION_STATUS_CHANGED);
                     if (!success) {
                         this.logger.warn('Failed to emit METADATA_CHANGED event');
                     }

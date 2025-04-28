@@ -546,6 +546,9 @@ importers:
       rxjs:
         specifier: ^7.8.2
         version: 7.8.2
+      type-fest:
+        specifier: ^4.37.0
+        version: 4.38.0
       typescript:
         specifier: ^5.8.2
         version: 5.8.2
@@ -4266,6 +4269,7 @@ packages:
   '@unraid/libvirt@2.1.0':
     resolution: {integrity: sha512-yF/sAzYukM+VpDdAebf0z0O2mE5mGOEAW5lIafFkYoMiu60zNkNmr5IoA9hWCMmQkBOUCam8RZGs9YNwRjMtMQ==}
     engines: {node: '>=14'}
+    cpu: [x64, arm64]
     os: [linux, darwin]
 
   '@unraid/shared-callbacks@1.0.1':
@@ -16481,7 +16485,7 @@ snapshots:
       sirv: 3.0.1
       tinyglobby: 0.2.12
       tinyrainbow: 2.0.0
-      vitest: 3.0.9(@types/node@22.13.13)(@vitest/ui@3.0.9)(happy-dom@17.4.4)(jiti@2.4.2)(jsdom@26.0.0)(stylus@0.57.0)(terser@5.39.0)(tsx@4.19.3)(yaml@2.7.0)
+      vitest: 3.0.9(@types/node@22.14.1)(@vitest/ui@3.0.9)(happy-dom@17.4.4)(jiti@2.4.2)(jsdom@26.0.0)(stylus@0.57.0)(terser@5.39.0)(tsx@4.19.3)(yaml@2.7.0)
 
   '@vitest/utils@2.0.5':
     dependencies:
@@ -17516,7 +17520,7 @@ snapshots:
       camelcase: 8.0.0
       map-obj: 5.0.0
       quick-lru: 6.1.2
-      type-fest: 4.37.0
+      type-fest: 4.38.0
 
   camelcase@5.3.1: {}
 
@@ -20023,7 +20027,7 @@ snapshots:
       lowercase-keys: 3.0.0
       p-cancelable: 4.0.1
       responselike: 3.0.0
-      type-fest: 4.37.0
+      type-fest: 4.38.0
 
   graceful-fs@4.2.10: {}
 
