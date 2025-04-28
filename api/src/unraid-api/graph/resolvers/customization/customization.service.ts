@@ -8,9 +8,7 @@ import * as ini from 'ini';
 
 import { emcmd } from '@app/core/utils/clients/emcmd.js';
 import { fileExists } from '@app/core/utils/files/file-exists.js';
-import { sleep } from '@app/core/utils/misc/sleep.js';
-import { reloadNginxAndUpdateDNS } from '@app/store/actions/reload-nginx-and-update-dns.js';
-import { getters, store } from '@app/store/index.js';
+import { getters } from '@app/store/index.js';
 import { ActivationCode } from '@app/unraid-api/graph/resolvers/customization/activation-code.model.js';
 import { convertWebGuiPathToAssetPath } from '@app/utils.js';
 
@@ -18,6 +16,7 @@ import { convertWebGuiPathToAssetPath } from '@app/utils.js';
 export class CustomizationService implements OnModuleInit {
     private readonly logger = new Logger(CustomizationService.name);
     private readonly activationJsonExtension = '.activationcode';
+    private readonly activationAppliedFilename = 'applied.txt';
     private activationDir!: string;
     private hasRunFirstBootSetup!: string;
     private configFile!: string;
@@ -38,11 +37,10 @@ export class CustomizationService implements OnModuleInit {
     }
 
     async onModuleInit() {
-        // Dynamically import getters and initialize paths
         const paths = getters.paths();
 
         this.activationDir = paths.activationBase;
-        this.hasRunFirstBootSetup = path.join(this.activationDir, '.done');
+        this.hasRunFirstBootSetup = path.join(this.activationDir, this.activationAppliedFilename);
         this.configFile = paths['dynamix-config']?.[1];
         if (!this.configFile) {
             this.logger.error(
@@ -318,37 +316,14 @@ export class CustomizationService implements OnModuleInit {
         const caseModelSource = paths.caseModelSource;
 
         try {
-            let currentCaseModel = '';
-            try {
-                currentCaseModel = await fs.readFile(this.caseModelCfg, 'utf-8');
-            } catch (readError: any) {
-                // Added type annotation
-                if (readError.code !== 'ENOENT') throw readError; // Rethrow if not a file not found error
-                this.logger.log(`${this.caseModelCfg} not found, assuming no case model set.`);
-            }
-
-            this.logger.debug(`Current case model: ${currentCaseModel}`);
-
-            let modelToSet: string | null = null;
-
             // Check if the custom image file exists in assets
             if (await fileExists(caseModelSource)) {
                 // Use the *target* filename which CaseModelCopierModification will create
-                modelToSet = path.basename(paths.caseModelTarget); // e.g., 'case-model.png'
-                this.logger.log('Custom case model file found in assets, config will be set.');
+                const modelToSet = path.basename(paths.caseModelTarget); // e.g., 'case-model.png'
+                await fs.writeFile(this.caseModelCfg, modelToSet);
+                this.logger.log(`Case model set to ${modelToSet} in ${this.caseModelCfg}`);
             } else {
                 this.logger.log('No custom case model file found in assets.');
-            }
-
-            // If a model was determined, write it to the config file
-            if (modelToSet) {
-                try {
-                    await fs.writeFile(this.caseModelCfg, modelToSet);
-                    this.logger.log(`Case model set to ${modelToSet} in ${this.caseModelCfg}`);
-                } catch (writeError: any) {
-                    // Added type annotation
-                    this.logger.error(`Failed to write case model config: ${writeError.message}`);
-                }
             }
         } catch (error) {
             this.logger.error('Error applying case model:', error);
@@ -451,6 +426,7 @@ export class CustomizationService implements OnModuleInit {
             const newContent = ini.stringify(configData);
 
             // Write the updated content back to the file
+            await fs.mkdir(path.dirname(filePath), { recursive: true });
             await fs.writeFile(filePath, newContent + '\n'); // Ensure trailing newline
             this.logger.log(`Config file ${filePath} updated successfully.`);
         } catch (error) {

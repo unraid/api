@@ -86,7 +86,7 @@ describe('CustomizationService', () => {
     // Resolved mock paths
     const activationDir = mockPaths.activationBase;
     const assetsDir = path.join(activationDir, 'assets');
-    const doneFlag = path.join(activationDir, '.done');
+    const doneFlag = path.join(activationDir, 'applied.txt');
     const userDynamixCfg = mockPaths['dynamix-config'][1];
     const caseModelCfg = mockPaths.dynamixCaseModelConfig;
     const identCfg = mockPaths.identConfig;
@@ -206,7 +206,7 @@ describe('CustomizationService', () => {
             expect(fs.readdir).not.toHaveBeenCalled(); // Should not read activation dir for JSON
         });
 
-        it('should create .done flag and apply customizations if activation dir exists and .done flag is missing', async () => {
+        it('should create flag and apply customizations if activation dir exists and flag is missing', async () => {
             // Setup mocks for full run: .done missing, activation JSON exists, assets exist
             vi.mocked(fileExists).mockImplementation(async (p) => {
                 // Only assets exist, .done does not
@@ -859,31 +859,6 @@ describe('applyActivationCustomizations specific tests', () => {
         // REMOVED: expect(loggerErrorSpy).toHaveBeenCalledWith('Error during activation setup:', updateError);
     }, 10000);
 
-    it('should log error if applyCaseModelConfig fails during readFile (non-ENOENT)', async () => {
-        const readError = new Error('Read permission denied');
-        vi.mocked(fs.readFile).mockImplementation(async (p) => {
-            if (p === caseModelCfg) throw readError;
-            if (p === userDynamixCfg) return ini.stringify({}); // Mock needed for applyDisplaySettings
-            if (p === identCfg) return ini.stringify({}); // Mock needed for applyServerIdentity
-            return '';
-        });
-
-        await (service as any).applyActivationCustomizations();
-
-        // Check specific log from applyCaseModelConfig's catch block
-        expect(loggerErrorSpy).toHaveBeenCalledWith('Error applying case model:', readError);
-        // Check that the write step wasn't reached
-        expect(fs.writeFile).not.toHaveBeenCalledWith(caseModelCfg, expect.any(String));
-
-        // Other steps should still run
-        expect(loggerLogSpy).toHaveBeenCalledWith('Setting up partner banner...');
-        expect(loggerLogSpy).toHaveBeenCalledWith('Applying display settings...');
-        expect(loggerLogSpy).toHaveBeenCalledWith('Applying server identity...');
-
-        // Overall error from applyActivationCustomizations' catch block
-        // REMOVED: expect(loggerErrorSpy).toHaveBeenCalledWith('Error during activation setup:', readError);
-    }, 10000);
-
     it('should log error if applyCaseModelConfig fails during writeFile', async () => {
         const writeError = new Error('Write permission denied');
         vi.mocked(fileExists).mockImplementation(async (p) => p === caseModelSource); // Ensure model asset exists
@@ -895,9 +870,22 @@ describe('applyActivationCustomizations specific tests', () => {
         await (service as any).applyActivationCustomizations();
 
         // Check specific log from applyCaseModelConfig's *inner* catch block
-        expect(loggerErrorSpy).toHaveBeenCalledWith(
-            `Failed to write case model config: ${writeError.message}`
-        );
+        expect(loggerErrorSpy).toMatchInlineSnapshot(`
+          [MockFunction spy] {
+            "calls": [
+              [
+                "Error applying case model:",
+                [Error: Write permission denied],
+              ],
+            ],
+            "results": [
+              {
+                "type": "return",
+                "value": undefined,
+              },
+            ],
+          }
+        `);
         // Other steps should still run
         expect(loggerLogSpy).toHaveBeenCalledWith('Setting up partner banner...');
         expect(loggerLogSpy).toHaveBeenCalledWith('Applying display settings...');
