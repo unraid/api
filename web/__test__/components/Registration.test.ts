@@ -114,7 +114,7 @@ vi.mock('vue-i18n', () => ({
 }));
 
 describe('Registration.ce.vue', () => {
-  let wrapper: VueWrapper<any>;
+  let wrapper: VueWrapper<unknown>;
   let pinia: Pinia;
   let serverStore: ReturnType<typeof useServerStore>;
   let replaceRenewStore: ReturnType<typeof useReplaceRenewStore>;
