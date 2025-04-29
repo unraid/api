@@ -1,3 +1,4 @@
+import { computed } from 'vue';
 import { createPinia, defineStore, setActivePinia } from 'pinia';
 import { useQuery } from '@vue/apollo-composable';
 
