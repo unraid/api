@@ -968,6 +968,38 @@ type ActivationCode {
 type Customization {
   activationCode: ActivationCode
   partnerInfo: PublicPartnerInfo
+  theme: Theme!
+}
+
+type Theme {
+  """The theme name"""
+  name: ThemeName!
+
+  """Whether to show the header banner image"""
+  showBannerImage: Boolean!
+
+  """Whether to show the banner gradient"""
+  showBannerGradient: Boolean!
+
+  """The background color of the header"""
+  headerBackgroundColor: String!
+
+  """Whether to show the description in the header"""
+  showHeaderDescription: Boolean!
+
+  """The text color of the header"""
+  headerPrimaryTextColor: String!
+
+  """The secondary text color of the header"""
+  headerSecondaryTextColor: String
+}
+
+"""The theme name"""
+enum ThemeName {
+  azure
+  black
+  gray
+  white
 }
 
 type InfoApps implements Node {
@@ -1066,7 +1098,7 @@ type Display implements Node {
   usage: Boolean
   banner: String
   dashapps: String
-  theme: Theme
+  theme: ThemeName
   text: Boolean
   unit: Temperature
   warning: Int
@@ -1074,11 +1106,6 @@ type Display implements Node {
   hot: Int
   max: Int
   locale: String
-}
-
-"""Display theme"""
-enum Theme {
-  white
 }
 
 """Temperature unit (Celsius or Fahrenheit)"""

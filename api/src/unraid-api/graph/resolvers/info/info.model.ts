@@ -11,6 +11,7 @@ import {
 import { GraphQLJSON } from 'graphql-scalars';
 
 import { Node } from '@app/unraid-api/graph/resolvers/base.model.js';
+import { ThemeName } from '@app/unraid-api/graph/resolvers/customization/theme.model.js';
 import { PrefixedID } from '@app/unraid-api/graph/scalars/graphql-type-prefixed-id.js';
 
 export enum Temperature {
@@ -18,18 +19,9 @@ export enum Temperature {
     F = 'F',
 }
 
-export enum Theme {
-    white = 'white',
-}
-
 registerEnumType(Temperature, {
     name: 'Temperature',
     description: 'Temperature unit (Celsius or Fahrenheit)',
-});
-
-registerEnumType(Theme, {
-    name: 'Theme',
-    description: 'Display theme',
 });
 
 @ObjectType({ implements: () => Node })
@@ -271,8 +263,8 @@ export class Display extends Node {
     @Field(() => String, { nullable: true })
     dashapps?: string;
 
-    @Field(() => Theme, { nullable: true })
-    theme?: Theme;
+    @Field(() => ThemeName, { nullable: true })
+    theme?: ThemeName;
 
     @Field(() => Boolean, { nullable: true })
     text?: boolean;

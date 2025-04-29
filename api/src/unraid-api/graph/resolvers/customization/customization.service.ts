@@ -4,6 +4,7 @@ import * as path from 'path';
 
 import { plainToClass } from 'class-transformer';
 import { validateOrReject } from 'class-validator';
+import { GraphQLError } from 'graphql';
 import * as ini from 'ini';
 
 import { emcmd } from '@app/core/utils/clients/emcmd.js';
@@ -13,6 +14,7 @@ import {
     ActivationCode,
     PublicPartnerInfo,
 } from '@app/unraid-api/graph/resolvers/customization/activation-code.model.js';
+import { Theme, ThemeName } from '@app/unraid-api/graph/resolvers/customization/theme.model.js';
 import { convertWebGuiPathToAssetPath } from '@app/utils.js';
 
 @Injectable()
@@ -453,5 +455,36 @@ export class CustomizationService implements OnModuleInit {
             this.logger.error(`Error writing config file ${filePath}:`, error);
             throw error; // Re-throw write errors
         }
+    }
+
+    private addHashtoHexField(field: string | undefined): string | undefined {
+        return field ? `#${field}` : undefined;
+    }
+
+    public async getTheme(): Promise<Theme> {
+        if (!getters.dynamix()?.display?.theme) {
+            throw new GraphQLError('No theme found or loaded from dynamix.cfg settings.');
+        }
+
+        const name =
+            ThemeName[getters.dynamix()!.display!.theme.toLowerCase() as keyof typeof ThemeName] ??
+            ThemeName.white;
+
+        const banner = getters.dynamix()!.display!.banner;
+        const bannerGradient = getters.dynamix()!.display!.showBannerGradient;
+        const bgColor = getters.dynamix()!.display!.background;
+        const descriptionShow = getters.dynamix()!.display!.headerdescription;
+        const metaColor = getters.dynamix()!.display!.headermetacolor;
+        const textColor = getters.dynamix()!.display!.header;
+
+        return {
+            name,
+            showBannerImage: banner === 'yes',
+            showBannerGradient: bannerGradient === 'yes',
+            headerBackgroundColor: this.addHashtoHexField(bgColor),
+            headerPrimaryTextColor: this.addHashtoHexField(textColor),
+            headerSecondaryTextColor: this.addHashtoHexField(metaColor),
+            showHeaderDescription: descriptionShow === 'yes',
+        };
     }
 }

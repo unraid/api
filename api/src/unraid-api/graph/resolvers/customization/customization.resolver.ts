@@ -14,6 +14,7 @@ import {
     PublicPartnerInfo,
 } from '@app/unraid-api/graph/resolvers/customization/activation-code.model.js';
 import { CustomizationService } from '@app/unraid-api/graph/resolvers/customization/customization.service.js';
+import { Theme } from '@app/unraid-api/graph/resolvers/customization/theme.model.js';
 
 @Resolver(() => Customization)
 export class CustomizationResolver {
@@ -50,5 +51,11 @@ export class CustomizationResolver {
     })
     async activationCode(): Promise<ActivationCode | null> {
         return this.customizationService.getActivationData();
+    }
+
+    @ResolveField(() => Theme)
+    @Public()
+    async theme(): Promise<Theme> {
+        return this.customizationService.getTheme();
     }
 }

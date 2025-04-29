@@ -1,10 +1,13 @@
 import { computed, ref, watch } from 'vue';
 import { createPinia, defineStore, setActivePinia } from 'pinia';
+import { useLazyQuery } from '@vue/apollo-composable';
 
 import { defaultColors } from '~/themes/default';
 import hexToRgba from 'hex-to-rgba';
 
 import type { Theme, ThemeVariables } from '~/themes/types';
+
+import { graphql } from '~/composables/gql/gql';
 
 /**
  * @see https://stackoverflow.com/questions/73476371/using-pinia-with-vue-js-web-components
@@ -14,6 +17,22 @@ setActivePinia(createPinia());
 
 // used to swap the UPC text color when using the azure or gray theme
 export const DARK_THEMES = ['black', 'gray'] as const;
+
+export const GET_THEME_QUERY = graphql(`
+  query getTheme {
+    customization {
+      theme {
+        name
+        showBannerImage
+        showBannerGradient
+        headerBackgroundColor
+        showHeaderDescription
+        headerPrimaryTextColor
+        headerSecondaryTextColor
+      }
+    }
+  }
+`);
 
 export const useThemeStore = defineStore('theme', () => {
   // State
@@ -26,6 +45,8 @@ export const useThemeStore = defineStore('theme', () => {
     metaColor: '',
     textColor: '',
   });
+
+  const { load } = useLazyQuery(GET_THEME_QUERY);
 
   const activeColorVariables = ref<ThemeVariables>(defaultColors.white);
 
@@ -43,8 +64,26 @@ export const useThemeStore = defineStore('theme', () => {
     return `background-image: linear-gradient(90deg, ${start} 0, ${end} 30%);`;
   });
   // Actions
-  const setTheme = (data: Theme) => {
-    theme.value = data;
+  const setTheme = async (data?: Theme) => {
+    if (data) {
+      theme.value = data;
+    } else {
+      const result = await load();
+      if (result) {
+        const { customization } = result;
+        if (customization?.theme) {
+          theme.value = {
+            name: customization.theme.name.toLowerCase(),
+            banner: customization.theme.showBannerImage,
+            bannerGradient: customization.theme.showBannerGradient,
+            bgColor: customization.theme.headerBackgroundColor,
+            descriptionShow: customization.theme.showHeaderDescription,
+            metaColor: customization.theme.headerSecondaryTextColor || '',
+            textColor: customization.theme.headerPrimaryTextColor,
+          };
+        }
+      }
+    }
   };
 
   const setCssVars = () => {

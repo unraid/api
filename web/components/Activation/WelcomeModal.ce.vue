@@ -14,10 +14,10 @@ const { t } = useI18n();
 
 const { partnerInfo, loading } = storeToRefs(useActivationCodeDataStore());
 
-const { setCssVars } = useThemeStore();
+const { setTheme } = useThemeStore();
 
 // Manually call setCssVars to ensure the theme is set (we're outside of the typical watcher context)
-setCssVars();
+await setTheme();
 
 const title = computed<string>(() =>
   partnerInfo.value?.partnerName
