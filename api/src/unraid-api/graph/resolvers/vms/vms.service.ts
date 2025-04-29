@@ -361,6 +361,7 @@ export class VmsService implements OnModuleInit, OnModuleDestroy {
 
                     return {
                         id: uuid,
+                        uuid,
                         name,
                         state,
                     };

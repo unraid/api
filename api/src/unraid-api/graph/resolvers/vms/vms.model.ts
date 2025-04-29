@@ -1,6 +1,6 @@
 import { Field, InputType, ObjectType, registerEnumType } from '@nestjs/graphql';
 
-import { IsNotEmpty, IsString } from 'class-validator';
+import { IsEnum, IsNotEmpty, IsString } from 'class-validator';
 
 import { Node } from '@app/unraid-api/graph/resolvers/base.model.js';
 import { PrefixedID } from '@app/unraid-api/graph/scalars/graphql-type-prefixed-id.js';
@@ -30,10 +30,19 @@ export class VmDomain implements Node {
     id!: string;
 
     @Field({ nullable: true, description: 'A friendly name for the vm' })
+    @IsString()
     name?: string;
 
     @Field(() => VmState, { description: 'Current domain vm state' })
+    @IsEnum(VmState)
     state!: VmState;
+
+    @Field(() => String, {
+        nullable: true,
+        description: 'The UUID of the vm',
+        deprecationReason: 'Use id instead',
+    })
+    uuid?: string;
 }
 
 @ObjectType({ implements: () => Node })
