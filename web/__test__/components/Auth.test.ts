@@ -2,125 +2,139 @@
  * Auth Component Test Coverage
  */
 
-import { ref } from 'vue';
+import { nextTick, ref } from 'vue';
 import { mount } from '@vue/test-utils';
 
-import { describe, expect, it, vi } from 'vitest';
+import { GlobeAltIcon } from '@heroicons/vue/24/solid';
+import { createTestingPinia } from '@pinia/testing';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+
+import type { ServerconnectPluginInstalled } from '~/types/server';
 
 import Auth from '~/components/Auth.ce.vue';
+import { useServerStore } from '~/store/server';
 
-// Define types for our mocks
-interface AuthAction {
-  text: string;
-  icon: string;
-  click?: () => void;
-  disabled?: boolean;
-  title?: string;
-}
-
-interface StateData {
-  error: boolean;
-  heading?: string;
-  message?: string;
-}
-
-// Mock vue-i18n
 vi.mock('vue-i18n', () => ({
   useI18n: () => ({
     t: (key: string) => key,
   }),
 }));
 
-// Mock the useServerStore composable
-const mockServerStore = {
-  authAction: ref<AuthAction | undefined>(undefined),
-  stateData: ref<StateData>({ error: false }),
-};
-
-vi.mock('~/store/server', () => ({
-  useServerStore: () => mockServerStore,
+vi.mock('crypto-js/aes', () => ({
+  default: {},
 }));
 
-// Mock pinia's storeToRefs to simply return the store
-vi.mock('pinia', () => ({
-  storeToRefs: (store: unknown) => store,
+vi.mock('@unraid/shared-callbacks', () => ({
+  useCallback: vi.fn(() => ({
+    send: vi.fn(),
+    watcher: vi.fn(),
+  })),
+}));
+
+const mockAccountStore = {
+  signIn: vi.fn(),
+};
+
+vi.mock('~/store/account', () => ({
+  useAccountStore: () => mockAccountStore,
+}));
+
+vi.mock('~/store/activationCode', () => ({
+  useActivationCodeStore: vi.fn(() => ({
+    code: ref(null),
+    partnerName: ref(null),
+  })),
 }));
 
 describe('Auth Component', () => {
-  it('displays an authentication button when authAction is available', () => {
-    // Configure auth action
-    mockServerStore.authAction.value = {
-      text: 'Sign in to Unraid',
-      icon: 'key',
-      click: vi.fn(),
-    };
-    mockServerStore.stateData.value = { error: false };
+  let serverStore: ReturnType<typeof useServerStore>;
 
-    // Mount component
-    const wrapper = mount(Auth);
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
 
-    // Verify button exists
+  it('displays an authentication button when authAction is available', async () => {
+    const wrapper = mount(Auth, {
+      global: {
+        plugins: [createTestingPinia({ createSpy: vi.fn })],
+      },
+    });
+
+    // Patch the underlying state that `authAction` depends on
+    serverStore = useServerStore();
+    serverStore.$patch({
+      state: 'ENOKEYFILE',
+      registered: false,
+      connectPluginInstalled: 'INSTALLED' as ServerconnectPluginInstalled,
+    });
+
+    await nextTick();
+
     const button = wrapper.findComponent({ name: 'BrandButton' });
+
     expect(button.exists()).toBe(true);
-    // Check props passed to button
-    expect(button.props('text')).toBe('Sign in to Unraid');
-    expect(button.props('icon')).toBe('key');
+    expect(button.props('text')).toBe('Sign In with Unraid.net Account');
+    expect(button.props('icon')).toBe(GlobeAltIcon);
   });
 
   it('displays error messages when stateData.error is true', () => {
-    // Configure with error state
-    mockServerStore.authAction.value = {
-      text: 'Sign in to Unraid',
-      icon: 'key',
-    };
-    mockServerStore.stateData.value = {
-      error: true,
-      heading: 'Error Title',
-      message: 'Error Message Content',
-    };
+    const wrapper = mount(Auth, {
+      global: {
+        plugins: [createTestingPinia({ createSpy: vi.fn })],
+      },
+    });
 
-    // Mount component
-    const wrapper = mount(Auth);
+    // Patch the underlying state that `stateData` depends on
+    serverStore = useServerStore();
+    serverStore.$patch({
+      state: 'EEXPIRED',
+      registered: false,
+      connectPluginInstalled: 'INSTALLED' as ServerconnectPluginInstalled,
+    });
 
-    // Verify error message is displayed
     const errorHeading = wrapper.find('h3');
 
     expect(errorHeading.exists()).toBe(true);
-    expect(errorHeading.text()).toBe('Error Title');
-    expect(wrapper.text()).toContain('Error Message Content');
+    expect(errorHeading.text()).toBe('Stale Server');
+    expect(wrapper.text()).toContain(
+      'Please refresh the page to ensure you load your latest configuration'
+    );
   });
 
   it('calls the click handler when button is clicked', async () => {
-    // Create mock click handler
-    const clickHandler = vi.fn();
+    const wrapper = mount(Auth, {
+      global: {
+        plugins: [createTestingPinia({ createSpy: vi.fn })],
+      },
+    });
 
-    // Configure with click handler
-    mockServerStore.authAction.value = {
-      text: 'Sign in to Unraid',
-      icon: 'key',
-      click: clickHandler,
-    };
-    mockServerStore.stateData.value = { error: false };
+    serverStore = useServerStore();
+    serverStore.$patch({
+      state: 'ENOKEYFILE',
+      registered: false,
+      connectPluginInstalled: 'INSTALLED' as ServerconnectPluginInstalled,
+    });
 
-    // Mount component
-    const wrapper = mount(Auth);
+    await nextTick();
 
-    // Click the button
     await wrapper.findComponent({ name: 'BrandButton' }).vm.$emit('click');
 
-    // Verify click handler was called
-    expect(clickHandler).toHaveBeenCalledTimes(1);
+    expect(mockAccountStore.signIn).toHaveBeenCalledTimes(1);
   });
 
   it('does not render button when authAction is undefined', () => {
-    // Configure with undefined auth action
-    mockServerStore.authAction.value = undefined;
-    mockServerStore.stateData.value = { error: false };
+    const wrapper = mount(Auth, {
+      global: {
+        plugins: [createTestingPinia({ createSpy: vi.fn })],
+      },
+    });
 
-    // Mount component
-    const wrapper = mount(Auth);
+    serverStore = useServerStore();
+    serverStore.$patch({
+      state: 'PRO',
+      registered: true,
+    });
 
-    // Verify button doesn't exist
     const button = wrapper.findComponent({ name: 'BrandButton' });
 
     expect(button.exists()).toBe(false);

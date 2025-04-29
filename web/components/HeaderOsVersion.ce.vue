@@ -1,12 +1,15 @@
 <script lang="ts" setup>
+import { computed } from 'vue';
+import { useI18n } from 'vue-i18n';
+import { storeToRefs } from 'pinia';
+
 import { BellAlertIcon, ExclamationTriangleIcon, InformationCircleIcon } from '@heroicons/vue/24/solid';
 import { Badge } from '@unraid/ui';
 import { getReleaseNotesUrl, WEBGUI_TOOLS_DOWNGRADE, WEBGUI_TOOLS_UPDATE } from '~/helpers/urls';
+
 import { useServerStore } from '~/store/server';
 import { useUpdateOsStore } from '~/store/updateOs';
 import { useUpdateOsActionsStore } from '~/store/updateOsActions';
-import { storeToRefs } from 'pinia';
-import { useI18n } from 'vue-i18n';
 
 const { t } = useI18n();
 

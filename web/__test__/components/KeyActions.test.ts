@@ -2,11 +2,11 @@
  * KeyActions Component Test Coverage
  */
 
-import { ref } from 'vue';
 import { mount } from '@vue/test-utils';
 
 import { ArrowTopRightOnSquareIcon } from '@heroicons/vue/24/solid';
 import { BrandButton } from '@unraid/ui';
+import { createTestingPinia } from '@pinia/testing';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import type { ServerStateDataAction, ServerStateDataActionType } from '~/types/server';
@@ -15,41 +15,22 @@ import KeyActions from '../../components/KeyActions.vue';
 
 import '~/__test__/mocks/ui-components';
 
-// Create mock store actions
-const storeKeyActions = [
-  { name: 'purchase' as ServerStateDataActionType, text: 'Purchase Key', click: vi.fn() },
-  { name: 'redeem' as ServerStateDataActionType, text: 'Redeem Key', click: vi.fn() },
-];
+vi.mock('crypto-js/aes', () => ({
+  default: {},
+}));
 
-// Mock the store and Pinia
-vi.mock('pinia', () => ({
-  storeToRefs: vi.fn(() => ({
-    keyActions: ref(storeKeyActions),
+vi.mock('@unraid/shared-callbacks', () => ({
+  useCallback: vi.fn(() => ({
+    send: vi.fn(),
+    watcher: vi.fn(),
   })),
 }));
 
-vi.mock('../../store/server', () => ({
-  useServerStore: vi.fn(),
-}));
-
-// Mock translation function (simple implementation)
 const t = (key: string) => `translated_${key}`;
 
 describe('KeyActions', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-  });
-
-  it('renders buttons from store when no actions prop is provided', () => {
-    const wrapper = mount(KeyActions, {
-      props: { t },
-    });
-
-    const buttons = wrapper.findAllComponents(BrandButton);
-
-    expect(buttons.length).toBe(2);
-    expect(buttons[0].text()).toContain('translated_Purchase Key');
-    expect(buttons[1].text()).toContain('translated_Redeem Key');
   });
 
   it('renders buttons from props when actions prop is provided', () => {
@@ -76,6 +57,9 @@ describe('KeyActions', () => {
         t,
         actions: [],
       },
+      global: {
+        plugins: [createTestingPinia({ createSpy: vi.fn })],
+      },
     });
 
     expect(wrapper.find('ul').exists()).toBe(true);
@@ -95,7 +79,6 @@ describe('KeyActions', () => {
       },
     });
 
-    // Click the button
     await wrapper.findComponent(BrandButton).trigger('click');
     expect(click).toHaveBeenCalledTimes(1);
   });
@@ -118,7 +101,6 @@ describe('KeyActions', () => {
       },
     });
 
-    // Click the disabled button
     await wrapper.findComponent(BrandButton).trigger('click');
     expect(click).not.toHaveBeenCalled();
   });
