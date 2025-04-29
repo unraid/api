@@ -427,7 +427,6 @@ enum DiskFsType {
 }
 
 type Disk implements Node {
-  """The unique identifier of the disk"""
   id: PrefixedID!
 
   """The device path of the disk (e.g. /dev/sdb)"""
@@ -1339,6 +1338,9 @@ type VmDomain implements Node {
 
   """Current domain vm state"""
   state: VmState!
+
+  """The UUID of the vm"""
+  uuid: String @deprecated(reason: "Use id instead")
 }
 
 """The state of a virtual machine"""

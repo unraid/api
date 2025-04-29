@@ -491,7 +491,6 @@ export type Disk = Node & {
   device: Scalars['String']['output'];
   /** The firmware revision of the disk */
   firmwareRevision: Scalars['String']['output'];
-  /** The unique identifier of the disk */
   id: Scalars['PrefixedID']['output'];
   /** The interface type of the disk */
   interfaceType: DiskInterfaceType;
@@ -850,6 +849,7 @@ export type Mutation = {
   recalculateOverview: NotificationOverview;
   removeRoleFromApiKey: Scalars['Boolean']['output'];
   setAdditionalAllowedOrigins: Array<Scalars['String']['output']>;
+  setDemo: Scalars['String']['output'];
   setupRemoteAccess: Scalars['Boolean']['output'];
   unarchiveAll: NotificationOverview;
   unarchiveNotifications: NotificationOverview;
@@ -1124,6 +1124,7 @@ export type Query = {
   docker: Docker;
   extraAllowedOrigins: Array<Scalars['String']['output']>;
   flash: Flash;
+  getDemo: Scalars['String']['output'];
   health: Scalars['String']['output'];
   info: Info;
   logFile: LogFileContent;
@@ -1630,6 +1631,11 @@ export type VmDomain = Node & {
   name?: Maybe<Scalars['String']['output']>;
   /** Current domain vm state */
   state: VmState;
+  /**
+   * The UUID of the vm
+   * @deprecated Use id instead
+   */
+  uuid?: Maybe<Scalars['String']['output']>;
 };
 
 export type VmMutations = {
