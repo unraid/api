@@ -87,7 +87,7 @@ watchEffect(() => {
       </template>
 
       <template #subFooter>
-        <ActivationSteps :active-step="1" class="hidden sm:flex mt-6" />
+        <ActivationSteps :active-step="1" class="mt-6" />
       </template>
     </Modal>
   </div>

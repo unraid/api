@@ -84,7 +84,7 @@ const docsButtons = computed<BrandButtonProps[]>(() => {
 
     <template #subFooter>
       <div class="flex flex-col gap-6">
-        <ActivationSteps :active-step="2" class="hidden sm:flex mt-6" />
+        <ActivationSteps :active-step="2" class="mt-6" />
 
         <div class="flex flex-col sm:flex-row justify-center gap-4 mx-auto w-full">
           <BrandButton v-for="button in docsButtons" :key="button.text" v-bind="button" />
