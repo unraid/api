@@ -34,10 +34,7 @@ export class CustomizationResolver {
     @Query(() => PublicPartnerInfo, { nullable: true })
     @Public()
     async publicPartnerInfo(): Promise<PublicPartnerInfo | null> {
-        if (!(await this.customizationService.isPasswordSet())) {
-            return this.customizationService.getPublicPartnerInfo();
-        }
-        return null;
+        return this.customizationService.getPublicPartnerInfo();
     }
 
     @ResolveField(() => PublicPartnerInfo, { nullable: true, name: 'partnerInfo' })
