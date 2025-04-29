@@ -520,11 +520,13 @@ describe('ApiKeyService', () => {
             expect(result).toHaveLength(2);
             expect(result[0]).toEqual({
                 ...mockApiKey,
+                createdAt: expect.any(String),
                 id: 'test-api-id',
                 key: 'test-api-key',
             });
             expect(result[1]).toEqual({
                 ...mockApiKey,
+                createdAt: expect.any(String),
                 id: 'unique-id',
                 key: 'unique-key',
             });

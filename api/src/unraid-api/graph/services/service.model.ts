@@ -11,10 +11,7 @@ export class Uptime {
 @ObjectType({
     implements: () => Node,
 })
-export class Service implements Node {
-    @Field(() => ID)
-    id!: string;
-
+export class Service extends Node {
     @Field(() => String, { nullable: true })
     name?: string;
 

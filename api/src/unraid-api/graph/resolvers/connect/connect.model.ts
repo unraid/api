@@ -17,6 +17,7 @@ import {
 import { GraphQLJSON, GraphQLURL } from 'graphql-scalars';
 
 import { Node } from '@app/unraid-api/graph/resolvers/base.model.js';
+import { PrefixedID } from '@app/unraid-api/graph/scalars/graphql-type-prefixed-id.js';
 
 export enum WAN_ACCESS_TYPE {
     DYNAMIC = 'DYNAMIC',
@@ -326,12 +327,7 @@ export class ApiSettingsInput {
 @ObjectType({
     implements: () => Node,
 })
-export class ConnectSettings implements Node {
-    @Field(() => ID, { description: 'The unique identifier for the Connect settings' })
-    @IsString()
-    @IsNotEmpty()
-    id!: string;
-
+export class ConnectSettings extends Node {
     @Field(() => GraphQLJSON, { description: 'The data schema for the Connect settings' })
     @IsObject()
     dataSchema!: Record<string, any>;
@@ -348,12 +344,8 @@ export class ConnectSettings implements Node {
 @ObjectType({
     implements: () => Node,
 })
-export class Connect {
-    @Field(() => ID, { description: 'The unique identifier for the Connect instance' })
-    @IsString()
-    @IsNotEmpty()
-    id!: string;
-
+export class Connect extends Node {
+    @Field(() => DynamicRemoteAccessStatus, { description: 'The status of dynamic remote access' })
     @Field(() => DynamicRemoteAccessStatus, { description: 'The status of dynamic remote access' })
     @ValidateNested()
     dynamicRemoteAccess?: DynamicRemoteAccessStatus;
@@ -366,10 +358,7 @@ export class Connect {
 @ObjectType({
     implements: () => Node,
 })
-export class Network implements Node {
-    @Field(() => ID)
-    id!: string;
-
+export class Network extends Node {
     @Field(() => [AccessUrl], { nullable: true })
     accessUrls?: AccessUrl[];
 }

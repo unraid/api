@@ -1,4 +1,8 @@
-import { Field, ID, InterfaceType, registerEnumType } from '@nestjs/graphql';
+import { Field, InterfaceType, registerEnumType } from '@nestjs/graphql';
+
+import { IsNotEmpty, IsString } from 'class-validator';
+
+import { PrefixedID } from '@app/unraid-api/graph/scalars/graphql-type-prefixed-id.js';
 
 // Register enums
 export enum Resource {
@@ -40,7 +44,9 @@ export enum Role {
 
 @InterfaceType()
 export class Node {
-    @Field(() => ID)
+    @Field(() => PrefixedID)
+    @IsString()
+    @IsNotEmpty()
     id!: string;
 }
 

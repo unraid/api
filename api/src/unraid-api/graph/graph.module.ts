@@ -7,15 +7,15 @@ import { NoUnusedVariablesRule } from 'graphql';
 import { JSONResolver, URLResolver } from 'graphql-scalars';
 
 import { ENVIRONMENT } from '@app/environment.js';
-import { GraphQLLong } from '@app/graphql/resolvers/graphql-type-long.js';
 import { getters } from '@app/store/index.js';
 import {
     UsePermissionsDirective,
     usePermissionsSchemaTransformer,
 } from '@app/unraid-api/graph/directives/use-permissions.directive.js';
-import { idPrefixPlugin } from '@app/unraid-api/graph/id-prefix-plugin.js';
 import { ResolversModule } from '@app/unraid-api/graph/resolvers/resolvers.module.js';
 import { sandboxPlugin } from '@app/unraid-api/graph/sandbox-plugin.js';
+import { GraphQLLong } from '@app/unraid-api/graph/scalars/graphql-type-long.js';
+import { PrefixedID as PrefixedIDScalar } from '@app/unraid-api/graph/scalars/graphql-type-prefixed-id.js';
 import { PluginModule } from '@app/unraid-api/plugin/plugin.module.js';
 
 @Module({
@@ -42,7 +42,7 @@ import { PluginModule } from '@app/unraid-api/plugin/plugin.module.js';
                             extra,
                         };
                     },
-                    plugins: [sandboxPlugin, idPrefixPlugin] as any[],
+                    plugins: [sandboxPlugin] as any[],
                     subscriptions: {
                         'graphql-ws': {
                             path: '/graphql',
@@ -63,7 +63,7 @@ import { PluginModule } from '@app/unraid-api/plugin/plugin.module.js';
             },
         }),
     ],
-    providers: [],
+    providers: [PrefixedIDScalar],
     exports: [GraphQLModule],
 })
 export class GraphModule {}
