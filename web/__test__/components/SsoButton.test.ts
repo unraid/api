@@ -197,13 +197,6 @@ describe('SsoButton.ce.vue', () => {
       json: async () => ({ access_token: mockAccessToken }),
     } as Response);
 
-    const wrapper = mount(SsoButton, {
-      props: { ssoenabled: true },
-      global: {
-        stubs: { BrandButton: BrandButtonStub },
-      },
-    });
-
     await flushPromises();
 
     expect(sessionStorage.getItem).toHaveBeenCalledWith('sso_state');
