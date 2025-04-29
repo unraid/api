@@ -19,39 +19,39 @@ export class LogService {
         return shouldLog;
     }
 
-    log(message: string): void {
+    log(...messages: unknown[]): void {
         if (this.shouldLog('info')) {
-            this.logger.log(message);
+            this.logger.log(...messages);
         }
     }
 
-    info(message: string): void {
+    info(...messages: unknown[]): void {
         if (this.shouldLog('info')) {
-            this.logger.info(message);
+            this.logger.info(...messages);
         }
     }
 
-    warn(message: string): void {
+    warn(...messages: unknown[]): void {
         if (this.shouldLog('warn')) {
-            this.logger.warn(message);
+            this.logger.warn(...messages);
         }
     }
 
-    error(message: string, trace: string = ''): void {
+    error(...messages: unknown[]): void {
         if (this.shouldLog('error')) {
-            this.logger.error(message, trace);
+            this.logger.error(...messages);
         }
     }
 
-    debug(message: any, ...optionalParams: any[]): void {
+    debug(...messages: unknown[]): void {
         if (this.shouldLog('debug')) {
-            this.logger.debug(message, ...optionalParams);
+            this.logger.debug(...messages);
         }
     }
 
-    trace(message: any, ...optionalParams: any[]): void {
+    trace(...messages: unknown[]): void {
         if (this.shouldLog('trace')) {
-            this.logger.log(message, ...optionalParams);
+            this.logger.log(...messages);
         }
     }
 }

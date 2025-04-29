@@ -1,8 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
 
-import type { SetRequired } from 'type-fest';
-import { parse } from 'graphql';
-
 import type { ApiNestPluginDefinition } from '@app/unraid-api/plugin/plugin.interface.js';
 import { getPackageJson } from '@app/environment.js';
 import { apiNestPluginSchema } from '@app/unraid-api/plugin/plugin.interface.js';
@@ -16,29 +13,6 @@ export class PluginService {
     static async getPlugins() {
         PluginService.plugins ??= PluginService.importPlugins();
         return PluginService.plugins;
-    }
-
-    static async getGraphQLSchemas() {
-        const plugins = (await PluginService.getPlugins()).filter(
-            (plugin): plugin is SetRequired<ApiNestPluginDefinition, 'graphqlSchemaExtension'> =>
-                plugin.graphqlSchemaExtension !== undefined
-        );
-        const { data: schemas } = await batchProcess(plugins, async (plugin) => {
-            try {
-                const schema = await plugin.graphqlSchemaExtension();
-                // Validate schema by parsing it - this will throw if invalid
-                parse(schema);
-                return schema;
-            } catch (error) {
-                // we can safely assert ApiModule's presence since we validate the plugin schema upon importing it.
-                // ApiModule must be defined when graphqlSchemaExtension is defined.
-                PluginService.logger.error(
-                    `Error parsing GraphQL schema from ${plugin.ApiModule!.name}: ${JSON.stringify(error, null, 2)}`
-                );
-                throw error;
-            }
-        });
-        return schemas;
     }
 
     private static async importPlugins() {
@@ -77,7 +51,7 @@ export class PluginService {
         return plugins.data;
     }
 
-    private static async listPlugins(): Promise<[string, string][]> {
+    static async listPlugins(): Promise<[string, string][]> {
         /** All api plugins must be npm packages whose name starts with this prefix */
         const pluginPrefix = 'unraid-api-plugin-';
         // All api plugins must be installed as dependencies of the unraid-api package
