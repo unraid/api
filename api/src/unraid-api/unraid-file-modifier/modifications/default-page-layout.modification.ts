@@ -75,6 +75,11 @@ if (is_localhost() && !is_good_session()) {
             return source.replace(findString, replaceString);
         }
         return source;
+    private hideHeaderLogo(source: string): string {
+        return source.replace(
+            /<a href="https:\/\/unraid\.net" target="_blank"[\s\S]*?<\/svg><\/a>/g,
+            ''
+        );
     }
 
     private applyToSource(fileContent: string): string {
@@ -84,8 +89,9 @@ if (is_localhost() && !is_good_session()) {
             this.addToaster.bind(this),
             this.patchGuiBootAuth.bind(this),
             this.injectPartnerLogo.bind(this),
+            this.hideHeaderLogo.bind(this),
         ];
-        
+
         return transformers.reduce((content, transformer) => 
             transformer(content)
         , fileContent);
