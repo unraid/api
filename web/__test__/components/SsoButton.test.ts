@@ -176,9 +176,9 @@ describe('SsoButton.ce.vue', () => {
     expect(sessionStorage.setItem).toHaveBeenCalledWith('sso_state', expect.any(String));
 
     const generatedState = (sessionStorage.setItem as Mock).mock.calls[0][1];
-
     const expectedUrl = new URL('sso', 'http://mock-account-url.net');
     const expectedCallbackUrl = new URL('login', 'http://mock-origin.com');
+
     expectedUrl.searchParams.append('callbackUrl', expectedCallbackUrl.toString());
     expectedUrl.searchParams.append('state', generatedState);
 
@@ -197,10 +197,17 @@ describe('SsoButton.ce.vue', () => {
       json: async () => ({ access_token: mockAccessToken }),
     } as Response);
 
+    // Mount the component so that onMounted hook is called
+    mount(SsoButton, {
+      props: { ssoenabled: true },
+      global: {
+        stubs: { BrandButton: BrandButtonStub },
+      },
+    });
+
     await flushPromises();
 
     expect(sessionStorage.getItem).toHaveBeenCalledWith('sso_state');
-
     expect(fetch).toHaveBeenCalledTimes(1);
     expect(fetch).toHaveBeenCalledWith(new URL('/api/oauth2/token', 'http://mock-account-url.net'), {
       method: 'POST',
@@ -210,12 +217,10 @@ describe('SsoButton.ce.vue', () => {
         grant_type: 'authorization_code',
       }),
     });
-
     expect(mockForm.style.display).toBe('none');
     expect(mockUsernameField.value).toBe('root');
     expect(mockPasswordField.value).toBe(mockAccessToken);
     expect(mockForm.requestSubmit).toHaveBeenCalledTimes(1);
-
     expect(mockHistory.replaceState).toHaveBeenCalledWith({}, 'Mock Title', '/login');
   });
 
@@ -228,9 +233,7 @@ describe('SsoButton.ce.vue', () => {
 
     const fetchError = new Error('Failed to fetch token');
     (fetch as Mock).mockRejectedValueOnce(fetchError);
-
     const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
-
     const wrapper = mount(SsoButton, {
       props: { ssoenabled: true },
       global: {
@@ -245,10 +248,12 @@ describe('SsoButton.ce.vue', () => {
     expect(consoleErrorSpy).toHaveBeenCalledWith('Error fetching token', fetchError);
 
     const errorElement = wrapper.find('p.text-red-500');
+
     expect(errorElement.exists()).toBe(true);
     expect(errorElement.text()).toBe('Error fetching token');
 
     const button = wrapper.findComponent(BrandButtonStub);
+
     expect(button.text()).toBe('Error');
 
     expect(mockForm.style.display).toBe('block');
