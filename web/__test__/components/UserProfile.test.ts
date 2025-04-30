@@ -16,6 +16,7 @@ import { useThemeStore } from '~/store/theme';
 const mockCopy = vi.fn();
 const mockCopied = ref(false);
 const mockIsSupported = ref(true);
+
 vi.mock('@vueuse/core', () => ({
   useClipboard: ({ _source }: { _source: MaybeRef<string> }) => {
     const actualCopy = (text: string) => {
@@ -35,6 +36,7 @@ vi.mock('@vueuse/core', () => ({
 }));
 
 const mockWatcher = vi.fn();
+
 vi.mock('~/store/callbackActions', () => ({
   useCallbackActionsStore: vi.fn(() => ({
     watcher: mockWatcher,
@@ -123,15 +125,9 @@ describe('UserProfile.ce.vue', () => {
     mockCopied.value = false;
     mockIsSupported.value = true;
 
-    // Define mock Event classes
-    class MockEvent {
-      constructor(type: string, options?: unknown) {}
-    }
-    class MockMouseEvent extends MockEvent {
-      constructor(type: string, options?: unknown) {
-        super(type, options);
-      }
-    }
+    // Define simple mock Event objects instead of classes with only constructors
+    const MockEvent = vi.fn();
+    const MockMouseEvent = vi.fn();
 
     // Set up window mocks
     vi.stubGlobal('window', {
@@ -176,6 +172,7 @@ describe('UserProfile.ce.vue', () => {
     // Override the setServer method to prevent console logging
     vi.spyOn(serverStore, 'setServer').mockImplementation((server) => {
       Object.assign(serverStore, server);
+
       return server;
     });
 
@@ -204,6 +201,7 @@ describe('UserProfile.ce.vue', () => {
     wrapper?.unmount();
     consoleSpies.forEach((spy) => spy.mockRestore());
     vi.restoreAllMocks();
+    vi.unstubAllGlobals?.();
   });
 
   it('renders initial state correctly based on props and store', async () => {
@@ -242,6 +240,7 @@ describe('UserProfile.ce.vue', () => {
     expect(serverStore.setServer).toHaveBeenCalledTimes(2);
     expect(serverStore.setServer).toHaveBeenLastCalledWith(initialServerData);
     expect(wrapperObjectProp.find('h1').text()).toContain(initialServerData.name);
+
     wrapperObjectProp.unmount();
   });
 
@@ -261,10 +260,11 @@ describe('UserProfile.ce.vue', () => {
   });
 
   it('triggers clipboard copy when server name is clicked', async () => {
-    const copyLanIpSpy = vi.spyOn(wrapper.vm, 'copyLanIp');
+    const copyLanIpSpy = vi.spyOn(wrapper.vm as unknown as { copyLanIp: () => void }, 'copyLanIp');
     mockIsSupported.value = true;
 
     const serverNameButton = wrapper.find('h1 > button');
+
     await serverNameButton.trigger('click');
     await wrapper.vm.$nextTick();
 
@@ -281,7 +281,7 @@ describe('UserProfile.ce.vue', () => {
   });
 
   it('shows copy not supported message correctly', async () => {
-    const copyLanIpSpy = vi.spyOn(wrapper.vm, 'copyLanIp');
+    const copyLanIpSpy = vi.spyOn(wrapper.vm as unknown as { copyLanIp: () => void }, 'copyLanIp');
     mockIsSupported.value = false;
 
     const serverNameButton = wrapper.find('h1 > button');
@@ -309,6 +309,7 @@ describe('UserProfile.ce.vue', () => {
     await wrapper.vm.$nextTick();
 
     const heading = wrapper.find('h1');
+
     expect(heading.html()).toContain(initialServerData.description);
 
     themeStore.theme!.descriptionShow = false;
