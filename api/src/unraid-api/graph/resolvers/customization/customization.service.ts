@@ -396,11 +396,16 @@ export class CustomizationService implements OnModuleInit {
             this.logger.log(`Calling emcmd with params: %o`, updateParams);
             await emcmd(updateParams, { waitForToken: true });
 
-            // Reload services after identity update
-            await execa('/usr/local/emhttp/webGui/scripts/reload_services');
             this.logger.log('emcmd executed successfully.');
         } catch (error) {
             this.logger.error('Error applying server identity: %o', error);
+        }
+
+        try {
+            // Reload services after identity update
+            await execa('/usr/local/emhttp/webGui/scripts/reload_services');
+        } catch (error) {
+            this.logger.debug('Error reloading services after identity update: %o', error);
         }
     }
 
