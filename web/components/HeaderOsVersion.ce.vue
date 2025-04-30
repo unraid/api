@@ -122,4 +122,6 @@ const updateOsStatus = computed(() => {
 <style lang="postcss">
 /* Import unraid-ui globals first */
 @import '@unraid/ui/styles';
+
+@import '~/assets/main.css';
 </style>
