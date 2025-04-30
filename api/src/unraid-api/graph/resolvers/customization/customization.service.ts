@@ -65,8 +65,8 @@ export class CustomizationService implements OnModuleInit {
             try {
                 await fs.access(this.activationDir);
                 this.logger.log(`Activation directory found: ${this.activationDir}`);
-            } catch (dirError: any) {
-                if (dirError.code === 'ENOENT') {
+            } catch (dirError: unknown) {
+                if (dirError instanceof Error && 'code' in dirError && dirError.code === 'ENOENT') {
                     this.logger.log(
                         `Activation directory ${this.activationDir} not found. Skipping activation setup.`
                     );
@@ -84,9 +84,15 @@ export class CustomizationService implements OnModuleInit {
 
             this.activationData = await this.getActivationData(); // This now uses this.activationDir
             await this.applyActivationCustomizations(); // This uses this.activationData and paths
-        } catch (error: any) {
+        } catch (error: unknown) {
             // Catch errors specifically from the activation setup logic post-path init
-            if (error.code === 'ENOENT' && error.path === this.activationDir) {
+            if (
+                error instanceof Error &&
+                'code' in error &&
+                error.code === 'ENOENT' &&
+                'path' in error &&
+                error.path === this.activationDir
+            ) {
                 // This case should be handled by the access check above, but keep for safety.
                 this.logger.log('Activation directory check failed within setup logic.');
             } else {
@@ -103,8 +109,8 @@ export class CustomizationService implements OnModuleInit {
             const files = await fs.readdir(this.activationDir);
             const jsonFile = files.find((file) => file.endsWith(this.activationJsonExtension));
             return jsonFile ? path.join(this.activationDir, jsonFile) : null;
-        } catch (error: any) {
-            if (error.code === 'ENOENT') {
+        } catch (error: unknown) {
+            if (error instanceof Error && 'code' in error && error.code === 'ENOENT') {
                 this.logger.warn(
                     `Activation directory ${this.activationDir} not found when searching for JSON file.`
                 );
@@ -198,8 +204,8 @@ export class CustomizationService implements OnModuleInit {
             // Check if activation dir exists (redundant if onModuleInit succeeded, but safe)
             try {
                 await fs.access(this.activationDir);
-            } catch (dirError: any) {
-                if (dirError.code === 'ENOENT') {
+            } catch (dirError: unknown) {
+                if (dirError instanceof Error && 'code' in dirError && dirError.code === 'ENOENT') {
                     this.logger.warn('Activation directory disappeared after init? Skipping.');
                     return;
                 }
@@ -214,7 +220,7 @@ export class CustomizationService implements OnModuleInit {
             await this.applyServerIdentity();
 
             this.logger.log('Activation setup complete.');
-        } catch (error: any) {
+        } catch (error: unknown) {
             // Added type annotation
             // Initial dir check removed as it's handled in onModuleInit or the inner try block
             this.logger.error('Error during activation setup:', error);
@@ -234,9 +240,9 @@ export class CustomizationService implements OnModuleInit {
                 try {
                     await fs.copyFile(partnerBannerSource, partnerBannerTarget);
                     this.logger.log('Partner banner copied over the original banner.');
-                } catch (copyError: any) {
+                } catch (copyError: unknown) {
                     this.logger.warn(
-                        `Failed to replace the original banner with the partner banner: ${copyError.message}`
+                        `Failed to replace the original banner with the partner banner: ${copyError instanceof Error ? copyError.message : 'Unknown error'}`
                     );
                 }
             } else {
@@ -262,25 +268,29 @@ export class CustomizationService implements OnModuleInit {
         // Map activation data properties to their corresponding config keys
         type DisplayMapping = {
             key: string;
-            transform?: (v: any) => string;
+            transform?: (v: unknown) => string;
             skipIfEmpty?: boolean;
         };
 
         const displayMappings: Record<string, DisplayMapping> = {
-            header: { key: 'header', transform: (v: string) => v.replace('#', ''), skipIfEmpty: true },
+            header: {
+                key: 'header',
+                transform: (v: unknown) => (typeof v === 'string' ? v.replace('#', '') : ''),
+                skipIfEmpty: true,
+            },
             headermetacolor: {
                 key: 'headermetacolor',
-                transform: (v: string) => v.replace('#', ''),
+                transform: (v: unknown) => (typeof v === 'string' ? v.replace('#', '') : ''),
                 skipIfEmpty: true,
             },
             background: {
                 key: 'background',
-                transform: (v: string) => v.replace('#', ''),
+                transform: (v: unknown) => (typeof v === 'string' ? v.replace('#', '') : ''),
                 skipIfEmpty: true,
             },
             showBannerGradient: {
                 key: 'showBannerGradient',
-                transform: (v: boolean) => (v ? 'yes' : 'no'),
+                transform: (v: unknown) => (v === true ? 'yes' : 'no'),
             },
             theme: { key: 'theme' },
         };
@@ -397,14 +407,14 @@ export class CustomizationService implements OnModuleInit {
             await emcmd(updateParams, { waitForToken: true });
 
             this.logger.log('emcmd executed successfully.');
-        } catch (error) {
+        } catch (error: unknown) {
             this.logger.error('Error applying server identity: %o', error);
         }
 
         try {
             // Reload services after identity update
             await execa('/usr/local/emhttp/webGui/scripts/reload_services');
-        } catch (error) {
+        } catch (error: unknown) {
             this.logger.debug('Error reloading services after identity update: %o', error);
         }
     }
@@ -415,14 +425,14 @@ export class CustomizationService implements OnModuleInit {
         section: string | null,
         updates: Record<string, string>
     ) {
-        let configData: any = {}; // Use 'any' for flexibility with ini structure
+        let configData: Record<string, Record<string, string> | string> = {};
         try {
             const content = await fs.readFile(filePath, 'utf-8');
             // Parse the INI file content. Note: ini library parses values as strings by default.
             // It might interpret numbers/booleans if not quoted, but our values are always quoted.
-            configData = ini.parse(content);
-        } catch (error: any) {
-            if (error.code === 'ENOENT') {
+            configData = ini.parse(content) as Record<string, Record<string, string> | string>;
+        } catch (error: unknown) {
+            if (error instanceof Error && 'code' in error && error.code === 'ENOENT') {
                 this.logger.log(`Config file ${filePath} not found, will create it.`);
                 // Initialize configData as an empty object if file doesn't exist
             } else {
@@ -432,37 +442,27 @@ export class CustomizationService implements OnModuleInit {
         }
 
         if (section) {
-            // Ensure the section exists
-            if (!configData[section]) {
+            if (!configData[section] || typeof configData[section] === 'string') {
                 configData[section] = {};
             }
-            // Update keys within the specified section using Object.entries
             Object.entries(updates).forEach(([key, value]) => {
-                // ini.stringify will handle quoting, so just assign the string value
-                configData[section][key] = value;
+                (configData[section] as Record<string, string>)[key] = value;
             });
         } else {
-            // Update keys at the root level (for files like ident.cfg) using Object.entries
             Object.entries(updates).forEach(([key, value]) => {
                 configData[key] = value;
             });
         }
 
         try {
-            // Stringify the updated object back into INI format.
-            // The 'ini' library defaults to section/key=value format, but options exist if needed.
-            // It will automatically add quotes around values containing special characters,
-            // but might not quote simple strings - however, Unraid's parser seems fine with this.
-            // If strict KEY="value" quoting is absolutely required, manual formatting might be needed again.
             const newContent = ini.stringify(configData);
 
-            // Write the updated content back to the file
             await fs.mkdir(path.dirname(filePath), { recursive: true });
-            await fs.writeFile(filePath, newContent + '\n'); // Ensure trailing newline
+            await fs.writeFile(filePath, newContent + '\n');
             this.logger.log(`Config file ${filePath} updated successfully.`);
-        } catch (error) {
+        } catch (error: unknown) {
             this.logger.error(`Error writing config file ${filePath}:`, error);
-            throw error; // Re-throw write errors
+            throw error;
         }
     }
 
