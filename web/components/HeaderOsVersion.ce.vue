@@ -74,7 +74,7 @@ const updateOsStatus = computed(() => {
   <div class="flex flex-col">
     <img
       :src="'/webGui/images/UN-logotype-gradient.svg'"
-      class="w-[160px] max-h-[40px] ml-[10px] mt-[25px] mb-[8px]"
+      class="w-[160px] h-auto max-h-[30px] ml-[10px] mt-[25px] mb-[8px] object-contain"
     />
 
     <div class="flex flex-row justify-start gap-x-4px">
