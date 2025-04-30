@@ -24,7 +24,7 @@ const forwarded = useForwardProps(delegatedProps);
         'flex flex-col items-start gap-1',
         'md:flex-row md:items-center md:gap-2',
         'group transition-all duration-200',
-        'data-[disabled]:pointer-events-none data-[disabled]:opacity-50',
+        'data-[disabled]:pointer-events-none data-[disabled]:opacity-80',
         props.class
       )
     "
