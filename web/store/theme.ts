@@ -68,16 +68,15 @@ export const useThemeStore = defineStore('theme', () => {
     } else {
       const result = await load();
       if (result) {
-        const { customization } = result;
-        if (customization?.theme) {
+        if (result.publicTheme) {
           theme.value = {
-            name: customization.theme.name.toLowerCase(),
-            banner: customization.theme.showBannerImage,
-            bannerGradient: customization.theme.showBannerGradient,
-            bgColor: customization.theme.headerBackgroundColor,
-            descriptionShow: customization.theme.showHeaderDescription,
-            metaColor: customization.theme.headerSecondaryTextColor || '',
-            textColor: customization.theme.headerPrimaryTextColor,
+            name: result.publicTheme.name.toLowerCase(),
+            banner: result.publicTheme.showBannerImage,
+            bannerGradient: result.publicTheme.showBannerGradient,
+            bgColor: result.publicTheme.headerBackgroundColor,
+            descriptionShow: result.publicTheme.showHeaderDescription,
+            metaColor: result.publicTheme.headerSecondaryTextColor || '',
+            textColor: result.publicTheme.headerPrimaryTextColor,
           };
         }
       }
