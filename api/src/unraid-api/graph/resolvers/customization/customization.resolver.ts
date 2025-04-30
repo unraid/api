@@ -38,6 +38,12 @@ export class CustomizationResolver {
         return this.customizationService.getPublicPartnerInfo();
     }
 
+    @Query(() => Theme)
+    @Public()
+    async publicTheme(): Promise<Theme> {
+        return this.customizationService.getTheme();
+    }
+
     @ResolveField(() => PublicPartnerInfo, { nullable: true, name: 'partnerInfo' })
     async resolvePartnerInfo(): Promise<PublicPartnerInfo | null> {
         return this.customizationService.getPublicPartnerInfo();
@@ -54,7 +60,6 @@ export class CustomizationResolver {
     }
 
     @ResolveField(() => Theme)
-    @Public()
     async theme(): Promise<Theme> {
         return this.customizationService.getTheme();
     }

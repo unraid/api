@@ -1485,6 +1485,7 @@ type Query {
   extraAllowedOrigins: [String!]!
   customization: Customization
   publicPartnerInfo: PublicPartnerInfo
+  publicTheme: Theme!
   docker: Docker!
   disks: [Disk!]!
   disk(id: PrefixedID!): Disk!

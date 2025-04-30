@@ -20,16 +20,14 @@ export const DARK_THEMES = ['black', 'gray'] as const;
 
 export const GET_THEME_QUERY = graphql(`
   query getTheme {
-    customization {
-      theme {
-        name
-        showBannerImage
-        showBannerGradient
-        headerBackgroundColor
-        showHeaderDescription
-        headerPrimaryTextColor
-        headerSecondaryTextColor
-      }
+    publicTheme {
+      name
+      showBannerImage
+      showBannerGradient
+      headerBackgroundColor
+      showHeaderDescription
+      headerPrimaryTextColor
+      headerSecondaryTextColor
     }
   }
 `);
