@@ -3,6 +3,7 @@ import retry from 'p-retry';
 
 import { AppError } from '@app/core/errors/app-error.js';
 import { appLogger } from '@app/core/log.js';
+import { LooseObject } from '@app/core/types/global.js';
 import { store } from '@app/store/index.js';
 import { loadSingleStateFile } from '@app/store/modules/emhttp.js';
 import { StateFileKey } from '@app/store/types.js';
@@ -11,7 +12,7 @@ import { StateFileKey } from '@app/store/types.js';
  * Run a command with emcmd.
  */
 export const emcmd = async (
-    commands: Record<string, string>,
+    commands: LooseObject,
     { waitForToken = false }: { waitForToken?: boolean } = {}
 ) => {
     const { getters } = await import('@app/store/index.js');
