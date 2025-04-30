@@ -23,11 +23,18 @@ const { osVersion, rebootType, stateDataError } = storeToRefs(serverStore);
 const { available, availableWithRenewal } = storeToRefs(updateOsStore);
 const { rebootTypeText } = storeToRefs(updateOsActionsStore);
 
-watch(partnerInfo, (newVal) => {
-  const unraidLogoHeader = document.querySelector('div.logo a[href="https://unraid.net"]');
-  if (unraidLogoHeader) {
-    (unraidLogoHeader as HTMLAnchorElement).href = newVal?.partnerUrl ?? 'https://unraid.net';
+const unraidLogoHeaderLink = computed<{ href: string; title: string }>(() => {
+  if (partnerInfo.value?.partnerUrl) {
+    return {
+      href: partnerInfo.value.partnerUrl,
+      title: t('Visit Partner website'),
+    };
   }
+
+  return {
+    href: 'https://unraid.net',
+    title: t('Visit Unraid website'),
+  };
 });
 
 const updateOsStatus = computed(() => {
@@ -72,10 +79,19 @@ const updateOsStatus = computed(() => {
 
 <template>
   <div class="flex flex-col">
-    <img
-      :src="'/webGui/images/UN-logotype-gradient.svg'"
-      class="w-[160px] h-auto max-h-[30px] ml-[10px] mt-[25px] mb-[8px] object-contain"
-    />
+    <a
+      :href="unraidLogoHeaderLink.href"
+      :title="unraidLogoHeaderLink.title"
+      target="_blank"
+      rel="noopener"
+      :aria-label="unraidLogoHeaderLink.title"
+    >
+      <img
+        :src="'/webGui/images/UN-logotype-gradient.svg'"
+        class="w-[160px] h-auto max-h-[30px] ml-[10px] mt-[25px] mb-[8px] object-contain"
+        alt="Unraid Logo"
+      />
+    </a>
 
     <div class="flex flex-row justify-start gap-x-4px">
       <a
