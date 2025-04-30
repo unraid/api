@@ -3,6 +3,7 @@ import { createPinia, defineStore, setActivePinia } from 'pinia';
 
 import { PURCHASE_CALLBACK } from '~/helpers/urls';
 
+import { useActivationCodeDataStore } from '~/components/Activation/store/activationCodeData';
 import { useCallbackActionsStore } from '~/store/callbackActions';
 import { useServerStore } from '~/store/server';
 
@@ -21,12 +22,15 @@ export const usePurchaseStore = defineStore('purchase', () => {
   const sendType = computed(() => callbackStore.sendType);
 
   const activate = () => {
+    const { activationCode } = storeToRefs(useActivationCodeDataStore());
+
     callbackStore.send(
       PURCHASE_CALLBACK.toString(),
       [
         {
           server: {
             ...serverPurchasePayload.value,
+            activationCodeData: activationCode.value,
           },
           type: 'activate',
         },

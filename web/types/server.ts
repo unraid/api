@@ -1,4 +1,4 @@
-import type { Config, PartialCloudFragment } from '~/composables/gql/graphql';
+import type { ActivationCode, Config, PartialCloudFragment } from '~/composables/gql/graphql';
 import type { Theme } from '~/themes/types';
 import type { UserProfileLink } from '~/types/userProfile';
 
@@ -67,6 +67,7 @@ export interface ServerStateArray {
 }
 
 export interface Server {
+  activationCodeData?: ActivationCode;
   apiVersion?: string;
   array?: ServerStateArray;
   avatar?: string;
@@ -119,6 +120,7 @@ export interface Server {
 }
 
 export interface ServerAccountCallbackSendPayload {
+  activationCodeData?: ActivationCode;
   apiVersion?: string;
   caseModel?: string;
   connectPluginVersion?: string;
