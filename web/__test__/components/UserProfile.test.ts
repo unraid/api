@@ -1,10 +1,11 @@
 import { ref } from 'vue';
 import { setActivePinia } from 'pinia';
-import { mount, VueWrapper } from '@vue/test-utils';
+import { mount } from '@vue/test-utils';
 
 import { createTestingPinia } from '@pinia/testing';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
+import type { VueWrapper } from '@vue/test-utils';
 import type { Server, ServerconnectPluginInstalled, ServerState } from '~/types/server';
 import type { Pinia } from 'pinia';
 
@@ -16,7 +17,7 @@ const mockCopy = vi.fn();
 const mockCopied = ref(false);
 const mockIsSupported = ref(true);
 vi.mock('@vueuse/core', () => ({
-  useClipboard: ({ source }: { source: MaybeRef<string> }) => {
+  useClipboard: ({ _source }: { _source: MaybeRef<string> }) => {
     const actualCopy = (text: string) => {
       if (mockIsSupported.value) {
         mockCopy(text);
@@ -102,11 +103,11 @@ const UpcDropdownTrigger = {
 };
 
 describe('UserProfile.ce.vue', () => {
-  let wrapper: VueWrapper<any>;
+  let wrapper: VueWrapper<InstanceType<typeof UserProfile>>;
   let pinia: Pinia;
   let serverStore: ReturnType<typeof useServerStore>;
   let themeStore: ReturnType<typeof useThemeStore>;
-  let consoleSpies: any[] = [];
+  let consoleSpies: Array<ReturnType<typeof vi.spyOn>> = [];
 
   beforeEach(() => {
     // Suppress all console outputs
@@ -123,14 +124,8 @@ describe('UserProfile.ce.vue', () => {
     mockIsSupported.value = true;
 
     // Define mock Event classes
-    class MockEvent {
-      constructor(type: string, options?: unknown) {}
-    }
-    class MockMouseEvent extends MockEvent {
-      constructor(type: string, options?: unknown) {
-        super(type, options);
-      }
-    }
+    class MockEvent {}
+    class MockMouseEvent extends MockEvent {}
 
     // Set up window mocks
     vi.stubGlobal('window', {
