@@ -375,7 +375,8 @@ export class CustomizationService implements OnModuleInit {
         // Using optional chaining ?. in case emhttp or var is not defined in the state yet.
         const currentEmhttpState = getters.emhttp();
         const currentName = currentEmhttpState?.var?.name || '';
-        const currentSysModel = currentEmhttpState?.var?.sysModel || '';
+        // Skip sending sysModel to emcmd for now
+        const currentSysModel = '';
         const currentComment = currentEmhttpState?.var?.comment || '';
 
         this.logger.debug(
@@ -397,25 +398,21 @@ export class CustomizationService implements OnModuleInit {
         this.logger.log('Updating server identity:', paramsToUpdate);
 
         try {
-            // Update ident.cfg first
-            await this.updateCfgFile(this.identCfg, null, paramsToUpdate);
-            this.logger.log(`Server identity updated in ${this.identCfg}`);
-
             // Trigger emhttp update via emcmd
-            const updateParams = { ...paramsToUpdate, changeNames: 'Apply' };
+            const updateParams = {
+                ...paramsToUpdate,
+                changeNames: 'Apply',
+                // Can be null string
+                server_name: '',
+                // Can be null string
+                server_addr: '',
+            };
             this.logger.log(`Calling emcmd with params: %o`, updateParams);
             await emcmd(updateParams, { waitForToken: true });
 
             this.logger.log('emcmd executed successfully.');
         } catch (error: unknown) {
             this.logger.error('Error applying server identity: %o', error);
-        }
-
-        try {
-            // Reload services after identity update
-            await execa('/usr/local/emhttp/webGui/scripts/reload_services');
-        } catch (error: unknown) {
-            this.logger.debug('Error reloading services after identity update: %o', error);
         }
     }
 

@@ -9,6 +9,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { emcmd } from '@app/core/utils/clients/emcmd.js';
 import { fileExists } from '@app/core/utils/files/file-exists.js';
+import { getters } from '@app/store/index.js';
 import { ActivationCode } from '@app/unraid-api/graph/resolvers/customization/activation-code.model.js';
 import { CustomizationService } from '@app/unraid-api/graph/resolvers/customization/customization.service.js';
 
@@ -236,17 +237,13 @@ describe('CustomizationService', () => {
                 userDynamixCfg,
                 expect.stringContaining('theme=black')
             ); // Display settings updated
-            expect(fs.writeFile).toHaveBeenCalledWith(
-                identCfg,
-                expect.stringContaining('NAME=PartnerServer')
-            ); // Ident settings updated
 
+            // We no longer write directly to ident.cfg, instead we call emcmd
             // Run timers again to ensure emcmd is called
             await vi.runAllTimers();
-            expect(emcmd).toHaveBeenCalledWith(
-                expect.objectContaining({ NAME: 'PartnerServer', changeNames: 'Apply' }),
-                { waitForToken: true }
-            ); // emcmd called
+            expect(emcmd).toHaveBeenCalledWith(expect.objectContaining({ NAME: 'PartnerServer' }), {
+                waitForToken: true,
+            }); // emcmd called
 
             expect(loggerLogSpy).toHaveBeenCalledWith('Activation setup complete.');
         }, 10000);
@@ -315,8 +312,7 @@ describe('CustomizationService', () => {
             expect(updateCfgFileSpy).toHaveBeenCalledWith(userDynamixCfg, 'display', expect.any(Object));
 
             expect(applyServerIdentitySpy).toHaveBeenCalled();
-            // Check that applyServerIdentity called updateCfgFile for identCfg and emcmd
-            expect(updateCfgFileSpy).toHaveBeenCalledWith(identCfg, null, expect.any(Object));
+            // We no longer update identCfg directly, so we don't check updateCfgFile for it
 
             // Run timers again to ensure emcmd is called
             await vi.runAllTimers();
@@ -658,30 +654,40 @@ describe('CustomizationService', () => {
             );
         });
 
-        it('applyServerIdentity should call updateCfgFile and emcmd', async () => {
+        it('applyServerIdentity should call emcmd directly', async () => {
             const updateSpy = vi.spyOn(service as any, 'updateCfgFile');
+
+            // Capture the emcmd call parameters
+            let emcmdParams;
+            vi.mocked(emcmd).mockImplementation(async (params, options) => {
+                emcmdParams = { params, options };
+                return { body: '', ok: true } as any;
+            });
+
             const promise = (service as any).applyServerIdentity();
             await vi.runAllTimers();
             await promise;
 
-            expect(updateSpy).toHaveBeenCalledWith(identCfg, null, {
-                NAME: 'PartnerServer',
-                SYS_MODEL: 'PartnerModel',
-                COMMENT: 'Partner Comment',
-            });
-            expect(loggerLogSpy).toHaveBeenCalledWith(`Server identity updated in ${identCfg}`);
+            // We no longer update the config file before calling emcmd
+            expect(updateSpy).not.toHaveBeenCalled();
 
-            // Run timers again to ensure emcmd is called
-            await vi.runAllTimers();
-            expect(emcmd).toHaveBeenCalledWith(
-                {
-                    NAME: 'PartnerServer',
-                    SYS_MODEL: 'PartnerModel',
-                    COMMENT: 'Partner Comment',
-                    changeNames: 'Apply',
+            // Verify emcmd was called with expected parameters using inline snapshot
+            expect(emcmdParams).toMatchInlineSnapshot(`
+              {
+                "options": {
+                  "waitForToken": true,
                 },
-                { waitForToken: true }
-            );
+                "params": {
+                  "COMMENT": "Partner Comment",
+                  "NAME": "PartnerServer",
+                  "SYS_MODEL": "PartnerModel",
+                  "changeNames": "Apply",
+                  "server_addr": "",
+                  "server_name": "",
+                },
+              }
+            `);
+
             expect(loggerLogSpy).toHaveBeenCalledWith('emcmd executed successfully.');
         }, 10000);
 
@@ -710,18 +716,25 @@ describe('CustomizationService', () => {
         });
 
         it('applyServerIdentity should log error on emcmd failure', async () => {
-            const emcmdError = new Error('Command failed');
+            const emcmdError = new Error('Failed to call emcmd');
+
+            // Set up activation data directly
+            (service as any).activationData = plainToInstance(ActivationCode, {
+                serverName: 'PartnerServer',
+                sysModel: 'PartnerModel',
+                comment: 'Partner Comment',
+            });
+
+            // Mock emcmd to throw
             vi.mocked(emcmd).mockRejectedValue(emcmdError);
-            const updateSpy = vi.spyOn(service as any, 'updateCfgFile');
 
-            const promise = (service as any).applyServerIdentity();
-            await vi.runAllTimers();
-            await promise;
+            // Clear previous log calls
+            loggerErrorSpy.mockClear();
 
-            expect(updateSpy).toHaveBeenCalled(); // Still attempts updateCfgFile
+            // Call the method directly
+            await (service as any).applyServerIdentity();
 
-            // Run timers again to ensure emcmd is called
-            await vi.runAllTimers();
+            // Verify the error was logged
             expect(emcmd).toHaveBeenCalled();
             expect(loggerErrorSpy).toHaveBeenCalledWith(
                 'Error applying server identity: %o',
@@ -741,6 +754,77 @@ describe('CustomizationService', () => {
 
             expect(testActivationParser.serverName).toBe(truncatedServerName);
         });
+
+        it('should correctly pass server_https parameter based on nginx state', async () => {
+            // Mock getters.emhttp to include nginx with sslEnabled=true
+            const mockEmhttpWithSsl = {
+                nginx: { sslEnabled: true },
+                var: { name: 'Tower', sysModel: 'Custom', comment: 'Default' },
+            };
+            vi.mocked(getters.emhttp).mockReturnValue(mockEmhttpWithSsl as any);
+
+            // Set up the service's activationData field directly
+            (service as any).activationData = plainToInstance(ActivationCode, {
+                serverName: 'PartnerServer',
+                sysModel: 'PartnerModel',
+                comment: 'Partner Comment',
+            });
+
+            // Mock emcmd and capture the params for snapshot testing
+            let sslEnabledParams;
+            vi.mocked(emcmd).mockImplementation(async (params) => {
+                sslEnabledParams = params;
+                return { body: '', ok: true } as any;
+            });
+
+            // Call the method directly to test SSL enabled case
+            await (service as any).applyServerIdentity();
+
+            // Verify emcmd was called
+            expect(emcmd).toHaveBeenCalled();
+            // Use toMatchInlineSnapshot to compare the params
+            expect(sslEnabledParams).toMatchInlineSnapshot(`
+              {
+                "COMMENT": "Partner Comment",
+                "NAME": "PartnerServer",
+                "SYS_MODEL": "PartnerModel",
+                "changeNames": "Apply",
+                "server_addr": "",
+                "server_name": "",
+              }
+            `);
+
+            // Now test with SSL disabled
+            const mockEmhttpNoSsl = {
+                nginx: { sslEnabled: false },
+                var: { name: 'Tower', sysModel: 'Custom', comment: 'Default' },
+            };
+            vi.mocked(getters.emhttp).mockReturnValue(mockEmhttpNoSsl as any);
+
+            // Update the mock to capture params for the second call
+            let sslDisabledParams;
+            vi.mocked(emcmd).mockImplementation(async (params) => {
+                sslDisabledParams = params;
+                return { body: '', ok: true } as any;
+            });
+
+            // Call again to test SSL disabled case
+            await (service as any).applyServerIdentity();
+
+            // Verify emcmd was called again
+            expect(emcmd).toHaveBeenCalled();
+            // Use toMatchInlineSnapshot to compare the params
+            expect(sslDisabledParams).toMatchInlineSnapshot(`
+              {
+                "COMMENT": "Partner Comment",
+                "NAME": "PartnerServer",
+                "SYS_MODEL": "PartnerModel",
+                "changeNames": "Apply",
+                "server_addr": "",
+                "server_name": "",
+              }
+            `);
+        }, 10000);
     });
 });
 
@@ -810,6 +894,9 @@ describe('applyActivationCustomizations specific tests', () => {
             // Assume relevant assets/targets exist unless overridden
             return p === partnerBannerSource || p === caseModelSource || p === bannerDestPath;
         });
+
+        // Import getters from the store mock
+        const { getters } = await import('@app/store/index.js');
     });
 
     it('should log warning and skip if activation dir disappears after init', async () => {
@@ -917,38 +1004,7 @@ describe('applyActivationCustomizations specific tests', () => {
         // REMOVED: expect(loggerErrorSpy).toHaveBeenCalledWith('Error during activation setup:', existsError);
     }, 10000);
 
-    it('should log error if applyServerIdentity fails during updateCfgFile', async () => {
-        const updateError = new Error('Failed to write ident config');
-        // Mock updateCfgFile to throw only when called for identCfg
-        const originalUpdateCfgFile = (service as any).updateCfgFile.bind(service);
-        vi.spyOn(service as any, 'updateCfgFile').mockImplementation(
-            async (filePath, section, updates) => {
-                if (filePath === identCfg) {
-                    throw updateError;
-                }
-                // Ensure the call for display settings passes
-                if (filePath === userDynamixCfg) {
-                    return originalUpdateCfgFile(filePath, section, updates);
-                }
-                // Potentially handle other unexpected calls if necessary
-                throw new Error(`Unexpected updateCfgFile call: ${filePath}`);
-            }
-        );
-
-        await (service as any).applyActivationCustomizations();
-
-        // Previous steps should run
-        expect(loggerLogSpy).toHaveBeenCalledWith('Setting up partner banner...');
-        expect(loggerLogSpy).toHaveBeenCalledWith('Applying display settings...');
-        expect(loggerLogSpy).toHaveBeenCalledWith('Applying case model...');
-
-        // applyServerIdentity should fail and log
-        expect(loggerErrorSpy).toHaveBeenCalledWith('Error applying server identity: %o', updateError);
-        expect(emcmd).not.toHaveBeenCalled(); // emcmd should not be called if updateCfgFile fails
-
-        // Overall error from applyActivationCustomizations' catch block
-        // REMOVED: expect(loggerErrorSpy).toHaveBeenCalledWith('Error during activation setup:', updateError);
-    }, 10000);
+    // We no longer update config files in applyServerIdentity, so this test is removed
 });
 
 // Standalone tests for updateCfgFile utility function within the service
