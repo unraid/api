@@ -15,12 +15,15 @@ else
   echo "Third party plugins found - PLEASE CHECK YOUR UNRAID NOTIFICATIONS AND WAIT FOR THE MESSAGE THAT IT IS SAFE TO REBOOT!"
 fi
  */
+import { computed, onBeforeMount } from 'vue';
+import { useI18n } from 'vue-i18n';
+import { storeToRefs } from 'pinia';
+
 import { BrandLoading, PageContainer } from '@unraid/ui';
 import { WEBGUI_TOOLS_UPDATE } from '~/helpers/urls';
+
 import { useAccountStore } from '~/store/account';
 import { useServerStore } from '~/store/server';
-import { storeToRefs } from 'pinia';
-import { useI18n } from 'vue-i18n';
 
 const { t } = useI18n();
 
