@@ -16,8 +16,13 @@ const { partnerInfo, loading } = storeToRefs(useActivationCodeDataStore());
 
 const { setTheme } = useThemeStore();
 
-// Manually call setCssVars to ensure the theme is set (we're outside of the typical watcher context)
-await setTheme();
+(async () => {
+  try {
+    await setTheme();
+  } catch (error) {
+    console.error('Error setting theme:', error);
+  }
+})();
 
 const title = computed<string>(() =>
   partnerInfo.value?.partnerName
@@ -27,7 +32,7 @@ const title = computed<string>(() =>
 
 const description = computed<string>(() =>
   t(
-    `First, you’ll create your device’s login credentials, then you’ll activate your Unraid license—your device’s operating system (OS).`
+    `First, you'll create your device's login credentials, then you'll activate your Unraid license—your device's operating system (OS).`
   )
 );
 
