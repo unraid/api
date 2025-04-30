@@ -44,26 +44,6 @@ vi.mock('~/store/callbackActions', () => ({
   })),
 }));
 
-// Mock child components
-vi.mock('~/components/UserProfile/UptimeExpire.vue', () => ({
-  default: { template: '<div data-testid="uptime-expire"></div>', props: ['t'] },
-}));
-vi.mock('~/components/UserProfile/ServerState.vue', () => ({
-  default: { template: '<div data-testid="server-state"></div>', props: ['t'] },
-}));
-vi.mock('~/components/NotificationsSidebar.vue', () => ({
-  default: { template: '<div data-testid="notifications-sidebar"></div>' },
-}));
-vi.mock('~/components/UserProfile/DropdownMenu.vue', () => ({
-  default: {
-    template: '<div data-testid="dropdown-menu"><slot name="trigger" /><slot /></div>',
-    props: ['t'],
-  },
-}));
-vi.mock('~/components/UserProfile/DropdownTrigger.vue', () => ({
-  default: { template: '<button data-testid="dropdown-trigger"></button>', props: ['t'] },
-}));
-
 const t = (key: string, args?: unknown[]) => (args ? `${key} ${JSON.stringify(args)}` : key);
 vi.mock('vue-i18n', () => ({
   useI18n: () => ({ t }),
@@ -92,16 +72,16 @@ const initialServerData: Server = {
   wanIp: '8.8.8.8',
 };
 
-const UpcUptimeExpire = { template: '<div data-testid="uptime-expire"></div>', props: ['t'] };
-const UpcServerState = { template: '<div data-testid="server-state"></div>', props: ['t'] };
-const NotificationsSidebar = { template: '<div data-testid="notifications-sidebar"></div>' };
-const UpcDropdownMenu = {
-  template: '<div data-testid="dropdown-menu"><slot name="trigger" /><slot /></div>',
-  props: ['t'],
-};
-const UpcDropdownTrigger = {
-  template: '<button data-testid="dropdown-trigger"></button>',
-  props: ['t'],
+// Component stubs for mount options
+const stubs = {
+  UpcUptimeExpire: { template: '<div data-testid="uptime-expire"></div>', props: ['t'] },
+  UpcServerState: { template: '<div data-testid="server-state"></div>', props: ['t'] },
+  NotificationsSidebar: { template: '<div data-testid="notifications-sidebar"></div>' },
+  UpcDropdownMenu: {
+    template: '<div data-testid="dropdown-menu"><slot name="trigger" /><slot /></div>',
+    props: ['t'],
+  },
+  UpcDropdownTrigger: { template: '<button data-testid="dropdown-trigger"></button>', props: ['t'] },
 };
 
 describe('UserProfile.ce.vue', () => {
@@ -172,7 +152,6 @@ describe('UserProfile.ce.vue', () => {
     // Override the setServer method to prevent console logging
     vi.spyOn(serverStore, 'setServer').mockImplementation((server) => {
       Object.assign(serverStore, server);
-
       return server;
     });
 
@@ -185,14 +164,7 @@ describe('UserProfile.ce.vue', () => {
       },
       global: {
         plugins: [pinia],
-        stubs: {
-          UpcUptimeExpire,
-          UpcServerState,
-          NotificationsSidebar,
-          UpcDropdownMenu,
-          UpcDropdownTrigger,
-          shallow: false,
-        },
+        stubs,
       },
     });
   });
@@ -211,7 +183,6 @@ describe('UserProfile.ce.vue', () => {
     await wrapper.vm.$nextTick();
 
     const heading = wrapper.find('h1');
-
     expect(heading.text()).toContain(initialServerData.name);
 
     expect(wrapper.find('[data-testid="uptime-expire"]').exists()).toBe(true);
@@ -234,13 +205,13 @@ describe('UserProfile.ce.vue', () => {
       },
       global: {
         plugins: [pinia],
+        stubs,
       },
     });
 
     expect(serverStore.setServer).toHaveBeenCalledTimes(2);
     expect(serverStore.setServer).toHaveBeenLastCalledWith(initialServerData);
     expect(wrapperObjectProp.find('h1').text()).toContain(initialServerData.name);
-
     wrapperObjectProp.unmount();
   });
 
@@ -252,6 +223,7 @@ describe('UserProfile.ce.vue', () => {
         props: {},
         global: {
           plugins: [pinia],
+          stubs,
         },
       })
     ).toThrow('Server data not present');
@@ -285,7 +257,6 @@ describe('UserProfile.ce.vue', () => {
     mockIsSupported.value = false;
 
     const serverNameButton = wrapper.find('h1 > button');
-
     await serverNameButton.trigger('click');
     await wrapper.vm.$nextTick();
 
@@ -309,7 +280,6 @@ describe('UserProfile.ce.vue', () => {
     await wrapper.vm.$nextTick();
 
     const heading = wrapper.find('h1');
-
     expect(heading.html()).toContain(initialServerData.description);
 
     themeStore.theme!.descriptionShow = false;
