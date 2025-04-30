@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { computed, watch  } from 'vue';
+import { computed, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { storeToRefs } from 'pinia';
 
@@ -71,44 +71,51 @@ const updateOsStatus = computed(() => {
 </script>
 
 <template>
-  <div class="flex flex-row justify-start gap-x-4px">
-    <a
-      class="group leading-none"
-      :title="t('View release notes')"
-      :href="getReleaseNotesUrl(osVersion).toString()"
-      target="_blank"
-      rel="noopener"
-    >
-      <Badge
-        variant="custom"
-        :icon="InformationCircleIcon"
-        icon-styles="text-header-text-secondary"
-        size="sm"
-        class="text-header-text-secondary group-hover:text-orange-dark group-focus:text-orange-dark group-hover:underline group-focus:underline"
+  <div class="flex flex-col">
+    <img
+      src="/webGui/images/UN-logotype-gradient.svg"
+      class="w-[160px] max-h-[40px] ml-[10px] mt-[25px] mb-[8px]"
+    />
+
+    <div class="flex flex-row justify-start gap-x-4px">
+      <a
+        class="group leading-none"
+        :title="t('View release notes')"
+        :href="getReleaseNotesUrl(osVersion).toString()"
+        target="_blank"
+        rel="noopener"
       >
-        {{ osVersion }}
-      </Badge>
-    </a>
-    <component
-      :is="updateOsStatus.href ? 'a' : 'button'"
-      v-if="updateOsStatus"
-      :href="updateOsStatus.href ?? undefined"
-      :title="updateOsStatus.title ?? undefined"
-      class="group"
-      @click="updateOsStatus.click?.()"
-    >
-      <Badge
-        v-if="updateOsStatus.badge"
-        :color="updateOsStatus.badge.color"
-        :icon="updateOsStatus.badge.icon"
-        size="xs"
+        <Badge
+          variant="custom"
+          :icon="InformationCircleIcon"
+          icon-styles="text-header-text-secondary"
+          size="sm"
+          class="text-header-text-secondary group-hover:text-orange-dark group-focus:text-orange-dark group-hover:underline group-focus:underline"
+        >
+          {{ osVersion }}
+        </Badge>
+      </a>
+      <component
+        :is="updateOsStatus.href ? 'a' : 'button'"
+        v-if="updateOsStatus"
+        :href="updateOsStatus.href ?? undefined"
+        :title="updateOsStatus.title ?? undefined"
+        class="group"
+        @click="updateOsStatus.click?.()"
       >
-        {{ updateOsStatus.text }}
-      </Badge>
-      <template v-else>
-        {{ updateOsStatus.text }}
-      </template>
-    </component>
+        <Badge
+          v-if="updateOsStatus.badge"
+          :color="updateOsStatus.badge.color"
+          :icon="updateOsStatus.badge.icon"
+          size="xs"
+        >
+          {{ updateOsStatus.text }}
+        </Badge>
+        <template v-else>
+          {{ updateOsStatus.text }}
+        </template>
+      </component>
+    </div>
   </div>
 </template>
 
