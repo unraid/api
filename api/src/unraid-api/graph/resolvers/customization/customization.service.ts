@@ -4,6 +4,7 @@ import * as path from 'path';
 
 import { plainToClass } from 'class-transformer';
 import { validateOrReject } from 'class-validator';
+import { execa } from 'execa';
 import { GraphQLError } from 'graphql';
 import * as ini from 'ini';
 
@@ -394,6 +395,9 @@ export class CustomizationService implements OnModuleInit {
             const updateParams = { ...paramsToUpdate, changeNames: 'Apply' };
             this.logger.log(`Calling emcmd with params: %o`, updateParams);
             await emcmd(updateParams, { waitForToken: true });
+
+            // Reload services after identity update
+            await execa('/usr/local/emhttp/webGui/scripts/reload_services');
             this.logger.log('emcmd executed successfully.');
         } catch (error) {
             this.logger.error('Error applying server identity: %o', error);
