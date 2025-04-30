@@ -73,7 +73,7 @@ const updateOsStatus = computed(() => {
 <template>
   <div class="flex flex-col">
     <img
-      src="/webGui/images/UN-logotype-gradient.svg"
+      :src="'/webGui/images/UN-logotype-gradient.svg'"
       class="w-[160px] max-h-[40px] ml-[10px] mt-[25px] mb-[8px]"
     />
 
