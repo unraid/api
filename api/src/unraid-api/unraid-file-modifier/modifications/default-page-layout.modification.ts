@@ -77,7 +77,7 @@ if (is_localhost() && !is_good_session()) {
         return source;
     private hideHeaderLogo(source: string): string {
         return source.replace(
-            /<a href="https:\/\/unraid\.net" target="_blank"[\s\S]*?<\/svg><\/a>/g,
+            '<a href="https://unraid.net" target="_blank"><?readfile("$docroot/webGui/images/UN-logotype-gradient.svg")?></a>',
             ''
         );
     }
