@@ -124,8 +124,14 @@ describe('UserProfile.ce.vue', () => {
     mockIsSupported.value = true;
 
     // Define mock Event classes
-    class MockEvent {}
-    class MockMouseEvent extends MockEvent {}
+    class MockEvent {
+      constructor(type: string, options?: unknown) {}
+    }
+    class MockMouseEvent extends MockEvent {
+      constructor(type: string, options?: unknown) {
+        super(type, options);
+      }
+    }
 
     // Set up window mocks
     vi.stubGlobal('window', {
