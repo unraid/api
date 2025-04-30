@@ -55,9 +55,11 @@ export const emcmd = async (
     appLogger.debug(`Executing emcmd with commands: ${JSON.stringify(commands)}`);
 
     try {
-        const response = await got.post(`http://unix:${socketPath}:/update.htm`, {
+        const paramsObj = { ...commands, csrf_token: csrfToken };
+        const params = new URLSearchParams(paramsObj);
+        const response = await got.get(`http://unix:${socketPath}:/update.htm`, {
             enableUnixSockets: true,
-            searchParams: { ...commands, csrf_token: csrfToken },
+            searchParams: params,
         });
 
         appLogger.debug('emcmd executed successfully');
