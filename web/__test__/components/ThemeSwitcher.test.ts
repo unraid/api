@@ -197,7 +197,7 @@ describe('ThemeSwitcher.ce.vue', () => {
         // Mock the successful response callback chain
         const mockResCallback = vi.fn();
 
-        mockFormUrlPostRes.mockImplementation((cb: Function) => {
+        mockFormUrlPostRes.mockImplementation((cb: () => void) => {
           cb();
           mockResCallback();
         });
