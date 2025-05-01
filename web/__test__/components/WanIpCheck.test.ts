@@ -39,7 +39,7 @@ const mocks = {
 
 vi.mock('~/composables/services/request', () => ({
   request: {
-    url: (...args: any[]) => {
+    url: (...args: unknown[]) => {
       mocks.url(...args);
       return { get: mocks.get };
     },
