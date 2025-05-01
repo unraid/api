@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import { computed } from 'vue';
 import { storeToRefs } from 'pinia';
 
 import { ArrowTopRightOnSquareIcon } from '@heroicons/vue/24/solid';
@@ -28,7 +29,7 @@ useThemeStore();
 const title = computed<string>(() => props.t("Let's activate your Unraid OS License"));
 const description = computed<string>(() =>
   props.t(
-    `On the following screen, your license will be activated. You’ll then create an Unraid.net Account to manage your license going forward.`
+    `On the following screen, your license will be activated. You'll then create an Unraid.net Account to manage your license going forward.`
   )
 );
 const docsButtons = computed<BrandButtonProps[]>(() => {
