@@ -341,7 +341,7 @@ const showUpdateEligibility = computed(() => {
             </p>
 
             <p
-              v-if="!callbackUpdateRelease?.version?.includes('hotfix')"
+              v-if="!callbackUpdateRelease?.version?.includes('+')"
               class="text-14px italic opacity-75"
             >
               {{
