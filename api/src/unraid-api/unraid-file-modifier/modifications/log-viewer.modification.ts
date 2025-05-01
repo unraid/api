@@ -7,7 +7,7 @@ import {
     ShouldApplyWithReason,
 } from '@app/unraid-api/unraid-file-modifier/file-modification.js';
 
-export class LogViewerModification extends FileModification {
+export default class LogViewerModification extends FileModification {
     id: string = 'log-viewer';
     public readonly filePath: string =
         '/usr/local/emhttp/plugins/dynamix.my.servers/LogViewer.page' as const;

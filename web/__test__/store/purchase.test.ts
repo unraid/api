@@ -3,6 +3,7 @@
  */
 
 import { createPinia, setActivePinia } from 'pinia';
+import { ref } from 'vue';
 
 import { PURCHASE_CALLBACK } from '~/helpers/urls';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
@@ -18,6 +19,41 @@ const mockServerStore = {
   },
   inIframe: false,
 };
+
+// Mock Apollo Composable
+vi.mock('@vue/apollo-composable', () => ({
+  useQuery: () => ({
+    result: ref({}),
+    loading: ref(false),
+  }),
+  provideApolloClient: vi.fn(),
+}));
+
+// Mock Apollo client
+vi.mock('~/helpers/create-apollo-client', () => ({
+  client: {
+    clearStore: vi.fn().mockResolvedValue(undefined),
+    stop: vi.fn(),
+  },
+}));
+
+// Mock shared callbacks
+vi.mock('@unraid/shared-callbacks', () => {
+  return {
+    useCallback: vi.fn(() => ({
+      send: mockSend,
+      watcher: vi.fn(),
+      parse: vi.fn(),
+    })),
+  };
+});
+
+// Mock activation code data store
+vi.mock('~/components/Activation/store/activationCodeData', () => ({
+  useActivationCodeDataStore: () => ({
+    activationCode: ref(null),
+  }),
+}));
 
 vi.mock('~/store/callbackActions', () => ({
   useCallbackActionsStore: () => ({
@@ -58,6 +94,7 @@ describe('Purchase Store', () => {
             server: {
               guid: 'test-guid',
               name: 'test-server',
+              activationCodeData: null,
             },
             type: 'activate',
           },

@@ -1,9 +1,5 @@
-import type { Logger } from '@nestjs/common';
 import { readFile } from 'node:fs/promises';
 
-import { createPatch } from 'diff';
-
-import isGuiMode from '@app/core/utils/validation/is-gui-mode.js';
 import {
     FileModification,
     ShouldApplyWithReason,
@@ -41,7 +37,7 @@ export default class DefaultPageLayoutModification extends FileModification {
         return source.replace(targetRegex, (match) => `${phpToAdd}\n${match}`);
     }
 
-    private async patchGuiBootAuth(source: string): Promise<string> {
+    private patchGuiBootAuth(source: string): string {
         if (source.includes('if (is_localhost() && !is_good_session())')) {
             return source;
         }
@@ -69,18 +65,23 @@ if (is_localhost() && !is_good_session()) {
         return this.prependDoctypeWithPhp(source, newPhpCode);
     }
 
-    private async applyToSource(fileContent: string): Promise<string> {
+    private hideHeaderLogo(source: string): string {
+        return source.replace(
+            '<a href="https://unraid.net" target="_blank"><?readfile("$docroot/webGui/images/UN-logotype-gradient.svg")?></a>',
+            ''
+        );
+    }
+
+    private applyToSource(fileContent: string): string {
         const transformers = [
             this.removeNotificationBell.bind(this),
             this.replaceToasts.bind(this),
             this.addToaster.bind(this),
             this.patchGuiBootAuth.bind(this),
+            this.hideHeaderLogo.bind(this),
         ];
 
-        return transformers.reduce(async (contentPromise, transformer) => {
-            const content = await contentPromise;
-            return transformer(content);
-        }, Promise.resolve(fileContent));
+        return transformers.reduce((content, transformer) => transformer(content), fileContent);
     }
 
     protected async generatePatch(overridePath?: string): Promise<string> {

@@ -1,8 +1,9 @@
 import { computed } from 'vue';
-import { createPinia, defineStore, setActivePinia } from 'pinia';
+import { createPinia, defineStore, setActivePinia, storeToRefs } from 'pinia';
 
 import { PURCHASE_CALLBACK } from '~/helpers/urls';
 
+import { useActivationCodeDataStore } from '~/components/Activation/store/activationCodeData';
 import { useCallbackActionsStore } from '~/store/callbackActions';
 import { useServerStore } from '~/store/server';
 
@@ -21,12 +22,18 @@ export const usePurchaseStore = defineStore('purchase', () => {
   const sendType = computed(() => callbackStore.sendType);
 
   const activate = () => {
+    const { activationCode } = storeToRefs(useActivationCodeDataStore());
+
     callbackStore.send(
       PURCHASE_CALLBACK.toString(),
       [
         {
+          /**
+           * @todo Remove the type cast once the payload type can be more specific.
+           */
           server: {
             ...serverPurchasePayload.value,
+            activationCodeData: activationCode.value,
           },
           type: 'activate',
         },

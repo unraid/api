@@ -23,6 +23,9 @@ interface Display {
     scale: string;
     tabs: string;
     text: string;
+    /**
+     * 'black' or 'white' or 'azure' or 'gray'
+     */
     theme: string;
     total: string;
     unit: Unit;
@@ -30,6 +33,32 @@ interface Display {
     warning: string;
     wwn: string;
     locale: string;
+    /**
+     * hex color (without #)
+     */
+    headerMetaColor: string;
+    /**
+     * 'yes' or 'no'
+     */
+    showBannerGradient: string;
+    /**
+     * 'yes' or 'no'
+     */
+    headerdescription: string;
+    /**
+     * Header Secondary Text Color (without #)
+     */
+    headermetacolor: string;
+    /**
+     * Header Text Color (without #)
+     */
+    header: string;
+    /**
+     * Header Background Color (without #)
+     */
+    background: string;
+    tty: string;
+    raw: string;
 }
 
 /**

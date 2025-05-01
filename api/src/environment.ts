@@ -78,7 +78,6 @@ export const ENVIRONMENT = process.env.ENVIRONMENT
     : 'production';
 export const GRAPHQL_INTROSPECTION = Boolean(INTROSPECTION ?? DEBUG ?? ENVIRONMENT !== 'production');
 export const PORT = process.env.PORT ?? '/var/run/unraid-api.sock';
-export const DRY_RUN = process.env.DRY_RUN === 'true';
 export const BYPASS_PERMISSION_CHECKS = process.env.BYPASS_PERMISSION_CHECKS === 'true';
 export const BYPASS_CORS_CHECKS = process.env.BYPASS_CORS_CHECKS === 'true';
 export const LOG_CORS = process.env.LOG_CORS === 'true';

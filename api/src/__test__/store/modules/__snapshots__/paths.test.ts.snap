@@ -1,0 +1,37 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`Returns paths 1`] = `
+[
+  "core",
+  "unraid-api-base",
+  "unraid-data",
+  "docker-autostart",
+  "docker-socket",
+  "parity-checks",
+  "htpasswd",
+  "emhttpd-socket",
+  "states",
+  "dynamix-base",
+  "dynamix-config",
+  "myservers-base",
+  "myservers-config",
+  "myservers-config-states",
+  "myservers-env",
+  "myservers-keepalive",
+  "keyfile-base",
+  "machine-id",
+  "log-base",
+  "unraid-log-base",
+  "var-run",
+  "auth-sessions",
+  "auth-keys",
+  "passwd",
+  "libvirt-pid",
+  "activationBase",
+  "webGuiBase",
+  "identConfig",
+  "activation",
+  "boot",
+  "webgui",
+]
+`;

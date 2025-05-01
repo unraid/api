@@ -1,3 +1,4 @@
+import path from 'path';
 import removeConsole from 'vite-plugin-remove-console';
 
 /**
@@ -24,8 +25,18 @@ function terserReservations(inputStr: string) {
 
 const charsToReserve = '_$abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
 
+const assetsDir = path.join(__dirname, '../api/dev/webGui/');
+
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
+  nitro: {
+    publicAssets: [
+      {
+        baseURL: '/webGui/',
+        dir: assetsDir,
+      },
+    ],
+  },
   devServer: {
     port: 4321,
   },
@@ -131,7 +142,7 @@ export default defineNuxtConfig({
           },
           {
             name: 'UnraidWelcomeModal',
-            path: '@/components/WelcomeModal.ce',
+            path: '@/components/Activation/WelcomeModal.ce',
           },
           {
             name: 'UnraidSsoButton',

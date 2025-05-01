@@ -39,10 +39,11 @@ export default class AuthRequestModification extends FileModification {
      * @returns The patch for the auth-request.php file
      */
     protected async generatePatch(overridePath?: string): Promise<string> {
+        const { getters } = await import('@app/store/index.js');
         const jsFiles = await this.getJsFiles(this.webComponentsDirectory);
         this.logger.debug(`Found ${jsFiles.length} .js files in ${this.webComponentsDirectory}`);
 
-        const filesToAdd = ['/webGui/images/partner-logo.svg', ...jsFiles];
+        const filesToAdd = [getters.paths().webgui.logo.assetPath, ...jsFiles];
 
         if (!existsSync(this.filePath)) {
             throw new Error(`File ${this.filePath} not found.`);

@@ -1,41 +1,76 @@
 import { got } from 'got';
+import retry from 'p-retry';
 
 import { AppError } from '@app/core/errors/app-error.js';
-import { logger } from '@app/core/log.js';
-import { type LooseObject } from '@app/core/types/index.js';
-import { DRY_RUN } from '@app/environment.js';
-import { getters } from '@app/store/index.js';
+import { appLogger } from '@app/core/log.js';
+import { LooseObject } from '@app/core/types/global.js';
+import { store } from '@app/store/index.js';
+import { loadSingleStateFile } from '@app/store/modules/emhttp.js';
+import { StateFileKey } from '@app/store/types.js';
 
 /**
  * Run a command with emcmd.
  */
-export const emcmd = async (commands: LooseObject) => {
+export const emcmd = async (
+    commands: LooseObject,
+    { waitForToken = false }: { waitForToken?: boolean } = {}
+) => {
+    const { getters } = await import('@app/store/index.js');
     const socketPath = getters.paths()['emhttpd-socket'];
-    const { csrfToken } = getters.emhttp().var;
 
-    const url = `http://unix:${socketPath}:/update.htm`;
-    const options = {
-        qs: {
-            ...commands,
-            csrf_token: csrfToken,
-        },
-    };
-
-    if (DRY_RUN) {
-        logger.debug(url, options);
-
-        // Ensure we only log on dry-run
-        return;
+    if (!socketPath) {
+        appLogger.error('No emhttpd socket path found');
+        throw new AppError('No emhttpd socket path found');
     }
-    return got
-        .get(url, {
-            enableUnixSockets: true,
-            searchParams: { ...commands, csrf_token: csrfToken },
-        })
-        .catch((error: NodeJS.ErrnoException) => {
-            if (error.code === 'ENOENT') {
-                throw new AppError('emhttpd socket unavailable.');
+
+    let { csrfToken } = getters.emhttp().var;
+
+    if (!csrfToken && waitForToken) {
+        csrfToken = await retry(
+            async (retries) => {
+                if (retries > 1) {
+                    appLogger.info('Waiting for CSRF token...');
+                }
+                const loadedState = await store.dispatch(loadSingleStateFile(StateFileKey.var)).unwrap();
+
+                let token: string | undefined;
+                if (loadedState && 'var' in loadedState) {
+                    token = loadedState.var.csrfToken;
+                }
+                if (!token) {
+                    throw new Error('CSRF token not found yet');
+                }
+                return token;
+            },
+            {
+                minTimeout: 5000,
+                maxTimeout: 10000,
+                retries: 10,
             }
-            throw error;
+        ).catch((error) => {
+            appLogger.error('Failed to load CSRF token after multiple retries', error);
+            throw new AppError('Failed to load CSRF token after multiple retries');
         });
+    }
+
+    appLogger.debug(`Executing emcmd with commands: ${JSON.stringify(commands)}`);
+
+    try {
+        const paramsObj = { ...commands, csrf_token: csrfToken };
+        const params = new URLSearchParams(paramsObj);
+        const response = await got.get(`http://unix:${socketPath}:/update.htm`, {
+            enableUnixSockets: true,
+            searchParams: params,
+        });
+
+        appLogger.debug('emcmd executed successfully');
+        return response;
+    } catch (error: any) {
+        if (error.code === 'ENOENT') {
+            appLogger.error('emhttpd socket unavailable.', error);
+            throw new Error('emhttpd socket unavailable.');
+        }
+        appLogger.error(`emcmd execution failed: ${error.message}`, error);
+        throw error;
+    }
 };

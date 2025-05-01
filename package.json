@@ -12,7 +12,8 @@
     "lint:fix": "pnpm -r lint:fix",
     "type-check": "pnpm -r type-check",
     "check": "manypkg check",
-    "sync-webgui-repo": "node web/scripts/sync-webgui-repo.js"
+    "sync-webgui-repo": "node web/scripts/sync-webgui-repo.js",
+    "postinstall": "simple-git-hooks"
   },
   "pnpm": {
     "peerDependencyRules": {
@@ -22,11 +23,17 @@
     },
     "onlyBuiltDependencies": [
       "@apollo/protobufjs",
-      "protobufjs",
+      "@nestjs/core",
       "@parcel/watcher",
       "@swc/core",
       "@unraid/libvirt",
+      "core-js",
+      "cpu-features",
+      "es5-ext",
       "esbuild",
+      "nestjs-pino",
+      "protobufjs",
+      "simple-git-hooks",
       "ssh2",
       "vue-demi"
     ]
@@ -36,6 +43,18 @@
     "chalk": "^5.0.0",
     "diff": "^7.0.0",
     "ignore": "^7.0.0"
+  },
+  "devDependencies": {
+    "lint-staged": "^15.2.2",
+    "simple-git-hooks": "^2.9.0"
+  },
+  "simple-git-hooks": {
+    "pre-commit": "pnpm lint-staged"
+  },
+  "lint-staged": {
+    "*.{js,jsx,ts,tsx}": [
+      "pnpm lint:fix"
+    ]
   },
   "packageManager": "pnpm@10.8.1"
 }

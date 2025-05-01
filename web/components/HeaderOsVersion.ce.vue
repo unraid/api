@@ -7,6 +7,7 @@ import { BellAlertIcon, ExclamationTriangleIcon, InformationCircleIcon } from '@
 import { Badge } from '@unraid/ui';
 import { getReleaseNotesUrl, WEBGUI_TOOLS_DOWNGRADE, WEBGUI_TOOLS_UPDATE } from '~/helpers/urls';
 
+import { useActivationCodeDataStore } from '~/components/Activation/store/activationCodeData';
 import { useServerStore } from '~/store/server';
 import { useUpdateOsStore } from '~/store/updateOs';
 import { useUpdateOsActionsStore } from '~/store/updateOsActions';
@@ -17,9 +18,24 @@ const serverStore = useServerStore();
 const updateOsStore = useUpdateOsStore();
 const updateOsActionsStore = useUpdateOsActionsStore();
 
+const { partnerInfo } = storeToRefs(useActivationCodeDataStore());
 const { osVersion, rebootType, stateDataError } = storeToRefs(serverStore);
 const { available, availableWithRenewal } = storeToRefs(updateOsStore);
 const { rebootTypeText } = storeToRefs(updateOsActionsStore);
+
+const unraidLogoHeaderLink = computed<{ href: string; title: string }>(() => {
+  if (partnerInfo.value?.partnerUrl) {
+    return {
+      href: partnerInfo.value.partnerUrl,
+      title: t('Visit Partner website'),
+    };
+  }
+
+  return {
+    href: 'https://unraid.net',
+    title: t('Visit Unraid website'),
+  };
+});
 
 const updateOsStatus = computed(() => {
   if (stateDataError.value) {
@@ -62,48 +78,66 @@ const updateOsStatus = computed(() => {
 </script>
 
 <template>
-  <div class="flex flex-row justify-start gap-x-4px">
+  <div class="flex flex-col">
     <a
-      class="group leading-none"
-      :title="t('View release notes')"
-      :href="getReleaseNotesUrl(osVersion).toString()"
+      :href="unraidLogoHeaderLink.href"
+      :title="unraidLogoHeaderLink.title"
       target="_blank"
       rel="noopener"
+      :aria-label="unraidLogoHeaderLink.title"
     >
-      <Badge
-        variant="custom"
-        :icon="InformationCircleIcon"
-        icon-styles="text-header-text-secondary"
-        size="sm"
-        class="text-header-text-secondary group-hover:text-orange-dark group-focus:text-orange-dark group-hover:underline group-focus:underline"
-      >
-        {{ osVersion }}
-      </Badge>
+      <img
+        :src="'/webGui/images/UN-logotype-gradient.svg'"
+        class="w-[160px] h-auto max-h-[30px] ml-[10px] mt-[25px] mb-[8px] object-contain"
+        alt="Unraid Logo"
+      />
     </a>
-    <component
-      :is="updateOsStatus.href ? 'a' : 'button'"
-      v-if="updateOsStatus"
-      :href="updateOsStatus.href ?? undefined"
-      :title="updateOsStatus.title ?? undefined"
-      class="group"
-      @click="updateOsStatus.click?.()"
-    >
-      <Badge
-        v-if="updateOsStatus.badge"
-        :color="updateOsStatus.badge.color"
-        :icon="updateOsStatus.badge.icon"
-        size="xs"
+
+    <div class="flex flex-row justify-start gap-x-4px">
+      <a
+        class="group leading-none"
+        :title="t('View release notes')"
+        :href="getReleaseNotesUrl(osVersion).toString()"
+        target="_blank"
+        rel="noopener"
       >
-        {{ updateOsStatus.text }}
-      </Badge>
-      <template v-else>
-        {{ updateOsStatus.text }}
-      </template>
-    </component>
+        <Badge
+          variant="custom"
+          :icon="InformationCircleIcon"
+          icon-styles="text-header-text-secondary"
+          size="sm"
+          class="text-header-text-secondary group-hover:text-orange-dark group-focus:text-orange-dark group-hover:underline group-focus:underline"
+        >
+          {{ osVersion }}
+        </Badge>
+      </a>
+      <component
+        :is="updateOsStatus.href ? 'a' : 'button'"
+        v-if="updateOsStatus"
+        :href="updateOsStatus.href ?? undefined"
+        :title="updateOsStatus.title ?? undefined"
+        class="group"
+        @click="updateOsStatus.click?.()"
+      >
+        <Badge
+          v-if="updateOsStatus.badge"
+          :color="updateOsStatus.badge.color"
+          :icon="updateOsStatus.badge.icon"
+          size="xs"
+        >
+          {{ updateOsStatus.text }}
+        </Badge>
+        <template v-else>
+          {{ updateOsStatus.text }}
+        </template>
+      </component>
+    </div>
   </div>
 </template>
 
 <style lang="postcss">
 /* Import unraid-ui globals first */
 @import '@unraid/ui/styles';
+
+@import '~/assets/main.css';
 </style>

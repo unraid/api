@@ -270,3 +270,19 @@ export function csvStringToArray(
     }
     return result;
 }
+
+/**
+ * Converts a webgui path to an asset path.
+ *
+ * @param webGuiPath - The webgui path to convert
+ * @returns The asset path
+ */
+export const convertWebGuiPathToAssetPath = (webGuiPath: string): string => {
+    // Validate path is a subpath of the expected webgui directory
+    if (!webGuiPath.startsWith('/usr/local/emhttp/')) {
+        throw new Error(`Invalid webgui path provided: ${webGuiPath}`);
+    }
+    // Strip the leading /usr/local/emhttp/ from the path
+    const assetPath = webGuiPath.replace('/usr/local/emhttp/', '/');
+    return assetPath;
+};

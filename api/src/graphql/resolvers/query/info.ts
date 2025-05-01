@@ -20,6 +20,7 @@ import { vmRegExps } from '@app/core/utils/vms/domain/vm-regexps.js';
 import { filterDevices } from '@app/core/utils/vms/filter-devices.js';
 import { getPciDevices } from '@app/core/utils/vms/get-pci-devices.js';
 import { getters } from '@app/store/index.js';
+import { ThemeName } from '@app/unraid-api/graph/resolvers/customization/theme.model.js';
 import {
     Devices,
     Display,
@@ -30,7 +31,6 @@ import {
     Os as InfoOs,
     MemoryLayout,
     Temperature,
-    Theme,
     Versions,
 } from '@app/unraid-api/graph/resolvers/info/info.model.js';
 
@@ -98,7 +98,7 @@ export const generateDisplay = async (): Promise<Display> => {
     return {
         id: 'dynamix-config/display',
         ...display,
-        theme: theme as Theme,
+        theme: theme as ThemeName,
         unit: unit as Temperature,
         scale: toBoolean(display.scale),
         tabs: toBoolean(display.tabs),

@@ -753,6 +753,7 @@ type Permission {
 
 """Available resources for permissions"""
 enum Resource {
+  ACTIVATION_CODE
   API_KEY
   ARRAY
   CLOUD
@@ -937,6 +938,70 @@ type Config implements Node {
   error: String
 }
 
+type PublicPartnerInfo {
+  partnerName: String
+
+  """Indicates if a partner logo exists"""
+  hasPartnerLogo: Boolean!
+  partnerUrl: String
+
+  """
+  The path to the partner logo image on the flash drive, relative to the activation code file
+  """
+  partnerLogoUrl: String
+}
+
+type ActivationCode {
+  code: String
+  partnerName: String
+  partnerUrl: String
+  serverName: String
+  sysModel: String
+  comment: String
+  header: String
+  headermetacolor: String
+  background: String
+  showBannerGradient: Boolean
+  theme: String
+}
+
+type Customization {
+  activationCode: ActivationCode
+  partnerInfo: PublicPartnerInfo
+  theme: Theme!
+}
+
+type Theme {
+  """The theme name"""
+  name: ThemeName!
+
+  """Whether to show the header banner image"""
+  showBannerImage: Boolean!
+
+  """Whether to show the banner gradient"""
+  showBannerGradient: Boolean!
+
+  """The background color of the header"""
+  headerBackgroundColor: String!
+
+  """Whether to show the description in the header"""
+  showHeaderDescription: Boolean!
+
+  """The text color of the header"""
+  headerPrimaryTextColor: String!
+
+  """The secondary text color of the header"""
+  headerSecondaryTextColor: String
+}
+
+"""The theme name"""
+enum ThemeName {
+  azure
+  black
+  gray
+  white
+}
+
 type InfoApps implements Node {
   id: PrefixedID!
 
@@ -1033,7 +1098,7 @@ type Display implements Node {
   usage: Boolean
   banner: String
   dashapps: String
-  theme: Theme
+  theme: ThemeName
   text: Boolean
   unit: Temperature
   warning: Int
@@ -1041,11 +1106,6 @@ type Display implements Node {
   hot: Int
   max: Int
   locale: String
-}
-
-"""Display theme"""
-enum Theme {
-  white
 }
 
 """Temperature unit (Celsius or Fahrenheit)"""
@@ -1203,7 +1263,7 @@ type DockerContainer implements Node {
 """
 The `JSONObject` scalar type represents JSON objects as specified by [ECMA-404](http://www.ecma-international.org/publications/files/ECMA-ST/ECMA-404.pdf).
 """
-scalar JSONObject
+scalar JSONObject @specifiedBy(url: "http://www.ecma-international.org/publications/files/ECMA-ST/ECMA-404.pdf")
 
 enum ContainerState {
   RUNNING
@@ -1423,6 +1483,9 @@ type Query {
   connect: Connect!
   remoteAccess: RemoteAccess!
   extraAllowedOrigins: [String!]!
+  customization: Customization
+  publicPartnerInfo: PublicPartnerInfo
+  publicTheme: Theme!
   docker: Docker!
   disks: [Disk!]!
   disk(id: PrefixedID!): Disk!
