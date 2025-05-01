@@ -65,16 +65,6 @@ if (is_localhost() && !is_good_session()) {
         return this.prependDoctypeWithPhp(source, newPhpCode);
     }
 
-    private injectPartnerLogo(source: string): string {
-        const findString =
-            '<a href="https://unraid.net" target="_blank"><?readfile("$docroot/webGui/images/UN-logotype-gradient.svg")?></a>';
-        const replaceString =
-            '<a id="unraid-logo-header" href="https://unraid.net" target="_blank"><?readfile("$docroot/webGui/images/UN-logotype-gradient.svg")?></a>';
-
-        if (source.includes(findString) && !source.includes(replaceString)) {
-            return source.replace(findString, replaceString);
-        }
-        return source;
     private hideHeaderLogo(source: string): string {
         return source.replace(
             '<a href="https://unraid.net" target="_blank"><?readfile("$docroot/webGui/images/UN-logotype-gradient.svg")?></a>',
@@ -88,13 +78,10 @@ if (is_localhost() && !is_good_session()) {
             this.replaceToasts.bind(this),
             this.addToaster.bind(this),
             this.patchGuiBootAuth.bind(this),
-            this.injectPartnerLogo.bind(this),
             this.hideHeaderLogo.bind(this),
         ];
 
-        return transformers.reduce((content, transformer) => 
-            transformer(content)
-        , fileContent);
+        return transformers.reduce((content, transformer) => transformer(content), fileContent);
     }
 
     protected async generatePatch(overridePath?: string): Promise<string> {

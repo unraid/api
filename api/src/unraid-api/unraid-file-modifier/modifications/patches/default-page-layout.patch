@@ -53,32 +53,20 @@ Index: /usr/local/emhttp/plugins/dynamix/include/DefaultPageLayout.php
  }
  
  function closeNotifier() {
-<<<<<<< HEAD
 @@ -699,11 +708,11 @@
-=======
-@@ -699,11 +690,11 @@
->>>>>>> 9886239d3 (chore: hide unraid logo in defaultpagelayout)
  <body>
   <div id="displaybox">
    <div class="upgrade_notice" style="display:none"></div>
    <div id="header" class="<?=$display['banner']?>">
      <div class="logo">
 -      <a href="https://unraid.net" target="_blank"><?readfile("$docroot/webGui/images/UN-logotype-gradient.svg")?></a>
-<<<<<<< HEAD
-+      <a id="unraid-logo-header" href="https://unraid.net" target="_blank"><?readfile("$docroot/webGui/images/UN-logotype-gradient.svg")?></a>
-=======
 +      
->>>>>>> 9886239d3 (chore: hide unraid logo in defaultpagelayout)
        <unraid-i18n-host><unraid-header-os-version></unraid-header-os-version></unraid-i18n-host>
      </div>
      <?include "$docroot/plugins/dynamix.my.servers/include/myservers2.php"?>
    </div>
    <a href="#" class="move_to_end" title="<?=_('Move To End')?>"><i class="fa fa-arrow-circle-down"></i></a>
-<<<<<<< HEAD
 @@ -748,12 +757,12 @@
-=======
-@@ -748,12 +739,12 @@
->>>>>>> 9886239d3 (chore: hide unraid logo in defaultpagelayout)
    }
    // create list of nchan scripts to be started
    if (isset($button['Nchan'])) nchan_merge($button['root'], $button['Nchan']);
