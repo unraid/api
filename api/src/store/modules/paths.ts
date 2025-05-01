@@ -2,6 +2,17 @@ import { join, resolve as resolvePath } from 'path';
 
 import { createSlice } from '@reduxjs/toolkit';
 
+import { convertWebGuiPathToAssetPath } from '@app/utils.js';
+
+// Helper function for creating asset paths
+const createAssetPath = (imagesBase: string, filename: string) => {
+    const fullPath = join(imagesBase, filename);
+    return {
+        fullPath,
+        assetPath: convertWebGuiPathToAssetPath(fullPath),
+    };
+};
+
 const initialState = {
     core: import.meta.dirname,
     'unraid-api-base': '/usr/local/unraid-api/' as const,
@@ -19,28 +30,6 @@ const initialState = {
     'dynamix-base': resolvePath(
         process.env.PATHS_DYNAMIX_BASE ?? ('/boot/config/plugins/dynamix/' as const)
     ),
-    dynamixCaseModelConfig: resolvePath(
-        process.env.PATHS_DYNAMIX_CASE_MODEL_CONFIG ??
-            ('/boot/config/plugins/dynamix/case-model.cfg' as const)
-    ),
-
-    /**------------------------------------------------------------------------
-     *                             Resolving Plugin Configs
-     *
-     *  Plugins have a default config and, optionally, a user-customized config.
-     *  You have to merge them to resolve a the correct config.
-     *
-     * i.e. the plugin author can update or change defaults without breaking user configs
-     *
-     * Thus, we've described this plugin's config paths as a list. The order matters!
-     * Config data in earlier paths will be overwritten by configs from later paths.
-     *
-     * See [the original PHP implementation.](https://github.com/unraid/webgui/blob/95c6913c62e64314b985e08222feb3543113b2ec/emhttp/plugins/dynamix/include/Wrappers.php#L42)
-     *
-     * Here, the first path in the list is the default config.
-     * The second is the user-customized config.
-     *
-     *------------------------------------------------------------------------**/
     'dynamix-config': [
         resolvePath(
             process.env.PATHS_DYNAMIX_CONFIG_DEFAULT ??
@@ -79,30 +68,43 @@ const initialState = {
     activationBase: resolvePath(
         process.env.PATHS_ACTIVATION_BASE ?? ('/boot/config/activation' as const)
     ),
-    webguiImagesBase: '/usr/local/emhttp/webGui/images' as const,
+    webGuiBase: '/usr/local/emhttp/webGui' as const,
     identConfig: resolvePath(process.env.PATHS_IDENT_CONFIG ?? ('/boot/config/ident.cfg' as const)),
 };
 
 // Derive asset paths from base paths
 const derivedPaths = {
-    activationAssets: join(initialState.activationBase, 'assets'),
-    get partnerLogoSource() {
-        return join(this.activationAssets, 'logo.svg');
+    activation: {
+        assets: join(initialState.activationBase, 'assets'),
+        get logo() {
+            return join(this.assets, 'logo.svg');
+        },
+        get caseModel() {
+            return join(this.assets, 'case-model.png');
+        },
+        get banner() {
+            return join(this.assets, 'banner.png');
+        },
     },
-    get partnerLogoTarget() {
-        return join(initialState.webguiImagesBase, 'UN-logotype-gradient.svg');
+    boot: {
+        get caseModel() {
+            return join(initialState['dynamix-base'], 'case-model.png');
+        },
+        get caseModelConfig() {
+            return join(initialState['dynamix-base'], 'case-model.cfg');
+        },
     },
-    get caseModelSource() {
-        return join(this.activationAssets, 'case-model.png');
-    },
-    get caseModelTarget() {
-        return join(initialState.webguiImagesBase, 'case-model.png');
-    },
-    get partnerBannerSource() {
-        return join(this.activationAssets, 'banner.png');
-    },
-    get partnerBannerTarget() {
-        return join(initialState.webguiImagesBase, 'banner.png');
+    webgui: {
+        imagesBase: join(initialState.webGuiBase, 'images'),
+        get logo() {
+            return createAssetPath(this.imagesBase, 'UN-logotype-gradient.svg');
+        },
+        get caseModel() {
+            return createAssetPath(this.imagesBase, 'case-model.png');
+        },
+        get banner() {
+            return createAssetPath(this.imagesBase, 'banner.png');
+        },
     },
 };
 

@@ -4,7 +4,6 @@ import * as path from 'path';
 
 import { plainToClass } from 'class-transformer';
 import { validateOrReject } from 'class-validator';
-import { execa } from 'execa';
 import { GraphQLError } from 'graphql';
 import * as ini from 'ini';
 
@@ -16,7 +15,6 @@ import {
     PublicPartnerInfo,
 } from '@app/unraid-api/graph/resolvers/customization/activation-code.model.js';
 import { Theme, ThemeName } from '@app/unraid-api/graph/resolvers/customization/theme.model.js';
-import { convertWebGuiPathToAssetPath } from '@app/utils.js';
 
 @Injectable()
 export class CustomizationService implements OnModuleInit {
@@ -48,14 +46,6 @@ export class CustomizationService implements OnModuleInit {
         this.activationDir = paths.activationBase;
         this.hasRunFirstBootSetup = path.join(this.activationDir, this.activationAppliedFilename);
         this.configFile = paths['dynamix-config']?.[1];
-        if (!this.configFile) {
-            this.logger.error(
-                "Could not resolve user dynamix config path (paths['dynamix-config'][1]) from store."
-            );
-
-            return; // Stop initialization if critical path is missing
-        }
-        this.caseModelCfg = paths.dynamixCaseModelConfig;
         this.identCfg = paths.identConfig;
 
         this.logger.log('CustomizationService initialized with paths from store.');
@@ -123,12 +113,12 @@ export class CustomizationService implements OnModuleInit {
 
     public async getPublicPartnerInfo(): Promise<PublicPartnerInfo | null> {
         const activationData = await this.getActivationData();
-
+        const paths = getters.paths();
         return {
-            hasPartnerLogo: (await this.getPartnerLogoWebguiPath()) !== null,
+            hasPartnerLogo: (await fileExists(paths.activation.logo)) !== null,
             partnerName: activationData?.partnerName,
             partnerUrl: activationData?.partnerUrl,
-            partnerLogoUrl: await this.getPartnerLogoWebguiPath(),
+            partnerLogoUrl: paths.webgui.logo.assetPath,
         };
     }
 
@@ -176,22 +166,6 @@ export class CustomizationService implements OnModuleInit {
         }
     }
 
-    public async getCaseIconWebguiPath(): Promise<string | null> {
-        const paths = getters.paths();
-        if (await fileExists(paths.caseModelSource)) {
-            return convertWebGuiPathToAssetPath(paths.caseModelTarget);
-        }
-        return null;
-    }
-
-    public async getPartnerLogoWebguiPath(): Promise<string | null> {
-        const paths = getters.paths();
-        if (await fileExists(paths.partnerLogoSource)) {
-            return convertWebGuiPathToAssetPath(paths.partnerLogoTarget);
-        }
-        return null;
-    }
-
     async applyActivationCustomizations() {
         this.logger.log('Applying activation customizations if data is available...');
 
@@ -230,15 +204,15 @@ export class CustomizationService implements OnModuleInit {
     private async setupPartnerBanner() {
         this.logger.log('Setting up partner banner...');
         const paths = getters.paths();
-        const partnerBannerSource = paths.partnerBannerSource;
-        const partnerBannerTarget = paths.partnerBannerTarget;
+        const bannerSource = paths.activation.banner;
+        const bannerTarget = paths.webgui.banner.fullPath;
 
         try {
             // Always overwrite if partner banner exists
-            if (await fileExists(partnerBannerSource)) {
-                this.logger.log(`Partner banner found at ${partnerBannerSource}, overwriting original.`);
+            if (await fileExists(bannerSource)) {
+                this.logger.log(`Partner banner found at ${bannerSource}, overwriting original.`);
                 try {
-                    await fs.copyFile(partnerBannerSource, partnerBannerTarget);
+                    await fs.copyFile(bannerSource, bannerTarget);
                     this.logger.log('Partner banner copied over the original banner.');
                 } catch (copyError: unknown) {
                     this.logger.warn(
@@ -309,14 +283,14 @@ export class CustomizationService implements OnModuleInit {
         // Only set banner='image' if the banner file actually exists in the webgui images directory
         // This assumes setupPartnerBanner has already attempted to copy it if necessary.
         const paths = getters.paths();
-        const partnerBannerSource = paths.partnerBannerSource;
+        const bannerSource = paths.activation.banner;
 
-        if (await fileExists(partnerBannerSource)) {
+        if (await fileExists(bannerSource)) {
             settingsToUpdate['banner'] = 'image';
-            this.logger.debug(`Webgui banner exists at ${partnerBannerSource}, setting banner=image.`);
+            this.logger.debug(`Webgui banner exists at ${bannerSource}, setting banner=image.`);
         } else {
             this.logger.debug(
-                `Webgui banner does not exist at ${partnerBannerSource}, skipping banner=image setting.`
+                `Webgui banner does not exist at ${bannerSource}, skipping banner=image setting.`
             );
         }
 
@@ -345,18 +319,17 @@ export class CustomizationService implements OnModuleInit {
 
         this.logger.log('Applying case model...');
         const paths = getters.paths();
-        const caseModelSource = paths.caseModelSource;
+        const caseModelSource = paths.activation.caseModel;
 
         try {
-            // Check if the custom image file exists in assets
             if (await fileExists(caseModelSource)) {
-                // Use the *target* filename which CaseModelCopierModification will create
-                const modelToSet = path.basename(paths.caseModelTarget); // e.g., 'case-model.png'
+                this.logger.log('Case model found in activation assets, applying...');
+                const modelToSet = path.basename(paths.webgui.caseModel.fullPath); // e.g., 'case-model.png'
                 await fs.mkdir(path.dirname(this.caseModelCfg), { recursive: true });
                 await fs.writeFile(this.caseModelCfg, modelToSet);
                 this.logger.log(`Case model set to ${modelToSet} in ${this.caseModelCfg}`);
             } else {
-                this.logger.log('No custom case model file found in assets.');
+                this.logger.log('No custom case model file found in activation assets.');
             }
         } catch (error) {
             this.logger.error('Error applying case model:', error);

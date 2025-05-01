@@ -11,42 +11,50 @@ import {
 
 export default class CaseModelCopierModification extends FileModification {
     id: string = 'case-model-copier';
-    public filePath: string = '/usr/local/emhttp/plugins/dynamix/images/case-model.png';
+    public filePath: string = store.getState().paths.webgui.caseModel.fullPath;
 
-    private readonly assetsDir: string;
-    private readonly webguiImagesDir: string;
-    private readonly customCaseFileName = 'case-model.png';
+    private readonly activationCaseModel: string;
+    private readonly webGuiCaseModel: string;
+    private readonly bootCaseModel: string;
 
     constructor(logger: Logger) {
         super(logger);
         const paths = store.getState().paths;
-        this.assetsDir = path.join(paths.activationBase, 'assets');
-        this.webguiImagesDir = paths.webguiImagesBase;
+        this.activationCaseModel = paths.activation.caseModel;
+        this.webGuiCaseModel = paths.webgui.caseModel.fullPath;
+        this.bootCaseModel = paths.boot.caseModel;
         this.logger.debug('CaseModelCopierModification initialized with paths from store.');
     }
+
     protected async generatePatch(overridePath?: string): Promise<string> {
-        throw new Error('Method not implemented.');
+        return '';
+    }
+
+    /**
+     * No pregenerated patch for a single file
+     * @returns null
+     */
+    protected async getPregeneratedPatch(): Promise<string | null> {
+        return null;
     }
 
     async apply(): Promise<string> {
         this.logger.log('Applying case model icon copy...');
-        const customCaseModelPath = path.join(this.assetsDir, this.customCaseFileName);
-        const destPath = path.join(this.webguiImagesDir, this.customCaseFileName);
 
         try {
-            await fs.mkdir(path.dirname(destPath), { recursive: true });
+            await fs.mkdir(path.dirname(this.webGuiCaseModel), { recursive: true });
             try {
-                await fs.unlink(destPath);
-                this.logger.debug(`Removed existing file/link at ${destPath}`);
+                await fs.unlink(this.webGuiCaseModel);
+                this.logger.debug(`Removed existing file/link at ${this.webGuiCaseModel}`);
             } catch (unlinkError: any) {
                 if (unlinkError.code !== 'ENOENT') {
                     this.logger.warn(
-                        `Could not remove existing file at ${destPath}: ${unlinkError.message}`
+                        `Could not remove existing file at ${this.webGuiCaseModel}: ${unlinkError.message}`
                     );
                 }
             }
-            await fs.copyFile(customCaseModelPath, destPath);
-            this.logger.log(`Custom case model icon copied to ${destPath}`);
+            await fs.copyFile(this.activationCaseModel, this.webGuiCaseModel);
+            this.logger.log(`Custom case model icon copied to ${this.webGuiCaseModel}`);
             return '';
         } catch (error) {
             this.logger.error('Error applying case model icon copy:', error);
@@ -55,33 +63,28 @@ export default class CaseModelCopierModification extends FileModification {
     }
 
     async shouldApply(): Promise<ShouldApplyWithReason> {
+        // Check if the file already exists in the boot drive
+        const bootFileExists = await fileExists(this.bootCaseModel);
+
+        if (bootFileExists) {
+            return {
+                shouldApply: false,
+                reason: 'Custom case model already exists in boot drive, not overwriting user customization.',
+            };
+        }
+
         // Check if the custom case model icon file is present in the assets directory
-        const customCaseModelPath = path.join(this.assetsDir, this.customCaseFileName);
-        const exists = await fileExists(customCaseModelPath);
+        const exists = await fileExists(this.activationCaseModel);
         return {
             shouldApply: exists,
             reason: 'Ensures the custom case model icon file is correctly placed if available.',
         };
     }
 
+    /**
+     * No rollback needed, we're not modfiying any files that would need to be reverted
+     */
     async rollback() {
-        this.logger.log('Rolling back case model icon copy...');
-        const destPath = path.join(this.webguiImagesDir, this.customCaseFileName);
-        try {
-            // Check if the file exists before trying to remove it
-            if (await fileExists(destPath)) {
-                await fs.unlink(destPath);
-                this.logger.log(`Custom case model icon removed from ${destPath}`);
-            } else {
-                this.logger.log(`Custom case model icon not found at ${destPath}, nothing to remove.`);
-            }
-        } catch (error: any) {
-            // Log ENOENT specifically, otherwise log as an error
-            if (error.code === 'ENOENT') {
-                this.logger.debug(`Custom case model icon not found at ${destPath} during rollback.`);
-            } else {
-                this.logger.error('Error rolling back case model icon copy:', error);
-            }
-        }
+        return;
     }
 }

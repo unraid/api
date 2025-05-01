@@ -1,66 +1,63 @@
-import { Injectable, Logger } from '@nestjs/common';
-import * as fs from 'fs/promises';
-import * as path from 'path';
+import { Logger } from '@nestjs/common';
+import { mkdir, symlink, unlink } from 'fs/promises';
+import { dirname } from 'path';
 
 import { fileExists } from '@app/core/utils/files/file-exists.js';
-import { getters } from '@app/store/index.js';
+import { store } from '@app/store/index.js';
 import {
     FileModification,
     ShouldApplyWithReason,
 } from '@app/unraid-api/unraid-file-modifier/file-modification.js';
 
-export default class PartnerLogoCopierModification extends FileModification {
+export class PartnerLogoCopierModification extends FileModification {
     id: string = 'partner-logo-copier';
-    public filePath: string = '/usr/local/emhttp/plugins/dynamix/images/partner-logo.png';
-
-    private readonly partnerLogoSource: string;
-    private readonly partnerLogoTarget: string;
+    public readonly filePath: string;
+    private readonly sourcePath: string;
+    private readonly targetPath: string;
 
     constructor(logger: Logger) {
         super(logger);
-        const paths = getters.paths();
-        this.partnerLogoSource = paths.partnerLogoSource;
-        this.partnerLogoTarget = paths.partnerLogoTarget;
-        this.logger.debug('PartnerLogoCopierModification initialized with paths from store.');
+        const paths = store.getState().paths;
+        this.sourcePath = paths.activation.logo;
+        this.targetPath = paths.webgui.logo.fullPath;
+        this.filePath = this.targetPath;
     }
 
-    protected async generatePatch(overridePath?: string): Promise<string> {
-        throw new Error('Method not implemented.');
+    protected async generatePatch(): Promise<string> {
+        // This modification doesn't generate a patch since it's just copying/symlinking files
+        return '';
     }
 
-    async apply(): Promise<string> {
-        this.logger.log('Setting up partner logo...');
+    public async apply(): Promise<string> {
         try {
-            if (await fileExists(this.partnerLogoSource)) {
-                // Ensure the destination directory exists
-                await fs.mkdir(path.dirname(this.partnerLogoTarget), { recursive: true });
-                // Remove existing link/file if it exists
+            if (await fileExists(this.sourcePath)) {
+                this.logger.log('Partner logo found in activation assets, applying...');
+                await mkdir(dirname(this.targetPath), { recursive: true });
+
                 try {
-                    await fs.unlink(this.partnerLogoTarget);
-                } catch (e) {
-                    /* ignore if not found */
+                    await unlink(this.targetPath);
+                } catch (error) {
+                    // Ignore errors if file doesn't exist
                 }
-                await fs.symlink(this.partnerLogoSource, this.partnerLogoTarget);
-                this.logger.log(`Partner logo symlinked to ${this.partnerLogoTarget}`);
-                return '';
-            } else {
-                this.logger.log('No partner logo found.');
-                return '';
+
+                await symlink(this.sourcePath, this.targetPath);
+                this.logger.log(`Partner logo symlinked to ${this.targetPath}`);
+                return 'Partner logo applied successfully';
             }
+            return 'No partner logo found to apply';
         } catch (error) {
-            this.logger.error('Error setting up partner logo:', error);
-            return '';
+            this.logger.error('Error applying partner logo:', error);
+            throw error;
         }
     }
 
     async shouldApply(): Promise<ShouldApplyWithReason> {
+        const sourceExists = await fileExists(this.sourcePath);
         return {
-            shouldApply: true,
-            reason: 'Always apply the allowed file changes to ensure compatibility.',
+            shouldApply: sourceExists,
+            reason: sourceExists
+                ? 'Partner logo found in activation assets'
+                : 'No partner logo found in activation assets',
         };
-    }
-
-    async rollback(): Promise<void> {
-        return;
     }
 }

@@ -17,7 +17,6 @@ test('Returns paths', async () => {
         'emhttpd-socket': '/var/run/emhttpd.socket',
         states: expect.stringContaining('api/dev/states'),
         'dynamix-base': expect.stringContaining('api/dev/dynamix'),
-        dynamixCaseModelConfig: '/boot/config/plugins/dynamix/case-model.cfg',
         'dynamix-config': expect.arrayContaining([
             expect.stringContaining('api/dev/dynamix/default.cfg'),
             expect.stringContaining('api/dev/dynamix/dynamix.cfg'),
@@ -37,14 +36,31 @@ test('Returns paths', async () => {
         passwd: expect.stringContaining('api/dev/passwd'),
         'libvirt-pid': '/var/run/libvirt/libvirtd.pid',
         activationBase: expect.stringContaining('api/dev/activation'),
-        webguiImagesBase: '/usr/local/emhttp/webGui/images',
+        webGuiBase: '/usr/local/emhttp/webGui',
         identConfig: '/boot/config/ident.cfg',
-        activationAssets: expect.stringContaining('api/dev/activation/assets'),
-        partnerLogoSource: expect.stringContaining('api/dev/activation/assets/logo.svg'),
-        partnerLogoTarget: '/usr/local/emhttp/webGui/images/UN-logotype-gradient.svg',
-        caseModelSource: expect.stringContaining('api/dev/activation/assets/case-model.png'),
-        caseModelTarget: '/usr/local/emhttp/webGui/images/case-model.png',
-        partnerBannerSource: expect.stringContaining('api/dev/activation/assets/banner.png'),
-        partnerBannerTarget: '/usr/local/emhttp/webGui/images/banner.png',
+        activation: {
+            assets: expect.stringContaining('api/dev/activation/assets'),
+            logo: expect.stringContaining('api/dev/activation/assets/logo.svg'),
+            caseModel: expect.stringContaining('api/dev/activation/assets/case-model.png'),
+            banner: expect.stringContaining('api/dev/activation/assets/banner.png'),
+        },
+        boot: {
+            caseModel: expect.stringContaining('api/dev/dynamix/case-model.png'),
+        },
+        webgui: {
+            imagesBase: '/usr/local/emhttp/webGui/images',
+            logo: {
+                fullPath: '/usr/local/emhttp/webGui/images/UN-logotype-gradient.svg',
+                assetPath: '/webGui/images/UN-logotype-gradient.svg',
+            },
+            caseModel: {
+                fullPath: '/usr/local/emhttp/webGui/images/case-model.png',
+                assetPath: '/webGui/images/case-model.png',
+            },
+            banner: {
+                fullPath: '/usr/local/emhttp/webGui/images/banner.png',
+                assetPath: '/webGui/images/banner.png',
+            },
+        },
     });
 });
