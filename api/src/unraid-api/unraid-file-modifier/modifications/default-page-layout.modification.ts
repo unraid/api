@@ -3,6 +3,7 @@ import { readFile } from 'node:fs/promises';
 
 import { createPatch } from 'diff';
 
+import isGuiMode from '@app/core/utils/validation/is-gui-mode.js';
 import {
     FileModification,
     ShouldApplyWithReason,
@@ -40,7 +41,12 @@ export default class DefaultPageLayoutModification extends FileModification {
         return source.replace(targetRegex, (match) => `${phpToAdd}\n${match}`);
     }
 
-    private patchGuiBootAuth(source: string): string {
+    private async patchGuiBootAuth(source: string): Promise<string> {
+        const isUnraidGuiMode = await isGuiMode();
+        if (!isUnraidGuiMode) {
+            return source;
+        }
+
         if (source.includes('if (is_localhost() && !is_good_session())')) {
             return source;
         }
@@ -66,20 +72,34 @@ if (is_localhost() && !is_good_session()) {
         return this.prependDoctypeWithPhp(source, newPhpCode);
     }
 
-    private applyToSource(fileContent: string): string {
+    private async applyToSource(fileContent: string): Promise<string> {
         const transformers = [
             this.removeNotificationBell.bind(this),
             this.replaceToasts.bind(this),
             this.addToaster.bind(this),
             this.patchGuiBootAuth.bind(this),
         ];
-        return transformers.reduce((content, fn) => fn(content), fileContent);
+
+        return transformers.reduce(async (contentPromise, transformer) => {
+            const content = await contentPromise;
+            return transformer(content);
+        }, Promise.resolve(fileContent));
+    }
+
+    protected async getPregeneratedPatch(): Promise<string | null> {
+        const isUnraidGuiMode = await isGuiMode();
+        if (!isUnraidGuiMode) {
+            // If we're not in GUI mode, we can use the pregenerated patch
+            return super.getPregeneratedPatch();
+        }
+
+        return null;
     }
 
     protected async generatePatch(overridePath?: string): Promise<string> {
         const fileContent = await readFile(this.filePath, 'utf-8');
 
-        const newContent = this.applyToSource(fileContent);
+        const newContent = await this.applyToSource(fileContent);
 
         return this.createPatchWithDiff(overridePath ?? this.filePath, fileContent, newContent);
     }
