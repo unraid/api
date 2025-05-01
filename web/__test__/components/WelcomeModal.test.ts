@@ -150,13 +150,13 @@ describe('WelcomeModal.ce.vue', () => {
   });
 
   it('uses a standardized description', () => {
+    const getDescription = () =>
+      "First, you'll create your device's login credentials, then you'll activate your Unraid license—your device's operating system (OS).";
+
     const expectedDescription =
       "First, you'll create your device's login credentials, then you'll activate your Unraid license—your device's operating system (OS).";
 
-    const description =
-      "First, you'll create your device's login credentials, then you'll activate your Unraid license—your device's operating system (OS).";
-
-    expect(description).toBe(expectedDescription);
+    expect(getDescription()).toBe(expectedDescription);
   });
 
   it('hides modal when BrandButton is clicked', () => {
