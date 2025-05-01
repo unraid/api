@@ -13,6 +13,7 @@
     "tailwind.config.ts"
   ],
   "scripts": {
+    "prepare": "pnpm build",
     "// Development": "",
     "dev": "vite",
     "preview": "vite preview",
