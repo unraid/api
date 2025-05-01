@@ -36,18 +36,39 @@ export class UnraidFileModificationService implements OnModuleInit, OnModuleDest
      */
     async loadModifications(): Promise<FileModification[]> {
         const modifications: FileModification[] = [];
-        const modificationModules = import.meta.glob<{
-            default: new (logger: Logger) => FileModification;
-        }>('./modifications/*.modification.ts', { eager: true });
+        const modificationModules = import.meta.glob<Record<string, any>>(
+            './modifications/*.modification.ts',
+            { eager: true }
+        );
 
         this.logger.debug(`Loading ${Object.keys(modificationModules).length} modifications...`);
         for (const path in modificationModules) {
             const module = modificationModules[path];
+
+            // Try to load default export first
             if (module.default) {
-                this.logger.debug(`Loading modification: ${module.default.name}`);
+                this.logger.debug(`Loading default modification: ${module.default.name}`);
                 const ModificationClass = module.default;
                 const instance = new ModificationClass(this.logger);
                 modifications.push(instance);
+            }
+            // If no default export, try to find the first exported class that extends FileModification
+            else {
+                const exportedKeys = Object.keys(module).filter(
+                    (key) => typeof module[key] === 'function' && key !== '__esModule'
+                );
+
+                if (exportedKeys.length > 0) {
+                    const firstExportKey = exportedKeys[0];
+                    const ExportedClass = module[firstExportKey];
+
+                    // Check if it's a class that extends FileModification
+                    if (ExportedClass.prototype instanceof FileModification) {
+                        this.logger.debug(`Loading named modification: ${ExportedClass.name}`);
+                        const instance = new ExportedClass(this.logger);
+                        modifications.push(instance);
+                    }
+                }
             }
         }
         return modifications;
@@ -80,10 +101,7 @@ export class UnraidFileModificationService implements OnModuleInit, OnModuleDest
             }
         } catch (error) {
             if (error instanceof Error) {
-                this.logger.error(
-                    `Failed to apply modification: ${modification.id}: ${error.message}`,
-                    error.stack
-                );
+                this.logger.error(`Failed to apply modification: ${modification.id}: %o`, error);
             } else {
                 this.logger.error(`Failed to apply modification: ${modification.id}: Unknown error`);
             }
