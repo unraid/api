@@ -3,8 +3,6 @@ import { createPinia, defineStore, setActivePinia, storeToRefs } from 'pinia';
 
 import { PURCHASE_CALLBACK } from '~/helpers/urls';
 
-import type { ServerData } from '@unraid/shared-callbacks';
-
 import { useActivationCodeDataStore } from '~/components/Activation/store/activationCodeData';
 import { useCallbackActionsStore } from '~/store/callbackActions';
 import { useServerStore } from '~/store/server';
@@ -36,7 +34,7 @@ export const usePurchaseStore = defineStore('purchase', () => {
           server: {
             ...serverPurchasePayload.value,
             activationCodeData: activationCode.value,
-          } as unknown as ServerData,
+          },
           type: 'activate',
         },
       ],
