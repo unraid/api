@@ -154,6 +154,7 @@ export interface ServerAccountCallbackSendPayload {
 export type ServerKeyTypeForPurchase = 'Basic' | 'Plus' | 'Pro' | 'Starter' | 'Trial' | 'Unleashed';
 
 export interface ServerPurchaseCallbackSendPayload {
+  activationCodeData?: ActivationCode;
   apiVersion?: string;
   connectPluginVersion?: string;
   deviceCount: number;
