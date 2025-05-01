@@ -3,6 +3,7 @@ import 'reflect-metadata';
 import type { TypedAddListener, TypedStartListening } from '@reduxjs/toolkit';
 import { addListener, createListenerMiddleware } from '@reduxjs/toolkit';
 
+import { CONNECT_ENABLED } from '@app/environment.js';
 import { type AppDispatch, type RootState } from '@app/store/index.js';
 import { enableArrayEventListener } from '@app/store/listeners/array-event-listener.js';
 import { enableConfigFileListener } from '@app/store/listeners/config-listener.js';
@@ -23,15 +24,21 @@ export type AppStartListeningParams = Parameters<typeof startAppListening>[0];
 
 export const addAppListener = addListener as TypedAddListener<RootState, AppDispatch>;
 
+const whenConnectEnabled = <T>(fn: () => T): T | void => {
+    if (CONNECT_ENABLED) {
+        return fn();
+    }
+};
+
 export const startMiddlewareListeners = () => {
     // Begin listening for events
-    enableMothershipJobsListener();
+    whenConnectEnabled(enableMothershipJobsListener);
     enableConfigFileListener('flash')();
     enableConfigFileListener('memory')();
     enableUpnpListener();
     enableVersionListener();
-    enableDynamicRemoteAccessListener();
+    whenConnectEnabled(enableDynamicRemoteAccessListener);
     enableArrayEventListener();
-    enableWanAccessChangeListener();
-    enableServerStateListener();
+    whenConnectEnabled(enableWanAccessChangeListener);
+    whenConnectEnabled(enableServerStateListener);
 };

@@ -1,4 +1,5 @@
 import { minigraphLogger, mothershipLogger } from '@app/core/log.js';
+import { CONNECT_ENABLED } from '@app/environment.js';
 import { useFragment } from '@app/graphql/generated/client/fragment-masking.js';
 import { ClientType } from '@app/graphql/generated/client/graphql.js';
 import { EVENTS_SUBSCRIPTION, RemoteGraphQL_Fragment } from '@app/graphql/mothership/subscriptions.js';
@@ -75,6 +76,13 @@ export const subscribeToEvents = async (apiKey: string) => {
 };
 
 export const setupNewMothershipSubscription = async (state = store.getState()) => {
+    if (!CONNECT_ENABLED) {
+        minigraphLogger.warn(
+            'Connect is not enabled, but the mothership subscription attempted to start. Please notify the devs (e.g. via discord in the #connect-help channel).'
+        );
+        return;
+    }
+
     await GraphQLClient.clearInstance();
     if (getMothershipConnectionParams(state)?.apiKey) {
         minigraphLogger.trace('Creating Graphql client');
