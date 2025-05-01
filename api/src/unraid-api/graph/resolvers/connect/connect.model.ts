@@ -1,4 +1,4 @@
-import { Field, ID, InputType, Int, ObjectType, registerEnumType } from '@nestjs/graphql';
+import { Field, InputType, Int, ObjectType, registerEnumType } from '@nestjs/graphql';
 
 import {
     ArrayMinSize,
@@ -7,9 +7,9 @@ import {
     IsEmail,
     IsEnum,
     IsNotEmpty,
+    IsNumber,
     IsObject,
     IsOptional,
-    IsPort,
     IsString,
     MinLength,
     ValidateNested,
@@ -17,7 +17,6 @@ import {
 import { GraphQLJSON, GraphQLURL } from 'graphql-scalars';
 
 import { Node } from '@app/unraid-api/graph/resolvers/base.model.js';
-import { PrefixedID } from '@app/unraid-api/graph/scalars/graphql-type-prefixed-id.js';
 
 export enum WAN_ACCESS_TYPE {
     DYNAMIC = 'DYNAMIC',
@@ -172,7 +171,6 @@ export class RemoteAccess {
     forwardType?: WAN_FORWARD_TYPE;
 
     @Field(() => Int, { nullable: true, description: 'The port used for Remote Access' })
-    @IsPort()
     @IsOptional()
     port?: number | null;
 }
@@ -196,7 +194,6 @@ export class SetupRemoteAccessInput {
         description:
             'The port to use for Remote Access. Not required for UPNP forwardType. Required for STATIC forwardType. Ignored if accessType is DISABLED or forwardType is UPNP.',
     })
-    @IsPort()
     @IsOptional()
     port?: number | null;
 }
@@ -262,8 +259,8 @@ export class ConnectSettingsValues {
     forwardType?: WAN_FORWARD_TYPE;
 
     @Field(() => Int, { nullable: true, description: 'The port used for Remote Access' })
-    @IsPort()
     @IsOptional()
+    @IsNumber()
     port?: number | null;
 
     @Field(() => [String], { description: "A list of Unique Unraid Account ID's" })
@@ -313,7 +310,6 @@ export class ApiSettingsInput {
         description:
             'The port to use for Remote Access. Not required for UPNP forwardType. Required for STATIC forwardType. Ignored if accessType is DISABLED or forwardType is UPNP.',
     })
-    @IsPort()
     @IsOptional()
     port?: number | null;
 
