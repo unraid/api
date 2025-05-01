@@ -1,13 +1,9 @@
 <script setup lang="ts">
-import { useDummyServerStore } from '~/_data/serverState';
 import { useActivationCodeModalStore } from '~/components/Activation/store/activationCodeModal';
 import { useActivationCodeDataStore } from '~/components/Activation/store/activationCodeData';
 import { useCallbackActionsStore } from '~/store/callbackActions';
 import WelcomeModalCe from '~/components/Activation/WelcomeModal.ce.vue';
-import DummyServerSwitcher from '~/components/DummyServerSwitcher.vue';
 import ModalsCe from '~/components/Modals.ce.vue';
-const serverStore = useDummyServerStore();
-const { serverState } = storeToRefs(serverStore);
 
 const modalStore = useActivationCodeModalStore();
 const { isVisible } = storeToRefs(modalStore);
@@ -28,8 +24,7 @@ const showActivationModal = () => {
 
 <template>
   <div class="flex flex-col gap-6 p-6">
-    <DummyServerSwitcher />
-    <WelcomeModalCe :server="serverState ?? undefined" />
+    <WelcomeModalCe />
     <ModalsCe />
     <div class="mt-4 p-4 border rounded bg-gray-100 dark:bg-gray-800">
       <h3 class="text-lg font-semibold mb-2">Activation Modal Debug Info:</h3>
