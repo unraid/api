@@ -115,7 +115,7 @@ export class CustomizationService implements OnModuleInit {
         const activationData = await this.getActivationData();
         const paths = getters.paths();
         return {
-            hasPartnerLogo: (await fileExists(paths.activation.logo)) !== null,
+            hasPartnerLogo: await fileExists(paths.activation.logo),
             partnerName: activationData?.partnerName,
             partnerUrl: activationData?.partnerUrl,
             partnerLogoUrl: paths.webgui.logo.assetPath,
