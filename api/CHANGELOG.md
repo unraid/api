@@ -1,5 +1,17 @@
 # Changelog
 
+## [4.8.0](https://github.com/unraid/api/compare/v4.7.0...v4.8.0) (2025-05-01)
+
+
+### Features
+
+* move activation code logic into the API ([#1369](https://github.com/unraid/api/issues/1369)) ([39e83b2](https://github.com/unraid/api/commit/39e83b2aa156586ab4da362137194280fccefe7c))
+
+
+### Bug Fixes
+
+* 400 error when submitting connect settings ([831050f](https://github.com/unraid/api/commit/831050f4e8c3af4cbcc123a3a609025f250f0824))
+
 ## [4.7.0](https://github.com/unraid/api/compare/v4.6.6...v4.7.0) (2025-04-24)
 
 
