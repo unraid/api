@@ -42,11 +42,6 @@ export default class DefaultPageLayoutModification extends FileModification {
     }
 
     private async patchGuiBootAuth(source: string): Promise<string> {
-        const isUnraidGuiMode = await isGuiMode();
-        if (!isUnraidGuiMode) {
-            return source;
-        }
-
         if (source.includes('if (is_localhost() && !is_good_session())')) {
             return source;
         }
@@ -54,19 +49,20 @@ export default class DefaultPageLayoutModification extends FileModification {
         const newPhpCode =
 `
 function is_localhost() {
-  $server_name = strtok($_SERVER['HTTP_HOST'], ":");
-  return $server_name == 'localhost' || $server_name == '127.0.0.1';
+  // Use the peer IP, not the Host header which can be spoofed
+  return $_SERVER['REMOTE_ADDR'] === '127.0.0.1' || $_SERVER['REMOTE_ADDR'] === '::1';
 }
 function is_good_session() {
   return isset($_SESSION) && isset($_SESSION['unraid_user']) && isset($_SESSION['unraid_login']);
 }
 if (is_localhost() && !is_good_session()) {
-  session_start();
+  if (session_status() !== PHP_SESSION_ACTIVE) {
+    session_start();
+  }
   $_SESSION['unraid_login'] = time();
   $_SESSION['unraid_user'] = 'root';
   session_write_close();
-  # This situation should only be possible when booting into GUI mode
-  my_logger("Page accessed without session; created session for root user.");
+  my_logger("Unraid GUI-boot: created root session for localhost request.");
 }`;
         // Add the PHP code before the DOCTYPE declaration
         return this.prependDoctypeWithPhp(source, newPhpCode);
@@ -84,16 +80,6 @@ if (is_localhost() && !is_good_session()) {
             const content = await contentPromise;
             return transformer(content);
         }, Promise.resolve(fileContent));
-    }
-
-    protected async getPregeneratedPatch(): Promise<string | null> {
-        const isUnraidGuiMode = await isGuiMode();
-        if (!isUnraidGuiMode) {
-            // If we're not in GUI mode, we can use the pregenerated patch
-            return super.getPregeneratedPatch();
-        }
-
-        return null;
     }
 
     protected async generatePatch(overridePath?: string): Promise<string> {
