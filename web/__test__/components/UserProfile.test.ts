@@ -183,8 +183,8 @@ describe('UserProfile.ce.vue', () => {
     await wrapper.vm.$nextTick();
 
     const heading = wrapper.find('h1');
-    expect(heading.text()).toContain(initialServerData.name);
 
+    expect(heading.text()).toContain(initialServerData.name);
     expect(wrapper.find('[data-testid="uptime-expire"]').exists()).toBe(true);
     expect(wrapper.find('[data-testid="server-state"]').exists()).toBe(true);
     expect(wrapper.find('[data-testid="notifications-sidebar"]').exists()).toBe(true);
@@ -257,6 +257,7 @@ describe('UserProfile.ce.vue', () => {
     mockIsSupported.value = false;
 
     const serverNameButton = wrapper.find('h1 > button');
+
     await serverNameButton.trigger('click');
     await wrapper.vm.$nextTick();
 
