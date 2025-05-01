@@ -56,9 +56,10 @@ function is_good_session() {
   return isset($_SESSION) && isset($_SESSION['unraid_user']) && isset($_SESSION['unraid_login']);
 }
 if (is_localhost() && !is_good_session()) {
-  if (session_status() !== PHP_SESSION_ACTIVE) {
-    session_start();
+  if (session_status() === PHP_SESSION_ACTIVE) {
+    session_destroy();
   }
+  session_start();
   $_SESSION['unraid_login'] = time();
   $_SESSION['unraid_user'] = 'root';
   session_write_close();
