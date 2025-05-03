@@ -1,4 +1,4 @@
-import { ApolloClient, createHttpLink, from, split } from '@apollo/client/core/index.js';
+import { ApolloClient, ApolloLink, createHttpLink, from, split } from '@apollo/client/core/index.js';
 import { onError } from '@apollo/client/link/error/index.js';
 import { RetryLink } from '@apollo/client/link/retry/index.js';
 import { GraphQLWsLink } from '@apollo/client/link/subscriptions/index.js';
@@ -67,6 +67,14 @@ const retryLink = new RetryLink({
   },
 });
 
+// Disable Apollo Client if not in DEV Mode and server state says unraid-api is not running
+const disableQueryLink = new ApolloLink((operation, forward) => {
+  if (!DEV_MODE && operation.getContext().serverState?.unraidApi?.status === 'offline') {
+    return null;  
+  }
+  return forward(operation);
+});
+
 const splitLinks = split(
   ({ query }) => {
     const definition = getMainDefinition(query);
@@ -81,7 +89,7 @@ const splitLinks = split(
  * https://www.apollographql.com/docs/react/api/link/introduction/#additive-composition
  * https://www.apollographql.com/docs/react/api/link/introduction/#directional-composition
  */
-const additiveLink = from([errorLink, retryLink, splitLinks]);
+const additiveLink = from([errorLink, retryLink, disableQueryLink, splitLinks]);
 
 export const client = new ApolloClient({
   link: additiveLink,

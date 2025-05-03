@@ -5,6 +5,7 @@ import { type Layout } from '@jsonforms/core';
 import type { SettingSlice } from '@app/unraid-api/types/json-forms.js';
 import { RCloneApiService } from '@app/unraid-api/graph/resolvers/rclone/rclone-api.service.js';
 import { RCloneFormService } from '@app/unraid-api/graph/resolvers/rclone/rclone-form.service.js';
+import { RCloneRemote } from '@app/unraid-api/graph/resolvers/rclone/rclone.model.js';
 
 /**
  * Types for rclone backup configuration UI
@@ -86,5 +87,36 @@ export class RCloneService {
      */
     async getConfiguredRemotes(): Promise<string[]> {
         return this.rcloneApiService.listRemotes();
+    }
+
+    /**
+     * Gets detailed information about all configured remotes
+     */
+    async getRemoteDetails(): Promise<RCloneRemote[]> {
+        try {
+            const remoteNames = await this.rcloneApiService.listRemotes();
+            const remoteDetails: RCloneRemote[] = [];
+
+            for (const name of remoteNames) {
+                try {
+                    const config = await this.rcloneApiService.getRemoteDetails(name);
+                    const { type, ...parameters } = config;
+
+                    remoteDetails.push({
+                        name,
+                        type: type || '',
+                        parameters,
+                        config,
+                    });
+                } catch (error) {
+                    this.logger.error(`Error getting details for remote ${name}: ${error}`);
+                }
+            }
+
+            return remoteDetails;
+        } catch (error) {
+            this.logger.error(`Error listing remotes: ${error}`);
+            return [];
+        }
     }
 }

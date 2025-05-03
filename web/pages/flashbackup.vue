@@ -1,5 +1,6 @@
 <script setup>
 import RCloneConfig from '~/components/RClone/RCloneConfig.vue';
+import RCloneOverview from '~/components/RClone/RCloneOverview.vue';
 import { useDummyServerStore } from '~/_data/serverState';
 
 const { registerEntry } = useCustomElements();
@@ -17,6 +18,7 @@ onMounted(() => {
 
 <template>
   <div>
+    <RCloneOverview />
     <RCloneConfig />
   </div>
 </template>
