@@ -544,7 +544,7 @@ export function buildRcloneConfigSchema({
         options: {
             format: 'title',
             description:
-                'This 3-step process will guide you through setting up your RClone remote configuration.',
+                'This process will guide you through setting up your RClone remote configuration.',
         },
     };
 

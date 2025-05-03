@@ -1,5 +1,5 @@
 import { Logger } from '@nestjs/common';
-import { Args, Mutation, Parent, Query, ResolveField, Resolver } from '@nestjs/graphql';
+import { Args, Parent, Query, ResolveField, Resolver } from '@nestjs/graphql';
 
 import {
     AuthActionVerb,
@@ -10,7 +10,6 @@ import { Resource } from '@app/unraid-api/graph/resolvers/base.model.js';
 import { RCloneApiService } from '@app/unraid-api/graph/resolvers/rclone/rclone-api.service.js';
 import { RCloneFormService } from '@app/unraid-api/graph/resolvers/rclone/rclone-form.service.js';
 import {
-    CreateRCloneRemoteInput,
     RCloneBackupConfigForm,
     RCloneBackupSettings,
     RCloneConfigFormInput,
@@ -35,7 +34,7 @@ export class RCloneBackupSettingsResolver {
         resource: Resource.FLASH,
         possession: AuthPossession.ANY,
     })
-    async rcloneBackup(): Promise<RCloneBackupSettings> {
+    async rclone(): Promise<RCloneBackupSettings> {
         return {} as RCloneBackupSettings;
     }
 
@@ -53,30 +52,10 @@ export class RCloneBackupSettingsResolver {
         };
     }
 
-    @Mutation(() => RCloneRemote)
-    @UsePermissions({
-        action: AuthActionVerb.CREATE,
-        resource: Resource.FLASH,
-        possession: AuthPossession.ANY,
-    })
-    async createRCloneRemote(@Args('input') input: CreateRCloneRemoteInput): Promise<RCloneRemote> {
+    @ResolveField(() => [RCloneRemote])
+    async remotes(@Parent() _parent: RCloneBackupSettings): Promise<RCloneRemote[]> {
         try {
-            await this.rcloneApiService.createRemote(input.name, input.type, input.parameters);
-            return {
-                name: input.name,
-                type: input.type,
-                parameters: input.parameters,
-            };
-        } catch (error) {
-            this.logger.error(`Error creating remote: ${error}`);
-            throw new Error(`Failed to create remote: ${error}`);
-        }
-    }
-
-    @ResolveField(() => [String])
-    async remotes(@Parent() _parent: RCloneBackupSettings): Promise<string[]> {
-        try {
-            return await this.rcloneApiService.listRemotes();
+            return await this.rcloneService.getRemoteDetails();
         } catch (error) {
             this.logger.error(`Error listing remotes: ${error}`);
             return [];

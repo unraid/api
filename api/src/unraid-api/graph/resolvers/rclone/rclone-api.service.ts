@@ -11,6 +11,7 @@ import got, { HTTPError } from 'got';
 import {
     RCloneProviderOptionResponse,
     RCloneProviderResponse,
+    RCloneRemoteConfig,
 } from '@app/unraid-api/graph/resolvers/rclone/rclone.model.js';
 
 // Define the structure returned by mapProviderOptions inline
@@ -53,7 +54,7 @@ export class RCloneApiService implements OnModuleInit, OnModuleDestroy {
             this.logger.log(`RClone log file path: ${logFilePath}`);
 
             // Format the base URL for Unix socket
-            this.rcloneBaseUrl = `http://unix:${this.rcloneSocketPath}:/`;
+            this.rcloneBaseUrl = `http://unix:${this.rcloneSocketPath}:`;
 
             // Check if the RClone socket exists, if not, create it.
             const socketExists = await this.checkRcloneSocketExists(this.rcloneSocketPath);
@@ -252,17 +253,25 @@ export class RCloneApiService implements OnModuleInit, OnModuleDestroy {
     }
 
     /**
-     * List all configured remotes
+     * List all remotes configured in rclone
      */
     async listRemotes(): Promise<string[]> {
-        const response = await this.callRcloneApi('config/listremotes');
-        return response.remotes || [];
+        const response = (await this.callRcloneApi('config/listremotes')) as { remotes: string[] };
+        return response?.remotes || [];
     }
 
     /**
-     * Get detailed config for a specific remote
+     * Get complete remote details
      */
-    async getRemoteConfig(name: string): Promise<any> {
+    async getRemoteDetails(name: string): Promise<RCloneRemoteConfig> {
+        const config = (await this.getRemoteConfig(name)) || {};
+        return config as RCloneRemoteConfig;
+    }
+
+    /**
+     * Get configuration of a remote
+     */
+    async getRemoteConfig(name: string): Promise<RCloneRemoteConfig> {
         return this.callRcloneApi('config/get', { name });
     }
 

@@ -50,6 +50,14 @@ export interface RCloneProviderOptionResponse {
     Examples?: Array<{ Value: string; Help: string; Provider: string }>;
 }
 
+/**
+ * Complete remote configuration as returned by rclone
+ */
+export interface RCloneRemoteConfig {
+    type: string;
+    [key: string]: unknown;
+}
+
 @InputType()
 export class RCloneConfigFormInput {
     @Field(() => String, { nullable: true })
@@ -88,8 +96,8 @@ export class RCloneBackupSettings {
     @Field(() => [RCloneDrive])
     drives!: RCloneDrive[];
 
-    @Field(() => [String])
-    remotes!: string[];
+    @Field(() => [RCloneRemote])
+    remotes!: RCloneRemote[];
 }
 
 @ObjectType()
@@ -102,6 +110,9 @@ export class RCloneRemote {
 
     @Field(() => GraphQLJSON)
     parameters!: Record<string, unknown>;
+
+    @Field(() => GraphQLJSON, { description: 'Complete remote configuration' })
+    config!: RCloneRemoteConfig;
 }
 
 @InputType()
@@ -117,4 +128,11 @@ export class CreateRCloneRemoteInput {
     @Field(() => GraphQLJSON)
     @IsObject()
     parameters!: Record<string, unknown>;
+}
+
+@InputType()
+export class DeleteRCloneRemoteInput {
+    @Field(() => String)
+    @IsString()
+    name!: string;
 }
