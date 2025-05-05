@@ -25,9 +25,9 @@ export enum MinigraphStatus {
 }
 
 export enum DynamicRemoteAccessType {
-    NONE = 'none',
-    UPNP = 'upnp',
-    MANUAL = 'manual',
+    STATIC = 'STATIC',
+    UPNP = 'UPNP',
+    DISABLED = 'DISABLED',
 }
 
 export enum URL_TYPE {
@@ -193,15 +193,18 @@ export class AccessUrlObject {
     name!: string | null | undefined;
 }
 
+export const makeDisabledDynamicRemoteAccessState = (): DynamicRemoteAccessState =>
+    plainToInstance(DynamicRemoteAccessState, {
+        runningType: DynamicRemoteAccessType.DISABLED,
+        error: null,
+        lastPing: null,
+        allowedUrl: null,
+    });
+
 export const configFeature = registerAs<ConnectConfig>('connect', () => ({
     demo: 'hello.unraider',
     mothership: plainToInstance(ConnectionMetadata, {
         status: MinigraphStatus.PRE_INIT,
     }),
-    dynamicRemoteAccess: plainToInstance(DynamicRemoteAccessState, {
-        runningType: DynamicRemoteAccessType.NONE,
-        error: null,
-        lastPing: null,
-        allowedUrl: null,
-    }),
+    dynamicRemoteAccess: makeDisabledDynamicRemoteAccessState(),
 }));

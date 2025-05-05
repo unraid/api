@@ -4,6 +4,8 @@ import { SchedulerRegistry } from '@nestjs/schedule';
 import { isDefined } from 'class-validator';
 
 import { MinigraphStatus } from '../config.entity.js';
+import { ONE_MINUTE_MS, THREE_MINUTES_MS } from '../helpers/consts.js';
+import { DynamicRemoteAccessStateService } from '../remote-access/dynamic-remote-access-state.service.js';
 import { MothershipConnectionService } from './connection.service.js';
 import { MothershipSubscriptionHandler } from './mothership-subscription.handler.js';
 
@@ -12,26 +14,23 @@ export class TimeoutCheckerJob {
     constructor(
         private readonly connectionService: MothershipConnectionService,
         private readonly subscriptionHandler: MothershipSubscriptionHandler,
-        private schedulerRegistry: SchedulerRegistry
+        private schedulerRegistry: SchedulerRegistry,
+        private readonly dynamicRemoteAccess: DynamicRemoteAccessStateService
     ) {}
 
     public jobName = 'connect-timeout-checker';
     private readonly logger = new Logger(TimeoutCheckerJob.name);
-    private THREE_MINUTES_MS = 3 * 60 * 1000;
-    private ONE_MINUTE_MS = 60 * 1000;
 
     private hasMothershipClientTimedOut() {
         const { lastPing, status } = this.connectionService.getConnectionState() ?? {};
         return (
-            status === MinigraphStatus.CONNECTED &&
-            lastPing &&
-            Date.now() - lastPing > this.THREE_MINUTES_MS
+            status === MinigraphStatus.CONNECTED && lastPing && Date.now() - lastPing > THREE_MINUTES_MS
         );
     }
 
     private checkMothershipClientTimeout() {
         if (this.hasMothershipClientTimedOut()) {
-            const minutes = this.msToMinutes(this.THREE_MINUTES_MS);
+            const minutes = this.msToMinutes(THREE_MINUTES_MS);
             this.logger.warn(`NO PINGS RECEIVED IN ${minutes} MINUTES, SOCKET MUST BE RECONNECTED`);
             this.connectionService.setConnectionStatus({
                 status: MinigraphStatus.PING_FAILURE,
@@ -43,21 +42,17 @@ export class TimeoutCheckerJob {
     private msToMinutes(ms: number) {
         return ms / 1000 / 60;
     }
-
-    private checkRemoteAccessTimeout() {
-        // todo: implement
-    }
-
+    
     async checkForTimeouts() {
-        this.subscriptionHandler.clearStaleSubscriptions({ maxAgeMs: this.THREE_MINUTES_MS });
+        this.subscriptionHandler.clearStaleSubscriptions({ maxAgeMs: THREE_MINUTES_MS });
         this.checkMothershipClientTimeout();
-        this.checkRemoteAccessTimeout();
+        this.dynamicRemoteAccess.checkForTimeout();
     }
 
     start() {
         this.stop();
         const callback = () => this.checkForTimeouts();
-        const interval = setInterval(callback, this.ONE_MINUTE_MS);
+        const interval = setInterval(callback, ONE_MINUTE_MS);
         this.schedulerRegistry.addInterval(this.jobName, interval);
     }
 
