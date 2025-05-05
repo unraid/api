@@ -30,6 +30,11 @@ export enum DynamicRemoteAccessType {
     MANUAL = 'manual',
 }
 
+export enum URL_TYPE {
+    WAN = 'WAN',
+    LAN = 'LAN',
+}
+
 @ObjectType()
 @UsePipes(new ValidationPipe({ transform: true }))
 @InputType('MyServersConfigInput')
@@ -142,9 +147,61 @@ export class ConnectionMetadata {
     timeoutStart?: number | null;
 }
 
+@ObjectType()
+@UsePipes(new ValidationPipe({ transform: true }))
+@InputType('DynamicRemoteAccessStateInput')
+export class DynamicRemoteAccessState {
+    @Field(() => DynamicRemoteAccessType)
+    @IsEnum(DynamicRemoteAccessType)
+    runningType!: DynamicRemoteAccessType;
+
+    @Field(() => String, { nullable: true })
+    @IsString()
+    @IsOptional()
+    error!: string | null;
+
+    @Field(() => Number, { nullable: true })
+    @IsNumber()
+    @IsOptional()
+    lastPing!: number | null;
+
+    @Field(() => AccessUrlObject, { nullable: true })
+    @IsOptional()
+    allowedUrl!: AccessUrlObject | null;
+}
+
+@ObjectType()
+@InputType('AccessUrlObjectInput')
+export class AccessUrlObject {
+    @Field(() => String, { nullable: true })
+    @IsString()
+    @IsOptional()
+    ipv4!: string | null | undefined;
+
+    @Field(() => String, { nullable: true })
+    @IsString()
+    @IsOptional()
+    ipv6!: string | null | undefined;
+
+    @Field(() => URL_TYPE)
+    @IsEnum(URL_TYPE)
+    type!: URL_TYPE;
+
+    @Field(() => String, { nullable: true })
+    @IsString()
+    @IsOptional()
+    name!: string | null | undefined;
+}
+
 export const configFeature = registerAs<ConnectConfig>('connect', () => ({
     demo: 'hello.unraider',
     mothership: plainToInstance(ConnectionMetadata, {
         status: MinigraphStatus.PRE_INIT,
+    }),
+    dynamicRemoteAccess: plainToInstance(DynamicRemoteAccessState, {
+        runningType: DynamicRemoteAccessType.NONE,
+        error: null,
+        lastPing: null,
+        allowedUrl: null,
     }),
 }));
