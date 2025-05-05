@@ -7,7 +7,7 @@
  *  1. GraphQL PubSub (for transport events between the client and server)
  *  2. EventEmitter PubSub (for domain events within nestjs)
  *
- * By separating the buses, we can separate backend logic and processing from 
+ * By separating the buses, we can separate backend logic and processing from
  * the actual data transport.
  *
  * e.g. we can process an event, and then transport it via one or more of

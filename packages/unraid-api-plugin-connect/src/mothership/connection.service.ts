@@ -140,6 +140,10 @@ export class MothershipConnectionService implements OnModuleInit, OnModuleDestro
         }
     }
 
+    getApiKey() {
+        return this.configService.get<string>(this.configKeys.apiKey);
+    }
+
     /**
      * Fetches the current identity state directly from ConfigService.
      */
@@ -206,5 +210,13 @@ export class MothershipConnectionService implements OnModuleInit, OnModuleDestro
 
     receivePing() {
         this.updateMetadata({ lastPing: Date.now() });
+    }
+
+    clearDisconnectedTimestamp() {
+        return this.updateMetadata({ selfDisconnectedSince: null });
+    }
+
+    setDisconnectedTimestamp() {
+        return this.updateMetadata({ selfDisconnectedSince: Date.now() });
     }
 }

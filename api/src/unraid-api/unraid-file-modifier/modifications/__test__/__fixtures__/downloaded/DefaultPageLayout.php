@@ -54,7 +54,6 @@ function annotate($text) {echo "\n<!--\n",str_repeat("#",strlen($text)),"\n$text
 <link type="text/css" rel="stylesheet" href="<?autov("/webGui/styles/default-color-palette.css")?>">
 <link type="text/css" rel="stylesheet" href="<?autov("/webGui/styles/default-base.css")?>">
 <link type="text/css" rel="stylesheet" href="<?autov("/webGui/styles/default-dynamix.css")?>">
-<link type="text/css" rel="stylesheet" href="<?autov("/plugins/dynamix/styles/dynamix-jquery-ui.css")?>">
 <link type="text/css" rel="stylesheet" href="<?autov("/webGui/styles/themes/{$display['theme']}.css")?>">
 
 <style>
@@ -770,7 +769,30 @@ unset($buttons,$button);
 
 // Build page content
 // Reload page every X minutes during extended viewing?
-if (isset($myPage['Load']) && $myPage['Load'] > 0) echo "\n<script>timers.reload = setInterval(function(){if (nchanPaused === false)location.reload();},".($myPage['Load']*60000).");</script>\n";
+if (isset($myPage['Load']) && $myPage['Load'] > 0) {
+  ?>
+    <script>
+      function setTimerReload() {
+        timers.reload = setInterval(function(){
+          if (nchanPaused === false && ! dialogOpen() ) {
+            location.reload();
+          }
+        },<?=$myPage['Load']*60000?>);
+      }
+
+      $(document).click(function(e) {
+        clearInterval(timers.reload);
+        setTimerReload();
+      });
+
+      function dialogOpen() {
+          return ($('.sweet-alert').is(':visible') || $('.swal-overlay--show-modal').is(':visible') );
+      }
+      setTimerReload();
+
+    </script>
+  <?    
+}  
 echo "<div class='tabs'>";
 $tab = 1;
 $pages = [];
@@ -1266,35 +1288,41 @@ $('body').on('click','a,.ca_href', function(e) {
   }
 });
 
-// Start & stop live updates when window loses focus
+// Only include window focus/blur event handlers when live updates are disabled
+// to prevent unnecessary page reloads when live updates are already handling data refreshes
+// nchanPaused / blurTimer used elsewhere so need to always be defined
+
 var nchanPaused = false;
 var blurTimer = false;
 
+<? if ( $display['liveUpdate'] == "no" ):?>
 $(window).focus(function() {
   nchanFocusStart();
 });
 
 // Stop nchan on loss of focus
-<? if ( $display['liveUpdate'] == "no" ):?>
 $(window).blur(function() {
   blurTimer = setTimeout(function(){
     nchanFocusStop();
   },30000);
 });
-<?endif;?>
 
 document.addEventListener("visibilitychange", (event) => {
-  <? if ( $display['liveUpdate'] == "no" ):?>
-  if (document.hidden) {
-    nchanFocusStop();
-  }
-<?else:?>
   if (document.hidden) {
     nchanFocusStop();
   } else {
-    nchanFocusStart();
+    <? if (isset($myPage['Load']) && $myPage['Load'] > 0):?>
+      if ( dialogOpen() ) {
+        clearInterval(timers.reload);
+        setTimerReload();
+        nchanFocusStart();
+      } else {
+        window.location.reload();
+      }
+    <?else:?>
+      nchanFocusStart();
+    <?endif;?>
   }
-<?endif;?>
 });
 
 function nchanFocusStart() {
@@ -1335,6 +1363,7 @@ function nchanFocusStop(banner=true) {
     }
   }
 }
+<?endif;?>
 </script>
 </body>
 </html>

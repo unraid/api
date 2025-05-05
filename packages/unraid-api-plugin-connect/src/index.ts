@@ -5,7 +5,7 @@ import { configFeature } from './config.entity.js';
 import { ConnectConfigPersister } from './config.persistence.js';
 import { HealthResolver } from './connect.resolver.js';
 import { MothershipConnectionService } from './mothership/connection.service.js';
-import { GraphqlClientService } from './mothership/graphql.client.js';
+import { MothershipGraphqlClientService } from './mothership/graphql.client.js';
 import { MothershipHandler } from './mothership/mothership.handler.js';
 
 export const adapter = 'nestjs';

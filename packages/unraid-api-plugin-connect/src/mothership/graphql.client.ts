@@ -16,6 +16,8 @@ import { Client, createClient } from 'graphql-ws';
 import { WebSocket } from 'ws';
 
 import { MinigraphStatus } from '../config.entity.js';
+import { RemoteGraphQlEventType } from '../graphql/generated/client/graphql.js';
+import { SEND_REMOTE_QUERY_RESPONSE } from '../graphql/remote-response.js';
 import { EVENTS } from '../pubsub/consts.js';
 import { MothershipConnectionService } from './connection.service.js';
 import { buildDelayFunction } from './delay-function.js';
@@ -25,8 +27,8 @@ const FIVE_MINUTES_MS = 5 * 60 * 1000;
 type Unsubscribe = () => void;
 
 @Injectable()
-export class GraphqlClientService implements OnModuleInit, OnModuleDestroy {
-    private logger = new Logger(GraphqlClientService.name);
+export class MothershipGraphqlClientService implements OnModuleInit, OnModuleDestroy {
+    private logger = new Logger(MothershipGraphqlClientService.name);
     private apolloClient: ApolloClient<NormalizedCacheObject> | null = null;
     private wsClient: Client | null = null;
     private delayFn = buildDelayFunction({
@@ -65,6 +67,29 @@ export class GraphqlClientService implements OnModuleInit, OnModuleDestroy {
      */
     async onModuleDestroy(): Promise<void> {
         await this.clearInstance();
+    }
+
+    async sendQueryResponse(sha256: string, body: { data?: unknown; errors?: unknown }) {
+        try {
+            const result = await this.getClient()?.mutate({
+                mutation: SEND_REMOTE_QUERY_RESPONSE,
+                variables: {
+                    input: {
+                        sha256,
+                        body: JSON.stringify(body),
+                        type: RemoteGraphQlEventType.REMOTE_QUERY_EVENT,
+                    },
+                },
+            });
+            return result;
+        } catch (error) {
+            this.logger.error(
+                'Failed to send query response to mothership. %s %O\n%O',
+                sha256,
+                error,
+                body
+            );
+        }
     }
 
     /**

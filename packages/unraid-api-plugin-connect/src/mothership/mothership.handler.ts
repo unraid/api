@@ -6,14 +6,17 @@ import { PubSub } from 'graphql-subscriptions';
 import { MinigraphStatus } from '../config.entity.js';
 import { EVENTS, GRAPHQL_PUB_SUB_TOKEN, PUBSUB_CHANNEL } from '../pubsub/consts.js';
 import { MothershipConnectionService } from './connection.service.js';
-import { GraphqlClientService } from './graphql.client.js';
-
+import { MothershipGraphqlClientService } from './graphql.client.js';
+import { MothershipSubscriptionHandler } from './mothership-subscription.handler.js';
+import { TimeoutCheckerJob } from './timeout-checker.job.js';
 @Injectable()
 export class MothershipHandler implements OnModuleDestroy {
     private readonly logger = new Logger(MothershipHandler.name);
     constructor(
         private readonly connectionService: MothershipConnectionService,
-        private readonly clientService: GraphqlClientService,
+        private readonly clientService: MothershipGraphqlClientService,
+        private readonly subscriptionHandler: MothershipSubscriptionHandler,
+        private readonly timeoutCheckerJob: TimeoutCheckerJob,
         @Inject(GRAPHQL_PUB_SUB_TOKEN)
         private readonly legacyPubSub: PubSub
     ) {}
@@ -23,8 +26,11 @@ export class MothershipHandler implements OnModuleDestroy {
     }
 
     async clear() {
+        this.timeoutCheckerJob.stop();
+        this.subscriptionHandler.stopMothershipSubscription();
         await this.clientService.clearInstance();
         this.connectionService.resetMetadata();
+        this.subscriptionHandler.clearAllSubscriptions();
     }
 
     async setup() {
@@ -35,8 +41,8 @@ export class MothershipHandler implements OnModuleDestroy {
             return;
         }
         await this.clientService.createClientInstance();
-        // todo: subscribe to api key events
-        // todo: init ping timeout jobs
+        await this.subscriptionHandler.subscribeToMothershipEvents();
+        this.timeoutCheckerJob.start();
     }
 
     @OnEvent(EVENTS.IDENTITY_CHANGED)
@@ -50,6 +56,7 @@ export class MothershipHandler implements OnModuleDestroy {
     @OnEvent(EVENTS.MOTHERSHIP_CONNECTION_STATUS_CHANGED)
     async onMothershipConnectionStatusChanged() {
         const state = this.connectionService.getConnectionState();
+        // Question: do we include MinigraphStatus.ERROR_RETRYING here?
         if (state && [MinigraphStatus.PING_FAILURE, MinigraphStatus.PRE_INIT].includes(state.status)) {
             await this.setup();
         }
@@ -70,7 +77,7 @@ export class MothershipHandler implements OnModuleDestroy {
         await this.legacyPubSub.publish(PUBSUB_CHANNEL.OWNER, {
             owner: { username: 'root', url: '', avatar: '' },
         });
-        // todo: stop ping timeout jobs
+        this.timeoutCheckerJob.stop();
         await this.clear();
     }
 }

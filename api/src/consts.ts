@@ -79,4 +79,3 @@ export const KEYSERVER_VALIDATION_ENDPOINT = 'https://keys.lime-technology.com/v
 
 /** Set the max retries for the GraphQL Client */
 export const MAX_RETRIES_FOR_LINEAR_BACKOFF = 100;
-

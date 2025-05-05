@@ -2,7 +2,7 @@ Index: /usr/local/emhttp/plugins/dynamix/include/DefaultPageLayout.php
 ===================================================================
 --- /usr/local/emhttp/plugins/dynamix/include/DefaultPageLayout.php	original
 +++ /usr/local/emhttp/plugins/dynamix/include/DefaultPageLayout.php	modified
-@@ -603,20 +603,11 @@
+@@ -602,20 +602,11 @@
  }
  
  function openNotifier() {
@@ -24,7 +24,7 @@ Index: /usr/local/emhttp/plugins/dynamix/include/DefaultPageLayout.php
  }
  
  function closeNotifier() {
-@@ -749,12 +740,12 @@
+@@ -748,12 +739,12 @@
    }
    // create list of nchan scripts to be started
    if (isset($button['Nchan'])) nchan_merge($button['root'], $button['Nchan']);
@@ -38,7 +38,7 @@ Index: /usr/local/emhttp/plugins/dynamix/include/DefaultPageLayout.php
  foreach ($buttons as $button) {
    annotate($button['file']);
    // include page specific stylesheets (if existing)
-@@ -938,26 +929,18 @@
+@@ -960,26 +951,18 @@
          case 'warning': bell2++; break;
          case 'normal' : bell3++; break;
        }
@@ -70,11 +70,11 @@ Index: /usr/local/emhttp/plugins/dynamix/include/DefaultPageLayout.php
  });
  
  <?if ($wlan0):?>
-@@ -1334,7 +1317,8 @@
-       }
+@@ -1363,7 +1346,8 @@
      }
    }
  }
+ <?endif;?>
  </script>
 +<uui-toaster rich-colors close-button position="<?= ($notify['position'] === 'center') ? 'top-center' : $notify['position'] ?>"></uui-toaster>
  </body>
