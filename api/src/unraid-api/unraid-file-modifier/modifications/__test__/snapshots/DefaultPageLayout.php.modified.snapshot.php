@@ -1313,13 +1313,7 @@ document.addEventListener("visibilitychange", (event) => {
     nchanFocusStop();
   } else {
     <? if (isset($myPage['Load']) && $myPage['Load'] > 0):?>
-      if ( dialogOpen() ) {
-        clearInterval(timers.reload);
-        setTimerReload();
-        nchanFocusStart();
-      } else {
-        window.location.reload();
-      }
+      window.location.reload();
     <?else:?>
       nchanFocusStart();
     <?endif;?>
