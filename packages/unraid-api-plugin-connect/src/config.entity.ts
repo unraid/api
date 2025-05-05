@@ -14,7 +14,7 @@ import {
     Matches,
 } from 'class-validator';
 
-import { ConnectConfig } from './config.demo.js';
+import { ConnectDemoConfig } from './config.demo.js';
 
 export enum MinigraphStatus {
     PRE_INIT = 'PRE_INIT',
@@ -201,10 +201,37 @@ export const makeDisabledDynamicRemoteAccessState = (): DynamicRemoteAccessState
         allowedUrl: null,
     });
 
+export type ConnectConfig = ConnectDemoConfig & {
+    mothership: ConnectionMetadata;
+    dynamicRemoteAccess: DynamicRemoteAccessState;
+    config: MyServersConfig;
+};
+
+export type ConfigType = ConnectConfig & {
+    connect: ConnectConfig;
+    store: any;
+} & Record<string, string>;
+
 export const configFeature = registerAs<ConnectConfig>('connect', () => ({
     demo: 'hello.unraider',
     mothership: plainToInstance(ConnectionMetadata, {
         status: MinigraphStatus.PRE_INIT,
     }),
     dynamicRemoteAccess: makeDisabledDynamicRemoteAccessState(),
+    config: plainToInstance(MyServersConfig, {
+        wanaccess: 'no',
+        wanport: 0,
+        upnpEnabled: false,
+        apikey: '',
+        localApiKey: '',
+        email: '',
+        username: '',
+        avatar: '',
+        regWizTime: '',
+        accesstoken: '',
+        idtoken: '',
+        refreshtoken: '',
+        dynamicRemoteAccessType: DynamicRemoteAccessType.DISABLED,
+        ssoSubIds: [],
+    }),
 }));

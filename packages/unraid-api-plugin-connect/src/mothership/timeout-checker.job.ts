@@ -42,7 +42,7 @@ export class TimeoutCheckerJob {
     private msToMinutes(ms: number) {
         return ms / 1000 / 60;
     }
-    
+
     async checkForTimeouts() {
         this.subscriptionHandler.clearStaleSubscriptions({ maxAgeMs: THREE_MINUTES_MS });
         this.checkMothershipClientTimeout();

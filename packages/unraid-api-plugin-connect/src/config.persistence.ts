@@ -11,12 +11,12 @@ import { isEqual } from 'lodash-es';
 import { debounceTime } from 'rxjs/operators';
 
 import type { MyServersConfig as LegacyConfig } from './helpers/my-servers-config.js';
-import { MyServersConfig } from './config.entity.js';
+import { ConfigType, MyServersConfig } from './config.entity.js';
 import { csvStringToArray } from './helpers/utils.js';
 
 @Injectable()
 export class ConnectConfigPersister implements OnModuleInit, OnModuleDestroy {
-    constructor(private readonly configService: ConfigService) {}
+    constructor(private readonly configService: ConfigService<ConfigType>) {}
 
     private logger = new Logger(ConnectConfigPersister.name);
     get configPath() {
