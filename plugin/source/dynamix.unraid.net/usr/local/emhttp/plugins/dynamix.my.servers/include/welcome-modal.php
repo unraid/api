@@ -10,13 +10,11 @@
 require_once("$docroot/plugins/dynamix.my.servers/include/state.php");
 require_once("$docroot/plugins/dynamix.my.servers/include/web-components-extractor.php");
 
-$serverState = new ServerState();
-
 $wcExtractor = new WebComponentsExtractor();
 echo $wcExtractor->getScriptTagHtml();
 ?>
 
 <unraid-i18n-host>
-    <unraid-welcome-modal server="<?= $serverState->getServerStateJsonForHtmlAttr() ?>"></unraid-welcome-modal>
+    <unraid-welcome-modal></unraid-welcome-modal>
 </unraid-i18n-host>
 

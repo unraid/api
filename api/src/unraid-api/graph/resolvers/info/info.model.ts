@@ -11,14 +11,12 @@ import {
 import { GraphQLJSON } from 'graphql-scalars';
 
 import { Node } from '@app/unraid-api/graph/resolvers/base.model.js';
+import { ThemeName } from '@app/unraid-api/graph/resolvers/customization/theme.model.js';
+import { PrefixedID } from '@app/unraid-api/graph/scalars/graphql-type-prefixed-id.js';
 
 export enum Temperature {
     C = 'C',
     F = 'F',
-}
-
-export enum Theme {
-    white = 'white',
 }
 
 registerEnumType(Temperature, {
@@ -26,18 +24,8 @@ registerEnumType(Temperature, {
     description: 'Temperature unit (Celsius or Fahrenheit)',
 });
 
-registerEnumType(Theme, {
-    name: 'Theme',
-    description: 'Display theme',
-});
-
-@ObjectType({
-    implements: () => Node,
-})
-export class InfoApps implements Node {
-    @Field(() => ID)
-    id!: string;
-
+@ObjectType({ implements: () => Node })
+export class InfoApps extends Node {
     @Field(() => Int, { description: 'How many docker containers are installed' })
     installed!: number;
 
@@ -45,13 +33,8 @@ export class InfoApps implements Node {
     started!: number;
 }
 
-@ObjectType({
-    implements: () => Node,
-})
-export class Baseboard implements Node {
-    @Field(() => ID)
-    id!: string;
-
+@ObjectType({ implements: () => Node })
+export class Baseboard extends Node {
     @Field(() => String)
     manufacturer!: string;
 
@@ -68,13 +51,8 @@ export class Baseboard implements Node {
     assetTag?: string;
 }
 
-@ObjectType({
-    implements: () => Node,
-})
-export class InfoCpu implements Node {
-    @Field(() => ID)
-    id!: string;
-
+@ObjectType({ implements: () => Node })
+export class InfoCpu extends Node {
     @Field(() => String)
     manufacturer!: string;
 
@@ -127,13 +105,8 @@ export class InfoCpu implements Node {
     flags!: string[];
 }
 
-@ObjectType({
-    implements: () => Node,
-})
-export class Gpu implements Node {
-    @Field(() => ID)
-    id!: string;
-
+@ObjectType({ implements: () => Node })
+export class Gpu extends Node {
     @Field(() => String)
     type!: string;
 
@@ -153,13 +126,8 @@ export class Gpu implements Node {
     class!: string;
 }
 
-@ObjectType({
-    implements: () => Node,
-})
-export class Network implements Node {
-    @Field(() => ID)
-    id!: string;
-
+@ObjectType({ implements: () => Node })
+export class Network extends Node {
     @Field(() => String, { nullable: true })
     iface?: string;
 
@@ -197,13 +165,8 @@ export class Network implements Node {
     carrierChanges?: string;
 }
 
-@ObjectType({
-    implements: () => Node,
-})
-export class Pci implements Node {
-    @Field(() => ID)
-    id!: string;
-
+@ObjectType({ implements: () => Node })
+export class Pci extends Node {
     @Field(() => String, { nullable: true })
     type?: string;
 
@@ -229,22 +192,14 @@ export class Pci implements Node {
     class?: string;
 }
 
-@ObjectType()
-export class Usb {
-    @Field(() => ID)
-    id!: string;
-
+@ObjectType({ implements: () => Node })
+export class Usb extends Node {
     @Field(() => String, { nullable: true })
     name?: string;
 }
 
-@ObjectType({
-    implements: () => Node,
-})
-export class Devices implements Node {
-    @Field(() => ID)
-    id!: string;
-
+@ObjectType({ implements: () => Node })
+export class Devices extends Node {
     @Field(() => [Gpu])
     gpu!: Gpu[];
 
@@ -255,9 +210,7 @@ export class Devices implements Node {
     usb!: Usb[];
 }
 
-@ObjectType({
-    implements: () => Node,
-})
+@ObjectType({ implements: () => Node })
 export class Case {
     @Field(() => String, { nullable: true })
     icon?: string;
@@ -272,13 +225,8 @@ export class Case {
     base64?: string;
 }
 
-@ObjectType({
-    implements: () => Node,
-})
-export class Display implements Node {
-    @Field(() => ID, { nullable: false })
-    id!: string;
-
+@ObjectType({ implements: () => Node })
+export class Display extends Node {
     @Field(() => Case, { nullable: true })
     case?: Case;
 
@@ -315,8 +263,8 @@ export class Display implements Node {
     @Field(() => String, { nullable: true })
     dashapps?: string;
 
-    @Field(() => Theme, { nullable: true })
-    theme?: Theme;
+    @Field(() => ThemeName, { nullable: true })
+    theme?: ThemeName;
 
     @Field(() => Boolean, { nullable: true })
     text?: boolean;
@@ -340,8 +288,8 @@ export class Display implements Node {
     locale?: string;
 }
 
-@ObjectType()
-export class MemoryLayout {
+@ObjectType({ implements: () => Node })
+export class MemoryLayout extends Node {
     @Field(() => Int)
     size!: number;
 
@@ -376,13 +324,8 @@ export class MemoryLayout {
     voltageMax?: number;
 }
 
-@ObjectType({
-    implements: () => Node,
-})
-export class InfoMemory implements Node {
-    @Field(() => ID)
-    id!: string;
-
+@ObjectType({ implements: () => Node })
+export class InfoMemory extends Node {
     @Field(() => Int)
     max!: number;
 
@@ -417,13 +360,8 @@ export class InfoMemory implements Node {
     layout!: MemoryLayout[];
 }
 
-@ObjectType({
-    implements: () => Node,
-})
-export class Os implements Node {
-    @Field(() => ID)
-    id!: string;
-
+@ObjectType({ implements: () => Node })
+export class Os extends Node {
     @Field(() => String, { nullable: true })
     platform?: string;
 
@@ -461,13 +399,8 @@ export class Os implements Node {
     uptime?: string;
 }
 
-@ObjectType({
-    implements: () => Node,
-})
-export class System implements Node {
-    @Field(() => ID)
-    id!: string;
-
+@ObjectType({ implements: () => Node })
+export class System extends Node {
     @Field(() => String, { nullable: true })
     manufacturer?: string;
 
@@ -487,13 +420,8 @@ export class System implements Node {
     sku?: string;
 }
 
-@ObjectType({
-    implements: () => Node,
-})
-export class Versions implements Node {
-    @Field(() => ID)
-    id!: string;
-
+@ObjectType({ implements: () => Node })
+export class Versions extends Node {
     @Field(() => String, { nullable: true })
     kernel?: string;
 
@@ -573,13 +501,8 @@ export class Versions implements Node {
     unraid?: string;
 }
 
-@ObjectType({
-    implements: () => Node,
-})
-export class Info implements Node {
-    @Field(() => ID)
-    id!: string;
-
+@ObjectType({ implements: () => Node })
+export class Info extends Node {
     @Field(() => InfoApps, { description: 'Count of docker containers' })
     apps!: InfoApps;
 
@@ -595,7 +518,7 @@ export class Info implements Node {
     @Field(() => Display)
     display!: Display;
 
-    @Field(() => ID, { description: 'Machine ID', nullable: true })
+    @Field(() => PrefixedID, { description: 'Machine ID', nullable: true })
     machineId?: string;
 
     @Field(() => InfoMemory)

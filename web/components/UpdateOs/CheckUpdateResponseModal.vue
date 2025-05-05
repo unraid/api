@@ -112,7 +112,7 @@ const modalCopy = computed((): ModalCopy | null => {
 
   if (availableWithRenewal.value) {
     const description = regUpdatesExpired.value
-      ? props.t('Ineligible for feature updates released after {0}', [formattedRegExp.value])
+      ? `${props.t('Eligible for updates released on or before {0}.', [formattedRegExp.value])} ${props.t('Extend your license to access the latest updates.')}`
       : props.t('Eligible for free feature updates until {0}', [formattedRegExp.value]);
     return {
       title: props.t('Unraid OS {0} Released', [availableWithRenewal.value]),

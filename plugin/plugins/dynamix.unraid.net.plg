@@ -179,9 +179,6 @@ version=
 # shellcheck disable=SC1091
 source /etc/unraid-version
 
-# Undo some activation / partner setup
-source /usr/local/emhttp/plugins/dynamix.my.servers/scripts/activation_code_remove
-
 # Run cleanup operations
 echo "Performing cleanup operations..."
 /usr/bin/php /usr/local/emhttp/plugins/dynamix.my.servers/scripts/cleanup_operations.php
@@ -294,7 +291,6 @@ if [ -f /tmp/restore-files-dynamix-unraid-net ]; then
     "/usr/local/emhttp/plugins/dynamix.my.servers/include/reboot-details.php"
     "/usr/local/emhttp/plugins/dynamix.my.servers/include/translations.php"
     "/usr/local/emhttp/plugins/dynamix.my.servers/include/web-components-extractor.php"
-    "/usr/local/emhttp/plugins/dynamix.my.servers/include/activation-code-extractor.php"
   )
 
   for FILE in "${FILES_TO_RESTORE[@]}"; do
@@ -417,7 +413,6 @@ preserveFilesDirs=(
   "move:/usr/local/emhttp/plugins/dynamix.my.servers/include/reboot-details.php:preventDowngrade"
   "move:/usr/local/emhttp/plugins/dynamix.my.servers/include/translations.php:preventDowngrade"
   "move:/usr/local/emhttp/plugins/dynamix.my.servers/include/web-components-extractor.php:preventDowngrade"
-  "move:/usr/local/emhttp/plugins/dynamix.my.servers/include/activation-code-extractor.php:preventDowngrade"
   "copy:/usr/local/emhttp/plugins/dynamix/include/DefaultPageLayout.php:preventDowngrade"
 )
 
@@ -751,10 +746,6 @@ if [[ "$webguiManifestTs" -gt "$plgManifestTs" ]]; then
     done
     echo "♻️ Reverted to stock web component files"
 fi
-
-# Activation and partner setup
-# - Must come after the web component timestamp check to avoid potentially targeting the wrong JS during this setup
-source /usr/local/emhttp/plugins/dynamix.my.servers/scripts/activation_code_setup
 
 flash="/boot/config/plugins/dynamix.my.servers"
 [[ ! -d "${flash}" ]] && echo "Please reinstall the Unraid Connect plugin" && exit 1

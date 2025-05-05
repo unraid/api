@@ -7,7 +7,7 @@ import {
     ShouldApplyWithReason,
 } from '@app/unraid-api/unraid-file-modifier/file-modification.js';
 
-export class LogRotateModification extends FileModification {
+export default class LogRotateModification extends FileModification {
     id: string = 'log-rotate';
     public readonly filePath: string = '/etc/logrotate.d/unraid-api' as const;
     private readonly logRotateConfig: string = `

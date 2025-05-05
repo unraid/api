@@ -1,4 +1,4 @@
-import { Field, ID, InputType, Int, ObjectType, registerEnumType } from '@nestjs/graphql';
+import { Field, InputType, Int, ObjectType, registerEnumType } from '@nestjs/graphql';
 
 import {
     ArrayMinSize,
@@ -7,9 +7,9 @@ import {
     IsEmail,
     IsEnum,
     IsNotEmpty,
+    IsNumber,
     IsObject,
     IsOptional,
-    IsPort,
     IsString,
     MinLength,
     ValidateNested,
@@ -171,7 +171,6 @@ export class RemoteAccess {
     forwardType?: WAN_FORWARD_TYPE;
 
     @Field(() => Int, { nullable: true, description: 'The port used for Remote Access' })
-    @IsPort()
     @IsOptional()
     port?: number | null;
 }
@@ -195,7 +194,6 @@ export class SetupRemoteAccessInput {
         description:
             'The port to use for Remote Access. Not required for UPNP forwardType. Required for STATIC forwardType. Ignored if accessType is DISABLED or forwardType is UPNP.',
     })
-    @IsPort()
     @IsOptional()
     port?: number | null;
 }
@@ -261,8 +259,8 @@ export class ConnectSettingsValues {
     forwardType?: WAN_FORWARD_TYPE;
 
     @Field(() => Int, { nullable: true, description: 'The port used for Remote Access' })
-    @IsPort()
     @IsOptional()
+    @IsNumber()
     port?: number | null;
 
     @Field(() => [String], { description: "A list of Unique Unraid Account ID's" })
@@ -312,7 +310,6 @@ export class ApiSettingsInput {
         description:
             'The port to use for Remote Access. Not required for UPNP forwardType. Required for STATIC forwardType. Ignored if accessType is DISABLED or forwardType is UPNP.',
     })
-    @IsPort()
     @IsOptional()
     port?: number | null;
 
@@ -326,12 +323,7 @@ export class ApiSettingsInput {
 @ObjectType({
     implements: () => Node,
 })
-export class ConnectSettings implements Node {
-    @Field(() => ID, { description: 'The unique identifier for the Connect settings' })
-    @IsString()
-    @IsNotEmpty()
-    id!: string;
-
+export class ConnectSettings extends Node {
     @Field(() => GraphQLJSON, { description: 'The data schema for the Connect settings' })
     @IsObject()
     dataSchema!: Record<string, any>;
@@ -348,12 +340,8 @@ export class ConnectSettings implements Node {
 @ObjectType({
     implements: () => Node,
 })
-export class Connect {
-    @Field(() => ID, { description: 'The unique identifier for the Connect instance' })
-    @IsString()
-    @IsNotEmpty()
-    id!: string;
-
+export class Connect extends Node {
+    @Field(() => DynamicRemoteAccessStatus, { description: 'The status of dynamic remote access' })
     @Field(() => DynamicRemoteAccessStatus, { description: 'The status of dynamic remote access' })
     @ValidateNested()
     dynamicRemoteAccess?: DynamicRemoteAccessStatus;
@@ -366,10 +354,7 @@ export class Connect {
 @ObjectType({
     implements: () => Node,
 })
-export class Network implements Node {
-    @Field(() => ID)
-    id!: string;
-
+export class Network extends Node {
     @Field(() => [AccessUrl], { nullable: true })
     accessUrls?: AccessUrl[];
 }

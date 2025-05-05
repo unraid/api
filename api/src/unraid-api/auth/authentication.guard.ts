@@ -1,6 +1,7 @@
 import type { CanActivate, ExecutionContext } from '@nestjs/common';
 import type { GqlContextType } from '@nestjs/graphql';
 import { Injectable, Logger, UnauthorizedException } from '@nestjs/common';
+import { Reflector } from '@nestjs/core';
 import { GqlExecutionContext } from '@nestjs/graphql';
 import { AuthGuard } from '@nestjs/passport';
 
@@ -12,6 +13,7 @@ import type { FastifyRequest } from '@app/unraid-api/types/fastify.js';
 import { apiLogger } from '@app/core/log.js';
 import { UserCookieStrategy } from '@app/unraid-api/auth/cookie.strategy.js';
 import { ServerHeaderStrategy } from '@app/unraid-api/auth/header.strategy.js';
+import { IS_PUBLIC_ENDPOINT_KEY } from '@app/unraid-api/auth/public.decorator.js';
 
 /**
  * Context of incoming requests.
@@ -39,7 +41,7 @@ export class AuthenticationGuard
     implements CanActivate
 {
     protected logger = new Logger(AuthenticationGuard.name);
-    constructor() {
+    constructor(private reflector: Reflector) {
         super();
     }
 
@@ -69,6 +71,13 @@ export class AuthenticationGuard
      * @returns
      */
     canActivate(context: ExecutionContext): boolean | Promise<boolean> | Observable<boolean> {
+        const isPublic = this.reflector.getAllAndOverride<boolean>(IS_PUBLIC_ENDPOINT_KEY, [
+            context.getHandler(),
+            context.getClass(),
+        ]);
+        if (isPublic) {
+            return true;
+        }
         return super.canActivate(context);
     }
 

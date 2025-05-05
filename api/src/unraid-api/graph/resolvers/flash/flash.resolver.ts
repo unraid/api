@@ -22,7 +22,6 @@ export class FlashResolver {
 
         return {
             id: 'flash',
-            guid: emhttp.var.flashGuid,
             vendor: emhttp.var.flashVendor,
             product: emhttp.var.flashProduct,
         };

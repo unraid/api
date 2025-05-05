@@ -1,6 +1,6 @@
 {
   "name": "@unraid/connect-plugin",
-  "version": "4.6.6",
+  "version": "4.8.0",
   "private": true,
   "dependencies": {
     "commander": "^13.1.0",
@@ -39,5 +39,5 @@
     "nodemon": "^3.1.7",
     "vitest": "^3.0.7"
   },
-  "packageManager": "pnpm@10.8.1"
+  "packageManager": "pnpm@10.10.0"
 }

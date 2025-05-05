@@ -32,6 +32,19 @@ export type SliceState = {
     nfsShares: NfsShares;
 };
 
+type SingleStateFilePayload =
+    | { var: Var }
+    | { devices: Devices }
+    | { networks: Networks }
+    | { nginx: Nginx }
+    | { shares: Shares }
+    | { disks: ArrayDisk[] }
+    | { users: Users }
+    | { smbShares: SmbShares }
+    | { nfsShares: NfsShares };
+
+type LoadSingleStateFileResult = SingleStateFilePayload | null;
+
 const initialState: SliceState = {
     status: FileLoadStatus.UNLOADED,
     var: {} as unknown as Var,
@@ -92,41 +105,41 @@ const parseState = async <T extends StateFileKey, Q = ReturnType<StateFileToIniP
     return null as Q;
 };
 
-// @TODO Fix the type here Pick<SliceState, 'var' | 'devices' | 'networks' | 'nginx' | 'shares' | 'disks' | 'users' | 'smbShares' | 'nfsShares'> | null
-export const loadSingleStateFile = createAsyncThunk<any, StateFileKey, { state: RootState }>(
-    'emhttp/load-single-state-file',
-    async (stateFileKey, { getState }) => {
-        const path = getState().paths.states;
+export const loadSingleStateFile = createAsyncThunk<
+    LoadSingleStateFileResult,
+    StateFileKey,
+    { state: RootState }
+>('emhttp/load-single-state-file', async (stateFileKey, { getState }) => {
+    const path = getState().paths.states;
 
-        const config = await parseState(path, stateFileKey);
-        if (config) {
-            switch (stateFileKey) {
-                case StateFileKey.var:
-                    return { var: config };
-                case StateFileKey.devs:
-                    return { devices: config };
-                case StateFileKey.network:
-                    return { networks: config };
-                case StateFileKey.nginx:
-                    return { nginx: config };
-                case StateFileKey.shares:
-                    return { shares: config };
-                case StateFileKey.disks:
-                    return { disks: config };
-                case StateFileKey.users:
-                    return { users: config };
-                case StateFileKey.sec:
-                    return { smbShares: config };
-                case StateFileKey.sec_nfs:
-                    return { nfsShares: config };
-                default:
-                    return null;
-            }
-        } else {
-            return null;
+    const config = await parseState(path, stateFileKey);
+    if (config) {
+        switch (stateFileKey) {
+            case StateFileKey.var:
+                return { var: config } as { var: Var };
+            case StateFileKey.devs:
+                return { devices: config } as { devices: Devices };
+            case StateFileKey.network:
+                return { networks: config } as { networks: Networks };
+            case StateFileKey.nginx:
+                return { nginx: config } as { nginx: Nginx };
+            case StateFileKey.shares:
+                return { shares: config } as { shares: Shares };
+            case StateFileKey.disks:
+                return { disks: config } as { disks: ArrayDisk[] };
+            case StateFileKey.users:
+                return { users: config } as { users: Users };
+            case StateFileKey.sec:
+                return { smbShares: config } as { smbShares: SmbShares };
+            case StateFileKey.sec_nfs:
+                return { nfsShares: config } as { nfsShares: NfsShares };
+            default:
+                return null;
         }
+    } else {
+        return null;
     }
-);
+});
 /**
  * Load the emhttp states into the store.
  */

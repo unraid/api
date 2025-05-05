@@ -4,33 +4,35 @@ import { storeToRefs } from 'pinia';
 
 import { BrandButton } from '@unraid/ui';
 
-import type { Server } from '~/types/server';
-
-import ActivationSteps from '~/components/Activation/Steps.vue';
-import { useActivationCodeStore } from '~/store/activationCode';
-import { useServerStore } from '~/store/server';
+import ActivationPartnerLogo from '~/components/Activation/ActivationPartnerLogo.vue';
+import ActivationSteps from '~/components/Activation/ActivationSteps.vue';
+import { useActivationCodeDataStore } from '~/components/Activation/store/activationCodeData';
+import Modal from '~/components/Modal.vue';
+import { useThemeStore } from '~/store/theme';
 
 const { t } = useI18n();
 
-export interface Props {
-  server?: Server | string;
-}
-const props = defineProps<Props>();
+const { partnerInfo, loading } = storeToRefs(useActivationCodeDataStore());
 
-const activationCodeStore = useActivationCodeStore();
-const serverStore = useServerStore();
+const { setTheme } = useThemeStore();
 
-const { partnerLogo, partnerName } = storeToRefs(activationCodeStore);
+(async () => {
+  try {
+    await setTheme();
+  } catch (error) {
+    console.error('Error setting theme:', error);
+  }
+})();
 
 const title = computed<string>(() =>
-  partnerName.value
-    ? t(`Welcome to your new {0} system, powered by Unraid!`, [partnerName.value])
+  partnerInfo.value?.partnerName
+    ? t(`Welcome to your new {0} system, powered by Unraid!`, [partnerInfo.value?.partnerName])
     : t('Welcome to Unraid!')
 );
 
 const description = computed<string>(() =>
   t(
-    `First, you’ll create your device’s login credentials, then you’ll activate your Unraid license—your device’s operating system (OS).`
+    `First, you'll create your device's login credentials, then you'll activate your Unraid license—your device's operating system (OS).`
   )
 );
 
@@ -48,29 +50,14 @@ watchEffect(() => {
    * The /login page doesn't do this.
    * So we'll target the HTML element and toggle the font-size to be 62.5% when the modal is open and 100% when it's closed.
    * */
-  const $confirmPasswordField = window.document.querySelector('#confirmPassword');
+  const confirmPasswordField = window.document.querySelector('#confirmPassword');
 
-  if ($confirmPasswordField) {
+  if (confirmPasswordField) {
     if (showModal.value) {
       window.document.documentElement.style.setProperty('font-size', '62.5%');
     } else {
       window.document.documentElement.style.setProperty('font-size', '100%');
     }
-  }
-});
-
-onBeforeMount(() => {
-  if (!props.server) {
-    throw new Error('Server data not present');
-  }
-
-  if (typeof props.server === 'object') {
-    // Handles the testing dev Vue component
-    serverStore.setServer(props.server);
-  } else if (typeof props.server === 'string') {
-    // Handle web component
-    const parsedServerProp = JSON.parse(props.server);
-    serverStore.setServer(parsedServerProp);
   }
 });
 </script>
@@ -83,7 +70,7 @@ onBeforeMount(() => {
       :open="showModal"
       :show-close-x="false"
       :title="title"
-      :title-in-main="!!partnerLogo"
+      :title-in-main="partnerInfo?.hasPartnerLogo"
       :description="description"
       overlay-color="bg-background"
       overlay-opacity="bg-opacity-100"
@@ -91,20 +78,21 @@ onBeforeMount(() => {
       :disable-shadow="true"
       :modal-vertical-center="false"
       :disable-overlay-close="true"
+      class="bg-background"
       @close="dropdownHide"
     >
-      <template v-if="partnerLogo" #header>
+      <template v-if="partnerInfo?.hasPartnerLogo" #header>
         <ActivationPartnerLogo />
       </template>
 
       <template #footer>
         <div class="w-full flex gap-8px justify-center mx-auto">
-          <BrandButton :text="t('Create a password')" @click="dropdownHide" />
+          <BrandButton :text="t('Create a password')" :disabled="loading" @click="dropdownHide" />
         </div>
       </template>
 
       <template #subFooter>
-        <ActivationSteps :active-step="1" class="hidden sm:flex mt-6" />
+        <ActivationSteps :active-step="1" class="mt-6" />
       </template>
     </Modal>
   </div>

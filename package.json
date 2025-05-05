@@ -1,7 +1,7 @@
 {
   "name": "unraid-monorepo",
   "private": true,
-  "version": "4.6.6",
+  "version": "4.8.0",
   "scripts": {
     "build": "pnpm -r build",
     "build:watch": "pnpm -r build:watch",
@@ -12,7 +12,8 @@
     "lint:fix": "pnpm -r lint:fix",
     "type-check": "pnpm -r type-check",
     "check": "manypkg check",
-    "sync-webgui-repo": "node web/scripts/sync-webgui-repo.js"
+    "sync-webgui-repo": "node web/scripts/sync-webgui-repo.js",
+    "postinstall": "simple-git-hooks"
   },
   "pnpm": {
     "peerDependencyRules": {
@@ -22,20 +23,38 @@
     },
     "onlyBuiltDependencies": [
       "@apollo/protobufjs",
-      "protobufjs",
+      "@nestjs/core",
       "@parcel/watcher",
       "@swc/core",
       "@unraid/libvirt",
+      "core-js",
+      "cpu-features",
+      "es5-ext",
       "esbuild",
+      "nestjs-pino",
+      "protobufjs",
+      "simple-git-hooks",
       "ssh2",
       "vue-demi"
     ]
   },
   "dependencies": {
-    "@manypkg/cli": "^0.23.0",
+    "@manypkg/cli": "^0.24.0",
     "chalk": "^5.0.0",
     "diff": "^7.0.0",
     "ignore": "^7.0.0"
   },
-  "packageManager": "pnpm@10.8.1"
+  "devDependencies": {
+    "lint-staged": "^15.2.2",
+    "simple-git-hooks": "^2.9.0"
+  },
+  "simple-git-hooks": {
+    "pre-commit": "pnpm lint-staged"
+  },
+  "lint-staged": {
+    "*.{js,jsx,ts,tsx}": [
+      "pnpm lint:fix"
+    ]
+  },
+  "packageManager": "pnpm@10.10.0"
 }

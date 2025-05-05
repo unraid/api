@@ -8,7 +8,7 @@ import { describe, expect, test, vi } from 'vitest';
 import { FileModification } from '@app/unraid-api/unraid-file-modifier/file-modification.js';
 import AuthRequestModification from '@app/unraid-api/unraid-file-modifier/modifications/auth-request.modification.js';
 import DefaultPageLayoutModification from '@app/unraid-api/unraid-file-modifier/modifications/default-page-layout.modification.js';
-import { LogRotateModification } from '@app/unraid-api/unraid-file-modifier/modifications/log-rotate.modification.js';
+import LogRotateModification from '@app/unraid-api/unraid-file-modifier/modifications/log-rotate.modification.js';
 import NotificationsPageModification from '@app/unraid-api/unraid-file-modifier/modifications/notifications-page.modification.js';
 import SSOFileModification from '@app/unraid-api/unraid-file-modifier/modifications/sso.modification.js';
 
@@ -36,9 +36,9 @@ const patchTestCases: ModificationTestCase[] = [
         fileName: 'Notifications.page',
     },
     {
+        ModificationClass: SSOFileModification,
         fileUrl:
             'https://github.com/unraid/webgui/raw/refs/heads/master/emhttp/plugins/dynamix/include/.login.php',
-        ModificationClass: SSOFileModification,
         fileName: '.login.php',
     },
     {

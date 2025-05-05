@@ -1,10 +1,9 @@
 import { Field, ID, ObjectType, registerEnumType } from '@nestjs/graphql';
 
-@ObjectType()
-export class ProfileModel {
-    @Field(() => ID, { nullable: true })
-    userId?: string;
+import { Node } from '@app/unraid-api/graph/resolvers/base.model.js';
 
+@ObjectType({ implements: () => Node })
+export class ProfileModel extends Node {
     @Field()
     username!: string;
 
@@ -25,8 +24,8 @@ registerEnumType(ServerStatus, {
     name: 'ServerStatus',
 });
 
-@ObjectType()
-export class Server {
+@ObjectType({ implements: () => Node })
+export class Server extends Node {
     @Field(() => ProfileModel)
     owner!: ProfileModel;
 

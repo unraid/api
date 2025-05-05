@@ -1,7 +1,6 @@
 import { Field, ID, Int, ObjectType, registerEnumType } from '@nestjs/graphql';
 
-import { GraphQLPort } from 'graphql-scalars';
-import { GraphQLJSONObject } from 'graphql-type-json';
+import { GraphQLJSONObject, GraphQLPort } from 'graphql-scalars';
 
 import { Node } from '@app/unraid-api/graph/resolvers/base.model.js';
 
@@ -71,11 +70,8 @@ export class ContainerMount {
     propagation!: string;
 }
 
-@ObjectType()
-export class DockerContainer {
-    @Field(() => ID)
-    id!: string;
-
+@ObjectType({ implements: () => Node })
+export class DockerContainer extends Node {
     @Field(() => [String])
     names!: string[];
 
@@ -119,13 +115,10 @@ export class DockerContainer {
     autoStart!: boolean;
 }
 
-@ObjectType()
-export class DockerNetwork {
+@ObjectType({ implements: () => Node })
+export class DockerNetwork extends Node {
     @Field(() => String)
     name!: string;
-
-    @Field(() => ID)
-    id!: string;
 
     @Field(() => String)
     created!: string;
@@ -170,10 +163,7 @@ export class DockerNetwork {
 @ObjectType({
     implements: () => Node,
 })
-export class Docker implements Node {
-    @Field(() => ID)
-    id!: string;
-
+export class Docker extends Node {
     @Field(() => [DockerContainer])
     containers!: DockerContainer[];
 

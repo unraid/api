@@ -20,6 +20,7 @@ const config: CodegenConfig = {
       URL: 'URL',
       Port: 'number',
       UUID: 'string',
+      PrefixedID: 'string',
     },
   },
   generates: {

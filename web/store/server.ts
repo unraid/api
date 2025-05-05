@@ -2,7 +2,7 @@
  * @todo Check OS and Connect Plugin versions against latest via API every session
  */
 import { computed, ref, toRefs, watch, watchEffect } from 'vue';
-import { createPinia, defineStore, setActivePinia } from 'pinia';
+import { createPinia, defineStore, setActivePinia, storeToRefs } from 'pinia';
 import { useLazyQuery } from '@vue/apollo-composable';
 
 import {
@@ -42,10 +42,10 @@ import type {
   ServerUpdateOsResponse,
 } from '~/types/server';
 
+import { useActivationCodeDataStore } from '~/components/Activation/store/activationCodeData';
 import { useFragment } from '~/composables/gql/fragment-masking';
 import { WebguiState, WebguiUpdateIgnore } from '~/composables/services/webgui';
 import { useAccountStore } from '~/store/account';
-import { useActivationCodeStore } from '~/store/activationCode';
 import { useErrorsStore } from '~/store/errors';
 import { usePurchaseStore } from '~/store/purchase';
 import { useThemeStore } from '~/store/theme';
@@ -266,16 +266,6 @@ export const useServerStore = defineStore('server', () => {
       state: state.value,
       site: site.value,
     };
-
-    const { code, partnerName } = storeToRefs(useActivationCodeStore());
-    if (code.value) {
-      server['activationCodeData'] = {
-        code: code.value,
-      };
-      if (partnerName.value) {
-        server['activationCodeData']['partnerName'] = partnerName.value;
-      }
-    }
     return server;
   });
 
@@ -398,10 +388,10 @@ export const useServerStore = defineStore('server', () => {
     };
   });
   const redeemAction = computed((): ServerStateDataAction => {
-    const { code } = storeToRefs(useActivationCodeStore());
+    const { activationCode } = storeToRefs(useActivationCodeDataStore());
     return {
       click: () => {
-        if (code.value) {
+        if (activationCode.value?.code) {
           purchaseStore.activate();
         } else {
           purchaseStore.redeem();
@@ -410,8 +400,8 @@ export const useServerStore = defineStore('server', () => {
       disabled: serverActionsDisable.value.disable,
       external: true,
       icon: KeyIcon,
-      name: code.value ? 'activate' : 'redeem',
-      text: code.value ? 'Activate Now' : 'Redeem Activation Code',
+      name: activationCode.value?.code ? 'activate' : 'redeem',
+      text: activationCode.value?.code ? 'Activate Now' : 'Redeem Activation Code',
       title: serverActionsDisable.value.title,
     };
   });
@@ -1121,11 +1111,6 @@ export const useServerStore = defineStore('server', () => {
     }
     if (typeof data?.ssoEnabled !== 'undefined') {
       ssoEnabled.value = Boolean(data.ssoEnabled);
-    }
-
-    if (typeof data.activationCodeData !== 'undefined') {
-      const activationCodeStore = useActivationCodeStore();
-      activationCodeStore.setData(data.activationCodeData);
     }
   };
 

@@ -1,6 +1,6 @@
 {
   "name": "@unraid/web",
-  "version": "4.6.6",
+  "version": "4.8.0",
   "private": true,
   "license": "GPL-2.0-or-later",
   "scripts": {
@@ -94,7 +94,7 @@
     "@jsonforms/vue-vuetify": "^3.5.1",
     "@nuxtjs/color-mode": "^3.5.2",
     "@pinia/nuxt": "^0.11.0",
-    "@unraid/shared-callbacks": "^1.0.1",
+    "@unraid/shared-callbacks": "^1.1.1",
     "@unraid/ui": "link:../unraid-ui",
     "@vue/apollo-composable": "^4.2.1",
     "@vueuse/components": "^13.0.0",
@@ -110,7 +110,7 @@
     "hex-to-rgba": "^2.0.1",
     "highlight.js": "^11.11.1",
     "isomorphic-dompurify": "^2.19.0",
-    "lucide-vue-next": "^0.488.0",
+    "lucide-vue-next": "^0.506.0",
     "marked": "^15.0.0",
     "marked-base-url": "^1.1.6",
     "pinia": "^3.0.1",
@@ -126,5 +126,5 @@
   "overrides": {
     "vue": "latest"
   },
-  "packageManager": "pnpm@10.8.1"
+  "packageManager": "pnpm@10.10.0"
 }

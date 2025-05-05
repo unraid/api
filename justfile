@@ -14,7 +14,6 @@ setup:
     @just ignore api/dev/states/myservers.cfg api/dev/Unraid.net/myservers.cfg
     
     pnpm install
-    just unraid-ui/setup
 
 # restore notification files under api/dev
 restore-notifications:

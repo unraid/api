@@ -1,6 +1,6 @@
 {
     "name": "@unraid/api",
-    "version": "4.6.6",
+    "version": "4.8.0",
     "main": "src/cli/index.ts",
     "type": "module",
     "corepack": {
@@ -227,5 +227,5 @@
         }
     },
     "private": true,
-    "packageManager": "pnpm@10.8.1"
+    "packageManager": "pnpm@10.10.0"
 }

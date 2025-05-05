@@ -15,7 +15,7 @@ if (isset($_COOKIE[session_name()])) {
 }
 
 $arrWhitelist = [
-  '/webGui/images/partner-logo.svg',
+  '/webGui/images/UN-logotype-gradient.svg',
   '/webGui/styles/clear-sans-bold-italic.eot',
   '/webGui/styles/clear-sans-bold-italic.woff',
   '/webGui/styles/clear-sans-bold-italic.ttf',

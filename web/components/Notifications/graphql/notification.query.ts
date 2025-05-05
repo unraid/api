@@ -35,7 +35,7 @@ export const getNotifications = graphql(/* GraphQL */ `
 `);
 
 export const archiveNotification = graphql(/* GraphQL */ `
-  mutation ArchiveNotification($id: String!) {
+  mutation ArchiveNotification($id: PrefixedID!) {
     archiveNotification(id: $id) {
       ...NotificationFragment
     }
@@ -59,7 +59,7 @@ export const archiveAllNotifications = graphql(/* GraphQL */ `
 `);
 
 export const deleteNotification = graphql(/* GraphQL */ `
-  mutation DeleteNotification($id: String!, $type: NotificationType!) {
+  mutation DeleteNotification($id: PrefixedID!, $type: NotificationType!) {
     deleteNotification(id: $id, type: $type) {
       archive {
         total

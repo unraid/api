@@ -5,11 +5,11 @@
 import { mount } from '@vue/test-utils';
 
 import { BrandButton } from '@unraid/ui';
+import { createTestingPinia } from '@pinia/testing';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import DownloadApiLogs from '~/components/DownloadApiLogs.ce.vue';
 
-// Mock the urls helper with a predictable mock URL
 vi.mock('~/helpers/urls', () => ({
   CONNECT_FORUMS: new URL('http://mock-forums.local'),
   CONTACT: new URL('http://mock-contact.local'),
@@ -17,7 +17,6 @@ vi.mock('~/helpers/urls', () => ({
   WEBGUI_GRAPHQL: new URL('http://mock-webgui.local'),
 }));
 
-// Mock vue-i18n with a simple implementation
 vi.mock('vue-i18n', () => ({
   useI18n: () => ({
     t: (key: string) => key,
@@ -34,6 +33,7 @@ describe('DownloadApiLogs', () => {
   it('provides a download button with the correct URL', () => {
     const wrapper = mount(DownloadApiLogs, {
       global: {
+        plugins: [createTestingPinia({ createSpy: vi.fn })],
         stubs: {
           ArrowDownTrayIcon: true,
           ArrowTopRightOnSquareIcon: true,
@@ -60,6 +60,7 @@ describe('DownloadApiLogs', () => {
   it('displays support links to documentation and help resources', () => {
     const wrapper = mount(DownloadApiLogs, {
       global: {
+        plugins: [createTestingPinia({ createSpy: vi.fn })],
         stubs: {
           ArrowDownTrayIcon: true,
           ArrowTopRightOnSquareIcon: true,
@@ -67,11 +68,9 @@ describe('DownloadApiLogs', () => {
       },
     });
 
-    // Find all support links
     const links = wrapper.findAll('a');
     expect(links.length).toBe(4);
 
-    // Verify each link has correct href and text
     expect(links[1].attributes('href')).toBe('http://mock-forums.local/');
     expect(links[1].text()).toContain('Unraid Connect Forums');
 
@@ -81,7 +80,6 @@ describe('DownloadApiLogs', () => {
     expect(links[3].attributes('href')).toBe('http://mock-contact.local/');
     expect(links[3].text()).toContain('Unraid Contact Page');
 
-    // Verify all links open in new tab
     links.slice(1).forEach((link) => {
       expect(link.attributes('target')).toBe('_blank');
       expect(link.attributes('rel')).toBe('noopener noreferrer');
@@ -91,6 +89,7 @@ describe('DownloadApiLogs', () => {
   it('displays instructions about log usage and privacy', () => {
     const wrapper = mount(DownloadApiLogs, {
       global: {
+        plugins: [createTestingPinia({ createSpy: vi.fn })],
         stubs: {
           ArrowDownTrayIcon: true,
           ArrowTopRightOnSquareIcon: true,
@@ -100,7 +99,6 @@ describe('DownloadApiLogs', () => {
 
     const text = wrapper.text();
 
-    // Verify key instructional text is present
     expect(text).toContain(
       'The primary method of support for Unraid Connect is through our forums and Discord'
     );
