@@ -1,12 +1,13 @@
 import { Inject, Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { Cron, SchedulerRegistry } from '@nestjs/schedule';
 
 import { Client, Mapping } from '@runonflux/nat-upnp';
 import { isDefined } from 'class-validator';
 
 import { ConfigType } from '../config.entity.js';
 import { ONE_HOUR_SECS } from '../helpers/consts.js';
-import { UPNP_CLIENT_TOKEN } from '../helpers/dependency-injection.js';
+import { UPNP_CLIENT_TOKEN, UPNP_RENEWAL_JOB_TOKEN } from '../helpers/dependency-injection.js';
 
 @Injectable()
 export class UpnpService {
@@ -17,20 +18,27 @@ export class UpnpService {
 
     constructor(
         private readonly configService: ConfigService<ConfigType>,
-        @Inject(UPNP_CLIENT_TOKEN) private readonly upnpClient: Client
+        @Inject(UPNP_CLIENT_TOKEN) private readonly upnpClient: Client,
+        private readonly scheduleRegistry: SchedulerRegistry
     ) {}
 
     get enabled() {
         return this.#enabled;
     }
+
     get wanPort() {
         return this.#wanPort;
     }
+
     get localPort() {
         return this.#localPort;
     }
 
-    private async removeUpnpLease() {
+    get renewalJob(): ReturnType<typeof this.scheduleRegistry.getCronJob> {
+        return this.scheduleRegistry.getCronJob(UPNP_RENEWAL_JOB_TOKEN);
+    }
+
+    private async removeUpnpMapping() {
         if (isDefined(this.#wanPort) && isDefined(this.#localPort)) {
             const portMap = {
                 public: this.#wanPort,
@@ -38,13 +46,13 @@ export class UpnpService {
             };
             try {
                 const result = await this.upnpClient.removeMapping(portMap);
-                this.logger.log('UPNP Lease removed %o', portMap);
-                this.logger.debug('UPNP Lease removal result %O', result);
+                this.logger.log('UPNP Mapping removed %o', portMap);
+                this.logger.debug('UPNP Mapping removal result %O', result);
             } catch (error) {
-                this.logger.warn('UPNP Lease removal failed %O', error);
+                this.logger.warn('UPNP Mapping removal failed %O', error);
             }
         } else {
-            this.logger.warn('UPNP Lease removal failed. Missing ports: %o', {
+            this.logger.warn('UPNP Mapping removal failed. Missing ports: %o', {
                 wanPort: this.#wanPort,
                 localPort: this.#localPort,
             });
@@ -57,7 +65,7 @@ export class UpnpService {
      * @param opts
      * @returns true if operation succeeds.
      */
-    private async renewUpnpLease(opts?: {
+    private async createUpnpMapping(opts?: {
         publicPort?: number;
         privatePort?: number;
         serverName?: string;
@@ -76,17 +84,17 @@ export class UpnpService {
             };
             try {
                 const result = await this.upnpClient.createMapping(upnpOpts);
-                this.logger.log('UPNP Lease renewed %o', upnpOpts);
-                this.logger.debug('UPNP Lease renewal result %O', result);
+                this.logger.log('UPNP Mapping created %o', upnpOpts);
+                this.logger.debug('UPNP Mapping creation result %O', result);
                 this.#wanPort = upnpOpts.public;
                 this.#localPort = upnpOpts.private;
                 this.#enabled = true;
                 return true;
             } catch (error) {
-                this.logger.warn('UPNP Lease renewal failed %O', error);
+                this.logger.warn('UPNP Mapping creation failed %O', error);
             }
         } else {
-            this.logger.warn('UPNP Lease renewal failed. Missing ports: %o', {
+            this.logger.warn('UPNP Mapping creation failed. Missing ports: %o', {
                 publicPort,
                 privatePort,
             });
@@ -134,19 +142,16 @@ export class UpnpService {
         return newWanPort;
     }
 
-    async enableUpnp(args?: { sslPort?: number; wanPort?: number }) {
+    async createOrRenewUpnpLease(args?: { sslPort?: number; wanPort?: number }) {
         const { sslPort, wanPort } = args ?? {};
         if (wanPort !== this.#wanPort || this.#localPort !== sslPort) {
-            await this.removeUpnpLease();
+            await this.removeUpnpMapping();
         }
-
-        // todo: start the renewal job
-
         const wanPortToUse = await this.getWanPortToUse(args);
         this.#wanPort = wanPortToUse;
         const localPortToUse = sslPort ?? this.#localPort;
         if (wanPortToUse && localPortToUse) {
-            await this.renewUpnpLease({
+            await this.createUpnpMapping({
                 publicPort: wanPortToUse,
                 privatePort: localPortToUse,
             });
@@ -161,10 +166,20 @@ export class UpnpService {
     }
 
     async disableUpnp() {
-        // todo: stop the renewal job
-        await this.removeUpnpLease();
         this.#enabled = false;
         this.#wanPort = undefined;
         this.#localPort = undefined;
+        await this.removeUpnpMapping();
+    }
+
+    @Cron('*/30 * * * *', { name: UPNP_RENEWAL_JOB_TOKEN })
+    async handleUpnpRenewal() {
+        if (this.#enabled) {
+            try {
+                await this.createOrRenewUpnpLease();
+            } catch (error) {
+                this.logger.error('[Job] UPNP Renewal failed %O', error);
+            }
+        }
     }
 }
