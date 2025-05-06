@@ -526,6 +526,9 @@ importers:
       '@nestjs/schedule':
         specifier: ^5.0.0
         version: 5.0.1(@nestjs/common@11.0.12(class-transformer@0.5.1)(class-validator@0.14.1)(reflect-metadata@0.1.14)(rxjs@7.8.2))(@nestjs/core@11.0.12(@nestjs/common@11.0.12(class-transformer@0.5.1)(class-validator@0.14.1)(reflect-metadata@0.1.14)(rxjs@7.8.2))(reflect-metadata@0.1.14)(rxjs@7.8.2))
+      '@runonflux/nat-upnp':
+        specifier: ^1.0.2
+        version: 1.0.2
       '@types/ini':
         specifier: ^4.1.1
         version: 4.1.1
@@ -547,6 +550,9 @@ importers:
       class-validator:
         specifier: ^0.14.1
         version: 0.14.1
+      execa:
+        specifier: ^9.5.1
+        version: 9.5.2
       graphql:
         specifier: ^16.9.0
         version: 16.10.0
@@ -4285,7 +4291,6 @@ packages:
   '@unraid/libvirt@2.1.0':
     resolution: {integrity: sha512-yF/sAzYukM+VpDdAebf0z0O2mE5mGOEAW5lIafFkYoMiu60zNkNmr5IoA9hWCMmQkBOUCam8RZGs9YNwRjMtMQ==}
     engines: {node: '>=14'}
-    cpu: [x64, arm64]
     os: [linux, darwin]
 
   '@unraid/shared-callbacks@1.1.1':

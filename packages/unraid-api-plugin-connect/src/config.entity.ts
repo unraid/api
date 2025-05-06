@@ -40,9 +40,9 @@ export enum URL_TYPE {
 @InputType('MyServersConfigInput')
 export class MyServersConfig {
     // Remote Access Configurationx
-    @Field(() => String)
-    @IsString()
-    wanaccess!: string;
+    @Field(() => Boolean)
+    @IsBoolean()
+    wanaccess!: boolean;
 
     @Field(() => Number)
     @IsNumber()
@@ -219,7 +219,7 @@ export const configFeature = registerAs<ConnectConfig>('connect', () => ({
     }),
     dynamicRemoteAccess: makeDisabledDynamicRemoteAccessState(),
     config: plainToInstance(MyServersConfig, {
-        wanaccess: 'no',
+        wanaccess: false,
         wanport: 0,
         upnpEnabled: false,
         apikey: '',

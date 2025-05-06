@@ -1,0 +1,2 @@
+
+export const UPNP_CLIENT_TOKEN = 'UPNP_CLIENT';
