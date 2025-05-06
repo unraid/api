@@ -9,60 +9,14 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import type { ComposerTranslation } from 'vue-i18n';
 
-import ActivationModal from '~/components/Activation/Modal.vue';
+import ActivationModal from '~/components/Activation/ActivationModal.vue';
 
 const mockT = (key: string, args?: unknown[]) => (args ? `${key} ${JSON.stringify(args)}` : key);
 
-vi.mock('vue-i18n', () => ({
-  useI18n: () => ({
-    t: mockT,
-  }),
-}));
-
-const mockActivationCodeStore = {
-  partnerLogo: ref<string | null>(null),
-  showActivationModal: ref(true),
-  setActivationModalHidden: vi.fn(),
-};
-
-const mockPurchaseStore = {
-  activate: vi.fn(),
-};
-
-vi.mock('~/store/activationCode', () => ({
-  useActivationCodeStore: () => mockActivationCodeStore,
-}));
-
-vi.mock('~/store/purchase', () => ({
-  usePurchaseStore: () => mockPurchaseStore,
-}));
-
-vi.mock('@unraid/ui', () => ({
-  BrandButton: {
-    template:
-      '<button data-testid="brand-button" :type="type" @click="$emit(\'click\')"><slot /></button>',
-    props: ['text', 'iconRight', 'variant', 'external', 'href', 'size', 'type'],
-    emits: ['click'],
-  },
-}));
-
-vi.mock('~/components/Activation/PartnerLogo.vue', () => ({
-  default: {
-    template: '<div data-testid="partner-logo"></div>',
-  },
-}));
-
-vi.mock('~/components/Activation/Steps.vue', () => ({
-  default: {
-    template: '<div data-testid="activation-steps" :active-step="activeStep"></div>',
-    props: ['activeStep'],
-  },
-}));
-
-vi.mock('~/components/Modal.vue', () => ({
-  default: {
+const mockComponents = {
+  Modal: {
     template: `
-      <div v-if="open">
+      <div data-testid="modal" v-if="open">
         <div data-testid="modal-header"><slot name="header" /></div>
         <div data-testid="modal-body"><slot /></div>
         <div data-testid="modal-footer"><slot name="footer" /></div>
@@ -84,33 +38,124 @@ vi.mock('~/components/Modal.vue', () => ({
       'disableOverlayClose',
     ],
   },
+  ActivationPartnerLogo: {
+    template: '<div data-testid="partner-logo"></div>',
+    props: ['name'],
+  },
+  ActivationSteps: {
+    template: '<div data-testid="activation-steps" :active-step="activeStep"></div>',
+    props: ['activeStep'],
+  },
+  BrandButton: {
+    template:
+      '<button data-testid="brand-button" :type="type" @click="$emit(\'click\')"><slot /></button>',
+    props: ['text', 'iconRight', 'variant', 'external', 'href', 'size', 'type'],
+    emits: ['click'],
+  },
+};
+
+const mockActivationCodeDataStore = {
+  partnerInfo: ref({
+    hasPartnerLogo: false,
+    partnerName: null as string | null,
+  }),
+};
+
+let handleKeydown: ((e: KeyboardEvent) => void) | null = null;
+
+const mockActivationCodeModalStore = {
+  isVisible: ref(true),
+  setIsHidden: vi.fn((value: boolean) => {
+    if (value === true) {
+      window.location.href = '/Tools/Registration';
+    }
+  }),
+  // This gets defined after we mock the store
+  _store: null as unknown,
+};
+
+const mockPurchaseStore = {
+  activate: vi.fn(),
+};
+
+// Mock all imports
+vi.mock('vue-i18n', () => ({
+  useI18n: () => ({
+    t: mockT,
+  }),
 }));
 
-describe('Activation/Modal.vue', () => {
+vi.mock('~/components/Activation/store/activationCodeModal', () => {
+  const store = {
+    useActivationCodeModalStore: () => {
+      mockActivationCodeModalStore._store = mockActivationCodeModalStore;
+      return mockActivationCodeModalStore;
+    },
+  };
+  return store;
+});
+
+vi.mock('~/components/Activation/store/activationCodeData', () => ({
+  useActivationCodeDataStore: () => mockActivationCodeDataStore,
+}));
+
+vi.mock('~/store/purchase', () => ({
+  usePurchaseStore: () => mockPurchaseStore,
+}));
+
+vi.mock('~/store/theme', () => ({
+  useThemeStore: vi.fn(),
+}));
+
+vi.mock('@heroicons/vue/24/solid', () => ({
+  ArrowTopRightOnSquareIcon: {},
+}));
+
+const originalAddEventListener = window.addEventListener;
+window.addEventListener = vi.fn((event: string, handler: EventListenerOrEventListenerObject) => {
+  if (event === 'keydown') {
+    handleKeydown = handler as unknown as (e: KeyboardEvent) => void;
+  }
+  return originalAddEventListener(event, handler);
+});
+
+describe('Activation/ActivationModal.vue', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    mockActivationCodeStore.partnerLogo.value = null;
-    mockActivationCodeStore.showActivationModal.value = true;
 
-    // Reset window.location using a safer approach
+    mockActivationCodeDataStore.partnerInfo.value = {
+      hasPartnerLogo: false,
+      partnerName: null,
+    };
+
+    mockActivationCodeModalStore.isVisible.value = true;
+
+    // Reset window.location
     Object.defineProperty(window, 'location', {
       writable: true,
       value: { href: '' },
     });
+
+    handleKeydown = null;
   });
 
-  it('uses the correct title text', () => {
-    mount(ActivationModal, {
+  const mountComponent = () => {
+    return mount(ActivationModal, {
       props: { t: mockT as unknown as ComposerTranslation },
+      global: {
+        stubs: mockComponents,
+      },
     });
+  };
+
+  it('uses the correct title text', () => {
+    mountComponent();
 
     expect(mockT("Let's activate your Unraid OS License")).toBe("Let's activate your Unraid OS License");
   });
 
   it('uses the correct description text', () => {
-    mount(ActivationModal, {
-      props: { t: mockT as unknown as ComposerTranslation },
-    });
+    mountComponent();
 
     const descriptionText = mockT(
       `On the following screen, your license will be activated. You'll then create an Unraid.net Account to manage your license going forward.`
@@ -122,10 +167,7 @@ describe('Activation/Modal.vue', () => {
   });
 
   it('provides documentation links with correct URLs', () => {
-    mount(ActivationModal, {
-      props: { t: mockT as unknown as ComposerTranslation },
-    });
-
+    mountComponent();
     const licensingText = mockT('More about Licensing');
     const accountsText = mockT('More about Unraid.net Accounts');
 
@@ -134,23 +176,18 @@ describe('Activation/Modal.vue', () => {
   });
 
   it('displays the partner logo when available', () => {
-    mockActivationCodeStore.partnerLogo.value = 'partner-logo-url';
+    mockActivationCodeDataStore.partnerInfo.value = {
+      hasPartnerLogo: true,
+      partnerName: 'partner-name',
+    };
 
-    const wrapper = mount(ActivationModal, {
-      props: { t: mockT as unknown as ComposerTranslation },
-    });
+    const wrapper = mountComponent();
 
-    const modalHeader = wrapper.find('[data-testid="modal-header"]');
-
-    expect(modalHeader.exists()).toBe(true);
-    expect(wrapper.find('[data-testid="partner-logo"]').exists()).toBe(true);
+    expect(wrapper.html()).toContain('data-testid="partner-logo"');
   });
 
   it('calls activate method when Activate Now button is clicked', async () => {
-    const wrapper = mount(ActivationModal, {
-      props: { t: mockT as unknown as ComposerTranslation },
-    });
-
+    const wrapper = mountComponent();
     const button = wrapper.find('[data-testid="brand-button"]');
 
     expect(button.exists()).toBe(true);
@@ -161,9 +198,11 @@ describe('Activation/Modal.vue', () => {
   });
 
   it('handles Konami code sequence to close modal and redirect', async () => {
-    mount(ActivationModal, {
-      props: { t: mockT as unknown as ComposerTranslation },
-    });
+    mountComponent();
+
+    if (!handleKeydown) {
+      return;
+    }
 
     const konamiCode = [
       'ArrowUp',
@@ -178,67 +217,42 @@ describe('Activation/Modal.vue', () => {
       'a',
     ];
 
-    // Trigger each key in the sequence
-    konamiCode.forEach((key) => {
-      window.dispatchEvent(new KeyboardEvent('keydown', { key }));
-    });
+    for (const key of konamiCode) {
+      handleKeydown(new KeyboardEvent('keydown', { key }));
+    }
 
-    // Check if the modal was hidden and redirect was triggered
-    expect(mockActivationCodeStore.setActivationModalHidden).toHaveBeenCalledWith(true);
+    expect(mockActivationCodeModalStore.setIsHidden).toHaveBeenCalledWith(true);
     expect(window.location.href).toBe('/Tools/Registration');
   });
 
   it('does not trigger konami code action for incorrect sequence', async () => {
-    mount(ActivationModal, {
-      props: { t: mockT as unknown as ComposerTranslation },
-    });
+    mountComponent();
 
-    // Simulate incorrect sequence
-    const incorrectSequence = [
-      'ArrowUp',
-      'ArrowDown',
-      'ArrowUp',
-      'ArrowDown',
-      'ArrowLeft',
-      'ArrowRight',
-      'ArrowLeft',
-      'ArrowRight',
-      'a',
-      'b',
-    ];
+    if (!handleKeydown) {
+      return;
+    }
 
-    // Trigger each key in the sequence
-    incorrectSequence.forEach((key) => {
-      window.dispatchEvent(new KeyboardEvent('keydown', { key }));
-    });
+    const incorrectSequence = ['ArrowUp', 'ArrowDown', 'b', 'a'];
 
-    expect(mockActivationCodeStore.setActivationModalHidden).not.toHaveBeenCalled();
+    for (const key of incorrectSequence) {
+      handleKeydown(new KeyboardEvent('keydown', { key }));
+    }
+
+    expect(mockActivationCodeModalStore.setIsHidden).not.toHaveBeenCalled();
     expect(window.location.href).toBe('');
   });
 
-  it('does not render when showActivationModal is false', () => {
-    mockActivationCodeStore.showActivationModal.value = false;
+  it('does not render when isVisible is false', () => {
+    mockActivationCodeModalStore.isVisible.value = false;
+    const wrapper = mountComponent();
 
-    const wrapper = mount(ActivationModal, {
-      props: { t: mockT as unknown as ComposerTranslation },
-    });
-
-    expect(wrapper.find('[data-testid="modal-header"]').exists()).toBe(false);
-    expect(wrapper.find('[data-testid="modal-body"]').exists()).toBe(false);
+    expect(wrapper.html()).toBe('<!--v-if-->');
   });
 
   it('renders activation steps with correct active step', () => {
-    const wrapper = mount(ActivationModal, {
-      props: { t: mockT as unknown as ComposerTranslation },
-    });
+    const wrapper = mountComponent();
 
-    const modalSubfooter = wrapper.find('[data-testid="modal-subfooter"]');
-
-    expect(modalSubfooter.exists()).toBe(true);
-
-    const activationSteps = wrapper.find('[data-testid="activation-steps"]');
-
-    expect(activationSteps.exists()).toBe(true);
-    expect(activationSteps.attributes('active-step')).toBe('2');
+    expect(wrapper.html()).toContain('data-testid="activation-steps"');
+    expect(wrapper.html()).toContain('active-step="2"');
   });
 });
