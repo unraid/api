@@ -8,7 +8,7 @@ if grep -q "SAMEORIGIN" "${FILE}" >/dev/null 2>&1; then
   cp "$FILE" "$FILE-" 
   OLD="add_header X-Frame-Options 'SAMEORIGIN';" 
   NEW="add_header Content-Security-Policy \"frame-ancestors 'self' https://connect.myunraid.net/\";"
-  sed -i "s#${OLD}#${NEW}#" "${FILE}"
+  sed -i "s/${OLD}/${NEW}/" "${FILE}"
   NGINX_CHANGED=1
 fi
 
@@ -43,13 +43,22 @@ if [ -f "${FILE}" ] && grep -q "top.Shadowbox" "${FILE}" >/dev/null 2>&1; then
 fi
 
 # Relax restrictions on built-in Firefox
-FILE=/usr/share/mozilla/firefox/9n35r0i1.default/user.js
-if [ -f "$FILE" ]; then
-  cp -f "$FILE" "$FILE-"
-  # Append settings if they don't exist
-  grep -q "privacy.firstparty.isolate" "$FILE" || echo 'user_pref("privacy.firstparty.isolate", false);' >> "$FILE"
-  grep -q "javascript.options.asmjs" "$FILE" || echo 'user_pref("javascript.options.asmjs", true);' >> "$FILE"
-  grep -q "javascript.options.wasm" "$FILE" || echo 'user_pref("javascript.options.wasm", true);' >> "$FILE"
+FIREFOX_DIR=/usr/share/mozilla/firefox
+# Find the default profile directory (may change in future versions)
+PROFILE_DIR=$(find "$FIREFOX_DIR" -name "*.default" -type d 2>/dev/null | head -n 1)
+
+if [ -z "$PROFILE_DIR" ]; then
+  echo "Firefox default profile directory not found, skipping Firefox configuration"
+else
+  FILE="$PROFILE_DIR/user.js"
+  if [ -f "$FILE" ]; then
+    cp -f "$FILE" "$FILE-"
+    # Append settings if they don't exist
+    grep -q "privacy.firstparty.isolate" "$FILE" || echo 'user_pref("privacy.firstparty.isolate", false);' >> "$FILE"
+    grep -q "javascript.options.asmjs" "$FILE" || echo 'user_pref("javascript.options.asmjs", true);' >> "$FILE"
+    grep -q "javascript.options.wasm" "$FILE" || echo 'user_pref("javascript.options.wasm", true);' >> "$FILE"
+    echo "Updated Firefox preferences in $FILE"
+  fi
 fi
 
 # Move settings on flash drive

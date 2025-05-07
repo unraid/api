@@ -96,3 +96,22 @@ This document tracks our progress in migrating the Unraid plugin to a native Sla
 - Plugin staging conflict check is outdated and no longer needed
 - Full SlackBuild script is not necessary since we're not compiling code; direct use of `makepkg` is simpler
 - Version compatibility checks should remain in the plugin file since they need to run before installation 
+
+## Recent Improvements
+- Enhanced Firefox configuration in file_patches.sh:
+  - Replaced hardcoded Firefox profile path with dynamic profile detection
+  - Added fallback handling when Firefox profile cannot be found
+  - Improved user feedback with status messages about configuration changes
+  - Made the script more resilient to Firefox profile directory changes in future Unraid versions
+- Improved POSIX and shellcheck compliance in cleanup.sh:
+  - Fixed SC2046 warning in process termination code by properly handling pidof with no results
+  - Improved ps/grep/kill pattern to safely handle cases with no matching processes
+  - Prevented non-zero exit codes during cleanup process to ensure smooth uninstallation
+  - Enhanced reliability of the script in edge cases like when no processes are running
+  - Fixed base64 encoding to prevent line wrapping in HTTP POST data by piping through tr -d '\n' 
+
+## Bug Fixes
+- Fixed malformed sed pattern in cleanup.sh:
+  - Changed `sed -i '#robots.txt any origin/d'` to use standard slash delimiters
+  - Replaced with `sed -i '/#robots.txt any origin/d'` to correctly match and delete the pattern
+  - This ensures the robots.txt origin line is properly removed from rc.nginx during cleanup 

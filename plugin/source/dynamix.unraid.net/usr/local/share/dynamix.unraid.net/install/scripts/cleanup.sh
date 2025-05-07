@@ -100,7 +100,7 @@ perform_connect_cleanup() {
         regfile=$(grep "regFILE" "/var/local/emhttp/var.ini" | cut -d= -f2)
         if [ -n "$regfile" ] && [ -f "$regfile" ]; then
           # Base64 encode the key file and send to server
-          encoded_key=$(base64 "$regfile")
+          encoded_key=$(base64 "$regfile" | tr -d '\n')
           if [ -n "$encoded_key" ]; then
             curl -s -X POST "https://keys.lime-technology.com/account/server/unregister" \
               -d "keyfile=$encoded_key" >/dev/null 2>&1
@@ -132,9 +132,11 @@ perform_full_cleanup() {
     # Stop newer clients
     unraid-api stop
     # Kill any processes
-    kill -9 $(pidof unraid-api) >/dev/null 2>&1
+    pid_list=$(pidof unraid-api 2>/dev/null) || true
+    [ -n "$pid_list" ] && kill -9 $pid_list
     # Find all PIDs referencing main.js and kill them
-    ps aux | grep "node /usr/local/unraid-api/dist/main.js" | grep -v grep | awk '{print $2}' | xargs -r kill -9
+    node_pids=$(pgrep -f "node /usr/local/unraid-api/dist/main.js" 2>/dev/null) || true
+    [ -n "$node_pids" ] && echo "$node_pids" | xargs kill -9
     # Clean up files
     rm -rf /usr/local/unraid-api
     rm -rf /var/run/unraid-api.sock
@@ -173,7 +175,7 @@ perform_full_cleanup() {
   # Clean up our optional makestate modifications in rc.nginx (on 6.9 and 6.10.0-rc[12])
   sed -i '/scripts\/makestate/d' /etc/rc.d/rc.nginx
   # Clean up extra origin for robots.txt
-  sed -i '#robots.txt any origin/d' /etc/rc.d/rc.nginx
+  sed -i '/#robots.txt any origin/d' /etc/rc.d/rc.nginx
   
   # Clean up temporary flag file
   rm -f /tmp/restore-files-dynamix-unraid-net
