@@ -32,6 +32,10 @@
   - Removed Node.js runtime variables (NODEJS_VERSION, NODEJS_FILENAME, NODE_DIR)
   - Kept only essential entities needed for downloads and Slackware package installation
   - Streamlined plugin installation to rely more on Slackware package mechanisms
+- Updated rc.unraid-api path check in doinst.sh to use absolute path
+  - Changed from relative path `etc/rc.d/rc.unraid-api` to absolute path `/etc/rc.d/rc.unraid-api`
+  - Ensures consistency with other absolute paths used throughout the script
+  - Improves reliability of the check regardless of working directory
 
 ## Pending Tasks
 
