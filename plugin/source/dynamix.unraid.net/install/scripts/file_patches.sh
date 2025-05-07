@@ -18,8 +18,9 @@ if ! grep -q "#robots.txt any origin" "${FILE}" >/dev/null 2>&1; then
   cp "$FILE" "$FILE-" 
   FIND="location = \/robots.txt {"
   # escape tabs and spaces
-  ADD="\	\ \ \ \ add_header Access-Control-Allow-Origin *; #robots.txt any origin"
-  sed -i "/${FIND}/a ${ADD}" "${FILE}"
+  ADD="\t    add_header Access-Control-Allow-Origin *; #robots.txt any origin"
+  # shell-safe: pass ADD via printf to preserve escapes
+  sed -i "/${FIND}/a $(printf '%s\n' "${ADD}")" "${FILE}"
   NGINX_CHANGED=1
 fi
 
