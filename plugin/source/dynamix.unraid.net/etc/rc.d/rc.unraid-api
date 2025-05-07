@@ -88,7 +88,7 @@ start() {
   
   # Start the API service
   if [ -x "${unraid_binary_path}" ]; then
-    "${unraid_binary_path}" service start
+    "${unraid_binary_path}" start
     return $?
   else
     echo "Error: Unraid API binary not found or not executable at ${unraid_binary_path}"
@@ -99,7 +99,7 @@ start() {
 stop() {
   echo "Stopping Unraid API service..."
   if [ -x "${unraid_binary_path}" ]; then
-    "${unraid_binary_path}" service stop
+    "${unraid_binary_path}" stop
     return $?
   else
     echo "Error: Unraid API binary not found or not executable at ${unraid_binary_path}"
@@ -115,7 +115,7 @@ restart() {
 
 status() {
   if [ -x "${unraid_binary_path}" ]; then
-    "${unraid_binary_path}" service status
+    "${unraid_binary_path}" status
     return $?
   else
     echo "Error: Unraid API binary not found or not executable at ${unraid_binary_path}"
