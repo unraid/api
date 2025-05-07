@@ -10,6 +10,7 @@
   - Exit with error if package not found instead of falling back to defaults
   - Simplified logic for finding and using the correct bundle archives
   - Fixed ShellCheck SC2010 violations by replacing `ls | grep` with proper glob pattern matching
+- Added missing `api_version` entity to the plugin XML definition to fix build errors
 
 ## Pending Tasks
 
