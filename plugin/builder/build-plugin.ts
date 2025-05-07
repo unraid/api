@@ -2,7 +2,7 @@ import { readFile, writeFile, mkdir, rename } from "fs/promises";
 import { $ } from "zx";
 import { escape as escapeHtml } from "html-sloppy-escaper";
 import { dirname, join } from "node:path";
-import { getTxzName, pluginName, startingDir } from "./utils/consts";
+import { getTxzName, pluginName, startingDir, defaultArch, defaultBuild } from "./utils/consts";
 import { getAssetUrl, getPluginUrl } from "./utils/bucket-urls";
 import { getMainTxzUrl } from "./utils/bucket-urls";
 import {
@@ -26,7 +26,7 @@ const checkGit = async () => {
   }
 };
 
-const moveTxzFile = async (txzPath: string, pluginVersion: string) => {
+const moveTxzFile = async ({txzPath, pluginVersion}: Pick<PluginEnv, "txzPath" | "pluginVersion">) => {
   const txzName = getTxzName(pluginVersion);
   await rename(txzPath, join(deployDir, txzName));
 };
@@ -50,7 +50,10 @@ const buildPlugin = async ({
   tag,
   txzSha256,
   releaseNotes,
+  apiVersion,
 }: PluginEnv) => {
+  console.log(`API version: ${apiVersion}`);
+  
   // Update plg file
   let plgContent = await readFile(getRootPluginPath({ startingDir }), "utf8");
 
@@ -58,6 +61,9 @@ const buildPlugin = async ({
   const entities: Record<string, string> = {
     name: pluginName,
     version: pluginVersion,
+    api_version: apiVersion,
+    arch: defaultArch,
+    build: defaultBuild,
     pluginURL: getPluginUrl({ baseUrl, tag }),
     MAIN_TXZ: getMainTxzUrl({ baseUrl, pluginVersion, tag }),
     TXZ_SHA256: txzSha256,
@@ -107,7 +113,7 @@ const main = async () => {
     await cleanupPluginFiles();
 
     await buildPlugin(validatedEnv);
-    await moveTxzFile(validatedEnv.txzPath, validatedEnv.pluginVersion);
+    await moveTxzFile(validatedEnv);
     await bundleVendorStore();
   } catch (error) {
     console.error(error);

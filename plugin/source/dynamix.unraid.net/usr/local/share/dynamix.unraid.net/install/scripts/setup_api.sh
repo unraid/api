@@ -10,10 +10,54 @@ echo "Starting API setup script" >> "$LOGFILE"
 CONFIG_DIR="/boot/config/plugins/dynamix.my.servers"
 API_BASE_DIR="/usr/local/unraid-api"
 UNRAID_BINARY_PATH="/usr/local/bin/unraid-api"
-VENDOR_ARCHIVE="${CONFIG_DIR}/packed-node-modules.tar.xz"
 
 echo "Environment: CONFIG_DIR=$CONFIG_DIR, API_BASE_DIR=$API_BASE_DIR" >> "$LOGFILE"
-echo "UNRAID_BINARY_PATH=$UNRAID_BINARY_PATH, VENDOR_ARCHIVE=$VENDOR_ARCHIVE" >> "$LOGFILE"
+echo "UNRAID_BINARY_PATH=$UNRAID_BINARY_PATH" >> "$LOGFILE"
+
+# Get API version from Slackware package
+# Look for dynamix.unraid.net package in /var/log/packages
+pkg_file=""
+for f in /var/log/packages/dynamix.unraid.net-*; do
+  # Check if the file exists and is not a wildcard pattern (if no matches found)
+  if [ -f "$f" ]; then
+    pkg_file="$f"
+    break
+  fi
+done
+
+if [ -n "$pkg_file" ]; then
+  # Extract version from filename (format: name-version-arch-build)
+  pkg_basename=$(basename "$pkg_file")
+  api_version=$(echo "$pkg_basename" | cut -d'-' -f2)
+  echo "Found API version from Slackware package: $api_version" >> "$LOGFILE"
+  
+  # Also log package details for debugging
+  echo "Package details:" >> "$LOGFILE"
+  echo "  Full path: $pkg_file" >> "$LOGFILE"
+  echo "  Package name: $pkg_basename" >> "$LOGFILE"
+  echo "  Extracted version: $api_version" >> "$LOGFILE"
+  
+  # Verify version format
+  if ! echo "$api_version" | grep -qE "^[0-9]+\.[0-9]+\.[0-9]+"; then
+    echo "WARNING: Extracted version doesn't match expected format: $api_version" >> "$LOGFILE"
+  fi
+else
+  echo "ERROR: No dynamix.unraid.net Slackware package found in /var/log/packages" >> "$LOGFILE"
+  # List available packages for debugging
+  echo "Available packages:" >> "$LOGFILE"
+  for pkg in /var/log/packages/*unraid*; do
+    if [ -f "$pkg" ]; then
+      echo "  $(basename "$pkg")" >> "$LOGFILE"
+    fi
+  done
+  if [ ! -f "/var/log/packages/*unraid*" ]; then
+    echo "  No matching packages found" >> "$LOGFILE"
+  fi
+  exit 1
+fi
+
+# Log the final API version
+echo "Using API version: $api_version" >> "$LOGFILE"
 
 # Set up environment file
 if [ ! -f "${CONFIG_DIR}/env" ]; then
@@ -68,9 +112,10 @@ else
   echo "ERROR: .env.production file not found" >> "$LOGFILE"
 fi
 
-# Restore dependencies if available
+# Restore dependencies using vendor archive from package
+VENDOR_ARCHIVE="${CONFIG_DIR}/node_modules-for-v${api_version}.tar.xz"
 if [ -x "/etc/rc.d/rc.unraid-api" ] && [ -f "$VENDOR_ARCHIVE" ]; then
-  echo "Restoring dependencies from vendor archive" >> "$LOGFILE"
+  echo "Restoring dependencies from vendor archive: $VENDOR_ARCHIVE" >> "$LOGFILE"
   /etc/rc.d/rc.unraid-api restore-dependencies "$VENDOR_ARCHIVE"
 else
   echo "Dependencies not restored: rc.unraid-api executable: $( [ -x "/etc/rc.d/rc.unraid-api" ] && echo "Yes" || echo "No" )" >> "$LOGFILE"
@@ -140,5 +185,9 @@ if [ -f "/etc/rc.d/rc.flash_backup" ]; then
 else
   echo "flash_backup script not found" >> "$LOGFILE"
 fi
+
+# Create a file with the API version for reference
+echo "Writing API version to ${CONFIG_DIR}/api_version" >> "$LOGFILE"
+echo "$api_version" > "${CONFIG_DIR}/api_version"
 
 echo "API setup completed at $(date)" >> "$LOGFILE"

@@ -5,8 +5,21 @@ import { get } from "https";
 import { $ } from "zx";
 import { startingDir } from "./consts";
 
+const findNvmrc = () => {
+  const nvmrcPaths = [
+    join(startingDir, "..", ".nvmrc"),
+    join(startingDir, ".nvmrc"),
+  ];
+  for (const nvmrcPath of nvmrcPaths) {
+    if (existsSync(nvmrcPath)) {
+      return nvmrcPath;
+    }
+  }
+  throw new Error("NVMRC file not found");
+}
 // Read Node.js version from .nvmrc
-const NVMRC_PATH = join(startingDir, "..", ".nvmrc");
+const NVMRC_PATH = findNvmrc();
+console.log(`NVMRC_PATH: ${NVMRC_PATH}`);
 const NODE_VERSION = readFileSync(NVMRC_PATH, "utf8").trim();
 
 const NODE_FILENAME = `node-v${NODE_VERSION}-linux-x64.tar.xz`;

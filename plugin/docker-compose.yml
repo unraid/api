@@ -7,6 +7,7 @@ services:
       - ./:/app
       - /app/node_modules
       - ../.git:/app/.git
+      - ../.nvmrc:/app/.nvmrc
       - ./source:/app/source
       - ./scripts:/app/scripts
       - ../unraid-ui/dist-wc:/app/source/dynamix.unraid.net/usr/local/emhttp/plugins/dynamix.my.servers/unraid-components/uui
@@ -19,3 +20,4 @@ services:
       - HOST_LAN_IP=${HOST_LAN_IP}
       - CI=${CI:-false}
       - TAG=${TAG}
+      - API_VERSION=${API_VERSION}

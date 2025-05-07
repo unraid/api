@@ -94,7 +94,17 @@ exit(0);
       MAINNAME="&name;"
       <![CDATA[
       echo "Removing Plugin"
-      [[ -f "/var/log/packages/${MAINNAME}" ]] && removepkg --terse "${MAINNAME}"
+      
+      # Find any installed dynamix.unraid.net package
+      pkg_installed=$(ls -1 /var/log/packages/dynamix.unraid.net* 2>/dev/null | head -1)
+      if [ -n "$pkg_installed" ]; then
+        pkg_basename=$(basename "$pkg_installed")
+        echo "Removing package: $pkg_basename"
+        removepkg --terse "$pkg_basename"
+      else
+        echo "No dynamix.unraid.net package found. Trying with basic package name."
+        removepkg --terse "${MAINNAME}"
+      fi
       ]]>
     </INLINE>
   </FILE>
@@ -105,16 +115,16 @@ exit(0);
       TAG="&TAG;" MAINTXZ="&source;.txz"
       VENDOR_ARCHIVE="/boot/config/plugins/dynamix.my.servers/&VENDOR_STORE_FILENAME;"
     <![CDATA[
-# install the main txz
+# Install the Slackware package
+echo "Installing package..."
 upgradepkg --install-new --reinstall "${MAINTXZ}"
 
-# confirm an expected file now exists
+# Confirm an expected file now exists
 # WARNING: failure here results in broken install
 [[ ! -f /usr/local/emhttp/plugins/dynamix.my.servers/scripts/gitflash_log ]] && echo "⚠️ files missing from main txz" && exit 1
 
 # Start the Unraid API service using the rc script
 if [[ -x /etc/rc.d/rc.unraid-api ]]; then
-  echo "Starting Unraid API service..."
   /etc/rc.d/rc.unraid-api start
 fi
 

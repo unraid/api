@@ -91,6 +91,7 @@ const validateSourceDir = async (validatedEnv: TxzEnv) => {
 
 const buildTxz = async (validatedEnv: TxzEnv) => {
   await validateSourceDir(validatedEnv);
+  console.log(`Package name: ${getTxzName()}`);
   const txzPath = join(validatedEnv.txzOutputDir, getTxzName());
   await ensureNodeJs();
 
@@ -99,6 +100,7 @@ const buildTxz = async (validatedEnv: TxzEnv) => {
   await cd(join(startingDir, "source", pluginName));
   $.verbose = true;
 
+  // Create the package using the default package name
   await $`${join(startingDir, "scripts/makepkg")} --chown y --compress -${
     validatedEnv.compress
   } --linkadd y ${txzPath}`;

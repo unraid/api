@@ -10,7 +10,49 @@ flash="/boot/config/plugins/dynamix.my.servers"
 unraid_binary_path="/usr/local/bin/unraid-api"
 dependencies_dir="/usr/local/unraid-api/node_modules"
 api_base_dir="/usr/local/unraid-api"
-vendor_archive="${flash}/packed-node-modules.tar.xz"
+
+# Get API version - try different methods in order of preference
+api_version=""
+
+# Method 1: Try to get version from package.json if it exists
+if [ -f "${api_base_dir}/package.json" ]; then
+  api_version=$(grep -o '"version": *"[^"]*"' "${api_base_dir}/package.json" | cut -d'"' -f4)
+fi
+
+# Method 2: If not available, try to extract from Slackware package name
+if [ -z "$api_version" ]; then
+  # Look for dynamix.unraid.net package in /var/log/packages
+  pkg_file=$(ls -1 /var/log/packages/dynamix.unraid.net-* 2>/dev/null | head -1)
+  if [ -n "$pkg_file" ]; then
+    # Extract version from filename (format: name-version-arch-build)
+    pkg_basename=$(basename "$pkg_file")
+    api_version=$(echo "$pkg_basename" | cut -d'-' -f2)
+  fi
+fi
+
+# Method 3: Fall back to searching for any existing versioned bundle
+if [ -z "$api_version" ]; then
+  # Find any node_modules-for-v*.tar.xz file
+  versioned_bundle=$(ls -1 "${flash}"/node_modules-for-v*.tar.xz 2>/dev/null | head -1)
+  if [ -n "$versioned_bundle" ]; then
+    # Extract version from filename
+    bundle_basename=$(basename "$versioned_bundle")
+    api_version=$(echo "$bundle_basename" | sed 's/node_modules-for-v\(.*\)\.tar\.xz/\1/')
+  fi
+fi
+
+# Determine which vendor archive to use
+if [ -n "$api_version" ] && [ -f "${flash}/node_modules-for-v${api_version}.tar.xz" ]; then
+  vendor_archive="${flash}/node_modules-for-v${api_version}.tar.xz"
+  echo "Using version-specific dependencies archive: $vendor_archive"
+elif [ -f "${flash}/packed-node-modules.tar.xz" ]; then
+  vendor_archive="${flash}/packed-node-modules.tar.xz"
+  echo "Using generic dependencies archive: $vendor_archive"
+else
+  # No vendor archive found
+  vendor_archive=""
+  echo "No dependencies archive found"
+fi
 
 # Placeholder functions for plugin installation/uninstallation
 install() {

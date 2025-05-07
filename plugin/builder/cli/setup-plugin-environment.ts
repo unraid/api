@@ -9,6 +9,7 @@ const safeParseEnvSchema = z.object({
   ci: z.boolean().optional(),
   baseUrl: z.string().url(),
   tag: z.string().optional().default(''),
+  apiVersion: z.string().optional(),
 
   txzPath: z.string().refine((val) => val.endsWith(".txz"), {
     message: "TXZ Path must end with .txz",
@@ -24,6 +25,7 @@ const pluginEnvSchema = safeParseEnvSchema.extend({
   txzSha256: z.string().refine((val) => val.length === 64, {
     message: "TXZ SHA256 must be 64 characters long",
   }),
+  apiVersion: z.string().nonempty("API version is required"),
 });
 
 export type PluginEnv = z.infer<typeof pluginEnvSchema>;
@@ -104,6 +106,11 @@ export const setupPluginEnv = async (argv: string[]): Promise<PluginEnv> => {
       "--plugin-version <version>",
       "Plugin Version in the format YYYY.MM.DD.HHMM",
       getPluginVersion()
+    )
+    .requiredOption(
+      "--api-version <version>",
+      "API Version (e.g. 1.0.0)",
+      process.env.API_VERSION
     )
     .option("--tag <tag>", "Tag (used for PR and staging builds)", process.env.TAG)
     .option("--release-notes-path <path>", "Path to release notes file")
