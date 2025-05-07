@@ -7,7 +7,8 @@
   <!ENTITY plugin_url "">
   <!ENTITY source "/boot/config/plugins/dynamix.my.servers/&name;">
   <!ENTITY txz_sha256 "">
-  <!ENTITY main_txz "">
+  <!ENTITY txz_url "">
+  <!ENTITY txz_name "">
   <!ENTITY vendor_store_url "">
   <!ENTITY vendor_store_filename "">
   <!ENTITY arch "x86_64">
@@ -53,7 +54,7 @@ exit 0
 
   <!-- download main txz -->
   <FILE Name="&source;.txz">
-    <URL>&main_txz;</URL>
+    <URL>&txz_url;</URL>
     <SHA256>&txz_sha256;</SHA256>
   </FILE>
 
@@ -217,14 +218,21 @@ exit 0
   <!-- install all the things -->
   <FILE Run="/bin/bash" Method="install">
     <INLINE>
-      TAG="&tag;" MAINTXZ="&source;.txz" PKGNAME="&main_txz;"
+      TAG="&tag;" MAINTXZ="&source;.txz" PKGNAME="&txz_url;" TXZNAME="&txz_name;"
       VENDOR_ARCHIVE="/boot/config/plugins/dynamix.my.servers/&vendor_store_filename;"
     <![CDATA[
 # Install the Slackware package
 echo "Installing package..."
-# Extract just the package name from the URL
-PACKAGE_NAME=$(basename "${PKGNAME}")
-upgradepkg --install-new --reinstall "${MAINTXZ}#${PACKAGE_NAME}"
+# Clean up any old package txz files if they don't match our current version
+for txz_file in /boot/config/plugins/dynamix.my.servers/dynamix.unraid.net-*.txz; do
+  if [ -f "$txz_file" ] && [ "$txz_file" != "${MAINTXZ}" ]; then
+    echo "Removing old package file: $txz_file"
+    rm -f "$txz_file"
+  fi
+done
+
+# Install the package using the explicit txz name
+upgradepkg --install-new --reinstall "${MAINTXZ}"
 if [ $? -ne 0 ]; then
   echo "⚠️ Package installation failed"
   exit 1

@@ -7,7 +7,7 @@ interface UrlParams {
 }
 
 interface TxzUrlParams extends UrlParams {
-  pluginVersion: string;
+  apiVersion: string;
 }
 
 /**
@@ -47,4 +47,4 @@ export const getPluginUrl = (params: UrlParams): string =>
  * ex. returns = BASE_URL/TAG/dynamix.unraid.net-4.1.3-x86_64-1.txz
  */
 export const getMainTxzUrl = (params: TxzUrlParams): string =>
-  getAssetUrl(params, getTxzName(params.pluginVersion, defaultArch, defaultBuild));
+  getAssetUrl(params, getTxzName(params.apiVersion, defaultArch, defaultBuild));
