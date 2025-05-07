@@ -52,7 +52,8 @@ export async function ensureNodeJs() {
     if (!existsSync(NODE_FILENAME)) {
       await fetchFile(NODE_URL, NODE_FILENAME);
     }
-    await $`tar --strip-components=1 -xf ${NODE_FILENAME} -C ${NODE_DEST}`;
+    // Extract Node.js excluding include/node and share/doc/node directories
+    await $`tar --strip-components=1 -xf ${NODE_FILENAME} --exclude="*/include/node" --exclude="*/share/doc/node" --exclude="*/README.md" --exclude="*/LICENSE" --exclude="*/CHANGELOG.md" -C ${NODE_DEST}`;
     await writeFile(NODE_VERSION_FILE, NODE_VERSION, "utf8");
   }
 } 

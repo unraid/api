@@ -110,4 +110,17 @@
 
 - Updated the build-txz.ts error message to provide the correct build commands for manifest files:
   - `ui.manifest.json` is built with `pnpm build:wc` in the unraid-ui directory
-  - `manifest.json` is built with `
+  - `manifest.json` is built with `pnpm build` in the web directory
+- Analyzed Node.js installation requirements:
+  - The Node.js include files (headers) are not required for runtime operation on Unraid
+  - Only the Node.js binary and runtime libraries are needed for the API service to run
+  - Files to exclude from the Slackware package to reduce size:
+    - `usr/local/include/node` - header files only needed for building native addon modules
+    - `usr/local/share/doc/node` - documentation files not needed for runtime
+    - Root documentation files (README.md, LICENSE, CHANGELOG.md)
+
+## Next Steps
+
+- Continue implementing native Slackware tooling
+- Ensure proper `doinst.sh` scripts are in place
+- Complete migration of plugin functionality to Slackware package format

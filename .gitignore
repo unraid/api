@@ -109,3 +109,14 @@ plugin/source/dynamix.unraid.net/usr/local/emhttp/plugins/dynamix.my.servers/dat
 
 # Config file that changes between versions
 api/dev/Unraid.net/myservers.cfg
+
+# Node.js download files
+node-v*.tar.xz
+plugin/node-v*.tar.xz
+
+# Node.js man pages
+plugin/source/dynamix.unraid.net/usr/local/share/man/man1/node.1
+
+# Node version files
+.node-version
+*/*/usr/local/.node-version

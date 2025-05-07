@@ -146,4 +146,4 @@ elif [ "$INSTALL_MODE" = "remove" ]; then
   
   echo "Removal completed successfully."
   echo "Removal completed at $(date)" >> "$LOGFILE"
-fi 
+fi
