@@ -1,6 +1,6 @@
 <?xml version='1.0' standalone='yes'?>
 <!DOCTYPE PLUGIN [
-  <!ENTITY name "">
+  <!ENTITY name "dynamix.unraid.net">
   <!ENTITY launch "Connect">
   <!ENTITY author "limetech">
   <!ENTITY version "">
@@ -11,8 +11,9 @@
   <!ENTITY vendor_store_url "">
   <!ENTITY vendor_store_filename "">
   <!ENTITY arch "x86_64">
-  <!ENTITY build "">
+  <!ENTITY build "1">
   <!ENTITY tag "">
+  <!ENTITY api_version "">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" pluginURL="&plugin_url;"
