@@ -112,6 +112,10 @@ exit(0);
 # Install the Slackware package
 echo "Installing package..."
 upgradepkg --install-new --reinstall "${MAINTXZ}"
+if [ $? -ne 0 ]; then
+  echo "⚠️ Package installation failed"
+  exit 1
+fi
 
 # Confirm an expected file now exists
 # WARNING: failure here results in broken install
@@ -120,6 +124,9 @@ upgradepkg --install-new --reinstall "${MAINTXZ}"
 # Start the Unraid API service using the rc script
 if [[ -x /etc/rc.d/rc.unraid-api ]]; then
   /etc/rc.d/rc.unraid-api start
+  if ! /etc/rc.d/rc.unraid-api status | grep -q "running"; then
+    echo "⚠️ Warning: Unraid API service failed to start"
+  fi
 fi
 
 if [[ -n "$TAG" && "$TAG" != "" ]]; then

@@ -1,65 +1,8 @@
 #!/bin/sh
-# Script to handle cleanup operations during removal and restoration during install/upgrade
+# Script to handle cleanup operations during removal
 
 # Get the operation mode
 MODE="${1:-cleanup}"
-
-# File restoration function - runs during both install and remove
-perform_file_restoration() {
-  if [ -f /tmp/restore-files-dynamix-unraid-net ]; then
-    echo "Restoring files..."
-    
-    # Process files to restore - POSIX compliant approach
-    for FILE in \
-      "/usr/local/emhttp/plugins/dynamix/DisplaySettings.page" \
-      "/usr/local/emhttp/plugins/dynamix/Registration.page" \
-      "/usr/local/emhttp/plugins/dynamix/include/DefaultPageLayout.php" \
-      "/usr/local/emhttp/plugins/dynamix/include/ProvisionCert.php" \
-      "/usr/local/emhttp/plugins/dynamix/include/UpdateDNS.php" \
-      "/usr/local/emhttp/plugins/dynamix/include/ReplaceKey.php" \
-      "/usr/local/emhttp/plugins/dynamix/include/Wrappers.php" \
-      "/usr/local/emhttp/plugins/dynamix.plugin.manager/Downgrade.page" \
-      "/usr/local/emhttp/plugins/dynamix.plugin.manager/Update.page" \
-      "/usr/local/emhttp/plugins/dynamix.plugin.manager/include/ShowChanges.php" \
-      "/usr/local/emhttp/plugins/dynamix.plugin.manager/scripts/showchanges" \
-      "/usr/local/emhttp/plugins/dynamix.plugin.manager/scripts/unraidcheck" \
-      "/usr/local/emhttp/plugins/dynamix.plugin.manager/include/UnraidCheck.php" \
-      "/usr/local/emhttp/plugins/dynamix.plugin.manager/include/UnraidCheckExec.php" \
-      "/usr/local/emhttp/plugins/dynamix.my.servers/Connect.page" \
-      "/usr/local/emhttp/plugins/dynamix.my.servers/MyServers.page" \
-      "/usr/local/emhttp/plugins/dynamix.my.servers/Registration.page" \
-      "/usr/local/emhttp/plugins/dynamix.my.servers/include/myservers1.php" \
-      "/usr/local/emhttp/plugins/dynamix.my.servers/include/myservers2.php" \
-      "/usr/local/emhttp/plugins/dynamix.my.servers/include/state.php" \
-      "/usr/local/emhttp/plugins/dynamix.my.servers/data/server-state.php" \
-      "/usr/local/emhttp/plugins/dynamix.my.servers/include/reboot-details.php" \
-      "/usr/local/emhttp/plugins/dynamix.my.servers/include/translations.php" \
-      "/usr/local/emhttp/plugins/dynamix.my.servers/include/web-components-extractor.php" \
-      "/usr/local/emhttp/update.htm" \
-      "/usr/local/emhttp/logging.htm" \
-      "/etc/nginx/nginx.conf" \
-      "/etc/rc.d/rc.nginx" \
-      "/usr/share/mozilla/firefox/9n35r0i1.default/user.js"
-    do
-      [ -f "$FILE-" ] && mv -f "$FILE-" "$FILE"
-    done
-    
-    # Handle the unraid-components directory
-    DIR=/usr/local/emhttp/plugins/dynamix.my.servers/unraid-components
-    # certain instances where the directory is not present and others where it is, ensure we delete it before we restore it
-    if [ -d "$DIR" ]; then
-      rm -rf "$DIR"
-    fi
-    if [ -d "$DIR-" ]; then
-      mv -f "$DIR-" "$DIR"
-    fi
-
-    # If we're only doing restoration (during install), we're done
-    if [ "$MODE" = "restore" ]; then
-      rm -f /tmp/restore-files-dynamix-unraid-net
-    fi
-  fi
-}
 
 # Handle flash backup deactivation and Connect signout
 perform_connect_cleanup() {
@@ -176,25 +119,16 @@ perform_full_cleanup() {
   sed -i '/scripts\/makestate/d' /etc/rc.d/rc.nginx
   # Clean up extra origin for robots.txt
   sed -i '/#robots.txt any origin/d' /etc/rc.d/rc.nginx
-  
-  # Clean up temporary flag file
-  rm -f /tmp/restore-files-dynamix-unraid-net
 }
 
 # Main execution flow based on mode
 case "$MODE" in
-  'restore')
-    # Only perform file restoration
-    perform_file_restoration
-    ;;
   'cleanup')
-    # Perform file restoration first, then full cleanup
-    perform_file_restoration
     perform_full_cleanup
     ;;
   *)
     echo "Unknown mode: $MODE"
-    echo "Usage: $0 [restore|cleanup]"
+    echo "Usage: $0 [cleanup]"
     exit 1
     ;;
 esac 

@@ -36,6 +36,19 @@
   - Changed from relative path `etc/rc.d/rc.unraid-api` to absolute path `/etc/rc.d/rc.unraid-api`
   - Ensures consistency with other absolute paths used throughout the script
   - Improves reliability of the check regardless of working directory
+- Enhanced installation script with improved Slackware package management
+  - Added error handling for upgradepkg command to catch installation failures
+  - Implemented service start verification to ensure the Unraid API service starts properly
+  - System now reports if the service fails to start after installation
+  - Retained existing file verification check as a critical post-install validation step
+  - Updated doinst.sh to start and verify the Unraid API service during package installation
+  - Improved user feedback when service fails to start with clear error messaging
+- Modified `cleanup.sh` script to remove file restoration process
+  - Removed the file restoration function entirely as it's not needed in the Slackware package
+  - Eliminated code that was deleting and restoring the unraid-components directory, which was breaking the API
+  - Simplified script to only handle cleanup operations during removal
+  - Updated usage instructions to only support 'cleanup' mode
+  - This change prevents the API from breaking during package installation
 
 ## Pending Tasks
 

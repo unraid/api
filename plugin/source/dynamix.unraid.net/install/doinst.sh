@@ -84,6 +84,17 @@ if [ "$INSTALL_MODE" = "install" ] || [ "$INSTALL_MODE" = "upgrade" ]; then
     # 2. Using native systemd service files if Unraid supports them
     # 3. Following the standard Unraid service pattern seen in their core services
     # For now, we'll use the .plg file's post-install sections to start the service
+    
+    # Try to start the service immediately for better user experience
+    /etc/rc.d/rc.unraid-api start
+    
+    # Verify the service started successfully
+    if ! /etc/rc.d/rc.unraid-api status | grep -q "running"; then
+      echo "⚠️ Warning: Unraid API service failed to start" | tee -a "$LOGFILE"
+      echo "Check system logs for details"
+    else
+      echo "Unraid API service started successfully" >> "$LOGFILE"
+    fi
   else
     echo "ERROR: rc.unraid-api not found" >> "$LOGFILE"
   fi
