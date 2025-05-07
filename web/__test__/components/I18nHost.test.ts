@@ -21,7 +21,7 @@ vi.mock('~/helpers/i18n-utils', () => ({
 }));
 
 const TestConsumerComponent = defineComponent({
-  template: '<div>{{ $i18n?.locale }}</div>',
+  template: '<div>{{ i18n?.global.locale.value }}</div>',
 
   setup() {
     const i18n = inject(I18nInjectionKey);

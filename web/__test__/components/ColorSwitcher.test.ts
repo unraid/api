@@ -8,7 +8,9 @@ import { mount } from '@vue/test-utils';
 
 import { Input, Label, Select, SelectTrigger, Switch } from '@unraid/ui';
 import { createTestingPinia } from '@pinia/testing';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+
+import type { MockInstance } from 'vitest';
 
 import ColorSwitcher from '~/components/ColorSwitcher.ce.vue';
 import { useThemeStore } from '~/store/theme';
@@ -21,7 +23,6 @@ vi.mock('@unraid/ui', async (importOriginal) => {
   };
 });
 
-// Mock the default colors (optional, but can make tests more predictable)
 vi.mock('~/themes/default', () => ({
   defaultColors: {
     white: {
@@ -39,14 +40,28 @@ vi.mock('~/themes/default', () => ({
 
 describe('ColorSwitcher', () => {
   let themeStore: ReturnType<typeof useThemeStore>;
+  let modalDiv: HTMLDivElement;
+  let consoleWarnSpy: MockInstance;
 
   beforeEach(() => {
-    // Get store instance before each test
+    vi.useFakeTimers();
     const pinia = createTestingPinia({ createSpy: vi.fn });
-    setActivePinia(pinia); // Set the active pinia instance
+    setActivePinia(pinia);
     themeStore = useThemeStore();
 
+    modalDiv = document.createElement('div');
+    modalDiv.id = 'modals';
+    document.body.appendChild(modalDiv);
+
     vi.clearAllMocks();
+    consoleWarnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+  });
+
+  afterEach(() => {
+    vi.runOnlyPendingTimers();
+    vi.useRealTimers();
+    document.body.removeChild(modalDiv);
+    consoleWarnSpy.mockRestore();
   });
 
   it('renders all form elements correctly', () => {
