@@ -9,8 +9,7 @@ const safeParseEnvSchema = z.object({
   ci: z.boolean().optional(),
   baseUrl: z.string().url(),
   tag: z.string().optional().default(''),
-  apiVersion: z.string().optional(),
-
+  apiVersion: z.string(),
   txzPath: z.string().refine((val) => val.endsWith(".txz"), {
     message: "TXZ Path must end with .txz",
   }),

@@ -100,7 +100,7 @@ const buildTxz = async (validatedEnv: TxzEnv) => {
   await validateSourceDir(validatedEnv);
   
   // Use version from validated environment
-  const version = validatedEnv.version;
+  const version = validatedEnv.apiVersion;
   
   // Always use version when getting txz name
   const txzName = getTxzName(version);
