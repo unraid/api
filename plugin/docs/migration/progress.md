@@ -9,7 +9,7 @@ This document tracks our progress in migrating the Unraid plugin to a native Sla
 - Created standard Slackware package description file (`slack-desc`) for the dynamix.unraid.net package
 - Implemented proper Slackware init system integration:
   - Modified `rc.unraid-api` script to include standard start/stop/restart/status functions
-  - Created proper init system symlinks in `doinst.sh` for runlevel 3 (startup) and 0/6 (shutdown)
+  - Updated approach to use native Slackware init system rather than System V directories
   - Added boot-time node modules dependency restoration to the `start()` function
   - Moved environment setup from setup_api.sh to rc.unraid-api to ensure it's available at boot
   - The service will now properly start on boot if pre-installed in the OS
@@ -61,10 +61,19 @@ This document tracks our progress in migrating the Unraid plugin to a native Sla
 - Created post-installation verification script:
   - Checks for existence of critical files and directories
   - Verifies executable permissions on important scripts
-  - Validates init script symlinks for proper startup/shutdown
+  - Validates startup and shutdown configurations in rc.M, rc.local, rc.0, and rc.6 files
   - Provides color-coded output for easy readability
   - Integrated with doinst.sh to run automatically after installation
 - Added TAG handling from plugin XML file to the Slackware package
+
+### Slackware-Native Init System Changes
+- Completely rewrote the startup/shutdown system to use Slackware's native approach:
+  - Removed all code trying to create or use System V-style rc*.d directories
+  - Implemented direct modification of rc.M and rc.local for service startup
+  - Implemented direct modification of rc.0 and rc.6 for service shutdown
+  - Created a generic `configure_script()` function to handle both startup and shutdown scripts
+  - Updated verification script to check for the proper Slackware initialization entries
+  - The setup_api.sh script now properly modifies rc.M, rc.local, rc.0, and rc.6 files
 
 ## Recent Decisions
 - Kept version compatibility check in the plugin file rather than the Slackware package:
@@ -75,9 +84,9 @@ This document tracks our progress in migrating the Unraid plugin to a native Sla
   - Discovered TAG isn't properly set in the Unraid environment within doinst.sh context
   - Reverted to using the plugin file for TAG handling to ensure proper functionality
 - Identified issue with runlevel directory creation approach:
-  - Discovered that in Slackware, the rc.0.d and rc6.d files are actual files, not directories
-  - The current approach attempting to create or symlink directories will fail
-  - Need to update setup_api.sh and other scripts to use the native Slackware approach
+  - Discovered that in Slackware, the rc.0 and rc.6 files are actual files, not directories
+  - Completely redesigned the approach to use Slackware's native init system
+  - Now directly modifying rc.M and rc.local for startup, rc.0 and rc.6 for shutdown
 
 ## Removed Components
 - Removed redundant build-slackware-package.sh script:
@@ -86,13 +95,15 @@ This document tracks our progress in migrating the Unraid plugin to a native Sla
 - Removed makepkg-usage.md documentation:
   - Determined that direct makepkg usage documentation is unnecessary
   - Package creation is now fully handled by the build-txz.ts script
+- Removed System V-style init system code:
+  - Eliminated all code related to rc*.d directories that don't exist in Slackware
+  - Replaced with native Slackware init system modification approach
 
 ## Next Steps
 - Document complete migration process with testing results
 - Review and ensure all file permissions are set correctly
 - Test package installation and removal
 - Verify that all services start correctly after installation
-- Update scripts to properly handle Slackware's runlevel system (rc.0 and rc.6 files instead of rc0.d and rc6.d directories)
 
 ## Implementation Notes
 - Disk space verification checks are not needed in the native package since it will be pre-installed in Unraid
@@ -119,16 +130,21 @@ This document tracks our progress in migrating the Unraid plugin to a native Sla
   - Fixed issue where /bin/sh implementations (like dash) print literal \n instead of interpreting them
   - Improved formatting of status messages in cleanup.sh with proper newlines
   - Ensured better cross-platform compatibility across different shell implementations
+- Created advanced init script configuration:
+  - Implemented a unified script function that handles both startup and shutdown script modifications
+  - Added intelligent handling of script placement (end of file for startup, beginning for shutdown)
+  - Made the verification script more robust to check both potential startup locations (rc.M and rc.local)
+  - Added conditional checks to only setup flash_backup if it exists
 
 ## Bug Fixes
 - Fixed malformed sed pattern in cleanup.sh:
   - Changed `sed -i '#robots.txt any origin/d'` to use standard slash delimiters
   - Replaced with `sed -i '/#robots.txt any origin/d'` to correctly match and delete the pattern
   - This ensures the robots.txt origin line is properly removed from rc.nginx during cleanup 
-- Issue discovered in rc6.d and rc0.d directory creation:
-  - In Slackware, rc.0 and rc.6 are files, not directories
-  - Current code attempting to create directories and symlinks will fail
-  - Need to modify approach to use Slackware's native runlevel system
+- Fixed issue in rc6.d and rc0.d directory creation:
+  - Previously attempted to create and use rc0.d/rc6.d directories that don't exist in Slackware
+  - Completely rewrote the approach to directly modify rc.0 and rc.6 files
+  - Now correctly configures shutdown using Slackware's native approach
 
 ## Changes Implemented
 
@@ -136,8 +152,25 @@ This document tracks our progress in migrating the Unraid plugin to a native Sla
 - Added functionality to start flash backup service during API service startup
 - This ensures that flash backup is running whenever the API service is started
 
+### setup_api.sh Script
+- Completely redesigned to use Slackware's native initialization system
+- Now properly configures both startup (in rc.M and rc.local) and shutdown (in rc.0 and rc.6)
+- Created a unified `configure_script()` function that handles all script modifications
+- Made startup/shutdown script handling more intelligent and robust
+
+## API Setup Script Validation
+- Identified issue with `setup_api.sh` not executing properly during package installation:
+  - Despite being called correctly from `doinst.sh`, the script fails to create necessary symlinks
+  - Manual execution of the script after installation was required to properly set up API
+  - Key symptoms include missing symlinks that should have been created during installation
+  - Further troubleshooting needed to determine why the script doesn't function when called by doinst.sh
+  - Potential issues:
+    - Path resolution differences when called from doinst.sh vs manual execution
+    - Permission issues during package installation process
+    - Environment variable differences between package install context and manual execution
+  - Action item: Add logging to doinst.sh and setup_api.sh to debug execution flow during installation
+
 ## Pending Tasks
 - Continue migrating plugin components to follow Slackware package standards
 - Review and ensure all necessary init scripts are properly configured
-- Test the startup and shutdown sequences for all services
-- Update setup_api.sh script to properly handle Slackware runlevel system 
+- Test the startup and shutdown sequences for all services 

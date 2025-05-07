@@ -15,6 +15,4 @@ source/dynamix.unraid.net/usr/local/emhttp/plugins/dynamix.my.servers/unraid-com
 source/dynamix.unraid.net/usr/local/unraid-api/*
 !source/dynamix.unraid.net/usr/local/unraid-api/.gitkeep
 
-source/dynamix.unraid.net/install/doinst.sh
-
 packed-pnpm-store.txz
