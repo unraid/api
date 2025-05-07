@@ -28,7 +28,15 @@ const checkGit = async () => {
 
 const moveTxzFile = async ({txzPath, pluginVersion}: Pick<PluginEnv, "txzPath" | "pluginVersion">) => {
   const txzName = getTxzName(pluginVersion);
-  await rename(txzPath, join(deployDir, txzName));
+  const targetPath = join(deployDir, txzName);
+  
+  // Ensure the txz always has the full version name
+  if (txzPath !== targetPath) {
+    console.log(`Ensuring TXZ has correct name: ${txzPath} -> ${targetPath}`);
+    await rename(txzPath, targetPath);
+  } else {
+    console.log(`TXZ file already has correct name: ${txzPath}`);
+  }
 };
 
 function updateEntityValue(
