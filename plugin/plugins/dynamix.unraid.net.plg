@@ -83,6 +83,66 @@ exit(0);
     </INLINE>
   </FILE>
 
+  <!-- Backup files before installation -->
+  <FILE Run="/bin/bash" Method="install">
+    <INLINE>
+      <![CDATA[
+echo "Backing up original files..."
+
+# Define files to backup in a shell variable
+FILES_TO_BACKUP=(
+  "/usr/local/emhttp/plugins/dynamix/DisplaySettings.page"
+  "/usr/local/emhttp/plugins/dynamix/Registration.page"
+  "/usr/local/emhttp/plugins/dynamix/include/DefaultPageLayout.php"
+  "/usr/local/emhttp/plugins/dynamix/include/ProvisionCert.php"
+  "/usr/local/emhttp/plugins/dynamix/include/UpdateDNS.php"
+  "/usr/local/emhttp/plugins/dynamix/include/ReplaceKey.php"
+  "/usr/local/emhttp/plugins/dynamix/include/Wrappers.php"
+  "/usr/local/emhttp/plugins/dynamix.plugin.manager/Downgrade.page"
+  "/usr/local/emhttp/plugins/dynamix.plugin.manager/Update.page"
+  "/usr/local/emhttp/plugins/dynamix.plugin.manager/include/ShowChanges.php"
+  "/usr/local/emhttp/plugins/dynamix.plugin.manager/scripts/showchanges"
+  "/usr/local/emhttp/plugins/dynamix.plugin.manager/scripts/unraidcheck"
+  "/usr/local/emhttp/plugins/dynamix.plugin.manager/include/UnraidCheck.php"
+  "/usr/local/emhttp/plugins/dynamix.plugin.manager/include/UnraidCheckExec.php"
+  "/usr/local/emhttp/plugins/dynamix.my.servers/Connect.page"
+  "/usr/local/emhttp/plugins/dynamix.my.servers/MyServers.page"
+  "/usr/local/emhttp/plugins/dynamix.my.servers/Registration.page"
+  "/usr/local/emhttp/plugins/dynamix.my.servers/include/myservers1.php"
+  "/usr/local/emhttp/plugins/dynamix.my.servers/include/myservers2.php"
+  "/usr/local/emhttp/plugins/dynamix.my.servers/include/state.php"
+  "/usr/local/emhttp/plugins/dynamix.my.servers/data/server-state.php"
+  "/usr/local/emhttp/plugins/dynamix.my.servers/include/reboot-details.php"
+  "/usr/local/emhttp/plugins/dynamix.my.servers/include/translations.php"
+  "/usr/local/emhttp/plugins/dynamix.my.servers/include/web-components-extractor.php"
+  "/usr/local/emhttp/update.htm"
+  "/usr/local/emhttp/logging.htm"
+  "/etc/nginx/nginx.conf"
+  "/etc/rc.d/rc.nginx"
+  "/usr/share/mozilla/firefox/9n35r0i1.default/user.js"
+)
+
+# Backup each file if it exists and doesn't already have a backup
+for FILE in "${FILES_TO_BACKUP[@]}"; do
+  if [ -f "$FILE" ] && [ ! -f "$FILE-" ]; then
+    cp -p "$FILE" "$FILE-"
+    echo "Backed up: $FILE"
+  fi
+done
+
+# Handle the unraid-components directory
+DIR=/usr/local/emhttp/plugins/dynamix.my.servers/unraid-components
+if [ -d "$DIR" ] && [ ! -d "$DIR-" ]; then
+  cp -rp "$DIR" "$DIR-"
+  echo "Backed up directory: $DIR"
+fi
+
+echo "Backup complete."
+exit 0
+]]>
+    </INLINE>
+  </FILE>
+
   <FILE Run="/bin/bash" Method="remove">
     <INLINE>
       MAINNAME="&name;"
@@ -98,6 +158,57 @@ exit(0);
       else
         echo "No dynamix.unraid.net package found. Trying with basic package name."
         removepkg --terse "${MAINNAME}"
+      fi
+
+      # File restoration function
+      echo "Restoring files..."
+      
+      # Define files to restore in a shell variable - must match backup list
+      FILES_TO_RESTORE=(
+        "/usr/local/emhttp/plugins/dynamix/DisplaySettings.page"
+        "/usr/local/emhttp/plugins/dynamix/Registration.page"
+        "/usr/local/emhttp/plugins/dynamix/include/DefaultPageLayout.php"
+        "/usr/local/emhttp/plugins/dynamix/include/ProvisionCert.php"
+        "/usr/local/emhttp/plugins/dynamix/include/UpdateDNS.php"
+        "/usr/local/emhttp/plugins/dynamix/include/ReplaceKey.php"
+        "/usr/local/emhttp/plugins/dynamix/include/Wrappers.php"
+        "/usr/local/emhttp/plugins/dynamix.plugin.manager/Downgrade.page"
+        "/usr/local/emhttp/plugins/dynamix.plugin.manager/Update.page"
+        "/usr/local/emhttp/plugins/dynamix.plugin.manager/include/ShowChanges.php"
+        "/usr/local/emhttp/plugins/dynamix.plugin.manager/scripts/showchanges"
+        "/usr/local/emhttp/plugins/dynamix.plugin.manager/scripts/unraidcheck"
+        "/usr/local/emhttp/plugins/dynamix.plugin.manager/include/UnraidCheck.php"
+        "/usr/local/emhttp/plugins/dynamix.plugin.manager/include/UnraidCheckExec.php"
+        "/usr/local/emhttp/plugins/dynamix.my.servers/Connect.page"
+        "/usr/local/emhttp/plugins/dynamix.my.servers/MyServers.page"
+        "/usr/local/emhttp/plugins/dynamix.my.servers/Registration.page"
+        "/usr/local/emhttp/plugins/dynamix.my.servers/include/myservers1.php"
+        "/usr/local/emhttp/plugins/dynamix.my.servers/include/myservers2.php"
+        "/usr/local/emhttp/plugins/dynamix.my.servers/include/state.php"
+        "/usr/local/emhttp/plugins/dynamix.my.servers/data/server-state.php"
+        "/usr/local/emhttp/plugins/dynamix.my.servers/include/reboot-details.php"
+        "/usr/local/emhttp/plugins/dynamix.my.servers/include/translations.php"
+        "/usr/local/emhttp/plugins/dynamix.my.servers/include/web-components-extractor.php"
+        "/usr/local/emhttp/update.htm"
+        "/usr/local/emhttp/logging.htm"
+        "/etc/nginx/nginx.conf"
+        "/etc/rc.d/rc.nginx"
+        "/usr/share/mozilla/firefox/9n35r0i1.default/user.js"
+      )
+      
+      # Restore each file if backup exists
+      for FILE in "${FILES_TO_RESTORE[@]}"; do
+        [ -f "$FILE-" ] && mv -f "$FILE-" "$FILE"
+      done
+      
+      # Handle the unraid-components directory
+      DIR=/usr/local/emhttp/plugins/dynamix.my.servers/unraid-components
+      # certain instances where the directory is not present and others where it is, ensure we delete it before we restore it
+      if [ -d "$DIR" ]; then
+        rm -rf "$DIR"
+      fi
+      if [ -d "$DIR-" ]; then
+        mv -f "$DIR-" "$DIR"
       fi
       ]]>
     </INLINE>
