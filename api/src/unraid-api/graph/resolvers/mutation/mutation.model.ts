@@ -1,5 +1,13 @@
 import { Field, ObjectType } from '@nestjs/graphql';
 
+/**
+ * Important:
+ *
+ * When adding a new mutation, you must also add it to the RootMutations resolver
+ *
+ * @file src/unraid-api/graph/resolvers/mutation/mutation.resolver.ts
+ */
+
 @ObjectType()
 export class ArrayMutations {}
 
@@ -14,6 +22,11 @@ export class VmMutations {}
 })
 export class ParityCheckMutations {}
 
+@ObjectType({
+    description: 'RClone related mutations',
+})
+export class RCloneMutations {}
+
 @ObjectType()
 export class RootMutations {
     @Field(() => ArrayMutations, { description: 'Array related mutations' })
@@ -27,4 +40,7 @@ export class RootMutations {
 
     @Field(() => ParityCheckMutations, { description: 'Parity check related mutations' })
     parityCheck: ParityCheckMutations = new ParityCheckMutations();
+
+    @Field(() => RCloneMutations, { description: 'RClone related mutations' })
+    rclone: RCloneMutations = new RCloneMutations();
 }

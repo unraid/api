@@ -31,6 +31,11 @@
   <!ENTITY VENDOR_STORE_FILENAME "">
   <!ENTITY TAG "">
   <!ENTITY NODE_DIR "/usr/libexec/node">
+  <!ENTITY RCLONE_VERSION "1.69.1">
+  <!ENTITY RCLONE_ZIP "https://downloads.rclone.org/v&RCLONE_VERSION;/rclone-v&RCLONE_VERSION;-linux-amd64.zip">
+  <!ENTITY RCLONE_SHA256 "231841f8d8029ae6cfca932b601b3b50d0e2c3c2cb9da3166293f1c3eae7d79c">
+  <!ENTITY RCLONE_ZIP_FILENAME "rclone-v&RCLONE_VERSION;-linux-amd64.zip">
+  <!ENTITY RCLONE_DIR "/usr/local/bin">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" pluginURL="&pluginURL;"
@@ -121,6 +126,10 @@ exit 0
   <FILE Name="/boot/config/plugins/dynamix.my.servers/&VENDOR_STORE_FILENAME;">
     <URL>&VENDOR_STORE_URL;</URL>
   </FILE>
+  <FILE Name="/boot/config/plugins/dynamix.my.servers/&RCLONE_ZIP_FILENAME;">
+    <URL>&RCLONE_ZIP;</URL>
+    <SHA256>&RCLONE_SHA256;</SHA256>
+  </FILE>
   <FILE Run="/bin/bash" Method="install">
     <INLINE>
       NODE_FILE="&NODEJS_FILENAME;"
@@ -166,6 +175,27 @@ exit 0
     </INLINE>
   </FILE>
 
+  <FILE Run="/bin/bash" Method="install">
+    <INLINE>
+      RCLONE_ZIP_FILENAME="&RCLONE_ZIP_FILENAME;"
+      RCLONE_DIR="&RCLONE_DIR;"
+      RCLONE_VERSION="&RCLONE_VERSION;"
+      <![CDATA[
+      # Check if the Rclone archive exists
+      if [[ ! -f "/boot/config/plugins/dynamix.my.servers/${RCLONE_ZIP_FILENAME}" ]]; then
+        echo "Rclone archive not found at /boot/config/plugins/dynamix.my.servers/${RCLONE_ZIP_FILENAME}"
+        exit 1
+      fi
+      # Unzip Rclone executable only, junking paths
+      unzip -oj /boot/config/plugins/dynamix.my.servers/${RCLONE_ZIP_FILENAME} rclone-v${RCLONE_VERSION}-linux-amd64/rclone -d ${RCLONE_DIR}
+      # Make Rclone executable
+      chmod +x ${RCLONE_DIR}/rclone
+
+      # Remove all rclone archives from the flashdrive that do not match the expected version
+      find /boot/config/plugins/dynamix.my.servers/ -name "rclone-v*-linux-amd64.zip" ! -name "${RCLONE_ZIP_FILENAME}" -delete
+      ]]>
+    </INLINE>
+  </FILE>
   <!-- download main txz -->
   <FILE Name="&source;.txz">
     <URL>&MAIN_TXZ;</URL>

@@ -1,4 +1,4 @@
-import { ApolloClient, createHttpLink, from, split } from '@apollo/client/core/index.js';
+import { ApolloClient, ApolloLink, createHttpLink, from, split } from '@apollo/client/core/index.js';
 import { onError } from '@apollo/client/link/error/index.js';
 import { RetryLink } from '@apollo/client/link/retry/index.js';
 import { GraphQLWsLink } from '@apollo/client/link/subscriptions/index.js';
@@ -10,6 +10,7 @@ import { WEBGUI_GRAPHQL } from './urls';
 
 const httpEndpoint = WEBGUI_GRAPHQL;
 const wsEndpoint = new URL(WEBGUI_GRAPHQL.toString().replace('http', 'ws'));
+const DEV_MODE = (globalThis as unknown as { __DEV__: boolean }).__DEV__ ?? false;
 
 const headers = {
   'x-csrf-token': globalThis.csrf_token ?? '0000000000000000',
@@ -66,6 +67,14 @@ const retryLink = new RetryLink({
   },
 });
 
+// Disable Apollo Client if not in DEV Mode and server state says unraid-api is not running
+const disableQueryLink = new ApolloLink((operation, forward) => {
+  if (!DEV_MODE && operation.getContext().serverState?.unraidApi?.status === 'offline') {
+    return null;  
+  }
+  return forward(operation);
+});
+
 const splitLinks = split(
   ({ query }) => {
     const definition = getMainDefinition(query);
@@ -74,12 +83,13 @@ const splitLinks = split(
   wsLink,
   httpLink
 );
+
 /**
  * @todo as we add retries, determine which we'll need
  * https://www.apollographql.com/docs/react/api/link/introduction/#additive-composition
  * https://www.apollographql.com/docs/react/api/link/introduction/#directional-composition
  */
-const additiveLink = from([errorLink, retryLink, splitLinks]);
+const additiveLink = from([errorLink, retryLink, disableQueryLink, splitLinks]);
 
 export const client = new ApolloClient({
   link: additiveLink,
