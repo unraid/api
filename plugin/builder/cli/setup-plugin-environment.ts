@@ -54,7 +54,7 @@ export const validatePluginEnv = async (
     console.log("Reading txz file from:", safeEnv.txzPath);
     const txzFile = await readFile(safeEnv.txzPath);
     if (!txzFile || txzFile.length === 0) {
-      throw new Error(`TXZ Path is empty: ${safeEnv.txzPath}`);
+      throw new Error(`TXZ file is empty: ${safeEnv.txzPath}`);
     }
     envArgs.txzSha256 = getSha256(txzFile);
   }
@@ -99,7 +99,7 @@ export const setupPluginEnv = async (argv: string[]): Promise<PluginEnv> => {
     .option(
       "--txz-path <path>",
       "Path to built package, will be used to generate the SHA256 and renamed with the plugin version",
-      getTxzPath({ startingDir: process.cwd() })
+      getTxzPath({ startingDir: process.cwd(), pluginVersion: process.env.API_VERSION })
     )
     .option(
       "--plugin-version <version>",
