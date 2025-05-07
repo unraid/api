@@ -38,6 +38,12 @@ start() {
     cp "${api_base_dir}/.env.production" "${api_base_dir}/.env"
   fi
   
+  # Start the flash backup service if available
+  if [ -x "/etc/rc.d/rc.flash_backup" ]; then
+    echo "Starting flash backup service..."
+    /etc/rc.d/rc.flash_backup start
+  fi
+  
   # Start the API service
   if [ -x "${unraid_binary_path}" ]; then
     "${unraid_binary_path}" service start

@@ -74,6 +74,10 @@ This document tracks our progress in migrating the Unraid plugin to a native Sla
 - Removed TAG handling from doinst.sh and reverted to plugin file approach:
   - Discovered TAG isn't properly set in the Unraid environment within doinst.sh context
   - Reverted to using the plugin file for TAG handling to ensure proper functionality
+- Identified issue with runlevel directory creation approach:
+  - Discovered that in Slackware, the rc.0.d and rc6.d files are actual files, not directories
+  - The current approach attempting to create or symlink directories will fail
+  - Need to update setup_api.sh and other scripts to use the native Slackware approach
 
 ## Removed Components
 - Removed redundant build-slackware-package.sh script:
@@ -88,6 +92,7 @@ This document tracks our progress in migrating the Unraid plugin to a native Sla
 - Review and ensure all file permissions are set correctly
 - Test package installation and removal
 - Verify that all services start correctly after installation
+- Update scripts to properly handle Slackware's runlevel system (rc.0 and rc.6 files instead of rc0.d and rc6.d directories)
 
 ## Implementation Notes
 - Disk space verification checks are not needed in the native package since it will be pre-installed in Unraid
@@ -109,9 +114,30 @@ This document tracks our progress in migrating the Unraid plugin to a native Sla
   - Prevented non-zero exit codes during cleanup process to ensure smooth uninstallation
   - Enhanced reliability of the script in edge cases like when no processes are running
   - Fixed base64 encoding to prevent line wrapping in HTTP POST data by piping through tr -d '\n' 
+- Enhanced POSIX compatibility in shell scripts:
+  - Replaced echo statements with escape sequences (\n) with printf commands
+  - Fixed issue where /bin/sh implementations (like dash) print literal \n instead of interpreting them
+  - Improved formatting of status messages in cleanup.sh with proper newlines
+  - Ensured better cross-platform compatibility across different shell implementations
 
 ## Bug Fixes
 - Fixed malformed sed pattern in cleanup.sh:
   - Changed `sed -i '#robots.txt any origin/d'` to use standard slash delimiters
   - Replaced with `sed -i '/#robots.txt any origin/d'` to correctly match and delete the pattern
   - This ensures the robots.txt origin line is properly removed from rc.nginx during cleanup 
+- Issue discovered in rc6.d and rc0.d directory creation:
+  - In Slackware, rc.0 and rc.6 are files, not directories
+  - Current code attempting to create directories and symlinks will fail
+  - Need to modify approach to use Slackware's native runlevel system
+
+## Changes Implemented
+
+### rc.unraid-api Script
+- Added functionality to start flash backup service during API service startup
+- This ensures that flash backup is running whenever the API service is started
+
+## Pending Tasks
+- Continue migrating plugin components to follow Slackware package standards
+- Review and ensure all necessary init scripts are properly configured
+- Test the startup and shutdown sequences for all services
+- Update setup_api.sh script to properly handle Slackware runlevel system 

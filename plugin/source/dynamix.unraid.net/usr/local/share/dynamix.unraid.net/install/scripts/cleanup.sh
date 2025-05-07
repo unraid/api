@@ -63,19 +63,19 @@ perform_file_restoration() {
 
 # Handle flash backup deactivation and Connect signout
 perform_connect_cleanup() {
-  echo "\n**********************************"
-  echo "🧹 CLEANING UP - may take a minute"
-  echo "**********************************"
+  printf "\n**********************************\n"
+  printf "🧹 CLEANING UP - may take a minute\n"
+  printf "**********************************\n"
   
   # Handle git-based flash backups
   if [ -f "/boot/.git" ]; then
     if [ -f "/etc/rc.d/rc.flash_backup" ]; then
-      echo "\nStopping flash backup service. Please wait..."
+      printf "\nStopping flash backup service. Please wait...\n"
       /etc/rc.d/rc.flash_backup stop >/dev/null 2>&1
     fi
     
     if [ -f "/usr/local/emhttp/plugins/dynamix.my.servers/include/UpdateFlashBackup.php" ]; then
-      echo "\nDeactivating flash backup. Please wait..."
+      printf "\nDeactivating flash backup. Please wait...\n"
       /usr/bin/php /usr/local/emhttp/plugins/dynamix.my.servers/include/UpdateFlashBackup.php deactivate
     fi
   fi
@@ -83,7 +83,7 @@ perform_connect_cleanup() {
   # Check if myservers.cfg exists
   if [ -f "/boot/config/plugins/dynamix.my.servers/myservers.cfg" ]; then
     # Stop unraid-api
-    echo "\nStopping unraid-api. Please wait..."
+    printf "\nStopping unraid-api. Please wait...\n"
     output=$(/etc/rc.d/rc.unraid-api stop --delete 2>&1)
     if [ -z "$output" ]; then
       echo "Waiting for unraid-api to stop..."
@@ -94,7 +94,7 @@ perform_connect_cleanup() {
     # Sign out of Unraid Connect (we'll use curl directly from shell)
     # We need to extract the username from myservers.cfg and the registration key
     if grep -q 'username' "/boot/config/plugins/dynamix.my.servers/myservers.cfg"; then
-      echo "\nSigning out of Unraid Connect"
+      printf "\nSigning out of Unraid Connect\n"
       # Check if regFILE exists in var.ini
       if [ -f "/var/local/emhttp/var.ini" ]; then
         regfile=$(grep "regFILE" "/var/local/emhttp/var.ini" | cut -d= -f2)
@@ -113,7 +113,7 @@ perform_connect_cleanup() {
     rm -f /boot/config/plugins/dynamix.my.servers/myservers.cfg
     
     # Reload nginx to disable Remote Access
-    echo "\n⚠️ Reloading Web Server. If this window stops updating for two minutes please close it."
+    printf "\n⚠️ Reloading Web Server. If this window stops updating for two minutes please close it.\n"
     /etc/rc.d/rc.nginx reload >/dev/null 2>&1
   fi
 }

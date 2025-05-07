@@ -70,19 +70,69 @@ for dir in $CRITICAL_DIRS; do
   fi
 done
 
-# Check init script symlinks
-echo "Checking init script symlinks..."
-if [ -L "/etc/rc.d/rc3.d/S99unraid-api" ]; then
-  printf '%s✓%s Init script symlink for startup exists\n' "$GREEN" "$NC"
-else
-  printf '%s✗%s Init script symlink for startup is missing\n' "$RED" "$NC"
+# Check for proper Slackware-style startup configuration
+echo "Checking startup configuration..."
+STARTUP_CONFIG_OK=1
+
+# Check if rc.M or rc.local files contain unraid-api start command
+STARTUP_FOUND=0
+for RC_FILE in "/etc/rc.d/rc.M" "/etc/rc.d/rc.local"; do
+  if [ -f "$RC_FILE" ] && grep -q "rc.unraid-api start" "$RC_FILE"; then
+    printf '%s✓%s File %s contains unraid-api startup command\n' "$GREEN" "$NC" "$RC_FILE"
+    STARTUP_FOUND=1
+  fi
+done
+
+if [ $STARTUP_FOUND -eq 0 ]; then
+  printf '%s✗%s No startup configuration found for unraid-api in rc.M or rc.local\n' "$RED" "$NC"
+  STARTUP_CONFIG_OK=0
+fi
+
+# Check if rc.M or rc.local files contain flash_backup start command
+FLASH_BACKUP_STARTUP_FOUND=0
+for RC_FILE in "/etc/rc.d/rc.M" "/etc/rc.d/rc.local"; do
+  if [ -f "$RC_FILE" ] && grep -q "rc.flash_backup start" "$RC_FILE"; then
+    printf '%s✓%s File %s contains flash_backup startup command\n' "$GREEN" "$NC" "$RC_FILE"
+    FLASH_BACKUP_STARTUP_FOUND=1
+  fi
+done
+
+if [ $FLASH_BACKUP_STARTUP_FOUND -eq 0 ] && [ -f "/etc/rc.d/rc.flash_backup" ]; then
+  printf '%s✗%s No startup configuration found for flash_backup in rc.M or rc.local\n' "$RED" "$NC"
+  STARTUP_CONFIG_OK=0
+fi
+
+if [ $STARTUP_CONFIG_OK -eq 0 ]; then
   EXEC_ERRORS=$((EXEC_ERRORS + 1))
 fi
 
-if [ -L "/etc/rc.d/rc0.d/K01unraid-api" ] && [ -L "/etc/rc.d/rc6.d/K01unraid-api" ]; then
-  printf '%s✓%s Init script symlinks for shutdown exist\n' "$GREEN" "$NC"
-else
-  printf '%s✗%s Init script symlinks for shutdown are missing\n' "$RED" "$NC"
+# Check for proper Slackware-style shutdown configuration
+echo "Checking shutdown configuration..."
+SHUTDOWN_CONFIG_OK=1
+
+# Check if rc.0 and rc.6 files contain flash_backup stop command
+if [ -f "/etc/rc.d/rc.flash_backup" ]; then
+  for RC_FILE in "/etc/rc.d/rc.0" "/etc/rc.d/rc.6"; do
+    if [ -f "$RC_FILE" ] && grep -q "rc.flash_backup stop" "$RC_FILE"; then
+      printf '%s✓%s File %s contains flash backup stop command\n' "$GREEN" "$NC" "$RC_FILE"
+    else
+      printf '%s✗%s File %s missing or does not contain flash backup stop command\n' "$RED" "$NC" "$RC_FILE"
+      SHUTDOWN_CONFIG_OK=0
+    fi
+  done
+fi
+
+# Check if unraid-api shutdown is properly configured in Slackware runlevels
+for RC_FILE in "/etc/rc.d/rc.0" "/etc/rc.d/rc.6"; do
+  if [ -f "$RC_FILE" ] && grep -q "rc.unraid-api stop" "$RC_FILE"; then
+    printf '%s✓%s File %s contains unraid-api stop command\n' "$GREEN" "$NC" "$RC_FILE"
+  else
+    printf '%s✗%s File %s missing or does not contain unraid-api stop command\n' "$RED" "$NC" "$RC_FILE"
+    SHUTDOWN_CONFIG_OK=0
+  fi
+done
+
+if [ $SHUTDOWN_CONFIG_OK -eq 0 ]; then
   EXEC_ERRORS=$((EXEC_ERRORS + 1))
 fi
 
