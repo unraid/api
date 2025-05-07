@@ -113,7 +113,7 @@ jobs:
         id: build-plugin
         run: |
           cd ${{ github.workspace }}/plugin
-          pnpm run build:txz
+          pnpm run build:txz --version="${{ steps.vars.outputs.API_VERSION }}"
           pnpm run build:plugin --tag="${{ inputs.TAG }}" --base-url="${{ inputs.BASE_URL }}" --api-version="${{ steps.vars.outputs.API_VERSION }}"
 
       - name: Ensure Plugin Files Exist

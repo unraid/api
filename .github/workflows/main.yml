@@ -94,7 +94,7 @@ jobs:
           auth_unix_rw = "none"
           EOF
 
-          # Add the current user to libvirt and kvm groups (note: this change won’t apply to the current session)
+          # Add the current user to libvirt and kvm groups (note: this change won't apply to the current session)
           sudo usermod -aG libvirt,kvm $USER
 
           sudo mkdir -p /var/run/libvirt
@@ -179,10 +179,11 @@ jobs:
           PACKAGE_LOCK_VERSION=$(jq -r '.version' package.json)
           API_VERSION=$([[ -n "$IS_TAGGED" ]] && echo "$PACKAGE_LOCK_VERSION" || echo "${PACKAGE_LOCK_VERSION}+${GIT_SHA}")
           export API_VERSION
+          echo "API_VERSION=${API_VERSION}" >> $GITHUB_ENV
 
       - name: Build
         run: |
-          pnpm run build:release
+          pnpm run build:release --api-version=${API_VERSION}
 
           tar -czf deploy/unraid-api.tgz -C deploy/pack/ .
 

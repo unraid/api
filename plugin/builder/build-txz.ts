@@ -98,8 +98,15 @@ const validateSourceDir = async (validatedEnv: TxzEnv) => {
 
 const buildTxz = async (validatedEnv: TxzEnv) => {
   await validateSourceDir(validatedEnv);
-  console.log(`Package name: ${getTxzName()}`);
-  const txzPath = join(validatedEnv.txzOutputDir, getTxzName());
+  
+  // Use version from validated environment
+  const version = validatedEnv.version;
+  
+  // Always use version when getting txz name
+  const txzName = getTxzName(version);
+  console.log(`Package name: ${txzName}`);
+  const txzPath = join(validatedEnv.txzOutputDir, txzName);
+  
   await ensureNodeJs();
 
   // Create package - must be run from within the pre-pack directory

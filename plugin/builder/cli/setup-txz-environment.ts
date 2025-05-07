@@ -13,6 +13,7 @@ const txzEnvSchema = z.object({
     .refine((v) => v === "true" || v === "false", "Must be true or false"),
   compress: z.string().optional().default("1"),
   txzOutputDir: z.string().optional().default(join(startingDir, deployDir)),
+  version: z.string(),
 });
 
 export type TxzEnv = z.infer<typeof txzEnvSchema>;
@@ -37,7 +38,7 @@ export const setupTxzEnv = async (argv: string[]): Promise<TxzEnv> => {
     .option("--skip-validation", "Skip validation", "false")
     .option("--ci", "CI mode", process.env.CI === "true")
     .option("--compress, -z", "Compress level", "1")
-
+    .requiredOption("--version <version>", "Package version")
     .parse(argv);
 
   const options = program.opts();
