@@ -3,9 +3,12 @@ import { $, cd } from "zx";
 import { existsSync } from "node:fs";
 import { readdir } from "node:fs/promises";
 import { getTxzName, pluginName, startingDir } from "./utils/consts";
+import { ensureNodeJs } from "./utils/nodejs-helper";
+
 import { setupTxzEnv, TxzEnv } from "./cli/setup-txz-environment";
 import { cleanupTxzFiles } from "./utils/cleanup";
 import { apiDir } from "./utils/paths";
+
 
 // Recursively search for manifest files
 const findManifestFiles = async (dir: string): Promise<string[]> => {
@@ -89,6 +92,7 @@ const validateSourceDir = async (validatedEnv: TxzEnv) => {
 const buildTxz = async (validatedEnv: TxzEnv) => {
   await validateSourceDir(validatedEnv);
   const txzPath = join(validatedEnv.txzOutputDir, getTxzName());
+  await ensureNodeJs();
 
   // Create package - must be run from within the pre-pack directory
   // Use cd option to run command from prePackDir

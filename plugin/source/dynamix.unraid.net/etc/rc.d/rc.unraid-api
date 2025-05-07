@@ -9,6 +9,8 @@ flash="/boot/config/plugins/dynamix.my.servers"
 [[ ! -f "${flash}/env" ]] && echo 'env=production' >"${flash}/env"
 unraid_binary_path="/usr/local/bin/unraid-api"
 dependencies_dir="/usr/local/unraid-api/node_modules"
+api_base_dir="/usr/local/unraid-api"
+vendor_archive="${flash}/packed-node-modules.tar.xz"
 
 # Placeholder functions for plugin installation/uninstallation
 install() {
@@ -16,6 +18,61 @@ install() {
 }
 uninstall() {
   true
+}
+
+# Service control functions
+start() {
+  echo "Starting Unraid API service..."
+  
+  # Check if node modules need restoration
+  if [ ! -d "${dependencies_dir}" ] && [ -f "${vendor_archive}" ]; then
+    echo "Restoring node modules from vendor archive..."
+    restore_dependencies "${vendor_archive}"
+  fi
+  
+  # Create log directory if it doesn't exist
+  mkdir -p /var/log/unraid-api
+  
+  # Copy env file if needed
+  if [ -f "${api_base_dir}/.env.production" ] && [ ! -f "${api_base_dir}/.env" ]; then
+    cp "${api_base_dir}/.env.production" "${api_base_dir}/.env"
+  fi
+  
+  # Start the API service
+  if [ -x "${unraid_binary_path}" ]; then
+    "${unraid_binary_path}" service start
+    return $?
+  else
+    echo "Error: Unraid API binary not found or not executable at ${unraid_binary_path}"
+    return 1
+  fi
+}
+
+stop() {
+  echo "Stopping Unraid API service..."
+  if [ -x "${unraid_binary_path}" ]; then
+    "${unraid_binary_path}" service stop
+    return $?
+  else
+    echo "Error: Unraid API binary not found or not executable at ${unraid_binary_path}"
+    return 1
+  fi
+}
+
+restart() {
+  stop
+  sleep 2
+  start
+}
+
+status() {
+  if [ -x "${unraid_binary_path}" ]; then
+    "${unraid_binary_path}" service status
+    return $?
+  else
+    echo "Error: Unraid API binary not found or not executable at ${unraid_binary_path}"
+    return 1
+  fi
 }
 
 # Restores the node_modules directory from a backup file
@@ -92,11 +149,20 @@ archive_dependencies() {
 }
 
 case "$1" in
+'start')
+  start
+  ;;
+'stop')
+  stop
+  ;;
+'restart'|'reload')
+  restart
+  ;;
+'status')
+  status
+  ;;
 'install')
   install "$2"
-  ;;
-'reload')
-  restart
   ;;
 'uninstall')
   uninstall

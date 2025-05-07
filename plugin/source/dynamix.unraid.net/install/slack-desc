@@ -1,0 +1,18 @@
+# HOW TO EDIT THIS FILE:
+# The "handy ruler" below makes it easier to edit a package description.
+# Line up the first '|' above the ':' following the base package name, and
+# the '|' on the right side marks the last column you can put a character in.
+# You must make exactly 11 lines for the formatting to be correct.  It's also
+# customary to leave one space after the ':' except on otherwise blank lines.
+
+                |-----handy-ruler------------------------------------------------------|
+dynamix.unraid.net: dynamix.unraid.net (Unraid API and Connect Services)
+dynamix.unraid.net:
+dynamix.unraid.net: Provides the Unraid API and Connect services for Unraid OS.
+dynamix.unraid.net: This package enables remote management, monitoring, and access
+dynamix.unraid.net: to Unraid servers through the Unraid Connect platform.
+dynamix.unraid.net:
+dynamix.unraid.net: Features include system monitoring, notifications, remote access,
+dynamix.unraid.net: and integration with the Unraid Connect dashboard.
+dynamix.unraid.net:
+dynamix.unraid.net: Homepage: https://unraid.net/connect 
