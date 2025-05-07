@@ -64,12 +64,12 @@ const buildPlugin = async ({
     api_version: apiVersion,
     arch: defaultArch,
     build: defaultBuild,
-    pluginURL: getPluginUrl({ baseUrl, tag }),
-    MAIN_TXZ: getMainTxzUrl({ baseUrl, pluginVersion, tag }),
-    TXZ_SHA256: txzSha256,
-    VENDOR_STORE_URL: getAssetUrl({ baseUrl, tag }, getVendorBundleName()),
-    VENDOR_STORE_FILENAME: getVendorBundleName(),
-    ...(tag ? { TAG: tag } : {}),
+    plugin_url: getPluginUrl({ baseUrl, tag }),
+    main_txz: getMainTxzUrl({ baseUrl, pluginVersion, tag }),
+    txz_sha256: txzSha256,
+    vendor_store_url: getAssetUrl({ baseUrl, tag }, getVendorBundleName()),
+    vendor_store_filename: getVendorBundleName(),
+    ...(tag ? { tag } : {}),
   };
 
   console.log("Entities:", entities);

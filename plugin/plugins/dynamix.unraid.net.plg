@@ -4,26 +4,18 @@
   <!ENTITY launch "Connect">
   <!ENTITY author "limetech">
   <!ENTITY version "">
-  <!ENTITY pluginURL "">
+  <!ENTITY plugin_url "">
   <!ENTITY source "/boot/config/plugins/dynamix.my.servers/&name;">
-  <!ENTITY TXZ_SHA256 "">
-  <!ENTITY api_version "">
-  <!-- Node.js Runtime. Required to run the Unraid API. -->
-  <!ENTITY NODEJS_VERSION "22.14.0">
-  <!-- Version is omitted from filename, so we don't need to search/delete other versions when updating the plugin. -->
-  <!ENTITY NODEJS_FILENAME "node-linux-x64.tar.xz">
-  <!ENTITY MAIN_TXZ "">
-  <!-- VENDOR_STORE_URL points to an XZ tarball of vendored dependencies (i.e. global pnpm store), specific to the plugin version.
-       This archive may be updated after installation (e.g. when adding api plugins), so we don't verify its hash.
-       It is replaced only when the plugin/api is updated. -->
-  <!ENTITY VENDOR_STORE_URL "">
-  <!-- The archive's filename on the boot drive. Enables reproducible offline installs of the Unraid API. -->
-  <!ENTITY VENDOR_STORE_FILENAME "">
-  <!ENTITY TAG "">
-  <!ENTITY NODE_DIR "/usr/libexec/node">
+  <!ENTITY txz_sha256 "">
+  <!ENTITY main_txz "">
+  <!ENTITY vendor_store_url "">
+  <!ENTITY vendor_store_filename "">
+  <!ENTITY arch "x86_64">
+  <!ENTITY build "">
+  <!ENTITY tag "">
 ]>
 
-<PLUGIN name="&name;" author="&author;" version="&version;" pluginURL="&pluginURL;"
+<PLUGIN name="&name;" author="&author;" version="&version;" pluginURL="&plugin_url;"
   launch="&launch;" min="6.9.0-rc1" icon="globe">
 
   <CHANGES>
@@ -53,15 +45,15 @@ exit 0
 ]]>
     </INLINE>
   </FILE>
-
-  <FILE Name="/boot/config/plugins/dynamix.my.servers/&VENDOR_STORE_FILENAME;">
-    <URL>&VENDOR_STORE_URL;</URL>
+  
+  <FILE Name="/boot/config/plugins/dynamix.my.servers/&vendor_store_filename;">
+    <URL>&vendor_store_url;</URL>
   </FILE>
 
   <!-- download main txz -->
   <FILE Name="&source;.txz">
-    <URL>&MAIN_TXZ;</URL>
-    <SHA256>&TXZ_SHA256;</SHA256>
+    <URL>&main_txz;</URL>
+    <SHA256>&txz_sha256;</SHA256>
   </FILE>
 
   <!-- Check for compatible Unraid version -->
@@ -113,8 +105,8 @@ exit(0);
   <!-- install all the things -->
   <FILE Run="/bin/bash" Method="install">
     <INLINE>
-      TAG="&TAG;" MAINTXZ="&source;.txz"
-      VENDOR_ARCHIVE="/boot/config/plugins/dynamix.my.servers/&VENDOR_STORE_FILENAME;"
+      TAG="&tag;" MAINTXZ="&source;.txz"
+      VENDOR_ARCHIVE="/boot/config/plugins/dynamix.my.servers/&vendor_store_filename;"
     <![CDATA[
 # Install the Slackware package
 echo "Installing package..."
