@@ -217,12 +217,14 @@ exit 0
   <!-- install all the things -->
   <FILE Run="/bin/bash" Method="install">
     <INLINE>
-      TAG="&tag;" MAINTXZ="&source;.txz"
+      TAG="&tag;" MAINTXZ="&source;.txz" PKGNAME="&main_txz;"
       VENDOR_ARCHIVE="/boot/config/plugins/dynamix.my.servers/&vendor_store_filename;"
     <![CDATA[
 # Install the Slackware package
 echo "Installing package..."
-upgradepkg --install-new --reinstall "${MAINTXZ}"
+# Extract just the package name from the URL
+PACKAGE_NAME=$(basename "${PKGNAME}")
+upgradepkg --install-new --reinstall "${MAINTXZ}#${PACKAGE_NAME}"
 if [ $? -ne 0 ]; then
   echo "⚠️ Package installation failed"
   exit 1
