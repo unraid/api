@@ -50,7 +50,7 @@ else
       echo "  $(basename "$pkg")" >> "$LOGFILE"
     fi
   done
-  if [ ! -f "/var/log/packages/*unraid*" ]; then
+  if ! ls /var/log/packages/*unraid* >/dev/null 2>&1; then
     echo "  No matching packages found" >> "$LOGFILE"
   fi
   exit 1

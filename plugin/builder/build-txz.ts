@@ -78,7 +78,10 @@ const validateSourceDir = async (validatedEnv: TxzEnv) => {
     if (!hasUiManifest) missingFiles.push("ui.manifest.json");
     
     throw new Error(
-      `Webcomponents missing required file(s): ${missingFiles.join(", ")} - be sure to have run pnpm build:all in unraid-ui`
+      `Webcomponents missing required file(s): ${missingFiles.join(", ")} - ` +
+      `${!hasUiManifest ? "run 'pnpm build:wc' in unraid-ui for ui.manifest.json" : ""}` +
+      `${!hasManifest && !hasUiManifest ? " and " : ""}` +
+      `${!hasManifest ? "run 'pnpm build' in web for manifest.json" : ""}`
     );
   }
 

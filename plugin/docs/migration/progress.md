@@ -11,6 +11,12 @@
   - Simplified logic for finding and using the correct bundle archives
   - Fixed ShellCheck SC2010 violations by replacing `ls | grep` with proper glob pattern matching
 - Added missing `api_version` entity to the plugin XML definition to fix build errors
+- Fixed shell escaping issue in `file_patches.sh`:
+  - Corrected the sed command to properly preserve escape sequences using printf
+  - Ensures idempotent insertion of nginx configuration changes
+- Added fallback for missing .env.production file in setup_api.sh
+  - Creates a default .env file with NODE_ENV=production when .env.production is missing
+  - Ensures the API can start even if the production environment file is not available
 
 ## Pending Tasks
 
@@ -42,3 +48,17 @@
 ## References
 
 - The setup_api.sh script (at plugin/source/dynamix.unraid.net/usr/local/share/dynamix.unraid.net/install/scripts/) already implements some Slackware-style package detection for getting API version. 
+
+# Plugin Migration to Slackware Package
+
+## Progress
+
+- Updated the build-txz.ts error message to provide the correct build commands for manifest files:
+  - `ui.manifest.json` is built with `pnpm build:wc` in the unraid-ui directory
+  - `manifest.json` is built with `pnpm build` in the web directory
+
+## Next Steps
+
+- Continue implementing native Slackware tooling
+- Ensure proper `doinst.sh` scripts are in place
+- Complete migration of plugin functionality to Slackware package format 
