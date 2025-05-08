@@ -1,6 +1,6 @@
 import { apiDir, deployDir } from "./utils/paths";
 import { join } from "path";
-import { existsSync } from "node:fs";
+import { existsSync, mkdirSync } from "node:fs";
 import { startingDir } from "./utils/consts";
 import { copyFile, stat } from "node:fs/promises";
 import { execSync } from "child_process";
@@ -47,6 +47,9 @@ async function createNodeModulesTarball(outputPath: string): Promise<void> {
  * @param apiVersion Required API version to use for the vendor bundle
  */
 export async function bundleVendorStore(apiVersion: string): Promise<void> {
+    // Ensure deploy directory exists
+    mkdirSync(deployDir, { recursive: true });
+    
     const vendorStoreTarPath = join(deployDir, getVendorBundleName(apiVersion));
     
     // Possible locations for the node modules archive

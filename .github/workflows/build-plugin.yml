@@ -104,7 +104,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: packed-node-modules
-          path: ${{ github.workspace }}/plugin/
+          path: ${{ github.workspace }}/plugin/node-modules-archive/
       - name: Extract Unraid API
         run: |
           mkdir -p ${{ github.workspace }}/plugin/source/dynamix.unraid.net/usr/local/unraid-api

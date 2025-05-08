@@ -11,15 +11,8 @@ echo "Environment: CONFIG_DIR=$CONFIG_DIR, API_BASE_DIR=$API_BASE_DIR"
 echo "UNRAID_BINARY_PATH=$UNRAID_BINARY_PATH"
 
 # Get API version from Slackware package
-# Look for dynamix.unraid.net package in /var/log/packages
-pkg_file=""
-for f in /var/log/packages/dynamix.unraid.net-*; do
-  # Check if the file exists and is not a wildcard pattern (if no matches found)
-  if [ -f "$f" ]; then
-    pkg_file="$f"
-    break
-  fi
-done
+# Look for most recent dynamix.unraid.net package in /var/log/packages
+pkg_file="$(find /var/log/packages -name 'dynamix.unraid.net-*' -type f -printf '%T@ %p\n' 2>/dev/null | sort -rn | head -n1 | cut -d' ' -f2-)"
 
 if [ -n "$pkg_file" ]; then
   # Extract version from filename (format: name-version-arch-build)
