@@ -1,4 +1,5 @@
 #!/bin/sh
+set -eu
 # Main installation script for dynamix.unraid.net package
 # This script calls specialized external scripts to handle different aspects of installation
 
