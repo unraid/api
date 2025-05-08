@@ -164,6 +164,9 @@ restore_dependencies() {
     return 1
   fi
 
+  # Set ownership to root (0:0)
+  chown -R 0:0 "$dependencies_dir"
+
   echo "node_modules restored successfully."
 }
 

@@ -241,18 +241,6 @@ if [ $? -ne 0 ]; then
   exit 1
 fi
 
-# Confirm an expected file now exists
-# WARNING: failure here results in broken install
-[[ ! -f /usr/local/emhttp/plugins/dynamix.my.servers/scripts/gitflash_log ]] && echo "⚠️ files missing from main txz" && exit 1
-
-# Start the Unraid API service using the rc script
-if [[ -x /etc/rc.d/rc.unraid-api ]]; then
-  /etc/rc.d/rc.unraid-api start
-  if ! /etc/rc.d/rc.unraid-api status | grep -q "running"; then
-    echo "⚠️ Warning: Unraid API service failed to start"
-  fi
-fi
-
 if [[ -n "$TAG" && "$TAG" != "" ]]; then
   printf -v sedcmd 's@^\*\*Unraid Connect\*\*@**Unraid Connect (%s)**@' "$TAG"
   sed -i "${sedcmd}" "/usr/local/emhttp/plugins/dynamix.unraid.net/README.md"

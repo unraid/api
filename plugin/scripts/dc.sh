@@ -19,6 +19,7 @@ CI=${CI:-false}
 TAG="LOCAL_PLUGIN_BUILD"
 IS_TAGGED=$(git describe --tags --abbrev=0 --exact-match || echo '')
 PACKAGE_LOCK_VERSION=$(jq -r '.version' package.json)
+GIT_SHA=$(git rev-parse --short HEAD)
 API_VERSION=$([[ -n "$IS_TAGGED" ]] && echo "$PACKAGE_LOCK_VERSION" || echo "${PACKAGE_LOCK_VERSION}+${GIT_SHA}")
 
 # Define container name for easier management

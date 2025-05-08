@@ -76,6 +76,5 @@ for RCFILE in "/etc/rc.d/rc.M" "/etc/rc.d/rc.local" "/etc/rc.d/rc.0" "/etc/rc.d/
 done
 
 echo "==== Validation test completed ===="
-echo "See logs for details:"
-echo " - /tmp/setup-api.log"
-echo " - /tmp/dynamix-unraid-install.log" 
+echo "See log file for details:"
+echo " - /var/log/unraid-api/dynamix-unraid-install.log" 

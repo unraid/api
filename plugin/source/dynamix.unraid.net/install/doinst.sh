@@ -8,7 +8,8 @@ INSTALL_MODE="${1:-install}"
 SCRIPTS_DIR="/usr/local/share/dynamix.unraid.net/install/scripts"
 
 # Log file for debugging
-LOGFILE="/tmp/dynamix-unraid-install.log"
+LOGFILE="/var/log/unraid-api/dynamix-unraid-install.log"
+mkdir -p "$(dirname "$LOGFILE")"
 date > "$LOGFILE"
 echo "Starting installation with mode: $INSTALL_MODE" >> "$LOGFILE"
 echo "Script directory: $SCRIPTS_DIR" >> "$LOGFILE"
@@ -31,7 +32,9 @@ if [ "$INSTALL_MODE" = "install" ] || [ "$INSTALL_MODE" = "upgrade" ]; then
   if [ -x "$SCRIPTS_DIR/file_patches.sh" ]; then
     echo "Applying system patches and configurations..."
     echo "Running file_patches.sh" >> "$LOGFILE"
-    "$SCRIPTS_DIR/file_patches.sh"
+    # Capture output and add to log file
+    patches_output=$("$SCRIPTS_DIR/file_patches.sh")
+    echo "$patches_output" >> "$LOGFILE"
   else
     echo "ERROR: file_patches.sh not found or not executable" >> "$LOGFILE"
   fi
@@ -40,7 +43,9 @@ if [ "$INSTALL_MODE" = "install" ] || [ "$INSTALL_MODE" = "upgrade" ]; then
   if [ -x "$SCRIPTS_DIR/setup_api.sh" ]; then
     echo "Setting up Unraid API..."
     echo "Running setup_api.sh" >> "$LOGFILE"
-    "$SCRIPTS_DIR/setup_api.sh"
+    # Capture output and add to log file
+    setup_output=$("$SCRIPTS_DIR/setup_api.sh")
+    echo "$setup_output" >> "$LOGFILE"
     
     # Verify symlinks were created
     if [ -L "/usr/local/bin/unraid-api" ]; then
@@ -66,21 +71,13 @@ if [ "$INSTALL_MODE" = "install" ] || [ "$INSTALL_MODE" = "upgrade" ]; then
     chmod 755 /etc/rc.d/rc.unraid-api
     echo "Made rc.unraid-api executable" >> "$LOGFILE"
     
-    # NOTE: For proper Slackware package integration, we should eventually
-    # implement proper service startup rather than relying on the .plg file.
-    # Options include:
-    # 1. Adding to /boot/config/go for Unraid-specific startup
-    # 2. Using native systemd service files if Unraid supports them
-    # 3. Following the standard Unraid service pattern seen in their core services
-    # For now, we'll use the .plg file's post-install sections to start the service
-    
-    # Try to start the service immediately for better user experience
+    # Start the service
     /etc/rc.d/rc.unraid-api start
     
     # Verify the service started successfully
-    if ! /etc/rc.d/rc.unraid-api status | grep -q "running"; then
+    if ! /etc/rc.d/rc.unraid-api status | grep -q "online"; then
       echo "⚠️ Warning: Unraid API service failed to start" | tee -a "$LOGFILE"
-      echo "Check system logs for details"
+      echo "Check $LOGFILE for details"
     else
       echo "Unraid API service started successfully" >> "$LOGFILE"
     fi
@@ -92,7 +89,9 @@ if [ "$INSTALL_MODE" = "install" ] || [ "$INSTALL_MODE" = "upgrade" ]; then
   if [ -x "$SCRIPTS_DIR/verify_install.sh" ]; then
     echo "Running post-installation verification..."
     echo "Running verify_install.sh" >> "$LOGFILE"
-    "$SCRIPTS_DIR/verify_install.sh"
+    # Capture output and add to log file
+    verify_output=$("$SCRIPTS_DIR/verify_install.sh")
+    echo "$verify_output" >> "$LOGFILE"
   else
     echo "ERROR: verify_install.sh not found or not executable" >> "$LOGFILE"
   fi
@@ -104,8 +103,8 @@ if [ "$INSTALL_MODE" = "install" ] || [ "$INSTALL_MODE" = "upgrade" ]; then
   if [ -x "$SCRIPTS_DIR/test-setup-api.sh" ]; then
     echo "Running setup_api.sh validation test..."
     echo "Running test-setup-api.sh" >> "$LOGFILE"
-    # Run the test and capture output
-    test_output=$("$SCRIPTS_DIR/test-setup-api.sh")
+    # Run the test and capture output (without the log file references)
+    test_output=$("$SCRIPTS_DIR/test-setup-api.sh" | sed '/See log file for details/d')
     echo "$test_output" >> "$LOGFILE"
     # Extract just the summary of failed tests
     failed_tests=$(echo "$test_output" | grep "✗" || true)

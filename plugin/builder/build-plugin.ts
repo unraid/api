@@ -26,8 +26,8 @@ const checkGit = async () => {
   }
 };
 
-const moveTxzFile = async ({txzPath, pluginVersion}: Pick<PluginEnv, "txzPath" | "pluginVersion">) => {
-  const txzName = getTxzName(pluginVersion);
+const moveTxzFile = async ({txzPath, apiVersion}: Pick<PluginEnv, "txzPath" | "apiVersion">) => {
+  const txzName = getTxzName(apiVersion);
   const targetPath = join(deployDir, txzName);
   
   // Ensure the txz always has the full version name
@@ -76,8 +76,8 @@ const buildPlugin = async ({
     txz_url: getMainTxzUrl({ baseUrl, apiVersion, tag }),
     txz_sha256: txzSha256,
     txz_name: getTxzName(apiVersion),
-    vendor_store_url: getAssetUrl({ baseUrl, tag }, getVendorBundleName()),
-    vendor_store_filename: getVendorBundleName(),
+    vendor_store_url: getAssetUrl({ baseUrl, tag }, getVendorBundleName(apiVersion)),
+    vendor_store_filename: getVendorBundleName(apiVersion),
     ...(tag ? { tag } : {}),
   };
 
@@ -123,7 +123,7 @@ const main = async () => {
 
     await buildPlugin(validatedEnv);
     await moveTxzFile(validatedEnv);
-    await bundleVendorStore();
+    await bundleVendorStore(validatedEnv.apiVersion);
   } catch (error) {
     console.error(error);
     process.exit(1);

@@ -195,7 +195,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: packed-node-modules
-          path: ${{ github.workspace }}/api/deploy/packed-node-modules.tar.xz
+          path: ${{ github.workspace }}/api/deploy/node-modules-archive/packed-node-modules.tar.xz
 
   build-unraid-ui-webcomponents:
     name: Build Unraid UI Library (Webcomponent Version)
