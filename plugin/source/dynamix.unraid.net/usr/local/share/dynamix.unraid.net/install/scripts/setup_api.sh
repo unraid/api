@@ -72,7 +72,12 @@ fi
 # Restore dependencies using vendor archive from package
 if [ -x "/etc/rc.d/rc.unraid-api" ]; then
   echo "Restoring dependencies using auto-detection"
-  /etc/rc.d/rc.unraid-api ensure
+  if /etc/rc.d/rc.unraid-api ensure; then
+    echo "Dependencies restored successfully"
+  else
+    echo "ERROR: Failed to restore dependencies" >&2
+    exit 1
+  fi
 else
   echo "Dependencies not restored: rc.unraid-api executable not found"
 fi

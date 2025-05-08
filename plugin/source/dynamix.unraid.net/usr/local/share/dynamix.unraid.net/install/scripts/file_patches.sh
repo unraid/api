@@ -5,17 +5,17 @@
 NGINX_CHANGED=0
 FILE=/etc/nginx/nginx.conf
 if grep -q "SAMEORIGIN" "${FILE}" >/dev/null 2>&1; then
-  cp "$FILE" "$FILE-" 
+  cp -p "$FILE" "$FILE-" 
   OLD="add_header X-Frame-Options 'SAMEORIGIN';" 
   NEW="add_header Content-Security-Policy \"frame-ancestors 'self' https://connect.myunraid.net/\";"
-  sed -i "s/${OLD}/${NEW}/" "${FILE}"
+  sed -i "s|${OLD}|${NEW}|" "${FILE}"
   NGINX_CHANGED=1
 fi
 
 # Patch robots.txt handling
 FILE=/etc/rc.d/rc.nginx
 if ! grep -q "#robots.txt any origin" "${FILE}" >/dev/null 2>&1; then
-  cp "$FILE" "$FILE-" 
+  cp -p "$FILE" "$FILE-" 
   FIND="location = \/robots.txt {"
   # escape tabs and spaces
   ADD="\t    add_header Access-Control-Allow-Origin *; #robots.txt any origin"
@@ -32,15 +32,15 @@ fi
 # Fix update.htm to work in an iframe
 FILE=/usr/local/emhttp/update.htm
 if [ -f "${FILE}" ] && grep -q "top.document" "${FILE}" >/dev/null 2>&1; then
-  cp -f "$FILE" "$FILE-"
-  sed -i 's/top.document/parent.document/gm' "${FILE}"
+  cp -p "$FILE" "$FILE-"
+  sed -i 's|top.document|parent.document|gm' "${FILE}"
 fi
 
 # Fix logging.htm to work in an iframe
 FILE=/usr/local/emhttp/logging.htm
 if [ -f "${FILE}" ] && grep -q "top.Shadowbox" "${FILE}" >/dev/null 2>&1; then
-  cp -f "$FILE" "$FILE-"
-  sed -i 's/top.Shadowbox/parent.Shadowbox/gm' "${FILE}"
+  cp -p "$FILE" "$FILE-"
+  sed -i 's|top.Shadowbox|parent.Shadowbox|gm' "${FILE}"
 fi
 
 # Relax restrictions on built-in Firefox
@@ -53,7 +53,7 @@ if [ -z "$PROFILE_DIR" ]; then
 else
   FILE="$PROFILE_DIR/user.js"
   if [ -f "$FILE" ]; then
-    cp -f "$FILE" "$FILE-"
+    cp -p "$FILE" "$FILE-"
     # Append settings if they don't exist
     grep -q "privacy.firstparty.isolate" "$FILE" || echo 'user_pref("privacy.firstparty.isolate", false);' >> "$FILE"
     grep -q "javascript.options.asmjs" "$FILE" || echo 'user_pref("javascript.options.asmjs", true);' >> "$FILE"

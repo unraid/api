@@ -31,7 +31,10 @@ start() {
   
   # Ensure dependencies are installed
   if [ -x "$scripts_dir/dependencies.sh" ]; then
-    "$scripts_dir/dependencies.sh" ensure
+    "$scripts_dir/dependencies.sh" ensure || {
+      echo "Failed to install dependencies – aborting start."
+      return 1
+    }
   else
     echo "Warning: dependencies.sh script not found or not executable"
   fi
