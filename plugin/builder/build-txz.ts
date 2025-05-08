@@ -168,7 +168,7 @@ const buildTxz = async (validatedEnv: TxzEnv) => {
   // Use the baseUrl and tag from validatedEnv, consistent with build-plugin.ts
   const vendorUrl = getAssetUrl({ 
     baseUrl: validatedEnv.baseUrl, 
-    tag: validatedEnv.tag 
+    tag: validatedEnv.tag
   }, vendorFilename);
   
   console.log(`Storing vendor archive information: ${vendorUrl} -> ${vendorFilename}`);
