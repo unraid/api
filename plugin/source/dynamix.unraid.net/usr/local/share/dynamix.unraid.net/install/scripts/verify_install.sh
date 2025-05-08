@@ -115,13 +115,11 @@ SHUTDOWN_ERRORS=0
 
 # Check for package-provided shutdown scripts in rc6.d directory
 echo "Checking for shutdown scripts in rc6.d..."
-if [ -f "/etc/rc.d/rc.flash_backup" ]; then
-  if [ -x "/etc/rc.d/rc6.d/K10flash-backup" ]; then
-    printf '✓ Shutdown script for flash_backup exists and is executable\n'
-  else
-    printf '✗ Shutdown script for flash_backup missing or not executable\n'
-    SHUTDOWN_ERRORS=$((SHUTDOWN_ERRORS + 1))
-  fi
+if [ -x "/etc/rc.d/rc6.d/K10flash-backup" ]; then
+  printf '✓ Shutdown script for flash-backup exists and is executable\n'
+else
+  printf '✗ Shutdown script for flash-backup missing or not executable\n'
+  SHUTDOWN_ERRORS=$((SHUTDOWN_ERRORS + 1))
 fi
 
 # Check for unraid-api shutdown script
