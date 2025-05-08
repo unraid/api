@@ -23,17 +23,6 @@ else
   mkdir -p "$SCRIPTS_DIR"
 fi
 
-# Handle file restoration for both installation and removal
-if [ -x "$SCRIPTS_DIR/cleanup.sh" ]; then
-  # This is needed for both install and remove to ensure file restoration works correctly
-  touch /tmp/restore-files-dynamix-unraid-net
-  echo "Restoring files if needed..."
-  echo "Running cleanup.sh restore" >> "$LOGFILE"
-  "$SCRIPTS_DIR/cleanup.sh" restore
-else
-  echo "ERROR: cleanup.sh not found or not executable" >> "$LOGFILE"
-fi
-
 # Process based on installation mode
 if [ "$INSTALL_MODE" = "install" ] || [ "$INSTALL_MODE" = "upgrade" ]; then
   echo "Starting Unraid Connect installation..."
@@ -145,15 +134,6 @@ if [ "$INSTALL_MODE" = "install" ] || [ "$INSTALL_MODE" = "upgrade" ]; then
 elif [ "$INSTALL_MODE" = "remove" ]; then
   echo "Starting Unraid Connect removal..."
   echo "Starting removal" >> "$LOGFILE"
-  
-  # Run cleanup operations
-  if [ -x "$SCRIPTS_DIR/cleanup.sh" ]; then
-    echo "Running cleanup operations..."
-    echo "Running cleanup.sh cleanup" >> "$LOGFILE"
-    "$SCRIPTS_DIR/cleanup.sh" cleanup
-  else
-    echo "ERROR: cleanup.sh not found or not executable for removal" >> "$LOGFILE"
-  fi
   
   echo "Removal completed successfully."
   echo "Removal completed at $(date)" >> "$LOGFILE"
