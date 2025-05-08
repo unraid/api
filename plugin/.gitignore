@@ -30,3 +30,6 @@ source/dynamix.unraid.net/usr/local/share/man/man1/node.1
 # Node version files
 .node-version
 source/dynamix.unraid.net/usr/local/.node-version
+
+# Vendor archive files
+source/dynamix.unraid.net/usr/local/share/dynamix.unraid.net/config/vendor_archive.json
