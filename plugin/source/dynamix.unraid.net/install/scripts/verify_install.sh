@@ -1,5 +1,5 @@
 #!/bin/sh
-# Post-installation verification script
+# Unraid API Installation Verification Script
 # Checks that critical files are installed correctly
 
 # Exit on errors
@@ -11,7 +11,7 @@ RED='\033[0;31m'
 YELLOW='\033[0;33m'
 NC='\033[0m' # No Color
 
-echo "Performing installation verification..."
+echo "Performing comprehensive installation verification..."
 
 # Define critical files to check (POSIX-compliant, no arrays)
 CRITICAL_FILES="/usr/local/bin/unraid-api 
@@ -25,7 +25,17 @@ CRITICAL_FILES="/usr/local/bin/unraid-api
 CRITICAL_DIRS="/usr/local/unraid-api
 /var/log/unraid-api
 /usr/local/emhttp/plugins/dynamix.my.servers
-/usr/local/emhttp/plugins/dynamix.unraid.net"
+/usr/local/emhttp/plugins/dynamix.unraid.net
+/etc/rc.d/rc6.d
+/etc/rc.d/rc0.d"
+
+# Define critical symlinks to check
+CRITICAL_SYMLINKS="/usr/local/bin/unraid-api
+/usr/local/sbin/unraid-api
+/usr/bin/unraid-api"
+
+# Track total errors
+TOTAL_ERRORS=0
 
 # Function to check if file exists and is executable
 check_executable() {
@@ -52,6 +62,17 @@ check_dir() {
   fi
 }
 
+# Function to check symlinks
+check_symlink() {
+  if [ -L "$1" ]; then
+    printf '%s✓%s Symlink %s exists -> %s\n' "$GREEN" "$NC" "$1" "$(readlink "$1")"
+    return 0
+  else
+    printf '%s✗%s Symlink %s is missing\n' "$RED" "$NC" "$1"
+    return 1
+  fi
+}
+
 # Check executable files
 echo "Checking executable files..."
 EXEC_ERRORS=0
@@ -60,6 +81,7 @@ for file in $CRITICAL_FILES; do
     EXEC_ERRORS=$((EXEC_ERRORS + 1))
   fi
 done
+TOTAL_ERRORS=$((TOTAL_ERRORS + EXEC_ERRORS))
 
 # Check directories
 echo "Checking directories..."
@@ -69,15 +91,38 @@ for dir in $CRITICAL_DIRS; do
     DIR_ERRORS=$((DIR_ERRORS + 1))
   fi
 done
+TOTAL_ERRORS=$((TOTAL_ERRORS + DIR_ERRORS))
+
+# Check symlinks
+echo "Checking symlinks..."
+SYMLINK_ERRORS=0
+for link in $CRITICAL_SYMLINKS; do
+  if ! check_symlink "$link"; then
+    SYMLINK_ERRORS=$((SYMLINK_ERRORS + 1))
+  fi
+done
+TOTAL_ERRORS=$((TOTAL_ERRORS + SYMLINK_ERRORS))
+
+# Check environment file
+ENV_FILE="/boot/config/plugins/dynamix.my.servers/env"
+echo "Checking configuration files..."
+CONFIG_ERRORS=0
+if [ -f "$ENV_FILE" ]; then
+  printf '%s✓%s Environment file %s exists\n' "$GREEN" "$NC" "$ENV_FILE"
+else
+  printf '%s✗%s Environment file %s is missing\n' "$RED" "$NC" "$ENV_FILE"
+  CONFIG_ERRORS=$((CONFIG_ERRORS + 1))
+fi
+TOTAL_ERRORS=$((TOTAL_ERRORS + CONFIG_ERRORS))
 
 # Check for proper Slackware-style startup configuration
 echo "Checking startup configuration..."
-STARTUP_CONFIG_OK=1
+STARTUP_ERRORS=0
 
 # Check if rc.M or rc.local files contain unraid-api start command
 STARTUP_FOUND=0
 for RC_FILE in "/etc/rc.d/rc.M" "/etc/rc.d/rc.local"; do
-  if [ -f "$RC_FILE" ] && grep -q "rc.unraid-api start" "$RC_FILE"; then
+  if [ -f "$RC_FILE" ] && grep -q "rc.unraid-api" "$RC_FILE"; then
     printf '%s✓%s File %s contains unraid-api startup command\n' "$GREEN" "$NC" "$RC_FILE"
     STARTUP_FOUND=1
   fi
@@ -85,74 +130,104 @@ done
 
 if [ $STARTUP_FOUND -eq 0 ]; then
   printf '%s✗%s No startup configuration found for unraid-api in rc.M or rc.local\n' "$RED" "$NC"
-  STARTUP_CONFIG_OK=0
+  STARTUP_ERRORS=$((STARTUP_ERRORS + 1))
 fi
 
 # Check if rc.M or rc.local files contain flash_backup start command
-FLASH_BACKUP_STARTUP_FOUND=0
-for RC_FILE in "/etc/rc.d/rc.M" "/etc/rc.d/rc.local"; do
-  if [ -f "$RC_FILE" ] && grep -q "rc.flash_backup start" "$RC_FILE"; then
-    printf '%s✓%s File %s contains flash_backup startup command\n' "$GREEN" "$NC" "$RC_FILE"
-    FLASH_BACKUP_STARTUP_FOUND=1
+if [ -f "/etc/rc.d/rc.flash_backup" ]; then
+  FLASH_BACKUP_STARTUP_FOUND=0
+  for RC_FILE in "/etc/rc.d/rc.M" "/etc/rc.d/rc.local"; do
+    if [ -f "$RC_FILE" ] && grep -q "rc.flash_backup" "$RC_FILE"; then
+      printf '%s✓%s File %s contains flash_backup startup command\n' "$GREEN" "$NC" "$RC_FILE"
+      FLASH_BACKUP_STARTUP_FOUND=1
+    fi
+  done
+
+  if [ $FLASH_BACKUP_STARTUP_FOUND -eq 0 ]; then
+    printf '%s✗%s No startup configuration found for flash_backup in rc.M or rc.local\n' "$RED" "$NC"
+    STARTUP_ERRORS=$((STARTUP_ERRORS + 1))
   fi
-done
-
-if [ $FLASH_BACKUP_STARTUP_FOUND -eq 0 ] && [ -f "/etc/rc.d/rc.flash_backup" ]; then
-  printf '%s✗%s No startup configuration found for flash_backup in rc.M or rc.local\n' "$RED" "$NC"
-  STARTUP_CONFIG_OK=0
 fi
-
-if [ $STARTUP_CONFIG_OK -eq 0 ]; then
-  EXEC_ERRORS=$((EXEC_ERRORS + 1))
-fi
+TOTAL_ERRORS=$((TOTAL_ERRORS + STARTUP_ERRORS))
 
 # Check for proper Slackware-style shutdown configuration
 echo "Checking shutdown configuration..."
-SHUTDOWN_CONFIG_OK=1
+SHUTDOWN_ERRORS=0
 
-# Check if rc.0 and rc.6 files contain flash_backup stop command
+# Check for package-provided shutdown scripts in rc6.d directory
+echo "Checking for shutdown scripts in rc6.d..."
 if [ -f "/etc/rc.d/rc.flash_backup" ]; then
-  for RC_FILE in "/etc/rc.d/rc.0" "/etc/rc.d/rc.6"; do
-    if [ -f "$RC_FILE" ] && grep -q "rc.flash_backup stop" "$RC_FILE"; then
-      printf '%s✓%s File %s contains flash backup stop command\n' "$GREEN" "$NC" "$RC_FILE"
-    else
-      printf '%s✗%s File %s missing or does not contain flash backup stop command\n' "$RED" "$NC" "$RC_FILE"
-      SHUTDOWN_CONFIG_OK=0
-    fi
-  done
+  if [ -x "/etc/rc.d/rc6.d/K10flash_backup" ]; then
+    printf '%s✓%s Shutdown script for flash_backup exists and is executable\n' "$GREEN" "$NC"
+  else
+    printf '%s✗%s Shutdown script for flash_backup missing or not executable\n' "$RED" "$NC"
+    SHUTDOWN_ERRORS=$((SHUTDOWN_ERRORS + 1))
+  fi
 fi
 
-# Check if unraid-api shutdown is properly configured in Slackware runlevels
-for RC_FILE in "/etc/rc.d/rc.0" "/etc/rc.d/rc.6"; do
-  if [ -f "$RC_FILE" ] && grep -q "rc.unraid-api stop" "$RC_FILE"; then
-    printf '%s✓%s File %s contains unraid-api stop command\n' "$GREEN" "$NC" "$RC_FILE"
+# Check for unraid-api shutdown script
+if [ -x "/etc/rc.d/rc6.d/K20unraid-api" ]; then
+  printf '%s✓%s Shutdown script for unraid-api exists and is executable\n' "$GREEN" "$NC"
+else
+  printf '%s✗%s Shutdown script for unraid-api missing or not executable\n' "$RED" "$NC"
+  SHUTDOWN_ERRORS=$((SHUTDOWN_ERRORS + 1))
+fi
+
+# Check for rc0.d symlink or directory
+if [ -L "/etc/rc.d/rc0.d" ]; then
+  printf '%s✓%s rc0.d symlink exists\n' "$GREEN" "$NC"
+elif [ -d "/etc/rc.d/rc0.d" ]; then
+  printf '%s✓%s rc0.d directory exists\n' "$GREEN" "$NC"
+else
+  printf '%s✗%s rc0.d symlink or directory missing\n' "$RED" "$NC"
+  SHUTDOWN_ERRORS=$((SHUTDOWN_ERRORS + 1))
+fi
+
+# Check specific runlevel scripts for rc.0 and rc.6
+for RCFILE in "/etc/rc.d/rc.0" "/etc/rc.d/rc.6"; do
+  if [ -f "$RCFILE" ] && grep -q "rc.unraid-api" "$RCFILE"; then
+    printf '%s✓%s rc.unraid-api entry found in %s\n' "$GREEN" "$NC" "$RCFILE"
   else
-    printf '%s✗%s File %s missing or does not contain unraid-api stop command\n' "$RED" "$NC" "$RC_FILE"
-    SHUTDOWN_CONFIG_OK=0
+    printf '%s✗%s rc.unraid-api entry not found in %s\n' "$RED" "$NC" "$RCFILE"
+    SHUTDOWN_ERRORS=$((SHUTDOWN_ERRORS + 1))
   fi
 done
-
-if [ $SHUTDOWN_CONFIG_OK -eq 0 ]; then
-  EXEC_ERRORS=$((EXEC_ERRORS + 1))
-fi
+TOTAL_ERRORS=$((TOTAL_ERRORS + SHUTDOWN_ERRORS))
 
 # Check if unraid-api is in path
 if command -v unraid-api >/dev/null 2>&1; then
   printf '%s✓%s unraid-api is in PATH\n' "$GREEN" "$NC"
 else
   printf '%s⚠%s unraid-api is not in PATH\n' "$YELLOW" "$NC"
+  TOTAL_ERRORS=$((TOTAL_ERRORS + 1))
+fi
+
+# Log file check
+if [ -f "/var/log/unraid-api/dynamix-unraid-install.log" ]; then
+  printf '%s✓%s Installation log file exists\n' "$GREEN" "$NC"
+else
+  printf '%s⚠%s Installation log file not found\n' "$YELLOW" "$NC"
 fi
 
 # Summary
 echo ""
 echo "Verification summary:"
-if [ $EXEC_ERRORS -eq 0 ] && [ $DIR_ERRORS -eq 0 ]; then
-  printf '%sAll critical files and directories are present.%s\n' "$GREEN" "$NC"
-  echo "Installation verification passed."
+echo "- Executable files errors: $EXEC_ERRORS"
+echo "- Directory errors: $DIR_ERRORS"
+echo "- Symlink errors: $SYMLINK_ERRORS"
+echo "- Configuration errors: $CONFIG_ERRORS"
+echo "- Startup configuration errors: $STARTUP_ERRORS"
+echo "- Shutdown configuration errors: $SHUTDOWN_ERRORS"
+echo "- Total errors: $TOTAL_ERRORS"
+
+if [ $TOTAL_ERRORS -eq 0 ]; then
+  printf '%sAll checks passed successfully.%s\n' "$GREEN" "$NC"
+  echo "Installation verification completed successfully."
   exit 0
 else
-  printf '%sFound %d file errors and %d directory errors.%s\n' "$RED" "$EXEC_ERRORS" "$DIR_ERRORS" "$NC"
+  printf '%sFound %d total errors.%s\n' "$RED" "$TOTAL_ERRORS" "$NC"
   echo "Installation verification completed with issues."
+  echo "See log file for details: /var/log/unraid-api/dynamix-unraid-install.log"
   # We don't exit with error as this is just a verification script
   exit 0
 fi 

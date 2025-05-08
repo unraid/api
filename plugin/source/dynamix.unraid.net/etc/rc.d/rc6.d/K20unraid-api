@@ -1,0 +1,7 @@
+#!/bin/sh
+# Stop unraid-api on shutdown/reboot
+
+if [ -x /etc/rc.d/rc.unraid-api ]; then
+  echo "Stopping unraid-api..."
+  /etc/rc.d/rc.unraid-api stop
+fi 

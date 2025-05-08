@@ -6,7 +6,7 @@
 # customary to leave one space after the ':' except on otherwise blank lines.
 
                 |-----handy-ruler------------------------------------------------------|
-dynamix.unraid.net: dynamix.unraid.net (Unraid API and Connect Services)
+dynamix.unraid.net: dynamix.unraid.net (Unraid API)
 dynamix.unraid.net:
 dynamix.unraid.net: Provides the Unraid API and Connect services for Unraid OS.
 dynamix.unraid.net: This package enables remote management, monitoring, and access
@@ -15,4 +15,4 @@ dynamix.unraid.net:
 dynamix.unraid.net: Features include system monitoring, notifications, remote access,
 dynamix.unraid.net: and integration with the Unraid Connect dashboard.
 dynamix.unraid.net:
-dynamix.unraid.net: Homepage: https://unraid.net/connect 
+dynamix.unraid.net: Homepage: https://unraid.net/

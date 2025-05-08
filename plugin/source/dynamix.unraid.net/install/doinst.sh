@@ -99,37 +99,6 @@ if [ "$INSTALL_MODE" = "install" ] || [ "$INSTALL_MODE" = "upgrade" ]; then
   echo "Installation completed successfully."
   echo "Installation completed at $(date)" >> "$LOGFILE"
   
-  # Run test script if available
-  if [ -x "$SCRIPTS_DIR/test-setup-api.sh" ]; then
-    echo "Running setup_api.sh validation test..."
-    echo "Running test-setup-api.sh" >> "$LOGFILE"
-    # Run the test and capture output (without the log file references)
-    test_output=$("$SCRIPTS_DIR/test-setup-api.sh" | sed '/See log file for details/d')
-    echo "$test_output" >> "$LOGFILE"
-    # Extract just the summary of failed tests
-    failed_tests=$(echo "$test_output" | grep "✗" || true)
-    if [ -n "$failed_tests" ]; then
-      echo "Warning: Some tests failed:" >> "$LOGFILE"
-      echo "$failed_tests" >> "$LOGFILE"
-      # Try to fix symlinks if they're missing
-      if echo "$failed_tests" | grep -q "Symlink not created"; then
-        echo "Attempting to fix missing symlinks..." >> "$LOGFILE"
-        if [ -f "/usr/local/unraid-api/dist/cli.js" ]; then
-          ln -sf "/usr/local/unraid-api/dist/cli.js" "/usr/local/bin/unraid-api"
-          ln -sf "/usr/local/bin/unraid-api" "/usr/local/sbin/unraid-api"
-          ln -sf "/usr/local/bin/unraid-api" "/usr/bin/unraid-api"
-          echo "Manual symlink creation completed" >> "$LOGFILE"
-        else
-          echo "ERROR: Cannot create symlinks - source file not found" >> "$LOGFILE"
-        fi
-      fi
-    else
-      echo "All tests passed successfully" >> "$LOGFILE"
-    fi
-  else
-    echo "Test script not found or not executable" >> "$LOGFILE"
-  fi
-  
 elif [ "$INSTALL_MODE" = "remove" ]; then
   echo "Starting Unraid Connect removal..."
   echo "Starting removal" >> "$LOGFILE"

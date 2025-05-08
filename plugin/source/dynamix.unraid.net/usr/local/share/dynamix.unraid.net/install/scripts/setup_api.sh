@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 # Script to handle API setup
 
 # Setup environment
@@ -9,44 +9,6 @@ UNRAID_BINARY_PATH="/usr/local/bin/unraid-api"
 echo "Starting API setup script"
 echo "Environment: CONFIG_DIR=$CONFIG_DIR, API_BASE_DIR=$API_BASE_DIR"
 echo "UNRAID_BINARY_PATH=$UNRAID_BINARY_PATH"
-
-# Get API version from Slackware package
-# Look for most recent dynamix.unraid.net package in /var/log/packages
-pkg_file="$(find /var/log/packages -name 'dynamix.unraid.net-*' -type f -printf '%T@ %p\n' 2>/dev/null | sort -rn | head -n1 | cut -d' ' -f2-)"
-
-if [ -n "$pkg_file" ]; then
-  # Extract version from filename (format: name-version-arch-build)
-  pkg_basename=$(basename "$pkg_file")
-  api_version=$(echo "$pkg_basename" | cut -d'-' -f2)
-  echo "Found API version from Slackware package: $api_version"
-  
-  # Also log package details for debugging
-  echo "Package details:"
-  echo "  Full path: $pkg_file"
-  echo "  Package name: $pkg_basename"
-  echo "  Extracted version: $api_version"
-  
-  # Verify version format
-  if ! echo "$api_version" | grep -qE "^[0-9]+\.[0-9]+\.[0-9]+"; then
-    echo "WARNING: Extracted version doesn't match expected format: $api_version"
-  fi
-else
-  echo "ERROR: No dynamix.unraid.net Slackware package found in /var/log/packages"
-  # List available packages for debugging
-  echo "Available packages:"
-  for pkg in /var/log/packages/*unraid*; do
-    if [ -f "$pkg" ]; then
-      echo "  $(basename "$pkg")"
-    fi
-  done
-  if ! ls /var/log/packages/*unraid* >/dev/null 2>&1; then
-    echo "  No matching packages found"
-  fi
-  exit 1
-fi
-
-# Log the final API version
-echo "Using API version: $api_version"
 
 # Set up environment file
 if [ ! -f "${CONFIG_DIR}/env" ]; then
@@ -74,6 +36,12 @@ if [ -f "${API_BASE_DIR}/dist/cli.js" ]; then
   else
     echo "ERROR: Failed to create symlinks"
   fi
+  
+  # Make API scripts executable
+  echo "Making API scripts executable"
+  chmod +x "${API_BASE_DIR}/dist/cli.js"
+  chmod +x "${API_BASE_DIR}/dist/main.js"
+  echo "API scripts are now executable"
 else
   echo "ERROR: Source file ${API_BASE_DIR}/dist/cli.js does not exist"
   
@@ -102,81 +70,26 @@ else
 fi
 
 # Restore dependencies using vendor archive from package
-VENDOR_ARCHIVE="${CONFIG_DIR}/node_modules-for-v${api_version}.tar.xz"
-if [ -x "/etc/rc.d/rc.unraid-api" ] && [ -f "$VENDOR_ARCHIVE" ]; then
-  echo "Restoring dependencies from vendor archive: $VENDOR_ARCHIVE"
-  /etc/rc.d/rc.unraid-api restore-dependencies "$VENDOR_ARCHIVE"
+if [ -x "/etc/rc.d/rc.unraid-api" ]; then
+  echo "Restoring dependencies using auto-detection"
+  /etc/rc.d/rc.unraid-api ensure
 else
-  echo "Dependencies not restored: rc.unraid-api executable: $( [ -x "/etc/rc.d/rc.unraid-api" ] && echo "Yes" || echo "No" )"
-  echo "Dependencies not restored: vendor archive exists: $( [ -f "$VENDOR_ARCHIVE" ] && echo "Yes" || echo "No" )"
+  echo "Dependencies not restored: rc.unraid-api executable not found"
 fi
 
-# Helper function to configure startup/shutdown scripts
-configure_script() {
-  echo "Configuring script $1 for $3 ($5)"
-  
-  # Check if the file exists, if not create it with basic structure
-  if [ ! -f "$1" ]; then
-    echo "Creating script file $1"
-    echo "#!/bin/sh" > "$1"
-    echo "# $1 - run once at $5" >> "$1"
-    chmod 755 "$1"
-  fi
-  
-  # Add command to file if not already there
-  if ! grep -q "$2 $4" "$1"; then
-    echo "Adding $2 $4 command to $1"
-    # For startup scripts (rc.M, rc.local), add command at the end
-    if [ "$4" = "start" ]; then
-      echo "" >> "$1"
-      echo "# $3" >> "$1"
-      echo "if [ -x $2 ]; then" >> "$1"
-      echo "  $2 $4" >> "$1"
-      echo "fi" >> "$1"
-      echo "Added $2 $4 command to $1"
-    else
-      # For shutdown scripts (rc.0, rc.6), add command near beginning
-      sed -i "10i# $3\nif [ -x $2 ]; then\n  $2 $4\nfi\n" "$1"
-      echo "Added $2 $4 command to $1"
-    fi
-  else
-    echo "$2 $4 command already exists in $1"
-  fi
-}
-
-# Configure startup for unraid-api
-if [ -f "/etc/rc.d/rc.unraid-api" ]; then
-  echo "Configuring startup for unraid-api"
-  # Configure for runlevel 3 (multi-user mode, standard Slackware default)
-  # Slackware uses rc.M for runlevel 3 (multi-user mode)
-  configure_script "/etc/rc.d/rc.M" "/etc/rc.d/rc.unraid-api" "Start Unraid API service" "start" "multi-user startup"
-  
-  # Also add to rc.local as a fallback 
-  configure_script "/etc/rc.d/rc.local" "/etc/rc.d/rc.unraid-api" "Start Unraid API service" "start" "local startup"
-  
-  # Configure unraid-api shutdown in rc.0 and rc.6
-  configure_script "/etc/rc.d/rc.0" "/etc/rc.d/rc.unraid-api" "Stop Unraid API service" "stop" "shutdown"
-  configure_script "/etc/rc.d/rc.6" "/etc/rc.d/rc.unraid-api" "Stop Unraid API service" "stop" "reboot"
+# Ensure rc directories exist and scripts are executable
+echo "Ensuring shutdown scripts are executable"
+if [ -d "/etc/rc.d/rc6.d" ]; then
+  chmod 755 /etc/rc.d/rc6.d/K*unraid-api 2>/dev/null
+  chmod 755 /etc/rc.d/rc6.d/K*flash-backup 2>/dev/null
 else
-  echo "ERROR: rc.unraid-api not found"
+  echo "Warning: rc6.d directory does not exist"
 fi
 
-# Setup flash backup service
-if [ -f "/etc/rc.d/rc.flash_backup" ]; then
-  echo "Configuring startup for flash_backup"
-  # Configure flash_backup startup
-  configure_script "/etc/rc.d/rc.M" "/etc/rc.d/rc.flash_backup" "Start flash backup service" "start" "multi-user startup"
-  configure_script "/etc/rc.d/rc.local" "/etc/rc.d/rc.flash_backup" "Start flash backup service" "start" "local startup"
-  
-  # Configure flash_backup shutdown in rc.0 and rc.6
-  configure_script "/etc/rc.d/rc.0" "/etc/rc.d/rc.flash_backup" "Stop flash backup service" "stop" "shutdown"
-  configure_script "/etc/rc.d/rc.6" "/etc/rc.d/rc.flash_backup" "Stop flash backup service" "stop" "reboot"
-else
-  echo "flash_backup script not found"
+# Create symlink for rc0.d to rc6.d if needed
+if [ ! -L /etc/rc.d/rc0.d ] && [ ! -d /etc/rc.d/rc0.d ]; then
+  echo "Creating symlink from /etc/rc.d/rc0.d to /etc/rc.d/rc6.d"
+  ln -s /etc/rc.d/rc6.d /etc/rc.d/rc0.d
 fi
-
-# Create a file with the API version for reference
-echo "Writing API version to ${CONFIG_DIR}/api_version"
-echo "$api_version" > "${CONFIG_DIR}/api_version"
 
 echo "API setup completed at $(date)"

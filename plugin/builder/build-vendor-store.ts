@@ -1,4 +1,4 @@
-import { apiDir, deployDir } from "./utils/paths";
+import { deployDir } from "./utils/paths";
 import { join } from "path";
 import { existsSync, mkdirSync } from "node:fs";
 import { startingDir } from "./utils/consts";

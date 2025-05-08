@@ -3,9 +3,9 @@ import { z } from "zod";
 import { Command } from "commander";
 import { startingDir } from "../utils/consts";
 import { deployDir } from "../utils/paths";
+import { baseEnvSchema, addCommonOptions } from "./common-environment";
 
-const txzEnvSchema = z.object({
-  ci: z.boolean().optional().default(false),
+const txzEnvSchema = baseEnvSchema.extend({
   skipValidation: z
     .string()
     .optional()
@@ -13,7 +13,6 @@ const txzEnvSchema = z.object({
     .refine((v) => v === "true" || v === "false", "Must be true or false"),
   compress: z.string().optional().default("1"),
   txzOutputDir: z.string().optional().default(join(startingDir, deployDir)),
-  apiVersion: z.string(),
 });
 
 export type TxzEnv = z.infer<typeof txzEnvSchema>;
@@ -34,11 +33,13 @@ export const setupTxzEnv = async (argv: string[]): Promise<TxzEnv> => {
   // CLI setup for TXZ environment
   const program = new Command();
 
+  // Add common options first
+  addCommonOptions(program);
+  
+  // Add TXZ-specific options
   program
     .option("--skip-validation", "Skip validation", "false")
-    .option("--ci", "CI mode", process.env.CI === "true")
     .option("--compress, -z", "Compress level", "1")
-    .requiredOption("--api-version <version>", "API version", process.env.API_VERSION)
     .parse(argv);
 
   const options = program.opts();

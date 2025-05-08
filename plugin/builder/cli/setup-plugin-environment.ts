@@ -6,12 +6,9 @@ import { createHash } from "node:crypto";
 import { getTxzPath } from "../utils/paths";
 import { existsSync } from "node:fs";
 import { join } from "node:path";
+import { baseEnvSchema, addCommonOptions } from "./common-environment";
 
-const safeParseEnvSchema = z.object({
-  ci: z.boolean().optional(),
-  baseUrl: z.string().url(),
-  tag: z.string().optional().default(''),
-  apiVersion: z.string(),
+const safeParseEnvSchema = baseEnvSchema.extend({
   txzPath: z.string().refine((val) => val.endsWith(".txz"), {
     message: "TXZ Path must end with .txz",
   }),
@@ -26,7 +23,6 @@ const pluginEnvSchema = safeParseEnvSchema.extend({
   txzSha256: z.string().refine((val) => val.length === 64, {
     message: "TXZ SHA256 must be 64 characters long",
   }),
-  apiVersion: z.string().nonempty("API version is required"),
 });
 
 export type PluginEnv = z.infer<typeof pluginEnvSchema>;
@@ -164,14 +160,11 @@ export const setupPluginEnv = async (argv: string[]): Promise<PluginEnv> => {
   // CLI setup for plugin environment
   const program = new Command();
 
+  // Add common options
+  addCommonOptions(program);
+  
+  // Add plugin-specific options
   program
-    .requiredOption(
-      "--base-url <url>",
-      "Base URL - will be used to determine the bucket, and combined with the tag (if set) to form the final URL",
-      process.env.CI === "true"
-        ? "This is a CI build, please set the base URL manually"
-        : `http://${process.env.HOST_LAN_IP}:5858`
-    )
     .option(
       "--txz-path <path>",
       "Path to built package, will be used to generate the SHA256 and renamed with the plugin version",
@@ -182,14 +175,7 @@ export const setupPluginEnv = async (argv: string[]): Promise<PluginEnv> => {
       "Plugin Version in the format YYYY.MM.DD.HHMM",
       getPluginVersion()
     )
-    .requiredOption(
-      "--api-version <version>",
-      "API Version (e.g. 1.0.0)",
-      process.env.API_VERSION
-    )
-    .option("--tag <tag>", "Tag (used for PR and staging builds)", process.env.TAG)
     .option("--release-notes-path <path>", "Path to release notes file")
-    .option("--ci", "CI mode", process.env.CI === "true")
     .parse(argv);
 
   const options = program.opts();
