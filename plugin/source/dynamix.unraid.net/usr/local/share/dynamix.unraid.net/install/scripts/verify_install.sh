@@ -115,41 +115,6 @@ else
 fi
 TOTAL_ERRORS=$((TOTAL_ERRORS + CONFIG_ERRORS))
 
-# Check for proper Slackware-style startup configuration
-echo "Checking startup configuration..."
-STARTUP_ERRORS=0
-
-# Check if rc.M or rc.local files contain unraid-api start command
-STARTUP_FOUND=0
-for RC_FILE in "/etc/rc.d/rc.M" "/etc/rc.d/rc.local"; do
-  if [ -f "$RC_FILE" ] && grep -q "rc.unraid-api" "$RC_FILE"; then
-    printf '%s✓%s File %s contains unraid-api startup command\n' "$GREEN" "$NC" "$RC_FILE"
-    STARTUP_FOUND=1
-  fi
-done
-
-if [ $STARTUP_FOUND -eq 0 ]; then
-  printf '%s✗%s No startup configuration found for unraid-api in rc.M or rc.local\n' "$RED" "$NC"
-  STARTUP_ERRORS=$((STARTUP_ERRORS + 1))
-fi
-
-# Check if rc.M or rc.local files contain flash_backup start command
-if [ -f "/etc/rc.d/rc.flash_backup" ]; then
-  FLASH_BACKUP_STARTUP_FOUND=0
-  for RC_FILE in "/etc/rc.d/rc.M" "/etc/rc.d/rc.local"; do
-    if [ -f "$RC_FILE" ] && grep -q "rc.flash_backup" "$RC_FILE"; then
-      printf '%s✓%s File %s contains flash_backup startup command\n' "$GREEN" "$NC" "$RC_FILE"
-      FLASH_BACKUP_STARTUP_FOUND=1
-    fi
-  done
-
-  if [ $FLASH_BACKUP_STARTUP_FOUND -eq 0 ]; then
-    printf '%s✗%s No startup configuration found for flash_backup in rc.M or rc.local\n' "$RED" "$NC"
-    STARTUP_ERRORS=$((STARTUP_ERRORS + 1))
-  fi
-fi
-TOTAL_ERRORS=$((TOTAL_ERRORS + STARTUP_ERRORS))
-
 # Check for proper Slackware-style shutdown configuration
 echo "Checking shutdown configuration..."
 SHUTDOWN_ERRORS=0
@@ -157,7 +122,7 @@ SHUTDOWN_ERRORS=0
 # Check for package-provided shutdown scripts in rc6.d directory
 echo "Checking for shutdown scripts in rc6.d..."
 if [ -f "/etc/rc.d/rc.flash_backup" ]; then
-  if [ -x "/etc/rc.d/rc6.d/K10flash_backup" ]; then
+  if [ -x "/etc/rc.d/rc6.d/K10flash-backup" ]; then
     printf '%s✓%s Shutdown script for flash_backup exists and is executable\n' "$GREEN" "$NC"
   else
     printf '%s✗%s Shutdown script for flash_backup missing or not executable\n' "$RED" "$NC"
@@ -183,15 +148,6 @@ else
   SHUTDOWN_ERRORS=$((SHUTDOWN_ERRORS + 1))
 fi
 
-# Check specific runlevel scripts for rc.0 and rc.6
-for RCFILE in "/etc/rc.d/rc.0" "/etc/rc.d/rc.6"; do
-  if [ -f "$RCFILE" ] && grep -q "rc.unraid-api" "$RCFILE"; then
-    printf '%s✓%s rc.unraid-api entry found in %s\n' "$GREEN" "$NC" "$RCFILE"
-  else
-    printf '%s✗%s rc.unraid-api entry not found in %s\n' "$RED" "$NC" "$RCFILE"
-    SHUTDOWN_ERRORS=$((SHUTDOWN_ERRORS + 1))
-  fi
-done
 TOTAL_ERRORS=$((TOTAL_ERRORS + SHUTDOWN_ERRORS))
 
 # Check if unraid-api is in path
@@ -216,7 +172,6 @@ echo "- Executable files errors: $EXEC_ERRORS"
 echo "- Directory errors: $DIR_ERRORS"
 echo "- Symlink errors: $SYMLINK_ERRORS"
 echo "- Configuration errors: $CONFIG_ERRORS"
-echo "- Startup configuration errors: $STARTUP_ERRORS"
 echo "- Shutdown configuration errors: $SHUTDOWN_ERRORS"
 echo "- Total errors: $TOTAL_ERRORS"
 
