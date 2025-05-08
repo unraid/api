@@ -5,12 +5,6 @@
 # Exit on errors
 set -e
 
-# Define color codes for output
-GREEN='\033[0;32m'
-RED='\033[0;31m'
-YELLOW='\033[0;33m'
-NC='\033[0m' # No Color
-
 echo "Performing comprehensive installation verification..."
 
 # Define critical files to check (POSIX-compliant, no arrays)
@@ -40,13 +34,13 @@ TOTAL_ERRORS=0
 # Function to check if file exists and is executable
 check_executable() {
   if [ -x "$1" ]; then
-    printf '%s✓%s Executable file %s exists and is executable\n' "$GREEN" "$NC" "$1"
+    printf '✓ Executable file %s exists and is executable\n' "$1"
     return 0
   elif [ -f "$1" ]; then
-    printf '%s⚠%s File %s exists but is not executable\n' "$YELLOW" "$NC" "$1"
+    printf '⚠ File %s exists but is not executable\n' "$1"
     return 1
   else
-    printf '%s✗%s Executable file %s is missing\n' "$RED" "$NC" "$1"
+    printf '✗ Executable file %s is missing\n' "$1"
     return 2
   fi
 }
@@ -54,10 +48,10 @@ check_executable() {
 # Function to check if directory exists
 check_dir() {
   if [ -d "$1" ]; then
-    printf '%s✓%s Directory %s exists\n' "$GREEN" "$NC" "$1"
+    printf '✓ Directory %s exists\n' "$1"
     return 0
   else
-    printf '%s✗%s Directory %s is missing\n' "$RED" "$NC" "$1"
+    printf '✗ Directory %s is missing\n' "$1"
     return 1
   fi
 }
@@ -65,10 +59,10 @@ check_dir() {
 # Function to check symlinks
 check_symlink() {
   if [ -L "$1" ]; then
-    printf '%s✓%s Symlink %s exists -> %s\n' "$GREEN" "$NC" "$1" "$(readlink "$1")"
+    printf '✓ Symlink %s exists -> %s\n' "$1" "$(readlink "$1")"
     return 0
   else
-    printf '%s✗%s Symlink %s is missing\n' "$RED" "$NC" "$1"
+    printf '✗ Symlink %s is missing\n' "$1"
     return 1
   fi
 }
@@ -108,9 +102,9 @@ ENV_FILE="/boot/config/plugins/dynamix.my.servers/env"
 echo "Checking configuration files..."
 CONFIG_ERRORS=0
 if [ -f "$ENV_FILE" ]; then
-  printf '%s✓%s Environment file %s exists\n' "$GREEN" "$NC" "$ENV_FILE"
+  printf '✓ Environment file %s exists\n' "$ENV_FILE"
 else
-  printf '%s✗%s Environment file %s is missing\n' "$RED" "$NC" "$ENV_FILE"
+  printf '✗ Environment file %s is missing\n' "$ENV_FILE"
   CONFIG_ERRORS=$((CONFIG_ERRORS + 1))
 fi
 TOTAL_ERRORS=$((TOTAL_ERRORS + CONFIG_ERRORS))
@@ -123,28 +117,28 @@ SHUTDOWN_ERRORS=0
 echo "Checking for shutdown scripts in rc6.d..."
 if [ -f "/etc/rc.d/rc.flash_backup" ]; then
   if [ -x "/etc/rc.d/rc6.d/K10flash-backup" ]; then
-    printf '%s✓%s Shutdown script for flash_backup exists and is executable\n' "$GREEN" "$NC"
+    printf '✓ Shutdown script for flash_backup exists and is executable\n'
   else
-    printf '%s✗%s Shutdown script for flash_backup missing or not executable\n' "$RED" "$NC"
+    printf '✗ Shutdown script for flash_backup missing or not executable\n'
     SHUTDOWN_ERRORS=$((SHUTDOWN_ERRORS + 1))
   fi
 fi
 
 # Check for unraid-api shutdown script
 if [ -x "/etc/rc.d/rc6.d/K20unraid-api" ]; then
-  printf '%s✓%s Shutdown script for unraid-api exists and is executable\n' "$GREEN" "$NC"
+  printf '✓ Shutdown script for unraid-api exists and is executable\n'
 else
-  printf '%s✗%s Shutdown script for unraid-api missing or not executable\n' "$RED" "$NC"
+  printf '✗ Shutdown script for unraid-api missing or not executable\n'
   SHUTDOWN_ERRORS=$((SHUTDOWN_ERRORS + 1))
 fi
 
 # Check for rc0.d symlink or directory
 if [ -L "/etc/rc.d/rc0.d" ]; then
-  printf '%s✓%s rc0.d symlink exists\n' "$GREEN" "$NC"
+  printf '✓ rc0.d symlink exists\n'
 elif [ -d "/etc/rc.d/rc0.d" ]; then
-  printf '%s✓%s rc0.d directory exists\n' "$GREEN" "$NC"
+  printf '✓ rc0.d directory exists\n'
 else
-  printf '%s✗%s rc0.d symlink or directory missing\n' "$RED" "$NC"
+  printf '✗ rc0.d symlink or directory missing\n'
   SHUTDOWN_ERRORS=$((SHUTDOWN_ERRORS + 1))
 fi
 
@@ -152,17 +146,17 @@ TOTAL_ERRORS=$((TOTAL_ERRORS + SHUTDOWN_ERRORS))
 
 # Check if unraid-api is in path
 if command -v unraid-api >/dev/null 2>&1; then
-  printf '%s✓%s unraid-api is in PATH\n' "$GREEN" "$NC"
+  printf '✓ unraid-api is in PATH\n'
 else
-  printf '%s⚠%s unraid-api is not in PATH\n' "$YELLOW" "$NC"
+  printf '⚠ unraid-api is not in PATH\n'
   TOTAL_ERRORS=$((TOTAL_ERRORS + 1))
 fi
 
 # Log file check
 if [ -f "/var/log/unraid-api/dynamix-unraid-install.log" ]; then
-  printf '%s✓%s Installation log file exists\n' "$GREEN" "$NC"
+  printf '✓ Installation log file exists\n'
 else
-  printf '%s⚠%s Installation log file not found\n' "$YELLOW" "$NC"
+  printf '⚠ Installation log file not found\n'
 fi
 
 # Summary
@@ -176,11 +170,11 @@ echo "- Shutdown configuration errors: $SHUTDOWN_ERRORS"
 echo "- Total errors: $TOTAL_ERRORS"
 
 if [ $TOTAL_ERRORS -eq 0 ]; then
-  printf '%sAll checks passed successfully.%s\n' "$GREEN" "$NC"
+  printf 'All checks passed successfully.\n'
   echo "Installation verification completed successfully."
   exit 0
 else
-  printf '%sFound %d total errors.%s\n' "$RED" "$TOTAL_ERRORS" "$NC"
+  printf 'Found %d total errors.\n' "$TOTAL_ERRORS"
   echo "Installation verification completed with issues."
   echo "See log file for details: /var/log/unraid-api/dynamix-unraid-install.log"
   # We don't exit with error as this is just a verification script
