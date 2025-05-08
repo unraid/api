@@ -5,31 +5,18 @@
 # Default paths
 CONFIG_FILE="/usr/local/share/dynamix.unraid.net/config/vendor_archive.json"
 
-# Get API version from config file or package
+# Get API version from config file
 # Returns the API version string or empty if not found
 get_api_version() {
   local api_version=""
   
-  # Try to get version from config file
+  # Get version from config file
   if [ -f "$CONFIG_FILE" ] && command -v jq >/dev/null 2>&1; then
     api_version=$(jq -r '.api_version' "$CONFIG_FILE")
     if [ -n "$api_version" ] && [ "$api_version" != "null" ]; then
       echo "$api_version"
       return 0
     fi
-  fi
-  
-  # Fall back to package lookup if config lookup failed
-  local pkg_file
-  pkg_file="$(find /var/log/packages -name 'dynamix.unraid.net-*' -type f -printf '%T@ %p\n' 2>/dev/null | sort -rn | head -n1 | cut -d' ' -f2-)"
-  
-  if [ -n "$pkg_file" ]; then
-    # Extract version from filename (format: name-version-arch-build)
-    local pkg_basename
-    pkg_basename=$(basename "$pkg_file")
-    api_version=$(echo "$pkg_basename" | cut -d'-' -f2)
-    echo "$api_version"
-    return 0
   fi
   
   # No version found

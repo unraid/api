@@ -9,7 +9,6 @@ source "${SCRIPT_DIR}/api_utils.sh"
 
 # Default paths
 DEPENDENCIES_DIR="/usr/local/unraid-api/node_modules"
-CONFIG_FILE="/usr/local/share/dynamix.unraid.net/config/vendor_archive.json"
 
 # Function to attempt redownload of vendor archive if missing
 # Args:
