@@ -12,7 +12,7 @@ import { useActivationCodeDataStore } from '~/components/Activation/store/activa
 import { RegistrationState } from '~/composables/gql/graphql';
 
 // Create a complete mock of UseQueryReturn with all required properties
-const createCompleteQueryMock = <T = any>(result: T = null as any, loading = false) => ({
+const createCompleteQueryMock = <T>(result: T | null = null, loading = false) => ({
   result: ref(result),
   loading: ref(loading),
   error: ref(null),
@@ -22,7 +22,7 @@ const createCompleteQueryMock = <T = any>(result: T = null as any, loading = fal
   document: ref(null),
   query: ref(null),
   forceDisabled: ref(false),
-  options: { errorPolicy: 'all' } as any,
+  options: { errorPolicy: 'all' as const },
   stop: vi.fn(),
   start: vi.fn(),
   restart: vi.fn(),
