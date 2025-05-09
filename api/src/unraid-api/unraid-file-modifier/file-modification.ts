@@ -4,6 +4,9 @@ import { access, readFile, unlink, writeFile } from 'fs/promises';
 import { basename, dirname, join } from 'path';
 
 import { applyPatch, createPatch, parsePatch, reversePatch } from 'diff';
+import { coerce, gte } from 'semver';
+
+import { getUnraidVersion } from '@app/common/dashboard/get-unraid-version.js';
 
 export interface ShouldApplyWithReason {
     shouldApply: boolean;
@@ -235,5 +238,17 @@ export abstract class FileModification {
             context: 5,
         });
         return patch;
+    }
+
+    protected async isUnraidVersionGreaterThanOrEqualTo(
+        version: string = '7.2.0',
+        { includePrerelease = true }: { includePrerelease?: boolean } = {}
+    ): Promise<boolean> {
+        const unraidVersion = coerce(await getUnraidVersion(), { includePrerelease });
+        const comparedVersion = coerce(version, { includePrerelease });
+        if (!unraidVersion || !comparedVersion) {
+            throw new Error('Failed to compare Unraid version');
+        }
+        return gte(unraidVersion, comparedVersion);
     }
 }

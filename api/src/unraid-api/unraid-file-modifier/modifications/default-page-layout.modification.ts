@@ -1,5 +1,8 @@
 import { readFile } from 'node:fs/promises';
 
+import { gte } from 'semver';
+
+import { getUnraidVersion } from '@app/common/dashboard/get-unraid-version.js';
 import {
     FileModification,
     ShouldApplyWithReason,
@@ -93,6 +96,16 @@ if (is_localhost() && !is_good_session()) {
     }
 
     async shouldApply(): Promise<ShouldApplyWithReason> {
+        // Check if system is running Unraid 7.2 or later
+        const isUnraidVersionGreaterThanOrEqualTo72 =
+            await this.isUnraidVersionGreaterThanOrEqualTo('7.2.0');
+        if (isUnraidVersionGreaterThanOrEqualTo72) {
+            return {
+                shouldApply: false,
+                reason: 'Skipping for Unraid 7.2 compatibility',
+            };
+        }
+
         return {
             shouldApply: true,
             reason: 'Always apply the allowed file changes to ensure compatibility.',

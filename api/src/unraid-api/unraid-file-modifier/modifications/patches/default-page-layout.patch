@@ -2,12 +2,12 @@ Index: /usr/local/emhttp/plugins/dynamix/include/DefaultPageLayout.php
 ===================================================================
 --- /usr/local/emhttp/plugins/dynamix/include/DefaultPageLayout.php	original
 +++ /usr/local/emhttp/plugins/dynamix/include/DefaultPageLayout.php	modified
-@@ -29,10 +29,28 @@
- // adjust the text color in docker log window
- $fgcolor = in_array($theme,['white','azure']) ? '#1c1c1c' : '#f2f2f2';
- exec("sed -ri 's/^\.logLine\{color:#......;/.logLine{color:$fgcolor;/' $docroot/plugins/dynamix.docker.manager/log.htm >/dev/null &");
- 
- function annotate($text) {echo "\n<!--\n",str_repeat("#",strlen($text)),"\n$text\n",str_repeat("#",strlen($text)),"\n-->\n";}
+@@ -69,10 +69,28 @@
+       array_splice($running,array_search($row,$running),1);
+     }
+   }
+   if (count($running)) file_put_contents($nchan_pid,implode("\n",$running)."\n"); else @unlink($nchan_pid);
+ }
 +
 +function is_localhost() {
 +  // Use the peer IP, not the Host header which can be spoofed
@@ -28,7 +28,7 @@ Index: /usr/local/emhttp/plugins/dynamix/include/DefaultPageLayout.php
 +}
  ?>
  <!DOCTYPE html>
- <html <?=$display['rtl']?>lang="<?=strtok($locale,'_')?:'en'?>" class="<?= $themeHtmlClass ?>">
+ <html <?=$display['rtl']?>lang="<?=strtok($locale, '_') ?: 'en'?>" class="<?= $themeHelper->getThemeHtmlClass() ?>">
  <head>
  <title><?=_var($var,'NAME')?>/<?=_var($myPage,'name')?></title>
 @@ -602,20 +620,11 @@

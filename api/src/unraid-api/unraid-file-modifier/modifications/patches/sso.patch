@@ -73,7 +73,7 @@ Index: /usr/local/emhttp/plugins/dynamix/include/.login.php
  
          // Successful login, start session
          @unlink($failFile);
-@@ -434,10 +485,11 @@
+@@ -437,10 +488,11 @@
                      </p>
                      <?php if ($error) { ?>
                          <p class="error"><?= $error ?></p>
