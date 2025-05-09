@@ -1,8 +1,5 @@
 import { readFile } from 'node:fs/promises';
 
-import { gte } from 'semver';
-
-import { getUnraidVersion } from '@app/common/dashboard/get-unraid-version.js';
 import {
     FileModification,
     ShouldApplyWithReason,

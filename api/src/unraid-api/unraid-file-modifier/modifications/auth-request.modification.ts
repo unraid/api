@@ -64,9 +64,15 @@ export default class AuthRequestModification extends FileModification {
     }
 
     async shouldApply(): Promise<ShouldApplyWithReason> {
+        if (await this.isUnraidVersionGreaterThanOrEqualTo('7.2.0')) {
+            return {
+                shouldApply: false,
+                reason: 'Unraid version is greater than or equal to 7.2.0, feature is built-in.',
+            };
+        }
         return {
             shouldApply: true,
-            reason: 'Always apply the allowed file changes to ensure compatibility.',
+            reason: 'Unraid version is less than 7.2.0, applying the patch.',
         };
     }
 }
