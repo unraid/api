@@ -38,7 +38,7 @@
     "build-storybook": "storybook build"
   },
   "peerDependencies": {
-    "tailwindcss": "^3.0.0",
+    "tailwindcss": "^4.0.0",
     "vue": "^3.3.0"
   },
   "dependencies": {
@@ -92,7 +92,7 @@
     "rimraf": "^6.0.1",
     "storybook": "^8.5.8",
     "tailwind-rem-to-rem": "github:unraid/tailwind-rem-to-rem",
-    "tailwindcss": "^3.0.0",
+    "tailwindcss": "^4.0.0",
     "tailwindcss-animate": "^1.0.7",
     "typescript": "^5.7.3",
     "typescript-eslint": "^8.13.0",
