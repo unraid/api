@@ -1,39 +1,23 @@
 <?xml version='1.0' standalone='yes'?>
 <!DOCTYPE PLUGIN [
-  <!ENTITY name "">
+  <!ENTITY name "dynamix.unraid.net">
   <!ENTITY launch "Connect">
   <!ENTITY author "limetech">
   <!ENTITY version "">
-  <!ENTITY pluginURL "">
-  <!ENTITY source "/boot/config/plugins/dynamix.my.servers/&name;">
-  <!ENTITY TXZ_SHA256 "">
-  <!-- Node.js Runtime. Required to run the Unraid API. -->
-  <!ENTITY NODEJS_VERSION "22.14.0">
-  <!-- Version is omitted from filename, so we don't need to search/delete other versions when updating the plugin. -->
-  <!ENTITY NODEJS_FILENAME "node-linux-x64.tar.xz">
-  <!-- To get SHA256:
-       wget https://nodejs.org/download/release/v22.14.0/node-v22.14.0-linux-x64.tar.xz
-       sha256sum node-v22.14.0-linux-x64.tar.xz
-  -->
-  <!ENTITY NODEJS_SHA256 "69b09dba5c8dcb05c4e4273a4340db1005abeafe3927efda2bc5b249e80437ec">
-  <!ENTITY NODEJS_TXZ "https://nodejs.org/download/release/v&NODEJS_VERSION;/node-v&NODEJS_VERSION;-linux-x64.tar.xz">
-  <!ENTITY MAIN_TXZ "">
-  <!-- PNPM package manager for Node.js. Decouples dependencies from MAIN_TXZ. Prevents supply chain attacks. -->
-  <!-- PNPM_BINARY is the filename of the binary on the boot drive. (In)validated via SHA256. -->
-  <!ENTITY PNPM_BINARY "/boot/config/plugins/dynamix.my.servers/pnpm-linuxstatic-x64">
-  <!ENTITY PNPM_BINARY_URL "https://github.com/pnpm/pnpm/releases/download/v10.7.0/pnpm-linuxstatic-x64">
-  <!ENTITY PNPM_BINARY_SHA256 "714f4c21b63f47ed415f2e59f4bf5c699aa4f58b4d88e15ce6c66cda5631ebb2">
-  <!-- VENDOR_STORE_URL points to an XZ tarball of vendored dependencies (i.e. global pnpm store), specific to the plugin version.
-       This archive may be updated after installation (e.g. when adding api plugins), so we don't verify its hash.
-       It is replaced only when the plugin/api is updated. -->
-  <!ENTITY VENDOR_STORE_URL "">
-  <!-- The archive's filename on the boot drive. Enables reproducible offline installs of the Unraid API. -->
-  <!ENTITY VENDOR_STORE_FILENAME "">
-  <!ENTITY TAG "">
-  <!ENTITY NODE_DIR "/usr/libexec/node">
+  <!ENTITY plugin_url "">
+  <!ENTITY source "/boot/config/plugins/dynamix.my.servers/&txz_name;">
+  <!ENTITY txz_sha256 "">
+  <!ENTITY txz_url "">
+  <!ENTITY txz_name "">
+  <!ENTITY vendor_store_url "">
+  <!ENTITY vendor_store_filename "">
+  <!ENTITY arch "x86_64">
+  <!ENTITY build "1">
+  <!ENTITY tag "">
+  <!ENTITY api_version "">
 ]>
 
-<PLUGIN name="&name;" author="&author;" version="&version;" pluginURL="&pluginURL;"
+<PLUGIN name="&name;" author="&author;" version="&version;" pluginURL="&plugin_url;"
   launch="&launch;" min="6.9.0-rc1" icon="globe">
 
   <CHANGES>
@@ -41,26 +25,7 @@
     - initial release
   </CHANGES>
 
-  <!-- prevent prod plugin from installing when staging already installed, and vice versa -->
-  <FILE Run="/bin/bash" Method="install">
-    <INLINE>
-      name="&name;" version="&version;" pluginURL="&pluginURL;"
-    <![CDATA[
-echo "Installing ${name}.plg ${version}"
-if [ -f /boot/config/plugins/dynamix.unraid.net.staging.plg ]; then
-  echo "ERROR: Cannot proceed with installation"
-  echo "Reason: Staging Unraid Connect plugin detected at /boot/config/plugins/dynamix.unraid.net.staging.plg"
-  echo "Action required: Please uninstall the existing Unraid Connect Staging plugin first"
-  echo "How to fix: Navigate to Plugins > Installed Plugins in the Unraid web GUI and remove the staging plugin"
-  echo "Use this URL to reinstall this plugin: ${pluginURL}"
-  exit 1
-fi
-exit 0
-]]>
-    </INLINE>
-  </FILE>
-
-  <!-- gzip check, DNS check, then validate files before doing anything destructive -->
+  <!-- Check disk space before installation -->
   <FILE Run="/bin/bash" Method="install">
     <INLINE>
       <![CDATA[
@@ -78,117 +43,22 @@ if [ "$FREE_SPACE" -lt 300 ]; then
 fi
 echo "ok. (${FREE_SPACE}MB free)"
 
-version=
-# shellcheck disable=SC1091
-source /etc/unraid-version
-
-# ensure gzip is available and executes, is needed by '/etc/rc.d/rc.unraid-api install'
-if [ ! -x /bin/gzip ] || ! /bin/gzip -V &>/dev/null; then
-  echo "⚠️ Unable to install as gzip is not available on this system. For help, post your diagnostics.zip to a new support thread in the forum."
-  exit 1
-fi
-
-dnscheck() {
-  HOST=$1
-  if [ -x /usr/bin/host ] && ! /usr/bin/host -W 10 "${HOST}" &>/dev/null; then
-    echo "⚠️ Warning: Your DNS server (${DNS_SERVER1}) is unable to resolve '${HOST}'" 
-    DNSERR=yes
-  fi
-}
-
-# shellcheck disable=SC1090
-source <(grep "DNS_SERVER1" /usr/local/emhttp/state/network.ini 2>/dev/null)
-DNSERR=no
-
-echo "Checking DNS..."
-dnscheck "mothership.unraid.net"
-
-[[ "${DNSERR}" == "yes" && "${DNS_SERVER1}" != "8.8.8.8" ]] && echo "  Recommend navigating to Settings -> Network Settings and changing your DNS server to 8.8.8.8"
-# Note: DNS checks will fail if the network is not available at boot. Cannot exit the install when DNS checks fail.
-
 exit 0
 ]]>
     </INLINE>
   </FILE>
-  <FILE Name="/boot/config/plugins/dynamix.my.servers/&NODEJS_FILENAME;">
-    <URL>&NODEJS_TXZ;</URL>
-    <SHA256>&NODEJS_SHA256;</SHA256>
-  </FILE>
-  <FILE Name="&PNPM_BINARY;">
-    <URL>&PNPM_BINARY_URL;</URL>
-    <SHA256>&PNPM_BINARY_SHA256;</SHA256>
-  </FILE>
-  <FILE Name="/boot/config/plugins/dynamix.my.servers/&VENDOR_STORE_FILENAME;">
-    <URL>&VENDOR_STORE_URL;</URL>
-  </FILE>
-  <FILE Run="/bin/bash" Method="install">
-    <INLINE>
-      NODE_FILE="&NODEJS_FILENAME;"
-      VENDOR_ARCHIVE="&VENDOR_STORE_FILENAME;"
-      NODE_DIR="&NODE_DIR;"
-      <![CDATA[
-        # Check if the Node.js archive exists
-        if [[ ! -f "/boot/config/plugins/dynamix.my.servers/${NODE_FILE}" ]]; then
-          echo "Node.js archive not found at /boot/config/plugins/dynamix.my.servers/${NODE_FILE}"
-          exit 1
-        fi
-
-        # Perform a dry run to verify the archive is valid
-        if ! tar --strip-components=1 -tf "/boot/config/plugins/dynamix.my.servers/${NODE_FILE}" > /dev/null; then
-          echo "Node.js archive is corrupt or invalid"
-          exit 1
-        fi
-
-        # Create the target directory if it doesn't exist
-        mkdir -p "${NODE_DIR}" || { echo "Failed to create ${NODE_DIR}"; exit 1; }
-
-        # Extract the archive to the target directory
-        if ! tar --strip-components=1 -xf "/boot/config/plugins/dynamix.my.servers/${NODE_FILE}" -C "${NODE_DIR}"; then
-          echo "Failed to extract Node.js archive"
-          exit 1
-        fi
-
-        # Remove all node js archives from the flashdrive that do not match the expected version
-        # deprecated Apr 2025. kept to remove unused archives for users upgrading from versioned node downloads.
-        find /boot/config/plugins/dynamix.my.servers/ -name "node-v*-linux-x64.tar.xz" ! -name "${NODE_FILE}" -delete
-
-        # Remove stale pnpm store and node_modules archives from the boot drive
-        find /boot/config/plugins/dynamix.my.servers/ -name "pnpm-store-for-v*.txz" ! -name "${VENDOR_ARCHIVE}" -delete
-        find /boot/config/plugins/dynamix.my.servers/ -name "node_modules-for-v*.tar.xz" ! -name "${VENDOR_ARCHIVE}" -delete
-
-        # Remove the legacy node directory
-        rm -rf /usr/local/node
-
-        echo "Node.js installation successful"
-
-        exit 0
-      ]]>
-    </INLINE>
+  
+  <FILE Name="/boot/config/plugins/dynamix.my.servers/&vendor_store_filename;">
+    <URL>&vendor_store_url;</URL>
   </FILE>
 
   <!-- download main txz -->
-  <FILE Name="&source;.txz">
-    <URL>&MAIN_TXZ;</URL>
-    <SHA256>&TXZ_SHA256;</SHA256>
+  <FILE Name="&source;">
+    <URL>&txz_url;</URL>
+    <SHA256>&txz_sha256;</SHA256>
   </FILE>
 
-  <FILE Run="/bin/bash" Method="remove">
-    <INLINE>
-      <![CDATA[
-version=
-# shellcheck disable=SC1091
-source /etc/unraid-version
-
-# Run cleanup operations
-echo "Performing cleanup operations..."
-/usr/bin/php /usr/local/emhttp/plugins/dynamix.my.servers/scripts/cleanup_operations.php
-
-exit 0
-]]>
-    </INLINE>
-  </FILE>
-
-  <!-- Cleanup for install on unsupported OS -->
+  <!-- Check for compatible Unraid version -->
   <FILE Run="/usr/bin/php" Method="install">
     <INLINE>
       <![CDATA[
@@ -202,49 +72,75 @@ $version = @parse_ini_file('/etc/unraid-version', true)['version'];
 $is_stable_6_12_or_higher = version_compare($version, '6.12.0', '>=') && !preg_match('/^6\\.12\\.0-/', $version);
 
 if ($is_stable_6_12_or_higher) {
-  echo "Running on supported version {$version}, skipping cleanup\n";
+  echo "Running on supported version {$version}\n";
   exit(0);
 }
 
-echo "Running on unsupported version {$version}, performing cleanup\n";
-echo "Running cleanup operations...\n";
-include_once("/usr/local/emhttp/plugins/dynamix.my.servers/scripts/cleanup_operations.php");
+echo "Warning: Unsupported Unraid version {$version}. This plugin requires Unraid 6.12.0 or higher.\n";
+echo "The plugin may not function correctly on this system.\n";
 
 exit(0);
 ]]>
     </INLINE>
   </FILE>
 
-  <!-- uninstall existing plugin during update or removal -->
-  <FILE Run="/bin/bash" Method="install remove">
+  <!-- Backup files before installation -->
+  <FILE Run="/bin/bash" Method="install">
     <INLINE>
-    <![CDATA[
-echo "Uninstalling existing plugin"
-version=
-# shellcheck disable=SC1091
-source /etc/unraid-version
+      <![CDATA[
+echo "Backing up original files..."
 
-if [ -e /etc/rc.d/rc.unraid-api ]; then
-  touch /tmp/restore-files-dynamix-unraid-net
-  # stop flash backup
-  /etc/rc.d/rc.flash_backup stop &>/dev/null
-  # stop the api gracefully
-  /etc/rc.d/rc.unraid-api stop &>/dev/null
-  # Stop newer clients
-  unraid-api stop
-  # forcibly stop older clients
-  kill -9 `pidof unraid-api` &>/dev/null
-  # Find all PIDs referencing main.js and kill them, excluding grep process
-  pids=$(ps aux | grep "node /usr/local/unraid-api/dist/main.js" | grep -v grep | awk '{print $2}')
-  for pid in $pids; do
-    kill -9 $pid
-  done
-  # uninstall the api
-  rm -rf /usr/local/unraid-api
-  rm -rf /var/run/unraid-api.sock
-  rm -rf /usr/.pnpm-store
+# Define files to backup in a shell variable
+FILES_TO_BACKUP=(
+  "/usr/local/emhttp/plugins/dynamix/DisplaySettings.page"
+  "/usr/local/emhttp/plugins/dynamix/Registration.page"
+  "/usr/local/emhttp/plugins/dynamix/include/DefaultPageLayout.php"
+  "/usr/local/emhttp/plugins/dynamix/include/ProvisionCert.php"
+  "/usr/local/emhttp/plugins/dynamix/include/UpdateDNS.php"
+  "/usr/local/emhttp/plugins/dynamix/include/ReplaceKey.php"
+  "/usr/local/emhttp/plugins/dynamix/include/Wrappers.php"
+  "/usr/local/emhttp/plugins/dynamix.plugin.manager/Downgrade.page"
+  "/usr/local/emhttp/plugins/dynamix.plugin.manager/Update.page"
+  "/usr/local/emhttp/plugins/dynamix.plugin.manager/include/ShowChanges.php"
+  "/usr/local/emhttp/plugins/dynamix.plugin.manager/scripts/showchanges"
+  "/usr/local/emhttp/plugins/dynamix.plugin.manager/scripts/unraidcheck"
+  "/usr/local/emhttp/plugins/dynamix.plugin.manager/include/UnraidCheck.php"
+  "/usr/local/emhttp/plugins/dynamix.plugin.manager/include/UnraidCheckExec.php"
+  "/usr/local/emhttp/plugins/dynamix.my.servers/Connect.page"
+  "/usr/local/emhttp/plugins/dynamix.my.servers/MyServers.page"
+  "/usr/local/emhttp/plugins/dynamix.my.servers/Registration.page"
+  "/usr/local/emhttp/plugins/dynamix.my.servers/include/myservers1.php"
+  "/usr/local/emhttp/plugins/dynamix.my.servers/include/myservers2.php"
+  "/usr/local/emhttp/plugins/dynamix.my.servers/include/state.php"
+  "/usr/local/emhttp/plugins/dynamix.my.servers/data/server-state.php"
+  "/usr/local/emhttp/plugins/dynamix.my.servers/include/reboot-details.php"
+  "/usr/local/emhttp/plugins/dynamix.my.servers/include/translations.php"
+  "/usr/local/emhttp/plugins/dynamix.my.servers/include/web-components-extractor.php"
+  "/usr/local/emhttp/update.htm"
+  "/usr/local/emhttp/logging.htm"
+  "/etc/nginx/nginx.conf"
+  "/etc/rc.d/rc.nginx"
+  "/usr/share/mozilla/firefox/9n35r0i1.default/user.js"
+)
+
+# Backup each file if it exists and doesn't already have a backup
+for FILE in "${FILES_TO_BACKUP[@]}"; do
+  if [ -f "$FILE" ] && [ ! -f "$FILE-" ]; then
+    cp -p "$FILE" "$FILE-"
+    echo "Backed up: $FILE"
+  fi
+done
+
+# Handle the unraid-components directory
+DIR=/usr/local/emhttp/plugins/dynamix.my.servers/unraid-components
+if [ -d "$DIR" ] && [ ! -d "$DIR-" ]; then
+  cp -rp "$DIR" "$DIR-"
+  echo "Backed up directory: $DIR"
 fi
-    ]]>
+
+echo "Backup complete."
+exit 0
+]]>
     </INLINE>
   </FILE>
 
@@ -253,591 +149,116 @@ fi
       MAINNAME="&name;"
       <![CDATA[
       echo "Removing Plugin"
-      [[ -f "/var/log/packages/${MAINNAME}" ]] && removepkg --terse "${MAINNAME}"
+      
+      # Find any installed dynamix.unraid.net package
+      pkg_installed=$(ls -1 /var/log/packages/dynamix.unraid.net* 2>/dev/null | head -1)
+      if [ -n "$pkg_installed" ]; then
+        pkg_basename=$(basename "$pkg_installed")
+        echo "Removing package: $pkg_basename"
+        removepkg --terse "$pkg_basename"
+      else
+        echo "No dynamix.unraid.net package found. Trying with basic package name."
+        removepkg --terse "${MAINNAME}"
+      fi
+
+      # File restoration function
+      echo "Restoring files..."
+      
+      # Define files to restore in a shell variable - must match backup list
+      FILES_TO_RESTORE=(
+        "/usr/local/emhttp/plugins/dynamix/DisplaySettings.page"
+        "/usr/local/emhttp/plugins/dynamix/Registration.page"
+        "/usr/local/emhttp/plugins/dynamix/include/DefaultPageLayout.php"
+        "/usr/local/emhttp/plugins/dynamix/include/ProvisionCert.php"
+        "/usr/local/emhttp/plugins/dynamix/include/UpdateDNS.php"
+        "/usr/local/emhttp/plugins/dynamix/include/ReplaceKey.php"
+        "/usr/local/emhttp/plugins/dynamix/include/Wrappers.php"
+        "/usr/local/emhttp/plugins/dynamix.plugin.manager/Downgrade.page"
+        "/usr/local/emhttp/plugins/dynamix.plugin.manager/Update.page"
+        "/usr/local/emhttp/plugins/dynamix.plugin.manager/include/ShowChanges.php"
+        "/usr/local/emhttp/plugins/dynamix.plugin.manager/scripts/showchanges"
+        "/usr/local/emhttp/plugins/dynamix.plugin.manager/scripts/unraidcheck"
+        "/usr/local/emhttp/plugins/dynamix.plugin.manager/include/UnraidCheck.php"
+        "/usr/local/emhttp/plugins/dynamix.plugin.manager/include/UnraidCheckExec.php"
+        "/usr/local/emhttp/plugins/dynamix.my.servers/Connect.page"
+        "/usr/local/emhttp/plugins/dynamix.my.servers/MyServers.page"
+        "/usr/local/emhttp/plugins/dynamix.my.servers/Registration.page"
+        "/usr/local/emhttp/plugins/dynamix.my.servers/include/myservers1.php"
+        "/usr/local/emhttp/plugins/dynamix.my.servers/include/myservers2.php"
+        "/usr/local/emhttp/plugins/dynamix.my.servers/include/state.php"
+        "/usr/local/emhttp/plugins/dynamix.my.servers/data/server-state.php"
+        "/usr/local/emhttp/plugins/dynamix.my.servers/include/reboot-details.php"
+        "/usr/local/emhttp/plugins/dynamix.my.servers/include/translations.php"
+        "/usr/local/emhttp/plugins/dynamix.my.servers/include/web-components-extractor.php"
+        "/usr/local/emhttp/update.htm"
+        "/usr/local/emhttp/logging.htm"
+        "/etc/nginx/nginx.conf"
+        "/etc/rc.d/rc.nginx"
+        "/usr/share/mozilla/firefox/9n35r0i1.default/user.js"
+      )
+      
+      # Restore each file if backup exists
+      for FILE in "${FILES_TO_RESTORE[@]}"; do
+        [ -f "$FILE-" ] && mv -f "$FILE-" "$FILE"
+      done
+      
+      # Handle the unraid-components directory
+      DIR=/usr/local/emhttp/plugins/dynamix.my.servers/unraid-components
+      # certain instances where the directory is not present and others where it is, ensure we delete it before we restore it
+      if [ -d "$DIR" ]; then
+        rm -rf "$DIR"
+      fi
+      if [ -d "$DIR-" ]; then
+        mv -f "$DIR-" "$DIR"
+      fi
       ]]>
-    </INLINE>
-  </FILE>
-
-  <!-- uninstall existing plugin during removal -->
-  <FILE Run="/bin/bash" Method="install remove">
-    <INLINE>
-    <![CDATA[
-    echo "Restoring Files"
-
-if [ -f /tmp/restore-files-dynamix-unraid-net ]; then
-  # restore stock files
-  FILES_TO_RESTORE=(
-    "/usr/local/emhttp/plugins/dynamix/DisplaySettings.page"
-    "/usr/local/emhttp/plugins/dynamix/Registration.page"
-    "/usr/local/emhttp/plugins/dynamix/include/DefaultPageLayout.php"
-    "/usr/local/emhttp/plugins/dynamix/include/ProvisionCert.php"
-    "/usr/local/emhttp/plugins/dynamix/include/UpdateDNS.php"
-    "/usr/local/emhttp/plugins/dynamix/include/ReplaceKey.php"
-    "/usr/local/emhttp/plugins/dynamix/include/Wrappers.php"
-    "/usr/local/emhttp/plugins/dynamix.plugin.manager/Downgrade.page"
-    "/usr/local/emhttp/plugins/dynamix.plugin.manager/Update.page"
-    "/usr/local/emhttp/plugins/dynamix.plugin.manager/include/ShowChanges.php"
-    "/usr/local/emhttp/plugins/dynamix.plugin.manager/scripts/showchanges"
-    "/usr/local/emhttp/plugins/dynamix.plugin.manager/scripts/unraidcheck"
-    "/usr/local/emhttp/plugins/dynamix.plugin.manager/include/UnraidCheck.php"
-    "/usr/local/emhttp/plugins/dynamix.plugin.manager/include/UnraidCheckExec.php"
-    "/usr/local/emhttp/plugins/dynamix.my.servers/Connect.page"
-    "/usr/local/emhttp/plugins/dynamix.my.servers/MyServers.page"
-    "/usr/local/emhttp/plugins/dynamix.my.servers/Registration.page"
-    "/usr/local/emhttp/plugins/dynamix.my.servers/include/myservers1.php"
-    "/usr/local/emhttp/plugins/dynamix.my.servers/include/myservers2.php"
-    "/usr/local/emhttp/plugins/dynamix.my.servers/include/state.php"
-    "/usr/local/emhttp/plugins/dynamix.my.servers/data/server-state.php"
-    "/usr/local/emhttp/plugins/dynamix.my.servers/include/reboot-details.php"
-    "/usr/local/emhttp/plugins/dynamix.my.servers/include/translations.php"
-    "/usr/local/emhttp/plugins/dynamix.my.servers/include/web-components-extractor.php"
-  )
-
-  for FILE in "${FILES_TO_RESTORE[@]}"; do
-    [[ -f "$FILE-" ]] && mv -f "$FILE-" "$FILE"
-  done
-  
-  DIR=/usr/local/emhttp/plugins/dynamix.my.servers/unraid-components
-  # certain instances where the directory is not present and others where it is, ensure we delete it before we restore it
-  if [[ -d "$DIR" ]]; then
-    rm -rf "$DIR"
-  fi
-  if [[ -d "$DIR-" ]]; then
-    mv -f "$DIR-" "$DIR"
-  fi
-  # delete plugin files from flash drive and OS
-  rm -f /boot/config/plugins/dynamix.my.servers/.gitignore
-  rm -f /etc/rc.d/rc.unraid-api
-  rm -f /etc/rc.d/rc.flash_backup
-  rm -rf /usr/local/sbin/unraid-api
-  rm -rf /usr/local/bin/unraid-api
-  rm -rf /usr/local/emhttp/plugins/dynamix.unraid.net
-  rm -rf /usr/local/emhttp/plugins/dynamix.unraid.net.staging
-  rm -f /etc/rc.d/rc6.d/K10_flash_backup
-  rm -f /var/log/gitcount
-  rm -f /var/log/gitflash
-  rm -f /var/log/gitratelimit
-  rm -f /usr/local/emhttp/state/flashbackup.ini
-  rm -f /usr/local/emhttp/state/myservers.cfg
-  # delete any legacy files that may exist
-  rm -rf /boot/config/plugins/dynamix.my.servers/libvirt.node
-  rm -rf /boot/config/plugins/dynamix.my.servers/segfault-handler.node
-  rm -rf /boot/config/plugins/dynamix.my.servers/wc
-  rm -f /boot/config/plugins/Unraid.net/unraid-api.tgz
-  rm -f /boot/config/plugins/Unraid.net/.gitignore
-  rm -f /boot/config/plugins/dynamix.my.servers/unraid-api.tgz
-  rm -rf /boot/config/plugins/Unraid.net/webComps
-  rm -rf /boot/config/plugins/Unraid.net/wc
-  rm -f /usr/local/emhttp/webGui/javascript/vue.js
-  rm -f /usr/local/emhttp/webGui/javascript/vue.min.js
-  rm -rf /usr/local/emhttp/webGui/webComps
-  rm -rf /usr/local/emhttp/webGui/wc
-  # clean up our optional makestate modifications in rc.nginx (on 6.9 and 6.10.0-rc[12])
-  sed -i '/scripts\/makestate/d' /etc/rc.d/rc.nginx
-  # clean up extra origin for robots.txt
-  sed -i '#robots.txt any origin/d' /etc/rc.d/rc.nginx
-  rm /tmp/restore-files-dynamix-unraid-net
-fi
-exit 0
-]]>
     </INLINE>
   </FILE>
 
   <!-- install all the things -->
   <FILE Run="/bin/bash" Method="install">
     <INLINE>
-      TAG="&TAG;" MAINTXZ="&source;.txz"
-      VENDOR_ARCHIVE="/boot/config/plugins/dynamix.my.servers/&VENDOR_STORE_FILENAME;"
-      PNPM_BINARY_FILE="&PNPM_BINARY;"
-      NODE_DIR="&NODE_DIR;"
+      TAG="&tag;" 
+      PKG_FILE="&source;"      # Full path to the package file including .txz extension
+      PKG_URL="&txz_url;"      # URL where package was downloaded from
+      PKG_NAME="&txz_name;"    # Name of the package file
+      VENDOR_ARCHIVE="/boot/config/plugins/dynamix.my.servers/&vendor_store_filename;"
     <![CDATA[
-appendTextIfMissing() {
-  FILE="$1" TEXT="$2"
-  if test -f "${FILE}" && ! grep -q "${TEXT}" "${FILE}" &>/dev/null; then
-    echo "${TEXT}">>"${FILE}"
-  fi
-}
-source /root/.bashrc
-
-
-version=
-# shellcheck disable=SC1091
-source /etc/unraid-version
-# exit this install block on isUnsupportedVersion
-# must be 6.12.0 or higher (not 6.12.0-[beta|rc]x)
-if [[ "${version:0:3}" == "6.9" || "${version:0:4}" == "6.10" || "${version:0:4}" == "6.11" || "${version:0:7}" == "6.12.0-" ]]; then
-  echo
-  echo "⚠️ Please uninstall this plugin or upgrade to a newer version of Unraid to enjoy Unraid Connect"
-  echo
-  echo "✅ It is safe to close this window"
-  echo
-
-  DIR="/usr/local/emhttp/plugins/dynamix.unraid.net" && [[ ! -d "$DIR" ]] && mkdir "$DIR"
-cat << EOF > "$DIR/README.md"
-**Unraid Connect**
-
-Please uninstall this plugin or upgrade to a newer version of Unraid to enjoy Unraid Connect
-EOF
-  # exit 0 or else the original plugin will be reinstalled at boot
-  exit 0
-fi
-
-
-# NOTE: any 'exit 1' after this point will result in a broken install
-
-# Loop through the array of preserveFilesDirs and perform actions
-# string param format
-# "{move|copy|move_dir}:{path}:{preventDowngrade|skip}"
-# move: move the file to a backup file
-# copy: copy the file to a backup file
-# move_dir: move the directory to a backup directory
-# preventDowngrade: during plg install, if the file exists, do not overwrite it if the plg manifest version is less than the installed webgui version
-# skip: do not perform any action if there is a manifest version difference
-preserveFilesDirs=(
-  "move:/usr/local/emhttp/plugins/dynamix/Registration.page:preventDowngrade"
-  "move:/usr/local/emhttp/plugins/dynamix/include/UpdateDNS.php:preventDowngrade"
-  "move:/usr/local/emhttp/plugins/dynamix/include/ReplaceKey.php:preventDowngrade"
-  "move:/usr/local/emhttp/plugins/dynamix.plugin.manager/Downgrade.page:preventDowngrade"
-  "move:/usr/local/emhttp/plugins/dynamix.plugin.manager/Update.page:preventDowngrade"
-  "move:/usr/local/emhttp/plugins/dynamix.plugin.manager/scripts/unraidcheck:preventDowngrade"
-  "move:/usr/local/emhttp/plugins/dynamix.plugin.manager/include/UnraidCheck.php:preventDowngrade"
-  "move:/usr/local/emhttp/plugins/dynamix.plugin.manager/include/UnraidCheckExec.php:preventDowngrade"
-  "move:/usr/local/emhttp/plugins/dynamix.my.servers/MyServers.page:skip"
-  "move:/usr/local/emhttp/plugins/dynamix.my.servers/Connect.page:skip"
-  "move:/usr/local/emhttp/plugins/dynamix.my.servers/Registration.page:preventDowngrade"
-  "move:/usr/local/emhttp/plugins/dynamix.my.servers/include/myservers1.php:preventDowngrade"
-  "move:/usr/local/emhttp/plugins/dynamix.my.servers/include/myservers2.php:preventDowngrade"
-  "move:/usr/local/emhttp/plugins/dynamix.my.servers/include/state.php:preventDowngrade"
-  "move_dir:/usr/local/emhttp/plugins/dynamix.my.servers/unraid-components:move_dir:preventDowngrade"
-  "move:/usr/local/emhttp/plugins/dynamix.my.servers/data/server-state.php:preventDowngrade"
-  "move:/usr/local/emhttp/plugins/dynamix.my.servers/include/reboot-details.php:preventDowngrade"
-  "move:/usr/local/emhttp/plugins/dynamix.my.servers/include/translations.php:preventDowngrade"
-  "move:/usr/local/emhttp/plugins/dynamix.my.servers/include/web-components-extractor.php:preventDowngrade"
-  "copy:/usr/local/emhttp/plugins/dynamix/include/DefaultPageLayout.php:preventDowngrade"
-)
-
-preserveAction() {
-    local action="$1"
-    local path="$2"
-    local preventType="$3" # preventDowngrade or skip
-
-    if [[ "$action" == "move" ]]; then
-        [[ -f "$path" ]] && mv -f "$path" "$path-"
-    elif [[ "$action" == "copy" ]]; then
-        [[ -f "$path" ]] && cp -f "$path" "$path-"
-    elif [[ "$action" == "move_dir" ]]; then
-        [[ -d "$path" ]] && mv -f "$path" "$path-"
-    fi
-}
-
-# Loop through the array of preserveFilesDirs and perform actions
-for obj in "${preserveFilesDirs[@]}"
-do
-    IFS=':' read -r action path preventType <<< "$obj"
-    preserveAction "$action" "$path" "$preventType"
-done
-
-# patch DefaultPageLayout.php
-# search text:       <?=_('Version')?>: <?=_var($var,'version','?')?><?=$notes?>
-#                    <?=_('Version')?>: <?=$var['version']?><?=$notes?>
-# replacement text:  <unraid-i18n-host><unraid-header-os-version></unraid-header-os-version></unraid-i18n-host>
-FILE=/usr/local/emhttp/plugins/dynamix/include/DefaultPageLayout.php
-# get line number matching the search text
-# shellcheck disable=SC2016
-LINENUM=$(grep -n '<?=_('"'Version'"')?>: <?=_var($var,'"'version'"','"'?'"')?><?=$notes?>' "$FILE" | cut -d : -f 1)
-# shellcheck disable=SC2016
-[[ -z $LINENUM ]] && LINENUM=$(grep -n '<?=_('"'Version'"')?>: <?=$var\['"'version'"']?><?=$notes?>' "$FILE" | cut -d : -f 1)
-if [[ -n $LINENUM ]]; then
-  # backup the file so it can be restored later
-  cp -f "$FILE" "$FILE-"
-  # sed should work, but it is very difficult to escape the search text
-  # instead, make a new file containing everything before LINENUM, then the replacement text, then everything after LINENUM
-  head -$((LINENUM-1)) "$FILE"> "$FILE~"
-  echo '<unraid-i18n-host><unraid-header-os-version></unraid-header-os-version></unraid-i18n-host>' >> "$FILE~"
-  tail +$((LINENUM+1)) "$FILE">> "$FILE~"
-
-  # disable these lines: <?$readme = @file_get_contents("$docroot/plugins/unRAIDServer/README.md",false,null,0,20)?:''?>
-  #                      <?$readme = @file_get_contents("$docroot/plugins/unRAIDServer/README.md",false,null,0,20)??'';?>
-  #                      <?$readme = @file_get_contents("$docroot/plugins/unRAIDServer/README.md",false,null,0,20);?>
-  # by replacing with:   <?$readme ="removed by Connect";?>
-  sed -i '/unRAIDServer\/README\.md/c\<?$readme ="removed by Connect";?>' "$FILE~"
-
-  mv -f "$FILE~" "$FILE"
-fi
-
-# patch: showchanges, starting with 6.11.0-rc1
-#        ShowChanges.php, in 6.10
-# search text:       $valid = ['/var/tmp/','/tmp/plugins/'];
-# replacement text:  $valid = ['/var/tmp/','/tmp/plugins/','/boot/previous'];
-FILES=(/usr/local/emhttp/plugins/dynamix.plugin.manager/scripts/showchanges /usr/local/emhttp/plugins/dynamix.plugin.manager/include/ShowChanges.php)
-for FILE in "${FILES[@]}"; do
-  if test -f "${FILE}" && ! grep -q "'/boot/previous'" "${FILE}" &>/dev/null; then
-    # backup the file so it can be restored later
-    cp -f "$FILE" "$FILE-"
-    sed -i '/$valid = \[/c$valid = ['"'/var/tmp/'"','"'/tmp/plugins/'"','"'/boot/previous'"'];' "$FILE"
+# Install the Slackware package
+echo "Installing package..."
+# Clean up any old package txz files if they don't match our current version
+for txz_file in /boot/config/plugins/dynamix.my.servers/dynamix.unraid.net-*.txz; do
+  if [ -f "$txz_file" ] && [ "$txz_file" != "${PKG_FILE}" ]; then
+    echo "Removing old package file: $txz_file"
+    rm -f "$txz_file"
   fi
 done
 
-# remove keys.limetechnology.com from hosts file
-# brings older versions of Unraid in sync with 6.12.12
-# no need to restore original file on uninstall
-if grep -q "keys.lime-technology.com" /etc/hosts &>/dev/null; then sed -i "/keys.lime-technology.com/d" /etc/hosts &>/dev/null; fi
-
-# patch ProvisionCert.php
-# search text:       curl_init("https://keys.lime-technology.com/account/ssl/provisionwildcard")
-#                    curl_init("https://keys.lime-technology.com/account/ssl/$endpoint");
-# prepend text:      see $ADDTEXT4
-ADDTEXT4=$(
-cat <<'END_HEREDOC'
-// added by Unraid Connect
-// ensure keys.lime-technology.com is not hard-coded in the hosts file
-exec('if grep -q "keys.lime-technology.com" /etc/hosts &>/dev/null; then sed -i "/keys.lime-technology.com/d" /etc/hosts &>/dev/null; fi');
-END_HEREDOC
-)
-FILE=/usr/local/emhttp/plugins/dynamix/include/ProvisionCert.php
-# get line number matching the search text
-# shellcheck disable=SC2016
-LINENUM=$(grep -n 'curl_init("https://keys.lime-technology.com/account/ssl/provisionwildcard")' "$FILE" | cut -d : -f 1)
-[[ -z $LINENUM ]] && LINENUM=$(grep -n 'curl_init("https://keys.lime-technology.com/account/ssl/$endpoint")' "$FILE" | cut -d : -f 1)
-if [[ -n $LINENUM ]]; then
-  # backup the file so it can be restored later
-  cp -f "$FILE" "$FILE-"
-  # sed should work, but it is very difficult to escape
-  # instead, make a new file containing everything before LINENUM, then the new text, then everything including and after LINENUM
-  head -$((LINENUM-1)) "$FILE"> "$FILE~"
-  echo "$ADDTEXT4">> "$FILE~"
-  echo "">> "$FILE~"
-  tail +$LINENUM "$FILE">> "$FILE~"
-  mv -f "$FILE~" "$FILE"
+# Install the package using the explicit file path
+upgradepkg --install-new --reinstall "${PKG_FILE}"
+if [ $? -ne 0 ]; then
+  echo "⚠️ Package installation failed"
+  exit 1
 fi
-
-# move settings on flash drive
-CFG_OLD=/boot/config/plugins/Unraid.net
-CFG_NEW=/boot/config/plugins/dynamix.my.servers
-[[ -d "$CFG_OLD" ]] && [[ ! -d "$CFG_NEW" ]] && mv "$CFG_OLD" "$CFG_NEW"
-
-
-# relax restrictions on built-in Firefox so it can sign in to Unraid Connect
-# brings older versions of Unraid in sync with 6.12.0
-# no need to restore original file on uninstall
-# note: if file is modified while Firefox is open it will have no effect, reboot to change the file before Firefox is loaded
-# note: prior to 6.12, file will only exist if system is booted in GUI Mode
-FILE=/usr/share/mozilla/firefox/9n35r0i1.default/user.js
-if [[ -f "$FILE" ]]; then
-  cp -f "$FILE" "$FILE-"
-  appendTextIfMissing "${FILE}" 'user_pref("privacy.firstparty.isolate", false);'
-  appendTextIfMissing "${FILE}" 'user_pref("javascript.options.asmjs", true);'
-  appendTextIfMissing "${FILE}" 'user_pref("javascript.options.wasm", true);'
-fi
-
-# fix update.htm to work in an iframe
-# brings older versions of Unraid in sync with 6.12.0
-# no need to restore original file on uninstall, will cause issues if uninstall from within an iframe
-FILE=/usr/local/emhttp/update.htm
-if test -f "${FILE}" && grep -q "top.document" "${FILE}" &>/dev/null; then
-  cp -f "$FILE" "$FILE-"
-  sed -i 's/top.document/parent.document/gm' "${FILE}"
-fi
-
-# fix logging.htm (openBox) to work in an iframe
-# brings older versions of Unraid in sync with 6.12.0
-# no need to restore original file on uninstall
-FILE=/usr/local/emhttp/logging.htm
-if test -f "${FILE}" && grep -q "top.Shadowbox" "${FILE}" &>/dev/null; then
-  cp -f "$FILE" "$FILE-"
-  sed -i 's/top.Shadowbox/parent.Shadowbox/gm' "${FILE}"
-fi
-
-# ensure _var() is defined, brings older versions of Unraid in sync with 6.12.0
-FILE=/usr/local/emhttp/plugins/dynamix/include/Wrappers.php
-if test -f "${FILE}" && ! grep -q "function _var" "${FILE}" &>/dev/null; then
-ADDTEXT1=$(
-cat <<'END_HEREDOC'
-// backported by Unraid Connect
-function _var(&$name, $key=null, $default='') {
-  return is_null($key) ? ($name ?? $default) : ($name[$key] ?? $default);
-}
-END_HEREDOC
-)
-fi
-# ensure my_logger() is defined, brings older versions of Unraid in sync with 6.13.0
-if test -f "${FILE}" && ! grep -q "function my_logger" "${FILE}" &>/dev/null; then
-ADDTEXT2=$(
-cat <<'END_HEREDOC'
-// backported by Unraid Connect
-// ensure params passed to logger are properly escaped
-function my_logger($message, $logger='webgui') {
-  exec('logger -t '.escapeshellarg($logger).' -- '.escapeshellarg($message));
-}
-END_HEREDOC
-)
-fi
-# ensure http_get_contents() is defined, brings older versions of Unraid in sync with 6.13.0
-if test -f "${FILE}" && ! grep -q "function http_get_contents" "${FILE}" &>/dev/null; then
-ADDTEXT3=$(
-cat <<'END_HEREDOC'
-// backported by Unraid Connect
-// Original PHP code by Chirp Internet: www.chirpinternet.eu
-// Please acknowledge use of this code by including this header.
-// https://www.the-art-of-web.com/php/http-get-contents/
-// Modified for Unraid
-/**
- * Fetches URL and returns content
- * @param string $url The URL to fetch
- * @param array $opts Array of options to pass to curl_setopt()
- * @param array $getinfo Empty array passed by reference, will contain results of curl_getinfo and curl_error
- * @return string|false $out The fetched content
- */
-function http_get_contents(string $url, array $opts = [], array &$getinfo = NULL) {
-  $ch = curl_init();
-  if(isset($getinfo)) {
-    curl_setopt($ch, CURLINFO_HEADER_OUT, TRUE);
-  }
-  curl_setopt($ch, CURLOPT_URL, $url);
-  curl_setopt($ch, CURLOPT_FRESH_CONNECT, true);
-  curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-  curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 15);
-  curl_setopt($ch, CURLOPT_TIMEOUT, 45);
-  curl_setopt($ch, CURLOPT_ENCODING, "");
-  curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
-  curl_setopt($ch, CURLOPT_REFERER, "");
-  curl_setopt($ch, CURLOPT_FAILONERROR, true);
-  curl_setopt($ch, CURLOPT_USERAGENT, 'Unraid');
-  if(is_array($opts) && $opts) {
-    foreach($opts as $key => $val) {
-      curl_setopt($ch, $key, $val);
-    }
-  }
-  $out = curl_exec($ch);
-  if (curl_errno($ch) == 23) {
-    // error 23 detected, try CURLOPT_ENCODING = "deflate"
-    curl_setopt($ch, CURLOPT_ENCODING, "deflate");
-    $out = curl_exec($ch);
-  }
-  if (isset($getinfo)) {
-    $getinfo = curl_getinfo($ch);
-  }
-  if ($errno = curl_errno($ch)) {
-    $msg = "Curl error $errno: " . (curl_error($ch) ?: curl_strerror($errno)) . ". Requested url: '$url'";
-    if(isset($getinfo)) {
-      $getinfo['error'] = $msg;
-    }
-    my_logger($msg, "http_get_contents");
-  }
-  curl_close($ch);
-  return $out;
-}
-END_HEREDOC
-)
-fi
-if [[ -n "${ADDTEXT1}" || -n "${ADDTEXT2}" || -n "${ADDTEXT3}" ]]; then
-  TMP="$FILE.$RANDOM"
-  cp -f "$FILE" "$TMP"
-  cp -f "$FILE" "$FILE-"
-  # delete last line of the file if it contains `?>`
-  if test $( tail -n 1 "${TMP}" ) = '?>' ; then 
-    sed -i '$ d' "${TMP}"
-  fi
-  [[ -n "${ADDTEXT1}" ]] && echo "${ADDTEXT1}">>"${TMP}"
-  [[ -n "${ADDTEXT2}" ]] && echo "${ADDTEXT2}">>"${TMP}"
-  [[ -n "${ADDTEXT3}" ]] && echo "${ADDTEXT3}">>"${TMP}"
-  echo "?>">>"${TMP}"
-  mv "${TMP}" "${FILE}"
-fi
-
-# Restore the upgradepkg binary if it exists and the original does not
-if [[ -f /sbin/upgradepkg- && ! -f /sbin/upgradepkg ]]; then
-  cp -f /sbin/upgradepkg- /sbin/upgradepkg
-fi
-
-# install the main txz
-upgradepkg --install-new --reinstall "${MAINTXZ}"
-
-# confirm an expected file now exists
-# WARNING: failure here results in broken install
-[[ ! -f /usr/local/emhttp/plugins/dynamix.my.servers/scripts/gitflash_log ]] && echo "⚠️ files missing from main txz" && exit 1
 
 if [[ -n "$TAG" && "$TAG" != "" ]]; then
   printf -v sedcmd 's@^\*\*Unraid Connect\*\*@**Unraid Connect (%s)**@' "$TAG"
   sed -i "${sedcmd}" "/usr/local/emhttp/plugins/dynamix.unraid.net/README.md"
 fi
 
-
-# setup env
-echo "env=\"production\"">/boot/config/plugins/dynamix.my.servers/env
-
-
-# Use myservers.cfg values to help prevent conflicts when installing
-CFG=/boot/config/plugins/dynamix.my.servers/myservers.cfg
-# shellcheck disable=SC1090
-source <(grep 'email\|apikey="unraid_' "${CFG}" 2>/dev/null)
-CFG_CLEANED=0
-# If user is signed in but has no apikey, or if the apikey is not 64 chars, wipe the [remote] section from the cfg
-if ([[ -n "${email}" && (-z "${apikey}" || "${#apikey}" -ne "64") ]]); then
-  # remove only the [remote] section
-  awk '{
-  if($0 ~ /\[remote\]/){output="off"; next}
-  if($0 ~ /\[/){output="on"; print; next}
-  if(output == "on"){print}
-  }' "${CFG}">"${CFG}-new" && mv "${CFG}-new" "${CFG}" CFG_CLEANED=1
-  echo "⚠️ Automatically signed out of Unraid.net"
-fi
-
-# configure flash backup to stop when the system starts shutting down
-[[ ! -d /etc/rc.d/rc6.d ]] && mkdir /etc/rc.d/rc6.d
-[[ ! -h /etc/rc.d/rc0.d ]] && ln -s /etc/rc.d/rc6.d /etc/rc.d/rc0.d
-[[ ! -h /etc/rc.d/rc6.d/K10_flash_backup  ]] && ln -s /etc/rc.d/rc.flash_backup /etc/rc.d/rc6.d/K10_flash_backup
-
-# allow webgui to be iframed only on Connect dashboard, only applies to 6.10+
-# if needed, restart nginx before installing the unraid-api
-CHANGED=no
-FILE=/etc/nginx/nginx.conf
-# brings older versions of Unraid in sync with 6.12.0
-if grep -q "SAMEORIGIN" "${FILE}"; then
-  CHANGED=yes
-  cp "$FILE" "$FILE-" OLD="add_header X-Frame-Options 'SAMEORIGIN';" NEW="add_header Content-Security-Policy \"frame-ancestors 'self' https://connect.myunraid.net/\";"
-  sed -i "s#${OLD}#${NEW}#" "${FILE}"
-fi
-
-FILE=/etc/rc.d/rc.nginx
-# brings older versions of Unraid in sync with 6.12.0
-if ! grep -q "#robots.txt any origin" "${FILE}"; then
-  CHANGED=yes
-  cp "$FILE" "$FILE-" FIND="location = \/robots.txt {"
-  # escape tabs and spaces
-  ADD="\	\ \ \ \ add_header Access-Control-Allow-Origin *; #robots.txt any origin"
-  sed -i "/${FIND}/a ${ADD}" "${FILE}"
-fi
-
-preventDowngradeAction() {
-    local action="$1"
-    local path="$2"
-    local preventType="$3" # preventDowngrade or skip
-
-    # if skip, do nothing
-    if [[ "$preventType" == "skip" ]]; then
-        return
-    fi
-
-    # restore the "backup" but keep the original backup for the uninstall plg script
-    # otherwise, the uninstall script will NOT be able to restore the original file
-    if [[ "$action" == "move" || "$action" == "copy" ]]; then
-        [[ -f "$path-" ]] && cp -f "$path-" "$path"
-    elif [[ "$action" == "move_dir" ]]; then
-        # if directory exists rm the original and copy the backup
-        # glob expansion via "$path-/"* …yes the * is necessary as we want to copy the contents of the directory
-        [[ -d "$path-" ]] && rm -rf "$path" && mkdir "$path" && cp -rf "$path-/"* "$path"
-    fi
-}
-
-# Extract "ts" values from both files
-plgWebComponentPath="/usr/local/emhttp/plugins/dynamix.my.servers/unraid-components"
-backupWebComponentPath="/usr/local/emhttp/plugins/dynamix.my.servers/unraid-components-"
-plgManifestTs=$(find "$plgWebComponentPath" -name manifest.json -exec jq -r '.ts' {} \; 2>/dev/null)
-webguiManifestTs=$(find "$backupWebComponentPath" -name manifest.json -exec jq -r '.ts' {} \; 2>/dev/null)
-
-# Compare the "ts" values and return the file path of the higher value
-if [[ "$webguiManifestTs" -gt "$plgManifestTs" ]]; then
-    # Loop through the array of preserveFilesDirs and perform actions
-    for obj in "${preserveFilesDirs[@]}"
-    do
-        IFS=':' read -r action path preventType <<< "$obj"
-        preventDowngradeAction "$action" "$path" "$preventType"
-    done
-    echo "♻️ Reverted to stock web component files"
-fi
-
-flash="/boot/config/plugins/dynamix.my.servers"
-[[ ! -d "${flash}" ]] && echo "Please reinstall the Unraid Connect plugin" && exit 1
-[[ ! -f "${flash}/env" ]] && echo 'env=production' >"${flash}/env"
-env=production
-# shellcheck disable=SC1091
-source "${flash}/env"
-# Install the API to /usr/local/unraid-api
-api_base_directory="/usr/local/unraid-api"
-unraid_binary_path="/usr/local/bin/unraid-api"
-
-# Stop old process
-if [[ -f "/usr/local/bin/unraid-api/unraid-api" ]]; then
-  /usr/local/bin/unraid-api/unraid-api stop
-  rm -rf /usr/local/bin/unraid-api
-elif [[ -f "${unraid_binary_path}" ]]; then
-  ${unraid_binary_path} stop
-fi
-
-# Kill any remaining unraid-api processes
-pkill -9 unraid-api
-
-# Create log directory (PM2 will not start without it)
-mkdir -p /var/log/unraid-api
-
-# Copy env file
-cp "${api_base_directory}/.env.${env}" "${api_base_directory}/.env"
-
-# bail if expected file does not exist
-[[ ! -f "${api_base_directory}/package.json" ]] && echo "unraid-api install failed" && exit 1
-
-# Create Symlink from /usr/local/unraid-api/dist/cli.js to /usr/local/bin/unraid-api
-# Ensure we're linking the file, not the directory, by checking it exists first
-if [[ -f "${api_base_directory}/dist/cli.js" ]]; then
-  ln -sf "${api_base_directory}/dist/cli.js" "${unraid_binary_path}"
-else
-  echo "Error: ${api_base_directory}/dist/cli.js does not exist" && exit 1
-fi
-
-# Ensure unraid-api exists
-if [[ ! -f "${unraid_binary_path}" ]]; then
-  echo "Error: unraid-api binary not found at ${unraid_binary_path}" && exit 1
-fi
-
-
-# Create symlink to unraid-api binary (to allow usage elsewhere)
-ln -sf ${NODE_DIR}/bin/node /usr/local/bin/node
-ln -sf ${NODE_DIR}/bin/npm /usr/local/bin/npm
-ln -sf ${NODE_DIR}/bin/corepack /usr/local/bin/corepack
-
-ln -sf ${unraid_binary_path} /usr/local/sbin/unraid-api
-ln -sf ${unraid_binary_path} /usr/bin/unraid-api
-
-cp -f "${PNPM_BINARY_FILE}" /usr/local/bin/pnpm
-chmod +x /usr/local/bin/pnpm
-
-/etc/rc.d/rc.unraid-api restore-dependencies "$VENDOR_ARCHIVE"
-
-echo "Starting flash backup (if enabled)"
-logger "Starting flash backup (if enabled)"
-echo "/etc/rc.d/rc.flash_backup start" | at -M now &>/dev/null
-. /root/.bashrc
-
-logger "Starting Unraid API"
-${unraid_binary_path} start
-
-if [[ "${CHANGED}" == "yes" ]]; then
-  if /etc/rc.d/rc.nginx status &>/dev/null; then
-    # if nginx is running, reload it to enable the changes above
-    # note: if this is being installed at boot, nginx will not yet be running
-    echo ""
-    echo "✅ Installation complete, now reloading web server - it is safe to close this window"
-    /etc/rc.d/rc.nginx reload &>/dev/null
-  fi
-else
-  echo
-  echo "✅ Installation is complete, it is safe to close this window"
-  echo
-fi
+echo
+echo "✅ Installation is complete, it is safe to close this window"
+echo
 
 exit 0
 ]]>
     </INLINE>
   </FILE>
 
+  <!-- uninstall cleanup message -->
   <FILE Run="/bin/bash" Method="remove">
     <INLINE>
       <![CDATA[
-version=
-# shellcheck disable=SC1091
-source /etc/unraid-version
-
 echo
 echo "✅ Uninstall is complete, it is safe to close this window"
 echo

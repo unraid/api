@@ -17,6 +17,10 @@ fi
 
 CI=${CI:-false}
 TAG="LOCAL_PLUGIN_BUILD"
+IS_TAGGED=$(git describe --tags --abbrev=0 --exact-match || echo '')
+PACKAGE_LOCK_VERSION=$(jq -r '.version' package.json)
+GIT_SHA=$(git rev-parse --short HEAD)
+API_VERSION=$([[ -n "$IS_TAGGED" ]] && echo "$PACKAGE_LOCK_VERSION" || echo "${PACKAGE_LOCK_VERSION}+${GIT_SHA}")
 
 # Define container name for easier management
 CONTAINER_NAME="plugin-builder"
@@ -28,4 +32,4 @@ docker ps -q --filter "name=${CONTAINER_NAME}" | xargs -r docker stop
 # Start the container with the specified environment variables
 echo "Starting plugin-builder container..."
 
-docker compose run --remove-orphans --service-ports -e HOST_LAN_IP="$HOST_LAN_IP" -e CI="$CI" -e TAG="$TAG" ${CONTAINER_NAME} "$@"
+docker compose run --remove-orphans --service-ports -e HOST_LAN_IP="$HOST_LAN_IP" -e CI="$CI" -e TAG="$TAG" -e API_VERSION="$API_VERSION" ${CONTAINER_NAME} "$@"

@@ -8,104 +8,135 @@ flash="/boot/config/plugins/dynamix.my.servers"
 [[ ! -d "${flash}" ]] && echo "Please reinstall the Unraid Connect plugin" && exit 1
 [[ ! -f "${flash}/env" ]] && echo 'env=production' >"${flash}/env"
 unraid_binary_path="/usr/local/bin/unraid-api"
-dependencies_dir="/usr/local/unraid-api/node_modules"
+api_base_dir="/usr/local/unraid-api"
+scripts_dir="/usr/local/share/dynamix.unraid.net/scripts"
+
+# Ensure script permissions
+if [ -d "$scripts_dir" ]; then
+  chmod +x "$scripts_dir"/*.sh 2>/dev/null
+fi
 
 # Placeholder functions for plugin installation/uninstallation
 install() {
   true
 }
+
 uninstall() {
   true
 }
 
-# Restores the node_modules directory from a backup file
-# Args:
-#   $1 - Path to the backup file (tar.xz format)
-# Returns:
-#   0 on success, 1 on failure
-# Note: Requires 1.5x the backup size in free space for safe extraction
-restore_dependencies() {
-  local backup_file="$1"
-  # Check if backup file exists
-  if [ ! -f "$backup_file" ]; then
-    echo "Backup file not found at '$backup_file'. Skipping restore."
-    return 0
+# Service control functions
+start() {
+  echo "Starting Unraid API service..."
+  
+  # Ensure dependencies are installed
+  if [ -x "$scripts_dir/dependencies.sh" ]; then
+    "$scripts_dir/dependencies.sh" ensure || {
+      echo "Failed to install dependencies – aborting start."
+      return 1
+    }
+  else
+    echo "Warning: dependencies.sh script not found or not executable"
   fi
-
-  # Check available disk space in destination
-  local backup_size
-  backup_size=$(stat -c%s "$backup_file")
-  local dest_space
-  dest_space=$(df --output=avail "$(dirname "$dependencies_dir")" | tail -n1)
-  dest_space=$((dest_space * 1024)) # Convert KB to bytes
-
-  # Require 1.5x the backup size for safe extraction
-  local required_space=$((backup_size + (backup_size / 2)))
-
-  if [ "$dest_space" -lt "$required_space" ]; then
-    echo "Error: Insufficient disk space in destination. Need at least $((required_space / 1024 / 1024))MB, have $((dest_space / 1024 / 1024))MB"
+  
+  # Create log directory if it doesn't exist
+  mkdir -p /var/log/unraid-api
+  
+  # Copy env file if needed
+  if [ -f "${api_base_dir}/.env.production" ] && [ ! -f "${api_base_dir}/.env" ]; then
+    cp "${api_base_dir}/.env.production" "${api_base_dir}/.env"
+  fi
+  
+  # Start the flash backup service if available
+  if [ -x "/etc/rc.d/rc.flash_backup" ]; then
+    echo "Starting flash backup service..."
+    /etc/rc.d/rc.flash_backup start
+  fi
+  
+  # Start the API service
+  if [ -x "${unraid_binary_path}" ]; then
+    "${unraid_binary_path}" start
+    return $?
+  else
+    echo "Error: Unraid API binary not found or not executable at ${unraid_binary_path}"
     return 1
   fi
-
-  echo "Restoring node_modules from '$backup_file' to '$dependencies_dir'"
-  # Remove existing store directory if it exists and ensure its parent directory exists
-  rm -rf "$dependencies_dir"
-  mkdir -p "$(dirname "$dependencies_dir")"
-
-  # Extract directly to final location
-  if ! tar -xJf "$backup_file" -C "$(dirname "$dependencies_dir")" --preserve-permissions; then
-    echo "Error: Failed to extract backup to final location."
-    rm -rf "$dependencies_dir"
-    return 1
-  fi
-
-  echo "node_modules restored successfully."
 }
 
-# Archives the node_modules directory to a specified location
-# Args: none
-# Returns:
-#   0 on success, 1 on failure
-archive_dependencies() {
-  local source_dir="/usr/local/unraid-api/node_modules"
-  local dest_dir="/boot/config/plugins/dynamix.my.servers"
-  local archive_file="${dest_dir}/node_modules.tar.xz"
-
-  # Check if source directory exists
-  if [ ! -d "$source_dir" ]; then
-    echo "Error: Source node_modules directory '$source_dir' does not exist."
+stop() {
+  echo "Stopping Unraid API service..."
+  if [ -x "${unraid_binary_path}" ]; then
+    "${unraid_binary_path}" stop
+    return $?
+  else
+    echo "Error: Unraid API binary not found or not executable at ${unraid_binary_path}"
     return 1
   fi
+}
 
-  # Create destination directory if it doesn't exist
-  mkdir -p "$dest_dir"
+restart() {
+  stop
+  sleep 2
+  start
+}
 
-  echo "Archiving node_modules from '$source_dir' to '$archive_file'"
-
-  # Create archive with XZ compression level 5, preserving symlinks
-  if XZ_OPT=-5 tar -cJf "$archive_file" -C "$(dirname "$source_dir")" "$(basename "$source_dir")"; then
-    echo "node_modules archive created successfully."
+status() {
+  if [ -x "${unraid_binary_path}" ]; then
+    "${unraid_binary_path}" status
+    return $?
   else
-    echo "Error: Failed to create node_modules archive."
+    echo "Error: Unraid API binary not found or not executable at ${unraid_binary_path}"
     return 1
   fi
 }
 
 case "$1" in
+'start')
+  start
+  ;;
+'stop')
+  stop
+  ;;
+'restart'|'reload')
+  restart
+  ;;
+'status')
+  status
+  ;;
 'install')
   install "$2"
-  ;;
-'reload')
-  restart
   ;;
 'uninstall')
   uninstall
   ;;
-'restore-dependencies')
-  restore_dependencies "$2"
+'ensure')
+  if [ -x "$scripts_dir/dependencies.sh" ]; then
+    "$scripts_dir/dependencies.sh" ensure "$2"
+  else
+    echo "Error: dependencies.sh script not found or not executable"
+    exit 1
+  fi
   ;;
 'archive-dependencies')
-  archive_dependencies
+  if [ -x "$scripts_dir/dependencies.sh" ]; then
+    "$scripts_dir/dependencies.sh" archive
+  else
+    echo "Error: dependencies.sh script not found or not executable"
+    exit 1
+  fi
+  ;;
+'redownload-vendor-archive')
+  if [ -x "$scripts_dir/dependencies.sh" ]; then
+    if [ -n "$2" ] && [ -n "$3" ]; then
+      "$scripts_dir/dependencies.sh" redownload "$2" "$3"
+    else
+      echo "Usage: $0 redownload-vendor-archive <archive_path> <version>"
+      exit 1
+    fi
+  else
+    echo "Error: dependencies.sh script not found or not executable"
+    exit 1
+  fi
   ;;
 *)
   # Pass all other commands to unraid-api

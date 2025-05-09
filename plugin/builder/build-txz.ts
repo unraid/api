@@ -1,11 +1,16 @@
 import { join } from "path";
 import { $, cd } from "zx";
 import { existsSync } from "node:fs";
-import { readdir } from "node:fs/promises";
+import { readdir, writeFile } from "node:fs/promises";
 import { getTxzName, pluginName, startingDir } from "./utils/consts";
+import { ensureNodeJs } from "./utils/nodejs-helper";
+
 import { setupTxzEnv, TxzEnv } from "./cli/setup-txz-environment";
 import { cleanupTxzFiles } from "./utils/cleanup";
 import { apiDir } from "./utils/paths";
+import { getVendorBundleName, getVendorFullPath } from "./build-vendor-store";
+import { getAssetUrl } from "./utils/bucket-urls";
+
 
 // Recursively search for manifest files
 const findManifestFiles = async (dir: string): Promise<string[]> => {
@@ -40,6 +45,59 @@ const findManifestFiles = async (dir: string): Promise<string[]> => {
   }
 };
 
+// Function to store vendor archive information in a recoverable location
+const storeVendorArchiveInfo = async (version: string, vendorUrl: string, vendorFilename: string) => {
+  try {
+    if (!version || !vendorUrl || !vendorFilename) {
+      throw new Error("Cannot store vendor archive info: Missing required parameters");
+    }
+    
+    // Create a config directory in the source tree
+    const configDir = join(
+      startingDir,
+      "source",
+      "dynamix.unraid.net",
+      "usr",
+      "local",
+      "share",
+      "dynamix.unraid.net",
+      "config"
+    );
+    
+    // Ensure directory exists
+    await $`mkdir -p ${configDir}`;
+    
+    // Get the full path for vendor archive
+    const vendorFullPath = getVendorFullPath(version);
+    
+    // Create a JSON config file with vendor information
+    const configData = {
+      vendor_store_url: vendorUrl,
+      vendor_store_path: vendorFullPath,
+      api_version: version
+    };
+    
+    // Validate all fields are present
+    Object.entries(configData).forEach(([key, value]) => {
+      if (!value) {
+        throw new Error(`Cannot store vendor archive info: Missing value for ${key}`);
+      }
+    });
+    
+    const configPath = join(configDir, "vendor_archive.json");
+    await writeFile(configPath, JSON.stringify(configData, null, 2));
+    
+    console.log(`Vendor archive information stored in ${configPath}`);
+    console.log(`API Version: ${version}`);
+    console.log(`Vendor URL: ${vendorUrl}`);
+    console.log(`Vendor Full Path: ${vendorFullPath}`);
+    return true;
+  } catch (error) {
+    console.error(`Failed to store vendor archive information: ${error.message}`);
+    throw error; // Re-throw to prevent build from succeeding with invalid vendor info
+  }
+};
+
 const validateSourceDir = async (validatedEnv: TxzEnv) => {
   if (!validatedEnv.ci) {
     console.log("Validating TXZ source directory");
@@ -70,8 +128,15 @@ const validateSourceDir = async (validatedEnv: TxzEnv) => {
 
   if (!hasManifest || !hasUiManifest) {
     console.log("Existing Manifest Files:", manifestFiles);
+    const missingFiles: string[] = [];
+    if (!hasManifest) missingFiles.push("manifest.json");
+    if (!hasUiManifest) missingFiles.push("ui.manifest.json");
+    
     throw new Error(
-      `Webcomponents must contain both "ui.manifest.json" and "manifest.json" - be sure to have run pnpm build:wc in unraid-ui`
+      `Webcomponents missing required file(s): ${missingFiles.join(", ")} - ` +
+      `${!hasUiManifest ? "run 'pnpm build:wc' in unraid-ui for ui.manifest.json" : ""}` +
+      `${!hasManifest && !hasUiManifest ? " and " : ""}` +
+      `${!hasManifest ? "run 'pnpm build' in web for manifest.json" : ""}`
     );
   }
 
@@ -88,16 +153,37 @@ const validateSourceDir = async (validatedEnv: TxzEnv) => {
 
 const buildTxz = async (validatedEnv: TxzEnv) => {
   await validateSourceDir(validatedEnv);
-  const txzPath = join(validatedEnv.txzOutputDir, getTxzName());
+  
+  // Use version from validated environment
+  const version = validatedEnv.apiVersion;
+  
+  // Always use version when getting txz name
+  const txzName = getTxzName(version);
+  console.log(`Package name: ${txzName}`);
+  const txzPath = join(validatedEnv.txzOutputDir, txzName);
+  
+  // Use the getVendorBundleName function for consistent naming
+  const vendorFilename = getVendorBundleName(version);
+  // Use the baseUrl and tag from validatedEnv, consistent with build-plugin.ts
+  const vendorUrl = getAssetUrl({ 
+    baseUrl: validatedEnv.baseUrl, 
+    tag: validatedEnv.tag
+  }, vendorFilename);
+  
+  console.log(`Storing vendor archive information: ${vendorUrl} -> ${vendorFilename}`);
+  await storeVendorArchiveInfo(version, vendorUrl, vendorFilename);
+  
+  await ensureNodeJs();
 
   // Create package - must be run from within the pre-pack directory
   // Use cd option to run command from prePackDir
   await cd(join(startingDir, "source", pluginName));
   $.verbose = true;
 
+  // Create the package using the default package name
   await $`${join(startingDir, "scripts/makepkg")} --chown y --compress -${
     validatedEnv.compress
-  } --linkadd y ${txzPath}`;
+  } --linkadd n ${txzPath}`;
   $.verbose = false;
   await cd(startingDir);
 };

@@ -25,6 +25,7 @@
     "build": "vite build",
     "build:watch": "vite build -c vite.web-component.ts --mode production --watch",
     "build:wc": "REM_PLUGIN=true vite build -c vite.web-component.ts --mode production",
+    "build:all": "vite build && vite build -c vite.web-component.ts --mode production",
     "clean": "rimraf dist",
     "type-check": "vue-tsc --noEmit",
     "lint": "eslint src",

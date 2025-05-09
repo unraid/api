@@ -1,4 +1,3 @@
-
 # Thumbnails
 ._*
 Thumbs.db
@@ -15,6 +14,22 @@ source/dynamix.unraid.net/usr/local/emhttp/plugins/dynamix.my.servers/unraid-com
 source/dynamix.unraid.net/usr/local/unraid-api/*
 !source/dynamix.unraid.net/usr/local/unraid-api/.gitkeep
 
-source/dynamix.unraid.net/install/doinst.sh
+### Generated Files by Plugin Builder ###
+
+# Ignore node binaries
+source/dynamix.unraid.net/usr/local/bin/
 
 packed-pnpm-store.txz
+
+# Node.js download files
+node-v*.tar.xz
+
+# Node.js man pages
+source/dynamix.unraid.net/usr/local/share/man/man1/node.1
+
+# Node version files
+.node-version
+source/dynamix.unraid.net/usr/local/.node-version
+
+# Vendor archive files
+source/dynamix.unraid.net/usr/local/share/dynamix.unraid.net/config/vendor_archive.json

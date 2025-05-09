@@ -2,7 +2,7 @@ import { readFile, writeFile, mkdir, rename } from "fs/promises";
 import { $ } from "zx";
 import { escape as escapeHtml } from "html-sloppy-escaper";
 import { dirname, join } from "node:path";
-import { getTxzName, pluginName, startingDir } from "./utils/consts";
+import { getTxzName, pluginName, startingDir, defaultArch, defaultBuild } from "./utils/consts";
 import { getAssetUrl, getPluginUrl } from "./utils/bucket-urls";
 import { getMainTxzUrl } from "./utils/bucket-urls";
 import {
@@ -26,9 +26,17 @@ const checkGit = async () => {
   }
 };
 
-const moveTxzFile = async (txzPath: string, pluginVersion: string) => {
-  const txzName = getTxzName(pluginVersion);
-  await rename(txzPath, join(deployDir, txzName));
+const moveTxzFile = async ({txzPath, apiVersion}: Pick<PluginEnv, "txzPath" | "apiVersion">) => {
+  const txzName = getTxzName(apiVersion);
+  const targetPath = join(deployDir, txzName);
+  
+  // Ensure the txz always has the full version name
+  if (txzPath !== targetPath) {
+    console.log(`Ensuring TXZ has correct name: ${txzPath} -> ${targetPath}`);
+    await rename(txzPath, targetPath);
+  } else {
+    console.log(`TXZ file already has correct name: ${txzPath}`);
+  }
 };
 
 function updateEntityValue(
@@ -50,7 +58,10 @@ const buildPlugin = async ({
   tag,
   txzSha256,
   releaseNotes,
+  apiVersion,
 }: PluginEnv) => {
+  console.log(`API version: ${apiVersion}`);
+  
   // Update plg file
   let plgContent = await readFile(getRootPluginPath({ startingDir }), "utf8");
 
@@ -58,12 +69,16 @@ const buildPlugin = async ({
   const entities: Record<string, string> = {
     name: pluginName,
     version: pluginVersion,
-    pluginURL: getPluginUrl({ baseUrl, tag }),
-    MAIN_TXZ: getMainTxzUrl({ baseUrl, pluginVersion, tag }),
-    TXZ_SHA256: txzSha256,
-    VENDOR_STORE_URL: getAssetUrl({ baseUrl, tag }, getVendorBundleName()),
-    VENDOR_STORE_FILENAME: getVendorBundleName(),
-    ...(tag ? { TAG: tag } : {}),
+    api_version: apiVersion,
+    arch: defaultArch,
+    build: defaultBuild,
+    plugin_url: getPluginUrl({ baseUrl, tag }),
+    txz_url: getMainTxzUrl({ baseUrl, apiVersion, tag }),
+    txz_sha256: txzSha256,
+    txz_name: getTxzName(apiVersion),
+    vendor_store_url: getAssetUrl({ baseUrl, tag }, getVendorBundleName(apiVersion)),
+    vendor_store_filename: getVendorBundleName(apiVersion),
+    ...(tag ? { tag } : {}),
   };
 
   console.log("Entities:", entities);
@@ -107,8 +122,8 @@ const main = async () => {
     await cleanupPluginFiles();
 
     await buildPlugin(validatedEnv);
-    await moveTxzFile(validatedEnv.txzPath, validatedEnv.pluginVersion);
-    await bundleVendorStore();
+    await moveTxzFile(validatedEnv);
+    await bundleVendorStore(validatedEnv.apiVersion);
   } catch (error) {
     console.error(error);
     process.exit(1);
