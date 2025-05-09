@@ -52,7 +52,7 @@
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "kebab-case": "^2.0.1",
-    "lucide-vue-next": "^0.506.0",
+    "lucide-vue-next": "^0.508.0",
     "reka-ui": "^2.1.0",
     "shadcn-vue": "^1.0.0",
     "tailwind-merge": "^2.6.0",
