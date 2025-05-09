@@ -25,6 +25,8 @@ export const apiDir = join(
   "unraid-api"
 );
 
+export const vendorStorePath = "/boot/config/plugins/dynamix.my.servers";
+
 /**
  * Get the path to the root plugin directory
  * @param startingDir - The starting directory

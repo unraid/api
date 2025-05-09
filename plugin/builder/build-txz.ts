@@ -8,7 +8,7 @@ import { ensureNodeJs } from "./utils/nodejs-helper";
 import { setupTxzEnv, TxzEnv } from "./cli/setup-txz-environment";
 import { cleanupTxzFiles } from "./utils/cleanup";
 import { apiDir } from "./utils/paths";
-import { getVendorBundleName } from "./build-vendor-store";
+import { getVendorBundleName, getVendorFullPath } from "./build-vendor-store";
 import { getAssetUrl } from "./utils/bucket-urls";
 
 
@@ -67,9 +67,8 @@ const storeVendorArchiveInfo = async (version: string, vendorUrl: string, vendor
     // Ensure directory exists
     await $`mkdir -p ${configDir}`;
     
-    // Set full path for vendor archive
-    const vendorStorePath = "/boot/config/plugins/dynamix.my.servers";
-    const vendorFullPath = join(vendorStorePath, vendorFilename);
+    // Get the full path for vendor archive
+    const vendorFullPath = getVendorFullPath(version);
     
     // Create a JSON config file with vendor information
     const configData = {

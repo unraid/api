@@ -1,3 +1,4 @@
+import { Command } from "commander";
 import { z } from "zod";
 
 /**
@@ -24,7 +25,7 @@ export const getDefaultBaseUrl = (): string => {
 /**
  * Common CLI options shared across different command setups
  */
-export const addCommonOptions = (program: any) => {
+export const addCommonOptions = (program: Command) => {
   return program
     .option("--ci", "CI mode", process.env.CI === "true")
     .requiredOption("--api-version <version>", "API version", process.env.API_VERSION)

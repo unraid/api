@@ -1,4 +1,4 @@
-import { deployDir } from "./utils/paths";
+import { deployDir, vendorStorePath } from "./utils/paths";
 import { join } from "path";
 import { existsSync, mkdirSync } from "node:fs";
 import { startingDir } from "./utils/consts";
@@ -12,6 +12,15 @@ import { execSync } from "child_process";
  */
 export function getVendorBundleName(version: string): string {
     return `node_modules-for-v${version}.tar.xz`;
+}
+
+/**
+ * Get the full path where the vendor bundle should be stored
+ * @param version API version to use in the filename
+ * @returns The full path to the vendor bundle
+ */
+export function getVendorFullPath(version: string): string {
+    return join(vendorStorePath, getVendorBundleName(version));
 }
 
 /**
