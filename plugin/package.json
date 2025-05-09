@@ -1,6 +1,6 @@
 {
   "name": "@unraid/connect-plugin",
-  "version": "4.8.0",
+  "version": "4.9.0",
   "private": true,
   "dependencies": {
     "commander": "^13.1.0",
@@ -12,7 +12,7 @@
     "tsx": "^4.19.2",
     "zod": "^3.24.1",
     "zx": "^8.3.2"
-},
+  },
   "type": "module",
   "license": "GPL-2.0-or-later",
   "scripts": {
