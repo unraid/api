@@ -17,6 +17,8 @@ import { FlashResolver } from '@app/unraid-api/graph/resolvers/flash/flash.resol
 import { InfoResolver } from '@app/unraid-api/graph/resolvers/info/info.resolver.js';
 import { LogsResolver } from '@app/unraid-api/graph/resolvers/logs/logs.resolver.js';
 import { LogsService } from '@app/unraid-api/graph/resolvers/logs/logs.service.js';
+import { LxcResolver } from '@app/unraid-api/graph/resolvers/lxc/lxc.resolver.js';
+import { LxcService } from '@app/unraid-api/graph/resolvers/lxc/lxc.service.js';
 import { RootMutationsResolver } from '@app/unraid-api/graph/resolvers/mutation/mutation.resolver.js';
 import { NetworkResolver } from '@app/unraid-api/graph/resolvers/network/network.resolver.js';
 import { NotificationsResolver } from '@app/unraid-api/graph/resolvers/notifications/notifications.resolver.js';
@@ -59,6 +61,8 @@ import { MeResolver } from '@app/unraid-api/graph/user/user.resolver.js';
         VmMutationsResolver,
         VmsResolver,
         VmsService,
+        LxcResolver,
+        LxcService,
     ],
     exports: [AuthModule, ApiKeyResolver],
 })

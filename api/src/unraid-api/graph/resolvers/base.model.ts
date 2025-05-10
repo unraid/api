@@ -35,6 +35,7 @@ export enum Resource {
     VARS = 'VARS',
     VMS = 'VMS',
     WELCOME = 'WELCOME',
+    LXC = 'LXC',
 }
 
 export enum Role {
