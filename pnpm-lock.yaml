@@ -15,8 +15,8 @@ importers:
         specifier: ^5.0.0
         version: 5.4.1
       diff:
-        specifier: ^7.0.0
-        version: 7.0.0
+        specifier: ^8.0.0
+        version: 8.0.0
       ignore:
         specifier: ^7.0.0
         version: 7.0.3
@@ -157,8 +157,8 @@ importers:
         specifier: ^4.0.0
         version: 4.1.0
       diff:
-        specifier: ^7.0.0
-        version: 7.0.0
+        specifier: ^8.0.0
+        version: 8.0.0
       dockerode:
         specifier: ^4.0.5
         version: 4.0.5
@@ -6223,6 +6223,10 @@ packages:
 
   diff@7.0.0:
     resolution: {integrity: sha512-PJWHUb1RFevKCwaFA9RlG5tCd+FO5iRh9A8HEtkmBH2Li03iJriB6m6JIN4rGz3K3JLawI7/veA1xzRKP6ISBw==}
+    engines: {node: '>=0.3.1'}
+
+  diff@8.0.0:
+    resolution: {integrity: sha512-DJkPOAHudnz8swaqtm8cYmR9YfHLVDmoIH02+MqJiI/V9PxCf0WG+TBMduL7FZfnO53LhUXaPMo8Iw/uUJXLRA==}
     engines: {node: '>=0.3.1'}
 
   dir-glob@3.0.1:
@@ -18422,6 +18426,8 @@ snapshots:
   didyoumean@1.2.2: {}
 
   diff@7.0.0: {}
+
+  diff@8.0.0: {}
 
   dir-glob@3.0.1:
     dependencies:
