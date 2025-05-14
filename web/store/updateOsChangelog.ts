@@ -20,6 +20,7 @@ export const useUpdateOsChangelogStore = defineStore('updateOsChangelog', () => 
     resetChangelogDetails(); // reset values when setting and unsetting a selected release
     // Fetch and parse the changelog when the user selects a release
     if (newVal) {
+      console.debug('[releaseForUpdate] fetchAndParseChangelog', newVal);
       await fetchAndParseChangelog();
     }
   });
