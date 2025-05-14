@@ -694,8 +694,8 @@ importers:
         specifier: ^2.1.0
         version: 2.1.1(typescript@5.8.3)(vue@3.5.13(typescript@5.8.3))
       shadcn-vue:
-        specifier: ^1.0.0
-        version: 1.0.3(@vitest/ui@3.0.9)(eslint@9.23.0(jiti@2.4.2))(typescript@5.8.3)(vitest@3.1.1)(vue@3.5.13(typescript@5.8.3))
+        specifier: ^2.0.0
+        version: 2.1.0(@vitest/ui@3.0.9)(eslint@9.23.0(jiti@2.4.2))(typescript@5.8.3)(vitest@3.1.1)(vue@3.5.13(typescript@5.8.3))
       tailwind-merge:
         specifier: ^2.6.0
         version: 2.6.0
@@ -10596,8 +10596,8 @@ packages:
   shadcn-nuxt@1.0.3:
     resolution: {integrity: sha512-Jf2yK5P7dtQHKUVWlMPByKvHBjgld76P1yCmYgx3XpmOK0mRpePxasHNWoau3wR1ReTWRNQzYVO9+A3sg5aNEA==}
 
-  shadcn-vue@1.0.3:
-    resolution: {integrity: sha512-Y4THg0C4MRHG5jJ/mpLn4Ek3eIK4zt5WrJa9ypltFNSQJCBgUXHZp1nAZlpZGtx2DBkNVRHomLc7IG487DcsAA==}
+  shadcn-vue@2.1.0:
+    resolution: {integrity: sha512-qIeQ0/APzXXWtfJWL834BCEOAnwvR8JiYkjKv14b5I3O4LuOz+RkQtjwwLxtlK6hq2t+LB+Kq3jkRTPrlZGMbw==}
     hasBin: true
     peerDependencies:
       '@vitest/ui': '*'
@@ -15793,7 +15793,7 @@ snapshots:
     dependencies:
       minimatch: 9.0.5
       path-browserify: 1.0.1
-      tinyglobby: 0.2.12
+      tinyglobby: 0.2.13
 
   '@tybys/wasm-util@0.9.0':
     dependencies:
@@ -23536,7 +23536,7 @@ snapshots:
     transitivePeerDependencies:
       - magicast
 
-  shadcn-vue@1.0.3(@vitest/ui@3.0.9)(eslint@9.23.0(jiti@2.4.2))(typescript@5.8.3)(vitest@3.1.1)(vue@3.5.13(typescript@5.8.3)):
+  shadcn-vue@2.1.0(@vitest/ui@3.0.9)(eslint@9.23.0(jiti@2.4.2))(typescript@5.8.3)(vitest@3.1.1)(vue@3.5.13(typescript@5.8.3)):
     dependencies:
       '@unovue/detypes': 0.8.5
       '@vitest/ui': 3.0.9(vitest@3.1.1)
@@ -23561,7 +23561,7 @@ snapshots:
       stringify-object: 5.0.0
       tailwindcss: 3.4.17
       tinyexec: 0.3.2
-      tinyglobby: 0.2.12
+      tinyglobby: 0.2.13
       ts-morph: 24.0.0
       undici: 7.3.0
       vitest: 3.1.1(@types/node@22.15.3)(@vitest/ui@3.0.9)(happy-dom@17.4.4)(jiti@2.4.2)(jsdom@26.0.0)(stylus@0.57.0)(terser@5.39.0)(tsx@4.19.3)(yaml@2.7.1)
@@ -24737,7 +24737,7 @@ snapshots:
       picomatch: 4.0.2
       strip-ansi: 7.1.0
       tiny-invariant: 1.3.3
-      tinyglobby: 0.2.12
+      tinyglobby: 0.2.13
       vite: 6.2.3(@types/node@22.15.3)(jiti@2.4.2)(stylus@0.57.0)(terser@5.39.0)(tsx@4.19.3)(yaml@2.7.1)
       vscode-uri: 3.1.0
     optionalDependencies:
