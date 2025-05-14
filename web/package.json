@@ -110,7 +110,7 @@
     "hex-to-rgba": "^2.0.1",
     "highlight.js": "^11.11.1",
     "isomorphic-dompurify": "^2.19.0",
-    "lucide-vue-next": "^0.509.0",
+    "lucide-vue-next": "^0.510.0",
     "marked": "^15.0.0",
     "marked-base-url": "^1.1.6",
     "pinia": "^3.0.1",
@@ -126,5 +126,5 @@
   "overrides": {
     "vue": "latest"
   },
-  "packageManager": "pnpm@10.10.0"
+  "packageManager": "pnpm@10.11.0"
 }
