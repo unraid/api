@@ -1,5 +1,21 @@
 # Changelog
 
+## [4.9.0](https://github.com/unraid/api/compare/v4.8.0...v4.9.0) (2025-05-15)
+
+
+### Features
+
+* initial codeql setup ([#1390](https://github.com/unraid/api/issues/1390)) ([2ade7eb](https://github.com/unraid/api/commit/2ade7eb52792ef481aaf711dc07029629ea107d9))
+* native slackware package ([#1381](https://github.com/unraid/api/issues/1381)) ([4f63b4c](https://github.com/unraid/api/commit/4f63b4cf3bb9391785f07a38defe54ec39071caa))
+
+
+### Bug Fixes
+
+* **deps:** update all non-major dependencies ([#1366](https://github.com/unraid/api/issues/1366)) ([291ee47](https://github.com/unraid/api/commit/291ee475fb9ef44f6da7b76a9eb11b7dd29a5d13))
+* **deps:** update all non-major dependencies ([#1379](https://github.com/unraid/api/issues/1379)) ([8f70326](https://github.com/unraid/api/commit/8f70326d0fe3e4c3bcd3e8e4e6566766f1c05eb7))
+* **deps:** update dependency diff to v8 ([#1386](https://github.com/unraid/api/issues/1386)) ([e580f64](https://github.com/unraid/api/commit/e580f646a52b8bda605132cf44ec58137e08dd42))
+* **deps:** update dependency lucide-vue-next to ^0.509.0 ([#1383](https://github.com/unraid/api/issues/1383)) ([469333a](https://github.com/unraid/api/commit/469333acd4a0cbeecc9e9cbadb2884289d83aee3))
+
 ## [4.8.0](https://github.com/unraid/api/compare/v4.7.0...v4.8.0) (2025-05-01)
 
 
