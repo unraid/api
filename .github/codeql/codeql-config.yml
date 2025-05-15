@@ -1,0 +1,16 @@
+name: "Unraid API CodeQL Configuration"
+
+disable-default-queries: false
+
+queries:
+  - name: Extended Security Queries
+    uses: security-extended
+  - name: Custom Unraid API Queries
+    uses: ./.github/codeql/custom-queries
+
+query-filters:
+  - exclude:
+      problem.severity:
+        - warning
+        - recommendation
+      tags contain: security 
