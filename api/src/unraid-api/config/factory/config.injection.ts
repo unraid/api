@@ -1,6 +1,6 @@
 import { Inject } from '@nestjs/common';
 
-import type { ConfigFeatures } from '@app/unraid-api/config/config.interface.js';
+import type { ConfigFeatures } from '@app/unraid-api/config/factory/config.interface.js';
 
 /**
  * Creates a string token representation of the arguements. Pure function.

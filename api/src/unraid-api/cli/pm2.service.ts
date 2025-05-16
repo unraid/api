@@ -6,8 +6,7 @@ import { join } from 'node:path';
 import type { Options, Result, ResultPromise } from 'execa';
 import { execa, ExecaError } from 'execa';
 
-import { PM2_PATH } from '@app/consts.js';
-import { PM2_HOME } from '@app/environment.js';
+import { PM2_HOME, PM2_PATH } from '@app/environment.js';
 import { LogService } from '@app/unraid-api/cli/log.service.js';
 
 type CmdContext = Options & {
