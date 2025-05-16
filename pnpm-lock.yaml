@@ -723,7 +723,7 @@ importers:
         version: 8.6.9(storybook@8.6.9(prettier@3.5.3))(vite@6.2.3(@types/node@22.15.3)(jiti@2.4.2)(stylus@0.57.0)(terser@5.39.0)(tsx@4.19.3)(yaml@2.7.1))(vue@3.5.13(typescript@5.8.3))
       '@tailwindcss/typography':
         specifier: ^0.5.15
-        version: 0.5.16(tailwindcss@3.4.17)
+        version: 0.5.16(tailwindcss@4.1.5)
       '@testing-library/vue':
         specifier: ^8.0.0
         version: 8.1.0(@vue/compiler-sfc@3.5.13)(vue@3.5.13(typescript@5.8.3))
@@ -741,7 +741,7 @@ importers:
         version: 8.29.0(@typescript-eslint/parser@8.28.0(eslint@9.23.0(jiti@2.4.2))(typescript@5.8.3))(eslint@9.23.0(jiti@2.4.2))(typescript@5.8.3)
       '@unraid/tailwind-rem-to-rem':
         specifier: ^1.1.0
-        version: 1.1.0(tailwindcss@3.4.17)
+        version: 1.1.0(tailwindcss@4.1.5)
       '@vitejs/plugin-vue':
         specifier: ^5.0.0
         version: 5.2.3(vite@6.2.3(@types/node@22.15.3)(jiti@2.4.2)(stylus@0.57.0)(terser@5.39.0)(tsx@4.19.3)(yaml@2.7.1))(vue@3.5.13(typescript@5.8.3))
@@ -801,13 +801,13 @@ importers:
         version: 8.6.9(prettier@3.5.3)
       tailwind-rem-to-rem:
         specifier: github:unraid/tailwind-rem-to-rem
-        version: '@unraid/tailwind-rem-to-rem@https://codeload.github.com/unraid/tailwind-rem-to-rem/tar.gz/4b907d0cdb3abda88de9813e33c13c3e7b1300c4(tailwindcss@3.4.17)'
+        version: '@unraid/tailwind-rem-to-rem@https://codeload.github.com/unraid/tailwind-rem-to-rem/tar.gz/4b907d0cdb3abda88de9813e33c13c3e7b1300c4(tailwindcss@4.1.5)'
       tailwindcss:
-        specifier: ^3.0.0
-        version: 3.4.17
+        specifier: ^4.0.0
+        version: 4.1.5
       tailwindcss-animate:
         specifier: ^1.0.7
-        version: 1.0.7(tailwindcss@3.4.17)
+        version: 1.0.7(tailwindcss@4.1.5)
       typescript:
         specifier: ^5.7.3
         version: 5.8.3
@@ -986,7 +986,7 @@ importers:
         version: 3.0.4(rollup@4.37.0)
       '@tailwindcss/typography':
         specifier: ^0.5.15
-        version: 0.5.16(tailwindcss@3.4.17)
+        version: 0.5.16(tailwindcss@4.1.5)
       '@testing-library/vue':
         specifier: ^8.0.0
         version: 8.1.0(@vue/compiler-sfc@3.5.13)(vue@3.5.13(typescript@5.8.3))
@@ -1004,7 +1004,7 @@ importers:
         version: 7.5.8
       '@unraid/tailwind-rem-to-rem':
         specifier: ^1.1.0
-        version: 1.1.0(tailwindcss@3.4.17)
+        version: 1.1.0(tailwindcss@4.1.5)
       '@vitejs/plugin-vue':
         specifier: ^5.0.0
         version: 5.2.3(vite@6.2.3(@types/node@22.15.3)(jiti@2.4.2)(stylus@0.57.0)(terser@5.39.0)(tsx@4.19.3)(yaml@2.7.1))(vue@3.5.13(typescript@5.8.3))
@@ -1051,11 +1051,11 @@ importers:
         specifier: ^1.0.0
         version: 1.0.3(magicast@0.3.5)
       tailwindcss:
-        specifier: ^3.0.0
-        version: 3.4.17
+        specifier: ^4.0.0
+        version: 4.1.5
       tailwindcss-animate:
         specifier: ^1.0.7
-        version: 1.0.7(tailwindcss@3.4.17)
+        version: 1.0.7(tailwindcss@4.1.5)
       terser:
         specifier: ^5.37.0
         version: 5.39.0
@@ -11077,6 +11077,9 @@ packages:
     engines: {node: '>=14.0.0'}
     hasBin: true
 
+  tailwindcss@4.1.5:
+    resolution: {integrity: sha512-nYtSPfWGDiWgCkwQG/m+aX83XCwf62sBgg3bIlNiiOcggnS1x3uVRDAuyelBFL+vJdOPPCGElxv9DjHJjRHiVA==}
+
   tapable@2.2.1:
     resolution: {integrity: sha512-GNzQvQTOIP6RyTfE2Qxb8ZVlNmw0n88vp1szwWRimP02mnTsx3Wtn5qRdqY9w2XduFNUgvOwhNnQsjwCp+kqaQ==}
     engines: {node: '>=6'}
@@ -15722,13 +15725,13 @@ snapshots:
     dependencies:
       defer-to-connect: 2.0.1
 
-  '@tailwindcss/typography@0.5.16(tailwindcss@3.4.17)':
+  '@tailwindcss/typography@0.5.16(tailwindcss@4.1.5)':
     dependencies:
       lodash.castarray: 4.4.0
       lodash.isplainobject: 4.0.6
       lodash.merge: 4.6.2
       postcss-selector-parser: 6.0.10
-      tailwindcss: 3.4.17
+      tailwindcss: 4.1.5
 
   '@tanstack/virtual-core@3.13.0': {}
 
@@ -16226,13 +16229,13 @@ snapshots:
       '@vueuse/core': 13.0.0(vue@3.5.13(typescript@5.8.3))
       crypto-js: 4.2.0
 
-  '@unraid/tailwind-rem-to-rem@1.1.0(tailwindcss@3.4.17)':
+  '@unraid/tailwind-rem-to-rem@1.1.0(tailwindcss@4.1.5)':
     dependencies:
-      tailwindcss: 3.4.17
+      tailwindcss: 4.1.5
 
-  '@unraid/tailwind-rem-to-rem@https://codeload.github.com/unraid/tailwind-rem-to-rem/tar.gz/4b907d0cdb3abda88de9813e33c13c3e7b1300c4(tailwindcss@3.4.17)':
+  '@unraid/tailwind-rem-to-rem@https://codeload.github.com/unraid/tailwind-rem-to-rem/tar.gz/4b907d0cdb3abda88de9813e33c13c3e7b1300c4(tailwindcss@4.1.5)':
     dependencies:
-      tailwindcss: 3.4.17
+      tailwindcss: 4.1.5
 
   '@unrs/rspack-resolver-binding-darwin-arm64@1.2.1':
     optional: true
@@ -24089,9 +24092,9 @@ snapshots:
 
   tailwind-merge@2.6.0: {}
 
-  tailwindcss-animate@1.0.7(tailwindcss@3.4.17):
+  tailwindcss-animate@1.0.7(tailwindcss@4.1.5):
     dependencies:
-      tailwindcss: 3.4.17
+      tailwindcss: 4.1.5
 
   tailwindcss@3.4.17:
     dependencies:
@@ -24119,6 +24122,8 @@ snapshots:
       sucrase: 3.35.0
     transitivePeerDependencies:
       - ts-node
+
+  tailwindcss@4.1.5: {}
 
   tapable@2.2.1: {}
 
