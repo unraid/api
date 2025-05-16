@@ -688,8 +688,8 @@ importers:
         specifier: ^2.0.1
         version: 2.0.1
       lucide-vue-next:
-        specifier: ^0.510.0
-        version: 0.510.0(vue@3.5.13(typescript@5.8.3))
+        specifier: ^0.511.0
+        version: 0.511.0(vue@3.5.13(typescript@5.8.3))
       reka-ui:
         specifier: ^2.1.0
         version: 2.1.1(typescript@5.8.3)(vue@3.5.13(typescript@5.8.3))
@@ -924,8 +924,8 @@ importers:
         specifier: ^2.19.0
         version: 2.22.0
       lucide-vue-next:
-        specifier: ^0.510.0
-        version: 0.510.0(vue@3.5.13(typescript@5.8.3))
+        specifier: ^0.511.0
+        version: 0.511.0(vue@3.5.13(typescript@5.8.3))
       marked:
         specifier: ^15.0.0
         version: 15.0.7
@@ -8623,8 +8623,8 @@ packages:
   lru-queue@0.1.0:
     resolution: {integrity: sha512-BpdYkt9EvGl8OfWHDQPISVpcl5xZthb+XPsbELj5AQXxIC8IriDZIQYjBJPEm5rS420sjZ0TLEzRcq5KdBhYrQ==}
 
-  lucide-vue-next@0.510.0:
-    resolution: {integrity: sha512-C+duOTUoUpBFjSY1/ER2jwwS8kQJgTW/7vk7WWdnXhq7IWUlvfJtYal9cVsGCVf6wvS9m0t3Hg1ktaDjm8y1oQ==}
+  lucide-vue-next@0.511.0:
+    resolution: {integrity: sha512-VSv0F3pHniGN7JMMzDcLFNMQbl8381+shNnHwV8hi+El7xl2ZL8qdNuzPoiBViKk8mTKK5K3ZDfmE/wEcTZVIQ==}
     peerDependencies:
       vue: '>=3.0.1'
 
@@ -21230,7 +21230,7 @@ snapshots:
     dependencies:
       es5-ext: 0.10.64
 
-  lucide-vue-next@0.510.0(vue@3.5.13(typescript@5.8.3)):
+  lucide-vue-next@0.511.0(vue@3.5.13(typescript@5.8.3)):
     dependencies:
       vue: 3.5.13(typescript@5.8.3)
 
