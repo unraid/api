@@ -74,7 +74,7 @@
         "@nestjs/throttler": "^6.2.1",
         "@reduxjs/toolkit": "^2.3.0",
         "@runonflux/nat-upnp": "^1.0.2",
-        "@types/diff": "^7.0.1",
+        "@types/diff": "^8.0.0",
         "@unraid/libvirt": "^2.1.0",
         "accesscontrol": "^2.2.1",
         "bycontract": "^2.0.11",
