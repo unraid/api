@@ -134,8 +134,8 @@ done
 # Handle the unraid-components directory
 DIR=/usr/local/emhttp/plugins/dynamix.my.servers/unraid-components
 if [ -d "$DIR" ] && [ ! -d "$DIR-" ]; then
-  cp -rp "$DIR" "$DIR-"
-  echo "Backed up directory: $DIR"
+  mv "$DIR" "$DIR-"
+  echo "Moved directory: $DIR to $DIR-"
 fi
 
 echo "Backup complete."
@@ -204,12 +204,13 @@ exit 0
       
       # Handle the unraid-components directory
       DIR=/usr/local/emhttp/plugins/dynamix.my.servers/unraid-components
-      # certain instances where the directory is not present and others where it is, ensure we delete it before we restore it
+      # Remove the archive's contents before restoring
       if [ -d "$DIR" ]; then
         rm -rf "$DIR"
       fi
       if [ -d "$DIR-" ]; then
-        mv -f "$DIR-" "$DIR"
+        mv "$DIR-" "$DIR"
+        echo "Restored directory: $DIR- to $DIR"
       fi
       ]]>
     </INLINE>

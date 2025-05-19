@@ -384,5 +384,6 @@
   "Your Trial key has been extended!": "Your Trial key has been extended!",
   "Create an Unraid.net account and activate your key": "Create an Unraid.net account and activate your key",
   "Device is ready to configure": "Device is ready to configure",
-  "Secure your device": "Secure your device"
+  "Secure your device": "Secure your device",
+  "Unraid OS {0} Changelog": "Unraid OS {0} Changelog"
 }

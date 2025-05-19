@@ -47,7 +47,7 @@ import type {
 // EBLACKLISTED2
 // ENOCONN
 
-const state: ServerState = 'ENOKEYFILE' as ServerState;
+const state: ServerState = 'BASIC' as ServerState;
 const currentFlashGuid = '1111-1111-YIJD-ZACK1234TEST'; // this is the flash drive that's been booted from
 const regGuid = '1111-1111-YIJD-ZACK1234TEST'; // this guid is registered in key server
 const keyfileBase64 = '';

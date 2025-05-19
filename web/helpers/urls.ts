@@ -40,6 +40,9 @@ const DOCS_REGISTRATION_REPLACE_KEY = new URL('/go/changing-the-flash-device/', 
 
 const SUPPORT = new URL('https://unraid.net');
 
+export const allowedDocsOriginRegex = /^https:\/\/(?:[\w-]+\.)*docs\.unraid\.net(?::\d+)?$/;
+export const allowedDocsUrlRegex = /^https:\/\/(?:[\w-]+\.)*docs\.unraid\.net(?::\d+)?\//;
+
 export {
   ACCOUNT,
   ACCOUNT_CALLBACK,

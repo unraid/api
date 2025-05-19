@@ -5,14 +5,12 @@ import { storeToRefs } from 'pinia';
 import { useCallbackActionsStore } from '~/store/callbackActions';
 import { useTrialStore } from '~/store/trial';
 import { useUpdateOsStore } from '~/store/updateOs';
-import { useUpdateOsChangelogStore } from '~/store/updateOsChangelog';
 
 const { t } = useI18n();
 
 const { callbackStatus } = storeToRefs(useCallbackActionsStore());
 const { trialModalVisible } = storeToRefs(useTrialStore());
-const { modalOpen: updateOsModalVisible } = storeToRefs(useUpdateOsStore());
-const { releaseForUpdate: updateOsChangelogModalVisible } = storeToRefs(useUpdateOsChangelogStore());
+const { updateOsModalVisible, changelogModalVisible } = storeToRefs(useUpdateOsStore());
 </script>
 
 <template>
@@ -20,7 +18,7 @@ const { releaseForUpdate: updateOsChangelogModalVisible } = storeToRefs(useUpdat
     <UpcCallbackFeedback :t="t" :open="callbackStatus !== 'ready'" />
     <UpcTrial :t="t" :open="trialModalVisible" />
     <UpdateOsCheckUpdateResponseModal :t="t" :open="updateOsModalVisible" />
-    <UpdateOsChangelogModal :t="t" :open="!!updateOsChangelogModalVisible" />
+    <UpdateOsChangelogModal :t="t" :open="changelogModalVisible" />
     <ActivationModal :t="t" />
   </div>
 </template>
