@@ -29,7 +29,11 @@ const fetchAndParseChangelog = async () => {
   parseChangelogFailed.value = "";
   try {
     // Fetch the changelog content from the URL
-    const data = await fetch(props.changelog).then(r => r.text());
+    const res = await fetch(props.changelog);
+    if (!res.ok) {
+      throw new Error(`HTTP ${res.status} while fetching changelog`);
+    }
+    const data = await res.text();
     if (!data || data.trim() === "") {
       parseChangelogFailed.value = 'Changelog is empty';
       isLoading.value = false;

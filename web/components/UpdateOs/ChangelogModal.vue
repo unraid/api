@@ -16,6 +16,7 @@ import type { ComposerTranslation } from 'vue-i18n';
 import RawChangelogRenderer from '~/components/UpdateOs/RawChangelogRenderer.vue';
 import { usePurchaseStore } from '~/store/purchase';
 import { useUpdateOsStore } from '~/store/updateOs';
+import { allowedDocsOriginRegex, allowedDocsUrlRegex } from '~/helpers/urls';
 
 export interface Props {
   open?: boolean;
@@ -54,14 +55,19 @@ const handleIframeNavigationMessage = (event: MessageEvent) => {
     event.data.type === 'unraid-docs-navigation' &&
     iframeRef.value &&
     event.source === iframeRef.value.contentWindow &&
-    event.origin === 'https://docs.unraid.net'
+    allowedDocsOriginRegex.test(event.origin)
   ) {
-    if (event.data.url !== docsChangelogUrl.value) {
-      hasNavigated.value = true;
-    } else {
-      hasNavigated.value = false;
+    if (
+      typeof event.data.url === 'string' &&
+      allowedDocsUrlRegex.test(event.data.url)
+    ) {
+      if (event.data.url !== docsChangelogUrl.value) {
+        hasNavigated.value = true;
+      } else {
+        hasNavigated.value = false;
+      }
+      currentIframeUrl.value = event.data.url;
     }
-    currentIframeUrl.value = event.data.url;
   }
 };
 
