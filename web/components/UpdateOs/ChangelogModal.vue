@@ -104,6 +104,7 @@ watch(docsChangelogUrl, (newUrl) => {
     :t="t"
     :tall-content="true"
     :title="parsedChangelogTitle ?? undefined"
+    :disable-overlay-close="false"
     @close="updateOsChangelogStore.setReleaseForUpdate(null)"
   >
     <template #main>
