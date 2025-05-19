@@ -79,6 +79,3 @@ export const KEYSERVER_VALIDATION_ENDPOINT = 'https://keys.lime-technology.com/v
 
 /** Set the max retries for the GraphQL Client */
 export const MAX_RETRIES_FOR_LINEAR_BACKOFF = 100;
-
-export const PM2_PATH = join(import.meta.dirname, '../../', 'node_modules', 'pm2', 'bin', 'pm2');
-export const ECOSYSTEM_PATH = join(import.meta.dirname, '../../', 'ecosystem.config.json');
