@@ -545,8 +545,8 @@ importers:
         specifier: ^5.4.4
         version: 5.4.4
       commander:
-        specifier: ^13.1.0
-        version: 13.1.0
+        specifier: ^14.0.0
+        version: 14.0.0
       create-create-app:
         specifier: ^7.3.0
         version: 7.3.0
@@ -618,8 +618,8 @@ importers:
   plugin:
     dependencies:
       commander:
-        specifier: ^13.1.0
-        version: 13.1.0
+        specifier: ^14.0.0
+        version: 14.0.0
       conventional-changelog:
         specifier: ^6.0.0
         version: 6.0.0(conventional-commits-filter@5.0.0)
@@ -5521,6 +5521,10 @@ packages:
   commander@13.1.0:
     resolution: {integrity: sha512-/rFeCpNJQbhSZjGVwO9RFV3xPqbnERS8MmIQzCtD/zl6gpJuV/bMLuN92oG3F7d8oDEHHRrujSXNUr8fpjntKw==}
     engines: {node: '>=18'}
+
+  commander@14.0.0:
+    resolution: {integrity: sha512-2uM9rYjPvyq39NwLRqaiLtWHyDC1FvryJDa2ATTVims5YAS4PupsEQsDvP14FqhFr0P49CYDugi59xaxJlTXRA==}
+    engines: {node: '>=20'}
 
   commander@2.15.1:
     resolution: {integrity: sha512-VlfT9F3V0v+jr4yxPc5gg9s62/fIVWsd2Bk2iD435um1NlGMYdVCq+MjcXnhYq2icNOizHr1kK+5TI6H0Hy0ag==}
@@ -17697,6 +17701,8 @@ snapshots:
   commander@12.1.0: {}
 
   commander@13.1.0: {}
+
+  commander@14.0.0: {}
 
   commander@2.15.1: {}
 

@@ -3,7 +3,7 @@
   "version": "4.8.0",
   "private": true,
   "dependencies": {
-    "commander": "^13.1.0",
+    "commander": "^14.0.0",
     "conventional-changelog": "^6.0.0",
     "date-fns": "^4.1.0",
     "glob": "^11.0.1",
