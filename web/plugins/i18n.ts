@@ -1,19 +1,30 @@
-import { createI18n } from 'vue-i18n';
-
-import en_US from '@/locales/en_US.json'; 
-import { createHtmlEntityDecoder } from '~/helpers/i18n-utils';
+import { defineNuxtPlugin } from '#app';
+import { createGettextInstance, createTranslateDirective } from '~/composables/i18n';
 
 export default defineNuxtPlugin(({ vueApp }) => {
-  const i18n = createI18n({
-    legacy: false,
-    globalInjection: true,
-    locale: 'en_US',
-    fallbackLocale: 'en_US',
-    messages: {
-      en_US,  
-    },
-    postTranslation: createHtmlEntityDecoder(),
+  // Create the gettext instance - this should be configured with your app's actual translations
+  // You might want to modify this to load translations from your API or static files
+  const gt = createGettextInstance({
+    locale: 'en_US', // This should be dynamic based on user preference or browser
+    translations: {}  // Load your translations here
   });
-
-  vueApp.use(i18n);
+  
+  // Register the translation directive
+  vueApp.directive('translate', createTranslateDirective(gt));
+  
+  // Provide the gettext instance to components
+  vueApp.provide('gettext', gt);
+  
+  // Register global properties for convenience
+  vueApp.config.globalProperties.$gettext = (text: string) => gt.gettext(text);
+  vueApp.config.globalProperties.$ngettext = (singular: string, plural: string, count: number) => 
+    gt.ngettext(singular, plural, count);
+  vueApp.config.globalProperties.$pgettext = (context: string, text: string) => 
+    gt.pgettext(context, text);
+  
+  return {
+    provide: {
+      gettext: gt
+    }
+  };
 });

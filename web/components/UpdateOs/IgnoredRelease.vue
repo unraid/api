@@ -2,20 +2,19 @@
 import { XMarkIcon } from '@heroicons/vue/24/solid';
 import { BrandButton } from '@unraid/ui';
 
-import type { ComposerTranslation } from 'vue-i18n';
-
+import { useI18n } from '~/composables/useI18n';
 import { useServerStore } from '~/store/server';
 import { useThemeStore } from '~/store/theme';
 
 export interface Props {
   label?: string;
-  t: ComposerTranslation;
 }
 
 withDefaults(defineProps<Props>(), {
   label: '',
 });
 
+const { $t } = useI18n();
 const serverStore = useServerStore();
 const { darkMode } = storeToRefs(useThemeStore());
 
@@ -33,8 +32,8 @@ const evenBgColor = computed(() => {
     <BrandButton
       variant="underline"
       :icon-right="XMarkIcon"
-      :text="t('Remove')"
-      :title="t('Remove from ignore list')"
+      :text="$t('Remove')"
+      :title="$t('Remove from ignore list')"
       @click="serverStore.updateOsRemoveIgnoredRelease(label)"
     />
   </div>

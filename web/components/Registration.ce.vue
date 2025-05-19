@@ -16,7 +16,7 @@ else
 fi
  */
 import { computed, onBeforeMount, ref, watch } from 'vue';
-import { useI18n } from 'vue-i18n';
+import { useI18n } from '~/composables/useI18n';
 import { storeToRefs } from 'pinia';
 
 import { ShieldCheckIcon, ShieldExclamationIcon } from '@heroicons/vue/24/solid';
@@ -34,7 +34,7 @@ import useDateTimeHelper from '~/composables/dateTime';
 import { useReplaceRenewStore } from '~/store/replaceRenew';
 import { useServerStore } from '~/store/server';
 
-const { t } = useI18n();
+const { $gettext } = useI18n();
 
 const replaceRenewCheckStore = useReplaceRenewStore();
 const serverStore = useServerStore();
@@ -74,7 +74,7 @@ const setFormattedRegTm = () => {
     return;
   }
 
-  const { outputDateTimeFormatted } = useDateTimeHelper(dateTimeFormat.value, t, true, regTm.value);
+  const { outputDateTimeFormatted } = useDateTimeHelper(dateTimeFormat.value, $gettext, true, regTm.value);
   formattedRegTm.value = outputDateTimeFormatted.value;
 };
 watch(regTm, (_newV) => {
@@ -129,7 +129,7 @@ const items = computed((): RegistrationItemProps[] => {
     ...(computedArray.value
       ? [
           {
-            label: t('Array status'),
+            label: $gettext('Array status'),
             text: computedArray.value,
             warning: arrayWarning.value,
           },
@@ -138,7 +138,7 @@ const items = computed((): RegistrationItemProps[] => {
     ...(regTy.value
       ? [
           {
-            label: t('License key type'),
+            label: $gettext('License key type'),
             text: regTy.value,
           },
         ]
@@ -147,12 +147,11 @@ const items = computed((): RegistrationItemProps[] => {
       ? [
           {
             error: state.value === 'EEXPIRED',
-            label: t('Trial expiration'),
+            label: $gettext('Trial expiration'),
             component: UserProfileUptimeExpire,
             componentProps: {
               forExpire: true,
               shortText: true,
-              t,
             },
             componentOpacity: true,
           },
@@ -161,7 +160,7 @@ const items = computed((): RegistrationItemProps[] => {
     ...(regTo.value
       ? [
           {
-            label: t('Registered to'),
+            label: $gettext('Registered to'),
             text: regTo.value,
           },
         ]
@@ -169,7 +168,7 @@ const items = computed((): RegistrationItemProps[] => {
     ...(regTo.value && regTm.value && formattedRegTm.value
       ? [
           {
-            label: t('Registered on'),
+            label: $gettext('Registered on'),
             text: formattedRegTm.value,
           },
         ]
@@ -177,10 +176,10 @@ const items = computed((): RegistrationItemProps[] => {
     ...(showUpdateEligibility.value
       ? [
           {
-            label: t('OS Update Eligibility'),
+            label: $gettext('OS Update Eligibility'),
             warning: regUpdatesExpired.value,
             component: RegistrationUpdateExpirationAction,
-            componentProps: { t },
+            componentProps: {},
             componentOpacity: !regUpdatesExpired.value,
           },
         ]
@@ -188,7 +187,7 @@ const items = computed((): RegistrationItemProps[] => {
     ...(state.value === 'EGUID'
       ? [
           {
-            label: t('Registered GUID'),
+            label: $gettext('Registered GUID'),
             text: regGuid.value,
           },
         ]
@@ -196,7 +195,7 @@ const items = computed((): RegistrationItemProps[] => {
     ...(guid.value
       ? [
           {
-            label: t('Flash GUID'),
+            label: $gettext('Flash GUID'),
             text: guid.value,
           },
         ]
@@ -204,7 +203,7 @@ const items = computed((): RegistrationItemProps[] => {
     ...(flashVendor.value
       ? [
           {
-            label: t('Flash Vendor'),
+            label: $gettext('Flash Vendor'),
             text: flashVendor.value,
           },
         ]
@@ -212,7 +211,7 @@ const items = computed((): RegistrationItemProps[] => {
     ...(flashProduct.value
       ? [
           {
-            label: t('Flash Product'),
+            label: $gettext('Flash Product'),
             text: flashProduct.value,
           },
         ]
@@ -221,34 +220,32 @@ const items = computed((): RegistrationItemProps[] => {
       ? [
           {
             error: tooManyDevices.value,
-            label: t('Attached Storage Devices'),
+            label: $gettext('Attached Storage Devices'),
             text: tooManyDevices.value
-              ? t('{0} out of {1} allowed devices – upgrade your key to support more devices', [
-                  deviceCount.value,
-                  computedRegDevs.value,
-                ])
-              : t('{0} out of {1} devices', [
-                  deviceCount.value,
-                  computedRegDevs.value === -1 ? t('unlimited') : computedRegDevs.value,
-                ]),
+              ? $gettext('{0} out of {1} allowed devices – upgrade your key to support more devices')
+                  .replace('{0}', String(deviceCount.value))
+                  .replace('{1}', String(computedRegDevs.value))
+              : $gettext('{0} out of {1} devices')
+                  .replace('{0}', String(deviceCount.value))
+                  .replace('{1}', computedRegDevs.value === -1 ? $gettext('unlimited') : String(computedRegDevs.value)),
           },
         ]
       : []),
     ...(showLinkedAndTransferStatus.value
       ? [
           {
-            label: t('Transfer License to New Flash'),
+            label: $gettext('Transfer License to New Flash'),
             component: RegistrationReplaceCheck,
-            componentProps: { t },
+            componentProps: {},
           },
         ]
       : []),
     ...(regTo.value && showLinkedAndTransferStatus.value
       ? [
           {
-            label: t('Linked to Unraid.net account'),
+            label: $gettext('Linked to Unraid.net account'),
             component: RegistrationKeyLinkedStatus,
-            componentProps: { t },
+            componentProps: {},
           },
         ]
       : []),
@@ -259,7 +256,6 @@ const items = computed((): RegistrationItemProps[] => {
             component: KeyActions,
             componentProps: {
               filterOut: ['renew'],
-              t,
             },
           },
         ]
@@ -291,8 +287,8 @@ const items = computed((): RegistrationItemProps[] => {
             <BrandButton
               :disabled="authAction?.disabled"
               :icon="authAction.icon"
-              :text="t(authAction.text)"
-              :title="authAction.title ? t(authAction.title) : undefined"
+              :text="$gettext(authAction.text)"
+              :title="authAction.title ? $gettext(authAction.title) : undefined"
               @click="authAction.click?.()"
             />
           </span>

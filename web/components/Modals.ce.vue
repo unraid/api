@@ -1,13 +1,10 @@
 <script setup lang="ts">
-import { useI18n } from 'vue-i18n';
 import { storeToRefs } from 'pinia';
 
 import { useCallbackActionsStore } from '~/store/callbackActions';
 import { useTrialStore } from '~/store/trial';
 import { useUpdateOsStore } from '~/store/updateOs';
 import { useUpdateOsChangelogStore } from '~/store/updateOsChangelog';
-
-const { t } = useI18n();
 
 const { callbackStatus } = storeToRefs(useCallbackActionsStore());
 const { trialModalVisible } = storeToRefs(useTrialStore());
@@ -17,11 +14,11 @@ const { releaseForUpdate: updateOsChangelogModalVisible } = storeToRefs(useUpdat
 
 <template>
   <div id="modals" ref="modals" class="relative z-[99999]">
-    <UpcCallbackFeedback :t="t" :open="callbackStatus !== 'ready'" />
-    <UpcTrial :t="t" :open="trialModalVisible" />
-    <UpdateOsCheckUpdateResponseModal :t="t" :open="updateOsModalVisible" />
-    <UpdateOsChangelogModal :t="t" :open="!!updateOsChangelogModalVisible" />
-    <ActivationModal :t="t" />
+    <UpcCallbackFeedback :open="callbackStatus !== 'ready'" />
+    <UpcTrial :open="trialModalVisible" />
+    <UpdateOsCheckUpdateResponseModal :open="updateOsModalVisible" />
+    <UpdateOsChangelogModal :open="!!updateOsChangelogModalVisible" />
+    <ActivationModal />
   </div>
 </template>
 

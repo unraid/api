@@ -15,8 +15,7 @@ import {
 import { BrandButton, BrandLoading } from '@unraid/ui';
 import { WEBGUI_CONNECT_SETTINGS, WEBGUI_TOOLS_REGISTRATION } from '~/helpers/urls';
 
-import type { ComposerTranslation } from 'vue-i18n';
-
+import { useI18n } from '~/composables/useI18n';
 import { useAccountStore } from '~/store/account';
 import { useCallbackActionsStore } from '~/store/callbackActions';
 import { useInstallKeyStore } from '~/store/installKey';
@@ -25,13 +24,11 @@ import { useUpdateOsActionsStore } from '~/store/updateOsActions';
 
 export interface Props {
   open?: boolean;
-  t: ComposerTranslation;
 }
 
-const props = withDefaults(defineProps<Props>(), {
-  open: false,
-});
+defineProps<Props>();
 
+const { $gettext } = useI18n();
 const accountStore = useAccountStore();
 const callbackActionsStore = useCallbackActionsStore();
 const installKeyStore = useInstallKeyStore();
@@ -68,58 +65,58 @@ const isSettingsPage = ref<boolean>(document.location.pathname === '/Settings/Ma
 const heading = computed(() => {
   if (updateOsStatus.value === 'confirming') {
     return callbackTypeDowngrade.value
-      ? props.t('Downgrade Unraid OS confirmation required')
-      : props.t('Update Unraid OS confirmation required');
+      ? $gettext('Downgrade Unraid OS confirmation required')
+      : $gettext('Update Unraid OS confirmation required');
   }
   switch (callbackStatus.value) {
     case 'error':
-      return props.t('Error');
+      return $gettext('Error');
     case 'loading':
-      return props.t('Performing actions');
+      return $gettext('Performing actions');
     case 'success':
-      return props.t('Success!');
+      return $gettext('Success!');
   }
   return '';
 });
 const subheading = computed(() => {
   if (updateOsStatus.value === 'confirming') {
     return callbackTypeDowngrade.value
-      ? props.t('Please confirm the downgrade details below')
-      : props.t('Please confirm the update details below');
+      ? $gettext('Please confirm the downgrade details below')
+      : $gettext('Please confirm the update details below');
   }
   if (callbackStatus.value === 'error') {
-    return props.t('Something went wrong'); /** @todo show actual error messages */
+    return $gettext('Something went wrong'); /** @todo show actual error messages */
   }
   if (callbackStatus.value === 'loading') {
-    return props.t('Please keep this window open while we perform some actions');
+    return $gettext('Please keep this window open while we perform some actions');
   }
   if (callbackStatus.value === 'success') {
     if (accountActionType.value === 'signIn') {
-      return props.t("You're one step closer to enhancing your Unraid experience");
+      return $gettext("You're one step closer to enhancing your Unraid experience");
     }
     if (keyActionType.value === 'purchase') {
-      return props.t('Thank you for purchasing an Unraid {0} Key!', [keyType.value]);
+      return $gettext(`Thank you for purchasing an Unraid ${keyType.value} Key!`);
     }
     if (keyActionType.value === 'replace') {
-      return props.t('Your {0} Key has been replaced!', [keyType.value]);
+      return $gettext(`Your ${keyType.value} Key has been replaced!`);
     }
     if (keyActionType.value === 'trialExtend') {
-      return props.t('Your Trial key has been extended!');
+      return $gettext('Your Trial key has been extended!');
     }
     if (keyActionType.value === 'trialStart') {
-      return props.t(
+      return $gettext(
         'Your free Trial key provides all the functionality of an Unleashed Registration key'
       );
     }
     if (keyActionType.value === 'upgrade') {
-      return props.t('Thank you for upgrading to an Unraid {0} Key!', [keyType.value]);
+      return $gettext(`Thank you for upgrading to an Unraid ${keyType.value} Key!`);
     }
     return '';
   }
   return '';
 });
 
-const closeText = computed(() => props.t('Close')); // !connectPluginInstalled.value ? props.t('No thanks') :
+const closeText = computed(() => $gettext('Close')); // !connectPluginInstalled.value ? $gettext('No thanks') :
 const close = () => {
   if (callbackStatus.value === 'loading') {
     return;
@@ -140,56 +137,56 @@ const cancelUpdateOs = () => {
 };
 
 const keyInstallStatusCopy = computed((): { text: string } => {
-  let txt1 = props.t('Installing');
-  let txt2 = props.t('Installed');
-  let txt3 = props.t('Install');
+  let txt1 = $gettext('Installing');
+  let txt2 = $gettext('Installed');
+  let txt3 = $gettext('Install');
   switch (keyInstallStatus.value) {
     case 'installing':
       if (keyActionType.value === 'trialExtend') {
-        txt1 = props.t('Installing Extended Trial');
+        txt1 = $gettext('Installing Extended Trial');
       }
       if (keyActionType.value === 'recover') {
-        txt1 = props.t('Installing Recovered');
+        txt1 = $gettext('Installing Recovered');
       }
       if (keyActionType.value === 'renew') {
-        txt1 = props.t('Installing Extended');
+        txt1 = $gettext('Installing Extended');
       }
       if (keyActionType.value === 'replace') {
-        txt1 = props.t('Installing Replaced');
+        txt1 = $gettext('Installing Replaced');
       }
       return {
-        text: props.t('{0} {1} Key…', [txt1, keyType.value]),
+        text: $gettext(`${txt1} ${keyType.value} Key…`),
       };
     case 'success':
       if (keyActionType.value === 'renew' || keyActionType.value === 'trialExtend') {
-        txt2 = props.t('Extension Installed');
+        txt2 = $gettext('Extension Installed');
       }
       if (keyActionType.value === 'recover') {
-        txt2 = props.t('Recovered');
+        txt2 = $gettext('Recovered');
       }
       if (keyActionType.value === 'replace') {
-        txt2 = props.t('Replaced');
+        txt2 = $gettext('Replaced');
       }
       return {
-        text: props.t('{1} Key {0} Successfully', [txt2, keyType.value]),
+        text: $gettext(`${keyType.value} Key ${txt2} Successfully`),
       };
     case 'failed':
       if (keyActionType.value === 'trialExtend') {
-        txt3 = props.t('Install Extended');
+        txt3 = $gettext('Install Extended');
       }
       if (keyActionType.value === 'recover') {
-        txt3 = props.t('Install Recovered');
+        txt3 = $gettext('Install Recovered');
       }
       if (keyActionType.value === 'replace') {
-        txt3 = props.t('Install Replaced');
+        txt3 = $gettext('Install Replaced');
       }
       return {
-        text: props.t('Failed to {0} {1} Key', [txt3, keyType.value]),
+        text: $gettext(`Failed to ${txt3} ${keyType.value} Key`),
       };
     case 'ready':
     default:
       return {
-        text: props.t('Ready to Install Key'),
+        text: $gettext('Ready to Install Key'),
       };
   }
 });
@@ -198,33 +195,33 @@ const accountActionStatusCopy = computed((): { text: string } => {
   switch (accountActionStatus.value) {
     case 'waiting':
       return {
-        text: accountAction.value?.type === 'signIn' ? props.t('Signing In') : props.t('Signing Out'),
+        text: accountAction.value?.type === 'signIn' ? $gettext('Signing In') : $gettext('Signing Out'),
       };
     case 'updating':
       return {
         text:
           accountAction.value?.type === 'signIn'
-            ? props.t('Signing in {0}…', [accountAction.value.user?.preferred_username])
-            : props.t('Signing out {0}…', [username.value]),
+            ? $gettext(`Signing in ${accountAction.value.user?.preferred_username}…`)
+            : $gettext(`Signing out ${username.value}…`),
       };
     case 'success':
       return {
         text:
           accountAction.value?.type === 'signIn'
-            ? props.t('{0} Signed In Successfully', [accountAction.value.user?.preferred_username])
-            : props.t('{0} Signed Out Successfully', [username.value]),
+            ? $gettext(`${accountAction.value.user?.preferred_username} Signed In Successfully`)
+            : $gettext(`${username.value} Signed Out Successfully`),
       };
     case 'failed':
       return {
         text:
           accountAction.value?.type === 'signIn'
-            ? props.t('Sign In Failed')
-            : props.t('Sign Out Failed'),
+            ? $gettext('Sign In Failed')
+            : $gettext('Sign Out Failed'),
       };
     case 'ready':
     default:
       return {
-        text: props.t('Ready to update Connect account configuration'),
+        text: $gettext('Ready to update Connect account configuration'),
       };
   }
 });
@@ -246,7 +243,6 @@ const showUpdateEligibility = computed(() => {
 
 <template>
   <Modal
-    :t="t"
     :title="heading"
     :description="subheading"
     :open="open"
@@ -270,15 +266,15 @@ const showUpdateEligibility = computed(() => {
           :text="keyInstallStatusCopy.text"
         >
           <div v-if="keyType === 'Trial'" class="opacity-75 italic mt-4px">
-            <UpcUptimeExpire v-if="refreshServerStateStatus === 'done'" :for-expire="true" :t="t" />
+            <UpcUptimeExpire v-if="refreshServerStateStatus === 'done'" :for-expire="true" :t="$gettext" />
             <p v-else>
-              {{ t('Calculating trial expiration…') }}
+              {{ $gettext('Calculating trial expiration…') }}
             </p>
           </div>
           <div v-if="showUpdateEligibility" class="opacity-75 italic mt-4px">
-            <RegistrationUpdateExpiration v-if="refreshServerStateStatus === 'done'" :t="t" />
+            <RegistrationUpdateExpiration v-if="refreshServerStateStatus === 'done'" :t="$gettext" />
             <p v-else>
-              {{ t('Calculating OS Update Eligibility…') }}
+              {{ $gettext('Calculating OS Update Eligibility…') }}
             </p>
           </div>
 
@@ -286,19 +282,19 @@ const showUpdateEligibility = computed(() => {
             <div v-if="isSupported" class="flex justify-center">
               <BrandButton
                 :icon="ClipboardIcon"
-                :text="copied ? t('Copied') : t('Copy Key URL')"
+                :text="copied ? $gettext('Copied') : $gettext('Copy Key URL')"
                 @click="copy(keyUrl)"
               />
             </div>
             <p v-else>
-              {{ t('Copy your Key URL: {0}', [keyUrl]) }}
+              {{ $gettext(`Copy your Key URL: ${keyUrl}`) }}
             </p>
             <p>
               <a
                 href="/Tools/Registration"
                 class="opacity-75 hover:opacity-100 focus:opacity-100 underline transition"
               >
-                {{ t('Then go to Tools > Registration to manually install it') }}
+                {{ $gettext('Then go to Tools > Registration to manually install it') }}
               </a>
             </p>
           </template>
@@ -311,12 +307,12 @@ const showUpdateEligibility = computed(() => {
             (keyInstallStatus === 'success' || keyInstallStatus === 'failed')
           "
           :error="true"
-          :text="t('Post Install License Key Error')"
+          :text="$gettext('Post Install License Key Error')"
         >
           <h4 class="text-18px text-left font-semibold">
-            {{ t(stateData.heading) }}
+            {{ $gettext(stateData.heading) }}
           </h4>
-          <div class="text-left text-16px" v-html="t(stateData.message)" />
+          <div class="text-left text-16px" v-html="$gettext(stateData.message)" />
         </UpcCallbackFeedbackStatus>
 
         <UpcCallbackFeedbackStatus
@@ -331,13 +327,13 @@ const showUpdateEligibility = computed(() => {
         <div class="text-center flex flex-col gap-y-8px my-16px">
           <div class="flex flex-col gap-y-4px">
             <p class="text-18px">
-              {{ t('Current Version: Unraid {0}', [osVersion]) }}
+              {{ $gettext(`Current Version: Unraid ${osVersion}`) }}
             </p>
 
             <ChevronDoubleDownIcon class="animate-pulse w-32px h-32px mx-auto fill-current opacity-50" />
 
             <p class="text-18px">
-              {{ t('New Version: {0}', [callbackUpdateRelease?.name]) }}
+              {{ $gettext(`New Version: ${callbackUpdateRelease?.name}`) }}
             </p>
 
             <p
@@ -346,8 +342,8 @@ const showUpdateEligibility = computed(() => {
             >
               {{
                 callbackTypeDowngrade
-                  ? t('This downgrade will require a reboot')
-                  : t('This update will require a reboot')
+                  ? $gettext('This downgrade will require a reboot')
+                  : $gettext('This update will require a reboot')
               }}
             </p>
           </div>
@@ -365,7 +361,7 @@ const showUpdateEligibility = computed(() => {
               v-if="isSettingsPage"
               class="grow-0"
               :icon="CogIcon"
-              :text="t('Configure Connect Features')"
+              :text="$gettext('Configure Connect Features')"
               @click="close"
             />
             <BrandButton
@@ -373,7 +369,7 @@ const showUpdateEligibility = computed(() => {
               class="grow-0"
               :href="WEBGUI_CONNECT_SETTINGS.toString()"
               :icon="CogIcon"
-              :text="t('Configure Connect Features')"
+              :text="$gettext('Configure Connect Features')"
             />
           </template>
         </template>
@@ -382,13 +378,13 @@ const showUpdateEligibility = computed(() => {
           <BrandButton
             variant="underline"
             :icon="XMarkIcon"
-            :text="t('Cancel')"
+            :text="$gettext('Cancel')"
             @click="cancelUpdateOs"
           />
           <BrandButton
             :icon="CheckIcon"
             :text="
-              callbackTypeDowngrade ? t('Confirm and start downgrade') : t('Confirm and start update')
+              callbackTypeDowngrade ? $gettext('Confirm and start downgrade') : $gettext('Confirm and start update')
             "
             @click="confirmUpdateOs"
           />
@@ -398,7 +394,7 @@ const showUpdateEligibility = computed(() => {
           <BrandButton
             :href="WEBGUI_TOOLS_REGISTRATION.toString()"
             :icon="WrenchScrewdriverIcon"
-            :text="t('Fix Error')"
+            :text="$gettext('Fix Error')"
           />
         </template>
       </div>

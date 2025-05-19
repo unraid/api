@@ -7,9 +7,10 @@ import { mount } from '@vue/test-utils';
 
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import type { ComposerTranslation } from 'vue-i18n';
-
 import ActivationModal from '~/components/Activation/ActivationModal.vue';
+
+// Define a simple translation function type to replace ComposerTranslation
+type TranslationFunction = (key: string, args?: unknown[]) => string;
 
 const mockT = (key: string, args?: unknown[]) => (args ? `${key} ${JSON.stringify(args)}` : key);
 
@@ -141,7 +142,7 @@ describe('Activation/ActivationModal.vue', () => {
 
   const mountComponent = () => {
     return mount(ActivationModal, {
-      props: { t: mockT as unknown as ComposerTranslation },
+      props: { t: mockT as unknown as TranslationFunction },
       global: {
         stubs: mockComponents,
       },

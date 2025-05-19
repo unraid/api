@@ -1,0 +1,29 @@
+msgid ""
+msgstr ""
+"Content-Type: text/plain; charset=UTF-8\n"
+"Project-Id-Version: Unraid Web\n"
+
+#: ./components/GettextDemo.vue:10
+#: ./components/GettextDemo.vue:4
+#: ./components/GettextDemo.vue:7
+msgid ""
+msgstr ""
+
+#: components/GettextDemo.vue:19
+msgid "Increment count"
+msgstr ""
+
+#: components/GettextDemo.vue:40
+msgid "item"
+msgid_plural "items"
+msgstr[0] ""
+msgstr[1] ""
+
+#: components/GettextDemo.vue:36
+msgid "This message will be extracted for translation"
+msgstr ""
+
+#: components/GettextDemo.vue:44
+msgctxt "info"
+msgid "This message has context for translators"
+msgstr ""

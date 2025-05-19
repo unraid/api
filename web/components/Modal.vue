@@ -4,8 +4,7 @@ import { computed, watchEffect } from 'vue';
 import { XMarkIcon } from '@heroicons/vue/24/outline';
 import { cn } from '@unraid/ui';
 import { TransitionChild, TransitionRoot } from '@headlessui/vue';
-
-import type { ComposerTranslation } from 'vue-i18n';
+import { useI18n } from '~/composables/useI18n';
 
 export interface Props {
   centerContent?: boolean;
@@ -15,7 +14,6 @@ export interface Props {
   open?: boolean;
   showCloseX?: boolean;
   success?: boolean;
-  t: ComposerTranslation;
   tallContent?: boolean;
   title?: string;
   titleInMain?: boolean;
@@ -44,6 +42,9 @@ const props = withDefaults(defineProps<Props>(), {
   disableShadow: false,
   disableOverlayClose: false,
 });
+
+const { $gettext } = useI18n();
+
 watchEffect(() => {
   // toggle body scrollability
   if (props.open) {
@@ -97,7 +98,7 @@ const computedVerticalCenter = computed<string>(() => {
         >
           <div
             :class="cn('fixed inset-0 z-0 transition-opacity', overlayColor, overlayOpacity)"
-            :title="showCloseX ? t('Click to close modal') : undefined"
+            :title="showCloseX ? $gettext('Click to close modal') : undefined"
             @click="!disableOverlayClose ? closeModal : undefined"
           />
         </TransitionChild>
@@ -127,7 +128,7 @@ const computedVerticalCenter = computed<string>(() => {
                 type="button"
                 @click="closeModal"
               >
-                <span class="sr-only">{{ t('Close') }}</span>
+                <span class="sr-only">{{ $gettext('Close') }}</span>
                 <XMarkIcon class="h-6 w-6" aria-hidden="true" />
               </button>
             </div>

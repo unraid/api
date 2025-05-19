@@ -1,15 +1,15 @@
 <script setup lang="ts">
+import { h } from 'vue';
 import { storeToRefs } from 'pinia';
 
 import { CheckCircleIcon, ExclamationTriangleIcon, UserCircleIcon } from '@heroicons/vue/24/solid';
 import { BrandLoading } from '@unraid/ui';
 
-import type { ComposerTranslation } from 'vue-i18n';
-
 import { useServerStore } from '~/store/server';
 import { useUnraidApiStore } from '~/store/unraidApi';
+import { useI18n } from '~/composables/useI18n';
 
-const props = defineProps<{ t: ComposerTranslation }>();
+const { $t } = useI18n();
 
 const { username } = storeToRefs(useServerStore());
 
@@ -28,7 +28,7 @@ const status = computed((): StatusOutput | undefined => {
     return {
       icon: brandLoading,
       iconClasses: 'w-4',
-      text: props.t('Loading…'),
+      text: $t('Loading…'),
       textClasses: 'italic',
     };
   }
@@ -36,7 +36,7 @@ const status = computed((): StatusOutput | undefined => {
     return {
       icon: brandLoading,
       iconClasses: 'w-4',
-      text: props.t('Restarting unraid-api…'),
+      text: $t('Restarting unraid-api…'),
       textClasses: 'italic',
     };
   }
@@ -44,14 +44,14 @@ const status = computed((): StatusOutput | undefined => {
     return {
       icon: ExclamationTriangleIcon,
       iconClasses: 'text-red-500 w-16px h-16px',
-      text: props.t('unraid-api is offline'),
+      text: $t('unraid-api is offline'),
     };
   }
   if (unraidApiStatus.value === 'online') {
     return {
       icon: CheckCircleIcon,
       iconClasses: 'text-green-600 w-16px h-16px',
-      text: props.t('Connected'),
+      text: $t('Connected'),
     };
   }
   return undefined;
@@ -70,6 +70,6 @@ const statusItemClasses = "text-14px flex flex-row justify-start items-center ga
     {{ status.text }}
   </li>
   <li v-if="unraidApiRestartAction" class="w-full">
-    <UpcDropdownItem :item="unraidApiRestartAction" :t="t" />
+    <UpcDropdownItem :item="unraidApiRestartAction" />
   </li>
 </template>

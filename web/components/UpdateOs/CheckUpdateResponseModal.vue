@@ -13,7 +13,7 @@ import { BrandButton, BrandLoading } from '@unraid/ui';
 import { Switch, SwitchGroup, SwitchLabel } from '@headlessui/vue';
 
 import type { BrandButtonProps } from '@unraid/ui';
-import type { ComposerTranslation } from 'vue-i18n';
+import { useI18n } from '#imports';
 
 import useDateTimeHelper from '~/composables/dateTime';
 import { useAccountStore } from '~/store/account';
@@ -24,13 +24,11 @@ import { useUpdateOsChangelogStore } from '~/store/updateOsChangelog';
 
 export interface Props {
   open?: boolean;
-  t: ComposerTranslation;
 }
 
-const props = withDefaults(defineProps<Props>(), {
-  open: false,
-});
+const { open = false } = defineProps<Props>();
 
+const { $t } = useI18n();
 const accountStore = useAccountStore();
 const purchaseStore = usePurchaseStore();
 const serverStore = useServerStore();
@@ -66,7 +64,6 @@ const setFormattedRegExp = () => {
 
   const { outputDateTimeFormatted } = useDateTimeHelper(
     dateTimeFormat.value,
-    props.t,
     true,
     regExp.value
   );
@@ -86,7 +83,7 @@ watch(updateOsIgnoredReleases, (newVal, oldVal) => {
 
 const notificationsSettings = computed(() => {
   return !updateOsNotificationsEnabled.value
-    ? props.t(
+    ? $t(
         'Go to Settings > Notifications to enable automatic OS update notifications for future releases.'
       )
     : undefined;
@@ -99,7 +96,7 @@ interface ModalCopy {
 const modalCopy = computed((): ModalCopy | null => {
   if (checkForUpdatesLoading.value) {
     return {
-      title: props.t('Checking for OS updates...'),
+      title: $t('Checking for OS updates...'),
     };
   }
 
@@ -107,30 +104,30 @@ const modalCopy = computed((): ModalCopy | null => {
   let formattedReleaseDate = '';
   if (availableReleaseDate.value) {
     // build string with prefix
-    formattedReleaseDate = props.t('Release date {0}', [userFormattedReleaseDate.value]);
+    formattedReleaseDate = $t('Release date {0}', [userFormattedReleaseDate.value]);
   }
 
   if (availableWithRenewal.value) {
     const description = regUpdatesExpired.value
-      ? `${props.t('Eligible for updates released on or before {0}.', [formattedRegExp.value])} ${props.t('Extend your license to access the latest updates.')}`
-      : props.t('Eligible for free feature updates until {0}', [formattedRegExp.value]);
+      ? `${$t('Eligible for updates released on or before {0}.', [formattedRegExp.value])} ${$t('Extend your license to access the latest updates.')}`
+      : $t('Eligible for free feature updates until {0}', [formattedRegExp.value]);
     return {
-      title: props.t('Unraid OS {0} Released', [availableWithRenewal.value]),
+      title: $t('Unraid OS {0} Released', [availableWithRenewal.value]),
       description: `<p>${formattedReleaseDate}</p><p>${description}</p>`,
     };
   } else if (available.value) {
     const description = availableRequiresAuth.value
-      ? props.t('Release requires verification to update')
+      ? $t('Release requires verification to update')
       : undefined;
     return {
-      title: props.t('Unraid OS {0} Update Available', [available.value]),
+      title: $t('Unraid OS {0} Update Available', [available.value]),
       description: description
         ? `<p>${formattedReleaseDate}</p><p>${description}</p>`
         : formattedReleaseDate,
     };
   } else if (!available.value && !availableWithRenewal.value) {
     return {
-      title: props.t('Unraid OS is up-to-date'),
+      title: $t('Unraid OS is up-to-date'),
       description: notificationsSettings.value ?? undefined,
     };
   }
@@ -149,7 +146,7 @@ const extraLinks = computed((): BrandButtonProps[] => {
       variant: 'outline',
       href: '/Settings/Notifications',
       icon: CogIcon,
-      text: props.t('Enable update notifications'),
+      text: $t('Enable update notifications'),
     });
   }
 
@@ -170,7 +167,7 @@ const actionButtons = computed((): BrandButtonProps[] | null => {
     buttons.push({
       click: async () => await accountStore.updateOs(),
       icon: IdentificationIcon,
-      text: props.t('Verify to Update'),
+      text: $t('Verify to Update'),
     });
 
     return buttons;
@@ -184,8 +181,8 @@ const actionButtons = computed((): BrandButtonProps[] | null => {
         await updateOsChangelogStore.setReleaseForUpdate(updateOsResponse.value ?? null),
       icon: EyeIcon,
       text: availableWithRenewal.value
-        ? props.t('View Changelog')
-        : props.t('View Changelog to Start Update'),
+        ? $t('View Changelog')
+        : $t('View Changelog to Start Update'),
     });
   }
 
@@ -196,8 +193,8 @@ const actionButtons = computed((): BrandButtonProps[] | null => {
       icon: KeyIcon,
       iconRight: ArrowTopRightOnSquareIcon,
       iconRightHoverDisplay: false,
-      text: props.t('Extend License'),
-      title: props.t('Pay your annual fee to continue receiving OS updates.'),
+      text: $t('Extend License'),
+      title: $t('Pay your annual fee to continue receiving OS updates.'),
     });
   }
 
@@ -237,7 +234,6 @@ const setUserFormattedReleaseDate = () => {
 
   const { outputDateTimeFormatted } = useDateTimeHelper(
     dateTimeFormat.value,
-    props.t,
     true,
     availableReleaseDate.value.valueOf()
   );
@@ -264,7 +260,7 @@ const modalWidth = computed(() => {
 
 <template>
   <Modal
-    :t="t"
+    :t="$t"
     :open="open"
     :title="modalCopy?.title"
     :description="modalCopy?.description"
@@ -284,8 +280,8 @@ const modalWidth = computed(() => {
             :icon="item.icon"
             :icon-right="item.iconRight"
             :icon-right-hover-display="item.iconRightHoverDisplay"
-            :text="t(item.text ?? '')"
-            :title="item.title ? t(item.title) : undefined"
+            :text="$t(item.text ?? '')"
+            :title="item.title ? $t(item.title) : undefined"
             @click="item.click?.()"
           />
         </div>
@@ -310,7 +306,7 @@ const modalWidth = computed(() => {
                 />
               </Switch>
               <SwitchLabel class="text-16px">
-                {{ t('Ignore this release until next reboot') }}
+                {{ $t('Ignore this release until next reboot') }}
               </SwitchLabel>
             </div>
           </SwitchGroup>
@@ -320,13 +316,13 @@ const modalWidth = computed(() => {
           class="w-full max-w-640px mx-auto flex flex-col gap-8px"
         >
           <h3 class="text-left text-16px font-semibold italic">
-            {{ t('Ignored Releases') }}
+            {{ $t('Ignored Releases') }}
           </h3>
           <UpdateOsIgnoredRelease
             v-for="ignoredRelease in updateOsIgnoredReleases"
             :key="ignoredRelease"
             :label="ignoredRelease"
-            :t="t"
+            :t="$t"
           />
         </div>
       </div>
@@ -344,13 +340,13 @@ const modalWidth = computed(() => {
           <BrandButton
             variant="underline-hover-red"
             :icon="XMarkIcon"
-            :text="t('Close')"
+            :text="$t('Close')"
             @click="close"
           />
           <BrandButton
             variant="underline"
             :icon="ArrowTopRightOnSquareIcon"
-            :text="t('More options')"
+            :text="$t('More options')"
             @click="accountStore.updateOs()"
           />
         </div>
@@ -362,8 +358,8 @@ const modalWidth = computed(() => {
             :icon="item.icon"
             :icon-right="item.iconRight"
             :icon-right-hover-display="item.iconRightHoverDisplay"
-            :text="t(item.text ?? '')"
-            :title="item.title ? t(item.title) : undefined"
+            :text="$t(item.text ?? '')"
+            :title="item.title ? $t(item.title) : undefined"
             @click="item.click?.()"
           />
         </div>

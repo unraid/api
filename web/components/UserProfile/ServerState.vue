@@ -1,11 +1,11 @@
 <script setup lang="ts">
 import { storeToRefs } from 'pinia';
-import type { ComposerTranslation } from 'vue-i18n';
+import { useI18n } from '~/composables/useI18n';
 
 import { useServerStore } from '~/store/server';
 import type { ServerStateDataAction } from '~/types/server';
 
-defineProps<{ t: ComposerTranslation; }>();
+const { $gettext } = useI18n();
 
 const { state, stateData } = storeToRefs(useServerStore());
 
@@ -22,22 +22,22 @@ const upgradeAction = computed((): ServerStateDataAction | undefined => {
     <template v-if="upgradeAction">
       <UpcServerStateBuy
         class="text-header-text-secondary"
-        :title="t('Upgrade Key')"
+        :title="$gettext('Upgrade Key')"
         @click="upgradeAction.click?.()"
       >
-        <h5>Unraid OS <em><strong>{{ t(stateData.humanReadable) }}</strong></em></h5>
+        <h5>Unraid OS <em><strong>{{ $gettext(stateData.humanReadable) }}</strong></em></h5>
       </UpcServerStateBuy>
     </template>
     <h5 v-else>
-      Unraid OS <em :class="{ 'text-unraid-red': stateData.error || state === 'EEXPIRED' }"><strong>{{ t(stateData.humanReadable) }}</strong></em>
+      Unraid OS <em :class="{ 'text-unraid-red': stateData.error || state === 'EEXPIRED' }"><strong>{{ $gettext(stateData.humanReadable) }}</strong></em>
     </h5>
 
     <template v-if="purchaseAction">
       <UpcServerStateBuy
         class="text-orange-dark relative top-[1px] hidden sm:block"
-        :title="t('Purchase Key')"
+        :title="$gettext('Purchase Key')"
         @click="purchaseAction.click?.()"
-      >{{ t('Purchase') }}</UpcServerStateBuy>
+      >{{ $gettext('Purchase') }}</UpcServerStateBuy>
     </template>
   </span>
 </template>

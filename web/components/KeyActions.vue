@@ -6,9 +6,11 @@ import { ArrowTopRightOnSquareIcon } from '@heroicons/vue/24/solid';
 import { BrandButton, cn } from '@unraid/ui';
 
 import type { ServerStateDataAction } from '~/types/server';
-import type { ComposerTranslation } from 'vue-i18n';
+import { useI18n } from '~/composables/useI18n';
 
 import { useServerStore } from '~/store/server';
+
+const { $gettext } = useI18n();
 
 const props = withDefaults(
   defineProps<{
@@ -16,7 +18,6 @@ const props = withDefaults(
     filterBy?: string[] | undefined;
     filterOut?: string[] | undefined;
     maxWidth?: boolean;
-    t: ComposerTranslation;
   }>(),
   {
     actions: undefined,
@@ -56,8 +57,8 @@ const filteredKeyActions = computed((): ServerStateDataAction[] | undefined => {
         :icon="action.icon"
         :icon-right="ArrowTopRightOnSquareIcon"
         :icon-right-hover-display="true"
-        :text="t(action.text)"
-        :title="action.title ? t(action.title) : undefined"
+        :text="$gettext(action.text)"
+        :title="action.title ? $gettext(action.title) : undefined"
         @click="action.click?.()"
       />
     </li>

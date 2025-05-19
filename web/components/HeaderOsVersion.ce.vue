@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import { computed } from 'vue';
-import { useI18n } from 'vue-i18n';
+import { useI18n } from '~/composables/useI18n';
 import { storeToRefs } from 'pinia';
 
 import { BellAlertIcon, ExclamationTriangleIcon, InformationCircleIcon } from '@heroicons/vue/24/solid';
@@ -12,7 +12,7 @@ import { useServerStore } from '~/store/server';
 import { useUpdateOsStore } from '~/store/updateOs';
 import { useUpdateOsActionsStore } from '~/store/updateOsActions';
 
-const { t } = useI18n();
+const { $gettext } = useI18n();
 
 const serverStore = useServerStore();
 const updateOsStore = useUpdateOsStore();
@@ -27,13 +27,13 @@ const unraidLogoHeaderLink = computed<{ href: string; title: string }>(() => {
   if (partnerInfo.value?.partnerUrl) {
     return {
       href: partnerInfo.value.partnerUrl,
-      title: t('Visit Partner website'),
+      title: $gettext('Visit Partner website'),
     };
   }
 
   return {
     href: 'https://unraid.net',
-    title: t('Visit Unraid website'),
+    title: $gettext('Visit Unraid website'),
   };
 });
 
@@ -53,7 +53,7 @@ const updateOsStatus = computed(() => {
         rebootType.value === 'downgrade'
           ? WEBGUI_TOOLS_DOWNGRADE.toString()
           : WEBGUI_TOOLS_UPDATE.toString(),
-      text: t(rebootTypeText.value),
+      text: $gettext(rebootTypeText.value),
     };
   }
 
@@ -66,10 +66,10 @@ const updateOsStatus = computed(() => {
       click: () => {
         updateOsStore.setModalOpen(true);
       },
-      text: availableWithRenewal.value ? t('Update Released') : t('Update Available'),
+      text: availableWithRenewal.value ? $gettext('Update Released') : $gettext('Update Available'),
       title: availableWithRenewal.value
-        ? t('Unraid OS {0} Released', [availableWithRenewal.value])
-        : t('Unraid OS {0} Update Available', [available.value]),
+        ? $gettext('Unraid OS {0} Released').replace('{0}', availableWithRenewal.value)
+        : $gettext('Unraid OS {0} Update Available').replace('{0}', available.value),
     };
   }
 
@@ -96,7 +96,7 @@ const updateOsStatus = computed(() => {
     <div class="flex flex-row justify-start gap-x-4px">
       <a
         class="group leading-none"
-        :title="t('View release notes')"
+        :title="$gettext('View release notes')"
         :href="getReleaseNotesUrl(osVersion).toString()"
         target="_blank"
         rel="noopener"
