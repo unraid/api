@@ -1,11 +1,11 @@
 <script setup lang="ts">
-import { computed, ref, onMounted, onBeforeUnmount, watch } from 'vue';
+import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import { storeToRefs } from 'pinia';
 
 import {
+  ArrowLeftIcon,
   ArrowSmallRightIcon,
   ArrowTopRightOnSquareIcon,
-  ArrowLeftIcon,
   KeyIcon,
   ServerStackIcon,
 } from '@heroicons/vue/24/solid';
@@ -56,9 +56,10 @@ const showRawChangelog = computed<boolean>(() => {
 const handleIframeNavigationMessage = (event: MessageEvent) => {
   if (
     event.data &&
-    event.data.type === "unraid-docs-navigation" &&
+    event.data.type === 'unraid-docs-navigation' &&
     iframeRef.value &&
-    event.source === iframeRef.value.contentWindow
+    event.source === iframeRef.value.contentWindow &&
+    event.origin.startsWith('https://docs.unraid.net/')
   ) {
     if (event.data.url !== docsChangelogUrl.value) {
       hasNavigated.value = true;
@@ -70,13 +71,13 @@ const handleIframeNavigationMessage = (event: MessageEvent) => {
 };
 
 onMounted(() => {
-  window.addEventListener("message", handleIframeNavigationMessage);
+  window.addEventListener('message', handleIframeNavigationMessage);
   // Set initial value
   currentIframeUrl.value = docsChangelogUrl.value;
 });
 
 onBeforeUnmount(() => {
-  window.removeEventListener("message", handleIframeNavigationMessage);
+  window.removeEventListener('message', handleIframeNavigationMessage);
 });
 
 const revertToInitialChangelog = () => {
@@ -108,10 +109,7 @@ watch(docsChangelogUrl, (newUrl) => {
     <template #main>
       <div class="flex flex-col gap-4 min-w-[280px] sm:min-w-[400px]">
         <!-- iframe for changelog if available -->
-        <div
-          v-if="docsChangelogUrl"
-          class="w-[calc(100%+3rem)] h-[475px] -mx-6 -my-6"
-        >
+        <div v-if="docsChangelogUrl" class="w-[calc(100%+3rem)] h-[475px] -mx-6 -my-6">
           <iframe
             ref="iframeRef"
             :src="docsChangelogUrl"
@@ -127,14 +125,16 @@ watch(docsChangelogUrl, (newUrl) => {
           class="text-16px sm:text-18px prose prose-a:text-unraid-red hover:prose-a:no-underline hover:prose-a:text-unraid-red/60 dark:prose-a:text-orange hover:dark:prose-a:text-orange/60 overflow-auto max-h-[500px]"
           v-html="mutatedParsedChangelog"
         />
-  
+
         <!-- Error state -->
         <div v-else-if="parseChangelogFailed" class="text-center flex flex-col gap-4 prose">
           <h2 class="text-lg text-unraid-red italic font-semibold">
             {{ props.t(`Error Parsing Changelog • {0}`, [parseChangelogFailed]) }}
           </h2>
           <p>
-            {{ props.t(`It's highly recommended to review the changelog before continuing your update`) }}
+            {{
+              props.t(`It's highly recommended to review the changelog before continuing your update`)
+            }}
           </p>
           <div v-if="releaseForUpdate?.changelogPretty" class="flex self-center">
             <BrandButton
@@ -147,7 +147,7 @@ watch(docsChangelogUrl, (newUrl) => {
             </BrandButton>
           </div>
         </div>
-  
+
         <!-- Loading state -->
         <div
           v-else
@@ -170,7 +170,7 @@ watch(docsChangelogUrl, (newUrl) => {
             aria-label="Back to Changelog"
             @click="revertToInitialChangelog"
           />
-          
+
           <!-- View on docs button -->
           <BrandButton
             v-if="currentIframeUrl || releaseForUpdate?.changelogPretty"
@@ -181,7 +181,7 @@ watch(docsChangelogUrl, (newUrl) => {
             aria-label="View on Docs"
           />
         </div>
-        
+
         <!-- Action buttons -->
         <BrandButton
           v-if="showExtendKeyButton"
