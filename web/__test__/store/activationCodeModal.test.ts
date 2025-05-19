@@ -9,7 +9,6 @@ import { useActivationCodeDataStore } from '~/components/Activation/store/activa
 import { useActivationCodeModalStore } from '~/components/Activation/store/activationCodeModal';
 import { useCallbackActionsStore } from '~/store/callbackActions';
 
-// Mock declarations must be at top level due to hoisting
 vi.mock('@vueuse/core', () => ({
   useSessionStorage: vi.fn(),
 }));
@@ -22,25 +21,23 @@ vi.mock('~/store/callbackActions', () => ({
   useCallbackActionsStore: vi.fn(),
 }));
 
-// Add a variable to track the handler
 let konamiHandler: ((event: KeyboardEvent) => void) | null = null;
 
-// Update the Vue mock to store the handler
 vi.mock('vue', () => {
   const actual = require('vue');
+
   return {
     ...actual,
     onMounted: (fn: unknown) => {
       const handler = fn as (event: KeyboardEvent) => void;
+
       konamiHandler = handler;
-      handler(undefined as any); // Execute the callback immediately with undefined
+
+      handler(undefined as unknown as KeyboardEvent); // Execute the callback immediately with undefined
     },
     onUnmounted: () => {},
   };
 });
-
-// Declare sequenceIndex at the top of the test file
-let sequenceIndex = 0;
 
 describe('ActivationCodeModal Store', () => {
   let store: ReturnType<typeof useActivationCodeModalStore>;
@@ -57,12 +54,10 @@ describe('ActivationCodeModal Store', () => {
       writable: true,
     });
 
-    // Setup mock refs
     mockIsHidden = ref(null);
     mockIsFreshInstall = ref(false);
     mockCallbackData = ref(null);
 
-    // Setup store mocks
     vi.mocked(useSessionStorage).mockReturnValue(mockIsHidden);
     vi.mocked(useActivationCodeDataStore).mockReturnValue({
       isFreshInstall: mockIsFreshInstall,
@@ -71,7 +66,6 @@ describe('ActivationCodeModal Store', () => {
       callbackData: mockCallbackData,
     } as unknown as ReturnType<typeof useCallbackActionsStore>);
 
-    // Create a new pinia instance for each test
     setActivePinia(createPinia());
     store = useActivationCodeModalStore();
   });
@@ -151,7 +145,6 @@ describe('ActivationCodeModal Store', () => {
     ];
 
     it('should handle correct konami code sequence', () => {
-      // Simulate key presses
       keySequence.forEach((key) => {
         window.dispatchEvent(new KeyboardEvent('keydown', { key }));
       });
@@ -161,7 +154,6 @@ describe('ActivationCodeModal Store', () => {
     });
 
     it('should not trigger on partial sequence', () => {
-      // Press only first few keys
       keySequence.slice(0, 3).forEach((key) => {
         window.dispatchEvent(new KeyboardEvent('keydown', { key }));
       });
