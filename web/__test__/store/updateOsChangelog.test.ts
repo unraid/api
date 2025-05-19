@@ -2,48 +2,10 @@
  * UpdateOsChangelog store test coverage
  */
 
-import { nextTick } from 'vue';
 import { createPinia, setActivePinia } from 'pinia';
-
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-
 import type { ServerUpdateOsResponse } from '~/types/server';
-
 import { useUpdateOsChangelogStore } from '~/store/updateOsChangelog';
-
-vi.mock('~/helpers/markdown', () => ({
-  Markdown: {
-    create: () => ({
-      setOptions: vi.fn(),
-      parse: vi.fn().mockResolvedValue('<h1>Test Title</h1><p>Test content</p>'),
-    }),
-  },
-}));
-
-vi.mock('~/helpers/urls', () => ({
-  DOCS_RELEASE_NOTES: {
-    toString: () => 'https://docs.unraid.net/unraid-os/release-notes/',
-  },
-}));
-
-vi.mock('marked-base-url', () => ({
-  baseUrl: vi.fn().mockReturnValue(vi.fn()),
-}));
-
-vi.mock('semver/functions/prerelease', () => ({
-  default: vi.fn((version) => (version && version.includes('-') ? ['beta', '1'] : null)),
-}));
-
-const mockRequestText = vi.fn().mockResolvedValue('# Test Changelog\n\nTest content');
-vi.mock('~/composables/services/request', () => ({
-  request: {
-    url: () => ({
-      get: () => ({
-        text: mockRequestText,
-      }),
-    }),
-  },
-}));
 
 const mockSend = vi.fn();
 vi.mock('~/store/callbackActions', () => ({
@@ -75,16 +37,11 @@ describe('UpdateOsChangelog Store', () => {
     setActivePinia(createPinia());
     store = useUpdateOsChangelogStore();
     vi.clearAllMocks();
-
-    // Suppress console output
-    vi.spyOn(console, 'debug').mockImplementation(() => {});
-    vi.spyOn(console, 'error').mockImplementation(() => {});
   });
 
   describe('Store API', () => {
     it('should initialize with default values', () => {
       expect(store.releaseForUpdate).toBeNull();
-      expect(store.parseChangelogFailed).toBe('');
     });
 
     it('should set and get releaseForUpdate', () => {
@@ -97,18 +54,14 @@ describe('UpdateOsChangelog Store', () => {
 
     it('should determine if release is stable', () => {
       expect(store.isReleaseForUpdateStable).toBe(false);
-
       store.setReleaseForUpdate(mockStableRelease as ServerUpdateOsResponse);
-
       expect(store.isReleaseForUpdateStable).toBe(true);
-
       store.setReleaseForUpdate(mockBetaRelease as ServerUpdateOsResponse);
       expect(store.isReleaseForUpdateStable).toBe(false);
     });
 
     it('should have a method to fetch and confirm install', () => {
       store.fetchAndConfirmInstall('test-sha256');
-
       expect(mockSend).toHaveBeenCalledWith(
         expect.any(String),
         [
@@ -122,76 +75,12 @@ describe('UpdateOsChangelog Store', () => {
       );
     });
 
-    it('should have computed properties for changelog display', async () => {
+    it('should expose changelogUrl and changelogPretty', () => {
+      expect(store.changelogUrl).toBe('');
+      expect(store.changelogPretty).toBeNull();
       store.setReleaseForUpdate(mockStableRelease as ServerUpdateOsResponse);
-
-      expect(typeof store.mutatedParsedChangelog).toBe('string');
-      expect(typeof store.parsedChangelogTitle).toBe('string');
-    });
-
-    it('should clear changelog data when release is set to null', () => {
-      store.setReleaseForUpdate(mockStableRelease as ServerUpdateOsResponse);
-
-      store.setReleaseForUpdate(null);
-
-      expect(store.releaseForUpdate).toBeNull();
-      expect(store.parseChangelogFailed).toBe('');
-    });
-
-    it('should handle state transitions when changing releases', () => {
-      store.setReleaseForUpdate(mockStableRelease as ServerUpdateOsResponse);
-
-      const differentRelease = {
-        ...mockStableRelease,
-        version: '6.12.6',
-      };
-      store.setReleaseForUpdate(differentRelease as ServerUpdateOsResponse);
-
-      expect(store.releaseForUpdate).toEqual(differentRelease);
-    });
-
-    it('should have proper error handling for failed requests', async () => {
-      mockRequestText.mockRejectedValueOnce(new Error('Network error'));
-      store.setReleaseForUpdate(mockStableRelease as ServerUpdateOsResponse);
-
-      await nextTick();
-
-      expect(store.parseChangelogFailed).toBeTruthy();
-      expect(store.parseChangelogFailed).toContain('error');
-    });
-
-    it('should fetch and parse changelog when releaseForUpdate changes', async () => {
-      const internalStore = useUpdateOsChangelogStore();
-
-      vi.clearAllMocks();
-
-      internalStore.setReleaseForUpdate(mockStableRelease as ServerUpdateOsResponse);
-
-      await nextTick();
-
-      expect(mockRequestText).toHaveBeenCalled();
-
-      mockRequestText.mockClear();
-
-      const differentRelease = {
-        ...mockStableRelease,
-        version: '6.12.6',
-        changelog: 'https://example.com/different-changelog.md',
-      };
-
-      internalStore.setReleaseForUpdate(differentRelease as ServerUpdateOsResponse);
-
-      await nextTick();
-
-      expect(mockRequestText).toHaveBeenCalled();
-
-      mockRequestText.mockClear();
-
-      internalStore.setReleaseForUpdate(null);
-
-      await nextTick();
-
-      expect(mockRequestText).not.toHaveBeenCalled();
+      expect(store.changelogUrl).toBe('https://example.com/changelog.md');
+      expect(store.changelogPretty).toBe('https://example.com/changelog');
     });
   });
 });
