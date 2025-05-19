@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, watchEffect, ref, onMounted, onBeforeUnmount } from 'vue';
+import { computed, watchEffect } from 'vue';
 
 import { XMarkIcon } from '@heroicons/vue/24/outline';
 import { cn } from '@unraid/ui';
@@ -70,22 +70,6 @@ const computedVerticalCenter = computed<string>(() => {
   }
   return props.modalVerticalCenter ? 'justify-center' : 'justify-start';
 });
-
-const modalContentRef = ref<HTMLElement | null>(null);
-
-onMounted(() => {
-  const handleClick = (event: MouseEvent) => {
-    if (!props.open || props.disableOverlayClose) return;
-    const target = event.target as Node;
-    if (modalContentRef.value && !modalContentRef.value.contains(target)) {
-      closeModal();
-    }
-  };
-  document.addEventListener('mousedown', handleClick);
-  onBeforeUnmount(() => {
-    document.removeEventListener('mousedown', handleClick);
-  });
-});
 </script>
 
 <template>
@@ -128,7 +112,6 @@ onMounted(() => {
           class="w-full"
         >
           <div
-            ref="modalContentRef"
             :class="[
               maxWidth,
               disableShadow ? 'shadow-none border-none' : 'shadow-xl',

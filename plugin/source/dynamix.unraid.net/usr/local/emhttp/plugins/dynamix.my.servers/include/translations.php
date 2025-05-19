@@ -393,7 +393,7 @@ class WebComponentTranslations
             'You have exceeded the number of devices allowed for your license. Please remove a device before adding another.' => _('You have exceeded the number of devices allowed for your license. Please remove a device before adding another.'),
             'You have not activated the Flash Backup feature via the Unraid Connect plugin.' => _('You have not activated the Flash Backup feature via the Unraid Connect plugin.'),
             'You may still update to releases dated prior to your update expiration date.' => _('You may still update to releases dated prior to your update expiration date.'),
-            'You\'re about to create a password to secure access to your system. This password is essential for managing and configuring your server. You’ll use this password every time you access the Unraid web interface.' => _('You\'re about to create a password to secure access to your system.') . ' ' . _('This password is essential for managing and configuring your server.') . ' ' . _('You’ll use this password every time you access the Unraid web interface.'),
+            'You\'re about to create a password to secure access to your system. This password is essential for managing and configuring your server. You'll use this password every time you access the Unraid web interface.' => _('You\'re about to create a password to secure access to your system.') . ' ' . _('This password is essential for managing and configuring your server.') . ' ' . _('You'll use this password every time you access the Unraid web interface.'),
             'You\'re one step closer to enhancing your Unraid experience' => _('You\'re one step closer to enhancing your Unraid experience'),
             'Your {0} Key has been replaced!' => sprintf(_('Your %s Key has been replaced!'), '{0}'),
             'Your {0} license included one year of free updates at the time of purchase. You are now eligible to extend your license and access the latest OS updates. You are still eligible to access OS updates that were published on or before {1}.' => sprintf(_('Your %s license included one year of free updates at the time of purchase.'), '{0}') . ' ' . _('You are now eligible to extend your license and access the latest OS updates.') . ' ' . sprintf(_('You are still eligible to access OS updates that were published on or before %s.'), '{1}'),
@@ -402,6 +402,7 @@ class WebComponentTranslations
             'Your license key is not eligible for Unraid OS {0}' => sprintf(_('Your license key is not eligible for Unraid OS %s'), '{0}'),
             'Your Trial has expired' => _('Your Trial has expired'),
             'Your Trial key has been extended!' => _('Your Trial key has been extended!'),
+            'Unraid OS {0} Changelog' => sprintf(_('Unraid OS %s Changelog'), '{0}'),
         ];
     }
 

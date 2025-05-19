@@ -13,6 +13,7 @@ import { BrandButton, BrandLoading } from '@unraid/ui';
 
 import type { ComposerTranslation } from 'vue-i18n';
 
+import RawChangelogRenderer from '~/components/UpdateOs/RawChangelogRenderer.vue';
 import { usePurchaseStore } from '~/store/purchase';
 import { useUpdateOsStore } from '~/store/updateOs';
 // import { useUpdateOsActionsStore } from '~/store/updateOsActions';
@@ -29,12 +30,10 @@ const props = withDefaults(defineProps<Props>(), {
 
 const purchaseStore = usePurchaseStore();
 const updateOsStore = useUpdateOsStore();
-// const updateOsActionsStore = useUpdateOsActionsStore();
 const updateOsChangelogStore = useUpdateOsChangelogStore();
 
 const { availableWithRenewal } = storeToRefs(updateOsStore);
-const { releaseForUpdate, mutatedParsedChangelog, parseChangelogFailed, parsedChangelogTitle } =
-  storeToRefs(updateOsChangelogStore);
+const { releaseForUpdate } = storeToRefs(updateOsChangelogStore);
 
 const showExtendKeyButton = computed(() => {
   return availableWithRenewal.value;
@@ -50,7 +49,7 @@ const docsChangelogUrl = computed(() => {
 });
 
 const showRawChangelog = computed<boolean>(() => {
-  return !docsChangelogUrl.value && Boolean(mutatedParsedChangelog.value);
+  return !docsChangelogUrl.value && !!releaseForUpdate.value?.changelog;
 });
 
 const handleIframeNavigationMessage = (event: MessageEvent) => {
@@ -59,7 +58,7 @@ const handleIframeNavigationMessage = (event: MessageEvent) => {
     event.data.type === 'unraid-docs-navigation' &&
     iframeRef.value &&
     event.source === iframeRef.value.contentWindow &&
-    event.origin.startsWith('https://docs.unraid.net/')
+    event.origin === 'https://docs.unraid.net'
   ) {
     if (event.data.url !== docsChangelogUrl.value) {
       hasNavigated.value = true;
@@ -96,14 +95,14 @@ watch(docsChangelogUrl, (newUrl) => {
 
 <template>
   <Modal
+    v-if="releaseForUpdate?.version"
     :center-content="false"
-    :error="!!parseChangelogFailed"
     max-width="max-w-800px"
     :open="!!releaseForUpdate"
     :show-close-x="true"
     :t="t"
     :tall-content="true"
-    :title="parsedChangelogTitle ?? undefined"
+    :title="t('Unraid OS {0} Changelog', [releaseForUpdate.version])"
     :disable-overlay-close="false"
     @close="updateOsChangelogStore.setReleaseForUpdate(null)"
   >
@@ -121,33 +120,14 @@ watch(docsChangelogUrl, (newUrl) => {
         </div>
 
         <!-- Fallback to raw changelog -->
-        <div
-          v-else-if="showRawChangelog"
-          class="text-16px sm:text-18px prose prose-a:text-unraid-red hover:prose-a:no-underline hover:prose-a:text-unraid-red/60 dark:prose-a:text-orange hover:dark:prose-a:text-orange/60 overflow-auto max-h-[500px]"
-          v-html="mutatedParsedChangelog"
+        <RawChangelogRenderer
+          v-else-if="showRawChangelog && releaseForUpdate?.changelog"
+          :changelog="releaseForUpdate?.changelog"
+          :version="releaseForUpdate?.version"
+          :date="releaseForUpdate?.date"
+          :t="t"
+          :changelog-pretty="releaseForUpdate?.changelogPretty"
         />
-
-        <!-- Error state -->
-        <div v-else-if="parseChangelogFailed" class="text-center flex flex-col gap-4 prose">
-          <h2 class="text-lg text-unraid-red italic font-semibold">
-            {{ props.t(`Error Parsing Changelog • {0}`, [parseChangelogFailed]) }}
-          </h2>
-          <p>
-            {{
-              props.t(`It's highly recommended to review the changelog before continuing your update`)
-            }}
-          </p>
-          <div v-if="releaseForUpdate?.changelogPretty" class="flex self-center">
-            <BrandButton
-              :href="releaseForUpdate?.changelogPretty"
-              variant="underline"
-              :external="true"
-              :icon-right="ArrowTopRightOnSquareIcon"
-            >
-              {{ props.t('View Changelog on Docs') }}
-            </BrandButton>
-          </div>
-        </div>
 
         <!-- Loading state -->
         <div
@@ -155,7 +135,7 @@ watch(docsChangelogUrl, (newUrl) => {
           class="text-center flex flex-col justify-center w-full min-h-[250px] min-w-[280px] sm:min-w-[400px]"
         >
           <BrandLoading class="w-[150px] mx-auto mt-24px" />
-          <p>{{ props.t('Fetching & parsing changelog…') }}</p>
+          <p>{{ props.t('Loading changelog…') }}</p>
         </div>
       </div>
     </template>
