@@ -9,14 +9,14 @@ import {
   ShieldExclamationIcon,
 } from '@heroicons/vue/24/solid';
 
-import type { ComposerTranslation } from 'vue-i18n';
+import { useI18n } from '~/composables/useI18n';
 
 import { useDropdownStore } from '~/store/dropdown';
 import { useErrorsStore } from '~/store/errors';
 import { useServerStore } from '~/store/server';
 import { useUpdateOsStore } from '~/store/updateOs';
 
-const props = defineProps<{ t: ComposerTranslation }>();
+const { $t } = useI18n();
 
 const dropdownStore = useDropdownStore();
 const { dropdownVisible } = storeToRefs(dropdownStore);
@@ -28,22 +28,22 @@ const showErrorIcon = computed(() => errors.value.length || stateData.value.erro
 
 const text = computed((): string => {
   if (stateData.value.error && state.value !== 'EEXPIRED') {
-    return props.t('Fix Error');
+    return $t('Fix Error');
   }
   return '';
 });
 
 const title = computed((): string => {
   if (state.value === 'ENOKEYFILE') {
-    return props.t('Get Started');
+    return $t('Get Started');
   }
   if (state.value === 'EEXPIRED') {
-    return props.t('Trial Expired, see options below');
+    return $t('Trial Expired, see options below');
   }
   if (showErrorIcon.value) {
-    return props.t('Learn more about the error');
+    return $t('Learn more about the error');
   }
-  return dropdownVisible.value ? props.t('Close Dropdown') : props.t('Open Dropdown');
+  return dropdownVisible.value ? $t('Close Dropdown') : $t('Open Dropdown');
 });
 </script>
 

@@ -1,12 +1,12 @@
 <script setup lang="ts">
 import { computed } from 'vue';
-import { useI18n } from 'vue-i18n';
+import { useI18n } from '~/composables/useI18n';
 
 import { ArrowDownTrayIcon, ArrowTopRightOnSquareIcon } from '@heroicons/vue/24/solid';
 import { BrandButton } from '@unraid/ui';
 import { CONNECT_FORUMS, CONTACT, DISCORD, WEBGUI_GRAPHQL } from '~/helpers/urls';
 
-const { t } = useI18n();
+const { $gettext } = useI18n();
 
 const downloadUrl = computed(() => {
   const url = new URL(`/graphql/api/logs`, WEBGUI_GRAPHQL);
@@ -18,13 +18,13 @@ const downloadUrl = computed(() => {
 <template>
   <div class="whitespace-normal flex flex-col gap-y-16px max-w-3xl">
     <span>
-      {{ t('The primary method of support for Unraid Connect is through our forums and Discord.') }}
+      {{ $gettext('The primary method of support for Unraid Connect is through our forums and Discord.') }}
       {{
-        t(
+        $gettext(
           'If you are asked to supply logs, please open a support request on our Contact Page and reply to the email message you receive with your logs attached.'
         )
       }}
-      {{ t('The logs may contain sensitive information so do not post them publicly.') }}
+      {{ $gettext('The logs may contain sensitive information so do not post them publicly.') }}
     </span>
     <span class="flex flex-col gap-y-16px">
       <div class="flex">
@@ -35,7 +35,7 @@ const downloadUrl = computed(() => {
           :href="downloadUrl.toString()"
           :icon="ArrowDownTrayIcon"
           size="12px"
-          :text="t('Download unraid-api Logs')"
+          :text="$gettext('Download unraid-api Logs')"
         />
       </div>
 
@@ -46,7 +46,7 @@ const downloadUrl = computed(() => {
           rel="noopener noreferrer"
           class="text-[#486dba] hover:text-[#3b5ea9] focus:text-[#3b5ea9] hover:underline focus:underline inline-flex flex-row items-center justify-start gap-8px"
         >
-          {{ t('Unraid Connect Forums') }}
+          {{ $gettext('Unraid Connect Forums') }}
           <ArrowTopRightOnSquareIcon class="w-16px" />
         </a>
         <a
@@ -55,7 +55,7 @@ const downloadUrl = computed(() => {
           rel="noopener noreferrer"
           class="text-[#486dba] hover:text-[#3b5ea9] focus:text-[#3b5ea9] hover:underline focus:underline inline-flex flex-row items-center justify-start gap-8px"
         >
-          {{ t('Unraid Discord') }}
+          {{ $gettext('Unraid Discord') }}
           <ArrowTopRightOnSquareIcon class="w-16px" />
         </a>
         <a
@@ -64,7 +64,7 @@ const downloadUrl = computed(() => {
           rel="noopener noreferrer"
           class="text-[#486dba] hover:text-[#3b5ea9] focus:text-[#3b5ea9] hover:underline focus:underline inline-flex flex-row items-center justify-start gap-8px"
         >
-          {{ t('Unraid Contact Page') }}
+          {{ $gettext('Unraid Contact Page') }}
           <ArrowTopRightOnSquareIcon class="w-16px" />
         </a>
       </div>

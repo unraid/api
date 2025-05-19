@@ -1,8 +1,7 @@
 <script lang="ts" setup>
 import en_US from '~/locales/en_US.json';
 import { provide } from 'vue';
-import { createI18n, I18nInjectionKey } from 'vue-i18n';
-import { createHtmlEntityDecoder } from '~/helpers/i18n-utils';
+import { createGettextInstance } from '~/composables/i18n';
 
 // import ja from '~/locales/ja.json';
 
@@ -27,20 +26,41 @@ if (windowLocaleData) {
   }
 }
 
-const i18n = createI18n<false>({
-  legacy: false, // must set to `false`
-  locale: nonDefaultLocale ? parsedLocale : defaultLocale,
-  fallbackLocale: defaultLocale,
-  messages: {
-    en_US,
-    // ja,
-    ...(nonDefaultLocale ? parsedMessages : {}),
-  },
-  /** safely decodes html-encoded symbols like &amp; and &apos; */
-  postTranslation: createHtmlEntityDecoder(),
+// Create a Gettext instance with default translations
+const gt = createGettextInstance({
+  translations: en_US,
+  locale: defaultLocale,
+  sourceLocale: defaultLocale
 });
 
-provide(I18nInjectionKey, i18n);
+try {
+  // Add non-default locale translations if available
+  if (nonDefaultLocale && parsedMessages) {
+    const localeMessages = parsedMessages[parsedLocale as keyof typeof parsedMessages] || {};
+    
+    // Create a translations object in the format expected by node-gettext
+    const gettextTranslations = {
+      translations: {
+        '': {} as { [msgid: string]: { msgid: string; msgstr: string[] } }
+      }
+    };
+    
+    Object.entries(localeMessages).forEach(([key, value]) => {
+      gettextTranslations.translations[''][key] = {
+        msgid: key,
+        msgstr: [value as string]
+      };
+    });
+    
+    gt.addTranslations(parsedLocale, 'messages', gettextTranslations);
+    gt.setLocale(parsedLocale);
+  }
+} catch (error) {
+  console.error('[I18nHost] Failed to initialize translations:', error);
+}
+
+// Make gettext available to child components
+provide('gettext', gt);
 </script>
 
 <template>

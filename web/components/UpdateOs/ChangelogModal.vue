@@ -12,22 +12,13 @@ import {
 } from '@heroicons/vue/24/solid';
 import { BrandButton, BrandLoading } from '@unraid/ui';
 
-import type { ComposerTranslation } from 'vue-i18n';
-
+import { useI18n } from '~/composables/useI18n';
 import { usePurchaseStore } from '~/store/purchase';
 import { useUpdateOsStore } from '~/store/updateOs';
 // import { useUpdateOsActionsStore } from '~/store/updateOsActions';
 import { useUpdateOsChangelogStore } from '~/store/updateOsChangelog';
 
-export interface Props {
-  open?: boolean;
-  t: ComposerTranslation;
-}
-
-const props = withDefaults(defineProps<Props>(), {
-  open: false,
-});
-
+const { $gettext } = useI18n();
 const purchaseStore = usePurchaseStore();
 const updateOsStore = useUpdateOsStore();
 // const updateOsActionsStore = useUpdateOsActionsStore();
@@ -49,7 +40,6 @@ const showExtendKeyButton = computed(() => {
     max-width="max-w-800px"
     :open="!!releaseForUpdate"
     :show-close-x="true"
-    :t="t"
     :tall-content="true"
     :title="parsedChangelogTitle ?? undefined"
     @close="updateOsChangelogStore.setReleaseForUpdate(null)"
@@ -63,10 +53,10 @@ const showExtendKeyButton = computed(() => {
 
       <div v-else-if="parseChangelogFailed" class="text-center flex flex-col gap-4 prose">
         <h2 class="text-lg text-unraid-red italic font-semibold">
-          {{ props.t(`Error Parsing Changelog • {0}`, [parseChangelogFailed]) }}
+          {{ $gettext(`Error Parsing Changelog • ${parseChangelogFailed}`) }}
         </h2>
         <p>
-          {{ props.t(`It's highly recommended to review the changelog before continuing your update`) }}
+          {{ $gettext(`It's highly recommended to review the changelog before continuing your update`) }}
         </p>
         <div v-if="releaseForUpdate?.changelogPretty" class="flex self-center">
           <BrandButton
@@ -75,7 +65,7 @@ const showExtendKeyButton = computed(() => {
             :external="true"
             :icon-right="ArrowTopRightOnSquareIcon"
           >
-            {{ props.t('View Changelog on Docs') }}
+            {{ $gettext('View Changelog on Docs') }}
           </BrandButton>
         </div>
       </div>
@@ -85,7 +75,7 @@ const showExtendKeyButton = computed(() => {
         class="text-center flex flex-col justify-center w-full min-h-[250px] min-w-[280px] sm:min-w-[400px]"
       >
         <BrandLoading class="w-[150px] mx-auto mt-24px" />
-        <p>{{ props.t('Fetching & parsing changelog…') }}</p>
+        <p>{{ $gettext('Fetching & parsing changelog…') }}</p>
       </div>
     </template>
 
@@ -97,7 +87,7 @@ const showExtendKeyButton = computed(() => {
             :icon="XMarkIcon"
             @click="updateOsChangelogStore.setReleaseForUpdate(null)"
           >
-            {{ props.t('Close') }}
+            {{ $gettext('Close') }}
           </BrandButton>
           <BrandButton
             v-if="releaseForUpdate?.changelogPretty"
@@ -107,7 +97,7 @@ const showExtendKeyButton = computed(() => {
             :icon="EyeIcon"
             :icon-right="ArrowTopRightOnSquareIcon"
           >
-            {{ props.t('View on Docs') }}
+            {{ $gettext('View on Docs') }}
           </BrandButton>
         </div>
         <BrandButton
@@ -117,7 +107,7 @@ const showExtendKeyButton = computed(() => {
           :icon-right="ArrowTopRightOnSquareIcon"
           @click="purchaseStore.renew()"
         >
-          {{ props.t('Extend License to Update') }}
+          {{ $gettext('Extend License to Update') }}
         </BrandButton>
         <BrandButton
           v-else-if="releaseForUpdate?.sha256"
@@ -125,7 +115,7 @@ const showExtendKeyButton = computed(() => {
           :icon-right="ArrowSmallRightIcon"
           @click="updateOsChangelogStore.fetchAndConfirmInstall(releaseForUpdate.sha256)"
         >
-          {{ props.t('Continue') }}
+          {{ $gettext('Continue') }}
         </BrandButton>
       </div>
     </template>

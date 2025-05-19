@@ -6,29 +6,24 @@ import { ArrowTopRightOnSquareIcon } from '@heroicons/vue/24/solid';
 import { BrandButton } from '@unraid/ui';
 
 import type { BrandButtonProps } from '@unraid/ui';
-import type { ComposerTranslation } from 'vue-i18n';
 
 import ActivationPartnerLogo from '~/components/Activation/ActivationPartnerLogo.vue';
 import { useActivationCodeDataStore } from '~/components/Activation/store/activationCodeData';
 import { useActivationCodeModalStore } from '~/components/Activation/store/activationCodeModal';
 import { usePurchaseStore } from '~/store/purchase';
 import { useThemeStore } from '~/store/theme';
+import { useI18n } from '~/composables/useI18n';
 
-export interface Props {
-  t: ComposerTranslation;
-}
-
-const props = defineProps<Props>();
-
+const { $gettext } = useI18n();
 const { isVisible } = storeToRefs(useActivationCodeModalStore());
 const { partnerInfo } = storeToRefs(useActivationCodeDataStore());
 const purchaseStore = usePurchaseStore();
 
 useThemeStore();
 
-const title = computed<string>(() => props.t("Let's activate your Unraid OS License"));
+const title = computed<string>(() => $gettext("Let's activate your Unraid OS License"));
 const description = computed<string>(() =>
-  props.t(
+  $gettext(
     `On the following screen, your license will be activated. You'll then create an Unraid.net Account to manage your license going forward.`
   )
 );
@@ -40,7 +35,7 @@ const docsButtons = computed<BrandButtonProps[]>(() => {
       href: 'https://docs.unraid.net/unraid-os/faq/licensing-faq/',
       iconRight: ArrowTopRightOnSquareIcon,
       size: '14px',
-      text: props.t('More about Licensing'),
+      text: $gettext('More about Licensing'),
     },
     {
       variant: 'underline',
@@ -48,7 +43,7 @@ const docsButtons = computed<BrandButtonProps[]>(() => {
       href: 'https://docs.unraid.net/account/',
       iconRight: ArrowTopRightOnSquareIcon,
       size: '14px',
-      text: props.t('More about Unraid.net Accounts'),
+      text: $gettext('More about Unraid.net Accounts'),
     },
   ];
 });
@@ -57,7 +52,7 @@ const docsButtons = computed<BrandButtonProps[]>(() => {
 <template>
   <Modal
     v-if="isVisible"
-    :t="t"
+    :t="(text: string) => $gettext(text)"
     :open="isVisible"
     :show-close-x="false"
     :title="title"
@@ -76,7 +71,7 @@ const docsButtons = computed<BrandButtonProps[]>(() => {
     <template #footer>
       <div class="w-full flex gap-8px justify-center mx-auto">
         <BrandButton
-          :text="t('Activate Now')"
+          :text="$gettext('Activate Now')"
           :icon-right="ArrowTopRightOnSquareIcon"
           @click="purchaseStore.activate"
         />

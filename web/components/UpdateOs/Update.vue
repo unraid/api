@@ -19,16 +19,14 @@ import { Switch, SwitchGroup, SwitchLabel } from '@headlessui/vue';
 import dayjs from 'dayjs';
 
 import type { UserProfileLink } from '~/types/userProfile';
-import type { ComposerTranslation } from 'vue-i18n';
 
 import useDateTimeHelper from '~/composables/dateTime';
+import { useI18n } from '~/composables/useI18n';
 import { useServerStore } from '~/store/server';
 import { useUpdateOsStore } from '~/store/updateOs';
 import { useUpdateOsActionsStore } from '~/store/updateOsActions';
 
-const props = defineProps<{
-  t: ComposerTranslation;
-}>();
+const { $t } = useI18n();
 
 const serverStore = useServerStore();
 const { dateTimeFormat, updateOsResponse } = storeToRefs(serverStore);
@@ -41,7 +39,6 @@ const { available } = storeToRefs(updateOsStore);
 
 const { outputDateTimeFormatted: formattedReleaseDate } = useDateTimeHelper(
   dateTimeFormat.value,
-  props.t,
   true,
   dayjs(updateOsResponse.value?.date ?? '', 'YYYY-MM-DD').valueOf()
 );
@@ -50,9 +47,9 @@ const updateButton = ref<UserProfileLink | undefined>();
 
 const heading = computed(() => {
   if (available.value && updateButton?.value?.text && updateButton?.value?.textParams) {
-    return props.t(updateButton?.value.text, updateButton?.value.textParams);
+    return $t(updateButton?.value.text, updateButton?.value.textParams);
   }
-  return props.t('Check for OS Updates');
+  return $t('Check for OS Updates');
 });
 
 const headingIcon = computed(() => {
@@ -63,27 +60,27 @@ const headingIcon = computed(() => {
 });
 
 const flashBackupCopy = computed(() => {
-  const base = props.t('We recommend backing up your USB Flash Boot Device before starting the update.');
+  const base = $t('We recommend backing up your USB Flash Boot Device before starting the update.');
   if (connectPluginInstalled.value && flashBackupActivated.value) {
     return `${base}
-      ${props.t('You have already activated the Flash Backup feature via the Unraid Connect plugin.')}
-      ${props.t('Go to Tools > Management Access to ensure your backup is up-to-date.')}
-      ${props.t('You can also manually create a new backup by clicking the Create Flash Backup button.')}
+      ${$t('You have already activated the Flash Backup feature via the Unraid Connect plugin.')}
+      ${$t('Go to Tools > Management Access to ensure your backup is up-to-date.')}
+      ${$t('You can also manually create a new backup by clicking the Create Flash Backup button.')}
     `;
   }
   if (connectPluginInstalled.value && !flashBackupActivated.value) {
     return `${base}
-      ${props.t('You have not activated the Flash Backup feature via the Unraid Connect plugin.')}
-      ${props.t('Go to Tools > Management Access to activate the Flash Backup feature and ensure your backup is up-to-date.')}
-      ${props.t('You can also manually create a new backup by clicking the Create Flash Backup button.')}
+      ${$t('You have not activated the Flash Backup feature via the Unraid Connect plugin.')}
+      ${$t('Go to Tools > Management Access to activate the Flash Backup feature and ensure your backup is up-to-date.')}
+      ${$t('You can also manually create a new backup by clicking the Create Flash Backup button.')}
     `;
   }
-  return `${base} ${props.t('You can manually create a backup by clicking the Create Flash Backup button.')}`;
+  return `${base} ${$t('You can manually create a backup by clicking the Create Flash Backup button.')}`;
 });
 
 const acknowledgeBackup = ref<boolean>(false);
 const flashBackupBasicStatus = ref<'complete' | 'ready' | 'started'>('ready');
-const flashBackupText = computed(() => props.t('Create Flash Backup'));
+const flashBackupText = computed(() => $t('Create Flash Backup'));
 const startFlashBackup = () => {
   console.debug('[startFlashBackup]', Date.now());
   // @ts-expect-error – global function provided by the webgui on the update page
@@ -94,7 +91,7 @@ const startFlashBackup = () => {
     checkFlashBackupStatus();
   } else {
     alert(
-      props.t(
+      $t(
         'Flash Backup is not available. Navigate to {0}/Main/Settings/Flash to try again then come back to this page.',
         [window.location.origin]
       )
@@ -157,7 +154,7 @@ watchEffect(() => {
         <div class="prose opacity-75 text-16px leading-relaxed whitespace-normal">
           <p>
             {{
-              t(
+              $t(
                 'Receive the latest and greatest for Unraid OS. Whether it new features, security patches, or bug fixes – keeping your server up-to-date ensures the best experience that Unraid has to offer.'
               )
             }}
@@ -181,7 +178,7 @@ watchEffect(() => {
           />
 
           <p v-if="flashBackupBasicStatus === 'started'" class="text-12px italic opacity-75 shrink">
-            {{ t('Backing up...this may take a few minutes') }}
+            {{ $t('Backing up...this may take a few minutes') }}
           </p>
 
           <SwitchGroup as="div">
@@ -237,7 +234,7 @@ watchEffect(() => {
                 </span>
               </Switch>
               <SwitchLabel class="text-14px">
-                {{ t('I have made a Flash Backup') }}
+                {{ $t('I have made a Flash Backup') }}
               </SwitchLabel>
             </div>
           </SwitchGroup>
@@ -250,10 +247,10 @@ watchEffect(() => {
           :icon="EyeIcon"
           :icon-right="ArrowTopRightOnSquareIcon"
           :name="updateButton?.name"
-          :text="t('View Available Updates')"
+          :text="$t('View Available Updates')"
           :title="
             !acknowledgeBackup
-              ? t('Acklowledge that you have made a Flash Backup to enable this action')
+              ? $t('Acklowledge that you have made a Flash Backup to enable this action')
               : ''
           "
           class="flex-none"

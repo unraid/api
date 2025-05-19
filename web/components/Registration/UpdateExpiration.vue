@@ -1,26 +1,28 @@
 <script setup lang="ts">
 import { storeToRefs } from 'pinia';
-import type { ComposerTranslation } from 'vue-i18n';
 
 import useDateTimeHelper from '~/composables/dateTime';
 import { useServerStore } from '~/store/server';
+import { useI18n } from '~/composables/useI18n';
 
 export interface Props {
   componentIs?: string;
-  t: ComposerTranslation;
 }
 
-const props = withDefaults(defineProps<Props>(), {
+const _props = withDefaults(defineProps<Props>(), {
   componentIs: 'p',
 });
 
+const { $gettext, $t } = useI18n();
 const serverStore = useServerStore();
 const { dateTimeFormat, regExp, regUpdatesExpired } = storeToRefs(serverStore);
+
+const formatDateTimeFunc = (text: string) => $gettext(text);
 
 const {
   outputDateTimeReadableDiff,
   outputDateTimeFormatted,
-} = useDateTimeHelper(dateTimeFormat.value, props.t, true, regExp.value);
+} = useDateTimeHelper(dateTimeFormat.value, formatDateTimeFunc, true, regExp.value);
 
 const output = computed(() => {
   if (!regExp.value) {
@@ -28,11 +30,11 @@ const output = computed(() => {
   }
   return {
     text: regUpdatesExpired.value
-      ? `${props.t('Eligible for updates released on or before {0}.', [outputDateTimeFormatted.value])} ${props.t('Extend your license to access the latest updates.')}`
-      : props.t('Eligible for free feature updates until {0}', [outputDateTimeFormatted.value]),
+      ? `${$t('Eligible for updates released on or before {0}.', [outputDateTimeFormatted.value])} ${$gettext('Extend your license to access the latest updates.')}`
+      : $t('Eligible for free feature updates until {0}', [outputDateTimeFormatted.value]),
     title: regUpdatesExpired.value
-      ? props.t('Ineligible as of {0}', [outputDateTimeReadableDiff.value])
-      : props.t('Eligible for free feature updates for {0}', [outputDateTimeReadableDiff.value]),
+      ? $t('Ineligible as of {0}', [outputDateTimeReadableDiff.value])
+      : $t('Eligible for free feature updates for {0}', [outputDateTimeReadableDiff.value]),
   };
 });
 </script>

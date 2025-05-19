@@ -9,27 +9,29 @@ import {
 import { BrandButton, CardWrapper } from '@unraid/ui';
 import useDateTimeHelper from '~/composables/dateTime';
 import { FORUMS_BUG_REPORT } from '~/helpers/urls';
+import { useI18n } from '~/composables/useI18n';
 import { useServerStore } from '~/store/server';
 import { useUpdateOsActionsStore } from '~/store/updateOsActions';
 import type { UserProfileLink } from '~/types/userProfile';
 import dayjs from 'dayjs';
 import { storeToRefs } from 'pinia';
 import { ref } from 'vue';
-import type { ComposerTranslation } from 'vue-i18n';
 
 const props = defineProps<{
-  t: ComposerTranslation;
   releaseDate: string;
   version: string;
 }>();
 
+const { $gettext, $t } = useI18n();
 const serverStore = useServerStore();
 const updateOsActionsStore = useUpdateOsActionsStore();
 
 const { dateTimeFormat } = storeToRefs(serverStore);
+const formatDateTimeFunc = (text: string) => $gettext(text);
+
 const { outputDateTimeFormatted: formattedReleaseDate } = useDateTimeHelper(
   dateTimeFormat.value,
-  props.t,
+  formatDateTimeFunc,
   true,
   dayjs(props.releaseDate, 'YYYY-MM-DD').valueOf()
 );
@@ -41,7 +43,7 @@ const diagnosticsButton = ref<UserProfileLink | undefined>({
   },
   icon: FolderArrowDownIcon,
   name: 'download-diagnostics',
-  text: props.t('Download Diagnostics'),
+  text: $gettext('Download Diagnostics'),
 });
 
 const downgradeButton = ref<UserProfileLink>({
@@ -50,7 +52,7 @@ const downgradeButton = ref<UserProfileLink>({
     confirmDowngrade();
   },
   name: 'downgrade',
-  text: props.t('Begin downgrade to {0}', [props.version]),
+  text: $t('Begin downgrade to {0}', [props.version]),
 });
 </script>
 
@@ -62,28 +64,28 @@ const downgradeButton = ref<UserProfileLink>({
           <ArrowUturnDownIcon class="w-20px shrink-0" />
           <span class="leading-none inline-flex flex-wrap justify-start items-baseline gap-8px">
             <span class="text-20px">
-              {{ t('Downgrade Unraid OS to {0}', [version]) }}
+              {{ $t('Downgrade Unraid OS to {0}', [version]) }}
             </span>
             <span
               v-if="releaseDate && formattedReleaseDate !== 'Invalid Date'"
               class="text-16px opacity-75 shrink"
             >
-              {{ t('Original release date {0}', [formattedReleaseDate]) }}
+              {{ $t('Original release date {0}', [formattedReleaseDate]) }}
             </span>
           </span>
         </h3>
         <div class="prose text-16px leading-relaxed opacity-75 whitespace-normal">
-          <p>{{ t(`Downgrades are only recommended if you're unable to solve a critical issue.`) }}</p>
+          <p>{{ $gettext(`Downgrades are only recommended if you're unable to solve a critical issue.`) }}</p>
           <p>
             {{
-              t(
+              $gettext(
                 'In the rare event you need to downgrade we ask that you please provide us with Diagnostics so we can investigate your issue.'
               )
             }}
           </p>
           <p>
             {{
-              t(
+              $gettext(
                 'Download the Diagnostics zip then please open a bug report on our forums with a description of the issue along with your diagnostics.'
               )
             }}
@@ -95,10 +97,10 @@ const downgradeButton = ref<UserProfileLink>({
         <BrandButton
           :variant="'underline'"
           :icon="InformationCircleIcon"
-          :text="t('{0} Release Notes', [version])"
+          :text="$t('{0} Release Notes', [version])"
           @click="
             updateOsActionsStore.viewReleaseNotes(
-              t('{0} Release Notes', [version]),
+              $t('{0} Release Notes', [version]),
               '/boot/previous/changes.txt'
             )
           "
@@ -117,7 +119,7 @@ const downgradeButton = ref<UserProfileLink>({
           :href="FORUMS_BUG_REPORT.toString()"
           :icon="LifebuoyIcon"
           :icon-right="ArrowTopRightOnSquareIcon"
-          :text="t('Open a bug report')"
+          :text="$gettext('Open a bug report')"
         />
         <BrandButton
           :external="downgradeButton?.external"

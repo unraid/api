@@ -1,6 +1,6 @@
 import dayjs, { extend } from 'dayjs';
 import localizedFormat from 'dayjs/plugin/localizedFormat';
-import type { ComposerTranslation } from 'vue-i18n';
+import { useI18n } from '#imports';
 
 import type { DateFormatOption, ServerDateTimeFormat, TimeFormatOption } from '~/types/server';
 
@@ -41,7 +41,7 @@ const timeFormatOptions: TimeFormatOption[] = [
  * const formattedRegExp = ref<any>();
  * const setFormattedRegExp = () => { // ran in watch on regExp and onBeforeMount
  * if (!regExp.value) { return; }
- *   const { outputDateTimeFormatted } = useDateTimeHelper(dateTimeFormat.value, props.t, true, regExp.value);
+ *   const { outputDateTimeFormatted } = useDateTimeHelper(dateTimeFormat.value, true, regExp.value);
  *   formattedRegExp.value = outputDateTimeFormatted.value;
  * };
  * watch(regExp, (_newV) => {
@@ -52,18 +52,18 @@ const timeFormatOptions: TimeFormatOption[] = [
  * });
  *
  * @param format provided by Unraid server's state.php and set in the server store
- * @param t translations
  * @param hideMinutesSeconds true will hide minutes and seconds from the output
  * @param providedDateTime optional provided date time to use instead of Date.now()
  * @param diffCountUp true will count up from the provided date time instead of down
  */
 const useDateTimeHelper = (
   format: ServerDateTimeFormat | undefined,
-  t: ComposerTranslation,
   hideMinutesSeconds?: boolean,
   providedDateTime?: number | undefined,
   diffCountUp?: boolean,
 ) => {
+  const { $t } = useI18n();
+  
   const buildStringFromValues = (payload: TimeStringsObject) => {
     const {
       years,
@@ -77,13 +77,18 @@ const useDateTimeHelper = (
     } = payload;
     const result = [];
 
-    if (years) { result.push(t('year', years)); }
-    if (months) { result.push(t('month', months)); }
-    if (days) { result.push(t('day', days)); }
-    if (hours) { result.push(t('hour', hours)); }
-    if (minutes) { result.push(t('minute', minutes)); }
-    if (seconds && ((!years && !months && !days && !hours && !minutes) || displaySeconds)) { result.push(t('second', seconds)); }
-    if (firstDateWasLater) { result.push(t('ago')); }
+    // Use $t with placeholders for better localization
+    if (years) { result.push($t(years === 1 ? '{count} year' : '{count} years', { count: years })); }
+    if (months) { result.push($t(months === 1 ? '{count} month' : '{count} months', { count: months })); }
+    if (days) { result.push($t(days === 1 ? '{count} day' : '{count} days', { count: days })); }
+    if (hours) { result.push($t(hours === 1 ? '{count} hour' : '{count} hours', { count: hours })); }
+    if (minutes) { result.push($t(minutes === 1 ? '{count} minute' : '{count} minutes', { count: minutes })); }
+    if (seconds && ((!years && !months && !days && !hours && !minutes) || displaySeconds)) { 
+      result.push($t(seconds === 1 ? '{count} second' : '{count} seconds', { count: seconds })); 
+    }
+    if (firstDateWasLater) { 
+      result.push($t('ago'));
+    }
     return result.join(' ');
   };
 

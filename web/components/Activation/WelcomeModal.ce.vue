@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, ref, watchEffect } from 'vue';
-import { useI18n } from 'vue-i18n';
+import { useI18n } from '~/composables/useI18n';
 import { storeToRefs } from 'pinia';
 
 import { BrandButton } from '@unraid/ui';
@@ -11,7 +11,7 @@ import { useActivationCodeDataStore } from '~/components/Activation/store/activa
 import Modal from '~/components/Modal.vue';
 import { useThemeStore } from '~/store/theme';
 
-const { t } = useI18n();
+const { $gettext } = useI18n();
 
 const { partnerInfo, loading } = storeToRefs(useActivationCodeDataStore());
 
@@ -27,12 +27,12 @@ const { setTheme } = useThemeStore();
 
 const title = computed<string>(() =>
   partnerInfo.value?.partnerName
-    ? t(`Welcome to your new {0} system, powered by Unraid!`, [partnerInfo.value?.partnerName])
-    : t('Welcome to Unraid!')
+    ? $gettext(`Welcome to your new {0} system, powered by Unraid!`).replace('{0}', partnerInfo.value?.partnerName)
+    : $gettext('Welcome to Unraid!')
 );
 
 const description = computed<string>(() =>
-  t(
+  $gettext(
     `First, you'll create your device's login credentials, then you'll activate your Unraid license—your device's operating system (OS).`
   )
 );
@@ -67,7 +67,7 @@ watchEffect(() => {
   <div id="modals" ref="modals" class="relative z-[99999]">
     <Modal
       v-if="showModal"
-      :t="t"
+      :t="$gettext"
       :open="showModal"
       :show-close-x="false"
       :title="title"
@@ -88,7 +88,7 @@ watchEffect(() => {
 
       <template #footer>
         <div class="w-full flex gap-8px justify-center mx-auto">
-          <BrandButton :text="t('Create a password')" :disabled="loading" @click="dropdownHide" />
+          <BrandButton :text="$gettext('Create a password')" :disabled="loading" @click="dropdownHide" />
         </div>
       </template>
 

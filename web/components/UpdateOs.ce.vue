@@ -16,7 +16,7 @@ else
 fi
  */
 import { computed, onBeforeMount } from 'vue';
-import { useI18n } from 'vue-i18n';
+import { useI18n } from '~/composables/useI18n';
 import { storeToRefs } from 'pinia';
 
 import { BrandLoading, PageContainer } from '@unraid/ui';
@@ -25,7 +25,7 @@ import { WEBGUI_TOOLS_UPDATE } from '~/helpers/urls';
 import { useAccountStore } from '~/store/account';
 import { useServerStore } from '~/store/server';
 
-const { t } = useI18n();
+const { $gettext } = useI18n();
 
 export interface Props {
   rebootVersion?: string;
@@ -40,7 +40,7 @@ const { rebootType } = storeToRefs(serverStore);
 
 const subtitle = computed(() => {
   if (rebootType.value === 'downgrade') {
-    return t('Please finish the initiated downgrade to enable updates.');
+    return $gettext('Please finish the initiated downgrade to enable updates.');
   }
   return '';
 });
@@ -64,11 +64,11 @@ onBeforeMount(() => {
     <UpdateOsStatus
       v-else
       :show-update-check="true"
-      :title="t('Update Unraid OS')"
+      :title="$gettext('Update Unraid OS')"
       :subtitle="subtitle"
-      :t="t"
+      :t="$gettext"
     />
-    <UpdateOsThirdPartyDrivers v-if="rebootType === 'thirdPartyDriversDownloading'" :t="t" />
+    <UpdateOsThirdPartyDrivers v-if="rebootType === 'thirdPartyDriversDownloading'" :t="$gettext" />
   </PageContainer>
 </template>
 

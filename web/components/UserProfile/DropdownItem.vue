@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ArrowTopRightOnSquareIcon } from '@heroicons/vue/24/solid';
-import type { ComposerTranslation } from 'vue-i18n';
+import { useI18n } from '~/composables/useI18n';
 
 import type { ServerStateDataAction } from '~/types/server';
 import type { UserProfileLink } from '~/types/userProfile';
@@ -8,13 +8,13 @@ import type { UserProfileLink } from '~/types/userProfile';
 export interface Props {
   item: ServerStateDataAction | UserProfileLink;
   rounded?: boolean;
-  t: ComposerTranslation;
 }
 
 const props = withDefaults(defineProps<Props>(), {
   rounded: true,
 });
 
+const { $t } = useI18n();
 const showExternalIconOnHover = computed(() => props.item?.external && props.item.icon !== ArrowTopRightOnSquareIcon);
 </script>
 
@@ -37,7 +37,7 @@ const showExternalIconOnHover = computed(() => props.item?.external && props.ite
   >
     <span class="leading-snug inline-flex flex-row items-center gap-x-8px">
       <component :is="item?.icon" class="flex-shrink-0 text-current w-16px h-16px" aria-hidden="true" />
-      {{ t(item?.text, item?.textParams ?? []) }}
+      {{ $t(item?.text, item?.textParams ?? []) }}
     </span>
     <ArrowTopRightOnSquareIcon
       v-if="showExternalIconOnHover"

@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import { onBeforeMount, onMounted, ref, watch } from 'vue';
-import { useI18n } from 'vue-i18n';
+import { useI18n } from '~/composables/useI18n';
 import { storeToRefs } from 'pinia';
 import { useClipboard } from '@vueuse/core';
 
@@ -17,7 +17,7 @@ export interface Props {
 }
 const props = defineProps<Props>();
 
-const { t } = useI18n();
+const { $gettext } = useI18n();
 
 const callbackStore = useCallbackActionsStore();
 const serverStore = useServerStore();
@@ -103,9 +103,9 @@ onMounted(() => {
     <div
       class="text-xs text-header-text-secondary text-right font-semibold leading-normal relative z-10 flex flex-col items-end justify-end gap-x-4px xs:flex-row xs:items-baseline xs:gap-x-12px"
     >
-      <UpcUptimeExpire :t="t" />
+      <UpcUptimeExpire />
       <span class="hidden xs:block">&bull;</span>
-      <UpcServerState :t="t" />
+      <UpcServerState />
     </div>
 
     <div class="relative z-10 flex flex-row items-center justify-end gap-x-16px h-full">
@@ -117,7 +117,7 @@ onMounted(() => {
           <span class="text-header-text-secondary hidden md:inline-block px-8px">&bull;</span>
         </template>
         <button
-          :title="t('Click to Copy LAN IP {0}', [lanIp])"
+          :title="$gettext('Click to Copy LAN IP {0}').replace('{0}', lanIp)"
           class="text-header-text-primary opacity-100 hover:opacity-75 focus:opacity-75 transition-opacity"
           @click="copyLanIp()"
         >
@@ -127,8 +127,8 @@ onMounted(() => {
           v-show="copied || showCopyNotSupported"
           class="text-white text-12px leading-none py-4px px-8px absolute top-full right-0 bg-gradient-to-r from-unraid-red to-orange text-center block rounded"
         >
-          <template v-if="copied">{{ t('LAN IP Copied') }}</template>
-          <template v-else>{{ t('LAN IP {0}', [lanIp]) }}</template>
+          <template v-if="copied">{{ $gettext('LAN IP Copied') }}</template>
+          <template v-else>{{ $gettext('LAN IP {0}').replace('{0}', lanIp) }}</template>
         </span>
       </h1>
 
@@ -139,9 +139,9 @@ onMounted(() => {
         <NotificationsSidebar />
       </template>
 
-      <UpcDropdownMenu :t="t">
+      <UpcDropdownMenu>
         <template #trigger>
-          <UpcDropdownTrigger :t="t" />
+          <UpcDropdownTrigger />
         </template>
       </UpcDropdownMenu>
     </div>

@@ -3,19 +3,18 @@ import { storeToRefs } from 'pinia';
 
 import { BrandLoading } from '@unraid/ui';
 
-import type { ComposerTranslation } from 'vue-i18n';
-
+import { useI18n } from '~/composables/useI18n';
 import { useTrialStore } from '~/store/trial';
 
 export interface Props {
   open?: boolean;
-  t: ComposerTranslation;
 }
 
-const props = withDefaults(defineProps<Props>(), {
+withDefaults(defineProps<Props>(), {
   open: false,
 });
 
+const { $t } = useI18n();
 const trialStore = useTrialStore();
 const { trialModalLoading, trialStatus } = storeToRefs(trialStore);
 
@@ -27,23 +26,23 @@ const trialStatusCopy = computed((): TrialStatusCopy | null => {
   switch (trialStatus.value) {
     case 'failed':
       return {
-        heading: props.t('Trial Key Creation Failed'),
-        subheading: props.t('Error creatiing a trial key. Please try again later.'),
+        heading: $t('Trial Key Creation Failed'),
+        subheading: $t('Error creatiing a trial key. Please try again later.'),
       };
     case 'trialExtend':
       return {
-        heading: props.t('Extending your free trial by 15 days'),
-        subheading: props.t('Please keep this window open'),
+        heading: $t('Extending your free trial by 15 days'),
+        subheading: $t('Please keep this window open'),
       };
     case 'trialStart':
       return {
-        heading: props.t('Starting your free 30 day trial'),
-        subheading: props.t('Please keep this window open'),
+        heading: $t('Starting your free 30 day trial'),
+        subheading: $t('Please keep this window open'),
       };
     case 'success':
       return {
-        heading: props.t('Trial Key Created'),
-        subheading: props.t('Please wait while the page reloads to install your trial key'),
+        heading: $t('Trial Key Created'),
+        subheading: $t('Please wait while the page reloads to install your trial key'),
       };
     case 'ready':
     default:
@@ -61,7 +60,6 @@ const close = () => {
 
 <template>
   <Modal
-    :t="t"
     :open="open"
     :title="trialStatusCopy?.heading"
     :description="trialStatusCopy?.subheading"
@@ -78,10 +76,10 @@ const close = () => {
         <div>
           <button
             class="text-12px tracking-wide inline-block mx-8px opacity-60 hover:opacity-100 focus:opacity-100 underline transition"
-            :title="t('Close Modal')"
+            :title="$t('Close Modal')"
             @click="close"
           >
-            {{ t('Close') }}
+            {{ $t('Close') }}
           </button>
         </div>
       </div>

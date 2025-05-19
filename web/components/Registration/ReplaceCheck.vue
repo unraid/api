@@ -4,14 +4,11 @@ import { Badge, BrandButton } from '@unraid/ui';
 import { DOCS_REGISTRATION_REPLACE_KEY } from '~/helpers/urls';
 import { useReplaceRenewStore } from '~/store/replaceRenew';
 import { storeToRefs } from 'pinia';
-import type { ComposerTranslation } from 'vue-i18n';
+import { useI18n } from '~/composables/useI18n';
 
+const { $gettext } = useI18n();
 const replaceRenewStore = useReplaceRenewStore();
 const { replaceStatusOutput } = storeToRefs(replaceRenewStore);
-
-defineProps<{
-  t: ComposerTranslation;
-}>();
 </script>
 
 <template>
@@ -19,13 +16,13 @@ defineProps<{
     <BrandButton
       v-if="!replaceStatusOutput"
       :icon="KeyIcon"
-      :text="t('Check Eligibility')"
+      :text="$gettext('Check Eligibility')"
       class="flex-grow"
       @click="replaceRenewStore.check"
     />
 
     <Badge v-else :variant="replaceStatusOutput.variant" :icon="replaceStatusOutput.icon" size="md">
-      {{ t(replaceStatusOutput.text ?? 'Unknown') }}
+      {{ $gettext(replaceStatusOutput.text ?? 'Unknown') }}
     </Badge>
 
     <span class="inline-flex flex-wrap items-center justify-end gap-8px">
@@ -34,7 +31,7 @@ defineProps<{
         :external="true"
         :href="DOCS_REGISTRATION_REPLACE_KEY.toString()"
         :icon-right="ArrowTopRightOnSquareIcon"
-        :text="t('Learn More')"
+        :text="$gettext('Learn More')"
         class="text-14px"
       />
     </span>

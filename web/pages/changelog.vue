@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref } from 'vue';
-import { useI18n } from 'vue-i18n';
+import { useI18n } from '~/composables/useI18n';
 import { useUpdateOsChangelogStore } from '~/store/updateOsChangelog';
 
 const changelog = ref('');
@@ -26,14 +26,14 @@ function showChangelogModal() {
         sha256: '1234567890'
     });
 }
-const { t } = useI18n();
+const { $gettext } = useI18n();
 
 </script>
 
 <template>
     <div class="container mx-auto p-6">
         <h1 class="text-2xl font-bold mb-6">Changelog</h1>
-        <UpdateOsChangelogModal :t="t" :open="!!updateOsChangelogModalVisible" />
+        <UpdateOsChangelogModal :t="$gettext" :open="!!updateOsChangelogModalVisible" />
         <div class="mb-6">
             <button 
                 class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600" 

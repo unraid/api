@@ -5,17 +5,12 @@ import { ArrowPathIcon, ArrowTopRightOnSquareIcon } from '@heroicons/vue/24/soli
 import { BrandButton } from '@unraid/ui';
 import { DOCS_REGISTRATION_LICENSING } from '~/helpers/urls';
 
-import type { ComposerTranslation } from 'vue-i18n';
-
 import useDateTimeHelper from '~/composables/dateTime';
+import { useI18n } from '~/composables/useI18n';
 import { useReplaceRenewStore } from '~/store/replaceRenew';
 import { useServerStore } from '~/store/server';
 
-export interface Props {
-  t: ComposerTranslation;
-}
-
-const props = defineProps<Props>();
+const { $gettext, $t } = useI18n();
 
 const replaceRenewStore = useReplaceRenewStore();
 const serverStore = useServerStore();
@@ -27,8 +22,10 @@ const reload = () => {
   window.location.reload();
 };
 
+const formatDateTimeFunc = (text: string) => $gettext(text);
+
 const { outputDateTimeReadableDiff: readableDiffRegExp, outputDateTimeFormatted: formattedRegExp } =
-  useDateTimeHelper(dateTimeFormat.value, props.t, true, regExp.value);
+  useDateTimeHelper(dateTimeFormat.value, formatDateTimeFunc, true, regExp.value);
 
 const output = computed(() => {
   if (!regExp.value) {
@@ -36,23 +33,23 @@ const output = computed(() => {
   }
   return {
     text: regUpdatesExpired.value
-      ? `${props.t('Eligible for updates released on or before {0}.', [formattedRegExp.value])} ${props.t('Extend your license to access the latest updates.')}`
-      : props.t('Eligible for free feature updates until {0}', [formattedRegExp.value]),
+      ? `${$t('Eligible for updates released on or before {0}.', [formattedRegExp.value])} ${$gettext('Extend your license to access the latest updates.')}`
+      : $t('Eligible for free feature updates until {0}', [formattedRegExp.value]),
     title: regUpdatesExpired.value
-      ? props.t('Ineligible as of {0}', [readableDiffRegExp.value])
-      : props.t('Eligible for free feature updates for {0}', [readableDiffRegExp.value]),
+      ? $t('Ineligible as of {0}', [readableDiffRegExp.value])
+      : $t('Eligible for free feature updates for {0}', [readableDiffRegExp.value]),
   };
 });
 </script>
 
 <template>
   <div v-if="output" class="flex flex-col gap-8px">
-    <RegistrationUpdateExpiration :t="t" />
+    <RegistrationUpdateExpiration />
 
     <p class="text-14px opacity-90">
       <template v-if="renewStatus === 'installed'">
         {{
-          t(
+          $gettext(
             'Your license key was automatically renewed and installed. Reload the page to see updated details.'
           )
         }}
@@ -62,7 +59,7 @@ const output = computed(() => {
       <BrandButton
         v-if="renewStatus === 'installed'"
         :icon="ArrowPathIcon"
-        :text="t('Reload Page')"
+        :text="$gettext('Reload Page')"
         class="flex-grow"
         @click="reload"
       />
@@ -73,8 +70,8 @@ const output = computed(() => {
         :icon="renewAction.icon"
         :icon-right="ArrowTopRightOnSquareIcon"
         :icon-right-hover-display="true"
-        :text="t('Extend License')"
-        :title="t('Pay your annual fee to continue receiving OS updates.')"
+        :text="$gettext('Extend License')"
+        :title="$gettext('Pay your annual fee to continue receiving OS updates.')"
         class="flex-grow"
         @click="renewAction.click?.()"
       />
@@ -84,7 +81,7 @@ const output = computed(() => {
         :external="true"
         :href="DOCS_REGISTRATION_LICENSING.toString()"
         :icon-right="ArrowTopRightOnSquareIcon"
-        :text="t('Learn More')"
+        :text="$gettext('Learn More')"
         class="text-14px"
       />
     </div>

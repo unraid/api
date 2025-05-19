@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import { computed, onBeforeMount, ref, watchEffect } from 'vue';
-import { useI18n } from 'vue-i18n';
+import { useI18n } from '~/composables/useI18n';
 import { storeToRefs } from 'pinia';
 
 import { request } from '~/composables/services/request';
@@ -12,7 +12,7 @@ export interface Props {
 
 const props = defineProps<Props>();
 
-const { t } = useI18n();
+const { $gettext } = useI18n();
 
 const { isRemoteAccess } = storeToRefs(useServerStore());
 
@@ -22,7 +22,7 @@ const loading = ref(false);
 
 const computedError = computed((): string => {
   if (!props.phpWanIp) {
-    return t('DNS issue, unable to resolve wanip4.unraid.net');
+    return $gettext('DNS issue, unable to resolve wanip4.unraid.net');
   }
   if (fetchError.value) {
     return fetchError.value;
@@ -48,31 +48,30 @@ watchEffect(async () => {
       sessionStorage.setItem('unraidConnect_wanIp', wanIp.value);
     } else {
       loading.value = false;
-      fetchError.value = t('Unable to fetch client WAN IPv4');
+      fetchError.value = $gettext('Unable to fetch client WAN IPv4');
     }
   }
 });
 </script>
 
 <template>
-  <span v-if="loading" class="italic">{{ t('Checking WAN IPs…') }}</span>
+  <span v-if="loading" class="italic">{{ $gettext('Checking WAN IPs…') }}</span>
   <template v-else>
     <span v-if="computedError" class="text-unraid-red font-semibold">{{ computedError }}</span>
     <template v-else>
       <span v-if="isRemoteAccess || (phpWanIp === wanIp && !isRemoteAccess)">{{
-        t('Remark: your WAN IPv4 is {0}', [wanIp])
+        $gettext('Remark: your WAN IPv4 is {0}').replace('{0}', String(wanIp))
       }}</span>
       <span v-else class="inline-block w-1/2 whitespace-normal">
         {{
-          t("Remark: Unraid's WAN IPv4 {0} does not match your client's WAN IPv4 {1}.", [
-            phpWanIp,
-            wanIp,
-          ])
+          $gettext("Remark: Unraid's WAN IPv4 {0} does not match your client's WAN IPv4 {1}.")
+            .replace('{0}', String(phpWanIp))
+            .replace('{1}', String(wanIp))
         }}
         {{
-          t('This may indicate a complex network that will not work with this Remote Access solution.')
+          $gettext('This may indicate a complex network that will not work with this Remote Access solution.')
         }}
-        {{ t('Ignore this message if you are currently connected via Remote Access or VPN.') }}
+        {{ $gettext('Ignore this message if you are currently connected via Remote Access or VPN.') }}
       </span>
     </template>
   </template>
