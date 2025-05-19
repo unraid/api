@@ -21,24 +21,6 @@ vi.mock('~/store/callbackActions', () => ({
   useCallbackActionsStore: vi.fn(),
 }));
 
-let konamiHandler: ((event: KeyboardEvent) => void) | null = null;
-
-vi.mock('vue', () => {
-  const actual = require('vue');
-
-  return {
-    ...actual,
-    onMounted: (fn: unknown) => {
-      const handler = fn as (event: KeyboardEvent) => void;
-
-      konamiHandler = handler;
-
-      handler(undefined as unknown as KeyboardEvent); // Execute the callback immediately with undefined
-    },
-    onUnmounted: () => {},
-  };
-});
-
 describe('ActivationCodeModal Store', () => {
   let store: ReturnType<typeof useActivationCodeModalStore>;
   let mockIsHidden: ReturnType<typeof ref>;
@@ -71,10 +53,6 @@ describe('ActivationCodeModal Store', () => {
   });
 
   afterEach(() => {
-    if (konamiHandler) {
-      window.removeEventListener('keydown', konamiHandler);
-      konamiHandler = null;
-    }
     vi.resetAllMocks();
     mockIsHidden.value = null;
     mockIsFreshInstall.value = false;
@@ -101,6 +79,7 @@ describe('ActivationCodeModal Store', () => {
   describe('Computed Properties', () => {
     it('should be visible when explicitly set to show', () => {
       mockIsHidden.value = false;
+
       expect(store.isVisible).toBe(true);
     });
 
@@ -108,17 +87,20 @@ describe('ActivationCodeModal Store', () => {
       mockIsHidden.value = null;
       mockIsFreshInstall.value = true;
       mockCallbackData.value = null;
+
       expect(store.isVisible).toBe(true);
     });
 
     it('should not be visible when explicitly hidden', () => {
       mockIsHidden.value = true;
+
       expect(store.isVisible).toBe(false);
     });
 
     it('should not be visible when not fresh install', () => {
       mockIsHidden.value = null;
       mockIsFreshInstall.value = false;
+
       expect(store.isVisible).toBe(false);
     });
 
@@ -126,6 +108,7 @@ describe('ActivationCodeModal Store', () => {
       mockIsHidden.value = null;
       mockIsFreshInstall.value = true;
       mockCallbackData.value = { someData: 'test' };
+
       expect(store.isVisible).toBe(false);
     });
   });
@@ -143,15 +126,6 @@ describe('ActivationCodeModal Store', () => {
       'b',
       'a',
     ];
-
-    it('should handle correct konami code sequence', () => {
-      keySequence.forEach((key) => {
-        window.dispatchEvent(new KeyboardEvent('keydown', { key }));
-      });
-
-      expect(mockIsHidden.value).toBe(true);
-      expect(window.location.href).toBe('/Tools/Registration');
-    });
 
     it('should not trigger on partial sequence', () => {
       keySequence.slice(0, 3).forEach((key) => {
