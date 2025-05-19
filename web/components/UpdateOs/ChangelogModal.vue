@@ -116,6 +116,7 @@ watch(docsChangelogUrl, (newUrl) => {
             ref="iframeRef"
             :src="docsChangelogUrl"
             class="w-full h-full border-0 rounded-md"
+            sandbox="allow-scripts allow-same-origin"
             title="Unraid Changelog"
           ></iframe>
         </div>
