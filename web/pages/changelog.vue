@@ -1,12 +1,15 @@
 <script setup lang="ts">
-import { ref } from 'vue';
+import { ref, onMounted } from 'vue';
 import { useI18n } from 'vue-i18n';
-import { useUpdateOsChangelogStore } from '~/store/updateOsChangelog';
+import { useUpdateOsStore } from '~/store/updateOs';
+import { storeToRefs } from 'pinia';
 
 const changelog = ref('');
 const changelogPretty = ref('');
-const updateOsChangelogStore = useUpdateOsChangelogStore();
-const { releaseForUpdate: updateOsChangelogModalVisible } = storeToRefs(updateOsChangelogStore);
+const updateOsStore = useUpdateOsStore();
+const { changelogModalVisible } = storeToRefs(updateOsStore);
+const { t } = useI18n();
+
 onMounted(async () => {
     const response = await fetch('https://releases.unraid.net/json');
     const data = await response.json();
@@ -18,8 +21,7 @@ onMounted(async () => {
 });
 
 function showChangelogModal() {
-    // Simulate receiving a release for update
-    updateOsChangelogStore.setReleaseForUpdate({
+    updateOsStore.setReleaseForUpdate({
         version: '6.12.3',
         date: '2023-07-15',
         changelog: changelog.value,
@@ -32,8 +34,7 @@ function showChangelogModal() {
 }
 
 function showChangelogWithoutPretty() {
-    // Simulate receiving a release without the pretty version
-    updateOsChangelogStore.setReleaseForUpdate({
+    updateOsStore.setReleaseForUpdate({
         version: '6.12.3',
         date: '2023-07-15',
         changelog: changelog.value,
@@ -46,7 +47,7 @@ function showChangelogWithoutPretty() {
 }
 
 function showChangelogBrokenParse() {
-    updateOsChangelogStore.setReleaseForUpdate({
+    updateOsStore.setReleaseForUpdate({
         version: '6.12.3',
         date: '2023-07-15',
         changelog: null,
@@ -58,14 +59,12 @@ function showChangelogBrokenParse() {
     });
 }
 
-const { t } = useI18n();
-
 </script>
 
 <template>
     <div class="container mx-auto p-6">
         <h1 class="text-2xl font-bold mb-6">Changelog</h1>
-        <UpdateOsChangelogModal :t="t" :open="!!updateOsChangelogModalVisible" />
+        <UpdateOsChangelogModal :t="t" :open="changelogModalVisible" />
         <div class="mb-6 flex gap-4">
             <button 
                 class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600" 

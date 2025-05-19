@@ -47,6 +47,9 @@ const fetchAndParseChangelog = async () => {
       if (cleanHref.startsWith("#")) {
         cleanHref = `${baseUrl}${props.version}${cleanHref}`;
       }
+      if (!cleanHref.startsWith("http")) {
+        cleanHref = `${baseUrl}${cleanHref}`;
+      }
       return `<a href="${cleanHref}" ${title ? `title="${title}"` : ""} target="_blank" rel="noopener noreferrer">${linkText}</a>`;
     };
     // Add heading renderer

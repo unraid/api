@@ -4,7 +4,7 @@ import { storeToRefs } from 'pinia';
 
 import {
   ArrowLeftIcon,
-  ArrowSmallRightIcon,
+  ArrowRightIcon,
   ArrowTopRightOnSquareIcon,
   KeyIcon,
   ServerStackIcon,
@@ -16,8 +16,6 @@ import type { ComposerTranslation } from 'vue-i18n';
 import RawChangelogRenderer from '~/components/UpdateOs/RawChangelogRenderer.vue';
 import { usePurchaseStore } from '~/store/purchase';
 import { useUpdateOsStore } from '~/store/updateOs';
-// import { useUpdateOsActionsStore } from '~/store/updateOsActions';
-import { useUpdateOsChangelogStore } from '~/store/updateOsChangelog';
 
 export interface Props {
   open?: boolean;
@@ -30,10 +28,8 @@ const props = withDefaults(defineProps<Props>(), {
 
 const purchaseStore = usePurchaseStore();
 const updateOsStore = useUpdateOsStore();
-const updateOsChangelogStore = useUpdateOsChangelogStore();
-
-const { availableWithRenewal } = storeToRefs(updateOsStore);
-const { releaseForUpdate } = storeToRefs(updateOsChangelogStore);
+const { availableWithRenewal, releaseForUpdate, changelogModalVisible } = storeToRefs(updateOsStore);
+const { setReleaseForUpdate, fetchAndConfirmInstall } = updateOsStore;
 
 const showExtendKeyButton = computed(() => {
   return availableWithRenewal.value;
@@ -98,13 +94,13 @@ watch(docsChangelogUrl, (newUrl) => {
     v-if="releaseForUpdate?.version"
     :center-content="false"
     max-width="max-w-800px"
-    :open="!!releaseForUpdate"
+    :open="changelogModalVisible"
     :show-close-x="true"
     :t="t"
     :tall-content="true"
     :title="t('Unraid OS {0} Changelog', [releaseForUpdate.version])"
     :disable-overlay-close="false"
-    @close="updateOsChangelogStore.setReleaseForUpdate(null)"
+    @close="setReleaseForUpdate(null)"
   >
     <template #main>
       <div class="flex flex-col gap-4 min-w-[280px] sm:min-w-[400px]">
@@ -176,8 +172,8 @@ watch(docsChangelogUrl, (newUrl) => {
         <BrandButton
           v-else-if="releaseForUpdate?.sha256"
           :icon="ServerStackIcon"
-          :icon-right="ArrowSmallRightIcon"
-          @click="updateOsChangelogStore.fetchAndConfirmInstall(releaseForUpdate.sha256)"
+          :icon-right="ArrowRightIcon"
+          @click="fetchAndConfirmInstall(releaseForUpdate.sha256)"
         >
           {{ props.t('Continue') }}
         </BrandButton>

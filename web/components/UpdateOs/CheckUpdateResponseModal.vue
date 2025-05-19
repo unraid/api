@@ -20,7 +20,6 @@ import { useAccountStore } from '~/store/account';
 import { usePurchaseStore } from '~/store/purchase';
 import { useServerStore } from '~/store/server';
 import { useUpdateOsStore } from '~/store/updateOs';
-import { useUpdateOsChangelogStore } from '~/store/updateOsChangelog';
 
 export interface Props {
   open?: boolean;
@@ -35,7 +34,6 @@ const accountStore = useAccountStore();
 const purchaseStore = usePurchaseStore();
 const serverStore = useServerStore();
 const updateOsStore = useUpdateOsStore();
-const updateOsChangelogStore = useUpdateOsChangelogStore();
 
 const {
   regExp,
@@ -181,7 +179,7 @@ const actionButtons = computed((): BrandButtonProps[] | null => {
     buttons.push({
       variant: availableWithRenewal.value ? 'outline' : undefined,
       click: async () =>
-        await updateOsChangelogStore.setReleaseForUpdate(updateOsResponse.value ?? null),
+        await updateOsStore.setReleaseForUpdate(updateOsResponse.value ?? null),
       icon: EyeIcon,
       text: availableWithRenewal.value
         ? props.t('View Changelog')
