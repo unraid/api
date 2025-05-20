@@ -241,7 +241,7 @@ export abstract class FileModification {
     }
 
     protected async isUnraidVersionGreaterThanOrEqualTo(
-        version: string = '7.2.0',
+        version: string = '7.2.0', // Defaults to the version of Unraid that includes the API by default
         { includePrerelease = true }: { includePrerelease?: boolean } = {}
     ): Promise<boolean> {
         const unraidVersion = coerce(await getUnraidVersion(), { includePrerelease });
