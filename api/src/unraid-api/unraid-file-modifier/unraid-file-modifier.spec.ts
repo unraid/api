@@ -8,6 +8,7 @@ import { createPatch } from 'diff';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { fileExistsSync } from '@app/core/utils/files/file-exists.js';
+import { FileLoadStatus } from '@app/store/types.js';
 import {
     FileModification,
     ShouldApplyWithReason,
@@ -160,5 +161,84 @@ describe.sequential('FileModificationService', () => {
     afterEach(async () => {
         await service.rollbackAll();
         vi.clearAllMocks();
+    });
+});
+
+describe('isUnraidVersionGreaterThanOrEqualTo', () => {
+    class VersionTestFileModification extends FileModification {
+        id = 'version-test';
+        public readonly filePath: string = '/dev/null';
+        protected async generatePatch(): Promise<string> {
+            return '';
+        }
+    }
+
+    let mod: VersionTestFileModification;
+    let logger: Logger;
+
+    beforeEach(() => {
+        logger = new Logger('test');
+        mod = new VersionTestFileModification(logger);
+    });
+
+    afterEach(() => {
+        vi.resetModules();
+        vi.restoreAllMocks();
+    });
+
+    function mockUnraidVersion(version: string, status: FileLoadStatus = FileLoadStatus.LOADED) {
+        vi.doMock('@app/store/index.js', () => ({
+            getters: {
+                emhttp: () => ({ status, var: { version } }),
+            },
+        }));
+    }
+
+    it('returns true if unraid version is greater', async () => {
+        mockUnraidVersion('7.3.0');
+        // @ts-expect-error protected
+        const result = await mod.isUnraidVersionGreaterThanOrEqualTo('7.2.0');
+        expect(result).toBe(true);
+    });
+
+    it('returns true if unraid version is equal', async () => {
+        mockUnraidVersion('7.2.0');
+        // @ts-expect-error protected
+        const result = await mod.isUnraidVersionGreaterThanOrEqualTo('7.2.0');
+        expect(result).toBe(true);
+    });
+
+    it('returns false if unraid version is less', async () => {
+        mockUnraidVersion('7.1.9');
+        // @ts-expect-error protected
+        const result = await mod.isUnraidVersionGreaterThanOrEqualTo('7.2.0');
+        expect(result).toBe(false);
+    });
+
+    it('throws if version is invalid', async () => {
+        mockUnraidVersion('not-a-version');
+        // @ts-expect-error protected
+        await expect(mod.isUnraidVersionGreaterThanOrEqualTo('7.2.0')).rejects.toThrow(
+            'Failed to compare Unraid version'
+        );
+    });
+
+    it('throws if emhttp var is missing', async () => {
+        vi.doMock('@app/store/index.js', () => ({
+            getters: {
+                emhttp: () => ({ status: 2, var: {} }),
+            },
+        }));
+        // @ts-expect-error protected
+        await expect(mod.isUnraidVersionGreaterThanOrEqualTo('7.2.0')).rejects.toThrow(
+            'Failed to compare Unraid version'
+        );
+    });
+
+    it('returns true for prerelease version when includePrerelease is true (default)', async () => {
+        mockUnraidVersion('7.2.0-beta.2');
+        // @ts-expect-error protected
+        const result = await mod.isUnraidVersionGreaterThanOrEqualTo('7.2.0');
+        expect(result).toBe(true);
     });
 });

@@ -353,7 +353,7 @@ describe('CustomizationService', () => {
             vi.mocked(fs.access).mockRejectedValue(error);
             const result = await service.getActivationData();
             expect(result).toBeNull();
-            expect(loggerWarnSpy).toHaveBeenCalledWith(
+            expect(loggerDebugSpy).toHaveBeenCalledWith(
                 `Activation directory ${activationDir} not found when searching for JSON file.`
             );
         });
@@ -363,7 +363,7 @@ describe('CustomizationService', () => {
             vi.mocked(fs.readdir).mockResolvedValue(['otherfile.txt' as any]);
             const result = await service.getActivationData();
             expect(result).toBeNull();
-            expect(loggerWarnSpy).toHaveBeenCalledWith('No activation JSON file found.');
+            expect(loggerDebugSpy).toHaveBeenCalledWith('No activation JSON file found.');
         });
 
         it('should return null and log error on readdir failure', async () => {
