@@ -21,7 +21,7 @@ export default class NotificationsPageModification extends FileModification {
         if (await this.isUnraidVersionGreaterThanOrEqualTo('7.2.0')) {
             return {
                 shouldApply: false,
-                reason: 'Skipping for Unraid 7.2 compatibility',
+                reason: 'Skipping for Unraid 7.2 or later, where the Unraid API is integrated.',
             };
         }
         return {

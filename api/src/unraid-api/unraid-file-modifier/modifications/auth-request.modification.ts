@@ -67,7 +67,7 @@ export default class AuthRequestModification extends FileModification {
         if (await this.isUnraidVersionGreaterThanOrEqualTo('7.2.0')) {
             return {
                 shouldApply: false,
-                reason: 'Unraid version is greater than or equal to 7.2.0, feature is built-in.',
+                reason: 'Skipping for Unraid 7.2 or later, where the Unraid API is integrated.',
             };
         }
         return {

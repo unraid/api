@@ -96,7 +96,7 @@ function verifyUsernamePasswordAndSSO(string $username, string $password): bool 
         if (isUnraidVersionGreaterThanOrEqualTo72) {
             return {
                 shouldApply: false,
-                reason: 'Skipping for Unraid 7.2 compatibility',
+                reason: 'Skipping for Unraid 7.2 or later, where the Unraid API is integrated.',
             };
         }
         const hasConfiguredSso = getters.config().remote.ssoSubIds.length > 0;
