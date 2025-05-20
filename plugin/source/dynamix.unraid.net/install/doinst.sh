@@ -71,17 +71,6 @@ if [ "$INSTALL_MODE" = "install" ] || [ "$INSTALL_MODE" = "upgrade" ]; then
   if [ -f /etc/rc.d/rc.unraid-api ]; then
     chmod 755 /etc/rc.d/rc.unraid-api
     echo "Made rc.unraid-api executable" >> "$LOGFILE"
-    
-    # Start the service
-    /etc/rc.d/rc.unraid-api start
-    
-    # Verify the service started successfully
-    if ! /etc/rc.d/rc.unraid-api status | grep -q "online"; then
-      echo "⚠️ Warning: Unraid API service failed to start" | tee -a "$LOGFILE"
-      echo "Check $LOGFILE for details"
-    else
-      echo "Unraid API service started successfully" >> "$LOGFILE"
-    fi
   else
     echo "ERROR: rc.unraid-api not found" >> "$LOGFILE"
   fi

@@ -247,7 +247,10 @@ if [[ -n "$TAG" && "$TAG" != "" ]]; then
   sed -i "${sedcmd}" "/usr/local/emhttp/plugins/dynamix.unraid.net/README.md"
 fi
 
-echo
+echo "Starting Unraid API service"
+/etc/rc.d/rc.unraid-api start
+
+echo "Unraid API service started"
 echo "✅ Installation is complete, it is safe to close this window"
 echo
 
