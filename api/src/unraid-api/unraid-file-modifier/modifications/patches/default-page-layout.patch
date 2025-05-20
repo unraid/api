@@ -2,7 +2,56 @@ Index: /usr/local/emhttp/plugins/dynamix/include/DefaultPageLayout.php
 ===================================================================
 --- /usr/local/emhttp/plugins/dynamix/include/DefaultPageLayout.php	original
 +++ /usr/local/emhttp/plugins/dynamix/include/DefaultPageLayout.php	modified
-@@ -69,10 +69,28 @@
+@@ -482,20 +482,11 @@
+ }
+ 
+ function openNotifier() {
+   $.post('/webGui/include/Notify.php',{cmd:'get',csrf_token:csrf_token},function(msg) {
+     $.each($.parseJSON(msg), function(i, notify){
+-      $.jGrowl(notify.subject+'<br>'+notify.description,{
+-        group: notify.importance,
+-        header: notify.event+': '+notify.timestamp,
+-        theme: notify.file,
+-        sticky: true,
+-        beforeOpen: function(e,m,o){if ($('div.jGrowl-notification').hasClass(notify.file)) return(false);},
+-        afterOpen: function(e,m,o){if (notify.link) $(e).css('cursor','pointer');},
+-        click: function(e,m,o){if (notify.link) location.replace(notify.link);},
+-        close: function(e,m,o){$.post('/webGui/include/Notify.php',{cmd:'archive',file:notify.file,csrf_token:csrf_token});}
+-      });
++      
+     });
+   });
+ }
+ 
+ function closeNotifier() {
+@@ -579,11 +570,11 @@
+ <body>
+  <div id="displaybox">
+   <div class="upgrade_notice" style="display:none"></div>
+   <div id="header" class="<?=$display['banner']?>">
+     <div class="logo">
+-      <a href="https://unraid.net" target="_blank"><?readfile("$docroot/webGui/images/UN-logotype-gradient.svg")?></a>
++      
+       <unraid-i18n-host><unraid-header-os-version></unraid-header-os-version></unraid-i18n-host>
+     </div>
+     <?include "$docroot/plugins/dynamix.my.servers/include/myservers2.php"?>
+   </div>
+   <a href="#" class="move_to_end" title="<?=_('Move To End')?>"><i class="fa fa-arrow-circle-down"></i></a>
+@@ -628,12 +619,12 @@
+   }
+   // create list of nchan scripts to be started
+   if (isset($button['Nchan'])) nchan_merge($button['root'], $button['Nchan']);
+ }
+ 
+-echo "<div class='nav-user show'><a id='board' href='#' class='hand'><b id='bell' class='icon-u-bell system'></b></a></div>";
+ 
++
+ if ($themes2) echo "</div>";
+ echo "</div></div>";
+ foreach ($buttons as $button) {
+   annotate($button['file']);
+   // include page specific stylesheets (if existing)
+@@ -706,10 +697,28 @@
        array_splice($running,array_search($row,$running),1);
      }
    }
@@ -30,89 +79,8 @@ Index: /usr/local/emhttp/plugins/dynamix/include/DefaultPageLayout.php
  <!DOCTYPE html>
  <html <?=$display['rtl']?>lang="<?=strtok($locale, '_') ?: 'en'?>" class="<?= $themeHelper->getThemeHtmlClass() ?>">
  <head>
- <title><?=_var($var,'NAME')?>/<?=_var($myPage,'name')?></title>
-@@ -602,20 +620,11 @@
- }
- 
- function openNotifier() {
-   $.post('/webGui/include/Notify.php',{cmd:'get',csrf_token:csrf_token},function(msg) {
-     $.each($.parseJSON(msg), function(i, notify){
--      $.jGrowl(notify.subject+'<br>'+notify.description,{
--        group: notify.importance,
--        header: notify.event+': '+notify.timestamp,
--        theme: notify.file,
--        sticky: true,
--        beforeOpen: function(e,m,o){if ($('div.jGrowl-notification').hasClass(notify.file)) return(false);},
--        afterOpen: function(e,m,o){if (notify.link) $(e).css('cursor','pointer');},
--        click: function(e,m,o){if (notify.link) location.replace(notify.link);},
--        close: function(e,m,o){$.post('/webGui/include/Notify.php',{cmd:'archive',file:notify.file,csrf_token:csrf_token});}
--      });
-+      
-     });
-   });
- }
- 
- function closeNotifier() {
-@@ -699,11 +708,11 @@
- <body>
-  <div id="displaybox">
-   <div class="upgrade_notice" style="display:none"></div>
-   <div id="header" class="<?=$display['banner']?>">
-     <div class="logo">
--      <a href="https://unraid.net" target="_blank"><?readfile("$docroot/webGui/images/UN-logotype-gradient.svg")?></a>
-+      
-       <unraid-i18n-host><unraid-header-os-version></unraid-header-os-version></unraid-i18n-host>
-     </div>
-     <?include "$docroot/plugins/dynamix.my.servers/include/myservers2.php"?>
-   </div>
-   <a href="#" class="move_to_end" title="<?=_('Move To End')?>"><i class="fa fa-arrow-circle-down"></i></a>
-@@ -748,12 +757,12 @@
-   }
-   // create list of nchan scripts to be started
-   if (isset($button['Nchan'])) nchan_merge($button['root'], $button['Nchan']);
- }
- 
--echo "<div class='nav-user show'><a id='board' href='#' class='hand'><b id='bell' class='icon-u-bell system'></b></a></div>";
- 
-+
- if ($themes2) echo "</div>";
- echo "</div></div>";
- foreach ($buttons as $button) {
-   annotate($button['file']);
-   // include page specific stylesheets (if existing)
-@@ -960,26 +969,18 @@
-         case 'warning': bell2++; break;
-         case 'normal' : bell3++; break;
-       }
- <?if ($notify['display']==0):?>
-       if (notify.show) {
--        $.jGrowl(notify.subject+'<br>'+notify.description,{
--          group: notify.importance,
--          header: notify.event+': '+notify.timestamp,
--          theme: notify.file,
--          beforeOpen: function(e,m,o){if ($('div.jGrowl-notification').hasClass(notify.file)) return(false);},
--          afterOpen: function(e,m,o){if (notify.link) $(e).css('cursor','pointer');},
--          click: function(e,m,o){if (notify.link) location.replace(notify.link);},
--          close: function(e,m,o){$.post('/webGui/include/Notify.php',{cmd:'hide',file:"<?=$notify['path'].'/unread/'?>"+notify.file,csrf_token:csrf_token}<?if ($notify['life']==0):?>,function(){$.post('/webGui/include/Notify.php',{cmd:'archive',file:notify.file,csrf_token:csrf_token});}<?endif;?>);}
--        });
-+        
-       }
- <?endif;?>
-     });
--    $('#bell').removeClass('red-orb yellow-orb green-orb').prop('title',"<?=_('Alerts')?> ["+bell1+']\n'+"<?=_('Warnings')?> ["+bell2+']\n'+"<?=_('Notices')?> ["+bell3+']');
--    if (bell1) $('#bell').addClass('red-orb'); else
--    if (bell2) $('#bell').addClass('yellow-orb'); else
--    if (bell3) $('#bell').addClass('green-orb');
-+
-+
-+
-+
-     break;
-   }
- });
- 
- <?if ($wlan0):?>
-@@ -1363,7 +1364,8 @@
+ <title><?=_var($var, 'NAME')?>/<?=_var($myPage, 'name')?></title>
+@@ -922,7 +931,8 @@
      }
    }
  }
