@@ -8,6 +8,13 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { useUpdateOsStore } from '~/store/updateOs';
 
+vi.mock('@unraid/shared-callbacks', () => ({
+  useCallback: vi.fn(() => ({
+    send: vi.fn(),
+    watcher: vi.fn(),
+  })),
+}));
+
 vi.mock('~/composables/services/webgui', () => {
   return {
     WebguiCheckForUpdate: vi.fn().mockResolvedValue({
