@@ -80,7 +80,7 @@ Index: /usr/local/emhttp/plugins/dynamix/include/DefaultPageLayout.php
  foreach ($buttons as $button) {
    annotate($button['file']);
    // include page specific stylesheets (if existing)
-@@ -937,26 +946,18 @@
+@@ -960,26 +969,18 @@
          case 'warning': bell2++; break;
          case 'normal' : bell3++; break;
        }
@@ -112,11 +112,11 @@ Index: /usr/local/emhttp/plugins/dynamix/include/DefaultPageLayout.php
  });
  
  <?if ($wlan0):?>
-@@ -1337,7 +1338,8 @@
-       }
+@@ -1363,7 +1364,8 @@
      }
    }
  }
+ <?endif;?>
  </script>
 +<uui-toaster rich-colors close-button position="<?= ($notify['position'] === 'center') ? 'top-center' : $notify['position'] ?>"></uui-toaster>
  </body>

@@ -778,7 +778,30 @@ unset($buttons,$button);
 
 // Build page content
 // Reload page every X minutes during extended viewing?
-if (isset($myPage['Load']) && $myPage['Load'] > 0) echo "\n<script>timers.reload = setInterval(function(){if (nchanPaused === false)location.reload();},".($myPage['Load']*60000).");</script>\n";
+if (isset($myPage['Load']) && $myPage['Load'] > 0) {
+  ?>
+    <script>
+      function setTimerReload() {
+        timers.reload = setInterval(function(){
+          if (nchanPaused === false && ! dialogOpen() ) {
+            location.reload();
+          }
+        },<?=$myPage['Load']*60000?>);
+      }
+
+      $(document).click(function(e) {
+        clearInterval(timers.reload);
+        setTimerReload();
+      });
+
+      function dialogOpen() {
+          return ($('.sweet-alert').is(':visible') || $('.swal-overlay--show-modal').is(':visible') );
+      }
+      setTimerReload();
+
+    </script>
+  <?    
+}  
 echo "<div class='tabs'>";
 $tab = 1;
 $pages = [];
@@ -1266,39 +1289,41 @@ $('body').on('click','a,.ca_href', function(e) {
   }
 });
 
-// Start & stop live updates when window loses focus
+// Only include window focus/blur event handlers when live updates are disabled
+// to prevent unnecessary page reloads when live updates are already handling data refreshes
+// nchanPaused / blurTimer used elsewhere so need to always be defined
+
 var nchanPaused = false;
 var blurTimer = false;
 
+<? if ( $display['liveUpdate'] == "no" ):?>
 $(window).focus(function() {
   nchanFocusStart();
 });
 
 // Stop nchan on loss of focus
-<? if ( $display['liveUpdate'] == "no" ):?>
 $(window).blur(function() {
   blurTimer = setTimeout(function(){
     nchanFocusStop();
   },30000);
 });
-<?endif;?>
 
 document.addEventListener("visibilitychange", (event) => {
-  <? if ( $display['liveUpdate'] == "no" ):?>
-  if (document.hidden) {
-    nchanFocusStop();
-  }
-<?else:?>
   if (document.hidden) {
     nchanFocusStop();
   } else {
     <? if (isset($myPage['Load']) && $myPage['Load'] > 0):?>
-      window.location.reload();
+      if ( dialogOpen() ) {
+        clearInterval(timers.reload);
+        setTimerReload();
+        nchanFocusStart();
+      } else {
+        window.location.reload();
+      }
     <?else:?>
       nchanFocusStart();
     <?endif;?>
   }
-<?endif;?>
 });
 
 function nchanFocusStart() {
@@ -1339,6 +1364,7 @@ function nchanFocusStop(banner=true) {
     }
   }
 }
+<?endif;?>
 </script>
 <uui-toaster rich-colors close-button position="<?= ($notify['position'] === 'center') ? 'top-center' : $notify['position'] ?>"></uui-toaster>
 </body>

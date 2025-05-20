@@ -26,24 +26,25 @@ const patchTestCases: ModificationTestCase[] = [
     {
         ModificationClass: DefaultPageLayoutModification,
         fileUrl:
-            'https://github.com/unraid/webgui/raw/refs/heads/master/emhttp/plugins/dynamix/include/DefaultPageLayout.php',
+            'https://raw.githubusercontent.com/unraid/webgui/refs/heads/7.1/emhttp/plugins/dynamix/include/DefaultPageLayout.php',
         fileName: 'DefaultPageLayout.php',
     },
     {
         ModificationClass: NotificationsPageModification,
         fileUrl:
-            'https://github.com/unraid/webgui/raw/refs/heads/master/emhttp/plugins/dynamix/Notifications.page',
+            'https://raw.githubusercontent.com/unraid/webgui/refs/heads/7.1/emhttp/plugins/dynamix/Notifications.page',
         fileName: 'Notifications.page',
     },
     {
         ModificationClass: SSOFileModification,
         fileUrl:
-            'https://github.com/unraid/webgui/raw/refs/heads/master/emhttp/plugins/dynamix/include/.login.php',
+            'https://raw.githubusercontent.com/unraid/webgui/refs/heads/7.1/emhttp/plugins/dynamix/include/.login.php',
         fileName: '.login.php',
     },
     {
         ModificationClass: AuthRequestModification,
-        fileUrl: 'https://github.com/unraid/webgui/raw/refs/heads/master/emhttp/auth-request.php',
+        fileUrl:
+            'https://raw.githubusercontent.com/unraid/webgui/refs/heads/7.1/emhttp/auth-request.php',
         fileName: 'auth-request.php',
     },
 ];
