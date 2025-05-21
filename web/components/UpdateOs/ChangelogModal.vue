@@ -10,13 +10,14 @@ import {
   ServerStackIcon,
 } from '@heroicons/vue/24/solid';
 import { BrandButton, BrandLoading } from '@unraid/ui';
+import { allowedDocsOriginRegex, allowedDocsUrlRegex } from '~/helpers/urls';
 
 import type { ComposerTranslation } from 'vue-i18n';
 
 import RawChangelogRenderer from '~/components/UpdateOs/RawChangelogRenderer.vue';
 import { usePurchaseStore } from '~/store/purchase';
+import { useThemeStore } from '~/store/theme';
 import { useUpdateOsStore } from '~/store/updateOs';
-import { allowedDocsOriginRegex, allowedDocsUrlRegex } from '~/helpers/urls';
 
 export interface Props {
   open?: boolean;
@@ -29,6 +30,8 @@ const props = withDefaults(defineProps<Props>(), {
 
 const purchaseStore = usePurchaseStore();
 const updateOsStore = useUpdateOsStore();
+const themeStore = useThemeStore();
+const { darkMode } = storeToRefs(themeStore);
 const { availableWithRenewal, releaseForUpdate, changelogModalVisible } = storeToRefs(updateOsStore);
 const { setReleaseForUpdate, fetchAndConfirmInstall } = updateOsStore;
 
@@ -40,6 +43,7 @@ const showExtendKeyButton = computed(() => {
 const iframeRef = ref<HTMLIFrameElement | null>(null);
 const hasNavigated = ref(false);
 const currentIframeUrl = ref<string | null>(null);
+const actualIframeSrc = ref<string | null>(null);
 
 const docsChangelogUrl = computed(() => {
   return releaseForUpdate.value?.changelogPretty ?? null;
@@ -49,36 +53,50 @@ const showRawChangelog = computed<boolean>(() => {
   return !docsChangelogUrl.value && !!releaseForUpdate.value?.changelog;
 });
 
-const handleIframeNavigationMessage = (event: MessageEvent) => {
+const handleDocsPostMessages = (event: MessageEvent) => {
+  // Common checks for all iframe messages
   if (
     event.data &&
-    event.data.type === 'unraid-docs-navigation' &&
     iframeRef.value &&
     event.source === iframeRef.value.contentWindow &&
-    allowedDocsOriginRegex.test(event.origin)
+    (allowedDocsOriginRegex.test(event.origin) || event.origin === 'http://localhost:3000')
   ) {
-    if (
-      typeof event.data.url === 'string' &&
-      allowedDocsUrlRegex.test(event.data.url)
-    ) {
-      if (event.data.url !== docsChangelogUrl.value) {
-        hasNavigated.value = true;
-      } else {
-        hasNavigated.value = false;
+    // Handle navigation events
+    if (event.data.type === 'unraid-docs-navigation') {
+      if (typeof event.data.url === 'string' && allowedDocsUrlRegex.test(event.data.url)) {
+        hasNavigated.value = event.data.url !== docsChangelogUrl.value;
+        currentIframeUrl.value = event.data.url;
       }
-      currentIframeUrl.value = event.data.url;
+    }
+    // Handle theme ready events
+    else if (event.data.type === 'theme-ready') {
+      sendThemeToIframe();
     }
   }
 };
 
+// Keep this function just for the watch handler
+const sendThemeToIframe = () => {
+  if (iframeRef.value && iframeRef.value.contentWindow) {
+    try {
+      const message = { type: 'theme-update', theme: darkMode.value ? 'dark' : 'light' };
+      iframeRef.value.contentWindow.postMessage(message, '*');
+    } catch (error) {
+      console.error('Failed to send theme to iframe:', error);
+    }
+  }
+};
+
+// Attach event listener right away instead of waiting for mount
+
 onMounted(() => {
-  window.addEventListener('message', handleIframeNavigationMessage);
-  // Set initial value
+  // Set initial values only
+  window.addEventListener('message', handleDocsPostMessages);
   currentIframeUrl.value = docsChangelogUrl.value;
 });
 
 onBeforeUnmount(() => {
-  window.removeEventListener('message', handleIframeNavigationMessage);
+  window.removeEventListener('message', handleDocsPostMessages);
 });
 
 const revertToInitialChangelog = () => {
@@ -92,7 +110,20 @@ const revertToInitialChangelog = () => {
 watch(docsChangelogUrl, (newUrl) => {
   currentIframeUrl.value = newUrl;
   hasNavigated.value = false;
+
+  if (newUrl) {
+    actualIframeSrc.value = newUrl;
+  } else {
+    actualIframeSrc.value = null;
+  }
 });
+
+// Only need to watch for theme changes
+watch(darkMode, () => {
+  // The iframe will only pick up the message if it has sent theme-ready
+  sendThemeToIframe();
+});
+
 </script>
 
 <template>
@@ -113,10 +144,11 @@ watch(docsChangelogUrl, (newUrl) => {
         <!-- iframe for changelog if available -->
         <div v-if="docsChangelogUrl" class="w-[calc(100%+3rem)] h-[475px] -mx-6 -my-6">
           <iframe
+            v-if="actualIframeSrc"
             ref="iframeRef"
-            :src="docsChangelogUrl"
+            :src="actualIframeSrc"
             class="w-full h-full border-0 rounded-md"
-            sandbox="allow-scripts allow-same-origin"
+            sandbox="allow-scripts allow-same-origin allow-top-navigation"
             title="Unraid Changelog"
           ></iframe>
         </div>
