@@ -10,13 +10,14 @@ import {
   ServerStackIcon,
 } from '@heroicons/vue/24/solid';
 import { BrandButton, BrandLoading } from '@unraid/ui';
+import { allowedDocsOriginRegex, allowedDocsUrlRegex } from '~/helpers/urls';
 
 import type { ComposerTranslation } from 'vue-i18n';
 
 import RawChangelogRenderer from '~/components/UpdateOs/RawChangelogRenderer.vue';
 import { usePurchaseStore } from '~/store/purchase';
+import { useThemeStore } from '~/store/theme';
 import { useUpdateOsStore } from '~/store/updateOs';
-import { allowedDocsOriginRegex, allowedDocsUrlRegex } from '~/helpers/urls';
 
 export interface Props {
   open?: boolean;
@@ -29,6 +30,8 @@ const props = withDefaults(defineProps<Props>(), {
 
 const purchaseStore = usePurchaseStore();
 const updateOsStore = useUpdateOsStore();
+const themeStore = useThemeStore();
+const { darkMode } = storeToRefs(themeStore);
 const { availableWithRenewal, releaseForUpdate, changelogModalVisible } = storeToRefs(updateOsStore);
 const { setReleaseForUpdate, fetchAndConfirmInstall } = updateOsStore;
 
@@ -49,36 +52,49 @@ const showRawChangelog = computed<boolean>(() => {
   return !docsChangelogUrl.value && !!releaseForUpdate.value?.changelog;
 });
 
-const handleIframeNavigationMessage = (event: MessageEvent) => {
+const handleDocsPostMessages = (event: MessageEvent) => {
+  // Common checks for all iframe messages
   if (
     event.data &&
-    event.data.type === 'unraid-docs-navigation' &&
     iframeRef.value &&
     event.source === iframeRef.value.contentWindow &&
     allowedDocsOriginRegex.test(event.origin)
   ) {
-    if (
-      typeof event.data.url === 'string' &&
-      allowedDocsUrlRegex.test(event.data.url)
-    ) {
-      if (event.data.url !== docsChangelogUrl.value) {
-        hasNavigated.value = true;
-      } else {
-        hasNavigated.value = false;
+    // Handle navigation events
+    if (event.data.type === 'unraid-docs-navigation') {
+      if (typeof event.data.url === 'string' && allowedDocsUrlRegex.test(event.data.url)) {
+        hasNavigated.value = event.data.url !== docsChangelogUrl.value;
+        currentIframeUrl.value = event.data.url;
       }
-      currentIframeUrl.value = event.data.url;
+    }
+    // Handle theme ready events
+    else if (event.data.type === 'theme-ready') {
+      sendThemeToIframe();
+    }
+  }
+};
+
+const sendThemeToIframe = () => {
+  if (iframeRef.value && iframeRef.value.contentWindow) {
+    try {
+      iframeRef.value.contentWindow.postMessage(
+        { type: 'theme-update', theme: darkMode.value ? 'dark' : 'light' },
+        '*'
+      );
+    } catch (error) {
+      console.error('Failed to send theme to iframe:', error);
     }
   }
 };
 
 onMounted(() => {
-  window.addEventListener('message', handleIframeNavigationMessage);
+  window.addEventListener('message', handleDocsPostMessages);
   // Set initial value
   currentIframeUrl.value = docsChangelogUrl.value;
 });
 
 onBeforeUnmount(() => {
-  window.removeEventListener('message', handleIframeNavigationMessage);
+  window.removeEventListener('message', handleDocsPostMessages);
 });
 
 const revertToInitialChangelog = () => {
@@ -93,6 +109,12 @@ watch(docsChangelogUrl, (newUrl) => {
   currentIframeUrl.value = newUrl;
   hasNavigated.value = false;
 });
+
+// Watch for theme changes and send to iframe
+watch(darkMode, () => {
+  sendThemeToIframe();
+});
+
 </script>
 
 <template>
@@ -116,7 +138,7 @@ watch(docsChangelogUrl, (newUrl) => {
             ref="iframeRef"
             :src="docsChangelogUrl"
             class="w-full h-full border-0 rounded-md"
-            sandbox="allow-scripts allow-same-origin"
+            sandbox="allow-scripts allow-same-origin allow-top-navigation"
             title="Unraid Changelog"
           ></iframe>
         </div>
