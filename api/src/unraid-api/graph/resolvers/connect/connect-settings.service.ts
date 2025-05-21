@@ -56,8 +56,7 @@ export class ConnectSettingsService {
     }
 
     isConnectPluginInstalled(): boolean {
-        // logic ported from webguid
-        return ['/var/lib/pkgtools/packages/dynamix.unraid.net', '/usr/local/sbin/unraid-api'].every(
+        return ['/var/lib/pkgtools/packages/dynamix.unraid.net', '/usr/local/bin/unraid-api'].some(
             (path) => fileExistsSync(path)
         );
     }
@@ -319,7 +318,9 @@ export class ConnectSettingsService {
      * Computes the JSONForms schema definition for remote access settings.
      */
     async remoteAccessSlice(): Promise<SettingSlice> {
-        const precondition = (await this.isSignedIn()) && (await this.isSSLCertProvisioned());
+        const isSignedIn = await this.isSignedIn();
+        const isSSLCertProvisioned = await this.isSSLCertProvisioned();
+        const precondition = isSignedIn && isSSLCertProvisioned;
 
         /** shown when preconditions are not met */
         const requirements: UIElement[] = [
@@ -332,11 +333,11 @@ export class ConnectSettingsService {
                     items: [
                         {
                             text: 'You are signed in to Unraid Connect',
-                            status: await this.isSignedIn(),
+                            status: isSignedIn,
                         },
                         {
                             text: 'You have provisioned a valid SSL certificate',
-                            status: await this.isSSLCertProvisioned(),
+                            status: isSSLCertProvisioned,
                         },
                     ],
                 },
