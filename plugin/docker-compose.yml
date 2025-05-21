@@ -12,7 +12,7 @@ services:
       - ./scripts:/app/scripts
       - ../unraid-ui/dist-wc:/app/source/dynamix.unraid.net/usr/local/emhttp/plugins/dynamix.my.servers/unraid-components/uui
       - ../web/.nuxt/nuxt-custom-elements/dist/unraid-components:/app/source/dynamix.unraid.net/usr/local/emhttp/plugins/dynamix.my.servers/unraid-components/nuxt
-      - ../api/deploy/pack/:/app/source/dynamix.unraid.net/usr/local/unraid-api
+      - ../api/deploy/release/:/app/source/dynamix.unraid.net/usr/local/unraid-api # Use the release dir instead of pack to allow watcher to not try to build with node_modules
       - ../api/deploy/node-modules-archive:/app/node-modules-archive
     stdin_open: true # equivalent to -i
     tty: true        # equivalent to -t

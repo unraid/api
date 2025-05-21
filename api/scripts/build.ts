@@ -49,11 +49,18 @@ try {
 
     await writeFile('package.json', JSON.stringify(parsedPackageJson, null, 4));
 
-    await $`XZ_OPT=-5 tar -cJf packed-node-modules.tar.xz node_modules`;
+    const compressionLevel = process.env.WATCH_MODE ? '-1' : '-5';
+    await $`XZ_OPT=${compressionLevel} tar -cJf packed-node-modules.tar.xz node_modules`;
     // Create a subdirectory for the node modules archive
     await mkdir('../node-modules-archive', { recursive: true });
     await $`mv packed-node-modules.tar.xz ../node-modules-archive/`;
     await $`rm -rf node_modules`;
+
+    // Clean the release directory
+    await $`rm -rf ../release/*`;
+
+    // Copy other files to release directory
+    await $`cp -r ./* ../release/`;
 
     // chmod the cli
     await $`chmod +x ./dist/cli.js`;

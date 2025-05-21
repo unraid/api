@@ -21,7 +21,7 @@
     "build:txz": "tsx builder/build-txz.ts",
     "build:plugin": "tsx builder/build-plugin.ts",
     "build:validate": "npm run env:validate && npm run build",
-    "build:watcher": "nodemon --verbose --watch 'source/**/*' --watch 'plugins/dynamix.unraid.net.plg' --ext ts,js,plg,sh --ignore '*.test.ts' --ignore 'node_modules/**' --delay 5s --exec 'pnpm run build'",
+    "build:watcher": "./scripts/build-watcher.sh",
     "// Docker commands": "",
     "build:watch": "./scripts/dc.sh pnpm run build:watcher",
     "docker:build": "docker compose build",
