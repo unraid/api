@@ -325,86 +325,56 @@ export const generateDevices = async (): Promise<Devices> => {
                 };
             };
 
-            const parseDeviceLine = (line: Readonly<string>): { value: string; string: string } => {
-                const emptyLine = { value: '', string: '' };
-
-                // If the line is blank return nothing
-                if (!line) {
-                    return emptyLine;
-                }
-
-                // Parse the line
-                const [, _] = line.split(/[ \t]{2,}/).filter(Boolean);
-
-                const match = _.match(/^(\S+)\s(.*)/)?.slice(1);
-
-                // If there's no match return nothing
-                if (!match) {
-                    return emptyLine;
-                }
-
-                return {
-                    value: match[0],
-                    string: match[1],
-                };
-            };
-
-            // Add extra fields to device
-            const parseDevice = (device: Readonly<PciDevice>) => {
+            // Simplified basic device parsing without verbose details
+            const parseBasicDevice = async (device: PciDevice): Promise<PciDevice> => {
                 const modifiedDevice: PciDevice = {
                     ...device,
                 };
-                const info = execaCommandSync(`lsusb -d ${device.id} -v`).stdout.split('\n');
-                const deviceName = device.name.trim();
-                const iSerial = parseDeviceLine(info.filter((line) => line.includes('iSerial'))[0]);
-                const iProduct = parseDeviceLine(info.filter((line) => line.includes('iProduct'))[0]);
-                const iManufacturer = parseDeviceLine(
-                    info.filter((line) => line.includes('iManufacturer'))[0]
-                );
-                const idProduct = parseDeviceLine(info.filter((line) => line.includes('idProduct'))[0]);
-                const idVendor = parseDeviceLine(info.filter((line) => line.includes('idVendor'))[0]);
-                const serial = `${iSerial.string.slice(8).slice(0, 4)}-${iSerial.string
-                    .slice(8)
-                    .slice(4)}`;
-                const guid = `${idVendor.value.slice(2)}-${idProduct.value.slice(2)}-${serial}`;
 
-                modifiedDevice.serial = iSerial.string;
-                modifiedDevice.product = iProduct.string;
-                modifiedDevice.manufacturer = iManufacturer.string;
-                modifiedDevice.guid = guid;
-
-                // Set name if missing
-                if (deviceName === '') {
-                    modifiedDevice.name = `${iProduct.string} ${iManufacturer.string}`.trim();
+                // Use a simplified GUID generation instead of calling lsusb -v
+                const idParts = device.id.split(':');
+                if (idParts.length === 2) {
+                    const [vendorId, productId] = idParts;
+                    modifiedDevice.guid = `${vendorId}-${productId}-basic`;
+                } else {
+                    modifiedDevice.guid = `unknown-${Math.random().toString(36).substring(7)}`;
                 }
 
-                // Name still blank? Replace using fallback default
-                if (deviceName === '') {
-                    modifiedDevice.name = '[unnamed device]';
-                }
-
-                // Ensure name is trimmed
-                modifiedDevice.name = device.name.trim();
+                // Use the name from basic lsusb output
+                const deviceName = device.name?.trim() || '';
+                modifiedDevice.name = deviceName || '[unnamed device]';
 
                 return modifiedDevice;
             };
 
-            const parseUsbDevices = (stdout: string) =>
-                stdout.split('\n').map((line) => {
-                    const regex = new RegExp(/^.+: ID (?<id>\S+)(?<name>.*)$/);
-                    const result = regex.exec(line);
-                    return result?.groups as unknown as PciDevice;
-                }) ?? [];
+            const parseUsbDevices = (stdout: string): PciDevice[] =>
+                stdout
+                    .split('\n')
+                    .map((line) => {
+                        const regex = new RegExp(/^.+: ID (?<id>\S+)(?<n>.*)$/);
+                        const result = regex.exec(line);
+                        if (!result?.groups) return null;
 
-            // Get all usb devices
+                        // Extract name from the line if available
+                        const name = result.groups.n?.trim() || '';
+                        return {
+                            ...result.groups,
+                            name,
+                        } as unknown as PciDevice;
+                    })
+                    .filter((device): device is PciDevice => device !== null) ?? [];
+
+            // Get all usb devices with basic listing only
             const usbDevices = await execa('lsusb')
-                .then(async ({ stdout }) =>
-                    parseUsbDevices(stdout)
-                        .map(parseDevice)
+                .then(async ({ stdout }) => {
+                    const devices = parseUsbDevices(stdout);
+                    // Process devices in parallel
+                    const processedDevices = await Promise.all(devices.map(parseBasicDevice));
+                    return processedDevices
                         .filter(filterBootDrive)
                         .filter(filterUsbHubs)
-                        .map(sanitizeVendorName)
-                )
+                        .map(sanitizeVendorName);
+                })
                 .catch(() => []);
 
             return usbDevices;
