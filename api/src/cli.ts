@@ -1,4 +1,5 @@
 import '@app/dotenv.js';
+import 'json-bigint-patch';
 
 import { execa } from 'execa';
 import { CommandFactory } from 'nest-commander';

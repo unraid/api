@@ -1,5 +1,6 @@
 import 'reflect-metadata';
 import 'global-agent/bootstrap.js';
+import 'json-bigint-patch';
 import '@app/dotenv.js';
 
 import { type NestFastifyApplication } from '@nestjs/platform-fastify';
