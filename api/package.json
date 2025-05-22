@@ -115,6 +115,7 @@
         "ini": "^5.0.0",
         "ip": "^2.0.1",
         "jose": "^6.0.0",
+        "json-bigint-patch": "^0.0.8",
         "lodash-es": "^4.17.21",
         "multi-ini": "^2.3.2",
         "mustache": "^4.2.0",

@@ -1,9 +1,9 @@
 import { Field, InputType, Int, ObjectType, registerEnumType } from '@nestjs/graphql';
 
 import { IsEnum } from 'class-validator';
+import { GraphQLBigInt } from 'graphql-scalars';
 
 import { Node } from '@app/unraid-api/graph/resolvers/base.model.js';
-import { GraphQLLong } from '@app/unraid-api/graph/scalars/graphql-type-long.js';
 import { PrefixedID } from '@app/unraid-api/graph/scalars/graphql-type-prefixed-id.js';
 
 @ObjectType()
@@ -43,7 +43,7 @@ export class ArrayDisk extends Node {
     @Field(() => String, { nullable: true })
     device?: string;
 
-    @Field(() => GraphQLLong, { description: '(KB) Disk Size total', nullable: true })
+    @Field(() => GraphQLBigInt, { description: '(KB) Disk Size total', nullable: true })
     size?: number | null;
 
     @Field(() => ArrayDiskStatus, { nullable: true })
@@ -58,40 +58,40 @@ export class ArrayDisk extends Node {
     })
     temp?: number | null;
 
-    @Field(() => GraphQLLong, {
+    @Field(() => GraphQLBigInt, {
         nullable: true,
         description:
             'Count of I/O read requests sent to the device I/O drivers. These statistics may be cleared at any time.',
     })
     numReads?: number | null;
 
-    @Field(() => GraphQLLong, {
+    @Field(() => GraphQLBigInt, {
         nullable: true,
         description:
             'Count of I/O writes requests sent to the device I/O drivers. These statistics may be cleared at any time.',
     })
     numWrites?: number | null;
 
-    @Field(() => GraphQLLong, {
+    @Field(() => GraphQLBigInt, {
         nullable: true,
         description:
             'Number of unrecoverable errors reported by the device I/O drivers. Missing data due to unrecoverable array read errors is filled in on-the-fly using parity reconstruct (and we attempt to write this data back to the sector(s) which failed). Any unrecoverable write error results in disabling the disk.',
     })
     numErrors?: number | null;
 
-    @Field(() => GraphQLLong, {
+    @Field(() => GraphQLBigInt, {
         nullable: true,
         description: '(KB) Total Size of the FS (Not present on Parity type drive)',
     })
     fsSize?: number | null;
 
-    @Field(() => GraphQLLong, {
+    @Field(() => GraphQLBigInt, {
         nullable: true,
         description: '(KB) Free Size on the FS (Not present on Parity type drive)',
     })
     fsFree?: number | null;
 
-    @Field(() => GraphQLLong, {
+    @Field(() => GraphQLBigInt, {
         nullable: true,
         description: '(KB) Used Size on the FS (Not present on Parity type drive)',
     })
@@ -243,13 +243,13 @@ export class Share extends Node {
     @Field(() => String, { description: 'Display name', nullable: true })
     name?: string | null;
 
-    @Field(() => GraphQLLong, { description: '(KB) Free space', nullable: true })
+    @Field(() => GraphQLBigInt, { description: '(KB) Free space', nullable: true })
     free?: number | null;
 
-    @Field(() => GraphQLLong, { description: '(KB) Used Size', nullable: true })
+    @Field(() => GraphQLBigInt, { description: '(KB) Used Size', nullable: true })
     used?: number | null;
 
-    @Field(() => GraphQLLong, { description: '(KB) Total size', nullable: true })
+    @Field(() => GraphQLBigInt, { description: '(KB) Total size', nullable: true })
     size?: number | null;
 
     @Field(() => [String], { description: 'Disks that are included in this share', nullable: true })
