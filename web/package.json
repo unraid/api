@@ -14,6 +14,7 @@
     "build:dev": "nuxi build --dotenv .env.staging && pnpm run manifest-ts && pnpm run deploy-to-unraid:dev",
     "build:webgui": "pnpm run type-check && nuxi build --dotenv .env.production && pnpm run manifest-ts && pnpm run copy-to-webgui-repo",
     "build": "NODE_ENV=production nuxi build --dotenv .env.production && pnpm run manifest-ts",
+    "prebuild:watch": "pnpm predev",
     "build:watch": "nuxi build --dotenv .env.production --watch && pnpm run manifest-ts",
     "generate": "nuxt generate",
     "manifest-ts": "node ./scripts/add-timestamp-webcomponent-manifest.js",

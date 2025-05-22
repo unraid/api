@@ -4,7 +4,7 @@
   "version": "4.8.0",
   "scripts": {
     "build": "pnpm -r build",
-    "build:watch": "pnpm -r build:watch",
+    "build:watch": " pnpm -r --parallel build:watch",
     "dev": "pnpm -r dev",
     "unraid:deploy": "pnpm -r unraid:deploy",
     "test": "pnpm -r test",

@@ -25,6 +25,14 @@ API_VERSION=$([[ -n "$IS_TAGGED" ]] && echo "$PACKAGE_LOCK_VERSION" || echo "${P
 # Define container name for easier management
 CONTAINER_NAME="plugin-builder"
 
+# Create the directory if it doesn't exist
+# This is to prevent errors when mounting volumes in docker compose
+NUXT_COMPONENTS_DIR="../web/.nuxt/nuxt-custom-elements/dist/unraid-components"
+if [ ! -d "$NUXT_COMPONENTS_DIR" ]; then
+  echo "Creating directory $NUXT_COMPONENTS_DIR for Docker volume mount..."
+  mkdir -p "$NUXT_COMPONENTS_DIR"
+fi
+
 # Stop any running plugin-builder container first
 echo "Stopping any running plugin-builder containers..."
 docker ps -q --filter "name=${CONTAINER_NAME}" | xargs -r docker stop

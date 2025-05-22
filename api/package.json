@@ -21,7 +21,7 @@
         "// Build and Deploy": "",
         "build": "vite build --mode=production",
         "postbuild": "chmod +x dist/main.js && chmod +x dist/cli.js && node scripts/copy-plugins.js",
-        "build:watch": "nodemon --watch src --ext ts,js,json --exec 'tsx ./scripts/build.ts'",
+        "build:watch": "WATCH_MODE=true nodemon --watch src --ext ts,js,json --exec 'tsx ./scripts/build.ts'",
         "build:docker": "./scripts/dc.sh run --rm builder",
         "build:release": "tsx ./scripts/build.ts",
         "preunraid:deploy": "pnpm build",
