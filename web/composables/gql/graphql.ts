@@ -14,14 +14,14 @@ export type Scalars = {
   Boolean: { input: boolean; output: boolean; }
   Int: { input: number; output: number; }
   Float: { input: number; output: number; }
+  /** The `BigInt` scalar type represents non-fractional signed whole numeric values. */
+  BigInt: { input: any; output: any; }
   /** A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date-time format. */
   DateTime: { input: string; output: string; }
   /** The `JSON` scalar type represents JSON values as specified by [ECMA-404](http://www.ecma-international.org/publications/files/ECMA-ST/ECMA-404.pdf). */
   JSON: { input: any; output: any; }
   /** The `JSONObject` scalar type represents JSON objects as specified by [ECMA-404](http://www.ecma-international.org/publications/files/ECMA-ST/ECMA-404.pdf). */
   JSONObject: { input: any; output: any; }
-  /** The `Long` scalar type represents 52-bit integers */
-  Long: { input: number; output: number; }
   /** A field whose value is a valid TCP port within the range of 0 to 65535: https://en.wikipedia.org/wiki/Transmission_Control_Protocol#TCP_ports */
   Port: { input: number; output: number; }
   /**
@@ -183,27 +183,27 @@ export type ArrayDisk = Node & {
   /** File format (ex MBR: 4KiB-aligned) */
   format?: Maybe<Scalars['String']['output']>;
   /** (KB) Free Size on the FS (Not present on Parity type drive) */
-  fsFree?: Maybe<Scalars['Long']['output']>;
+  fsFree?: Maybe<Scalars['BigInt']['output']>;
   /** (KB) Total Size of the FS (Not present on Parity type drive) */
-  fsSize?: Maybe<Scalars['Long']['output']>;
+  fsSize?: Maybe<Scalars['BigInt']['output']>;
   /** File system type for the disk */
   fsType?: Maybe<Scalars['String']['output']>;
   /** (KB) Used Size on the FS (Not present on Parity type drive) */
-  fsUsed?: Maybe<Scalars['Long']['output']>;
+  fsUsed?: Maybe<Scalars['BigInt']['output']>;
   id: Scalars['PrefixedID']['output'];
   /** Array slot number. Parity1 is always 0 and Parity2 is always 29. Array slots will be 1 - 28. Cache slots are 30 - 53. Flash is 54. */
   idx: Scalars['Int']['output'];
   name?: Maybe<Scalars['String']['output']>;
   /** Number of unrecoverable errors reported by the device I/O drivers. Missing data due to unrecoverable array read errors is filled in on-the-fly using parity reconstruct (and we attempt to write this data back to the sector(s) which failed). Any unrecoverable write error results in disabling the disk. */
-  numErrors?: Maybe<Scalars['Long']['output']>;
+  numErrors?: Maybe<Scalars['BigInt']['output']>;
   /** Count of I/O read requests sent to the device I/O drivers. These statistics may be cleared at any time. */
-  numReads?: Maybe<Scalars['Long']['output']>;
+  numReads?: Maybe<Scalars['BigInt']['output']>;
   /** Count of I/O writes requests sent to the device I/O drivers. These statistics may be cleared at any time. */
-  numWrites?: Maybe<Scalars['Long']['output']>;
+  numWrites?: Maybe<Scalars['BigInt']['output']>;
   /** Is the disk a HDD or SSD. */
   rotational?: Maybe<Scalars['Boolean']['output']>;
   /** (KB) Disk Size total */
-  size?: Maybe<Scalars['Long']['output']>;
+  size?: Maybe<Scalars['BigInt']['output']>;
   status?: Maybe<ArrayDiskStatus>;
   /** Disk temp - will be NaN if array is not started or DISK_NP */
   temp?: Maybe<Scalars['Int']['output']>;
@@ -773,18 +773,18 @@ export type InfoCpu = Node & {
 
 export type InfoMemory = Node & {
   __typename?: 'InfoMemory';
-  active: Scalars['Int']['output'];
-  available: Scalars['Int']['output'];
-  buffcache: Scalars['Int']['output'];
-  free: Scalars['Int']['output'];
+  active: Scalars['BigInt']['output'];
+  available: Scalars['BigInt']['output'];
+  buffcache: Scalars['BigInt']['output'];
+  free: Scalars['BigInt']['output'];
   id: Scalars['PrefixedID']['output'];
   layout: Array<MemoryLayout>;
-  max: Scalars['Int']['output'];
-  swapfree: Scalars['Int']['output'];
-  swaptotal: Scalars['Int']['output'];
-  swapused: Scalars['Int']['output'];
-  total: Scalars['Int']['output'];
-  used: Scalars['Int']['output'];
+  max: Scalars['BigInt']['output'];
+  swapfree: Scalars['BigInt']['output'];
+  swaptotal: Scalars['BigInt']['output'];
+  swapused: Scalars['BigInt']['output'];
+  total: Scalars['BigInt']['output'];
+  used: Scalars['BigInt']['output'];
 };
 
 export type KeyFile = {
@@ -826,7 +826,7 @@ export type MemoryLayout = Node & {
   manufacturer?: Maybe<Scalars['String']['output']>;
   partNum?: Maybe<Scalars['String']['output']>;
   serialNum?: Maybe<Scalars['String']['output']>;
-  size: Scalars['Int']['output'];
+  size: Scalars['BigInt']['output'];
   type?: Maybe<Scalars['String']['output']>;
   voltageConfigured?: Maybe<Scalars['Int']['output']>;
   voltageMax?: Maybe<Scalars['Int']['output']>;
@@ -1355,7 +1355,7 @@ export type Share = Node & {
   /** Floor */
   floor?: Maybe<Scalars['String']['output']>;
   /** (KB) Free space */
-  free?: Maybe<Scalars['Long']['output']>;
+  free?: Maybe<Scalars['BigInt']['output']>;
   id: Scalars['PrefixedID']['output'];
   /** Disks that are included in this share */
   include?: Maybe<Array<Scalars['String']['output']>>;
@@ -1366,11 +1366,11 @@ export type Share = Node & {
   /** Original name */
   nameOrig?: Maybe<Scalars['String']['output']>;
   /** (KB) Total size */
-  size?: Maybe<Scalars['Long']['output']>;
+  size?: Maybe<Scalars['BigInt']['output']>;
   /** Split level */
   splitLevel?: Maybe<Scalars['String']['output']>;
   /** (KB) Used Size */
-  used?: Maybe<Scalars['Long']['output']>;
+  used?: Maybe<Scalars['BigInt']['output']>;
 };
 
 export type Subscription = {
