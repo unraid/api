@@ -1,5 +1,4 @@
 import '@app/dotenv.js';
-import 'json-bigint-patch';
 
 import { execa } from 'execa';
 import { CommandFactory } from 'nest-commander';
@@ -21,6 +20,7 @@ const getUnraidApiLocation = async () => {
 };
 
 try {
+    await import('json-bigint-patch');
     await CommandFactory.run(CliModule, {
         cliName: 'unraid-api',
         logger: LOG_LEVEL === 'TRACE' ? new LogService() : false, // - enable this to see nest initialization issues

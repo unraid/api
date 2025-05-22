@@ -1,6 +1,5 @@
 import 'reflect-metadata';
 import 'global-agent/bootstrap.js';
-import 'json-bigint-patch';
 import '@app/dotenv.js';
 
 import { type NestFastifyApplication } from '@nestjs/platform-fastify';
@@ -41,6 +40,7 @@ const unlinkUnixPort = () => {
 
 export const viteNodeApp = async () => {
     try {
+        await import('json-bigint-patch');
         environment.IS_MAIN_PROCESS = true;
 
         logger.info('ENV %o', envVars);

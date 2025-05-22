@@ -47,11 +47,6 @@ import { PluginModule } from '@app/unraid-api/plugin/plugin.module.js';
                             path: '/graphql',
                         },
                     },
-                    resolvers: {
-                        JSON: JSONResolver,
-                        Long: GraphQLBigInt,
-                        URL: URLResolver,
-                    },
                     buildSchemaOptions: {
                         dateScalarMode: 'isoDate',
                         directives: [UsePermissionsDirective],

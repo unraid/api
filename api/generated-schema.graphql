@@ -84,7 +84,7 @@ type ArrayDisk implements Node {
   device: String
 
   """(KB) Disk Size total"""
-  size: Long
+  size: BigInt
   status: ArrayDiskStatus
 
   """Is the disk a HDD or SSD."""
@@ -96,26 +96,26 @@ type ArrayDisk implements Node {
   """
   Count of I/O read requests sent to the device I/O drivers. These statistics may be cleared at any time.
   """
-  numReads: Long
+  numReads: BigInt
 
   """
   Count of I/O writes requests sent to the device I/O drivers. These statistics may be cleared at any time.
   """
-  numWrites: Long
+  numWrites: BigInt
 
   """
   Number of unrecoverable errors reported by the device I/O drivers. Missing data due to unrecoverable array read errors is filled in on-the-fly using parity reconstruct (and we attempt to write this data back to the sector(s) which failed). Any unrecoverable write error results in disabling the disk.
   """
-  numErrors: Long
+  numErrors: BigInt
 
   """(KB) Total Size of the FS (Not present on Parity type drive)"""
-  fsSize: Long
+  fsSize: BigInt
 
   """(KB) Free Size on the FS (Not present on Parity type drive)"""
-  fsFree: Long
+  fsFree: BigInt
 
   """(KB) Used Size on the FS (Not present on Parity type drive)"""
-  fsUsed: Long
+  fsUsed: BigInt
   exportable: Boolean
 
   """Type of Disk - used to differentiate Cache / Flash / Array / Parity"""
@@ -145,8 +145,10 @@ interface Node {
   id: PrefixedID!
 }
 
-"""The `Long` scalar type represents 52-bit integers"""
-scalar Long
+"""
+The `BigInt` scalar type represents non-fractional signed whole numeric values.
+"""
+scalar BigInt
 
 enum ArrayDiskStatus {
   DISK_NP
@@ -222,13 +224,13 @@ type Share implements Node {
   name: String
 
   """(KB) Free space"""
-  free: Long
+  free: BigInt
 
   """(KB) Used Size"""
-  used: Long
+  used: BigInt
 
   """(KB) Total size"""
-  size: Long
+  size: BigInt
 
   """Disks that are included in this share"""
   include: [String!]
@@ -1116,7 +1118,7 @@ enum Temperature {
 
 type MemoryLayout implements Node {
   id: PrefixedID!
-  size: Int!
+  size: BigInt!
   bank: String
   type: String
   clockSpeed: Int
@@ -1131,16 +1133,16 @@ type MemoryLayout implements Node {
 
 type InfoMemory implements Node {
   id: PrefixedID!
-  max: Int!
-  total: Int!
-  free: Int!
-  used: Int!
-  active: Int!
-  available: Int!
-  buffcache: Int!
-  swaptotal: Int!
-  swapused: Int!
-  swapfree: Int!
+  max: BigInt!
+  total: BigInt!
+  free: BigInt!
+  used: BigInt!
+  active: BigInt!
+  available: BigInt!
+  buffcache: BigInt!
+  swaptotal: BigInt!
+  swapused: BigInt!
+  swapfree: BigInt!
   layout: [MemoryLayout!]!
 }
 
