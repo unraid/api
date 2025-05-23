@@ -76,6 +76,39 @@ describe('ApiKeyMutationsResolver', () => {
             });
             expect(authService.syncApiKeyRoles).toHaveBeenCalledWith(mockApiKey.id, mockApiKey.roles);
         });
+
+        it('should throw if API key creation fails', async () => {
+            const input: CreateApiKeyInput = {
+                name: 'Failing API Key',
+                description: 'Should fail',
+                roles: [Role.GUEST],
+                permissions: [],
+            };
+            vi.spyOn(apiKeyService, 'create').mockRejectedValue(new Error('Create failed'));
+            await expect(resolver.create(input)).rejects.toThrow('Create failed');
+        });
+
+        it('should throw if role synchronization fails', async () => {
+            const input: CreateApiKeyInput = {
+                name: 'Sync Fail API Key',
+                description: 'Should fail sync',
+                roles: [Role.GUEST],
+                permissions: [],
+            };
+            vi.spyOn(apiKeyService, 'create').mockResolvedValue(mockApiKeyWithSecret);
+            vi.spyOn(authService, 'syncApiKeyRoles').mockRejectedValue(new Error('Sync failed'));
+            await expect(resolver.create(input)).rejects.toThrow('Sync failed');
+        });
+
+        it('should throw if input validation fails (empty name)', async () => {
+            const input: CreateApiKeyInput = {
+                name: '',
+                description: 'No name',
+                roles: [Role.GUEST],
+                permissions: [],
+            };
+            await expect(resolver.create(input)).rejects.toThrow();
+        });
     });
 
     describe('delete', () => {
