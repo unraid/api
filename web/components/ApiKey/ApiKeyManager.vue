@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { ref, watchEffect } from 'vue';
 import { useMutation, useQuery } from '@vue/apollo-composable';
-import { useModalStore } from '~/store/modal';
 
 import { EyeIcon, EyeSlashIcon } from '@heroicons/vue/24/solid';
 import {
@@ -17,13 +16,14 @@ import {
   Tooltip,
   TooltipProvider,
 } from '@unraid/ui';
+import { extractGraphQLErrorMessage } from '~/helpers/functions';
 
 import type { ApiKeyFragment } from '~/composables/gql/graphql';
 
 import { useFragment } from '~/composables/gql/fragment-masking';
+import { useModalStore } from '~/store/modal';
 import { API_KEY_FRAGMENT, DELETE_API_KEY, GET_API_KEY_META, GET_API_KEYS } from './apikey.query';
 import PermissionCounter from './PermissionCounter.vue';
-import { extractGraphQLErrorMessage } from '~/helpers/functions';
 
 const { result, refetch } = useQuery(GET_API_KEYS);
 const apiKeys = ref<ApiKeyFragment[]>([]);
@@ -73,7 +73,7 @@ async function _deleteKey(_id: string) {
     <div>
       <div class="flex items-center justify-between mb-6">
         <h2 class="text-2xl font-bold tracking-tight">API Keys</h2>
-        <Button variant="primary" @click="() => openCreateModal(null)">Create API Key</Button>
+        <Button variant="primary" @click="openCreateModal(null)">Create API Key</Button>
       </div>
       <div
         v-if="deleteError"
@@ -85,16 +85,26 @@ async function _deleteKey(_id: string) {
         <CardWrapper v-for="key in apiKeys" :key="key.id">
           <li class="flex flex-row items-start justify-between gap-4 p-4 list-none">
             <div class="flex-1 min-w-0">
-              <div class="flex items-center gap-2">
-                <span class="font-semibold text-lg truncate">{{ key.name }}</span>
-                <span v-if="key.description" class="text-muted-foreground text-sm truncate">{{
-                  key.description
-                }}</span>
-              </div>
-              <div v-if="key.roles.length" class="mt-2 flex flex-wrap gap-2 items-center">
-                <span class="font-semibold text-sm">Roles:</span>
-                <Badge v-for="role in key.roles" :key="role" variant="blue" size="sm">{{ role }}</Badge>
-              </div>
+              <header class="flex gap-2 justify-between items-start">
+                <div class="flex flex-col gap-2">
+                  <div class="flex items-center gap-2">
+                    <span class="font-semibold text-lg truncate">{{ key.name }}</span>
+                    <span v-if="key.description" class="text-muted-foreground text-sm truncate">{{
+                      key.description
+                    }}</span>
+                  </div>
+                  <div v-if="key.roles.length" class="mt-2 flex flex-wrap gap-2 items-center">
+                    <span class="font-semibold text-sm">Roles:</span>
+                    <Badge v-for="role in key.roles" :key="role" variant="blue" size="sm">{{
+                      role
+                    }}</Badge>
+                  </div>
+                </div>
+                <div class="flex gap-2 flex-shrink-0">
+                  <Button variant="secondary" size="sm" @click="openCreateModal(key)">Edit</Button>
+                  <Button variant="destructive" size="sm" @click="_deleteKey(key.id)">Delete</Button>
+                </div>
+              </header>
               <div v-if="key.permissions?.length" class="pt-2 w-full">
                 <Accordion type="single" collapsible class="w-full">
                   <AccordionItem :value="'permissions-' + key.id">
@@ -106,19 +116,19 @@ async function _deleteKey(_id: string) {
                       />
                     </AccordionTrigger>
                     <AccordionContent>
-                      <div v-if="key.permissions?.length" class="flex flex-col gap-2">
+                      <div v-if="key.permissions?.length" class="flex flex-col gap-2 my-2">
                         <div
                           v-for="perm in key.permissions ?? []"
                           :key="perm.resource"
-                          class="border rounded p-2"
+                          class="border rounded-sm p-2"
                         >
-                          <div class="flex items-center gap-2">
+                          <div class="flex items-center gap-2 justify-between">
                             <span class="font-semibold">{{ perm.resource }}</span>
-                            <span
-                              v-if="perm.actions && perm.actions.length"
-                              class="text-xs text-muted-foreground"
-                              >({{ perm.actions.join(', ') }})</span
-                            >
+                            <PermissionCounter
+                              :permissions="[perm]"
+                              :possible-permissions="possiblePermissions"
+                              :hide-number="true"
+                            />
                           </div>
                         </div>
                       </div>
@@ -128,12 +138,18 @@ async function _deleteKey(_id: string) {
               </div>
 
               <div
-                v-if="modalStore.apiKeyModalCreatedKey && modalStore.apiKeyModalCreatedKey.key && modalStore.apiKeyModalCreatedKey.id === key.id"
+                v-if="
+                  modalStore.apiKeyModalCreatedKey &&
+                  modalStore.apiKeyModalCreatedKey.key &&
+                  modalStore.apiKeyModalCreatedKey.id === key.id
+                "
                 class="mt-4 flex items-center gap-2"
               >
                 <span class="text-green-700 font-medium">API Key created / updated:</span>
                 <Input
-                  :model-value="showKey ? modalStore.apiKeyModalCreatedKey.key : '••••••••••••••••••••••••••••••••'"
+                  :model-value="
+                    showKey ? modalStore.apiKeyModalCreatedKey.key : '••••••••••••••••••••••••••••••••'
+                  "
                   class="w-64 font-mono text-base px-2 py-1 bg-gray-50 border border-gray-200 rounded"
                   readonly
                 />
@@ -145,14 +161,6 @@ async function _deleteKey(_id: string) {
                   </Tooltip>
                 </TooltipProvider>
               </div>
-            </div>
-            <div class="flex items-stretch gap-2 self-end md:self-center h-10">
-              <Button variant="secondary" size="sm" class="h-full" @click="() => openCreateModal(key)"
-                >Edit</Button
-              >
-              <Button variant="destructive" size="sm" class="h-full" @click="_deleteKey(key.id)"
-                >Delete</Button
-              >
             </div>
           </li>
         </CardWrapper>

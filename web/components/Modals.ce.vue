@@ -6,12 +6,14 @@ import { useCallbackActionsStore } from '~/store/callbackActions';
 import { useTrialStore } from '~/store/trial';
 import { useUpdateOsStore } from '~/store/updateOs';
 import ApiKeyModal from '~/components/ApiKey/ApiKeyModal.vue';
+import { useModalStore } from '~/store/modal';
 
 const { t } = useI18n();
 
 const { callbackStatus } = storeToRefs(useCallbackActionsStore());
 const { trialModalVisible } = storeToRefs(useTrialStore());
 const { updateOsModalVisible, changelogModalVisible } = storeToRefs(useUpdateOsStore());
+const { apiKeyModalVisible } = storeToRefs(useModalStore());
 </script>
 
 <template>
@@ -21,7 +23,7 @@ const { updateOsModalVisible, changelogModalVisible } = storeToRefs(useUpdateOsS
     <UpdateOsCheckUpdateResponseModal :t="t" :open="updateOsModalVisible" />
     <UpdateOsChangelogModal :t="t" :open="changelogModalVisible" />
     <ActivationModal :t="t" />
-    <ApiKeyModal />
+    <ApiKeyModal :open="apiKeyModalVisible" :t="t" />
   </div>
 </template>
 

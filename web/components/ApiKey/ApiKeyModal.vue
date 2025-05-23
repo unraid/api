@@ -1,9 +1,8 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue';
-import { useI18n } from 'vue-i18n';
-import { useQuery } from '@vue/apollo-composable';
+import type { ComposerTranslation } from 'vue-i18n';
 import { storeToRefs } from 'pinia';
-import { useModalStore } from '~/store/modal';
+import { useQuery } from '@vue/apollo-composable';
 
 import {
   Button,
@@ -17,11 +16,12 @@ import {
 
 import { GET_API_KEY_META } from '~/components/ApiKey/apikey.query';
 import ApiKeyCreate from '~/components/ApiKey/ApiKeyCreate.vue';
+import { useModalStore } from '~/store/modal';
 
-const { t } = useI18n();
+defineProps<{ open: boolean; t: ComposerTranslation }>();
 
 const modalStore = useModalStore();
-const { apiKeyModalVisible, apiKeyModalEditingKey } = storeToRefs(modalStore);
+const { apiKeyModalEditingKey } = storeToRefs(modalStore);
 
 const { result: apiKeyMetaResult } = useQuery(GET_API_KEY_META);
 const possibleRoles = computed(() => apiKeyMetaResult.value?.apiKeyPossibleRoles || []);
@@ -41,7 +41,7 @@ const handleCreated = (event: { id: string; key: string } | null) => {
 
 <template>
   <Dialog
-    :open="apiKeyModalVisible"
+    :open="open"
     @close="close"
     @update:open="
       (v) => {
