@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, watchEffect } from 'vue';
 import { useMutation, useQuery } from '@vue/apollo-composable';
+import { useModalStore } from '~/store/modal';
 
 import { EyeIcon, EyeSlashIcon } from '@heroicons/vue/24/solid';
 import {
@@ -21,7 +22,6 @@ import type { ApiKeyFragment } from '~/composables/gql/graphql';
 
 import { useFragment } from '~/composables/gql/fragment-masking';
 import { API_KEY_FRAGMENT, DELETE_API_KEY, GET_API_KEY_META, GET_API_KEYS } from './apikey.query';
-import ApiKeyModal from './ApiKeyModal.vue';
 import PermissionCounter from './PermissionCounter.vue';
 import { extractGraphQLErrorMessage } from '~/helpers/functions';
 
@@ -40,9 +40,8 @@ watchEffect(() => {
   possiblePermissions.value = metaQuery.result.value?.apiKeyPossiblePermissions || [];
 });
 
-const showCreate = ref(false);
-const editingKey = ref<ApiKeyFragment | null>(null);
-const createdKey = ref<{ id: string; key: string } | null>(null);
+const modalStore = useModalStore();
+
 const showKey = ref(false);
 
 const { mutate: deleteKey } = useMutation(DELETE_API_KEY);
@@ -53,11 +52,8 @@ function toggleShowKey() {
   showKey.value = !showKey.value;
 }
 
-async function onCreated(key: { id: string; key: string } | null) {
-  createdKey.value = key;
-  showCreate.value = false;
-  editingKey.value = null;
-  await refetch();
+function openCreateModal(key: ApiKeyFragment | null = null) {
+  modalStore.showApiKeyModal(key);
 }
 
 async function _deleteKey(_id: string) {
@@ -70,16 +66,6 @@ async function _deleteKey(_id: string) {
   } catch (err: unknown) {
     deleteError.value = extractGraphQLErrorMessage(err);
   }
-}
-
-function openCreateModal(key: ApiKeyFragment | null = null) {
-  showCreate.value = true;
-  editingKey.value = key;
-}
-
-function closeCreateModal() {
-  showCreate.value = false;
-  editingKey.value = null;
 }
 </script>
 <template>
@@ -142,12 +128,12 @@ function closeCreateModal() {
               </div>
 
               <div
-                v-if="createdKey && createdKey.key && createdKey.id === key.id"
+                v-if="modalStore.apiKeyModalCreatedKey && modalStore.apiKeyModalCreatedKey.key && modalStore.apiKeyModalCreatedKey.id === key.id"
                 class="mt-4 flex items-center gap-2"
               >
                 <span class="text-green-700 font-medium">API Key created / updated:</span>
                 <Input
-                  :model-value="showKey ? createdKey.key : '••••••••••••••••••••••••••••••••'"
+                  :model-value="showKey ? modalStore.apiKeyModalCreatedKey.key : '••••••••••••••••••••••••••••••••'"
                   class="w-64 font-mono text-base px-2 py-1 bg-gray-50 border border-gray-200 rounded"
                   readonly
                 />
@@ -171,12 +157,6 @@ function closeCreateModal() {
           </li>
         </CardWrapper>
       </ul>
-      <ApiKeyModal
-        :open="showCreate"
-        :editing-key="editingKey"
-        @close="closeCreateModal"
-        @created="onCreated"
-      />
     </div>
   </PageContainer>
 </template>

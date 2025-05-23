@@ -2,6 +2,8 @@
 import { computed, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useQuery } from '@vue/apollo-composable';
+import { storeToRefs } from 'pinia';
+import { useModalStore } from '~/store/modal';
 
 import {
   Button,
@@ -13,18 +15,13 @@ import {
   DialogTitle,
 } from '@unraid/ui';
 
-import type { ApiKeyFragment } from '~/composables/gql/graphql';
-
 import { GET_API_KEY_META } from '~/components/ApiKey/apikey.query';
 import ApiKeyCreate from '~/components/ApiKey/ApiKeyCreate.vue';
 
 const { t } = useI18n();
 
-const props = defineProps<{ open: boolean; editingKey: ApiKeyFragment | null }>();
-const emit = defineEmits(['close', 'created']);
-const close = () => {
-  emit('close');
-};
+const modalStore = useModalStore();
+const { apiKeyModalVisible, apiKeyModalEditingKey } = storeToRefs(modalStore);
 
 const { result: apiKeyMetaResult } = useQuery(GET_API_KEY_META);
 const possibleRoles = computed(() => apiKeyMetaResult.value?.apiKeyPossibleRoles || []);
@@ -32,15 +29,19 @@ const possiblePermissions = computed(() => apiKeyMetaResult.value?.apiKeyPossibl
 
 const apiKeyCreateRef = ref();
 
-const handleCreated = (event: { key: string } | null) => {
+const close = () => {
+  modalStore.hideApiKeyModal();
+};
+
+const handleCreated = (event: { id: string; key: string } | null) => {
+  modalStore.setApiKeyModalCreatedKey(event);
   close();
-  emit('created', event);
 };
 </script>
 
 <template>
   <Dialog
-    :open="props.open"
+    :open="apiKeyModalVisible"
     @close="close"
     @update:open="
       (v) => {
@@ -50,14 +51,14 @@ const handleCreated = (event: { key: string } | null) => {
   >
     <DialogScrollContent class="max-w-800px">
       <DialogHeader>
-        <DialogTitle>{{ props.editingKey ? t('Edit API Key') : t('Create API Key') }}</DialogTitle>
+        <DialogTitle>{{ apiKeyModalEditingKey ? t('Edit API Key') : t('Create API Key') }}</DialogTitle>
       </DialogHeader>
       <DialogDescription>
         <ApiKeyCreate
           ref="apiKeyCreateRef"
           :possible-roles="possibleRoles"
           :possible-permissions="possiblePermissions"
-          :editing-key="props.editingKey"
+          :editing-key="apiKeyModalEditingKey"
           @created="handleCreated"
         />
       </DialogDescription>
@@ -69,9 +70,9 @@ const handleCreated = (event: { key: string } | null) => {
           @click="apiKeyCreateRef?.upsertKey()"
         >
           <span v-if="apiKeyCreateRef?.loading || apiKeyCreateRef?.postCreateLoading">
-            {{ props.editingKey ? 'Saving...' : 'Creating...' }}
+            {{ apiKeyModalEditingKey ? 'Saving...' : 'Creating...' }}
           </span>
-          <span v-else>{{ props.editingKey ? 'Save' : 'Create' }}</span>
+          <span v-else>{{ apiKeyModalEditingKey ? 'Save' : 'Create' }}</span>
         </Button>
       </DialogFooter>
     </DialogScrollContent>

@@ -1,16 +1,16 @@
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n';
-import { storeToRefs } from 'pinia';
 
 import { useCallbackActionsStore } from '~/store/callbackActions';
 import { useTrialStore } from '~/store/trial';
 import { useUpdateOsStore } from '~/store/updateOs';
+import ApiKeyModal from '~/components/ApiKey/ApiKeyModal.vue';
 
 const { t } = useI18n();
 
-const { callbackStatus } = storeToRefs(useCallbackActionsStore());
-const { trialModalVisible } = storeToRefs(useTrialStore());
-const { updateOsModalVisible, changelogModalVisible } = storeToRefs(useUpdateOsStore());
+const { callbackStatus } = useCallbackActionsStore();
+const { trialModalVisible } = useTrialStore();
+const { updateOsModalVisible, changelogModalVisible } = useUpdateOsStore();
 </script>
 
 <template>
@@ -20,6 +20,7 @@ const { updateOsModalVisible, changelogModalVisible } = storeToRefs(useUpdateOsS
     <UpdateOsCheckUpdateResponseModal :t="t" :open="updateOsModalVisible" />
     <UpdateOsChangelogModal :t="t" :open="changelogModalVisible" />
     <ActivationModal :t="t" />
+    <ApiKeyModal />
   </div>
 </template>
 
