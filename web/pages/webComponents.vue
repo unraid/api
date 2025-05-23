@@ -58,8 +58,8 @@ onBeforeMount(() => {
       <h3 class="text-lg font-semibold font-mono">SSOSignInButtonCe</h3>
       <unraid-sso-button :ssoenabled="serverState.ssoEnabled" />
       <hr class="border-black dark:border-white" />
-      <h3 class="text-lg font-semibold font-mono">ActivationCodeCe</h3>
-      <unraid-welcome-modal />
+      <h3 class="text-lg font-semibold font-mono">ApiKeyManagerCe</h3>
+      <unraid-api-key-manager />
     </unraid-i18n-host>
     <Toaster rich-colors close-button />
   </client-only>
