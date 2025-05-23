@@ -1,7 +1,7 @@
-/* eslint-disable no-relative-import-paths/no-relative-import-paths */
 import tailwindRemToRem from '@unraid/tailwind-rem-to-rem';
 import type { Config } from 'tailwindcss';
 import tailwindcssAnimate from 'tailwindcss-animate';
+/* eslint-disable no-relative-import-paths/no-relative-import-paths */
 import { unraidPreset } from './src/theme/preset';
 
 export default {
