@@ -5,16 +5,12 @@ import { storeToRefs } from 'pinia';
 import { useCallbackActionsStore } from '~/store/callbackActions';
 import { useTrialStore } from '~/store/trial';
 import { useUpdateOsStore } from '~/store/updateOs';
-import { useModalStore } from '~/store/modal';
-import ApiKeyModal from '~/components/ApiKey/ApiKeyModal.vue';
 
 const { t } = useI18n();
 
 const { callbackStatus } = storeToRefs(useCallbackActionsStore());
 const { trialModalVisible } = storeToRefs(useTrialStore());
 const { updateOsModalVisible, changelogModalVisible } = storeToRefs(useUpdateOsStore());
-const { apiKeyModalVisible } = storeToRefs(useModalStore());
-const modalStore = useModalStore();
 </script>
 
 <template>
@@ -24,10 +20,6 @@ const modalStore = useModalStore();
     <UpdateOsCheckUpdateResponseModal :t="t" :open="updateOsModalVisible" />
     <UpdateOsChangelogModal :t="t" :open="changelogModalVisible" />
     <ActivationModal :t="t" />
-    <ApiKeyModal
-      :open="apiKeyModalVisible"
-      @close="modalStore.apiKeyModalHide"
-    />
   </div>
 </template>
 
