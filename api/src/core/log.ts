@@ -28,9 +28,24 @@ const stream =
 export const logger = pino(
     {
         level,
-        timestamp: () => `,"time":"${new Date().toISOString()}"`,
+        timestamp: () => `,"time":"${new Date().toISOString()}",`,
         formatters: {
             level: (label: string) => ({ level: label }),
+        },
+        redact: {
+            paths: [
+                '*.password',
+                '*.pass',
+                '*.secret',
+                '*.token',
+                '*.key',
+                '*.Password',
+                '*.Pass',
+                '*.Secret',
+                '*.Token',
+                '*.Key',
+            ],
+            censor: '***REDACTED***',
         },
     },
     stream

@@ -49,14 +49,11 @@ export class RCloneApiService implements OnModuleInit, OnModuleDestroy {
     private rcloneSocketPath: string = '';
     private rcloneBaseUrl: string = '';
     private rcloneProcess: ChildProcess | null = null;
-    private readonly rcloneUsername: string;
-    private readonly rclonePassword: string;
-    constructor(username?: string, password?: string) {
-        this.rcloneUsername =
-            username || process.env.RCLONE_USERNAME || crypto.randomBytes(12).toString('base64');
-        this.rclonePassword =
-            password || process.env.RCLONE_PASSWORD || crypto.randomBytes(24).toString('base64');
-    }
+    private readonly rcloneUsername: string =
+        process.env.RCLONE_USERNAME || crypto.randomBytes(12).toString('base64');
+    private readonly rclonePassword: string =
+        process.env.RCLONE_PASSWORD || crypto.randomBytes(24).toString('base64');
+    constructor() {}
 
     async onModuleInit(): Promise<void> {
         try {
