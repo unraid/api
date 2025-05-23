@@ -5,7 +5,12 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { ApiKeyService } from '@app/unraid-api/auth/api-key.service.js';
 import { AuthService } from '@app/unraid-api/auth/auth.service.js';
 import { CookieService } from '@app/unraid-api/auth/cookie.service.js';
-import { ApiKey, ApiKeyWithSecret } from '@app/unraid-api/graph/resolvers/api-key/api-key.model.js';
+import {
+    ApiKey,
+    ApiKeyWithSecret,
+    CreateApiKeyInput,
+    DeleteApiKeyInput,
+} from '@app/unraid-api/graph/resolvers/api-key/api-key.model.js';
 import { ApiKeyMutationsResolver } from '@app/unraid-api/graph/resolvers/api-key/api-key.mutation.js';
 import { Role } from '@app/unraid-api/graph/resolvers/base.model.js';
 
@@ -49,7 +54,7 @@ describe('ApiKeyMutationsResolver', () => {
 
     describe('create', () => {
         it('should create new API key and sync roles', async () => {
-            const input = {
+            const input: CreateApiKeyInput = {
                 name: 'New API Key',
                 description: 'New API Key Description',
                 roles: [Role.GUEST],
@@ -59,7 +64,7 @@ describe('ApiKeyMutationsResolver', () => {
             vi.spyOn(apiKeyService, 'create').mockResolvedValue(mockApiKeyWithSecret);
             vi.spyOn(authService, 'syncApiKeyRoles').mockResolvedValue();
 
-            const result = await resolver.create(input as any);
+            const result = await resolver.create(input);
 
             expect(result).toEqual(mockApiKeyWithSecret);
             expect(apiKeyService.create).toHaveBeenCalledWith({
@@ -75,13 +80,53 @@ describe('ApiKeyMutationsResolver', () => {
 
     describe('delete', () => {
         it('should delete API keys', async () => {
-            const input = { ids: [mockApiKey.id] };
+            const input: DeleteApiKeyInput = { ids: [mockApiKey.id] };
             vi.spyOn(apiKeyService, 'deleteApiKeys').mockResolvedValue();
 
-            const result = await resolver.delete(input as any);
+            const result = await resolver.delete(input);
 
             expect(result).toBe(true);
             expect(apiKeyService.deleteApiKeys).toHaveBeenCalledWith(input.ids);
+        });
+    });
+
+    describe('addRole', () => {
+        it('should add a role to an API key', async () => {
+            const input = { apiKeyId: mockApiKey.id, role: Role.ADMIN };
+            vi.spyOn(authService, 'addRoleToApiKey').mockResolvedValue(true);
+
+            const result = await resolver.addRole(input);
+
+            expect(result).toBe(true);
+            expect(authService.addRoleToApiKey).toHaveBeenCalledWith(input.apiKeyId, input.role);
+        });
+
+        it('should throw if addRoleToApiKey throws', async () => {
+            const input = { apiKeyId: 'bad-id', role: Role.ADMIN };
+            vi.spyOn(authService, 'addRoleToApiKey').mockRejectedValue(new Error('API key not found'));
+
+            await expect(resolver.addRole(input)).rejects.toThrow('API key not found');
+        });
+    });
+
+    describe('removeRole', () => {
+        it('should remove a role from an API key', async () => {
+            const input = { apiKeyId: mockApiKey.id, role: Role.GUEST };
+            vi.spyOn(authService, 'removeRoleFromApiKey').mockResolvedValue(true);
+
+            const result = await resolver.removeRole(input);
+
+            expect(result).toBe(true);
+            expect(authService.removeRoleFromApiKey).toHaveBeenCalledWith(input.apiKeyId, input.role);
+        });
+
+        it('should throw if removeRoleFromApiKey throws', async () => {
+            const input = { apiKeyId: 'bad-id', role: Role.GUEST };
+            vi.spyOn(authService, 'removeRoleFromApiKey').mockRejectedValue(
+                new Error('API key not found')
+            );
+
+            await expect(resolver.removeRole(input)).rejects.toThrow('API key not found');
         });
     });
 });
