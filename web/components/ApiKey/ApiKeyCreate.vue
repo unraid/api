@@ -110,6 +110,13 @@ async function createKey() {
     newKeyPermissions.value = [];
   }, 1000);
 }
+
+defineExpose({
+  createKey,
+  loading,
+  postCreateLoading,
+  error
+});
 </script>
 <template>
   <div class="mb-4 p-4 border rounded bg-muted">
@@ -168,13 +175,6 @@ async function createKey() {
           </AccordionContent>
         </AccordionItem>
       </Accordion>
-    </div>
-    <div class="flex gap-2 mt-2">
-      <Button variant="primary" :disabled="loading || postCreateLoading" @click="createKey">
-        <span v-if="loading || postCreateLoading">Creating...</span>
-        <span v-else>Create</span>
-      </Button>
-      <Button variant="secondary" @click="$emit('cancel')">Cancel</Button>
     </div>
     <div v-if="error" class="text-red-500 mt-2 text-sm">
       {{ error.message }}
