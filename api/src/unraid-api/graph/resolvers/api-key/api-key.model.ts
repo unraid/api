@@ -13,7 +13,7 @@ import {
 } from 'class-validator';
 
 import { Node, Resource, Role } from '@app/unraid-api/graph/resolvers/base.model.js';
-import { AtLeastOneOf } from '@app/unraid-api/graph/resolvers/validation.utils';
+import { AtLeastOneOf } from '@app/unraid-api/graph/resolvers/validation.utils.js';
 import { PrefixedID } from '@app/unraid-api/graph/scalars/graphql-type-prefixed-id.js';
 
 @ObjectType()
