@@ -10,6 +10,7 @@ import { cleanupTxzFiles } from "./utils/cleanup";
 import { apiDir } from "./utils/paths";
 import { getVendorBundleName, getVendorFullPath } from "./build-vendor-store";
 import { getAssetUrl } from "./utils/bucket-urls";
+import { ensureRclone } from "./utils/rclone-helper";
 
 
 // Recursively search for manifest files
@@ -173,7 +174,10 @@ const buildTxz = async (validatedEnv: TxzEnv) => {
   console.log(`Storing vendor archive information: ${vendorUrl} -> ${vendorFilename}`);
   await storeVendorArchiveInfo(version, vendorUrl, vendorFilename);
   
-  await ensureNodeJs();
+  await Promise.all([
+    ensureNodeJs(),
+    ensureRclone()
+  ]);
 
   // Create package - must be run from within the pre-pack directory
   // Use cd option to run command from prePackDir

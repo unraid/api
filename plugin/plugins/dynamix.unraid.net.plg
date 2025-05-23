@@ -52,27 +52,6 @@ exit 0
     <URL>&vendor_store_url;</URL>
   </FILE>
 
-  <FILE Run="/bin/bash" Method="install">
-    <INLINE>
-      RCLONE_ZIP_FILENAME="&RCLONE_ZIP_FILENAME;"
-      RCLONE_DIR="&RCLONE_DIR;"
-      RCLONE_VERSION="&RCLONE_VERSION;"
-      <![CDATA[
-      # Check if the Rclone archive exists
-      if [[ ! -f "/boot/config/plugins/dynamix.my.servers/${RCLONE_ZIP_FILENAME}" ]]; then
-        echo "Rclone archive not found at /boot/config/plugins/dynamix.my.servers/${RCLONE_ZIP_FILENAME}"
-        exit 1
-      fi
-      # Unzip Rclone executable only, junking paths
-      unzip -oj /boot/config/plugins/dynamix.my.servers/${RCLONE_ZIP_FILENAME} rclone-v${RCLONE_VERSION}-linux-amd64/rclone -d ${RCLONE_DIR}
-      # Make Rclone executable
-      chmod +x ${RCLONE_DIR}/rclone
-
-      # Remove all rclone archives from the flashdrive that do not match the expected version
-      find /boot/config/plugins/dynamix.my.servers/ -name "rclone-v*-linux-amd64.zip" ! -name "${RCLONE_ZIP_FILENAME}" -delete
-      ]]>
-    </INLINE>
-  </FILE>
   <!-- download main txz -->
   <FILE Name="&source;">
     <URL>&txz_url;</URL>
