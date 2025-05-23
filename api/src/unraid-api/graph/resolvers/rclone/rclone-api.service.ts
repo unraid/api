@@ -102,19 +102,7 @@ export class RCloneApiService implements OnModuleInit, OnModuleDestroy {
             // Start the process but don't wait for it to finish
             this.rcloneProcess = execa(
                 'rclone',
-                [
-                    'rcd',
-                    '--rc-addr',
-                    socketPath,
-                    '--log-level',
-                    'INFO',
-                    '--rc-user',
-                    this.rcloneUsername,
-                    '--rc-pass',
-                    this.rclonePassword,
-                    '--log-file',
-                    logFilePath,
-                ],
+                ['rcd', '--rc-addr', socketPath, '--log-level', 'INFO', '--log-file', logFilePath],
                 { detached: false } // Keep attached to manage lifecycle
             );
 
