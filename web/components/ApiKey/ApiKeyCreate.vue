@@ -15,18 +15,16 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
-  Badge,
 } from '@unraid/ui';
+import { extractGraphQLErrorMessage } from '~/helpers/functions';
 
+import type { ApolloError } from '@apollo/client/errors';
 import type { FragmentType } from '~/composables/gql/fragment-masking';
 import type { ApiKeyFragment, Resource, Role } from '~/composables/gql/graphql';
 
 import { useFragment } from '~/composables/gql/fragment-masking';
 import { API_KEY_FRAGMENT, CREATE_API_KEY, UPDATE_API_KEY } from './apikey.query';
-import type { ApolloError } from '@apollo/client/errors';
 import PermissionCounter from './PermissionCounter.vue';
-import { extractGraphQLErrorMessage } from '~/helpers/functions';
-import { actionVariant } from './actionVariant';
 
 const props = defineProps<{
   possibleRoles: Role[];
@@ -210,13 +208,16 @@ defineExpose({
       <Accordion id="api-key-permissions" type="single" collapsible class="w-full mt-2">
         <AccordionItem value="permissions">
           <AccordionTrigger>
-            <PermissionCounter :permissions="newKeyPermissions" :possible-permissions="props.possiblePermissions" />
+            <PermissionCounter
+              :permissions="newKeyPermissions"
+              :possible-permissions="props.possiblePermissions"
+            />
           </AccordionTrigger>
           <AccordionContent>
             <div class="flex flex-row justify-end my-2">
               <Button
                 size="sm"
-                variant="secondary"
+                variant="outline"
                 type="button"
                 @click="areAllPermissionsSelected() ? clearAllPermissions() : selectAllPermissions()"
               >
@@ -245,31 +246,24 @@ defineExpose({
                   </Button>
                 </div>
                 <div class="flex gap-4 flex-wrap">
-                  <label
-                    v-for="action in perm.actions"
-                    :key="action"
-                    class="flex items-center gap-1"
-
-                  >
-                    <Badge :variant="actionVariant(action)" class="flex items-center gap-1">
-                      <input
-                        type="checkbox"
-                        :checked="
-                          !!newKeyPermissions.find(
-                            (p) => p.resource === perm.resource && p.actions.includes(action)
+                  <label v-for="action in perm.actions" :key="action" class="flex items-center gap-1">
+                    <input
+                      type="checkbox"
+                      :checked="
+                        !!newKeyPermissions.find(
+                          (p) => p.resource === perm.resource && p.actions.includes(action)
+                        )
+                      "
+                      @change="
+                        (e: Event) =>
+                          togglePermission(
+                            perm.resource,
+                            action,
+                            (e.target as HTMLInputElement)?.checked
                           )
-                        "
-                        @change="
-                          (e: Event) =>
-                            togglePermission(
-                              perm.resource,
-                              action,
-                              (e.target as HTMLInputElement)?.checked
-                            )
-                        "
-                      />
-                      <span class="text-xs">{{ action }}</span>
-                    </Badge>
+                      "
+                    />
+                    <span class="text-sm">{{ action }}</span>
                   </label>
                 </div>
               </div>
