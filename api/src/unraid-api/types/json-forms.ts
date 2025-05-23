@@ -19,7 +19,9 @@ export type DataSlice = Record<string, JsonSchema>;
 /**
  * A JSONForms UI schema element.
  */
-export type UIElement = UISchemaElement | LabelElement | Layout | ControlElement | Categorization;
+export type UIElement = (UISchemaElement | LabelElement | Layout | ControlElement | Categorization) & {
+    elements?: UIElement[];
+};
 
 /**
  * A condition for a JSONForms rule.
