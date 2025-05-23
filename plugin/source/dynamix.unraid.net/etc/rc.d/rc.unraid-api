@@ -111,7 +111,18 @@ case "$1" in
   ;;
 'ensure')
   if [ -x "$scripts_dir/dependencies.sh" ]; then
+    # First clean up old dependencies
+    "$scripts_dir/dependencies.sh" cleanup
+    # Then ensure new dependencies are installed
     "$scripts_dir/dependencies.sh" ensure "$2"
+  else
+    echo "Error: dependencies.sh script not found or not executable"
+    exit 1
+  fi
+  ;;
+'cleanup-dependencies')
+  if [ -x "$scripts_dir/dependencies.sh" ]; then
+    "$scripts_dir/dependencies.sh" cleanup
   else
     echo "Error: dependencies.sh script not found or not executable"
     exit 1

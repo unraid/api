@@ -10,6 +10,54 @@ source "${SCRIPT_DIR}/api_utils.sh"
 # Default paths
 DEPENDENCIES_DIR="/usr/local/unraid-api/node_modules"
 
+# Function to cleanup old dependency archives
+# Removes all node_modules archives except the one for the current API version
+cleanup() {
+  local info
+  local api_version=""
+  local vendor_store_path=""
+  local vendor_dir=""
+  local current_archive=""
+  
+  # Get archive information
+  if ! mapfile -t info < <(get_archive_information); then
+    echo "Error: Failed to get vendor archive information. Cannot proceed with cleanup." >&2
+    return 1
+  fi
+  
+  api_version="${info[0]}"
+  vendor_store_path="${info[2]}"
+  
+  echo "Cleaning up node_modules archives that don't match current API version: $api_version"
+  
+  # Extract the directory path from the full vendor_store_path
+  vendor_dir="$(dirname "$vendor_store_path")"
+  
+  # Extract the filename from the full vendor_store_path - this is our current archive
+  current_archive="$(basename "$vendor_store_path")"
+  
+  # Check if vendor directory exists
+  if [ ! -d "$vendor_dir" ]; then
+    echo "Vendor directory $vendor_dir does not exist. Nothing to clean up."
+    return 0
+  fi
+  
+  echo "Current archive to keep: $current_archive"
+  
+  # Find and remove all node_modules archives except the current one
+  find "$vendor_dir" -name "node_modules-for-*.tar.xz" | while read -r archive; do
+    if [ "$(basename "$archive")" != "$current_archive" ]; then
+      echo "Removing archive: $archive"
+      rm -f "$archive"
+    else
+      echo "Keeping current archive: $archive"
+    fi
+  done
+  
+  echo "Cleanup completed."
+  return 0
+}
+
 # Function to attempt redownload of vendor archive if missing
 # Args:
 #   $1 - Path to vendor archive to download (ignored, kept for backward compatibility)
@@ -228,6 +276,10 @@ case "$1" in
     ensure "$2"
     exit $?
     ;;
+  'cleanup')
+    cleanup
+    exit $?
+    ;;
   'redownload')
     # The path argument is ignored but kept for backward compatibility
     if downloaded_archive=$(redownload_vendor_archive) && [ -n "$downloaded_archive" ]; then
@@ -239,7 +291,7 @@ case "$1" in
     fi
     ;;
   *)
-    echo "Usage: $0 {restore|archive|ensure|redownload}"
+    echo "Usage: $0 {restore|archive|ensure|cleanup|redownload}"
     exit 1
     ;;
 esac 
