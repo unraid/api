@@ -1,5 +1,7 @@
 import { Field, InputType, ObjectType } from '@nestjs/graphql';
 
+
+
 import { Node, Resource, Role } from '@unraid/shared/graphql.model.js';
 import { PrefixedID } from '@unraid/shared/prefixed-id-scalar.js';
 import { Transform, Type } from 'class-transformer';
@@ -13,6 +15,14 @@ import {
     IsString,
     ValidateNested,
 } from 'class-validator';
+
+
+
+import { AtLeastOneOf } from '@unraid/shared/validation.utils.js';
+
+
+
+
 
 @ObjectType()
 export class Permission {
@@ -108,6 +118,46 @@ export class CreateApiKeyInput {
     @IsBoolean()
     @IsOptional()
     overwrite?: boolean;
+
+    @AtLeastOneOf(['roles', 'permissions'], {
+        message: 'At least one role or one permission is required to create an API key.',
+    })
+    _atLeastOne!: any;
+}
+
+@InputType()
+export class UpdateApiKeyInput {
+    @Field(() => PrefixedID)
+    @IsString()
+    id!: string;
+
+    @Field({ nullable: true })
+    @IsString()
+    @IsOptional()
+    name?: string;
+
+    @Field({ nullable: true })
+    @IsString()
+    @IsOptional()
+    description?: string;
+
+    @Field(() => [Role], { nullable: true })
+    @IsArray()
+    @IsEnum(Role, { each: true })
+    @IsOptional()
+    roles?: Role[];
+
+    @Field(() => [AddPermissionInput], { nullable: true })
+    @IsArray()
+    @ValidateNested({ each: true })
+    @Type(() => AddPermissionInput)
+    @IsOptional()
+    permissions?: AddPermissionInput[];
+
+    @AtLeastOneOf(['roles', 'permissions'], {
+        message: 'At least one role or one permission is required to update an API key.',
+    })
+    _atLeastOne!: any;
 }
 
 @InputType()

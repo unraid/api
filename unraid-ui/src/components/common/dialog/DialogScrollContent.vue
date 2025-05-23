@@ -1,24 +1,24 @@
 <script setup lang="ts">
-import type { HTMLAttributes } from 'vue'
-import { reactiveOmit } from '@vueuse/core'
-import { X } from 'lucide-vue-next'
+import { cn } from '@/lib/utils';
+import { reactiveOmit } from '@vueuse/core';
+import { X } from 'lucide-vue-next';
 import {
   DialogClose,
   DialogContent,
-  type DialogContentEmits,
-  type DialogContentProps,
   DialogOverlay,
   DialogPortal,
   useForwardPropsEmits,
-} from 'reka-ui'
-import { cn } from '@/lib/utils'
+  type DialogContentEmits,
+  type DialogContentProps,
+} from 'reka-ui';
+import type { HTMLAttributes } from 'vue';
 
-const props = defineProps<DialogContentProps & { class?: HTMLAttributes['class'] }>()
-const emits = defineEmits<DialogContentEmits>()
+const props = defineProps<DialogContentProps & { class?: HTMLAttributes['class'] }>();
+const emits = defineEmits<DialogContentEmits>();
 
-const delegatedProps = reactiveOmit(props, 'class')
+const delegatedProps = reactiveOmit(props, 'class');
 
-const forwarded = useForwardPropsEmits(delegatedProps, emits)
+const forwarded = useForwardPropsEmits(delegatedProps, emits);
 </script>
 
 <template>
@@ -30,17 +30,22 @@ const forwarded = useForwardPropsEmits(delegatedProps, emits)
         :class="
           cn(
             'relative z-50 grid w-full max-w-lg my-8 gap-4 border border-border bg-background p-6 shadow-lg duration-200 sm:rounded-lg md:w-full',
-            props.class,
+            props.class
           )
         "
         v-bind="forwarded"
-        @pointer-down-outside="(event) => {
-          const originalEvent = event.detail.originalEvent;
-          const target = originalEvent.target as HTMLElement;
-          if (originalEvent.offsetX > target.clientWidth || originalEvent.offsetY > target.clientHeight) {
-            event.preventDefault();
+        @pointer-down-outside="
+          (event) => {
+            const originalEvent = event.detail.originalEvent;
+            const target = originalEvent.target as HTMLElement;
+            if (
+              originalEvent.offsetX > target.clientWidth ||
+              originalEvent.offsetY > target.clientHeight
+            ) {
+              event.preventDefault();
+            }
           }
-        }"
+        "
       >
         <slot />
 

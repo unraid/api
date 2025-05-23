@@ -157,6 +157,8 @@ export class ApiKeyService implements OnModuleInit {
 
         await this.saveApiKey(apiKey as ApiKeyWithSecret);
 
+        this.memoryApiKeys.push(apiKey as ApiKeyWithSecret);
+
         return apiKey as ApiKeyWithSecret;
     }
 
@@ -373,5 +375,41 @@ export class ApiKeyService implements OnModuleInit {
         if (errors.length > 0) {
             throw errors;
         }
+    }
+
+    async update({
+        id,
+        name,
+        description,
+        roles,
+        permissions,
+    }: {
+        id: string;
+        name?: string;
+        description?: string;
+        roles?: Role[];
+        permissions?: Permission[] | AddPermissionInput[];
+    }): Promise<ApiKeyWithSecret> {
+        const apiKey = this.findByIdWithSecret(id);
+        if (!apiKey) {
+            throw new GraphQLError('API key not found');
+        }
+        if (name) {
+            apiKey.name = this.sanitizeName(name.trim());
+        }
+        if (description !== undefined) {
+            apiKey.description = description;
+        }
+        if (roles) {
+            if (roles.some((role) => !ApiKeyService.validRoles.has(role))) {
+                throw new GraphQLError('Invalid role specified');
+            }
+            apiKey.roles = roles;
+        }
+        if (permissions) {
+            apiKey.permissions = permissions;
+        }
+        await this.saveApiKey(apiKey);
+        return apiKey;
     }
 }

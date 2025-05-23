@@ -15,6 +15,7 @@ import {
     CreateApiKeyInput,
     DeleteApiKeyInput,
     RemoveRoleFromApiKeyInput,
+    UpdateApiKeyInput,
 } from '@app/unraid-api/graph/resolvers/api-key/api-key.model.js';
 import { ApiKeyMutations } from '@app/unraid-api/graph/resolvers/mutation/mutation.model.js';
 import { validateObject } from '@app/unraid-api/graph/resolvers/validation.utils.js';
@@ -34,6 +35,11 @@ export class ApiKeyMutationsResolver {
     @ResolveField(() => ApiKeyWithSecret, { description: 'Create an API key' })
     async create(@Args('input') unvalidatedInput: CreateApiKeyInput): Promise<ApiKeyWithSecret> {
         const input = await validateObject(CreateApiKeyInput, unvalidatedInput);
+        const hasRoles = Array.isArray(input.roles) && input.roles.length > 0;
+        const hasPermissions = Array.isArray(input.permissions) && input.permissions.length > 0;
+        if (!hasRoles && !hasPermissions) {
+            throw new Error('At least one role or one permission is required to create an API key.');
+        }
         const apiKey = await this.apiKeyService.create({
             name: input.name,
             description: input.description ?? undefined,
@@ -77,5 +83,23 @@ export class ApiKeyMutationsResolver {
         const validatedInput = await validateObject(DeleteApiKeyInput, input);
         await this.apiKeyService.deleteApiKeys(validatedInput.ids);
         return true;
+    }
+
+    @UsePermissions({
+        action: AuthActionVerb.UPDATE,
+        resource: Resource.API_KEY,
+        possession: AuthPossession.ANY,
+    })
+    @ResolveField(() => ApiKeyWithSecret, { description: 'Update an API key' })
+    async update(@Args('input') unvalidatedInput: UpdateApiKeyInput): Promise<ApiKeyWithSecret> {
+        const input = await validateObject(UpdateApiKeyInput, unvalidatedInput);
+        const hasRoles = Array.isArray(input.roles) && input.roles.length > 0;
+        const hasPermissions = Array.isArray(input.permissions) && input.permissions.length > 0;
+        if (!hasRoles && !hasPermissions) {
+            throw new Error('At least one role or one permission is required to update an API key.');
+        }
+        const apiKey = await this.apiKeyService.update(input);
+        await this.authService.syncApiKeyRoles(apiKey.id, apiKey.roles);
+        return apiKey;
     }
 }

@@ -756,6 +756,9 @@ type ApiKeyMutations {
 
   """Delete one or more API keys"""
   delete(input: DeleteApiKeyInput!): Boolean!
+
+  """Update an API key"""
+  update(input: UpdateApiKeyInput!): ApiKeyWithSecret!
 }
 
 input CreateApiKeyInput {
@@ -787,6 +790,14 @@ input RemoveRoleFromApiKeyInput {
 
 input DeleteApiKeyInput {
   ids: [PrefixedID!]!
+}
+
+input UpdateApiKeyInput {
+  id: PrefixedID!
+  name: String
+  description: String
+  roles: [Role!]
+  permissions: [AddPermissionInput!]
 }
 
 """
