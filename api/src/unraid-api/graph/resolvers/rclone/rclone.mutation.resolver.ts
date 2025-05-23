@@ -32,11 +32,16 @@ export class RCloneMutationsResolver {
     })
     async createRCloneRemote(@Args('input') input: CreateRCloneRemoteInput): Promise<RCloneRemote> {
         try {
-            await this.rcloneApiService.createRemote(input.name, input.type, input.parameters);
+            const config = await this.rcloneApiService.createRemote(
+                input.name,
+                input.type,
+                input.parameters
+            );
             return {
                 name: input.name,
                 type: input.type,
-                parameters: input.parameters,
+                parameters: {},
+                config,
             };
         } catch (error) {
             this.logger.error(`Error creating remote: ${error}`);

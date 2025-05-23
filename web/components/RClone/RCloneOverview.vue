@@ -28,6 +28,7 @@ const {
   result: remotes,
   loading: loadingRemotes,
   refetch: refetchRemotes,
+  error,
 } = useQuery(GET_RCLONE_REMOTES);
 
 // Delete remote mutation
@@ -46,6 +47,12 @@ onDeleteDone((result) => {
     if (window.toast) {
       window.toast.success('Remote Deleted', {
         description: 'Remote deleted successfully',
+      });
+    }
+  } else {
+    if (window.toast) {
+      window.toast.error('Deletion Failed', {
+        description: 'Failed to delete remote. Please try again.',
       });
     }
   }
@@ -90,6 +97,7 @@ declare global {
   interface Window {
     toast?: {
       success: (title: string, options: { description?: string }) => void;
+      error?: (title: string, options: { description?: string }) => void;
     };
   }
 }
@@ -118,6 +126,12 @@ declare global {
       />
     </div>
 
+    <!-- Error state -->
+    <div v-else-if="error" class="py-8 text-center text-red-500">
+      <p class="mb-4">Failed to load remotes</p>
+      <Button @click="refetchRemotes">Retry</Button>
+    </div>
+
     <!-- Empty state -->
     <div v-else class="py-8 text-center">
       <p class="text-gray-500 mb-4">No remotes configured yet</p>
@@ -128,11 +142,14 @@ declare global {
     <div
       v-if="showConfigModal"
       class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="modal-title"
     >
       <div class="bg-white rounded-lg shadow-xl w-full max-w-4xl max-h-[90vh] overflow-auto">
         <div class="p-4 border-b border-gray-200 flex justify-between items-center">
-          <h2 class="text-xl font-semibold">{{ initialFormState ? 'Add Crypt to ' + selectedRemote?.name : 'Add New Remote' }}</h2>
-          <Button variant="ghost" size="sm" @click="showConfigModal = false">×</Button>
+          <h2 id="modal-title" class="text-xl font-semibold">{{ initialFormState ? 'Add Crypt to ' + selectedRemote?.name : 'Add New Remote' }}</h2>
+          <Button variant="ghost" size="sm" aria-label="Close dialog" @click="showConfigModal = false">×</Button>
         </div>
         <div class="p-6">
           <RCloneConfig :initial-state="initialFormState || undefined" @complete="onConfigComplete" />

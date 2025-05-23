@@ -278,12 +278,9 @@ export class RCloneApiService implements OnModuleInit, OnModuleDestroy {
             parameters: parameters, // Nest the parameters object under the 'parameters' key
         };
 
-        this.logger.log(
-            `Creating new remote: ${name} of type: ${type} with params: ${JSON.stringify(params)}`
-        ); // Added params logging
+        this.logger.log(`Creating new remote: ${name} of type: ${type}`);
         const result = await this.callRcloneApi('config/create', params);
-        // console.log('Result was: ', result); // Result is usually empty on success, potentially remove
-        this.logger.log(`Successfully created remote: ${name}`); // Improved success log
+        this.logger.log(`Successfully created remote: ${name}`);
         return result; // Rclone 'config/create' usually returns an empty object on success
     }
 
