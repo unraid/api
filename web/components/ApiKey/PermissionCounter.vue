@@ -35,13 +35,18 @@ const actionCounts = computed(() => {
   }
   return counts;
 });
+
+const filteredActions = computed(() => {
+  return possibleActions.value.filter((action) => actionCounts.value[action] > 0);
+});
+
 </script>
 <template>
   <div class="flex flex-row items-center gap-1">
     <span v-if="label">{{ label }}</span>
     <template v-if="possibleActions.length">
       <Badge
-        v-for="action in possibleActions"
+        v-for="action in filteredActions"
         :key="action"
         :variant="actionVariant(action)"
         class="text-xs text-muted-foreground"
