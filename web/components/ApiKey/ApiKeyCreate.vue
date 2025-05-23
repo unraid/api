@@ -27,10 +27,11 @@ const newKeyName = ref('');
 const newKeyDescription = ref('');
 const newKeyRoles = ref<string[]>([]);
 const newKeyPermissions = ref<{ resource: string; actions: string[] }[]>([]);
-const { mutate: createApiKey } = useMutation<
+const { mutate: createApiKey, loading, error } = useMutation<
   { apiKey: { create: { key: string } } },
   { input: { name: string; description?: string; roles?: string[]; permissions?: { resource: string; actions: string[] }[] } }
 >(CREATE_API_KEY);
+const postCreateLoading = ref(false);
 
 function togglePermission(resource: string, action: string, checked: boolean) {
   const perm = newKeyPermissions.value.find(p => p.resource === resource);
@@ -99,11 +100,15 @@ async function createKey() {
       permissions: newKeyPermissions.value.length ? newKeyPermissions.value : undefined,
     },
   });
-  emit('created', res?.data?.apiKey?.create ?? null);
-  newKeyName.value = '';
-  newKeyDescription.value = '';
-  newKeyRoles.value = [];
-  newKeyPermissions.value = [];
+  postCreateLoading.value = true;
+  setTimeout(() => {
+    emit('created', res?.data?.apiKey?.create ?? null);
+    postCreateLoading.value = false;
+    newKeyName.value = '';
+    newKeyDescription.value = '';
+    newKeyRoles.value = [];
+    newKeyPermissions.value = [];
+  }, 1000);
 }
 </script>
 <template>
@@ -165,8 +170,14 @@ async function createKey() {
       </Accordion>
     </div>
     <div class="flex gap-2 mt-2">
-      <Button variant="primary" @click="createKey">Create</Button>
+      <Button variant="primary" :disabled="loading || postCreateLoading" @click="createKey">
+        <span v-if="loading || postCreateLoading">Creating...</span>
+        <span v-else>Create</span>
+      </Button>
       <Button variant="secondary" @click="$emit('cancel')">Cancel</Button>
+    </div>
+    <div v-if="error" class="text-red-500 mt-2 text-sm">
+      {{ error.message }}
     </div>
   </div>
 </template> 

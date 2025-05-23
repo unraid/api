@@ -50,11 +50,21 @@ export class ApiKeyResolver {
     }
 
     @Query(() => [Role], { description: 'All possible roles for API keys' })
+    @UsePermissions({
+        action: AuthActionVerb.READ,
+        resource: Resource.PERMISSION,
+        possession: AuthPossession.ANY,
+    })
     async apiKeyPossibleRoles(): Promise<Role[]> {
         return Object.values(Role);
     }
 
     @Query(() => [Permission], { description: 'All possible permissions for API keys' })
+    @UsePermissions({
+        action: AuthActionVerb.READ,
+        resource: Resource.PERMISSION,
+        possession: AuthPossession.ANY,
+    })
     async apiKeyPossiblePermissions(): Promise<Permission[]> {
         // Build all combinations of Resource and AuthActionVerb
         const resources = Object.values(Resource);

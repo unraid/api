@@ -37,24 +37,36 @@ watchEffect(() => {
 });
 
 const showCreate = ref(false);
-const createdKey = ref<{ key: string } | null>(null);
+const createdKey = ref<{ id: string; key: string } | null>(null);
 const showKey = ref(false);
 
 const { mutate: deleteKey } = useMutation(DELETE_API_KEY);
+
+const deleteError = ref<string | null>(null);
 
 function toggleShowKey() {
   showKey.value = !showKey.value;
 }
 
-function onCreated(key: { key: string } | null) {
+function onCreated(key: { id: string; key: string } | null) {
   createdKey.value = key;
   showCreate.value = false;
   refetch();
 }
 
 async function _deleteKey(_id: string) {
+  if (!window.confirm('Are you sure you want to delete this API key? This action cannot be undone.')) return;
+  deleteError.value = null;
+  try {
     await deleteKey({ input: { ids: [_id] } });
     await refetch();
+  } catch (err: unknown) {
+    if (typeof err === 'object' && err !== null && 'message' in err && typeof (err as { message?: unknown }).message === 'string') {
+      deleteError.value = (err as { message: string }).message;
+    } else {
+      deleteError.value = 'Failed to delete API key.';
+    }
+  }
 }
 </script>
 <template>
@@ -63,6 +75,9 @@ async function _deleteKey(_id: string) {
       <div class="flex items-center justify-between mb-4">
         <h2 class="text-xl font-semibold">API Keys</h2>
         <Button variant="primary" @click="showCreate = true">Create API Key</Button>
+      </div>
+      <div v-if="deleteError" class="mb-2 p-2 bg-red-100 text-red-700 border border-red-300 rounded">
+        {{ deleteError }}
       </div>
       <ul v-if="apiKeys.length" class="space-y-2 mb-4">
         <li
@@ -85,6 +100,13 @@ async function _deleteKey(_id: string) {
                 </li>
               </ul>
             </div>
+            <div v-if="createdKey && createdKey.key && createdKey.id === key.id" class="mt-2 flex items-center gap-2">
+              <span>API Key created:</span>
+              <b>{{ showKey ? createdKey.key : '••••••••••••••••••••••••••••••••' }}</b>
+              <button type="button" class="focus:outline-none" @click="toggleShowKey">
+                <component :is="showKey ? EyeSlashIcon : EyeIcon" class="w-5 h-5 text-gray-500" />
+              </button>
+            </div>
           </div>
           <Button variant="destructive" size="sm" @click="_deleteKey(key.id)">Delete</Button>
         </li>
@@ -97,15 +119,6 @@ async function _deleteKey(_id: string) {
           @created="onCreated"
           @cancel="showCreate = false"
         />
-      </div>
-      <div v-if="createdKey" class="mt-4">
-        <div class="flex items-center gap-2">
-          <span>API Key created:</span>
-          <b>{{ showKey ? createdKey.key : '••••••••••••••••••••••••••••••••' }}</b>
-          <button type="button" class="focus:outline-none" @click="toggleShowKey">
-            <component :is="showKey ? EyeSlashIcon : EyeIcon" class="w-5 h-5 text-gray-500" />
-          </button>
-        </div>
       </div>
     </CardWrapper>
   </PageContainer>
