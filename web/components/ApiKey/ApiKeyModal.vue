@@ -13,9 +13,10 @@ import {
   DialogTitle,
 } from '@unraid/ui';
 
+import type { ApiKeyFragment } from '~/composables/gql/graphql';
+
 import { GET_API_KEY_META } from '~/components/ApiKey/apikey.query';
 import ApiKeyCreate from '~/components/ApiKey/ApiKeyCreate.vue';
-import type { ApiKeyFragment } from '~/composables/gql/graphql';
 
 const { t } = useI18n();
 
@@ -56,15 +57,7 @@ const handleCreated = (event: { key: string } | null) => {
           ref="apiKeyCreateRef"
           :possible-roles="possibleRoles"
           :possible-permissions="possiblePermissions"
-          :editing-key="props.editingKey ? {
-            ...props.editingKey,
-            roles: (props.editingKey.roles as any[]).map(r => r as any),
-            permissions: (props.editingKey.permissions as any[]).map(p => ({
-              ...p,
-              resource: p.resource as any,
-              actions: (p.actions as any[]).map(a => a as any),
-            })),
-          } : null"
+          :editing-key="props.editingKey"
           @created="handleCreated"
         />
       </DialogDescription>
