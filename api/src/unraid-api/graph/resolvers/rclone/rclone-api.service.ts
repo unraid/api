@@ -1,5 +1,4 @@
 import { Injectable, Logger, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
-import crypto from 'crypto';
 import { ChildProcess } from 'node:child_process';
 import { existsSync } from 'node:fs';
 import { mkdir, rm, writeFile } from 'node:fs/promises';
@@ -39,8 +38,6 @@ export class RCloneApiService implements OnModuleInit, OnModuleDestroy {
     private readonly logger = new Logger(RCloneApiService.name);
     private rcloneSocketPath: string = '';
     private rcloneBaseUrl: string = '';
-    private rcloneUsername: string = 'unraid-rclone';
-    private rclonePassword: string = crypto.randomBytes(32).toString('hex');
     private rcloneProcess: ChildProcess | null = null;
     constructor() {}
 
@@ -426,17 +423,5 @@ export class RCloneApiService implements OnModuleInit, OnModuleDestroy {
                 throw new Error(detailedErrorMessage); // Throw a new error for unknown types
             }
         }
-    }
-
-    async serveWebGui(): Promise<{ url: string; username: string; password: string }> {
-        if (!this.isInitialized) {
-            throw new Error('RClone service is not initialized');
-        }
-
-        return {
-            url: this.rcloneBaseUrl,
-            username: this.rcloneUsername,
-            password: this.rclonePassword,
-        };
     }
 }

@@ -54,45 +54,4 @@ export class RestController {
             return res.status(500).send(`Error: Failed to get customizations`);
         }
     }
-    /*
-    @All('/graphql/api/rclone-webgui/*')
-    @UsePermissions({
-        action: AuthActionVerb.READ,
-        resource: Resource.FLASH,
-        possession: AuthPossession.ANY,
-    })
-    async proxyRcloneWebGui(@Req() req: FastifyRequest, @Res() res: FastifyReply) {
-        try {
-            const rcloneDetails = await this.flashBackupService.serveWebGui();
-            const path = req.url.replace('/graphql/api/rclone-webgui/', '');
-            const targetUrl = `${rcloneDetails.url}${path}`;
-
-            this.logger.debug(`Proxying request to: ${targetUrl}`);
-
-            // Forward the request to the RClone service
-            const method = req.method.toLowerCase();
-            const options = {
-                headers: {
-                    ...req.headers,
-                    Authorization: `Basic ${Buffer.from(`${rcloneDetails.username}:${rcloneDetails.password}`).toString('base64')}`,
-                },
-                body: req.body,
-                responseType: 'buffer',
-                enableUnixSockets: true,
-            };
-
-            const response = await got[method](targetUrl, options);
-
-            // Forward the response back to the client
-            return res
-                .status(response.statusCode)
-                .headers(response.headers)
-                .send(response.body);
-        } catch (error: unknown) {
-            const errorMessage = error instanceof Error ? error.message : String(error);
-            this.logger.error(`Error proxying to RClone WebGUI: ${errorMessage}`);
-            return res.status(500).send(`Error: Failed to proxy to RClone WebGUI`);
-        }
-    }
-        */
 }
