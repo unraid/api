@@ -23,6 +23,7 @@ import { useFragment } from '~/composables/gql/fragment-masking';
 import { API_KEY_FRAGMENT, DELETE_API_KEY, GET_API_KEY_META, GET_API_KEYS } from './apikey.query';
 import ApiKeyModal from './ApiKeyModal.vue';
 import PermissionCounter from './PermissionCounter.vue';
+import { extractGraphQLErrorMessage } from '~/helpers/functions';
 
 const { result, refetch } = useQuery(GET_API_KEYS);
 const apiKeys = ref<ApiKeyFragment[]>([]);
@@ -67,16 +68,7 @@ async function _deleteKey(_id: string) {
     await deleteKey({ input: { ids: [_id] } });
     await refetch();
   } catch (err: unknown) {
-    if (
-      typeof err === 'object' &&
-      err !== null &&
-      'message' in err &&
-      typeof (err as { message?: unknown }).message === 'string'
-    ) {
-      deleteError.value = (err as { message: string }).message;
-    } else {
-      deleteError.value = 'Failed to delete API key.';
-    }
+    deleteError.value = extractGraphQLErrorMessage(err);
   }
 }
 

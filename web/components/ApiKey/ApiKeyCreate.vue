@@ -24,6 +24,7 @@ import { useFragment } from '~/composables/gql/fragment-masking';
 import { API_KEY_FRAGMENT, CREATE_API_KEY, UPDATE_API_KEY } from './apikey.query';
 import type { ApolloError } from '@apollo/client/errors';
 import PermissionCounter from './PermissionCounter.vue';
+import { extractGraphQLErrorMessage } from '~/helpers/functions';
 
 const props = defineProps<{
   possibleRoles: Role[];
@@ -131,42 +132,45 @@ function clearAllActions(resource: string) {
 }
 
 async function upsertKey() {
-  const isEdit = !!props.editingKey?.id;
-  let res;
-  if (isEdit) {
-    res = await updateApiKey({
-      input: {
-        id: props.editingKey.id,
-        name: newKeyName.value,
-        description: newKeyDescription.value,
-        roles: newKeyRoles.value,
-        permissions: newKeyPermissions.value.length ? newKeyPermissions.value : undefined,
-      },
-    });
-  } else {
-    res = await createApiKey({
-      input: {
-        name: newKeyName.value,
-        description: newKeyDescription.value,
-        roles: newKeyRoles.value,
-        permissions: newKeyPermissions.value.length ? newKeyPermissions.value : undefined,
-      },
-    });
-  }
   postCreateLoading.value = true;
-  let createdKey = null;
-  const apiKeyResult = res?.data?.apiKey;
-  if (isEdit && apiKeyResult && 'update' in apiKeyResult) {
-    createdKey = apiKeyResult.update;
-  } else if (!isEdit && apiKeyResult && 'create' in apiKeyResult) {
-    createdKey = apiKeyResult.create;
+  try {
+    const isEdit = !!props.editingKey?.id;
+    let res;
+    if (isEdit) {
+      res = await updateApiKey({
+        input: {
+          id: props.editingKey.id,
+          name: newKeyName.value,
+          description: newKeyDescription.value,
+          roles: newKeyRoles.value,
+          permissions: newKeyPermissions.value.length ? newKeyPermissions.value : undefined,
+        },
+      });
+    } else {
+      res = await createApiKey({
+        input: {
+          name: newKeyName.value,
+          description: newKeyDescription.value,
+          roles: newKeyRoles.value,
+          permissions: newKeyPermissions.value.length ? newKeyPermissions.value : undefined,
+        },
+      });
+    }
+    let createdKey = null;
+    const apiKeyResult = res?.data?.apiKey;
+    if (isEdit && apiKeyResult && 'update' in apiKeyResult) {
+      createdKey = apiKeyResult.update;
+    } else if (!isEdit && apiKeyResult && 'create' in apiKeyResult) {
+      createdKey = apiKeyResult.create;
+    }
+    emit('created', createdKey);
+    newKeyName.value = '';
+    newKeyDescription.value = '';
+    newKeyRoles.value = [];
+    newKeyPermissions.value = [];
+  } finally {
+    postCreateLoading.value = false;
   }
-  emit('created', createdKey);
-  postCreateLoading.value = false;
-  newKeyName.value = '';
-  newKeyDescription.value = '';
-  newKeyRoles.value = [];
-  newKeyPermissions.value = [];
 }
 
 defineExpose({
@@ -262,8 +266,8 @@ defineExpose({
         </AccordionItem>
       </Accordion>
     </div>
-    <div v-if="error && ((error as any).graphQLErrors || (error as any).message)" class="text-red-500 mt-2 text-sm">
-      {{ (error as any).graphQLErrors?.[0]?.extensions?.originalError?.message?.[0] || (error as any).message }}
+    <div v-if="error" class="text-red-500 mt-2 text-sm">
+      {{ extractGraphQLErrorMessage(error) }}
     </div>
   </div>
 </template>
