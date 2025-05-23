@@ -136,3 +136,73 @@ export class DeleteRCloneRemoteInput {
     @IsString()
     name!: string;
 }
+
+@InputType()
+export class RCloneStartBackupInput {
+    @Field(() => String)
+    @IsString()
+    srcPath!: string;
+
+    @Field(() => String)
+    @IsString()
+    dstPath!: string;
+
+    @Field(() => GraphQLJSON, { nullable: true })
+    @IsOptional()
+    @IsObject()
+    options?: Record<string, any>;
+}
+
+@InputType()
+export class CreateRCloneRemoteDto {
+    @Field(() => String)
+    @IsString()
+    name!: string;
+
+    @Field(() => String)
+    @IsString()
+    type!: string;
+
+    @Field(() => GraphQLJSON)
+    @IsObject()
+    parameters!: Record<string, any>;
+}
+
+@InputType()
+export class UpdateRCloneRemoteDto {
+    @Field(() => String)
+    @IsString()
+    name!: string;
+
+    @Field(() => GraphQLJSON)
+    @IsObject()
+    parameters!: Record<string, any>;
+}
+
+@InputType()
+export class DeleteRCloneRemoteDto {
+    @Field(() => String)
+    @IsString()
+    name!: string;
+}
+
+@InputType()
+export class GetRCloneRemoteConfigDto {
+    @Field(() => String)
+    @IsString()
+    name!: string;
+}
+
+@InputType()
+export class GetRCloneRemoteDetailsDto {
+    @Field(() => String)
+    @IsString()
+    name!: string;
+}
+
+@InputType()
+export class GetRCloneJobStatusDto {
+    @Field(() => String)
+    @IsString()
+    jobId!: string;
+}

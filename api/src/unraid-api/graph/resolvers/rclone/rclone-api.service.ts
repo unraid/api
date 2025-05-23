@@ -1,4 +1,5 @@
 import { Injectable, Logger, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
+import crypto from 'crypto';
 import { ChildProcess } from 'node:child_process';
 import { existsSync } from 'node:fs';
 import { mkdir, rm, writeFile } from 'node:fs/promises';
@@ -9,10 +10,18 @@ import got, { HTTPError } from 'got';
 import pRetry from 'p-retry';
 
 import {
+    CreateRCloneRemoteDto,
+    DeleteRCloneRemoteDto,
+    GetRCloneJobStatusDto,
+    GetRCloneRemoteConfigDto,
+    GetRCloneRemoteDetailsDto,
     RCloneProviderOptionResponse,
     RCloneProviderResponse,
     RCloneRemoteConfig,
+    RCloneStartBackupInput,
+    UpdateRCloneRemoteDto,
 } from '@app/unraid-api/graph/resolvers/rclone/rclone.model.js';
+import { validateObject } from '@app/unraid-api/graph/resolvers/validation.utils.js';
 
 // Define the structure returned by mapProviderOptions inline
 interface MappedRCloneProviderOption {
@@ -40,7 +49,14 @@ export class RCloneApiService implements OnModuleInit, OnModuleDestroy {
     private rcloneSocketPath: string = '';
     private rcloneBaseUrl: string = '';
     private rcloneProcess: ChildProcess | null = null;
-    constructor() {}
+    private readonly rcloneUsername: string;
+    private readonly rclonePassword: string;
+    constructor(username?: string, password?: string) {
+        this.rcloneUsername =
+            username || process.env.RCLONE_USERNAME || crypto.randomBytes(12).toString('base64');
+        this.rclonePassword =
+            password || process.env.RCLONE_PASSWORD || crypto.randomBytes(24).toString('base64');
+    }
 
     async onModuleInit(): Promise<void> {
         try {
@@ -103,7 +119,17 @@ export class RCloneApiService implements OnModuleInit, OnModuleDestroy {
             // Start the process but don't wait for it to finish
             this.rcloneProcess = execa(
                 'rclone',
-                ['rcd', '--rc-addr', socketPath, '--log-level', 'INFO', '--log-file', logFilePath],
+                [
+                    'rcd',
+                    '--rc-addr',
+                    socketPath,
+                    '--log-level',
+                    'INFO',
+                    '--log-file',
+                    logFilePath,
+                    ...(this.rcloneUsername ? ['--rc-user', this.rcloneUsername] : []),
+                    ...(this.rclonePassword ? ['--rc-pass', this.rclonePassword] : []),
+                ],
                 { detached: false } // Keep attached to manage lifecycle
             );
 
@@ -255,80 +281,79 @@ export class RCloneApiService implements OnModuleInit, OnModuleDestroy {
     /**
      * Get complete remote details
      */
-    async getRemoteDetails(name: string): Promise<RCloneRemoteConfig> {
-        const config = (await this.getRemoteConfig(name)) || {};
+    async getRemoteDetails(input: GetRCloneRemoteDetailsDto): Promise<RCloneRemoteConfig> {
+        await validateObject(GetRCloneRemoteDetailsDto, input);
+        const config = (await this.getRemoteConfig({ name: input.name })) || {};
         return config as RCloneRemoteConfig;
     }
 
     /**
      * Get configuration of a remote
      */
-    async getRemoteConfig(name: string): Promise<RCloneRemoteConfig> {
-        return this.callRcloneApi('config/get', { name });
+    async getRemoteConfig(input: GetRCloneRemoteConfigDto): Promise<RCloneRemoteConfig> {
+        await validateObject(GetRCloneRemoteConfigDto, input);
+        return this.callRcloneApi('config/get', { name: input.name });
     }
 
     /**
      * Create a new remote configuration
      */
-    async createRemote(name: string, type: string, parameters: Record<string, any> = {}): Promise<any> {
-        // Structure the payload as expected by Rclone API
+    async createRemote(input: CreateRCloneRemoteDto): Promise<any> {
+        await validateObject(CreateRCloneRemoteDto, input);
+        this.logger.log(`Creating new remote: ${input.name} of type: ${input.type}`);
         const params = {
-            name,
-            type,
-            parameters: parameters, // Nest the parameters object under the 'parameters' key
+            name: input.name,
+            type: input.type,
+            parameters: input.parameters,
         };
-
-        this.logger.log(`Creating new remote: ${name} of type: ${type}`);
         const result = await this.callRcloneApi('config/create', params);
-        this.logger.log(`Successfully created remote: ${name}`);
-        return result; // Rclone 'config/create' usually returns an empty object on success
+        this.logger.log(`Successfully created remote: ${input.name}`);
+        return result;
     }
 
     /**
      * Update an existing remote configuration
      */
-    async updateRemote(name: string, parameters: Record<string, any> = {}): Promise<any> {
+    async updateRemote(input: UpdateRCloneRemoteDto): Promise<any> {
+        await validateObject(UpdateRCloneRemoteDto, input);
+        this.logger.log(`Updating remote: ${input.name}`);
         const params = {
-            name,
-            ...parameters,
+            name: input.name,
+            ...input.parameters,
         };
-
-        this.logger.log(`Updating remote: ${name}`);
         return this.callRcloneApi('config/update', params);
     }
 
     /**
      * Delete a remote configuration
      */
-    async deleteRemote(name: string): Promise<any> {
-        this.logger.log(`Deleting remote: ${name}`);
-        return this.callRcloneApi('config/delete', { name });
+    async deleteRemote(input: DeleteRCloneRemoteDto): Promise<any> {
+        await validateObject(DeleteRCloneRemoteDto, input);
+        this.logger.log(`Deleting remote: ${input.name}`);
+        return this.callRcloneApi('config/delete', { name: input.name });
     }
 
     /**
      * Start a backup operation using sync/copy
      * This copies a directory from source to destination
      */
-    async startBackup(
-        srcPath: string,
-        dstPath: string,
-        options: Record<string, any> = {}
-    ): Promise<any> {
-        this.logger.log(`Starting backup from ${srcPath} to ${dstPath}`);
+    async startBackup(input: RCloneStartBackupInput): Promise<any> {
+        await validateObject(RCloneStartBackupInput, input);
+        this.logger.log(`Starting backup from ${input.srcPath} to ${input.dstPath}`);
         const params = {
-            srcFs: srcPath,
-            dstFs: dstPath,
-            ...options,
+            srcFs: input.srcPath,
+            dstFs: input.dstPath,
+            ...(input.options || {}),
         };
-
         return this.callRcloneApi('sync/copy', params);
     }
 
     /**
      * Get the status of a running job
      */
-    async getJobStatus(jobId: string): Promise<any> {
-        return this.callRcloneApi('job/status', { jobid: jobId });
+    async getJobStatus(input: GetRCloneJobStatusDto): Promise<any> {
+        await validateObject(GetRCloneJobStatusDto, input);
+        return this.callRcloneApi('job/status', { jobid: input.jobId });
     }
 
     /**

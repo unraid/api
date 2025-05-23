@@ -32,11 +32,7 @@ export class RCloneMutationsResolver {
     })
     async createRCloneRemote(@Args('input') input: CreateRCloneRemoteInput): Promise<RCloneRemote> {
         try {
-            const config = await this.rcloneApiService.createRemote(
-                input.name,
-                input.type,
-                input.parameters
-            );
+            const config = await this.rcloneApiService.createRemote(input);
             return {
                 name: input.name,
                 type: input.type,
@@ -57,7 +53,7 @@ export class RCloneMutationsResolver {
     })
     async deleteRCloneRemote(@Args('input') input: DeleteRCloneRemoteInput): Promise<boolean> {
         try {
-            await this.rcloneApiService.deleteRemote(input.name);
+            await this.rcloneApiService.deleteRemote(input);
             return true;
         } catch (error) {
             this.logger.error(`Error deleting remote: ${error}`);

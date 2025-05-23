@@ -99,7 +99,7 @@ export class RCloneService {
 
             for (const name of remoteNames) {
                 try {
-                    const config = await this.rcloneApiService.getRemoteDetails(name);
+                    const config = await this.rcloneApiService.getRemoteDetails({ name });
                     const { type, ...parameters } = config;
 
                     remoteDetails.push({
