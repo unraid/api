@@ -67,7 +67,7 @@ function translateRCloneOptionToJsonSchema({
         case 'sizesuffix':
             // Pattern allows 'off' or digits followed by optional size units (K, M, G, T, P) and optional iB/B
             // Allows multiple concatenated values like 1G100M
-            schema.pattern = '^(off|(d+([KMGTPE]i?B?)?)+)$';
+            schema.pattern = '^(off|(\\d+([KMGTPE]i?B?)?)+)$';
             schema.errorMessage = 'Invalid size format. Examples: "10G", "100M", "1.5GiB", "off".';
             break;
         case 'duration':

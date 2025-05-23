@@ -6,6 +6,7 @@ import { dirname, join } from 'node:path';
 
 import { execa } from 'execa';
 import got, { HTTPError } from 'got';
+import pRetry from 'p-retry';
 
 import {
     RCloneProviderOptionResponse,
@@ -122,14 +123,20 @@ export class RCloneApiService implements OnModuleInit, OnModuleDestroy {
                 this.isInitialized = false;
             });
 
-            // Consider the service initialized shortly after starting the process
-            // A better approach might involve checking the socket or API readiness
-            await new Promise((resolve) => setTimeout(resolve, 1000)); // Small delay
-            // Re-check if socket is running after attempting start
-            const isRunning = await this.checkRcloneSocketRunning();
-            if (!isRunning) {
-                throw new Error('Rclone socket failed to start or become responsive.');
-            }
+            // Wait for socket to be ready using p-retry with exponential backoff
+            await pRetry(
+                async () => {
+                    const isRunning = await this.checkRcloneSocketRunning();
+                    if (!isRunning) throw new Error('Rclone socket not ready');
+                },
+                {
+                    retries: 6, // 7 attempts total
+                    minTimeout: 100,
+                    maxTimeout: 5000,
+                    factor: 2,
+                    maxRetryTime: 30000,
+                }
+            );
 
             return true;
         } catch (error: unknown) {
