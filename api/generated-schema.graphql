@@ -784,6 +784,7 @@ enum Resource {
   VARS
   VMS
   WELCOME
+  LXC
 }
 
 type ApiKey implements Node {
@@ -1497,6 +1498,16 @@ type UserAccount implements Node {
   permissions: [Permission!]
 }
 
+type LxcContainer implements Node {
+  id: PrefixedID!
+  name: String!
+}
+
+type Lxc implements Node {
+  id: PrefixedID!
+  containers: [LxcContainer!]!
+}
+
 "\n### Description:\n\nID scalar type that prefixes the underlying ID with the server identifier on output and strips it on input.\n\nWe use this scalar type to ensure that the ID is unique across all servers, allowing the same underlying resource ID to be used across different server instances.\n\n#### Input Behavior:\n\nWhen providing an ID as input (e.g., in arguments or input objects), the server identifier prefix ('<serverId>:') is optional.\n\n- If the prefix is present (e.g., '123:456'), it will be automatically stripped, and only the underlying ID ('456') will be used internally.\n- If the prefix is absent (e.g., '456'), the ID will be used as-is.\n\nThis makes it flexible for clients, as they don't strictly need to know or provide the server ID.\n\n#### Output Behavior:\n\nWhen an ID is returned in the response (output), it will *always* be prefixed with the current server's unique identifier (e.g., '123:456').\n\n#### Example:\n\nNote: The server identifier is '123' in this example.\n\n##### Input (Prefix Optional):\n```graphql\n# Both of these are valid inputs resolving to internal ID '456'\n{\n  someQuery(id: \"123:456\") { ... }\n  anotherQuery(id: \"456\") { ... }\n}\n```\n\n##### Output (Prefix Always Added):\n```graphql\n# Assuming internal ID is '456'\n{\n  \"data\": {\n    \"someResource\": {\n      \"id\": \"123:456\" \n    }\n  }\n}\n```\n        "
 scalar PrefixedID
 
@@ -1524,6 +1535,7 @@ type Query {
 
   """Get information about all VMs on the system"""
   vms: Vms!
+  lxc: Lxc!
   parityHistory: [ParityCheck!]!
   array: UnraidArray!
   apiKeys: [ApiKey!]!
