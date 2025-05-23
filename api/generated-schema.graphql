@@ -883,6 +883,52 @@ type VmMutations {
   reset(id: PrefixedID!): Boolean!
 }
 
+"""API Key related mutations"""
+type ApiKeyMutations {
+  """Create an API key"""
+  create(input: CreateApiKeyInput!): ApiKeyWithSecret!
+
+  """Add a role to an API key"""
+  addRole(input: AddRoleForApiKeyInput!): Boolean!
+
+  """Remove a role from an API key"""
+  removeRole(input: RemoveRoleFromApiKeyInput!): Boolean!
+
+  """Delete one or more API keys"""
+  delete(input: DeleteApiKeyInput!): Boolean!
+}
+
+input CreateApiKeyInput {
+  name: String!
+  description: String
+  roles: [Role!]
+  permissions: [AddPermissionInput!]
+
+  """
+  This will replace the existing key if one already exists with the same name, otherwise returns the existing key
+  """
+  overwrite: Boolean
+}
+
+input AddPermissionInput {
+  resource: Resource!
+  actions: [String!]!
+}
+
+input AddRoleForApiKeyInput {
+  apiKeyId: PrefixedID!
+  role: Role!
+}
+
+input RemoveRoleFromApiKeyInput {
+  apiKeyId: PrefixedID!
+  role: Role!
+}
+
+input DeleteApiKeyInput {
+  ids: [PrefixedID!]!
+}
+
 """
 Parity check related mutations, WIP, response types and functionaliy will change
 """
@@ -1455,8 +1501,6 @@ type UserAccount implements Node {
 scalar PrefixedID
 
 type Query {
-  apiKeys: [ApiKey!]!
-  apiKey(id: PrefixedID!): ApiKey
   cloud: Cloud!
   config: Config!
   display: Display!
@@ -1482,6 +1526,14 @@ type Query {
   vms: Vms!
   parityHistory: [ParityCheck!]!
   array: UnraidArray!
+  apiKeys: [ApiKey!]!
+  apiKey(id: PrefixedID!): ApiKey
+
+  """All possible roles for API keys"""
+  apiKeyPossibleRoles: [Role!]!
+
+  """All possible permissions for API keys"""
+  apiKeyPossiblePermissions: [Permission!]!
   connect: Connect!
   remoteAccess: RemoteAccess!
   extraAllowedOrigins: [String!]!
@@ -1496,10 +1548,6 @@ type Query {
 }
 
 type Mutation {
-  createApiKey(input: CreateApiKeyInput!): ApiKeyWithSecret!
-  addRoleForApiKey(input: AddRoleForApiKeyInput!): Boolean!
-  removeRoleFromApiKey(input: RemoveRoleFromApiKeyInput!): Boolean!
-
   """Creates a new notification record"""
   createNotification(input: NotificationData!): Notification!
   deleteNotification(id: PrefixedID!, type: NotificationType!): NotificationOverview!
@@ -1523,6 +1571,7 @@ type Mutation {
   docker: DockerMutations!
   vm: VmMutations!
   parityCheck: ParityCheckMutations!
+  apiKey: ApiKeyMutations!
   updateApiSettings(input: ApiSettingsInput!): ConnectSettingsValues!
   connectSignIn(input: ConnectSignInInput!): Boolean!
   connectSignOut: Boolean!
@@ -1530,33 +1579,6 @@ type Mutation {
   setAdditionalAllowedOrigins(input: AllowedOriginInput!): [String!]!
   enableDynamicRemoteAccess(input: EnableDynamicRemoteAccessInput!): Boolean!
   setDemo: String!
-}
-
-input CreateApiKeyInput {
-  name: String!
-  description: String
-  roles: [Role!]
-  permissions: [AddPermissionInput!]
-
-  """
-  This will replace the existing key if one already exists with the same name, otherwise returns the existing key
-  """
-  overwrite: Boolean
-}
-
-input AddPermissionInput {
-  resource: Resource!
-  actions: [String!]!
-}
-
-input AddRoleForApiKeyInput {
-  apiKeyId: PrefixedID!
-  role: Role!
-}
-
-input RemoveRoleFromApiKeyInput {
-  apiKeyId: PrefixedID!
-  role: Role!
 }
 
 input NotificationData {

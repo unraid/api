@@ -694,7 +694,7 @@ importers:
         specifier: ^0.511.0
         version: 0.511.0(vue@3.5.13(typescript@5.8.3))
       reka-ui:
-        specifier: ^2.1.0
+        specifier: ^2.1.1
         version: 2.1.1(typescript@5.8.3)(vue@3.5.13(typescript@5.8.3))
       shadcn-vue:
         specifier: ^2.0.0

@@ -130,11 +130,11 @@ export class ApiKeyService implements OnModuleInit {
             throw new GraphQLError('API key name is required');
         }
 
-        if (!roles?.length) {
-            throw new GraphQLError('At least one role must be specified');
+        if (!roles?.length && !permissions?.length) {
+            throw new GraphQLError('At least one role or permission must be specified');
         }
 
-        if (roles.some((role) => !ApiKeyService.validRoles.has(role))) {
+        if (roles?.some((role) => !ApiKeyService.validRoles.has(role))) {
             throw new GraphQLError('Invalid role specified');
         }
 

@@ -1,6 +1,7 @@
 import { Mutation, Resolver } from '@nestjs/graphql';
 
 import {
+    ApiKeyMutations,
     ArrayMutations,
     DockerMutations,
     ParityCheckMutations,
@@ -28,5 +29,10 @@ export class RootMutationsResolver {
     @Mutation(() => ParityCheckMutations, { name: 'parityCheck' })
     parityCheck(): ParityCheckMutations {
         return new ParityCheckMutations(); // You can pass context/state here if needed
+    }
+
+    @Mutation(() => ApiKeyMutations, { name: 'apiKey' })
+    apiKey(): ApiKeyMutations {
+        return new ApiKeyMutations(); // You can pass context/state here if needed
     }
 }
