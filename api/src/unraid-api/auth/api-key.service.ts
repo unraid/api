@@ -157,8 +157,6 @@ export class ApiKeyService implements OnModuleInit {
 
         await this.saveApiKey(apiKey as ApiKeyWithSecret);
 
-        this.memoryApiKeys.push(apiKey as ApiKeyWithSecret);
-
         return apiKey as ApiKeyWithSecret;
     }
 
