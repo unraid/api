@@ -1,8 +1,9 @@
 <script setup lang="ts">
 import { ref, watchEffect } from 'vue';
 import { useMutation, useQuery } from '@vue/apollo-composable';
+import { useClipboard } from '@vueuse/core';
 
-import { EyeIcon, EyeSlashIcon } from '@heroicons/vue/24/solid';
+import { ClipboardDocumentIcon, EyeIcon, EyeSlashIcon } from '@heroicons/vue/24/solid';
 import {
   Accordion,
   AccordionContent,
@@ -14,7 +15,9 @@ import {
   Input,
   PageContainer,
   Tooltip,
+  TooltipContent,
   TooltipProvider,
+  TooltipTrigger,
 } from '@unraid/ui';
 import { extractGraphQLErrorMessage } from '~/helpers/functions';
 
@@ -26,10 +29,18 @@ import { API_KEY_FRAGMENT, DELETE_API_KEY, GET_API_KEY_META, GET_API_KEYS } from
 import PermissionCounter from './PermissionCounter.vue';
 
 const { result, refetch } = useQuery(GET_API_KEYS);
+
+const modalStore = useModalStore();
 const apiKeys = ref<ApiKeyFragment[]>([]);
 
 watchEffect(() => {
   apiKeys.value = result.value?.apiKeys.map((key) => useFragment(API_KEY_FRAGMENT, key)) || [];
+});
+
+watchEffect(() => {
+  if (modalStore.apiKeyModalCreatedKey) {
+    refetch();
+  }
 });
 
 const metaQuery = useQuery(GET_API_KEY_META);
@@ -40,9 +51,8 @@ watchEffect(() => {
   possiblePermissions.value = metaQuery.result.value?.apiKeyPossiblePermissions || [];
 });
 
-const modalStore = useModalStore();
-
 const showKey = ref(false);
+const { copy, copied } = useClipboard();
 
 const { mutate: deleteKey } = useMutation(DELETE_API_KEY);
 
@@ -67,6 +77,12 @@ async function _deleteKey(_id: string) {
     deleteError.value = extractGraphQLErrorMessage(err);
   }
 }
+
+async function copyKey() {
+  if (modalStore.apiKeyModalCreatedKey?.key) {
+    await copy(modalStore.apiKeyModalCreatedKey.key);
+  }
+}
 </script>
 <template>
   <PageContainer>
@@ -83,7 +99,6 @@ async function _deleteKey(_id: string) {
       </div>
       <ul v-if="apiKeys.length" class="flex flex-col gap-4 mb-6">
         <CardWrapper v-for="key in apiKeys" :key="key.id">
-
           <li class="flex flex-row items-start justify-between gap-4 p-4 list-none">
             <div class="flex-1 min-w-0">
               <header class="flex gap-2 justify-between items-start">
@@ -146,18 +161,33 @@ async function _deleteKey(_id: string) {
                 class="mt-4 flex items-center gap-2"
               >
                 <span class="text-green-700 font-medium">API Key created / updated:</span>
-                <Input
-                  :model-value="
-                    showKey ? modalStore.apiKeyModalCreatedKey.key : '••••••••••••••••••••••••••••••••'
-                  "
-                  class="w-64 font-mono text-base px-2 py-1 bg-gray-50 border border-gray-200 rounded"
-                  readonly
-                />
+                <div class="relative w-64">
+                  <Input
+                    :model-value="
+                      showKey ? modalStore.apiKeyModalCreatedKey.key : '••••••••••••••••••••••••••••••••'
+                    "
+                    class="w-full font-mono text-base px-2 py-1 bg-gray-50 border border-gray-200 rounded pr-10"
+                    readonly
+                  />
+                  <button
+                    type="button"
+                    class="absolute inset-y-0 right-2 flex items-center px-1 text-gray-500 hover:text-gray-700"
+                    tabindex="-1"
+                    @click="toggleShowKey"
+                  >
+                    <component :is="showKey ? EyeSlashIcon : EyeIcon" class="w-5 h-5" />
+                  </button>
+                </div>
                 <TooltipProvider>
-                  <Tooltip :content="showKey ? 'Hide key' : 'Show key'">
-                    <Button variant="ghost" size="icon" @click="toggleShowKey">
-                      <component :is="showKey ? EyeSlashIcon : EyeIcon" class="w-5 h-5 text-gray-500" />
-                    </Button>
+                  <Tooltip :delay-duration="0">
+                    <TooltipTrigger>
+                      <Button variant="ghost" size="icon" @click="copyKey">
+                        <ClipboardDocumentIcon class="w-5 h-5" />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>{{ copied ? 'Copied!' : 'Copy to clipboard...' }}</p>
+                    </TooltipContent>
                   </Tooltip>
                 </TooltipProvider>
               </div>
