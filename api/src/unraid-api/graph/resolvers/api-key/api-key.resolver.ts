@@ -1,4 +1,4 @@
-import { Args, Mutation, Query, Resolver } from '@nestjs/graphql';
+import { Args, Query, Resolver } from '@nestjs/graphql';
 
 import { ApiKeyService } from '@app/unraid-api/auth/api-key.service.js';
 import { AuthService } from '@app/unraid-api/auth/auth.service.js';
@@ -7,16 +7,8 @@ import {
     AuthPossession,
     UsePermissions,
 } from '@app/unraid-api/graph/directives/use-permissions.directive.js';
-import {
-    AddRoleForApiKeyInput,
-    ApiKey,
-    ApiKeyWithSecret,
-    CreateApiKeyInput,
-    Permission,
-    RemoveRoleFromApiKeyInput,
-} from '@app/unraid-api/graph/resolvers/api-key/api-key.model.js';
+import { ApiKey, Permission } from '@app/unraid-api/graph/resolvers/api-key/api-key.model.js';
 import { Resource, Role } from '@app/unraid-api/graph/resolvers/base.model.js';
-import { validateObject } from '@app/unraid-api/graph/resolvers/validation.utils.js';
 import { PrefixedID } from '@app/unraid-api/graph/scalars/graphql-type-prefixed-id.js';
 
 @Resolver(() => ApiKey)
