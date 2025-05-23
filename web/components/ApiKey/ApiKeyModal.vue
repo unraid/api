@@ -15,10 +15,12 @@ import {
 
 import { GET_API_KEY_META } from '~/components/ApiKey/apikey.query';
 import ApiKeyCreate from '~/components/ApiKey/ApiKeyCreate.vue';
+import type { ApiKeyFragment } from '~/composables/gql/graphql';
 
 const { t } = useI18n();
-const props = defineProps<{ open: boolean }>();
-const emit = defineEmits(['close']);
+
+const props = defineProps<{ open: boolean; editingKey: ApiKeyFragment | null }>();
+const emit = defineEmits(['close', 'created']);
 const close = () => {
   emit('close');
 };
@@ -28,19 +30,42 @@ const possibleRoles = computed(() => apiKeyMetaResult.value?.apiKeyPossibleRoles
 const possiblePermissions = computed(() => apiKeyMetaResult.value?.apiKeyPossiblePermissions || []);
 
 const apiKeyCreateRef = ref();
+
+const handleCreated = (event: { key: string } | null) => {
+  close();
+  emit('created', event);
+};
 </script>
 
 <template>
-  <Dialog :open="props.open" @close="close">
+  <Dialog
+    :open="props.open"
+    @close="close"
+    @update:open="
+      (v) => {
+        if (!v) close();
+      }
+    "
+  >
     <DialogScrollContent class="max-w-800px">
       <DialogHeader>
-        <DialogTitle>{{ t('Create API Key') }}</DialogTitle>
+        <DialogTitle>{{ props.editingKey ? t('Edit API Key') : t('Create API Key') }}</DialogTitle>
       </DialogHeader>
       <DialogDescription>
         <ApiKeyCreate
           ref="apiKeyCreateRef"
           :possible-roles="possibleRoles"
           :possible-permissions="possiblePermissions"
+          :editing-key="props.editingKey ? {
+            ...props.editingKey,
+            roles: (props.editingKey.roles as any[]).map(r => r as any),
+            permissions: (props.editingKey.permissions as any[]).map(p => ({
+              ...p,
+              resource: p.resource as any,
+              actions: (p.actions as any[]).map(a => a as any),
+            })),
+          } : null"
+          @created="handleCreated"
         />
       </DialogDescription>
       <DialogFooter>
@@ -48,10 +73,12 @@ const apiKeyCreateRef = ref();
         <Button
           variant="primary"
           :disabled="apiKeyCreateRef?.loading || apiKeyCreateRef?.postCreateLoading"
-          @click="apiKeyCreateRef?.createKey()"
+          @click="apiKeyCreateRef?.upsertKey()"
         >
-          <span v-if="apiKeyCreateRef?.loading || apiKeyCreateRef?.postCreateLoading">Creating...</span>
-          <span v-else>Create</span>
+          <span v-if="apiKeyCreateRef?.loading || apiKeyCreateRef?.postCreateLoading">
+            {{ props.editingKey ? 'Saving...' : 'Creating...' }}
+          </span>
+          <span v-else>{{ props.editingKey ? 'Save' : 'Create' }}</span>
         </Button>
       </DialogFooter>
     </DialogScrollContent>
