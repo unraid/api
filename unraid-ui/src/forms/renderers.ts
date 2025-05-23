@@ -106,7 +106,6 @@ export const jsonFormsRenderers: JsonFormsRendererRegistryEntry[] = [
   // Fallback / Meta
   {
     renderer: markRaw(withErrorWrapper(MissingRenderer)),
--   tester: rankWith(3, isControl), // Adjusted rank to ensure it's tested after more specific controls
-+   tester: rankWith(0, isControl),
+    tester: rankWith(0, isControl),
   },
 ];
