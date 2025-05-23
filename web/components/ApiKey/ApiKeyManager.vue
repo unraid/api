@@ -17,13 +17,12 @@ import {
   TooltipProvider,
 } from '@unraid/ui';
 
-import { useModalStore } from '~/store/modal';
+import type { ApiKeyFragment } from '~/composables/gql/graphql';
+
+import { useFragment } from '~/composables/gql/fragment-masking';
 import { API_KEY_FRAGMENT, DELETE_API_KEY, GET_API_KEY_META, GET_API_KEYS } from './apikey.query';
 import ApiKeyModal from './ApiKeyModal.vue';
 import PermissionCounter from './PermissionCounter.vue';
-import type { ApiKeyFragment } from '~/composables/gql/graphql';
-import { useFragment } from '~/composables/gql/fragment-masking';
-
 
 const { result, refetch } = useQuery(GET_API_KEYS);
 const apiKeys = ref<ApiKeyFragment[]>([]);
@@ -40,7 +39,6 @@ watchEffect(() => {
   possiblePermissions.value = metaQuery.result.value?.apiKeyPossiblePermissions || [];
 });
 
-const modalStore = useModalStore();
 const showCreate = ref(false);
 const editingKey = ref<ApiKeyFragment | null>(null);
 const createdKey = ref<{ id: string; key: string } | null>(null);
@@ -56,7 +54,7 @@ function toggleShowKey() {
 
 async function onCreated(key: { id: string; key: string } | null) {
   createdKey.value = key;
-  modalStore.apiKeyModalHide();
+  showCreate.value = false;
   editingKey.value = null;
   await refetch();
 }
@@ -82,7 +80,7 @@ async function _deleteKey(_id: string) {
   }
 }
 
-function openCreateModal(key: ApiKey | null = null) {
+function openCreateModal(key: ApiKeyFragment | null = null) {
   showCreate.value = true;
   editingKey.value = key;
 }
@@ -107,9 +105,7 @@ function closeCreateModal() {
       </div>
       <ul v-if="apiKeys.length" class="flex flex-col gap-4 mb-6">
         <CardWrapper v-for="key in apiKeys" :key="key.id">
-          <li
-            class="flex flex-row items-start justify-between gap-4 p-4 list-none"
-          >
+          <li class="flex flex-row items-start justify-between gap-4 p-4 list-none">
             <div class="flex-1 min-w-0">
               <div class="flex items-center gap-2">
                 <span class="font-semibold text-lg truncate">{{ key.name }}</span>
@@ -125,7 +121,11 @@ function closeCreateModal() {
                 <Accordion type="single" collapsible class="w-full">
                   <AccordionItem :value="'permissions-' + key.id">
                     <AccordionTrigger>
-                      <PermissionCounter :permissions="key.permissions" :possible-permissions="possiblePermissions" label="Permissions" />
+                      <PermissionCounter
+                        :permissions="key.permissions"
+                        :possible-permissions="possiblePermissions"
+                        label="Permissions"
+                      />
                     </AccordionTrigger>
                     <AccordionContent>
                       <div v-if="key.permissions?.length" class="flex flex-col gap-2">
@@ -169,8 +169,12 @@ function closeCreateModal() {
               </div>
             </div>
             <div class="flex items-stretch gap-2 self-end md:self-center h-10">
-              <Button variant="secondary" size="sm" class="h-full" @click="() => openCreateModal(key)">Edit</Button>
-              <Button variant="destructive" size="sm" class="h-full" @click="_deleteKey(key.id)">Delete</Button>
+              <Button variant="secondary" size="sm" class="h-full" @click="() => openCreateModal(key)"
+                >Edit</Button
+              >
+              <Button variant="destructive" size="sm" class="h-full" @click="_deleteKey(key.id)"
+                >Delete</Button
+              >
             </div>
           </li>
         </CardWrapper>
