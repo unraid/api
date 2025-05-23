@@ -4,7 +4,6 @@
 // const { t } = useI18n();
 
 import { useMutation, useQuery } from '@vue/apollo-composable';
-import { useModalStore } from '~/store/modal';
 
 import { BrandButton, jsonFormsRenderers, Label } from '@unraid/ui';
 import { JsonForms } from '@jsonforms/vue';
@@ -85,8 +84,6 @@ const jsonFormsConfig = {
 
 const renderers = [...jsonFormsRenderers];
 
-const modalStore = useModalStore();
-
 /** Called when the user clicks the "Apply" button */
 const submitSettingsUpdate = async () => {
   console.log('[ConnectSettings] trying to update settings to', formState.value);
@@ -115,16 +112,6 @@ const onChange = ({ data }: { data: Record<string, unknown> }) => {
         '<unraid-i18n-host><unraid-download-api-logs></unraid-download-api-logs></unraid-i18n-host>'
       "
     ></div>
-    <Label>Create API Key:</Label>
-    <BrandButton
-      variant="outline-primary"
-      padding="lean"
-      size="12px"
-      class="leading-normal"
-      @click="modalStore.apiKeyModalShow"
-    >
-      Create API Key
-    </BrandButton>
   </div>
   <!-- auto-generated settings form -->
   <div class="mt-6 pl-3 [&_.vertical-layout]:space-y-6">
