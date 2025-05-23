@@ -9,6 +9,12 @@ import {
   BrandLogoConnect,
   type BrandButtonProps,
 } from '@/components/brand';
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from '@/components/common/accordion';
 // Components
 import { Badge, type BadgeProps } from '@/components/common/badge';
 import { Button, buttonVariants, type ButtonProps } from '@/components/common/button';
@@ -80,6 +86,10 @@ import tailwindConfig from '../tailwind.config';
 
 // Export
 export {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
   Bar,
   Badge,
   BrandButton,

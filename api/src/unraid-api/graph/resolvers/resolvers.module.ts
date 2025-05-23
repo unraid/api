@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 
 import { AuthModule } from '@app/unraid-api/auth/auth.module.js';
+import { ApiKeyModule } from '@app/unraid-api/graph/resolvers/api-key/api-key.module.js';
 import { ApiKeyResolver } from '@app/unraid-api/graph/resolvers/api-key/api-key.resolver.js';
 import { ArrayModule } from '@app/unraid-api/graph/resolvers/array/array.module.js';
 import { ArrayMutationsResolver } from '@app/unraid-api/graph/resolvers/array/array.mutations.resolver.js';
@@ -34,9 +35,8 @@ import { SharesResolver } from '@app/unraid-api/graph/shares/shares.resolver.js'
 import { MeResolver } from '@app/unraid-api/graph/user/user.resolver.js';
 
 @Module({
-    imports: [ArrayModule, AuthModule, ConnectModule, CustomizationModule, DockerModule, DisksModule],
+    imports: [ArrayModule, ApiKeyModule, ConnectModule, CustomizationModule, DockerModule, DisksModule],
     providers: [
-        ApiKeyResolver,
         CloudResolver,
         ConfigResolver,
         DisplayResolver,
@@ -60,6 +60,6 @@ import { MeResolver } from '@app/unraid-api/graph/user/user.resolver.js';
         VmsResolver,
         VmsService,
     ],
-    exports: [AuthModule, ApiKeyResolver],
+    exports: [ApiKeyModule],
 })
 export class ResolversModule {}

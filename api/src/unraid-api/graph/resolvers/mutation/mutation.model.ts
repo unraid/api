@@ -10,6 +10,11 @@ export class DockerMutations {}
 export class VmMutations {}
 
 @ObjectType({
+    description: 'API Key related mutations',
+})
+export class ApiKeyMutations {}
+
+@ObjectType({
     description: 'Parity check related mutations, WIP, response types and functionaliy will change',
 })
 export class ParityCheckMutations {}
@@ -24,6 +29,9 @@ export class RootMutations {
 
     @Field(() => VmMutations, { description: 'VM related mutations' })
     vm: VmMutations = new VmMutations();
+
+    @Field(() => ApiKeyMutations, { description: 'API Key related mutations' })
+    apiKey: ApiKeyMutations = new ApiKeyMutations();
 
     @Field(() => ParityCheckMutations, { description: 'Parity check related mutations' })
     parityCheck: ParityCheckMutations = new ParityCheckMutations();
