@@ -1,7 +1,7 @@
 import { pino } from 'pino';
 import pretty from 'pino-pretty';
 
-import { LOG_TYPE } from '@app/environment.js';
+import { API_VERSION, LOG_TYPE } from '@app/environment.js';
 
 export const levels = ['trace', 'debug', 'info', 'warn', 'error', 'fatal'] as const;
 
@@ -10,9 +10,7 @@ export type LogLevel = (typeof levels)[number];
 const level =
     levels[levels.indexOf(process.env.LOG_LEVEL?.toLowerCase() as (typeof levels)[number])] ?? 'info';
 
-export const logDestination = pino.destination({
-    sync: true,
-});
+export const logDestination = pino.destination();
 
 const stream =
     LOG_TYPE === 'pretty'
@@ -28,9 +26,10 @@ const stream =
 export const logger = pino(
     {
         level,
-        timestamp: () => `,"time":"${new Date().toISOString()}",`,
+        timestamp: pino.stdTimeFunctions.isoTime,
         formatters: {
             level: (label: string) => ({ level: label }),
+            bindings: (bindings) => ({ ...bindings, apiVersion: API_VERSION }),
         },
         redact: {
             paths: [
