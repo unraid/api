@@ -15,6 +15,7 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
+  Badge,
 } from '@unraid/ui';
 
 import type { FragmentType } from '~/composables/gql/fragment-masking';
@@ -25,6 +26,7 @@ import { API_KEY_FRAGMENT, CREATE_API_KEY, UPDATE_API_KEY } from './apikey.query
 import type { ApolloError } from '@apollo/client/errors';
 import PermissionCounter from './PermissionCounter.vue';
 import { extractGraphQLErrorMessage } from '~/helpers/functions';
+import { actionVariant } from './actionVariant';
 
 const props = defineProps<{
   possibleRoles: Role[];
@@ -181,7 +183,7 @@ defineExpose({
 });
 </script>
 <template>
-  <div class="mb-4 p-4 border rounded bg-muted">
+  <form @submit.prevent="upsertKey">
     <div class="mb-2">
       <Label for="api-key-name">Name</Label>
       <Input id="api-key-name" v-model="newKeyName" placeholder="Name" class="mt-1" />
@@ -204,16 +206,18 @@ defineExpose({
       </Select>
     </div>
     <div class="mb-2">
-      <Accordion type="single" collapsible class="w-full mt-2">
+      <Label for="api-key-permissions">Permissions</Label>
+      <Accordion id="api-key-permissions" type="single" collapsible class="w-full mt-2">
         <AccordionItem value="permissions">
           <AccordionTrigger>
-            <PermissionCounter :permissions="newKeyPermissions" :possible-permissions="props.possiblePermissions" label="Permissions" />
+            <PermissionCounter :permissions="newKeyPermissions" :possible-permissions="props.possiblePermissions" />
           </AccordionTrigger>
           <AccordionContent>
-            <div class="flex flex-row justify-end mb-2">
+            <div class="flex flex-row justify-end my-2">
               <Button
                 size="sm"
                 variant="secondary"
+                type="button"
                 @click="areAllPermissionsSelected() ? clearAllPermissions() : selectAllPermissions()"
               >
                 {{ areAllPermissionsSelected() ? 'Select None' : 'Select All' }}
@@ -223,13 +227,14 @@ defineExpose({
               <div
                 v-for="perm in props.possiblePermissions"
                 :key="perm.resource"
-                class="border rounded p-2"
+                class="rounded-sm p-2 border"
               >
                 <div class="flex items-center justify-between mb-1">
                   <span class="font-semibold">{{ perm.resource }}</span>
                   <Button
                     size="sm"
-                    variant="secondary"
+                    variant="link"
+                    type="button"
                     @click="
                       areAllActionsSelected(perm.resource)
                         ? clearAllActions(perm.resource)
@@ -240,24 +245,31 @@ defineExpose({
                   </Button>
                 </div>
                 <div class="flex gap-4 flex-wrap">
-                  <label v-for="action in perm.actions" :key="action" class="flex items-center gap-1">
-                    <input
-                      type="checkbox"
-                      :checked="
-                        !!newKeyPermissions.find(
-                          (p) => p.resource === perm.resource && p.actions.includes(action)
-                        )
-                      "
-                      @change="
-                        (e: Event) =>
-                          togglePermission(
-                            perm.resource,
-                            action,
-                            (e.target as HTMLInputElement)?.checked
+                  <label
+                    v-for="action in perm.actions"
+                    :key="action"
+                    class="flex items-center gap-1"
+
+                  >
+                    <Badge :variant="actionVariant(action)" class="flex items-center gap-1">
+                      <input
+                        type="checkbox"
+                        :checked="
+                          !!newKeyPermissions.find(
+                            (p) => p.resource === perm.resource && p.actions.includes(action)
                           )
-                      "
-                    />
-                    <span>{{ action }}</span>
+                        "
+                        @change="
+                          (e: Event) =>
+                            togglePermission(
+                              perm.resource,
+                              action,
+                              (e.target as HTMLInputElement)?.checked
+                            )
+                        "
+                      />
+                      <span class="text-xs">{{ action }}</span>
+                    </Badge>
                   </label>
                 </div>
               </div>
@@ -269,5 +281,5 @@ defineExpose({
     <div v-if="error" class="text-red-500 mt-2 text-sm">
       {{ extractGraphQLErrorMessage(error) }}
     </div>
-  </div>
+  </form>
 </template>

@@ -1,15 +1,27 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 
-const props = defineProps<{
-  permissions: { resource: string; actions: string[] }[];
-  possiblePermissions?: { resource: string; actions: string[] }[];
-  label?: string;
-}>();
+import { Badge } from '@unraid/ui';
+
+import { actionVariant } from './actionVariant.js';
+
+const props = withDefaults(
+  defineProps<{
+    permissions: { resource: string; actions: string[] }[];
+    possiblePermissions?: { resource: string; actions: string[] }[];
+    hideNumber?: boolean;
+    label?: string;
+  }>(),
+  {
+    label: '',
+    possiblePermissions: () => [],
+    hideNumber: false,
+  }
+);
 
 const possibleActions = computed(() => {
   if (!props.possiblePermissions) return [];
-  return Array.from(new Set(props.possiblePermissions.flatMap(p => p.actions)));
+  return Array.from(new Set(props.possiblePermissions.flatMap((p) => p.actions)));
 });
 
 const actionCounts = computed(() => {
@@ -28,9 +40,15 @@ const actionCounts = computed(() => {
   <div class="flex flex-row items-center gap-1">
     <span v-if="label">{{ label }}</span>
     <template v-if="possibleActions.length">
-      (<span v-for="action in possibleActions" :key="action" class="text-xs text-muted-foreground">
-        {{ action }}: {{ actionCounts[action] || 0 }}
-      </span>)
+      <Badge
+        v-for="action in possibleActions"
+        :key="action"
+        :variant="actionVariant(action)"
+        class="text-xs text-muted-foreground"
+      >
+        <span v-if="!hideNumber">{{ action }}: {{ actionCounts[action] || 0 }}</span>
+        <span v-else>{{ action }}</span>
+      </Badge>
     </template>
   </div>
-</template> 
+</template>
