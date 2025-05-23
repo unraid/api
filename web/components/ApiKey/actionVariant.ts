@@ -18,14 +18,12 @@ export function actionVariant(action: string):
   switch (action) {
     case 'read':
       return 'blue';
-    case 'write':
+    case 'create':
+      return 'green';
+    case 'update':
       return 'yellow';
     case 'delete':
-      return 'red';
-    case 'update':
-      return 'orange';
-    case 'execute':
-      return 'purple';
+      return 'pink';
     default:
       return 'gray';
   }

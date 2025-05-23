@@ -16,13 +16,14 @@ import type { HTMLAttributes } from 'vue';
 
 const { teleportTarget } = useTeleport();
 
-const props = defineProps<DialogContentProps & { class?: HTMLAttributes['class'] } & { to?: string | HTMLElement }>();
+const props = defineProps<
+  DialogContentProps & { class?: HTMLAttributes['class'] } & { to?: string | HTMLElement }
+>();
 const emits = defineEmits<DialogContentEmits>();
 
 const delegatedProps = reactiveOmit(props, 'class');
 
 const forwarded = useForwardPropsEmits(delegatedProps, emits);
-
 </script>
 
 <template>

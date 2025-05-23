@@ -83,19 +83,19 @@ async function _deleteKey(_id: string) {
       </div>
       <ul v-if="apiKeys.length" class="flex flex-col gap-4 mb-6">
         <CardWrapper v-for="key in apiKeys" :key="key.id">
+
           <li class="flex flex-row items-start justify-between gap-4 p-4 list-none">
             <div class="flex-1 min-w-0">
               <header class="flex gap-2 justify-between items-start">
                 <div class="flex flex-col gap-2">
-                  <div class="flex items-center gap-2">
-                    <span class="font-semibold text-lg truncate">{{ key.name }}</span>
-                    <span v-if="key.description" class="text-muted-foreground text-sm truncate">{{
-                      key.description
-                    }}</span>
-                  </div>
-                  <div v-if="key.roles.length" class="mt-2 flex flex-wrap gap-2 items-center">
-                    <span class="font-semibold text-sm">Roles:</span>
-                    <Badge v-for="role in key.roles" :key="role" variant="blue" size="sm">{{
+                  <span class="text-sm truncate"><b>ID:</b> {{ key.id.split(':')[1] }}</span>
+                  <span class="text-sm truncate"><b>Name:</b> {{ key.name }}</span>
+                  <span v-if="key.description" class="text-sm truncate"
+                    ><b>Description:</b> {{ key.description }}</span
+                  >
+                  <div v-if="key.roles.length" class="flex flex-wrap gap-2 items-center">
+                    <span class="text-sm"><b>Roles:</b></span>
+                    <Badge v-for="role in key.roles" :key="role" variant="blue" size="xs">{{
                       role
                     }}</Badge>
                   </div>
@@ -106,13 +106,13 @@ async function _deleteKey(_id: string) {
                 </div>
               </header>
               <div v-if="key.permissions?.length" class="pt-2 w-full">
+                <span class="text-sm"><b>Permissions:</b></span>
                 <Accordion type="single" collapsible class="w-full">
                   <AccordionItem :value="'permissions-' + key.id">
                     <AccordionTrigger>
                       <PermissionCounter
                         :permissions="key.permissions"
                         :possible-permissions="possiblePermissions"
-                        label="Permissions"
                       />
                     </AccordionTrigger>
                     <AccordionContent>
