@@ -19,6 +19,16 @@ import {
 import { Badge, type BadgeProps } from '@/components/common/badge';
 import { Button, buttonVariants, type ButtonProps } from '@/components/common/button';
 import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogScrollContent,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/common/dialog';
+import {
   DropdownMenu,
   DropdownMenuArrow,
   DropdownMenuCheckboxItem,
@@ -165,7 +175,14 @@ export {
   TooltipTrigger,
   TooltipProvider,
   useTeleport,
-
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogScrollContent,
+  DialogTitle,
+  DialogTrigger,
   // Type exports
   type BrandButtonProps,
   type BadgeProps,
