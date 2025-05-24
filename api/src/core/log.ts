@@ -85,3 +85,19 @@ export const loggers = [
     remoteQueryLogger,
     apiLogger,
 ];
+
+export function sanitizeParams(params: Record<string, any>): Record<string, any> {
+    const SENSITIVE_KEYS = ['password', 'secret', 'token', 'key', 'client_secret'];
+    const mask = (value: any) => (typeof value === 'string' && value.length > 0 ? '***' : value);
+    const sanitized: Record<string, any> = {};
+    for (const k in params) {
+        if (SENSITIVE_KEYS.some((s) => k.toLowerCase().includes(s))) {
+            sanitized[k] = mask(params[k]);
+        } else if (typeof params[k] === 'object' && params[k] !== null && !Array.isArray(params[k])) {
+            sanitized[k] = sanitizeParams(params[k]);
+        } else {
+            sanitized[k] = params[k];
+        }
+    }
+    return sanitized;
+}

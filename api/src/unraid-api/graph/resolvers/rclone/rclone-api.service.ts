@@ -9,6 +9,7 @@ import { execa } from 'execa';
 import got, { HTTPError } from 'got';
 import pRetry from 'p-retry';
 
+import { sanitizeParams } from '@app/core/log.js';
 import {
     CreateRCloneRemoteDto,
     DeleteRCloneRemoteDto,
@@ -418,21 +419,22 @@ export class RCloneApiService implements OnModuleInit, OnModuleDestroy {
                 detailedErrorMessage = `Rclone API Error (${endpoint}, HTTP ${statusCode}): ${rcloneError}`;
 
                 // Log the detailed error including the original stack if available
+                const sanitizedParams = sanitizeParams(params);
                 this.logger.error(
-                    `Original ${detailedErrorMessage} | Params: ${JSON.stringify(params)}`,
-                    error.stack // Log the original HTTPError stack
+                    `Original ${detailedErrorMessage} | Params: ${JSON.stringify(sanitizedParams)}`,
+                    error.stack
                 );
 
                 // Throw a NEW error with the detailed Rclone message
                 throw new Error(detailedErrorMessage);
             } else if (error instanceof Error) {
                 // For non-HTTP errors, log and re-throw as before
-                detailedErrorMessage = `Error calling RClone API (${endpoint}) with params ${JSON.stringify(params)}: ${error.message}`;
+                detailedErrorMessage = `Error calling RClone API (${endpoint}) with params ${JSON.stringify(sanitizeParams(params))}: ${error.message}`;
                 this.logger.error(detailedErrorMessage, error.stack);
                 throw error; // Re-throw original non-HTTP error
             } else {
                 // Handle unknown error types
-                detailedErrorMessage = `Unknown error calling RClone API (${endpoint}) with params ${JSON.stringify(params)}: ${String(error)}`;
+                detailedErrorMessage = `Unknown error calling RClone API (${endpoint}) with params ${JSON.stringify(sanitizeParams(params))}: ${String(error)}`;
                 this.logger.error(detailedErrorMessage);
                 throw new Error(detailedErrorMessage); // Throw a new error for unknown types
             }
