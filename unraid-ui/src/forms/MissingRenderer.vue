@@ -16,7 +16,6 @@ const props = defineProps<{
   errors?: string;
 }>();
 
-// eslint-disable-next-line no-console
 console.warn('Missing renderer used for:', props);
 </script>
 

@@ -25,54 +25,52 @@ const { teleportTarget } = useTeleport();
 const props = defineProps<RendererProps<ControlElement>>();
 const { control, handleChange } = useJsonFormsControl(props);
 
-// Use a local ref for the input's current text value
 const inputValue = ref(control.value.data ?? '');
 
 const isOpen = ref(false);
 
-// Get suggestions from the control's options
 const suggestions = computed<Suggestion[]>(() => {
   return control.value.uischema.options?.suggestions || [];
 });
 
-// Handle raw input event
 const handleInput = (event: Event) => {
   inputValue.value = (event.target as HTMLInputElement).value;
 };
 
-// Handle selection from the list
 const handleSelect = (event: CustomEvent<{ value?: AcceptableValue }>) => {
   if (event.detail.value === undefined || event.detail.value === null) return;
   const stringValue = String(event.detail.value);
-  inputValue.value = stringValue; // Update local input state
-  handleChange(control.value.path, stringValue); // Update jsonforms state
+  inputValue.value = stringValue;
+  handleChange(control.value.path, stringValue);
   isOpen.value = false;
 };
 
-// Handle dropdown close
 const handleOpenChange = (open: boolean) => {
   isOpen.value = open;
-  // When the dropdown closes, commit the current input value
   if (!open) {
+    if (control.value.uischema.options?.strictSuggestions && suggestions.value.length > 0) {
+      const isValid = suggestions.value.some(
+        suggestion => suggestion.value === inputValue.value || suggestion.label === inputValue.value
+      );
+      if (!isValid) {
+        inputValue.value = control.value.data || '';
+        return;
+      }
+    }
     handleChange(control.value.path, inputValue.value);
   }
 };
 
-// Watch for external value changes to update local input state
 watch(
   () => control.value.data,
   (newValue) => {
     const currentVal = newValue ?? '';
     if (currentVal !== inputValue.value) {
       inputValue.value = currentVal;
-      // Optionally, also call handleChange here if external changes should always immediately reflect
-      // handleChange(control.value.path, currentVal);
     }
   }
 );
 
-// Initialize inputValue on mount
-// This might be redundant due to the watch, but ensures initial state
 if (control.value.data !== undefined && control.value.data !== null) {
   inputValue.value = String(control.value.data);
 }
