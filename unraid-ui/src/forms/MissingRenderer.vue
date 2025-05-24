@@ -8,8 +8,15 @@
 <script setup lang="ts">
 import { defineProps } from 'vue';
 
-const props = defineProps();
+const props = defineProps<{
+  schema?: object;
+  uischema?: object;
+  path?: string;
+  data?: unknown;
+  errors?: string;
+}>();
 
+// eslint-disable-next-line no-console
 console.warn('Missing renderer used for:', props);
 </script>
 
