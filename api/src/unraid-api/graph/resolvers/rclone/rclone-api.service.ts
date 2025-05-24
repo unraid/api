@@ -24,25 +24,6 @@ import {
 } from '@app/unraid-api/graph/resolvers/rclone/rclone.model.js';
 import { validateObject } from '@app/unraid-api/graph/resolvers/validation.utils.js';
 
-// Define the structure returned by mapProviderOptions inline
-interface MappedRCloneProviderOption {
-    name: string;
-    help: string;
-    provider?: string;
-    default: any;
-    value: any;
-    shortOpt?: string;
-    hide?: number;
-    required?: boolean;
-    isPassword?: boolean;
-    noPrefix?: boolean;
-    advanced?: boolean;
-    defaultStr?: string;
-    valueStr?: string;
-    type?: string;
-    examples?: { value: string; help: string; provider?: string }[];
-}
-
 @Injectable()
 export class RCloneApiService implements OnModuleInit, OnModuleDestroy {
     private isInitialized: boolean = false;
@@ -242,33 +223,6 @@ export class RCloneApiService implements OnModuleInit, OnModuleDestroy {
     }
 
     /**
-     * Maps RClone provider options from API format to our model format
-     */
-    private mapProviderOptions(options: RCloneProviderOptionResponse[]): MappedRCloneProviderOption[] {
-        return options.map((option) => ({
-            name: option.Name,
-            help: option.Help,
-            provider: option.Provider,
-            default: option.Default,
-            value: option.Value,
-            shortOpt: option.ShortOpt,
-            hide: option.Hide,
-            required: option.Required,
-            isPassword: option.IsPassword,
-            noPrefix: option.NoPrefix,
-            advanced: option.Advanced,
-            defaultStr: option.DefaultStr,
-            valueStr: option.ValueStr,
-            type: option.Type,
-            examples: option.Examples?.map((example) => ({
-                value: example.Value,
-                help: example.Help,
-                provider: example.Provider,
-            })),
-        }));
-    }
-
-    /**
      * List all remotes configured in rclone
      */
     async listRemotes(): Promise<string[]> {
@@ -367,7 +321,9 @@ export class RCloneApiService implements OnModuleInit, OnModuleDestroy {
     private async callRcloneApi(endpoint: string, params: Record<string, any> = {}): Promise<any> {
         const url = `${this.rcloneBaseUrl}/${endpoint}`;
         try {
-            this.logger.debug(`Calling RClone API: ${url} with params: ${JSON.stringify(params)}`);
+            this.logger.debug(
+                `Calling RClone API: ${url} with params: ${JSON.stringify(sanitizeParams(params))}`
+            );
 
             const response = await got.post(url, {
                 json: params,
@@ -376,68 +332,63 @@ export class RCloneApiService implements OnModuleInit, OnModuleDestroy {
                 headers: {
                     Authorization: `Basic ${Buffer.from(`${this.rcloneUsername}:${this.rclonePassword}`).toString('base64')}`,
                 },
-                // Add timeout? retry logic? Consider these based on need.
             });
 
             return response.body;
         } catch (error: unknown) {
-            let detailedErrorMessage = 'An unknown error occurred';
-            if (error instanceof HTTPError) {
-                const statusCode = error.response.statusCode;
-                let rcloneError = 'Could not extract Rclone error details.';
-                const responseBody = error.response.body; // Get the body
+            this.handleApiError(error, endpoint, params);
+        }
+    }
 
-                try {
-                    let errorBody: any;
-                    // Check if the body is a string that needs parsing or already an object
-                    if (typeof responseBody === 'string') {
-                        errorBody = JSON.parse(responseBody);
-                    } else if (typeof responseBody === 'object' && responseBody !== null) {
-                        errorBody = responseBody; // It's already an object
-                    }
+    private handleApiError(error: unknown, endpoint: string, params: Record<string, unknown>): never {
+        if (error instanceof HTTPError) {
+            const statusCode = error.response.statusCode;
+            const rcloneError = this.extractRcloneError(error.response.body, params);
+            const detailedErrorMessage = `Rclone API Error (${endpoint}, HTTP ${statusCode}): ${rcloneError}`;
 
-                    if (errorBody && errorBody.error) {
-                        rcloneError = `Rclone Error: ${errorBody.error}`;
-                        // Add input details if available, check for different structures
-                        if (errorBody.input) {
-                            rcloneError += ` | Input: ${JSON.stringify(errorBody.input)}`;
-                        } else if (params) {
-                            // Fallback to original params if errorBody.input is missing
-                            rcloneError += ` | Original Params: ${JSON.stringify(params)}`;
-                        }
-                    } else if (responseBody) {
-                        // Body exists but doesn't match expected error structure
-                        rcloneError = `Non-standard error response body: ${typeof responseBody === 'string' ? responseBody : JSON.stringify(responseBody)}`;
-                    } else {
-                        rcloneError = 'Empty error response body received.';
-                    }
-                } catch (parseOrAccessError) {
-                    // Handle errors during parsing or accessing properties
-                    rcloneError = `Failed to process error response body. Raw body: ${typeof responseBody === 'string' ? responseBody : JSON.stringify(responseBody)}`;
-                }
-                // Construct the detailed message for the new error
-                detailedErrorMessage = `Rclone API Error (${endpoint}, HTTP ${statusCode}): ${rcloneError}`;
+            const sanitizedParams = sanitizeParams(params);
+            this.logger.error(
+                `Original ${detailedErrorMessage} | Params: ${JSON.stringify(sanitizedParams)}`,
+                error.stack
+            );
 
-                // Log the detailed error including the original stack if available
-                const sanitizedParams = sanitizeParams(params);
-                this.logger.error(
-                    `Original ${detailedErrorMessage} | Params: ${JSON.stringify(sanitizedParams)}`,
-                    error.stack
-                );
+            throw new Error(detailedErrorMessage);
+        } else if (error instanceof Error) {
+            const detailedErrorMessage = `Error calling RClone API (${endpoint}) with params ${JSON.stringify(sanitizeParams(params))}: ${error.message}`;
+            this.logger.error(detailedErrorMessage, error.stack);
+            throw error;
+        } else {
+            const detailedErrorMessage = `Unknown error calling RClone API (${endpoint}) with params ${JSON.stringify(sanitizeParams(params))}: ${String(error)}`;
+            this.logger.error(detailedErrorMessage);
+            throw new Error(detailedErrorMessage);
+        }
+    }
 
-                // Throw a NEW error with the detailed Rclone message
-                throw new Error(detailedErrorMessage);
-            } else if (error instanceof Error) {
-                // For non-HTTP errors, log and re-throw as before
-                detailedErrorMessage = `Error calling RClone API (${endpoint}) with params ${JSON.stringify(sanitizeParams(params))}: ${error.message}`;
-                this.logger.error(detailedErrorMessage, error.stack);
-                throw error; // Re-throw original non-HTTP error
-            } else {
-                // Handle unknown error types
-                detailedErrorMessage = `Unknown error calling RClone API (${endpoint}) with params ${JSON.stringify(sanitizeParams(params))}: ${String(error)}`;
-                this.logger.error(detailedErrorMessage);
-                throw new Error(detailedErrorMessage); // Throw a new error for unknown types
+    private extractRcloneError(responseBody: unknown, fallbackParams: Record<string, unknown>): string {
+        try {
+            let errorBody: unknown;
+            if (typeof responseBody === 'string') {
+                errorBody = JSON.parse(responseBody);
+            } else if (typeof responseBody === 'object' && responseBody !== null) {
+                errorBody = responseBody;
             }
+
+            if (errorBody && typeof errorBody === 'object' && 'error' in errorBody) {
+                const typedErrorBody = errorBody as { error: unknown; input?: unknown };
+                let rcloneError = `Rclone Error: ${String(typedErrorBody.error)}`;
+                if (typedErrorBody.input) {
+                    rcloneError += ` | Input: ${JSON.stringify(typedErrorBody.input)}`;
+                } else if (fallbackParams) {
+                    rcloneError += ` | Original Params: ${JSON.stringify(fallbackParams)}`;
+                }
+                return rcloneError;
+            } else if (responseBody) {
+                return `Non-standard error response body: ${typeof responseBody === 'string' ? responseBody : JSON.stringify(responseBody)}`;
+            } else {
+                return 'Empty error response body received.';
+            }
+        } catch (parseOrAccessError) {
+            return `Failed to process error response body. Raw body: ${typeof responseBody === 'string' ? responseBody : JSON.stringify(responseBody)}`;
         }
     }
 }
