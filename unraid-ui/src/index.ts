@@ -1,5 +1,6 @@
 // Styles
 import '@/styles/index.css';
+
 // Components
 export * from '@/components';
 
