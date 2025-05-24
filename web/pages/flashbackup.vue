@@ -1,5 +1,5 @@
 <script setup>
-import RCloneConfig from '~/components/RClone/RCloneConfig.vue';
+import BackupOverview from '~/components/Backup/BackupOverview.vue';
 import RCloneOverview from '~/components/RClone/RCloneOverview.vue';
 import { useDummyServerStore } from '~/_data/serverState';
 
@@ -18,7 +18,7 @@ onMounted(() => {
 
 <template>
   <div>
+    <BackupOverview />
     <RCloneOverview />
-    <RCloneConfig />
   </div>
 </template>

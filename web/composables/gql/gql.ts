@@ -20,6 +20,11 @@ type Documents = {
     "\n  mutation CreateApiKey($input: CreateApiKeyInput!) {\n    apiKey {\n      create(input: $input) {\n        id\n        key\n        name\n        description\n        createdAt\n        roles\n        permissions {\n          resource\n          actions\n        }\n      }\n    }\n  }\n": typeof types.CreateApiKeyDocument,
     "\n  mutation DeleteApiKey($input: DeleteApiKeyInput!) {\n    apiKey {\n      delete(input: $input)\n    }\n  }\n": typeof types.DeleteApiKeyDocument,
     "\n  query ApiKeyMeta {\n    apiKeyPossibleRoles\n    apiKeyPossiblePermissions {\n      resource\n      actions\n    }\n  }\n": typeof types.ApiKeyMetaDocument,
+    "\n  query BackupJobs {\n    backup {\n      id\n      jobs {\n        id\n        type\n        stats\n        formattedBytes\n        formattedSpeed\n        formattedElapsedTime\n        formattedEta\n      }\n    }\n  }\n": typeof types.BackupJobsDocument,
+    "\n  query BackupJob($jobId: String!) {\n    backupJob(jobId: $jobId) {\n      id\n      type\n      stats\n    }\n  }\n": typeof types.BackupJobDocument,
+    "\n  query BackupJobConfigs {\n    backup {\n      id\n      configs {\n        id\n        name\n        sourcePath\n        remoteName\n        destinationPath\n        schedule\n        enabled\n        createdAt\n        updatedAt\n        lastRunAt\n        lastRunStatus\n      }\n    }\n  }\n": typeof types.BackupJobConfigsDocument,
+    "\n  query BackupJobConfigForm($input: BackupJobConfigFormInput) {\n    backupJobConfigForm(input: $input) {\n      id\n      dataSchema\n      uiSchema\n    }\n  }\n": typeof types.BackupJobConfigFormDocument,
+    "\n  mutation CreateBackupJobConfig($input: CreateBackupJobConfigInput!) {\n    createBackupJobConfig(input: $input) {\n      id\n      name\n      sourcePath\n      remoteName\n      destinationPath\n      schedule\n      enabled\n      createdAt\n      updatedAt\n    }\n  }\n": typeof types.CreateBackupJobConfigDocument,
     "\n  query GetConnectSettingsForm {\n    connect {\n      id\n      settings {\n        id\n        dataSchema\n        uiSchema\n        values {\n          sandbox\n          extraOrigins\n          accessType\n          forwardType\n          port\n          ssoUserIds\n        }\n      }\n    }\n  }\n": typeof types.GetConnectSettingsFormDocument,
     "\n  mutation UpdateConnectSettings($input: ApiSettingsInput!) {\n    updateApiSettings(input: $input) {\n      sandbox\n      extraOrigins\n      accessType\n      forwardType\n      port\n      ssoUserIds\n    }\n  }\n": typeof types.UpdateConnectSettingsDocument,
     "\n  query LogFiles {\n    logFiles {\n      name\n      path\n      size\n      modifiedAt\n    }\n  }\n": typeof types.LogFilesDocument,
@@ -57,6 +62,11 @@ const documents: Documents = {
     "\n  mutation CreateApiKey($input: CreateApiKeyInput!) {\n    apiKey {\n      create(input: $input) {\n        id\n        key\n        name\n        description\n        createdAt\n        roles\n        permissions {\n          resource\n          actions\n        }\n      }\n    }\n  }\n": types.CreateApiKeyDocument,
     "\n  mutation DeleteApiKey($input: DeleteApiKeyInput!) {\n    apiKey {\n      delete(input: $input)\n    }\n  }\n": types.DeleteApiKeyDocument,
     "\n  query ApiKeyMeta {\n    apiKeyPossibleRoles\n    apiKeyPossiblePermissions {\n      resource\n      actions\n    }\n  }\n": types.ApiKeyMetaDocument,
+    "\n  query BackupJobs {\n    backup {\n      id\n      jobs {\n        id\n        type\n        stats\n        formattedBytes\n        formattedSpeed\n        formattedElapsedTime\n        formattedEta\n      }\n    }\n  }\n": types.BackupJobsDocument,
+    "\n  query BackupJob($jobId: String!) {\n    backupJob(jobId: $jobId) {\n      id\n      type\n      stats\n    }\n  }\n": types.BackupJobDocument,
+    "\n  query BackupJobConfigs {\n    backup {\n      id\n      configs {\n        id\n        name\n        sourcePath\n        remoteName\n        destinationPath\n        schedule\n        enabled\n        createdAt\n        updatedAt\n        lastRunAt\n        lastRunStatus\n      }\n    }\n  }\n": types.BackupJobConfigsDocument,
+    "\n  query BackupJobConfigForm($input: BackupJobConfigFormInput) {\n    backupJobConfigForm(input: $input) {\n      id\n      dataSchema\n      uiSchema\n    }\n  }\n": types.BackupJobConfigFormDocument,
+    "\n  mutation CreateBackupJobConfig($input: CreateBackupJobConfigInput!) {\n    createBackupJobConfig(input: $input) {\n      id\n      name\n      sourcePath\n      remoteName\n      destinationPath\n      schedule\n      enabled\n      createdAt\n      updatedAt\n    }\n  }\n": types.CreateBackupJobConfigDocument,
     "\n  query GetConnectSettingsForm {\n    connect {\n      id\n      settings {\n        id\n        dataSchema\n        uiSchema\n        values {\n          sandbox\n          extraOrigins\n          accessType\n          forwardType\n          port\n          ssoUserIds\n        }\n      }\n    }\n  }\n": types.GetConnectSettingsFormDocument,
     "\n  mutation UpdateConnectSettings($input: ApiSettingsInput!) {\n    updateApiSettings(input: $input) {\n      sandbox\n      extraOrigins\n      accessType\n      forwardType\n      port\n      ssoUserIds\n    }\n  }\n": types.UpdateConnectSettingsDocument,
     "\n  query LogFiles {\n    logFiles {\n      name\n      path\n      size\n      modifiedAt\n    }\n  }\n": types.LogFilesDocument,
@@ -126,6 +136,26 @@ export function graphql(source: "\n  mutation DeleteApiKey($input: DeleteApiKeyI
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
 export function graphql(source: "\n  query ApiKeyMeta {\n    apiKeyPossibleRoles\n    apiKeyPossiblePermissions {\n      resource\n      actions\n    }\n  }\n"): (typeof documents)["\n  query ApiKeyMeta {\n    apiKeyPossibleRoles\n    apiKeyPossiblePermissions {\n      resource\n      actions\n    }\n  }\n"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "\n  query BackupJobs {\n    backup {\n      id\n      jobs {\n        id\n        type\n        stats\n        formattedBytes\n        formattedSpeed\n        formattedElapsedTime\n        formattedEta\n      }\n    }\n  }\n"): (typeof documents)["\n  query BackupJobs {\n    backup {\n      id\n      jobs {\n        id\n        type\n        stats\n        formattedBytes\n        formattedSpeed\n        formattedElapsedTime\n        formattedEta\n      }\n    }\n  }\n"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "\n  query BackupJob($jobId: String!) {\n    backupJob(jobId: $jobId) {\n      id\n      type\n      stats\n    }\n  }\n"): (typeof documents)["\n  query BackupJob($jobId: String!) {\n    backupJob(jobId: $jobId) {\n      id\n      type\n      stats\n    }\n  }\n"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "\n  query BackupJobConfigs {\n    backup {\n      id\n      configs {\n        id\n        name\n        sourcePath\n        remoteName\n        destinationPath\n        schedule\n        enabled\n        createdAt\n        updatedAt\n        lastRunAt\n        lastRunStatus\n      }\n    }\n  }\n"): (typeof documents)["\n  query BackupJobConfigs {\n    backup {\n      id\n      configs {\n        id\n        name\n        sourcePath\n        remoteName\n        destinationPath\n        schedule\n        enabled\n        createdAt\n        updatedAt\n        lastRunAt\n        lastRunStatus\n      }\n    }\n  }\n"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "\n  query BackupJobConfigForm($input: BackupJobConfigFormInput) {\n    backupJobConfigForm(input: $input) {\n      id\n      dataSchema\n      uiSchema\n    }\n  }\n"): (typeof documents)["\n  query BackupJobConfigForm($input: BackupJobConfigFormInput) {\n    backupJobConfigForm(input: $input) {\n      id\n      dataSchema\n      uiSchema\n    }\n  }\n"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "\n  mutation CreateBackupJobConfig($input: CreateBackupJobConfigInput!) {\n    createBackupJobConfig(input: $input) {\n      id\n      name\n      sourcePath\n      remoteName\n      destinationPath\n      schedule\n      enabled\n      createdAt\n      updatedAt\n    }\n  }\n"): (typeof documents)["\n  mutation CreateBackupJobConfig($input: CreateBackupJobConfigInput!) {\n    createBackupJobConfig(input: $input) {\n      id\n      name\n      sourcePath\n      remoteName\n      destinationPath\n      schedule\n      enabled\n      createdAt\n      updatedAt\n    }\n  }\n"];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */

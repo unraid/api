@@ -1,0 +1,242 @@
+import { Field, ID, InputType, ObjectType } from '@nestjs/graphql';
+
+import { type Layout } from '@jsonforms/core';
+import { IsBoolean, IsNotEmpty, IsObject, IsOptional, IsString, Matches } from 'class-validator';
+import { GraphQLJSON } from 'graphql-scalars';
+
+import { Node } from '@app/unraid-api/graph/resolvers/base.model.js';
+import { DataSlice } from '@app/unraid-api/types/json-forms.js';
+
+@ObjectType({
+    implements: () => Node,
+})
+export class Backup extends Node {
+    @Field(() => [BackupJob])
+    jobs!: BackupJob[];
+
+    @Field(() => [BackupJobConfig])
+    configs!: BackupJobConfig[];
+}
+
+@InputType()
+export class InitiateBackupInput {
+    @Field(() => String, { description: 'The name of the remote configuration to use for the backup.' })
+    @IsString()
+    @IsNotEmpty()
+    remoteName!: string;
+
+    @Field(() => String, { description: 'Source path to backup.' })
+    @IsString()
+    @IsNotEmpty()
+    sourcePath!: string;
+
+    @Field(() => String, { description: 'Destination path on the remote.' })
+    @IsString()
+    @IsNotEmpty()
+    destinationPath!: string;
+
+    @Field(() => GraphQLJSON, {
+        description: 'Additional options for the backup operation, such as --dry-run or --transfers.',
+        nullable: true,
+    })
+    @IsOptional()
+    @IsObject()
+    options?: Record<string, unknown>;
+}
+
+@ObjectType()
+export class BackupStatus {
+    @Field(() => String, {
+        description: 'Status message indicating the outcome of the backup initiation.',
+    })
+    status!: string;
+
+    @Field(() => String, {
+        description: 'Job ID if available, can be used to check job status.',
+        nullable: true,
+    })
+    jobId?: string;
+}
+
+@ObjectType()
+export class BackupJob {
+    @Field(() => String, { description: 'Job ID' })
+    id!: string;
+
+    @Field(() => String, { description: 'Job type (e.g., sync/copy)' })
+    type!: string;
+
+    @Field(() => GraphQLJSON, { description: 'Job status and statistics' })
+    stats!: Record<string, unknown>;
+
+    @Field(() => String, { description: 'Formatted bytes transferred', nullable: true })
+    formattedBytes?: string;
+
+    @Field(() => String, { description: 'Formatted transfer speed', nullable: true })
+    formattedSpeed?: string;
+
+    @Field(() => String, { description: 'Formatted elapsed time', nullable: true })
+    formattedElapsedTime?: string;
+
+    @Field(() => String, { description: 'Formatted ETA', nullable: true })
+    formattedEta?: string;
+}
+
+@ObjectType()
+export class RCloneWebGuiInfo {
+    @Field()
+    url!: string;
+}
+
+@ObjectType()
+export class BackupJobConfig extends Node {
+    @Field(() => String, { description: 'Human-readable name for this backup job' })
+    name!: string;
+
+    @Field(() => String, { description: 'Source path to backup' })
+    sourcePath!: string;
+
+    @Field(() => String, { description: 'Remote name from rclone config' })
+    remoteName!: string;
+
+    @Field(() => String, { description: 'Destination path on the remote' })
+    destinationPath!: string;
+
+    @Field(() => String, {
+        description: 'Cron schedule expression (e.g., "0 2 * * *" for daily at 2AM)',
+    })
+    schedule!: string;
+
+    @Field(() => Boolean, { description: 'Whether this backup job is enabled' })
+    enabled!: boolean;
+
+    @Field(() => GraphQLJSON, {
+        description: 'RClone options (e.g., --transfers, --checkers)',
+        nullable: true,
+    })
+    rcloneOptions?: Record<string, unknown>;
+
+    @Field(() => Date, { description: 'When this config was created' })
+    createdAt!: Date;
+
+    @Field(() => Date, { description: 'When this config was last updated' })
+    updatedAt!: Date;
+
+    @Field(() => Date, { description: 'Last time this job ran', nullable: true })
+    lastRunAt?: Date;
+
+    @Field(() => String, { description: 'Status of last run', nullable: true })
+    lastRunStatus?: string;
+}
+
+@InputType()
+export class CreateBackupJobConfigInput {
+    @Field(() => String)
+    @IsString()
+    @IsNotEmpty()
+    name!: string;
+
+    @Field(() => String)
+    @IsString()
+    @IsNotEmpty()
+    sourcePath!: string;
+
+    @Field(() => String)
+    @IsString()
+    @IsNotEmpty()
+    remoteName!: string;
+
+    @Field(() => String)
+    @IsString()
+    @IsNotEmpty()
+    destinationPath!: string;
+
+    @Field(() => String)
+    @IsString()
+    @IsNotEmpty()
+    @Matches(
+        /^(\*|[0-5]?\d)(\s+(\*|[0-1]?\d|2[0-3]))(\s+(\*|[1-2]?\d|3[0-1]))(\s+(\*|[1-9]|1[0-2]))(\s+(\*|[0-6]))$/,
+        {
+            message: 'schedule must be a valid cron expression',
+        }
+    )
+    schedule!: string;
+
+    @Field(() => Boolean, { defaultValue: true })
+    @IsBoolean()
+    enabled!: boolean;
+
+    @Field(() => GraphQLJSON, { nullable: true })
+    @IsOptional()
+    @IsObject()
+    rcloneOptions?: Record<string, unknown>;
+}
+
+@InputType()
+export class UpdateBackupJobConfigInput {
+    @Field(() => String, { nullable: true })
+    @IsOptional()
+    @IsString()
+    @IsNotEmpty()
+    name?: string;
+
+    @Field(() => String, { nullable: true })
+    @IsOptional()
+    @IsString()
+    @IsNotEmpty()
+    sourcePath?: string;
+
+    @Field(() => String, { nullable: true })
+    @IsOptional()
+    @IsString()
+    @IsNotEmpty()
+    remoteName?: string;
+
+    @Field(() => String, { nullable: true })
+    @IsOptional()
+    @IsString()
+    @IsNotEmpty()
+    destinationPath?: string;
+
+    @Field(() => String, { nullable: true })
+    @IsOptional()
+    @IsString()
+    @IsNotEmpty()
+    @Matches(
+        /^(\*|[0-5]?\d)(\s+(\*|[0-1]?\d|2[0-3]))(\s+(\*|[1-2]?\d|3[0-1]))(\s+(\*|[1-9]|1[0-2]))(\s+(\*|[0-6]))$/,
+        {
+            message: 'schedule must be a valid cron expression',
+        }
+    )
+    schedule?: string;
+
+    @Field(() => Boolean, { nullable: true })
+    @IsOptional()
+    @IsBoolean()
+    enabled?: boolean;
+
+    @Field(() => GraphQLJSON, { nullable: true })
+    @IsOptional()
+    @IsObject()
+    rcloneOptions?: Record<string, unknown>;
+}
+
+@ObjectType()
+export class BackupJobConfigForm {
+    @Field(() => ID)
+    id!: string;
+
+    @Field(() => GraphQLJSON)
+    dataSchema!: { properties: DataSlice; type: 'object' };
+
+    @Field(() => GraphQLJSON)
+    uiSchema!: Layout;
+}
+
+@InputType()
+export class BackupJobConfigFormInput {
+    @Field(() => Boolean, { defaultValue: false })
+    @IsOptional()
+    @IsBoolean()
+    showAdvanced?: boolean;
+}

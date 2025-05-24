@@ -999,6 +999,124 @@ A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date
 """
 scalar DateTime
 
+type RCloneDrive {
+  """Provider name"""
+  name: String!
+
+  """Provider options and configuration schema"""
+  options: JSON!
+}
+
+type RCloneBackupConfigForm {
+  id: ID!
+  dataSchema: JSON!
+  uiSchema: JSON!
+}
+
+type RCloneBackupSettings {
+  configForm(formOptions: RCloneConfigFormInput): RCloneBackupConfigForm!
+  drives: [RCloneDrive!]!
+  remotes: [RCloneRemote!]!
+}
+
+input RCloneConfigFormInput {
+  providerType: String
+  showAdvanced: Boolean = false
+  parameters: JSON
+}
+
+type RCloneRemote {
+  name: String!
+  type: String!
+  parameters: JSON!
+
+  """Complete remote configuration"""
+  config: JSON!
+}
+
+type Backup implements Node {
+  id: PrefixedID!
+  jobs: [BackupJob!]!
+  configs: [BackupJobConfig!]!
+
+  """Get the status for the backup service"""
+  status: BackupStatus!
+}
+
+type BackupStatus {
+  """Status message indicating the outcome of the backup initiation."""
+  status: String!
+
+  """Job ID if available, can be used to check job status."""
+  jobId: String
+}
+
+type BackupJob {
+  """Job ID"""
+  id: String!
+
+  """Job type (e.g., sync/copy)"""
+  type: String!
+
+  """Job status and statistics"""
+  stats: JSON!
+
+  """Formatted bytes transferred"""
+  formattedBytes: String
+
+  """Formatted transfer speed"""
+  formattedSpeed: String
+
+  """Formatted elapsed time"""
+  formattedElapsedTime: String
+
+  """Formatted ETA"""
+  formattedEta: String
+}
+
+type BackupJobConfig {
+  id: PrefixedID!
+
+  """Human-readable name for this backup job"""
+  name: String!
+
+  """Source path to backup"""
+  sourcePath: String!
+
+  """Remote name from rclone config"""
+  remoteName: String!
+
+  """Destination path on the remote"""
+  destinationPath: String!
+
+  """Cron schedule expression (e.g., "0 2 * * *" for daily at 2AM)"""
+  schedule: String!
+
+  """Whether this backup job is enabled"""
+  enabled: Boolean!
+
+  """RClone options (e.g., --transfers, --checkers)"""
+  rcloneOptions: JSON
+
+  """When this config was created"""
+  createdAt: DateTime!
+
+  """When this config was last updated"""
+  updatedAt: DateTime!
+
+  """Last time this job ran"""
+  lastRunAt: DateTime
+
+  """Status of last run"""
+  lastRunStatus: String
+}
+
+type BackupJobConfigForm {
+  id: ID!
+  dataSchema: JSON!
+  uiSchema: JSON!
+}
+
 type Config implements Node {
   id: PrefixedID!
   valid: Boolean
@@ -1356,49 +1474,6 @@ type Docker implements Node {
   networks(skipCache: Boolean! = false): [DockerNetwork!]!
 }
 
-type FlashBackupStatus {
-  """Status message indicating the outcome of the backup initiation."""
-  status: String!
-
-  """Job ID if available, can be used to check job status."""
-  jobId: String
-}
-
-type RCloneDrive {
-  """Provider name"""
-  name: String!
-
-  """Provider options and configuration schema"""
-  options: JSON!
-}
-
-type RCloneBackupConfigForm {
-  id: ID!
-  dataSchema: JSON!
-  uiSchema: JSON!
-}
-
-type RCloneBackupSettings {
-  configForm(formOptions: RCloneConfigFormInput): RCloneBackupConfigForm!
-  drives: [RCloneDrive!]!
-  remotes: [RCloneRemote!]!
-}
-
-input RCloneConfigFormInput {
-  providerType: String
-  showAdvanced: Boolean = false
-  parameters: JSON
-}
-
-type RCloneRemote {
-  name: String!
-  type: String!
-  parameters: JSON!
-
-  """Complete remote configuration"""
-  config: JSON!
-}
-
 type Flash implements Node {
   id: PrefixedID!
   guid: String!
@@ -1591,6 +1666,19 @@ type Query {
 
   """All possible permissions for API keys"""
   apiKeyPossiblePermissions: [Permission!]!
+
+  """Get backup service information"""
+  backup: Backup!
+
+  """Get a specific backup job configuration"""
+  backupJobConfig(id: String!): BackupJobConfig
+
+  """Get status of a specific backup job"""
+  backupJob(jobId: String!): BackupJob
+
+  """Get the JSON schema for backup job configuration form"""
+  backupJobConfigForm(input: BackupJobConfigFormInput): BackupJobConfigForm!
+  rclone: RCloneBackupSettings!
   connect: Connect!
   remoteAccess: RemoteAccess!
   extraAllowedOrigins: [String!]!
@@ -1600,9 +1688,12 @@ type Query {
   docker: Docker!
   disks: [Disk!]!
   disk(id: PrefixedID!): Disk!
-  rclone: RCloneBackupSettings!
   health: String!
   getDemo: String!
+}
+
+input BackupJobConfigFormInput {
+  showAdvanced: Boolean! = false
 }
 
 type Mutation {
@@ -1631,15 +1722,24 @@ type Mutation {
   parityCheck: ParityCheckMutations!
   apiKey: ApiKeyMutations!
   rclone: RCloneMutations!
+
+  """Create a new backup job configuration"""
+  createBackupJobConfig(input: CreateBackupJobConfigInput!): BackupJobConfig!
+
+  """Update a backup job configuration"""
+  updateBackupJobConfig(id: String!, input: UpdateBackupJobConfigInput!): BackupJobConfig
+
+  """Delete a backup job configuration"""
+  deleteBackupJobConfig(id: String!): Boolean!
+
+  """Initiates a backup using a configured remote."""
+  initiateBackup(input: InitiateBackupInput!): BackupStatus!
   updateApiSettings(input: ApiSettingsInput!): ConnectSettingsValues!
   connectSignIn(input: ConnectSignInInput!): Boolean!
   connectSignOut: Boolean!
   setupRemoteAccess(input: SetupRemoteAccessInput!): Boolean!
   setAdditionalAllowedOrigins(input: AllowedOriginInput!): [String!]!
   enableDynamicRemoteAccess(input: EnableDynamicRemoteAccessInput!): Boolean!
-
-  """Initiates a flash drive backup using a configured remote."""
-  initiateFlashBackup(input: InitiateFlashBackupInput!): FlashBackupStatus!
   setDemo: String!
 }
 
@@ -1649,6 +1749,42 @@ input NotificationData {
   description: String!
   importance: NotificationImportance!
   link: String
+}
+
+input CreateBackupJobConfigInput {
+  name: String!
+  sourcePath: String!
+  remoteName: String!
+  destinationPath: String!
+  schedule: String!
+  enabled: Boolean! = true
+  rcloneOptions: JSON
+}
+
+input UpdateBackupJobConfigInput {
+  name: String
+  sourcePath: String
+  remoteName: String
+  destinationPath: String
+  schedule: String
+  enabled: Boolean
+  rcloneOptions: JSON
+}
+
+input InitiateBackupInput {
+  """The name of the remote configuration to use for the backup."""
+  remoteName: String!
+
+  """Source path to backup."""
+  sourcePath: String!
+
+  """Destination path on the remote."""
+  destinationPath: String!
+
+  """
+  Additional options for the backup operation, such as --dry-run or --transfers.
+  """
+  options: JSON
 }
 
 input ApiSettingsInput {
@@ -1734,22 +1870,6 @@ input AccessUrlInput {
   name: String
   ipv4: URL
   ipv6: URL
-}
-
-input InitiateFlashBackupInput {
-  """The name of the remote configuration to use for the backup."""
-  remoteName: String!
-
-  """Source path to backup (typically the flash drive)."""
-  sourcePath: String!
-
-  """Destination path on the remote."""
-  destinationPath: String!
-
-  """
-  Additional options for the backup operation, such as --dry-run or --transfers.
-  """
-  options: JSON
 }
 
 type Subscription {
