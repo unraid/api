@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { Button } from '@/components/common/button';
 import { Input } from '@/components/form/input';
-import ControlLayout from '@/forms/ControlLayout.vue';
 import type { ControlElement } from '@jsonforms/core';
 import { useJsonFormsControl } from '@jsonforms/vue';
 import type { RendererProps } from '@jsonforms/vue';
@@ -41,36 +40,34 @@ const placeholder = computed(() => control.value.uischema?.options?.placeholder 
 </script>
 
 <template>
-  <ControlLayout v-if="control.visible" :label="control.label" :errors="control.errors">
-    <div class="space-y-4">
-      <p v-if="control.description" v-html="control.description" />
-      <div v-for="(item, index) in items" :key="index" class="flex gap-2">
-        <Input
-          :type="inputType"
-          :model-value="item"
-          :placeholder="placeholder"
-          :disabled="!control.enabled"
-          class="flex-1"
-          @update:model-value="(value) => updateItem(index, String(value))"
-        />
-        <Button
-          variant="ghost"
-          class="rounded underline underline-offset-4"
-          :disabled="!control.enabled"
-          @click="() => removeItem(index)"
-        >
-          Remove
-        </Button>
-      </div>
-      <Button
-        variant="outline"
-        size="md"
-        class="text-sm rounded-sm"
+  <div class="space-y-4">
+    <p v-if="control.description" v-html="control.description" />
+    <div v-for="(item, index) in items" :key="index" class="flex gap-2">
+      <Input
+        :type="inputType"
+        :model-value="item"
+        :placeholder="placeholder"
         :disabled="!control.enabled"
-        @click="addItem"
+        class="flex-1"
+        @update:model-value="(value) => updateItem(index, String(value))"
+      />
+      <Button
+        variant="ghost"
+        class="rounded underline underline-offset-4"
+        :disabled="!control.enabled"
+        @click="() => removeItem(index)"
       >
-        Add Item
+        Remove
       </Button>
     </div>
-  </ControlLayout>
+    <Button
+      variant="outline"
+      size="md"
+      class="text-sm rounded-sm"
+      :disabled="!control.enabled"
+      @click="addItem"
+    >
+      Add Item
+    </Button>
+  </div>
 </template>

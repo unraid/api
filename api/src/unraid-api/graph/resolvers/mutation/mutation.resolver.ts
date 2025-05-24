@@ -5,6 +5,7 @@ import {
     ArrayMutations,
     DockerMutations,
     ParityCheckMutations,
+    RCloneMutations,
     RootMutations,
     VmMutations,
 } from '@app/unraid-api/graph/resolvers/mutation/mutation.model.js';
@@ -34,5 +35,10 @@ export class RootMutationsResolver {
     @Mutation(() => ApiKeyMutations, { name: 'apiKey' })
     apiKey(): ApiKeyMutations {
         return new ApiKeyMutations();
+    }
+
+    @Mutation(() => RCloneMutations, { name: 'rclone' })
+    rclone(): RCloneMutations {
+        return new RCloneMutations();
     }
 }

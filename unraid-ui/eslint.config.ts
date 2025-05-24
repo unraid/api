@@ -6,89 +6,146 @@ import prettier from 'eslint-plugin-prettier';
 import vuePlugin from 'eslint-plugin-vue';
 import tseslint from 'typescript-eslint';
 
-export default tseslint.config(eslint.configs.recommended, ...tseslint.configs.recommended, {
-  files: ['**/*.ts', '**/*.tsx', '**/*.vue'],
-  languageOptions: {
-    parser: require('vue-eslint-parser'),
-    parserOptions: {
+// Common rules shared across file types
+const commonRules = {
+  '@typescript-eslint/no-unused-vars': ['off'],
+  'no-multiple-empty-lines': ['error', { max: 1, maxBOF: 0, maxEOF: 1 }],
+  'no-relative-import-paths/no-relative-import-paths': [
+    'error',
+    { allowSameFolder: false, rootDir: 'src', prefix: '@' },
+  ],
+  'prettier/prettier': 'error',
+  'no-restricted-globals': [
+    'error',
+    {
+      name: '__dirname',
+      message: 'Use import.meta.url instead of __dirname in ESM',
+    },
+    {
+      name: '__filename',
+      message: 'Use import.meta.url instead of __filename in ESM',
+    },
+  ],
+  'eol-last': ['error', 'always'],
+  '@typescript-eslint/no-explicit-any': [
+    'error',
+    {
+      ignoreRestArgs: true,
+      fixToUnknown: false,
+    },
+  ],
+};
+
+// Vue-specific rules
+const vueRules = {
+  'vue/multi-word-component-names': 'off',
+  'vue/html-self-closing': [
+    'error',
+    {
+      html: {
+        void: 'always',
+        normal: 'always',
+        component: 'always',
+      },
+    },
+  ],
+  'vue/component-name-in-template-casing': ['error', 'PascalCase'],
+  'vue/component-definition-name-casing': ['error', 'PascalCase'],
+  'vue/no-unsupported-features': [
+    'error',
+    {
+      version: '^3.3.0',
+    },
+  ],
+  'vue/no-undef-components': ['error'],
+  'vue/no-unused-properties': [
+    'error',
+    {
+      groups: ['props'],
+      deepData: false,
+    },
+  ],
+};
+
+// Common language options
+const commonLanguageOptions = {
+  ecmaVersion: 'latest',
+  sourceType: 'module',
+};
+
+// Define globals separately
+const commonGlobals = {
+  browser: true,
+  window: true,
+  document: true,
+  console: true,
+  Event: true,
+  HTMLElement: true,
+  HTMLInputElement: true,
+  CustomEvent: true,
+  es2022: true,
+};
+
+export default [
+  // Base config from recommended configs
+  eslint.configs.recommended,
+  ...tseslint.configs.recommended,
+  
+  // TypeScript Files (.ts)
+  {
+    files: ['**/*.ts'],
+    languageOptions: {
       parser: tseslint.parser,
-      ecmaVersion: 'latest',
-      sourceType: 'module',
-      ecmaFeatures: {
-        jsx: true,
-      },
-    },
-    globals: {
-      browser: true,
-      window: true,
-      document: true,
-      es2022: true,
-      HTMLElement: true,
-    },
-  },
-  plugins: {
-    'no-relative-import-paths': noRelativeImportPaths,
-    prettier: prettier,
-    import: importPlugin,
-    vue: vuePlugin,
-  },
-  rules: {
-    '@typescript-eslint/no-unused-vars': ['off'],
-    'no-multiple-empty-lines': ['error', { max: 1, maxBOF: 0, maxEOF: 1 }],
-    'no-relative-import-paths/no-relative-import-paths': [
-      'error',
-      { allowSameFolder: false, rootDir: 'src', prefix: '@' },
-    ],
-    'prettier/prettier': 'error',
-    'no-restricted-globals': [
-      'error',
-      {
-        name: '__dirname',
-        message: 'Use import.meta.url instead of __dirname in ESM',
-      },
-      {
-        name: '__filename',
-        message: 'Use import.meta.url instead of __filename in ESM',
-      },
-    ],
-    'eol-last': ['error', 'always'],
-    // Vue specific rules
-    'vue/multi-word-component-names': 'off',
-    'vue/html-self-closing': [
-      'error',
-      {
-        html: {
-          void: 'always',
-          normal: 'always',
-          component: 'always',
+      parserOptions: {
+        ...commonLanguageOptions,
+        ecmaFeatures: {
+          jsx: true,
         },
       },
-    ],
-    'vue/component-name-in-template-casing': ['error', 'PascalCase'],
-    'vue/component-definition-name-casing': ['error', 'PascalCase'],
-    'vue/no-unsupported-features': [
-      'error',
-      {
-        version: '^3.3.0',
+      globals: {
+        ...commonGlobals
       },
-    ],
-    'vue/no-undef-components': ['error'],
-    'vue/no-unused-properties': [
-      'error',
-      {
-        groups: ['props'],
-        deepData: false,
-      },
-    ],
-    // Allow empty object types and any types in Vue component definitions
-    '@typescript-eslint/no-explicit-any': [
-      'error',
-      {
-        ignoreRestArgs: true,
-        fixToUnknown: false,
-      },
-    ],
+    },
+    plugins: {
+      'no-relative-import-paths': noRelativeImportPaths,
+      prettier: prettier,
+      import: importPlugin,
+    },
+    rules: {
+      ...commonRules,
+    },
   },
-
-  ignores: ['src/graphql/generated/client/**/*'],
-});
+  
+  // Vue Files (.vue)
+  {
+    files: ['**/*.vue'],
+    languageOptions: {
+      parser: require('vue-eslint-parser'),
+      parserOptions: {
+        ...commonLanguageOptions,
+        parser: tseslint.parser,
+        ecmaFeatures: {
+          jsx: true,
+        },
+      },
+      globals: {
+        ...commonGlobals
+      },
+    },
+    plugins: {
+      'no-relative-import-paths': noRelativeImportPaths,
+      prettier: prettier,
+      import: importPlugin,
+      vue: vuePlugin,
+    },
+    rules: {
+      ...commonRules,
+      ...vueRules,
+    },
+  },
+  
+  // Ignores
+  {
+    ignores: ['src/graphql/generated/client/**/*'],
+  },
+];

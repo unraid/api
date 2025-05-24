@@ -9,6 +9,7 @@ import type {
     SchemaBasedCondition,
     UISchemaElement,
 } from '@jsonforms/core';
+import { merge } from 'lodash-es';
 
 /**
  * JSON schema properties.
@@ -18,7 +19,9 @@ export type DataSlice = Record<string, JsonSchema>;
 /**
  * A JSONForms UI schema element.
  */
-export type UIElement = UISchemaElement | LabelElement | Layout | ControlElement | Categorization;
+export type UIElement = (UISchemaElement | LabelElement | Layout | ControlElement | Categorization) & {
+    elements?: UIElement[];
+};
 
 /**
  * A condition for a JSONForms rule.
@@ -52,7 +55,9 @@ export function createEmptySettingSlice(): SettingSlice {
 function reduceSlices(slices: SettingSlice[]): SettingSlice {
     const result = createEmptySettingSlice();
     for (const slice of slices) {
-        Object.assign(result.properties, slice.properties);
+        // Deep merge properties using lodash.merge
+        merge(result.properties, slice.properties);
+        // Append elements
         result.elements.push(...slice.elements);
     }
     return result;
