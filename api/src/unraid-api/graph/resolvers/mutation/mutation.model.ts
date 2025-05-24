@@ -18,6 +18,11 @@ export class DockerMutations {}
 export class VmMutations {}
 
 @ObjectType({
+    description: 'Backup related mutations',
+})
+export class BackupMutations {}
+
+@ObjectType({
     description: 'API Key related mutations',
 })
 export class ApiKeyMutations {}
@@ -42,6 +47,9 @@ export class RootMutations {
 
     @Field(() => VmMutations, { description: 'VM related mutations' })
     vm: VmMutations = new VmMutations();
+
+    @Field(() => BackupMutations, { description: 'Backup related mutations' })
+    backup: BackupMutations = new BackupMutations();
 
     @Field(() => ApiKeyMutations, { description: 'API Key related mutations' })
     apiKey: ApiKeyMutations = new ApiKeyMutations();

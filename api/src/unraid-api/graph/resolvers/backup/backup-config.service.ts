@@ -2,10 +2,12 @@ import { Injectable, Logger } from '@nestjs/common';
 import { SchedulerRegistry } from '@nestjs/schedule';
 import { existsSync } from 'fs';
 import { readFile, writeFile } from 'fs/promises';
+import { join } from 'path';
 
 import { CronJob } from 'cron';
 import { v4 as uuidv4 } from 'uuid';
 
+import { getters } from '@app/store/index.js';
 import {
     BackupJobConfig,
     CreateBackupJobConfigInput,
@@ -31,13 +33,15 @@ interface BackupJobConfigData {
 @Injectable()
 export class BackupConfigService {
     private readonly logger = new Logger(BackupConfigService.name);
-    private readonly configPath = '/boot/config/backup-jobs.json';
+    private readonly configPath: string;
     private configs: Map<string, BackupJobConfigData> = new Map();
 
     constructor(
         private readonly rcloneService: RCloneService,
         private readonly schedulerRegistry: SchedulerRegistry
     ) {
+        const paths = getters.paths();
+        this.configPath = join(paths.backupBase, 'backup-jobs.json');
         this.loadConfigs();
     }
 
@@ -112,15 +116,19 @@ export class BackupConfigService {
             const result = await this.rcloneService['rcloneApiService'].startBackup({
                 srcPath: config.sourcePath,
                 dstPath: `${config.remoteName}:${config.destinationPath}`,
-                options: config.rcloneOptions,
+                async: true,
+                group: `backup/${config.id}`,
+                options: config.rcloneOptions || {},
             });
 
+            const jobId = result.jobId || result.jobid;
+
             config.lastRunAt = new Date().toISOString();
-            config.lastRunStatus = `Started with job ID: ${result.jobId}`;
+            config.lastRunStatus = `Started with job ID: ${jobId}`;
             this.configs.set(config.id, config);
             await this.saveConfigs();
 
-            this.logger.log(`Backup job ${config.name} started successfully: ${result.jobId}`);
+            this.logger.log(`Backup job ${config.name} started successfully: ${jobId}`);
         } catch (error) {
             const errorMessage = error instanceof Error ? error.message : String(error);
             config.lastRunAt = new Date().toISOString();

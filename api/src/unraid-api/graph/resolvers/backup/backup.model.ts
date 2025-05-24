@@ -1,18 +1,20 @@
-import { Field, ID, InputType, ObjectType } from '@nestjs/graphql';
+import { Field, InputType, ObjectType } from '@nestjs/graphql';
 
 import { type Layout } from '@jsonforms/core';
 import { IsBoolean, IsNotEmpty, IsObject, IsOptional, IsString, Matches } from 'class-validator';
 import { GraphQLJSON } from 'graphql-scalars';
 
 import { Node } from '@app/unraid-api/graph/resolvers/base.model.js';
+import { RCloneJob } from '@app/unraid-api/graph/resolvers/rclone/rclone.model.js';
+import { PrefixedID } from '@app/unraid-api/graph/scalars/graphql-type-prefixed-id.js';
 import { DataSlice } from '@app/unraid-api/types/json-forms.js';
 
 @ObjectType({
     implements: () => Node,
 })
 export class Backup extends Node {
-    @Field(() => [BackupJob])
-    jobs!: BackupJob[];
+    @Field(() => [RCloneJob])
+    jobs!: RCloneJob[];
 
     @Field(() => [BackupJobConfig])
     configs!: BackupJobConfig[];
@@ -59,36 +61,14 @@ export class BackupStatus {
 }
 
 @ObjectType()
-export class BackupJob {
-    @Field(() => String, { description: 'Job ID' })
-    id!: string;
-
-    @Field(() => String, { description: 'Job type (e.g., sync/copy)' })
-    type!: string;
-
-    @Field(() => GraphQLJSON, { description: 'Job status and statistics' })
-    stats!: Record<string, unknown>;
-
-    @Field(() => String, { description: 'Formatted bytes transferred', nullable: true })
-    formattedBytes?: string;
-
-    @Field(() => String, { description: 'Formatted transfer speed', nullable: true })
-    formattedSpeed?: string;
-
-    @Field(() => String, { description: 'Formatted elapsed time', nullable: true })
-    formattedElapsedTime?: string;
-
-    @Field(() => String, { description: 'Formatted ETA', nullable: true })
-    formattedEta?: string;
-}
-
-@ObjectType()
 export class RCloneWebGuiInfo {
     @Field()
     url!: string;
 }
 
-@ObjectType()
+@ObjectType({
+    implements: () => Node,
+})
 export class BackupJobConfig extends Node {
     @Field(() => String, { description: 'Human-readable name for this backup job' })
     name!: string;
@@ -223,7 +203,7 @@ export class UpdateBackupJobConfigInput {
 
 @ObjectType()
 export class BackupJobConfigForm {
-    @Field(() => ID)
+    @Field(() => PrefixedID)
     id!: string;
 
     @Field(() => GraphQLJSON)

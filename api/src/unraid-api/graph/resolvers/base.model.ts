@@ -9,6 +9,7 @@ export enum Resource {
     ACTIVATION_CODE = 'ACTIVATION_CODE',
     API_KEY = 'API_KEY',
     ARRAY = 'ARRAY',
+    BACKUP = 'BACKUP',
     CLOUD = 'CLOUD',
     CONFIG = 'CONFIG',
     CONNECT = 'CONNECT',

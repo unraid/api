@@ -758,6 +758,7 @@ enum Resource {
   ACTIVATION_CODE
   API_KEY
   ARRAY
+  BACKUP
   CLOUD
   CONFIG
   CONNECT
@@ -881,6 +882,63 @@ type VmMutations {
 
   """Reset a virtual machine"""
   reset(id: PrefixedID!): Boolean!
+}
+
+"""Backup related mutations"""
+type BackupMutations {
+  """Create a new backup job configuration"""
+  createBackupJobConfig(input: CreateBackupJobConfigInput!): BackupJobConfig!
+
+  """Update a backup job configuration"""
+  updateBackupJobConfig(id: String!, input: UpdateBackupJobConfigInput!): BackupJobConfig
+
+  """Delete a backup job configuration"""
+  deleteBackupJobConfig(id: String!): Boolean!
+
+  """Initiates a backup using a configured remote."""
+  initiateBackup(input: InitiateBackupInput!): BackupStatus!
+
+  """Toggle a backup job configuration enabled/disabled"""
+  toggleJobConfig(id: String!): BackupJobConfig
+
+  """Manually trigger a backup job using existing configuration"""
+  triggerJob(id: PrefixedID!): BackupStatus!
+}
+
+input CreateBackupJobConfigInput {
+  name: String!
+  sourcePath: String!
+  remoteName: String!
+  destinationPath: String!
+  schedule: String!
+  enabled: Boolean! = true
+  rcloneOptions: JSON
+}
+
+input UpdateBackupJobConfigInput {
+  name: String
+  sourcePath: String
+  remoteName: String
+  destinationPath: String
+  schedule: String
+  enabled: Boolean
+  rcloneOptions: JSON
+}
+
+input InitiateBackupInput {
+  """The name of the remote configuration to use for the backup."""
+  remoteName: String!
+
+  """Source path to backup."""
+  sourcePath: String!
+
+  """Destination path on the remote."""
+  destinationPath: String!
+
+  """
+  Additional options for the backup operation, such as --dry-run or --transfers.
+  """
+  options: JSON
 }
 
 """API Key related mutations"""
@@ -1036,7 +1094,7 @@ type RCloneRemote {
 
 type Backup implements Node {
   id: PrefixedID!
-  jobs: [BackupJob!]!
+  jobs(showSystemJobs: Boolean = false): [BackupJob!]!
   configs: [BackupJobConfig!]!
 
   """Get the status for the backup service"""
@@ -1053,10 +1111,10 @@ type BackupStatus {
 
 type BackupJob {
   """Job ID"""
-  id: String!
+  id: PrefixedID!
 
-  """Job type (e.g., sync/copy)"""
-  type: String!
+  """RClone group for the job"""
+  group: String
 
   """Job status and statistics"""
   stats: JSON!
@@ -1072,9 +1130,18 @@ type BackupJob {
 
   """Formatted ETA"""
   formattedEta: String
+
+  """Progress percentage (0-100)"""
+  progressPercentage: Float
+
+  """Configuration ID that triggered this job"""
+  configId: PrefixedID
+
+  """Detailed status of the job"""
+  detailedStatus: String
 }
 
-type BackupJobConfig {
+type BackupJobConfig implements Node {
   id: PrefixedID!
 
   """Human-readable name for this backup job"""
@@ -1112,7 +1179,7 @@ type BackupJobConfig {
 }
 
 type BackupJobConfigForm {
-  id: ID!
+  id: PrefixedID!
   dataSchema: JSON!
   uiSchema: JSON!
 }
@@ -1674,7 +1741,7 @@ type Query {
   backupJobConfig(id: String!): BackupJobConfig
 
   """Get status of a specific backup job"""
-  backupJob(jobId: String!): BackupJob
+  backupJob(jobId: PrefixedID!): BackupJob
 
   """Get the JSON schema for backup job configuration form"""
   backupJobConfigForm(input: BackupJobConfigFormInput): BackupJobConfigForm!
@@ -1719,21 +1786,10 @@ type Mutation {
   array: ArrayMutations!
   docker: DockerMutations!
   vm: VmMutations!
+  backup: BackupMutations!
   parityCheck: ParityCheckMutations!
   apiKey: ApiKeyMutations!
   rclone: RCloneMutations!
-
-  """Create a new backup job configuration"""
-  createBackupJobConfig(input: CreateBackupJobConfigInput!): BackupJobConfig!
-
-  """Update a backup job configuration"""
-  updateBackupJobConfig(id: String!, input: UpdateBackupJobConfigInput!): BackupJobConfig
-
-  """Delete a backup job configuration"""
-  deleteBackupJobConfig(id: String!): Boolean!
-
-  """Initiates a backup using a configured remote."""
-  initiateBackup(input: InitiateBackupInput!): BackupStatus!
   updateApiSettings(input: ApiSettingsInput!): ConnectSettingsValues!
   connectSignIn(input: ConnectSignInInput!): Boolean!
   connectSignOut: Boolean!
@@ -1749,42 +1805,6 @@ input NotificationData {
   description: String!
   importance: NotificationImportance!
   link: String
-}
-
-input CreateBackupJobConfigInput {
-  name: String!
-  sourcePath: String!
-  remoteName: String!
-  destinationPath: String!
-  schedule: String!
-  enabled: Boolean! = true
-  rcloneOptions: JSON
-}
-
-input UpdateBackupJobConfigInput {
-  name: String
-  sourcePath: String
-  remoteName: String
-  destinationPath: String
-  schedule: String
-  enabled: Boolean
-  rcloneOptions: JSON
-}
-
-input InitiateBackupInput {
-  """The name of the remote configuration to use for the backup."""
-  remoteName: String!
-
-  """Source path to backup."""
-  sourcePath: String!
-
-  """Destination path on the remote."""
-  destinationPath: String!
-
-  """
-  Additional options for the backup operation, such as --dry-run or --transfers.
-  """
-  options: JSON
 }
 
 input ApiSettingsInput {
@@ -1883,6 +1903,9 @@ type Subscription {
   serversSubscription: Server!
   parityHistorySubscription: ParityCheck!
   arraySubscription: UnraidArray!
+
+  """Subscribe to real-time backup job progress updates"""
+  backupJobProgress(jobId: PrefixedID!): BackupJob
 }
 
 """Available authentication action verbs"""

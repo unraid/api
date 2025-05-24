@@ -1,6 +1,7 @@
 import { Inject, Logger } from '@nestjs/common';
-import { Args, Mutation, Query, ResolveField, Resolver } from '@nestjs/graphql';
+import { Args, Mutation, Query, ResolveField, Resolver, Subscription } from '@nestjs/graphql';
 
+import { pubsub } from '@app/core/pubsub.js';
 import { BackupConfigService } from '@app/unraid-api/graph/resolvers/backup/backup-config.service.js';
 import {
     Backup,
@@ -9,13 +10,12 @@ import {
     BackupJobConfigForm,
     BackupJobConfigFormInput,
     BackupStatus,
-    CreateBackupJobConfigInput,
-    InitiateBackupInput,
-    UpdateBackupJobConfigInput,
 } from '@app/unraid-api/graph/resolvers/backup/backup.model.js';
 import { FormatService } from '@app/unraid-api/graph/resolvers/backup/format.service.js';
 import { buildBackupJobConfigSchema } from '@app/unraid-api/graph/resolvers/backup/jsonforms/backup-jsonforms-config.js';
+import { RCloneJob } from '@app/unraid-api/graph/resolvers/rclone/rclone.model.js';
 import { RCloneService } from '@app/unraid-api/graph/resolvers/rclone/rclone.service.js';
+import { PrefixedID } from '@app/unraid-api/graph/scalars/graphql-type-prefixed-id.js';
 
 @Resolver(() => Backup)
 export class BackupResolver {
@@ -41,8 +41,11 @@ export class BackupResolver {
     @ResolveField(() => [BackupJob], {
         description: 'Get all running backup jobs',
     })
-    async jobs(): Promise<BackupJob[]> {
-        return this.backupJobs();
+    async jobs(
+        @Args('showSystemJobs', { type: () => Boolean, nullable: true, defaultValue: false })
+        showSystemJobs?: boolean
+    ): Promise<BackupJob[]> {
+        return this.backupJobs(showSystemJobs);
     }
 
     @ResolveField(() => [BackupJobConfig], {
@@ -60,111 +63,23 @@ export class BackupResolver {
         return this.backupConfigService.getBackupJobConfig(id);
     }
 
-    @Mutation(() => BackupJobConfig, {
-        description: 'Create a new backup job configuration',
-    })
-    async createBackupJobConfig(
-        @Args('input') input: CreateBackupJobConfigInput
-    ): Promise<BackupJobConfig> {
-        return this.backupConfigService.createBackupJobConfig(input);
-    }
-
-    @Mutation(() => BackupJobConfig, {
-        description: 'Update a backup job configuration',
-        nullable: true,
-    })
-    async updateBackupJobConfig(
-        @Args('id') id: string,
-        @Args('input') input: UpdateBackupJobConfigInput
-    ): Promise<BackupJobConfig | null> {
-        return this.backupConfigService.updateBackupJobConfig(id, input);
-    }
-
-    @Mutation(() => Boolean, {
-        description: 'Delete a backup job configuration',
-    })
-    async deleteBackupJobConfig(@Args('id') id: string): Promise<boolean> {
-        return this.backupConfigService.deleteBackupJobConfig(id);
-    }
-
-    private async backupJobs(): Promise<BackupJob[]> {
-        try {
-            const jobs = await this.rcloneService['rcloneApiService'].listRunningJobs();
-            return (
-                jobs.jobids?.map((jobId: string, index: number) => {
-                    const stats = jobs.stats?.[index] || {};
-                    return {
-                        id: jobId,
-                        type: 'backup',
-                        stats,
-                        formattedBytes: stats.bytes
-                            ? this.formatService.formatBytes(stats.bytes)
-                            : undefined,
-                        formattedSpeed: stats.speed
-                            ? this.formatService.formatBytes(stats.speed)
-                            : undefined,
-                        formattedElapsedTime: stats.elapsedTime
-                            ? this.formatService.formatDuration(stats.elapsedTime)
-                            : undefined,
-                        formattedEta: stats.eta
-                            ? this.formatService.formatDuration(stats.eta)
-                            : undefined,
-                    };
-                }) || []
-            );
-        } catch (error) {
-            this.logger.error('Failed to fetch backup jobs:', error);
-            return [];
-        }
-    }
-
     @Query(() => BackupJob, {
         description: 'Get status of a specific backup job',
         nullable: true,
     })
-    async backupJob(@Args('jobId') jobId: string): Promise<BackupJob | null> {
+    async backupJob(
+        @Args('jobId', { type: () => PrefixedID }) jobId: string
+    ): Promise<BackupJob | null> {
         try {
             const status = await this.rcloneService['rcloneApiService'].getJobStatus({ jobId });
             return {
                 id: jobId,
-                type: status.group || 'backup',
+                group: status.group || '',
                 stats: status,
-                formattedBytes: status.bytes ? this.formatService.formatBytes(status.bytes) : undefined,
-                formattedSpeed: status.speed ? this.formatService.formatBytes(status.speed) : undefined,
-                formattedElapsedTime: status.elapsedTime
-                    ? this.formatService.formatDuration(status.elapsedTime)
-                    : undefined,
-                formattedEta: status.eta ? this.formatService.formatDuration(status.eta) : undefined,
             };
         } catch (error) {
             this.logger.error(`Failed to fetch backup job ${jobId}:`, error);
             return null;
-        }
-    }
-
-    @Mutation(() => BackupStatus, {
-        description: 'Initiates a backup using a configured remote.',
-    })
-    async initiateBackup(@Args('input') input: InitiateBackupInput): Promise<BackupStatus> {
-        try {
-            const result = await this.rcloneService['rcloneApiService'].startBackup({
-                srcPath: input.sourcePath,
-                dstPath: `${input.remoteName}:${input.destinationPath}`,
-                options: input.options,
-            });
-
-            return {
-                status: 'Backup initiated successfully',
-                jobId: result.jobid || result.jobId,
-            };
-        } catch (error) {
-            const errorMessage = error instanceof Error ? error.message : String(error);
-            this.logger.error('Failed to initiate backup:', error);
-
-            return {
-                status: `Failed to initiate backup: ${errorMessage}`,
-                jobId: undefined,
-            };
         }
     }
 
@@ -197,5 +112,78 @@ export class BackupResolver {
             dataSchema,
             uiSchema,
         };
+    }
+
+    @Subscription(() => BackupJob, {
+        description: 'Subscribe to real-time backup job progress updates',
+        nullable: true,
+    })
+    async backupJobProgress(@Args('jobId', { type: () => PrefixedID }) jobId: string) {
+        return pubsub.asyncIterableIterator(`BACKUP_JOB_PROGRESS:${jobId}`);
+    }
+
+    private async backupJobs(showSystemJobs: boolean = false): Promise<RCloneJob[]> {
+        try {
+            this.logger.debug(`backupJobs called with showSystemJobs: ${showSystemJobs}`);
+
+            let jobs;
+            if (showSystemJobs) {
+                // Get all jobs when showing system jobs
+                jobs = await this.rcloneService['rcloneApiService'].getAllJobsWithStats();
+                this.logger.debug(`All jobs with stats: ${JSON.stringify(jobs)}`);
+            } else {
+                // Get only backup jobs with enhanced stats when not showing system jobs
+                jobs = await this.rcloneService['rcloneApiService'].getBackupJobsWithStats();
+                this.logger.debug(`Backup jobs with enhanced stats: ${JSON.stringify(jobs)}`);
+            }
+
+            // Filter and map jobs
+            const allJobs =
+                jobs.jobids?.map((jobId: string | number, index: number) => {
+                    const stats = jobs.stats?.[index] || {};
+                    const group = stats.group || '';
+
+                    this.logger.debug(
+                        `Processing job ${jobId}: group="${group}", stats keys: [${Object.keys(stats).join(', ')}]`
+                    );
+
+                    return {
+                        id: String(jobId),
+                        group: group,
+                        stats,
+                    };
+                }) || [];
+
+            this.logger.debug(`Mapped ${allJobs.length} jobs total`);
+
+            // Log all job groups for analysis
+            const jobGroupSummary = allJobs.map((job) => ({ id: job.id, group: job.group }));
+            this.logger.debug(`All job groups: ${JSON.stringify(jobGroupSummary)}`);
+
+            // Filter based on showSystemJobs flag
+            if (showSystemJobs) {
+                this.logger.debug(`Returning all ${allJobs.length} jobs (showSystemJobs=true)`);
+                return allJobs;
+            } else {
+                // When not showing system jobs, we already filtered to backup jobs in getBackupJobsWithStats
+                // But let's double-check the filtering for safety
+                const filteredJobs = allJobs.filter((job) => job.group.startsWith('backup/'));
+                this.logger.debug(
+                    `Filtered to ${filteredJobs.length} backup jobs (group starts with 'backup/')`
+                );
+
+                const nonBackupJobs = allJobs.filter((job) => !job.group.startsWith('backup/'));
+                if (nonBackupJobs.length > 0) {
+                    this.logger.debug(
+                        `Excluded ${nonBackupJobs.length} non-backup jobs: ${JSON.stringify(nonBackupJobs.map((j) => ({ id: j.id, group: j.group })))}`
+                    );
+                }
+
+                return filteredJobs;
+            }
+        } catch (error) {
+            this.logger.error('Failed to fetch backup jobs:', error);
+            return [];
+        }
     }
 }
