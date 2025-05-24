@@ -33,20 +33,18 @@ export class BackupMutationsResolver {
         remoteName: string,
         destinationPath: string,
         options: Record<string, any> = {},
-        group: string
+        configId?: string
     ): Promise<BackupStatus> {
         try {
-            this.logger.log(
-                `Executing backup: ${sourcePath} -> ${remoteName}:${destinationPath} (group: ${group})`
-            );
+            this.logger.log(`Executing backup: ${sourcePath} -> ${remoteName}:${destinationPath}`);
 
-            const result = await this.rcloneService['rcloneApiService'].startBackup({
+            const result = (await this.rcloneService['rcloneApiService'].startBackup({
                 srcPath: sourcePath,
                 dstPath: `${remoteName}:${destinationPath}`,
                 async: true,
-                group: group,
+                configId: configId,
                 options: options,
-            });
+            })) as { jobId?: string; jobid?: string };
 
             this.logger.debug(`RClone startBackup result: ${JSON.stringify(result)}`);
 
@@ -126,8 +124,7 @@ export class BackupMutationsResolver {
             input.sourcePath,
             input.remoteName,
             input.destinationPath,
-            input.options || {},
-            'backup/manual'
+            input.options || {}
         );
     }
 
@@ -166,12 +163,91 @@ export class BackupMutationsResolver {
             };
         }
 
-        return this.executeBackup(
+        const result = await this.executeBackup(
             config.sourcePath,
             config.remoteName,
             config.destinationPath,
             config.rcloneOptions || {},
-            `backup/${id}`
+            config.id
         );
+
+        // Store the job ID in the config if successful
+        if (result.jobId) {
+            await this.backupConfigService.updateBackupJobConfig(id, {
+                lastRunStatus: `Started with job ID: ${result.jobId}`,
+            });
+
+            // Update the currentJobId in the config
+            const configData = this.backupConfigService['configs'].get(id);
+            if (configData) {
+                configData.currentJobId = result.jobId;
+                configData.lastRunAt = new Date().toISOString();
+                this.backupConfigService['configs'].set(id, configData);
+                await this.backupConfigService['saveConfigs']();
+            }
+        }
+
+        return result;
+    }
+
+    @ResolveField(() => BackupStatus, {
+        description: 'Stop all running backup jobs',
+    })
+    @UsePermissions({
+        action: AuthActionVerb.DELETE,
+        resource: Resource.BACKUP,
+        possession: AuthPossession.ANY,
+    })
+    async stopAllBackupJobs(): Promise<BackupStatus> {
+        try {
+            const result = await this.rcloneService['rcloneApiService'].stopAllJobs();
+            const stoppedCount = result.stopped.length;
+            const errorCount = result.errors.length;
+
+            if (stoppedCount > 0) {
+                this.logger.log(`Stopped ${stoppedCount} backup jobs`);
+            }
+
+            if (errorCount > 0) {
+                this.logger.warn(`Failed operations on ${errorCount} jobs: ${result.errors.join(', ')}`);
+            }
+
+            return {
+                status: `Stopped ${stoppedCount} jobs${errorCount > 0 ? `, ${errorCount} errors` : ''}`,
+                jobId: undefined,
+            };
+        } catch (error) {
+            const errorMessage = error instanceof Error ? error.message : String(error);
+            this.logger.error(`Failed to stop backup jobs: ${errorMessage}`);
+            return {
+                status: `Failed to stop backup jobs: ${errorMessage}`,
+                jobId: undefined,
+            };
+        }
+    }
+
+    @ResolveField(() => BackupStatus, {
+        description: 'Forget all finished backup jobs to clean up the job list',
+    })
+    @UsePermissions({
+        action: AuthActionVerb.DELETE,
+        resource: Resource.BACKUP,
+        possession: AuthPossession.ANY,
+    })
+    async forgetFinishedBackupJobs(): Promise<BackupStatus> {
+        try {
+            this.logger.log('Forgetting finished backup jobs is handled automatically by RClone');
+            return {
+                status: 'Finished jobs are automatically cleaned up by RClone',
+                jobId: undefined,
+            };
+        } catch (error) {
+            const errorMessage = error instanceof Error ? error.message : String(error);
+            this.logger.error(`Failed to forget finished backup jobs: ${errorMessage}`);
+            return {
+                status: `Failed to forget finished backup jobs: ${errorMessage}`,
+                jobId: undefined,
+            };
+        }
     }
 }

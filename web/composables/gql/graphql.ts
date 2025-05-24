@@ -377,46 +377,17 @@ export type Backup = Node & {
   __typename?: 'Backup';
   configs: Array<BackupJobConfig>;
   id: Scalars['PrefixedID']['output'];
-  jobs: Array<BackupJob>;
+  jobs: Array<RCloneJob>;
   /** Get the status for the backup service */
   status: BackupStatus;
-};
-
-
-export type BackupJobsArgs = {
-  showSystemJobs?: InputMaybe<Scalars['Boolean']['input']>;
-};
-
-export type BackupJob = {
-  __typename?: 'BackupJob';
-  /** Configuration ID that triggered this job */
-  configId?: Maybe<Scalars['PrefixedID']['output']>;
-  /** Detailed status of the job */
-  detailedStatus?: Maybe<Scalars['String']['output']>;
-  /** Formatted bytes transferred */
-  formattedBytes?: Maybe<Scalars['String']['output']>;
-  /** Formatted elapsed time */
-  formattedElapsedTime?: Maybe<Scalars['String']['output']>;
-  /** Formatted ETA */
-  formattedEta?: Maybe<Scalars['String']['output']>;
-  /** Formatted transfer speed */
-  formattedSpeed?: Maybe<Scalars['String']['output']>;
-  /** RClone group for the job */
-  group?: Maybe<Scalars['String']['output']>;
-  /** Job ID */
-  id: Scalars['PrefixedID']['output'];
-  /** Progress percentage (0-100) */
-  progressPercentage?: Maybe<Scalars['Float']['output']>;
-  /** Job status and statistics */
-  stats: Scalars['JSON']['output'];
-  /** Job type (e.g., sync/copy) */
-  type: Scalars['String']['output'];
 };
 
 export type BackupJobConfig = Node & {
   __typename?: 'BackupJobConfig';
   /** When this config was created */
   createdAt: Scalars['DateTime']['output'];
+  /** Current running job ID */
+  currentJobId?: Maybe<Scalars['String']['output']>;
   /** Destination path on the remote */
   destinationPath: Scalars['String']['output'];
   /** Whether this backup job is enabled */
@@ -458,8 +429,12 @@ export type BackupMutations = {
   createBackupJobConfig: BackupJobConfig;
   /** Delete a backup job configuration */
   deleteBackupJobConfig: Scalars['Boolean']['output'];
+  /** Forget all finished backup jobs to clean up the job list */
+  forgetFinishedBackupJobs: BackupStatus;
   /** Initiates a backup using a configured remote. */
   initiateBackup: BackupStatus;
+  /** Stop all running backup jobs */
+  stopAllBackupJobs: BackupStatus;
   /** Toggle a backup job configuration enabled/disabled */
   toggleJobConfig?: Maybe<BackupJobConfig>;
   /** Manually trigger a backup job using existing configuration */
@@ -1349,7 +1324,7 @@ export type Query = {
   /** Get backup service information */
   backup: Backup;
   /** Get status of a specific backup job */
-  backupJob?: Maybe<BackupJob>;
+  backupJob?: Maybe<RCloneJob>;
   /** Get a specific backup job configuration */
   backupJobConfig?: Maybe<BackupJobConfig>;
   /** Get the JSON schema for backup job configuration form */
@@ -1453,6 +1428,86 @@ export type RCloneDrive = {
   name: Scalars['String']['output'];
   /** Provider options and configuration schema */
   options: Scalars['JSON']['output'];
+};
+
+export type RCloneJob = {
+  __typename?: 'RCloneJob';
+  /** Configuration ID that triggered this job */
+  configId?: Maybe<Scalars['PrefixedID']['output']>;
+  /** Detailed status of the job */
+  detailedStatus?: Maybe<Scalars['String']['output']>;
+  /** Error message if job failed */
+  error?: Maybe<Scalars['String']['output']>;
+  /** Whether the job is finished */
+  finished?: Maybe<Scalars['Boolean']['output']>;
+  /** RClone group for the job */
+  group?: Maybe<Scalars['String']['output']>;
+  /** Job ID */
+  id: Scalars['PrefixedID']['output'];
+  /** Progress percentage (0-100) */
+  progressPercentage?: Maybe<Scalars['Float']['output']>;
+  /** Job status and statistics */
+  stats?: Maybe<RCloneJobStats>;
+  /** Whether the job was successful */
+  success?: Maybe<Scalars['Boolean']['output']>;
+};
+
+export type RCloneJobStats = {
+  __typename?: 'RCloneJobStats';
+  /** Bytes transferred */
+  bytes?: Maybe<Scalars['Float']['output']>;
+  /** Currently checking files */
+  checking?: Maybe<Scalars['JSON']['output']>;
+  /** Number of checks completed */
+  checks?: Maybe<Scalars['Float']['output']>;
+  /** Number of deletes completed */
+  deletes?: Maybe<Scalars['Float']['output']>;
+  /** Elapsed time in seconds */
+  elapsedTime?: Maybe<Scalars['Float']['output']>;
+  /** Number of errors encountered */
+  errors?: Maybe<Scalars['Float']['output']>;
+  /** Estimated time to completion in seconds */
+  eta?: Maybe<Scalars['Float']['output']>;
+  /** Whether a fatal error occurred */
+  fatalError?: Maybe<Scalars['Boolean']['output']>;
+  /** Human-readable bytes transferred */
+  formattedBytes?: Maybe<Scalars['String']['output']>;
+  /** Human-readable elapsed time */
+  formattedElapsedTime?: Maybe<Scalars['String']['output']>;
+  /** Human-readable ETA */
+  formattedEta?: Maybe<Scalars['String']['output']>;
+  /** Human-readable transfer speed */
+  formattedSpeed?: Maybe<Scalars['String']['output']>;
+  /** Last error message */
+  lastError?: Maybe<Scalars['String']['output']>;
+  /** Progress percentage (0-100) */
+  percentage?: Maybe<Scalars['Float']['output']>;
+  /** Number of renames completed */
+  renames?: Maybe<Scalars['Float']['output']>;
+  /** Whether there is a retry error */
+  retryError?: Maybe<Scalars['Boolean']['output']>;
+  /** Number of server-side copies */
+  serverSideCopies?: Maybe<Scalars['Float']['output']>;
+  /** Bytes in server-side copies */
+  serverSideCopyBytes?: Maybe<Scalars['Float']['output']>;
+  /** Bytes in server-side moves */
+  serverSideMoveBytes?: Maybe<Scalars['Float']['output']>;
+  /** Number of server-side moves */
+  serverSideMoves?: Maybe<Scalars['Float']['output']>;
+  /** Transfer speed in bytes/sec */
+  speed?: Maybe<Scalars['Float']['output']>;
+  /** Total bytes to transfer */
+  totalBytes?: Maybe<Scalars['Float']['output']>;
+  /** Total checks to perform */
+  totalChecks?: Maybe<Scalars['Float']['output']>;
+  /** Total transfers to perform */
+  totalTransfers?: Maybe<Scalars['Float']['output']>;
+  /** Time spent transferring in seconds */
+  transferTime?: Maybe<Scalars['Float']['output']>;
+  /** Currently transferring files */
+  transferring?: Maybe<Scalars['JSON']['output']>;
+  /** Number of transfers completed */
+  transfers?: Maybe<Scalars['Float']['output']>;
 };
 
 /** RClone related mutations */
@@ -1664,7 +1719,7 @@ export type Subscription = {
   __typename?: 'Subscription';
   arraySubscription: UnraidArray;
   /** Subscribe to real-time backup job progress updates */
-  backupJobProgress?: Maybe<BackupJob>;
+  backupJobProgress?: Maybe<RCloneJob>;
   displaySubscription: Display;
   infoSubscription: Info;
   logFile: LogFileContent;
@@ -1758,6 +1813,7 @@ export type UnraidArray = Node & {
 export type UpdateBackupJobConfigInput = {
   destinationPath?: InputMaybe<Scalars['String']['input']>;
   enabled?: InputMaybe<Scalars['Boolean']['input']>;
+  lastRunStatus?: InputMaybe<Scalars['String']['input']>;
   name?: InputMaybe<Scalars['String']['input']>;
   rcloneOptions?: InputMaybe<Scalars['JSON']['input']>;
   remoteName?: InputMaybe<Scalars['String']['input']>;
@@ -2127,24 +2183,30 @@ export type ApiKeyMetaQueryVariables = Exact<{ [key: string]: never; }>;
 
 export type ApiKeyMetaQuery = { __typename?: 'Query', apiKeyPossibleRoles: Array<Role>, apiKeyPossiblePermissions: Array<{ __typename?: 'Permission', resource: Resource, actions: Array<string> }> };
 
-export type BackupJobsQueryVariables = Exact<{
-  showSystemJobs?: InputMaybe<Scalars['Boolean']['input']>;
-}>;
+export type BackupStatsFragment = { __typename?: 'RCloneJobStats', bytes?: number | null, speed?: number | null, eta?: number | null, elapsedTime?: number | null, percentage?: number | null, checks?: number | null, deletes?: number | null, errors?: number | null, fatalError?: boolean | null, lastError?: string | null, renames?: number | null, retryError?: boolean | null, serverSideCopies?: number | null, serverSideCopyBytes?: number | null, serverSideMoves?: number | null, serverSideMoveBytes?: number | null, totalBytes?: number | null, totalChecks?: number | null, totalTransfers?: number | null, transferTime?: number | null, transfers?: number | null, transferring?: any | null, checking?: any | null, formattedBytes?: string | null, formattedSpeed?: string | null, formattedElapsedTime?: string | null, formattedEta?: string | null } & { ' $fragmentName'?: 'BackupStatsFragment' };
+
+export type BackupJobsQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type BackupJobsQuery = { __typename?: 'Query', backup: { __typename?: 'Backup', id: string, jobs: Array<{ __typename?: 'BackupJob', id: string, group?: string | null, stats: any, formattedBytes?: string | null, formattedSpeed?: string | null, formattedElapsedTime?: string | null, formattedEta?: string | null }> } };
+export type BackupJobsQuery = { __typename?: 'Query', backup: { __typename?: 'Backup', id: string, jobs: Array<{ __typename?: 'RCloneJob', id: string, group?: string | null, configId?: string | null, finished?: boolean | null, success?: boolean | null, error?: string | null, detailedStatus?: string | null, stats?: (
+        { __typename?: 'RCloneJobStats' }
+        & { ' $fragmentRefs'?: { 'BackupStatsFragment': BackupStatsFragment } }
+      ) | null }> } };
 
 export type BackupJobQueryVariables = Exact<{
   jobId: Scalars['PrefixedID']['input'];
 }>;
 
 
-export type BackupJobQuery = { __typename?: 'Query', backupJob?: { __typename?: 'BackupJob', id: string, group?: string | null, stats: any } | null };
+export type BackupJobQuery = { __typename?: 'Query', backupJob?: { __typename?: 'RCloneJob', id: string, group?: string | null, configId?: string | null, finished?: boolean | null, success?: boolean | null, error?: string | null, detailedStatus?: string | null, stats?: (
+      { __typename?: 'RCloneJobStats' }
+      & { ' $fragmentRefs'?: { 'BackupStatsFragment': BackupStatsFragment } }
+    ) | null } | null };
 
 export type BackupJobConfigsQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type BackupJobConfigsQuery = { __typename?: 'Query', backup: { __typename?: 'Backup', id: string, configs: Array<{ __typename?: 'BackupJobConfig', id: string, name: string, sourcePath: string, remoteName: string, destinationPath: string, schedule: string, enabled: boolean, createdAt: string, updatedAt: string, lastRunAt?: string | null, lastRunStatus?: string | null }> } };
+export type BackupJobConfigsQuery = { __typename?: 'Query', backup: { __typename?: 'Backup', id: string, configs: Array<{ __typename?: 'BackupJobConfig', id: string, name: string, sourcePath: string, remoteName: string, destinationPath: string, schedule: string, enabled: boolean, createdAt: string, updatedAt: string, lastRunAt?: string | null, lastRunStatus?: string | null, currentJobId?: string | null }> } };
 
 export type BackupJobConfigFormQueryVariables = Exact<{
   input?: InputMaybe<BackupJobConfigFormInput>;
@@ -2158,7 +2220,7 @@ export type CreateBackupJobConfigMutationVariables = Exact<{
 }>;
 
 
-export type CreateBackupJobConfigMutation = { __typename?: 'Mutation', backup: { __typename?: 'BackupMutations', createBackupJobConfig: { __typename?: 'BackupJobConfig', id: string, name: string, sourcePath: string, remoteName: string, destinationPath: string, schedule: string, enabled: boolean, createdAt: string, updatedAt: string } } };
+export type CreateBackupJobConfigMutation = { __typename?: 'Mutation', backup: { __typename?: 'BackupMutations', createBackupJobConfig: { __typename?: 'BackupJobConfig', id: string, name: string, sourcePath: string, remoteName: string, destinationPath: string, schedule: string, enabled: boolean, createdAt: string, updatedAt: string, currentJobId?: string | null } } };
 
 export type UpdateBackupJobConfigMutationVariables = Exact<{
   id: Scalars['String']['input'];
@@ -2166,7 +2228,7 @@ export type UpdateBackupJobConfigMutationVariables = Exact<{
 }>;
 
 
-export type UpdateBackupJobConfigMutation = { __typename?: 'Mutation', backup: { __typename?: 'BackupMutations', updateBackupJobConfig?: { __typename?: 'BackupJobConfig', id: string, name: string, sourcePath: string, remoteName: string, destinationPath: string, schedule: string, enabled: boolean, createdAt: string, updatedAt: string, lastRunAt?: string | null, lastRunStatus?: string | null } | null } };
+export type UpdateBackupJobConfigMutation = { __typename?: 'Mutation', backup: { __typename?: 'BackupMutations', updateBackupJobConfig?: { __typename?: 'BackupJobConfig', id: string, name: string, sourcePath: string, remoteName: string, destinationPath: string, schedule: string, enabled: boolean, createdAt: string, updatedAt: string, lastRunAt?: string | null, lastRunStatus?: string | null, currentJobId?: string | null } | null } };
 
 export type DeleteBackupJobConfigMutationVariables = Exact<{
   id: Scalars['String']['input'];
@@ -2180,7 +2242,7 @@ export type ToggleBackupJobConfigMutationVariables = Exact<{
 }>;
 
 
-export type ToggleBackupJobConfigMutation = { __typename?: 'Mutation', backup: { __typename?: 'BackupMutations', toggleJobConfig?: { __typename?: 'BackupJobConfig', id: string, name: string, sourcePath: string, remoteName: string, destinationPath: string, schedule: string, enabled: boolean, createdAt: string, updatedAt: string, lastRunAt?: string | null, lastRunStatus?: string | null } | null } };
+export type ToggleBackupJobConfigMutation = { __typename?: 'Mutation', backup: { __typename?: 'BackupMutations', toggleJobConfig?: { __typename?: 'BackupJobConfig', id: string, name: string, sourcePath: string, remoteName: string, destinationPath: string, schedule: string, enabled: boolean, createdAt: string, updatedAt: string, lastRunAt?: string | null, lastRunStatus?: string | null, currentJobId?: string | null } | null } };
 
 export type TriggerBackupJobMutationVariables = Exact<{
   id: Scalars['PrefixedID']['input'];
@@ -2201,7 +2263,10 @@ export type BackupJobProgressSubscriptionVariables = Exact<{
 }>;
 
 
-export type BackupJobProgressSubscription = { __typename?: 'Subscription', backupJobProgress?: { __typename?: 'BackupJob', id: string, type: string, stats: any, formattedBytes?: string | null, formattedSpeed?: string | null, formattedElapsedTime?: string | null, formattedEta?: string | null } | null };
+export type BackupJobProgressSubscription = { __typename?: 'Subscription', backupJobProgress?: { __typename?: 'RCloneJob', id: string, stats?: (
+      { __typename?: 'RCloneJobStats' }
+      & { ' $fragmentRefs'?: { 'BackupStatsFragment': BackupStatsFragment } }
+    ) | null } | null };
 
 export type GetConnectSettingsFormQueryVariables = Exact<{ [key: string]: never; }>;
 
@@ -2390,6 +2455,7 @@ export type SetupRemoteAccessMutationVariables = Exact<{
 
 export type SetupRemoteAccessMutation = { __typename?: 'Mutation', setupRemoteAccess: boolean };
 
+export const BackupStatsFragmentDoc = {"kind":"Document","definitions":[{"kind":"FragmentDefinition","name":{"kind":"Name","value":"BackupStats"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"RCloneJobStats"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"bytes"}},{"kind":"Field","name":{"kind":"Name","value":"speed"}},{"kind":"Field","name":{"kind":"Name","value":"eta"}},{"kind":"Field","name":{"kind":"Name","value":"elapsedTime"}},{"kind":"Field","name":{"kind":"Name","value":"percentage"}},{"kind":"Field","name":{"kind":"Name","value":"checks"}},{"kind":"Field","name":{"kind":"Name","value":"deletes"}},{"kind":"Field","name":{"kind":"Name","value":"errors"}},{"kind":"Field","name":{"kind":"Name","value":"fatalError"}},{"kind":"Field","name":{"kind":"Name","value":"lastError"}},{"kind":"Field","name":{"kind":"Name","value":"renames"}},{"kind":"Field","name":{"kind":"Name","value":"retryError"}},{"kind":"Field","name":{"kind":"Name","value":"serverSideCopies"}},{"kind":"Field","name":{"kind":"Name","value":"serverSideCopyBytes"}},{"kind":"Field","name":{"kind":"Name","value":"serverSideMoves"}},{"kind":"Field","name":{"kind":"Name","value":"serverSideMoveBytes"}},{"kind":"Field","name":{"kind":"Name","value":"totalBytes"}},{"kind":"Field","name":{"kind":"Name","value":"totalChecks"}},{"kind":"Field","name":{"kind":"Name","value":"totalTransfers"}},{"kind":"Field","name":{"kind":"Name","value":"transferTime"}},{"kind":"Field","name":{"kind":"Name","value":"transfers"}},{"kind":"Field","name":{"kind":"Name","value":"transferring"}},{"kind":"Field","name":{"kind":"Name","value":"checking"}},{"kind":"Field","name":{"kind":"Name","value":"formattedBytes"}},{"kind":"Field","name":{"kind":"Name","value":"formattedSpeed"}},{"kind":"Field","name":{"kind":"Name","value":"formattedElapsedTime"}},{"kind":"Field","name":{"kind":"Name","value":"formattedEta"}}]}}]} as unknown as DocumentNode<BackupStatsFragment, unknown>;
 export const NotificationFragmentFragmentDoc = {"kind":"Document","definitions":[{"kind":"FragmentDefinition","name":{"kind":"Name","value":"NotificationFragment"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"Notification"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"title"}},{"kind":"Field","name":{"kind":"Name","value":"subject"}},{"kind":"Field","name":{"kind":"Name","value":"description"}},{"kind":"Field","name":{"kind":"Name","value":"importance"}},{"kind":"Field","name":{"kind":"Name","value":"link"}},{"kind":"Field","name":{"kind":"Name","value":"type"}},{"kind":"Field","name":{"kind":"Name","value":"timestamp"}},{"kind":"Field","name":{"kind":"Name","value":"formattedTimestamp"}}]}}]} as unknown as DocumentNode<NotificationFragmentFragment, unknown>;
 export const NotificationCountFragmentFragmentDoc = {"kind":"Document","definitions":[{"kind":"FragmentDefinition","name":{"kind":"Name","value":"NotificationCountFragment"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"NotificationCounts"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"total"}},{"kind":"Field","name":{"kind":"Name","value":"info"}},{"kind":"Field","name":{"kind":"Name","value":"warning"}},{"kind":"Field","name":{"kind":"Name","value":"alert"}}]}}]} as unknown as DocumentNode<NotificationCountFragmentFragment, unknown>;
 export const PartialCloudFragmentDoc = {"kind":"Document","definitions":[{"kind":"FragmentDefinition","name":{"kind":"Name","value":"PartialCloud"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"Cloud"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"error"}},{"kind":"Field","name":{"kind":"Name","value":"apiKey"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"valid"}},{"kind":"Field","name":{"kind":"Name","value":"error"}}]}},{"kind":"Field","name":{"kind":"Name","value":"cloud"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"status"}},{"kind":"Field","name":{"kind":"Name","value":"error"}}]}},{"kind":"Field","name":{"kind":"Name","value":"minigraphql"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"status"}},{"kind":"Field","name":{"kind":"Name","value":"error"}}]}},{"kind":"Field","name":{"kind":"Name","value":"relay"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"status"}},{"kind":"Field","name":{"kind":"Name","value":"error"}}]}}]}}]} as unknown as DocumentNode<PartialCloudFragment, unknown>;
@@ -2399,17 +2465,17 @@ export const ApiKeysDocument = {"kind":"Document","definitions":[{"kind":"Operat
 export const CreateApiKeyDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"CreateApiKey"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"input"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"CreateApiKeyInput"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"apiKey"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"create"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"input"},"value":{"kind":"Variable","name":{"kind":"Name","value":"input"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"key"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"description"}},{"kind":"Field","name":{"kind":"Name","value":"createdAt"}},{"kind":"Field","name":{"kind":"Name","value":"roles"}},{"kind":"Field","name":{"kind":"Name","value":"permissions"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"resource"}},{"kind":"Field","name":{"kind":"Name","value":"actions"}}]}}]}}]}}]}}]} as unknown as DocumentNode<CreateApiKeyMutation, CreateApiKeyMutationVariables>;
 export const DeleteApiKeyDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"DeleteApiKey"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"input"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"DeleteApiKeyInput"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"apiKey"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"delete"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"input"},"value":{"kind":"Variable","name":{"kind":"Name","value":"input"}}}]}]}}]}}]} as unknown as DocumentNode<DeleteApiKeyMutation, DeleteApiKeyMutationVariables>;
 export const ApiKeyMetaDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"ApiKeyMeta"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"apiKeyPossibleRoles"}},{"kind":"Field","name":{"kind":"Name","value":"apiKeyPossiblePermissions"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"resource"}},{"kind":"Field","name":{"kind":"Name","value":"actions"}}]}}]}}]} as unknown as DocumentNode<ApiKeyMetaQuery, ApiKeyMetaQueryVariables>;
-export const BackupJobsDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"BackupJobs"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"showSystemJobs"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"Boolean"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"backup"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"jobs"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"showSystemJobs"},"value":{"kind":"Variable","name":{"kind":"Name","value":"showSystemJobs"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"group"}},{"kind":"Field","name":{"kind":"Name","value":"stats"}},{"kind":"Field","name":{"kind":"Name","value":"formattedBytes"}},{"kind":"Field","name":{"kind":"Name","value":"formattedSpeed"}},{"kind":"Field","name":{"kind":"Name","value":"formattedElapsedTime"}},{"kind":"Field","name":{"kind":"Name","value":"formattedEta"}}]}}]}}]}}]} as unknown as DocumentNode<BackupJobsQuery, BackupJobsQueryVariables>;
-export const BackupJobDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"BackupJob"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"jobId"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"PrefixedID"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"backupJob"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"jobId"},"value":{"kind":"Variable","name":{"kind":"Name","value":"jobId"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"group"}},{"kind":"Field","name":{"kind":"Name","value":"stats"}}]}}]}}]} as unknown as DocumentNode<BackupJobQuery, BackupJobQueryVariables>;
-export const BackupJobConfigsDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"BackupJobConfigs"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"backup"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"configs"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"sourcePath"}},{"kind":"Field","name":{"kind":"Name","value":"remoteName"}},{"kind":"Field","name":{"kind":"Name","value":"destinationPath"}},{"kind":"Field","name":{"kind":"Name","value":"schedule"}},{"kind":"Field","name":{"kind":"Name","value":"enabled"}},{"kind":"Field","name":{"kind":"Name","value":"createdAt"}},{"kind":"Field","name":{"kind":"Name","value":"updatedAt"}},{"kind":"Field","name":{"kind":"Name","value":"lastRunAt"}},{"kind":"Field","name":{"kind":"Name","value":"lastRunStatus"}}]}}]}}]}}]} as unknown as DocumentNode<BackupJobConfigsQuery, BackupJobConfigsQueryVariables>;
+export const BackupJobsDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"BackupJobs"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"backup"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"jobs"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"group"}},{"kind":"Field","name":{"kind":"Name","value":"configId"}},{"kind":"Field","name":{"kind":"Name","value":"finished"}},{"kind":"Field","name":{"kind":"Name","value":"success"}},{"kind":"Field","name":{"kind":"Name","value":"error"}},{"kind":"Field","name":{"kind":"Name","value":"detailedStatus"}},{"kind":"Field","name":{"kind":"Name","value":"stats"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"BackupStats"}}]}}]}}]}}]}},{"kind":"FragmentDefinition","name":{"kind":"Name","value":"BackupStats"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"RCloneJobStats"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"bytes"}},{"kind":"Field","name":{"kind":"Name","value":"speed"}},{"kind":"Field","name":{"kind":"Name","value":"eta"}},{"kind":"Field","name":{"kind":"Name","value":"elapsedTime"}},{"kind":"Field","name":{"kind":"Name","value":"percentage"}},{"kind":"Field","name":{"kind":"Name","value":"checks"}},{"kind":"Field","name":{"kind":"Name","value":"deletes"}},{"kind":"Field","name":{"kind":"Name","value":"errors"}},{"kind":"Field","name":{"kind":"Name","value":"fatalError"}},{"kind":"Field","name":{"kind":"Name","value":"lastError"}},{"kind":"Field","name":{"kind":"Name","value":"renames"}},{"kind":"Field","name":{"kind":"Name","value":"retryError"}},{"kind":"Field","name":{"kind":"Name","value":"serverSideCopies"}},{"kind":"Field","name":{"kind":"Name","value":"serverSideCopyBytes"}},{"kind":"Field","name":{"kind":"Name","value":"serverSideMoves"}},{"kind":"Field","name":{"kind":"Name","value":"serverSideMoveBytes"}},{"kind":"Field","name":{"kind":"Name","value":"totalBytes"}},{"kind":"Field","name":{"kind":"Name","value":"totalChecks"}},{"kind":"Field","name":{"kind":"Name","value":"totalTransfers"}},{"kind":"Field","name":{"kind":"Name","value":"transferTime"}},{"kind":"Field","name":{"kind":"Name","value":"transfers"}},{"kind":"Field","name":{"kind":"Name","value":"transferring"}},{"kind":"Field","name":{"kind":"Name","value":"checking"}},{"kind":"Field","name":{"kind":"Name","value":"formattedBytes"}},{"kind":"Field","name":{"kind":"Name","value":"formattedSpeed"}},{"kind":"Field","name":{"kind":"Name","value":"formattedElapsedTime"}},{"kind":"Field","name":{"kind":"Name","value":"formattedEta"}}]}}]} as unknown as DocumentNode<BackupJobsQuery, BackupJobsQueryVariables>;
+export const BackupJobDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"BackupJob"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"jobId"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"PrefixedID"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"backupJob"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"jobId"},"value":{"kind":"Variable","name":{"kind":"Name","value":"jobId"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"group"}},{"kind":"Field","name":{"kind":"Name","value":"configId"}},{"kind":"Field","name":{"kind":"Name","value":"finished"}},{"kind":"Field","name":{"kind":"Name","value":"success"}},{"kind":"Field","name":{"kind":"Name","value":"error"}},{"kind":"Field","name":{"kind":"Name","value":"detailedStatus"}},{"kind":"Field","name":{"kind":"Name","value":"stats"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"BackupStats"}}]}}]}}]}},{"kind":"FragmentDefinition","name":{"kind":"Name","value":"BackupStats"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"RCloneJobStats"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"bytes"}},{"kind":"Field","name":{"kind":"Name","value":"speed"}},{"kind":"Field","name":{"kind":"Name","value":"eta"}},{"kind":"Field","name":{"kind":"Name","value":"elapsedTime"}},{"kind":"Field","name":{"kind":"Name","value":"percentage"}},{"kind":"Field","name":{"kind":"Name","value":"checks"}},{"kind":"Field","name":{"kind":"Name","value":"deletes"}},{"kind":"Field","name":{"kind":"Name","value":"errors"}},{"kind":"Field","name":{"kind":"Name","value":"fatalError"}},{"kind":"Field","name":{"kind":"Name","value":"lastError"}},{"kind":"Field","name":{"kind":"Name","value":"renames"}},{"kind":"Field","name":{"kind":"Name","value":"retryError"}},{"kind":"Field","name":{"kind":"Name","value":"serverSideCopies"}},{"kind":"Field","name":{"kind":"Name","value":"serverSideCopyBytes"}},{"kind":"Field","name":{"kind":"Name","value":"serverSideMoves"}},{"kind":"Field","name":{"kind":"Name","value":"serverSideMoveBytes"}},{"kind":"Field","name":{"kind":"Name","value":"totalBytes"}},{"kind":"Field","name":{"kind":"Name","value":"totalChecks"}},{"kind":"Field","name":{"kind":"Name","value":"totalTransfers"}},{"kind":"Field","name":{"kind":"Name","value":"transferTime"}},{"kind":"Field","name":{"kind":"Name","value":"transfers"}},{"kind":"Field","name":{"kind":"Name","value":"transferring"}},{"kind":"Field","name":{"kind":"Name","value":"checking"}},{"kind":"Field","name":{"kind":"Name","value":"formattedBytes"}},{"kind":"Field","name":{"kind":"Name","value":"formattedSpeed"}},{"kind":"Field","name":{"kind":"Name","value":"formattedElapsedTime"}},{"kind":"Field","name":{"kind":"Name","value":"formattedEta"}}]}}]} as unknown as DocumentNode<BackupJobQuery, BackupJobQueryVariables>;
+export const BackupJobConfigsDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"BackupJobConfigs"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"backup"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"configs"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"sourcePath"}},{"kind":"Field","name":{"kind":"Name","value":"remoteName"}},{"kind":"Field","name":{"kind":"Name","value":"destinationPath"}},{"kind":"Field","name":{"kind":"Name","value":"schedule"}},{"kind":"Field","name":{"kind":"Name","value":"enabled"}},{"kind":"Field","name":{"kind":"Name","value":"createdAt"}},{"kind":"Field","name":{"kind":"Name","value":"updatedAt"}},{"kind":"Field","name":{"kind":"Name","value":"lastRunAt"}},{"kind":"Field","name":{"kind":"Name","value":"lastRunStatus"}},{"kind":"Field","name":{"kind":"Name","value":"currentJobId"}}]}}]}}]}}]} as unknown as DocumentNode<BackupJobConfigsQuery, BackupJobConfigsQueryVariables>;
 export const BackupJobConfigFormDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"BackupJobConfigForm"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"input"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"BackupJobConfigFormInput"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"backupJobConfigForm"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"input"},"value":{"kind":"Variable","name":{"kind":"Name","value":"input"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"dataSchema"}},{"kind":"Field","name":{"kind":"Name","value":"uiSchema"}}]}}]}}]} as unknown as DocumentNode<BackupJobConfigFormQuery, BackupJobConfigFormQueryVariables>;
-export const CreateBackupJobConfigDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"CreateBackupJobConfig"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"input"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"CreateBackupJobConfigInput"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"backup"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"createBackupJobConfig"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"input"},"value":{"kind":"Variable","name":{"kind":"Name","value":"input"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"sourcePath"}},{"kind":"Field","name":{"kind":"Name","value":"remoteName"}},{"kind":"Field","name":{"kind":"Name","value":"destinationPath"}},{"kind":"Field","name":{"kind":"Name","value":"schedule"}},{"kind":"Field","name":{"kind":"Name","value":"enabled"}},{"kind":"Field","name":{"kind":"Name","value":"createdAt"}},{"kind":"Field","name":{"kind":"Name","value":"updatedAt"}}]}}]}}]}}]} as unknown as DocumentNode<CreateBackupJobConfigMutation, CreateBackupJobConfigMutationVariables>;
-export const UpdateBackupJobConfigDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"UpdateBackupJobConfig"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"id"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"input"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"UpdateBackupJobConfigInput"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"backup"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"updateBackupJobConfig"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"id"},"value":{"kind":"Variable","name":{"kind":"Name","value":"id"}}},{"kind":"Argument","name":{"kind":"Name","value":"input"},"value":{"kind":"Variable","name":{"kind":"Name","value":"input"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"sourcePath"}},{"kind":"Field","name":{"kind":"Name","value":"remoteName"}},{"kind":"Field","name":{"kind":"Name","value":"destinationPath"}},{"kind":"Field","name":{"kind":"Name","value":"schedule"}},{"kind":"Field","name":{"kind":"Name","value":"enabled"}},{"kind":"Field","name":{"kind":"Name","value":"createdAt"}},{"kind":"Field","name":{"kind":"Name","value":"updatedAt"}},{"kind":"Field","name":{"kind":"Name","value":"lastRunAt"}},{"kind":"Field","name":{"kind":"Name","value":"lastRunStatus"}}]}}]}}]}}]} as unknown as DocumentNode<UpdateBackupJobConfigMutation, UpdateBackupJobConfigMutationVariables>;
+export const CreateBackupJobConfigDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"CreateBackupJobConfig"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"input"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"CreateBackupJobConfigInput"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"backup"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"createBackupJobConfig"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"input"},"value":{"kind":"Variable","name":{"kind":"Name","value":"input"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"sourcePath"}},{"kind":"Field","name":{"kind":"Name","value":"remoteName"}},{"kind":"Field","name":{"kind":"Name","value":"destinationPath"}},{"kind":"Field","name":{"kind":"Name","value":"schedule"}},{"kind":"Field","name":{"kind":"Name","value":"enabled"}},{"kind":"Field","name":{"kind":"Name","value":"createdAt"}},{"kind":"Field","name":{"kind":"Name","value":"updatedAt"}},{"kind":"Field","name":{"kind":"Name","value":"currentJobId"}}]}}]}}]}}]} as unknown as DocumentNode<CreateBackupJobConfigMutation, CreateBackupJobConfigMutationVariables>;
+export const UpdateBackupJobConfigDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"UpdateBackupJobConfig"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"id"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"input"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"UpdateBackupJobConfigInput"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"backup"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"updateBackupJobConfig"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"id"},"value":{"kind":"Variable","name":{"kind":"Name","value":"id"}}},{"kind":"Argument","name":{"kind":"Name","value":"input"},"value":{"kind":"Variable","name":{"kind":"Name","value":"input"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"sourcePath"}},{"kind":"Field","name":{"kind":"Name","value":"remoteName"}},{"kind":"Field","name":{"kind":"Name","value":"destinationPath"}},{"kind":"Field","name":{"kind":"Name","value":"schedule"}},{"kind":"Field","name":{"kind":"Name","value":"enabled"}},{"kind":"Field","name":{"kind":"Name","value":"createdAt"}},{"kind":"Field","name":{"kind":"Name","value":"updatedAt"}},{"kind":"Field","name":{"kind":"Name","value":"lastRunAt"}},{"kind":"Field","name":{"kind":"Name","value":"lastRunStatus"}},{"kind":"Field","name":{"kind":"Name","value":"currentJobId"}}]}}]}}]}}]} as unknown as DocumentNode<UpdateBackupJobConfigMutation, UpdateBackupJobConfigMutationVariables>;
 export const DeleteBackupJobConfigDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"DeleteBackupJobConfig"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"id"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"backup"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"deleteBackupJobConfig"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"id"},"value":{"kind":"Variable","name":{"kind":"Name","value":"id"}}}]}]}}]}}]} as unknown as DocumentNode<DeleteBackupJobConfigMutation, DeleteBackupJobConfigMutationVariables>;
-export const ToggleBackupJobConfigDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"ToggleBackupJobConfig"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"id"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"backup"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"toggleJobConfig"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"id"},"value":{"kind":"Variable","name":{"kind":"Name","value":"id"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"sourcePath"}},{"kind":"Field","name":{"kind":"Name","value":"remoteName"}},{"kind":"Field","name":{"kind":"Name","value":"destinationPath"}},{"kind":"Field","name":{"kind":"Name","value":"schedule"}},{"kind":"Field","name":{"kind":"Name","value":"enabled"}},{"kind":"Field","name":{"kind":"Name","value":"createdAt"}},{"kind":"Field","name":{"kind":"Name","value":"updatedAt"}},{"kind":"Field","name":{"kind":"Name","value":"lastRunAt"}},{"kind":"Field","name":{"kind":"Name","value":"lastRunStatus"}}]}}]}}]}}]} as unknown as DocumentNode<ToggleBackupJobConfigMutation, ToggleBackupJobConfigMutationVariables>;
+export const ToggleBackupJobConfigDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"ToggleBackupJobConfig"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"id"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"backup"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"toggleJobConfig"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"id"},"value":{"kind":"Variable","name":{"kind":"Name","value":"id"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"sourcePath"}},{"kind":"Field","name":{"kind":"Name","value":"remoteName"}},{"kind":"Field","name":{"kind":"Name","value":"destinationPath"}},{"kind":"Field","name":{"kind":"Name","value":"schedule"}},{"kind":"Field","name":{"kind":"Name","value":"enabled"}},{"kind":"Field","name":{"kind":"Name","value":"createdAt"}},{"kind":"Field","name":{"kind":"Name","value":"updatedAt"}},{"kind":"Field","name":{"kind":"Name","value":"lastRunAt"}},{"kind":"Field","name":{"kind":"Name","value":"lastRunStatus"}},{"kind":"Field","name":{"kind":"Name","value":"currentJobId"}}]}}]}}]}}]} as unknown as DocumentNode<ToggleBackupJobConfigMutation, ToggleBackupJobConfigMutationVariables>;
 export const TriggerBackupJobDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"TriggerBackupJob"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"id"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"PrefixedID"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"backup"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"triggerJob"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"id"},"value":{"kind":"Variable","name":{"kind":"Name","value":"id"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"status"}},{"kind":"Field","name":{"kind":"Name","value":"jobId"}}]}}]}}]}}]} as unknown as DocumentNode<TriggerBackupJobMutation, TriggerBackupJobMutationVariables>;
 export const InitiateBackupDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"InitiateBackup"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"input"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"InitiateBackupInput"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"backup"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"initiateBackup"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"input"},"value":{"kind":"Variable","name":{"kind":"Name","value":"input"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"status"}},{"kind":"Field","name":{"kind":"Name","value":"jobId"}}]}}]}}]}}]} as unknown as DocumentNode<InitiateBackupMutation, InitiateBackupMutationVariables>;
-export const BackupJobProgressDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"subscription","name":{"kind":"Name","value":"BackupJobProgress"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"jobId"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"PrefixedID"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"backupJobProgress"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"jobId"},"value":{"kind":"Variable","name":{"kind":"Name","value":"jobId"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"type"}},{"kind":"Field","name":{"kind":"Name","value":"stats"}},{"kind":"Field","name":{"kind":"Name","value":"formattedBytes"}},{"kind":"Field","name":{"kind":"Name","value":"formattedSpeed"}},{"kind":"Field","name":{"kind":"Name","value":"formattedElapsedTime"}},{"kind":"Field","name":{"kind":"Name","value":"formattedEta"}}]}}]}}]} as unknown as DocumentNode<BackupJobProgressSubscription, BackupJobProgressSubscriptionVariables>;
+export const BackupJobProgressDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"subscription","name":{"kind":"Name","value":"BackupJobProgress"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"jobId"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"PrefixedID"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"backupJobProgress"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"jobId"},"value":{"kind":"Variable","name":{"kind":"Name","value":"jobId"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"stats"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"BackupStats"}}]}}]}}]}},{"kind":"FragmentDefinition","name":{"kind":"Name","value":"BackupStats"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"RCloneJobStats"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"bytes"}},{"kind":"Field","name":{"kind":"Name","value":"speed"}},{"kind":"Field","name":{"kind":"Name","value":"eta"}},{"kind":"Field","name":{"kind":"Name","value":"elapsedTime"}},{"kind":"Field","name":{"kind":"Name","value":"percentage"}},{"kind":"Field","name":{"kind":"Name","value":"checks"}},{"kind":"Field","name":{"kind":"Name","value":"deletes"}},{"kind":"Field","name":{"kind":"Name","value":"errors"}},{"kind":"Field","name":{"kind":"Name","value":"fatalError"}},{"kind":"Field","name":{"kind":"Name","value":"lastError"}},{"kind":"Field","name":{"kind":"Name","value":"renames"}},{"kind":"Field","name":{"kind":"Name","value":"retryError"}},{"kind":"Field","name":{"kind":"Name","value":"serverSideCopies"}},{"kind":"Field","name":{"kind":"Name","value":"serverSideCopyBytes"}},{"kind":"Field","name":{"kind":"Name","value":"serverSideMoves"}},{"kind":"Field","name":{"kind":"Name","value":"serverSideMoveBytes"}},{"kind":"Field","name":{"kind":"Name","value":"totalBytes"}},{"kind":"Field","name":{"kind":"Name","value":"totalChecks"}},{"kind":"Field","name":{"kind":"Name","value":"totalTransfers"}},{"kind":"Field","name":{"kind":"Name","value":"transferTime"}},{"kind":"Field","name":{"kind":"Name","value":"transfers"}},{"kind":"Field","name":{"kind":"Name","value":"transferring"}},{"kind":"Field","name":{"kind":"Name","value":"checking"}},{"kind":"Field","name":{"kind":"Name","value":"formattedBytes"}},{"kind":"Field","name":{"kind":"Name","value":"formattedSpeed"}},{"kind":"Field","name":{"kind":"Name","value":"formattedElapsedTime"}},{"kind":"Field","name":{"kind":"Name","value":"formattedEta"}}]}}]} as unknown as DocumentNode<BackupJobProgressSubscription, BackupJobProgressSubscriptionVariables>;
 export const GetConnectSettingsFormDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"GetConnectSettingsForm"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"connect"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"settings"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"dataSchema"}},{"kind":"Field","name":{"kind":"Name","value":"uiSchema"}},{"kind":"Field","name":{"kind":"Name","value":"values"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"sandbox"}},{"kind":"Field","name":{"kind":"Name","value":"extraOrigins"}},{"kind":"Field","name":{"kind":"Name","value":"accessType"}},{"kind":"Field","name":{"kind":"Name","value":"forwardType"}},{"kind":"Field","name":{"kind":"Name","value":"port"}},{"kind":"Field","name":{"kind":"Name","value":"ssoUserIds"}}]}}]}}]}}]}}]} as unknown as DocumentNode<GetConnectSettingsFormQuery, GetConnectSettingsFormQueryVariables>;
 export const UpdateConnectSettingsDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"UpdateConnectSettings"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"input"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"ApiSettingsInput"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"updateApiSettings"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"input"},"value":{"kind":"Variable","name":{"kind":"Name","value":"input"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"sandbox"}},{"kind":"Field","name":{"kind":"Name","value":"extraOrigins"}},{"kind":"Field","name":{"kind":"Name","value":"accessType"}},{"kind":"Field","name":{"kind":"Name","value":"forwardType"}},{"kind":"Field","name":{"kind":"Name","value":"port"}},{"kind":"Field","name":{"kind":"Name","value":"ssoUserIds"}}]}}]}}]} as unknown as DocumentNode<UpdateConnectSettingsMutation, UpdateConnectSettingsMutationVariables>;
 export const LogFilesDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"LogFiles"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"logFiles"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"path"}},{"kind":"Field","name":{"kind":"Name","value":"size"}},{"kind":"Field","name":{"kind":"Name","value":"modifiedAt"}}]}}]}}]} as unknown as DocumentNode<LogFilesQuery, LogFilesQueryVariables>;

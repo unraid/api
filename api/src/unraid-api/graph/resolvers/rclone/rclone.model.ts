@@ -153,10 +153,13 @@ export class RCloneStartBackupInput {
     @IsBoolean()
     async?: boolean;
 
-    @Field(() => String, { nullable: true })
+    @Field(() => String, {
+        nullable: true,
+        description: 'Configuration ID for job grouping and identification',
+    })
     @IsOptional()
     @IsString()
-    group?: string;
+    configId?: string;
 
     @Field(() => GraphQLJSON, { nullable: true })
     @IsOptional()
@@ -336,18 +339,39 @@ export class RCloneJob {
     error?: string;
 }
 
+@ObjectType()
+export class RCloneJobStatusDto {
+    @Field(() => Number, { description: 'Job ID' })
+    id!: number;
+
+    @Field(() => String, { description: 'RClone group for the job' })
+    group!: string;
+
+    @Field(() => Boolean, { description: 'Whether the job is finished' })
+    finished!: boolean;
+
+    @Field(() => Boolean, { description: 'Whether the job was successful' })
+    success!: boolean;
+
+    @Field(() => String, { description: 'Error message if any' })
+    error!: string;
+
+    @Field(() => Number, { description: 'Job duration in seconds' })
+    duration!: number;
+
+    @Field(() => String, { description: 'Job start time in ISO format' })
+    startTime!: string;
+
+    @Field(() => String, { description: 'Job end time in ISO format' })
+    endTime!: string;
+
+    @Field(() => GraphQLJSON, { description: 'Job output data', nullable: true })
+    output?: Record<string, any>;
+}
+
 // API Response Types (for internal use)
 export interface RCloneJobListResponse {
     jobids: (string | number)[];
-}
-
-export interface RCloneJobStatusResponse {
-    group?: string;
-    finished?: boolean;
-    success?: boolean;
-    error?: string;
-    stats?: RCloneJobStats;
-    [key: string]: any;
 }
 
 export interface RCloneJobWithStats {

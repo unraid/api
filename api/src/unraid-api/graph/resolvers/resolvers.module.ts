@@ -32,9 +32,11 @@ import { VmsService } from '@app/unraid-api/graph/resolvers/vms/vms.service.js';
 import { ServicesResolver } from '@app/unraid-api/graph/services/services.resolver.js';
 import { SharesResolver } from '@app/unraid-api/graph/shares/shares.resolver.js';
 import { MeResolver } from '@app/unraid-api/graph/user/user.resolver.js';
+import { UtilsModule } from '@app/unraid-api/utils/utils.module.js';
 
 @Module({
     imports: [
+        UtilsModule,
         ArrayModule,
         ApiKeyModule,
         AuthModule,

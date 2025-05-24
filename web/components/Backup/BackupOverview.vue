@@ -4,15 +4,29 @@ import { useQuery } from '@vue/apollo-composable';
 
 import { BACKUP_JOBS_QUERY } from './backup-jobs.query';
 import BackupJobConfig from './BackupJobConfig.vue';
+import BackupEntry from './BackupEntry.vue';
 
 const showSystemJobs = ref(false);
 
-const { result, loading, error, refetch } = useQuery(
-  BACKUP_JOBS_QUERY,
-  () => ({ showSystemJobs: showSystemJobs.value }),
-);
+const { result, loading, error, refetch } = useQuery(BACKUP_JOBS_QUERY, {}, {
+  fetchPolicy: 'cache-and-network',
+  pollInterval: 5000, // Poll every 5 seconds for real-time updates
+});
 
-const backupJobs = computed(() => result.value?.backup?.jobs || []);
+const backupJobs = computed(() => {
+  const allJobs = result.value?.backup?.jobs || [];
+  
+  if (showSystemJobs.value) {
+    return allJobs;
+  }
+  
+  return allJobs.filter(job => !job.group || job.group.toLowerCase() !== 'system');
+});
+
+// Enhanced refresh function that forces a network request
+const refreshJobs = async () => {
+  await refetch();
+};
 </script>
 
 <template>
@@ -22,7 +36,7 @@ const backupJobs = computed(() => result.value?.backup?.jobs || []);
       <button
         class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
         :disabled="loading"
-        @click="() => refetch()"
+        @click="refreshJobs"
       >
         {{ loading ? 'Refreshing...' : 'Refresh' }}
       </button>
@@ -83,79 +97,11 @@ const backupJobs = computed(() => result.value?.backup?.jobs || []);
       </div>
 
       <div v-else class="space-y-4">
-        <div
+        <BackupEntry
           v-for="job in backupJobs"
           :key="job.id"
-          class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-6 shadow-sm"
-        >
-          <div class="flex items-center justify-between mb-4">
-            <div class="flex items-center space-x-3">
-              <div class="flex-shrink-0">
-                <div class="w-3 h-3 bg-green-400 rounded-full animate-pulse"></div>
-              </div>
-              <div>
-                <h3 class="text-lg font-medium text-gray-900 dark:text-white">
-                  {{ job.type || 'Backup Job' }}
-                </h3>
-                <p class="text-sm text-gray-500 dark:text-gray-400">Job ID: {{ job.id }}</p>
-              </div>
-            </div>
-            <span
-              class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400"
-            >
-              Running
-            </span>
-          </div>
-
-          <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div v-if="job.stats?.formattedBytes" class="bg-gray-50 dark:bg-gray-700 rounded-lg p-3">
-              <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">Bytes Transferred</dt>
-              <dd class="mt-1 text-sm text-gray-900 dark:text-white">
-                {{ job.stats.formattedBytes }}
-              </dd>
-            </div>
-
-            <div v-if="job.stats?.transfers" class="bg-gray-50 dark:bg-gray-700 rounded-lg p-3">
-              <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">Files Transferred</dt>
-              <dd class="mt-1 text-sm text-gray-900 dark:text-white">
-                {{ job.stats.transfers }}
-              </dd>
-            </div>
-
-            <div v-if="job.stats?.formattedSpeed" class="bg-gray-50 dark:bg-gray-700 rounded-lg p-3">
-              <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">Transfer Speed</dt>
-              <dd class="mt-1 text-sm text-gray-900 dark:text-white">{{ job.stats.formattedSpeed }}/s</dd>
-            </div>
-
-            <div v-if="job.stats?.formattedElapsedTime" class="bg-gray-50 dark:bg-gray-700 rounded-lg p-3">
-              <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">Elapsed Time</dt>
-              <dd class="mt-1 text-sm text-gray-900 dark:text-white">
-                {{ job.stats.formattedElapsedTime }}
-              </dd>
-            </div>
-
-            <div v-if="job.stats?.formattedEta" class="bg-gray-50 dark:bg-gray-700 rounded-lg p-3">
-              <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">ETA</dt>
-              <dd class="mt-1 text-sm text-gray-900 dark:text-white">
-                {{ job.stats.formattedEta }}
-              </dd>
-            </div>
-
-            <div v-if="job.stats?.percentage" class="bg-gray-50 dark:bg-gray-700 rounded-lg p-3">
-              <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">Progress</dt>
-              <dd class="mt-1 text-sm text-gray-900 dark:text-white">{{ job.stats.percentage }}%</dd>
-            </div>
-          </div>
-
-          <div v-if="job.stats?.percentage" class="mt-4">
-            <div class="w-full bg-gray-200 rounded-full h-2 dark:bg-gray-700">
-              <div
-                class="bg-blue-600 h-2 rounded-full transition-all duration-300"
-                :style="{ width: `${job.stats.percentage}%` }"
-              ></div>
-            </div>
-          </div>
-        </div>
+          :job="job"
+        />
       </div>
     </div>
   </div>

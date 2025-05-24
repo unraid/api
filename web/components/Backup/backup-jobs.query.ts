@@ -2,7 +2,7 @@ import { graphql } from '~/composables/gql/gql';
 
 
 export const BACKUP_STATS_FRAGMENT = graphql(/* GraphQL */ `
-  fragment BackupStats on BackupJobStats {
+  fragment BackupStats on RCloneJobStats {
     bytes
     speed
     eta
@@ -30,20 +30,21 @@ export const BACKUP_STATS_FRAGMENT = graphql(/* GraphQL */ `
     formattedSpeed
     formattedElapsedTime
     formattedEta
-    group
-    finished
-    success
-    error
   }
 `);
 
 export const BACKUP_JOBS_QUERY = graphql(/* GraphQL */ `
-  query BackupJobs($showSystemJobs: Boolean) {
+  query BackupJobs {
     backup {
       id
-      jobs(showSystemJobs: $showSystemJobs) {
+      jobs {
         id
         group
+        configId
+        finished
+        success
+        error
+        detailedStatus
         stats {
           ...BackupStats
         }
@@ -57,6 +58,11 @@ export const BACKUP_JOB_QUERY = graphql(/* GraphQL */ `
     backupJob(jobId: $jobId) {
       id
       group
+      configId
+      finished
+      success
+      error
+      detailedStatus
       stats {
         ...BackupStats
       }
@@ -80,6 +86,7 @@ export const BACKUP_JOB_CONFIGS_QUERY = graphql(/* GraphQL */ `
         updatedAt
         lastRunAt
         lastRunStatus
+        currentJobId
       }
     }
   }
@@ -108,6 +115,7 @@ export const CREATE_BACKUP_JOB_CONFIG_MUTATION = graphql(/* GraphQL */ `
         enabled
         createdAt
         updatedAt
+        currentJobId
       }
     }
   }
@@ -128,6 +136,7 @@ export const UPDATE_BACKUP_JOB_CONFIG_MUTATION = graphql(/* GraphQL */ `
         updatedAt
         lastRunAt
         lastRunStatus
+        currentJobId
       }
     }
   }
@@ -156,6 +165,7 @@ export const TOGGLE_BACKUP_JOB_CONFIG_MUTATION = graphql(/* GraphQL */ `
         updatedAt
         lastRunAt
         lastRunStatus
+        currentJobId
       }
     }
   }
@@ -187,7 +197,6 @@ export const BACKUP_JOB_PROGRESS_SUBSCRIPTION = graphql(/* GraphQL */ `
   subscription BackupJobProgress($jobId: PrefixedID!) {
     backupJobProgress(jobId: $jobId) {
       id
-      type
       stats {
         ...BackupStats
       }

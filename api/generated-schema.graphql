@@ -903,6 +903,12 @@ type BackupMutations {
 
   """Manually trigger a backup job using existing configuration"""
   triggerJob(id: PrefixedID!): BackupStatus!
+
+  """Stop all running backup jobs"""
+  stopAllBackupJobs: BackupStatus!
+
+  """Forget all finished backup jobs to clean up the job list"""
+  forgetFinishedBackupJobs: BackupStatus!
 }
 
 input CreateBackupJobConfigInput {
@@ -923,6 +929,7 @@ input UpdateBackupJobConfigInput {
   schedule: String
   enabled: Boolean
   rcloneOptions: JSON
+  lastRunStatus: String
 }
 
 input InitiateBackupInput {
@@ -1092,9 +1099,121 @@ type RCloneRemote {
   config: JSON!
 }
 
+type RCloneJobStats {
+  """Bytes transferred"""
+  bytes: Float
+
+  """Transfer speed in bytes/sec"""
+  speed: Float
+
+  """Estimated time to completion in seconds"""
+  eta: Float
+
+  """Elapsed time in seconds"""
+  elapsedTime: Float
+
+  """Progress percentage (0-100)"""
+  percentage: Float
+
+  """Number of checks completed"""
+  checks: Float
+
+  """Number of deletes completed"""
+  deletes: Float
+
+  """Number of errors encountered"""
+  errors: Float
+
+  """Whether a fatal error occurred"""
+  fatalError: Boolean
+
+  """Last error message"""
+  lastError: String
+
+  """Number of renames completed"""
+  renames: Float
+
+  """Whether there is a retry error"""
+  retryError: Boolean
+
+  """Number of server-side copies"""
+  serverSideCopies: Float
+
+  """Bytes in server-side copies"""
+  serverSideCopyBytes: Float
+
+  """Number of server-side moves"""
+  serverSideMoves: Float
+
+  """Bytes in server-side moves"""
+  serverSideMoveBytes: Float
+
+  """Total bytes to transfer"""
+  totalBytes: Float
+
+  """Total checks to perform"""
+  totalChecks: Float
+
+  """Total transfers to perform"""
+  totalTransfers: Float
+
+  """Time spent transferring in seconds"""
+  transferTime: Float
+
+  """Number of transfers completed"""
+  transfers: Float
+
+  """Currently transferring files"""
+  transferring: JSON
+
+  """Currently checking files"""
+  checking: JSON
+
+  """Human-readable bytes transferred"""
+  formattedBytes: String
+
+  """Human-readable transfer speed"""
+  formattedSpeed: String
+
+  """Human-readable elapsed time"""
+  formattedElapsedTime: String
+
+  """Human-readable ETA"""
+  formattedEta: String
+}
+
+type RCloneJob {
+  """Job ID"""
+  id: PrefixedID!
+
+  """RClone group for the job"""
+  group: String
+
+  """Job status and statistics"""
+  stats: RCloneJobStats
+
+  """Progress percentage (0-100)"""
+  progressPercentage: Float
+
+  """Configuration ID that triggered this job"""
+  configId: PrefixedID
+
+  """Detailed status of the job"""
+  detailedStatus: String
+
+  """Whether the job is finished"""
+  finished: Boolean
+
+  """Whether the job was successful"""
+  success: Boolean
+
+  """Error message if job failed"""
+  error: String
+}
+
 type Backup implements Node {
   id: PrefixedID!
-  jobs(showSystemJobs: Boolean = false): [BackupJob!]!
+  jobs: [RCloneJob!]!
   configs: [BackupJobConfig!]!
 
   """Get the status for the backup service"""
@@ -1107,38 +1226,6 @@ type BackupStatus {
 
   """Job ID if available, can be used to check job status."""
   jobId: String
-}
-
-type BackupJob {
-  """Job ID"""
-  id: PrefixedID!
-
-  """RClone group for the job"""
-  group: String
-
-  """Job status and statistics"""
-  stats: JSON!
-
-  """Formatted bytes transferred"""
-  formattedBytes: String
-
-  """Formatted transfer speed"""
-  formattedSpeed: String
-
-  """Formatted elapsed time"""
-  formattedElapsedTime: String
-
-  """Formatted ETA"""
-  formattedEta: String
-
-  """Progress percentage (0-100)"""
-  progressPercentage: Float
-
-  """Configuration ID that triggered this job"""
-  configId: PrefixedID
-
-  """Detailed status of the job"""
-  detailedStatus: String
 }
 
 type BackupJobConfig implements Node {
@@ -1176,6 +1263,9 @@ type BackupJobConfig implements Node {
 
   """Status of last run"""
   lastRunStatus: String
+
+  """Current running job ID"""
+  currentJobId: String
 }
 
 type BackupJobConfigForm {
@@ -1741,7 +1831,7 @@ type Query {
   backupJobConfig(id: String!): BackupJobConfig
 
   """Get status of a specific backup job"""
-  backupJob(jobId: PrefixedID!): BackupJob
+  backupJob(jobId: PrefixedID!): RCloneJob
 
   """Get the JSON schema for backup job configuration form"""
   backupJobConfigForm(input: BackupJobConfigFormInput): BackupJobConfigForm!
@@ -1905,7 +1995,7 @@ type Subscription {
   arraySubscription: UnraidArray!
 
   """Subscribe to real-time backup job progress updates"""
-  backupJobProgress(jobId: PrefixedID!): BackupJob
+  backupJobProgress(jobId: PrefixedID!): RCloneJob
 }
 
 """Available authentication action verbs"""

@@ -5,17 +5,18 @@ import { pubsub } from '@app/core/pubsub.js';
 import { BackupConfigService } from '@app/unraid-api/graph/resolvers/backup/backup-config.service.js';
 import {
     Backup,
-    BackupJob,
     BackupJobConfig,
     BackupJobConfigForm,
     BackupJobConfigFormInput,
     BackupStatus,
 } from '@app/unraid-api/graph/resolvers/backup/backup.model.js';
-import { FormatService } from '@app/unraid-api/graph/resolvers/backup/format.service.js';
 import { buildBackupJobConfigSchema } from '@app/unraid-api/graph/resolvers/backup/jsonforms/backup-jsonforms-config.js';
 import { RCloneJob } from '@app/unraid-api/graph/resolvers/rclone/rclone.model.js';
 import { RCloneService } from '@app/unraid-api/graph/resolvers/rclone/rclone.service.js';
 import { PrefixedID } from '@app/unraid-api/graph/scalars/graphql-type-prefixed-id.js';
+import { FormatService } from '@app/unraid-api/utils/format.service.js';
+
+const JOB_GROUP_PREFIX = 'backup-';
 
 @Resolver(() => Backup)
 export class BackupResolver {
@@ -38,14 +39,11 @@ export class BackupResolver {
         };
     }
 
-    @ResolveField(() => [BackupJob], {
-        description: 'Get all running backup jobs',
+    @ResolveField(() => [RCloneJob], {
+        description: 'Get all running jobs (filtering should be done on frontend)',
     })
-    async jobs(
-        @Args('showSystemJobs', { type: () => Boolean, nullable: true, defaultValue: false })
-        showSystemJobs?: boolean
-    ): Promise<BackupJob[]> {
-        return this.backupJobs(showSystemJobs);
+    async jobs(): Promise<RCloneJob[]> {
+        return this.backupJobs();
     }
 
     @ResolveField(() => [BackupJobConfig], {
@@ -63,22 +61,28 @@ export class BackupResolver {
         return this.backupConfigService.getBackupJobConfig(id);
     }
 
-    @Query(() => BackupJob, {
+    @Query(() => RCloneJob, {
         description: 'Get status of a specific backup job',
         nullable: true,
     })
     async backupJob(
         @Args('jobId', { type: () => PrefixedID }) jobId: string
-    ): Promise<BackupJob | null> {
+    ): Promise<RCloneJob | null> {
         try {
             const status = await this.rcloneService['rcloneApiService'].getJobStatus({ jobId });
+            console.log(status);
             return {
                 id: jobId,
-                group: status.group || '',
-                stats: status,
+                group: status.group || undefined,
+                stats: status.stats,
+                finished: status.finished,
+                success: status.success,
+                error: status.error || undefined,
+                progressPercentage: status.stats?.percentage,
+                detailedStatus: status.error ? 'Error' : status.finished ? 'Completed' : 'Running',
             };
         } catch (error) {
-            this.logger.error(`Failed to fetch backup job ${jobId}:`, error);
+            this.logger.error(`Failed to fetch backup job ${jobId}: %o`, error);
             return null;
         }
     }
@@ -114,7 +118,7 @@ export class BackupResolver {
         };
     }
 
-    @Subscription(() => BackupJob, {
+    @Subscription(() => RCloneJob, {
         description: 'Subscribe to real-time backup job progress updates',
         nullable: true,
     })
@@ -122,65 +126,17 @@ export class BackupResolver {
         return pubsub.asyncIterableIterator(`BACKUP_JOB_PROGRESS:${jobId}`);
     }
 
-    private async backupJobs(showSystemJobs: boolean = false): Promise<RCloneJob[]> {
+    private async backupJobs(): Promise<RCloneJob[]> {
         try {
-            this.logger.debug(`backupJobs called with showSystemJobs: ${showSystemJobs}`);
+            this.logger.debug('backupJobs called - returning all jobs for frontend filtering');
 
-            let jobs;
-            if (showSystemJobs) {
-                // Get all jobs when showing system jobs
-                jobs = await this.rcloneService['rcloneApiService'].getAllJobsWithStats();
-                this.logger.debug(`All jobs with stats: ${JSON.stringify(jobs)}`);
-            } else {
-                // Get only backup jobs with enhanced stats when not showing system jobs
-                jobs = await this.rcloneService['rcloneApiService'].getBackupJobsWithStats();
-                this.logger.debug(`Backup jobs with enhanced stats: ${JSON.stringify(jobs)}`);
-            }
+            const jobs = (await this.rcloneService['rcloneApiService'].getAllJobsWithStats()).filter(
+                (job) => job.group?.startsWith(JOB_GROUP_PREFIX)
+            );
 
-            // Filter and map jobs
-            const allJobs =
-                jobs.jobids?.map((jobId: string | number, index: number) => {
-                    const stats = jobs.stats?.[index] || {};
-                    const group = stats.group || '';
+            this.logger.debug(`Returning ${jobs.length} jobs total for frontend filtering`);
 
-                    this.logger.debug(
-                        `Processing job ${jobId}: group="${group}", stats keys: [${Object.keys(stats).join(', ')}]`
-                    );
-
-                    return {
-                        id: String(jobId),
-                        group: group,
-                        stats,
-                    };
-                }) || [];
-
-            this.logger.debug(`Mapped ${allJobs.length} jobs total`);
-
-            // Log all job groups for analysis
-            const jobGroupSummary = allJobs.map((job) => ({ id: job.id, group: job.group }));
-            this.logger.debug(`All job groups: ${JSON.stringify(jobGroupSummary)}`);
-
-            // Filter based on showSystemJobs flag
-            if (showSystemJobs) {
-                this.logger.debug(`Returning all ${allJobs.length} jobs (showSystemJobs=true)`);
-                return allJobs;
-            } else {
-                // When not showing system jobs, we already filtered to backup jobs in getBackupJobsWithStats
-                // But let's double-check the filtering for safety
-                const filteredJobs = allJobs.filter((job) => job.group.startsWith('backup/'));
-                this.logger.debug(
-                    `Filtered to ${filteredJobs.length} backup jobs (group starts with 'backup/')`
-                );
-
-                const nonBackupJobs = allJobs.filter((job) => !job.group.startsWith('backup/'));
-                if (nonBackupJobs.length > 0) {
-                    this.logger.debug(
-                        `Excluded ${nonBackupJobs.length} non-backup jobs: ${JSON.stringify(nonBackupJobs.map((j) => ({ id: j.id, group: j.group })))}`
-                    );
-                }
-
-                return filteredJobs;
-            }
+            return jobs;
         } catch (error) {
             this.logger.error('Failed to fetch backup jobs:', error);
             return [];

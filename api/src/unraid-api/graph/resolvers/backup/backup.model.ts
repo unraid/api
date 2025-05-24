@@ -107,6 +107,9 @@ export class BackupJobConfig extends Node {
 
     @Field(() => String, { description: 'Status of last run', nullable: true })
     lastRunStatus?: string;
+
+    @Field(() => String, { description: 'Current running job ID', nullable: true })
+    currentJobId?: string;
 }
 
 @InputType()
@@ -199,6 +202,11 @@ export class UpdateBackupJobConfigInput {
     @IsOptional()
     @IsObject()
     rcloneOptions?: Record<string, unknown>;
+
+    @Field(() => String, { nullable: true })
+    @IsOptional()
+    @IsString()
+    lastRunStatus?: string;
 }
 
 @ObjectType()

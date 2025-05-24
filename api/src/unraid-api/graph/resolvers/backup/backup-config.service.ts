@@ -1,4 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { SchedulerRegistry } from '@nestjs/schedule';
 import { existsSync } from 'fs';
 import { readFile, writeFile } from 'fs/promises';
@@ -15,6 +15,8 @@ import {
 } from '@app/unraid-api/graph/resolvers/backup/backup.model.js';
 import { RCloneService } from '@app/unraid-api/graph/resolvers/rclone/rclone.service.js';
 
+const JOB_GROUP_PREFIX = 'backup-';
+
 interface BackupJobConfigData {
     id: string;
     name: string;
@@ -28,10 +30,11 @@ interface BackupJobConfigData {
     updatedAt: string;
     lastRunAt?: string;
     lastRunStatus?: string;
+    currentJobId?: string;
 }
 
 @Injectable()
-export class BackupConfigService {
+export class BackupConfigService implements OnModuleInit {
     private readonly logger = new Logger(BackupConfigService.name);
     private readonly configPath: string;
     private configs: Map<string, BackupJobConfigData> = new Map();
@@ -42,7 +45,10 @@ export class BackupConfigService {
     ) {
         const paths = getters.paths();
         this.configPath = join(paths.backupBase, 'backup-jobs.json');
-        this.loadConfigs();
+    }
+
+    async onModuleInit(): Promise<void> {
+        await this.loadConfigs();
     }
 
     async createBackupJobConfig(input: CreateBackupJobConfigInput): Promise<BackupJobConfig> {
@@ -113,18 +119,19 @@ export class BackupConfigService {
         this.logger.log(`Executing backup job: ${config.name}`);
 
         try {
-            const result = await this.rcloneService['rcloneApiService'].startBackup({
+            const result = (await this.rcloneService['rcloneApiService'].startBackup({
                 srcPath: config.sourcePath,
                 dstPath: `${config.remoteName}:${config.destinationPath}`,
                 async: true,
-                group: `backup/${config.id}`,
+                configId: config.id,
                 options: config.rcloneOptions || {},
-            });
+            })) as { jobId?: string; jobid?: string };
 
             const jobId = result.jobId || result.jobid;
 
             config.lastRunAt = new Date().toISOString();
             config.lastRunStatus = `Started with job ID: ${jobId}`;
+            config.currentJobId = jobId;
             this.configs.set(config.id, config);
             await this.saveConfigs();
 
@@ -133,6 +140,7 @@ export class BackupConfigService {
             const errorMessage = error instanceof Error ? error.message : String(error);
             config.lastRunAt = new Date().toISOString();
             config.lastRunStatus = `Failed: ${errorMessage}`;
+            config.currentJobId = undefined;
             this.configs.set(config.id, config);
             await this.saveConfigs();
 
@@ -150,7 +158,7 @@ export class BackupConfigService {
                 'UTC'
             );
 
-            this.schedulerRegistry.addCronJob(`backup-${config.id}`, job);
+            this.schedulerRegistry.addCronJob(`${JOB_GROUP_PREFIX}${config.id}`, job);
             job.start();
             this.logger.log(`Scheduled backup job: ${config.name} with schedule: ${config.schedule}`);
         } catch (error) {
@@ -160,14 +168,27 @@ export class BackupConfigService {
 
     private unscheduleJob(id: string): void {
         try {
-            const jobName = `backup-${id}`;
+            const jobName = `${JOB_GROUP_PREFIX}${id}`;
             if (this.schedulerRegistry.doesExist('cron', jobName)) {
                 this.schedulerRegistry.deleteCronJob(jobName);
                 this.logger.log(`Unscheduled backup job: ${id}`);
+            } else {
+                this.logger.debug(`No existing cron job found to unschedule for backup job: ${id}`);
             }
         } catch (error) {
             this.logger.error(`Failed to unschedule backup job ${id}:`, error);
         }
+    }
+
+    addCronJob(name: string, seconds: string) {
+        const job = new CronJob(`${seconds} * * * * *`, () => {
+            this.logger.warn(`time (${seconds}) for job ${name} to run!`);
+        });
+
+        this.schedulerRegistry.addCronJob(name, job);
+        job.start();
+
+        this.logger.warn(`job ${name} added for each minute at ${seconds} seconds!`);
     }
 
     private async loadConfigs(): Promise<void> {
@@ -175,6 +196,13 @@ export class BackupConfigService {
             if (existsSync(this.configPath)) {
                 const data = await readFile(this.configPath, 'utf-8');
                 const configs: BackupJobConfigData[] = JSON.parse(data);
+
+                // First, unschedule any existing jobs before clearing the config map
+                this.configs.forEach((config) => {
+                    if (config.enabled) {
+                        this.unscheduleJob(config.id);
+                    }
+                });
 
                 this.configs.clear();
                 configs.forEach((config) => {
@@ -214,6 +242,7 @@ export class BackupConfigService {
             updatedAt: new Date(config.updatedAt),
             lastRunAt: config.lastRunAt ? new Date(config.lastRunAt) : undefined,
             lastRunStatus: config.lastRunStatus,
+            currentJobId: config.currentJobId,
         };
     }
 }

@@ -34,6 +34,29 @@ import { mergeAndDedup } from './merge';
 
 const defaultCacheConfig: InMemoryCacheConfig = {
   typePolicies: {
+    Query: {
+      fields: {
+        backup: {
+          merge(_, incoming) {
+            return incoming;
+          },
+        },
+      },
+    },
+    Backup: {
+      fields: {
+        jobs: {
+          merge(_, incoming) {
+            return incoming;
+          },
+        },
+        configs: {
+          merge(_, incoming) {
+            return incoming;
+          },
+        },
+      },
+    },
     Notifications: {
       fields: {
         list: {

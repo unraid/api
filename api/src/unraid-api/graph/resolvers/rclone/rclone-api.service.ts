@@ -10,25 +10,66 @@ import got, { HTTPError } from 'got';
 import pRetry from 'p-retry';
 
 import { sanitizeParams } from '@app/core/log.js';
-import { FormatService } from '@app/unraid-api/graph/resolvers/backup/format.service.js';
+import { RCloneStatusService } from '@app/unraid-api/graph/resolvers/rclone/rclone-status.service.js';
 import {
     CreateRCloneRemoteDto,
     DeleteRCloneRemoteDto,
     GetRCloneJobStatusDto,
     GetRCloneRemoteConfigDto,
     GetRCloneRemoteDetailsDto,
+    RCloneJob,
     RCloneJobListResponse,
     RCloneJobStats,
-    RCloneJobStatusResponse,
-    RCloneJobsWithStatsResponse,
-    RCloneJobWithStats,
-    RCloneProviderOptionResponse,
     RCloneProviderResponse,
     RCloneRemoteConfig,
     RCloneStartBackupInput,
     UpdateRCloneRemoteDto,
 } from '@app/unraid-api/graph/resolvers/rclone/rclone.model.js';
 import { validateObject } from '@app/unraid-api/graph/resolvers/validation.utils.js';
+
+// Internal interface for job status response from RClone API
+interface RCloneJobStatusResponse {
+    id?: string | number;
+    group?: string;
+    stats?: RCloneJobStats;
+    finished?: boolean;
+    error?: string;
+    [key: string]: any;
+}
+
+interface BackupStatusResult {
+    isRunning: boolean;
+    stats: RCloneJobStats | null;
+    jobCount: number;
+    activeJobs: RCloneJobStatusResponse[];
+}
+
+interface JobOperationResult {
+    stopped: string[];
+    forgotten?: string[];
+    errors: string[];
+}
+
+const CONSTANTS = {
+    RETRY_CONFIG: {
+        retries: 6,
+        minTimeout: 100,
+        maxTimeout: 5000,
+        factor: 2,
+        maxRetryTime: 30000,
+    },
+    TIMEOUTS: {
+        GRACEFUL_SHUTDOWN: 2000,
+        PROCESS_CLEANUP: 1000,
+        STOP_JOBS_WAIT: 1000,
+    },
+    LOG_LEVEL: {
+        DEBUG: 'DEBUG',
+        INFO: 'INFO',
+    },
+} as const;
+
+const JOB_GROUP_PREFIX = 'backup-';
 
 @Injectable()
 export class RCloneApiService implements OnModuleInit, OnModuleDestroy {
@@ -41,40 +82,12 @@ export class RCloneApiService implements OnModuleInit, OnModuleDestroy {
         process.env.RCLONE_USERNAME || crypto.randomBytes(12).toString('base64');
     private readonly rclonePassword: string =
         process.env.RCLONE_PASSWORD || crypto.randomBytes(24).toString('base64');
-    constructor(private readonly formatService: FormatService) {}
+
+    constructor(private readonly statusService: RCloneStatusService) {}
 
     async onModuleInit(): Promise<void> {
         try {
-            const { getters } = await import('@app/store/index.js');
-            this.rcloneSocketPath = getters.paths()['rclone-socket'];
-            const logFilePath = join(getters.paths()['log-base'], 'rclone-unraid-api.log');
-            this.logger.log(`RClone socket path: ${this.rcloneSocketPath}`);
-            this.logger.log(`RClone log file path: ${logFilePath}`);
-
-            this.rcloneBaseUrl = `http://unix:${this.rcloneSocketPath}:`;
-
-            const socketExists = await this.checkRcloneSocketExists(this.rcloneSocketPath);
-
-            if (socketExists) {
-                const isRunning = await this.checkRcloneSocketRunning();
-                if (isRunning) {
-                    this.isInitialized = true;
-                    return;
-                } else {
-                    this.logger.warn(
-                        'RClone socket is not running but socket exists, removing socket before starting...'
-                    );
-                    await rm(this.rcloneSocketPath, { force: true });
-                }
-
-                this.logger.warn('RClone socket is not running, starting it...');
-                this.isInitialized = await this.startRcloneSocket(this.rcloneSocketPath, logFilePath);
-                return;
-            } else {
-                this.logger.warn('RClone socket does not exist, creating it...');
-                this.isInitialized = await this.startRcloneSocket(this.rcloneSocketPath, logFilePath);
-                return;
-            }
+            await this.initializeRCloneService();
         } catch (error: unknown) {
             this.logger.error(`Error initializing RCloneApiService: ${error}`);
             this.isInitialized = false;
@@ -86,92 +99,144 @@ export class RCloneApiService implements OnModuleInit, OnModuleDestroy {
         this.logger.log('RCloneApiService module destroyed');
     }
 
+    private async initializeRCloneService(): Promise<void> {
+        const { getters } = await import('@app/store/index.js');
+        this.rcloneSocketPath = getters.paths()['rclone-socket'];
+        const logFilePath = join(getters.paths()['log-base'], 'rclone-unraid-api.log');
+
+        this.rcloneBaseUrl = `http://unix:${this.rcloneSocketPath}:`;
+        this.logger.log(`RClone socket path: ${this.rcloneSocketPath}`);
+
+        const socketExists = await this.checkRcloneSocketExists(this.rcloneSocketPath);
+
+        if (socketExists && (await this.checkRcloneSocketRunning())) {
+            this.isInitialized = true;
+            return;
+        }
+
+        if (socketExists) {
+            this.logger.warn('RClone socket exists but not running, removing before restart...');
+            await rm(this.rcloneSocketPath, { force: true });
+        }
+
+        this.logger.warn('Starting new RClone socket...');
+        await this.killExistingRcloneProcesses();
+        this.isInitialized = await this.startRcloneSocket(this.rcloneSocketPath, logFilePath);
+    }
+
     private async startRcloneSocket(socketPath: string, logFilePath: string): Promise<boolean> {
         try {
-            if (!existsSync(logFilePath)) {
-                await mkdir(dirname(logFilePath), { recursive: true });
-                await writeFile(logFilePath, '', 'utf-8');
-            }
+            await this.ensureLogFileExists(logFilePath);
+
+            const rcloneArgs = this.buildRcloneArgs(socketPath, logFilePath);
             this.logger.log(`Starting RClone RC daemon on socket: ${socketPath}`);
 
-            this.rcloneProcess = execa(
-                'rclone',
-                [
-                    'rcd',
-                    '--rc-addr',
-                    socketPath,
-                    '--log-level',
-                    'INFO',
-                    '--log-file',
-                    logFilePath,
-                    ...(this.rcloneUsername ? ['--rc-user', this.rcloneUsername] : []),
-                    ...(this.rclonePassword ? ['--rc-pass', this.rclonePassword] : []),
-                ],
-                { detached: false }
-            );
+            this.rcloneProcess = execa('rclone', rcloneArgs, { detached: false });
+            this.setupProcessListeners();
 
-            this.rcloneProcess.on('error', (error: Error) => {
-                this.logger.error(`RClone process failed to start: ${error.message}`);
-                this.rcloneProcess = null;
-                this.isInitialized = false;
-            });
-
-            this.rcloneProcess.on('exit', (code, signal) => {
-                this.logger.warn(
-                    `RClone process exited unexpectedly with code: ${code}, signal: ${signal}`
-                );
-                this.rcloneProcess = null;
-                this.isInitialized = false;
-            });
-
-            await pRetry(
-                async () => {
-                    const isRunning = await this.checkRcloneSocketRunning();
-                    if (!isRunning) throw new Error('Rclone socket not ready');
-                },
-                {
-                    retries: 6,
-                    minTimeout: 100,
-                    maxTimeout: 5000,
-                    factor: 2,
-                    maxRetryTime: 30000,
-                }
-            );
-
+            await this.waitForSocketReady();
             return true;
         } catch (error: unknown) {
             this.logger.error(`Error starting RClone RC daemon: ${error}`);
-            this.rcloneProcess?.kill();
-            this.rcloneProcess = null;
+            this.cleanupFailedProcess();
             return false;
         }
     }
 
-    private async stopRcloneSocket(): Promise<void> {
-        if (this.rcloneProcess && !this.rcloneProcess.killed) {
-            this.logger.log(`Stopping RClone RC daemon process (PID: ${this.rcloneProcess.pid})...`);
-            try {
-                const killed = this.rcloneProcess.kill('SIGTERM');
-                if (!killed) {
-                    this.logger.warn('Failed to kill RClone process with SIGTERM, trying SIGKILL.');
-                    this.rcloneProcess.kill('SIGKILL');
-                }
-                this.logger.log('RClone process stopped.');
-            } catch (error: unknown) {
-                this.logger.error(`Error stopping RClone process: ${error}`);
-            } finally {
-                this.rcloneProcess = null;
-            }
-        } else {
-            this.logger.log('RClone process not running or already stopped.');
+    private async ensureLogFileExists(logFilePath: string): Promise<void> {
+        if (!existsSync(logFilePath)) {
+            await mkdir(dirname(logFilePath), { recursive: true });
+            await writeFile(logFilePath, '', 'utf-8');
+        }
+    }
+
+    private buildRcloneArgs(socketPath: string, logFilePath: string): string[] {
+        const enableDebugMode = true;
+        const enableRcServe = true;
+        const logLevel = enableDebugMode ? CONSTANTS.LOG_LEVEL.DEBUG : CONSTANTS.LOG_LEVEL.INFO;
+
+        const args = [
+            'rcd',
+            '--rc-addr',
+            socketPath,
+            '--log-level',
+            logLevel,
+            '--log-file',
+            logFilePath,
+        ];
+
+        if (this.rcloneUsername) args.push('--rc-user', this.rcloneUsername);
+        if (this.rclonePassword) args.push('--rc-pass', this.rclonePassword);
+        if (enableRcServe) args.push('--rc-serve');
+
+        if (enableDebugMode) {
+            this.logger.log('Debug mode: Enhanced logging and RC serve enabled');
         }
 
+        return args;
+    }
+
+    private setupProcessListeners(): void {
+        if (!this.rcloneProcess) return;
+
+        this.rcloneProcess.on('error', (error: Error) => {
+            this.logger.error(`RClone process failed to start: ${error.message}`);
+            this.cleanupFailedProcess();
+        });
+
+        this.rcloneProcess.on('exit', (code, signal) => {
+            this.logger.warn(`RClone process exited unexpectedly with code: ${code}, signal: ${signal}`);
+            this.cleanupFailedProcess();
+        });
+    }
+
+    private cleanupFailedProcess(): void {
+        this.rcloneProcess = null;
+        this.isInitialized = false;
+    }
+
+    private async waitForSocketReady(): Promise<void> {
+        await pRetry(async () => {
+            const isRunning = await this.checkRcloneSocketRunning();
+            if (!isRunning) throw new Error('Rclone socket not ready');
+        }, CONSTANTS.RETRY_CONFIG);
+    }
+
+    private async stopRcloneSocket(): Promise<void> {
+        if (this.rcloneProcess && !this.rcloneProcess.killed) {
+            await this.terminateProcess();
+        }
+
+        await this.killExistingRcloneProcesses();
+        await this.removeSocketFile();
+    }
+
+    private async terminateProcess(): Promise<void> {
+        if (!this.rcloneProcess) return;
+
+        this.logger.log(`Stopping RClone RC daemon process (PID: ${this.rcloneProcess.pid})...`);
+
+        try {
+            const killed = this.rcloneProcess.kill('SIGTERM');
+            if (!killed) {
+                this.logger.warn('Failed to kill with SIGTERM, using SIGKILL');
+                this.rcloneProcess.kill('SIGKILL');
+            }
+            this.logger.log('RClone process stopped');
+        } catch (error: unknown) {
+            this.logger.error(`Error stopping RClone process: ${error}`);
+        } finally {
+            this.rcloneProcess = null;
+        }
+    }
+
+    private async removeSocketFile(): Promise<void> {
         if (this.rcloneSocketPath && existsSync(this.rcloneSocketPath)) {
             this.logger.log(`Removing RClone socket file: ${this.rcloneSocketPath}`);
             try {
                 await rm(this.rcloneSocketPath, { force: true });
             } catch (error: unknown) {
-                this.logger.error(`Error removing RClone socket file: ${error}`);
+                this.logger.error(`Error removing socket file: ${error}`);
             }
         }
     }
@@ -180,16 +245,15 @@ export class RCloneApiService implements OnModuleInit, OnModuleDestroy {
         const socketExists = existsSync(socketPath);
         if (!socketExists) {
             this.logger.warn(`RClone socket does not exist at: ${socketPath}`);
-            return false;
         }
-        return true;
+        return socketExists;
     }
 
     private async checkRcloneSocketRunning(): Promise<boolean> {
         try {
-            await this.callRcloneApi('core/pid');
+            await this.callRcloneApi('rc/noop');
             return true;
-        } catch (error: unknown) {
+        } catch {
             return false;
         }
     }
@@ -208,8 +272,7 @@ export class RCloneApiService implements OnModuleInit, OnModuleDestroy {
 
     async getRemoteDetails(input: GetRCloneRemoteDetailsDto): Promise<RCloneRemoteConfig> {
         await validateObject(GetRCloneRemoteDetailsDto, input);
-        const config = (await this.getRemoteConfig({ name: input.name })) || {};
-        return config as RCloneRemoteConfig;
+        return this.getRemoteConfig({ name: input.name });
     }
 
     async getRemoteConfig(input: GetRCloneRemoteConfigDto): Promise<RCloneRemoteConfig> {
@@ -217,249 +280,254 @@ export class RCloneApiService implements OnModuleInit, OnModuleDestroy {
         return this.callRcloneApi('config/get', { name: input.name });
     }
 
-    async createRemote(input: CreateRCloneRemoteDto): Promise<any> {
+    async createRemote(input: CreateRCloneRemoteDto): Promise<unknown> {
         await validateObject(CreateRCloneRemoteDto, input);
-        this.logger.log(`Creating new remote: ${input.name} of type: ${input.type}`);
-        const params = {
+        this.logger.log(`Creating remote: ${input.name} (${input.type})`);
+
+        const result = await this.callRcloneApi('config/create', {
             name: input.name,
             type: input.type,
             parameters: input.parameters,
-        };
-        const result = await this.callRcloneApi('config/create', params);
+        });
+
         this.logger.log(`Successfully created remote: ${input.name}`);
         return result;
     }
 
-    async updateRemote(input: UpdateRCloneRemoteDto): Promise<any> {
+    async updateRemote(input: UpdateRCloneRemoteDto): Promise<unknown> {
         await validateObject(UpdateRCloneRemoteDto, input);
         this.logger.log(`Updating remote: ${input.name}`);
-        const params = {
+
+        return this.callRcloneApi('config/update', {
             name: input.name,
             ...input.parameters,
-        };
-        return this.callRcloneApi('config/update', params);
+        });
     }
 
-    async deleteRemote(input: DeleteRCloneRemoteDto): Promise<any> {
+    async deleteRemote(input: DeleteRCloneRemoteDto): Promise<unknown> {
         await validateObject(DeleteRCloneRemoteDto, input);
         this.logger.log(`Deleting remote: ${input.name}`);
         return this.callRcloneApi('config/delete', { name: input.name });
     }
 
-    async startBackup(input: RCloneStartBackupInput): Promise<any> {
+    async startBackup(input: RCloneStartBackupInput): Promise<unknown> {
         await validateObject(RCloneStartBackupInput, input);
-        this.logger.log(
-            `Starting backup from ${input.srcPath} to ${input.dstPath} with group: ${input.group}`
-        );
+
+        this.logger.log(`Starting backup: ${input.srcPath} → ${input.dstPath}`);
+
+        const group = input.configId
+            ? `${JOB_GROUP_PREFIX}${input.configId}`
+            : JOB_GROUP_PREFIX + 'manual';
+
         const params = {
             srcFs: input.srcPath,
             dstFs: input.dstPath,
             ...(input.async && { _async: input.async }),
-            ...(input.group && { _group: input.group }),
+            _group: group,
             ...(input.options || {}),
         };
 
         const result = await this.callRcloneApi('sync/copy', params);
-
-        this.logger.log(
-            `Backup job created with ID: ${result.jobid || result.jobId || 'unknown'}, group: ${input.group}`
-        );
+        const jobId = result.jobid || result.jobId || 'unknown';
+        this.logger.log(`Backup job created with ID: ${jobId} in group: ${group}`);
 
         return result;
     }
 
-    async getJobStatus(input: GetRCloneJobStatusDto): Promise<RCloneJobStatusResponse> {
+    async getJobStatus(input: GetRCloneJobStatusDto): Promise<RCloneJob> {
         await validateObject(GetRCloneJobStatusDto, input);
 
-        const result = await this.callRcloneApi('job/status', { jobid: input.jobId });
-
-        if (result.error) {
-            this.logger.warn(`Job ${input.jobId} has error: ${result.error}`);
-        }
-
-        if (!result.stats && result.group) {
+        // If the jobId looks like a group name (starts with backup-), get group stats
+        if (input.jobId.startsWith(JOB_GROUP_PREFIX)) {
             try {
-                const groupStats = await this.getGroupStats(result.group);
-                if (groupStats && typeof groupStats === 'object') {
-                    result.stats = { ...groupStats };
-                }
-            } catch (groupError) {
-                this.logger.warn(`Failed to get group stats for job ${input.jobId}: ${groupError}`);
+                const stats = await this.callRcloneApi('core/stats', { group: input.jobId });
+                const enhancedStats = this.statusService.enhanceStatsWithFormattedFields({
+                    ...stats,
+                    group: input.jobId,
+                });
+
+                const job = this.statusService.transformStatsToJob(input.jobId, enhancedStats);
+                job.configId = input.jobId.substring(JOB_GROUP_PREFIX.length);
+                return job;
+            } catch (error) {
+                this.logger.warn(`Failed to get group stats for ${input.jobId}: ${error}`);
             }
         }
 
-        if (result.stats) {
-            result.stats = this.enhanceStatsWithFormattedFields(result.stats);
+        // Fallback to individual job status
+        const jobStatus = await this.getIndividualJobStatus(input.jobId);
+        return this.statusService.parseJobWithStats(input.jobId, jobStatus);
+    }
+
+    async getIndividualJobStatus(jobId: string): Promise<RCloneJobStatusResponse> {
+        this.logger.debug(`Fetching status for job ${jobId}`);
+        const result = await this.callRcloneApi('job/status', { jobid: jobId });
+
+        if (result.error) {
+            this.logger.warn(`Job ${jobId} has error: ${result.error}`);
         }
 
         return result;
     }
 
     async listRunningJobs(): Promise<RCloneJobListResponse> {
-        const result = await this.callRcloneApi('job/list');
-        return result;
+        this.logger.debug('Fetching job list from RClone API');
+        return this.callRcloneApi('job/list');
     }
 
-    async getGroupStats(group: string): Promise<any> {
-        const result = await this.callRcloneApi('core/stats', { group });
-        return result;
-    }
+    async getAllJobsWithStats(): Promise<RCloneJob[]> {
+        try {
+            // Get both the job list and group list
+            const [runningJobs, groupList] = await Promise.all([
+                this.listRunningJobs(),
+                this.callRcloneApi('core/group-list'),
+            ]);
 
-    async getBackupJobsWithStats(): Promise<RCloneJobsWithStatsResponse> {
-        const jobList = await this.listRunningJobs();
+            this.logger.debug(`Running jobs: ${JSON.stringify(runningJobs)}`);
+            this.logger.debug(`Group list: ${JSON.stringify(groupList)}`);
 
-        if (!jobList.jobids || jobList.jobids.length === 0) {
-            this.logger.log('No active jobs found in RClone');
-            return { jobids: [], stats: [] };
-        }
+            // Safety check: if too many groups, something is wrong
+            if (groupList.groups && groupList.groups.length > 100) {
+                this.logger.error(
+                    `DANGER: Found ${groupList.groups.length} groups, aborting to prevent job explosion`
+                );
+                return [];
+            }
 
-        this.logger.log(
-            `Found ${jobList.jobids.length} active jobs in RClone, processing all jobs with stats`
-        );
+            // Safety check: if too many individual jobs, something is wrong
+            if (runningJobs.jobids && runningJobs.jobids.length > 1000) {
+                this.logger.error(
+                    `DANGER: Found ${runningJobs.jobids.length} individual jobs, aborting to prevent performance issues`
+                );
+                return [];
+            }
 
-        const allJobs: RCloneJobWithStats[] = [];
-        let successfulJobQueries = 0;
+            if (!runningJobs.jobids?.length) {
+                this.logger.debug('No running jobs found');
+                return [];
+            }
 
-        for (const jobId of jobList.jobids) {
-            try {
-                const jobStatus = await this.getJobStatus({ jobId: String(jobId) });
-                const group = jobStatus.group || '';
+            const backupGroups = (groupList.groups || []).filter((group: string) =>
+                group.startsWith(JOB_GROUP_PREFIX)
+            );
 
-                let detailedStats = {};
-                if (group) {
+            if (backupGroups.length === 0) {
+                this.logger.debug('No backup groups found');
+                return [];
+            }
+
+            // Get group stats for all backup groups to get proper stats and group info
+            const groupStatsMap = new Map<string, any>();
+            await Promise.all(
+                backupGroups.map(async (group: string) => {
                     try {
-                        const groupStats = await this.getGroupStats(group);
-                        if (groupStats && typeof groupStats === 'object') {
-                            detailedStats = { ...groupStats };
-                        }
-                    } catch (groupError) {
-                        this.logger.warn(
-                            `Failed to get core/stats for job ${jobId}, group ${group}: ${groupError}`
-                        );
+                        const stats = await this.callRcloneApi('core/stats', { group });
+                        groupStatsMap.set(group, stats);
+                    } catch (error) {
+                        this.logger.warn(`Failed to get stats for group ${group}: ${error}`);
                     }
-                }
+                })
+            );
 
-                const enhancedStats = {
-                    ...jobStatus.stats,
-                    ...detailedStats,
-                };
+            const jobs: RCloneJob[] = [];
 
-                const finalStats = this.enhanceStatsWithFormattedFields(enhancedStats);
+            // For each backup group, create a job entry with proper stats
+            backupGroups.forEach((group) => {
+                const groupStats = groupStatsMap.get(group);
+                if (!groupStats) return;
 
-                allJobs.push({
-                    jobId,
-                    stats: finalStats,
+                this.logger.debug(`Processing group ${group}: stats=${JSON.stringify(groupStats)}`);
+
+                const configId = group.startsWith(JOB_GROUP_PREFIX)
+                    ? group.substring(JOB_GROUP_PREFIX.length)
+                    : undefined;
+
+                // Use the group name as the job ID for consistency, but add group info to stats
+                const enhancedStats = this.statusService.enhanceStatsWithFormattedFields({
+                    ...groupStats,
+                    group, // Add group to stats so it gets picked up in transformStatsToJob
                 });
 
-                successfulJobQueries++;
-            } catch (error) {
-                this.logger.error(`Failed to get status for job ${jobId}: ${error}`);
-            }
-        }
+                const job = this.statusService.transformStatsToJob(group, enhancedStats);
+                job.configId = configId;
 
-        this.logger.log(
-            `Successfully queried ${successfulJobQueries} jobs from ${jobList.jobids.length} total jobs`
-        );
+                // Only include jobs that are truly active (not completed)
+                const isActivelyTransferring = groupStats.transferring?.length > 0;
+                const isActivelyChecking = groupStats.checking?.length > 0;
+                const hasActiveSpeed = groupStats.speed > 0;
+                const isNotFinished = !groupStats.finished && groupStats.fatalError !== true;
 
-        const result: RCloneJobsWithStatsResponse = {
-            jobids: allJobs.map((job) => job.jobId),
-            stats: allJobs.map((job) => job.stats),
-        };
-
-        return result;
-    }
-
-    async getAllJobsWithStats(): Promise<RCloneJobsWithStatsResponse> {
-        const jobList = await this.listRunningJobs();
-
-        if (!jobList.jobids || jobList.jobids.length === 0) {
-            this.logger.log('No active jobs found in RClone');
-            return { jobids: [], stats: [] };
-        }
-
-        this.logger.log(
-            `Found ${jobList.jobids.length} active jobs in RClone: [${jobList.jobids.join(', ')}]`
-        );
-
-        const allJobs: RCloneJobWithStats[] = [];
-        let successfulJobQueries = 0;
-
-        for (const jobId of jobList.jobids) {
-            try {
-                const jobStatus = await this.getJobStatus({ jobId: String(jobId) });
-                const group = jobStatus.group || '';
-
-                let detailedStats = {};
-                if (group) {
-                    try {
-                        const groupStats = await this.getGroupStats(group);
-                        if (groupStats && typeof groupStats === 'object') {
-                            detailedStats = { ...groupStats };
-                        }
-                    } catch (groupError) {
-                        this.logger.warn(
-                            `Failed to get core/stats for job ${jobId}, group ${group}: ${groupError}`
-                        );
-                    }
+                if ((isActivelyTransferring || isActivelyChecking || hasActiveSpeed) && isNotFinished) {
+                    jobs.push(job);
                 }
+            });
 
-                const enhancedStats = {
-                    ...jobStatus.stats,
-                    ...detailedStats,
-                };
+            this.logger.debug(
+                `Found ${jobs.length} active backup jobs from ${backupGroups.length} groups`
+            );
+            return jobs;
+        } catch (error) {
+            this.logger.error('Failed to get jobs with stats:', error);
+            return [];
+        }
+    }
 
-                const finalStats = this.enhanceStatsWithFormattedFields(enhancedStats);
+    async stopAllJobs(): Promise<JobOperationResult> {
+        const runningJobs = await this.listRunningJobs();
 
-                allJobs.push({
-                    jobId,
-                    stats: finalStats,
-                });
-
-                successfulJobQueries++;
-            } catch (error) {
-                this.logger.error(`Failed to get status for job ${jobId}: ${error}`);
-            }
+        if (!runningJobs.jobids?.length) {
+            this.logger.log('No running jobs to stop');
+            return { stopped: [], errors: [] };
         }
 
-        this.logger.log(
-            `Successfully queried ${successfulJobQueries}/${jobList.jobids.length} jobs for detailed stats`
+        this.logger.log(`Stopping ${runningJobs.jobids.length} running jobs`);
+        return this.executeJobOperation(runningJobs.jobids, 'stop');
+    }
+
+    private async executeJobOperation(
+        jobIds: (string | number)[],
+        operation: 'stop'
+    ): Promise<JobOperationResult> {
+        const stopped: string[] = [];
+        const errors: string[] = [];
+
+        const promises = jobIds.map(async (jobId) => {
+            try {
+                await this.callRcloneApi(`job/${operation}`, { jobid: jobId });
+                stopped.push(String(jobId));
+                this.logger.log(`${operation}ped job: ${jobId}`);
+            } catch (error) {
+                const errorMsg = `Failed to ${operation} job ${jobId}: ${error}`;
+                errors.push(errorMsg);
+                this.logger.error(errorMsg);
+            }
+        });
+
+        await Promise.allSettled(promises);
+        return { stopped, errors };
+    }
+
+    async getBackupStatus(): Promise<BackupStatusResult> {
+        const runningJobs = await this.listRunningJobs();
+
+        if (!runningJobs.jobids?.length) {
+            return this.statusService.parseBackupStatus(runningJobs, []);
+        }
+
+        const jobStatuses = await Promise.allSettled(
+            runningJobs.jobids.map((jobId) => this.getIndividualJobStatus(String(jobId)))
         );
 
-        const result: RCloneJobsWithStatsResponse = {
-            jobids: allJobs.map((job) => job.jobId),
-            stats: allJobs.map((job) => job.stats),
-        };
-
-        return result;
+        return this.statusService.parseBackupStatus(runningJobs, jobStatuses);
     }
 
-    private enhanceStatsWithFormattedFields(stats: RCloneJobStats): RCloneJobStats {
-        const enhancedStats = { ...stats };
-
-        if (stats.bytes !== undefined && stats.bytes !== null) {
-            enhancedStats.formattedBytes = this.formatService.formatBytes(stats.bytes);
-        }
-
-        if (stats.speed !== undefined && stats.speed !== null && stats.speed > 0) {
-            enhancedStats.formattedSpeed = this.formatService.formatBytes(stats.speed);
-        }
-
-        if (stats.elapsedTime !== undefined && stats.elapsedTime !== null) {
-            enhancedStats.formattedElapsedTime = this.formatService.formatDuration(stats.elapsedTime);
-        }
-
-        if (stats.eta !== undefined && stats.eta !== null && stats.eta > 0) {
-            enhancedStats.formattedEta = this.formatService.formatDuration(stats.eta);
-        }
-
-        return enhancedStats;
-    }
-
-    private async callRcloneApi(endpoint: string, params: Record<string, any> = {}): Promise<any> {
+    private async callRcloneApi(endpoint: string, params: Record<string, unknown> = {}): Promise<any> {
         const url = `${this.rcloneBaseUrl}/${endpoint}`;
+        const finalParams = { _async: false, ...params };
+
         try {
             const response = await got.post(url, {
-                json: params,
+                json: finalParams,
                 responseType: 'json',
                 enableUnixSockets: true,
                 headers: {
@@ -469,59 +537,113 @@ export class RCloneApiService implements OnModuleInit, OnModuleDestroy {
 
             return response.body;
         } catch (error: unknown) {
-            this.handleApiError(error, endpoint, params);
+            this.handleApiError(error, endpoint, finalParams);
         }
     }
 
     private handleApiError(error: unknown, endpoint: string, params: Record<string, unknown>): never {
+        const sanitizedParams = sanitizeParams(params);
+
         if (error instanceof HTTPError) {
             const statusCode = error.response.statusCode;
             const rcloneError = this.extractRcloneError(error.response.body, params);
-            const detailedErrorMessage = `Rclone API Error (${endpoint}, HTTP ${statusCode}): ${rcloneError}`;
+            const message = `Rclone API Error (${endpoint}, HTTP ${statusCode}): ${rcloneError}`;
 
-            const sanitizedParams = sanitizeParams(params);
-            this.logger.error(
-                `Original ${detailedErrorMessage} | Params: ${JSON.stringify(sanitizedParams)}`,
-                error.stack
-            );
-
-            throw new Error(detailedErrorMessage);
-        } else if (error instanceof Error) {
-            const detailedErrorMessage = `Error calling RClone API (${endpoint}) with params ${JSON.stringify(sanitizeParams(params))}: ${error.message}`;
-            this.logger.error(detailedErrorMessage, error.stack);
-            throw error;
-        } else {
-            const detailedErrorMessage = `Unknown error calling RClone API (${endpoint}) with params ${JSON.stringify(sanitizeParams(params))}: ${String(error)}`;
-            this.logger.error(detailedErrorMessage);
-            throw new Error(detailedErrorMessage);
+            this.logger.error(`${message} | Params: ${JSON.stringify(sanitizedParams)}`, error.stack);
+            throw new Error(message);
         }
+
+        const message =
+            error instanceof Error
+                ? `Error calling RClone API (${endpoint}): ${error.message}`
+                : `Unknown error calling RClone API (${endpoint}): ${String(error)}`;
+
+        this.logger.error(
+            `${message} | Params: ${JSON.stringify(sanitizedParams)}`,
+            error instanceof Error ? error.stack : undefined
+        );
+        throw error instanceof Error ? error : new Error(message);
     }
 
     private extractRcloneError(responseBody: unknown, fallbackParams: Record<string, unknown>): string {
         try {
-            let errorBody: unknown;
-            if (typeof responseBody === 'string') {
-                errorBody = JSON.parse(responseBody);
-            } else if (typeof responseBody === 'object' && responseBody !== null) {
-                errorBody = responseBody;
-            }
+            const errorBody = typeof responseBody === 'string' ? JSON.parse(responseBody) : responseBody;
 
             if (errorBody && typeof errorBody === 'object' && 'error' in errorBody) {
-                const typedErrorBody = errorBody as { error: unknown; input?: unknown };
-                let rcloneError = `Rclone Error: ${String(typedErrorBody.error)}`;
-                if (typedErrorBody.input) {
-                    rcloneError += ` | Input: ${JSON.stringify(typedErrorBody.input)}`;
-                } else if (fallbackParams) {
-                    rcloneError += ` | Original Params: ${JSON.stringify(fallbackParams)}`;
+                const typedError = errorBody as { error: unknown; input?: unknown };
+                let message = `Rclone Error: ${String(typedError.error)}`;
+
+                if (typedError.input) {
+                    message += ` | Input: ${JSON.stringify(typedError.input)}`;
+                } else {
+                    message += ` | Params: ${JSON.stringify(fallbackParams)}`;
                 }
-                return rcloneError;
-            } else if (responseBody) {
-                return `Non-standard error response body: ${typeof responseBody === 'string' ? responseBody : JSON.stringify(responseBody)}`;
-            } else {
-                return 'Empty error response body received.';
+
+                return message;
             }
-        } catch (parseOrAccessError) {
-            return `Failed to process error response body. Raw body: ${typeof responseBody === 'string' ? responseBody : JSON.stringify(responseBody)}`;
+
+            return responseBody
+                ? `Non-standard error response: ${typeof responseBody === 'string' ? responseBody : JSON.stringify(responseBody)}`
+                : 'Empty error response received';
+        } catch {
+            return `Failed to process error response: ${typeof responseBody === 'string' ? responseBody : JSON.stringify(responseBody)}`;
+        }
+    }
+
+    private async killExistingRcloneProcesses(): Promise<void> {
+        try {
+            this.logger.log('Checking for existing rclone processes...');
+            const { stdout } = await execa('pgrep', ['-f', 'rclone.*rcd'], { reject: false });
+
+            if (!stdout.trim()) {
+                this.logger.log('No existing rclone processes found');
+                return;
+            }
+
+            const pids = stdout
+                .trim()
+                .split('\n')
+                .filter((pid) => pid.trim());
+            this.logger.log(`Found ${pids.length} existing rclone process(es): ${pids.join(', ')}`);
+
+            await this.terminateProcesses(pids);
+            await this.cleanupStaleSocket();
+        } catch (error) {
+            this.logger.warn(`Error during rclone process cleanup: ${error}`);
+        }
+    }
+
+    private async terminateProcesses(pids: string[]): Promise<void> {
+        for (const pid of pids) {
+            try {
+                this.logger.log(`Terminating rclone process PID: ${pid}`);
+
+                await execa('kill', ['-TERM', pid], { reject: false });
+                await new Promise((resolve) =>
+                    setTimeout(resolve, CONSTANTS.TIMEOUTS.GRACEFUL_SHUTDOWN)
+                );
+
+                const { exitCode } = await execa('kill', ['-0', pid], { reject: false });
+
+                if (exitCode === 0) {
+                    this.logger.warn(`Process ${pid} still running, using SIGKILL`);
+                    await execa('kill', ['-KILL', pid], { reject: false });
+                    await new Promise((resolve) =>
+                        setTimeout(resolve, CONSTANTS.TIMEOUTS.PROCESS_CLEANUP)
+                    );
+                }
+
+                this.logger.log(`Successfully terminated process ${pid}`);
+            } catch (error) {
+                this.logger.warn(`Failed to kill process ${pid}: ${error}`);
+            }
+        }
+    }
+
+    private async cleanupStaleSocket(): Promise<void> {
+        if (this.rcloneSocketPath && existsSync(this.rcloneSocketPath)) {
+            await rm(this.rcloneSocketPath, { force: true });
+            this.logger.log('Removed stale socket file');
         }
     }
 }
