@@ -50,7 +50,7 @@ const handleOpenChange = (open: boolean) => {
   if (!open) {
     if (control.value.uischema.options?.strictSuggestions && suggestions.value.length > 0) {
       const isValid = suggestions.value.some(
-        suggestion => suggestion.value === inputValue.value || suggestion.label === inputValue.value
+        (suggestion) => suggestion.value === inputValue.value || suggestion.label === inputValue.value
       );
       if (!isValid) {
         inputValue.value = control.value.data || '';
