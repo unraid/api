@@ -8,6 +8,7 @@ eventEmitter.setMaxListeners(30);
 
 export enum PUBSUB_CHANNEL {
     ARRAY = 'ARRAY',
+    BACKUP_JOB_PROGRESS = 'BACKUP_JOB_PROGRESS',
     DASHBOARD = 'DASHBOARD',
     DISPLAY = 'DISPLAY',
     INFO = 'INFO',
