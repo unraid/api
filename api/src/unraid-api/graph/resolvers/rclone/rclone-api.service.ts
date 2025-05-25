@@ -20,6 +20,7 @@ import {
     RCloneJob,
     RCloneJobListResponse,
     RCloneJobStats,
+    RCloneJobStatus,
     RCloneProviderResponse,
     RCloneRemoteConfig,
     RCloneStartBackupInput,
@@ -334,27 +335,66 @@ export class RCloneApiService implements OnModuleInit, OnModuleDestroy {
         return result;
     }
 
-    async getJobStatus(input: GetRCloneJobStatusDto): Promise<RCloneJob> {
-        await validateObject(GetRCloneJobStatusDto, input);
+    /**
+     * Gets enhanced job status with computed fields
+     */
+    async getEnhancedJobStatus(jobId: string, configId?: string): Promise<RCloneJob | null> {
+        try {
+            await validateObject(GetRCloneJobStatusDto, { jobId });
 
-        // If the jobId looks like a group name (starts with backup-), get group stats
-        if (input.jobId.startsWith(JOB_GROUP_PREFIX)) {
-            try {
-                const stats = await this.callRcloneApi('core/stats', { group: input.jobId });
-                const enhancedStats = this.statusService.enhanceStatsWithFormattedFields({
-                    ...stats,
-                    group: input.jobId,
-                });
+            // If the jobId looks like a group name (starts with backup-), get group stats
+            if (jobId.startsWith(JOB_GROUP_PREFIX)) {
+                try {
+                    const stats = await this.callRcloneApi('core/stats', { group: jobId });
+                    const enhancedStats = this.statusService.enhanceStatsWithFormattedFields({
+                        ...stats,
+                        group: jobId,
+                    });
 
-                const job = this.statusService.transformStatsToJob(input.jobId, enhancedStats);
-                job.configId = input.jobId.substring(JOB_GROUP_PREFIX.length);
-                return job;
-            } catch (error) {
-                this.logger.warn(`Failed to get group stats for ${input.jobId}: ${error}`);
+                    const job = this.statusService.transformStatsToJob(jobId, enhancedStats);
+                    job.configId = configId || jobId.substring(JOB_GROUP_PREFIX.length);
+
+                    // Add computed fields
+                    job.isRunning = job.status === RCloneJobStatus.RUNNING;
+                    job.errorMessage = job.error || undefined;
+
+                    return job;
+                } catch (error) {
+                    this.logger.warn(`Failed to get group stats for ${jobId}: ${error}`);
+                }
             }
+
+            // Fallback to individual job status
+            const jobStatus = await this.getIndividualJobStatus(jobId);
+            const enhancedStats = jobStatus.stats
+                ? this.statusService.enhanceStatsWithFormattedFields(jobStatus.stats)
+                : {};
+
+            const job = this.statusService.transformStatsToJob(jobId, enhancedStats);
+
+            // Add computed fields
+            job.isRunning = job.status === RCloneJobStatus.RUNNING;
+            job.errorMessage = job.error || undefined;
+
+            // Add configId if provided
+            if (configId) {
+                job.configId = configId;
+            }
+
+            return job;
+        } catch (error) {
+            this.logger.error(`Failed to fetch enhanced job status for ${jobId}: %o`, error);
+            return null;
+        }
+    }
+
+    async getJobStatus(input: GetRCloneJobStatusDto): Promise<RCloneJob> {
+        const enhancedJob = await this.getEnhancedJobStatus(input.jobId);
+        if (enhancedJob) {
+            return enhancedJob;
         }
 
-        // Fallback to individual job status
+        // Final fallback
         const jobStatus = await this.getIndividualJobStatus(input.jobId);
         return this.statusService.parseJobWithStats(input.jobId, jobStatus);
     }
@@ -482,6 +522,42 @@ export class RCloneApiService implements OnModuleInit, OnModuleDestroy {
 
         this.logger.log(`Stopping ${runningJobs.jobids.length} running jobs`);
         return this.executeJobOperation(runningJobs.jobids, 'stop');
+    }
+
+    async stopJob(jobId: string): Promise<JobOperationResult> {
+        this.logger.log(`Stopping job: ${jobId}`);
+
+        // Check if this is a group name (starts with backup-) or an individual job ID
+        if (jobId.startsWith(JOB_GROUP_PREFIX)) {
+            // This is a group, use the stopgroup endpoint
+            return this.executeGroupOperation([jobId], 'stopgroup');
+        } else {
+            // This is an individual job ID, use the regular stop endpoint
+            return this.executeJobOperation([jobId], 'stop');
+        }
+    }
+
+    private async executeGroupOperation(
+        groupNames: string[],
+        operation: 'stopgroup'
+    ): Promise<JobOperationResult> {
+        const stopped: string[] = [];
+        const errors: string[] = [];
+
+        const promises = groupNames.map(async (groupName) => {
+            try {
+                await this.callRcloneApi(`job/${operation}`, { group: groupName });
+                stopped.push(groupName);
+                this.logger.log(`${operation}ped group: ${groupName}`);
+            } catch (error) {
+                const errorMsg = `Failed to ${operation} group ${groupName}: ${error}`;
+                errors.push(errorMsg);
+                this.logger.error(errorMsg);
+            }
+        });
+
+        await Promise.allSettled(promises);
+        return { stopped, errors };
     }
 
     private async executeJobOperation(

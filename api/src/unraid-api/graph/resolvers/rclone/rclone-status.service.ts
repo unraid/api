@@ -4,6 +4,7 @@ import {
     RCloneJob,
     RCloneJobListResponse,
     RCloneJobStats,
+    RCloneJobStatus,
     RCloneJobWithStats,
 } from '@app/unraid-api/graph/resolvers/rclone/rclone.model.js';
 import { FormatService } from '@app/unraid-api/utils/format.service.js';
@@ -34,21 +35,67 @@ export class RCloneStatusService {
     enhanceStatsWithFormattedFields(stats: RCloneJobStats): RCloneJobStats {
         const enhancedStats = { ...stats };
 
+        const isFinished =
+            stats.fatalError === false &&
+            stats.transfers === (stats.totalTransfers || 0) &&
+            (stats.totalTransfers || 0) > 0;
+
+        // Format bytes
         if (stats.bytes !== undefined && stats.bytes !== null) {
             enhancedStats.formattedBytes = this.formatService.formatBytes(stats.bytes);
         }
 
+        // Handle speed formatting and reset for finished jobs
+        if (isFinished && stats.speed !== undefined && stats.speed !== null) {
+            enhancedStats.speed = 0;
+        }
+
         if (stats.speed !== undefined && stats.speed !== null && stats.speed > 0) {
             enhancedStats.formattedSpeed = this.formatService.formatSpeed(stats.speed);
+        } else {
+            enhancedStats.formattedSpeed = '0 B/s';
         }
 
+        // Format elapsed time
         if (stats.elapsedTime !== undefined && stats.elapsedTime !== null) {
             enhancedStats.formattedElapsedTime = this.formatService.formatDuration(stats.elapsedTime);
+        } else {
+            enhancedStats.formattedElapsedTime = '0s';
         }
 
+        // Format ETA
         if (stats.eta !== undefined && stats.eta !== null && stats.eta > 0) {
             enhancedStats.formattedEta = this.formatService.formatDuration(stats.eta);
+        } else {
+            enhancedStats.formattedEta = 'Unknown';
         }
+
+        // Calculate percentage fallback (what frontend currently does)
+        let calculatedPercentage = stats.percentage;
+        if (calculatedPercentage === null || calculatedPercentage === undefined) {
+            if (stats.bytes && stats.totalBytes && stats.totalBytes > 0) {
+                calculatedPercentage = Math.round((stats.bytes / stats.totalBytes) * 100);
+            }
+        }
+
+        // For completed jobs, ensure percentage is 100
+        if (isFinished && calculatedPercentage !== null && calculatedPercentage !== undefined) {
+            calculatedPercentage = 100;
+        }
+
+        enhancedStats.calculatedPercentage = Math.round(calculatedPercentage || 0);
+
+        // Determine if actively running (what frontend currently calculates)
+        const isActivelyTransferring =
+            stats.transferring && Array.isArray(stats.transferring) && stats.transferring.length > 0;
+        const isActivelyChecking =
+            stats.checking && Array.isArray(stats.checking) && stats.checking.length > 0;
+        const hasActiveSpeed = (stats.speed || 0) > 0;
+        const isNotFinished = !isFinished && stats.fatalError !== true;
+
+        enhancedStats.isActivelyRunning =
+            (isActivelyTransferring || isActivelyChecking || hasActiveSpeed) && isNotFinished;
+        enhancedStats.isCompleted = isFinished;
 
         return enhancedStats;
     }
@@ -59,22 +106,39 @@ export class RCloneStatusService {
 
         this.logger.debug(`Processing job ${jobId}: group="${group}", stats: ${JSON.stringify(stats)}`);
 
+        const isFinished =
+            stats.fatalError === false &&
+            stats.transfers === (stats.totalTransfers || 0) &&
+            (stats.totalTransfers || 0) > 0;
+
+        const hasError = Boolean(stats.lastError);
+        const isCancelled = stats.lastError === 'context canceled';
+
+        // Determine status
+        let status: RCloneJobStatus;
+
+        if (hasError) {
+            if (isCancelled) {
+                status = RCloneJobStatus.CANCELLED;
+            } else {
+                status = RCloneJobStatus.ERROR;
+            }
+        } else if (isFinished || stats.calculatedPercentage === 100) {
+            status = RCloneJobStatus.COMPLETED;
+        } else {
+            status = RCloneJobStatus.RUNNING;
+        }
+
         return {
             id: String(jobId),
             group: group,
             stats,
-            finished:
-                stats.fatalError === false &&
-                stats.transfers === (stats.totalTransfers || 0) &&
-                (stats.totalTransfers || 0) > 0,
+            finished: isFinished,
             success: stats.fatalError === false && (stats.errors || 0) === 0,
             error: stats.lastError || undefined,
-            progressPercentage: stats.percentage,
-            detailedStatus: stats.lastError
-                ? 'Error'
-                : stats.percentage === 100
-                  ? 'Completed'
-                  : 'Running',
+            progressPercentage: stats.calculatedPercentage || stats.percentage,
+            status,
+            hasRecentJob: true, // If we have a job object, there's a recent job
         };
     }
 

@@ -9,9 +9,9 @@
     "enabled": false,
     "rcloneOptions": {},
     "createdAt": "2025-05-24T12:19:29.150Z",
-    "updatedAt": "2025-05-24T23:54:07.561Z",
-    "lastRunStatus": "Started with job ID: 40",
-    "currentJobId": 40,
-    "lastRunAt": "2025-05-24T23:54:07.561Z"
+    "updatedAt": "2025-05-25T01:21:35.110Z",
+    "lastRunStatus": "Started with job ID: 51",
+    "currentJobId": 51,
+    "lastRunAt": "2025-05-25T01:21:35.111Z"
   }
 ]

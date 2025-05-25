@@ -110,6 +110,9 @@ export class BackupJobConfig extends Node {
 
     @Field(() => String, { description: 'Current running job ID', nullable: true })
     currentJobId?: string;
+
+    @Field(() => RCloneJob, { description: 'Current running job for this config', nullable: true })
+    currentJob?: RCloneJob;
 }
 
 @InputType()

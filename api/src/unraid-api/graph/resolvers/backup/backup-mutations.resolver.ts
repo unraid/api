@@ -93,7 +93,7 @@ export class BackupMutationsResolver {
         possession: AuthPossession.ANY,
     })
     async updateBackupJobConfig(
-        @Args('id') id: string,
+        @Args('id', { type: () => PrefixedID }) id: string,
         @Args('input') input: UpdateBackupJobConfigInput
     ): Promise<BackupJobConfig | null> {
         return this.backupConfigService.updateBackupJobConfig(id, input);
@@ -107,7 +107,7 @@ export class BackupMutationsResolver {
         resource: Resource.BACKUP,
         possession: AuthPossession.ANY,
     })
-    async deleteBackupJobConfig(@Args('id') id: string): Promise<boolean> {
+    async deleteBackupJobConfig(@Args('id', { type: () => PrefixedID }) id: string): Promise<boolean> {
         return this.backupConfigService.deleteBackupJobConfig(id);
     }
 
@@ -137,7 +137,9 @@ export class BackupMutationsResolver {
         resource: Resource.BACKUP,
         possession: AuthPossession.ANY,
     })
-    async toggleJobConfig(@Args('id') id: string): Promise<BackupJobConfig | null> {
+    async toggleJobConfig(
+        @Args('id', { type: () => PrefixedID }) id: string
+    ): Promise<BackupJobConfig | null> {
         const existing = await this.backupConfigService.getBackupJobConfig(id);
         if (!existing) return null;
 
@@ -221,6 +223,42 @@ export class BackupMutationsResolver {
             this.logger.error(`Failed to stop backup jobs: ${errorMessage}`);
             return {
                 status: `Failed to stop backup jobs: ${errorMessage}`,
+                jobId: undefined,
+            };
+        }
+    }
+
+    @ResolveField(() => BackupStatus, {
+        description: 'Stop a specific backup job',
+    })
+    @UsePermissions({
+        action: AuthActionVerb.DELETE,
+        resource: Resource.BACKUP,
+        possession: AuthPossession.ANY,
+    })
+    async stopBackupJob(@Args('id', { type: () => PrefixedID }) id: string): Promise<BackupStatus> {
+        try {
+            const result = await this.rcloneService['rcloneApiService'].stopJob(id);
+            const stoppedCount = result.stopped.length;
+            const errorCount = result.errors.length;
+
+            if (stoppedCount > 0) {
+                this.logger.log(`Stopped backup job: ${id}`);
+            }
+
+            if (errorCount > 0) {
+                this.logger.warn(`Failed to stop job ${id}: ${result.errors.join(', ')}`);
+            }
+
+            return {
+                status: stoppedCount > 0 ? `Stopped job ${id}` : `Failed to stop job ${id}`,
+                jobId: stoppedCount > 0 ? id : undefined,
+            };
+        } catch (error) {
+            const errorMessage = error instanceof Error ? error.message : String(error);
+            this.logger.error(`Failed to stop backup job ${id}: ${errorMessage}`);
+            return {
+                status: `Failed to stop backup job: ${errorMessage}`,
                 jobId: undefined,
             };
         }

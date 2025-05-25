@@ -1,6 +1,5 @@
 import { graphql } from '~/composables/gql/gql';
 
-
 export const BACKUP_STATS_FRAGMENT = graphql(/* GraphQL */ `
   fragment BackupStats on RCloneJobStats {
     bytes
@@ -30,6 +29,50 @@ export const BACKUP_STATS_FRAGMENT = graphql(/* GraphQL */ `
     formattedSpeed
     formattedElapsedTime
     formattedEta
+    calculatedPercentage
+    isActivelyRunning
+    isCompleted
+  }
+`);
+
+export const RCLONE_JOB_FRAGMENT = graphql(/* GraphQL */ `
+  fragment RCloneJob on RCloneJob {
+    id
+    group
+    configId
+    finished
+    success
+    error
+    status
+    stats {
+      ...BackupStats
+    }
+  }
+`);
+
+export const BACKUP_JOB_CONFIG_FRAGMENT = graphql(/* GraphQL */ `
+  fragment BackupJobConfig on BackupJobConfig {
+    id
+    name
+    sourcePath
+    remoteName
+    destinationPath
+    schedule
+    enabled
+    createdAt
+    updatedAt
+    lastRunAt
+    lastRunStatus
+    currentJobId
+  }
+`);
+
+export const BACKUP_JOB_CONFIG_WITH_CURRENT_JOB_FRAGMENT = graphql(/* GraphQL */ `
+  fragment BackupJobConfigWithCurrentJob on BackupJobConfig {
+    ...BackupJobConfig
+    currentJob {
+      ...RCloneJob
+    }
   }
 `);
 
@@ -38,34 +81,24 @@ export const BACKUP_JOBS_QUERY = graphql(/* GraphQL */ `
     backup {
       id
       jobs {
-        id
-        group
-        configId
-        finished
-        success
-        error
-        detailedStatus
-        stats {
-          ...BackupStats
-        }
+        ...RCloneJob
       }
     }
   }
 `);
 
 export const BACKUP_JOB_QUERY = graphql(/* GraphQL */ `
-  query BackupJob($jobId: PrefixedID!) {
-    backupJob(jobId: $jobId) {
-      id
-      group
-      configId
-      finished
-      success
-      error
-      detailedStatus
-      stats {
-        ...BackupStats
-      }
+  query BackupJob($id: PrefixedID!) {
+    backupJob(id: $id) {
+      ...RCloneJob
+    }
+  }
+`);
+
+export const BACKUP_JOB_CONFIG_QUERY = graphql(/* GraphQL */ `
+  query BackupJobConfig($id: PrefixedID!) {
+    backupJobConfig(id: $id) {
+      ...BackupJobConfigWithCurrentJob
     }
   }
 `);
@@ -75,18 +108,19 @@ export const BACKUP_JOB_CONFIGS_QUERY = graphql(/* GraphQL */ `
     backup {
       id
       configs {
+        ...BackupJobConfigWithCurrentJob
+      }
+    }
+  }
+`);
+
+export const BACKUP_JOB_CONFIGS_LIST_QUERY = graphql(/* GraphQL */ `
+  query BackupJobConfigsList {
+    backup {
+      id
+      configs {
         id
         name
-        sourcePath
-        remoteName
-        destinationPath
-        schedule
-        enabled
-        createdAt
-        updatedAt
-        lastRunAt
-        lastRunStatus
-        currentJobId
       }
     }
   }
@@ -106,44 +140,24 @@ export const CREATE_BACKUP_JOB_CONFIG_MUTATION = graphql(/* GraphQL */ `
   mutation CreateBackupJobConfig($input: CreateBackupJobConfigInput!) {
     backup {
       createBackupJobConfig(input: $input) {
-        id
-        name
-        sourcePath
-        remoteName
-        destinationPath
-        schedule
-        enabled
-        createdAt
-        updatedAt
-        currentJobId
+        ...BackupJobConfig
       }
     }
   }
 `);
 
 export const UPDATE_BACKUP_JOB_CONFIG_MUTATION = graphql(/* GraphQL */ `
-  mutation UpdateBackupJobConfig($id: String!, $input: UpdateBackupJobConfigInput!) {
+  mutation UpdateBackupJobConfig($id: PrefixedID!, $input: UpdateBackupJobConfigInput!) {
     backup {
       updateBackupJobConfig(id: $id, input: $input) {
-        id
-        name
-        sourcePath
-        remoteName
-        destinationPath
-        schedule
-        enabled
-        createdAt
-        updatedAt
-        lastRunAt
-        lastRunStatus
-        currentJobId
+        ...BackupJobConfig
       }
     }
   }
 `);
 
 export const DELETE_BACKUP_JOB_CONFIG_MUTATION = graphql(/* GraphQL */ `
-  mutation DeleteBackupJobConfig($id: String!) {
+  mutation DeleteBackupJobConfig($id: PrefixedID!) {
     backup {
       deleteBackupJobConfig(id: $id)
     }
@@ -151,21 +165,10 @@ export const DELETE_BACKUP_JOB_CONFIG_MUTATION = graphql(/* GraphQL */ `
 `);
 
 export const TOGGLE_BACKUP_JOB_CONFIG_MUTATION = graphql(/* GraphQL */ `
-  mutation ToggleBackupJobConfig($id: String!) {
+  mutation ToggleBackupJobConfig($id: PrefixedID!) {
     backup {
       toggleJobConfig(id: $id) {
-        id
-        name
-        sourcePath
-        remoteName
-        destinationPath
-        schedule
-        enabled
-        createdAt
-        updatedAt
-        lastRunAt
-        lastRunStatus
-        currentJobId
+        ...BackupJobConfig
       }
     }
   }
@@ -175,6 +178,17 @@ export const TRIGGER_BACKUP_JOB_MUTATION = graphql(/* GraphQL */ `
   mutation TriggerBackupJob($id: PrefixedID!) {
     backup {
       triggerJob(id: $id) {
+        status
+        jobId
+      }
+    }
+  }
+`);
+
+export const STOP_BACKUP_JOB_MUTATION = graphql(/* GraphQL */ `
+  mutation StopBackupJob($id: PrefixedID!) {
+    backup {
+      stopBackupJob(id: $id) {
         status
         jobId
       }
@@ -194,8 +208,8 @@ export const INITIATE_BACKUP_MUTATION = graphql(/* GraphQL */ `
 `);
 
 export const BACKUP_JOB_PROGRESS_SUBSCRIPTION = graphql(/* GraphQL */ `
-  subscription BackupJobProgress($jobId: PrefixedID!) {
-    backupJobProgress(jobId: $jobId) {
+  subscription BackupJobProgress($id: PrefixedID!) {
+    backupJobProgress(id: $id) {
       id
       stats {
         ...BackupStats

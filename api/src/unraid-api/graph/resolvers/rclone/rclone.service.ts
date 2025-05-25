@@ -5,7 +5,7 @@ import { type Layout } from '@jsonforms/core';
 import type { SettingSlice } from '@app/unraid-api/types/json-forms.js';
 import { RCloneApiService } from '@app/unraid-api/graph/resolvers/rclone/rclone-api.service.js';
 import { RCloneFormService } from '@app/unraid-api/graph/resolvers/rclone/rclone-form.service.js';
-import { RCloneRemote } from '@app/unraid-api/graph/resolvers/rclone/rclone.model.js';
+import { RCloneJob, RCloneRemote } from '@app/unraid-api/graph/resolvers/rclone/rclone.model.js';
 
 /**
  * Types for rclone backup configuration UI
@@ -118,5 +118,12 @@ export class RCloneService {
             this.logger.error(`Error listing remotes: ${error}`);
             return [];
         }
+    }
+
+    /**
+     * Gets enhanced job status with computed fields
+     */
+    async getEnhancedJobStatus(jobId: string, configId?: string): Promise<RCloneJob | null> {
+        return this.rcloneApiService.getEnhancedJobStatus(jobId, configId);
     }
 }

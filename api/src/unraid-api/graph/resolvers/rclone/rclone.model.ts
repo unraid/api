@@ -1,4 +1,4 @@
-import { Field, ID, InputType, ObjectType } from '@nestjs/graphql';
+import { Field, ID, InputType, ObjectType, registerEnumType } from '@nestjs/graphql';
 
 import { type Layout } from '@jsonforms/core';
 import { IsBoolean, IsObject, IsOptional, IsString } from 'class-validator';
@@ -305,6 +305,19 @@ export class RCloneJobStats {
     @Field(() => String, { description: 'Human-readable ETA', nullable: true })
     formattedEta?: string;
 
+    // Computed fields that frontend currently calculates
+    @Field(() => Number, {
+        description: 'Calculated percentage (fallback when percentage is null)',
+        nullable: true,
+    })
+    calculatedPercentage?: number;
+
+    @Field(() => Boolean, { description: 'Whether the job is actively running', nullable: true })
+    isActivelyRunning?: boolean;
+
+    @Field(() => Boolean, { description: 'Whether the job is completed', nullable: true })
+    isCompleted?: boolean;
+
     // Allow additional fields
     [key: string]: any;
 }
@@ -326,8 +339,8 @@ export class RCloneJob {
     @Field(() => PrefixedID, { description: 'Configuration ID that triggered this job', nullable: true })
     configId?: string;
 
-    @Field(() => String, { description: 'Detailed status of the job', nullable: true })
-    detailedStatus?: string;
+    @Field(() => RCloneJobStatus, { description: 'Current status of the job', nullable: true })
+    status?: RCloneJobStatus;
 
     @Field(() => Boolean, { description: 'Whether the job is finished', nullable: true })
     finished?: boolean;
@@ -337,6 +350,16 @@ export class RCloneJob {
 
     @Field(() => String, { description: 'Error message if job failed', nullable: true })
     error?: string;
+
+    // Computed fields that frontend currently calculates
+    @Field(() => Boolean, { description: 'Whether the job is actively running', nullable: true })
+    isRunning?: boolean;
+
+    @Field(() => String, { description: 'Error message for display', nullable: true })
+    errorMessage?: string;
+
+    @Field(() => Boolean, { description: 'Whether there is a recent job', nullable: true })
+    hasRecentJob?: boolean;
 }
 
 @ObjectType()
@@ -383,3 +406,15 @@ export interface RCloneJobsWithStatsResponse {
     jobids: (string | number)[];
     stats: RCloneJobStats[];
 }
+
+export enum RCloneJobStatus {
+    RUNNING = 'Running',
+    COMPLETED = 'Completed',
+    ERROR = 'Error',
+    CANCELLED = 'Cancelled',
+}
+
+registerEnumType(RCloneJobStatus, {
+    name: 'RCloneJobStatus',
+    description: 'Status of an RClone job',
+});

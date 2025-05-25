@@ -1,5 +1,5 @@
 import { Inject, Logger } from '@nestjs/common';
-import { Args, Mutation, Query, ResolveField, Resolver, Subscription } from '@nestjs/graphql';
+import { Args, Mutation, Parent, Query, ResolveField, Resolver, Subscription } from '@nestjs/graphql';
 
 import { pubsub } from '@app/core/pubsub.js';
 import { BackupConfigService } from '@app/unraid-api/graph/resolvers/backup/backup-config.service.js';
@@ -11,7 +11,7 @@ import {
     BackupStatus,
 } from '@app/unraid-api/graph/resolvers/backup/backup.model.js';
 import { buildBackupJobConfigSchema } from '@app/unraid-api/graph/resolvers/backup/jsonforms/backup-jsonforms-config.js';
-import { RCloneJob } from '@app/unraid-api/graph/resolvers/rclone/rclone.model.js';
+import { RCloneJob, RCloneJobStatus } from '@app/unraid-api/graph/resolvers/rclone/rclone.model.js';
 import { RCloneService } from '@app/unraid-api/graph/resolvers/rclone/rclone.service.js';
 import { PrefixedID } from '@app/unraid-api/graph/scalars/graphql-type-prefixed-id.js';
 import { FormatService } from '@app/unraid-api/utils/format.service.js';
@@ -57,7 +57,9 @@ export class BackupResolver {
         description: 'Get a specific backup job configuration',
         nullable: true,
     })
-    async backupJobConfig(@Args('id') id: string): Promise<BackupJobConfig | null> {
+    async backupJobConfig(
+        @Args('id', { type: () => PrefixedID }) id: string
+    ): Promise<BackupJobConfig | null> {
         return this.backupConfigService.getBackupJobConfig(id);
     }
 
@@ -65,26 +67,8 @@ export class BackupResolver {
         description: 'Get status of a specific backup job',
         nullable: true,
     })
-    async backupJob(
-        @Args('jobId', { type: () => PrefixedID }) jobId: string
-    ): Promise<RCloneJob | null> {
-        try {
-            const status = await this.rcloneService['rcloneApiService'].getJobStatus({ jobId });
-            console.log(status);
-            return {
-                id: jobId,
-                group: status.group || undefined,
-                stats: status.stats,
-                finished: status.finished,
-                success: status.success,
-                error: status.error || undefined,
-                progressPercentage: status.stats?.percentage,
-                detailedStatus: status.error ? 'Error' : status.finished ? 'Completed' : 'Running',
-            };
-        } catch (error) {
-            this.logger.error(`Failed to fetch backup job ${jobId}: %o`, error);
-            return null;
-        }
+    async backupJob(@Args('id', { type: () => PrefixedID }) id: string): Promise<RCloneJob | null> {
+        return this.rcloneService.getEnhancedJobStatus(id);
     }
 
     @ResolveField(() => BackupStatus, {
@@ -122,8 +106,8 @@ export class BackupResolver {
         description: 'Subscribe to real-time backup job progress updates',
         nullable: true,
     })
-    async backupJobProgress(@Args('jobId', { type: () => PrefixedID }) jobId: string) {
-        return pubsub.asyncIterableIterator(`BACKUP_JOB_PROGRESS:${jobId}`);
+    async backupJobProgress(@Args('id', { type: () => PrefixedID }) id: string) {
+        return pubsub.asyncIterableIterator(`BACKUP_JOB_PROGRESS:${id}`);
     }
 
     private async backupJobs(): Promise<RCloneJob[]> {
@@ -141,5 +125,24 @@ export class BackupResolver {
             this.logger.error('Failed to fetch backup jobs:', error);
             return [];
         }
+    }
+}
+
+@Resolver(() => BackupJobConfig)
+export class BackupJobConfigResolver {
+    private readonly logger = new Logger(BackupJobConfigResolver.name);
+
+    constructor(private readonly rcloneService: RCloneService) {}
+
+    @ResolveField(() => RCloneJob, {
+        description: 'Get the current running job for this backup config',
+        nullable: true,
+    })
+    async currentJob(@Parent() config: BackupJobConfig): Promise<RCloneJob | null> {
+        if (!config.currentJobId) {
+            return null;
+        }
+
+        return this.rcloneService.getEnhancedJobStatus(config.currentJobId, config.id);
     }
 }

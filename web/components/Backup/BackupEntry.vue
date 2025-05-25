@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { BackupJobsQuery } from '~/composables/gql/graphql';
+import { RCloneJobStatus } from '~/composables/gql/graphql';
 import { useFragment } from '~/composables/gql/fragment-masking';
 import { BACKUP_STATS_FRAGMENT } from './backup-jobs.query';
 import { computed } from 'vue';
@@ -25,20 +26,23 @@ const calculatedPercentage = computed(() => {
 
 // Determine job status based on job properties
 const jobStatus = computed(() => {
-  if (props.job.error) return 'error';
-  if (props.job.finished && props.job.success) return 'completed';
-  if (props.job.finished && !props.job.success) return 'failed';
-  return 'running';
+  if (props.job.status) {
+    return props.job.status;
+  }
+  if (props.job.error) return RCloneJobStatus.ERROR;
+  if (props.job.finished && props.job.success) return RCloneJobStatus.COMPLETED;
+  if (props.job.finished && !props.job.success) return RCloneJobStatus.ERROR;
+  return RCloneJobStatus.RUNNING;
 });
 
 const statusColor = computed(() => {
   switch (jobStatus.value) {
-    case 'error':
-    case 'failed':
+    case RCloneJobStatus.ERROR:
+    case RCloneJobStatus.CANCELLED:
       return 'red';
-    case 'completed':
+    case RCloneJobStatus.COMPLETED:
       return 'green';
-    case 'running':
+    case RCloneJobStatus.RUNNING:
     default:
       return 'blue';
   }
@@ -46,13 +50,13 @@ const statusColor = computed(() => {
 
 const statusText = computed(() => {
   switch (jobStatus.value) {
-    case 'error':
+    case RCloneJobStatus.ERROR:
       return 'Error';
-    case 'failed':
-      return 'Failed';
-    case 'completed':
+    case RCloneJobStatus.CANCELLED:
+      return 'Cancelled';
+    case RCloneJobStatus.COMPLETED:
       return 'Completed';
-    case 'running':
+    case RCloneJobStatus.RUNNING:
     default:
       return 'Running';
   }
@@ -64,7 +68,13 @@ const statusText = computed(() => {
     <div class="flex items-center justify-between mb-4">
       <div class="flex items-center space-x-3">
         <div class="flex-shrink-0">
-          <div class="w-3 h-3 bg-green-400 rounded-full animate-pulse"></div>
+          <div 
+            :class="[
+              'w-3 h-3 rounded-full',
+              statusColor === 'green' ? 'bg-green-400' : statusColor === 'red' ? 'bg-red-400' : 'bg-blue-400',
+              jobStatus === RCloneJobStatus.RUNNING ? 'animate-pulse' : ''
+            ]"
+          ></div>
         </div>
         <div>
           <h3 class="text-lg font-medium text-gray-900 dark:text-white">
@@ -74,7 +84,7 @@ const statusText = computed(() => {
             <p>Job ID: {{ job.id }}</p>
             <p v-if="job.configId">Config ID: {{ job.configId }}</p>
             <p v-if="job.group">Group: {{ job.group }}</p>
-            <p v-if="job.detailedStatus">Status: {{ job.detailedStatus }}</p>
+            <p>Status: {{ statusText }}</p>
             <p v-if="job.error" class="text-red-600 dark:text-red-400">Error: {{ job.error }}</p>
           </div>
         </div>
@@ -129,7 +139,10 @@ const statusText = computed(() => {
     <div v-if="calculatedPercentage" class="mt-4">
       <div class="w-full bg-gray-200 rounded-full h-2 dark:bg-gray-700">
         <div
-          class="bg-blue-600 h-2 rounded-full transition-all duration-300"
+          :class="[
+            'h-2 rounded-full transition-all duration-300',
+            statusColor === 'green' ? 'bg-green-600' : statusColor === 'red' ? 'bg-red-600' : 'bg-blue-600'
+          ]"
           :style="{ width: `${calculatedPercentage}%` }"
         ></div>
       </div>

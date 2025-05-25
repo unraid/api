@@ -890,22 +890,25 @@ type BackupMutations {
   createBackupJobConfig(input: CreateBackupJobConfigInput!): BackupJobConfig!
 
   """Update a backup job configuration"""
-  updateBackupJobConfig(id: String!, input: UpdateBackupJobConfigInput!): BackupJobConfig
+  updateBackupJobConfig(id: PrefixedID!, input: UpdateBackupJobConfigInput!): BackupJobConfig
 
   """Delete a backup job configuration"""
-  deleteBackupJobConfig(id: String!): Boolean!
+  deleteBackupJobConfig(id: PrefixedID!): Boolean!
 
   """Initiates a backup using a configured remote."""
   initiateBackup(input: InitiateBackupInput!): BackupStatus!
 
   """Toggle a backup job configuration enabled/disabled"""
-  toggleJobConfig(id: String!): BackupJobConfig
+  toggleJobConfig(id: PrefixedID!): BackupJobConfig
 
   """Manually trigger a backup job using existing configuration"""
   triggerJob(id: PrefixedID!): BackupStatus!
 
   """Stop all running backup jobs"""
   stopAllBackupJobs: BackupStatus!
+
+  """Stop a specific backup job"""
+  stopBackupJob(id: PrefixedID!): BackupStatus!
 
   """Forget all finished backup jobs to clean up the job list"""
   forgetFinishedBackupJobs: BackupStatus!
@@ -1180,6 +1183,15 @@ type RCloneJobStats {
 
   """Human-readable ETA"""
   formattedEta: String
+
+  """Calculated percentage (fallback when percentage is null)"""
+  calculatedPercentage: Float
+
+  """Whether the job is actively running"""
+  isActivelyRunning: Boolean
+
+  """Whether the job is completed"""
+  isCompleted: Boolean
 }
 
 type RCloneJob {
@@ -1198,8 +1210,8 @@ type RCloneJob {
   """Configuration ID that triggered this job"""
   configId: PrefixedID
 
-  """Detailed status of the job"""
-  detailedStatus: String
+  """Current status of the job"""
+  status: RCloneJobStatus
 
   """Whether the job is finished"""
   finished: Boolean
@@ -1209,6 +1221,23 @@ type RCloneJob {
 
   """Error message if job failed"""
   error: String
+
+  """Whether the job is actively running"""
+  isRunning: Boolean
+
+  """Error message for display"""
+  errorMessage: String
+
+  """Whether there is a recent job"""
+  hasRecentJob: Boolean
+}
+
+"""Status of an RClone job"""
+enum RCloneJobStatus {
+  RUNNING
+  COMPLETED
+  ERROR
+  CANCELLED
 }
 
 type Backup implements Node {
@@ -1266,6 +1295,9 @@ type BackupJobConfig implements Node {
 
   """Current running job ID"""
   currentJobId: String
+
+  """Current running job for this config"""
+  currentJob: RCloneJob
 }
 
 type BackupJobConfigForm {
@@ -1828,10 +1860,10 @@ type Query {
   backup: Backup!
 
   """Get a specific backup job configuration"""
-  backupJobConfig(id: String!): BackupJobConfig
+  backupJobConfig(id: PrefixedID!): BackupJobConfig
 
   """Get status of a specific backup job"""
-  backupJob(jobId: PrefixedID!): RCloneJob
+  backupJob(id: PrefixedID!): RCloneJob
 
   """Get the JSON schema for backup job configuration form"""
   backupJobConfigForm(input: BackupJobConfigFormInput): BackupJobConfigForm!
@@ -1995,7 +2027,7 @@ type Subscription {
   arraySubscription: UnraidArray!
 
   """Subscribe to real-time backup job progress updates"""
-  backupJobProgress(jobId: PrefixedID!): RCloneJob
+  backupJobProgress(id: PrefixedID!): RCloneJob
 }
 
 """Available authentication action verbs"""

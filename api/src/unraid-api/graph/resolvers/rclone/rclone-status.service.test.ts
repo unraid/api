@@ -1,7 +1,9 @@
+import { Test, TestingModule } from '@nestjs/testing';
+
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { RCloneStatusService } from '@app/unraid-api/graph/resolvers/rclone/rclone-status.service.js';
-import { RCloneJobStats } from '@app/unraid-api/graph/resolvers/rclone/rclone.model.js';
+import { RCloneJobStats, RCloneJobStatus } from '@app/unraid-api/graph/resolvers/rclone/rclone.model.js';
 import { FormatService } from '@app/unraid-api/utils/format.service.js';
 
 // Mock NestJS Logger to suppress logs during tests
@@ -54,6 +56,9 @@ describe('RCloneStatusService', () => {
                 formattedSpeed: '512 B/s',
                 formattedElapsedTime: '60s',
                 formattedEta: '120s',
+                calculatedPercentage: 0,
+                isActivelyRunning: true,
+                isCompleted: false,
             });
             expect(mockFormatService.formatBytes).toHaveBeenCalledWith(1024);
             expect(mockFormatService.formatSpeed).toHaveBeenCalledWith(512);
@@ -71,7 +76,18 @@ describe('RCloneStatusService', () => {
 
             const result = service.enhanceStatsWithFormattedFields(stats);
 
-            expect(result).toEqual(stats);
+            expect(result).toEqual({
+                bytes: undefined,
+                speed: undefined,
+                elapsedTime: undefined,
+                eta: undefined,
+                calculatedPercentage: 0,
+                formattedElapsedTime: '0s',
+                formattedEta: 'Unknown',
+                formattedSpeed: '0 B/s',
+                isActivelyRunning: false,
+                isCompleted: false,
+            });
             expect(mockFormatService.formatBytes).not.toHaveBeenCalled();
             expect(mockFormatService.formatDuration).not.toHaveBeenCalled();
         });
@@ -86,7 +102,18 @@ describe('RCloneStatusService', () => {
 
             const result = service.enhanceStatsWithFormattedFields(stats);
 
-            expect(result).toEqual(stats);
+            expect(result).toEqual({
+                bytes: null,
+                speed: null,
+                elapsedTime: null,
+                eta: null,
+                calculatedPercentage: 0,
+                formattedElapsedTime: '0s',
+                formattedEta: 'Unknown',
+                formattedSpeed: '0 B/s',
+                isActivelyRunning: false,
+                isCompleted: false,
+            });
             expect(mockFormatService.formatBytes).not.toHaveBeenCalled();
             expect(mockFormatService.formatDuration).not.toHaveBeenCalled();
         });
@@ -98,7 +125,15 @@ describe('RCloneStatusService', () => {
 
             const result = service.enhanceStatsWithFormattedFields(stats);
 
-            expect(result).toEqual({ speed: 0 });
+            expect(result).toEqual({
+                speed: 0,
+                calculatedPercentage: 0,
+                formattedElapsedTime: '0s',
+                formattedEta: 'Unknown',
+                formattedSpeed: '0 B/s',
+                isActivelyRunning: false,
+                isCompleted: false,
+            });
             expect(mockFormatService.formatSpeed).not.toHaveBeenCalled();
         });
 
@@ -109,7 +144,15 @@ describe('RCloneStatusService', () => {
 
             const result = service.enhanceStatsWithFormattedFields(stats);
 
-            expect(result).toEqual({ eta: 0 });
+            expect(result).toEqual({
+                eta: 0,
+                calculatedPercentage: 0,
+                formattedElapsedTime: '0s',
+                formattedEta: 'Unknown',
+                formattedSpeed: '0 B/s',
+                isActivelyRunning: false,
+                isCompleted: false,
+            });
             expect(mockFormatService.formatDuration).not.toHaveBeenCalled();
         });
     });
@@ -135,7 +178,8 @@ describe('RCloneStatusService', () => {
                 success: true,
                 error: undefined,
                 progressPercentage: 100,
-                detailedStatus: 'Completed',
+                status: RCloneJobStatus.COMPLETED,
+                hasRecentJob: true,
             });
         });
 
@@ -159,7 +203,8 @@ describe('RCloneStatusService', () => {
                 success: true,
                 error: undefined,
                 progressPercentage: 60,
-                detailedStatus: 'Running',
+                status: RCloneJobStatus.RUNNING,
+                hasRecentJob: true,
             });
         });
 
@@ -184,7 +229,34 @@ describe('RCloneStatusService', () => {
                 success: false,
                 error: 'Connection timeout',
                 progressPercentage: 0,
-                detailedStatus: 'Error',
+                status: RCloneJobStatus.ERROR,
+                hasRecentJob: true,
+            });
+        });
+
+        it('should create RCloneJob with cancelled status when lastError is context canceled', () => {
+            const stats: RCloneJobStats = {
+                group: 'unraid-backup',
+                fatalError: false,
+                transfers: 0,
+                totalTransfers: 5,
+                errors: 1,
+                percentage: 0,
+                lastError: 'context canceled',
+            };
+
+            const result = service.transformStatsToJob('123', stats);
+
+            expect(result).toEqual({
+                id: '123',
+                group: 'unraid-backup',
+                stats,
+                finished: false,
+                success: false,
+                error: 'context canceled',
+                progressPercentage: 0,
+                status: RCloneJobStatus.CANCELLED,
+                hasRecentJob: true,
             });
         });
 
