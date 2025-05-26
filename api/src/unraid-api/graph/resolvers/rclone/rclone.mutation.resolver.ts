@@ -13,6 +13,7 @@ import {
     CreateRCloneRemoteInput,
     DeleteRCloneRemoteInput,
     RCloneRemote,
+    RCloneRemoteConfig,
 } from '@app/unraid-api/graph/resolvers/rclone/rclone.model.js';
 
 /**
@@ -37,7 +38,7 @@ export class RCloneMutationsResolver {
                 name: input.name,
                 type: input.type,
                 parameters: {},
-                config,
+                config: config as RCloneRemoteConfig,
             };
         } catch (error) {
             this.logger.error(`Error creating remote: ${error}`);

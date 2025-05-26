@@ -7,10 +7,11 @@ import {
     BackupJobConfigResolver,
     BackupResolver,
 } from '@app/unraid-api/graph/resolvers/backup/backup.resolver.js';
+import { PreprocessingModule } from '@app/unraid-api/graph/resolvers/backup/preprocessing/preprocessing.module.js';
 import { RCloneModule } from '@app/unraid-api/graph/resolvers/rclone/rclone.module.js';
 
 @Module({
-    imports: [RCloneModule, ScheduleModule.forRoot()],
+    imports: [RCloneModule, ScheduleModule.forRoot(), PreprocessingModule],
     providers: [BackupResolver, BackupJobConfigResolver, BackupMutationsResolver, BackupConfigService],
     exports: [],
 })

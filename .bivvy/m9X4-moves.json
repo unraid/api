@@ -1,0 +1,180 @@
+{
+  "climb": "m9X4",
+  "moves": [
+    {
+      "status": "complete",
+      "description": "Create preprocessing types and validation DTOs",
+      "details": "Create the core preprocessing types, enums, and validation DTOs as specified in the climb document. This includes PreprocessType enum, validation classes for ZFS, Flash, and Script configurations, and the main PreprocessConfigDto classes.",
+      "files": [
+        "api/src/unraid-api/graph/resolvers/backup/preprocessing/preprocessing.types.ts"
+      ]
+    },
+    {
+      "status": "complete",
+      "description": "Extend backup job data models with preprocessing fields",
+      "details": "Add preprocessing fields to the BackupJobConfig GraphQL model and input types. Include preprocessType, preprocessConfig, preprocessTimeout, and cleanupOnFailure fields with proper GraphQL decorators and validation.",
+      "files": [
+        "api/src/unraid-api/graph/resolvers/backup/backup.model.ts"
+      ]
+    },
+    {
+      "status": "complete",
+      "description": "Update BackupJobConfigData interface with preprocessing fields", 
+      "details": "Extend the BackupJobConfigData interface to include the new preprocessing fields and update the mapToGraphQL method to handle the new fields.",
+      "files": [
+        "api/src/unraid-api/graph/resolvers/backup/backup-config.service.ts"
+      ]
+    },
+    {
+      "status": "complete",
+      "description": "Create preprocessing validation service",
+      "details": "Implement the PreprocessConfigValidationService with business logic validation, async validation for ZFS pools and scripts, and transformation methods as detailed in the climb document.",
+      "files": [
+        "api/src/unraid-api/graph/resolvers/backup/preprocessing/preprocessing-validation.service.ts"
+      ],
+      "rest": true
+    },
+    {
+      "status": "complete",
+      "description": "Create streaming job manager",
+      "details": "Implement the StreamingJobManager class to handle subprocess lifecycle management, process tracking, progress monitoring, and cleanup for streaming operations like ZFS and Flash backups.",
+      "files": [
+        "api/src/unraid-api/graph/resolvers/backup/preprocessing/streaming-job-manager.service.ts"
+      ]
+    },
+    {
+      "status": "complete",
+      "description": "Create core preprocessing service",
+      "details": "Implement the main PreprocessingService with methods for executing different preprocessing types, handling streaming operations, and managing cleanup. Include the PreprocessResult interface and core execution logic.",
+      "files": [
+        "api/src/unraid-api/graph/resolvers/backup/preprocessing/preprocessing.service.ts"
+      ]
+    },
+    {
+      "status": "complete",
+      "description": "Extend RClone API service with streaming capabilities",
+      "details": "Add streaming backup methods to RCloneApiService including startStreamingBackup, streaming job tracking integration, and unified job status management for both daemon and streaming jobs.",
+      "files": [
+        "api/src/unraid-api/graph/resolvers/rclone/rclone-api.service.ts"
+      ],
+      "rest": true
+    },
+    {
+      "status": "complete",
+      "description": "Create ZFS preprocessing implementation",
+      "details": "Implement ZFS-specific preprocessing including snapshot creation, streaming via `zfs send | rclone rcat`, snapshot cleanup, and error handling for ZFS operations.",
+      "files": [
+        "api/src/unraid-api/graph/resolvers/backup/preprocessing/zfs-preprocessing.service.ts"
+      ]
+    },
+    {
+      "status": "complete",
+      "description": "Create Flash backup preprocessing implementation", 
+      "details": "Implement Flash backup preprocessing with local git repository setup, git operations, and streaming via `tar cf - /boot/.git | rclone rcat` as detailed in the climb document.",
+      "files": [
+        "api/src/unraid-api/graph/resolvers/backup/preprocessing/flash-preprocessing.service.ts"
+      ]
+    },
+    {
+      "status": "complete",
+      "description": "Create custom script preprocessing implementation",
+      "details": "Implement custom script preprocessing with sandboxed execution, parameter passing, timeout handling, and file-based output (non-streaming for security).",
+      "files": [
+        "api/src/unraid-api/graph/resolvers/backup/preprocessing/script-preprocessing.service.ts"
+      ]
+    },
+    {
+      "status": "complete",
+      "description": "Update backup config service with preprocessing integration",
+      "details": "Integrate preprocessing validation and execution into the backup config service. Update createBackupJobConfig, updateBackupJobConfig, and executeBackupJob methods to handle preprocessing.",
+      "files": [
+        "api/src/unraid-api/graph/resolvers/backup/backup-config.service.ts"
+      ]
+    },
+    {
+      "status": "complete",
+      "description": "Update backup module with new services",
+      "details": "Add all new preprocessing services to the BackupModule providers array and ensure proper dependency injection setup.",
+      "files": [
+        "api/src/unraid-api/graph/resolvers/backup/backup.module.ts"
+      ],
+      "rest": true
+    },
+    {
+      "status": "complete",
+      "description": "Update web GraphQL queries and fragments",
+      "details": "Add preprocessing fields to the BACKUP_JOB_CONFIG_FRAGMENT and update mutations to include the new preprocessing configuration fields.",
+      "files": [
+        "web/components/Backup/backup-jobs.query.ts"
+      ]
+    },
+    {
+      "status": "todo",
+      "description": "Create preprocessing UI components",
+      "details": "Create Vue component for preprocessing configuration with dropdown for preprocessing type selection and dynamic form fields for each preprocessing type (ZFS, Flash, Script).",
+      "files": [
+        "web/components/Backup/PreprocessingConfig.vue"
+      ]
+    },
+    {
+      "status": "todo",
+      "description": "Update backup job form component",
+      "details": "Integrate the PreprocessingConfig component into the backup job form and handle preprocessing configuration state management.",
+      "files": [
+        "web/components/Backup/BackupJobForm.vue"
+      ]
+    },
+    {
+      "status": "todo",
+      "description": "Update backup job list component",
+      "details": "Add preprocessing status indicators to the backup job list and show preprocessing type and status information.",
+      "files": [
+        "web/components/Backup/BackupJobList.vue"
+      ]
+    },
+    {
+      "status": "todo",
+      "description": "Create preprocessing status monitoring",
+      "details": "Create component to display preprocessing progress, streaming status, and error messages with real-time updates.",
+      "files": [
+        "web/components/Backup/PreprocessingStatus.vue"
+      ],
+      "rest": true
+    },
+    {
+      "status": "skip",
+      "description": "Add preprocessing tests",
+      "details": "Create comprehensive unit tests for all preprocessing services including validation, execution, streaming operations, and error handling scenarios.",
+      "files": [
+        "api/src/__test__/preprocessing/preprocessing.service.spec.ts",
+        "api/src/__test__/preprocessing/zfs-preprocessing.service.spec.ts", 
+        "api/src/__test__/preprocessing/flash-preprocessing.service.spec.ts",
+        "api/src/__test__/preprocessing/streaming-job-manager.spec.ts"
+      ]
+    },
+    {
+      "status": "skip",
+      "description": "Add integration tests",
+      "details": "Create integration tests for end-to-end backup workflows with preprocessing, including ZFS snapshot streaming, Flash backup streaming, and error recovery scenarios.",
+      "files": [
+        "api/src/__test__/backup/backup-preprocessing-integration.spec.ts"
+      ]
+    },
+    {
+      "status": "skip",
+      "description": "Update documentation",
+      "details": "Create comprehensive documentation for the preprocessing system including configuration examples, troubleshooting guide, and API reference.",
+      "files": [
+        "api/docs/backup-preprocessing.md"
+      ]
+    },
+    {
+      "status": "skip",
+      "description": "Add preprocessing configuration examples",
+      "details": "Provide example configurations for each preprocessing type to help users understand the configuration options and best practices.",
+      "files": [
+        "api/docs/examples/preprocessing-configs.json"
+      ]
+    }
+  ]
+} 

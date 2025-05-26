@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import type { BackupJobsQuery } from '~/composables/gql/graphql';
-import { RCloneJobStatus } from '~/composables/gql/graphql';
+import { BackupJobStatus } from '~/composables/gql/graphql';
 import { useFragment } from '~/composables/gql/fragment-masking';
-import { BACKUP_STATS_FRAGMENT } from './backup-jobs.query';
+import { BACKUP_STATS_FRAGMENT, RCLONE_JOB_FRAGMENT } from './backup-jobs.query';
 import { computed } from 'vue';
 
 interface Props {
@@ -11,7 +11,8 @@ interface Props {
 
 const props = defineProps<Props>();
 
-const stats = useFragment(BACKUP_STATS_FRAGMENT, props.job.stats);
+const jobData = useFragment(RCLONE_JOB_FRAGMENT, props.job);
+const stats = useFragment(BACKUP_STATS_FRAGMENT, jobData.stats);
 
 // Calculate percentage if it's null but we have bytes and totalBytes
 const calculatedPercentage = computed(() => {
@@ -26,23 +27,23 @@ const calculatedPercentage = computed(() => {
 
 // Determine job status based on job properties
 const jobStatus = computed(() => {
-  if (props.job.status) {
-    return props.job.status;
+  if (jobData.status) {
+    return jobData.status;
   }
-  if (props.job.error) return RCloneJobStatus.ERROR;
-  if (props.job.finished && props.job.success) return RCloneJobStatus.COMPLETED;
-  if (props.job.finished && !props.job.success) return RCloneJobStatus.ERROR;
-  return RCloneJobStatus.RUNNING;
+  if (jobData.error) return BackupJobStatus.FAILED;
+  if (jobData.finished && jobData.success) return BackupJobStatus.COMPLETED;
+  if (jobData.finished && !jobData.success) return BackupJobStatus.FAILED;
+  return BackupJobStatus.RUNNING;
 });
 
 const statusColor = computed(() => {
   switch (jobStatus.value) {
-    case RCloneJobStatus.ERROR:
-    case RCloneJobStatus.CANCELLED:
+    case BackupJobStatus.FAILED:
+    case BackupJobStatus.CANCELLED:
       return 'red';
-    case RCloneJobStatus.COMPLETED:
+    case BackupJobStatus.COMPLETED:
       return 'green';
-    case RCloneJobStatus.RUNNING:
+    case BackupJobStatus.RUNNING:
     default:
       return 'blue';
   }
@@ -50,13 +51,13 @@ const statusColor = computed(() => {
 
 const statusText = computed(() => {
   switch (jobStatus.value) {
-    case RCloneJobStatus.ERROR:
+    case BackupJobStatus.FAILED:
       return 'Error';
-    case RCloneJobStatus.CANCELLED:
+    case BackupJobStatus.CANCELLED:
       return 'Cancelled';
-    case RCloneJobStatus.COMPLETED:
+    case BackupJobStatus.COMPLETED:
       return 'Completed';
-    case RCloneJobStatus.RUNNING:
+    case BackupJobStatus.RUNNING:
     default:
       return 'Running';
   }
@@ -72,7 +73,7 @@ const statusText = computed(() => {
             :class="[
               'w-3 h-3 rounded-full',
               statusColor === 'green' ? 'bg-green-400' : statusColor === 'red' ? 'bg-red-400' : 'bg-blue-400',
-              jobStatus === RCloneJobStatus.RUNNING ? 'animate-pulse' : ''
+              jobStatus === BackupJobStatus.RUNNING ? 'animate-pulse' : ''
             ]"
           ></div>
         </div>
@@ -81,11 +82,11 @@ const statusText = computed(() => {
             Backup Job
           </h3>
           <div class="text-sm text-gray-500 dark:text-gray-400 space-y-1">
-            <p>Job ID: {{ job.id }}</p>
-            <p v-if="job.configId">Config ID: {{ job.configId }}</p>
-            <p v-if="job.group">Group: {{ job.group }}</p>
+            <p>Job ID: {{ jobData.id }}</p>
+            <p v-if="jobData.configId">Config ID: {{ jobData.configId }}</p>
+            <p v-if="jobData.group">Group: {{ jobData.group }}</p>
             <p>Status: {{ statusText }}</p>
-            <p v-if="job.error" class="text-red-600 dark:text-red-400">Error: {{ job.error }}</p>
+            <p v-if="jobData.error" class="text-red-600 dark:text-red-400">Error: {{ jobData.error }}</p>
           </div>
         </div>
       </div>

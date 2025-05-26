@@ -7,12 +7,19 @@ import { join } from 'path';
 import { CronJob } from 'cron';
 import { v4 as uuidv4 } from 'uuid';
 
+import type {
+    PreprocessConfigInput,
+    PreprocessResult,
+} from '@app/unraid-api/graph/resolvers/backup/preprocessing/preprocessing.types.js';
 import { getters } from '@app/store/index.js';
 import {
     BackupJobConfig,
+    BackupMode,
     CreateBackupJobConfigInput,
     UpdateBackupJobConfigInput,
 } from '@app/unraid-api/graph/resolvers/backup/backup.model.js';
+import { PreprocessingService } from '@app/unraid-api/graph/resolvers/backup/preprocessing/preprocessing.service.js';
+import { PreprocessType } from '@app/unraid-api/graph/resolvers/backup/preprocessing/preprocessing.types.js';
 import { RCloneService } from '@app/unraid-api/graph/resolvers/rclone/rclone.service.js';
 
 const JOB_GROUP_PREFIX = 'backup-';
@@ -25,7 +32,9 @@ interface BackupJobConfigData {
     destinationPath: string;
     schedule: string;
     enabled: boolean;
+    backupMode?: BackupMode;
     rcloneOptions?: Record<string, unknown>;
+    preprocessConfig?: PreprocessConfigInput;
     createdAt: string;
     updatedAt: string;
     lastRunAt?: string;
@@ -41,7 +50,8 @@ export class BackupConfigService implements OnModuleInit {
 
     constructor(
         private readonly rcloneService: RCloneService,
-        private readonly schedulerRegistry: SchedulerRegistry
+        private readonly schedulerRegistry: SchedulerRegistry,
+        private readonly preprocessingService: PreprocessingService
     ) {
         const paths = getters.paths();
         this.configPath = join(paths.backupBase, 'backup-jobs.json');
@@ -76,17 +86,35 @@ export class BackupConfigService implements OnModuleInit {
         id: string,
         input: UpdateBackupJobConfigInput
     ): Promise<BackupJobConfig | null> {
+        this.logger.debug(
+            `[updateBackupJobConfig] Called with ID: ${id}, Input: ${JSON.stringify(input)}`
+        );
         const existing = this.configs.get(id);
-        if (!existing) return null;
+        if (!existing) {
+            this.logger.warn(`[updateBackupJobConfig] No existing config found for ID: ${id}`);
+            return null;
+        }
+        this.logger.debug(
+            `[updateBackupJobConfig] Existing config for ID ${id}: ${JSON.stringify(existing)}`
+        );
 
         const updated: BackupJobConfigData = {
             ...existing,
             ...input,
             updatedAt: new Date().toISOString(),
         };
+        this.logger.debug(
+            `[updateBackupJobConfig] Updated object for ID ${id} (before set): ${JSON.stringify(updated)}`
+        );
 
         this.configs.set(id, updated);
+        const immediatelyAfterSet = this.configs.get(id);
+        this.logger.debug(
+            `[updateBackupJobConfig] Config for ID ${id} (immediately after set): ${JSON.stringify(immediatelyAfterSet)}`
+        );
+
         await this.saveConfigs();
+        this.logger.debug(`[updateBackupJobConfig] Configs saved for ID: ${id}`);
 
         this.unscheduleJob(id);
         if (updated.enabled) {
@@ -107,7 +135,15 @@ export class BackupConfigService implements OnModuleInit {
     }
 
     async getBackupJobConfig(id: string): Promise<BackupJobConfig | null> {
+        this.logger.debug(`[getBackupJobConfig] Called for ID: ${id}`);
         const config = this.configs.get(id);
+        if (config) {
+            this.logger.debug(
+                `[getBackupJobConfig] Found config for ID ${id}: ${JSON.stringify(config)}`
+            );
+        } else {
+            this.logger.warn(`[getBackupJobConfig] No config found for ID: ${id}`);
+        }
         return config ? this.mapToGraphQL(config) : null;
     }
 
@@ -119,13 +155,66 @@ export class BackupConfigService implements OnModuleInit {
         this.logger.log(`Executing backup job: ${config.name}`);
 
         try {
-            const result = (await this.rcloneService['rcloneApiService'].startBackup({
-                srcPath: config.sourcePath,
-                dstPath: `${config.remoteName}:${config.destinationPath}`,
-                async: true,
-                configId: config.id,
-                options: config.rcloneOptions || {},
-            })) as { jobId?: string; jobid?: string };
+            let sourcePath = config.sourcePath;
+            let preprocessResult: PreprocessResult | null = null;
+
+            if (config.preprocessConfig && config.preprocessConfig.type !== PreprocessType.NONE) {
+                this.logger.log(`Running preprocessing for job: ${config.name}`);
+
+                preprocessResult = await this.preprocessingService.executePreprocessing(
+                    config.preprocessConfig,
+                    {
+                        jobId: config.id,
+                        onProgress: (progress) => {
+                            this.logger.debug(`Preprocessing progress for ${config.name}: ${progress}%`);
+                        },
+                        onOutput: (data) => {
+                            this.logger.debug(`Preprocessing output for ${config.name}: ${data}`);
+                        },
+                        onError: (error) => {
+                            this.logger.error(`Preprocessing error for ${config.name}: ${error}`);
+                        },
+                    }
+                );
+
+                if (!preprocessResult.success) {
+                    throw new Error(`Preprocessing failed: ${preprocessResult.error}`);
+                }
+
+                if (preprocessResult.streamPath) {
+                    sourcePath = preprocessResult.streamPath;
+                    this.logger.log(`Using streaming source for backup: ${sourcePath}`);
+                } else if (preprocessResult.outputPath) {
+                    sourcePath = preprocessResult.outputPath;
+                    this.logger.log(`Using preprocessed output for backup: ${sourcePath}`);
+                }
+            }
+
+            const isStreamingBackup =
+                preprocessResult?.streamPath &&
+                (config.preprocessConfig?.type === PreprocessType.ZFS ||
+                    config.preprocessConfig?.type === PreprocessType.FLASH);
+
+            let result;
+            if (isStreamingBackup && preprocessResult?.streamPath) {
+                const streamingOptions = this.buildStreamingOptions(
+                    config.preprocessConfig!.type,
+                    preprocessResult.streamPath,
+                    config.remoteName,
+                    config.destinationPath
+                );
+
+                result =
+                    await this.rcloneService['rcloneApiService'].startStreamingBackup(streamingOptions);
+            } else {
+                result = (await this.rcloneService['rcloneApiService'].startBackup({
+                    srcPath: sourcePath,
+                    dstPath: `${config.remoteName}:${config.destinationPath}`,
+                    async: true,
+                    configId: config.id,
+                    options: config.rcloneOptions || {},
+                })) as { jobId?: string; jobid?: string };
+            }
 
             const jobId = result.jobId || result.jobid;
 
@@ -145,6 +234,47 @@ export class BackupConfigService implements OnModuleInit {
             await this.saveConfigs();
 
             this.logger.error(`Backup job ${config.name} failed:`, error);
+
+            if (config.preprocessConfig?.cleanupOnFailure) {
+                try {
+                    await this.preprocessingService.cleanup(config.id);
+                } catch (cleanupError) {
+                    this.logger.error(
+                        `Failed to cleanup preprocessing for job ${config.name}:`,
+                        cleanupError
+                    );
+                }
+            }
+        }
+    }
+
+    private buildStreamingOptions(
+        preprocessType: PreprocessType,
+        streamPath: string,
+        remoteName: string,
+        destinationPath: string
+    ) {
+        switch (preprocessType) {
+            case PreprocessType.ZFS:
+                return {
+                    remoteName,
+                    remotePath: destinationPath,
+                    sourceCommand: 'zfs',
+                    sourceArgs: ['send', streamPath],
+                    preprocessType,
+                    timeout: 3600000,
+                };
+            case PreprocessType.FLASH:
+                return {
+                    remoteName,
+                    remotePath: destinationPath,
+                    sourceCommand: 'tar',
+                    sourceArgs: ['cf', '-', streamPath],
+                    preprocessType,
+                    timeout: 3600000,
+                };
+            default:
+                throw new Error(`Unsupported streaming preprocessing type: ${preprocessType}`);
         }
     }
 
@@ -229,15 +359,23 @@ export class BackupConfigService implements OnModuleInit {
     }
 
     private mapToGraphQL(config: BackupJobConfigData): BackupJobConfig {
+        const preprocessConfig = config.preprocessConfig
+            ? {
+                  ...config.preprocessConfig,
+              }
+            : undefined;
+
         return {
             id: config.id,
             name: config.name,
+            backupMode: config.backupMode || BackupMode.PREPROCESSING,
             sourcePath: config.sourcePath,
             remoteName: config.remoteName,
             destinationPath: config.destinationPath,
             schedule: config.schedule,
             enabled: config.enabled,
             rcloneOptions: config.rcloneOptions,
+            preprocessConfig: preprocessConfig,
             createdAt: new Date(config.createdAt),
             updatedAt: new Date(config.updatedAt),
             lastRunAt: config.lastRunAt ? new Date(config.lastRunAt) : undefined,

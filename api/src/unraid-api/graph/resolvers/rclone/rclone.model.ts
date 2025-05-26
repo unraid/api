@@ -339,8 +339,8 @@ export class RCloneJob {
     @Field(() => PrefixedID, { description: 'Configuration ID that triggered this job', nullable: true })
     configId?: string;
 
-    @Field(() => RCloneJobStatus, { description: 'Current status of the job', nullable: true })
-    status?: RCloneJobStatus;
+    @Field(() => BackupJobStatus, { description: 'Current status of the job', nullable: true })
+    status?: BackupJobStatus;
 
     @Field(() => Boolean, { description: 'Whether the job is finished', nullable: true })
     finished?: boolean;
@@ -407,14 +407,14 @@ export interface RCloneJobsWithStatsResponse {
     stats: RCloneJobStats[];
 }
 
-export enum RCloneJobStatus {
+export enum BackupJobStatus {
     RUNNING = 'Running',
     COMPLETED = 'Completed',
-    ERROR = 'Error',
+    FAILED = 'Failed',
     CANCELLED = 'Cancelled',
 }
 
-registerEnumType(RCloneJobStatus, {
-    name: 'RCloneJobStatus',
-    description: 'Status of an RClone job',
+registerEnumType(BackupJobStatus, {
+    name: 'BackupJobStatus',
+    description: 'Status of a backup job',
 });

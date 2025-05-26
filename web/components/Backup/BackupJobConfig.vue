@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue';
+import { ref, computed } from 'vue';
 import { useQuery } from '@vue/apollo-composable';
 
 import { Button, Sheet, SheetContent, SheetTitle, Spinner } from '@unraid/ui';
@@ -15,13 +15,17 @@ const { result, loading, error, refetch } = useQuery(
   {},
   {
     fetchPolicy: 'cache-and-network',
-    pollInterval: 30000, // Much slower polling since we only need the list of configs
+    pollInterval: 50000, // Much slower polling since we only need the list of configs
   }
 );
 
 const backupConfigIds = computed(() => {
   return result.value?.backup?.configs?.map((config) => config.id) || [];
 });
+
+function handleJobDeleted() {
+  refetch();
+}
 
 function onConfigComplete() {
   showConfigModal.value = false;
@@ -76,7 +80,12 @@ function onConfigComplete() {
     </div>
 
     <div v-else class="space-y-4">
-      <BackupJobItem v-for="configId in backupConfigIds" :key="configId" :config-id="configId" />
+      <BackupJobItem
+        v-for="configId in backupConfigIds"
+        :key="configId"
+        :config-id="configId"
+        @deleted="handleJobDeleted"
+      />
     </div>
 
     <Sheet v-model:open="showConfigModal">

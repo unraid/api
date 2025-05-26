@@ -3,7 +3,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { RCloneStatusService } from '@app/unraid-api/graph/resolvers/rclone/rclone-status.service.js';
-import { RCloneJobStats, RCloneJobStatus } from '@app/unraid-api/graph/resolvers/rclone/rclone.model.js';
+import { BackupJobStatus, RCloneJobStats } from '@app/unraid-api/graph/resolvers/rclone/rclone.model.js';
 import { FormatService } from '@app/unraid-api/utils/format.service.js';
 
 // Mock NestJS Logger to suppress logs during tests
@@ -178,7 +178,7 @@ describe('RCloneStatusService', () => {
                 success: true,
                 error: undefined,
                 progressPercentage: 100,
-                status: RCloneJobStatus.COMPLETED,
+                status: BackupJobStatus.COMPLETED,
                 hasRecentJob: true,
             });
         });
@@ -203,7 +203,7 @@ describe('RCloneStatusService', () => {
                 success: true,
                 error: undefined,
                 progressPercentage: 60,
-                status: RCloneJobStatus.RUNNING,
+                status: BackupJobStatus.RUNNING,
                 hasRecentJob: true,
             });
         });
@@ -229,7 +229,7 @@ describe('RCloneStatusService', () => {
                 success: false,
                 error: 'Connection timeout',
                 progressPercentage: 0,
-                status: RCloneJobStatus.ERROR,
+                status: BackupJobStatus.FAILED,
                 hasRecentJob: true,
             });
         });
@@ -255,7 +255,7 @@ describe('RCloneStatusService', () => {
                 success: false,
                 error: 'context canceled',
                 progressPercentage: 0,
-                status: RCloneJobStatus.CANCELLED,
+                status: BackupJobStatus.CANCELLED,
                 hasRecentJob: true,
             });
         });

@@ -43,7 +43,7 @@ const onSelectOpen = () => {
 <template>
   <!-- The ControlWrapper now handles the v-if based on control.visible -->
   <Select
-    v-model="selected"
+    :model-value="selected"
     :disabled="!control.enabled"
     :required="control.required"
     @update:model-value="onChange"

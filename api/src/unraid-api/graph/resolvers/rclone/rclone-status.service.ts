@@ -1,10 +1,10 @@
 import { Injectable, Logger } from '@nestjs/common';
 
 import {
+    BackupJobStatus,
     RCloneJob,
     RCloneJobListResponse,
     RCloneJobStats,
-    RCloneJobStatus,
     RCloneJobWithStats,
 } from '@app/unraid-api/graph/resolvers/rclone/rclone.model.js';
 import { FormatService } from '@app/unraid-api/utils/format.service.js';
@@ -104,7 +104,7 @@ export class RCloneStatusService {
         this.logger.debug(`Stats for job ${jobId}: %o`, stats);
         const group = stats.group || undefined;
 
-        this.logger.debug(`Processing job ${jobId}: group="${group}", stats: ${JSON.stringify(stats)}`);
+        this.logger.debug(`Processing job ${jobId}: group="${group}"`);
 
         const isFinished =
             stats.fatalError === false &&
@@ -115,18 +115,18 @@ export class RCloneStatusService {
         const isCancelled = stats.lastError === 'context canceled';
 
         // Determine status
-        let status: RCloneJobStatus;
+        let status: BackupJobStatus;
 
         if (hasError) {
             if (isCancelled) {
-                status = RCloneJobStatus.CANCELLED;
+                status = BackupJobStatus.CANCELLED;
             } else {
-                status = RCloneJobStatus.ERROR;
+                status = BackupJobStatus.FAILED;
             }
         } else if (isFinished || stats.calculatedPercentage === 100) {
-            status = RCloneJobStatus.COMPLETED;
+            status = BackupJobStatus.COMPLETED;
         } else {
-            status = RCloneJobStatus.RUNNING;
+            status = BackupJobStatus.RUNNING;
         }
 
         return {

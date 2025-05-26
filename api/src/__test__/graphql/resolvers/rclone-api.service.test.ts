@@ -87,6 +87,27 @@ describe('RCloneApiService', () => {
             formatDuration: vi.fn(),
         } as any;
 
+        // Mock RCloneStatusService
+        const mockStatusService = {
+            enhanceStatsWithFormattedFields: vi.fn(),
+            transformStatsToJob: vi.fn(),
+            calculateCombinedStats: vi.fn(),
+            parseActiveJobs: vi.fn(),
+            parseBackupStatus: vi.fn(),
+            parseJobWithStats: vi.fn(),
+            parseAllJobsWithStats: vi.fn(),
+            parseJobsWithStats: vi.fn(),
+            getBackupStatus: vi.fn(),
+        } as any;
+
+        // Mock StreamingJobManager
+        const mockStreamingJobManager = {
+            startJob: vi.fn(),
+            stopJob: vi.fn(),
+            getJobStatus: vi.fn(),
+            getAllJobs: vi.fn(),
+        } as any;
+
         // Mock cache manager
         mockCacheManager = {
             get: vi.fn().mockResolvedValue(null),
@@ -94,7 +115,7 @@ describe('RCloneApiService', () => {
             del: vi.fn().mockResolvedValue(undefined),
         };
 
-        service = new RCloneApiService(mockFormatService, mockCacheManager);
+        service = new RCloneApiService(mockStatusService, mockStreamingJobManager);
         await service.onModuleInit();
     });
 

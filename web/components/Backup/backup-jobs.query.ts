@@ -50,15 +50,47 @@ export const RCLONE_JOB_FRAGMENT = graphql(/* GraphQL */ `
   }
 `);
 
+export const PREPROCESS_CONFIG_FRAGMENT = graphql(/* GraphQL */ `
+  fragment PreprocessConfig on PreprocessConfig {
+    type
+    timeout
+    cleanupOnFailure
+    zfsConfig {
+      poolName
+      datasetName
+      snapshotPrefix
+      cleanupSnapshots
+      retainSnapshots
+    }
+    flashConfig {
+      flashPath
+      includeGitHistory
+      additionalPaths
+    }
+    scriptConfig {
+      scriptPath
+      scriptArgs
+      workingDirectory
+      environment
+      outputPath
+    }
+  }
+`);
+
 export const BACKUP_JOB_CONFIG_FRAGMENT = graphql(/* GraphQL */ `
   fragment BackupJobConfig on BackupJobConfig {
     id
     name
+    backupMode
     sourcePath
     remoteName
     destinationPath
     schedule
     enabled
+    rcloneOptions
+    preprocessConfig {
+      ...PreprocessConfig
+    }
     createdAt
     updatedAt
     lastRunAt
@@ -178,7 +210,6 @@ export const TRIGGER_BACKUP_JOB_MUTATION = graphql(/* GraphQL */ `
   mutation TriggerBackupJob($id: PrefixedID!) {
     backup {
       triggerJob(id: $id) {
-        status
         jobId
       }
     }

@@ -65,8 +65,8 @@ const updateStep = (newStep: number) => {
   if (newStep < 0 || newStep >= numSteps.value) {
     return;
   }
-  // Make total zero-indexed
-  const total = numSteps.value > 0 ? numSteps.value - 1 : 0;
+  // Total should be the actual number of steps, not zero-indexed
+  const total = numSteps.value;
   // Update the 'configStep' property in the JSON Forms data with the new object structure
   dispatch(Actions.update('configStep', () => ({ current: newStep, total })));
 };

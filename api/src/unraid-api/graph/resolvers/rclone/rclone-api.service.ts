@@ -10,8 +10,24 @@ import got, { HTTPError } from 'got';
 import pRetry from 'p-retry';
 
 import { sanitizeParams } from '@app/core/log.js';
+import {
+    BACKUP_JOB_GROUP_PREFIX,
+    getBackupJobGroupId,
+    getConfigIdFromGroupId,
+    isBackupJobGroup,
+} from '@app/unraid-api/graph/resolvers/backup/backup.utils.js';
+import {
+    PreprocessType,
+    StreamingJobInfo,
+} from '@app/unraid-api/graph/resolvers/backup/preprocessing/preprocessing.types.js';
+import {
+    StreamingJobManager,
+    StreamingJobOptions,
+    StreamingJobResult,
+} from '@app/unraid-api/graph/resolvers/backup/preprocessing/streaming-job-manager.service.js';
 import { RCloneStatusService } from '@app/unraid-api/graph/resolvers/rclone/rclone-status.service.js';
 import {
+    BackupJobStatus,
     CreateRCloneRemoteDto,
     DeleteRCloneRemoteDto,
     GetRCloneJobStatusDto,
@@ -20,7 +36,6 @@ import {
     RCloneJob,
     RCloneJobListResponse,
     RCloneJobStats,
-    RCloneJobStatus,
     RCloneProviderResponse,
     RCloneRemoteConfig,
     RCloneStartBackupInput,
@@ -51,6 +66,39 @@ interface JobOperationResult {
     errors: string[];
 }
 
+export interface StreamingBackupOptions {
+    remoteName: string;
+    remotePath: string;
+    sourceStream?: NodeJS.ReadableStream;
+    sourceCommand?: string;
+    sourceArgs?: string[];
+    preprocessType?: PreprocessType;
+    onProgress?: (progress: number) => void;
+    onOutput?: (data: string) => void;
+    onError?: (error: string) => void;
+    timeout?: number;
+}
+
+export interface StreamingBackupResult {
+    success: boolean;
+    jobId?: string;
+    rcloneJobId?: string;
+    error?: string;
+    duration: number;
+    bytesTransferred?: number;
+}
+
+export interface UnifiedJobStatus {
+    jobId: string;
+    type: 'daemon' | 'streaming';
+    status: BackupJobStatus;
+    progress?: number;
+    stats?: RCloneJobStats;
+    error?: string;
+    startTime?: Date;
+    preprocessType?: PreprocessType;
+}
+
 const CONSTANTS = {
     RETRY_CONFIG: {
         retries: 6,
@@ -70,8 +118,6 @@ const CONSTANTS = {
     },
 } as const;
 
-const JOB_GROUP_PREFIX = 'backup-';
-
 @Injectable()
 export class RCloneApiService implements OnModuleInit, OnModuleDestroy {
     private isInitialized: boolean = false;
@@ -84,7 +130,10 @@ export class RCloneApiService implements OnModuleInit, OnModuleDestroy {
     private readonly rclonePassword: string =
         process.env.RCLONE_PASSWORD || crypto.randomBytes(24).toString('base64');
 
-    constructor(private readonly statusService: RCloneStatusService) {}
+    constructor(
+        private readonly statusService: RCloneStatusService,
+        private readonly streamingJobManager: StreamingJobManager
+    ) {}
 
     async onModuleInit(): Promise<void> {
         try {
@@ -132,13 +181,23 @@ export class RCloneApiService implements OnModuleInit, OnModuleDestroy {
             const rcloneArgs = this.buildRcloneArgs(socketPath, logFilePath);
             this.logger.log(`Starting RClone RC daemon on socket: ${socketPath}`);
 
-            this.rcloneProcess = execa('rclone', rcloneArgs, { detached: false });
+            const rcloneProcessExecution = execa('rclone', rcloneArgs, { detached: false });
+            this.rcloneProcess = rcloneProcessExecution;
             this.setupProcessListeners();
 
+            rcloneProcessExecution.catch((error) => {
+                this.logger.debug(
+                    `Rclone process execution promise rejected (expected if process failed to start or exited prematurely): ${
+                        error.shortMessage || error.message
+                    }`
+                );
+            });
+
             await this.waitForSocketReady();
+            this.logger.log('RClone RC daemon started and socket is ready.');
             return true;
         } catch (error: unknown) {
-            this.logger.error(`Error starting RClone RC daemon: ${error}`);
+            this.logger.error(`Error during RClone RC daemon startup sequence: ${error}`);
             this.cleanupFailedProcess();
             return false;
         }
@@ -317,8 +376,8 @@ export class RCloneApiService implements OnModuleInit, OnModuleDestroy {
         this.logger.log(`Starting backup: ${input.srcPath} → ${input.dstPath}`);
 
         const group = input.configId
-            ? `${JOB_GROUP_PREFIX}${input.configId}`
-            : JOB_GROUP_PREFIX + 'manual';
+            ? getBackupJobGroupId(input.configId)
+            : BACKUP_JOB_GROUP_PREFIX + 'manual';
 
         const params = {
             srcFs: input.srcPath,
@@ -335,6 +394,185 @@ export class RCloneApiService implements OnModuleInit, OnModuleDestroy {
         return result;
     }
 
+    async startStreamingBackup(options: StreamingBackupOptions): Promise<StreamingBackupResult> {
+        const startTime = Date.now();
+
+        try {
+            if (!options.sourceCommand || !options.sourceArgs) {
+                throw new Error('Source command and args are required for streaming backup');
+            }
+
+            const remotePath = `${options.remoteName}:${options.remotePath}`;
+
+            const streamingOptions: StreamingJobOptions = {
+                command: 'sh',
+                args: [
+                    '-c',
+                    `${options.sourceCommand} ${options.sourceArgs.join(' ')} | rclone rcat "${remotePath}"`,
+                ],
+                timeout: options.timeout,
+                onProgress: options.onProgress,
+                onOutput: options.onOutput,
+                onError: options.onError,
+            };
+
+            const { jobId, promise } = await this.streamingJobManager.startStreamingJob(
+                options.preprocessType || PreprocessType.NONE,
+                streamingOptions
+            );
+
+            const result = await promise;
+            const duration = Date.now() - startTime;
+
+            return {
+                success: result.success,
+                jobId,
+                error: result.error,
+                duration,
+                bytesTransferred: this.extractBytesFromOutput(result.output),
+            };
+        } catch (error: unknown) {
+            const duration = Date.now() - startTime;
+            this.logger.error(`Streaming backup failed: ${error}`);
+
+            return {
+                success: false,
+                error: error instanceof Error ? error.message : String(error),
+                duration,
+            };
+        }
+    }
+
+    async getUnifiedJobStatus(jobId: string): Promise<UnifiedJobStatus | null> {
+        const streamingJob = this.streamingJobManager.getJobInfo(jobId);
+
+        if (streamingJob) {
+            return {
+                jobId: streamingJob.jobId,
+                type: 'streaming',
+                status: this.mapStreamingStatusToBackupStatus(streamingJob.status),
+                progress: streamingJob.progress,
+                error: streamingJob.error,
+                startTime: streamingJob.startTime,
+                preprocessType: streamingJob.type,
+            };
+        }
+
+        try {
+            const rcloneJob = await this.getEnhancedJobStatus(jobId);
+            if (rcloneJob) {
+                return {
+                    jobId: rcloneJob.id,
+                    type: 'daemon',
+                    status: rcloneJob.status || BackupJobStatus.FAILED,
+                    progress: rcloneJob.stats?.percent,
+                    stats: rcloneJob.stats,
+                    error: rcloneJob.error,
+                };
+            }
+        } catch (error) {
+            this.logger.warn(`Failed to get RClone job status for ${jobId}: ${error}`);
+        }
+
+        return null;
+    }
+
+    async getAllUnifiedJobs(): Promise<UnifiedJobStatus[]> {
+        const unifiedJobs: UnifiedJobStatus[] = [];
+
+        const streamingJobs = this.streamingJobManager.getAllActiveJobs();
+        for (const job of streamingJobs) {
+            unifiedJobs.push({
+                jobId: job.jobId,
+                type: 'streaming',
+                status: this.mapStreamingStatusToBackupStatus(job.status),
+                progress: job.progress,
+                error: job.error,
+                startTime: job.startTime,
+                preprocessType: job.type,
+            });
+        }
+
+        try {
+            const rcloneJobs = await this.getAllJobsWithStats();
+            for (const job of rcloneJobs) {
+                unifiedJobs.push({
+                    jobId: job.id,
+                    type: 'daemon',
+                    status: job.status || BackupJobStatus.FAILED,
+                    progress: job.stats?.percent,
+                    stats: job.stats,
+                    error: job.error,
+                });
+            }
+        } catch (error) {
+            this.logger.warn(`Failed to get RClone jobs: ${error}`);
+        }
+
+        return unifiedJobs;
+    }
+
+    async stopUnifiedJob(jobId: string): Promise<boolean> {
+        if (this.streamingJobManager.isJobRunning(jobId)) {
+            return this.streamingJobManager.cancelJob(jobId);
+        }
+
+        try {
+            const result = await this.stopJob(jobId);
+            return result.stopped.length > 0;
+        } catch (error) {
+            this.logger.warn(`Failed to stop RClone job ${jobId}: ${error}`);
+            return false;
+        }
+    }
+
+    private mapStreamingStatusToBackupStatus(
+        status: 'running' | 'completed' | 'failed' | 'cancelled'
+    ): BackupJobStatus {
+        switch (status) {
+            case 'running':
+                return BackupJobStatus.RUNNING;
+            case 'completed':
+                return BackupJobStatus.COMPLETED;
+            case 'failed':
+                return BackupJobStatus.FAILED;
+            case 'cancelled':
+                return BackupJobStatus.CANCELLED;
+            default:
+                return BackupJobStatus.FAILED;
+        }
+    }
+
+    private extractBytesFromOutput(output?: string): number | undefined {
+        if (!output) return undefined;
+
+        const bytesMatch = output.match(/(\d+)\s*bytes/i);
+        if (bytesMatch) {
+            return parseInt(bytesMatch[1], 10);
+        }
+
+        const sizeMatch = output.match(/(\d+(?:\.\d+)?)\s*(KB|MB|GB|TB)/i);
+        if (sizeMatch) {
+            const value = parseFloat(sizeMatch[1]);
+            const unit = sizeMatch[2].toUpperCase();
+
+            switch (unit) {
+                case 'KB':
+                    return Math.round(value * 1024);
+                case 'MB':
+                    return Math.round(value * 1024 * 1024);
+                case 'GB':
+                    return Math.round(value * 1024 * 1024 * 1024);
+                case 'TB':
+                    return Math.round(value * 1024 * 1024 * 1024 * 1024);
+                default:
+                    return undefined;
+            }
+        }
+
+        return undefined;
+    }
+
     /**
      * Gets enhanced job status with computed fields
      */
@@ -342,8 +580,7 @@ export class RCloneApiService implements OnModuleInit, OnModuleDestroy {
         try {
             await validateObject(GetRCloneJobStatusDto, { jobId });
 
-            // If the jobId looks like a group name (starts with backup-), get group stats
-            if (jobId.startsWith(JOB_GROUP_PREFIX)) {
+            if (isBackupJobGroup(jobId)) {
                 try {
                     const stats = await this.callRcloneApi('core/stats', { group: jobId });
                     const enhancedStats = this.statusService.enhanceStatsWithFormattedFields({
@@ -352,10 +589,10 @@ export class RCloneApiService implements OnModuleInit, OnModuleDestroy {
                     });
 
                     const job = this.statusService.transformStatsToJob(jobId, enhancedStats);
-                    job.configId = configId || jobId.substring(JOB_GROUP_PREFIX.length);
+                    job.configId = configId || getConfigIdFromGroupId(jobId);
 
                     // Add computed fields
-                    job.isRunning = job.status === RCloneJobStatus.RUNNING;
+                    job.isRunning = job.status === BackupJobStatus.RUNNING;
                     job.errorMessage = job.error || undefined;
 
                     return job;
@@ -373,7 +610,7 @@ export class RCloneApiService implements OnModuleInit, OnModuleDestroy {
             const job = this.statusService.transformStatsToJob(jobId, enhancedStats);
 
             // Add computed fields
-            job.isRunning = job.status === RCloneJobStatus.RUNNING;
+            job.isRunning = job.status === BackupJobStatus.RUNNING;
             job.errorMessage = job.error || undefined;
 
             // Add configId if provided
@@ -448,7 +685,7 @@ export class RCloneApiService implements OnModuleInit, OnModuleDestroy {
             }
 
             const backupGroups = (groupList.groups || []).filter((group: string) =>
-                group.startsWith(JOB_GROUP_PREFIX)
+                isBackupJobGroup(group)
             );
 
             if (backupGroups.length === 0) {
@@ -478,18 +715,15 @@ export class RCloneApiService implements OnModuleInit, OnModuleDestroy {
 
                 this.logger.debug(`Processing group ${group}: stats=${JSON.stringify(groupStats)}`);
 
-                const configId = group.startsWith(JOB_GROUP_PREFIX)
-                    ? group.substring(JOB_GROUP_PREFIX.length)
-                    : undefined;
+                const extractedConfigId = getConfigIdFromGroupId(group);
 
-                // Use the group name as the job ID for consistency, but add group info to stats
                 const enhancedStats = this.statusService.enhanceStatsWithFormattedFields({
                     ...groupStats,
-                    group, // Add group to stats so it gets picked up in transformStatsToJob
+                    group,
                 });
 
                 const job = this.statusService.transformStatsToJob(group, enhancedStats);
-                job.configId = configId;
+                job.configId = extractedConfigId;
 
                 // Only include jobs that are truly active (not completed)
                 const isActivelyTransferring = groupStats.transferring?.length > 0;
@@ -527,8 +761,7 @@ export class RCloneApiService implements OnModuleInit, OnModuleDestroy {
     async stopJob(jobId: string): Promise<JobOperationResult> {
         this.logger.log(`Stopping job: ${jobId}`);
 
-        // Check if this is a group name (starts with backup-) or an individual job ID
-        if (jobId.startsWith(JOB_GROUP_PREFIX)) {
+        if (isBackupJobGroup(jobId)) {
             // This is a group, use the stopgroup endpoint
             return this.executeGroupOperation([jobId], 'stopgroup');
         } else {

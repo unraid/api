@@ -173,20 +173,13 @@ export class BackupMutationsResolver {
             config.id
         );
 
-        // Store the job ID in the config if successful
+        // Store the job ID and update timestamps in the config if successful
         if (result.jobId) {
             await this.backupConfigService.updateBackupJobConfig(id, {
                 lastRunStatus: `Started with job ID: ${result.jobId}`,
+                currentJobId: result.jobId,
+                lastRunAt: new Date().toISOString(),
             });
-
-            // Update the currentJobId in the config
-            const configData = this.backupConfigService['configs'].get(id);
-            if (configData) {
-                configData.currentJobId = result.jobId;
-                configData.lastRunAt = new Date().toISOString();
-                this.backupConfigService['configs'].set(id, configData);
-                await this.backupConfigService['saveConfigs']();
-            }
         }
 
         return result;

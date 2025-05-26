@@ -1,13 +1,38 @@
-import { Field, InputType, ObjectType } from '@nestjs/graphql';
+import { Field, InputType, ObjectType, registerEnumType } from '@nestjs/graphql';
 
 import { type Layout } from '@jsonforms/core';
-import { IsBoolean, IsNotEmpty, IsObject, IsOptional, IsString, Matches } from 'class-validator';
+import { Type } from 'class-transformer';
+import {
+    IsBoolean,
+    IsEnum,
+    IsNotEmpty,
+    IsObject,
+    IsOptional,
+    IsString,
+    Matches,
+    ValidateIf,
+    ValidateNested,
+} from 'class-validator';
 import { GraphQLJSON } from 'graphql-scalars';
 
+import {
+    PreprocessConfig,
+    PreprocessConfigInput,
+} from '@app/unraid-api/graph/resolvers/backup/preprocessing/preprocessing.types.js';
 import { Node } from '@app/unraid-api/graph/resolvers/base.model.js';
 import { RCloneJob } from '@app/unraid-api/graph/resolvers/rclone/rclone.model.js';
 import { PrefixedID } from '@app/unraid-api/graph/scalars/graphql-type-prefixed-id.js';
 import { DataSlice } from '@app/unraid-api/types/json-forms.js';
+
+export enum BackupMode {
+    RAW = 'RAW',
+    PREPROCESSING = 'PREPROCESSING',
+}
+
+registerEnumType(BackupMode, {
+    name: 'BackupMode',
+    description: 'The mode of backup to perform (Raw file backup or Preprocessing-based).',
+});
 
 @ObjectType({
     implements: () => Node,
@@ -73,6 +98,9 @@ export class BackupJobConfig extends Node {
     @Field(() => String, { description: 'Human-readable name for this backup job' })
     name!: string;
 
+    @Field(() => BackupMode)
+    backupMode!: BackupMode;
+
     @Field(() => String, { description: 'Source path to backup' })
     sourcePath!: string;
 
@@ -95,6 +123,12 @@ export class BackupJobConfig extends Node {
         nullable: true,
     })
     rcloneOptions?: Record<string, unknown>;
+
+    @Field(() => PreprocessConfig, {
+        description: 'Preprocessing configuration for this backup job',
+        nullable: true,
+    })
+    preprocessConfig?: PreprocessConfig;
 
     @Field(() => Date, { description: 'When this config was created' })
     createdAt!: Date;
@@ -122,9 +156,15 @@ export class CreateBackupJobConfigInput {
     @IsNotEmpty()
     name!: string;
 
+    @Field(() => BackupMode, { defaultValue: BackupMode.PREPROCESSING })
+    @IsEnum(BackupMode)
+    @IsNotEmpty()
+    backupMode?: BackupMode;
+
     @Field(() => String)
     @IsString()
-    @IsNotEmpty()
+    @ValidateIf((o) => o.backupMode === BackupMode.RAW)
+    @IsNotEmpty({ message: 'sourcePath should not be empty when backupMode is RAW' })
     sourcePath!: string;
 
     @Field(() => String)
@@ -156,6 +196,16 @@ export class CreateBackupJobConfigInput {
     @IsOptional()
     @IsObject()
     rcloneOptions?: Record<string, unknown>;
+
+    @Field(() => PreprocessConfigInput, {
+        description: 'Preprocessing configuration for this backup job',
+        nullable: true,
+    })
+    @IsOptional()
+    @ValidateIf((o) => o.backupMode === BackupMode.PREPROCESSING)
+    @ValidateNested()
+    @Type(() => PreprocessConfigInput)
+    preprocessConfig?: PreprocessConfigInput;
 }
 
 @InputType()
@@ -206,10 +256,29 @@ export class UpdateBackupJobConfigInput {
     @IsObject()
     rcloneOptions?: Record<string, unknown>;
 
+    @Field(() => PreprocessConfigInput, {
+        description: 'Preprocessing configuration for this backup job',
+        nullable: true,
+    })
+    @IsOptional()
+    @ValidateNested()
+    @Type(() => PreprocessConfigInput)
+    preprocessConfig?: PreprocessConfigInput;
+
     @Field(() => String, { nullable: true })
     @IsOptional()
     @IsString()
     lastRunStatus?: string;
+
+    @Field(() => String, { nullable: true })
+    @IsOptional()
+    @IsString()
+    currentJobId?: string;
+
+    @Field(() => String, { nullable: true })
+    @IsOptional()
+    @IsString()
+    lastRunAt?: string;
 }
 
 @ObjectType()

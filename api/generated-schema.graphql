@@ -916,12 +916,91 @@ type BackupMutations {
 
 input CreateBackupJobConfigInput {
   name: String!
+  backupMode: BackupMode! = PREPROCESSING
   sourcePath: String!
   remoteName: String!
   destinationPath: String!
   schedule: String!
   enabled: Boolean! = true
   rcloneOptions: JSON
+
+  """Preprocessing configuration for this backup job"""
+  preprocessConfig: PreprocessConfigInput
+}
+
+"""
+The mode of backup to perform (Raw file backup or Preprocessing-based).
+"""
+enum BackupMode {
+  RAW
+  PREPROCESSING
+}
+
+input PreprocessConfigInput {
+  """Type of preprocessing to perform"""
+  type: PreprocessType!
+  zfsConfig: ZfsPreprocessConfigInput
+  flashConfig: FlashPreprocessConfigInput
+  scriptConfig: ScriptPreprocessConfigInput
+
+  """Timeout for preprocessing in seconds"""
+  timeout: Float! = 3600
+
+  """Whether to cleanup on failure"""
+  cleanupOnFailure: Boolean! = true
+}
+
+"""Type of preprocessing to perform before backup"""
+enum PreprocessType {
+  NONE
+  ZFS
+  FLASH
+  SCRIPT
+}
+
+input ZfsPreprocessConfigInput {
+  """ZFS pool name"""
+  poolName: String!
+
+  """Dataset name within the pool"""
+  datasetName: String!
+
+  """Snapshot name prefix"""
+  snapshotPrefix: String
+
+  """Whether to cleanup snapshots after backup"""
+  cleanupSnapshots: Boolean! = true
+
+  """Number of snapshots to retain"""
+  retainSnapshots: Float
+}
+
+input FlashPreprocessConfigInput {
+  """Flash drive mount path"""
+  flashPath: String! = "/boot"
+
+  """Whether to include git history"""
+  includeGitHistory: Boolean! = true
+
+  """Additional paths to include in backup"""
+  additionalPaths: [String!]
+}
+
+input ScriptPreprocessConfigInput {
+  """Path to the script file"""
+  scriptPath: String!
+
+  """Arguments to pass to the script"""
+  scriptArgs: [String!]
+
+  """Working directory for script execution"""
+  workingDirectory: String
+
+  """Environment variables for script execution"""
+  environment: JSON
+
+  """Output file path where script should write data"""
+  outputPath: String!
 }
 
 input UpdateBackupJobConfigInput {
@@ -932,7 +1011,12 @@ input UpdateBackupJobConfigInput {
   schedule: String
   enabled: Boolean
   rcloneOptions: JSON
+
+  """Preprocessing configuration for this backup job"""
+  preprocessConfig: PreprocessConfigInput
   lastRunStatus: String
+  currentJobId: String
+  lastRunAt: String
 }
 
 input InitiateBackupInput {
@@ -1066,6 +1150,37 @@ type ParityCheck {
 A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date-time format.
 """
 scalar DateTime
+
+type ZfsPreprocessConfig {
+  poolName: String!
+  datasetName: String!
+  snapshotPrefix: String
+  cleanupSnapshots: Boolean!
+  retainSnapshots: Float
+}
+
+type FlashPreprocessConfig {
+  flashPath: String!
+  includeGitHistory: Boolean!
+  additionalPaths: [String!]
+}
+
+type ScriptPreprocessConfig {
+  scriptPath: String!
+  scriptArgs: [String!]
+  workingDirectory: String
+  environment: JSON
+  outputPath: String!
+}
+
+type PreprocessConfig {
+  type: PreprocessType!
+  zfsConfig: ZfsPreprocessConfig
+  flashConfig: FlashPreprocessConfig
+  scriptConfig: ScriptPreprocessConfig
+  timeout: Float!
+  cleanupOnFailure: Boolean!
+}
 
 type RCloneDrive {
   """Provider name"""
@@ -1211,7 +1326,7 @@ type RCloneJob {
   configId: PrefixedID
 
   """Current status of the job"""
-  status: RCloneJobStatus
+  status: BackupJobStatus
 
   """Whether the job is finished"""
   finished: Boolean
@@ -1232,11 +1347,11 @@ type RCloneJob {
   hasRecentJob: Boolean
 }
 
-"""Status of an RClone job"""
-enum RCloneJobStatus {
+"""Status of a backup job"""
+enum BackupJobStatus {
   RUNNING
   COMPLETED
-  ERROR
+  FAILED
   CANCELLED
 }
 
@@ -1262,6 +1377,7 @@ type BackupJobConfig implements Node {
 
   """Human-readable name for this backup job"""
   name: String!
+  backupMode: BackupMode!
 
   """Source path to backup"""
   sourcePath: String!
@@ -1280,6 +1396,9 @@ type BackupJobConfig implements Node {
 
   """RClone options (e.g., --transfers, --checkers)"""
   rcloneOptions: JSON
+
+  """Preprocessing configuration for this backup job"""
+  preprocessConfig: PreprocessConfig
 
   """When this config was created"""
   createdAt: DateTime!
