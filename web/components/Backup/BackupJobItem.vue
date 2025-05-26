@@ -6,11 +6,11 @@ import { PlayIcon, StopIcon, TrashIcon } from '@heroicons/vue/24/solid';
 import { Badge, Button, Switch } from '@unraid/ui';
 
 import {
+  BACKUP_CONFIG_FRAGMENT,
   BACKUP_JOB_CONFIG_FRAGMENT,
   BACKUP_JOB_CONFIG_QUERY,
   BACKUP_JOB_CONFIG_WITH_CURRENT_JOB_FRAGMENT,
   BACKUP_STATS_FRAGMENT,
-  PREPROCESS_CONFIG_FRAGMENT,
   RCLONE_JOB_FRAGMENT,
   STOP_BACKUP_JOB_MUTATION,
   TOGGLE_BACKUP_JOB_CONFIG_MUTATION,
@@ -99,18 +99,19 @@ const configWithJob = computed(() => {
     const jobStats = currentJob?.stats
       ? useFragment(BACKUP_STATS_FRAGMENT, currentJob.stats)
       : undefined;
-    const preprocessConfig = baseConfig.preprocessConfig
-      ? useFragment(PREPROCESS_CONFIG_FRAGMENT, baseConfig.preprocessConfig)
+    const backupConfig = baseConfig.backupConfig
+      ? useFragment(BACKUP_CONFIG_FRAGMENT, baseConfig.backupConfig)
       : undefined;
 
     return {
       ...baseConfig,
-      preprocessConfig,
+      backupConfig,
       runningJob: currentJob,
       jobStats,
       errorMessage: currentJob?.error || undefined,
       isRunning: currentJob ? !currentJob.finished : false,
       hasRecentJob: !!currentJob,
+      sourcePath: backupConfig?.rawConfig?.sourcePath || '',
     };
   } catch (fragmentError) {
     console.error('Error processing fragments:', fragmentError);
@@ -166,14 +167,12 @@ async function handleDeleteJob() {
     if (result?.data?.backup?.deleteBackupJobConfig) {
       console.log('Backup job config deleted:', configWithJob.value.id);
       emit('deleted', configWithJob.value.id);
-      showDeleteConfirm.value = false; // Close confirmation on success
+      showDeleteConfirm.value = false;
     } else {
       console.error('Failed to delete backup job config, no confirmation in result:', result);
-      // Optionally, show an error message to the user here
     }
   } catch (error) {
     console.error('Error deleting backup job config:', error);
-    // Optionally, show an error message to the user here
   }
 }
 
@@ -185,9 +184,9 @@ function getPreprocessingTypeLabel(type: string): string {
       return 'Flash Backup';
     case 'SCRIPT':
       return 'Custom Script';
-    case 'NONE':
+    case 'RAW':
     default:
-      return 'None';
+      return 'Raw Backup';
   }
 }
 </script>
@@ -307,10 +306,10 @@ function getPreprocessingTypeLabel(type: string): string {
               configWithJob.destinationPath
             }}
             <span
-              v-if="configWithJob.preprocessConfig && configWithJob.preprocessConfig.type !== 'NONE'"
+              v-if="configWithJob.backupType && configWithJob.backupType !== 'RAW'"
               class="ml-2 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-400"
             >
-              {{ getPreprocessingTypeLabel(configWithJob.preprocessConfig.type) }}
+              {{ getPreprocessingTypeLabel(configWithJob.backupType) }}
             </span>
           </p>
           <p v-if="configWithJob.errorMessage" class="text-sm text-red-600 dark:text-red-400 mt-1">
@@ -489,36 +488,36 @@ function getPreprocessingTypeLabel(type: string): string {
       </div>
 
       <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-3">
-        <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">Preprocessing</dt>
+        <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">Backup Type</dt>
         <dd class="mt-1 text-sm text-gray-900 dark:text-white">
-          {{ getPreprocessingTypeLabel(configWithJob.preprocessConfig?.type || 'NONE') }}
+          {{ getPreprocessingTypeLabel(configWithJob.backupType || 'RAW') }}
           <span
             v-if="
-              configWithJob.preprocessConfig?.type === 'ZFS' && configWithJob.preprocessConfig.zfsConfig
+              configWithJob.backupType === 'ZFS' && configWithJob.backupConfig?.zfsConfig
             "
             class="block text-xs text-gray-500 dark:text-gray-400 mt-1"
           >
-            {{ configWithJob.preprocessConfig.zfsConfig.poolName }}/{{
-              configWithJob.preprocessConfig.zfsConfig.datasetName
+            {{ configWithJob.backupConfig.zfsConfig.poolName }}/{{
+              configWithJob.backupConfig.zfsConfig.datasetName
             }}
           </span>
           <span
             v-else-if="
-              configWithJob.preprocessConfig?.type === 'FLASH' &&
-              configWithJob.preprocessConfig.flashConfig
+              configWithJob.backupType === 'FLASH' &&
+              configWithJob.backupConfig?.flashConfig
             "
             class="block text-xs text-gray-500 dark:text-gray-400 mt-1"
           >
-            {{ configWithJob.preprocessConfig.flashConfig.flashPath }}
+            {{ configWithJob.backupConfig.flashConfig.flashPath }}
           </span>
           <span
             v-else-if="
-              configWithJob.preprocessConfig?.type === 'SCRIPT' &&
-              configWithJob.preprocessConfig.scriptConfig
+              configWithJob.backupType === 'SCRIPT' &&
+              configWithJob.backupConfig?.scriptConfig
             "
             class="block text-xs text-gray-500 dark:text-gray-400 mt-1"
           >
-            {{ configWithJob.preprocessConfig.scriptConfig.scriptPath }}
+            {{ configWithJob.backupConfig.scriptConfig.scriptPath }}
           </span>
         </dd>
       </div>

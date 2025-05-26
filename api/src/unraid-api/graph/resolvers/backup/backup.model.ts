@@ -1,4 +1,4 @@
-import { Field, InputType, ObjectType, registerEnumType } from '@nestjs/graphql';
+import { Field, GraphQLISODateTime, InputType, ObjectType, registerEnumType } from '@nestjs/graphql';
 
 import { type Layout } from '@jsonforms/core';
 import { Type } from 'class-transformer';
@@ -13,7 +13,7 @@ import {
     ValidateIf,
     ValidateNested,
 } from 'class-validator';
-import { GraphQLJSON } from 'graphql-scalars';
+import { DateTimeISOResolver, GraphQLJSON } from 'graphql-scalars';
 
 import {
     BackupConfig,
@@ -118,14 +118,14 @@ export class BackupJobConfig extends Node {
     })
     backupConfig?: BackupConfig;
 
-    @Field(() => Date, { description: 'When this config was created' })
-    createdAt!: Date;
+    @Field(() => DateTimeISOResolver, { description: 'When this config was created' })
+    createdAt!: string;
 
-    @Field(() => Date, { description: 'When this config was last updated' })
-    updatedAt!: Date;
+    @Field(() => DateTimeISOResolver, { description: 'When this config was last updated' })
+    updatedAt!: string;
 
-    @Field(() => Date, { description: 'Last time this job ran', nullable: true })
-    lastRunAt?: Date;
+    @Field(() => DateTimeISOResolver, { description: 'Last time this job ran', nullable: true })
+    lastRunAt?: string;
 
     @Field(() => String, { description: 'Status of last run', nullable: true })
     lastRunStatus?: string;

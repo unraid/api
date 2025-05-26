@@ -7,46 +7,26 @@ import { join } from 'path';
 import { CronJob } from 'cron';
 import { v4 as uuidv4 } from 'uuid';
 
-import type {
-    PreprocessConfigInput,
-    PreprocessResult,
-} from '@app/unraid-api/graph/resolvers/backup/preprocessing/preprocessing.types.js';
 import { getters } from '@app/store/index.js';
 import {
     BackupJobConfig,
-    BackupMode,
     CreateBackupJobConfigInput,
     UpdateBackupJobConfigInput,
 } from '@app/unraid-api/graph/resolvers/backup/backup.model.js';
 import { PreprocessingService } from '@app/unraid-api/graph/resolvers/backup/preprocessing/preprocessing.service.js';
-import { PreprocessType } from '@app/unraid-api/graph/resolvers/backup/preprocessing/preprocessing.types.js';
+import {
+    BackupType,
+    PreprocessResult,
+} from '@app/unraid-api/graph/resolvers/backup/preprocessing/preprocessing.types.js';
 import { RCloneService } from '@app/unraid-api/graph/resolvers/rclone/rclone.service.js';
 
 const JOB_GROUP_PREFIX = 'backup-';
-
-interface BackupJobConfigData {
-    id: string;
-    name: string;
-    sourcePath: string;
-    remoteName: string;
-    destinationPath: string;
-    schedule: string;
-    enabled: boolean;
-    backupMode?: BackupMode;
-    rcloneOptions?: Record<string, unknown>;
-    preprocessConfig?: PreprocessConfigInput;
-    createdAt: string;
-    updatedAt: string;
-    lastRunAt?: string;
-    lastRunStatus?: string;
-    currentJobId?: string;
-}
 
 @Injectable()
 export class BackupConfigService implements OnModuleInit {
     private readonly logger = new Logger(BackupConfigService.name);
     private readonly configPath: string;
-    private configs: Map<string, BackupJobConfigData> = new Map();
+    private configs: Map<string, BackupJobConfig> = new Map();
 
     constructor(
         private readonly rcloneService: RCloneService,
@@ -65,9 +45,56 @@ export class BackupConfigService implements OnModuleInit {
         const id = uuidv4();
         const now = new Date().toISOString();
 
-        const config: BackupJobConfigData = {
+        // Convert BackupConfigInput to BackupConfig if provided
+        const backupConfig = input.backupConfig
+            ? {
+                  timeout: input.backupConfig.timeout ?? 3600,
+                  cleanupOnFailure: input.backupConfig.cleanupOnFailure ?? true,
+                  zfsConfig: input.backupConfig.zfsConfig
+                      ? {
+                            poolName: input.backupConfig.zfsConfig.poolName,
+                            datasetName: input.backupConfig.zfsConfig.datasetName,
+                            snapshotPrefix: input.backupConfig.zfsConfig.snapshotPrefix,
+                            cleanupSnapshots: input.backupConfig.zfsConfig.cleanupSnapshots,
+                            retainSnapshots: input.backupConfig.zfsConfig.retainSnapshots,
+                        }
+                      : undefined,
+                  flashConfig: input.backupConfig.flashConfig
+                      ? {
+                            flashPath: input.backupConfig.flashConfig.flashPath,
+                            includeGitHistory: input.backupConfig.flashConfig.includeGitHistory,
+                            additionalPaths: input.backupConfig.flashConfig.additionalPaths,
+                        }
+                      : undefined,
+                  scriptConfig: input.backupConfig.scriptConfig
+                      ? {
+                            scriptPath: input.backupConfig.scriptConfig.scriptPath,
+                            scriptArgs: input.backupConfig.scriptConfig.scriptArgs,
+                            workingDirectory: input.backupConfig.scriptConfig.workingDirectory,
+                            environment: input.backupConfig.scriptConfig.environment,
+                            outputPath: input.backupConfig.scriptConfig.outputPath,
+                        }
+                      : undefined,
+                  rawConfig: input.backupConfig.rawConfig
+                      ? {
+                            sourcePath: input.backupConfig.rawConfig.sourcePath,
+                            excludePatterns: input.backupConfig.rawConfig.excludePatterns,
+                            includePatterns: input.backupConfig.rawConfig.includePatterns,
+                        }
+                      : undefined,
+              }
+            : undefined;
+
+        const config: BackupJobConfig = {
             id,
-            ...input,
+            name: input.name,
+            backupType: input.backupType,
+            remoteName: input.remoteName,
+            destinationPath: input.destinationPath,
+            schedule: input.schedule || '0 2 * * *', // Default to 2 AM daily if not provided
+            enabled: input.enabled,
+            rcloneOptions: input.rcloneOptions,
+            backupConfig,
             createdAt: now,
             updatedAt: now,
         };
@@ -79,7 +106,7 @@ export class BackupConfigService implements OnModuleInit {
             this.scheduleJob(config);
         }
 
-        return this.mapToGraphQL(config);
+        return config;
     }
 
     async updateBackupJobConfig(
@@ -98,10 +125,56 @@ export class BackupConfigService implements OnModuleInit {
             `[updateBackupJobConfig] Existing config for ID ${id}: ${JSON.stringify(existing)}`
         );
 
-        const updated: BackupJobConfigData = {
+        // Convert BackupConfigInput to BackupConfig if provided
+        const backupConfig = input.backupConfig
+            ? {
+                  timeout: input.backupConfig.timeout ?? existing.backupConfig?.timeout ?? 3600,
+                  cleanupOnFailure:
+                      input.backupConfig.cleanupOnFailure ??
+                      existing.backupConfig?.cleanupOnFailure ??
+                      true,
+                  zfsConfig: input.backupConfig.zfsConfig
+                      ? {
+                            poolName: input.backupConfig.zfsConfig.poolName,
+                            datasetName: input.backupConfig.zfsConfig.datasetName,
+                            snapshotPrefix: input.backupConfig.zfsConfig.snapshotPrefix,
+                            cleanupSnapshots: input.backupConfig.zfsConfig.cleanupSnapshots,
+                            retainSnapshots: input.backupConfig.zfsConfig.retainSnapshots,
+                        }
+                      : existing.backupConfig?.zfsConfig,
+                  flashConfig: input.backupConfig.flashConfig
+                      ? {
+                            flashPath: input.backupConfig.flashConfig.flashPath,
+                            includeGitHistory: input.backupConfig.flashConfig.includeGitHistory,
+                            additionalPaths: input.backupConfig.flashConfig.additionalPaths,
+                        }
+                      : existing.backupConfig?.flashConfig,
+                  scriptConfig: input.backupConfig.scriptConfig
+                      ? {
+                            scriptPath: input.backupConfig.scriptConfig.scriptPath,
+                            scriptArgs: input.backupConfig.scriptConfig.scriptArgs,
+                            workingDirectory: input.backupConfig.scriptConfig.workingDirectory,
+                            environment: input.backupConfig.scriptConfig.environment,
+                            outputPath: input.backupConfig.scriptConfig.outputPath,
+                        }
+                      : existing.backupConfig?.scriptConfig,
+                  rawConfig: input.backupConfig.rawConfig
+                      ? {
+                            sourcePath: input.backupConfig.rawConfig.sourcePath,
+                            excludePatterns: input.backupConfig.rawConfig.excludePatterns,
+                            includePatterns: input.backupConfig.rawConfig.includePatterns,
+                        }
+                      : existing.backupConfig?.rawConfig,
+              }
+            : existing.backupConfig;
+
+        const updated: BackupJobConfig = {
             ...existing,
             ...input,
+            backupConfig,
             updatedAt: new Date().toISOString(),
+            // lastRunAt is already a string if provided in input
+            lastRunAt: input.lastRunAt || existing.lastRunAt,
         };
         this.logger.debug(
             `[updateBackupJobConfig] Updated object for ID ${id} (before set): ${JSON.stringify(updated)}`
@@ -121,7 +194,7 @@ export class BackupConfigService implements OnModuleInit {
             this.scheduleJob(updated);
         }
 
-        return this.mapToGraphQL(updated);
+        return updated;
     }
 
     async deleteBackupJobConfig(id: string): Promise<boolean> {
@@ -144,25 +217,25 @@ export class BackupConfigService implements OnModuleInit {
         } else {
             this.logger.warn(`[getBackupJobConfig] No config found for ID: ${id}`);
         }
-        return config ? this.mapToGraphQL(config) : null;
+        return config || null;
     }
 
     async getAllBackupJobConfigs(): Promise<BackupJobConfig[]> {
-        return Array.from(this.configs.values()).map((config) => this.mapToGraphQL(config));
+        return Array.from(this.configs.values());
     }
 
-    private async executeBackupJob(config: BackupJobConfigData): Promise<void> {
+    private async executeBackupJob(config: BackupJobConfig): Promise<void> {
         this.logger.log(`Executing backup job: ${config.name}`);
 
         try {
-            let sourcePath = config.sourcePath;
+            let sourcePath = this.getSourcePath(config);
             let preprocessResult: PreprocessResult | null = null;
 
-            if (config.preprocessConfig && config.preprocessConfig.type !== PreprocessType.NONE) {
+            if (config.backupConfig && config.backupType !== BackupType.RAW) {
                 this.logger.log(`Running preprocessing for job: ${config.name}`);
 
                 preprocessResult = await this.preprocessingService.executePreprocessing(
-                    config.preprocessConfig,
+                    config.backupConfig,
                     {
                         jobId: config.id,
                         onProgress: (progress) => {
@@ -192,13 +265,12 @@ export class BackupConfigService implements OnModuleInit {
 
             const isStreamingBackup =
                 preprocessResult?.streamPath &&
-                (config.preprocessConfig?.type === PreprocessType.ZFS ||
-                    config.preprocessConfig?.type === PreprocessType.FLASH);
+                (config.backupType === BackupType.ZFS || config.backupType === BackupType.FLASH);
 
             let result;
             if (isStreamingBackup && preprocessResult?.streamPath) {
                 const streamingOptions = this.buildStreamingOptions(
-                    config.preprocessConfig!.type,
+                    config.backupType,
                     preprocessResult.streamPath,
                     config.remoteName,
                     config.destinationPath
@@ -218,24 +290,30 @@ export class BackupConfigService implements OnModuleInit {
 
             const jobId = result.jobId || result.jobid;
 
-            config.lastRunAt = new Date().toISOString();
-            config.lastRunStatus = `Started with job ID: ${jobId}`;
-            config.currentJobId = jobId;
-            this.configs.set(config.id, config);
+            const updatedConfig = {
+                ...config,
+                lastRunAt: new Date().toISOString(),
+                lastRunStatus: `Started with job ID: ${jobId}`,
+                currentJobId: jobId,
+            };
+            this.configs.set(config.id, updatedConfig);
             await this.saveConfigs();
 
             this.logger.log(`Backup job ${config.name} started successfully: ${jobId}`);
         } catch (error) {
             const errorMessage = error instanceof Error ? error.message : String(error);
-            config.lastRunAt = new Date().toISOString();
-            config.lastRunStatus = `Failed: ${errorMessage}`;
-            config.currentJobId = undefined;
-            this.configs.set(config.id, config);
+            const updatedConfig = {
+                ...config,
+                lastRunAt: new Date().toISOString(),
+                lastRunStatus: `Failed: ${errorMessage}`,
+                currentJobId: undefined,
+            };
+            this.configs.set(config.id, updatedConfig);
             await this.saveConfigs();
 
             this.logger.error(`Backup job ${config.name} failed:`, error);
 
-            if (config.preprocessConfig?.cleanupOnFailure) {
+            if (config.backupConfig?.cleanupOnFailure) {
                 try {
                     await this.preprocessingService.cleanup(config.id);
                 } catch (cleanupError) {
@@ -248,37 +326,57 @@ export class BackupConfigService implements OnModuleInit {
         }
     }
 
+    private getSourcePath(config: BackupJobConfig): string {
+        // Extract source path based on backup type and configuration
+        switch (config.backupType) {
+            case BackupType.ZFS:
+                return (
+                    config.backupConfig?.zfsConfig?.poolName +
+                        '/' +
+                        config.backupConfig?.zfsConfig?.datasetName || ''
+                );
+            case BackupType.FLASH:
+                return config.backupConfig?.flashConfig?.flashPath || '/boot';
+            case BackupType.SCRIPT:
+                return config.backupConfig?.scriptConfig?.outputPath || '';
+            case BackupType.RAW:
+                return config.backupConfig?.rawConfig?.sourcePath || '';
+            default:
+                return '';
+        }
+    }
+
     private buildStreamingOptions(
-        preprocessType: PreprocessType,
+        backupType: BackupType,
         streamPath: string,
         remoteName: string,
         destinationPath: string
     ) {
-        switch (preprocessType) {
-            case PreprocessType.ZFS:
+        switch (backupType) {
+            case BackupType.ZFS:
                 return {
                     remoteName,
                     remotePath: destinationPath,
                     sourceCommand: 'zfs',
                     sourceArgs: ['send', streamPath],
-                    preprocessType,
+                    preprocessType: backupType,
                     timeout: 3600000,
                 };
-            case PreprocessType.FLASH:
+            case BackupType.FLASH:
                 return {
                     remoteName,
                     remotePath: destinationPath,
                     sourceCommand: 'tar',
                     sourceArgs: ['cf', '-', streamPath],
-                    preprocessType,
+                    preprocessType: backupType,
                     timeout: 3600000,
                 };
             default:
-                throw new Error(`Unsupported streaming preprocessing type: ${preprocessType}`);
+                throw new Error(`Unsupported streaming backup type: ${backupType}`);
         }
     }
 
-    private scheduleJob(config: BackupJobConfigData): void {
+    private scheduleJob(config: BackupJobConfig): void {
         try {
             const job = new CronJob(
                 config.schedule,
@@ -325,7 +423,7 @@ export class BackupConfigService implements OnModuleInit {
         try {
             if (existsSync(this.configPath)) {
                 const data = await readFile(this.configPath, 'utf-8');
-                const configs: BackupJobConfigData[] = JSON.parse(data);
+                const configs: BackupJobConfig[] = JSON.parse(data);
 
                 // First, unschedule any existing jobs before clearing the config map
                 this.configs.forEach((config) => {
@@ -356,31 +454,5 @@ export class BackupConfigService implements OnModuleInit {
         } catch (error) {
             this.logger.error('Failed to save backup configurations:', error);
         }
-    }
-
-    private mapToGraphQL(config: BackupJobConfigData): BackupJobConfig {
-        const preprocessConfig = config.preprocessConfig
-            ? {
-                  ...config.preprocessConfig,
-              }
-            : undefined;
-
-        return {
-            id: config.id,
-            name: config.name,
-            backupMode: config.backupMode || BackupMode.PREPROCESSING,
-            sourcePath: config.sourcePath,
-            remoteName: config.remoteName,
-            destinationPath: config.destinationPath,
-            schedule: config.schedule,
-            enabled: config.enabled,
-            rcloneOptions: config.rcloneOptions,
-            preprocessConfig: preprocessConfig,
-            createdAt: new Date(config.createdAt),
-            updatedAt: new Date(config.updatedAt),
-            lastRunAt: config.lastRunAt ? new Date(config.lastRunAt) : undefined,
-            lastRunStatus: config.lastRunStatus,
-            currentJobId: config.currentJobId,
-        };
     }
 }

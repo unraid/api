@@ -50,9 +50,8 @@ export const RCLONE_JOB_FRAGMENT = graphql(/* GraphQL */ `
   }
 `);
 
-export const PREPROCESS_CONFIG_FRAGMENT = graphql(/* GraphQL */ `
-  fragment PreprocessConfig on PreprocessConfig {
-    type
+export const BACKUP_CONFIG_FRAGMENT = graphql(/* GraphQL */ `
+  fragment BackupConfig on BackupConfig {
     timeout
     cleanupOnFailure
     zfsConfig {
@@ -74,6 +73,11 @@ export const PREPROCESS_CONFIG_FRAGMENT = graphql(/* GraphQL */ `
       environment
       outputPath
     }
+    rawConfig {
+      sourcePath
+      excludePatterns
+      includePatterns
+    }
   }
 `);
 
@@ -81,15 +85,14 @@ export const BACKUP_JOB_CONFIG_FRAGMENT = graphql(/* GraphQL */ `
   fragment BackupJobConfig on BackupJobConfig {
     id
     name
-    backupMode
-    sourcePath
+    backupType
     remoteName
     destinationPath
     schedule
     enabled
     rcloneOptions
-    preprocessConfig {
-      ...PreprocessConfig
+    backupConfig {
+      ...BackupConfig
     }
     createdAt
     updatedAt
