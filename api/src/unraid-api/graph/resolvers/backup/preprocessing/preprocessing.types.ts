@@ -2,6 +2,7 @@ import { Field, InputType, ObjectType, registerEnumType } from '@nestjs/graphql'
 
 import { Type } from 'class-transformer';
 import {
+    IsArray,
     IsBoolean,
     IsEnum,
     IsNotEmpty,
@@ -14,16 +15,17 @@ import {
 } from 'class-validator';
 import { GraphQLJSON } from 'graphql-scalars';
 
-export enum PreprocessType {
-    NONE = 'none',
-    ZFS = 'zfs',
-    FLASH = 'flash',
-    SCRIPT = 'script',
+export enum BackupType {
+    ZFS = 'ZFS',
+    FLASH = 'FLASH',
+    SCRIPT = 'SCRIPT',
+    RAW = 'RAW',
 }
 
-registerEnumType(PreprocessType, {
-    name: 'PreprocessType',
-    description: 'Type of preprocessing to perform before backup',
+registerEnumType(BackupType, {
+    name: 'BackupType',
+    description:
+        'Type of backup to perform (ZFS snapshot, Flash backup, Custom script, or Raw file backup)',
 });
 
 @InputType()
@@ -151,46 +153,80 @@ export class ScriptPreprocessConfig {
 }
 
 @InputType()
-export class PreprocessConfigInput {
-    @Field(() => PreprocessType, { description: 'Type of preprocessing to perform' })
-    @IsEnum(PreprocessType)
-    type!: PreprocessType;
+export class RawBackupConfigInput {
+    @Field(() => String, { description: 'Source path to backup' })
+    @IsString()
+    @IsNotEmpty()
+    sourcePath!: string;
+
+    @Field(() => [String], { description: 'File patterns to exclude from backup', nullable: true })
+    @IsOptional()
+    @IsArray()
+    excludePatterns?: string[];
+
+    @Field(() => [String], { description: 'File patterns to include in backup', nullable: true })
+    @IsOptional()
+    @IsArray()
+    includePatterns?: string[];
+}
+
+@ObjectType()
+export class RawBackupConfig {
+    @Field(() => String)
+    sourcePath!: string;
+
+    @Field(() => [String], { nullable: true })
+    excludePatterns?: string[];
+
+    @Field(() => [String], { nullable: true })
+    includePatterns?: string[];
+}
+
+@InputType()
+export class BackupConfigInput {
+    @Field(() => Number, { description: 'Timeout for backup operation in seconds', defaultValue: 3600 })
+    @IsOptional()
+    @IsNumber()
+    @Min(1)
+    timeout?: number;
+
+    @Field(() => Boolean, { description: 'Whether to cleanup on failure', defaultValue: true })
+    @IsOptional()
+    @IsBoolean()
+    cleanupOnFailure?: boolean;
 
     @Field(() => ZfsPreprocessConfigInput, { nullable: true })
     @IsOptional()
-    @ValidateIf((o) => o.type === PreprocessType.ZFS)
     @ValidateNested()
     @Type(() => ZfsPreprocessConfigInput)
     zfsConfig?: ZfsPreprocessConfigInput;
 
     @Field(() => FlashPreprocessConfigInput, { nullable: true })
     @IsOptional()
-    @ValidateIf((o) => o.type === PreprocessType.FLASH)
     @ValidateNested()
     @Type(() => FlashPreprocessConfigInput)
     flashConfig?: FlashPreprocessConfigInput;
 
     @Field(() => ScriptPreprocessConfigInput, { nullable: true })
     @IsOptional()
-    @ValidateIf((o) => o.type === PreprocessType.SCRIPT)
     @ValidateNested()
     @Type(() => ScriptPreprocessConfigInput)
     scriptConfig?: ScriptPreprocessConfigInput;
 
-    @Field(() => Number, { description: 'Timeout for preprocessing in seconds', defaultValue: 3600 })
-    @IsNumber()
-    @Min(1)
-    timeout!: number;
-
-    @Field(() => Boolean, { description: 'Whether to cleanup on failure', defaultValue: true })
-    @IsBoolean()
-    cleanupOnFailure!: boolean;
+    @Field(() => RawBackupConfigInput, { nullable: true })
+    @IsOptional()
+    @ValidateNested()
+    @Type(() => RawBackupConfigInput)
+    rawConfig?: RawBackupConfigInput;
 }
 
 @ObjectType()
-export class PreprocessConfig {
-    @Field(() => PreprocessType)
-    type!: PreprocessType;
+export class BackupConfig {
+    @Field(() => Number)
+    timeout!: number;
+
+    @Field(() => Boolean)
+    cleanupOnFailure!: boolean;
 
     @Field(() => ZfsPreprocessConfig, { nullable: true })
     zfsConfig?: ZfsPreprocessConfig;
@@ -201,11 +237,8 @@ export class PreprocessConfig {
     @Field(() => ScriptPreprocessConfig, { nullable: true })
     scriptConfig?: ScriptPreprocessConfig;
 
-    @Field(() => Number)
-    timeout!: number;
-
-    @Field(() => Boolean)
-    cleanupOnFailure!: boolean;
+    @Field(() => RawBackupConfig, { nullable: true })
+    rawConfig?: RawBackupConfig;
 }
 
 export interface PreprocessResult {
@@ -222,8 +255,14 @@ export interface StreamingJobInfo {
     jobId: string;
     processId: number;
     startTime: Date;
-    type: PreprocessType;
+    type: BackupType;
     status: 'running' | 'completed' | 'failed' | 'cancelled';
     progress?: number;
     error?: string;
 }
+
+// Type aliases for backward compatibility
+export type PreprocessType = BackupType;
+export const PreprocessType = BackupType;
+export type PreprocessConfig = BackupConfig;
+export type PreprocessConfigInput = BackupConfigInput;

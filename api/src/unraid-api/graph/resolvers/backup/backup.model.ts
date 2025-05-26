@@ -16,23 +16,14 @@ import {
 import { GraphQLJSON } from 'graphql-scalars';
 
 import {
-    PreprocessConfig,
-    PreprocessConfigInput,
+    BackupConfig,
+    BackupConfigInput,
+    BackupType,
 } from '@app/unraid-api/graph/resolvers/backup/preprocessing/preprocessing.types.js';
 import { Node } from '@app/unraid-api/graph/resolvers/base.model.js';
 import { RCloneJob } from '@app/unraid-api/graph/resolvers/rclone/rclone.model.js';
 import { PrefixedID } from '@app/unraid-api/graph/scalars/graphql-type-prefixed-id.js';
 import { DataSlice } from '@app/unraid-api/types/json-forms.js';
-
-export enum BackupMode {
-    RAW = 'RAW',
-    PREPROCESSING = 'PREPROCESSING',
-}
-
-registerEnumType(BackupMode, {
-    name: 'BackupMode',
-    description: 'The mode of backup to perform (Raw file backup or Preprocessing-based).',
-});
 
 @ObjectType({
     implements: () => Node,
@@ -98,11 +89,8 @@ export class BackupJobConfig extends Node {
     @Field(() => String, { description: 'Human-readable name for this backup job' })
     name!: string;
 
-    @Field(() => BackupMode)
-    backupMode!: BackupMode;
-
-    @Field(() => String, { description: 'Source path to backup' })
-    sourcePath!: string;
+    @Field(() => BackupType, { description: 'Type of backup to perform' })
+    backupType!: BackupType;
 
     @Field(() => String, { description: 'Remote name from rclone config' })
     remoteName!: string;
@@ -124,11 +112,11 @@ export class BackupJobConfig extends Node {
     })
     rcloneOptions?: Record<string, unknown>;
 
-    @Field(() => PreprocessConfig, {
-        description: 'Preprocessing configuration for this backup job',
+    @Field(() => BackupConfig, {
+        description: 'Backup configuration for this backup job',
         nullable: true,
     })
-    preprocessConfig?: PreprocessConfig;
+    backupConfig?: BackupConfig;
 
     @Field(() => Date, { description: 'When this config was created' })
     createdAt!: Date;
@@ -150,77 +138,17 @@ export class BackupJobConfig extends Node {
 }
 
 @InputType()
-export class CreateBackupJobConfigInput {
-    @Field(() => String)
-    @IsString()
-    @IsNotEmpty()
-    name!: string;
-
-    @Field(() => BackupMode, { defaultValue: BackupMode.PREPROCESSING })
-    @IsEnum(BackupMode)
-    @IsNotEmpty()
-    backupMode?: BackupMode;
-
-    @Field(() => String)
-    @IsString()
-    @ValidateIf((o) => o.backupMode === BackupMode.RAW)
-    @IsNotEmpty({ message: 'sourcePath should not be empty when backupMode is RAW' })
-    sourcePath!: string;
-
-    @Field(() => String)
-    @IsString()
-    @IsNotEmpty()
-    remoteName!: string;
-
-    @Field(() => String)
-    @IsString()
-    @IsNotEmpty()
-    destinationPath!: string;
-
-    @Field(() => String)
-    @IsString()
-    @IsNotEmpty()
-    @Matches(
-        /^(\*|[0-5]?\d)(\s+(\*|[0-1]?\d|2[0-3]))(\s+(\*|[1-2]?\d|3[0-1]))(\s+(\*|[1-9]|1[0-2]))(\s+(\*|[0-6]))$/,
-        {
-            message: 'schedule must be a valid cron expression',
-        }
-    )
-    schedule!: string;
-
-    @Field(() => Boolean, { defaultValue: true })
-    @IsBoolean()
-    enabled!: boolean;
-
-    @Field(() => GraphQLJSON, { nullable: true })
-    @IsOptional()
-    @IsObject()
-    rcloneOptions?: Record<string, unknown>;
-
-    @Field(() => PreprocessConfigInput, {
-        description: 'Preprocessing configuration for this backup job',
-        nullable: true,
-    })
-    @IsOptional()
-    @ValidateIf((o) => o.backupMode === BackupMode.PREPROCESSING)
-    @ValidateNested()
-    @Type(() => PreprocessConfigInput)
-    preprocessConfig?: PreprocessConfigInput;
-}
-
-@InputType()
-export class UpdateBackupJobConfigInput {
+export class BaseBackupJobConfigInput {
     @Field(() => String, { nullable: true })
     @IsOptional()
     @IsString()
     @IsNotEmpty()
     name?: string;
 
-    @Field(() => String, { nullable: true })
+    @Field(() => BackupType, { nullable: true })
     @IsOptional()
-    @IsString()
-    @IsNotEmpty()
-    sourcePath?: string;
+    @IsEnum(BackupType)
+    backupType?: BackupType;
 
     @Field(() => String, { nullable: true })
     @IsOptional()
@@ -237,7 +165,7 @@ export class UpdateBackupJobConfigInput {
     @Field(() => String, { nullable: true })
     @IsOptional()
     @IsString()
-    @IsNotEmpty()
+    @ValidateIf((o) => o.schedule && o.schedule.length > 0)
     @Matches(
         /^(\*|[0-5]?\d)(\s+(\*|[0-1]?\d|2[0-3]))(\s+(\*|[1-2]?\d|3[0-1]))(\s+(\*|[1-9]|1[0-2]))(\s+(\*|[0-6]))$/,
         {
@@ -256,15 +184,46 @@ export class UpdateBackupJobConfigInput {
     @IsObject()
     rcloneOptions?: Record<string, unknown>;
 
-    @Field(() => PreprocessConfigInput, {
-        description: 'Preprocessing configuration for this backup job',
+    @Field(() => BackupConfigInput, {
+        description: 'Backup configuration for this backup job',
         nullable: true,
     })
     @IsOptional()
     @ValidateNested()
-    @Type(() => PreprocessConfigInput)
-    preprocessConfig?: PreprocessConfigInput;
+    @Type(() => BackupConfigInput)
+    backupConfig?: BackupConfigInput;
+}
 
+@InputType()
+export class CreateBackupJobConfigInput extends BaseBackupJobConfigInput {
+    @Field(() => String)
+    @IsString()
+    @IsNotEmpty()
+    declare name: string;
+
+    @Field(() => BackupType, { defaultValue: BackupType.RAW })
+    @IsEnum(BackupType)
+    @IsNotEmpty()
+    declare backupType: BackupType;
+
+    @Field(() => String)
+    @IsString()
+    @IsNotEmpty()
+    declare remoteName: string;
+
+    @Field(() => String)
+    @IsString()
+    @IsNotEmpty()
+    declare destinationPath: string;
+
+    @Field(() => Boolean, { defaultValue: true })
+    @IsBoolean()
+    @ValidateIf((o) => o.schedule && o.schedule.length > 0)
+    declare enabled: boolean;
+}
+
+@InputType()
+export class UpdateBackupJobConfigInput extends BaseBackupJobConfigInput {
     @Field(() => String, { nullable: true })
     @IsOptional()
     @IsString()

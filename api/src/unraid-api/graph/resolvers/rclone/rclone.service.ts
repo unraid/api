@@ -11,7 +11,7 @@ import { RCloneJob, RCloneRemote } from '@app/unraid-api/graph/resolvers/rclone/
  * Types for rclone backup configuration UI
  */
 export interface RcloneBackupConfigValues {
-    configStep: number;
+    configStep: { current: number; total: number };
     showAdvanced: boolean;
     name?: string;
     type?: string;
@@ -77,7 +77,7 @@ export class RCloneService {
      */
     async getCurrentSettings(): Promise<RcloneBackupConfigValues> {
         return {
-            configStep: 0,
+            configStep: { current: 0, total: 0 },
             showAdvanced: false,
         };
     }

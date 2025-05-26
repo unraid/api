@@ -916,46 +916,37 @@ type BackupMutations {
 
 input CreateBackupJobConfigInput {
   name: String!
-  backupMode: BackupMode! = PREPROCESSING
-  sourcePath: String!
+  backupType: BackupType! = RAW
   remoteName: String!
   destinationPath: String!
-  schedule: String!
+  schedule: String
   enabled: Boolean! = true
   rcloneOptions: JSON
 
-  """Preprocessing configuration for this backup job"""
-  preprocessConfig: PreprocessConfigInput
+  """Backup configuration for this backup job"""
+  backupConfig: BackupConfigInput
 }
 
 """
-The mode of backup to perform (Raw file backup or Preprocessing-based).
+Type of backup to perform (ZFS snapshot, Flash backup, Custom script, or Raw file backup)
 """
-enum BackupMode {
+enum BackupType {
+  ZFS
+  FLASH
+  SCRIPT
   RAW
-  PREPROCESSING
 }
 
-input PreprocessConfigInput {
-  """Type of preprocessing to perform"""
-  type: PreprocessType!
-  zfsConfig: ZfsPreprocessConfigInput
-  flashConfig: FlashPreprocessConfigInput
-  scriptConfig: ScriptPreprocessConfigInput
-
-  """Timeout for preprocessing in seconds"""
+input BackupConfigInput {
+  """Timeout for backup operation in seconds"""
   timeout: Float! = 3600
 
   """Whether to cleanup on failure"""
   cleanupOnFailure: Boolean! = true
-}
-
-"""Type of preprocessing to perform before backup"""
-enum PreprocessType {
-  NONE
-  ZFS
-  FLASH
-  SCRIPT
+  zfsConfig: ZfsPreprocessConfigInput
+  flashConfig: FlashPreprocessConfigInput
+  scriptConfig: ScriptPreprocessConfigInput
+  rawConfig: RawBackupConfigInput
 }
 
 input ZfsPreprocessConfigInput {
@@ -1003,17 +994,28 @@ input ScriptPreprocessConfigInput {
   outputPath: String!
 }
 
+input RawBackupConfigInput {
+  """Source path to backup"""
+  sourcePath: String!
+
+  """File patterns to exclude from backup"""
+  excludePatterns: [String!]
+
+  """File patterns to include in backup"""
+  includePatterns: [String!]
+}
+
 input UpdateBackupJobConfigInput {
   name: String
-  sourcePath: String
+  backupType: BackupType
   remoteName: String
   destinationPath: String
   schedule: String
   enabled: Boolean
   rcloneOptions: JSON
 
-  """Preprocessing configuration for this backup job"""
-  preprocessConfig: PreprocessConfigInput
+  """Backup configuration for this backup job"""
+  backupConfig: BackupConfigInput
   lastRunStatus: String
   currentJobId: String
   lastRunAt: String
@@ -1173,13 +1175,19 @@ type ScriptPreprocessConfig {
   outputPath: String!
 }
 
-type PreprocessConfig {
-  type: PreprocessType!
+type RawBackupConfig {
+  sourcePath: String!
+  excludePatterns: [String!]
+  includePatterns: [String!]
+}
+
+type BackupConfig {
+  timeout: Float!
+  cleanupOnFailure: Boolean!
   zfsConfig: ZfsPreprocessConfig
   flashConfig: FlashPreprocessConfig
   scriptConfig: ScriptPreprocessConfig
-  timeout: Float!
-  cleanupOnFailure: Boolean!
+  rawConfig: RawBackupConfig
 }
 
 type RCloneDrive {
@@ -1377,10 +1385,9 @@ type BackupJobConfig implements Node {
 
   """Human-readable name for this backup job"""
   name: String!
-  backupMode: BackupMode!
 
-  """Source path to backup"""
-  sourcePath: String!
+  """Type of backup to perform"""
+  backupType: BackupType!
 
   """Remote name from rclone config"""
   remoteName: String!
@@ -1397,8 +1404,8 @@ type BackupJobConfig implements Node {
   """RClone options (e.g., --transfers, --checkers)"""
   rcloneOptions: JSON
 
-  """Preprocessing configuration for this backup job"""
-  preprocessConfig: PreprocessConfig
+  """Backup configuration for this backup job"""
+  backupConfig: BackupConfig
 
   """When this config was created"""
   createdAt: DateTime!

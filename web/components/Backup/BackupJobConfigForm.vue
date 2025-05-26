@@ -1,18 +1,19 @@
 <script lang="ts" setup>
 import { computed, provide, ref, watch } from 'vue';
 import { useMutation, useQuery } from '@vue/apollo-composable';
-import type { Ref } from 'vue';
 
 import { Button, JsonForms } from '@unraid/ui';
 
-import { CREATE_BACKUP_JOB_CONFIG_MUTATION, BACKUP_JOB_CONFIG_FORM_QUERY } from './backup-jobs.query';
-import type { CreateBackupJobConfigInput, InputMaybe, PreprocessConfigInput, BackupMode } from '~/composables/gql/graphql';
+import type { CreateBackupJobConfigInput } from '~/composables/gql/graphql';
+import type { Ref } from 'vue';
+
+import { BACKUP_JOB_CONFIG_FORM_QUERY, CREATE_BACKUP_JOB_CONFIG_MUTATION } from './backup-jobs.query';
 
 // Define emit events
 const emit = defineEmits<{
-  complete: []
-  cancel: []
-}>()
+  complete: [];
+  cancel: [];
+}>();
 
 // Define types for form state
 interface ConfigStep {
@@ -30,7 +31,8 @@ const {
   refetch: updateFormSchema,
 } = useQuery(BACKUP_JOB_CONFIG_FORM_QUERY, {
   input: {
-    showAdvanced: typeof formState.value?.showAdvanced === 'boolean' ? formState.value.showAdvanced : false,
+    showAdvanced:
+      typeof formState.value?.showAdvanced === 'boolean' ? formState.value.showAdvanced : false,
   },
 });
 
@@ -39,21 +41,31 @@ let refetchTimeout: NodeJS.Timeout | null = null;
 watch(
   formState,
   async (newValue, oldValue) => {
-    const newStepCurrent = typeof (newValue?.configStep) === 'object' ? (newValue.configStep as ConfigStep).current : (newValue?.configStep as number);
-    const oldStepCurrent = typeof (oldValue?.configStep) === 'object' ? (oldValue.configStep as ConfigStep).current : (oldValue?.configStep as number);
+    const newStepCurrent = (newValue?.configStep as ConfigStep)?.current ?? 0;
+    const oldStepCurrent = (oldValue?.configStep as ConfigStep)?.current ?? 0;
     const newShowAdvanced = typeof newValue?.showAdvanced === 'boolean' ? newValue.showAdvanced : false;
     const oldShowAdvanced = typeof oldValue?.showAdvanced === 'boolean' ? oldValue.showAdvanced : false;
     const shouldRefetch = newShowAdvanced !== oldShowAdvanced || newStepCurrent !== oldStepCurrent;
+    
     if (shouldRefetch) {
       if (newShowAdvanced !== oldShowAdvanced) {
         console.log('[BackupJobConfigForm] showAdvanced changed:', newShowAdvanced);
       }
       if (newStepCurrent !== oldStepCurrent) {
-        console.log('[BackupJobConfigForm] configStep.current changed:', newStepCurrent, 'from:', oldStepCurrent, 'Refetching schema.');
+        console.log(
+          '[BackupJobConfigForm] configStep.current changed:',
+          newStepCurrent,
+          'from:',
+          oldStepCurrent,
+          'Refetching schema.'
+        );
       }
+      
+      // Debounce refetch to prevent multiple rapid calls
       if (refetchTimeout) {
         clearTimeout(refetchTimeout);
       }
+      
       refetchTimeout = setTimeout(async () => {
         await updateFormSchema({
           input: {
@@ -80,22 +92,9 @@ const {
 // Handle form submission
 const submitForm = async () => {
   try {
-    const value = formState.value as Record<string, unknown>;
-    console.log('value', value);
-    console.log('[BackupJobConfigForm] submitForm', value);
-    const input: CreateBackupJobConfigInput = {
-      name: value?.name as string,
-      destinationPath: value?.destinationPath as string,
-      schedule: (value?.schedule as string) || '',
-      enabled: value?.enabled as boolean,
-      remoteName: value?.remoteName as string,
-      sourcePath: (value?.sourcePath as string) || '',
-      rcloneOptions: value?.rcloneOptions as Record<string, unknown>,
-      preprocessConfig: value?.preprocessConfig as InputMaybe<PreprocessConfigInput> | undefined,
-      backupMode: (value?.backupMode as BackupMode) || 'RAW' as BackupMode,
-    };
+    const { configStep, ...input } = formState.value;
     await createBackupJobConfig({
-      input,
+      input: input as CreateBackupJobConfigInput,
     });
   } catch (error) {
     console.error('Error creating backup job config:', error);
@@ -116,14 +115,30 @@ onCreateDone(async ({ data }) => {
 
 const parsedOriginalErrorMessage = computed(() => {
   const originalError = createError.value?.graphQLErrors?.[0]?.extensions?.originalError;
-  if (originalError && typeof originalError === 'object' && originalError !== null && 'message' in originalError) {
+  if (
+    originalError &&
+    typeof originalError === 'object' &&
+    originalError !== null &&
+    'message' in originalError
+  ) {
     return (originalError as { message: string | string[] }).message;
   }
   return undefined;
 });
 
+let changeTimeout: NodeJS.Timeout | null = null;
 const onChange = ({ data }: { data: unknown }) => {
-  console.log('[BackupJobConfigForm] onChange', data);
+  // Clear any pending timeout
+  if (changeTimeout) {
+    clearTimeout(changeTimeout);
+  }
+  
+  // Debounce logging to reduce console spam
+  changeTimeout = setTimeout(() => {
+    console.log('[BackupJobConfigForm] onChange', data);
+    changeTimeout = null;
+  }, 300);
+  
   formState.value = data as Record<string, unknown>;
 };
 
@@ -132,8 +147,8 @@ const uiSchema = computed(() => formResult.value?.backupJobConfigForm?.uiSchema)
 
 // Handle both number and object formats of configStep
 const getCurrentStep = computed(() => {
-  const step = formState.value?.configStep;
-  return typeof step === 'object' ? (step as ConfigStep).current : step as number;
+  const step = formState.value?.configStep as ConfigStep;
+  return step?.current ?? 0;
 });
 
 // Get total steps from UI schema
@@ -157,21 +172,33 @@ provide('isSubmitting', isCreating);
 </script>
 
 <template>
-  <div class="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm">
+  <div
+    class="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm"
+  >
     <div class="p-6">
       <h2 class="text-xl font-medium mb-4 text-gray-900 dark:text-white">Configure Backup Job</h2>
 
-      <div v-if="createError" class="mb-4 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-300 rounded-md">
+      <div
+        v-if="createError"
+        class="mb-4 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-300 rounded-md"
+      >
         <p>{{ createError.message }}</p>
         <ul v-if="Array.isArray(parsedOriginalErrorMessage)" class="list-disc list-inside mt-2">
           <li v-for="(msg, index) in parsedOriginalErrorMessage" :key="index">{{ msg }}</li>
         </ul>
-        <p v-else-if="typeof parsedOriginalErrorMessage === 'string' && parsedOriginalErrorMessage.length > 0" class="mt-2">
+        <p
+          v-else-if="
+            typeof parsedOriginalErrorMessage === 'string' && parsedOriginalErrorMessage.length > 0
+          "
+          class="mt-2"
+        >
           {{ parsedOriginalErrorMessage }}
         </p>
       </div>
 
-      <div v-if="formLoading" class="py-8 text-center text-gray-500 dark:text-gray-400">Loading configuration form...</div>
+      <div v-if="formLoading" class="py-8 text-center text-gray-500 dark:text-gray-400">
+        Loading configuration form...
+      </div>
 
       <!-- Form -->
       <div v-else-if="formResult?.backupJobConfigForm" class="mt-6 [&_.vertical-layout]:space-y-6">
@@ -190,32 +217,23 @@ provide('isSubmitting', isCreating);
         v-if="!formLoading && uiSchema && isLastStep"
         class="mt-6 flex justify-end space-x-3 border-t border-gray-200 dark:border-gray-700 pt-6"
       >
-        <Button variant="outline" @click="emit('cancel')">
-          Cancel
-        </Button>
-        <Button :loading="isCreating" @click="submitForm">
-          Create Backup Job
-        </Button>
+        <Button variant="outline" @click="emit('cancel')"> Cancel </Button>
+        <Button :loading="isCreating" @click="submitForm"> Create Backup Job </Button>
       </div>
 
       <!-- If there's no stepped layout, show buttons at the bottom -->
       <div
-        v-if="!formLoading && (!uiSchema || (numSteps === 0))"
+        v-if="!formLoading && (!uiSchema || numSteps === 0)"
         class="mt-6 flex justify-end space-x-3 border-t border-gray-200 dark:border-gray-700 pt-6"
       >
-        <Button variant="outline" @click="emit('cancel')">
-          Cancel
-        </Button>
-        <Button :loading="isCreating" @click="submitForm">
-          Create Backup Job
-        </Button>
+        <Button variant="outline" @click="emit('cancel')"> Cancel </Button>
+        <Button :loading="isCreating" @click="submitForm"> Create Backup Job </Button>
       </div>
     </div>
   </div>
 </template>
 
-
 <style lang="postcss">
 /* Import unraid-ui globals first */
 @import '@unraid/ui/styles';
-</style> 
+</style>

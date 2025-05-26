@@ -1,17 +1,1 @@
-[
-  {
-    "id": "1ad3f9a9-f438-43b2-bdd5-976c7ca4b2f5",
-    "name": "test",
-    "sourcePath": "/Users/elibosley/Downloads",
-    "remoteName": "FlashBackup",
-    "destinationPath": "backup",
-    "schedule": "0 2 * * *",
-    "enabled": false,
-    "rcloneOptions": {},
-    "createdAt": "2025-05-24T12:19:29.150Z",
-    "updatedAt": "2025-05-26T16:14:13.977Z",
-    "lastRunStatus": "Started with job ID: 34",
-    "currentJobId": 34,
-    "lastRunAt": "2025-05-26T16:14:13.977Z"
-  }
-]
+[]
