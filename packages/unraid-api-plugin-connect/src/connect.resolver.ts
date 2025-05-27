@@ -1,5 +1,6 @@
 import { ConfigService } from "@nestjs/config";
 import { Resolver, Query, Mutation } from "@nestjs/graphql";
+import { demoShared } from "@unraid/shared";
 
 @Resolver()
 export class HealthResolver {
@@ -8,7 +9,7 @@ export class HealthResolver {
   @Query(() => String)
   health() {
     // You can replace the return value with your actual health check logic
-    return "I am healthy!";
+    return demoShared;
   }
 
   @Query(() => String)

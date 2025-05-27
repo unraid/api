@@ -77,6 +77,7 @@
         "@runonflux/nat-upnp": "^1.0.2",
         "@types/diff": "^8.0.0",
         "@unraid/libvirt": "^2.1.0",
+        "@unraid/shared": "workspace:*",
         "accesscontrol": "^2.2.1",
         "bycontract": "^2.0.11",
         "bytes": "^3.1.2",

@@ -5,11 +5,50 @@ import { exit } from 'process';
 import type { PackageJson } from 'type-fest';
 import { $, cd } from 'zx';
 
-import { getDeploymentVersion } from '@app/../scripts/get-deployment-version.js';
+import { getDeploymentVersion } from './get-deployment-version.js';
 
 type ApiPackageJson = PackageJson & {
     version: string;
     peerDependencies: Record<string, string>;
+    dependencies?: Record<string, string>;
+};
+
+/**
+ * Map of workspace packages to vendor into production builds.
+ * Key: package name, Value: relative path from api/ to the package directory
+ */
+const WORKSPACE_PACKAGES_TO_VENDOR = {
+    '@unraid/shared': '../../packages/unraid-shared',
+    'unraid-api-plugin-connect': '../../packages/unraid-api-plugin-connect',
+} as const;
+
+/**
+ * Packs a workspace package and installs it as a tarball dependency.
+ */
+const packAndInstallWorkspacePackage = async (pkgName: string, pkgPath: string, tempDir: string) => {
+    const { join, resolve } = await import('node:path');
+    const { existsSync } = await import('node:fs');
+
+    const fullPkgPath = resolve(pkgPath);
+    
+    if (!existsSync(fullPkgPath)) {
+        console.warn(`Workspace package ${pkgName} not found at ${fullPkgPath}. Skipping.`);
+        return;
+    }
+
+    console.log(`Building and packing workspace package ${pkgName}...`);
+    
+    // Build the package first
+    await $`pnpm --filter ${pkgName} run build`;
+    
+    // Pack the package to a tarball
+    const packResult = await $`pnpm --filter ${pkgName} pack --pack-destination ${tempDir}`;
+    console.log(`Packed ${pkgName} to ${tempDir}`);
+    
+    // Install the tarball
+    const tarballPattern = join(tempDir, `${pkgName.replace('@', '').replace('/', '-')}-*.tgz`);
+    await $`npm install ${tarballPattern}`;
+    console.log(`Installed ${pkgName} from tarball`);
 };
 
 try {
@@ -30,6 +69,20 @@ try {
 
     // Update the package.json version to the deployment version
     parsedPackageJson.version = deploymentVersion;
+
+    /**---------------------------------------------
+     * Handle workspace runtime dependencies
+     *--------------------------------------------*/
+    const workspaceDeps = Object.keys(WORKSPACE_PACKAGES_TO_VENDOR);
+    if (workspaceDeps.length > 0) {
+        console.log(`Stripping workspace deps from package.json: ${workspaceDeps.join(', ')}`);
+        workspaceDeps.forEach((dep) => {
+            if (parsedPackageJson.dependencies?.[dep]) {
+                delete parsedPackageJson.dependencies[dep];
+            }
+        });
+    }
+
     // omit dev dependencies from vendored dependencies in release build
     parsedPackageJson.devDependencies = {};
 
@@ -48,6 +101,21 @@ try {
     await $`npm install --omit=dev`;
 
     await writeFile('package.json', JSON.stringify(parsedPackageJson, null, 4));
+
+    /** After npm install, vendor workspace packages via pack/install */
+    if (workspaceDeps.length > 0) {
+        console.log('Vendoring workspace packages...');
+        const tempDir = '../temp-packages';
+        await mkdir(tempDir, { recursive: true });
+        
+        for (const dep of workspaceDeps) {
+            const pkgPath = WORKSPACE_PACKAGES_TO_VENDOR[dep as keyof typeof WORKSPACE_PACKAGES_TO_VENDOR];
+            await packAndInstallWorkspacePackage(dep, pkgPath, tempDir);
+        }
+        
+        // Clean up temp directory
+        await $`rm -rf ${tempDir}`;
+    }
 
     const compressionLevel = process.env.WATCH_MODE ? '-1' : '-5';
     await $`XZ_OPT=${compressionLevel} tar -cJf packed-node-modules.tar.xz node_modules`;

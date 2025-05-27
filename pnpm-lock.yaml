@@ -108,6 +108,9 @@ importers:
       '@unraid/libvirt':
         specifier: ^2.1.0
         version: 2.1.0
+      '@unraid/shared':
+        specifier: workspace:*
+        version: link:../packages/unraid-shared
       accesscontrol:
         specifier: ^2.2.1
         version: 2.2.1
@@ -489,6 +492,10 @@ importers:
         version: 8.4.1
 
   packages/unraid-api-plugin-connect:
+    dependencies:
+      '@unraid/shared':
+        specifier: workspace:*
+        version: link:../unraid-shared
     devDependencies:
       '@apollo/client':
         specifier: ^3.11.8
@@ -659,6 +666,27 @@ importers:
       '@nestjs/graphql':
         specifier: ^13.0.3
         version: 13.0.4(@nestjs/common@11.0.12(class-transformer@0.5.1)(class-validator@0.14.1)(reflect-metadata@0.1.14)(rxjs@7.8.2))(@nestjs/core@11.0.12(@nestjs/common@11.0.12(class-transformer@0.5.1)(class-validator@0.14.1)(reflect-metadata@0.1.14)(rxjs@7.8.2))(reflect-metadata@0.1.14)(rxjs@7.8.2))(class-transformer@0.5.1)(class-validator@0.14.1)(graphql@16.10.0)(reflect-metadata@0.1.14)(ts-morph@24.0.0)
+      nest-authz:
+        specifier: ^2.14.0
+        version: 2.15.0(@nestjs/common@11.0.12(class-transformer@0.5.1)(class-validator@0.14.1)(reflect-metadata@0.1.14)(rxjs@7.8.2))(@nestjs/core@11.0.12(@nestjs/common@11.0.12(class-transformer@0.5.1)(class-validator@0.14.1)(reflect-metadata@0.1.14)(rxjs@7.8.2))(reflect-metadata@0.1.14)(rxjs@7.8.2))(reflect-metadata@0.1.14)(rxjs@7.8.2)
+      typescript:
+        specifier: ^5.8.2
+        version: 5.8.3
+
+  packages/unraid-shared:
+    devDependencies:
+      '@graphql-tools/utils':
+        specifier: ^10.5.5
+        version: 10.8.6(graphql@16.10.0)
+      '@nestjs/graphql':
+        specifier: ^13.0.3
+        version: 13.0.4(@nestjs/common@11.0.12(class-transformer@0.5.1)(class-validator@0.14.1)(reflect-metadata@0.1.14)(rxjs@7.8.2))(@nestjs/core@11.0.12(@nestjs/common@11.0.12(class-transformer@0.5.1)(class-validator@0.14.1)(reflect-metadata@0.1.14)(rxjs@7.8.2))(reflect-metadata@0.1.14)(rxjs@7.8.2))(class-transformer@0.5.1)(class-validator@0.14.1)(graphql@16.10.0)(reflect-metadata@0.1.14)(ts-morph@24.0.0)
+      '@types/node':
+        specifier: ^22.14.0
+        version: 22.15.3
+      graphql:
+        specifier: ^16.9.0
+        version: 16.10.0
       nest-authz:
         specifier: ^2.14.0
         version: 2.15.0(@nestjs/common@11.0.12(class-transformer@0.5.1)(class-validator@0.14.1)(reflect-metadata@0.1.14)(rxjs@7.8.2))(@nestjs/core@11.0.12(@nestjs/common@11.0.12(class-transformer@0.5.1)(class-validator@0.14.1)(reflect-metadata@0.1.14)(rxjs@7.8.2))(reflect-metadata@0.1.14)(rxjs@7.8.2))(reflect-metadata@0.1.14)(rxjs@7.8.2)
@@ -4309,6 +4337,7 @@ packages:
   '@unraid/libvirt@2.1.0':
     resolution: {integrity: sha512-yF/sAzYukM+VpDdAebf0z0O2mE5mGOEAW5lIafFkYoMiu60zNkNmr5IoA9hWCMmQkBOUCam8RZGs9YNwRjMtMQ==}
     engines: {node: '>=14'}
+    cpu: [x64, arm64]
     os: [linux, darwin]
 
   '@unraid/shared-callbacks@1.1.1':

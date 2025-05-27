@@ -1,0 +1,32 @@
+{
+    "name": "@unraid/shared",
+    "version": "1.0.0",
+    "main": "dist/index.js",
+    "types": "dist/index.d.ts",
+    "type": "module",
+    "files": [
+        "dist"
+    ],
+    "scripts": {
+        "build": "tsc",
+        "prepare": "npm run build"
+    },
+    "keywords": [],
+    "author": "Lime Technology, Inc. <unraid.net>",
+    "license": "GPL-2.0-or-later",
+    "description": "Shared utilities and types for Unraid API ecosystem",
+    "devDependencies": {
+        "@graphql-tools/utils": "^10.5.5",
+        "@nestjs/graphql": "^13.0.3",
+        "@types/node": "^22.14.0",
+        "graphql": "^16.9.0",
+        "nest-authz": "^2.14.0",
+        "typescript": "^5.8.2"
+    },
+    "peerDependencies": {
+        "@graphql-tools/utils": "^10.5.5",
+        "@nestjs/graphql": "^13.0.3",
+        "graphql": "^16.9.0",
+        "nest-authz": "^2.14.0"
+    }
+} 

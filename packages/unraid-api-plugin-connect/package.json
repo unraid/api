@@ -50,6 +50,9 @@
         "ws": "^8.18.0",
         "zen-observable-ts": "^1.1.0"
     },
+    "dependencies": {
+        "@unraid/shared": "workspace:*"
+    },
     "peerDependencies": {
         "@apollo/client": "^3.11.8",
         "@graphql-typed-document-node/core": "^3.2.0",
