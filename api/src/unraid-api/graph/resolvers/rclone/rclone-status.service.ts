@@ -1,7 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 
+import { BackupJobStatus } from '@app/unraid-api/graph/resolvers/backup/orchestration/backup-job-status.model.js';
 import {
-    BackupJobStatus,
     RCloneJob,
     RCloneJobListResponse,
     RCloneJobStats,

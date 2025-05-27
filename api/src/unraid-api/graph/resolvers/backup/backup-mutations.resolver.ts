@@ -14,6 +14,7 @@ import {
     InitiateBackupInput,
     UpdateBackupJobConfigInput,
 } from '@app/unraid-api/graph/resolvers/backup/backup.model.js';
+import { BackupOrchestrationService } from '@app/unraid-api/graph/resolvers/backup/orchestration/backup-orchestration.service.js';
 import { Resource } from '@app/unraid-api/graph/resolvers/base.model.js';
 import { BackupMutations } from '@app/unraid-api/graph/resolvers/mutation/mutation.model.js';
 import { RCloneService } from '@app/unraid-api/graph/resolvers/rclone/rclone.service.js';
@@ -25,7 +26,8 @@ export class BackupMutationsResolver {
 
     constructor(
         private readonly backupConfigService: BackupConfigService,
-        private readonly rcloneService: RCloneService
+        private readonly rcloneService: RCloneService,
+        private readonly backupOrchestrationService: BackupOrchestrationService
     ) {}
 
     private async executeBackup(
@@ -38,17 +40,33 @@ export class BackupMutationsResolver {
         try {
             this.logger.log(`Executing backup: ${sourcePath} -> ${remoteName}:${destinationPath}`);
 
-            const result = (await this.rcloneService['rcloneApiService'].startBackup({
-                srcPath: sourcePath,
-                dstPath: `${remoteName}:${destinationPath}`,
-                async: true,
-                configId: configId,
-                options: options,
-            })) as { jobId?: string; jobid?: string };
+            // Create a temporary config for the orchestration service
+            const tempConfig: BackupJobConfig = {
+                id: configId || `temp-${Date.now()}`,
+                name: `Manual backup to ${remoteName}`,
+                sourceType: 'raw' as any,
+                destinationType: 'rclone' as any,
+                schedule: '',
+                enabled: true,
+                sourceConfig: {
+                    type: 'raw',
+                    sourcePath: sourcePath,
+                } as any,
+                destinationConfig: {
+                    type: 'rclone',
+                    remoteName: remoteName,
+                    destinationPath: destinationPath,
+                    options: options,
+                } as any,
+                createdAt: new Date().toISOString(),
+                updatedAt: new Date().toISOString(),
+            };
 
-            this.logger.debug(`RClone startBackup result: ${JSON.stringify(result)}`);
+            const jobId = tempConfig.id;
 
-            const jobId = result.jobid || result.jobId;
+            // Use the orchestration service for execution
+            await this.backupOrchestrationService.executeBackupJob(tempConfig, jobId);
+
             this.logger.log(`Backup job initiated successfully with ID: ${jobId}`);
 
             return {
@@ -165,24 +183,34 @@ export class BackupMutationsResolver {
             };
         }
 
-        const result = await this.executeBackup(
-            config.sourcePath,
-            config.remoteName,
-            config.destinationPath,
-            config.rcloneOptions || {},
-            config.id
-        );
+        try {
+            // Use the orchestration service to execute the backup job
+            await this.backupOrchestrationService.executeBackupJob(config, config.id);
 
-        // Store the job ID and update timestamps in the config if successful
-        if (result.jobId) {
+            // Update the config with job start information
             await this.backupConfigService.updateBackupJobConfig(id, {
-                lastRunStatus: `Started with job ID: ${result.jobId}`,
-                currentJobId: result.jobId,
+                lastRunStatus: `Started with job ID: ${config.id}`,
                 lastRunAt: new Date().toISOString(),
             });
-        }
 
-        return result;
+            return {
+                status: 'Backup job triggered successfully',
+                jobId: config.id,
+            };
+        } catch (error) {
+            const errorMessage = error instanceof Error ? error.message : String(error);
+            this.logger.error(`Failed to trigger backup job ${id}: ${errorMessage}`);
+
+            await this.backupConfigService.updateBackupJobConfig(id, {
+                lastRunStatus: `Failed: ${errorMessage}`,
+                lastRunAt: new Date().toISOString(),
+            });
+
+            return {
+                status: `Failed to trigger backup: ${errorMessage}`,
+                jobId: undefined,
+            };
+        }
     }
 
     @ResolveField(() => BackupStatus, {

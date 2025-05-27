@@ -11,11 +11,6 @@ import {
 import { SourceType } from '@app/unraid-api/graph/resolvers/backup/source/backup-source.types.js';
 import { ZfsPreprocessConfig } from '@app/unraid-api/graph/resolvers/backup/source/zfs/zfs-source.types.js';
 import { ZfsValidationService } from '@app/unraid-api/graph/resolvers/backup/source/zfs/zfs-validation.service.js';
-import { zfsProgressExtractor } from '@app/unraid-api/streaming-jobs/progress-extractors.js';
-import {
-    StreamingJobManager,
-    StreamingJobOptions,
-} from '@app/unraid-api/streaming-jobs/streaming-job-manager.service.js';
 
 export interface ZfsSourceConfig extends BackupSourceConfig {
     poolName: string;
@@ -30,170 +25,115 @@ export class ZfsSourceProcessor extends BackupSourceProcessor<ZfsSourceConfig> {
     readonly sourceType = SourceType.ZFS;
     private readonly logger = new Logger(ZfsSourceProcessor.name);
 
-    constructor(
-        private readonly streamingJobManager: StreamingJobManager,
-        private readonly zfsValidationService: ZfsValidationService
-    ) {
+    constructor(private readonly zfsValidationService: ZfsValidationService) {
         super();
+    }
+
+    get supportsStreaming(): boolean {
+        return true;
+    }
+
+    async validate(
+        config: ZfsSourceConfig
+    ): Promise<{ valid: boolean; error?: string; warnings?: string[] }> {
+        try {
+            const result = await this.zfsValidationService.validateZfsConfig(config as any);
+            return {
+                valid: result.isValid,
+                error: result.errors.length > 0 ? result.errors.join(', ') : undefined,
+                warnings: result.warnings,
+            };
+        } catch (error) {
+            const errorMessage = error instanceof Error ? error.message : String(error);
+            return { valid: false, error: errorMessage };
+        }
     }
 
     async execute(
         config: ZfsSourceConfig,
         options?: BackupSourceProcessorOptions
     ): Promise<BackupSourceResult> {
-        const validation = await this.validate(config);
-        if (!validation.valid) {
-            return {
-                success: false,
-                error: `ZFS configuration validation failed: ${validation.error}`,
-                metadata: { validationError: validation.error, validationWarnings: validation.warnings },
-            };
-        }
-
-        if (validation.warnings?.length) {
-            this.logger.warn(`ZFS backup warnings: ${validation.warnings.join(', ')}`);
-        }
-
-        const snapshotName = this.generateSnapshotName(config.datasetName, config.snapshotPrefix);
-        const fullSnapshotPath = `${config.poolName}/${config.datasetName}@${snapshotName}`;
-
         try {
-            await this.createSnapshot(fullSnapshotPath);
-            this.logger.log(`Created ZFS snapshot: ${fullSnapshotPath}`);
+            this.logger.log(`Starting ZFS backup for dataset: ${config.poolName}/${config.datasetName}`);
 
-            const streamingResult = await this.streamSnapshot(fullSnapshotPath, config, options);
-
-            if (config.cleanupSnapshots) {
-                await this.cleanupSnapshot(fullSnapshotPath);
-                this.logger.log(`Cleaned up ZFS snapshot: ${fullSnapshotPath}`);
+            const validation = await this.validate(config);
+            if (!validation.valid) {
+                return {
+                    success: false,
+                    error: validation.error || 'ZFS validation failed',
+                    cleanupRequired: false,
+                };
             }
 
-            return {
+            const snapshotName = await this.createSnapshot(config);
+            const snapshotPath = `${config.poolName}/${config.datasetName}@${snapshotName}`;
+
+            this.logger.log(`Created ZFS snapshot: ${snapshotPath}`);
+
+            const result: BackupSourceResult = {
                 success: true,
-                streamPath: fullSnapshotPath,
-                snapshotName: fullSnapshotPath,
+                outputPath: snapshotPath,
+                snapshotName,
+                cleanupRequired: config.cleanupSnapshots,
                 metadata: {
-                    snapshotName: fullSnapshotPath,
-                    bytesTransferred: streamingResult.bytesTransferred,
-                    duration: streamingResult.duration,
-                    cleanedUp: config.cleanupSnapshots,
-                    validationWarnings: validation.warnings,
+                    poolName: config.poolName,
+                    datasetName: config.datasetName,
+                    snapshotPath,
                 },
             };
+
+            return result;
         } catch (error) {
             const errorMessage = error instanceof Error ? error.message : String(error);
             this.logger.error(`ZFS backup failed: ${errorMessage}`, error);
 
-            if (config.cleanupSnapshots) {
-                try {
-                    await this.cleanupSnapshot(fullSnapshotPath);
-                    this.logger.log(`Cleaned up ZFS snapshot after failure: ${fullSnapshotPath}`);
-                } catch (cleanupError) {
-                    const cleanupErrorMessage =
-                        cleanupError instanceof Error ? cleanupError.message : String(cleanupError);
-                    this.logger.error(`Failed to cleanup snapshot: ${cleanupErrorMessage}`);
-                }
-            }
-
             return {
                 success: false,
                 error: errorMessage,
-                snapshotName: fullSnapshotPath,
-                cleanupRequired: config.cleanupSnapshots,
-                metadata: {
-                    snapshotName: fullSnapshotPath,
-                    cleanupAttempted: config.cleanupSnapshots,
-                },
+                cleanupRequired: false,
             };
         }
-    }
-
-    async validate(
-        config: ZfsSourceConfig
-    ): Promise<{ valid: boolean; error?: string; warnings?: string[] }> {
-        const legacyConfig: ZfsPreprocessConfig = {
-            poolName: config.poolName,
-            datasetName: config.datasetName,
-            snapshotPrefix: config.snapshotPrefix,
-            cleanupSnapshots: config.cleanupSnapshots,
-            retainSnapshots: config.retainSnapshots,
-        };
-
-        const validationResult = await this.zfsValidationService.validateZfsConfig(legacyConfig);
-
-        return {
-            valid: validationResult.isValid,
-            error: validationResult.errors.length > 0 ? validationResult.errors.join(', ') : undefined,
-            warnings: validationResult.warnings,
-        };
     }
 
     async cleanup(result: BackupSourceResult): Promise<void> {
-        if (result.snapshotName && result.cleanupRequired) {
-            await this.cleanupSnapshot(result.snapshotName);
+        if (!result.cleanupRequired || !result.snapshotName) {
+            return;
         }
-    }
-
-    private async createSnapshot(snapshotPath: string): Promise<void> {
-        try {
-            await execa('zfs', ['snapshot', snapshotPath]);
-        } catch (error) {
-            const errorMessage = error instanceof Error ? error.message : String(error);
-            throw new Error(`ZFS snapshot creation failed: ${errorMessage}`);
-        }
-    }
-
-    private async streamSnapshot(
-        snapshotPath: string,
-        config: ZfsSourceConfig,
-        options?: BackupSourceProcessorOptions
-    ): Promise<{ bytesTransferred: number; duration: number }> {
-        const zfsSendArgs = ['send', snapshotPath];
-
-        const streamingOptions: StreamingJobOptions = {
-            command: 'zfs',
-            args: zfsSendArgs,
-            timeout: config.timeout,
-            onProgress: options?.onProgress,
-            onOutput: options?.onOutput,
-            onError: options?.onError,
-        };
-
-        const { jobId, promise } = await this.streamingJobManager.startStreamingJob(
-            SourceType.ZFS,
-            streamingOptions,
-            zfsProgressExtractor
-        );
 
         try {
-            const result = await promise;
-
-            if (!result.success) {
-                throw new Error(result.error || 'ZFS streaming failed');
+            const snapshotPath = (result.metadata?.snapshotPath as string) || result.outputPath;
+            if (snapshotPath && typeof snapshotPath === 'string') {
+                await this.destroySnapshot(snapshotPath);
+                this.logger.log(`Cleaned up ZFS snapshot: ${snapshotPath}`);
             }
-
-            return {
-                bytesTransferred: 0,
-                duration: result.duration,
-            };
         } catch (error) {
-            this.streamingJobManager.cancelJob(jobId);
-            throw error;
+            this.logger.error(`Failed to cleanup ZFS snapshot: ${error}`);
         }
     }
 
-    private async cleanupSnapshot(snapshotPath: string): Promise<void> {
-        try {
-            await execa('zfs', ['destroy', snapshotPath]);
-        } catch (error) {
-            const errorMessage = error instanceof Error ? error.message : String(error);
-            throw new Error(`ZFS snapshot cleanup failed: ${errorMessage}`);
-        }
-    }
-
-    private generateSnapshotName(datasetName: string, prefix?: string): string {
+    private async createSnapshot(config: ZfsSourceConfig): Promise<string> {
         const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
-        const snapshotPrefix = prefix || 'backup';
-        return `${snapshotPrefix}-${datasetName}-${timestamp}`;
+        const prefix = config.snapshotPrefix || 'backup';
+        const snapshotName = `${prefix}-${timestamp}`;
+        const snapshotPath = `${config.poolName}/${config.datasetName}@${snapshotName}`;
+
+        const { stdout, stderr } = await execa('zfs', ['snapshot', snapshotPath]);
+
+        if (stderr) {
+            this.logger.warn(`ZFS snapshot creation warning: ${stderr}`);
+        }
+
+        this.logger.debug(`ZFS snapshot created: ${stdout}`);
+        return snapshotName;
+    }
+
+    private async destroySnapshot(snapshotPath: string): Promise<void> {
+        const { stdout, stderr } = await execa('zfs', ['destroy', snapshotPath]);
+
+        if (stderr) {
+            this.logger.warn(`ZFS snapshot destruction warning: ${stderr}`);
+        }
+
+        this.logger.debug(`ZFS snapshot destroyed: ${stdout}`);
     }
 }

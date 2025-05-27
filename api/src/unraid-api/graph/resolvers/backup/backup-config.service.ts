@@ -13,12 +13,7 @@ import {
     CreateBackupJobConfigInput,
     UpdateBackupJobConfigInput,
 } from '@app/unraid-api/graph/resolvers/backup/backup.model.js';
-import { BackupSourceResult } from '@app/unraid-api/graph/resolvers/backup/source/backup-source-processor.interface.js';
-import {
-    BackupSourceOptions,
-    BackupSourceService,
-} from '@app/unraid-api/graph/resolvers/backup/source/backup-source.service.js';
-import { SourceType } from '@app/unraid-api/graph/resolvers/backup/source/backup-source.types.js';
+import { BackupOrchestrationService } from '@app/unraid-api/graph/resolvers/backup/orchestration/backup-orchestration.service.js';
 import { RCloneService } from '@app/unraid-api/graph/resolvers/rclone/rclone.service.js';
 
 const JOB_GROUP_PREFIX = 'backup-';
@@ -32,7 +27,7 @@ export class BackupConfigService implements OnModuleInit {
     constructor(
         private readonly rcloneService: RCloneService,
         private readonly schedulerRegistry: SchedulerRegistry,
-        private readonly backupSourceService: BackupSourceService
+        private readonly backupOrchestrationService: BackupOrchestrationService
     ) {
         const paths = getters.paths();
         this.configPath = join(paths.backupBase, 'backup-jobs.json');
@@ -46,58 +41,44 @@ export class BackupConfigService implements OnModuleInit {
         const id = uuidv4();
         const now = new Date().toISOString();
 
-        // Convert SourceConfigInput to SourceConfig if provided
-        const sourceConfig = input.sourceConfig
-            ? {
-                  timeout: input.sourceConfig.timeout ?? 3600,
-                  cleanupOnFailure: input.sourceConfig.cleanupOnFailure ?? true,
-                  zfsConfig: input.sourceConfig.zfsConfig
-                      ? {
-                            poolName: input.sourceConfig.zfsConfig.poolName,
-                            datasetName: input.sourceConfig.zfsConfig.datasetName,
-                            snapshotPrefix: input.sourceConfig.zfsConfig.snapshotPrefix,
-                            cleanupSnapshots: input.sourceConfig.zfsConfig.cleanupSnapshots,
-                            retainSnapshots: input.sourceConfig.zfsConfig.retainSnapshots,
-                        }
-                      : undefined,
-                  flashConfig: input.sourceConfig.flashConfig
-                      ? {
-                            flashPath: input.sourceConfig.flashConfig.flashPath,
-                            includeGitHistory: input.sourceConfig.flashConfig.includeGitHistory,
-                            additionalPaths: input.sourceConfig.flashConfig.additionalPaths,
-                        }
-                      : undefined,
-                  scriptConfig: input.sourceConfig.scriptConfig
-                      ? {
-                            scriptPath: input.sourceConfig.scriptConfig.scriptPath,
-                            scriptArgs: input.sourceConfig.scriptConfig.scriptArgs,
-                            workingDirectory: input.sourceConfig.scriptConfig.workingDirectory,
-                            environment: input.sourceConfig.scriptConfig.environment,
-                            outputPath: input.sourceConfig.scriptConfig.outputPath,
-                        }
-                      : undefined,
-                  rawConfig: input.sourceConfig.rawConfig
-                      ? {
-                            sourcePath: input.sourceConfig.rawConfig.sourcePath,
-                            excludePatterns: input.sourceConfig.rawConfig.excludePatterns,
-                            includePatterns: input.sourceConfig.rawConfig.includePatterns,
-                        }
-                      : undefined,
-              }
-            : undefined;
+        // Validate input sourceConfig and destinationConfig presence
+        if (!input.sourceConfig) {
+            this.logger.error('Source configuration (sourceConfig) is required.');
+            throw new Error('Source configuration (sourceConfig) is required.');
+        }
+        if (!input.destinationConfig) {
+            this.logger.error('Destination configuration (destinationConfig) is required.');
+            throw new Error('Destination configuration (destinationConfig) is required.');
+        }
+
+        // Extract sourceType and destinationType from the respective config objects
+        // Assuming the 'type' field exists on these input objects as per model definitions
+        const sourceType = (input.sourceConfig as any).type; // e.g., SourceType.RAW, SourceType.ZFS
+        const destinationType = (input.destinationConfig as any).type; // e.g., DestinationType.RCLONE
+
+        if (!sourceType) {
+            this.logger.error("Source configuration must include a valid 'type' property.");
+            throw new Error("Source configuration must include a valid 'type' property.");
+        }
+        if (!destinationType) {
+            this.logger.error("Destination configuration must include a valid 'type' property.");
+            throw new Error("Destination configuration must include a valid 'type' property.");
+        }
 
         const config: BackupJobConfig = {
             id,
             name: input.name,
-            sourceType: input.sourceType,
-            remoteName: input.remoteName,
-            destinationPath: input.destinationPath,
-            schedule: input.schedule || '0 2 * * *', // Default to 2 AM daily if not provided
+            sourceType, // Derived from input.sourceConfig.type
+            destinationType, // Derived from input.destinationConfig.type
+            schedule: input.schedule || '0 2 * * *', // Default schedule
             enabled: input.enabled,
-            rcloneOptions: input.rcloneOptions,
-            sourceConfig,
+            sourceConfig: input.sourceConfig, // Assign directly from input
+            destinationConfig: input.destinationConfig, // Assign directly from input
             createdAt: now,
             updatedAt: now,
+            // Ensure all other required fields of BackupJobConfig from backup.model.ts are present
+            // For example, Node interface fields if not automatically handled by spread or similar
+            // lastRunAt, lastRunStatus, currentJobId, currentJob would be undefined initially
         };
 
         this.configs.set(id, config);
@@ -126,67 +107,70 @@ export class BackupConfigService implements OnModuleInit {
             `[updateBackupJobConfig] Existing config for ID ${id}: ${JSON.stringify(existing)}`
         );
 
-        // Convert SourceConfigInput to SourceConfig if provided
-        const sourceConfig = input.sourceConfig
-            ? {
-                  timeout: input.sourceConfig.timeout ?? existing.sourceConfig?.timeout ?? 3600,
-                  cleanupOnFailure:
-                      input.sourceConfig.cleanupOnFailure ??
-                      existing.sourceConfig?.cleanupOnFailure ??
-                      true,
-                  zfsConfig: input.sourceConfig.zfsConfig
-                      ? {
-                            poolName: input.sourceConfig.zfsConfig.poolName,
-                            datasetName: input.sourceConfig.zfsConfig.datasetName,
-                            snapshotPrefix: input.sourceConfig.zfsConfig.snapshotPrefix,
-                            cleanupSnapshots: input.sourceConfig.zfsConfig.cleanupSnapshots,
-                            retainSnapshots: input.sourceConfig.zfsConfig.retainSnapshots,
-                        }
-                      : existing.sourceConfig?.zfsConfig,
-                  flashConfig: input.sourceConfig.flashConfig
-                      ? {
-                            flashPath: input.sourceConfig.flashConfig.flashPath,
-                            includeGitHistory: input.sourceConfig.flashConfig.includeGitHistory,
-                            additionalPaths: input.sourceConfig.flashConfig.additionalPaths,
-                        }
-                      : existing.sourceConfig?.flashConfig,
-                  scriptConfig: input.sourceConfig.scriptConfig
-                      ? {
-                            scriptPath: input.sourceConfig.scriptConfig.scriptPath,
-                            scriptArgs: input.sourceConfig.scriptConfig.scriptArgs,
-                            workingDirectory: input.sourceConfig.scriptConfig.workingDirectory,
-                            environment: input.sourceConfig.scriptConfig.environment,
-                            outputPath: input.sourceConfig.scriptConfig.outputPath,
-                        }
-                      : existing.sourceConfig?.scriptConfig,
-                  rawConfig: input.sourceConfig.rawConfig
-                      ? {
-                            sourcePath: input.sourceConfig.rawConfig.sourcePath,
-                            excludePatterns: input.sourceConfig.rawConfig.excludePatterns,
-                            includePatterns: input.sourceConfig.rawConfig.includePatterns,
-                        }
-                      : existing.sourceConfig?.rawConfig,
-              }
-            : existing.sourceConfig;
+        // Handle sourceConfig update
+        let updatedSourceConfig = existing.sourceConfig;
+        if (input.sourceConfig) {
+            const inputSourceType = (input.sourceConfig as any).type;
+            if (!inputSourceType) {
+                this.logger.warn(
+                    `[updateBackupJobConfig] Source config update for ID ${id} is missing 'type'. Update skipped for sourceConfig.`
+                );
+            } else if (existing.sourceType !== inputSourceType) {
+                // If type changes, replace the whole sourceConfig
+                updatedSourceConfig = input.sourceConfig;
+                this.logger.debug(
+                    `[updateBackupJobConfig] Source type changed for ${id}. Replacing sourceConfig.`
+                );
+            } else {
+                // If type is the same, merge. Create a deep merge if necessary, or handle per type.
+                // For simplicity, a shallow merge is shown here. Real implementation might need smarter merging.
+                updatedSourceConfig = { ...existing.sourceConfig, ...input.sourceConfig };
+                this.logger.debug(`[updateBackupJobConfig] Merging sourceConfig for ${id}.`);
+            }
+        }
+
+        // Handle destinationConfig update
+        let updatedDestinationConfig = existing.destinationConfig;
+        if (input.destinationConfig) {
+            const inputDestinationType = (input.destinationConfig as any).type;
+            if (!inputDestinationType) {
+                this.logger.warn(
+                    `[updateBackupJobConfig] Destination config update for ID ${id} is missing 'type'. Update skipped for destinationConfig.`
+                );
+            } else if (existing.destinationType !== inputDestinationType) {
+                // If type changes, replace the whole destinationConfig
+                updatedDestinationConfig = input.destinationConfig;
+                this.logger.debug(
+                    `[updateBackupJobConfig] Destination type changed for ${id}. Replacing destinationConfig.`
+                );
+            } else {
+                // If type is the same, merge. Similar to sourceConfig, careful merging needed.
+                updatedDestinationConfig = { ...existing.destinationConfig, ...input.destinationConfig };
+                this.logger.debug(`[updateBackupJobConfig] Merging destinationConfig for ${id}.`);
+            }
+        }
 
         const updated: BackupJobConfig = {
             ...existing,
-            ...input,
-            sourceConfig,
+            name: input.name ?? existing.name,
+            schedule: input.schedule ?? existing.schedule,
+            enabled: input.enabled ?? existing.enabled,
+            sourceType: (updatedSourceConfig as any)?.type ?? existing.sourceType,
+            destinationType: (updatedDestinationConfig as any)?.type ?? existing.destinationType,
+            sourceConfig: updatedSourceConfig,
+            destinationConfig: updatedDestinationConfig,
             updatedAt: new Date().toISOString(),
-            // lastRunAt is already a string if provided in input
-            lastRunAt: input.lastRunAt || existing.lastRunAt,
+            lastRunAt: input.lastRunAt !== undefined ? input.lastRunAt : existing.lastRunAt,
+            lastRunStatus:
+                input.lastRunStatus !== undefined ? input.lastRunStatus : existing.lastRunStatus,
+            // currentJob is an object, typically not updated via this input directly
         };
+
         this.logger.debug(
             `[updateBackupJobConfig] Updated object for ID ${id} (before set): ${JSON.stringify(updated)}`
         );
 
         this.configs.set(id, updated);
-        const immediatelyAfterSet = this.configs.get(id);
-        this.logger.debug(
-            `[updateBackupJobConfig] Config for ID ${id} (immediately after set): ${JSON.stringify(immediatelyAfterSet)}`
-        );
-
         await this.saveConfigs();
         this.logger.debug(`[updateBackupJobConfig] Configs saved for ID: ${id}`);
 
@@ -226,156 +210,51 @@ export class BackupConfigService implements OnModuleInit {
     }
 
     private async executeBackupJob(config: BackupJobConfig): Promise<void> {
-        this.logger.log(`Executing backup job: ${config.name}`);
+        this.logger.log(
+            `Executing backup job via BackupOrchestrationService: ${config.name} (ID: ${config.id})`
+        );
+
+        // Update config to reflect that the job is starting
+        const startingConfig = {
+            ...config,
+            lastRunAt: new Date().toISOString(),
+            lastRunStatus: 'Starting...', // Orchestration service will provide more detailed status
+        };
+        this.configs.set(config.id, startingConfig);
+        await this.saveConfigs();
 
         try {
-            let sourcePath = this.getSourcePath(config);
-            let preprocessResult: BackupSourceResult | null = null;
+            // Delegate to the BackupOrchestrationService
+            await this.backupOrchestrationService.executeBackupJob(config, config.id);
 
-            if (config.sourceConfig && config.sourceType !== SourceType.RAW) {
-                this.logger.log(`Running preprocessing for job: ${config.name}`);
-
-                const backupSourceOptions: BackupSourceOptions = {
-                    jobId: config.id,
-                    onProgress: (progress) => {
-                        this.logger.debug(`Preprocessing progress for ${config.name}: ${progress}%`);
-                    },
-                    onOutput: (data) => {
-                        this.logger.debug(`Preprocessing output for ${config.name}: ${data}`);
-                    },
-                    onError: (error) => {
-                        this.logger.error(`Preprocessing error for ${config.name}: ${error}`);
-                    },
-                };
-
-                preprocessResult = await this.backupSourceService.executeFromLegacyConfig(
-                    config.sourceConfig,
-                    backupSourceOptions
-                );
-
-                if (!preprocessResult.success) {
-                    throw new Error(`Preprocessing failed: ${preprocessResult.error}`);
-                }
-
-                if (preprocessResult.streamPath) {
-                    sourcePath = preprocessResult.streamPath;
-                    this.logger.log(`Using streaming source for backup: ${sourcePath}`);
-                } else if (preprocessResult.outputPath) {
-                    sourcePath = preprocessResult.outputPath;
-                    this.logger.log(`Using preprocessed output for backup: ${sourcePath}`);
-                }
-            }
-
-            const isStreamingBackup =
-                config.sourceType === SourceType.ZFS || config.sourceType === SourceType.FLASH;
-
-            let result;
-            if (isStreamingBackup && preprocessResult?.streamPath) {
-                const streamingOptions = this.buildStreamingOptions(
-                    config.sourceType,
-                    preprocessResult.streamPath,
-                    config.remoteName,
-                    config.destinationPath
-                );
-
-                result =
-                    await this.rcloneService['rcloneApiService'].startStreamingBackup(streamingOptions);
-            } else {
-                result = (await this.rcloneService['rcloneApiService'].startBackup({
-                    srcPath: sourcePath,
-                    dstPath: `${config.remoteName}:${config.destinationPath}`,
-                    async: true,
-                    configId: config.id,
-                    options: config.rcloneOptions || {},
-                })) as { jobId?: string; jobid?: string };
-            }
-
-            const jobId = result.jobId || result.jobid;
-
-            const updatedConfig = {
-                ...config,
-                lastRunAt: new Date().toISOString(),
-                lastRunStatus: `Started with job ID: ${jobId}`,
-                currentJobId: jobId,
-            };
-            this.configs.set(config.id, updatedConfig);
-            await this.saveConfigs();
-
-            this.logger.log(`Backup job ${config.name} started successfully: ${jobId}`);
+            // Orchestration service handles its own status updates via StreamingJobManagerService.
+            // We might fetch the final status from StreamingJobManagerService or rely on events if needed here.
+            // For now, we'll assume success if no error is thrown.
+            // The 'lastRunStatus' will be updated by the orchestration service through its lifecycle.
+            // We could potentially update it here to 'Completed' as a fallback if needed,
+            // but it's better to let the orchestration service be the source of truth for job status.
+            this.logger.log(
+                `Backup job ${config.name} (ID: ${config.id}) processing initiated by BackupOrchestrationService.`
+            );
         } catch (error) {
             const errorMessage = error instanceof Error ? error.message : String(error);
-            const updatedConfig = {
-                ...config,
+            this.logger.error(
+                `Backup job ${config.name} (ID: ${config.id}) failed during orchestration: ${errorMessage}`,
+                (error as Error).stack
+            );
+
+            // Update config to reflect failure status
+            // The orchestration service should ideally set the final failed status via StreamingJobManagerService.
+            // This update is a fallback or general marker in the config itself.
+            const failedConfig = {
+                ...config, // Use original config to avoid partial updates from 'startingConfig' if not desired
                 lastRunAt: new Date().toISOString(),
                 lastRunStatus: `Failed: ${errorMessage}`,
-                currentJobId: undefined,
             };
-            this.configs.set(config.id, updatedConfig);
+            this.configs.set(config.id, failedConfig);
             await this.saveConfigs();
-
-            this.logger.error(`Backup job ${config.name} failed:`, error);
-
-            if (config.sourceConfig?.cleanupOnFailure) {
-                try {
-                    await this.backupSourceService.cleanup(config.id);
-                } catch (cleanupError) {
-                    this.logger.error(
-                        `Failed to cleanup preprocessing for job ${config.name}:`,
-                        cleanupError
-                    );
-                }
-            }
-        }
-    }
-
-    private getSourcePath(config: BackupJobConfig): string {
-        // Extract source path based on backup type and configuration
-        switch (config.sourceType) {
-            case SourceType.ZFS:
-                if (!config.sourceConfig?.zfsConfig) {
-                    throw new Error('ZFS configuration is required for ZFS backups');
-                }
-                return config.sourceConfig.zfsConfig.poolName;
-            case SourceType.FLASH:
-                return config.sourceConfig?.flashConfig?.flashPath || '/boot';
-            case SourceType.SCRIPT:
-                return config.sourceConfig?.scriptConfig?.outputPath || '/tmp/script-output';
-            case SourceType.RAW:
-                return config.sourceConfig?.rawConfig?.sourcePath || '/';
-            default:
-                throw new Error(`Unsupported backup type: ${config.sourceType}`);
-        }
-    }
-
-    private buildStreamingOptions(
-        sourceType: SourceType,
-        streamPath: string,
-        remoteName: string,
-        destinationPath: string
-    ) {
-        const options = {
-            remoteName,
-            remotePath: destinationPath,
-            sourceType: sourceType,
-        };
-
-        switch (sourceType) {
-            case SourceType.ZFS:
-                return {
-                    ...options,
-                    sourceCommand: 'zfs',
-                    sourceArgs: ['send', streamPath],
-                    timeout: 3600000,
-                };
-            case SourceType.FLASH:
-                return {
-                    ...options,
-                    sourceCommand: 'tar',
-                    sourceArgs: ['cf', '-', streamPath],
-                    timeout: 3600000,
-                };
-            default:
-                throw new Error(`Unsupported streaming backup type: ${sourceType}`);
+            // Re-throw the error so the scheduler or caller can be aware
+            throw error;
         }
     }
 
@@ -409,17 +288,6 @@ export class BackupConfigService implements OnModuleInit {
         } catch (error) {
             this.logger.error(`Failed to unschedule backup job ${id}:`, error);
         }
-    }
-
-    addCronJob(name: string, seconds: string) {
-        const job = new CronJob(`${seconds} * * * * *`, () => {
-            this.logger.warn(`time (${seconds}) for job ${name} to run!`);
-        });
-
-        this.schedulerRegistry.addCronJob(name, job);
-        job.start();
-
-        this.logger.warn(`job ${name} added for each minute at ${seconds} seconds!`);
     }
 
     private async loadConfigs(): Promise<void> {

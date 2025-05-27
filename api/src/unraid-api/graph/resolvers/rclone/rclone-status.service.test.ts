@@ -2,8 +2,9 @@ import { Test, TestingModule } from '@nestjs/testing';
 
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
+import { BackupJobStatus } from '@app/unraid-api/graph/resolvers/backup/orchestration/backup-job-status.model.js';
 import { RCloneStatusService } from '@app/unraid-api/graph/resolvers/rclone/rclone-status.service.js';
-import { BackupJobStatus, RCloneJobStats } from '@app/unraid-api/graph/resolvers/rclone/rclone.model.js';
+import { RCloneJobStats } from '@app/unraid-api/graph/resolvers/rclone/rclone.model.js';
 import { FormatService } from '@app/unraid-api/utils/format.service.js';
 
 // Mock NestJS Logger to suppress logs during tests

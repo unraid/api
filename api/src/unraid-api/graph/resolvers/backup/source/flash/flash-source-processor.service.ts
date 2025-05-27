@@ -1,6 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { access, mkdir, writeFile } from 'fs/promises';
 import { dirname, join } from 'path';
+import { Readable } from 'stream';
 
 import { execa } from 'execa';
 
@@ -13,10 +14,6 @@ import {
 import { SourceType } from '@app/unraid-api/graph/resolvers/backup/source/backup-source.types.js';
 import { FlashPreprocessConfigInput } from '@app/unraid-api/graph/resolvers/backup/source/flash/flash-source.types.js';
 import { FlashValidationService } from '@app/unraid-api/graph/resolvers/backup/source/flash/flash-validation.service.js';
-import {
-    RCloneApiService,
-    StreamingBackupOptions,
-} from '@app/unraid-api/graph/resolvers/rclone/rclone-api.service.js';
 
 export interface FlashSourceConfig extends BackupSourceConfig {
     flashPath: string;
@@ -29,10 +26,7 @@ export class FlashSourceProcessor extends BackupSourceProcessor<FlashSourceConfi
     readonly sourceType = SourceType.FLASH;
     private readonly logger = new Logger(FlashSourceProcessor.name);
 
-    constructor(
-        private readonly rcloneApiService: RCloneApiService,
-        private readonly flashValidationService: FlashValidationService
-    ) {
+    constructor(private readonly flashValidationService: FlashValidationService) {
         super();
     }
 
@@ -64,15 +58,22 @@ export class FlashSourceProcessor extends BackupSourceProcessor<FlashSourceConfi
                 }
             }
 
+            // Generate streaming command for tar compression
+            const streamCommand = this.generateStreamCommand(config, gitRepoInitialized, tempGitPath);
+
             return {
                 success: true,
                 outputPath: config.flashPath,
+                streamPath: config.flashPath,
                 metadata: {
                     flashPath: config.flashPath,
                     gitHistoryIncluded: config.includeGitHistory && gitRepoInitialized,
                     additionalPaths: config.additionalPaths,
                     validationWarnings: validation.warnings,
                     tempGitPath: gitRepoInitialized ? tempGitPath : undefined,
+                    streamCommand: streamCommand.command,
+                    streamArgs: streamCommand.args,
+                    sourceType: this.sourceType,
                 },
                 cleanupRequired: gitRepoInitialized,
             };
@@ -196,5 +197,111 @@ export class FlashSourceProcessor extends BackupSourceProcessor<FlashSourceConfi
             const errorMessage = error instanceof Error ? error.message : String(error);
             this.logger.error(`Failed to cleanup temporary git repository: ${errorMessage}`);
         }
+    }
+
+    private generateStreamCommand(
+        config: FlashSourceConfig,
+        gitRepoInitialized: boolean,
+        tempGitPath?: string
+    ): { command: string; args: string[] } {
+        const excludeArgs: string[] = [];
+
+        // Standard exclusions for flash backups
+        const standardExcludes = ['lost+found', '*.tmp', '*.temp', '.DS_Store', 'Thumbs.db'];
+
+        standardExcludes.forEach((pattern) => {
+            excludeArgs.push('--exclude', pattern);
+        });
+
+        // If git repo was initialized, include it in the backup
+        if (gitRepoInitialized && tempGitPath) {
+            excludeArgs.push('--exclude', '.git-backup-temp');
+        }
+
+        const tarArgs = [
+            '-czf', // create, gzip, file
+            '-', // output to stdout for streaming
+            '-C', // change to directory
+            config.flashPath,
+            ...excludeArgs,
+            '.', // backup everything in the directory
+        ];
+
+        // Add additional paths if specified
+        if (config.additionalPaths?.length) {
+            config.additionalPaths.forEach((path) => {
+                tarArgs.push('-C', path, '.');
+            });
+        }
+
+        return {
+            command: 'tar',
+            args: tarArgs,
+        };
+    }
+
+    get supportsStreaming(): boolean {
+        return true;
+    }
+
+    get getReadableStream(): (config: FlashSourceConfig) => Promise<Readable> {
+        return async (config: FlashSourceConfig): Promise<Readable> => {
+            const validation = await this.validate(config);
+            if (!validation.valid) {
+                const errorMsg = `Flash configuration validation failed: ${validation.error}`;
+                this.logger.error(errorMsg);
+                const errorStream = new Readable({
+                    read() {
+                        this.emit('error', new Error(errorMsg));
+                        this.push(null);
+                    },
+                });
+                return errorStream;
+            }
+
+            const { command, args } = this.generateStreamCommand(config, false);
+
+            this.logger.log(
+                `[getReadableStream] Streaming flash backup with command: ${command} ${args.join(' ')}`
+            );
+
+            try {
+                const tarProcess = execa(command, args, {
+                    cwd: config.flashPath,
+                });
+
+                tarProcess.catch((error) => {
+                    this.logger.error(
+                        `Error executing tar command for streaming: ${error.message}`,
+                        error.stack
+                    );
+                });
+
+                if (!tarProcess.stdout) {
+                    throw new Error('Failed to get stdout stream from tar process.');
+                }
+
+                tarProcess.stdout.on('end', () => {
+                    this.logger.log('[getReadableStream] Tar process stdout stream ended.');
+                });
+                tarProcess.stdout.on('error', (err) => {
+                    this.logger.error(
+                        `[getReadableStream] Tar process stdout stream error: ${err.message}`
+                    );
+                });
+
+                return tarProcess.stdout;
+            } catch (error) {
+                const errorMessage = error instanceof Error ? error.message : String(error);
+                this.logger.error(`[getReadableStream] Failed to start tar process: ${errorMessage}`);
+                const errorStream = new Readable({
+                    read() {
+                        this.emit('error', new Error(errorMessage));
+                        this.push(null);
+                    },
+                });
+                return errorStream;
+            }
+        };
     }
 }

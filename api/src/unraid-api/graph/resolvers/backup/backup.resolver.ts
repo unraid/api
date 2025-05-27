@@ -15,7 +15,12 @@ import {
     getBackupJobGroupId,
 } from '@app/unraid-api/graph/resolvers/backup/backup.utils.js';
 import { buildBackupJobConfigSchema } from '@app/unraid-api/graph/resolvers/backup/jsonforms/backup-jsonforms-config.js';
-import { BackupJobStatus, RCloneJob } from '@app/unraid-api/graph/resolvers/rclone/rclone.model.js';
+import {
+    BackupJobStatus,
+    JobStatus,
+} from '@app/unraid-api/graph/resolvers/backup/orchestration/backup-job-status.model.js';
+import { BackupJobTrackingService } from '@app/unraid-api/graph/resolvers/backup/orchestration/backup-job-tracking.service.js';
+import { RCloneJob } from '@app/unraid-api/graph/resolvers/rclone/rclone.model.js';
 import { RCloneService } from '@app/unraid-api/graph/resolvers/rclone/rclone.service.js';
 import { PrefixedID } from '@app/unraid-api/graph/scalars/graphql-type-prefixed-id.js';
 import { FormatService } from '@app/unraid-api/utils/format.service.js';
@@ -27,7 +32,8 @@ export class BackupResolver {
     constructor(
         private readonly rcloneService: RCloneService,
         private readonly backupConfigService: BackupConfigService,
-        private readonly formatService: FormatService
+        private readonly formatService: FormatService,
+        private readonly backupJobTrackingService: BackupJobTrackingService
     ) {}
 
     @Query(() => Backup, {
@@ -41,11 +47,11 @@ export class BackupResolver {
         };
     }
 
-    @ResolveField(() => [RCloneJob], {
-        description: 'Get all running jobs (filtering should be done on frontend)',
+    @ResolveField(() => [JobStatus], {
+        description: 'Get all running backup jobs',
     })
-    async jobs(): Promise<RCloneJob[]> {
-        return this.backupJobs();
+    async jobs(): Promise<JobStatus[]> {
+        return this.backupJobTrackingService.getAllJobStatuses();
     }
 
     @ResolveField(() => [BackupJobConfig], {
@@ -65,12 +71,12 @@ export class BackupResolver {
         return this.backupConfigService.getBackupJobConfig(id);
     }
 
-    @Query(() => RCloneJob, {
+    @Query(() => JobStatus, {
         description: 'Get status of a specific backup job',
         nullable: true,
     })
-    async backupJob(@Args('id', { type: () => PrefixedID }) id: string): Promise<RCloneJob | null> {
-        return this.rcloneService.getEnhancedJobStatus(id);
+    async backupJob(@Args('id', { type: () => PrefixedID }) id: string): Promise<JobStatus | null> {
+        return this.backupJobTrackingService.getJobStatus(id) || null;
     }
 
     @ResolveField(() => BackupStatus, {
@@ -101,60 +107,33 @@ export class BackupResolver {
             uiSchema,
         };
     }
-
-    @Subscription(() => RCloneJob, {
-        description: 'Subscribe to real-time backup job progress updates',
-        nullable: true,
-    })
-    async backupJobProgress(@Args('id', { type: () => PrefixedID }) id: string) {
-        return pubsub.asyncIterableIterator(`BACKUP_JOB_PROGRESS:${id}`);
-    }
-
-    private async backupJobs(): Promise<RCloneJob[]> {
-        try {
-            this.logger.debug('backupJobs called - returning all jobs for frontend filtering');
-
-            const jobs = (await this.rcloneService['rcloneApiService'].getAllJobsWithStats()).filter(
-                (job) => job.group?.startsWith(BACKUP_JOB_GROUP_PREFIX)
-            );
-
-            this.logger.debug(`Returning ${jobs.length} jobs total for frontend filtering`);
-
-            return jobs;
-        } catch (error) {
-            this.logger.error('Failed to fetch backup jobs:', error);
-            return [];
-        }
-    }
 }
 
 @Resolver(() => BackupJobConfig)
 export class BackupJobConfigResolver {
     private readonly logger = new Logger(BackupJobConfigResolver.name);
 
-    constructor(private readonly rcloneService: RCloneService) {}
+    constructor(private readonly backupJobTrackingService: BackupJobTrackingService) {}
 
-    @ResolveField(() => RCloneJob, {
+    @ResolveField(() => JobStatus, {
         description: 'Get the current running job for this backup config',
         nullable: true,
     })
-    async currentJob(@Parent() config: BackupJobConfig): Promise<RCloneJob | null> {
-        if (!config.currentJobId) {
-            // If there's no currentJobId, we assume no job is running for this config.
-            // Or, if currentJobId exists but is an empty string, also assume no job.
+    async currentJob(@Parent() config: BackupJobConfig): Promise<JobStatus | null> {
+        if (!config.currentJob) {
             return null;
         }
 
-        // Construct the group ID using the new utility function.
-        // const groupId = getBackupJobGroupId(config.id); // Old problematic line
-
         this.logger.debug(
-            `Looking for current job for config ${config.id} using currentJobId: ${config.currentJobId}`
+            `Looking for current job for config ${config.id} using currentJob: ${config.currentJob.id}`
         );
 
-        // Pass the specific rclone job ID (config.currentJobId) as the primary identifier.
-        // The second argument `config.id` is used by getEnhancedJobStatus to populate RCloneJob.configId
-        // and assist in constructing the full RCloneJob.id.
-        return this.rcloneService.getEnhancedJobStatus(config.currentJobId, config.id);
+        const jobStatus = this.backupJobTrackingService.getJobStatus(config.currentJob.id);
+        if (!jobStatus) {
+            this.logger.debug(`No job status found for job ID: ${config.currentJob.id}`);
+            return null;
+        }
+
+        return jobStatus as JobStatus;
     }
 }

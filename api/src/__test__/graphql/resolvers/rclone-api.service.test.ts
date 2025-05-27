@@ -115,7 +115,7 @@ describe('RCloneApiService', () => {
             del: vi.fn().mockResolvedValue(undefined),
         };
 
-        service = new RCloneApiService(mockStatusService, mockStreamingJobManager);
+        service = new RCloneApiService(mockStatusService);
         await service.onModuleInit();
     });
 

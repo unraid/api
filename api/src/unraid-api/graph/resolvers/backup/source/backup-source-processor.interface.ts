@@ -1,3 +1,5 @@
+import { Readable } from 'stream';
+
 import { SourceType } from '@app/unraid-api/graph/resolvers/backup/source/backup-source.types.js';
 
 export interface BackupSourceConfig {
@@ -13,6 +15,12 @@ export interface BackupSourceResult {
     error?: string;
     cleanupRequired?: boolean;
     metadata?: Record<string, unknown>;
+
+    // Streaming support
+    streamCommand?: string;
+    streamArgs?: string[];
+    supportsStreaming?: boolean;
+    isStreamingMode?: boolean;
 }
 
 export interface BackupSourceProcessorOptions {
@@ -20,6 +28,7 @@ export interface BackupSourceProcessorOptions {
     onProgress?: (progress: number) => void;
     onOutput?: (data: string) => void;
     onError?: (error: string) => void;
+    useStreaming?: boolean;
 }
 
 export abstract class BackupSourceProcessor<TConfig extends BackupSourceConfig> {
@@ -33,4 +42,12 @@ export abstract class BackupSourceProcessor<TConfig extends BackupSourceConfig> 
     abstract validate(config: TConfig): Promise<{ valid: boolean; error?: string; warnings?: string[] }>;
 
     abstract cleanup(result: BackupSourceResult): Promise<void>;
+
+    // Getter to check if processor supports streaming
+    abstract get supportsStreaming(): boolean;
+
+    // Optional getter to get a readable stream for streaming backups
+    get getReadableStream(): ((config: TConfig) => Promise<Readable>) | undefined {
+        return undefined;
+    }
 }

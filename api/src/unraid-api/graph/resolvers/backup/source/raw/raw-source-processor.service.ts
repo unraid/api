@@ -22,6 +22,10 @@ export class RawSourceProcessor extends BackupSourceProcessor<RawSourceConfig> {
     readonly sourceType = SourceType.RAW;
     private readonly logger = new Logger(RawSourceProcessor.name);
 
+    get supportsStreaming(): boolean {
+        return true;
+    }
+
     async execute(
         config: RawSourceConfig,
         options?: BackupSourceProcessorOptions
@@ -37,6 +41,7 @@ export class RawSourceProcessor extends BackupSourceProcessor<RawSourceConfig> {
                     success: false,
                     error: validation.error || 'Validation failed',
                     metadata: { validationError: validation.error },
+                    supportsStreaming: this.supportsStreaming,
                 };
             }
 
@@ -45,7 +50,64 @@ export class RawSourceProcessor extends BackupSourceProcessor<RawSourceConfig> {
             }
 
             const sourceStats = await stat(config.sourcePath);
+
+            // Streaming Logic
+            if (options?.useStreaming) {
+                this.logger.log(`RAW backup: Streaming requested for ${config.sourcePath}`);
+                const tarArgs: string[] = ['cf', '-'];
+
+                // Add exclude patterns
+                if (config.excludePatterns?.length) {
+                    config.excludePatterns.forEach((pattern) => {
+                        tarArgs.push(`--exclude=${pattern}`);
+                    });
+                }
+
+                // Determine files/paths to archive
+                let filesToArchive: string[];
+                if (config.includePatterns?.length) {
+                    // If includePatterns are specified, use them relative to sourcePath
+                    tarArgs.push('-C', config.sourcePath);
+                    filesToArchive = config.includePatterns.map((p) =>
+                        p.startsWith('./') ? p : `./${p}`
+                    );
+                } else if (sourceStats.isDirectory()) {
+                    // If sourcePath is a directory and no include patterns, archive its contents
+                    tarArgs.push('-C', config.sourcePath);
+                    filesToArchive = ['.']; // Archive all contents of the directory
+                } else {
+                    // If sourcePath is a file (and no include patterns), archive the file itself
+                    // We need to specify the file relative to its parent directory for tar -C to work correctly
+                    const parentDir = join(config.sourcePath, '..');
+                    const fileName = config.sourcePath.split('/').pop() || config.sourcePath;
+                    tarArgs.push('-C', parentDir);
+                    filesToArchive = [fileName];
+                }
+
+                tarArgs.push(...filesToArchive);
+
+                const duration = Date.now() - startTime;
+                return {
+                    success: true,
+                    streamCommand: 'tar',
+                    streamArgs: tarArgs,
+                    supportsStreaming: true,
+                    isStreamingMode: true,
+                    metadata: {
+                        sourcePath: config.sourcePath,
+                        isDirectory: sourceStats.isDirectory(),
+                        duration,
+                        excludePatterns: config.excludePatterns,
+                        includePatterns: config.includePatterns,
+                        streamingMethod: 'tar',
+                        validationWarnings: validation.warnings,
+                    },
+                };
+            }
+
+            // Non-streaming (direct file path) mode
             const duration = Date.now() - startTime;
+            this.logger.log(`RAW backup: Non-streaming for ${config.sourcePath}`);
 
             return {
                 success: true,
@@ -58,6 +120,7 @@ export class RawSourceProcessor extends BackupSourceProcessor<RawSourceConfig> {
                     excludePatterns: config.excludePatterns,
                     includePatterns: config.includePatterns,
                     validationWarnings: validation.warnings,
+                    supportsStreaming: this.supportsStreaming, // Indicate that streaming is available
                 },
             };
         } catch (error) {
@@ -70,6 +133,7 @@ export class RawSourceProcessor extends BackupSourceProcessor<RawSourceConfig> {
                 metadata: {
                     sourcePath: config.sourcePath,
                     duration: Date.now() - startTime,
+                    supportsStreaming: this.supportsStreaming,
                 },
             };
         }

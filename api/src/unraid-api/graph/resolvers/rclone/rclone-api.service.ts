@@ -5,6 +5,7 @@ import { existsSync } from 'node:fs';
 import { mkdir, rm, writeFile } from 'node:fs/promises';
 import { dirname, join } from 'node:path';
 
+import { convert } from 'convert';
 import { execa } from 'execa';
 import got, { HTTPError } from 'got';
 import pRetry from 'p-retry';
@@ -16,13 +17,10 @@ import {
     getConfigIdFromGroupId,
     isBackupJobGroup,
 } from '@app/unraid-api/graph/resolvers/backup/backup.utils.js';
-import {
-    SourceType,
-    StreamingJobInfo,
-} from '@app/unraid-api/graph/resolvers/backup/source/backup-source.types.js';
+import { BackupJobStatus } from '@app/unraid-api/graph/resolvers/backup/orchestration/backup-job-status.model.js';
+import { SourceType } from '@app/unraid-api/graph/resolvers/backup/source/backup-source.types.js';
 import { RCloneStatusService } from '@app/unraid-api/graph/resolvers/rclone/rclone-status.service.js';
 import {
-    BackupJobStatus,
     CreateRCloneRemoteDto,
     DeleteRCloneRemoteDto,
     GetRCloneJobStatusDto,
@@ -37,11 +35,23 @@ import {
     UpdateRCloneRemoteDto,
 } from '@app/unraid-api/graph/resolvers/rclone/rclone.model.js';
 import { validateObject } from '@app/unraid-api/graph/resolvers/validation.utils.js';
-import {
-    StreamingJobManager,
-    StreamingJobOptions,
-    StreamingJobResult,
-} from '@app/unraid-api/streaming-jobs/streaming-job-manager.service.js';
+
+// Constants for the service
+const CONSTANTS = {
+    LOG_LEVEL: {
+        DEBUG: 'DEBUG',
+        INFO: 'INFO',
+    },
+    RETRY_CONFIG: {
+        retries: 10,
+        minTimeout: 100,
+        maxTimeout: 1000,
+    },
+    TIMEOUTS: {
+        GRACEFUL_SHUTDOWN: 2000,
+        PROCESS_CLEANUP: 1000,
+    },
+};
 
 // Internal interface for job status response from RClone API
 interface RCloneJobStatusResponse {
@@ -66,58 +76,6 @@ interface JobOperationResult {
     errors: string[];
 }
 
-export interface StreamingBackupOptions {
-    remoteName: string;
-    remotePath: string;
-    sourceStream?: NodeJS.ReadableStream;
-    sourceCommand?: string;
-    sourceArgs?: string[];
-    sourceType: SourceType;
-    onProgress?: (progress: number) => void;
-    onOutput?: (data: string) => void;
-    onError?: (error: string) => void;
-    timeout?: number;
-}
-
-export interface StreamingBackupResult {
-    success: boolean;
-    jobId?: string;
-    rcloneJobId?: string;
-    error?: string;
-    duration: number;
-    bytesTransferred?: number;
-}
-
-export interface UnifiedJobStatus {
-    jobId: string;
-    type: 'daemon' | 'streaming';
-    status: BackupJobStatus;
-    progress?: number;
-    stats?: RCloneJobStats;
-    error?: string;
-    startTime?: Date;
-    preprocessType?: SourceType;
-}
-
-const CONSTANTS = {
-    RETRY_CONFIG: {
-        retries: 6,
-        minTimeout: 100,
-        maxTimeout: 5000,
-        factor: 2,
-        maxRetryTime: 30000,
-    },
-    TIMEOUTS: {
-        GRACEFUL_SHUTDOWN: 2000,
-        PROCESS_CLEANUP: 1000,
-        STOP_JOBS_WAIT: 1000,
-    },
-    LOG_LEVEL: {
-        DEBUG: 'DEBUG',
-        INFO: 'INFO',
-    },
-} as const;
-
 @Injectable()
 export class RCloneApiService implements OnModuleInit, OnModuleDestroy {
     private isInitialized: boolean = false;
@@ -130,10 +88,7 @@ export class RCloneApiService implements OnModuleInit, OnModuleDestroy {
     private readonly rclonePassword: string =
         process.env.RCLONE_PASSWORD || crypto.randomBytes(24).toString('base64');
 
-    constructor(
-        private readonly statusService: RCloneStatusService,
-        private readonly streamingJobManager: StreamingJobManager
-    ) {}
+    constructor(private readonly statusService: RCloneStatusService) {}
 
     async onModuleInit(): Promise<void> {
         try {
@@ -394,155 +349,6 @@ export class RCloneApiService implements OnModuleInit, OnModuleDestroy {
         return result;
     }
 
-    async startStreamingBackup(options: StreamingBackupOptions): Promise<StreamingBackupResult> {
-        const startTime = Date.now();
-
-        try {
-            if (!options.sourceCommand || !options.sourceArgs) {
-                throw new Error('Source command and args are required for streaming backup');
-            }
-
-            const remotePath = `${options.remoteName}:${options.remotePath}`;
-
-            const streamingOptions: StreamingJobOptions = {
-                command: 'sh',
-                args: [
-                    '-c',
-                    `${options.sourceCommand} ${options.sourceArgs.join(' ')} | rclone rcat "${remotePath}"`,
-                ],
-                timeout: options.timeout,
-                onProgress: options.onProgress,
-                onOutput: options.onOutput,
-                onError: options.onError,
-            };
-
-            const { jobId, promise } = await this.streamingJobManager.startStreamingJob(
-                options.sourceType || SourceType.RAW,
-                streamingOptions
-            );
-
-            const result = await promise;
-            const duration = Date.now() - startTime;
-
-            return {
-                success: result.success,
-                jobId,
-                error: result.error,
-                duration,
-                bytesTransferred: this.extractBytesFromOutput(result.output),
-            };
-        } catch (error: unknown) {
-            const duration = Date.now() - startTime;
-            this.logger.error(`Streaming backup failed: ${error}`);
-
-            return {
-                success: false,
-                error: error instanceof Error ? error.message : String(error),
-                duration,
-            };
-        }
-    }
-
-    async getUnifiedJobStatus(jobId: string): Promise<UnifiedJobStatus | null> {
-        const streamingJob = this.streamingJobManager.getJobInfo(jobId);
-
-        if (streamingJob) {
-            return {
-                jobId: streamingJob.jobId,
-                type: 'streaming',
-                status: this.mapStreamingStatusToBackupStatus(streamingJob.status),
-                progress: streamingJob.progress,
-                error: streamingJob.error,
-                startTime: streamingJob.startTime,
-                preprocessType: streamingJob.type,
-            };
-        }
-
-        try {
-            const rcloneJob = await this.getEnhancedJobStatus(jobId);
-            if (rcloneJob) {
-                return {
-                    jobId: rcloneJob.id,
-                    type: 'daemon',
-                    status: rcloneJob.status || BackupJobStatus.FAILED,
-                    progress: rcloneJob.stats?.percent,
-                    stats: rcloneJob.stats,
-                    error: rcloneJob.error,
-                };
-            }
-        } catch (error) {
-            this.logger.warn(`Failed to get RClone job status for ${jobId}: ${error}`);
-        }
-
-        return null;
-    }
-
-    async getAllUnifiedJobs(): Promise<UnifiedJobStatus[]> {
-        const unifiedJobs: UnifiedJobStatus[] = [];
-
-        const streamingJobs = this.streamingJobManager.getAllActiveJobs();
-        for (const job of streamingJobs) {
-            unifiedJobs.push({
-                jobId: job.jobId,
-                type: 'streaming',
-                status: this.mapStreamingStatusToBackupStatus(job.status),
-                progress: job.progress,
-                error: job.error,
-                startTime: job.startTime,
-                preprocessType: job.type,
-            });
-        }
-
-        try {
-            const rcloneJobs = await this.getAllJobsWithStats();
-            for (const job of rcloneJobs) {
-                unifiedJobs.push({
-                    jobId: job.id,
-                    type: 'daemon',
-                    status: job.status || BackupJobStatus.FAILED,
-                    progress: job.stats?.percent,
-                    stats: job.stats,
-                    error: job.error,
-                });
-            }
-        } catch (error) {
-            this.logger.warn(`Failed to get RClone jobs: ${error}`);
-        }
-
-        return unifiedJobs;
-    }
-
-    async stopUnifiedJob(jobId: string): Promise<boolean> {
-        if (this.streamingJobManager.isJobRunning(jobId)) {
-            return this.streamingJobManager.cancelJob(jobId);
-        }
-
-        try {
-            const result = await this.stopJob(jobId);
-            return result.stopped.length > 0;
-        } catch (error) {
-            this.logger.warn(`Failed to stop RClone job ${jobId}: ${error}`);
-            return false;
-        }
-    }
-
-    private mapStreamingStatusToBackupStatus(
-        status: 'running' | 'completed' | 'failed' | 'cancelled'
-    ): BackupJobStatus {
-        switch (status) {
-            case 'running':
-                return BackupJobStatus.RUNNING;
-            case 'completed':
-                return BackupJobStatus.COMPLETED;
-            case 'failed':
-                return BackupJobStatus.FAILED;
-            case 'cancelled':
-                return BackupJobStatus.CANCELLED;
-            default:
-                return BackupJobStatus.FAILED;
-        }
-    }
-
     private extractBytesFromOutput(output?: string): number | undefined {
         if (!output) return undefined;
 
@@ -556,17 +362,20 @@ export class RCloneApiService implements OnModuleInit, OnModuleDestroy {
             const value = parseFloat(sizeMatch[1]);
             const unit = sizeMatch[2].toUpperCase();
 
-            switch (unit) {
-                case 'KB':
-                    return Math.round(value * 1024);
-                case 'MB':
-                    return Math.round(value * 1024 * 1024);
-                case 'GB':
-                    return Math.round(value * 1024 * 1024 * 1024);
-                case 'TB':
-                    return Math.round(value * 1024 * 1024 * 1024 * 1024);
-                default:
-                    return undefined;
+            try {
+                const unitMap: Record<string, 'kilobytes' | 'megabytes' | 'gigabytes' | 'terabytes'> = {
+                    KB: 'kilobytes',
+                    MB: 'megabytes',
+                    GB: 'gigabytes',
+                    TB: 'terabytes',
+                };
+
+                const convertUnit = unitMap[unit];
+                if (convertUnit) {
+                    return Math.round(convert(value, convertUnit).to('bytes'));
+                }
+            } catch (error) {
+                this.logger.warn(`Failed to convert ${value} ${unit} to bytes: ${error}`);
             }
         }
 

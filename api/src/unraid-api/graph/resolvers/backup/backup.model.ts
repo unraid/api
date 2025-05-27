@@ -1,10 +1,8 @@
-import { Field, GraphQLISODateTime, InputType, ObjectType, registerEnumType } from '@nestjs/graphql';
+import { createUnionType, Field, InputType, ObjectType } from '@nestjs/graphql';
 
 import { type Layout } from '@jsonforms/core';
-import { Type } from 'class-transformer';
 import {
     IsBoolean,
-    IsEnum,
     IsNotEmpty,
     IsObject,
     IsOptional,
@@ -16,12 +14,24 @@ import {
 import { DateTimeISOResolver, GraphQLJSON } from 'graphql-scalars';
 
 import {
-    SourceConfig,
-    SourceConfigInput,
+    DestinationConfigInputUnion,
+    DestinationConfigUnion,
+    DestinationType,
+    RcloneDestinationConfigInput,
+} from '@app/unraid-api/graph/resolvers/backup/destination/backup-destination.types.js';
+import { JobStatus } from '@app/unraid-api/graph/resolvers/backup/orchestration/backup-job-status.model.js';
+import {
+    FlashPreprocessConfig,
+    FlashPreprocessConfigInput,
+    RawBackupConfig,
+    RawBackupConfigInput,
+    ScriptPreprocessConfig,
+    ScriptPreprocessConfigInput,
     SourceType,
+    ZfsPreprocessConfig,
+    ZfsPreprocessConfigInput,
 } from '@app/unraid-api/graph/resolvers/backup/source/backup-source.types.js';
 import { Node } from '@app/unraid-api/graph/resolvers/base.model.js';
-import { RCloneJob } from '@app/unraid-api/graph/resolvers/rclone/rclone.model.js';
 import { PrefixedID } from '@app/unraid-api/graph/scalars/graphql-type-prefixed-id.js';
 import { DataSlice } from '@app/unraid-api/types/json-forms.js';
 
@@ -29,8 +39,8 @@ import { DataSlice } from '@app/unraid-api/types/json-forms.js';
     implements: () => Node,
 })
 export class Backup extends Node {
-    @Field(() => [RCloneJob])
-    jobs!: RCloneJob[];
+    @Field(() => [JobStatus])
+    jobs!: JobStatus[];
 
     @Field(() => [BackupJobConfig])
     configs!: BackupJobConfig[];
@@ -89,14 +99,11 @@ export class BackupJobConfig extends Node {
     @Field(() => String, { description: 'Human-readable name for this backup job' })
     name!: string;
 
-    @Field(() => SourceType, { description: 'Type of backup to perform' })
+    @Field(() => SourceType, { description: 'Type of the backup source' })
     sourceType!: SourceType;
 
-    @Field(() => String, { description: 'Remote name from rclone config' })
-    remoteName!: string;
-
-    @Field(() => String, { description: 'Destination path on the remote' })
-    destinationPath!: string;
+    @Field(() => DestinationType, { description: 'Type of the backup destination' })
+    destinationType!: DestinationType;
 
     @Field(() => String, {
         description: 'Cron schedule expression (e.g., "0 2 * * *" for daily at 2AM)',
@@ -106,17 +113,13 @@ export class BackupJobConfig extends Node {
     @Field(() => Boolean, { description: 'Whether this backup job is enabled' })
     enabled!: boolean;
 
-    @Field(() => GraphQLJSON, {
-        description: 'RClone options (e.g., --transfers, --checkers)',
-        nullable: true,
-    })
-    rcloneOptions?: Record<string, unknown>;
+    @Field(() => SourceConfigUnion, { description: 'Source configuration for this backup job' })
+    sourceConfig!: typeof SourceConfigUnion;
 
-    @Field(() => SourceConfig, {
-        description: 'Backup configuration for this backup job',
-        nullable: true,
+    @Field(() => DestinationConfigUnion, {
+        description: 'Destination configuration for this backup job',
     })
-    sourceConfig?: SourceConfig;
+    destinationConfig!: typeof DestinationConfigUnion;
 
     @Field(() => DateTimeISOResolver, { description: 'When this config was created' })
     createdAt!: string;
@@ -130,11 +133,8 @@ export class BackupJobConfig extends Node {
     @Field(() => String, { description: 'Status of last run', nullable: true })
     lastRunStatus?: string;
 
-    @Field(() => String, { description: 'Current running job ID', nullable: true })
-    currentJobId?: string;
-
-    @Field(() => RCloneJob, { description: 'Current running job for this config', nullable: true })
-    currentJob?: RCloneJob;
+    @Field(() => JobStatus, { description: 'Current running job for this config', nullable: true })
+    currentJob?: JobStatus;
 }
 
 @InputType()
@@ -144,23 +144,6 @@ export class BaseBackupJobConfigInput {
     @IsString()
     @IsNotEmpty()
     name?: string;
-
-    @Field(() => SourceType, { nullable: true })
-    @IsOptional()
-    @IsEnum(SourceType)
-    sourceType?: SourceType;
-
-    @Field(() => String, { nullable: true })
-    @IsOptional()
-    @IsString()
-    @IsNotEmpty()
-    remoteName?: string;
-
-    @Field(() => String, { nullable: true })
-    @IsOptional()
-    @IsString()
-    @IsNotEmpty()
-    destinationPath?: string;
 
     @Field(() => String, { nullable: true })
     @IsOptional()
@@ -179,19 +162,25 @@ export class BaseBackupJobConfigInput {
     @IsBoolean()
     enabled?: boolean;
 
-    @Field(() => GraphQLJSON, { nullable: true })
-    @IsOptional()
-    @IsObject()
-    rcloneOptions?: Record<string, unknown>;
-
-    @Field(() => SourceConfigInput, {
-        description: 'Backup configuration for this backup job',
+    @Field(() => SourceConfigInputUnion, {
+        description: 'Source configuration for this backup job',
         nullable: true,
     })
     @IsOptional()
     @ValidateNested()
-    @Type(() => SourceConfigInput)
-    sourceConfig?: SourceConfigInput;
+    sourceConfig?:
+        | ZfsPreprocessConfigInput
+        | FlashPreprocessConfigInput
+        | ScriptPreprocessConfigInput
+        | RawBackupConfigInput;
+
+    @Field(() => DestinationConfigInputUnion, {
+        description: 'Destination configuration for this backup job',
+        nullable: true,
+    })
+    @IsOptional()
+    @ValidateNested()
+    destinationConfig?: RcloneDestinationConfigInput;
 }
 
 @InputType()
@@ -200,21 +189,6 @@ export class CreateBackupJobConfigInput extends BaseBackupJobConfigInput {
     @IsString()
     @IsNotEmpty()
     declare name: string;
-
-    @Field(() => SourceType, { defaultValue: SourceType.RAW })
-    @IsEnum(SourceType)
-    @IsNotEmpty()
-    declare sourceType: SourceType;
-
-    @Field(() => String)
-    @IsString()
-    @IsNotEmpty()
-    declare remoteName: string;
-
-    @Field(() => String)
-    @IsString()
-    @IsNotEmpty()
-    declare destinationPath: string;
 
     @Field(() => Boolean, { defaultValue: true })
     @IsBoolean()
@@ -228,11 +202,6 @@ export class UpdateBackupJobConfigInput extends BaseBackupJobConfigInput {
     @IsOptional()
     @IsString()
     lastRunStatus?: string;
-
-    @Field(() => String, { nullable: true })
-    @IsOptional()
-    @IsString()
-    currentJobId?: string;
 
     @Field(() => String, { nullable: true })
     @IsOptional()
@@ -259,3 +228,26 @@ export class BackupJobConfigFormInput {
     @IsBoolean()
     showAdvanced?: boolean;
 }
+
+export const SourceConfigUnion = createUnionType({
+    name: 'SourceConfigUnion',
+    types: () =>
+        [ZfsPreprocessConfig, FlashPreprocessConfig, ScriptPreprocessConfig, RawBackupConfig] as const,
+    resolveType: (value) => {
+        if ('poolName' in value) {
+            return ZfsPreprocessConfig;
+        }
+        if ('flashPath' in value) {
+            return FlashPreprocessConfig;
+        }
+        if ('scriptPath' in value) {
+            return ScriptPreprocessConfig;
+        }
+        if ('sourcePath' in value) {
+            return RawBackupConfig;
+        }
+        return undefined;
+    },
+});
+
+export const SourceConfigInputUnion = GraphQLJSON;

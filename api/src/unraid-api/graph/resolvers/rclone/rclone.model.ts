@@ -4,6 +4,7 @@ import { type Layout } from '@jsonforms/core';
 import { IsBoolean, IsObject, IsOptional, IsString } from 'class-validator';
 import { GraphQLJSON } from 'graphql-scalars';
 
+import { BackupJobStatus } from '@app/unraid-api/graph/resolvers/backup/orchestration/backup-job-status.model.js';
 import { PrefixedID } from '@app/unraid-api/graph/scalars/graphql-type-prefixed-id.js';
 import { DataSlice } from '@app/unraid-api/types/json-forms.js';
 
@@ -406,15 +407,3 @@ export interface RCloneJobsWithStatsResponse {
     jobids: (string | number)[];
     stats: RCloneJobStats[];
 }
-
-export enum BackupJobStatus {
-    RUNNING = 'Running',
-    COMPLETED = 'Completed',
-    FAILED = 'Failed',
-    CANCELLED = 'Cancelled',
-}
-
-registerEnumType(BackupJobStatus, {
-    name: 'BackupJobStatus',
-    description: 'Status of a backup job',
-});

@@ -1,6 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { promises as fs } from 'fs';
-import { dirname, join } from 'path';
+import { dirname } from 'path';
 
 import { execa } from 'execa';
 
@@ -11,7 +11,6 @@ import {
     BackupSourceResult,
 } from '@app/unraid-api/graph/resolvers/backup/source/backup-source-processor.interface.js';
 import { SourceType } from '@app/unraid-api/graph/resolvers/backup/source/backup-source.types.js';
-import { ScriptPreprocessConfigInput } from '@app/unraid-api/graph/resolvers/backup/source/script/script-source.types.js';
 
 export interface ScriptSourceConfig extends BackupSourceConfig {
     scriptPath: string;
@@ -27,6 +26,10 @@ export class ScriptSourceProcessor extends BackupSourceProcessor<ScriptSourceCon
     private readonly logger = new Logger(ScriptSourceProcessor.name);
     private readonly tempDir = '/tmp/unraid-script-preprocessing';
     private readonly maxOutputSize = 100 * 1024 * 1024; // 100MB limit
+
+    get supportsStreaming(): boolean {
+        return false;
+    }
 
     async execute(
         config: ScriptSourceConfig,

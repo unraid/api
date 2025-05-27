@@ -106,13 +106,3 @@ export interface PreprocessResult {
     cleanupRequired?: boolean;
     metadata?: Record<string, unknown>;
 }
-
-export { StreamingJobInfo } from '@app/unraid-api/streaming-jobs/streaming-jobs.types.js';
-
-export type PreprocessType = SourceType;
-
-export type BackupType = SourceType;
-
-export type PreprocessConfig = SourceConfig;
-
-export type PreprocessConfigInput = SourceConfigInput;
