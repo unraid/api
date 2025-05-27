@@ -1,5 +1,7 @@
 #!/usr/bin/env zx
 import { mkdir, readFile, writeFile } from 'fs/promises';
+import { existsSync } from 'node:fs';
+import { basename, join, resolve } from 'node:path';
 import { exit } from 'process';
 
 import type { PackageJson } from 'type-fest';
@@ -26,29 +28,22 @@ const WORKSPACE_PACKAGES_TO_VENDOR = {
  * Packs a workspace package and installs it as a tarball dependency.
  */
 const packAndInstallWorkspacePackage = async (pkgName: string, pkgPath: string, tempDir: string) => {
-    const { join, resolve } = await import('node:path');
-    const { existsSync } = await import('node:fs');
-
-    const fullPkgPath = resolve(pkgPath);
-    
+    const [fullPkgPath, fullTempDir] = [resolve(pkgPath), resolve(tempDir)];
     if (!existsSync(fullPkgPath)) {
         console.warn(`Workspace package ${pkgName} not found at ${fullPkgPath}. Skipping.`);
         return;
     }
 
     console.log(`Building and packing workspace package ${pkgName}...`);
-    
-    // Build the package first
-    await $`pnpm --filter ${pkgName} run build`;
-    
+
     // Pack the package to a tarball
-    const packResult = await $`pnpm --filter ${pkgName} pack --pack-destination ${tempDir}`;
-    console.log(`Packed ${pkgName} to ${tempDir}`);
-    
+    const packedResult = await $`pnpm --filter ${pkgName} pack --pack-destination ${fullTempDir}`;
+    const tarballPath = packedResult.lines().at(-1)!;
+    const tarballName = basename(tarballPath);
+
     // Install the tarball
-    const tarballPattern = join(tempDir, `${pkgName.replace('@', '').replace('/', '-')}-*.tgz`);
+    const tarballPattern = join(fullTempDir, tarballName);
     await $`npm install ${tarballPattern}`;
-    console.log(`Installed ${pkgName} from tarball`);
 };
 
 try {
@@ -107,12 +102,13 @@ try {
         console.log('Vendoring workspace packages...');
         const tempDir = '../temp-packages';
         await mkdir(tempDir, { recursive: true });
-        
+
         for (const dep of workspaceDeps) {
-            const pkgPath = WORKSPACE_PACKAGES_TO_VENDOR[dep as keyof typeof WORKSPACE_PACKAGES_TO_VENDOR];
-            await packAndInstallWorkspacePackage(dep, pkgPath, tempDir);
+            const pkgPath =
+                WORKSPACE_PACKAGES_TO_VENDOR[dep as keyof typeof WORKSPACE_PACKAGES_TO_VENDOR];
+            await packAndInstallWorkspacePackage(dep, join('../', pkgPath), tempDir);
         }
-        
+
         // Clean up temp directory
         await $`rm -rf ${tempDir}`;
     }
