@@ -43,9 +43,11 @@ const CONSTANTS = {
         INFO: 'INFO',
     },
     RETRY_CONFIG: {
-        retries: 10,
+        retries: 6,
         minTimeout: 100,
-        maxTimeout: 1000,
+        maxTimeout: 5000,
+        factor: 2,
+        maxRetryTime: 30000,
     },
     TIMEOUTS: {
         GRACEFUL_SHUTDOWN: 2000,
@@ -83,8 +85,12 @@ export class RCloneApiService implements OnModuleInit, OnModuleDestroy {
     private rcloneSocketPath: string = '';
     private rcloneBaseUrl: string = '';
     private rcloneProcess: ChildProcess | null = null;
-    private readonly rcloneUsername: string = crypto.randomBytes(12).toString('hex');
-    private readonly rclonePassword: string = crypto.randomBytes(24).toString('hex');
+    private readonly rcloneUsername: string =
+        process.env.RCLONE_USERNAME ||
+        (process.env.NODE_ENV === 'test' ? 'test-user' : crypto.randomBytes(12).toString('hex'));
+    private readonly rclonePassword: string =
+        process.env.RCLONE_PASSWORD ||
+        (process.env.NODE_ENV === 'test' ? 'test-pass' : crypto.randomBytes(24).toString('hex'));
 
     constructor(private readonly statusService: RCloneStatusService) {}
 
@@ -156,30 +162,33 @@ export class RCloneApiService implements OnModuleInit, OnModuleDestroy {
     }
 
     private buildRcloneArgs(socketPath: string, logFilePath: string): string[] {
-        const enableDebugMode = true;
-        const enableRcServe = true;
-        const logLevel = enableDebugMode ? CONSTANTS.LOG_LEVEL.DEBUG : CONSTANTS.LOG_LEVEL.INFO;
+        // Unix sockets don't require HTTP authentication - the socket itself provides security
+        const isUnixSocket = socketPath.startsWith('/');
+
+        if (isUnixSocket) {
+            this.logger.log('Using Unix socket - HTTP authentication not required, using --rc-no-auth');
+        } else {
+            this.logger.log(
+                `Building RClone args with username: ${this.rcloneUsername ? '[SET]' : '[NOT SET]'}, password: ${this.rclonePassword ? '[SET]' : '[NOT SET]'}`
+            );
+        }
 
         const args = [
             'rcd',
             '--rc-addr',
             socketPath,
             '--log-level',
-            logLevel,
+            'INFO',
             '--log-file',
             logFilePath,
-            '--rc-user',
-            this.rcloneUsername,
-            '--rc-pass',
-            this.rclonePassword,
+            // For Unix sockets, use --rc-no-auth instead of credentials
+            ...(isUnixSocket ? ['--rc-no-auth'] : []),
+            // Only add authentication for non-Unix socket connections
+            ...(!isUnixSocket && this.rcloneUsername ? ['--rc-user', this.rcloneUsername] : []),
+            ...(!isUnixSocket && this.rclonePassword ? ['--rc-pass', this.rclonePassword] : []),
         ];
 
-        if (enableRcServe) args.push('--rc-serve');
-
-        if (enableDebugMode) {
-            this.logger.log('Debug mode: Enhanced logging and RC serve enabled');
-        }
-
+        this.logger.log(`RClone command args: ${args.join(' ')}`);
         return args;
     }
 
@@ -258,7 +267,7 @@ export class RCloneApiService implements OnModuleInit, OnModuleDestroy {
 
     private async checkRcloneSocketRunning(): Promise<boolean> {
         try {
-            await this.callRcloneApi('rc/noop');
+            await this.callRcloneApi('core/pid');
             return true;
         } catch {
             return false;
@@ -601,16 +610,31 @@ export class RCloneApiService implements OnModuleInit, OnModuleDestroy {
     private async callRcloneApi(endpoint: string, params: Record<string, unknown> = {}): Promise<any> {
         const url = `${this.rcloneBaseUrl}/${endpoint}`;
 
-        try {
-            const response = await got.post(url, {
-                json: params,
-                responseType: 'json',
-                enableUnixSockets: true,
-                headers: {
-                    Authorization: `Basic ${Buffer.from(`${this.rcloneUsername}:${this.rclonePassword}`).toString('base64')}`,
-                },
-            });
+        // Unix sockets don't require HTTP authentication - the socket itself provides security
+        const isUnixSocket = this.rcloneSocketPath && this.rcloneSocketPath.startsWith('/');
 
+        const requestOptions: any = {
+            json: params,
+            responseType: 'json',
+            enableUnixSockets: true,
+        };
+
+        // Only add authentication headers for non-Unix socket connections
+        if (!isUnixSocket && this.rcloneUsername && this.rclonePassword) {
+            const authString = `${this.rcloneUsername}:${this.rclonePassword}`;
+            const authHeader = `Basic ${Buffer.from(authString).toString('base64')}`;
+            requestOptions.headers = {
+                Authorization: authHeader,
+            };
+            this.logger.debug(
+                `Calling RClone API: ${endpoint} with auth header: ${authHeader.substring(0, 20)}...`
+            );
+        } else {
+            this.logger.debug(`Calling RClone API: ${endpoint} via Unix socket (no auth required)`);
+        }
+
+        try {
+            const response = await got.post(url, requestOptions);
             return response.body;
         } catch (error: unknown) {
             this.handleApiError(error, endpoint, params);

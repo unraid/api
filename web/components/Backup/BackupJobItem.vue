@@ -2,7 +2,7 @@
 import { computed, ref, watch } from 'vue';
 import { useMutation, useQuery } from '@vue/apollo-composable';
 
-import { PlayIcon, StopIcon, TrashIcon } from '@heroicons/vue/24/solid';
+import { PlayIcon, StopIcon, TrashIcon, PencilIcon } from '@heroicons/vue/24/solid';
 import { Badge, Button, Switch } from '@unraid/ui';
 
 import {
@@ -30,7 +30,7 @@ if (!props.configId) {
   console.warn('BackupJobItem: configId prop is required but not provided');
 }
 
-const emit = defineEmits(['deleted']);
+const emit = defineEmits(['deleted', 'edit']);
 
 const isToggling = ref(false);
 const isTriggering = ref(false);
@@ -40,8 +40,8 @@ const showDeleteConfirm = ref(false);
 const queryVariables = computed(() => ({ id: props.configId }));
 
 const { result, loading, error, refetch } = useQuery(BACKUP_JOB_CONFIG_QUERY, queryVariables, {
-  fetchPolicy: 'cache-and-network',
-  pollInterval: 50000,
+  fetchPolicy: 'network-only',
+  pollInterval: 5000,
   errorPolicy: 'all', // Show partial data even if there are errors
 });
 
@@ -248,15 +248,14 @@ async function handleDeleteJob() {
         This action cannot be undone.
       </p>
       <div class="flex space-x-3">
-        <Button variant="outline" :disabled="isDeletingJob" @click="showDeleteConfirm = false">
-          Cancel
-        </Button>
-        <Button variant="destructive" :disabled="isDeletingJob" @click="handleDeleteJob">
-          <span
-            v-if="isDeletingJob"
-            class="w-3 h-3 border border-white border-t-transparent rounded-full animate-spin mr-1"
-          ></span>
-          {{ isDeletingJob ? 'Deleting...' : 'Delete' }}
+        <Button variant="outline" size="sm" @click="showDeleteConfirm = false"> Cancel </Button>
+        <Button
+          variant="destructive"
+          size="sm"
+          :loading="isDeletingJob"
+          @click="handleDeleteJob"
+        >
+          Delete
         </Button>
       </div>
     </div>
@@ -320,44 +319,43 @@ async function handleDeleteJob() {
             {{ configWithJob.enabled ? 'Enabled' : 'Disabled' }}
           </span>
           <Switch
-            :checked="configWithJob.enabled"
-            :disabled="isToggling || configWithJob.isRunning || showDeleteConfirm"
-            @update:checked="handleToggleJob"
+            :model-value="configWithJob.enabled"
+            :disabled="isToggling"
+            @update:model-value="handleToggleJob"
           />
         </div>
-
         <Button
-          :disabled="isTriggering || showDeleteConfirm"
-          :variant="!isTriggering ? 'primary' : 'outline'"
-          size="sm"
+          variant="outline"
+          size="icon"
+          :loading="isTriggering"
+          :disabled="isToggling"
           @click="handleTriggerOrStopJob"
         >
-          <span
-            v-if="isTriggering"
-            class="w-3 h-3 border border-white border-t-transparent rounded-full animate-spin mr-1"
-          ></span>
-          <StopIcon v-else-if="configWithJob.isRunning" class="w-4 h-4 mr-1" />
-          <PlayIcon v-else class="w-4 h-4 mr-1" />
-          {{
-            isTriggering
-              ? configWithJob.isRunning
-                ? 'Stopping...'
-                : 'Starting...'
-              : configWithJob.isRunning
-                ? 'Stop'
-                : 'Run Now'
-          }}
+          <span class="sr-only">{{
+            configWithJob.isRunning ? 'Stop Backup Job' : 'Trigger Backup Job'
+          }}</span>
+          <StopIcon v-if="configWithJob.isRunning" class="h-5 w-5" />
+          <PlayIcon v-else class="h-5 w-5" />
         </Button>
-
         <Button
-          variant="destructive"
-          size="sm"
-          :disabled="isDeletingJob || configWithJob.isRunning || showDeleteConfirm"
+          variant="outline"
+          size="icon"
+          :disabled="isToggling || configWithJob.isRunning"
+          @click="emit('edit', configId)"
+        >
+          <span class="sr-only">Edit Backup Job</span>
+          <PencilIcon class="h-5 w-5" />
+        </Button>
+        <Button
+          variant="outline"
+          size="icon"
+          class="text-red-600 hover:text-red-700 dark:text-red-500 dark:hover:text-red-400 border-red-600 hover:border-red-700 dark:border-red-500 dark:hover:border-red-400"
+          :disabled="isToggling || configWithJob.isRunning"
           @click="showDeleteConfirm = true"
         >
-          <TrashIcon class="w-4 h-4" />
+          <span class="sr-only">Delete Backup Job</span>
+          <TrashIcon class="h-5 w-5" />
         </Button>
-
         <Badge
           :variant="
             configWithJob.runningJob?.status === BackupJobStatus.COMPLETED

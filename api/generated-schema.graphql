@@ -927,6 +927,8 @@ input CreateBackupJobConfigInput {
 }
 
 input SourceConfigInput {
+  type: SourceType!
+
   """Timeout for backup operation in seconds"""
   timeout: Float! = 3600
 
@@ -936,6 +938,16 @@ input SourceConfigInput {
   flashConfig: FlashPreprocessConfigInput
   scriptConfig: ScriptPreprocessConfigInput
   rawConfig: RawBackupConfigInput
+}
+
+"""
+Type of backup to perform (ZFS snapshot, Flash backup, Custom script, or Raw file backup)
+"""
+enum SourceType {
+  ZFS
+  FLASH
+  SCRIPT
+  RAW
 }
 
 input ZfsPreprocessConfigInput {
@@ -1007,11 +1019,15 @@ input RawBackupConfigInput {
 }
 
 input DestinationConfigInput {
+  type: DestinationType!
   rcloneConfig: RcloneDestinationConfigInput
 }
 
+enum DestinationType {
+  RCLONE
+}
+
 input RcloneDestinationConfigInput {
-  type: String! = "RCLONE"
   remoteName: String!
   destinationPath: String!
   rcloneOptions: JSON
@@ -1029,6 +1045,7 @@ input UpdateBackupJobConfigInput {
   destinationConfig: DestinationConfigInput
   lastRunStatus: String
   lastRunAt: String
+  currentJobId: String
 }
 
 input InitiateBackupInput {
@@ -1215,38 +1232,6 @@ enum BackupJobStatus {
   CANCELLED
 }
 
-type FlashPreprocessConfig {
-  label: String!
-  flashPath: String!
-  includeGitHistory: Boolean!
-  additionalPaths: [String!]
-}
-
-type RawBackupConfig {
-  label: String!
-  sourcePath: String!
-  excludePatterns: [String!]
-  includePatterns: [String!]
-}
-
-type ScriptPreprocessConfig {
-  label: String!
-  scriptPath: String!
-  scriptArgs: [String!]
-  workingDirectory: String
-  environment: JSON
-  outputPath: String!
-}
-
-type ZfsPreprocessConfig {
-  label: String!
-  poolName: String!
-  datasetName: String!
-  snapshotPrefix: String
-  cleanupSnapshots: Boolean!
-  retainSnapshots: Float
-}
-
 type RCloneDrive {
   """Provider name"""
   name: String!
@@ -1374,6 +1359,38 @@ type RCloneJobStats {
   isCompleted: Boolean
 }
 
+type FlashPreprocessConfig {
+  label: String!
+  flashPath: String!
+  includeGitHistory: Boolean!
+  additionalPaths: [String!]
+}
+
+type RawBackupConfig {
+  label: String!
+  sourcePath: String!
+  excludePatterns: [String!]
+  includePatterns: [String!]
+}
+
+type ScriptPreprocessConfig {
+  label: String!
+  scriptPath: String!
+  scriptArgs: [String!]
+  workingDirectory: String
+  environment: JSON
+  outputPath: String!
+}
+
+type ZfsPreprocessConfig {
+  label: String!
+  poolName: String!
+  datasetName: String!
+  snapshotPrefix: String
+  cleanupSnapshots: Boolean!
+  retainSnapshots: Float
+}
+
 type Backup implements Node {
   id: PrefixedID!
   jobs: [JobStatus!]!
@@ -1427,22 +1444,11 @@ type BackupJobConfig implements Node {
   """Status of last run"""
   lastRunStatus: String
 
-  """Current running job for this config"""
+  """Current running job ID for this config"""
+  currentJobId: String
+
+  """Get the current running job for this backup config"""
   currentJob: JobStatus
-}
-
-"""
-Type of backup to perform (ZFS snapshot, Flash backup, Custom script, or Raw file backup)
-"""
-enum SourceType {
-  ZFS
-  FLASH
-  SCRIPT
-  RAW
-}
-
-enum DestinationType {
-  RCLONE
 }
 
 union SourceConfigUnion = ZfsPreprocessConfig | FlashPreprocessConfig | ScriptPreprocessConfig | RawBackupConfig

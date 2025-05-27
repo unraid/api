@@ -38,4 +38,8 @@ export class RawBackupConfig implements BaseSourceConfig {
 
     @Field(() => [String], { nullable: true })
     includePatterns?: string[];
+
+    static isTypeOf(obj: any): obj is RawBackupConfig {
+        return obj && typeof obj.sourcePath === 'string';
+    }
 }

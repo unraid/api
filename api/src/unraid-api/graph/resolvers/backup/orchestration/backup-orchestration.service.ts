@@ -1,7 +1,8 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { forwardRef, Inject, Injectable, Logger } from '@nestjs/common';
 import { Readable } from 'stream';
 import { pipeline } from 'stream/promises'; // Using stream.pipeline for better error handling
 
+import { BackupConfigService } from '@app/unraid-api/graph/resolvers/backup/backup-config.service.js';
 import { BackupJobConfig } from '@app/unraid-api/graph/resolvers/backup/backup.model.js';
 import {
     BackupDestinationProcessor,
@@ -29,15 +30,23 @@ export class BackupOrchestrationService {
     constructor(
         private readonly jobTrackingService: BackupJobTrackingService,
         private readonly backupSourceService: BackupSourceService,
-        private readonly backupDestinationService: BackupDestinationService
+        private readonly backupDestinationService: BackupDestinationService,
+        @Inject(forwardRef(() => BackupConfigService))
+        private readonly backupConfigService: BackupConfigService
     ) {}
 
-    async executeBackupJob(jobConfig: BackupJobConfig, jobId: string): Promise<void> {
-        this.logger.log(`Starting orchestration for backup job: ${jobConfig.name} (ID: ${jobId})`);
+    async executeBackupJob(jobConfig: BackupJobConfig, configId: string): Promise<string> {
+        this.logger.log(
+            `Starting orchestration for backup job: ${jobConfig.name} (Config ID: ${configId})`
+        );
 
         // Initialize job in tracking service and get the internal tracking object
-        const jobStatus = this.jobTrackingService.initializeJob(jobId, jobConfig.name);
-        const internalJobId = jobStatus.id;
+        // configId (original jobConfig.id) is used to link tracking to config, jobConfig.name is for display
+        const jobStatus = this.jobTrackingService.initializeJob(configId, jobConfig.name);
+        const internalJobId = jobStatus.id; // This is the actual ID for this specific job run
+
+        // DO NOT call backupConfigService.updateBackupJobConfig here for currentJobId
+        // This will be handled by BackupConfigService itself using the returned internalJobId
 
         this.emitJobStatus(internalJobId, {
             status: BackupJobStatus.RUNNING,
@@ -51,41 +60,73 @@ export class BackupOrchestrationService {
         );
 
         if (!sourceProcessor || !destinationProcessor) {
-            this.logger.error(`[${jobId}] Failed to get source or destination processor.`);
+            const errorMsg = 'Failed to initialize backup processors.';
+            this.logger.error(`[Config ID: ${configId}, Job ID: ${internalJobId}] ${errorMsg}`);
             this.emitJobStatus(internalJobId, {
                 status: BackupJobStatus.FAILED,
-                error: 'Failed to initialize backup processors.',
+                error: errorMsg,
             });
-            throw new Error('Failed to initialize backup processors.');
-        }
-
-        if (sourceProcessor.supportsStreaming && destinationProcessor.supportsStreaming) {
-            await this.executeStreamingBackup(
-                sourceProcessor,
-                destinationProcessor,
-                jobConfig,
+            // Call handleJobCompletion before throwing
+            await this.backupConfigService.handleJobCompletion(
+                configId,
+                BackupJobStatus.FAILED,
                 internalJobId
             );
-        } else {
-            await this.executeRegularBackup(
-                sourceProcessor,
-                destinationProcessor,
-                jobConfig,
-                internalJobId
-            );
+            throw new Error(errorMsg);
         }
 
-        this.logger.log(`Finished orchestration for backup job: ${jobConfig.name} (ID: ${jobId})`);
+        try {
+            if (sourceProcessor.supportsStreaming && destinationProcessor.supportsStreaming) {
+                await this.executeStreamingBackup(
+                    sourceProcessor,
+                    destinationProcessor,
+                    jobConfig,
+                    internalJobId,
+                    configId // Pass configId for handleJobCompletion
+                );
+            } else {
+                await this.executeRegularBackup(
+                    sourceProcessor,
+                    destinationProcessor,
+                    jobConfig,
+                    internalJobId,
+                    configId // Pass configId for handleJobCompletion
+                );
+            }
+            // If executeStreamingBackup/executeRegularBackup complete without throwing, it implies success for those stages.
+            // The final status (COMPLETED/FAILED) is set within those methods via emitJobStatus and then handleJobCompletion.
+        } catch (error) {
+            // Errors from executeStreamingBackup/executeRegularBackup should have already called handleJobCompletion.
+            // This catch is a fallback.
+            this.logger.error(
+                `[Config ID: ${configId}, Job ID: ${internalJobId}] Orchestration error after backup execution attempt: ${(error as Error).message}`
+            );
+            // Ensure completion is handled if not already done by the execution methods
+            // This might be redundant if execution methods are guaranteed to call it.
+            // However, direct throws before or after calling those methods would be caught here.
+            await this.backupConfigService.handleJobCompletion(
+                configId,
+                BackupJobStatus.FAILED,
+                internalJobId
+            );
+            throw error; // Re-throw the error
+        }
+        // DO NOT clear currentJobId here using updateBackupJobConfig. It's handled by handleJobCompletion.
+
+        this.logger.log(
+            `Finished orchestration logic for backup job: ${jobConfig.name} (Config ID: ${configId}, Job ID: ${internalJobId})`
+        );
+        return internalJobId; // Return the actual job ID for this run
     }
 
     private async executeStreamingBackup(
         sourceProcessor: BackupSourceProcessor<any>,
         destinationProcessor: BackupDestinationProcessor<any>,
-        jobConfig: BackupJobConfig,
+        jobConfig: BackupJobConfig, // This is the config object, not its ID
         internalJobId: string
     ): Promise<void> {
         this.logger.log(
-            `Executing STREAMING backup for job: ${jobConfig.name} (Internal ID: ${internalJobId})`
+            `Executing STREAMING backup for job: ${jobConfig.name} (Internal Job ID: ${internalJobId})`
         );
         this.emitJobStatus(internalJobId, {
             status: BackupJobStatus.RUNNING,
@@ -98,6 +139,8 @@ export class BackupOrchestrationService {
                 'Source or destination processor does not support streaming (missing getReadableStream or getWritableStream).';
             this.logger.error(`[${internalJobId}] ${errorMsg}`);
             this.emitJobStatus(internalJobId, { status: BackupJobStatus.FAILED, error: errorMsg });
+            // Call handleJobCompletion before throwing
+            await this.backupConfigService.handleJobCompletion(internalJobId, BackupJobStatus.FAILED);
             throw new Error(errorMsg);
         }
 
@@ -155,6 +198,13 @@ export class BackupOrchestrationService {
                 const errorMsg =
                     destinationResult.error || 'Destination processor failed after streaming.';
                 this.logger.error(`[${internalJobId}] ${errorMsg}`);
+                this.emitJobStatus(internalJobId, { status: BackupJobStatus.FAILED, error: errorMsg });
+                // Call handleJobCompletion before throwing
+                await this.backupConfigService.handleJobCompletion(
+                    configId,
+                    BackupJobStatus.FAILED,
+                    internalJobId
+                );
                 throw new Error(errorMsg);
             }
 
@@ -166,6 +216,12 @@ export class BackupOrchestrationService {
                 progress: 100,
                 message: 'Backup completed successfully.',
             });
+            // Call handleJobCompletion on success
+            await this.backupConfigService.handleJobCompletion(
+                configId,
+                BackupJobStatus.COMPLETED,
+                internalJobId
+            );
 
             if (sourceProcessor.cleanup) {
                 this.logger.debug(`[${internalJobId}] Performing post-success cleanup for source...`);
@@ -193,6 +249,12 @@ export class BackupOrchestrationService {
                 error: error.message,
                 message: 'Backup failed during streaming execution.',
             });
+            // Call handleJobCompletion on failure
+            await this.backupConfigService.handleJobCompletion(
+                configId,
+                BackupJobStatus.FAILED,
+                internalJobId
+            );
 
             this.logger.error(
                 `[${internalJobId}] Performing cleanup due to failure for job ${jobConfig.name}...`
@@ -243,11 +305,12 @@ export class BackupOrchestrationService {
     private async executeRegularBackup(
         sourceProcessor: BackupSourceProcessor<any>,
         destinationProcessor: BackupDestinationProcessor<any>,
-        jobConfig: BackupJobConfig,
-        internalJobId: string
+        jobConfig: BackupJobConfig, // This is the config object, not its ID
+        internalJobId: string,
+        configId: string // Pass the configId for handleJobCompletion
     ): Promise<void> {
         this.logger.log(
-            `Executing REGULAR backup for job: ${jobConfig.name} (Internal ID: ${internalJobId})`
+            `Executing REGULAR backup for job: ${jobConfig.name} (Config ID: ${configId}, Internal Job ID: ${internalJobId})`
         );
         this.emitJobStatus(internalJobId, {
             status: BackupJobStatus.RUNNING,
@@ -293,6 +356,16 @@ export class BackupOrchestrationService {
                     error: errorMsg,
                     message: 'Source processing failed.',
                 });
+                this.jobTrackingService.updateJobStatus(internalJobId, {
+                    status: BackupJobStatus.FAILED,
+                    error: errorMsg,
+                });
+                // Call handleJobCompletion before throwing
+                await this.backupConfigService.handleJobCompletion(
+                    configId,
+                    BackupJobStatus.FAILED,
+                    internalJobId
+                );
                 throw new Error(errorMsg);
             }
             this.emitJobStatus(internalJobId, {
@@ -320,6 +393,16 @@ export class BackupOrchestrationService {
                     error: errorMsg,
                     message: 'Destination processing failed.',
                 });
+                this.jobTrackingService.updateJobStatus(internalJobId, {
+                    status: BackupJobStatus.FAILED,
+                    error: errorMsg,
+                });
+                // Call handleJobCompletion before throwing
+                await this.backupConfigService.handleJobCompletion(
+                    configId,
+                    BackupJobStatus.FAILED,
+                    internalJobId
+                );
                 throw new Error(errorMsg);
             }
 
@@ -331,6 +414,12 @@ export class BackupOrchestrationService {
                 progress: 100,
                 message: 'Backup completed successfully.',
             });
+            // Call handleJobCompletion on success
+            await this.backupConfigService.handleJobCompletion(
+                configId,
+                BackupJobStatus.COMPLETED,
+                internalJobId
+            );
 
             if (sourceResult && sourceProcessor.cleanup) {
                 this.logger.debug(
@@ -356,6 +445,16 @@ export class BackupOrchestrationService {
                 error: error.message,
                 message: 'Backup failed during regular execution.',
             });
+            this.jobTrackingService.updateJobStatus(internalJobId, {
+                status: BackupJobStatus.FAILED,
+                error: error.message,
+            });
+            // Call handleJobCompletion on failure
+            await this.backupConfigService.handleJobCompletion(
+                configId,
+                BackupJobStatus.FAILED,
+                internalJobId
+            );
 
             this.logger.error(
                 `[${internalJobId}] Performing cleanup due to failure for job ${jobConfig.name}...`

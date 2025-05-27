@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { forwardRef, Module } from '@nestjs/common';
 import { ScheduleModule } from '@nestjs/schedule';
 
 import { BackupConfigService } from '@app/unraid-api/graph/resolvers/backup/backup-config.service.js';
@@ -25,6 +25,6 @@ import { RCloneModule } from '@app/unraid-api/graph/resolvers/rclone/rclone.modu
         BackupJobTrackingService,
         BackupJobStatusResolver,
     ],
-    exports: [BackupOrchestrationService, BackupJobTrackingService],
+    exports: [forwardRef(() => BackupOrchestrationService), BackupJobTrackingService],
 })
 export class BackupModule {}

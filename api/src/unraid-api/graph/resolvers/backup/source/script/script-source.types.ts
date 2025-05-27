@@ -56,4 +56,8 @@ export class ScriptPreprocessConfig implements BaseSourceConfig {
 
     @Field(() => String)
     outputPath!: string;
+
+    static isTypeOf(obj: any): obj is ScriptPreprocessConfig {
+        return obj && typeof obj.scriptPath === 'string' && typeof obj.outputPath === 'string';
+    }
 }

@@ -1,7 +1,7 @@
 import { createUnionType, Field, InputType, ObjectType, registerEnumType } from '@nestjs/graphql';
 
 import { Type } from 'class-transformer';
-import { IsBoolean, IsNumber, IsOptional, Min, ValidateNested } from 'class-validator';
+import { IsBoolean, IsEnum, IsNumber, IsOptional, Min, ValidateNested } from 'class-validator';
 
 import {
     FlashPreprocessConfig,
@@ -40,6 +40,10 @@ export { RawBackupConfigInput, RawBackupConfig };
 
 @InputType()
 export class SourceConfigInput {
+    @Field(() => SourceType, { nullable: false })
+    @IsEnum(SourceType, { message: 'Invalid source type' })
+    type!: SourceType;
+
     @Field(() => Number, { description: 'Timeout for backup operation in seconds', defaultValue: 3600 })
     @IsOptional()
     @IsNumber()
@@ -101,20 +105,21 @@ export const SourceConfigUnion = createUnionType({
     name: 'SourceConfigUnion',
     types: () =>
         [ZfsPreprocessConfig, FlashPreprocessConfig, ScriptPreprocessConfig, RawBackupConfig] as const,
-    resolveType: (value) => {
-        if ('poolName' in value) {
+    resolveType(obj: any, context, info) {
+        if (ZfsPreprocessConfig.isTypeOf && ZfsPreprocessConfig.isTypeOf(obj)) {
             return ZfsPreprocessConfig;
         }
-        if ('flashPath' in value) {
+        if (FlashPreprocessConfig.isTypeOf && FlashPreprocessConfig.isTypeOf(obj)) {
             return FlashPreprocessConfig;
         }
-        if ('scriptPath' in value) {
+        if (ScriptPreprocessConfig.isTypeOf && ScriptPreprocessConfig.isTypeOf(obj)) {
             return ScriptPreprocessConfig;
         }
-        if ('sourcePath' in value) {
+        if (RawBackupConfig.isTypeOf && RawBackupConfig.isTypeOf(obj)) {
             return RawBackupConfig;
         }
-        return undefined;
+        console.error(`[SourceConfigUnion] Could not resolve type for object: ${JSON.stringify(obj)}`);
+        return null;
     },
 });
 

@@ -120,17 +120,17 @@ export class BackupJobConfigResolver {
         nullable: true,
     })
     async currentJob(@Parent() config: BackupJobConfig): Promise<JobStatus | null> {
-        if (!config.currentJob) {
+        if (!config.currentJobId) {
             return null;
         }
 
         this.logger.debug(
-            `Looking for current job for config ${config.id} using currentJob: ${config.currentJob.id}`
+            `Looking for current job for config ${config.id} using currentJobId: ${config.currentJobId}`
         );
 
-        const jobStatus = this.backupJobTrackingService.getJobStatus(config.currentJob.id);
+        const jobStatus = this.backupJobTrackingService.getJobStatus(config.currentJobId);
         if (!jobStatus) {
-            this.logger.debug(`No job status found for job ID: ${config.currentJob.id}`);
+            this.logger.debug(`No job status found for job ID: ${config.currentJobId}`);
             return null;
         }
 

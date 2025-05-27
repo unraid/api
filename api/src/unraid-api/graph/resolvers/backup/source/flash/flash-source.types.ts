@@ -36,4 +36,8 @@ export class FlashPreprocessConfig implements BaseSourceConfig {
 
     @Field(() => [String], { nullable: true })
     additionalPaths?: string[];
+
+    static isTypeOf(obj: any): obj is FlashPreprocessConfig {
+        return obj && typeof obj.flashPath === 'string' && typeof obj.includeGitHistory === 'boolean';
+    }
 }

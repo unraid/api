@@ -128,8 +128,8 @@ export class BackupJobConfig extends Node {
     @Field(() => String, { description: 'Status of last run', nullable: true })
     lastRunStatus?: string;
 
-    @Field(() => JobStatus, { description: 'Current running job for this config', nullable: true })
-    currentJob?: JobStatus;
+    @Field(() => String, { description: 'Current running job ID for this config', nullable: true })
+    currentJobId?: string;
 }
 
 @InputType()
@@ -198,6 +198,11 @@ export class UpdateBackupJobConfigInput extends BaseBackupJobConfigInput {
     @IsOptional()
     @IsString()
     lastRunAt?: string;
+
+    @Field(() => String, { nullable: true })
+    @IsOptional()
+    @IsString()
+    currentJobId?: string;
 }
 
 @ObjectType()

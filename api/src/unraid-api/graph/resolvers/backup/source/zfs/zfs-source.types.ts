@@ -57,4 +57,8 @@ export class ZfsPreprocessConfig implements BaseSourceConfig {
 
     @Field(() => Number, { nullable: true })
     retainSnapshots?: number;
+
+    static isTypeOf(obj: any): obj is ZfsPreprocessConfig {
+        return obj && typeof obj.poolName === 'string' && typeof obj.datasetName === 'string';
+    }
 }

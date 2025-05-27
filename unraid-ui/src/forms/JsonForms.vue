@@ -11,6 +11,7 @@ import type {
   ValidationMode,
 } from '@jsonforms/core';
 import { JsonForms as BaseJsonForms } from '@jsonforms/vue';
+import Ajv from 'ajv';
 import type { Ref } from 'vue';
 
 const props = withDefaults(
@@ -34,7 +35,7 @@ const props = withDefaults(
   }
 );
 const emit = defineEmits(['change']);
-
+const ajv = new Ajv({ allErrors: true, useDefaults: true, strict: false });
 function onChange(event: unknown): void {
   emit('change', event);
 }
@@ -51,7 +52,7 @@ function onChange(event: unknown): void {
     :readonly="props.readonly"
     :uischemas="props.uischemas"
     :validation-mode="props.validationMode"
-    :ajv="undefined"
+    :ajv="ajv"
     :middleware="props.middleware"
     :i18n="props.i18n"
     :additional-errors="undefined"

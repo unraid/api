@@ -1,13 +1,13 @@
 import { createUnionType, Field, InputType, ObjectType, registerEnumType } from '@nestjs/graphql';
 
 import { Type } from 'class-transformer';
-import { IsNotEmpty, IsObject, IsOptional, IsString, ValidateNested } from 'class-validator';
+import { IsEnum, IsNotEmpty, IsObject, IsOptional, IsString, ValidateNested } from 'class-validator';
 import { GraphQLJSON } from 'graphql-scalars';
 
 import { BackupJobStatus } from '@app/unraid-api/graph/resolvers/backup/orchestration/backup-job-status.model.js';
 
 export enum DestinationType {
-    RCLONE = 'rclone',
+    RCLONE = 'RCLONE',
 }
 
 registerEnumType(DestinationType, {
@@ -39,13 +39,19 @@ export class RcloneDestinationConfig {
         nullable: true,
     })
     rcloneOptions?: Record<string, unknown>;
+
+    static isTypeOf(obj: any): obj is RcloneDestinationConfig {
+        return (
+            obj &&
+            obj.type === 'RCLONE' &&
+            typeof obj.remoteName === 'string' &&
+            typeof obj.destinationPath === 'string'
+        );
+    }
 }
 
 @InputType()
 export class RcloneDestinationConfigInput {
-    @Field(() => String, { defaultValue: 'RCLONE' })
-    type!: 'RCLONE';
-
     @Field(() => String)
     @IsString()
     @IsNotEmpty()
@@ -64,6 +70,10 @@ export class RcloneDestinationConfigInput {
 
 @InputType()
 export class DestinationConfigInput {
+    @Field(() => DestinationType, { nullable: false })
+    @IsEnum(DestinationType, { message: 'Invalid destination type' })
+    type!: DestinationType;
+
     @Field(() => RcloneDestinationConfigInput, { nullable: true })
     @IsOptional()
     @ValidateNested()
@@ -74,11 +84,11 @@ export class DestinationConfigInput {
 export const DestinationConfigUnion = createUnionType({
     name: 'DestinationConfigUnion',
     types: () => [RcloneDestinationConfig] as const,
-    resolveType: (value) => {
-        if (value.type === 'RCLONE') {
+    resolveType(obj: any) {
+        if (RcloneDestinationConfig.isTypeOf && RcloneDestinationConfig.isTypeOf(obj)) {
             return RcloneDestinationConfig;
         }
-        return undefined;
+        return null;
     },
 });
 

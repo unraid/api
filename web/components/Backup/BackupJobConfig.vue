@@ -9,6 +9,7 @@ import BackupJobConfigForm from '~/components/Backup/BackupJobConfigForm.vue';
 import BackupJobItem from '~/components/Backup/BackupJobItem.vue';
 
 const showConfigModal = ref(false);
+const currentEditingConfigId = ref<string | null>(null);
 
 const { result, loading, error, refetch } = useQuery(
   BACKUP_JOB_CONFIGS_LIST_QUERY,
@@ -27,8 +28,19 @@ function handleJobDeleted() {
   refetch();
 }
 
+function openAddJobModal() {
+  currentEditingConfigId.value = null;
+  showConfigModal.value = true;
+}
+
+function openEditJobModal(configId: string) {
+  currentEditingConfigId.value = configId;
+  showConfigModal.value = true;
+}
+
 function onConfigComplete() {
   showConfigModal.value = false;
+  currentEditingConfigId.value = null;
   refetch();
 }
 </script>
@@ -37,7 +49,7 @@ function onConfigComplete() {
   <div class="backup-config">
     <div class="flex items-center justify-between mb-6">
       <h2 class="text-xl font-bold text-gray-900 dark:text-white">Scheduled Backup Jobs</h2>
-      <Button variant="primary" @click="showConfigModal = true"> Add Backup Job </Button>
+      <Button variant="primary" @click="openAddJobModal"> Add Backup Job </Button>
     </div>
 
     <div v-if="loading && !result" class="text-center py-8">
@@ -76,7 +88,7 @@ function onConfigComplete() {
       <p class="text-gray-600 dark:text-gray-400 mb-4">
         Create your first scheduled backup job to automatically protect your data.
       </p>
-      <Button variant="primary" @click="showConfigModal = true"> Create First Backup Job </Button>
+      <Button variant="primary" @click="openAddJobModal"> Create First Backup Job </Button>
     </div>
 
     <div v-else class="space-y-4">
@@ -85,24 +97,22 @@ function onConfigComplete() {
         :key="configId"
         :config-id="configId"
         @deleted="handleJobDeleted"
+        @edit="openEditJobModal"
       />
     </div>
 
     <Sheet v-model:open="showConfigModal">
       <SheetContent class="w-full max-w-4xl max-h-[90vh] overflow-auto">
         <SheetTitle class="text-xl font-semibold text-gray-900 dark:text-white mb-4">
-          Add New Backup Job
+          {{ currentEditingConfigId ? 'Edit Backup Job' : 'Add New Backup Job' }}
         </SheetTitle>
         <div class="p-6">
-          <BackupJobConfigForm @complete="onConfigComplete" @cancel="showConfigModal = false" />
+          <BackupJobConfigForm 
+            :config-id="currentEditingConfigId"
+            @complete="onConfigComplete" 
+            @cancel="showConfigModal = false" />
         </div>
       </SheetContent>
     </Sheet>
   </div>
 </template>
-
-<style scoped>
-.backup-config {
-  @apply mx-auto max-w-7xl p-6;
-}
-</style>

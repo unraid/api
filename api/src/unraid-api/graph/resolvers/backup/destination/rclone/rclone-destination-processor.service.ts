@@ -2,6 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 
 import { execa } from 'execa';
 
+import { getBackupJobGroupId } from '@app/unraid-api/graph/resolvers/backup/backup.utils.js';
 import {
     BackupDestinationConfig,
     BackupDestinationProcessor,
@@ -15,7 +16,7 @@ import { RCloneApiService } from '@app/unraid-api/graph/resolvers/rclone/rclone-
 
 export interface RCloneDestinationConfig extends BackupDestinationConfig {
     remoteName: string;
-    remotePath: string;
+    destinationPath: string;
     transferOptions?: Record<string, unknown>;
     useStreaming?: boolean;
     sourceCommand?: string;
@@ -41,7 +42,7 @@ export class RCloneDestinationProcessor extends BackupDestinationProcessor<RClon
 
         try {
             this.logger.log(
-                `Starting RClone upload job ${jobId} from ${sourcePath} to ${config.remoteName}:${config.remotePath}`
+                `Starting RClone upload job ${jobId} from ${sourcePath} to ${config.remoteName}:${config.destinationPath}`
             );
 
             return await this.executeRegularBackup(sourcePath, config, options);
@@ -66,30 +67,127 @@ export class RCloneDestinationProcessor extends BackupDestinationProcessor<RClon
         config: RCloneDestinationConfig,
         options: BackupDestinationProcessorOptions
     ): Promise<BackupDestinationResult> {
-        const { jobId, onOutput } = options;
+        const { jobId: backupConfigId, onOutput, onProgress, onError } = options;
 
-        const result = (await this.rcloneApiService.startBackup({
-            srcPath: sourcePath,
-            dstPath: `${config.remoteName}:${config.remotePath}`,
-            async: false,
-            configId: jobId,
-            options: config.transferOptions,
-        })) as { jobid?: string; jobId?: string };
-
-        if (onOutput) {
-            onOutput(`RClone backup started with job ID: ${result.jobid || result.jobId}`);
+        if (!backupConfigId) {
+            const errorMsg = 'Backup Configuration ID (jobId) is required to start RClone backup.';
+            this.logger.error(errorMsg);
+            if (onError) {
+                onError(errorMsg);
+            }
+            return {
+                success: false,
+                error: errorMsg,
+                cleanupRequired: config.cleanupOnFailure,
+            };
         }
 
-        return {
-            success: true,
-            destinationPath: `${config.remoteName}:${config.remotePath}`,
-            metadata: {
-                jobId: result.jobid || result.jobId,
-                remoteName: config.remoteName,
-                remotePath: config.remotePath,
-                transferOptions: config.transferOptions,
-            },
-        };
+        await this.rcloneApiService.startBackup({
+            srcPath: sourcePath,
+            dstPath: `${config.remoteName}:${config.destinationPath}`,
+            async: true,
+            configId: backupConfigId,
+            options: config.transferOptions,
+        });
+
+        const groupIdToMonitor = getBackupJobGroupId(backupConfigId);
+
+        if (onOutput) {
+            onOutput(
+                `RClone backup process initiated for group: ${groupIdToMonitor}. Monitoring progress...`
+            );
+        }
+
+        let jobStatus = await this.rcloneApiService.getEnhancedJobStatus(
+            groupIdToMonitor,
+            backupConfigId
+        );
+        this.logger.debug('Rclone Job Status: %o', jobStatus);
+        let retries = 0;
+        const effectiveTimeout = config.timeout && config.timeout >= 60000 ? config.timeout : 3600000;
+        const maxRetries = Math.floor(effectiveTimeout / 5000);
+
+        while (jobStatus && !jobStatus.finished && retries < maxRetries) {
+            await new Promise((resolve) => setTimeout(resolve, 5000));
+
+            try {
+                jobStatus = await this.rcloneApiService.getEnhancedJobStatus(
+                    groupIdToMonitor,
+                    backupConfigId
+                );
+                if (jobStatus && onProgress && jobStatus.progressPercentage !== undefined) {
+                    onProgress(jobStatus.progressPercentage);
+                }
+                if (jobStatus && onOutput && jobStatus.stats?.speed) {
+                    onOutput(`Group ${groupIdToMonitor} - Transfer speed: ${jobStatus.stats.speed} B/s`);
+                }
+            } catch (pollError: any) {
+                this.logger.warn(
+                    `[${backupConfigId}] Error polling group status for ${groupIdToMonitor}: ${(pollError as Error).message}`
+                );
+            }
+            retries++;
+        }
+
+        if (!jobStatus) {
+            const errorMsg = `Failed to get final job status for RClone group ${groupIdToMonitor}`;
+            this.logger.error(`[${backupConfigId}] ${errorMsg}`);
+            if (onError) {
+                onError(errorMsg);
+            }
+            return {
+                success: false,
+                error: errorMsg,
+                destinationPath: `${config.remoteName}:${config.destinationPath}`,
+                cleanupRequired: config.cleanupOnFailure,
+            };
+        }
+
+        if (jobStatus.finished && jobStatus.success) {
+            if (onProgress) {
+                onProgress(100);
+            }
+            if (onOutput) {
+                onOutput(`RClone backup for group ${groupIdToMonitor} completed successfully.`);
+            }
+            return {
+                success: true,
+                destinationPath: `${config.remoteName}:${config.destinationPath}`,
+                metadata: {
+                    groupId: groupIdToMonitor,
+                    remoteName: config.remoteName,
+                    remotePath: config.destinationPath,
+                    transferOptions: config.transferOptions,
+                    stats: jobStatus.stats,
+                },
+            };
+        } else {
+            let errorMsg: string;
+            if (!jobStatus.finished && retries >= maxRetries) {
+                errorMsg = `RClone group ${groupIdToMonitor} timed out after ${effectiveTimeout / 1000} seconds.`;
+                this.logger.error(`[${backupConfigId}] ${errorMsg}`);
+            } else {
+                errorMsg = jobStatus.error || `RClone group ${groupIdToMonitor} failed.`;
+                this.logger.error(`[${backupConfigId}] ${errorMsg}`, jobStatus.stats?.lastError);
+            }
+
+            if (onError) {
+                onError(errorMsg);
+            }
+            return {
+                success: false,
+                error: errorMsg,
+                destinationPath: `${config.remoteName}:${config.destinationPath}`,
+                metadata: {
+                    groupId: groupIdToMonitor,
+                    remoteName: config.remoteName,
+                    remotePath: config.destinationPath,
+                    transferOptions: config.transferOptions,
+                    stats: jobStatus.stats,
+                },
+                cleanupRequired: config.cleanupOnFailure,
+            };
+        }
     }
 
     async validate(
@@ -101,7 +199,7 @@ export class RCloneDestinationProcessor extends BackupDestinationProcessor<RClon
             return { valid: false, error: 'Remote name is required' };
         }
 
-        if (!config.remotePath) {
+        if (!config.destinationPath) {
             return { valid: false, error: 'Remote path is required' };
         }
 
@@ -135,11 +233,20 @@ export class RCloneDestinationProcessor extends BackupDestinationProcessor<RClon
             return;
         }
 
+        const idToStop = result.metadata?.groupId || result.metadata?.jobId;
+
         try {
             this.logger.log(`Cleaning up failed upload at ${result.destinationPath}`);
 
-            if (result.metadata?.jobId) {
-                await this.rcloneApiService.stopJob(result.metadata.jobId as string);
+            if (idToStop) {
+                await this.rcloneApiService.stopJob(idToStop as string);
+                if (result.metadata?.groupId) {
+                    this.logger.log(`Stopped RClone group: ${result.metadata.groupId}`);
+                } else if (result.metadata?.jobId) {
+                    this.logger.log(
+                        `Attempted to stop RClone job: ${result.metadata.jobId} (Note: Group ID preferred for cleanup)`
+                    );
+                }
             }
         } catch (error) {
             this.logger.warn(
@@ -169,7 +276,7 @@ export class RCloneDestinationProcessor extends BackupDestinationProcessor<RClon
                 throw new Error(errorMsg);
             }
 
-            const rcloneDest = `${config.remoteName}:${config.remotePath}`;
+            const rcloneDest = `${config.remoteName}:${config.destinationPath}`;
             const rcloneArgs = ['rcat', rcloneDest, '--progress'];
 
             this.logger.log(

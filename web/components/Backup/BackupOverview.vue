@@ -82,7 +82,7 @@ const refreshJobs = async () => {
         </div>
       </div>
 
-      <div v-else-if="!backupJobs?.length" class="text-center py-12">
+      <div v-else-if="!jobs?.length" class="text-center py-12">
         <div class="text-gray-400 dark:text-gray-600 mb-4">
           <svg class="w-12 h-12 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path
