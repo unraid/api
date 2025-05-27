@@ -946,6 +946,25 @@ type ParityCheckMutations {
   cancel: JSON!
 }
 
+"""RClone related mutations"""
+type RCloneMutations {
+  """Create a new RClone remote"""
+  createRCloneRemote(input: CreateRCloneRemoteInput!): RCloneRemote!
+
+  """Delete an existing RClone remote"""
+  deleteRCloneRemote(input: DeleteRCloneRemoteInput!): Boolean!
+}
+
+input CreateRCloneRemoteInput {
+  name: String!
+  type: String!
+  parameters: JSON!
+}
+
+input DeleteRCloneRemoteInput {
+  name: String!
+}
+
 type ParityCheck {
   """Date of the parity check"""
   date: DateTime
@@ -1299,19 +1318,14 @@ type DockerContainer implements Node {
 
   """Total size of all the files in the container"""
   sizeRootFs: Int
-  labels: JSONObject
+  labels: JSON
   state: ContainerState!
   status: String!
   hostConfig: ContainerHostConfig
-  networkSettings: JSONObject
-  mounts: [JSONObject!]
+  networkSettings: JSON
+  mounts: [JSON!]
   autoStart: Boolean!
 }
-
-"""
-The `JSONObject` scalar type represents JSON objects as specified by [ECMA-404](http://www.ecma-international.org/publications/files/ECMA-ST/ECMA-404.pdf).
-"""
-scalar JSONObject @specifiedBy(url: "http://www.ecma-international.org/publications/files/ECMA-ST/ECMA-404.pdf")
 
 enum ContainerState {
   RUNNING
@@ -1325,21 +1339,64 @@ type DockerNetwork implements Node {
   scope: String!
   driver: String!
   enableIPv6: Boolean!
-  ipam: JSONObject!
+  ipam: JSON!
   internal: Boolean!
   attachable: Boolean!
   ingress: Boolean!
-  configFrom: JSONObject!
+  configFrom: JSON!
   configOnly: Boolean!
-  containers: JSONObject!
-  options: JSONObject!
-  labels: JSONObject!
+  containers: JSON!
+  options: JSON!
+  labels: JSON!
 }
 
 type Docker implements Node {
   id: PrefixedID!
   containers(skipCache: Boolean! = false): [DockerContainer!]!
   networks(skipCache: Boolean! = false): [DockerNetwork!]!
+}
+
+type FlashBackupStatus {
+  """Status message indicating the outcome of the backup initiation."""
+  status: String!
+
+  """Job ID if available, can be used to check job status."""
+  jobId: String
+}
+
+type RCloneDrive {
+  """Provider name"""
+  name: String!
+
+  """Provider options and configuration schema"""
+  options: JSON!
+}
+
+type RCloneBackupConfigForm {
+  id: ID!
+  dataSchema: JSON!
+  uiSchema: JSON!
+}
+
+type RCloneBackupSettings {
+  configForm(formOptions: RCloneConfigFormInput): RCloneBackupConfigForm!
+  drives: [RCloneDrive!]!
+  remotes: [RCloneRemote!]!
+}
+
+input RCloneConfigFormInput {
+  providerType: String
+  showAdvanced: Boolean = false
+  parameters: JSON
+}
+
+type RCloneRemote {
+  name: String!
+  type: String!
+  parameters: JSON!
+
+  """Complete remote configuration"""
+  config: JSON!
 }
 
 type Flash implements Node {
@@ -1543,6 +1600,7 @@ type Query {
   docker: Docker!
   disks: [Disk!]!
   disk(id: PrefixedID!): Disk!
+  rclone: RCloneBackupSettings!
   health: String!
   getDemo: String!
 }
@@ -1572,12 +1630,16 @@ type Mutation {
   vm: VmMutations!
   parityCheck: ParityCheckMutations!
   apiKey: ApiKeyMutations!
+  rclone: RCloneMutations!
   updateApiSettings(input: ApiSettingsInput!): ConnectSettingsValues!
   connectSignIn(input: ConnectSignInInput!): Boolean!
   connectSignOut: Boolean!
   setupRemoteAccess(input: SetupRemoteAccessInput!): Boolean!
   setAdditionalAllowedOrigins(input: AllowedOriginInput!): [String!]!
   enableDynamicRemoteAccess(input: EnableDynamicRemoteAccessInput!): Boolean!
+
+  """Initiates a flash drive backup using a configured remote."""
+  initiateFlashBackup(input: InitiateFlashBackupInput!): FlashBackupStatus!
   setDemo: String!
 }
 
@@ -1672,6 +1734,22 @@ input AccessUrlInput {
   name: String
   ipv4: URL
   ipv6: URL
+}
+
+input InitiateFlashBackupInput {
+  """The name of the remote configuration to use for the backup."""
+  remoteName: String!
+
+  """Source path to backup (typically the flash drive)."""
+  sourcePath: String!
+
+  """Destination path on the remote."""
+  destinationPath: String!
+
+  """
+  Additional options for the backup operation, such as --dry-run or --transfers.
+  """
+  options: JSON
 }
 
 type Subscription {

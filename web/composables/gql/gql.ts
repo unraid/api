@@ -36,6 +36,10 @@ type Documents = {
     "\n  mutation RecomputeOverview {\n    recalculateOverview {\n      archive {\n        ...NotificationCountFragment\n      }\n      unread {\n        ...NotificationCountFragment\n      }\n    }\n  }\n": typeof types.RecomputeOverviewDocument,
     "\n  subscription NotificationAddedSub {\n    notificationAdded {\n      ...NotificationFragment\n    }\n  }\n": typeof types.NotificationAddedSubDocument,
     "\n  subscription NotificationOverviewSub {\n    notificationsOverview {\n      archive {\n        ...NotificationCountFragment\n      }\n      unread {\n        ...NotificationCountFragment\n      }\n    }\n  }\n": typeof types.NotificationOverviewSubDocument,
+    "\n  mutation CreateRCloneRemote($input: CreateRCloneRemoteInput!) {\n    rclone {\n      createRCloneRemote(input: $input) {\n        name\n        type\n        parameters\n      }\n    }\n  }\n": typeof types.CreateRCloneRemoteDocument,
+    "\n  mutation DeleteRCloneRemote($input: DeleteRCloneRemoteInput!) {\n    rclone {\n      deleteRCloneRemote(input: $input)\n    }\n  }\n": typeof types.DeleteRCloneRemoteDocument,
+    "\n  query GetRCloneConfigForm($formOptions: RCloneConfigFormInput) {\n    rclone {\n      configForm(formOptions: $formOptions) {\n        id\n        dataSchema\n        uiSchema\n      }\n    }\n  }\n": typeof types.GetRCloneConfigFormDocument,
+    "\n  query ListRCloneRemotes {\n    rclone {\n      remotes {\n        name\n        type\n        parameters\n        config\n      }\n    }\n  }\n": typeof types.ListRCloneRemotesDocument,
     "\n  mutation ConnectSignIn($input: ConnectSignInInput!) {\n    connectSignIn(input: $input)\n  }\n": typeof types.ConnectSignInDocument,
     "\n  mutation SignOut {\n    connectSignOut\n  }\n": typeof types.SignOutDocument,
     "\n  fragment PartialCloud on Cloud {\n    error\n    apiKey {\n      valid\n      error\n    }\n    cloud {\n      status\n      error\n    }\n    minigraphql {\n      status\n      error\n    }\n    relay {\n      status\n      error\n    }\n  }\n": typeof types.PartialCloudFragmentDoc,
@@ -69,6 +73,10 @@ const documents: Documents = {
     "\n  mutation RecomputeOverview {\n    recalculateOverview {\n      archive {\n        ...NotificationCountFragment\n      }\n      unread {\n        ...NotificationCountFragment\n      }\n    }\n  }\n": types.RecomputeOverviewDocument,
     "\n  subscription NotificationAddedSub {\n    notificationAdded {\n      ...NotificationFragment\n    }\n  }\n": types.NotificationAddedSubDocument,
     "\n  subscription NotificationOverviewSub {\n    notificationsOverview {\n      archive {\n        ...NotificationCountFragment\n      }\n      unread {\n        ...NotificationCountFragment\n      }\n    }\n  }\n": types.NotificationOverviewSubDocument,
+    "\n  mutation CreateRCloneRemote($input: CreateRCloneRemoteInput!) {\n    rclone {\n      createRCloneRemote(input: $input) {\n        name\n        type\n        parameters\n      }\n    }\n  }\n": types.CreateRCloneRemoteDocument,
+    "\n  mutation DeleteRCloneRemote($input: DeleteRCloneRemoteInput!) {\n    rclone {\n      deleteRCloneRemote(input: $input)\n    }\n  }\n": types.DeleteRCloneRemoteDocument,
+    "\n  query GetRCloneConfigForm($formOptions: RCloneConfigFormInput) {\n    rclone {\n      configForm(formOptions: $formOptions) {\n        id\n        dataSchema\n        uiSchema\n      }\n    }\n  }\n": types.GetRCloneConfigFormDocument,
+    "\n  query ListRCloneRemotes {\n    rclone {\n      remotes {\n        name\n        type\n        parameters\n        config\n      }\n    }\n  }\n": types.ListRCloneRemotesDocument,
     "\n  mutation ConnectSignIn($input: ConnectSignInInput!) {\n    connectSignIn(input: $input)\n  }\n": types.ConnectSignInDocument,
     "\n  mutation SignOut {\n    connectSignOut\n  }\n": types.SignOutDocument,
     "\n  fragment PartialCloud on Cloud {\n    error\n    apiKey {\n      valid\n      error\n    }\n    cloud {\n      status\n      error\n    }\n    minigraphql {\n      status\n      error\n    }\n    relay {\n      status\n      error\n    }\n  }\n": types.PartialCloudFragmentDoc,
@@ -182,6 +190,22 @@ export function graphql(source: "\n  subscription NotificationAddedSub {\n    no
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
 export function graphql(source: "\n  subscription NotificationOverviewSub {\n    notificationsOverview {\n      archive {\n        ...NotificationCountFragment\n      }\n      unread {\n        ...NotificationCountFragment\n      }\n    }\n  }\n"): (typeof documents)["\n  subscription NotificationOverviewSub {\n    notificationsOverview {\n      archive {\n        ...NotificationCountFragment\n      }\n      unread {\n        ...NotificationCountFragment\n      }\n    }\n  }\n"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "\n  mutation CreateRCloneRemote($input: CreateRCloneRemoteInput!) {\n    rclone {\n      createRCloneRemote(input: $input) {\n        name\n        type\n        parameters\n      }\n    }\n  }\n"): (typeof documents)["\n  mutation CreateRCloneRemote($input: CreateRCloneRemoteInput!) {\n    rclone {\n      createRCloneRemote(input: $input) {\n        name\n        type\n        parameters\n      }\n    }\n  }\n"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "\n  mutation DeleteRCloneRemote($input: DeleteRCloneRemoteInput!) {\n    rclone {\n      deleteRCloneRemote(input: $input)\n    }\n  }\n"): (typeof documents)["\n  mutation DeleteRCloneRemote($input: DeleteRCloneRemoteInput!) {\n    rclone {\n      deleteRCloneRemote(input: $input)\n    }\n  }\n"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "\n  query GetRCloneConfigForm($formOptions: RCloneConfigFormInput) {\n    rclone {\n      configForm(formOptions: $formOptions) {\n        id\n        dataSchema\n        uiSchema\n      }\n    }\n  }\n"): (typeof documents)["\n  query GetRCloneConfigForm($formOptions: RCloneConfigFormInput) {\n    rclone {\n      configForm(formOptions: $formOptions) {\n        id\n        dataSchema\n        uiSchema\n      }\n    }\n  }\n"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "\n  query ListRCloneRemotes {\n    rclone {\n      remotes {\n        name\n        type\n        parameters\n        config\n      }\n    }\n  }\n"): (typeof documents)["\n  query ListRCloneRemotes {\n    rclone {\n      remotes {\n        name\n        type\n        parameters\n        config\n      }\n    }\n  }\n"];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */

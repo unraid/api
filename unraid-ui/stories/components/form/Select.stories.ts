@@ -7,7 +7,7 @@ import {
   SelectLabel,
   SelectTrigger,
   SelectValue,
-} from '../../../src/components/form/select';
+} from '@/components/form/select';
 
 const meta = {
   title: 'Components/Form/Select',
@@ -67,7 +67,6 @@ export const Grouped: Story = {
     },
     template: `
       <div>
-        <unraid-modals></unraid-modals>
         <SelectComponent>
           <SelectTrigger class="w-[180px]">
             <SelectValue placeholder="Select a food" />

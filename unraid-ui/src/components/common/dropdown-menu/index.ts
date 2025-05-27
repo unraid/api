@@ -1,5 +1,6 @@
-export { default as DropdownMenu } from './DropdownMenu.vue';
+import DropdownMenu from '@/components/common/dropdown-menu/DropdownMenu.vue';
 
+export { DropdownMenu };
 export { default as DropdownMenuCheckboxItem } from './DropdownMenuCheckboxItem.vue';
 export { default as DropdownMenuContent } from './DropdownMenuContent.vue';
 export { default as DropdownMenuGroup } from './DropdownMenuGroup.vue';
