@@ -5,7 +5,7 @@ import { isDefined } from 'class-validator';
 
 import { MinigraphStatus } from '../config.entity.js';
 import { ONE_MINUTE_MS, THREE_MINUTES_MS } from '../helpers/consts.js';
-import { DynamicRemoteAccessStateService } from '../remote-access/dynamic-remote-access-state.service.js';
+import { DynamicRemoteAccessService } from '../remote-access/dynamic-remote-access.service.js';
 import { MothershipConnectionService } from './connection.service.js';
 import { MothershipSubscriptionHandler } from './mothership-subscription.handler.js';
 
@@ -15,7 +15,7 @@ export class TimeoutCheckerJob {
         private readonly connectionService: MothershipConnectionService,
         private readonly subscriptionHandler: MothershipSubscriptionHandler,
         private schedulerRegistry: SchedulerRegistry,
-        private readonly dynamicRemoteAccess: DynamicRemoteAccessStateService
+        private readonly dynamicRemoteAccess: DynamicRemoteAccessService
     ) {}
 
     public jobName = 'connect-timeout-checker';
@@ -46,7 +46,7 @@ export class TimeoutCheckerJob {
     async checkForTimeouts() {
         this.subscriptionHandler.clearStaleSubscriptions({ maxAgeMs: THREE_MINUTES_MS });
         this.checkMothershipClientTimeout();
-        this.dynamicRemoteAccess.checkForTimeout();
+        await this.dynamicRemoteAccess.checkForTimeout();
     }
 
     start() {

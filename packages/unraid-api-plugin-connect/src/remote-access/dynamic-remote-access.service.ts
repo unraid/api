@@ -1,0 +1,82 @@
+import { Injectable, Logger } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
+
+import {
+    ConfigType,
+    DynamicRemoteAccessState,
+    DynamicRemoteAccessType,
+    makeDisabledDynamicRemoteAccessState,
+} from '../config.entity.js';
+import { ONE_MINUTE_MS } from '../helpers/consts.js';
+import { StaticRemoteAccessService } from './static-remote-access.service.js';
+import { UpnpRemoteAccessService } from './upnp-remote-access.service.js';
+
+@Injectable()
+export class DynamicRemoteAccessService {
+    private readonly logger = new Logger(DynamicRemoteAccessService.name);
+
+    constructor(
+        private readonly configService: ConfigService<ConfigType>,
+        private readonly staticRemoteAccessService: StaticRemoteAccessService,
+        private readonly upnpRemoteAccessService: UpnpRemoteAccessService
+    ) {}
+
+    /**
+     * Get the current state of dynamic remote access
+     */
+    getState(): DynamicRemoteAccessState {
+        return this.configService.getOrThrow<DynamicRemoteAccessState>('connect.dynamicRemoteAccess');
+    }
+
+    async checkForTimeout() {
+        const state = this.getState();
+        if (state.lastPing && Date.now() - state.lastPing > ONE_MINUTE_MS) {
+            this.logger.warn('No pings received in 1 minute, disabling dynamic remote access');
+            await this.stopRemoteAccess();
+        }
+    }
+
+    /**
+     * Set the dynamic remote access type and handle the transition
+     * @param type The new dynamic remote access type to set
+     */
+    async setType(type: DynamicRemoteAccessType): Promise<void> {
+        // Update the config first
+        this.configService.set('connect.config.dynamicRemoteAccessType', type);
+
+        if (type === DynamicRemoteAccessType.DISABLED) {
+            this.logger.log('Disabling Dynamic Remote Access');
+            await this.stopRemoteAccess();
+            return;
+        }
+
+        // Update the state to reflect the new type
+        this.configService.set('connect.dynamicRemoteAccess', {
+            ...makeDisabledDynamicRemoteAccessState(),
+            runningType: type,
+        });
+
+        // Start the appropriate remote access service
+        if (type === DynamicRemoteAccessType.STATIC) {
+            await this.staticRemoteAccessService.beginRemoteAccess();
+        } else if (type === DynamicRemoteAccessType.UPNP) {
+            await this.upnpRemoteAccessService.begin();
+        }
+    }
+
+    /**
+     * Stop remote access and reset the state
+     */
+    async stopRemoteAccess(): Promise<void> {
+        const state = this.configService.get<DynamicRemoteAccessState>('connect.dynamicRemoteAccess');
+
+        if (state?.runningType === DynamicRemoteAccessType.STATIC) {
+            await this.staticRemoteAccessService.stopRemoteAccess();
+        } else if (state?.runningType === DynamicRemoteAccessType.UPNP) {
+            await this.upnpRemoteAccessService.stop();
+        }
+
+        // Reset the state
+        this.configService.set('connect.dynamicRemoteAccess', makeDisabledDynamicRemoteAccessState());
+    }
+}

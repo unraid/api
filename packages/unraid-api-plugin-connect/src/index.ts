@@ -7,11 +7,15 @@ import { HealthResolver } from './connect.resolver.js';
 import { MothershipConnectionService } from './mothership/connection.service.js';
 import { MothershipGraphqlClientService } from './mothership/graphql.client.js';
 import { MothershipHandler } from './mothership/mothership.handler.js';
+import { RemoteAccessModule } from './remote-access/remote-access.module.js';
 
 export const adapter = 'nestjs';
 
 @Module({
-    imports: [ConfigModule.forFeature(configFeature)],
+    imports: [
+        ConfigModule.forFeature(configFeature),
+        RemoteAccessModule
+    ],
     providers: [
         HealthResolver,
         ConnectConfigPersister,
