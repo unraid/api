@@ -1,8 +1,8 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { access, stat } from 'fs/promises';
+import { access, constants, stat } from 'fs/promises';
 import { dirname, isAbsolute, resolve } from 'path';
 
-import { ScriptPreprocessConfigInput } from '@app/unraid-api/graph/resolvers/backup/preprocessing/preprocessing.types.js';
+import { ScriptPreprocessConfigInput } from '@app/unraid-api/graph/resolvers/backup/source/script/script-source.types.js';
 
 export interface ScriptValidationResult {
     isValid: boolean;

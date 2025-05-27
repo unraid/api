@@ -1,8 +1,9 @@
 import { Injectable, Logger } from '@nestjs/common';
+import { access, constants } from 'fs/promises';
 
 import { execa } from 'execa';
 
-import { ZfsPreprocessConfigInput } from '@app/unraid-api/graph/resolvers/backup/preprocessing/preprocessing.types.js';
+import { ZfsPreprocessConfigInput } from '@app/unraid-api/graph/resolvers/backup/source/zfs/zfs-source.types.js';
 
 export interface ZfsValidationResult {
     isValid: boolean;

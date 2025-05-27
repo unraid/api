@@ -16,10 +16,10 @@ import {
 import { DateTimeISOResolver, GraphQLJSON } from 'graphql-scalars';
 
 import {
-    BackupConfig,
-    BackupConfigInput,
-    BackupType,
-} from '@app/unraid-api/graph/resolvers/backup/preprocessing/preprocessing.types.js';
+    SourceConfig,
+    SourceConfigInput,
+    SourceType,
+} from '@app/unraid-api/graph/resolvers/backup/source/backup-source.types.js';
 import { Node } from '@app/unraid-api/graph/resolvers/base.model.js';
 import { RCloneJob } from '@app/unraid-api/graph/resolvers/rclone/rclone.model.js';
 import { PrefixedID } from '@app/unraid-api/graph/scalars/graphql-type-prefixed-id.js';
@@ -89,8 +89,8 @@ export class BackupJobConfig extends Node {
     @Field(() => String, { description: 'Human-readable name for this backup job' })
     name!: string;
 
-    @Field(() => BackupType, { description: 'Type of backup to perform' })
-    backupType!: BackupType;
+    @Field(() => SourceType, { description: 'Type of backup to perform' })
+    sourceType!: SourceType;
 
     @Field(() => String, { description: 'Remote name from rclone config' })
     remoteName!: string;
@@ -112,11 +112,11 @@ export class BackupJobConfig extends Node {
     })
     rcloneOptions?: Record<string, unknown>;
 
-    @Field(() => BackupConfig, {
+    @Field(() => SourceConfig, {
         description: 'Backup configuration for this backup job',
         nullable: true,
     })
-    backupConfig?: BackupConfig;
+    sourceConfig?: SourceConfig;
 
     @Field(() => DateTimeISOResolver, { description: 'When this config was created' })
     createdAt!: string;
@@ -145,10 +145,10 @@ export class BaseBackupJobConfigInput {
     @IsNotEmpty()
     name?: string;
 
-    @Field(() => BackupType, { nullable: true })
+    @Field(() => SourceType, { nullable: true })
     @IsOptional()
-    @IsEnum(BackupType)
-    backupType?: BackupType;
+    @IsEnum(SourceType)
+    sourceType?: SourceType;
 
     @Field(() => String, { nullable: true })
     @IsOptional()
@@ -184,14 +184,14 @@ export class BaseBackupJobConfigInput {
     @IsObject()
     rcloneOptions?: Record<string, unknown>;
 
-    @Field(() => BackupConfigInput, {
+    @Field(() => SourceConfigInput, {
         description: 'Backup configuration for this backup job',
         nullable: true,
     })
     @IsOptional()
     @ValidateNested()
-    @Type(() => BackupConfigInput)
-    backupConfig?: BackupConfigInput;
+    @Type(() => SourceConfigInput)
+    sourceConfig?: SourceConfigInput;
 }
 
 @InputType()
@@ -201,10 +201,10 @@ export class CreateBackupJobConfigInput extends BaseBackupJobConfigInput {
     @IsNotEmpty()
     declare name: string;
 
-    @Field(() => BackupType, { defaultValue: BackupType.RAW })
-    @IsEnum(BackupType)
+    @Field(() => SourceType, { defaultValue: SourceType.RAW })
+    @IsEnum(SourceType)
     @IsNotEmpty()
-    declare backupType: BackupType;
+    declare sourceType: SourceType;
 
     @Field(() => String)
     @IsString()

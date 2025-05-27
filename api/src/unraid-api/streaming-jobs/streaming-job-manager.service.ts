@@ -4,10 +4,7 @@ import { EventEmitter } from 'events';
 import { execa } from 'execa';
 import { v4 as uuidv4 } from 'uuid';
 
-import {
-    PreprocessType,
-    StreamingJobInfo,
-} from '@app/unraid-api/graph/resolvers/backup/preprocessing/preprocessing.types.js';
+import { StreamingJobInfo } from '@app/unraid-api/streaming-jobs/streaming-jobs.types.js';
 
 export interface StreamingJobOptions {
     command: string;
@@ -29,15 +26,21 @@ export interface StreamingJobResult {
     duration: number;
 }
 
+export interface ProgressExtractor {
+    (output: string): number | null;
+}
+
 @Injectable()
 export class StreamingJobManager extends EventEmitter {
     private readonly logger = new Logger(StreamingJobManager.name);
     private readonly activeJobs = new Map<string, StreamingJobInfo>();
     private readonly processes = new Map<string, ReturnType<typeof execa>>();
+    private readonly progressExtractors = new Map<string, ProgressExtractor>();
 
     async startStreamingJob(
-        type: PreprocessType,
-        options: StreamingJobOptions
+        type: string,
+        options: StreamingJobOptions,
+        progressExtractor?: ProgressExtractor
     ): Promise<{ jobId: string; promise: Promise<StreamingJobResult> }> {
         const jobId = uuidv4();
         const startTime = new Date();
@@ -52,6 +55,10 @@ export class StreamingJobManager extends EventEmitter {
         };
 
         this.activeJobs.set(jobId, jobInfo);
+
+        if (progressExtractor) {
+            this.progressExtractors.set(jobId, progressExtractor);
+        }
 
         const promise = this.executeStreamingJob(jobId, options);
 
@@ -189,16 +196,11 @@ export class StreamingJobManager extends EventEmitter {
 
         let progress = jobInfo.progress || 0;
 
-        if (jobInfo.type === PreprocessType.ZFS) {
-            const match = output.match(/(\d+(?:\.\d+)?)%/);
-            if (match) {
-                progress = parseFloat(match[1]);
-            }
-        } else if (jobInfo.type === PreprocessType.FLASH) {
-            const lines = output.split('\n');
-            const totalLines = lines.length;
-            if (totalLines > 0) {
-                progress = Math.min(100, (totalLines / 1000) * 100);
+        const customExtractor = this.progressExtractors.get(jobId);
+        if (customExtractor) {
+            const extractedProgress = customExtractor(output);
+            if (extractedProgress !== null) {
+                progress = extractedProgress;
             }
         }
 
@@ -240,13 +242,14 @@ export class StreamingJobManager extends EventEmitter {
         return Array.from(this.activeJobs.values());
     }
 
-    getJobsByType(type: PreprocessType): StreamingJobInfo[] {
+    getJobsByType(type: string): StreamingJobInfo[] {
         return Array.from(this.activeJobs.values()).filter((job) => job.type === type);
     }
 
     private cleanup(jobId: string): void {
         this.processes.delete(jobId);
         this.activeJobs.delete(jobId);
+        this.progressExtractors.delete(jobId);
     }
 
     async cleanupAllJobs(): Promise<void> {
@@ -260,6 +263,7 @@ export class StreamingJobManager extends EventEmitter {
 
         this.processes.clear();
         this.activeJobs.clear();
+        this.progressExtractors.clear();
 
         this.logger.log('Cleaned up all streaming jobs');
     }
@@ -273,7 +277,7 @@ export class StreamingJobManager extends EventEmitter {
         return this.activeJobs.size;
     }
 
-    getJobCountByType(type: PreprocessType): number {
+    getJobCountByType(type: string): number {
         return this.getJobsByType(type).length;
     }
 }

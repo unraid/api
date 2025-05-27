@@ -923,8 +923,8 @@ input CreateBackupJobConfigInput {
   enabled: Boolean! = true
   rcloneOptions: JSON
 
-  """Backup configuration for this backup job"""
-  backupConfig: BackupConfigInput
+  """Source configuration for this backup job"""
+  sourceConfig: SourceConfigInput
 }
 
 """
@@ -937,7 +937,7 @@ enum BackupType {
   RAW
 }
 
-input BackupConfigInput {
+input SourceConfigInput {
   """Timeout for backup operation in seconds"""
   timeout: Float! = 3600
 
@@ -946,7 +946,7 @@ input BackupConfigInput {
   zfsConfig: ZfsPreprocessConfigInput
   flashConfig: FlashPreprocessConfigInput
   scriptConfig: ScriptPreprocessConfigInput
-  rawConfig: RawBackupConfigInput
+  rawConfig: RawSourceConfigInput
 }
 
 input ZfsPreprocessConfigInput {
@@ -994,7 +994,7 @@ input ScriptPreprocessConfigInput {
   outputPath: String!
 }
 
-input RawBackupConfigInput {
+input RawSourceConfigInput {
   """Source path to backup"""
   sourcePath: String!
 
@@ -1014,8 +1014,8 @@ input UpdateBackupJobConfigInput {
   enabled: Boolean
   rcloneOptions: JSON
 
-  """Backup configuration for this backup job"""
-  backupConfig: BackupConfigInput
+  """Source configuration for this backup job"""
+  sourceConfig: SourceConfigInput
   lastRunStatus: String
   currentJobId: String
   lastRunAt: String
@@ -1175,19 +1175,19 @@ type ScriptPreprocessConfig {
   outputPath: String!
 }
 
-type RawBackupConfig {
+type RawSourceConfig {
   sourcePath: String!
   excludePatterns: [String!]
   includePatterns: [String!]
 }
 
-type BackupConfig {
+type SourceConfig {
   timeout: Float!
   cleanupOnFailure: Boolean!
   zfsConfig: ZfsPreprocessConfig
   flashConfig: FlashPreprocessConfig
   scriptConfig: ScriptPreprocessConfig
-  rawConfig: RawBackupConfig
+  rawConfig: RawSourceConfig
 }
 
 type RCloneDrive {
@@ -1404,8 +1404,8 @@ type BackupJobConfig implements Node {
   """RClone options (e.g., --transfers, --checkers)"""
   rcloneOptions: JSON
 
-  """Backup configuration for this backup job"""
-  backupConfig: BackupConfig
+  """Source configuration for this backup job"""
+  sourceConfig: SourceConfig
 
   """When this config was created"""
   createdAt: DateTimeISO!

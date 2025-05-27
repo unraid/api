@@ -50,8 +50,8 @@ export const RCLONE_JOB_FRAGMENT = graphql(/* GraphQL */ `
   }
 `);
 
-export const BACKUP_CONFIG_FRAGMENT = graphql(/* GraphQL */ `
-  fragment BackupConfig on BackupConfig {
+export const SOURCE_CONFIG_FRAGMENT = graphql(/* GraphQL */ `
+  fragment SourceConfig on SourceConfig {
     timeout
     cleanupOnFailure
     zfsConfig {
@@ -91,8 +91,8 @@ export const BACKUP_JOB_CONFIG_FRAGMENT = graphql(/* GraphQL */ `
     schedule
     enabled
     rcloneOptions
-    backupConfig {
-      ...BackupConfig
+    sourceConfig {
+      ...SourceConfig
     }
     createdAt
     updatedAt
@@ -250,4 +250,4 @@ export const BACKUP_JOB_PROGRESS_SUBSCRIPTION = graphql(/* GraphQL */ `
       }
     }
   }
-`);
+`); 

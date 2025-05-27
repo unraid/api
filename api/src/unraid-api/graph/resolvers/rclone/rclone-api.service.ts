@@ -17,14 +17,9 @@ import {
     isBackupJobGroup,
 } from '@app/unraid-api/graph/resolvers/backup/backup.utils.js';
 import {
-    PreprocessType,
+    SourceType,
     StreamingJobInfo,
-} from '@app/unraid-api/graph/resolvers/backup/preprocessing/preprocessing.types.js';
-import {
-    StreamingJobManager,
-    StreamingJobOptions,
-    StreamingJobResult,
-} from '@app/unraid-api/graph/resolvers/backup/preprocessing/streaming-job-manager.service.js';
+} from '@app/unraid-api/graph/resolvers/backup/source/backup-source.types.js';
 import { RCloneStatusService } from '@app/unraid-api/graph/resolvers/rclone/rclone-status.service.js';
 import {
     BackupJobStatus,
@@ -42,6 +37,11 @@ import {
     UpdateRCloneRemoteDto,
 } from '@app/unraid-api/graph/resolvers/rclone/rclone.model.js';
 import { validateObject } from '@app/unraid-api/graph/resolvers/validation.utils.js';
+import {
+    StreamingJobManager,
+    StreamingJobOptions,
+    StreamingJobResult,
+} from '@app/unraid-api/streaming-jobs/streaming-job-manager.service.js';
 
 // Internal interface for job status response from RClone API
 interface RCloneJobStatusResponse {
@@ -72,7 +72,7 @@ export interface StreamingBackupOptions {
     sourceStream?: NodeJS.ReadableStream;
     sourceCommand?: string;
     sourceArgs?: string[];
-    preprocessType?: PreprocessType;
+    sourceType: SourceType;
     onProgress?: (progress: number) => void;
     onOutput?: (data: string) => void;
     onError?: (error: string) => void;
@@ -96,7 +96,7 @@ export interface UnifiedJobStatus {
     stats?: RCloneJobStats;
     error?: string;
     startTime?: Date;
-    preprocessType?: PreprocessType;
+    preprocessType?: SourceType;
 }
 
 const CONSTANTS = {
@@ -417,7 +417,7 @@ export class RCloneApiService implements OnModuleInit, OnModuleDestroy {
             };
 
             const { jobId, promise } = await this.streamingJobManager.startStreamingJob(
-                options.preprocessType || PreprocessType.NONE,
+                options.sourceType || SourceType.RAW,
                 streamingOptions
             );
 

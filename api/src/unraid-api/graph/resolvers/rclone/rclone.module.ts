@@ -1,6 +1,6 @@
 import { forwardRef, Module } from '@nestjs/common';
 
-import { PreprocessingModule } from '@app/unraid-api/graph/resolvers/backup/preprocessing/preprocessing.module.js';
+import { BackupSourceModule } from '@app/unraid-api/graph/resolvers/backup/source/backup-source.module.js';
 import { RCloneApiService } from '@app/unraid-api/graph/resolvers/rclone/rclone-api.service.js';
 import { RCloneFormService } from '@app/unraid-api/graph/resolvers/rclone/rclone-form.service.js';
 import { RCloneStatusService } from '@app/unraid-api/graph/resolvers/rclone/rclone-status.service.js';
@@ -10,7 +10,7 @@ import { RCloneService } from '@app/unraid-api/graph/resolvers/rclone/rclone.ser
 import { UtilsModule } from '@app/unraid-api/utils/utils.module.js';
 
 @Module({
-    imports: [UtilsModule, forwardRef(() => PreprocessingModule)],
+    imports: [UtilsModule, forwardRef(() => BackupSourceModule)],
     providers: [
         RCloneService,
         RCloneApiService,

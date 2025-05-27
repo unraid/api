@@ -3,7 +3,7 @@ import { JsonSchema7, RuleEffect } from '@jsonforms/core';
 
 import type { RCloneRemote } from '@app/unraid-api/graph/resolvers/rclone/rclone.model.js';
 import type { DataSlice, SettingSlice, UIElement } from '@app/unraid-api/types/json-forms.js';
-import { BackupType } from '@app/unraid-api/graph/resolvers/backup/preprocessing/preprocessing.types.js';
+import { SourceType } from '@app/unraid-api/graph/resolvers/backup/source/backup-source.types.js';
 import { createLabeledControl } from '@app/unraid-api/graph/utils/form-utils.js';
 import { mergeSettingSlices } from '@app/unraid-api/types/json-forms.js';
 
@@ -162,50 +162,43 @@ function getBasicBackupConfigSlice({ remotes = [] }: { remotes?: RCloneRemote[] 
     };
 }
 
-function getBackupTypeConfigSlice(): SettingSlice {
-    const backupTypeElements: UIElement[] = [
+function getSourceTypeConfigSlice(): SettingSlice {
+    const sourceTypeElements: UIElement[] = [
         {
-            type: 'Label',
-            text: 'Backup Configuration',
+            type: 'Control',
+            scope: '#/properties/sourceType',
             options: {
-                description: 'Configure the specific settings for your chosen backup type.',
-            },
-        } as LabelElement,
-
-        createLabeledControl({
-            scope: '#/properties/backupType',
-            label: 'Backup Type',
-            description: 'Select the type of backup to perform',
-            controlOptions: {
-                suggestions: [
+                format: 'radio',
+                radioLayout: 'horizontal',
+                options: [
                     {
-                        value: BackupType.ZFS,
                         label: 'ZFS Snapshot',
-                        tooltip: 'Create ZFS snapshot and stream it',
+                        value: SourceType.ZFS,
+                        description: 'Create ZFS snapshot and backup',
                     },
                     {
-                        value: BackupType.FLASH,
-                        label: 'Flash Backup',
-                        tooltip: 'Backup Unraid flash drive with git history',
+                        label: 'Flash Drive',
+                        value: SourceType.FLASH,
+                        description: 'Backup flash drive contents',
                     },
                     {
-                        value: BackupType.SCRIPT,
                         label: 'Custom Script',
-                        tooltip: 'Run custom script before backup',
+                        value: SourceType.SCRIPT,
+                        description: 'Run custom script to generate backup data',
                     },
                     {
-                        value: BackupType.RAW,
-                        label: 'Raw File Backup',
-                        tooltip: 'Direct file/folder backup',
+                        label: 'Raw Files',
+                        value: SourceType.RAW,
+                        description: 'Direct file backup without preprocessing',
                     },
                 ],
             },
-        }),
+        },
 
         createLabeledControl({
-            scope: '#/properties/backupConfig/properties/timeout',
-            label: 'Timeout (seconds)',
-            description: 'Maximum time to wait for backup operation to complete (default: 3600 seconds)',
+            scope: '#/properties/sourceConfig/properties/timeout',
+            label: 'Timeout',
+            description: 'Timeout in seconds for backup operation',
             controlOptions: {
                 placeholder: '3600',
                 format: 'number',
@@ -213,11 +206,11 @@ function getBackupTypeConfigSlice(): SettingSlice {
         }),
 
         createLabeledControl({
-            scope: '#/properties/backupConfig/properties/cleanupOnFailure',
+            scope: '#/properties/sourceConfig/properties/cleanupOnFailure',
             label: 'Cleanup on Failure',
-            description: 'Whether to clean up backup artifacts if the backup fails',
+            description: 'Clean up backup artifacts on failure',
             controlOptions: {
-                toggle: true,
+                format: 'checkbox',
             },
         }),
 
@@ -227,8 +220,8 @@ function getBackupTypeConfigSlice(): SettingSlice {
             rule: {
                 effect: RuleEffect.SHOW,
                 condition: {
-                    scope: '#/properties/backupType',
-                    schema: { const: BackupType.RAW },
+                    scope: '#/properties/sourceType',
+                    schema: { const: SourceType.RAW },
                 } as SchemaBasedCondition,
             },
             elements: [
@@ -241,36 +234,29 @@ function getBackupTypeConfigSlice(): SettingSlice {
                 } as LabelElement,
 
                 createLabeledControl({
-                    scope: '#/properties/backupConfig/properties/rawConfig/properties/sourcePath',
+                    scope: '#/properties/sourceConfig/properties/rawConfig/properties/sourcePath',
                     label: 'Source Path',
-                    description: 'The local path to backup (e.g., /mnt/user/Documents)',
+                    description: 'Source path to backup',
                     controlOptions: {
-                        placeholder: '/mnt/user/',
-                        format: 'string',
+                        placeholder: '/mnt/user/data',
                     },
                 }),
 
                 createLabeledControl({
-                    scope: '#/properties/backupConfig/properties/rawConfig/properties/excludePatterns',
+                    scope: '#/properties/sourceConfig/properties/rawConfig/properties/excludePatterns',
                     label: 'Exclude Patterns',
-                    description:
-                        'File patterns to exclude from backup (one per line, supports wildcards)',
+                    description: 'Patterns to exclude from backup',
                     controlOptions: {
-                        multi: true,
-                        placeholder: '*.tmp',
-                        format: 'string',
+                        placeholder: '*.tmp,*.log',
                     },
                 }),
 
                 createLabeledControl({
-                    scope: '#/properties/backupConfig/properties/rawConfig/properties/includePatterns',
+                    scope: '#/properties/sourceConfig/properties/rawConfig/properties/includePatterns',
                     label: 'Include Patterns',
-                    description:
-                        'File patterns to specifically include (one per line, supports wildcards)',
+                    description: 'Patterns to include in backup',
                     controlOptions: {
-                        multi: true,
-                        placeholder: '*.pdf',
-                        format: 'string',
+                        placeholder: '*.txt,*.doc',
                     },
                 }),
             ],
@@ -282,8 +268,8 @@ function getBackupTypeConfigSlice(): SettingSlice {
             rule: {
                 effect: RuleEffect.SHOW,
                 condition: {
-                    scope: '#/properties/backupType',
-                    schema: { const: BackupType.ZFS },
+                    scope: '#/properties/sourceType',
+                    schema: { const: SourceType.ZFS },
                 } as SchemaBasedCondition,
             },
             elements: [
@@ -296,48 +282,45 @@ function getBackupTypeConfigSlice(): SettingSlice {
                 } as LabelElement,
 
                 createLabeledControl({
-                    scope: '#/properties/backupConfig/properties/zfsConfig/properties/poolName',
-                    label: 'ZFS Pool Name',
-                    description: 'Name of the ZFS pool containing the dataset',
+                    scope: '#/properties/sourceConfig/properties/zfsConfig/properties/poolName',
+                    label: 'Pool Name',
+                    description: 'ZFS pool name',
                     controlOptions: {
                         placeholder: 'tank',
-                        format: 'string',
                     },
                 }),
 
                 createLabeledControl({
-                    scope: '#/properties/backupConfig/properties/zfsConfig/properties/datasetName',
+                    scope: '#/properties/sourceConfig/properties/zfsConfig/properties/datasetName',
                     label: 'Dataset Name',
-                    description: 'Name of the ZFS dataset to snapshot',
+                    description: 'ZFS dataset name',
                     controlOptions: {
-                        placeholder: 'data/documents',
-                        format: 'string',
+                        placeholder: 'data',
                     },
                 }),
 
                 createLabeledControl({
-                    scope: '#/properties/backupConfig/properties/zfsConfig/properties/snapshotPrefix',
+                    scope: '#/properties/sourceConfig/properties/zfsConfig/properties/snapshotPrefix',
                     label: 'Snapshot Prefix',
-                    description: 'Prefix for snapshot names (default: backup)',
+                    description: 'Prefix for snapshot names',
                     controlOptions: {
                         placeholder: 'backup',
-                        format: 'string',
                     },
                 }),
 
                 createLabeledControl({
-                    scope: '#/properties/backupConfig/properties/zfsConfig/properties/cleanupSnapshots',
+                    scope: '#/properties/sourceConfig/properties/zfsConfig/properties/cleanupSnapshots',
                     label: 'Cleanup Snapshots',
-                    description: 'Whether to clean up snapshots after backup',
+                    description: 'Clean up snapshots after backup',
                     controlOptions: {
-                        toggle: true,
+                        format: 'checkbox',
                     },
                 }),
 
                 createLabeledControl({
-                    scope: '#/properties/backupConfig/properties/zfsConfig/properties/retainSnapshots',
+                    scope: '#/properties/sourceConfig/properties/zfsConfig/properties/retainSnapshots',
                     label: 'Retain Snapshots',
-                    description: 'Number of snapshots to retain (0 = keep all)',
+                    description: 'Number of snapshots to retain',
                     controlOptions: {
                         placeholder: '5',
                         format: 'number',
@@ -352,8 +335,8 @@ function getBackupTypeConfigSlice(): SettingSlice {
             rule: {
                 effect: RuleEffect.SHOW,
                 condition: {
-                    scope: '#/properties/backupType',
-                    schema: { const: BackupType.FLASH },
+                    scope: '#/properties/sourceType',
+                    schema: { const: SourceType.FLASH },
                 } as SchemaBasedCondition,
             },
             elements: [
@@ -366,32 +349,29 @@ function getBackupTypeConfigSlice(): SettingSlice {
                 } as LabelElement,
 
                 createLabeledControl({
-                    scope: '#/properties/backupConfig/properties/flashConfig/properties/flashPath',
+                    scope: '#/properties/sourceConfig/properties/flashConfig/properties/flashPath',
                     label: 'Flash Path',
-                    description: 'Path to the Unraid flash drive (default: /boot)',
+                    description: 'Path to flash drive',
                     controlOptions: {
                         placeholder: '/boot',
-                        format: 'string',
                     },
                 }),
 
                 createLabeledControl({
-                    scope: '#/properties/backupConfig/properties/flashConfig/properties/includeGitHistory',
+                    scope: '#/properties/sourceConfig/properties/flashConfig/properties/includeGitHistory',
                     label: 'Include Git History',
-                    description: 'Whether to include git history in the backup',
+                    description: 'Include git history in backup',
                     controlOptions: {
-                        toggle: true,
+                        format: 'checkbox',
                     },
                 }),
 
                 createLabeledControl({
-                    scope: '#/properties/backupConfig/properties/flashConfig/properties/additionalPaths',
+                    scope: '#/properties/sourceConfig/properties/flashConfig/properties/additionalPaths',
                     label: 'Additional Paths',
-                    description: 'Additional paths to include in flash backup (one per line)',
+                    description: 'Additional paths to include',
                     controlOptions: {
-                        multi: true,
-                        placeholder: '/boot/config/plugins',
-                        format: 'string',
+                        placeholder: '/etc/config',
                     },
                 }),
             ],
@@ -403,8 +383,8 @@ function getBackupTypeConfigSlice(): SettingSlice {
             rule: {
                 effect: RuleEffect.SHOW,
                 condition: {
-                    scope: '#/properties/backupType',
-                    schema: { const: BackupType.SCRIPT },
+                    scope: '#/properties/sourceType',
+                    schema: { const: SourceType.SCRIPT },
                 } as SchemaBasedCondition,
             },
             elements: [
@@ -417,61 +397,56 @@ function getBackupTypeConfigSlice(): SettingSlice {
                 } as LabelElement,
 
                 createLabeledControl({
-                    scope: '#/properties/backupConfig/properties/scriptConfig/properties/scriptPath',
+                    scope: '#/properties/sourceConfig/properties/scriptConfig/properties/scriptPath',
                     label: 'Script Path',
-                    description: 'Full path to the script to execute',
+                    description: 'Path to script file',
                     controlOptions: {
-                        placeholder: '/mnt/user/scripts/backup-prep.sh',
-                        format: 'string',
+                        placeholder: '/usr/local/bin/backup.sh',
                     },
                 }),
 
                 createLabeledControl({
-                    scope: '#/properties/backupConfig/properties/scriptConfig/properties/scriptArgs',
+                    scope: '#/properties/sourceConfig/properties/scriptConfig/properties/scriptArgs',
                     label: 'Script Arguments',
-                    description: 'Arguments to pass to the script (one per line)',
+                    description: 'Arguments for script',
                     controlOptions: {
-                        multi: true,
-                        placeholder: '--verbose',
-                        format: 'string',
+                        placeholder: '--verbose --compress',
                     },
                 }),
 
                 createLabeledControl({
-                    scope: '#/properties/backupConfig/properties/scriptConfig/properties/workingDirectory',
+                    scope: '#/properties/sourceConfig/properties/scriptConfig/properties/workingDirectory',
                     label: 'Working Directory',
-                    description: 'Working directory for script execution',
+                    description: 'Working directory for script',
                     controlOptions: {
                         placeholder: '/tmp',
-                        format: 'string',
                     },
                 }),
 
                 createLabeledControl({
-                    scope: '#/properties/backupConfig/properties/scriptConfig/properties/outputPath',
+                    scope: '#/properties/sourceConfig/properties/scriptConfig/properties/outputPath',
                     label: 'Output Path',
-                    description: 'Path where script should write output files for backup',
+                    description: 'Path for script output',
                     controlOptions: {
-                        placeholder: '/tmp/backup-output',
-                        format: 'string',
+                        placeholder: '/tmp/backup.tar.gz',
                     },
                 }),
             ],
         },
     ];
 
-    const backupConfigProperties: Record<string, JsonSchema7> = {
-        backupType: {
+    const sourceConfigProperties: Record<string, JsonSchema7> = {
+        sourceType: {
             type: 'string',
             title: 'Backup Type',
             description: 'Type of backup to perform',
-            enum: [BackupType.ZFS, BackupType.FLASH, BackupType.SCRIPT, BackupType.RAW],
-            default: BackupType.ZFS,
+            enum: [SourceType.ZFS, SourceType.FLASH, SourceType.SCRIPT, SourceType.RAW],
+            default: SourceType.ZFS,
         },
-        backupConfig: {
+        sourceConfig: {
             type: 'object',
-            title: 'Backup Configuration',
-            description: 'Configuration for backup operation',
+            title: 'Source Configuration',
+            description: 'Configuration for backup source',
             properties: {
                 timeout: {
                     type: 'integer',
@@ -623,11 +598,11 @@ function getBackupTypeConfigSlice(): SettingSlice {
 
     const verticalLayoutElement: UIElement = {
         type: 'VerticalLayout',
-        elements: backupTypeElements,
+        elements: sourceTypeElements,
     };
 
     return {
-        properties: backupConfigProperties,
+        properties: sourceConfigProperties,
         elements: [verticalLayoutElement],
     };
 }
@@ -749,8 +724,8 @@ export function buildBackupJobConfigSchema({ remotes = [] }: { remotes?: RCloneR
     const basicSlice = getBasicBackupConfigSlice({ remotes });
     slicesToMerge.push(basicSlice);
 
-    const backupTypeSlice = getBackupTypeConfigSlice();
-    slicesToMerge.push(backupTypeSlice);
+    const sourceTypeSlice = getSourceTypeConfigSlice();
+    slicesToMerge.push(sourceTypeSlice);
 
     const advancedSlice = getAdvancedBackupConfigSlice();
     if (Object.keys(advancedSlice.properties).length > 0) {
@@ -777,7 +752,7 @@ export function buildBackupJobConfigSchema({ remotes = [] }: { remotes?: RCloneR
 
     const step1WrapperLayout: UIElement = {
         type: 'VerticalLayout',
-        elements: [...(backupTypeSlice.elements || [])],
+        elements: [...(sourceTypeSlice.elements || [])],
         options: { step: 1 },
     };
 

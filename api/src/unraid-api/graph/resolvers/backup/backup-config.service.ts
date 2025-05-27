@@ -13,11 +13,12 @@ import {
     CreateBackupJobConfigInput,
     UpdateBackupJobConfigInput,
 } from '@app/unraid-api/graph/resolvers/backup/backup.model.js';
-import { PreprocessingService } from '@app/unraid-api/graph/resolvers/backup/preprocessing/preprocessing.service.js';
+import { BackupSourceResult } from '@app/unraid-api/graph/resolvers/backup/source/backup-source-processor.interface.js';
 import {
-    BackupType,
-    PreprocessResult,
-} from '@app/unraid-api/graph/resolvers/backup/preprocessing/preprocessing.types.js';
+    BackupSourceOptions,
+    BackupSourceService,
+} from '@app/unraid-api/graph/resolvers/backup/source/backup-source.service.js';
+import { SourceType } from '@app/unraid-api/graph/resolvers/backup/source/backup-source.types.js';
 import { RCloneService } from '@app/unraid-api/graph/resolvers/rclone/rclone.service.js';
 
 const JOB_GROUP_PREFIX = 'backup-';
@@ -31,7 +32,7 @@ export class BackupConfigService implements OnModuleInit {
     constructor(
         private readonly rcloneService: RCloneService,
         private readonly schedulerRegistry: SchedulerRegistry,
-        private readonly preprocessingService: PreprocessingService
+        private readonly backupSourceService: BackupSourceService
     ) {
         const paths = getters.paths();
         this.configPath = join(paths.backupBase, 'backup-jobs.json');
@@ -45,41 +46,41 @@ export class BackupConfigService implements OnModuleInit {
         const id = uuidv4();
         const now = new Date().toISOString();
 
-        // Convert BackupConfigInput to BackupConfig if provided
-        const backupConfig = input.backupConfig
+        // Convert SourceConfigInput to SourceConfig if provided
+        const sourceConfig = input.sourceConfig
             ? {
-                  timeout: input.backupConfig.timeout ?? 3600,
-                  cleanupOnFailure: input.backupConfig.cleanupOnFailure ?? true,
-                  zfsConfig: input.backupConfig.zfsConfig
+                  timeout: input.sourceConfig.timeout ?? 3600,
+                  cleanupOnFailure: input.sourceConfig.cleanupOnFailure ?? true,
+                  zfsConfig: input.sourceConfig.zfsConfig
                       ? {
-                            poolName: input.backupConfig.zfsConfig.poolName,
-                            datasetName: input.backupConfig.zfsConfig.datasetName,
-                            snapshotPrefix: input.backupConfig.zfsConfig.snapshotPrefix,
-                            cleanupSnapshots: input.backupConfig.zfsConfig.cleanupSnapshots,
-                            retainSnapshots: input.backupConfig.zfsConfig.retainSnapshots,
+                            poolName: input.sourceConfig.zfsConfig.poolName,
+                            datasetName: input.sourceConfig.zfsConfig.datasetName,
+                            snapshotPrefix: input.sourceConfig.zfsConfig.snapshotPrefix,
+                            cleanupSnapshots: input.sourceConfig.zfsConfig.cleanupSnapshots,
+                            retainSnapshots: input.sourceConfig.zfsConfig.retainSnapshots,
                         }
                       : undefined,
-                  flashConfig: input.backupConfig.flashConfig
+                  flashConfig: input.sourceConfig.flashConfig
                       ? {
-                            flashPath: input.backupConfig.flashConfig.flashPath,
-                            includeGitHistory: input.backupConfig.flashConfig.includeGitHistory,
-                            additionalPaths: input.backupConfig.flashConfig.additionalPaths,
+                            flashPath: input.sourceConfig.flashConfig.flashPath,
+                            includeGitHistory: input.sourceConfig.flashConfig.includeGitHistory,
+                            additionalPaths: input.sourceConfig.flashConfig.additionalPaths,
                         }
                       : undefined,
-                  scriptConfig: input.backupConfig.scriptConfig
+                  scriptConfig: input.sourceConfig.scriptConfig
                       ? {
-                            scriptPath: input.backupConfig.scriptConfig.scriptPath,
-                            scriptArgs: input.backupConfig.scriptConfig.scriptArgs,
-                            workingDirectory: input.backupConfig.scriptConfig.workingDirectory,
-                            environment: input.backupConfig.scriptConfig.environment,
-                            outputPath: input.backupConfig.scriptConfig.outputPath,
+                            scriptPath: input.sourceConfig.scriptConfig.scriptPath,
+                            scriptArgs: input.sourceConfig.scriptConfig.scriptArgs,
+                            workingDirectory: input.sourceConfig.scriptConfig.workingDirectory,
+                            environment: input.sourceConfig.scriptConfig.environment,
+                            outputPath: input.sourceConfig.scriptConfig.outputPath,
                         }
                       : undefined,
-                  rawConfig: input.backupConfig.rawConfig
+                  rawConfig: input.sourceConfig.rawConfig
                       ? {
-                            sourcePath: input.backupConfig.rawConfig.sourcePath,
-                            excludePatterns: input.backupConfig.rawConfig.excludePatterns,
-                            includePatterns: input.backupConfig.rawConfig.includePatterns,
+                            sourcePath: input.sourceConfig.rawConfig.sourcePath,
+                            excludePatterns: input.sourceConfig.rawConfig.excludePatterns,
+                            includePatterns: input.sourceConfig.rawConfig.includePatterns,
                         }
                       : undefined,
               }
@@ -88,13 +89,13 @@ export class BackupConfigService implements OnModuleInit {
         const config: BackupJobConfig = {
             id,
             name: input.name,
-            backupType: input.backupType,
+            sourceType: input.sourceType,
             remoteName: input.remoteName,
             destinationPath: input.destinationPath,
             schedule: input.schedule || '0 2 * * *', // Default to 2 AM daily if not provided
             enabled: input.enabled,
             rcloneOptions: input.rcloneOptions,
-            backupConfig,
+            sourceConfig,
             createdAt: now,
             updatedAt: now,
         };
@@ -125,53 +126,53 @@ export class BackupConfigService implements OnModuleInit {
             `[updateBackupJobConfig] Existing config for ID ${id}: ${JSON.stringify(existing)}`
         );
 
-        // Convert BackupConfigInput to BackupConfig if provided
-        const backupConfig = input.backupConfig
+        // Convert SourceConfigInput to SourceConfig if provided
+        const sourceConfig = input.sourceConfig
             ? {
-                  timeout: input.backupConfig.timeout ?? existing.backupConfig?.timeout ?? 3600,
+                  timeout: input.sourceConfig.timeout ?? existing.sourceConfig?.timeout ?? 3600,
                   cleanupOnFailure:
-                      input.backupConfig.cleanupOnFailure ??
-                      existing.backupConfig?.cleanupOnFailure ??
+                      input.sourceConfig.cleanupOnFailure ??
+                      existing.sourceConfig?.cleanupOnFailure ??
                       true,
-                  zfsConfig: input.backupConfig.zfsConfig
+                  zfsConfig: input.sourceConfig.zfsConfig
                       ? {
-                            poolName: input.backupConfig.zfsConfig.poolName,
-                            datasetName: input.backupConfig.zfsConfig.datasetName,
-                            snapshotPrefix: input.backupConfig.zfsConfig.snapshotPrefix,
-                            cleanupSnapshots: input.backupConfig.zfsConfig.cleanupSnapshots,
-                            retainSnapshots: input.backupConfig.zfsConfig.retainSnapshots,
+                            poolName: input.sourceConfig.zfsConfig.poolName,
+                            datasetName: input.sourceConfig.zfsConfig.datasetName,
+                            snapshotPrefix: input.sourceConfig.zfsConfig.snapshotPrefix,
+                            cleanupSnapshots: input.sourceConfig.zfsConfig.cleanupSnapshots,
+                            retainSnapshots: input.sourceConfig.zfsConfig.retainSnapshots,
                         }
-                      : existing.backupConfig?.zfsConfig,
-                  flashConfig: input.backupConfig.flashConfig
+                      : existing.sourceConfig?.zfsConfig,
+                  flashConfig: input.sourceConfig.flashConfig
                       ? {
-                            flashPath: input.backupConfig.flashConfig.flashPath,
-                            includeGitHistory: input.backupConfig.flashConfig.includeGitHistory,
-                            additionalPaths: input.backupConfig.flashConfig.additionalPaths,
+                            flashPath: input.sourceConfig.flashConfig.flashPath,
+                            includeGitHistory: input.sourceConfig.flashConfig.includeGitHistory,
+                            additionalPaths: input.sourceConfig.flashConfig.additionalPaths,
                         }
-                      : existing.backupConfig?.flashConfig,
-                  scriptConfig: input.backupConfig.scriptConfig
+                      : existing.sourceConfig?.flashConfig,
+                  scriptConfig: input.sourceConfig.scriptConfig
                       ? {
-                            scriptPath: input.backupConfig.scriptConfig.scriptPath,
-                            scriptArgs: input.backupConfig.scriptConfig.scriptArgs,
-                            workingDirectory: input.backupConfig.scriptConfig.workingDirectory,
-                            environment: input.backupConfig.scriptConfig.environment,
-                            outputPath: input.backupConfig.scriptConfig.outputPath,
+                            scriptPath: input.sourceConfig.scriptConfig.scriptPath,
+                            scriptArgs: input.sourceConfig.scriptConfig.scriptArgs,
+                            workingDirectory: input.sourceConfig.scriptConfig.workingDirectory,
+                            environment: input.sourceConfig.scriptConfig.environment,
+                            outputPath: input.sourceConfig.scriptConfig.outputPath,
                         }
-                      : existing.backupConfig?.scriptConfig,
-                  rawConfig: input.backupConfig.rawConfig
+                      : existing.sourceConfig?.scriptConfig,
+                  rawConfig: input.sourceConfig.rawConfig
                       ? {
-                            sourcePath: input.backupConfig.rawConfig.sourcePath,
-                            excludePatterns: input.backupConfig.rawConfig.excludePatterns,
-                            includePatterns: input.backupConfig.rawConfig.includePatterns,
+                            sourcePath: input.sourceConfig.rawConfig.sourcePath,
+                            excludePatterns: input.sourceConfig.rawConfig.excludePatterns,
+                            includePatterns: input.sourceConfig.rawConfig.includePatterns,
                         }
-                      : existing.backupConfig?.rawConfig,
+                      : existing.sourceConfig?.rawConfig,
               }
-            : existing.backupConfig;
+            : existing.sourceConfig;
 
         const updated: BackupJobConfig = {
             ...existing,
             ...input,
-            backupConfig,
+            sourceConfig,
             updatedAt: new Date().toISOString(),
             // lastRunAt is already a string if provided in input
             lastRunAt: input.lastRunAt || existing.lastRunAt,
@@ -229,25 +230,27 @@ export class BackupConfigService implements OnModuleInit {
 
         try {
             let sourcePath = this.getSourcePath(config);
-            let preprocessResult: PreprocessResult | null = null;
+            let preprocessResult: BackupSourceResult | null = null;
 
-            if (config.backupConfig && config.backupType !== BackupType.RAW) {
+            if (config.sourceConfig && config.sourceType !== SourceType.RAW) {
                 this.logger.log(`Running preprocessing for job: ${config.name}`);
 
-                preprocessResult = await this.preprocessingService.executePreprocessing(
-                    config.backupConfig,
-                    {
-                        jobId: config.id,
-                        onProgress: (progress) => {
-                            this.logger.debug(`Preprocessing progress for ${config.name}: ${progress}%`);
-                        },
-                        onOutput: (data) => {
-                            this.logger.debug(`Preprocessing output for ${config.name}: ${data}`);
-                        },
-                        onError: (error) => {
-                            this.logger.error(`Preprocessing error for ${config.name}: ${error}`);
-                        },
-                    }
+                const backupSourceOptions: BackupSourceOptions = {
+                    jobId: config.id,
+                    onProgress: (progress) => {
+                        this.logger.debug(`Preprocessing progress for ${config.name}: ${progress}%`);
+                    },
+                    onOutput: (data) => {
+                        this.logger.debug(`Preprocessing output for ${config.name}: ${data}`);
+                    },
+                    onError: (error) => {
+                        this.logger.error(`Preprocessing error for ${config.name}: ${error}`);
+                    },
+                };
+
+                preprocessResult = await this.backupSourceService.executeFromLegacyConfig(
+                    config.sourceConfig,
+                    backupSourceOptions
                 );
 
                 if (!preprocessResult.success) {
@@ -264,13 +267,12 @@ export class BackupConfigService implements OnModuleInit {
             }
 
             const isStreamingBackup =
-                preprocessResult?.streamPath &&
-                (config.backupType === BackupType.ZFS || config.backupType === BackupType.FLASH);
+                config.sourceType === SourceType.ZFS || config.sourceType === SourceType.FLASH;
 
             let result;
             if (isStreamingBackup && preprocessResult?.streamPath) {
                 const streamingOptions = this.buildStreamingOptions(
-                    config.backupType,
+                    config.sourceType,
                     preprocessResult.streamPath,
                     config.remoteName,
                     config.destinationPath
@@ -313,9 +315,9 @@ export class BackupConfigService implements OnModuleInit {
 
             this.logger.error(`Backup job ${config.name} failed:`, error);
 
-            if (config.backupConfig?.cleanupOnFailure) {
+            if (config.sourceConfig?.cleanupOnFailure) {
                 try {
-                    await this.preprocessingService.cleanup(config.id);
+                    await this.backupSourceService.cleanup(config.id);
                 } catch (cleanupError) {
                     this.logger.error(
                         `Failed to cleanup preprocessing for job ${config.name}:`,
@@ -328,51 +330,52 @@ export class BackupConfigService implements OnModuleInit {
 
     private getSourcePath(config: BackupJobConfig): string {
         // Extract source path based on backup type and configuration
-        switch (config.backupType) {
-            case BackupType.ZFS:
-                return (
-                    config.backupConfig?.zfsConfig?.poolName +
-                        '/' +
-                        config.backupConfig?.zfsConfig?.datasetName || ''
-                );
-            case BackupType.FLASH:
-                return config.backupConfig?.flashConfig?.flashPath || '/boot';
-            case BackupType.SCRIPT:
-                return config.backupConfig?.scriptConfig?.outputPath || '';
-            case BackupType.RAW:
-                return config.backupConfig?.rawConfig?.sourcePath || '';
+        switch (config.sourceType) {
+            case SourceType.ZFS:
+                if (!config.sourceConfig?.zfsConfig) {
+                    throw new Error('ZFS configuration is required for ZFS backups');
+                }
+                return config.sourceConfig.zfsConfig.poolName;
+            case SourceType.FLASH:
+                return config.sourceConfig?.flashConfig?.flashPath || '/boot';
+            case SourceType.SCRIPT:
+                return config.sourceConfig?.scriptConfig?.outputPath || '/tmp/script-output';
+            case SourceType.RAW:
+                return config.sourceConfig?.rawConfig?.sourcePath || '/';
             default:
-                return '';
+                throw new Error(`Unsupported backup type: ${config.sourceType}`);
         }
     }
 
     private buildStreamingOptions(
-        backupType: BackupType,
+        sourceType: SourceType,
         streamPath: string,
         remoteName: string,
         destinationPath: string
     ) {
-        switch (backupType) {
-            case BackupType.ZFS:
+        const options = {
+            remoteName,
+            remotePath: destinationPath,
+            sourceType: sourceType,
+        };
+
+        switch (sourceType) {
+            case SourceType.ZFS:
                 return {
-                    remoteName,
-                    remotePath: destinationPath,
+                    ...options,
                     sourceCommand: 'zfs',
                     sourceArgs: ['send', streamPath],
-                    preprocessType: backupType,
                     timeout: 3600000,
                 };
-            case BackupType.FLASH:
+            case SourceType.FLASH:
                 return {
-                    remoteName,
-                    remotePath: destinationPath,
+                    ...options,
                     sourceCommand: 'tar',
                     sourceArgs: ['cf', '-', streamPath],
-                    preprocessType: backupType,
                     timeout: 3600000,
                 };
             default:
-                throw new Error(`Unsupported streaming backup type: ${backupType}`);
+                throw new Error(`Unsupported streaming backup type: ${sourceType}`);
         }
     }
 
