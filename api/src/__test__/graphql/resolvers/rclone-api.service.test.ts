@@ -11,6 +11,7 @@ import {
     RCloneStartBackupInput,
     UpdateRCloneRemoteDto,
 } from '@app/unraid-api/graph/resolvers/rclone/rclone.model.js';
+import { FormatService } from '@app/unraid-api/utils/format.service.js';
 
 vi.mock('got');
 vi.mock('execa');
@@ -55,6 +56,8 @@ describe('RCloneApiService', () => {
     let mockExeca: any;
     let mockPRetry: any;
     let mockExistsSync: any;
+    let mockFormatService: FormatService;
+    let mockCacheManager: any;
 
     beforeEach(async () => {
         vi.clearAllMocks();
@@ -79,7 +82,40 @@ describe('RCloneApiService', () => {
         mockPRetry.mockResolvedValue(undefined);
         mockExistsSync.mockReturnValue(false);
 
-        service = new RCloneApiService();
+        mockFormatService = {
+            formatBytes: vi.fn(),
+            formatDuration: vi.fn(),
+        } as any;
+
+        // Mock RCloneStatusService
+        const mockStatusService = {
+            enhanceStatsWithFormattedFields: vi.fn(),
+            transformStatsToJob: vi.fn(),
+            calculateCombinedStats: vi.fn(),
+            parseActiveJobs: vi.fn(),
+            parseBackupStatus: vi.fn(),
+            parseJobWithStats: vi.fn(),
+            parseAllJobsWithStats: vi.fn(),
+            parseJobsWithStats: vi.fn(),
+            getBackupStatus: vi.fn(),
+        } as any;
+
+        // Mock StreamingJobManager
+        const mockStreamingJobManager = {
+            startJob: vi.fn(),
+            stopJob: vi.fn(),
+            getJobStatus: vi.fn(),
+            getAllJobs: vi.fn(),
+        } as any;
+
+        // Mock cache manager
+        mockCacheManager = {
+            get: vi.fn().mockResolvedValue(null),
+            set: vi.fn().mockResolvedValue(undefined),
+            del: vi.fn().mockResolvedValue(undefined),
+        };
+
+        service = new RCloneApiService(mockStatusService);
         await service.onModuleInit();
     });
 

@@ -758,6 +758,7 @@ enum Resource {
   ACTIVATION_CODE
   API_KEY
   ARRAY
+  BACKUP
   CLOUD
   CONFIG
   CONNECT
@@ -883,6 +884,159 @@ type VmMutations {
   reset(id: PrefixedID!): Boolean!
 }
 
+"""Backup related mutations"""
+type BackupMutations {
+  """Create a new backup job configuration"""
+  createBackupJobConfig(input: CreateBackupJobConfigInput!): BackupJobConfig!
+
+  """Update a backup job configuration"""
+  updateBackupJobConfig(id: PrefixedID!, input: UpdateBackupJobConfigInput!): BackupJobConfig
+
+  """Delete a backup job configuration"""
+  deleteBackupJobConfig(id: PrefixedID!): Boolean!
+
+  """Initiates a backup using a configured remote."""
+  initiateBackup(input: InitiateBackupInput!): BackupStatus!
+
+  """Toggle a backup job configuration enabled/disabled"""
+  toggleJobConfig(id: PrefixedID!): BackupJobConfig
+
+  """Manually trigger a backup job using existing configuration"""
+  triggerJob(id: PrefixedID!): BackupStatus!
+
+  """Stop all running backup jobs"""
+  stopAllBackupJobs: BackupStatus!
+
+  """Stop a specific backup job"""
+  stopBackupJob(id: PrefixedID!): BackupStatus!
+
+  """Forget all finished backup jobs to clean up the job list"""
+  forgetFinishedBackupJobs: BackupStatus!
+}
+
+input CreateBackupJobConfigInput {
+  name: String!
+  backupType: BackupType! = RAW
+  remoteName: String!
+  destinationPath: String!
+  schedule: String
+  enabled: Boolean! = true
+  rcloneOptions: JSON
+
+  """Source configuration for this backup job"""
+  sourceConfig: SourceConfigInput
+}
+
+"""
+Type of backup to perform (ZFS snapshot, Flash backup, Custom script, or Raw file backup)
+"""
+enum BackupType {
+  ZFS
+  FLASH
+  SCRIPT
+  RAW
+}
+
+input SourceConfigInput {
+  """Timeout for backup operation in seconds"""
+  timeout: Float! = 3600
+
+  """Whether to cleanup on failure"""
+  cleanupOnFailure: Boolean! = true
+  zfsConfig: ZfsPreprocessConfigInput
+  flashConfig: FlashPreprocessConfigInput
+  scriptConfig: ScriptPreprocessConfigInput
+  rawConfig: RawSourceConfigInput
+}
+
+input ZfsPreprocessConfigInput {
+  """ZFS pool name"""
+  poolName: String!
+
+  """Dataset name within the pool"""
+  datasetName: String!
+
+  """Snapshot name prefix"""
+  snapshotPrefix: String
+
+  """Whether to cleanup snapshots after backup"""
+  cleanupSnapshots: Boolean! = true
+
+  """Number of snapshots to retain"""
+  retainSnapshots: Float
+}
+
+input FlashPreprocessConfigInput {
+  """Flash drive mount path"""
+  flashPath: String! = "/boot"
+
+  """Whether to include git history"""
+  includeGitHistory: Boolean! = true
+
+  """Additional paths to include in backup"""
+  additionalPaths: [String!]
+}
+
+input ScriptPreprocessConfigInput {
+  """Path to the script file"""
+  scriptPath: String!
+
+  """Arguments to pass to the script"""
+  scriptArgs: [String!]
+
+  """Working directory for script execution"""
+  workingDirectory: String
+
+  """Environment variables for script execution"""
+  environment: JSON
+
+  """Output file path where script should write data"""
+  outputPath: String!
+}
+
+input RawSourceConfigInput {
+  """Source path to backup"""
+  sourcePath: String!
+
+  """File patterns to exclude from backup"""
+  excludePatterns: [String!]
+
+  """File patterns to include in backup"""
+  includePatterns: [String!]
+}
+
+input UpdateBackupJobConfigInput {
+  name: String
+  backupType: BackupType
+  remoteName: String
+  destinationPath: String
+  schedule: String
+  enabled: Boolean
+  rcloneOptions: JSON
+
+  """Source configuration for this backup job"""
+  sourceConfig: SourceConfigInput
+  lastRunStatus: String
+  currentJobId: String
+  lastRunAt: String
+}
+
+input InitiateBackupInput {
+  """The name of the remote configuration to use for the backup."""
+  remoteName: String!
+
+  """Source path to backup."""
+  sourcePath: String!
+
+  """Destination path on the remote."""
+  destinationPath: String!
+
+  """
+  Additional options for the backup operation, such as --dry-run or --transfers.
+  """
+  options: JSON
+}
+
 """API Key related mutations"""
 type ApiKeyMutations {
   """Create an API key"""
@@ -998,6 +1152,290 @@ type ParityCheck {
 A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date-time format.
 """
 scalar DateTime
+
+type ZfsPreprocessConfig {
+  poolName: String!
+  datasetName: String!
+  snapshotPrefix: String
+  cleanupSnapshots: Boolean!
+  retainSnapshots: Float
+}
+
+type FlashPreprocessConfig {
+  flashPath: String!
+  includeGitHistory: Boolean!
+  additionalPaths: [String!]
+}
+
+type ScriptPreprocessConfig {
+  scriptPath: String!
+  scriptArgs: [String!]
+  workingDirectory: String
+  environment: JSON
+  outputPath: String!
+}
+
+type RawSourceConfig {
+  sourcePath: String!
+  excludePatterns: [String!]
+  includePatterns: [String!]
+}
+
+type SourceConfig {
+  timeout: Float!
+  cleanupOnFailure: Boolean!
+  zfsConfig: ZfsPreprocessConfig
+  flashConfig: FlashPreprocessConfig
+  scriptConfig: ScriptPreprocessConfig
+  rawConfig: RawSourceConfig
+}
+
+type RCloneDrive {
+  """Provider name"""
+  name: String!
+
+  """Provider options and configuration schema"""
+  options: JSON!
+}
+
+type RCloneBackupConfigForm {
+  id: ID!
+  dataSchema: JSON!
+  uiSchema: JSON!
+}
+
+type RCloneBackupSettings {
+  configForm(formOptions: RCloneConfigFormInput): RCloneBackupConfigForm!
+  drives: [RCloneDrive!]!
+  remotes: [RCloneRemote!]!
+}
+
+input RCloneConfigFormInput {
+  providerType: String
+  showAdvanced: Boolean = false
+  parameters: JSON
+}
+
+type RCloneRemote {
+  name: String!
+  type: String!
+  parameters: JSON!
+
+  """Complete remote configuration"""
+  config: JSON!
+}
+
+type RCloneJobStats {
+  """Bytes transferred"""
+  bytes: Float
+
+  """Transfer speed in bytes/sec"""
+  speed: Float
+
+  """Estimated time to completion in seconds"""
+  eta: Float
+
+  """Elapsed time in seconds"""
+  elapsedTime: Float
+
+  """Progress percentage (0-100)"""
+  percentage: Float
+
+  """Number of checks completed"""
+  checks: Float
+
+  """Number of deletes completed"""
+  deletes: Float
+
+  """Number of errors encountered"""
+  errors: Float
+
+  """Whether a fatal error occurred"""
+  fatalError: Boolean
+
+  """Last error message"""
+  lastError: String
+
+  """Number of renames completed"""
+  renames: Float
+
+  """Whether there is a retry error"""
+  retryError: Boolean
+
+  """Number of server-side copies"""
+  serverSideCopies: Float
+
+  """Bytes in server-side copies"""
+  serverSideCopyBytes: Float
+
+  """Number of server-side moves"""
+  serverSideMoves: Float
+
+  """Bytes in server-side moves"""
+  serverSideMoveBytes: Float
+
+  """Total bytes to transfer"""
+  totalBytes: Float
+
+  """Total checks to perform"""
+  totalChecks: Float
+
+  """Total transfers to perform"""
+  totalTransfers: Float
+
+  """Time spent transferring in seconds"""
+  transferTime: Float
+
+  """Number of transfers completed"""
+  transfers: Float
+
+  """Currently transferring files"""
+  transferring: JSON
+
+  """Currently checking files"""
+  checking: JSON
+
+  """Human-readable bytes transferred"""
+  formattedBytes: String
+
+  """Human-readable transfer speed"""
+  formattedSpeed: String
+
+  """Human-readable elapsed time"""
+  formattedElapsedTime: String
+
+  """Human-readable ETA"""
+  formattedEta: String
+
+  """Calculated percentage (fallback when percentage is null)"""
+  calculatedPercentage: Float
+
+  """Whether the job is actively running"""
+  isActivelyRunning: Boolean
+
+  """Whether the job is completed"""
+  isCompleted: Boolean
+}
+
+type RCloneJob {
+  """Job ID"""
+  id: PrefixedID!
+
+  """RClone group for the job"""
+  group: String
+
+  """Job status and statistics"""
+  stats: RCloneJobStats
+
+  """Progress percentage (0-100)"""
+  progressPercentage: Float
+
+  """Configuration ID that triggered this job"""
+  configId: PrefixedID
+
+  """Current status of the job"""
+  status: BackupJobStatus
+
+  """Whether the job is finished"""
+  finished: Boolean
+
+  """Whether the job was successful"""
+  success: Boolean
+
+  """Error message if job failed"""
+  error: String
+
+  """Whether the job is actively running"""
+  isRunning: Boolean
+
+  """Error message for display"""
+  errorMessage: String
+
+  """Whether there is a recent job"""
+  hasRecentJob: Boolean
+}
+
+"""Status of a backup job"""
+enum BackupJobStatus {
+  RUNNING
+  COMPLETED
+  FAILED
+  CANCELLED
+}
+
+type Backup implements Node {
+  id: PrefixedID!
+  jobs: [RCloneJob!]!
+  configs: [BackupJobConfig!]!
+
+  """Get the status for the backup service"""
+  status: BackupStatus!
+}
+
+type BackupStatus {
+  """Status message indicating the outcome of the backup initiation."""
+  status: String!
+
+  """Job ID if available, can be used to check job status."""
+  jobId: String
+}
+
+type BackupJobConfig implements Node {
+  id: PrefixedID!
+
+  """Human-readable name for this backup job"""
+  name: String!
+
+  """Type of backup to perform"""
+  backupType: BackupType!
+
+  """Remote name from rclone config"""
+  remoteName: String!
+
+  """Destination path on the remote"""
+  destinationPath: String!
+
+  """Cron schedule expression (e.g., "0 2 * * *" for daily at 2AM)"""
+  schedule: String!
+
+  """Whether this backup job is enabled"""
+  enabled: Boolean!
+
+  """RClone options (e.g., --transfers, --checkers)"""
+  rcloneOptions: JSON
+
+  """Source configuration for this backup job"""
+  sourceConfig: SourceConfig
+
+  """When this config was created"""
+  createdAt: DateTimeISO!
+
+  """When this config was last updated"""
+  updatedAt: DateTimeISO!
+
+  """Last time this job ran"""
+  lastRunAt: DateTimeISO
+
+  """Status of last run"""
+  lastRunStatus: String
+
+  """Current running job ID"""
+  currentJobId: String
+
+  """Current running job for this config"""
+  currentJob: RCloneJob
+}
+
+"""
+A date-time string at UTC, such as 2007-12-03T10:15:30Z, compliant with the `date-time` format outlined in section 5.6 of the RFC 3339 profile of the ISO 8601 standard for representation of dates and times using the Gregorian calendar.This scalar is serialized to a string in ISO 8601 format and parsed from a string in ISO 8601 format.
+"""
+scalar DateTimeISO
+
+type BackupJobConfigForm {
+  id: PrefixedID!
+  dataSchema: JSON!
+  uiSchema: JSON!
+}
 
 type Config implements Node {
   id: PrefixedID!
@@ -1356,49 +1794,6 @@ type Docker implements Node {
   networks(skipCache: Boolean! = false): [DockerNetwork!]!
 }
 
-type FlashBackupStatus {
-  """Status message indicating the outcome of the backup initiation."""
-  status: String!
-
-  """Job ID if available, can be used to check job status."""
-  jobId: String
-}
-
-type RCloneDrive {
-  """Provider name"""
-  name: String!
-
-  """Provider options and configuration schema"""
-  options: JSON!
-}
-
-type RCloneBackupConfigForm {
-  id: ID!
-  dataSchema: JSON!
-  uiSchema: JSON!
-}
-
-type RCloneBackupSettings {
-  configForm(formOptions: RCloneConfigFormInput): RCloneBackupConfigForm!
-  drives: [RCloneDrive!]!
-  remotes: [RCloneRemote!]!
-}
-
-input RCloneConfigFormInput {
-  providerType: String
-  showAdvanced: Boolean = false
-  parameters: JSON
-}
-
-type RCloneRemote {
-  name: String!
-  type: String!
-  parameters: JSON!
-
-  """Complete remote configuration"""
-  config: JSON!
-}
-
 type Flash implements Node {
   id: PrefixedID!
   guid: String!
@@ -1591,6 +1986,19 @@ type Query {
 
   """All possible permissions for API keys"""
   apiKeyPossiblePermissions: [Permission!]!
+
+  """Get backup service information"""
+  backup: Backup!
+
+  """Get a specific backup job configuration"""
+  backupJobConfig(id: PrefixedID!): BackupJobConfig
+
+  """Get status of a specific backup job"""
+  backupJob(id: PrefixedID!): RCloneJob
+
+  """Get the JSON schema for backup job configuration form"""
+  backupJobConfigForm(input: BackupJobConfigFormInput): BackupJobConfigForm!
+  rclone: RCloneBackupSettings!
   connect: Connect!
   remoteAccess: RemoteAccess!
   extraAllowedOrigins: [String!]!
@@ -1600,9 +2008,12 @@ type Query {
   docker: Docker!
   disks: [Disk!]!
   disk(id: PrefixedID!): Disk!
-  rclone: RCloneBackupSettings!
   health: String!
   getDemo: String!
+}
+
+input BackupJobConfigFormInput {
+  showAdvanced: Boolean! = false
 }
 
 type Mutation {
@@ -1628,6 +2039,7 @@ type Mutation {
   array: ArrayMutations!
   docker: DockerMutations!
   vm: VmMutations!
+  backup: BackupMutations!
   parityCheck: ParityCheckMutations!
   apiKey: ApiKeyMutations!
   rclone: RCloneMutations!
@@ -1637,9 +2049,6 @@ type Mutation {
   setupRemoteAccess(input: SetupRemoteAccessInput!): Boolean!
   setAdditionalAllowedOrigins(input: AllowedOriginInput!): [String!]!
   enableDynamicRemoteAccess(input: EnableDynamicRemoteAccessInput!): Boolean!
-
-  """Initiates a flash drive backup using a configured remote."""
-  initiateFlashBackup(input: InitiateFlashBackupInput!): FlashBackupStatus!
   setDemo: String!
 }
 
@@ -1736,22 +2145,6 @@ input AccessUrlInput {
   ipv6: URL
 }
 
-input InitiateFlashBackupInput {
-  """The name of the remote configuration to use for the backup."""
-  remoteName: String!
-
-  """Source path to backup (typically the flash drive)."""
-  sourcePath: String!
-
-  """Destination path on the remote."""
-  destinationPath: String!
-
-  """
-  Additional options for the backup operation, such as --dry-run or --transfers.
-  """
-  options: JSON
-}
-
 type Subscription {
   displaySubscription: Display!
   infoSubscription: Info!
@@ -1763,6 +2156,9 @@ type Subscription {
   serversSubscription: Server!
   parityHistorySubscription: ParityCheck!
   arraySubscription: UnraidArray!
+
+  """Subscribe to real-time backup job progress updates"""
+  backupJobProgress(id: PrefixedID!): RCloneJob
 }
 
 """Available authentication action verbs"""

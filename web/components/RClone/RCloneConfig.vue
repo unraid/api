@@ -30,7 +30,7 @@ interface ConfigStep {
 
 // Form state
 const formState = ref(props.initialState || {
-  configStep: 0 as number | ConfigStep,
+  configStep: { current: 0, total: 0 },
   showAdvanced: false,
   name: '',
   type: '',
@@ -56,13 +56,8 @@ watch(
   formState,
   async (newValue, oldValue) => {
     // Get current step as number for comparison
-    const newStep = typeof newValue.configStep === 'object' 
-      ? (newValue.configStep as ConfigStep).current 
-      : newValue.configStep as number;
-    
-    const oldStep = typeof oldValue.configStep === 'object'
-      ? (oldValue.configStep as ConfigStep).current
-      : oldValue.configStep as number;
+    const newStep = (newValue.configStep as ConfigStep)?.current ?? 0;
+    const oldStep = (oldValue.configStep as ConfigStep)?.current ?? 0;
     
     // Check if we need to refetch
     const shouldRefetch = 
@@ -138,7 +133,7 @@ onCreateDone(async ({ data }) => {
 
   // Reset form and emit complete event
   formState.value = {
-    configStep: 0,
+    configStep: { current: 0, total: 0 },
     showAdvanced: false,
     name: '',
     type: '',
@@ -179,8 +174,8 @@ const uiSchema = computed(() => formResult.value?.rclone?.configForm?.uiSchema);
 
 // Handle both number and object formats of configStep
 const getCurrentStep = computed(() => {
-  const step = formState.value.configStep;
-  return typeof step === 'object' ? (step as ConfigStep).current : step as number;
+  const step = formState.value.configStep as ConfigStep;
+  return step?.current ?? 0;
 });
 
 // Get total steps from UI schema

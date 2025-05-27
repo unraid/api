@@ -18,7 +18,8 @@ export async function bootstrapNestServer(): Promise<NestFastifyApplication> {
 
     const app = await NestFactory.create<NestFastifyApplication>(AppModule, new FastifyAdapter(), {
         bufferLogs: false,
-        ...(LOG_LEVEL !== 'TRACE' ? { logger: false } : {}),
+
+        ...(LOG_LEVEL !== 'DEBUG' ? { logger: false } : {}),
     });
 
     // Enable validation globally
