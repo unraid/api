@@ -1,7 +1,13 @@
 import 'reflect-metadata';
 
 import { plainToClass } from 'class-transformer';
-import { validate, ValidationError } from 'class-validator';
+import {
+    registerDecorator,
+    validate,
+    ValidationArguments,
+    ValidationError,
+    ValidationOptions,
+} from 'class-validator';
 
 /**
  * Validates an object against a class using class-validator
@@ -31,4 +37,27 @@ export async function validateObject<T extends object>(type: new () => T, object
     }
 
     return instance;
+}
+
+/**
+ * Custom validator to ensure at least one of the given properties is a non-empty array
+ */
+export function AtLeastOneOf(properties: string[], validationOptions?: ValidationOptions) {
+    return function (object: object, propertyName: string) {
+        registerDecorator({
+            name: 'atLeastOneOf',
+            target: object.constructor,
+            propertyName: propertyName,
+            options: validationOptions,
+            validator: {
+                validate(_: any, args: ValidationArguments) {
+                    const obj = args.object as any;
+                    return properties.some((prop) => Array.isArray(obj[prop]) && obj[prop].length > 0);
+                },
+                defaultMessage(args: ValidationArguments) {
+                    return `At least one of the following must be a non-empty array: ${properties.join(', ')}`;
+                },
+            },
+        });
+    };
 }
