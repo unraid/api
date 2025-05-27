@@ -19,3 +19,4 @@ export * from '@/components/common/toast';
 export * from '@/components/common/popover';
 export * from '@/components/modals';
 export * from '@/components/common/accordion';
+export * from '@/components/common/dialog';
