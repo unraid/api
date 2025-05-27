@@ -185,7 +185,7 @@ describe('ApiKeyService', () => {
 
             await expect(
                 apiKeyService.create({ name: 'name', description: 'desc', roles: [] })
-            ).rejects.toThrow('At least one role must be specified');
+            ).rejects.toThrow('At least one role or permission must be specified');
 
             await expect(
                 apiKeyService.create({

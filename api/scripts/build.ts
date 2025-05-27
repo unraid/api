@@ -5,7 +5,7 @@ import { exit } from 'process';
 import type { PackageJson } from 'type-fest';
 import { $, cd } from 'zx';
 
-import { getDeploymentVersion } from './get-deployment-version.js';
+import { getDeploymentVersion } from '@app/../scripts/get-deployment-version.js';
 
 type ApiPackageJson = PackageJson & {
     version: string;
@@ -49,13 +49,18 @@ try {
 
     await writeFile('package.json', JSON.stringify(parsedPackageJson, null, 4));
 
-    const sudoCheck = await $`command -v sudo`.nothrow();
-    const SUDO = sudoCheck.exitCode === 0 ? 'sudo' : '';
-    await $`${SUDO} chown -R 0:0 node_modules`;
+    const compressionLevel = process.env.WATCH_MODE ? '-1' : '-5';
+    await $`XZ_OPT=${compressionLevel} tar -cJf packed-node-modules.tar.xz node_modules`;
+    // Create a subdirectory for the node modules archive
+    await mkdir('../node-modules-archive', { recursive: true });
+    await $`mv packed-node-modules.tar.xz ../node-modules-archive/`;
+    await $`rm -rf node_modules`;
 
-    await $`XZ_OPT=-5 tar -cJf packed-node-modules.tar.xz node_modules`;
-    await $`mv packed-node-modules.tar.xz ../`;
-    await $`${SUDO} rm -rf node_modules`;
+    // Clean the release directory
+    await $`rm -rf ../release/*`;
+
+    // Copy other files to release directory
+    await $`cp -r ./* ../release/`;
 
     // chmod the cli
     await $`chmod +x ./dist/cli.js`;

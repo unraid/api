@@ -33,6 +33,7 @@ import {
     WAN_ACCESS_TYPE,
     WAN_FORWARD_TYPE,
 } from '@app/unraid-api/graph/resolvers/connect/connect.model.js';
+import { createLabeledControl } from '@app/unraid-api/graph/utils/form-utils.js';
 import { mergeSettingSlices } from '@app/unraid-api/types/json-forms.js';
 import { csvStringToArray } from '@app/utils.js';
 
@@ -56,8 +57,7 @@ export class ConnectSettingsService {
     }
 
     isConnectPluginInstalled(): boolean {
-        // logic ported from webguid
-        return ['/var/lib/pkgtools/packages/dynamix.unraid.net', '/usr/local/sbin/unraid-api'].every(
+        return ['/var/lib/pkgtools/packages/dynamix.unraid.net', '/usr/local/bin/unraid-api'].some(
             (path) => fileExistsSync(path)
         );
     }
@@ -319,7 +319,9 @@ export class ConnectSettingsService {
      * Computes the JSONForms schema definition for remote access settings.
      */
     async remoteAccessSlice(): Promise<SettingSlice> {
-        const precondition = (await this.isSignedIn()) && (await this.isSSLCertProvisioned());
+        const isSignedIn = await this.isSignedIn();
+        const isSSLCertProvisioned = await this.isSSLCertProvisioned();
+        const precondition = isSignedIn && isSSLCertProvisioned;
 
         /** shown when preconditions are not met */
         const requirements: UIElement[] = [
@@ -332,11 +334,11 @@ export class ConnectSettingsService {
                     items: [
                         {
                             text: 'You are signed in to Unraid Connect',
-                            status: await this.isSignedIn(),
+                            status: isSignedIn,
                         },
                         {
                             text: 'You have provisioned a valid SSL certificate',
-                            status: await this.isSSLCertProvisioned(),
+                            status: isSSLCertProvisioned,
                         },
                     ],
                 },
@@ -345,15 +347,15 @@ export class ConnectSettingsService {
 
         /** shown when preconditions are met */
         const formControls: UIElement[] = [
-            {
-                type: 'Control',
+            createLabeledControl({
                 scope: '#/properties/accessType',
                 label: 'Allow Remote Access',
-            },
-            {
-                type: 'Control',
+                controlOptions: {},
+            }),
+            createLabeledControl({
                 scope: '#/properties/forwardType',
                 label: 'Remote Access Forward Type',
+                controlOptions: {},
                 rule: {
                     effect: RuleEffect.DISABLE,
                     condition: {
@@ -363,12 +365,11 @@ export class ConnectSettingsService {
                         },
                     } as SchemaBasedCondition,
                 },
-            },
-            {
-                type: 'Control',
+            }),
+            createLabeledControl({
                 scope: '#/properties/port',
                 label: 'Remote Access WAN Port',
-                options: {
+                controlOptions: {
                     format: 'short',
                     formatOptions: {
                         useGrouping: false,
@@ -389,7 +390,7 @@ export class ConnectSettingsService {
                         },
                     } as Omit<SchemaBasedCondition, 'scope'>,
                 },
-            },
+            }),
         ];
 
         /** shape of the data associated with remote access settings, as json schema properties*/
@@ -437,15 +438,14 @@ export class ConnectSettingsService {
                 },
             },
             elements: [
-                {
-                    type: 'Control',
+                createLabeledControl({
                     scope: '#/properties/sandbox',
                     label: 'Enable Developer Sandbox:',
-                    options: {
+                    description: sandbox ? description : undefined,
+                    controlOptions: {
                         toggle: true,
-                        description: sandbox ? description : undefined,
                     },
-                },
+                }),
             ],
         };
     }
@@ -488,14 +488,17 @@ export class ConnectSettingsService {
                 },
             },
             elements: [
-                {
-                    type: 'Control',
+                createLabeledControl({
                     scope: '#/properties/extraOrigins',
-                    options: {
+                    label: 'Allowed Origins (CORS)',
+                    description:
+                        'Provide a comma-separated list of URLs allowed to access the API (e.g., https://myapp.example.com).',
+                    controlOptions: {
                         inputType: 'url',
                         placeholder: 'https://example.com',
+                        format: 'array',
                     },
-                },
+                }),
             ],
         };
     }
@@ -512,18 +515,20 @@ export class ConnectSettingsService {
                         type: 'string',
                     },
                     title: 'Unraid API SSO Users',
-                    description: `Provide a list of Unique Unraid Account ID's. Find yours at <a href="https://account.unraid.net/settings" target="_blank">account.unraid.net/settings</a>`,
+                    description: `Provide a list of Unique Unraid Account ID's. Find yours at <a href="https://account.unraid.net/settings" target="_blank" rel="noopener noreferrer">account.unraid.net/settings</a>. Requires restart if adding first user.`,
                 },
             },
             elements: [
-                {
-                    type: 'Control',
+                createLabeledControl({
                     scope: '#/properties/ssoUserIds',
-                    options: {
+                    label: 'Unraid Connect SSO Users',
+                    description: `Provide a list of Unique Unraid Account IDs. Find yours at <a href="https://account.unraid.net/settings" target="_blank" rel="noopener noreferrer">account.unraid.net/settings</a>. Requires restart if adding first user.`,
+                    controlOptions: {
                         inputType: 'text',
                         placeholder: 'UUID',
+                        format: 'array',
                     },
-                },
+                }),
             ],
         };
     }

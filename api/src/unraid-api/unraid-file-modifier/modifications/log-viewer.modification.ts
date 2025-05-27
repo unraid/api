@@ -41,6 +41,12 @@ Tag="list"
     }
 
     async shouldApply(): Promise<ShouldApplyWithReason> {
+        if (await this.isUnraidVersionGreaterThanOrEqualTo('7.2.0')) {
+            return {
+                shouldApply: false,
+                reason: 'Skipping for Unraid 7.2 or later, where the Unraid API is integrated.',
+            };
+        }
         const alreadyConfigured = await fileExists(this.filePath);
         if (alreadyConfigured) {
             return { shouldApply: false, reason: 'LogViewer configuration already exists' };

@@ -402,6 +402,7 @@ class WebComponentTranslations
             'Your license key is not eligible for Unraid OS {0}' => sprintf(_('Your license key is not eligible for Unraid OS %s'), '{0}'),
             'Your Trial has expired' => _('Your Trial has expired'),
             'Your Trial key has been extended!' => _('Your Trial key has been extended!'),
+            'Unraid OS {0} Changelog' => sprintf(_('Unraid OS %s Changelog'), '{0}'),
         ];
     }
 

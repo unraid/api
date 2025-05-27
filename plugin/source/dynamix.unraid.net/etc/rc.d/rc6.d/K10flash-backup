@@ -1,0 +1,7 @@
+#!/bin/sh
+# Stop flash-backup on shutdown/reboot
+
+if [ -x /etc/rc.d/rc.flash_backup ]; then
+  echo "Stopping flash-backup..."
+  /etc/rc.d/rc.flash_backup stop
+fi 

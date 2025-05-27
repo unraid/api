@@ -8,6 +8,13 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { useUpdateOsStore } from '~/store/updateOs';
 
+vi.mock('@unraid/shared-callbacks', () => ({
+  useCallback: vi.fn(() => ({
+    send: vi.fn(),
+    watcher: vi.fn(),
+  })),
+}));
+
 vi.mock('~/composables/services/webgui', () => {
   return {
     WebguiCheckForUpdate: vi.fn().mockResolvedValue({
@@ -58,7 +65,7 @@ describe('UpdateOs Store', () => {
   describe('State and Getters', () => {
     it('should initialize with correct default values', () => {
       expect(store.checkForUpdatesLoading).toBe(false);
-      expect(store.modalOpen).toBe(false);
+      expect(store.updateOsModalVisible).toBe(false);
     });
 
     it('should have computed properties with the right types', () => {
@@ -86,15 +93,15 @@ describe('UpdateOs Store', () => {
       await store.localCheckForUpdate();
 
       expect(WebguiCheckForUpdate).toHaveBeenCalled();
-      expect(store.modalOpen).toBe(true);
+      expect(store.updateOsModalVisible).toBe(true);
     });
 
     it('should set modal open state', () => {
       store.setModalOpen(true);
-      expect(store.modalOpen).toBe(true);
+      expect(store.updateOsModalVisible).toBe(true);
 
       store.setModalOpen(false);
-      expect(store.modalOpen).toBe(false);
+      expect(store.updateOsModalVisible).toBe(false);
     });
 
     it('should handle errors when checking for updates', async () => {

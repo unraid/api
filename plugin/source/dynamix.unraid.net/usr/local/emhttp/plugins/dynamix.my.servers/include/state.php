@@ -146,26 +146,17 @@ class ServerState
 
     private function setConnectValues()
     {
-        if (file_exists('/var/lib/pkgtools/packages/dynamix.unraid.net')) {
+        if (file_exists('/usr/local/bin/unraid-api')) {
             $this->connectPluginInstalled = 'dynamix.unraid.net.plg';
         }
-        if (file_exists('/var/lib/pkgtools/packages/dynamix.unraid.net.staging')) {
-            $this->connectPluginInstalled = 'dynamix.unraid.net.staging.plg';
-        }
-        if ($this->connectPluginInstalled && !file_exists('/usr/bin/unraid-api')) {
-            $this->connectPluginInstalled .= '_installFailed';
-        }
-
+        
         // exit early if the plugin is not installed
         if (!$this->connectPluginInstalled) {
             return;
         }
 
-        $this->connectPluginVersion = file_exists('/var/log/plugins/dynamix.unraid.net.plg')
-            ? trim(@exec('/usr/local/sbin/plugin version /var/log/plugins/dynamix.unraid.net.plg 2>/dev/null'))
-            : (file_exists('/var/log/plugins/dynamix.unraid.net.staging.plg')
-                ? trim(@exec('/usr/local/sbin/plugin version /var/log/plugins/dynamix.unraid.net.staging.plg 2>/dev/null'))
-                : 'base-' . $this->var['version']);
+        // Get version directly using api_utils.sh get_api_version function
+        $this->connectPluginVersion = trim(@exec('/usr/local/share/dynamix.unraid.net/scripts/api_utils.sh get_api_version 2>/dev/null')) ?: 'unknown';
 
         $this->getMyServersCfgValues();
         $this->getConnectKnownOrigins();

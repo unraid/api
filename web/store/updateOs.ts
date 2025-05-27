@@ -9,6 +9,8 @@ import type { ServerUpdateOsResponse } from '~/types/server';
 
 import { WebguiCheckForUpdate, WebguiUpdateCancel } from '~/composables/services/webgui';
 import { useServerStore } from '~/store/server';
+import prerelease from 'semver/functions/prerelease';
+import { useCallbackActionsStore } from '~/store/callbackActions';
 
 /**
  * @see https://stackoverflow.com/questions/73476371/using-pinia-with-vue-js-web-components
@@ -23,7 +25,9 @@ extend(relativeTime);
 export const useUpdateOsStore = defineStore('updateOs', () => {
   // state
   const checkForUpdatesLoading = ref<boolean>(false);
-  const modalOpen = ref<boolean>(false);
+  const updateOsModalVisible = ref<boolean>(false);
+  const releaseForUpdate = ref<ServerUpdateOsResponse | null>(null);
+  const changelogModalVisible = computed(() => !!releaseForUpdate.value);
   // getters from other stores
   const serverStore = useServerStore();
 
@@ -58,6 +62,33 @@ export const useUpdateOsStore = defineStore('updateOs', () => {
    * If the updateOsResponse does not have a sha256, then the user is required to authenticate to download the update
    */
   const availableRequiresAuth = computed((): boolean => !updateOsResponse.value?.sha256);
+
+  // Changelog logic
+  const changelogUrl = computed((): string => releaseForUpdate.value?.changelog || '');
+  const changelogPretty = computed(() => releaseForUpdate.value?.changelogPretty ?? null);
+  const setReleaseForUpdate = (release: ServerUpdateOsResponse | null) => {
+    releaseForUpdate.value = release;
+  };
+  // isReleaseForUpdateStable logic (true if no prerelease in version)
+  const isReleaseForUpdateStable = computed(() => {
+    if (!releaseForUpdate.value?.version) return false;
+    return !prerelease(releaseForUpdate.value.version);
+  });
+  // fetchAndConfirmInstall logic
+  const callbackStore = useCallbackActionsStore();
+  const fetchAndConfirmInstall = (sha256: string) => {
+    callbackStore.send(
+      window.location.href,
+      [
+        {
+          sha256,
+          type: 'updateOs',
+        },
+      ],
+      undefined,
+      'forUpc'
+    );
+  };
 
   // actions
   const localCheckForUpdate = async (): Promise<void> => {
@@ -95,7 +126,7 @@ export const useUpdateOsStore = defineStore('updateOs', () => {
   };
 
   const setModalOpen = (val: boolean) => {
-    modalOpen.value = val;
+    updateOsModalVisible.value = val;
   };
 
   return {
@@ -103,14 +134,21 @@ export const useUpdateOsStore = defineStore('updateOs', () => {
     available,
     availableWithRenewal,
     checkForUpdatesLoading,
-    modalOpen,
+    updateOsModalVisible,
+    changelogModalVisible,
+    releaseForUpdate,
     updateOsIgnoredReleases,
     // getters
     availableReleaseDate,
     availableRequiresAuth,
+    changelogUrl,
+    changelogPretty,
+    isReleaseForUpdateStable,
     // actions
     localCheckForUpdate,
     cancelUpdate,
     setModalOpen,
+    setReleaseForUpdate,
+    fetchAndConfirmInstall,
   };
 });

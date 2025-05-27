@@ -14,6 +14,7 @@
     "build:dev": "nuxi build --dotenv .env.staging && pnpm run manifest-ts && pnpm run deploy-to-unraid:dev",
     "build:webgui": "pnpm run type-check && nuxi build --dotenv .env.production && pnpm run manifest-ts && pnpm run copy-to-webgui-repo",
     "build": "NODE_ENV=production nuxi build --dotenv .env.production && pnpm run manifest-ts",
+    "prebuild:watch": "pnpm predev",
     "build:watch": "nuxi build --dotenv .env.production --watch && pnpm run manifest-ts",
     "generate": "nuxt generate",
     "manifest-ts": "node ./scripts/add-timestamp-webcomponent-manifest.js",
@@ -69,7 +70,7 @@
     "nuxt-custom-elements": "2.0.0-beta.18",
     "prettier": "3.5.3",
     "prettier-plugin-tailwindcss": "^0.6.9",
-    "shadcn-nuxt": "^1.0.0",
+    "shadcn-nuxt": "^2.0.0",
     "tailwindcss": "^3.0.0",
     "tailwindcss-animate": "^1.0.7",
     "terser": "^5.37.0",
@@ -110,7 +111,7 @@
     "hex-to-rgba": "^2.0.1",
     "highlight.js": "^11.11.1",
     "isomorphic-dompurify": "^2.19.0",
-    "lucide-vue-next": "^0.506.0",
+    "lucide-vue-next": "^0.511.0",
     "marked": "^15.0.0",
     "marked-base-url": "^1.1.6",
     "pinia": "^3.0.1",
@@ -126,5 +127,5 @@
   "overrides": {
     "vue": "latest"
   },
-  "packageManager": "pnpm@10.10.0"
+  "packageManager": "pnpm@10.11.0"
 }

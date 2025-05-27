@@ -4,7 +4,7 @@
   "version": "4.8.0",
   "scripts": {
     "build": "pnpm -r build",
-    "build:watch": "pnpm -r build:watch",
+    "build:watch": " pnpm -r --parallel build:watch",
     "dev": "pnpm -r dev",
     "unraid:deploy": "pnpm -r unraid:deploy",
     "test": "pnpm -r test",
@@ -41,11 +41,11 @@
   "dependencies": {
     "@manypkg/cli": "^0.24.0",
     "chalk": "^5.0.0",
-    "diff": "^7.0.0",
+    "diff": "^8.0.0",
     "ignore": "^7.0.0"
   },
   "devDependencies": {
-    "lint-staged": "^15.2.2",
+    "lint-staged": "^16.0.0",
     "simple-git-hooks": "^2.9.0"
   },
   "simple-git-hooks": {
@@ -56,5 +56,5 @@
       "pnpm lint:fix"
     ]
   },
-  "packageManager": "pnpm@10.10.0"
+  "packageManager": "pnpm@10.11.0"
 }

@@ -8,5 +8,6 @@ alwaysApply: false
 * always run scripts from api/package.json unless requested
 * prefer adding new files to the nest repo located at api/src/unraid-api/ instead of the legacy code
 * Test suite is VITEST, do not use jest
+pnpm --filter ./api test
 * Prefer to not mock simple dependencies
 

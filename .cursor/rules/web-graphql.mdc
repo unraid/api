@@ -1,0 +1,9 @@
+---
+description: 
+globs: web/**/*
+alwaysApply: false
+---
+* Always run `pnpm codegen` for GraphQL code generation in the web directory
+* GraphQL queries must be placed in `.query.ts` files
+* GraphQL mutations must be placed in `.mutation.ts` files
+* All GraphQL under `web/` and follow this naming convention

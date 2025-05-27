@@ -104,7 +104,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: packed-node-modules
-          path: ${{ github.workspace }}/plugin/
+          path: ${{ github.workspace }}/plugin/node-modules-archive/
       - name: Extract Unraid API
         run: |
           mkdir -p ${{ github.workspace }}/plugin/source/dynamix.unraid.net/usr/local/unraid-api
@@ -113,9 +113,8 @@ jobs:
         id: build-plugin
         run: |
           cd ${{ github.workspace }}/plugin
-          ls -al
-          pnpm run build:txz
-          pnpm run build:plugin --tag="${{ inputs.TAG }}" --base-url="${{ inputs.BASE_URL }}"
+          pnpm run build:txz --tag="${{ inputs.TAG }}" --base-url="${{ inputs.BASE_URL }}" --api-version="${{ steps.vars.outputs.API_VERSION }}"
+          pnpm run build:plugin --tag="${{ inputs.TAG }}" --base-url="${{ inputs.BASE_URL }}" --api-version="${{ steps.vars.outputs.API_VERSION }}"
 
       - name: Ensure Plugin Files Exist
         run: |

@@ -19,6 +19,12 @@ export default class SetPasswordModalModification extends FileModification {
     }
 
     async shouldApply(): Promise<ShouldApplyWithReason> {
+        if (await this.isUnraidVersionGreaterThanOrEqualTo('7.2.0')) {
+            return {
+                shouldApply: false,
+                reason: 'Skipping for Unraid 7.2 or later, where the Unraid API is integrated.',
+            };
+        }
         const fileContent = await readFile(this.filePath, 'utf-8');
         const injectString =
             '<?include "$docroot/plugins/dynamix.my.servers/include/welcome-modal.php"?>';

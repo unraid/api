@@ -132,3 +132,11 @@ export class RemoveRoleFromApiKeyInput {
     @IsEnum(Role)
     role!: Role;
 }
+
+@InputType()
+export class DeleteApiKeyInput {
+    @Field(() => [PrefixedID])
+    @IsArray()
+    @IsString({ each: true })
+    ids!: string[];
+}

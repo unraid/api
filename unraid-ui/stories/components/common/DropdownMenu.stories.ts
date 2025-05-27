@@ -1,13 +1,15 @@
 import type { Meta, StoryObj } from '@storybook/vue3';
 import { MoreVertical } from 'lucide-vue-next';
-import Button from '../../../src/components/common/button/Button.vue';
-import DropdownMenu from '../../../src/components/common/dropdown-menu/DropdownMenu.vue';
-import DropdownMenuArrow from '../../../src/components/common/dropdown-menu/DropdownMenuArrow.vue';
-import DropdownMenuContent from '../../../src/components/common/dropdown-menu/DropdownMenuContent.vue';
-import DropdownMenuItem from '../../../src/components/common/dropdown-menu/DropdownMenuItem.vue';
-import DropdownMenuLabel from '../../../src/components/common/dropdown-menu/DropdownMenuLabel.vue';
-import DropdownMenuSeparator from '../../../src/components/common/dropdown-menu/DropdownMenuSeparator.vue';
-import DropdownMenuTrigger from '../../../src/components/common/dropdown-menu/DropdownMenuTrigger.vue';
+import {
+  DropdownMenu,
+  DropdownMenuArrow,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/common/dropdown-menu';
+import { Button } from '@/components/common/button';
 
 const meta = {
   title: 'Components/Common/DropdownMenu',

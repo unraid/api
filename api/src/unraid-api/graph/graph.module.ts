@@ -4,7 +4,7 @@ import { Module } from '@nestjs/common';
 import { GraphQLModule } from '@nestjs/graphql';
 
 import { NoUnusedVariablesRule } from 'graphql';
-import { JSONResolver, URLResolver } from 'graphql-scalars';
+import { GraphQLBigInt, JSONResolver, URLResolver } from 'graphql-scalars';
 
 import { ENVIRONMENT } from '@app/environment.js';
 import { getters } from '@app/store/index.js';
@@ -14,7 +14,6 @@ import {
 } from '@app/unraid-api/graph/directives/use-permissions.directive.js';
 import { ResolversModule } from '@app/unraid-api/graph/resolvers/resolvers.module.js';
 import { sandboxPlugin } from '@app/unraid-api/graph/sandbox-plugin.js';
-import { GraphQLLong } from '@app/unraid-api/graph/scalars/graphql-type-long.js';
 import { PrefixedID as PrefixedIDScalar } from '@app/unraid-api/graph/scalars/graphql-type-prefixed-id.js';
 import { PluginModule } from '@app/unraid-api/plugin/plugin.module.js';
 
@@ -47,11 +46,6 @@ import { PluginModule } from '@app/unraid-api/plugin/plugin.module.js';
                         'graphql-ws': {
                             path: '/graphql',
                         },
-                    },
-                    resolvers: {
-                        JSON: JSONResolver,
-                        Long: GraphQLLong,
-                        URL: URLResolver,
                     },
                     buildSchemaOptions: {
                         dateScalarMode: 'isoDate',

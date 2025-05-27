@@ -84,7 +84,7 @@ type ArrayDisk implements Node {
   device: String
 
   """(KB) Disk Size total"""
-  size: Long
+  size: BigInt
   status: ArrayDiskStatus
 
   """Is the disk a HDD or SSD."""
@@ -96,26 +96,26 @@ type ArrayDisk implements Node {
   """
   Count of I/O read requests sent to the device I/O drivers. These statistics may be cleared at any time.
   """
-  numReads: Long
+  numReads: BigInt
 
   """
   Count of I/O writes requests sent to the device I/O drivers. These statistics may be cleared at any time.
   """
-  numWrites: Long
+  numWrites: BigInt
 
   """
   Number of unrecoverable errors reported by the device I/O drivers. Missing data due to unrecoverable array read errors is filled in on-the-fly using parity reconstruct (and we attempt to write this data back to the sector(s) which failed). Any unrecoverable write error results in disabling the disk.
   """
-  numErrors: Long
+  numErrors: BigInt
 
   """(KB) Total Size of the FS (Not present on Parity type drive)"""
-  fsSize: Long
+  fsSize: BigInt
 
   """(KB) Free Size on the FS (Not present on Parity type drive)"""
-  fsFree: Long
+  fsFree: BigInt
 
   """(KB) Used Size on the FS (Not present on Parity type drive)"""
-  fsUsed: Long
+  fsUsed: BigInt
   exportable: Boolean
 
   """Type of Disk - used to differentiate Cache / Flash / Array / Parity"""
@@ -145,8 +145,10 @@ interface Node {
   id: PrefixedID!
 }
 
-"""The `Long` scalar type represents 52-bit integers"""
-scalar Long
+"""
+The `BigInt` scalar type represents non-fractional signed whole numeric values.
+"""
+scalar BigInt
 
 enum ArrayDiskStatus {
   DISK_NP
@@ -222,13 +224,13 @@ type Share implements Node {
   name: String
 
   """(KB) Free space"""
-  free: Long
+  free: BigInt
 
   """(KB) Used Size"""
-  used: Long
+  used: BigInt
 
   """(KB) Total size"""
-  size: Long
+  size: BigInt
 
   """Disks that are included in this share"""
   include: [String!]
@@ -881,6 +883,52 @@ type VmMutations {
   reset(id: PrefixedID!): Boolean!
 }
 
+"""API Key related mutations"""
+type ApiKeyMutations {
+  """Create an API key"""
+  create(input: CreateApiKeyInput!): ApiKeyWithSecret!
+
+  """Add a role to an API key"""
+  addRole(input: AddRoleForApiKeyInput!): Boolean!
+
+  """Remove a role from an API key"""
+  removeRole(input: RemoveRoleFromApiKeyInput!): Boolean!
+
+  """Delete one or more API keys"""
+  delete(input: DeleteApiKeyInput!): Boolean!
+}
+
+input CreateApiKeyInput {
+  name: String!
+  description: String
+  roles: [Role!]
+  permissions: [AddPermissionInput!]
+
+  """
+  This will replace the existing key if one already exists with the same name, otherwise returns the existing key
+  """
+  overwrite: Boolean
+}
+
+input AddPermissionInput {
+  resource: Resource!
+  actions: [String!]!
+}
+
+input AddRoleForApiKeyInput {
+  apiKeyId: PrefixedID!
+  role: Role!
+}
+
+input RemoveRoleFromApiKeyInput {
+  apiKeyId: PrefixedID!
+  role: Role!
+}
+
+input DeleteApiKeyInput {
+  ids: [PrefixedID!]!
+}
+
 """
 Parity check related mutations, WIP, response types and functionaliy will change
 """
@@ -896,6 +944,25 @@ type ParityCheckMutations {
 
   """Cancel a parity check"""
   cancel: JSON!
+}
+
+"""RClone related mutations"""
+type RCloneMutations {
+  """Create a new RClone remote"""
+  createRCloneRemote(input: CreateRCloneRemoteInput!): RCloneRemote!
+
+  """Delete an existing RClone remote"""
+  deleteRCloneRemote(input: DeleteRCloneRemoteInput!): Boolean!
+}
+
+input CreateRCloneRemoteInput {
+  name: String!
+  type: String!
+  parameters: JSON!
+}
+
+input DeleteRCloneRemoteInput {
+  name: String!
 }
 
 type ParityCheck {
@@ -1116,7 +1183,7 @@ enum Temperature {
 
 type MemoryLayout implements Node {
   id: PrefixedID!
-  size: Int!
+  size: BigInt!
   bank: String
   type: String
   clockSpeed: Int
@@ -1131,16 +1198,16 @@ type MemoryLayout implements Node {
 
 type InfoMemory implements Node {
   id: PrefixedID!
-  max: Int!
-  total: Int!
-  free: Int!
-  used: Int!
-  active: Int!
-  available: Int!
-  buffcache: Int!
-  swaptotal: Int!
-  swapused: Int!
-  swapfree: Int!
+  max: BigInt!
+  total: BigInt!
+  free: BigInt!
+  used: BigInt!
+  active: BigInt!
+  available: BigInt!
+  buffcache: BigInt!
+  swaptotal: BigInt!
+  swapused: BigInt!
+  swapfree: BigInt!
   layout: [MemoryLayout!]!
 }
 
@@ -1251,19 +1318,14 @@ type DockerContainer implements Node {
 
   """Total size of all the files in the container"""
   sizeRootFs: Int
-  labels: JSONObject
+  labels: JSON
   state: ContainerState!
   status: String!
   hostConfig: ContainerHostConfig
-  networkSettings: JSONObject
-  mounts: [JSONObject!]
+  networkSettings: JSON
+  mounts: [JSON!]
   autoStart: Boolean!
 }
-
-"""
-The `JSONObject` scalar type represents JSON objects as specified by [ECMA-404](http://www.ecma-international.org/publications/files/ECMA-ST/ECMA-404.pdf).
-"""
-scalar JSONObject @specifiedBy(url: "http://www.ecma-international.org/publications/files/ECMA-ST/ECMA-404.pdf")
 
 enum ContainerState {
   RUNNING
@@ -1277,21 +1339,64 @@ type DockerNetwork implements Node {
   scope: String!
   driver: String!
   enableIPv6: Boolean!
-  ipam: JSONObject!
+  ipam: JSON!
   internal: Boolean!
   attachable: Boolean!
   ingress: Boolean!
-  configFrom: JSONObject!
+  configFrom: JSON!
   configOnly: Boolean!
-  containers: JSONObject!
-  options: JSONObject!
-  labels: JSONObject!
+  containers: JSON!
+  options: JSON!
+  labels: JSON!
 }
 
 type Docker implements Node {
   id: PrefixedID!
   containers(skipCache: Boolean! = false): [DockerContainer!]!
   networks(skipCache: Boolean! = false): [DockerNetwork!]!
+}
+
+type FlashBackupStatus {
+  """Status message indicating the outcome of the backup initiation."""
+  status: String!
+
+  """Job ID if available, can be used to check job status."""
+  jobId: String
+}
+
+type RCloneDrive {
+  """Provider name"""
+  name: String!
+
+  """Provider options and configuration schema"""
+  options: JSON!
+}
+
+type RCloneBackupConfigForm {
+  id: ID!
+  dataSchema: JSON!
+  uiSchema: JSON!
+}
+
+type RCloneBackupSettings {
+  configForm(formOptions: RCloneConfigFormInput): RCloneBackupConfigForm!
+  drives: [RCloneDrive!]!
+  remotes: [RCloneRemote!]!
+}
+
+input RCloneConfigFormInput {
+  providerType: String
+  showAdvanced: Boolean = false
+  parameters: JSON
+}
+
+type RCloneRemote {
+  name: String!
+  type: String!
+  parameters: JSON!
+
+  """Complete remote configuration"""
+  config: JSON!
 }
 
 type Flash implements Node {
@@ -1453,8 +1558,6 @@ type UserAccount implements Node {
 scalar PrefixedID
 
 type Query {
-  apiKeys: [ApiKey!]!
-  apiKey(id: PrefixedID!): ApiKey
   cloud: Cloud!
   config: Config!
   display: Display!
@@ -1480,6 +1583,14 @@ type Query {
   vms: Vms!
   parityHistory: [ParityCheck!]!
   array: UnraidArray!
+  apiKeys: [ApiKey!]!
+  apiKey(id: PrefixedID!): ApiKey
+
+  """All possible roles for API keys"""
+  apiKeyPossibleRoles: [Role!]!
+
+  """All possible permissions for API keys"""
+  apiKeyPossiblePermissions: [Permission!]!
   connect: Connect!
   remoteAccess: RemoteAccess!
   extraAllowedOrigins: [String!]!
@@ -1489,15 +1600,12 @@ type Query {
   docker: Docker!
   disks: [Disk!]!
   disk(id: PrefixedID!): Disk!
+  rclone: RCloneBackupSettings!
   health: String!
   getDemo: String!
 }
 
 type Mutation {
-  createApiKey(input: CreateApiKeyInput!): ApiKeyWithSecret!
-  addRoleForApiKey(input: AddRoleForApiKeyInput!): Boolean!
-  removeRoleFromApiKey(input: RemoveRoleFromApiKeyInput!): Boolean!
-
   """Creates a new notification record"""
   createNotification(input: NotificationData!): Notification!
   deleteNotification(id: PrefixedID!, type: NotificationType!): NotificationOverview!
@@ -1521,40 +1629,18 @@ type Mutation {
   docker: DockerMutations!
   vm: VmMutations!
   parityCheck: ParityCheckMutations!
+  apiKey: ApiKeyMutations!
+  rclone: RCloneMutations!
   updateApiSettings(input: ApiSettingsInput!): ConnectSettingsValues!
   connectSignIn(input: ConnectSignInInput!): Boolean!
   connectSignOut: Boolean!
   setupRemoteAccess(input: SetupRemoteAccessInput!): Boolean!
   setAdditionalAllowedOrigins(input: AllowedOriginInput!): [String!]!
   enableDynamicRemoteAccess(input: EnableDynamicRemoteAccessInput!): Boolean!
+
+  """Initiates a flash drive backup using a configured remote."""
+  initiateFlashBackup(input: InitiateFlashBackupInput!): FlashBackupStatus!
   setDemo: String!
-}
-
-input CreateApiKeyInput {
-  name: String!
-  description: String
-  roles: [Role!]
-  permissions: [AddPermissionInput!]
-
-  """
-  This will replace the existing key if one already exists with the same name, otherwise returns the existing key
-  """
-  overwrite: Boolean
-}
-
-input AddPermissionInput {
-  resource: Resource!
-  actions: [String!]!
-}
-
-input AddRoleForApiKeyInput {
-  apiKeyId: PrefixedID!
-  role: Role!
-}
-
-input RemoveRoleFromApiKeyInput {
-  apiKeyId: PrefixedID!
-  role: Role!
 }
 
 input NotificationData {
@@ -1648,6 +1734,22 @@ input AccessUrlInput {
   name: String
   ipv4: URL
   ipv6: URL
+}
+
+input InitiateFlashBackupInput {
+  """The name of the remote configuration to use for the backup."""
+  remoteName: String!
+
+  """Source path to backup (typically the flash drive)."""
+  sourcePath: String!
+
+  """Destination path on the remote."""
+  destinationPath: String!
+
+  """
+  Additional options for the backup operation, such as --dry-run or --transfers.
+  """
+  options: JSON
 }
 
 type Subscription {

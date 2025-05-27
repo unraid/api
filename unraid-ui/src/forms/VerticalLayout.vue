@@ -13,30 +13,41 @@
  * @prop renderers - Available renderers
  * @prop cells - Available cells
  */
-import { Label } from '@/components/form/label';
+
+import { useJsonFormsVisibility } from '@/forms/composables/useJsonFormsVisibility';
 import type { VerticalLayout } from '@jsonforms/core';
 import { DispatchRenderer, type RendererProps } from '@jsonforms/vue';
 import { computed } from 'vue';
 
 const props = defineProps<RendererProps<VerticalLayout>>();
 
+const { layout, isVisible } = useJsonFormsVisibility({ rendererProps: props });
+
+const showDividers = computed(() => {
+  return !!layout.layout.value.uischema.options?.showDividers;
+});
+
 const elements = computed(() => {
-  return props.uischema?.elements || [];
+  return layout.layout.value.uischema.elements || [];
 });
 </script>
 
 <template>
-  <div class="grid grid-cols-settings items-baseline gap-y-6">
-    <template v-for="(element, index) in elements" :key="index">
-      <Label v-if="element.label" class="text-end">{{ element.label ?? index }}</Label>
+  <div
+    v-if="isVisible"
+    class="flex flex-col items-stretch gap-4"
+    :class="{
+      'divide-y divide-gray-200 dark:divide-gray-700': showDividers,
+    }"
+  >
+    <template v-for="(element, _i) in elements" :key="_i">
       <DispatchRenderer
-        class="ml-10"
-        :schema="props.schema"
+        :schema="layout.layout.value.schema"
         :uischema="element"
-        :path="props.path"
-        :enabled="props.enabled"
-        :renderers="props.renderers"
-        :cells="props.cells"
+        :path="layout.layout.value.path"
+        :enabled="layout.layout.value.enabled"
+        :renderers="layout.layout.value.renderers"
+        :cells="layout.layout.value.cells"
       />
     </template>
   </div>

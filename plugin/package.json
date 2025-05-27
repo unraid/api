@@ -3,7 +3,7 @@
   "version": "4.8.0",
   "private": true,
   "dependencies": {
-    "commander": "^13.1.0",
+    "commander": "^14.0.0",
     "conventional-changelog": "^6.0.0",
     "date-fns": "^4.1.0",
     "glob": "^11.0.1",
@@ -12,7 +12,7 @@
     "tsx": "^4.19.2",
     "zod": "^3.24.1",
     "zx": "^8.3.2"
-  },
+},
   "type": "module",
   "license": "GPL-2.0-or-later",
   "scripts": {
@@ -21,7 +21,7 @@
     "build:txz": "tsx builder/build-txz.ts",
     "build:plugin": "tsx builder/build-plugin.ts",
     "build:validate": "npm run env:validate && npm run build",
-    "build:watcher": "nodemon --verbose --watch 'source/**/*' --watch 'plugins/dynamix.unraid.net.plg' --ext ts,js,plg --ignore '*.test.ts' --ignore 'node_modules/**' --ignore 'source/dynamix.unraid.net/install/**' --delay 5s --exec 'pnpm run build'",
+    "build:watcher": "./scripts/build-watcher.sh",
     "// Docker commands": "",
     "build:watch": "./scripts/dc.sh pnpm run build:watcher",
     "docker:build": "docker compose build",
@@ -39,5 +39,5 @@
     "nodemon": "^3.1.7",
     "vitest": "^3.0.7"
   },
-  "packageManager": "pnpm@10.10.0"
+  "packageManager": "pnpm@10.11.0"
 }

@@ -8,7 +8,7 @@ import {
     registerEnumType,
 } from '@nestjs/graphql';
 
-import { GraphQLJSON } from 'graphql-scalars';
+import { GraphQLBigInt, GraphQLJSON } from 'graphql-scalars';
 
 import { Node } from '@app/unraid-api/graph/resolvers/base.model.js';
 import { ThemeName } from '@app/unraid-api/graph/resolvers/customization/theme.model.js';
@@ -290,7 +290,7 @@ export class Display extends Node {
 
 @ObjectType({ implements: () => Node })
 export class MemoryLayout extends Node {
-    @Field(() => Int)
+    @Field(() => GraphQLBigInt)
     size!: number;
 
     @Field(() => String, { nullable: true })
@@ -326,34 +326,34 @@ export class MemoryLayout extends Node {
 
 @ObjectType({ implements: () => Node })
 export class InfoMemory extends Node {
-    @Field(() => Int)
+    @Field(() => GraphQLBigInt)
     max!: number;
 
-    @Field(() => Int)
+    @Field(() => GraphQLBigInt)
     total!: number;
 
-    @Field(() => Int)
+    @Field(() => GraphQLBigInt)
     free!: number;
 
-    @Field(() => Int)
+    @Field(() => GraphQLBigInt)
     used!: number;
 
-    @Field(() => Int)
+    @Field(() => GraphQLBigInt)
     active!: number;
 
-    @Field(() => Int)
+    @Field(() => GraphQLBigInt)
     available!: number;
 
-    @Field(() => Int)
+    @Field(() => GraphQLBigInt)
     buffcache!: number;
 
-    @Field(() => Int)
+    @Field(() => GraphQLBigInt)
     swaptotal!: number;
 
-    @Field(() => Int)
+    @Field(() => GraphQLBigInt)
     swapused!: number;
 
-    @Field(() => Int)
+    @Field(() => GraphQLBigInt)
     swapfree!: number;
 
     @Field(() => [MemoryLayout])

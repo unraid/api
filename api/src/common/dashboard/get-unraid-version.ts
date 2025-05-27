@@ -1,4 +1,3 @@
-import { getters } from '@app/store/index.js';
 import { FileLoadStatus } from '@app/store/types.js';
 
 /**
@@ -6,6 +5,7 @@ import { FileLoadStatus } from '@app/store/types.js';
  * @returns The current version.
  */
 export const getUnraidVersion = async (): Promise<string> => {
+    const { getters } = await import('@app/store/index.js');
     const { status, var: emhttpVar } = getters.emhttp();
     if (status === FileLoadStatus.LOADED) {
         return emhttpVar.version;

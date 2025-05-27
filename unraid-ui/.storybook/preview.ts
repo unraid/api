@@ -1,8 +1,10 @@
 import type { Preview } from '@storybook/vue3';
-import '../src/styles/globals.css';
 import { registerAllComponents } from '../src/register';
+import '@/styles/index.css';
 
-registerAllComponents({});
+registerAllComponents({
+  pathToSharedCss: '/index.css',
+});
 
 const preview: Preview = {
   parameters: {
@@ -18,9 +20,11 @@ const preview: Preview = {
   decorators: [
     (story) => ({
       components: { story },
+
       template: `
         <div>
-          <div id="modals"></div>
+          <uui-modals></uui-modals>
+          
           <story />
         </div>
       `,

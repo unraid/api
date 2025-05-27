@@ -9,7 +9,7 @@ import { mount } from '@vue/test-utils';
 import { Select, SelectTrigger } from '@unraid/ui';
 import { createTestingPinia } from '@pinia/testing';
 import { defaultServer, useDummyServerStore } from '~/_data/serverState';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import type { ServerSelector } from '~/_data/serverState';
 
@@ -25,6 +25,7 @@ vi.mock('@unraid/ui', async (importOriginal) => {
 
 describe('DummyServerSwitcher', () => {
   let dummyServerStore: ReturnType<typeof useDummyServerStore>;
+  let modalDiv: HTMLDivElement;
 
   beforeEach(() => {
     const pinia = createTestingPinia({ createSpy: vi.fn });
@@ -32,6 +33,19 @@ describe('DummyServerSwitcher', () => {
     setActivePinia(pinia);
     dummyServerStore = useDummyServerStore();
     dummyServerStore.selector = defaultServer;
+    vi.clearAllMocks();
+
+    Object.defineProperty(window, 'location', {
+      writable: true,
+      value: { assign: vi.fn(), search: '?local=true' },
+    });
+    modalDiv = document.createElement('div');
+    modalDiv.id = 'modals';
+    document.body.appendChild(modalDiv);
+  });
+
+  afterEach(() => {
+    document.body.removeChild(modalDiv);
     vi.clearAllMocks();
   });
 

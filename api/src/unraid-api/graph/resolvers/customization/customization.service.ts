@@ -101,7 +101,7 @@ export class CustomizationService implements OnModuleInit {
             return jsonFile ? path.join(this.activationDir, jsonFile) : null;
         } catch (error: unknown) {
             if (error instanceof Error && 'code' in error && error.code === 'ENOENT') {
-                this.logger.warn(
+                this.logger.debug(
                     `Activation directory ${this.activationDir} not found when searching for JSON file.`
                 );
             } else {
@@ -144,7 +144,7 @@ export class CustomizationService implements OnModuleInit {
         const activationJsonPath = await this.getActivationJsonPath();
 
         if (!activationJsonPath) {
-            this.logger.warn('No activation JSON file found.');
+            this.logger.debug('No activation JSON file found.');
             return null;
         }
 

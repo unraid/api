@@ -90,6 +90,15 @@ function verifyUsernamePasswordAndSSO(string $username, string $password): bool 
 
     async shouldApply(): Promise<ShouldApplyWithReason> {
         const { getters } = await import('@app/store/index.js');
+
+        const isUnraidVersionGreaterThanOrEqualTo72 =
+            await this.isUnraidVersionGreaterThanOrEqualTo('7.2.0');
+        if (isUnraidVersionGreaterThanOrEqualTo72) {
+            return {
+                shouldApply: false,
+                reason: 'Skipping for Unraid 7.2 or later, where the Unraid API is integrated.',
+            };
+        }
         const hasConfiguredSso = getters.config().remote.ssoSubIds.length > 0;
         return hasConfiguredSso
             ? { shouldApply: true, reason: 'SSO is configured - enabling support in .login.php' }
