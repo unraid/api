@@ -33,6 +33,9 @@ export enum DynamicRemoteAccessType {
 export enum URL_TYPE {
     WAN = 'WAN',
     LAN = 'LAN',
+    MDNS = 'MDNS',
+    WIREGUARD = 'WIREGUARD',
+    DEFAULT = 'DEFAULT',
 }
 
 @ObjectType()

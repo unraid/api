@@ -4,13 +4,15 @@ import { ConfigService } from '@nestjs/config';
 import { ConfigType } from '../config.entity.js';
 import { NetworkService } from '../system/network.service.js';
 import { UpnpService } from '../system/upnp.service.js';
+import { UrlResolverService } from '../system/url-resolver.service.js';
 
 @Injectable()
 export class UpnpRemoteAccessService {
     constructor(
         private readonly upnpService: UpnpService,
         private readonly networkService: NetworkService,
-        private readonly configService: ConfigService<ConfigType>
+        private readonly configService: ConfigService<ConfigType>,
+        private readonly urlResolverService: UrlResolverService
     ) {}
 
     private readonly logger = new Logger(UpnpRemoteAccessService.name);
@@ -27,6 +29,7 @@ export class UpnpRemoteAccessService {
                 sslPort: Number(sslPort),
             });
             await this.networkService.reloadNetworkStack();
+            return this.urlResolverService.getRemoteAccessUrl();
         } catch (error) {
             this.logger.error(
                 'Failed to begin UPNP Remote Access using port %s: %O',
