@@ -1,5 +1,5 @@
-import { Inject, Injectable, Logger } from '@nestjs/common';
-import { Readable, Writable } from 'stream';
+import { Injectable, Logger } from '@nestjs/common';
+import { Readable } from 'stream';
 import { pipeline } from 'stream/promises'; // Using stream.pipeline for better error handling
 
 import { BackupJobConfig } from '@app/unraid-api/graph/resolvers/backup/backup.model.js';
@@ -9,6 +9,7 @@ import {
     BackupDestinationResult,
     StreamingDestinationHandle, // Assuming this will be defined in the interface file
 } from '@app/unraid-api/graph/resolvers/backup/destination/backup-destination-processor.interface.js';
+import { BackupDestinationService } from '@app/unraid-api/graph/resolvers/backup/destination/backup-destination.service.js';
 import {
     BackupJobStatus,
     JobStatus,
@@ -21,18 +22,12 @@ import {
 } from '@app/unraid-api/graph/resolvers/backup/source/backup-source-processor.interface.js';
 import { BackupSourceService } from '@app/unraid-api/graph/resolvers/backup/source/backup-source.service.js';
 
-import { BackupDestinationService } from '@app/unraid-api/graph/resolvers/backup/destination/backup-destination.service.js';
-import { BackupJobTrackingService } from '@app/unraid-api/graph/resolvers/backup/orchestration/backup-job-tracking.service.js';
-
-// Placeholder for the conceptual tracking service - you would create and import this.
-// import { BackupJobTrackingService } from './backup-job-tracking.service.js';
-
 @Injectable()
 export class BackupOrchestrationService {
     private readonly logger = new Logger(BackupOrchestrationService.name);
 
     constructor(
-        @Inject(BackupJobTrackingService) private readonly jobTrackingService: BackupJobTrackingService, // Conceptual injection
+        private readonly jobTrackingService: BackupJobTrackingService,
         private readonly backupSourceService: BackupSourceService,
         private readonly backupDestinationService: BackupDestinationService
     ) {}

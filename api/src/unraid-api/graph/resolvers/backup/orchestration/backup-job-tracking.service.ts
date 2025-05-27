@@ -1,5 +1,4 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { registerEnumType } from '@nestjs/graphql';
 
 import {
     BackupJobStatus,

@@ -1,6 +1,7 @@
-import { createUnionType, Field, InputType, ObjectType } from '@nestjs/graphql';
+import { createUnionType, Field, InputType, ObjectType, registerEnumType } from '@nestjs/graphql';
 
-import { IsNotEmpty, IsObject, IsOptional, IsString } from 'class-validator';
+import { Type } from 'class-transformer';
+import { IsNotEmpty, IsObject, IsOptional, IsString, ValidateNested } from 'class-validator';
 import { GraphQLJSON } from 'graphql-scalars';
 
 import { BackupJobStatus } from '@app/unraid-api/graph/resolvers/backup/orchestration/backup-job-status.model.js';
@@ -8,6 +9,10 @@ import { BackupJobStatus } from '@app/unraid-api/graph/resolvers/backup/orchestr
 export enum DestinationType {
     RCLONE = 'rclone',
 }
+
+registerEnumType(DestinationType, {
+    name: 'DestinationType',
+});
 
 export interface StreamingJobInfo {
     jobId: string;
@@ -57,6 +62,15 @@ export class RcloneDestinationConfigInput {
     rcloneOptions?: Record<string, unknown>;
 }
 
+@InputType()
+export class DestinationConfigInput {
+    @Field(() => RcloneDestinationConfigInput, { nullable: true })
+    @IsOptional()
+    @ValidateNested()
+    @Type(() => RcloneDestinationConfigInput)
+    rcloneConfig?: RcloneDestinationConfigInput;
+}
+
 export const DestinationConfigUnion = createUnionType({
     name: 'DestinationConfigUnion',
     types: () => [RcloneDestinationConfig] as const,
@@ -68,4 +82,4 @@ export const DestinationConfigUnion = createUnionType({
     },
 });
 
-export const DestinationConfigInputUnion = GraphQLJSON;
+export const DestinationConfigInputUnion = DestinationConfigInput;

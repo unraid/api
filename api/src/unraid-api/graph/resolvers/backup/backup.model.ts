@@ -1,4 +1,4 @@
-import { createUnionType, Field, InputType, ObjectType } from '@nestjs/graphql';
+import { Field, InputType, ObjectType } from '@nestjs/graphql';
 
 import { type Layout } from '@jsonforms/core';
 import {
@@ -14,22 +14,17 @@ import {
 import { DateTimeISOResolver, GraphQLJSON } from 'graphql-scalars';
 
 import {
+    DestinationConfigInput,
     DestinationConfigInputUnion,
     DestinationConfigUnion,
     DestinationType,
-    RcloneDestinationConfigInput,
 } from '@app/unraid-api/graph/resolvers/backup/destination/backup-destination.types.js';
 import { JobStatus } from '@app/unraid-api/graph/resolvers/backup/orchestration/backup-job-status.model.js';
 import {
-    FlashPreprocessConfig,
-    FlashPreprocessConfigInput,
-    RawBackupConfig,
-    RawBackupConfigInput,
-    ScriptPreprocessConfig,
-    ScriptPreprocessConfigInput,
+    SourceConfigInput,
+    SourceConfigInputUnion,
+    SourceConfigUnion,
     SourceType,
-    ZfsPreprocessConfig,
-    ZfsPreprocessConfigInput,
 } from '@app/unraid-api/graph/resolvers/backup/source/backup-source.types.js';
 import { Node } from '@app/unraid-api/graph/resolvers/base.model.js';
 import { PrefixedID } from '@app/unraid-api/graph/scalars/graphql-type-prefixed-id.js';
@@ -168,11 +163,7 @@ export class BaseBackupJobConfigInput {
     })
     @IsOptional()
     @ValidateNested()
-    sourceConfig?:
-        | ZfsPreprocessConfigInput
-        | FlashPreprocessConfigInput
-        | ScriptPreprocessConfigInput
-        | RawBackupConfigInput;
+    sourceConfig?: SourceConfigInput;
 
     @Field(() => DestinationConfigInputUnion, {
         description: 'Destination configuration for this backup job',
@@ -180,7 +171,7 @@ export class BaseBackupJobConfigInput {
     })
     @IsOptional()
     @ValidateNested()
-    destinationConfig?: RcloneDestinationConfigInput;
+    destinationConfig?: DestinationConfigInput;
 }
 
 @InputType()
@@ -228,26 +219,3 @@ export class BackupJobConfigFormInput {
     @IsBoolean()
     showAdvanced?: boolean;
 }
-
-export const SourceConfigUnion = createUnionType({
-    name: 'SourceConfigUnion',
-    types: () =>
-        [ZfsPreprocessConfig, FlashPreprocessConfig, ScriptPreprocessConfig, RawBackupConfig] as const,
-    resolveType: (value) => {
-        if ('poolName' in value) {
-            return ZfsPreprocessConfig;
-        }
-        if ('flashPath' in value) {
-            return FlashPreprocessConfig;
-        }
-        if ('scriptPath' in value) {
-            return ScriptPreprocessConfig;
-        }
-        if ('sourcePath' in value) {
-            return RawBackupConfig;
-        }
-        return undefined;
-    },
-});
-
-export const SourceConfigInputUnion = GraphQLJSON;

@@ -2,8 +2,13 @@ import { Field, InputType, ObjectType } from '@nestjs/graphql';
 
 import { IsBoolean, IsNotEmpty, IsOptional, IsString } from 'class-validator';
 
+import {
+    BaseSourceConfig,
+    BaseSourceConfigInput,
+} from '@app/unraid-api/graph/resolvers/backup/source/base-source.types.js';
+
 @InputType()
-export class FlashPreprocessConfigInput {
+export class FlashPreprocessConfigInput extends BaseSourceConfigInput {
     @Field(() => String, { description: 'Flash drive mount path', defaultValue: '/boot' })
     @IsString()
     @IsNotEmpty()
@@ -19,7 +24,10 @@ export class FlashPreprocessConfigInput {
 }
 
 @ObjectType()
-export class FlashPreprocessConfig {
+export class FlashPreprocessConfig implements BaseSourceConfig {
+    @Field(() => String, { nullable: false })
+    label: string = 'Flash drive backup';
+
     @Field(() => String)
     flashPath!: string;
 

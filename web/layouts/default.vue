@@ -1,3 +1,34 @@
+<script setup>
+import ModalsCe from '~/components/Modals.ce.vue';
+import { useThemeStore } from '~/store/theme';
+
+const themeStore = useThemeStore();
+const { theme } = storeToRefs(themeStore);
+
+// Get routes from Nuxt's server-side route generation
+const { data: routes } = await useFetch('/api/routes');
+
+// Watch for theme changes (satisfies linter by using theme)
+watch(
+  theme,
+  () => {
+    // Theme is being watched for reactivity
+    console.debug('Theme changed:', theme.value);
+  },
+  { immediate: true }
+);
+
+function formatRouteName(name) {
+  if (!name) return 'Home';
+  // Convert route names like "web-components" to "Web Components"
+  return name
+    .replace(/-/g, ' ')
+    .split(' ')
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(' ');
+}
+</script>
+
 <template>
   <div class="text-black bg-white dark:text-white dark:bg-black">
     <client-only>
@@ -17,42 +48,6 @@
     </client-only>
   </div>
 </template>
-
-<script setup>
-import ModalsCe from '~/components/Modals.ce.vue';
-import { useThemeStore } from '~/store/theme';
-
-const router = useRouter();
-const themeStore = useThemeStore();
-const { theme } = storeToRefs(themeStore);
-
-// Watch for theme changes (satisfies linter by using theme)
-watch(
-  theme,
-  () => {
-    // Theme is being watched for reactivity
-    console.debug('Theme changed:', theme.value);
-  },
-  { immediate: true }
-);
-
-const routes = computed(() => {
-  return router
-    .getRoutes()
-    .filter((route) => !route.path.includes(':') && route.path !== '/404' && route.name)
-    .sort((a, b) => a.path.localeCompare(b.path));
-});
-
-function formatRouteName(name) {
-  if (!name) return 'Home';
-  // Convert route names like "web-components" to "Web Components"
-  return name
-    .replace(/-/g, ' ')
-    .split(' ')
-    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-    .join(' ');
-}
-</script>
 
 <style lang="postcss">
 /* Import theme styles */

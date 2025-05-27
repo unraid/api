@@ -72,8 +72,8 @@ export class BackupConfigService implements OnModuleInit {
             destinationType, // Derived from input.destinationConfig.type
             schedule: input.schedule || '0 2 * * *', // Default schedule
             enabled: input.enabled,
-            sourceConfig: input.sourceConfig, // Assign directly from input
-            destinationConfig: input.destinationConfig, // Assign directly from input
+            sourceConfig: input.sourceConfig as any, // Assign directly from input
+            destinationConfig: input.destinationConfig as any, // Assign directly from input
             createdAt: now,
             updatedAt: now,
             // Ensure all other required fields of BackupJobConfig from backup.model.ts are present

@@ -6,19 +6,18 @@ import { PlayIcon, StopIcon, TrashIcon } from '@heroicons/vue/24/solid';
 import { Badge, Button, Switch } from '@unraid/ui';
 
 import {
-  BACKUP_CONFIG_FRAGMENT,
   BACKUP_JOB_CONFIG_FRAGMENT,
   BACKUP_JOB_CONFIG_QUERY,
   BACKUP_JOB_CONFIG_WITH_CURRENT_JOB_FRAGMENT,
-  BACKUP_STATS_FRAGMENT,
-  RCLONE_JOB_FRAGMENT,
+  JOB_STATUS_FRAGMENT,
+  SOURCE_CONFIG_FRAGMENT,
   STOP_BACKUP_JOB_MUTATION,
   TOGGLE_BACKUP_JOB_CONFIG_MUTATION,
   TRIGGER_BACKUP_JOB_MUTATION,
   DELETE_BACKUP_JOB_CONFIG_MUTATION,
 } from '~/components/Backup/backup-jobs.query';
 import { useFragment } from '~/composables/gql/fragment-masking';
-import { BackupJobStatus } from '~/composables/gql/graphql';
+import { BackupJobStatus, type SourceConfigFragment } from '~/composables/gql/graphql';
 
 interface Props {
   configId: string;
@@ -93,31 +92,45 @@ const configWithJob = computed(() => {
       result.value.backupJobConfig
     );
     const baseConfig = useFragment(BACKUP_JOB_CONFIG_FRAGMENT, config);
-    const currentJob = config.currentJob
-      ? useFragment(RCLONE_JOB_FRAGMENT, config.currentJob)
-      : undefined;
-    const jobStats = currentJob?.stats
-      ? useFragment(BACKUP_STATS_FRAGMENT, currentJob.stats)
-      : undefined;
-    const backupConfig = baseConfig.backupConfig
-      ? useFragment(BACKUP_CONFIG_FRAGMENT, baseConfig.backupConfig)
+    const currentJob = computed(() =>
+      config.currentJob
+        ? useFragment(JOB_STATUS_FRAGMENT, config.currentJob)
+        : null
+    );
+    const sourceConfig = baseConfig.sourceConfig
+      ? useFragment(SOURCE_CONFIG_FRAGMENT, baseConfig.sourceConfig)
       : undefined;
 
     return {
       ...baseConfig,
-      backupConfig,
-      runningJob: currentJob,
-      jobStats,
-      errorMessage: currentJob?.error || undefined,
-      isRunning: currentJob ? !currentJob.finished : false,
-      hasRecentJob: !!currentJob,
-      sourcePath: backupConfig?.rawConfig?.sourcePath || '',
+      sourceConfig,
+      runningJob: currentJob.value,
+      errorMessage: currentJob.value?.error || undefined,
+      isRunning: currentJob.value ? currentJob.value.status === BackupJobStatus.RUNNING : false,
+      hasRecentJob: !!currentJob.value,
+      sourcePath: getSourcePath(sourceConfig),
     };
   } catch (fragmentError) {
     console.error('Error processing fragments:', fragmentError);
     return null;
   }
 });
+
+function getSourcePath(sourceConfig: SourceConfigFragment | undefined): string {
+  if (!sourceConfig) return '';
+  
+  if (sourceConfig.__typename === 'RawBackupConfig') {
+    return sourceConfig.sourcePath || '';
+  } else if (sourceConfig.__typename === 'FlashPreprocessConfig') {
+    return sourceConfig.flashPath || '';
+  } else if (sourceConfig.__typename === 'ScriptPreprocessConfig') {
+    return sourceConfig.scriptPath || '';
+  } else if (sourceConfig.__typename === 'ZfsPreprocessConfig') {
+    return `${sourceConfig.poolName}/${sourceConfig.datasetName}`;
+  }
+  
+  return '';
+}
 
 function formatDate(dateString: string): string {
   return new Date(dateString).toLocaleString();
@@ -173,20 +186,6 @@ async function handleDeleteJob() {
     }
   } catch (error) {
     console.error('Error deleting backup job config:', error);
-  }
-}
-
-function getPreprocessingTypeLabel(type: string): string {
-  switch (type) {
-    case 'ZFS':
-      return 'ZFS Snapshot';
-    case 'FLASH':
-      return 'Flash Backup';
-    case 'SCRIPT':
-      return 'Custom Script';
-    case 'RAW':
-    default:
-      return 'Raw Backup';
   }
 }
 </script>
@@ -302,14 +301,12 @@ function getPreprocessingTypeLabel(type: string): string {
             </span>
           </h3>
           <p class="text-sm text-gray-500 dark:text-gray-400">
-            {{ configWithJob.sourcePath }} → {{ configWithJob.remoteName }}:{{
-              configWithJob.destinationPath
-            }}
+            {{ configWithJob.sourcePath }}
             <span
-              v-if="configWithJob.backupType && configWithJob.backupType !== 'RAW'"
+              v-if="configWithJob.sourceType && configWithJob.sourceType !== 'RAW'"
               class="ml-2 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-400"
             >
-              {{ getPreprocessingTypeLabel(configWithJob.backupType) }}
+              {{ configWithJob.sourceType }}
             </span>
           </p>
           <p v-if="configWithJob.errorMessage" class="text-sm text-red-600 dark:text-red-400 mt-1">
@@ -391,7 +388,7 @@ function getPreprocessingTypeLabel(type: string): string {
 
     <!-- Progress information for running or recently completed jobs -->
     <div
-      v-if="configWithJob.hasRecentJob && configWithJob.jobStats"
+      v-if="configWithJob.hasRecentJob && configWithJob.runningJob"
       :class="[
         'mb-4 border rounded-lg p-4',
         configWithJob.runningJob?.status === BackupJobStatus.COMPLETED
@@ -415,8 +412,8 @@ function getPreprocessingTypeLabel(type: string): string {
               : 'text-blue-700 dark:text-blue-300',
         ]"
       >
-        <span class="font-medium">{{ configWithJob.jobStats.percentage }}% complete</span>
-        <span>{{ configWithJob.jobStats.formattedSpeed }}</span>
+        <span class="font-medium">{{ configWithJob.runningJob.progress }}% complete</span>
+        <span>{{ configWithJob.runningJob.formattedSpeed || 'N/A' }}</span>
       </div>
       <div
         :class="[
@@ -441,7 +438,7 @@ function getPreprocessingTypeLabel(type: string): string {
                 ? 'bg-red-600'
                 : 'bg-blue-600',
           ]"
-          :style="{ width: `${configWithJob.jobStats.percentage}%` }"
+          :style="{ width: `${configWithJob.runningJob.progress}%` }"
         ></div>
       </div>
       <div
@@ -457,13 +454,13 @@ function getPreprocessingTypeLabel(type: string): string {
         ]"
       >
         <div>
-          <span class="font-medium">Transferred:</span> {{ configWithJob.jobStats.formattedBytes }}
+          <span class="font-medium">Transferred:</span> {{ configWithJob.runningJob.formattedBytesTransferred || 'N/A' }}
         </div>
         <div>
-          <span class="font-medium">Elapsed:</span> {{ configWithJob.jobStats.formattedElapsedTime }}
+          <span class="font-medium">Elapsed:</span> {{ configWithJob.runningJob.formattedElapsedTime || 'N/A' }}
         </div>
         <div v-if="configWithJob.runningJob?.status === BackupJobStatus.RUNNING">
-          <span class="font-medium">ETA:</span> {{ configWithJob.jobStats.formattedEta }}
+          <span class="font-medium">ETA:</span> {{ configWithJob.runningJob.formattedEta || 'N/A' }}
         </div>
         <div v-else>
           <span class="font-medium">Status:</span>
@@ -474,7 +471,7 @@ function getPreprocessingTypeLabel(type: string): string {
               : 'Unknown'
           }}
         </div>
-        <div><span class="font-medium">Files:</span> {{ configWithJob.jobStats.transfers }}</div>
+        <div><span class="font-medium">Total:</span> {{ configWithJob.runningJob.totalBytes ? (configWithJob.runningJob.totalBytes / (1024 * 1024 * 1024)).toFixed(2) + ' GB' : 'N/A' }}</div>
       </div>
     </div>
 
@@ -490,35 +487,7 @@ function getPreprocessingTypeLabel(type: string): string {
       <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-3">
         <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">Backup Type</dt>
         <dd class="mt-1 text-sm text-gray-900 dark:text-white">
-          {{ getPreprocessingTypeLabel(configWithJob.backupType || 'RAW') }}
-          <span
-            v-if="
-              configWithJob.backupType === 'ZFS' && configWithJob.backupConfig?.zfsConfig
-            "
-            class="block text-xs text-gray-500 dark:text-gray-400 mt-1"
-          >
-            {{ configWithJob.backupConfig.zfsConfig.poolName }}/{{
-              configWithJob.backupConfig.zfsConfig.datasetName
-            }}
-          </span>
-          <span
-            v-else-if="
-              configWithJob.backupType === 'FLASH' &&
-              configWithJob.backupConfig?.flashConfig
-            "
-            class="block text-xs text-gray-500 dark:text-gray-400 mt-1"
-          >
-            {{ configWithJob.backupConfig.flashConfig.flashPath }}
-          </span>
-          <span
-            v-else-if="
-              configWithJob.backupType === 'SCRIPT' &&
-              configWithJob.backupConfig?.scriptConfig
-            "
-            class="block text-xs text-gray-500 dark:text-gray-400 mt-1"
-          >
-            {{ configWithJob.backupConfig.scriptConfig.scriptPath }}
-          </span>
+          {{ configWithJob.sourceConfig?.label || 'Unknown Backup Type' }}
         </dd>
       </div>
 

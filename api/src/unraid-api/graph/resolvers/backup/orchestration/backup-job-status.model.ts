@@ -29,7 +29,7 @@ export class JobStatus extends Node {
     @Field(() => BackupJobStatus)
     status!: BackupJobStatus;
 
-    @Field(() => Int)
+    @Field(() => Int, { description: 'Progress percentage (0-100)' })
     progress!: number;
 
     @Field({ nullable: true })
@@ -43,6 +43,33 @@ export class JobStatus extends Node {
 
     @Field(() => GraphQLISODateTime, { nullable: true })
     endTime?: Date;
+
+    @Field(() => Int, { nullable: true, description: 'Bytes transferred' })
+    bytesTransferred?: number;
+
+    @Field(() => Int, { nullable: true, description: 'Total bytes to transfer' })
+    totalBytes?: number;
+
+    @Field(() => Int, { nullable: true, description: 'Transfer speed in bytes per second' })
+    speed?: number;
+
+    @Field(() => Int, { nullable: true, description: 'Elapsed time in seconds' })
+    elapsedTime?: number;
+
+    @Field(() => Int, { nullable: true, description: 'Estimated time to completion in seconds' })
+    eta?: number;
+
+    @Field(() => String, { nullable: true, description: 'Human-readable bytes transferred' })
+    formattedBytesTransferred?: string;
+
+    @Field(() => String, { nullable: true, description: 'Human-readable transfer speed' })
+    formattedSpeed?: string;
+
+    @Field(() => String, { nullable: true, description: 'Human-readable elapsed time' })
+    formattedElapsedTime?: string;
+
+    @Field(() => String, { nullable: true, description: 'Human-readable ETA' })
+    formattedEta?: string;
 }
 
 // Use JobStatus as the unified type for both GraphQL and TypeScript

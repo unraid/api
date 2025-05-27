@@ -1,82 +1,68 @@
 import { graphql } from '~/composables/gql/gql';
 
-export const BACKUP_STATS_FRAGMENT = graphql(/* GraphQL */ `
-  fragment BackupStats on RCloneJobStats {
-    bytes
-    speed
-    eta
-    elapsedTime
-    percentage
-    checks
-    deletes
-    errors
-    fatalError
-    lastError
-    renames
-    retryError
-    serverSideCopies
-    serverSideCopyBytes
-    serverSideMoves
-    serverSideMoveBytes
+export const JOB_STATUS_FRAGMENT = graphql(/* GraphQL */ `
+  fragment JobStatus on JobStatus {
+    id
+    externalJobId
+    name
+    status
+    progress
+    message
+    error
+    startTime
+    endTime
+    bytesTransferred
     totalBytes
-    totalChecks
-    totalTransfers
-    transferTime
-    transfers
-    transferring
-    checking
-    formattedBytes
+    speed
+    elapsedTime
+    eta
+    formattedBytesTransferred
     formattedSpeed
     formattedElapsedTime
     formattedEta
-    calculatedPercentage
-    isActivelyRunning
-    isCompleted
-  }
-`);
-
-export const RCLONE_JOB_FRAGMENT = graphql(/* GraphQL */ `
-  fragment RCloneJob on RCloneJob {
-    id
-    group
-    configId
-    finished
-    success
-    error
-    status
-    stats {
-      ...BackupStats
-    }
   }
 `);
 
 export const SOURCE_CONFIG_FRAGMENT = graphql(/* GraphQL */ `
-  fragment SourceConfig on SourceConfig {
-    timeout
-    cleanupOnFailure
-    zfsConfig {
+  fragment SourceConfig on SourceConfigUnion {
+    ... on ZfsPreprocessConfig {
+      label
       poolName
       datasetName
       snapshotPrefix
       cleanupSnapshots
       retainSnapshots
     }
-    flashConfig {
+    ... on FlashPreprocessConfig {
+      label
       flashPath
       includeGitHistory
       additionalPaths
     }
-    scriptConfig {
+    ... on ScriptPreprocessConfig {
+      label
       scriptPath
       scriptArgs
       workingDirectory
       environment
       outputPath
     }
-    rawConfig {
+    ... on RawBackupConfig {
+      label
       sourcePath
       excludePatterns
       includePatterns
+    }
+  }
+`);
+
+export const DESTINATION_CONFIG_FRAGMENT = graphql(/* GraphQL */ `
+  fragment DestinationConfig on DestinationConfigUnion {
+    ... on RcloneDestinationConfig {
+      type
+      remoteName
+      destinationPath
+      rcloneOptions
     }
   }
 `);
@@ -85,20 +71,20 @@ export const BACKUP_JOB_CONFIG_FRAGMENT = graphql(/* GraphQL */ `
   fragment BackupJobConfig on BackupJobConfig {
     id
     name
-    backupType
-    remoteName
-    destinationPath
+    sourceType
+    destinationType
     schedule
     enabled
-    rcloneOptions
     sourceConfig {
       ...SourceConfig
+    }
+    destinationConfig {
+      ...DestinationConfig
     }
     createdAt
     updatedAt
     lastRunAt
     lastRunStatus
-    currentJobId
   }
 `);
 
@@ -106,7 +92,7 @@ export const BACKUP_JOB_CONFIG_WITH_CURRENT_JOB_FRAGMENT = graphql(/* GraphQL */
   fragment BackupJobConfigWithCurrentJob on BackupJobConfig {
     ...BackupJobConfig
     currentJob {
-      ...RCloneJob
+      ...JobStatus
     }
   }
 `);
@@ -116,7 +102,7 @@ export const BACKUP_JOBS_QUERY = graphql(/* GraphQL */ `
     backup {
       id
       jobs {
-        ...RCloneJob
+        ...JobStatus
       }
     }
   }
@@ -125,7 +111,7 @@ export const BACKUP_JOBS_QUERY = graphql(/* GraphQL */ `
 export const BACKUP_JOB_QUERY = graphql(/* GraphQL */ `
   query BackupJob($id: PrefixedID!) {
     backupJob(id: $id) {
-      ...RCloneJob
+      ...JobStatus
     }
   }
 `);
@@ -240,14 +226,3 @@ export const INITIATE_BACKUP_MUTATION = graphql(/* GraphQL */ `
     }
   }
 `);
-
-export const BACKUP_JOB_PROGRESS_SUBSCRIPTION = graphql(/* GraphQL */ `
-  subscription BackupJobProgress($id: PrefixedID!) {
-    backupJobProgress(id: $id) {
-      id
-      stats {
-        ...BackupStats
-      }
-    }
-  }
-`); 

@@ -83,10 +83,8 @@ export class RCloneApiService implements OnModuleInit, OnModuleDestroy {
     private rcloneSocketPath: string = '';
     private rcloneBaseUrl: string = '';
     private rcloneProcess: ChildProcess | null = null;
-    private readonly rcloneUsername: string =
-        process.env.RCLONE_USERNAME || crypto.randomBytes(12).toString('base64');
-    private readonly rclonePassword: string =
-        process.env.RCLONE_PASSWORD || crypto.randomBytes(24).toString('base64');
+    private readonly rcloneUsername: string = crypto.randomBytes(12).toString('hex');
+    private readonly rclonePassword: string = crypto.randomBytes(24).toString('hex');
 
     constructor(private readonly statusService: RCloneStatusService) {}
 
@@ -110,22 +108,14 @@ export class RCloneApiService implements OnModuleInit, OnModuleDestroy {
         const logFilePath = join(getters.paths()['log-base'], 'rclone-unraid-api.log');
 
         this.rcloneBaseUrl = `http://unix:${this.rcloneSocketPath}:`;
-        this.logger.log(`RClone socket path: ${this.rcloneSocketPath}`);
+        this.logger.log(
+            `Ensuring RClone is stopped and socket is clean before initialization. Socket path: ${this.rcloneSocketPath}`
+        );
 
-        const socketExists = await this.checkRcloneSocketExists(this.rcloneSocketPath);
+        // Stop any existing rclone instances and remove the socket file.
+        await this.stopRcloneSocket();
 
-        if (socketExists && (await this.checkRcloneSocketRunning())) {
-            this.isInitialized = true;
-            return;
-        }
-
-        if (socketExists) {
-            this.logger.warn('RClone socket exists but not running, removing before restart...');
-            await rm(this.rcloneSocketPath, { force: true });
-        }
-
-        this.logger.warn('Starting new RClone socket...');
-        await this.killExistingRcloneProcesses();
+        this.logger.warn('Proceeding to start new RClone socket...');
         this.isInitialized = await this.startRcloneSocket(this.rcloneSocketPath, logFilePath);
     }
 
@@ -178,10 +168,12 @@ export class RCloneApiService implements OnModuleInit, OnModuleDestroy {
             logLevel,
             '--log-file',
             logFilePath,
+            '--rc-user',
+            this.rcloneUsername,
+            '--rc-pass',
+            this.rclonePassword,
         ];
 
-        if (this.rcloneUsername) args.push('--rc-user', this.rcloneUsername);
-        if (this.rclonePassword) args.push('--rc-pass', this.rclonePassword);
         if (enableRcServe) args.push('--rc-serve');
 
         if (enableDebugMode) {
@@ -347,39 +339,6 @@ export class RCloneApiService implements OnModuleInit, OnModuleDestroy {
         this.logger.log(`Backup job created with ID: ${jobId} in group: ${group}`);
 
         return result;
-    }
-
-    private extractBytesFromOutput(output?: string): number | undefined {
-        if (!output) return undefined;
-
-        const bytesMatch = output.match(/(\d+)\s*bytes/i);
-        if (bytesMatch) {
-            return parseInt(bytesMatch[1], 10);
-        }
-
-        const sizeMatch = output.match(/(\d+(?:\.\d+)?)\s*(KB|MB|GB|TB)/i);
-        if (sizeMatch) {
-            const value = parseFloat(sizeMatch[1]);
-            const unit = sizeMatch[2].toUpperCase();
-
-            try {
-                const unitMap: Record<string, 'kilobytes' | 'megabytes' | 'gigabytes' | 'terabytes'> = {
-                    KB: 'kilobytes',
-                    MB: 'megabytes',
-                    GB: 'gigabytes',
-                    TB: 'terabytes',
-                };
-
-                const convertUnit = unitMap[unit];
-                if (convertUnit) {
-                    return Math.round(convert(value, convertUnit).to('bytes'));
-                }
-            } catch (error) {
-                this.logger.warn(`Failed to convert ${value} ${unit} to bytes: ${error}`);
-            }
-        }
-
-        return undefined;
     }
 
     /**
@@ -641,11 +600,10 @@ export class RCloneApiService implements OnModuleInit, OnModuleDestroy {
 
     private async callRcloneApi(endpoint: string, params: Record<string, unknown> = {}): Promise<any> {
         const url = `${this.rcloneBaseUrl}/${endpoint}`;
-        const finalParams = { _async: false, ...params };
 
         try {
             const response = await got.post(url, {
-                json: finalParams,
+                json: params,
                 responseType: 'json',
                 enableUnixSockets: true,
                 headers: {
@@ -655,7 +613,7 @@ export class RCloneApiService implements OnModuleInit, OnModuleDestroy {
 
             return response.body;
         } catch (error: unknown) {
-            this.handleApiError(error, endpoint, finalParams);
+            this.handleApiError(error, endpoint, params);
         }
     }
 

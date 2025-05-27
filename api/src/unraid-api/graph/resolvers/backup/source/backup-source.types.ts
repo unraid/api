@@ -1,4 +1,4 @@
-import { Field, InputType, ObjectType, registerEnumType } from '@nestjs/graphql';
+import { createUnionType, Field, InputType, ObjectType, registerEnumType } from '@nestjs/graphql';
 
 import { Type } from 'class-transformer';
 import { IsBoolean, IsNumber, IsOptional, Min, ValidateNested } from 'class-validator';
@@ -96,6 +96,29 @@ export class SourceConfig {
     @Field(() => RawBackupConfig, { nullable: true })
     rawConfig?: RawBackupConfig;
 }
+
+export const SourceConfigUnion = createUnionType({
+    name: 'SourceConfigUnion',
+    types: () =>
+        [ZfsPreprocessConfig, FlashPreprocessConfig, ScriptPreprocessConfig, RawBackupConfig] as const,
+    resolveType: (value) => {
+        if ('poolName' in value) {
+            return ZfsPreprocessConfig;
+        }
+        if ('flashPath' in value) {
+            return FlashPreprocessConfig;
+        }
+        if ('scriptPath' in value) {
+            return ScriptPreprocessConfig;
+        }
+        if ('sourcePath' in value) {
+            return RawBackupConfig;
+        }
+        return undefined;
+    },
+});
+
+export const SourceConfigInputUnion = SourceConfigInput;
 
 export interface PreprocessResult {
     success: boolean;

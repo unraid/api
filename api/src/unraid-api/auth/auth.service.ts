@@ -75,7 +75,7 @@ export class AuthService {
 
             // Now get the updated roles
             const existingRoles = await this.authzService.getRolesForUser(user.id);
-            this.logger.debug(`User ${user.id} has roles: ${existingRoles}`);
+            this.logger.verbose(`User ${user.id} has roles: ${existingRoles}`);
 
             return user;
         } catch (error: unknown) {
@@ -213,7 +213,7 @@ export class AuthService {
                 ...rolesToRemove.map((role) => this.authzService.deleteRoleForUser(userId, role)),
             ]);
 
-            this.logger.debug(
+            this.logger.verbose(
                 `Synced roles for user ${userId}. Added: ${rolesToAdd.join(
                     ','
                 )}, Removed: ${rolesToRemove.join(',')}`
@@ -234,7 +234,6 @@ export class AuthService {
      * @returns a service account that represents the user session (i.e. a webgui user).
      */
     async getSessionUser(): Promise<UserAccount> {
-        this.logger.debug('getSessionUser called!');
         return {
             id: '-1',
             description: 'Session receives administrator permissions',

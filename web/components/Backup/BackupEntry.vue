@@ -2,7 +2,7 @@
 import type { BackupJobsQuery } from '~/composables/gql/graphql';
 import { BackupJobStatus } from '~/composables/gql/graphql';
 import { useFragment } from '~/composables/gql/fragment-masking';
-import { BACKUP_STATS_FRAGMENT, RCLONE_JOB_FRAGMENT } from './backup-jobs.query';
+import { JOB_STATUS_FRAGMENT } from './backup-jobs.query';
 import { computed } from 'vue';
 
 interface Props {
@@ -11,19 +11,7 @@ interface Props {
 
 const props = defineProps<Props>();
 
-const jobData = useFragment(RCLONE_JOB_FRAGMENT, props.job);
-const stats = useFragment(BACKUP_STATS_FRAGMENT, jobData.stats);
-
-// Calculate percentage if it's null but we have bytes and totalBytes
-const calculatedPercentage = computed(() => {
-  if (stats?.percentage !== null) {
-    return stats?.percentage;
-  }
-  if (stats?.bytes && stats?.totalBytes) {
-    return Math.round((stats.bytes / stats.totalBytes) * 100);
-  }
-  return null;
-});
+const jobData = useFragment(JOB_STATUS_FRAGMENT, props.job);
 
 // Determine job status based on job properties
 const jobStatus = computed(() => {
@@ -31,8 +19,8 @@ const jobStatus = computed(() => {
     return jobData.status;
   }
   if (jobData.error) return BackupJobStatus.FAILED;
-  if (jobData.finished && jobData.success) return BackupJobStatus.COMPLETED;
-  if (jobData.finished && !jobData.success) return BackupJobStatus.FAILED;
+  if (jobData.endTime && !jobData.error) return BackupJobStatus.COMPLETED;
+  if (jobData.endTime && jobData.error) return BackupJobStatus.FAILED;
   return BackupJobStatus.RUNNING;
 });
 
@@ -79,13 +67,13 @@ const statusText = computed(() => {
         </div>
         <div>
           <h3 class="text-lg font-medium text-gray-900 dark:text-white">
-            Backup Job
+            {{ jobData.name || 'Backup Job' }}
           </h3>
           <div class="text-sm text-gray-500 dark:text-gray-400 space-y-1">
             <p>Job ID: {{ jobData.id }}</p>
-            <p v-if="jobData.configId">Config ID: {{ jobData.configId }}</p>
-            <p v-if="jobData.group">Group: {{ jobData.group }}</p>
+            <p v-if="jobData.externalJobId">External Job ID: {{ jobData.externalJobId }}</p>
             <p>Status: {{ statusText }}</p>
+            <p v-if="jobData.message" class="text-gray-600 dark:text-gray-300">{{ jobData.message }}</p>
             <p v-if="jobData.error" class="text-red-600 dark:text-red-400">Error: {{ jobData.error }}</p>
           </div>
         </div>
@@ -98,53 +86,46 @@ const statusText = computed(() => {
     </div>
 
     <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-      <div v-if="stats?.formattedBytes" class="bg-gray-50 dark:bg-gray-700 rounded-lg p-3">
+      <div v-if="jobData.formattedBytesTransferred" class="bg-gray-50 dark:bg-gray-700 rounded-lg p-3">
         <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">Bytes Transferred</dt>
         <dd class="mt-1 text-sm text-gray-900 dark:text-white">
-          {{ stats.formattedBytes }}
+          {{ jobData.formattedBytesTransferred }}
         </dd>
       </div>
 
-      <div v-if="stats?.transfers" class="bg-gray-50 dark:bg-gray-700 rounded-lg p-3">
-        <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">Files Transferred</dt>
-        <dd class="mt-1 text-sm text-gray-900 dark:text-white">
-          {{ stats.transfers }}
-        </dd>
-      </div>
-
-      <div v-if="stats?.formattedSpeed" class="bg-gray-50 dark:bg-gray-700 rounded-lg p-3">
+      <div v-if="jobData.formattedSpeed" class="bg-gray-50 dark:bg-gray-700 rounded-lg p-3">
         <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">Transfer Speed</dt>
-        <dd class="mt-1 text-sm text-gray-900 dark:text-white">{{ stats.formattedSpeed }}</dd>
+        <dd class="mt-1 text-sm text-gray-900 dark:text-white">{{ jobData.formattedSpeed }}</dd>
       </div>
 
-      <div v-if="stats?.formattedElapsedTime" class="bg-gray-50 dark:bg-gray-700 rounded-lg p-3">
+      <div v-if="jobData.formattedElapsedTime" class="bg-gray-50 dark:bg-gray-700 rounded-lg p-3">
         <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">Elapsed Time</dt>
         <dd class="mt-1 text-sm text-gray-900 dark:text-white">
-          {{ stats.formattedElapsedTime }}
+          {{ jobData.formattedElapsedTime }}
         </dd>
       </div>
 
-      <div v-if="stats?.formattedEta" class="bg-gray-50 dark:bg-gray-700 rounded-lg p-3">
+      <div v-if="jobData.formattedEta" class="bg-gray-50 dark:bg-gray-700 rounded-lg p-3">
         <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">ETA</dt>
         <dd class="mt-1 text-sm text-gray-900 dark:text-white">
-          {{ stats.formattedEta }}
+          {{ jobData.formattedEta }}
         </dd>
       </div>
 
-      <div v-if="calculatedPercentage" class="bg-gray-50 dark:bg-gray-700 rounded-lg p-3">
+      <div v-if="jobData.progress !== null && jobData.progress !== undefined" class="bg-gray-50 dark:bg-gray-700 rounded-lg p-3">
         <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">Progress</dt>
-        <dd class="mt-1 text-sm text-gray-900 dark:text-white">{{ calculatedPercentage }}%</dd>
+        <dd class="mt-1 text-sm text-gray-900 dark:text-white">{{ Math.round(jobData.progress) }}%</dd>
       </div>
     </div>
 
-    <div v-if="calculatedPercentage" class="mt-4">
+    <div v-if="jobData.progress !== null && jobData.progress !== undefined" class="mt-4">
       <div class="w-full bg-gray-200 rounded-full h-2 dark:bg-gray-700">
         <div
           :class="[
             'h-2 rounded-full transition-all duration-300',
             statusColor === 'green' ? 'bg-green-600' : statusColor === 'red' ? 'bg-red-600' : 'bg-blue-600'
           ]"
-          :style="{ width: `${calculatedPercentage}%` }"
+          :style="{ width: `${Math.round(jobData.progress)}%` }"
         ></div>
       </div>
     </div>

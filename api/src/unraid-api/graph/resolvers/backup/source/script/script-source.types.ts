@@ -3,8 +3,13 @@ import { Field, InputType, ObjectType } from '@nestjs/graphql';
 import { IsNotEmpty, IsOptional, IsString } from 'class-validator';
 import { GraphQLJSON } from 'graphql-scalars';
 
+import {
+    BaseSourceConfig,
+    BaseSourceConfigInput,
+} from '@app/unraid-api/graph/resolvers/backup/source/base-source.types.js';
+
 @InputType()
-export class ScriptPreprocessConfigInput {
+export class ScriptPreprocessConfigInput extends BaseSourceConfigInput {
     @Field(() => String, { description: 'Path to the script file' })
     @IsString()
     @IsNotEmpty()
@@ -33,7 +38,10 @@ export class ScriptPreprocessConfigInput {
 }
 
 @ObjectType()
-export class ScriptPreprocessConfig {
+export class ScriptPreprocessConfig implements BaseSourceConfig {
+    @Field(() => String, { nullable: false })
+    label: string = 'Script backup';
+
     @Field(() => String)
     scriptPath!: string;
 

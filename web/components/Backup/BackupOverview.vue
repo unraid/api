@@ -1,26 +1,27 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue';
+import { ref } from 'vue';
 import { useQuery } from '@vue/apollo-composable';
 
-import { BACKUP_JOBS_QUERY } from './backup-jobs.query';
-import BackupJobConfig from './BackupJobConfig.vue';
+import type { JobStatusFragment } from '~/composables/gql/graphql';
+
+import { useFragment } from '~/composables/gql';
+import { BACKUP_JOBS_QUERY, JOB_STATUS_FRAGMENT } from './backup-jobs.query';
 import BackupEntry from './BackupEntry.vue';
+import BackupJobConfig from './BackupJobConfig.vue';
 
 const showSystemJobs = ref(false);
 
-const { result, loading, error, refetch } = useQuery(BACKUP_JOBS_QUERY, {}, {
-  fetchPolicy: 'cache-and-network',
-  pollInterval: 5000, // Poll every 5 seconds for real-time updates
-});
-
-const backupJobs = computed(() => {
-  const allJobs = result.value?.backup?.jobs || [];
-  
-  if (showSystemJobs.value) {
-    return allJobs;
+const { result, loading, error, refetch } = useQuery(
+  BACKUP_JOBS_QUERY,
+  {},
+  {
+    fetchPolicy: 'cache-and-network',
+    pollInterval: 5000, // Poll every 5 seconds for real-time updates
   }
-  
-  return allJobs.filter(job => !job.group || job.group.toLowerCase() !== 'system');
+);
+
+const jobs = computed<JobStatusFragment[]>(() => {
+  return result.value?.backup?.jobs.map((job) => useFragment(JOB_STATUS_FRAGMENT, job)) || [];
 });
 
 // Enhanced refresh function that forces a network request
@@ -97,18 +98,8 @@ const refreshJobs = async () => {
       </div>
 
       <div v-else class="space-y-4">
-        <BackupEntry
-          v-for="job in backupJobs"
-          :key="job.id"
-          :job="job"
-        />
+        <BackupEntry v-for="job in jobs" :key="job.id" :job="job" />
       </div>
     </div>
   </div>
 </template>
-
-<style scoped>
-.backup-overview {
-  @apply mx-auto max-w-7xl p-6;
-}
-</style>

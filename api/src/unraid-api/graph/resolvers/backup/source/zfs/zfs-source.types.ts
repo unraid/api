@@ -2,8 +2,13 @@ import { Field, InputType, ObjectType } from '@nestjs/graphql';
 
 import { IsBoolean, IsNotEmpty, IsNumber, IsOptional, IsString, Min } from 'class-validator';
 
+import {
+    BaseSourceConfig,
+    BaseSourceConfigInput,
+} from '@app/unraid-api/graph/resolvers/backup/source/base-source.types.js';
+
 @InputType()
-export class ZfsPreprocessConfigInput {
+export class ZfsPreprocessConfigInput extends BaseSourceConfigInput {
     @Field(() => String, { description: 'ZFS pool name' })
     @IsString()
     @IsNotEmpty()
@@ -34,7 +39,10 @@ export class ZfsPreprocessConfigInput {
 }
 
 @ObjectType()
-export class ZfsPreprocessConfig {
+export class ZfsPreprocessConfig implements BaseSourceConfig {
+    @Field(() => String, { nullable: false })
+    label: string = 'ZFS backup';
+
     @Field(() => String)
     poolName!: string;
 
