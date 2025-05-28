@@ -2,7 +2,7 @@ import { Field, InputType, Int, ObjectType, registerEnumType } from '@nestjs/gra
 
 import { IsEnum, IsInt, IsNotEmpty, IsOptional, IsString, Min } from 'class-validator';
 
-import { Node } from '@app/unraid-api/graph/resolvers/base.model.js';
+import { Node } from '@unraid/shared/graphql.model.js';
 
 export enum NotificationType {
     UNREAD = 'UNREAD',

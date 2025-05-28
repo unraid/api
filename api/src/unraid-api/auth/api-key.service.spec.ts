@@ -16,7 +16,7 @@ import {
     ApiKeyWithSecret,
     Permission,
 } from '@app/unraid-api/graph/resolvers/api-key/api-key.model.js';
-import { Resource, Role } from '@app/unraid-api/graph/resolvers/base.model.js';
+import { Resource, Role } from '@unraid/shared/graphql.model.js';
 
 // Mock the store and its modules
 vi.mock('@app/store/index.js', () => ({

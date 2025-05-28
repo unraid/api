@@ -7,7 +7,7 @@ import {
     AuthPossession,
     UsePermissions,
 } from '@app/unraid-api/graph/directives/use-permissions.directive.js';
-import { Resource } from '@app/unraid-api/graph/resolvers/base.model.js';
+import { Resource } from '@unraid/shared/graphql.model.js';
 import {
     ActivationCode,
     Customization,

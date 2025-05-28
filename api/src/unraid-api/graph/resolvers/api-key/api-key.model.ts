@@ -12,8 +12,8 @@ import {
     ValidateNested,
 } from 'class-validator';
 
-import { Node, Resource, Role } from '@app/unraid-api/graph/resolvers/base.model.js';
-import { PrefixedID } from '@app/unraid-api/graph/scalars/graphql-type-prefixed-id.js';
+import { Node, Resource, Role } from '@unraid/shared/graphql.model.js';
+import { PrefixedID } from '@unraid/shared/prefixed-id-scalar.js';
 
 @ObjectType()
 export class Permission {

@@ -7,7 +7,7 @@ import {
     UsePermissions,
 } from '@app/unraid-api/graph/directives/use-permissions.directive.js';
 import { Share } from '@app/unraid-api/graph/resolvers/array/array.model.js';
-import { Resource } from '@app/unraid-api/graph/resolvers/base.model.js';
+import { Resource } from '@unraid/shared/graphql.model.js';
 
 @Resolver(() => Share)
 export class SharesResolver {

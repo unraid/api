@@ -4,6 +4,16 @@
     "main": "dist/index.js",
     "types": "dist/index.d.ts",
     "type": "module",
+    "exports": {
+        ".": {
+            "types": "./dist/index.d.ts",
+            "import": "./dist/index.js"
+        },
+        "./*": {
+            "types": "./dist/*.d.ts",
+            "import": "./dist/*"
+        }
+    },
     "files": [
         "dist"
     ],
@@ -19,14 +29,18 @@
         "@graphql-tools/utils": "^10.5.5",
         "@nestjs/graphql": "^13.0.3",
         "@types/node": "^22.14.0",
+        "class-validator": "^0.14.1",
         "graphql": "^16.9.0",
+        "graphql-scalars": "^1.23.0",
         "nest-authz": "^2.14.0",
         "typescript": "^5.8.2"
     },
     "peerDependencies": {
         "@graphql-tools/utils": "^10.5.5",
         "@nestjs/graphql": "^13.0.3",
+        "class-validator": "^0.14.1",
         "graphql": "^16.9.0",
+        "graphql-scalars": "^1.23.0",
         "nest-authz": "^2.14.0"
     }
 } 

@@ -7,7 +7,7 @@ import { AuthService } from '@app/unraid-api/auth/auth.service.js';
 import { CookieService } from '@app/unraid-api/auth/cookie.service.js';
 import { ApiKey, ApiKeyWithSecret } from '@app/unraid-api/graph/resolvers/api-key/api-key.model.js';
 import { ApiKeyResolver } from '@app/unraid-api/graph/resolvers/api-key/api-key.resolver.js';
-import { Role } from '@app/unraid-api/graph/resolvers/base.model.js';
+import { Role } from '@unraid/shared/graphql.model.js';
 
 describe('ApiKeyResolver', () => {
     let resolver: ApiKeyResolver;

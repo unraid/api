@@ -812,6 +812,29 @@ type ApiKeyWithSecret implements Node {
   key: String!
 }
 
+type RCloneDrive {
+  """Provider name"""
+  name: String!
+
+  """Provider options and configuration schema"""
+  options: JSON!
+}
+
+type RCloneBackupConfigForm {
+  id: ID!
+  dataSchema: JSON!
+  uiSchema: JSON!
+}
+
+type RCloneRemote {
+  name: String!
+  type: String!
+  parameters: JSON!
+
+  """Complete remote configuration"""
+  config: JSON!
+}
+
 type ArrayMutations {
   """Set array state"""
   setState(input: ArrayStateInput!): UnraidArray!
@@ -949,20 +972,10 @@ type ParityCheckMutations {
 """RClone related mutations"""
 type RCloneMutations {
   """Create a new RClone remote"""
-  createRCloneRemote(input: CreateRCloneRemoteInput!): RCloneRemote!
+  createRCloneRemote: RCloneRemote!
 
   """Delete an existing RClone remote"""
-  deleteRCloneRemote(input: DeleteRCloneRemoteInput!): Boolean!
-}
-
-input CreateRCloneRemoteInput {
-  name: String!
-  type: String!
-  parameters: JSON!
-}
-
-input DeleteRCloneRemoteInput {
-  name: String!
+  deleteRCloneRemote: Boolean!
 }
 
 type ParityCheck {
@@ -1364,41 +1377,6 @@ type FlashBackupStatus {
   jobId: String
 }
 
-type RCloneDrive {
-  """Provider name"""
-  name: String!
-
-  """Provider options and configuration schema"""
-  options: JSON!
-}
-
-type RCloneBackupConfigForm {
-  id: ID!
-  dataSchema: JSON!
-  uiSchema: JSON!
-}
-
-type RCloneBackupSettings {
-  configForm(formOptions: RCloneConfigFormInput): RCloneBackupConfigForm!
-  drives: [RCloneDrive!]!
-  remotes: [RCloneRemote!]!
-}
-
-input RCloneConfigFormInput {
-  providerType: String
-  showAdvanced: Boolean = false
-  parameters: JSON
-}
-
-type RCloneRemote {
-  name: String!
-  type: String!
-  parameters: JSON!
-
-  """Complete remote configuration"""
-  config: JSON!
-}
-
 type Flash implements Node {
   id: PrefixedID!
   guid: String!
@@ -1600,9 +1578,6 @@ type Query {
   docker: Docker!
   disks: [Disk!]!
   disk(id: PrefixedID!): Disk!
-  rclone: RCloneBackupSettings!
-  health: String!
-  getDemo: String!
 }
 
 type Mutation {
@@ -1640,7 +1615,6 @@ type Mutation {
 
   """Initiates a flash drive backup using a configured remote."""
   initiateFlashBackup(input: InitiateFlashBackupInput!): FlashBackupStatus!
-  setDemo: String!
 }
 
 input NotificationData {

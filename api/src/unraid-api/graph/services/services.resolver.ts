@@ -8,7 +8,7 @@ import {
     AuthPossession,
     UsePermissions,
 } from '@app/unraid-api/graph/directives/use-permissions.directive.js';
-import { Resource } from '@app/unraid-api/graph/resolvers/base.model.js';
+import { Resource } from '@unraid/shared/graphql.model.js';
 import { DynamicRemoteAccessType } from '@app/unraid-api/graph/resolvers/connect/connect.model.js';
 import { Service } from '@app/unraid-api/graph/services/service.model.js';
 

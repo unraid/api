@@ -2,7 +2,7 @@ import { CustomScalar, Scalar } from '@nestjs/graphql';
 
 import { Kind, ValueNode } from 'graphql';
 
-import { getServerIdentifier } from '@app/core/utils/server-identifier.js';
+// import { getServerIdentifier } from '@app/core/utils/server-identifier.js';
 
 @Scalar('PrefixedID', () => PrefixedID)
 export class PrefixedID implements CustomScalar<string, string> {
@@ -69,7 +69,7 @@ Note: The server identifier is '123' in this example.
             // }
             return value;
         }
-        const serverId = getServerIdentifier();
+        const serverId = (globalThis as any).getServerIdentifier();
         return `${serverId}:${value}`;
     }
 

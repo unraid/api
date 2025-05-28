@@ -10,9 +10,9 @@ import {
 
 import { GraphQLBigInt, GraphQLJSON } from 'graphql-scalars';
 
-import { Node } from '@app/unraid-api/graph/resolvers/base.model.js';
+import { Node } from '@unraid/shared/graphql.model.js';
 import { ThemeName } from '@app/unraid-api/graph/resolvers/customization/theme.model.js';
-import { PrefixedID } from '@app/unraid-api/graph/scalars/graphql-type-prefixed-id.js';
+import { PrefixedID } from '@unraid/shared/prefixed-id-scalar.js';
 
 export enum Temperature {
     C = 'C',

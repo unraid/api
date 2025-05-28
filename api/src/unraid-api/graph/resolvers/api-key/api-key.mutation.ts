@@ -14,7 +14,7 @@ import {
     DeleteApiKeyInput,
     RemoveRoleFromApiKeyInput,
 } from '@app/unraid-api/graph/resolvers/api-key/api-key.model.js';
-import { Resource, Role } from '@app/unraid-api/graph/resolvers/base.model.js';
+import { Resource, Role } from '@unraid/shared/graphql.model.js';
 import { ApiKeyMutations } from '@app/unraid-api/graph/resolvers/mutation/mutation.model.js';
 import { validateObject } from '@app/unraid-api/graph/resolvers/validation.utils.js';
 

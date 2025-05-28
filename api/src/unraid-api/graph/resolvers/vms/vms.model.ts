@@ -2,8 +2,8 @@ import { Field, InputType, ObjectType, registerEnumType } from '@nestjs/graphql'
 
 import { IsEnum, IsNotEmpty, IsString } from 'class-validator';
 
-import { Node } from '@app/unraid-api/graph/resolvers/base.model.js';
-import { PrefixedID } from '@app/unraid-api/graph/scalars/graphql-type-prefixed-id.js';
+import { Node } from '@unraid/shared/graphql.model.js';
+import { PrefixedID } from '@unraid/shared/prefixed-id-scalar.js';
 
 // Register the VmState enum
 export enum VmState {

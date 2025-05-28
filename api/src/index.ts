@@ -29,6 +29,7 @@ import { startStoreSync } from '@app/store/store-sync.js';
 import { setupDynamixConfigWatch } from '@app/store/watch/dynamix-config-watch.js';
 import { setupRegistrationKeyWatch } from '@app/store/watch/registration-watch.js';
 import { StateManager } from '@app/store/watch/state-watch.js';
+import { getServerIdentifier } from '@app/core/utils/server-identifier.js';
 
 let server: NestFastifyApplication<RawServerDefault> | null = null;
 
@@ -43,6 +44,7 @@ export const viteNodeApp = async () => {
         await import('json-bigint-patch');
         environment.IS_MAIN_PROCESS = true;
 
+        globalThis.getServerIdentifier = getServerIdentifier;
         logger.info('ENV %o', envVars);
         logger.info('PATHS %o', store.getState().paths);
 

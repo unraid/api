@@ -3,7 +3,7 @@ import { ChoicesFor, Question, QuestionSet, WhenFor } from 'nest-commander';
 import { ApiKeyService } from '@app/unraid-api/auth/api-key.service.js';
 import { LogService } from '@app/unraid-api/cli/log.service.js';
 import { Permission } from '@app/unraid-api/graph/resolvers/api-key/api-key.model.js';
-import { Role } from '@app/unraid-api/graph/resolvers/base.model.js';
+import { Role } from '@unraid/shared/graphql.model.js';
 
 @QuestionSet({ name: 'add-api-key' })
 export class AddApiKeyQuestionSet {

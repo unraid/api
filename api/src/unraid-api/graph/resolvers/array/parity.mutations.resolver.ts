@@ -8,7 +8,7 @@ import {
     UsePermissions,
 } from '@app/unraid-api/graph/directives/use-permissions.directive.js';
 import { ParityService } from '@app/unraid-api/graph/resolvers/array/parity.service.js';
-import { Resource } from '@app/unraid-api/graph/resolvers/base.model.js';
+import { Resource } from '@unraid/shared/graphql.model.js';
 import { ParityCheckMutations } from '@app/unraid-api/graph/resolvers/mutation/mutation.model.js';
 
 /**

@@ -7,7 +7,7 @@ import { AddApiKeyQuestionSet } from '@app/unraid-api/cli/apikey/add-api-key.que
 import { DeleteApiKeyQuestionSet } from '@app/unraid-api/cli/apikey/delete-api-key.questions.js';
 import { LogService } from '@app/unraid-api/cli/log.service.js';
 import { Permission } from '@app/unraid-api/graph/resolvers/api-key/api-key.model.js';
-import { Resource, Role } from '@app/unraid-api/graph/resolvers/base.model.js';
+import { Resource, Role } from '@unraid/shared/graphql.model.js';
 
 interface KeyOptions {
     name: string;

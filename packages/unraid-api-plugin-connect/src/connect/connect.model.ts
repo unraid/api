@@ -16,8 +16,6 @@ import {
 } from 'class-validator';
 import { GraphQLJSON, GraphQLURL } from 'graphql-scalars';
 
-import { Node } from '@unraid/shared/graphql.model.js';
-
 export enum WAN_ACCESS_TYPE {
     DYNAMIC = 'DYNAMIC',
     ALWAYS = 'ALWAYS',
@@ -341,7 +339,6 @@ export class ConnectSettings extends Node {
     implements: () => Node,
 })
 export class Connect extends Node {
-    @Field(() => DynamicRemoteAccessStatus, { description: 'The status of dynamic remote access' })
     @Field(() => DynamicRemoteAccessStatus, { description: 'The status of dynamic remote access' })
     @ValidateNested()
     dynamicRemoteAccess?: DynamicRemoteAccessStatus;

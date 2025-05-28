@@ -5,10 +5,10 @@ import {
     AuthPossession,
     UsePermissions,
 } from '@app/unraid-api/graph/directives/use-permissions.directive.js';
-import { Resource } from '@app/unraid-api/graph/resolvers/base.model.js';
+import { Resource } from '@unraid/shared/graphql.model.js';
 import { Disk } from '@app/unraid-api/graph/resolvers/disks/disks.model.js';
 import { DisksService } from '@app/unraid-api/graph/resolvers/disks/disks.service.js';
-import { PrefixedID } from '@app/unraid-api/graph/scalars/graphql-type-prefixed-id.js';
+import { PrefixedID } from '@unraid/shared/prefixed-id-scalar.js';
 
 @Resolver(() => Disk)
 export class DisksResolver {
