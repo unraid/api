@@ -1,6 +1,9 @@
 import { DynamicModule, Logger, Module } from '@nestjs/common';
 
 import { PluginService } from '@app/unraid-api/plugin/plugin.service.js';
+import { upnpClient } from '@app/upnp/helpers.js';
+
+export const UPNP_CLIENT_TOKEN = 'UPNP_CLIENT';
 
 @Module({})
 export class PluginModule {
@@ -18,8 +21,14 @@ export class PluginModule {
         return {
             module: PluginModule,
             imports: [...apiModules],
-            providers: [PluginService],
-            exports: [PluginService],
+            providers: [
+                PluginService,
+                {
+                    provide: UPNP_CLIENT_TOKEN,
+                    useValue: upnpClient,
+                },
+            ],
+            exports: [PluginService, UPNP_CLIENT_TOKEN],
             global: true,
         };
     }
