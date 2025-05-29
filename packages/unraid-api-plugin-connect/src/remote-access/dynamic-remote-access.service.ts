@@ -2,6 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 
 import {
+    AccessUrlObject,
     ConfigType,
     DynamicRemoteAccessState,
     DynamicRemoteAccessType,
@@ -10,6 +11,7 @@ import {
 import { ONE_MINUTE_MS } from '../helpers/consts.js';
 import { StaticRemoteAccessService } from './static-remote-access.service.js';
 import { UpnpRemoteAccessService } from './upnp-remote-access.service.js';
+import { URL_TYPE } from '../connect/connect.model.js';
 
 @Injectable()
 export class DynamicRemoteAccessService {
@@ -28,6 +30,19 @@ export class DynamicRemoteAccessService {
         return this.configService.getOrThrow<DynamicRemoteAccessState>('connect.dynamicRemoteAccess');
     }
 
+    keepAlive() {
+        this.receivePing();
+    }
+
+    private receivePing() {
+        this.configService.set('connect.dynamicRemoteAccess.lastPing', Date.now());
+    }
+
+    private clearPing() {
+        this.configService.set('connect.dynamicRemoteAccess.lastPing', null);
+        this.logger.verbose('cleared ping');
+    }
+
     async checkForTimeout() {
         const state = this.getState();
         if (state.lastPing && Date.now() - state.lastPing > ONE_MINUTE_MS) {
@@ -36,11 +51,53 @@ export class DynamicRemoteAccessService {
         }
     }
 
+    setAllowedUrl(url: AccessUrlObject) {
+        const currentAllowed = this.configService.get('connect.dynamicRemoteAccess.allowedUrl') ?? {};
+        const newAllowed: AccessUrlObject = {
+            ...currentAllowed,
+            ...url,
+            type: url.type ?? URL_TYPE.WAN,
+        };
+        this.configService.set('connect.dynamicRemoteAccess.allowedUrl', newAllowed);
+    }
+
+    private setErrorMessage(error: string) {
+        this.configService.set('connect.dynamicRemoteAccess.error', error);
+    }
+
+    private clearError() {
+        this.configService.set('connect.dynamicRemoteAccess.error', null);
+    }
+
+    async enableDynamicRemoteAccess(input: {
+        allowedUrl: AccessUrlObject;
+        type: DynamicRemoteAccessType;
+    }) {
+        try {
+
+            await this.stopRemoteAccess();
+            if (input.allowedUrl) {
+                this.setAllowedUrl({
+                    ipv4: input.allowedUrl.ipv4?.toString() ?? null,
+                    ipv6: input.allowedUrl.ipv6?.toString() ?? null,
+                    type: input.allowedUrl.type,
+                    name: input.allowedUrl.name,
+                });
+            }
+            await this.setType(input.type);
+        } catch (error) {
+            this.logger.error(error);
+            const message = error instanceof Error ? error.message : 'Unknown Error';
+            this.setErrorMessage(message);
+            return error;
+        }
+    }
+
     /**
      * Set the dynamic remote access type and handle the transition
      * @param type The new dynamic remote access type to set
      */
-    async setType(type: DynamicRemoteAccessType): Promise<void> {
+    private async setType(type: DynamicRemoteAccessType): Promise<void> {
         // Update the config first
         this.configService.set('connect.config.dynamicRemoteAccessType', type);
 
@@ -78,5 +135,7 @@ export class DynamicRemoteAccessService {
 
         // Reset the state
         this.configService.set('connect.dynamicRemoteAccess', makeDisabledDynamicRemoteAccessState());
+        this.clearPing();
+        this.clearError();
     }
 }

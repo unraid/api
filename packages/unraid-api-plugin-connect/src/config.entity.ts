@@ -15,6 +15,7 @@ import {
 } from 'class-validator';
 
 import { ConnectDemoConfig } from './config.demo.js';
+import { URL_TYPE } from './connect/connect.model.js';
 
 export enum MinigraphStatus {
     PRE_INIT = 'PRE_INIT',
@@ -30,14 +31,6 @@ export enum DynamicRemoteAccessType {
     DISABLED = 'DISABLED',
 }
 
-export enum URL_TYPE {
-    WAN = 'WAN',
-    LAN = 'LAN',
-    MDNS = 'MDNS',
-    WIREGUARD = 'WIREGUARD',
-    DEFAULT = 'DEFAULT',
-}
-
 @ObjectType()
 @UsePipes(new ValidationPipe({ transform: true }))
 @InputType('MyServersConfigInput')
@@ -47,9 +40,10 @@ export class MyServersConfig {
     @IsBoolean()
     wanaccess!: boolean;
 
-    @Field(() => Number)
+    @Field(() => Number, { nullable: true })
     @IsNumber()
-    wanport!: number;
+    @IsOptional()
+    wanport?: number | null;
 
     @Field(() => Boolean)
     @IsBoolean()

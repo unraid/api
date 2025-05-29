@@ -1,10 +1,28 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Inject, Injectable, Logger } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 
 import type { SchemaBasedCondition } from '@jsonforms/core';
+import type { DataSlice, SettingSlice, UIElement } from '@unraid/shared/jsonforms/settings.js';
 import { RuleEffect } from '@jsonforms/core';
+import { createLabeledControl } from '@unraid/shared/jsonforms/control.js';
+import { mergeSettingSlices } from '@unraid/shared/jsonforms/settings.js';
+import { csvStringToArray } from '@unraid/shared/util/data.js';
+import { fileExistsSync } from '@unraid/shared/util/file.js';
 import { execa } from 'execa';
 import { GraphQLError } from 'graphql/error/GraphQLError.js';
 import { decodeJwt } from 'jose';
+
+import { EVENTS } from '../pubsub/consts.js';
+import { ConnectApiKeyService } from './connect-api-key.service.js';
+import { DynamicRemoteAccessService } from '../remote-access/dynamic-remote-access.service.js';
+import {
+    DynamicRemoteAccessType,
+    URL_TYPE,
+    WAN_ACCESS_TYPE,
+    WAN_FORWARD_TYPE,
+} from './connect.model.js';
+import { ConfigType, ConnectConfig, MyServersConfig } from '../config.entity.js';
 
 import type {
     ApiSettingsInput,
@@ -13,33 +31,16 @@ import type {
     EnableDynamicRemoteAccessInput,
     RemoteAccess,
     SetupRemoteAccessInput,
-} from '@app/unraid-api/graph/resolvers/connect/connect.model.js';
-import type { DataSlice, SettingSlice, UIElement } from '@app/unraid-api/types/json-forms.js';
-import { getExtraOrigins } from '@app/common/allowed-origins.js';
-import { fileExistsSync } from '@app/core/utils/files/file-exists.js';
-import { setupRemoteAccessThunk } from '@app/store/actions/setup-remote-access.js';
-import {
-    loginUser,
-    setSsoUsers,
-    updateAllowedOrigins,
-    updateUserConfig,
-} from '@app/store/modules/config.js';
-import { setAllowedRemoteAccessUrl } from '@app/store/modules/dynamic-remote-access.js';
-import { FileLoadStatus } from '@app/store/types.js';
-import { ApiKeyService } from '@app/unraid-api/auth/api-key.service.js';
-import {
-    DynamicRemoteAccessType,
-    URL_TYPE,
-    WAN_ACCESS_TYPE,
-    WAN_FORWARD_TYPE,
-} from '@app/unraid-api/graph/resolvers/connect/connect.model.js';
-import { createLabeledControl } from '@app/unraid-api/graph/utils/form-utils.js';
-import { mergeSettingSlices } from '@app/unraid-api/types/json-forms.js';
-import { csvStringToArray } from '@app/utils.js';
+} from './connect.model.js';
 
 @Injectable()
 export class ConnectSettingsService {
-    constructor(private readonly apiKeyService: ApiKeyService) {}
+    constructor(
+        private readonly configService: ConfigService<ConfigType>,
+        private readonly remoteAccess: DynamicRemoteAccessService,
+        private readonly apiKeyService: ConnectApiKeyService,
+        private readonly eventEmitter: EventEmitter2
+    ) {}
 
     private readonly logger = new Logger(ConnectSettingsService.name);
 
@@ -52,8 +53,11 @@ export class ConnectSettingsService {
     }
 
     public async extraAllowedOrigins(): Promise<Array<string>> {
-        const extraOrigins = getExtraOrigins();
-        return extraOrigins;
+        const extraOrigins = this.configService.get('store.api.extraOrigins');
+        if (!extraOrigins) return [];
+        return csvStringToArray(extraOrigins).filter(
+            (origin) => origin.startsWith('http://') || origin.startsWith('https://')
+        );
     }
 
     isConnectPluginInstalled(): boolean {
@@ -62,55 +66,33 @@ export class ConnectSettingsService {
         );
     }
 
-    public async enableDynamicRemoteAccess(input: EnableDynamicRemoteAccessInput): Promise<boolean> {
-        const { store } = await import('@app/store/index.js');
-        const { RemoteAccessController } = await import('@app/remoteAccess/remote-access-controller.js');
-        // Start or extend dynamic remote access
-        const state = store.getState();
-
-        const { dynamicRemoteAccessType } = state.config.remote;
+    public async enableDynamicRemoteAccess(input: EnableDynamicRemoteAccessInput) {
+        const { dynamicRemoteAccessType } =
+            this.configService.getOrThrow<MyServersConfig>('connect.config');
         if (!dynamicRemoteAccessType || dynamicRemoteAccessType === DynamicRemoteAccessType.DISABLED) {
             throw new GraphQLError('Dynamic Remote Access is not enabled.', {
                 extensions: { code: 'FORBIDDEN' },
             });
         }
-
-        const controller = RemoteAccessController.instance;
-
-        if (input.enabled === false) {
-            await controller.stopRemoteAccess({
-                getState: store.getState,
-                dispatch: store.dispatch,
-            });
-            return true;
-        } else if (controller.getRunningRemoteAccessType() === DynamicRemoteAccessType.DISABLED) {
-            if (input.url) {
-                store.dispatch(setAllowedRemoteAccessUrl(input.url));
-            }
-            await controller.beginRemoteAccess({
-                getState: store.getState,
-                dispatch: store.dispatch,
-            });
-        } else {
-            controller.extendRemoteAccess({
-                getState: store.getState,
-                dispatch: store.dispatch,
-            });
-        }
-        return true;
+        await this.remoteAccess.enableDynamicRemoteAccess({
+            allowedUrl: {
+                ipv4: input.url.ipv4?.toString() ?? null,
+                ipv6: input.url.ipv6?.toString() ?? null,
+                type: input.url.type,
+                name: input.url.name,
+            },
+            type: dynamicRemoteAccessType,
+        });
     }
 
     async isSignedIn(): Promise<boolean> {
-        if (!this.isConnectPluginInstalled()) return false;
-        const { getters } = await import('@app/store/index.js');
-        const { apikey } = getters.config().remote;
+        const { apikey } = this.configService.getOrThrow<MyServersConfig>('connect.config');
         return Boolean(apikey) && apikey.trim().length > 0;
     }
 
     async isSSLCertProvisioned(): Promise<boolean> {
-        const { getters } = await import('@app/store/index.js');
-        const { nginx } = getters.emhttp();
-        return nginx.certificateName.endsWith('.myunraid.net');
+        const { certificateName } = this.configService.getOrThrow('store.emhttp.nginx');
+        return certificateName.endsWith('.myunraid.net');
     }
 
     /**------------------------------------------------------------------------
@@ -118,13 +100,12 @@ export class ConnectSettingsService {
      *------------------------------------------------------------------------**/
 
     async getCurrentSettings(): Promise<ConnectSettingsValues> {
-        const { getters } = await import('@app/store/index.js');
-        const { local, api, remote } = getters.config();
+        const connect = this.configService.getOrThrow<ConnectConfig>('connect');
         return {
             ...(await this.dynamicRemoteAccessSettings()),
-            sandbox: local.sandbox === 'yes',
-            extraOrigins: csvStringToArray(api.extraOrigins),
-            ssoUserIds: csvStringToArray(remote.ssoSubIds),
+            sandbox: this.configService.get('store.local.sandbox') === 'yes',
+            extraOrigins: await this.extraAllowedOrigins(),
+            ssoUserIds: connect.config.ssoSubIds,
         };
     }
 
@@ -135,8 +116,7 @@ export class ConnectSettingsService {
      */
     async syncSettings(settings: Partial<ApiSettingsInput>): Promise<boolean> {
         let restartRequired = false;
-        const { getters } = await import('@app/store/index.js');
-        const { nginx } = getters.emhttp();
+        const { nginx } = this.configService.getOrThrow('store.emhttp');
         if (settings.accessType === WAN_ACCESS_TYPE.DISABLED) {
             settings.port = null;
         }
@@ -165,19 +145,17 @@ export class ConnectSettingsService {
         if (settings.ssoUserIds) {
             restartRequired ||= await this.updateSSOUsers(settings.ssoUserIds);
         }
-        const { writeConfigSync } = await import('@app/store/sync/config-disk-sync.js');
-        writeConfigSync('flash');
+        // const { writeConfigSync } = await import('@app/store/sync/config-disk-sync.js');
+        // writeConfigSync('flash');
         return restartRequired;
     }
 
     private async updateAllowedOrigins(origins: string[]) {
-        const { store } = await import('@app/store/index.js');
-        store.dispatch(updateAllowedOrigins(origins));
+        this.configService.set('store.api.extraOrigins', origins.join(','));
     }
 
     private async getOrCreateLocalApiKey() {
-        const { getters } = await import('@app/store/index.js');
-        const { localApiKey: localApiKeyFromConfig } = getters.config().remote;
+        const { localApiKey: localApiKeyFromConfig } = this.configService.getOrThrow<MyServersConfig>('connect.config');
         if (localApiKeyFromConfig === '') {
             const localApiKey = await this.apiKeyService.createLocalConnectApiKey();
             if (!localApiKey?.key) {
@@ -191,8 +169,8 @@ export class ConnectSettingsService {
     }
 
     async signIn(input: ConnectSignInInput) {
-        const { getters, store } = await import('@app/store/index.js');
-        if (getters.emhttp().status === FileLoadStatus.LOADED) {
+        const status = this.configService.get('store.emhttp.status');
+        if (status === "LOADED") {
             const userInfo = input.idToken ? decodeJwt(input.idToken) : (input.userInfo ?? null);
 
             if (
@@ -210,15 +188,21 @@ export class ConnectSettingsService {
             try {
                 const localApiKey = await this.getOrCreateLocalApiKey();
 
-                await store.dispatch(
-                    loginUser({
-                        avatar: typeof userInfo.avatar === 'string' ? userInfo.avatar : '',
-                        username: userInfo.preferred_username,
-                        email: userInfo.email,
-                        apikey: input.apiKey,
-                        localApiKey,
-                    })
-                );
+                // Update config with user info
+                this.configService.set('connect.config.avatar', typeof userInfo.avatar === 'string' ? userInfo.avatar : '');
+                this.configService.set('connect.config.username', userInfo.preferred_username);
+                this.configService.set('connect.config.email', userInfo.email);
+                this.configService.set('connect.config.apikey', input.apiKey);
+                this.configService.set('connect.config.localApiKey', localApiKey);
+
+                // Emit login event
+                this.eventEmitter.emit(EVENTS.LOGIN, {
+                    username: userInfo.preferred_username,
+                    avatar: typeof userInfo.avatar === 'string' ? userInfo.avatar : '',
+                    email: userInfo.email,
+                    apikey: input.apiKey,
+                    localApiKey,
+                });
 
                 return true;
             } catch (error) {
@@ -237,11 +221,11 @@ export class ConnectSettingsService {
      * @returns true if the mode was changed, false otherwise
      */
     private async setSandboxMode(sandboxEnabled: boolean): Promise<boolean> {
-        const { store, getters } = await import('@app/store/index.js');
-        const currentSandbox = getters.config().local.sandbox;
+        throw new Error('Not implemented');
+        const currentSandbox = this.configService.get('store.local.sandbox');
         const sandbox = sandboxEnabled ? 'yes' : 'no';
         if (currentSandbox === sandbox) return false;
-        store.dispatch(updateUserConfig({ local: { sandbox } }));
+        this.configService.set('store.local.sandbox', sandbox);
         return true;
     }
 
@@ -265,31 +249,56 @@ export class ConnectSettingsService {
         if (invalidUserIds.length > 0) {
             throw new GraphQLError(`Invalid SSO user ID's: ${invalidUserIds.join(', ')}`);
         }
-        const { store } = await import('@app/store/index.js');
-        store.dispatch(setSsoUsers(userIds));
+        this.configService.set('connect.config.ssoSubIds', userIds);
         // request a restart if we're there were no sso users before
         return currentUserSet.size === 0;
     }
 
+    private getDynamicRemoteAccessType(
+        accessType: WAN_ACCESS_TYPE,
+        forwardType?: WAN_FORWARD_TYPE | undefined | null
+    ): DynamicRemoteAccessType {
+        // If access is disabled or always, DRA is disabled
+        if (accessType === WAN_ACCESS_TYPE.DISABLED || accessType === WAN_ACCESS_TYPE.ALWAYS) {
+            return DynamicRemoteAccessType.DISABLED;
+        }
+        // if access is enabled and forward type is UPNP, DRA is UPNP, otherwise it is static
+        return forwardType === WAN_FORWARD_TYPE.UPNP
+            ? DynamicRemoteAccessType.UPNP
+            : DynamicRemoteAccessType.STATIC;
+    }
+
     private async updateRemoteAccess(input: SetupRemoteAccessInput): Promise<boolean> {
-        const { store } = await import('@app/store/index.js');
-        await store.dispatch(setupRemoteAccessThunk(input)).unwrap();
+        const dynamicRemoteAccessType = this.getDynamicRemoteAccessType(input.accessType, input.forwardType);
+        
+        this.configService.set('connect.config.wanaccess', input.accessType === WAN_ACCESS_TYPE.ALWAYS);
+        this.configService.set('connect.config.wanport', input.forwardType === WAN_FORWARD_TYPE.STATIC ? input.port : null);
+        this.configService.set('connect.config.upnpEnabled', input.forwardType === WAN_FORWARD_TYPE.UPNP);
+        
+        // Use the dynamic remote access service to handle the transition
+        await this.remoteAccess.enableDynamicRemoteAccess({
+            type: dynamicRemoteAccessType,
+            allowedUrl: {
+                ipv4: null,
+                ipv6: null,
+                type: URL_TYPE.WAN,
+                name: null
+            }
+        });
+        
         return true;
     }
 
     public async dynamicRemoteAccessSettings(): Promise<RemoteAccess> {
-        const { getters } = await import('@app/store/index.js');
-        const hasWanAccess = getters.config().remote.wanaccess === 'yes';
+        const config = this.configService.getOrThrow<MyServersConfig>('connect.config');
         return {
-            accessType: hasWanAccess
-                ? getters.config().remote.dynamicRemoteAccessType !== DynamicRemoteAccessType.DISABLED
+            accessType: config.wanaccess
+                ? config.dynamicRemoteAccessType !== DynamicRemoteAccessType.DISABLED
                     ? WAN_ACCESS_TYPE.DYNAMIC
                     : WAN_ACCESS_TYPE.ALWAYS
                 : WAN_ACCESS_TYPE.DISABLED,
-            forwardType: getters.config().remote.upnpEnabled
-                ? WAN_FORWARD_TYPE.UPNP
-                : WAN_FORWARD_TYPE.STATIC,
-            port: getters.config().remote.wanport ? Number(getters.config().remote.wanport) : null,
+            forwardType: config.upnpEnabled ? WAN_FORWARD_TYPE.UPNP : WAN_FORWARD_TYPE.STATIC,
+            port: config.wanport ? Number(config.wanport) : null,
         };
     }
 

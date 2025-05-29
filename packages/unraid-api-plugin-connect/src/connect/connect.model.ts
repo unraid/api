@@ -16,6 +16,8 @@ import {
 } from 'class-validator';
 import { GraphQLJSON, GraphQLURL } from 'graphql-scalars';
 
+import { Node } from '@unraid/shared/graphql.model.js';
+
 export enum WAN_ACCESS_TYPE {
     DYNAMIC = 'DYNAMIC',
     ALWAYS = 'ALWAYS',
@@ -83,6 +85,7 @@ export class AccessUrlInput {
 @ObjectType()
 export class AccessUrl {
     @Field(() => URL_TYPE)
+    @IsEnum(URL_TYPE)
     type!: URL_TYPE;
 
     @Field(() => String, { nullable: true })

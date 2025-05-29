@@ -512,6 +512,9 @@ importers:
       '@ianvs/prettier-plugin-sort-imports':
         specifier: ^4.4.1
         version: 4.4.1(@vue/compiler-sfc@3.5.13)(prettier@3.5.3)
+      '@jsonforms/core':
+        specifier: ^3.5.1
+        version: 3.5.1
       '@nestjs/apollo':
         specifier: ^13.0.3
         version: 13.0.4(@apollo/server@4.11.3(graphql@16.10.0))(@as-integrations/fastify@2.1.1(@apollo/server@4.11.3(graphql@16.10.0))(fastify@5.2.1))(@nestjs/common@11.0.12(class-transformer@0.5.1)(class-validator@0.14.1)(reflect-metadata@0.1.14)(rxjs@7.8.2))(@nestjs/core@11.0.12(@nestjs/common@11.0.12(class-transformer@0.5.1)(class-validator@0.14.1)(reflect-metadata@0.1.14)(rxjs@7.8.2))(reflect-metadata@0.1.14)(rxjs@7.8.2))(@nestjs/graphql@13.0.4(@nestjs/common@11.0.12(class-transformer@0.5.1)(class-validator@0.14.1)(reflect-metadata@0.1.14)(rxjs@7.8.2))(@nestjs/core@11.0.12(@nestjs/common@11.0.12(class-transformer@0.5.1)(class-validator@0.14.1)(reflect-metadata@0.1.14)(rxjs@7.8.2))(reflect-metadata@0.1.14)(rxjs@7.8.2))(class-transformer@0.5.1)(class-validator@0.14.1)(graphql@16.10.0)(reflect-metadata@0.1.14)(ts-morph@24.0.0))(graphql@16.10.0)
@@ -575,6 +578,9 @@ importers:
       ini:
         specifier: ^5.0.0
         version: 5.0.0
+      jose:
+        specifier: ^6.0.0
+        version: 6.0.10
       lodash-es:
         specifier: ^4.17.21
         version: 4.17.21
@@ -684,9 +690,15 @@ importers:
       '@graphql-tools/utils':
         specifier: ^10.5.5
         version: 10.8.6(graphql@16.10.0)
+      '@jsonforms/core':
+        specifier: ^3.5.1
+        version: 3.5.1
       '@nestjs/graphql':
         specifier: ^13.0.3
         version: 13.0.4(@nestjs/common@11.0.12(class-transformer@0.5.1)(class-validator@0.14.1)(reflect-metadata@0.1.14)(rxjs@7.8.2))(@nestjs/core@11.0.12(@nestjs/common@11.0.12(class-transformer@0.5.1)(class-validator@0.14.1)(reflect-metadata@0.1.14)(rxjs@7.8.2))(reflect-metadata@0.1.14)(rxjs@7.8.2))(class-transformer@0.5.1)(class-validator@0.14.1)(graphql@16.10.0)(reflect-metadata@0.1.14)(ts-morph@24.0.0)
+      '@types/lodash-es':
+        specifier: ^4.17.12
+        version: 4.17.12
       '@types/node':
         specifier: ^22.14.0
         version: 22.15.3
@@ -699,9 +711,18 @@ importers:
       graphql-scalars:
         specifier: ^1.23.0
         version: 1.24.2(graphql@16.10.0)
+      lodash-es:
+        specifier: ^4.17.21
+        version: 4.17.21
       nest-authz:
         specifier: ^2.14.0
         version: 2.15.0(@nestjs/common@11.0.12(class-transformer@0.5.1)(class-validator@0.14.1)(reflect-metadata@0.1.14)(rxjs@7.8.2))(@nestjs/core@11.0.12(@nestjs/common@11.0.12(class-transformer@0.5.1)(class-validator@0.14.1)(reflect-metadata@0.1.14)(rxjs@7.8.2))(reflect-metadata@0.1.14)(rxjs@7.8.2))(reflect-metadata@0.1.14)(rxjs@7.8.2)
+      rimraf:
+        specifier: ^6.0.1
+        version: 6.0.1
+      type-fest:
+        specifier: ^4.38.0
+        version: 4.38.0
       typescript:
         specifier: ^5.8.2
         version: 5.8.3

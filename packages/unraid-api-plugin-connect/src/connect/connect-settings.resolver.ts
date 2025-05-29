@@ -1,19 +1,18 @@
 import { Logger } from '@nestjs/common';
 import { Args, Mutation, Query, ResolveField, Resolver } from '@nestjs/graphql';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 
 import { type Layout } from '@jsonforms/core';
 import { GraphQLJSON } from 'graphql-scalars';
+import { AuthActionVerb, AuthPossession } from 'nest-authz';
 
-import { getAllowedOrigins } from '@app/common/allowed-origins.js';
-import { setupRemoteAccessThunk } from '@app/store/actions/setup-remote-access.js';
-import { logoutUser, updateAllowedOrigins } from '@app/store/modules/config.js';
-import {
-    AuthActionVerb,
-    AuthPossession,
-    UsePermissions,
-} from '@app/unraid-api/graph/directives/use-permissions.directive.js';
 import { Resource } from '@unraid/shared/graphql.model.js';
-import { ConnectSettingsService } from '@app/unraid-api/graph/resolvers/connect/connect-settings.service.js';
+import { PrefixedID } from '@unraid/shared/prefixed-id-scalar.js';
+import { DataSlice } from '@unraid/shared/jsonforms/settings.js';
+import { UsePermissions } from '@unraid/shared/use-permissions.directive.js';
+
+import { ConnectSettingsService } from './connect-settings.service.js';
+import { EVENTS } from '../pubsub/consts.js';
 import {
     AllowedOriginInput,
     ApiSettingsInput,
@@ -23,14 +22,16 @@ import {
     EnableDynamicRemoteAccessInput,
     RemoteAccess,
     SetupRemoteAccessInput,
-} from '@app/unraid-api/graph/resolvers/connect/connect.model.js';
-import { PrefixedID } from '@unraid/shared/prefixed-id-scalar.js';
-import { DataSlice } from '@app/unraid-api/types/json-forms.js';
+} from './connect.model.js';
 
 @Resolver(() => ConnectSettings)
 export class ConnectSettingsResolver {
     private readonly logger = new Logger(ConnectSettingsResolver.name);
-    constructor(private readonly connectSettingsService: ConnectSettingsService) {}
+    
+    constructor(
+        private readonly connectSettingsService: ConnectSettingsService,
+        private readonly eventEmitter: EventEmitter2
+    ) {}
 
     @ResolveField(() => PrefixedID)
     public async id(): Promise<string> {
@@ -117,8 +118,7 @@ export class ConnectSettingsResolver {
         possession: AuthPossession.ANY,
     })
     public async connectSignOut() {
-        const { store } = await import('@app/store/index.js');
-        await store.dispatch(logoutUser({ reason: 'Manual Sign Out Using API' }));
+        this.eventEmitter.emit(EVENTS.LOGOUT, { reason: 'Manual Sign Out Using API' });
         return true;
     }
 
@@ -129,8 +129,11 @@ export class ConnectSettingsResolver {
         possession: AuthPossession.ANY,
     })
     public async setupRemoteAccess(@Args('input') input: SetupRemoteAccessInput): Promise<boolean> {
-        const { store } = await import('@app/store/index.js');
-        await store.dispatch(setupRemoteAccessThunk(input)).unwrap();
+        await this.connectSettingsService.syncSettings({
+            accessType: input.accessType,
+            forwardType: input.forwardType,
+            port: input.port,
+        });
         return true;
     }
 
@@ -141,9 +144,10 @@ export class ConnectSettingsResolver {
         possession: AuthPossession.ANY,
     })
     public async setAdditionalAllowedOrigins(@Args('input') input: AllowedOriginInput) {
-        const { store } = await import('@app/store/index.js');
-        await store.dispatch(updateAllowedOrigins(input.origins));
-        return getAllowedOrigins();
+        await this.connectSettingsService.syncSettings({
+            extraOrigins: input.origins,
+        });
+        return this.connectSettingsService.extraAllowedOrigins();
     }
 
     @Mutation(() => Boolean)
@@ -155,7 +159,7 @@ export class ConnectSettingsResolver {
     public async enableDynamicRemoteAccess(
         @Args('input') dynamicRemoteAccessInput: EnableDynamicRemoteAccessInput
     ): Promise<boolean> {
-        console.log('enableDynamicRemoteAccess', dynamicRemoteAccessInput);
-        return this.connectSettingsService.enableDynamicRemoteAccess(dynamicRemoteAccessInput);
+        await this.connectSettingsService.enableDynamicRemoteAccess(dynamicRemoteAccessInput);
+        return true;
     }
-}
+} 

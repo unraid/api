@@ -2,7 +2,8 @@ import { Field, InterfaceType, registerEnumType } from '@nestjs/graphql';
 
 import { IsNotEmpty, IsString } from 'class-validator';
 
-import { PrefixedID } from '@unraid/shared/prefixed-id-scalar.js';
+import { PrefixedID } from './prefixed-id-scalar.js';
+import { AuthActionVerb } from 'nest-authz';
 
 // Register enums
 export enum Resource {
@@ -39,6 +40,7 @@ export enum Resource {
 
 export enum Role {
     ADMIN = 'ADMIN',
+    USER = 'USER',
     CONNECT = 'CONNECT',
     GUEST = 'GUEST',
 }
@@ -60,3 +62,21 @@ registerEnumType(Role, {
     name: 'Role',
     description: 'Available roles for API keys and users',
 });
+
+export interface ApiKey {
+    id: string;
+    name: string;
+    description?: string;
+    roles?: Role[];
+    permissions?: Permission[];
+    createdAt: string;
+}
+
+export interface ApiKeyWithSecret extends ApiKey {
+    key: string;
+}
+
+export interface Permission {
+    resource: Resource;
+    actions: AuthActionVerb[];
+}
