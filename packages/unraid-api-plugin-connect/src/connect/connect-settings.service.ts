@@ -53,7 +53,7 @@ export class ConnectSettingsService {
     }
 
     public async extraAllowedOrigins(): Promise<Array<string>> {
-        const extraOrigins = this.configService.get('store.api.extraOrigins');
+        const extraOrigins = this.configService.get('store.config.api.extraOrigins');
         if (!extraOrigins) return [];
         return csvStringToArray(extraOrigins).filter(
             (origin) => origin.startsWith('http://') || origin.startsWith('https://')
@@ -103,7 +103,7 @@ export class ConnectSettingsService {
         const connect = this.configService.getOrThrow<ConnectConfig>('connect');
         return {
             ...(await this.dynamicRemoteAccessSettings()),
-            sandbox: this.configService.get('store.local.sandbox') === 'yes',
+            sandbox: this.configService.get('store.config.local.sandbox') === 'yes',
             extraOrigins: await this.extraAllowedOrigins(),
             ssoUserIds: connect.config.ssoSubIds,
         };
@@ -151,7 +151,7 @@ export class ConnectSettingsService {
     }
 
     private async updateAllowedOrigins(origins: string[]) {
-        this.configService.set('store.api.extraOrigins', origins.join(','));
+        this.configService.set('store.config.api.extraOrigins', origins.join(','));
     }
 
     private async getOrCreateLocalApiKey() {
@@ -222,10 +222,10 @@ export class ConnectSettingsService {
      */
     private async setSandboxMode(sandboxEnabled: boolean): Promise<boolean> {
         throw new Error('Not implemented');
-        const currentSandbox = this.configService.get('store.local.sandbox');
+        const currentSandbox = this.configService.get('store.config.local.sandbox');
         const sandbox = sandboxEnabled ? 'yes' : 'no';
         if (currentSandbox === sandbox) return false;
-        this.configService.set('store.local.sandbox', sandbox);
+        this.configService.set('store.config.local.sandbox', sandbox);
         return true;
     }
 
