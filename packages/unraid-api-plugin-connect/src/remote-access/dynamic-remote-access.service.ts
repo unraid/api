@@ -11,7 +11,7 @@ import {
 import { ONE_MINUTE_MS } from '../helpers/consts.js';
 import { StaticRemoteAccessService } from './static-remote-access.service.js';
 import { UpnpRemoteAccessService } from './upnp-remote-access.service.js';
-import { URL_TYPE } from '../connect/connect.model.js';
+import { URL_TYPE } from '@unraid/shared/network.model.js';
 
 @Injectable()
 export class DynamicRemoteAccessService {

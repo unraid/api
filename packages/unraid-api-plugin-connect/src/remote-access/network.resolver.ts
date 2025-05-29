@@ -1,17 +1,19 @@
 import { Query, ResolveField, Resolver } from '@nestjs/graphql';
 
-import { getServerIps } from '@app/graphql/resolvers/subscription/network.js';
+import { Resource } from '@unraid/shared/graphql.model.js';
 import {
     AuthActionVerb,
     AuthPossession,
     UsePermissions,
-} from '@app/unraid-api/graph/directives/use-permissions.directive.js';
-import { Resource } from '@unraid/shared/graphql.model.js';
-import { AccessUrl, Network } from '@app/unraid-api/graph/resolvers/connect/connect.model.js';
+} from '@unraid/shared/use-permissions.directive';
+
+import { AccessUrl } from '@unraid/shared/network.model.js';
+import { Network } from '../connect/connect.model.js';
+import { UrlResolverService } from '../system/url-resolver.service.js';
 
 @Resolver(() => Network)
 export class NetworkResolver {
-    constructor() {}
+    constructor(private readonly urlResolverService: UrlResolverService) {}
 
     @UsePermissions({
         action: AuthActionVerb.READ,
@@ -27,7 +29,7 @@ export class NetworkResolver {
 
     @ResolveField(() => [AccessUrl])
     public async accessUrls(): Promise<AccessUrl[]> {
-        const ips = await getServerIps();
+        const ips = this.urlResolverService.getServerIps();
         return ips.urls.map((url) => ({
             type: url.type,
             name: url.name,

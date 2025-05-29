@@ -266,147 +266,6 @@ type Share implements Node {
   luksStatus: String
 }
 
-type AccessUrl {
-  type: URL_TYPE!
-  name: String
-  ipv4: URL
-  ipv6: URL
-}
-
-enum URL_TYPE {
-  LAN
-  WIREGUARD
-  WAN
-  MDNS
-  OTHER
-  DEFAULT
-}
-
-"""
-A field whose value conforms to the standard URL format as specified in RFC3986: https://www.ietf.org/rfc/rfc3986.txt.
-"""
-scalar URL
-
-type RemoteAccess {
-  """The type of WAN access used for Remote Access"""
-  accessType: WAN_ACCESS_TYPE!
-
-  """The type of port forwarding used for Remote Access"""
-  forwardType: WAN_FORWARD_TYPE
-
-  """The port used for Remote Access"""
-  port: Int
-}
-
-enum WAN_ACCESS_TYPE {
-  DYNAMIC
-  ALWAYS
-  DISABLED
-}
-
-enum WAN_FORWARD_TYPE {
-  UPNP
-  STATIC
-}
-
-type DynamicRemoteAccessStatus {
-  """The type of dynamic remote access that is enabled"""
-  enabledType: DynamicRemoteAccessType!
-
-  """The type of dynamic remote access that is currently running"""
-  runningType: DynamicRemoteAccessType!
-
-  """Any error message associated with the dynamic remote access"""
-  error: String
-}
-
-enum DynamicRemoteAccessType {
-  STATIC
-  UPNP
-  DISABLED
-}
-
-type ConnectSettingsValues {
-  """
-  If true, the GraphQL sandbox is enabled and available at /graphql. If false, the GraphQL sandbox is disabled and only the production API will be available.
-  """
-  sandbox: Boolean!
-
-  """A list of origins allowed to interact with the API"""
-  extraOrigins: [String!]!
-
-  """The type of WAN access used for Remote Access"""
-  accessType: WAN_ACCESS_TYPE!
-
-  """The type of port forwarding used for Remote Access"""
-  forwardType: WAN_FORWARD_TYPE
-
-  """The port used for Remote Access"""
-  port: Int
-
-  """A list of Unique Unraid Account ID's"""
-  ssoUserIds: [String!]!
-}
-
-type ConnectSettings implements Node {
-  id: PrefixedID!
-
-  """The data schema for the Connect settings"""
-  dataSchema: JSON!
-
-  """The UI schema for the Connect settings"""
-  uiSchema: JSON!
-
-  """The values for the Connect settings"""
-  values: ConnectSettingsValues!
-}
-
-"""
-The `JSON` scalar type represents JSON values as specified by [ECMA-404](http://www.ecma-international.org/publications/files/ECMA-ST/ECMA-404.pdf).
-"""
-scalar JSON @specifiedBy(url: "http://www.ecma-international.org/publications/files/ECMA-ST/ECMA-404.pdf")
-
-type Connect implements Node {
-  id: PrefixedID!
-
-  """The status of dynamic remote access"""
-  dynamicRemoteAccess: DynamicRemoteAccessStatus!
-
-  """The settings for the Connect instance"""
-  settings: ConnectSettings!
-}
-
-type Network implements Node {
-  id: PrefixedID!
-  accessUrls: [AccessUrl!]
-}
-
-type ProfileModel implements Node {
-  id: PrefixedID!
-  username: String!
-  url: String!
-  avatar: String!
-}
-
-type Server implements Node {
-  id: PrefixedID!
-  owner: ProfileModel!
-  guid: String!
-  apikey: String!
-  name: String!
-  status: ServerStatus!
-  wanip: String!
-  lanip: String!
-  localurl: String!
-  remoteurl: String!
-}
-
-enum ServerStatus {
-  ONLINE
-  OFFLINE
-  NEVER_CONNECTED
-}
-
 type DiskPartition {
   """The name of the partition"""
   name: String!
@@ -798,6 +657,7 @@ type ApiKey implements Node {
 """Available roles for API keys and users"""
 enum Role {
   ADMIN
+  USER
   CONNECT
   GUEST
 }
@@ -819,6 +679,11 @@ type RCloneDrive {
   """Provider options and configuration schema"""
   options: JSON!
 }
+
+"""
+The `JSON` scalar type represents JSON values as specified by [ECMA-404](http://www.ecma-international.org/publications/files/ECMA-ST/ECMA-404.pdf).
+"""
+scalar JSON @specifiedBy(url: "http://www.ecma-international.org/publications/files/ECMA-ST/ECMA-404.pdf")
 
 type RCloneBackupConfigForm {
   id: ID!
@@ -1472,6 +1337,32 @@ type Owner {
   avatar: String!
 }
 
+type ProfileModel implements Node {
+  id: PrefixedID!
+  username: String!
+  url: String!
+  avatar: String!
+}
+
+type Server implements Node {
+  id: PrefixedID!
+  owner: ProfileModel!
+  guid: String!
+  apikey: String!
+  name: String!
+  status: ServerStatus!
+  wanip: String!
+  lanip: String!
+  localurl: String!
+  remoteurl: String!
+}
+
+enum ServerStatus {
+  ONLINE
+  OFFLINE
+  NEVER_CONNECTED
+}
+
 type VmDomain implements Node {
   """The unique identifier for the vm (uuid)"""
   id: PrefixedID!
@@ -1544,7 +1435,6 @@ type Query {
   logFiles: [LogFile!]!
   logFile(path: String!, lines: Int, startLine: Int): LogFileContent!
   me: UserAccount!
-  network: Network!
 
   """Get all notifications"""
   notifications: Notifications!
@@ -1569,9 +1459,6 @@ type Query {
 
   """All possible permissions for API keys"""
   apiKeyPossiblePermissions: [Permission!]!
-  connect: Connect!
-  remoteAccess: RemoteAccess!
-  extraAllowedOrigins: [String!]!
   customization: Customization
   publicPartnerInfo: PublicPartnerInfo
   publicTheme: Theme!
@@ -1606,12 +1493,6 @@ type Mutation {
   parityCheck: ParityCheckMutations!
   apiKey: ApiKeyMutations!
   rclone: RCloneMutations!
-  updateApiSettings(input: ApiSettingsInput!): ConnectSettingsValues!
-  connectSignIn(input: ConnectSignInInput!): Boolean!
-  connectSignOut: Boolean!
-  setupRemoteAccess(input: SetupRemoteAccessInput!): Boolean!
-  setAdditionalAllowedOrigins(input: AllowedOriginInput!): [String!]!
-  enableDynamicRemoteAccess(input: EnableDynamicRemoteAccessInput!): Boolean!
 
   """Initiates a flash drive backup using a configured remote."""
   initiateFlashBackup(input: InitiateFlashBackupInput!): FlashBackupStatus!
@@ -1623,91 +1504,6 @@ input NotificationData {
   description: String!
   importance: NotificationImportance!
   link: String
-}
-
-input ApiSettingsInput {
-  """
-  If true, the GraphQL sandbox will be enabled and available at /graphql. If false, the GraphQL sandbox will be disabled and only the production API will be available.
-  """
-  sandbox: Boolean
-
-  """A list of origins allowed to interact with the API"""
-  extraOrigins: [String!]
-
-  """The type of WAN access to use for Remote Access"""
-  accessType: WAN_ACCESS_TYPE
-
-  """The type of port forwarding to use for Remote Access"""
-  forwardType: WAN_FORWARD_TYPE
-
-  """
-  The port to use for Remote Access. Not required for UPNP forwardType. Required for STATIC forwardType. Ignored if accessType is DISABLED or forwardType is UPNP.
-  """
-  port: Int
-
-  """A list of Unique Unraid Account ID's"""
-  ssoUserIds: [String!]
-}
-
-input ConnectSignInInput {
-  """The API key for authentication"""
-  apiKey: String!
-
-  """The ID token for authentication"""
-  idToken: String
-
-  """User information for the sign-in"""
-  userInfo: ConnectUserInfoInput
-
-  """The access token for authentication"""
-  accessToken: String
-
-  """The refresh token for authentication"""
-  refreshToken: String
-}
-
-input ConnectUserInfoInput {
-  """The preferred username of the user"""
-  preferred_username: String!
-
-  """The email address of the user"""
-  email: String!
-
-  """The avatar URL of the user"""
-  avatar: String
-}
-
-input SetupRemoteAccessInput {
-  """The type of WAN access to use for Remote Access"""
-  accessType: WAN_ACCESS_TYPE!
-
-  """The type of port forwarding to use for Remote Access"""
-  forwardType: WAN_FORWARD_TYPE
-
-  """
-  The port to use for Remote Access. Not required for UPNP forwardType. Required for STATIC forwardType. Ignored if accessType is DISABLED or forwardType is UPNP.
-  """
-  port: Int
-}
-
-input AllowedOriginInput {
-  """A list of origins allowed to interact with the API"""
-  origins: [String!]!
-}
-
-input EnableDynamicRemoteAccessInput {
-  """The AccessURL Input for dynamic remote access"""
-  url: AccessUrlInput!
-
-  """Whether to enable or disable dynamic remote access"""
-  enabled: Boolean!
-}
-
-input AccessUrlInput {
-  type: URL_TYPE!
-  name: String
-  ipv4: URL
-  ipv6: URL
 }
 
 input InitiateFlashBackupInput {

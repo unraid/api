@@ -15,7 +15,7 @@ import {
 } from 'class-validator';
 
 import { ConnectDemoConfig } from './config.demo.js';
-import { URL_TYPE } from './connect/connect.model.js';
+import { URL_TYPE } from '@unraid/shared/network.model.js';
 
 export enum MinigraphStatus {
     PRE_INIT = 'PRE_INIT',

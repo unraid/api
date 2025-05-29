@@ -12,13 +12,13 @@ import { safelySerializeObjectToIni } from '@app/core/utils/files/safe-ini-seria
 import { parseConfig } from '@app/core/utils/misc/parse-config.js';
 import { NODE_ENV } from '@app/environment.js';
 import { setGraphqlConnectionStatus } from '@app/store/actions/set-minigraph-status.js';
-import { setupRemoteAccessThunk } from '@app/store/actions/setup-remote-access.js';
+// import { setupRemoteAccessThunk } from '@app/store/actions/setup-remote-access.js';
 import { type RootState } from '@app/store/index.js';
 import { FileLoadStatus } from '@app/store/types.js';
 import { RecursivePartial } from '@app/types/index.js';
 import { type MyServersConfig, type MyServersConfigMemory } from '@app/types/my-servers-config.js';
 import { MinigraphStatus } from '@app/unraid-api/graph/resolvers/cloud/cloud.model.js';
-import { DynamicRemoteAccessType } from '@app/unraid-api/graph/resolvers/connect/connect.model.js';
+// import { DynamicRemoteAccessType } from '@app/unraid-api/graph/resolvers/connect/connect.model.js';
 import { Owner } from '@app/unraid-api/graph/resolvers/owner/owner.model.js';
 
 export type SliceState = {
@@ -43,7 +43,7 @@ export const initialState: SliceState = {
         idtoken: '',
         refreshtoken: '',
         allowedOrigins: '',
-        dynamicRemoteAccessType: DynamicRemoteAccessType.DISABLED,
+        dynamicRemoteAccessType: "DISABLED",
         ssoSubIds: '',
     },
     local: {
@@ -212,29 +212,29 @@ export const config = createSlice({
         setWanAccess(state, action: PayloadAction<'yes' | 'no'>) {
             state.remote.wanaccess = action.payload;
         },
-        addSsoUser(state, action: PayloadAction<string>) {
-            // First check if state already has ID, otherwise append it
-            if (state.remote.ssoSubIds.includes(action.payload)) {
-                return;
-            }
-            const stateAsArray = state.remote.ssoSubIds.split(',').filter((id) => id !== '');
-            stateAsArray.push(action.payload);
-            state.remote.ssoSubIds = stateAsArray.join(',');
-        },
+        // addSsoUser(state, action: PayloadAction<string>) {
+        //     // First check if state already has ID, otherwise append it
+        //     if (state.remote.ssoSubIds.includes(action.payload)) {
+        //         return;
+        //     }
+        //     const stateAsArray = state.remote.ssoSubIds.split(',').filter((id) => id !== '');
+        //     stateAsArray.push(action.payload);
+        //     state.remote.ssoSubIds = stateAsArray.join(',');
+        // },
         setSsoUsers(state, action: PayloadAction<string[]>) {
             state.remote.ssoSubIds = action.payload.filter((id) => id).join(',');
         },
-        removeSsoUser(state, action: PayloadAction<string | null>) {
-            if (action.payload === null) {
-                state.remote.ssoSubIds = '';
-                return;
-            }
-            if (!state.remote.ssoSubIds.includes(action.payload)) {
-                return;
-            }
-            const stateAsArray = state.remote.ssoSubIds.split(',').filter((id) => id !== action.payload);
-            state.remote.ssoSubIds = stateAsArray.join(',');
-        },
+        // removeSsoUser(state, action: PayloadAction<string | null>) {
+        //     if (action.payload === null) {
+        //         state.remote.ssoSubIds = '';
+        //         return;
+        //     }
+        //     if (!state.remote.ssoSubIds.includes(action.payload)) {
+        //         return;
+        //     }
+        //     const stateAsArray = state.remote.ssoSubIds.split(',').filter((id) => id !== action.payload);
+        //     state.remote.ssoSubIds = stateAsArray.join(',');
+        // },
         setLocalApiKey(state, action: PayloadAction<string | null>) {
             state.remote.localApiKey = action.payload ?? '';
         },
@@ -291,7 +291,7 @@ export const config = createSlice({
                     idtoken: '',
                     accessToken: '',
                     refreshToken: '',
-                    dynamicRemoteAccessType: DynamicRemoteAccessType.DISABLED,
+                    // dynamicRemoteAccessType: DynamicRemoteAccessType.DISABLED,
                 },
             });
         });
@@ -300,18 +300,18 @@ export const config = createSlice({
             state.connectionStatus.minigraph = action.payload.status;
         });
 
-        builder.addCase(setupRemoteAccessThunk.fulfilled, (state, action) => {
-            state.remote.wanaccess = action.payload.wanaccess;
-            state.remote.dynamicRemoteAccessType = action.payload.dynamicRemoteAccessType;
-            state.remote.wanport = action.payload.wanport;
-            state.remote.upnpEnabled = action.payload.upnpEnabled;
-        });
+        // builder.addCase(setupRemoteAccessThunk.fulfilled, (state, action) => {
+        //     state.remote.wanaccess = action.payload.wanaccess;
+        //     state.remote.dynamicRemoteAccessType = action.payload.dynamicRemoteAccessType;
+        //     state.remote.wanport = action.payload.wanport;
+        //     state.remote.upnpEnabled = action.payload.upnpEnabled;
+        // });
     },
 });
 const { actions, reducer } = config;
 
 export const {
-    addSsoUser,
+    // addSsoUser,
     setSsoUsers,
     updateUserConfig,
     updateAccessTokens,
@@ -319,7 +319,7 @@ export const {
     setUpnpState,
     setWanPortToValue,
     setWanAccess,
-    removeSsoUser,
+    // removeSsoUser,
     setLocalApiKey,
 } = actions;
 
@@ -327,7 +327,7 @@ export const {
  * Actions that should trigger a flash write
  */
 export const configUpdateActionsFlash = isAnyOf(
-    addSsoUser,
+    // addSsoUser,
     setSsoUsers,
     updateUserConfig,
     updateAccessTokens,
@@ -335,10 +335,10 @@ export const configUpdateActionsFlash = isAnyOf(
     setUpnpState,
     setWanPortToValue,
     setWanAccess,
-    setupRemoteAccessThunk.fulfilled,
+    // setupRemoteAccessThunk.fulfilled,
     logoutUser.fulfilled,
     loginUser.fulfilled,
-    removeSsoUser,
+    // removeSsoUser,
     setLocalApiKey
 );
 

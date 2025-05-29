@@ -16,9 +16,9 @@ import { decodeJwt } from 'jose';
 import { EVENTS } from '../pubsub/consts.js';
 import { ConnectApiKeyService } from './connect-api-key.service.js';
 import { DynamicRemoteAccessService } from '../remote-access/dynamic-remote-access.service.js';
+import { URL_TYPE } from '@unraid/shared/network.model.js';
 import {
     DynamicRemoteAccessType,
-    URL_TYPE,
     WAN_ACCESS_TYPE,
     WAN_FORWARD_TYPE,
 } from './connect.model.js';

@@ -17,7 +17,6 @@ import { logger } from '@app/core/log.js';
 import { fileExistsSync } from '@app/core/utils/files/file-exists.js';
 import { environment, PATHS_CONFIG_MODULES, PORT } from '@app/environment.js';
 import * as envVars from '@app/environment.js';
-import { setupNewMothershipSubscription } from '@app/mothership/subscribe-to-mothership.js';
 import { loadDynamixConfigFile } from '@app/store/actions/load-dynamix-config-file.js';
 import { shutdownApiEvent } from '@app/store/actions/shutdown-api-event.js';
 import { store } from '@app/store/index.js';
@@ -72,8 +71,6 @@ export const viteNodeApp = async () => {
 
         // Load my dynamix config file into store
         await store.dispatch(loadDynamixConfigFile());
-
-        await setupNewMothershipSubscription();
 
         // Start listening to file updates
         StateManager.getInstance();

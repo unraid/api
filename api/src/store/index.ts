@@ -8,7 +8,7 @@ export const store = configureStore({
     middleware: (getDefaultMiddleware) =>
         getDefaultMiddleware({
             serializableCheck: false,
-        }).prepend(listenerMiddleware.middleware),
+        }).prepend(listenerMiddleware?.middleware ?? []),
 });
 
 export type RootState = ReturnType<typeof store.getState>;
@@ -18,7 +18,6 @@ export type ApiStore = typeof store;
 export const getters = {
     cache: () => store.getState().cache,
     config: () => store.getState().config,
-    dynamicRemoteAccess: () => store.getState().dynamicRemoteAccess,
     dynamix: () => store.getState().dynamix,
     emhttp: () => store.getState().emhttp,
     minigraph: () => store.getState().minigraph,

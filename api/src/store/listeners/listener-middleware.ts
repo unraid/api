@@ -6,9 +6,6 @@ import { addListener, createListenerMiddleware } from '@reduxjs/toolkit';
 import { type AppDispatch, type RootState } from '@app/store/index.js';
 import { enableArrayEventListener } from '@app/store/listeners/array-event-listener.js';
 import { enableConfigFileListener } from '@app/store/listeners/config-listener.js';
-import { enableDynamicRemoteAccessListener } from '@app/store/listeners/dynamic-remote-access-listener.js';
-import { enableMothershipJobsListener } from '@app/store/listeners/mothership-subscription-listener.js';
-import { enableServerStateListener } from '@app/store/listeners/server-state-listener.js';
 import { enableUpnpListener } from '@app/store/listeners/upnp-listener.js';
 import { enableVersionListener } from '@app/store/listeners/version-listener.js';
 import { enableWanAccessChangeListener } from '@app/store/listeners/wan-access-change-listener.js';
@@ -25,13 +22,10 @@ export const addAppListener = addListener as TypedAddListener<RootState, AppDisp
 
 export const startMiddlewareListeners = () => {
     // Begin listening for events
-    enableMothershipJobsListener();
     enableConfigFileListener('flash')();
     enableConfigFileListener('memory')();
     enableUpnpListener();
     enableVersionListener();
-    enableDynamicRemoteAccessListener();
     enableArrayEventListener();
     enableWanAccessChangeListener();
-    enableServerStateListener();
 };

@@ -1,4 +1,5 @@
 import { Field, InputType, Int, ObjectType, registerEnumType } from '@nestjs/graphql';
+import { AccessUrl, URL_TYPE } from '@unraid/shared/network.model.js';
 
 import {
     ArrayMinSize,
@@ -35,19 +36,6 @@ export enum DynamicRemoteAccessType {
     DISABLED = 'DISABLED',
 }
 
-export enum URL_TYPE {
-    LAN = 'LAN',
-    WIREGUARD = 'WIREGUARD',
-    WAN = 'WAN',
-    MDNS = 'MDNS',
-    OTHER = 'OTHER',
-    DEFAULT = 'DEFAULT',
-}
-
-registerEnumType(URL_TYPE, {
-    name: 'URL_TYPE',
-});
-
 registerEnumType(DynamicRemoteAccessType, {
     name: 'DynamicRemoteAccessType',
 });
@@ -76,25 +64,6 @@ export class AccessUrlInput {
 
     @Field(() => GraphQLURL, { nullable: true })
     @IsOptional()
-    ipv6?: URL | null;
-}
-
-/**
- * This defines the LOCAL server Access URLs - these are sent to Connect if needed to share access routes
- */
-@ObjectType()
-export class AccessUrl {
-    @Field(() => URL_TYPE)
-    @IsEnum(URL_TYPE)
-    type!: URL_TYPE;
-
-    @Field(() => String, { nullable: true })
-    name?: string | null;
-
-    @Field(() => GraphQLURL, { nullable: true })
-    ipv4?: URL | null;
-
-    @Field(() => GraphQLURL, { nullable: true })
     ipv6?: URL | null;
 }
 

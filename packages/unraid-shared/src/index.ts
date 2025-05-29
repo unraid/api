@@ -1,2 +1,2 @@
-export * from './use-permissions.directive.js'; 
+export * from './use-permissions.directive.js';
 export const demoShared = 'demoShared';

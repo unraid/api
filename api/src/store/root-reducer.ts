@@ -3,13 +3,11 @@ import { combineReducers, UnknownAction } from '@reduxjs/toolkit';
 import { resetStore } from '@app/store/actions/reset-store.js';
 import { cache } from '@app/store/modules/cache.js';
 import { configReducer } from '@app/store/modules/config.js';
-import { dynamicRemoteAccessReducer } from '@app/store/modules/dynamic-remote-access.js';
 import { dynamix } from '@app/store/modules/dynamix.js';
 import { emhttp } from '@app/store/modules/emhttp.js';
 import { mothershipReducer } from '@app/store/modules/minigraph.js';
 import { paths } from '@app/store/modules/paths.js';
 import { registrationReducer } from '@app/store/modules/registration.js';
-import { remoteGraphQLReducer } from '@app/store/modules/remote-graphql.js';
 import { upnp } from '@app/store/modules/upnp.js';
 
 /**
@@ -18,12 +16,10 @@ import { upnp } from '@app/store/modules/upnp.js';
  */
 const appReducer = combineReducers({
     config: configReducer,
-    dynamicRemoteAccess: dynamicRemoteAccessReducer,
     minigraph: mothershipReducer,
     paths: paths.reducer,
     emhttp: emhttp.reducer,
     registration: registrationReducer,
-    remoteGraphQL: remoteGraphQLReducer,
     cache: cache.reducer,
     upnp: upnp.reducer,
     dynamix: dynamix.reducer,

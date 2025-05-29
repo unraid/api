@@ -1,7 +1,8 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 
-import { ConfigType, URL_TYPE } from '../config.entity.js';
+import { ConfigType } from '../config.entity.js';
+import { URL_TYPE } from '@unraid/shared/network.model.js';
 
 /**
  * Represents a Fully Qualified Domain Name (FQDN) entry in the nginx configuration.
