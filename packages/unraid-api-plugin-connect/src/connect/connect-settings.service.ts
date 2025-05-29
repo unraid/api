@@ -23,6 +23,7 @@ import {
     WAN_FORWARD_TYPE,
 } from './connect.model.js';
 import { ConfigType, ConnectConfig, MyServersConfig } from '../config.entity.js';
+import { SsoUserService } from './sso-user.service.js';
 
 import type {
     ApiSettingsInput,
@@ -39,7 +40,8 @@ export class ConnectSettingsService {
         private readonly configService: ConfigService<ConfigType>,
         private readonly remoteAccess: DynamicRemoteAccessService,
         private readonly apiKeyService: ConnectApiKeyService,
-        private readonly eventEmitter: EventEmitter2
+        private readonly eventEmitter: EventEmitter2,
+        private readonly ssoUserService: SsoUserService
     ) {}
 
     private readonly logger = new Logger(ConnectSettingsService.name);
@@ -105,7 +107,7 @@ export class ConnectSettingsService {
             ...(await this.dynamicRemoteAccessSettings()),
             sandbox: this.configService.get('store.config.local.sandbox') === 'yes',
             extraOrigins: await this.extraAllowedOrigins(),
-            ssoUserIds: connect.config.ssoSubIds,
+            ssoUserIds: await this.ssoUserService.getSsoUsers(),
         };
     }
 
@@ -143,7 +145,7 @@ export class ConnectSettingsService {
             restartRequired ||= await this.setSandboxMode(settings.sandbox);
         }
         if (settings.ssoUserIds) {
-            restartRequired ||= await this.updateSSOUsers(settings.ssoUserIds);
+            restartRequired ||= await this.ssoUserService.setSsoUsers(settings.ssoUserIds);
         }
         // const { writeConfigSync } = await import('@app/store/sync/config-disk-sync.js');
         // writeConfigSync('flash');
@@ -227,31 +229,6 @@ export class ConnectSettingsService {
         if (currentSandbox === sandbox) return false;
         this.configService.set('store.config.local.sandbox', sandbox);
         return true;
-    }
-
-    /**
-     * Updates the SSO users and returns true if a restart is required
-     * @param userIds - The list of SSO user IDs
-     * @returns true if a restart is required, false otherwise
-     */
-    private async updateSSOUsers(userIds: string[]): Promise<boolean> {
-        const { ssoUserIds } = await this.getCurrentSettings();
-        const currentUserSet = new Set(ssoUserIds);
-        const newUserSet = new Set(userIds);
-        if (newUserSet.symmetricDifference(currentUserSet).size === 0) {
-            // there's no change, so no need to update
-            return false;
-        }
-        // make sure we aren't adding invalid user ids
-        const uuidRegex =
-            /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/;
-        const invalidUserIds = userIds.filter((id) => !uuidRegex.test(id));
-        if (invalidUserIds.length > 0) {
-            throw new GraphQLError(`Invalid SSO user ID's: ${invalidUserIds.join(', ')}`);
-        }
-        this.configService.set('connect.config.ssoSubIds', userIds);
-        // request a restart if we're there were no sso users before
-        return currentUserSet.size === 0;
     }
 
     private getDynamicRemoteAccessType(

@@ -23,6 +23,5 @@ export const getters = {
     minigraph: () => store.getState().minigraph,
     paths: () => store.getState().paths,
     registration: () => store.getState().registration,
-    remoteGraphQL: () => store.getState().remoteGraphQL,
     upnp: () => store.getState().upnp,
 };

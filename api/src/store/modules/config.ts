@@ -78,25 +78,7 @@ export const loginUser = createAsyncThunk<
 export const logoutUser = createAsyncThunk<void, { reason?: string }, { state: RootState }>(
     'config/logout-user',
     async ({ reason }) => {
-        logger.info('Logging out user: %s', reason ?? 'No reason provided');
-        const { pubsub, PUBSUB_CHANNEL } = await import('@app/core/pubsub.js');
-        const { stopPingTimeoutJobs } = await import('@app/mothership/jobs/ping-timeout-jobs.js');
-        const { GraphQLClient } = await import('@app/mothership/graphql-client.js');
-
-        // Publish to servers endpoint
-        await pubsub.publish(PUBSUB_CHANNEL.SERVERS, {
-            servers: [],
-        });
-
-        const owner: Owner = {
-            username: 'root',
-            url: '',
-            avatar: '',
-        };
-        // Publish to owner endpoint
-        await pubsub.publish(PUBSUB_CHANNEL.OWNER, { owner });
-        stopPingTimeoutJobs();
-        await GraphQLClient.clearInstance();
+        logger.warn('invoked legacy logoutUser. no action taken.');
     }
 );
 

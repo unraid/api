@@ -13,6 +13,6 @@ export const getDnsCache = (): DNSCheck | undefined => {
     return nodeCache.get(CacheKeys.checkDns);
 };
 
-export const hasRemoteSubscription = (sha256: string, state = store.getState()): boolean => {
-    return state.remoteGraphQL.subscriptions.some((sub) => sub.sha256 === sha256);
-};
+// export const hasRemoteSubscription = (sha256: string, state = store.getState()): boolean => {
+//     return state.remoteGraphQL.subscriptions.some((sub) => sub.sha256 === sha256);
+// };

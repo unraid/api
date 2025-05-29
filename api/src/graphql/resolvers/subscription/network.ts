@@ -1,4 +1,4 @@
-import { AccessUrl, URL_TYPE } from '@unraid/shared';
+import { AccessUrl, URL_TYPE } from '@unraid/shared/network.model.js';
 
 import type { RootState } from '@app/store/index.js';
 import { logger } from '@app/core/log.js';
