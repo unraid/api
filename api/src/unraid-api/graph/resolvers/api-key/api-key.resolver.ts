@@ -1,5 +1,8 @@
 import { Args, Query, Resolver } from '@nestjs/graphql';
 
+import { Resource, Role } from '@unraid/shared/graphql.model.js';
+import { PrefixedID } from '@unraid/shared/prefixed-id-scalar.js';
+
 import { ApiKeyService } from '@app/unraid-api/auth/api-key.service.js';
 import { AuthService } from '@app/unraid-api/auth/auth.service.js';
 import {
@@ -8,8 +11,6 @@ import {
     UsePermissions,
 } from '@app/unraid-api/graph/directives/use-permissions.directive.js';
 import { ApiKey, Permission } from '@app/unraid-api/graph/resolvers/api-key/api-key.model.js';
-import { Resource, Role } from '@unraid/shared/graphql.model.js';
-import { PrefixedID } from '@unraid/shared/prefixed-id-scalar.js';
 
 @Resolver(() => ApiKey)
 export class ApiKeyResolver {

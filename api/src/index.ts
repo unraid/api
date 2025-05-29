@@ -15,6 +15,7 @@ import { WebSocket } from 'ws';
 
 import { logger } from '@app/core/log.js';
 import { fileExistsSync } from '@app/core/utils/files/file-exists.js';
+import { getServerIdentifier } from '@app/core/utils/server-identifier.js';
 import { environment, PATHS_CONFIG_MODULES, PORT } from '@app/environment.js';
 import * as envVars from '@app/environment.js';
 import { loadDynamixConfigFile } from '@app/store/actions/load-dynamix-config-file.js';
@@ -28,7 +29,6 @@ import { startStoreSync } from '@app/store/store-sync.js';
 import { setupDynamixConfigWatch } from '@app/store/watch/dynamix-config-watch.js';
 import { setupRegistrationKeyWatch } from '@app/store/watch/registration-watch.js';
 import { StateManager } from '@app/store/watch/state-watch.js';
-import { getServerIdentifier } from '@app/core/utils/server-identifier.js';
 
 let server: NestFastifyApplication<RawServerDefault> | null = null;
 

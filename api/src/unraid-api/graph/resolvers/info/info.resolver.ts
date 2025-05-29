@@ -1,5 +1,6 @@
 import { Query, ResolveField, Resolver, Subscription } from '@nestjs/graphql';
 
+import { Resource } from '@unraid/shared/graphql.model.js';
 import { baseboard as getBaseboard, system as getSystem } from 'systeminformation';
 
 import { createSubscription, PUBSUB_CHANNEL } from '@app/core/pubsub.js';
@@ -18,7 +19,6 @@ import {
     AuthPossession,
     UsePermissions,
 } from '@app/unraid-api/graph/directives/use-permissions.directive.js';
-import { Resource } from '@unraid/shared/graphql.model.js';
 import {
     Baseboard,
     Devices,

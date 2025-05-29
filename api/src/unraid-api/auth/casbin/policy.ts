@@ -1,6 +1,5 @@
-import { AuthAction } from 'nest-authz';
-
 import { Resource, Role } from '@unraid/shared/graphql.model.js';
+import { AuthAction } from 'nest-authz';
 
 export const BASE_POLICY = `
 # Admin permissions

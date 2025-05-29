@@ -25,7 +25,7 @@ const shouldUpnpBeEnabled = (state: RootState | null): boolean => {
 const isStateOrConfigUpdate = isAnyOf(
     loadConfigFile.fulfilled,
     loadSingleStateFile.fulfilled,
-    loadStateFiles.fulfilled,
+    loadStateFiles.fulfilled
     // setupRemoteAccessThunk.fulfilled
 );
 

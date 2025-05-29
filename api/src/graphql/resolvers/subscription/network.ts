@@ -1,8 +1,9 @@
+import { AccessUrl, URL_TYPE } from '@unraid/shared';
+
 import type { RootState } from '@app/store/index.js';
 import { logger } from '@app/core/log.js';
 import { type Nginx } from '@app/core/types/states/nginx.js';
 import { store } from '@app/store/index.js';
-import { AccessUrl, URL_TYPE } from '@unraid/shared';
 
 interface UrlForFieldInput {
     url: string;

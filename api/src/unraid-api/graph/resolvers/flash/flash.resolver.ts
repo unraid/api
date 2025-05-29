@@ -1,12 +1,13 @@
 import { Query, Resolver } from '@nestjs/graphql';
 
+import { Resource } from '@unraid/shared/graphql.model.js';
+
 import { getters } from '@app/store/index.js';
 import {
     AuthActionVerb,
     AuthPossession,
     UsePermissions,
 } from '@app/unraid-api/graph/directives/use-permissions.directive.js';
-import { Resource } from '@unraid/shared/graphql.model.js';
 import { Flash } from '@app/unraid-api/graph/resolvers/flash/flash.model.js';
 
 @Resolver(() => Flash)

@@ -1,11 +1,11 @@
 import { All, Controller, Get, Logger, Param, Req, Res } from '@nestjs/common';
 
+import { Resource } from '@unraid/shared/graphql.model.js';
 import got from 'got';
 import { AuthActionVerb, AuthPossession, UsePermissions } from 'nest-authz';
 
 import type { FastifyReply, FastifyRequest } from '@app/unraid-api/types/fastify.js';
 import { Public } from '@app/unraid-api/auth/public.decorator.js';
-import { Resource } from '@unraid/shared/graphql.model.js';
 import { RestService } from '@app/unraid-api/rest/rest.service.js';
 
 @Controller()

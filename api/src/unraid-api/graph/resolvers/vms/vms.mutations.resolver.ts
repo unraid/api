@@ -1,14 +1,15 @@
 import { Args, ResolveField, Resolver } from '@nestjs/graphql';
 
+import { Resource } from '@unraid/shared/graphql.model.js';
+import { PrefixedID } from '@unraid/shared/prefixed-id-scalar.js';
+
 import {
     AuthActionVerb,
     AuthPossession,
     UsePermissions,
 } from '@app/unraid-api/graph/directives/use-permissions.directive.js';
-import { Resource } from '@unraid/shared/graphql.model.js';
 import { VmMutations } from '@app/unraid-api/graph/resolvers/mutation/mutation.model.js';
 import { VmsService } from '@app/unraid-api/graph/resolvers/vms/vms.service.js';
-import { PrefixedID } from '@unraid/shared/prefixed-id-scalar.js';
 
 /**
  * Nested Resolvers for Mutations MUST use @ResolveField() instead of @Mutation()

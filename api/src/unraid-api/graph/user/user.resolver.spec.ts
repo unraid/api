@@ -1,9 +1,9 @@
 import { Test, TestingModule } from '@nestjs/testing';
 
+import { Resource, Role } from '@unraid/shared/graphql.model.js';
 import { AuthZService } from 'nest-authz';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { Resource, Role } from '@unraid/shared/graphql.model.js';
 import { UserAccount } from '@app/unraid-api/graph/user/user.model.js';
 import { MeResolver } from '@app/unraid-api/graph/user/user.resolver.js';
 

@@ -1,6 +1,7 @@
-import { buildSchema } from 'graphql';
 import { readFileSync } from 'fs';
 import { join } from 'path';
+
+import { buildSchema } from 'graphql';
 
 async function validateSchema(schemaFile = 'generated-schema.graphql') {
     try {
@@ -13,7 +14,7 @@ async function validateSchema(schemaFile = 'generated-schema.graphql') {
 
         // If we get here, the schema is valid
         console.log(`✅ ${schemaFile} is valid!`);
-        
+
         // Print some basic schema information
         const queryType = schema.getQueryType();
         const mutationType = schema.getMutationType();
@@ -33,13 +34,12 @@ async function validateSchema(schemaFile = 'generated-schema.graphql') {
             console.log(`\nSubscription Type: ${subscriptionType.name}`);
             console.log('Subscription Fields:', Object.keys(subscriptionType.getFields()).join(', '));
         }
-
     } catch (error) {
         console.error('❌ Schema validation failed!');
         console.error('\nError details:');
         console.error('----------------');
         console.error(error);
-        
+
         // If it's a GraphQL error, try to extract more information
         if (error instanceof Error) {
             const message = error.message;
@@ -56,4 +56,4 @@ async function validateSchema(schemaFile = 'generated-schema.graphql') {
 
 // Run the validation
 validateSchema('generated-schema.graphql').catch(console.error);
-validateSchema('generated-schema-new.graphql').catch(console.error); 
+validateSchema('generated-schema-new.graphql').catch(console.error);

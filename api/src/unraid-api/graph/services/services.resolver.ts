@@ -1,5 +1,7 @@
-import { Query, Resolver } from '@nestjs/graphql';
 import { ConfigService } from '@nestjs/config';
+import { Query, Resolver } from '@nestjs/graphql';
+
+import { Resource } from '@unraid/shared/graphql.model.js';
 
 import { bootTimestamp } from '@app/common/dashboard/boot-timestamp.js';
 import { API_VERSION } from '@app/environment.js';
@@ -8,14 +10,11 @@ import {
     AuthPossession,
     UsePermissions,
 } from '@app/unraid-api/graph/directives/use-permissions.directive.js';
-import { Resource } from '@unraid/shared/graphql.model.js';
 import { Service } from '@app/unraid-api/graph/services/service.model.js';
 
 @Resolver(() => Service)
 export class ServicesResolver {
-    constructor(
-        private readonly configService: ConfigService
-    ) {}
+    constructor(private readonly configService: ConfigService) {}
 
     private getDynamicRemoteAccessService = (): Service | null => {
         const connectConfig = this.configService.get('connect');
@@ -27,7 +26,7 @@ export class ServicesResolver {
         return {
             id: 'service/dynamic-remote-access',
             name: 'dynamic-remote-access',
-            online: enabledStatus && enabledStatus !== "DISABLED",
+            online: enabledStatus && enabledStatus !== 'DISABLED',
             version: connectConfig.dynamicRemoteAccess?.runningType,
             uptime: {
                 timestamp: bootTimestamp.toISOString(),

@@ -1,5 +1,8 @@
 import { Args, Mutation, Query, ResolveField, Resolver, Subscription } from '@nestjs/graphql';
 
+import { Resource } from '@unraid/shared/graphql.model.js';
+import { PrefixedID } from '@unraid/shared/prefixed-id-scalar.js';
+
 import { AppError } from '@app/core/errors/app-error.js';
 import { createSubscription, PUBSUB_CHANNEL } from '@app/core/pubsub.js';
 import {
@@ -7,7 +10,6 @@ import {
     AuthPossession,
     UsePermissions,
 } from '@app/unraid-api/graph/directives/use-permissions.directive.js';
-import { Resource } from '@unraid/shared/graphql.model.js';
 import {
     Notification,
     NotificationData,
@@ -18,7 +20,6 @@ import {
     NotificationType,
 } from '@app/unraid-api/graph/resolvers/notifications/notifications.model.js';
 import { NotificationsService } from '@app/unraid-api/graph/resolvers/notifications/notifications.service.js';
-import { PrefixedID } from '@unraid/shared/prefixed-id-scalar.js';
 
 @Resolver(() => Notifications)
 export class NotificationsResolver {

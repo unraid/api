@@ -1,5 +1,7 @@
 import { Query, Resolver, Subscription } from '@nestjs/graphql';
 
+import { Resource } from '@unraid/shared/graphql.model.js';
+
 import { createSubscription, PUBSUB_CHANNEL } from '@app/core/pubsub.js';
 import { getKeyFile } from '@app/core/utils/misc/get-key-file.js';
 import { getters } from '@app/store/index.js';
@@ -9,7 +11,6 @@ import {
     AuthPossession,
     UsePermissions,
 } from '@app/unraid-api/graph/directives/use-permissions.directive.js';
-import { Resource } from '@unraid/shared/graphql.model.js';
 import {
     Registration,
     RegistrationType,

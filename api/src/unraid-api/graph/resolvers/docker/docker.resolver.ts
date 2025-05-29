@@ -1,11 +1,12 @@
 import { Args, Query, ResolveField, Resolver } from '@nestjs/graphql';
 
+import { Resource } from '@unraid/shared/graphql.model.js';
+
 import {
     AuthActionVerb,
     AuthPossession,
     UsePermissions,
 } from '@app/unraid-api/graph/directives/use-permissions.directive.js';
-import { Resource } from '@unraid/shared/graphql.model.js';
 import {
     Docker,
     DockerContainer,

@@ -1,3 +1,4 @@
+import { Role } from '@unraid/shared/graphql.model.js';
 import { newEnforcer } from 'casbin';
 import { AuthZService } from 'nest-authz';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
@@ -12,7 +13,6 @@ import {
     DeleteApiKeyInput,
 } from '@app/unraid-api/graph/resolvers/api-key/api-key.model.js';
 import { ApiKeyMutationsResolver } from '@app/unraid-api/graph/resolvers/api-key/api-key.mutation.js';
-import { Role } from '@unraid/shared/graphql.model.js';
 
 describe('ApiKeyMutationsResolver', () => {
     let resolver: ApiKeyMutationsResolver;

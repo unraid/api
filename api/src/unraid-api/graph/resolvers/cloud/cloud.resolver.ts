@@ -1,5 +1,7 @@
 import { Query, Resolver } from '@nestjs/graphql';
 
+import { Resource } from '@unraid/shared/graphql.model.js';
+
 import { getAllowedOrigins } from '@app/common/allowed-origins.js';
 import { checkApi } from '@app/graphql/resolvers/query/cloud/check-api.js';
 import { checkCloud } from '@app/graphql/resolvers/query/cloud/check-cloud.js';
@@ -9,7 +11,6 @@ import {
     AuthPossession,
     UsePermissions,
 } from '@app/unraid-api/graph/directives/use-permissions.directive.js';
-import { Resource } from '@unraid/shared/graphql.model.js';
 import { Cloud } from '@app/unraid-api/graph/resolvers/cloud/cloud.model.js';
 
 @Resolver(() => Cloud)

@@ -1,8 +1,7 @@
 import { Field, InputType, Int, ObjectType, registerEnumType } from '@nestjs/graphql';
 
-import { IsEnum, IsInt, IsNotEmpty, IsOptional, IsString, Min } from 'class-validator';
-
 import { Node } from '@unraid/shared/graphql.model.js';
+import { IsEnum, IsInt, IsNotEmpty, IsOptional, IsString, Min } from 'class-validator';
 
 export enum NotificationType {
     UNREAD = 'UNREAD',

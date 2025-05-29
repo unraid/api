@@ -1,3 +1,4 @@
+import { Resource, Role } from '@unraid/shared/graphql.model.js';
 import { AuthActionVerb } from 'nest-authz';
 import { Command, CommandRunner, InquirerService, Option } from 'nest-commander';
 
@@ -7,7 +8,6 @@ import { AddApiKeyQuestionSet } from '@app/unraid-api/cli/apikey/add-api-key.que
 import { DeleteApiKeyQuestionSet } from '@app/unraid-api/cli/apikey/delete-api-key.questions.js';
 import { LogService } from '@app/unraid-api/cli/log.service.js';
 import { Permission } from '@app/unraid-api/graph/resolvers/api-key/api-key.model.js';
-import { Resource, Role } from '@unraid/shared/graphql.model.js';
 
 interface KeyOptions {
     name: string;

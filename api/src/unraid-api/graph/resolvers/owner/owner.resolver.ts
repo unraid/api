@@ -1,5 +1,7 @@
 import { Query, Resolver, Subscription } from '@nestjs/graphql';
 
+import { Resource } from '@unraid/shared/graphql.model.js';
+
 import { createSubscription, PUBSUB_CHANNEL } from '@app/core/pubsub.js';
 import { getters } from '@app/store/index.js';
 import {
@@ -7,7 +9,6 @@ import {
     AuthPossession,
     UsePermissions,
 } from '@app/unraid-api/graph/directives/use-permissions.directive.js';
-import { Resource } from '@unraid/shared/graphql.model.js';
 import { Owner } from '@app/unraid-api/graph/resolvers/owner/owner.model.js';
 
 @Resolver(() => Owner)

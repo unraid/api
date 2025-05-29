@@ -1,10 +1,9 @@
 import { Field, InputType, Int, ObjectType, registerEnumType } from '@nestjs/graphql';
 
-import { IsEnum } from 'class-validator';
-import { GraphQLBigInt } from 'graphql-scalars';
-
 import { Node } from '@unraid/shared/graphql.model.js';
 import { PrefixedID } from '@unraid/shared/prefixed-id-scalar.js';
+import { IsEnum } from 'class-validator';
+import { GraphQLBigInt } from 'graphql-scalars';
 
 @ObjectType()
 export class Capacity {

@@ -8,11 +8,11 @@ import {
     registerEnumType,
 } from '@nestjs/graphql';
 
+import { Node } from '@unraid/shared/graphql.model.js';
+import { PrefixedID } from '@unraid/shared/prefixed-id-scalar.js';
 import { GraphQLBigInt, GraphQLJSON } from 'graphql-scalars';
 
-import { Node } from '@unraid/shared/graphql.model.js';
 import { ThemeName } from '@app/unraid-api/graph/resolvers/customization/theme.model.js';
-import { PrefixedID } from '@unraid/shared/prefixed-id-scalar.js';
 
 export enum Temperature {
     C = 'C',

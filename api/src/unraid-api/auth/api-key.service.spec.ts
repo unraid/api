@@ -2,6 +2,7 @@ import { Logger } from '@nestjs/common';
 import { readdir, readFile, writeFile } from 'fs/promises';
 import { join } from 'path';
 
+import { Resource, Role } from '@unraid/shared/graphql.model.js';
 import { ensureDir, ensureDirSync } from 'fs-extra';
 import { AuthActionVerb } from 'nest-authz';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
@@ -16,7 +17,6 @@ import {
     ApiKeyWithSecret,
     Permission,
 } from '@app/unraid-api/graph/resolvers/api-key/api-key.model.js';
-import { Resource, Role } from '@unraid/shared/graphql.model.js';
 
 // Mock the store and its modules
 vi.mock('@app/store/index.js', () => ({

@@ -3,6 +3,7 @@ import { ApolloDriver } from '@nestjs/apollo';
 import { Module } from '@nestjs/common';
 import { GraphQLModule } from '@nestjs/graphql';
 
+import { PrefixedID as PrefixedIDScalar } from '@unraid/shared/prefixed-id-scalar.js';
 import { NoUnusedVariablesRule } from 'graphql';
 import { GraphQLBigInt, JSONResolver, URLResolver } from 'graphql-scalars';
 
@@ -14,7 +15,6 @@ import {
 } from '@app/unraid-api/graph/directives/use-permissions.directive.js';
 import { ResolversModule } from '@app/unraid-api/graph/resolvers/resolvers.module.js';
 import { sandboxPlugin } from '@app/unraid-api/graph/sandbox-plugin.js';
-import { PrefixedID as PrefixedIDScalar } from '@unraid/shared/prefixed-id-scalar.js';
 import { PluginModule } from '@app/unraid-api/plugin/plugin.module.js';
 
 @Module({

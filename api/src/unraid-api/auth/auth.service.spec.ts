@@ -1,5 +1,6 @@
 import { UnauthorizedException } from '@nestjs/common';
 
+import { Resource, Role } from '@unraid/shared/graphql.model.js';
 import { newEnforcer } from 'casbin';
 import { AuthActionVerb, AuthZService } from 'nest-authz';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
@@ -8,7 +9,6 @@ import { ApiKeyService } from '@app/unraid-api/auth/api-key.service.js';
 import { AuthService } from '@app/unraid-api/auth/auth.service.js';
 import { CookieService } from '@app/unraid-api/auth/cookie.service.js';
 import { ApiKey, ApiKeyWithSecret } from '@app/unraid-api/graph/resolvers/api-key/api-key.model.js';
-import { Resource, Role } from '@unraid/shared/graphql.model.js';
 import { UserAccount } from '@app/unraid-api/graph/user/user.model.js';
 import { FastifyRequest } from '@app/unraid-api/types/fastify.js';
 

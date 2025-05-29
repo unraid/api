@@ -1,5 +1,7 @@
 import { Field, InputType, ObjectType } from '@nestjs/graphql';
 
+import { Node, Resource, Role } from '@unraid/shared/graphql.model.js';
+import { PrefixedID } from '@unraid/shared/prefixed-id-scalar.js';
 import { Transform, Type } from 'class-transformer';
 import {
     ArrayMinSize,
@@ -11,9 +13,6 @@ import {
     IsString,
     ValidateNested,
 } from 'class-validator';
-
-import { Node, Resource, Role } from '@unraid/shared/graphql.model.js';
-import { PrefixedID } from '@unraid/shared/prefixed-id-scalar.js';
 
 @ObjectType()
 export class Permission {
