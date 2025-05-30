@@ -6,8 +6,9 @@ services:
     volumes:
       - ./:/app
       - /app/node_modules
-      - ../.git:/app/.git
+      - ${GIT_DIR:-../.git}:/app/.git
       - ../.nvmrc:/app/.nvmrc
+      - ../.rclone-version:/app/.rclone-version
       - ./source:/app/source
       - ./scripts:/app/scripts
       - ../unraid-ui/dist-wc:/app/source/dynamix.unraid.net/usr/local/emhttp/plugins/dynamix.my.servers/unraid-components/uui

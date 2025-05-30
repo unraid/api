@@ -11,7 +11,7 @@ import { RCloneService } from '@app/unraid-api/graph/resolvers/rclone/rclone.ser
 export class FlashBackupResolver {
     private readonly logger = new Logger(FlashBackupResolver.name);
 
-    constructor(private readonly rcloneService: RCloneService) {}
+    constructor() {}
 
     @Mutation(() => FlashBackupStatus, {
         description: 'Initiates a flash drive backup using a configured remote.',

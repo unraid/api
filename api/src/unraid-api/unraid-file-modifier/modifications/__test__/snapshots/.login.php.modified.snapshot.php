@@ -214,14 +214,11 @@ $myFile = "case-model.cfg";
 $myCase = file_exists("$boot/$myFile") ? file_get_contents("$boot/$myFile") : false;
 
 extract(parse_plugin_cfg('dynamix', true));
-
-require_once "$docroot/plugins/dynamix/include/ThemeHelper.php";
-$themeHelper = new ThemeHelper($display['theme']);
-$isDarkTheme = $themeHelper->isDarkTheme();
+$theme_dark = in_array($display['theme'], ['black', 'gray']);
 ?>
 
 <!DOCTYPE html>
-<html lang="en" class="<?= $themeHelper->getThemeHtmlClass() ?>">
+<html lang="en">
 <head>
     <meta charset="utf-8">
     <meta http-equiv="content-type" content="text/html; charset=UTF-8">
@@ -255,8 +252,8 @@ $isDarkTheme = $themeHelper->isDarkTheme();
     /
     /************************/
     body {
-        background: <?=$isDarkTheme?'#1C1B1B':'#F2F2F2'?>;
-        color: <?=$isDarkTheme?'#fff':'#1c1b1b'?>;
+        background: <?=$theme_dark ? '#1C1B1B' : '#F2F2F2'?>;
+        color: <?=$theme_dark ? '#fff' : '#1c1b1b'?>;
         font-family: clear-sans, sans-serif;
         font-size: .875rem;
         padding: 0;
@@ -340,7 +337,7 @@ $isDarkTheme = $themeHelper->isDarkTheme();
         width: 500px;
         margin: 6rem auto;
         border-radius: 10px;
-        background: <?=$isDarkTheme?'#2B2A29':'#fff'?>;
+        background: <?=$theme_dark ? '#2B2A29' : '#fff'?>;
     }
     #login::after {
         content: "";
@@ -432,7 +429,7 @@ $isDarkTheme = $themeHelper->isDarkTheme();
     /************************/
     @media (max-width: 500px) {
         body {
-            background: <?=$isDarkTheme?'#2B2A29':'#fff'?>;
+            background: <?=$theme_dark ? '#2B2A29' : '#fff'?>;
         }
         [type=email], [type=number], [type=password], [type=search], [type=tel], [type=text], [type=url], textarea {
             font-size: 16px; /* This prevents the mobile browser from zooming in on the input-field. */

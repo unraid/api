@@ -32,7 +32,7 @@ export class PluginService {
                      *
                      *  See scripts/copy-plugins.js for more details.
                      *---------------------------------------------**/
-                    `../plugins/${pkgName}/index.js`,
+                    // `../plugins/${pkgName}/index.js`,
                 ];
                 const plugin = await Promise.any(
                     possibleImportSources.map((source) => import(/* @vite-ignore */ source))

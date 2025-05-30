@@ -1,8 +1,7 @@
 import { Field, InputType, Int, ObjectType, registerEnumType } from '@nestjs/graphql';
 
+import { Node } from '@unraid/shared/graphql.model.js';
 import { IsEnum, IsInt, IsNotEmpty, IsOptional, IsString, Min } from 'class-validator';
-
-import { Node } from '@app/unraid-api/graph/resolvers/base.model.js';
 
 export enum NotificationType {
     UNREAD = 'UNREAD',
@@ -113,7 +112,6 @@ export class NotificationOverview {
 
 @ObjectType({ implements: () => Node })
 export class Notification extends Node {
-    @Field({ description: "Also known as 'event'" })
     @Field({ description: "Also known as 'event'" })
     @IsString()
     @IsNotEmpty()

@@ -11,6 +11,8 @@
 		".eslintrc.ts"
 	],
 	"compilerOptions": {
+		"sourceMap": true,
+    	"inlineSources": true,
 		"experimentalDecorators": true,
 		"emitDecoratorMetadata": true,
 		"paths": {

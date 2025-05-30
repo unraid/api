@@ -33,3 +33,8 @@ source/dynamix.unraid.net/usr/local/.node-version
 
 # Vendor archive files
 source/dynamix.unraid.net/usr/local/share/dynamix.unraid.net/config/vendor_archive.json
+
+# Transient build artifacts
+.rclone-version
+rclone-v*
+source/**/rclone
