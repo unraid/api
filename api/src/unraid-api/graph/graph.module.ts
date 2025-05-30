@@ -32,7 +32,8 @@ import { PluginModule } from '@app/unraid-api/plugin/plugin.module.js';
                                   path: './generated-schema.graphql',
                               }
                             : true,
-                    introspection: getters.config()?.local?.sandbox === 'yes',
+                    // introspection: getters.config()?.local?.sandbox === 'yes',
+                    introspection: true,
                     playground: false,
                     context: async ({ req, connectionParams, extra }) => {
                         return {

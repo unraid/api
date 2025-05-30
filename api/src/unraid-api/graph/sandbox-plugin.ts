@@ -74,7 +74,8 @@ export const getPluginBasedOnSandbox = async (sandbox: boolean, csrfToken: strin
  */
 async function renderSandboxPage(service: GraphQLServerContext) {
     const { getters } = await import('@app/store/index.js');
-    const sandbox = getters.config().local.sandbox === 'yes';
+    // const sandbox = getters.config().local.sandbox === 'yes';
+    const sandbox = true;
     const csrfToken = getters.emhttp().var.csrfToken;
     const plugin = await getPluginBasedOnSandbox(sandbox, csrfToken);
 
