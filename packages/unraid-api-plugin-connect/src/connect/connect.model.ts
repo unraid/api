@@ -316,12 +316,7 @@ export class ConnectSettings implements Node {
 @ObjectType({
     implements: () => Node,
 })
-export class Connect implements Node {
-    @Field(() => PrefixedID, { description: 'The unique identifier for the connect instance' })
-    @IsString()
-    @IsNotEmpty()
-    id!: string;
-
+export class Connect extends Node {
     @Field(() => DynamicRemoteAccessStatus, { description: 'The status of dynamic remote access' })
     @ValidateNested()
     dynamicRemoteAccess?: DynamicRemoteAccessStatus;
@@ -334,12 +329,7 @@ export class Connect implements Node {
 @ObjectType({
     implements: () => Node,
 })
-export class Network implements Node {
-    @Field(() => PrefixedID)
-    @IsString()
-    @IsNotEmpty()
-    id!: string;
-
+export class Network extends Node {
     @Field(() => [AccessUrl], { nullable: true })
     accessUrls?: AccessUrl[];
 }

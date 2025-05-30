@@ -6,7 +6,7 @@ import { AuthActionVerb, AuthPossession, UsePermissions } from '@unraid/shared';
 import { Resource } from '@unraid/shared/graphql.model.js';
 
 import { ConfigType, ConnectConfig, DynamicRemoteAccessType } from '../config.entity.js';
-import { Connect } from './connect.model2.js';
+import { Connect, ConnectSettings, DynamicRemoteAccessStatus } from './connect.model.js';
 
 @Resolver(() => Connect)
 export class ConnectResolver {
@@ -25,18 +25,18 @@ export class ConnectResolver {
         };
     }
 
-    // @ResolveField(() => DynamicRemoteAccessStatus)
-    // public dynamicRemoteAccess(): DynamicRemoteAccessStatus {
-    //     const state = this.configService.getOrThrow<ConnectConfig>('connect');
-    //     return {
-    //         runningType: state.dynamicRemoteAccess.runningType,
-    //         enabledType: state.config.dynamicRemoteAccessType ?? DynamicRemoteAccessType.DISABLED,
-    //         error: state.dynamicRemoteAccess.error ?? undefined,
-    //     };
-    // }
+    @ResolveField(() => DynamicRemoteAccessStatus)
+    public dynamicRemoteAccess(): DynamicRemoteAccessStatus {
+        const state = this.configService.getOrThrow<ConnectConfig>('connect');
+        return {
+            runningType: state.dynamicRemoteAccess.runningType,
+            enabledType: state.config.dynamicRemoteAccessType ?? DynamicRemoteAccessType.DISABLED,
+            error: state.dynamicRemoteAccess.error ?? undefined,
+        };
+    }
 
-    // @ResolveField(() => ConnectSettings)
-    // public async settings(): Promise<ConnectSettings> {
-    //     return {} as ConnectSettings;
-    // }
+    @ResolveField(() => ConnectSettings)
+    public async settings(): Promise<ConnectSettings> {
+        return {} as ConnectSettings;
+    }
 }
