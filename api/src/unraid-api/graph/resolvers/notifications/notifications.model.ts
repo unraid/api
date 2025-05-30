@@ -113,7 +113,6 @@ export class NotificationOverview {
 @ObjectType({ implements: () => Node })
 export class Notification extends Node {
     @Field({ description: "Also known as 'event'" })
-    @Field({ description: "Also known as 'event'" })
     @IsString()
     @IsNotEmpty()
     title!: string;

@@ -61,6 +61,8 @@ export default defineConfig(({ mode }): ViteUserConfig => {
         },
         optimizeDeps: {
             exclude: [
+                '@unraid/shared',
+                'unraid-api-plugin-connect',
                 'cpu-features',
                 'ssh2',
                 'pty.js',
@@ -99,6 +101,8 @@ export default defineConfig(({ mode }): ViteUserConfig => {
                 },
                 preserveEntrySignatures: 'strict',
                 external: [
+                    '@unraid/shared',
+                    'unraid-api-plugin-connect',
                     'class-validator',
                     'class-transformer',
                     /^@nestjs\/.*/,

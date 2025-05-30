@@ -3,9 +3,8 @@ import { ApolloDriver } from '@nestjs/apollo';
 import { Module } from '@nestjs/common';
 import { GraphQLModule } from '@nestjs/graphql';
 
-import { PrefixedID as PrefixedIDScalar } from '@unraid/shared/prefixed-id-scalar.js';
+import { PrefixedID } from '@unraid/shared/prefixed-id-scalar.js';
 import { NoUnusedVariablesRule } from 'graphql';
-import { GraphQLBigInt, JSONResolver, URLResolver } from 'graphql-scalars';
 
 import { ENVIRONMENT } from '@app/environment.js';
 import { getters } from '@app/store/index.js';
@@ -15,15 +14,16 @@ import {
 } from '@app/unraid-api/graph/directives/use-permissions.directive.js';
 import { ResolversModule } from '@app/unraid-api/graph/resolvers/resolvers.module.js';
 import { sandboxPlugin } from '@app/unraid-api/graph/sandbox-plugin.js';
+import { GlobalDepsModule } from '@app/unraid-api/plugin/global-deps.module.js';
 import { PluginModule } from '@app/unraid-api/plugin/plugin.module.js';
 
 @Module({
     imports: [
+        GlobalDepsModule,
         ResolversModule,
         GraphQLModule.forRootAsync<ApolloDriverConfig>({
             driver: ApolloDriver,
             imports: [PluginModule.register()],
-            inject: [],
             useFactory: async () => {
                 return {
                     autoSchemaFile:
@@ -57,7 +57,7 @@ import { PluginModule } from '@app/unraid-api/plugin/plugin.module.js';
             },
         }),
     ],
-    providers: [PrefixedIDScalar],
+    providers: [],
     exports: [GraphQLModule],
 })
 export class GraphModule {}

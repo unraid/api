@@ -291,55 +291,35 @@ export class ApiSettingsInput {
     ssoUserIds?: string[] | null;
 }
 
+// @ObjectType({
+//     implements: () => Node,
+// })
+// export class ConnectSettings extends Node {
+//     @Field(() => GraphQLJSON, { description: 'The data schema for the Connect settings' })
+//     @IsObject()
+//     dataSchema!: Record<string, any>;
+
+//     @Field(() => GraphQLJSON, { description: 'The UI schema for the Connect settings' })
+//     @IsObject()
+//     uiSchema!: Record<string, any>;
+
+//     @Field(() => ConnectSettingsValues, { description: 'The values for the Connect settings' })
+//     @ValidateNested()
+//     values!: ConnectSettingsValues;
+// }
+
 @ObjectType({
     implements: () => Node,
 })
-export class ConnectSettings implements Node {
+export class Connect extends Node {
     @Field(() => PrefixedID)
-    @IsString()
-    @IsNotEmpty()
-    id!: string;
+    declare id: string;
 
-    @Field(() => GraphQLJSON, { description: 'The data schema for the Connect settings' })
-    @IsObject()
-    dataSchema!: Record<string, any>;
+    // @Field(() => DynamicRemoteAccessStatus, { description: 'The status of dynamic remote access' })
+    // @ValidateNested()
+    // dynamicRemoteAccess?: DynamicRemoteAccessStatus;
 
-    @Field(() => GraphQLJSON, { description: 'The UI schema for the Connect settings' })
-    @IsObject()
-    uiSchema!: Record<string, any>;
-
-    @Field(() => ConnectSettingsValues, { description: 'The values for the Connect settings' })
-    @ValidateNested()
-    values!: ConnectSettingsValues;
-}
-
-@ObjectType({
-    implements: () => Node,
-})
-export class Connect implements Node {
-    @Field(() => PrefixedID, { description: 'The unique identifier for the connect instance' })
-    @IsString()
-    @IsNotEmpty()
-    id!: string;
-
-    @Field(() => DynamicRemoteAccessStatus, { description: 'The status of dynamic remote access' })
-    @ValidateNested()
-    dynamicRemoteAccess?: DynamicRemoteAccessStatus;
-
-    @Field(() => ConnectSettings, { description: 'The settings for the Connect instance' })
-    @ValidateNested()
-    settings?: ConnectSettings;
-}
-
-@ObjectType({
-    implements: () => Node,
-})
-export class Network implements Node {
-    @Field(() => PrefixedID)
-    @IsString()
-    @IsNotEmpty()
-    id!: string;
-
-    @Field(() => [AccessUrl], { nullable: true })
-    accessUrls?: AccessUrl[];
+    // @Field(() => ConnectSettings, { description: 'The settings for the Connect instance' })
+    // @ValidateNested()
+    // settings?: ConnectSettings;
 }

@@ -1,5 +1,6 @@
 import { Global, Module } from '@nestjs/common';
 
+import { PrefixedID } from '@unraid/shared/prefixed-id-scalar.js';
 import { GRAPHQL_PUBSUB_TOKEN } from '@unraid/shared/pubsub/graphql.pubsub.js';
 import { API_KEY_SERVICE_TOKEN, UPNP_CLIENT_TOKEN } from '@unraid/shared/tokens.js';
 
@@ -25,8 +26,9 @@ import { upnpClient } from '@app/upnp/helpers.js';
             provide: API_KEY_SERVICE_TOKEN,
             useClass: ApiKeyService,
         },
+        PrefixedID,
     ],
-    exports: [UPNP_CLIENT_TOKEN, GRAPHQL_PUBSUB_TOKEN, API_KEY_SERVICE_TOKEN],
+    exports: [UPNP_CLIENT_TOKEN, GRAPHQL_PUBSUB_TOKEN, API_KEY_SERVICE_TOKEN, PrefixedID],
 })
 class GlobalDepsCoreModule {}
 

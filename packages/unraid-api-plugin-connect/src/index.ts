@@ -1,28 +1,33 @@
 import { Inject, Logger, Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 
+import { PrefixedID } from '@unraid/shared/prefixed-id-scalar.js';
+
 import { configFeature } from './config.entity.js';
 import { ConnectConfigPersister } from './config.persistence.js';
-import { ConnectModule } from './connect/connect.module.js';
-import { ConnectResolver, HealthResolver } from './connect/connect.resolver.js';
-import { MothershipConnectionService } from './mothership/connection.service.js';
-import { MothershipGraphqlClientService } from './mothership/graphql.client.js';
-import { MothershipHandler } from './mothership/mothership.handler.js';
-import { RemoteAccessModule } from './remote-access/remote-access.module.js';
+// import { ConnectModule } from './connect/connect.module.js';
+import { ConnectResolver } from './connect/connect.resolver.js';
+import { HealthResolver } from './connect/health.resolver.js';
+// import { MothershipConnectionService } from './mothership/connection.service.js';
+// import { MothershipGraphqlClientService } from './mothership/graphql.client.js';
+// import { MothershipHandler } from './mothership/mothership.handler.js';
+// import { RemoteAccessModule } from './remote-access/remote-access.module.js';
 
 export const adapter = 'nestjs';
 
 @Module({
-    imports: [ConfigModule.forFeature(configFeature), RemoteAccessModule, ConnectModule],
+    imports: [ConfigModule.forFeature(configFeature)],
     providers: [
         HealthResolver,
+        ConnectResolver,
         ConnectConfigPersister,
+        // PrefixedID,
         // Disabled for an experiment
         // MothershipHandler,
         // MothershipConnectionService,
         // GraphqlClientService,
     ],
-    exports: [ConnectModule],
+    exports: [],
 })
 class ConnectPluginModule {
     logger = new Logger(ConnectPluginModule.name);

@@ -1,35 +1,12 @@
 import { Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { Mutation, Query, ResolveField, Resolver } from '@nestjs/graphql';
+import { Query, ResolveField, Resolver } from '@nestjs/graphql';
 
-import { AuthActionVerb, AuthPossession, demoShared, UsePermissions } from '@unraid/shared';
+import { AuthActionVerb, AuthPossession, UsePermissions } from '@unraid/shared';
 import { Resource } from '@unraid/shared/graphql.model.js';
 
 import { ConfigType, ConnectConfig, DynamicRemoteAccessType } from '../config.entity.js';
-import { Connect, ConnectSettings, DynamicRemoteAccessStatus } from './connect.model.js';
-
-@Resolver()
-export class HealthResolver {
-    constructor(private readonly configService: ConfigService) {}
-
-    @Query(() => String)
-    health() {
-        // You can replace the return value with your actual health check logic
-        return demoShared;
-    }
-
-    @Query(() => String)
-    getDemo() {
-        return this.configService.get('connect.demo');
-    }
-
-    @Mutation(() => String)
-    async setDemo() {
-        const newValue = new Date().toISOString();
-        this.configService.set('connect.demo', newValue);
-        return newValue;
-    }
-}
+import { Connect } from './connect.model2.js';
 
 @Resolver(() => Connect)
 export class ConnectResolver {
@@ -48,23 +25,18 @@ export class ConnectResolver {
         };
     }
 
-    @ResolveField(() => String)
-    public id() {
-        return 'connect';
-    }
+    // @ResolveField(() => DynamicRemoteAccessStatus)
+    // public dynamicRemoteAccess(): DynamicRemoteAccessStatus {
+    //     const state = this.configService.getOrThrow<ConnectConfig>('connect');
+    //     return {
+    //         runningType: state.dynamicRemoteAccess.runningType,
+    //         enabledType: state.config.dynamicRemoteAccessType ?? DynamicRemoteAccessType.DISABLED,
+    //         error: state.dynamicRemoteAccess.error ?? undefined,
+    //     };
+    // }
 
-    @ResolveField(() => DynamicRemoteAccessStatus)
-    public dynamicRemoteAccess(): DynamicRemoteAccessStatus {
-        const state = this.configService.getOrThrow<ConnectConfig>('connect');
-        return {
-            runningType: state.dynamicRemoteAccess.runningType,
-            enabledType: state.config.dynamicRemoteAccessType ?? DynamicRemoteAccessType.DISABLED,
-            error: state.dynamicRemoteAccess.error ?? undefined,
-        };
-    }
-
-    @ResolveField(() => ConnectSettings)
-    public async settings(): Promise<ConnectSettings> {
-        return {} as ConnectSettings;
-    }
+    // @ResolveField(() => ConnectSettings)
+    // public async settings(): Promise<ConnectSettings> {
+    //     return {} as ConnectSettings;
+    // }
 }
