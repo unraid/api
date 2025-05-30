@@ -5,7 +5,7 @@ import { PrefixedID } from '@unraid/shared/prefixed-id-scalar.js';
 
 import { configFeature } from './config.entity.js';
 import { ConnectConfigPersister } from './config.persistence.js';
-// import { ConnectModule } from './connect/connect.module.js';
+import { ConnectModule } from './connect/connect.module.js';
 import { ConnectResolver } from './connect/connect.resolver.js';
 import { HealthResolver } from './connect/health.resolver.js';
 // import { MothershipConnectionService } from './mothership/connection.service.js';
@@ -16,10 +16,9 @@ import { HealthResolver } from './connect/health.resolver.js';
 export const adapter = 'nestjs';
 
 @Module({
-    imports: [ConfigModule.forFeature(configFeature)],
+    imports: [ConfigModule.forFeature(configFeature), ConnectModule],
     providers: [
         HealthResolver,
-        ConnectResolver,
         ConnectConfigPersister,
         // PrefixedID,
         // Disabled for an experiment
