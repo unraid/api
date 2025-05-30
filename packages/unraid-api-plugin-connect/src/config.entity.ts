@@ -145,29 +145,6 @@ export class ConnectionMetadata {
 }
 
 @ObjectType()
-@UsePipes(new ValidationPipe({ transform: true }))
-@InputType('DynamicRemoteAccessStateInput')
-export class DynamicRemoteAccessState {
-    @Field(() => DynamicRemoteAccessType)
-    @IsEnum(DynamicRemoteAccessType)
-    runningType!: DynamicRemoteAccessType;
-
-    @Field(() => String, { nullable: true })
-    @IsString()
-    @IsOptional()
-    error!: string | null;
-
-    @Field(() => Number, { nullable: true })
-    @IsNumber()
-    @IsOptional()
-    lastPing!: number | null;
-
-    @Field(() => AccessUrlObject, { nullable: true })
-    @IsOptional()
-    allowedUrl!: AccessUrlObject | null;
-}
-
-@ObjectType()
 @InputType('AccessUrlObjectInput')
 export class AccessUrlObject {
     @Field(() => String, { nullable: true })
@@ -188,6 +165,29 @@ export class AccessUrlObject {
     @IsString()
     @IsOptional()
     name!: string | null | undefined;
+}
+
+@ObjectType()
+@UsePipes(new ValidationPipe({ transform: true }))
+@InputType('DynamicRemoteAccessStateInput')
+export class DynamicRemoteAccessState {
+    @Field(() => DynamicRemoteAccessType)
+    @IsEnum(DynamicRemoteAccessType)
+    runningType!: DynamicRemoteAccessType;
+
+    @Field(() => String, { nullable: true })
+    @IsString()
+    @IsOptional()
+    error!: string | null;
+
+    @Field(() => Number, { nullable: true })
+    @IsNumber()
+    @IsOptional()
+    lastPing!: number | null;
+
+    @Field(() => AccessUrlObject, { nullable: true })
+    @IsOptional()
+    allowedUrl!: AccessUrlObject | null;
 }
 
 export const makeDisabledDynamicRemoteAccessState = (): DynamicRemoteAccessState =>
