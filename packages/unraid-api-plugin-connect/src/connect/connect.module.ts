@@ -8,6 +8,7 @@ import { ConnectSettingsResolver } from './connect-settings.resolver.js';
 import { ConnectSettingsService } from './connect-settings.service.js';
 import { DynamicRemoteAccessService } from '../remote-access/dynamic-remote-access.service.js';
 import { SsoUserService } from './sso-user.service.js';
+import { ConnectResolver } from './connect.resolver.js';
 
 @Module({
     imports: [
@@ -21,6 +22,7 @@ import { SsoUserService } from './sso-user.service.js';
         ConnectSettingsResolver,
         DynamicRemoteAccessService,
         SsoUserService,
+        ConnectResolver,
     ],
     exports: [
         ConnectSettingsService,
@@ -29,6 +31,7 @@ import { SsoUserService } from './sso-user.service.js';
         ConnectSettingsResolver,
         DynamicRemoteAccessService,
         SsoUserService,
+        ConnectResolver,
     ],
 })
 export class ConnectModule {}

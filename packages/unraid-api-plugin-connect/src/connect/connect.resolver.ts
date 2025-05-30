@@ -3,7 +3,7 @@ import { ConfigService } from '@nestjs/config';
 import { Mutation, Query, ResolveField, Resolver } from '@nestjs/graphql';
 
 import { AuthActionVerb, AuthPossession, demoShared, UsePermissions } from '@unraid/shared';
-import { Resource } from '@unraid/shared/graphql.model';
+import { Resource } from '@unraid/shared/graphql.model.js';
 
 import { ConfigType, ConnectConfig, DynamicRemoteAccessType } from '../config.entity.js';
 import { Connect, ConnectSettings, DynamicRemoteAccessStatus } from './connect.model.js';

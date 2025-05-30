@@ -22,7 +22,7 @@ import { PluginModule } from '@app/unraid-api/plugin/plugin.module.js';
         ResolversModule,
         GraphQLModule.forRootAsync<ApolloDriverConfig>({
             driver: ApolloDriver,
-            // imports: [PluginModule.register()],
+            imports: [PluginModule.register()],
             inject: [],
             useFactory: async () => {
                 return {

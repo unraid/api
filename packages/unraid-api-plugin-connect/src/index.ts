@@ -3,6 +3,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 
 import { configFeature } from './config.entity.js';
 import { ConnectConfigPersister } from './config.persistence.js';
+import { ConnectModule } from './connect/connect.module.js';
 import { ConnectResolver, HealthResolver } from './connect/connect.resolver.js';
 import { MothershipConnectionService } from './mothership/connection.service.js';
 import { MothershipGraphqlClientService } from './mothership/graphql.client.js';
@@ -12,16 +13,16 @@ import { RemoteAccessModule } from './remote-access/remote-access.module.js';
 export const adapter = 'nestjs';
 
 @Module({
-    imports: [ConfigModule.forFeature(configFeature), RemoteAccessModule],
+    imports: [ConfigModule.forFeature(configFeature), RemoteAccessModule, ConnectModule],
     providers: [
         HealthResolver,
-        ConnectResolver,
         ConnectConfigPersister,
         // Disabled for an experiment
         // MothershipHandler,
         // MothershipConnectionService,
         // GraphqlClientService,
     ],
+    exports: [ConnectModule],
 })
 class ConnectPluginModule {
     logger = new Logger(ConnectPluginModule.name);
