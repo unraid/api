@@ -22,7 +22,6 @@ export class PluginModule {
             imports: [GlobalDepsModule, ResolversModule, ...apiModules],
             providers: [PluginService],
             exports: [PluginService, GlobalDepsModule],
-            global: true,
         };
     }
 }
