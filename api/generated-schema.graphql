@@ -1427,6 +1427,14 @@ type UserAccount implements Node {
 scalar PrefixedID
 
 type Query {
+  apiKeys: [ApiKey!]!
+  apiKey(id: PrefixedID!): ApiKey
+
+  """All possible roles for API keys"""
+  apiKeyPossibleRoles: [Role!]!
+
+  """All possible permissions for API keys"""
+  apiKeyPossiblePermissions: [Permission!]!
   cloud: Cloud!
   config: Config!
   display: Display!
@@ -1451,14 +1459,6 @@ type Query {
   vms: Vms!
   parityHistory: [ParityCheck!]!
   array: UnraidArray!
-  apiKeys: [ApiKey!]!
-  apiKey(id: PrefixedID!): ApiKey
-
-  """All possible roles for API keys"""
-  apiKeyPossibleRoles: [Role!]!
-
-  """All possible permissions for API keys"""
-  apiKeyPossiblePermissions: [Permission!]!
   customization: Customization
   publicPartnerInfo: PublicPartnerInfo
   publicTheme: Theme!

@@ -4,10 +4,11 @@ import { Cron, SchedulerRegistry } from '@nestjs/schedule';
 
 import { Client, Mapping } from '@runonflux/nat-upnp';
 import { isDefined } from 'class-validator';
+import { UPNP_CLIENT_TOKEN } from '@unraid/shared/tokens.js';
 
 import { ConfigType } from '../config.entity.js';
 import { ONE_HOUR_SECS } from '../helpers/consts.js';
-import { UPNP_CLIENT_TOKEN, UPNP_RENEWAL_JOB_TOKEN } from '../helpers/dependency-injection.js';
+import { UPNP_RENEWAL_JOB_TOKEN } from '../helpers/dependency-injection.js';
 
 @Injectable()
 export class UpnpService {

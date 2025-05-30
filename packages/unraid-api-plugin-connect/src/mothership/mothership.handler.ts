@@ -4,7 +4,7 @@ import { OnEvent } from '@nestjs/event-emitter';
 import { PubSub } from 'graphql-subscriptions';
 
 import { MinigraphStatus } from '../config.entity.js';
-import { EVENTS, GRAPHQL_PUB_SUB_TOKEN, PUBSUB_CHANNEL } from '../pubsub/consts.js';
+import { EVENTS, GRAPHQL_PUBSUB_TOKEN, GRAPHQL_PUBSUB_CHANNEL } from '../pubsub/consts.js';
 import { MothershipConnectionService } from './connection.service.js';
 import { MothershipGraphqlClientService } from './graphql.client.js';
 import { MothershipSubscriptionHandler } from './mothership-subscription.handler.js';
@@ -17,7 +17,7 @@ export class MothershipHandler implements OnModuleDestroy {
         private readonly clientService: MothershipGraphqlClientService,
         private readonly subscriptionHandler: MothershipSubscriptionHandler,
         private readonly timeoutCheckerJob: TimeoutCheckerJob,
-        @Inject(GRAPHQL_PUB_SUB_TOKEN)
+        @Inject(GRAPHQL_PUBSUB_TOKEN)
         private readonly legacyPubSub: PubSub
     ) {}
 
@@ -73,8 +73,8 @@ export class MothershipHandler implements OnModuleDestroy {
     async logout({ reason }: { reason?: string }) {
         this.logger.error('Logging out user: %s', reason ?? 'No reason provided');
         // publish to the 'servers' and 'owner' endpoints
-        await this.legacyPubSub.publish(PUBSUB_CHANNEL.SERVERS, { servers: [] });
-        await this.legacyPubSub.publish(PUBSUB_CHANNEL.OWNER, {
+        await this.legacyPubSub.publish(GRAPHQL_PUBSUB_CHANNEL.SERVERS, { servers: [] });
+        await this.legacyPubSub.publish(GRAPHQL_PUBSUB_CHANNEL.OWNER, {
             owner: { username: 'root', url: '', avatar: '' },
         });
         this.timeoutCheckerJob.stop();

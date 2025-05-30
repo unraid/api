@@ -1,9 +1,8 @@
 import { DynamicModule, Logger, Module } from '@nestjs/common';
 
+import { ResolversModule } from '@app/unraid-api/graph/resolvers/resolvers.module.js';
+import { GlobalDepsModule } from '@app/unraid-api/plugin/global-deps.module.js';
 import { PluginService } from '@app/unraid-api/plugin/plugin.service.js';
-import { upnpClient } from '@app/upnp/helpers.js';
-
-export const UPNP_CLIENT_TOKEN = 'UPNP_CLIENT';
 
 @Module({})
 export class PluginModule {
@@ -20,15 +19,9 @@ export class PluginModule {
 
         return {
             module: PluginModule,
-            imports: [...apiModules],
-            providers: [
-                PluginService,
-                {
-                    provide: UPNP_CLIENT_TOKEN,
-                    useValue: upnpClient,
-                },
-            ],
-            exports: [PluginService, UPNP_CLIENT_TOKEN],
+            imports: [GlobalDepsModule, ResolversModule, ...apiModules],
+            providers: [PluginService],
+            exports: [PluginService, GlobalDepsModule],
             global: true,
         };
     }
@@ -49,7 +42,8 @@ export class PluginCliModule {
 
         return {
             module: PluginCliModule,
-            imports: [...cliModules],
+            imports: [GlobalDepsModule, ...cliModules],
+            exports: [GlobalDepsModule],
         };
     }
 }

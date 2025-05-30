@@ -1,8 +1,9 @@
 import { Inject, Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 
-import { ApiKeyService } from '@unraid/shared/services/api-key.js';
 import { ApiKey, ApiKeyWithSecret, Permission, Resource, Role } from '@unraid/shared/graphql.model.js';
+import { ApiKeyService } from '@unraid/shared/services/api-key.js';
+import { API_KEY_SERVICE_TOKEN } from '@unraid/shared/tokens';
 import { AuthActionVerb } from 'nest-authz';
 
 @Injectable()
@@ -11,7 +12,7 @@ export class ConnectApiKeyService implements ApiKeyService {
     private static readonly validRoles: Set<Role> = new Set(Object.values(Role));
 
     constructor(
-        @Inject('ApiKeyService')
+        @Inject(API_KEY_SERVICE_TOKEN)
         private readonly apiKeyService: ApiKeyService,
         private readonly configService: ConfigService
     ) {}
@@ -93,4 +94,4 @@ export class ConnectApiKeyService implements ApiKeyService {
         }
         return localApiKeyFromConfig;
     }
-} 
+}
