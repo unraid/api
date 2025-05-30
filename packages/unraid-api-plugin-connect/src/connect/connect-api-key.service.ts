@@ -3,7 +3,7 @@ import { ConfigService } from '@nestjs/config';
 
 import { ApiKey, ApiKeyWithSecret, Permission, Resource, Role } from '@unraid/shared/graphql.model.js';
 import { ApiKeyService } from '@unraid/shared/services/api-key.js';
-import { API_KEY_SERVICE_TOKEN } from '@unraid/shared/tokens';
+import { API_KEY_SERVICE_TOKEN } from '@unraid/shared/tokens.js';
 import { AuthActionVerb } from 'nest-authz';
 
 @Injectable()

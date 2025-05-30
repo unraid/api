@@ -8,6 +8,6 @@ import { UpnpRemoteAccessService } from './upnp-remote-access.service.js';
 @Module({
     imports: [SystemModule],
     providers: [DynamicRemoteAccessService, StaticRemoteAccessService, UpnpRemoteAccessService],
-    exports: [DynamicRemoteAccessService],
+    exports: [DynamicRemoteAccessService, SystemModule],
 })
 export class RemoteAccessModule {}

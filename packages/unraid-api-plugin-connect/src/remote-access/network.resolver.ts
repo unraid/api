@@ -5,7 +5,7 @@ import {
     AuthActionVerb,
     AuthPossession,
     UsePermissions,
-} from '@unraid/shared/use-permissions.directive';
+} from '@unraid/shared/use-permissions.directive.js';
 
 import { AccessUrl } from '@unraid/shared/network.model.js';
 import { Network } from '../connect/connect.model.js';

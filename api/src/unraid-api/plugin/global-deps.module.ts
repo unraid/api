@@ -11,6 +11,7 @@ import { upnpClient } from '@app/upnp/helpers.js';
 // This is the actual module that provides the global dependencies
 @Global()
 @Module({
+    imports: [ApiKeyModule],
     providers: [
         {
             provide: UPNP_CLIENT_TOKEN,
@@ -20,20 +21,18 @@ import { upnpClient } from '@app/upnp/helpers.js';
             provide: GRAPHQL_PUBSUB_TOKEN,
             useValue: pubsub,
         },
-    ],
-    exports: [UPNP_CLIENT_TOKEN, GRAPHQL_PUBSUB_TOKEN],
-})
-class GlobalDepsCoreModule {}
-
-// This is the module that will be imported by other modules
-@Module({
-    imports: [GlobalDepsCoreModule, ApiKeyModule],
-    providers: [
         {
             provide: API_KEY_SERVICE_TOKEN,
             useClass: ApiKeyService,
         },
     ],
-    exports: [GlobalDepsCoreModule, API_KEY_SERVICE_TOKEN],
+    exports: [UPNP_CLIENT_TOKEN, GRAPHQL_PUBSUB_TOKEN, API_KEY_SERVICE_TOKEN],
+})
+class GlobalDepsCoreModule {}
+
+// This is the module that will be imported by other modules
+@Module({
+    imports: [GlobalDepsCoreModule],
+    exports: [GlobalDepsCoreModule],
 })
 export class GlobalDepsModule {}
