@@ -59,7 +59,7 @@ export class MothershipHandler implements OnModuleDestroy {
     async onMothershipConnectionStatusChanged() {
         const state = this.connectionService.getConnectionState();
         // Question: do we include MinigraphStatus.ERROR_RETRYING here?
-        if (state && [MinigraphStatus.PING_FAILURE, MinigraphStatus.PRE_INIT].includes(state.status)) {
+        if (state && [MinigraphStatus.PING_FAILURE].includes(state.status)) {
             this.logger.verbose('Mothership connection status changed to %s; setting up mothership subscription', state.status);
             await this.setup();
         }
