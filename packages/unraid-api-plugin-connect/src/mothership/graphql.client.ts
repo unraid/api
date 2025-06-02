@@ -161,7 +161,8 @@ export class MothershipGraphqlClientService implements OnModuleInit, OnModuleDes
         });
 
         this.initEventHandlers();
-        return apolloClient;
+        this.apolloClient = apolloClient;
+        return this.apolloClient;
     }
 
     /**
