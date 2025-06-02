@@ -14,7 +14,7 @@ export class ConnectLoginHandler {
         private readonly legacyPubSub: PubSub
     ) {}
 
-    @OnEvent(EVENTS.LOGIN)
+    @OnEvent(EVENTS.LOGIN, { async: true })
     async onLogin(userInfo: {
         username: string;
         avatar: string;

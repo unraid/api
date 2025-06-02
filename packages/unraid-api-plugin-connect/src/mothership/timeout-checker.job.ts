@@ -73,6 +73,7 @@ export class TimeoutCheckerJob {
     }
 
     isJobRegistered() {
+        this.logger.verbose('isJobRegistered?');
         return this.schedulerRegistry.doesExist('interval', this.jobName);
     }
 }

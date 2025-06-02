@@ -36,6 +36,7 @@ export class MothershipHandler implements OnModuleDestroy {
     async setup() {
         await this.clear();
         const { state } = this.connectionService.getIdentityState();
+        this.logger.verbose('cleared, got identity state');
         if (!state.apiKey) {
             this.logger.warn('No API key found; cannot setup mothership subscription');
             return;
@@ -45,7 +46,7 @@ export class MothershipHandler implements OnModuleDestroy {
         this.timeoutCheckerJob.start();
     }
 
-    @OnEvent(EVENTS.IDENTITY_CHANGED)
+    @OnEvent(EVENTS.IDENTITY_CHANGED, { async: true })
     async onIdentityChanged() {
         const { state } = this.connectionService.getIdentityState();
         if (state.apiKey) {
@@ -54,7 +55,7 @@ export class MothershipHandler implements OnModuleDestroy {
         }
     }
 
-    @OnEvent(EVENTS.MOTHERSHIP_CONNECTION_STATUS_CHANGED)
+    @OnEvent(EVENTS.MOTHERSHIP_CONNECTION_STATUS_CHANGED, { async: true })
     async onMothershipConnectionStatusChanged() {
         const state = this.connectionService.getConnectionState();
         // Question: do we include MinigraphStatus.ERROR_RETRYING here?
