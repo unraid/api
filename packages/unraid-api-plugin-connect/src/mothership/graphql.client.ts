@@ -8,10 +8,10 @@ import {
     InMemoryCache,
     NormalizedCacheObject,
     Observable,
-} from '@apollo/client/core';
-import { ErrorLink } from '@apollo/client/link/error';
-import { RetryLink } from '@apollo/client/link/retry';
-import { GraphQLWsLink } from '@apollo/client/link/subscriptions';
+} from '@apollo/client/core/index.js';
+import { ErrorLink } from '@apollo/client/link/error/index.js';
+import { RetryLink } from '@apollo/client/link/retry/index.js';
+import { GraphQLWsLink } from '@apollo/client/link/subscriptions/index.js';
 import { Client, createClient } from 'graphql-ws';
 import { WebSocket } from 'ws';
 

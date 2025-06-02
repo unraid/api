@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 
+import { RemoteAccessModule } from '../remote-access/remote-access.module.js';
 import { MothershipConnectionService } from './connection.service.js';
 import { MothershipGraphqlClientService } from './graphql.client.js';
 import { InternalClientService } from './internal.client.js';
@@ -8,7 +9,7 @@ import { MothershipHandler } from './mothership.handler.js';
 import { TimeoutCheckerJob } from './timeout-checker.job.js';
 
 @Module({
-    imports: [],
+    imports: [RemoteAccessModule],
     providers: [
         MothershipConnectionService,
         MothershipGraphqlClientService,

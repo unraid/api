@@ -1,12 +1,12 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 
-import { ApolloClient, InMemoryCache, NormalizedCacheObject } from '@apollo/client/core';
-import { split } from '@apollo/client/link/core';
-import { onError } from '@apollo/client/link/error';
-import { HttpLink } from '@apollo/client/link/http';
-import { GraphQLWsLink } from '@apollo/client/link/subscriptions';
-import { getMainDefinition } from '@apollo/client/utilities';
+import { ApolloClient, InMemoryCache, NormalizedCacheObject } from '@apollo/client/core/index.js';
+import { split } from '@apollo/client/link/core/index.js';
+import { onError } from '@apollo/client/link/error/index.js';
+import { HttpLink } from '@apollo/client/link/http/index.js';
+import { GraphQLWsLink } from '@apollo/client/link/subscriptions/index.js';
+import { getMainDefinition } from '@apollo/client/utilities/index.js';
 import { createClient } from 'graphql-ws';
 import { WebSocket } from 'ws';
 

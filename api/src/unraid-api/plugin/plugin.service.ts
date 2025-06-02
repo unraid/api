@@ -50,7 +50,8 @@ export class PluginService {
                 await notificationService.createNotification({
                     title: `Plugin from ${pkgName} is invalid`,
                     subject: `API Plugins`,
-                    description: 'Please see /var/log/graphql-api.log for more details.\n' + errorMessage,
+                    description:
+                        'Please see /var/log/graphql-api.log for more details.\n' + errorMessage,
                     importance: NotificationImportance.ALERT,
                 });
                 throw error;
