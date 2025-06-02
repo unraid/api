@@ -112,6 +112,7 @@ export class MothershipSubscriptionHandler {
             subscription,
             lastPing: Date.now(),
         });
+        this.logger.verbose(`Added subscription ${sha256}`);
         return {
             sha256,
             subscription,

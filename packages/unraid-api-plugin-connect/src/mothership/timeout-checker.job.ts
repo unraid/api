@@ -57,6 +57,10 @@ export class TimeoutCheckerJob {
     }
 
     stop() {
+        if (!this.isJobRegistered()) {
+            this.logger.debug('Stop called before TimeoutCheckerJob was registered. Ignoring.');
+            return;
+        }
         const interval = this.schedulerRegistry.getInterval(this.jobName);
         if (isDefined(interval)) {
             clearInterval(interval);
@@ -65,7 +69,10 @@ export class TimeoutCheckerJob {
     }
 
     isJobRunning() {
-        const interval = this.schedulerRegistry.getInterval(this.jobName) as NodeJS.Timeout | undefined;
-        return isDefined(interval);
+        return this.isJobRegistered() && isDefined(this.schedulerRegistry.getInterval(this.jobName));
+    }
+
+    isJobRegistered() {
+        return this.schedulerRegistry.doesExist('interval', this.jobName);
     }
 }

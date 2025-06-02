@@ -49,6 +49,7 @@ export class MothershipHandler implements OnModuleDestroy {
     async onIdentityChanged() {
         const { state } = this.connectionService.getIdentityState();
         if (state.apiKey) {
+            this.logger.verbose('Identity changed; setting up mothership subscription');
             await this.setup();
         }
     }
@@ -58,6 +59,7 @@ export class MothershipHandler implements OnModuleDestroy {
         const state = this.connectionService.getConnectionState();
         // Question: do we include MinigraphStatus.ERROR_RETRYING here?
         if (state && [MinigraphStatus.PING_FAILURE, MinigraphStatus.PRE_INIT].includes(state.status)) {
+            this.logger.verbose('Mothership connection status changed to %s; setting up mothership subscription', state.status);
             await this.setup();
         }
     }
