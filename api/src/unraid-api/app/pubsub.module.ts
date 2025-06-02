@@ -18,13 +18,9 @@
 import { Global, Module } from '@nestjs/common';
 import { EventEmitterModule } from '@nestjs/event-emitter';
 
-import { pubsub } from '@app/core/pubsub.js';
+import { GRAPHQL_PUBSUB_TOKEN } from '@unraid/shared/pubsub/graphql.pubsub.js';
 
-/**
- * The Dependency Injection token for the pubsub instance.
- * This is used to inject the pubsub instance into NestJS modules.
- */
-const GRAPHQL_PUB_SUB = 'GRAPHQL_PUB_SUB';
+import { pubsub } from '@app/core/pubsub.js';
 
 @Global()
 @Module({
@@ -50,10 +46,10 @@ const GRAPHQL_PUB_SUB = 'GRAPHQL_PUB_SUB';
          * e.g. Notification added,
          *------------------------**/
         {
-            provide: GRAPHQL_PUB_SUB,
+            provide: GRAPHQL_PUBSUB_TOKEN,
             useValue: pubsub,
         },
     ],
-    exports: [GRAPHQL_PUB_SUB, EventEmitterModule],
+    exports: [GRAPHQL_PUBSUB_TOKEN, EventEmitterModule],
 })
 export class PubSubModule {}

@@ -1,9 +1,7 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 
-import { DynamicRemoteAccessService } from '../remote-access/dynamic-remote-access.service.js';
 import { RemoteAccessModule } from '../remote-access/remote-access.module.js';
-import { StaticRemoteAccessService } from '../remote-access/static-remote-access.service.js';
 import { ConnectApiKeyService } from './connect-api-key.service.js';
 import { ConnectLoginHandler } from './connect-login.handler.js';
 import { ConnectSettingsResolver } from './connect-settings.resolver.js';
