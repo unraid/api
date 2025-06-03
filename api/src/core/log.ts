@@ -1,7 +1,7 @@
 import { pino } from 'pino';
 import pretty from 'pino-pretty';
 
-import { API_VERSION, LOG_TYPE } from '@app/environment.js';
+import { API_VERSION, LOG_LEVEL, LOG_TYPE } from '@app/environment.js';
 
 export const levels = ['trace', 'debug', 'info', 'warn', 'error', 'fatal'] as const;
 
@@ -43,8 +43,23 @@ export const logger = pino(
                 '*.Secret',
                 '*.Token',
                 '*.Key',
+                '*.apikey',
+                '*.localApiKey',
+                '*.accesstoken',
+                '*.idtoken',
+                '*.refreshtoken',
             ],
             censor: '***REDACTED***',
+        },
+        serializers: {
+            context: (context) => {
+                // For DEBUG and ERROR levels, return full context
+                if (LOG_LEVEL === 'DEBUG' || LOG_LEVEL === 'ERROR') {
+                    return context;
+                }
+                // For other levels, only return the context key if it exists
+                return context?.context || context;
+            },
         },
     },
     stream
