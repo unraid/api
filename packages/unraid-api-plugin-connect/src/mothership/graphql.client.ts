@@ -117,7 +117,8 @@ export class MothershipGraphqlClientService implements OnModuleInit, OnModuleDes
     async clearInstance(): Promise<void> {
         if (this.apolloClient) {
             await this.apolloClient.clearStore();
-            this.apolloClient.stop();
+            // some race condition causes apolloClient to be null here upon api shutdown?
+            this.apolloClient?.stop();
             this.apolloClient = null;
         }
 

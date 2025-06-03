@@ -1,20 +1,22 @@
 import { Query, Resolver } from '@nestjs/graphql';
 
 import { Resource } from '@unraid/shared/graphql.model.js';
-
-import { getAllowedOrigins } from '@app/common/allowed-origins.js';
-import { checkApi } from '@app/graphql/resolvers/query/cloud/check-api.js';
-import { checkCloud } from '@app/graphql/resolvers/query/cloud/check-cloud.js';
-import { checkMinigraphql } from '@app/graphql/resolvers/query/cloud/check-minigraphql.js';
 import {
     AuthActionVerb,
     AuthPossession,
     UsePermissions,
-} from '@app/unraid-api/graph/directives/use-permissions.directive.js';
-import { Cloud } from '@app/unraid-api/graph/resolvers/cloud/cloud.model.js';
+} from '@unraid/shared/use-permissions.directive.js';
+
+import { Cloud } from '../model/cloud.model.js';
+import { CloudService } from '../service/cloud.service.js';
+import { NetworkService } from '../system/network.service.js';
 
 @Resolver(() => Cloud)
 export class CloudResolver {
+    constructor(
+        private readonly cloudService: CloudService,
+        private readonly networkService: NetworkService
+    ) {}
     @Query(() => Cloud)
     @UsePermissions({
         action: AuthActionVerb.READ,
@@ -22,8 +24,8 @@ export class CloudResolver {
         possession: AuthPossession.ANY,
     })
     public async cloud(): Promise<Cloud> {
-        const minigraphql = checkMinigraphql();
-        const [apiKey, cloud] = await Promise.all([checkApi(), checkCloud()]);
+        const minigraphql = this.cloudService.checkMothershipClient();
+        const cloud = await this.cloudService.checkCloudConnection();
 
         return {
             relay: {
@@ -32,12 +34,12 @@ export class CloudResolver {
                 status: 'connected',
                 timeout: undefined,
             },
-            apiKey,
+            apiKey: { valid: true },
             minigraphql,
             cloud,
-            allowedOrigins: getAllowedOrigins(),
+            allowedOrigins: this.networkService.getAllowedOrigins(),
             error:
-                `${apiKey.error ? `API KEY: ${apiKey.error}` : ''}${
+                `${
                     cloud.error ? `NETWORK: ${cloud.error}` : ''
                 }${minigraphql.error ? `CLOUD: ${minigraphql.error}` : ''}` || undefined,
         };

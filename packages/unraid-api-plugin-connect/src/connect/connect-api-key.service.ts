@@ -5,6 +5,7 @@ import { ApiKey, ApiKeyWithSecret, Permission, Resource, Role } from '@unraid/sh
 import { ApiKeyService } from '@unraid/shared/services/api-key.js';
 import { API_KEY_SERVICE_TOKEN } from '@unraid/shared/tokens.js';
 import { AuthActionVerb } from 'nest-authz';
+import { ConnectConfigService } from './connect-config.service.js';
 
 @Injectable()
 export class ConnectApiKeyService implements ApiKeyService {
@@ -14,7 +15,8 @@ export class ConnectApiKeyService implements ApiKeyService {
     constructor(
         @Inject(API_KEY_SERVICE_TOKEN)
         private readonly apiKeyService: ApiKeyService,
-        private readonly configService: ConfigService
+        private readonly configService: ConfigService,
+        private readonly connectConfig: ConnectConfigService
     ) {}
 
     async findById(id: string): Promise<ApiKey | null> {
@@ -85,7 +87,7 @@ export class ConnectApiKeyService implements ApiKeyService {
      */
     public async getOrCreateLocalApiKey(): Promise<string> {
         // 1. Check in-memory config
-        const { localApiKey: localApiKeyFromConfig } = this.configService.get('connect.config');
+        const { localApiKey: localApiKeyFromConfig } = this.connectConfig.getConfig();
         if (localApiKeyFromConfig && localApiKeyFromConfig !== '') {
             return localApiKeyFromConfig;
         }

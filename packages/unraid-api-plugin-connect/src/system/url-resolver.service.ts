@@ -207,6 +207,38 @@ export class UrlResolverService {
     }
 
     /**
+     * Returns the set of local URLs allowed to access the Unraid API
+     */
+    getAllowedLocalAccessUrls(): string[] {
+        const { nginx } = this.configService.getOrThrow('store.emhttp');
+        try {
+            return [
+                this.getUrlForField({ url: 'localhost', port: nginx.httpPort }),
+                this.getUrlForField({ url: 'localhost', portSsl: nginx.httpsPort }),
+            ].map((url) => url.toString());
+        } catch (error: unknown) {
+            this.logger.warn('Uncaught error in getLocalAccessUrls: %o', error);
+            return [];
+        }
+    }
+
+    /**
+     * Returns the set of server IPs (both IPv4 and IPv6) allowed to access the Unraid API
+     */
+    getAllowedServerIps(): string[] {
+        const { urls } = this.getServerIps();
+        return urls.reduce<string[]>((acc, curr) => {
+            if ((curr.ipv4 && curr.ipv6) || curr.ipv4) {
+                acc.push(curr.ipv4.toString());
+            } else if (curr.ipv6) {
+                acc.push(curr.ipv6.toString());
+            }
+
+            return acc;
+        }, []);
+    }
+
+    /**
      * Resolves all available server access URLs from the nginx configuration.
      * This is the main method of the service that aggregates all possible access URLs.
      *

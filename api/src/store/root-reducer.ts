@@ -1,7 +1,6 @@
 import { combineReducers, UnknownAction } from '@reduxjs/toolkit';
 
 import { resetStore } from '@app/store/actions/reset-store.js';
-import { cache } from '@app/store/modules/cache.js';
 import { configReducer } from '@app/store/modules/config.js';
 import { dynamix } from '@app/store/modules/dynamix.js';
 import { emhttp } from '@app/store/modules/emhttp.js';
@@ -20,7 +19,6 @@ const appReducer = combineReducers({
     paths: paths.reducer,
     emhttp: emhttp.reducer,
     registration: registrationReducer,
-    cache: cache.reducer,
     upnp: upnp.reducer,
     dynamix: dynamix.reducer,
 });

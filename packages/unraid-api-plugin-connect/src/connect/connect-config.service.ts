@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { OnEvent } from '@nestjs/event-emitter';
 
@@ -8,10 +8,30 @@ import { EVENTS } from '../pubsub/consts.js';
 @Injectable()
 export class ConnectConfigService {
     public readonly configKey = 'connect.config';
+    private readonly logger = new Logger(ConnectConfigService.name);
     constructor(private readonly configService: ConfigService<ConfigType>) {}
 
     getConfig(): MyServersConfig {
         return this.configService.getOrThrow<MyServersConfig>(this.configKey);
+    }
+
+    getExtraOrigins(): string[] {
+        const extraOrigins = this.configService.get<string>('store.config.api.extraOrigins');
+        if (extraOrigins) {
+            return extraOrigins
+                .replaceAll(' ', '')
+                .split(',')
+                .filter((origin) => origin.startsWith('http://') || origin.startsWith('https://'));
+        }
+        return [];
+    }
+
+    getSandboxOrigins(): string[] {
+        const introspectionFlag = this.configService.get<boolean>('GRAPHQL_INTROSPECTION');
+        if (introspectionFlag) {
+            return ['https://studio.apollographql.com'];
+        }
+        return [];
     }
 
     /**
@@ -27,6 +47,7 @@ export class ConnectConfigService {
             ...this.getConfig(),
             ...identity,
         });
+        this.logger.verbose('Reset Connect user identity');
     }
 
     @OnEvent(EVENTS.LOGOUT, { async: true })

@@ -1,10 +1,8 @@
 import { beforeEach, describe, expect, test, vi } from 'vitest';
 
 import { pubsub, PUBSUB_CHANNEL } from '@app/core/pubsub.js';
-import { setGraphqlConnectionStatus } from '@app/store/actions/set-minigraph-status.js';
 import { store } from '@app/store/index.js';
 import { MyServersConfigMemory } from '@app/types/my-servers-config.js';
-import { MinigraphStatus } from '@app/unraid-api/graph/resolvers/cloud/cloud.model.js';
 
 describe.skip('config tests', () => {
     // Mock dependencies
@@ -279,12 +277,12 @@ describe.skip('config tests', () => {
         expect(state.remote.localApiKey).toBe('');
     });
 
-    test('setGraphqlConnectionStatus updates minigraph status', async () => {
-        store.dispatch(setGraphqlConnectionStatus({ status: MinigraphStatus.CONNECTED, error: null }));
+    // test('setGraphqlConnectionStatus updates minigraph status', async () => {
+    //     store.dispatch(setGraphqlConnectionStatus({ status: MinigraphStatus.CONNECTED, error: null }));
 
-        const state = store.getState().config;
-        expect(state.connectionStatus.minigraph).toBe(MinigraphStatus.CONNECTED);
-    });
+    //     const state = store.getState().config;
+    //     expect(state.connectionStatus.minigraph).toBe(MinigraphStatus.CONNECTED);
+    // });
 
     // test('setupRemoteAccessThunk.fulfilled updates remote access settings', async () => {
     //     const remoteAccessSettings = {

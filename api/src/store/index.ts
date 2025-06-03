@@ -16,7 +16,6 @@ export type AppDispatch = typeof store.dispatch;
 export type ApiStore = typeof store;
 
 export const getters = {
-    cache: () => store.getState().cache,
     config: () => store.getState().config,
     dynamix: () => store.getState().dynamix,
     emhttp: () => store.getState().emhttp,

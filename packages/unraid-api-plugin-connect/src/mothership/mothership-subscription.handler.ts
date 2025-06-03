@@ -68,7 +68,7 @@ export class MothershipSubscriptionHandler {
                 this.removeSubscription(sha256);
                 numOfStaleSubscriptions++;
             });
-        this.logger.debug(
+        this.logger.verbose(
             `Cleared ${numOfStaleSubscriptions}/${totalSubscriptions} subscriptions (older than ${maxAgeMs}ms)`
         );
     }

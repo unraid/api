@@ -7,6 +7,8 @@ import { InternalClientService } from './internal.client.js';
 import { MothershipSubscriptionHandler } from './mothership-subscription.handler.js';
 import { MothershipHandler } from './mothership.handler.js';
 import { TimeoutCheckerJob } from './timeout-checker.job.js';
+import { CloudService } from '../service/cloud.service.js';
+import { CloudResolver } from '../resolver/cloud.resolver.js';
 
 @Module({
     imports: [RemoteAccessModule],
@@ -17,6 +19,8 @@ import { TimeoutCheckerJob } from './timeout-checker.job.js';
         MothershipHandler,
         MothershipSubscriptionHandler,
         TimeoutCheckerJob,
+        CloudService,
+        CloudResolver,
     ],
     exports: [],
 })
