@@ -1,3 +1,4 @@
+import { ConfigService } from '@nestjs/config';
 import { Query, Resolver, Subscription } from '@nestjs/graphql';
 
 import { Resource } from '@unraid/shared/graphql.model.js';
@@ -9,7 +10,6 @@ import {
     UsePermissions,
 } from '@app/unraid-api/graph/directives/use-permissions.directive.js';
 import { Owner } from '@app/unraid-api/graph/resolvers/owner/owner.model.js';
-import { ConfigService } from '@nestjs/config';
 
 // Question: should we move this into the connect plugin, or should this always be available?
 @Resolver(() => Owner)
