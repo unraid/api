@@ -84,14 +84,21 @@ export class ConnectApiKeyService implements ApiKeyService {
      * Gets or creates a local API key for Connect
      */
     public async getOrCreateLocalApiKey(): Promise<string> {
+        // 1. Check in-memory config
         const { localApiKey: localApiKeyFromConfig } = this.configService.get('connect.config');
-        if (localApiKeyFromConfig === '') {
-            const localApiKey = await this.createLocalConnectApiKey();
-            if (!localApiKey?.key) {
-                throw new Error('Failed to create local API key');
-            }
-            return localApiKey.key;
+        if (localApiKeyFromConfig && localApiKeyFromConfig !== '') {
+            return localApiKeyFromConfig;
         }
-        return localApiKeyFromConfig;
+        // 2. Check disk
+        const localApiKeyFromDisk = this.apiKeyService.findByField('name', 'Connect');
+        if (localApiKeyFromDisk) {
+            return localApiKeyFromDisk.key;
+        }
+        // 3. If no key found, create one
+        const localApiKey = await this.createLocalConnectApiKey();
+        if (!localApiKey?.key) {
+            throw new Error('Failed to create local API key');
+        }
+        return localApiKey.key;
     }
 }
