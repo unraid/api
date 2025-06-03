@@ -2,6 +2,7 @@ import { UsePipes, ValidationPipe } from '@nestjs/common';
 import { registerAs } from '@nestjs/config';
 import { Field, InputType, ObjectType } from '@nestjs/graphql';
 
+import { URL_TYPE } from '@unraid/shared/network.model.js';
 import { plainToInstance } from 'class-transformer';
 import {
     IsArray,
@@ -15,7 +16,6 @@ import {
 } from 'class-validator';
 
 import { ConnectDemoConfig } from './config.demo.js';
-import { URL_TYPE } from '@unraid/shared/network.model.js';
 
 export enum MinigraphStatus {
     PRE_INIT = 'PRE_INIT',
@@ -209,26 +209,28 @@ export type ConfigType = ConnectConfig & {
     store: any;
 } & Record<string, string>;
 
+export const emptyMyServersConfig = (): MyServersConfig => ({
+    wanaccess: false,
+    wanport: 0,
+    upnpEnabled: false,
+    apikey: '',
+    localApiKey: '',
+    email: '',
+    username: '',
+    avatar: '',
+    regWizTime: '',
+    accesstoken: '',
+    idtoken: '',
+    refreshtoken: '',
+    dynamicRemoteAccessType: DynamicRemoteAccessType.DISABLED,
+    ssoSubIds: [],
+});
+
 export const configFeature = registerAs<ConnectConfig>('connect', () => ({
     demo: 'hello.unraider',
     mothership: plainToInstance(ConnectionMetadata, {
         status: MinigraphStatus.PRE_INIT,
     }),
     dynamicRemoteAccess: makeDisabledDynamicRemoteAccessState(),
-    config: plainToInstance(MyServersConfig, {
-        wanaccess: false,
-        wanport: 0,
-        upnpEnabled: false,
-        apikey: '',
-        localApiKey: '',
-        email: '',
-        username: '',
-        avatar: '',
-        regWizTime: '',
-        accesstoken: '',
-        idtoken: '',
-        refreshtoken: '',
-        dynamicRemoteAccessType: DynamicRemoteAccessType.DISABLED,
-        ssoSubIds: [],
-    }),
+    config: plainToInstance(MyServersConfig, emptyMyServersConfig()),
 }));

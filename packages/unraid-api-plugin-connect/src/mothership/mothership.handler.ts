@@ -74,7 +74,7 @@ export class MothershipHandler implements OnModuleDestroy {
      */
     @OnEvent(EVENTS.LOGOUT, { async: true, prependListener: true })
     async logout({ reason }: { reason?: string }) {
-        this.logger.error('Logging out user: %s', reason ?? 'No reason provided');
+        this.logger.log('Logging out user: %s', reason ?? 'No reason provided');
         // publish to the 'servers' and 'owner' endpoints
         await this.legacyPubSub.publish(GRAPHQL_PUBSUB_CHANNEL.SERVERS, { servers: [] });
         await this.legacyPubSub.publish(GRAPHQL_PUBSUB_CHANNEL.OWNER, {
