@@ -72,9 +72,6 @@ export class CloudService {
             return await this.fastCheckCloud();
         }
         const apiKey = this.connectConfig.getConfig().apikey;
-        if (!apiKey) {
-            throw new Error('No API key found');
-        }
         const cachedCloudCheck = CloudService.cache.get('cloudCheck');
         if (cachedCloudCheck) {
             // this.logger.verbose('Cache hit for cloud check %O', cachedCloudCheck);
@@ -211,12 +208,23 @@ export class CloudService {
             resolve(hostname).then(([address]) => address),
         ]);
 
-        if (!local.includes(network))
+        if (!local.includes(network)) {
+            // Question: should we actually throw an error, or just log a warning?
+            //
+            // This is usually due to cloudflare's load balancing.
+            // if `dig +short mothership.unraid.net` shows both IPs, then this should be safe to ignore.
+            // this.logger.warn(
+            //     `Local and network resolvers showing different IP for "${hostname}". [local="${
+            //         local ?? 'NOT FOUND'
+            //     }"] [network="${network ?? 'NOT FOUND'}"].`
+            // );
+
             throw new Error(
                 `Local and network resolvers showing different IP for "${hostname}". [local="${
                     local ?? 'NOT FOUND'
                 }"] [network="${network ?? 'NOT FOUND'}"]`
             );
+        }
 
         // The user likely has a PI-hole or something similar running.
         if (ip.isPrivate(local))
