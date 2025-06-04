@@ -688,8 +688,8 @@ importers:
         specifier: ^2.0.1
         version: 2.0.1
       lucide-vue-next:
-        specifier: ^0.511.0
-        version: 0.511.0(vue@3.5.13(typescript@5.8.3))
+        specifier: ^0.513.0
+        version: 0.513.0(vue@3.5.13(typescript@5.8.3))
       marked:
         specifier: ^15.0.0
         version: 15.0.7
@@ -936,8 +936,8 @@ importers:
         specifier: ^2.19.0
         version: 2.22.0
       lucide-vue-next:
-        specifier: ^0.511.0
-        version: 0.511.0(vue@3.5.13(typescript@5.8.3))
+        specifier: ^0.513.0
+        version: 0.513.0(vue@3.5.13(typescript@5.8.3))
       marked:
         specifier: ^15.0.0
         version: 15.0.7
@@ -8641,8 +8641,8 @@ packages:
   lru-queue@0.1.0:
     resolution: {integrity: sha512-BpdYkt9EvGl8OfWHDQPISVpcl5xZthb+XPsbELj5AQXxIC8IriDZIQYjBJPEm5rS420sjZ0TLEzRcq5KdBhYrQ==}
 
-  lucide-vue-next@0.511.0:
-    resolution: {integrity: sha512-VSv0F3pHniGN7JMMzDcLFNMQbl8381+shNnHwV8hi+El7xl2ZL8qdNuzPoiBViKk8mTKK5K3ZDfmE/wEcTZVIQ==}
+  lucide-vue-next@0.513.0:
+    resolution: {integrity: sha512-/J7DB2WBC+UPcRswOfJFXSWt8r5HTMVu0PRkR6e0+Ozx6kLJZv4m71vbT1DS9RCjj0pfuLskWIslSBeeXmg7BA==}
     peerDependencies:
       vue: '>=3.0.1'
 
@@ -10095,6 +10095,7 @@ packages:
     engines: {node: '>=0.6.0', teleport: '>=0.2.0'}
     deprecated: |-
       You or someone you depend on is using Q, the JavaScript Promise library that gave JavaScript developers strong feelings about promises. They can almost certainly migrate to the native JavaScript promise now. Thank you literally everyone for joining me in this bet against the odds. Be excellent to each other.
+
       (For a CapTP with native promises, see @endo/eventual-send and @endo/captp)
 
   qs@6.13.0:
@@ -21269,7 +21270,7 @@ snapshots:
     dependencies:
       es5-ext: 0.10.64
 
-  lucide-vue-next@0.511.0(vue@3.5.13(typescript@5.8.3)):
+  lucide-vue-next@0.513.0(vue@3.5.13(typescript@5.8.3)):
     dependencies:
       vue: 3.5.13(typescript@5.8.3)
 
