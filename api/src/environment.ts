@@ -1,3 +1,6 @@
+// Defines environment & configuration constants.
+// Non-function exports from this module are loaded into the NestJS Config at runtime.
+
 import { readFileSync } from 'node:fs';
 import { homedir } from 'node:os';
 import { join } from 'node:path';

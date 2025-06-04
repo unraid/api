@@ -43,6 +43,21 @@ export const viteNodeApp = async () => {
         await import('json-bigint-patch');
         environment.IS_MAIN_PROCESS = true;
 
+        /**------------------------------------------------------------------------
+         *              Attaching getServerIdentifier to globalThis
+
+         *  getServerIdentifier is tightly coupled to the deprecated redux store, 
+         *  which we don't want to share with other packages or plugins.
+         *  
+         *  At the same time, we need to use it in @unraid/shared as a building block,
+         *  where it's used & available outside of NestJS's DI context.
+         *  
+         *  Attaching to globalThis is a temporary solution to avoid refactoring 
+         *  config sync & management outside of NestJS's DI context.
+         *  
+         *  Plugin authors should import getServerIdentifier from @unraid/shared instead,
+         *  to avoid breaking changes to their code.
+         *------------------------------------------------------------------------**/
         globalThis.getServerIdentifier = getServerIdentifier;
         logger.info('ENV %o', envVars);
         logger.info('PATHS %o', store.getState().paths);
