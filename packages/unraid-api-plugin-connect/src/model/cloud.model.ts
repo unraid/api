@@ -1,6 +1,6 @@
 import { Field, Int, ObjectType } from '@nestjs/graphql';
 
-import { MinigraphStatus } from '../helpers/my-servers-config.js';
+import { MinigraphStatus } from './my-servers-config.js';
 
 @ObjectType()
 export class ApiKeyResponse {

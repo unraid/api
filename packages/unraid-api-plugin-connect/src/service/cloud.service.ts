@@ -7,11 +7,11 @@ import { got, HTTPError, TimeoutError } from 'got';
 import ip from 'ip';
 import NodeCache from 'node-cache';
 
-import { ConfigType, MinigraphStatus } from '../config.entity.js';
-import { ConnectConfigService } from '../connect/connect-config.service.js';
-import { ONE_HOUR_SECS, ONE_MINUTE_SECS } from '../helpers/consts.js';
+import { ConfigType, MinigraphStatus } from '../model/config.entity.js';
+import { ConnectConfigService } from './connect-config.service.js';
+import { ONE_HOUR_SECS, ONE_MINUTE_SECS } from '../helper/generic-consts.js';
 import { CloudResponse, MinigraphqlResponse } from '../model/cloud.model.js';
-import { MothershipConnectionService } from '../mothership/connection.service.js';
+import { MothershipConnectionService } from './connection.service.js';
 
 interface CacheSchema {
     cloudIp: string;

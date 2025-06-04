@@ -9,7 +9,7 @@ import {
 
 import { Cloud } from '../model/cloud.model.js';
 import { CloudService } from '../service/cloud.service.js';
-import { NetworkService } from '../system/network.service.js';
+import { NetworkService } from '../service/network.service.js';
 
 @Resolver(() => Cloud)
 export class CloudResolver {
