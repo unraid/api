@@ -17,11 +17,11 @@ type ApiPackageJson = PackageJson & {
 
 /**
  * Map of workspace packages to vendor into production builds.
- * Key: package name, Value: relative path from api/ to the package directory
+ * Key: package name, Value: path from monorepo root to the package directory
  */
 const WORKSPACE_PACKAGES_TO_VENDOR = {
-    '@unraid/shared': '../../packages/unraid-shared',
-    'unraid-api-plugin-connect': '../../packages/unraid-api-plugin-connect',
+    '@unraid/shared': 'packages/unraid-shared',
+    'unraid-api-plugin-connect': 'packages/unraid-api-plugin-connect',
 } as const;
 
 /**
@@ -33,9 +33,7 @@ const packAndInstallWorkspacePackage = async (pkgName: string, pkgPath: string, 
         console.warn(`Workspace package ${pkgName} not found at ${fullPkgPath}. Skipping.`);
         return;
     }
-
     console.log(`Building and packing workspace package ${pkgName}...`);
-
     // Pack the package to a tarball
     const packedResult = await $`pnpm --filter ${pkgName} pack --pack-destination ${fullTempDir}`;
     const tarballPath = packedResult.lines().at(-1)!;
@@ -45,6 +43,16 @@ const packAndInstallWorkspacePackage = async (pkgName: string, pkgPath: string, 
     const tarballPattern = join(fullTempDir, tarballName);
     await $`npm install ${tarballPattern}`;
 };
+
+/**------------------------------------------------------------------------
+ *                             Build Script
+ *
+ * Builds & vendors the API for deployment to an Unraid server.
+ *
+ * Places artifacts in the `deploy/` folder:
+ * - release/ contains source code & assets
+ * - node-modules-archive/ contains tarball of node_modules
+ *------------------------------------------------------------------------**/
 
 try {
     // Create release and pack directories
@@ -100,17 +108,16 @@ try {
     /** After npm install, vendor workspace packages via pack/install */
     if (workspaceDeps.length > 0) {
         console.log('Vendoring workspace packages...');
-        const tempDir = '../temp-packages';
+        const tempDir = './packages';
         await mkdir(tempDir, { recursive: true });
 
         for (const dep of workspaceDeps) {
             const pkgPath =
                 WORKSPACE_PACKAGES_TO_VENDOR[dep as keyof typeof WORKSPACE_PACKAGES_TO_VENDOR];
-            await packAndInstallWorkspacePackage(dep, join('../', pkgPath), tempDir);
+            // The extra '../../../' prefix adjusts for the fact that we're in the pack directory.
+            // this way, pkgPath can be defined relative to the monorepo root.
+            await packAndInstallWorkspacePackage(dep, join('../../../', pkgPath), tempDir);
         }
-
-        // Clean up temp directory
-        await $`rm -rf ${tempDir}`;
     }
 
     const compressionLevel = process.env.WATCH_MODE ? '-1' : '-5';
