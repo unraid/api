@@ -8,7 +8,6 @@ import { enableArrayEventListener } from '@app/store/listeners/array-event-liste
 import { enableConfigFileListener } from '@app/store/listeners/config-listener.js';
 import { enableUpnpListener } from '@app/store/listeners/upnp-listener.js';
 import { enableVersionListener } from '@app/store/listeners/version-listener.js';
-import { enableWanAccessChangeListener } from '@app/store/listeners/wan-access-change-listener.js';
 
 export const listenerMiddleware = createListenerMiddleware();
 
@@ -27,5 +26,4 @@ export const startMiddlewareListeners = () => {
     enableUpnpListener();
     enableVersionListener();
     enableArrayEventListener();
-    enableWanAccessChangeListener();
 };

@@ -8,6 +8,7 @@ import { loadSingleStateFile, loadStateFiles } from '@app/store/modules/emhttp.j
 import { disableUpnp, enableUpnp } from '@app/store/modules/upnp.js';
 import { FileLoadStatus } from '@app/store/types.js';
 
+// FLAG for review: make sure we replace this
 const shouldUpnpBeEnabled = (state: RootState | null): boolean => {
     if (
         state?.config.status !== FileLoadStatus.LOADED ||

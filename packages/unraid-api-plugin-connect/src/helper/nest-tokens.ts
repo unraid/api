@@ -1,4 +1,4 @@
-// NestJS tokens. 
+// NestJS tokens.
 // Strings & Symbols used to identify jobs, services, events, etc.
 
 export const UPNP_RENEWAL_JOB_TOKEN = 'upnp-renewal';
@@ -10,4 +10,6 @@ export enum EVENTS {
     LOGOUT = 'connect.logout',
     IDENTITY_CHANGED = 'connect.identity.changed',
     MOTHERSHIP_CONNECTION_STATUS_CHANGED = 'connect.mothership.changed',
+    ENABLE_WAN_ACCESS = 'connect.wanAccess.enable',
+    DISABLE_WAN_ACCESS = 'connect.wanAccess.disable',
 }

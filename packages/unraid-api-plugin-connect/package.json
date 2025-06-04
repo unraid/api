@@ -9,7 +9,7 @@
     ],
     "scripts": {
         "test": "echo \"Error: no test specified\" && exit 1",
-        "clean": "rimraf dist node_modules",
+        "clean": "rimraf dist",
         "build": "tsc",
         "prepare": "npm run build",
         "codegen": "MOTHERSHIP_GRAPHQL_LINK='https://staging.mothership.unraid.net/ws' graphql-codegen --config codegen.ts"

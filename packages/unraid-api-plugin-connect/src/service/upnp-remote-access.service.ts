@@ -2,24 +2,25 @@ import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 
 import { ConfigType } from '../model/connect-config.model.js';
-import { NetworkService } from './network.service.js';
 import { UpnpService } from './upnp.service.js';
 import { UrlResolverService } from './url-resolver.service.js';
+import { EventEmitter2 } from '@nestjs/event-emitter';
+import { EVENTS } from '../helper/nest-tokens.js';
 
 @Injectable()
 export class UpnpRemoteAccessService {
     constructor(
         private readonly upnpService: UpnpService,
-        private readonly networkService: NetworkService,
         private readonly configService: ConfigService<ConfigType>,
-        private readonly urlResolverService: UrlResolverService
+        private readonly urlResolverService: UrlResolverService,
+        private readonly eventEmitter: EventEmitter2
     ) {}
 
     private readonly logger = new Logger(UpnpRemoteAccessService.name);
 
     async stop() {
         await this.upnpService.disableUpnp();
-        await this.networkService.reloadNetworkStack();
+        this.eventEmitter.emit(EVENTS.DISABLE_WAN_ACCESS);
     }
 
     async begin() {
@@ -28,7 +29,7 @@ export class UpnpRemoteAccessService {
             await this.upnpService.createOrRenewUpnpLease({
                 sslPort: Number(sslPort),
             });
-            await this.networkService.reloadNetworkStack();
+            this.eventEmitter.emit(EVENTS.ENABLE_WAN_ACCESS);
             return this.urlResolverService.getRemoteAccessUrl();
         } catch (error) {
             this.logger.error(

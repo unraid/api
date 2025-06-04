@@ -2,22 +2,22 @@ import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 
 import { ConfigType, DynamicRemoteAccessType, MyServersConfig } from '../model/connect-config.model.js';
-import { NetworkService } from './network.service.js';
 import { AccessUrl, UrlResolverService } from './url-resolver.service.js';
+import { EventEmitter2 } from '@nestjs/event-emitter';
+import { EVENTS } from '../helper/nest-tokens.js';
 
 @Injectable()
 export class StaticRemoteAccessService {
     constructor(
         private readonly configService: ConfigService<ConfigType>,
-        private readonly networkService: NetworkService,
+        private readonly eventEmitter: EventEmitter2,
         private readonly urlResolverService: UrlResolverService
     ) {}
 
     private logger = new Logger(StaticRemoteAccessService.name);
 
     async stopRemoteAccess() {
-        this.configService.set('connect.config.wanaccess', false);
-        await this.networkService.reloadNetworkStack();
+        this.eventEmitter.emit(EVENTS.DISABLE_WAN_ACCESS);
     }
 
     async beginRemoteAccess(): Promise<AccessUrl | null> {
@@ -28,8 +28,7 @@ export class StaticRemoteAccessService {
             return null;
         }
         this.logger.log('Enabling Static Remote Access');
-        this.configService.set('connect.config.wanaccess', true);
-        await this.networkService.reloadNetworkStack();
+        this.eventEmitter.emit(EVENTS.ENABLE_WAN_ACCESS);
         return this.urlResolverService.getRemoteAccessUrl();
     }
 }
