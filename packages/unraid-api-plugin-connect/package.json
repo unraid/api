@@ -4,10 +4,12 @@
     "main": "dist/index.js",
     "type": "module",
     "files": [
-        "dist"
+        "dist",
+        "readme.md"
     ],
     "scripts": {
         "test": "echo \"Error: no test specified\" && exit 1",
+        "clean": "rimraf dist node_modules",
         "build": "tsc",
         "prepare": "npm run build",
         "codegen": "MOTHERSHIP_GRAPHQL_LINK='https://staging.mothership.unraid.net/ws' graphql-codegen --config codegen.ts"
@@ -49,6 +51,7 @@
         "lodash-es": "^4.17.21",
         "nest-authz": "^2.14.0",
         "prettier": "^3.5.3",
+        "rimraf": "^6.0.1",
         "rxjs": "^7.8.2",
         "type-fest": "^4.37.0",
         "typescript": "^5.8.2",
