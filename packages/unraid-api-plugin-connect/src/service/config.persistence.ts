@@ -11,8 +11,8 @@ import { parse as parseIni } from 'ini';
 import { isEqual } from 'lodash-es';
 import { debounceTime } from 'rxjs/operators';
 
-import type { MyServersConfig as LegacyConfig } from '../model/my-servers-config.js';
-import { ConfigType, MyServersConfig } from '../model/config.entity.js';
+import type { MyServersConfig as LegacyConfig } from '../model/my-servers-config.model.js';
+import { ConfigType, MyServersConfig } from '../model/connect-config.model.js';
 
 @Injectable()
 export class ConnectConfigPersister implements OnModuleInit, OnModuleDestroy {

@@ -7,7 +7,7 @@ import {
     DynamicRemoteAccessState,
     DynamicRemoteAccessType,
     makeDisabledDynamicRemoteAccessState,
-} from '../model/config.entity.js';
+} from '../model/connect-config.model.js';
 import { ONE_MINUTE_MS } from '../helper/generic-consts.js';
 import { StaticRemoteAccessService } from './static-remote-access.service.js';
 import { UpnpRemoteAccessService } from './upnp-remote-access.service.js';

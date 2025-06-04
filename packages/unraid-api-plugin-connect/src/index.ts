@@ -1,7 +1,7 @@
 import { Inject, Logger, Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 
-import { configFeature } from './model/config.entity.js';
+import { configFeature } from './model/connect-config.model.js';
 import { ConnectConfigPersister } from './service/config.persistence.js';
 import { ConnectModule } from './module/connect.module.js';
 import { MothershipModule } from './module/mothership.module.js';

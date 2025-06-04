@@ -6,7 +6,7 @@ import type { OutgoingHttpHeaders } from 'node:http2';
 import { Subscription } from 'rxjs';
 import { debounceTime, filter } from 'rxjs/operators';
 
-import { ConnectionMetadata, MinigraphStatus, MyServersConfig } from '../model/config.entity.js';
+import { ConnectionMetadata, MinigraphStatus, MyServersConfig } from '../model/connect-config.model.js';
 import { EVENTS } from '../helper/nest-tokens.js';
 
 interface MothershipWebsocketHeaders extends OutgoingHttpHeaders {

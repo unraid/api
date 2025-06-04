@@ -1,7 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 
-import { ConfigType, DynamicRemoteAccessType, MyServersConfig } from '../model/config.entity.js';
+import { ConfigType, DynamicRemoteAccessType, MyServersConfig } from '../model/connect-config.model.js';
 import { NetworkService } from './network.service.js';
 import { AccessUrl, UrlResolverService } from './url-resolver.service.js';
 

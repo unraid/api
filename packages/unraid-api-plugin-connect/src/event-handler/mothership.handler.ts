@@ -3,7 +3,7 @@ import { OnEvent } from '@nestjs/event-emitter';
 
 import { PubSub } from 'graphql-subscriptions';
 
-import { MinigraphStatus } from '../model/config.entity.js';
+import { MinigraphStatus } from '../model/connect-config.model.js';
 import { EVENTS, GRAPHQL_PUBSUB_TOKEN, GRAPHQL_PUBSUB_CHANNEL } from '../helper/nest-tokens.js';
 import { MothershipConnectionService } from '../service/connection.service.js';
 import { MothershipGraphqlClientService } from '../service/graphql.client.js';

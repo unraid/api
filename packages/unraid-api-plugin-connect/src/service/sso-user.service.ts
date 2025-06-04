@@ -2,7 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { GraphQLError } from 'graphql/error/GraphQLError.js';
 
-import { ConfigType, MyServersConfig } from '../model/config.entity.js';
+import { ConfigType, MyServersConfig } from '../model/connect-config.model.js';
 
 @Injectable()
 export class SsoUserService {

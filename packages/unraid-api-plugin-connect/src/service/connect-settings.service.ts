@@ -22,7 +22,7 @@ import {
     WAN_ACCESS_TYPE,
     WAN_FORWARD_TYPE,
 } from '../model/connect.model.js';
-import { ConfigType, ConnectConfig, MyServersConfig } from '../model/config.entity.js';
+import { ConfigType, ConnectConfig, MyServersConfig } from '../model/connect-config.model.js';
 import { SsoUserService } from './sso-user.service.js';
 
 import type {

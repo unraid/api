@@ -6,7 +6,7 @@ import { Client, Mapping } from '@runonflux/nat-upnp';
 import { isDefined } from 'class-validator';
 import { UPNP_CLIENT_TOKEN } from '@unraid/shared/tokens.js';
 
-import { ConfigType } from '../model/config.entity.js';
+import { ConfigType } from '../model/connect-config.model.js';
 import { ONE_HOUR_SECS } from '../helper/generic-consts.js';
 import { UPNP_RENEWAL_JOB_TOKEN } from '../helper/nest-tokens.js';
 

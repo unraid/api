@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, it, vi, type Mock } from 'vitest';
 import { UrlResolverService } from '../service/url-resolver.service.js';
 import { ConfigService } from '@nestjs/config';
 import { URL_TYPE } from '@unraid/shared/network.model.js';
-import { ConfigType } from '../model/config.entity.js';
+import { ConfigType } from '../model/connect-config.model.js';
 
 interface PortTestParams {
     httpPort: number;

@@ -1,7 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 
-import { ConfigType } from '../model/config.entity.js';
+import { ConfigType } from '../model/connect-config.model.js';
 import { NetworkService } from './network.service.js';
 import { UpnpService } from './upnp.service.js';
 import { UrlResolverService } from './url-resolver.service.js';

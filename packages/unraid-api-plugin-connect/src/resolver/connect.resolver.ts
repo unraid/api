@@ -5,7 +5,7 @@ import { Query, ResolveField, Resolver } from '@nestjs/graphql';
 import { AuthActionVerb, AuthPossession, UsePermissions } from '@unraid/shared';
 import { Resource } from '@unraid/shared/graphql.model.js';
 
-import { ConfigType, ConnectConfig, DynamicRemoteAccessType } from '../model/config.entity.js';
+import { ConfigType, ConnectConfig, DynamicRemoteAccessType } from '../model/connect-config.model.js';
 import { Connect, ConnectSettings, DynamicRemoteAccessStatus } from '../model/connect.model.js';
 
 @Resolver(() => Connect)

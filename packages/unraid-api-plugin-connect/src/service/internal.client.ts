@@ -10,7 +10,7 @@ import { getMainDefinition } from '@apollo/client/utilities/index.js';
 import { createClient } from 'graphql-ws';
 import { WebSocket } from 'ws';
 
-import { MyServersConfig } from '../model/config.entity.js';
+import { MyServersConfig } from '../model/connect-config.model.js';
 import { MothershipConnectionService } from './connection.service.js';
 
 @Injectable()

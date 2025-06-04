@@ -15,7 +15,7 @@ import { GraphQLWsLink } from '@apollo/client/link/subscriptions/index.js';
 import { Client, createClient } from 'graphql-ws';
 import { WebSocket } from 'ws';
 
-import { MinigraphStatus } from '../model/config.entity.js';
+import { MinigraphStatus } from '../model/connect-config.model.js';
 import { RemoteGraphQlEventType } from '../graphql/generated/client/graphql.js';
 import { SEND_REMOTE_QUERY_RESPONSE } from '../graphql/remote-response.js';
 import { EVENTS } from '../helper/nest-tokens.js';
