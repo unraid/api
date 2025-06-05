@@ -27,21 +27,7 @@ export class PluginService {
         const pluginPackages = await PluginService.listPlugins();
         const plugins = await batchProcess(pluginPackages, async ([pkgName]) => {
             try {
-                const possibleImportSources = [
-                    pkgName,
-                    /**----------------------------------------------
-                     *     Importing private workspace plugins
-                     *
-                     *  Private workspace packages are not available in production,
-                     *  so we bundle and copy them to a plugins folder instead.
-                     *
-                     *  See scripts/copy-plugins.js for more details.
-                     *---------------------------------------------**/
-                    // `../plugins/${pkgName}/index.js`,
-                ];
-                const plugin = await Promise.any(
-                    possibleImportSources.map((source) => import(/* @vite-ignore */ source))
-                );
+                const plugin = await import(/* @vite-ignore */ pkgName);
                 return apiNestPluginSchema.parse(plugin);
             } catch (error) {
                 PluginService.logger.error(`Plugin from ${pkgName} is invalid`, error);
