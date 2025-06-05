@@ -72,10 +72,9 @@ export const getPluginBasedOnSandbox = async (sandbox: boolean, csrfToken: strin
  * - Initial document state
  * - Shared headers containing CSRF token
  */
-async function renderSandboxPage(service: GraphQLServerContext) {
+async function renderSandboxPage(service: GraphQLServerContext, isSandboxEnabled: () => boolean) {
     const { getters } = await import('@app/store/index.js');
-    // const sandbox = getters.config().local.sandbox === 'yes';
-    const sandbox = true;
+    const sandbox = isSandboxEnabled();
     const csrfToken = getters.emhttp().var.csrfToken;
     const plugin = await getPluginBasedOnSandbox(sandbox, csrfToken);
 
@@ -95,9 +94,9 @@ async function renderSandboxPage(service: GraphQLServerContext) {
  * parameters once, during server startup. This plugin defers the configuration
  * and rendering to request-time instead of server startup.
  */
-export const sandboxPlugin: ApolloServerPlugin = {
+export const createSandboxPlugin = (isSandboxEnabled: () => boolean): ApolloServerPlugin => ({
     serverWillStart: async (service) =>
         ({
-            renderLandingPage: () => renderSandboxPage(service),
+            renderLandingPage: () => renderSandboxPage(service, isSandboxEnabled),
         }) satisfies GraphQLServerListener,
-};
+});

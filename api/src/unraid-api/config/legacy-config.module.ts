@@ -3,6 +3,7 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 
+import { apiConfig } from '@app/unraid-api/config/api-config.module.js';
 import { loadAppEnvironment, loadLegacyStore } from '@app/unraid-api/config/config.loader.js';
 import { StoreSyncService } from '@app/unraid-api/config/store-sync.service.js';
 
@@ -10,7 +11,7 @@ import { StoreSyncService } from '@app/unraid-api/config/store-sync.service.js';
     imports: [
         ConfigModule.forRoot({
             isGlobal: true,
-            load: [loadAppEnvironment, loadLegacyStore],
+            load: [loadAppEnvironment, loadLegacyStore, apiConfig],
         }),
     ],
     providers: [StoreSyncService],

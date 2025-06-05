@@ -21,7 +21,7 @@ export interface ApiStateConfigOptions<T> {
 }
 
 export class ApiStateConfig<T> {
-    private config: T;
+    #config: T;
     private logger: Logger;
 
     constructor(
@@ -29,7 +29,7 @@ export class ApiStateConfig<T> {
         readonly persistenceHelper: ConfigPersistenceHelper
     ) {
         // avoid sharing a reference with the given default config. This allows us to re-use it.
-        this.config = structuredClone(options.defaultConfig);
+        this.#config = structuredClone(options.defaultConfig);
         this.logger = new Logger(this.token);
     }
 
@@ -46,12 +46,16 @@ export class ApiStateConfig<T> {
         return join(PATHS_CONFIG_MODULES, this.fileName);
     }
 
+    get config() {
+        return this.#config;
+    }
+
     /**
      * Persists the config to the file system. Will never throw.
      * @param config - The config to persist.
      * @returns True if the config was written successfully, false otherwise.
      */
-    async persist(config = this.config) {
+    async persist(config = this.#config) {
         try {
             await this.persistenceHelper.persistIfChanged(this.filePath, config);
             return true;
@@ -86,10 +90,10 @@ export class ApiStateConfig<T> {
         try {
             const config = await this.parseConfig();
             if (config) {
-                this.config = config;
+                this.#config = config;
             } else {
                 this.logger.log(`Config file does not exist. Writing default config.`);
-                this.config = this.options.defaultConfig;
+                this.#config = this.options.defaultConfig;
                 await this.persist();
             }
         } catch (error) {
@@ -98,8 +102,8 @@ export class ApiStateConfig<T> {
     }
 
     update(config: Partial<T>) {
-        const proposedConfig = this.options.parse({ ...this.config, ...config });
-        this.config = proposedConfig;
+        const proposedConfig = this.options.parse({ ...this.#config, ...config });
+        this.#config = proposedConfig;
         return this;
     }
 }

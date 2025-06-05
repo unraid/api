@@ -1,9 +1,9 @@
 import type { ApolloDriverConfig } from '@nestjs/apollo';
 import { ApolloDriver } from '@nestjs/apollo';
 import { Module } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { GraphQLModule } from '@nestjs/graphql';
 
-import { PrefixedID } from '@unraid/shared/prefixed-id-scalar.js';
 import {
     UsePermissionsDirective,
     usePermissionsSchemaTransformer,
@@ -11,9 +11,9 @@ import {
 import { NoUnusedVariablesRule } from 'graphql';
 
 import { ENVIRONMENT } from '@app/environment.js';
-import { getters } from '@app/store/index.js';
+import { ApiConfigModule } from '@app/unraid-api/config/api-config.module.js';
 import { ResolversModule } from '@app/unraid-api/graph/resolvers/resolvers.module.js';
-import { sandboxPlugin } from '@app/unraid-api/graph/sandbox-plugin.js';
+import { createSandboxPlugin } from '@app/unraid-api/graph/sandbox-plugin.js';
 import { GlobalDepsModule } from '@app/unraid-api/plugin/global-deps.module.js';
 import { PluginModule } from '@app/unraid-api/plugin/plugin.module.js';
 
@@ -23,8 +23,10 @@ import { PluginModule } from '@app/unraid-api/plugin/plugin.module.js';
         ResolversModule,
         GraphQLModule.forRootAsync<ApolloDriverConfig>({
             driver: ApolloDriver,
-            imports: [PluginModule.register()],
-            useFactory: async () => {
+            imports: [PluginModule.register(), ApiConfigModule],
+            inject: [ConfigService],
+            useFactory: async (configService: ConfigService) => {
+                const isSandboxEnabled = () => Boolean(configService.get('api.sandbox'));
                 return {
                     autoSchemaFile:
                         ENVIRONMENT === 'development'
@@ -32,9 +34,8 @@ import { PluginModule } from '@app/unraid-api/plugin/plugin.module.js';
                                   path: './generated-schema.graphql',
                               }
                             : true,
-                    // introspection: getters.config()?.local?.sandbox === 'yes',
-                    introspection: true,
-                    playground: false,
+                    introspection: isSandboxEnabled(),
+                    playground: false, // we handle this in the sandbox plugin
                     context: async ({ req, connectionParams, extra }) => {
                         return {
                             req,
@@ -42,7 +43,7 @@ import { PluginModule } from '@app/unraid-api/plugin/plugin.module.js';
                             extra,
                         };
                     },
-                    plugins: [sandboxPlugin] as any[],
+                    plugins: [createSandboxPlugin(isSandboxEnabled)] as any[],
                     subscriptions: {
                         'graphql-ws': {
                             path: '/graphql',

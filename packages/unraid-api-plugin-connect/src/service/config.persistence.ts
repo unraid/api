@@ -22,7 +22,7 @@ export class ConnectConfigPersister implements OnModuleInit, OnModuleDestroy {
     get configPath() {
         // PATHS_CONFIG_MODULES is a required environment variable.
         // It is the directory where custom config files are stored.
-        return path.join(this.configService.get('PATHS_CONFIG_MODULES')!, 'connect.json');
+        return path.join(this.configService.getOrThrow('PATHS_CONFIG_MODULES'), 'connect.json');
     }
 
     async onModuleDestroy() {
@@ -30,14 +30,14 @@ export class ConnectConfigPersister implements OnModuleInit, OnModuleDestroy {
     }
 
     async onModuleInit() {
-        this.logger.debug(`Config path: ${this.configPath}`);
+        this.logger.verbose(`Config path: ${this.configPath}`);
         await this.loadOrMigrateConfig();
         // Persist changes to the config.
         const HALF_SECOND = 500;
         this.configService.changes$.pipe(debounceTime(HALF_SECOND)).subscribe({
             next: async ({ newValue, oldValue, path }) => {
                 if (path.startsWith('connect.config')) {
-                    this.logger.debug(`Config changed: ${path} from ${oldValue} to ${newValue}`);
+                    this.logger.verbose(`Config changed: ${path} from ${oldValue} to ${newValue}`);
                     await this.persist();
                 }
             },
@@ -151,6 +151,23 @@ export class ConnectConfigPersister implements OnModuleInit, OnModuleDestroy {
      * @throws {Error} - If the legacy config file is not parse-able.
      */
     private async parseLegacyConfig(filePath?: string): Promise<MyServersConfig> {
+        const config = await this.getLegacyConfig(filePath);
+        return this.validate({
+            ...config.api,
+            ...config.local,
+            ...config.remote,
+            extraOrigins: csvStringToArray(config.api.extraOrigins),
+        });
+    }
+
+    /**
+     * Get the legacy config from the filesystem.
+     * @param filePath - The path to the legacy config file.
+     * @returns The legacy config object.
+     * @throws {Error} - If the legacy config file does not exist.
+     * @throws {Error} - If the legacy config file is not parse-able.
+     */
+    private async getLegacyConfig(filePath?: string) {
         filePath ??= this.configService.get(
             'PATHS_MY_SERVERS_CONFIG',
             '/boot/config/plugins/dynamix.my.servers/myservers.cfg'
@@ -161,12 +178,6 @@ export class ConnectConfigPersister implements OnModuleInit, OnModuleDestroy {
         if (!existsSync(filePath)) {
             throw new Error(`Legacy config file does not exist: ${filePath}`);
         }
-        const config = parseIni(readFileSync(filePath, 'utf8')) as LegacyConfig;
-        return this.validate({
-            ...config.api,
-            ...config.local,
-            ...config.remote,
-            extraOrigins: csvStringToArray(config.api.extraOrigins),
-        });
+        return parseIni(readFileSync(filePath, 'utf8')) as LegacyConfig;
     }
 }
