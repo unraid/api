@@ -8,8 +8,6 @@ import { RuleEffect } from '@jsonforms/core';
 import { createLabeledControl } from '@unraid/shared/jsonforms/control.js';
 import { mergeSettingSlices } from '@unraid/shared/jsonforms/settings.js';
 import { URL_TYPE } from '@unraid/shared/network.model.js';
-import { csvStringToArray } from '@unraid/shared/util/data.js';
-import { fileExistsSync } from '@unraid/shared/util/file.js';
 import { execa } from 'execa';
 import { GraphQLError } from 'graphql/error/GraphQLError.js';
 import { decodeJwt } from 'jose';
@@ -50,17 +48,11 @@ export class ConnectSettingsService {
     }
 
     public async extraAllowedOrigins(): Promise<Array<string>> {
-        const extraOrigins = this.configService.get('store.config.api.extraOrigins');
-        if (!extraOrigins) return [];
-        return csvStringToArray(extraOrigins).filter(
-            (origin) => origin.startsWith('http://') || origin.startsWith('https://')
-        );
+        return this.configService.get('api.extraOrigins', []);
     }
 
     isConnectPluginInstalled(): boolean {
-        return ['/var/lib/pkgtools/packages/dynamix.unraid.net', '/usr/local/bin/unraid-api'].some(
-            (path) => fileExistsSync(path)
-        );
+        return true;
     }
 
     public async enableDynamicRemoteAccess(input: EnableDynamicRemoteAccessInput) {
@@ -100,7 +92,7 @@ export class ConnectSettingsService {
         const connect = this.configService.getOrThrow<ConnectConfig>('connect');
         return {
             ...(await this.dynamicRemoteAccessSettings()),
-            sandbox: this.configService.get('store.config.local.sandbox') === 'yes',
+            sandbox: this.configService.get('api.sandbox', false),
             extraOrigins: await this.extraAllowedOrigins(),
             ssoUserIds: await this.ssoUserService.getSsoUsers(),
         };
@@ -148,7 +140,7 @@ export class ConnectSettingsService {
     }
 
     private async updateAllowedOrigins(origins: string[]) {
-        this.configService.set('store.config.api.extraOrigins', origins.join(','));
+        this.configService.set('api.extraOrigins', origins);
     }
 
     private async getOrCreateLocalApiKey() {
@@ -222,12 +214,9 @@ export class ConnectSettingsService {
      * @returns true if the mode was changed, false otherwise
      */
     private async setSandboxMode(sandboxEnabled: boolean): Promise<boolean> {
-        throw new Error('Not implemented');
-        const currentSandbox = this.configService.get('store.config.local.sandbox');
-        const sandbox = sandboxEnabled ? 'yes' : 'no';
-        if (currentSandbox === sandbox) return false;
-        this.configService.set('store.config.local.sandbox', sandbox);
-        return true;
+        const oldSetting = this.configService.get('api.sandbox');
+        this.configService.set('api.sandbox', sandboxEnabled);
+        return sandboxEnabled !== oldSetting;
     }
 
     private getDynamicRemoteAccessType(

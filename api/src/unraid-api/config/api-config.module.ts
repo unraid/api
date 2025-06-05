@@ -1,6 +1,7 @@
 import { Injectable, Logger, Module } from '@nestjs/common';
 import { ConfigService, registerAs } from '@nestjs/config';
 
+import { csvStringToArray } from '@unraid/shared/util/data.js';
 import { fileExists } from '@unraid/shared/util/file.js';
 import { debounceTime } from 'rxjs/operators';
 
@@ -89,10 +90,12 @@ class ApiConfigPersistence {
     private migrateFromMyServersConfig() {
         const { local, api } = this.configService.get('store.config', {});
         const sandbox = local?.sandbox;
-        const extraOrigins = api?.extraOrigins;
+        const extraOrigins = csvStringToArray(api?.extraOrigins ?? '').filter(
+            (origin) => origin.startsWith('http://') || origin.startsWith('https://')
+        );
 
         this.configService.set('api.sandbox', sandbox === 'yes');
-        this.configService.set('api.extraOrigins', extraOrigins ?? []);
+        this.configService.set('api.extraOrigins', extraOrigins);
     }
 }
 
