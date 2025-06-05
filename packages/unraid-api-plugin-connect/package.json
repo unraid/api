@@ -15,10 +15,10 @@
         "format": "prettier --write \"src/**/*.{ts,js,json}\"",
         "codegen": "MOTHERSHIP_GRAPHQL_LINK='https://staging.mothership.unraid.net/ws' graphql-codegen --config codegen.ts"
     },
-    "keywords": [],
+    "keywords": ["unraid", "connect", "unraid plugin"],
     "author": "Lime Technology, Inc. <unraid.net>",
     "license": "GPL-2.0-or-later",
-    "description": "Example Health plugin for Unraid API",
+    "description": "Unraid Connect plugin for Unraid API",
     "devDependencies": {
         "@apollo/client": "^3.11.8",
         "@graphql-codegen/cli": "^5.0.3",
