@@ -1,13 +1,13 @@
 import { Query, ResolveField, Resolver } from '@nestjs/graphql';
 
 import { Resource } from '@unraid/shared/graphql.model.js';
+import { AccessUrl } from '@unraid/shared/network.model.js';
 import {
     AuthActionVerb,
     AuthPossession,
     UsePermissions,
 } from '@unraid/shared/use-permissions.directive.js';
 
-import { AccessUrl } from '@unraid/shared/network.model.js';
 import { Network } from '../model/connect.model.js';
 import { UrlResolverService } from '../service/url-resolver.service.js';
 

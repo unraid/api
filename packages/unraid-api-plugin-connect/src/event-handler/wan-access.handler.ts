@@ -1,16 +1,17 @@
-import { Injectable, OnModuleDestroy } from "@nestjs/common";
-import { NetworkService } from "../service/network.service.js";
-import { ConfigService } from "@nestjs/config";
-import { ConfigType } from "../model/connect-config.model.js";
-import { UrlResolverService } from "../service/url-resolver.service.js";
-import { EVENTS } from "../helper/nest-tokens.js";
-import { OnEvent } from "@nestjs/event-emitter";
+import { Injectable, OnModuleDestroy } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
+import { OnEvent } from '@nestjs/event-emitter';
+
+import { EVENTS } from '../helper/nest-tokens.js';
+import { ConfigType } from '../model/connect-config.model.js';
+import { NetworkService } from '../service/network.service.js';
+import { UrlResolverService } from '../service/url-resolver.service.js';
 
 @Injectable()
 export class WanAccessEventHandler implements OnModuleDestroy {
     constructor(
         private readonly configService: ConfigService<ConfigType>,
-        private readonly networkService: NetworkService,
+        private readonly networkService: NetworkService
     ) {}
 
     async onModuleDestroy() {

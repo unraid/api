@@ -1,6 +1,6 @@
-import { Field } from "@nestjs/graphql";
+import { Field } from '@nestjs/graphql';
 
 export class ConnectDemoConfig {
-  @Field(() => String)
-  demo!: string;
+    @Field(() => String)
+    demo!: string;
 }

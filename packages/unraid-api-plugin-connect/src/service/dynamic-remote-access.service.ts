@@ -1,6 +1,9 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 
+import { URL_TYPE } from '@unraid/shared/network.model.js';
+
+import { ONE_MINUTE_MS } from '../helper/generic-consts.js';
 import {
     AccessUrlObject,
     ConfigType,
@@ -8,10 +11,8 @@ import {
     DynamicRemoteAccessType,
     makeDisabledDynamicRemoteAccessState,
 } from '../model/connect-config.model.js';
-import { ONE_MINUTE_MS } from '../helper/generic-consts.js';
 import { StaticRemoteAccessService } from './static-remote-access.service.js';
 import { UpnpRemoteAccessService } from './upnp-remote-access.service.js';
-import { URL_TYPE } from '@unraid/shared/network.model.js';
 
 @Injectable()
 export class DynamicRemoteAccessService {
@@ -74,7 +75,6 @@ export class DynamicRemoteAccessService {
         type: DynamicRemoteAccessType;
     }) {
         try {
-
             await this.stopRemoteAccess();
             if (input.allowedUrl) {
                 this.setAllowedUrl({

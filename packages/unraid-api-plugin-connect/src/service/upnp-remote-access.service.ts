@@ -1,11 +1,11 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 
+import { EVENTS } from '../helper/nest-tokens.js';
 import { ConfigType } from '../model/connect-config.model.js';
 import { UpnpService } from './upnp.service.js';
 import { UrlResolverService } from './url-resolver.service.js';
-import { EventEmitter2 } from '@nestjs/event-emitter';
-import { EVENTS } from '../helper/nest-tokens.js';
 
 @Injectable()
 export class UpnpRemoteAccessService {

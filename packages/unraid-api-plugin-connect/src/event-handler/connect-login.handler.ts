@@ -1,9 +1,9 @@
 import { Inject, Injectable, Logger } from '@nestjs/common';
 import { OnEvent } from '@nestjs/event-emitter';
+
 import { PubSub } from 'graphql-subscriptions';
 
-import { GRAPHQL_PUBSUB_CHANNEL, GRAPHQL_PUBSUB_TOKEN } from '../helper/nest-tokens.js';
-import { EVENTS } from '../helper/nest-tokens.js';
+import { EVENTS, GRAPHQL_PUBSUB_CHANNEL, GRAPHQL_PUBSUB_TOKEN } from '../helper/nest-tokens.js';
 
 @Injectable()
 export class ConnectLoginHandler {
@@ -23,7 +23,7 @@ export class ConnectLoginHandler {
         localApiKey: string;
     }) {
         this.logger.log('Logging in user: %s', userInfo.username);
-        
+
         // Publish to the owner channel
         await this.legacyPubSub.publish(GRAPHQL_PUBSUB_CHANNEL.OWNER, {
             owner: {
@@ -33,4 +33,4 @@ export class ConnectLoginHandler {
             },
         });
     }
-} 
+}

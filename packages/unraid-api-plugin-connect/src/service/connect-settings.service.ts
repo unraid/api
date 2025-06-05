@@ -7,23 +7,12 @@ import type { DataSlice, SettingSlice, UIElement } from '@unraid/shared/jsonform
 import { RuleEffect } from '@jsonforms/core';
 import { createLabeledControl } from '@unraid/shared/jsonforms/control.js';
 import { mergeSettingSlices } from '@unraid/shared/jsonforms/settings.js';
+import { URL_TYPE } from '@unraid/shared/network.model.js';
 import { csvStringToArray } from '@unraid/shared/util/data.js';
 import { fileExistsSync } from '@unraid/shared/util/file.js';
 import { execa } from 'execa';
 import { GraphQLError } from 'graphql/error/GraphQLError.js';
 import { decodeJwt } from 'jose';
-
-import { EVENTS } from '../helper/nest-tokens.js';
-import { ConnectApiKeyService } from './connect-api-key.service.js';
-import { DynamicRemoteAccessService } from './dynamic-remote-access.service.js';
-import { URL_TYPE } from '@unraid/shared/network.model.js';
-import {
-    DynamicRemoteAccessType,
-    WAN_ACCESS_TYPE,
-    WAN_FORWARD_TYPE,
-} from '../model/connect.model.js';
-import { ConfigType, ConnectConfig, MyServersConfig } from '../model/connect-config.model.js';
-import { SsoUserService } from './sso-user.service.js';
 
 import type {
     ApiSettingsInput,
@@ -33,6 +22,12 @@ import type {
     RemoteAccess,
     SetupRemoteAccessInput,
 } from '../model/connect.model.js';
+import { EVENTS } from '../helper/nest-tokens.js';
+import { ConfigType, ConnectConfig, MyServersConfig } from '../model/connect-config.model.js';
+import { DynamicRemoteAccessType, WAN_ACCESS_TYPE, WAN_FORWARD_TYPE } from '../model/connect.model.js';
+import { ConnectApiKeyService } from './connect-api-key.service.js';
+import { DynamicRemoteAccessService } from './dynamic-remote-access.service.js';
+import { SsoUserService } from './sso-user.service.js';
 
 @Injectable()
 export class ConnectSettingsService {
@@ -157,7 +152,8 @@ export class ConnectSettingsService {
     }
 
     private async getOrCreateLocalApiKey() {
-        const { localApiKey: localApiKeyFromConfig } = this.configService.getOrThrow<MyServersConfig>('connect.config');
+        const { localApiKey: localApiKeyFromConfig } =
+            this.configService.getOrThrow<MyServersConfig>('connect.config');
         if (localApiKeyFromConfig === '') {
             const localApiKey = await this.apiKeyService.createLocalConnectApiKey();
             if (!localApiKey?.key) {
@@ -172,7 +168,7 @@ export class ConnectSettingsService {
 
     async signIn(input: ConnectSignInInput) {
         const status = this.configService.get('store.emhttp.status');
-        if (status === "LOADED") {
+        if (status === 'LOADED') {
             const userInfo = input.idToken ? decodeJwt(input.idToken) : (input.userInfo ?? null);
 
             if (
@@ -191,7 +187,10 @@ export class ConnectSettingsService {
                 const localApiKey = await this.getOrCreateLocalApiKey();
 
                 // Update config with user info
-                this.configService.set('connect.config.avatar', typeof userInfo.avatar === 'string' ? userInfo.avatar : '');
+                this.configService.set(
+                    'connect.config.avatar',
+                    typeof userInfo.avatar === 'string' ? userInfo.avatar : ''
+                );
                 this.configService.set('connect.config.username', userInfo.preferred_username);
                 this.configService.set('connect.config.email', userInfo.email);
                 this.configService.set('connect.config.apikey', input.apiKey);
@@ -246,12 +245,21 @@ export class ConnectSettingsService {
     }
 
     private async updateRemoteAccess(input: SetupRemoteAccessInput): Promise<boolean> {
-        const dynamicRemoteAccessType = this.getDynamicRemoteAccessType(input.accessType, input.forwardType);
-        
+        const dynamicRemoteAccessType = this.getDynamicRemoteAccessType(
+            input.accessType,
+            input.forwardType
+        );
+
         this.configService.set('connect.config.wanaccess', input.accessType === WAN_ACCESS_TYPE.ALWAYS);
-        this.configService.set('connect.config.wanport', input.forwardType === WAN_FORWARD_TYPE.STATIC ? input.port : null);
-        this.configService.set('connect.config.upnpEnabled', input.forwardType === WAN_FORWARD_TYPE.UPNP);
-        
+        this.configService.set(
+            'connect.config.wanport',
+            input.forwardType === WAN_FORWARD_TYPE.STATIC ? input.port : null
+        );
+        this.configService.set(
+            'connect.config.upnpEnabled',
+            input.forwardType === WAN_FORWARD_TYPE.UPNP
+        );
+
         // Use the dynamic remote access service to handle the transition
         await this.remoteAccess.enableDynamicRemoteAccess({
             type: dynamicRemoteAccessType,
@@ -259,10 +267,10 @@ export class ConnectSettingsService {
                 ipv4: null,
                 ipv6: null,
                 type: URL_TYPE.WAN,
-                name: null
-            }
+                name: null,
+            },
         });
-        
+
         return true;
     }
 

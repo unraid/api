@@ -1,5 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+
 import { GraphQLError } from 'graphql/error/GraphQLError.js';
 
 import { ConfigType, MyServersConfig } from '../model/connect-config.model.js';
@@ -35,7 +36,8 @@ export class SsoUserService {
         }
 
         // Validate user IDs
-        const uuidRegex = /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/;
+        const uuidRegex =
+            /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/;
         const invalidUserIds = userIds.filter((id) => !uuidRegex.test(id));
         if (invalidUserIds.length > 0) {
             throw new GraphQLError(`Invalid SSO user ID's: ${invalidUserIds.join(', ')}`);
@@ -55,14 +57,15 @@ export class SsoUserService {
      */
     async addSsoUser(userId: string): Promise<boolean> {
         const currentUsers = await this.getSsoUsers();
-        
+
         // If user already exists, no need to update
         if (currentUsers.includes(userId)) {
             return false;
         }
 
         // Validate user ID
-        const uuidRegex = /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/;
+        const uuidRegex =
+            /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/;
         if (!uuidRegex.test(userId)) {
             throw new GraphQLError(`Invalid SSO user ID: ${userId}`);
         }
@@ -82,14 +85,14 @@ export class SsoUserService {
      */
     async removeSsoUser(userId: string): Promise<boolean> {
         const currentUsers = await this.getSsoUsers();
-        
+
         // If user doesn't exist, no need to update
         if (!currentUsers.includes(userId)) {
             return false;
         }
 
         // Remove the user
-        const newUsers = currentUsers.filter(id => id !== userId);
+        const newUsers = currentUsers.filter((id) => id !== userId);
         this.configService.set('connect.config.ssoSubIds', newUsers);
 
         // Request a restart if this was the last SSO user
@@ -102,7 +105,7 @@ export class SsoUserService {
      */
     async removeAllSsoUsers(): Promise<boolean> {
         const currentUsers = await this.getSsoUsers();
-        
+
         // If no users exist, no need to update
         if (currentUsers.length === 0) {
             return false;
@@ -114,4 +117,4 @@ export class SsoUserService {
         // Request a restart if there were any SSO users
         return true;
     }
-} 
+}

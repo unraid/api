@@ -15,12 +15,12 @@ import { GraphQLWsLink } from '@apollo/client/link/subscriptions/index.js';
 import { Client, createClient } from 'graphql-ws';
 import { WebSocket } from 'ws';
 
-import { MinigraphStatus } from '../model/connect-config.model.js';
 import { RemoteGraphQlEventType } from '../graphql/generated/client/graphql.js';
 import { SEND_REMOTE_QUERY_RESPONSE } from '../graphql/remote-response.js';
-import { EVENTS } from '../helper/nest-tokens.js';
-import { MothershipConnectionService } from './connection.service.js';
 import { buildDelayFunction } from '../helper/delay-function.js';
+import { EVENTS } from '../helper/nest-tokens.js';
+import { MinigraphStatus } from '../model/connect-config.model.js';
+import { MothershipConnectionService } from './connection.service.js';
 
 const FIVE_MINUTES_MS = 5 * 60 * 1000;
 

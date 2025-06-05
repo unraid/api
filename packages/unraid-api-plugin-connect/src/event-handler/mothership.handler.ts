@@ -3,12 +3,13 @@ import { OnEvent } from '@nestjs/event-emitter';
 
 import { PubSub } from 'graphql-subscriptions';
 
+import { EVENTS, GRAPHQL_PUBSUB_CHANNEL, GRAPHQL_PUBSUB_TOKEN } from '../helper/nest-tokens.js';
+import { TimeoutCheckerJob } from '../job/timeout-checker.job.js';
 import { MinigraphStatus } from '../model/connect-config.model.js';
-import { EVENTS, GRAPHQL_PUBSUB_TOKEN, GRAPHQL_PUBSUB_CHANNEL } from '../helper/nest-tokens.js';
 import { MothershipConnectionService } from '../service/connection.service.js';
 import { MothershipGraphqlClientService } from '../service/graphql.client.js';
 import { MothershipSubscriptionHandler } from '../service/mothership-subscription.handler.js';
-import { TimeoutCheckerJob } from '../job/timeout-checker.job.js';
+
 @Injectable()
 export class MothershipHandler implements OnModuleDestroy {
     private readonly logger = new Logger(MothershipHandler.name);
@@ -60,7 +61,10 @@ export class MothershipHandler implements OnModuleDestroy {
         const state = this.connectionService.getConnectionState();
         // Question: do we include MinigraphStatus.ERROR_RETRYING here?
         if (state && [MinigraphStatus.PING_FAILURE].includes(state.status)) {
-            this.logger.verbose('Mothership connection status changed to %s; setting up mothership subscription', state.status);
+            this.logger.verbose(
+                'Mothership connection status changed to %s; setting up mothership subscription',
+                state.status
+            );
             await this.setup();
         }
     }

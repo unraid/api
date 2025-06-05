@@ -2,17 +2,15 @@ import { Inject, Logger, Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 
 import { configFeature } from './model/connect-config.model.js';
-import { ConnectConfigPersister } from './service/config.persistence.js';
 import { ConnectModule } from './module/connect.module.js';
 import { MothershipModule } from './module/mothership.module.js';
+import { ConnectConfigPersister } from './service/config.persistence.js';
 
 export const adapter = 'nestjs';
 
 @Module({
     imports: [ConfigModule.forFeature(configFeature), ConnectModule, MothershipModule],
-    providers: [
-        ConnectConfigPersister,
-    ],
+    providers: [ConnectConfigPersister],
     exports: [],
 })
 class ConnectPluginModule {

@@ -1,8 +1,8 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 
-import { ConnectConfigService } from '../service/connect-config.service.js';
 import { NetworkResolver } from '../resolver/network.resolver.js';
+import { ConnectConfigService } from '../service/connect-config.service.js';
 import { DnsService } from '../service/dns.service.js';
 import { NetworkService } from '../service/network.service.js';
 import { NginxService } from '../service/nginx.service.js';

@@ -2,8 +2,8 @@ import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { OnEvent } from '@nestjs/event-emitter';
 
-import { ConfigType, emptyMyServersConfig, MyServersConfig } from '../model/connect-config.model.js';
 import { EVENTS } from '../helper/nest-tokens.js';
+import { ConfigType, emptyMyServersConfig, MyServersConfig } from '../model/connect-config.model.js';
 
 @Injectable()
 export class ConnectConfigService {

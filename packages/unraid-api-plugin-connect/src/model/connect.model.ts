@@ -1,7 +1,8 @@
 import { Field, InputType, Int, ObjectType, registerEnumType } from '@nestjs/graphql';
+
+import { Node } from '@unraid/shared/graphql.model.js';
 import { AccessUrl, URL_TYPE } from '@unraid/shared/network.model.js';
 import { PrefixedID } from '@unraid/shared/prefixed-id-scalar.js';
-
 import {
     ArrayMinSize,
     IsArray,
@@ -17,8 +18,6 @@ import {
     ValidateNested,
 } from 'class-validator';
 import { GraphQLJSON, GraphQLURL } from 'graphql-scalars';
-
-import { Node } from '@unraid/shared/graphql.model.js';
 
 export enum WAN_ACCESS_TYPE {
     DYNAMIC = 'DYNAMIC',

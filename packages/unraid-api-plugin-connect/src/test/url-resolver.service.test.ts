@@ -1,8 +1,11 @@
-import { beforeEach, describe, expect, it, vi, type Mock } from 'vitest';
-import { UrlResolverService } from '../service/url-resolver.service.js';
 import { ConfigService } from '@nestjs/config';
+
+import type { Mock } from 'vitest';
 import { URL_TYPE } from '@unraid/shared/network.model.js';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+
 import { ConfigType } from '../model/connect-config.model.js';
+import { UrlResolverService } from '../service/url-resolver.service.js';
 
 interface PortTestParams {
     httpPort: number;
@@ -68,7 +71,9 @@ describe('UrlResolverService', () => {
             (mockConfigService.get as Mock).mockReturnValue(mockStore);
 
             const result = service.getServerIps();
-            const lanUrl = result.urls.find(url => url.type === URL_TYPE.LAN && url.name === 'LAN IPv4');
+            const lanUrl = result.urls.find(
+                (url) => url.type === URL_TYPE.LAN && url.name === 'LAN IPv4'
+            );
 
             expect(lanUrl).toBeDefined();
             if (httpsPort === 443) {
@@ -119,7 +124,7 @@ describe('UrlResolverService', () => {
                 },
             ];
 
-            testCases.forEach(testCase => {
+            testCases.forEach((testCase) => {
                 const mockStore = {
                     emhttp: {
                         nginx: {
@@ -140,7 +145,9 @@ describe('UrlResolverService', () => {
                     expect(result.errors).toHaveLength(1);
                     expect(result.errors[0].message).toContain('SSL mode auto');
                 } else {
-                    const lanUrl = result.urls.find(url => url.type === URL_TYPE.LAN && url.name === 'LAN IPv4');
+                    const lanUrl = result.urls.find(
+                        (url) => url.type === URL_TYPE.LAN && url.name === 'LAN IPv4'
+                    );
                     expect(lanUrl).toBeDefined();
                     expect(lanUrl?.ipv4?.toString()).toBe(`${testCase.expectedProtocol}://192.168.1.1/`);
                 }
@@ -191,36 +198,48 @@ describe('UrlResolverService', () => {
             expect(result.errors).toHaveLength(0);
 
             // Verify default URL
-            const defaultUrl = result.urls.find(url => url.type === URL_TYPE.DEFAULT);
+            const defaultUrl = result.urls.find((url) => url.type === URL_TYPE.DEFAULT);
             expect(defaultUrl).toBeDefined();
             expect(defaultUrl?.ipv4?.toString()).toBe('https://default.unraid.net/');
 
             // Verify LAN IPv4 URL
-            const lanIp4Url = result.urls.find(url => url.type === URL_TYPE.LAN && url.name === 'LAN IPv4');
+            const lanIp4Url = result.urls.find(
+                (url) => url.type === URL_TYPE.LAN && url.name === 'LAN IPv4'
+            );
             expect(lanIp4Url).toBeDefined();
             expect(lanIp4Url?.ipv4?.toString()).toBe('https://192.168.1.1/');
 
             // Verify LAN IPv6 URL
-            const lanIp6Url = result.urls.find(url => url.type === URL_TYPE.LAN && url.name === 'LAN IPv6');
+            const lanIp6Url = result.urls.find(
+                (url) => url.type === URL_TYPE.LAN && url.name === 'LAN IPv6'
+            );
             expect(lanIp6Url).toBeDefined();
             expect(lanIp6Url?.ipv4?.toString()).toBe('https://2001:db8::1/');
 
             // Verify LAN Name URL
-            const lanNameUrl = result.urls.find(url => url.type === URL_TYPE.MDNS && url.name === 'LAN Name');
+            const lanNameUrl = result.urls.find(
+                (url) => url.type === URL_TYPE.MDNS && url.name === 'LAN Name'
+            );
             expect(lanNameUrl).toBeDefined();
             expect(lanNameUrl?.ipv4?.toString()).toBe('https://unraid.local/');
 
             // Verify LAN MDNS URL
-            const lanMdnsUrl = result.urls.find(url => url.type === URL_TYPE.MDNS && url.name === 'LAN MDNS');
+            const lanMdnsUrl = result.urls.find(
+                (url) => url.type === URL_TYPE.MDNS && url.name === 'LAN MDNS'
+            );
             expect(lanMdnsUrl).toBeDefined();
             expect(lanMdnsUrl?.ipv4?.toString()).toBe('https://unraid.local/');
 
             // Verify FQDN URLs
-            const lanFqdnUrl = result.urls.find(url => url.type === URL_TYPE.LAN && url.name === 'FQDN LAN');
+            const lanFqdnUrl = result.urls.find(
+                (url) => url.type === URL_TYPE.LAN && url.name === 'FQDN LAN'
+            );
             expect(lanFqdnUrl).toBeDefined();
             expect(lanFqdnUrl?.ipv4?.toString()).toBe('https://lan.unraid.net/');
 
-            const wanFqdnUrl = result.urls.find(url => url.type === URL_TYPE.WAN && url.name === 'FQDN WAN');
+            const wanFqdnUrl = result.urls.find(
+                (url) => url.type === URL_TYPE.WAN && url.name === 'FQDN WAN'
+            );
             expect(wanFqdnUrl).toBeDefined();
             expect(wanFqdnUrl?.ipv4?.toString()).toBe('https://wan.unraid.net/');
         });
@@ -267,4 +286,4 @@ describe('UrlResolverService', () => {
             expect(result).toBeNull();
         });
     });
-}); 
+});

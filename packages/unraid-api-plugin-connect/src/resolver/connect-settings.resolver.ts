@@ -1,17 +1,15 @@
 import { Logger } from '@nestjs/common';
-import { Args, Mutation, Query, ResolveField, Resolver } from '@nestjs/graphql';
 import { EventEmitter2 } from '@nestjs/event-emitter';
+import { Args, Mutation, Query, ResolveField, Resolver } from '@nestjs/graphql';
 
 import { type Layout } from '@jsonforms/core';
+import { Resource } from '@unraid/shared/graphql.model.js';
+import { DataSlice } from '@unraid/shared/jsonforms/settings.js';
+import { PrefixedID } from '@unraid/shared/prefixed-id-scalar.js';
+import { UsePermissions } from '@unraid/shared/use-permissions.directive.js';
 import { GraphQLJSON } from 'graphql-scalars';
 import { AuthActionVerb, AuthPossession } from 'nest-authz';
 
-import { Resource } from '@unraid/shared/graphql.model.js';
-import { PrefixedID } from '@unraid/shared/prefixed-id-scalar.js';
-import { DataSlice } from '@unraid/shared/jsonforms/settings.js';
-import { UsePermissions } from '@unraid/shared/use-permissions.directive.js';
-
-import { ConnectSettingsService } from '../service/connect-settings.service.js';
 import { EVENTS } from '../helper/nest-tokens.js';
 import {
     AllowedOriginInput,
@@ -23,11 +21,12 @@ import {
     RemoteAccess,
     SetupRemoteAccessInput,
 } from '../model/connect.model.js';
+import { ConnectSettingsService } from '../service/connect-settings.service.js';
 
 @Resolver(() => ConnectSettings)
 export class ConnectSettingsResolver {
     private readonly logger = new Logger(ConnectSettingsResolver.name);
-    
+
     constructor(
         private readonly connectSettingsService: ConnectSettingsService,
         private readonly eventEmitter: EventEmitter2
@@ -162,4 +161,4 @@ export class ConnectSettingsResolver {
         await this.connectSettingsService.enableDynamicRemoteAccess(dynamicRemoteAccessInput);
         return true;
     }
-} 
+}
