@@ -61,14 +61,22 @@ export default defineConfig(({ mode }): ViteUserConfig => {
         },
         optimizeDeps: {
             exclude: [
-                '@unraid/shared',
-                'unraid-api-plugin-connect',
                 'cpu-features',
                 'ssh2',
                 'pty.js',
                 'term.js',
                 'class-transformer/storage',
                 'unicorn-magic',
+                /**------------------------------------------------------------------------
+                 *                Place Workspace Dependencies Here
+                 *
+                 *  Since we vendor them via node_modules, we must exclude them from optimization,
+                 *  so they aren't loaded twice (eg effectful imports like gql type registration).
+                 *  
+                 *  See api/scripts/build.ts for the vendoring implementation.
+                 *------------------------------------------------------------------------**/
+                '@unraid/shared',
+                'unraid-api-plugin-connect',
             ],
             include: [
                 '@nestjs/common',
@@ -101,8 +109,6 @@ export default defineConfig(({ mode }): ViteUserConfig => {
                 },
                 preserveEntrySignatures: 'strict',
                 external: [
-                    '@unraid/shared',
-                    'unraid-api-plugin-connect',
                     'class-validator',
                     'class-transformer',
                     /^@nestjs\/.*/,
@@ -120,6 +126,10 @@ export default defineConfig(({ mode }): ViteUserConfig => {
                     '@nestjs/passport',
                     'passport-http-header-strategy',
                     'accesscontrol',
+                    // Place workspace dependencies here as well.
+                    // See optimizeDeps.exclude for more details.
+                    '@unraid/shared',
+                    'unraid-api-plugin-connect',
                 ],
             },
             modulePreload: false,
