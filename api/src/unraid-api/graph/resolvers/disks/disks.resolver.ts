@@ -2,12 +2,12 @@ import { Args, Int, Parent, Query, ResolveField, Resolver } from '@nestjs/graphq
 
 import { Resource } from '@unraid/shared/graphql.model.js';
 import { PrefixedID } from '@unraid/shared/prefixed-id-scalar.js';
-
 import {
     AuthActionVerb,
     AuthPossession,
     UsePermissions,
-} from '@app/unraid-api/graph/directives/use-permissions.directive.js';
+} from '@unraid/shared/use-permissions.directive.js';
+
 import { Disk } from '@app/unraid-api/graph/resolvers/disks/disks.model.js';
 import { DisksService } from '@app/unraid-api/graph/resolvers/disks/disks.service.js';
 

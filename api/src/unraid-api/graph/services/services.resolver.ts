@@ -2,14 +2,14 @@ import { ConfigService } from '@nestjs/config';
 import { Query, Resolver } from '@nestjs/graphql';
 
 import { Resource } from '@unraid/shared/graphql.model.js';
-
-import { bootTimestamp } from '@app/common/dashboard/boot-timestamp.js';
-import { API_VERSION } from '@app/environment.js';
 import {
     AuthActionVerb,
     AuthPossession,
     UsePermissions,
-} from '@app/unraid-api/graph/directives/use-permissions.directive.js';
+} from '@unraid/shared/use-permissions.directive.js';
+
+import { bootTimestamp } from '@app/common/dashboard/boot-timestamp.js';
+import { API_VERSION } from '@app/environment.js';
 import { Service } from '@app/unraid-api/graph/services/service.model.js';
 
 @Resolver(() => Service)

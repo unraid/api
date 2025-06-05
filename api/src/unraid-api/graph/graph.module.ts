@@ -4,14 +4,14 @@ import { Module } from '@nestjs/common';
 import { GraphQLModule } from '@nestjs/graphql';
 
 import { PrefixedID } from '@unraid/shared/prefixed-id-scalar.js';
+import {
+    UsePermissionsDirective,
+    usePermissionsSchemaTransformer,
+} from '@unraid/shared/use-permissions.directive.js';
 import { NoUnusedVariablesRule } from 'graphql';
 
 import { ENVIRONMENT } from '@app/environment.js';
 import { getters } from '@app/store/index.js';
-import {
-    UsePermissionsDirective,
-    usePermissionsSchemaTransformer,
-} from '@app/unraid-api/graph/directives/use-permissions.directive.js';
 import { ResolversModule } from '@app/unraid-api/graph/resolvers/resolvers.module.js';
 import { sandboxPlugin } from '@app/unraid-api/graph/sandbox-plugin.js';
 import { GlobalDepsModule } from '@app/unraid-api/plugin/global-deps.module.js';

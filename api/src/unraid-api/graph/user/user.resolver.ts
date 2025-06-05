@@ -1,13 +1,13 @@
 import { Query, Resolver } from '@nestjs/graphql';
 
 import { Resource } from '@unraid/shared/graphql.model.js';
-
-import { GraphqlUser } from '@app/unraid-api/auth/user.decorator.js';
 import {
     AuthActionVerb,
     AuthPossession,
     UsePermissions,
-} from '@app/unraid-api/graph/directives/use-permissions.directive.js';
+} from '@unraid/shared/use-permissions.directive.js';
+
+import { GraphqlUser } from '@app/unraid-api/auth/user.decorator.js';
 import { UserAccount } from '@app/unraid-api/graph/user/user.model.js';
 
 @Resolver(() => UserAccount)

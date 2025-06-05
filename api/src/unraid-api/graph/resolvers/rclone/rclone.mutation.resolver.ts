@@ -2,12 +2,12 @@ import { Logger } from '@nestjs/common';
 import { Args, ResolveField, Resolver } from '@nestjs/graphql';
 
 import { Resource } from '@unraid/shared/graphql.model.js';
-
 import {
     AuthActionVerb,
     AuthPossession,
     UsePermissions,
-} from '@app/unraid-api/graph/directives/use-permissions.directive.js';
+} from '@unraid/shared/use-permissions.directive.js';
+
 import { RCloneMutations } from '@app/unraid-api/graph/resolvers/mutation/mutation.model.js';
 import { RCloneApiService } from '@app/unraid-api/graph/resolvers/rclone/rclone-api.service.js';
 import {

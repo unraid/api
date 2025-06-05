@@ -2,13 +2,13 @@ import { ConfigService } from '@nestjs/config';
 import { Query, Resolver, Subscription } from '@nestjs/graphql';
 
 import { Resource } from '@unraid/shared/graphql.model.js';
-
-import { createSubscription, PUBSUB_CHANNEL } from '@app/core/pubsub.js';
 import {
     AuthActionVerb,
     AuthPossession,
     UsePermissions,
-} from '@app/unraid-api/graph/directives/use-permissions.directive.js';
+} from '@unraid/shared/use-permissions.directive.js';
+
+import { createSubscription, PUBSUB_CHANNEL } from '@app/core/pubsub.js';
 import { Owner } from '@app/unraid-api/graph/resolvers/owner/owner.model.js';
 
 // Question: should we move this into the connect plugin, or should this always be available?

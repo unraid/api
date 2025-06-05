@@ -1,12 +1,12 @@
 import { Query, Resolver } from '@nestjs/graphql';
 
 import { Resource } from '@unraid/shared/graphql.model.js';
-
 import {
     AuthActionVerb,
     AuthPossession,
     UsePermissions,
-} from '@app/unraid-api/graph/directives/use-permissions.directive.js';
+} from '@unraid/shared/use-permissions.directive.js';
+
 import { Online } from '@app/unraid-api/graph/resolvers/online/online.model.js';
 
 @Resolver(() => Online)

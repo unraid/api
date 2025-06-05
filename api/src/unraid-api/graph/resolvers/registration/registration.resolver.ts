@@ -1,16 +1,16 @@
 import { Query, Resolver, Subscription } from '@nestjs/graphql';
 
 import { Resource } from '@unraid/shared/graphql.model.js';
+import {
+    AuthActionVerb,
+    AuthPossession,
+    UsePermissions,
+} from '@unraid/shared/use-permissions.directive.js';
 
 import { createSubscription, PUBSUB_CHANNEL } from '@app/core/pubsub.js';
 import { getKeyFile } from '@app/core/utils/misc/get-key-file.js';
 import { getters } from '@app/store/index.js';
 import { FileLoadStatus } from '@app/store/types.js';
-import {
-    AuthActionVerb,
-    AuthPossession,
-    UsePermissions,
-} from '@app/unraid-api/graph/directives/use-permissions.directive.js';
 import {
     Registration,
     RegistrationType,

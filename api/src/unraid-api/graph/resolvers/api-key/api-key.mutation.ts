@@ -1,14 +1,14 @@
 import { Args, ResolveField, Resolver } from '@nestjs/graphql';
 
 import { Resource, Role } from '@unraid/shared/graphql.model.js';
-
-import { ApiKeyService } from '@app/unraid-api/auth/api-key.service.js';
-import { AuthService } from '@app/unraid-api/auth/auth.service.js';
 import {
     AuthActionVerb,
     AuthPossession,
     UsePermissions,
-} from '@app/unraid-api/graph/directives/use-permissions.directive.js';
+} from '@unraid/shared/use-permissions.directive.js';
+
+import { ApiKeyService } from '@app/unraid-api/auth/api-key.service.js';
+import { AuthService } from '@app/unraid-api/auth/auth.service.js';
 import {
     AddRoleForApiKeyInput,
     ApiKeyWithSecret,

@@ -1,13 +1,13 @@
 import { Args, Mutation, ResolveField, Resolver } from '@nestjs/graphql';
 
 import { Resource } from '@unraid/shared/graphql.model.js';
-import { GraphQLJSON } from 'graphql-scalars';
-
 import {
     AuthActionVerb,
     AuthPossession,
     UsePermissions,
-} from '@app/unraid-api/graph/directives/use-permissions.directive.js';
+} from '@unraid/shared/use-permissions.directive.js';
+import { GraphQLJSON } from 'graphql-scalars';
+
 import { ParityService } from '@app/unraid-api/graph/resolvers/array/parity.service.js';
 import { ParityCheckMutations } from '@app/unraid-api/graph/resolvers/mutation/mutation.model.js';
 
