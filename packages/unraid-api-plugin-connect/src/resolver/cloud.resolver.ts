@@ -41,7 +41,7 @@ export class CloudResolver {
             error:
                 `${
                     cloud.error ? `NETWORK: ${cloud.error}` : ''
-                }${minigraphql.error ? `CLOUD: ${minigraphql.error}` : ''}` || undefined,
+                }\n${minigraphql.error ? `CLOUD: ${minigraphql.error}` : ''}` || undefined,
         };
     }
 }

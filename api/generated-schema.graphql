@@ -14,46 +14,6 @@ directive @usePermissions(
   possession: AuthPossession
 ) on FIELD_DEFINITION
 
-type ApiKeyResponse {
-  valid: Boolean!
-  error: String
-}
-
-type MinigraphqlResponse {
-  status: MinigraphStatus!
-  timeout: Int
-  error: String
-}
-
-enum MinigraphStatus {
-  PRE_INIT
-  CONNECTING
-  CONNECTED
-  PING_FAILURE
-  ERROR_RETRYING
-}
-
-type CloudResponse {
-  status: String!
-  ip: String
-  error: String
-}
-
-type RelayResponse {
-  status: String!
-  timeout: String
-  error: String
-}
-
-type Cloud {
-  error: String
-  apiKey: ApiKeyResponse!
-  relay: RelayResponse
-  minigraphql: MinigraphqlResponse!
-  cloud: CloudResponse!
-  allowedOrigins: [String!]!
-}
-
 type Capacity {
   """Free capacity"""
   free: String!
@@ -265,6 +225,27 @@ type Share implements Node {
   """LUKS status"""
   luksStatus: String
 }
+
+type AccessUrl {
+  type: URL_TYPE!
+  name: String
+  ipv4: URL
+  ipv6: URL
+}
+
+enum URL_TYPE {
+  LAN
+  WIREGUARD
+  WAN
+  MDNS
+  OTHER
+  DEFAULT
+}
+
+"""
+A field whose value conforms to the standard URL format as specified in RFC3986: https://www.ietf.org/rfc/rfc3986.txt.
+"""
+scalar URL
 
 type DiskPartition {
   """The name of the partition"""
@@ -1423,6 +1404,150 @@ type UserAccount implements Node {
   permissions: [Permission!]
 }
 
+type AccessUrlObject {
+  ipv4: String
+  ipv6: String
+  type: URL_TYPE!
+  name: String
+}
+
+type RemoteAccess {
+  """The type of WAN access used for Remote Access"""
+  accessType: WAN_ACCESS_TYPE!
+
+  """The type of port forwarding used for Remote Access"""
+  forwardType: WAN_FORWARD_TYPE
+
+  """The port used for Remote Access"""
+  port: Int
+}
+
+enum WAN_ACCESS_TYPE {
+  DYNAMIC
+  ALWAYS
+  DISABLED
+}
+
+enum WAN_FORWARD_TYPE {
+  UPNP
+  STATIC
+}
+
+type DynamicRemoteAccessStatus {
+  """The type of dynamic remote access that is enabled"""
+  enabledType: DynamicRemoteAccessType!
+
+  """The type of dynamic remote access that is currently running"""
+  runningType: DynamicRemoteAccessType!
+
+  """Any error message associated with the dynamic remote access"""
+  error: String
+}
+
+enum DynamicRemoteAccessType {
+  STATIC
+  UPNP
+  DISABLED
+}
+
+type ConnectSettingsValues {
+  """
+  If true, the GraphQL sandbox is enabled and available at /graphql. If false, the GraphQL sandbox is disabled and only the production API will be available.
+  """
+  sandbox: Boolean!
+
+  """A list of origins allowed to interact with the API"""
+  extraOrigins: [String!]!
+
+  """The type of WAN access used for Remote Access"""
+  accessType: WAN_ACCESS_TYPE!
+
+  """The type of port forwarding used for Remote Access"""
+  forwardType: WAN_FORWARD_TYPE
+
+  """The port used for Remote Access"""
+  port: Int
+
+  """A list of Unique Unraid Account ID's"""
+  ssoUserIds: [String!]!
+}
+
+type ConnectSettings implements Node {
+  id: PrefixedID!
+
+  """The data schema for the Connect settings"""
+  dataSchema: JSON!
+
+  """The UI schema for the Connect settings"""
+  uiSchema: JSON!
+
+  """The values for the Connect settings"""
+  values: ConnectSettingsValues!
+}
+
+type Connect implements Node {
+  id: PrefixedID!
+
+  """The status of dynamic remote access"""
+  dynamicRemoteAccess: DynamicRemoteAccessStatus!
+
+  """The settings for the Connect instance"""
+  settings: ConnectSettings!
+}
+
+type Network implements Node {
+  id: PrefixedID!
+  accessUrls: [AccessUrl!]
+}
+
+type ApiKeyResponse {
+  valid: Boolean!
+  error: String
+}
+
+type MinigraphqlResponse {
+  status: MinigraphStatus!
+  timeout: Int
+  error: String
+}
+
+"""The status of the minigraph"""
+enum MinigraphStatus {
+  PRE_INIT
+  CONNECTING
+  CONNECTED
+  PING_FAILURE
+  ERROR_RETRYING
+}
+
+type CloudResponse {
+  status: String!
+  ip: String
+  error: String
+}
+
+type RelayResponse {
+  status: String!
+  timeout: String
+  error: String
+}
+
+type Cloud {
+  error: String
+  apiKey: ApiKeyResponse!
+  relay: RelayResponse
+  minigraphql: MinigraphqlResponse!
+  cloud: CloudResponse!
+  allowedOrigins: [String!]!
+}
+
+input AccessUrlObjectInput {
+  ipv4: String
+  ipv6: String
+  type: URL_TYPE!
+  name: String
+}
+
 "\n### Description:\n\nID scalar type that prefixes the underlying ID with the server identifier on output and strips it on input.\n\nWe use this scalar type to ensure that the ID is unique across all servers, allowing the same underlying resource ID to be used across different server instances.\n\n#### Input Behavior:\n\nWhen providing an ID as input (e.g., in arguments or input objects), the server identifier prefix ('<serverId>:') is optional.\n\n- If the prefix is present (e.g., '123:456'), it will be automatically stripped, and only the underlying ID ('456') will be used internally.\n- If the prefix is absent (e.g., '456'), the ID will be used as-is.\n\nThis makes it flexible for clients, as they don't strictly need to know or provide the server ID.\n\n#### Output Behavior:\n\nWhen an ID is returned in the response (output), it will *always* be prefixed with the current server's unique identifier (e.g., '123:456').\n\n#### Example:\n\nNote: The server identifier is '123' in this example.\n\n##### Input (Prefix Optional):\n```graphql\n# Both of these are valid inputs resolving to internal ID '456'\n{\n  someQuery(id: \"123:456\") { ... }\n  anotherQuery(id: \"456\") { ... }\n}\n```\n\n##### Output (Prefix Always Added):\n```graphql\n# Assuming internal ID is '456'\n{\n  \"data\": {\n    \"someResource\": {\n      \"id\": \"123:456\" \n    }\n  }\n}\n```\n        "
 scalar PrefixedID
 
@@ -1435,7 +1560,6 @@ type Query {
 
   """All possible permissions for API keys"""
   apiKeyPossiblePermissions: [Permission!]!
-  cloud: Cloud!
   config: Config!
   display: Display!
   flash: Flash!
@@ -1465,6 +1589,11 @@ type Query {
   docker: Docker!
   disks: [Disk!]!
   disk(id: PrefixedID!): Disk!
+  remoteAccess: RemoteAccess!
+  extraAllowedOrigins: [String!]!
+  connect: Connect!
+  network: Network!
+  cloud: Cloud!
 }
 
 type Mutation {
@@ -1496,6 +1625,12 @@ type Mutation {
 
   """Initiates a flash drive backup using a configured remote."""
   initiateFlashBackup(input: InitiateFlashBackupInput!): FlashBackupStatus!
+  updateApiSettings(input: ApiSettingsInput!): ConnectSettingsValues!
+  connectSignIn(input: ConnectSignInInput!): Boolean!
+  connectSignOut: Boolean!
+  setupRemoteAccess(input: SetupRemoteAccessInput!): Boolean!
+  setAdditionalAllowedOrigins(input: AllowedOriginInput!): [String!]!
+  enableDynamicRemoteAccess(input: EnableDynamicRemoteAccessInput!): Boolean!
 }
 
 input NotificationData {
@@ -1520,6 +1655,91 @@ input InitiateFlashBackupInput {
   Additional options for the backup operation, such as --dry-run or --transfers.
   """
   options: JSON
+}
+
+input ApiSettingsInput {
+  """
+  If true, the GraphQL sandbox will be enabled and available at /graphql. If false, the GraphQL sandbox will be disabled and only the production API will be available.
+  """
+  sandbox: Boolean
+
+  """A list of origins allowed to interact with the API"""
+  extraOrigins: [String!]
+
+  """The type of WAN access to use for Remote Access"""
+  accessType: WAN_ACCESS_TYPE
+
+  """The type of port forwarding to use for Remote Access"""
+  forwardType: WAN_FORWARD_TYPE
+
+  """
+  The port to use for Remote Access. Not required for UPNP forwardType. Required for STATIC forwardType. Ignored if accessType is DISABLED or forwardType is UPNP.
+  """
+  port: Int
+
+  """A list of Unique Unraid Account ID's"""
+  ssoUserIds: [String!]
+}
+
+input ConnectSignInInput {
+  """The API key for authentication"""
+  apiKey: String!
+
+  """The ID token for authentication"""
+  idToken: String
+
+  """User information for the sign-in"""
+  userInfo: ConnectUserInfoInput
+
+  """The access token for authentication"""
+  accessToken: String
+
+  """The refresh token for authentication"""
+  refreshToken: String
+}
+
+input ConnectUserInfoInput {
+  """The preferred username of the user"""
+  preferred_username: String!
+
+  """The email address of the user"""
+  email: String!
+
+  """The avatar URL of the user"""
+  avatar: String
+}
+
+input SetupRemoteAccessInput {
+  """The type of WAN access to use for Remote Access"""
+  accessType: WAN_ACCESS_TYPE!
+
+  """The type of port forwarding to use for Remote Access"""
+  forwardType: WAN_FORWARD_TYPE
+
+  """
+  The port to use for Remote Access. Not required for UPNP forwardType. Required for STATIC forwardType. Ignored if accessType is DISABLED or forwardType is UPNP.
+  """
+  port: Int
+}
+
+input AllowedOriginInput {
+  """A list of origins allowed to interact with the API"""
+  origins: [String!]!
+}
+
+input EnableDynamicRemoteAccessInput {
+  """The AccessURL Input for dynamic remote access"""
+  url: AccessUrlInput!
+
+  """Whether to enable or disable dynamic remote access"""
+  enabled: Boolean!
+}
+
+input AccessUrlInput {
+  type: URL_TYPE!
+  name: String
+  ipv4: URL
+  ipv6: URL
 }
 
 type Subscription {
