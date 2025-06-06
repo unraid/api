@@ -4,9 +4,7 @@ import { AuthModule } from '@app/unraid-api/auth/auth.module.js';
 import { ApiKeyModule } from '@app/unraid-api/graph/resolvers/api-key/api-key.module.js';
 import { ApiKeyResolver } from '@app/unraid-api/graph/resolvers/api-key/api-key.resolver.js';
 import { ArrayModule } from '@app/unraid-api/graph/resolvers/array/array.module.js';
-import { CloudResolver } from '@app/unraid-api/graph/resolvers/cloud/cloud.resolver.js';
 import { ConfigResolver } from '@app/unraid-api/graph/resolvers/config/config.resolver.js';
-import { ConnectModule } from '@app/unraid-api/graph/resolvers/connect/connect.module.js';
 import { CustomizationModule } from '@app/unraid-api/graph/resolvers/customization/customization.module.js';
 import { DisksModule } from '@app/unraid-api/graph/resolvers/disks/disks.module.js';
 import { DisplayResolver } from '@app/unraid-api/graph/resolvers/display/display.resolver.js';
@@ -17,7 +15,6 @@ import { InfoResolver } from '@app/unraid-api/graph/resolvers/info/info.resolver
 import { LogsResolver } from '@app/unraid-api/graph/resolvers/logs/logs.resolver.js';
 import { LogsService } from '@app/unraid-api/graph/resolvers/logs/logs.service.js';
 import { RootMutationsResolver } from '@app/unraid-api/graph/resolvers/mutation/mutation.resolver.js';
-import { NetworkResolver } from '@app/unraid-api/graph/resolvers/network/network.resolver.js';
 import { NotificationsResolver } from '@app/unraid-api/graph/resolvers/notifications/notifications.resolver.js';
 import { NotificationsService } from '@app/unraid-api/graph/resolvers/notifications/notifications.service.js';
 import { OnlineResolver } from '@app/unraid-api/graph/resolvers/online/online.resolver.js';
@@ -38,7 +35,6 @@ import { MeResolver } from '@app/unraid-api/graph/user/user.resolver.js';
         ArrayModule,
         ApiKeyModule,
         AuthModule,
-        ConnectModule,
         CustomizationModule,
         DockerModule,
         DisksModule,
@@ -46,7 +42,6 @@ import { MeResolver } from '@app/unraid-api/graph/user/user.resolver.js';
         RCloneModule,
     ],
     providers: [
-        CloudResolver,
         ConfigResolver,
         DisplayResolver,
         FlashResolver,
@@ -54,7 +49,6 @@ import { MeResolver } from '@app/unraid-api/graph/user/user.resolver.js';
         LogsResolver,
         LogsService,
         MeResolver,
-        NetworkResolver,
         NotificationsResolver,
         NotificationsService,
         OnlineResolver,

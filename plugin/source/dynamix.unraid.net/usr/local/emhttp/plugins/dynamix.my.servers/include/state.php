@@ -179,32 +179,35 @@ class ServerState
          */
         $flashCfgPath = '/boot/config/plugins/dynamix.my.servers/myservers.cfg';
         $this->myServersFlashCfg = file_exists($flashCfgPath) ? @parse_ini_file($flashCfgPath, true) : [];
+        $connectJsonPath = '/boot/config/plugins/dynamix.my.servers/configs/connect.json';
+        $connectConfig = file_exists($connectJsonPath) ? @json_decode(file_get_contents($connectJsonPath), true) : [];
+        
         // ensure some vars are defined here so we don't have to test them later
-        if (empty($this->myServersFlashCfg['remote']['apikey'])) {
-            $this->myServersFlashCfg['remote']['apikey'] = "";
+        if (empty($connectConfig['apikey'])) {
+            $connectConfig['apikey'] = "";
         }
-        if (empty($this->myServersFlashCfg['remote']['wanaccess'])) {
-            $this->myServersFlashCfg['remote']['wanaccess'] = "no";
+        if (empty($connectConfig['wanaccess'])) {
+            $connectConfig['wanaccess'] = false;
         }
-        if (empty($this->myServersFlashCfg['remote']['wanport'])) {
-            $this->myServersFlashCfg['remote']['wanport'] = 33443;
+        if (empty($connectConfig['wanport'])) {
+            $connectConfig['wanport'] = 33443;
         }
-        if (empty($this->myServersFlashCfg['remote']['upnpEnabled'])) {
-            $this->myServersFlashCfg['remote']['upnpEnabled'] = "no";
+        if (empty($connectConfig['upnpEnabled'])) {
+            $connectConfig['upnpEnabled'] = false;
         }
-        if (empty($this->myServersFlashCfg['remote']['dynamicRemoteAccessType'])) {
-            $this->myServersFlashCfg['remote']['dynamicRemoteAccessType'] = "DISABLED";
+        if (empty($connectConfig['dynamicRemoteAccessType'])) {
+            $connectConfig['dynamicRemoteAccessType'] = "DISABLED";
         }
 
         $this->apiKey = $this->myServersFlashCfg['upc']['apikey'] ?? '';
         $this->apiVersion = $this->myServersFlashCfg['api']['version'] ?? '';
-        $this->avatar = (!empty($this->myServersFlashCfg['remote']['avatar']) && $this->connectPluginInstalled) ? $this->myServersFlashCfg['remote']['avatar'] : '';
-        $this->email = $this->myServersFlashCfg['remote']['email'] ?? '';
-        $this->hasRemoteApikey = !empty($this->myServersFlashCfg['remote']['apikey']);
-        $this->registered = !empty($this->myServersFlashCfg['remote']['apikey']) && $this->connectPluginInstalled;
-        $this->registeredTime = $this->myServersFlashCfg['remote']['regWizTime'] ?? '';
-        $this->username = $this->myServersFlashCfg['remote']['username'] ?? '';
-        $this->ssoEnabled = !empty($this->myServersFlashCfg['remote']['ssoSubIds'] ?? '');
+        $this->avatar = (!empty($connectConfig['avatar']) && $this->connectPluginInstalled) ? $connectConfig['avatar'] : '';
+        $this->email = $connectConfig['email'] ?? '';
+        $this->hasRemoteApikey = !empty($connectConfig['apikey']);
+        $this->registered = !empty($connectConfig['apikey']) && $this->connectPluginInstalled;
+        $this->registeredTime = $connectConfig['regWizTime'] ?? '';
+        $this->username = $connectConfig['username'] ?? '';
+        $this->ssoEnabled = !empty($connectConfig['ssoSubIds'] ?? '');
     }
 
     private function getConnectKnownOrigins()

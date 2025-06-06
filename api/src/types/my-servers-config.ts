@@ -1,7 +1,6 @@
 import { z } from 'zod';
 
 import { MinigraphStatus } from '@app/unraid-api/graph/resolvers/cloud/cloud.model.js';
-import { DynamicRemoteAccessType } from '@app/unraid-api/graph/resolvers/connect/connect.model.js';
 
 // Define Zod schemas
 const ApiConfigSchema = z.object({
@@ -22,7 +21,7 @@ const RemoteConfigSchema = z.object({
     accesstoken: z.string(),
     idtoken: z.string(),
     refreshtoken: z.string(),
-    dynamicRemoteAccessType: z.nativeEnum(DynamicRemoteAccessType),
+    dynamicRemoteAccessType: z.string(),
     ssoSubIds: z
         .string()
         .transform((val) => {

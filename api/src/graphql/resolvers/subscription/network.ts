@@ -1,8 +1,9 @@
+import { AccessUrl, URL_TYPE } from '@unraid/shared/network.model.js';
+
 import type { RootState } from '@app/store/index.js';
 import { logger } from '@app/core/log.js';
 import { type Nginx } from '@app/core/types/states/nginx.js';
 import { store } from '@app/store/index.js';
-import { AccessUrl, URL_TYPE } from '@app/unraid-api/graph/resolvers/connect/connect.model.js';
 
 interface UrlForFieldInput {
     url: string;

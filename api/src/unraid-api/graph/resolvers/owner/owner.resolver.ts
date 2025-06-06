@@ -1,17 +1,20 @@
+import { ConfigService } from '@nestjs/config';
 import { Query, Resolver, Subscription } from '@nestjs/graphql';
 
-import { createSubscription, PUBSUB_CHANNEL } from '@app/core/pubsub.js';
-import { getters } from '@app/store/index.js';
+import { Resource } from '@unraid/shared/graphql.model.js';
 import {
     AuthActionVerb,
     AuthPossession,
     UsePermissions,
-} from '@app/unraid-api/graph/directives/use-permissions.directive.js';
-import { Resource } from '@app/unraid-api/graph/resolvers/base.model.js';
+} from '@unraid/shared/use-permissions.directive.js';
+
+import { createSubscription, PUBSUB_CHANNEL } from '@app/core/pubsub.js';
 import { Owner } from '@app/unraid-api/graph/resolvers/owner/owner.model.js';
 
+// Question: should we move this into the connect plugin, or should this always be available?
 @Resolver(() => Owner)
 export class OwnerResolver {
+    constructor(private readonly configService: ConfigService) {}
     @Query(() => Owner)
     @UsePermissions({
         action: AuthActionVerb.READ,
@@ -19,9 +22,9 @@ export class OwnerResolver {
         possession: AuthPossession.ANY,
     })
     public async owner() {
-        const { remote } = getters.config();
+        const config = this.configService.get('connect.config');
 
-        if (!remote.username) {
+        if (!config?.username) {
             return {
                 username: 'root',
                 avatar: '',
@@ -30,8 +33,8 @@ export class OwnerResolver {
         }
 
         return {
-            username: remote.username,
-            avatar: remote.avatar,
+            username: config.username,
+            avatar: config.avatar,
         };
     }
 

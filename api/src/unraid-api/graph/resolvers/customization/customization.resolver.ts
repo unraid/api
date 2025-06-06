@@ -1,13 +1,14 @@
 import { Query, ResolveField, Resolver } from '@nestjs/graphql';
 
-import { Public } from '@app/unraid-api/auth/public.decorator.js'; // Import Public decorator
-
+import { Resource } from '@unraid/shared/graphql.model.js';
 import {
     AuthActionVerb,
     AuthPossession,
     UsePermissions,
-} from '@app/unraid-api/graph/directives/use-permissions.directive.js';
-import { Resource } from '@app/unraid-api/graph/resolvers/base.model.js';
+} from '@unraid/shared/use-permissions.directive.js';
+
+import { Public } from '@app/unraid-api/auth/public.decorator.js'; // Import Public decorator
+
 import {
     ActivationCode,
     Customization,

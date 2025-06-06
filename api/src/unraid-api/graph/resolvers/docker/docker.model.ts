@@ -1,8 +1,7 @@
 import { Field, ID, Int, ObjectType, registerEnumType } from '@nestjs/graphql';
 
+import { Node } from '@unraid/shared/graphql.model.js';
 import { GraphQLJSON, GraphQLPort } from 'graphql-scalars';
-
-import { Node } from '@app/unraid-api/graph/resolvers/base.model.js';
 
 export enum ContainerPortType {
     TCP = 'TCP',

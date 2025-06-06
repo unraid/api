@@ -1,13 +1,14 @@
 import { Query, Resolver } from '@nestjs/graphql';
 
-import { getShares } from '@app/core/utils/shares/get-shares.js';
+import { Resource } from '@unraid/shared/graphql.model.js';
 import {
     AuthActionVerb,
     AuthPossession,
     UsePermissions,
-} from '@app/unraid-api/graph/directives/use-permissions.directive.js';
+} from '@unraid/shared/use-permissions.directive.js';
+
+import { getShares } from '@app/core/utils/shares/get-shares.js';
 import { Share } from '@app/unraid-api/graph/resolvers/array/array.model.js';
-import { Resource } from '@app/unraid-api/graph/resolvers/base.model.js';
 
 @Resolver(() => Share)
 export class SharesResolver {

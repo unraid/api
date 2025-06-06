@@ -1,14 +1,13 @@
 import { pino } from 'pino';
 import pretty from 'pino-pretty';
 
-import { API_VERSION, LOG_TYPE } from '@app/environment.js';
+import { API_VERSION, LOG_LEVEL, LOG_TYPE } from '@app/environment.js';
 
 export const levels = ['trace', 'debug', 'info', 'warn', 'error', 'fatal'] as const;
 
 export type LogLevel = (typeof levels)[number];
 
-const level =
-    levels[levels.indexOf(process.env.LOG_LEVEL?.toLowerCase() as (typeof levels)[number])] ?? 'info';
+const level = levels[levels.indexOf(LOG_LEVEL.toLowerCase() as LogLevel)] ?? 'info';
 
 export const logDestination = pino.destination();
 
@@ -43,6 +42,11 @@ export const logger = pino(
                 '*.Secret',
                 '*.Token',
                 '*.Key',
+                '*.apikey',
+                '*.localApiKey',
+                '*.accesstoken',
+                '*.idtoken',
+                '*.refreshtoken',
             ],
             censor: '***REDACTED***',
         },

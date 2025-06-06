@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { readFile, writeFile } from 'fs/promises';
 
+import { fileExists } from '@unraid/shared/util/file.js';
 import { isEqual } from 'lodash-es';
 
 @Injectable()
@@ -19,6 +20,10 @@ export class ConfigPersistenceHelper {
      * @throws {Error} if the config file is not writable.
      */
     async persistIfChanged(filePath: string, data: unknown): Promise<boolean> {
+        if (!(await fileExists(filePath))) {
+            await writeFile(filePath, JSON.stringify(data ?? {}, null, 2));
+            return true;
+        }
         const currentData = JSON.parse(await readFile(filePath, 'utf8'));
         const stagedData = JSON.parse(JSON.stringify(data));
         if (isEqual(currentData, stagedData)) {

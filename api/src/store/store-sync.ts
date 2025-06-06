@@ -29,10 +29,6 @@ export const startStoreSync = async () => {
         ) {
             writeFileSync(join(state.paths.states, 'config.log'), JSON.stringify(state.config, null, 2));
             writeFileSync(
-                join(state.paths.states, 'dynamicRemoteAccess.log'),
-                JSON.stringify(state.dynamicRemoteAccess, null, 2)
-            );
-            writeFileSync(
                 join(state.paths.states, 'graphql.log'),
                 JSON.stringify(state.minigraph, null, 2)
             );

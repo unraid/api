@@ -1,14 +1,15 @@
 import { Query, Resolver, Subscription } from '@nestjs/graphql';
 
-import { createSubscription, PUBSUB_CHANNEL } from '@app/core/pubsub.js';
+import { Resource } from '@unraid/shared/graphql.model.js';
 import {
     AuthActionVerb,
     AuthPossession,
     UsePermissions,
-} from '@app/unraid-api/graph/directives/use-permissions.directive.js';
+} from '@unraid/shared/use-permissions.directive.js';
+
+import { createSubscription, PUBSUB_CHANNEL } from '@app/core/pubsub.js';
 import { UnraidArray } from '@app/unraid-api/graph/resolvers/array/array.model.js';
 import { ArrayService } from '@app/unraid-api/graph/resolvers/array/array.service.js';
-import { Resource } from '@app/unraid-api/graph/resolvers/base.model.js';
 
 @Resolver('Array')
 export class ArrayResolver {
