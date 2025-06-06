@@ -9,21 +9,25 @@ import { API_VERSION } from '@app/environment.js';
 import { ApiStateConfig } from '@app/unraid-api/config/factory/api-state.model.js';
 import { ConfigPersistenceHelper } from '@app/unraid-api/config/persistence.helper.js';
 
-interface ApiConfig {
+export interface ApiConfig {
     version: string;
     extraOrigins: string[];
     sandbox?: boolean;
+    ssoSubIds: string[];
 }
+
+const createDefaultConfig = (): ApiConfig => ({
+    version: API_VERSION,
+    extraOrigins: [],
+    sandbox: false,
+    ssoSubIds: [],
+});
 
 /**
  * Loads the API config from disk. If not found, returns the default config, but does not persist it.
  */
 export const apiConfig = registerAs<ApiConfig>('api', async () => {
-    const defaultConfig = {
-        version: API_VERSION,
-        extraOrigins: [],
-        sandbox: false,
-    };
+    const defaultConfig = createDefaultConfig();
     const apiConfig = new ApiStateConfig<ApiConfig>(
         {
             name: 'api',
@@ -58,11 +62,7 @@ class ApiConfigPersistence {
         this.configModel = new ApiStateConfig<ApiConfig>(
             {
                 name: 'api',
-                defaultConfig: {
-                    version: API_VERSION,
-                    extraOrigins: [],
-                    sandbox: false,
-                },
+                defaultConfig: createDefaultConfig(),
                 parse: (data) => data as ApiConfig,
             },
             this.persistenceHelper
@@ -88,14 +88,16 @@ class ApiConfigPersistence {
     }
 
     private migrateFromMyServersConfig() {
-        const { local, api } = this.configService.get('store.config', {});
+        const { local, api, remote } = this.configService.get('store.config', {});
         const sandbox = local?.sandbox;
         const extraOrigins = csvStringToArray(api?.extraOrigins ?? '').filter(
             (origin) => origin.startsWith('http://') || origin.startsWith('https://')
         );
+        const ssoSubIds = remote?.ssoSubIds ?? [];
 
         this.configService.set('api.sandbox', sandbox === 'yes');
         this.configService.set('api.extraOrigins', extraOrigins);
+        this.configService.set('api.ssoSubIds', ssoSubIds);
     }
 }
 

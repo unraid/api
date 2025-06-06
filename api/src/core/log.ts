@@ -7,8 +7,7 @@ export const levels = ['trace', 'debug', 'info', 'warn', 'error', 'fatal'] as co
 
 export type LogLevel = (typeof levels)[number];
 
-const level =
-    levels[levels.indexOf(process.env.LOG_LEVEL?.toLowerCase() as (typeof levels)[number])] ?? 'info';
+const level = levels[levels.indexOf(LOG_LEVEL.toLowerCase() as LogLevel)] ?? 'info';
 
 export const logDestination = pino.destination();
 
@@ -50,16 +49,6 @@ export const logger = pino(
                 '*.refreshtoken',
             ],
             censor: '***REDACTED***',
-        },
-        serializers: {
-            context: (context) => {
-                // For DEBUG and ERROR levels, return full context
-                if (LOG_LEVEL === 'DEBUG' || LOG_LEVEL === 'ERROR') {
-                    return context;
-                }
-                // For other levels, only return the context key if it exists
-                return context?.context || context;
-            },
         },
     },
     stream

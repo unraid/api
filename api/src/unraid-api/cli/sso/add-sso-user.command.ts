@@ -3,14 +3,10 @@ import { Injectable } from '@nestjs/common';
 import { CommandRunner, InquirerService, Option, SubCommand } from 'nest-commander';
 import { v4 } from 'uuid';
 
-import { store } from '@app/store/index.js';
-import { loadConfigFile } from '@app/store/modules/config.js';
-import { writeConfigSync } from '@app/store/sync/config-disk-sync.js';
+import { SsoUserService } from '@app/unraid-api/auth/sso-user.service.js';
 import { LogService } from '@app/unraid-api/cli/log.service.js';
 import { RestartCommand } from '@app/unraid-api/cli/restart.command.js';
 import { AddSSOUserQuestionSet } from '@app/unraid-api/cli/sso/add-sso-user.questions.js';
-import { StartCommand } from '@app/unraid-api/cli/start.command.js';
-import { StopCommand } from '@app/unraid-api/cli/stop.command.js';
 
 interface AddSSOUserCommandOptions {
     disclaimer: string;
@@ -27,31 +23,22 @@ export class AddSSOUserCommand extends CommandRunner {
     constructor(
         private readonly logger: LogService,
         private readonly inquirerService: InquirerService,
-        private readonly startCommand: StartCommand,
-        private readonly stopCommand: StopCommand
+        private readonly restartCommand: RestartCommand,
+        private readonly ssoUserService: SsoUserService
     ) {
         super();
     }
 
     async run(_input: string[], options: AddSSOUserCommandOptions): Promise<void> {
-        console.log('Temporarily disabled. Sorry!');
-        return;
         try {
             options = await this.inquirerService.prompt(AddSSOUserQuestionSet.name, options);
             if (options.disclaimer === 'y' && options.username) {
-                await this.stopCommand.run([]);
-                await store.dispatch(loadConfigFile());
-                // store.dispatch(addSsoUser(options.username));
-                writeConfigSync('flash');
-                this.logger.info(`User added ${options.username}, starting the API`);
-                await this.startCommand.run([], {});
+                await this.ssoUserService.addSsoUser(options.username);
+                this.logger.info(`User added ${options.username}, restarting the API`);
+                await this.restartCommand.run();
             }
         } catch (e: unknown) {
-            if (e instanceof Error) {
-                // this.logger.error('Error adding user: ' + e.message);
-            } else {
-                this.logger.error('Error adding user');
-            }
+            this.logger.error('Error adding user:', e);
         }
     }
 

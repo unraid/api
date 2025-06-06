@@ -8,6 +8,8 @@ import { RuleEffect } from '@jsonforms/core';
 import { createLabeledControl } from '@unraid/shared/jsonforms/control.js';
 import { mergeSettingSlices } from '@unraid/shared/jsonforms/settings.js';
 import { URL_TYPE } from '@unraid/shared/network.model.js';
+import type { SsoUserService } from '@unraid/shared/services/sso.js';
+import { SSO_USER_SERVICE_TOKEN } from '@unraid/shared/tokens.js';
 import { execa } from 'execa';
 import { GraphQLError } from 'graphql/error/GraphQLError.js';
 import { decodeJwt } from 'jose';
@@ -25,7 +27,6 @@ import { ConfigType, ConnectConfig, MyServersConfig } from '../model/connect-con
 import { DynamicRemoteAccessType, WAN_ACCESS_TYPE, WAN_FORWARD_TYPE } from '../model/connect.model.js';
 import { ConnectApiKeyService } from './connect-api-key.service.js';
 import { DynamicRemoteAccessService } from './dynamic-remote-access.service.js';
-import { SsoUserService } from './sso-user.service.js';
 
 @Injectable()
 export class ConnectSettingsService {
@@ -34,6 +35,7 @@ export class ConnectSettingsService {
         private readonly remoteAccess: DynamicRemoteAccessService,
         private readonly apiKeyService: ConnectApiKeyService,
         private readonly eventEmitter: EventEmitter2,
+        @Inject(SSO_USER_SERVICE_TOKEN)
         private readonly ssoUserService: SsoUserService
     ) {}
 

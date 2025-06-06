@@ -1,22 +1,24 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 
+import type { SsoUserService as ISsoUserService } from '@unraid/shared/services/sso.js';
 import { GraphQLError } from 'graphql/error/GraphQLError.js';
 
-import { ConfigType, MyServersConfig } from '../model/connect-config.model.js';
+import type { ApiConfig } from '@app/unraid-api/config/api-config.module.js';
 
 @Injectable()
-export class SsoUserService {
+export class SsoUserService implements ISsoUserService {
     private readonly logger = new Logger(SsoUserService.name);
+    private ssoSubIdsConfigKey = 'api.ssoSubIds';
 
-    constructor(private readonly configService: ConfigService<ConfigType>) {}
+    constructor(private readonly configService: ConfigService) {}
 
     /**
      * Get the current list of SSO user IDs
      * @returns Array of SSO user IDs
      */
     async getSsoUsers(): Promise<string[]> {
-        const { ssoSubIds } = this.configService.getOrThrow<MyServersConfig>('connect.config');
+        const ssoSubIds = this.configService.getOrThrow<ApiConfig['ssoSubIds']>(this.ssoSubIdsConfigKey);
         return ssoSubIds;
     }
 
@@ -44,7 +46,7 @@ export class SsoUserService {
         }
 
         // Update the config
-        this.configService.set('connect.config.ssoSubIds', userIds);
+        this.configService.set(this.ssoSubIdsConfigKey, userIds);
 
         // Request a restart if there were no SSO users before
         return currentUserSet.size === 0;
@@ -72,7 +74,7 @@ export class SsoUserService {
 
         // Add the new user
         const newUsers = [...currentUsers, userId];
-        this.configService.set('connect.config.ssoSubIds', newUsers);
+        this.configService.set(this.ssoSubIdsConfigKey, newUsers);
 
         // Request a restart if there were no SSO users before
         return currentUsers.length === 0;
@@ -93,7 +95,7 @@ export class SsoUserService {
 
         // Remove the user
         const newUsers = currentUsers.filter((id) => id !== userId);
-        this.configService.set('connect.config.ssoSubIds', newUsers);
+        this.configService.set(this.ssoSubIdsConfigKey, newUsers);
 
         // Request a restart if this was the last SSO user
         return currentUsers.length === 1;
@@ -112,7 +114,7 @@ export class SsoUserService {
         }
 
         // Remove all users
-        this.configService.set('connect.config.ssoSubIds', []);
+        this.configService.set(this.ssoSubIdsConfigKey, []);
 
         // Request a restart if there were any SSO users
         return true;

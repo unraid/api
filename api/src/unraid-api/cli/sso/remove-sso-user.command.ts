@@ -2,13 +2,10 @@ import { Injectable } from '@nestjs/common';
 
 import { CommandRunner, InquirerService, Option, SubCommand } from 'nest-commander';
 
-import { store } from '@app/store/index.js';
-import { loadConfigFile } from '@app/store/modules/config.js';
-import { writeConfigSync } from '@app/store/sync/config-disk-sync.js';
+import { SsoUserService } from '@app/unraid-api/auth/sso-user.service.js';
 import { LogService } from '@app/unraid-api/cli/log.service.js';
+import { RestartCommand } from '@app/unraid-api/cli/restart.command.js';
 import { RemoveSSOUserQuestionSet } from '@app/unraid-api/cli/sso/remove-sso-user.questions.js';
-import { StartCommand } from '@app/unraid-api/cli/start.command.js';
-import { StopCommand } from '@app/unraid-api/cli/stop.command.js';
 
 interface RemoveSSOUserCommandOptions {
     username: string;
@@ -24,26 +21,22 @@ export class RemoveSSOUserCommand extends CommandRunner {
     constructor(
         private readonly logger: LogService,
         private readonly inquirerService: InquirerService,
-        private readonly stopCommand: StopCommand,
-        private readonly startCommand: StartCommand
+        private readonly restartCommand: RestartCommand,
+        private readonly ssoUserService: SsoUserService
     ) {
         super();
     }
     public async run(_input: string[], options: RemoveSSOUserCommandOptions): Promise<void> {
-        console.log('Temporarily disabled. Sorry!');
-        return;
-        await store.dispatch(loadConfigFile());
         options = await this.inquirerService.prompt(RemoveSSOUserQuestionSet.name, options);
-
-        await this.stopCommand.run([]);
-        // store.dispatch(removeSsoUser(options.username === 'all' ? null : options.username));
         if (options.username === 'all') {
+            await this.ssoUserService.removeAllSsoUsers();
             this.logger.info('All users removed from SSO');
         } else {
+            await this.ssoUserService.removeSsoUser(options.username);
             this.logger.info('User removed: ' + options.username);
         }
-        writeConfigSync('flash');
-        await this.startCommand.run([], {});
+        this.logger.info('Restarting the API');
+        await this.restartCommand.run();
     }
 
     @Option({

@@ -7,7 +7,6 @@ import { ConnectResolver } from '../resolver/connect.resolver.js';
 import { ConnectApiKeyService } from '../service/connect-api-key.service.js';
 import { ConnectConfigService } from '../service/connect-config.service.js';
 import { ConnectSettingsService } from '../service/connect-settings.service.js';
-import { SsoUserService } from '../service/sso-user.service.js';
 import { RemoteAccessModule } from './remote-access.module.js';
 
 @Module({
@@ -17,7 +16,6 @@ import { RemoteAccessModule } from './remote-access.module.js';
         ConnectLoginHandler,
         ConnectApiKeyService,
         ConnectSettingsResolver,
-        SsoUserService,
         ConnectResolver,
         ConnectConfigService,
     ],
@@ -26,7 +24,6 @@ import { RemoteAccessModule } from './remote-access.module.js';
         ConnectLoginHandler,
         ConnectApiKeyService,
         ConnectSettingsResolver,
-        SsoUserService,
         ConnectResolver,
         ConnectConfigService,
         RemoteAccessModule,

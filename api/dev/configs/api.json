@@ -4,5 +4,6 @@
     "https://google.com",
     "https://test.com"
   ],
-  "sandbox": true
+  "sandbox": true,
+  "ssoSubIds": []
 }
