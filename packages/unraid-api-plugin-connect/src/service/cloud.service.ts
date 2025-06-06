@@ -166,7 +166,11 @@ export class CloudService {
         try {
             ip = await this.checkDns();
         } catch (error) {
-            this.logger.warn('Failed to fetch DNS, but Minigraph is connected - continuing');
+            this.logger.warn(
+                'Failed to fetch DNS, but Minigraph is connected - continuing. Error type: %s',
+                typeof error
+            );
+            this.logger.error(error);
             ip = `ERROR: ${error instanceof Error ? error.message : 'Unknown Error'}`;
             // Clear error since we're actually connected to the cloud.
             // Do not populate the ip cache since we're in a weird state (this is a change from the previous behavior).

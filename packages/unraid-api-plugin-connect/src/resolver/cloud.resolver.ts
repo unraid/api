@@ -27,6 +27,14 @@ export class CloudResolver {
         const minigraphql = this.cloudService.checkMothershipClient();
         const cloud = await this.cloudService.checkCloudConnection();
 
+        const cloudError = cloud.error ? `NETWORK: ${cloud.error}` : '';
+        const miniGraphError = minigraphql.error ? `CLOUD: ${minigraphql.error}` : '';
+
+        let error = cloudError || miniGraphError || undefined;
+        if (cloudError && miniGraphError) {
+            error = `${cloudError}\n${miniGraphError}`;
+        }
+
         return {
             relay: {
                 // Left in for UPC backwards compat.
@@ -38,10 +46,7 @@ export class CloudResolver {
             minigraphql,
             cloud,
             allowedOrigins: this.networkService.getAllowedOrigins(),
-            error:
-                `${
-                    cloud.error ? `NETWORK: ${cloud.error}` : ''
-                }\n${minigraphql.error ? `CLOUD: ${minigraphql.error}` : ''}` || undefined,
+            error,
         };
     }
 }
