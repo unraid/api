@@ -1,7 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 
-import { mergeSettingSlices } from '@unraid/shared/jsonforms/settings.js';
+import { JsonSchema, JsonSchema7 } from '@jsonforms/core';
+import { DataSlice, mergeSettingSlices } from '@unraid/shared/jsonforms/settings.js';
 import { type ApiConfig } from '@unraid/shared/services/api-config.js';
 import { UserSettingsService } from '@unraid/shared/services/user-settings.js';
 
@@ -52,14 +53,16 @@ export class ApiSettings {
     }
 
     buildSlice(): SettingSlice {
-        return mergeSettingSlices([
-            this.sandboxSlice(),
-            this.ssoUsersSlice(),
-            // Because CORS is effectively disabled, this setting is no longer necessary
-            // keeping it here for in case it needs to be re-enabled
-            //
-            // this.extraOriginsSlice(),
-        ]);
+        return mergeSettingSlices(
+            [
+                this.sandboxSlice(),
+                this.ssoUsersSlice(),
+                // Because CORS is effectively disabled, this setting is no longer necessary
+                // keeping it here for in case it needs to be re-enabled
+                // this.extraOriginsSlice(),
+            ],
+            { as: 'api' }
+        );
     }
 
     /**
@@ -79,7 +82,7 @@ export class ApiSettings {
             },
             elements: [
                 createLabeledControl({
-                    scope: '#/properties/sandbox',
+                    scope: '#/properties/api/sandbox',
                     label: 'Enable Developer Sandbox:',
                     description: sandbox ? description : undefined,
                     controlOptions: {
@@ -108,7 +111,7 @@ export class ApiSettings {
             },
             elements: [
                 createLabeledControl({
-                    scope: '#/properties/extraOrigins',
+                    scope: '#/properties/api/extraOrigins',
                     label: 'Allowed Origins (CORS)',
                     description:
                         'Provide a comma-separated list of URLs allowed to access the API (e.g., https://myapp.example.com).',
@@ -139,7 +142,7 @@ export class ApiSettings {
             },
             elements: [
                 createLabeledControl({
-                    scope: '#/properties/ssoUserIds',
+                    scope: '#/properties/api/ssoUserIds',
                     label: 'Unraid Connect SSO Users',
                     description: `Provide a list of Unique Unraid Account IDs. Find yours at <a href="https://account.unraid.net/settings" target="_blank" rel="noopener noreferrer">account.unraid.net/settings</a>. Requires restart if adding first user.`,
                     controlOptions: {

@@ -7,7 +7,6 @@ import {
   mergeSettingSlices,
   type SettingSlice,
 } from "../jsonforms/settings.js";
-import { namespaceObject, denamespaceObject } from "../util/namespace.js";
 import { getPrefixedSortedKeys } from "../util/key-order.js";
 
 /**
@@ -94,14 +93,15 @@ export class UserSettingsService {
 
   /** Get all current values from all registered settings fragments. */
   async getAllValues(): Promise<Record<string, any>> {
-    const valuesPromises = Array.from(this.settings.entries()).map(
+    const entriesPromises = Array.from(this.settings.entries()).map(
       async ([key, fragment]) => {
         const values = await fragment.getCurrentValues();
-        return namespaceObject(values, key);
+        return [key, values] as const;
       }
     );
-    const values = await Promise.all(valuesPromises);
-    return Object.assign({}, ...values);
+
+    const entries = await Promise.all(entriesPromises);
+    return Object.fromEntries(entries);
   }
 
   /** Update values for a specific settings fragment. */
@@ -117,30 +117,21 @@ export class UserSettingsService {
   async updateNamespacedValues(
     values: Record<string, any>
   ): Promise<{ restartRequired?: boolean; values: Record<string, any> }> {
-    const updates = new Map<keyof UserSettings, any>();
     let restartRequired = false;
 
-    // Group updates by fragment
-    for (const [key, fragment] of this.settings.entries()) {
-      const fragmentValues = denamespaceObject(values, key);
-      if (Object.keys(fragmentValues).length > 0) {
-        updates.set(key, fragmentValues);
+    for (const [key, fragmentValues] of Object.entries(values)) {
+      if (!this.settings.has(key as keyof UserSettings)) {
+        // Skip unknown namespaces – they may belong to other consumers
+        continue;
       }
-    }
 
-    // Apply updates
-    for (const [key, fragmentValues] of updates.entries()) {
-      const fragment = this.getOrThrow(key);
-      if (!fragment) {
-        throw new Error(`Setting '${key}' not registered.`);
-      }
-      const result = await fragment.updateValues(fragmentValues);
+      const result = await this.updateValues(key as keyof UserSettings, fragmentValues);
       if (result.restartRequired) {
         restartRequired = true;
       }
     }
 
-    return { restartRequired, values };
+    return { restartRequired, values: await this.getAllValues() };
   }
 }
 

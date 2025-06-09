@@ -3,6 +3,7 @@ import type {
     ComposableCondition,
     ControlElement,
     JsonSchema,
+    JsonSchema7,
     LabelElement,
     Layout,
     LeafCondition,
@@ -66,4 +67,18 @@ function reduceSlices(slices: SettingSlice[]): SettingSlice {
 /**
  * Merges multiple setting slices into a single, holistic slice.
  */
-export const mergeSettingSlices = reduceSlices;
+export const mergeSettingSlices = (slices: SettingSlice[], options?: { as?: string }): SettingSlice => {
+    const merged = reduceSlices(slices);
+    if (options?.as) {
+        return {
+            properties: {
+                [options.as]: {
+                    type: 'object',
+                    properties: merged.properties as JsonSchema7['properties'],
+                },
+            },
+            elements: merged.elements,
+        };
+    }
+    return merged;
+};
