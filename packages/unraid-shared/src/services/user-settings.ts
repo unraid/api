@@ -7,6 +7,7 @@ import {
   mergeSettingSlices,
   type SettingSlice,
 } from "../jsonforms/settings.js";
+import { namespaceObject, denamespaceObject } from "../util/namespace.js";
 
 /**
  * A SettingsFragment represents a logical grouping (or "slice") of settings
@@ -24,11 +25,14 @@ export interface SettingsFragment<T> {
 /**
  * A container type mapping setting names to the corresponding type of its settings values.
  *
- * This is used to provide type assistance via the @see UserSettingsService.
+ * This is used to provide type assistance via the {@see UserSettingsService}.
  *
  * Use interface merging to add new settings. Note that you must still call
- * @see UserSettingsService.register to register the settings. Otherwise, the type assistance will
+ * {@see UserSettingsService.register} to register the settings. Otherwise, the type assistance will
  * be incorrect.
+ *
+ * ! Note that the following characters may not be used in setting names:
+ * - `/`, `~` - will cause issues in JSON schema references (during dynamic form & schema generation)
  *
  * Note that the UserSettings type is not used to store the actual SettingsFragment, just
  * the type of the settings values.
@@ -72,6 +76,57 @@ export class UserSettingsService {
     );
     const slices = await Promise.all(slicePromises);
     return mergeSettingSlices(slices);
+  }
+
+  /** Get all current values from all registered settings fragments. */
+  async getAllValues(): Promise<Record<string, any>> {
+    const valuesPromises = Array.from(this.settings.entries()).map(
+      async ([key, fragment]) => {
+        const values = await fragment.getCurrentValues();
+        return namespaceObject(values, key);
+      }
+    );
+    const values = await Promise.all(valuesPromises);
+    return Object.assign({}, ...values);
+  }
+
+  /** Update values for a specific settings fragment. */
+  async updateValues<T extends keyof UserSettings>(
+    name: T,
+    values: Partial<UserSettings[T]>
+  ): Promise<{ restartRequired?: boolean; values: Partial<UserSettings[T]> }> {
+    const fragment = this.getOrThrow(name)!;
+    return fragment.updateValues(values);
+  }
+
+  /** Update values from a namespaced object. */
+  async updateNamespacedValues(
+    values: Record<string, any>
+  ): Promise<{ restartRequired?: boolean; values: Record<string, any> }> {
+    const updates = new Map<keyof UserSettings, any>();
+    let restartRequired = false;
+
+    // Group updates by fragment
+    for (const [key, fragment] of this.settings.entries()) {
+      const fragmentValues = denamespaceObject(values, key);
+      if (Object.keys(fragmentValues).length > 0) {
+        updates.set(key, fragmentValues);
+      }
+    }
+
+    // Apply updates
+    for (const [key, fragmentValues] of updates.entries()) {
+      const fragment = this.getOrThrow(key);
+      if (!fragment) {
+        throw new Error(`Setting '${key}' not registered.`);
+      }
+      const result = await fragment.updateValues(fragmentValues);
+      if (result.restartRequired) {
+        restartRequired = true;
+      }
+    }
+
+    return { restartRequired, values };
   }
 }
 

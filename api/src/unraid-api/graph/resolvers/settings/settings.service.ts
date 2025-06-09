@@ -65,7 +65,7 @@ export class ApiSettings {
     /**
      * Developer sandbox settings slice
      */
-    sandboxSlice(): SettingSlice {
+    private sandboxSlice(): SettingSlice {
         const { sandbox } = this.getSettings();
         const description =
             'The developer sandbox is available at <code><a class="underline" href="/graphql" target="_blank">/graphql</a></code>.';
@@ -93,7 +93,7 @@ export class ApiSettings {
     /**
      * Extra origins settings slice
      */
-    extraOriginsSlice(): SettingSlice {
+    private extraOriginsSlice(): SettingSlice {
         return {
             properties: {
                 extraOrigins: {
@@ -125,7 +125,7 @@ export class ApiSettings {
     /**
      * SSO users settings slice
      */
-    ssoUsersSlice(): SettingSlice {
+    private ssoUsersSlice(): SettingSlice {
         return {
             properties: {
                 ssoUserIds: {
