@@ -22,6 +22,7 @@ import { OwnerResolver } from '@app/unraid-api/graph/resolvers/owner/owner.resol
 import { RCloneModule } from '@app/unraid-api/graph/resolvers/rclone/rclone.module.js';
 import { RegistrationResolver } from '@app/unraid-api/graph/resolvers/registration/registration.resolver.js';
 import { ServerResolver } from '@app/unraid-api/graph/resolvers/servers/server.resolver.js';
+import { SettingsModule } from '@app/unraid-api/graph/resolvers/settings/settings.module.js';
 import { VarsResolver } from '@app/unraid-api/graph/resolvers/vars/vars.resolver.js';
 import { VmMutationsResolver } from '@app/unraid-api/graph/resolvers/vms/vms.mutations.resolver.js';
 import { VmsResolver } from '@app/unraid-api/graph/resolvers/vms/vms.resolver.js';
@@ -40,6 +41,7 @@ import { MeResolver } from '@app/unraid-api/graph/user/user.resolver.js';
         DisksModule,
         FlashBackupModule,
         RCloneModule,
+        SettingsModule,
     ],
     providers: [
         ConfigResolver,

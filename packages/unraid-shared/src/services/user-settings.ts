@@ -8,6 +8,7 @@ import {
   type SettingSlice,
 } from "../jsonforms/settings.js";
 import { namespaceObject, denamespaceObject } from "../util/namespace.js";
+import { getPrefixedSortedKeys } from "../util/key-order.js";
 
 /**
  * A SettingsFragment represents a logical grouping (or "slice") of settings
@@ -61,7 +62,7 @@ export class UserSettingsService {
 
   getOrThrow<T extends keyof UserSettings>(
     name: T
-  ): ReturnType<typeof this.get> {
+  ): NonNullable<ReturnType<typeof this.get>> {
     const fragment = this.get(name);
     if (!fragment) {
       throw new Error(`Setting '${name}' not registered (${typeof fragment}).`);
@@ -69,10 +70,23 @@ export class UserSettingsService {
     return fragment;
   }
 
-  /** Get all settings as a single SettingSlice. */
-  async getAllSettings(): Promise<SettingSlice> {
-    const slicePromises = Array.from(this.settings.values()).map((fragment) =>
-      fragment.buildSlice()
+  /**
+   * Get all settings as a single SettingSlice.
+   *
+   * Optionally accepts an ordered list of setting keys.  Slices belonging to these keys
+   * will be placed at the beginning of the merged slice, in the order provided.  Any
+   * remaining registered settings will be appended afterwards, ordered alphabetically
+   * by key.  This ensures a deterministic result while still allowing the caller to
+   * prioritise first-party settings.
+   */
+  async getAllSettings(
+    orderedKeys: (keyof UserSettings)[] = []
+  ): Promise<SettingSlice> {
+    // Build final key order using helper
+    const finalOrder = getPrefixedSortedKeys(this.settings, orderedKeys as (keyof UserSettings)[]);
+
+    const slicePromises = finalOrder.map((key: keyof UserSettings) =>
+      this.settings.get(key)!.buildSlice()
     );
     const slices = await Promise.all(slicePromises);
     return mergeSettingSlices(slices);
@@ -95,7 +109,7 @@ export class UserSettingsService {
     name: T,
     values: Partial<UserSettings[T]>
   ): Promise<{ restartRequired?: boolean; values: Partial<UserSettings[T]> }> {
-    const fragment = this.getOrThrow(name)!;
+    const fragment = this.getOrThrow(name);
     return fragment.updateValues(values);
   }
 

@@ -45,7 +45,7 @@ export class ApiSettings {
             restartRequired ||= ssoNeedsRestart;
         }
         if (settings.extraOrigins) {
-            // @ts-expect-error
+            // @ts-expect-error - this is correct, but the configService typescript implementation is too narrow
             this.configService.set('api.extraOrigins', settings.extraOrigins);
         }
         return { restartRequired, values: await this.getSettings() };
