@@ -1,6 +1,7 @@
 import { Injectable, Logger, Module } from '@nestjs/common';
 import { ConfigService, registerAs } from '@nestjs/config';
 
+import type { ApiConfig } from '@unraid/shared/services/api-config.js';
 import { csvStringToArray } from '@unraid/shared/util/data.js';
 import { fileExists } from '@unraid/shared/util/file.js';
 import { debounceTime } from 'rxjs/operators';
@@ -8,13 +9,6 @@ import { debounceTime } from 'rxjs/operators';
 import { API_VERSION } from '@app/environment.js';
 import { ApiStateConfig } from '@app/unraid-api/config/factory/api-state.model.js';
 import { ConfigPersistenceHelper } from '@app/unraid-api/config/persistence.helper.js';
-
-export interface ApiConfig {
-    version: string;
-    extraOrigins: string[];
-    sandbox?: boolean;
-    ssoSubIds: string[];
-}
 
 const createDefaultConfig = (): ApiConfig => ({
     version: API_VERSION,
