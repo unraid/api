@@ -10,6 +10,8 @@ import { API_VERSION } from '@app/environment.js';
 import { ApiStateConfig } from '@app/unraid-api/config/factory/api-state.model.js';
 import { ConfigPersistenceHelper } from '@app/unraid-api/config/persistence.helper.js';
 
+export { type ApiConfig };
+
 const createDefaultConfig = (): ApiConfig => ({
     version: API_VERSION,
     extraOrigins: [],

@@ -4,11 +4,11 @@ import { EventEmitter2 } from '@nestjs/event-emitter';
 
 import type { SchemaBasedCondition } from '@jsonforms/core';
 import type { DataSlice, SettingSlice, UIElement } from '@unraid/shared/jsonforms/settings.js';
+import type { SsoUserService } from '@unraid/shared/services/sso.js';
 import { RuleEffect } from '@jsonforms/core';
 import { createLabeledControl } from '@unraid/shared/jsonforms/control.js';
 import { mergeSettingSlices } from '@unraid/shared/jsonforms/settings.js';
 import { URL_TYPE } from '@unraid/shared/network.model.js';
-import type { SsoUserService } from '@unraid/shared/services/sso.js';
 import { SSO_USER_SERVICE_TOKEN } from '@unraid/shared/tokens.js';
 import { execa } from 'execa';
 import { GraphQLError } from 'graphql/error/GraphQLError.js';
@@ -288,13 +288,9 @@ export class ConnectSettingsService {
     async buildSettingsSchema(): Promise<SettingSlice> {
         const slices = [
             await this.remoteAccessSlice(),
-            await this.sandboxSlice(),
+            // await this.sandboxSlice(),
             this.flashBackupSlice(),
-            this.ssoUsersSlice(),
-            // Because CORS is effectively disabled, this setting is no longer necessary
-            // keeping it here for in case it needs to be re-enabled
-            //
-            // this.extraOriginsSlice(),
+            // this.ssoUsersSlice(),
         ];
 
         return mergeSettingSlices(slices);
