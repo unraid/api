@@ -1344,6 +1344,36 @@ enum ServerStatus {
   NEVER_CONNECTED
 }
 
+type UnifiedSettings implements Node {
+  id: PrefixedID!
+
+  """The data schema for the settings"""
+  dataSchema: JSON!
+
+  """The UI schema for the settings"""
+  uiSchema: JSON!
+
+  """The current values of the settings"""
+  values: JSON!
+}
+
+type Settings implements Node {
+  id: PrefixedID!
+
+  """A view of all settings"""
+  unified: UnifiedSettings!
+
+  """The API setting values"""
+  api: ApiConfig!
+}
+
+type ApiConfig {
+  version: String!
+  extraOrigins: [String!]!
+  sandbox: Boolean
+  ssoSubIds: [String!]!
+}
+
 type VmDomain implements Node {
   """The unique identifier for the vm (uuid)"""
   id: PrefixedID!
@@ -1589,6 +1619,7 @@ type Query {
   docker: Docker!
   disks: [Disk!]!
   disk(id: PrefixedID!): Disk!
+  settings: Settings!
   remoteAccess: RemoteAccess!
   extraAllowedOrigins: [String!]!
   connect: Connect!

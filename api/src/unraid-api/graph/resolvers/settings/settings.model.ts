@@ -1,7 +1,7 @@
 import { Field, ObjectType } from '@nestjs/graphql';
 
 import { Node } from '@unraid/shared/graphql.model.js';
-import { IsObject } from 'class-validator';
+import { IsObject, ValidateNested } from 'class-validator';
 import { GraphQLJSON } from 'graphql-scalars';
 
 @ObjectType({
@@ -19,4 +19,13 @@ export class UnifiedSettings extends Node {
     @Field(() => GraphQLJSON, { description: 'The current values of the settings' })
     @IsObject()
     values!: Record<string, any>;
+}
+
+@ObjectType({
+    implements: () => Node,
+})
+export class Settings extends Node {
+    @Field(() => UnifiedSettings, { description: 'A view of all settings' })
+    @ValidateNested()
+    unified!: UnifiedSettings;
 }

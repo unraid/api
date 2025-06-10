@@ -1,10 +1,38 @@
-import { Injectable } from '@nestjs/common';
-import { ResolveField, Resolver } from '@nestjs/graphql';
+import { Query, ResolveField, Resolver } from '@nestjs/graphql';
 
+import { ApiConfig } from '@unraid/shared/services/api-config.js';
 import { UserSettingsService } from '@unraid/shared/services/user-settings.js';
 import { GraphQLJSON } from 'graphql-scalars';
 
-import { UnifiedSettings } from '@app/unraid-api/graph/resolvers/settings/settings.model.js';
+import { Settings, UnifiedSettings } from '@app/unraid-api/graph/resolvers/settings/settings.model.js';
+import { ApiSettings } from '@app/unraid-api/graph/resolvers/settings/settings.service.js';
+
+@Resolver(() => Settings)
+export class SettingsResolver {
+    constructor(private readonly apiSettings: ApiSettings) {}
+
+    @Query(() => Settings)
+    async settings() {
+        return {
+            id: 'settings',
+        };
+    }
+
+    @ResolveField(() => ApiConfig, { description: 'The API setting values' })
+    async api() {
+        return {
+            id: 'api-settings',
+            ...this.apiSettings.getSettings(),
+        };
+    }
+
+    @ResolveField(() => UnifiedSettings)
+    async unified() {
+        return {
+            id: 'unified-settings',
+        };
+    }
+}
 
 @Resolver(() => UnifiedSettings)
 export class UnifiedSettingsResolver {

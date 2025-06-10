@@ -56,8 +56,14 @@ export class UserSettingsService {
   readonly settings = new Map<keyof UserSettings, FragmentOf>();
 
   constructor() {}
-  register = this.settings.set;
-  get = this.settings.get;
+
+  register<T extends keyof UserSettings>(name: T, fragment: FragmentOf<T>) {
+    this.settings.set(name, fragment);
+  }
+
+  get<T extends keyof UserSettings>(name: T): FragmentOf<T> | undefined {
+    return this.settings.get(name);
+  }
 
   getOrThrow<T extends keyof UserSettings>(
     name: T
@@ -82,7 +88,10 @@ export class UserSettingsService {
     orderedKeys: (keyof UserSettings)[] = []
   ): Promise<SettingSlice> {
     // Build final key order using helper
-    const finalOrder = getPrefixedSortedKeys(this.settings, orderedKeys as (keyof UserSettings)[]);
+    const finalOrder = getPrefixedSortedKeys(
+      this.settings,
+      orderedKeys as (keyof UserSettings)[]
+    );
 
     const slicePromises = finalOrder.map((key: keyof UserSettings) =>
       this.settings.get(key)!.buildSlice()
@@ -125,7 +134,10 @@ export class UserSettingsService {
         continue;
       }
 
-      const result = await this.updateValues(key as keyof UserSettings, fragmentValues);
+      const result = await this.updateValues(
+        key as keyof UserSettings,
+        fragmentValues
+      );
       if (result.restartRequired) {
         restartRequired = true;
       }
