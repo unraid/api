@@ -56,6 +56,9 @@ export class MothershipSubscriptionHandler {
     }
 
     clearStaleSubscriptions({ maxAgeMs }: { maxAgeMs: number }) {
+        if (this.subscriptions.size === 0) {
+            return;
+        }
         const totalSubscriptions = this.subscriptions.size;
         let numOfStaleSubscriptions = 0;
         const now = Date.now();

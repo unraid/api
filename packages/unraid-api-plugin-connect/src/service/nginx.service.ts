@@ -6,12 +6,13 @@ import { execa } from 'execa';
 export class NginxService {
     private readonly logger = new Logger(NginxService.name);
 
+    /** reloads nginx via its rc script */
     async reload() {
         try {
             await execa('/etc/rc.d/rc.nginx', ['reload']);
             return true;
         } catch (err: unknown) {
-            this.logger.warn('Failed to restart Nginx with error: ', err);
+            this.logger.warn('Failed to reload Nginx with error: ', err);
             return false;
         }
     }

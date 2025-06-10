@@ -123,7 +123,7 @@ export class UpnpService {
             maxPort = 65_000,
             maxAttempts = 50,
         } = args ?? {};
-        const excludedPorts = new Set(mappings?.map((val) => val.public.port));
+        const excludedPorts = new Set(mappings?.map((val) => val.public.port) ?? []);
         // Generate a random port between minPort and maxPort up to maxAttempts times
         for (let i = 0; i < maxAttempts; i++) {
             const port = Math.floor(Math.random() * (maxPort - minPort + 1)) + minPort;
@@ -149,9 +149,9 @@ export class UpnpService {
             await this.removeUpnpMapping();
         }
         const wanPortToUse = await this.getWanPortToUse(args);
-        this.#wanPort = wanPortToUse;
         const localPortToUse = sslPort ?? this.#localPort;
         if (wanPortToUse && localPortToUse) {
+            this.#wanPort = wanPortToUse;
             await this.createUpnpMapping({
                 publicPort: wanPortToUse,
                 privatePort: localPortToUse,
@@ -167,10 +167,10 @@ export class UpnpService {
     }
 
     async disableUpnp() {
+        await this.removeUpnpMapping();
         this.#enabled = false;
         this.#wanPort = undefined;
         this.#localPort = undefined;
-        await this.removeUpnpMapping();
     }
 
     @Cron('*/30 * * * *', { name: UPNP_RENEWAL_JOB_TOKEN })

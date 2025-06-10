@@ -2,8 +2,12 @@ import { Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Query, ResolveField, Resolver } from '@nestjs/graphql';
 
-import { AuthActionVerb, AuthPossession, UsePermissions } from '@unraid/shared';
 import { Resource } from '@unraid/shared/graphql.model.js';
+import {
+    AuthActionVerb,
+    AuthPossession,
+    UsePermissions,
+} from '@unraid/shared/use-permissions.directive.js';
 
 import { ConfigType, ConnectConfig, DynamicRemoteAccessType } from '../model/connect-config.model.js';
 import { Connect, ConnectSettings, DynamicRemoteAccessStatus } from '../model/connect.model.js';

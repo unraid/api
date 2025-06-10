@@ -194,6 +194,7 @@ export class UrlResolverService {
                     portSsl: nginx.httpsPort,
                 });
             }
+            // question: what if sslMode is no?
 
             if (nginx.sslMode === 'auto') {
                 throw new Error(`Cannot get IP Based URL for field: "${field}" SSL mode auto`);
@@ -310,7 +311,7 @@ export class UrlResolverService {
             urls.push({
                 name: 'LAN IPv6',
                 type: URL_TYPE.LAN,
-                ipv4: lanIp6Url,
+                ipv6: lanIp6Url,
             });
         } catch (error: unknown) {
             if (error instanceof Error) {
