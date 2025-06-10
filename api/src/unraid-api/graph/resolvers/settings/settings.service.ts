@@ -133,7 +133,7 @@ export class ApiSettings {
     private ssoUsersSlice(): SettingSlice {
         return {
             properties: {
-                ssoUserIds: {
+                ssoSubIds: {
                     type: 'array',
                     items: {
                         type: 'string',
@@ -144,7 +144,7 @@ export class ApiSettings {
             },
             elements: [
                 createLabeledControl({
-                    scope: '#/properties/api/ssoUserIds',
+                    scope: '#/properties/api/ssoSubIds',
                     label: 'Unraid Connect SSO Users',
                     description: `Provide a list of Unique Unraid Account IDs. Find yours at <a href="https://account.unraid.net/settings" target="_blank" rel="noopener noreferrer">account.unraid.net/settings</a>. Requires restart if adding first user.`,
                     controlOptions: {

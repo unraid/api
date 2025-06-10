@@ -72,10 +72,7 @@ export const mergeSettingSlices = (slices: SettingSlice[], options?: { as?: stri
     if (options?.as) {
         return {
             properties: {
-                [options.as]: {
-                    type: 'object',
-                    properties: merged.properties as JsonSchema7['properties'],
-                },
+                [options.as]: merged.properties,
             },
             elements: merged.elements,
         };
