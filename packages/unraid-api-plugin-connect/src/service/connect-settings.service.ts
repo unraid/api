@@ -1,16 +1,14 @@
-import { Inject, Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 
 import type { SchemaBasedCondition } from '@jsonforms/core';
 import type { DataSlice, SettingSlice, UIElement } from '@unraid/shared/jsonforms/settings.js';
-import type { SsoUserService } from '@unraid/shared/services/sso.js';
 import { RuleEffect } from '@jsonforms/core';
 import { createLabeledControl } from '@unraid/shared/jsonforms/control.js';
 import { mergeSettingSlices } from '@unraid/shared/jsonforms/settings.js';
 import { URL_TYPE } from '@unraid/shared/network.model.js';
 import { UserSettingsService } from '@unraid/shared/services/user-settings.js';
-import { SSO_USER_SERVICE_TOKEN } from '@unraid/shared/tokens.js';
 import { execa } from 'execa';
 import { GraphQLError } from 'graphql/error/GraphQLError.js';
 import { decodeJwt } from 'jose';
@@ -24,7 +22,7 @@ import type {
     SetupRemoteAccessInput,
 } from '../model/connect.model.js';
 import { EVENTS } from '../helper/nest-tokens.js';
-import { ConfigType, ConnectConfig, MyServersConfig } from '../model/connect-config.model.js';
+import { ConfigType, MyServersConfig } from '../model/connect-config.model.js';
 import { DynamicRemoteAccessType, WAN_ACCESS_TYPE, WAN_FORWARD_TYPE } from '../model/connect.model.js';
 import { ConnectApiKeyService } from './connect-api-key.service.js';
 import { DynamicRemoteAccessService } from './dynamic-remote-access.service.js';

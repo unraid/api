@@ -13,8 +13,8 @@ import { AuthActionVerb, AuthPossession } from 'nest-authz';
 import { EVENTS } from '../helper/nest-tokens.js';
 import {
     AllowedOriginInput,
-    ConnectSettingsInput,
     ConnectSettings,
+    ConnectSettingsInput,
     ConnectSettingsValues,
     ConnectSignInInput,
     EnableDynamicRemoteAccessInput,

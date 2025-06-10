@@ -33,10 +33,6 @@ import { upnpClient } from '@app/upnp/helpers.js';
             provide: API_KEY_SERVICE_TOKEN,
             useClass: ApiKeyService,
         },
-        {
-            provide: SSO_USER_SERVICE_TOKEN,
-            useClass: SsoUserService,
-        },
         PrefixedID,
         LifecycleService,
         {
@@ -48,7 +44,6 @@ import { upnpClient } from '@app/upnp/helpers.js';
         UPNP_CLIENT_TOKEN,
         GRAPHQL_PUBSUB_TOKEN,
         API_KEY_SERVICE_TOKEN,
-        SSO_USER_SERVICE_TOKEN,
         PrefixedID,
         LIFECYCLE_SERVICE_TOKEN,
         LifecycleService,
