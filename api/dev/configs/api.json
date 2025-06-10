@@ -1,0 +1,9 @@
+{
+  "version": "4.8.0",
+  "extraOrigins": [
+    "https://google.com",
+    "https://test.com"
+  ],
+  "sandbox": true,
+  "ssoSubIds": []
+}

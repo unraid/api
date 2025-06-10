@@ -1,5 +1,7 @@
 import { DynamicModule, Logger, Module } from '@nestjs/common';
 
+import { ResolversModule } from '@app/unraid-api/graph/resolvers/resolvers.module.js';
+import { GlobalDepsModule } from '@app/unraid-api/plugin/global-deps.module.js';
 import { PluginService } from '@app/unraid-api/plugin/plugin.service.js';
 
 @Module({})
@@ -17,10 +19,9 @@ export class PluginModule {
 
         return {
             module: PluginModule,
-            imports: [...apiModules],
+            imports: [GlobalDepsModule, ResolversModule, ...apiModules],
             providers: [PluginService],
-            exports: [PluginService],
-            global: true,
+            exports: [PluginService, GlobalDepsModule],
         };
     }
 }
@@ -40,7 +41,8 @@ export class PluginCliModule {
 
         return {
             module: PluginCliModule,
-            imports: [...cliModules],
+            imports: [GlobalDepsModule, ...cliModules],
+            exports: [GlobalDepsModule],
         };
     }
 }

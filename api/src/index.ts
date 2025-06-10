@@ -15,9 +15,9 @@ import { WebSocket } from 'ws';
 
 import { logger } from '@app/core/log.js';
 import { fileExistsSync } from '@app/core/utils/files/file-exists.js';
+import { getServerIdentifier } from '@app/core/utils/server-identifier.js';
 import { environment, PATHS_CONFIG_MODULES, PORT } from '@app/environment.js';
 import * as envVars from '@app/environment.js';
-import { setupNewMothershipSubscription } from '@app/mothership/subscribe-to-mothership.js';
 import { loadDynamixConfigFile } from '@app/store/actions/load-dynamix-config-file.js';
 import { shutdownApiEvent } from '@app/store/actions/shutdown-api-event.js';
 import { store } from '@app/store/index.js';
@@ -43,6 +43,22 @@ export const viteNodeApp = async () => {
         await import('json-bigint-patch');
         environment.IS_MAIN_PROCESS = true;
 
+        /**------------------------------------------------------------------------
+         *              Attaching getServerIdentifier to globalThis
+
+         *  getServerIdentifier is tightly coupled to the deprecated redux store, 
+         *  which we don't want to share with other packages or plugins.
+         *  
+         *  At the same time, we need to use it in @unraid/shared as a building block,
+         *  where it's used & available outside of NestJS's DI context.
+         *  
+         *  Attaching to globalThis is a temporary solution to avoid refactoring 
+         *  config sync & management outside of NestJS's DI context.
+         *  
+         *  Plugin authors should import getServerIdentifier from @unraid/shared instead,
+         *  to avoid breaking changes to their code.
+         *------------------------------------------------------------------------**/
+        globalThis.getServerIdentifier = getServerIdentifier;
         logger.info('ENV %o', envVars);
         logger.info('PATHS %o', store.getState().paths);
 
@@ -70,8 +86,6 @@ export const viteNodeApp = async () => {
 
         // Load my dynamix config file into store
         await store.dispatch(loadDynamixConfigFile());
-
-        await setupNewMothershipSubscription();
 
         // Start listening to file updates
         StateManager.getInstance();

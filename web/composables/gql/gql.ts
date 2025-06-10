@@ -20,8 +20,8 @@ type Documents = {
     "\n  mutation CreateApiKey($input: CreateApiKeyInput!) {\n    apiKey {\n      create(input: $input) {\n        id\n        key\n        name\n        description\n        createdAt\n        roles\n        permissions {\n          resource\n          actions\n        }\n      }\n    }\n  }\n": typeof types.CreateApiKeyDocument,
     "\n  mutation DeleteApiKey($input: DeleteApiKeyInput!) {\n    apiKey {\n      delete(input: $input)\n    }\n  }\n": typeof types.DeleteApiKeyDocument,
     "\n  query ApiKeyMeta {\n    apiKeyPossibleRoles\n    apiKeyPossiblePermissions {\n      resource\n      actions\n    }\n  }\n": typeof types.ApiKeyMetaDocument,
-    "\n  query GetConnectSettingsForm {\n    connect {\n      id\n      settings {\n        id\n        dataSchema\n        uiSchema\n        values {\n          sandbox\n          extraOrigins\n          accessType\n          forwardType\n          port\n          ssoUserIds\n        }\n      }\n    }\n  }\n": typeof types.GetConnectSettingsFormDocument,
-    "\n  mutation UpdateConnectSettings($input: ApiSettingsInput!) {\n    updateApiSettings(input: $input) {\n      sandbox\n      extraOrigins\n      accessType\n      forwardType\n      port\n      ssoUserIds\n    }\n  }\n": typeof types.UpdateConnectSettingsDocument,
+    "\n  query Unified {\n    settings {\n      unified {\n        id\n        dataSchema\n        uiSchema\n        values\n      }\n    }\n  }\n": typeof types.UnifiedDocument,
+    "\n  mutation UpdateConnectSettings($input: JSON!) {\n    updateSettings(input: $input) {\n      restartRequired\n      values\n    }\n  }\n": typeof types.UpdateConnectSettingsDocument,
     "\n  query LogFiles {\n    logFiles {\n      name\n      path\n      size\n      modifiedAt\n    }\n  }\n": typeof types.LogFilesDocument,
     "\n  query LogFileContent($path: String!, $lines: Int, $startLine: Int) {\n    logFile(path: $path, lines: $lines, startLine: $startLine) {\n      path\n      content\n      totalLines\n      startLine\n    }\n  }\n": typeof types.LogFileContentDocument,
     "\n  subscription LogFileSubscription($path: String!) {\n    logFile(path: $path) {\n      path\n      content\n      totalLines\n    }\n  }\n": typeof types.LogFileSubscriptionDocument,
@@ -57,8 +57,8 @@ const documents: Documents = {
     "\n  mutation CreateApiKey($input: CreateApiKeyInput!) {\n    apiKey {\n      create(input: $input) {\n        id\n        key\n        name\n        description\n        createdAt\n        roles\n        permissions {\n          resource\n          actions\n        }\n      }\n    }\n  }\n": types.CreateApiKeyDocument,
     "\n  mutation DeleteApiKey($input: DeleteApiKeyInput!) {\n    apiKey {\n      delete(input: $input)\n    }\n  }\n": types.DeleteApiKeyDocument,
     "\n  query ApiKeyMeta {\n    apiKeyPossibleRoles\n    apiKeyPossiblePermissions {\n      resource\n      actions\n    }\n  }\n": types.ApiKeyMetaDocument,
-    "\n  query GetConnectSettingsForm {\n    connect {\n      id\n      settings {\n        id\n        dataSchema\n        uiSchema\n        values {\n          sandbox\n          extraOrigins\n          accessType\n          forwardType\n          port\n          ssoUserIds\n        }\n      }\n    }\n  }\n": types.GetConnectSettingsFormDocument,
-    "\n  mutation UpdateConnectSettings($input: ApiSettingsInput!) {\n    updateApiSettings(input: $input) {\n      sandbox\n      extraOrigins\n      accessType\n      forwardType\n      port\n      ssoUserIds\n    }\n  }\n": types.UpdateConnectSettingsDocument,
+    "\n  query Unified {\n    settings {\n      unified {\n        id\n        dataSchema\n        uiSchema\n        values\n      }\n    }\n  }\n": types.UnifiedDocument,
+    "\n  mutation UpdateConnectSettings($input: JSON!) {\n    updateSettings(input: $input) {\n      restartRequired\n      values\n    }\n  }\n": types.UpdateConnectSettingsDocument,
     "\n  query LogFiles {\n    logFiles {\n      name\n      path\n      size\n      modifiedAt\n    }\n  }\n": types.LogFilesDocument,
     "\n  query LogFileContent($path: String!, $lines: Int, $startLine: Int) {\n    logFile(path: $path, lines: $lines, startLine: $startLine) {\n      path\n      content\n      totalLines\n      startLine\n    }\n  }\n": types.LogFileContentDocument,
     "\n  subscription LogFileSubscription($path: String!) {\n    logFile(path: $path) {\n      path\n      content\n      totalLines\n    }\n  }\n": types.LogFileSubscriptionDocument,
@@ -129,11 +129,11 @@ export function graphql(source: "\n  query ApiKeyMeta {\n    apiKeyPossibleRoles
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
-export function graphql(source: "\n  query GetConnectSettingsForm {\n    connect {\n      id\n      settings {\n        id\n        dataSchema\n        uiSchema\n        values {\n          sandbox\n          extraOrigins\n          accessType\n          forwardType\n          port\n          ssoUserIds\n        }\n      }\n    }\n  }\n"): (typeof documents)["\n  query GetConnectSettingsForm {\n    connect {\n      id\n      settings {\n        id\n        dataSchema\n        uiSchema\n        values {\n          sandbox\n          extraOrigins\n          accessType\n          forwardType\n          port\n          ssoUserIds\n        }\n      }\n    }\n  }\n"];
+export function graphql(source: "\n  query Unified {\n    settings {\n      unified {\n        id\n        dataSchema\n        uiSchema\n        values\n      }\n    }\n  }\n"): (typeof documents)["\n  query Unified {\n    settings {\n      unified {\n        id\n        dataSchema\n        uiSchema\n        values\n      }\n    }\n  }\n"];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
-export function graphql(source: "\n  mutation UpdateConnectSettings($input: ApiSettingsInput!) {\n    updateApiSettings(input: $input) {\n      sandbox\n      extraOrigins\n      accessType\n      forwardType\n      port\n      ssoUserIds\n    }\n  }\n"): (typeof documents)["\n  mutation UpdateConnectSettings($input: ApiSettingsInput!) {\n    updateApiSettings(input: $input) {\n      sandbox\n      extraOrigins\n      accessType\n      forwardType\n      port\n      ssoUserIds\n    }\n  }\n"];
+export function graphql(source: "\n  mutation UpdateConnectSettings($input: JSON!) {\n    updateSettings(input: $input) {\n      restartRequired\n      values\n    }\n  }\n"): (typeof documents)["\n  mutation UpdateConnectSettings($input: JSON!) {\n    updateSettings(input: $input) {\n      restartRequired\n      values\n    }\n  }\n"];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */

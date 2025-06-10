@@ -1,5 +1,11 @@
 import { Query, ResolveField, Resolver, Subscription } from '@nestjs/graphql';
 
+import { Resource } from '@unraid/shared/graphql.model.js';
+import {
+    AuthActionVerb,
+    AuthPossession,
+    UsePermissions,
+} from '@unraid/shared/use-permissions.directive.js';
 import { baseboard as getBaseboard, system as getSystem } from 'systeminformation';
 
 import { createSubscription, PUBSUB_CHANNEL } from '@app/core/pubsub.js';
@@ -13,12 +19,6 @@ import {
     generateOs,
     generateVersions,
 } from '@app/graphql/resolvers/query/info.js';
-import {
-    AuthActionVerb,
-    AuthPossession,
-    UsePermissions,
-} from '@app/unraid-api/graph/directives/use-permissions.directive.js';
-import { Resource } from '@app/unraid-api/graph/resolvers/base.model.js';
 import {
     Baseboard,
     Devices,

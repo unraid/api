@@ -1,14 +1,15 @@
 import { Args, Int, Parent, Query, ResolveField, Resolver } from '@nestjs/graphql';
 
+import { Resource } from '@unraid/shared/graphql.model.js';
+import { PrefixedID } from '@unraid/shared/prefixed-id-scalar.js';
 import {
     AuthActionVerb,
     AuthPossession,
     UsePermissions,
-} from '@app/unraid-api/graph/directives/use-permissions.directive.js';
-import { Resource } from '@app/unraid-api/graph/resolvers/base.model.js';
+} from '@unraid/shared/use-permissions.directive.js';
+
 import { Disk } from '@app/unraid-api/graph/resolvers/disks/disks.model.js';
 import { DisksService } from '@app/unraid-api/graph/resolvers/disks/disks.service.js';
-import { PrefixedID } from '@app/unraid-api/graph/scalars/graphql-type-prefixed-id.js';
 
 @Resolver(() => Disk)
 export class DisksResolver {

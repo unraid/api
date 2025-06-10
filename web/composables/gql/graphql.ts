@@ -89,6 +89,21 @@ export type AccessUrlInput = {
   type: UrlType;
 };
 
+export type AccessUrlObject = {
+  __typename?: 'AccessUrlObject';
+  ipv4?: Maybe<Scalars['String']['output']>;
+  ipv6?: Maybe<Scalars['String']['output']>;
+  name?: Maybe<Scalars['String']['output']>;
+  type: UrlType;
+};
+
+export type AccessUrlObjectInput = {
+  ipv4?: InputMaybe<Scalars['String']['input']>;
+  ipv6?: InputMaybe<Scalars['String']['input']>;
+  name?: InputMaybe<Scalars['String']['input']>;
+  type: UrlType;
+};
+
 export type ActivationCode = {
   __typename?: 'ActivationCode';
   background?: Maybe<Scalars['String']['output']>;
@@ -117,6 +132,14 @@ export type AddRoleForApiKeyInput = {
 export type AllowedOriginInput = {
   /** A list of origins allowed to interact with the API */
   origins: Array<Scalars['String']['input']>;
+};
+
+export type ApiConfig = {
+  __typename?: 'ApiConfig';
+  extraOrigins: Array<Scalars['String']['output']>;
+  sandbox?: Maybe<Scalars['Boolean']['output']>;
+  ssoSubIds: Array<Scalars['String']['output']>;
+  version: Scalars['String']['output'];
 };
 
 export type ApiKey = Node & {
@@ -901,6 +924,7 @@ export type MemoryLayout = Node & {
   voltageMin?: Maybe<Scalars['Int']['output']>;
 };
 
+/** The status of the minigraph */
 export enum MinigraphStatus {
   CONNECTED = 'CONNECTED',
   CONNECTING = 'CONNECTING',
@@ -940,13 +964,13 @@ export type Mutation = {
   /** Reads each notification to recompute & update the overview. */
   recalculateOverview: NotificationOverview;
   setAdditionalAllowedOrigins: Array<Scalars['String']['output']>;
-  setDemo: Scalars['String']['output'];
   setupRemoteAccess: Scalars['Boolean']['output'];
   unarchiveAll: NotificationOverview;
   unarchiveNotifications: NotificationOverview;
   /** Marks a notification as unread. */
   unreadNotification: Notification;
   updateApiSettings: ConnectSettingsValues;
+  updateSettings: UpdateSettingsResponse;
   vm: VmMutations;
 };
 
@@ -1019,6 +1043,11 @@ export type MutationUnreadNotificationArgs = {
 
 export type MutationUpdateApiSettingsArgs = {
   input: ApiSettingsInput;
+};
+
+
+export type MutationUpdateSettingsArgs = {
+  input: Scalars['JSON']['input'];
 };
 
 export type Network = Node & {
@@ -1220,8 +1249,6 @@ export type Query = {
   docker: Docker;
   extraAllowedOrigins: Array<Scalars['String']['output']>;
   flash: Flash;
-  getDemo: Scalars['String']['output'];
-  health: Scalars['String']['output'];
   info: Info;
   logFile: LogFileContent;
   logFiles: Array<LogFile>;
@@ -1240,6 +1267,7 @@ export type Query = {
   server?: Maybe<Server>;
   servers: Array<Server>;
   services: Array<Service>;
+  settings: Settings;
   shares: Array<Share>;
   vars: Vars;
   /** Get information about all VMs on the system */
@@ -1424,7 +1452,8 @@ export enum Resource {
 export enum Role {
   ADMIN = 'ADMIN',
   CONNECT = 'CONNECT',
-  GUEST = 'GUEST'
+  GUEST = 'GUEST',
+  USER = 'USER'
 }
 
 export type Server = Node & {
@@ -1454,6 +1483,15 @@ export type Service = Node & {
   online?: Maybe<Scalars['Boolean']['output']>;
   uptime?: Maybe<Uptime>;
   version?: Maybe<Scalars['String']['output']>;
+};
+
+export type Settings = Node & {
+  __typename?: 'Settings';
+  /** The API setting values */
+  api: ApiConfig;
+  id: Scalars['PrefixedID']['output'];
+  /** A view of all settings */
+  unified: UnifiedSettings;
 };
 
 export type SetupRemoteAccessInput = {
@@ -1571,6 +1609,17 @@ export enum UrlType {
   WIREGUARD = 'WIREGUARD'
 }
 
+export type UnifiedSettings = Node & {
+  __typename?: 'UnifiedSettings';
+  /** The data schema for the settings */
+  dataSchema: Scalars['JSON']['output'];
+  id: Scalars['PrefixedID']['output'];
+  /** The UI schema for the settings */
+  uiSchema: Scalars['JSON']['output'];
+  /** The current values of the settings */
+  values: Scalars['JSON']['output'];
+};
+
 export type UnraidArray = Node & {
   __typename?: 'UnraidArray';
   /** Current boot disk */
@@ -1586,6 +1635,14 @@ export type UnraidArray = Node & {
   parities: Array<ArrayDisk>;
   /** Current array state */
   state: ArrayState;
+};
+
+export type UpdateSettingsResponse = {
+  __typename?: 'UpdateSettingsResponse';
+  /** Whether a restart is required for the changes to take effect */
+  restartRequired: Scalars['Boolean']['output'];
+  /** The updated settings values */
+  values: Scalars['JSON']['output'];
 };
 
 export type Uptime = {
@@ -1950,17 +2007,17 @@ export type ApiKeyMetaQueryVariables = Exact<{ [key: string]: never; }>;
 
 export type ApiKeyMetaQuery = { __typename?: 'Query', apiKeyPossibleRoles: Array<Role>, apiKeyPossiblePermissions: Array<{ __typename?: 'Permission', resource: Resource, actions: Array<string> }> };
 
-export type GetConnectSettingsFormQueryVariables = Exact<{ [key: string]: never; }>;
+export type UnifiedQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type GetConnectSettingsFormQuery = { __typename?: 'Query', connect: { __typename?: 'Connect', id: string, settings: { __typename?: 'ConnectSettings', id: string, dataSchema: any, uiSchema: any, values: { __typename?: 'ConnectSettingsValues', sandbox: boolean, extraOrigins: Array<string>, accessType: WanAccessType, forwardType?: WanForwardType | null, port?: number | null, ssoUserIds: Array<string> } } } };
+export type UnifiedQuery = { __typename?: 'Query', settings: { __typename?: 'Settings', unified: { __typename?: 'UnifiedSettings', id: string, dataSchema: any, uiSchema: any, values: any } } };
 
 export type UpdateConnectSettingsMutationVariables = Exact<{
-  input: ApiSettingsInput;
+  input: Scalars['JSON']['input'];
 }>;
 
 
-export type UpdateConnectSettingsMutation = { __typename?: 'Mutation', updateApiSettings: { __typename?: 'ConnectSettingsValues', sandbox: boolean, extraOrigins: Array<string>, accessType: WanAccessType, forwardType?: WanForwardType | null, port?: number | null, ssoUserIds: Array<string> } };
+export type UpdateConnectSettingsMutation = { __typename?: 'Mutation', updateSettings: { __typename?: 'UpdateSettingsResponse', restartRequired: boolean, values: any } };
 
 export type LogFilesQueryVariables = Exact<{ [key: string]: never; }>;
 
@@ -2146,8 +2203,8 @@ export const ApiKeysDocument = {"kind":"Document","definitions":[{"kind":"Operat
 export const CreateApiKeyDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"CreateApiKey"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"input"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"CreateApiKeyInput"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"apiKey"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"create"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"input"},"value":{"kind":"Variable","name":{"kind":"Name","value":"input"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"key"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"description"}},{"kind":"Field","name":{"kind":"Name","value":"createdAt"}},{"kind":"Field","name":{"kind":"Name","value":"roles"}},{"kind":"Field","name":{"kind":"Name","value":"permissions"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"resource"}},{"kind":"Field","name":{"kind":"Name","value":"actions"}}]}}]}}]}}]}}]} as unknown as DocumentNode<CreateApiKeyMutation, CreateApiKeyMutationVariables>;
 export const DeleteApiKeyDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"DeleteApiKey"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"input"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"DeleteApiKeyInput"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"apiKey"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"delete"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"input"},"value":{"kind":"Variable","name":{"kind":"Name","value":"input"}}}]}]}}]}}]} as unknown as DocumentNode<DeleteApiKeyMutation, DeleteApiKeyMutationVariables>;
 export const ApiKeyMetaDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"ApiKeyMeta"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"apiKeyPossibleRoles"}},{"kind":"Field","name":{"kind":"Name","value":"apiKeyPossiblePermissions"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"resource"}},{"kind":"Field","name":{"kind":"Name","value":"actions"}}]}}]}}]} as unknown as DocumentNode<ApiKeyMetaQuery, ApiKeyMetaQueryVariables>;
-export const GetConnectSettingsFormDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"GetConnectSettingsForm"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"connect"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"settings"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"dataSchema"}},{"kind":"Field","name":{"kind":"Name","value":"uiSchema"}},{"kind":"Field","name":{"kind":"Name","value":"values"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"sandbox"}},{"kind":"Field","name":{"kind":"Name","value":"extraOrigins"}},{"kind":"Field","name":{"kind":"Name","value":"accessType"}},{"kind":"Field","name":{"kind":"Name","value":"forwardType"}},{"kind":"Field","name":{"kind":"Name","value":"port"}},{"kind":"Field","name":{"kind":"Name","value":"ssoUserIds"}}]}}]}}]}}]}}]} as unknown as DocumentNode<GetConnectSettingsFormQuery, GetConnectSettingsFormQueryVariables>;
-export const UpdateConnectSettingsDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"UpdateConnectSettings"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"input"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"ApiSettingsInput"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"updateApiSettings"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"input"},"value":{"kind":"Variable","name":{"kind":"Name","value":"input"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"sandbox"}},{"kind":"Field","name":{"kind":"Name","value":"extraOrigins"}},{"kind":"Field","name":{"kind":"Name","value":"accessType"}},{"kind":"Field","name":{"kind":"Name","value":"forwardType"}},{"kind":"Field","name":{"kind":"Name","value":"port"}},{"kind":"Field","name":{"kind":"Name","value":"ssoUserIds"}}]}}]}}]} as unknown as DocumentNode<UpdateConnectSettingsMutation, UpdateConnectSettingsMutationVariables>;
+export const UnifiedDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"Unified"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"settings"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"unified"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"dataSchema"}},{"kind":"Field","name":{"kind":"Name","value":"uiSchema"}},{"kind":"Field","name":{"kind":"Name","value":"values"}}]}}]}}]}}]} as unknown as DocumentNode<UnifiedQuery, UnifiedQueryVariables>;
+export const UpdateConnectSettingsDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"UpdateConnectSettings"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"input"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"JSON"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"updateSettings"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"input"},"value":{"kind":"Variable","name":{"kind":"Name","value":"input"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"restartRequired"}},{"kind":"Field","name":{"kind":"Name","value":"values"}}]}}]}}]} as unknown as DocumentNode<UpdateConnectSettingsMutation, UpdateConnectSettingsMutationVariables>;
 export const LogFilesDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"LogFiles"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"logFiles"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"path"}},{"kind":"Field","name":{"kind":"Name","value":"size"}},{"kind":"Field","name":{"kind":"Name","value":"modifiedAt"}}]}}]}}]} as unknown as DocumentNode<LogFilesQuery, LogFilesQueryVariables>;
 export const LogFileContentDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"LogFileContent"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"path"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"lines"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"Int"}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"startLine"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"Int"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"logFile"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"path"},"value":{"kind":"Variable","name":{"kind":"Name","value":"path"}}},{"kind":"Argument","name":{"kind":"Name","value":"lines"},"value":{"kind":"Variable","name":{"kind":"Name","value":"lines"}}},{"kind":"Argument","name":{"kind":"Name","value":"startLine"},"value":{"kind":"Variable","name":{"kind":"Name","value":"startLine"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"path"}},{"kind":"Field","name":{"kind":"Name","value":"content"}},{"kind":"Field","name":{"kind":"Name","value":"totalLines"}},{"kind":"Field","name":{"kind":"Name","value":"startLine"}}]}}]}}]} as unknown as DocumentNode<LogFileContentQuery, LogFileContentQueryVariables>;
 export const LogFileSubscriptionDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"subscription","name":{"kind":"Name","value":"LogFileSubscription"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"path"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"logFile"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"path"},"value":{"kind":"Variable","name":{"kind":"Name","value":"path"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"path"}},{"kind":"Field","name":{"kind":"Name","value":"content"}},{"kind":"Field","name":{"kind":"Name","value":"totalLines"}}]}}]}}]} as unknown as DocumentNode<LogFileSubscriptionSubscription, LogFileSubscriptionSubscriptionVariables>;

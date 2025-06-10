@@ -10,7 +10,8 @@ RUN apt-get update -y && apt-get install -y \
     jq \
     zstd \
     git \
-    build-essential
+    build-essential \
+    unzip
 
 RUN git config --global --add safe.directory /app
 

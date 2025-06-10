@@ -3,6 +3,7 @@ import crypto from 'crypto';
 import { readdir, readFile, unlink, writeFile } from 'fs/promises';
 import { join } from 'path';
 
+import { Resource, Role } from '@unraid/shared/graphql.model.js';
 import { watch } from 'chokidar';
 import { ValidationError } from 'class-validator';
 import { ensureDirSync } from 'fs-extra';
@@ -20,7 +21,6 @@ import {
     ApiKeyWithSecret,
     Permission,
 } from '@app/unraid-api/graph/resolvers/api-key/api-key.model.js';
-import { Resource, Role } from '@app/unraid-api/graph/resolvers/base.model.js';
 import { validateObject } from '@app/unraid-api/graph/resolvers/validation.utils.js';
 import { batchProcess } from '@app/utils.js';
 

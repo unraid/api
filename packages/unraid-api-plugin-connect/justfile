@@ -1,0 +1,35 @@
+# Justfile for unraid-api-plugin-connect
+
+# Default recipe to run when just is called without arguments
+default:
+    @just --list
+
+# Count TypeScript lines in src directory, excluding test and generated files
+count-lines:
+    #!/usr/bin/env bash
+    # Colors for output
+    RED='\033[0;31m'
+    GREEN='\033[0;32m'
+    BLUE='\033[0;34m'
+    NC='\033[0m' # No Color
+
+    echo -e "${BLUE}Counting TypeScript lines in src/ (excluding test/ and graphql/generated/)...${NC}"
+    echo
+    echo -e "${GREEN}Lines by directory:${NC}"
+    cd src
+    # First pass to get total lines
+    total=$(find . -type f -name "*.ts" -not -path "*/test/*" -not -path "*/graphql/generated/*" | xargs wc -l | tail -n 1 | awk '{print $1}')
+    
+    # Second pass to show directory breakdown with percentages
+    for dir in $(find . -type d -not -path "*/test/*" -not -path "*/graphql/generated/*" -not -path "." -not -path "./test" | sort); do
+        lines=$(find "$dir" -type f -name "*.ts" -not -path "*/graphql/generated/*" | xargs wc -l 2>/dev/null | tail -n 1 | awk '{print $1}')
+        if [ ! -z "$lines" ]; then
+            percentage=$(echo "scale=1; $lines * 100 / $total" | bc)
+            printf "%-30s %6d lines (%5.1f%%)\n" "$dir" "$lines" "$percentage"
+        fi
+    done
+    echo
+    echo -e "${GREEN}Top 10 largest files:${NC}"
+    find . -type f -name "*.ts" -not -path "*/test/*" -not -path "*/graphql/generated/*" | xargs wc -l | sort -nr | head -n 11
+    echo
+    echo -e "${GREEN}Total TypeScript lines:${NC} $total" 

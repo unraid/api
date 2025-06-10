@@ -2,6 +2,11 @@ import { Injectable, Logger } from '@nestjs/common';
 
 import type { ApiNestPluginDefinition } from '@app/unraid-api/plugin/plugin.interface.js';
 import { getPackageJson } from '@app/environment.js';
+import {
+    NotificationImportance,
+    NotificationType,
+} from '@app/unraid-api/graph/resolvers/notifications/notifications.model.js';
+import { NotificationsService } from '@app/unraid-api/graph/resolvers/notifications/notifications.service.js';
 import { apiNestPluginSchema } from '@app/unraid-api/plugin/plugin.interface.js';
 import { batchProcess } from '@app/utils.js';
 
@@ -22,24 +27,19 @@ export class PluginService {
         const pluginPackages = await PluginService.listPlugins();
         const plugins = await batchProcess(pluginPackages, async ([pkgName]) => {
             try {
-                const possibleImportSources = [
-                    pkgName,
-                    /**----------------------------------------------
-                     *     Importing private workspace plugins
-                     *
-                     *  Private workspace packages are not available in production,
-                     *  so we bundle and copy them to a plugins folder instead.
-                     *
-                     *  See scripts/copy-plugins.js for more details.
-                     *---------------------------------------------**/
-                    `../plugins/${pkgName}/index.js`,
-                ];
-                const plugin = await Promise.any(
-                    possibleImportSources.map((source) => import(/* @vite-ignore */ source))
-                );
+                const plugin = await import(/* @vite-ignore */ pkgName);
                 return apiNestPluginSchema.parse(plugin);
             } catch (error) {
                 PluginService.logger.error(`Plugin from ${pkgName} is invalid`, error);
+                const notificationService = new NotificationsService();
+                const errorMessage = error?.toString?.() ?? (error as Error)?.message ?? '';
+                await notificationService.createNotification({
+                    title: `Plugin from ${pkgName} is invalid`,
+                    subject: `API Plugins`,
+                    description:
+                        'Please see /var/log/graphql-api.log for more details.\n' + errorMessage,
+                    importance: NotificationImportance.ALERT,
+                });
                 throw error;
             }
         });

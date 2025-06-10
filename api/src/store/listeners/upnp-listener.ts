@@ -1,7 +1,6 @@
 import { isAnyOf } from '@reduxjs/toolkit';
 
 import { upnpLogger } from '@app/core/log.js';
-import { setupRemoteAccessThunk } from '@app/store/actions/setup-remote-access.js';
 import { type RootState } from '@app/store/index.js';
 import { startAppListening } from '@app/store/listeners/listener-middleware.js';
 import { loadConfigFile } from '@app/store/modules/config.js';
@@ -9,6 +8,7 @@ import { loadSingleStateFile, loadStateFiles } from '@app/store/modules/emhttp.j
 import { disableUpnp, enableUpnp } from '@app/store/modules/upnp.js';
 import { FileLoadStatus } from '@app/store/types.js';
 
+// FLAG for review: make sure we replace this
 const shouldUpnpBeEnabled = (state: RootState | null): boolean => {
     if (
         state?.config.status !== FileLoadStatus.LOADED ||
@@ -26,8 +26,8 @@ const shouldUpnpBeEnabled = (state: RootState | null): boolean => {
 const isStateOrConfigUpdate = isAnyOf(
     loadConfigFile.fulfilled,
     loadSingleStateFile.fulfilled,
-    loadStateFiles.fulfilled,
-    setupRemoteAccessThunk.fulfilled
+    loadStateFiles.fulfilled
+    // setupRemoteAccessThunk.fulfilled
 );
 
 export const enableUpnpListener = () =>

@@ -1,0 +1,57 @@
+{
+    "name": "@unraid/shared",
+    "version": "1.0.0",
+    "main": "dist/index.js",
+    "types": "dist/index.d.ts",
+    "type": "module",
+    "exports": {
+        ".": {
+            "types": "./dist/index.d.ts",
+            "import": "./dist/index.js"
+        },
+        "./*": {
+            "types": "./dist/*.d.ts",
+            "import": "./dist/*"
+        }
+    },
+    "files": [
+        "dist"
+    ],
+    "scripts": {
+        "build": "rimraf dist && tsc --project tsconfig.build.json",
+        "prepare": "npm run build",
+        "test": "bun test"
+    },
+    "keywords": [],
+    "author": "Lime Technology, Inc. <unraid.net>",
+    "license": "GPL-2.0-or-later",
+    "description": "Shared utilities and types for Unraid API ecosystem",
+    "devDependencies": {
+        "@graphql-tools/utils": "^10.5.5",
+        "@jsonforms/core": "^3.5.1",
+        "@nestjs/common": "^11.0.11",
+        "@nestjs/graphql": "^13.0.3",
+        "@types/bun": "^1.2.15",
+        "@types/lodash-es": "^4.17.12",
+        "@types/node": "^22.14.0",
+        "class-validator": "^0.14.1",
+        "graphql": "^16.9.0",
+        "graphql-scalars": "^1.23.0",
+        "lodash-es": "^4.17.21",
+        "nest-authz": "^2.14.0",
+        "rimraf": "^6.0.1",
+        "type-fest": "^4.38.0",
+        "typescript": "^5.8.2"
+    },
+    "peerDependencies": {
+        "@graphql-tools/utils": "^10.5.5",
+        "@jsonforms/core": "^3.5.1",
+        "@nestjs/common": "^11.0.11",
+        "@nestjs/graphql": "^13.0.3",
+        "class-validator": "^0.14.1",
+        "graphql": "^16.9.0",
+        "graphql-scalars": "^1.23.0",
+        "lodash-es": "^4.17.21",
+        "nest-authz": "^2.14.0"
+    }
+}

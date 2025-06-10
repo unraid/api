@@ -1,5 +1,7 @@
 import { Field, ObjectType } from '@nestjs/graphql';
 
+import { RCloneRemote } from '@app/unraid-api/graph/resolvers/rclone/rclone.model.js';
+
 /**
  * Important:
  *
@@ -30,7 +32,13 @@ export class ParityCheckMutations {}
 @ObjectType({
     description: 'RClone related mutations',
 })
-export class RCloneMutations {}
+export class RCloneMutations {
+    @Field(() => RCloneRemote, { description: 'Create a new RClone remote' })
+    createRCloneRemote!: RCloneRemote;
+
+    @Field(() => Boolean, { description: 'Delete an existing RClone remote' })
+    deleteRCloneRemote!: boolean;
+}
 
 @ObjectType()
 export class RootMutations {
