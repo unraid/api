@@ -8,13 +8,13 @@ import { RCloneService } from '@app/unraid-api/graph/resolvers/rclone/rclone.ser
 
 @Module({
     imports: [],
-    // providers: [
-    //     RCloneService,
-    //     RCloneApiService,
-    //     RCloneFormService,
-    //     RCloneBackupSettingsResolver,
-    //     RCloneMutationsResolver,
-    // ],
-    // exports: [RCloneService, RCloneApiService],
+    providers: [
+        RCloneService,
+        RCloneApiService,
+        RCloneFormService,
+        RCloneBackupSettingsResolver,
+        RCloneMutationsResolver,
+    ],
+    exports: [RCloneService, RCloneApiService],
 })
 export class RCloneModule {}

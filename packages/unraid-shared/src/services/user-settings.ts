@@ -125,7 +125,7 @@ export class UserSettingsService {
   /** Update values from a namespaced object. */
   async updateNamespacedValues(
     values: Record<string, any>
-  ): Promise<{ restartRequired?: boolean; values: Record<string, any> }> {
+  ): Promise<{ restartRequired: boolean; values: Record<string, any> }> {
     let restartRequired = false;
 
     for (const [key, fragmentValues] of Object.entries(values)) {

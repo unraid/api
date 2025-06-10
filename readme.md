@@ -102,7 +102,20 @@ Make sure the following software is installed before proceeding.
 * [Node.js (v20)][Node-url]
 * [Just](https://github.com/casey/just) (optional)
 * libvirt (macOS folks can run `brew install libvirt`)
+* rclone (for development)
 * An [Unraid][Unraid-url] server for development
+
+#### Alternative: Using Nix Flake
+
+If you have [Nix](https://nixos.org/) installed, you can use the provided flake to automatically set up all development dependencies:
+
+```sh
+nix develop
+```
+
+This will provide all the required tools (Node.js, Docker, Just, libvirt, rclone, etc.) without needing to install them manually.
+
+#### SSH Key Setup
 
 Next, create an SSH key if you haven't already.
 Once you have your key pair, add your public SSH key to your Unraid server:
@@ -120,6 +133,12 @@ Once you have your key pair, add your public SSH key to your Unraid server:
    git clone git@github.com:unraid/api.git
    cd api
    ```
+
+    If using Nix, enter the development environment:
+
+    ```sh
+    nix develop
+    ```
 
 2. Run the monorepo setup command.
 

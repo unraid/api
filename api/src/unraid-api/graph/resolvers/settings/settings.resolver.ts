@@ -5,7 +5,11 @@ import { UserSettingsService } from '@unraid/shared/services/user-settings.js';
 import { GraphQLJSON } from 'graphql-scalars';
 
 import { LifecycleService } from '@app/unraid-api/app/lifecycle.service.js';
-import { Settings, UnifiedSettings } from '@app/unraid-api/graph/resolvers/settings/settings.model.js';
+import {
+    Settings,
+    UnifiedSettings,
+    UpdateSettingsResponse,
+} from '@app/unraid-api/graph/resolvers/settings/settings.model.js';
 import { ApiSettings } from '@app/unraid-api/graph/resolvers/settings/settings.service.js';
 
 @Resolver(() => Settings)
@@ -65,13 +69,15 @@ export class UnifiedSettingsResolver {
         return this.userSettings.getAllValues();
     }
 
-    @Mutation(() => GraphQLJSON)
-    async updateSettings(@Args('input', { type: () => GraphQLJSON }) input: object) {
+    @Mutation(() => UpdateSettingsResponse)
+    async updateSettings(
+        @Args('input', { type: () => GraphQLJSON }) input: object
+    ): Promise<UpdateSettingsResponse> {
         const { restartRequired, values } = await this.userSettings.updateNamespacedValues(input);
         if (restartRequired) {
             // hack: allow time for pending writes to flush
             this.lifecycleService.restartApi({ delayMs: 300 });
         }
-        return values;
+        return { restartRequired, values };
     }
 }

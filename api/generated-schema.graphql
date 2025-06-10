@@ -672,6 +672,18 @@ type RCloneBackupConfigForm {
   uiSchema: JSON!
 }
 
+type RCloneBackupSettings {
+  configForm(formOptions: RCloneConfigFormInput): RCloneBackupConfigForm!
+  drives: [RCloneDrive!]!
+  remotes: [RCloneRemote!]!
+}
+
+input RCloneConfigFormInput {
+  providerType: String
+  showAdvanced: Boolean = false
+  parameters: JSON
+}
+
 type RCloneRemote {
   name: String!
   type: String!
@@ -818,10 +830,20 @@ type ParityCheckMutations {
 """RClone related mutations"""
 type RCloneMutations {
   """Create a new RClone remote"""
-  createRCloneRemote: RCloneRemote!
+  createRCloneRemote(input: CreateRCloneRemoteInput!): RCloneRemote!
 
   """Delete an existing RClone remote"""
-  deleteRCloneRemote: Boolean!
+  deleteRCloneRemote(input: DeleteRCloneRemoteInput!): Boolean!
+}
+
+input CreateRCloneRemoteInput {
+  name: String!
+  type: String!
+  parameters: JSON!
+}
+
+input DeleteRCloneRemoteInput {
+  name: String!
 }
 
 type ParityCheck {
@@ -1364,6 +1386,14 @@ type UnifiedSettings implements Node {
   values: JSON!
 }
 
+type UpdateSettingsResponse {
+  """Whether a restart is required for the changes to take effect"""
+  restartRequired: Boolean!
+
+  """The updated settings values"""
+  values: JSON!
+}
+
 type Settings implements Node {
   id: PrefixedID!
 
@@ -1619,6 +1649,7 @@ type Query {
   docker: Docker!
   disks: [Disk!]!
   disk(id: PrefixedID!): Disk!
+  rclone: RCloneBackupSettings!
   settings: Settings!
   remoteAccess: RemoteAccess!
   extraAllowedOrigins: [String!]!
@@ -1656,7 +1687,7 @@ type Mutation {
 
   """Initiates a flash drive backup using a configured remote."""
   initiateFlashBackup(input: InitiateFlashBackupInput!): FlashBackupStatus!
-  updateSettings(input: JSON!): JSON!
+  updateSettings(input: JSON!): UpdateSettingsResponse!
   updateApiSettings(input: ApiSettingsInput!): ConnectSettingsValues!
   connectSignIn(input: ConnectSignInInput!): Boolean!
   connectSignOut: Boolean!

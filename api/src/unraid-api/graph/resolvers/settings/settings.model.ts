@@ -21,6 +21,15 @@ export class UnifiedSettings extends Node {
     values!: Record<string, any>;
 }
 
+@ObjectType()
+export class UpdateSettingsResponse {
+    @Field(() => Boolean, { description: 'Whether a restart is required for the changes to take effect' })
+    restartRequired!: boolean;
+
+    @Field(() => GraphQLJSON, { description: 'The updated settings values' })
+    values!: Record<string, any>;
+}
+
 @ObjectType({
     implements: () => Node,
 })
