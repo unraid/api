@@ -21,11 +21,6 @@ const formState = ref<Record<string, unknown>>({});
 const { result, refetch } = useQuery(getConnectSettingsForm);
 const settings = computed(() => {
   if (!result.value) return;
-  // Debug logging to understand the structure
-  console.log('Settings dataSchema:', result.value.settings.unified.dataSchema);
-  console.log('Settings uiSchema:', result.value.settings.unified.uiSchema);
-  console.log('Settings values:', result.value.settings.unified.values);
-
   return result.value.settings.unified;
 });
 watch(result, () => {
@@ -41,7 +36,6 @@ const restartRequired = computed(() => {
   }
   const currentSandbox = (settings.value?.values as SandboxValues)?.api?.sandbox;
   const updatedSandbox = (formState.value as SandboxValues)?.api?.sandbox;
-  console.log({ currentSandbox, updatedSandbox });
   return currentSandbox !== updatedSandbox;
 });
 

@@ -84,7 +84,7 @@ export class ApiSettings {
             },
             elements: [
                 createLabeledControl({
-                    scope: '#/properties/api/sandbox',
+                    scope: '#/properties/api/properties/sandbox',
                     label: 'Enable Developer Sandbox:',
                     description: sandbox ? description : undefined,
                     controlOptions: {
@@ -113,7 +113,7 @@ export class ApiSettings {
             },
             elements: [
                 createLabeledControl({
-                    scope: '#/properties/api/extraOrigins',
+                    scope: '#/properties/api/properties/extraOrigins',
                     label: 'Allowed Origins (CORS)',
                     description:
                         'Provide a comma-separated list of URLs allowed to access the API (e.g., https://myapp.example.com).',
@@ -144,7 +144,7 @@ export class ApiSettings {
             },
             elements: [
                 createLabeledControl({
-                    scope: '#/properties/api/ssoSubIds',
+                    scope: '#/properties/api/properties/ssoSubIds',
                     label: 'Unraid Connect SSO Users',
                     description: `Provide a list of Unique Unraid Account IDs. Find yours at <a href="https://account.unraid.net/settings" target="_blank" rel="noopener noreferrer">account.unraid.net/settings</a>. Requires restart if adding first user.`,
                     controlOptions: {
