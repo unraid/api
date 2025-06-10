@@ -98,8 +98,8 @@ export class ConnectSettingsService {
     }
 
     async isSSLCertProvisioned(): Promise<boolean> {
-        const { certificateName } = this.configService.getOrThrow('store.emhttp.nginx');
-        return certificateName.endsWith('.myunraid.net');
+        const { certificateName = '' } = this.configService.get('store.emhttp.nginx', {});
+        return certificateName?.endsWith('.myunraid.net') ?? false;
     }
 
     /**------------------------------------------------------------------------
