@@ -1,10 +1,11 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 
 import { JsonSchema, JsonSchema7 } from '@jsonforms/core';
 import { DataSlice, mergeSettingSlices } from '@unraid/shared/jsonforms/settings.js';
 import { type ApiConfig } from '@unraid/shared/services/api-config.js';
 import { UserSettingsService } from '@unraid/shared/services/user-settings.js';
+import { execa } from 'execa';
 
 import { SsoUserService } from '@app/unraid-api/auth/sso-user.service.js';
 import { createLabeledControl } from '@app/unraid-api/graph/utils/form-utils.js';
@@ -12,6 +13,7 @@ import { SettingSlice } from '@app/unraid-api/types/json-forms.js';
 
 @Injectable()
 export class ApiSettings {
+    private readonly logger = new Logger(ApiSettings.name);
     constructor(
         private readonly userSettings: UserSettingsService,
         private readonly configService: ConfigService<{ api: ApiConfig }, true>,

@@ -1344,6 +1344,13 @@ enum ServerStatus {
   NEVER_CONNECTED
 }
 
+type ApiConfig {
+  version: String!
+  extraOrigins: [String!]!
+  sandbox: Boolean
+  ssoSubIds: [String!]!
+}
+
 type UnifiedSettings implements Node {
   id: PrefixedID!
 
@@ -1365,13 +1372,6 @@ type Settings implements Node {
 
   """The API setting values"""
   api: ApiConfig!
-}
-
-type ApiConfig {
-  version: String!
-  extraOrigins: [String!]!
-  sandbox: Boolean
-  ssoSubIds: [String!]!
 }
 
 type VmDomain implements Node {
@@ -1656,6 +1656,7 @@ type Mutation {
 
   """Initiates a flash drive backup using a configured remote."""
   initiateFlashBackup(input: InitiateFlashBackupInput!): FlashBackupStatus!
+  updateSettings(input: JSON!): JSON!
   updateApiSettings(input: ApiSettingsInput!): ConnectSettingsValues!
   connectSignIn(input: ConnectSignInInput!): Boolean!
   connectSignOut: Boolean!

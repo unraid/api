@@ -1,9 +1,10 @@
-import { Query, ResolveField, Resolver } from '@nestjs/graphql';
+import { Args, Mutation, Query, ResolveField, Resolver } from '@nestjs/graphql';
 
 import { ApiConfig } from '@unraid/shared/services/api-config.js';
 import { UserSettingsService } from '@unraid/shared/services/user-settings.js';
 import { GraphQLJSON } from 'graphql-scalars';
 
+import { LifecycleService } from '@app/unraid-api/app/lifecycle.service.js';
 import { Settings, UnifiedSettings } from '@app/unraid-api/graph/resolvers/settings/settings.model.js';
 import { ApiSettings } from '@app/unraid-api/graph/resolvers/settings/settings.service.js';
 
@@ -36,7 +37,10 @@ export class SettingsResolver {
 
 @Resolver(() => UnifiedSettings)
 export class UnifiedSettingsResolver {
-    constructor(private readonly userSettings: UserSettingsService) {}
+    constructor(
+        private readonly userSettings: UserSettingsService,
+        private readonly lifecycleService: LifecycleService
+    ) {}
 
     @ResolveField(() => GraphQLJSON)
     async dataSchema() {
@@ -59,5 +63,15 @@ export class UnifiedSettingsResolver {
     @ResolveField(() => GraphQLJSON)
     async values() {
         return this.userSettings.getAllValues();
+    }
+
+    @Mutation(() => GraphQLJSON)
+    async updateSettings(@Args('input', { type: () => GraphQLJSON }) input: object) {
+        const { restartRequired, values } = await this.userSettings.updateNamespacedValues(input);
+        if (restartRequired) {
+            // hack: allow time for pending writes to flush
+            this.lifecycleService.restartApi({ delayMs: 300 });
+        }
+        return values;
     }
 }

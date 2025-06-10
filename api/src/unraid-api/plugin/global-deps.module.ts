@@ -4,11 +4,13 @@ import { PrefixedID } from '@unraid/shared/prefixed-id-scalar.js';
 import { GRAPHQL_PUBSUB_TOKEN } from '@unraid/shared/pubsub/graphql.pubsub.js';
 import {
     API_KEY_SERVICE_TOKEN,
+    LIFECYCLE_SERVICE_TOKEN,
     SSO_USER_SERVICE_TOKEN,
     UPNP_CLIENT_TOKEN,
 } from '@unraid/shared/tokens.js';
 
 import { pubsub } from '@app/core/pubsub.js';
+import { LifecycleService } from '@app/unraid-api/app/lifecycle.service.js';
 import { ApiKeyService } from '@app/unraid-api/auth/api-key.service.js';
 import { SsoUserService } from '@app/unraid-api/auth/sso-user.service.js';
 import { ApiKeyModule } from '@app/unraid-api/graph/resolvers/api-key/api-key.module.js';
@@ -36,6 +38,11 @@ import { upnpClient } from '@app/upnp/helpers.js';
             useClass: SsoUserService,
         },
         PrefixedID,
+        LifecycleService,
+        {
+            provide: LIFECYCLE_SERVICE_TOKEN,
+            useExisting: LifecycleService,
+        },
     ],
     exports: [
         UPNP_CLIENT_TOKEN,
@@ -43,6 +50,8 @@ import { upnpClient } from '@app/upnp/helpers.js';
         API_KEY_SERVICE_TOKEN,
         SSO_USER_SERVICE_TOKEN,
         PrefixedID,
+        LIFECYCLE_SERVICE_TOKEN,
+        LifecycleService,
     ],
 })
 class GlobalDepsCoreModule {}
