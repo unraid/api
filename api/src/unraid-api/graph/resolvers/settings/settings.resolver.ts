@@ -1,9 +1,17 @@
+import { Logger } from '@nestjs/common';
 import { Args, Mutation, Query, ResolveField, Resolver } from '@nestjs/graphql';
 
+import { Resource } from '@unraid/shared/graphql.model.js';
 import { ApiConfig } from '@unraid/shared/services/api-config.js';
 import { UserSettingsService } from '@unraid/shared/services/user-settings.js';
+import {
+    AuthActionVerb,
+    AuthPossession,
+    UsePermissions,
+} from '@unraid/shared/use-permissions.directive.js';
 import { GraphQLJSON } from 'graphql-scalars';
 
+import { ENVIRONMENT } from '@app/environment.js';
 import { LifecycleService } from '@app/unraid-api/app/lifecycle.service.js';
 import {
     Settings,
@@ -41,6 +49,7 @@ export class SettingsResolver {
 
 @Resolver(() => UnifiedSettings)
 export class UnifiedSettingsResolver {
+    private readonly logger = new Logger(UnifiedSettingsResolver.name);
     constructor(
         private readonly userSettings: UserSettingsService,
         private readonly lifecycleService: LifecycleService
@@ -70,11 +79,18 @@ export class UnifiedSettingsResolver {
     }
 
     @Mutation(() => UpdateSettingsResponse)
+    @UsePermissions({
+        action: AuthActionVerb.UPDATE,
+        resource: Resource.CONFIG,
+        possession: AuthPossession.ANY,
+    })
     async updateSettings(
         @Args('input', { type: () => GraphQLJSON }) input: object
     ): Promise<UpdateSettingsResponse> {
+        this.logger.verbose('Updating Settings %O', input);
         const { restartRequired, values } = await this.userSettings.updateNamespacedValues(input);
         if (restartRequired) {
+            this.logger.verbose('Will restart %O', values);
             // hack: allow time for pending writes to flush
             this.lifecycleService.restartApi({ delayMs: 300 });
         }

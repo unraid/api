@@ -13,7 +13,7 @@ import { AuthActionVerb, AuthPossession } from 'nest-authz';
 import { EVENTS } from '../helper/nest-tokens.js';
 import {
     AllowedOriginInput,
-    ApiSettingsInput,
+    ConnectSettingsInput,
     ConnectSettings,
     ConnectSettingsValues,
     ConnectSignInInput,
@@ -39,7 +39,7 @@ export class ConnectSettingsResolver {
 
     @ResolveField(() => GraphQLJSON)
     public async dataSchema(): Promise<{ properties: DataSlice; type: 'object' }> {
-        const { properties } = await this.connectSettingsService.buildSettingsSchema();
+        const { properties } = await this.connectSettingsService.buildRemoteAccessSlice();
         return {
             type: 'object',
             properties,
@@ -48,7 +48,7 @@ export class ConnectSettingsResolver {
 
     @ResolveField(() => GraphQLJSON)
     public async uiSchema(): Promise<Layout> {
-        const { elements } = await this.connectSettingsService.buildSettingsSchema();
+        const { elements } = await this.connectSettingsService.buildRemoteAccessSlice();
         return {
             type: 'VerticalLayout',
             elements,
@@ -70,23 +70,13 @@ export class ConnectSettingsResolver {
         return this.connectSettingsService.dynamicRemoteAccessSettings();
     }
 
-    @Query(() => [String])
-    @UsePermissions({
-        action: AuthActionVerb.READ,
-        resource: Resource.CONNECT,
-        possession: AuthPossession.ANY,
-    })
-    public async extraAllowedOrigins(): Promise<Array<string>> {
-        return this.connectSettingsService.extraAllowedOrigins();
-    }
-
     @Mutation(() => ConnectSettingsValues)
     @UsePermissions({
         action: AuthActionVerb.UPDATE,
         resource: Resource.CONFIG,
         possession: AuthPossession.ANY,
     })
-    public async updateApiSettings(@Args('input') settings: ApiSettingsInput) {
+    public async updateApiSettings(@Args('input') settings: ConnectSettingsInput) {
         this.logger.verbose(`Attempting to update API settings: ${JSON.stringify(settings, null, 2)}`);
         const restartRequired = await this.connectSettingsService.syncSettings(settings);
         const currentSettings = await this.connectSettingsService.getCurrentSettings();
@@ -134,19 +124,6 @@ export class ConnectSettingsResolver {
             port: input.port,
         });
         return true;
-    }
-
-    @Mutation(() => [String])
-    @UsePermissions({
-        action: AuthActionVerb.UPDATE,
-        resource: Resource.CONFIG,
-        possession: AuthPossession.ANY,
-    })
-    public async setAdditionalAllowedOrigins(@Args('input') input: AllowedOriginInput) {
-        await this.connectSettingsService.syncSettings({
-            extraOrigins: input.origins,
-        });
-        return this.connectSettingsService.extraAllowedOrigins();
     }
 
     @Mutation(() => Boolean)

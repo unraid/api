@@ -74,7 +74,7 @@ class ApiConfigPersistence {
             next: async ({ newValue, oldValue, path }) => {
                 if (path.startsWith('api')) {
                     this.logger.verbose(`Config changed: ${path} from ${oldValue} to ${newValue}`);
-                    await this.persistenceHelper.persistIfChanged(this.filePath, newValue);
+                    await this.persistenceHelper.persistIfChanged(this.filePath, this.config);
                 }
             },
             error: (err) => {
@@ -89,7 +89,7 @@ class ApiConfigPersistence {
         const extraOrigins = csvStringToArray(api?.extraOrigins ?? '').filter(
             (origin) => origin.startsWith('http://') || origin.startsWith('https://')
         );
-        const ssoSubIds = remote?.ssoSubIds ?? [];
+        const ssoSubIds = csvStringToArray(remote?.ssoSubIds ?? '');
 
         this.configService.set('api.sandbox', sandbox === 'yes');
         this.configService.set('api.extraOrigins', extraOrigins);

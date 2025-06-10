@@ -1511,14 +1511,6 @@ enum DynamicRemoteAccessType {
 }
 
 type ConnectSettingsValues {
-  """
-  If true, the GraphQL sandbox is enabled and available at /graphql. If false, the GraphQL sandbox is disabled and only the production API will be available.
-  """
-  sandbox: Boolean!
-
-  """A list of origins allowed to interact with the API"""
-  extraOrigins: [String!]!
-
   """The type of WAN access used for Remote Access"""
   accessType: WAN_ACCESS_TYPE!
 
@@ -1527,9 +1519,6 @@ type ConnectSettingsValues {
 
   """The port used for Remote Access"""
   port: Int
-
-  """A list of Unique Unraid Account ID's"""
-  ssoUserIds: [String!]!
 }
 
 type ConnectSettings implements Node {
@@ -1652,7 +1641,6 @@ type Query {
   rclone: RCloneBackupSettings!
   settings: Settings!
   remoteAccess: RemoteAccess!
-  extraAllowedOrigins: [String!]!
   connect: Connect!
   network: Network!
   cloud: Cloud!
@@ -1688,11 +1676,10 @@ type Mutation {
   """Initiates a flash drive backup using a configured remote."""
   initiateFlashBackup(input: InitiateFlashBackupInput!): FlashBackupStatus!
   updateSettings(input: JSON!): UpdateSettingsResponse!
-  updateApiSettings(input: ApiSettingsInput!): ConnectSettingsValues!
+  updateApiSettings(input: ConnectSettingsInput!): ConnectSettingsValues!
   connectSignIn(input: ConnectSignInInput!): Boolean!
   connectSignOut: Boolean!
   setupRemoteAccess(input: SetupRemoteAccessInput!): Boolean!
-  setAdditionalAllowedOrigins(input: AllowedOriginInput!): [String!]!
   enableDynamicRemoteAccess(input: EnableDynamicRemoteAccessInput!): Boolean!
 }
 
@@ -1720,15 +1707,7 @@ input InitiateFlashBackupInput {
   options: JSON
 }
 
-input ApiSettingsInput {
-  """
-  If true, the GraphQL sandbox will be enabled and available at /graphql. If false, the GraphQL sandbox will be disabled and only the production API will be available.
-  """
-  sandbox: Boolean
-
-  """A list of origins allowed to interact with the API"""
-  extraOrigins: [String!]
-
+input ConnectSettingsInput {
   """The type of WAN access to use for Remote Access"""
   accessType: WAN_ACCESS_TYPE
 
@@ -1739,9 +1718,6 @@ input ApiSettingsInput {
   The port to use for Remote Access. Not required for UPNP forwardType. Required for STATIC forwardType. Ignored if accessType is DISABLED or forwardType is UPNP.
   """
   port: Int
-
-  """A list of Unique Unraid Account ID's"""
-  ssoUserIds: [String!]
 }
 
 input ConnectSignInInput {
@@ -1783,11 +1759,6 @@ input SetupRemoteAccessInput {
   The port to use for Remote Access. Not required for UPNP forwardType. Required for STATIC forwardType. Ignored if accessType is DISABLED or forwardType is UPNP.
   """
   port: Int
-}
-
-input AllowedOriginInput {
-  """A list of origins allowed to interact with the API"""
-  origins: [String!]!
 }
 
 input EnableDynamicRemoteAccessInput {

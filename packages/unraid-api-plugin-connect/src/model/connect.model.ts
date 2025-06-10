@@ -204,18 +204,6 @@ export class DynamicRemoteAccessStatus {
 
 @ObjectType()
 export class ConnectSettingsValues {
-    @Field(() => Boolean, {
-        description:
-            'If true, the GraphQL sandbox is enabled and available at /graphql. If false, the GraphQL sandbox is disabled and only the production API will be available.',
-    })
-    @IsBoolean()
-    sandbox!: boolean;
-
-    @Field(() => [String], { description: 'A list of origins allowed to interact with the API' })
-    @IsArray()
-    @IsString({ each: true })
-    extraOrigins!: string[];
-
     @Field(() => WAN_ACCESS_TYPE, { description: 'The type of WAN access used for Remote Access' })
     @IsEnum(WAN_ACCESS_TYPE)
     accessType!: WAN_ACCESS_TYPE;
@@ -232,33 +220,10 @@ export class ConnectSettingsValues {
     @IsOptional()
     @IsNumber()
     port?: number | null;
-
-    @Field(() => [String], { description: "A list of Unique Unraid Account ID's" })
-    @IsArray()
-    @IsString({ each: true })
-    ssoUserIds!: string[];
 }
 
 @InputType()
-export class ApiSettingsInput {
-    @Field(() => Boolean, {
-        nullable: true,
-        description:
-            'If true, the GraphQL sandbox will be enabled and available at /graphql. If false, the GraphQL sandbox will be disabled and only the production API will be available.',
-    })
-    @IsBoolean()
-    @IsOptional()
-    sandbox?: boolean | null;
-
-    @Field(() => [String], {
-        nullable: true,
-        description: 'A list of origins allowed to interact with the API',
-    })
-    @IsArray()
-    @IsString({ each: true })
-    @IsOptional()
-    extraOrigins?: string[] | null;
-
+export class ConnectSettingsInput {
     @Field(() => WAN_ACCESS_TYPE, {
         nullable: true,
         description: 'The type of WAN access to use for Remote Access',
@@ -282,12 +247,6 @@ export class ApiSettingsInput {
     })
     @IsOptional()
     port?: number | null;
-
-    @Field(() => [String], { nullable: true, description: "A list of Unique Unraid Account ID's" })
-    @IsArray()
-    @IsString({ each: true })
-    @IsOptional()
-    ssoUserIds?: string[] | null;
 }
 
 @ObjectType({

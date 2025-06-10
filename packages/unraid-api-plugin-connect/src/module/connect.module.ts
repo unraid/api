@@ -1,6 +1,8 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 
+import { UserSettingsModule } from '@unraid/shared/services/user-settings.js';
+
 import { ConnectLoginHandler } from '../event-handler/connect-login.handler.js';
 import { ConnectSettingsResolver } from '../resolver/connect-settings.resolver.js';
 import { ConnectResolver } from '../resolver/connect.resolver.js';
@@ -10,7 +12,7 @@ import { ConnectSettingsService } from '../service/connect-settings.service.js';
 import { RemoteAccessModule } from './remote-access.module.js';
 
 @Module({
-    imports: [RemoteAccessModule, ConfigModule],
+    imports: [RemoteAccessModule, ConfigModule, UserSettingsModule],
     providers: [
         ConnectSettingsService,
         ConnectLoginHandler,

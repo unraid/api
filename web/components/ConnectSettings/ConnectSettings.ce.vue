@@ -91,7 +91,6 @@ const submitSettingsUpdate = async () => {
 /** Called whenever a JSONForms form control changes */
 const onChange = ({ data }: { data: Record<string, unknown> }) => {
   formState.value = data;
-  console.log('Form state:', formState.value);
 };
 </script>
 

@@ -9,13 +9,14 @@ import { RuleEffect } from '@jsonforms/core';
 import { createLabeledControl } from '@unraid/shared/jsonforms/control.js';
 import { mergeSettingSlices } from '@unraid/shared/jsonforms/settings.js';
 import { URL_TYPE } from '@unraid/shared/network.model.js';
+import { UserSettingsService } from '@unraid/shared/services/user-settings.js';
 import { SSO_USER_SERVICE_TOKEN } from '@unraid/shared/tokens.js';
 import { execa } from 'execa';
 import { GraphQLError } from 'graphql/error/GraphQLError.js';
 import { decodeJwt } from 'jose';
 
 import type {
-    ApiSettingsInput,
+    ConnectSettingsInput,
     ConnectSettingsValues,
     ConnectSignInInput,
     EnableDynamicRemoteAccessInput,
@@ -28,6 +29,12 @@ import { DynamicRemoteAccessType, WAN_ACCESS_TYPE, WAN_FORWARD_TYPE } from '../m
 import { ConnectApiKeyService } from './connect-api-key.service.js';
 import { DynamicRemoteAccessService } from './dynamic-remote-access.service.js';
 
+declare module '@unraid/shared/services/user-settings.js' {
+    interface UserSettings {
+        'remote-access': RemoteAccess;
+    }
+}
+
 @Injectable()
 export class ConnectSettingsService {
     constructor(
@@ -35,9 +42,20 @@ export class ConnectSettingsService {
         private readonly remoteAccess: DynamicRemoteAccessService,
         private readonly apiKeyService: ConnectApiKeyService,
         private readonly eventEmitter: EventEmitter2,
-        @Inject(SSO_USER_SERVICE_TOKEN)
-        private readonly ssoUserService: SsoUserService
-    ) {}
+        private readonly userSettings: UserSettingsService
+    ) {
+        this.userSettings.register('remote-access', {
+            buildSlice: async () => this.buildRemoteAccessSlice(),
+            getCurrentValues: async () => this.getCurrentSettings(),
+            updateValues: async (settings: Partial<RemoteAccess>) => {
+                await this.syncSettings(settings);
+                return {
+                    restartRequired: false,
+                    values: await this.getCurrentSettings(),
+                };
+            },
+        });
+    }
 
     private readonly logger = new Logger(ConnectSettingsService.name);
 
@@ -91,12 +109,9 @@ export class ConnectSettingsService {
      *------------------------------------------------------------------------**/
 
     async getCurrentSettings(): Promise<ConnectSettingsValues> {
-        const connect = this.configService.getOrThrow<ConnectConfig>('connect');
+        // const connect = this.configService.getOrThrow<ConnectConfig>('connect');
         return {
             ...(await this.dynamicRemoteAccessSettings()),
-            sandbox: this.configService.get('api.sandbox', false),
-            extraOrigins: await this.extraAllowedOrigins(),
-            ssoUserIds: await this.ssoUserService.getSsoUsers(),
         };
     }
 
@@ -105,7 +120,7 @@ export class ConnectSettingsService {
      * @param settings - The settings to sync
      * @returns true if a restart is required, false otherwise
      */
-    async syncSettings(settings: Partial<ApiSettingsInput>): Promise<boolean> {
+    async syncSettings(settings: Partial<ConnectSettingsInput>): Promise<boolean> {
         let restartRequired = false;
         const { nginx } = this.configService.getOrThrow('store.emhttp');
         if (settings.accessType === WAN_ACCESS_TYPE.DISABLED) {
@@ -127,22 +142,9 @@ export class ConnectSettingsService {
                 port: settings.port,
             });
         }
-        if (settings.extraOrigins) {
-            await this.updateAllowedOrigins(settings.extraOrigins);
-        }
-        if (typeof settings.sandbox === 'boolean') {
-            restartRequired ||= await this.setSandboxMode(settings.sandbox);
-        }
-        if (settings.ssoUserIds) {
-            restartRequired ||= await this.ssoUserService.setSsoUsers(settings.ssoUserIds);
-        }
         // const { writeConfigSync } = await import('@app/store/sync/config-disk-sync.js');
         // writeConfigSync('flash');
         return restartRequired;
-    }
-
-    private async updateAllowedOrigins(origins: string[]) {
-        this.configService.set('api.extraOrigins', origins);
     }
 
     private async getOrCreateLocalApiKey() {
@@ -210,17 +212,6 @@ export class ConnectSettingsService {
         }
     }
 
-    /**
-     * Sets the sandbox mode and returns true if the mode was changed
-     * @param sandboxEnabled - Whether to enable sandbox mode
-     * @returns true if the mode was changed, false otherwise
-     */
-    private async setSandboxMode(sandboxEnabled: boolean): Promise<boolean> {
-        const oldSetting = this.configService.get('api.sandbox');
-        this.configService.set('api.sandbox', sandboxEnabled);
-        return sandboxEnabled !== oldSetting;
-    }
-
     private getDynamicRemoteAccessType(
         accessType: WAN_ACCESS_TYPE,
         forwardType?: WAN_FORWARD_TYPE | undefined | null
@@ -282,18 +273,16 @@ export class ConnectSettingsService {
      *                           Settings Form Slices
      *------------------------------------------------------------------------**/
 
-    /**
-     * Builds the complete settings schema
-     */
-    async buildSettingsSchema(): Promise<SettingSlice> {
-        const slices = [
-            await this.remoteAccessSlice(),
-            // await this.sandboxSlice(),
-            this.flashBackupSlice(),
-            // this.ssoUsersSlice(),
-        ];
+    async buildRemoteAccessSlice(): Promise<SettingSlice> {
+        return mergeSettingSlices([await this.remoteAccessSlice()], {
+            as: 'remote-access',
+        });
+    }
 
-        return mergeSettingSlices(slices);
+    buildFlashBackupSlice(): SettingSlice {
+        return mergeSettingSlices([this.flashBackupSlice()], {
+            as: 'flash-backup',
+        });
     }
 
     /**
@@ -329,18 +318,18 @@ export class ConnectSettingsService {
         /** shown when preconditions are met */
         const formControls: UIElement[] = [
             createLabeledControl({
-                scope: '#/properties/accessType',
+                scope: '#/properties/remote-access/properties/accessType',
                 label: 'Allow Remote Access',
                 controlOptions: {},
             }),
             createLabeledControl({
-                scope: '#/properties/forwardType',
+                scope: '#/properties/remote-access/properties/forwardType',
                 label: 'Remote Access Forward Type',
                 controlOptions: {},
                 rule: {
                     effect: RuleEffect.DISABLE,
                     condition: {
-                        scope: '#/properties/accessType',
+                        scope: '#/properties/remote-access/properties/accessType',
                         schema: {
                             enum: [WAN_ACCESS_TYPE.DISABLED],
                         },
@@ -348,7 +337,7 @@ export class ConnectSettingsService {
                 },
             }),
             createLabeledControl({
-                scope: '#/properties/port',
+                scope: '#/properties/remote-access/properties/port',
                 label: 'Remote Access WAN Port',
                 controlOptions: {
                     format: 'short',
@@ -404,113 +393,18 @@ export class ConnectSettingsService {
     }
 
     /**
-     * Developer sandbox settings slice
-     */
-    async sandboxSlice(): Promise<SettingSlice> {
-        const { sandbox } = await this.getCurrentSettings();
-        const description =
-            'The developer sandbox is available at <code><a class="underline" href="/graphql" target="_blank">/graphql</a></code>.';
-        return {
-            properties: {
-                sandbox: {
-                    type: 'boolean',
-                    title: 'Enable Developer Sandbox',
-                    default: false,
-                },
-            },
-            elements: [
-                createLabeledControl({
-                    scope: '#/properties/sandbox',
-                    label: 'Enable Developer Sandbox:',
-                    description: sandbox ? description : undefined,
-                    controlOptions: {
-                        toggle: true,
-                    },
-                }),
-            ],
-        };
-    }
-
-    /**
      * Flash backup settings slice
      */
     flashBackupSlice(): SettingSlice {
         return {
             properties: {
-                flashBackup: {
-                    type: 'object',
-                    properties: {
-                        status: {
-                            type: 'string',
-                            enum: ['inactive', 'active', 'updating'],
-                            default: 'inactive',
-                        },
-                    },
+                status: {
+                    type: 'string',
+                    enum: ['inactive', 'active', 'updating'],
+                    default: 'inactive',
                 },
             },
             elements: [], // No UI elements needed for this system-managed setting
-        };
-    }
-
-    /**
-     * Extra origins settings slice
-     */
-    extraOriginsSlice(): SettingSlice {
-        return {
-            properties: {
-                extraOrigins: {
-                    type: 'array',
-                    items: {
-                        type: 'string',
-                        format: 'url',
-                    },
-                    title: 'Unraid API extra origins',
-                    description: `Provide a comma separated list of urls that are allowed to access the unraid-api. \ne.g. https://abc.myreverseproxy.com`,
-                },
-            },
-            elements: [
-                createLabeledControl({
-                    scope: '#/properties/extraOrigins',
-                    label: 'Allowed Origins (CORS)',
-                    description:
-                        'Provide a comma-separated list of URLs allowed to access the API (e.g., https://myapp.example.com).',
-                    controlOptions: {
-                        inputType: 'url',
-                        placeholder: 'https://example.com',
-                        format: 'array',
-                    },
-                }),
-            ],
-        };
-    }
-
-    /**
-     * Extra origins settings slice
-     */
-    ssoUsersSlice(): SettingSlice {
-        return {
-            properties: {
-                ssoUserIds: {
-                    type: 'array',
-                    items: {
-                        type: 'string',
-                    },
-                    title: 'Unraid API SSO Users',
-                    description: `Provide a list of Unique Unraid Account ID's. Find yours at <a href="https://account.unraid.net/settings" target="_blank" rel="noopener noreferrer">account.unraid.net/settings</a>. Requires restart if adding first user.`,
-                },
-            },
-            elements: [
-                createLabeledControl({
-                    scope: '#/properties/ssoUserIds',
-                    label: 'Unraid Connect SSO Users',
-                    description: `Provide a list of Unique Unraid Account IDs. Find yours at <a href="https://account.unraid.net/settings" target="_blank" rel="noopener noreferrer">account.unraid.net/settings</a>. Requires restart if adding first user.`,
-                    controlOptions: {
-                        inputType: 'text',
-                        placeholder: 'UUID',
-                        format: 'array',
-                    },
-                }),
-            ],
         };
     }
 }
