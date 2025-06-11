@@ -3,6 +3,7 @@ import { Command, CommandRunner, Option, SubCommand } from 'nest-commander';
 import { LogService } from '@app/unraid-api/cli/log.service.js';
 import { DependencyService } from '@app/unraid-api/cli/plugins/dependency.service.js';
 import { RestartCommand } from '@app/unraid-api/cli/restart.command.js';
+import { PluginManagementService } from '@app/unraid-api/plugin/plugin-management.service.js';
 import { PluginService } from '@app/unraid-api/plugin/plugin.service.js';
 
 interface InstallPluginCommandOptions {
@@ -19,12 +20,15 @@ export class InstallPluginCommand extends CommandRunner {
     constructor(
         private readonly dependencyService: DependencyService,
         private readonly logService: LogService,
-        private readonly restartCommand: RestartCommand
+        private readonly restartCommand: RestartCommand,
+        private readonly pluginManagementService: PluginManagementService
     ) {
         super();
     }
 
     async run(passedParams: string[], options: InstallPluginCommandOptions): Promise<void> {
+        await this.pluginManagementService.addPlugin('dummy');
+        return;
         const [packageName] = passedParams;
         if (!packageName) {
             this.logService.error('Package name is required.');

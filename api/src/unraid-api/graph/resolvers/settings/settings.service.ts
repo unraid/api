@@ -32,6 +32,7 @@ export class ApiSettings {
             sandbox: this.configService.get('api.sandbox', { infer: true }),
             extraOrigins: this.configService.get('api.extraOrigins', { infer: true }),
             ssoSubIds: this.configService.get('api.ssoSubIds', { infer: true }),
+            plugins: this.configService.get('api.plugins', { infer: true }),
         };
     }
 

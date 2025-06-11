@@ -17,6 +17,7 @@ const createDefaultConfig = (): ApiConfig => ({
     extraOrigins: [],
     sandbox: false,
     ssoSubIds: [],
+    plugins: [],
 });
 
 /**
