@@ -47,10 +47,6 @@ exit 0
 ]]>
     </INLINE>
   </FILE>
-  
-  <FILE Name="/boot/config/plugins/dynamix.my.servers/&vendor_store_filename;">
-    <URL>&vendor_store_url;</URL>
-  </FILE>
 
   <!-- download main txz -->
   <FILE Name="&source;">
@@ -234,6 +230,9 @@ for txz_file in /boot/config/plugins/dynamix.my.servers/dynamix.unraid.net-*.txz
     rm -f "$txz_file"
   fi
 done
+
+# Clean up any old node_modules archives (on the boot drive) that don't match our current version
+/etc/rc.d/rc.unraid-api cleanup-dependencies
 
 # Remove existing node_modules directory
 echo "Cleaning up existing node_modules directory..."
