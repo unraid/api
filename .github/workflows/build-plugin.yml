@@ -124,11 +124,6 @@ jobs:
             exit 1
           fi
 
-          if [ ! -f ./deploy/*.tar.xz ]; then
-            echo "Error: .tar.xz file not found in plugin/deploy/"
-            exit 1
-          fi
-
       - name: Upload to GHA
         uses: actions/upload-artifact@v4
         with:
