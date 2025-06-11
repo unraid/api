@@ -3,7 +3,7 @@ import { $ } from "zx";
 import { escape as escapeHtml } from "html-sloppy-escaper";
 import { dirname, join } from "node:path";
 import { getTxzName, pluginName, startingDir, defaultArch, defaultBuild } from "./utils/consts";
-import { getAssetUrl, getPluginUrl } from "./utils/bucket-urls";
+import { getPluginUrl } from "./utils/bucket-urls";
 import { getMainTxzUrl } from "./utils/bucket-urls";
 import {
   deployDir,
@@ -12,7 +12,6 @@ import {
 } from "./utils/paths";
 import { PluginEnv, setupPluginEnv } from "./cli/setup-plugin-environment";
 import { cleanupPluginFiles } from "./utils/cleanup";
-import { bundleVendorStore, getVendorBundleName } from "./build-vendor-store";
 
 /**
  * Check if git is available
@@ -76,8 +75,6 @@ const buildPlugin = async ({
     txz_url: getMainTxzUrl({ baseUrl, apiVersion, tag }),
     txz_sha256: txzSha256,
     txz_name: getTxzName(apiVersion),
-    vendor_store_url: getAssetUrl({ baseUrl, tag }, getVendorBundleName(apiVersion)),
-    vendor_store_filename: getVendorBundleName(apiVersion),
     ...(tag ? { tag } : {}),
   };
 
@@ -123,7 +120,6 @@ const main = async () => {
 
     await buildPlugin(validatedEnv);
     await moveTxzFile(validatedEnv);
-    await bundleVendorStore(validatedEnv.apiVersion);
   } catch (error) {
     console.error(error);
     process.exit(1);

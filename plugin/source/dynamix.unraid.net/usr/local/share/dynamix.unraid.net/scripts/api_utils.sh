@@ -28,7 +28,6 @@ get_api_version() {
 get_archive_information() {
   # Define all local variables at the top
   local api_version=""
-  local vendor_store_url=""
   local vendor_store_path=""
   
   if [ ! -f "$CONFIG_FILE" ]; then
@@ -39,7 +38,6 @@ get_archive_information() {
   # Read values from JSON config using jq
   if command -v jq >/dev/null 2>&1; then
     api_version=$(jq -r '.api_version' "$CONFIG_FILE")
-    vendor_store_url=$(jq -r '.vendor_store_url' "$CONFIG_FILE")
     vendor_store_path=$(jq -r '.vendor_store_path' "$CONFIG_FILE")
   else
     echo "jq not found, can't parse config file" >&2
@@ -52,11 +50,6 @@ get_archive_information() {
     return 1
   fi
   
-  if [ -z "$vendor_store_url" ] || [ "$vendor_store_url" = "null" ]; then
-    echo "Invalid or missing vendor_store_url in config file" >&2
-    return 1
-  fi
-  
   if [ -z "$vendor_store_path" ] || [ "$vendor_store_path" = "null" ]; then
     echo "Invalid or missing vendor_store_path in config file" >&2
     return 1
@@ -64,7 +57,6 @@ get_archive_information() {
   
   # Return the values
   echo "$api_version"
-  echo "$vendor_store_url"
   echo "$vendor_store_path"
   return 0
 } 

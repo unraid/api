@@ -15,6 +15,29 @@ setup:
     
     pnpm install
 
+# Removes all node_modules directories in the repository
+clean-modules:
+    #!/usr/bin/env bash
+    echo "Finding and removing all node_modules directories..."
+    find . -name "node_modules" -type d -not -path "*/node_modules/*" | while read dir; do
+        echo "Removing: $dir"
+        rm -rf "$dir"
+    done
+    echo "All node_modules directories have been removed."
+
+# Removes all build artifacts (dist, .nuxt, .output, coverage, etc.)
+clean-build:
+    #!/usr/bin/env bash
+    echo "Finding and removing build artifacts..."
+    build_dirs=("dist" ".nuxt" ".output" "coverage" "deploy")
+    for build_dir in "${build_dirs[@]}"; do
+        find . -name "$build_dir" -type d | while read dir; do
+            echo "Removing: $dir"
+            rm -rf "$dir"
+        done
+    done
+    echo "All build artifacts have been removed."
+
 # restore notification files under api/dev
 restore-notifications:
     git checkout ./api/dev/notifications

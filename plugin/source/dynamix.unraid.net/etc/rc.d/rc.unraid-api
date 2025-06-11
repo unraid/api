@@ -29,11 +29,10 @@ uninstall() {
 start() {
   echo "Starting Unraid API service..."
   
-  # Ensure dependencies are installed
+  # Restore vendored API plugins if they were installed
   if [ -x "$scripts_dir/dependencies.sh" ]; then
-    "$scripts_dir/dependencies.sh" ensure || {
-      echo "Failed to install dependencies – aborting start."
-      return 1
+    "$scripts_dir/dependencies.sh" restore || {
+      echo "Failed to restore API plugin dependencies! Continuing with start, but API plugins may be unavailable."
     }
   else
     echo "Warning: dependencies.sh script not found or not executable"
