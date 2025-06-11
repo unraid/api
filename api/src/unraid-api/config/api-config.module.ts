@@ -20,6 +20,18 @@ const createDefaultConfig = (): ApiConfig => ({
     plugins: [],
 });
 
+export const persistApiConfig = async (config: ApiConfig) => {
+    const apiConfig = new ApiStateConfig<ApiConfig>(
+        {
+            name: 'api',
+            defaultConfig: config,
+            parse: (data) => data as ApiConfig,
+        },
+        new ConfigPersistenceHelper()
+    );
+    return await apiConfig.persist(config);
+};
+
 export const loadApiConfig = async () => {
     const defaultConfig = createDefaultConfig();
     const apiConfig = new ApiStateConfig<ApiConfig>(

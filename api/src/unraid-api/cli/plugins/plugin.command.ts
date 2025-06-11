@@ -35,9 +35,11 @@ export class InstallPluginCommand extends CommandRunner {
         }
         if (options.bundled) {
             await this.pluginManagementService.addBundledPlugin(...passedParams);
-            return;
+            this.logService.log(`Added bundled plugin ${passedParams.join(', ')}`);
+        } else {
+            await this.pluginManagementService.addPlugin(...passedParams);
+            this.logService.log(`Added plugin ${passedParams.join(', ')}`);
         }
-        await this.pluginManagementService.addPlugin(...passedParams);
         await this.restartCommand.run();
     }
 
@@ -67,16 +69,18 @@ export class RemovePluginCommand extends CommandRunner {
     }
 
     async run(passedParams: string[], options: InstallPluginCommandOptions): Promise<void> {
-        if (options.bundled) {
-            await this.pluginManagementService.removeBundledPlugin(...passedParams);
-            return;
-        }
         if (passedParams.length === 0) {
             this.logService.error('Package name is required.');
             process.exitCode = 1;
             return;
         }
-        await this.pluginManagementService.removePlugin(...passedParams);
+        if (options.bundled) {
+            await this.pluginManagementService.removeBundledPlugin(...passedParams);
+            this.logService.log(`Removed bundled plugin ${passedParams.join(', ')}`);
+        } else {
+            await this.pluginManagementService.removePlugin(...passedParams);
+            this.logService.log(`Removed plugin ${passedParams.join(', ')}`);
+        }
         await this.restartCommand.run();
     }
 
@@ -114,6 +118,11 @@ export class ListPluginCommand extends CommandRunner {
             const notInstalled = Array.from(configSet.difference(installedSet));
             this.logService.warn(`${notInstalled.length} plugins are not installed:`);
             this.logService.table('warn', notInstalled);
+        }
+
+        if (installedPlugins.length === 0) {
+            this.logService.log('No plugins installed.');
+            return;
         }
 
         this.logService.log('Installed plugins:\n');
