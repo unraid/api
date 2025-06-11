@@ -73,7 +73,7 @@ const storeVendorArchiveInfo = async (version: string, vendorUrl: string, vendor
     
     // Create a JSON config file with vendor information
     const configData = {
-      vendor_store_url: vendorUrl,
+      // vendor_store_url: vendorUrl,
       vendor_store_path: vendorFullPath,
       api_version: version
     };
