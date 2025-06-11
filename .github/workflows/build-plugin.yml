@@ -100,11 +100,6 @@ jobs:
         with:
           name: unraid-api
           path: ${{ github.workspace }}/plugin/api/
-      - name: Download PNPM Store
-        uses: actions/download-artifact@v4
-        with:
-          name: packed-node-modules
-          path: ${{ github.workspace }}/plugin/node-modules-archive/
       - name: Extract Unraid API
         run: |
           mkdir -p ${{ github.workspace }}/plugin/source/dynamix.unraid.net/usr/local/unraid-api

@@ -120,13 +120,6 @@ try {
         }
     }
 
-    const compressionLevel = process.env.WATCH_MODE ? '-1' : '-5';
-    await $`XZ_OPT=${compressionLevel} tar -cJf packed-node-modules.tar.xz node_modules`;
-    // Create a subdirectory for the node modules archive
-    await mkdir('../node-modules-archive', { recursive: true });
-    await $`mv packed-node-modules.tar.xz ../node-modules-archive/`;
-    // await $`rm -rf node_modules`;
-
     // Clean the release directory
     await $`rm -rf ../release/*`;
 
