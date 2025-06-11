@@ -11,7 +11,7 @@ import {
 import { PM2Service } from '@app/unraid-api/cli/pm2.service.js';
 import { RestartCommand } from '@app/unraid-api/cli/restart.command.js';
 
-const services = [DependencyService, LogService, PM2Service];
+const services = [DependencyService];
 const commands = [
     PluginCommand,
     ListPluginCommand,
@@ -19,7 +19,7 @@ const commands = [
     RemovePluginCommand,
     RestartCommand,
 ];
-const moduleResources = [...services, ...commands];
+export const moduleResources = [...services, ...commands];
 
 @Module({
     providers: moduleResources,

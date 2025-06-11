@@ -1,3 +1,5 @@
+import { Injectable } from '@nestjs/common';
+
 import { Command, CommandRunner, Option, SubCommand } from 'nest-commander';
 
 import { LogService } from '@app/unraid-api/cli/log.service.js';
@@ -109,14 +111,19 @@ export class ListPluginCommand extends CommandRunner {
     }
 }
 
+@Injectable()
 @Command({
     name: 'plugins',
     description: 'Manage Unraid API plugins (peer dependencies)',
     subCommands: [InstallPluginCommand, RemovePluginCommand, ListPluginCommand],
 })
 export class PluginCommand extends CommandRunner {
-    constructor() {
+    constructor(private readonly logger: LogService) {
         super();
     }
-    async run(): Promise<void> {}
+
+    async run(): Promise<void> {
+        this.logger.info('Please provide a subcommand or use --help for more information');
+        process.exit(0);
+    }
 }

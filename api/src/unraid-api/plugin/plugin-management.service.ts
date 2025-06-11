@@ -15,6 +15,7 @@ export class PluginManagementService {
 
     async addPlugin(plugin: string) {
         await execa('npm', ['run'], {
+            stdio: 'inherit',
             cwd: path.join(process.cwd()),
         });
     }
