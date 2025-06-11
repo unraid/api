@@ -26,7 +26,7 @@ cleanup() {
   fi
   
   api_version="${info[0]}"
-  vendor_store_path="${info[2]}"
+  vendor_store_path="${info[1]}"
   
   echo "Cleaning up node_modules archives that don't match current API version: $api_version"
   
@@ -62,48 +62,16 @@ cleanup() {
 # Args:
 #   $1 - Path to vendor archive to download (ignored, kept for backward compatibility)
 redownload_vendor_archive() {
-  # Define all local variables at the top
-  local info
-  local api_version=""
-  local vendor_store_url=""
-  local vendor_store_path=""
-  
-  # Get archive information
-  if ! mapfile -t info < <(get_archive_information); then
-    echo "Error: Failed to get vendor archive information. Cannot proceed." >&2
-    return 1
-  fi
-  
-  api_version="${info[0]}"
-  vendor_store_url="${info[1]}"
-  vendor_store_path="${info[2]}"
-  
-  echo "Attempting to download vendor archive for version $api_version"
-  
-  # Create directory if it doesn't exist
-  mkdir -p "$(dirname "$vendor_store_path")"
-  
-  # Attempt to download the vendor archive
-  echo "Downloading vendor archive from $vendor_store_url to $vendor_store_path"
-  if curl -f -L "$vendor_store_url" -o "$vendor_store_path"; then
-    echo "Successfully downloaded vendor archive to $vendor_store_path"
-    # Return the path to the downloaded archive
-    echo "$vendor_store_path"
-    return 0
-  else
-    echo "Failed to download vendor archive from URL"
-    return 1
-  fi
+  echo "Error: Download functionality not available - vendor store URL not configured" >&2
+  return 1
 }
 
 # Function to ensure vendor archive is available
-# This tries to locate or download the appropriate vendor archive
 # Returns the path to the vendor archive or empty string if not available
 ensure_vendor_archive() {
   # Define all local variables at the top
   local info
   local api_version=""
-  local vendor_store_url=""
   local vendor_store_path=""
   
   # Get archive information
@@ -113,8 +81,7 @@ ensure_vendor_archive() {
   fi
   
   api_version="${info[0]}"
-  vendor_store_url="${info[1]}"
-  vendor_store_path="${info[2]}"
+  vendor_store_path="${info[1]}"
   
   echo "Looking for vendor archive at $vendor_store_path" >&2
   
@@ -124,16 +91,8 @@ ensure_vendor_archive() {
     return 0
   fi
   
-  # Expected archive is missing, attempt to download
-  echo "Expected vendor archive missing at $vendor_store_path. Attempting to download..." >&2
-  downloaded_archive=$(redownload_vendor_archive)
-  if [ -n "$downloaded_archive" ] && [ -f "$downloaded_archive" ]; then
-    echo "$downloaded_archive"
-    return 0
-  fi
-  
   # No vendor archive available
-  echo "No vendor archive available" >&2
+  echo "No vendor archive available at $vendor_store_path" >&2
   return 1
 }
 
@@ -157,7 +116,7 @@ restore_dependencies() {
       return 0
     fi
 
-    vendor_store_path="${info[2]}"
+    vendor_store_path="${info[1]}"
 
     if [ -z "$vendor_store_path" ]; then
       echo "Vendor store path is undefined. Skipping restore."
@@ -212,7 +171,6 @@ archive_dependencies() {
   # Define all local variables at the top
   local info
   local api_version=""
-  local vendor_store_url=""
   local vendor_store_path=""
   local source_dir="$DEPENDENCIES_DIR"
   local archive_file=""
@@ -223,8 +181,7 @@ archive_dependencies() {
     return 1
   else
     api_version="${info[0]}"
-    vendor_store_url="${info[1]}"
-    vendor_store_path="${info[2]}"
+    vendor_store_path="${info[1]}"
     
     archive_file="$vendor_store_path"
   fi

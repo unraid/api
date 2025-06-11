@@ -12,7 +12,6 @@ import {
 } from "./utils/paths";
 import { PluginEnv, setupPluginEnv } from "./cli/setup-plugin-environment";
 import { cleanupPluginFiles } from "./utils/cleanup";
-import { getVendorBundleName } from "./build-vendor-store";
 
 /**
  * Check if git is available
@@ -76,8 +75,6 @@ const buildPlugin = async ({
     txz_url: getMainTxzUrl({ baseUrl, apiVersion, tag }),
     txz_sha256: txzSha256,
     txz_name: getTxzName(apiVersion),
-    // vendor_store_url: getAssetUrl({ baseUrl, tag }, getVendorBundleName(apiVersion)),
-    vendor_store_filename: getVendorBundleName(apiVersion),
     ...(tag ? { tag } : {}),
   };
 
