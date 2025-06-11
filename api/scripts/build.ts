@@ -125,7 +125,7 @@ try {
     // Create a subdirectory for the node modules archive
     await mkdir('../node-modules-archive', { recursive: true });
     await $`mv packed-node-modules.tar.xz ../node-modules-archive/`;
-    await $`rm -rf node_modules`;
+    // await $`rm -rf node_modules`;
 
     // Clean the release directory
     await $`rm -rf ../release/*`;
