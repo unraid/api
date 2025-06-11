@@ -10,6 +10,7 @@ import { parsePackageArg } from '@app/utils.js';
 
 interface InstallPluginCommandOptions {
     bundled: boolean;
+    restart: boolean;
 }
 
 @SubCommand({
@@ -40,7 +41,9 @@ export class InstallPluginCommand extends CommandRunner {
             await this.pluginManagementService.addPlugin(...passedParams);
             this.logService.log(`Added plugin ${passedParams.join(', ')}`);
         }
-        await this.restartCommand.run();
+        if (options.restart) {
+            await this.restartCommand.run();
+        }
     }
 
     @Option({
@@ -50,6 +53,15 @@ export class InstallPluginCommand extends CommandRunner {
     })
     parseBundled(): boolean {
         return true;
+    }
+
+    @Option({
+        flags: '--no-restart',
+        description: 'do NOT restart the service after deploy',
+        defaultValue: true,
+    })
+    parseRestart(value: boolean): boolean {
+        return false;
     }
 }
 
@@ -81,7 +93,9 @@ export class RemovePluginCommand extends CommandRunner {
             await this.pluginManagementService.removePlugin(...passedParams);
             this.logService.log(`Removed plugin ${passedParams.join(', ')}`);
         }
-        await this.restartCommand.run();
+        if (options.restart) {
+            await this.restartCommand.run();
+        }
     }
 
     @Option({
@@ -91,6 +105,15 @@ export class RemovePluginCommand extends CommandRunner {
     })
     parseBundled(): boolean {
         return true;
+    }
+
+    @Option({
+        flags: '--no-restart',
+        description: 'do NOT restart the service after deploy',
+        defaultValue: true,
+    })
+    parseRestart(value: boolean): boolean {
+        return false;
     }
 }
 
@@ -129,6 +152,7 @@ export class ListPluginCommand extends CommandRunner {
         installedPlugins.forEach(([name, version]) => {
             this.logService.log(`☑️ ${name}@${version}`);
         });
+        this.logService.log(); // for spacing
     }
 }
 
