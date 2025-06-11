@@ -139,12 +139,33 @@ ensure_vendor_archive() {
 
 # Restores the node_modules directory from a backup file
 # Args:
-#   $1 - Path to the backup file (tar.xz format)
+#   $1 - Path to the backup file (tar.xz format) [optional - if not provided, uses vendor store path]
 # Returns:
 #   0 on success, 1 on failure
 # Note: Requires 1.5x the backup size in free space for safe extraction
 restore_dependencies() {
   backup_file="$1"
+  
+  # If no backup file provided, get it from vendor store path
+  if [ -z "$backup_file" ]; then
+    local info
+    local vendor_store_path=""
+
+    # Get archive information
+    if ! mapfile -t info < <(get_archive_information); then
+      echo "Error: Failed to get vendor archive information. Skipping restore." >&2
+      return 0
+    fi
+
+    vendor_store_path="${info[2]}"
+
+    if [ -z "$vendor_store_path" ]; then
+      echo "Vendor store path is undefined. Skipping restore."
+      return 0
+    fi
+
+    backup_file="$vendor_store_path"
+  fi
   
   # Check if backup file exists
   if [ ! -f "$backup_file" ]; then
@@ -260,13 +281,8 @@ ensure() {
 # Main logic
 case "$1" in
   'restore')
-    if [ -n "$2" ]; then
-      restore_dependencies "$2"
-      exit $?
-    else
-      echo "Usage: $0 restore <archive_path>"
-      exit 1
-    fi
+    restore_dependencies "$2"
+    exit $?
     ;;
   'archive')
     archive_dependencies
@@ -291,7 +307,7 @@ case "$1" in
     fi
     ;;
   *)
-    echo "Usage: $0 {restore|archive|ensure|cleanup|redownload}"
+    echo "Usage: $0 {restore [archive_path]|archive|ensure|cleanup|redownload}"
     exit 1
     ;;
 esac 
