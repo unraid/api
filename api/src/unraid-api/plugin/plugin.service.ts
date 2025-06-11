@@ -2,13 +2,14 @@ import { Injectable, Logger } from '@nestjs/common';
 
 import type { ApiNestPluginDefinition } from '@app/unraid-api/plugin/plugin.interface.js';
 import { getPackageJson } from '@app/environment.js';
+import { loadApiConfig } from '@app/unraid-api/config/api-config.module.js';
 import {
     NotificationImportance,
     NotificationType,
 } from '@app/unraid-api/graph/resolvers/notifications/notifications.model.js';
 import { NotificationsService } from '@app/unraid-api/graph/resolvers/notifications/notifications.service.js';
 import { apiNestPluginSchema } from '@app/unraid-api/plugin/plugin.interface.js';
-import { batchProcess } from '@app/utils.js';
+import { batchProcess, parsePackageArg } from '@app/utils.js';
 
 @Injectable()
 export class PluginService {
@@ -51,19 +52,31 @@ export class PluginService {
         return plugins.data;
     }
 
+    /**
+     * Lists all plugins that are installed as peer dependencies of the unraid-api package.
+     *
+     * @returns A tuple of the plugin name and version.
+     */
     static async listPlugins(): Promise<[string, string][]> {
-        /** All api plugins must be npm packages whose name starts with this prefix */
-        const pluginPrefix = 'unraid-api-plugin-';
-        // All api plugins must be installed as dependencies of the unraid-api package
+        const { plugins } = await loadApiConfig();
+        const pluginNames = new Set(
+            plugins.map((plugin) => {
+                const { name } = parsePackageArg(plugin);
+                return name;
+            })
+        );
         const { peerDependencies } = getPackageJson();
+        // All api plugins must be installed as peer dependencies of the unraid-api package
         if (!peerDependencies) {
             PluginService.logger.warn('Unraid-API peer dependencies not found; skipping plugins.');
             return [];
         }
-        const plugins = Object.entries(peerDependencies).filter((entry): entry is [string, string] => {
-            const [pkgName, version] = entry;
-            return pkgName.startsWith(pluginPrefix) && typeof version === 'string';
-        });
-        return plugins;
+        const pluginTuples = Object.entries(peerDependencies).filter(
+            (entry): entry is [string, string] => {
+                const [pkgName, version] = entry;
+                return pluginNames.has(pkgName) && typeof version === 'string';
+            }
+        );
+        return pluginTuples;
     }
 }

@@ -20,10 +20,7 @@ const createDefaultConfig = (): ApiConfig => ({
     plugins: [],
 });
 
-/**
- * Loads the API config from disk. If not found, returns the default config, but does not persist it.
- */
-export const apiConfig = registerAs<ApiConfig>('api', async () => {
+export const loadApiConfig = async () => {
     const defaultConfig = createDefaultConfig();
     const apiConfig = new ApiStateConfig<ApiConfig>(
         {
@@ -39,7 +36,12 @@ export const apiConfig = registerAs<ApiConfig>('api', async () => {
         ...diskConfig,
         version: API_VERSION,
     };
-});
+};
+
+/**
+ * Loads the API config from disk. If not found, returns the default config, but does not persist it.
+ */
+export const apiConfig = registerAs<ApiConfig>('api', loadApiConfig);
 
 @Injectable()
 class ApiConfigPersistence {

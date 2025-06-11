@@ -3,10 +3,10 @@ import { Injectable } from '@nestjs/common';
 import { Command, CommandRunner, Option, SubCommand } from 'nest-commander';
 
 import { LogService } from '@app/unraid-api/cli/log.service.js';
-import { DependencyService } from '@app/unraid-api/cli/plugins/dependency.service.js';
 import { RestartCommand } from '@app/unraid-api/cli/restart.command.js';
 import { PluginManagementService } from '@app/unraid-api/plugin/plugin-management.service.js';
 import { PluginService } from '@app/unraid-api/plugin/plugin.service.js';
+import { parsePackageArg } from '@app/utils.js';
 
 interface InstallPluginCommandOptions {
     bundled: boolean;
@@ -20,7 +20,6 @@ interface InstallPluginCommandOptions {
 })
 export class InstallPluginCommand extends CommandRunner {
     constructor(
-        private readonly dependencyService: DependencyService,
         private readonly logService: LogService,
         private readonly restartCommand: RestartCommand,
         private readonly pluginManagementService: PluginManagementService
@@ -29,25 +28,17 @@ export class InstallPluginCommand extends CommandRunner {
     }
 
     async run(passedParams: string[], options: InstallPluginCommandOptions): Promise<void> {
-        await this.pluginManagementService.addPlugin('dummy');
-        return;
-        const [packageName] = passedParams;
-        if (!packageName) {
+        if (passedParams.length === 0) {
             this.logService.error('Package name is required.');
             process.exitCode = 1;
             return;
         }
-        try {
-            await this.dependencyService.addPeerDependency(packageName, options.bundled);
-            this.logService.log(`Added ${packageName} as a peer dependency.`);
-            if (!options.bundled) {
-                await this.dependencyService.rebuildVendorArchive();
-            }
-            await this.restartCommand.run();
-        } catch (error) {
-            this.logService.error(error);
-            process.exitCode = 1;
+        if (options.bundled) {
+            await this.pluginManagementService.addBundledPlugin(...passedParams);
+            return;
         }
+        await this.pluginManagementService.addPlugin(...passedParams);
+        await this.restartCommand.run();
     }
 
     @Option({
@@ -68,27 +59,34 @@ export class InstallPluginCommand extends CommandRunner {
 })
 export class RemovePluginCommand extends CommandRunner {
     constructor(
-        private readonly pluginService: DependencyService,
         private readonly logService: LogService,
+        private readonly pluginManagementService: PluginManagementService,
         private readonly restartCommand: RestartCommand
     ) {
         super();
     }
 
-    async run(passedParams: string[]): Promise<void> {
-        const [packageName] = passedParams;
-        if (!packageName) {
+    async run(passedParams: string[], options: InstallPluginCommandOptions): Promise<void> {
+        if (options.bundled) {
+            await this.pluginManagementService.removeBundledPlugin(...passedParams);
+            return;
+        }
+        if (passedParams.length === 0) {
             this.logService.error('Package name is required.');
             process.exitCode = 1;
             return;
         }
-        try {
-            await this.pluginService.removePeerDependency(packageName);
-            await this.restartCommand.run();
-        } catch (error) {
-            this.logService.error(`Failed to remove plugin '${packageName}':`, error);
-            process.exitCode = 1;
-        }
+        await this.pluginManagementService.removePlugin(...passedParams);
+        await this.restartCommand.run();
+    }
+
+    @Option({
+        flags: '-b, --bundled',
+        description: 'Uninstall a bundled plugin',
+        defaultValue: false,
+    })
+    parseBundled(): boolean {
+        return true;
     }
 }
 
@@ -98,14 +96,28 @@ export class RemovePluginCommand extends CommandRunner {
     options: { isDefault: true },
 })
 export class ListPluginCommand extends CommandRunner {
-    constructor(private readonly logService: LogService) {
+    constructor(
+        private readonly logService: LogService,
+        private readonly pluginManagementService: PluginManagementService
+    ) {
         super();
     }
 
     async run(): Promise<void> {
-        const plugins = await PluginService.listPlugins();
-        this.logService.log('Installed plugins:');
-        plugins.forEach(([name, version]) => {
+        const configPlugins = this.pluginManagementService.plugins;
+        const installedPlugins = await PluginService.listPlugins();
+
+        // this can happen if configPlugins is a super set of installedPlugins
+        if (installedPlugins.length !== configPlugins.length) {
+            const configSet = new Set(configPlugins.map((plugin) => parsePackageArg(plugin).name));
+            const installedSet = new Set(installedPlugins.map(([name]) => name));
+            const notInstalled = Array.from(configSet.difference(installedSet));
+            this.logService.warn(`${notInstalled.length} plugins are not installed:`);
+            this.logService.table('warn', notInstalled);
+        }
+
+        this.logService.log('Installed plugins:\n');
+        installedPlugins.forEach(([name, version]) => {
             this.logService.log(`☑️ ${name}@${version}`);
         });
     }
