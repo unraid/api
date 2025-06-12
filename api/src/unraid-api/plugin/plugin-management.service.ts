@@ -14,7 +14,7 @@ export class PluginManagementService {
     ) {}
 
     get plugins() {
-        return this.configService.get('api.plugins', { infer: true });
+        return this.configService.get('api.plugins', [], { infer: true });
     }
 
     async addPlugin(...plugins: string[]) {

@@ -58,7 +58,7 @@ export class PluginService {
      * @returns A tuple of the plugin name and version.
      */
     static async listPlugins(): Promise<[string, string][]> {
-        const { plugins } = await loadApiConfig();
+        const { plugins = [] } = await loadApiConfig();
         const pluginNames = new Set(
             plugins.map((plugin) => {
                 const { name } = parsePackageArg(plugin);
