@@ -1,6 +1,6 @@
 import { DynamicModule, Logger, Module } from '@nestjs/common';
 
-import { DependencyService } from '@app/unraid-api/cli/plugins/dependency.service.js';
+import { DependencyService } from '@app/unraid-api/app/dependency.service.js';
 import { ResolversModule } from '@app/unraid-api/graph/resolvers/resolvers.module.js';
 import { GlobalDepsModule } from '@app/unraid-api/plugin/global-deps.module.js';
 import { PluginManagementService } from '@app/unraid-api/plugin/plugin-management.service.js';

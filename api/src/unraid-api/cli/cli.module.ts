@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 
+import { DependencyService } from '@app/unraid-api/app/dependency.service.js';
 import { ApiKeyService } from '@app/unraid-api/auth/api-key.service.js';
 import { SsoUserService } from '@app/unraid-api/auth/sso-user.service.js';
 import { AddApiKeyQuestionSet } from '@app/unraid-api/cli/apikey/add-api-key.questions.js';
@@ -10,7 +11,12 @@ import { DeveloperCommand } from '@app/unraid-api/cli/developer/developer.comman
 import { DeveloperQuestions } from '@app/unraid-api/cli/developer/developer.questions.js';
 import { LogService } from '@app/unraid-api/cli/log.service.js';
 import { LogsCommand } from '@app/unraid-api/cli/logs.command.js';
-import { moduleResources, PluginCommandModule } from '@app/unraid-api/cli/plugins/plugin.cli.module.js';
+import {
+    InstallPluginCommand,
+    ListPluginCommand,
+    PluginCommand,
+    RemovePluginCommand,
+} from '@app/unraid-api/cli/plugins/plugin.command.js';
 import { PM2Service } from '@app/unraid-api/cli/pm2.service.js';
 import { ReportCommand } from '@app/unraid-api/cli/report.command.js';
 import { RestartCommand } from '@app/unraid-api/cli/restart.command.js';
@@ -30,26 +36,30 @@ import { ApiConfigModule } from '@app/unraid-api/config/api-config.module.js';
 import { LegacyConfigModule } from '@app/unraid-api/config/legacy-config.module.js';
 import { PluginCliModule } from '@app/unraid-api/plugin/plugin.module.js';
 
-// cli - plugin add/remove
-// plugin generator
-
 const DEFAULT_COMMANDS = [
     ApiKeyCommand,
     ConfigCommand,
     DeveloperCommand,
     LogsCommand,
     ReportCommand,
+    VersionCommand,
+    // Lifecycle commands
+    SwitchEnvCommand,
     RestartCommand,
     StartCommand,
     StatusCommand,
     StopCommand,
-    SwitchEnvCommand,
-    VersionCommand,
+    // SSO commands
     SSOCommand,
     ValidateTokenCommand,
     AddSSOUserCommand,
     RemoveSSOUserCommand,
     ListSSOUserCommand,
+    // Plugin commands
+    PluginCommand,
+    ListPluginCommand,
+    InstallPluginCommand,
+    RemovePluginCommand,
 ] as const;
 
 const DEFAULT_PROVIDERS = [
@@ -62,10 +72,11 @@ const DEFAULT_PROVIDERS = [
     PM2Service,
     ApiKeyService,
     SsoUserService,
+    DependencyService,
 ] as const;
 
 @Module({
     imports: [LegacyConfigModule, ApiConfigModule, PluginCliModule.register()],
-    providers: [...DEFAULT_COMMANDS, ...DEFAULT_PROVIDERS, ...moduleResources],
+    providers: [...DEFAULT_COMMANDS, ...DEFAULT_PROVIDERS],
 })
 export class CliModule {}

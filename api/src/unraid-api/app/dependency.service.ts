@@ -1,12 +1,10 @@
 import { Injectable } from '@nestjs/common';
-import * as fs from 'fs/promises';
 import * as path from 'path';
 
-import type { PackageJson } from 'type-fest';
 import { execa } from 'execa';
 
 import { fileExists } from '@app/core/utils/files/file-exists.js';
-import { getPackageJson, getPackageJsonPath } from '@app/environment.js';
+import { getPackageJsonPath } from '@app/environment.js';
 
 @Injectable()
 export class DependencyService {
@@ -23,26 +21,6 @@ export class DependencyService {
             stdio: 'inherit',
             cwd: path.dirname(getPackageJsonPath()),
         });
-    }
-
-    /**
-     * Installs plugins using npm.
-     *
-     * @param plugins - The plugins to install.
-     * @returns The execa result of the npm command.
-     */
-    installPlugins(...plugins: string[]) {
-        return this.npm('i', '--save-peer', '--save-exact', ...plugins);
-    }
-
-    /**
-     * Uninstalls plugins using npm.
-     *
-     * @param plugins - The plugins to uninstall.
-     * @returns The execa result of the npm command.
-     */
-    uninstallPlugins(...plugins: string[]) {
-        return this.npm('uninstall', ...plugins);
     }
 
     /**

@@ -3,7 +3,7 @@ import { ConfigService } from '@nestjs/config';
 
 import { ApiConfig } from '@unraid/shared/services/api-config.js';
 
-import { DependencyService } from '@app/unraid-api/cli/plugins/dependency.service.js';
+import { DependencyService } from '@app/unraid-api/app/dependency.service.js';
 import { persistApiConfig } from '@app/unraid-api/config/api-config.module.js';
 
 @Injectable()
@@ -20,14 +20,14 @@ export class PluginManagementService {
     async addPlugin(...plugins: string[]) {
         const added = this.addPluginToConfig(...plugins);
         await this.persistConfig();
-        await this.dependencyService.installPlugins(...added);
+        await this.installPlugins(...added);
         await this.dependencyService.rebuildVendorArchive();
     }
 
     async removePlugin(...plugins: string[]) {
         const removed = this.removePluginFromConfig(...plugins);
         await this.persistConfig();
-        await this.dependencyService.uninstallPlugins(...removed);
+        await this.uninstallPlugins(...removed);
         await this.dependencyService.rebuildVendorArchive();
     }
 
@@ -64,6 +64,26 @@ export class PluginManagementService {
         // @ts-expect-error - This is a valid config key
         this.configService.set('api.plugins', pluginsArray);
         return removed;
+    }
+
+    /**
+     * Installs plugins using npm.
+     *
+     * @param plugins - The plugins to install.
+     * @returns The execa result of the npm command.
+     */
+    private installPlugins(...plugins: string[]) {
+        return this.dependencyService.npm('i', '--save-peer', '--save-exact', ...plugins);
+    }
+
+    /**
+     * Uninstalls plugins using npm.
+     *
+     * @param plugins - The plugins to uninstall.
+     * @returns The execa result of the npm command.
+     */
+    private uninstallPlugins(...plugins: string[]) {
+        return this.dependencyService.npm('uninstall', ...plugins);
     }
 
     /**------------------------------------------------------------------------
