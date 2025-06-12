@@ -228,9 +228,6 @@ for txz_file in /boot/config/plugins/dynamix.my.servers/dynamix.unraid.net-*.txz
   fi
 done
 
-# Clean up any old node_modules archives (on the boot drive) that don't match our current version
-/etc/rc.d/rc.unraid-api cleanup-dependencies
-
 # Remove existing node_modules directory
 echo "Cleaning up existing node_modules directory..."
 if [ -d "/usr/local/unraid-api/node_modules" ]; then
@@ -245,12 +242,19 @@ if [ $? -ne 0 ]; then
   exit 1
 fi
 
+# Clean up any old node_modules archives (on the boot drive) that don't match our current version
+#
+# Must run after package installation because it provides an update api config file,
+# which determines the current API version and vendor archive to keep.
+/etc/rc.d/rc.unraid-api cleanup-dependencies
+
 if [[ -n "$TAG" && "$TAG" != "" ]]; then
   printf -v sedcmd 's@^\*\*Unraid Connect\*\*@**Unraid Connect (%s)**@' "$TAG"
   sed -i "${sedcmd}" "/usr/local/emhttp/plugins/dynamix.unraid.net/README.md"
 fi
 
 echo "Starting Unraid API service"
+/etc/rc.d/rc.unraid-api plugins add unraid-api-plugin-connect -b --no-restart
 /etc/rc.d/rc.unraid-api start
 
 echo "Unraid API service started"

@@ -286,3 +286,25 @@ export const convertWebGuiPathToAssetPath = (webGuiPath: string): string => {
     const assetPath = webGuiPath.replace('/usr/local/emhttp/', '/');
     return assetPath;
 };
+
+/**
+ * Parses an npm package argument into a name and version.
+ *
+ * @param packageArg - The package argument to parse.
+ * @returns The name and version of the package.
+ */
+export function parsePackageArg(packageArg: string): { name: string; version?: string } {
+    const atIndex = packageArg.lastIndexOf('@');
+    // Handles scoped packages @scope/pkg or @scope/pkg@version and simple pkg@version
+    if (atIndex > 0) {
+        // Ensure '@' is not the first character
+        const name = packageArg.substring(0, atIndex);
+        const version = packageArg.substring(atIndex + 1);
+        // Basic check if version looks like a version (simplistic)
+        if (version && !version.includes('/')) {
+            // Avoid treating part of scope as version
+            return { name, version };
+        }
+    }
+    return { name: packageArg }; // No version or scoped package without version
+}

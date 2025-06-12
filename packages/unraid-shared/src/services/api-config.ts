@@ -21,4 +21,9 @@ export class ApiConfig {
   @IsArray()
   @IsString({ each: true })
   ssoSubIds!: string[];
+
+  @Field(() => [String])
+  @IsArray()
+  @IsString({ each: true })
+  plugins!: string[];
 }
