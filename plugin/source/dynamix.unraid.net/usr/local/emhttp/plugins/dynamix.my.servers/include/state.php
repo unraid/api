@@ -146,8 +146,14 @@ class ServerState
 
     private function setConnectValues()
     {
-        if (file_exists('/usr/local/bin/unraid-api')) {
-            $this->connectPluginInstalled = 'dynamix.unraid.net.plg';
+        $apiConfigPath = '/boot/config/plugins/dynamix.my.servers/configs/api.json';
+        if (file_exists($apiConfigPath)) {
+            $apiConfig = @json_decode(file_get_contents($apiConfigPath), true);
+            if ($apiConfig && isset($apiConfig['plugins']) && is_array($apiConfig['plugins'])) {
+                if (in_array('unraid-api-plugin-connect', $apiConfig['plugins'])) {
+                    $this->connectPluginInstalled = 'dynamix.unraid.net.plg';
+                }
+            }
         }
         
         // exit early if the plugin is not installed
