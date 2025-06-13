@@ -294,13 +294,13 @@ describe('UserProfile.ce.vue', () => {
     expect(heading.html()).toContain(initialServerData.description);
   });
 
-  it('conditionally renders notifications sidebar based on connectPluginInstalled', async () => {
+  it('always renders notifications sidebar, regardless of connectPluginInstalled', async () => {
     expect(wrapper.find('[data-testid="notifications-sidebar"]').exists()).toBe(true);
 
     serverStore.connectPluginInstalled = '';
     await wrapper.vm.$nextTick();
 
-    expect(wrapper.find('[data-testid="notifications-sidebar"]').exists()).toBe(false);
+    expect(wrapper.find('[data-testid="notifications-sidebar"]').exists()).toBe(true);
   });
 
   it('conditionally renders banner based on theme store', async () => {

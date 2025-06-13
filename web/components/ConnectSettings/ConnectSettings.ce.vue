@@ -8,10 +8,13 @@ import { useMutation, useQuery } from '@vue/apollo-composable';
 import { BrandButton, jsonFormsRenderers, Label } from '@unraid/ui';
 import { JsonForms } from '@jsonforms/vue';
 
+import { useServerStore } from '~/store/server';
 // unified settings values are returned as JSON, so use a generic record type
 // import type { ConnectSettingsValues } from '~/composables/gql/graphql';
 
 import { getConnectSettingsForm, updateConnectSettings } from './graphql/settings.query';
+
+const { connectPluginInstalled } = storeToRefs(useServerStore());
 
 /**--------------------------------------------
  *     Settings State & Form definition
@@ -99,8 +102,10 @@ const onChange = ({ data }: { data: Record<string, unknown> }) => {
   <div
     class="grid grid-cols-settings items-baseline pl-3 gap-y-6 [&>*:nth-child(odd)]:text-end [&>*:nth-child(even)]:ml-10"
   >
-    <Label>Account Status:</Label>
-    <div v-html="'<unraid-i18n-host><unraid-auth></unraid-auth></unraid-i18n-host>'"></div>
+    <template v-if="connectPluginInstalled">
+      <Label>Account Status:</Label>
+      <div v-html="'<unraid-i18n-host><unraid-auth></unraid-auth></unraid-i18n-host>'"></div>
+    </template>
     <Label>Download Unraid API Logs:</Label>
     <div
       v-html="

@@ -150,15 +150,15 @@ const links = computed((): UserProfileLink[] => {
             title: props.t('Opens Connect in new tab'),
           },
           ...[manageUnraidNetAccount.value],
-          {
-            href: WEBGUI_CONNECT_SETTINGS.toString(),
-            icon: CogIcon,
-            text: props.t('Settings'),
-            title: props.t('Go to Connect plugin settings'),
-          },
           ...signOutAction.value,
         ]
       : [...[manageUnraidNetAccount.value]]),
+    {
+      href: WEBGUI_CONNECT_SETTINGS.toString(),
+      icon: CogIcon,
+      text: props.t('Settings'),
+      title: props.t('Go to API Settings'),
+    },
   ];
 });
 

@@ -23,7 +23,7 @@ const callbackStore = useCallbackActionsStore();
 const serverStore = useServerStore();
 
 const { callbackData } = storeToRefs(callbackStore);
-const { name, description, guid, keyfile, lanIp, connectPluginInstalled } = storeToRefs(serverStore);
+const { name, description, guid, keyfile, lanIp } = storeToRefs(serverStore);
 const { bannerGradient, theme } = storeToRefs(useThemeStore());
 
 /**
@@ -134,10 +134,7 @@ onMounted(() => {
 
       <div class="block w-2px h-24px bg-header-text-secondary" />
 
-      <template v-if="connectPluginInstalled">
-        <!-- Keep the sidebar out of staging/prod builds, but easily accessible for development -->
-        <NotificationsSidebar />
-      </template>
+      <NotificationsSidebar />
 
       <UpcDropdownMenu :t="t">
         <template #trigger>
