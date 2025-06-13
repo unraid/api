@@ -52,7 +52,7 @@
     "pre-commit": "pnpm lint-staged"
   },
   "lint-staged": {
-    "*.{js,jsx,ts,tsx}": [
+    "*.{js,jsx,ts,tsx,vue}": [
       "pnpm lint:fix"
     ]
   },
