@@ -84,7 +84,8 @@ is_api_plugin_enabled() {
   fi
 
   # Parse JSON and check for plugin
-  local plugins=$(jq -r '.plugins[]?' "$api_config_path" 2>/dev/null)
+  local plugins
+  plugins=$(jq -r '.plugins[]?' "$api_config_path" 2>/dev/null)
   if [ $? -ne 0 ]; then
     return 1
   fi

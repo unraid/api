@@ -17,6 +17,7 @@ $docroot = $docroot ?? $_SERVER['DOCUMENT_ROOT'] ?: '/usr/local/emhttp';
 
 require_once "$docroot/plugins/dynamix.my.servers/include/reboot-details.php";
 require_once "$docroot/plugins/dynamix.plugin.manager/include/UnraidCheck.php";
+require_once "$docroot/plugins/dynamix.my.servers/include/api-config.php";
 /**
  * ServerState class encapsulates server-related information and settings.
  *
@@ -146,15 +147,12 @@ class ServerState
 
     private function setConnectValues()
     {
-        $connect_plugin_name="unraid-api-plugin-connect"; // name of connect plugin's npm package
-        $scripts_dir="/usr/local/share/dynamix.unraid.net/scripts";
-        $api_utils_sh="$scripts_dir/api_utils.sh";
-        $connectEnabled = @exec("$api_utils_sh is_api_plugin_enabled $connect_plugin_name 2>/dev/null; echo $?");
-        if ($connectEnabled !== '0') {
+        if (!ApiConfig::isConnectPluginEnabled()) {
             return; // plugin is not installed; exit early
         }
+        
         $this->connectPluginInstalled = 'dynamix.unraid.net.plg';
-        $this->connectPluginVersion = trim(@exec("$api_utils_sh get_api_version 2>/dev/null")) ?: 'unknown';
+        $this->connectPluginVersion = ApiConfig::getApiVersion();
         $this->getMyServersCfgValues();
         $this->getConnectKnownOrigins();
         $this->getFlashBackupStatus();

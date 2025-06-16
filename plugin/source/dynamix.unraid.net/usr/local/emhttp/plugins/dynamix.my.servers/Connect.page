@@ -14,6 +14,7 @@ Tag="globe"
  * all copies or substantial portions of the Software.
  */
 require_once "$docroot/plugins/dynamix.my.servers/include/state.php";
+require_once "$docroot/plugins/dynamix.my.servers/include/api-config.php";
 require_once "$docroot/webGui/include/Wrappers.php";
 $serverState = new ServerState();
 
@@ -28,10 +29,7 @@ $hasMyUnraidNetCert = preg_match('/.*\.myunraid\.net$/', $serverState->nginxCfg[
 $isRegistered = $serverState->registered;
 $isMiniGraphConnected = $serverState->myServersMiniGraphConnected;
 
-// Check if connect plugin is installed using api_utils.sh
-$scripts_dir = "/usr/local/share/dynamix.unraid.net/scripts";
-$api_utils_sh = "$scripts_dir/api_utils.sh";
-$isConnectPluginInstalled = @exec("$api_utils_sh is_api_plugin_enabled unraid-api-plugin-connect 2>/dev/null; echo $?") === '0';
+$isConnectPluginInstalled = ApiConfig::isConnectPluginEnabled();
 
 $flashbackup_status = $serverState->flashbackupStatus;
 
