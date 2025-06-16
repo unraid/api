@@ -28,6 +28,11 @@ $hasMyUnraidNetCert = preg_match('/.*\.myunraid\.net$/', $serverState->nginxCfg[
 $isRegistered = $serverState->registered;
 $isMiniGraphConnected = $serverState->myServersMiniGraphConnected;
 
+// Check if connect plugin is installed using api_utils.sh
+$scripts_dir = "/usr/local/share/dynamix.unraid.net/scripts";
+$api_utils_sh = "$scripts_dir/api_utils.sh";
+$isConnectPluginInstalled = @exec("$api_utils_sh is_api_plugin_enabled unraid-api-plugin-connect 2>/dev/null; echo $?") === '0';
+
 $flashbackup_status = $serverState->flashbackupStatus;
 
 $passwd_result = exec('/usr/bin/passwd --status root');
@@ -486,6 +491,7 @@ $('body').on('click', '.js-setCurrentHostExtraOrigins', function(e) {
 });
 </script>
 
+<?if($isConnectPluginInstalled):?>
 <div markdown="1" class="<?=$shade?>"><!-- begin Flash Backup section -->
 _(Flash backup)_:
 <?if(!$isRegistered):?>
@@ -563,6 +569,7 @@ $(function() {
 </script>
 <?endif // end show flash backup form ?>
 </div><!-- end Flash Backup section -->
+<?endif // end connect plugin check ?>
 
 <!-- legacy search compatibility -->
 <div style="display:none;">
