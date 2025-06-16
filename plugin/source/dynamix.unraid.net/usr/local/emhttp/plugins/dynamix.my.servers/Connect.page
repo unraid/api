@@ -1,5 +1,5 @@
 Menu="ManagementAccess:100"
-Title="Unraid Connect"
+Title="Unraid API"
 Icon="icon-u-globe"
 Tag="globe"
 ---
