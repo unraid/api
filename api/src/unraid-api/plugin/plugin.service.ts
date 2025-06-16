@@ -3,18 +3,20 @@ import { Injectable, Logger } from '@nestjs/common';
 import type { ApiNestPluginDefinition } from '@app/unraid-api/plugin/plugin.interface.js';
 import { getPackageJson } from '@app/environment.js';
 import { loadApiConfig } from '@app/unraid-api/config/api-config.module.js';
-import {
-    NotificationImportance,
-    NotificationType,
-} from '@app/unraid-api/graph/resolvers/notifications/notifications.model.js';
+import { NotificationImportance } from '@app/unraid-api/graph/resolvers/notifications/notifications.model.js';
 import { NotificationsService } from '@app/unraid-api/graph/resolvers/notifications/notifications.service.js';
 import { apiNestPluginSchema } from '@app/unraid-api/plugin/plugin.interface.js';
 import { batchProcess, parsePackageArg } from '@app/utils.js';
 
+type Plugin = ApiNestPluginDefinition & {
+    name: string;
+    version: string;
+};
+
 @Injectable()
 export class PluginService {
     private static readonly logger = new Logger(PluginService.name);
-    private static plugins: Promise<ApiNestPluginDefinition[]> | undefined;
+    private static plugins: Promise<Plugin[]> | undefined;
 
     static async getPlugins() {
         PluginService.plugins ??= PluginService.importPlugins();
@@ -26,10 +28,15 @@ export class PluginService {
             return PluginService.plugins;
         }
         const pluginPackages = await PluginService.listPlugins();
-        const plugins = await batchProcess(pluginPackages, async ([pkgName]) => {
+        const plugins = await batchProcess(pluginPackages, async ([pkgName, version]) => {
             try {
                 const plugin = await import(/* @vite-ignore */ pkgName);
-                return apiNestPluginSchema.parse(plugin);
+                const parsedPlugin = apiNestPluginSchema.parse(plugin);
+                return {
+                    ...parsedPlugin,
+                    name: pkgName,
+                    version,
+                };
             } catch (error) {
                 PluginService.logger.error(`Plugin from ${pkgName} is invalid`, error);
                 const notificationService = new NotificationsService();

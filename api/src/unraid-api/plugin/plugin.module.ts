@@ -4,6 +4,7 @@ import { DependencyService } from '@app/unraid-api/app/dependency.service.js';
 import { ResolversModule } from '@app/unraid-api/graph/resolvers/resolvers.module.js';
 import { GlobalDepsModule } from '@app/unraid-api/plugin/global-deps.module.js';
 import { PluginManagementService } from '@app/unraid-api/plugin/plugin-management.service.js';
+import { PluginResolver } from '@app/unraid-api/plugin/plugin.resolver.js';
 import { PluginService } from '@app/unraid-api/plugin/plugin.service.js';
 
 @Module({})
@@ -22,7 +23,7 @@ export class PluginModule {
         return {
             module: PluginModule,
             imports: [GlobalDepsModule, ResolversModule, ...apiModules],
-            providers: [PluginService, PluginManagementService, DependencyService],
+            providers: [PluginService, PluginManagementService, DependencyService, PluginResolver],
             exports: [PluginService, PluginManagementService, DependencyService, GlobalDepsModule],
         };
     }
