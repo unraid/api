@@ -147,15 +147,22 @@ class ServerState
     private function setConnectValues()
     {
         $apiConfigPath = '/boot/config/plugins/dynamix.my.servers/configs/api.json';
-        if (file_exists($apiConfigPath)) {
-            $apiConfig = @json_decode(file_get_contents($apiConfigPath), true);
-            if ($apiConfig && isset($apiConfig['plugins']) && is_array($apiConfig['plugins'])) {
-                if (in_array('unraid-api-plugin-connect', $apiConfig['plugins'])) {
+        if (!file_exists($apiConfigPath)) {
+            return; // plugin is not installed; exit early
+        }
+
+        $apiConfig = @json_decode(file_get_contents($apiConfigPath), true);
+        $pluginName = 'unraid-api-plugin-connect'; // name of connect plugin's npm package
+        if ($apiConfig && is_array($apiConfig['plugins'])) {
+            foreach ($apiConfig['plugins'] as $plugin) {
+                // recognize npm version identifiers inside $apiConfig['plugins']
+                if ($plugin === $pluginName || strpos($plugin, $pluginName . '@') === 0) {
                     $this->connectPluginInstalled = 'dynamix.unraid.net.plg';
+                    break;
                 }
             }
         }
-        
+
         // exit early if the plugin is not installed
         if (!$this->connectPluginInstalled) {
             return;
@@ -187,7 +194,7 @@ class ServerState
         $this->myServersFlashCfg = file_exists($flashCfgPath) ? @parse_ini_file($flashCfgPath, true) : [];
         $connectJsonPath = '/boot/config/plugins/dynamix.my.servers/configs/connect.json';
         $connectConfig = file_exists($connectJsonPath) ? @json_decode(file_get_contents($connectJsonPath), true) : [];
-        
+
         // ensure some vars are defined here so we don't have to test them later
         if (empty($connectConfig['apikey'])) {
             $connectConfig['apikey'] = "";
