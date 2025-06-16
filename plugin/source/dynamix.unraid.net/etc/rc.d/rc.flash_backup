@@ -1,6 +1,7 @@
 #!/bin/bash
 # This file is /etc/rc.d/rc.flash_backup
 # use at queue "f" for flash backup
+scripts_dir="/usr/local/share/dynamix.unraid.net/scripts"
 QUEUE=" -q f "
 TASKNAME="/etc/rc.d/rc.flash_backup watch"
 TASKACTION="/usr/local/emhttp/plugins/dynamix.my.servers/scripts/UpdateFlashBackup update"
@@ -153,7 +154,10 @@ _enabled() {
   local output
   output=$(git -C /boot config --get remote.origin.url 2>&1)
   if [[ "${output}" == *"backup.unraid.net"* ]]; then
-    return 0
+    # Also check if the connect API plugin is enabled
+    if "$scripts_dir/api_utils.sh" is_api_plugin_enabled unraid-api-plugin-connect; then
+      return 0
+    fi
   fi
   return 1
 }
