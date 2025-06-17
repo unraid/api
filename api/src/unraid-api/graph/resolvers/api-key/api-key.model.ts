@@ -1,7 +1,5 @@
 import { Field, InputType, ObjectType } from '@nestjs/graphql';
 
-
-
 import { Node, Resource, Role } from '@unraid/shared/graphql.model.js';
 import { PrefixedID } from '@unraid/shared/prefixed-id-scalar.js';
 import { Transform, Type } from 'class-transformer';
@@ -16,13 +14,7 @@ import {
     ValidateNested,
 } from 'class-validator';
 
-
-
-import { AtLeastOneOf } from '@unraid/shared/validation.utils.js';
-
-
-
-
+import { AtLeastOneOf } from '@app/unraid-api/graph/resolvers/validation.utils.js';
 
 @ObjectType()
 export class Permission {
