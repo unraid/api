@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, watchEffect } from 'vue';
+import { storeToRefs } from 'pinia';
 import { useMutation, useQuery } from '@vue/apollo-composable';
 import { useClipboard } from '@vueuse/core';
 
@@ -196,6 +197,9 @@ async function copyKeyValue(keyValue: string) {
             </div>
           </li>
         </CardWrapper>
+      </ul>
+      <ul v-else class="flex flex-col gap-4 mb-6">
+        <li class="text-sm">No API keys found</li>
       </ul>
     </div>
   </PageContainer>
