@@ -92,7 +92,7 @@ export const jsonFormsRenderers: JsonFormsRendererRegistryEntry[] = [
   },
   {
     renderer: markRaw(withErrorWrapper(StringArrayField)),
-    tester: rankWith(4, and(isControl, schemaMatches(isStringArray))),
+    tester: rankWith(4, and(isControl, schemaMatches(isStringArray), optionIs('format', 'array'))),
   },
   // Labels
   {
