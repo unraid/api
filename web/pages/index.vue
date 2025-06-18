@@ -9,6 +9,8 @@ import type { SendPayloads } from '@unraid/shared-callbacks';
 import LogViewerCe from '~/components/Logs/LogViewer.ce.vue';
 import SsoButtonCe from '~/components/SsoButton.ce.vue';
 import { useThemeStore } from '~/store/theme';
+import ModalsCe from '~/components/Modals.ce.vue';
+import ConnectSettingsCe from '~/components/ConnectSettings/ConnectSettings.ce.vue';
 
 const serverStore = useDummyServerStore();
 const { serverState } = storeToRefs(serverStore);

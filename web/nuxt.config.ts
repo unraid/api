@@ -156,6 +156,10 @@ export default defineNuxtConfig({
             name: 'UnraidThemeSwitcher',
             path: '@/components/ThemeSwitcher.ce',
           },
+          {
+            name: 'UnraidApiKeyManager',
+            path: '@/components/ApiKeyPage.ce',
+          },
         ],
       },
     ],

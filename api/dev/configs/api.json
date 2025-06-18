@@ -6,5 +6,5 @@
   ],
   "sandbox": true,
   "ssoSubIds": [],
-  "plugins": []
+  "plugins": ["unraid-api-plugin-connect"]
 }

@@ -1,31 +1,54 @@
 <script setup lang="ts">
 import { ref, watchEffect } from 'vue';
+import { storeToRefs } from 'pinia';
 import { useMutation, useQuery } from '@vue/apollo-composable';
+import { useClipboard } from '@vueuse/core';
 
+import { ClipboardDocumentIcon, EyeIcon, EyeSlashIcon } from '@heroicons/vue/24/solid';
 import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+  Badge,
   Button,
   CardWrapper,
+  Input,
   PageContainer,
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
 } from '@unraid/ui';
+import { extractGraphQLErrorMessage } from '~/helpers/functions';
 
-import { DELETE_API_KEY, GET_API_KEY_META, GET_API_KEYS } from './apikey.query';
-import ApiKeyCreate from './ApiKeyCreate.vue';
-import { EyeIcon, EyeSlashIcon } from '@heroicons/vue/24/solid';
+import type { ApiKeyFragment, ApiKeyWithKeyFragment } from '~/composables/gql/graphql';
 
-interface ApiKey {
-  id: string;
-  name: string;
-  description?: string;
-  createdAt: string;
-  roles: string[];
-  permissions: { resource: string; actions: string[] }[];
-}
+import { useFragment } from '~/composables/gql/fragment-masking';
+import { useApiKeyStore } from '~/store/apiKey';
+import { API_KEY_FRAGMENT, DELETE_API_KEY, GET_API_KEY_META, GET_API_KEYS } from './apikey.query';
+import PermissionCounter from './PermissionCounter.vue';
 
-const { result, refetch } = useQuery<{ apiKeys: ApiKey[] }>(GET_API_KEYS);
-const apiKeys = ref<ApiKey[]>([]);
+const { result, refetch } = useQuery(GET_API_KEYS);
+
+const apiKeyStore = useApiKeyStore();
+const { createdKey } = storeToRefs(apiKeyStore);
+const apiKeys = ref<(ApiKeyFragment | ApiKeyWithKeyFragment)[]>([]);
 
 watchEffect(() => {
-  apiKeys.value = result.value?.apiKeys || [];
+  const baseKeys: (ApiKeyFragment | ApiKeyWithKeyFragment)[] =
+    result.value?.apiKeys.map((key) => useFragment(API_KEY_FRAGMENT, key)) || [];
+  console.log(createdKey.value);
+  if (createdKey.value) {
+    const existingKeyIndex = baseKeys.findIndex((key) => key.id === createdKey.value?.id);
+    if (existingKeyIndex >= 0) {
+      baseKeys[existingKeyIndex] = createdKey.value as ApiKeyFragment | ApiKeyWithKeyFragment;
+    } else {
+      baseKeys.unshift(createdKey.value as ApiKeyFragment | ApiKeyWithKeyFragment);
+    }
+  }
+
+  apiKeys.value = baseKeys;
 });
 
 const metaQuery = useQuery(GET_API_KEY_META);
@@ -36,90 +59,148 @@ watchEffect(() => {
   possiblePermissions.value = metaQuery.result.value?.apiKeyPossiblePermissions || [];
 });
 
-const showCreate = ref(false);
-const createdKey = ref<{ id: string; key: string } | null>(null);
-const showKey = ref(false);
+const showKey = ref<Record<string, boolean>>({});
+const { copy, copied } = useClipboard();
 
 const { mutate: deleteKey } = useMutation(DELETE_API_KEY);
 
 const deleteError = ref<string | null>(null);
 
-function toggleShowKey() {
-  showKey.value = !showKey.value;
+function toggleShowKey(keyId: string) {
+  showKey.value[keyId] = !showKey.value[keyId];
 }
 
-function onCreated(key: { id: string; key: string } | null) {
-  createdKey.value = key;
-  showCreate.value = false;
-  refetch();
+function openCreateModal(key: ApiKeyFragment | ApiKeyWithKeyFragment | null = null) {
+  apiKeyStore.clearCreatedKey();
+  apiKeyStore.showModal(key as ApiKeyFragment | null);
 }
 
 async function _deleteKey(_id: string) {
-  if (!window.confirm('Are you sure you want to delete this API key? This action cannot be undone.')) return;
+  if (!window.confirm('Are you sure you want to delete this API key? This action cannot be undone.'))
+    return;
   deleteError.value = null;
   try {
     await deleteKey({ input: { ids: [_id] } });
     await refetch();
   } catch (err: unknown) {
-    if (typeof err === 'object' && err !== null && 'message' in err && typeof (err as { message?: unknown }).message === 'string') {
-      deleteError.value = (err as { message: string }).message;
-    } else {
-      deleteError.value = 'Failed to delete API key.';
-    }
+    deleteError.value = extractGraphQLErrorMessage(err);
   }
 }
+
+function hasKey(key: ApiKeyFragment | ApiKeyWithKeyFragment): key is ApiKeyWithKeyFragment {
+  return 'key' in key && !!key.key;
+}
+
+async function copyKeyValue(keyValue: string) {
+  await copy(keyValue);
+}
 </script>
+
 <template>
   <PageContainer>
-    <CardWrapper>
-      <div class="flex items-center justify-between mb-4">
-        <h2 class="text-xl font-semibold">API Keys</h2>
-        <Button variant="primary" @click="showCreate = true">Create API Key</Button>
+    <div>
+      <div class="flex items-center justify-between mb-6">
+        <h2 class="text-2xl font-bold tracking-tight">API Keys</h2>
+        <Button variant="primary" @click="openCreateModal(null)">Create API Key</Button>
       </div>
-      <div v-if="deleteError" class="mb-2 p-2 bg-red-100 text-red-700 border border-red-300 rounded">
+      <div
+        v-if="deleteError"
+        class="mb-4 p-3 rounded border border-destructive bg-destructive/10 text-destructive"
+      >
         {{ deleteError }}
       </div>
-      <ul v-if="apiKeys.length" class="space-y-2 mb-4">
-        <li
-          v-for="key in apiKeys"
-          :key="key.id"
-          class="flex items-center justify-between p-2 border rounded"
-        >
-          <div>
-            <span class="font-medium">{{ key.name }}</span>
-            <div v-if="key.roles.length" class="mt-1">
-              <span class="font-semibold">Roles:</span>
-              <span>{{ key.roles.join(', ') }}</span>
+      <ul v-if="apiKeys.length" class="flex flex-col gap-4 mb-6">
+        <CardWrapper v-for="key in apiKeys" :key="key.id">
+          <li class="flex flex-row items-start justify-between gap-4 p-4 list-none">
+            <div class="flex-1 min-w-0">
+              <header class="flex gap-2 justify-between items-start">
+                <div class="flex flex-col gap-2">
+                  <span class="text-sm truncate"><b>ID:</b> {{ key.id.split(':')[1] }}</span>
+                  <span class="text-sm truncate"><b>Name:</b> {{ key.name }}</span>
+                  <span v-if="key.description" class="text-sm truncate"
+                    ><b>Description:</b> {{ key.description }}</span
+                  >
+                  <div v-if="key.roles.length" class="flex flex-wrap gap-2 items-center">
+                    <span class="text-sm"><b>Roles:</b></span>
+                    <Badge v-for="role in key.roles" :key="role" variant="blue" size="xs">{{
+                      role
+                    }}</Badge>
+                  </div>
+                </div>
+                <div class="flex gap-2 flex-shrink-0">
+                  <Button variant="secondary" size="sm" @click="openCreateModal(key)">Edit</Button>
+                  <Button variant="destructive" size="sm" @click="_deleteKey(key.id)">Delete</Button>
+                </div>
+              </header>
+              <div v-if="key.permissions?.length" class="pt-2 w-full">
+                <span class="text-sm"><b>Permissions:</b></span>
+                <Accordion type="single" collapsible class="w-full">
+                  <AccordionItem :value="'permissions-' + key.id">
+                    <AccordionTrigger>
+                      <PermissionCounter
+                        :permissions="key.permissions"
+                        :possible-permissions="possiblePermissions"
+                      />
+                    </AccordionTrigger>
+                    <AccordionContent>
+                      <div v-if="key.permissions?.length" class="flex flex-col gap-2 my-2">
+                        <div
+                          v-for="perm in key.permissions ?? []"
+                          :key="perm.resource"
+                          class="border rounded-sm p-2"
+                        >
+                          <div class="flex items-center gap-2 justify-between">
+                            <span class="font-semibold">{{ perm.resource }}</span>
+                            <PermissionCounter
+                              :permissions="[perm]"
+                              :possible-permissions="possiblePermissions"
+                              :hide-number="true"
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    </AccordionContent>
+                  </AccordionItem>
+                </Accordion>
+              </div>
+
+              <div v-if="hasKey(key)" class="mt-4 flex items-center gap-2">
+                <span class="text-green-700 font-medium">API Key:</span>
+                <div class="relative w-64">
+                  <Input
+                    :model-value="showKey[key.id] ? key.key : '••••••••••••••••••••••••••••••••'"
+                    class="w-full font-mono text-base px-2 py-1 bg-gray-50 border border-gray-200 rounded pr-10"
+                    readonly
+                  />
+                  <button
+                    type="button"
+                    class="absolute inset-y-0 right-2 flex items-center px-1 text-gray-500 hover:text-gray-700"
+                    tabindex="-1"
+                    @click="toggleShowKey(key.id)"
+                  >
+                    <component :is="showKey[key.id] ? EyeSlashIcon : EyeIcon" class="w-5 h-5" />
+                  </button>
+                </div>
+                <TooltipProvider>
+                  <Tooltip :delay-duration="0">
+                    <TooltipTrigger>
+                      <Button variant="ghost" size="icon" @click="copyKeyValue(key.key)">
+                        <ClipboardDocumentIcon class="w-5 h-5" />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>{{ copied ? 'Copied!' : 'Copy to clipboard...' }}</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              </div>
             </div>
-            <div v-if="key.permissions.length" class="mt-1">
-              <span class="font-semibold">Permissions:</span>
-              <ul class="ml-2">
-                <li v-for="perm in key.permissions" :key="perm.resource">
-                  <span class="font-medium">{{ perm.resource }}</span>
-                  <span v-if="perm.actions && perm.actions.length"> ({{ perm.actions.join(', ') }})</span>
-                </li>
-              </ul>
-            </div>
-            <div v-if="createdKey && createdKey.key && createdKey.id === key.id" class="mt-2 flex items-center gap-2">
-              <span>API Key created:</span>
-              <b>{{ showKey ? createdKey.key : '••••••••••••••••••••••••••••••••' }}</b>
-              <button type="button" class="focus:outline-none" @click="toggleShowKey">
-                <component :is="showKey ? EyeSlashIcon : EyeIcon" class="w-5 h-5 text-gray-500" />
-              </button>
-            </div>
-          </div>
-          <Button variant="destructive" size="sm" @click="_deleteKey(key.id)">Delete</Button>
-        </li>
+          </li>
+        </CardWrapper>
       </ul>
-      <div v-if="showCreate" class="mb-4 p-4 border rounded bg-muted">
-        <ApiKeyCreate
-          v-if="showCreate"
-          :possible-roles="possibleRoles"
-          :possible-permissions="possiblePermissions"
-          @created="onCreated"
-          @cancel="showCreate = false"
-        />
-      </div>
-    </CardWrapper>
+      <ul v-else class="flex flex-col gap-4 mb-6">
+        <li class="text-sm">No API keys found</li>
+      </ul>
+    </div>
   </PageContainer>
 </template>

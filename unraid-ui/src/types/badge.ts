@@ -1,4 +1,4 @@
-import { badgeVariants } from '@/components/common/badge/badge.variants';
+import type { badgeVariants } from '@/components/common/badge/badge.variants';
 import type { VariantProps } from 'class-variance-authority';
 import type { Component } from 'vue';
 

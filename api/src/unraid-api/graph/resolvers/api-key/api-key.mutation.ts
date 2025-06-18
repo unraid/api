@@ -15,6 +15,7 @@ import {
     CreateApiKeyInput,
     DeleteApiKeyInput,
     RemoveRoleFromApiKeyInput,
+    UpdateApiKeyInput,
 } from '@app/unraid-api/graph/resolvers/api-key/api-key.model.js';
 import { ApiKeyMutations } from '@app/unraid-api/graph/resolvers/mutation/mutation.model.js';
 import { validateObject } from '@app/unraid-api/graph/resolvers/validation.utils.js';
@@ -32,8 +33,7 @@ export class ApiKeyMutationsResolver {
         possession: AuthPossession.ANY,
     })
     @ResolveField(() => ApiKeyWithSecret, { description: 'Create an API key' })
-    async create(@Args('input') unvalidatedInput: CreateApiKeyInput): Promise<ApiKeyWithSecret> {
-        const input = await validateObject(CreateApiKeyInput, unvalidatedInput);
+    async create(@Args('input') input: CreateApiKeyInput): Promise<ApiKeyWithSecret> {
         const apiKey = await this.apiKeyService.create({
             name: input.name,
             description: input.description ?? undefined,
@@ -52,8 +52,7 @@ export class ApiKeyMutationsResolver {
     })
     @ResolveField(() => Boolean, { description: 'Add a role to an API key' })
     async addRole(@Args('input') input: AddRoleForApiKeyInput): Promise<boolean> {
-        const validatedInput = await validateObject(AddRoleForApiKeyInput, input);
-        return this.authService.addRoleToApiKey(validatedInput.apiKeyId, Role[validatedInput.role]);
+        return this.authService.addRoleToApiKey(input.apiKeyId, Role[input.role]);
     }
 
     @UsePermissions({
@@ -63,8 +62,7 @@ export class ApiKeyMutationsResolver {
     })
     @ResolveField(() => Boolean, { description: 'Remove a role from an API key' })
     async removeRole(@Args('input') input: RemoveRoleFromApiKeyInput): Promise<boolean> {
-        const validatedInput = await validateObject(RemoveRoleFromApiKeyInput, input);
-        return this.authService.removeRoleFromApiKey(validatedInput.apiKeyId, Role[validatedInput.role]);
+        return this.authService.removeRoleFromApiKey(input.apiKeyId, Role[input.role]);
     }
 
     @UsePermissions({
@@ -74,8 +72,19 @@ export class ApiKeyMutationsResolver {
     })
     @ResolveField(() => Boolean, { description: 'Delete one or more API keys' })
     async delete(@Args('input') input: DeleteApiKeyInput): Promise<boolean> {
-        const validatedInput = await validateObject(DeleteApiKeyInput, input);
-        await this.apiKeyService.deleteApiKeys(validatedInput.ids);
+        await this.apiKeyService.deleteApiKeys(input.ids);
         return true;
+    }
+
+    @UsePermissions({
+        action: AuthActionVerb.UPDATE,
+        resource: Resource.API_KEY,
+        possession: AuthPossession.ANY,
+    })
+    @ResolveField(() => ApiKeyWithSecret, { description: 'Update an API key' })
+    async update(@Args('input') input: UpdateApiKeyInput): Promise<ApiKeyWithSecret> {
+        const apiKey = await this.apiKeyService.update(input);
+        await this.authService.syncApiKeyRoles(apiKey.id, apiKey.roles);
+        return apiKey;
     }
 }

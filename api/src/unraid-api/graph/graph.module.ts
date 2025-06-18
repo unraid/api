@@ -17,6 +17,8 @@ import { createSandboxPlugin } from '@app/unraid-api/graph/sandbox-plugin.js';
 import { GlobalDepsModule } from '@app/unraid-api/plugin/global-deps.module.js';
 import { PluginModule } from '@app/unraid-api/plugin/plugin.module.js';
 
+console.log('ENVIRONMENT', ENVIRONMENT);
+
 @Module({
     imports: [
         GlobalDepsModule,

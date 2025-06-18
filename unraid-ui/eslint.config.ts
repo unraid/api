@@ -1,13 +1,16 @@
 import eslint from '@eslint/js';
-// @ts-ignore-error No Declaration For This Plugin
+// @ts-expect-error No Declaration For This Plugin
 import importPlugin from 'eslint-plugin-import';
 import noRelativeImportPaths from 'eslint-plugin-no-relative-import-paths';
 import prettier from 'eslint-plugin-prettier';
 import vuePlugin from 'eslint-plugin-vue';
 import tseslint from 'typescript-eslint';
+// Import vue-eslint-parser as an ESM import
+import vueEslintParser from 'vue-eslint-parser';
 
 // Common rules shared across file types
 const commonRules = {
+  '@typescript-eslint/consistent-type-imports': ['error', { prefer: 'type-imports' }],
   '@typescript-eslint/no-unused-vars': ['off'],
   'no-multiple-empty-lines': ['error', { max: 1, maxBOF: 0, maxEOF: 1 }],
   'no-relative-import-paths/no-relative-import-paths': [
@@ -120,7 +123,7 @@ export default [
   {
     files: ['**/*.vue'],
     languageOptions: {
-      parser: require('vue-eslint-parser'),
+      parser: vueEslintParser,
       parserOptions: {
         ...commonLanguageOptions,
         parser: tseslint.parser,
@@ -146,6 +149,10 @@ export default [
   
   // Ignores
   {
-    ignores: ['src/graphql/generated/client/**/*'],
+    ignores: [
+      'src/graphql/generated/client/**/*',
+      'src/global.d.ts',
+      'eslint.config.ts',
+    ],
   },
 ];
