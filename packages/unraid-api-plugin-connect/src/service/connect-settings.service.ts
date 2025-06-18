@@ -294,22 +294,31 @@ export class ConnectSettingsService {
         /** shown when preconditions are not met */
         const requirements: UIElement[] = [
             {
-                type: 'Label',
-                text: 'Allow Remote Access',
-                options: {
-                    format: 'preconditions',
-                    description: 'Remote Access is disabled. To enable, please make sure:',
-                    items: [
-                        {
-                            text: 'You are signed in to Unraid Connect',
-                            status: isSignedIn,
+                type: 'UnraidSettingsLayout',
+                elements: [
+                    {
+                        type: 'Label',
+                        text: 'Allow Remote Access',
+                    },
+                    {
+                        type: 'Label',
+                        text: 'Allow Remote Access',
+                        options: {
+                            format: 'preconditions',
+                            description: 'Remote Access is disabled. To enable, please make sure:',
+                            items: [
+                                {
+                                    text: 'You are signed in to Unraid Connect',
+                                    status: isSignedIn,
+                                },
+                                {
+                                    text: 'You have provisioned a valid SSL certificate',
+                                    status: isSSLCertProvisioned,
+                                },
+                            ],
                         },
-                        {
-                            text: 'You have provisioned a valid SSL certificate',
-                            status: isSSLCertProvisioned,
-                        },
-                    ],
-                },
+                    },
+                ],
             },
         ];
 
