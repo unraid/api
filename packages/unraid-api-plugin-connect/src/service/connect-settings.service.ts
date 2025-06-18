@@ -298,7 +298,7 @@ export class ConnectSettingsService {
                 elements: [
                     {
                         type: 'Label',
-                        text: 'Allow Remote Access',
+                        text: 'Allow Remote Access:',
                     },
                     {
                         type: 'Label',
