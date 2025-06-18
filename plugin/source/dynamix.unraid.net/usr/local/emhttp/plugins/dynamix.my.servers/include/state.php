@@ -17,6 +17,7 @@ $docroot = $docroot ?? $_SERVER['DOCUMENT_ROOT'] ?: '/usr/local/emhttp';
 
 require_once "$docroot/plugins/dynamix.my.servers/include/reboot-details.php";
 require_once "$docroot/plugins/dynamix.plugin.manager/include/UnraidCheck.php";
+require_once "$docroot/plugins/dynamix.my.servers/include/api-config.php";
 /**
  * ServerState class encapsulates server-related information and settings.
  *
@@ -146,31 +147,12 @@ class ServerState
 
     private function setConnectValues()
     {
-        $apiConfigPath = '/boot/config/plugins/dynamix.my.servers/configs/api.json';
-        if (!file_exists($apiConfigPath)) {
+        if (!ApiConfig::isConnectPluginEnabled()) {
             return; // plugin is not installed; exit early
         }
-
-        $apiConfig = @json_decode(file_get_contents($apiConfigPath), true);
-        $pluginName = 'unraid-api-plugin-connect'; // name of connect plugin's npm package
-        if ($apiConfig && is_array($apiConfig['plugins'])) {
-            foreach ($apiConfig['plugins'] as $plugin) {
-                // recognize npm version identifiers inside $apiConfig['plugins']
-                if ($plugin === $pluginName || strpos($plugin, $pluginName . '@') === 0) {
-                    $this->connectPluginInstalled = 'dynamix.unraid.net.plg';
-                    break;
-                }
-            }
-        }
-
-        // exit early if the plugin is not installed
-        if (!$this->connectPluginInstalled) {
-            return;
-        }
-
-        // Get version directly using api_utils.sh get_api_version function
-        $this->connectPluginVersion = trim(@exec('/usr/local/share/dynamix.unraid.net/scripts/api_utils.sh get_api_version 2>/dev/null')) ?: 'unknown';
-
+        
+        $this->connectPluginInstalled = 'dynamix.unraid.net.plg';
+        $this->connectPluginVersion = ApiConfig::getApiVersion();
         $this->getMyServersCfgValues();
         $this->getConnectKnownOrigins();
         $this->getFlashBackupStatus();

@@ -28,7 +28,7 @@ uninstall() {
 # Service control functions
 start() {
   echo "Starting Unraid API service..."
-  
+
   # Restore vendored API plugins if they were installed
   if [ -x "$scripts_dir/dependencies.sh" ]; then
     "$scripts_dir/dependencies.sh" restore || {
@@ -37,21 +37,24 @@ start() {
   else
     echo "Warning: dependencies.sh script not found or not executable"
   fi
-  
+
   # Create log directory if it doesn't exist
   mkdir -p /var/log/unraid-api
-  
+
   # Copy env file if needed
   if [ -f "${api_base_dir}/.env.production" ] && [ ! -f "${api_base_dir}/.env" ]; then
     cp "${api_base_dir}/.env.production" "${api_base_dir}/.env"
   fi
-  
-  # Start the flash backup service if available
+
+  # Start the flash backup service if available and connect plugin is enabled
   if [ -x "/etc/rc.d/rc.flash_backup" ]; then
-    echo "Starting flash backup service..."
-    /etc/rc.d/rc.flash_backup start
+    # Check if connect plugin is enabled before starting flash backup
+    if [ -x "$scripts_dir/api_utils.sh" ] && "$scripts_dir/api_utils.sh" is_api_plugin_enabled "unraid-api-plugin-connect"; then
+      echo "Starting flash backup service..."
+      /etc/rc.d/rc.flash_backup start
+    fi
   fi
-  
+
   # Start the API service
   if [ -x "${unraid_binary_path}" ]; then
     "${unraid_binary_path}" start
@@ -96,7 +99,7 @@ case "$1" in
 'stop')
   stop
   ;;
-'restart'|'reload')
+'restart' | 'reload')
   restart
   ;;
 'status')
