@@ -129,14 +129,10 @@ export type AddRoleForApiKeyInput = {
   role: Role;
 };
 
-export type AllowedOriginInput = {
-  /** A list of origins allowed to interact with the API */
-  origins: Array<Scalars['String']['input']>;
-};
-
 export type ApiConfig = {
   __typename?: 'ApiConfig';
   extraOrigins: Array<Scalars['String']['output']>;
+  plugins: Array<Scalars['String']['output']>;
   sandbox?: Maybe<Scalars['Boolean']['output']>;
   ssoSubIds: Array<Scalars['String']['output']>;
   version: Scalars['String']['output'];
@@ -212,21 +208,6 @@ export type ApiKeyWithSecret = Node & {
   name: Scalars['String']['output'];
   permissions: Array<Permission>;
   roles: Array<Role>;
-};
-
-export type ApiSettingsInput = {
-  /** The type of WAN access to use for Remote Access */
-  accessType?: InputMaybe<WanAccessType>;
-  /** A list of origins allowed to interact with the API */
-  extraOrigins?: InputMaybe<Array<Scalars['String']['input']>>;
-  /** The type of port forwarding to use for Remote Access */
-  forwardType?: InputMaybe<WanForwardType>;
-  /** The port to use for Remote Access. Not required for UPNP forwardType. Required for STATIC forwardType. Ignored if accessType is DISABLED or forwardType is UPNP. */
-  port?: InputMaybe<Scalars['Int']['input']>;
-  /** If true, the GraphQL sandbox will be enabled and available at /graphql. If false, the GraphQL sandbox will be disabled and only the production API will be available. */
-  sandbox?: InputMaybe<Scalars['Boolean']['input']>;
-  /** A list of Unique Unraid Account ID's */
-  ssoUserIds?: InputMaybe<Array<Scalars['String']['input']>>;
 };
 
 export type ArrayCapacity = {
@@ -486,20 +467,23 @@ export type ConnectSettings = Node & {
   values: ConnectSettingsValues;
 };
 
+export type ConnectSettingsInput = {
+  /** The type of WAN access to use for Remote Access */
+  accessType?: InputMaybe<WanAccessType>;
+  /** The type of port forwarding to use for Remote Access */
+  forwardType?: InputMaybe<WanForwardType>;
+  /** The port to use for Remote Access. Not required for UPNP forwardType. Required for STATIC forwardType. Ignored if accessType is DISABLED or forwardType is UPNP. */
+  port?: InputMaybe<Scalars['Int']['input']>;
+};
+
 export type ConnectSettingsValues = {
   __typename?: 'ConnectSettingsValues';
   /** The type of WAN access used for Remote Access */
   accessType: WanAccessType;
-  /** A list of origins allowed to interact with the API */
-  extraOrigins: Array<Scalars['String']['output']>;
   /** The type of port forwarding used for Remote Access */
   forwardType?: Maybe<WanForwardType>;
   /** The port used for Remote Access */
   port?: Maybe<Scalars['Int']['output']>;
-  /** If true, the GraphQL sandbox is enabled and available at /graphql. If false, the GraphQL sandbox is disabled and only the production API will be available. */
-  sandbox: Scalars['Boolean']['output'];
-  /** A list of Unique Unraid Account ID's */
-  ssoUserIds: Array<Scalars['String']['output']>;
 };
 
 export type ConnectSignInInput = {
@@ -950,6 +934,8 @@ export type MinigraphqlResponse = {
 
 export type Mutation = {
   __typename?: 'Mutation';
+  /** Add one or more plugins to the API. Returns false if restart was triggered automatically, true if manual restart is required. */
+  addPlugin: Scalars['Boolean']['output'];
   apiKey: ApiKeyMutations;
   archiveAll: NotificationOverview;
   /** Marks a notification as archived. */
@@ -971,7 +957,8 @@ export type Mutation = {
   rclone: RCloneMutations;
   /** Reads each notification to recompute & update the overview. */
   recalculateOverview: NotificationOverview;
-  setAdditionalAllowedOrigins: Array<Scalars['String']['output']>;
+  /** Remove one or more plugins from the API. Returns false if restart was triggered automatically, true if manual restart is required. */
+  removePlugin: Scalars['Boolean']['output'];
   setupRemoteAccess: Scalars['Boolean']['output'];
   unarchiveAll: NotificationOverview;
   unarchiveNotifications: NotificationOverview;
@@ -980,6 +967,11 @@ export type Mutation = {
   updateApiSettings: ConnectSettingsValues;
   updateSettings: UpdateSettingsResponse;
   vm: VmMutations;
+};
+
+
+export type MutationAddPluginArgs = {
+  input: PluginManagementInput;
 };
 
 
@@ -1024,8 +1016,8 @@ export type MutationInitiateFlashBackupArgs = {
 };
 
 
-export type MutationSetAdditionalAllowedOriginsArgs = {
-  input: AllowedOriginInput;
+export type MutationRemovePluginArgs = {
+  input: PluginManagementInput;
 };
 
 
@@ -1050,7 +1042,7 @@ export type MutationUnreadNotificationArgs = {
 
 
 export type MutationUpdateApiSettingsArgs = {
-  input: ApiSettingsInput;
+  input: ConnectSettingsInput;
 };
 
 
@@ -1220,6 +1212,27 @@ export type Permission = {
   resource: Resource;
 };
 
+export type Plugin = {
+  __typename?: 'Plugin';
+  /** Whether the plugin has an API module */
+  hasApiModule?: Maybe<Scalars['Boolean']['output']>;
+  /** Whether the plugin has a CLI module */
+  hasCliModule?: Maybe<Scalars['Boolean']['output']>;
+  /** The name of the plugin package */
+  name: Scalars['String']['output'];
+  /** The version of the plugin package */
+  version: Scalars['String']['output'];
+};
+
+export type PluginManagementInput = {
+  /** Whether to treat plugins as bundled plugins. Bundled plugins are installed to node_modules at build time and controlled via config only. */
+  bundled?: Scalars['Boolean']['input'];
+  /** Array of plugin package names to add or remove */
+  names: Array<Scalars['String']['input']>;
+  /** Whether to restart the API after the operation. When false, a restart has already been queued. */
+  restart?: Scalars['Boolean']['input'];
+};
+
 export type ProfileModel = Node & {
   __typename?: 'ProfileModel';
   avatar: Scalars['String']['output'];
@@ -1255,7 +1268,6 @@ export type Query = {
   disks: Array<Disk>;
   display: Display;
   docker: Docker;
-  extraAllowedOrigins: Array<Scalars['String']['output']>;
   flash: Flash;
   info: Info;
   logFile: LogFileContent;
@@ -1267,6 +1279,8 @@ export type Query = {
   online: Scalars['Boolean']['output'];
   owner: Owner;
   parityHistory: Array<ParityCheck>;
+  /** List all installed plugins with their metadata */
+  plugins: Array<Plugin>;
   publicPartnerInfo?: Maybe<PublicPartnerInfo>;
   publicTheme: Theme;
   rclone: RCloneBackupSettings;
@@ -1643,6 +1657,14 @@ export type UnraidArray = Node & {
   parities: Array<ArrayDisk>;
   /** Current array state */
   state: ArrayState;
+};
+
+export type UpdateApiKeyInput = {
+  description?: InputMaybe<Scalars['String']['input']>;
+  id: Scalars['PrefixedID']['input'];
+  name?: InputMaybe<Scalars['String']['input']>;
+  permissions?: InputMaybe<Array<AddPermissionInput>>;
+  roles?: InputMaybe<Array<Role>>;
 };
 
 export type UpdateSettingsResponse = {
@@ -2198,30 +2220,6 @@ export type GetThemeQueryVariables = Exact<{ [key: string]: never; }>;
 
 export type GetThemeQuery = { __typename?: 'Query', publicTheme: { __typename?: 'Theme', name: ThemeName, showBannerImage: boolean, showBannerGradient: boolean, headerBackgroundColor: string, showHeaderDescription: boolean, headerPrimaryTextColor: string, headerSecondaryTextColor?: string | null } };
 
-export type GetExtraAllowedOriginsQueryVariables = Exact<{ [key: string]: never; }>;
-
-
-export type GetExtraAllowedOriginsQuery = { __typename?: 'Query', extraAllowedOrigins: Array<string> };
-
-export type GetRemoteAccessQueryVariables = Exact<{ [key: string]: never; }>;
-
-
-export type GetRemoteAccessQuery = { __typename?: 'Query', remoteAccess: { __typename?: 'RemoteAccess', accessType: WanAccessType, forwardType?: WanForwardType | null, port?: number | null } };
-
-export type SetAdditionalAllowedOriginsMutationVariables = Exact<{
-  input: AllowedOriginInput;
-}>;
-
-
-export type SetAdditionalAllowedOriginsMutation = { __typename?: 'Mutation', setAdditionalAllowedOrigins: Array<string> };
-
-export type SetupRemoteAccessMutationVariables = Exact<{
-  input: SetupRemoteAccessInput;
-}>;
-
-
-export type SetupRemoteAccessMutation = { __typename?: 'Mutation', setupRemoteAccess: boolean };
-
 export const ApiKeyFragmentDoc = {"kind":"Document","definitions":[{"kind":"FragmentDefinition","name":{"kind":"Name","value":"ApiKey"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"ApiKey"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"description"}},{"kind":"Field","name":{"kind":"Name","value":"createdAt"}},{"kind":"Field","name":{"kind":"Name","value":"roles"}},{"kind":"Field","name":{"kind":"Name","value":"permissions"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"resource"}},{"kind":"Field","name":{"kind":"Name","value":"actions"}}]}}]}}]} as unknown as DocumentNode<ApiKeyFragment, unknown>;
 export const ApiKeyWithKeyFragmentDoc = {"kind":"Document","definitions":[{"kind":"FragmentDefinition","name":{"kind":"Name","value":"ApiKeyWithKey"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"ApiKeyWithSecret"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"key"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"description"}},{"kind":"Field","name":{"kind":"Name","value":"createdAt"}},{"kind":"Field","name":{"kind":"Name","value":"roles"}},{"kind":"Field","name":{"kind":"Name","value":"permissions"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"resource"}},{"kind":"Field","name":{"kind":"Name","value":"actions"}}]}}]}}]} as unknown as DocumentNode<ApiKeyWithKeyFragment, unknown>;
 export const NotificationFragmentFragmentDoc = {"kind":"Document","definitions":[{"kind":"FragmentDefinition","name":{"kind":"Name","value":"NotificationFragment"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"Notification"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"title"}},{"kind":"Field","name":{"kind":"Name","value":"subject"}},{"kind":"Field","name":{"kind":"Name","value":"description"}},{"kind":"Field","name":{"kind":"Name","value":"importance"}},{"kind":"Field","name":{"kind":"Name","value":"link"}},{"kind":"Field","name":{"kind":"Name","value":"type"}},{"kind":"Field","name":{"kind":"Name","value":"timestamp"}},{"kind":"Field","name":{"kind":"Name","value":"formattedTimestamp"}}]}}]} as unknown as DocumentNode<NotificationFragmentFragment, unknown>;
@@ -2256,7 +2254,3 @@ export const ConnectSignInDocument = {"kind":"Document","definitions":[{"kind":"
 export const SignOutDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"SignOut"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"connectSignOut"}}]}}]} as unknown as DocumentNode<SignOutMutation, SignOutMutationVariables>;
 export const ServerStateDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"serverState"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"cloud"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"PartialCloud"}}]}},{"kind":"Field","name":{"kind":"Name","value":"config"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"error"}},{"kind":"Field","name":{"kind":"Name","value":"valid"}}]}},{"kind":"Field","name":{"kind":"Name","value":"info"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"os"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"hostname"}}]}}]}},{"kind":"Field","name":{"kind":"Name","value":"owner"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"avatar"}},{"kind":"Field","name":{"kind":"Name","value":"username"}}]}},{"kind":"Field","name":{"kind":"Name","value":"registration"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"state"}},{"kind":"Field","name":{"kind":"Name","value":"expiration"}},{"kind":"Field","name":{"kind":"Name","value":"keyFile"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"contents"}}]}},{"kind":"Field","name":{"kind":"Name","value":"updateExpiration"}}]}},{"kind":"Field","name":{"kind":"Name","value":"vars"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"regGen"}},{"kind":"Field","name":{"kind":"Name","value":"regState"}},{"kind":"Field","name":{"kind":"Name","value":"configError"}},{"kind":"Field","name":{"kind":"Name","value":"configValid"}}]}}]}},{"kind":"FragmentDefinition","name":{"kind":"Name","value":"PartialCloud"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"Cloud"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"error"}},{"kind":"Field","name":{"kind":"Name","value":"apiKey"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"valid"}},{"kind":"Field","name":{"kind":"Name","value":"error"}}]}},{"kind":"Field","name":{"kind":"Name","value":"cloud"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"status"}},{"kind":"Field","name":{"kind":"Name","value":"error"}}]}},{"kind":"Field","name":{"kind":"Name","value":"minigraphql"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"status"}},{"kind":"Field","name":{"kind":"Name","value":"error"}}]}},{"kind":"Field","name":{"kind":"Name","value":"relay"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"status"}},{"kind":"Field","name":{"kind":"Name","value":"error"}}]}}]}}]} as unknown as DocumentNode<ServerStateQuery, ServerStateQueryVariables>;
 export const GetThemeDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"getTheme"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"publicTheme"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"showBannerImage"}},{"kind":"Field","name":{"kind":"Name","value":"showBannerGradient"}},{"kind":"Field","name":{"kind":"Name","value":"headerBackgroundColor"}},{"kind":"Field","name":{"kind":"Name","value":"showHeaderDescription"}},{"kind":"Field","name":{"kind":"Name","value":"headerPrimaryTextColor"}},{"kind":"Field","name":{"kind":"Name","value":"headerSecondaryTextColor"}}]}}]}}]} as unknown as DocumentNode<GetThemeQuery, GetThemeQueryVariables>;
-export const GetExtraAllowedOriginsDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"getExtraAllowedOrigins"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"extraAllowedOrigins"}}]}}]} as unknown as DocumentNode<GetExtraAllowedOriginsQuery, GetExtraAllowedOriginsQueryVariables>;
-export const GetRemoteAccessDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"getRemoteAccess"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"remoteAccess"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"accessType"}},{"kind":"Field","name":{"kind":"Name","value":"forwardType"}},{"kind":"Field","name":{"kind":"Name","value":"port"}}]}}]}}]} as unknown as DocumentNode<GetRemoteAccessQuery, GetRemoteAccessQueryVariables>;
-export const SetAdditionalAllowedOriginsDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"setAdditionalAllowedOrigins"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"input"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"AllowedOriginInput"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"setAdditionalAllowedOrigins"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"input"},"value":{"kind":"Variable","name":{"kind":"Name","value":"input"}}}]}]}}]} as unknown as DocumentNode<SetAdditionalAllowedOriginsMutation, SetAdditionalAllowedOriginsMutationVariables>;
-export const SetupRemoteAccessDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"setupRemoteAccess"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"input"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"SetupRemoteAccessInput"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"setupRemoteAccess"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"input"},"value":{"kind":"Variable","name":{"kind":"Name","value":"input"}}}]}]}}]} as unknown as DocumentNode<SetupRemoteAccessMutation, SetupRemoteAccessMutationVariables>;

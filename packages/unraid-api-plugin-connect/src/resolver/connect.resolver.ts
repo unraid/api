@@ -43,4 +43,5 @@ export class ConnectResolver {
     public async settings(): Promise<ConnectSettings> {
         return {} as ConnectSettings;
     }
+
 }

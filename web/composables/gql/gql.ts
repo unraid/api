@@ -48,10 +48,6 @@ type Documents = {
     "\n  fragment PartialCloud on Cloud {\n    error\n    apiKey {\n      valid\n      error\n    }\n    cloud {\n      status\n      error\n    }\n    minigraphql {\n      status\n      error\n    }\n    relay {\n      status\n      error\n    }\n  }\n": typeof types.PartialCloudFragmentDoc,
     "\n  query serverState {\n    cloud {\n      ...PartialCloud\n    }\n    config {\n      error\n      valid\n    }\n    info {\n      os {\n        hostname\n      }\n    }\n    owner {\n      avatar\n      username\n    }\n    registration {\n      state\n      expiration\n      keyFile {\n        contents\n      }\n      updateExpiration\n    }\n    vars {\n      regGen\n      regState\n      configError\n      configValid\n    }\n  }\n": typeof types.ServerStateDocument,
     "\n  query getTheme {\n    publicTheme {\n      name\n      showBannerImage\n      showBannerGradient\n      headerBackgroundColor\n      showHeaderDescription\n      headerPrimaryTextColor\n      headerSecondaryTextColor\n    }\n  }\n": typeof types.GetThemeDocument,
-    "\n  query getExtraAllowedOrigins {\n    extraAllowedOrigins\n  }\n": typeof types.GetExtraAllowedOriginsDocument,
-    "\n  query getRemoteAccess {\n    remoteAccess {\n      accessType\n      forwardType\n      port\n    }\n  }\n": typeof types.GetRemoteAccessDocument,
-    "\n  mutation setAdditionalAllowedOrigins($input: AllowedOriginInput!) {\n    setAdditionalAllowedOrigins(input: $input)\n  }\n": typeof types.SetAdditionalAllowedOriginsDocument,
-    "\n    mutation setupRemoteAccess($input: SetupRemoteAccessInput!) {\n        setupRemoteAccess(input: $input)\n    }\n": typeof types.SetupRemoteAccessDocument,
 };
 const documents: Documents = {
     "\n  query PartnerInfo {\n    publicPartnerInfo {\n      hasPartnerLogo\n      partnerName\n      partnerUrl\n      partnerLogoUrl\n    }\n  }\n": types.PartnerInfoDocument,
@@ -88,10 +84,6 @@ const documents: Documents = {
     "\n  fragment PartialCloud on Cloud {\n    error\n    apiKey {\n      valid\n      error\n    }\n    cloud {\n      status\n      error\n    }\n    minigraphql {\n      status\n      error\n    }\n    relay {\n      status\n      error\n    }\n  }\n": types.PartialCloudFragmentDoc,
     "\n  query serverState {\n    cloud {\n      ...PartialCloud\n    }\n    config {\n      error\n      valid\n    }\n    info {\n      os {\n        hostname\n      }\n    }\n    owner {\n      avatar\n      username\n    }\n    registration {\n      state\n      expiration\n      keyFile {\n        contents\n      }\n      updateExpiration\n    }\n    vars {\n      regGen\n      regState\n      configError\n      configValid\n    }\n  }\n": types.ServerStateDocument,
     "\n  query getTheme {\n    publicTheme {\n      name\n      showBannerImage\n      showBannerGradient\n      headerBackgroundColor\n      showHeaderDescription\n      headerPrimaryTextColor\n      headerSecondaryTextColor\n    }\n  }\n": types.GetThemeDocument,
-    "\n  query getExtraAllowedOrigins {\n    extraAllowedOrigins\n  }\n": types.GetExtraAllowedOriginsDocument,
-    "\n  query getRemoteAccess {\n    remoteAccess {\n      accessType\n      forwardType\n      port\n    }\n  }\n": types.GetRemoteAccessDocument,
-    "\n  mutation setAdditionalAllowedOrigins($input: AllowedOriginInput!) {\n    setAdditionalAllowedOrigins(input: $input)\n  }\n": types.SetAdditionalAllowedOriginsDocument,
-    "\n    mutation setupRemoteAccess($input: SetupRemoteAccessInput!) {\n        setupRemoteAccess(input: $input)\n    }\n": types.SetupRemoteAccessDocument,
 };
 
 /**
@@ -244,22 +236,6 @@ export function graphql(source: "\n  query serverState {\n    cloud {\n      ...
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
 export function graphql(source: "\n  query getTheme {\n    publicTheme {\n      name\n      showBannerImage\n      showBannerGradient\n      headerBackgroundColor\n      showHeaderDescription\n      headerPrimaryTextColor\n      headerSecondaryTextColor\n    }\n  }\n"): (typeof documents)["\n  query getTheme {\n    publicTheme {\n      name\n      showBannerImage\n      showBannerGradient\n      headerBackgroundColor\n      showHeaderDescription\n      headerPrimaryTextColor\n      headerSecondaryTextColor\n    }\n  }\n"];
-/**
- * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
- */
-export function graphql(source: "\n  query getExtraAllowedOrigins {\n    extraAllowedOrigins\n  }\n"): (typeof documents)["\n  query getExtraAllowedOrigins {\n    extraAllowedOrigins\n  }\n"];
-/**
- * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
- */
-export function graphql(source: "\n  query getRemoteAccess {\n    remoteAccess {\n      accessType\n      forwardType\n      port\n    }\n  }\n"): (typeof documents)["\n  query getRemoteAccess {\n    remoteAccess {\n      accessType\n      forwardType\n      port\n    }\n  }\n"];
-/**
- * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
- */
-export function graphql(source: "\n  mutation setAdditionalAllowedOrigins($input: AllowedOriginInput!) {\n    setAdditionalAllowedOrigins(input: $input)\n  }\n"): (typeof documents)["\n  mutation setAdditionalAllowedOrigins($input: AllowedOriginInput!) {\n    setAdditionalAllowedOrigins(input: $input)\n  }\n"];
-/**
- * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
- */
-export function graphql(source: "\n    mutation setupRemoteAccess($input: SetupRemoteAccessInput!) {\n        setupRemoteAccess(input: $input)\n    }\n"): (typeof documents)["\n    mutation setupRemoteAccess($input: SetupRemoteAccessInput!) {\n        setupRemoteAccess(input: $input)\n    }\n"];
 
 export function graphql(source: string) {
   return (documents as any)[source] ?? {};
