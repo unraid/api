@@ -40,20 +40,9 @@ export class InfoResolver {
         resource: Resource.INFO,
         possession: AuthPossession.ANY,
     })
-    public async info(): Promise<Info> {
+    public async info(): Promise<Partial<Info>> {
         return {
             id: 'info',
-            time: new Date(),
-            apps: await this.apps(),
-            baseboard: await this.baseboard(),
-            cpu: await this.cpu(),
-            devices: await this.devices(),
-            display: await this.display(),
-            machineId: await this.machineId(),
-            memory: await this.memory(),
-            os: await this.os(),
-            system: await this.system(),
-            versions: await this.versions(),
         };
     }
 
