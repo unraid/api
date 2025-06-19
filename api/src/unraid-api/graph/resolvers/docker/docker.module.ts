@@ -1,6 +1,5 @@
 import { Module } from '@nestjs/common';
 
-import { DockerEventService } from '@app/unraid-api/graph/resolvers/docker/docker-event.service.js';
 import { DockerMutationsResolver } from '@app/unraid-api/graph/resolvers/docker/docker.mutations.resolver.js';
 import { DockerResolver } from '@app/unraid-api/graph/resolvers/docker/docker.resolver.js';
 import { DockerService } from '@app/unraid-api/graph/resolvers/docker/docker.service.js';
@@ -9,12 +8,12 @@ import { DockerService } from '@app/unraid-api/graph/resolvers/docker/docker.ser
     providers: [
         // Services
         DockerService,
-        DockerEventService,
+        // DockerEventService,
 
         // Resolvers
         DockerResolver,
         DockerMutationsResolver,
     ],
-    exports: [DockerService, DockerEventService],
+    exports: [DockerService],
 })
 export class DockerModule {}
