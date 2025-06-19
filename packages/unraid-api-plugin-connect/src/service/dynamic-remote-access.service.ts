@@ -80,7 +80,7 @@ export class DynamicRemoteAccessService implements OnModuleInit {
         type: DynamicRemoteAccessType;
     }) {
         try {
-            this.logger.verbose('enableDynamicRemoteAccess');
+            this.logger.verbose(`enableDynamicRemoteAccess ${JSON.stringify(input, null, 2)}`);
             await this.stopRemoteAccess();
             if (input.allowedUrl) {
                 this.setAllowedUrl({
