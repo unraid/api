@@ -41,7 +41,6 @@ const placeholder = computed(() => control.value.uischema?.options?.placeholder 
 
 <template>
   <div class="space-y-4">
-    <p v-if="control.description" v-html="control.description" />
     <div v-for="(item, index) in items" :key="index" class="flex gap-2">
       <Input
         :type="inputType"
