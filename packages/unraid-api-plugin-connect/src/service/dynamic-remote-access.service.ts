@@ -1,4 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 
 import { URL_TYPE } from '@unraid/shared/network.model.js';
@@ -15,14 +15,18 @@ import { StaticRemoteAccessService } from './static-remote-access.service.js';
 import { UpnpRemoteAccessService } from './upnp-remote-access.service.js';
 
 @Injectable()
-export class DynamicRemoteAccessService {
+export class DynamicRemoteAccessService implements OnModuleInit {
     private readonly logger = new Logger(DynamicRemoteAccessService.name);
 
     constructor(
-        private readonly configService: ConfigService<ConfigType>,
+        private readonly configService: ConfigService<ConfigType, true>,
         private readonly staticRemoteAccessService: StaticRemoteAccessService,
         private readonly upnpRemoteAccessService: UpnpRemoteAccessService
     ) {}
+
+    async onModuleInit() {
+        await this.initRemoteAccess();
+    }
 
     /**
      * Get the current state of dynamic remote access
@@ -60,6 +64,7 @@ export class DynamicRemoteAccessService {
             type: url.type ?? URL_TYPE.WAN,
         };
         this.configService.set('connect.dynamicRemoteAccess.allowedUrl', newAllowed);
+        this.logger.verbose(`setAllowedUrl: ${JSON.stringify(newAllowed, null, 2)}`);
     }
 
     private setErrorMessage(error: string) {
@@ -75,6 +80,7 @@ export class DynamicRemoteAccessService {
         type: DynamicRemoteAccessType;
     }) {
         try {
+            this.logger.verbose('enableDynamicRemoteAccess');
             await this.stopRemoteAccess();
             if (input.allowedUrl) {
                 this.setAllowedUrl({
@@ -98,6 +104,7 @@ export class DynamicRemoteAccessService {
      * @param type The new dynamic remote access type to set
      */
     private async setType(type: DynamicRemoteAccessType): Promise<void> {
+        this.logger.verbose(`setType: ${type}`);
         // Update the config first
         this.configService.set('connect.config.dynamicRemoteAccessType', type);
 
@@ -137,5 +144,15 @@ export class DynamicRemoteAccessService {
         this.configService.set('connect.dynamicRemoteAccess', makeDisabledDynamicRemoteAccessState());
         this.clearPing();
         this.clearError();
+    }
+
+    private async initRemoteAccess() {
+        const enabled = this.configService.get('connect.config.wanaccess', { infer: true });
+        if (!enabled) {
+            return;
+        }
+
+        const type = this.configService.get('connect.config.dynamicRemoteAccessType', { infer: true });
+        await this.setType(type);
     }
 }
