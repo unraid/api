@@ -33,8 +33,7 @@ export class ConnectConfigPersister implements OnModuleInit, OnModuleDestroy {
         this.logger.verbose(`Config path: ${this.configPath}`);
         await this.loadOrMigrateConfig();
         // Persist changes to the config.
-        const HALF_SECOND = 500;
-        this.configService.changes$.pipe(debounceTime(HALF_SECOND)).subscribe({
+        this.configService.changes$.pipe(debounceTime(25)).subscribe({
             next: async ({ newValue, oldValue, path }) => {
                 if (path.startsWith('connect.config')) {
                     this.logger.verbose(`Config changed: ${path} from ${oldValue} to ${newValue}`);

@@ -80,11 +80,10 @@ export class MothershipConnectionService implements OnModuleInit, OnModuleDestro
         if (this.identitySubscription) {
             this.identitySubscription.unsubscribe();
         }
-        const debounceTimeMs = 100;
         this.identitySubscription = this.configService.changes$
             .pipe(
                 filter((change) => Object.values(this.configKeys).includes(change.path)),
-                debounceTime(debounceTimeMs)
+                debounceTime(25)
             )
             .subscribe({
                 next: () => {
