@@ -11,7 +11,10 @@ import { DisplayResolver } from '@app/unraid-api/graph/resolvers/display/display
 import { DockerModule } from '@app/unraid-api/graph/resolvers/docker/docker.module.js';
 import { FlashBackupModule } from '@app/unraid-api/graph/resolvers/flash-backup/flash-backup.module.js';
 import { FlashResolver } from '@app/unraid-api/graph/resolvers/flash/flash.resolver.js';
+import { DevicesResolver } from '@app/unraid-api/graph/resolvers/info/devices.resolver.js';
+import { DevicesService } from '@app/unraid-api/graph/resolvers/info/devices.service.js';
 import { InfoResolver } from '@app/unraid-api/graph/resolvers/info/info.resolver.js';
+import { InfoService } from '@app/unraid-api/graph/resolvers/info/info.service.js';
 import { LogsResolver } from '@app/unraid-api/graph/resolvers/logs/logs.resolver.js';
 import { LogsService } from '@app/unraid-api/graph/resolvers/logs/logs.service.js';
 import { RootMutationsResolver } from '@app/unraid-api/graph/resolvers/mutation/mutation.resolver.js';
@@ -45,9 +48,12 @@ import { MeResolver } from '@app/unraid-api/graph/user/user.resolver.js';
     ],
     providers: [
         ConfigResolver,
+        DevicesResolver,
+        DevicesService,
         DisplayResolver,
         FlashResolver,
         InfoResolver,
+        InfoService,
         LogsResolver,
         LogsService,
         MeResolver,
