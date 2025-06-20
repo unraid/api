@@ -824,8 +824,8 @@ importers:
         specifier: ^2.0.1
         version: 2.0.1
       lucide-vue-next:
-        specifier: ^0.511.0
-        version: 0.511.0(vue@3.5.13(typescript@5.8.3))
+        specifier: ^0.519.0
+        version: 0.519.0(vue@3.5.13(typescript@5.8.3))
       marked:
         specifier: ^15.0.0
         version: 15.0.7
@@ -1072,8 +1072,8 @@ importers:
         specifier: ^2.19.0
         version: 2.22.0
       lucide-vue-next:
-        specifier: ^0.511.0
-        version: 0.511.0(vue@3.5.13(typescript@5.8.3))
+        specifier: ^0.519.0
+        version: 0.519.0(vue@3.5.13(typescript@5.8.3))
       marked:
         specifier: ^15.0.0
         version: 15.0.7
@@ -1226,8 +1226,8 @@ importers:
         specifier: ^2.1.10
         version: 2.2.8(typescript@5.8.3)
       vuetify-nuxt-module:
-        specifier: 0.18.6
-        version: 0.18.6(magicast@0.3.5)(typescript@5.8.3)(vite@6.2.3(@types/node@22.15.3)(jiti@2.4.2)(stylus@0.57.0)(terser@5.39.0)(tsx@4.19.3)(yaml@2.7.1))(vue@3.5.13(typescript@5.8.3))
+        specifier: 0.18.7
+        version: 0.18.7(magicast@0.3.5)(typescript@5.8.3)(vite@6.2.3(@types/node@22.15.3)(jiti@2.4.2)(stylus@0.57.0)(terser@5.39.0)(tsx@4.19.3)(yaml@2.7.1))(vue@3.5.13(typescript@5.8.3))
     optionalDependencies:
       '@rollup/rollup-linux-x64-gnu':
         specifier: ^4.30.1
@@ -8819,8 +8819,8 @@ packages:
   lru-queue@0.1.0:
     resolution: {integrity: sha512-BpdYkt9EvGl8OfWHDQPISVpcl5xZthb+XPsbELj5AQXxIC8IriDZIQYjBJPEm5rS420sjZ0TLEzRcq5KdBhYrQ==}
 
-  lucide-vue-next@0.511.0:
-    resolution: {integrity: sha512-VSv0F3pHniGN7JMMzDcLFNMQbl8381+shNnHwV8hi+El7xl2ZL8qdNuzPoiBViKk8mTKK5K3ZDfmE/wEcTZVIQ==}
+  lucide-vue-next@0.519.0:
+    resolution: {integrity: sha512-ZnP+ExobajNaXcSL0Xrz0ioVI1Z4+x0wVNl+rdsHLrCuztA9g3O2ZPoQqoDY3uJIyXuKmitK78oCckidrxJ2ew==}
     peerDependencies:
       vue: '>=3.0.1'
 
@@ -12235,8 +12235,8 @@ packages:
       typescript:
         optional: true
 
-  vuetify-nuxt-module@0.18.6:
-    resolution: {integrity: sha512-IEoV2XlAWkAVkUWnNx2dkFmScgZLZ58AxFnmXYS7ECQJvmskLODc/BUhonK6Ueqzu+SQhYkHjmaOi5ZukLl4PQ==}
+  vuetify-nuxt-module@0.18.7:
+    resolution: {integrity: sha512-AEP5DRuyY5yIk8JzPEhG6NohCkGwf9afn4Mv51YPKGxreqP/KfzL0jooG/HN1cinSo4c+9uRowHllzCsnSN7FA==}
 
   vuetify@3.7.18:
     resolution: {integrity: sha512-JDkPIaug4hP9c+K/wxSgmTiLTMjBTYv2ATPvudhkRKuhsoym89aWCXb1CVbs7FRYuRsJEOGojpwpL5rBfDDy9g==}
@@ -21531,7 +21531,7 @@ snapshots:
     dependencies:
       es5-ext: 0.10.64
 
-  lucide-vue-next@0.511.0(vue@3.5.13(typescript@5.8.3)):
+  lucide-vue-next@0.519.0(vue@3.5.13(typescript@5.8.3)):
     dependencies:
       vue: 3.5.13(typescript@5.8.3)
 
@@ -25475,7 +25475,7 @@ snapshots:
     optionalDependencies:
       typescript: 5.8.3
 
-  vuetify-nuxt-module@0.18.6(magicast@0.3.5)(typescript@5.8.3)(vite@6.2.3(@types/node@22.15.3)(jiti@2.4.2)(stylus@0.57.0)(terser@5.39.0)(tsx@4.19.3)(yaml@2.7.1))(vue@3.5.13(typescript@5.8.3)):
+  vuetify-nuxt-module@0.18.7(magicast@0.3.5)(typescript@5.8.3)(vite@6.2.3(@types/node@22.15.3)(jiti@2.4.2)(stylus@0.57.0)(terser@5.39.0)(tsx@4.19.3)(yaml@2.7.1))(vue@3.5.13(typescript@5.8.3)):
     dependencies:
       '@nuxt/kit': 3.16.1(magicast@0.3.5)
       defu: 6.1.4
