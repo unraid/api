@@ -1,5 +1,55 @@
 # Changelog
 
+## [4.9.0](https://github.com/unraid/api/compare/v4.8.0...v4.9.0) (2025-06-20)
+
+
+### Features
+
+* add graphql resource for API plugins ([#1420](https://github.com/unraid/api/issues/1420)) ([642a220](https://github.com/unraid/api/commit/642a220c3a796829505d8449dc774968c9d5c222))
+* add management page for API keys ([#1408](https://github.com/unraid/api/issues/1408)) ([0788756](https://github.com/unraid/api/commit/0788756b918a8e99be51f34bf6f96bbe5b67395a))
+* add rclone ([#1362](https://github.com/unraid/api/issues/1362)) ([5517e75](https://github.com/unraid/api/commit/5517e7506b05c7bef5012bb9f8d2103e91061997))
+* API key management ([#1407](https://github.com/unraid/api/issues/1407)) ([d37dc3b](https://github.com/unraid/api/commit/d37dc3bce28bad1c893ae7eff96ca5ffd9177648))
+* api plugin management via CLI ([#1416](https://github.com/unraid/api/issues/1416)) ([3dcbfbe](https://github.com/unraid/api/commit/3dcbfbe48973b8047f0c6c560068808d86ac6970))
+* docker and info resolver issues ([#1423](https://github.com/unraid/api/issues/1423)) ([9901039](https://github.com/unraid/api/commit/9901039a3863de06b520e23cb2573b610716c673))
+* info resolver cleanup ([#1425](https://github.com/unraid/api/issues/1425)) ([1b279bb](https://github.com/unraid/api/commit/1b279bbab3a51e7d032e7e3c9898feac8bfdbafa))
+* initial codeql setup ([#1390](https://github.com/unraid/api/issues/1390)) ([2ade7eb](https://github.com/unraid/api/commit/2ade7eb52792ef481aaf711dc07029629ea107d9))
+* initialize claude code in codebse ([#1418](https://github.com/unraid/api/issues/1418)) ([b6c4ee6](https://github.com/unraid/api/commit/b6c4ee6eb4b9ebb6d6e59a341e1f51b253578752))
+* move to cron v4 ([#1428](https://github.com/unraid/api/issues/1428)) ([b8035c2](https://github.com/unraid/api/commit/b8035c207a6e387c7af3346593a872664f6c867b))
+* move to iframe for changelog ([#1388](https://github.com/unraid/api/issues/1388)) ([fcd6fbc](https://github.com/unraid/api/commit/fcd6fbcdd48e7f224b3bd8799a668d9e01967f0c))
+* native slackware package ([#1381](https://github.com/unraid/api/issues/1381)) ([4f63b4c](https://github.com/unraid/api/commit/4f63b4cf3bb9391785f07a38defe54ec39071caa))
+* send active unraid theme to docs ([#1400](https://github.com/unraid/api/issues/1400)) ([f71943b](https://github.com/unraid/api/commit/f71943b62b30119e17766e56534962630f52a591))
+* slightly better watch mode ([#1398](https://github.com/unraid/api/issues/1398)) ([881f1e0](https://github.com/unraid/api/commit/881f1e09607d1e4a8606f8d048636ba09d8fcac1))
+* use bigint instead of long ([#1403](https://github.com/unraid/api/issues/1403)) ([574d572](https://github.com/unraid/api/commit/574d572d6567c652057b29776694e86267316ca7))
+
+
+### Bug Fixes
+
+* alignment of settings on ManagementAccess settings page ([#1421](https://github.com/unraid/api/issues/1421)) ([70c790f](https://github.com/unraid/api/commit/70c790ff89075a785d7f0623bbf3c34a3806bbdc))
+* always download 7.1 versioned files for patching ([edc0d15](https://github.com/unraid/api/commit/edc0d1578b89c3b3e56e637de07137e069656fa8))
+* bigint ([e54d27a](https://github.com/unraid/api/commit/e54d27aede1b1e784971468777c5e65cde66f2ac))
+* debounce is too long ([#1426](https://github.com/unraid/api/issues/1426)) ([f12d231](https://github.com/unraid/api/commit/f12d231e6376d0f253cee67b7ed690c432c63ec5))
+* **deps:** update all non-major dependencies ([#1366](https://github.com/unraid/api/issues/1366)) ([291ee47](https://github.com/unraid/api/commit/291ee475fb9ef44f6da7b76a9eb11b7dd29a5d13))
+* **deps:** update all non-major dependencies ([#1379](https://github.com/unraid/api/issues/1379)) ([8f70326](https://github.com/unraid/api/commit/8f70326d0fe3e4c3bcd3e8e4e6566766f1c05eb7))
+* **deps:** update all non-major dependencies ([#1389](https://github.com/unraid/api/issues/1389)) ([cb43f95](https://github.com/unraid/api/commit/cb43f95233590888a8e20a130e62cadc176c6793))
+* **deps:** update all non-major dependencies ([#1399](https://github.com/unraid/api/issues/1399)) ([68df344](https://github.com/unraid/api/commit/68df344a4b412227cffa96867f086177b251f028))
+* **deps:** update dependency @types/diff to v8 ([#1393](https://github.com/unraid/api/issues/1393)) ([00da27d](https://github.com/unraid/api/commit/00da27d04f2ee2ca8b8b9cdcc6ea3c490c02a3a4))
+* **deps:** update dependency cache-manager to v7 ([#1413](https://github.com/unraid/api/issues/1413)) ([9492c2a](https://github.com/unraid/api/commit/9492c2ae6a0086d14e73d280c55746206b73a7b0))
+* **deps:** update dependency commander to v14 ([#1394](https://github.com/unraid/api/issues/1394)) ([106ea09](https://github.com/unraid/api/commit/106ea093996f2d0c71c1511bc009ecc9a6be91ec))
+* **deps:** update dependency diff to v8 ([#1386](https://github.com/unraid/api/issues/1386)) ([e580f64](https://github.com/unraid/api/commit/e580f646a52b8bda605132cf44ec58137e08dd42))
+* **deps:** update dependency lucide-vue-next to ^0.509.0 ([#1383](https://github.com/unraid/api/issues/1383)) ([469333a](https://github.com/unraid/api/commit/469333acd4a0cbeecc9e9cbadb2884289d83aee3))
+* **deps:** update dependency shadcn-vue to v2 ([#1302](https://github.com/unraid/api/issues/1302)) ([26ecf77](https://github.com/unraid/api/commit/26ecf779e675d0bc533d61e045325ab062effcbf))
+* **deps:** update dependency vue-sonner to v2 ([#1401](https://github.com/unraid/api/issues/1401)) ([53ca414](https://github.com/unraid/api/commit/53ca41404f13c057c340dcf9010af72c3365e499))
+* disable file changes on Unraid 7.2 ([#1382](https://github.com/unraid/api/issues/1382)) ([02de89d](https://github.com/unraid/api/commit/02de89d1309f67e4b6d4f8de5f66815ee4d2464c))
+* do not start API with doinst.sh ([7d88b33](https://github.com/unraid/api/commit/7d88b3393cbd8ab1e93a86dfa1b7b74cc97255cc))
+* move to bigint scalar ([b625227](https://github.com/unraid/api/commit/b625227913e80e4731a13b54b525ec7385918c51))
+* node_modules dir removed on plugin update ([#1406](https://github.com/unraid/api/issues/1406)) ([7b005cb](https://github.com/unraid/api/commit/7b005cbbf682a1336641f5fc85022e9d651569d0))
+* omit Connect actions in UPC when plugin is not installed ([#1417](https://github.com/unraid/api/issues/1417)) ([8c8a527](https://github.com/unraid/api/commit/8c8a5276b49833c08bca133e374e1e66273b41aa))
+* proper fallback if missing paths config modules ([7067e9e](https://github.com/unraid/api/commit/7067e9e3dd3966309013b52c90090cc82de4e4fb))
+* rc.unraid-api now cleans up older dependencies ([#1404](https://github.com/unraid/api/issues/1404)) ([83076bb](https://github.com/unraid/api/commit/83076bb94088095de8b1a332a50bbef91421f0c1))
+* simplify usb listing ([#1402](https://github.com/unraid/api/issues/1402)) ([5355115](https://github.com/unraid/api/commit/5355115af2f4122af9afa3f63ed8f830b33cbf5c))
+* theme issues when sent from graph ([#1424](https://github.com/unraid/api/issues/1424)) ([75ad838](https://github.com/unraid/api/commit/75ad8381bd4f4045ab1d3aa84e08ecddfba27617))
+* use some instead of every for connect detection ([9ce2fee](https://github.com/unraid/api/commit/9ce2fee380c4db1395f5d4df7f16ae6c57d1a748))
+
 ## [4.8.0](https://github.com/unraid/api/compare/v4.7.0...v4.8.0) (2025-05-01)
 
 
