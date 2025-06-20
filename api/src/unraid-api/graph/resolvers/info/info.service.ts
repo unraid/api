@@ -1,13 +1,9 @@
 import { Injectable } from '@nestjs/common';
 
-import toBytes from 'bytes';
-import { execa } from 'execa';
 import { cpu, cpuFlags, mem, memLayout, osInfo, versions } from 'systeminformation';
 
 import { bootTimestamp } from '@app/common/dashboard/boot-timestamp.js';
 import { getUnraidVersion } from '@app/common/dashboard/get-unraid-version.js';
-import { AppError } from '@app/core/errors/app-error.js';
-import { cleanStdout } from '@app/core/utils/misc/clean-stdout.js';
 import { getters } from '@app/store/index.js';
 import { ContainerState } from '@app/unraid-api/graph/resolvers/docker/docker.model.js';
 import { DockerService } from '@app/unraid-api/graph/resolvers/docker/docker.service.js';
