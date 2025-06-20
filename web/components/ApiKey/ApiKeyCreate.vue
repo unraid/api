@@ -180,7 +180,7 @@ async function upsertKey() {
       const fragmentData = useFragment(API_KEY_FRAGMENT_WITH_KEY, apiKeyResult.create);
       apiKeyStore.setCreatedKey(fragmentData);
     }
-    
+
     modalVisible.value = false;
     editingKey.value = null;
     newKeyName.value = '';
@@ -196,14 +196,18 @@ async function upsertKey() {
 <template>
   <Dialog
     v-model="modalVisible"
-    :title="editingKey ? t('Edit API Key') : t('Create API Key')"
-    :scrollable="true"
     close-button-text="Cancel"
+    scrollable
+    :title="editingKey ? t('Edit API Key') : t('Create API Key')"
     :primary-button-text="editingKey ? 'Save' : 'Create'"
     :primary-button-loading="loading || postCreateLoading"
     :primary-button-loading-text="editingKey ? 'Saving...' : 'Creating...'"
     :primary-button-disabled="loading || postCreateLoading"
-    @update:model-value="(v) => { if (!v) close(); }"
+    @update:model-value="
+      (v) => {
+        if (!v) close();
+      }
+    "
     @primary-click="upsertKey"
   >
 <<<<<<< HEAD
@@ -303,12 +307,7 @@ async function upsertKey() {
         </div>
         <div class="mb-2">
           <Label for="api-key-desc">Description</Label>
-          <Input
-            id="api-key-desc"
-            v-model="newKeyDescription"
-            placeholder="Description"
-            class="mt-1"
-          />
+          <Input id="api-key-desc" v-model="newKeyDescription" placeholder="Description" class="mt-1" />
         </div>
         <div class="mb-2">
           <Label for="api-key-roles">Roles</Label>
@@ -317,17 +316,15 @@ async function upsertKey() {
               <SelectValue placeholder="Select Roles" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem v-for="role in possibleRoles" :key="role" :value="role">{{
-                role
-              }}</SelectItem>
+              <SelectItem v-for="role in possibleRoles" :key="role" :value="role">{{ role }}</SelectItem>
             </SelectContent>
           </Select>
         </div>
         <div class="mb-2">
-          <Label for="api-key-permissions">Permissions</Label>
           <Accordion id="api-key-permissions" type="single" collapsible class="w-full mt-2">
             <AccordionItem value="permissions">
               <AccordionTrigger>
+                <Label for="api-key-permissions">Permissions</Label>
                 <PermissionCounter
                   :permissions="newKeyPermissions"
                   :possible-permissions="possiblePermissions"
@@ -339,9 +336,7 @@ async function upsertKey() {
                     size="sm"
                     variant="outline"
                     type="button"
-                    @click="
-                      areAllPermissionsSelected() ? clearAllPermissions() : selectAllPermissions()
-                    "
+                    @click="areAllPermissionsSelected() ? clearAllPermissions() : selectAllPermissions()"
                   >
                     {{ areAllPermissionsSelected() ? 'Select None' : 'Select All' }}
                   </Button>
