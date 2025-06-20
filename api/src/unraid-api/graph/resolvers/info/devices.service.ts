@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { randomUUID } from 'crypto';
 import { access } from 'fs/promises';
 
@@ -22,6 +22,8 @@ import {
 
 @Injectable()
 export class DevicesService {
+    private readonly logger = new Logger(DevicesService.name);
+
     async generateGpu(): Promise<Gpu[]> {
         try {
             const systemPciDevices = await this.getSystemPciDevices();
@@ -39,7 +41,11 @@ export class DevicesService {
                     };
                     return gpu;
                 });
-        } catch {
+        } catch (error: unknown) {
+            this.logger.error(
+                `Failed to generate GPU devices: ${error instanceof Error ? error.message : String(error)}`,
+                error instanceof Error ? error.stack : undefined
+            );
             return [];
         }
     }
@@ -58,7 +64,11 @@ export class DevicesService {
                 blacklisted: device.allowed ? 'true' : 'false',
                 class: device.class,
             }));
-        } catch {
+        } catch (error: unknown) {
+            this.logger.error(
+                `Failed to generate PCI devices: ${error instanceof Error ? error.message : String(error)}`,
+                error instanceof Error ? error.stack : undefined
+            );
             return [];
         }
     }
@@ -70,7 +80,11 @@ export class DevicesService {
                 id: `usb/${device.id}`,
                 name: device.name,
             }));
-        } catch {
+        } catch (error: unknown) {
+            this.logger.error(
+                `Failed to generate USB devices: ${error instanceof Error ? error.message : String(error)}`,
+                error instanceof Error ? error.stack : undefined
+            );
             return [];
         }
     }

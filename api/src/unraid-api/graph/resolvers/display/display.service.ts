@@ -111,7 +111,10 @@ export class DisplayService {
 
         const state = filePaths.reduce<Partial<DynamixConfig>>((acc, filePath) => {
             const state = loadState<DynamixConfig>(filePath);
-            return state ? { ...acc, ...state } : acc;
+            if (state) {
+                Object.assign(acc, state);
+            }
+            return acc;
         }, {});
 
         if (!state.display) {
