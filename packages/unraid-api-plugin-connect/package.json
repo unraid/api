@@ -15,7 +15,11 @@
         "format": "prettier --write \"src/**/*.{ts,js,json}\"",
         "codegen": "MOTHERSHIP_GRAPHQL_LINK='https://staging.mothership.unraid.net/ws' graphql-codegen --config codegen.ts"
     },
-    "keywords": ["unraid", "connect", "unraid plugin"],
+    "keywords": [
+        "unraid",
+        "connect",
+        "unraid plugin"
+    ],
     "author": "Lime Technology, Inc. <unraid.net>",
     "license": "GPL-2.0-or-later",
     "description": "Unraid Connect plugin for Unraid API",
@@ -31,7 +35,7 @@
         "@nestjs/core": "^11.0.11",
         "@nestjs/event-emitter": "^3.0.1",
         "@nestjs/graphql": "^13.0.3",
-        "@nestjs/schedule": "^5.0.0",
+        "@nestjs/schedule": "^6.0.0",
         "@runonflux/nat-upnp": "^1.0.2",
         "@types/ini": "^4.1.1",
         "@types/ip": "^1.1.3",
@@ -75,7 +79,7 @@
         "@nestjs/core": "^11.0.11",
         "@nestjs/event-emitter": "^3.0.1",
         "@nestjs/graphql": "^13.0.3",
-        "@nestjs/schedule": "^5.0.0",
+        "@nestjs/schedule": "^6.0.0",
         "@runonflux/nat-upnp": "^1.0.2",
         "camelcase-keys": "^9.1.3",
         "class-transformer": "^0.5.1",
