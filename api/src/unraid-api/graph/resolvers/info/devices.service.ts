@@ -164,7 +164,7 @@ export class DevicesService {
                 const [vendorId, productId] = idParts;
                 modifiedDevice.guid = `${vendorId}-${productId}-basic`;
             } else {
-                modifiedDevice.guid = `unknown-${Math.random().toString(36).substring(7)}`;
+                modifiedDevice.guid = `unknown-${crypto.randomUUID()}`;
             }
 
             const deviceName = device.name?.trim() || '';
