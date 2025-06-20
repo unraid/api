@@ -85,7 +85,7 @@ class ApiConfigPersistence {
             this.migrateFromMyServersConfig();
         }
         await this.persistenceHelper.persistIfChanged(this.filePath, this.config);
-        this.configService.changes$.pipe(debounceTime(500)).subscribe({
+        this.configService.changes$.pipe(debounceTime(25)).subscribe({
             next: async ({ newValue, oldValue, path }) => {
                 if (path.startsWith('api')) {
                     this.logger.verbose(`Config changed: ${path} from ${oldValue} to ${newValue}`);

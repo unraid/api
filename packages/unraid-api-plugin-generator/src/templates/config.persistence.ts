@@ -42,8 +42,7 @@ export class PluginNameConfigPersister implements OnModuleInit {
     }
 
     // Automatically persist changes to the config file after a short delay.
-    const HALF_SECOND = 500;
-    this.configService.changes$.pipe(debounceTime(HALF_SECOND)).subscribe({
+    this.configService.changes$.pipe(debounceTime(25)).subscribe({
       next: ({ newValue, oldValue, path: changedPath }) => {
         // Only persist if the change is within this plugin's config namespace
         if (changedPath.startsWith("plugin-name.") && newValue !== oldValue) {
