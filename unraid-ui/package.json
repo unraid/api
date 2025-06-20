@@ -92,7 +92,7 @@
     "eslint-plugin-no-relative-import-paths": "^1.6.1",
     "eslint-plugin-prettier": "^5.2.3",
     "eslint-plugin-vue": "^10.0.0",
-    "happy-dom": "^17.0.0",
+    "happy-dom": "^18.0.0",
     "postcss": "^8.4.49",
     "postcss-import": "^16.1.0",
     "prettier": "3.5.3",
