@@ -24,6 +24,7 @@ export class UpnpRemoteAccessService {
     }
 
     async begin() {
+        this.logger.verbose('Begin UPNP Remote Access');
         const sslPort = this.configService.get<string | undefined>('store.emhttp.var.portssl');
         if (!sslPort || isNaN(Number(sslPort))) {
             throw new Error(`Invalid SSL port configuration: ${sslPort}`);

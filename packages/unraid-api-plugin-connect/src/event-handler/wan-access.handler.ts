@@ -1,4 +1,4 @@
-import { Injectable, OnModuleDestroy } from '@nestjs/common';
+import { Injectable, Logger, OnModuleDestroy } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { OnEvent } from '@nestjs/event-emitter';
 
@@ -9,6 +9,8 @@ import { UrlResolverService } from '../service/url-resolver.service.js';
 
 @Injectable()
 export class WanAccessEventHandler implements OnModuleDestroy {
+    private readonly logger = new Logger(WanAccessEventHandler.name);
+
     constructor(
         private readonly configService: ConfigService<ConfigType>,
         private readonly networkService: NetworkService
@@ -20,6 +22,7 @@ export class WanAccessEventHandler implements OnModuleDestroy {
 
     @OnEvent(EVENTS.ENABLE_WAN_ACCESS, { async: true })
     async enableWanAccess() {
+        this.logger.log('Enabling WAN Access');
         this.configService.set('connect.config.wanaccess', true);
         await this.networkService.reloadNetworkStack();
     }

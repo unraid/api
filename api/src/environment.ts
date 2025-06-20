@@ -101,4 +101,4 @@ export const PM2_PATH = join(import.meta.dirname, '../../', 'node_modules', 'pm2
 export const ECOSYSTEM_PATH = join(import.meta.dirname, '../../', 'ecosystem.config.json');
 
 export const PATHS_CONFIG_MODULES =
-    process.env.PATHS_CONFIG_MODULES ?? '/usr/local/unraid-api/config/modules';
+    process.env.PATHS_CONFIG_MODULES ?? '/boot/config/plugins/dynamix.my.servers/configs';

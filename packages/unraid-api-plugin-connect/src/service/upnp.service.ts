@@ -39,6 +39,10 @@ export class UpnpService {
         return this.scheduleRegistry.getCronJob(UPNP_RENEWAL_JOB_TOKEN);
     }
 
+    async onModuleDestroy() {
+        await this.disableUpnp();
+    }
+
     private async removeUpnpMapping() {
         if (isDefined(this.#wanPort) && isDefined(this.#localPort)) {
             const portMap = {

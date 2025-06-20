@@ -21,13 +21,13 @@ export class StaticRemoteAccessService {
     }
 
     async beginRemoteAccess(): Promise<AccessUrl | null> {
+        this.logger.verbose('Begin Static Remote Access');
         const { dynamicRemoteAccessType } =
             this.configService.getOrThrow<MyServersConfig>('connect.config');
         if (dynamicRemoteAccessType !== DynamicRemoteAccessType.STATIC) {
             this.logger.error('Invalid Dynamic Remote Access Type: %s', dynamicRemoteAccessType);
             return null;
         }
-        this.logger.log('Enabling Static Remote Access');
         this.eventEmitter.emit(EVENTS.ENABLE_WAN_ACCESS);
         return this.urlResolverService.getRemoteAccessUrl();
     }
