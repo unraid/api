@@ -340,9 +340,6 @@ describe('InfoService', () => {
 
             expect(result).toEqual({
                 id: 'info/devices',
-                gpu: [],
-                pci: [],
-                usb: [],
             });
         });
     });
