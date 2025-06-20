@@ -35,6 +35,7 @@
       "protobufjs",
       "simple-git-hooks",
       "ssh2",
+      "unrs-resolver",
       "vue-demi"
     ]
   },
