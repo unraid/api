@@ -66,20 +66,34 @@ export const useThemeStore = defineStore('theme', () => {
     if (data) {
       theme.value = data;
     } else {
-      const result = await load();
-      if (result) {
-        if (result.publicTheme) {
+      try {
+        const result = await load();
+        if (result && result.publicTheme) {
           theme.value = {
-            name: result.publicTheme.name.toLowerCase(),
-            banner: result.publicTheme.showBannerImage,
-            bannerGradient: result.publicTheme.showBannerGradient,
-            bgColor: result.publicTheme.headerBackgroundColor,
-            descriptionShow: result.publicTheme.showHeaderDescription,
+            name: result.publicTheme.name?.toLowerCase() || 'white',
+            banner: result.publicTheme.showBannerImage ?? false,
+            bannerGradient: result.publicTheme.showBannerGradient ?? false,
+            bgColor: result.publicTheme.headerBackgroundColor || '',
+            descriptionShow: result.publicTheme.showHeaderDescription ?? false,
             metaColor: result.publicTheme.headerSecondaryTextColor || '',
-            textColor: result.publicTheme.headerPrimaryTextColor,
+            textColor: result.publicTheme.headerPrimaryTextColor || '',
           };
+          return;
         }
+      } catch (error) {
+        console.warn('Failed to load theme from server, using default:', error);
       }
+      
+      // Single fallback for both no data and error cases
+      theme.value = {
+        name: 'white',
+        banner: false,
+        bannerGradient: false,
+        bgColor: '',
+        descriptionShow: false,
+        metaColor: '',
+        textColor: '',
+      };
     }
   };
 

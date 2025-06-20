@@ -940,14 +940,14 @@ type Theme {
   """Whether to show the banner gradient"""
   showBannerGradient: Boolean!
 
-  """The background color of the header"""
-  headerBackgroundColor: String!
-
   """Whether to show the description in the header"""
   showHeaderDescription: Boolean!
 
+  """The background color of the header"""
+  headerBackgroundColor: String
+
   """The text color of the header"""
-  headerPrimaryTextColor: String!
+  headerPrimaryTextColor: String
 
   """The secondary text color of the header"""
   headerSecondaryTextColor: String

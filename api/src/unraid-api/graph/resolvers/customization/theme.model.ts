@@ -28,17 +28,17 @@ export class Theme {
     @IsBoolean()
     showBannerGradient: boolean = false;
 
-    @Field(() => String, { description: 'The background color of the header' })
+    @Field(() => Boolean, { description: 'Whether to show the description in the header' })
+    @IsBoolean()
+    showHeaderDescription: boolean = true;
+
+    @Field(() => String, { description: 'The background color of the header', nullable: true })
     @IsOptional()
     @IsString()
     @IsHexColor()
     headerBackgroundColor?: string;
 
-    @Field(() => Boolean, { description: 'Whether to show the description in the header' })
-    @IsBoolean()
-    showHeaderDescription: boolean = true;
-
-    @Field(() => String, { description: 'The text color of the header' })
+    @Field(() => String, { description: 'The text color of the header', nullable: true })
     @IsOptional()
     @IsString()
     @IsHexColor()
