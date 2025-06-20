@@ -80,35 +80,11 @@ export class InfoService {
             .then((dims) => dims.map((dim) => dim as MemoryLayout))
             .catch(() => []);
         const info = await mem();
-        let max = info.total;
-
-        try {
-            const memoryInfo = await execa('dmidecode', ['-t', '16'])
-                .then(cleanStdout)
-                .catch((error: NodeJS.ErrnoException) => {
-                    if (error.code === 'ENOENT') {
-                        throw new AppError('The dmidecode cli utility is missing.');
-                    }
-
-                    throw error;
-                });
-
-            const capacityLine = memoryInfo
-                .split('\n')
-                .find((line) => line.trim().startsWith('Maximum Capacity'));
-
-            if (capacityLine) {
-                const capacityValue = capacityLine.trim().split(': ')[1];
-                max = toBytes(capacityValue) ?? info.total;
-            }
-        } catch {
-            // Ignore errors here
-        }
 
         return {
             id: 'info/memory',
             layout,
-            max,
+            max: info.total,
             ...info,
         };
     }
