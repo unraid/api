@@ -89,9 +89,6 @@ export class InfoService {
         return {
             id: 'info/devices',
             // These fields will be resolved by DevicesResolver
-            gpu: [],
-            pci: [],
-            usb: [],
-        };
+        } as Devices;
     }
 }
