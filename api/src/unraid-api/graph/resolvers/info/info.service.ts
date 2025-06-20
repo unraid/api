@@ -7,23 +7,17 @@ import { cpu, cpuFlags, mem, memLayout, osInfo, versions } from 'systeminformati
 import { bootTimestamp } from '@app/common/dashboard/boot-timestamp.js';
 import { getUnraidVersion } from '@app/common/dashboard/get-unraid-version.js';
 import { AppError } from '@app/core/errors/app-error.js';
-import { type DynamixConfig } from '@app/core/types/ini.js';
-import { toBoolean } from '@app/core/utils/casting.js';
 import { cleanStdout } from '@app/core/utils/misc/clean-stdout.js';
-import { loadState } from '@app/core/utils/misc/load-state.js';
 import { getters } from '@app/store/index.js';
-import { ThemeName } from '@app/unraid-api/graph/resolvers/customization/theme.model.js';
 import { ContainerState } from '@app/unraid-api/graph/resolvers/docker/docker.model.js';
 import { DockerService } from '@app/unraid-api/graph/resolvers/docker/docker.service.js';
 import {
     Devices,
-    Display,
     InfoApps,
     InfoCpu,
     InfoMemory,
     Os as InfoOs,
     MemoryLayout,
-    Temperature,
     Versions,
 } from '@app/unraid-api/graph/resolvers/info/info.model.js';
 
@@ -67,45 +61,6 @@ export class InfoService {
             stepping: Number(stepping),
             speedmin: speedMin || -1,
             speedmax: speedMax || -1,
-        };
-    }
-
-    async generateDisplay(): Promise<Display> {
-        const filePaths = getters.paths()['dynamix-config'];
-
-        const state = filePaths.reduce<Partial<DynamixConfig>>(
-            (acc, filePath) => {
-                const state = loadState<DynamixConfig>(filePath);
-                return state ? { ...acc, ...state } : acc;
-            },
-            {
-                id: 'dynamix-config/display',
-            }
-        );
-
-        if (!state.display) {
-            return {
-                id: 'dynamix-config/display',
-            };
-        }
-        const { theme, unit, ...display } = state.display;
-        return {
-            id: 'dynamix-config/display',
-            ...display,
-            theme: theme as ThemeName,
-            unit: unit as Temperature,
-            scale: toBoolean(display.scale),
-            tabs: toBoolean(display.tabs),
-            resize: toBoolean(display.resize),
-            wwn: toBoolean(display.wwn),
-            total: toBoolean(display.total),
-            usage: toBoolean(display.usage),
-            text: toBoolean(display.text),
-            warning: Number.parseInt(display.warning, 10),
-            critical: Number.parseInt(display.critical, 10),
-            hot: Number.parseInt(display.hot, 10),
-            max: Number.parseInt(display.max, 10),
-            locale: display.locale || 'en_US',
         };
     }
 

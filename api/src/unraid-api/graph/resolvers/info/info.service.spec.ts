@@ -255,61 +255,6 @@ describe('InfoService', () => {
         });
     });
 
-    describe('generateDisplay', () => {
-        it('should return display configuration with default values', async () => {
-            mockLoadState.loadState.mockReturnValue(null);
-
-            const result = await service.generateDisplay();
-
-            expect(result).toEqual({
-                id: 'dynamix-config/display',
-            });
-        });
-
-        it('should return parsed display configuration', async () => {
-            const mockDisplayConfig = {
-                display: {
-                    theme: 'dark',
-                    unit: 'celsius',
-                    scale: 'yes',
-                    tabs: 'no',
-                    resize: 'yes',
-                    wwn: 'no',
-                    total: 'yes',
-                    usage: 'no',
-                    text: 'yes',
-                    warning: '40',
-                    critical: '50',
-                    hot: '60',
-                    max: '70',
-                    locale: 'en_US',
-                },
-            };
-
-            mockLoadState.loadState.mockReturnValue(mockDisplayConfig);
-
-            const result = await service.generateDisplay();
-
-            expect(result).toEqual({
-                id: 'dynamix-config/display',
-                theme: 'dark',
-                unit: 'celsius',
-                scale: true,
-                tabs: false,
-                resize: true,
-                wwn: false,
-                total: true,
-                usage: false,
-                text: true,
-                warning: 40,
-                critical: 50,
-                hot: 60,
-                max: 70,
-                locale: 'en_US',
-            });
-        });
-    });
-
     describe('generateVersions', () => {
         it('should return version information', async () => {
             const mockUnraidVersion = '6.12.0';

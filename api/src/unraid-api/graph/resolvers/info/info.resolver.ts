@@ -10,6 +10,7 @@ import { baseboard as getBaseboard, system as getSystem } from 'systeminformatio
 
 import { createSubscription, PUBSUB_CHANNEL } from '@app/core/pubsub.js';
 import { getMachineId } from '@app/core/utils/misc/get-machine-id.js';
+import { DisplayService } from '@app/unraid-api/graph/resolvers/display/display.service.js';
 import {
     Baseboard,
     Devices,
@@ -26,7 +27,10 @@ import { InfoService } from '@app/unraid-api/graph/resolvers/info/info.service.j
 
 @Resolver(() => Info)
 export class InfoResolver {
-    constructor(private readonly infoService: InfoService) {}
+    constructor(
+        private readonly infoService: InfoService,
+        private readonly displayService: DisplayService
+    ) {}
 
     @Query(() => Info)
     @UsePermissions({
@@ -71,7 +75,7 @@ export class InfoResolver {
 
     @ResolveField(() => Display)
     public async display(): Promise<Display> {
-        return this.infoService.generateDisplay();
+        return this.displayService.generateDisplay();
     }
 
     @ResolveField(() => String, { nullable: true })

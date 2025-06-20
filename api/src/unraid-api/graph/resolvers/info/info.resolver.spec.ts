@@ -4,6 +4,7 @@ import { Test } from '@nestjs/testing';
 
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
+import { DisplayService } from '@app/unraid-api/graph/resolvers/display/display.service.js';
 import { DockerService } from '@app/unraid-api/graph/resolvers/docker/docker.service.js';
 import { InfoResolver } from '@app/unraid-api/graph/resolvers/info/info.resolver.js';
 import { InfoService } from '@app/unraid-api/graph/resolvers/info/info.service.js';
@@ -108,7 +109,13 @@ describe('InfoResolver', () => {
     };
 
     const mockDisplayData = {
-        id: 'dynamix-config/display',
+        id: 'display',
+        case: {
+            url: '',
+            icon: 'default',
+            error: '',
+            base64: '',
+        },
         theme: 'black',
         unit: 'C',
         scale: true,
@@ -170,10 +177,14 @@ describe('InfoResolver', () => {
         generateApps: vi.fn().mockResolvedValue(mockAppsData),
         generateCpu: vi.fn().mockResolvedValue(mockCpuData),
         generateDevices: vi.fn().mockResolvedValue(mockDevicesData),
-        generateDisplay: vi.fn().mockResolvedValue(mockDisplayData),
         generateMemory: vi.fn().mockResolvedValue(mockMemoryData),
         generateOs: vi.fn().mockResolvedValue(mockOsData),
         generateVersions: vi.fn().mockResolvedValue(mockVersionsData),
+    };
+
+    // Mock DisplayService
+    const mockDisplayService = {
+        generateDisplay: vi.fn().mockResolvedValue(mockDisplayData),
     };
 
     beforeEach(async () => {
@@ -183,6 +194,10 @@ describe('InfoResolver', () => {
                 {
                     provide: InfoService,
                     useValue: mockInfoService,
+                },
+                {
+                    provide: DisplayService,
+                    useValue: mockDisplayService,
                 },
                 {
                     provide: DockerService,
@@ -266,10 +281,10 @@ describe('InfoResolver', () => {
     });
 
     describe('display', () => {
-        it('should return display info from service', async () => {
+        it('should return display info from display service', async () => {
             const result = await resolver.display();
 
-            expect(mockInfoService.generateDisplay).toHaveBeenCalledOnce();
+            expect(mockDisplayService.generateDisplay).toHaveBeenCalledOnce();
             expect(result).toEqual(mockDisplayData);
         });
     });
