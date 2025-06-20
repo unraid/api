@@ -1,17 +1,18 @@
 <script setup lang="ts">
 import Button from '@/components/common/button/Button.vue';
 import {
+  Dialog,
   DialogClose,
   DialogContent,
   DialogDescription,
   DialogFooter,
   DialogHeader,
-  DialogRoot,
+  DialogScrollContent,
   DialogTitle,
   DialogTrigger,
-} from '@/components/common/dialog';
+} from '@/components/ui/dialog';
 
-interface DialogProps {
+export interface DialogProps {
   description?: string;
   title?: string;
   triggerText?: string;
@@ -19,6 +20,10 @@ interface DialogProps {
   showFooter?: boolean;
   closeButtonText?: string;
   primaryButtonText?: string;
+  primaryButtonLoading?: boolean;
+  primaryButtonLoadingText?: string;
+  primaryButtonDisabled?: boolean;
+  scrollable?: boolean;
 }
 
 const {
@@ -29,6 +34,10 @@ const {
   showFooter = true,
   closeButtonText = 'Close',
   primaryButtonText,
+  primaryButtonLoading = false,
+  primaryButtonLoadingText,
+  primaryButtonDisabled = false,
+  scrollable = false,
 } = defineProps<DialogProps>();
 
 const emit = defineEmits<{
@@ -46,13 +55,13 @@ const handlePrimaryClick = () => {
 </script>
 
 <template>
-  <DialogRoot :open="modelValue" @update:open="handleOpenChange">
+  <Dialog :open="modelValue" @update:open="handleOpenChange">
     <DialogTrigger v-if="triggerText || $slots.trigger">
       <slot name="trigger">
         <Button>{{ triggerText }}</Button>
       </slot>
     </DialogTrigger>
-    <DialogContent>
+    <component :is="scrollable ? DialogScrollContent : DialogContent">
       <DialogHeader v-if="title || description || $slots.header">
         <slot name="header">
           <DialogTitle v-if="title">{{ title }}</DialogTitle>
@@ -68,12 +77,20 @@ const handlePrimaryClick = () => {
             <DialogClose as-child>
               <Button variant="secondary">{{ closeButtonText }}</Button>
             </DialogClose>
-            <Button v-if="primaryButtonText" @click="handlePrimaryClick">
-              {{ primaryButtonText }}
+            <Button
+              v-if="primaryButtonText"
+              variant="primary"
+              :disabled="primaryButtonDisabled || primaryButtonLoading"
+              @click="handlePrimaryClick"
+            >
+              <span v-if="primaryButtonLoading && primaryButtonLoadingText">
+                {{ primaryButtonLoadingText }}
+              </span>
+              <span v-else>{{ primaryButtonText }}</span>
             </Button>
           </div>
         </slot>
       </DialogFooter>
-    </DialogContent>
-  </DialogRoot>
+    </component>
+  </Dialog>
 </template>
