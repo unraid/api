@@ -839,8 +839,8 @@ importers:
         specifier: ^2.6.0
         version: 2.6.0
       vue-sonner:
-        specifier: ^1.3.0
-        version: 1.3.0
+        specifier: ^2.0.0
+        version: 2.0.0
     devDependencies:
       '@ianvs/prettier-plugin-sort-imports':
         specifier: ^4.4.1
@@ -12209,8 +12209,8 @@ packages:
     peerDependencies:
       vue: ^3.2.0
 
-  vue-sonner@1.3.0:
-    resolution: {integrity: sha512-jAodBy4Mri8rQjVZGQAPs4ZYymc1ywPiwfa81qU0fFl+Suk7U8NaOxIDdI1oBGLeQJqRZi/oxNIuhCLqsBmOwg==}
+  vue-sonner@2.0.0:
+    resolution: {integrity: sha512-nvlqGGWvxEv9UnKcZxsGdKpHrODEdv3CXAJF3er+1pLC03caJt2+v9HuWtRqlBQwUr1SFttsYuwVbpbEl05n4A==}
 
   vue-template-compiler@2.7.16:
     resolution: {integrity: sha512-AYbUWAJHLGGQM7+cNTELw+KsOG9nl2CnSv467WobS5Cv9uk3wFcnr1Etsz2sEIHEZvw1U+o9mRlEO6QbZvUPGQ==}
@@ -25445,7 +25445,7 @@ snapshots:
       '@vue/devtools-api': 6.6.4
       vue: 3.5.13(typescript@5.8.3)
 
-  vue-sonner@1.3.0: {}
+  vue-sonner@2.0.0: {}
 
   vue-template-compiler@2.7.16:
     dependencies:
