@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import { randomUUID } from 'crypto';
 import { access } from 'fs/promises';
 
 import { execa } from 'execa';
@@ -11,7 +12,13 @@ import { vmRegExps } from '@app/core/utils/vms/domain/vm-regexps.js';
 import { filterDevices } from '@app/core/utils/vms/filter-devices.js';
 import { getPciDevices } from '@app/core/utils/vms/get-pci-devices.js';
 import { getters } from '@app/store/index.js';
-import { Gpu, Pci, Usb } from '@app/unraid-api/graph/resolvers/info/info.model.js';
+import {
+    Gpu,
+    Pci,
+    RawUsbDeviceData,
+    Usb,
+    UsbDevice,
+} from '@app/unraid-api/graph/resolvers/info/info.model.js';
 
 @Injectable()
 export class DevicesService {
@@ -129,7 +136,7 @@ export class DevicesService {
         return processedDevices;
     }
 
-    private async getSystemUSBDevices(): Promise<PciDevice[]> {
+    private async getSystemUSBDevices(): Promise<UsbDevice[]> {
         const usbHubs = await execa('cat /sys/bus/usb/drivers/hub/*/modalias', { shell: true })
             .then(({ stdout }) =>
                 stdout.split('\n').map((line) => {
@@ -141,12 +148,11 @@ export class DevicesService {
 
         const emhttp = getters.emhttp();
 
-        const filterBootDrive = (device: Readonly<PciDevice>): boolean =>
-            emhttp.var.flashGuid !== device.guid;
+        const filterBootDrive = (device: UsbDevice): boolean => emhttp.var.flashGuid !== device.guid;
 
-        const filterUsbHubs = (device: Readonly<PciDevice>): boolean => !usbHubs.includes(device.id);
+        const filterUsbHubs = (device: UsbDevice): boolean => !usbHubs.includes(device.id);
 
-        const sanitizeVendorName = (device: Readonly<PciDevice>) => {
+        const sanitizeVendorName = (device: UsbDevice): UsbDevice => {
             const vendorname = sanitizeVendor(device.vendorname || '');
             return {
                 ...device,
@@ -154,49 +160,49 @@ export class DevicesService {
             };
         };
 
-        const parseBasicDevice = async (device: PciDevice): Promise<PciDevice> => {
-            const modifiedDevice: PciDevice = {
-                ...device,
-            };
-
+        const parseBasicDevice = (device: RawUsbDeviceData): UsbDevice => {
             const idParts = device.id.split(':');
+            let guid: string;
+
             if (idParts.length === 2) {
                 const [vendorId, productId] = idParts;
-                modifiedDevice.guid = `${vendorId}-${productId}-basic`;
+                guid = `${vendorId}-${productId}-basic`;
             } else {
-                modifiedDevice.guid = `unknown-${crypto.randomUUID()}`;
+                guid = `unknown-${randomUUID()}`;
             }
 
-            const deviceName = device.name?.trim() || '';
-            modifiedDevice.name = deviceName || '[unnamed device]';
+            const deviceName = device.n?.trim() || '';
 
-            return modifiedDevice;
+            return {
+                id: device.id,
+                name: deviceName || '[unnamed device]',
+                guid,
+                vendorname: '', // Will be sanitized later
+            };
         };
 
-        const parseUsbDevices = (stdout: string): PciDevice[] =>
-            stdout
+        const parseUsbDevices = (stdout: string): UsbDevice[] => {
+            return stdout
                 .split('\n')
                 .map((line) => {
-                    const regex = new RegExp(/^.+: ID (?<id>\S+)(?<n>.*)$/);
+                    const regex = /^.+: ID (?<id>\S+)(?<n>.*)$/;
                     const result = regex.exec(line);
                     if (!result?.groups) return null;
 
-                    const name = result.groups.n?.trim() || '';
-                    return {
-                        ...result.groups,
-                        name,
-                    } as unknown as PciDevice;
+                    const rawData: RawUsbDeviceData = {
+                        id: result.groups.id,
+                        n: result.groups.n,
+                    };
+
+                    return parseBasicDevice(rawData);
                 })
-                .filter((device): device is PciDevice => device !== null) ?? [];
+                .filter((device): device is UsbDevice => device !== null);
+        };
 
         const usbDevices = await execa('lsusb')
-            .then(async ({ stdout }) => {
+            .then(({ stdout }) => {
                 const devices = parseUsbDevices(stdout);
-                const processedDevices = await Promise.all(devices.map(parseBasicDevice));
-                return processedDevices
-                    .filter(filterBootDrive)
-                    .filter(filterUsbHubs)
-                    .map(sanitizeVendorName);
+                return devices.filter(filterBootDrive).filter(filterUsbHubs).map(sanitizeVendorName);
             })
             .catch(() => []);
 
