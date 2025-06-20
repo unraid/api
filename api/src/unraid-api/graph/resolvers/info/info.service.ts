@@ -9,11 +9,12 @@ import { getUnraidVersion } from '@app/common/dashboard/get-unraid-version.js';
 import { AppError } from '@app/core/errors/app-error.js';
 import { type DynamixConfig } from '@app/core/types/ini.js';
 import { toBoolean } from '@app/core/utils/casting.js';
-import { docker } from '@app/core/utils/clients/docker.js';
 import { cleanStdout } from '@app/core/utils/misc/clean-stdout.js';
 import { loadState } from '@app/core/utils/misc/load-state.js';
 import { getters } from '@app/store/index.js';
 import { ThemeName } from '@app/unraid-api/graph/resolvers/customization/theme.model.js';
+import { ContainerState } from '@app/unraid-api/graph/resolvers/docker/docker.model.js';
+import { DockerService } from '@app/unraid-api/graph/resolvers/docker/docker.service.js';
 import {
     Devices,
     Display,
@@ -28,15 +29,15 @@ import {
 
 @Injectable()
 export class InfoService {
+    constructor(private readonly dockerService: DockerService) {}
+
     async generateApps(): Promise<InfoApps> {
-        const installed = await docker
-            .listContainers({ all: true })
-            .catch(() => [])
-            .then((containers) => containers.length);
-        const started = await docker
-            .listContainers()
-            .catch(() => [])
-            .then((containers) => containers.length);
+        const containers = await this.dockerService.getContainers({ skipCache: false });
+        const installed = containers.length;
+        const started = containers.filter(
+            (container) => container.state === ContainerState.RUNNING
+        ).length;
+
         return { id: 'info/apps', installed, started };
     }
 

@@ -1,13 +1,17 @@
 import type { TestingModule } from '@nestjs/testing';
+import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { Test } from '@nestjs/testing';
 
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
+import { ContainerState } from '@app/unraid-api/graph/resolvers/docker/docker.model.js';
+import { DockerService } from '@app/unraid-api/graph/resolvers/docker/docker.service.js';
 import { InfoService } from '@app/unraid-api/graph/resolvers/info/info.service.js';
 
 // Mock external dependencies
 vi.mock('fs/promises', () => ({
     access: vi.fn().mockResolvedValue(undefined),
+    readFile: vi.fn().mockResolvedValue(''),
 }));
 
 vi.mock('execa', () => ({
@@ -35,11 +39,23 @@ vi.mock('@app/common/dashboard/get-unraid-version.js', () => ({
     getUnraidVersion: vi.fn(),
 }));
 
-vi.mock('@app/core/utils/clients/docker.js', () => ({
-    docker: {
-        listContainers: vi.fn(),
+vi.mock('@app/core/pubsub.js', () => ({
+    pubsub: {
+        publish: vi.fn().mockResolvedValue(undefined),
+    },
+    PUBSUB_CHANNEL: {
+        INFO: 'info',
     },
 }));
+
+vi.mock('dockerode', () => {
+    return {
+        default: vi.fn().mockImplementation(() => ({
+            listContainers: vi.fn(),
+            listNetworks: vi.fn(),
+        })),
+    };
+});
 
 vi.mock('@app/core/utils/misc/clean-stdout.js', () => ({
     cleanStdout: vi.fn((input) => input),
@@ -68,13 +84,21 @@ vi.mock('@app/store/index.js', () => ({
         }),
         paths: () => ({
             'dynamix-config': ['/test/config/path'],
+            'docker-autostart': '/path/to/docker-autostart',
         }),
     },
 }));
 
+// Mock Cache Manager
+const mockCacheManager = {
+    get: vi.fn(),
+    set: vi.fn(),
+    del: vi.fn(),
+};
+
 describe('InfoService', () => {
     let service: InfoService;
-    let mockDocker: any;
+    let dockerService: DockerService;
     let mockSystemInfo: any;
     let mockExeca: any;
     let mockGetUnraidVersion: any;
@@ -83,15 +107,25 @@ describe('InfoService', () => {
     beforeEach(async () => {
         // Reset all mocks
         vi.clearAllMocks();
+        mockCacheManager.get.mockReset();
+        mockCacheManager.set.mockReset();
+        mockCacheManager.del.mockReset();
 
         const module: TestingModule = await Test.createTestingModule({
-            providers: [InfoService],
+            providers: [
+                InfoService,
+                DockerService,
+                {
+                    provide: CACHE_MANAGER,
+                    useValue: mockCacheManager,
+                },
+            ],
         }).compile();
 
         service = module.get<InfoService>(InfoService);
+        dockerService = module.get<DockerService>(DockerService);
 
         // Get mock references
-        mockDocker = await import('@app/core/utils/clients/docker.js');
         mockSystemInfo = await import('systeminformation');
         mockExeca = await import('execa');
         mockGetUnraidVersion = await import('@app/common/dashboard/get-unraid-version.js');
@@ -105,14 +139,12 @@ describe('InfoService', () => {
     describe('generateApps', () => {
         it('should return docker container statistics', async () => {
             const mockContainers = [
-                { id: '1', status: 'running' },
-                { id: '2', status: 'exited' },
-                { id: '3', status: 'running' },
+                { id: '1', state: ContainerState.RUNNING },
+                { id: '2', state: ContainerState.EXITED },
+                { id: '3', state: ContainerState.RUNNING },
             ];
 
-            mockDocker.docker.listContainers
-                .mockResolvedValueOnce(mockContainers) // all containers
-                .mockResolvedValueOnce([mockContainers[0], mockContainers[2]]); // running containers
+            mockCacheManager.get.mockResolvedValue(mockContainers);
 
             const result = await service.generateApps();
 
@@ -124,7 +156,7 @@ describe('InfoService', () => {
         });
 
         it('should handle docker errors gracefully', async () => {
-            mockDocker.docker.listContainers.mockRejectedValue(new Error('Docker error'));
+            mockCacheManager.get.mockResolvedValue([]);
 
             const result = await service.generateApps();
 
