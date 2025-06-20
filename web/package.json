@@ -80,7 +80,7 @@
     "vitest": "^3.1.1",
     "vue": "^3.3.0",
     "vue-tsc": "^2.1.10",
-    "vuetify-nuxt-module": "0.18.6"
+    "vuetify-nuxt-module": "0.18.7"
   },
   "dependencies": {
     "@apollo/client": "^3.12.3",
@@ -111,7 +111,7 @@
     "hex-to-rgba": "^2.0.1",
     "highlight.js": "^11.11.1",
     "isomorphic-dompurify": "^2.19.0",
-    "lucide-vue-next": "^0.511.0",
+    "lucide-vue-next": "^0.519.0",
     "marked": "^15.0.0",
     "marked-base-url": "^1.1.6",
     "pinia": "^3.0.1",
@@ -127,5 +127,5 @@
   "overrides": {
     "vue": "latest"
   },
-  "packageManager": "pnpm@10.11.0"
+  "packageManager": "pnpm@10.12.1"
 }
