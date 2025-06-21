@@ -824,8 +824,8 @@ importers:
         specifier: ^2.0.1
         version: 2.0.2
       lucide-vue-next:
-        specifier: ^0.519.0
-        version: 0.519.0(vue@3.5.17(typescript@5.8.3))
+        specifier: ^0.522.0
+        version: 0.522.0(vue@3.5.17(typescript@5.8.3))
       marked:
         specifier: ^15.0.0
         version: 15.0.12
@@ -949,7 +949,7 @@ importers:
         version: 8.6.14(prettier@3.5.3)
       tailwind-rem-to-rem:
         specifier: github:unraid/tailwind-rem-to-rem
-        version: '@unraid/tailwind-rem-to-rem@https://codeload.github.com/unraid/tailwind-rem-to-rem/tar.gz/4b907d0cdb3abda88de9813e33c13c3e7b1300c4(tailwindcss@3.4.17(ts-node@10.9.2(@swc/core@1.12.4)(@types/node@22.15.32)(typescript@5.8.3)))'
+        version: '@unraid/tailwind-rem-to-rem@https://codeload.github.com/unraid/tailwind-rem-to-rem/tar.gz/2d12d74c4019a5e004026ca25a8a560e7e2df825(tailwindcss@3.4.17(ts-node@10.9.2(@swc/core@1.12.4)(@types/node@22.15.32)(typescript@5.8.3)))'
       tailwindcss:
         specifier: ^3.0.0
         version: 3.4.17(ts-node@10.9.2(@swc/core@1.12.4)(@types/node@22.15.32)(typescript@5.8.3))
@@ -1072,8 +1072,8 @@ importers:
         specifier: ^2.19.0
         version: 2.25.0
       lucide-vue-next:
-        specifier: ^0.519.0
-        version: 0.519.0(vue@3.5.17(typescript@5.8.3))
+        specifier: ^0.522.0
+        version: 0.522.0(vue@3.5.17(typescript@5.8.3))
       marked:
         specifier: ^15.0.0
         version: 15.0.12
@@ -4844,8 +4844,8 @@ packages:
     peerDependencies:
       tailwindcss: ^3.4.17
 
-  '@unraid/tailwind-rem-to-rem@https://codeload.github.com/unraid/tailwind-rem-to-rem/tar.gz/4b907d0cdb3abda88de9813e33c13c3e7b1300c4':
-    resolution: {tarball: https://codeload.github.com/unraid/tailwind-rem-to-rem/tar.gz/4b907d0cdb3abda88de9813e33c13c3e7b1300c4}
+  '@unraid/tailwind-rem-to-rem@https://codeload.github.com/unraid/tailwind-rem-to-rem/tar.gz/2d12d74c4019a5e004026ca25a8a560e7e2df825':
+    resolution: {tarball: https://codeload.github.com/unraid/tailwind-rem-to-rem/tar.gz/2d12d74c4019a5e004026ca25a8a560e7e2df825}
     version: 1.1.0
     peerDependencies:
       tailwindcss: ^3.4.17
@@ -9576,8 +9576,8 @@ packages:
   lru-queue@0.1.0:
     resolution: {integrity: sha512-BpdYkt9EvGl8OfWHDQPISVpcl5xZthb+XPsbELj5AQXxIC8IriDZIQYjBJPEm5rS420sjZ0TLEzRcq5KdBhYrQ==}
 
-  lucide-vue-next@0.519.0:
-    resolution: {integrity: sha512-ZnP+ExobajNaXcSL0Xrz0ioVI1Z4+x0wVNl+rdsHLrCuztA9g3O2ZPoQqoDY3uJIyXuKmitK78oCckidrxJ2ew==}
+  lucide-vue-next@0.522.0:
+    resolution: {integrity: sha512-T1FFXc+4PDXu4zjsrfOlx4SGClavHDozE5LyKgX7N5dPtdGvG+ni+KCg1P2HPLmlWWT2LQlc6vnAicHU0KY1sw==}
     peerDependencies:
       vue: '>=3.0.1'
 
@@ -17795,7 +17795,7 @@ snapshots:
     dependencies:
       tailwindcss: 3.4.17(ts-node@10.9.2(@swc/core@1.12.4)(@types/node@22.15.32)(typescript@5.8.3))
 
-  '@unraid/tailwind-rem-to-rem@https://codeload.github.com/unraid/tailwind-rem-to-rem/tar.gz/4b907d0cdb3abda88de9813e33c13c3e7b1300c4(tailwindcss@3.4.17(ts-node@10.9.2(@swc/core@1.12.4)(@types/node@22.15.32)(typescript@5.8.3)))':
+  '@unraid/tailwind-rem-to-rem@https://codeload.github.com/unraid/tailwind-rem-to-rem/tar.gz/2d12d74c4019a5e004026ca25a8a560e7e2df825(tailwindcss@3.4.17(ts-node@10.9.2(@swc/core@1.12.4)(@types/node@22.15.32)(typescript@5.8.3)))':
     dependencies:
       tailwindcss: 3.4.17(ts-node@10.9.2(@swc/core@1.12.4)(@types/node@22.15.32)(typescript@5.8.3))
 
@@ -23201,7 +23201,7 @@ snapshots:
     dependencies:
       es5-ext: 0.10.64
 
-  lucide-vue-next@0.519.0(vue@3.5.17(typescript@5.8.3)):
+  lucide-vue-next@0.522.0(vue@3.5.17(typescript@5.8.3)):
     dependencies:
       vue: 3.5.17(typescript@5.8.3)
 
