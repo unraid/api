@@ -152,7 +152,7 @@ export class DynamicRemoteAccessService implements OnModuleInit {
             return;
         }
 
-        const type = this.configService.get('connect.config.dynamicRemoteAccessType', { infer: true });
-        await this.setType(type);
+        // const type = this.configService.get('connect.config.dynamicRemoteAccessType', { infer: true });
+        // await this.setType(type);
     }
 }
