@@ -1,7 +1,7 @@
 // Styles
 import '@/styles/index.css';
 
-// Components
+// Components (includes both composed and UI primitives)
 export * from '@/components';
 
 // JsonForms

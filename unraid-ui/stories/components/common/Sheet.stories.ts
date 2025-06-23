@@ -38,7 +38,7 @@ export default meta;
 type Story = StoryObj<typeof meta>;
 
 export const Sheet: Story = {
-  render: (args) => ({
+  render: () => ({
     components: {
       SheetComponent,
       SheetTrigger,

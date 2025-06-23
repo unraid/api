@@ -4,7 +4,7 @@ import Button from '../../../src/components/common/button/Button.vue';
 import DialogComponent from '../../../src/components/common/dialog/Dialog.vue';
 
 const meta = {
-  title: 'Components/Common',
+  title: 'Components/Common/Dialog',
   component: DialogComponent,
 } satisfies Meta<typeof DialogComponent>;
 

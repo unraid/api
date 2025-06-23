@@ -1,10 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/vue3';
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from '../../../src/components/common/accordion/index';
+import { Accordion } from '../../../src/components/common/accordion';
+import { AccordionContent, AccordionItem, AccordionTrigger } from '../../../src/components/ui/accordion';
 
 const meta = {
   title: 'Components/Common/Accordion',

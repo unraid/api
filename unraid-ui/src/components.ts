@@ -2,7 +2,7 @@ export * from '@/components/common/badge';
 export * from '@/components/brand';
 export * from '@/components/common/button';
 export * from '@/components/layout';
-export * from '@/components/common/dropdown-menu';
+export * from '@/components/common/dropdown';
 export * from '@/components/common/loading';
 export * from '@/components/form/input';
 export * from '@/components/form/label';
@@ -20,3 +20,6 @@ export * from '@/components/common/popover';
 export * from '@/components/modals';
 export * from '@/components/common/accordion';
 export * from '@/components/common/dialog';
+
+// Export UI primitives for composition
+export * from '@/components/ui';
