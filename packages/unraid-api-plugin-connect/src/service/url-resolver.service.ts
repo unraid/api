@@ -240,6 +240,21 @@ export class UrlResolverService {
         }, []);
     }
 
+    private doSafely<T>(fn: () => T): { result: T; error: undefined } | { result: undefined; error: unknown } {
+        try {
+            const result = fn();
+            return { result, error: undefined };
+        } catch (error: unknown) {
+            this.logger.warn(error, 'Uncaught error in network resolver');
+            return { result: undefined, error };
+        }
+    }
+
+    private getNginxUrl(field: keyof Nginx): URL {
+        const { nginx } = this.configService.getOrThrow('store.emhttp');
+        return this.getUrlForServer(nginx, field);
+    }
+
     /**
      * Resolves all available server access URLs from the nginx configuration.
      * This is the main method of the service that aggregates all possible access URLs.
@@ -355,12 +370,12 @@ export class UrlResolverService {
                 const urlType = this.getUrlTypeFromFqdn(fqdnUrl.interface);
                 const fqdnUrlToUse = this.getUrlForField({
                     url: fqdnUrl.fqdn,
-                    portSsl: Number(wanport ?? nginx.httpsPort),
+                    portSsl: Number(wanport || nginx.httpsPort),
                 });
 
                 urls.push({
                     name: `FQDN ${fqdnUrl.interface}${fqdnUrl.id !== null ? ` ${fqdnUrl.id}` : ''}`,
-                    type: urlType   ,
+                    type: urlType,
                     ipv4: fqdnUrlToUse,
                 });
             } catch (error: unknown) {

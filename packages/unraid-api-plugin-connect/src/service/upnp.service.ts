@@ -149,24 +149,33 @@ export class UpnpService {
 
     async createOrRenewUpnpLease(args?: { sslPort?: number; wanPort?: number }) {
         const { sslPort, wanPort } = args ?? {};
-        if (wanPort !== this.#wanPort || this.#localPort !== sslPort) {
+        const newWanOrLocalPort = wanPort !== this.#wanPort || sslPort !== this.#localPort;
+        const upnpWasInitialized = this.#wanPort && this.#localPort;
+        // remove old mapping when new ports are requested
+        if (upnpWasInitialized && newWanOrLocalPort) {
             await this.removeUpnpMapping();
         }
+        // get new ports to use
         const wanPortToUse = await this.getWanPortToUse(args);
         const localPortToUse = sslPort ?? this.#localPort;
-        if (wanPortToUse && localPortToUse) {
-            this.#wanPort = wanPortToUse;
-            await this.createUpnpMapping({
-                publicPort: wanPortToUse,
-                privatePort: localPortToUse,
-            });
-        } else {
+        if (!wanPortToUse || !localPortToUse) {
             await this.disableUpnp();
             this.logger.error('No WAN port found %o. Disabled UPNP.', {
                 wanPort: wanPortToUse,
                 localPort: localPortToUse,
             });
             throw new Error('No WAN port found. Disabled UPNP.');
+        }
+        // create new mapping
+        const mapping = {
+            publicPort: wanPortToUse,
+            privatePort: localPortToUse,
+        };
+        const success = await this.createUpnpMapping(mapping);
+        if (success) {
+            return mapping;
+        } else {
+            throw new Error('Failed to create UPNP mapping');
         }
     }
 

@@ -26,6 +26,7 @@ import { ConfigType, MyServersConfig } from '../model/connect-config.model.js';
 import { DynamicRemoteAccessType, WAN_ACCESS_TYPE, WAN_FORWARD_TYPE } from '../model/connect.model.js';
 import { ConnectApiKeyService } from './connect-api-key.service.js';
 import { DynamicRemoteAccessService } from './dynamic-remote-access.service.js';
+import { NetworkService } from './network.service.js';
 
 declare module '@unraid/shared/services/user-settings.js' {
     interface UserSettings {
@@ -40,7 +41,8 @@ export class ConnectSettingsService {
         private readonly remoteAccess: DynamicRemoteAccessService,
         private readonly apiKeyService: ConnectApiKeyService,
         private readonly eventEmitter: EventEmitter2,
-        private readonly userSettings: UserSettingsService
+        private readonly userSettings: UserSettingsService,
+        private readonly networkService: NetworkService
     ) {
         this.userSettings.register('remote-access', {
             buildSlice: async () => this.buildRemoteAccessSlice(),
@@ -231,10 +233,9 @@ export class ConnectSettingsService {
         );
 
         this.configService.set('connect.config.wanaccess', input.accessType === WAN_ACCESS_TYPE.ALWAYS);
-        this.configService.set(
-            'connect.config.wanport',
-            input.forwardType === WAN_FORWARD_TYPE.STATIC ? input.port : null
-        );
+        if (input.forwardType === WAN_FORWARD_TYPE.STATIC) {
+            this.configService.set('connect.config.wanport', input.port);
+        }
         this.configService.set(
             'connect.config.upnpEnabled',
             input.forwardType === WAN_FORWARD_TYPE.UPNP
@@ -250,6 +251,8 @@ export class ConnectSettingsService {
                 name: null,
             },
         });
+
+        await this.networkService.reloadNetworkStack();
 
         return true;
     }

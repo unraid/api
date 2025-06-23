@@ -30,17 +30,14 @@ export class UpnpRemoteAccessService {
             throw new Error(`Invalid SSL port configuration: ${sslPort}`);
         }
         try {
-            await this.upnpService.createOrRenewUpnpLease({
+            const mapping = await this.upnpService.createOrRenewUpnpLease({
                 sslPort: Number(sslPort),
             });
+            this.configService.set('connect.config.wanport', mapping.publicPort);
             this.eventEmitter.emit(EVENTS.ENABLE_WAN_ACCESS);
             return this.urlResolverService.getRemoteAccessUrl();
         } catch (error) {
-            this.logger.error(
-                'Failed to begin UPNP Remote Access using port %s: %O',
-                String(sslPort),
-                error
-            );
+            this.logger.error(error, 'Failed to begin UPNP Remote Access');
             await this.stop();
         }
     }
