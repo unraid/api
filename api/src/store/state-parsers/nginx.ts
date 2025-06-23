@@ -20,7 +20,6 @@ export type NginxIni = {
 };
 
 export const parse: StateFileToIniParserMap['nginx'] = (state) => {
-    console.log('nginxState', state);
     const fqdnKeys = Object.keys(state).filter((key) => fqdnRegex.test(key));
 
     const interfaceId = new Map<string, number>();

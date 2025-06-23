@@ -14,12 +14,12 @@ interface PortTestParams {
 
 describe('UrlResolverService', () => {
     let service: UrlResolverService;
-    let mockConfigService: ConfigService<ConfigType>;
+    let mockConfigService: ConfigService<ConfigType, true>;
 
     beforeEach(() => {
         mockConfigService = {
             get: vi.fn(),
-        } as unknown as ConfigService<ConfigType>;
+        } as unknown as ConfigService<ConfigType, true>;
 
         service = new UrlResolverService(mockConfigService);
     });
