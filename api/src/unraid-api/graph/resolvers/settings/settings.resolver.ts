@@ -89,8 +89,8 @@ export class UnifiedSettingsResolver {
     ): Promise<UpdateSettingsResponse> {
         this.logger.verbose('Updating Settings %O', input);
         const { restartRequired, values } = await this.userSettings.updateNamespacedValues(input);
+        this.logger.verbose('Updated Setting Values %O', values);
         if (restartRequired) {
-            this.logger.verbose('Will restart %O', values);
             // hack: allow time for pending writes to flush
             this.lifecycleService.restartApi({ delayMs: 300 });
         }
