@@ -9,14 +9,14 @@ import { plainToInstance } from 'class-transformer';
 import { validateOrReject } from 'class-validator';
 import { parse as parseIni } from 'ini';
 import { isEqual } from 'lodash-es';
-import { debounceTime } from 'rxjs/operators';
+import { bufferTime } from 'rxjs/operators';
 
 import type { MyServersConfig as LegacyConfig } from '../model/my-servers-config.model.js';
 import { ConfigType, MyServersConfig } from '../model/connect-config.model.js';
 
 @Injectable()
 export class ConnectConfigPersister implements OnModuleInit, OnModuleDestroy {
-    constructor(private readonly configService: ConfigService<ConfigType>) {}
+    constructor(private readonly configService: ConfigService<ConfigType, true>) {}
 
     private logger = new Logger(ConnectConfigPersister.name);
     get configPath() {
@@ -33,10 +33,10 @@ export class ConnectConfigPersister implements OnModuleInit, OnModuleDestroy {
         this.logger.verbose(`Config path: ${this.configPath}`);
         await this.loadOrMigrateConfig();
         // Persist changes to the config.
-        this.configService.changes$.pipe(debounceTime(25)).subscribe({
-            next: async ({ newValue, oldValue, path }) => {
-                if (path.startsWith('connect.config')) {
-                    this.logger.verbose(`Config changed: ${path} from ${oldValue} to ${newValue}`);
+        this.configService.changes$.pipe(bufferTime(25)).subscribe({
+            next: async (changes) => {
+                const connectConfigChanged = changes.some(({ path }) => path.startsWith('connect.config'));
+                if (connectConfigChanged) {
                     await this.persist();
                 }
             },
@@ -60,7 +60,7 @@ export class ConnectConfigPersister implements OnModuleInit, OnModuleDestroy {
                 return false;
             }
         } catch (error) {
-            this.logger.error(`Error loading config (will overwrite file):`, error);
+            this.logger.error(error, `Error loading config (will overwrite file)`);
         }
         const data = JSON.stringify(config, null, 2);
         this.logger.verbose(`Persisting config to ${this.configPath}: ${data}`);
@@ -69,7 +69,7 @@ export class ConnectConfigPersister implements OnModuleInit, OnModuleDestroy {
             this.logger.verbose(`Config persisted to ${this.configPath}`);
             return true;
         } catch (error) {
-            this.logger.error(`Error persisting config to '${this.configPath}':`, error);
+            this.logger.error(error, `Error persisting config to '${this.configPath}'`);
             return false;
         }
     }
