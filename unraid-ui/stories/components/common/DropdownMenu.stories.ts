@@ -1,24 +1,18 @@
+import { DropdownMenu } from '@/components/common/dropdown';
 import type { Meta, StoryObj } from '@storybook/vue3';
-import { MoreVertical } from 'lucide-vue-next';
-import {
-  DropdownMenu,
-  DropdownMenuArrow,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@/components/common/dropdown-menu';
-import { Button } from '@/components/common/button';
 
 const meta = {
   title: 'Components/Common/DropdownMenu',
   component: DropdownMenu,
   tags: ['autodocs'],
   argTypes: {
-    open: {
-      control: 'boolean',
-      description: 'Controls the open state of the dropdown menu',
+    align: {
+      control: { type: 'select' },
+      options: ['start', 'center', 'end'],
+    },
+    side: {
+      control: { type: 'select' },
+      options: ['top', 'right', 'bottom', 'left'],
     },
   },
 } satisfies Meta<typeof DropdownMenu>;
@@ -27,66 +21,25 @@ export default meta;
 
 type Story = StoryObj<typeof meta>;
 
-export const Dropdown: Story = {
-  render: () => ({
-    components: {
-      DropdownMenuArrow,
-      DropdownMenu,
-      DropdownMenuTrigger,
-      DropdownMenuContent,
-      DropdownMenuItem,
-      DropdownMenuLabel,
-      DropdownMenuSeparator,
-      Button,
+// Basic props-based usage
+export const BasicUsage: Story = {
+  args: {
+    trigger: 'Options',
+    items: [{ label: 'Profile' }, { label: 'Settings' }, { type: 'separator' }, { label: 'Logout' }],
+  },
+  render: (args) => ({
+    components: { DropdownMenu },
+    setup() {
+      return { args };
     },
     template: `
-      <div class="bg-gray-200 p-4 h-screen">
-        <DropdownMenu>
-          <DropdownMenuTrigger>
-            <Button variant="secondary">Open Menu</Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent>
-            <DropdownMenuLabel>My Account</DropdownMenuLabel>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem>Profile</DropdownMenuItem>
-            <DropdownMenuItem>Settings</DropdownMenuItem>
-            <DropdownMenuItem>Logout</DropdownMenuItem>
-            <DropdownMenuArrow />
-          </DropdownMenuContent>
-        </DropdownMenu>
-      </div>
-    `,
-  }),
-};
-
-export const IconDropdown: Story = {
-  render: () => ({
-    components: {
-      DropdownMenu,
-      DropdownMenuTrigger,
-      DropdownMenuContent,
-      DropdownMenuItem,
-      DropdownMenuLabel,
-      DropdownMenuSeparator,
-      Button,
-      MoreVertical,
-    },
-    template: ` 
-      <DropdownMenu>
-        <DropdownMenuTrigger>
-          <Button variant="ghost" size="icon">
-            <MoreVertical class="h-4 w-4" />
-          </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent>
-          <DropdownMenuLabel>Actions</DropdownMenuLabel>
-          <DropdownMenuSeparator />
-          <DropdownMenuItem>Edit</DropdownMenuItem>
-          <DropdownMenuItem>Duplicate</DropdownMenuItem>
-          <DropdownMenuItem>Delete</DropdownMenuItem>
-          <DropdownMenuArrow />
-        </DropdownMenuContent>
-      </DropdownMenu>
+      <DropdownMenu
+        :trigger="args.trigger"
+        :items="args.items"
+        :align="args.align"
+        :side="args.side"
+        :side-offset="args.sideOffset"
+      />
     `,
   }),
 };

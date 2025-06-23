@@ -61,6 +61,7 @@ const handlePrimaryClick = () => {
         <Button>{{ triggerText }}</Button>
       </slot>
     </DialogTrigger>
+
     <component :is="scrollable ? DialogScrollContent : DialogContent">
       <DialogHeader v-if="title || description || $slots.header">
         <slot name="header">
@@ -70,7 +71,9 @@ const handlePrimaryClick = () => {
           </DialogDescription>
         </slot>
       </DialogHeader>
+
       <slot />
+
       <DialogFooter v-if="$slots.footer || showFooter">
         <slot name="footer">
           <div class="flex justify-end gap-2">
