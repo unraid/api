@@ -1,12 +1,12 @@
 <script setup lang="ts">
 import Button from '@/components/common/button/Button.vue';
 import {
-  Dialog,
   DialogClose,
   DialogContent,
   DialogDescription,
   DialogFooter,
   DialogHeader,
+  DialogRoot,
   DialogScrollContent,
   DialogTitle,
   DialogTrigger,
@@ -55,7 +55,7 @@ const handlePrimaryClick = () => {
 </script>
 
 <template>
-  <Dialog :open="modelValue" @update:open="handleOpenChange">
+  <DialogRoot :open="modelValue" @update:open="handleOpenChange">
     <DialogTrigger v-if="triggerText || $slots.trigger">
       <slot name="trigger">
         <Button>{{ triggerText }}</Button>
@@ -95,5 +95,5 @@ const handlePrimaryClick = () => {
         </slot>
       </DialogFooter>
     </component>
-  </Dialog>
+  </DialogRoot>
 </template>

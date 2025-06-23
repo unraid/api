@@ -1,13 +1,13 @@
 <script setup lang="ts">
 import { Button } from '@/components/common/button';
 import {
-  DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuLabel,
+  DropdownMenuRoot,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown';
+} from '@/components/ui/dropdown-menu';
 
 export interface DropdownMenuItemData {
   type?: 'item' | 'label' | 'separator';
@@ -43,7 +43,7 @@ function handleItemClick(item: DropdownMenuItemData) {
 </script>
 
 <template>
-  <DropdownMenu>
+  <DropdownMenuRoot>
     <DropdownMenuTrigger v-if="!$slots.trigger" as-child>
       <Button variant="primary">
         {{ props.trigger || 'Options' }}
@@ -72,5 +72,5 @@ function handleItemClick(item: DropdownMenuItemData) {
         </template>
       </template>
     </DropdownMenuContent>
-  </DropdownMenu>
+  </DropdownMenuRoot>
 </template>
