@@ -240,21 +240,6 @@ export class UrlResolverService {
         }, []);
     }
 
-    private doSafely<T>(fn: () => T): { result: T; error: undefined } | { result: undefined; error: unknown } {
-        try {
-            const result = fn();
-            return { result, error: undefined };
-        } catch (error: unknown) {
-            this.logger.warn(error, 'Uncaught error in network resolver');
-            return { result: undefined, error };
-        }
-    }
-
-    private getNginxUrl(field: keyof Nginx): URL {
-        const { nginx } = this.configService.getOrThrow('store.emhttp');
-        return this.getUrlForServer(nginx, field);
-    }
-
     /**
      * Resolves all available server access URLs from the nginx configuration.
      * This is the main method of the service that aggregates all possible access URLs.
@@ -283,8 +268,19 @@ export class UrlResolverService {
         const errors: Error[] = [];
         const urls: AccessUrl[] = [];
 
-        try {
-            // Default URL
+        const doSafely = (fn: () => void) => {
+            try {
+                fn();
+            } catch (error: unknown) {
+                if (error instanceof Error) {
+                    errors.push(error);
+                } else {
+                    this.logger.warn(error, 'Uncaught error in network resolver');
+                }
+            }
+        };
+
+        doSafely(() => {
             const defaultUrl = new URL(nginx.defaultUrl);
             urls.push({
                 name: 'Default',
@@ -292,15 +288,9 @@ export class UrlResolverService {
                 ipv4: defaultUrl,
                 ipv6: defaultUrl,
             });
-        } catch (error: unknown) {
-            if (error instanceof Error) {
-                errors.push(error);
-            } else {
-                this.logger.warn('Uncaught error in network resolver', error);
-            }
-        }
+        });
 
-        try {
+        doSafely(() => {
             // Lan IP URL
             const lanIp4Url = this.getUrlForServer(nginx, 'lanIp');
             urls.push({
@@ -308,15 +298,9 @@ export class UrlResolverService {
                 type: URL_TYPE.LAN,
                 ipv4: lanIp4Url,
             });
-        } catch (error: unknown) {
-            if (error instanceof Error) {
-                errors.push(error);
-            } else {
-                this.logger.warn('Uncaught error in network resolver', error);
-            }
-        }
+        });
 
-        try {
+        doSafely(() => {
             // Lan IP6 URL
             const lanIp6Url = this.getUrlForServer(nginx, 'lanIp6');
             urls.push({
@@ -324,15 +308,9 @@ export class UrlResolverService {
                 type: URL_TYPE.LAN,
                 ipv6: lanIp6Url,
             });
-        } catch (error: unknown) {
-            if (error instanceof Error) {
-                errors.push(error);
-            } else {
-                this.logger.warn('Uncaught error in network resolver', error);
-            }
-        }
+        });
 
-        try {
+        doSafely(() => {
             // Lan Name URL
             const lanNameUrl = this.getUrlForServer(nginx, 'lanName');
             urls.push({
@@ -340,15 +318,9 @@ export class UrlResolverService {
                 type: URL_TYPE.MDNS,
                 ipv4: lanNameUrl,
             });
-        } catch (error: unknown) {
-            if (error instanceof Error) {
-                errors.push(error);
-            } else {
-                this.logger.warn('Uncaught error in network resolver', error);
-            }
-        }
+        });
 
-        try {
+        doSafely(() => {
             // Lan MDNS URL
             const lanMdnsUrl = this.getUrlForServer(nginx, 'lanMdns');
             urls.push({
@@ -356,17 +328,11 @@ export class UrlResolverService {
                 type: URL_TYPE.MDNS,
                 ipv4: lanMdnsUrl,
             });
-        } catch (error: unknown) {
-            if (error instanceof Error) {
-                errors.push(error);
-            } else {
-                this.logger.warn('Uncaught error in network resolver', error);
-            }
-        }
+        });
 
         // Now Process the FQDN Urls
         nginx.fqdnUrls.forEach((fqdnUrl: FqdnEntry) => {
-            try {
+            doSafely(() => {
                 const urlType = this.getUrlTypeFromFqdn(fqdnUrl.interface);
                 const fqdnUrlToUse = this.getUrlForField({
                     url: fqdnUrl.fqdn,
@@ -378,14 +344,7 @@ export class UrlResolverService {
                     type: urlType,
                     ipv4: fqdnUrlToUse,
                 });
-            } catch (error: unknown) {
-                if (error instanceof Error) {
-                    errors.push(error);
-                    this.logger.warn(error);
-                } else {
-                    this.logger.warn('Uncaught error in network resolver', error);
-                }
-            }
+            });
         });
 
         return { urls, errors };

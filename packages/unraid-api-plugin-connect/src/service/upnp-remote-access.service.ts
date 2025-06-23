@@ -25,13 +25,14 @@ export class UpnpRemoteAccessService {
 
     async begin() {
         this.logger.verbose('Begin UPNP Remote Access');
-        const sslPort = this.configService.get<string | undefined>('store.emhttp.var.portssl');
-        if (!sslPort || isNaN(Number(sslPort))) {
-            throw new Error(`Invalid SSL port configuration: ${sslPort}`);
+        const { httpsPort, httpPort } = this.configService.getOrThrow('store.emhttp.nginx');
+        const localPort = Number(httpPort || httpsPort);
+        if (isNaN(localPort)) {
+            throw new Error(`Invalid local port configuration: ${localPort}`);
         }
         try {
             const mapping = await this.upnpService.createOrRenewUpnpLease({
-                sslPort: Number(sslPort),
+                sslPort: localPort,
             });
             this.configService.set('connect.config.wanport', mapping.publicPort);
             this.eventEmitter.emit(EVENTS.ENABLE_WAN_ACCESS);

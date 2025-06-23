@@ -217,7 +217,7 @@ export class ConnectSettingsService {
         forwardType?: WAN_FORWARD_TYPE | undefined | null
     ): DynamicRemoteAccessType {
         // If access is disabled or always, DRA is disabled
-        if (accessType === WAN_ACCESS_TYPE.DISABLED || accessType === WAN_ACCESS_TYPE.ALWAYS) {
+        if (accessType === WAN_ACCESS_TYPE.DISABLED) {
             return DynamicRemoteAccessType.DISABLED;
         }
         // if access is enabled and forward type is UPNP, DRA is UPNP, otherwise it is static
