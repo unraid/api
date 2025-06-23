@@ -1,5 +1,10 @@
 <script setup lang="ts">
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
+import {
+  AccordionContent,
+  AccordionItem,
+  AccordionRoot,
+  AccordionTrigger,
+} from '@/components/ui/accordion';
 
 export interface AccordionItemData {
   value: string;
@@ -23,7 +28,12 @@ const props = withDefaults(defineProps<AccordionProps>(), {
 </script>
 
 <template>
-  <Accordion :type="type" :collapsible="collapsible" :default-value="defaultValue" :class="props.class">
+  <AccordionRoot
+    :type="type"
+    :collapsible="collapsible"
+    :default-value="defaultValue"
+    :class="props.class"
+  >
     <!-- Default slot for direct composition -->
     <slot />
 
@@ -47,5 +57,5 @@ const props = withDefaults(defineProps<AccordionProps>(), {
         </AccordionContent>
       </AccordionItem>
     </template>
-  </Accordion>
+  </AccordionRoot>
 </template>

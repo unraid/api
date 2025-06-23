@@ -40,5 +40,9 @@ const MockBrandButton = {
 vi.mock('@unraid/ui', () => ({
   cn: mockCn,
   BrandButton: MockBrandButton,
+  DropdownMenu: {
+    name: 'DropdownMenu',
+    template: '<div><slot name="trigger" /><slot /></div>',
+  },
   // Add other UI components as needed
 }));

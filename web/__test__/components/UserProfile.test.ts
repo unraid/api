@@ -77,10 +77,10 @@ const stubs = {
   UpcUptimeExpire: { template: '<div data-testid="uptime-expire"></div>', props: ['t'] },
   UpcServerState: { template: '<div data-testid="server-state"></div>', props: ['t'] },
   NotificationsSidebar: { template: '<div data-testid="notifications-sidebar"></div>' },
-  UpcDropdownMenu: {
+  DropdownMenu: {
     template: '<div data-testid="dropdown-menu"><slot name="trigger" /><slot /></div>',
-    props: ['t'],
   },
+  UpcDropdownContent: { template: '<div data-testid="dropdown-content"></div>', props: ['t'] },
   UpcDropdownTrigger: { template: '<button data-testid="dropdown-trigger"></button>', props: ['t'] },
 };
 
