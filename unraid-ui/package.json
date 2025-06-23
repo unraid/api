@@ -56,12 +56,12 @@
     "clsx": "^2.1.1",
     "dompurify": "^3.2.5",
     "kebab-case": "^2.0.1",
-    "lucide-vue-next": "^0.511.0",
+    "lucide-vue-next": "^0.519.0",
     "shadcn-vue": "^2.0.0",
     "marked": "^15.0.0",
     "reka-ui": "^2.1.1",
     "tailwind-merge": "^2.6.0",
-    "vue-sonner": "^1.3.0"
+    "vue-sonner": "^2.0.0"
   },
   "devDependencies": {
     "@ianvs/prettier-plugin-sort-imports": "^4.4.1",
@@ -92,7 +92,7 @@
     "eslint-plugin-no-relative-import-paths": "^1.6.1",
     "eslint-plugin-prettier": "^5.2.3",
     "eslint-plugin-vue": "^10.0.0",
-    "happy-dom": "^17.0.0",
+    "happy-dom": "^18.0.0",
     "postcss": "^8.4.49",
     "postcss-import": "^16.1.0",
     "prettier": "3.5.3",
@@ -136,5 +136,5 @@
       "import": "./dist/theme/preset.js"
     }
   },
-  "packageManager": "pnpm@10.11.0"
+  "packageManager": "pnpm@10.12.1"
 }

@@ -35,7 +35,7 @@ class UPNPJobManager {
     }
 
     isRunning(): boolean {
-        return this.renewalTask?.running ?? false;
+        return this.renewalTask?.isActive ?? false;
     }
 }
 

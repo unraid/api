@@ -35,6 +35,7 @@
       "protobufjs",
       "simple-git-hooks",
       "ssh2",
+      "unrs-resolver",
       "vue-demi"
     ]
   },
@@ -56,5 +57,5 @@
       "pnpm lint:fix"
     ]
   },
-  "packageManager": "pnpm@10.11.0"
+  "packageManager": "pnpm@10.12.1"
 }

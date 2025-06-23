@@ -14,6 +14,20 @@ import { GraphQLBigInt, GraphQLJSON } from 'graphql-scalars';
 
 import { ThemeName } from '@app/unraid-api/graph/resolvers/customization/theme.model.js';
 
+// USB device interface for type safety
+export interface UsbDevice {
+    id: string;
+    name: string;
+    guid: string;
+    vendorname: string;
+}
+
+// Raw USB device data from lsusb parsing
+export interface RawUsbDeviceData {
+    id: string;
+    n?: string;
+}
+
 export enum Temperature {
     C = 'C',
     F = 'F',
