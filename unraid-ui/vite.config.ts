@@ -1,9 +1,12 @@
 /// <reference types="vitest" />
-import { resolve } from 'path';
+import { dirname, resolve } from 'path';
+import { fileURLToPath } from 'url';
 import vue from '@vitejs/plugin-vue';
-import tailwindcss from 'tailwindcss';
 import { defineConfig } from 'vite';
 import dts from 'vite-plugin-dts';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 export default function createConfig() {
   return defineConfig({
@@ -21,11 +24,6 @@ export default function createConfig() {
             }),
           ]),
     ],
-    css: {
-      postcss: {
-        plugins: [tailwindcss()],
-      },
-    },
     build: {
       cssCodeSplit: false,
       rollupOptions: {

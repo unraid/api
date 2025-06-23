@@ -1,4 +1,3 @@
-import typography from '@tailwindcss/typography';
 import type { Config } from 'tailwindcss';
 import animate from 'tailwindcss-animate';
 import type { PluginAPI } from 'tailwindcss/types/config';
@@ -219,53 +218,7 @@ export const unraidPreset = {
         'mark-6': 'mark-6 1.5s ease infinite',
         'mark-7': 'mark-7 1.5s ease infinite',
       },
-      typography: (theme: PluginAPI['theme']) => ({
-        DEFAULT: {
-          css: {
-            color: theme('colors.foreground'),
-            a: {
-              color: theme('colors.primary'),
-              textDecoration: 'underline',
-              '&:hover': {
-                color: theme('colors.primary-foreground'),
-              },
-            },
-            '--tw-prose-body': theme('colors.foreground'),
-            '--tw-prose-headings': theme('colors.foreground'),
-            '--tw-prose-lead': theme('colors.foreground'),
-            '--tw-prose-links': theme('colors.primary'),
-            '--tw-prose-bold': theme('colors.foreground'),
-            '--tw-prose-counters': theme('colors.foreground'),
-            '--tw-prose-bullets': theme('colors.foreground'),
-            '--tw-prose-hr': theme('colors.foreground'),
-            '--tw-prose-quotes': theme('colors.foreground'),
-            '--tw-prose-quote-borders': theme('colors.foreground'),
-            '--tw-prose-captions': theme('colors.foreground'),
-            '--tw-prose-code': theme('colors.foreground'),
-            '--tw-prose-pre-code': theme('colors.foreground'),
-            '--tw-prose-pre-bg': theme('colors.background'),
-            '--tw-prose-th-borders': theme('colors.foreground'),
-            '--tw-prose-td-borders': theme('colors.foreground'),
-            '--tw-prose-invert-body': theme('colors.background'),
-            '--tw-prose-invert-headings': theme('colors.background'),
-            '--tw-prose-invert-lead': theme('colors.background'),
-            '--tw-prose-invert-links': theme('colors.primary'),
-            '--tw-prose-invert-bold': theme('colors.background'),
-            '--tw-prose-invert-counters': theme('colors.background'),
-            '--tw-prose-invert-bullets': theme('colors.background'),
-            '--tw-prose-invert-hr': theme('colors.background'),
-            '--tw-prose-invert-quotes': theme('colors.background'),
-            '--tw-prose-invert-quote-borders': theme('colors.background'),
-            '--tw-prose-invert-captions': theme('colors.background'),
-            '--tw-prose-invert-code': theme('colors.background'),
-            '--tw-prose-invert-pre-code': theme('colors.background'),
-            '--tw-prose-invert-pre-bg': theme('colors.foreground'),
-            '--tw-prose-invert-th-borders': theme('colors.background'),
-            '--tw-prose-invert-td-borders': theme('colors.background'),
-          },
-        },
-      }),
     },
   },
-  plugins: [typography, animate],
+  plugins: [animate],
 } satisfies Partial<Config>;
