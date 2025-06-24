@@ -28,9 +28,8 @@ LOCATIONS="/etc/nginx/conf.d/locations.conf"
 INI="/var/local/emhttp/nginx.ini.new"
 CERTPATH="$SSL/certs/certificate_bundle.pem"
 TSCERTPATH="$SSL/certs/ts_bundle.pem"
-APICONFIG="/boot/config/plugins/dynamix.my.servers/configs/api.json"
-CONNECTCONFIG="/boot/config/plugins/dynamix.my.servers/configs/connect.json"
-APIUTILS="/usr/local/share/dynamix.unraid.net/scripts/api_utils.sh"
+CONNECT_CONFIG="/boot/config/plugins/dynamix.my.servers/configs/connect.json"
+API_UTILS="/usr/local/share/dynamix.unraid.net/scripts/api_utils.sh"
 DEFAULTS="/etc/default/nginx"
 SYSTEM="/sys/class/net"
 SYSLOG="/var/log/syslog"
@@ -80,11 +79,11 @@ fqdn(){
 # check if remote access should be enabled
 check_remote_access(){
   # Check if connect plugin is enabled using api_utils.sh
-  if [[ -f $APIUTILS ]] && $APIUTILS is_api_plugin_enabled "unraid-api-plugin-connect"; then
+  if [[ -f $API_UTILS ]] && $API_UTILS is_api_plugin_enabled "unraid-api-plugin-connect"; then
     # Plugin is enabled, check connect.json configuration
-    if [[ -f $CONNECTCONFIG ]] && command -v jq >/dev/null 2>&1; then
-      local wanaccess=$(jq -r '.wanaccess' "$CONNECTCONFIG" 2>/dev/null)
-      local username=$(jq -r '.username' "$CONNECTCONFIG" 2>/dev/null)
+    if [[ -f $CONNECT_CONFIG ]] && command -v jq >/dev/null 2>&1; then
+      local wanaccess=$(jq -r '.wanaccess' "$CONNECT_CONFIG" 2>/dev/null)
+      local username=$(jq -r '.username' "$CONNECT_CONFIG" 2>/dev/null)
       # Enable remote access if wanaccess is true and username is not empty
       if [[ $wanaccess == "true" && -n $username && $username != "null" ]]; then
         return 0
