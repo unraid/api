@@ -2,6 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 
 import { URL_TYPE } from '@unraid/shared/network.model.js';
+import { makeSafeRunner } from '@unraid/shared/util/processing.js';
 
 import { ConfigType } from '../model/connect-config.model.js';
 
@@ -268,17 +269,13 @@ export class UrlResolverService {
         const errors: Error[] = [];
         const urls: AccessUrl[] = [];
 
-        const doSafely = (fn: () => void) => {
-            try {
-                fn();
-            } catch (error: unknown) {
-                if (error instanceof Error) {
-                    errors.push(error);
-                } else {
-                    this.logger.warn(error, 'Uncaught error in network resolver');
-                }
+        const doSafely = makeSafeRunner((error) => {
+            if (error instanceof Error) {
+                errors.push(error);
+            } else {
+                this.logger.warn(error, 'Uncaught error in network resolver');
             }
-        };
+        });
 
         doSafely(() => {
             const defaultUrl = new URL(nginx.defaultUrl);
