@@ -147,12 +147,19 @@ export class DynamicRemoteAccessService implements OnModuleInit {
     }
 
     private async initRemoteAccess() {
-        const enabled = this.configService.get('connect.config.wanaccess', { infer: true });
-        if (!enabled) {
-            return;
+        const { wanaccess, upnpEnabled } = this.configService.get('connect.config', { infer: true });
+        if (wanaccess && upnpEnabled) {
+            await this.enableDynamicRemoteAccess({
+                type: DynamicRemoteAccessType.UPNP,
+                allowedUrl: {
+                    ipv4: null,
+                    ipv6: null,
+                    type: URL_TYPE.WAN,
+                    name: 'WAN',
+                },
+            });
         }
-
-        // const type = this.configService.get('connect.config.dynamicRemoteAccessType', { infer: true });
-        // await this.setType(type);
+        // if wanaccess is true and upnpEnabled is false, static remote access is already "enabled".
+        // if wanaccess is false, remote access is already "disabled".
     }
 }

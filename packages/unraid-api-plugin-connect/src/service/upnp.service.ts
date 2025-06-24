@@ -1,4 +1,4 @@
-import { Inject, Injectable, Logger } from '@nestjs/common';
+import { Inject, Injectable, Logger, OnModuleDestroy } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Cron, SchedulerRegistry } from '@nestjs/schedule';
 
@@ -11,7 +11,7 @@ import { UPNP_RENEWAL_JOB_TOKEN } from '../helper/nest-tokens.js';
 import { ConfigType } from '../model/connect-config.model.js';
 
 @Injectable()
-export class UpnpService {
+export class UpnpService implements OnModuleDestroy {
     private readonly logger = new Logger(UpnpService.name);
     #enabled = false;
     #wanPort: number | undefined;
