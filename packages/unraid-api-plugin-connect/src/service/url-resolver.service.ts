@@ -2,6 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 
 import { URL_TYPE } from '@unraid/shared/network.model.js';
+import { makeSafeRunner } from '@unraid/shared/util/processing.js';
 
 import { ConfigType } from '../model/connect-config.model.js';
 
@@ -115,7 +116,7 @@ export interface AccessUrl {
 export class UrlResolverService {
     private readonly logger = new Logger(UrlResolverService.name);
 
-    constructor(private readonly configService: ConfigService<ConfigType>) {}
+    constructor(private readonly configService: ConfigService<ConfigType, true>) {}
 
     /**
      * Constructs a URL from the given field parameters.
@@ -259,11 +260,7 @@ export class UrlResolverService {
         }
 
         const { nginx } = store.emhttp;
-        const {
-            config: {
-                remote: { wanport },
-            },
-        } = store;
+        const wanport = this.configService.getOrThrow('connect.config.wanport', { infer: true });
 
         if (!nginx || Object.keys(nginx).length === 0) {
             return { urls: [], errors: [new Error('Nginx Not Loaded')] };
@@ -272,8 +269,15 @@ export class UrlResolverService {
         const errors: Error[] = [];
         const urls: AccessUrl[] = [];
 
-        try {
-            // Default URL
+        const doSafely = makeSafeRunner((error) => {
+            if (error instanceof Error) {
+                errors.push(error);
+            } else {
+                this.logger.warn(error, 'Uncaught error in network resolver');
+            }
+        });
+
+        doSafely(() => {
             const defaultUrl = new URL(nginx.defaultUrl);
             urls.push({
                 name: 'Default',
@@ -281,15 +285,9 @@ export class UrlResolverService {
                 ipv4: defaultUrl,
                 ipv6: defaultUrl,
             });
-        } catch (error: unknown) {
-            if (error instanceof Error) {
-                errors.push(error);
-            } else {
-                this.logger.warn('Uncaught error in network resolver', error);
-            }
-        }
+        });
 
-        try {
+        doSafely(() => {
             // Lan IP URL
             const lanIp4Url = this.getUrlForServer(nginx, 'lanIp');
             urls.push({
@@ -297,15 +295,9 @@ export class UrlResolverService {
                 type: URL_TYPE.LAN,
                 ipv4: lanIp4Url,
             });
-        } catch (error: unknown) {
-            if (error instanceof Error) {
-                errors.push(error);
-            } else {
-                this.logger.warn('Uncaught error in network resolver', error);
-            }
-        }
+        });
 
-        try {
+        doSafely(() => {
             // Lan IP6 URL
             const lanIp6Url = this.getUrlForServer(nginx, 'lanIp6');
             urls.push({
@@ -313,15 +305,9 @@ export class UrlResolverService {
                 type: URL_TYPE.LAN,
                 ipv6: lanIp6Url,
             });
-        } catch (error: unknown) {
-            if (error instanceof Error) {
-                errors.push(error);
-            } else {
-                this.logger.warn('Uncaught error in network resolver', error);
-            }
-        }
+        });
 
-        try {
+        doSafely(() => {
             // Lan Name URL
             const lanNameUrl = this.getUrlForServer(nginx, 'lanName');
             urls.push({
@@ -329,15 +315,9 @@ export class UrlResolverService {
                 type: URL_TYPE.MDNS,
                 ipv4: lanNameUrl,
             });
-        } catch (error: unknown) {
-            if (error instanceof Error) {
-                errors.push(error);
-            } else {
-                this.logger.warn('Uncaught error in network resolver', error);
-            }
-        }
+        });
 
-        try {
+        doSafely(() => {
             // Lan MDNS URL
             const lanMdnsUrl = this.getUrlForServer(nginx, 'lanMdns');
             urls.push({
@@ -345,35 +325,23 @@ export class UrlResolverService {
                 type: URL_TYPE.MDNS,
                 ipv4: lanMdnsUrl,
             });
-        } catch (error: unknown) {
-            if (error instanceof Error) {
-                errors.push(error);
-            } else {
-                this.logger.warn('Uncaught error in network resolver', error);
-            }
-        }
+        });
 
         // Now Process the FQDN Urls
         nginx.fqdnUrls.forEach((fqdnUrl: FqdnEntry) => {
-            try {
+            doSafely(() => {
                 const urlType = this.getUrlTypeFromFqdn(fqdnUrl.interface);
                 const fqdnUrlToUse = this.getUrlForField({
                     url: fqdnUrl.fqdn,
-                    portSsl: urlType === URL_TYPE.WAN ? Number(wanport) : nginx.httpsPort,
+                    portSsl: Number(wanport || nginx.httpsPort),
                 });
 
                 urls.push({
                     name: `FQDN ${fqdnUrl.interface}${fqdnUrl.id !== null ? ` ${fqdnUrl.id}` : ''}`,
-                    type: this.getUrlTypeFromFqdn(fqdnUrl.interface),
+                    type: urlType,
                     ipv4: fqdnUrlToUse,
                 });
-            } catch (error: unknown) {
-                if (error instanceof Error) {
-                    errors.push(error);
-                } else {
-                    this.logger.warn('Uncaught error in network resolver', error);
-                }
-            }
+            });
         });
 
         return { urls, errors };

@@ -1,4 +1,4 @@
-import { Inject, Injectable, Logger } from '@nestjs/common';
+import { Inject, Injectable, Logger, OnModuleDestroy } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Cron, SchedulerRegistry } from '@nestjs/schedule';
 
@@ -11,7 +11,7 @@ import { UPNP_RENEWAL_JOB_TOKEN } from '../helper/nest-tokens.js';
 import { ConfigType } from '../model/connect-config.model.js';
 
 @Injectable()
-export class UpnpService {
+export class UpnpService implements OnModuleDestroy {
     private readonly logger = new Logger(UpnpService.name);
     #enabled = false;
     #wanPort: number | undefined;
@@ -37,6 +37,10 @@ export class UpnpService {
 
     get renewalJob(): ReturnType<typeof this.scheduleRegistry.getCronJob> {
         return this.scheduleRegistry.getCronJob(UPNP_RENEWAL_JOB_TOKEN);
+    }
+
+    async onModuleDestroy() {
+        await this.disableUpnp();
     }
 
     private async removeUpnpMapping() {
@@ -143,26 +147,35 @@ export class UpnpService {
         return newWanPort;
     }
 
-    async createOrRenewUpnpLease(args?: { sslPort?: number; wanPort?: number }) {
-        const { sslPort, wanPort } = args ?? {};
-        if (wanPort !== this.#wanPort || this.#localPort !== sslPort) {
+    async createOrRenewUpnpLease(args?: { localPort?: number; wanPort?: number }) {
+        const { localPort, wanPort } = args ?? {};
+        const newWanOrLocalPort = wanPort !== this.#wanPort || localPort !== this.#localPort;
+        const upnpWasInitialized = this.#wanPort && this.#localPort;
+        // remove old mapping when new ports are requested
+        if (upnpWasInitialized && newWanOrLocalPort) {
             await this.removeUpnpMapping();
         }
+        // get new ports to use
         const wanPortToUse = await this.getWanPortToUse(args);
-        const localPortToUse = sslPort ?? this.#localPort;
-        if (wanPortToUse && localPortToUse) {
-            this.#wanPort = wanPortToUse;
-            await this.createUpnpMapping({
-                publicPort: wanPortToUse,
-                privatePort: localPortToUse,
-            });
-        } else {
+        const localPortToUse = localPort ?? this.#localPort;
+        if (!wanPortToUse || !localPortToUse) {
             await this.disableUpnp();
             this.logger.error('No WAN port found %o. Disabled UPNP.', {
                 wanPort: wanPortToUse,
                 localPort: localPortToUse,
             });
             throw new Error('No WAN port found. Disabled UPNP.');
+        }
+        // create new mapping
+        const mapping = {
+            publicPort: wanPortToUse,
+            privatePort: localPortToUse,
+        };
+        const success = await this.createUpnpMapping(mapping);
+        if (success) {
+            return mapping;
+        } else {
+            throw new Error('Failed to create UPNP mapping');
         }
     }
 

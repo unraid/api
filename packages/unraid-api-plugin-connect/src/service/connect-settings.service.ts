@@ -2,7 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 
-import type { SchemaBasedCondition } from '@jsonforms/core';
+import type { JsonSchema7, SchemaBasedCondition } from '@jsonforms/core';
 import type { DataSlice, SettingSlice, UIElement } from '@unraid/shared/jsonforms/settings.js';
 import { RuleEffect } from '@jsonforms/core';
 import { createLabeledControl } from '@unraid/shared/jsonforms/control.js';
@@ -26,6 +26,7 @@ import { ConfigType, MyServersConfig } from '../model/connect-config.model.js';
 import { DynamicRemoteAccessType, WAN_ACCESS_TYPE, WAN_FORWARD_TYPE } from '../model/connect.model.js';
 import { ConnectApiKeyService } from './connect-api-key.service.js';
 import { DynamicRemoteAccessService } from './dynamic-remote-access.service.js';
+import { NetworkService } from './network.service.js';
 
 declare module '@unraid/shared/services/user-settings.js' {
     interface UserSettings {
@@ -40,7 +41,8 @@ export class ConnectSettingsService {
         private readonly remoteAccess: DynamicRemoteAccessService,
         private readonly apiKeyService: ConnectApiKeyService,
         private readonly eventEmitter: EventEmitter2,
-        private readonly userSettings: UserSettingsService
+        private readonly userSettings: UserSettingsService,
+        private readonly networkService: NetworkService
     ) {
         this.userSettings.register('remote-access', {
             buildSlice: async () => this.buildRemoteAccessSlice(),
@@ -215,7 +217,7 @@ export class ConnectSettingsService {
         forwardType?: WAN_FORWARD_TYPE | undefined | null
     ): DynamicRemoteAccessType {
         // If access is disabled or always, DRA is disabled
-        if (accessType === WAN_ACCESS_TYPE.DISABLED || accessType === WAN_ACCESS_TYPE.ALWAYS) {
+        if (accessType === WAN_ACCESS_TYPE.DISABLED) {
             return DynamicRemoteAccessType.DISABLED;
         }
         // if access is enabled and forward type is UPNP, DRA is UPNP, otherwise it is static
@@ -231,10 +233,10 @@ export class ConnectSettingsService {
         );
 
         this.configService.set('connect.config.wanaccess', input.accessType === WAN_ACCESS_TYPE.ALWAYS);
-        this.configService.set(
-            'connect.config.wanport',
-            input.forwardType === WAN_FORWARD_TYPE.STATIC ? input.port : null
-        );
+        if (input.forwardType === WAN_FORWARD_TYPE.STATIC) {
+            this.configService.set('connect.config.wanport', input.port);
+            // when forwarding with upnp, the upnp service will clear & set the wanport as necessary
+        }
         this.configService.set(
             'connect.config.upnpEnabled',
             input.forwardType === WAN_FORWARD_TYPE.UPNP
@@ -251,17 +253,15 @@ export class ConnectSettingsService {
             },
         });
 
+        await this.networkService.reloadNetworkStack();
+
         return true;
     }
 
     public async dynamicRemoteAccessSettings(): Promise<RemoteAccess> {
         const config = this.configService.getOrThrow<MyServersConfig>('connect.config');
         return {
-            accessType: config.wanaccess
-                ? config.dynamicRemoteAccessType !== DynamicRemoteAccessType.DISABLED
-                    ? WAN_ACCESS_TYPE.DYNAMIC
-                    : WAN_ACCESS_TYPE.ALWAYS
-                : WAN_ACCESS_TYPE.DISABLED,
+            accessType: config.wanaccess ? WAN_ACCESS_TYPE.ALWAYS : WAN_ACCESS_TYPE.DISABLED,
             forwardType: config.upnpEnabled ? WAN_FORWARD_TYPE.UPNP : WAN_FORWARD_TYPE.STATIC,
             port: config.wanport ? Number(config.wanport) : null,
         };
@@ -272,9 +272,48 @@ export class ConnectSettingsService {
      *------------------------------------------------------------------------**/
 
     async buildRemoteAccessSlice(): Promise<SettingSlice> {
-        return mergeSettingSlices([await this.remoteAccessSlice()], {
-            as: 'remote-access',
-        });
+        const slice = await this.remoteAccessSlice();
+        /**------------------------------------------------------------------------
+         *                  UX: Only validate 'port' when relevant
+         *
+         * 'port' will be null when remote access is disabled, and it's irrelevant
+         * when using upnp (because it becomes read-only for the end-user).
+         *
+         * In these cases, we should omit type and range validation for 'port'
+         * to avoid confusing end-users.
+         *
+         * But, when using static port forwarding, 'port' is required, so we validate it.
+         *------------------------------------------------------------------------**/
+        return {
+            properties: {
+                'remote-access': {
+                    type: 'object',
+                    properties: slice.properties as JsonSchema7['properties'],
+                    allOf: [
+                        {
+                            if: {
+                                properties: {
+                                    forwardType: { const: WAN_FORWARD_TYPE.STATIC },
+                                    accessType: { const: WAN_ACCESS_TYPE.ALWAYS },
+                                },
+                                required: ['forwardType', 'accessType'],
+                            },
+                            then: {
+                                required: ['port'],
+                                properties: {
+                                    port: {
+                                        type: 'number',
+                                        minimum: 1,
+                                        maximum: 65535,
+                                    },
+                                },
+                            },
+                        },
+                    ],
+                },
+            },
+            elements: slice.elements,
+        };
     }
 
     buildFlashBackupSlice(): SettingSlice {
@@ -289,7 +328,8 @@ export class ConnectSettingsService {
     async remoteAccessSlice(): Promise<SettingSlice> {
         const isSignedIn = await this.isSignedIn();
         const isSSLCertProvisioned = await this.isSSLCertProvisioned();
-        const precondition = isSignedIn && isSSLCertProvisioned;
+        const { sslEnabled } = this.configService.getOrThrow('store.emhttp.nginx');
+        const precondition = isSignedIn && isSSLCertProvisioned && sslEnabled;
 
         /** shown when preconditions are not met */
         const requirements: UIElement[] = [
@@ -314,6 +354,10 @@ export class ConnectSettingsService {
                                 {
                                     text: 'You have provisioned a valid SSL certificate',
                                     status: isSSLCertProvisioned,
+                                },
+                                {
+                                    text: 'SSL is enabled',
+                                    status: sslEnabled,
                                 },
                             ],
                         },
@@ -353,19 +397,30 @@ export class ConnectSettingsService {
                     },
                 },
                 rule: {
-                    effect: RuleEffect.SHOW,
+                    effect: RuleEffect.DISABLE,
                     condition: {
+                        scope: '#/properties/remote-access',
                         schema: {
-                            properties: {
-                                forwardType: {
-                                    enum: [WAN_FORWARD_TYPE.STATIC],
+                            anyOf: [
+                                {
+                                    properties: {
+                                        accessType: {
+                                            const: WAN_ACCESS_TYPE.DISABLED,
+                                        },
+                                    },
+                                    required: ['accessType'],
                                 },
-                                accessType: {
-                                    enum: [WAN_ACCESS_TYPE.DYNAMIC, WAN_ACCESS_TYPE.ALWAYS],
+                                {
+                                    properties: {
+                                        forwardType: {
+                                            const: WAN_FORWARD_TYPE.UPNP,
+                                        },
+                                    },
+                                    required: ['forwardType'],
                                 },
-                            },
+                            ],
                         },
-                    } as Omit<SchemaBasedCondition, 'scope'>,
+                    },
                 },
             }),
         ];
@@ -374,22 +429,22 @@ export class ConnectSettingsService {
         const properties: DataSlice = {
             accessType: {
                 type: 'string',
-                enum: Object.values(WAN_ACCESS_TYPE),
+                enum: [WAN_ACCESS_TYPE.DISABLED, WAN_ACCESS_TYPE.ALWAYS],
                 title: 'Allow Remote Access',
-                default: 'DISABLED',
+                default: WAN_ACCESS_TYPE.DISABLED,
             },
             forwardType: {
                 type: 'string',
                 enum: Object.values(WAN_FORWARD_TYPE),
                 title: 'Forward Type',
-                default: 'STATIC',
+                default: WAN_FORWARD_TYPE.STATIC,
             },
             port: {
-                type: 'number',
+                // 'port' is null when remote access is disabled.
+                type: ['number', 'null'],
                 title: 'WAN Port',
                 minimum: 0,
                 maximum: 65535,
-                default: 0,
             },
         };
 
