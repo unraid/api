@@ -292,7 +292,8 @@ export class ConnectSettingsService {
     async remoteAccessSlice(): Promise<SettingSlice> {
         const isSignedIn = await this.isSignedIn();
         const isSSLCertProvisioned = await this.isSSLCertProvisioned();
-        const precondition = isSignedIn && isSSLCertProvisioned;
+        const { sslEnabled } = this.configService.getOrThrow('store.emhttp.nginx');
+        const precondition = isSignedIn && isSSLCertProvisioned && sslEnabled;
 
         /** shown when preconditions are not met */
         const requirements: UIElement[] = [
@@ -317,6 +318,10 @@ export class ConnectSettingsService {
                                 {
                                     text: 'You have provisioned a valid SSL certificate',
                                     status: isSSLCertProvisioned,
+                                },
+                                {
+                                    text: 'SSL is enabled',
+                                    status: sslEnabled,
                                 },
                             ],
                         },
