@@ -21,7 +21,7 @@ export class StaticRemoteAccessService {
     }
 
     async beginRemoteAccess(): Promise<AccessUrl | null> {
-        this.logger.verbose('Begin Static Remote Access');
+        this.logger.log('Begin Static Remote Access');
         // enabling/disabling static remote access is a config-only change.
         // the actual forwarding must be configured on the router, outside of the API.
         this.eventEmitter.emit(EVENTS.ENABLE_WAN_ACCESS);

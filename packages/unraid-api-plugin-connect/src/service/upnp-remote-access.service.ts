@@ -24,7 +24,7 @@ export class UpnpRemoteAccessService {
     }
 
     async begin() {
-        this.logger.verbose('Begin UPNP Remote Access');
+        this.logger.log('Begin UPNP Remote Access');
         const { httpsPort, httpPort, sslMode } = this.configService.getOrThrow('store.emhttp.nginx');
         const localPort = sslMode === 'no' ? Number(httpPort) : Number(httpsPort);
         if (isNaN(localPort)) {
