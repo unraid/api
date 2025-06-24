@@ -31,9 +31,7 @@ export class UpnpRemoteAccessService {
             throw new Error(`Invalid local port configuration: ${localPort}`);
         }
         try {
-            const mapping = await this.upnpService.createOrRenewUpnpLease({
-                sslPort: localPort,
-            });
+            const mapping = await this.upnpService.createOrRenewUpnpLease({ localPort });
             this.configService.set('connect.config.wanport', mapping.publicPort);
             this.eventEmitter.emit(EVENTS.ENABLE_WAN_ACCESS);
             return this.urlResolverService.getRemoteAccessUrl();

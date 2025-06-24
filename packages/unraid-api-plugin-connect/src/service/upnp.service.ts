@@ -147,9 +147,9 @@ export class UpnpService {
         return newWanPort;
     }
 
-    async createOrRenewUpnpLease(args?: { sslPort?: number; wanPort?: number }) {
-        const { sslPort, wanPort } = args ?? {};
-        const newWanOrLocalPort = wanPort !== this.#wanPort || sslPort !== this.#localPort;
+    async createOrRenewUpnpLease(args?: { localPort?: number; wanPort?: number }) {
+        const { localPort, wanPort } = args ?? {};
+        const newWanOrLocalPort = wanPort !== this.#wanPort || localPort !== this.#localPort;
         const upnpWasInitialized = this.#wanPort && this.#localPort;
         // remove old mapping when new ports are requested
         if (upnpWasInitialized && newWanOrLocalPort) {
@@ -157,7 +157,7 @@ export class UpnpService {
         }
         // get new ports to use
         const wanPortToUse = await this.getWanPortToUse(args);
-        const localPortToUse = sslPort ?? this.#localPort;
+        const localPortToUse = localPort ?? this.#localPort;
         if (!wanPortToUse || !localPortToUse) {
             await this.disableUpnp();
             this.logger.error('No WAN port found %o. Disabled UPNP.', {

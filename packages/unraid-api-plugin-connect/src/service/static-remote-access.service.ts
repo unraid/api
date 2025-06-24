@@ -22,12 +22,8 @@ export class StaticRemoteAccessService {
 
     async beginRemoteAccess(): Promise<AccessUrl | null> {
         this.logger.verbose('Begin Static Remote Access');
-        const { dynamicRemoteAccessType } =
-            this.configService.getOrThrow<MyServersConfig>('connect.config');
-        if (dynamicRemoteAccessType !== DynamicRemoteAccessType.STATIC) {
-            this.logger.error('Invalid Dynamic Remote Access Type: %s', dynamicRemoteAccessType);
-            return null;
-        }
+        // enabling/disabling static remote access is a config-only change.
+        // the actual forwarding must be configured on the router, outside of the API.
         this.eventEmitter.emit(EVENTS.ENABLE_WAN_ACCESS);
         return this.urlResolverService.getRemoteAccessUrl();
     }
