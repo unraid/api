@@ -32,14 +32,7 @@ const config: StorybookConfig = {
         include: [...(config.optimizeDeps?.include ?? []), '@unraid/tailwind-rem-to-rem'],
       },
       css: {
-        postcss: {
-          plugins: [
-            (await import('tailwindcss')).default({
-              config: './tailwind.config.ts',
-            }),
-            (await import('autoprefixer')).default,
-          ],
-        },
+        postcss: './postcss.config.js',
       },
     };
   },

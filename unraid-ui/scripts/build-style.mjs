@@ -2,7 +2,7 @@ import fs from 'fs/promises';
 import autoprefixer from 'autoprefixer';
 import postcss from 'postcss';
 import postcssImport from 'postcss-import';
-import tailwindcss from 'tailwindcss';
+import tailwindcss from '@tailwindcss/postcss';
 
 /**
  * Helper script for storybook to build the CSS file for the components. This is used to ensure that modals render using the shadow styles.
