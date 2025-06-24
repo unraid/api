@@ -5,7 +5,7 @@ import tailwindcssAnimate from 'tailwindcss-animate';
 import { unraidPreset } from './src/theme/preset';
 
 export default {
-  darkMode: ['class'],
+  darkMode: ['class', 'selector'],
   presets: [unraidPreset],
   content: [
     './src/components/**/*.{js,vue,ts}',
