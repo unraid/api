@@ -1,8 +1,8 @@
-import type { Meta, StoryObj } from "@storybook/vue3";
-import BrandLogoConnect from "../../../src/components/brand/BrandLogoConnect.vue";
+import type { Meta, StoryObj } from '@storybook/vue3-vite';
+import BrandLogoConnect from '../../../src/components/brand/BrandLogoConnect.vue';
 
 const meta = {
-  title: "Components/Brand",
+  title: 'Components/Brand',
   component: BrandLogoConnect,
   argTypes: {
     gradientStart: { control: 'color' },
@@ -33,4 +33,4 @@ export const LogoConnect: Story = {
       </div>
     `,
   }),
-}; 
+};

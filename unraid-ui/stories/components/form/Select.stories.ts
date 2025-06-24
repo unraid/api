@@ -1,4 +1,3 @@
-import type { Meta, StoryObj } from '@storybook/vue3';
 import {
   Select as SelectComponent,
   SelectContent,
@@ -8,6 +7,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/form/select';
+import type { Meta, StoryObj } from '@storybook/vue3-vite';
 
 const meta = {
   title: 'Components/Form/Select',

@@ -17,7 +17,7 @@ const css = await fs.readFile(inputPath, 'utf8');
 
 const result = await postcss([
   postcssImport(),
-  tailwindcss({ config: './tailwind.config.ts' }),
+  tailwindcss(),
   autoprefixer(),
 ]).process(css, {
   from: inputPath,

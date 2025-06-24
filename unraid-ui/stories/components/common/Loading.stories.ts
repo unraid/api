@@ -1,10 +1,10 @@
-import type { Meta, StoryObj } from "@storybook/vue3";
-import Bar from "../../../src/components/common/loading/Bar.vue";
-import Error from "../../../src/components/common/loading/Error.vue";
-import Spinner from "../../../src/components/common/loading/Spinner.vue";
+import type { Meta, StoryObj } from '@storybook/vue3-vite';
+import Bar from '../../../src/components/common/loading/Bar.vue';
+import Error from '../../../src/components/common/loading/Error.vue';
+import Spinner from '../../../src/components/common/loading/Spinner.vue';
 
 const meta = {
-  title: "Components/Common/Loading",
+  title: 'Components/Common/Loading',
   component: Bar,
   subcomponents: { Bar, Spinner, Error },
 } satisfies Meta<typeof Bar>;
@@ -35,7 +35,7 @@ export const LoadingError: ErrorStory = {
   args: {
     loading: false,
     error: null,
-    class: "",
+    class: '',
   },
   render: (args) => ({
     components: { Error },
@@ -50,4 +50,4 @@ export const LoadingError: ErrorStory = {
       </div>
     `,
   }),
-}; 
+};

@@ -1,3 +1,6 @@
+// For more info, see https://github.com/storybookjs/eslint-plugin-storybook#configuration-flat-config-format
+import storybook from "eslint-plugin-storybook";
+
 import eslint from '@eslint/js';
 // @ts-expect-error No Declaration For This Plugin
 import importPlugin from 'eslint-plugin-import';
@@ -89,70 +92,61 @@ const commonGlobals = {
   es2022: true,
 };
 
-export default [
-  // Base config from recommended configs
-  eslint.configs.recommended,
-  ...tseslint.configs.recommended,
-  
-  // TypeScript Files (.ts)
-  {
-    files: ['**/*.ts'],
-    languageOptions: {
+export default [// Base config from recommended configs
+eslint.configs.recommended, ...tseslint.configs.recommended, // TypeScript Files (.ts)
+{
+  files: ['**/*.ts'],
+  languageOptions: {
+    parser: tseslint.parser,
+    parserOptions: {
+      ...commonLanguageOptions,
+      ecmaFeatures: {
+        jsx: true,
+      },
+    },
+    globals: {
+      ...commonGlobals
+    },
+  },
+  plugins: {
+    'no-relative-import-paths': noRelativeImportPaths,
+    prettier: prettier,
+    import: importPlugin,
+  },
+  rules: {
+    ...commonRules,
+  },
+}, // Vue Files (.vue)
+{
+  files: ['**/*.vue'],
+  languageOptions: {
+    parser: vueEslintParser,
+    parserOptions: {
+      ...commonLanguageOptions,
       parser: tseslint.parser,
-      parserOptions: {
-        ...commonLanguageOptions,
-        ecmaFeatures: {
-          jsx: true,
-        },
-      },
-      globals: {
-        ...commonGlobals
+      ecmaFeatures: {
+        jsx: true,
       },
     },
-    plugins: {
-      'no-relative-import-paths': noRelativeImportPaths,
-      prettier: prettier,
-      import: importPlugin,
-    },
-    rules: {
-      ...commonRules,
+    globals: {
+      ...commonGlobals
     },
   },
-  
-  // Vue Files (.vue)
-  {
-    files: ['**/*.vue'],
-    languageOptions: {
-      parser: vueEslintParser,
-      parserOptions: {
-        ...commonLanguageOptions,
-        parser: tseslint.parser,
-        ecmaFeatures: {
-          jsx: true,
-        },
-      },
-      globals: {
-        ...commonGlobals
-      },
-    },
-    plugins: {
-      'no-relative-import-paths': noRelativeImportPaths,
-      prettier: prettier,
-      import: importPlugin,
-      vue: vuePlugin,
-    },
-    rules: {
-      ...commonRules,
-      ...vueRules,
-    },
+  plugins: {
+    'no-relative-import-paths': noRelativeImportPaths,
+    prettier: prettier,
+    import: importPlugin,
+    vue: vuePlugin,
   },
-  
-  // Ignores
-  {
-    ignores: [
-      'src/graphql/generated/client/**/*',
-      'src/global.d.ts',
-      'eslint.config.ts',
-    ],
+  rules: {
+    ...commonRules,
+    ...vueRules,
   },
-];
+}, // Ignores
+{
+  ignores: [
+    'src/graphql/generated/client/**/*',
+    'src/global.d.ts',
+    'eslint.config.ts',
+  ],
+}, ...storybook.configs["flat/recommended"]];

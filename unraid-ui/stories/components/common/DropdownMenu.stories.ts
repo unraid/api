@@ -1,5 +1,4 @@
-import type { Meta, StoryObj } from '@storybook/vue3';
-import { MoreVertical } from 'lucide-vue-next';
+import { Button } from '@/components/common/button';
 import {
   DropdownMenu,
   DropdownMenuArrow,
@@ -9,7 +8,8 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/common/dropdown-menu';
-import { Button } from '@/components/common/button';
+import type { Meta, StoryObj } from '@storybook/vue3-vite';
+import { MoreVertical } from 'lucide-vue-next';
 
 const meta = {
   title: 'Components/Common/DropdownMenu',

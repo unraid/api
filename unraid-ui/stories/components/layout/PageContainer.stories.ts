@@ -1,9 +1,8 @@
-import type { Meta, StoryObj } from "@storybook/vue3";
-import { PageContainer as PageContainerComponent } from "../../../src/components/layout";
-import { CardWrapper } from "../../../src/components/layout";
+import type { Meta, StoryObj } from '@storybook/vue3-vite';
+import { CardWrapper, PageContainer as PageContainerComponent } from '../../../src/components/layout';
 
 const meta = {
-  title: "Components/Layout/PageContainer",
+  title: 'Components/Layout/PageContainer',
   component: PageContainerComponent,
 } satisfies Meta<typeof PageContainerComponent>;
 
@@ -54,4 +53,4 @@ export const CustomMaxWidth: Story = {
       </div>
     `,
   }),
-}; 
+};
