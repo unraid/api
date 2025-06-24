@@ -29,6 +29,7 @@ export class WanAccessEventHandler implements OnModuleDestroy {
 
     @OnEvent(EVENTS.DISABLE_WAN_ACCESS, { async: true })
     async disableWanAccess() {
+        this.logger.log('Disabling WAN Access');
         this.configService.set('connect.config.wanaccess', false);
         await this.networkService.reloadNetworkStack();
     }

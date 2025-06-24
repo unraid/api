@@ -235,6 +235,7 @@ export class ConnectSettingsService {
         this.configService.set('connect.config.wanaccess', input.accessType === WAN_ACCESS_TYPE.ALWAYS);
         if (input.forwardType === WAN_FORWARD_TYPE.STATIC) {
             this.configService.set('connect.config.wanport', input.port);
+            // when forwarding with upnp, the upnp service will clear & set the wanport as necessary
         }
         this.configService.set(
             'connect.config.upnpEnabled',
@@ -272,6 +273,17 @@ export class ConnectSettingsService {
 
     async buildRemoteAccessSlice(): Promise<SettingSlice> {
         const slice = await this.remoteAccessSlice();
+        /**------------------------------------------------------------------------
+         *                  UX: Only validate 'port' when relevant
+         *
+         * 'port' will be null when remote access is disabled, and it's irrelevant
+         * when using upnp (because it becomes read-only for the end-user).
+         *
+         * In these cases, we should omit type and range validation for 'port'
+         * to avoid confusing end-users.
+         *
+         * But, when using static port forwarding, 'port' is required, so we validate it.
+         *------------------------------------------------------------------------**/
         return {
             properties: {
                 'remote-access': {
@@ -292,6 +304,7 @@ export class ConnectSettingsService {
                                     port: {
                                         type: 'number',
                                         minimum: 1,
+                                        maximum: 65535,
                                     },
                                 },
                             },
@@ -427,6 +440,7 @@ export class ConnectSettingsService {
                 default: WAN_FORWARD_TYPE.STATIC,
             },
             port: {
+                // 'port' is null when remote access is disabled.
                 type: ['number', 'null'],
                 title: 'WAN Port',
                 minimum: 0,
