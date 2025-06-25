@@ -80,9 +80,7 @@ describe('Theme Store', () => {
         banner: true,
         bannerGradient: true,
       });
-      expect(store.bannerGradient).toBe(
-        'background-image: linear-gradient(90deg, rgba(0, 0, 0, 0) 0, var(--header-background-color) 30%);'
-      );
+      expect(store.bannerGradient).toMatchInlineSnapshot(`"background-image: linear-gradient(90deg, rgba(0, 0, 0, 0) 0, var(--header-background-color) 90%);"`);
 
       store.setTheme({
         ...store.theme,
@@ -90,9 +88,7 @@ describe('Theme Store', () => {
         bannerGradient: true,
         bgColor: '#123456',
       });
-      expect(store.bannerGradient).toBe(
-        'background-image: linear-gradient(90deg, var(--header-gradient-start) 0, var(--header-gradient-end) 30%);'
-      );
+      expect(store.bannerGradient).toMatchInlineSnapshot(`"background-image: linear-gradient(90deg, var(--header-gradient-start) 0, var(--header-gradient-end) 90%);"`);
     });
   });
 

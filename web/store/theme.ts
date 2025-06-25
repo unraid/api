@@ -110,7 +110,7 @@ export const useThemeStore = defineStore('theme', () => {
         : customTheme['--header-gradient-end'];
 
       // set the banner gradient
-      customTheme['--banner-gradient'] = `linear-gradient(90deg, ${start} 0, ${end} 30%)`;
+      customTheme['--banner-gradient'] = `linear-gradient(90deg, ${start} 0, ${end} 90%)`;
     }
 
     // overwrite with hex colors set in webGUI @ /Settings/DisplaySettings
