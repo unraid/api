@@ -1,17 +1,13 @@
 import { Inject, Injectable, Logger } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
 
-import { ApiKey, ApiKeyWithSecret, Permission, Resource, Role } from '@unraid/shared/graphql.model.js';
+import { ApiKey, ApiKeyWithSecret, Permission, Role } from '@unraid/shared/graphql.model.js';
 import { ApiKeyService } from '@unraid/shared/services/api-key.js';
 import { API_KEY_SERVICE_TOKEN } from '@unraid/shared/tokens.js';
 import { AuthActionVerb } from 'nest-authz';
 
-import { ConnectConfigService } from './connect-config.service.js';
-
 @Injectable()
 export class ConnectApiKeyService implements ApiKeyService {
     private readonly logger = new Logger(ConnectApiKeyService.name);
-    private static readonly validRoles: Set<Role> = new Set(Object.values(Role));
     private static readonly CONNECT_API_KEY_NAME = 'Connect_Internal';
     private static readonly CONNECT_API_KEY_DESCRIPTION =
         'Internal API Key Used By Unraid Connect to access your server resources for the connect.myunraid.net dashboard';
@@ -19,8 +15,6 @@ export class ConnectApiKeyService implements ApiKeyService {
     constructor(
         @Inject(API_KEY_SERVICE_TOKEN)
         private readonly apiKeyService: ApiKeyService,
-        private readonly configService: ConfigService,
-        private readonly connectConfig: ConnectConfigService
     ) {}
 
     async findById(id: string): Promise<ApiKey | null> {
