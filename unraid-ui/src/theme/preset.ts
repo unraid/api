@@ -1,6 +1,5 @@
 import type { Config } from 'tailwindcss';
 import animate from 'tailwindcss-animate';
-import type { PluginAPI } from 'tailwindcss/types/config';
 
 export const unraidPreset = {
   darkMode: ['selector', '[data-mode="dark"]'],
