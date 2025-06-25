@@ -2,7 +2,6 @@ import { join } from 'path';
 
 import type { PayloadAction } from '@reduxjs/toolkit';
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
-import { mergeWith } from 'lodash-es';
 
 import type { RootState } from '@app/store/index.js';
 import type { StateFileToIniParserMap } from '@app/store/types.js';
@@ -163,15 +162,6 @@ export const loadStateFiles = createAsyncThunk<
 
     return state;
 });
-
-// Custom merge function that replaces arrays instead of merging them element-wise
-const mergeReplaceArrays = (object: any, source: any, ...rest: any[]) =>
-    mergeWith(object, source, ...rest, (objValue: unknown, srcValue: unknown) => {
-        if (Array.isArray(srcValue)) {
-            return srcValue;
-        }
-        return undefined;
-    });
 
 export const emhttp = createSlice({
     name: 'emhttp',
