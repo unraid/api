@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import useTeleport from '@/composables/useTeleport';
 import { cn } from '@/lib/utils';
+import { reactiveOmit } from '@vueuse/core';
 import {
   SelectContent,
   SelectPortal,
@@ -9,34 +9,25 @@ import {
   type SelectContentEmits,
   type SelectContentProps,
 } from 'reka-ui';
-import { computed, type HTMLAttributes } from 'vue';
+import type { HTMLAttributes } from 'vue';
 import { SelectScrollDownButton, SelectScrollUpButton } from '.';
 
 defineOptions({
   inheritAttrs: false,
 });
 
-const { teleportTarget } = useTeleport();
-
 const props = withDefaults(defineProps<SelectContentProps & { class?: HTMLAttributes['class'] }>(), {
-  forceMount: false,
   position: 'popper',
-  to: undefined,
 });
-
 const emits = defineEmits<SelectContentEmits>();
 
-const delegatedProps = computed(() => {
-  const { class: _, ...delegated } = props;
-
-  return delegated;
-});
+const delegatedProps = reactiveOmit(props, 'class');
 
 const forwarded = useForwardPropsEmits(delegatedProps, emits);
 </script>
 
 <template>
-  <SelectPortal :force-mount="forceMount" :to="teleportTarget">
+  <SelectPortal>
     <SelectContent
       v-bind="{ ...forwarded, ...$attrs }"
       :class="

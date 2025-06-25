@@ -59,7 +59,7 @@ function handleItemClick(item: DropdownMenuItemData) {
 
       <!-- Props-based items rendering -->
       <template v-if="props.items && props.items.length > 0">
-        <template v-for="item in props.items" :key="item.label || Math.random()">
+        <template v-for="(item, index) in props.items" :key="item.label || `item-${index}`">
           <DropdownMenuSeparator v-if="item.type === 'separator'" />
 
           <DropdownMenuLabel v-else-if="item.type === 'label'">
