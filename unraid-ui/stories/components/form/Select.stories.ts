@@ -46,11 +46,18 @@ export const SimpleArray: Story = {
     components: { Select },
     setup() {
       const value = ref(null);
+
       return { args, value };
     },
     template: `
       <div class="space-y-4">
-        <Select v-model="value" v-bind="args" />
+        <Select 
+          v-model="value" 
+          :items="args.items"
+          :placeholder="args.placeholder"
+          :valueKey="args.valueKey"
+          :labelKey="args.labelKey"
+        />
         <p class="text-sm text-muted-foreground">Selected: {{ value }}</p>
         <p class="text-sm">Items: {{ args.items }}</p>
       </div>
@@ -63,6 +70,26 @@ export const SimpleArray: Story = {
 };
 
 export const ObjectArray: Story = {
+  render: (args) => ({
+    components: { Select },
+    setup() {
+      const value = ref(null);
+
+      return { args, value };
+    },
+    template: `
+      <div class="space-y-4">
+        <Select 
+          v-model="value" 
+          :items="args.items"
+          :placeholder="args.placeholder"
+          :valueKey="args.valueKey"
+          :labelKey="args.labelKey"
+        />
+        <p class="text-sm text-muted-foreground">Selected: {{ value }}</p>
+      </div>
+    `,
+  }),
   args: {
     placeholder: 'Select a color',
     items: [
@@ -76,6 +103,26 @@ export const ObjectArray: Story = {
 };
 
 export const GroupedItems: Story = {
+  render: (args) => ({
+    components: { Select },
+    setup() {
+      const value = ref(null);
+
+      return { args, value };
+    },
+    template: `
+      <div class="space-y-4">
+        <Select 
+          v-model="value" 
+          :items="args.items"
+          :placeholder="args.placeholder"
+          :valueKey="args.valueKey"
+          :labelKey="args.labelKey"
+        />
+        <p class="text-sm text-muted-foreground">Selected: {{ value }}</p>
+      </div>
+    `,
+  }),
   args: {
     placeholder: 'Select food',
     items: [
@@ -96,6 +143,26 @@ export const GroupedItems: Story = {
 };
 
 export const WithDisabledItems: Story = {
+  render: (args) => ({
+    components: { Select },
+    setup() {
+      const value = ref(null);
+
+      return { args, value };
+    },
+    template: `
+      <div class="space-y-4">
+        <Select 
+          v-model="value" 
+          :items="args.items"
+          :placeholder="args.placeholder"
+          :valueKey="args.valueKey"
+          :labelKey="args.labelKey"
+        />
+        <p class="text-sm text-muted-foreground">Selected: {{ value }}</p>
+      </div>
+    `,
+  }),
   args: {
     placeholder: 'Select an option',
     items: [
@@ -108,6 +175,26 @@ export const WithDisabledItems: Story = {
 };
 
 export const WithSeparators: Story = {
+  render: (args) => ({
+    components: { Select },
+    setup() {
+      const value = ref(null);
+
+      return { args, value };
+    },
+    template: `
+      <div class="space-y-4">
+        <Select 
+          v-model="value" 
+          :items="args.items"
+          :placeholder="args.placeholder"
+          :valueKey="args.valueKey"
+          :labelKey="args.labelKey"
+        />
+        <p class="text-sm text-muted-foreground">Selected: {{ value }}</p>
+      </div>
+    `,
+  }),
   args: {
     placeholder: 'Select action',
     items: [
@@ -127,11 +214,18 @@ export const ControlledValue: Story = {
     components: { Select },
     setup() {
       const value = ref('banana');
+
       return { args, value };
     },
     template: `
       <div class="space-y-4">
-        <Select v-model="value" v-bind="args" />
+        <Select 
+          v-model="value" 
+          :items="args.items"
+          :placeholder="args.placeholder"
+          :valueKey="args.valueKey"
+          :labelKey="args.labelKey"
+        />
         <p class="text-sm text-muted-foreground">Selected value: {{ value }}</p>
       </div>
     `,
@@ -151,17 +245,26 @@ export const MultipleSelection: Story = {
     components: { Select },
     setup() {
       const value = ref(['apple', 'orange']);
+
       return { args, value };
     },
     template: `
       <div class="space-y-4">
-        <Select v-model="value" multiple v-bind="args" />
+        <Select 
+          v-model="value" 
+          :items="args.items"
+          :placeholder="args.placeholder"
+          :multiple="args.multiple"
+          :valueKey="args.valueKey"
+          :labelKey="args.labelKey"
+        />
         <p class="text-sm text-muted-foreground">Selected values: {{ Array.isArray(value) ? value.join(', ') : value }}</p>
       </div>
     `,
   }),
   args: {
     placeholder: 'Select fruits',
+    multiple: true,
     items: [
       { value: 'apple', label: 'Apple' },
       { value: 'banana', label: 'Banana' },
@@ -176,17 +279,28 @@ export const CustomSlots: Story = {
   render: (args) => ({
     components: { Select },
     setup() {
-      return { args };
+      const value = ref(null);
+
+      return { args, value };
     },
     template: `
-      <Select v-bind="args">
-        <template #item="{ item }">
-          <div class="flex items-center gap-2">
-            <span class="w-3 h-3 rounded-full" :style="{ backgroundColor: item.color }"></span>
-            {{ item.label }}
-          </div>
-        </template>
-      </Select>
+      <div class="space-y-4">
+        <Select 
+          v-model="value"
+          :items="args.items"
+          :placeholder="args.placeholder"
+          :valueKey="args.valueKey"
+          :labelKey="args.labelKey"
+        >
+          <template #item="{ item }">
+            <div class="flex items-center gap-2">
+              <span class="w-3 h-3 rounded-full" :style="{ backgroundColor: item.color }"></span>
+              {{ item.label }}
+            </div>
+          </template>
+        </Select>
+        <p class="text-sm text-muted-foreground">Selected: {{ value }}</p>
+      </div>
     `,
   }),
   args: {
@@ -197,6 +311,39 @@ export const CustomSlots: Story = {
       { value: 'blue', label: 'Blue', color: '#3b82f6' },
       { value: 'yellow', label: 'Yellow', color: '#eab308' },
       { value: 'purple', label: 'Purple', color: '#a855f7' },
+    ],
+  },
+};
+
+export const DisabledSelect: Story = {
+  render: (args) => ({
+    components: { Select },
+    setup() {
+      const value = ref(null);
+      return { args, value };
+    },
+    template: `
+      <div class="space-y-4">
+        <Select 
+          v-model="value" 
+          :items="args.items"
+          :placeholder="args.placeholder"
+          :disabled="args.disabled"
+          :valueKey="args.valueKey"
+          :labelKey="args.labelKey"
+        />
+        <p class="text-sm text-muted-foreground">Selected: {{ value }}</p>
+        <p class="text-xs text-muted-foreground">The entire select is disabled</p>
+      </div>
+    `,
+  }),
+  args: {
+    placeholder: 'This select is disabled',
+    disabled: true,
+    items: [
+      { value: 'option1', label: 'Option 1' },
+      { value: 'option2', label: 'Option 2' },
+      { value: 'option3', label: 'Option 3' },
     ],
   },
 };

@@ -13,6 +13,8 @@ import { computed } from 'vue';
 
 type SelectValueType = string | number;
 
+type AcceptableValue = SelectValueType | SelectValueType[] | Record<string, unknown> | null;
+
 interface SelectItemInterface {
   label: string;
   value: SelectValueType;
@@ -38,7 +40,7 @@ export type SelectItemType =
   | SelectValueType;
 
 export interface SelectProps {
-  modelValue?: SelectValueType | SelectValueType[];
+  modelValue?: AcceptableValue;
   items?: SelectItemType[] | SelectItemType[][];
   placeholder?: string;
   multiple?: boolean;
@@ -58,7 +60,7 @@ const props = withDefaults(defineProps<SelectProps>(), {
 });
 
 const emit = defineEmits<{
-  'update:modelValue': [value: SelectValueType | SelectValueType[]];
+  'update:modelValue': [value: AcceptableValue];
 }>();
 
 function isStructuredItem(item: SelectItemType): item is SelectItemInterface {
@@ -146,6 +148,10 @@ const multipleValueDisplay = computed(() => {
     return `${displayLabels[0]}, ${displayLabels[1]} +${displayLabels.length - 2} more`;
   }
 });
+
+function handleUpdateModelValue(value: AcceptableValue) {
+  emit('update:modelValue', value);
+}
 </script>
 
 <template>
@@ -155,7 +161,7 @@ const multipleValueDisplay = computed(() => {
     :disabled="props.disabled"
     :required="props.required"
     :name="props.name"
-    @update:model-value="(value: any) => emit('update:modelValue', value)"
+    @update:model-value="handleUpdateModelValue"
   >
     <SelectTrigger :class="props.class">
       <slot>

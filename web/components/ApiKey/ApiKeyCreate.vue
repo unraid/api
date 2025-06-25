@@ -13,10 +13,6 @@ import {
   Input,
   Label,
   Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
 } from '@unraid/ui';
 import { extractGraphQLErrorMessage } from '~/helpers/functions';
 
@@ -311,14 +307,13 @@ async function upsertKey() {
         </div>
         <div class="mb-2">
           <Label for="api-key-roles">Roles</Label>
-          <Select v-model="newKeyRoles" multiple class="mt-1 w-full">
-            <SelectTrigger>
-              <SelectValue placeholder="Select Roles" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem v-for="role in possibleRoles" :key="role" :value="role">{{ role }}</SelectItem>
-            </SelectContent>
-          </Select>
+          <Select
+            v-model="newKeyRoles"
+            :items="possibleRoles"
+            :multiple="true"
+            :placeholder="'Select Roles'"
+            class="mt-1 w-full"
+          />
         </div>
         <div class="mb-2">
           <Accordion id="api-key-permissions" type="single" collapsible class="w-full mt-2">
