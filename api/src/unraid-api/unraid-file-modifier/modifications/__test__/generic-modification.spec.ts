@@ -10,6 +10,7 @@ import AuthRequestModification from '@app/unraid-api/unraid-file-modifier/modifi
 import DefaultPageLayoutModification from '@app/unraid-api/unraid-file-modifier/modifications/default-page-layout.modification.js';
 import LogRotateModification from '@app/unraid-api/unraid-file-modifier/modifications/log-rotate.modification.js';
 import NotificationsPageModification from '@app/unraid-api/unraid-file-modifier/modifications/notifications-page.modification.js';
+import RcNginxModification from '@app/unraid-api/unraid-file-modifier/modifications/rc-nginx.modification.js';
 import SSOFileModification from '@app/unraid-api/unraid-file-modifier/modifications/sso.modification.js';
 
 interface ModificationTestCase {
@@ -46,6 +47,11 @@ const patchTestCases: ModificationTestCase[] = [
         fileUrl:
             'https://raw.githubusercontent.com/unraid/webgui/refs/heads/7.1/emhttp/auth-request.php',
         fileName: 'auth-request.php',
+    },
+    {
+        ModificationClass: RcNginxModification,
+        fileUrl: 'https://raw.githubusercontent.com/unraid/webgui/refs/heads/7.1/etc/rc.d/rc.nginx',
+        fileName: 'rc.nginx',
     },
 ];
 
@@ -103,9 +109,11 @@ async function testModification(testCase: ModificationTestCase) {
 
     // Apply patch and verify modified file
     await patcher.apply();
-    await expect(await readFile(filePath, 'utf-8')).toMatchFileSnapshot(
-        `snapshots/${fileName}.modified.snapshot.php`
-    );
+    let snapshotFile = `snapshots/${fileName}.modified.snapshot`;
+    if (fileName.endsWith('.php') || fileName.endsWith('.page')) {
+        snapshotFile += '.php';
+    }
+    await expect(await readFile(filePath, 'utf-8')).toMatchFileSnapshot(snapshotFile);
 
     // Rollback and verify original state
     await patcher.rollback();
