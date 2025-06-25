@@ -4,7 +4,6 @@ import { existsSync, readFileSync } from 'fs';
 import { writeFile } from 'fs/promises';
 import path from 'path';
 
-import { csvStringToArray } from '@unraid/shared/util/data.js';
 import { plainToInstance } from 'class-transformer';
 import { validateOrReject } from 'class-validator';
 import { parse as parseIni } from 'ini';
@@ -156,9 +155,6 @@ export class ConnectConfigPersister implements OnModuleInit, OnModuleDestroy {
             ...config.api,
             ...config.local,
             ...config.remote,
-            // Convert comma-separated strings to arrays
-            extraOrigins: csvStringToArray(config.api.extraOrigins),
-            ssoSubIds: csvStringToArray(config.remote.ssoSubIds),
             // Convert string yes/no to boolean
             wanaccess: config.remote.wanaccess === 'yes',
             upnpEnabled: config.remote.upnpEnabled === 'yes',

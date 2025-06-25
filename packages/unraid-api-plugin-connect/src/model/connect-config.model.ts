@@ -92,20 +92,6 @@ export class MyServersConfig {
     @IsEnum(DynamicRemoteAccessType)
     dynamicRemoteAccessType!: DynamicRemoteAccessType;
 
-    @Field(() => [String])
-    @IsArray()
-    @Matches(/^[a-zA-Z0-9-]+$/, {
-        each: true,
-        message: 'Each SSO ID must be alphanumeric with dashes',
-    })
-    ssoSubIds!: string[];
-
-    // Extra allowed origins
-    @Field(() => [String])
-    @IsArray()
-    @IsString({ each: true })
-    extraOrigins!: string[];
-
     // Connection Status
     // @Field(() => MinigraphStatus)
     // @IsEnum(MinigraphStatus)
@@ -229,8 +215,6 @@ export const emptyMyServersConfig = (): MyServersConfig => ({
     idtoken: '',
     refreshtoken: '',
     dynamicRemoteAccessType: DynamicRemoteAccessType.DISABLED,
-    ssoSubIds: [],
-    extraOrigins: [],
 });
 
 export const configFeature = registerAs<ConnectConfig>('connect', () => ({

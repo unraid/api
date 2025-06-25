@@ -228,89 +228,7 @@ ssoSubIds="user1,user2"
             expect(result.avatar).toBe('');
         });
 
-        it('should migrate ssoSubIds from comma-separated string to array', async () => {
-            const legacyConfig = {
-                api: { version: '4.8.0+9485809', extraOrigins: '' },
-                local: { sandbox: 'no' },
-                remote: {
-                    wanaccess: 'yes',
-                    wanport: '3333',
-                    upnpEnabled: 'no',
-                    apikey: 'unraid_test_key',
-                    localApiKey: 'test_local_key',
-                    email: 'test@example.com',
-                    username: 'testuser',
-                    avatar: '',
-                    regWizTime: '',
-                    accesstoken: '',
-                    idtoken: '',
-                    refreshtoken: '',
-                    dynamicRemoteAccessType: 'DISABLED',
-                    ssoSubIds: 'user1,user2,user3'
-                }
-            } as any;
 
-            const result = await service.convertLegacyConfig(legacyConfig);
-
-            expect(result.ssoSubIds).toEqual(['user1', 'user2', 'user3']);
-            expect(Array.isArray(result.ssoSubIds)).toBe(true);
-        });
-
-        it('should handle empty ssoSubIds string as empty array', async () => {
-            const legacyConfig = {
-                api: { version: '4.8.0+9485809', extraOrigins: '' },
-                local: { sandbox: 'no' },
-                remote: {
-                    wanaccess: 'yes',
-                    wanport: '3333',
-                    upnpEnabled: 'no',
-                    apikey: 'unraid_test_key',
-                    localApiKey: 'test_local_key',
-                    email: 'test@example.com',
-                    username: 'testuser',
-                    avatar: '',
-                    regWizTime: '',
-                    accesstoken: '',
-                    idtoken: '',
-                    refreshtoken: '',
-                    dynamicRemoteAccessType: 'DISABLED',
-                    ssoSubIds: ''
-                }
-            } as any;
-
-            const result = await service.convertLegacyConfig(legacyConfig);
-
-            expect(result.ssoSubIds).toEqual([]);
-            expect(Array.isArray(result.ssoSubIds)).toBe(true);
-        });
-
-        it('should migrate extraOrigins from comma-separated string to array', async () => {
-            const legacyConfig = {
-                api: { version: '4.8.0+9485809', extraOrigins: 'https://app1.example.com,https://app2.example.com' },
-                local: { sandbox: 'no' },
-                remote: {
-                    wanaccess: 'yes',
-                    wanport: '3333',
-                    upnpEnabled: 'no',
-                    apikey: 'unraid_test_key',
-                    localApiKey: 'test_local_key',
-                    email: 'test@example.com',
-                    username: 'testuser',
-                    avatar: '',
-                    regWizTime: '',
-                    accesstoken: '',
-                    idtoken: '',
-                    refreshtoken: '',
-                    dynamicRemoteAccessType: 'DISABLED',
-                    ssoSubIds: ''
-                }
-            } as any;
-
-            const result = await service.convertLegacyConfig(legacyConfig);
-
-            expect(result.extraOrigins).toEqual(['https://app1.example.com', 'https://app2.example.com']);
-            expect(Array.isArray(result.extraOrigins)).toBe(true);
-        });
 
         it('should merge all sections (api, local, remote) into single config object', async () => {
             const legacyConfig = {
@@ -336,7 +254,6 @@ ssoSubIds="user1,user2"
 
             const result = await service.convertLegacyConfig(legacyConfig);
 
-            expect(result.extraOrigins).toEqual(['https://example.com']);
             expect(result.wanaccess).toBe(true);
             expect(result.wanport).toBe(8080);
             expect(result.upnpEnabled).toBe(true);
@@ -350,7 +267,6 @@ ssoSubIds="user1,user2"
             expect(result.idtoken).toBe('id_token_value');
             expect(result.refreshtoken).toBe('refresh_token_value');
             expect(result.dynamicRemoteAccessType).toBe('UPNP');
-            expect(result.ssoSubIds).toEqual(['sub1', 'sub2']);
         });
 
         it('should validate the migrated config and reject invalid email', async () => {
@@ -408,12 +324,10 @@ ssoSubIds="sub1,sub2"
             // Convert to new format
             const result = await service.convertLegacyConfig(legacyConfig);
 
-            // Verify the end-to-end conversion
-            expect(result.extraOrigins).toEqual(['https://example.com']);
+            // Verify the end-to-end conversion (extraOrigins and ssoSubIds are now handled by API config)
             expect(result.wanaccess).toBe(true);
             expect(result.wanport).toBe(8080);
             expect(result.upnpEnabled).toBe(true);
-            expect(result.ssoSubIds).toEqual(['sub1', 'sub2']);
         });
     });
 }); 
