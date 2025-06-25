@@ -59,7 +59,7 @@ export const useThemeStore = defineStore('theme', () => {
     }
     const start = theme.value?.bgColor ? 'var(--header-gradient-start)' : 'rgba(0, 0, 0, 0)';
     const end = theme.value?.bgColor ? 'var(--header-gradient-end)' : 'var(--header-background-color)';
-    return `background-image: linear-gradient(90deg, ${start} 0, ${end} 30%);`;
+    return `background-image: linear-gradient(90deg, ${start} 0, ${end} 90%);`;
   });
   // Actions
   const setTheme = async (data?: Theme) => {
