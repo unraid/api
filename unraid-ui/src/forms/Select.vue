@@ -1,13 +1,13 @@
 <script setup lang="ts">
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/common/tooltip';
 import {
-  Select,
   SelectContent,
   SelectItem,
   SelectItemText,
+  SelectRoot,
   SelectTrigger,
   SelectValue,
-} from '@/components/form/select';
+} from '@/components/ui/select';
 import useTeleport from '@/composables/useTeleport';
 import type { ControlElement } from '@jsonforms/core';
 import { useJsonFormsControl } from '@jsonforms/vue';
@@ -41,20 +41,18 @@ const onSelectOpen = () => {
 </script>
 
 <template>
-  <!-- The ControlWrapper now handles the v-if based on control.visible -->
-  <Select
+  <SelectRoot
     v-model="selected"
     :disabled="!control.enabled"
     :required="control.required"
     @update:model-value="onChange"
     @update:open="onSelectOpen"
   >
-    <!-- The trigger shows the currently selected value (if any) -->
     <SelectTrigger>
       <SelectValue v-if="selected">{{ selected }}</SelectValue>
       <span v-else>{{ control.schema.default ?? 'Select an option' }}</span>
     </SelectTrigger>
-    <!-- The content includes the selectable options -->
+
     <SelectContent :to="teleportTarget">
       <template v-for="option in options" :key="option.value">
         <TooltipProvider v-if="option.tooltip" :delay-duration="50">
@@ -69,10 +67,11 @@ const onSelectOpen = () => {
             </TooltipContent>
           </Tooltip>
         </TooltipProvider>
+
         <SelectItem v-else :value="option.value">
           <SelectItemText>{{ option.label }}</SelectItemText>
         </SelectItem>
       </template>
     </SelectContent>
-  </Select>
+  </SelectRoot>
 </template>
