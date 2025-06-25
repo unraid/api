@@ -2,7 +2,9 @@ Index: /etc/rc.d/rc.nginx
 ===================================================================
 --- /etc/rc.d/rc.nginx	original
 +++ /etc/rc.d/rc.nginx	modified
-@@ -28,7 +28,8 @@ LOCATIONS="/etc/nginx/conf.d/locations.conf"
+@@ -26,11 +26,12 @@
+ SERVERS="/etc/nginx/conf.d/servers.conf"
+ LOCATIONS="/etc/nginx/conf.d/locations.conf"
  INI="/var/local/emhttp/nginx.ini.new"
  CERTPATH="$SSL/certs/certificate_bundle.pem"
  TSCERTPATH="$SSL/certs/ts_bundle.pem"
@@ -12,7 +14,11 @@ Index: /etc/rc.d/rc.nginx
  DEFAULTS="/etc/default/nginx"
  SYSTEM="/sys/class/net"
  SYSLOG="/var/log/syslog"
-@@ -75,6 +76,23 @@ fqdn(){
+ 
+ # Load defaults
+@@ -73,10 +74,27 @@
+ 
+ fqdn(){
    echo ${CERTNAME/'*'/${1//[.:]/-}}
  }
  
@@ -36,7 +42,11 @@ Index: /etc/rc.d/rc.nginx
  # create listening ports
  listen(){
    T='    '
-@@ -568,7 +586,7 @@ build_ssl(){
+   if check && [[ $1 == lo ]]; then
+     if [[ $IPV4 == yes ]]; then
+@@ -566,11 +584,11 @@
+     # extract common name from cert
+     CERTNAME=$(openssl x509 -noout -subject -nameopt multiline -in $CERTPATH | sed -n 's/ *commonName *= //p')
      # define CSP frame-ancestors for cert
      CERTFA="https://*.${CERTNAME#*.}/"
      # check if Remote Access is enabled and fetch WANIP
@@ -45,7 +55,11 @@ Index: /etc/rc.d/rc.nginx
        WANACCESS=yes
        WANIP=$(curl https://wanip4.unraid.net/ 2>/dev/null)
        WANIP6=$(curl https://wanip6.unraid.net/ 2>/dev/null)
-@@ -662,10 +680,10 @@ build_ssl(){
+     fi
+     if [[ $CERTNAME == *\.myunraid\.net ]]; then
+@@ -660,14 +678,14 @@
+   echo "NGINX_WANFQDN=\"$WANFQDN\"" >>$INI
+   echo "NGINX_WANFQDN6=\"$WANFQDN6\"" >>$INI
    # defined if ts_bundle.pem present:
    echo "NGINX_TAILSCALEFQDN=\"$TSFQDN\"" >>$INI
    # add included interfaces
@@ -58,3 +72,5 @@ Index: /etc/rc.d/rc.nginx
      echo "NGINX_${NET^^}FQDN6=\"${NET_FQDN6[$NET]}\"" >>$INI
    done
    # atomically update file
+   mv $INI ${INI%.*}
+ }
