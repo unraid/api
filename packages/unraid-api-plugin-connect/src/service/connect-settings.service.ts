@@ -147,21 +147,6 @@ export class ConnectSettingsService {
         return restartRequired;
     }
 
-    private async getOrCreateLocalApiKey() {
-        const { localApiKey: localApiKeyFromConfig } =
-            this.configService.getOrThrow<MyServersConfig>('connect.config');
-        if (localApiKeyFromConfig === '') {
-            const localApiKey = await this.apiKeyService.createLocalConnectApiKey();
-            if (!localApiKey?.key) {
-                throw new GraphQLError('Failed to create local API key', {
-                    extensions: { code: 'INTERNAL_SERVER_ERROR' },
-                });
-            }
-            return localApiKey.key;
-        }
-        return localApiKeyFromConfig;
-    }
-
     async signIn(input: ConnectSignInInput) {
         const status = this.configService.get('store.emhttp.status');
         if (status === 'LOADED') {
@@ -180,7 +165,8 @@ export class ConnectSettingsService {
             }
 
             try {
-                const localApiKey = await this.getOrCreateLocalApiKey();
+                // Make sure we have a local API key for Connect
+                await this.apiKeyService.getOrCreateLocalApiKey();
 
                 // Update config with user info
                 this.configService.set(
@@ -190,7 +176,6 @@ export class ConnectSettingsService {
                 this.configService.set('connect.config.username', userInfo.preferred_username);
                 this.configService.set('connect.config.email', userInfo.email);
                 this.configService.set('connect.config.apikey', input.apiKey);
-                this.configService.set('connect.config.localApiKey', localApiKey);
 
                 // Emit login event
                 this.eventEmitter.emit(EVENTS.LOGIN, {
@@ -198,7 +183,6 @@ export class ConnectSettingsService {
                     avatar: typeof userInfo.avatar === 'string' ? userInfo.avatar : '',
                     email: userInfo.email,
                     apikey: input.apiKey,
-                    localApiKey,
                 });
 
                 return true;

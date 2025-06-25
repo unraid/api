@@ -8,16 +8,14 @@ import { HttpLink } from '@apollo/client/link/http/index.js';
 import { GraphQLWsLink } from '@apollo/client/link/subscriptions/index.js';
 import { getMainDefinition } from '@apollo/client/utilities/index.js';
 import { createClient } from 'graphql-ws';
-import { WebSocket } from 'ws';
 
-import { MyServersConfig } from '../model/connect-config.model.js';
-import { MothershipConnectionService } from './connection.service.js';
+import { ConnectApiKeyService } from './connect-api-key.service.js';
 
 @Injectable()
 export class InternalClientService {
     constructor(
         private readonly configService: ConfigService,
-        private readonly connectionService: MothershipConnectionService
+        private readonly apiKeyService: ConnectApiKeyService
     ) {}
 
     private PROD_NGINX_PORT = 80;
@@ -57,20 +55,6 @@ export class InternalClientService {
         return `${protocol}://127.0.0.1/graphql`;
     }
 
-    /**
-     * Create a WebSocket class with Mothership headers
-     */
-    private getWebsocketWithMothershipHeaders() {
-        const getHeaders = () => this.connectionService.getMothershipWebsocketHeaders();
-        return class WebsocketWithMothershipHeaders extends WebSocket {
-            constructor(address: string | URL, protocols?: string | string[]) {
-                super(address, protocols, {
-                    headers: getHeaders(),
-                });
-            }
-        };
-    }
-
     private createApiClient({ apiKey }: { apiKey: string }) {
         const httpUri = this.getApiAddress('http');
         const wsUri = this.getApiAddress('ws');
@@ -88,11 +72,8 @@ export class InternalClientService {
 
         const wsLink = new GraphQLWsLink(
             createClient({
-                webSocketImpl: this.getWebsocketWithMothershipHeaders(),
                 url: wsUri,
-                connectionParams: () => {
-                    return { 'x-api-key': apiKey };
-                },
+                connectionParams: () => ({ 'x-api-key': apiKey }),
             })
         );
 
@@ -127,12 +108,12 @@ export class InternalClientService {
         });
     }
 
-    public getClient() {
+    public async getClient() {
         if (this.client) {
             return this.client;
         }
-        const config = this.configService.getOrThrow<MyServersConfig>('connect.config');
-        this.client = this.createApiClient({ apiKey: config.localApiKey });
+        const localApiKey = await this.apiKeyService.getOrCreateLocalApiKey();
+        this.client = this.createApiClient({ apiKey: localApiKey });
         return this.client;
     }
 
