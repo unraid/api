@@ -70,6 +70,10 @@ check_remote_access(){
             'for NET in ${!NET_FQDN6[@]}; do',
             'for NET in "${!NET_FQDN6[@]}"; do'
         );
+        newContent = newContent.replace(
+            'for NET in ${!NET_FQDN[@]}; do',
+            'for NET in "${!NET_FQDN[@]}"; do'
+        );
 
         return this.createPatchWithDiff(overridePath ?? this.filePath, fileContent, newContent);
     }
