@@ -77,7 +77,7 @@ function isSeparatorItem(item: SelectItemType): item is SelectSeparatorInterface
 
 function getItemLabel(item: SelectItemType): string {
   if (isStructuredItem(item)) {
-    return String(item[props.labelKey] || item.label || item.value);
+    return String(props.labelKey in item ? item[props.labelKey] : (item.label ?? item.value));
   }
 
   if (isLabelItem(item)) return item.label;
@@ -87,7 +87,7 @@ function getItemLabel(item: SelectItemType): string {
 // Get value for an item
 function getItemValue(item: SelectItemType): SelectValueType | null {
   if (isStructuredItem(item)) {
-    const value = item[props.valueKey] || item.value;
+    const value = props.valueKey in item ? item[props.valueKey] : item.value;
 
     return typeof value === 'string' || typeof value === 'number' ? value : null;
   }
@@ -186,7 +186,7 @@ function handleUpdateModelValue(value: AcceptableValue) {
 
           <SelectItem
             v-if="type === 'item'"
-            :value="getItemValue(item) || ''"
+            :value="getItemValue(item)!"
             :disabled="isStructuredItem(item) ? item.disabled : false"
             :class="isStructuredItem(item) ? item.class : undefined"
           >
