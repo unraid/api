@@ -1210,6 +1210,9 @@ importers:
       vitest:
         specifier: ^3.1.1
         version: 3.2.4(@types/node@22.15.32)(@vitest/ui@3.2.4)(happy-dom@18.0.0)(jiti@2.4.2)(jsdom@26.1.0)(lightningcss@1.30.1)(stylus@0.57.0)(terser@5.43.1)(tsx@4.20.3)(yaml@2.8.0)
+      vue:
+        specifier: ^3.5.17
+        version: 3.5.17(typescript@5.8.3)
       vue-tsc:
         specifier: ^2.1.10
         version: 2.2.10(typescript@5.8.3)
@@ -13375,7 +13378,7 @@ snapshots:
   '@babel/generator@7.26.10':
     dependencies:
       '@babel/parser': 7.27.5
-      '@babel/types': 7.27.0
+      '@babel/types': 7.27.6
       '@jridgewell/gen-mapping': 0.3.8
       '@jridgewell/trace-mapping': 0.3.25
       jsesc: 3.1.0
@@ -14751,7 +14754,7 @@ snapshots:
   '@graphql-tools/graphql-tag-pluck@8.3.14(graphql@16.11.0)':
     dependencies:
       '@babel/core': 7.27.4
-      '@babel/parser': 7.26.10
+      '@babel/parser': 7.27.5
       '@babel/plugin-syntax-import-assertions': 7.26.0(@babel/core@7.27.4)
       '@babel/traverse': 7.26.8
       '@babel/types': 7.26.8
@@ -17147,7 +17150,7 @@ snapshots:
       '@babel/core': 7.27.4
       '@babel/preset-typescript': 7.26.0(@babel/core@7.27.4)
       '@vue/compiler-dom': 3.5.17
-      '@vue/compiler-sfc': 3.5.13
+      '@vue/compiler-sfc': 3.5.17
       '@vuedx/template-ast-types': 0.7.1
       fast-glob: 3.3.3
       prettier: 3.5.3
@@ -17448,7 +17451,7 @@ snapshots:
 
   '@vue/compiler-core@3.5.13':
     dependencies:
-      '@babel/parser': 7.27.0
+      '@babel/parser': 7.27.5
       '@vue/shared': 3.5.13
       entities: 4.5.0
       estree-walker: 2.0.2

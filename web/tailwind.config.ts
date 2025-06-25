@@ -24,9 +24,4 @@ export default {
       newFontSize: Number(process.env.VITE_TAILWIND_BASE_FONT_SIZE ?? 10),
     }),
   ],
-  theme: {
-    extend: {
-      // web-specific extensions only
-    },
-  },
 } satisfies Partial<Config>;
