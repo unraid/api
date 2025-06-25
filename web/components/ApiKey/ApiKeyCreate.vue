@@ -180,11 +180,9 @@ async function upsertKey() {
     const apiKeyResult = res?.data?.apiKey;
     if (isEdit && apiKeyResult && 'update' in apiKeyResult) {
       const fragmentData = useFragment(API_KEY_FRAGMENT_WITH_KEY, apiKeyResult.update);
-      console.log('fragmentData', fragmentData);
       apiKeyStore.setCreatedKey(fragmentData);
     } else if (!isEdit && apiKeyResult && 'create' in apiKeyResult) {
       const fragmentData = useFragment(API_KEY_FRAGMENT_WITH_KEY, apiKeyResult.create);
-      console.log('fragmentData', fragmentData);
       apiKeyStore.setCreatedKey(fragmentData);
     }
     
@@ -262,7 +260,7 @@ async function upsertKey() {
                         areAllPermissionsSelected() ? clearAllPermissions() : selectAllPermissions()
                       "
                     >
-                      {{ areAllPermissionsSelected() ? 'Select None' : 'Select All' }}
+                      {{ areAllPermissionsSelected() ? 'Clear All' : 'Select All' }}
                     </Button>
                   </div>
                   <div class="flex flex-col gap-2 mt-1">
@@ -283,7 +281,7 @@ async function upsertKey() {
                               : selectAllActions(perm.resource)
                           "
                         >
-                          {{ areAllActionsSelected(perm.resource) ? 'Select None' : 'Select All' }}
+                          {{ areAllActionsSelected(perm.resource) ? 'Clear All' : 'Select All' }}
                         </Button>
                       </div>
                       <div class="flex gap-4 flex-wrap">
