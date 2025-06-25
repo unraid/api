@@ -1,6 +1,7 @@
 /// <reference types="vitest" />
 import { dirname, resolve } from 'path';
 import { fileURLToPath } from 'url';
+import tailwindcss from '@tailwindcss/vite';
 import vue from '@vitejs/plugin-vue';
 import { defineConfig } from 'vite';
 import dts from 'vite-plugin-dts';
@@ -12,6 +13,7 @@ export default function createConfig() {
   return defineConfig({
     plugins: [
       vue(),
+      tailwindcss(),
       ...(process.env.npm_lifecycle_script?.includes('storybook')
         ? []
         : [

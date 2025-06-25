@@ -45,7 +45,7 @@ const forwarded = useForwardPropsEmits(delegatedProps, emits);
           cn(
             'p-1',
             position === 'popper' &&
-              'h-[--reka-combobox-trigger-height] w-full min-w-[--reka-combobox-trigger-width]'
+              'h-(--reka-combobox-trigger-height) w-full min-w-(--reka-combobox-trigger-width)'
           )
         "
       >

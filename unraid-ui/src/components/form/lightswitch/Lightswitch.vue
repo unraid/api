@@ -13,12 +13,12 @@ const checked = ref(false);
 </script>
 <template>
   <SwitchGroup as="div">
-    <div class="flex flex-shrink-0 items-center gap-16px">
+    <div class="flex shrink-0 items-center gap-16px">
       <Switch
         v-model="checked"
         :class="[
           checked ? 'bg-green-500' : 'bg-gray-200',
-          'relative inline-flex h-24px w-[44px] flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-indigo-600 focus:ring-offset-2',
+          'relative inline-flex h-24px w-[44px] shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-indigo-600 focus:ring-offset-2',
         ]"
       >
         <span

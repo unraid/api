@@ -21,6 +21,7 @@ const config: StorybookConfig = {
   async viteFinal(config) {
     return {
       ...config,
+      plugins: [...(config.plugins ?? []), await import('@tailwindcss/vite').then((m) => m.default())],
       root: dirname(require.resolve('@storybook/builder-vite')),
       resolve: {
         alias: {
@@ -31,9 +32,6 @@ const config: StorybookConfig = {
       },
       optimizeDeps: {
         include: [...(config.optimizeDeps?.include ?? []), '@unraid/tailwind-rem-to-rem'],
-      },
-      css: {
-        postcss: './postcss.config.js',
       },
     };
   },
