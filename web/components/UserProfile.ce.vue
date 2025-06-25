@@ -96,7 +96,7 @@ onMounted(() => {
   >
     <div
       v-if="bannerGradient"
-      class="absolute z-0 w-[125%] top-0 bottom-0 right-0"
+      class="absolute z-0 w-full top-0 bottom-0 right-0"
       :style="bannerGradient"
     />
 

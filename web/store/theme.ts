@@ -59,7 +59,7 @@ export const useThemeStore = defineStore('theme', () => {
     }
     const start = theme.value?.bgColor ? 'var(--header-gradient-start)' : 'rgba(0, 0, 0, 0)';
     const end = theme.value?.bgColor ? 'var(--header-gradient-end)' : 'var(--header-background-color)';
-    return `background-image: linear-gradient(90deg, ${start} 0, ${end} 30%);`;
+    return `background-image: linear-gradient(90deg, ${start} 0, ${end} 90%);`;
   });
   // Actions
   const setTheme = async (data?: Theme) => {
@@ -110,7 +110,7 @@ export const useThemeStore = defineStore('theme', () => {
         : customTheme['--header-gradient-end'];
 
       // set the banner gradient
-      customTheme['--banner-gradient'] = `linear-gradient(90deg, ${start} 0, ${end} 30%)`;
+      customTheme['--banner-gradient'] = `linear-gradient(90deg, ${start} 0, ${end} 90%)`;
     }
 
     // overwrite with hex colors set in webGUI @ /Settings/DisplaySettings
