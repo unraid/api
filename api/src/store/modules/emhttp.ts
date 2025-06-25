@@ -185,7 +185,7 @@ export const emhttp = createSlice({
             }>
         ) {
             const { field } = action.payload;
-            return mergeReplaceArrays(state, { [field]: action.payload.state });
+            return Object.assign(state, { [field]: action.payload.state });
         },
     },
     extraReducers(builder) {
@@ -194,16 +194,16 @@ export const emhttp = createSlice({
         });
 
         builder.addCase(loadStateFiles.fulfilled, (state, action) => {
-            mergeReplaceArrays(state, action.payload, { status: FileLoadStatus.LOADED });
+            Object.assign(state, action.payload, { status: FileLoadStatus.LOADED });
         });
 
         builder.addCase(loadStateFiles.rejected, (state, action) => {
-            mergeReplaceArrays(state, action.payload, { status: FileLoadStatus.FAILED_LOADING });
+            Object.assign(state, action.payload, { status: FileLoadStatus.FAILED_LOADING });
         });
 
         builder.addCase(loadSingleStateFile.fulfilled, (state, action) => {
             if (action.payload) {
-                mergeReplaceArrays(state, action.payload);
+                Object.assign(state, action.payload);
             } else {
                 emhttpLogger.warn('Invalid payload returned from loadSingleStateFile()');
             }

@@ -2,7 +2,6 @@ import { format } from 'util';
 
 import type { PayloadAction } from '@reduxjs/toolkit';
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
-import { merge } from 'lodash-es';
 
 import type { RootState } from '@app/store/index.js';
 import { logger } from '@app/core/log.js';
@@ -48,7 +47,7 @@ export const registration = createSlice({
     initialState,
     reducers: {
         updateRegistrationState(state, action: PayloadAction<Partial<{ keyFile: string }>>) {
-            return merge(state, action.payload);
+            return Object.assign(state, action.payload);
         },
     },
     extraReducers(builder) {
@@ -57,11 +56,11 @@ export const registration = createSlice({
         });
 
         builder.addCase(loadRegistrationKey.fulfilled, (state, action) => {
-            merge(state, action.payload, { status: FileLoadStatus.LOADED });
+            Object.assign(state, action.payload, { status: FileLoadStatus.LOADED });
         });
 
         builder.addCase(loadRegistrationKey.rejected, (state, action) => {
-            merge(state, action.payload, { status: FileLoadStatus.FAILED_LOADING });
+            Object.assign(state, action.payload, { status: FileLoadStatus.FAILED_LOADING });
         });
     },
 });
