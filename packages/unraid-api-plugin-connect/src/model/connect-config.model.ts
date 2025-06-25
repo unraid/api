@@ -100,6 +100,12 @@ export class MyServersConfig {
     })
     ssoSubIds!: string[];
 
+    // Extra allowed origins
+    @Field(() => [String])
+    @IsArray()
+    @IsString({ each: true })
+    extraOrigins!: string[];
+
     // Connection Status
     // @Field(() => MinigraphStatus)
     // @IsEnum(MinigraphStatus)
@@ -224,6 +230,7 @@ export const emptyMyServersConfig = (): MyServersConfig => ({
     refreshtoken: '',
     dynamicRemoteAccessType: DynamicRemoteAccessType.DISABLED,
     ssoSubIds: [],
+    extraOrigins: [],
 });
 
 export const configFeature = registerAs<ConnectConfig>('connect', () => ({

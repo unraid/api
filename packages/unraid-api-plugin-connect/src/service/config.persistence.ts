@@ -137,25 +137,33 @@ export class ConnectConfigPersister implements OnModuleInit, OnModuleDestroy {
      * @throws {Error} - If the legacy config file does not exist.
      * @throws {Error} - If the legacy config file is not parse-able.
      */
-    private async migrateLegacyConfig() {
-        const legacyConfig = await this.parseLegacyConfig();
-        this.configService.set('connect.config', legacyConfig);
+    private async migrateLegacyConfig(filePath?: string) {
+        const myServersCfgFile = await this.readLegacyConfig(filePath);
+        const legacyConfig = this.parseLegacyConfig(myServersCfgFile);
+        const newConfig = await this.convertLegacyConfig(legacyConfig);
+        this.configService.set('connect.config', newConfig);
     }
 
     /**
-     * Parse the legacy config file and return a new config object.
+     * Transform the legacy config object to the new config format.
      * @param filePath - The path to the legacy config file.
      * @returns A new config object.
      * @throws {Error} - If the legacy config file does not exist.
      * @throws {Error} - If the legacy config file is not parse-able.
      */
-    private async parseLegacyConfig(filePath?: string): Promise<MyServersConfig> {
-        const config = await this.getLegacyConfig(filePath);
+    public async convertLegacyConfig(config:LegacyConfig): Promise<MyServersConfig> {
         return this.validate({
             ...config.api,
             ...config.local,
             ...config.remote,
+            // Convert comma-separated strings to arrays
             extraOrigins: csvStringToArray(config.api.extraOrigins),
+            ssoSubIds: csvStringToArray(config.remote.ssoSubIds),
+            // Convert string yes/no to boolean
+            wanaccess: config.remote.wanaccess === 'yes',
+            upnpEnabled: config.remote.upnpEnabled === 'yes',
+            // Convert string port to number
+            wanport: config.remote.wanport ? parseInt(config.remote.wanport, 10) : 0,
         });
     }
 
@@ -166,7 +174,7 @@ export class ConnectConfigPersister implements OnModuleInit, OnModuleDestroy {
      * @throws {Error} - If the legacy config file does not exist.
      * @throws {Error} - If the legacy config file is not parse-able.
      */
-    private async getLegacyConfig(filePath?: string) {
+    private async readLegacyConfig(filePath?: string) {
         filePath ??= this.configService.get(
             'PATHS_MY_SERVERS_CONFIG',
             '/boot/config/plugins/dynamix.my.servers/myservers.cfg'
@@ -177,6 +185,10 @@ export class ConnectConfigPersister implements OnModuleInit, OnModuleDestroy {
         if (!existsSync(filePath)) {
             throw new Error(`Legacy config file does not exist: ${filePath}`);
         }
-        return parseIni(readFileSync(filePath, 'utf8')) as LegacyConfig;
+        return readFileSync(filePath, 'utf8');
+    }
+
+    public parseLegacyConfig(iniFileContent: string): LegacyConfig {
+        return parseIni(iniFileContent) as LegacyConfig;
     }
 }
