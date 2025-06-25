@@ -2,7 +2,6 @@ import { join } from 'path';
 
 import type { PayloadAction } from '@reduxjs/toolkit';
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
-import { merge } from 'lodash-es';
 
 import type { RootState } from '@app/store/index.js';
 import type { StateFileToIniParserMap } from '@app/store/types.js';
@@ -176,7 +175,7 @@ export const emhttp = createSlice({
             }>
         ) {
             const { field } = action.payload;
-            return merge(state, { [field]: action.payload.state });
+            return Object.assign(state, { [field]: action.payload.state });
         },
     },
     extraReducers(builder) {
@@ -185,18 +184,16 @@ export const emhttp = createSlice({
         });
 
         builder.addCase(loadStateFiles.fulfilled, (state, action) => {
-            merge(state, action.payload, { status: FileLoadStatus.LOADED });
+            Object.assign(state, action.payload, { status: FileLoadStatus.LOADED });
         });
 
         builder.addCase(loadStateFiles.rejected, (state, action) => {
-            merge(state, action.payload, { status: FileLoadStatus.FAILED_LOADING });
+            Object.assign(state, action.payload, { status: FileLoadStatus.FAILED_LOADING });
         });
 
         builder.addCase(loadSingleStateFile.fulfilled, (state, action) => {
             if (action.payload) {
-                // const changedKey = Object.keys(action.payload)[0]
-                // emhttpLogger.debug('Key', changedKey, 'Difference in changes', getDiff(action.payload, { [changedKey]: state[changedKey] } ))
-                merge(state, action.payload);
+                Object.assign(state, action.payload);
             } else {
                 emhttpLogger.warn('Invalid payload returned from loadSingleStateFile()');
             }
