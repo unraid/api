@@ -15,7 +15,6 @@
 $webguiGlobals = $GLOBALS;
 $docroot = $docroot ?? $_SERVER['DOCUMENT_ROOT'] ?: '/usr/local/emhttp';
 
-require_once "$docroot/plugins/dynamix.my.servers/include/activation-code-extractor.php";
 require_once "$docroot/plugins/dynamix.my.servers/include/reboot-details.php";
 require_once "$docroot/plugins/dynamix.plugin.manager/include/UnraidCheck.php";
 require_once "$docroot/plugins/dynamix.my.servers/include/api-config.php";
@@ -79,7 +78,6 @@ class ServerState
     public $registered = false;
     public $myServersMiniGraphConnected = false;
     public $keyfileBase64 = '';
-    public $activationCodeData = [];
     public $state = 'UNKNOWN';
 
     /**
@@ -133,7 +131,6 @@ class ServerState
         $this->updateOsResponse = $this->updateOsCheck->getUnraidOSCheckResult();
 
         $this->setConnectValues();
-        $this->detectActivationCode();
     }
 
     /**
@@ -247,23 +244,6 @@ class ServerState
         }
     }
 
-    private function detectActivationCode()
-    {
-        // Fresh server and we're not loading with a callback param to install
-        if ($this->state !== 'ENOKEYFILE' || !empty($_GET['c'])) {
-            return;
-        }
-
-        $activationCodeData = new ActivationCodeExtractor();
-        $data = $activationCodeData->getData();
-
-        if (empty($data)) {
-            return;
-        }
-
-        $this->activationCodeData = $data;
-    }
-
     /**
      * Retrieve the server information as an associative array
      *
@@ -353,10 +333,6 @@ class ServerState
 
         if ($this->updateOsResponse) {
             $serverState['updateOsResponse'] = $this->updateOsResponse;
-        }
-
-        if ($this->activationCodeData) {
-            $serverState['activationCodeData'] = $this->activationCodeData;
         }
 
         return $serverState;
