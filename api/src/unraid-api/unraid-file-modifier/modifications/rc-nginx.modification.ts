@@ -39,9 +39,10 @@ export default class RcNginxModification extends FileModification {
 API_UTILS="/usr/local/share/dynamix.unraid.net/scripts/api_utils.sh"`
         );
 
-        newContent = newContent.replace(
-            '# create listening ports',
-            `# check if remote access should be enabled
+        if (!newContent.includes('check_remote_access()')) {
+            newContent = newContent.replace(
+                '# create listening ports',
+                `# check if remote access should be enabled
 check_remote_access(){
   # Check if connect plugin is enabled using api_utils.sh
   if [[ -f $API_UTILS ]] && $API_UTILS is_api_plugin_enabled "unraid-api-plugin-connect"; then
@@ -58,8 +59,9 @@ check_remote_access(){
   return 1
 }
 
- # create listening ports`
-        );
+# create listening ports`
+            );
+        }
 
         newContent = newContent.replace(
             `if [[ -L /usr/local/sbin/unraid-api ]] && grep -qs 'wanaccess="yes"' $MYSERVERS && ! grep -qs 'username=""' $MYSERVERS; then`,
