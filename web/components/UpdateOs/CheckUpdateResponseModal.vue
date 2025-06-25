@@ -294,7 +294,7 @@ const modalWidth = computed(() => {
               <Switch
                 v-model="ignoreThisRelease"
                 :class="
-                  ignoreThisRelease ? 'bg-gradient-to-r from-unraid-red to-orange' : 'bg-transparent'
+                  ignoreThisRelease ? 'bg-linear-to-r from-unraid-red to-orange' : 'bg-transparent'
                 "
                 class="relative inline-flex h-24px w-[48px] items-center rounded-full overflow-hidden"
               >

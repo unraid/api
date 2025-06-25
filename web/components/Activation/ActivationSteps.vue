@@ -78,7 +78,7 @@ const steps: readonly Step[] = [
       v-for="(step, index) in steps"
       :key="step.step"
       v-slot="{ state }: { state: StepState }"
-      class="relative flex w-full flex-col items-center justify-center data-[disabled]:opacity-100"
+      class="relative flex w-full flex-col items-center justify-center data-disabled:opacity-100"
       :step="step.step"
       :disabled="true"
     >

@@ -64,7 +64,7 @@ watchEffect(() => {
 </script>
 
 <template>
-  <div id="modals" ref="modals" class="relative z-[99999]">
+  <div id="modals" ref="modals" class="relative z-99999">
     <Modal
       v-if="showModal"
       :t="t"

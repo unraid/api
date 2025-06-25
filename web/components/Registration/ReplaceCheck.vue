@@ -20,7 +20,7 @@ defineProps<{
       v-if="!replaceStatusOutput"
       :icon="KeyIcon"
       :text="t('Check Eligibility')"
-      class="flex-grow"
+      class="grow"
       @click="replaceRenewStore.check"
     />
 

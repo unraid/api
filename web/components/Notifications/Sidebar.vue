@@ -128,7 +128,7 @@ const prepareToViewNotifications = () => {
     </SheetTrigger>
     <SheetContent
       side="right"
-      class="w-full max-w-[100vw] sm:max-w-[540px] max-h-screen h-screen min-h-screen px-0 flex flex-col gap-5 pb-0"
+      class="w-full max-w-screen sm:max-w-[540px] max-h-screen h-screen min-h-screen px-0 flex flex-col gap-5 pb-0"
     >
       <div class="relative flex flex-col h-full w-full">
         <SheetHeader class="ml-1 px-6 items-baseline gap-1 pb-2">

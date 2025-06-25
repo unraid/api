@@ -168,7 +168,7 @@ watchEffect(() => {
         </div>
       </div>
 
-      <div class="flex flex-col sm:flex-shrink-0 items-center gap-16px">
+      <div class="flex flex-col sm:shrink-0 items-center gap-16px">
         <template v-if="available && updateButton">
           <BrandButton
             variant="outline"
@@ -185,13 +185,13 @@ watchEffect(() => {
           </p>
 
           <SwitchGroup as="div">
-            <div class="flex flex-shrink-0 items-center gap-16px">
+            <div class="flex shrink-0 items-center gap-16px">
               <Switch
                 v-model="acknowledgeBackup"
                 :disabled="flashBackupBasicStatus === 'started'"
                 :class="[
                   acknowledgeBackup ? 'bg-green-500' : 'bg-gray-200',
-                  'relative inline-flex h-24px w-[44px] flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-indigo-600 focus:ring-offset-2',
+                  'relative inline-flex h-24px w-[44px] shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-indigo-600 focus:ring-offset-2',
                 ]"
               >
                 <span

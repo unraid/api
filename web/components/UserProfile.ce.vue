@@ -125,7 +125,7 @@ onMounted(() => {
         </button>
         <span
           v-show="copied || showCopyNotSupported"
-          class="text-white text-12px leading-none py-4px px-8px absolute top-full right-0 bg-gradient-to-r from-unraid-red to-orange text-center block rounded"
+          class="text-white text-12px leading-none py-4px px-8px absolute top-full right-0 bg-linear-to-r from-unraid-red to-orange text-center block rounded"
         >
           <template v-if="copied">{{ t('LAN IP Copied') }}</template>
           <template v-else>{{ t('LAN IP {0}', [lanIp]) }}</template>

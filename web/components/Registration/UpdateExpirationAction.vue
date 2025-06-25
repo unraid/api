@@ -63,7 +63,7 @@ const output = computed(() => {
         v-if="renewStatus === 'installed'"
         :icon="ArrowPathIcon"
         :text="t('Reload Page')"
-        class="flex-grow"
+        class="grow"
         @click="reload"
       />
       <BrandButton
@@ -75,7 +75,7 @@ const output = computed(() => {
         :icon-right-hover-display="true"
         :text="t('Extend License')"
         :title="t('Pay your annual fee to continue receiving OS updates.')"
-        class="flex-grow"
+        class="grow"
         @click="renewAction.click?.()"
       />
 

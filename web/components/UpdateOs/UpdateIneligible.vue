@@ -86,7 +86,7 @@ watchEffect(() => {
         <div class="prose text-black text-16px leading-relaxed whitespace-normal" v-html="text" />
       </div>
 
-      <div class="flex flex-col sm:flex-shrink-0 items-center gap-16px">
+      <div class="flex flex-col sm:shrink-0 items-center gap-16px">
         <BrandButton
           :disabled="renewAction?.disabled"
           :external="renewAction?.external"
@@ -94,7 +94,7 @@ watchEffect(() => {
           :icon-right="ArrowTopRightOnSquareIcon"
           :text="t('Extend License')"
           :title="t('Pay your annual fee to continue receiving OS updates.')"
-          class="flex-grow"
+          class="grow"
           @click="renewAction.click?.()"
         />
         <!-- <BrandButton

@@ -17,7 +17,7 @@ const { avatar, connectPluginInstalled, registered, username } = storeToRefs(ser
 </script>
 
 <template>
-  <figure class="group relative z-0 flex items-center justify-center w-36px h-36px rounded-full bg-gradient-to-r from-unraid-red to-orange">
+  <figure class="group relative z-0 flex items-center justify-center w-36px h-36px rounded-full bg-linear-to-r from-unraid-red to-orange">
     <img
       v-if="avatar && connectPluginInstalled && registered"
       :src="avatar"

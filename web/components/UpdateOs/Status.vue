@@ -187,7 +187,7 @@ const checkButton = computed((): BrandButtonProps => {
         </Badge>
       </div>
 
-      <div class="inline-flex flex-col flex-shrink-0 gap-16px flex-grow items-center md:items-end">
+      <div class="inline-flex flex-col shrink-0 gap-16px grow items-center md:items-end">
         <span v-if="showRebootButton">
           <BrandButton
             variant="fill"
