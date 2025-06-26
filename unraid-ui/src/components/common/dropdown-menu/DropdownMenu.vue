@@ -54,8 +54,8 @@ function handleItemClick(item: DropdownMenuItemData) {
     </DropdownMenuTrigger>
 
     <DropdownMenuContent :align="props.align" :side="props.side" :side-offset="props.sideOffset">
-      <!-- Default slot for direct composition -->
-      <slot />
+      <!--Slot for direct composition -->
+      <slot name="content" />
 
       <!-- Props-based items rendering -->
       <template v-if="props.items && props.items.length > 0">

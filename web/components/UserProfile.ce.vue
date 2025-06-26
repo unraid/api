@@ -144,15 +144,11 @@ onMounted(() => {
 
       <NotificationsSidebar />
 
-      <DropdownMenu 
-        align="end" 
-        side="bottom" 
-        :side-offset="4"
-      >
+      <DropdownMenu align="end" side="bottom" :side-offset="4">
         <template #trigger>
           <UpcDropdownTrigger :t="t" />
         </template>
-        <template #default>
+        <template #content>
           <div class="w-[350px]">
             <UpcDropdownContent :t="t" />
           </div>
