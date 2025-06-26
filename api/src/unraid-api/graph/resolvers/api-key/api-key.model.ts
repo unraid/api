@@ -114,7 +114,7 @@ export class CreateApiKeyInput {
     @AtLeastOneOf(['roles', 'permissions'], {
         message: 'At least one role or one permission is required to create an API key.',
     })
-    _atLeastOne!: boolean;
+    _atLeastOne?: boolean;
 }
 
 @InputType()
@@ -149,7 +149,7 @@ export class UpdateApiKeyInput {
     @AtLeastOneOf(['roles', 'permissions'], {
         message: 'At least one role or one permission is required to update an API key.',
     })
-    _atLeastOne!: boolean;
+    _atLeastOne?: boolean;
 }
 
 @InputType()
