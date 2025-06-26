@@ -59,7 +59,6 @@ describe('ApiKeyMutationsResolver', () => {
                 description: 'New API Key Description',
                 roles: [Role.GUEST],
                 permissions: [],
-                _atLeastOne: undefined,
             };
 
             vi.spyOn(apiKeyService, 'create').mockResolvedValue(mockApiKeyWithSecret);
@@ -84,7 +83,6 @@ describe('ApiKeyMutationsResolver', () => {
                 description: 'Should fail',
                 roles: [Role.GUEST],
                 permissions: [],
-                _atLeastOne: undefined,
             };
             vi.spyOn(apiKeyService, 'create').mockRejectedValue(new Error('Create failed'));
             await expect(resolver.create(input)).rejects.toThrow('Create failed');
@@ -96,7 +94,6 @@ describe('ApiKeyMutationsResolver', () => {
                 description: 'Should fail sync',
                 roles: [Role.GUEST],
                 permissions: [],
-                _atLeastOne: undefined,
             };
             vi.spyOn(apiKeyService, 'create').mockResolvedValue(mockApiKeyWithSecret);
             vi.spyOn(authService, 'syncApiKeyRoles').mockRejectedValue(new Error('Sync failed'));
@@ -109,7 +106,6 @@ describe('ApiKeyMutationsResolver', () => {
                 description: 'No name',
                 roles: [Role.GUEST],
                 permissions: [],
-                _atLeastOne: undefined,
             };
             await expect(resolver.create(input)).rejects.toThrow();
         });
