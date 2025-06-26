@@ -132,7 +132,7 @@ jobs:
           CONNECT_PID=$!
           
           echo "🚀 Starting Shared package tests..."
-          (cd ../unraid-shared && pnpm test) > shared-test.log 2>&1 &
+          (cd ../packages/unraid-shared && pnpm test) > shared-test.log 2>&1 &
           SHARED_PID=$!
           
           # Wait for all processes and capture exit codes
