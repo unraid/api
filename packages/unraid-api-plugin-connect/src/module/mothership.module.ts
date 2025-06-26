@@ -14,6 +14,7 @@ import { RemoteAccessModule } from './remote-access.module.js';
 @Module({
     imports: [RemoteAccessModule],
     providers: [
+        ConnectApiKeyService,
         MothershipConnectionService,
         MothershipGraphqlClientService,
         InternalClientService,
@@ -22,7 +23,6 @@ import { RemoteAccessModule } from './remote-access.module.js';
         TimeoutCheckerJob,
         CloudService,
         CloudResolver,
-        ConnectApiKeyService,
     ],
     exports: [],
 })
