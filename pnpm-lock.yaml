@@ -61,8 +61,8 @@ importers:
         specifier: ^10.5.5
         version: 10.8.6(graphql@16.10.0)
       '@jsonforms/core':
-        specifier: ^3.5.1
-        version: 3.5.1
+        specifier: ^3.6.0
+        version: 3.6.0
       '@nestjs/apollo':
         specifier: ^13.0.3
         version: 13.0.4(@apollo/server@4.11.3(graphql@16.10.0))(@as-integrations/fastify@2.1.1(@apollo/server@4.11.3(graphql@16.10.0))(fastify@5.2.1))(@nestjs/common@11.0.12(class-transformer@0.5.1)(class-validator@0.14.1)(reflect-metadata@0.1.14)(rxjs@7.8.2))(@nestjs/core@11.0.12(@nestjs/common@11.0.12(class-transformer@0.5.1)(class-validator@0.14.1)(reflect-metadata@0.1.14)(rxjs@7.8.2))(reflect-metadata@0.1.14)(rxjs@7.8.2))(@nestjs/graphql@13.0.4(@nestjs/common@11.0.12(class-transformer@0.5.1)(class-validator@0.14.1)(reflect-metadata@0.1.14)(rxjs@7.8.2))(@nestjs/core@11.0.12(@nestjs/common@11.0.12(class-transformer@0.5.1)(class-validator@0.14.1)(reflect-metadata@0.1.14)(rxjs@7.8.2))(reflect-metadata@0.1.14)(rxjs@7.8.2))(class-transformer@0.5.1)(class-validator@0.14.1)(graphql@16.10.0)(reflect-metadata@0.1.14)(ts-morph@24.0.0))(graphql@16.10.0)
@@ -516,8 +516,8 @@ importers:
         specifier: ^4.4.1
         version: 4.4.1(@vue/compiler-sfc@3.5.13)(prettier@3.5.3)
       '@jsonforms/core':
-        specifier: ^3.5.1
-        version: 3.5.1
+        specifier: ^3.6.0
+        version: 3.6.0
       '@nestjs/apollo':
         specifier: ^13.0.3
         version: 13.0.4(@apollo/server@4.11.3(graphql@16.10.0))(@as-integrations/fastify@2.1.1(@apollo/server@4.11.3(graphql@16.10.0))(fastify@5.2.1))(@nestjs/common@11.0.12(class-transformer@0.5.1)(class-validator@0.14.1)(reflect-metadata@0.1.14)(rxjs@7.8.2))(@nestjs/core@11.0.12(@nestjs/common@11.0.12(class-transformer@0.5.1)(class-validator@0.14.1)(reflect-metadata@0.1.14)(rxjs@7.8.2))(reflect-metadata@0.1.14)(rxjs@7.8.2))(@nestjs/graphql@13.0.4(@nestjs/common@11.0.12(class-transformer@0.5.1)(class-validator@0.14.1)(reflect-metadata@0.1.14)(rxjs@7.8.2))(@nestjs/core@11.0.12(@nestjs/common@11.0.12(class-transformer@0.5.1)(class-validator@0.14.1)(reflect-metadata@0.1.14)(rxjs@7.8.2))(reflect-metadata@0.1.14)(rxjs@7.8.2))(class-transformer@0.5.1)(class-validator@0.14.1)(graphql@16.10.0)(reflect-metadata@0.1.14)(ts-morph@24.0.0))(graphql@16.10.0)
@@ -706,8 +706,8 @@ importers:
         specifier: ^10.5.5
         version: 10.8.6(graphql@16.10.0)
       '@jsonforms/core':
-        specifier: ^3.5.1
-        version: 3.5.1
+        specifier: ^3.6.0
+        version: 3.6.0
       '@nestjs/common':
         specifier: ^11.0.11
         version: 11.0.12(class-transformer@0.5.1)(class-validator@0.14.1)(reflect-metadata@0.1.14)(rxjs@7.8.2)
@@ -800,14 +800,14 @@ importers:
         specifier: ^3.6.0
         version: 3.6.0
       '@jsonforms/core':
-        specifier: ^3.5.1
-        version: 3.5.1
+        specifier: ^3.6.0
+        version: 3.6.0
       '@jsonforms/vue':
-        specifier: ^3.5.1
-        version: 3.5.1(@jsonforms/core@3.5.1)(vue@3.5.13(typescript@5.8.3))
+        specifier: ^3.6.0
+        version: 3.6.0(@jsonforms/core@3.6.0)(vue@3.5.13(typescript@5.8.3))
       '@jsonforms/vue-vanilla':
-        specifier: ^3.5.1
-        version: 3.5.1(@jsonforms/core@3.5.1)(@jsonforms/vue@3.5.1(@jsonforms/core@3.5.1)(vue@3.5.13(typescript@5.8.3)))(vue@3.5.13(typescript@5.8.3))
+        specifier: ^3.6.0
+        version: 3.6.0(@jsonforms/core@3.6.0)(@jsonforms/vue@3.6.0(@jsonforms/core@3.6.0)(vue@3.5.13(typescript@5.8.3)))(vue@3.5.13(typescript@5.8.3))
       '@vueuse/core':
         specifier: ^13.0.0
         version: 13.0.0(vue@3.5.13(typescript@5.8.3))
@@ -1006,17 +1006,17 @@ importers:
         specifier: ^2.2.0
         version: 2.2.0(vue@3.5.13(typescript@5.8.3))
       '@jsonforms/core':
-        specifier: ^3.5.1
-        version: 3.5.1
+        specifier: ^3.6.0
+        version: 3.6.0
       '@jsonforms/vue':
-        specifier: ^3.5.1
-        version: 3.5.1(@jsonforms/core@3.5.1)(vue@3.5.13(typescript@5.8.3))
+        specifier: ^3.6.0
+        version: 3.6.0(@jsonforms/core@3.6.0)(vue@3.5.13(typescript@5.8.3))
       '@jsonforms/vue-vanilla':
-        specifier: ^3.5.1
-        version: 3.5.1(@jsonforms/core@3.5.1)(@jsonforms/vue@3.5.1(@jsonforms/core@3.5.1)(vue@3.5.13(typescript@5.8.3)))(vue@3.5.13(typescript@5.8.3))
+        specifier: ^3.6.0
+        version: 3.6.0(@jsonforms/core@3.6.0)(@jsonforms/vue@3.6.0(@jsonforms/core@3.6.0)(vue@3.5.13(typescript@5.8.3)))(vue@3.5.13(typescript@5.8.3))
       '@jsonforms/vue-vuetify':
-        specifier: ^3.5.1
-        version: 3.5.1(@jsonforms/core@3.5.1)(@jsonforms/vue@3.5.1(@jsonforms/core@3.5.1)(vue@3.5.13(typescript@5.8.3)))(ajv@8.17.1)(dayjs@1.11.13)(lodash@4.17.21)(maska@2.1.11)(vue@3.5.13(typescript@5.8.3))(vuetify@3.7.18)
+        specifier: ^3.6.0
+        version: 3.6.0(@jsonforms/core@3.6.0)(@jsonforms/vue@3.6.0(@jsonforms/core@3.6.0)(vue@3.5.13(typescript@5.8.3)))(ajv@8.17.1)(dayjs@1.11.13)(lodash@4.17.21)(maska@2.1.11)(vue@3.5.13(typescript@5.8.3))(vuetify@3.7.18)
       '@nuxtjs/color-mode':
         specifier: ^3.5.2
         version: 3.5.2(magicast@0.3.5)
@@ -2838,21 +2838,21 @@ packages:
   '@jsdevtools/ono@7.1.3':
     resolution: {integrity: sha512-4JQNk+3mVzK3xh2rqd6RB4J46qUR19azEHBneZyTZM+c456qOrbbM/5xcR8huNCCcbVt7+UmizG6GuUvPvKUYg==}
 
-  '@jsonforms/core@3.5.1':
-    resolution: {integrity: sha512-Jrq/UcfvKsAprLJ+9TMFa8pKsfdyv3dAw85XstSNRcjDT19LreBlhVqIvTvtgZidg8Iet3yqy5xlNnB+XyrvrQ==}
+  '@jsonforms/core@3.6.0':
+    resolution: {integrity: sha512-Qz7qJPf/yP4ybqknZ500zggIDZRJfcufu+3efp/xNWf05mpXvxN9TdfmA++BdXi5Nr4UAgjos2kFmQpZpQaCDw==}
 
-  '@jsonforms/vue-vanilla@3.5.1':
-    resolution: {integrity: sha512-XkaescuGVFX+p80PXeIgDm9oLoWlBHebyC1o8JEjIZoPIuFmG8MGWlclmKLAXQapfotCUMhcUXLHV1Mi6A7ZQg==}
+  '@jsonforms/vue-vanilla@3.6.0':
+    resolution: {integrity: sha512-fdvCTUVSEstnj0WFsUZohflAWxBBrkcpxUvo+scBUg6q0rcqtvT27ZZHj12EHP2YWCQo0uXZMP+ZNlO/AuzGDA==}
     peerDependencies:
-      '@jsonforms/core': 3.5.1
-      '@jsonforms/vue': 3.5.1
+      '@jsonforms/core': 3.6.0
+      '@jsonforms/vue': 3.6.0
       vue: ^3.2.26
 
-  '@jsonforms/vue-vuetify@3.5.1':
-    resolution: {integrity: sha512-jOzLkyDYHMPM72Yvos3M6qYrYnPtA/MXRozWNoaAAL4XY0UkNUgH8EWpcoonraJeRNi7ZtTH7Dw+Ob8j0yr+7Q==}
+  '@jsonforms/vue-vuetify@3.6.0':
+    resolution: {integrity: sha512-3+4FxZNPmtu4Vy9pr7IEUVkaPmr7Geaq2Vlw1Z7g4IUr7Ohl0ZHoEKYUMkdvL9pcP/b7iDFvqTSsvkRZXSnjdg==}
     peerDependencies:
-      '@jsonforms/core': 3.5.1
-      '@jsonforms/vue': 3.5.1
+      '@jsonforms/core': 3.6.0
+      '@jsonforms/vue': 3.6.0
       ajv: ^8.6.1
       dayjs: ^1.10.6
       lodash: ^4.17.21
@@ -2860,10 +2860,10 @@ packages:
       vue: ^3.4.21
       vuetify: ^3.6.6
 
-  '@jsonforms/vue@3.5.1':
-    resolution: {integrity: sha512-mxxZ/RrvxpIyqxRXH1K4f+Zha/JJCeycx/oKC7h2w6ZsQFqLSFJuntQ1nIwNOCIR21lYQZXIt/VkmvAemnis5g==}
+  '@jsonforms/vue@3.6.0':
+    resolution: {integrity: sha512-KW74d2RBeGau15LseCXiSTiUZ+9nQEyxDgaHggD2iQssrGCBSMWHj2+tGw+hWRZrk4IK99j4j4PRT2mLdexJqw==}
     peerDependencies:
-      '@jsonforms/core': 3.5.1
+      '@jsonforms/core': 3.6.0
       vue: ^3.2.26
 
   '@keyv/serialize@1.0.3':
@@ -14616,24 +14616,24 @@ snapshots:
 
   '@jsdevtools/ono@7.1.3': {}
 
-  '@jsonforms/core@3.5.1':
+  '@jsonforms/core@3.6.0':
     dependencies:
       '@types/json-schema': 7.0.15
       ajv: 8.17.1
       ajv-formats: 2.1.1(ajv@8.17.1)
       lodash: 4.17.21
 
-  '@jsonforms/vue-vanilla@3.5.1(@jsonforms/core@3.5.1)(@jsonforms/vue@3.5.1(@jsonforms/core@3.5.1)(vue@3.5.13(typescript@5.8.3)))(vue@3.5.13(typescript@5.8.3))':
+  '@jsonforms/vue-vanilla@3.6.0(@jsonforms/core@3.6.0)(@jsonforms/vue@3.6.0(@jsonforms/core@3.6.0)(vue@3.5.13(typescript@5.8.3)))(vue@3.5.13(typescript@5.8.3))':
     dependencies:
-      '@jsonforms/core': 3.5.1
-      '@jsonforms/vue': 3.5.1(@jsonforms/core@3.5.1)(vue@3.5.13(typescript@5.8.3))
+      '@jsonforms/core': 3.6.0
+      '@jsonforms/vue': 3.6.0(@jsonforms/core@3.6.0)(vue@3.5.13(typescript@5.8.3))
       lodash: 4.17.21
       vue: 3.5.13(typescript@5.8.3)
 
-  '@jsonforms/vue-vuetify@3.5.1(@jsonforms/core@3.5.1)(@jsonforms/vue@3.5.1(@jsonforms/core@3.5.1)(vue@3.5.13(typescript@5.8.3)))(ajv@8.17.1)(dayjs@1.11.13)(lodash@4.17.21)(maska@2.1.11)(vue@3.5.13(typescript@5.8.3))(vuetify@3.7.18)':
+  '@jsonforms/vue-vuetify@3.6.0(@jsonforms/core@3.6.0)(@jsonforms/vue@3.6.0(@jsonforms/core@3.6.0)(vue@3.5.13(typescript@5.8.3)))(ajv@8.17.1)(dayjs@1.11.13)(lodash@4.17.21)(maska@2.1.11)(vue@3.5.13(typescript@5.8.3))(vuetify@3.7.18)':
     dependencies:
-      '@jsonforms/core': 3.5.1
-      '@jsonforms/vue': 3.5.1(@jsonforms/core@3.5.1)(vue@3.5.13(typescript@5.8.3))
+      '@jsonforms/core': 3.6.0
+      '@jsonforms/vue': 3.6.0(@jsonforms/core@3.6.0)(vue@3.5.13(typescript@5.8.3))
       ajv: 8.17.1
       dayjs: 1.11.13
       lodash: 4.17.21
@@ -14641,9 +14641,9 @@ snapshots:
       vue: 3.5.13(typescript@5.8.3)
       vuetify: 3.7.18(typescript@5.8.3)(vite-plugin-vuetify@2.1.0)(vue@3.5.13(typescript@5.8.3))
 
-  '@jsonforms/vue@3.5.1(@jsonforms/core@3.5.1)(vue@3.5.13(typescript@5.8.3))':
+  '@jsonforms/vue@3.6.0(@jsonforms/core@3.6.0)(vue@3.5.13(typescript@5.8.3))':
     dependencies:
-      '@jsonforms/core': 3.5.1
+      '@jsonforms/core': 3.6.0
       lodash: 4.17.21
       vue: 3.5.13(typescript@5.8.3)
 
@@ -14653,7 +14653,7 @@ snapshots:
 
   '@koa/router@12.0.2':
     dependencies:
-      debug: 4.4.0(supports-color@9.4.0)
+      debug: 4.4.1
       http-errors: 2.0.0
       koa-compose: 4.1.0
       methods: 1.1.2
@@ -14663,7 +14663,7 @@ snapshots:
 
   '@kwsites/file-exists@1.1.1':
     dependencies:
-      debug: 4.4.0(supports-color@9.4.0)
+      debug: 4.4.1
     transitivePeerDependencies:
       - supports-color
 
@@ -15515,7 +15515,7 @@ snapshots:
 
   '@pm2/pm2-version-check@1.0.4':
     dependencies:
-      debug: 4.4.0(supports-color@9.4.0)
+      debug: 4.4.1
     transitivePeerDependencies:
       - supports-color
 
@@ -19428,7 +19428,7 @@ snapshots:
     dependencies:
       '@types/doctrine': 0.0.9
       '@typescript-eslint/utils': 8.29.0(eslint@9.23.0(jiti@2.4.2))(typescript@5.8.3)
-      debug: 4.4.0(supports-color@9.4.0)
+      debug: 4.4.1
       doctrine: 3.0.0
       eslint: 9.23.0(jiti@2.4.2)
       eslint-import-resolver-node: 0.3.9
@@ -19476,7 +19476,7 @@ snapshots:
       '@es-joy/jsdoccomment': 0.49.0
       are-docs-informative: 0.0.2
       comment-parser: 1.4.1
-      debug: 4.4.0(supports-color@9.4.0)
+      debug: 4.4.1
       escape-string-regexp: 4.0.0
       eslint: 9.23.0(jiti@2.4.2)
       espree: 10.3.0
@@ -20192,7 +20192,7 @@ snapshots:
     dependencies:
       basic-ftp: 5.0.5
       data-uri-to-buffer: 6.0.2
-      debug: 4.4.0(supports-color@9.4.0)
+      debug: 4.4.1
     transitivePeerDependencies:
       - supports-color
 
@@ -20769,7 +20769,7 @@ snapshots:
   importx@0.4.4:
     dependencies:
       bundle-require: 5.1.0(esbuild@0.23.1)
-      debug: 4.4.0(supports-color@9.4.0)
+      debug: 4.4.1
       esbuild: 0.23.1
       jiti: 2.0.0-beta.3
       jiti-v1: jiti@1.21.7
@@ -20891,7 +20891,7 @@ snapshots:
     dependencies:
       '@ioredis/commands': 1.2.0
       cluster-key-slot: 1.1.2
-      debug: 4.4.0(supports-color@9.4.0)
+      debug: 4.4.1
       denque: 2.1.0
       lodash.defaults: 4.2.0
       lodash.isarguments: 3.1.0
@@ -21394,7 +21394,7 @@ snapshots:
 
   koa-send@5.0.1:
     dependencies:
-      debug: 4.4.0(supports-color@9.4.0)
+      debug: 4.4.1
       http-errors: 1.8.1
       resolve-path: 1.4.0
     transitivePeerDependencies:
@@ -21414,7 +21414,7 @@ snapshots:
       content-disposition: 0.5.4
       content-type: 1.0.5
       cookies: 0.9.1
-      debug: 4.4.0(supports-color@9.4.0)
+      debug: 4.4.1
       delegates: 1.0.0
       depd: 2.0.0
       destroy: 1.2.0
@@ -22611,7 +22611,7 @@ snapshots:
     dependencies:
       '@tootallnate/quickjs-emscripten': 0.23.0
       agent-base: 7.1.3
-      debug: 4.4.0(supports-color@9.4.0)
+      debug: 4.4.1
       get-uri: 6.0.4
       http-proxy-agent: 7.0.2
       https-proxy-agent: 7.0.6(supports-color@9.4.0)
@@ -22970,7 +22970,7 @@ snapshots:
   portfinder@1.0.35:
     dependencies:
       async: 3.2.6
-      debug: 4.4.0(supports-color@9.4.0)
+      debug: 4.4.1
     transitivePeerDependencies:
       - supports-color
 
@@ -23183,7 +23183,7 @@ snapshots:
 
   postcss-styl@0.12.3:
     dependencies:
-      debug: 4.4.0(supports-color@9.4.0)
+      debug: 4.4.1
       fast-diff: 1.3.0
       lodash.sortedlastindex: 4.1.0
       postcss: 8.5.3
@@ -23293,7 +23293,7 @@ snapshots:
   proxy-agent@6.4.0:
     dependencies:
       agent-base: 7.1.3
-      debug: 4.4.0(supports-color@9.4.0)
+      debug: 4.4.1
       http-proxy-agent: 7.0.2
       https-proxy-agent: 7.0.6(supports-color@9.4.0)
       lru-cache: 7.18.3
@@ -23684,7 +23684,7 @@ snapshots:
 
   require-in-the-middle@5.2.0:
     dependencies:
-      debug: 4.4.0(supports-color@9.4.0)
+      debug: 4.4.1
       module-details-from-path: 1.0.3
       resolve: 1.22.10
     transitivePeerDependencies:
@@ -24169,7 +24169,7 @@ snapshots:
   socks-proxy-agent@8.0.5:
     dependencies:
       agent-base: 7.1.3
-      debug: 4.4.0(supports-color@9.4.0)
+      debug: 4.4.1
       socks: 2.8.4
     transitivePeerDependencies:
       - supports-color
@@ -24441,7 +24441,7 @@ snapshots:
   stylus@0.57.0:
     dependencies:
       css: 3.0.0
-      debug: 4.4.0(supports-color@9.4.0)
+      debug: 4.4.1
       glob: 7.2.3
       safer-buffer: 2.1.2
       sax: 1.2.4
@@ -25222,7 +25222,7 @@ snapshots:
   vite-node@3.1.1(@types/node@22.15.3)(jiti@2.4.2)(stylus@0.57.0)(terser@5.39.0)(tsx@4.19.3)(yaml@2.7.1):
     dependencies:
       cac: 6.7.14
-      debug: 4.4.0(supports-color@9.4.0)
+      debug: 4.4.1
       es-module-lexer: 1.7.0
       pathe: 2.0.3
       vite: 6.2.3(@types/node@22.15.3)(jiti@2.4.2)(stylus@0.57.0)(terser@5.39.0)(tsx@4.19.3)(yaml@2.7.1)
@@ -25608,7 +25608,7 @@ snapshots:
 
   vue-eslint-parser@10.1.1(eslint@9.23.0(jiti@2.4.2)):
     dependencies:
-      debug: 4.4.0(supports-color@9.4.0)
+      debug: 4.4.1
       eslint: 9.23.0(jiti@2.4.2)
       eslint-scope: 8.3.0
       eslint-visitor-keys: 4.2.0
@@ -25621,7 +25621,7 @@ snapshots:
 
   vue-eslint-parser@9.4.3(eslint@9.23.0(jiti@2.4.2)):
     dependencies:
-      debug: 4.4.0(supports-color@9.4.0)
+      debug: 4.4.1
       eslint: 9.23.0(jiti@2.4.2)
       eslint-scope: 7.2.2
       eslint-visitor-keys: 3.4.3

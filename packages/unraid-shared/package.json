@@ -28,7 +28,7 @@
     "description": "Shared utilities and types for Unraid API ecosystem",
     "devDependencies": {
         "@graphql-tools/utils": "^10.5.5",
-        "@jsonforms/core": "^3.5.1",
+        "@jsonforms/core": "^3.6.0",
         "@nestjs/common": "^11.0.11",
         "@nestjs/graphql": "^13.0.3",
         "@types/bun": "^1.2.15",
@@ -45,7 +45,7 @@
     },
     "peerDependencies": {
         "@graphql-tools/utils": "^10.5.5",
-        "@jsonforms/core": "^3.5.1",
+        "@jsonforms/core": "^3.6.0",
         "@nestjs/common": "^11.0.11",
         "@nestjs/graphql": "^13.0.3",
         "class-validator": "^0.14.1",
