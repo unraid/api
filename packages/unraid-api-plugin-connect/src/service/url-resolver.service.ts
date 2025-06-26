@@ -328,7 +328,7 @@ export class UrlResolverService {
         });
 
         // Now Process the FQDN Urls
-        nginx.fqdnUrls.forEach((fqdnUrl: FqdnEntry) => {
+        nginx.fqdnUrls?.forEach((fqdnUrl: FqdnEntry) => {
             doSafely(() => {
                 const urlType = this.getUrlTypeFromFqdn(fqdnUrl.interface);
                 const fqdnUrlToUse = this.getUrlForField({

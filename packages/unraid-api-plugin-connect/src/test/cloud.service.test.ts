@@ -32,14 +32,12 @@ describe('CloudService.hardCheckCloud (integration)', () => {
 
     it('fails to authenticate with mothership with no credentials', async () => {
         try {
-            await expect(
-                service['hardCheckCloud'](API_VERSION, BAD)
-            ).rejects.toThrowErrorMatchingInlineSnapshot(
-                `[Error: Failed to connect to https://mothership.unraid.net/ws with a "426" HTTP error.]`
-            );
-            await expect(
-                service['hardCheckCloud'](API_VERSION, BAD_API_KEY)
-            ).rejects.toThrowErrorMatchingInlineSnapshot(`[Error: Invalid credentials]`);
+            await expect(service['hardCheckCloud'](API_VERSION, BAD)).resolves.toMatchObject({
+                status: 'error',
+            });
+            await expect(service['hardCheckCloud'](API_VERSION, BAD_API_KEY)).resolves.toMatchObject({
+                status: 'error',
+            });
         } catch (error) {
             if (error instanceof Error && error.message.includes('Timeout')) {
                 // Test succeeds on timeout
