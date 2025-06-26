@@ -4,7 +4,7 @@ import { ConfigService, registerAs } from '@nestjs/config';
 import type { ApiConfig } from '@unraid/shared/services/api-config.js';
 import { csvStringToArray } from '@unraid/shared/util/data.js';
 import { fileExists } from '@unraid/shared/util/file.js';
-import { debounceTime } from 'rxjs/operators';
+import { bufferTime, debounceTime } from 'rxjs/operators';
 
 import { API_VERSION } from '@app/environment.js';
 import { ApiStateConfig } from '@app/unraid-api/config/factory/api-state.model.js';
@@ -56,7 +56,7 @@ export const loadApiConfig = async () => {
 export const apiConfig = registerAs<ApiConfig>('api', loadApiConfig);
 
 @Injectable()
-class ApiConfigPersistence {
+export class ApiConfigPersistence {
     private configModel: ApiStateConfig<ApiConfig>;
     private logger = new Logger(ApiConfigPersistence.name);
     get filePath() {
@@ -85,10 +85,10 @@ class ApiConfigPersistence {
             this.migrateFromMyServersConfig();
         }
         await this.persistenceHelper.persistIfChanged(this.filePath, this.config);
-        this.configService.changes$.pipe(debounceTime(25)).subscribe({
-            next: async ({ newValue, oldValue, path }) => {
-                if (path.startsWith('api')) {
-                    this.logger.verbose(`Config changed: ${path} from ${oldValue} to ${newValue}`);
+        this.configService.changes$.pipe(bufferTime(25)).subscribe({
+            next: async (changes) => {
+                if (changes.some((change) => change.path.startsWith('api'))) {
+                    this.logger.verbose(`API Config changed ${JSON.stringify(changes)}`);
                     await this.persistenceHelper.persistIfChanged(this.filePath, this.config);
                 }
             },
@@ -98,15 +98,26 @@ class ApiConfigPersistence {
         });
     }
 
-    private migrateFromMyServersConfig() {
-        const { local, api, remote } = this.configService.get('store.config', {});
-        const sandbox = local?.sandbox;
-        const extraOrigins = csvStringToArray(api?.extraOrigins ?? '').filter(
-            (origin) => origin.startsWith('http://') || origin.startsWith('https://')
-        );
-        const ssoSubIds = csvStringToArray(remote?.ssoSubIds ?? '');
+    convertLegacyConfig(
+        config?: Partial<{
+            local: { sandbox?: string };
+            api: { extraOrigins?: string };
+            remote: { ssoSubIds?: string };
+        }>
+    ) {
+        return {
+            sandbox: config?.local?.sandbox === 'yes',
+            extraOrigins: csvStringToArray(config?.api?.extraOrigins ?? '').filter(
+                (origin) => origin.startsWith('http://') || origin.startsWith('https://')
+            ),
+            ssoSubIds: csvStringToArray(config?.remote?.ssoSubIds ?? ''),
+        };
+    }
 
-        this.configService.set('api.sandbox', sandbox === 'yes');
+    migrateFromMyServersConfig() {
+        const legacyConfig = this.configService.get('store.config', {});
+        const { sandbox, extraOrigins, ssoSubIds } = this.convertLegacyConfig(legacyConfig);
+        this.configService.set('api.sandbox', sandbox);
         this.configService.set('api.extraOrigins', extraOrigins);
         this.configService.set('api.ssoSubIds', ssoSubIds);
     }

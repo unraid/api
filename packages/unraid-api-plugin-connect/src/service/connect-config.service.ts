@@ -42,7 +42,7 @@ export class ConnectConfigService {
      */
     resetUser() {
         // overwrite identity fields, but retain destructured fields
-        const { wanaccess, wanport, upnpEnabled, ssoSubIds, ...identity } = emptyMyServersConfig();
+        const { wanaccess, wanport, upnpEnabled, ...identity } = emptyMyServersConfig();
         this.configService.set(this.configKey, {
             ...this.getConfig(),
             ...identity,
