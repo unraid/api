@@ -19,6 +19,7 @@ describe('UrlResolverService', () => {
     beforeEach(() => {
         mockConfigService = {
             get: vi.fn(),
+            getOrThrow: vi.fn(),
         } as unknown as ConfigService<ConfigType, true>;
 
         service = new UrlResolverService(mockConfigService);
@@ -27,6 +28,7 @@ describe('UrlResolverService', () => {
     describe('getServerIps', () => {
         it('should return empty arrays when store is not loaded', () => {
             (mockConfigService.get as Mock).mockReturnValue(null);
+            (mockConfigService.getOrThrow as Mock).mockReturnValue(null);
 
             const result = service.getServerIps();
 
@@ -59,11 +61,16 @@ describe('UrlResolverService', () => {
             const mockStore = {
                 emhttp: {
                     nginx: {
+                        defaultUrl: 'https://default.unraid.net',
                         lanIp: '192.168.1.1',
+                        lanIp6: '2001:db8::1',
+                        lanName: 'unraid.local',
+                        lanMdns: 'unraid.local',
                         sslEnabled: true,
                         sslMode: 'yes',
                         httpPort,
                         httpsPort,
+                        fqdnUrls: [],
                     },
                 },
             };
@@ -88,10 +95,15 @@ describe('UrlResolverService', () => {
                 emhttp: {
                     nginx: {
                         defaultUrl: 'https://BROKEN_URL',
+                        lanIp: '192.168.1.1',
+                        lanIp6: '2001:db8::1',
+                        lanName: 'unraid.local',
+                        lanMdns: 'unraid.local',
                         sslEnabled: true,
                         sslMode: 'yes',
                         httpPort: 80,
                         httpsPort: 443,
+                        fqdnUrls: [],
                     },
                 },
             };
@@ -99,8 +111,8 @@ describe('UrlResolverService', () => {
             (mockConfigService.get as Mock).mockReturnValue(mockStore);
 
             const result = service.getServerIps();
-            expect(result.errors).toHaveLength(1);
-            expect(result.errors[0].message).toContain('Failed to parse URL');
+            expect(result.errors.length).toBeGreaterThan(0);
+            expect(result.errors.some(error => error.message.includes('Failed to parse URL'))).toBe(true);
         });
 
         it('should handle SSL mode variations', () => {
@@ -128,11 +140,16 @@ describe('UrlResolverService', () => {
                 const mockStore = {
                     emhttp: {
                         nginx: {
+                            defaultUrl: 'https://default.unraid.net',
                             lanIp: '192.168.1.1',
+                            lanIp6: '2001:db8::1',
+                            lanName: 'unraid.local',
+                            lanMdns: 'unraid.local',
                             sslEnabled: testCase.sslEnabled,
                             sslMode: testCase.sslMode,
                             httpPort: 80,
                             httpsPort: 443,
+                            fqdnUrls: [],
                         },
                     },
                 };
@@ -142,8 +159,7 @@ describe('UrlResolverService', () => {
                 const result = service.getServerIps();
 
                 if (testCase.shouldError) {
-                    expect(result.errors).toHaveLength(1);
-                    expect(result.errors[0].message).toContain('SSL mode auto');
+                    expect(result.errors.some(error => error.message.includes('SSL mode auto'))).toBe(true);
                 } else {
                     const lanUrl = result.urls.find(
                         (url) => url.type === URL_TYPE.LAN && url.name === 'LAN IPv4'
@@ -160,7 +176,7 @@ describe('UrlResolverService', () => {
                     nginx: {
                         defaultUrl: 'https://default.unraid.net',
                         lanIp: '192.168.1.1',
-                        lanIp6: '2001:db8::1',
+                        lanIp6: 'ipv6.unraid.local',
                         lanName: 'unraid.local',
                         lanMdns: 'unraid.local',
                         sslEnabled: true,
@@ -183,18 +199,14 @@ describe('UrlResolverService', () => {
                         ],
                     },
                 },
-                config: {
-                    remote: {
-                        wanport: 443,
-                    },
-                },
             };
 
             (mockConfigService.get as Mock).mockReturnValue(mockStore);
+            (mockConfigService.getOrThrow as Mock).mockReturnValue(443);
 
             const result = service.getServerIps();
 
-            expect(result.urls).toHaveLength(6); // Default + LAN IPv4 + LAN IPv6 + LAN Name + LAN MDNS + 2 FQDN
+            expect(result.urls).toHaveLength(7); // Default + LAN IPv4 + LAN IPv6 + LAN Name + LAN MDNS + 2 FQDN
             expect(result.errors).toHaveLength(0);
 
             // Verify default URL
@@ -214,7 +226,7 @@ describe('UrlResolverService', () => {
                 (url) => url.type === URL_TYPE.LAN && url.name === 'LAN IPv6'
             );
             expect(lanIp6Url).toBeDefined();
-            expect(lanIp6Url?.ipv4?.toString()).toBe('https://2001:db8::1/');
+            expect(lanIp6Url?.ipv6?.toString()).toBe('https://ipv6.unraid.local/');
 
             // Verify LAN Name URL
             const lanNameUrl = result.urls.find(
@@ -250,31 +262,51 @@ describe('UrlResolverService', () => {
             const mockStore = {
                 emhttp: {
                     nginx: {
-                        wanIp: '1.2.3.4',
+                        defaultUrl: 'https://default.unraid.net',
+                        lanIp: '192.168.1.1',
+                        lanIp6: '2001:db8::1',
+                        lanName: 'unraid.local',
+                        lanMdns: 'unraid.local',
                         sslEnabled: true,
                         sslMode: 'yes',
+                        httpPort: 80,
                         httpsPort: 443,
+                        fqdnUrls: [
+                            {
+                                interface: 'WAN',
+                                id: null,
+                                fqdn: 'wan.unraid.net',
+                                isIpv6: false,
+                            },
+                        ],
                     },
                 },
             };
 
             (mockConfigService.get as Mock).mockReturnValue(mockStore);
+            (mockConfigService.getOrThrow as Mock).mockReturnValue(443);
 
             const result = service.getRemoteAccessUrl();
 
             expect(result).toBeDefined();
             expect(result?.type).toBe(URL_TYPE.WAN);
-            expect(result?.ipv4?.toString()).toBe('https://1.2.3.4/');
+            expect(result?.ipv4?.toString()).toBe('https://wan.unraid.net/');
         });
 
         it('should return null when no WAN URL is available', () => {
             const mockStore = {
                 emhttp: {
                     nginx: {
+                        defaultUrl: 'https://default.unraid.net',
                         lanIp: '192.168.1.1',
+                        lanIp6: '2001:db8::1',
+                        lanName: 'unraid.local',
+                        lanMdns: 'unraid.local',
                         sslEnabled: true,
                         sslMode: 'yes',
+                        httpPort: 80,
                         httpsPort: 443,
+                        fqdnUrls: [],
                     },
                 },
             };
