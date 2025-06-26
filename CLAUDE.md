@@ -15,6 +15,7 @@ This is the Unraid API monorepo containing multiple packages that provide API fu
 ## Essential Commands
 
 ### Development
+
 ```bash
 pnpm install              # Install all dependencies
 pnpm dev                  # Run all dev servers concurrently
@@ -23,6 +24,7 @@ pnpm build:watch          # Watch mode with local plugin build
 ```
 
 ### Testing & Code Quality
+
 ```bash
 pnpm test                 # Run all tests
 pnpm lint                 # Run linting
@@ -31,6 +33,7 @@ pnpm type-check           # TypeScript type checking
 ```
 
 ### API Development
+
 ```bash
 cd api && pnpm dev        # Run API server (http://localhost:3001)
 cd api && pnpm test:watch # Run tests in watch mode
@@ -38,6 +41,7 @@ cd api && pnpm codegen    # Generate GraphQL types
 ```
 
 ### Deployment
+
 ```bash
 pnpm unraid:deploy <SERVER_IP>  # Deploy all to Unraid server
 ```
@@ -45,6 +49,7 @@ pnpm unraid:deploy <SERVER_IP>  # Deploy all to Unraid server
 ## Architecture Notes
 
 ### API Structure (NestJS)
+
 - Modules: `auth`, `config`, `plugins`, `emhttp`, `monitoring`
 - GraphQL API with Apollo Server at `/graphql`
 - Redux store for state management in `src/store/`
@@ -52,26 +57,31 @@ pnpm unraid:deploy <SERVER_IP>  # Deploy all to Unraid server
 - Entry points: `src/index.ts` (server), `src/cli.ts` (CLI)
 
 ### Key Patterns
+
 - TypeScript imports use `.js` extensions (ESM compatibility)
 - NestJS dependency injection with decorators
 - GraphQL schema-first approach with code generation
 - API plugins follow specific structure (see `api/docs/developer/api-plugins.md`)
 
 ### Authentication
+
 - API key authentication via headers
 - Cookie-based session management
 - Keys stored in `/boot/config/plugins/unraid-api/`
 
 ### Development Workflow
+
 1. Work Intent required before starting development
 2. Fork from `main` branch
 3. Reference Work Intent in PR
 4. No direct pushes to main
 
 ### Debug Mode
+
 ```bash
 LOG_LEVEL=debug unraid-api start --debug
 ```
+
 Enables GraphQL playground at `http://tower.local/graphql`
 
 ## Coding Guidelines

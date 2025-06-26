@@ -62,7 +62,7 @@
         "@graphql-tools/merge": "^9.0.8",
         "@graphql-tools/schema": "^10.0.7",
         "@graphql-tools/utils": "^10.5.5",
-        "@jsonforms/core": "^3.5.1",
+        "@jsonforms/core": "^3.6.0",
         "@nestjs/apollo": "^13.0.3",
         "@nestjs/cache-manager": "^3.0.1",
         "@nestjs/common": "^11.0.11",

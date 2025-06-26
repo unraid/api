@@ -4,6 +4,7 @@ import { useI18n } from 'vue-i18n';
 import { storeToRefs } from 'pinia';
 import { useClipboard } from '@vueuse/core';
 
+import { DropdownMenu } from '@unraid/ui';
 import { devConfig } from '~/helpers/env';
 
 import type { Server } from '~/types/server';
@@ -136,11 +137,16 @@ onMounted(() => {
 
       <NotificationsSidebar />
 
-      <UpcDropdownMenu :t="t">
+      <DropdownMenu align="end" side="bottom" :side-offset="4">
         <template #trigger>
           <UpcDropdownTrigger :t="t" />
         </template>
-      </UpcDropdownMenu>
+        <template #content>
+          <div class="w-[350px]">
+            <UpcDropdownContent :t="t" />
+          </div>
+        </template>
+      </DropdownMenu>
     </div>
   </div>
 </template>

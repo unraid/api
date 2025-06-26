@@ -4,6 +4,9 @@ import '@/styles/index.css';
 // Components
 export * from '@/components';
 
+// Component Primitives
+export * from '@/components/ui';
+
 // JsonForms
 export * from '@/forms/renderers';
 

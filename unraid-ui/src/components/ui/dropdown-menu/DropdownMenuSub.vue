@@ -9,7 +9,7 @@ import {
 const props = defineProps<DropdownMenuSubProps>();
 const emits = defineEmits<DropdownMenuSubEmits>();
 
-const forwarded = useForwardPropsEmits<DropdownMenuSubProps, 'update:open'>(props, emits);
+const forwarded = useForwardPropsEmits(props, emits);
 </script>
 
 <template>
