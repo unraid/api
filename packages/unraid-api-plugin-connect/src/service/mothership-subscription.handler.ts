@@ -85,12 +85,12 @@ export class MothershipSubscriptionHandler {
         }
     }
 
-    public addSubscription({ sha256, body }: SubscriptionProxy) {
+    public async addSubscription({ sha256, body }: SubscriptionProxy) {
         if (this.subscriptions.has(sha256)) {
             throw new Error(`Subscription already exists for SHA256: ${sha256}`);
         }
         const parsedBody = parseGraphQLQuery(body);
-        const client = this.internalClientService.getClient();
+        const client = await this.internalClientService.getClient();
         const observable = client.subscribe({
             query: parsedBody.query,
             variables: parsedBody.variables,
@@ -123,7 +123,7 @@ export class MothershipSubscriptionHandler {
     }
 
     async executeQuery(sha256: string, body: string) {
-        const internalClient = this.internalClientService.getClient();
+        const internalClient = await this.internalClientService.getClient();
         const parsedBody = parseGraphQLQuery(body);
         const queryInput = {
             query: parsedBody.query,
