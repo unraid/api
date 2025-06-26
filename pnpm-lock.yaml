@@ -61,7 +61,7 @@ importers:
         specifier: ^10.5.5
         version: 10.8.6(graphql@16.10.0)
       '@jsonforms/core':
-        specifier: ^3.5.1
+        specifier: ^3.6.0
         version: 3.6.0
       '@nestjs/apollo':
         specifier: ^13.0.3
@@ -519,7 +519,7 @@ importers:
         specifier: ^4.4.1
         version: 4.4.1(@vue/compiler-sfc@3.5.13)(prettier@3.5.3)
       '@jsonforms/core':
-        specifier: ^3.5.1
+        specifier: ^3.6.0
         version: 3.6.0
       '@nestjs/apollo':
         specifier: ^13.0.3
@@ -712,7 +712,7 @@ importers:
         specifier: ^10.5.5
         version: 10.8.6(graphql@16.10.0)
       '@jsonforms/core':
-        specifier: ^3.5.1
+        specifier: ^3.6.0
         version: 3.6.0
       '@nestjs/common':
         specifier: ^11.0.11
@@ -806,13 +806,13 @@ importers:
         specifier: ^3.6.0
         version: 3.6.0
       '@jsonforms/core':
-        specifier: ^3.5.1
+        specifier: ^3.6.0
         version: 3.6.0
       '@jsonforms/vue':
-        specifier: ^3.5.1
+        specifier: ^3.6.0
         version: 3.6.0(@jsonforms/core@3.6.0)(vue@3.5.13(typescript@5.8.3))
       '@jsonforms/vue-vanilla':
-        specifier: ^3.5.1
+        specifier: ^3.6.0
         version: 3.6.0(@jsonforms/core@3.6.0)(@jsonforms/vue@3.6.0(@jsonforms/core@3.6.0)(vue@3.5.13(typescript@5.8.3)))(vue@3.5.13(typescript@5.8.3))
       '@vueuse/core':
         specifier: ^13.0.0
@@ -1012,16 +1012,16 @@ importers:
         specifier: ^2.2.0
         version: 2.2.0(vue@3.5.13(typescript@5.8.3))
       '@jsonforms/core':
-        specifier: ^3.5.1
+        specifier: ^3.6.0
         version: 3.6.0
       '@jsonforms/vue':
-        specifier: ^3.5.1
+        specifier: ^3.6.0
         version: 3.6.0(@jsonforms/core@3.6.0)(vue@3.5.13(typescript@5.8.3))
       '@jsonforms/vue-vanilla':
-        specifier: ^3.5.1
+        specifier: ^3.6.0
         version: 3.6.0(@jsonforms/core@3.6.0)(@jsonforms/vue@3.6.0(@jsonforms/core@3.6.0)(vue@3.5.13(typescript@5.8.3)))(vue@3.5.13(typescript@5.8.3))
       '@jsonforms/vue-vuetify':
-        specifier: ^3.5.1
+        specifier: ^3.6.0
         version: 3.6.0(@jsonforms/core@3.6.0)(@jsonforms/vue@3.6.0(@jsonforms/core@3.6.0)(vue@3.5.13(typescript@5.8.3)))(ajv@8.17.1)(dayjs@1.11.13)(lodash@4.17.21)(maska@2.1.11)(vue@3.5.13(typescript@5.8.3))(vuetify@3.7.18)
       '@nuxtjs/color-mode':
         specifier: ^3.5.2
@@ -16508,7 +16508,7 @@ snapshots:
     dependencies:
       '@typescript-eslint/typescript-estree': 8.28.0(typescript@5.8.3)
       '@typescript-eslint/utils': 8.28.0(eslint@9.23.0(jiti@2.4.2))(typescript@5.8.3)
-      debug: 4.4.0(supports-color@9.4.0)
+      debug: 4.4.1
       eslint: 9.23.0(jiti@2.4.2)
       ts-api-utils: 2.1.0(typescript@5.8.3)
       typescript: 5.8.3
@@ -16536,7 +16536,7 @@ snapshots:
     dependencies:
       '@typescript-eslint/types': 8.28.0
       '@typescript-eslint/visitor-keys': 8.28.0
-      debug: 4.4.0(supports-color@9.4.0)
+      debug: 4.4.1
       fast-glob: 3.3.3
       is-glob: 4.0.3
       minimatch: 9.0.5
