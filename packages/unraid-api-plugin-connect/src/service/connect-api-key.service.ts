@@ -8,7 +8,7 @@ import { AuthActionVerb } from 'nest-authz';
 @Injectable()
 export class ConnectApiKeyService implements ApiKeyService {
     private readonly logger = new Logger(ConnectApiKeyService.name);
-    private static readonly CONNECT_API_KEY_NAME = 'Connect_Internal';
+    private static readonly CONNECT_API_KEY_NAME = 'ConnectInternal';
     private static readonly CONNECT_API_KEY_DESCRIPTION =
         'Internal API Key Used By Unraid Connect to access your server resources for the connect.myunraid.net dashboard';
 
