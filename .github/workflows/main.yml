@@ -72,6 +72,9 @@ jobs:
       - name: PNPM Install
         run: pnpm install --frozen-lockfile
 
+      - name: Lint
+        run: pnpm run lint
+
       - name: Setup libvirt
         run: |
           # Create required groups (if they don't already exist)
@@ -111,11 +114,41 @@ jobs:
           # Verify libvirt is running using sudo to bypass group membership delays
           sudo virsh list --all || true
 
-      - name: Lint
-        run: pnpm run lint
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
 
-      - name: Test
-        run: pnpm run coverage
+      - name: Run Tests Concurrently
+        run: |
+          set -e
+          
+          # Run all tests in parallel with labeled output
+          echo "🚀 Starting API coverage tests..."
+          pnpm run coverage > api-test.log 2>&1 &
+          API_PID=$!
+          
+          echo "🚀 Starting Connect plugin tests..."
+          (cd ../packages/unraid-api-plugin-connect && pnpm test) > connect-test.log 2>&1 &
+          CONNECT_PID=$!
+          
+          echo "🚀 Starting Shared package tests..."
+          (cd ../unraid-shared && pnpm test) > shared-test.log 2>&1 &
+          SHARED_PID=$!
+          
+          # Wait for all processes and capture exit codes
+          wait $API_PID && echo "✅ API tests completed" || { echo "❌ API tests failed"; API_EXIT=1; }
+          wait $CONNECT_PID && echo "✅ Connect tests completed" || { echo "❌ Connect tests failed"; CONNECT_EXIT=1; }
+          wait $SHARED_PID && echo "✅ Shared tests completed" || { echo "❌ Shared tests failed"; SHARED_EXIT=1; }
+          
+          # Display all outputs
+          echo "📋 API Test Results:" && cat api-test.log
+          echo "📋 Connect Plugin Test Results:" && cat connect-test.log  
+          echo "📋 Shared Package Test Results:" && cat shared-test.log
+          
+          # Exit with error if any test failed
+          if [[ ${API_EXIT:-0} -eq 1 || ${CONNECT_EXIT:-0} -eq 1 || ${SHARED_EXIT:-0} -eq 1 ]]; then
+            exit 1
+          fi
 
   build-api:
     name: Build API
