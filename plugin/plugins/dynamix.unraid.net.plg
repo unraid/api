@@ -263,6 +263,11 @@ mkdir -p "$(dirname "$LOGFILE")"
 
 echo "Starting Unraid Connect installation..."
 
+# Move settings on flash drive
+CFG_OLD=/boot/config/plugins/Unraid.net
+CFG_NEW=/boot/config/plugins/dynamix.my.servers
+[ -d "$CFG_OLD" ] && [ ! -d "$CFG_NEW" ] && mv "$CFG_OLD" "$CFG_NEW"
+
 # Setup the API (but don't start it yet)
 if [ -x "$SCRIPTS_DIR/setup_api.sh" ]; then
   echo "Setting up Unraid API..."
