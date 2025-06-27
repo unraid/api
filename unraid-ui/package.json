@@ -58,7 +58,7 @@
     "kebab-case": "^2.0.1",
     "lucide-vue-next": "^0.519.0",
     "shadcn-vue": "^2.0.0",
-    "marked": "^15.0.0",
+    "marked": "^16.0.0",
     "reka-ui": "^2.1.1",
     "tailwind-merge": "^2.6.0",
     "vue-sonner": "^2.0.0"
