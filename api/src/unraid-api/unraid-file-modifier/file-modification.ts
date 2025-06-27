@@ -8,9 +8,17 @@ import { coerce, compare, gte } from 'semver';
 
 import { getUnraidVersion } from '@app/common/dashboard/get-unraid-version.js';
 
+export type ModificationEffect = 'nginx:reload';
+
 export interface ShouldApplyWithReason {
     shouldApply: boolean;
     reason: string;
+    /**
+     * Effectful actions that should be performed after the modification is applied.
+     *
+     * This field helps ensure that an effect requested by multiple modifications is only performed once.
+     */
+    effects?: ModificationEffect[];
 }
 
 // Convert interface to abstract class with default implementations
