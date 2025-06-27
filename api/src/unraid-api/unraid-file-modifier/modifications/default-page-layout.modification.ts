@@ -10,7 +10,7 @@ export default class DefaultPageLayoutModification extends FileModification {
     public readonly filePath: string = '/usr/local/emhttp/plugins/dynamix/include/DefaultPageLayout.php';
 
     private addToaster(source: string): string {
-        if (source.includes('unraid-toaster')) {
+        if (source.includes('uui-toaster')) {
             return source;
         }
         const insertion = `<uui-toaster rich-colors close-button position="<?= ($notify['position'] === 'center') ? 'top-center' : $notify['position'] ?>"></uui-toaster>`;
