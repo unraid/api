@@ -210,7 +210,7 @@ exit 0
     </INLINE>
   </FILE>
 
-  <!-- install all the things -->
+  <!-- install api package and all necessary files -->
   <FILE Run="/bin/bash" Method="install">
     <INLINE>
       TAG="&tag;" 
@@ -242,16 +242,89 @@ if [ $? -ne 0 ]; then
   exit 1
 fi
 
-# Clean up any old node_modules archives (on the boot drive) that don't match our current version
-#
-# Must run after package installation because it provides an update api config file,
-# which determines the current API version and vendor archive to keep.
-/etc/rc.d/rc.unraid-api cleanup-dependencies
-
 if [[ -n "$TAG" && "$TAG" != "" ]]; then
   printf -v sedcmd 's@^\*\*Unraid Connect\*\*@**Unraid Connect (%s)**@' "$TAG"
   sed -i "${sedcmd}" "/usr/local/emhttp/plugins/dynamix.unraid.net/README.md"
 fi
+
+exit 0
+]]>
+    </INLINE>
+  </FILE>
+
+  <!-- port of the old doinst.sh script -->
+  <FILE Run="/bin/bash" Method="install">
+    <INLINE>
+      <![CDATA[
+SCRIPTS_DIR="/usr/local/share/dynamix.unraid.net/install/scripts"
+# Log file for debugging
+LOGFILE="/var/log/unraid-api/dynamix-unraid-install.log"
+mkdir -p "$(dirname "$LOGFILE")"
+
+echo "Starting Unraid Connect installation..."
+# Apply file patches and system configurations
+if [ -x "$SCRIPTS_DIR/file_patches.sh" ]; then
+  echo "Applying system patches and configurations..."
+  echo "Running file_patches.sh" >> "$LOGFILE"
+  # Capture output and add to log file
+  patches_output=$("$SCRIPTS_DIR/file_patches.sh")
+  echo "$patches_output" >> "$LOGFILE"
+else
+  echo "ERROR: file_patches.sh not found or not executable" >> "$LOGFILE"
+fi
+
+# Setup the API (but don't start it yet)
+if [ -x "$SCRIPTS_DIR/setup_api.sh" ]; then
+  echo "Setting up Unraid API..."
+  echo "Running setup_api.sh" >> "$LOGFILE"
+  # Capture output and add to log file
+  setup_output=$("$SCRIPTS_DIR/setup_api.sh")
+  echo "$setup_output" >> "$LOGFILE"
+  
+  # Verify symlinks were created
+  if [ -L "/usr/local/bin/unraid-api" ]; then
+    echo "Symlink created successfully" >> "$LOGFILE"
+  else
+    echo "ERROR: Symlink not created, attempting to create manually" >> "$LOGFILE"
+    # Create the symlink manually as fallback
+    if [ -f "/usr/local/unraid-api/dist/cli.js" ]; then
+      ln -sf "/usr/local/unraid-api/dist/cli.js" "/usr/local/bin/unraid-api"
+      ln -sf "/usr/local/bin/unraid-api" "/usr/local/sbin/unraid-api"
+      ln -sf "/usr/local/bin/unraid-api" "/usr/bin/unraid-api"
+      echo "Manually created symlinks" >> "$LOGFILE"
+    else
+      echo "ERROR: Source file for symlink not found" >> "$LOGFILE"
+    fi
+  fi
+else
+  echo "ERROR: setup_api.sh not found or not executable" >> "$LOGFILE"
+fi
+
+# Run post-installation verification
+if [ -x "$SCRIPTS_DIR/verify_install.sh" ]; then
+  echo "Running post-installation verification..."
+  echo "Running verify_install.sh" >> "$LOGFILE"
+  # Capture output and add to log file
+  verify_output=$("$SCRIPTS_DIR/verify_install.sh")
+  echo "$verify_output" >> "$LOGFILE"
+else
+  echo "ERROR: verify_install.sh not found or not executable" >> "$LOGFILE"
+fi
+
+echo "Installation completed at $(date)" >> "$LOGFILE"
+      ]]>
+    </INLINE>
+  </FILE>
+
+  <!-- start the unraid api service -->
+  <FILE Run="/bin/bash" Method="install">
+    <INLINE>
+      <![CDATA[
+# Clean up any old node_modules archives (on the boot drive) that don't match our current version
+#
+# Must run after package installation because the package provides an update api config file,
+# which determines the current API version and vendor archive to keep.
+/etc/rc.d/rc.unraid-api cleanup-dependencies
 
 echo "Starting Unraid API service"
 /etc/rc.d/rc.unraid-api plugins add unraid-api-plugin-connect -b --no-restart
@@ -260,9 +333,8 @@ echo "Starting Unraid API service"
 echo "Unraid API service started"
 echo "✅ Installation is complete, it is safe to close this window"
 echo
-
 exit 0
-]]>
+      ]]>
     </INLINE>
   </FILE>
 
