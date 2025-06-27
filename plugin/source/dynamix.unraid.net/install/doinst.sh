@@ -8,16 +8,6 @@ INSTALL_MODE="${1:-install}"
 # Use absolute paths for script directory to avoid path resolution issues
 SCRIPTS_DIR="/usr/local/share/dynamix.unraid.net/install/scripts"
 
-# Make sure scripts are executable
-if [ -d "$SCRIPTS_DIR" ]; then
-  chmod +x "$SCRIPTS_DIR"/*.sh
-  echo "Made scripts executable" >> "$LOGFILE"
-else 
-  echo "ERROR: Scripts directory not found: $SCRIPTS_DIR" >> "$LOGFILE"
-  # Create directory structure if it doesn't exist yet
-  mkdir -p "$SCRIPTS_DIR"
-fi
-
 # Process based on installation mode
 if [ "$INSTALL_MODE" = "install" ] || [ "$INSTALL_MODE" = "upgrade" ]; then
   echo "Starting Unraid Connect installation..."
