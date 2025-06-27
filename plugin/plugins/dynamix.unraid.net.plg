@@ -262,16 +262,6 @@ LOGFILE="/var/log/unraid-api/dynamix-unraid-install.log"
 mkdir -p "$(dirname "$LOGFILE")"
 
 echo "Starting Unraid Connect installation..."
-# Apply file patches and system configurations
-if [ -x "$SCRIPTS_DIR/file_patches.sh" ]; then
-  echo "Applying system patches and configurations..."
-  echo "Running file_patches.sh" >> "$LOGFILE"
-  # Capture output and add to log file
-  patches_output=$("$SCRIPTS_DIR/file_patches.sh")
-  echo "$patches_output" >> "$LOGFILE"
-else
-  echo "ERROR: file_patches.sh not found or not executable" >> "$LOGFILE"
-fi
 
 # Setup the API (but don't start it yet)
 if [ -x "$SCRIPTS_DIR/setup_api.sh" ]; then
