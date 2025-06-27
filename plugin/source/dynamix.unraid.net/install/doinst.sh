@@ -71,11 +71,4 @@ if [ "$INSTALL_MODE" = "install" ] || [ "$INSTALL_MODE" = "upgrade" ]; then
   
   echo "Installation completed successfully."
   echo "Installation completed at $(date)" >> "$LOGFILE"
-  
-elif [ "$INSTALL_MODE" = "remove" ]; then
-  echo "Starting Unraid Connect removal..."
-  echo "Starting removal" >> "$LOGFILE"
-  
-  echo "Removal completed successfully."
-  echo "Removal completed at $(date)" >> "$LOGFILE"
 fi
