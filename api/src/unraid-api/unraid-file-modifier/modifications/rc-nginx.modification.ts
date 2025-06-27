@@ -77,6 +77,16 @@ check_remote_access(){
             'for NET in "${!NET_FQDN[@]}"; do'
         );
 
+        // Add robots.txt Access-Control-Allow-Origin header if not already present
+        if (!newContent.includes('#robots.txt any origin')) {
+            newContent = newContent.replace(
+                'location = /robots.txt {',
+                // prettier-ignore
+                `location = /robots.txt {
+\t    add_header Access-Control-Allow-Origin *; #robots.txt any origin`
+            );
+        }
+
         return this.createPatchWithDiff(overridePath ?? this.filePath, fileContent, newContent);
     }
 
@@ -91,6 +101,7 @@ check_remote_access(){
         return {
             shouldApply: shouldApply,
             reason: shouldApply ? 'Unraid version is less than 7.2.0, applying the patch.' : reason,
+            effects: ['nginx:reload'],
         };
     }
 }

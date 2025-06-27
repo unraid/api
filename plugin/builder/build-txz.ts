@@ -187,7 +187,7 @@ const buildTxz = async (validatedEnv: TxzEnv) => {
   // Create the package using the default package name
   await $`${join(startingDir, "scripts/makepkg")} --chown y --compress -${
     validatedEnv.compress
-  } --linkadd n ${txzPath}`;
+  } --linkadd y ${txzPath}`;
   $.verbose = false;
   await cd(startingDir);
 };

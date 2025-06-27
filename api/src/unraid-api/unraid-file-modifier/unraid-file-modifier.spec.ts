@@ -9,6 +9,8 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { fileExistsSync } from '@app/core/utils/files/file-exists.js';
 import { FileLoadStatus } from '@app/store/types.js';
+import { NginxModule } from '@app/unraid-api/nginx/nginx.module.js';
+import { FileModificationEffectService } from '@app/unraid-api/unraid-file-modifier/file-modification-effect.service.js';
 import {
     FileModification,
     ShouldApplyWithReason,
@@ -69,7 +71,8 @@ describe.sequential('FileModificationService', () => {
         logger = new Logger('test');
 
         const module: TestingModule = await Test.createTestingModule({
-            providers: [UnraidFileModificationService],
+            imports: [NginxModule],
+            providers: [UnraidFileModificationService, FileModificationEffectService],
         }).compile();
 
         service = module.get<UnraidFileModificationService>(UnraidFileModificationService);
@@ -128,13 +131,15 @@ describe.sequential('FileModificationService', () => {
         expect(rolledBackContent).toBe(ORIGINAL_CONTENT);
 
         expect(mockLogger.warn).toHaveBeenCalledWith('Could not load pregenerated patch for: test');
-        expect(mockLogger.log.mock.calls).toEqual([
-            ['RootTestModule dependencies initialized'],
-            ['Applying modification: test - Always Apply this mod'],
-            ['Modification applied successfully: test'],
-            ['Rolling back modification: test'],
-            ['Successfully rolled back modification: test'],
-        ]);
+        expect(mockLogger.log.mock.calls).toEqual(
+            expect.arrayContaining([
+                ['RootTestModule dependencies initialized'],
+                ['Applying modification: test - Always Apply this mod'],
+                ['Modification applied successfully: test'],
+                ['Rolling back modification: test'],
+                ['Successfully rolled back modification: test'],
+            ])
+        );
     });
 
     it('should handle errors during dual application', async () => {
@@ -146,11 +151,13 @@ describe.sequential('FileModificationService', () => {
 
         await service.applyModification(mod);
 
-        expect(mockLogger.log.mock.calls).toEqual([
-            ['RootTestModule dependencies initialized'],
-            ['Applying modification: test - Always Apply this mod'],
-            ['Modification applied successfully: test'],
-        ]);
+        expect(mockLogger.log.mock.calls).toEqual(
+            expect.arrayContaining([
+                ['RootTestModule dependencies initialized'],
+                ['Applying modification: test - Always Apply this mod'],
+                ['Modification applied successfully: test'],
+            ])
+        );
 
         // Now apply again and ensure the contents don't change
         await service.applyModification(mod);

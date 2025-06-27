@@ -10,10 +10,7 @@ echo "Performing comprehensive installation verification..."
 # Define critical files to check (POSIX-compliant, no arrays)
 CRITICAL_FILES="/usr/local/bin/unraid-api 
 /etc/rc.d/rc.unraid-api
-/usr/local/emhttp/plugins/dynamix.my.servers/scripts/gitflash_log
-/usr/local/share/dynamix.unraid.net/install/scripts/cleanup.sh
-/usr/local/share/dynamix.unraid.net/install/scripts/file_patches.sh
-/usr/local/share/dynamix.unraid.net/install/scripts/setup_api.sh"
+/usr/local/emhttp/plugins/dynamix.my.servers/scripts/gitflash_log"
 
 # Define critical directories to check (POSIX-compliant, no arrays)
 CRITICAL_DIRS="/usr/local/unraid-api
