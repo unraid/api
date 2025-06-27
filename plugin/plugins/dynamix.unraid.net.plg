@@ -280,22 +280,6 @@ if [ -x "$SCRIPTS_DIR/setup_api.sh" ]; then
   # Capture output and add to log file
   setup_output=$("$SCRIPTS_DIR/setup_api.sh")
   echo "$setup_output" >> "$LOGFILE"
-  
-  # Verify symlinks were created
-  if [ -L "/usr/local/bin/unraid-api" ]; then
-    echo "Symlink created successfully" >> "$LOGFILE"
-  else
-    echo "ERROR: Symlink not created, attempting to create manually" >> "$LOGFILE"
-    # Create the symlink manually as fallback
-    if [ -f "/usr/local/unraid-api/dist/cli.js" ]; then
-      ln -sf "/usr/local/unraid-api/dist/cli.js" "/usr/local/bin/unraid-api"
-      ln -sf "/usr/local/bin/unraid-api" "/usr/local/sbin/unraid-api"
-      ln -sf "/usr/local/bin/unraid-api" "/usr/bin/unraid-api"
-      echo "Manually created symlinks" >> "$LOGFILE"
-    else
-      echo "ERROR: Source file for symlink not found" >> "$LOGFILE"
-    fi
-  fi
 else
   echo "ERROR: setup_api.sh not found or not executable" >> "$LOGFILE"
 fi
