@@ -106,7 +106,8 @@ export abstract class FileModification {
         const currentContent = await readFile(this.filePath, 'utf8').catch(() => '');
         const parsedPatch = parsePatch(patchContents)[0];
         if (!parsedPatch?.hunks.length) {
-            throw new Error('Invalid Patch Format: No hunks found');
+            this.logger.warn(`Invalid Patch Format: No hunks found for ${this.filePath}`);
+            return currentContent;
         }
 
         const results = applyPatch(currentContent, parsedPatch);
