@@ -5,7 +5,6 @@ import { NetworkResolver } from '../resolver/network.resolver.js';
 import { ConnectConfigService } from '../service/connect-config.service.js';
 import { DnsService } from '../service/dns.service.js';
 import { NetworkService } from '../service/network.service.js';
-import { NginxService } from '../service/nginx.service.js';
 import { UpnpService } from '../service/upnp.service.js';
 import { UrlResolverService } from '../service/url-resolver.service.js';
 
@@ -17,7 +16,6 @@ import { UrlResolverService } from '../service/url-resolver.service.js';
         UpnpService,
         UrlResolverService,
         DnsService,
-        NginxService,
         ConnectConfigService,
     ],
     exports: [
@@ -26,7 +24,6 @@ import { UrlResolverService } from '../service/url-resolver.service.js';
         UpnpService,
         UrlResolverService,
         DnsService,
-        NginxService,
         ConnectConfigService,
     ],
 })

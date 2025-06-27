@@ -1,13 +1,16 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
+
+import { NginxService } from '@unraid/shared/services/nginx.js';
+import { NGINX_SERVICE_TOKEN } from '@unraid/shared/tokens.js';
 
 import { ConnectConfigService } from './connect-config.service.js';
 import { DnsService } from './dns.service.js';
-import { NginxService } from './nginx.service.js';
 import { UrlResolverService } from './url-resolver.service.js';
 
 @Injectable()
 export class NetworkService {
     constructor(
+        @Inject(NGINX_SERVICE_TOKEN)
         private readonly nginxService: NginxService,
         private readonly dnsService: DnsService,
         private readonly urlResolverService: UrlResolverService,
