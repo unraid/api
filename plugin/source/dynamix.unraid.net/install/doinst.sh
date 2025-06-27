@@ -6,17 +6,18 @@ backup_file_if_exists() {
   fi
 }
 
-chmod 755 etc/rc.d/rc6.d/K*unraid-api
-chmod 755 etc/rc.d/rc6.d/K*flash-backup
+for f in etc/rc.d/rc6.d/K*unraid-api etc/rc.d/rc6.d/K*flash-backup; do
+  [ -e "$f" ] && chmod 755 "$f"
+done
 
 chmod +x usr/local/unraid-api/dist/cli.js
 chmod +x usr/local/unraid-api/dist/main.js
 
 rm -rf usr/local/bin/unraid-api
-ln -sf usr/local/unraid-api/dist/cli.js usr/local/bin/unraid-api
+ln -sf ../unraid-api/dist/cli.js usr/local/bin/unraid-api
 # deprecated
-ln -sf usr/local/bin/unraid-api usr/local/sbin/unraid-api
-ln -sf usr/local/bin/unraid-api usr/bin/unraid-api
+ln -sf ../bin/unraid-api usr/local/sbin/unraid-api
+ln -sf ../local/bin/unraid-api usr/bin/unraid-api
 
 # By default, we want to overwrite the active api-specific .env configuration on every install.
 # We keep a backup in case a user needs to revert to their prior configuration.
