@@ -8,13 +8,6 @@ INSTALL_MODE="${1:-install}"
 # Use absolute paths for script directory to avoid path resolution issues
 SCRIPTS_DIR="/usr/local/share/dynamix.unraid.net/install/scripts"
 
-# Log file for debugging
-LOGFILE="/var/log/unraid-api/dynamix-unraid-install.log"
-mkdir -p "$(dirname "$LOGFILE")"
-date > "$LOGFILE"
-echo "Starting installation with mode: $INSTALL_MODE" >> "$LOGFILE"
-echo "Script directory: $SCRIPTS_DIR" >> "$LOGFILE"
-
 # Make sure scripts are executable
 if [ -d "$SCRIPTS_DIR" ]; then
   chmod +x "$SCRIPTS_DIR"/*.sh
