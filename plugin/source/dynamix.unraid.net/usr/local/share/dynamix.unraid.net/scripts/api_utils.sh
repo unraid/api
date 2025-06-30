@@ -4,6 +4,7 @@
 
 # Default paths
 CONFIG_FILE="/usr/local/share/dynamix.unraid.net/config/vendor_archive.json"
+API_CONFIG_HOME="/boot/config/plugins/dynamix.my.servers/configs"
 
 # Get API version from config file
 # Returns the API version string or empty if not found
@@ -66,7 +67,7 @@ get_archive_information() {
 # Returns 0 if enabled, 1 if not enabled or error
 is_api_plugin_enabled() {
   local plugin_name="$1"
-  local api_config_path="/boot/config/plugins/dynamix.my.servers/configs/api.json"
+  local api_config_path="$API_CONFIG_HOME/api.json"
 
   # Check if plugin name is provided
   if [ -z "$plugin_name" ]; then
