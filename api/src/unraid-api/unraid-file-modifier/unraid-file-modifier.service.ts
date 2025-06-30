@@ -37,7 +37,12 @@ export class UnraidFileModificationService
 
     async onApplicationBootstrap() {
         for (const effect of this.effects) {
-            await this.effectService.runEffect(effect);
+            try {
+                await this.effectService.runEffect(effect);
+                this.logger.log(`Applied effect: ${effect}`);
+            } catch (err) {
+                this.logger.error(err, `Failed to apply effect: ${effect}`);
+            }
         }
     }
 
