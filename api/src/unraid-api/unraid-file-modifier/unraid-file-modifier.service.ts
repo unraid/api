@@ -1,11 +1,24 @@
-import { Injectable, Logger, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
+import {
+    Injectable,
+    Logger,
+    OnApplicationBootstrap,
+    OnModuleDestroy,
+    OnModuleInit,
+} from '@nestjs/common';
 
+import type { ModificationEffect } from '@app/unraid-api/unraid-file-modifier/file-modification.js';
+import { FileModificationEffectService } from '@app/unraid-api/unraid-file-modifier/file-modification-effect.service.js';
 import { FileModification } from '@app/unraid-api/unraid-file-modifier/file-modification.js';
 
 @Injectable()
-export class UnraidFileModificationService implements OnModuleInit, OnModuleDestroy {
+export class UnraidFileModificationService
+    implements OnModuleInit, OnModuleDestroy, OnApplicationBootstrap
+{
     private readonly logger = new Logger(UnraidFileModificationService.name);
     private appliedModifications: FileModification[] = [];
+    private effects: Set<ModificationEffect> = new Set();
+
+    constructor(private readonly effectService: FileModificationEffectService) {}
 
     /**
      * Load and apply all modifications on module init
@@ -19,6 +32,17 @@ export class UnraidFileModificationService implements OnModuleInit, OnModuleDest
             this.logger.error(
                 `Failed to apply modifications: ${err instanceof Error ? err.message : 'Unknown error'}`
             );
+        }
+    }
+
+    async onApplicationBootstrap() {
+        for (const effect of this.effects) {
+            try {
+                await this.effectService.runEffect(effect);
+                this.logger.log(`Applied effect: ${effect}`);
+            } catch (err) {
+                this.logger.error(err, `Failed to apply effect: ${effect}`);
+            }
         }
     }
 
@@ -93,6 +117,7 @@ export class UnraidFileModificationService implements OnModuleInit, OnModuleDest
                 );
                 await modification.apply();
                 this.appliedModifications.push(modification);
+                shouldApplyWithReason.effects?.forEach((effect) => this.effects.add(effect));
                 this.logger.log(`Modification applied successfully: ${modification.id}`);
             } else {
                 this.logger.log(
