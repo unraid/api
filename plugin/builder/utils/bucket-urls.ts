@@ -13,9 +13,7 @@ interface UrlParams {
   tag?: string;
 }
 
-interface TxzUrlParams extends UrlParams, TxzNameParams {
-  apiVersion: string;
-}
+interface TxzUrlParams extends UrlParams, TxzNameParams {}
 
 /**
  * Get the bucket path for the given tag
