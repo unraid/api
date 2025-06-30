@@ -158,7 +158,7 @@ const buildTxz = async (validatedEnv: TxzEnv) => {
   const version = validatedEnv.apiVersion;
   
   // Always use version when getting txz name
-  const txzName = getTxzName(version);
+  const txzName = getTxzName({ version, build: validatedEnv.buildNumber.toString() });
   console.log(`Package name: ${txzName}`);
   const txzPath = join(validatedEnv.txzOutputDir, txzName);
   

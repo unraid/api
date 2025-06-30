@@ -4,15 +4,14 @@ import {
   pluginName,
   pluginNameWithExt,
   startingDir,
+  TxzNameParams,
 } from "./consts";
 
 export interface PathConfig {
   startingDir: string;
 }
 
-export interface TxzPathConfig extends PathConfig {
-  pluginVersion?: string;
-}
+export interface TxzPathConfig extends PathConfig, TxzNameParams {}
 
 export const deployDir = "deploy" as const;
 
@@ -53,7 +52,8 @@ export function getDeployPluginPath({ startingDir }: PathConfig): string {
  */
 export function getTxzPath({
   startingDir,
-  pluginVersion,
+  version,
+  build,
 }: TxzPathConfig): string {
-  return join(startingDir, deployDir, getTxzName(pluginVersion));
+  return join(startingDir, deployDir, getTxzName({ version, build }));
 }

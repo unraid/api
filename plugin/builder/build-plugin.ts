@@ -25,8 +25,8 @@ const checkGit = async () => {
   }
 };
 
-const moveTxzFile = async ({txzPath, apiVersion}: Pick<PluginEnv, "txzPath" | "apiVersion">) => {
-  const txzName = getTxzName(apiVersion);
+const moveTxzFile = async ({txzPath, apiVersion, buildNumber}: Pick<PluginEnv, "txzPath" | "apiVersion" | "buildNumber">) => {
+  const txzName = getTxzName({version: apiVersion, build: buildNumber.toString()});
   const targetPath = join(deployDir, txzName);
   
   // Ensure the txz always has the full version name
@@ -54,6 +54,7 @@ function updateEntityValue(
 const buildPlugin = async ({
   pluginVersion,
   baseUrl,
+  buildNumber,
   tag,
   txzSha256,
   releaseNotes,
@@ -72,9 +73,9 @@ const buildPlugin = async ({
     arch: defaultArch,
     build: defaultBuild,
     plugin_url: getPluginUrl({ baseUrl, tag }),
-    txz_url: getMainTxzUrl({ baseUrl, apiVersion, tag }),
+    txz_url: getMainTxzUrl({ baseUrl, apiVersion, tag, build: buildNumber.toString() }),
     txz_sha256: txzSha256,
-    txz_name: getTxzName(apiVersion),
+    txz_name: getTxzName({version: apiVersion, build: buildNumber.toString()}),
     ...(tag ? { tag } : {}),
   };
 
