@@ -1,11 +1,7 @@
-import { ConfigService } from '@nestjs/config';
-import { EventEmitter2 } from '@nestjs/event-emitter';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { MothershipGraphqlClientService } from '../service/graphql.client.js';
-import { MothershipConnectionService } from '../service/connection.service.js';
 import { MinigraphStatus } from '../model/connect-config.model.js';
-import { EVENTS } from '../helper/nest-tokens.js';
 
 // Mock only the WebSocket client creation, not the Apollo Client error handling
 vi.mock('graphql-ws', () => ({
