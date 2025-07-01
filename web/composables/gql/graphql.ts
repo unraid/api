@@ -487,14 +487,8 @@ export type ConnectSettingsValues = {
 };
 
 export type ConnectSignInInput = {
-  /** The access token for authentication */
-  accessToken?: InputMaybe<Scalars['String']['input']>;
   /** The API key for authentication */
   apiKey: Scalars['String']['input'];
-  /** The ID token for authentication */
-  idToken?: InputMaybe<Scalars['String']['input']>;
-  /** The refresh token for authentication */
-  refreshToken?: InputMaybe<Scalars['String']['input']>;
   /** User information for the sign-in */
   userInfo?: InputMaybe<ConnectUserInfoInput>;
 };
@@ -1599,9 +1593,9 @@ export enum Temperature {
 export type Theme = {
   __typename?: 'Theme';
   /** The background color of the header */
-  headerBackgroundColor: Scalars['String']['output'];
+  headerBackgroundColor?: Maybe<Scalars['String']['output']>;
   /** The text color of the header */
-  headerPrimaryTextColor: Scalars['String']['output'];
+  headerPrimaryTextColor?: Maybe<Scalars['String']['output']>;
   /** The secondary text color of the header */
   headerSecondaryTextColor?: Maybe<Scalars['String']['output']>;
   /** The theme name */
@@ -2218,7 +2212,7 @@ export type ServerStateQuery = { __typename?: 'Query', cloud: (
 export type GetThemeQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type GetThemeQuery = { __typename?: 'Query', publicTheme: { __typename?: 'Theme', name: ThemeName, showBannerImage: boolean, showBannerGradient: boolean, headerBackgroundColor: string, showHeaderDescription: boolean, headerPrimaryTextColor: string, headerSecondaryTextColor?: string | null } };
+export type GetThemeQuery = { __typename?: 'Query', publicTheme: { __typename?: 'Theme', name: ThemeName, showBannerImage: boolean, showBannerGradient: boolean, headerBackgroundColor?: string | null, showHeaderDescription: boolean, headerPrimaryTextColor?: string | null, headerSecondaryTextColor?: string | null } };
 
 export const ApiKeyFragmentDoc = {"kind":"Document","definitions":[{"kind":"FragmentDefinition","name":{"kind":"Name","value":"ApiKey"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"ApiKey"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"description"}},{"kind":"Field","name":{"kind":"Name","value":"createdAt"}},{"kind":"Field","name":{"kind":"Name","value":"roles"}},{"kind":"Field","name":{"kind":"Name","value":"permissions"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"resource"}},{"kind":"Field","name":{"kind":"Name","value":"actions"}}]}}]}}]} as unknown as DocumentNode<ApiKeyFragment, unknown>;
 export const ApiKeyWithKeyFragmentDoc = {"kind":"Document","definitions":[{"kind":"FragmentDefinition","name":{"kind":"Name","value":"ApiKeyWithKey"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"ApiKeyWithSecret"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"key"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"description"}},{"kind":"Field","name":{"kind":"Name","value":"createdAt"}},{"kind":"Field","name":{"kind":"Name","value":"roles"}},{"kind":"Field","name":{"kind":"Name","value":"permissions"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"resource"}},{"kind":"Field","name":{"kind":"Name","value":"actions"}}]}}]}}]} as unknown as DocumentNode<ApiKeyWithKeyFragment, unknown>;

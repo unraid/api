@@ -1,8 +1,9 @@
 import { ConfigService } from '@nestjs/config';
+
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { ConnectConfigPersister } from '../service/config.persistence.js';
 import { ConfigType } from '../model/connect-config.model.js';
+import { ConnectConfigPersister } from '../service/config.persistence.js';
 
 describe('ConnectConfigPersister', () => {
     let service: ConnectConfigPersister;
@@ -79,8 +80,8 @@ ssoSubIds="user1,user2"
                     idtoken: '',
                     refreshtoken: '',
                     dynamicRemoteAccessType: 'DISABLED',
-                    ssoSubIds: ''
-                }
+                    ssoSubIds: '',
+                },
             } as any;
 
             const result = await service.convertLegacyConfig(legacyConfig);
@@ -106,8 +107,8 @@ ssoSubIds="user1,user2"
                     idtoken: '',
                     refreshtoken: '',
                     dynamicRemoteAccessType: 'DISABLED',
-                    ssoSubIds: ''
-                }
+                    ssoSubIds: '',
+                },
             } as any;
 
             const result = await service.convertLegacyConfig(legacyConfig);
@@ -133,8 +134,8 @@ ssoSubIds="user1,user2"
                     idtoken: '',
                     refreshtoken: '',
                     dynamicRemoteAccessType: 'DISABLED',
-                    ssoSubIds: ''
-                }
+                    ssoSubIds: '',
+                },
             } as any;
 
             const result = await service.convertLegacyConfig(legacyConfig);
@@ -161,8 +162,8 @@ ssoSubIds="user1,user2"
                     idtoken: '',
                     refreshtoken: '',
                     dynamicRemoteAccessType: 'DISABLED',
-                    ssoSubIds: ''
-                }
+                    ssoSubIds: '',
+                },
             } as any;
 
             const result = await service.convertLegacyConfig(legacyConfig);
@@ -188,8 +189,8 @@ ssoSubIds="user1,user2"
                     idtoken: '',
                     refreshtoken: '',
                     dynamicRemoteAccessType: 'DISABLED',
-                    ssoSubIds: ''
-                }
+                    ssoSubIds: '',
+                },
             } as any;
 
             const result = await service.convertLegacyConfig(legacyConfig);
@@ -215,20 +216,22 @@ ssoSubIds="user1,user2"
                     idtoken: '',
                     refreshtoken: '',
                     dynamicRemoteAccessType: 'DISABLED',
-                    ssoSubIds: ''
-                }
+                    ssoSubIds: '',
+                },
             } as any;
 
             const result = await service.convertLegacyConfig(legacyConfig);
 
-            expect(result.apikey).toBe('unraid_sfHboeSNzTzx24816QBssqi0A3nIT0f4Xg4c9Ht49WQfQKLMojU81Sb3f');
-            expect(result.localApiKey).toBe('101d204832d24fc7e5d387f6fce47067ba230f8aa0ac3bcc6c12a415aa27dbd9');
+            expect(result.apikey).toBe(
+                'unraid_sfHboeSNzTzx24816QBssqi0A3nIT0f4Xg4c9Ht49WQfQKLMojU81Sb3f'
+            );
+            expect(result.localApiKey).toBe(
+                '101d204832d24fc7e5d387f6fce47067ba230f8aa0ac3bcc6c12a415aa27dbd9'
+            );
             expect(result.email).toBe('pujitm2009@gmail.com');
             expect(result.username).toBe('pujitm2009@gmail.com');
             expect(result.avatar).toBe('');
         });
-
-
 
         it('should merge all sections (api, local, remote) into single config object', async () => {
             const legacyConfig = {
@@ -248,8 +251,8 @@ ssoSubIds="user1,user2"
                     idtoken: 'id_token_value',
                     refreshtoken: 'refresh_token_value',
                     dynamicRemoteAccessType: 'UPNP',
-                    ssoSubIds: 'sub1,sub2'
-                }
+                    ssoSubIds: 'sub1,sub2',
+                },
             } as any;
 
             const result = await service.convertLegacyConfig(legacyConfig);
@@ -284,8 +287,8 @@ ssoSubIds="user1,user2"
                     idtoken: '',
                     refreshtoken: '',
                     dynamicRemoteAccessType: 'DISABLED',
-                    ssoSubIds: ''
-                }
+                    ssoSubIds: '',
+                },
             } as any;
 
             await expect(service.convertLegacyConfig(legacyConfig)).rejects.toThrow();
@@ -317,7 +320,7 @@ ssoSubIds="sub1,sub2"
 
             // Parse the INI content
             const legacyConfig = service.parseLegacyConfig(iniContent);
-            
+
             // Convert to new format
             const result = await service.convertLegacyConfig(legacyConfig);
 
@@ -327,4 +330,4 @@ ssoSubIds="sub1,sub2"
             expect(result.upnpEnabled).toBe(true);
         });
     });
-}); 
+});

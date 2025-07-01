@@ -150,7 +150,7 @@ export class ConnectSettingsService {
     async signIn(input: ConnectSignInInput) {
         const status = this.configService.get('store.emhttp.status');
         if (status === 'LOADED') {
-            const userInfo = input.idToken ? decodeJwt(input.idToken) : (input.userInfo ?? null);
+            const userInfo = input.userInfo ?? null;
 
             if (
                 !userInfo ||

@@ -93,11 +93,6 @@ export class ConnectSignInInput {
     @MinLength(5)
     apiKey!: string;
 
-    @Field(() => String, { nullable: true, description: 'The ID token for authentication' })
-    @IsString()
-    @IsOptional()
-    idToken?: string;
-
     @Field(() => ConnectUserInfoInput, {
         nullable: true,
         description: 'User information for the sign-in',
@@ -105,16 +100,6 @@ export class ConnectSignInInput {
     @ValidateNested()
     @IsOptional()
     userInfo?: ConnectUserInfoInput;
-
-    @Field(() => String, { nullable: true, description: 'The access token for authentication' })
-    @IsString()
-    @IsOptional()
-    accessToken?: string;
-
-    @Field(() => String, { nullable: true, description: 'The refresh token for authentication' })
-    @IsString()
-    @IsOptional()
-    refreshToken?: string;
 }
 
 @InputType()
