@@ -4,6 +4,10 @@
 default:
     @just --list
 
+# Watch for changes in src files and run clean + build
+watch:
+    watchexec -r -e ts,tsx -w src -- pnpm build
+
 # Count TypeScript lines in src directory, excluding test and generated files
 count-lines:
     #!/usr/bin/env bash
