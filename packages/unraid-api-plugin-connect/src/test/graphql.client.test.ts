@@ -68,56 +68,47 @@ describe('MothershipGraphqlClientService', () => {
     });
 
     describe('isInvalidApiKeyError', () => {
-        it('should identify API key invalid errors correctly', () => {
-            const validApiKeyError = {
-                message: 'API Key Invalid with error No user found',
-            };
-
-            const malformedGraphQlError = {
-                message: '"error" message expects the \'payload\' property to be an array of GraphQL errors, but got "API Key Invalid with error No user found"',
-            };
-
-            const otherError = {
-                message: 'Network connection failed',
-            };
-
-            // Use reflection to access private method
+        it.each([
+            {
+                description: 'standard API key error',
+                error: { message: 'API Key Invalid with error No user found' },
+                expected: true,
+            },
+            {
+                description: 'simple API key error',
+                error: { message: 'API Key Invalid' },
+                expected: true,
+            },
+            {
+                description: 'API key error within other text',
+                error: { message: 'Something else API Key Invalid something' },
+                expected: true,
+            },
+            {
+                description: 'malformed GraphQL error with API key message',
+                error: {
+                    message: '"error" message expects the \'payload\' property to be an array of GraphQL errors, but got "API Key Invalid with error No user found"',
+                },
+                expected: true,
+            },
+            {
+                description: 'non-API key error',
+                error: { message: 'Network connection failed' },
+                expected: false,
+            },
+            {
+                description: 'null error',
+                error: null,
+                expected: false,
+            },
+            {
+                description: 'empty error object',
+                error: {},
+                expected: false,
+            },
+        ])('should identify $description correctly', ({ error, expected }) => {
             const isInvalidApiKeyError = (service as any).isInvalidApiKeyError.bind(service);
-
-            expect(isInvalidApiKeyError(validApiKeyError)).toBe(true);
-            expect(isInvalidApiKeyError(malformedGraphQlError)).toBe(true);
-            expect(isInvalidApiKeyError(otherError)).toBe(false);
-            expect(isInvalidApiKeyError(null)).toBe(false);
-            expect(isInvalidApiKeyError({})).toBe(false);
-        });
-    });
-
-    describe('error handling and logout behavior', () => {
-        it('should detect malformed GraphQL error with API Key Invalid', () => {
-            const malformedError = {
-                message: '"error" message expects the \'payload\' property to be an array of GraphQL errors, but got "API Key Invalid with error No user found"',
-            };
-
-            const isInvalidApiKeyError = (service as any).isInvalidApiKeyError.bind(service);
-            expect(isInvalidApiKeyError(malformedError)).toBe(true);
-        });
-
-        it('should detect standard API Key Invalid error', () => {
-            const apiKeyError = {
-                message: 'API Key Invalid with error No user found',
-            };
-
-            const isInvalidApiKeyError = (service as any).isInvalidApiKeyError.bind(service);
-            expect(isInvalidApiKeyError(apiKeyError)).toBe(true);
-        });
-
-        it('should not detect non-API key errors as API key errors', () => {
-            const networkError = {
-                message: 'Connection timeout',
-            };
-
-            const isInvalidApiKeyError = (service as any).isInvalidApiKeyError.bind(service);
-            expect(isInvalidApiKeyError(networkError)).toBe(false);
+            expect(isInvalidApiKeyError(error)).toBe(expected);
         });
     });
 
@@ -167,70 +158,3 @@ describe('MothershipGraphqlClientService', () => {
         });
     });
 });
-
-// Integration test for the actual error scenario from the logs
-describe('MothershipGraphqlClientService Integration', () => {
-    let service: MothershipGraphqlClientService;
-    let mockEventEmitter: any;
-
-    beforeEach(() => {
-        const mockConfigService = {
-            getOrThrow: vi.fn((key: string) => {
-                switch (key) {
-                    case 'API_VERSION':
-                        return '4.8.0+test';
-                    case 'MOTHERSHIP_GRAPHQL_LINK':
-                        return 'https://mothership.unraid.net/ws';
-                    default:
-                        throw new Error(`Unknown config key: ${key}`);
-                }
-            }),
-            set: vi.fn(),
-        };
-
-        const mockConnectionService = {
-            getIdentityState: vi.fn().mockReturnValue({ isLoaded: false }), // Prevent client creation
-            getWebsocketConnectionParams: vi.fn().mockReturnValue({}),
-            getMothershipWebsocketHeaders: vi.fn().mockReturnValue({}),
-            getConnectionState: vi.fn().mockReturnValue({ status: MinigraphStatus.CONNECTED }),
-            setConnectionStatus: vi.fn(),
-            receivePing: vi.fn(),
-        };
-
-        mockEventEmitter = {
-            emit: vi.fn(),
-        };
-
-        service = new MothershipGraphqlClientService(
-            mockConfigService as any,
-            mockConnectionService as any,
-            mockEventEmitter as any
-        );
-    });
-
-    it('should correctly identify the exact error from the logs as an API key error', () => {
-        const logError = {
-            message: '"error" message expects the \'payload\' property to be an array of GraphQL errors, but got "API Key Invalid with error No user found"',
-        };
-
-        const isInvalidApiKeyError = (service as any).isInvalidApiKeyError.bind(service);
-        
-        // This is the core test - ensure the exact error from your logs is identified correctly
-        expect(isInvalidApiKeyError(logError)).toBe(true);
-    });
-
-    it('should identify various forms of API key errors', () => {
-        const isInvalidApiKeyError = (service as any).isInvalidApiKeyError.bind(service);
-        
-        const errors = [
-            { message: 'API Key Invalid with error No user found' },
-            { message: 'API Key Invalid' },
-            { message: 'Something else API Key Invalid something' },
-            { message: '"error" message expects the \'payload\' property to be an array of GraphQL errors, but got "API Key Invalid with error No user found"' },
-        ];
-
-        errors.forEach(error => {
-            expect(isInvalidApiKeyError(error)).toBe(true);
-        });
-    });
-}); 
