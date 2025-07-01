@@ -1666,6 +1666,7 @@ type Query {
   disk(id: PrefixedID!): Disk!
   rclone: RCloneBackupSettings!
   settings: Settings!
+  isSSOEnabled: Boolean!
 
   """List all installed plugins with their metadata"""
   plugins: [Plugin!]!
