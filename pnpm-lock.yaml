@@ -21504,6 +21504,8 @@ snapshots:
     dependencies:
       tabbable: 6.2.0
 
+  follow-redirects@1.15.9: {}
+
   follow-redirects@1.15.9(debug@4.3.7):
     optionalDependencies:
       debug: 4.3.7
@@ -22176,7 +22178,7 @@ snapshots:
   http-proxy@1.18.1:
     dependencies:
       eventemitter3: 4.0.7
-      follow-redirects: 1.15.9(debug@4.3.7)
+      follow-redirects: 1.15.9
       requires-port: 1.0.0
     transitivePeerDependencies:
       - debug
