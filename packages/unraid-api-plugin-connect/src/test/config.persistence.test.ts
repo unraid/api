@@ -263,9 +263,6 @@ ssoSubIds="user1,user2"
             expect(result.username).toBe('testuser');
             expect(result.avatar).toBe('https://avatar.url');
             expect(result.regWizTime).toBe('2023-01-01T00:00:00Z');
-            expect(result.accesstoken).toBe('access_token_value');
-            expect(result.idtoken).toBe('id_token_value');
-            expect(result.refreshtoken).toBe('refresh_token_value');
             expect(result.dynamicRemoteAccessType).toBe('UPNP');
         });
 

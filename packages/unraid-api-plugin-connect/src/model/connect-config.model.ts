@@ -74,19 +74,6 @@ export class MyServersConfig {
     @IsString()
     regWizTime!: string;
 
-    // Authentication Tokens
-    @Field(() => String)
-    @IsString()
-    accesstoken!: string;
-
-    @Field(() => String)
-    @IsString()
-    idtoken!: string;
-
-    @Field(() => String)
-    @IsString()
-    refreshtoken!: string;
-
     // Remote Access Settings
     @Field(() => DynamicRemoteAccessType)
     @IsEnum(DynamicRemoteAccessType)
@@ -211,9 +198,6 @@ export const emptyMyServersConfig = (): MyServersConfig => ({
     username: '',
     avatar: '',
     regWizTime: '',
-    accesstoken: '',
-    idtoken: '',
-    refreshtoken: '',
     dynamicRemoteAccessType: DynamicRemoteAccessType.DISABLED,
 });
 
