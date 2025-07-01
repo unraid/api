@@ -80,7 +80,7 @@ export class ConnectConfigPersister implements OnModuleInit, OnModuleDestroy {
      * @param config - The config object to validate.
      * @returns The validated config instance.
      */
-    private async validate(config: object) {
+    public async validate(config: object) {
         let instance: MyServersConfig;
         if (config instanceof MyServersConfig) {
             instance = config;
