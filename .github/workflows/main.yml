@@ -156,6 +156,8 @@ jobs:
   build-api:
     name: Build API
     runs-on: ubuntu-latest
+    outputs:
+      build_number: ${{ steps.buildnumber.outputs.build_number }}
     defaults:
       run:
         working-directory: api
@@ -210,6 +212,14 @@ jobs:
           API_VERSION=$([[ -n "$IS_TAGGED" ]] && echo "$PACKAGE_LOCK_VERSION" || echo "${PACKAGE_LOCK_VERSION}+${GIT_SHA}")
           export API_VERSION
           echo "API_VERSION=${API_VERSION}" >> $GITHUB_ENV
+          echo "PACKAGE_LOCK_VERSION=${PACKAGE_LOCK_VERSION}" >> $GITHUB_OUTPUT
+
+      - name: Generate build number
+        id: buildnumber
+        uses: onyxmueller/build-tag-number@v1
+        with:
+          token: ${{secrets.github_token}}
+          prefix: ${{steps.vars.outputs.PACKAGE_LOCK_VERSION}}
 
       - name: Build
         run: |
@@ -365,6 +375,7 @@ jobs:
       TAG: ${{ github.event.pull_request.number && format('PR{0}', github.event.pull_request.number) || '' }}
       BUCKET_PATH: ${{ github.event.pull_request.number && format('unraid-api/tag/PR{0}', github.event.pull_request.number) || 'unraid-api' }}
       BASE_URL: "https://preview.dl.unraid.net/unraid-api"
+      BUILD_NUMBER: ${{ needs.build-api.outputs.build_number }}
     secrets:
       CF_ACCESS_KEY_ID: ${{ secrets.CF_ACCESS_KEY_ID }}
       CF_SECRET_ACCESS_KEY: ${{ secrets.CF_SECRET_ACCESS_KEY }}
@@ -387,6 +398,7 @@ jobs:
       TAG: ""
       BUCKET_PATH: unraid-api
       BASE_URL: "https://stable.dl.unraid.net/unraid-api"
+      BUILD_NUMBER: ${{ needs.build-api.outputs.build_number }}
     secrets:
       CF_ACCESS_KEY_ID: ${{ secrets.CF_ACCESS_KEY_ID }}
       CF_SECRET_ACCESS_KEY: ${{ secrets.CF_SECRET_ACCESS_KEY }}

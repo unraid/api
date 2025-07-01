@@ -1,4 +1,11 @@
-import { getTxzName, LOCAL_BUILD_TAG, pluginNameWithExt, defaultArch, defaultBuild } from "./consts";
+import {
+  getTxzName,
+  LOCAL_BUILD_TAG,
+  pluginNameWithExt,
+  defaultArch,
+  defaultBuild,
+  TxzNameParams,
+} from "./consts";
 
 // Define a common interface for URL parameters
 interface UrlParams {
@@ -6,9 +13,7 @@ interface UrlParams {
   tag?: string;
 }
 
-interface TxzUrlParams extends UrlParams {
-  apiVersion: string;
-}
+interface TxzUrlParams extends UrlParams, TxzNameParams {}
 
 /**
  * Get the bucket path for the given tag
@@ -47,4 +52,4 @@ export const getPluginUrl = (params: UrlParams): string =>
  * ex. returns = BASE_URL/TAG/dynamix.unraid.net-4.1.3-x86_64-1.txz
  */
 export const getMainTxzUrl = (params: TxzUrlParams): string =>
-  getAssetUrl(params, getTxzName(params.apiVersion, defaultArch, defaultBuild));
+  getAssetUrl(params, getTxzName(params));

@@ -10,6 +10,8 @@ export const baseEnvSchema = z.object({
   apiVersion: z.string(),
   baseUrl: z.string().url(),
   tag: z.string().optional().default(""),
+  /** i.e. Slackware build number */
+  buildNumber: z.coerce.number().int().default(1),
 });
 
 export type BaseEnv = z.infer<typeof baseEnvSchema>;
@@ -43,5 +45,6 @@ export const addCommonOptions = (program: Command) => {
       "--tag <tag>",
       "Tag (used for PR and staging builds)",
       process.env.TAG
-    );
+    )
+    .option("--build-number <number>", "Build number");
 };

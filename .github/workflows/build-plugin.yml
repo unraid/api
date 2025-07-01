@@ -23,6 +23,10 @@ on:
         type: string
         required: true
         description: "Base URL for the plugin builds"
+      BUILD_NUMBER:
+        type: string
+        required: true
+        description: "Build number for the plugin builds"
     secrets:
       CF_ACCESS_KEY_ID:
         required: true
@@ -108,8 +112,8 @@ jobs:
         id: build-plugin
         run: |
           cd ${{ github.workspace }}/plugin
-          pnpm run build:txz --tag="${{ inputs.TAG }}" --base-url="${{ inputs.BASE_URL }}" --api-version="${{ steps.vars.outputs.API_VERSION }}"
-          pnpm run build:plugin --tag="${{ inputs.TAG }}" --base-url="${{ inputs.BASE_URL }}" --api-version="${{ steps.vars.outputs.API_VERSION }}"
+          pnpm run build:txz --tag="${{ inputs.TAG }}" --base-url="${{ inputs.BASE_URL }}" --api-version="${{ steps.vars.outputs.API_VERSION }}" --build-number="${{ inputs.BUILD_NUMBER }}"
+          pnpm run build:plugin --tag="${{ inputs.TAG }}" --base-url="${{ inputs.BASE_URL }}" --api-version="${{ steps.vars.outputs.API_VERSION }}" --build-number="${{ inputs.BUILD_NUMBER }}"
 
       - name: Ensure Plugin Files Exist
         run: |
