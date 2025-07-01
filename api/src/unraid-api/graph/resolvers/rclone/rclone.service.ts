@@ -48,7 +48,13 @@ export class RCloneService {
      */
     async onModuleInit(): Promise<void> {
         try {
-            await this.loadProviderInfo();
+            if (!this.rcloneApiService.initialized) {
+                this.logger.warn(
+                    'RClone API service is not initialized, skipping provider info loading'
+                );
+            } else {
+                await this.loadProviderInfo();
+            }
         } catch (error) {
             this.logger.error(`Failed to initialize RcloneBackupSettingsService: ${error}`);
         }
