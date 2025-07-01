@@ -95,3 +95,18 @@ class ApiConfig
         return !empty($version) ? $version : 'unknown';
     }
 }
+
+
+class ApiUserConfig {
+    public const CONFIG_PATH = '/boot/config/plugins/dynamix.my.servers/configs/api.json';
+
+    public static function getConfig() {
+        $config = json_decode(file_get_contents(self::CONFIG_PATH), true);
+        return $config;
+    }
+
+    public static function isSSOEnabled() {
+        $config = self::getConfig();
+        return !empty($config['ssoSubIds'] ?? '');
+    }
+}
