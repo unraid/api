@@ -2,7 +2,13 @@ import { readFile, writeFile, mkdir, rename } from "fs/promises";
 import { $ } from "zx";
 import { escape as escapeHtml } from "html-sloppy-escaper";
 import { dirname, join } from "node:path";
-import { getTxzName, pluginName, startingDir, defaultArch, defaultBuild } from "./utils/consts";
+import {
+  getTxzName,
+  pluginName,
+  startingDir,
+  defaultArch,
+  defaultBuild,
+} from "./utils/consts";
 import { getPluginUrl } from "./utils/bucket-urls";
 import { getMainTxzUrl } from "./utils/bucket-urls";
 import {
@@ -25,10 +31,17 @@ const checkGit = async () => {
   }
 };
 
-const moveTxzFile = async ({txzPath, apiVersion}: Pick<PluginEnv, "txzPath" | "apiVersion">) => {
-  const txzName = getTxzName(apiVersion);
+const moveTxzFile = async ({
+  txzPath,
+  apiVersion,
+  buildNumber,
+}: Pick<PluginEnv, "txzPath" | "apiVersion" | "buildNumber">) => {
+  const txzName = getTxzName({
+    version: apiVersion,
+    build: buildNumber.toString(),
+  });
   const targetPath = join(deployDir, txzName);
-  
+
   // Ensure the txz always has the full version name
   if (txzPath !== targetPath) {
     console.log(`Ensuring TXZ has correct name: ${txzPath} -> ${targetPath}`);
@@ -54,13 +67,14 @@ function updateEntityValue(
 const buildPlugin = async ({
   pluginVersion,
   baseUrl,
+  buildNumber,
   tag,
   txzSha256,
   releaseNotes,
   apiVersion,
 }: PluginEnv) => {
   console.log(`API version: ${apiVersion}`);
-  
+
   // Update plg file
   let plgContent = await readFile(getRootPluginPath({ startingDir }), "utf8");
 
@@ -70,11 +84,19 @@ const buildPlugin = async ({
     version: pluginVersion,
     api_version: apiVersion,
     arch: defaultArch,
-    build: defaultBuild,
+    build: buildNumber.toString(),
     plugin_url: getPluginUrl({ baseUrl, tag }),
-    txz_url: getMainTxzUrl({ baseUrl, apiVersion, tag }),
+    txz_url: getMainTxzUrl({
+      baseUrl,
+      tag,
+      version: apiVersion,
+      build: buildNumber.toString(),
+    }),
     txz_sha256: txzSha256,
-    txz_name: getTxzName(apiVersion),
+    txz_name: getTxzName({
+      version: apiVersion,
+      build: buildNumber.toString(),
+    }),
     ...(tag ? { tag } : {}),
   };
 
