@@ -85,7 +85,9 @@ export class ConnectConfigPersister implements OnModuleInit, OnModuleDestroy {
         if (config instanceof MyServersConfig) {
             instance = config;
         } else {
-            instance = plainToInstance(MyServersConfig, config, { enableImplicitConversion: true });
+            instance = plainToInstance(MyServersConfig, config, {
+                enableImplicitConversion: true,
+            });
         }
         await validateOrReject(instance);
         return instance;
@@ -103,7 +105,7 @@ export class ConnectConfigPersister implements OnModuleInit, OnModuleDestroy {
             this.logger.verbose(`Config loaded from ${this.configPath}`);
             return true;
         } catch (error) {
-            this.logger.warn('Error loading config:', error);
+            this.logger.warn(error, 'Error loading config');
         }
 
         try {
