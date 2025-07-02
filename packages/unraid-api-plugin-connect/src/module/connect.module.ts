@@ -3,7 +3,7 @@ import { ConfigModule } from '@nestjs/config';
 
 import { UserSettingsModule } from '@unraid/shared/services/user-settings.js';
 
-import { ConnectLoginHandler } from '../event-handler/connect-login.handler.js';
+import { ConnectLoginHandler } from '../event-handler/connect-login.events.js';
 import { ConnectSettingsResolver } from '../resolver/connect-settings.resolver.js';
 import { ConnectResolver } from '../resolver/connect.resolver.js';
 import { ConnectApiKeyService } from '../service/connect-api-key.service.js';

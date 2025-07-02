@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
 
-import { MothershipHandler } from '../event-handler/mothership.handler.js';
+import { MothershipHandler } from '../event-handler/mothership.events.js';
 import { TimeoutCheckerJob } from '../job/timeout-checker.job.js';
 import { CloudResolver } from '../resolver/cloud.resolver.js';
 import { CloudService } from '../service/cloud.service.js';
