@@ -50,7 +50,7 @@ import { useErrorsStore } from '~/store/errors';
 import { usePurchaseStore } from '~/store/purchase';
 import { useThemeStore } from '~/store/theme';
 import { useUnraidApiStore } from '~/store/unraidApi';
-import { SERVER_CLOUD_FRAGMENT, SERVER_STATE_QUERY } from './server.fragment';
+import { CLOUD_STATE_QUERY, SERVER_CLOUD_FRAGMENT, SERVER_STATE_QUERY } from './server.fragment';
 
 /**
  * @see https://stackoverflow.com/questions/73476371/using-pinia-with-vue-js-web-components
@@ -167,7 +167,7 @@ export const useServerStore = defineStore('server', () => {
     ref<
       (
         variables?: Record<string, never> | undefined
-      ) => Promise<ApolloQueryResult<ServerStateQuery>> | undefined
+      ) => Promise<ApolloQueryResult<ServerStateQuery> | undefined> | undefined
     >();
 
   /**
@@ -1150,7 +1150,6 @@ export const useServerStore = defineStore('server', () => {
           },
       expireTime:
         data.registration && data.registration.expiration ? parseInt(data.registration.expiration) : 0,
-      cloud: data.cloud ? useFragment(SERVER_CLOUD_FRAGMENT, data.cloud) : undefined,
       regExp:
         data.registration && data.registration.updateExpiration
           ? Number(data.registration.updateExpiration)
@@ -1160,10 +1159,22 @@ export const useServerStore = defineStore('server', () => {
     return mutatedData;
   };
 
-  const { load, refetch: refetchServerState, onResult, onError } = useLazyQuery(SERVER_STATE_QUERY);
+  const { load, refetch: _refetchServerState, onResult, onError } = useLazyQuery(SERVER_STATE_QUERY);
+  const {
+    load: loadCloudState,
+    refetch: refetchCloudState,
+    onResult: onResultCloudState,
+  } = useLazyQuery(CLOUD_STATE_QUERY);
+
+  const refetchServerState = async (variables?: Record<string, never>) => {
+    const serverResponse = await _refetchServerState(variables);
+    await refetchCloudState()?.catch(() => {});
+    return serverResponse;
+  };
 
   setTimeout(() => {
     load();
+    loadCloudState();
   }, 500);
 
   onResult((result) => {
@@ -1173,6 +1184,16 @@ export const useServerStore = defineStore('server', () => {
       apiServerStateRefresh.value = refetchServerState;
       const mutatedServerStateResult = mutateServerStateFromApi(result.data);
       setServer(mutatedServerStateResult);
+    }
+  });
+
+  onResultCloudState((result) => {
+    if (result.data) {
+      const { cloud } = result.data;
+      const serverData = {
+        cloud: cloud ? useFragment(SERVER_CLOUD_FRAGMENT, cloud) : undefined,
+      };
+      setServer(serverData);
     }
   });
 

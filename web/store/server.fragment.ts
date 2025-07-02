@@ -55,11 +55,16 @@ export const SERVER_CLOUD_FRAGMENT = graphql(/* GraphQL */ `
 //   }
 // `);
 
-export const SERVER_STATE_QUERY = graphql(/* GraphQL */ `
-  query serverState {
+export const CLOUD_STATE_QUERY = graphql(/* GraphQL */ `
+  query cloudState {
     cloud {
       ...PartialCloud
     }
+  }
+`);
+
+export const SERVER_STATE_QUERY = graphql(/* GraphQL */ `
+  query serverState {
     config {
       error
       valid

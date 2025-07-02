@@ -1,4 +1,5 @@
 import { ConfigService } from '@nestjs/config';
+
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { faker } from '@faker-js/faker';
 import * as fc from 'fast-check';
