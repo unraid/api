@@ -76,4 +76,4 @@ jobs:
           AWS_SECRET_ACCESS_KEY: ${{ secrets.CF_SECRET_ACCESS_KEY }}
           AWS_REGION: "auto"
           SOURCE_DIR: pr-release
-          DEST_DIR: unraid-api/pr/${{ steps.pr_number.outputs.pr_number }}
+          DEST_DIR: unraid-api/tag/PR${{ steps.pr_number.outputs.pr_number }}
