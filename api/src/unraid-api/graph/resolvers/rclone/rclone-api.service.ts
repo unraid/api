@@ -37,8 +37,23 @@ export class RCloneApiService implements OnModuleInit, OnModuleDestroy {
         process.env.RCLONE_PASSWORD || crypto.randomBytes(24).toString('base64');
     constructor() {}
 
+    /**
+     * Returns whether the RClone service is initialized and ready to use
+     */
+    get initialized(): boolean {
+        return this.isInitialized;
+    }
+
     async onModuleInit(): Promise<void> {
         try {
+            // Check if rclone binary is available first
+            const isBinaryAvailable = await this.checkRcloneBinaryExists();
+            if (!isBinaryAvailable) {
+                this.logger.warn('RClone binary not found on system, skipping initialization');
+                this.isInitialized = false;
+                return;
+            }
+
             const { getters } = await import('@app/store/index.js');
             // Check if Rclone Socket is running, if not, start it.
             this.rcloneSocketPath = getters.paths()['rclone-socket'];
@@ -198,16 +213,38 @@ export class RCloneApiService implements OnModuleInit, OnModuleDestroy {
      * Checks if the RClone socket is running
      */
     private async checkRcloneSocketRunning(): Promise<boolean> {
-        // Use the API check instead of execa('rclone', ['about']) as rclone might not be in PATH
-        // or configured correctly for the execa environment vs the rcd environment.
         try {
             // A simple API call to check if the daemon is responsive
             await this.callRcloneApi('core/pid');
             this.logger.debug('RClone socket is running and responsive.');
             return true;
         } catch (error: unknown) {
-            // Log less verbosely during checks
-            // this.logger.error(`Error checking RClone socket: ${error}`);
+            // Silently handle socket connection errors during checks
+            if (error instanceof Error) {
+                if (error.message.includes('ENOENT') || error.message.includes('ECONNREFUSED')) {
+                    this.logger.debug('RClone socket not accessible - daemon likely not running');
+                } else {
+                    this.logger.debug(`RClone socket check failed: ${error.message}`);
+                }
+            }
+            return false;
+        }
+    }
+
+    /**
+     * Checks if the RClone binary is available on the system
+     */
+    private async checkRcloneBinaryExists(): Promise<boolean> {
+        try {
+            await execa('rclone', ['version']);
+            this.logger.debug('RClone binary is available on the system.');
+            return true;
+        } catch (error: unknown) {
+            if (error instanceof Error && 'code' in error && error.code === 'ENOENT') {
+                this.logger.warn('RClone binary not found in PATH.');
+            } else {
+                this.logger.error(`Error checking RClone binary: ${error}`);
+            }
             return false;
         }
     }
