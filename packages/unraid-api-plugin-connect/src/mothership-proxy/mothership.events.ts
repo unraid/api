@@ -6,9 +6,9 @@ import { PubSub } from 'graphql-subscriptions';
 import { MinigraphStatus } from '../config/connect.config.js';
 import { EVENTS, GRAPHQL_PUBSUB_CHANNEL, GRAPHQL_PUBSUB_TOKEN } from '../helper/nest-tokens.js';
 import { TimeoutCheckerJob } from '../connection-status/timeout-checker.job.js';
-import { MothershipConnectionService } from '../service/connection.service.js';
-import { MothershipGraphqlClientService } from '../service/graphql.client.js';
-import { MothershipSubscriptionHandler } from '../service/mothership-subscription.handler.js';
+import { MothershipConnectionService } from './connection.service.js';
+import { MothershipGraphqlClientService } from './graphql.client.js';
+import { MothershipSubscriptionHandler } from './mothership-subscription.handler.js';
 
 @Injectable()
 export class MothershipHandler implements OnModuleDestroy {

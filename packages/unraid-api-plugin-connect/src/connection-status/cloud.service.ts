@@ -10,7 +10,7 @@ import NodeCache from 'node-cache';
 import { ConfigType, MinigraphStatus } from '../config/connect.config.js';
 import { ConnectConfigService } from '../config/connect.config.service.js';
 import { ONE_HOUR_SECS, ONE_MINUTE_SECS } from '../helper/generic-consts.js';
-import { MothershipConnectionService } from '../service/connection.service.js';
+import { MothershipConnectionService } from '../mothership-proxy/connection.service.js';
 import { CloudResponse, MinigraphqlResponse } from './cloud.dto.js';
 
 interface CacheSchema {

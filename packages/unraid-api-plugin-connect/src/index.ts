@@ -4,7 +4,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { ConnectConfigPersister } from './config/config.persistence.js';
 import { configFeature } from './config/connect.config.js';
 import { ConnectModule } from './module/connect.module.js';
-import { MothershipModule } from './module/mothership.module.js';
+import { MothershipModule } from './mothership-proxy/mothership.module.js';
 
 export const adapter = 'nestjs';
 

@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { MinigraphStatus } from '../config/connect.config.js';
-import { MothershipGraphqlClientService } from '../service/graphql.client.js';
+import { MothershipGraphqlClientService } from '../mothership-proxy/graphql.client.js';
 
 // Mock only the WebSocket client creation, not the Apollo Client error handling
 vi.mock('graphql-ws', () => ({
