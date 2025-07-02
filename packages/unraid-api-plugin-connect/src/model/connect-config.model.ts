@@ -1,6 +1,7 @@
 import { UsePipes, ValidationPipe } from '@nestjs/common';
 import { registerAs } from '@nestjs/config';
 import { Field, InputType, ObjectType } from '@nestjs/graphql';
+import { ValidateIf } from 'class-validator';
 
 import { URL_TYPE } from '@unraid/shared/network.model.js';
 import { plainToInstance } from 'class-transformer';
@@ -58,9 +59,11 @@ export class MyServersConfig {
     localApiKey!: string;
 
     // User Information
-    @Field(() => String)
+    @Field(() => String, { nullable: true })
+    @IsOptional()
+    @ValidateIf((o) => o.email !== undefined && o.email !== null && o.email !== '')
     @IsEmail()
-    email!: string;
+    email?: string | null;
 
     @Field(() => String)
     @IsString()
@@ -194,7 +197,6 @@ export const emptyMyServersConfig = (): MyServersConfig => ({
     upnpEnabled: false,
     apikey: '',
     localApiKey: '',
-    email: '',
     username: '',
     avatar: '',
     regWizTime: '',

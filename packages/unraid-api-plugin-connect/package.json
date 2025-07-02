@@ -25,6 +25,7 @@
     "description": "Unraid Connect plugin for Unraid API",
     "devDependencies": {
         "@apollo/client": "^3.11.8",
+        "@faker-js/faker": "^9.8.0",
         "@graphql-codegen/cli": "^5.0.3",
         "@graphql-typed-document-node/core": "^3.2.0",
         "@ianvs/prettier-plugin-sort-imports": "^4.4.1",
@@ -46,6 +47,7 @@
         "class-transformer": "^0.5.1",
         "class-validator": "^0.14.1",
         "execa": "^9.5.1",
+        "fast-check": "^4.1.1",
         "got": "^14.4.6",
         "graphql": "^16.9.0",
         "graphql-scalars": "^1.23.0",

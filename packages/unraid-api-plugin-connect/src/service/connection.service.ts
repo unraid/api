@@ -4,7 +4,7 @@ import { EventEmitter2 } from '@nestjs/event-emitter';
 import type { OutgoingHttpHeaders } from 'node:http2';
 
 import { Subscription } from 'rxjs';
-import { debounceTime, filter } from 'rxjs/operators';
+import { bufferTime, filter } from 'rxjs/operators';
 
 import { EVENTS } from '../helper/nest-tokens.js';
 import { ConnectionMetadata, MinigraphStatus, MyServersConfig } from '../model/connect-config.model.js';
@@ -83,7 +83,7 @@ export class MothershipConnectionService implements OnModuleInit, OnModuleDestro
         this.identitySubscription = this.configService.changes$
             .pipe(
                 filter((change) => Object.values(this.configKeys).includes(change.path)),
-                debounceTime(25)
+                bufferTime(25)
             )
             .subscribe({
                 next: () => {
