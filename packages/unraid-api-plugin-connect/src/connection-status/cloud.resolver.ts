@@ -7,10 +7,13 @@ import {
     UsePermissions,
 } from '@unraid/shared/use-permissions.directive.js';
 
-import { Cloud } from '../model/cloud.model.js';
-import { CloudService } from '../service/cloud.service.js';
 import { NetworkService } from '../service/network.service.js';
+import { Cloud } from './cloud.dto.js';
+import { CloudService } from './cloud.service.js';
 
+/**
+ * Exposes details about the connection to the Unraid Connect cloud.
+ */
 @Resolver(() => Cloud)
 export class CloudResolver {
     constructor(

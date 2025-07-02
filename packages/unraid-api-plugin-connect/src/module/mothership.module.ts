@@ -2,8 +2,8 @@ import { Module } from '@nestjs/common';
 
 import { MothershipHandler } from '../event-handler/mothership.events.js';
 import { TimeoutCheckerJob } from '../job/timeout-checker.job.js';
-import { CloudResolver } from '../resolver/cloud.resolver.js';
-import { CloudService } from '../service/cloud.service.js';
+import { CloudResolver } from '../connection-status/cloud.resolver.js';
+import { CloudService } from '../connection-status/cloud.service.js';
 import { ConnectApiKeyService } from '../service/connect-api-key.service.js';
 import { MothershipConnectionService } from '../service/connection.service.js';
 import { MothershipGraphqlClientService } from '../service/graphql.client.js';

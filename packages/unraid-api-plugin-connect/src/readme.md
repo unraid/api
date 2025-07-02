@@ -14,6 +14,9 @@ This directory contains the core source code for the Unraid Connect API plugin, 
 - **graphql/**: GraphQL request definitions and generated client code.
 - **test/**: Vitest-based unit and integration tests for services.
 
+`*.events.ts`: event handler container; responding to events
+`*.config.{model,service}.ts`: data types and interface around config
+
 ## Usage
 This package is intended to be used as a NestJS plugin/module. Import `ApiModule` from `index.ts` and add it to your NestJS app's module imports.
 

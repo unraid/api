@@ -8,10 +8,10 @@ import ip from 'ip';
 import NodeCache from 'node-cache';
 
 import { ONE_HOUR_SECS, ONE_MINUTE_SECS } from '../helper/generic-consts.js';
-import { CloudResponse, MinigraphqlResponse } from '../model/cloud.model.js';
 import { ConfigType, MinigraphStatus } from '../model/connect-config.model.js';
-import { ConnectConfigService } from './connect-config.service.js';
-import { MothershipConnectionService } from './connection.service.js';
+import { ConnectConfigService } from '../service/connect-config.service.js';
+import { MothershipConnectionService } from '../service/connection.service.js';
+import { CloudResponse, MinigraphqlResponse } from './cloud.dto.js';
 
 interface CacheSchema {
     cloudIp: string;
@@ -38,6 +38,11 @@ const createGotOptions = (apiVersion: string, apiKey: string) => ({
 });
 const isHttpError = (error: unknown): error is HTTPError => error instanceof HTTPError;
 
+/**
+ * Cloud connection service.
+ *
+ * Checks connection status to the cloud infrastructure supporting Unraid Connect.
+ */
 @Injectable()
 export class CloudService {
     static cache = new NodeCache() as TypedCache<CacheSchema>;

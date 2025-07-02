@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 
-import { CloudService } from '../service/cloud.service.js';
+import { CloudService } from '../connection-status/cloud.service.js';
 
 const MOTHERSHIP_GRAPHQL_LINK = 'https://mothership.unraid.net/ws';
 const API_VERSION = 'TEST_VERSION';
