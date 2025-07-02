@@ -202,7 +202,7 @@ class ServerState
         $this->registered = !empty($connectConfig['apikey']) && $this->connectPluginInstalled;
         $this->registeredTime = $connectConfig['regWizTime'] ?? '';
         $this->username = $connectConfig['username'] ?? '';
-        $this->ssoEnabled = !empty($connectConfig['ssoSubIds'] ?? '');
+        $this->ssoEnabled = ApiUserConfig::isSSOEnabled();
     }
 
     private function getConnectKnownOrigins()

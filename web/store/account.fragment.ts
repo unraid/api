@@ -11,3 +11,9 @@ export const CONNECT_SIGN_OUT = graphql(/* GraphQL */`
     connectSignOut
   }
 `);
+
+export const SSO_ENABLED = graphql(/* GraphQL */`
+  query IsSSOEnabled {
+    isSSOEnabled
+  }
+`);

@@ -6,6 +6,9 @@
  */
 class ApiConfig
 {
+    /** Home of API-specific configuration files */
+    public const CONFIG_DIR = '/boot/config/plugins/dynamix.my.servers/configs';
+
     private static $scriptsDir = "/usr/local/share/dynamix.unraid.net/scripts";
 
     /**
@@ -27,9 +30,9 @@ class ApiConfig
     {
         $output = [];
         $exitCode = 0;
-        
+
         exec($command, $output, $exitCode);
-        
+
         return implode("\n", $output);
     }
 
@@ -45,7 +48,7 @@ class ApiConfig
         }
 
         $apiUtilsScript = self::getApiUtilsScript();
-        
+
         if (!is_executable($apiUtilsScript)) {
             return false;
         }
@@ -53,10 +56,10 @@ class ApiConfig
         $escapedScript = escapeshellarg($apiUtilsScript);
         $escapedPlugin = escapeshellarg($pluginName);
         $command = "$escapedScript is_api_plugin_enabled $escapedPlugin 2>/dev/null";
-        
+
         $exitCode = 0;
         self::executeCommand($command, $exitCode);
-        
+
         return $exitCode === 0;
     }
 
@@ -76,22 +79,43 @@ class ApiConfig
     public static function getApiVersion()
     {
         $apiUtilsScript = self::getApiUtilsScript();
-        
+
         if (!is_executable($apiUtilsScript)) {
             return 'unknown';
         }
 
         $escapedScript = escapeshellarg($apiUtilsScript);
         $command = "$escapedScript get_api_version 2>/dev/null";
-        
+
         $exitCode = 0;
         $output = self::executeCommand($command, $exitCode);
-        
+
         if ($exitCode !== 0) {
             return 'unknown';
         }
-        
+
         $version = trim($output);
         return !empty($version) ? $version : 'unknown';
+    }
+}
+
+
+class ApiUserConfig
+{
+    public const CONFIG_PATH = ApiConfig::CONFIG_DIR . '/api.json';
+
+    public static function getConfig()
+    {
+        try {
+            return json_decode(file_get_contents(self::CONFIG_PATH), true) ?? [];
+        } catch (Throwable $e) {
+            return [];
+        }
+    }
+
+    public static function isSSOEnabled()
+    {
+        $config = self::getConfig();
+        return !empty($config['ssoSubIds'] ?? '');
     }
 }

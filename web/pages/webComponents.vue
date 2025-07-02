@@ -56,7 +56,7 @@ onBeforeMount(() => {
       <!-- uncomment to test modals <unraid-modals />-->
       <hr class="border-black dark:border-white" />
       <h3 class="text-lg font-semibold font-mono">SSOSignInButtonCe</h3>
-      <unraid-sso-button :ssoenabled="serverState.ssoEnabled" />
+      <unraid-sso-button />
       <hr class="border-black dark:border-white" />
       <h3 class="text-lg font-semibold font-mono">ApiKeyManagerCe</h3>
       <unraid-api-key-manager />

@@ -2,6 +2,7 @@
  * SsoButton Component Test Coverage
  */
 
+import { useQuery } from '@vue/apollo-composable';
 import { flushPromises, mount } from '@vue/test-utils';
 
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
@@ -14,6 +15,11 @@ const BrandButtonStub = {
   template: '<button><slot /></button>',
   props: ['disabled', 'variant', 'class'],
 };
+
+// Mock the GraphQL composable
+vi.mock('@vue/apollo-composable', () => ({
+  useQuery: vi.fn(),
+}));
 
 vi.mock('~/helpers/urls', () => ({
   ACCOUNT: 'http://mock-account-url.net',
@@ -60,9 +66,12 @@ const mockUsernameField = { value: '' };
 
 describe('SsoButton.ce.vue', () => {
   let querySelectorSpy: MockInstance;
+  let mockUseQuery: Mock;
 
-  beforeEach(() => {
+  beforeEach(async () => {
     vi.restoreAllMocks();
+
+    mockUseQuery = useQuery as Mock;
 
     (sessionStorage.getItem as Mock).mockReturnValue(null);
     (sessionStorage.setItem as Mock).mockClear();
@@ -73,6 +82,7 @@ describe('SsoButton.ce.vue', () => {
     mockLocation.search = '';
     mockLocation.href = '';
     (fetch as Mock).mockClear();
+    mockUseQuery.mockClear();
 
     // Spy on document.querySelector and provide mock implementation
     querySelectorSpy = vi.spyOn(document, 'querySelector');
@@ -93,9 +103,12 @@ describe('SsoButton.ce.vue', () => {
     vi.restoreAllMocks();
   });
 
-  it('renders the button when ssoenabled prop is true (boolean)', () => {
+  it('renders the button when SSO is enabled via GraphQL', () => {
+    mockUseQuery.mockReturnValue({
+      result: { value: { isSSOEnabled: true } },
+    });
+
     const wrapper = mount(SsoButton, {
-      props: { ssoenabled: true },
       global: {
         stubs: { BrandButton: BrandButtonStub },
       },
@@ -105,33 +118,12 @@ describe('SsoButton.ce.vue', () => {
     expect(wrapper.text()).toContain('Log In With Unraid.net');
   });
 
-  it('renders the button when ssoenabled prop is true (string)', () => {
-    const wrapper = mount(SsoButton, {
-      props: { ssoenabled: 'true' },
-      global: {
-        stubs: { BrandButton: BrandButtonStub },
-      },
+  it('does not render the button when SSO is disabled via GraphQL', () => {
+    mockUseQuery.mockReturnValue({
+      result: { value: { isSSOEnabled: false } },
     });
-    expect(wrapper.findComponent(BrandButtonStub).exists()).toBe(true);
-    expect(wrapper.text()).toContain('or');
-    expect(wrapper.text()).toContain('Log In With Unraid.net');
-  });
 
-  it('renders the button when ssoEnabled prop is true', () => {
     const wrapper = mount(SsoButton, {
-      props: { ssoEnabled: true },
-      global: {
-        stubs: { BrandButton: BrandButtonStub },
-      },
-    });
-    expect(wrapper.findComponent(BrandButtonStub).exists()).toBe(true);
-    expect(wrapper.text()).toContain('or');
-    expect(wrapper.text()).toContain('Log In With Unraid.net');
-  });
-
-  it('does not render the button when ssoenabled prop is false', () => {
-    const wrapper = mount(SsoButton, {
-      props: { ssoenabled: false },
       global: {
         stubs: { BrandButton: BrandButtonStub },
       },
@@ -140,9 +132,12 @@ describe('SsoButton.ce.vue', () => {
     expect(wrapper.text()).not.toContain('or');
   });
 
-  it('does not render the button when ssoEnabled prop is false', () => {
+  it('does not render the button when GraphQL result is null/undefined', () => {
+    mockUseQuery.mockReturnValue({
+      result: { value: null },
+    });
+
     const wrapper = mount(SsoButton, {
-      props: { ssoEnabled: false },
       global: {
         stubs: { BrandButton: BrandButtonStub },
       },
@@ -151,7 +146,11 @@ describe('SsoButton.ce.vue', () => {
     expect(wrapper.text()).not.toContain('or');
   });
 
-  it('does not render the button when props are not provided', () => {
+  it('does not render the button when GraphQL result is undefined', () => {
+    mockUseQuery.mockReturnValue({
+      result: { value: undefined },
+    });
+
     const wrapper = mount(SsoButton, {
       global: {
         stubs: { BrandButton: BrandButtonStub },
@@ -162,8 +161,11 @@ describe('SsoButton.ce.vue', () => {
   });
 
   it('navigates to the external SSO URL on button click', async () => {
+    mockUseQuery.mockReturnValue({
+      result: { value: { isSSOEnabled: true } },
+    });
+
     const wrapper = mount(SsoButton, {
-      props: { ssoenabled: true },
       global: {
         stubs: { BrandButton: BrandButtonStub },
       },
@@ -186,6 +188,10 @@ describe('SsoButton.ce.vue', () => {
   });
 
   it('handles SSO callback in onMounted hook successfully', async () => {
+    mockUseQuery.mockReturnValue({
+      result: { value: { isSSOEnabled: true } },
+    });
+
     const mockCode = 'mock_auth_code';
     const mockState = 'mock_session_state_value';
     const mockAccessToken = 'mock_access_token_123';
@@ -199,7 +205,6 @@ describe('SsoButton.ce.vue', () => {
 
     // Mount the component so that onMounted hook is called
     mount(SsoButton, {
-      props: { ssoenabled: true },
       global: {
         stubs: { BrandButton: BrandButtonStub },
       },
@@ -225,6 +230,10 @@ describe('SsoButton.ce.vue', () => {
   });
 
   it('handles SSO callback error in onMounted hook', async () => {
+    mockUseQuery.mockReturnValue({
+      result: { value: { isSSOEnabled: true } },
+    });
+
     const mockCode = 'mock_auth_code_error';
     const mockState = 'mock_session_state_error';
 
@@ -235,7 +244,6 @@ describe('SsoButton.ce.vue', () => {
     (fetch as Mock).mockRejectedValueOnce(fetchError);
     const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
     const wrapper = mount(SsoButton, {
-      props: { ssoenabled: true },
       global: {
         stubs: { BrandButton: BrandButtonStub },
       },
@@ -260,5 +268,53 @@ describe('SsoButton.ce.vue', () => {
     expect(mockForm.requestSubmit).not.toHaveBeenCalled();
 
     consoleErrorSpy.mockRestore();
+  });
+
+  it('handles SSO callback when state does not match', async () => {
+    mockUseQuery.mockReturnValue({
+      result: { value: { isSSOEnabled: true } },
+    });
+
+    const mockCode = 'mock_auth_code';
+    const mockState = 'mock_session_state_value';
+    const differentState = 'different_state_value';
+
+    mockLocation.search = `?code=${mockCode}&state=${mockState}`;
+    (sessionStorage.getItem as Mock).mockReturnValue(differentState);
+
+    const wrapper = mount(SsoButton, {
+      global: {
+        stubs: { BrandButton: BrandButtonStub },
+      },
+    });
+
+    await flushPromises();
+
+    // Should not make any fetch calls when state doesn't match
+    expect(fetch).not.toHaveBeenCalled();
+    expect(mockForm.requestSubmit).not.toHaveBeenCalled();
+    expect(wrapper.findComponent(BrandButtonStub).text()).toBe('Log In With Unraid.net');
+  });
+
+  it('handles SSO callback when no code is present', async () => {
+    mockUseQuery.mockReturnValue({
+      result: { value: { isSSOEnabled: true } },
+    });
+
+    mockLocation.search = '?state=some_state';
+    (sessionStorage.getItem as Mock).mockReturnValue('some_state');
+
+    const wrapper = mount(SsoButton, {
+      global: {
+        stubs: { BrandButton: BrandButtonStub },
+      },
+    });
+
+    await flushPromises();
+
+    // Should not make any fetch calls when no code is present
+    expect(fetch).not.toHaveBeenCalled();
+    expect(mockForm.requestSubmit).not.toHaveBeenCalled();
+    expect(wrapper.findComponent(BrandButtonStub).text()).toBe('Log In With Unraid.net');
   });
 });

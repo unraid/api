@@ -13,6 +13,8 @@ import { GraphQLJSON } from 'graphql-scalars';
 
 import { ENVIRONMENT } from '@app/environment.js';
 import { LifecycleService } from '@app/unraid-api/app/lifecycle.service.js';
+import { Public } from '@app/unraid-api/auth/public.decorator.js';
+import { SsoUserService } from '@app/unraid-api/auth/sso-user.service.js';
 import {
     Settings,
     UnifiedSettings,
@@ -22,7 +24,10 @@ import { ApiSettings } from '@app/unraid-api/graph/resolvers/settings/settings.s
 
 @Resolver(() => Settings)
 export class SettingsResolver {
-    constructor(private readonly apiSettings: ApiSettings) {}
+    constructor(
+        private readonly apiSettings: ApiSettings,
+        private readonly ssoUserService: SsoUserService
+    ) {}
 
     @Query(() => Settings)
     async settings() {
@@ -44,6 +49,12 @@ export class SettingsResolver {
         return {
             id: 'unified-settings',
         };
+    }
+
+    @Query(() => Boolean)
+    @Public()
+    public async isSSOEnabled(): Promise<boolean> {
+        return this.ssoUserService.getSsoUsers().then((users) => users.length > 0);
     }
 }
 
