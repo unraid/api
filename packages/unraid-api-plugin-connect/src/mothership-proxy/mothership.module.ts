@@ -9,7 +9,7 @@ import { MothershipConnectionService } from './connection.service.js';
 import { MothershipGraphqlClientService } from './graphql.client.js';
 import { InternalClientService } from '../internal-rpc/internal.client.js';
 import { MothershipSubscriptionHandler } from './mothership-subscription.handler.js';
-import { RemoteAccessModule } from '../module/remote-access.module.js';
+import { RemoteAccessModule } from '../remote-access/remote-access.module.js';
 
 @Module({
     imports: [RemoteAccessModule],

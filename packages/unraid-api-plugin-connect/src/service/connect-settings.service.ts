@@ -25,7 +25,7 @@ import { ConnectApiKeyService } from '../authn/connect-api-key.service.js';
 import { ConfigType, MyServersConfig } from '../config/connect.config.js';
 import { EVENTS } from '../helper/nest-tokens.js';
 import { DynamicRemoteAccessType, WAN_ACCESS_TYPE, WAN_FORWARD_TYPE } from '../model/connect.model.js';
-import { DynamicRemoteAccessService } from './dynamic-remote-access.service.js';
+import { DynamicRemoteAccessService } from '../remote-access/dynamic-remote-access.service.js';
 import { NetworkService } from './network.service.js';
 
 declare module '@unraid/shared/services/user-settings.js' {

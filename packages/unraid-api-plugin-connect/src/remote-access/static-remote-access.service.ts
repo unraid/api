@@ -4,7 +4,7 @@ import { EventEmitter2 } from '@nestjs/event-emitter';
 
 import { ConfigType, DynamicRemoteAccessType, MyServersConfig } from '../config/connect.config.js';
 import { EVENTS } from '../helper/nest-tokens.js';
-import { AccessUrl, UrlResolverService } from './url-resolver.service.js';
+import { AccessUrl, UrlResolverService } from '../service/url-resolver.service.js';
 
 @Injectable()
 export class StaticRemoteAccessService {

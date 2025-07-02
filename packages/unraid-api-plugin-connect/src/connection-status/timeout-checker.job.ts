@@ -6,7 +6,7 @@ import { isDefined } from 'class-validator';
 import { MinigraphStatus } from '../config/connect.config.js';
 import { ONE_MINUTE_MS, THREE_MINUTES_MS } from '../helper/generic-consts.js';
 import { MothershipConnectionService } from '../mothership-proxy/connection.service.js';
-import { DynamicRemoteAccessService } from '../service/dynamic-remote-access.service.js';
+import { DynamicRemoteAccessService } from '../remote-access/dynamic-remote-access.service.js';
 import { MothershipSubscriptionHandler } from '../mothership-proxy/mothership-subscription.handler.js';
 
 @Injectable()
