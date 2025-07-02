@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
 
-import { WanAccessEventHandler } from '../event-handler/wan-access.events.js';
+import { WanAccessEventHandler } from '../network/wan-access.events.js';
 import { DynamicRemoteAccessService } from './dynamic-remote-access.service.js';
 import { StaticRemoteAccessService } from './static-remote-access.service.js';
 import { UpnpRemoteAccessService } from './upnp-remote-access.service.js';

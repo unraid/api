@@ -4,7 +4,7 @@ import { OnEvent } from '@nestjs/event-emitter';
 
 import { ConfigType } from '../config/connect.config.js';
 import { EVENTS } from '../helper/nest-tokens.js';
-import { NetworkService } from '../network/network.service.js';
+import { NetworkService } from './network.service.js';
 
 @Injectable()
 export class WanAccessEventHandler {
