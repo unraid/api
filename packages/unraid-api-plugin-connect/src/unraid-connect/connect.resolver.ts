@@ -10,7 +10,7 @@ import {
 } from '@unraid/shared/use-permissions.directive.js';
 
 import { ConfigType, ConnectConfig, DynamicRemoteAccessType } from '../config/connect.config.js';
-import { Connect, ConnectSettings, DynamicRemoteAccessStatus } from '../model/connect.model.js';
+import { Connect, ConnectSettings, DynamicRemoteAccessStatus } from './connect.model.js';
 
 @Resolver(() => Connect)
 export class ConnectResolver {

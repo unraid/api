@@ -8,7 +8,7 @@ import {
     UsePermissions,
 } from '@unraid/shared/use-permissions.directive.js';
 
-import { Network } from '../model/connect.model.js';
+import { Network } from '../unraid-connect/connect.model.js';
 import { UrlResolverService } from './url-resolver.service.js';
 
 @Resolver(() => Network)

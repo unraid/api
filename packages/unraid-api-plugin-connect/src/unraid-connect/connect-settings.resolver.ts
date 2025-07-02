@@ -20,8 +20,8 @@ import {
     EnableDynamicRemoteAccessInput,
     RemoteAccess,
     SetupRemoteAccessInput,
-} from '../model/connect.model.js';
-import { ConnectSettingsService } from '../service/connect-settings.service.js';
+} from './connect.model.js';
+import { ConnectSettingsService } from './connect-settings.service.js';
 
 @Resolver(() => ConnectSettings)
 export class ConnectSettingsResolver {

@@ -16,8 +16,6 @@ import {
     ValidateIf,
 } from 'class-validator';
 
-import { ConnectDemoConfig } from '../model/config.demo.js';
-
 export enum MinigraphStatus {
     PRE_INIT = 'PRE_INIT',
     CONNECTING = 'CONNECTING',
@@ -180,7 +178,7 @@ export const makeDisabledDynamicRemoteAccessState = (): DynamicRemoteAccessState
         allowedUrl: null,
     });
 
-export type ConnectConfig = ConnectDemoConfig & {
+export type ConnectConfig = {
     mothership: ConnectionMetadata;
     dynamicRemoteAccess: DynamicRemoteAccessState;
     config: MyServersConfig;
@@ -204,7 +202,6 @@ export const emptyMyServersConfig = (): MyServersConfig => ({
 });
 
 export const configFeature = registerAs<ConnectConfig>('connect', () => ({
-    demo: 'hello.unraider',
     mothership: plainToInstance(ConnectionMetadata, {
         status: MinigraphStatus.PRE_INIT,
     }),
