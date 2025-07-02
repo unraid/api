@@ -4,8 +4,8 @@ import { EventEmitter2 } from '@nestjs/event-emitter';
 
 import { ConfigType } from '../config/connect.config.js';
 import { EVENTS } from '../helper/nest-tokens.js';
-import { UpnpService } from '../service/upnp.service.js';
-import { UrlResolverService } from '../service/url-resolver.service.js';
+import { UpnpService } from '../network/upnp.service.js';
+import { UrlResolverService } from '../network/url-resolver.service.js';
 
 @Injectable()
 export class UpnpRemoteAccessService {

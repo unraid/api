@@ -7,7 +7,7 @@ import {
     UsePermissions,
 } from '@unraid/shared/use-permissions.directive.js';
 
-import { NetworkService } from '../service/network.service.js';
+import { NetworkService } from '../network/network.service.js';
 import { Cloud } from './cloud.dto.js';
 import { CloudService } from './cloud.service.js';
 

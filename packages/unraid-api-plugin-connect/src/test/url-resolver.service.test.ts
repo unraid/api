@@ -5,7 +5,7 @@ import { URL_TYPE } from '@unraid/shared/network.model.js';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { ConfigType } from '../config/connect.config.js';
-import { UrlResolverService } from '../service/url-resolver.service.js';
+import { UrlResolverService } from '../network/url-resolver.service.js';
 
 interface PortTestParams {
     httpPort: number;

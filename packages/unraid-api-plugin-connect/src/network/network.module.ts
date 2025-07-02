@@ -2,11 +2,11 @@ import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 
 import { ConnectConfigService } from '../config/connect.config.service.js';
-import { NetworkResolver } from '../resolver/network.resolver.js';
-import { DnsService } from '../service/dns.service.js';
-import { NetworkService } from '../service/network.service.js';
-import { UpnpService } from '../service/upnp.service.js';
-import { UrlResolverService } from '../service/url-resolver.service.js';
+import { NetworkResolver } from './network.resolver.js';
+import { DnsService } from './dns.service.js';
+import { NetworkService } from './network.service.js';
+import { UpnpService } from './upnp.service.js';
+import { UrlResolverService } from './url-resolver.service.js';
 
 @Module({
     imports: [ConfigModule],
@@ -27,4 +27,4 @@ import { UrlResolverService } from '../service/url-resolver.service.js';
         ConnectConfigService,
     ],
 })
-export class SystemModule {}
+export class NetworkModule {}
