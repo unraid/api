@@ -1778,17 +1778,8 @@ input ConnectSignInInput {
   """The API key for authentication"""
   apiKey: String!
 
-  """The ID token for authentication"""
-  idToken: String
-
   """User information for the sign-in"""
   userInfo: ConnectUserInfoInput
-
-  """The access token for authentication"""
-  accessToken: String
-
-  """The refresh token for authentication"""
-  refreshToken: String
 }
 
 input ConnectUserInfoInput {

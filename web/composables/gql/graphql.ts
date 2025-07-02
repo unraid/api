@@ -487,14 +487,8 @@ export type ConnectSettingsValues = {
 };
 
 export type ConnectSignInInput = {
-  /** The access token for authentication */
-  accessToken?: InputMaybe<Scalars['String']['input']>;
   /** The API key for authentication */
   apiKey: Scalars['String']['input'];
-  /** The ID token for authentication */
-  idToken?: InputMaybe<Scalars['String']['input']>;
-  /** The refresh token for authentication */
-  refreshToken?: InputMaybe<Scalars['String']['input']>;
   /** User information for the sign-in */
   userInfo?: InputMaybe<ConnectUserInfoInput>;
 };

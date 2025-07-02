@@ -34,7 +34,9 @@ export class ConnectConfigPersister implements OnModuleInit, OnModuleDestroy {
         // Persist changes to the config.
         this.configService.changes$.pipe(bufferTime(25)).subscribe({
             next: async (changes) => {
-                const connectConfigChanged = changes.some(({ path }) => path.startsWith('connect.config'));
+                const connectConfigChanged = changes.some(({ path }) =>
+                    path.startsWith('connect.config')
+                );
                 if (connectConfigChanged) {
                     await this.persist();
                 }
@@ -150,7 +152,7 @@ export class ConnectConfigPersister implements OnModuleInit, OnModuleDestroy {
      * @throws {Error} - If the legacy config file does not exist.
      * @throws {Error} - If the legacy config file is not parse-able.
      */
-    public async convertLegacyConfig(config:LegacyConfig): Promise<MyServersConfig> {
+    public async convertLegacyConfig(config: LegacyConfig): Promise<MyServersConfig> {
         return this.validate({
             ...config.api,
             ...config.local,

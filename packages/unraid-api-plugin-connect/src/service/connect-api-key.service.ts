@@ -14,7 +14,7 @@ export class ConnectApiKeyService implements ApiKeyService {
 
     constructor(
         @Inject(API_KEY_SERVICE_TOKEN)
-        private readonly apiKeyService: ApiKeyService,
+        private readonly apiKeyService: ApiKeyService
     ) {}
 
     async findById(id: string): Promise<ApiKey | null> {
