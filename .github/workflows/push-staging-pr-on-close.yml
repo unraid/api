@@ -7,11 +7,11 @@ on:
   workflow_dispatch:
     inputs:
       pr_number:
-        description: 'PR number to test with'
+        description: "PR number to test with"
         required: true
         type: string
       pr_merged:
-        description: 'Simulate merged PR'
+        description: "Simulate merged PR"
         required: true
         type: boolean
         default: true
@@ -37,6 +37,18 @@ jobs:
             echo "pr_number=${{ inputs.pr_number }}" >> $GITHUB_OUTPUT
           fi
 
+      - name: Debug PR info
+        run: |
+          echo "PR Number: ${{ steps.pr_number.outputs.pr_number }}"
+          echo "Event name: ${{ github.event_name }}"
+          if [ "${{ github.event_name }}" == "pull_request" ]; then
+            echo "PR merged: ${{ github.event.pull_request.merged }}"
+          fi
+
+          echo "Listing artifacts for PR ${{ steps.pr_number.outputs.pr_number }}:"
+          gh api repos/${{ github.repository }}/actions/artifacts --paginate | \
+            jq -r '.artifacts[] | select(.workflow_run.head_branch == "pr/${{ steps.pr_number.outputs.pr_number }}") | "  - \(.name) (run: \(.workflow_run.id))"' || echo "No artifacts found or error listing artifacts"
+
       - name: Download artifact
         uses: dawidd6/action-download-artifact@v11
         with:
@@ -55,7 +67,7 @@ jobs:
             ls -la connect-files/
             exit 1
           fi
-          
+
           echo "Found plugin file: $plgfile"
           version=$(date +"%Y.%m.%d.%H%M")
           sed -i -E "s#(<!ENTITY version \").*(\">)#\1${version}\2#g" "${plgfile}" || exit 1
