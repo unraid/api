@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import useTeleport from '@/composables/useTeleport';
 import { cn } from '@/lib/utils';
 import { reactiveOmit } from '@vueuse/core';
 import {
@@ -24,10 +25,12 @@ const emits = defineEmits<SelectContentEmits>();
 const delegatedProps = reactiveOmit(props, 'class');
 
 const forwarded = useForwardPropsEmits(delegatedProps, emits);
+
+const { teleportTarget } = useTeleport();
 </script>
 
 <template>
-  <SelectPortal>
+  <SelectPortal :to="teleportTarget">
     <SelectContent
       v-bind="{ ...forwarded, ...$attrs }"
       :class="

@@ -35,9 +35,8 @@ const emit = defineEmits<{
 }>();
 
 function handleItemClick(item: DropdownMenuItemData) {
-  if (item.onClick) {
-    item.onClick();
-  }
+  item.onClick?.();
+
   emit('select', item);
 }
 </script>
