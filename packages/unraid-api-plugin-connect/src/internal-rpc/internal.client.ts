@@ -13,13 +13,13 @@ import { ConnectApiKeyService } from '../authn/connect-api-key.service.js';
 
 /**
  * Internal GraphQL "RPC" client.
- * 
+ *
  * Unfortunately, there's no simple way to make perform internal gql operations that go through
  * all of the validations, filters, authorization, etc. in our setup.
- * 
+ *
  * The simplest and most maintainable solution, unfortunately, is to maintain an actual graphql client
  * that queries our own graphql server.
- * 
+ *
  * This service handles the lifecycle and construction of that client.
  */
 @Injectable()

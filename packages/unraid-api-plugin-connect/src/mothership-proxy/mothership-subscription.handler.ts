@@ -12,9 +12,9 @@ import {
 import { useFragment } from '../graphql/generated/client/index.js';
 import { SEND_REMOTE_QUERY_RESPONSE } from '../graphql/remote-response.js';
 import { parseGraphQLQuery } from '../helper/parse-graphql.js';
+import { InternalClientService } from '../internal-rpc/internal.client.js';
 import { MothershipConnectionService } from './connection.service.js';
 import { MothershipGraphqlClientService } from './graphql.client.js';
-import { InternalClientService } from '../internal-rpc/internal.client.js';
 
 type SubscriptionProxy = {
     sha256: string;

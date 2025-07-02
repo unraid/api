@@ -11,6 +11,7 @@ import { GraphQLJSON } from 'graphql-scalars';
 import { AuthActionVerb, AuthPossession } from 'nest-authz';
 
 import { EVENTS } from '../helper/nest-tokens.js';
+import { ConnectSettingsService } from './connect-settings.service.js';
 import {
     AllowedOriginInput,
     ConnectSettings,
@@ -21,7 +22,6 @@ import {
     RemoteAccess,
     SetupRemoteAccessInput,
 } from './connect.model.js';
-import { ConnectSettingsService } from './connect-settings.service.js';
 
 @Resolver(() => ConnectSettings)
 export class ConnectSettingsResolver {
