@@ -20,7 +20,7 @@ Each feature directory follows a consistent pattern:
 - `*.module.ts`: NestJS module definition
 - `*.service.ts`: Business logic implementation
 - `*.resolver.ts`: GraphQL resolvers
-- `*.{model,dto}.ts`: TypeScript and GraphQL models, DTOs, and types
+- `*.model.ts`: TypeScript and GraphQL models, DTOs, and types
 - `*.events.ts`: Event handlers for event-driven operations
 - `*.config.ts`: Configuration definitions
 
