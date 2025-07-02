@@ -149,7 +149,7 @@ onMounted(() => {
           <UpcDropdownTrigger :t="t" />
         </template>
         <template #content>
-          <div class="max-w-[350px]">
+          <div class="max-w-[350px] sm:min-w-[350px]">
             <UpcDropdownContent :t="t" />
           </div>
         </template>
