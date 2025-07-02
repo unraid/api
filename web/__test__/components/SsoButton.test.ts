@@ -2,6 +2,7 @@
  * SsoButton Component Test Coverage
  */
 
+import { useQuery } from '@vue/apollo-composable';
 import { flushPromises, mount } from '@vue/test-utils';
 
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
@@ -70,8 +71,6 @@ describe('SsoButton.ce.vue', () => {
   beforeEach(async () => {
     vi.restoreAllMocks();
 
-    // Get the mocked useQuery function
-    const { useQuery } = await import('@vue/apollo-composable');
     mockUseQuery = useQuery as Mock;
 
     (sessionStorage.getItem as Mock).mockReturnValue(null);
@@ -106,7 +105,7 @@ describe('SsoButton.ce.vue', () => {
 
   it('renders the button when SSO is enabled via GraphQL', () => {
     mockUseQuery.mockReturnValue({
-      result: { value: { isSSOEnabled: true } }
+      result: { value: { isSSOEnabled: true } },
     });
 
     const wrapper = mount(SsoButton, {
@@ -121,7 +120,7 @@ describe('SsoButton.ce.vue', () => {
 
   it('does not render the button when SSO is disabled via GraphQL', () => {
     mockUseQuery.mockReturnValue({
-      result: { value: { isSSOEnabled: false } }
+      result: { value: { isSSOEnabled: false } },
     });
 
     const wrapper = mount(SsoButton, {
@@ -135,7 +134,7 @@ describe('SsoButton.ce.vue', () => {
 
   it('does not render the button when GraphQL result is null/undefined', () => {
     mockUseQuery.mockReturnValue({
-      result: { value: null }
+      result: { value: null },
     });
 
     const wrapper = mount(SsoButton, {
@@ -149,7 +148,7 @@ describe('SsoButton.ce.vue', () => {
 
   it('does not render the button when GraphQL result is undefined', () => {
     mockUseQuery.mockReturnValue({
-      result: { value: undefined }
+      result: { value: undefined },
     });
 
     const wrapper = mount(SsoButton, {
@@ -163,7 +162,7 @@ describe('SsoButton.ce.vue', () => {
 
   it('navigates to the external SSO URL on button click', async () => {
     mockUseQuery.mockReturnValue({
-      result: { value: { isSSOEnabled: true } }
+      result: { value: { isSSOEnabled: true } },
     });
 
     const wrapper = mount(SsoButton, {
@@ -190,7 +189,7 @@ describe('SsoButton.ce.vue', () => {
 
   it('handles SSO callback in onMounted hook successfully', async () => {
     mockUseQuery.mockReturnValue({
-      result: { value: { isSSOEnabled: true } }
+      result: { value: { isSSOEnabled: true } },
     });
 
     const mockCode = 'mock_auth_code';
@@ -232,7 +231,7 @@ describe('SsoButton.ce.vue', () => {
 
   it('handles SSO callback error in onMounted hook', async () => {
     mockUseQuery.mockReturnValue({
-      result: { value: { isSSOEnabled: true } }
+      result: { value: { isSSOEnabled: true } },
     });
 
     const mockCode = 'mock_auth_code_error';
@@ -273,7 +272,7 @@ describe('SsoButton.ce.vue', () => {
 
   it('handles SSO callback when state does not match', async () => {
     mockUseQuery.mockReturnValue({
-      result: { value: { isSSOEnabled: true } }
+      result: { value: { isSSOEnabled: true } },
     });
 
     const mockCode = 'mock_auth_code';
@@ -299,7 +298,7 @@ describe('SsoButton.ce.vue', () => {
 
   it('handles SSO callback when no code is present', async () => {
     mockUseQuery.mockReturnValue({
-      result: { value: { isSSOEnabled: true } }
+      result: { value: { isSSOEnabled: true } },
     });
 
     mockLocation.search = '?state=some_state';
