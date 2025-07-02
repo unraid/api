@@ -6,9 +6,9 @@ import { Client, Mapping } from '@runonflux/nat-upnp';
 import { UPNP_CLIENT_TOKEN } from '@unraid/shared/tokens.js';
 import { isDefined } from 'class-validator';
 
+import { ConfigType } from '../config/connect.config.js';
 import { ONE_HOUR_SECS } from '../helper/generic-consts.js';
 import { UPNP_RENEWAL_JOB_TOKEN } from '../helper/nest-tokens.js';
-import { ConfigType } from '../model/connect-config.model.js';
 
 @Injectable()
 export class UpnpService implements OnModuleDestroy {

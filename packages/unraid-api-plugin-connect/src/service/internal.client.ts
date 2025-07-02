@@ -9,7 +9,7 @@ import { GraphQLWsLink } from '@apollo/client/link/subscriptions/index.js';
 import { getMainDefinition } from '@apollo/client/utilities/index.js';
 import { createClient } from 'graphql-ws';
 
-import { ConnectApiKeyService } from './connect-api-key.service.js';
+import { ConnectApiKeyService } from '../authn/connect-api-key.service.js';
 
 @Injectable()
 export class InternalClientService {

@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
+import { MinigraphStatus } from '../config/connect.config.js';
 import { MothershipGraphqlClientService } from '../service/graphql.client.js';
-import { MinigraphStatus } from '../model/connect-config.model.js';
 
 // Mock only the WebSocket client creation, not the Apollo Client error handling
 vi.mock('graphql-ws', () => ({
@@ -87,7 +87,8 @@ describe('MothershipGraphqlClientService', () => {
             {
                 description: 'malformed GraphQL error with API key message',
                 error: {
-                    message: '"error" message expects the \'payload\' property to be an array of GraphQL errors, but got "API Key Invalid with error No user found"',
+                    message:
+                        '"error" message expects the \'payload\' property to be an array of GraphQL errors, but got "API Key Invalid with error No user found"',
                 },
                 expected: true,
             },
@@ -127,7 +128,7 @@ describe('MothershipGraphqlClientService', () => {
             // Since we're not mocking Apollo Client, this will create a real client
             // We just want to verify the state check works
             const client = service.getClient();
-            
+
             // The client should either be null (if not created yet) or an Apollo client instance
             // The key is that it doesn't throw an error when state is valid
             expect(() => service.getClient()).not.toThrow();

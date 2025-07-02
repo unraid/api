@@ -1,10 +1,10 @@
 import { Inject, Logger, Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 
-import { configFeature } from './model/connect-config.model.js';
+import { ConnectConfigPersister } from './config/config.persistence.js';
+import { configFeature } from './config/connect.config.js';
 import { ConnectModule } from './module/connect.module.js';
 import { MothershipModule } from './module/mothership.module.js';
-import { ConnectConfigPersister } from './service/config.persistence.js';
 
 export const adapter = 'nestjs';
 

@@ -7,9 +7,9 @@ import { got, HTTPError, TimeoutError } from 'got';
 import ip from 'ip';
 import NodeCache from 'node-cache';
 
+import { ConfigType, MinigraphStatus } from '../config/connect.config.js';
+import { ConnectConfigService } from '../config/connect.config.service.js';
 import { ONE_HOUR_SECS, ONE_MINUTE_SECS } from '../helper/generic-consts.js';
-import { ConfigType, MinigraphStatus } from '../model/connect-config.model.js';
-import { ConnectConfigService } from '../service/connect-config.service.js';
 import { MothershipConnectionService } from '../service/connection.service.js';
 import { CloudResponse, MinigraphqlResponse } from './cloud.dto.js';
 

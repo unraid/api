@@ -1,7 +1,6 @@
 import { UsePipes, ValidationPipe } from '@nestjs/common';
 import { registerAs } from '@nestjs/config';
 import { Field, InputType, ObjectType } from '@nestjs/graphql';
-import { ValidateIf } from 'class-validator';
 
 import { URL_TYPE } from '@unraid/shared/network.model.js';
 import { plainToInstance } from 'class-transformer';
@@ -14,9 +13,10 @@ import {
     IsOptional,
     IsString,
     Matches,
+    ValidateIf,
 } from 'class-validator';
 
-import { ConnectDemoConfig } from './config.demo.js';
+import { ConnectDemoConfig } from '../model/config.demo.js';
 
 export enum MinigraphStatus {
     PRE_INIT = 'PRE_INIT',

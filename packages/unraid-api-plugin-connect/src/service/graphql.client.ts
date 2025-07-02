@@ -15,11 +15,11 @@ import { GraphQLWsLink } from '@apollo/client/link/subscriptions/index.js';
 import { Client, createClient } from 'graphql-ws';
 import { WebSocket } from 'ws';
 
+import { MinigraphStatus } from '../config/connect.config.js';
 import { RemoteGraphQlEventType } from '../graphql/generated/client/graphql.js';
 import { SEND_REMOTE_QUERY_RESPONSE } from '../graphql/remote-response.js';
 import { buildDelayFunction } from '../helper/delay-function.js';
 import { EVENTS } from '../helper/nest-tokens.js';
-import { MinigraphStatus } from '../model/connect-config.model.js';
 import { MothershipConnectionService } from './connection.service.js';
 
 const FIVE_MINUTES_MS = 5 * 60 * 1000;
@@ -184,7 +184,13 @@ export class MothershipGraphqlClientService implements OnModuleInit, OnModuleDes
      * Check if an error is an invalid API key error
      */
     private isInvalidApiKeyError(error: unknown): boolean {
-        return typeof error === 'object' && error !== null && 'message' in error && typeof error.message === 'string' && error.message.includes('API Key Invalid');
+        return (
+            typeof error === 'object' &&
+            error !== null &&
+            'message' in error &&
+            typeof error.message === 'string' &&
+            error.message.includes('API Key Invalid')
+        );
     }
 
     /**

@@ -2,8 +2,8 @@ import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 
+import { ConfigType, DynamicRemoteAccessType, MyServersConfig } from '../config/connect.config.js';
 import { EVENTS } from '../helper/nest-tokens.js';
-import { ConfigType, DynamicRemoteAccessType, MyServersConfig } from '../model/connect-config.model.js';
 import { AccessUrl, UrlResolverService } from './url-resolver.service.js';
 
 @Injectable()

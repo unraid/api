@@ -3,7 +3,7 @@ import { Inject, Injectable } from '@nestjs/common';
 import { NginxService } from '@unraid/shared/services/nginx.js';
 import { NGINX_SERVICE_TOKEN } from '@unraid/shared/tokens.js';
 
-import { ConnectConfigService } from './connect-config.service.js';
+import { ConnectConfigService } from '../config/connect.config.service.js';
 import { DnsService } from './dns.service.js';
 import { UrlResolverService } from './url-resolver.service.js';
 

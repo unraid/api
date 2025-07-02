@@ -4,7 +4,7 @@ import type { Mock } from 'vitest';
 import { URL_TYPE } from '@unraid/shared/network.model.js';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { ConfigType } from '../model/connect-config.model.js';
+import { ConfigType } from '../config/connect.config.js';
 import { UrlResolverService } from '../service/url-resolver.service.js';
 
 interface PortTestParams {

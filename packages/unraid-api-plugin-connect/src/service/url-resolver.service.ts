@@ -4,7 +4,7 @@ import { ConfigService } from '@nestjs/config';
 import { URL_TYPE } from '@unraid/shared/network.model.js';
 import { makeSafeRunner } from '@unraid/shared/util/processing.js';
 
-import { ConfigType } from '../model/connect-config.model.js';
+import { ConfigType } from '../config/connect.config.js';
 
 /**
  * Represents a Fully Qualified Domain Name (FQDN) entry in the nginx configuration.

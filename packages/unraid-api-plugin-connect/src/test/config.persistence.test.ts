@@ -1,11 +1,11 @@
 import { ConfigService } from '@nestjs/config';
 
-import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { faker } from '@faker-js/faker';
 import * as fc from 'fast-check';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { ConfigType, DynamicRemoteAccessType } from '../model/connect-config.model.js';
-import { ConnectConfigPersister } from '../service/config.persistence.js';
+import { ConnectConfigPersister } from '../config/config.persistence.js';
+import { ConfigType, DynamicRemoteAccessType } from '../config/connect.config.js';
 
 describe('ConnectConfigPersister', () => {
     let service: ConnectConfigPersister;
@@ -430,37 +430,34 @@ ssoSubIds="sub1,sub2"
 
         it('should handle edge cases in port conversion', () => {
             fc.assert(
-                fc.asyncProperty(
-                    fc.integer({ min: 0, max: 65535 }),
-                    async (port) => {
-                        const legacyConfig = {
-                            api: { version: '6.12.0', extraOrigins: '' },
-                            local: { sandbox: 'no' },
-                            remote: {
-                                wanaccess: 'no',
-                                wanport: port.toString(),
-                                upnpEnabled: 'no',
-                                apikey: 'unraid_test',
-                                localApiKey: 'test_local',
-                                email: 'test@example.com',
-                                username: faker.internet.username(),
-                                avatar: '',
-                                regWizTime: '',
-                                accesstoken: '',
-                                idtoken: '',
-                                refreshtoken: '',
-                                dynamicRemoteAccessType: 'DISABLED',
-                                ssoSubIds: '',
-                            },
-                        } as any;
+                fc.asyncProperty(fc.integer({ min: 0, max: 65535 }), async (port) => {
+                    const legacyConfig = {
+                        api: { version: '6.12.0', extraOrigins: '' },
+                        local: { sandbox: 'no' },
+                        remote: {
+                            wanaccess: 'no',
+                            wanport: port.toString(),
+                            upnpEnabled: 'no',
+                            apikey: 'unraid_test',
+                            localApiKey: 'test_local',
+                            email: 'test@example.com',
+                            username: faker.internet.username(),
+                            avatar: '',
+                            regWizTime: '',
+                            accesstoken: '',
+                            idtoken: '',
+                            refreshtoken: '',
+                            dynamicRemoteAccessType: 'DISABLED',
+                            ssoSubIds: '',
+                        },
+                    } as any;
 
-                        const result = await service.convertLegacyConfig(legacyConfig);
+                    const result = await service.convertLegacyConfig(legacyConfig);
 
-                        // Test port conversion logic
-                        expect(result.wanport).toBe(port);
-                        expect(typeof result.wanport).toBe('number');
-                    }
-                ),
+                    // Test port conversion logic
+                    expect(result.wanport).toBe(port);
+                    expect(typeof result.wanport).toBe('number');
+                }),
                 { numRuns: 15 }
             );
         });

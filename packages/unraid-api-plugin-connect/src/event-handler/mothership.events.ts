@@ -3,9 +3,9 @@ import { OnEvent } from '@nestjs/event-emitter';
 
 import { PubSub } from 'graphql-subscriptions';
 
+import { MinigraphStatus } from '../config/connect.config.js';
 import { EVENTS, GRAPHQL_PUBSUB_CHANNEL, GRAPHQL_PUBSUB_TOKEN } from '../helper/nest-tokens.js';
 import { TimeoutCheckerJob } from '../job/timeout-checker.job.js';
-import { MinigraphStatus } from '../model/connect-config.model.js';
 import { MothershipConnectionService } from '../service/connection.service.js';
 import { MothershipGraphqlClientService } from '../service/graphql.client.js';
 import { MothershipSubscriptionHandler } from '../service/mothership-subscription.handler.js';

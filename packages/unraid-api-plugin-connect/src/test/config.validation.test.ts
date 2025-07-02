@@ -1,10 +1,11 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { ConfigService } from '@nestjs/config';
+
 import { faker } from '@faker-js/faker';
 import * as fc from 'fast-check';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { MyServersConfig, DynamicRemoteAccessType } from '../model/connect-config.model.js';
-import { ConnectConfigPersister } from '../service/config.persistence.js';
+import { ConnectConfigPersister } from '../config/config.persistence.js';
+import { DynamicRemoteAccessType, MyServersConfig } from '../config/connect.config.js';
 
 describe('MyServersConfig Validation', () => {
     let persister: ConnectConfigPersister;
@@ -23,7 +24,7 @@ describe('MyServersConfig Validation', () => {
         } as any;
 
         persister = new ConnectConfigPersister(configService as any);
-        
+
         validConfig = {
             wanaccess: false,
             wanport: 0,
@@ -157,31 +158,24 @@ describe('MyServersConfig Validation', () => {
 
         it('should handle various boolean combinations', () => {
             fc.assert(
-                fc.asyncProperty(
-                    fc.boolean(),
-                    fc.boolean(),
-                    async (wanaccess, upnpEnabled) => {
-                        const config = { ...validConfig, wanaccess, upnpEnabled };
-                        const result = await persister.validate(config);
-                        expect(result.wanaccess).toBe(wanaccess);
-                        expect(result.upnpEnabled).toBe(upnpEnabled);
-                    }
-                ),
+                fc.asyncProperty(fc.boolean(), fc.boolean(), async (wanaccess, upnpEnabled) => {
+                    const config = { ...validConfig, wanaccess, upnpEnabled };
+                    const result = await persister.validate(config);
+                    expect(result.wanaccess).toBe(wanaccess);
+                    expect(result.upnpEnabled).toBe(upnpEnabled);
+                }),
                 { numRuns: 10 }
             );
         });
 
         it('should handle valid port numbers', () => {
             fc.assert(
-                fc.asyncProperty(
-                    fc.integer({ min: 0, max: 65535 }),
-                    async (port) => {
-                        const config = { ...validConfig, wanport: port };
-                        const result = await persister.validate(config);
-                        expect(result.wanport).toBe(port);
-                        expect(typeof result.wanport).toBe('number');
-                    }
-                ),
+                fc.asyncProperty(fc.integer({ min: 0, max: 65535 }), async (port) => {
+                    const config = { ...validConfig, wanport: port };
+                    const result = await persister.validate(config);
+                    expect(result.wanport).toBe(port);
+                    expect(typeof result.wanport).toBe('number');
+                }),
                 { numRuns: 20 }
             );
         });
@@ -225,9 +219,9 @@ describe('MyServersConfig Validation', () => {
         it('should reject invalid enum values', () => {
             fc.assert(
                 fc.asyncProperty(
-                    fc.string({ minLength: 1 }).filter(s => 
-                        !Object.values(DynamicRemoteAccessType).includes(s as any)
-                    ),
+                    fc
+                        .string({ minLength: 1 })
+                        .filter((s) => !Object.values(DynamicRemoteAccessType).includes(s as any)),
                     async (invalidEnumValue) => {
                         const config = { ...validConfig, dynamicRemoteAccessType: invalidEnumValue };
                         await expect(persister.validate(config)).rejects.toThrow();
@@ -240,9 +234,9 @@ describe('MyServersConfig Validation', () => {
         it('should reject invalid email formats using fuzzing', () => {
             fc.assert(
                 fc.asyncProperty(
-                    fc.string({ minLength: 1 }).filter(s => 
-                        !s.includes('@') || s.startsWith('@') || s.endsWith('@')
-                    ),
+                    fc
+                        .string({ minLength: 1 })
+                        .filter((s) => !s.includes('@') || s.startsWith('@') || s.endsWith('@')),
                     async (invalidEmail) => {
                         const config = { ...validConfig, email: invalidEmail };
                         await expect(persister.validate(config)).rejects.toThrow();
@@ -254,15 +248,12 @@ describe('MyServersConfig Validation', () => {
 
         it('should accept any number values for wanport (range validation is done at form level)', () => {
             fc.assert(
-                fc.asyncProperty(
-                    fc.integer({ min: -100000, max: 100000 }),
-                    async (port) => {
-                        const config = { ...validConfig, wanport: port };
-                        const result = await persister.validate(config);
-                        expect(result.wanport).toBe(port);
-                        expect(typeof result.wanport).toBe('number');
-                    }
-                ),
+                fc.asyncProperty(fc.integer({ min: -100000, max: 100000 }), async (port) => {
+                    const config = { ...validConfig, wanport: port };
+                    const result = await persister.validate(config);
+                    expect(result.wanport).toBe(port);
+                    expect(typeof result.wanport).toBe('number');
+                }),
                 { numRuns: 10 }
             );
         });
@@ -310,4 +301,4 @@ describe('MyServersConfig Validation', () => {
             );
         });
     });
-}); 
+});

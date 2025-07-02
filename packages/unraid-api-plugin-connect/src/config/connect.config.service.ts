@@ -3,7 +3,7 @@ import { ConfigService } from '@nestjs/config';
 import { OnEvent } from '@nestjs/event-emitter';
 
 import { EVENTS } from '../helper/nest-tokens.js';
-import { ConfigType, emptyMyServersConfig, MyServersConfig } from '../model/connect-config.model.js';
+import { ConfigType, emptyMyServersConfig, MyServersConfig } from './connect.config.js';
 
 @Injectable()
 export class ConnectConfigService {

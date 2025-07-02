@@ -3,11 +3,11 @@ import { ConfigModule } from '@nestjs/config';
 
 import { UserSettingsModule } from '@unraid/shared/services/user-settings.js';
 
-import { ConnectLoginHandler } from '../event-handler/connect-login.events.js';
+import { ConnectApiKeyService } from '../authn/connect-api-key.service.js';
+import { ConnectLoginHandler } from '../authn/connect-login.events.js';
+import { ConnectConfigService } from '../config/connect.config.service.js';
 import { ConnectSettingsResolver } from '../resolver/connect-settings.resolver.js';
 import { ConnectResolver } from '../resolver/connect.resolver.js';
-import { ConnectApiKeyService } from '../service/connect-api-key.service.js';
-import { ConnectConfigService } from '../service/connect-config.service.js';
 import { ConnectSettingsService } from '../service/connect-settings.service.js';
 import { RemoteAccessModule } from './remote-access.module.js';
 

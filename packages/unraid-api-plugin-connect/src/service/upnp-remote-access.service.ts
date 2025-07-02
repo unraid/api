@@ -2,8 +2,8 @@ import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 
+import { ConfigType } from '../config/connect.config.js';
 import { EVENTS } from '../helper/nest-tokens.js';
-import { ConfigType } from '../model/connect-config.model.js';
 import { UpnpService } from './upnp.service.js';
 import { UrlResolverService } from './url-resolver.service.js';
 
