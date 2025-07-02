@@ -4,10 +4,21 @@ on:
   pull_request:
     types:
       - closed
+  workflow_dispatch:
+    inputs:
+      pr_number:
+        description: 'PR number to test with'
+        required: true
+        type: string
+      pr_merged:
+        description: 'Simulate merged PR'
+        required: true
+        type: boolean
+        default: true
 
 jobs:
   push-staging:
-    if: github.event.pull_request.merged == true
+    if: (github.event_name == 'pull_request' && github.event.pull_request.merged == true) || (github.event_name == 'workflow_dispatch' && inputs.pr_merged == true)
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -16,25 +27,36 @@ jobs:
         uses: szenius/set-timezone@v2.0
         with:
           timezoneLinux: "America/Los_Angeles"
-      - name: Checkout repo
-        uses: actions/checkout@v4
-        with:
-          ref: refs/pull/${{ github.event.pull_request.base.ref }}/merge
+
+      - name: Set PR number
+        id: pr_number
+        run: |
+          if [ "${{ github.event_name }}" == "pull_request" ]; then
+            echo "pr_number=${{ github.event.pull_request.number }}" >> $GITHUB_OUTPUT
+          else
+            echo "pr_number=${{ inputs.pr_number }}" >> $GITHUB_OUTPUT
+          fi
 
       - name: Download artifact
-        uses: actions/download-artifact@v4
+        uses: dawidd6/action-download-artifact@v11
         with:
-          name: connect-files
+          name_is_regexp: true
+          name: unraid-plugin-.*
           path: connect-files
+          pr: ${{ steps.pr_number.outputs.pr_number }}
+          workflow_conclusion: success
 
       - name: Update Downloaded Staging Plugin to New Date
         run: |
-          if [ ! -f "connect-files/plugins/dynamix.unraid.net.pr.plg" ]; then
-            echo "ERROR: dynamix.unraid.net.pr.plg not found"
+          # Find the .plg file in the downloaded artifact
+          plgfile=$(find connect-files -name "*.plg" -type f | head -1)
+          if [ ! -f "$plgfile" ]; then
+            echo "ERROR: .plg file not found in connect-files/"
+            ls -la connect-files/
             exit 1
           fi
-
-          plgfile="connect-files/plugins/dynamix.unraid.net.pr.plg"
+          
+          echo "Found plugin file: $plgfile"
           version=$(date +"%Y.%m.%d.%H%M")
           sed -i -E "s#(<!ENTITY version \").*(\">)#\1${version}\2#g" "${plgfile}" || exit 1
                 
@@ -54,4 +76,4 @@ jobs:
           AWS_SECRET_ACCESS_KEY: ${{ secrets.CF_SECRET_ACCESS_KEY }}
           AWS_REGION: "auto"
           SOURCE_DIR: pr-release
-          DEST_DIR: unraid-api/pr/${{ github.event.pull_request.number }}
+          DEST_DIR: unraid-api/pr/${{ steps.pr_number.outputs.pr_number }}
