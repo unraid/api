@@ -34,7 +34,9 @@ export class ConnectConfigPersister implements OnModuleInit, OnModuleDestroy {
         // Persist changes to the config.
         this.configService.changes$.pipe(bufferTime(25)).subscribe({
             next: async (changes) => {
-                const connectConfigChanged = changes.some(({ path }) => path.startsWith('connect.config'));
+                const connectConfigChanged = changes.some(({ path }) =>
+                    path.startsWith('connect.config')
+                );
                 if (connectConfigChanged) {
                     await this.persist();
                 }
@@ -78,12 +80,14 @@ export class ConnectConfigPersister implements OnModuleInit, OnModuleDestroy {
      * @param config - The config object to validate.
      * @returns The validated config instance.
      */
-    private async validate(config: object) {
+    public async validate(config: object) {
         let instance: MyServersConfig;
         if (config instanceof MyServersConfig) {
             instance = config;
         } else {
-            instance = plainToInstance(MyServersConfig, config, { enableImplicitConversion: true });
+            instance = plainToInstance(MyServersConfig, config, {
+                enableImplicitConversion: true,
+            });
         }
         await validateOrReject(instance);
         return instance;
@@ -101,7 +105,7 @@ export class ConnectConfigPersister implements OnModuleInit, OnModuleDestroy {
             this.logger.verbose(`Config loaded from ${this.configPath}`);
             return true;
         } catch (error) {
-            this.logger.warn('Error loading config:', error);
+            this.logger.warn(error, 'Error loading config');
         }
 
         try {
@@ -150,7 +154,7 @@ export class ConnectConfigPersister implements OnModuleInit, OnModuleDestroy {
      * @throws {Error} - If the legacy config file does not exist.
      * @throws {Error} - If the legacy config file is not parse-able.
      */
-    public async convertLegacyConfig(config:LegacyConfig): Promise<MyServersConfig> {
+    public async convertLegacyConfig(config: LegacyConfig): Promise<MyServersConfig> {
         return this.validate({
             ...config.api,
             ...config.local,

@@ -4,7 +4,7 @@ import { ConfigService, registerAs } from '@nestjs/config';
 import type { ApiConfig } from '@unraid/shared/services/api-config.js';
 import { csvStringToArray } from '@unraid/shared/util/data.js';
 import { fileExists } from '@unraid/shared/util/file.js';
-import { bufferTime, debounceTime } from 'rxjs/operators';
+import { bufferTime } from 'rxjs/operators';
 
 import { API_VERSION } from '@app/environment.js';
 import { ApiStateConfig } from '@app/unraid-api/config/factory/api-state.model.js';

@@ -112,7 +112,9 @@ describe('UrlResolverService', () => {
 
             const result = service.getServerIps();
             expect(result.errors.length).toBeGreaterThan(0);
-            expect(result.errors.some(error => error.message.includes('Failed to parse URL'))).toBe(true);
+            expect(result.errors.some((error) => error.message.includes('Failed to parse URL'))).toBe(
+                true
+            );
         });
 
         it('should handle SSL mode variations', () => {
@@ -159,7 +161,9 @@ describe('UrlResolverService', () => {
                 const result = service.getServerIps();
 
                 if (testCase.shouldError) {
-                    expect(result.errors.some(error => error.message.includes('SSL mode auto'))).toBe(true);
+                    expect(result.errors.some((error) => error.message.includes('SSL mode auto'))).toBe(
+                        true
+                    );
                 } else {
                     const lanUrl = result.urls.find(
                         (url) => url.type === URL_TYPE.LAN && url.name === 'LAN IPv4'

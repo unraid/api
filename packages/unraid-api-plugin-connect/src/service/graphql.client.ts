@@ -184,7 +184,7 @@ export class MothershipGraphqlClientService implements OnModuleInit, OnModuleDes
      * Check if an error is an invalid API key error
      */
     private isInvalidApiKeyError(error: unknown): boolean {
-        return error instanceof Error && error.message.includes('API Key Invalid');
+        return typeof error === 'object' && error !== null && 'message' in error && typeof error.message === 'string' && error.message.includes('API Key Invalid');
     }
 
     /**
