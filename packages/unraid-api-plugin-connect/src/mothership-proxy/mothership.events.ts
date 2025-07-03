@@ -9,10 +9,13 @@ import { EVENTS, GRAPHQL_PUBSUB_CHANNEL, GRAPHQL_PUBSUB_TOKEN } from '../helper/
 import { MothershipConnectionService } from './connection.service.js';
 import { MothershipGraphqlClientService } from './graphql.client.js';
 import { MothershipSubscriptionHandler } from './mothership-subscription.handler.js';
+import { isEqual } from 'lodash-es';
 
 @Injectable()
 export class MothershipHandler implements OnModuleDestroy {
     private readonly logger = new Logger(MothershipHandler.name);
+    private isSettingUp = false;
+    private lastIdentityHash: object | null = null;
     constructor(
         private readonly connectionService: MothershipConnectionService,
         private readonly clientService: MothershipGraphqlClientService,
@@ -35,22 +38,40 @@ export class MothershipHandler implements OnModuleDestroy {
     }
 
     async setup() {
-        await this.clear();
-        const { state } = this.connectionService.getIdentityState();
-        this.logger.verbose('cleared, got identity state');
-        if (!state.apiKey) {
-            this.logger.warn('No API key found; cannot setup mothership subscription');
+        if (this.isSettingUp) {
+            this.logger.debug('Setup already in progress, skipping');
             return;
         }
-        await this.clientService.createClientInstance();
-        await this.subscriptionHandler.subscribeToMothershipEvents();
-        this.timeoutCheckerJob.start();
+        this.isSettingUp = true;
+        try {
+            await this.clear();
+            const { state } = this.connectionService.getIdentityState();
+            this.logger.verbose('cleared, got identity state');
+            if (!state.apiKey) {
+                this.logger.warn('No API key found; cannot setup mothership subscription');
+                return;
+            }
+            // cache identity snapshot to avoid redundant setups
+            this.lastIdentityHash = structuredClone(state);
+
+            await this.clientService.createClientInstance();
+            await this.subscriptionHandler.subscribeToMothershipEvents();
+            this.timeoutCheckerJob.start();
+        } finally {
+            this.isSettingUp = false;
+        }
     }
 
     @OnEvent(EVENTS.IDENTITY_CHANGED, { async: true })
     async onIdentityChanged() {
         const { state } = this.connectionService.getIdentityState();
         if (state.apiKey) {
+            const identityHash = structuredClone(state);
+
+            if (isEqual(identityHash, this.lastIdentityHash)) {
+                this.logger.debug('Identity unchanged; skipping mothership setup');
+                return;
+            }
             this.logger.verbose('Identity changed; setting up mothership subscription');
             await this.setup();
         }
