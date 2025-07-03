@@ -9,7 +9,9 @@ onBeforeMount(() => {
 </script>
 
 <template>
-  <slot />
+  <div>
+    <slot />
+  </div>
 </template>
 
 <style lang="postcss">
