@@ -1497,6 +1497,47 @@ type AccessUrlObject {
   name: String
 }
 
+type ApiKeyResponse {
+  valid: Boolean!
+  error: String
+}
+
+type MinigraphqlResponse {
+  status: MinigraphStatus!
+  timeout: Int
+  error: String
+}
+
+"""The status of the minigraph"""
+enum MinigraphStatus {
+  PRE_INIT
+  CONNECTING
+  CONNECTED
+  PING_FAILURE
+  ERROR_RETRYING
+}
+
+type CloudResponse {
+  status: String!
+  ip: String
+  error: String
+}
+
+type RelayResponse {
+  status: String!
+  timeout: String
+  error: String
+}
+
+type Cloud {
+  error: String
+  apiKey: ApiKeyResponse!
+  relay: RelayResponse
+  minigraphql: MinigraphqlResponse!
+  cloud: CloudResponse!
+  allowedOrigins: [String!]!
+}
+
 type RemoteAccess {
   """The type of WAN access used for Remote Access"""
   accessType: WAN_ACCESS_TYPE!
@@ -1573,47 +1614,6 @@ type Connect implements Node {
 type Network implements Node {
   id: PrefixedID!
   accessUrls: [AccessUrl!]
-}
-
-type ApiKeyResponse {
-  valid: Boolean!
-  error: String
-}
-
-type MinigraphqlResponse {
-  status: MinigraphStatus!
-  timeout: Int
-  error: String
-}
-
-"""The status of the minigraph"""
-enum MinigraphStatus {
-  PRE_INIT
-  CONNECTING
-  CONNECTED
-  PING_FAILURE
-  ERROR_RETRYING
-}
-
-type CloudResponse {
-  status: String!
-  ip: String
-  error: String
-}
-
-type RelayResponse {
-  status: String!
-  timeout: String
-  error: String
-}
-
-type Cloud {
-  error: String
-  apiKey: ApiKeyResponse!
-  relay: RelayResponse
-  minigraphql: MinigraphqlResponse!
-  cloud: CloudResponse!
-  allowedOrigins: [String!]!
 }
 
 input AccessUrlObjectInput {
