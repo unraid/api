@@ -22,6 +22,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
+      actions: read
     steps:
       - name: Set Timezone
         uses: szenius/set-timezone@v2.0
@@ -61,6 +62,8 @@ jobs:
           path: connect-files
           pr: ${{ steps.pr_number.outputs.pr_number }}
           workflow_conclusion: success
+          workflow_search: true
+          search_artifacts: true
 
       - name: Update Downloaded Staging Plugin to New Date
         run: |
