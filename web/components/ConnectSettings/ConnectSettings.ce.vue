@@ -8,7 +8,7 @@ import { storeToRefs } from 'pinia';
 import { watchDebounced } from '@vueuse/core';
 import { useMutation, useQuery } from '@vue/apollo-composable';
 
-import { BrandButton, jsonFormsRenderers, Label } from '@unraid/ui';
+import { BrandButton, jsonFormsRenderers, Label, SettingsGrid } from '@unraid/ui';
 import { JsonForms } from '@jsonforms/vue';
 
 import { useServerStore } from '~/store/server';
@@ -102,9 +102,7 @@ const onChange = ({ data }: { data: Record<string, unknown> }) => {
 
 <template>
   <!-- common api-related actions -->
-  <div
-    class="grid grid-cols-settings items-baseline pl-3 gap-y-6 [&>*:nth-child(odd)]:text-end [&>*:nth-child(even)]:ml-10"
-  >
+  <SettingsGrid>
     <template v-if="connectPluginInstalled">
       <Label>Account Status:</Label>
       <div v-html="'<unraid-auth></unraid-auth>'"/>
@@ -115,7 +113,7 @@ const onChange = ({ data }: { data: Record<string, unknown> }) => {
         '<unraid-download-api-logs></unraid-download-api-logs>'
       "
     />
-  </div>
+  </SettingsGrid>
   <!-- auto-generated settings form -->
   <div class="mt-6 pl-3 [&_.vertical-layout]:space-y-6">
     <JsonForms
