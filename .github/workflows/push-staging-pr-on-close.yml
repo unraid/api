@@ -7,11 +7,11 @@ on:
   workflow_dispatch:
     inputs:
       pr_number:
-        description: 'PR number to test with'
+        description: "PR number to test with"
         required: true
         type: string
       pr_merged:
-        description: 'Simulate merged PR'
+        description: "Simulate merged PR"
         required: true
         type: boolean
         default: true
@@ -22,6 +22,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
+      actions: read
     steps:
       - name: Set Timezone
         uses: szenius/set-timezone@v2.0
@@ -45,6 +46,8 @@ jobs:
           path: connect-files
           pr: ${{ steps.pr_number.outputs.pr_number }}
           workflow_conclusion: success
+          workflow_search: true
+          search_artifacts: true
 
       - name: Update Downloaded Staging Plugin to New Date
         run: |
@@ -55,14 +58,14 @@ jobs:
             ls -la connect-files/
             exit 1
           fi
-          
+
           echo "Found plugin file: $plgfile"
           version=$(date +"%Y.%m.%d.%H%M")
           sed -i -E "s#(<!ENTITY version \").*(\">)#\1${version}\2#g" "${plgfile}" || exit 1
                 
           # Change the plugin url to point to staging
           url="https://preview.dl.unraid.net/unraid-api/dynamix.unraid.net.plg"
-          sed -i -E "s#(<!ENTITY pluginURL \").*(\">)#\1${url}\2#g" "${plgfile}" || exit 1
+          sed -i -E "s#(<!ENTITY plugin_url \").*?(\">)#\1${url}\2#g" "${plgfile}" || exit 1
           cat "${plgfile}"
           mkdir -p pr-release
           mv "${plgfile}" pr-release/dynamix.unraid.net.plg
