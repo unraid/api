@@ -5,5 +5,5 @@
     "nuxt-custom-elements",
     "reflect-metadata"
   ],
-  "rangeStrategy": "replace"
+  "rangeStrategy": "pin"
 }
