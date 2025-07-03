@@ -65,7 +65,7 @@ jobs:
                 
           # Change the plugin url to point to staging
           url="https://preview.dl.unraid.net/unraid-api/dynamix.unraid.net.plg"
-          sed -i -E "s#(<!ENTITY pluginURL \").*(\">)#\1${url}\2#g" "${plgfile}" || exit 1
+          sed -i -E "s#(<!ENTITY plugin_url \").*?(\">)#\1${url}\2#g" "${plgfile}" || exit 1
           cat "${plgfile}"
           mkdir -p pr-release
           mv "${plgfile}" pr-release/dynamix.unraid.net.plg
