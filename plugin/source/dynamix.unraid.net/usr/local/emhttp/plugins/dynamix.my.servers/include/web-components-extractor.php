@@ -5,6 +5,7 @@ class WebComponentsExtractor
 {
     private const PREFIXED_PATH = '/plugins/dynamix.my.servers/unraid-components/';
     private const RICH_COMPONENTS_ENTRY = 'unraid-components.client.mjs';
+    private const RICH_COMPONENTS_ENTRY_JS = 'unraid-components.client.js';
     private const UI_ENTRY = 'src/register.ts';
     private const UI_STYLES_ENTRY = 'style.css';
 
@@ -47,7 +48,16 @@ class WebComponentsExtractor
             $subfolder = $this->getRelativePath($manifestPath);
             
             foreach ($manifest as $key => $value) {
-                if (strpos($key, self::RICH_COMPONENTS_ENTRY) !== false && isset($value["file"])) {
+                // Skip timestamp entries
+                if ($key === 'ts' || !is_array($value)) {
+                    continue;
+                }
+                
+                // Check for both old format (direct key match) and new format (path-based key)
+                $matchesMjs = strpos($key, self::RICH_COMPONENTS_ENTRY) !== false;
+                $matchesJs = strpos($key, self::RICH_COMPONENTS_ENTRY_JS) !== false;
+                
+                if (($matchesMjs || $matchesJs) && isset($value["file"])) {
                     return ($subfolder ? $subfolder . '/' : '') . $value["file"];
                 }
             }
@@ -59,7 +69,7 @@ class WebComponentsExtractor
     {
         $jsFile = $this->getRichComponentsFile();
         if (empty($jsFile)) {
-            return '<script>console.error("%cNo matching key containing \'' . self::RICH_COMPONENTS_ENTRY . '\' found.", "font-weight: bold; color: white; background-color: red");</script>';
+            return '<script>console.error("%cNo matching key containing \'' . self::RICH_COMPONENTS_ENTRY . '\' or \'' . self::RICH_COMPONENTS_ENTRY_JS . '\' found.", "font-weight: bold; color: white; background-color: red");</script>';
         }
         return '<script src="' . $this->getAssetPath($jsFile) . '"></script>';
     }
