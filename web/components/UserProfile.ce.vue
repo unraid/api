@@ -125,6 +125,12 @@ onMounted(() => {
           {{ name }}
         </button>
         <span
+          v-else
+          class="text-header-text-primary"
+        >
+          {{ name }}
+        </span>
+        <span
           v-show="copied || showCopyNotSupported"
           class="text-white text-12px leading-none py-4px px-8px absolute top-full right-0 bg-gradient-to-r from-unraid-red to-orange text-center block rounded"
         >
