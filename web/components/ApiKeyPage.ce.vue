@@ -2,7 +2,9 @@
 import ApiKeyManager from '~/components/ApiKey/ApiKeyManager.vue';
 </script>
 <template>
-  <ApiKeyManager />
+  <div>
+    <ApiKeyManager />
+  </div>
 </template>
 <style lang="postcss">
 /* Import unraid-ui globals first */
