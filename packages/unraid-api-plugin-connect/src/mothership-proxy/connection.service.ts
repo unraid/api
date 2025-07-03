@@ -91,7 +91,8 @@ export class MothershipConnectionService implements OnModuleInit, OnModuleDestro
                 bufferTime(25)
             )
             .subscribe({
-                next: () => {
+                next: (changes) => {
+                    this.logger.log(`changes: ${JSON.stringify(changes.map((c) => c.path))}`);
                     const { state } = this.getIdentityState();
                     if (isEqual(state, this.lastIdentity)) {
                         this.logger.debug('Identity unchanged; skipping event emission');
