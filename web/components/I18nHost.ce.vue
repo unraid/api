@@ -44,7 +44,9 @@ provide(I18nInjectionKey, i18n);
 </script>
 
 <template>
-  <slot />
+  <div>
+    <slot />
+  </div>
 </template>
 
 <style>
