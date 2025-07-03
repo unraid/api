@@ -4,12 +4,6 @@ import { useMutation, useQuery, useSubscription } from '@vue/apollo-composable';
 import {
   Button,
   Select,
-  SelectContent,
-  SelectGroup,
-  SelectItem,
-  SelectLabel,
-  SelectTrigger,
-  SelectValue,
   Sheet,
   SheetContent,
   SheetHeader,
@@ -41,6 +35,14 @@ const { mutate: deleteArchives, loading: loadingDeleteAll } = useMutation(delete
 const { mutate: recalculateOverview } = useMutation(resetOverview);
 const { determineTeleportTarget } = useTeleport();
 const importance = ref<Importance | undefined>(undefined);
+
+const filterItems = [
+  { type: 'label' as const, label: 'Notification Types' },
+  { label: 'All Types', value: 'all' },
+  { label: 'Alert', value: Importance.ALERT },
+  { label: 'Info', value: Importance.INFO },
+  { label: 'Warning', value: Importance.WARNING },
+];
 
 const confirmAndArchiveAll = async () => {
   if (confirm('This will archive all notifications on your Unraid server. Continue?')) {
@@ -176,26 +178,16 @@ const prepareToViewNotifications = () => {
             </TabsContent>
 
             <Select
+              :items="filterItems"
+              placeholder="Filter By"
+              class="h-auto"
               @update:model-value="
                 (val: unknown) => {
                   const strVal = String(val);
                   importance = strVal === 'all' || !strVal ? undefined : (strVal as Importance);
                 }
               "
-            >
-              <SelectTrigger class="h-auto">
-                <SelectValue class="text-gray-400 leading-6" placeholder="Filter By" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectGroup>
-                  <SelectLabel>Notification Types</SelectLabel>
-                  <SelectItem value="all">All Types</SelectItem>
-                  <SelectItem :value="Importance.ALERT"> Alert </SelectItem>
-                  <SelectItem :value="Importance.INFO">Info</SelectItem>
-                  <SelectItem :value="Importance.WARNING">Warning</SelectItem>
-                </SelectGroup>
-              </SelectContent>
-            </Select>
+            />
           </div>
 
           <TabsContent value="unread" class="flex-col flex-1 min-h-0">
