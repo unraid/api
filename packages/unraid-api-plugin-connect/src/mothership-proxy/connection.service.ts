@@ -87,7 +87,7 @@ export class MothershipConnectionService implements OnModuleInit, OnModuleDestro
                 filter((change) => Object.values(this.configKeys).includes(change.path)),
                 // debouncing is necessary here (instead of buffering/batching) to prevent excess emissions
                 // because the store.* config values will change frequently upon api boot
-                debounceTime(25)
+                // debounceTime(25)
             )
             .subscribe({
                 next: () => {
