@@ -1,5 +1,12 @@
 import path from 'path';
+
+
+
 import removeConsole from 'vite-plugin-remove-console';
+
+
+
+
 
 /**
  * Used to avoid redeclaring variables in the webgui codebase.
@@ -162,7 +169,8 @@ export default defineNuxtConfig({
           },
         ],
       },
-    ],
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    ] as any,
   },
 
   compatibilityDate: '2024-12-05',
