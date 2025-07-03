@@ -15,7 +15,6 @@ import { isEqual } from 'lodash-es';
 export class MothershipHandler implements OnModuleDestroy {
     private readonly logger = new Logger(MothershipHandler.name);
     private isSettingUp = false;
-    private lastIdentityHash: object | null = null;
     constructor(
         private readonly connectionService: MothershipConnectionService,
         private readonly clientService: MothershipGraphqlClientService,
@@ -38,10 +37,10 @@ export class MothershipHandler implements OnModuleDestroy {
     }
 
     async setup() {
-        if (this.isSettingUp) {
-            this.logger.debug('Setup already in progress, skipping');
-            return;
-        }
+        // if (this.isSettingUp) {
+        //     this.logger.debug('Setup already in progress, skipping');
+        //     return;
+        // }
         this.isSettingUp = true;
         try {
             await this.clear();
@@ -51,9 +50,6 @@ export class MothershipHandler implements OnModuleDestroy {
                 this.logger.warn('No API key found; cannot setup mothership subscription');
                 return;
             }
-            // cache identity snapshot to avoid redundant setups
-            this.lastIdentityHash = structuredClone(state);
-
             await this.clientService.createClientInstance();
             await this.subscriptionHandler.subscribeToMothershipEvents();
             this.timeoutCheckerJob.start();
@@ -66,12 +62,6 @@ export class MothershipHandler implements OnModuleDestroy {
     async onIdentityChanged() {
         const { state } = this.connectionService.getIdentityState();
         if (state.apiKey) {
-            const identityHash = structuredClone(state);
-
-            if (isEqual(identityHash, this.lastIdentityHash)) {
-                this.logger.debug('Identity unchanged; skipping mothership setup');
-                return;
-            }
             this.logger.verbose('Identity changed; setting up mothership subscription');
             await this.setup();
         }
