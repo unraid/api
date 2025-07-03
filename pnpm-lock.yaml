@@ -891,8 +891,8 @@ importers:
         specifier: ^1.1.0
         version: 1.1.0(tailwindcss@3.4.17(ts-node@10.9.2(@swc/core@1.12.9)(@types/node@22.15.3)(typescript@5.8.3)))
       '@vitejs/plugin-vue':
-        specifier: ^5.0.0
-        version: 5.2.3(vite@6.2.3(@types/node@22.15.3)(jiti@2.4.2)(stylus@0.57.0)(terser@5.43.1)(tsx@4.20.3)(yaml@2.8.0))(vue@3.5.13(typescript@5.8.3))
+        specifier: ^6.0.0
+        version: 6.0.0(vite@6.2.3(@types/node@22.15.3)(jiti@2.4.2)(stylus@0.57.0)(terser@5.43.1)(tsx@4.20.3)(yaml@2.8.0))(vue@3.5.13(typescript@5.8.3))
       '@vitejs/plugin-vue-jsx':
         specifier: ^4.1.1
         version: 4.1.2(vite@6.2.3(@types/node@22.15.3)(jiti@2.4.2)(stylus@0.57.0)(terser@5.43.1)(tsx@4.20.3)(yaml@2.8.0))(vue@3.5.13(typescript@5.8.3))
@@ -1160,8 +1160,8 @@ importers:
         specifier: ^1.1.0
         version: 1.1.0(tailwindcss@3.4.17(ts-node@10.9.2(@swc/core@1.12.9)(@types/node@22.15.3)(typescript@5.8.3)))
       '@vitejs/plugin-vue':
-        specifier: ^5.0.0
-        version: 5.2.3(vite@6.3.5(@types/node@22.15.3)(jiti@2.4.2)(stylus@0.57.0)(terser@5.39.0)(tsx@4.20.3)(yaml@2.8.0))(vue@3.5.13(typescript@5.8.3))
+        specifier: ^6.0.0
+        version: 6.0.0(vite@6.3.5(@types/node@22.15.3)(jiti@2.4.2)(stylus@0.57.0)(terser@5.39.0)(tsx@4.20.3)(yaml@2.8.0))(vue@3.5.13(typescript@5.8.3))
       '@vitest/coverage-v8':
         specifier: ^3.1.1
         version: 3.1.1(vitest@3.1.4(@types/node@22.15.3)(happy-dom@18.0.1)(jiti@2.4.2)(jsdom@26.0.0)(stylus@0.57.0)(terser@5.39.0)(tsx@4.20.3)(yaml@2.8.0))
@@ -4081,6 +4081,9 @@ packages:
   '@repeaterjs/repeater@3.0.6':
     resolution: {integrity: sha512-Javneu5lsuhwNCryN+pXH93VPQ8g0dBX7wItHFgYiwQmzE1sVdg5tWHiOgHywzL2W21XQopa7IwIEnNbmeUJYA==}
 
+  '@rolldown/pluginutils@1.0.0-beta.19':
+    resolution: {integrity: sha512-3FL3mnMbPu0muGOCaKAhhFEYmqv9eTfPSJRJmANrCwtgK8VuxpsZDGK+m0LYAGoyO8+0j5uRe4PeyPDK1yA/hA==}
+
   '@rollup/plugin-alias@5.1.1':
     resolution: {integrity: sha512-PR9zDb+rOzkRb2VD+EuKB7UC41vU5DIwZ5qqCpk0KJudcWAyi8rvYOhS7+L5aZCspw1stTViLgN5v6FF1p5cgQ==}
     engines: {node: '>=14.0.0'}
@@ -5274,6 +5277,13 @@ packages:
     engines: {node: ^18.0.0 || >=20.0.0}
     peerDependencies:
       vite: ^5.0.0 || ^6.0.0
+      vue: ^3.2.25
+
+  '@vitejs/plugin-vue@6.0.0':
+    resolution: {integrity: sha512-iAliE72WsdhjzTOp2DtvKThq1VBC4REhwRcaA+zPAAph6I+OQhUXv+Xu2KS7ElxYtb7Zc/3R30Hwv1DxEo7NXQ==}
+    engines: {node: ^20.19.0 || >=22.12.0}
+    peerDependencies:
+      vite: ^5.0.0 || ^6.0.0 || ^7.0.0
       vue: ^3.2.25
 
   '@vitest/coverage-v8@3.1.1':
@@ -17650,6 +17660,8 @@ snapshots:
 
   '@repeaterjs/repeater@3.0.6': {}
 
+  '@rolldown/pluginutils@1.0.0-beta.19': {}
+
   '@rollup/plugin-alias@5.1.1(rollup@4.44.1)':
     optionalDependencies:
       rollup: 4.44.1
@@ -18978,13 +18990,20 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  '@vitejs/plugin-vue@5.2.3(vite@6.2.3(@types/node@22.15.3)(jiti@2.4.2)(stylus@0.57.0)(terser@5.43.1)(tsx@4.20.3)(yaml@2.8.0))(vue@3.5.13(typescript@5.8.3))':
+  '@vitejs/plugin-vue@5.2.3(vite@6.3.5(@types/node@22.15.3)(jiti@2.4.2)(stylus@0.57.0)(terser@5.39.0)(tsx@4.20.3)(yaml@2.8.0))(vue@3.5.13(typescript@5.8.3))':
     dependencies:
+      vite: 6.3.5(@types/node@22.15.3)(jiti@2.4.2)(stylus@0.57.0)(terser@5.39.0)(tsx@4.20.3)(yaml@2.8.0)
+      vue: 3.5.13(typescript@5.8.3)
+
+  '@vitejs/plugin-vue@6.0.0(vite@6.2.3(@types/node@22.15.3)(jiti@2.4.2)(stylus@0.57.0)(terser@5.43.1)(tsx@4.20.3)(yaml@2.8.0))(vue@3.5.13(typescript@5.8.3))':
+    dependencies:
+      '@rolldown/pluginutils': 1.0.0-beta.19
       vite: 6.2.3(@types/node@22.15.3)(jiti@2.4.2)(stylus@0.57.0)(terser@5.43.1)(tsx@4.20.3)(yaml@2.8.0)
       vue: 3.5.13(typescript@5.8.3)
 
-  '@vitejs/plugin-vue@5.2.3(vite@6.3.5(@types/node@22.15.3)(jiti@2.4.2)(stylus@0.57.0)(terser@5.39.0)(tsx@4.20.3)(yaml@2.8.0))(vue@3.5.13(typescript@5.8.3))':
+  '@vitejs/plugin-vue@6.0.0(vite@6.3.5(@types/node@22.15.3)(jiti@2.4.2)(stylus@0.57.0)(terser@5.39.0)(tsx@4.20.3)(yaml@2.8.0))(vue@3.5.13(typescript@5.8.3))':
     dependencies:
+      '@rolldown/pluginutils': 1.0.0-beta.19
       vite: 6.3.5(@types/node@22.15.3)(jiti@2.4.2)(stylus@0.57.0)(terser@5.39.0)(tsx@4.20.3)(yaml@2.8.0)
       vue: 3.5.13(typescript@5.8.3)
 
