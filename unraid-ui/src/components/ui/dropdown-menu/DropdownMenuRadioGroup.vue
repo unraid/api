@@ -9,7 +9,7 @@ import {
 const props = defineProps<DropdownMenuRadioGroupProps>();
 const emits = defineEmits<DropdownMenuRadioGroupEmits>();
 
-const forwarded = useForwardPropsEmits<DropdownMenuRadioGroupProps, 'update:modelValue'>(props, emits);
+const forwarded = useForwardPropsEmits(props, emits);
 </script>
 
 <template>

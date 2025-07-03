@@ -10,18 +10,9 @@ import {
   AccordionTrigger,
   Button,
   Dialog,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogScrollContent,
-  DialogTitle,
   Input,
   Label,
   Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
 } from '@unraid/ui';
 import { extractGraphQLErrorMessage } from '~/helpers/functions';
 
@@ -185,7 +176,7 @@ async function upsertKey() {
       const fragmentData = useFragment(API_KEY_FRAGMENT_WITH_KEY, apiKeyResult.create);
       apiKeyStore.setCreatedKey(fragmentData);
     }
-    
+
     modalVisible.value = false;
     editingKey.value = null;
     newKeyName.value = '';
@@ -200,135 +191,119 @@ async function upsertKey() {
 
 <template>
   <Dialog
-    :open="modalVisible"
-    @close="close"
-    @update:open="
+    v-model="modalVisible"
+    size="lg"
+    :title="editingKey ? t('Edit API Key') : t('Create API Key')"
+    :scrollable="true"
+    close-button-text="Cancel"
+    :primary-button-text="editingKey ? 'Save' : 'Create'"
+    :primary-button-loading="loading || postCreateLoading"
+    :primary-button-loading-text="editingKey ? 'Saving...' : 'Creating...'"
+    :primary-button-disabled="loading || postCreateLoading"
+    @update:model-value="
       (v) => {
         if (!v) close();
       }
     "
+    @primary-click="upsertKey"
   >
-    <DialogScrollContent class="max-w-800px">
-      <DialogHeader>
-        <DialogTitle>{{ editingKey ? t('Edit API Key') : t('Create API Key') }}</DialogTitle>
-      </DialogHeader>
-      <DialogDescription>
-        <form @submit.prevent="upsertKey">
-          <div class="mb-2">
-            <Label for="api-key-name">Name</Label>
-            <Input id="api-key-name" v-model="newKeyName" placeholder="Name" class="mt-1" />
-          </div>
-          <div class="mb-2">
-            <Label for="api-key-desc">Description</Label>
-            <Input
-              id="api-key-desc"
-              v-model="newKeyDescription"
-              placeholder="Description"
-              class="mt-1"
-            />
-          </div>
-          <div class="mb-2">
-            <Label for="api-key-roles">Roles</Label>
-            <Select v-model="newKeyRoles" multiple class="mt-1 w-full">
-              <SelectTrigger>
-                <SelectValue placeholder="Select Roles" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem v-for="role in possibleRoles" :key="role" :value="role">{{
-                  role
-                }}</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-          <div class="mb-2">
-            <Label for="api-key-permissions">Permissions</Label>
-            <Accordion id="api-key-permissions" type="single" collapsible class="w-full mt-2">
-              <AccordionItem value="permissions">
-                <AccordionTrigger>
-                  <PermissionCounter
-                    :permissions="newKeyPermissions"
-                    :possible-permissions="possiblePermissions"
-                  />
-                </AccordionTrigger>
-                <AccordionContent>
-                  <div class="flex flex-row justify-end my-2">
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      type="button"
-                      @click="
-                        areAllPermissionsSelected() ? clearAllPermissions() : selectAllPermissions()
-                      "
-                    >
-                      {{ areAllPermissionsSelected() ? 'Clear All' : 'Select All' }}
-                    </Button>
-                  </div>
-                  <div class="flex flex-col gap-2 mt-1">
-                    <div
-                      v-for="perm in possiblePermissions"
-                      :key="perm.resource"
-                      class="rounded-sm p-2 border"
-                    >
-                      <div class="flex items-center justify-between mb-1">
-                        <span class="font-semibold">{{ perm.resource }}</span>
-                        <Button
-                          size="sm"
-                          variant="link"
-                          type="button"
-                          @click="
-                            areAllActionsSelected(perm.resource)
-                              ? clearAllActions(perm.resource)
-                              : selectAllActions(perm.resource)
+    <div class="max-w-800px">
+      <form @submit.prevent="upsertKey">
+        <div class="mb-2">
+          <Label for="api-key-name">Name</Label>
+          <Input id="api-key-name" v-model="newKeyName" placeholder="Name" class="mt-1" />
+        </div>
+        <div class="mb-2">
+          <Label for="api-key-desc">Description</Label>
+          <Input id="api-key-desc" v-model="newKeyDescription" placeholder="Description" class="mt-1" />
+        </div>
+        <div class="mb-2">
+          <Label for="api-key-roles">Roles</Label>
+          <Select
+            v-model="newKeyRoles"
+            :items="possibleRoles"
+            :multiple="true"
+            :placeholder="'Select Roles'"
+            class="mt-1 w-full"
+          />
+        </div>
+        <div class="mb-2">
+          <Label for="api-key-permissions">Permissions</Label>
+          <Accordion id="api-key-permissions" type="single" collapsible class="w-full mt-2">
+            <AccordionItem value="permissions">
+              <AccordionTrigger>
+                <PermissionCounter
+                  :permissions="newKeyPermissions"
+                  :possible-permissions="possiblePermissions"
+                />
+              </AccordionTrigger>
+              <AccordionContent>
+                <div class="flex flex-row justify-end my-2">
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    type="button"
+                    @click="areAllPermissionsSelected() ? clearAllPermissions() : selectAllPermissions()"
+                  >
+                    {{ areAllPermissionsSelected() ? 'Select None' : 'Select All' }}
+                  </Button>
+                </div>
+                <div class="flex flex-col gap-2 mt-1">
+                  <div
+                    v-for="perm in possiblePermissions"
+                    :key="perm.resource"
+                    class="rounded-sm p-2 border"
+                  >
+                    <div class="flex items-center justify-between mb-1">
+                      <span class="font-semibold">{{ perm.resource }}</span>
+                      <Button
+                        size="sm"
+                        variant="link"
+                        type="button"
+                        @click="
+                          areAllActionsSelected(perm.resource)
+                            ? clearAllActions(perm.resource)
+                            : selectAllActions(perm.resource)
+                        "
+                      >
+                        {{ areAllActionsSelected(perm.resource) ? 'Select None' : 'Select All' }}
+                      </Button>
+                    </div>
+                    <div class="flex gap-4 flex-wrap">
+                      <label
+                        v-for="action in perm.actions"
+                        :key="action"
+                        class="flex items-center gap-1"
+                      >
+                        <input
+                          type="checkbox"
+                          :checked="
+                            !!newKeyPermissions.find(
+                              (p) => p.resource === perm.resource && p.actions.includes(action)
+                            )
                           "
-                        >
-                          {{ areAllActionsSelected(perm.resource) ? 'Clear All' : 'Select All' }}
-                        </Button>
-                      </div>
-                      <div class="flex gap-4 flex-wrap">
-                        <label
-                          v-for="action in perm.actions"
-                          :key="action"
-                          class="flex items-center gap-1"
-                        >
-                          <input
-                            type="checkbox"
-                            :checked="
-                              !!newKeyPermissions.find(
-                                (p) => p.resource === perm.resource && p.actions.includes(action)
+                          @change="
+                            (e: Event) =>
+                              togglePermission(
+                                perm.resource,
+                                action,
+                                (e.target as HTMLInputElement)?.checked
                               )
-                            "
-                            @change="
-                              (e: Event) =>
-                                togglePermission(
-                                  perm.resource,
-                                  action,
-                                  (e.target as HTMLInputElement)?.checked
-                                )
-                            "
-                          />
-                          <span class="text-sm">{{ action }}</span>
-                        </label>
-                      </div>
+                          "
+                        />
+                        <span class="text-sm">{{ action }}</span>
+                      </label>
                     </div>
                   </div>
-                </AccordionContent>
-              </AccordionItem>
-            </Accordion>
-          </div>
-          <div v-if="error" class="text-red-500 mt-2 text-sm">
-            {{ extractGraphQLErrorMessage(error) }}
-          </div>
-        </form>
-      </DialogDescription>
-      <DialogFooter>
-        <Button variant="secondary" @click="close">Cancel</Button>
-        <Button variant="primary" :disabled="loading || postCreateLoading" @click="upsertKey()">
-          <span v-if="loading || postCreateLoading">
-            {{ editingKey ? 'Saving...' : 'Creating...' }}
-          </span>
-          <span v-else>{{ editingKey ? 'Save' : 'Create' }}</span>
-        </Button>
-      </DialogFooter>
-    </DialogScrollContent>
+                </div>
+              </AccordionContent>
+            </AccordionItem>
+          </Accordion>
+        </div>
+        <div v-if="error" class="text-red-500 mt-2 text-sm">
+          {{ extractGraphQLErrorMessage(error) }}
+        </div>
+      </form>
+    </div>
   </Dialog>
 </template>

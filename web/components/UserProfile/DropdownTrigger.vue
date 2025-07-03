@@ -11,15 +11,12 @@ import {
 
 import type { ComposerTranslation } from 'vue-i18n';
 
-import { useDropdownStore } from '~/store/dropdown';
 import { useErrorsStore } from '~/store/errors';
 import { useServerStore } from '~/store/server';
 import { useUpdateOsStore } from '~/store/updateOs';
 
 const props = defineProps<{ t: ComposerTranslation }>();
 
-const dropdownStore = useDropdownStore();
-const { dropdownVisible } = storeToRefs(dropdownStore);
 const { errors } = storeToRefs(useErrorsStore());
 const { rebootType, state, stateData } = storeToRefs(useServerStore());
 const { available: osUpdateAvailable } = storeToRefs(useUpdateOsStore());
@@ -43,15 +40,14 @@ const title = computed((): string => {
   if (showErrorIcon.value) {
     return props.t('Learn more about the error');
   }
-  return dropdownVisible.value ? props.t('Close Dropdown') : props.t('Open Dropdown');
+  return props.t('Open Dropdown');
 });
 </script>
 
 <template>
   <button
-    class="group text-18px border-0 relative flex flex-row justify-end items-center h-full gap-x-8px opacity-100 hover:opacity-75 focus:opacity-75 transition-opacity text-header-text-primary"
+    class="group text-18px border-0 relative flex flex-row justify-end items-center h-full gap-x-8px opacity-100 hover:opacity-75 transition-opacity text-header-text-primary"
     :title="title"
-    @click="dropdownStore.dropdownToggle()"
   >
     <template v-if="errors.length && errors[0].level">
       <InformationCircleIcon

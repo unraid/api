@@ -7,11 +7,7 @@ import SheetFooter from '../../../src/components/common/sheet/SheetFooter.vue';
 import SheetHeader from '../../../src/components/common/sheet/SheetHeader.vue';
 import SheetTitle from '../../../src/components/common/sheet/SheetTitle.vue';
 import SheetTrigger from '../../../src/components/common/sheet/SheetTrigger.vue';
-import Select from '../../../src/components/form/select/Select.vue';
-import SelectContent from '../../../src/components/form/select/SelectContent.vue';
-import SelectItem from '../../../src/components/form/select/SelectItem.vue';
-import SelectTrigger from '../../../src/components/form/select/SelectTrigger.vue';
-import SelectValue from '../../../src/components/form/select/SelectValue.vue';
+import { Select } from '../../../src/components/form/select';
 
 const meta = {
   title: 'Components/Common',
@@ -38,7 +34,7 @@ export default meta;
 type Story = StoryObj<typeof meta>;
 
 export const Sheet: Story = {
-  render: (args) => ({
+  render: () => ({
     components: {
       SheetComponent,
       SheetTrigger,
@@ -107,10 +103,6 @@ export const SheetWithSelect: Story = {
       SheetFooter,
       Button,
       Select,
-      SelectTrigger,
-      SelectContent,
-      SelectItem,
-      SelectValue,
     },
     data() {
       return {
@@ -134,16 +126,15 @@ export const SheetWithSelect: Story = {
               <div class="space-y-4">
                 <div class="space-y-2">
                   <label class="text-sm font-medium">Theme</label>
-                  <Select v-model="theme">
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select a theme" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="light">Light</SelectItem>
-                      <SelectItem value="dark">Dark</SelectItem>
-                      <SelectItem value="system">System</SelectItem>
-                    </SelectContent>
-                  </Select>
+                  <Select 
+                    v-model="theme" 
+                    placeholder="Select a theme"
+                    :items="[
+                      { value: 'light', label: 'Light' },
+                      { value: 'dark', label: 'Dark' },
+                      { value: 'system', label: 'System' }
+                    ]"
+                  />
                 </div>
               </div>
             </div>
