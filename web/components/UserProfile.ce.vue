@@ -117,6 +117,7 @@ onMounted(() => {
           <span class="text-header-text-secondary hidden md:inline-block px-8px">&bull;</span>
         </template>
         <button
+          v-if="lanIp"
           :title="t('Click to Copy LAN IP {0}', [lanIp])"
           class="text-header-text-primary opacity-100 hover:opacity-75 focus:opacity-75 transition-opacity"
           @click="copyLanIp()"
