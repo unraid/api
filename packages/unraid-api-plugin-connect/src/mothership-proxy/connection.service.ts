@@ -5,9 +5,9 @@ import type { OutgoingHttpHeaders } from 'node:http2';
 
 import { isEqual } from 'lodash-es';
 import { Subscription } from 'rxjs';
-import { bufferTime, debounceTime, filter } from 'rxjs/operators';
+import { debounceTime, filter } from 'rxjs/operators';
 
-import { ConnectionMetadata, MinigraphStatus, MyServersConfig } from '../config/connect.config.js';
+import { ConnectionMetadata, MinigraphStatus } from '../config/connect.config.js';
 import { EVENTS } from '../helper/nest-tokens.js';
 
 interface MothershipWebsocketHeaders extends OutgoingHttpHeaders {
@@ -87,12 +87,10 @@ export class MothershipConnectionService implements OnModuleInit, OnModuleDestro
                 filter((change) => Object.values(this.configKeys).includes(change.path)),
                 // debouncing is necessary here (instead of buffering/batching) to prevent excess emissions
                 // because the store.* config values will change frequently upon api boot
-                // debounceTime(25)
-                bufferTime(25)
+                debounceTime(25)
             )
             .subscribe({
-                next: (changes) => {
-                    this.logger.log(`changes: ${JSON.stringify(changes.map((c) => c.path))}`);
+                next: () => {
                     const { state } = this.getIdentityState();
                     if (isEqual(state, this.lastIdentity)) {
                         this.logger.debug('Identity unchanged; skipping event emission');
