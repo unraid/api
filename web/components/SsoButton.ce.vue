@@ -134,19 +134,21 @@ const navigateToExternalSSOUrl = () => {
 </script>
 
 <template>
-  <template v-if="isSsoEnabled">
-    <div class="w-full flex flex-col gap-1 my-1">
-      <p v-if="currentState === 'idle' || currentState === 'error'" class="text-center">or</p>
-      <p v-if="currentState === 'error'" class="text-red-500 text-center">{{ error }}</p>
-      <BrandButton
-        :disabled="currentState === 'loading'"
-        variant="outline"
-        class="rounded-none uppercase tracking-widest"
-        @click="navigateToExternalSSOUrl"
-        >{{ buttonText }}</BrandButton
-      >
-    </div>
-  </template>
+  <div>
+    <template v-if="isSsoEnabled">
+      <div class="w-full flex flex-col gap-1 my-1">
+        <p v-if="currentState === 'idle' || currentState === 'error'" class="text-center">or</p>
+        <p v-if="currentState === 'error'" class="text-red-500 text-center">{{ error }}</p>
+        <BrandButton
+          :disabled="currentState === 'loading'"
+          variant="outline"
+          class="rounded-none uppercase tracking-widest"
+          @click="navigateToExternalSSOUrl"
+          >{{ buttonText }}</BrandButton
+        >
+      </div>
+    </template>
+  </div>
 </template>
 
 <style lang="postcss">

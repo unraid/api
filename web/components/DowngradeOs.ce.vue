@@ -55,22 +55,24 @@ onBeforeMount(() => {
 </script>
 
 <template>
-  <PageContainer>
-    <UpdateOsStatus
-      :title="t('Downgrade Unraid OS')"
-      :subtitle="subtitle"
-      :downgrade-not-available="restoreVersion === '' && rebootType === ''"
-      :show-external-downgrade="showExternalDowngrade"
-      :t="t"
-    />
-    <UpdateOsDowngrade
-      v-if="restoreVersion && rebootType === ''"
-      :release-date="restoreReleaseDate"
-      :version="restoreVersion"
-      :t="t"
-    />
-    <UpdateOsThirdPartyDrivers v-if="rebootType === 'thirdPartyDriversDownloading'" :t="t" />
-  </PageContainer>
+  <div>
+    <PageContainer>
+      <UpdateOsStatus
+        :title="t('Downgrade Unraid OS')"
+        :subtitle="subtitle"
+        :downgrade-not-available="restoreVersion === '' && rebootType === ''"
+        :show-external-downgrade="showExternalDowngrade"
+        :t="t"
+      />
+      <UpdateOsDowngrade
+        v-if="restoreVersion && rebootType === ''"
+        :release-date="restoreReleaseDate"
+        :version="restoreVersion"
+        :t="t"
+      />
+      <UpdateOsThirdPartyDrivers v-if="rebootType === 'thirdPartyDriversDownloading'" :t="t" />
+    </PageContainer>
+  </div>
 </template>
 
 <style lang="postcss">

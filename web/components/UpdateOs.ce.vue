@@ -59,17 +59,19 @@ onBeforeMount(() => {
 </script>
 
 <template>
-  <PageContainer>
-    <BrandLoading v-if="showLoader" class="mx-auto my-12 max-w-160px" />
-    <UpdateOsStatus
-      v-else
-      :show-update-check="true"
-      :title="t('Update Unraid OS')"
-      :subtitle="subtitle"
-      :t="t"
-    />
-    <UpdateOsThirdPartyDrivers v-if="rebootType === 'thirdPartyDriversDownloading'" :t="t" />
-  </PageContainer>
+  <div>
+    <PageContainer>
+      <BrandLoading v-if="showLoader" class="mx-auto my-12 max-w-160px" />
+      <UpdateOsStatus
+        v-else
+        :show-update-check="true"
+        :title="t('Update Unraid OS')"
+        :subtitle="subtitle"
+        :t="t"
+      />
+      <UpdateOsThirdPartyDrivers v-if="rebootType === 'thirdPartyDriversDownloading'" :t="t" />
+    </PageContainer>
+  </div>
 </template>
 
 <style lang="postcss">
