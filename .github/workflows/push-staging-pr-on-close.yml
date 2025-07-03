@@ -38,6 +38,8 @@ jobs:
           fi
 
       - name: Debug PR info
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
           echo "PR Number: ${{ steps.pr_number.outputs.pr_number }}"
           echo "Event name: ${{ github.event_name }}"
@@ -46,8 +48,10 @@ jobs:
           fi
 
           echo "Listing artifacts for PR ${{ steps.pr_number.outputs.pr_number }}:"
-          gh api repos/${{ github.repository }}/actions/artifacts --paginate | \
-            jq -r '.artifacts[] | select(.workflow_run.head_branch == "pr/${{ steps.pr_number.outputs.pr_number }}") | "  - \(.name) (run: \(.workflow_run.id))"' || echo "No artifacts found or error listing artifacts"
+          pr_branch="pr/${{ steps.pr_number.outputs.pr_number }}"
+          for run_id in $(gh api repos/${{ github.repository }}/actions/runs -F branch=${pr_branch} --paginate -q '.workflow_runs[].id'); do
+            gh api repos/${{ github.repository }}/actions/runs/${run_id}/artifacts -q '.artifacts[].name' | sed "s/^/  - /"
+          done || echo "No artifacts found for branch ${pr_branch} or error listing artifacts"
 
       - name: Download artifact
         uses: dawidd6/action-download-artifact@v11
