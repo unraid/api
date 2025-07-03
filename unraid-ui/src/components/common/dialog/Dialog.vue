@@ -11,6 +11,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog';
+import { cn } from '@/lib/utils';
 
 export interface DialogProps {
   description?: string;
@@ -24,6 +25,7 @@ export interface DialogProps {
   primaryButtonLoadingText?: string;
   primaryButtonDisabled?: boolean;
   scrollable?: boolean;
+  size?: 'sm' | 'md' | 'lg' | 'xl';
 }
 
 const {
@@ -38,6 +40,7 @@ const {
   primaryButtonLoadingText,
   primaryButtonDisabled = false,
   scrollable = false,
+  size = 'md',
 } = defineProps<DialogProps>();
 
 const emit = defineEmits<{
@@ -52,6 +55,13 @@ const handleOpenChange = (open: boolean) => {
 const handlePrimaryClick = () => {
   emit('primary-click');
 };
+
+const sizeClasses = {
+  sm: 'max-w-sm',
+  md: 'max-w-lg',
+  lg: 'max-w-2xl',
+  xl: 'max-w-4xl',
+};
 </script>
 
 <template>
@@ -62,7 +72,7 @@ const handlePrimaryClick = () => {
       </slot>
     </DialogTrigger>
 
-    <component :is="scrollable ? DialogScrollContent : DialogContent">
+    <component :is="scrollable ? DialogScrollContent : DialogContent" :class="cn(sizeClasses[size])">
       <DialogHeader v-if="title || description || $slots.header">
         <slot name="header">
           <DialogTitle v-if="title">{{ title }}</DialogTitle>

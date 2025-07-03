@@ -192,6 +192,7 @@ async function upsertKey() {
 <template>
   <Dialog
     v-model="modalVisible"
+    size="lg"
     :title="editingKey ? t('Edit API Key') : t('Create API Key')"
     :scrollable="true"
     close-button-text="Cancel"
