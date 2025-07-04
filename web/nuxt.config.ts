@@ -148,12 +148,7 @@ export default defineNuxtConfig({
           return config;
         },
         tags: [
-          {
-            async: false,
-            name: 'UnraidI18nHost',
-            path: '@/components/I18nHost.ce',
-            appContext: '@/components/Wrapper/web-component-plugins',
-          },
+
           {
             async: false,
             name: 'UnraidAuth',

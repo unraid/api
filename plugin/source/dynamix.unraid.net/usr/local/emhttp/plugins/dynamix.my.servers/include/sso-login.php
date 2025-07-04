@@ -17,6 +17,4 @@ $wcExtractor = new WebComponentsExtractor();
 echo $wcExtractor->getScriptTagHtml();
 ?>
 
-<unraid-i18n-host>
-    <unraid-sso-button ssoenabled="<?= $serverState->ssoEnabled ? "true" : "false" ?>"></unraid-sso-button>
-</unraid-i18n-host>
+<unraid-sso-button ssoenabled="<?= $serverState->ssoEnabled ? "true" : "false" ?>"></unraid-sso-button>

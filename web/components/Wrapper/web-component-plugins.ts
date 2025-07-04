@@ -14,7 +14,7 @@ export default function (Vue: App) {
   let parsedMessages = {};
   let nonDefaultLocale = false;
 
-  // Check for window locale data (same logic as I18nHost)
+  // Check for window locale data
   if (typeof window !== 'undefined') {
     const windowLocaleData = (window as unknown as { LOCALE_DATA?: string }).LOCALE_DATA || null;
     if (windowLocaleData) {
