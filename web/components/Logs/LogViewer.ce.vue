@@ -6,16 +6,18 @@ import {
   Input,
   Label,
   Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
   Switch,
-  useTeleport,
 } from '@unraid/ui';
 
 import { GET_LOG_FILES } from './log.query';
 import SingleLogViewer from './SingleLogViewer.vue';
+
+// Types
+interface LogFile {
+  path: string;
+  name: string;
+  size: number;
+}
 
 // Component state
 const selectedLogFile = ref<string>('');
@@ -46,6 +48,14 @@ const {
 
 const logFiles = computed(() => {
   return logFilesResult.value?.logFiles || [];
+});
+
+// Transform log files for the Select component
+const logFileOptions = computed(() => {
+  return logFiles.value.map((file: LogFile) => ({
+    value: file.path,
+    label: `${file.name} (${formatFileSize(file.size)})`
+  }));
 });
 
 // Format file size for display
@@ -92,13 +102,6 @@ watch(selectedLogFile, (newValue) => {
     highlightLanguage.value = autoDetectLanguage(newValue);
   }
 });
-
-// Without this, the select dropdown will not be visible, unless it's already in a teleported context.
-const { teleportTarget, determineTeleportTarget } = useTeleport();
-const onSelectOpen = () => {
-  determineTeleportTarget();
-};
-
 </script>
 
 <template>
@@ -111,16 +114,12 @@ const onSelectOpen = () => {
       <div class="flex flex-wrap gap-4 items-end">
         <div class="flex-1 min-w-[200px]">
           <Label for="log-file-select">Log File</Label>
-          <Select v-model="selectedLogFile" @update:open="onSelectOpen">
-            <SelectTrigger class="w-full">
-              <SelectValue placeholder="Select a log file" />
-            </SelectTrigger>
-            <SelectContent :to="teleportTarget">
-              <SelectItem v-for="file in logFiles" :key="file.path" :value="file.path">
-                {{ file.name }} ({{ formatFileSize(file.size) }})
-              </SelectItem>
-            </SelectContent>
-          </Select>
+          <Select
+            v-model="selectedLogFile"
+            :items="logFileOptions"
+            placeholder="Select a log file"
+            class="w-full"
+          />
         </div>
 
         <div>
@@ -137,16 +136,12 @@ const onSelectOpen = () => {
 
         <div>
           <Label for="highlight-language">Syntax</Label>
-          <Select v-model="highlightLanguage" @update:open="onSelectOpen">
-            <SelectTrigger id="highlight-language" class="w-full">
-              <SelectValue placeholder="Select language" />
-            </SelectTrigger>
-            <SelectContent :to="teleportTarget">
-              <SelectItem v-for="lang in highlightLanguages" :key="lang.value" :value="lang.value">
-                {{ lang.label }}
-              </SelectItem>
-            </SelectContent>
-          </Select>
+          <Select
+            v-model="highlightLanguage"
+            :items="highlightLanguages"
+            placeholder="Select language"
+            class="w-full"
+          />
         </div>
 
         <div class="flex flex-col gap-2">
