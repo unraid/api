@@ -26,6 +26,22 @@ vi.mock('@unraid/shared-callbacks', () => ({
   useCallback: vi.fn(() => ({ send: vi.fn(), watcher: vi.fn() })),
 }));
 
+vi.mock('@vue/apollo-composable', () => ({
+  useQuery: () => ({
+    result: { value: {} },
+    loading: { value: false },
+  }),
+  useLazyQuery: () => ({
+    result: { value: {} },
+    loading: { value: false },
+    load: vi.fn(),
+    refetch: vi.fn(),
+    onResult: vi.fn(),
+    onError: vi.fn(),
+  }),
+  provideApolloClient: vi.fn(),
+}));
+
 vi.mock('~/helpers/urls', async (importOriginal) => {
   const actual = await importOriginal<typeof import('~/helpers/urls')>();
   const mockReleaseNotesUrl = 'http://mock.release.notes/v';

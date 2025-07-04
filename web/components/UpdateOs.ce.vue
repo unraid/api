@@ -24,6 +24,8 @@ import { WEBGUI_TOOLS_UPDATE } from '~/helpers/urls';
 
 import { useAccountStore } from '~/store/account';
 import { useServerStore } from '~/store/server';
+import UpdateOsStatus from '~/components/UpdateOs/Status.vue';
+import UpdateOsThirdPartyDrivers from '~/components/UpdateOs/ThirdPartyDrivers.vue';
 
 const { t } = useI18n();
 
@@ -59,17 +61,17 @@ onBeforeMount(() => {
 </script>
 
 <template>
-  <PageContainer>
-    <BrandLoading v-if="showLoader" class="mx-auto my-12 max-w-160px" />
-    <UpdateOsStatus
-      v-else
-      :show-update-check="true"
-      :title="t('Update Unraid OS')"
-      :subtitle="subtitle"
-      :t="t"
-    />
-    <UpdateOsThirdPartyDrivers v-if="rebootType === 'thirdPartyDriversDownloading'" :t="t" />
-  </PageContainer>
+    <PageContainer>
+      <BrandLoading v-if="showLoader" class="mx-auto my-12 max-w-160px" />
+      <UpdateOsStatus
+        v-else
+        :show-update-check="true"
+        :title="t('Update Unraid OS')"
+        :subtitle="subtitle"
+        :t="t"
+      />
+      <UpdateOsThirdPartyDrivers v-if="rebootType === 'thirdPartyDriversDownloading'" :t="t" />
+    </PageContainer>
 </template>
 
 <style lang="postcss">

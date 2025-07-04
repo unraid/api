@@ -6,6 +6,8 @@ import {
   Button,
 } from '@unraid/ui';
 
+import DummyServerSwitcher from '~/components/DummyServerSwitcher.vue';
+
 import { CogIcon } from '@heroicons/vue/24/solid';
 </script>
 

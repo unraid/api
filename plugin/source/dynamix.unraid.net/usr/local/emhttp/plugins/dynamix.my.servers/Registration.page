@@ -18,6 +18,4 @@ require_once "$docroot/plugins/dynamix/include/ReplaceKey.php";
 $replaceKey = new ReplaceKey();
 $replaceKey->check(true);
 ?>
-<unraid-i18n-host>
-  <unraid-registration></unraid-registration>
-</unraid-i18n-host>
+<unraid-registration></unraid-registration>

@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { computed } from 'vue';
+import { storeToRefs } from 'pinia';
 import { XMarkIcon } from '@heroicons/vue/24/solid';
 import { BrandButton } from '@unraid/ui';
 

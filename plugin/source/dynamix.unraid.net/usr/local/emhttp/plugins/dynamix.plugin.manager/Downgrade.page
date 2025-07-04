@@ -146,9 +146,7 @@ function confirmDowngrade() {
 }
 </script>
 
-<unraid-i18n-host>
-  <unraid-downgrade-os
+<unraid-downgrade-os
     reboot-version="<?= $rebootDetails->rebootVersion ?>"
     restore-version="<?= $rebootDetails->previousVersion ?>"
     restore-release-date="<?= $rebootDetails->previousReleaseDate ?>"></unraid-downgrade-os>
-</unraid-i18n-host>

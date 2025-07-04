@@ -3,7 +3,6 @@ import { onError } from '@apollo/client/link/error/index.js';
 import { RetryLink } from '@apollo/client/link/retry/index.js';
 import { GraphQLWsLink } from '@apollo/client/link/subscriptions/index.js';
 import { getMainDefinition } from '@apollo/client/utilities/index.js';
-import { provideApolloClient } from '@vue/apollo-composable';
 import { createClient } from 'graphql-ws';
 import { createApolloCache } from './apollo-cache';
 import { WEBGUI_GRAPHQL } from './urls';
@@ -95,5 +94,3 @@ export const client = new ApolloClient({
   link: additiveLink,
   cache: createApolloCache(),
 });
-
-provideApolloClient(client);

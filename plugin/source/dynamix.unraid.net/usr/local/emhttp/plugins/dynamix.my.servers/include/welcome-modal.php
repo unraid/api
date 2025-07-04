@@ -14,7 +14,5 @@ $wcExtractor = new WebComponentsExtractor();
 echo $wcExtractor->getScriptTagHtml();
 ?>
 
-<unraid-i18n-host>
-    <unraid-welcome-modal></unraid-welcome-modal>
-</unraid-i18n-host>
+<unraid-welcome-modal></unraid-welcome-modal>
 

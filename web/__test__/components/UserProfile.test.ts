@@ -8,6 +8,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { VueWrapper } from '@vue/test-utils';
 import type { Server, ServerconnectPluginInstalled, ServerState } from '~/types/server';
 import type { Pinia } from 'pinia';
+import type { MaybeRef } from '@vueuse/core';
 
 import UserProfile from '~/components/UserProfile.ce.vue';
 import { useServerStore } from '~/store/server';

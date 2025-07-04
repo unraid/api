@@ -5,6 +5,7 @@ import type { ComposerTranslation } from 'vue-i18n';
 
 import { useErrorsStore } from '~/store/errors';
 import type { UserProfileLink } from '~/types/userProfile';
+import UpcDropdownItem from './DropdownItem.vue';
 
 defineProps<{ t: ComposerTranslation; }>();
 

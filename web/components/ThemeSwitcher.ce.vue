@@ -73,21 +73,23 @@ const handleThemeChange = (event: Event) => {
 </script>
 
 <template>
-  <select
-    v-if="enableThemeSwitcher"
-    :disabled="submitting"
-    :value="props.current"
-    class="text-xs relative float-left mr-2 text-white bg-black"
-    @change="handleThemeChange"
-  >
-    <option
-      v-for="theme in computedThemes"
-      :key="theme"
-      :value="theme"
+  <div>
+    <select
+      v-if="enableThemeSwitcher"
+      :disabled="submitting"
+      :value="props.current"
+      class="text-xs relative float-left mr-2 text-white bg-black"
+      @change="handleThemeChange"
     >
-      {{ theme }}
-    </option>
-  </select>
+      <option
+        v-for="theme in computedThemes"
+        :key="theme"
+        :value="theme"
+      >
+        {{ theme }}
+      </option>
+    </select>
+  </div>
 </template>
 
 <style lang="postcss">

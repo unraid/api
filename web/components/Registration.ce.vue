@@ -30,6 +30,7 @@ import RegistrationKeyLinkedStatus from '~/components/Registration/KeyLinkedStat
 import RegistrationReplaceCheck from '~/components/Registration/ReplaceCheck.vue';
 import RegistrationUpdateExpirationAction from '~/components/Registration/UpdateExpirationAction.vue';
 import UserProfileUptimeExpire from '~/components/UserProfile/UptimeExpire.vue';
+import RegistrationItem from '~/components/Registration/Item.vue';
 import useDateTimeHelper from '~/composables/dateTime';
 import { useReplaceRenewStore } from '~/store/replaceRenew';
 import { useServerStore } from '~/store/server';
@@ -269,57 +270,59 @@ const items = computed((): RegistrationItemProps[] => {
 </script>
 
 <template>
-  <PageContainer class="max-w-800px">
-    <CardWrapper :increased-padding="true">
-      <div class="flex flex-col gap-20px sm:gap-24px">
-        <header class="flex flex-col gap-y-16px">
-          <h3
-            class="text-20px md:text-24px font-semibold leading-normal flex flex-row items-center gap-8px"
-            :class="serverErrors.length ? 'text-unraid-red' : 'text-green-500'"
-          >
-            <component :is="headingIcon" class="w-24px h-24px" />
-            <span>
-              {{ heading }}
-            </span>
-          </h3>
-          <div
-            v-if="subheading"
-            class="prose text-16px leading-relaxed whitespace-normal opacity-75"
-            v-html="subheading"
-          />
-          <span v-if="authAction" class="grow-0">
-            <BrandButton
-              :disabled="authAction?.disabled"
-              :icon="authAction.icon"
-              :text="t(authAction.text)"
-              :title="authAction.title ? t(authAction.title) : undefined"
-              @click="authAction.click?.()"
+  <div>
+    <PageContainer class="max-w-800px">
+      <CardWrapper :increased-padding="true">
+        <div class="flex flex-col gap-20px sm:gap-24px">
+          <header class="flex flex-col gap-y-16px">
+            <h3
+              class="text-20px md:text-24px font-semibold leading-normal flex flex-row items-center gap-8px"
+              :class="serverErrors.length ? 'text-unraid-red' : 'text-green-500'"
+            >
+              <component :is="headingIcon" class="w-24px h-24px" />
+              <span>
+                {{ heading }}
+              </span>
+            </h3>
+            <div
+              v-if="subheading"
+              class="prose text-16px leading-relaxed whitespace-normal opacity-75"
+              v-html="subheading"
             />
-          </span>
-        </header>
-        <dl>
-          <RegistrationItem
-            v-for="item in items"
-            :key="item.label"
-            :component="item?.component"
-            :component-props="item?.componentProps"
-            :error="item.error ?? false"
-            :warning="item.warning ?? false"
-            :label="item.label"
-            :text="item.text"
-          >
-            <template v-if="item.component" #right>
-              <component
-                :is="item.component"
-                v-bind="item.componentProps"
-                :class="[item.componentOpacity && !item.error ? 'opacity-75' : '']"
+            <span v-if="authAction" class="grow-0">
+              <BrandButton
+                :disabled="authAction?.disabled"
+                :icon="authAction.icon"
+                :text="t(authAction.text)"
+                :title="authAction.title ? t(authAction.title) : undefined"
+                @click="authAction.click?.()"
               />
-            </template>
-          </RegistrationItem>
-        </dl>
-      </div>
-    </CardWrapper>
-  </PageContainer>
+            </span>
+          </header>
+          <dl>
+            <RegistrationItem
+              v-for="item in items"
+              :key="item.label"
+              :component="item?.component"
+              :component-props="item?.componentProps"
+              :error="item.error ?? false"
+              :warning="item.warning ?? false"
+              :label="item.label"
+              :text="item.text"
+            >
+              <template v-if="item.component" #right>
+                <component
+                  :is="item.component"
+                  v-bind="item.componentProps"
+                  :class="[item.componentOpacity && !item.error ? 'opacity-75' : '']"
+                />
+              </template>
+            </RegistrationItem>
+          </dl>
+        </div>
+      </CardWrapper>
+    </PageContainer>
+  </div>
 </template>
 
 <style lang="postcss">

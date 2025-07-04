@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { computed } from 'vue';
 import { storeToRefs } from 'pinia';
 
 import {
@@ -26,6 +27,12 @@ import { useAccountStore } from '~/store/account';
 import { useErrorsStore } from '~/store/errors';
 import { useServerStore } from '~/store/server';
 import { useUpdateOsStore } from '~/store/updateOs';
+
+import Beta from './Beta.vue';
+import DropdownConnectStatus from './DropdownConnectStatus.vue';
+import DropdownError from './DropdownError.vue';
+import DropdownItem from './DropdownItem.vue';
+import Keyline from './Keyline.vue';
 
 const props = defineProps<{ t: ComposerTranslation }>();
 
@@ -200,7 +207,7 @@ const unraidConnectWelcome = computed(() => {
           gradient-stop="currentcolor"
           class="text-foreground w-[120px]"
         />
-        <UpcBeta />
+        <Beta />
       </h2>
       <template v-if="unraidConnectWelcome">
         <h3 class="text-16px font-semibold mt-2">
@@ -211,29 +218,29 @@ const unraidConnectWelcome = computed(() => {
         </p>
       </template>
     </header>
-    <ul class="list-reset flex flex-col gap-y-4px p-0">
-      <UpcDropdownConnectStatus v-if="showConnectStatus" :t="t" />
-      <UpcDropdownError v-if="showErrors" :t="t" />
+          <ul class="list-reset flex flex-col gap-y-4px p-0">
+        <DropdownConnectStatus v-if="showConnectStatus" :t="t" />
+        <DropdownError v-if="showErrors" :t="t" />
 
-      <li v-if="showKeyline" class="my-8px">
-        <UpcKeyline />
-      </li>
-
-      <li v-if="!registered && connectPluginInstalled">
-        <UpcDropdownItem :item="signInAction[0]" :t="t" />
-      </li>
-
-      <template v-if="filteredKeyActions">
-        <li v-for="action in filteredKeyActions" :key="action.name">
-          <UpcDropdownItem :item="action" :t="t" />
+        <li v-if="showKeyline" class="my-8px">
+          <Keyline />
         </li>
-      </template>
 
-      <template v-if="links.length">
-        <li v-for="(link, index) in links" :key="`link_${index}`">
-          <UpcDropdownItem :item="link" :t="t" />
+        <li v-if="!registered && connectPluginInstalled">
+          <DropdownItem :item="signInAction[0]" :t="t" />
         </li>
-      </template>
+
+        <template v-if="filteredKeyActions">
+          <li v-for="action in filteredKeyActions" :key="action.name">
+            <DropdownItem :item="action" :t="t" />
+          </li>
+        </template>
+
+        <template v-if="links.length">
+          <li v-for="(link, index) in links" :key="`link_${index}`">
+            <DropdownItem :item="link" :t="t" />
+          </li>
+        </template>
     </ul>
   </div>
 </template>

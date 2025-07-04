@@ -2,7 +2,7 @@
  * @todo Check OS and Connect Plugin versions against latest via API every session
  */
 import { computed, ref, toRefs, watch, watchEffect } from 'vue';
-import { createPinia, defineStore, setActivePinia, storeToRefs } from 'pinia';
+import { defineStore, storeToRefs } from 'pinia';
 import { useLazyQuery } from '@vue/apollo-composable';
 
 import {
@@ -53,10 +53,11 @@ import { useUnraidApiStore } from '~/store/unraidApi';
 import { CLOUD_STATE_QUERY, SERVER_CLOUD_FRAGMENT, SERVER_STATE_QUERY } from './server.fragment';
 
 /**
+ * Uses the shared global Pinia instance from ~/store/globalPinia.ts
  * @see https://stackoverflow.com/questions/73476371/using-pinia-with-vue-js-web-components
  * @see https://github.com/vuejs/pinia/discussions/1085
  */
-setActivePinia(createPinia());
+import '~/store/globalPinia';
 
 export const useServerStore = defineStore('server', () => {
   const accountStore = useAccountStore();

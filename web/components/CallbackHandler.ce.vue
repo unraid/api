@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { onBeforeMount } from 'vue';
 import { useCallbackActionsStore } from '~/store/callbackActions';
 
 const callbackStore = useCallbackActionsStore();
@@ -9,7 +10,9 @@ onBeforeMount(() => {
 </script>
 
 <template>
-  <slot />
+  <div>
+    <slot />
+  </div>
 </template>
 
 <style lang="postcss">

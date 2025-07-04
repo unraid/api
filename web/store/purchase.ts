@@ -1,5 +1,5 @@
 import { computed } from 'vue';
-import { createPinia, defineStore, setActivePinia, storeToRefs } from 'pinia';
+import { defineStore, storeToRefs } from 'pinia';
 
 import { PURCHASE_CALLBACK } from '~/helpers/urls';
 
@@ -8,10 +8,11 @@ import { useCallbackActionsStore } from '~/store/callbackActions';
 import { useServerStore } from '~/store/server';
 
 /**
+ * Uses the shared global Pinia instance from ~/store/globalPinia.ts
  * @see https://stackoverflow.com/questions/73476371/using-pinia-with-vue-js-web-components
  * @see https://github.com/vuejs/pinia/discussions/1085
  */
-setActivePinia(createPinia());
+import '~/store/globalPinia';
 
 export const usePurchaseStore = defineStore('purchase', () => {
   const callbackStore = useCallbackActionsStore();

@@ -1,4 +1,7 @@
 <script lang="ts" setup>
+import { onBeforeMount } from 'vue';
+import { storeToRefs } from 'pinia';
+import { useCustomElements } from '#imports';
 import { useDummyServerStore } from '~/_data/serverState';
 import { Toaster } from '@unraid/ui';
 
@@ -12,7 +15,7 @@ onBeforeMount(() => {
 
 <template>
   <client-only>
-    <unraid-i18n-host
+    <div
       class="flex flex-col gap-6 p-6 mx-auto text-black bg-white dark:text-white dark:bg-black"
     >
       <h2 class="text-xl font-semibold font-mono">Web Components</h2>
@@ -60,7 +63,7 @@ onBeforeMount(() => {
       <hr class="border-black dark:border-white" />
       <h3 class="text-lg font-semibold font-mono">ApiKeyManagerCe</h3>
       <unraid-api-key-manager />
-    </unraid-i18n-host>
+    </div>
     <Toaster rich-colors close-button />
   </client-only>
 </template>

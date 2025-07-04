@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { h } from 'vue';
+import { computed, h } from 'vue';
 import { storeToRefs } from 'pinia';
 
 import {

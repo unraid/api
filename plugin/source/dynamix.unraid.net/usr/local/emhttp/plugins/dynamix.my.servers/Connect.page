@@ -577,5 +577,5 @@ _(GraphQL API Developer Sandbox)_:
 </div>
 
 <!-- start unraid-api section -->
-<unraid-i18n-host><unraid-connect-settings></unraid-connect-settings></unraid-i18n-host>
+<unraid-connect-settings></unraid-connect-settings>
 <!-- end unraid-api section -->

@@ -1,5 +1,5 @@
 import { computed, ref } from 'vue';
-import { createPinia, defineStore, setActivePinia } from 'pinia';
+import { defineStore } from 'pinia';
 
 import type { ExternalKeyActions } from '@unraid/shared-callbacks';
 
@@ -7,10 +7,11 @@ import { WebguiInstallKey } from '~/composables/services/webgui';
 import { useErrorsStore } from '~/store/errors';
 
 /**
+ * Uses the shared global Pinia instance from ~/store/globalPinia.ts
  * @see https://stackoverflow.com/questions/73476371/using-pinia-with-vue-js-web-components
  * @see https://github.com/vuejs/pinia/discussions/1085
  */
-setActivePinia(createPinia());
+import '~/store/globalPinia';
 
 export const useInstallKeyStore = defineStore('installKey', () => {
   const errorsStore = useErrorsStore();

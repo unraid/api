@@ -1,5 +1,5 @@
 import { computed, ref, watchEffect } from 'vue';
-import { createPinia, defineStore, setActivePinia } from 'pinia';
+import { defineStore } from 'pinia';
 
 import { ArrowPathIcon, BellAlertIcon } from '@heroicons/vue/24/solid';
 import { WEBGUI_TOOLS_UPDATE } from '~/helpers/urls';
@@ -16,10 +16,11 @@ import { useServerStore } from '~/store/server';
 import { useUpdateOsStore } from '~/store/updateOs';
 
 /**
+ * Uses the shared global Pinia instance from ~/store/globalPinia.ts
  * @see https://stackoverflow.com/questions/73476371/using-pinia-with-vue-js-web-components
  * @see https://github.com/vuejs/pinia/discussions/1085
  */
-setActivePinia(createPinia());
+import '~/store/globalPinia';
 
 export interface Release {
   version: string; // "6.12.4"

@@ -1,5 +1,5 @@
 import { computed, ref, watch } from 'vue';
-import { createPinia, defineStore, setActivePinia } from 'pinia';
+import { defineStore } from 'pinia';
 
 import type { ExternalPayload, TrialExtend, TrialStart } from '@unraid/shared-callbacks';
 import type { StartTrialResponse } from '~/composables/services/keyServer';
@@ -11,10 +11,11 @@ import { useDropdownStore } from '~/store/dropdown';
 import { useServerStore } from '~/store/server';
 
 /**
+ * Uses the shared global Pinia instance from ~/store/globalPinia.ts
  * @see https://stackoverflow.com/questions/73476371/using-pinia-with-vue-js-web-components
  * @see https://github.com/vuejs/pinia/discussions/1085
  */
-setActivePinia(createPinia());
+import '~/store/globalPinia';
 
 export const useTrialStore = defineStore('trial', () => {
   const callbackActionsStore = useCallbackActionsStore();

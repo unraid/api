@@ -1,5 +1,5 @@
 import { computed, ref, watch, watchEffect } from 'vue';
-import { createPinia, defineStore, setActivePinia } from 'pinia';
+import { defineStore } from 'pinia';
 
 import { useCallback } from '@unraid/shared-callbacks';
 
@@ -19,9 +19,9 @@ import { useServerStore } from '~/store/server';
 import { useUpdateOsStore } from '~/store/updateOs';
 import { useUpdateOsActionsStore } from '~/store/updateOsActions';
 
-type CallbackStatus = 'closing' | 'error' | 'loading' | 'ready' | 'success';
+import '~/store/globalPinia';
 
-setActivePinia(createPinia());
+type CallbackStatus = 'closing' | 'error' | 'loading' | 'ready' | 'success';
 
 export const useCallbackActionsStore = defineStore('callbackActions', () => {
   const { send, watcher: providedWatcher } = useCallback({

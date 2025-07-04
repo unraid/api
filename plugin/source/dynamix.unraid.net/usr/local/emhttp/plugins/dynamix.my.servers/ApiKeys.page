@@ -3,6 +3,4 @@ Title="API Keys"
 Icon="icon-u-key"
 Tag="key"
 ---
-<unraid-i18n-host>
-    <unraid-api-key-manager />
-</unraid-i18n-host>
+<unraid-api-key-manager />

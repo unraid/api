@@ -78,15 +78,13 @@ const commonLanguageOptions = {
 
 // Define globals separately
 const commonGlobals = {
-  browser: true,
-  window: true,
-  document: true,
-  console: true,
-  Event: true,
-  HTMLElement: true,
-  HTMLInputElement: true,
-  CustomEvent: true,
-  es2022: true,
+  window: 'readonly',
+  document: 'readonly',
+  console: 'readonly',
+  Event: 'readonly',
+  HTMLElement: 'readonly',
+  HTMLInputElement: 'readonly',
+  CustomEvent: 'readonly',
 };
 
 export default [

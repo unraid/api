@@ -18,6 +18,7 @@ import RawChangelogRenderer from '~/components/UpdateOs/RawChangelogRenderer.vue
 import { usePurchaseStore } from '~/store/purchase';
 import { useThemeStore } from '~/store/theme';
 import { useUpdateOsStore } from '~/store/updateOs';
+import Modal from '~/components/Modal.vue';
 
 export interface Props {
   open?: boolean;

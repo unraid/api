@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { computed, ref, watch } from 'vue';
 import { useQuery } from '@vue/apollo-composable';
 import { vInfiniteScroll } from '@vueuse/components';
 
@@ -11,6 +12,8 @@ import { useHaveSeenNotifications } from '~/composables/api/use-notifications';
 import { useFragment } from '~/composables/gql/fragment-masking';
 import { useUnraidApiStore } from '~/store/unraidApi';
 import { getNotifications, NOTIFICATION_FRAGMENT } from './graphql/notification.query';
+
+import NotificationsItem from './Item.vue';
 
 /**
  * Page size is the max amount of items fetched from the api in a single request.

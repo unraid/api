@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import { computed, onBeforeMount, ref, watch } from 'vue';
 import { storeToRefs } from 'pinia';
 
 import {
@@ -20,6 +21,8 @@ import { useAccountStore } from '~/store/account';
 import { usePurchaseStore } from '~/store/purchase';
 import { useServerStore } from '~/store/server';
 import { useUpdateOsStore } from '~/store/updateOs';
+import Modal from '~/components/Modal.vue';
+import UpdateOsIgnoredRelease from './IgnoredRelease.vue';
 
 export interface Props {
   open?: boolean;
