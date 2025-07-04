@@ -1,5 +1,5 @@
 import { computed } from 'vue';
-import { createPinia, defineStore, setActivePinia } from 'pinia';
+import { defineStore } from 'pinia';
 import { useQuery } from '@vue/apollo-composable';
 
 import {
@@ -8,7 +8,8 @@ import {
 } from '~/components/Activation/graphql/activationCode.query';
 import { RegistrationState } from '~/composables/gql/graphql';
 
-setActivePinia(createPinia()); /** required in web component context */
+// Uses the shared global Pinia instance
+import '~/store/globalPinia';
 
 export const useActivationCodeDataStore = defineStore('activationCodeData', () => {
   const { result: activationCodeResult, loading: activationCodeLoading } = useQuery(

@@ -61,7 +61,6 @@ onBeforeMount(() => {
 </script>
 
 <template>
-  <div>
     <PageContainer>
       <BrandLoading v-if="showLoader" class="mx-auto my-12 max-w-160px" />
       <UpdateOsStatus
@@ -73,7 +72,6 @@ onBeforeMount(() => {
       />
       <UpdateOsThirdPartyDrivers v-if="rebootType === 'thirdPartyDriversDownloading'" :t="t" />
     </PageContainer>
-  </div>
 </template>
 
 <style lang="postcss">

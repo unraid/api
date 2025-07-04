@@ -5,7 +5,7 @@
  * Cron to run hourly, check on how many days are left until regExp…within X days then allow request to be done
  */
 import { computed, h, ref } from 'vue';
-import { createPinia, defineStore, setActivePinia } from 'pinia';
+import { defineStore } from 'pinia';
 
 import {
   CheckCircleIcon,
@@ -23,10 +23,11 @@ import { validateGuid } from '~/composables/services/keyServer';
 import { useServerStore } from '~/store/server';
 
 /**
+ * Uses the shared global Pinia instance from ~/store/globalPinia.ts
  * @see https://stackoverflow.com/questions/73476371/using-pinia-with-vue-js-web-components
  * @see https://github.com/vuejs/pinia/discussions/1085
  */
-setActivePinia(createPinia());
+import '~/store/globalPinia';
 
 export interface BadgePropsExtended extends BadgeProps {
   text?: string;
