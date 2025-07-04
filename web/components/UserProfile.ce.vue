@@ -17,7 +17,7 @@ import { useThemeStore } from '~/store/theme';
 import UpcUptimeExpire from '~/components/UserProfile/UptimeExpire.vue';
 import UpcServerState from '~/components/UserProfile/ServerState.vue';
 import NotificationsSidebar from '~/components/Notifications/Sidebar.vue';
-import UpcDropdownMenu from '~/components/UserProfile/DropdownMenu.vue';
+import UpcDropdownContent from '~/components/UserProfile/DropdownContent.vue';
 import UpcDropdownTrigger from '~/components/UserProfile/DropdownTrigger.vue';
 
 export interface Props {
