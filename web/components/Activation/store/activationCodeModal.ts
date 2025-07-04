@@ -1,5 +1,5 @@
 import { computed, onMounted, onUnmounted } from 'vue';
-import { createPinia, defineStore, setActivePinia, storeToRefs } from 'pinia';
+import { defineStore, storeToRefs } from 'pinia';
 import { useSessionStorage } from '@vueuse/core';
 
 import { ACTIVATION_CODE_MODAL_HIDDEN_STORAGE_KEY } from '~/consts';
@@ -7,7 +7,8 @@ import { ACTIVATION_CODE_MODAL_HIDDEN_STORAGE_KEY } from '~/consts';
 import { useActivationCodeDataStore } from '~/components/Activation/store/activationCodeData';
 import { useCallbackActionsStore } from '~/store/callbackActions';
 
-setActivePinia(createPinia()); /** required in web component context */
+// Uses the shared global Pinia instance
+import '~/store/globalPinia';
 
 export const useActivationCodeModalStore = defineStore('activationCodeModal', () => {
   const isHidden = useSessionStorage<boolean | null>(ACTIVATION_CODE_MODAL_HIDDEN_STORAGE_KEY, null);

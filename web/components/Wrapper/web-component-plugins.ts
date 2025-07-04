@@ -1,9 +1,9 @@
 import { createI18n } from 'vue-i18n';
-import { createPinia } from 'pinia';
 import type { App } from 'vue';
 
 import en_US from '~/locales/en_US.json';
 import { createHtmlEntityDecoder } from '~/helpers/i18n-utils';
+import { globalPinia } from '~/store/globalPinia';
 
 export default function (Vue: App) {
   // Create and configure i18n
@@ -39,9 +39,8 @@ export default function (Vue: App) {
 
   Vue.use(i18n);
 
-  // Create and configure Pinia
-  const pinia = createPinia();
-  Vue.use(pinia);
+  // Use the shared Pinia instance
+  Vue.use(globalPinia);
 
   console.log('Vue App', Vue);
 } 
