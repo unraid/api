@@ -1,12 +1,8 @@
 import path from 'path';
 
-
-
 import removeConsole from 'vite-plugin-remove-console';
 
-
-
-
+import type { UserConfig } from 'vite';
 
 /**
  * Used to avoid redeclaring variables in the webgui codebase.
@@ -104,12 +100,59 @@ export default defineNuxtConfig({
     entries: [
       {
         name: 'UnraidComponents',
+        viteExtend(config: UserConfig) {
+          // Configure terser options for custom elements build
+          if (!config.build) config.build = {};
+          config.build.minify = 'terser';
+          config.build.terserOptions = {
+            mangle: {
+              reserved: terserReservations(charsToReserve),
+              toplevel: true,
+            },
+          };
+          
+          // Add a custom plugin to wrap the bundle and preserve jQuery
+          if (!config.plugins) config.plugins = [];
+          config.plugins.push({
+            name: 'jquery-isolation',
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            generateBundle(options: any, bundle: any) {
+              // Find the main JS file
+              const jsFile = Object.keys(bundle).find(key => key.endsWith('.js'));
+              if (jsFile && bundle[jsFile] && 'code' in bundle[jsFile]) {
+                const originalCode = bundle[jsFile].code;
+                // Wrap the entire bundle to preserve and restore jQuery
+                bundle[jsFile].code = `
+(function() {
+  // Preserve the original jQuery $ if it exists
+  var originalJQuery = (typeof window !== 'undefined' && typeof window.$ !== 'undefined') ? window.$ : undefined;
+  
+  // Temporarily clear $ to avoid conflicts
+  if (typeof window !== 'undefined' && typeof window.$ !== 'undefined') {
+    window.$ = undefined;
+  }
+  
+  // Execute the web component code
+  ${originalCode}
+  
+  // Restore jQuery $ if it was originally defined
+  if (originalJQuery !== undefined && typeof window !== 'undefined') {
+    window.$ = originalJQuery;
+  }
+})();
+`;
+              }
+            }
+          });
+          
+          return config;
+        },
         tags: [
           {
             async: false,
             name: 'UnraidI18nHost',
             path: '@/components/I18nHost.ce',
-            appContext: '@/components/Wrapper/web-component-plugins', 
+            appContext: '@/components/Wrapper/web-component-plugins',
           },
           {
             async: false,
