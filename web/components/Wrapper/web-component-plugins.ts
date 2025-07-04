@@ -1,9 +1,11 @@
 import { createI18n } from 'vue-i18n';
 import type { App } from 'vue';
+import { DefaultApolloClient } from '@vue/apollo-composable';
 
 import en_US from '~/locales/en_US.json';
 import { createHtmlEntityDecoder } from '~/helpers/i18n-utils';
 import { globalPinia } from '~/store/globalPinia';
+import { client } from '~/helpers/create-apollo-client';
 
 export default function (Vue: App) {
   // Create and configure i18n
@@ -41,6 +43,9 @@ export default function (Vue: App) {
 
   // Use the shared Pinia instance
   Vue.use(globalPinia);
+
+  // Provide Apollo client for all web components
+  Vue.provide(DefaultApolloClient, client);
 
   console.log('Vue App', Vue);
 } 
