@@ -1,4 +1,7 @@
 <script lang="ts" setup>
+import { onBeforeMount } from 'vue';
+import { storeToRefs } from 'pinia';
+import { useCustomElements } from '#imports';
 import { useDummyServerStore } from '~/_data/serverState';
 import { Toaster } from '@unraid/ui';
 

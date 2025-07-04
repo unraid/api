@@ -1,4 +1,7 @@
 <script lang="ts" setup>
+import { ref, onBeforeMount, onMounted, watch } from 'vue';
+import { storeToRefs } from 'pinia';
+import { useCustomElements, useHead } from '#imports';
 import { ExclamationTriangleIcon } from '@heroicons/vue/24/solid';
 import { BrandButton, Toaster } from '@unraid/ui';
 import { useDummyServerStore } from '~/_data/serverState';

@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { computed, ref } from 'vue';
 import { useMutation, useQuery, useSubscription } from '@vue/apollo-composable';
 
 import {
@@ -17,6 +18,7 @@ import {
 
 import { useTrackLatestSeenNotification } from '~/composables/api/use-notifications';
 import { useFragment } from '~/composables/gql';
+import useTeleport from '~/composables/useTeleport';
 import { NotificationImportance as Importance, NotificationType } from '~/composables/gql/graphql';
 import {
   archiveAllNotifications,
@@ -29,6 +31,8 @@ import {
   notificationAddedSubscription,
   notificationOverviewSubscription,
 } from './graphql/notification.subscription';
+import NotificationsIndicator from './Indicator.vue';
+import NotificationsList from './List.vue';
 
 const { mutate: archiveAll, loading: loadingArchiveAll } = useMutation(archiveAllNotifications);
 const { mutate: deleteArchives, loading: loadingDeleteAll } = useMutation(deleteArchivedNotifications);

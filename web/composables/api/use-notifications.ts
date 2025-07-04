@@ -1,5 +1,6 @@
+import { computed, onUnmounted, ref, watchEffect } from 'vue';
 import { useQuery } from '@vue/apollo-composable';
-import { useStorage } from '@vueuse/core';
+import { useStorage, watchOnce } from '@vueuse/core';
 import {
   getNotifications,
   NOTIFICATION_FRAGMENT,

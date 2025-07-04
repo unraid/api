@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { computed } from 'vue';
 import { storeToRefs } from 'pinia';
 
 import {
@@ -11,6 +12,7 @@ import {
 
 import type { ComposerTranslation } from 'vue-i18n';
 
+import BrandAvatar from '~/components/Brand/Avatar.vue';
 import { useErrorsStore } from '~/store/errors';
 import { useServerStore } from '~/store/server';
 import { useUpdateOsStore } from '~/store/updateOs';
