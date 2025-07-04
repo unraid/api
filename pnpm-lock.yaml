@@ -1228,6 +1228,9 @@ importers:
       typescript:
         specifier: ^5.7.3
         version: 5.8.3
+      vite:
+        specifier: ^6.3.5
+        version: 6.3.5(@types/node@22.15.32)(jiti@2.4.2)(stylus@0.57.0)(terser@5.43.1)(tsx@4.20.3)(yaml@2.8.0)
       vite-plugin-remove-console:
         specifier: ^2.2.0
         version: 2.2.0
