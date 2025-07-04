@@ -4,7 +4,7 @@
  * @todo require keyfile to update
  * @todo require valid guid / server state to update
  */
-import { ref, watchEffect } from 'vue';
+import { computed, ref, watchEffect } from 'vue';
 import { storeToRefs } from 'pinia';
 
 import {

@@ -30,6 +30,7 @@ import RegistrationKeyLinkedStatus from '~/components/Registration/KeyLinkedStat
 import RegistrationReplaceCheck from '~/components/Registration/ReplaceCheck.vue';
 import RegistrationUpdateExpirationAction from '~/components/Registration/UpdateExpirationAction.vue';
 import UserProfileUptimeExpire from '~/components/UserProfile/UptimeExpire.vue';
+import RegistrationItem from '~/components/Registration/Item.vue';
 import useDateTimeHelper from '~/composables/dateTime';
 import { useReplaceRenewStore } from '~/store/replaceRenew';
 import { useServerStore } from '~/store/server';

@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import { computed } from 'vue';
 import { storeToRefs } from 'pinia';
 
 import { BrandLoading } from '@unraid/ui';
@@ -6,6 +7,7 @@ import { BrandLoading } from '@unraid/ui';
 import type { ComposerTranslation } from 'vue-i18n';
 
 import { useTrialStore } from '~/store/trial';
+import Modal from '~/components/Modal.vue';
 
 export interface Props {
   open?: boolean;

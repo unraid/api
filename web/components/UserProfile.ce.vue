@@ -13,6 +13,13 @@ import { useCallbackActionsStore } from '~/store/callbackActions';
 import { useServerStore } from '~/store/server';
 import { useThemeStore } from '~/store/theme';
 
+// Auto-imported components - now manually imported
+import UpcUptimeExpire from '~/components/UserProfile/UptimeExpire.vue';
+import UpcServerState from '~/components/UserProfile/ServerState.vue';
+import NotificationsSidebar from '~/components/Notifications/Sidebar.vue';
+import UpcDropdownMenu from '~/components/UserProfile/DropdownMenu.vue';
+import UpcDropdownTrigger from '~/components/UserProfile/DropdownTrigger.vue';
+
 export interface Props {
   server?: Server | string;
 }

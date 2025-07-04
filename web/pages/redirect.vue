@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { onMounted } from 'vue';
+
 const parseRedirectTarget = (target: string | null) => {
   if (target && target !== '/') {
     // parse target and ensure it is a bare path with no query parameters

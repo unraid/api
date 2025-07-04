@@ -22,6 +22,9 @@ import { storeToRefs } from 'pinia';
 import { PageContainer } from '@unraid/ui';
 
 import { useServerStore } from '~/store/server';
+import UpdateOsStatus from '~/components/UpdateOs/Status.vue';
+import UpdateOsDowngrade from '~/components/UpdateOs/Downgrade.vue';
+import UpdateOsThirdPartyDrivers from '~/components/UpdateOs/ThirdPartyDrivers.vue';
 
 const { t } = useI18n();
 

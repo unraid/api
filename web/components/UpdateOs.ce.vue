@@ -24,6 +24,8 @@ import { WEBGUI_TOOLS_UPDATE } from '~/helpers/urls';
 
 import { useAccountStore } from '~/store/account';
 import { useServerStore } from '~/store/server';
+import UpdateOsStatus from '~/components/UpdateOs/Status.vue';
+import UpdateOsThirdPartyDrivers from '~/components/UpdateOs/ThirdPartyDrivers.vue';
 
 const { t } = useI18n();
 

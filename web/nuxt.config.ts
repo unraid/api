@@ -60,6 +60,11 @@ export default defineNuxtConfig({
     '@nuxt/eslint',
   ],
 
+  // Disable auto-imports
+  imports: {
+    autoImport: false,
+  },
+
   // Properly handle ES modules in testing and build environments
   build: {
     transpile: [/node_modules\/.*\.mjs$/],
@@ -67,13 +72,8 @@ export default defineNuxtConfig({
 
   ignore: ['/webGui/images'],
 
-  components: [
-    { path: '~/components/Brand', prefix: 'Brand' },
-    { path: '~/components/ConnectSettings', prefix: 'ConnectSettings' },
-    { path: '~/components/UserProfile', prefix: 'Upc' },
-    { path: '~/components/UpdateOs', prefix: 'UpdateOs' },
-    '~/components',
-  ],
+  // Disable component auto-imports
+  components: false,
 
   vite: {
     plugins: [

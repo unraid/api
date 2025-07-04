@@ -7,6 +7,11 @@ import { useTrialStore } from '~/store/trial';
 import { useUpdateOsStore } from '~/store/updateOs';
 import { useApiKeyStore } from '~/store/apiKey';
 import ApiKeyCreate from '~/components/ApiKey/ApiKeyCreate.vue';
+import UpcCallbackFeedback from '~/components/UserProfile/CallbackFeedback.vue';
+import UpcTrial from '~/components/UserProfile/Trial.vue';
+import UpdateOsCheckUpdateResponseModal from '~/components/UpdateOs/CheckUpdateResponseModal.vue';
+import UpdateOsChangelogModal from '~/components/UpdateOs/ChangelogModal.vue';
+import ActivationModal from '~/components/Activation/ActivationModal.vue';
 
 const { t } = useI18n();
 
