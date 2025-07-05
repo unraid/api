@@ -43,7 +43,7 @@
     "@manypkg/cli": "^0.24.0",
     "chalk": "^5.0.0",
     "diff": "^8.0.0",
-    "ignore": "^7.0.0"
+    "ignore": "^7.0.3"
   },
   "devDependencies": {
     "lint-staged": "^16.0.0",
@@ -57,5 +57,5 @@
       "pnpm lint:fix"
     ]
   },
-  "packageManager": "pnpm@10.12.1"
+  "packageManager": "pnpm@10.12.4"
 }
