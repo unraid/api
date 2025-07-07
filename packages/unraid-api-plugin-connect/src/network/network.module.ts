@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
+import { ScheduleModule } from '@nestjs/schedule';
 
 import { ConnectConfigService } from '../config/connect.config.service.js';
 import { DnsService } from './dns.service.js';
@@ -9,7 +10,7 @@ import { UpnpService } from './upnp.service.js';
 import { UrlResolverService } from './url-resolver.service.js';
 
 @Module({
-    imports: [ConfigModule],
+    imports: [ConfigModule, ScheduleModule],
     providers: [
         NetworkService,
         NetworkResolver,

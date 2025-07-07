@@ -27,13 +27,33 @@ const config: CodegenConfig = {
         },
     },
     generates: {
-        // Generate Types for Mothership GraphQL Client
-        'src/graphql/generated/client/': {
-            documents: './src/graphql/**/*.ts',
+        // Generate Types for Mothership GraphQL Client (localhost:8787)
+        'src/graphql/generated/mothership/': {
+            documents: './src/graphql/mothership/*.ts',
             schema: {
-                [process.env.MOTHERSHIP_GRAPHQL_LINK ?? 'https://staging.mothership.unraid.net/ws']: {
+                'http://localhost:8787/graphql': {
                     headers: {
                         origin: 'https://forums.unraid.net',
+                    },
+                },
+            },
+            preset: 'client',
+            presetConfig: {
+                gqlTagName: 'graphql',
+            },
+            config: {
+                useTypeImports: true,
+                withObjectType: true,
+            },
+            plugins: [{ add: { content: '/* eslint-disable */' } }],
+        },
+        // Generate Types for API GraphQL Client (localhost:3001)
+        'src/graphql/generated/api/': {
+            documents: './src/graphql/api/*.ts',
+            schema: {
+                'http://localhost:3001/graphql': {
+                    headers: {
+                        'Content-Type': 'application/json',
                     },
                 },
             },

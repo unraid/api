@@ -24,12 +24,34 @@ const config: CodegenConfig = {
     },
   },
   generates: {
-    'composables/gql/': {
+    // Generate Types for API GraphQL Client (localhost:3001)
+    'composables/gql/api/': {
       preset: 'client',
       config: {
         useTypeImports: true,
       },
-      schema: '../api/generated-schema.graphql',
+      schema: 'http://localhost:3001/graphql',
+      plugins: [
+        {
+          add: {
+            content: '/* eslint-disable */',
+          },
+        },
+      ],
+    },
+    // Generate Types for Mothership GraphQL Client (localhost:8787)
+    'composables/gql/mothership/': {
+      preset: 'client',
+      config: {
+        useTypeImports: true,
+      },
+      schema: {
+        'http://localhost:8787/graphql': {
+          headers: {
+            origin: 'https://forums.unraid.net',
+          },
+        },
+      },
       plugins: [
         {
           add: {

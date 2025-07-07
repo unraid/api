@@ -27,11 +27,11 @@ const config: CodegenConfig = {
         },
     },
     generates: {
-        // Generate Types for Mothership GraphQL Client
-        'src/graphql/generated/client/': {
+        // Generate Types for Mothership GraphQL Client (localhost:8787)
+        'src/graphql/generated/mothership/': {
             documents: './src/graphql/mothership/*.ts',
             schema: {
-                [process.env.MOTHERSHIP_GRAPHQL_LINK as string]: {
+                'http://localhost:8787/graphql': {
                     headers: {
                         origin: 'https://forums.unraid.net',
                     },
@@ -47,9 +47,9 @@ const config: CodegenConfig = {
             },
             plugins: [{ add: { content: '/* eslint-disable */' } }],
         },
-        'src/graphql/generated/client/validators.ts': {
+        'src/graphql/generated/mothership/validators.ts': {
             schema: {
-                [process.env.MOTHERSHIP_GRAPHQL_LINK as string]: {
+                'http://localhost:8787/graphql': {
                     headers: {
                         origin: 'https://forums.unraid.net',
                     },
@@ -57,7 +57,42 @@ const config: CodegenConfig = {
             },
             plugins: ['typescript-validation-schema', { add: { content: '/* eslint-disable */' } }],
             config: {
-                importFrom: '@app/graphql/generated/client/graphql.js',
+                importFrom: '@app/graphql/generated/mothership/graphql.js',
+                strictScalars: false,
+                schema: 'zod',
+            },
+        },
+        // Generate Types for API GraphQL Client (localhost:3001)
+        'src/graphql/generated/api/': {
+            documents: './src/graphql/api/*.ts',
+            schema: {
+                'http://localhost:3001/graphql': {
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                },
+            },
+            preset: 'client',
+            presetConfig: {
+                gqlTagName: 'graphql',
+            },
+            config: {
+                useTypeImports: true,
+                withObjectType: true,
+            },
+            plugins: [{ add: { content: '/* eslint-disable */' } }],
+        },
+        'src/graphql/generated/api/validators.ts': {
+            schema: {
+                'http://localhost:3001/graphql': {
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                },
+            },
+            plugins: ['typescript-validation-schema', { add: { content: '/* eslint-disable */' } }],
+            config: {
+                importFrom: '@app/graphql/generated/api/graphql.js',
                 strictScalars: false,
                 schema: 'zod',
             },

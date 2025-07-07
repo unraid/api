@@ -1,4 +1,4 @@
-import { Inject, Injectable, Logger, OnModuleDestroy } from '@nestjs/common';
+import { Inject, Injectable, Logger, OnModuleDestroy, forwardRef } from '@nestjs/common';
 import { OnEvent } from '@nestjs/event-emitter';
 
 import { PubSub } from 'graphql-subscriptions';
@@ -7,16 +7,15 @@ import { MinigraphStatus } from '../config/connect.config.js';
 import { TimeoutCheckerJob } from '../connection-status/timeout-checker.job.js';
 import { EVENTS, GRAPHQL_PUBSUB_CHANNEL, GRAPHQL_PUBSUB_TOKEN } from '../helper/nest-tokens.js';
 import { MothershipConnectionService } from './connection.service.js';
-import { MothershipGraphqlClientService } from './graphql.client.js';
-import { MothershipSubscriptionHandler } from './mothership-subscription.handler.js';
+import { MothershipFallbackService } from './mothership-fallback.service.js';
 
 @Injectable()
 export class MothershipHandler implements OnModuleDestroy {
     private readonly logger = new Logger(MothershipHandler.name);
     constructor(
         private readonly connectionService: MothershipConnectionService,
-        private readonly clientService: MothershipGraphqlClientService,
-        private readonly subscriptionHandler: MothershipSubscriptionHandler,
+        @Inject(forwardRef(() => MothershipFallbackService))
+        private readonly mothershipService: MothershipFallbackService,
         private readonly timeoutCheckerJob: TimeoutCheckerJob,
         @Inject(GRAPHQL_PUBSUB_TOKEN)
         private readonly legacyPubSub: PubSub
@@ -28,10 +27,7 @@ export class MothershipHandler implements OnModuleDestroy {
 
     async clear() {
         this.timeoutCheckerJob.stop();
-        this.subscriptionHandler.stopMothershipSubscription();
-        await this.clientService.clearInstance();
         this.connectionService.resetMetadata();
-        this.subscriptionHandler.clearAllSubscriptions();
     }
 
     async setup() {
@@ -39,11 +35,12 @@ export class MothershipHandler implements OnModuleDestroy {
         const { state } = this.connectionService.getIdentityState();
         this.logger.verbose('cleared, got identity state');
         if (!state.apiKey) {
-            this.logger.warn('No API key found; cannot setup mothership subscription');
+            this.logger.warn('No API key found; cannot setup mothership connection');
             return;
         }
-        await this.clientService.createClientInstance();
-        await this.subscriptionHandler.subscribeToMothershipEvents();
+        // The fallback service handles connection and subscription setup automatically
+        await this.mothershipService.attemptConnection();
+        this.logger.verbose(`Connected using ${this.mothershipService.getCurrentClientType()} client`);
         this.timeoutCheckerJob.start();
     }
 

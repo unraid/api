@@ -1,3 +1,23 @@
 {
+  "permissions": {
+    "allow": [
+      "Bash(pnpm test:*)",
+      "Bash(rm:*)",
+      "Bash(grep:*)",
+      "Bash(pnpm build:*)",
+      "Bash(pnpm --filter ./packages/unraid-api-plugin-connect test)",
+      "Bash(rg:*)",
+      "Bash(timeout 30 pnpm dev)",
+      "Bash(timeout:*)",
+      "Bash(pnpm type-check:*)",
+      "Bash(pnpm lint:*)",
+      "WebFetch(domain:github.com)",
+      "Bash(find:*)",
+      "Bash(npx tsc:*)",
+      "Bash(npx eslint:*)",
+      "Bash(ls:*)",
+      "mcp__ide__getDiagnostics"
+    ]
+  },
   "enableAllProjectMcpServers": false
 }

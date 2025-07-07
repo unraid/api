@@ -6,14 +6,14 @@ import { isDefined } from 'class-validator';
 import { MinigraphStatus } from '../config/connect.config.js';
 import { ONE_MINUTE_MS, THREE_MINUTES_MS } from '../helper/generic-consts.js';
 import { MothershipConnectionService } from '../mothership-proxy/connection.service.js';
-import { MothershipSubscriptionHandler } from '../mothership-proxy/mothership-subscription.handler.js';
+import { MothershipSubscriptionHandlerV2 } from '../mothership-proxy/mothership-subscription-handler-v2.js';
 import { DynamicRemoteAccessService } from '../remote-access/dynamic-remote-access.service.js';
 
 @Injectable()
 export class TimeoutCheckerJob {
     constructor(
         private readonly connectionService: MothershipConnectionService,
-        private readonly subscriptionHandler: MothershipSubscriptionHandler,
+        private readonly subscriptionHandler: MothershipSubscriptionHandlerV2,
         private schedulerRegistry: SchedulerRegistry,
         private readonly dynamicRemoteAccess: DynamicRemoteAccessService
     ) {}
