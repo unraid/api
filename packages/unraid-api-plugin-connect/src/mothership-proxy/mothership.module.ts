@@ -10,6 +10,7 @@ import { MothershipConnectionService } from './connection.service.js';
 import { MothershipGraphqlClientService } from './graphql.client.js';
 import { MothershipSubscriptionHandler } from './mothership-subscription.handler.js';
 import { MothershipHandler } from './mothership.events.js';
+import { MothershipController } from './mothership.controller.js';
 
 @Module({
     imports: [RemoteAccessModule],
@@ -23,6 +24,7 @@ import { MothershipHandler } from './mothership.events.js';
         TimeoutCheckerJob,
         CloudService,
         CloudResolver,
+        MothershipController,
     ],
     exports: [],
 })

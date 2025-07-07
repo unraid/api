@@ -57,7 +57,6 @@ export class MothershipGraphqlClientService implements OnModuleInit, OnModuleDes
      * Initialize the GraphQL client when the module is created
      */
     async onModuleInit(): Promise<void> {
-        await this.createClientInstance();
         this.configService.getOrThrow('API_VERSION');
         this.configService.getOrThrow('MOTHERSHIP_GRAPHQL_LINK');
     }
