@@ -18,7 +18,6 @@ import {
 
 import { useTrackLatestSeenNotification } from '~/composables/api/use-notifications';
 import { useFragment } from '~/composables/gql';
-import useTeleport from '~/composables/useTeleport';
 import { NotificationImportance as Importance, NotificationType } from '~/composables/gql/graphql';
 import {
   archiveAllNotifications,
@@ -37,7 +36,6 @@ import NotificationsList from './List.vue';
 const { mutate: archiveAll, loading: loadingArchiveAll } = useMutation(archiveAllNotifications);
 const { mutate: deleteArchives, loading: loadingDeleteAll } = useMutation(deleteArchivedNotifications);
 const { mutate: recalculateOverview } = useMutation(resetOverview);
-const { determineTeleportTarget } = useTeleport();
 const importance = ref<Importance | undefined>(undefined);
 
 const filterItems = [
@@ -121,7 +119,6 @@ const readArchivedCount = computed(() => {
 });
 
 const prepareToViewNotifications = () => {
-  determineTeleportTarget();
   void recalculateOverview();
 };
 </script>
