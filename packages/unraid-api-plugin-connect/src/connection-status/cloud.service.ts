@@ -230,14 +230,17 @@ export class CloudService {
         }
 
         /**
-         * Different public IPs are expected when Cloudflare (or anycast) load-balancing
-         * is in place.  Log the mismatch for debugging purposes but do **not** treat it
-         * as an error.
+         * This can happen when the mothership graphql client is initialized too early
+         * (e.g. during module init instead of application bootstrap).
+         *
+         * Restarting the Mothership stack will usually fix this.
          */
         if (local !== network) {
             const error = `Local and network resolvers returned different IPs for "${hostname}". [local="${local ?? 'NOT FOUND'}"] [network="${
                 network ?? 'NOT FOUND'
-            }. Please refresh the page."]`;
+            }"]`;
+            // Triggers a restart of the Mothership stack
+            // - sorry for the implicit control flow
             this.mothership.setConnectionStatus({
                 status: MinigraphStatus.ERROR_RETRYING,
                 error,
