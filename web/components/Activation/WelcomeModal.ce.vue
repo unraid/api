@@ -71,15 +71,20 @@ watchEffect(() => {
         </div>
 
         <h1 class="text-center text-xl sm:text-2xl font-semibold mt-4">{{ title }}</h1>
+
         <div class="sm:max-w-lg mx-auto mt-2 text-center">
           <p class="text-lg sm:text-xl opacity-75">
-            {{ t(`First, you'll create your device's login credentials, then you'll activate your Unraid license—your device's operating system (OS).`) }}
+            {{
+              t(
+                `First, you'll create your device's login credentials, then you'll activate your Unraid license—your device's operating system (OS).`
+              )
+            }}
           </p>
         </div>
 
         <div class="flex flex-col justify-start p-6 w-2/4">
           <div class="mx-auto mt-6 mb-8">
-            <BrandButton :text="t('Create a password')" @click="dropdownHide" />
+            <BrandButton :text="t('Create a password')" :disabled="loading" @click="dropdownHide" />
           </div>
 
           <ActivationSteps :active-step="1" class="mt-6" />
@@ -89,7 +94,7 @@ watchEffect(() => {
   </div>
 </template>
 
-<style >
+<style>
 /* Import unraid-ui globals first */
 @import '@unraid/ui/styles';
 @import '~/assets/main.css';
