@@ -73,7 +73,7 @@ if (is_localhost() && !is_good_session()) {
     }
 
     private addModalsWebComponent(source: string): string {
-        return source.replace('</body>', '<unraid-modals></unraid-modals>\n</body>');
+        return source.replace('<body>', '<body>\n<unraid-modals></unraid-modals>');
     }
     private applyToSource(fileContent: string): string {
         const transformers = [
