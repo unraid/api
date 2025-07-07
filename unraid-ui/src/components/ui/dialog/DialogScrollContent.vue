@@ -15,12 +15,14 @@ import {
 import type { HTMLAttributes } from 'vue';
 
 const props = defineProps<
-  DialogContentProps & { class?: HTMLAttributes['class'] } & { to?: string | HTMLElement }
+  DialogContentProps & { class?: HTMLAttributes['class']; showCloseButton?: boolean } & {
+    to?: string | HTMLElement;
+  }
 >();
 
 const emits = defineEmits<DialogContentEmits>();
 
-const delegatedProps = reactiveOmit(props, 'class');
+const delegatedProps = reactiveOmit(props, 'class', 'showCloseButton');
 
 const forwarded = useForwardPropsEmits(delegatedProps, emits);
 
@@ -56,6 +58,7 @@ const { teleportTarget } = useTeleport();
         <slot />
 
         <DialogClose
+          v-if="showCloseButton !== false"
           class="absolute top-3 right-3 p-0.5 transition-colors rounded-md hover:bg-secondary"
         >
           <X class="w-4 h-4" />

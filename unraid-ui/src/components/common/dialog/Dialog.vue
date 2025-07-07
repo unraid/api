@@ -25,7 +25,8 @@ export interface DialogProps {
   primaryButtonLoadingText?: string;
   primaryButtonDisabled?: boolean;
   scrollable?: boolean;
-  size?: 'sm' | 'md' | 'lg' | 'xl';
+  size?: 'sm' | 'md' | 'lg' | 'xl' | 'full';
+  showCloseButton?: boolean;
 }
 
 const {
@@ -41,6 +42,7 @@ const {
   primaryButtonDisabled = false,
   scrollable = false,
   size = 'md',
+  showCloseButton = true,
 } = defineProps<DialogProps>();
 
 const emit = defineEmits<{
@@ -61,6 +63,7 @@ const sizeClasses = {
   md: 'max-w-lg',
   lg: 'max-w-2xl',
   xl: 'max-w-4xl',
+  full: 'w-full max-w-full h-full min-h-screen',
 };
 </script>
 
@@ -72,7 +75,18 @@ const sizeClasses = {
       </slot>
     </DialogTrigger>
 
-    <component :is="scrollable ? DialogScrollContent : DialogContent" :class="cn(sizeClasses[size])">
+    <component
+      :is="scrollable ? DialogScrollContent : DialogContent"
+      :class="
+        cn(
+          sizeClasses[size],
+          size === 'full'
+            ? 'fixed inset-0 translate-x-0 translate-y-0 max-w-none rounded-none border-0'
+            : ''
+        )
+      "
+      :show-close-button="showCloseButton"
+    >
       <DialogHeader v-if="title || description || $slots.header">
         <slot name="header">
           <DialogTitle v-if="title">{{ title }}</DialogTitle>
