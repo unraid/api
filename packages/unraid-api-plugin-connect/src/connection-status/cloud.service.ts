@@ -213,29 +213,32 @@ export class CloudService {
             resolve(hostname).then(([address]) => address),
         ]);
 
-        if (!local.includes(network)) {
-            // Question: should we actually throw an error, or just log a warning?
-            //
-            // This is usually due to cloudflare's load balancing.
-            // if `dig +short mothership.unraid.net` shows both IPs, then this should be safe to ignore.
-            // this.logger.warn(
-            //     `Local and network resolvers showing different IP for "${hostname}". [local="${
-            //         local ?? 'NOT FOUND'
-            //     }"] [network="${network ?? 'NOT FOUND'}"].`
-            // );
-
+        /**
+         * If either resolver returns a private IP we still treat this as a fatal
+         * mis-configuration because the host will be unreachable from the public
+         * Internet.
+         *
+         * The user likely has a PI-hole or something similar running that rewrites
+         * the record to a private address.
+         */
+        if (ip.isPrivate(local) || ip.isPrivate(network)) {
             throw new Error(
-                `Local and network resolvers showing different IP for "${hostname}". [local="${
-                    local ?? 'NOT FOUND'
-                }"] [network="${network ?? 'NOT FOUND'}"]`
+                `"${hostname}" is being resolved to a private IP. [local="${local ?? 'NOT FOUND'}"] [network="${
+                    network ?? 'NOT FOUND'
+                }"]`
             );
         }
 
-        // The user likely has a PI-hole or something similar running.
-        if (ip.isPrivate(local))
-            throw new Error(
-                `"${hostname}" is being resolved to a private IP. [IP=${local ?? 'NOT FOUND'}]`
+        /**
+         * Different public IPs are expected when Cloudflare (or anycast) load-balancing
+         * is in place.  Log the mismatch for debugging purposes but do **not** treat it
+         * as an error.
+         */
+        if (local !== network) {
+            this.logger.verbose(
+                `Local and network resolvers returned different IPs for "${hostname}". [local="${local}"] [network="${network}"]`
             );
+        }
 
         return { local, network };
     }
