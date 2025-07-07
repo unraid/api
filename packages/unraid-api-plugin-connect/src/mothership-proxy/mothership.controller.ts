@@ -30,6 +30,9 @@ export class MothershipController implements OnModuleDestroy, OnApplicationBoots
         await this.initOrRestart();
     }
 
+    /**
+     * Stops the mothership stack. Throws on first error.
+     */
     async stop() {
         this.timeoutCheckerJob.stop();
         this.subscriptionHandler.stopMothershipSubscription();
@@ -38,6 +41,9 @@ export class MothershipController implements OnModuleDestroy, OnApplicationBoots
         this.subscriptionHandler.clearAllSubscriptions();
     }
 
+    /**
+     * Attempts to stop, then starts the mothership stack. Throws on first error.
+     */
     async initOrRestart() {
         await this.stop();
         const { state } = this.connectionService.getIdentityState();
