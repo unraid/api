@@ -112,12 +112,13 @@ Index: /usr/local/emhttp/plugins/dynamix/include/DefaultPageLayout.php
  });
  
  <?if ($wlan0):?>
-@@ -1363,7 +1364,8 @@
+@@ -1363,7 +1364,9 @@
      }
    }
  }
  <?endif;?>
  </script>
 +<uui-toaster rich-colors close-button position="<?= ($notify['position'] === 'center') ? 'top-center' : $notify['position'] ?>"></uui-toaster>
++<unraid-modals></unraid-modals>
  </body>
  </html>
