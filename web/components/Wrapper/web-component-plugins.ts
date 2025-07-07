@@ -46,6 +46,4 @@ export default function (Vue: App) {
 
   // Provide Apollo client for all web components
   Vue.provide(DefaultApolloClient, client);
-
-  console.log('Vue App', Vue);
 } 
