@@ -32,12 +32,6 @@ const options = computed(() => {
 const onChange = (value: unknown) => {
   handleChange(control.value.path, String(value));
 };
-
-// Without this, the select dropdown will not be visible, unless it's already in a teleported context.
-const { teleportTarget, determineTeleportTarget } = useTeleport();
-const onSelectOpen = () => {
-  determineTeleportTarget();
-};
 </script>
 
 <template>
@@ -46,14 +40,13 @@ const onSelectOpen = () => {
     :disabled="!control.enabled"
     :required="control.required"
     @update:model-value="onChange"
-    @update:open="onSelectOpen"
   >
     <SelectTrigger>
       <SelectValue v-if="selected">{{ selected }}</SelectValue>
       <span v-else>{{ control.schema.default ?? 'Select an option' }}</span>
     </SelectTrigger>
 
-    <SelectContent :to="teleportTarget">
+    <SelectContent>
       <template v-for="option in options" :key="option.value">
         <TooltipProvider v-if="option.tooltip" :delay-duration="50">
           <Tooltip>
@@ -62,7 +55,7 @@ const onSelectOpen = () => {
                 <SelectItemText>{{ option.label }}</SelectItemText>
               </SelectItem>
             </TooltipTrigger>
-            <TooltipContent :to="teleportTarget" side="right" :side-offset="5">
+            <TooltipContent side="right" :side-offset="5">
               <p class="max-w-xs">{{ option.tooltip }}</p>
             </TooltipContent>
           </Tooltip>
