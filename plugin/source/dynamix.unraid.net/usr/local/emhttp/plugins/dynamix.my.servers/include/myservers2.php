@@ -17,15 +17,5 @@ $wCTranslations = new WebComponentTranslations();
 ?>
 <script>
 window.LOCALE_DATA = '<?= $wCTranslations->getTranslationsJson(true) ?>';
-/**
- * So we're not needing to modify DefaultLayout with an additional include, we'll add the Modals web component to the bottom of the body.
- */
-const modalsWebComponent = 'unraid-modals';
-if (!document.getElementsByTagName(modalsWebComponent).length) {
-    const $body = document.getElementsByTagName('body')[0];
-    const $modals = document.createElement(modalsWebComponent);
-    $body.appendChild($modals);
-}
 </script>
-
 <unraid-user-profile server="<?= $serverState->getServerStateJsonForHtmlAttr() ?>"></unraid-user-profile>
