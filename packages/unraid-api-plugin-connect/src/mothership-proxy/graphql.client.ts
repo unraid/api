@@ -1,4 +1,4 @@
-import { Injectable, Logger, OnApplicationBootstrap, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
+import { Injectable, Logger, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 
@@ -27,7 +27,7 @@ const FIVE_MINUTES_MS = 5 * 60 * 1000;
 type Unsubscribe = () => void;
 
 @Injectable()
-export class MothershipGraphqlClientService implements OnApplicationBootstrap, OnModuleDestroy {
+export class MothershipGraphqlClientService implements OnModuleInit, OnModuleDestroy {
     private logger = new Logger(MothershipGraphqlClientService.name);
     private apolloClient: ApolloClient<NormalizedCacheObject> | null = null;
     private wsClient: Client | null = null;
@@ -56,10 +56,9 @@ export class MothershipGraphqlClientService implements OnApplicationBootstrap, O
     /**
      * Initialize the GraphQL client when the module is created
      */
-    async onApplicationBootstrap(): Promise<void> {
+    async onModuleInit(): Promise<void> {
         this.configService.getOrThrow('API_VERSION');
         this.configService.getOrThrow('MOTHERSHIP_GRAPHQL_LINK');
-        await this.createClientInstance();
     }
 
     /**

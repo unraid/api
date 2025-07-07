@@ -1,70 +1,44 @@
-import { Inject, Injectable, Logger, OnModuleDestroy } from '@nestjs/common';
+import { Inject, Injectable, Logger } from '@nestjs/common';
 import { OnEvent } from '@nestjs/event-emitter';
 
 import { PubSub } from 'graphql-subscriptions';
 
 import { MinigraphStatus } from '../config/connect.config.js';
-import { TimeoutCheckerJob } from '../connection-status/timeout-checker.job.js';
 import { EVENTS, GRAPHQL_PUBSUB_CHANNEL, GRAPHQL_PUBSUB_TOKEN } from '../helper/nest-tokens.js';
 import { MothershipConnectionService } from './connection.service.js';
-import { MothershipGraphqlClientService } from './graphql.client.js';
-import { MothershipSubscriptionHandler } from './mothership-subscription.handler.js';
+import { MothershipController } from './mothership.controller.js';
 
 @Injectable()
-export class MothershipHandler implements OnModuleDestroy {
+export class MothershipHandler {
     private readonly logger = new Logger(MothershipHandler.name);
     constructor(
         private readonly connectionService: MothershipConnectionService,
-        private readonly clientService: MothershipGraphqlClientService,
-        private readonly subscriptionHandler: MothershipSubscriptionHandler,
-        private readonly timeoutCheckerJob: TimeoutCheckerJob,
+        private readonly mothershipController: MothershipController,
         @Inject(GRAPHQL_PUBSUB_TOKEN)
         private readonly legacyPubSub: PubSub
     ) {}
-
-    async onModuleDestroy() {
-        await this.clear();
-    }
-
-    async clear() {
-        this.timeoutCheckerJob.stop();
-        this.subscriptionHandler.stopMothershipSubscription();
-        await this.clientService.clearInstance();
-        this.connectionService.resetMetadata();
-        this.subscriptionHandler.clearAllSubscriptions();
-    }
-
-    async setup() {
-        await this.clear();
-        const { state } = this.connectionService.getIdentityState();
-        this.logger.verbose('cleared, got identity state');
-        if (!state.apiKey) {
-            this.logger.warn('No API key found; cannot setup mothership subscription');
-            return;
-        }
-        await this.clientService.createClientInstance();
-        await this.subscriptionHandler.subscribeToMothershipEvents();
-        this.timeoutCheckerJob.start();
-    }
 
     @OnEvent(EVENTS.IDENTITY_CHANGED, { async: true })
     async onIdentityChanged() {
         const { state } = this.connectionService.getIdentityState();
         if (state.apiKey) {
             this.logger.verbose('Identity changed; setting up mothership subscription');
-            await this.setup();
+            await this.mothershipController.initOrRestart();
         }
     }
 
     @OnEvent(EVENTS.MOTHERSHIP_CONNECTION_STATUS_CHANGED, { async: true })
     async onMothershipConnectionStatusChanged() {
         const state = this.connectionService.getConnectionState();
-        if (state && [MinigraphStatus.PING_FAILURE, MinigraphStatus.ERROR_RETRYING].includes(state.status)) {
+        if (
+            state &&
+            [MinigraphStatus.PING_FAILURE, MinigraphStatus.ERROR_RETRYING].includes(state.status)
+        ) {
             this.logger.verbose(
                 'Mothership connection status changed to %s; setting up mothership subscription',
                 state.status
             );
-            await this.setup();
+            await this.mothershipController.initOrRestart();
         }
     }
 
@@ -83,7 +57,6 @@ export class MothershipHandler implements OnModuleDestroy {
         await this.legacyPubSub.publish(GRAPHQL_PUBSUB_CHANNEL.OWNER, {
             owner: { username: 'root', url: '', avatar: '' },
         });
-        this.timeoutCheckerJob.stop();
-        await this.clear();
+        await this.mothershipController.stop();
     }
 }
