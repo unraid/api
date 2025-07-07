@@ -235,9 +235,14 @@ export class CloudService {
          * as an error.
          */
         if (local !== network) {
-            this.logger.verbose(
-                `Local and network resolvers returned different IPs for "${hostname}". [local="${local}"] [network="${network}"]`
-            );
+            const error = `Local and network resolvers returned different IPs for "${hostname}". [local="${local ?? 'NOT FOUND'}"] [network="${
+                network ?? 'NOT FOUND'
+            }. Please refresh the page."]`;
+            this.mothership.setConnectionStatus({
+                status: MinigraphStatus.ERROR_RETRYING,
+                error,
+            });
+            throw new Error(error);
         }
 
         return { local, network };
