@@ -191,7 +191,7 @@ const prepareToViewNotifications = () => {
                   importance = strVal === 'all' || !strVal ? undefined : (strVal as Importance);
                 }
               "
-            />
+            ></Select>
           </div>
 
           <TabsContent value="unread" class="flex-col flex-1 min-h-0">

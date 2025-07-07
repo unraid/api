@@ -1,16 +1,14 @@
 <script lang="ts" setup>
-import { onBeforeMount } from 'vue';
 import { storeToRefs } from 'pinia';
-import { useCustomElements } from '#imports';
 import { useDummyServerStore } from '~/_data/serverState';
 import { Toaster } from '@unraid/ui';
+import BrandLogo from '~/components/Brand/Logo.vue';
+import HeaderOsVersionCe from '~/components/HeaderOsVersion.ce.vue';
+import ConnectSettingsCe from '~/components/ConnectSettings/ConnectSettings.ce.vue';
 
 const serverStore = useDummyServerStore();
 const { serverState } = storeToRefs(serverStore);
-const { registerEntry } = useCustomElements();
-onBeforeMount(() => {
-  registerEntry('UnraidComponents');
-});
+
 </script>
 
 <template>

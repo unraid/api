@@ -174,10 +174,8 @@ function handleUpdateModelValue(value: AcceptableValue) {
     </SelectTrigger>
 
     <SelectContent>
-      <slot name="content-top" />
-
       <SelectGroup v-for="{ groupIndex, items } in groupedOrderedItems" :key="groupIndex">
-        <template v-for="{ item, index, type } in items" :key="index">
+        <div v-for="{ item, index, type } in items" :key="index">
           <SelectLabel v-if="type === 'label'">
             {{ getItemLabel(item) }}
           </SelectLabel>
@@ -194,9 +192,8 @@ function handleUpdateModelValue(value: AcceptableValue) {
               {{ getItemLabel(item) }}
             </slot>
           </SelectItem>
-        </template>
+        </div>
       </SelectGroup>
-      <slot name="content-bottom" />
     </SelectContent>
   </SelectRoot>
 </template>
