@@ -124,7 +124,7 @@ const prepareToViewNotifications = () => {
 </script>
 
 <template>
-  <Sheet :modal="false">
+  <Sheet>
     <SheetTrigger @click="prepareToViewNotifications">
       <span class="sr-only">Notifications</span>
       <NotificationsIndicator :overview="overview" :seen="haveSeenNotifications" />
