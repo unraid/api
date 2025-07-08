@@ -2,6 +2,7 @@ name: Deploy Storybook to Cloudflare Workers
 permissions:
   contents: read
   pull-requests: write
+  issues: write
 on:
   push:
     branches:
@@ -30,6 +31,50 @@ jobs:
         name: Install pnpm
         with:
           run_install: false
+
+      - name: Cache APT Packages
+        uses: awalsh128/cache-apt-pkgs-action@v1.4.3
+        with:
+          packages: bash procps python3 libvirt-dev jq zstd git build-essential libvirt-daemon-system
+          version: 1.0
+
+      - name: Setup libvirt
+        run: |
+          # Create required groups (if they don't already exist)
+          sudo groupadd -f libvirt
+          sudo groupadd -f kvm
+
+          # Create libvirt user if not present, and add it to the kvm group
+          sudo useradd -m -s /bin/bash -g libvirt libvirt || true
+          sudo usermod -aG kvm libvirt || true
+
+          # Set up libvirt directories and permissions
+          sudo mkdir -p /var/run/libvirt /var/log/libvirt /etc/libvirt
+          sudo chown root:libvirt /var/run/libvirt /var/log/libvirt
+          sudo chmod g+w /var/run/libvirt /var/log/libvirt
+
+          # Configure libvirt by appending required settings
+          sudo tee -a /etc/libvirt/libvirtd.conf > /dev/null <<EOF
+          unix_sock_group = "libvirt"
+          unix_sock_rw_perms = "0770"
+          auth_unix_rw = "none"
+          EOF
+
+          # Add the current user to libvirt and kvm groups (note: this change won't apply to the current session)
+          sudo usermod -aG libvirt,kvm $USER
+
+          sudo mkdir -p /var/run/libvirt
+          sudo chown root:libvirt /var/run/libvirt
+          sudo chmod 775 /var/run/libvirt
+
+          # Start libvirtd in the background
+          sudo /usr/sbin/libvirtd --daemon
+
+          # Wait a bit longer for libvirtd to start
+          sleep 5
+
+          # Verify libvirt is running using sudo to bypass group membership delays
+          sudo virsh list --all || true
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
