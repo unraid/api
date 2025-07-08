@@ -1,8 +1,8 @@
-import type { Meta, StoryObj } from "@storybook/vue3";
-import ButtonComponent from "../../../src/components/common/button/Button.vue";
+import type { Meta, StoryObj } from '@storybook/vue3-vite';
+import { Button as ButtonComponent } from '../../../src/components/common/button/index.js';
 
 const meta = {
-  title: "Components/Common",
+  title: 'Components/Common',
   component: ButtonComponent,
 } satisfies Meta<typeof ButtonComponent>;
 
@@ -12,9 +12,9 @@ type Story = StoryObj<typeof meta>;
 
 export const Button: Story = {
   args: {
-    variant: "primary",
-    size: "md",
-    default: "Click me",
+    variant: 'primary',
+    size: 'md',
+    default: 'Click me',
   },
   render: (args) => ({
     components: { ButtonComponent },

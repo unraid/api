@@ -1,4 +1,4 @@
-import type { Meta, StoryObj } from '@storybook/vue3';
+import type { Meta, StoryObj } from '@storybook/vue3-vite';
 import {
   Stepper as StepperComponent,
   StepperDescription,
@@ -7,7 +7,7 @@ import {
   StepperSeparator,
   StepperTitle,
   StepperTrigger,
-} from '../../../src/components/common/stepper';
+} from '../../../src/components/common/stepper/index.js';
 
 const meta = {
   title: 'Components/Common',

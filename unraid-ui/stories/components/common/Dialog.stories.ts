@@ -1,7 +1,7 @@
-import type { Meta, StoryObj } from '@storybook/vue3';
+import type { Meta, StoryObj } from '@storybook/vue3-vite';
 import { ref } from 'vue';
-import Button from '../../../src/components/common/button/Button.vue';
-import DialogComponent from '../../../src/components/common/dialog/Dialog.vue';
+import { Button } from '../../../src/components/common/button/index.js';
+import { Dialog as DialogComponent } from '../../../src/components/common/dialog/index.js';
 
 const meta = {
   title: 'Components/Common/Dialog',

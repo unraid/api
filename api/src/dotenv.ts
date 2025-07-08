@@ -9,6 +9,8 @@ const env =
               override: true,
           })
         : config({
+              debug: false,
+              quiet: true,
               path: '/usr/local/unraid-api/.env',
               encoding: 'utf-8',
           });

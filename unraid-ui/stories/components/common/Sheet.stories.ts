@@ -1,13 +1,15 @@
-import type { Meta, StoryObj } from '@storybook/vue3';
-import Button from '../../../src/components/common/button/Button.vue';
-import SheetComponent from '../../../src/components/common/sheet/Sheet.vue';
-import SheetContent from '../../../src/components/common/sheet/SheetContent.vue';
-import SheetDescription from '../../../src/components/common/sheet/SheetDescription.vue';
-import SheetFooter from '../../../src/components/common/sheet/SheetFooter.vue';
-import SheetHeader from '../../../src/components/common/sheet/SheetHeader.vue';
-import SheetTitle from '../../../src/components/common/sheet/SheetTitle.vue';
-import SheetTrigger from '../../../src/components/common/sheet/SheetTrigger.vue';
-import { Select } from '../../../src/components/form/select';
+import type { Meta, StoryObj } from '@storybook/vue3-vite';
+import { Button } from '../../../src/components/common/button/index.js';
+import {
+  Sheet as SheetComponent,
+  SheetContent,
+  SheetDescription,
+  SheetFooter,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from '../../../src/components/common/sheet/index.js';
+import { Select } from '../../../src/components/form/select/index.js';
 
 const meta = {
   title: 'Components/Common',

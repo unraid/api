@@ -1,7 +1,5 @@
-import type { Meta, StoryObj } from '@storybook/vue3';
-import Bar from '../../../src/components/common/loading/Bar.vue';
-import Error from '../../../src/components/common/loading/Error.vue';
-import Spinner from '../../../src/components/common/loading/Spinner.vue';
+import type { Meta, StoryObj } from '@storybook/vue3-vite';
+import { Bar, Error, Spinner } from '../../../src/components/common/loading/index.js';
 
 const meta = {
   title: 'Components/Common/Loading',

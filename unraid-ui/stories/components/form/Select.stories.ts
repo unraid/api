@@ -1,6 +1,6 @@
-import { Select } from '@/components/form/select';
-import type { Meta, StoryObj } from '@storybook/vue3';
+import type { Meta, StoryObj } from '@storybook/vue3-vite';
 import { ref } from 'vue';
+import { Select } from '../../../src/components/form/select/index.js';
 
 const meta = {
   title: 'Components/Form/Select',

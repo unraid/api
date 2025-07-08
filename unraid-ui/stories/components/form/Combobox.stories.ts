@@ -1,14 +1,14 @@
-import type { Meta, StoryObj } from '@storybook/vue3';
+import type { Meta, StoryObj } from '@storybook/vue3-vite';
 import {
-  Combobox as ComboboxComponent,
   ComboboxAnchor,
+  Combobox as ComboboxComponent,
   ComboboxEmpty,
   ComboboxGroup,
   ComboboxInput,
   ComboboxItem,
   ComboboxList,
   ComboboxTrigger,
-} from '../../../src/components/form/combobox';
+} from '../../../src/components/form/combobox/index.js';
 
 const meta = {
   title: 'Components/Form/Combobox',
@@ -90,4 +90,4 @@ export const Grouped: Story = {
       </div>
     `,
   }),
-}; 
+};

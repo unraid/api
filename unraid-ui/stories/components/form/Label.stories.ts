@@ -1,8 +1,8 @@
-import type { Meta, StoryObj } from "@storybook/vue3";
-import { Label as LabelComponent } from "../../../src/components/form/label";
+import type { Meta, StoryObj } from '@storybook/vue3-vite';
+import { Label as LabelComponent } from '../../../src/components/form/label/index.js';
 
 const meta = {
-  title: "Components/Form",
+  title: 'Components/Form',
   component: LabelComponent,
 } satisfies Meta<typeof LabelComponent>;
 

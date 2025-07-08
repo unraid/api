@@ -1,5 +1,5 @@
-import { DropdownMenu } from '@/components/common/dropdown-menu';
-import type { Meta, StoryObj } from '@storybook/vue3';
+import type { Meta, StoryObj } from '@storybook/vue3-vite';
+import { DropdownMenu } from '../../../src/components/common/dropdown-menu/index.js';
 
 const meta = {
   title: 'Components/Common/DropdownMenu',
