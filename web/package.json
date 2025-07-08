@@ -78,7 +78,7 @@
     "tailwindcss-animate": "1.0.7",
     "terser": "5.43.1",
     "typescript": "5.8.3",
-    "vite": "6.3.5",
+    "vite": "7.0.3",
     "vite-plugin-remove-console": "2.2.0",
     "vite-plugin-vue-tracer": "0.1.4",
     "vitest": "3.2.4",
