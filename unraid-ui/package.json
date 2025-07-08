@@ -136,5 +136,5 @@
       "import": "./dist/theme/preset.js"
     }
   },
-  "packageManager": "pnpm@10.12.1"
+  "packageManager": "pnpm@10.12.4"
 }
