@@ -209,7 +209,7 @@
         "typescript": "5.8.3",
         "typescript-eslint": "8.34.1",
         "unplugin-swc": "1.5.5",
-        "vite": "6.3.5",
+        "vite": "7.0.3",
         "vite-plugin-node": "7.0.0",
         "vite-tsconfig-paths": "5.1.4",
         "vitest": "3.2.4",
