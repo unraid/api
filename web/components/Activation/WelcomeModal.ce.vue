@@ -12,7 +12,7 @@ import { useThemeStore } from '~/store/theme';
 
 const { t } = useI18n();
 
-const { partnerInfo, loading } = storeToRefs(useActivationCodeDataStore());
+const { partnerInfo } = storeToRefs(useActivationCodeDataStore());
 
 const { setTheme } = useThemeStore();
 
@@ -28,12 +28,6 @@ const title = computed<string>(() =>
   partnerInfo.value?.partnerName
     ? t(`Welcome to your new {0} system, powered by Unraid!`, [partnerInfo.value?.partnerName])
     : t('Welcome to Unraid!')
-);
-
-const description = computed<string>(() =>
-  t(
-    `First, you'll create your device's login credentials, then you'll activate your Unraid license—your device's operating system (OS).`
-  )
 );
 
 const showModal = ref<boolean>(true);
@@ -64,18 +58,28 @@ watchEffect(() => {
 
 <template>
   <div id="modals" ref="modals" class="relative z-[99999]">
-    <Dialog v-model="showModal" :show-footer="false" :show-close-button="false" size="full" class="bg-background">
+    <Dialog
+      v-model="showModal"
+      :show-footer="false"
+      :show-close-button="false"
+      size="full"
+      class="bg-background"
+    >
       <div class="flex flex-col items-center justify-start mt-8">
         <div v-if="partnerInfo?.hasPartnerLogo">
           <ActivationPartnerLogo />
         </div>
 
         <h1 class="text-center text-20px sm:text-24px font-semibold mt-4">{{ title }}</h1>
-        <p class="text-18px sm:text-20px opacity-75 text-center mt-2">{{ description }}</p>
+        <div class="sm:max-w-lg mx-auto mt-2 text-center">
+          <p class="text-18px sm:text-20px opacity-75">
+            {{ t(`First, you'll create your device's login credentials, then you'll activate your Unraid license—your device's operating system (OS).`) }}
+          </p>
+        </div>
 
         <div class="flex flex-col justify-start p-6 w-2/4">
           <div class="mx-auto mt-6 mb-8">
-            <BrandButton :text="t('Create a password')" :disabled="loading" @click="dropdownHide" />
+            <BrandButton :text="t('Create a password')" @click="dropdownHide" />
           </div>
 
           <ActivationSteps :active-step="1" class="mt-6" />
