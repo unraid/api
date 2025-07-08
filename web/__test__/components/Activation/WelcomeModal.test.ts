@@ -191,13 +191,13 @@ describe('Activation/WelcomeModal.ce.vue', () => {
     expect(wrapper.find('[data-testid="modal"]').exists()).toBe(false);
   });
 
-  it('disables the Create a password button when loading', () => {
+  it('does not disable the Create a password button when loading', () => {
     mockActivationCodeDataStore.loading.value = true;
 
     const wrapper = mountComponent();
     const button = wrapper.find('[data-testid="brand-button"]');
 
-    expect(button.attributes('disabled')).toBe('');
+    expect(button.attributes('disabled')).toBe(undefined);
   });
 
   it('renders activation steps with correct active step', () => {
