@@ -1,5 +1,13 @@
 # Changelog
 
+## [4.9.1](https://github.com/unraid/api/compare/v4.9.0...v4.9.1) (2025-07-08)
+
+
+### Bug Fixes
+
+* **HeaderOsVersion:** adjust top margin for header component ([#1485](https://github.com/unraid/api/issues/1485)) ([862b54d](https://github.com/unraid/api/commit/862b54de8cd793606f1d29e76c19d4a0e1ae172f))
+* sign out doesn't work ([#1486](https://github.com/unraid/api/issues/1486)) ([f3671c3](https://github.com/unraid/api/commit/f3671c3e0750b79be1f19655a07a0e9932289b3f))
+
 ## [4.9.0](https://github.com/unraid/api/compare/v4.8.0...v4.9.0) (2025-07-08)
 
 
