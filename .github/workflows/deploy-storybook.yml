@@ -40,6 +40,7 @@ jobs:
           pnpm build-storybook
 
       - name: Deploy to Cloudflare Workers (Staging)
+        id: deploy_staging
         if: github.event_name == 'pull_request'
         uses: cloudflare/wrangler-action@v3
         with:
@@ -64,5 +65,5 @@ jobs:
               issue_number: context.issue.number,
               owner: context.repo.owner,
               repo: context.repo.repo,
-              body: '🚀 Storybook has been deployed to staging: https://unraid-ui-storybook-staging.unraid.workers.dev'
+              body: '🚀 Storybook has been deployed to staging: ${{ steps.deploy_staging.outputs.deployment-url }}'
             }) 

@@ -60,14 +60,15 @@
     "dompurify": "3.2.6",
     "kebab-case": "2.0.2",
     "lucide-vue-next": "0.519.0",
-    "shadcn-vue": "2.2.0",
     "marked": "16.0.0",
     "reka-ui": "2.3.1",
+    "shadcn-vue": "2.2.0",
     "tailwind-merge": "2.6.0",
     "vue-sonner": "1.3.0"
   },
   "devDependencies": {
     "@ianvs/prettier-plugin-sort-imports": "4.4.2",
+    "@storybook/addon-docs": "9.0.16",
     "@storybook/addon-links": "9.0.16",
     "@storybook/builder-vite": "9.0.16",
     "@storybook/vue3-vite": "9.0.16",
@@ -91,8 +92,10 @@
     "eslint-plugin-import": "2.31.0",
     "eslint-plugin-no-relative-import-paths": "1.6.1",
     "eslint-plugin-prettier": "5.5.0",
+    "eslint-plugin-storybook": "9.0.16",
     "eslint-plugin-vue": "10.2.0",
     "happy-dom": "18.0.0",
+    "jiti": "^2.4.2",
     "postcss": "8.5.6",
     "postcss-import": "16.1.1",
     "prettier": "3.5.3",
@@ -110,9 +113,7 @@
     "vitest": "3.2.4",
     "vue": "3.5.17",
     "vue-tsc": "3.0.1",
-    "wrangler": "^3.87.0",
-    "eslint-plugin-storybook": "9.0.16",
-    "@storybook/addon-docs": "9.0.16"
+    "wrangler": "^3.87.0"
   },
   "optionalDependencies": {
     "@rollup/rollup-linux-x64-gnu": "4.44.0"
