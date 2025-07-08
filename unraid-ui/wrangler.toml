@@ -1,0 +1,25 @@
+name = "unraid-ui-storybook"
+compatibility_date = "2024-12-30"
+compatibility_flags = ["nodejs_compat"]
+
+[env.production]
+name = "unraid-ui-storybook"
+
+[env.staging]
+name = "unraid-ui-storybook-staging"
+
+# Static Assets configuration for Storybook
+[assets]
+directory = "./storybook-static"
+
+# Custom domain configuration (update with your domain)
+# routes = [
+#   { pattern = "storybook.yourdomain.com", custom_domain = true }
+# ]
+
+# Environment variables (if needed)
+[vars]
+ENVIRONMENT = "production"
+
+[env.staging.vars]
+ENVIRONMENT = "staging" 

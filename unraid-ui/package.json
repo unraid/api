@@ -38,7 +38,10 @@
     "storybook": "storybook dev -p 6006",
     "storybook:css": "node scripts/build-style.mjs",
     "prebuild-storybook": "pnpm storybook:css",
-    "build-storybook": "storybook build"
+    "build-storybook": "storybook build",
+    "// Cloudflare Workers Deployment": "",
+    "deploy:storybook": "pnpm build-storybook && wrangler deploy",
+    "deploy:storybook:staging": "pnpm build-storybook && wrangler deploy --env staging"
   },
   "peerDependencies": {
     "tailwindcss": "3.4.17",
@@ -107,6 +110,7 @@
     "vitest": "3.2.4",
     "vue": "3.5.17",
     "vue-tsc": "3.0.1",
+    "wrangler": "^3.87.0",
     "eslint-plugin-storybook": "9.0.16",
     "@storybook/addon-docs": "9.0.16"
   },
