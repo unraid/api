@@ -1,4 +1,5 @@
-import { InMemoryCache, type InMemoryCacheConfig } from '@apollo/client/core';
+import { InMemoryCache } from '@apollo/client/core';
+import type { InMemoryCacheConfig } from '@apollo/client/core';
 
 import type { NotificationOverview } from '~/composables/gql/graphql';
 

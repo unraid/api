@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { computed, type Component } from 'vue';
+import { computed } from 'vue';
+import type { Component } from 'vue';
 import { BellIcon, ExclamationTriangleIcon, ShieldExclamationIcon } from '@heroicons/vue/24/solid';
 import { cn } from '@unraid/ui';
 
