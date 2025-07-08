@@ -306,6 +306,7 @@ echo "Installation completed at $(date)" >> "$LOGFILE"
 /etc/rc.d/rc.unraid-api cleanup-dependencies
 
 echo "Starting Unraid API service"
+echo "If no additional messages appear within 30 seconds, it is safe to refresh the page."
 /etc/rc.d/rc.unraid-api plugins add unraid-api-plugin-connect -b --no-restart
 /etc/rc.d/rc.unraid-api start
 
