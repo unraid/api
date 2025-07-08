@@ -10,7 +10,6 @@ import {
   Stepper,
   StepperDescription,
   StepperItem,
-  StepperSeparator,
   StepperTitle,
   StepperTrigger,
 } from '@unraid/ui';
@@ -75,7 +74,7 @@ const steps: readonly Step[] = [
 <template>
   <Stepper :default-value="activeStep" class="text-foreground flex w-full items-start gap-2 text-16px">
     <StepperItem
-      v-for="(step, index) in steps"
+      v-for="step in steps"
       :key="step.step"
       v-slot="{ state }: { state: StepState }"
       class="relative flex w-full flex-col items-center justify-center data-[disabled]:opacity-100"
@@ -111,7 +110,6 @@ const steps: readonly Step[] = [
           </StepperDescription>
         </div>
       </StepperTrigger>
-      <StepperSeparator v-if="index < steps.length - 1" class="w-[50px] bg-black h-[30px]" />
     </StepperItem>
   </Stepper>
 </template>
