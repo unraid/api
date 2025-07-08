@@ -1,5 +1,7 @@
 import path from 'path';
 
+import removeConsole from 'vite-plugin-remove-console';
+
 import type { UserConfig, PluginOption } from 'vite';
 
 /**
@@ -26,11 +28,10 @@ function terserReservations(inputStr: string) {
 
 const charsToReserve = '_$abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
 
-const assetsDir = path.join(__dirname, '../api/dev/webGui/');
-
 const dropConsole = process.env.VITE_ALLOW_CONSOLE_LOGS !== 'true';
-
 console.log(dropConsole ? 'WARN: Console logs are disabled' : 'INFO: Console logs are enabled');
+
+const assetsDir = path.join(__dirname, '../api/dev/webGui/');
 
 /**
  * Shared terser options for consistent minification
@@ -40,9 +41,6 @@ const sharedTerserOptions = {
     reserved: terserReservations(charsToReserve),
     toplevel: true,
   },
-  compress: {
-    drop_console: dropConsole,
-  },
 };
 
 /**
@@ -50,6 +48,15 @@ const sharedTerserOptions = {
  */
 const getSharedPlugins = (includeJQueryIsolation = false) => {
   const plugins: PluginOption[] = [];
+  
+  // Remove console logs in production
+  if (dropConsole) {
+    plugins.push(
+      removeConsole({
+        includes: ['log', 'info', 'debug'],
+      })
+    );
+  }
   
   // Add jQuery isolation plugin for custom elements
   if (includeJQueryIsolation) {
