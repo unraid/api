@@ -2,7 +2,10 @@
   "permissions": {
     "allow": [
       "Bash(rg:*)",
-      "Bash(find:*)"
+      "Bash(find:*)",
+      "Bash(pnpm codegen:*)",
+      "Bash(pnpm dev:*)",
+      "Bash(pnpm build:*)"
     ]
   },
   "enableAllProjectMcpServers": false
