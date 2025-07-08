@@ -100,7 +100,7 @@ onMounted(() => {
 <template>
   <div
     id="UserProfile"
-    class="text-foreground relative z-20 flex flex-col h-full gap-y-4px pt-4px pr-16px pl-40px"
+    class="text-foreground relative z-20 flex flex-col h-full gap-y-1"
   >
     <div
       v-if="bannerGradient"
@@ -109,11 +109,11 @@ onMounted(() => {
     />
 
     <div
-      class="text-xs text-header-text-secondary text-right font-semibold leading-normal relative z-10 flex flex-col items-end justify-end gap-x-4px xs:flex-row xs:items-baseline xs:gap-x-12px"
+      class="text-xs text-header-text-secondary text-right font-semibold leading-normal relative z-10 flex flex-wrap items-baseline justify-end gap-x-1 xs:flex-row xs:gap-x-4"
     >
-      <UpcUptimeExpire :t="t" />
+      <UpcUptimeExpire :as="'span'" :t="t" class="text-12px" />
       <span class="hidden xs:block">&bull;</span>
-      <UpcServerState :t="t" />
+      <UpcServerState :t="t" class="text-12px" />
     </div>
 
     <div class="relative z-10 flex flex-row items-center justify-end gap-x-16px h-full">

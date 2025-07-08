@@ -20,7 +20,7 @@ import { useUpdateOsStore } from '~/store/updateOs';
 const props = defineProps<{ t: ComposerTranslation }>();
 
 const { errors } = storeToRefs(useErrorsStore());
-const { rebootType, state, stateData } = storeToRefs(useServerStore());
+const { connectPluginInstalled, rebootType, state, stateData } = storeToRefs(useServerStore());
 const { available: osUpdateAvailable } = storeToRefs(useUpdateOsStore());
 
 const showErrorIcon = computed(() => errors.value.length || stateData.value.error);
@@ -79,6 +79,6 @@ const title = computed((): string => {
 
     <Bars3Icon class="w-20px" />
 
-    <BrandAvatar />
+    <BrandAvatar v-if="connectPluginInstalled" />
   </button>
 </template>

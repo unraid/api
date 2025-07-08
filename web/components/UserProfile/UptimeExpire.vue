@@ -9,12 +9,14 @@ import { useServerStore } from '~/store/server';
 export interface Props {
   forExpire?: boolean;
   shortText?: boolean;
+  as?: 'p' | 'span';
   t: ComposerTranslation;
 }
 
 const props = withDefaults(defineProps<Props>(), {
   forExpire: false,
   shortText: false,
+  as: 'p',
 });
 
 const serverStore = useServerStore();
@@ -60,7 +62,7 @@ const output = computed(() => {
 </script>
 
 <template>
-  <p :title="output.title">
+  <component :is="as" :title="output.title">
     {{ output.text }}
-  </p>
+  </component>
 </template>
