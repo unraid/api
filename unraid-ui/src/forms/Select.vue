@@ -8,7 +8,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import useTeleport from '@/composables/useTeleport';
 import type { ControlElement } from '@jsonforms/core';
 import { useJsonFormsControl } from '@jsonforms/vue';
 import type { RendererProps } from '@jsonforms/vue';
