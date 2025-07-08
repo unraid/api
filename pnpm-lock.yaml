@@ -479,8 +479,8 @@ importers:
         specifier: 6.3.5
         version: 6.3.5(@types/node@22.15.32)(jiti@2.4.2)(stylus@0.57.0)(terser@5.43.1)(tsx@4.20.3)(yaml@2.8.0)
       vite-plugin-node:
-        specifier: 5.0.1
-        version: 5.0.1(@swc/core@1.12.4)(vite@6.3.5(@types/node@22.15.32)(jiti@2.4.2)(stylus@0.57.0)(terser@5.43.1)(tsx@4.20.3)(yaml@2.8.0))
+        specifier: 7.0.0
+        version: 7.0.0(@swc/core@1.12.4)(vite@6.3.5(@types/node@22.15.32)(jiti@2.4.2)(stylus@0.57.0)(terser@5.43.1)(tsx@4.20.3)(yaml@2.8.0))
       vite-tsconfig-paths:
         specifier: 5.1.4
         version: 5.1.4(typescript@5.8.3)(vite@6.3.5(@types/node@22.15.32)(jiti@2.4.2)(stylus@0.57.0)(terser@5.43.1)(tsx@4.20.3)(yaml@2.8.0))
@@ -6327,6 +6327,10 @@ packages:
 
   debounce@1.2.1:
     resolution: {integrity: sha512-XRRe6Glud4rd/ZGQfiV1ruXSfbvfJedlV9Y6zOlP+2K04vBYiJEte6stfFkCP03aMnY5tsipamumUjL14fofug==}
+
+  debounce@2.2.0:
+    resolution: {integrity: sha512-Xks6RUDLZFdz8LIdR6q0MTH44k7FikOmnh5xkSjMig6ch45afc8sjTjRQf3P6ax8dMgcQrYO/AR2RGWURrruqw==}
+    engines: {node: '>=18'}
 
   debug@2.6.9:
     resolution: {integrity: sha512-bC7ElrdJaJnPbAP+1EotYvqZsb3ecl5wi6Bfi6BJTUcNowp6cvspg0jXznRTKDjm/E7AdgFBVeAPVMNcKGsHMA==}
@@ -12342,11 +12346,11 @@ packages:
       '@nuxt/kit':
         optional: true
 
-  vite-plugin-node@5.0.1:
-    resolution: {integrity: sha512-xdR4UW1h2ZM1wBf4pjwzuty/mX6F/GViB8h1iqOpxr81pa5OuWb3IJghl66v4e7Srsi2p5o22n9G7G46FeZK9Q==}
+  vite-plugin-node@7.0.0:
+    resolution: {integrity: sha512-FZqTHvCXUu+U8i6qMtlZCrEvlelUioEf6J4S77XHpZk73frveqKVot60W0hpbffv5OMECXYwP/LAiTGAOLN4/g==}
     peerDependencies:
       '@swc/core': ^1.7.26
-      vite: ^6.2.2
+      vite: ^7.0.0
     peerDependenciesMeta:
       '@swc/core':
         optional: true
@@ -19003,6 +19007,8 @@ snapshots:
   de-indent@1.0.2: {}
 
   debounce@1.2.1: {}
+
+  debounce@2.2.0: {}
 
   debug@2.6.9:
     dependencies:
@@ -25812,10 +25818,11 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  vite-plugin-node@5.0.1(@swc/core@1.12.4)(vite@6.3.5(@types/node@22.15.32)(jiti@2.4.2)(stylus@0.57.0)(terser@5.43.1)(tsx@4.20.3)(yaml@2.8.0)):
+  vite-plugin-node@7.0.0(@swc/core@1.12.4)(vite@6.3.5(@types/node@22.15.32)(jiti@2.4.2)(stylus@0.57.0)(terser@5.43.1)(tsx@4.20.3)(yaml@2.8.0)):
     dependencies:
       '@rollup/pluginutils': 4.2.1
       chalk: 4.1.2
+      debounce: 2.2.0
       debug: 4.4.1(supports-color@5.5.0)
       vite: 6.3.5(@types/node@22.15.32)(jiti@2.4.2)(stylus@0.57.0)(terser@5.43.1)(tsx@4.20.3)(yaml@2.8.0)
     optionalDependencies:
