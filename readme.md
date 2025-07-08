@@ -44,6 +44,25 @@
   </p>
 </div>
 
+<!-- PLUGIN DOWNLOADS -->
+<div align="center">
+  <h3>🔌 Plugin Downloads</h3>
+  <p>
+    <a href="https://stable.dl.unraid.net/unraid-api/dynamix.unraid.net.plg">
+      <img src="https://img.shields.io/badge/Production-Download-green?style=for-the-badge&logo=download" alt="Production Plugin" />
+    </a>
+    &nbsp;&nbsp;
+    <a href="https://preview.dl.unraid.net/unraid-api/dynamix.unraid.net.plg">
+      <img src="https://img.shields.io/badge/Staging-Download-orange?style=for-the-badge&logo=download" alt="Staging Plugin" />
+    </a>
+  </p>
+  <p>
+    <strong>Production:</strong> <a href="https://stable.dl.unraid.net/unraid-api/dynamix.unraid.net.plg">https://stable.dl.unraid.net/unraid-api/dynamix.unraid.net.plg</a>
+    <br />
+    <strong>Staging:</strong> <a href="https://preview.dl.unraid.net/unraid-api/dynamix.unraid.net.plg">https://preview.dl.unraid.net/unraid-api/dynamix.unraid.net.plg</a>
+  </p>
+</div>
+
 <!-- TABLE OF CONTENTS -->
 <details>
   <summary>Table of Contents</summary>
