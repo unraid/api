@@ -144,15 +144,45 @@ exit 0
       <![CDATA[
       echo "Removing Plugin"
       
-      # Find any installed dynamix.unraid.net package
-      pkg_installed=$(ls -1 /var/log/packages/dynamix.unraid.net* 2>/dev/null | head -1)
-      if [ -n "$pkg_installed" ]; then
-        pkg_basename=$(basename "$pkg_installed")
-        echo "Removing package: $pkg_basename"
-        removepkg --terse "$pkg_basename"
+      # Check Unraid version
+      UNRAID_VERSION=$(cat /etc/unraid-version | grep "^version=" | cut -d'"' -f2)
+      
+      # Check if this is Unraid 7.2 or higher (including RCs and prereleases)
+      is_7_2_or_higher=false
+      if [[ "$UNRAID_VERSION" =~ ^7\.([2-9]|[1-9][0-9]+)\. ]] || [[ "$UNRAID_VERSION" =~ ^([8-9]|[1-9][0-9]+)\. ]]; then
+        is_7_2_or_higher=true
+      fi
+      
+      if [ "$is_7_2_or_higher" = true ]; then
+        echo "Unraid 7.2+ detected. Using safe removal method."
+        
+        # Send notification to user
+        /usr/local/emhttp/webGui/scripts/notify \
+          -e "Unraid Connect" \
+          -s "Plugin Removal" \
+          -d "Unraid Connect plugin has been marked for removal. Please reboot your server to complete the uninstallation." \
+          -i "warning"
+        
+        # Remove the plugin file so it won't be installed on reboot
+        PLUGIN_FILE="/boot/config/plugins/${MAINNAME}.plg"
+        if [ -f "$PLUGIN_FILE" ]; then
+          echo "Removing plugin file: $PLUGIN_FILE"
+          rm -f "$PLUGIN_FILE"
+        fi
+        
+        echo "Plugin marked for removal. Reboot required to complete uninstallation."
       else
-        echo "No dynamix.unraid.net package found. Trying with basic package name."
-        removepkg --terse "${MAINNAME}"
+        # Original removal method for older versions
+        # Find any installed dynamix.unraid.net package
+        pkg_installed=$(ls -1 /var/log/packages/dynamix.unraid.net* 2>/dev/null | head -1)
+        if [ -n "$pkg_installed" ]; then
+          pkg_basename=$(basename "$pkg_installed")
+          echo "Removing package: $pkg_basename"
+          removepkg --terse "$pkg_basename"
+        else
+          echo "No dynamix.unraid.net package found. Trying with basic package name."
+          removepkg --terse "${MAINNAME}"
+        fi
       fi
 
       # File restoration function
