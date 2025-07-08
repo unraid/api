@@ -87,7 +87,7 @@
     "vuetify-nuxt-module": "0.18.7"
   },
   "dependencies": {
-    "@apollo/client": "^3.12.3",
+    "@apollo/client": "3.13.8",
     "@floating-ui/dom": "1.7.1",
     "@floating-ui/utils": "0.2.9",
     "@floating-ui/vue": "1.1.6",
@@ -110,7 +110,7 @@
     "dayjs": "1.11.13",
     "focus-trap": "7.6.5",
     "graphql": "16.11.0",
-    "graphql-tag": "^2.12.6",
+    "graphql-tag": "2.12.6",
     "graphql-ws": "6.0.5",
     "hex-to-rgba": "2.0.1",
     "highlight.js": "11.11.1",
