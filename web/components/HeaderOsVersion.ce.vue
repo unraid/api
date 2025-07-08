@@ -78,7 +78,7 @@ const updateOsStatus = computed(() => {
 </script>
 
 <template>
-  <div class="flex flex-col gap-y-2 mt-2">
+  <div class="flex flex-col gap-y-2 mt-6">
     <a
       :href="unraidLogoHeaderLink.href"
       :title="unraidLogoHeaderLink.title"
