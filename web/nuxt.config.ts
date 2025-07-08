@@ -98,6 +98,9 @@ export default defineNuxtConfig({
   customElements: {
     analyzer: process.env.NODE_ENV !== 'test',
     entries: [
+      // @ts-expect-error The nuxt-custom-elements module types don't perfectly match our configuration object structure.
+      // The custom elements configuration requires specific properties and methods that may not align with the 
+      // module's TypeScript definitions, particularly around the viteExtend function and tag configuration format.
       {
         name: 'UnraidComponents',
         viteExtend(config: UserConfig) {
@@ -241,8 +244,7 @@ export default defineNuxtConfig({
           },
         ],
       },
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    ] as any,
+    ],
   },
 
   compatibilityDate: '2024-12-05',

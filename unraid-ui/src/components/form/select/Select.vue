@@ -89,7 +89,13 @@ function getItemValue(item: SelectItemType): SelectValueType | null {
   if (isStructuredItem(item)) {
     const value = props.valueKey in item ? item[props.valueKey] : item.value;
 
-    return typeof value === 'string' || typeof value === 'number' ? value : null;
+    if (typeof value === 'string' || typeof value === 'number') {
+      return value;
+    } else if (typeof value === 'bigint') {
+      return String(value);
+    } else {
+      return null;
+    }
   }
 
   if (isLabelItem(item) || isSeparatorItem(item)) return null;
