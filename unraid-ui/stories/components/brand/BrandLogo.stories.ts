@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/vue3-vite';
-import BrandLogo from '../../../src/components/brand/BrandLogo.vue';
+import { BrandLogo } from '../../../src/components/brand/index.js';
 
 const meta = {
   title: 'Components/Brand',

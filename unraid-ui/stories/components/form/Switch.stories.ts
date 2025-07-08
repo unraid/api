@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/vue3-vite';
-import { Label } from '../../../src/components/form/label';
-import { Switch as SwitchComponent } from '../../../src/components/form/switch';
+import { Label } from '../../../src/components/form/label/index.js';
+import { Switch as SwitchComponent } from '../../../src/components/form/switch/index.js';
 
 const meta = {
   title: 'Components/Form',

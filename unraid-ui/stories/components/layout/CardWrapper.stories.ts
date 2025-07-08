@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/vue3-vite';
-import { CardWrapper as CardWrapperComponent } from '../../../src/components/layout';
+import { CardWrapper as CardWrapperComponent } from '../../../src/components/layout/index.js';
 
 const meta = {
   title: 'Components/Layout/CardWrapper',

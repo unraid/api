@@ -1,11 +1,11 @@
 import type { Meta, StoryObj } from '@storybook/vue3-vite';
-import { Button } from '../../../src/components/common/button';
+import { Button } from '../../../src/components/common/button/index.js';
 import {
   Tooltip as TooltipComponent,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
-} from '../../../src/components/common/tooltip';
+} from '../../../src/components/common/tooltip/index.js';
 
 const meta = {
   title: 'Components/Common',

@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/vue3-vite';
-import { Lightswitch as LightswitchComponent } from '../../../src/components/form/lightswitch';
+import { Lightswitch as LightswitchComponent } from '../../../src/components/form/lightswitch/index.js';
 
 const meta = {
   title: 'Components/Form/Lightswitch',

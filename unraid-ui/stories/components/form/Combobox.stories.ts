@@ -8,7 +8,7 @@ import {
   ComboboxItem,
   ComboboxList,
   ComboboxTrigger,
-} from '../../../src/components/form/combobox';
+} from '../../../src/components/form/combobox/index.js';
 
 const meta = {
   title: 'Components/Form/Combobox',

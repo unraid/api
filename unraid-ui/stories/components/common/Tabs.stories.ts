@@ -4,7 +4,7 @@ import {
   TabsContent,
   TabsList,
   TabsTrigger,
-} from '../../../src/components/common/tabs';
+} from '../../../src/components/common/tabs/index.js';
 
 const meta = {
   title: 'Components/Common',

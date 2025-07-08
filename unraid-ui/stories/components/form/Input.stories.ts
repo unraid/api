@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/vue3-vite';
-import { Input as InputComponent } from '../../../src/components/form/input';
+import { Input as InputComponent } from '../../../src/components/form/input/index.js';
 
 const meta = {
   title: 'Components/Form/Input',

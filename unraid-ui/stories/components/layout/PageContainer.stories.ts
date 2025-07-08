@@ -1,5 +1,8 @@
 import type { Meta, StoryObj } from '@storybook/vue3-vite';
-import { CardWrapper, PageContainer as PageContainerComponent } from '../../../src/components/layout';
+import {
+  CardWrapper,
+  PageContainer as PageContainerComponent,
+} from '../../../src/components/layout/index.js';
 
 const meta = {
   title: 'Components/Layout/PageContainer',

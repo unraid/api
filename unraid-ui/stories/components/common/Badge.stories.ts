@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/vue3-vite';
-import BadgeComponent from '../../../src/components/common/badge/Badge.vue';
+import { Badge as BadgeComponent } from '../../../src/components/common/badge/index.js';
 
 const meta = {
   title: 'Components/Common',

@@ -1,6 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/vue3-vite';
-import ScrollArea from '../../../src/components/common/scroll-area/ScrollArea.vue';
-import ScrollBar from '../../../src/components/common/scroll-area/ScrollBar.vue';
+import { ScrollArea, ScrollBar } from '../../../src/components/common/scroll-area/index.js';
 
 const meta = {
   title: 'Components/Common/ScrollArea',
