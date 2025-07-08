@@ -1,5 +1,6 @@
 import DOMPurify from 'isomorphic-dompurify';
-import { Marked, type MarkedExtension } from 'marked';
+import { Marked } from 'marked';
+import type { MarkedExtension } from 'marked';
 
 const defaultMarkedExtension: MarkedExtension = {
   hooks: {
