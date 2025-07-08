@@ -61,6 +61,59 @@ export const useAccountStore = defineStore('account', () => {
       accountActionStatus.value = 'waiting';
     }
   };
+
+  // Initialize mutations during store setup to maintain Apollo context
+  const { mutate: signOutMutation, onDone: onSignOutDone, onError: onSignOutError } = useMutation(CONNECT_SIGN_OUT);
+  const { mutate: signInMutation, onDone: onSignInDone, onError: onSignInError } = useMutation(CONNECT_SIGN_IN);
+
+  // Handle sign out mutation results
+  onSignOutDone((res) => {
+    console.debug('[connectSignOutMutation]', res);
+    accountActionStatus.value = 'success';
+    setQueueConnectSignOut(false); // reset
+  });
+
+  onSignOutError((error) => {
+    logErrorMessages(error);
+    accountActionStatus.value = 'failed';
+    errorsStore.setError({
+      heading: 'Failed to update Connect account configuration',
+      message: error.message,
+      level: 'error',
+      ref: 'connectSignOutMutation',
+      type: 'account',
+    });
+  });
+
+  // Handle sign in mutation results
+  onSignInDone((res) => {
+    if (res.data?.connectSignIn) {
+      accountActionStatus.value = 'success';
+      setConnectSignInPayload(undefined); // reset
+      return;
+    }
+    accountActionStatus.value = 'failed';
+    errorsStore.setError({
+      heading: 'unraid-api failed to update Connect account configuration',
+      message: 'Sign In mutation unsuccessful',
+      level: 'error',
+      ref: 'connectSignInMutation',
+      type: 'account',
+    });
+  });
+
+  onSignInError((error) => {
+    logErrorMessages(error);
+    accountActionStatus.value = 'failed';
+    errorsStore.setError({
+      heading: 'unraid-api failed to update Connect account configuration',
+      message: error.message,
+      level: 'error',
+      ref: 'connectSignInMutation',
+      type: 'account',
+    });
+  });
+
   watchEffect(() => {
     if (unraidApiClient.value && connectSignInPayload.value) {
       // connectSignInMutation();
@@ -258,7 +311,7 @@ export const useAccountStore = defineStore('account', () => {
     );
   };
 
-  const connectSignInMutation = async () => {
+  const connectSignInMutation = () => {
     if (
       !connectSignInPayload.value ||
       (connectSignInPayload.value &&
@@ -271,83 +324,21 @@ export const useAccountStore = defineStore('account', () => {
     }
 
     accountActionStatus.value = 'updating';
-    const {
-      mutate: signInMutation,
-      onDone,
-      onError,
-    } = await useMutation(CONNECT_SIGN_IN, {
-      variables: {
-        input: {
-          apiKey: connectSignInPayload.value.apiKey,
-          userInfo: {
-            email: connectSignInPayload.value.email,
-            preferred_username: connectSignInPayload.value.preferred_username,
-          },
+    
+    return signInMutation({
+      input: {
+        apiKey: connectSignInPayload.value.apiKey,
+        userInfo: {
+          email: connectSignInPayload.value.email,
+          preferred_username: connectSignInPayload.value.preferred_username,
         },
       },
     });
-
-    signInMutation();
-
-    onDone((res) => {
-      if (res.data?.connectSignIn) {
-        accountActionStatus.value = 'success';
-        setConnectSignInPayload(undefined); // reset
-        return;
-      }
-      accountActionStatus.value = 'failed';
-      errorsStore.setError({
-        heading: 'unraid-api failed to update Connect account configuration',
-        message: 'Sign In mutation unsuccessful',
-        level: 'error',
-        ref: 'connectSignInMutation',
-        type: 'account',
-      });
-    });
-
-    onError((error) => {
-      logErrorMessages(error);
-      accountActionStatus.value = 'failed';
-      errorsStore.setError({
-        heading: 'unraid-api failed to update Connect account configuration',
-        message: error.message,
-        level: 'error',
-        ref: 'connectSignInMutation',
-        type: 'account',
-      });
-    });
   };
 
-  const connectSignOutMutation = async () => {
+  const connectSignOutMutation = () => {
     accountActionStatus.value = 'updating';
-    // @todo is this still needed here with the change to a mutation?
-    // if (!serverStore.registered && accountAction.value && !accountAction.value?.user) {
-    //   accountActionHide.value = true;
-    //   accountActionStatus.value = 'success';
-    //   return;
-    // }
-
-    const { mutate: signOutMutation, onDone, onError } = await useMutation(CONNECT_SIGN_OUT);
-
-    signOutMutation();
-
-    onDone((res) => {
-      console.debug('[connectSignOutMutation]', res);
-      accountActionStatus.value = 'success';
-      setQueueConnectSignOut(false); // reset
-    });
-
-    onError((error) => {
-      logErrorMessages(error);
-      accountActionStatus.value = 'failed';
-      errorsStore.setError({
-        heading: 'Failed to update Connect account configuration',
-        message: error.message,
-        level: 'error',
-        ref: 'connectSignOutMutation',
-        type: 'account',
-      });
-    });
+    return signOutMutation();
   };
 
   const setAccountAction = (action: ExternalSignIn | ExternalSignOut) => {
