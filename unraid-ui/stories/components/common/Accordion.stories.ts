@@ -1,4 +1,4 @@
-import type { Meta, StoryObj } from '@storybook/vue3';
+import type { Meta, StoryObj } from '@storybook/vue3-vite';
 import { Accordion } from '../../../src/components/common/accordion';
 import { AccordionContent, AccordionItem, AccordionTrigger } from '../../../src/components/ui/accordion';
 

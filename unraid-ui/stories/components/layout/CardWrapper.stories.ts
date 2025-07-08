@@ -1,8 +1,8 @@
-import type { Meta, StoryObj } from "@storybook/vue3";
-import { CardWrapper as CardWrapperComponent } from "../../../src/components/layout";
+import type { Meta, StoryObj } from '@storybook/vue3-vite';
+import { CardWrapper as CardWrapperComponent } from '../../../src/components/layout';
 
 const meta = {
-  title: "Components/Layout/CardWrapper",
+  title: 'Components/Layout/CardWrapper',
   component: CardWrapperComponent,
 } satisfies Meta<typeof CardWrapperComponent>;
 
@@ -59,4 +59,4 @@ export const Warning: Story = {
       </CardWrapperComponent>
     `,
   }),
-}; 
+};

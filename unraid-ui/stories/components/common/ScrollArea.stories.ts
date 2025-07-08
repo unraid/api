@@ -1,9 +1,9 @@
-import type { Meta, StoryObj } from "@storybook/vue3";
-import ScrollArea from "../../../src/components/common/scroll-area/ScrollArea.vue";
-import ScrollBar from "../../../src/components/common/scroll-area/ScrollBar.vue";
+import type { Meta, StoryObj } from '@storybook/vue3-vite';
+import ScrollArea from '../../../src/components/common/scroll-area/ScrollArea.vue';
+import ScrollBar from '../../../src/components/common/scroll-area/ScrollBar.vue';
 
 const meta = {
-  title: "Components/Common/ScrollArea",
+  title: 'Components/Common/ScrollArea',
   component: ScrollArea,
   subcomponents: { ScrollBar },
 } satisfies Meta<typeof ScrollArea>;
@@ -14,16 +14,18 @@ type Story = StoryObj<typeof meta>;
 
 export const Vertical: Story = {
   args: {
-    class: "rounded-md border",
+    class: 'rounded-md border',
     style: {
-      height: "200px",
-      width: "350px",
+      height: '200px',
+      width: '350px',
     },
   },
   render: (args) => ({
     components: { ScrollArea, ScrollBar },
     setup() {
-      const items = Array(30).fill(0).map((_, i) => `Content ${i + 1}`);
+      const items = Array(30)
+        .fill(0)
+        .map((_, i) => `Content ${i + 1}`);
       return { args, items };
     },
     template: `
@@ -43,10 +45,10 @@ export const Vertical: Story = {
 
 export const Horizontal: Story = {
   args: {
-    class: "rounded-md border",
+    class: 'rounded-md border',
     style: {
-      height: "80px",
-      width: "350px",
+      height: '80px',
+      width: '350px',
     },
   },
   render: (args) => ({
@@ -60,7 +62,7 @@ export const Horizontal: Story = {
           ${Array(50)
             .fill(0)
             .map((_, i) => `<div class="flex-shrink-0 mr-2">Content ${i + 1}</div>`)
-            .join("")}
+            .join('')}
         </div>
         <ScrollBar orientation="horizontal" />
       </ScrollArea>

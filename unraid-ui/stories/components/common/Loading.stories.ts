@@ -1,4 +1,4 @@
-import type { Meta, StoryObj } from '@storybook/vue3';
+import type { Meta, StoryObj } from '@storybook/vue3-vite';
 import Bar from '../../../src/components/common/loading/Bar.vue';
 import Error from '../../../src/components/common/loading/Error.vue';
 import Spinner from '../../../src/components/common/loading/Spinner.vue';

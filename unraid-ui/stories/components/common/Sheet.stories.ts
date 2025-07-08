@@ -1,4 +1,4 @@
-import type { Meta, StoryObj } from '@storybook/vue3';
+import type { Meta, StoryObj } from '@storybook/vue3-vite';
 import Button from '../../../src/components/common/button/Button.vue';
 import SheetComponent from '../../../src/components/common/sheet/Sheet.vue';
 import SheetContent from '../../../src/components/common/sheet/SheetContent.vue';

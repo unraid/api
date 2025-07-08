@@ -1,8 +1,8 @@
-import type { Meta, StoryObj } from "@storybook/vue3";
-import BrandButton from "../../../src/components/brand/BrandButton.vue";
+import type { Meta, StoryObj } from '@storybook/vue3-vite';
+import BrandButton from '../../../src/components/brand/BrandButton.vue';
 
 const meta = {
-  title: "Components/Brand",
+  title: 'Components/Brand',
   component: BrandButton,
 } satisfies Meta<typeof BrandButton>;
 
@@ -12,10 +12,10 @@ type Story = StoryObj<typeof meta>;
 
 export const Button: Story = {
   args: {
-    variant: "fill",
-    size: "14px",
-    padding: "default",
-    text: "Click me",
+    variant: 'fill',
+    size: '14px',
+    padding: 'default',
+    text: 'Click me',
   },
   render: (args) => ({
     components: { BrandButton },
@@ -32,4 +32,4 @@ export const Button: Story = {
       />
     `,
   }),
-}; 
+};

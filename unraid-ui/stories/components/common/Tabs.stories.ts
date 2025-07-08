@@ -1,8 +1,13 @@
-import type { Meta, StoryObj } from "@storybook/vue3";
-import { Tabs as TabsComponent, TabsList, TabsTrigger, TabsContent } from "../../../src/components/common/tabs";
+import type { Meta, StoryObj } from '@storybook/vue3-vite';
+import {
+  Tabs as TabsComponent,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from '../../../src/components/common/tabs';
 
 const meta = {
-  title: "Components/Common",
+  title: 'Components/Common',
   component: TabsComponent,
 } satisfies Meta<typeof TabsComponent>;
 
@@ -12,7 +17,7 @@ type Story = StoryObj<typeof meta>;
 
 export const Tabs: Story = {
   args: {
-    defaultValue: "tab1",
+    defaultValue: 'tab1',
   },
   render: (args) => ({
     components: { TabsComponent, TabsList, TabsTrigger, TabsContent },
