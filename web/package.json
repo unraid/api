@@ -116,7 +116,7 @@
     "highlight.js": "11.11.1",
     "isomorphic-dompurify": "2.25.0",
     "lucide-vue-next": "0.519.0",
-    "marked": "15.0.12",
+    "marked": "16.0.0",
     "marked-base-url": "1.1.6",
     "pinia": "3.0.3",
     "semver": "7.7.2",

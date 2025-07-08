@@ -833,8 +833,8 @@ importers:
         specifier: 0.519.0
         version: 0.519.0(vue@3.5.17(typescript@5.8.3))
       marked:
-        specifier: 15.0.12
-        version: 15.0.12
+        specifier: 16.0.0
+        version: 16.0.0
       reka-ui:
         specifier: 2.3.1
         version: 2.3.1(typescript@5.8.3)(vue@3.5.17(typescript@5.8.3))
@@ -1081,11 +1081,11 @@ importers:
         specifier: 0.519.0
         version: 0.519.0(vue@3.5.17(typescript@5.8.3))
       marked:
-        specifier: 15.0.12
-        version: 15.0.12
+        specifier: 16.0.0
+        version: 16.0.0
       marked-base-url:
         specifier: 1.1.6
-        version: 1.1.6(marked@15.0.12)
+        version: 1.1.6(marked@16.0.0)
       pinia:
         specifier: 3.0.3
         version: 3.0.3(typescript@5.8.3)(vue@3.5.17(typescript@5.8.3))
@@ -9122,9 +9122,9 @@ packages:
     peerDependencies:
       marked: '>= 4 < 16'
 
-  marked@15.0.12:
-    resolution: {integrity: sha512-8dD6FusOQSrpv9Z1rdNMdlSgQOIP880DHqnohobOmYLElGEqAL/JvxvuxZO16r4HtjTlfPRDC1hbvxC9dPN2nA==}
-    engines: {node: '>= 18'}
+  marked@16.0.0:
+    resolution: {integrity: sha512-MUKMXDjsD/eptB7GPzxo4xcnLS6oo7/RHimUMHEDRhUooPwmN9BEpMl7AEOJv3bmso169wHI2wUF9VQgL7zfmA==}
+    engines: {node: '>= 20'}
     hasBin: true
 
   maska@2.1.11:
@@ -22126,11 +22126,11 @@ snapshots:
 
   map-or-similar@1.5.0: {}
 
-  marked-base-url@1.1.6(marked@15.0.12):
+  marked-base-url@1.1.6(marked@16.0.0):
     dependencies:
-      marked: 15.0.12
+      marked: 16.0.0
 
-  marked@15.0.12: {}
+  marked@16.0.0: {}
 
   maska@2.1.11: {}
 
