@@ -100,7 +100,7 @@ onMounted(() => {
 <template>
   <div
     id="UserProfile"
-    class="text-foreground relative z-20 flex flex-col h-full gap-y-1"
+    class="text-foreground relative z-20 flex flex-col h-full gap-y-1 mt-2 mr-2"
   >
     <div
       v-if="bannerGradient"
