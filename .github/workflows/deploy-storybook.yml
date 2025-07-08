@@ -1,5 +1,7 @@
 name: Deploy Storybook to Cloudflare Workers
-
+permissions:
+  contents: read
+  pull-requests: write
 on:
   push:
     branches:
