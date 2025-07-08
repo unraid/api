@@ -119,12 +119,12 @@ describe('HeaderOsVersion', () => {
   });
 
   it('renders OS version link with correct URL and no update status initially', () => {
-    const versionBadgeLink = wrapper.find('a[title*="release notes"]');
+    const versionLink = wrapper.find('a[title*="release notes"]');
 
-    expect(versionBadgeLink.exists()).toBe(true);
-    expect(versionBadgeLink.attributes('href')).toBe(`${testMockReleaseNotesUrl}6.12.0`);
+    expect(versionLink.exists()).toBe(true);
+    expect(versionLink.attributes('href')).toBe(`${testMockReleaseNotesUrl}6.12.0`);
 
-    expect(versionBadgeLink.text()).toContain('6.12.0');
+    expect(versionLink.text()).toContain('6.12.0');
     expect(findUpdateStatusComponent()).toBeNull();
   });
 
