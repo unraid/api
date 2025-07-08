@@ -155,47 +155,45 @@ function handleUpdateModelValue(value: AcceptableValue) {
 </script>
 
 <template>
-  <div style="display: contents">
-    <SelectRoot
-      :model-value="props.modelValue"
-      :multiple="props.multiple"
-      :disabled="props.disabled"
-      :required="props.required"
-      :name="props.name"
-      @update:model-value="handleUpdateModelValue"
-    >
-      <SelectTrigger :class="props.class">
-        <slot>
-          <SelectValue :placeholder="props.placeholder">
-            <template v-if="isMultipleSelection">
-              {{ multipleValueDisplay }}
-            </template>
-          </SelectValue>
-        </slot>
-      </SelectTrigger>
+  <SelectRoot
+    :model-value="props.modelValue"
+    :multiple="props.multiple"
+    :disabled="props.disabled"
+    :required="props.required"
+    :name="props.name"
+    @update:model-value="handleUpdateModelValue"
+  >
+    <SelectTrigger :class="props.class">
+      <slot>
+        <SelectValue :placeholder="props.placeholder">
+          <template v-if="isMultipleSelection">
+            {{ multipleValueDisplay }}
+          </template>
+        </SelectValue>
+      </slot>
+    </SelectTrigger>
 
-      <SelectContent>
-        <SelectGroup v-for="{ groupIndex, items } in groupedOrderedItems" :key="groupIndex">
-          <div v-for="{ item, index, type } in items" :key="index">
-            <SelectLabel v-if="type === 'label'">
+    <SelectContent>
+      <SelectGroup v-for="{ groupIndex, items } in groupedOrderedItems" :key="groupIndex">
+        <template v-for="{ item, index, type } in items" :key="index">
+          <SelectLabel v-if="type === 'label'">
+            {{ getItemLabel(item) }}
+          </SelectLabel>
+
+          <SelectSeparator v-if="type === 'separator'" />
+
+          <SelectItem
+            v-if="type === 'item'"
+            :value="getItemValue(item)!"
+            :disabled="isStructuredItem(item) ? item.disabled : false"
+            :class="isStructuredItem(item) ? item.class : undefined"
+          >
+            <slot name="item" :item="item" :index="index">
               {{ getItemLabel(item) }}
-            </SelectLabel>
-
-            <SelectSeparator v-if="type === 'separator'" />
-
-            <SelectItem
-              v-if="type === 'item'"
-              :value="getItemValue(item)!"
-              :disabled="isStructuredItem(item) ? item.disabled : false"
-              :class="isStructuredItem(item) ? item.class : undefined"
-            >
-              <slot name="item" :item="item" :index="index">
-                {{ getItemLabel(item) }}
-              </slot>
-            </SelectItem>
-          </div>
-        </SelectGroup>
-      </SelectContent>
-    </SelectRoot>
-  </div>
+            </slot>
+          </SelectItem>
+        </template>
+      </SelectGroup>
+    </SelectContent>
+  </SelectRoot>
 </template>
