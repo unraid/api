@@ -1,7 +1,10 @@
 <script setup lang="ts">
+import { onBeforeMount } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useUpdateOsStore } from '~/store/updateOs';
 import { storeToRefs } from 'pinia';
+import UpdateOsChangelogModal from '~/components/UpdateOs/ChangelogModal.vue';
+import ColorSwitcherCe from '~/components/ColorSwitcher.ce.vue';
 
 const updateOsStore = useUpdateOsStore();
 const { changelogModalVisible } = storeToRefs(updateOsStore);

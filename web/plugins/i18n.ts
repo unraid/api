@@ -1,4 +1,5 @@
 import { createI18n } from 'vue-i18n';
+import { defineNuxtPlugin } from '#imports';
 
 import en_US from '@/locales/en_US.json'; 
 import { createHtmlEntityDecoder } from '~/helpers/i18n-utils';

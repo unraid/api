@@ -1,9 +1,9 @@
 import { ref } from 'vue';
-import { createPinia, defineStore, setActivePinia } from 'pinia';
+import { defineStore } from 'pinia';
 
 import type { ApiKeyFragment, ApiKeyWithKeyFragment } from '~/composables/gql/graphql';
 
-setActivePinia(createPinia());
+import '~/store/globalPinia';
 
 export const useApiKeyStore = defineStore('apiKey', () => {
   const modalVisible = ref(false);

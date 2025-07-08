@@ -1,5 +1,8 @@
 import path from 'path';
+
 import removeConsole from 'vite-plugin-remove-console';
+
+import type { UserConfig } from 'vite';
 
 /**
  * Used to avoid redeclaring variables in the webgui codebase.
@@ -53,6 +56,11 @@ export default defineNuxtConfig({
     '@nuxt/eslint',
   ],
 
+  // Disable auto-imports
+  imports: {
+    autoImport: false,
+  },
+
   // Properly handle ES modules in testing and build environments
   build: {
     transpile: [/node_modules\/.*\.mjs$/],
@@ -60,13 +68,8 @@ export default defineNuxtConfig({
 
   ignore: ['/webGui/images'],
 
-  components: [
-    { path: '~/components/Brand', prefix: 'Brand' },
-    { path: '~/components/ConnectSettings', prefix: 'ConnectSettings' },
-    { path: '~/components/UserProfile', prefix: 'Upc' },
-    { path: '~/components/UpdateOs', prefix: 'UpdateOs' },
-    '~/components',
-  ],
+  // Disable component auto-imports
+  components: false,
 
   vite: {
     plugins: [
@@ -88,77 +91,156 @@ export default defineNuxtConfig({
           reserved: terserReservations(charsToReserve),
           toplevel: true,
         },
+        // keep_fnames: true,
       },
     },
   },
   customElements: {
+    analyzer: process.env.NODE_ENV !== 'test',
     entries: [
+      // @ts-expect-error The nuxt-custom-elements module types don't perfectly match our configuration object structure.
+      // The custom elements configuration requires specific properties and methods that may not align with the 
+      // module's TypeScript definitions, particularly around the viteExtend function and tag configuration format.
       {
         name: 'UnraidComponents',
+        viteExtend(config: UserConfig) {
+          // Configure terser options for custom elements build
+          if (!config.build) config.build = {};
+          config.build.minify = 'terser';
+          config.build.terserOptions = {
+            mangle: {
+              reserved: terserReservations(charsToReserve),
+              toplevel: true,
+            },
+          };
+          
+          // Add a custom plugin to wrap the bundle and preserve jQuery
+          if (!config.plugins) config.plugins = [];
+          config.plugins.push({
+            name: 'jquery-isolation',
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            generateBundle(options: any, bundle: any) {
+              // Find the main JS file
+              const jsFile = Object.keys(bundle).find(key => key.endsWith('.js'));
+              if (jsFile && bundle[jsFile] && 'code' in bundle[jsFile]) {
+                const originalCode = bundle[jsFile].code;
+                // Wrap the entire bundle to preserve and restore jQuery
+                bundle[jsFile].code = `
+(function() {
+  // Preserve the original jQuery $ if it exists
+  var originalJQuery = (typeof window !== 'undefined' && typeof window.$ !== 'undefined') ? window.$ : undefined;
+  
+  // Temporarily clear $ to avoid conflicts
+  if (typeof window !== 'undefined' && typeof window.$ !== 'undefined') {
+    window.$ = undefined;
+  }
+  
+  // Execute the web component code
+  ${originalCode}
+  
+  // Restore jQuery $ if it was originally defined
+  if (originalJQuery !== undefined && typeof window !== 'undefined') {
+    window.$ = originalJQuery;
+  }
+})();
+`;
+              }
+            }
+          });
+          
+          return config;
+        },
         tags: [
+
           {
-            name: 'UnraidI18nHost',
-            path: '@/components/I18nHost.ce',
-          },
-          {
+            async: false,
             name: 'UnraidAuth',
             path: '@/components/Auth.ce',
+            appContext: '@/components/Wrapper/web-component-plugins',
           },
           {
+            async: false,
             name: 'UnraidConnectSettings',
             path: '@/components/ConnectSettings/ConnectSettings.ce',
+            appContext: '@/components/Wrapper/web-component-plugins',
           },
           {
+            async: false,
             name: 'UnraidDownloadApiLogs',
             path: '@/components/DownloadApiLogs.ce',
+            appContext: '@/components/Wrapper/web-component-plugins',
           },
           {
+            async: false,
             name: 'UnraidHeaderOsVersion',
             path: '@/components/HeaderOsVersion.ce',
+            appContext: '@/components/Wrapper/web-component-plugins',
           },
           {
+            async: false,
             name: 'UnraidModals',
             path: '@/components/Modals.ce',
+            appContext: '@/components/Wrapper/web-component-plugins',
           },
           {
+            async: false,
             name: 'UnraidUserProfile',
             path: '@/components/UserProfile.ce',
+            appContext: '@/components/Wrapper/web-component-plugins',
           },
           {
+            async: false,
             name: 'UnraidUpdateOs',
             path: '@/components/UpdateOs.ce',
+            appContext: '@/components/Wrapper/web-component-plugins',
           },
           {
+            async: false,
             name: 'UnraidDowngradeOs',
             path: '@/components/DowngradeOs.ce',
+            appContext: '@/components/Wrapper/web-component-plugins',
           },
           {
+            async: false,
             name: 'UnraidRegistration',
             path: '@/components/Registration.ce',
+            appContext: '@/components/Wrapper/web-component-plugins',
           },
           {
+            async: false,
             name: 'UnraidWanIpCheck',
             path: '@/components/WanIpCheck.ce',
+            appContext: '@/components/Wrapper/web-component-plugins',
           },
           {
+            async: false,
             name: 'UnraidWelcomeModal',
             path: '@/components/Activation/WelcomeModal.ce',
+            appContext: '@/components/Wrapper/web-component-plugins',
           },
           {
+            async: false,
             name: 'UnraidSsoButton',
             path: '@/components/SsoButton.ce',
+            appContext: '@/components/Wrapper/web-component-plugins',
           },
           {
+            async: false,
             name: 'UnraidLogViewer',
             path: '@/components/Logs/LogViewer.ce',
+            appContext: '@/components/Wrapper/web-component-plugins',
           },
           {
+            async: false,
             name: 'UnraidThemeSwitcher',
             path: '@/components/ThemeSwitcher.ce',
+            appContext: '@/components/Wrapper/web-component-plugins',
           },
           {
+            async: false,
             name: 'UnraidApiKeyManager',
             path: '@/components/ApiKeyPage.ce',
+            appContext: '@/components/Wrapper/web-component-plugins',
           },
         ],
       },

@@ -3,6 +3,9 @@
 
 // const { t } = useI18n();
 
+import { ref, computed, watch } from 'vue';
+import { storeToRefs } from 'pinia';
+import { watchDebounced } from '@vueuse/core';
 import { useMutation, useQuery } from '@vue/apollo-composable';
 
 import { BrandButton, jsonFormsRenderers, Label } from '@unraid/ui';
@@ -104,12 +107,12 @@ const onChange = ({ data }: { data: Record<string, unknown> }) => {
   >
     <template v-if="connectPluginInstalled">
       <Label>Account Status:</Label>
-      <div v-html="'<unraid-i18n-host><unraid-auth></unraid-auth></unraid-i18n-host>'"></div>
+      <div v-html="'<unraid-auth></unraid-auth>'"></div>
     </template>
     <Label>Download Unraid API Logs:</Label>
     <div
       v-html="
-        '<unraid-i18n-host><unraid-download-api-logs></unraid-download-api-logs></unraid-i18n-host>'
+        '<unraid-download-api-logs></unraid-download-api-logs>'
       "
     ></div>
   </div>

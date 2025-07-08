@@ -1,4 +1,7 @@
 <script lang="ts" setup>
+import { ref, onMounted, watch } from 'vue';
+import { storeToRefs } from 'pinia';
+import { useHead } from '#imports';
 import { ExclamationTriangleIcon } from '@heroicons/vue/24/solid';
 import { BrandButton, Toaster } from '@unraid/ui';
 import { useDummyServerStore } from '~/_data/serverState';
@@ -11,14 +14,18 @@ import SsoButtonCe from '~/components/SsoButton.ce.vue';
 import { useThemeStore } from '~/store/theme';
 import ModalsCe from '~/components/Modals.ce.vue';
 import ConnectSettingsCe from '~/components/ConnectSettings/ConnectSettings.ce.vue';
+import DummyServerSwitcher from '~/components/DummyServerSwitcher.vue';
+import ColorSwitcherCe from '~/components/ColorSwitcher.ce.vue';
+import HeaderOsVersionCe from '~/components/HeaderOsVersion.ce.vue';
+import UserProfileCe from '~/components/UserProfile.ce.vue';
+import UpdateOsCe from '~/components/UpdateOs.ce.vue';
+import DowngradeOsCe from '~/components/DowngradeOs.ce.vue';
+import RegistrationCe from '~/components/Registration.ce.vue';
+import WelcomeModalCe from '~/components/Activation/WelcomeModal.ce.vue';
 
 const serverStore = useDummyServerStore();
 const { serverState } = storeToRefs(serverStore);
-const { registerEntry } = useCustomElements();
 const { theme } = storeToRefs(useThemeStore());
-onBeforeMount(() => {
-  registerEntry('UnraidComponents');
-});
 
 useHead({
   meta: [{ name: 'viewport', content: 'width=1300' }],

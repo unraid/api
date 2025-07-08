@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { computed, ref } from 'vue';
 import { useMutation, useQuery, useSubscription } from '@vue/apollo-composable';
 
 import {
@@ -29,11 +30,12 @@ import {
   notificationAddedSubscription,
   notificationOverviewSubscription,
 } from './graphql/notification.subscription';
+import NotificationsIndicator from './Indicator.vue';
+import NotificationsList from './List.vue';
 
 const { mutate: archiveAll, loading: loadingArchiveAll } = useMutation(archiveAllNotifications);
 const { mutate: deleteArchives, loading: loadingDeleteAll } = useMutation(deleteArchivedNotifications);
 const { mutate: recalculateOverview } = useMutation(resetOverview);
-const { determineTeleportTarget } = useTeleport();
 const importance = ref<Importance | undefined>(undefined);
 
 const filterItems = [
@@ -117,13 +119,12 @@ const readArchivedCount = computed(() => {
 });
 
 const prepareToViewNotifications = () => {
-  determineTeleportTarget();
   void recalculateOverview();
 };
 </script>
 
 <template>
-  <Sheet :modal="false">
+  <Sheet>
     <SheetTrigger @click="prepareToViewNotifications">
       <span class="sr-only">Notifications</span>
       <NotificationsIndicator :overview="overview" :seen="haveSeenNotifications" />
@@ -187,7 +188,7 @@ const prepareToViewNotifications = () => {
                   importance = strVal === 'all' || !strVal ? undefined : (strVal as Importance);
                 }
               "
-            />
+            ></Select>
           </div>
 
           <TabsContent value="unread" class="flex-col flex-1 min-h-0">

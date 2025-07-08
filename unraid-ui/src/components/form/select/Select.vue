@@ -13,7 +13,7 @@ import { computed } from 'vue';
 
 type SelectValueType = string | number;
 
-type AcceptableValue = SelectValueType | SelectValueType[] | Record<string, unknown> | null;
+type AcceptableValue = SelectValueType | SelectValueType[] | Record<string, unknown> | bigint | null;
 
 interface SelectItemInterface {
   label: string;
@@ -89,7 +89,13 @@ function getItemValue(item: SelectItemType): SelectValueType | null {
   if (isStructuredItem(item)) {
     const value = props.valueKey in item ? item[props.valueKey] : item.value;
 
-    return typeof value === 'string' || typeof value === 'number' ? value : null;
+    if (typeof value === 'string' || typeof value === 'number') {
+      return value;
+    } else if (typeof value === 'bigint') {
+      return String(value);
+    } else {
+      return null;
+    }
   }
 
   if (isLabelItem(item) || isSeparatorItem(item)) return null;
@@ -174,8 +180,6 @@ function handleUpdateModelValue(value: AcceptableValue) {
     </SelectTrigger>
 
     <SelectContent>
-      <slot name="content-top" />
-
       <SelectGroup v-for="{ groupIndex, items } in groupedOrderedItems" :key="groupIndex">
         <template v-for="{ item, index, type } in items" :key="index">
           <SelectLabel v-if="type === 'label'">
@@ -196,7 +200,6 @@ function handleUpdateModelValue(value: AcceptableValue) {
           </SelectItem>
         </template>
       </SelectGroup>
-      <slot name="content-bottom" />
     </SelectContent>
   </SelectRoot>
 </template>

@@ -1,5 +1,5 @@
 import { computed, ref, watch } from 'vue';
-import { createPinia, defineStore, setActivePinia } from 'pinia';
+import { defineStore } from 'pinia';
 import { useLazyQuery } from '@vue/apollo-composable';
 
 import { defaultColors } from '~/themes/default';
@@ -10,10 +10,11 @@ import type { Theme, ThemeVariables } from '~/themes/types';
 import { graphql } from '~/composables/gql/gql';
 
 /**
+ * Uses the shared global Pinia instance from ~/store/globalPinia.ts
  * @see https://stackoverflow.com/questions/73476371/using-pinia-with-vue-js-web-components
  * @see https://github.com/vuejs/pinia/discussions/1085
  */
-setActivePinia(createPinia());
+import '~/store/globalPinia';
 
 // used to swap the UPC text color when using the azure or gray theme
 export const DARK_THEMES = ['black', 'gray'] as const;

@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { computed } from 'vue';
 import { ArrowTopRightOnSquareIcon } from '@heroicons/vue/24/solid';
 import type { ComposerTranslation } from 'vue-i18n';
 

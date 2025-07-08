@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { computed } from 'vue';
 import { storeToRefs } from 'pinia';
 
 import { ArrowPathIcon, ArrowTopRightOnSquareIcon } from '@heroicons/vue/24/solid';
@@ -10,6 +11,7 @@ import type { ComposerTranslation } from 'vue-i18n';
 import useDateTimeHelper from '~/composables/dateTime';
 import { useReplaceRenewStore } from '~/store/replaceRenew';
 import { useServerStore } from '~/store/server';
+import RegistrationUpdateExpiration from './UpdateExpiration.vue';
 
 export interface Props {
   t: ComposerTranslation;

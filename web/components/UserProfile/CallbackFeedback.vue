@@ -1,6 +1,7 @@
 <script lang="ts" setup>
 // @todo ensure key installs and updateOs can be handled at the same time
 // @todo with multiple actions of key install and update after successful key install, rather than showing default success message, show a message to have them confirm the update
+import { computed, ref } from 'vue';
 import { storeToRefs } from 'pinia';
 import { useClipboard } from '@vueuse/core';
 
@@ -22,6 +23,10 @@ import { useCallbackActionsStore } from '~/store/callbackActions';
 import { useInstallKeyStore } from '~/store/installKey';
 import { useServerStore } from '~/store/server';
 import { useUpdateOsActionsStore } from '~/store/updateOsActions';
+import Modal from '~/components/Modal.vue';
+import UpcCallbackFeedbackStatus from './CallbackFeedbackStatus.vue';
+import UpcUptimeExpire from './UptimeExpire.vue';
+import RegistrationUpdateExpiration from '~/components/Registration/UpdateExpiration.vue';
 
 export interface Props {
   open?: boolean;

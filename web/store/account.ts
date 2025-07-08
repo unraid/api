@@ -1,5 +1,5 @@
 import { computed, ref, watchEffect } from 'vue';
-import { createPinia, defineStore, setActivePinia } from 'pinia';
+import { defineStore } from 'pinia';
 import { useMutation } from '@vue/apollo-composable';
 import { logErrorMessages } from '@vue/apollo-util';
 
@@ -15,11 +15,11 @@ import { useUnraidApiStore } from '~/store/unraidApi';
 import { CONNECT_SIGN_IN, CONNECT_SIGN_OUT } from './account.fragment';
 
 /**
+ * Uses the shared global Pinia instance from ~/store/globalPinia.ts
  * @see https://stackoverflow.com/questions/73476371/using-pinia-with-vue-js-web-components
  * @see https://github.com/vuejs/pinia/discussions/1085
  */
-
-setActivePinia(createPinia());
+import '~/store/globalPinia';
 
 export interface ConnectSignInMutationPayload {
   apiKey: string;

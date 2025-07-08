@@ -1,6 +1,6 @@
 import { computed, ref, watch } from 'vue';
 // import { logErrorMessages } from '@vue/apollo-util';
-import { createPinia, defineStore, setActivePinia } from 'pinia';
+import { defineStore } from 'pinia';
 
 import { ArrowPathIcon } from '@heroicons/vue/24/solid';
 import { client } from '~/helpers/create-apollo-client';
@@ -13,10 +13,11 @@ import { useErrorsStore } from '~/store/errors';
 import { useServerStore } from '~/store/server';
 
 /**
+ * Uses the shared global Pinia instance from ~/store/globalPinia.ts
  * @see https://stackoverflow.com/questions/73476371/using-pinia-with-vue-js-web-components
  * @see https://github.com/vuejs/pinia/discussions/1085
  */
-setActivePinia(createPinia());
+import '~/store/globalPinia';
 
 export const useUnraidApiStore = defineStore('unraidApi', () => {
   const errorsStore = useErrorsStore();

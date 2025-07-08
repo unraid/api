@@ -706,6 +706,7 @@ $.ajaxPrefilter(function(s, orig, xhr){
 <?include "$docroot/plugins/dynamix.my.servers/include/myservers1.php"?>
 </head>
 <body>
+<unraid-modals></unraid-modals>
  <div id="displaybox">
   <div class="upgrade_notice" style="display:none"></div>
   <div id="header" class="<?=$display['banner']?>">

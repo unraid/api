@@ -1,5 +1,5 @@
 declare global {
-  // eslint-disable-next-line no-var
+   
   var csrf_token: string;
 }
 

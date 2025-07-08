@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { computed } from 'vue';
 import { storeToRefs } from 'pinia';
 
 import {
@@ -11,6 +12,7 @@ import {
 
 import type { ComposerTranslation } from 'vue-i18n';
 
+import BrandAvatar from '~/components/Brand/Avatar.vue';
 import { useErrorsStore } from '~/store/errors';
 import { useServerStore } from '~/store/server';
 import { useUpdateOsStore } from '~/store/updateOs';
@@ -18,7 +20,7 @@ import { useUpdateOsStore } from '~/store/updateOs';
 const props = defineProps<{ t: ComposerTranslation }>();
 
 const { errors } = storeToRefs(useErrorsStore());
-const { rebootType, state, stateData } = storeToRefs(useServerStore());
+const { connectPluginInstalled, rebootType, state, stateData } = storeToRefs(useServerStore());
 const { available: osUpdateAvailable } = storeToRefs(useUpdateOsStore());
 
 const showErrorIcon = computed(() => errors.value.length || stateData.value.error);
@@ -77,6 +79,6 @@ const title = computed((): string => {
 
     <Bars3Icon class="w-20px" />
 
-    <BrandAvatar />
+    <BrandAvatar v-if="connectPluginInstalled" />
   </button>
 </template>

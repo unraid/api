@@ -1,9 +1,9 @@
 import { computed, ref } from 'vue';
-import { createPinia, defineStore, setActivePinia } from 'pinia';
+import { defineStore } from 'pinia';
 
 import type { NotificationFragmentFragment } from '~/composables/gql/graphql';
 
-setActivePinia(createPinia());
+import '~/store/globalPinia';
 
 export const useNotificationsStore = defineStore('notifications', () => {
   const notifications = ref<NotificationFragmentFragment[]>([]);

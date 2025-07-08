@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { computed, h } from 'vue';
 import { storeToRefs } from 'pinia';
 
 import { CheckCircleIcon, ExclamationTriangleIcon, UserCircleIcon } from '@heroicons/vue/24/solid';
@@ -8,6 +9,7 @@ import type { ComposerTranslation } from 'vue-i18n';
 
 import { useServerStore } from '~/store/server';
 import { useUnraidApiStore } from '~/store/unraidApi';
+import UpcDropdownItem from './DropdownItem.vue';
 
 const props = defineProps<{ t: ComposerTranslation }>();
 
