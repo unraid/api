@@ -1,8 +1,6 @@
 import path from 'path';
 
-import removeConsole from 'vite-plugin-remove-console';
-
-import type { UserConfig } from 'vite';
+import type { UserConfig, PluginOption } from 'vite';
 
 /**
  * Used to avoid redeclaring variables in the webgui codebase.
@@ -29,6 +27,96 @@ function terserReservations(inputStr: string) {
 const charsToReserve = '_$abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
 
 const assetsDir = path.join(__dirname, '../api/dev/webGui/');
+
+const dropConsole = process.env.VITE_ALLOW_CONSOLE_LOGS !== 'true';
+
+console.log(dropConsole ? 'WARN: Console logs are disabled' : 'INFO: Console logs are enabled');
+
+/**
+ * Shared terser options for consistent minification
+ */
+const sharedTerserOptions = {
+  mangle: {
+    reserved: terserReservations(charsToReserve),
+    toplevel: true,
+  },
+  compress: {
+    drop_console: dropConsole,
+  },
+};
+
+/**
+ * Shared plugins configuration
+ */
+const getSharedPlugins = (includeJQueryIsolation = false) => {
+  const plugins: PluginOption[] = [];
+  
+  // Add jQuery isolation plugin for custom elements
+  if (includeJQueryIsolation) {
+    plugins.push({
+      name: 'jquery-isolation',
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      generateBundle(options: any, bundle: any) {
+        // Find the main JS file
+        const jsFile = Object.keys(bundle).find(key => key.endsWith('.js'));
+        if (jsFile && bundle[jsFile] && 'code' in bundle[jsFile]) {
+          const originalCode = bundle[jsFile].code;
+          // Wrap the entire bundle to preserve and restore jQuery
+          bundle[jsFile].code = `
+(function() {
+  // Preserve the original jQuery $ if it exists
+  var originalJQuery = (typeof window !== 'undefined' && typeof window.$ !== 'undefined') ? window.$ : undefined;
+  
+  // Temporarily clear $ to avoid conflicts
+  if (typeof window !== 'undefined' && typeof window.$ !== 'undefined') {
+    window.$ = undefined;
+  }
+  
+  // Execute the web component code
+  ${originalCode}
+  
+  // Restore jQuery $ if it was originally defined
+  if (originalJQuery !== undefined && typeof window !== 'undefined') {
+    window.$ = originalJQuery;
+  }
+})();
+`;
+        }
+      }
+    });
+  }
+
+  return plugins.filter(Boolean);
+};
+
+/**
+ * Shared define configuration
+ */
+const sharedDefine = {
+  'globalThis.__DEV__': process.env.NODE_ENV === 'development',
+  __VUE_PROD_DEVTOOLS__: false,
+};
+
+/**
+ * Apply shared Vite configuration to a config object
+ */
+const applySharedViteConfig = (config: UserConfig, includeJQueryIsolation = false) => {
+  if (!config.plugins) config.plugins = [];
+  if (!config.define) config.define = {};
+  if (!config.build) config.build = {};
+  
+  // Add shared plugins
+  config.plugins.push(...getSharedPlugins(includeJQueryIsolation));
+  
+  // Merge define values
+  Object.assign(config.define, sharedDefine);
+  
+  // Apply build configuration
+  config.build.minify = 'terser';
+  config.build.terserOptions = sharedTerserOptions;
+  
+  return config;
+};
 
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
@@ -72,29 +160,14 @@ export default defineNuxtConfig({
   components: false,
 
   vite: {
-    plugins: [
-      // Only remove non-critical console methods when VITE_ALLOW_CONSOLE_LOGS is false
-      // Keeps console.warn and console.error for debugging purposes
-      !process.env.VITE_ALLOW_CONSOLE_LOGS &&
-        removeConsole({
-          includes: ['log', 'info', 'debug'],
-        }),
-    ],
-    define: {
-      'globalThis.__DEV__': process.env.NODE_ENV === 'development',
-      __VUE_PROD_DEVTOOLS__: false,
-    },
+    plugins: getSharedPlugins(),
+    define: sharedDefine,
     build: {
       minify: 'terser',
-      terserOptions: {
-        mangle: {
-          reserved: terserReservations(charsToReserve),
-          toplevel: true,
-        },
-        // keep_fnames: true,
-      },
+      terserOptions: sharedTerserOptions,
     },
   },
+  
   customElements: {
     analyzer: process.env.NODE_ENV !== 'test',
     entries: [
@@ -104,51 +177,7 @@ export default defineNuxtConfig({
       {
         name: 'UnraidComponents',
         viteExtend(config: UserConfig) {
-          // Configure terser options for custom elements build
-          if (!config.build) config.build = {};
-          config.build.minify = 'terser';
-          config.build.terserOptions = {
-            mangle: {
-              reserved: terserReservations(charsToReserve),
-              toplevel: true,
-            },
-          };
-          
-          // Add a custom plugin to wrap the bundle and preserve jQuery
-          if (!config.plugins) config.plugins = [];
-          config.plugins.push({
-            name: 'jquery-isolation',
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            generateBundle(options: any, bundle: any) {
-              // Find the main JS file
-              const jsFile = Object.keys(bundle).find(key => key.endsWith('.js'));
-              if (jsFile && bundle[jsFile] && 'code' in bundle[jsFile]) {
-                const originalCode = bundle[jsFile].code;
-                // Wrap the entire bundle to preserve and restore jQuery
-                bundle[jsFile].code = `
-(function() {
-  // Preserve the original jQuery $ if it exists
-  var originalJQuery = (typeof window !== 'undefined' && typeof window.$ !== 'undefined') ? window.$ : undefined;
-  
-  // Temporarily clear $ to avoid conflicts
-  if (typeof window !== 'undefined' && typeof window.$ !== 'undefined') {
-    window.$ = undefined;
-  }
-  
-  // Execute the web component code
-  ${originalCode}
-  
-  // Restore jQuery $ if it was originally defined
-  if (originalJQuery !== undefined && typeof window !== 'undefined') {
-    window.$ = originalJQuery;
-  }
-})();
-`;
-              }
-            }
-          });
-          
-          return config;
+          return applySharedViteConfig(config, true);
         },
         tags: [
 
