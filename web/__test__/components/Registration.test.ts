@@ -41,6 +41,11 @@ vi.mock('@vue/apollo-composable', () => ({
     onResult: vi.fn(),
     onError: vi.fn(),
   }),
+  useMutation: () => ({
+    mutate: vi.fn(),
+    onDone: vi.fn(),
+    onError: vi.fn(),
+  }),
   provideApolloClient: vi.fn(),
 }));
 
