@@ -6,7 +6,10 @@
       "Bash(pnpm codegen:*)",
       "Bash(pnpm dev:*)",
       "Bash(pnpm build:*)",
-      "Bash(pnpm test:*)"
+      "Bash(pnpm test:*)",
+      "Bash(grep:*)",
+      "Bash(pnpm type-check:*)",
+      "Bash(pnpm lint:*)"
     ]
   },
   "enableAllProjectMcpServers": false

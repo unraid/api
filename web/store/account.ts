@@ -325,7 +325,7 @@ export const useAccountStore = defineStore('account', () => {
 
     accountActionStatus.value = 'updating';
     
-    signInMutation({
+    return signInMutation({
       input: {
         apiKey: connectSignInPayload.value.apiKey,
         userInfo: {
@@ -338,7 +338,7 @@ export const useAccountStore = defineStore('account', () => {
 
   const connectSignOutMutation = () => {
     accountActionStatus.value = 'updating';
-    signOutMutation();
+    return signOutMutation();
   };
 
   const setAccountAction = (action: ExternalSignIn | ExternalSignOut) => {
