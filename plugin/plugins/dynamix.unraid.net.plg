@@ -174,7 +174,7 @@ exit 0
         # Send notification to user
         /usr/local/emhttp/webGui/scripts/notify \
           -e "Unraid Connect" \
-          -s "Plugin Removal" \
+          -s "Reboot Required for Unraid Connect Removal" \
           -d "Unraid Connect plugin has been marked for removal. Please reboot your server to complete the uninstallation." \
           -i "warning"
         
