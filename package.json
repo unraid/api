@@ -57,5 +57,5 @@
       "pnpm lint:fix"
     ]
   },
-  "packageManager": "pnpm@10.12.4"
+  "packageManager": "pnpm@10.13.1"
 }
