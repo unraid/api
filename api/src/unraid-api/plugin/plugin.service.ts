@@ -65,7 +65,16 @@ export class PluginService {
      * @returns A tuple of the plugin name and version.
      */
     static async listPlugins(): Promise<[string, string][]> {
-        const { plugins = [] } = await loadApiConfig();
+        let plugins: string[] = [];
+        try {
+            const config = await loadApiConfig();
+            plugins = config.plugins || [];
+        } catch (error) {
+            PluginService.logger.error(
+                'Failed to load API config for plugin discovery, using empty list:',
+                error
+            );
+        }
         const pluginNames = new Set(
             plugins.map((plugin) => {
                 const { name } = parsePackageArg(plugin);

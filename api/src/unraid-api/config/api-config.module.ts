@@ -12,6 +12,8 @@ import { ConfigPersistenceHelper } from '@app/unraid-api/config/persistence.help
 
 export { type ApiConfig };
 
+const logger = new Logger('ApiConfig');
+
 const createDefaultConfig = (): ApiConfig => ({
     version: API_VERSION,
     extraOrigins: [],
@@ -33,21 +35,54 @@ export const persistApiConfig = async (config: ApiConfig) => {
 };
 
 export const loadApiConfig = async () => {
-    const defaultConfig = createDefaultConfig();
-    const apiConfig = new ApiStateConfig<ApiConfig>(
-        {
-            name: 'api',
-            defaultConfig,
-            parse: (data) => data as ApiConfig,
-        },
-        new ConfigPersistenceHelper()
-    );
-    const diskConfig = await apiConfig.parseConfig();
-    return {
-        ...defaultConfig,
-        ...diskConfig,
-        version: API_VERSION,
-    };
+    try {
+        const defaultConfig = createDefaultConfig();
+        const apiConfig = new ApiStateConfig<ApiConfig>(
+            {
+                name: 'api',
+                defaultConfig,
+                parse: (data) => data as ApiConfig,
+            },
+            new ConfigPersistenceHelper()
+        );
+
+        let diskConfig: ApiConfig | undefined;
+        try {
+            diskConfig = await apiConfig.parseConfig();
+        } catch (error) {
+            logger.error('Failed to load API config from disk, using defaults:', error);
+            diskConfig = undefined;
+
+            // Try to overwrite the invalid config with defaults to fix the issue
+            try {
+                const configToWrite = {
+                    ...defaultConfig,
+                    version: API_VERSION,
+                };
+
+                const writeSuccess = await apiConfig.persist(configToWrite);
+                if (writeSuccess) {
+                    logger.log('Successfully overwrote invalid config file with defaults.');
+                } else {
+                    logger.error(
+                        'Failed to overwrite invalid config file. Continuing with defaults in memory only.'
+                    );
+                }
+            } catch (persistError) {
+                logger.error('Error during config file repair:', persistError);
+            }
+        }
+
+        return {
+            ...defaultConfig,
+            ...diskConfig,
+            version: API_VERSION,
+        };
+    } catch (outerError) {
+        // This should never happen, but ensures the config factory never throws
+        logger.error('Critical error in loadApiConfig, using minimal defaults:', outerError);
+        return createDefaultConfig();
+    }
 };
 
 /**
@@ -81,21 +116,29 @@ export class ApiConfigPersistence {
     }
 
     async onModuleInit() {
-        if (!(await fileExists(this.filePath))) {
-            this.migrateFromMyServersConfig();
+        try {
+            if (!(await fileExists(this.filePath))) {
+                this.migrateFromMyServersConfig();
+            }
+            await this.persistenceHelper.persistIfChanged(this.filePath, this.config);
+            this.configService.changes$.pipe(bufferTime(25)).subscribe({
+                next: async (changes) => {
+                    if (changes.some((change) => change.path.startsWith('api'))) {
+                        this.logger.verbose(`API Config changed ${JSON.stringify(changes)}`);
+                        try {
+                            await this.persistenceHelper.persistIfChanged(this.filePath, this.config);
+                        } catch (persistError) {
+                            this.logger.error('Error persisting config changes:', persistError);
+                        }
+                    }
+                },
+                error: (err) => {
+                    this.logger.error('Error receiving config changes:', err);
+                },
+            });
+        } catch (error) {
+            this.logger.error('Error during API config module initialization:', error);
         }
-        await this.persistenceHelper.persistIfChanged(this.filePath, this.config);
-        this.configService.changes$.pipe(bufferTime(25)).subscribe({
-            next: async (changes) => {
-                if (changes.some((change) => change.path.startsWith('api'))) {
-                    this.logger.verbose(`API Config changed ${JSON.stringify(changes)}`);
-                    await this.persistenceHelper.persistIfChanged(this.filePath, this.config);
-                }
-            },
-            error: (err) => {
-                this.logger.error('Error receiving config changes:', err);
-            },
-        });
     }
 
     convertLegacyConfig(

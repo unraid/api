@@ -12,24 +12,59 @@ export class ConfigPersistenceHelper {
      *
      * @param filePath - The path to the config file.
      * @param data - The data to persist.
-     * @returns `true` if the config was persisted, `false` otherwise.
+     * @returns `true` if the config was persisted, `false` if no changes were needed or if persistence failed.
      *
-     * @throws {Error} if the config file does not exist or is unreadable.
-     * @throws {Error} if the config file is not valid JSON.
-     * @throws {Error} if given data is not JSON (de)serializable.
-     * @throws {Error} if the config file is not writable.
+     * This method is designed to never throw errors. If the existing file is corrupted or unreadable,
+     * it will attempt to overwrite it with the new data. If write operations fail, it returns false
+     * but does not crash the application.
      */
     async persistIfChanged(filePath: string, data: unknown): Promise<boolean> {
         if (!(await fileExists(filePath))) {
-            await writeFile(filePath, JSON.stringify(data ?? {}, null, 2));
-            return true;
+            try {
+                const jsonString = JSON.stringify(data ?? {}, null, 2);
+                await writeFile(filePath, jsonString);
+                return true;
+            } catch (error) {
+                // JSON serialization or write failed, but don't crash - just return false
+                return false;
+            }
         }
-        const currentData = JSON.parse(await readFile(filePath, 'utf8'));
-        const stagedData = JSON.parse(JSON.stringify(data));
+
+        let currentData: unknown;
+        try {
+            const fileContent = await readFile(filePath, 'utf8');
+            currentData = JSON.parse(fileContent);
+        } catch (error) {
+            // If existing file is corrupted, treat it as if it doesn't exist
+            // and write the new data
+            try {
+                const jsonString = JSON.stringify(data ?? {}, null, 2);
+                await writeFile(filePath, jsonString);
+                return true;
+            } catch (writeError) {
+                // JSON serialization or write failed, but don't crash - just return false
+                return false;
+            }
+        }
+
+        let stagedData: unknown;
+        try {
+            stagedData = JSON.parse(JSON.stringify(data));
+        } catch (error) {
+            // If data can't be serialized to JSON, we can't persist it
+            return false;
+        }
+
         if (isEqual(currentData, stagedData)) {
             return false;
         }
-        await writeFile(filePath, JSON.stringify(stagedData, null, 2));
-        return true;
+
+        try {
+            await writeFile(filePath, JSON.stringify(stagedData, null, 2));
+            return true;
+        } catch (error) {
+            // Write failed, but don't crash - just return false
+            return false;
+        }
     }
 }

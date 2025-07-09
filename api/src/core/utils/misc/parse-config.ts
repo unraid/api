@@ -124,7 +124,15 @@ export const parseConfig = <T extends Record<string, any>>(
         throw new AppError('Invalid Parameters Passed to ParseConfig');
     }
 
-    const data: Record<string, any> = parseIni(fileContents);
+    let data: Record<string, any>;
+    try {
+        data = parseIni(fileContents);
+    } catch (error) {
+        throw new AppError(
+            `Failed to parse config file: ${error instanceof Error ? error.message : String(error)}`
+        );
+    }
+
     // Remove quotes around keys
     const dataWithoutQuoteKeys = Object.fromEntries(
         Object.entries(data).map(([key, value]) => [key.replace(/^"(.+(?="$))"$/, '$1'), value])
