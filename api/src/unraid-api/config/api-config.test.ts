@@ -1,5 +1,4 @@
 import { ConfigService } from '@nestjs/config';
-import { readFile } from 'node:fs/promises';
 
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
@@ -7,11 +6,17 @@ import { fileExists } from '@app/core/utils/files/file-exists.js';
 import { ApiConfigPersistence, loadApiConfig } from '@app/unraid-api/config/api-config.module.js';
 import { ConfigPersistenceHelper } from '@app/unraid-api/config/persistence.helper.js';
 
-vi.mock('node:fs/promises');
-vi.mock('@app/core/utils/files/file-exists.js');
+// Mock the core file-exists utility used by ApiStateConfig
+vi.mock('@app/core/utils/files/file-exists.js', () => ({
+    fileExists: vi.fn(),
+}));
+
+// Mock the shared file-exists utility used by ConfigPersistenceHelper
 vi.mock('@unraid/shared/util/file.js', () => ({
     fileExists: vi.fn(),
 }));
+
+// Mock fs/promises for file I/O operations
 vi.mock('fs/promises', () => ({
     readFile: vi.fn(),
     writeFile: vi.fn(),
@@ -149,11 +154,19 @@ describe('ApiConfigPersistence', () => {
 });
 
 describe('loadApiConfig', () => {
-    beforeEach(() => {
+    let readFile: any;
+    let writeFile: any;
+
+    beforeEach(async () => {
         vi.clearAllMocks();
         vi.spyOn(console, 'error').mockImplementation(() => {});
         // Reset modules to ensure fresh imports
         vi.resetModules();
+
+        // Get mocked functions
+        const fsMocks = await import('fs/promises');
+        readFile = fsMocks.readFile;
+        writeFile = fsMocks.writeFile;
     });
 
     it('should return default config when file does not exist', async () => {
@@ -193,7 +206,6 @@ describe('loadApiConfig', () => {
 
     it('should use default config and overwrite file when JSON parsing fails', async () => {
         const { fileExists: sharedFileExists } = await import('@unraid/shared/util/file.js');
-        const { writeFile } = await import('fs/promises');
 
         vi.mocked(fileExists).mockResolvedValue(true);
         vi.mocked(readFile).mockResolvedValue('{ invalid json }');
@@ -221,7 +233,6 @@ describe('loadApiConfig', () => {
 
     it('should handle write failure gracefully when JSON parsing fails', async () => {
         const { fileExists: sharedFileExists } = await import('@unraid/shared/util/file.js');
-        const { writeFile } = await import('fs/promises');
 
         vi.mocked(fileExists).mockResolvedValue(true);
         vi.mocked(readFile).mockResolvedValue('{ invalid json }');
