@@ -5,14 +5,14 @@ import { writeFile } from 'fs/promises';
 import { ConnectionMetadata, ConfigType } from './connect.config.js';
 
 @Injectable()
-export class MinigraphStatusWriterService implements OnModuleInit {
+export class ConnectStatusWriterService implements OnModuleInit {
     constructor(private readonly configService: ConfigService<ConfigType, true>) {}
 
-    private logger = new Logger(MinigraphStatusWriterService.name);
+    private logger = new Logger(ConnectStatusWriterService.name);
 
     get statusFilePath() {
-        // Write to /var/local/emhttp/minigraph-status.json so PHP can read it
-        return '/var/local/emhttp/minigraph-status.json';
+        // Write to /var/local/emhttp/connectStatus.json so PHP can read it
+        return '/var/local/emhttp/connectStatus.json';
     }
 
     async onModuleInit() {
@@ -21,13 +21,11 @@ export class MinigraphStatusWriterService implements OnModuleInit {
         // Write initial status
         await this.writeStatus();
         
-        // Listen for changes to minigraph status
+        // Listen for changes to connection status
         this.configService.changes$.subscribe({
-            next: async (changes) => {
-                const minigraphChanged = Array.isArray(changes) && changes.some((change: any) =>
-                    change.path && change.path.startsWith('connect.mothership')
-                );
-                if (minigraphChanged) {
+            next: async (change) => {
+                const connectionChanged = change.path && change.path.startsWith('connect.mothership');
+                if (connectionChanged) {
                     await this.writeStatus();
                 }
             },
@@ -52,7 +50,7 @@ export class MinigraphStatusWriterService implements OnModuleInit {
             }
             
             const statusData = {
-                minigraph: connectionMetadata?.status || 'PRE_INIT',
+                connectionStatus: connectionMetadata?.status || 'PRE_INIT',
                 error: connectionMetadata?.error || null,
                 lastPing: connectionMetadata?.lastPing || null,
                 allowedOrigins: allowedOrigins,
@@ -60,7 +58,7 @@ export class MinigraphStatusWriterService implements OnModuleInit {
             };
 
             const data = JSON.stringify(statusData, null, 2);
-            this.logger.verbose(`Writing minigraph status: ${data}`);
+            this.logger.verbose(`Writing connection status: ${data}`);
             
             await writeFile(this.statusFilePath, data);
             this.logger.verbose(`Status written to ${this.statusFilePath}`);

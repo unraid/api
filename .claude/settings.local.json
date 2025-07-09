@@ -10,7 +10,8 @@
       "Bash(grep:*)",
       "Bash(pnpm type-check:*)",
       "Bash(pnpm lint:*)",
-      "Bash(pnpm --filter ./api lint)"
+      "Bash(pnpm --filter ./api lint)",
+      "Bash(mv:*)"
     ]
   },
   "enableAllProjectMcpServers": false

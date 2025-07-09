@@ -211,18 +211,18 @@ class ServerState
          * Include localhost in the test, but only display HTTP(S) URLs that do not include localhost.
          */
         $this->host = $_SERVER['HTTP_HOST'] ?? "unknown";
-        // Read minigraph status and allowed origins from the new API status file
-        $statusFilePath = '/var/local/emhttp/minigraph-status.json';
-        $minigraphStatus = '';
+        // Read connection status and allowed origins from the new API status file
+        $statusFilePath = '/var/local/emhttp/connectStatus.json';
+        $connectionStatus = '';
         $allowedOrigins = '';
         
         if (file_exists($statusFilePath)) {
             $statusData = @json_decode(file_get_contents($statusFilePath), true);
-            $minigraphStatus = $statusData['minigraph'] ?? '';
+            $connectionStatus = $statusData['connectionStatus'] ?? '';
             $allowedOrigins = $statusData['allowedOrigins'] ?? '';
         }
         
-        $this->myServersMiniGraphConnected = ($minigraphStatus === 'CONNECTED');
+        $this->myServersMiniGraphConnected = ($connectionStatus === 'CONNECTED');
 
         $extraOrigins = $this->myServersFlashCfg['api']['extraOrigins'] ?? "";
         $combinedOrigins = $allowedOrigins . "," . $extraOrigins; // combine the two strings for easier searching
