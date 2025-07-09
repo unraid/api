@@ -42,7 +42,7 @@ describe('ApiStateConfig', () => {
         vi.clearAllMocks();
 
         mockPersistenceHelper = {
-            persistIfChanged: vi.fn().mockResolvedValue(undefined),
+            persistIfChanged: vi.fn().mockResolvedValue(true),
         } as any;
 
         mockLogger = {
@@ -241,14 +241,12 @@ describe('ApiStateConfig', () => {
         });
 
         it('should return false and log error on persistence failure', async () => {
-            const error = new Error('Write failed');
-            (mockPersistenceHelper.persistIfChanged as Mock).mockRejectedValue(error);
+            (mockPersistenceHelper.persistIfChanged as Mock).mockResolvedValue(false);
 
             const result = await config.persist();
 
             expect(result).toBe(false);
             expect(mockLogger.error).toHaveBeenCalledWith(
-                error,
                 expect.stringContaining('Could not write config')
             );
         });
@@ -308,9 +306,7 @@ describe('ApiStateConfig', () => {
 
         it('should not throw even when persist fails', async () => {
             (fileExists as Mock).mockResolvedValue(false);
-            (mockPersistenceHelper.persistIfChanged as Mock).mockRejectedValue(
-                new Error('Persist failed')
-            );
+            (mockPersistenceHelper.persistIfChanged as Mock).mockResolvedValue(false);
 
             await expect(config.load()).resolves.not.toThrow();
 
