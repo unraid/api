@@ -1,5 +1,14 @@
 # Changelog
 
+## [4.9.4](https://github.com/unraid/api/compare/v4.9.3...v4.9.4) (2025-07-09)
+
+
+### Bug Fixes
+
+* backport `<unraid-modals>` upon plg install when necessary ([#1499](https://github.com/unraid/api/issues/1499)) ([33e0b1a](https://github.com/unraid/api/commit/33e0b1ab24bedb6a2c7b376ea73dbe65bc3044be))
+* DefaultPageLayout patch rollback omits legacy header logo ([#1497](https://github.com/unraid/api/issues/1497)) ([ea20d1e](https://github.com/unraid/api/commit/ea20d1e2116fcafa154090fee78b42ec5d9ba584))
+* event emitter setup for writing status ([#1496](https://github.com/unraid/api/issues/1496)) ([ca4e2db](https://github.com/unraid/api/commit/ca4e2db1f29126a1fa3784af563832edda64b0ca))
+
 ## [4.9.3](https://github.com/unraid/api/compare/v4.9.2...v4.9.3) (2025-07-09)
 
 
