@@ -3,6 +3,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 
 import { ConnectConfigPersister } from './config/config.persistence.js';
 import { configFeature } from './config/connect.config.js';
+import { MinigraphStatusWriterService } from './config/minigraph-status-writer.service.js';
 import { MothershipModule } from './mothership-proxy/mothership.module.js';
 import { ConnectModule } from './unraid-connect/connect.module.js';
 
@@ -10,7 +11,7 @@ export const adapter = 'nestjs';
 
 @Module({
     imports: [ConfigModule.forFeature(configFeature), ConnectModule, MothershipModule],
-    providers: [ConnectConfigPersister],
+    providers: [ConnectConfigPersister, MinigraphStatusWriterService],
     exports: [],
 })
 class ConnectPluginModule {
