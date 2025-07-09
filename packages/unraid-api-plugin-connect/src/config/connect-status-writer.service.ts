@@ -1,11 +1,13 @@
-import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
+import { Injectable, Logger, OnApplicationBootstrap } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { writeFile } from 'fs/promises';
 
 import { ConnectionMetadata, ConfigType } from './connect.config.js';
+import { OnEvent } from '@nestjs/event-emitter';
+import { EVENTS } from '../helper/nest-tokens.js';
 
 @Injectable()
-export class ConnectStatusWriterService implements OnModuleInit {
+export class ConnectStatusWriterService implements OnApplicationBootstrap {
     constructor(private readonly configService: ConfigService<ConfigType, true>) {}
 
     private logger = new Logger(ConnectStatusWriterService.name);
@@ -15,26 +17,14 @@ export class ConnectStatusWriterService implements OnModuleInit {
         return '/var/local/emhttp/connectStatus.json';
     }
 
-    async onModuleInit() {
+    async onApplicationBootstrap() {
         this.logger.verbose(`Status file path: ${this.statusFilePath}`);
         
         // Write initial status
         await this.writeStatus();
-        
-        // Listen for changes to connection status
-        this.configService.changes$.subscribe({
-            next: async (change) => {
-                const connectionChanged = change.path && change.path.startsWith('connect.mothership');
-                if (connectionChanged) {
-                    await this.writeStatus();
-                }
-            },
-            error: (err) => {
-                this.logger.error('Error receiving config changes:', err);
-            },
-        });
     }
 
+    @OnEvent(EVENTS.MOTHERSHIP_CONNECTION_STATUS_CHANGED, { async: true })
     private async writeStatus() {
         try {
             const connectionMetadata = this.configService.get<ConnectionMetadata>('connect.mothership');

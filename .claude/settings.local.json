@@ -11,7 +11,8 @@
       "Bash(pnpm type-check:*)",
       "Bash(pnpm lint:*)",
       "Bash(pnpm --filter ./api lint)",
-      "Bash(mv:*)"
+      "Bash(mv:*)",
+      "Bash(ls:*)"
     ]
   },
   "enableAllProjectMcpServers": false
