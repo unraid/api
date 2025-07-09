@@ -141,11 +141,19 @@ exit 0
   <FILE Run="/bin/bash" Method="install">
     <INLINE>
       <![CDATA[
-      echo "Patching header logo..."
+      echo "Patching header logo if necessary..."
+
+      # We do this here instead of via API FileModification to avoid undesirable
+      # rollback when the API is stopped.
+      #
+      # This is necessary on < 7.2 because the unraid-header-os-version web component
+      # that ships with the base OS only displayes the version, not the logo as well.
+      #
+      # Rolling back in this case (i.e when stopping the API) yields a duplicate logo
+      # that blocks interaction with the navigation menu.
       
-      # Remove the old header logo from DefaultPageLayout.php
+      # Remove the old header logo from DefaultPageLayout.php if present
       if [ -f "/usr/local/emhttp/plugins/dynamix/include/DefaultPageLayout.php" ]; then
-        echo "Removing old header logo from DefaultPageLayout.php..."
         sed -i 's|<a href="https://unraid.net" target="_blank"><?readfile("$docroot/webGui/images/UN-logotype-gradient.svg")?></a>||g' "/usr/local/emhttp/plugins/dynamix/include/DefaultPageLayout.php"
       fi
 
