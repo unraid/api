@@ -13,7 +13,8 @@
       "Bash(pnpm --filter ./api lint)",
       "Bash(mv:*)",
       "Bash(ls:*)",
-      "mcp__ide__getDiagnostics"
+      "mcp__ide__getDiagnostics",
+      "Bash(pnpm --filter \"*connect*\" test connect-status-writer.service.spec)"
     ]
   },
   "enableAllProjectMcpServers": false

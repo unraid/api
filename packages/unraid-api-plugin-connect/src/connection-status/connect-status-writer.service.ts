@@ -1,13 +1,14 @@
-import { Injectable, Logger, OnApplicationBootstrap } from '@nestjs/common';
+import { Injectable, Logger, OnApplicationBootstrap, OnModuleDestroy } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { OnEvent } from '@nestjs/event-emitter';
+import { unlink } from 'fs/promises';
 import { writeFile } from 'fs/promises';
 
 import { ConfigType, ConnectionMetadata } from '../config/connect.config.js';
 import { EVENTS } from '../helper/nest-tokens.js';
 
 @Injectable()
-export class ConnectStatusWriterService implements OnApplicationBootstrap {
+export class ConnectStatusWriterService implements OnApplicationBootstrap, OnModuleDestroy {
     constructor(private readonly configService: ConfigService<ConfigType, true>) {}
 
     private logger = new Logger(ConnectStatusWriterService.name);
@@ -22,6 +23,15 @@ export class ConnectStatusWriterService implements OnApplicationBootstrap {
 
         // Write initial status
         await this.writeStatus();
+    }
+
+    async onModuleDestroy() {
+        try {
+            await unlink(this.statusFilePath);
+            this.logger.verbose(`Status file deleted: ${this.statusFilePath}`);
+        } catch (error) {
+            this.logger.debug(`Could not delete status file: ${error}`);
+        }
     }
 
     @OnEvent(EVENTS.MOTHERSHIP_CONNECTION_STATUS_CHANGED, { async: true })
