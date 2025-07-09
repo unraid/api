@@ -66,6 +66,9 @@ if (is_localhost() && !is_good_session()) {
     }
 
     private addModalsWebComponent(source: string): string {
+        if (source.includes('<unraid-modals>')) {
+            return source;
+        }
         return source.replace('<body>', '<body>\n<unraid-modals></unraid-modals>');
     }
 
