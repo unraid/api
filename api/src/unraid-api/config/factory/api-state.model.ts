@@ -56,13 +56,11 @@ export class ApiStateConfig<T> {
      * @returns True if the config was written successfully, false otherwise.
      */
     async persist(config = this.#config) {
-        try {
-            await this.persistenceHelper.persistIfChanged(this.filePath, config);
-            return true;
-        } catch (error) {
-            this.logger.error(error, `Could not write config to ${this.filePath}.`);
-            return false;
+        const success = await this.persistenceHelper.persistIfChanged(this.filePath, config);
+        if (!success) {
+            this.logger.error(`Could not write config to ${this.filePath}.`);
         }
+        return success;
     }
 
     /**

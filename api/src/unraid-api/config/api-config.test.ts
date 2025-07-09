@@ -159,7 +159,6 @@ describe('loadApiConfig', () => {
 
     beforeEach(async () => {
         vi.clearAllMocks();
-        vi.spyOn(console, 'error').mockImplementation(() => {});
         // Reset modules to ensure fresh imports
         vi.resetModules();
 
@@ -214,13 +213,7 @@ describe('loadApiConfig', () => {
 
         const result = await loadApiConfig();
 
-        expect(console.error).toHaveBeenCalledWith(
-            'Failed to load API config from disk, using defaults:',
-            expect.any(Error)
-        );
-        expect(console.error).toHaveBeenCalledWith(
-            'Successfully overwrote invalid config file with defaults.'
-        );
+        // Error logging is handled by NestJS Logger, just verify the config is returned
         expect(writeFile).toHaveBeenCalled();
         expect(result).toEqual({
             version: expect.any(String),
@@ -241,13 +234,7 @@ describe('loadApiConfig', () => {
 
         const result = await loadApiConfig();
 
-        expect(console.error).toHaveBeenCalledWith(
-            'Failed to load API config from disk, using defaults:',
-            expect.any(Error)
-        );
-        expect(console.error).toHaveBeenCalledWith(
-            'Failed to overwrite invalid config file. Continuing with defaults in memory only.'
-        );
+        // Error logging is handled by NestJS Logger, just verify the config is returned
         expect(writeFile).toHaveBeenCalled();
         expect(result).toEqual({
             version: expect.any(String),
@@ -264,7 +251,7 @@ describe('loadApiConfig', () => {
 
         const result = await loadApiConfig();
 
-        expect(console.error).not.toHaveBeenCalled();
+        // No error logging expected for empty files
         expect(result).toEqual({
             version: expect.any(String),
             extraOrigins: [],

@@ -70,7 +70,10 @@ export class PluginService {
             const config = await loadApiConfig();
             plugins = config.plugins || [];
         } catch (error) {
-            console.error('Failed to load API config for plugin discovery, using empty list:', error);
+            PluginService.logger.error(
+                'Failed to load API config for plugin discovery, using empty list:',
+                error
+            );
         }
         const pluginNames = new Set(
             plugins.map((plugin) => {
