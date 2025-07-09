@@ -168,9 +168,8 @@ class ServerState
     private function getMyServersCfgValues()
     {
         /**
-         * @todo can we read this from somewhere other than the flash? Connect page uses this path and /boot/config/plugins/dynamix.my.servers/myservers.cfg…
-         * - $myservers_memory_cfg_path ='/var/local/emhttp/myservers.cfg';
-         * - $mystatus = (file_exists($myservers_memory_cfg_path)) ? @parse_ini_file($myservers_memory_cfg_path) : [];
+         * Memory config is now written by the new API to /usr/local/emhttp/state/myservers.cfg
+         * This contains runtime state including connection status.
          */
         $flashCfgPath = '/boot/config/plugins/dynamix.my.servers/myservers.cfg';
         $this->myServersFlashCfg = file_exists($flashCfgPath) ? @parse_ini_file($flashCfgPath, true) : [];
@@ -212,11 +211,19 @@ class ServerState
          * Include localhost in the test, but only display HTTP(S) URLs that do not include localhost.
          */
         $this->host = $_SERVER['HTTP_HOST'] ?? "unknown";
-        $memoryCfgPath = '/var/local/emhttp/myservers.cfg';
-        $this->myServersMemoryCfg = (file_exists($memoryCfgPath)) ? @parse_ini_file($memoryCfgPath) : [];
-        $this->myServersMiniGraphConnected = (($this->myServersMemoryCfg['minigraph'] ?? '') === 'CONNECTED');
+        // Read connection status and allowed origins from the new API status file
+        $statusFilePath = '/var/local/emhttp/connectStatus.json';
+        $connectionStatus = '';
+        $allowedOrigins = '';
+        
+        if (file_exists($statusFilePath)) {
+            $statusData = @json_decode(file_get_contents($statusFilePath), true);
+            $connectionStatus = $statusData['connectionStatus'] ?? '';
+            $allowedOrigins = $statusData['allowedOrigins'] ?? '';
+        }
+        
+        $this->myServersMiniGraphConnected = ($connectionStatus === 'CONNECTED');
 
-        $allowedOrigins = $this->myServersMemoryCfg['allowedOrigins'] ?? "";
         $extraOrigins = $this->myServersFlashCfg['api']['extraOrigins'] ?? "";
         $combinedOrigins = $allowedOrigins . "," . $extraOrigins; // combine the two strings for easier searching
         $combinedOrigins = str_replace(" ", "", $combinedOrigins); // replace any spaces with nothing
