@@ -155,6 +155,11 @@ exit 0
       # Remove the old header logo from DefaultPageLayout.php if present
       if [ -f "/usr/local/emhttp/plugins/dynamix/include/DefaultPageLayout.php" ]; then
         sed -i 's|<a href="https://unraid.net" target="_blank"><?readfile("$docroot/webGui/images/UN-logotype-gradient.svg")?></a>||g' "/usr/local/emhttp/plugins/dynamix/include/DefaultPageLayout.php"
+        
+        # Add unraid-modals element if not already present
+        if ! grep -q '<unraid-modals>' "/usr/local/emhttp/plugins/dynamix/include/DefaultPageLayout.php"; then
+          sed -i 's|<body>|<body>\n<unraid-modals></unraid-modals>|' "/usr/local/emhttp/plugins/dynamix/include/DefaultPageLayout.php"
+        fi
       fi
 
       ]]>
