@@ -1,11 +1,14 @@
-import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
+import { Injectable, Logger, OnApplicationBootstrap, OnModuleDestroy } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { OnEvent } from '@nestjs/event-emitter';
+import { unlink } from 'fs/promises';
 import { writeFile } from 'fs/promises';
 
-import { ConnectionMetadata, ConfigType } from './connect.config.js';
+import { ConfigType, ConnectionMetadata } from '../config/connect.config.js';
+import { EVENTS } from '../helper/nest-tokens.js';
 
 @Injectable()
-export class ConnectStatusWriterService implements OnModuleInit {
+export class ConnectStatusWriterService implements OnApplicationBootstrap, OnModuleDestroy {
     constructor(private readonly configService: ConfigService<ConfigType, true>) {}
 
     private logger = new Logger(ConnectStatusWriterService.name);
@@ -15,30 +18,27 @@ export class ConnectStatusWriterService implements OnModuleInit {
         return '/var/local/emhttp/connectStatus.json';
     }
 
-    async onModuleInit() {
+    async onApplicationBootstrap() {
         this.logger.verbose(`Status file path: ${this.statusFilePath}`);
-        
+
         // Write initial status
         await this.writeStatus();
-        
-        // Listen for changes to connection status
-        this.configService.changes$.subscribe({
-            next: async (change) => {
-                const connectionChanged = change.path && change.path.startsWith('connect.mothership');
-                if (connectionChanged) {
-                    await this.writeStatus();
-                }
-            },
-            error: (err) => {
-                this.logger.error('Error receiving config changes:', err);
-            },
-        });
     }
 
+    async onModuleDestroy() {
+        try {
+            await unlink(this.statusFilePath);
+            this.logger.verbose(`Status file deleted: ${this.statusFilePath}`);
+        } catch (error) {
+            this.logger.debug(`Could not delete status file: ${error}`);
+        }
+    }
+
+    @OnEvent(EVENTS.MOTHERSHIP_CONNECTION_STATUS_CHANGED, { async: true })
     private async writeStatus() {
         try {
             const connectionMetadata = this.configService.get<ConnectionMetadata>('connect.mothership');
-            
+
             // Try to get allowed origins from the store
             let allowedOrigins = '';
             try {
@@ -48,18 +48,18 @@ export class ConnectStatusWriterService implements OnModuleInit {
             } catch (error) {
                 this.logger.debug('Could not get allowed origins:', error);
             }
-            
+
             const statusData = {
                 connectionStatus: connectionMetadata?.status || 'PRE_INIT',
                 error: connectionMetadata?.error || null,
                 lastPing: connectionMetadata?.lastPing || null,
                 allowedOrigins: allowedOrigins,
-                timestamp: Date.now()
+                timestamp: Date.now(),
             };
 
             const data = JSON.stringify(statusData, null, 2);
             this.logger.verbose(`Writing connection status: ${data}`);
-            
+
             await writeFile(this.statusFilePath, data);
             this.logger.verbose(`Status written to ${this.statusFilePath}`);
         } catch (error) {
