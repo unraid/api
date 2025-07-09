@@ -3,12 +3,13 @@ import { computed } from 'vue';
 import { storeToRefs } from 'pinia';
 
 import { ArrowTopRightOnSquareIcon } from '@heroicons/vue/24/solid';
-import { BrandButton } from '@unraid/ui';
+import { BrandButton, Dialog } from '@unraid/ui';
 
 import type { BrandButtonProps } from '@unraid/ui';
 import type { ComposerTranslation } from 'vue-i18n';
 
 import ActivationPartnerLogo from '~/components/Activation/ActivationPartnerLogo.vue';
+import ActivationSteps from '~/components/Activation/ActivationSteps.vue';
 import { useActivationCodeDataStore } from '~/components/Activation/store/activationCodeData';
 import { useActivationCodeModalStore } from '~/components/Activation/store/activationCodeModal';
 import { usePurchaseStore } from '~/store/purchase';
@@ -58,42 +59,39 @@ const docsButtons = computed<BrandButtonProps[]>(() => {
 </script>
 
 <template>
-  <Modal
+  <Dialog
     v-if="isVisible"
-    :t="t"
-    :open="isVisible"
-    :show-close-x="false"
-    :title="title"
-    :title-in-main="partnerInfo?.hasPartnerLogo"
-    :description="description"
-    overlay-color="bg-background"
-    overlay-opacity="bg-background/100"
-    max-width="max-w-[800px]"
-    :modal-vertical-center="false"
-    :disable-shadow="true"
+    :model-value="isVisible"
+    :show-footer="false"
+    :show-close-button="false"
+    size="full"
+    class="bg-background"
   >
-    <template v-if="partnerInfo?.hasPartnerLogo" #header>
-      <ActivationPartnerLogo :name="partnerInfo.partnerName" />
-    </template>
-
-    <template #footer>
-      <div class="w-full flex gap-2 justify-center mx-auto">
-        <BrandButton
-          :text="t('Activate Now')"
-          :icon-right="ArrowTopRightOnSquareIcon"
-          @click="purchaseStore.activate"
-        />
+    <div class="flex flex-col items-center justify-start mt-8">
+      <div v-if="partnerInfo?.hasPartnerLogo">
+        <ActivationPartnerLogo :name="partnerInfo.partnerName" />
       </div>
-    </template>
 
-    <template #subFooter>
-      <div class="flex flex-col gap-6">
-        <ActivationSteps :active-step="2" class="mt-6" />
+      <h1 class="text-center text-20px sm:text-24px font-semibold mt-4">{{ title }}</h1>
+      <p class="text-18px sm:text-20px opacity-75 text-center mt-2">{{ description }}</p>
 
-        <div class="flex flex-col sm:flex-row justify-center gap-4 mx-auto w-full">
-          <BrandButton v-for="button in docsButtons" :key="button.text" v-bind="button" />
+      <div class="flex flex-col justify-start p-6 w-2/4">
+        <div class="mx-auto mt-6 mb-8">
+          <BrandButton
+            :text="t('Activate Now')"
+            :icon-right="ArrowTopRightOnSquareIcon"
+            @click="purchaseStore.activate"
+          />
+        </div>
+
+        <div class="flex flex-col gap-6 mt-6">
+          <ActivationSteps :active-step="2" />
+
+          <div class="flex flex-col sm:flex-row justify-center gap-4 mx-auto w-full">
+            <BrandButton v-for="button in docsButtons" :key="button.text" v-bind="button" />
+          </div>
         </div>
       </div>
-    </template>
-  </Modal>
+    </div>
+  </Dialog>
 </template>
