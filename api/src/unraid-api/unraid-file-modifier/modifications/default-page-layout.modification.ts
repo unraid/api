@@ -68,6 +68,14 @@ if (is_localhost() && !is_good_session()) {
     private addModalsWebComponent(source: string): string {
         return source.replace('<body>', '<body>\n<unraid-modals></unraid-modals>');
     }
+
+    private hideHeaderLogo(source: string): string {
+        return source.replace(
+            '<a href="https://unraid.net" target="_blank"><?readfile("$docroot/webGui/images/UN-logotype-gradient.svg")?></a>',
+            ''
+        );
+    }
+
     private applyToSource(fileContent: string): string {
         const transformers = [
             this.removeNotificationBell.bind(this),
@@ -75,6 +83,7 @@ if (is_localhost() && !is_good_session()) {
             this.addToaster.bind(this),
             this.patchGuiBootAuth.bind(this),
             this.addModalsWebComponent.bind(this),
+            this.hideHeaderLogo.bind(this),
         ];
 
         return transformers.reduce((content, transformer) => transformer(content), fileContent);
