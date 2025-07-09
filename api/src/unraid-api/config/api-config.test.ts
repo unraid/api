@@ -9,6 +9,13 @@ import { ConfigPersistenceHelper } from '@app/unraid-api/config/persistence.help
 
 vi.mock('node:fs/promises');
 vi.mock('@app/core/utils/files/file-exists.js');
+vi.mock('@unraid/shared/util/file.js', () => ({
+    fileExists: vi.fn(),
+}));
+vi.mock('fs/promises', () => ({
+    readFile: vi.fn(),
+    writeFile: vi.fn(),
+}));
 
 describe('ApiConfigPersistence', () => {
     let service: ApiConfigPersistence;
@@ -145,6 +152,8 @@ describe('loadApiConfig', () => {
     beforeEach(() => {
         vi.clearAllMocks();
         vi.spyOn(console, 'error').mockImplementation(() => {});
+        // Reset modules to ensure fresh imports
+        vi.resetModules();
     });
 
     it('should return default config when file does not exist', async () => {
@@ -182,9 +191,14 @@ describe('loadApiConfig', () => {
         });
     });
 
-    it('should use default config when JSON parsing fails', async () => {
+    it('should use default config and overwrite file when JSON parsing fails', async () => {
+        const { fileExists: sharedFileExists } = await import('@unraid/shared/util/file.js');
+        const { writeFile } = await import('fs/promises');
+
         vi.mocked(fileExists).mockResolvedValue(true);
         vi.mocked(readFile).mockResolvedValue('{ invalid json }');
+        vi.mocked(sharedFileExists).mockResolvedValue(false); // For persist operation
+        vi.mocked(writeFile).mockResolvedValue(undefined);
 
         const result = await loadApiConfig();
 
@@ -192,6 +206,38 @@ describe('loadApiConfig', () => {
             'Failed to load API config from disk, using defaults:',
             expect.any(Error)
         );
+        expect(console.error).toHaveBeenCalledWith(
+            'Successfully overwrote invalid config file with defaults.'
+        );
+        expect(writeFile).toHaveBeenCalled();
+        expect(result).toEqual({
+            version: expect.any(String),
+            extraOrigins: [],
+            sandbox: false,
+            ssoSubIds: [],
+            plugins: [],
+        });
+    });
+
+    it('should handle write failure gracefully when JSON parsing fails', async () => {
+        const { fileExists: sharedFileExists } = await import('@unraid/shared/util/file.js');
+        const { writeFile } = await import('fs/promises');
+
+        vi.mocked(fileExists).mockResolvedValue(true);
+        vi.mocked(readFile).mockResolvedValue('{ invalid json }');
+        vi.mocked(sharedFileExists).mockResolvedValue(false); // For persist operation
+        vi.mocked(writeFile).mockRejectedValue(new Error('Permission denied'));
+
+        const result = await loadApiConfig();
+
+        expect(console.error).toHaveBeenCalledWith(
+            'Failed to load API config from disk, using defaults:',
+            expect.any(Error)
+        );
+        expect(console.error).toHaveBeenCalledWith(
+            'Failed to overwrite invalid config file. Continuing with defaults in memory only.'
+        );
+        expect(writeFile).toHaveBeenCalled();
         expect(result).toEqual({
             version: expect.any(String),
             extraOrigins: [],

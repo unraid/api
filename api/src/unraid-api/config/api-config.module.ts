@@ -49,6 +49,21 @@ export const loadApiConfig = async () => {
     } catch (error) {
         console.error('Failed to load API config from disk, using defaults:', error);
         diskConfig = undefined;
+
+        // Try to overwrite the invalid config with defaults to fix the issue
+        const configToWrite = {
+            ...defaultConfig,
+            version: API_VERSION,
+        };
+
+        const writeSuccess = await apiConfig.persist(configToWrite);
+        if (writeSuccess) {
+            console.error('Successfully overwrote invalid config file with defaults.');
+        } else {
+            console.error(
+                'Failed to overwrite invalid config file. Continuing with defaults in memory only.'
+            );
+        }
     }
 
     return {
