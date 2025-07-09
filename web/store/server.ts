@@ -800,13 +800,6 @@ export const useServerStore = defineStore('server', () => {
     return daysUntilExpiration <= 5 && daysUntilExpiration >= 0;
   });
 
-  watchEffect(() => {
-    console.log('expireTime', expireTime.value);
-    console.log('state', state.value);
-    console.log('trialExtensionEligible', trialExtensionEligible.value);
-    console.log('trialWithin5DaysOfExpiration', trialWithin5DaysOfExpiration.value);
-  });
-
   const serverConfigError = computed((): Error | undefined => {
     if (!config.value?.valid && config.value?.error) {
       switch (config.value?.error) {
