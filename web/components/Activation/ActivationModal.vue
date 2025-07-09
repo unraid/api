@@ -15,9 +15,6 @@ import { useActivationCodeModalStore } from '~/components/Activation/store/activ
 import { usePurchaseStore } from '~/store/purchase';
 import { useThemeStore } from '~/store/theme';
 
-import Modal from '~/components/Modal.vue';
-import ActivationSteps from './ActivationSteps.vue';
-
 export interface Props {
   t: ComposerTranslation;
 }

@@ -12,7 +12,7 @@ import { useThemeStore } from '~/store/theme';
 
 const { t } = useI18n();
 
-const { partnerInfo } = storeToRefs(useActivationCodeDataStore());
+const { partnerInfo, loading } = storeToRefs(useActivationCodeDataStore());
 
 const { setTheme } = useThemeStore();
 
@@ -28,6 +28,12 @@ const title = computed<string>(() =>
   partnerInfo.value?.partnerName
     ? t(`Welcome to your new {0} system, powered by Unraid!`, [partnerInfo.value?.partnerName])
     : t('Welcome to Unraid!')
+);
+
+const description = computed<string>(() =>
+  t(
+    `First, you'll create your device's login credentials, then you'll activate your Unraid license—your device's operating system (OS).`
+  )
 );
 
 const showModal = ref<boolean>(true);
