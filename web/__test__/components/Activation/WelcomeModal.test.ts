@@ -11,39 +11,36 @@ import type { ComposerTranslation } from 'vue-i18n';
 
 import WelcomeModal from '~/components/Activation/WelcomeModal.ce.vue';
 
+// Mock @unraid/ui to use a mix of actual and mocked components
+vi.mock('@unraid/ui', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@unraid/ui')>();
+  return {
+    ...actual,
+    // We'll provide a simple mock for Dialog to make testing easier
+    Dialog: {
+      name: 'Dialog',
+      props: ['modelValue', 'title', 'description', 'showFooter', 'size', 'showCloseButton'],
+      emits: ['update:modelValue'],
+      template: `
+        <div v-if="modelValue" role="dialog" aria-modal="true">
+          <div v-if="$slots.header" class="dialog-header"><slot name="header" /></div>
+          <div class="dialog-body"><slot /></div>
+          <div v-if="$slots.footer" class="dialog-footer"><slot name="footer" /></div>
+        </div>
+      `,
+    },
+  };
+});
+
 const mockT = (key: string, args?: unknown[]) => (args ? `${key} ${JSON.stringify(args)}` : key);
 
 const mockComponents = {
-  Dialog: {
-    template: `
-      <div data-testid="modal" v-if="modelValue" role="dialog" aria-modal="true">
-        <div data-testid="modal-header"><slot name="header" /></div>
-        <div data-testid="modal-body"><slot /></div>
-        <div data-testid="modal-footer"><slot name="footer" /></div>
-        <div data-testid="modal-subfooter"><slot name="subFooter" /></div>
-      </div>
-    `,
-    props: [
-      'modelValue',
-      'title',
-      'description',
-      'showFooter',
-      'size',
-    ],
-    emits: ['update:modelValue'],
-  },
   ActivationPartnerLogo: {
     template: '<div data-testid="partner-logo"></div>',
   },
   ActivationSteps: {
     template: '<div data-testid="activation-steps" :active-step="activeStep"></div>',
     props: ['activeStep'],
-  },
-  BrandButton: {
-    template:
-      '<button data-testid="brand-button" :disabled="disabled" @click="$emit(\'click\')"><slot /></button>',
-    props: ['text', 'disabled'],
-    emits: ['click'],
   },
 };
 
@@ -71,33 +68,6 @@ vi.mock('~/components/Activation/store/activationCodeData', () => ({
 
 vi.mock('~/store/theme', () => ({
   useThemeStore: () => mockThemeStore,
-}));
-
-vi.mock('@unraid/ui', () => ({
-  BrandButton: {
-    template:
-      '<button data-testid="brand-button" :disabled="disabled" @click="$emit(\'click\')">{{ text }}</button>',
-    props: ['text', 'disabled'],
-    emits: ['click'],
-  },
-  Dialog: {
-    template: `
-      <div data-testid="modal" v-if="modelValue" role="dialog" aria-modal="true">
-        <div data-testid="modal-header"><slot name="header" /></div>
-        <div data-testid="modal-body"><slot /></div>
-        <div data-testid="modal-footer"><slot name="footer" /></div>
-        <div data-testid="modal-subfooter"><slot name="subFooter" /></div>
-      </div>
-    `,
-    props: [
-      'modelValue',
-      'title',
-      'description',
-      'showFooter',
-      'size',
-    ],
-    emits: ['update:modelValue'],
-  },
 }));
 
 describe('Activation/WelcomeModal.ce.vue', () => {
@@ -181,21 +151,28 @@ describe('Activation/WelcomeModal.ce.vue', () => {
 
   it('hides modal when Create a password button is clicked', async () => {
     const wrapper = mountComponent();
-    const button = wrapper.find('[data-testid="brand-button"]');
+    const button = wrapper.find('button');
 
     expect(button.exists()).toBe(true);
+
+    // Initially dialog should be visible
+    let dialog = wrapper.findComponent({ name: 'Dialog' });
+    expect(dialog.exists()).toBe(true);
+    expect(dialog.props('modelValue')).toBe(true);
 
     await button.trigger('click');
     await wrapper.vm.$nextTick();
 
-    expect(wrapper.find('[data-testid="modal"]').exists()).toBe(false);
+    // After click, dialog modelValue should be false
+    dialog = wrapper.findComponent({ name: 'Dialog' });
+    expect(dialog.props('modelValue')).toBe(false);
   });
 
   it('does not disable the Create a password button when loading', () => {
     mockActivationCodeDataStore.loading.value = true;
 
     const wrapper = mountComponent();
-    const button = wrapper.find('[data-testid="brand-button"]');
+    const button = wrapper.find('button');
 
     expect(button.attributes('disabled')).toBe(undefined);
   });
@@ -256,7 +233,7 @@ describe('Activation/WelcomeModal.ce.vue', () => {
 
       expect(mockSetProperty).toHaveBeenCalledWith('font-size', '62.5%');
 
-      const button = wrapper.find('[data-testid="brand-button"]');
+      const button = wrapper.find('button');
       await button.trigger('click');
       await wrapper.vm.$nextTick();
 
@@ -267,21 +244,23 @@ describe('Activation/WelcomeModal.ce.vue', () => {
   describe('Modal properties', () => {
     it('passes correct props to Dialog component', () => {
       const wrapper = mountComponent();
-      const dialog = wrapper.find('[data-testid="modal"]');
+      const dialog = wrapper.findComponent({ name: 'Dialog' });
 
       expect(dialog.exists()).toBe(true);
-      // The Dialog component is rendered correctly
-      expect(wrapper.html()).toContain('data-testid="modal"');
+      expect(dialog.props()).toMatchObject({
+        modelValue: true,
+        showFooter: false,
+        showCloseButton: false,
+        size: 'full',
+      });
     });
 
-    it('renders modal with correct accessibility attributes', () => {
+    it('renders modal with correct content', () => {
       const wrapper = mountComponent();
-      const dialog = wrapper.find('[data-testid="modal"]');
-
-      expect(dialog.attributes()).toMatchObject({
-        role: 'dialog',
-        'aria-modal': 'true',
-      });
+      
+      // Check that the modal is rendered
+      expect(wrapper.text()).toContain('Welcome to Unraid!');
+      expect(wrapper.text()).toContain('Create a password');
     });
   });
 });

@@ -71,7 +71,7 @@ const needsBrandGradientBackground = computed(() => {
   >
     <div
       v-if="variant === 'fill'"
-      class="absolute -top-[2px] -right-[2px] -bottom-[2px] -left-[2px] -z-10 bg-gradient-to-r from-unraid-red to-orange opacity-100 transition-all rounded-md group-hover:opacity-60 group-focus:opacity-60"
+      class="absolute -top-[2px] -right-[2px] -bottom-[2px] -left-[2px] -z-10 bg-gradient-to-r from-unraid-red to-orange opacity-100 transition-all rounded-md group-hover:opacity-60"
     />
     <!-- gives outline buttons the brand gradient background -->
     <div
