@@ -1,9 +1,14 @@
 import { ConfigService } from '@nestjs/config';
+import { readFile } from 'node:fs/promises';
 
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { ApiConfigPersistence } from '@app/unraid-api/config/api-config.module.js';
+import { fileExists } from '@app/core/utils/files/file-exists.js';
+import { ApiConfigPersistence, loadApiConfig } from '@app/unraid-api/config/api-config.module.js';
 import { ConfigPersistenceHelper } from '@app/unraid-api/config/persistence.helper.js';
+
+vi.mock('node:fs/promises');
+vi.mock('@app/core/utils/files/file-exists.js');
 
 describe('ApiConfigPersistence', () => {
     let service: ApiConfigPersistence;
@@ -133,5 +138,97 @@ describe('ApiConfigPersistence', () => {
             ]);
             expect(result.ssoSubIds).toEqual(['sub1', 'sub2', 'sub3']);
         });
+    });
+});
+
+describe('loadApiConfig', () => {
+    beforeEach(() => {
+        vi.clearAllMocks();
+        vi.spyOn(console, 'error').mockImplementation(() => {});
+    });
+
+    it('should return default config when file does not exist', async () => {
+        vi.mocked(fileExists).mockResolvedValue(false);
+
+        const result = await loadApiConfig();
+
+        expect(result).toEqual({
+            version: expect.any(String),
+            extraOrigins: [],
+            sandbox: false,
+            ssoSubIds: [],
+            plugins: [],
+        });
+    });
+
+    it('should merge disk config with defaults when file exists', async () => {
+        const diskConfig = {
+            extraOrigins: ['https://example.com'],
+            sandbox: true,
+            ssoSubIds: ['sub1', 'sub2'],
+        };
+
+        vi.mocked(fileExists).mockResolvedValue(true);
+        vi.mocked(readFile).mockResolvedValue(JSON.stringify(diskConfig));
+
+        const result = await loadApiConfig();
+
+        expect(result).toEqual({
+            version: expect.any(String),
+            extraOrigins: ['https://example.com'],
+            sandbox: true,
+            ssoSubIds: ['sub1', 'sub2'],
+            plugins: [],
+        });
+    });
+
+    it('should use default config when JSON parsing fails', async () => {
+        vi.mocked(fileExists).mockResolvedValue(true);
+        vi.mocked(readFile).mockResolvedValue('{ invalid json }');
+
+        const result = await loadApiConfig();
+
+        expect(console.error).toHaveBeenCalledWith(
+            'Failed to load API config from disk, using defaults:',
+            expect.any(Error)
+        );
+        expect(result).toEqual({
+            version: expect.any(String),
+            extraOrigins: [],
+            sandbox: false,
+            ssoSubIds: [],
+            plugins: [],
+        });
+    });
+
+    it('should use default config when file is empty', async () => {
+        vi.mocked(fileExists).mockResolvedValue(true);
+        vi.mocked(readFile).mockResolvedValue('');
+
+        const result = await loadApiConfig();
+
+        expect(console.error).not.toHaveBeenCalled();
+        expect(result).toEqual({
+            version: expect.any(String),
+            extraOrigins: [],
+            sandbox: false,
+            ssoSubIds: [],
+            plugins: [],
+        });
+    });
+
+    it('should always override version with current API_VERSION', async () => {
+        const diskConfig = {
+            version: 'old-version',
+            extraOrigins: ['https://example.com'],
+        };
+
+        vi.mocked(fileExists).mockResolvedValue(true);
+        vi.mocked(readFile).mockResolvedValue(JSON.stringify(diskConfig));
+
+        const result = await loadApiConfig();
+
+        expect(result.version).not.toBe('old-version');
+        expect(result.version).toBeTruthy();
     });
 });
