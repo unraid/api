@@ -33,44 +33,54 @@ export const persistApiConfig = async (config: ApiConfig) => {
 };
 
 export const loadApiConfig = async () => {
-    const defaultConfig = createDefaultConfig();
-    const apiConfig = new ApiStateConfig<ApiConfig>(
-        {
-            name: 'api',
-            defaultConfig,
-            parse: (data) => data as ApiConfig,
-        },
-        new ConfigPersistenceHelper()
-    );
-
-    let diskConfig: ApiConfig | undefined;
     try {
-        diskConfig = await apiConfig.parseConfig();
-    } catch (error) {
-        console.error('Failed to load API config from disk, using defaults:', error);
-        diskConfig = undefined;
+        const defaultConfig = createDefaultConfig();
+        const apiConfig = new ApiStateConfig<ApiConfig>(
+            {
+                name: 'api',
+                defaultConfig,
+                parse: (data) => data as ApiConfig,
+            },
+            new ConfigPersistenceHelper()
+        );
 
-        // Try to overwrite the invalid config with defaults to fix the issue
-        const configToWrite = {
+        let diskConfig: ApiConfig | undefined;
+        try {
+            diskConfig = await apiConfig.parseConfig();
+        } catch (error) {
+            console.error('Failed to load API config from disk, using defaults:', error);
+            diskConfig = undefined;
+
+            // Try to overwrite the invalid config with defaults to fix the issue
+            try {
+                const configToWrite = {
+                    ...defaultConfig,
+                    version: API_VERSION,
+                };
+
+                const writeSuccess = await apiConfig.persist(configToWrite);
+                if (writeSuccess) {
+                    console.error('Successfully overwrote invalid config file with defaults.');
+                } else {
+                    console.error(
+                        'Failed to overwrite invalid config file. Continuing with defaults in memory only.'
+                    );
+                }
+            } catch (persistError) {
+                console.error('Error during config file repair:', persistError);
+            }
+        }
+
+        return {
             ...defaultConfig,
+            ...diskConfig,
             version: API_VERSION,
         };
-
-        const writeSuccess = await apiConfig.persist(configToWrite);
-        if (writeSuccess) {
-            console.error('Successfully overwrote invalid config file with defaults.');
-        } else {
-            console.error(
-                'Failed to overwrite invalid config file. Continuing with defaults in memory only.'
-            );
-        }
+    } catch (outerError) {
+        // This should never happen, but ensures the config factory never throws
+        console.error('Critical error in loadApiConfig, using minimal defaults:', outerError);
+        return createDefaultConfig();
     }
-
-    return {
-        ...defaultConfig,
-        ...diskConfig,
-        version: API_VERSION,
-    };
 };
 
 /**
