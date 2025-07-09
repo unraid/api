@@ -1,5 +1,14 @@
 # Changelog
 
+## [4.9.2](https://github.com/unraid/api/compare/v4.9.1...v4.9.2) (2025-07-09)
+
+
+### Bug Fixes
+
+* invalid configs no longer crash API ([#1491](https://github.com/unraid/api/issues/1491)) ([6bf3f77](https://github.com/unraid/api/commit/6bf3f776380edeff5133517e6aca223556e30144))
+* invalid state for unraid plugin ([#1492](https://github.com/unraid/api/issues/1492)) ([39b8f45](https://github.com/unraid/api/commit/39b8f453da23793ef51f8e7f7196370aada8c5aa))
+* release note escaping ([5b6bcb6](https://github.com/unraid/api/commit/5b6bcb6043a5269bff4dc28714d787a5a3f07e22))
+
 ## [4.9.1](https://github.com/unraid/api/compare/v4.9.0...v4.9.1) (2025-07-08)
 
 
