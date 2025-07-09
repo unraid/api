@@ -1,5 +1,12 @@
 # Changelog
 
+## [4.9.3](https://github.com/unraid/api/compare/v4.9.2...v4.9.3) (2025-07-09)
+
+
+### Bug Fixes
+
+* duplicated header logo after api stops ([#1493](https://github.com/unraid/api/issues/1493)) ([4168f43](https://github.com/unraid/api/commit/4168f43e3ecd51479bec3aae585abbe6dcd3e416))
+
 ## [4.9.2](https://github.com/unraid/api/compare/v4.9.1...v4.9.2) (2025-07-09)
 
 
