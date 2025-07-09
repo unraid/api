@@ -65,13 +65,6 @@ if (is_localhost() && !is_good_session()) {
         return this.prependDoctypeWithPhp(source, newPhpCode);
     }
 
-    private hideHeaderLogo(source: string): string {
-        return source.replace(
-            '<a href="https://unraid.net" target="_blank"><?readfile("$docroot/webGui/images/UN-logotype-gradient.svg")?></a>',
-            ''
-        );
-    }
-
     private addModalsWebComponent(source: string): string {
         return source.replace('<body>', '<body>\n<unraid-modals></unraid-modals>');
     }
@@ -81,7 +74,6 @@ if (is_localhost() && !is_good_session()) {
             this.replaceToasts.bind(this),
             this.addToaster.bind(this),
             this.patchGuiBootAuth.bind(this),
-            this.hideHeaderLogo.bind(this),
             this.addModalsWebComponent.bind(this),
         ];
 
