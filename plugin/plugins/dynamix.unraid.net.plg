@@ -138,6 +138,21 @@ exit 0
     </INLINE>
   </FILE>
 
+  <FILE Run="/bin/bash" Method="install">
+    <INLINE>
+      <![CDATA[
+      echo "Patching header logo..."
+      
+      # Remove the old header logo from DefaultPageLayout.php
+      if [ -f "/usr/local/emhttp/plugins/dynamix/include/DefaultPageLayout.php" ]; then
+        echo "Removing old header logo from DefaultPageLayout.php..."
+        sed -i 's|<a href="https://unraid.net" target="_blank"><?readfile("$docroot/webGui/images/UN-logotype-gradient.svg")?></a>||g' "/usr/local/emhttp/plugins/dynamix/include/DefaultPageLayout.php"
+      fi
+
+      ]]>
+    </INLINE>
+  </FILE>
+
   <FILE Run="/bin/bash" Method="remove">
     <INLINE>
       MAINNAME="&name;"
