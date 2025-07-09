@@ -1,23 +1,16 @@
-import { Injectable, Logger, OnApplicationBootstrap, OnModuleDestroy } from '@nestjs/common';
+import { Injectable, Logger, OnApplicationBootstrap } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { EventEmitter2 } from '@nestjs/event-emitter';
+import { OnEvent } from '@nestjs/event-emitter';
 import { writeFile } from 'fs/promises';
-import { Subject, Subscription } from 'rxjs';
-import { debounceTime } from 'rxjs/operators';
 
 import { ConfigType, ConnectionMetadata } from '../config/connect.config.js';
 import { EVENTS } from '../helper/nest-tokens.js';
 
 @Injectable()
-export class ConnectStatusWriterService implements OnApplicationBootstrap, OnModuleDestroy {
-    constructor(
-        private readonly configService: ConfigService<ConfigType, true>,
-        private readonly eventEmitter: EventEmitter2
-    ) {}
+export class ConnectStatusWriterService implements OnApplicationBootstrap {
+    constructor(private readonly configService: ConfigService<ConfigType, true>) {}
 
     private logger = new Logger(ConnectStatusWriterService.name);
-    private writeSubject = new Subject<void>();
-    private writeSubscription: Subscription | null = null;
 
     get statusFilePath() {
         // Write to /var/local/emhttp/connectStatus.json so PHP can read it
@@ -27,29 +20,12 @@ export class ConnectStatusWriterService implements OnApplicationBootstrap, OnMod
     async onApplicationBootstrap() {
         this.logger.verbose(`Status file path: ${this.statusFilePath}`);
 
-        // Set up debounced writing
-        this.writeSubscription = this.writeSubject
-            .pipe(debounceTime(100)) // Debounce rapid writes
-            .subscribe(() => this.performWrite());
-
         // Write initial status
-        await this.performWrite();
-
-        // Listen for events
-        this.eventEmitter.on(EVENTS.MOTHERSHIP_CONNECTION_STATUS_CHANGED, () => {
-            this.writeSubject.next();
-        });
+        await this.writeStatus();
     }
 
-    async onModuleDestroy() {
-        if (this.writeSubscription) {
-            this.writeSubscription.unsubscribe();
-            this.writeSubscription = null;
-        }
-        this.writeSubject.complete();
-    }
-
-    private async performWrite() {
+    @OnEvent(EVENTS.MOTHERSHIP_CONNECTION_STATUS_CHANGED, { async: true })
+    private async writeStatus() {
         try {
             const connectionMetadata = this.configService.get<ConnectionMetadata>('connect.mothership');
 
