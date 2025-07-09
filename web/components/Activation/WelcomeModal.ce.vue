@@ -82,7 +82,7 @@ watchEffect(() => {
           </p>
         </div>
 
-        <div class="flex flex-col justify-start p-6 w-2/4">
+        <div class="flex flex-col p-6">
           <div class="mx-auto mt-6 mb-8">
             <BrandButton :text="t('Create a password')" :disabled="loading" @click="dropdownHide" />
           </div>
