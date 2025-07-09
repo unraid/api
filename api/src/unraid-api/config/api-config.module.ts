@@ -42,7 +42,15 @@ export const loadApiConfig = async () => {
         },
         new ConfigPersistenceHelper()
     );
-    const diskConfig = await apiConfig.parseConfig();
+
+    let diskConfig: ApiConfig | undefined;
+    try {
+        diskConfig = await apiConfig.parseConfig();
+    } catch (error) {
+        console.error('Failed to load API config from disk, using defaults:', error);
+        diskConfig = undefined;
+    }
+
     return {
         ...defaultConfig,
         ...diskConfig,

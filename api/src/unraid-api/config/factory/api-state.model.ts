@@ -76,8 +76,23 @@ export class ApiStateConfig<T> {
         const { filePath = this.filePath } = opts;
         if (!(await fileExists(filePath))) return undefined;
 
-        const rawConfig = JSON.parse(await readFile(filePath, 'utf8'));
-        return this.options.parse(rawConfig);
+        const fileContent = await readFile(filePath, 'utf8');
+
+        if (!fileContent || fileContent.trim() === '') {
+            this.logger.warn(`Config file '${filePath}' is empty.`);
+            return undefined;
+        }
+
+        try {
+            const rawConfig = JSON.parse(fileContent);
+            return this.options.parse(rawConfig);
+        } catch (error) {
+            this.logger.error(
+                `Failed to parse JSON from '${filePath}': ${error instanceof Error ? error.message : String(error)}`
+            );
+            this.logger.debug(`File content: ${fileContent.substring(0, 100)}...`);
+            throw error;
+        }
     }
 
     /**
