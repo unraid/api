@@ -1,5 +1,5 @@
 import { ConfigService } from '@nestjs/config';
-import { mkdir, readFile, rm } from 'fs/promises';
+import { access, constants, mkdir, readFile, rm } from 'fs/promises';
 import { join } from 'path';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
@@ -38,6 +38,7 @@ describe('ConnectStatusWriterService Integration', () => {
     });
 
     afterEach(async () => {
+        await service.onModuleDestroy();
         await rm(testDir, { recursive: true, force: true });
     });
 
@@ -141,5 +142,26 @@ describe('ConnectStatusWriterService Integration', () => {
         
         // Should have initial write + 3 additional writes
         expect(writes.length).toBe(initialWrites + 3);
+    });
+
+    describe('cleanup on shutdown', () => {
+        it('should delete status file on module destroy', async () => {
+            await service.onApplicationBootstrap();
+            await new Promise(resolve => setTimeout(resolve, 50));
+
+            // Verify file exists
+            await expect(access(testFilePath, constants.F_OK)).resolves.not.toThrow();
+
+            // Cleanup
+            await service.onModuleDestroy();
+
+            // Verify file is deleted
+            await expect(access(testFilePath, constants.F_OK)).rejects.toThrow();
+        });
+
+        it('should handle cleanup gracefully when file does not exist', async () => {
+            // Don't bootstrap (so no file is created)
+            await expect(service.onModuleDestroy()).resolves.not.toThrow();
+        });
     });
 });
