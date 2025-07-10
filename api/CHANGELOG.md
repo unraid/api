@@ -1,5 +1,12 @@
 # Changelog
 
+## [4.9.5](https://github.com/unraid/api/compare/v4.9.4...v4.9.5) (2025-07-10)
+
+
+### Bug Fixes
+
+* **connect:** rm eager restart on `ERROR_RETYING` connection status ([#1502](https://github.com/unraid/api/issues/1502)) ([dd759d9](https://github.com/unraid/api/commit/dd759d9f0f841b296f8083bc67c6cd3f7a69aa5b))
+
 ## [4.9.4](https://github.com/unraid/api/compare/v4.9.3...v4.9.4) (2025-07-09)
 
 
