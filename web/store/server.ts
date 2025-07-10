@@ -511,13 +511,13 @@ export const useServerStore = defineStore('server', () => {
             '<p>Choose an option below, then use our <a href="https://unraid.net/getting-started" target="_blank" rel="noreffer noopener">Getting Started Guide</a> to configure your array in less than 15 minutes.</p>',
         };
       case 'TRIAL':
-        if (trialWithin5DaysOfExpiration.value && trialExtensionEligible.value) {
+        if (trialExtensionEligibleInsideRenewalWindow.value) {
           trialMessage = '<p>Your <em>Trial</em> key includes all the functionality and device support of an <em>Unleashed</em> key.</p><p>Your trial is expiring soon. When it expires, <strong>the array will stop</strong>. You may extend your trial now, purchase a license key, or wait until expiration to take action.</p>';
-        } else if (trialWithin5DaysOfExpiration.value && !trialExtensionEligible.value) {
+        } else if (trialExtensionIneligibleInsideRenewalWindow.value) {
           trialMessage = '<p>Your <em>Trial</em> key includes all the functionality and device support of an <em>Unleashed</em> key.</p><p>Your trial is expiring soon and you have used all available extensions. When it expires, <strong>the array will stop</strong>. To continue using Unraid OS, you must purchase a license key.</p>';
-        } else if (!trialWithin5DaysOfExpiration.value && trialExtensionEligible.value) {
+        } else if (trialExtensionEligibleOutsideRenewalWindow.value) {
           trialMessage = '<p>Your <em>Trial</em> key includes all the functionality and device support of an <em>Unleashed</em> key.</p><p>When your <em>Trial</em> expires, <strong>the array will stop</strong>. At that point you may either purchase a license key or request a <em>Trial</em> extension.</p>';
-        } else {
+        } else { // would be trialExtensionIneligibleOutsideRenewalWindow if it wasn't an else conditionally
           trialMessage = '<p>Your <em>Trial</em> key includes all the functionality and device support of an <em>Unleashed</em> key.</p><p>You have used all available trial extensions. When your <em>Trial</em> expires, <strong>the array will stop</strong>. To continue using Unraid OS after expiration, you must purchase a license key.</p>';
         }
 
@@ -525,7 +525,7 @@ export const useServerStore = defineStore('server', () => {
           actions: [
             ...(!registered.value && connectPluginInstalled.value ? [signInAction.value] : []),
             ...[purchaseAction.value, redeemAction.value],
-            ...(trialExtensionEligible.value && trialWithin5DaysOfExpiration.value ? [trialExtendAction.value] : []),
+            ...(trialExtensionEligibleInsideRenewalWindow.value ? [trialExtendAction.value] : []),
             ...(registered.value && connectPluginInstalled.value ? [signOutAction.value] : []),
           ],
           humanReadable: 'Trial',
@@ -793,6 +793,9 @@ export const useServerStore = defineStore('server', () => {
     const daysUntilExpiration = expirationDate.diff(today, 'day');
     return daysUntilExpiration <= 5 && daysUntilExpiration >= 0;
   });
+  const trialExtensionEligibleInsideRenewalWindow = computed(() => trialExtensionEligible.value && trialWithin5DaysOfExpiration.value);
+  const trialExtensionEligibleOutsideRenewalWindow = computed(() => trialExtensionEligible.value && !trialWithin5DaysOfExpiration.value);
+  const trialExtensionIneligibleInsideRenewalWindow = computed(() => !trialExtensionEligible.value && trialWithin5DaysOfExpiration.value);
 
   const serverConfigError = computed((): Error | undefined => {
     if (!config.value?.valid && config.value?.error) {
