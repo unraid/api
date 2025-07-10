@@ -94,7 +94,7 @@
     "eslint-plugin-storybook": "9.0.16",
     "eslint-plugin-vue": "10.2.0",
     "happy-dom": "18.0.0",
-    "jiti": "^2.4.2",
+    "jiti": "2.4.2",
     "postcss": "8.5.6",
     "postcss-import": "16.1.1",
     "prettier": "3.5.3",
@@ -112,7 +112,7 @@
     "vitest": "3.2.4",
     "vue": "3.5.17",
     "vue-tsc": "3.0.1",
-    "wrangler": "^3.87.0"
+    "wrangler": "3.114.10"
   },
   "optionalDependencies": {
     "@rollup/rollup-linux-x64-gnu": "4.44.0"
