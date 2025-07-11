@@ -1,5 +1,18 @@
 # Changelog
 
+## [4.10.0](https://github.com/unraid/api/compare/v4.9.5...v4.10.0) (2025-07-11)
+
+
+### Features
+
+* trial extension allowed within 5 days of expiration ([#1490](https://github.com/unraid/api/issues/1490)) ([f34a33b](https://github.com/unraid/api/commit/f34a33bc9f1a7e135d453d9d31888789bfc3f878))
+
+
+### Bug Fixes
+
+* **deps:** update all non-major dependencies ([#1489](https://github.com/unraid/api/issues/1489)) ([53b05eb](https://github.com/unraid/api/commit/53b05ebe5e2050cb0916fcd65e8d41370aee0624))
+* over-eager cloud query from web components ([#1506](https://github.com/unraid/api/issues/1506)) ([074370c](https://github.com/unraid/api/commit/074370c42cdecc4dbc58193ff518aa25735c56b3))
+
 ## [4.9.5](https://github.com/unraid/api/compare/v4.9.4...v4.9.5) (2025-07-10)
 
 
