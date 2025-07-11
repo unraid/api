@@ -44,7 +44,7 @@
     "deploy:storybook:staging": "pnpm build-storybook && wrangler deploy --env staging"
   },
   "peerDependencies": {
-    "tailwindcss": "3.4.17",
+    "tailwindcss": "4.1.11",
     "vue": "3.5.17"
   },
   "dependencies": {
@@ -102,7 +102,7 @@
     "rimraf": "6.0.1",
     "storybook": "9.0.16",
     "tailwind-rem-to-rem": "github:unraid/tailwind-rem-to-rem",
-    "tailwindcss": "3.4.17",
+    "tailwindcss": "4.1.11",
     "tailwindcss-animate": "1.0.7",
     "typescript": "5.8.3",
     "typescript-eslint": "8.36.0",
