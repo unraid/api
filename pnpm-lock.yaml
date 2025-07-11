@@ -1235,8 +1235,8 @@ importers:
         specifier: 2.2.0
         version: 2.2.0
       vite-plugin-vue-tracer:
-        specifier: 0.1.4
-        version: 0.1.4(vite@7.0.3(@types/node@22.15.32)(jiti@2.4.2)(stylus@0.57.0)(terser@5.43.1)(tsx@4.20.3)(yaml@2.8.0))(vue@3.5.17(typescript@5.8.3))
+        specifier: 1.0.0
+        version: 1.0.0(vite@7.0.3(@types/node@22.15.32)(jiti@2.4.2)(stylus@0.57.0)(terser@5.43.1)(tsx@4.20.3)(yaml@2.8.0))(vue@3.5.17(typescript@5.8.3))
       vitest:
         specifier: 3.2.4
         version: 3.2.4(@types/node@22.15.32)(@vitest/ui@3.2.4)(happy-dom@18.0.0)(jiti@2.4.2)(jsdom@26.1.0)(stylus@0.57.0)(terser@5.43.1)(tsx@4.20.3)(yaml@2.8.0)
@@ -12629,6 +12629,12 @@ packages:
     resolution: {integrity: sha512-o6tzfvwreQWg/S42vIPmSjXHj939p+a1gnl6VICpWgMtWqoVn21YlK4X63nZvQV/D0mmJe5CCtV/h0zaNdAL6g==}
     peerDependencies:
       vite: ^6.0.0
+      vue: ^3.5.0
+
+  vite-plugin-vue-tracer@1.0.0:
+    resolution: {integrity: sha512-a+UB9IwGx5uwS4uG/a9kM6fCMnxONDkOTbgCUbhFpiGhqfxrrC1+9BibV7sWwUnwj1Dg6MnRxG0trLgUZslDXA==}
+    peerDependencies:
+      vite: ^6.0.0 || ^7.0.0
       vue: ^3.5.0
 
   vite-plugin-vuetify@2.1.0:
@@ -26388,6 +26394,16 @@ snapshots:
       - supports-color
 
   vite-plugin-vue-tracer@0.1.4(vite@7.0.3(@types/node@22.15.32)(jiti@2.4.2)(stylus@0.57.0)(terser@5.43.1)(tsx@4.20.3)(yaml@2.8.0))(vue@3.5.17(typescript@5.8.3)):
+    dependencies:
+      estree-walker: 3.0.3
+      exsolve: 1.0.7
+      magic-string: 0.30.17
+      pathe: 2.0.3
+      source-map-js: 1.2.1
+      vite: 7.0.3(@types/node@22.15.32)(jiti@2.4.2)(stylus@0.57.0)(terser@5.43.1)(tsx@4.20.3)(yaml@2.8.0)
+      vue: 3.5.17(typescript@5.8.3)
+
+  vite-plugin-vue-tracer@1.0.0(vite@7.0.3(@types/node@22.15.32)(jiti@2.4.2)(stylus@0.57.0)(terser@5.43.1)(tsx@4.20.3)(yaml@2.8.0))(vue@3.5.17(typescript@5.8.3)):
     dependencies:
       estree-walker: 3.0.3
       exsolve: 1.0.7
