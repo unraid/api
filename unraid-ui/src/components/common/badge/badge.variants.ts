@@ -1,4 +1,5 @@
-import { cva, VariantProps } from 'class-variance-authority';
+import type { VariantProps } from 'class-variance-authority';
+import { cva } from 'class-variance-authority';
 
 export const badgeVariants = cva(
   'inline-flex items-center rounded-full font-semibold leading-none transition-all duration-200 ease-in-out unraid-ui-badge-test',

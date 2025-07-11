@@ -1,11 +1,14 @@
 import { Logger } from '@nestjs/common';
 import { Args, ResolveField, Resolver } from '@nestjs/graphql';
 
+import { Resource } from '@unraid/shared/graphql.model';
+import { PrefixedID } from '@unraid/shared/prefixed-id-scalar';
 import {
     AuthActionVerb,
     AuthPossession,
     UsePermissions,
-} from '@app/unraid-api/graph/directives/use-permissions.directive.js';
+} from '@unraid/shared/use-permissions.directive.js';
+
 import { BackupConfigService } from '@app/unraid-api/graph/resolvers/backup/backup-config.service.js';
 import {
     BackupJobConfig,
@@ -15,10 +18,8 @@ import {
     UpdateBackupJobConfigInput,
 } from '@app/unraid-api/graph/resolvers/backup/backup.model.js';
 import { BackupOrchestrationService } from '@app/unraid-api/graph/resolvers/backup/orchestration/backup-orchestration.service.js';
-import { Resource } from '@app/unraid-api/graph/resolvers/base.model.js';
 import { BackupMutations } from '@app/unraid-api/graph/resolvers/mutation/mutation.model.js';
 import { RCloneService } from '@app/unraid-api/graph/resolvers/rclone/rclone.service.js';
-import { PrefixedID } from '@app/unraid-api/graph/scalars/graphql-type-prefixed-id.js';
 
 @Resolver(() => BackupMutations)
 export class BackupMutationsResolver {

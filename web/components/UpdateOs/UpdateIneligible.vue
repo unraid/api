@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { ref, watchEffect } from 'vue';
+import { computed, ref, watchEffect } from 'vue';
 import { storeToRefs } from 'pinia';
 
 import { ArrowTopRightOnSquareIcon, ExclamationTriangleIcon, EyeIcon } from '@heroicons/vue/24/solid';
@@ -13,6 +13,7 @@ import useDateTimeHelper from '~/composables/dateTime';
 import { useServerStore } from '~/store/server';
 import { useUpdateOsStore } from '~/store/updateOs';
 import { useUpdateOsActionsStore } from '~/store/updateOsActions';
+import RegistrationUpdateExpiration from '~/components/Registration/UpdateExpiration.vue';
 
 const props = defineProps<{
   t: ComposerTranslation;

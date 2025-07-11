@@ -1,35 +1,23 @@
 import { graphql } from '~/composables/gql/gql';
 
 export const getConnectSettingsForm = graphql(/* GraphQL */ `
-  query GetConnectSettingsForm {
-    connect {
-      id
-      settings {
+  query Unified {
+    settings {
+      unified {
         id
         dataSchema
         uiSchema
-        values {
-          sandbox
-          extraOrigins
-          accessType
-          forwardType
-          port
-          ssoUserIds
-        }
+        values
       }
     }
   }
 `);
 
 export const updateConnectSettings = graphql(/* GraphQL */ `
-  mutation UpdateConnectSettings($input: ApiSettingsInput!) {
-    updateApiSettings(input: $input) {
-      sandbox
-      extraOrigins
-      accessType
-      forwardType
-      port
-      ssoUserIds
+  mutation UpdateConnectSettings($input: JSON!) {
+    updateSettings(input: $input) {
+      restartRequired
+      values
     }
   }
 `);

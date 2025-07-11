@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { h } from 'vue';
+import { computed, h } from 'vue';
 import { storeToRefs } from 'pinia';
 
 import { BrandButton, BrandLoading } from '@unraid/ui';
@@ -8,6 +8,8 @@ import type { ComposerTranslation } from 'vue-i18n';
 
 import { useServerStore } from '~/store/server';
 import { useUnraidApiStore } from '~/store/unraidApi';
+import UpcUptimeExpire from './UptimeExpire.vue';
+import KeyActions from '~/components/KeyActions.vue';
 
 defineProps<{ t: ComposerTranslation }>();
 

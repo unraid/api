@@ -1,3 +1,16 @@
 {
-  "demo": "hello.unraider"
+  "wanaccess": false,
+  "wanport": 0,
+  "upnpEnabled": false,
+  "apikey": "",
+  "localApiKey": "",
+  "email": "",
+  "username": "",
+  "avatar": "",
+  "regWizTime": "",
+  "accesstoken": "",
+  "idtoken": "",
+  "refreshtoken": "",
+  "dynamicRemoteAccessType": "DISABLED",
+  "ssoSubIds": []
 }

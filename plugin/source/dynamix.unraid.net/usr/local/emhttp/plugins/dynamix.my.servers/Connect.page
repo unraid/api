@@ -1,5 +1,5 @@
 Menu="ManagementAccess:100"
-Title="Unraid Connect"
+Title="Unraid API"
 Icon="icon-u-globe"
 Tag="globe"
 ---
@@ -14,6 +14,7 @@ Tag="globe"
  * all copies or substantial portions of the Software.
  */
 require_once "$docroot/plugins/dynamix.my.servers/include/state.php";
+require_once "$docroot/plugins/dynamix.my.servers/include/api-config.php";
 require_once "$docroot/webGui/include/Wrappers.php";
 $serverState = new ServerState();
 
@@ -27,6 +28,8 @@ $hasMyUnraidNetCert = preg_match('/.*\.myunraid\.net$/', $serverState->nginxCfg[
 
 $isRegistered = $serverState->registered;
 $isMiniGraphConnected = $serverState->myServersMiniGraphConnected;
+
+$isConnectPluginInstalled = ApiConfig::isConnectPluginEnabled();
 
 $flashbackup_status = $serverState->flashbackupStatus;
 
@@ -486,6 +489,7 @@ $('body').on('click', '.js-setCurrentHostExtraOrigins', function(e) {
 });
 </script>
 
+<?if($isConnectPluginInstalled):?>
 <div markdown="1" class="<?=$shade?>"><!-- begin Flash Backup section -->
 _(Flash backup)_:
 <?if(!$isRegistered):?>
@@ -563,6 +567,7 @@ $(function() {
 </script>
 <?endif // end show flash backup form ?>
 </div><!-- end Flash Backup section -->
+<?endif // end connect plugin check ?>
 
 <!-- legacy search compatibility -->
 <div style="display:none;">
@@ -572,5 +577,5 @@ _(GraphQL API Developer Sandbox)_:
 </div>
 
 <!-- start unraid-api section -->
-<unraid-i18n-host><unraid-connect-settings></unraid-connect-settings></unraid-i18n-host>
+<unraid-connect-settings></unraid-connect-settings>
 <!-- end unraid-api section -->

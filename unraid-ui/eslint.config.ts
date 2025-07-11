@@ -1,13 +1,18 @@
+// For more info, see https://github.com/storybookjs/eslint-plugin-storybook#configuration-flat-config-format
+
 import eslint from '@eslint/js';
-// @ts-ignore-error No Declaration For This Plugin
 import importPlugin from 'eslint-plugin-import';
 import noRelativeImportPaths from 'eslint-plugin-no-relative-import-paths';
 import prettier from 'eslint-plugin-prettier';
 import vuePlugin from 'eslint-plugin-vue';
 import tseslint from 'typescript-eslint';
+import vueEslintParser from 'vue-eslint-parser';
+import storybook from 'eslint-plugin-storybook';
+// Import vue-eslint-parser as an ESM import
 
 // Common rules shared across file types
 const commonRules = {
+  '@typescript-eslint/consistent-type-imports': ['error', { prefer: 'type-imports' }],
   '@typescript-eslint/no-unused-vars': ['off'],
   'no-multiple-empty-lines': ['error', { max: 1, maxBOF: 0, maxEOF: 1 }],
   'no-relative-import-paths/no-relative-import-paths': [
@@ -75,77 +80,70 @@ const commonLanguageOptions = {
 
 // Define globals separately
 const commonGlobals = {
-  browser: true,
-  window: true,
-  document: true,
-  console: true,
-  Event: true,
-  HTMLElement: true,
-  HTMLInputElement: true,
-  CustomEvent: true,
-  es2022: true,
+  window: 'readonly',
+  document: 'readonly',
+  console: 'readonly',
+  Event: 'readonly',
+  HTMLElement: 'readonly',
+  HTMLInputElement: 'readonly',
+  CustomEvent: 'readonly',
 };
 
-export default [
-  // Base config from recommended configs
-  eslint.configs.recommended,
-  ...tseslint.configs.recommended,
-  
-  // TypeScript Files (.ts)
-  {
-    files: ['**/*.ts'],
-    languageOptions: {
+export default [// Base config from recommended configs
+eslint.configs.recommended, ...tseslint.configs.recommended, // TypeScript Files (.ts)
+{
+  files: ['**/*.ts'],
+  languageOptions: {
+    parser: tseslint.parser,
+    parserOptions: {
+      ...commonLanguageOptions,
+      ecmaFeatures: {
+        jsx: true,
+      },
+    },
+    globals: {
+      ...commonGlobals
+    },
+  },
+  plugins: {
+    'no-relative-import-paths': noRelativeImportPaths,
+    prettier: prettier,
+    import: importPlugin,
+  },
+  rules: {
+    ...commonRules,
+  },
+}, // Vue Files (.vue)
+{
+  files: ['**/*.vue'],
+  languageOptions: {
+    parser: vueEslintParser,
+    parserOptions: {
+      ...commonLanguageOptions,
       parser: tseslint.parser,
-      parserOptions: {
-        ...commonLanguageOptions,
-        ecmaFeatures: {
-          jsx: true,
-        },
-      },
-      globals: {
-        ...commonGlobals
+      ecmaFeatures: {
+        jsx: true,
       },
     },
-    plugins: {
-      'no-relative-import-paths': noRelativeImportPaths,
-      prettier: prettier,
-      import: importPlugin,
-    },
-    rules: {
-      ...commonRules,
+    globals: {
+      ...commonGlobals
     },
   },
-  
-  // Vue Files (.vue)
-  {
-    files: ['**/*.vue'],
-    languageOptions: {
-      parser: require('vue-eslint-parser'),
-      parserOptions: {
-        ...commonLanguageOptions,
-        parser: tseslint.parser,
-        ecmaFeatures: {
-          jsx: true,
-        },
-      },
-      globals: {
-        ...commonGlobals
-      },
-    },
-    plugins: {
-      'no-relative-import-paths': noRelativeImportPaths,
-      prettier: prettier,
-      import: importPlugin,
-      vue: vuePlugin,
-    },
-    rules: {
-      ...commonRules,
-      ...vueRules,
-    },
+  plugins: {
+    'no-relative-import-paths': noRelativeImportPaths,
+    prettier: prettier,
+    import: importPlugin,
+    vue: vuePlugin,
   },
-  
-  // Ignores
-  {
-    ignores: ['src/graphql/generated/client/**/*'],
+  rules: {
+    ...commonRules,
+    ...vueRules,
   },
-];
+}, // Ignores
+{
+  ignores: [
+    'src/graphql/generated/client/**/*',
+    'src/global.d.ts',
+    'eslint.config.ts',
+  ],
+}, ...storybook.configs["flat/recommended"]];

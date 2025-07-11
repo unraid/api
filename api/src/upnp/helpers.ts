@@ -10,7 +10,7 @@ import { type LeaseRenewalArgs } from '@app/store/modules/upnp.js';
 import { MockUpnpClient } from '@app/upnp/mock-upnp-client.js';
 
 // If we're in docker mode, load the mock client
-const upnpClient = IS_DOCKER
+export const upnpClient = IS_DOCKER
     ? new MockUpnpClient({ timeout: THIRTY_SECONDS_MS })
     : new Client({
           timeout: THIRTY_SECONDS_MS,

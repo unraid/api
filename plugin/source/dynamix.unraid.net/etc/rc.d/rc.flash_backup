@@ -1,6 +1,11 @@
 #!/bin/bash
 # This file is /etc/rc.d/rc.flash_backup
 # use at queue "f" for flash backup
+scripts_dir="/usr/local/share/dynamix.unraid.net/scripts"
+# This loads the API_CONFIG_HOME variable
+# shellcheck source=../usr/local/share/dynamix.unraid.net/scripts/api_utils.sh
+source "$scripts_dir/api_utils.sh"
+
 QUEUE=" -q f "
 TASKNAME="/etc/rc.d/rc.flash_backup watch"
 TASKACTION="/usr/local/emhttp/plugins/dynamix.my.servers/scripts/UpdateFlashBackup update"
@@ -8,8 +13,8 @@ last=$(date +%s)
 # set GIT_OPTIONAL_LOCKS=0 globally to reduce/eliminate writes to /boot
 export GIT_OPTIONAL_LOCKS=0
 
-FAST=1  #  1 second delay when waiting for git
-SLOW=10 # 10 second delay when waiting for git
+FAST=1          #  1 second delay when waiting for git
+SLOW=10         # 10 second delay when waiting for git
 THIRTYMINS=1800 # 30 minutes is 1800 seconds
 # wait for existing git commands to complete
 # $1 is the time in seconds to sleep when waiting. SLOW or FAST
@@ -153,25 +158,30 @@ _enabled() {
   local output
   output=$(git -C /boot config --get remote.origin.url 2>&1)
   if [[ "${output}" == *"backup.unraid.net"* ]]; then
-    return 0
+    # Also check if the connect API plugin is enabled
+    if "$scripts_dir/api_utils.sh" is_api_plugin_enabled unraid-api-plugin-connect; then
+      return 0
+    fi
   fi
   return 1
 }
 _connected() {
-  CFG=/var/local/emhttp/myservers.cfg
+  CFG=$API_CONFIG_HOME/connect.json
   [[ ! -f "${CFG}" ]] && return 1
-  # shellcheck disable=SC1090
-  source <(sed -nr '/\[remote\]/,/\[/{/username/p}' "${CFG}" 2>/dev/null)
-  # ensure signed in
+
+  username=$(jq -r '.username // empty' "${CFG}" 2>/dev/null)
   if [ -z "${username}" ]; then
     return 1
   fi
+  # the minigraph status is no longer synced to the connect config file
+  # to avoid a false negative, we'll omit this check for now.
+  #
   # shellcheck disable=SC1090
-  source <(sed -nr '/\[connectionStatus\]/,/\[/{/minigraph/p}' "${CFG}" 2>/dev/null)
-  # ensure connected
-  if [[ -z "${minigraph}" || "${minigraph}" != "CONNECTED" ]]; then
-    return 1
-  fi
+  # source <(sed -nr '/\[connectionStatus\]/,/\[/{/minigraph/p}' "${CFG}" 2>/dev/null)
+  # # ensure connected
+  # if [[ -z "${minigraph}" || "${minigraph}" != "CONNECTED" ]]; then
+  #   return 1
+  # fi
   return 0
 }
 _haserror() {

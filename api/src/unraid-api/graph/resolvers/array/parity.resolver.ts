@@ -1,17 +1,17 @@
 import { Query, Resolver, Subscription } from '@nestjs/graphql';
 
-import { PubSub } from 'graphql-subscriptions';
-
-import { PUBSUB_CHANNEL } from '@app/core/pubsub.js';
+import { Resource } from '@unraid/shared/graphql.model.js';
 import {
     AuthActionVerb,
     AuthPossession,
     UsePermissions,
-} from '@app/unraid-api/graph/directives/use-permissions.directive.js';
+} from '@unraid/shared/use-permissions.directive.js';
+import { PubSub } from 'graphql-subscriptions';
+
+import { PUBSUB_CHANNEL } from '@app/core/pubsub.js';
 import { ArrayService } from '@app/unraid-api/graph/resolvers/array/array.service.js';
 import { ParityCheck } from '@app/unraid-api/graph/resolvers/array/parity.model.js';
 import { ParityService } from '@app/unraid-api/graph/resolvers/array/parity.service.js';
-import { Resource } from '@app/unraid-api/graph/resolvers/base.model.js';
 
 const pubSub = new PubSub();
 

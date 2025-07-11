@@ -83,15 +83,9 @@ watch(
 
       const {
         __typename,
-        id,
-        currentJob,
         sourceConfig: fetchedSourceConfig,
         destinationConfig: fetchedDestinationConfig,
         schedule,
-        createdAt,
-        updatedAt,
-        lastRunAt,
-        lastRunStatus,
         ...baseConfigFields
       } = config;
 
@@ -101,6 +95,7 @@ watch(
       };
 
       if (fetchedSourceConfig) {
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
         const { __typename: st, ...sourceData } = fetchedSourceConfig as Record<string, unknown>;
         populatedDataForForm.sourceConfig = sourceData;
         if (typeof sourceData.type === 'string') {
@@ -109,6 +104,7 @@ watch(
       }
 
       if (fetchedDestinationConfig) {
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
         const { __typename: dt, ...destData } = fetchedDestinationConfig as Record<string, unknown>;
         populatedDataForForm.destinationConfig = destData;
         if (typeof destData.type === 'string') {
@@ -210,9 +206,13 @@ const submitForm = async () => {
     // Also remove sourceType and destinationType as they are likely derived for the UI
     // and the mutation probably expects type information within the nested config objects.
     const {
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       configStep,
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       showAdvanced,
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       sourceType, // Destructure to exclude from inputData
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       destinationType, // Destructure to exclude from inputData
       ...mutationInputData // Contains name, enabled, schedule, sourceConfig (obj), destinationConfig (obj)
     } = formState.value;

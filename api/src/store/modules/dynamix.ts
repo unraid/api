@@ -1,6 +1,5 @@
 import type { PayloadAction } from '@reduxjs/toolkit';
 import { createSlice } from '@reduxjs/toolkit';
-import { merge } from 'lodash-es';
 
 import { type DynamixConfig } from '@app/core/types/ini.js';
 import { loadDynamixConfigFile } from '@app/store/actions/load-dynamix-config-file.js';
@@ -20,7 +19,7 @@ export const dynamix = createSlice({
     initialState,
     reducers: {
         updateDynamixConfig(state, action: PayloadAction<RecursivePartial<SliceState>>) {
-            return merge(state, action.payload);
+            return Object.assign(state, action.payload);
         },
     },
     extraReducers(builder) {
@@ -29,11 +28,14 @@ export const dynamix = createSlice({
         });
 
         builder.addCase(loadDynamixConfigFile.fulfilled, (state, action) => {
-            merge(state, action.payload, { status: FileLoadStatus.LOADED });
+            return {
+                ...(action.payload as DynamixConfig),
+                status: FileLoadStatus.LOADED,
+            };
         });
 
         builder.addCase(loadDynamixConfigFile.rejected, (state, action) => {
-            merge(state, action.payload, {
+            Object.assign(state, action.payload, {
                 status: FileLoadStatus.FAILED_LOADING,
             });
         });

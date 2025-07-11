@@ -1,30 +1,33 @@
+import { ConfigService } from '@nestjs/config';
 import { Query, Resolver } from '@nestjs/graphql';
 
-import { bootTimestamp } from '@app/common/dashboard/boot-timestamp.js';
-import { API_VERSION } from '@app/environment.js';
-import { store } from '@app/store/index.js';
+import { Resource } from '@unraid/shared/graphql.model.js';
 import {
     AuthActionVerb,
     AuthPossession,
     UsePermissions,
-} from '@app/unraid-api/graph/directives/use-permissions.directive.js';
-import { Resource } from '@app/unraid-api/graph/resolvers/base.model.js';
-import { DynamicRemoteAccessType } from '@app/unraid-api/graph/resolvers/connect/connect.model.js';
+} from '@unraid/shared/use-permissions.directive.js';
+
+import { bootTimestamp } from '@app/common/dashboard/boot-timestamp.js';
+import { API_VERSION } from '@app/environment.js';
 import { Service } from '@app/unraid-api/graph/services/service.model.js';
 
 @Resolver(() => Service)
 export class ServicesResolver {
-    constructor() {}
+    constructor(private readonly configService: ConfigService) {}
 
     private getDynamicRemoteAccessService = (): Service | null => {
-        const { config, dynamicRemoteAccess } = store.getState();
-        const enabledStatus = config.remote.dynamicRemoteAccessType;
+        const connectConfig = this.configService.get('connect');
+        if (!connectConfig) {
+            return null;
+        }
+        const enabledStatus = connectConfig.config.dynamicRemoteAccessType;
 
         return {
             id: 'service/dynamic-remote-access',
             name: 'dynamic-remote-access',
-            online: enabledStatus !== DynamicRemoteAccessType.DISABLED,
-            version: dynamicRemoteAccess.runningType,
+            online: enabledStatus && enabledStatus !== 'DISABLED',
+            version: connectConfig.dynamicRemoteAccess?.runningType,
             uptime: {
                 timestamp: bootTimestamp.toISOString(),
             },

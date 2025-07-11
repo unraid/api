@@ -1,8 +1,8 @@
-import type { Meta, StoryObj } from "@storybook/vue3";
-import { Input as InputComponent } from "../../../src/components/form/input";
+import type { Meta, StoryObj } from '@storybook/vue3-vite';
+import { Input as InputComponent } from '../../../src/components/form/input/index.js';
 
 const meta = {
-  title: "Components/Form/Input",
+  title: 'Components/Form/Input',
   component: InputComponent,
 } satisfies Meta<typeof InputComponent>;
 
@@ -21,4 +21,3 @@ export const Input: Story = {
     `,
   }),
 };
- 

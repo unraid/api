@@ -1,22 +1,20 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue';
+import { useQuery } from '@vue/apollo-composable';
+import { SSO_ENABLED } from '~/store/account.fragment';
 
 import { BrandButton } from '@unraid/ui';
 import { ACCOUNT } from '~/helpers/urls';
-
-export interface Props {
-  ssoenabled?: boolean | string;
-  ssoEnabled?: boolean;
-}
-const props = defineProps<Props>();
 
 type CurrentState = 'loading' | 'idle' | 'error';
 
 const currentState = ref<CurrentState>('idle');
 const error = ref<string | null>(null);
 
+const { result } = useQuery(SSO_ENABLED);
+
 const isSsoEnabled = computed<boolean>(
-  () => props['ssoenabled'] === true || props['ssoenabled'] === 'true' || props.ssoEnabled
+  () => result.value?.isSSOEnabled ?? false
 );
 
 const getInputFields = (): {
@@ -136,19 +134,21 @@ const navigateToExternalSSOUrl = () => {
 </script>
 
 <template>
-  <template v-if="isSsoEnabled">
-    <div class="w-full flex flex-col gap-1 my-1">
-      <p v-if="currentState === 'idle' || currentState === 'error'" class="text-center">or</p>
-      <p v-if="currentState === 'error'" class="text-red-500 text-center">{{ error }}</p>
-      <BrandButton
-        :disabled="currentState === 'loading'"
-        variant="outline"
-        class="rounded-none uppercase tracking-widest"
-        @click="navigateToExternalSSOUrl"
-        >{{ buttonText }}</BrandButton
-      >
-    </div>
-  </template>
+  <div>
+    <template v-if="isSsoEnabled">
+      <div class="w-full flex flex-col gap-1 my-1">
+        <p v-if="currentState === 'idle' || currentState === 'error'" class="text-center">or</p>
+        <p v-if="currentState === 'error'" class="text-red-500 text-center">{{ error }}</p>
+        <BrandButton
+          :disabled="currentState === 'loading'"
+          variant="outline"
+          class="rounded-none uppercase tracking-widest"
+          @click="navigateToExternalSSOUrl"
+          >{{ buttonText }}</BrandButton
+        >
+      </div>
+    </template>
+  </div>
 </template>
 
 <style lang="postcss">

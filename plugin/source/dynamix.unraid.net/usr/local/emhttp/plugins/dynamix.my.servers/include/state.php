@@ -17,6 +17,7 @@ $docroot = $docroot ?? $_SERVER['DOCUMENT_ROOT'] ?: '/usr/local/emhttp';
 
 require_once "$docroot/plugins/dynamix.my.servers/include/reboot-details.php";
 require_once "$docroot/plugins/dynamix.plugin.manager/include/UnraidCheck.php";
+require_once "$docroot/plugins/dynamix.my.servers/include/api-config.php";
 /**
  * ServerState class encapsulates server-related information and settings.
  *
@@ -146,18 +147,12 @@ class ServerState
 
     private function setConnectValues()
     {
-        if (file_exists('/usr/local/bin/unraid-api')) {
-            $this->connectPluginInstalled = 'dynamix.unraid.net.plg';
+        if (!ApiConfig::isConnectPluginEnabled()) {
+            return; // plugin is not installed; exit early
         }
         
-        // exit early if the plugin is not installed
-        if (!$this->connectPluginInstalled) {
-            return;
-        }
-
-        // Get version directly using api_utils.sh get_api_version function
-        $this->connectPluginVersion = trim(@exec('/usr/local/share/dynamix.unraid.net/scripts/api_utils.sh get_api_version 2>/dev/null')) ?: 'unknown';
-
+        $this->connectPluginInstalled = 'dynamix.unraid.net.plg';
+        $this->connectPluginVersion = ApiConfig::getApiVersion();
         $this->getMyServersCfgValues();
         $this->getConnectKnownOrigins();
         $this->getFlashBackupStatus();
@@ -173,38 +168,40 @@ class ServerState
     private function getMyServersCfgValues()
     {
         /**
-         * @todo can we read this from somewhere other than the flash? Connect page uses this path and /boot/config/plugins/dynamix.my.servers/myservers.cfg…
-         * - $myservers_memory_cfg_path ='/var/local/emhttp/myservers.cfg';
-         * - $mystatus = (file_exists($myservers_memory_cfg_path)) ? @parse_ini_file($myservers_memory_cfg_path) : [];
+         * Memory config is now written by the new API to /usr/local/emhttp/state/myservers.cfg
+         * This contains runtime state including connection status.
          */
         $flashCfgPath = '/boot/config/plugins/dynamix.my.servers/myservers.cfg';
         $this->myServersFlashCfg = file_exists($flashCfgPath) ? @parse_ini_file($flashCfgPath, true) : [];
+        $connectJsonPath = '/boot/config/plugins/dynamix.my.servers/configs/connect.json';
+        $connectConfig = file_exists($connectJsonPath) ? @json_decode(file_get_contents($connectJsonPath), true) : [];
+
         // ensure some vars are defined here so we don't have to test them later
-        if (empty($this->myServersFlashCfg['remote']['apikey'])) {
-            $this->myServersFlashCfg['remote']['apikey'] = "";
+        if (empty($connectConfig['apikey'])) {
+            $connectConfig['apikey'] = "";
         }
-        if (empty($this->myServersFlashCfg['remote']['wanaccess'])) {
-            $this->myServersFlashCfg['remote']['wanaccess'] = "no";
+        if (empty($connectConfig['wanaccess'])) {
+            $connectConfig['wanaccess'] = false;
         }
-        if (empty($this->myServersFlashCfg['remote']['wanport'])) {
-            $this->myServersFlashCfg['remote']['wanport'] = 33443;
+        if (empty($connectConfig['wanport'])) {
+            $connectConfig['wanport'] = 33443;
         }
-        if (empty($this->myServersFlashCfg['remote']['upnpEnabled'])) {
-            $this->myServersFlashCfg['remote']['upnpEnabled'] = "no";
+        if (empty($connectConfig['upnpEnabled'])) {
+            $connectConfig['upnpEnabled'] = false;
         }
-        if (empty($this->myServersFlashCfg['remote']['dynamicRemoteAccessType'])) {
-            $this->myServersFlashCfg['remote']['dynamicRemoteAccessType'] = "DISABLED";
+        if (empty($connectConfig['dynamicRemoteAccessType'])) {
+            $connectConfig['dynamicRemoteAccessType'] = "DISABLED";
         }
 
         $this->apiKey = $this->myServersFlashCfg['upc']['apikey'] ?? '';
         $this->apiVersion = $this->myServersFlashCfg['api']['version'] ?? '';
-        $this->avatar = (!empty($this->myServersFlashCfg['remote']['avatar']) && $this->connectPluginInstalled) ? $this->myServersFlashCfg['remote']['avatar'] : '';
-        $this->email = $this->myServersFlashCfg['remote']['email'] ?? '';
-        $this->hasRemoteApikey = !empty($this->myServersFlashCfg['remote']['apikey']);
-        $this->registered = !empty($this->myServersFlashCfg['remote']['apikey']) && $this->connectPluginInstalled;
-        $this->registeredTime = $this->myServersFlashCfg['remote']['regWizTime'] ?? '';
-        $this->username = $this->myServersFlashCfg['remote']['username'] ?? '';
-        $this->ssoEnabled = !empty($this->myServersFlashCfg['remote']['ssoSubIds'] ?? '');
+        $this->avatar = (!empty($connectConfig['avatar']) && $this->connectPluginInstalled) ? $connectConfig['avatar'] : '';
+        $this->email = $connectConfig['email'] ?? '';
+        $this->hasRemoteApikey = !empty($connectConfig['apikey']);
+        $this->registered = !empty($connectConfig['apikey']) && $this->connectPluginInstalled;
+        $this->registeredTime = $connectConfig['regWizTime'] ?? '';
+        $this->username = $connectConfig['username'] ?? '';
+        $this->ssoEnabled = ApiUserConfig::isSSOEnabled();
     }
 
     private function getConnectKnownOrigins()
@@ -214,11 +211,19 @@ class ServerState
          * Include localhost in the test, but only display HTTP(S) URLs that do not include localhost.
          */
         $this->host = $_SERVER['HTTP_HOST'] ?? "unknown";
-        $memoryCfgPath = '/var/local/emhttp/myservers.cfg';
-        $this->myServersMemoryCfg = (file_exists($memoryCfgPath)) ? @parse_ini_file($memoryCfgPath) : [];
-        $this->myServersMiniGraphConnected = (($this->myServersMemoryCfg['minigraph'] ?? '') === 'CONNECTED');
+        // Read connection status and allowed origins from the new API status file
+        $statusFilePath = '/var/local/emhttp/connectStatus.json';
+        $connectionStatus = '';
+        $allowedOrigins = '';
+        
+        if (file_exists($statusFilePath)) {
+            $statusData = @json_decode(file_get_contents($statusFilePath), true);
+            $connectionStatus = $statusData['connectionStatus'] ?? '';
+            $allowedOrigins = $statusData['allowedOrigins'] ?? '';
+        }
+        
+        $this->myServersMiniGraphConnected = ($connectionStatus === 'CONNECTED');
 
-        $allowedOrigins = $this->myServersMemoryCfg['allowedOrigins'] ?? "";
         $extraOrigins = $this->myServersFlashCfg['api']['extraOrigins'] ?? "";
         $combinedOrigins = $allowedOrigins . "," . $extraOrigins; // combine the two strings for easier searching
         $combinedOrigins = str_replace(" ", "", $combinedOrigins); // replace any spaces with nothing

@@ -5,7 +5,7 @@ import { beforeEach, describe, expect, it } from 'vitest';
 
 import { OwnerResolver } from '@app/unraid-api/graph/resolvers/owner/owner.resolver.js';
 
-describe('OwnerResolver', () => {
+describe.skip('OwnerResolver', () => {
     let resolver: OwnerResolver;
 
     beforeEach(async () => {

@@ -2,8 +2,7 @@ import { Injectable } from '@nestjs/common';
 
 import { CommandRunner, SubCommand } from 'nest-commander';
 
-import { store } from '@app/store/index.js';
-import { loadConfigFile } from '@app/store/modules/config.js';
+import { SsoUserService } from '@app/unraid-api/auth/sso-user.service.js';
 import { LogService } from '@app/unraid-api/cli/log.service.js';
 
 @Injectable()
@@ -13,12 +12,15 @@ import { LogService } from '@app/unraid-api/cli/log.service.js';
     description: 'List all users for SSO',
 })
 export class ListSSOUserCommand extends CommandRunner {
-    constructor(private readonly logger: LogService) {
+    constructor(
+        private readonly logger: LogService,
+        private readonly ssoUserService: SsoUserService
+    ) {
         super();
     }
 
     async run(_input: string[]): Promise<void> {
-        await store.dispatch(loadConfigFile());
-        this.logger.info(store.getState().config.remote.ssoSubIds.split(',').filter(Boolean).join('\n'));
+        const users = await this.ssoUserService.getSsoUsers();
+        this.logger.info(users.join('\n'));
     }
 }

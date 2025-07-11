@@ -1,8 +1,8 @@
 import { Command, CommandRunner, Option } from 'nest-commander';
 
 import type { LogLevel } from '@app/core/log.js';
-import { ECOSYSTEM_PATH } from '@app/consts.js';
 import { levels } from '@app/core/log.js';
+import { ECOSYSTEM_PATH } from '@app/environment.js';
 import { LogService } from '@app/unraid-api/cli/log.service.js';
 import { PM2Service } from '@app/unraid-api/cli/pm2.service.js';
 
@@ -20,6 +20,7 @@ export class StartCommand extends CommandRunner {
     }
 
     async cleanupPM2State() {
+        await this.pm2.ensurePm2Dependencies();
         await this.pm2.run({ tag: 'PM2 Stop' }, 'stop', ECOSYSTEM_PATH);
         await this.pm2.run({ tag: 'PM2 Update' }, 'update');
         await this.pm2.deleteDump();

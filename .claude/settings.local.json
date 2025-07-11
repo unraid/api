@@ -1,0 +1,21 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(rg:*)",
+      "Bash(find:*)",
+      "Bash(pnpm codegen:*)",
+      "Bash(pnpm dev:*)",
+      "Bash(pnpm build:*)",
+      "Bash(pnpm test:*)",
+      "Bash(grep:*)",
+      "Bash(pnpm type-check:*)",
+      "Bash(pnpm lint:*)",
+      "Bash(pnpm --filter ./api lint)",
+      "Bash(mv:*)",
+      "Bash(ls:*)",
+      "mcp__ide__getDiagnostics",
+      "Bash(pnpm --filter \"*connect*\" test connect-status-writer.service.spec)"
+    ]
+  },
+  "enableAllProjectMcpServers": false
+}

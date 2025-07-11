@@ -46,6 +46,15 @@ vi.mock('~/store/activationCode', () => ({
   })),
 }));
 
+vi.mock('~/components/Activation/store/activationCodeData', () => ({
+  useActivationCodeDataStore: () => ({
+    loading: ref(false),
+    activationCode: ref(null),
+    isFreshInstall: ref(false),
+    partnerInfo: ref(null),
+  }),
+}));
+
 describe('Auth Component', () => {
   let serverStore: ReturnType<typeof useServerStore>;
 

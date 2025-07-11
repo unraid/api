@@ -1,6 +1,6 @@
 import { Command, CommandRunner } from 'nest-commander';
 
-import { ECOSYSTEM_PATH } from '@app/consts.js';
+import { ECOSYSTEM_PATH } from '@app/environment.js';
 import { LogService } from '@app/unraid-api/cli/log.service.js';
 import { PM2Service } from '@app/unraid-api/cli/pm2.service.js';
 

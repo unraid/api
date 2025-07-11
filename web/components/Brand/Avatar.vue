@@ -2,6 +2,8 @@
 import { storeToRefs } from 'pinia';
 import { useServerStore } from '~/store/server';
 
+import BrandMark from '~/components/Brand/Mark.vue';
+
 export interface Props {
   gradientStart?: string;
   gradientStop?: string;

@@ -1,24 +1,16 @@
 import { Query, ResolveField, Resolver, Subscription } from '@nestjs/graphql';
 
-import { baseboard as getBaseboard, system as getSystem } from 'systeminformation';
-
-import { createSubscription, PUBSUB_CHANNEL } from '@app/core/pubsub.js';
-import { getMachineId } from '@app/core/utils/misc/get-machine-id.js';
-import {
-    generateApps,
-    generateCpu,
-    generateDevices,
-    generateDisplay,
-    generateMemory,
-    generateOs,
-    generateVersions,
-} from '@app/graphql/resolvers/query/info.js';
+import { Resource } from '@unraid/shared/graphql.model.js';
 import {
     AuthActionVerb,
     AuthPossession,
     UsePermissions,
-} from '@app/unraid-api/graph/directives/use-permissions.directive.js';
-import { Resource } from '@app/unraid-api/graph/resolvers/base.model.js';
+} from '@unraid/shared/use-permissions.directive.js';
+import { baseboard as getBaseboard, system as getSystem } from 'systeminformation';
+
+import { createSubscription, PUBSUB_CHANNEL } from '@app/core/pubsub.js';
+import { getMachineId } from '@app/core/utils/misc/get-machine-id.js';
+import { DisplayService } from '@app/unraid-api/graph/resolvers/display/display.service.js';
 import {
     Baseboard,
     Devices,
@@ -31,29 +23,24 @@ import {
     System,
     Versions,
 } from '@app/unraid-api/graph/resolvers/info/info.model.js';
+import { InfoService } from '@app/unraid-api/graph/resolvers/info/info.service.js';
 
 @Resolver(() => Info)
 export class InfoResolver {
+    constructor(
+        private readonly infoService: InfoService,
+        private readonly displayService: DisplayService
+    ) {}
+
     @Query(() => Info)
     @UsePermissions({
         action: AuthActionVerb.READ,
         resource: Resource.INFO,
         possession: AuthPossession.ANY,
     })
-    public async info(): Promise<Info> {
+    public async info(): Promise<Partial<Info>> {
         return {
             id: 'info',
-            time: new Date(),
-            apps: await this.apps(),
-            baseboard: await this.baseboard(),
-            cpu: await this.cpu(),
-            devices: await this.devices(),
-            display: await this.display(),
-            machineId: await this.machineId(),
-            memory: await this.memory(),
-            os: await this.os(),
-            system: await this.system(),
-            versions: await this.versions(),
         };
     }
 
@@ -64,7 +51,7 @@ export class InfoResolver {
 
     @ResolveField(() => InfoApps)
     public async apps(): Promise<InfoApps> {
-        return generateApps();
+        return this.infoService.generateApps();
     }
 
     @ResolveField(() => Baseboard)
@@ -78,17 +65,17 @@ export class InfoResolver {
 
     @ResolveField(() => InfoCpu)
     public async cpu(): Promise<InfoCpu> {
-        return generateCpu();
+        return this.infoService.generateCpu();
     }
 
     @ResolveField(() => Devices)
     public async devices(): Promise<Devices> {
-        return generateDevices();
+        return this.infoService.generateDevices();
     }
 
     @ResolveField(() => Display)
     public async display(): Promise<Display> {
-        return generateDisplay();
+        return this.displayService.generateDisplay();
     }
 
     @ResolveField(() => String, { nullable: true })
@@ -98,12 +85,12 @@ export class InfoResolver {
 
     @ResolveField(() => InfoMemory)
     public async memory(): Promise<InfoMemory> {
-        return generateMemory();
+        return this.infoService.generateMemory();
     }
 
     @ResolveField(() => Os)
     public async os(): Promise<Os> {
-        return generateOs();
+        return this.infoService.generateOs();
     }
 
     @ResolveField(() => System)
@@ -117,7 +104,7 @@ export class InfoResolver {
 
     @ResolveField(() => Versions)
     public async versions(): Promise<Versions> {
-        return generateVersions();
+        return this.infoService.generateVersions();
     }
 
     @Subscription(() => Info)

@@ -3,7 +3,7 @@ import { ConfigService } from "@nestjs/config";
 import { existsSync, readFileSync } from "fs";
 import { writeFile } from "fs/promises";
 import path from "path";
-import { debounceTime } from "rxjs/operators";
+import { bufferTime } from "rxjs/operators";
 import { PluginNameConfig } from "./config.entity.js";
 
 @Injectable()
@@ -31,41 +31,51 @@ export class PluginNameConfigPersister implements OnModuleInit {
         this.configService.set("plugin-name", configFromFile);
         this.logger.verbose(`Config loaded from ${this.configPath}`);
       } catch (error) {
-        this.logger.error(`Error reading or parsing config file at ${this.configPath}. Using defaults.`, error);
+        this.logger.error(
+          `Error reading or parsing config file at ${this.configPath}. Using defaults.`,
+          error
+        );
         // If loading fails, ensure default config is set and persisted
         this.persist();
       }
     } else {
-      this.logger.log(`Config file ${this.configPath} does not exist. Writing default config...`);
+      this.logger.log(
+        `Config file ${this.configPath} does not exist. Writing default config...`
+      );
       // Persist the default configuration provided by configFeature
       this.persist();
     }
 
     // Automatically persist changes to the config file after a short delay.
-    const HALF_SECOND = 500;
-    this.configService.changes$.pipe(debounceTime(HALF_SECOND)).subscribe({
-      next: ({ newValue, oldValue, path: changedPath }) => {
-        // Only persist if the change is within this plugin's config namespace
-        if (changedPath.startsWith("plugin-name.") && newValue !== oldValue) {
-          this.logger.debug(`Config changed: ${changedPath} from ${oldValue} to ${newValue}`);
-          // Persist the entire config object for this plugin
-          this.persist();
+    this.configService.changes$.pipe(bufferTime(25)).subscribe({
+      next: async (changes) => {
+        const pluginNameConfigChanged = changes.some(({ path }) =>
+          path.startsWith("plugin-name.")
+        );
+        if (pluginNameConfigChanged) {
+          this.logger.verbose("Plugin config changed");
+          await this.persist();
         }
       },
       error: (err) => {
-        this.logger.error("Error subscribing to config changes:", err);
+        this.logger.error("Error receiving config changes:", err);
       },
     });
   }
 
-  async persist(config = this.configService.get<PluginNameConfig>("plugin-name")) {
+  async persist(
+    config = this.configService.get<PluginNameConfig>("plugin-name")
+  ) {
     const data = JSON.stringify(config, null, 2);
     this.logger.verbose(`Persisting config to ${this.configPath}: ${data}`);
     try {
       await writeFile(this.configPath, data);
       this.logger.verbose(`Config change persisted to ${this.configPath}`);
     } catch (error) {
-      this.logger.error(`Error persisting config to '${this.configPath}':`, error);
+      this.logger.error(
+        `Error persisting config to '${this.configPath}':`,
+        error
+      );
     }
   }
 }

@@ -8,6 +8,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { VueWrapper } from '@vue/test-utils';
 import type { Server, ServerconnectPluginInstalled, ServerState } from '~/types/server';
 import type { Pinia } from 'pinia';
+import type { MaybeRef } from '@vueuse/core';
 
 import UserProfile from '~/components/UserProfile.ce.vue';
 import { useServerStore } from '~/store/server';
@@ -77,10 +78,10 @@ const stubs = {
   UpcUptimeExpire: { template: '<div data-testid="uptime-expire"></div>', props: ['t'] },
   UpcServerState: { template: '<div data-testid="server-state"></div>', props: ['t'] },
   NotificationsSidebar: { template: '<div data-testid="notifications-sidebar"></div>' },
-  UpcDropdownMenu: {
+  DropdownMenu: {
     template: '<div data-testid="dropdown-menu"><slot name="trigger" /><slot /></div>',
-    props: ['t'],
   },
+  UpcDropdownContent: { template: '<div data-testid="dropdown-content"></div>', props: ['t'] },
   UpcDropdownTrigger: { template: '<button data-testid="dropdown-trigger"></button>', props: ['t'] },
 };
 
@@ -294,13 +295,13 @@ describe('UserProfile.ce.vue', () => {
     expect(heading.html()).toContain(initialServerData.description);
   });
 
-  it('conditionally renders notifications sidebar based on connectPluginInstalled', async () => {
+  it('always renders notifications sidebar, regardless of connectPluginInstalled', async () => {
     expect(wrapper.find('[data-testid="notifications-sidebar"]').exists()).toBe(true);
 
     serverStore.connectPluginInstalled = '';
     await wrapper.vm.$nextTick();
 
-    expect(wrapper.find('[data-testid="notifications-sidebar"]').exists()).toBe(false);
+    expect(wrapper.find('[data-testid="notifications-sidebar"]').exists()).toBe(true);
   });
 
   it('conditionally renders banner based on theme store', async () => {

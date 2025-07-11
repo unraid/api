@@ -49,6 +49,4 @@ function flashBackup() {
 }
 </script>
 
-<unraid-i18n-host>
-  <unraid-update-os reboot-version="<?= $rebootDetails->rebootVersion ?>"></unraid-update-os>
-</unraid-i18n-host>
+<unraid-update-os reboot-version="<?= $rebootDetails->rebootVersion ?>"></unraid-update-os>

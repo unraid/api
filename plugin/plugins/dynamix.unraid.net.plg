@@ -9,8 +9,6 @@
   <!ENTITY txz_sha256 "">
   <!ENTITY txz_url "">
   <!ENTITY txz_name "">
-  <!ENTITY vendor_store_url "">
-  <!ENTITY vendor_store_filename "">
   <!ENTITY arch "x86_64">
   <!ENTITY build "1">
   <!ENTITY tag "">
@@ -46,10 +44,6 @@ echo "ok. (${FREE_SPACE}MB free)"
 exit 0
 ]]>
     </INLINE>
-  </FILE>
-  
-  <FILE Name="/boot/config/plugins/dynamix.my.servers/&vendor_store_filename;">
-    <URL>&vendor_store_url;</URL>
   </FILE>
 
   <!-- download main txz -->
@@ -144,21 +138,94 @@ exit 0
     </INLINE>
   </FILE>
 
+  <FILE Run="/bin/bash" Method="install">
+    <INLINE>
+      <![CDATA[
+      echo "Patching header logo if necessary..."
+
+      # We do this here instead of via API FileModification to avoid undesirable
+      # rollback when the API is stopped.
+      #
+      # This is necessary on < 7.2 because the unraid-header-os-version web component
+      # that ships with the base OS only displayes the version, not the logo as well.
+      #
+      # Rolling back in this case (i.e when stopping the API) yields a duplicate logo
+      # that blocks interaction with the navigation menu.
+      
+      # Remove the old header logo from DefaultPageLayout.php if present
+      if [ -f "/usr/local/emhttp/plugins/dynamix/include/DefaultPageLayout.php" ]; then
+        sed -i 's|<a href="https://unraid.net" target="_blank"><?readfile("$docroot/webGui/images/UN-logotype-gradient.svg")?></a>||g' "/usr/local/emhttp/plugins/dynamix/include/DefaultPageLayout.php"
+        
+        # Add unraid-modals element if not already present
+        if ! grep -q '<unraid-modals>' "/usr/local/emhttp/plugins/dynamix/include/DefaultPageLayout.php"; then
+          sed -i 's|<body>|<body>\n<unraid-modals></unraid-modals>|' "/usr/local/emhttp/plugins/dynamix/include/DefaultPageLayout.php"
+        fi
+      fi
+
+      ]]>
+    </INLINE>
+  </FILE>
+
   <FILE Run="/bin/bash" Method="remove">
     <INLINE>
       MAINNAME="&name;"
       <![CDATA[
       echo "Removing Plugin"
       
-      # Find any installed dynamix.unraid.net package
-      pkg_installed=$(ls -1 /var/log/packages/dynamix.unraid.net* 2>/dev/null | head -1)
-      if [ -n "$pkg_installed" ]; then
-        pkg_basename=$(basename "$pkg_installed")
-        echo "Removing package: $pkg_basename"
-        removepkg --terse "$pkg_basename"
+      # Check Unraid version
+      UNRAID_VERSION=""
+      is_7_2_or_higher=false
+      
+      # Check if version file exists and is readable
+      if [ -f "/etc/unraid-version" ] && [ -r "/etc/unraid-version" ]; then
+        UNRAID_VERSION=$(cat /etc/unraid-version | grep "^version=" | cut -d'"' -f2 2>/dev/null)
+        
+        if [ -z "$UNRAID_VERSION" ]; then
+          echo "Warning: Unable to parse version from /etc/unraid-version"
+          echo "Using safe removal method (plugin file removal + reboot)"
+          is_7_2_or_higher=true  # Default to safe method
+        else
+          # Check if this is Unraid 7.2 or higher (including RCs and prereleases)
+          if [[ "$UNRAID_VERSION" =~ ^7\.([2-9]|[1-9][0-9]+)\. ]] || [[ "$UNRAID_VERSION" =~ ^([8-9]|[1-9][0-9]+)\. ]]; then
+            is_7_2_or_higher=true
+          fi
+        fi
       else
-        echo "No dynamix.unraid.net package found. Trying with basic package name."
-        removepkg --terse "${MAINNAME}"
+        echo "Warning: /etc/unraid-version file not found or not readable"
+        echo "Using safe removal method (plugin file removal + reboot)"
+        is_7_2_or_higher=true  # Default to safe method
+      fi
+      
+      if [ "$is_7_2_or_higher" = true ]; then
+        echo "Unraid 7.2+ detected. Using safe removal method."
+        
+        # Send notification to user
+        /usr/local/emhttp/webGui/scripts/notify \
+          -e "Unraid Connect" \
+          -s "Reboot Required for Unraid Connect Removal" \
+          -d "Unraid Connect plugin has been marked for removal. Please reboot your server to complete the uninstallation." \
+          -i "warning"
+        
+        # Remove the plugin file so it won't be installed on reboot
+        PLUGIN_FILE="/boot/config/plugins/${MAINNAME}.plg"
+        if [ -f "$PLUGIN_FILE" ]; then
+          echo "Removing plugin file: $PLUGIN_FILE"
+          rm -f "$PLUGIN_FILE"
+        fi
+        
+        echo "Plugin marked for removal. Reboot required to complete uninstallation."
+      else
+        # Original removal method for older versions
+        # Find any installed dynamix.unraid.net package
+        pkg_installed=$(ls -1 /var/log/packages/dynamix.unraid.net* 2>/dev/null | head -1)
+        if [ -n "$pkg_installed" ]; then
+          pkg_basename=$(basename "$pkg_installed")
+          echo "Removing package: $pkg_basename"
+          removepkg --terse "$pkg_basename"
+        else
+          echo "No dynamix.unraid.net package found. Trying with basic package name."
+          removepkg --terse "${MAINNAME}"
+        fi
       fi
 
       # File restoration function
@@ -216,14 +283,13 @@ exit 0
     </INLINE>
   </FILE>
 
-  <!-- install all the things -->
+  <!-- install api package and all necessary files -->
   <FILE Run="/bin/bash" Method="install">
     <INLINE>
       TAG="&tag;" 
       PKG_FILE="&source;"      # Full path to the package file including .txz extension
       PKG_URL="&txz_url;"      # URL where package was downloaded from
       PKG_NAME="&txz_name;"    # Name of the package file
-      VENDOR_ARCHIVE="/boot/config/plugins/dynamix.my.servers/&vendor_store_filename;"
     <![CDATA[
 # Install the Slackware package
 echo "Installing package..."
@@ -254,15 +320,74 @@ if [[ -n "$TAG" && "$TAG" != "" ]]; then
   sed -i "${sedcmd}" "/usr/local/emhttp/plugins/dynamix.unraid.net/README.md"
 fi
 
+exit 0
+]]>
+    </INLINE>
+  </FILE>
+
+  <!-- port of the old doinst.sh script -->
+  <FILE Run="/bin/bash" Method="install">
+    <INLINE>
+      <![CDATA[
+SCRIPTS_DIR="/usr/local/share/dynamix.unraid.net/install/scripts"
+# Log file for debugging
+LOGFILE="/var/log/unraid-api/dynamix-unraid-install.log"
+mkdir -p "$(dirname "$LOGFILE")"
+
+echo "Starting Unraid Connect installation..."
+
+# Move settings on flash drive
+CFG_OLD=/boot/config/plugins/Unraid.net
+CFG_NEW=/boot/config/plugins/dynamix.my.servers
+[ -d "$CFG_OLD" ] && [ ! -d "$CFG_NEW" ] && mv "$CFG_OLD" "$CFG_NEW"
+
+# Setup the API (but don't start it yet)
+if [ -x "$SCRIPTS_DIR/setup_api.sh" ]; then
+  echo "Setting up Unraid API..."
+  echo "Running setup_api.sh" >> "$LOGFILE"
+  # Capture output and add to log file
+  setup_output=$("$SCRIPTS_DIR/setup_api.sh")
+  echo "$setup_output" >> "$LOGFILE"
+else
+  echo "ERROR: setup_api.sh not found or not executable" >> "$LOGFILE"
+fi
+
+# Run post-installation verification
+if [ -x "$SCRIPTS_DIR/verify_install.sh" ]; then
+  echo "Running post-installation verification..."
+  echo "Running verify_install.sh" >> "$LOGFILE"
+  # Capture output and add to log file
+  verify_output=$("$SCRIPTS_DIR/verify_install.sh")
+  echo "$verify_output" >> "$LOGFILE"
+else
+  echo "ERROR: verify_install.sh not found or not executable" >> "$LOGFILE"
+fi
+
+echo "Installation completed at $(date)" >> "$LOGFILE"
+      ]]>
+    </INLINE>
+  </FILE>
+
+  <!-- start the unraid api service -->
+  <FILE Run="/bin/bash" Method="install">
+    <INLINE>
+      <![CDATA[
+# Clean up any old node_modules archives (on the boot drive) that don't match our current version
+#
+# Must run after package installation because the package provides an update api config file,
+# which determines the current API version and vendor archive to keep.
+/etc/rc.d/rc.unraid-api cleanup-dependencies
+
 echo "Starting Unraid API service"
+echo "If no additional messages appear within 30 seconds, it is safe to refresh the page."
+/etc/rc.d/rc.unraid-api plugins add unraid-api-plugin-connect -b --no-restart
 /etc/rc.d/rc.unraid-api start
 
 echo "Unraid API service started"
 echo "✅ Installation is complete, it is safe to close this window"
 echo
-
 exit 0
-]]>
+      ]]>
     </INLINE>
   </FILE>
 

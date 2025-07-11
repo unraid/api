@@ -45,7 +45,7 @@ jobs:
           node-version-file: ".nvmrc"
 
       - name: Cache APT Packages
-        uses: awalsh128/cache-apt-pkgs-action@v1.4.3
+        uses: awalsh128/cache-apt-pkgs-action@v1.5.1
         with:
           packages: bash procps python3 libvirt-dev jq zstd git build-essential libvirt-daemon-system
           version: 1.0
@@ -71,6 +71,12 @@ jobs:
 
       - name: PNPM Install
         run: pnpm install --frozen-lockfile
+
+      - name: Lint
+        run: pnpm run lint
+
+      - name: Type Check
+        run: pnpm run type-check
 
       - name: Setup libvirt
         run: |
@@ -111,15 +117,47 @@ jobs:
           # Verify libvirt is running using sudo to bypass group membership delays
           sudo virsh list --all || true
 
-      - name: Lint
-        run: pnpm run lint
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
 
-      - name: Test
-        run: pnpm run coverage
+      - name: Run Tests Concurrently
+        run: |
+          set -e
+
+          # Run all tests in parallel with labeled output
+          echo "🚀 Starting API coverage tests..."
+          pnpm run coverage > api-test.log 2>&1 &
+          API_PID=$!
+
+          echo "🚀 Starting Connect plugin tests..."
+          (cd ../packages/unraid-api-plugin-connect && pnpm test) > connect-test.log 2>&1 &
+          CONNECT_PID=$!
+
+          echo "🚀 Starting Shared package tests..."
+          (cd ../packages/unraid-shared && pnpm test) > shared-test.log 2>&1 &
+          SHARED_PID=$!
+
+          # Wait for all processes and capture exit codes
+          wait $API_PID && echo "✅ API tests completed" || { echo "❌ API tests failed"; API_EXIT=1; }
+          wait $CONNECT_PID && echo "✅ Connect tests completed" || { echo "❌ Connect tests failed"; CONNECT_EXIT=1; }
+          wait $SHARED_PID && echo "✅ Shared tests completed" || { echo "❌ Shared tests failed"; SHARED_EXIT=1; }
+
+          # Display all outputs
+          echo "📋 API Test Results:" && cat api-test.log
+          echo "📋 Connect Plugin Test Results:" && cat connect-test.log  
+          echo "📋 Shared Package Test Results:" && cat shared-test.log
+
+          # Exit with error if any test failed
+          if [[ ${API_EXIT:-0} -eq 1 || ${CONNECT_EXIT:-0} -eq 1 || ${SHARED_EXIT:-0} -eq 1 ]]; then
+            exit 1
+          fi
 
   build-api:
     name: Build API
     runs-on: ubuntu-latest
+    outputs:
+      build_number: ${{ steps.buildnumber.outputs.build_number }}
     defaults:
       run:
         working-directory: api
@@ -152,7 +190,7 @@ jobs:
             ${{ runner.os }}-pnpm-store-
 
       - name: Cache APT Packages
-        uses: awalsh128/cache-apt-pkgs-action@v1.4.3
+        uses: awalsh128/cache-apt-pkgs-action@v1.5.1
         with:
           packages: bash procps python3 libvirt-dev jq zstd git build-essential
           version: 1.0
@@ -161,12 +199,6 @@ jobs:
         run: |
           cd ${{ github.workspace }}
           pnpm install --frozen-lockfile
-
-      - name: Lint
-        run: pnpm run lint
-
-      - name: Type Check
-        run: pnpm run type-check
 
       - name: Build
         run: pnpm run build
@@ -180,6 +212,14 @@ jobs:
           API_VERSION=$([[ -n "$IS_TAGGED" ]] && echo "$PACKAGE_LOCK_VERSION" || echo "${PACKAGE_LOCK_VERSION}+${GIT_SHA}")
           export API_VERSION
           echo "API_VERSION=${API_VERSION}" >> $GITHUB_ENV
+          echo "PACKAGE_LOCK_VERSION=${PACKAGE_LOCK_VERSION}" >> $GITHUB_OUTPUT
+
+      - name: Generate build number
+        id: buildnumber
+        uses: onyxmueller/build-tag-number@v1
+        with:
+          token: ${{secrets.github_token}}
+          prefix: ${{steps.vars.outputs.PACKAGE_LOCK_VERSION}}
 
       - name: Build
         run: |
@@ -191,11 +231,6 @@ jobs:
         with:
           name: unraid-api
           path: ${{ github.workspace }}/api/deploy/unraid-api.tgz
-      - name: Upload Node Modules to Github artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: packed-node-modules
-          path: ${{ github.workspace }}/api/deploy/node-modules-archive/packed-node-modules.tar.xz
 
   build-unraid-ui-webcomponents:
     name: Build Unraid UI Library (Webcomponent Version)
@@ -232,7 +267,7 @@ jobs:
             ${{ runner.os }}-pnpm-store-
 
       - name: Cache APT Packages
-        uses: awalsh128/cache-apt-pkgs-action@v1.4.3
+        uses: awalsh128/cache-apt-pkgs-action@v1.5.1
         with:
           packages: bash procps python3 libvirt-dev jq zstd git build-essential
           version: 1.0
@@ -340,6 +375,7 @@ jobs:
       TAG: ${{ github.event.pull_request.number && format('PR{0}', github.event.pull_request.number) || '' }}
       BUCKET_PATH: ${{ github.event.pull_request.number && format('unraid-api/tag/PR{0}', github.event.pull_request.number) || 'unraid-api' }}
       BASE_URL: "https://preview.dl.unraid.net/unraid-api"
+      BUILD_NUMBER: ${{ needs.build-api.outputs.build_number }}
     secrets:
       CF_ACCESS_KEY_ID: ${{ secrets.CF_ACCESS_KEY_ID }}
       CF_SECRET_ACCESS_KEY: ${{ secrets.CF_SECRET_ACCESS_KEY }}
@@ -362,6 +398,7 @@ jobs:
       TAG: ""
       BUCKET_PATH: unraid-api
       BASE_URL: "https://stable.dl.unraid.net/unraid-api"
+      BUILD_NUMBER: ${{ needs.build-api.outputs.build_number }}
     secrets:
       CF_ACCESS_KEY_ID: ${{ secrets.CF_ACCESS_KEY_ID }}
       CF_SECRET_ACCESS_KEY: ${{ secrets.CF_SECRET_ACCESS_KEY }}

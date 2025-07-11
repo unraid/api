@@ -1,4 +1,7 @@
 <script setup lang="ts">
+import { computed, reactive } from 'vue';
+import type { Component } from 'vue';
+import { computedAsync } from '@vueuse/core';
 import { Markdown } from '@/helpers/markdown';
 import {
   ArchiveBoxIcon,

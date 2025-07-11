@@ -3,32 +3,46 @@
 
 // const { t } = useI18n();
 
+import { ref, computed, watch } from 'vue';
+import { storeToRefs } from 'pinia';
+import { watchDebounced } from '@vueuse/core';
 import { useMutation, useQuery } from '@vue/apollo-composable';
 
 import { BrandButton, jsonFormsRenderers, Label } from '@unraid/ui';
 import { JsonForms } from '@jsonforms/vue';
 
-import type { ConnectSettingsValues } from '~/composables/gql/graphql';
+import { useServerStore } from '~/store/server';
+// unified settings values are returned as JSON, so use a generic record type
+// import type { ConnectSettingsValues } from '~/composables/gql/graphql';
 
 import { getConnectSettingsForm, updateConnectSettings } from './graphql/settings.query';
+
+const { connectPluginInstalled } = storeToRefs(useServerStore());
 
 /**--------------------------------------------
  *     Settings State & Form definition
  *---------------------------------------------**/
 
-const formState = ref<Partial<ConnectSettingsValues>>({});
+const formState = ref<Record<string, unknown>>({});
 const { result, refetch } = useQuery(getConnectSettingsForm);
 const settings = computed(() => {
   if (!result.value) return;
-  return result.value?.connect.settings;
+  return result.value.settings.unified;
 });
 watch(result, () => {
   if (!result.value) return;
-  const { __typename, ...initialValues } = result.value.connect.settings.values;
-  formState.value = initialValues;
+  // unified values are namespaced (e.g., { api: { ... } })
+  formState.value = structuredClone(result.value.settings.unified.values ?? {});
 });
 const restartRequired = computed(() => {
-  return settings.value?.values.sandbox !== formState.value?.sandbox;
+  interface SandboxValues {
+    api?: {
+      sandbox?: boolean;
+    };
+  }
+  const currentSandbox = (settings.value?.values as SandboxValues)?.api?.sandbox;
+  const updatedSandbox = (formState.value as SandboxValues)?.api?.sandbox;
+  return currentSandbox !== updatedSandbox;
 });
 
 /**--------------------------------------------
@@ -91,12 +105,14 @@ const onChange = ({ data }: { data: Record<string, unknown> }) => {
   <div
     class="grid grid-cols-settings items-baseline pl-3 gap-y-6 [&>*:nth-child(odd)]:text-end [&>*:nth-child(even)]:ml-10"
   >
-    <Label>Account Status:</Label>
-    <div v-html="'<unraid-i18n-host><unraid-auth></unraid-auth></unraid-i18n-host>'"></div>
+    <template v-if="connectPluginInstalled">
+      <Label>Account Status:</Label>
+      <div v-html="'<unraid-auth></unraid-auth>'"></div>
+    </template>
     <Label>Download Unraid API Logs:</Label>
     <div
       v-html="
-        '<unraid-i18n-host><unraid-download-api-logs></unraid-download-api-logs></unraid-i18n-host>'
+        '<unraid-download-api-logs></unraid-download-api-logs>'
       "
     ></div>
   </div>

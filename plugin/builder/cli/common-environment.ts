@@ -1,5 +1,6 @@
 import { Command } from "commander";
 import { z } from "zod";
+import { getVersion } from "../utils/version";
 
 /**
  * Common base environment fields shared between different build setups
@@ -8,7 +9,9 @@ export const baseEnvSchema = z.object({
   ci: z.boolean().optional().default(false),
   apiVersion: z.string(),
   baseUrl: z.string().url(),
-  tag: z.string().optional().default(''),
+  tag: z.string().optional().default(""),
+  /** i.e. Slackware build number */
+  buildNumber: z.coerce.number().int().default(1),
 });
 
 export type BaseEnv = z.infer<typeof baseEnvSchema>;
@@ -19,7 +22,7 @@ export type BaseEnv = z.infer<typeof baseEnvSchema>;
 export const getDefaultBaseUrl = (): string => {
   return process.env.CI === "true"
     ? "This is a CI build, please set the base URL manually"
-    : `http://${process.env.HOST_LAN_IP || 'localhost'}:5858`;
+    : `http://${process.env.HOST_LAN_IP || "localhost"}:5858`;
 };
 
 /**
@@ -28,11 +31,20 @@ export const getDefaultBaseUrl = (): string => {
 export const addCommonOptions = (program: Command) => {
   return program
     .option("--ci", "CI mode", process.env.CI === "true")
-    .requiredOption("--api-version <version>", "API version", process.env.API_VERSION)
+    .requiredOption(
+      "--api-version <version>",
+      "API version",
+      process.env.API_VERSION || getVersion().version
+    )
     .requiredOption(
       "--base-url <url>",
       "Base URL for assets",
       getDefaultBaseUrl()
     )
-    .option("--tag <tag>", "Tag (used for PR and staging builds)", process.env.TAG);
-}; 
+    .option(
+      "--tag <tag>",
+      "Tag (used for PR and staging builds)",
+      process.env.TAG
+    )
+    .option("--build-number <number>", "Build number");
+};

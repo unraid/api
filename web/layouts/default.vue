@@ -1,4 +1,6 @@
 <script setup>
+import { NuxtLink } from '#components';
+
 import ModalsCe from '~/components/Modals.ce.vue';
 import { useThemeStore } from '~/store/theme';
 
@@ -31,7 +33,7 @@ function formatRouteName(name) {
 
 <template>
   <div class="text-black bg-white dark:text-white dark:bg-black">
-    <client-only>
+    <ClientOnly>
       <div class="flex flex-row items-center justify-center gap-6 p-6 bg-white dark:bg-zinc-800">
         <template v-for="route in routes" :key="route.path">
           <NuxtLink
@@ -45,7 +47,7 @@ function formatRouteName(name) {
         <ModalsCe />
       </div>
       <slot />
-    </client-only>
+    </ClientOnly>
   </div>
 </template>
 

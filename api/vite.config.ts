@@ -7,6 +7,22 @@ import { VitePluginNode } from 'vite-plugin-node';
 import tsconfigPaths from 'vite-tsconfig-paths';
 import { defineConfig } from 'vitest/config';
 
+/**------------------------------------------------------------------------
+ *                Place Workspace Dependencies Here
+ *
+ *  Since we vendor them via node_modules, we must exclude them from optimization,
+ *  so they aren't loaded twice (eg effectful imports like gql type registration).
+ *
+ *  See api/scripts/build.ts for the vendoring implementation.
+ *------------------------------------------------------------------------**/
+/**
+ * Record of monorepo workspace packages to their paths from the root of the monorepo.
+ */
+const workspaceDependencies = {
+    '@unraid/shared': 'packages/unraid-shared',
+    'unraid-api-plugin-connect': 'packages/unraid-api-plugin-connect',
+};
+
 export default defineConfig(({ mode }): ViteUserConfig => {
     return {
         assetsInclude: ['src/**/*.graphql', 'src/**/*.patch'],
@@ -67,6 +83,7 @@ export default defineConfig(({ mode }): ViteUserConfig => {
                 'term.js',
                 'class-transformer/storage',
                 'unicorn-magic',
+                ...Object.keys(workspaceDependencies),
             ],
             include: [
                 '@nestjs/common',
@@ -116,6 +133,7 @@ export default defineConfig(({ mode }): ViteUserConfig => {
                     '@nestjs/passport',
                     'passport-http-header-strategy',
                     'accesscontrol',
+                    ...Object.keys(workspaceDependencies),
                 ],
             },
             modulePreload: false,
@@ -135,6 +153,9 @@ export default defineConfig(({ mode }): ViteUserConfig => {
                 requireReturnsDefault: 'preferred',
                 strictRequires: true,
             },
+        },
+        ssr: {
+            external: [...Object.keys(workspaceDependencies)],
         },
         server: {
             hmr: true,

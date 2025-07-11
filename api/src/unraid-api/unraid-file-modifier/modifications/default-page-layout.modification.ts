@@ -10,7 +10,7 @@ export default class DefaultPageLayoutModification extends FileModification {
     public readonly filePath: string = '/usr/local/emhttp/plugins/dynamix/include/DefaultPageLayout.php';
 
     private addToaster(source: string): string {
-        if (source.includes('unraid-toaster')) {
+        if (source.includes('uui-toaster')) {
             return source;
         }
         const insertion = `<uui-toaster rich-colors close-button position="<?= ($notify['position'] === 'center') ? 'top-center' : $notify['position'] ?>"></uui-toaster>`;
@@ -65,6 +65,13 @@ if (is_localhost() && !is_good_session()) {
         return this.prependDoctypeWithPhp(source, newPhpCode);
     }
 
+    private addModalsWebComponent(source: string): string {
+        if (source.includes('<unraid-modals>')) {
+            return source;
+        }
+        return source.replace('<body>', '<body>\n<unraid-modals></unraid-modals>');
+    }
+
     private hideHeaderLogo(source: string): string {
         return source.replace(
             '<a href="https://unraid.net" target="_blank"><?readfile("$docroot/webGui/images/UN-logotype-gradient.svg")?></a>',
@@ -78,6 +85,7 @@ if (is_localhost() && !is_good_session()) {
             this.replaceToasts.bind(this),
             this.addToaster.bind(this),
             this.patchGuiBootAuth.bind(this),
+            this.addModalsWebComponent.bind(this),
             this.hideHeaderLogo.bind(this),
         ];
 

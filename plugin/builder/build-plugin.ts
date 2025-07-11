@@ -2,8 +2,14 @@ import { readFile, writeFile, mkdir, rename } from "fs/promises";
 import { $ } from "zx";
 import { escape as escapeHtml } from "html-sloppy-escaper";
 import { dirname, join } from "node:path";
-import { getTxzName, pluginName, startingDir, defaultArch, defaultBuild } from "./utils/consts";
-import { getAssetUrl, getPluginUrl } from "./utils/bucket-urls";
+import {
+  getTxzName,
+  pluginName,
+  startingDir,
+  defaultArch,
+  defaultBuild,
+} from "./utils/consts";
+import { getPluginUrl } from "./utils/bucket-urls";
 import { getMainTxzUrl } from "./utils/bucket-urls";
 import {
   deployDir,
@@ -12,7 +18,6 @@ import {
 } from "./utils/paths";
 import { PluginEnv, setupPluginEnv } from "./cli/setup-plugin-environment";
 import { cleanupPluginFiles } from "./utils/cleanup";
-import { bundleVendorStore, getVendorBundleName } from "./build-vendor-store";
 
 /**
  * Check if git is available
@@ -26,10 +31,17 @@ const checkGit = async () => {
   }
 };
 
-const moveTxzFile = async ({txzPath, apiVersion}: Pick<PluginEnv, "txzPath" | "apiVersion">) => {
-  const txzName = getTxzName(apiVersion);
+const moveTxzFile = async ({
+  txzPath,
+  apiVersion,
+  buildNumber,
+}: Pick<PluginEnv, "txzPath" | "apiVersion" | "buildNumber">) => {
+  const txzName = getTxzName({
+    version: apiVersion,
+    build: buildNumber.toString(),
+  });
   const targetPath = join(deployDir, txzName);
-  
+
   // Ensure the txz always has the full version name
   if (txzPath !== targetPath) {
     console.log(`Ensuring TXZ has correct name: ${txzPath} -> ${targetPath}`);
@@ -55,13 +67,14 @@ function updateEntityValue(
 const buildPlugin = async ({
   pluginVersion,
   baseUrl,
+  buildNumber,
   tag,
   txzSha256,
   releaseNotes,
   apiVersion,
 }: PluginEnv) => {
   console.log(`API version: ${apiVersion}`);
-  
+
   // Update plg file
   let plgContent = await readFile(getRootPluginPath({ startingDir }), "utf8");
 
@@ -71,13 +84,19 @@ const buildPlugin = async ({
     version: pluginVersion,
     api_version: apiVersion,
     arch: defaultArch,
-    build: defaultBuild,
+    build: buildNumber.toString(),
     plugin_url: getPluginUrl({ baseUrl, tag }),
-    txz_url: getMainTxzUrl({ baseUrl, apiVersion, tag }),
+    txz_url: getMainTxzUrl({
+      baseUrl,
+      tag,
+      version: apiVersion,
+      build: buildNumber.toString(),
+    }),
     txz_sha256: txzSha256,
-    txz_name: getTxzName(apiVersion),
-    vendor_store_url: getAssetUrl({ baseUrl, tag }, getVendorBundleName(apiVersion)),
-    vendor_store_filename: getVendorBundleName(apiVersion),
+    txz_name: getTxzName({
+      version: apiVersion,
+      build: buildNumber.toString(),
+    }),
     ...(tag ? { tag } : {}),
   };
 
@@ -123,7 +142,6 @@ const main = async () => {
 
     await buildPlugin(validatedEnv);
     await moveTxzFile(validatedEnv);
-    await bundleVendorStore(validatedEnv.apiVersion);
   } catch (error) {
     console.error(error);
     process.exit(1);

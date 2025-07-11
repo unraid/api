@@ -1,5 +1,5 @@
 import { computed, ref, watch } from 'vue';
-import { createPinia, defineStore, setActivePinia } from 'pinia';
+import { defineStore } from 'pinia';
 import { useLazyQuery } from '@vue/apollo-composable';
 
 import { defaultColors } from '~/themes/default';
@@ -10,10 +10,11 @@ import type { Theme, ThemeVariables } from '~/themes/types';
 import { graphql } from '~/composables/gql/gql';
 
 /**
+ * Uses the shared global Pinia instance from ~/store/globalPinia.ts
  * @see https://stackoverflow.com/questions/73476371/using-pinia-with-vue-js-web-components
  * @see https://github.com/vuejs/pinia/discussions/1085
  */
-setActivePinia(createPinia());
+import '~/store/globalPinia';
 
 // used to swap the UPC text color when using the azure or gray theme
 export const DARK_THEMES = ['black', 'gray'] as const;
@@ -59,27 +60,41 @@ export const useThemeStore = defineStore('theme', () => {
     }
     const start = theme.value?.bgColor ? 'var(--header-gradient-start)' : 'rgba(0, 0, 0, 0)';
     const end = theme.value?.bgColor ? 'var(--header-gradient-end)' : 'var(--header-background-color)';
-    return `background-image: linear-gradient(90deg, ${start} 0, ${end} 30%);`;
+    return `background-image: linear-gradient(90deg, ${start} 0, ${end} 90%);`;
   });
   // Actions
   const setTheme = async (data?: Theme) => {
     if (data) {
       theme.value = data;
     } else {
-      const result = await load();
-      if (result) {
-        if (result.publicTheme) {
+      try {
+        const result = await load();
+        if (result && result.publicTheme) {
           theme.value = {
-            name: result.publicTheme.name.toLowerCase(),
-            banner: result.publicTheme.showBannerImage,
-            bannerGradient: result.publicTheme.showBannerGradient,
-            bgColor: result.publicTheme.headerBackgroundColor,
-            descriptionShow: result.publicTheme.showHeaderDescription,
+            name: result.publicTheme.name?.toLowerCase() || 'white',
+            banner: result.publicTheme.showBannerImage ?? false,
+            bannerGradient: result.publicTheme.showBannerGradient ?? false,
+            bgColor: result.publicTheme.headerBackgroundColor || '',
+            descriptionShow: result.publicTheme.showHeaderDescription ?? false,
             metaColor: result.publicTheme.headerSecondaryTextColor || '',
-            textColor: result.publicTheme.headerPrimaryTextColor,
+            textColor: result.publicTheme.headerPrimaryTextColor || '',
           };
+          return;
         }
+      } catch (error) {
+        console.warn('Failed to load theme from server, using default:', error);
       }
+      
+      // Single fallback for both no data and error cases
+      theme.value = {
+        name: 'white',
+        banner: false,
+        bannerGradient: false,
+        bgColor: '',
+        descriptionShow: false,
+        metaColor: '',
+        textColor: '',
+      };
     }
   };
 
@@ -96,7 +111,7 @@ export const useThemeStore = defineStore('theme', () => {
         : customTheme['--header-gradient-end'];
 
       // set the banner gradient
-      customTheme['--banner-gradient'] = `linear-gradient(90deg, ${start} 0, ${end} 30%)`;
+      customTheme['--banner-gradient'] = `linear-gradient(90deg, ${start} 0, ${end} 90%)`;
     }
 
     // overwrite with hex colors set in webGUI @ /Settings/DisplaySettings

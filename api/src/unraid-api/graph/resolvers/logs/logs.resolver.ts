@@ -1,12 +1,13 @@
 import { Args, Int, Query, Resolver, Subscription } from '@nestjs/graphql';
 
-import { createSubscription, PUBSUB_CHANNEL } from '@app/core/pubsub.js';
+import { Resource } from '@unraid/shared/graphql.model.js';
 import {
     AuthActionVerb,
     AuthPossession,
     UsePermissions,
-} from '@app/unraid-api/graph/directives/use-permissions.directive.js';
-import { Resource } from '@app/unraid-api/graph/resolvers/base.model.js';
+} from '@unraid/shared/use-permissions.directive.js';
+
+import { createSubscription, PUBSUB_CHANNEL } from '@app/core/pubsub.js';
 import { LogFile, LogFileContent } from '@app/unraid-api/graph/resolvers/logs/logs.model.js';
 import { LogsService } from '@app/unraid-api/graph/resolvers/logs/logs.service.js';
 

@@ -11,14 +11,6 @@ import got, { HTTPError } from 'got';
 import pRetry from 'p-retry';
 
 import { sanitizeParams } from '@app/core/log.js';
-import {
-    BACKUP_JOB_GROUP_PREFIX,
-    getBackupJobGroupId,
-    getConfigIdFromGroupId,
-    isBackupJobGroup,
-} from '@app/unraid-api/graph/resolvers/backup/backup.utils.js';
-import { BackupJobStatus } from '@app/unraid-api/graph/resolvers/backup/orchestration/backup-job-status.model.js';
-import { SourceType } from '@app/unraid-api/graph/resolvers/backup/source/backup-source.types.js';
 import { RCloneStatusService } from '@app/unraid-api/graph/resolvers/rclone/rclone-status.service.js';
 import {
     CreateRCloneRemoteDto,
@@ -252,7 +244,7 @@ export class RCloneApiService implements OnModuleInit, OnModuleDestroy {
             try {
                 await rm(this.rcloneSocketPath, { force: true });
             } catch (error: unknown) {
-                this.logger.error(`Error removing socket file: ${error}`);
+                this.logger.error(`Error removing RClone socket file: ${error}`);
             }
         }
     }
@@ -274,6 +266,27 @@ export class RCloneApiService implements OnModuleInit, OnModuleDestroy {
         }
     }
 
+    /**
+     * Checks if the RClone binary is available on the system
+     */
+    private async checkRcloneBinaryExists(): Promise<boolean> {
+        try {
+            await execa('rclone', ['version']);
+            this.logger.debug('RClone binary is available on the system.');
+            return true;
+        } catch (error: unknown) {
+            if (error instanceof Error && 'code' in error && error.code === 'ENOENT') {
+                this.logger.warn('RClone binary not found in PATH.');
+            } else {
+                this.logger.error(`Error checking RClone binary: ${error}`);
+            }
+            return false;
+        }
+    }
+
+    /**
+     * Get providers supported by RClone
+     */
     async getProviders(): Promise<RCloneProviderResponse[]> {
         const response = (await this.callRcloneApi('config/providers')) as {
             providers: RCloneProviderResponse[];
@@ -281,6 +294,9 @@ export class RCloneApiService implements OnModuleInit, OnModuleDestroy {
         return response?.providers || [];
     }
 
+    /**
+     * List all remotes configured in rclone
+     */
     async listRemotes(): Promise<string[]> {
         const response = (await this.callRcloneApi('config/listremotes')) as { remotes: string[] };
         return response?.remotes || [];
@@ -296,16 +312,18 @@ export class RCloneApiService implements OnModuleInit, OnModuleDestroy {
         return this.callRcloneApi('config/get', { name: input.name });
     }
 
-    async createRemote(input: CreateRCloneRemoteDto): Promise<unknown> {
+    /**
+     * Create a new remote configuration
+     */
+    async createRemote(input: CreateRCloneRemoteDto): Promise<any> {
         await validateObject(CreateRCloneRemoteDto, input);
-        this.logger.log(`Creating remote: ${input.name} (${input.type})`);
-
-        const result = await this.callRcloneApi('config/create', {
+        this.logger.log(`Creating new remote: ${input.name} of type: ${input.type}`);
+        const params = {
             name: input.name,
             type: input.type,
             parameters: input.parameters,
-        });
-
+        };
+        const result = await this.callRcloneApi('config/create', params);
         this.logger.log(`Successfully created remote: ${input.name}`);
         return result;
     }

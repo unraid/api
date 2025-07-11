@@ -1,13 +1,14 @@
 import { Query, Resolver, Subscription } from '@nestjs/graphql';
 
-import { createSubscription, PUBSUB_CHANNEL } from '@app/core/pubsub.js';
-import { getLocalServer } from '@app/graphql/schema/utils.js';
+import { Resource } from '@unraid/shared/graphql.model.js';
 import {
     AuthActionVerb,
     AuthPossession,
     UsePermissions,
-} from '@app/unraid-api/graph/directives/use-permissions.directive.js';
-import { Resource } from '@app/unraid-api/graph/resolvers/base.model.js';
+} from '@unraid/shared/use-permissions.directive.js';
+
+import { createSubscription, PUBSUB_CHANNEL } from '@app/core/pubsub.js';
+import { getLocalServer } from '@app/graphql/schema/utils.js';
 import { Server as ServerModel } from '@app/unraid-api/graph/resolvers/servers/server.model.js';
 
 @Resolver(() => ServerModel)

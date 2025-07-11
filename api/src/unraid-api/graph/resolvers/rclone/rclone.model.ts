@@ -1,11 +1,11 @@
-import { Field, ID, InputType, ObjectType, registerEnumType } from '@nestjs/graphql';
+import { Field, ID, InputType, ObjectType } from '@nestjs/graphql';
 
 import { type Layout } from '@jsonforms/core';
+import { PrefixedID } from '@unraid/shared/prefixed-id-scalar.js';
 import { IsBoolean, IsObject, IsOptional, IsString } from 'class-validator';
 import { GraphQLJSON } from 'graphql-scalars';
 
 import { BackupJobStatus } from '@app/unraid-api/graph/resolvers/backup/orchestration/backup-job-status.model.js';
-import { PrefixedID } from '@app/unraid-api/graph/scalars/graphql-type-prefixed-id.js';
 import { DataSlice } from '@app/unraid-api/types/json-forms.js';
 
 @ObjectType()

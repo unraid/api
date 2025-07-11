@@ -1,8 +1,9 @@
 import { Args, Query, Resolver } from '@nestjs/graphql';
 
+import { PrefixedID } from '@unraid/shared/prefixed-id-scalar.js';
+
 import { JobStatus } from '@app/unraid-api/graph/resolvers/backup/orchestration/backup-job-status.model.js';
 import { BackupJobTrackingService } from '@app/unraid-api/graph/resolvers/backup/orchestration/backup-job-tracking.service.js';
-import { PrefixedID } from '@app/unraid-api/graph/scalars/graphql-type-prefixed-id.js';
 
 @Resolver(() => JobStatus)
 export class BackupJobStatusResolver {

@@ -2,7 +2,36 @@ Index: /usr/local/emhttp/plugins/dynamix/include/DefaultPageLayout.php
 ===================================================================
 --- /usr/local/emhttp/plugins/dynamix/include/DefaultPageLayout.php	original
 +++ /usr/local/emhttp/plugins/dynamix/include/DefaultPageLayout.php	modified
-@@ -482,20 +482,11 @@
+@@ -29,10 +29,28 @@
+ // adjust the text color in docker log window
+ $fgcolor = in_array($theme,['white','azure']) ? '#1c1c1c' : '#f2f2f2';
+ exec("sed -ri 's/^\.logLine\{color:#......;/.logLine{color:$fgcolor;/' $docroot/plugins/dynamix.docker.manager/log.htm >/dev/null &");
+ 
+ function annotate($text) {echo "\n<!--\n",str_repeat("#",strlen($text)),"\n$text\n",str_repeat("#",strlen($text)),"\n-->\n";}
++
++function is_localhost() {
++  // Use the peer IP, not the Host header which can be spoofed
++  return $_SERVER['REMOTE_ADDR'] === '127.0.0.1' || $_SERVER['REMOTE_ADDR'] === '::1';
++}
++function is_good_session() {
++  return isset($_SESSION) && isset($_SESSION['unraid_user']) && isset($_SESSION['unraid_login']);
++}
++if (is_localhost() && !is_good_session()) {
++  if (session_status() === PHP_SESSION_ACTIVE) {
++    session_destroy();
++  }
++  session_start();
++  $_SESSION['unraid_login'] = time();
++  $_SESSION['unraid_user'] = 'root';
++  session_write_close();
++  my_logger("Unraid GUI-boot: created root session for localhost request.");
++}
+ ?>
+ <!DOCTYPE html>
+ <html <?=$display['rtl']?>lang="<?=strtok($locale,'_')?:'en'?>" class="<?= $themeHtmlClass ?>">
+ <head>
+ <title><?=_var($var,'NAME')?>/<?=_var($myPage,'name')?></title>
+@@ -602,20 +620,11 @@
  }
  
  function openNotifier() {
@@ -24,8 +53,13 @@ Index: /usr/local/emhttp/plugins/dynamix/include/DefaultPageLayout.php
  }
  
  function closeNotifier() {
-@@ -579,11 +570,11 @@
+@@ -695,15 +704,16 @@
+ });
+ </script>
+ <?include "$docroot/plugins/dynamix.my.servers/include/myservers1.php"?>
+ </head>
  <body>
++<unraid-modals></unraid-modals>
   <div id="displaybox">
    <div class="upgrade_notice" style="display:none"></div>
    <div id="header" class="<?=$display['banner']?>">
@@ -37,7 +71,7 @@ Index: /usr/local/emhttp/plugins/dynamix/include/DefaultPageLayout.php
      <?include "$docroot/plugins/dynamix.my.servers/include/myservers2.php"?>
    </div>
    <a href="#" class="move_to_end" title="<?=_('Move To End')?>"><i class="fa fa-arrow-circle-down"></i></a>
-@@ -628,12 +619,12 @@
+@@ -748,12 +758,12 @@
    }
    // create list of nchan scripts to be started
    if (isset($button['Nchan'])) nchan_merge($button['root'], $button['Nchan']);
@@ -51,36 +85,39 @@ Index: /usr/local/emhttp/plugins/dynamix/include/DefaultPageLayout.php
  foreach ($buttons as $button) {
    annotate($button['file']);
    // include page specific stylesheets (if existing)
-@@ -706,10 +697,28 @@
-       array_splice($running,array_search($row,$running),1);
-     }
-   }
-   if (count($running)) file_put_contents($nchan_pid,implode("\n",$running)."\n"); else @unlink($nchan_pid);
- }
+@@ -960,26 +970,18 @@
+         case 'warning': bell2++; break;
+         case 'normal' : bell3++; break;
+       }
+ <?if ($notify['display']==0):?>
+       if (notify.show) {
+-        $.jGrowl(notify.subject+'<br>'+notify.description,{
+-          group: notify.importance,
+-          header: notify.event+': '+notify.timestamp,
+-          theme: notify.file,
+-          beforeOpen: function(e,m,o){if ($('div.jGrowl-notification').hasClass(notify.file)) return(false);},
+-          afterOpen: function(e,m,o){if (notify.link) $(e).css('cursor','pointer');},
+-          click: function(e,m,o){if (notify.link) location.replace(notify.link);},
+-          close: function(e,m,o){$.post('/webGui/include/Notify.php',{cmd:'hide',file:"<?=$notify['path'].'/unread/'?>"+notify.file,csrf_token:csrf_token}<?if ($notify['life']==0):?>,function(){$.post('/webGui/include/Notify.php',{cmd:'archive',file:notify.file,csrf_token:csrf_token});}<?endif;?>);}
+-        });
++        
+       }
+ <?endif;?>
+     });
+-    $('#bell').removeClass('red-orb yellow-orb green-orb').prop('title',"<?=_('Alerts')?> ["+bell1+']\n'+"<?=_('Warnings')?> ["+bell2+']\n'+"<?=_('Notices')?> ["+bell3+']');
+-    if (bell1) $('#bell').addClass('red-orb'); else
+-    if (bell2) $('#bell').addClass('yellow-orb'); else
+-    if (bell3) $('#bell').addClass('green-orb');
 +
-+function is_localhost() {
-+  // Use the peer IP, not the Host header which can be spoofed
-+  return $_SERVER['REMOTE_ADDR'] === '127.0.0.1' || $_SERVER['REMOTE_ADDR'] === '::1';
-+}
-+function is_good_session() {
-+  return isset($_SESSION) && isset($_SESSION['unraid_user']) && isset($_SESSION['unraid_login']);
-+}
-+if (is_localhost() && !is_good_session()) {
-+  if (session_status() === PHP_SESSION_ACTIVE) {
-+    session_destroy();
-+  }
-+  session_start();
-+  $_SESSION['unraid_login'] = time();
-+  $_SESSION['unraid_user'] = 'root';
-+  session_write_close();
-+  my_logger("Unraid GUI-boot: created root session for localhost request.");
-+}
- ?>
- <!DOCTYPE html>
- <html <?=$display['rtl']?>lang="<?=strtok($locale, '_') ?: 'en'?>" class="<?= $themeHelper->getThemeHtmlClass() ?>">
- <head>
- <title><?=_var($var, 'NAME')?>/<?=_var($myPage, 'name')?></title>
-@@ -922,7 +931,8 @@
++
++
++
+     break;
+   }
+ });
+ 
+ <?if ($wlan0):?>
+@@ -1363,7 +1365,8 @@
      }
    }
  }

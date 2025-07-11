@@ -1,8 +1,7 @@
 <script lang="ts" setup>
-const { registerEntry } = useCustomElements();
-onBeforeMount(() => {
-  registerEntry('UnraidComponents');
-});
+import { NuxtLayout, NuxtPage } from '#components';
+
+
 </script>
 
 <template>

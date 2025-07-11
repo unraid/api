@@ -54,6 +54,7 @@ async function createNodeModulesTarball(outputPath: string): Promise<void> {
  * After this operation, the vendored node_modules will be available inside the `deployDir`.
  * 
  * @param apiVersion Required API version to use for the vendor bundle
+ * @deprecated vendored node_modules are now included in the API slackware package
  */
 export async function bundleVendorStore(apiVersion: string): Promise<void> {
     // Ensure deploy directory exists

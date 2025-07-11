@@ -2,7 +2,7 @@
  * @todo Check OS and Connect Plugin versions against latest via API every session
  */
 import { computed, ref, toRefs, watch, watchEffect } from 'vue';
-import { createPinia, defineStore, setActivePinia, storeToRefs } from 'pinia';
+import { defineStore, storeToRefs } from 'pinia';
 import { useLazyQuery } from '@vue/apollo-composable';
 
 import {
@@ -50,13 +50,14 @@ import { useErrorsStore } from '~/store/errors';
 import { usePurchaseStore } from '~/store/purchase';
 import { useThemeStore } from '~/store/theme';
 import { useUnraidApiStore } from '~/store/unraidApi';
-import { SERVER_CLOUD_FRAGMENT, SERVER_STATE_QUERY } from './server.fragment';
+import { CLOUD_STATE_QUERY, SERVER_CLOUD_FRAGMENT, SERVER_STATE_QUERY } from './server.fragment';
 
 /**
+ * Uses the shared global Pinia instance from ~/store/globalPinia.ts
  * @see https://stackoverflow.com/questions/73476371/using-pinia-with-vue-js-web-components
  * @see https://github.com/vuejs/pinia/discussions/1085
  */
-setActivePinia(createPinia());
+import '~/store/globalPinia';
 
 export const useServerStore = defineStore('server', () => {
   const accountStore = useAccountStore();
@@ -167,7 +168,7 @@ export const useServerStore = defineStore('server', () => {
     ref<
       (
         variables?: Record<string, never> | undefined
-      ) => Promise<ApolloQueryResult<ServerStateQuery>> | undefined
+      ) => Promise<ApolloQueryResult<ServerStateQuery> | undefined> | undefined
     >();
 
   /**
@@ -494,6 +495,7 @@ export const useServerStore = defineStore('server', () => {
   });
 
   let messageEGUID = '';
+  let trialMessage = '';
   const stateData = computed((): ServerStateData => {
     switch (state.value) {
       case 'ENOKEYFILE':
@@ -509,16 +511,26 @@ export const useServerStore = defineStore('server', () => {
             '<p>Choose an option below, then use our <a href="https://unraid.net/getting-started" target="_blank" rel="noreffer noopener">Getting Started Guide</a> to configure your array in less than 15 minutes.</p>',
         };
       case 'TRIAL':
+        if (trialExtensionEligibleInsideRenewalWindow.value) {
+          trialMessage = '<p>Your <em>Trial</em> key includes all the functionality and device support of an <em>Unleashed</em> key.</p><p>Your trial is expiring soon. When it expires, <strong>the array will stop</strong>. You may extend your trial now, purchase a license key, or wait until expiration to take action.</p>';
+        } else if (trialExtensionIneligibleInsideRenewalWindow.value) {
+          trialMessage = '<p>Your <em>Trial</em> key includes all the functionality and device support of an <em>Unleashed</em> key.</p><p>Your trial is expiring soon and you have used all available extensions. When it expires, <strong>the array will stop</strong>. To continue using Unraid OS, you must purchase a license key.</p>';
+        } else if (trialExtensionEligibleOutsideRenewalWindow.value) {
+          trialMessage = '<p>Your <em>Trial</em> key includes all the functionality and device support of an <em>Unleashed</em> key.</p><p>When your <em>Trial</em> expires, <strong>the array will stop</strong>. At that point you may either purchase a license key or request a <em>Trial</em> extension.</p>';
+        } else { // would be trialExtensionIneligibleOutsideRenewalWindow if it wasn't an else conditionally
+          trialMessage = '<p>Your <em>Trial</em> key includes all the functionality and device support of an <em>Unleashed</em> key.</p><p>You have used all available trial extensions. When your <em>Trial</em> expires, <strong>the array will stop</strong>. To continue using Unraid OS after expiration, you must purchase a license key.</p>';
+        }
+
         return {
           actions: [
             ...(!registered.value && connectPluginInstalled.value ? [signInAction.value] : []),
             ...[purchaseAction.value, redeemAction.value],
+            ...(trialExtensionEligibleInsideRenewalWindow.value ? [trialExtendAction.value] : []),
             ...(registered.value && connectPluginInstalled.value ? [signOutAction.value] : []),
           ],
           humanReadable: 'Trial',
           heading: 'Thank you for choosing Unraid OS!',
-          message:
-            '<p>Your <em>Trial</em> key includes all the functionality and device support of an <em>Unleashed</em> key.</p><p>After your <em>Trial</em> has reached expiration, your server <strong>still functions normally</strong> until the next time you Stop the array or reboot your server.</p><p>At that point you may either purchase a license key or request a <em>Trial</em> extension.</p>',
+          message: trialMessage,
         };
       case 'EEXPIRED':
         return {
@@ -772,6 +784,18 @@ export const useServerStore = defineStore('server', () => {
     return stateData.value.actions.filter((action) => !authActionsNames.includes(action.name));
   });
   const trialExtensionEligible = computed(() => !regGen.value || regGen.value < 2);
+  const trialWithin5DaysOfExpiration = computed(() => {
+    if (!expireTime.value || state.value !== 'TRIAL') {
+      return false;
+    }
+    const today = dayjs();
+    const expirationDate = dayjs(expireTime.value);
+    const daysUntilExpiration = expirationDate.diff(today, 'day');
+    return daysUntilExpiration <= 5 && daysUntilExpiration >= 0;
+  });
+  const trialExtensionEligibleInsideRenewalWindow = computed(() => trialExtensionEligible.value && trialWithin5DaysOfExpiration.value);
+  const trialExtensionEligibleOutsideRenewalWindow = computed(() => trialExtensionEligible.value && !trialWithin5DaysOfExpiration.value);
+  const trialExtensionIneligibleInsideRenewalWindow = computed(() => !trialExtensionEligible.value && trialWithin5DaysOfExpiration.value);
 
   const serverConfigError = computed((): Error | undefined => {
     if (!config.value?.valid && config.value?.error) {
@@ -1150,7 +1174,6 @@ export const useServerStore = defineStore('server', () => {
           },
       expireTime:
         data.registration && data.registration.expiration ? parseInt(data.registration.expiration) : 0,
-      cloud: data.cloud ? useFragment(SERVER_CLOUD_FRAGMENT, data.cloud) : undefined,
       regExp:
         data.registration && data.registration.updateExpiration
           ? Number(data.registration.updateExpiration)
@@ -1160,10 +1183,24 @@ export const useServerStore = defineStore('server', () => {
     return mutatedData;
   };
 
-  const { load, refetch: refetchServerState, onResult, onError } = useLazyQuery(SERVER_STATE_QUERY);
+  const { load, refetch: _refetchServerState, onResult, onError } = useLazyQuery(SERVER_STATE_QUERY);
+  const {
+    load: loadCloudState,
+    refetch: refetchCloudState,
+    onResult: onResultCloudState,
+  } = useLazyQuery(CLOUD_STATE_QUERY);
+
+  const refetchServerState = async (variables?: Record<string, never>) => {
+    const serverResponse = await _refetchServerState(variables);
+    await refetchCloudState()?.catch(() => {});
+    return serverResponse;
+  };
 
   setTimeout(() => {
     load();
+    if (connectPluginInstalled.value) {
+      loadCloudState();
+    }
   }, 500);
 
   onResult((result) => {
@@ -1173,6 +1210,16 @@ export const useServerStore = defineStore('server', () => {
       apiServerStateRefresh.value = refetchServerState;
       const mutatedServerStateResult = mutateServerStateFromApi(result.data);
       setServer(mutatedServerStateResult);
+    }
+  });
+
+  onResultCloudState((result) => {
+    if (result.data) {
+      const { cloud } = result.data;
+      const serverData = {
+        cloud: cloud ? useFragment(SERVER_CLOUD_FRAGMENT, cloud) : undefined,
+      };
+      setServer(serverData);
     }
   });
 

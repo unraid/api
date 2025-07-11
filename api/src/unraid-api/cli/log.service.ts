@@ -19,6 +19,12 @@ export class LogService {
         return shouldLog;
     }
 
+    table(level: LogLevel, data: unknown, columns?: string[]) {
+        if (this.shouldLog(level)) {
+            console.table(data, columns);
+        }
+    }
+
     log(...messages: unknown[]): void {
         if (this.shouldLog('info')) {
             this.logger.log(...messages);

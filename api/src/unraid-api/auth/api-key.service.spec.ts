@@ -2,6 +2,7 @@ import { Logger } from '@nestjs/common';
 import { readdir, readFile, writeFile } from 'fs/promises';
 import { join } from 'path';
 
+import { Resource, Role } from '@unraid/shared/graphql.model.js';
 import { ensureDir, ensureDirSync } from 'fs-extra';
 import { AuthActionVerb } from 'nest-authz';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
@@ -16,7 +17,6 @@ import {
     ApiKeyWithSecret,
     Permission,
 } from '@app/unraid-api/graph/resolvers/api-key/api-key.model.js';
-import { Resource, Role } from '@app/unraid-api/graph/resolvers/base.model.js';
 
 // Mock the store and its modules
 vi.mock('@app/store/index.js', () => ({
@@ -196,91 +196,6 @@ describe('ApiKeyService', () => {
             ).rejects.toThrow('Invalid role specified');
 
             expect(saveSpy).not.toHaveBeenCalled();
-        });
-    });
-
-    describe('createLocalApiKeyForConnectIfNecessary', () => {
-        beforeEach(() => {
-            // Mock config getter
-            vi.mocked(getters.config).mockReturnValue({
-                status: FileLoadStatus.LOADED,
-                remote: {
-                    apikey: 'remote-api-key',
-                    localApiKey: null,
-                },
-            } as any);
-
-            // Mock store dispatch
-            vi.mocked(store.dispatch).mockResolvedValue({} as any);
-        });
-
-        it('should not create key if config is not loaded', async () => {
-            vi.mocked(getters.config).mockReturnValue({
-                status: FileLoadStatus.UNLOADED,
-            } as any);
-
-            await apiKeyService['createLocalApiKeyForConnectIfNecessary']();
-
-            expect(mockLogger.error).toHaveBeenCalledWith(
-                'Config file not loaded, cannot create local API key'
-            );
-            expect(store.dispatch).not.toHaveBeenCalled();
-        });
-
-        it('should not create key if remote apikey is not set', async () => {
-            vi.mocked(getters.config).mockReturnValue({
-                status: FileLoadStatus.LOADED,
-                remote: {
-                    apikey: null,
-                    localApiKey: null,
-                },
-            } as any);
-
-            await apiKeyService['createLocalApiKeyForConnectIfNecessary']();
-
-            expect(store.dispatch).not.toHaveBeenCalled();
-        });
-
-        it('should dispatch to update config if Connect key already exists', async () => {
-            vi.spyOn(apiKeyService, 'findByField').mockReturnValue(mockApiKeyWithSecret);
-
-            await apiKeyService['createLocalApiKeyForConnectIfNecessary']();
-
-            expect(store.dispatch).toHaveBeenCalled();
-        });
-
-        it('should create new Connect key and update config', async () => {
-            vi.spyOn(apiKeyService, 'findByField').mockReturnValue(null);
-            vi.spyOn(apiKeyService, 'create').mockResolvedValue(mockApiKeyWithSecret);
-
-            await apiKeyService['createLocalApiKeyForConnectIfNecessary']();
-
-            expect(apiKeyService.create).toHaveBeenCalledWith({
-                name: 'Connect',
-                description: 'API key for Connect user',
-                roles: [Role.CONNECT],
-                overwrite: true,
-            });
-            expect(store.dispatch).toHaveBeenCalledWith(
-                updateUserConfig({
-                    remote: {
-                        localApiKey: mockApiKeyWithSecret.key,
-                    },
-                })
-            );
-        });
-
-        it('should log an error if key creation fails', async () => {
-            vi.spyOn(apiKeyService, 'findByField').mockReturnValue(null);
-            vi.spyOn(apiKeyService, 'createLocalConnectApiKey').mockResolvedValue(null);
-
-            await expect(apiKeyService['createLocalApiKeyForConnectIfNecessary']()).resolves.toBe(
-                undefined
-            );
-            expect(mockLogger.error).toHaveBeenCalledWith(
-                'Failed to create local API key - no key returned'
-            );
-            expect(store.dispatch).not.toHaveBeenCalled();
         });
     });
 
@@ -476,17 +391,148 @@ describe('ApiKeyService', () => {
         });
     });
 
+    describe('update', () => {
+        let updateMockApiKey: ApiKeyWithSecret;
+
+        beforeEach(() => {
+            // Create a fresh copy of the mock data for update tests
+            updateMockApiKey = {
+                id: 'test-api-id',
+                key: 'test-api-key',
+                name: 'Test API Key',
+                description: 'Test API Key Description',
+                roles: [Role.GUEST],
+                permissions: [
+                    {
+                        resource: Resource.CONNECT,
+                        actions: [AuthActionVerb.READ],
+                    },
+                ],
+                createdAt: new Date().toISOString(),
+            };
+
+            vi.spyOn(apiKeyService, 'loadAllFromDisk').mockResolvedValue([updateMockApiKey]);
+            vi.spyOn(apiKeyService, 'saveApiKey').mockResolvedValue();
+            apiKeyService.onModuleInit();
+        });
+
+        it('should update name and description', async () => {
+            const updatedName = 'Updated API Key';
+            const updatedDescription = 'Updated Description';
+
+            const result = await apiKeyService.update({
+                id: updateMockApiKey.id,
+                name: updatedName,
+                description: updatedDescription,
+            });
+
+            expect(result.name).toBe(updatedName);
+            expect(result.description).toBe(updatedDescription);
+            expect(result.roles).toEqual(updateMockApiKey.roles);
+            expect(result.permissions).toEqual(updateMockApiKey.permissions);
+            expect(apiKeyService.saveApiKey).toHaveBeenCalledWith(result);
+        });
+
+        it('should update roles', async () => {
+            const updatedRoles = [Role.ADMIN];
+
+            const result = await apiKeyService.update({
+                id: updateMockApiKey.id,
+                roles: updatedRoles,
+            });
+
+            expect(result.roles).toEqual(updatedRoles);
+            expect(result.name).toBe(updateMockApiKey.name);
+            expect(result.description).toBe(updateMockApiKey.description);
+            expect(result.permissions).toEqual(updateMockApiKey.permissions);
+            expect(apiKeyService.saveApiKey).toHaveBeenCalledWith(result);
+        });
+
+        it('should update permissions', async () => {
+            const updatedPermissions = [
+                {
+                    resource: Resource.CONNECT,
+                    actions: [AuthActionVerb.READ, AuthActionVerb.UPDATE],
+                },
+            ];
+
+            const result = await apiKeyService.update({
+                id: updateMockApiKey.id,
+                permissions: updatedPermissions,
+            });
+
+            expect(result.permissions).toEqual(updatedPermissions);
+            expect(result.name).toBe(updateMockApiKey.name);
+            expect(result.description).toBe(updateMockApiKey.description);
+            expect(result.roles).toEqual(updateMockApiKey.roles);
+            expect(apiKeyService.saveApiKey).toHaveBeenCalledWith(result);
+        });
+
+        it('should throw error when API key not found', async () => {
+            await expect(
+                apiKeyService.update({
+                    id: 'non-existent-id',
+                    name: 'New Name',
+                })
+            ).rejects.toThrow('API key not found');
+        });
+
+        it('should throw error when invalid role is provided', async () => {
+            await expect(
+                apiKeyService.update({
+                    id: updateMockApiKey.id,
+                    roles: ['INVALID_ROLE' as Role],
+                })
+            ).rejects.toThrow('Invalid role specified');
+        });
+
+        it('should throw error when invalid name is provided', async () => {
+            await expect(
+                apiKeyService.update({
+                    id: updateMockApiKey.id,
+                    name: 'Invalid@Name',
+                })
+            ).rejects.toThrow(
+                'API key name must contain only letters, numbers, and spaces (Unicode letters are supported)'
+            );
+        });
+    });
+
     describe('loadAllFromDisk', () => {
+        let loadMockApiKey: ApiKeyWithSecret;
+
+        beforeEach(() => {
+            // Create a fresh copy of the mock data for loadAllFromDisk tests
+            loadMockApiKey = {
+                id: 'test-api-id',
+                key: 'test-api-key',
+                name: 'Test API Key',
+                description: 'Test API Key Description',
+                roles: [Role.GUEST],
+                permissions: [
+                    {
+                        resource: Resource.CONNECT,
+                        actions: [AuthActionVerb.READ],
+                    },
+                ],
+                createdAt: new Date().toISOString(),
+            };
+        });
+
         it('should load and parse all JSON files', async () => {
             const mockFiles = ['key1.json', 'key2.json', 'notakey.txt'];
+            const secondKey = { ...loadMockApiKey, id: 'second-id', key: 'second-key' };
 
             vi.mocked(readdir).mockResolvedValue(mockFiles as any);
-            vi.mocked(readFile).mockResolvedValue(JSON.stringify(mockApiKeyWithSecret));
+            vi.mocked(readFile)
+                .mockResolvedValueOnce(JSON.stringify(loadMockApiKey))
+                .mockResolvedValueOnce(JSON.stringify(secondKey));
 
             const result = await apiKeyService.loadAllFromDisk();
 
             expect(result).toHaveLength(2);
-            expect(result[0]).toEqual(mockApiKeyWithSecret);
+            expect(result[0]).toEqual(loadMockApiKey);
+            expect(result[1]).toEqual(secondKey);
             expect(readFile).toHaveBeenCalledTimes(2);
         });
 
@@ -508,14 +554,12 @@ describe('ApiKeyService', () => {
                 'notakey.txt',
             ] as any);
             vi.mocked(readFile)
-                .mockResolvedValueOnce(JSON.stringify(mockApiKeyWithSecret))
+                .mockResolvedValueOnce(JSON.stringify(loadMockApiKey))
                 .mockResolvedValueOnce(JSON.stringify({ invalid: 'structure' }))
                 .mockResolvedValueOnce(
-                    JSON.stringify({ ...mockApiKeyWithSecret, id: 'unique-id', key: 'unique-key' })
-                )
-                .mockResolvedValueOnce(
-                    JSON.stringify({ ...mockApiKeyWithSecret, id: 'unique-id', key: 'unique-key' })
+                    JSON.stringify({ ...loadMockApiKey, id: 'unique-id', key: 'unique-key' })
                 );
+
             const result = await apiKeyService.loadAllFromDisk();
             expect(result).toHaveLength(2);
             expect(result[0]).toEqual({

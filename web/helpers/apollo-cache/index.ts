@@ -1,6 +1,6 @@
-import { InMemoryCache } from '@apollo/client/core/index.js';
+import { InMemoryCache } from '@apollo/client/core';
+import type { InMemoryCacheConfig } from '@apollo/client/core';
 
-import type { InMemoryCacheConfig } from '@apollo/client/core/index.js';
 import type { NotificationOverview } from '~/composables/gql/graphql';
 
 import {
@@ -10,6 +10,11 @@ import {
 import { NotificationType } from '~/composables/gql/graphql';
 import { NotificationTypename } from '~/composables/gql/typename';
 import { mergeAndDedup } from './merge';
+
+// Utility function to check if a value is defined (not null and not undefined)
+const isDefined = <T>(value: T | null | undefined): value is T => {
+  return value !== null && value !== undefined;
+};
 
 /**------------------------------------------------------------------------
  * !                    Understanding Cache Type Policies

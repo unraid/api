@@ -8,11 +8,25 @@ import {
     registerEnumType,
 } from '@nestjs/graphql';
 
+import { Node } from '@unraid/shared/graphql.model.js';
+import { PrefixedID } from '@unraid/shared/prefixed-id-scalar.js';
 import { GraphQLBigInt, GraphQLJSON } from 'graphql-scalars';
 
-import { Node } from '@app/unraid-api/graph/resolvers/base.model.js';
 import { ThemeName } from '@app/unraid-api/graph/resolvers/customization/theme.model.js';
-import { PrefixedID } from '@app/unraid-api/graph/scalars/graphql-type-prefixed-id.js';
+
+// USB device interface for type safety
+export interface UsbDevice {
+    id: string;
+    name: string;
+    guid: string;
+    vendorname: string;
+}
+
+// Raw USB device data from lsusb parsing
+export interface RawUsbDeviceData {
+    id: string;
+    n?: string;
+}
 
 export enum Temperature {
     C = 'C',

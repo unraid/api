@@ -1,6 +1,7 @@
 import { Field, ID, Int, ObjectType, registerEnumType } from '@nestjs/graphql';
 
-import { Node } from '@app/unraid-api/graph/resolvers/base.model.js';
+import { Node } from '@unraid/shared/graphql.model.js';
+
 import {
     RegistrationState,
     RegistrationType,

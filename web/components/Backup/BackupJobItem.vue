@@ -17,7 +17,8 @@ import {
   DELETE_BACKUP_JOB_CONFIG_MUTATION,
 } from '~/components/Backup/backup-jobs.query';
 import { useFragment } from '~/composables/gql/fragment-masking';
-import { BackupJobStatus, type SourceConfigFragment } from '~/composables/gql/graphql';
+import { BackupJobStatus  } from '~/composables/gql/graphql';
+import type {SourceConfigFragment} from '~/composables/gql/graphql';
 
 interface Props {
   configId: string;

@@ -1,7 +1,8 @@
-import { Inject, Logger } from '@nestjs/common';
-import { Args, Mutation, Parent, Query, ResolveField, Resolver, Subscription } from '@nestjs/graphql';
+import { Logger } from '@nestjs/common';
+import { Args, Parent, Query, ResolveField, Resolver } from '@nestjs/graphql';
 
-import { pubsub } from '@app/core/pubsub.js';
+import { PrefixedID } from '@unraid/shared/prefixed-id-scalar.js';
+
 import { BackupConfigService } from '@app/unraid-api/graph/resolvers/backup/backup-config.service.js';
 import {
     Backup,
@@ -10,19 +11,10 @@ import {
     BackupJobConfigFormInput,
     BackupStatus,
 } from '@app/unraid-api/graph/resolvers/backup/backup.model.js';
-import {
-    BACKUP_JOB_GROUP_PREFIX,
-    getBackupJobGroupId,
-} from '@app/unraid-api/graph/resolvers/backup/backup.utils.js';
 import { buildBackupJobConfigSchema } from '@app/unraid-api/graph/resolvers/backup/jsonforms/backup-jsonforms-config.js';
-import {
-    BackupJobStatus,
-    JobStatus,
-} from '@app/unraid-api/graph/resolvers/backup/orchestration/backup-job-status.model.js';
+import { JobStatus } from '@app/unraid-api/graph/resolvers/backup/orchestration/backup-job-status.model.js';
 import { BackupJobTrackingService } from '@app/unraid-api/graph/resolvers/backup/orchestration/backup-job-tracking.service.js';
-import { RCloneJob } from '@app/unraid-api/graph/resolvers/rclone/rclone.model.js';
 import { RCloneService } from '@app/unraid-api/graph/resolvers/rclone/rclone.service.js';
-import { PrefixedID } from '@app/unraid-api/graph/scalars/graphql-type-prefixed-id.js';
 import { FormatService } from '@app/unraid-api/utils/format.service.js';
 
 @Resolver(() => Backup)

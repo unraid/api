@@ -14,46 +14,6 @@ directive @usePermissions(
   possession: AuthPossession
 ) on FIELD_DEFINITION
 
-type ApiKeyResponse {
-  valid: Boolean!
-  error: String
-}
-
-type MinigraphqlResponse {
-  status: MinigraphStatus!
-  timeout: Int
-  error: String
-}
-
-enum MinigraphStatus {
-  PRE_INIT
-  CONNECTING
-  CONNECTED
-  PING_FAILURE
-  ERROR_RETRYING
-}
-
-type CloudResponse {
-  status: String!
-  ip: String
-  error: String
-}
-
-type RelayResponse {
-  status: String!
-  timeout: String
-  error: String
-}
-
-type Cloud {
-  error: String
-  apiKey: ApiKeyResponse!
-  relay: RelayResponse
-  minigraphql: MinigraphqlResponse!
-  cloud: CloudResponse!
-  allowedOrigins: [String!]!
-}
-
 type Capacity {
   """Free capacity"""
   free: String!
@@ -286,126 +246,6 @@ enum URL_TYPE {
 A field whose value conforms to the standard URL format as specified in RFC3986: https://www.ietf.org/rfc/rfc3986.txt.
 """
 scalar URL
-
-type RemoteAccess {
-  """The type of WAN access used for Remote Access"""
-  accessType: WAN_ACCESS_TYPE!
-
-  """The type of port forwarding used for Remote Access"""
-  forwardType: WAN_FORWARD_TYPE
-
-  """The port used for Remote Access"""
-  port: Int
-}
-
-enum WAN_ACCESS_TYPE {
-  DYNAMIC
-  ALWAYS
-  DISABLED
-}
-
-enum WAN_FORWARD_TYPE {
-  UPNP
-  STATIC
-}
-
-type DynamicRemoteAccessStatus {
-  """The type of dynamic remote access that is enabled"""
-  enabledType: DynamicRemoteAccessType!
-
-  """The type of dynamic remote access that is currently running"""
-  runningType: DynamicRemoteAccessType!
-
-  """Any error message associated with the dynamic remote access"""
-  error: String
-}
-
-enum DynamicRemoteAccessType {
-  STATIC
-  UPNP
-  DISABLED
-}
-
-type ConnectSettingsValues {
-  """
-  If true, the GraphQL sandbox is enabled and available at /graphql. If false, the GraphQL sandbox is disabled and only the production API will be available.
-  """
-  sandbox: Boolean!
-
-  """A list of origins allowed to interact with the API"""
-  extraOrigins: [String!]!
-
-  """The type of WAN access used for Remote Access"""
-  accessType: WAN_ACCESS_TYPE!
-
-  """The type of port forwarding used for Remote Access"""
-  forwardType: WAN_FORWARD_TYPE
-
-  """The port used for Remote Access"""
-  port: Int
-
-  """A list of Unique Unraid Account ID's"""
-  ssoUserIds: [String!]!
-}
-
-type ConnectSettings implements Node {
-  id: PrefixedID!
-
-  """The data schema for the Connect settings"""
-  dataSchema: JSON!
-
-  """The UI schema for the Connect settings"""
-  uiSchema: JSON!
-
-  """The values for the Connect settings"""
-  values: ConnectSettingsValues!
-}
-
-"""
-The `JSON` scalar type represents JSON values as specified by [ECMA-404](http://www.ecma-international.org/publications/files/ECMA-ST/ECMA-404.pdf).
-"""
-scalar JSON @specifiedBy(url: "http://www.ecma-international.org/publications/files/ECMA-ST/ECMA-404.pdf")
-
-type Connect implements Node {
-  id: PrefixedID!
-
-  """The status of dynamic remote access"""
-  dynamicRemoteAccess: DynamicRemoteAccessStatus!
-
-  """The settings for the Connect instance"""
-  settings: ConnectSettings!
-}
-
-type Network implements Node {
-  id: PrefixedID!
-  accessUrls: [AccessUrl!]
-}
-
-type ProfileModel implements Node {
-  id: PrefixedID!
-  username: String!
-  url: String!
-  avatar: String!
-}
-
-type Server implements Node {
-  id: PrefixedID!
-  owner: ProfileModel!
-  guid: String!
-  apikey: String!
-  name: String!
-  status: ServerStatus!
-  wanip: String!
-  lanip: String!
-  localurl: String!
-  remoteurl: String!
-}
-
-enum ServerStatus {
-  ONLINE
-  OFFLINE
-  NEVER_CONNECTED
-}
 
 type DiskPartition {
   """The name of the partition"""
@@ -799,6 +639,7 @@ type ApiKey implements Node {
 """Available roles for API keys and users"""
 enum Role {
   ADMIN
+  USER
   CONNECT
   GUEST
 }
@@ -811,6 +652,195 @@ type ApiKeyWithSecret implements Node {
   createdAt: String!
   permissions: [Permission!]!
   key: String!
+}
+
+type JobStatus implements Node {
+  id: PrefixedID!
+
+  """External job ID from the job execution system"""
+  externalJobId: String!
+  name: String!
+  status: BackupJobStatus!
+
+  """Progress percentage (0-100)"""
+  progress: Int!
+  message: String
+  error: String
+  startTime: DateTime!
+  endTime: DateTime
+
+  """Bytes transferred"""
+  bytesTransferred: Int
+
+  """Total bytes to transfer"""
+  totalBytes: Int
+
+  """Transfer speed in bytes per second"""
+  speed: Int
+
+  """Elapsed time in seconds"""
+  elapsedTime: Int
+
+  """Estimated time to completion in seconds"""
+  eta: Int
+
+  """Human-readable bytes transferred"""
+  formattedBytesTransferred: String
+
+  """Human-readable transfer speed"""
+  formattedSpeed: String
+
+  """Human-readable elapsed time"""
+  formattedElapsedTime: String
+
+  """Human-readable ETA"""
+  formattedEta: String
+}
+
+"""Status of a backup job"""
+enum BackupJobStatus {
+  QUEUED
+  RUNNING
+  COMPLETED
+  FAILED
+  CANCELLED
+}
+
+"""
+A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date-time format.
+"""
+scalar DateTime
+
+type RCloneDrive {
+  """Provider name"""
+  name: String!
+
+  """Provider options and configuration schema"""
+  options: JSON!
+}
+
+"""
+The `JSON` scalar type represents JSON values as specified by [ECMA-404](http://www.ecma-international.org/publications/files/ECMA-ST/ECMA-404.pdf).
+"""
+scalar JSON @specifiedBy(url: "http://www.ecma-international.org/publications/files/ECMA-ST/ECMA-404.pdf")
+
+type RCloneBackupConfigForm {
+  id: ID!
+  dataSchema: JSON!
+  uiSchema: JSON!
+}
+
+type RCloneBackupSettings {
+  configForm(formOptions: RCloneConfigFormInput): RCloneBackupConfigForm!
+  drives: [RCloneDrive!]!
+  remotes: [RCloneRemote!]!
+}
+
+input RCloneConfigFormInput {
+  providerType: String
+  showAdvanced: Boolean = false
+  parameters: JSON
+}
+
+type RCloneRemote {
+  name: String!
+  type: String!
+  parameters: JSON!
+
+  """Complete remote configuration"""
+  config: JSON!
+}
+
+type RCloneJobStats {
+  """Bytes transferred"""
+  bytes: Float
+
+  """Transfer speed in bytes/sec"""
+  speed: Float
+
+  """Estimated time to completion in seconds"""
+  eta: Float
+
+  """Elapsed time in seconds"""
+  elapsedTime: Float
+
+  """Progress percentage (0-100)"""
+  percentage: Float
+
+  """Number of checks completed"""
+  checks: Float
+
+  """Number of deletes completed"""
+  deletes: Float
+
+  """Number of errors encountered"""
+  errors: Float
+
+  """Whether a fatal error occurred"""
+  fatalError: Boolean
+
+  """Last error message"""
+  lastError: String
+
+  """Number of renames completed"""
+  renames: Float
+
+  """Whether there is a retry error"""
+  retryError: Boolean
+
+  """Number of server-side copies"""
+  serverSideCopies: Float
+
+  """Bytes in server-side copies"""
+  serverSideCopyBytes: Float
+
+  """Number of server-side moves"""
+  serverSideMoves: Float
+
+  """Bytes in server-side moves"""
+  serverSideMoveBytes: Float
+
+  """Total bytes to transfer"""
+  totalBytes: Float
+
+  """Total checks to perform"""
+  totalChecks: Float
+
+  """Total transfers to perform"""
+  totalTransfers: Float
+
+  """Time spent transferring in seconds"""
+  transferTime: Float
+
+  """Number of transfers completed"""
+  transfers: Float
+
+  """Currently transferring files"""
+  transferring: JSON
+
+  """Currently checking files"""
+  checking: JSON
+
+  """Human-readable bytes transferred"""
+  formattedBytes: String
+
+  """Human-readable transfer speed"""
+  formattedSpeed: String
+
+  """Human-readable elapsed time"""
+  formattedElapsedTime: String
+
+  """Human-readable ETA"""
+  formattedEta: String
+
+  """Calculated percentage (fallback when percentage is null)"""
+  calculatedPercentage: Float
+
+  """Whether the job is actively running"""
+  isActivelyRunning: Boolean
+
+  """Whether the job is completed"""
+  isCompleted: Boolean
 }
 
 type ArrayMutations {
@@ -1077,6 +1107,9 @@ type ApiKeyMutations {
 
   """Delete one or more API keys"""
   delete(input: DeleteApiKeyInput!): Boolean!
+
+  """Update an API key"""
+  update(input: UpdateApiKeyInput!): ApiKeyWithSecret!
 }
 
 input CreateApiKeyInput {
@@ -1108,6 +1141,14 @@ input RemoveRoleFromApiKeyInput {
 
 input DeleteApiKeyInput {
   ids: [PrefixedID!]!
+}
+
+input UpdateApiKeyInput {
+  id: PrefixedID!
+  name: String
+  description: String
+  roles: [Role!]
+  permissions: [AddPermissionInput!]
 }
 
 """
@@ -1173,190 +1214,6 @@ type ParityCheck {
 
   """Whether the parity check is running"""
   running: Boolean
-}
-
-"""
-A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date-time format.
-"""
-scalar DateTime
-
-type JobStatus implements Node {
-  id: PrefixedID!
-
-  """External job ID from the job execution system"""
-  externalJobId: String!
-  name: String!
-  status: BackupJobStatus!
-
-  """Progress percentage (0-100)"""
-  progress: Int!
-  message: String
-  error: String
-  startTime: DateTime!
-  endTime: DateTime
-
-  """Bytes transferred"""
-  bytesTransferred: Int
-
-  """Total bytes to transfer"""
-  totalBytes: Int
-
-  """Transfer speed in bytes per second"""
-  speed: Int
-
-  """Elapsed time in seconds"""
-  elapsedTime: Int
-
-  """Estimated time to completion in seconds"""
-  eta: Int
-
-  """Human-readable bytes transferred"""
-  formattedBytesTransferred: String
-
-  """Human-readable transfer speed"""
-  formattedSpeed: String
-
-  """Human-readable elapsed time"""
-  formattedElapsedTime: String
-
-  """Human-readable ETA"""
-  formattedEta: String
-}
-
-"""Status of a backup job"""
-enum BackupJobStatus {
-  QUEUED
-  RUNNING
-  COMPLETED
-  FAILED
-  CANCELLED
-}
-
-type RCloneDrive {
-  """Provider name"""
-  name: String!
-
-  """Provider options and configuration schema"""
-  options: JSON!
-}
-
-type RCloneBackupConfigForm {
-  id: ID!
-  dataSchema: JSON!
-  uiSchema: JSON!
-}
-
-type RCloneBackupSettings {
-  configForm(formOptions: RCloneConfigFormInput): RCloneBackupConfigForm!
-  drives: [RCloneDrive!]!
-  remotes: [RCloneRemote!]!
-}
-
-input RCloneConfigFormInput {
-  providerType: String
-  showAdvanced: Boolean = false
-  parameters: JSON
-}
-
-type RCloneRemote {
-  name: String!
-  type: String!
-  parameters: JSON!
-
-  """Complete remote configuration"""
-  config: JSON!
-}
-
-type RCloneJobStats {
-  """Bytes transferred"""
-  bytes: Float
-
-  """Transfer speed in bytes/sec"""
-  speed: Float
-
-  """Estimated time to completion in seconds"""
-  eta: Float
-
-  """Elapsed time in seconds"""
-  elapsedTime: Float
-
-  """Progress percentage (0-100)"""
-  percentage: Float
-
-  """Number of checks completed"""
-  checks: Float
-
-  """Number of deletes completed"""
-  deletes: Float
-
-  """Number of errors encountered"""
-  errors: Float
-
-  """Whether a fatal error occurred"""
-  fatalError: Boolean
-
-  """Last error message"""
-  lastError: String
-
-  """Number of renames completed"""
-  renames: Float
-
-  """Whether there is a retry error"""
-  retryError: Boolean
-
-  """Number of server-side copies"""
-  serverSideCopies: Float
-
-  """Bytes in server-side copies"""
-  serverSideCopyBytes: Float
-
-  """Number of server-side moves"""
-  serverSideMoves: Float
-
-  """Bytes in server-side moves"""
-  serverSideMoveBytes: Float
-
-  """Total bytes to transfer"""
-  totalBytes: Float
-
-  """Total checks to perform"""
-  totalChecks: Float
-
-  """Total transfers to perform"""
-  totalTransfers: Float
-
-  """Time spent transferring in seconds"""
-  transferTime: Float
-
-  """Number of transfers completed"""
-  transfers: Float
-
-  """Currently transferring files"""
-  transferring: JSON
-
-  """Currently checking files"""
-  checking: JSON
-
-  """Human-readable bytes transferred"""
-  formattedBytes: String
-
-  """Human-readable transfer speed"""
-  formattedSpeed: String
-
-  """Human-readable elapsed time"""
-  formattedElapsedTime: String
-
-  """Human-readable ETA"""
-  formattedEta: String
-
-  """Calculated percentage (fallback when percentage is null)"""
-  calculatedPercentage: Float
-
-  """Whether the job is actively running"""
-  isActivelyRunning: Boolean
-
-  """Whether the job is completed"""
-  isCompleted: Boolean
 }
 
 type FlashPreprocessConfig {
@@ -1528,14 +1385,14 @@ type Theme {
   """Whether to show the banner gradient"""
   showBannerGradient: Boolean!
 
-  """The background color of the header"""
-  headerBackgroundColor: String!
-
   """Whether to show the description in the header"""
   showHeaderDescription: Boolean!
 
+  """The background color of the header"""
+  headerBackgroundColor: String
+
   """The text color of the header"""
-  headerPrimaryTextColor: String!
+  headerPrimaryTextColor: String
 
   """The secondary text color of the header"""
   headerSecondaryTextColor: String
@@ -1931,6 +1788,71 @@ type Owner {
   avatar: String!
 }
 
+type ProfileModel implements Node {
+  id: PrefixedID!
+  username: String!
+  url: String!
+  avatar: String!
+}
+
+type Server implements Node {
+  id: PrefixedID!
+  owner: ProfileModel!
+  guid: String!
+  apikey: String!
+  name: String!
+  status: ServerStatus!
+  wanip: String!
+  lanip: String!
+  localurl: String!
+  remoteurl: String!
+}
+
+enum ServerStatus {
+  ONLINE
+  OFFLINE
+  NEVER_CONNECTED
+}
+
+type ApiConfig {
+  version: String!
+  extraOrigins: [String!]!
+  sandbox: Boolean
+  ssoSubIds: [String!]!
+  plugins: [String!]!
+}
+
+type UnifiedSettings implements Node {
+  id: PrefixedID!
+
+  """The data schema for the settings"""
+  dataSchema: JSON!
+
+  """The UI schema for the settings"""
+  uiSchema: JSON!
+
+  """The current values of the settings"""
+  values: JSON!
+}
+
+type UpdateSettingsResponse {
+  """Whether a restart is required for the changes to take effect"""
+  restartRequired: Boolean!
+
+  """The updated settings values"""
+  values: JSON!
+}
+
+type Settings implements Node {
+  id: PrefixedID!
+
+  """A view of all settings"""
+  unified: UnifiedSettings!
+
+  """The API setting values"""
+  api: ApiConfig!
+}
+
 type VmDomain implements Node {
   """The unique identifier for the vm (uuid)"""
   id: PrefixedID!
@@ -1991,11 +1913,165 @@ type UserAccount implements Node {
   permissions: [Permission!]
 }
 
+type Plugin {
+  """The name of the plugin package"""
+  name: String!
+
+  """The version of the plugin package"""
+  version: String!
+
+  """Whether the plugin has an API module"""
+  hasApiModule: Boolean
+
+  """Whether the plugin has a CLI module"""
+  hasCliModule: Boolean
+}
+
+type AccessUrlObject {
+  ipv4: String
+  ipv6: String
+  type: URL_TYPE!
+  name: String
+}
+
+type ApiKeyResponse {
+  valid: Boolean!
+  error: String
+}
+
+type MinigraphqlResponse {
+  status: MinigraphStatus!
+  timeout: Int
+  error: String
+}
+
+"""The status of the minigraph"""
+enum MinigraphStatus {
+  PRE_INIT
+  CONNECTING
+  CONNECTED
+  PING_FAILURE
+  ERROR_RETRYING
+}
+
+type CloudResponse {
+  status: String!
+  ip: String
+  error: String
+}
+
+type RelayResponse {
+  status: String!
+  timeout: String
+  error: String
+}
+
+type Cloud {
+  error: String
+  apiKey: ApiKeyResponse!
+  relay: RelayResponse
+  minigraphql: MinigraphqlResponse!
+  cloud: CloudResponse!
+  allowedOrigins: [String!]!
+}
+
+type RemoteAccess {
+  """The type of WAN access used for Remote Access"""
+  accessType: WAN_ACCESS_TYPE!
+
+  """The type of port forwarding used for Remote Access"""
+  forwardType: WAN_FORWARD_TYPE
+
+  """The port used for Remote Access"""
+  port: Int
+}
+
+enum WAN_ACCESS_TYPE {
+  DYNAMIC
+  ALWAYS
+  DISABLED
+}
+
+enum WAN_FORWARD_TYPE {
+  UPNP
+  STATIC
+}
+
+type DynamicRemoteAccessStatus {
+  """The type of dynamic remote access that is enabled"""
+  enabledType: DynamicRemoteAccessType!
+
+  """The type of dynamic remote access that is currently running"""
+  runningType: DynamicRemoteAccessType!
+
+  """Any error message associated with the dynamic remote access"""
+  error: String
+}
+
+enum DynamicRemoteAccessType {
+  STATIC
+  UPNP
+  DISABLED
+}
+
+type ConnectSettingsValues {
+  """The type of WAN access used for Remote Access"""
+  accessType: WAN_ACCESS_TYPE!
+
+  """The type of port forwarding used for Remote Access"""
+  forwardType: WAN_FORWARD_TYPE
+
+  """The port used for Remote Access"""
+  port: Int
+}
+
+type ConnectSettings implements Node {
+  id: PrefixedID!
+
+  """The data schema for the Connect settings"""
+  dataSchema: JSON!
+
+  """The UI schema for the Connect settings"""
+  uiSchema: JSON!
+
+  """The values for the Connect settings"""
+  values: ConnectSettingsValues!
+}
+
+type Connect implements Node {
+  id: PrefixedID!
+
+  """The status of dynamic remote access"""
+  dynamicRemoteAccess: DynamicRemoteAccessStatus!
+
+  """The settings for the Connect instance"""
+  settings: ConnectSettings!
+}
+
+type Network implements Node {
+  id: PrefixedID!
+  accessUrls: [AccessUrl!]
+}
+
+input AccessUrlObjectInput {
+  ipv4: String
+  ipv6: String
+  type: URL_TYPE!
+  name: String
+}
+
 "\n### Description:\n\nID scalar type that prefixes the underlying ID with the server identifier on output and strips it on input.\n\nWe use this scalar type to ensure that the ID is unique across all servers, allowing the same underlying resource ID to be used across different server instances.\n\n#### Input Behavior:\n\nWhen providing an ID as input (e.g., in arguments or input objects), the server identifier prefix ('<serverId>:') is optional.\n\n- If the prefix is present (e.g., '123:456'), it will be automatically stripped, and only the underlying ID ('456') will be used internally.\n- If the prefix is absent (e.g., '456'), the ID will be used as-is.\n\nThis makes it flexible for clients, as they don't strictly need to know or provide the server ID.\n\n#### Output Behavior:\n\nWhen an ID is returned in the response (output), it will *always* be prefixed with the current server's unique identifier (e.g., '123:456').\n\n#### Example:\n\nNote: The server identifier is '123' in this example.\n\n##### Input (Prefix Optional):\n```graphql\n# Both of these are valid inputs resolving to internal ID '456'\n{\n  someQuery(id: \"123:456\") { ... }\n  anotherQuery(id: \"456\") { ... }\n}\n```\n\n##### Output (Prefix Always Added):\n```graphql\n# Assuming internal ID is '456'\n{\n  \"data\": {\n    \"someResource\": {\n      \"id\": \"123:456\" \n    }\n  }\n}\n```\n        "
 scalar PrefixedID
 
 type Query {
-  cloud: Cloud!
+  apiKeys: [ApiKey!]!
+  apiKey(id: PrefixedID!): ApiKey
+
+  """All possible roles for API keys"""
+  apiKeyPossibleRoles: [Role!]!
+
+  """All possible permissions for API keys"""
+  apiKeyPossiblePermissions: [Permission!]!
   config: Config!
   display: Display!
   flash: Flash!
@@ -2003,7 +2079,6 @@ type Query {
   logFiles: [LogFile!]!
   logFile(path: String!, lines: Int, startLine: Int): LogFileContent!
   me: UserAccount!
-  network: Network!
 
   """Get all notifications"""
   notifications: Notifications!
@@ -2020,14 +2095,6 @@ type Query {
   vms: Vms!
   parityHistory: [ParityCheck!]!
   array: UnraidArray!
-  apiKeys: [ApiKey!]!
-  apiKey(id: PrefixedID!): ApiKey
-
-  """All possible roles for API keys"""
-  apiKeyPossibleRoles: [Role!]!
-
-  """All possible permissions for API keys"""
-  apiKeyPossiblePermissions: [Permission!]!
 
   """Get backup service information"""
   backup: Backup!
@@ -2043,17 +2110,21 @@ type Query {
   backupJobStatus(jobId: PrefixedID!): JobStatus
   allBackupJobStatuses: [JobStatus!]!
   rclone: RCloneBackupSettings!
-  connect: Connect!
-  remoteAccess: RemoteAccess!
-  extraAllowedOrigins: [String!]!
   customization: Customization
   publicPartnerInfo: PublicPartnerInfo
   publicTheme: Theme!
   docker: Docker!
   disks: [Disk!]!
   disk(id: PrefixedID!): Disk!
-  health: String!
-  getDemo: String!
+  settings: Settings!
+  isSSOEnabled: Boolean!
+
+  """List all installed plugins with their metadata"""
+  plugins: [Plugin!]!
+  remoteAccess: RemoteAccess!
+  connect: Connect!
+  network: Network!
+  cloud: Cloud!
 }
 
 input BackupJobConfigFormInput {
@@ -2087,13 +2158,22 @@ type Mutation {
   parityCheck: ParityCheckMutations!
   apiKey: ApiKeyMutations!
   rclone: RCloneMutations!
-  updateApiSettings(input: ApiSettingsInput!): ConnectSettingsValues!
+  updateSettings(input: JSON!): UpdateSettingsResponse!
+
+  """
+  Add one or more plugins to the API. Returns false if restart was triggered automatically, true if manual restart is required.
+  """
+  addPlugin(input: PluginManagementInput!): Boolean!
+
+  """
+  Remove one or more plugins from the API. Returns false if restart was triggered automatically, true if manual restart is required.
+  """
+  removePlugin(input: PluginManagementInput!): Boolean!
+  updateApiSettings(input: ConnectSettingsInput!): ConnectSettingsValues!
   connectSignIn(input: ConnectSignInInput!): Boolean!
   connectSignOut: Boolean!
   setupRemoteAccess(input: SetupRemoteAccessInput!): Boolean!
-  setAdditionalAllowedOrigins(input: AllowedOriginInput!): [String!]!
   enableDynamicRemoteAccess(input: EnableDynamicRemoteAccessInput!): Boolean!
-  setDemo: String!
 }
 
 input NotificationData {
@@ -2104,15 +2184,22 @@ input NotificationData {
   link: String
 }
 
-input ApiSettingsInput {
-  """
-  If true, the GraphQL sandbox will be enabled and available at /graphql. If false, the GraphQL sandbox will be disabled and only the production API will be available.
-  """
-  sandbox: Boolean
+input PluginManagementInput {
+  """Array of plugin package names to add or remove"""
+  names: [String!]!
 
-  """A list of origins allowed to interact with the API"""
-  extraOrigins: [String!]
+  """
+  Whether to treat plugins as bundled plugins. Bundled plugins are installed to node_modules at build time and controlled via config only.
+  """
+  bundled: Boolean! = false
 
+  """
+  Whether to restart the API after the operation. When false, a restart has already been queued.
+  """
+  restart: Boolean! = true
+}
+
+input ConnectSettingsInput {
   """The type of WAN access to use for Remote Access"""
   accessType: WAN_ACCESS_TYPE
 
@@ -2123,26 +2210,14 @@ input ApiSettingsInput {
   The port to use for Remote Access. Not required for UPNP forwardType. Required for STATIC forwardType. Ignored if accessType is DISABLED or forwardType is UPNP.
   """
   port: Int
-
-  """A list of Unique Unraid Account ID's"""
-  ssoUserIds: [String!]
 }
 
 input ConnectSignInInput {
   """The API key for authentication"""
   apiKey: String!
 
-  """The ID token for authentication"""
-  idToken: String
-
   """User information for the sign-in"""
   userInfo: ConnectUserInfoInput
-
-  """The access token for authentication"""
-  accessToken: String
-
-  """The refresh token for authentication"""
-  refreshToken: String
 }
 
 input ConnectUserInfoInput {
@@ -2167,11 +2242,6 @@ input SetupRemoteAccessInput {
   The port to use for Remote Access. Not required for UPNP forwardType. Required for STATIC forwardType. Ignored if accessType is DISABLED or forwardType is UPNP.
   """
   port: Int
-}
-
-input AllowedOriginInput {
-  """A list of origins allowed to interact with the API"""
-  origins: [String!]!
 }
 
 input EnableDynamicRemoteAccessInput {

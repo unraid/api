@@ -1,8 +1,8 @@
-import type { Meta, StoryObj } from "@storybook/vue3";
-import { Lightswitch as LightswitchComponent } from "../../../src/components/form/lightswitch";
+import type { Meta, StoryObj } from '@storybook/vue3-vite';
+import { Lightswitch as LightswitchComponent } from '../../../src/components/form/lightswitch/index.js';
 
 const meta = {
-  title: "Components/Form/Lightswitch",
+  title: 'Components/Form/Lightswitch',
   component: LightswitchComponent,
 } satisfies Meta<typeof LightswitchComponent>;
 
@@ -12,7 +12,7 @@ type Story = StoryObj<typeof meta>;
 
 export const Lightswitch: Story = {
   args: {
-    label: "Enable notifications",
+    label: 'Enable notifications',
   },
   render: (args) => ({
     components: { LightswitchComponent },

@@ -1,6 +1,6 @@
-import { Field, GraphQLISODateTime, ID, Int, ObjectType, registerEnumType } from '@nestjs/graphql';
+import { Field, GraphQLISODateTime, Int, ObjectType, registerEnumType } from '@nestjs/graphql';
 
-import { Node } from '@app/unraid-api/graph/resolvers/base.model.js';
+import { Node } from '@unraid/shared/graphql.model';
 
 // Moved BackupJobStatus enum here
 export enum BackupJobStatus {

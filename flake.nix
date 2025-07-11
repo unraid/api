@@ -27,6 +27,9 @@
 
             # Docker (for development)
             docker
+
+            # rclone (for development)
+            rclone
           ];
 
           shellHook = ''
@@ -39,6 +42,7 @@
             echo "✔︎ git version: $(git --version)"
             echo "✔︎ docker version: $(docker --version)"
             echo "✔︎ libvirt version: $(virsh --version)"
+            echo "✔︎ rclone version: $(rclone --version | head -1)"
             echo ""
           '';
         };

@@ -1,6 +1,8 @@
 import { Field, InputType, ObjectType } from '@nestjs/graphql';
 
 import { type Layout } from '@jsonforms/core';
+import { Node } from '@unraid/shared/graphql.model.js';
+import { PrefixedID } from '@unraid/shared/prefixed-id-scalar.js';
 import {
     IsBoolean,
     IsNotEmpty,
@@ -26,8 +28,6 @@ import {
     SourceConfigUnion,
     SourceType,
 } from '@app/unraid-api/graph/resolvers/backup/source/backup-source.types.js';
-import { Node } from '@app/unraid-api/graph/resolvers/base.model.js';
-import { PrefixedID } from '@app/unraid-api/graph/scalars/graphql-type-prefixed-id.js';
 import { DataSlice } from '@app/unraid-api/types/json-forms.js';
 
 @ObjectType({

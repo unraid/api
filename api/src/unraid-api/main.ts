@@ -36,9 +36,22 @@ export async function bootstrapNestServer(): Promise<NestFastifyApplication> {
 
     const server = app.getHttpAdapter().getInstance();
 
+    /**------------------------------------------------------------------------
+     * !                       Fastify Type Compatibility
+     *
+     * There are known type issues with fastify plugin registration in nestjs.
+     * These don't affect runtime functionality, but will cause type errors.
+     *
+     * See: https://github.com/nestjs/nest/issues/13219
+     *
+     * tl;dr different types used by nestjs/platform-fastify and fastify.
+     *------------------------------------------------------------------------**/
+
+    // @ts-expect-error - Known nestjs x fastify type compatibility issue
     await server.register(fastifyCookie);
 
     // Minimal Helmet configuration to avoid blocking plugin functionality
+    // @ts-expect-error - Known nestjs x fastify type compatibility issue
     await server.register(fastifyHelmet, {
         // Disable restrictive policies
         contentSecurityPolicy: false,

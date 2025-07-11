@@ -55,7 +55,7 @@ export class BackupConfigService implements OnModuleInit {
         input: SourceConfigInput
     ): ZfsPreprocessConfig | FlashPreprocessConfig | ScriptPreprocessConfig | RawBackupConfig {
         switch (input.type) {
-            case SourceType.ZFS:
+            case SourceType.ZFS: {
                 if (!input.zfsConfig) {
                     throw new Error('ZFS configuration is required when type is ZFS');
                 }
@@ -67,8 +67,9 @@ export class BackupConfigService implements OnModuleInit {
                 zfsConfig.cleanupSnapshots = input.zfsConfig.cleanupSnapshots ?? true;
                 zfsConfig.retainSnapshots = input.zfsConfig.retainSnapshots;
                 return zfsConfig;
+            }
 
-            case SourceType.FLASH:
+            case SourceType.FLASH: {
                 if (!input.flashConfig) {
                     throw new Error('Flash configuration is required when type is FLASH');
                 }
@@ -78,8 +79,9 @@ export class BackupConfigService implements OnModuleInit {
                 flashConfig.includeGitHistory = input.flashConfig.includeGitHistory ?? true;
                 flashConfig.additionalPaths = input.flashConfig.additionalPaths || [];
                 return flashConfig;
+            }
 
-            case SourceType.SCRIPT:
+            case SourceType.SCRIPT: {
                 if (!input.scriptConfig) {
                     throw new Error('Script configuration is required when type is SCRIPT');
                 }
@@ -91,8 +93,9 @@ export class BackupConfigService implements OnModuleInit {
                 scriptConfig.environment = input.scriptConfig.environment;
                 scriptConfig.outputPath = input.scriptConfig.outputPath;
                 return scriptConfig;
+            }
 
-            case SourceType.RAW:
+            case SourceType.RAW: {
                 if (!input.rawConfig) {
                     throw new Error('Raw configuration is required when type is RAW');
                 }
@@ -102,6 +105,7 @@ export class BackupConfigService implements OnModuleInit {
                 rawConfig.excludePatterns = input.rawConfig.excludePatterns || [];
                 rawConfig.includePatterns = input.rawConfig.includePatterns || [];
                 return rawConfig;
+            }
 
             default:
                 throw new Error(`Unsupported source type: ${input.type}`);
@@ -110,7 +114,7 @@ export class BackupConfigService implements OnModuleInit {
 
     private transformDestinationConfigInput(input: DestinationConfigInput): RcloneDestinationConfig {
         switch (input.type) {
-            case DestinationType.RCLONE:
+            case DestinationType.RCLONE: {
                 if (!input.rcloneConfig) {
                     throw new Error('RClone configuration is required when type is RCLONE');
                 }
@@ -120,6 +124,7 @@ export class BackupConfigService implements OnModuleInit {
                 rcloneConfig.destinationPath = input.rcloneConfig.destinationPath;
                 rcloneConfig.rcloneOptions = input.rcloneConfig.rcloneOptions;
                 return rcloneConfig;
+            }
 
             default:
                 throw new Error(`Unsupported destination type: ${input.type}`);
@@ -318,7 +323,6 @@ export class BackupConfigService implements OnModuleInit {
                 return rawConfig;
             }
             default:
-                // Consider logging an unknown sourceType if not caught by earlier validation
                 this.logger.error(
                     `Unsupported source type encountered during plain object transformation: ${sourceType as string}`
                 );
@@ -331,10 +335,11 @@ export class BackupConfigService implements OnModuleInit {
         destinationType: DestinationType
     ): RcloneDestinationConfig {
         switch (destinationType) {
-            case DestinationType.RCLONE:
+            case DestinationType.RCLONE: {
                 const rcloneConfig = new RcloneDestinationConfig();
                 Object.assign(rcloneConfig, obj);
                 return rcloneConfig;
+            }
 
             default:
                 throw new Error(`Unsupported destination type: ${destinationType}`);

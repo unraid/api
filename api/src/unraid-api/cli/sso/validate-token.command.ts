@@ -1,10 +1,9 @@
 import type { JWTPayload } from 'jose';
-import { createLocalJWKSet, createRemoteJWKSet, decodeJwt, jwtVerify } from 'jose';
+import { createLocalJWKSet, createRemoteJWKSet, jwtVerify } from 'jose';
 import { CommandRunner, SubCommand } from 'nest-commander';
 
 import { JWKS_LOCAL_PAYLOAD, JWKS_REMOTE_LINK } from '@app/consts.js';
-import { store } from '@app/store/index.js';
-import { loadConfigFile } from '@app/store/modules/config.js';
+import { SsoUserService } from '@app/unraid-api/auth/sso-user.service.js';
 import { LogService } from '@app/unraid-api/cli/log.service.js';
 
 @SubCommand({
@@ -16,7 +15,10 @@ import { LogService } from '@app/unraid-api/cli/log.service.js';
 export class ValidateTokenCommand extends CommandRunner {
     JWKSOffline: ReturnType<typeof createLocalJWKSet>;
     JWKSOnline: ReturnType<typeof createRemoteJWKSet>;
-    constructor(private readonly logger: LogService) {
+    constructor(
+        private readonly logger: LogService,
+        private readonly ssoUserService: SsoUserService
+    ) {
         super();
         this.JWKSOffline = createLocalJWKSet(JWKS_LOCAL_PAYLOAD);
         this.JWKSOnline = createRemoteJWKSet(new URL(JWKS_REMOTE_LINK));
@@ -78,14 +80,13 @@ export class ValidateTokenCommand extends CommandRunner {
         if (!username) {
             return this.createErrorAndExit('No ID found in token');
         }
-        const configFile = await store.dispatch(loadConfigFile()).unwrap();
-        if (!configFile.remote?.ssoSubIds) {
+        const ssoUsers = await this.ssoUserService.getSsoUsers();
+        if (ssoUsers.length === 0) {
             this.createErrorAndExit(
                 'No local user token set to compare to - please set any valid SSO IDs you would like to sign in with'
             );
         }
-        const possibleUserIds = configFile.remote.ssoSubIds.split(',');
-        if (possibleUserIds.includes(username)) {
+        if (ssoUsers.includes(username)) {
             this.logger.info(JSON.stringify({ error: null, valid: true, username }));
             process.exit(0);
         } else {

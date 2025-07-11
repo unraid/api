@@ -91,11 +91,4 @@ describe('ActivationSteps', () => {
 
     expect(wrapper.find('[data-testid="stepper"]').attributes('default-value')).toBe('2');
   });
-
-  it('renders separators between steps', () => {
-    const wrapper = mountComponent();
-    const separators = wrapper.findAll('[data-testid="stepper-separator"]');
-
-    expect(separators).toHaveLength(2);
-  });
 });

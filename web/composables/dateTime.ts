@@ -1,3 +1,4 @@
+import { ref, computed, onBeforeMount, onBeforeUnmount } from 'vue';
 import dayjs, { extend } from 'dayjs';
 import localizedFormat from 'dayjs/plugin/localizedFormat';
 import type { ComposerTranslation } from 'vue-i18n';
@@ -206,7 +207,7 @@ const useDateTimeHelper = (
     outputDateTimeReadableDiff.value = buildStringFromValues(dateDiff((providedDateTime ?? Date.now()).toString(), diffCountUp ?? false));
   };
 
-  let interval: string | number | NodeJS.Timeout | undefined;
+  let interval: string | number | ReturnType<typeof setInterval> | undefined;
   onBeforeMount(() => {
     if (providedDateTime) {
       runDiff();

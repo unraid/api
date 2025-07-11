@@ -78,7 +78,7 @@ const updateOsStatus = computed(() => {
 </script>
 
 <template>
-  <div class="flex flex-col">
+  <div class="flex flex-col gap-y-2 mt-6">
     <a
       :href="unraidLogoHeaderLink.href"
       :title="unraidLogoHeaderLink.title"
@@ -88,28 +88,21 @@ const updateOsStatus = computed(() => {
     >
       <img
         :src="'/webGui/images/UN-logotype-gradient.svg'"
-        class="w-[160px] h-auto max-h-[30px] ml-[10px] mt-[25px] mb-[8px] object-contain"
+        class="w-[160px] h-auto max-h-[30px] object-contain"
         alt="Unraid Logo"
       />
     </a>
 
-    <div class="flex flex-row justify-start gap-x-4px">
+    <div class="flex flex-wrap justify-start gap-2">
       <a
-        class="group leading-none"
+        class="text-xs xs:text-sm flex flex-row items-center gap-x-1 font-semibold text-header-text-secondary hover:text-orange-dark focus:text-orange-dark hover:underline focus:underline leading-none"
         :title="t('View release notes')"
         :href="getReleaseNotesUrl(osVersion).toString()"
         target="_blank"
         rel="noopener"
       >
-        <Badge
-          variant="custom"
-          :icon="InformationCircleIcon"
-          icon-styles="text-header-text-secondary"
-          size="sm"
-          class="text-header-text-secondary group-hover:text-orange-dark group-focus:text-orange-dark group-hover:underline group-focus:underline"
-        >
-          {{ osVersion }}
-        </Badge>
+        <InformationCircleIcon class="fill-current w-3 h-3 xs:w-4 xs:h-4 flex-shrink-0" />
+        {{ osVersion }}
       </a>
       <component
         :is="updateOsStatus.href ? 'a' : 'button'"

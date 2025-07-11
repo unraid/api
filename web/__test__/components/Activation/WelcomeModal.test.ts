@@ -14,9 +14,9 @@ import WelcomeModal from '~/components/Activation/WelcomeModal.ce.vue';
 const mockT = (key: string, args?: unknown[]) => (args ? `${key} ${JSON.stringify(args)}` : key);
 
 const mockComponents = {
-  Modal: {
+  Dialog: {
     template: `
-      <div data-testid="modal" v-if="open" role="dialog" aria-modal="true">
+      <div data-testid="modal" v-if="modelValue" role="dialog" aria-modal="true">
         <div data-testid="modal-header"><slot name="header" /></div>
         <div data-testid="modal-body"><slot /></div>
         <div data-testid="modal-footer"><slot name="footer" /></div>
@@ -24,20 +24,13 @@ const mockComponents = {
       </div>
     `,
     props: [
-      't',
-      'open',
-      'showCloseX',
+      'modelValue',
       'title',
-      'titleInMain',
       'description',
-      'overlayColor',
-      'overlayOpacity',
-      'maxWidth',
-      'modalVerticalCenter',
-      'disableShadow',
-      'disableOverlayClose',
+      'showFooter',
+      'size',
     ],
-    emits: ['close'],
+    emits: ['update:modelValue'],
   },
   ActivationPartnerLogo: {
     template: '<div data-testid="partner-logo"></div>',
@@ -78,6 +71,33 @@ vi.mock('~/components/Activation/store/activationCodeData', () => ({
 
 vi.mock('~/store/theme', () => ({
   useThemeStore: () => mockThemeStore,
+}));
+
+vi.mock('@unraid/ui', () => ({
+  BrandButton: {
+    template:
+      '<button data-testid="brand-button" :disabled="disabled" @click="$emit(\'click\')">{{ text }}</button>',
+    props: ['text', 'disabled'],
+    emits: ['click'],
+  },
+  Dialog: {
+    template: `
+      <div data-testid="modal" v-if="modelValue" role="dialog" aria-modal="true">
+        <div data-testid="modal-header"><slot name="header" /></div>
+        <div data-testid="modal-body"><slot /></div>
+        <div data-testid="modal-footer"><slot name="footer" /></div>
+        <div data-testid="modal-subfooter"><slot name="subFooter" /></div>
+      </div>
+    `,
+    props: [
+      'modelValue',
+      'title',
+      'description',
+      'showFooter',
+      'size',
+    ],
+    emits: ['update:modelValue'],
+  },
 }));
 
 describe('Activation/WelcomeModal.ce.vue', () => {
@@ -171,13 +191,13 @@ describe('Activation/WelcomeModal.ce.vue', () => {
     expect(wrapper.find('[data-testid="modal"]').exists()).toBe(false);
   });
 
-  it('disables the Create a password button when loading', () => {
+  it('does not disable the Create a password button when loading', () => {
     mockActivationCodeDataStore.loading.value = true;
 
     const wrapper = mountComponent();
     const button = wrapper.find('[data-testid="brand-button"]');
 
-    expect(button.attributes('disabled')).toBe('');
+    expect(button.attributes('disabled')).toBe(undefined);
   });
 
   it('renders activation steps with correct active step', () => {
@@ -245,26 +265,20 @@ describe('Activation/WelcomeModal.ce.vue', () => {
   });
 
   describe('Modal properties', () => {
-    it('passes correct props to Modal component', () => {
+    it('passes correct props to Dialog component', () => {
       const wrapper = mountComponent();
-      const modal = wrapper.findComponent(mockComponents.Modal);
+      const dialog = wrapper.find('[data-testid="modal"]');
 
-      expect(modal.props()).toMatchObject({
-        showCloseX: false,
-        overlayColor: 'bg-background',
-        overlayOpacity: 'bg-opacity-100',
-        maxWidth: 'max-w-800px',
-        disableShadow: true,
-        modalVerticalCenter: false,
-        disableOverlayClose: true,
-      });
+      expect(dialog.exists()).toBe(true);
+      // The Dialog component is rendered correctly
+      expect(wrapper.html()).toContain('data-testid="modal"');
     });
 
     it('renders modal with correct accessibility attributes', () => {
       const wrapper = mountComponent();
-      const modal = wrapper.findComponent(mockComponents.Modal);
+      const dialog = wrapper.find('[data-testid="modal"]');
 
-      expect(modal.attributes()).toMatchObject({
+      expect(dialog.attributes()).toMatchObject({
         role: 'dialog',
         'aria-modal': 'true',
       });

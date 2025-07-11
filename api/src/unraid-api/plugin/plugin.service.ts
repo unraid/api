@@ -2,13 +2,21 @@ import { Injectable, Logger } from '@nestjs/common';
 
 import type { ApiNestPluginDefinition } from '@app/unraid-api/plugin/plugin.interface.js';
 import { getPackageJson } from '@app/environment.js';
+import { loadApiConfig } from '@app/unraid-api/config/api-config.module.js';
+import { NotificationImportance } from '@app/unraid-api/graph/resolvers/notifications/notifications.model.js';
+import { NotificationsService } from '@app/unraid-api/graph/resolvers/notifications/notifications.service.js';
 import { apiNestPluginSchema } from '@app/unraid-api/plugin/plugin.interface.js';
-import { batchProcess } from '@app/utils.js';
+import { batchProcess, parsePackageArg } from '@app/utils.js';
+
+type Plugin = ApiNestPluginDefinition & {
+    name: string;
+    version: string;
+};
 
 @Injectable()
 export class PluginService {
     private static readonly logger = new Logger(PluginService.name);
-    private static plugins: Promise<ApiNestPluginDefinition[]> | undefined;
+    private static plugins: Promise<Plugin[]> | undefined;
 
     static async getPlugins() {
         PluginService.plugins ??= PluginService.importPlugins();
@@ -20,26 +28,26 @@ export class PluginService {
             return PluginService.plugins;
         }
         const pluginPackages = await PluginService.listPlugins();
-        const plugins = await batchProcess(pluginPackages, async ([pkgName]) => {
+        const plugins = await batchProcess(pluginPackages, async ([pkgName, version]) => {
             try {
-                const possibleImportSources = [
-                    pkgName,
-                    /**----------------------------------------------
-                     *     Importing private workspace plugins
-                     *
-                     *  Private workspace packages are not available in production,
-                     *  so we bundle and copy them to a plugins folder instead.
-                     *
-                     *  See scripts/copy-plugins.js for more details.
-                     *---------------------------------------------**/
-                    `../plugins/${pkgName}/index.js`,
-                ];
-                const plugin = await Promise.any(
-                    possibleImportSources.map((source) => import(/* @vite-ignore */ source))
-                );
-                return apiNestPluginSchema.parse(plugin);
+                const plugin = await import(/* @vite-ignore */ pkgName);
+                const parsedPlugin = apiNestPluginSchema.parse(plugin);
+                return {
+                    ...parsedPlugin,
+                    name: pkgName,
+                    version,
+                };
             } catch (error) {
                 PluginService.logger.error(`Plugin from ${pkgName} is invalid`, error);
+                const notificationService = new NotificationsService();
+                const errorMessage = error?.toString?.() ?? (error as Error)?.message ?? '';
+                await notificationService.createNotification({
+                    title: `Plugin from ${pkgName} is invalid`,
+                    subject: `API Plugins`,
+                    description:
+                        'Please see /var/log/graphql-api.log for more details.\n' + errorMessage,
+                    importance: NotificationImportance.ALERT,
+                });
                 throw error;
             }
         });
@@ -51,19 +59,40 @@ export class PluginService {
         return plugins.data;
     }
 
+    /**
+     * Lists all plugins that are installed as peer dependencies of the unraid-api package.
+     *
+     * @returns A tuple of the plugin name and version.
+     */
     static async listPlugins(): Promise<[string, string][]> {
-        /** All api plugins must be npm packages whose name starts with this prefix */
-        const pluginPrefix = 'unraid-api-plugin-';
-        // All api plugins must be installed as dependencies of the unraid-api package
+        let plugins: string[] = [];
+        try {
+            const config = await loadApiConfig();
+            plugins = config.plugins || [];
+        } catch (error) {
+            PluginService.logger.error(
+                'Failed to load API config for plugin discovery, using empty list:',
+                error
+            );
+        }
+        const pluginNames = new Set(
+            plugins.map((plugin) => {
+                const { name } = parsePackageArg(plugin);
+                return name;
+            })
+        );
         const { peerDependencies } = getPackageJson();
+        // All api plugins must be installed as peer dependencies of the unraid-api package
         if (!peerDependencies) {
             PluginService.logger.warn('Unraid-API peer dependencies not found; skipping plugins.');
             return [];
         }
-        const plugins = Object.entries(peerDependencies).filter((entry): entry is [string, string] => {
-            const [pkgName, version] = entry;
-            return pkgName.startsWith(pluginPrefix) && typeof version === 'string';
-        });
-        return plugins;
+        const pluginTuples = Object.entries(peerDependencies).filter(
+            (entry): entry is [string, string] => {
+                const [pkgName, version] = entry;
+                return pluginNames.has(pkgName) && typeof version === 'string';
+            }
+        );
+        return pluginTuples;
     }
 }

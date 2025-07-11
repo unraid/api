@@ -73,7 +73,7 @@ const storeVendorArchiveInfo = async (version: string, vendorUrl: string, vendor
     
     // Create a JSON config file with vendor information
     const configData = {
-      vendor_store_url: vendorUrl,
+      // vendor_store_url: vendorUrl,
       vendor_store_path: vendorFullPath,
       api_version: version
     };
@@ -159,7 +159,7 @@ const buildTxz = async (validatedEnv: TxzEnv) => {
   const version = validatedEnv.apiVersion;
   
   // Always use version when getting txz name
-  const txzName = getTxzName(version);
+  const txzName = getTxzName({ version, build: validatedEnv.buildNumber.toString() });
   console.log(`Package name: ${txzName}`);
   const txzPath = join(validatedEnv.txzOutputDir, txzName);
   
@@ -176,7 +176,6 @@ const buildTxz = async (validatedEnv: TxzEnv) => {
   
   await Promise.all([
     ensureNodeJs(),
-    ensureRclone()
   ]);
 
   // Create package - must be run from within the pre-pack directory
@@ -187,7 +186,7 @@ const buildTxz = async (validatedEnv: TxzEnv) => {
   // Create the package using the default package name
   await $`${join(startingDir, "scripts/makepkg")} --chown y --compress -${
     validatedEnv.compress
-  } --linkadd n ${txzPath}`;
+  } --linkadd y ${txzPath}`;
   $.verbose = false;
   await cd(startingDir);
 };

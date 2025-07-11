@@ -6,7 +6,6 @@ import { nextTick } from 'vue';
 import { setActivePinia } from 'pinia';
 import { mount } from '@vue/test-utils';
 
-import { Badge } from '@unraid/ui';
 import { createTestingPinia } from '@pinia/testing';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
@@ -24,6 +23,27 @@ const testMockReleaseNotesUrl = 'http://mock.release.notes/v';
 vi.mock('crypto-js/aes', () => ({ default: {} }));
 vi.mock('@unraid/shared-callbacks', () => ({
   useCallback: vi.fn(() => ({ send: vi.fn(), watcher: vi.fn() })),
+}));
+
+vi.mock('@vue/apollo-composable', () => ({
+  useQuery: () => ({
+    result: { value: {} },
+    loading: { value: false },
+  }),
+  useLazyQuery: () => ({
+    result: { value: {} },
+    loading: { value: false },
+    load: vi.fn(),
+    refetch: vi.fn(),
+    onResult: vi.fn(),
+    onError: vi.fn(),
+  }),
+  useMutation: () => ({
+    mutate: vi.fn(),
+    onDone: vi.fn(),
+    onError: vi.fn(),
+  }),
+  provideApolloClient: vi.fn(),
 }));
 
 vi.mock('~/helpers/urls', async (importOriginal) => {
@@ -66,14 +86,6 @@ vi.mock('vue-i18n', () => ({
   }),
 }));
 
-vi.mock('@unraid/ui', async (importOriginal) => {
-  const actual = await importOriginal<typeof import('@unraid/ui')>();
-  return {
-    ...actual,
-    Badge: actual.Badge,
-  };
-});
-
 describe('HeaderOsVersion', () => {
   let wrapper: VueWrapper<unknown>;
   let testingPinia: TestingPinia;
@@ -102,7 +114,6 @@ describe('HeaderOsVersion', () => {
     wrapper = mount(HeaderOsVersion, {
       global: {
         plugins: [testingPinia],
-        components: { Badge },
       },
     });
   });
@@ -112,16 +123,13 @@ describe('HeaderOsVersion', () => {
     vi.restoreAllMocks();
   });
 
-  it('renders OS version badge with correct link and no update status initially', () => {
-    const versionBadgeLink = wrapper.find('a[title*="release notes"]');
+  it('renders OS version link with correct URL and no update status initially', () => {
+    const versionLink = wrapper.find('a[title*="release notes"]');
 
-    expect(versionBadgeLink.exists()).toBe(true);
-    expect(versionBadgeLink.attributes('href')).toBe(`${testMockReleaseNotesUrl}6.12.0`);
+    expect(versionLink.exists()).toBe(true);
+    expect(versionLink.attributes('href')).toBe(`${testMockReleaseNotesUrl}6.12.0`);
 
-    const badge = versionBadgeLink.findComponent(Badge);
-
-    expect(badge.exists()).toBe(true);
-    expect(badge.text()).toContain('6.12.0');
+    expect(versionLink.text()).toContain('6.12.0');
     expect(findUpdateStatusComponent()).toBeNull();
   });
 

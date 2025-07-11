@@ -28,6 +28,27 @@ vi.mock('@unraid/shared-callbacks', () => ({
   })),
 }));
 
+vi.mock('@vue/apollo-composable', () => ({
+  useQuery: () => ({
+    result: { value: {} },
+    loading: { value: false },
+  }),
+  useLazyQuery: () => ({
+    result: { value: {} },
+    loading: { value: false },
+    load: vi.fn(),
+    refetch: vi.fn(),
+    onResult: vi.fn(),
+    onError: vi.fn(),
+  }),
+  useMutation: () => ({
+    mutate: vi.fn(),
+    onDone: vi.fn(),
+    onError: vi.fn(),
+  }),
+  provideApolloClient: vi.fn(),
+}));
+
 vi.mock('@unraid/ui', async (importOriginal) => {
   const actual = await importOriginal<typeof import('@unraid/ui')>();
 

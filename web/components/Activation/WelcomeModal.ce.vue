@@ -3,17 +3,16 @@ import { computed, ref, watchEffect } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { storeToRefs } from 'pinia';
 
-import { BrandButton } from '@unraid/ui';
+import { BrandButton, Dialog } from '@unraid/ui';
 
 import ActivationPartnerLogo from '~/components/Activation/ActivationPartnerLogo.vue';
 import ActivationSteps from '~/components/Activation/ActivationSteps.vue';
 import { useActivationCodeDataStore } from '~/components/Activation/store/activationCodeData';
-import Modal from '~/components/Modal.vue';
 import { useThemeStore } from '~/store/theme';
 
 const { t } = useI18n();
 
-const { partnerInfo, loading } = storeToRefs(useActivationCodeDataStore());
+const { partnerInfo } = storeToRefs(useActivationCodeDataStore());
 
 const { setTheme } = useThemeStore();
 
@@ -29,12 +28,6 @@ const title = computed<string>(() =>
   partnerInfo.value?.partnerName
     ? t(`Welcome to your new {0} system, powered by Unraid!`, [partnerInfo.value?.partnerName])
     : t('Welcome to Unraid!')
-);
-
-const description = computed<string>(() =>
-  t(
-    `First, you'll create your device's login credentials, then you'll activate your Unraid license—your device's operating system (OS).`
-  )
 );
 
 const showModal = ref<boolean>(true);
@@ -65,37 +58,34 @@ watchEffect(() => {
 
 <template>
   <div id="modals" ref="modals" class="relative z-[99999]">
-    <Modal
-      v-if="showModal"
-      :t="t"
-      :open="showModal"
-      :show-close-x="false"
-      :title="title"
-      :title-in-main="partnerInfo?.hasPartnerLogo"
-      :description="description"
-      overlay-color="bg-background"
-      overlay-opacity="bg-opacity-100"
-      max-width="max-w-800px"
-      :disable-shadow="true"
-      :modal-vertical-center="false"
-      :disable-overlay-close="true"
+    <Dialog
+      v-model="showModal"
+      :show-footer="false"
+      :show-close-button="false"
+      size="full"
       class="bg-background"
-      @close="dropdownHide"
     >
-      <template v-if="partnerInfo?.hasPartnerLogo" #header>
-        <ActivationPartnerLogo />
-      </template>
-
-      <template #footer>
-        <div class="w-full flex gap-8px justify-center mx-auto">
-          <BrandButton :text="t('Create a password')" :disabled="loading" @click="dropdownHide" />
+      <div class="flex flex-col items-center justify-start mt-8">
+        <div v-if="partnerInfo?.hasPartnerLogo">
+          <ActivationPartnerLogo />
         </div>
-      </template>
 
-      <template #subFooter>
-        <ActivationSteps :active-step="1" class="mt-6" />
-      </template>
-    </Modal>
+        <h1 class="text-center text-20px sm:text-24px font-semibold mt-4">{{ title }}</h1>
+        <div class="sm:max-w-lg mx-auto mt-2 text-center">
+          <p class="text-18px sm:text-20px opacity-75">
+            {{ t(`First, you'll create your device's login credentials, then you'll activate your Unraid license—your device's operating system (OS).`) }}
+          </p>
+        </div>
+
+        <div class="flex flex-col justify-start p-6 w-2/4">
+          <div class="mx-auto mt-6 mb-8">
+            <BrandButton :text="t('Create a password')" @click="dropdownHide" />
+          </div>
+
+          <ActivationSteps :active-step="1" class="mt-6" />
+        </div>
+      </div>
+    </Dialog>
   </div>
 </template>
 

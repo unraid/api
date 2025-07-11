@@ -1,30 +1,34 @@
 import type { ApolloDriverConfig } from '@nestjs/apollo';
 import { ApolloDriver } from '@nestjs/apollo';
 import { Module } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { GraphQLModule } from '@nestjs/graphql';
 
-import { NoUnusedVariablesRule } from 'graphql';
-import { GraphQLBigInt, JSONResolver, URLResolver } from 'graphql-scalars';
-
-import { ENVIRONMENT } from '@app/environment.js';
-import { getters } from '@app/store/index.js';
 import {
     UsePermissionsDirective,
     usePermissionsSchemaTransformer,
-} from '@app/unraid-api/graph/directives/use-permissions.directive.js';
+} from '@unraid/shared/use-permissions.directive.js';
+import { NoUnusedVariablesRule } from 'graphql';
+
+import { ENVIRONMENT } from '@app/environment.js';
+import { ApiConfigModule } from '@app/unraid-api/config/api-config.module.js';
 import { ResolversModule } from '@app/unraid-api/graph/resolvers/resolvers.module.js';
-import { sandboxPlugin } from '@app/unraid-api/graph/sandbox-plugin.js';
-import { PrefixedID as PrefixedIDScalar } from '@app/unraid-api/graph/scalars/graphql-type-prefixed-id.js';
+import { createSandboxPlugin } from '@app/unraid-api/graph/sandbox-plugin.js';
+import { GlobalDepsModule } from '@app/unraid-api/plugin/global-deps.module.js';
 import { PluginModule } from '@app/unraid-api/plugin/plugin.module.js';
+
+console.log('ENVIRONMENT', ENVIRONMENT);
 
 @Module({
     imports: [
+        GlobalDepsModule,
         ResolversModule,
         GraphQLModule.forRootAsync<ApolloDriverConfig>({
             driver: ApolloDriver,
-            imports: [PluginModule.register()],
-            inject: [],
-            useFactory: async () => {
+            imports: [PluginModule.register(), ApiConfigModule],
+            inject: [ConfigService],
+            useFactory: async (configService: ConfigService) => {
+                const isSandboxEnabled = () => Boolean(configService.get('api.sandbox'));
                 return {
                     autoSchemaFile:
                         ENVIRONMENT === 'development'
@@ -32,8 +36,8 @@ import { PluginModule } from '@app/unraid-api/plugin/plugin.module.js';
                                   path: './generated-schema.graphql',
                               }
                             : true,
-                    introspection: getters.config()?.local?.sandbox === 'yes',
-                    playground: false,
+                    introspection: isSandboxEnabled(),
+                    playground: false, // we handle this in the sandbox plugin
                     context: async ({ req, connectionParams, extra }) => {
                         return {
                             req,
@@ -41,7 +45,7 @@ import { PluginModule } from '@app/unraid-api/plugin/plugin.module.js';
                             extra,
                         };
                     },
-                    plugins: [sandboxPlugin] as any[],
+                    plugins: [createSandboxPlugin(isSandboxEnabled)] as any[],
                     subscriptions: {
                         'graphql-ws': {
                             path: '/graphql',
@@ -57,7 +61,7 @@ import { PluginModule } from '@app/unraid-api/plugin/plugin.module.js';
             },
         }),
     ],
-    providers: [PrefixedIDScalar],
+    providers: [],
     exports: [GraphQLModule],
 })
 export class GraphModule {}

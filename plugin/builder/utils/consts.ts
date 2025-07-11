@@ -5,9 +5,21 @@ export const pluginNameWithExt = `${pluginName}.plg` as const;
 export const defaultArch = "x86_64" as const;
 export const defaultBuild = "1" as const;
 
+export interface TxzNameParams {
+  version?: string;
+  arch?: string;
+  build?: string;
+}
+
 // Get the txz name following Slackware naming convention: name-version-arch-build.txz
-export const getTxzName = (version?: string, arch: string = defaultArch, build: string = defaultBuild) =>
-  version ? `${pluginName}-${version}-${arch}-${build}.txz` : `${pluginName}.txz`;
+export const getTxzName = ({
+  version,
+  arch = defaultArch,
+  build = defaultBuild,
+}: TxzNameParams) =>
+  version
+    ? `${pluginName}-${version}-${arch}-${build}.txz`
+    : `${pluginName}.txz`;
 export const startingDir = process.cwd();
 
 export const BASE_URLS = {

@@ -2,8 +2,8 @@ import type { IniStringBooleanOrAuto } from '@app/core/types/ini.js';
 import type { StateFileToIniParserMap } from '@app/store/types.js';
 import { type FqdnEntry } from '@app/core/types/states/nginx.js';
 
-// Allow upper or lowercase FQDN6
-const fqdnRegex = /^nginx(.*?)fqdn6?$/i;
+// Allow upper or lowercase FQDN6, with optional separators
+const fqdnRegex = /^nginx[_-]?(.+?)fqdn6?$/i;
 
 export type NginxIni = {
     nginxCertname: string;

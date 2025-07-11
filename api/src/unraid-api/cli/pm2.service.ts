@@ -1,13 +1,12 @@
 import { Injectable } from '@nestjs/common';
 import { existsSync } from 'node:fs';
-import { rm } from 'node:fs/promises';
+import { mkdir, rm } from 'node:fs/promises';
 import { join } from 'node:path';
 
 import type { Options, Result, ResultPromise } from 'execa';
 import { execa, ExecaError } from 'execa';
 
-import { PM2_PATH } from '@app/consts.js';
-import { PM2_HOME } from '@app/environment.js';
+import { LOGS_DIR, PM2_HOME, PM2_PATH } from '@app/environment.js';
 import { LogService } from '@app/unraid-api/cli/log.service.js';
 
 type CmdContext = Options & {
@@ -97,5 +96,12 @@ export class PM2Service {
         } else {
             this.logger.trace('PM2 home directory does not exist.');
         }
+    }
+
+    /**
+     * Ensures that the dependencies necessary for PM2 to start and operate are present.
+     */
+    async ensurePm2Dependencies() {
+        await mkdir(LOGS_DIR, { recursive: true });
     }
 }

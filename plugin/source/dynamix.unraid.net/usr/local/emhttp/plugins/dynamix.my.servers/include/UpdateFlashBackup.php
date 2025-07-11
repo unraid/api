@@ -23,9 +23,16 @@ $myservers_flash_cfg_path='/boot/config/plugins/dynamix.my.servers/myservers.cfg
 $myservers = file_exists($myservers_flash_cfg_path) ? @parse_ini_file($myservers_flash_cfg_path,true) : [];
 $isRegistered = !empty($myservers['remote']['username']);
 
-$myservers_memory_cfg_path ='/var/local/emhttp/myservers.cfg';
-$mystatus = (file_exists($myservers_memory_cfg_path)) ? @parse_ini_file($myservers_memory_cfg_path) : [];
-$isConnected = (($mystatus['minigraph']??'')==='CONNECTED') ? true : false;
+// Read connection status from the new API status file
+$statusFilePath = '/var/local/emhttp/connectStatus.json';
+$connectionStatus = '';
+
+if (file_exists($statusFilePath)) {
+    $statusData = @json_decode(file_get_contents($statusFilePath), true);
+    $connectionStatus = $statusData['connectionStatus'] ?? '';
+}
+
+$isConnected = ($connectionStatus === 'CONNECTED') ? true : false;
 
 $flashbackup_ini = '/var/local/emhttp/flashbackup.ini';
 

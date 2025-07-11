@@ -1,0 +1,6 @@
+Menu="ManagementAccess:150"
+Title="API Keys"
+Icon="icon-u-key"
+Tag="key"
+---
+<unraid-api-key-manager />
