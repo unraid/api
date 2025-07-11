@@ -112,7 +112,7 @@
     "vitest": "3.2.4",
     "vue": "3.5.17",
     "vue-tsc": "3.0.1",
-    "wrangler": "^3.114.10"
+    "wrangler": "^4.0.0"
   },
   "optionalDependencies": {
     "@rollup/rollup-linux-x64-gnu": "4.44.2"
