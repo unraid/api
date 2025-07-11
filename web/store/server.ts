@@ -1198,7 +1198,9 @@ export const useServerStore = defineStore('server', () => {
 
   setTimeout(() => {
     load();
-    loadCloudState();
+    if (connectPluginInstalled.value) {
+      loadCloudState();
+    }
   }, 500);
 
   onResult((result) => {
