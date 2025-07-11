@@ -203,7 +203,7 @@
         "nodemon": "3.1.10",
         "prettier": "3.6.2",
         "rollup-plugin-node-externals": "8.0.1",
-        "commit-and-tag-version": "9.6.0",
+        "commit-and-tag-version": "12.5.1",
         "tsx": "4.20.3",
         "type-fest": "4.41.0",
         "typescript": "5.8.3",
