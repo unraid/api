@@ -6,12 +6,12 @@
     "commander": "14.0.0",
     "conventional-changelog": "6.0.0",
     "date-fns": "4.1.0",
-    "glob": "11.0.1",
+    "glob": "11.0.3",
     "html-sloppy-escaper": "0.1.0",
-    "semver": "7.7.1",
-    "tsx": "4.19.3",
-    "zod": "3.24.2",
-    "zx": "8.3.2"
+    "semver": "7.7.2",
+    "tsx": "4.20.3",
+    "zod": "3.25.76",
+    "zx": "8.6.2"
   },
   "type": "module",
   "license": "GPL-2.0-or-later",
@@ -37,7 +37,7 @@
   "devDependencies": {
     "http-server": "14.1.1",
     "nodemon": "3.1.10",
-    "vitest": "3.0.7"
+    "vitest": "3.2.4"
   },
-  "packageManager": "pnpm@10.12.4"
+  "packageManager": "pnpm@10.13.1"
 }
