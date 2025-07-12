@@ -81,8 +81,7 @@ export class BackupOrchestrationService {
                     sourceProcessor,
                     destinationProcessor,
                     jobConfig,
-                    internalJobId,
-                    configId // Pass configId for handleJobCompletion
+                    internalJobId
                 );
             } else {
                 await this.executeRegularBackup(
@@ -201,7 +200,7 @@ export class BackupOrchestrationService {
                 this.emitJobStatus(internalJobId, { status: BackupJobStatus.FAILED, error: errorMsg });
                 // Call handleJobCompletion before throwing
                 await this.backupConfigService.handleJobCompletion(
-                    configId,
+                    jobConfig.id,
                     BackupJobStatus.FAILED,
                     internalJobId
                 );
@@ -218,7 +217,7 @@ export class BackupOrchestrationService {
             });
             // Call handleJobCompletion on success
             await this.backupConfigService.handleJobCompletion(
-                configId,
+                jobConfig.id,
                 BackupJobStatus.COMPLETED,
                 internalJobId
             );
@@ -251,7 +250,7 @@ export class BackupOrchestrationService {
             });
             // Call handleJobCompletion on failure
             await this.backupConfigService.handleJobCompletion(
-                configId,
+                jobConfig.id,
                 BackupJobStatus.FAILED,
                 internalJobId
             );

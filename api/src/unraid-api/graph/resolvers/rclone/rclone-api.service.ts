@@ -11,6 +11,11 @@ import got, { HTTPError } from 'got';
 import pRetry from 'p-retry';
 
 import { sanitizeParams } from '@app/core/log.js';
+import {
+    getConfigIdFromGroupId,
+    isBackupJobGroup,
+} from '@app/unraid-api/graph/resolvers/backup/backup.utils.js';
+import { BackupJobStatus } from '@app/unraid-api/graph/resolvers/backup/orchestration/backup-job-status.model.js';
 import { RCloneStatusService } from '@app/unraid-api/graph/resolvers/rclone/rclone-status.service.js';
 import {
     CreateRCloneRemoteDto,
@@ -72,7 +77,7 @@ interface JobOperationResult {
 
 @Injectable()
 export class RCloneApiService implements OnModuleInit, OnModuleDestroy {
-    private isInitialized: boolean = false;
+    private initialized: boolean = false;
     private readonly logger = new Logger(RCloneApiService.name);
     private rcloneSocketPath: string = '';
     private rcloneBaseUrl: string = '';
@@ -86,12 +91,51 @@ export class RCloneApiService implements OnModuleInit, OnModuleDestroy {
 
     constructor(private readonly statusService: RCloneStatusService) {}
 
+    get isInitialized(): boolean {
+        return this.initialized;
+    }
+
     async onModuleInit(): Promise<void> {
-        try {
-            await this.initializeRCloneService();
-        } catch (error: unknown) {
-            this.logger.error(`Error initializing RCloneApiService: ${error}`);
-            this.isInitialized = false;
+        // Check if rclone binary is available first
+        const isBinaryAvailable = await this.checkRcloneBinaryExists();
+        if (!isBinaryAvailable) {
+            this.logger.warn('RClone binary not found on system, skipping initialization');
+            this.initialized = false;
+            return;
+        }
+
+        const { getters } = await import('@app/store/index.js');
+        // Check if Rclone Socket is running, if not, start it.
+        this.rcloneSocketPath = getters.paths()['rclone-socket'];
+        const logFilePath = join(getters.paths()['log-base'], 'rclone-unraid-api.log');
+        this.logger.log(`RClone socket path: ${this.rcloneSocketPath}`);
+        this.logger.log(`RClone log file path: ${logFilePath}`);
+
+        // Format the base URL for Unix socket
+        this.rcloneBaseUrl = `http://unix:${this.rcloneSocketPath}:`;
+
+        // Check if the RClone socket exists, if not, create it.
+        const socketExists = await this.checkRcloneSocketExists(this.rcloneSocketPath);
+
+        if (socketExists) {
+            const isRunning = await this.checkRcloneSocketRunning();
+            if (isRunning) {
+                this.initialized = true;
+                return;
+            } else {
+                this.logger.warn(
+                    'RClone socket is not running but socket exists, removing socket before starting...'
+                );
+                await rm(this.rcloneSocketPath, { force: true });
+            }
+
+            this.logger.warn('RClone socket is not running, starting it...');
+            this.initialized = await this.startRcloneSocket(this.rcloneSocketPath, logFilePath);
+            return;
+        } else {
+            this.logger.warn('RClone socket does not exist, creating it...');
+            this.initialized = await this.startRcloneSocket(this.rcloneSocketPath, logFilePath);
+            return;
         }
     }
 
@@ -114,7 +158,7 @@ export class RCloneApiService implements OnModuleInit, OnModuleDestroy {
         await this.stopRcloneSocket();
 
         this.logger.warn('Proceeding to start new RClone socket...');
-        this.isInitialized = await this.startRcloneSocket(this.rcloneSocketPath, logFilePath);
+        this.initialized = await this.startRcloneSocket(this.rcloneSocketPath, logFilePath);
     }
 
     private async startRcloneSocket(socketPath: string, logFilePath: string): Promise<boolean> {
@@ -200,7 +244,7 @@ export class RCloneApiService implements OnModuleInit, OnModuleDestroy {
 
     private cleanupFailedProcess(): void {
         this.rcloneProcess = null;
-        this.isInitialized = false;
+        this.initialized = false;
     }
 
     private async waitForSocketReady(): Promise<void> {
@@ -349,9 +393,7 @@ export class RCloneApiService implements OnModuleInit, OnModuleDestroy {
 
         this.logger.log(`Starting backup: ${input.srcPath} → ${input.dstPath}`);
 
-        const group = input.configId
-            ? getBackupJobGroupId(input.configId)
-            : BACKUP_JOB_GROUP_PREFIX + 'manual';
+        const group = input.configId ? getConfigIdFromGroupId(input.configId) : 'manual';
 
         const params = {
             srcFs: input.srcPath,

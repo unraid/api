@@ -157,8 +157,8 @@ importers:
         specifier: 1.0.2
         version: 1.0.2
       cron:
-        specifier: 4.3.1
-        version: 4.3.1
+        specifier: 4.3.0
+        version: 4.3.0
       cross-fetch:
         specifier: 4.1.0
         version: 4.1.0
@@ -6507,10 +6507,6 @@ packages:
 
   cron@4.3.0:
     resolution: {integrity: sha512-ciiYNLfSlF9MrDqnbMdRWFiA6oizSF7kA1osPP9lRzNu0Uu+AWog1UKy7SkckiDY2irrNjeO6qLyKnXC8oxmrw==}
-    engines: {node: '>=18.x'}
-
-  cron@4.3.1:
-    resolution: {integrity: sha512-7x7DoEOxV11t3OPWWMjj1xrL1PGkTV5RV+/54IJTZD7gStiaMploY43EkeBSkDZTLRbUwk+OISbQ0TR133oXyA==}
     engines: {node: '>=18.x'}
 
   croner@4.1.97:
@@ -19424,11 +19420,6 @@ snapshots:
       luxon: 3.6.1
 
   cron@4.3.0:
-    dependencies:
-      '@types/luxon': 3.6.2
-      luxon: 3.6.1
-
-  cron@4.3.1:
     dependencies:
       '@types/luxon': 3.6.2
       luxon: 3.6.1

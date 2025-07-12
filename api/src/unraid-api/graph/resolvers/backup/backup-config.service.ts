@@ -13,6 +13,7 @@ import {
     CreateBackupJobConfigInput,
     UpdateBackupJobConfigInput,
 } from '@app/unraid-api/graph/resolvers/backup/backup.model.js';
+import { getBackupJobGroupId } from '@app/unraid-api/graph/resolvers/backup/backup.utils.js';
 import {
     DestinationConfigInput,
     DestinationType,
@@ -520,7 +521,7 @@ export class BackupConfigService implements OnModuleInit {
                 'UTC'
             );
 
-            this.schedulerRegistry.addCronJob(`${JOB_GROUP_PREFIX}${config.id}`, job);
+            this.schedulerRegistry.addCronJob(getBackupJobGroupId(config.id), job);
             job.start();
             this.logger.log(`Scheduled backup job: ${config.name} with schedule: ${config.schedule}`);
         } catch (error) {
@@ -530,7 +531,7 @@ export class BackupConfigService implements OnModuleInit {
 
     private unscheduleJob(id: string): void {
         try {
-            const jobName = `${JOB_GROUP_PREFIX}${id}`;
+            const jobName = getBackupJobGroupId(id);
             if (this.schedulerRegistry.doesExist('cron', jobName)) {
                 this.schedulerRegistry.deleteCronJob(jobName);
                 this.logger.log(`Unscheduled backup job: ${id}`);

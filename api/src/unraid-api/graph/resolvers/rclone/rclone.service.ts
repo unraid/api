@@ -48,7 +48,7 @@ export class RCloneService {
      */
     async onModuleInit(): Promise<void> {
         try {
-            if (!this.rcloneApiService.initialized) {
+            if (!this.rcloneApiService.isInitialized) {
                 this.logger.warn(
                     'RClone API service is not initialized, skipping provider info loading'
                 );
