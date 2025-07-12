@@ -55,7 +55,7 @@
   },
   "lint-staged": {
     "*.{js,jsx,ts,tsx,vue}": [
-      "pnpm lint:fix"
+      "npx pnpm lint:fix"
     ]
   },
   "packageManager": "pnpm@10.13.1"

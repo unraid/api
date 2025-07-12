@@ -22,7 +22,9 @@
       "Bash(pnpm --filter ./api test)",
       "Bash(pnpm i:*)",
       "Bash(pnpm:*)",
-      "Bash(corepack prepare:*)"
+      "Bash(corepack prepare:*)",
+      "Bash(nvm:*)",
+      "Bash(git config:*)"
     ]
   },
   "enableAllProjectMcpServers": false
