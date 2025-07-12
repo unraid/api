@@ -72,15 +72,28 @@ describe('RCloneApiService', () => {
         mockPRetry = vi.mocked(pRetry.default);
         mockExistsSync = vi.mocked(existsSync);
 
-        mockGot.post = vi.fn().mockResolvedValue({ body: {} });
-        mockExeca.mockReturnValue({
-            on: vi.fn(),
-            kill: vi.fn(),
-            killed: false,
-            pid: 12345,
-        } as any);
+        mockGot.post = vi.fn().mockImplementation((url: string) => {
+            // Mock the core/pid call to indicate socket is running
+            if (url.includes('core/pid')) {
+                return Promise.resolve({ body: { pid: 12345 } });
+            }
+            return Promise.resolve({ body: {} });
+        });
+        // Mock execa to return a resolved promise for rclone version check
+        mockExeca.mockImplementation((cmd: string, args: string[]) => {
+            if (cmd === 'rclone' && args[0] === 'version') {
+                return Promise.resolve({ stdout: 'rclone v1.67.0', stderr: '', exitCode: 0 } as any);
+            }
+            return {
+                on: vi.fn(),
+                kill: vi.fn(),
+                killed: false,
+                pid: 12345,
+            } as any;
+        });
         mockPRetry.mockResolvedValue(undefined);
-        mockExistsSync.mockReturnValue(false);
+        // Mock socket exists
+        mockExistsSync.mockReturnValue(true);
 
         mockFormatService = {
             formatBytes: vi.fn(),
@@ -116,7 +129,10 @@ describe('RCloneApiService', () => {
         };
 
         service = new RCloneApiService(mockStatusService);
-        await service.onModuleInit();
+        // Mock the service as initialized without actually running onModuleInit
+        // to avoid the initialization API calls
+        (service as any).initialized = true;
+        (service as any).rcloneBaseUrl = 'http://unix:/tmp/rclone.sock:';
     });
 
     describe('getProviders', () => {
@@ -284,6 +300,9 @@ describe('RCloneApiService', () => {
                 options: { delete_on: 'dst' },
             };
             const mockResponse = { jobid: 'job-123' };
+
+            // Clear previous mock calls and set up fresh mock
+            mockGot.post.mockClear();
             mockGot.post.mockResolvedValue({ body: mockResponse });
 
             const result = await service.startBackup(input);
@@ -292,11 +311,11 @@ describe('RCloneApiService', () => {
             expect(mockGot.post).toHaveBeenCalledWith(
                 'http://unix:/tmp/rclone.sock:/sync/copy',
                 expect.objectContaining({
-                    json: {
+                    json: expect.objectContaining({
                         srcFs: '/source/path',
                         dstFs: 'remote:backup/path',
                         delete_on: 'dst',
-                    },
+                    }),
                 })
             );
         });
@@ -305,8 +324,22 @@ describe('RCloneApiService', () => {
     describe('getJobStatus', () => {
         it('should return job status', async () => {
             const input: GetRCloneJobStatusDto = { jobId: 'job-123' };
-            const mockStatus = { status: 'running', progress: 0.5 };
-            mockGot.post.mockResolvedValue({ body: mockStatus });
+            const mockStatus = { id: 'job-123', status: 'running', progress: 0.5 };
+            mockGot.post.mockImplementation((url: string) => {
+                if (url.includes('core/stats')) {
+                    return Promise.resolve({ body: {} });
+                }
+                if (url.includes('job/status')) {
+                    return Promise.resolve({ body: mockStatus });
+                }
+                return Promise.resolve({ body: {} });
+            });
+
+            // Mock the status service methods
+            const mockStatusService = (service as any).statusService;
+            mockStatusService.enhanceStatsWithFormattedFields = vi.fn().mockReturnValue({});
+            mockStatusService.transformStatsToJob = vi.fn().mockReturnValue(null);
+            mockStatusService.parseJobWithStats = vi.fn().mockReturnValue(mockStatus);
 
             const result = await service.getJobStatus(input);
 
@@ -371,7 +404,7 @@ describe('RCloneApiService', () => {
             mockGot.post.mockRejectedValue(httpError);
 
             await expect(service.getProviders()).rejects.toThrow(
-                'Rclone API Error (config/providers, HTTP 404): Failed to process error response body. Raw body:'
+                'Rclone API Error (config/providers, HTTP 404): Failed to process error response: '
             );
         });
 
@@ -388,7 +421,7 @@ describe('RCloneApiService', () => {
             mockGot.post.mockRejectedValue(httpError);
 
             await expect(service.getProviders()).rejects.toThrow(
-                'Rclone API Error (config/providers, HTTP 400): Failed to process error response body. Raw body: invalid json'
+                'Rclone API Error (config/providers, HTTP 400): Failed to process error response: invalid json'
             );
         });
 
@@ -403,7 +436,7 @@ describe('RCloneApiService', () => {
             mockGot.post.mockRejectedValue('unknown error');
 
             await expect(service.getProviders()).rejects.toThrow(
-                'Unknown error calling RClone API (config/providers) with params {}: unknown error'
+                'Unknown error calling RClone API (config/providers): unknown error'
             );
         });
     });

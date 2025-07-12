@@ -18,7 +18,11 @@
       "Bash(pnpm add:*)",
       "Bash(npx tsc:*)",
       "Bash(pnpm list:*)",
-      "Bash(rm:*)"
+      "Bash(rm:*)",
+      "Bash(pnpm --filter ./api test)",
+      "Bash(pnpm i:*)",
+      "Bash(pnpm:*)",
+      "Bash(corepack prepare:*)"
     ]
   },
   "enableAllProjectMcpServers": false

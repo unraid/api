@@ -7,7 +7,7 @@
     "build:watch": " pnpm -r --parallel build:watch",
     "dev": "pnpm -r dev",
     "unraid:deploy": "pnpm -r unraid:deploy",
-    "test": "pnpm -r test",
+    "test": "vitest",
     "lint": "pnpm -r lint",
     "lint:fix": "pnpm -r lint:fix",
     "type-check": "pnpm -r type-check",
@@ -43,7 +43,8 @@
     "@manypkg/cli": "0.24.0",
     "chalk": "5.4.1",
     "diff": "8.0.2",
-    "ignore": "7.0.5"
+    "ignore": "7.0.5",
+    "vitest": "3.2.4"
   },
   "devDependencies": {
     "lint-staged": "16.1.2",
