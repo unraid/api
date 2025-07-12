@@ -6,6 +6,7 @@ export * from '@/components/common/dropdown-menu';
 export * from '@/components/common/loading';
 export * from '@/components/form/input';
 export * from '@/components/form/label';
+export * from '@/components/form/lightswitch';
 export * from '@/components/form/number';
 export * from '@/components/form/select';
 export * from '@/components/form/switch';

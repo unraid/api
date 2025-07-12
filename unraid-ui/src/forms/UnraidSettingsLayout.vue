@@ -39,7 +39,7 @@ const elements = computed(() => {
     <template v-for="(element, _i) in elements" :key="_i">
       <DispatchRenderer
         :schema="layout.layout.value.schema"
-        :uischema="element"
+        :uischema="element as any"
         :path="layout.layout.value.path"
         :enabled="layout.layout.value.enabled"
         :renderers="layout.layout.value.renderers"

@@ -13,7 +13,6 @@ import {
   type JsonFormsSubStates,
   type JsonSchema,
   type Layout,
-  type UISchemaElement,
 } from '@jsonforms/core';
 import { DispatchRenderer, useJsonFormsLayout, type RendererProps } from '@jsonforms/vue';
 import { computed, inject, nextTick, onMounted, ref, type Ref } from 'vue';
@@ -86,15 +85,30 @@ const updateStep = (newStep: number) => {
   dispatch(Actions.update('configStep', () => ({ current: newStep, total })));
 };
 
+// --- Type guard for elements with step options ---
+interface ElementWithStep {
+  options?: {
+    step?: number;
+    [key: string]: unknown;
+  };
+}
+
+function hasStepOption(element: unknown): element is ElementWithStep {
+  return (
+    element != null &&
+    typeof element === 'object' &&
+    'options' in element &&
+    typeof element.options === 'object' &&
+    element.options !== null &&
+    typeof (element.options as { step?: number }).step === 'number'
+  );
+}
+
 // --- Filtered Elements for Current Step ---
 const currentStepElements = computed(() => {
-  const filtered = (props.uischema.elements || []).filter((element: UISchemaElement) => {
-    // Check if the element has an 'options' object and an 'step' property
-    return (
-      typeof element.options === 'object' &&
-      element.options !== null &&
-      element.options.step === currentStep.value
-    );
+  const elements = props.uischema.elements || [];
+  const filtered = elements.filter((element) => {
+    return hasStepOption(element) && element.options!.step === currentStep.value;
   });
   return filtered;
 });
@@ -161,8 +175,8 @@ const getStepState = (stepIndex: number): StepState => {
       <DispatchRenderer
         v-for="(element, index) in currentStepElements"
         :key="`${layout.path}-${index}-step-${currentStep}`"
-        :schema="props.schema as JsonSchema"
-        :uischema="element as UISchemaElement"
+        :schema="props.schema"
+        :uischema="element"
         :path="layout.path || ''"
         :renderers="layout.renderers"
         :cells="layout.cells"
