@@ -1,7 +1,7 @@
 import { Logger } from '@nestjs/common';
 import { Args, ResolveField, Resolver } from '@nestjs/graphql';
 
-import { Resource } from '@unraid/shared/graphql.model.js';
+import { Resource } from '@unraid/shared/graphql.model';
 import {
     AuthActionVerb,
     AuthPossession,
@@ -14,6 +14,7 @@ import {
     CreateRCloneRemoteInput,
     DeleteRCloneRemoteInput,
     RCloneRemote,
+    RCloneRemoteConfig,
 } from '@app/unraid-api/graph/resolvers/rclone/rclone.model.js';
 
 /**
@@ -38,7 +39,7 @@ export class RCloneMutationsResolver {
                 name: input.name,
                 type: input.type,
                 parameters: {},
-                config,
+                config: config as RCloneRemoteConfig,
             };
         } catch (error) {
             this.logger.error(`Error creating remote: ${error}`);

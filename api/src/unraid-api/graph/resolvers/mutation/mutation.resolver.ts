@@ -3,6 +3,7 @@ import { Mutation, Resolver } from '@nestjs/graphql';
 import {
     ApiKeyMutations,
     ArrayMutations,
+    BackupMutations,
     DockerMutations,
     ParityCheckMutations,
     RCloneMutations,
@@ -25,6 +26,11 @@ export class RootMutationsResolver {
     @Mutation(() => VmMutations, { name: 'vm' })
     vm(): VmMutations {
         return new VmMutations();
+    }
+
+    @Mutation(() => BackupMutations, { name: 'backup' })
+    backup(): BackupMutations {
+        return new BackupMutations();
     }
 
     @Mutation(() => ParityCheckMutations, { name: 'parityCheck' })

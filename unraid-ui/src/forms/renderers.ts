@@ -75,6 +75,10 @@ export const jsonFormsRenderers: JsonFormsRendererRegistryEntry[] = [
     tester: rankWith(4, and(isBooleanControl, optionIs('format', 'toggle'))),
   },
   {
+    renderer: markRaw(withErrorWrapper(switchRenderer)),
+    tester: rankWith(4, and(isBooleanControl, optionIs('format', 'checkbox'))),
+  },
+  {
     renderer: markRaw(withErrorWrapper(selectRenderer)),
     tester: rankWith(4, and(isEnumControl)),
   },

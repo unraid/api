@@ -1,15 +1,14 @@
 // For more info, see https://github.com/storybookjs/eslint-plugin-storybook#configuration-flat-config-format
-import storybook from "eslint-plugin-storybook";
 
 import eslint from '@eslint/js';
-// @ts-expect-error No Declaration For This Plugin
 import importPlugin from 'eslint-plugin-import';
 import noRelativeImportPaths from 'eslint-plugin-no-relative-import-paths';
 import prettier from 'eslint-plugin-prettier';
 import vuePlugin from 'eslint-plugin-vue';
 import tseslint from 'typescript-eslint';
-// Import vue-eslint-parser as an ESM import
 import vueEslintParser from 'vue-eslint-parser';
+import storybook from 'eslint-plugin-storybook';
+// Import vue-eslint-parser as an ESM import
 
 // Common rules shared across file types
 const commonRules = {

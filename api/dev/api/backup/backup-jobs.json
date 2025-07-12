@@ -1,0 +1,25 @@
+[
+  {
+    "id": "a68667b6-f4ef-4c47-aec3-d9886be78487",
+    "name": "Test",
+    "sourceType": "RAW",
+    "destinationType": "RCLONE",
+    "schedule": "0 2 * * *",
+    "enabled": true,
+    "sourceConfig": {
+      "label": "Raw file backup",
+      "sourcePath": "/Users/elibosley/Desktop",
+      "excludePatterns": [],
+      "includePatterns": []
+    },
+    "destinationConfig": {
+      "type": "RCLONE",
+      "remoteName": "google_drives",
+      "destinationPath": "desktop"
+    },
+    "createdAt": "2025-05-27T15:02:31.655Z",
+    "updatedAt": "2025-05-27T15:11:40.547Z",
+    "lastRunAt": "2025-05-27T15:07:37.139Z",
+    "lastRunStatus": "Failed: RClone group backup-job_1748358397105_sbo5j322k failed or timed out."
+  }
+]

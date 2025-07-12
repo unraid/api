@@ -59,7 +59,6 @@ const onChange = (value: unknown) => {
             </TooltipContent>
           </Tooltip>
         </TooltipProvider>
-
         <SelectItem v-else :value="option.value">
           <SelectItemText>{{ option.label }}</SelectItemText>
         </SelectItem>

@@ -1,0 +1,2626 @@
+<!DOCTYPE html>
+<!-- saved from url=(0022)https://rclone.org/rc/ -->
+<html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="description" content="Remote controlling rclone with its API">
+    <meta name="author" content="Nick Craig-Wood">
+    <link rel="shortcut icon" type="image/png" href="https://rclone.org/img/rclone-32x32.png">
+    <script defer="" data-domain="rclone.org" src="./Remote Control _ API_files/script.js"></script>
+    <title>Remote Control / API</title>
+    <link rel="canonical" href="https://rclone.org/rc/">
+    <link href="./Remote Control _ API_files/bootstrap.min.4.4.1.css" rel="stylesheet">
+    <link href="./Remote Control _ API_files/fontawesome.min.css" rel="stylesheet">
+    <link href="./Remote Control _ API_files/brands.min.css" rel="stylesheet">
+    <link href="./Remote Control _ API_files/solid.min.css" rel="stylesheet">
+    <link href="./Remote Control _ API_files/custom.css" rel="stylesheet">
+    
+  </head>
+  <body>
+    <nav class="navbar navbar-expand-md navbar-dark bg-dark">
+  <a class="navbar-brand" href="https://rclone.org/"><img class="rclone-logo" src="./Remote Control _ API_files/logo_on_dark__horizontal_color.svg" alt="rclone logo"></a>
+  <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+    <span class="navbar-toggler-icon"></span>
+  </button>
+  
+  <div class="collapse navbar-collapse" id="navbarSupportedContent">
+    <ul class="navbar-nav mr-auto">
+      <li class="nav-item active">
+        <a class="nav-link" href="https://rclone.org/downloads/">Downloads</a>
+      </li>
+      <li class="nav-item active dropdown">
+        <a class="nav-link dropdown-toggle" href="https://rclone.org/rc/#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+          Docs
+        </a>
+        <div class="dropdown-menu" aria-labelledby="navbarDropdown">
+          <a class="dropdown-item" href="https://rclone.org/install/"><i class="fa fa-book fa-fw"></i> Installation</a>
+          <a class="dropdown-item" href="https://rclone.org/docs/"><i class="fa fa-book fa-fw"></i> Usage</a>
+          <a class="dropdown-item" href="https://rclone.org/filtering/"><i class="fa fa-book fa-fw"></i> Filtering</a>
+          <a class="dropdown-item" href="https://rclone.org/gui/"><i class="fa fa-book fa-fw"></i> GUI</a>
+          <a class="dropdown-item" href="https://rclone.org/rc/"><i class="fa fa-book fa-fw"></i> Remote Control</a>
+          <a class="dropdown-item" href="https://rclone.org/changelog/"><i class="fa fa-book fa-fw"></i> Changelog</a>
+          <a class="dropdown-item" href="https://rclone.org/bugs/"><i class="fa fa-book fa-fw"></i> Bugs</a>
+          <a class="dropdown-item" href="https://rclone.org/faq/"><i class="fa fa-book fa-fw"></i> FAQ</a>
+          <a class="dropdown-item" href="https://rclone.org/flags/"><i class="fa fa-book fa-fw"></i> Flags</a>
+          <a class="dropdown-item" href="https://rclone.org/licence/"><i class="fa fa-book fa-fw"></i> Licence</a>
+          <a class="dropdown-item" href="https://rclone.org/authors/"><i class="fa fa-book fa-fw"></i> Authors</a>
+          <a class="dropdown-item" href="https://rclone.org/privacy/"><i class="fa fa-book fa-fw"></i> Privacy Policy</a>
+        </div>
+      </li>
+      <li class="nav-item active dropdown">
+        <a class="nav-link dropdown-toggle" href="https://rclone.org/rc/#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+          Commands
+        </a>
+        <div class="dropdown-menu pre-scrollable" aria-labelledby="navbarDropdown">
+          <a class="dropdown-item" href="https://rclone.org/commands/"><i class="fas fa-map fa-fw"></i> Overview</a>
+          <div class="dropdown-divider"></div>
+          
+            
+              
+                <a class="dropdown-item" href="https://rclone.org/commands/rclone/"><i class="fa fa-book fa-fw"></i> rclone</a>
+              
+            
+              
+                <a class="dropdown-item" href="https://rclone.org/commands/rclone_about/"><i class="fa fa-book fa-fw"></i> rclone about</a>
+              
+            
+              
+                <a class="dropdown-item" href="https://rclone.org/commands/rclone_authorize/"><i class="fa fa-book fa-fw"></i> rclone authorize</a>
+              
+            
+              
+                <a class="dropdown-item" href="https://rclone.org/commands/rclone_backend/"><i class="fa fa-book fa-fw"></i> rclone backend</a>
+              
+            
+              
+                <a class="dropdown-item" href="https://rclone.org/commands/rclone_bisync/"><i class="fa fa-book fa-fw"></i> rclone bisync</a>
+              
+            
+              
+                <a class="dropdown-item" href="https://rclone.org/commands/rclone_cat/"><i class="fa fa-book fa-fw"></i> rclone cat</a>
+              
+            
+              
+                <a class="dropdown-item" href="https://rclone.org/commands/rclone_check/"><i class="fa fa-book fa-fw"></i> rclone check</a>
+              
+            
+              
+                <a class="dropdown-item" href="https://rclone.org/commands/rclone_checksum/"><i class="fa fa-book fa-fw"></i> rclone checksum</a>
+              
+            
+              
+                <a class="dropdown-item" href="https://rclone.org/commands/rclone_cleanup/"><i class="fa fa-book fa-fw"></i> rclone cleanup</a>
+              
+            
+              
+                <a class="dropdown-item" href="https://rclone.org/commands/rclone_completion/"><i class="fa fa-book fa-fw"></i> rclone completion</a>
+              
+            
+              
+            
+              
+            
+              
+            
+              
+            
+              
+                <a class="dropdown-item" href="https://rclone.org/commands/rclone_config/"><i class="fa fa-book fa-fw"></i> rclone config</a>
+              
+            
+              
+            
+              
+            
+              
+            
+              
+            
+              
+            
+              
+            
+              
+            
+              
+            
+              
+            
+              
+            
+              
+            
+              
+            
+              
+            
+              
+            
+              
+            
+              
+            
+              
+            
+              
+            
+              
+            
+              
+                <a class="dropdown-item" href="https://rclone.org/commands/rclone_copy/"><i class="fa fa-book fa-fw"></i> rclone copy</a>
+              
+            
+              
+                <a class="dropdown-item" href="https://rclone.org/commands/rclone_copyto/"><i class="fa fa-book fa-fw"></i> rclone copyto</a>
+              
+            
+              
+                <a class="dropdown-item" href="https://rclone.org/commands/rclone_copyurl/"><i class="fa fa-book fa-fw"></i> rclone copyurl</a>
+              
+            
+              
+                <a class="dropdown-item" href="https://rclone.org/commands/rclone_cryptcheck/"><i class="fa fa-book fa-fw"></i> rclone cryptcheck</a>
+              
+            
+              
+                <a class="dropdown-item" href="https://rclone.org/commands/rclone_cryptdecode/"><i class="fa fa-book fa-fw"></i> rclone cryptdecode</a>
+              
+            
+              
+                <a class="dropdown-item" href="https://rclone.org/commands/rclone_dedupe/"><i class="fa fa-book fa-fw"></i> rclone dedupe</a>
+              
+            
+              
+                <a class="dropdown-item" href="https://rclone.org/commands/rclone_delete/"><i class="fa fa-book fa-fw"></i> rclone delete</a>
+              
+            
+              
+                <a class="dropdown-item" href="https://rclone.org/commands/rclone_deletefile/"><i class="fa fa-book fa-fw"></i> rclone deletefile</a>
+              
+            
+              
+                <a class="dropdown-item" href="https://rclone.org/commands/rclone_gendocs/"><i class="fa fa-book fa-fw"></i> rclone gendocs</a>
+              
+            
+              
+                <a class="dropdown-item" href="https://rclone.org/commands/rclone_gitannex/"><i class="fa fa-book fa-fw"></i> rclone gitannex</a>
+              
+            
+              
+                <a class="dropdown-item" href="https://rclone.org/commands/rclone_hashsum/"><i class="fa fa-book fa-fw"></i> rclone hashsum</a>
+              
+            
+              
+                <a class="dropdown-item" href="https://rclone.org/commands/rclone_link/"><i class="fa fa-book fa-fw"></i> rclone link</a>
+              
+            
+              
+                <a class="dropdown-item" href="https://rclone.org/commands/rclone_listremotes/"><i class="fa fa-book fa-fw"></i> rclone listremotes</a>
+              
+            
+              
+                <a class="dropdown-item" href="https://rclone.org/commands/rclone_ls/"><i class="fa fa-book fa-fw"></i> rclone ls</a>
+              
+            
+              
+                <a class="dropdown-item" href="https://rclone.org/commands/rclone_lsd/"><i class="fa fa-book fa-fw"></i> rclone lsd</a>
+              
+            
+              
+                <a class="dropdown-item" href="https://rclone.org/commands/rclone_lsf/"><i class="fa fa-book fa-fw"></i> rclone lsf</a>
+              
+            
+              
+                <a class="dropdown-item" href="https://rclone.org/commands/rclone_lsjson/"><i class="fa fa-book fa-fw"></i> rclone lsjson</a>
+              
+            
+              
+                <a class="dropdown-item" href="https://rclone.org/commands/rclone_lsl/"><i class="fa fa-book fa-fw"></i> rclone lsl</a>
+              
+            
+              
+                <a class="dropdown-item" href="https://rclone.org/commands/rclone_md5sum/"><i class="fa fa-book fa-fw"></i> rclone md5sum</a>
+              
+            
+              
+                <a class="dropdown-item" href="https://rclone.org/commands/rclone_mkdir/"><i class="fa fa-book fa-fw"></i> rclone mkdir</a>
+              
+            
+              
+                <a class="dropdown-item" href="https://rclone.org/commands/rclone_mount/"><i class="fa fa-book fa-fw"></i> rclone mount</a>
+              
+            
+              
+                <a class="dropdown-item" href="https://rclone.org/commands/rclone_move/"><i class="fa fa-book fa-fw"></i> rclone move</a>
+              
+            
+              
+                <a class="dropdown-item" href="https://rclone.org/commands/rclone_moveto/"><i class="fa fa-book fa-fw"></i> rclone moveto</a>
+              
+            
+              
+                <a class="dropdown-item" href="https://rclone.org/commands/rclone_ncdu/"><i class="fa fa-book fa-fw"></i> rclone ncdu</a>
+              
+            
+              
+                <a class="dropdown-item" href="https://rclone.org/commands/rclone_nfsmount/"><i class="fa fa-book fa-fw"></i> rclone nfsmount</a>
+              
+            
+              
+                <a class="dropdown-item" href="https://rclone.org/commands/rclone_obscure/"><i class="fa fa-book fa-fw"></i> rclone obscure</a>
+              
+            
+              
+                <a class="dropdown-item" href="https://rclone.org/commands/rclone_purge/"><i class="fa fa-book fa-fw"></i> rclone purge</a>
+              
+            
+              
+                <a class="dropdown-item" href="https://rclone.org/commands/rclone_rc/"><i class="fa fa-book fa-fw"></i> rclone rc</a>
+              
+            
+              
+                <a class="dropdown-item" href="https://rclone.org/commands/rclone_rcat/"><i class="fa fa-book fa-fw"></i> rclone rcat</a>
+              
+            
+              
+                <a class="dropdown-item" href="https://rclone.org/commands/rclone_rcd/"><i class="fa fa-book fa-fw"></i> rclone rcd</a>
+              
+            
+              
+                <a class="dropdown-item" href="https://rclone.org/commands/rclone_rmdir/"><i class="fa fa-book fa-fw"></i> rclone rmdir</a>
+              
+            
+              
+                <a class="dropdown-item" href="https://rclone.org/commands/rclone_rmdirs/"><i class="fa fa-book fa-fw"></i> rclone rmdirs</a>
+              
+            
+              
+                <a class="dropdown-item" href="https://rclone.org/commands/rclone_selfupdate/"><i class="fa fa-book fa-fw"></i> rclone selfupdate</a>
+              
+            
+              
+                <a class="dropdown-item" href="https://rclone.org/commands/rclone_serve/"><i class="fa fa-book fa-fw"></i> rclone serve</a>
+              
+            
+              
+            
+              
+            
+              
+            
+              
+            
+              
+            
+              
+            
+              
+            
+              
+            
+              
+            
+              
+                <a class="dropdown-item" href="https://rclone.org/commands/rclone_settier/"><i class="fa fa-book fa-fw"></i> rclone settier</a>
+              
+            
+              
+                <a class="dropdown-item" href="https://rclone.org/commands/rclone_sha1sum/"><i class="fa fa-book fa-fw"></i> rclone sha1sum</a>
+              
+            
+              
+                <a class="dropdown-item" href="https://rclone.org/commands/rclone_size/"><i class="fa fa-book fa-fw"></i> rclone size</a>
+              
+            
+              
+                <a class="dropdown-item" href="https://rclone.org/commands/rclone_sync/"><i class="fa fa-book fa-fw"></i> rclone sync</a>
+              
+            
+              
+                <a class="dropdown-item" href="https://rclone.org/commands/rclone_test/"><i class="fa fa-book fa-fw"></i> rclone test</a>
+              
+            
+              
+            
+              
+            
+              
+            
+              
+            
+              
+            
+              
+            
+              
+                <a class="dropdown-item" href="https://rclone.org/commands/rclone_touch/"><i class="fa fa-book fa-fw"></i> rclone touch</a>
+              
+            
+              
+                <a class="dropdown-item" href="https://rclone.org/commands/rclone_tree/"><i class="fa fa-book fa-fw"></i> rclone tree</a>
+              
+            
+              
+                <a class="dropdown-item" href="https://rclone.org/commands/rclone_version/"><i class="fa fa-book fa-fw"></i> rclone version</a>
+              
+            
+          
+        </div>
+      </li>
+      <li class="nav-item active dropdown">
+        <a class="nav-link dropdown-toggle" href="https://rclone.org/rc/#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+          Storage Systems
+        </a>
+        <div class="dropdown-menu pre-scrollable" aria-labelledby="navbarDropdown">
+          <a class="dropdown-item" href="https://rclone.org/overview/"><i class="fas fa-map fa-fw"></i> Overview</a>
+          <div class="dropdown-divider"></div>
+          <a class="dropdown-item" href="https://rclone.org/fichier/"><i class="fa fa-archive fa-fw"></i> 1Fichier</a>
+          <a class="dropdown-item" href="https://rclone.org/netstorage/"><i class="fas fa-database fa-fw"></i> Akamai NetStorage</a>
+          <a class="dropdown-item" href="https://rclone.org/alias/"><i class="fa fa-link fa-fw"></i> Alias</a>
+          <a class="dropdown-item" href="https://rclone.org/s3/"><i class="fab fa-amazon fa-fw"></i> Amazon S3</a>
+          <a class="dropdown-item" href="https://rclone.org/b2/"><i class="fa fa-fire fa-fw"></i> Backblaze B2</a>
+          <a class="dropdown-item" href="https://rclone.org/box/"><i class="fa fa-archive fa-fw"></i> Box</a>
+          <a class="dropdown-item" href="https://rclone.org/chunker/"><i class="fa fa-cut fa-fw"></i> Chunker (splits large files)</a>
+          <a class="dropdown-item" href="https://rclone.org/cloudinary/"><i class="fa fa-image fa-fw"></i> Cloudinary</a>
+          <a class="dropdown-item" href="https://rclone.org/compress/"><i class="fas fa-compress fa-fw"></i> Compress (transparent gzip compression)</a>
+          <a class="dropdown-item" href="https://rclone.org/combine/"><i class="fa fa-folder-plus fa-fw"></i> Combine (remotes into a directory tree)</a>
+          <a class="dropdown-item" href="https://rclone.org/sharefile/"><i class="fas fa-share-square fa-fw"></i> Citrix ShareFile</a>
+          <a class="dropdown-item" href="https://rclone.org/crypt/"><i class="fa fa-lock fa-fw"></i> Crypt (encrypts the others)</a>
+          <a class="dropdown-item" href="https://rclone.org/koofr/#digi-storage"><i class="fa fa-cloud fa-fw"></i> Digi Storage</a>
+          <a class="dropdown-item" href="https://rclone.org/dropbox/"><i class="fab fa-dropbox fa-fw"></i> Dropbox</a>
+          <a class="dropdown-item" href="https://rclone.org/filefabric/"><i class="fa fa-cloud fa-fw"></i> Enterprise File Fabric</a>
+          <a class="dropdown-item" href="https://rclone.org/filescom/"><i class="fa fa-brands fa-files-pinwheel fa-fw"></i> Files.com</a>
+          <a class="dropdown-item" href="https://rclone.org/ftp/"><i class="fa fa-file fa-fw"></i> FTP</a>
+          <a class="dropdown-item" href="https://rclone.org/gofile/"><i class="fa fa-folder fa-fw"></i> Gofile</a>
+          <a class="dropdown-item" href="https://rclone.org/googlecloudstorage/"><i class="fab fa-google fa-fw"></i> Google Cloud Storage</a>
+          <a class="dropdown-item" href="https://rclone.org/drive/"><i class="fab fa-google fa-fw"></i> Google Drive</a>
+          <a class="dropdown-item" href="https://rclone.org/googlephotos/"><i class="fas fa-images fa-fw"></i> Google Photos</a>
+          <a class="dropdown-item" href="https://rclone.org/hasher/"><i class="fa fa-check-double fa-fw"></i> Hasher (better checksums for others)</a>
+          <a class="dropdown-item" href="https://rclone.org/hdfs/"><i class="fa fa-globe fa-fw"></i> HDFS (Hadoop Distributed Filesystem)</a>
+          <a class="dropdown-item" href="https://rclone.org/hidrive/"><i class="fa fa-cloud fa-fw"></i> HiDrive</a>
+          <a class="dropdown-item" href="https://rclone.org/http/"><i class="fa fa-globe fa-fw"></i> HTTP</a>
+          <a class="dropdown-item" href="https://rclone.org/iclouddrive/"><i class="fa fa-archive fa-fw"></i> iCloud Drive</a>
+          <a class="dropdown-item" href="https://rclone.org/imagekit/"><i class="fa fa-cloud fa-fw"></i> ImageKit</a>
+          <a class="dropdown-item" href="https://rclone.org/internetarchive/"><i class="fa fa-archive fa-fw"></i> Internet Archive</a>
+          <a class="dropdown-item" href="https://rclone.org/jottacloud/"><i class="fa fa-cloud fa-fw"></i> Jottacloud</a>
+          <a class="dropdown-item" href="https://rclone.org/koofr/"><i class="fa fa-suitcase fa-fw"></i> Koofr</a>
+          <a class="dropdown-item" href="https://rclone.org/linkbox/"><i class="fa fa-infinity fa-fw"></i> Linkbox</a>
+          <a class="dropdown-item" href="https://rclone.org/mailru/"><i class="fa fa-at fa-fw"></i> Mail.ru Cloud</a>
+          <a class="dropdown-item" href="https://rclone.org/mega/"><i class="fa fa-archive fa-fw"></i> Mega</a>
+          <a class="dropdown-item" href="https://rclone.org/memory/"><i class="fas fa-memory fa-fw"></i> Memory</a>
+          <a class="dropdown-item" href="https://rclone.org/azureblob/"><i class="fab fa-windows fa-fw"></i> Microsoft Azure Blob Storage</a>
+          <a class="dropdown-item" href="https://rclone.org/azurefiles/"><i class="fab fa-windows fa-fw"></i> Microsoft Azure Files Storage</a>
+          <a class="dropdown-item" href="https://rclone.org/onedrive/"><i class="fab fa-windows fa-fw"></i> Microsoft OneDrive</a>
+          <a class="dropdown-item" href="https://rclone.org/opendrive/"><i class="fa fa-space-shuttle fa-fw"></i> OpenDrive</a>
+          <a class="dropdown-item" href="https://rclone.org/qingstor/"><i class="fas fa-hdd fa-fw"></i> QingStor</a>
+          <a class="dropdown-item" href="https://rclone.org/swift/"><i class="fa fa-space-shuttle fa-fw"></i> Openstack Swift</a>
+          <a class="dropdown-item" href="https://rclone.org/oracleobjectstorage/"><i class="fa fa-cloud fa-fw"></i> Oracle Object Storage</a>
+          <a class="dropdown-item" href="https://rclone.org/pcloud/"><i class="fa fa-cloud fa-fw"></i> pCloud</a>
+          <a class="dropdown-item" href="https://rclone.org/pikpak/"><i class="fa fa-cloud fa-fw"></i> PikPak</a>
+          <a class="dropdown-item" href="https://rclone.org/pixeldrain/"><i class="fa fa-circle fa-fw"></i> Pixeldrain</a>
+          <a class="dropdown-item" href="https://rclone.org/premiumizeme/"><i class="fa fa-user fa-fw"></i> premiumize.me</a>
+          <a class="dropdown-item" href="https://rclone.org/putio/"><i class="fas fa-parking fa-fw"></i> put.io</a>
+          <a class="dropdown-item" href="https://rclone.org/protondrive/"><i class="fas fa-folder fa-fw"></i> Proton Drive</a>
+          <a class="dropdown-item" href="https://rclone.org/quatrix/"><i class="fas fa-shield-alt fa-fw"></i> Quatrix</a>
+          <a class="dropdown-item" href="https://rclone.org/seafile/"><i class="fa fa-server fa-fw"></i> Seafile</a>
+          <a class="dropdown-item" href="https://rclone.org/sftp/"><i class="fa fa-server fa-fw"></i> SFTP</a>
+          <a class="dropdown-item" href="https://rclone.org/sia/"><i class="fa fa-globe fa-fw"></i> Sia</a>
+          <a class="dropdown-item" href="https://rclone.org/smb/"><i class="fa fa-server fa-fw"></i> SMB / CIFS</a>
+          <a class="dropdown-item" href="https://rclone.org/storj/"><i class="fas fa-dove fa-fw"></i> Storj</a>
+          <a class="dropdown-item" href="https://rclone.org/sugarsync/"><i class="fas fa-dove fa-fw"></i> SugarSync</a>
+          <a class="dropdown-item" href="https://rclone.org/ulozto/"><i class="fas fa-angle-double-down fa-fw"></i> Uloz.to</a>
+          <a class="dropdown-item" href="https://rclone.org/uptobox/"><i class="fa fa-archive fa-fw"></i> Uptobox</a>
+          <a class="dropdown-item" href="https://rclone.org/union/"><i class="fa fa-link fa-fw"></i> Union (merge backends)</a>
+          <a class="dropdown-item" href="https://rclone.org/webdav/"><i class="fa fa-server fa-fw"></i> WebDAV</a>
+          <a class="dropdown-item" href="https://rclone.org/yandex/"><i class="fa fa-space-shuttle fa-fw"></i> Yandex Disk</a>
+          <a class="dropdown-item" href="https://rclone.org/zoho/"><i class="fas fa-folder fa-fw"></i> Zoho WorkDrive</a>
+          <div class="dropdown-divider"></div>
+          <a class="dropdown-item" href="https://rclone.org/local/"><i class="fas fa-hdd fa-fw"></i> The local filesystem</a>
+        </div>
+      </li>
+      <li class="nav-item active">
+        <a class="nav-link" href="https://rclone.org/contact/"><i class="fa fa-envelope fa-fw"></i> Contact</a>
+      </li>
+      <li class="nav-item active">
+        <a class="nav-link" href="https://rclone.org/sponsor/"><i class="fa fa-heart heart fa-fw"></i> Sponsor</a>
+      </li>
+    </ul>
+    <ul class="navbar-nav mr-auto">
+      <li class="nav-item active">
+        <a href="https://rclone.com/" target="_blank" class="nav-link bizbutton" title="Click here for support and advertising contracts"><i class="fa fa-briefcase"></i> For Business</a>
+      </li>
+    </ul>
+    <form class="form-inline" name="search_form" action="https://google.com/search" target="_blank" onsubmit="on_search();">
+      <input name="words" value="" type="search" placeholder="search..." class="form-control form-control-sm">
+      <input name="q" value="" type="hidden">
+      <input name="as_sitesearch" value="https://rclone.org/" type="hidden">
+    </form>
+  </div>
+</nav>
+
+    <div class="container-fluid">
+      <div class="row">
+        <div class="col-md-9">
+          
+
+          <span class="badge badge-pill badge-secondary float-right" style="margin-top: 30px; font-size: 100%" title="This feature needs Rclone v1.40 or later.">v1.40</span>
+
+          
+
+          
+<h1 id="remote-controlling-rclone-with-its-api">Remote controlling rclone with its API</h1>
+<p>If rclone is run with the <code>--rc</code> flag then it starts an HTTP server
+which can be used to remote control rclone using its API.</p>
+<p>You can either use the <a href="https://rclone.org/rc/#api-rc">rc</a> command to access the API
+or <a href="https://rclone.org/rc/#api-http">use HTTP directly</a>.</p>
+<p>If you just want to run a remote control then see the <a href="https://rclone.org/commands/rclone_rcd/">rcd</a> command.</p>
+<h2 id="supported-parameters"><a class="header-link" href="https://rclone.org/rc/#supported-parameters"><i class="fa fa-link"></i></a>Supported parameters</h2>
+<h3 id="rc"><a class="header-link" href="https://rclone.org/rc/#rc"><i class="fa fa-link"></i></a>--rc</h3>
+<p>Flag to start the http server listen on remote requests.</p>
+<h3 id="rc-addr-ip"><a class="header-link" href="https://rclone.org/rc/#rc-addr-ip"><i class="fa fa-link"></i></a>--rc-addr=IP</h3>
+<p>IPaddress:Port or :Port to bind server to. (default "localhost:5572").</p>
+<h3 id="rc-cert-key"><a class="header-link" href="https://rclone.org/rc/#rc-cert-key"><i class="fa fa-link"></i></a>--rc-cert=KEY</h3>
+<p>SSL PEM key (concatenation of certificate and CA certificate).</p>
+<h3 id="rc-client-ca-path"><a class="header-link" href="https://rclone.org/rc/#rc-client-ca-path"><i class="fa fa-link"></i></a>--rc-client-ca=PATH</h3>
+<p>Client certificate authority to verify clients with.</p>
+<h3 id="rc-htpasswd-path"><a class="header-link" href="https://rclone.org/rc/#rc-htpasswd-path"><i class="fa fa-link"></i></a>--rc-htpasswd=PATH</h3>
+<p>htpasswd file - if not provided no authentication is done.</p>
+<h3 id="rc-key-path"><a class="header-link" href="https://rclone.org/rc/#rc-key-path"><i class="fa fa-link"></i></a>--rc-key=PATH</h3>
+<p>TLS PEM private key file.</p>
+<h3 id="rc-max-header-bytes-value"><a class="header-link" href="https://rclone.org/rc/#rc-max-header-bytes-value"><i class="fa fa-link"></i></a>--rc-max-header-bytes=VALUE</h3>
+<p>Maximum size of request header (default 4096).</p>
+<h3 id="rc-min-tls-version-value"><a class="header-link" href="https://rclone.org/rc/#rc-min-tls-version-value"><i class="fa fa-link"></i></a>--rc-min-tls-version=VALUE</h3>
+<p>The minimum TLS version that is acceptable. Valid values are "tls1.0",
+"tls1.1", "tls1.2" and "tls1.3" (default "tls1.0").</p>
+<h3 id="rc-user-value"><a class="header-link" href="https://rclone.org/rc/#rc-user-value"><i class="fa fa-link"></i></a>--rc-user=VALUE</h3>
+<p>User name for authentication.</p>
+<h3 id="rc-pass-value"><a class="header-link" href="https://rclone.org/rc/#rc-pass-value"><i class="fa fa-link"></i></a>--rc-pass=VALUE</h3>
+<p>Password for authentication.</p>
+<h3 id="rc-realm-value"><a class="header-link" href="https://rclone.org/rc/#rc-realm-value"><i class="fa fa-link"></i></a>--rc-realm=VALUE</h3>
+<p>Realm for authentication (default "rclone").</p>
+<h3 id="rc-server-read-timeout-duration"><a class="header-link" href="https://rclone.org/rc/#rc-server-read-timeout-duration"><i class="fa fa-link"></i></a>--rc-server-read-timeout=DURATION</h3>
+<p>Timeout for server reading data (default 1h0m0s).</p>
+<h3 id="rc-server-write-timeout-duration"><a class="header-link" href="https://rclone.org/rc/#rc-server-write-timeout-duration"><i class="fa fa-link"></i></a>--rc-server-write-timeout=DURATION</h3>
+<p>Timeout for server writing data (default 1h0m0s).</p>
+<h3 id="rc-serve"><a class="header-link" href="https://rclone.org/rc/#rc-serve"><i class="fa fa-link"></i></a>--rc-serve</h3>
+<p>Enable the serving of remote objects via the HTTP interface.  This
+means objects will be accessible at http://127.0.0.1:5572/ by default,
+so you can browse to http://127.0.0.1:5572/ or http://127.0.0.1:5572/*
+to see a listing of the remotes.  Objects may be requested from
+remotes using this syntax http://127.0.0.1:5572/[remote:path]/path/to/object</p>
+<p>Default Off.</p>
+<h3 id="rc-serve-no-modtime"><a class="header-link" href="https://rclone.org/rc/#rc-serve-no-modtime"><i class="fa fa-link"></i></a>--rc-serve-no-modtime</h3>
+<p>Set this flag to skip reading the modification time (can speed things up).</p>
+<p>Default Off.</p>
+<h3 id="rc-files-path-to-directory"><a class="header-link" href="https://rclone.org/rc/#rc-files-path-to-directory"><i class="fa fa-link"></i></a>--rc-files /path/to/directory</h3>
+<p>Path to local files to serve on the HTTP server.</p>
+<p>If this is set then rclone will serve the files in that directory.  It
+will also open the root in the web browser if specified.  This is for
+implementing browser based GUIs for rclone functions.</p>
+<p>If <code>--rc-user</code> or <code>--rc-pass</code> is set then the URL that is opened will
+have the authorization in the URL in the <code>http://user:pass@localhost/</code>
+style.</p>
+<p>Default Off.</p>
+<h3 id="rc-enable-metrics"><a class="header-link" href="https://rclone.org/rc/#rc-enable-metrics"><i class="fa fa-link"></i></a>--rc-enable-metrics</h3>
+<p>Enable OpenMetrics/Prometheus compatible endpoint at <code>/metrics</code>.
+If more control over the metrics is desired (for example running it on a different port or with different auth) then endpoint can be enabled with the <code>--metrics-*</code> flags instead.</p>
+<p>Default Off.</p>
+<h3 id="rc-web-gui"><a class="header-link" href="https://rclone.org/rc/#rc-web-gui"><i class="fa fa-link"></i></a>--rc-web-gui</h3>
+<p>Set this flag to serve the default web gui on the same port as rclone.</p>
+<p>Default Off.</p>
+<h3 id="rc-allow-origin"><a class="header-link" href="https://rclone.org/rc/#rc-allow-origin"><i class="fa fa-link"></i></a>--rc-allow-origin</h3>
+<p>Set the allowed Access-Control-Allow-Origin for rc requests.</p>
+<p>Can be used with --rc-web-gui if the rclone is running on different IP than the web-gui.</p>
+<p>Default is IP address on which rc is running.</p>
+<h3 id="rc-web-fetch-url"><a class="header-link" href="https://rclone.org/rc/#rc-web-fetch-url"><i class="fa fa-link"></i></a>--rc-web-fetch-url</h3>
+<p>Set the URL to fetch the rclone-web-gui files from.</p>
+<p>Default <a href="https://api.github.com/repos/rclone/rclone-webui-react/releases/latest">https://api.github.com/repos/rclone/rclone-webui-react/releases/latest</a>.</p>
+<h3 id="rc-web-gui-update"><a class="header-link" href="https://rclone.org/rc/#rc-web-gui-update"><i class="fa fa-link"></i></a>--rc-web-gui-update</h3>
+<p>Set this flag to check and update rclone-webui-react from the rc-web-fetch-url.</p>
+<p>Default Off.</p>
+<h3 id="rc-web-gui-force-update"><a class="header-link" href="https://rclone.org/rc/#rc-web-gui-force-update"><i class="fa fa-link"></i></a>--rc-web-gui-force-update</h3>
+<p>Set this flag to force update rclone-webui-react from the rc-web-fetch-url.</p>
+<p>Default Off.</p>
+<h3 id="rc-web-gui-no-open-browser"><a class="header-link" href="https://rclone.org/rc/#rc-web-gui-no-open-browser"><i class="fa fa-link"></i></a>--rc-web-gui-no-open-browser</h3>
+<p>Set this flag to disable opening browser automatically when using web-gui.</p>
+<p>Default Off.</p>
+<h3 id="rc-job-expire-duration-duration"><a class="header-link" href="https://rclone.org/rc/#rc-job-expire-duration-duration"><i class="fa fa-link"></i></a>--rc-job-expire-duration=DURATION</h3>
+<p>Expire finished async jobs older than DURATION (default 60s).</p>
+<h3 id="rc-job-expire-interval-duration"><a class="header-link" href="https://rclone.org/rc/#rc-job-expire-interval-duration"><i class="fa fa-link"></i></a>--rc-job-expire-interval=DURATION</h3>
+<p>Interval duration to check for expired async jobs (default 10s).</p>
+<h3 id="rc-no-auth"><a class="header-link" href="https://rclone.org/rc/#rc-no-auth"><i class="fa fa-link"></i></a>--rc-no-auth</h3>
+<p>By default rclone will require authorisation to have been set up on
+the rc interface in order to use any methods which access any rclone
+remotes.  Eg <code>operations/list</code> is denied as it involved creating a
+remote as is <code>sync/copy</code>.</p>
+<p>If this is set then no authorisation will be required on the server to
+use these methods.  The alternative is to use <code>--rc-user</code> and
+<code>--rc-pass</code> and use these credentials in the request.</p>
+<p>Default Off.</p>
+<h3 id="rc-baseurl"><a class="header-link" href="https://rclone.org/rc/#rc-baseurl"><i class="fa fa-link"></i></a>--rc-baseurl</h3>
+<p>Prefix for URLs.</p>
+<p>Default is root</p>
+<h3 id="rc-template"><a class="header-link" href="https://rclone.org/rc/#rc-template"><i class="fa fa-link"></i></a>--rc-template</h3>
+<p>User-specified template.</p>
+<h2 id="api-rc"><a class="header-link" href="https://rclone.org/rc/#api-rc"><i class="fa fa-link"></i></a>Accessing the remote control via the rclone rc command</h2>
+<p>Rclone itself implements the remote control protocol in its <code>rclone rc</code> command.</p>
+<p>You can use it like this:</p>
+<pre tabindex="0"><code>$ rclone rc rc/noop param1=one param2=two
+{
+	"param1": "one",
+	"param2": "two"
+}
+</code></pre><p>If the remote is running on a different URL than the default
+<code>http://localhost:5572/</code>, use the <code>--url</code> option to specify it:</p>
+<pre tabindex="0"><code>$ rclone rc --url http://some.remote:1234/ rc/noop
+</code></pre><p>Or, if the remote is listening on a Unix socket, use the <code>--unix-socket</code> option
+instead:</p>
+<pre tabindex="0"><code>$ rclone rc --unix-socket /tmp/rclone.sock rc/noop
+</code></pre><p>Run <code>rclone rc</code> on its own, without any commands, to see the help for the
+installed remote control commands. Note that this also needs to connect to the
+remote server.</p>
+<h2 id="json-input"><a class="header-link" href="https://rclone.org/rc/#json-input"><i class="fa fa-link"></i></a>JSON input</h2>
+<p><code>rclone rc</code> also supports a <code>--json</code> flag which can be used to send
+more complicated input parameters.</p>
+<pre tabindex="0"><code>$ rclone rc --json '{ "p1": [1,"2",null,4], "p2": { "a":1, "b":2 } }' rc/noop
+{
+	"p1": [
+		1,
+		"2",
+		null,
+		4
+	],
+	"p2": {
+		"a": 1,
+		"b": 2
+	}
+}
+</code></pre><p>If the parameter being passed is an object then it can be passed as a
+JSON string rather than using the <code>--json</code> flag which simplifies the
+command line.</p>
+<pre tabindex="0"><code>rclone rc operations/list fs=/tmp remote=test opt='{"showHash": true}'
+</code></pre><p>Rather than</p>
+<pre tabindex="0"><code>rclone rc operations/list --json '{"fs": "/tmp", "remote": "test", "opt": {"showHash": true}}'
+</code></pre><h2 id="special-parameters"><a class="header-link" href="https://rclone.org/rc/#special-parameters"><i class="fa fa-link"></i></a>Special parameters</h2>
+<p>The rc interface supports some special parameters which apply to
+<strong>all</strong> commands.  These start with <code>_</code> to show they are different.</p>
+<h3 id="running-asynchronous-jobs-with-async-true"><a class="header-link" href="https://rclone.org/rc/#running-asynchronous-jobs-with-async-true"><i class="fa fa-link"></i></a>Running asynchronous jobs with _async = true</h3>
+<p>Each rc call is classified as a job and it is assigned its own id. By default
+jobs are executed immediately as they are created or synchronously.</p>
+<p>If <code>_async</code> has a true value when supplied to an rc call then it will
+return immediately with a job id and the task will be run in the
+background.  The <code>job/status</code> call can be used to get information of
+the background job.  The job can be queried for up to 1 minute after
+it has finished.</p>
+<p>It is recommended that potentially long running jobs, e.g. <code>sync/sync</code>,
+<code>sync/copy</code>, <code>sync/move</code>, <code>operations/purge</code> are run with the <code>_async</code>
+flag to avoid any potential problems with the HTTP request and
+response timing out.</p>
+<p>Starting a job with the <code>_async</code> flag:</p>
+<pre tabindex="0"><code>$ rclone rc --json '{ "p1": [1,"2",null,4], "p2": { "a":1, "b":2 }, "_async": true }' rc/noop
+{
+	"jobid": 2
+}
+</code></pre><p>Query the status to see if the job has finished.  For more information
+on the meaning of these return parameters see the <code>job/status</code> call.</p>
+<pre tabindex="0"><code>$ rclone rc --json '{ "jobid":2 }' job/status
+{
+	"duration": 0.000124163,
+	"endTime": "2018-10-27T11:38:07.911245881+01:00",
+	"error": "",
+	"finished": true,
+	"id": 2,
+	"output": {
+		"_async": true,
+		"p1": [
+			1,
+			"2",
+			null,
+			4
+		],
+		"p2": {
+			"a": 1,
+			"b": 2
+		}
+	},
+	"startTime": "2018-10-27T11:38:07.911121728+01:00",
+	"success": true
+}
+</code></pre><p><code>job/list</code> can be used to show the running or recently completed jobs</p>
+<pre tabindex="0"><code>$ rclone rc job/list
+{
+	"jobids": [
+		2
+	]
+}
+</code></pre><h3 id="setting-config-flags-with-config"><a class="header-link" href="https://rclone.org/rc/#setting-config-flags-with-config"><i class="fa fa-link"></i></a>Setting config flags with _config</h3>
+<p>If you wish to set config (the equivalent of the global flags) for the
+duration of an rc call only then pass in the <code>_config</code> parameter.</p>
+<p>This should be in the same format as the <code>config</code> key returned by
+<a href="https://rclone.org/rc/#options-get">options/get</a>.</p>
+<p>For example, if you wished to run a sync with the <code>--checksum</code>
+parameter, you would pass this parameter in your JSON blob.</p>
+<pre><code>"_config":{"CheckSum": true}
+</code></pre>
+<p>If using <code>rclone rc</code> this could be passed as</p>
+<pre><code>rclone rc sync/sync ... _config='{"CheckSum": true}'
+</code></pre>
+<p>Any config parameters you don't set will inherit the global defaults
+which were set with command line flags or environment variables.</p>
+<p>Note that it is possible to set some values as strings or integers -
+see <a href="https://rclone.org/rc/#data-types">data types</a> for more info. Here is an example
+setting the equivalent of <code>--buffer-size</code> in string or integer format.</p>
+<pre><code>"_config":{"BufferSize": "42M"}
+"_config":{"BufferSize": 44040192}
+</code></pre>
+<p>If you wish to check the <code>_config</code> assignment has worked properly then
+calling <code>options/local</code> will show what the value got set to.</p>
+<h3 id="setting-filter-flags-with-filter"><a class="header-link" href="https://rclone.org/rc/#setting-filter-flags-with-filter"><i class="fa fa-link"></i></a>Setting filter flags with _filter</h3>
+<p>If you wish to set filters for the duration of an rc call only then
+pass in the <code>_filter</code> parameter.</p>
+<p>This should be in the same format as the <code>filter</code> key returned by
+<a href="https://rclone.org/rc/#options-get">options/get</a>.</p>
+<p>For example, if you wished to run a sync with these flags</p>
+<pre><code>--max-size 1M --max-age 42s --include "a" --include "b"
+</code></pre>
+<p>you would pass this parameter in your JSON blob.</p>
+<pre><code>"_filter":{"MaxSize":"1M", "IncludeRule":["a","b"], "MaxAge":"42s"}
+</code></pre>
+<p>If using <code>rclone rc</code> this could be passed as</p>
+<pre><code>rclone rc ... _filter='{"MaxSize":"1M", "IncludeRule":["a","b"], "MaxAge":"42s"}'
+</code></pre>
+<p>Any filter parameters you don't set will inherit the global defaults
+which were set with command line flags or environment variables.</p>
+<p>Note that it is possible to set some values as strings or integers -
+see <a href="https://rclone.org/rc/#data-types">data types</a> for more info. Here is an example
+setting the equivalent of <code>--buffer-size</code> in string or integer format.</p>
+<pre><code>"_filter":{"MinSize": "42M"}
+"_filter":{"MinSize": 44040192}
+</code></pre>
+<p>If you wish to check the <code>_filter</code> assignment has worked properly then
+calling <code>options/local</code> will show what the value got set to.</p>
+<h3 id="assigning-operations-to-groups-with-group-value"><a class="header-link" href="https://rclone.org/rc/#assigning-operations-to-groups-with-group-value"><i class="fa fa-link"></i></a>Assigning operations to groups with _group = value</h3>
+<p>Each rc call has its own stats group for tracking its metrics. By default
+grouping is done by the composite group name from prefix <code>job/</code> and  id of the
+job like so <code>job/1</code>.</p>
+<p>If <code>_group</code> has a value then stats for that request will be grouped under that
+value. This allows caller to group stats under their own name.</p>
+<p>Stats for specific group can be accessed by passing <code>group</code> to <code>core/stats</code>:</p>
+<pre tabindex="0"><code>$ rclone rc --json '{ "group": "job/1" }' core/stats
+{
+	"speed": 12345
+	...
+}
+</code></pre><h2 id="data-types"><a class="header-link" href="https://rclone.org/rc/#data-types"><i class="fa fa-link"></i></a>Data types</h2>
+<p>When the API returns types, these will mostly be straight forward
+integer, string or boolean types.</p>
+<p>However some of the types returned by the <a href="https://rclone.org/rc/#options-get">options/get</a>
+call and taken by the <a href="https://rclone.org/rc/#options-set">options/set</a> calls as well as the
+<code>vfsOpt</code>, <code>mountOpt</code> and the <code>_config</code> parameters.</p>
+<ul>
+<li><code>Duration</code> - these are returned as an integer duration in
+nanoseconds. They may be set as an integer, or they may be set with
+time string, eg "5s". See the <a href="https://rclone.org/docs/#options">options section</a> for
+more info.</li>
+<li><code>Size</code> - these are returned as an integer number of bytes. They may
+be set as an integer or they may be set with a size suffix string,
+eg "10M". See the <a href="https://rclone.org/docs/#options">options section</a> for more info.</li>
+<li>Enumerated type (such as <code>CutoffMode</code>, <code>DumpFlags</code>, <code>LogLevel</code>,
+<code>VfsCacheMode</code> - these will be returned as an integer and may be set
+as an integer but more conveniently they can be set as a string, eg
+"HARD" for <code>CutoffMode</code> or <code>DEBUG</code> for <code>LogLevel</code>.</li>
+<li><code>BandwidthSpec</code> - this will be set and returned as a string, eg
+"1M".</li>
+</ul>
+<h3 id="option-blocks"><a class="header-link" href="https://rclone.org/rc/#option-blocks"><i class="fa fa-link"></i></a>Option blocks</h3>
+<p>The calls <a href="https://rclone.org/rc/#options-info">options/info</a> (for the main config) and
+<a href="https://rclone.org/rc/#config-providers">config/providers</a> (for the backend config) may be
+used to get information on the rclone configuration options. This can
+be used to build user interfaces for displaying and setting any rclone
+option.</p>
+<p>These consist of arrays of <code>Option</code> blocks. These have the following
+format. Each block describes a single option.</p>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Type</th>
+<th>Optional</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Name</td>
+<td>string</td>
+<td>N</td>
+<td>name of the option in snake_case</td>
+</tr>
+<tr>
+<td>FieldName</td>
+<td>string</td>
+<td>N</td>
+<td>name of the field used in the rc - if blank use Name</td>
+</tr>
+<tr>
+<td>Help</td>
+<td>string</td>
+<td>N</td>
+<td>help, started with a single sentence on a single line</td>
+</tr>
+<tr>
+<td>Groups</td>
+<td>string</td>
+<td>Y</td>
+<td>groups this option belongs to - comma separated string for options classification</td>
+</tr>
+<tr>
+<td>Provider</td>
+<td>string</td>
+<td>Y</td>
+<td>set to filter on provider</td>
+</tr>
+<tr>
+<td>Default</td>
+<td>any</td>
+<td>N</td>
+<td>default value, if set (and not to nil or "") then Required does nothing</td>
+</tr>
+<tr>
+<td>Value</td>
+<td>any</td>
+<td>N</td>
+<td>value to be set by flags</td>
+</tr>
+<tr>
+<td>Examples</td>
+<td>Examples</td>
+<td>Y</td>
+<td>predefined values that can be selected from list (multiple-choice option)</td>
+</tr>
+<tr>
+<td>ShortOpt</td>
+<td>string</td>
+<td>Y</td>
+<td>the short command line option for this</td>
+</tr>
+<tr>
+<td>Hide</td>
+<td>Visibility</td>
+<td>N</td>
+<td>if non zero, this option is hidden from the configurator or the command line</td>
+</tr>
+<tr>
+<td>Required</td>
+<td>bool</td>
+<td>N</td>
+<td>this option is required, meaning value cannot be empty unless there is a default</td>
+</tr>
+<tr>
+<td>IsPassword</td>
+<td>bool</td>
+<td>N</td>
+<td>set if the option is a password</td>
+</tr>
+<tr>
+<td>NoPrefix</td>
+<td>bool</td>
+<td>N</td>
+<td>set if the option for this should not use the backend prefix</td>
+</tr>
+<tr>
+<td>Advanced</td>
+<td>bool</td>
+<td>N</td>
+<td>set if this is an advanced config option</td>
+</tr>
+<tr>
+<td>Exclusive</td>
+<td>bool</td>
+<td>N</td>
+<td>set if the answer can only be one of the examples (empty string allowed unless Required or Default is set)</td>
+</tr>
+<tr>
+<td>Sensitive</td>
+<td>bool</td>
+<td>N</td>
+<td>set if this option should be redacted when using <code>rclone config redacted</code></td>
+</tr>
+</tbody>
+</table>
+<p>An example of this might be the <code>--log-level</code> flag. Note that the
+<code>Name</code> of the option becomes the command line flag with <code>_</code> replaced
+with <code>-</code>.</p>
+<pre tabindex="0"><code>{
+    "Advanced": false,
+    "Default": 5,
+    "DefaultStr": "NOTICE",
+    "Examples": [
+        {
+            "Help": "",
+            "Value": "EMERGENCY"
+        },
+        {
+            "Help": "",
+            "Value": "ALERT"
+        },
+        ...
+    ],
+    "Exclusive": true,
+    "FieldName": "LogLevel",
+    "Groups": "Logging",
+    "Help": "Log level DEBUG|INFO|NOTICE|ERROR",
+    "Hide": 0,
+    "IsPassword": false,
+    "Name": "log_level",
+    "NoPrefix": true,
+    "Required": true,
+    "Sensitive": false,
+    "Type": "LogLevel",
+    "Value": null,
+    "ValueStr": "NOTICE"
+},
+</code></pre><p>Note that the <code>Help</code> may be multiple lines separated by <code>\n</code>. The
+first line will always be a short sentence and this is the sentence
+shown when running <code>rclone help flags</code>.</p>
+<h2 id="specifying-remotes-to-work-on"><a class="header-link" href="https://rclone.org/rc/#specifying-remotes-to-work-on"><i class="fa fa-link"></i></a>Specifying remotes to work on</h2>
+<p>Remotes are specified with the <code>fs=</code>, <code>srcFs=</code>, <code>dstFs=</code>
+parameters depending on the command being used.</p>
+<p>The parameters can be a string as per the rest of rclone, eg
+<code>s3:bucket/path</code> or <code>:sftp:/my/dir</code>. They can also be specified as
+JSON blobs.</p>
+<p>If specifying a JSON blob it should be a object mapping strings to
+strings. These values will be used to configure the remote. There are
+3 special values which may be set:</p>
+<ul>
+<li><code>type</code> -  set to <code>type</code> to specify a remote called <code>:type:</code></li>
+<li><code>_name</code> - set to <code>name</code> to specify a remote called <code>name:</code></li>
+<li><code>_root</code> - sets the root of the remote - may be empty</li>
+</ul>
+<p>One of <code>_name</code> or <code>type</code> should normally be set. If the <code>local</code>
+backend is desired then <code>type</code> should be set to <code>local</code>. If <code>_root</code>
+isn't specified then it defaults to the root of the remote.</p>
+<p>For example this JSON is equivalent to <code>remote:/tmp</code></p>
+<pre tabindex="0"><code>{
+    "_name": "remote",
+    "_root": "/tmp"
+}
+</code></pre><p>And this is equivalent to <code>:sftp,host='example.com':/tmp</code></p>
+<pre tabindex="0"><code>{
+    "type": "sftp",
+    "host": "example.com",
+    "_root": "/tmp"
+}
+</code></pre><p>And this is equivalent to <code>/tmp/dir</code></p>
+<pre tabindex="0"><code>{
+    type = "local",
+    _root = "/tmp/dir"
+}
+</code></pre><h2 id="supported-commands"><a class="header-link" href="https://rclone.org/rc/#supported-commands"><i class="fa fa-link"></i></a>Supported commands</h2>
+
+<h3 id="backend-command"><a class="header-link" href="https://rclone.org/rc/#backend-command"><i class="fa fa-link"></i></a>backend/command: Runs a backend command.</h3>
+<p>This takes the following parameters:</p>
+<ul>
+<li>command - a string with the command name</li>
+<li>fs - a remote name string e.g. "drive:"</li>
+<li>arg - a list of arguments for the backend command</li>
+<li>opt - a map of string to string of options</li>
+</ul>
+<p>Returns:</p>
+<ul>
+<li>result - result from the backend command</li>
+</ul>
+<p>Example:</p>
+<pre><code>rclone rc backend/command command=noop fs=. -o echo=yes -o blue -a path1 -a path2
+</code></pre>
+<p>Returns</p>
+<pre tabindex="0"><code>{
+	"result": {
+		"arg": [
+			"path1",
+			"path2"
+		],
+		"name": "noop",
+		"opt": {
+			"blue": "",
+			"echo": "yes"
+		}
+	}
+}
+</code></pre><p>Note that this is the direct equivalent of using this "backend"
+command:</p>
+<pre><code>rclone backend noop . -o echo=yes -o blue path1 path2
+</code></pre>
+<p>Note that arguments must be preceded by the "-a" flag</p>
+<p>See the <a href="https://rclone.org/commands/rclone_backend/">backend</a> command for more information.</p>
+<p><strong>Authentication is required for this call.</strong></p>
+<h3 id="cache-expire"><a class="header-link" href="https://rclone.org/rc/#cache-expire"><i class="fa fa-link"></i></a>cache/expire: Purge a remote from cache</h3>
+<p>Purge a remote from the cache backend. Supports either a directory or a file.
+Params:</p>
+<ul>
+<li>remote = path to remote (required)</li>
+<li>withData = true/false to delete cached data (chunks) as well (optional)</li>
+</ul>
+<p>Eg</p>
+<pre><code>rclone rc cache/expire remote=path/to/sub/folder/
+rclone rc cache/expire remote=/ withData=true
+</code></pre>
+<h3 id="cache-fetch"><a class="header-link" href="https://rclone.org/rc/#cache-fetch"><i class="fa fa-link"></i></a>cache/fetch: Fetch file chunks</h3>
+<p>Ensure the specified file chunks are cached on disk.</p>
+<p>The chunks= parameter specifies the file chunks to check.
+It takes a comma separated list of array slice indices.
+The slice indices are similar to Python slices: start[:end]</p>
+<p>start is the 0 based chunk number from the beginning of the file
+to fetch inclusive. end is 0 based chunk number from the beginning
+of the file to fetch exclusive.
+Both values can be negative, in which case they count from the back
+of the file. The value "-5:" represents the last 5 chunks of a file.</p>
+<p>Some valid examples are:
+":5,-5:" -&gt; the first and last five chunks
+"0,-2" -&gt; the first and the second last chunk
+"0:10" -&gt; the first ten chunks</p>
+<p>Any parameter with a key that starts with "file" can be used to
+specify files to fetch, e.g.</p>
+<pre><code>rclone rc cache/fetch chunks=0 file=hello file2=home/goodbye
+</code></pre>
+<p>File names will automatically be encrypted when the a crypt remote
+is used on top of the cache.</p>
+<h3 id="cache-stats"><a class="header-link" href="https://rclone.org/rc/#cache-stats"><i class="fa fa-link"></i></a>cache/stats: Get cache stats</h3>
+<p>Show statistics for the cache remote.</p>
+<h3 id="config-create"><a class="header-link" href="https://rclone.org/rc/#config-create"><i class="fa fa-link"></i></a>config/create: create the config for a remote.</h3>
+<p>This takes the following parameters:</p>
+<ul>
+<li>name - name of remote</li>
+<li>parameters - a map of { "key": "value" } pairs</li>
+<li>type - type of the new remote</li>
+<li>opt - a dictionary of options to control the configuration
+<ul>
+<li>obscure - declare passwords are plain and need obscuring</li>
+<li>noObscure - declare passwords are already obscured and don't need obscuring</li>
+<li>nonInteractive - don't interact with a user, return questions</li>
+<li>continue - continue the config process with an answer</li>
+<li>all - ask all the config questions not just the post config ones</li>
+<li>state - state to restart with - used with continue</li>
+<li>result - result to restart with - used with continue</li>
+</ul>
+</li>
+</ul>
+<p>See the <a href="https://rclone.org/commands/rclone_config_create/">config create</a> command for more information on the above.</p>
+<p><strong>Authentication is required for this call.</strong></p>
+<h3 id="config-delete"><a class="header-link" href="https://rclone.org/rc/#config-delete"><i class="fa fa-link"></i></a>config/delete: Delete a remote in the config file.</h3>
+<p>Parameters:</p>
+<ul>
+<li>name - name of remote to delete</li>
+</ul>
+<p>See the <a href="https://rclone.org/commands/rclone_config_delete/">config delete</a> command for more information on the above.</p>
+<p><strong>Authentication is required for this call.</strong></p>
+<h3 id="config-dump"><a class="header-link" href="https://rclone.org/rc/#config-dump"><i class="fa fa-link"></i></a>config/dump: Dumps the config file.</h3>
+<p>Returns a JSON object:</p>
+<ul>
+<li>key: value</li>
+</ul>
+<p>Where keys are remote names and values are the config parameters.</p>
+<p>See the <a href="https://rclone.org/commands/rclone_config_dump/">config dump</a> command for more information on the above.</p>
+<p><strong>Authentication is required for this call.</strong></p>
+<h3 id="config-get"><a class="header-link" href="https://rclone.org/rc/#config-get"><i class="fa fa-link"></i></a>config/get: Get a remote in the config file.</h3>
+<p>Parameters:</p>
+<ul>
+<li>name - name of remote to get</li>
+</ul>
+<p>See the <a href="https://rclone.org/commands/rclone_config_dump/">config dump</a> command for more information on the above.</p>
+<p><strong>Authentication is required for this call.</strong></p>
+<h3 id="config-listremotes"><a class="header-link" href="https://rclone.org/rc/#config-listremotes"><i class="fa fa-link"></i></a>config/listremotes: Lists the remotes in the config file and defined in environment variables.</h3>
+<p>Returns</p>
+<ul>
+<li>remotes - array of remote names</li>
+</ul>
+<p>See the <a href="https://rclone.org/commands/rclone_listremotes/">listremotes</a> command for more information on the above.</p>
+<p><strong>Authentication is required for this call.</strong></p>
+<h3 id="config-password"><a class="header-link" href="https://rclone.org/rc/#config-password"><i class="fa fa-link"></i></a>config/password: password the config for a remote.</h3>
+<p>This takes the following parameters:</p>
+<ul>
+<li>name - name of remote</li>
+<li>parameters - a map of { "key": "value" } pairs</li>
+</ul>
+<p>See the <a href="https://rclone.org/commands/rclone_config_password/">config password</a> command for more information on the above.</p>
+<p><strong>Authentication is required for this call.</strong></p>
+<h3 id="config-paths"><a class="header-link" href="https://rclone.org/rc/#config-paths"><i class="fa fa-link"></i></a>config/paths: Reads the config file path and other important paths.</h3>
+<p>Returns a JSON object with the following keys:</p>
+<ul>
+<li>config: path to config file</li>
+<li>cache: path to root of cache directory</li>
+<li>temp: path to root of temporary directory</li>
+</ul>
+<p>Eg</p>
+<pre><code>{
+    "cache": "/home/USER/.cache/rclone",
+    "config": "/home/USER/.rclone.conf",
+    "temp": "/tmp"
+}
+</code></pre>
+<p>See the <a href="https://rclone.org/commands/rclone_config_paths/">config paths</a> command for more information on the above.</p>
+<p><strong>Authentication is required for this call.</strong></p>
+<h3 id="config-providers"><a class="header-link" href="https://rclone.org/rc/#config-providers"><i class="fa fa-link"></i></a>config/providers: Shows how providers are configured in the config file.</h3>
+<p>Returns a JSON object:</p>
+<ul>
+<li>providers - array of objects</li>
+</ul>
+<p>See the <a href="https://rclone.org/commands/rclone_config_providers/">config providers</a> command
+for more information on the above.</p>
+<p>Note that the Options blocks are in the same format as returned by
+"options/info". They are described in the
+<a href="https://rclone.org/rc/#option-blocks">option blocks</a> section.</p>
+<p><strong>Authentication is required for this call.</strong></p>
+<h3 id="config-setpath"><a class="header-link" href="https://rclone.org/rc/#config-setpath"><i class="fa fa-link"></i></a>config/setpath: Set the path of the config file</h3>
+<p>Parameters:</p>
+<ul>
+<li>path - path to the config file to use</li>
+</ul>
+<p><strong>Authentication is required for this call.</strong></p>
+<h3 id="config-update"><a class="header-link" href="https://rclone.org/rc/#config-update"><i class="fa fa-link"></i></a>config/update: update the config for a remote.</h3>
+<p>This takes the following parameters:</p>
+<ul>
+<li>name - name of remote</li>
+<li>parameters - a map of { "key": "value" } pairs</li>
+<li>opt - a dictionary of options to control the configuration
+<ul>
+<li>obscure - declare passwords are plain and need obscuring</li>
+<li>noObscure - declare passwords are already obscured and don't need obscuring</li>
+<li>nonInteractive - don't interact with a user, return questions</li>
+<li>continue - continue the config process with an answer</li>
+<li>all - ask all the config questions not just the post config ones</li>
+<li>state - state to restart with - used with continue</li>
+<li>result - result to restart with - used with continue</li>
+</ul>
+</li>
+</ul>
+<p>See the <a href="https://rclone.org/commands/rclone_config_update/">config update</a> command for more information on the above.</p>
+<p><strong>Authentication is required for this call.</strong></p>
+<h3 id="core-bwlimit"><a class="header-link" href="https://rclone.org/rc/#core-bwlimit"><i class="fa fa-link"></i></a>core/bwlimit: Set the bandwidth limit.</h3>
+<p>This sets the bandwidth limit to the string passed in. This should be
+a single bandwidth limit entry or a pair of upload:download bandwidth.</p>
+<p>Eg</p>
+<pre><code>rclone rc core/bwlimit rate=off
+{
+    "bytesPerSecond": -1,
+    "bytesPerSecondTx": -1,
+    "bytesPerSecondRx": -1,
+    "rate": "off"
+}
+rclone rc core/bwlimit rate=1M
+{
+    "bytesPerSecond": 1048576,
+    "bytesPerSecondTx": 1048576,
+    "bytesPerSecondRx": 1048576,
+    "rate": "1M"
+}
+rclone rc core/bwlimit rate=1M:100k
+{
+    "bytesPerSecond": 1048576,
+    "bytesPerSecondTx": 1048576,
+    "bytesPerSecondRx": 131072,
+    "rate": "1M"
+}
+</code></pre>
+<p>If the rate parameter is not supplied then the bandwidth is queried</p>
+<pre><code>rclone rc core/bwlimit
+{
+    "bytesPerSecond": 1048576,
+    "bytesPerSecondTx": 1048576,
+    "bytesPerSecondRx": 1048576,
+    "rate": "1M"
+}
+</code></pre>
+<p>The format of the parameter is exactly the same as passed to --bwlimit
+except only one bandwidth may be specified.</p>
+<p>In either case "rate" is returned as a human-readable string, and
+"bytesPerSecond" is returned as a number.</p>
+<h3 id="core-command"><a class="header-link" href="https://rclone.org/rc/#core-command"><i class="fa fa-link"></i></a>core/command: Run a rclone terminal command over rc.</h3>
+<p>This takes the following parameters:</p>
+<ul>
+<li>command - a string with the command name.</li>
+<li>arg - a list of arguments for the backend command.</li>
+<li>opt - a map of string to string of options.</li>
+<li>returnType - one of ("COMBINED_OUTPUT", "STREAM", "STREAM_ONLY_STDOUT", "STREAM_ONLY_STDERR").
+<ul>
+<li>Defaults to "COMBINED_OUTPUT" if not set.</li>
+<li>The STREAM returnTypes will write the output to the body of the HTTP message.</li>
+<li>The COMBINED_OUTPUT will write the output to the "result" parameter.</li>
+</ul>
+</li>
+</ul>
+<p>Returns:</p>
+<ul>
+<li>result - result from the backend command.
+<ul>
+<li>Only set when using returnType "COMBINED_OUTPUT".</li>
+</ul>
+</li>
+<li>error	 - set if rclone exits with an error code.</li>
+<li>returnType - one of ("COMBINED_OUTPUT", "STREAM", "STREAM_ONLY_STDOUT", "STREAM_ONLY_STDERR").</li>
+</ul>
+<p>Example:</p>
+<pre><code>rclone rc core/command command=ls -a mydrive:/ -o max-depth=1
+rclone rc core/command -a ls -a mydrive:/ -o max-depth=1
+</code></pre>
+<p>Returns:</p>
+<pre tabindex="0"><code>{
+	"error": false,
+	"result": "&lt;Raw command line output&gt;"
+}
+
+OR
+{
+	"error": true,
+	"result": "&lt;Raw command line output&gt;"
+}
+</code></pre><p><strong>Authentication is required for this call.</strong></p>
+<h3 id="core-du"><a class="header-link" href="https://rclone.org/rc/#core-du"><i class="fa fa-link"></i></a>core/du: Returns disk usage of a locally attached disk.</h3>
+<p>This returns the disk usage for the local directory passed in as dir.</p>
+<p>If the directory is not passed in, it defaults to the directory
+pointed to by --cache-dir.</p>
+<ul>
+<li>dir - string (optional)</li>
+</ul>
+<p>Returns:</p>
+<pre tabindex="0"><code>{
+	"dir": "/",
+	"info": {
+		"Available": 361769115648,
+		"Free": 361785892864,
+		"Total": 982141468672
+	}
+}
+</code></pre><h3 id="core-gc"><a class="header-link" href="https://rclone.org/rc/#core-gc"><i class="fa fa-link"></i></a>core/gc: Runs a garbage collection.</h3>
+<p>This tells the go runtime to do a garbage collection run.  It isn't
+necessary to call this normally, but it can be useful for debugging
+memory problems.</p>
+<h3 id="core-group-list"><a class="header-link" href="https://rclone.org/rc/#core-group-list"><i class="fa fa-link"></i></a>core/group-list: Returns list of stats.</h3>
+<p>This returns list of stats groups currently in memory.</p>
+<p>Returns the following values:</p>
+<pre tabindex="0"><code>{
+	"groups":  an array of group names:
+		[
+			"group1",
+			"group2",
+			...
+		]
+}
+</code></pre><h3 id="core-memstats"><a class="header-link" href="https://rclone.org/rc/#core-memstats"><i class="fa fa-link"></i></a>core/memstats: Returns the memory statistics</h3>
+<p>This returns the memory statistics of the running program.  What the values mean
+are explained in the go docs: <a href="https://golang.org/pkg/runtime/#MemStats">https://golang.org/pkg/runtime/#MemStats</a></p>
+<p>The most interesting values for most people are:</p>
+<ul>
+<li>HeapAlloc - this is the amount of memory rclone is actually using</li>
+<li>HeapSys - this is the amount of memory rclone has obtained from the OS</li>
+<li>Sys - this is the total amount of memory requested from the OS
+<ul>
+<li>It is virtual memory so may include unused memory</li>
+</ul>
+</li>
+</ul>
+<h3 id="core-obscure"><a class="header-link" href="https://rclone.org/rc/#core-obscure"><i class="fa fa-link"></i></a>core/obscure: Obscures a string passed in.</h3>
+<p>Pass a clear string and rclone will obscure it for the config file:</p>
+<ul>
+<li>clear - string</li>
+</ul>
+<p>Returns:</p>
+<ul>
+<li>obscured - string</li>
+</ul>
+<h3 id="core-pid"><a class="header-link" href="https://rclone.org/rc/#core-pid"><i class="fa fa-link"></i></a>core/pid: Return PID of current process</h3>
+<p>This returns PID of current process.
+Useful for stopping rclone process.</p>
+<h3 id="core-quit"><a class="header-link" href="https://rclone.org/rc/#core-quit"><i class="fa fa-link"></i></a>core/quit: Terminates the app.</h3>
+<p>(Optional) Pass an exit code to be used for terminating the app:</p>
+<ul>
+<li>exitCode - int</li>
+</ul>
+<h3 id="core-stats"><a class="header-link" href="https://rclone.org/rc/#core-stats"><i class="fa fa-link"></i></a>core/stats: Returns stats about current transfers.</h3>
+<p>This returns all available stats:</p>
+<pre><code>rclone rc core/stats
+</code></pre>
+<p>If group is not provided then summed up stats for all groups will be
+returned.</p>
+<p>Parameters</p>
+<ul>
+<li>group - name of the stats group (string)</li>
+</ul>
+<p>Returns the following values:</p>
+<pre tabindex="0"><code>{
+	"bytes": total transferred bytes since the start of the group,
+	"checks": number of files checked,
+	"deletes" : number of files deleted,
+	"elapsedTime": time in floating point seconds since rclone was started,
+	"errors": number of errors,
+	"eta": estimated time in seconds until the group completes,
+	"fatalError": boolean whether there has been at least one fatal error,
+	"lastError": last error string,
+	"renames" : number of files renamed,
+	"retryError": boolean showing whether there has been at least one non-NoRetryError,
+        "serverSideCopies": number of server side copies done,
+        "serverSideCopyBytes": number bytes server side copied,
+        "serverSideMoves": number of server side moves done,
+        "serverSideMoveBytes": number bytes server side moved,
+	"speed": average speed in bytes per second since start of the group,
+	"totalBytes": total number of bytes in the group,
+	"totalChecks": total number of checks in the group,
+	"totalTransfers": total number of transfers in the group,
+	"transferTime" : total time spent on running jobs,
+	"transfers": number of transferred files,
+	"transferring": an array of currently active file transfers:
+		[
+			{
+				"bytes": total transferred bytes for this file,
+				"eta": estimated time in seconds until file transfer completion
+				"name": name of the file,
+				"percentage": progress of the file transfer in percent,
+				"speed": average speed over the whole transfer in bytes per second,
+				"speedAvg": current speed in bytes per second as an exponentially weighted moving average,
+				"size": size of the file in bytes
+			}
+		],
+	"checking": an array of names of currently active file checks
+		[]
+}
+</code></pre><p>Values for "transferring", "checking" and "lastError" are only assigned if data is available.
+The value for "eta" is null if an eta cannot be determined.</p>
+<h3 id="core-stats-delete"><a class="header-link" href="https://rclone.org/rc/#core-stats-delete"><i class="fa fa-link"></i></a>core/stats-delete: Delete stats group.</h3>
+<p>This deletes entire stats group.</p>
+<p>Parameters</p>
+<ul>
+<li>group - name of the stats group (string)</li>
+</ul>
+<h3 id="core-stats-reset"><a class="header-link" href="https://rclone.org/rc/#core-stats-reset"><i class="fa fa-link"></i></a>core/stats-reset: Reset stats.</h3>
+<p>This clears counters, errors and finished transfers for all stats or specific
+stats group if group is provided.</p>
+<p>Parameters</p>
+<ul>
+<li>group - name of the stats group (string)</li>
+</ul>
+<h3 id="core-transferred"><a class="header-link" href="https://rclone.org/rc/#core-transferred"><i class="fa fa-link"></i></a>core/transferred: Returns stats about completed transfers.</h3>
+<p>This returns stats about completed transfers:</p>
+<pre><code>rclone rc core/transferred
+</code></pre>
+<p>If group is not provided then completed transfers for all groups will be
+returned.</p>
+<p>Note only the last 100 completed transfers are returned.</p>
+<p>Parameters</p>
+<ul>
+<li>group - name of the stats group (string)</li>
+</ul>
+<p>Returns the following values:</p>
+<pre tabindex="0"><code>{
+	"transferred":  an array of completed transfers (including failed ones):
+		[
+			{
+				"name": name of the file,
+				"size": size of the file in bytes,
+				"bytes": total transferred bytes for this file,
+				"checked": if the transfer is only checked (skipped, deleted),
+				"timestamp": integer representing millisecond unix epoch,
+				"error": string description of the error (empty if successful),
+				"jobid": id of the job that this transfer belongs to
+			}
+		]
+}
+</code></pre><h3 id="core-version"><a class="header-link" href="https://rclone.org/rc/#core-version"><i class="fa fa-link"></i></a>core/version: Shows the current version of rclone and the go runtime.</h3>
+<p>This shows the current version of go and the go runtime:</p>
+<ul>
+<li>version - rclone version, e.g. "v1.53.0"</li>
+<li>decomposed - version number as [major, minor, patch]</li>
+<li>isGit - boolean - true if this was compiled from the git version</li>
+<li>isBeta - boolean - true if this is a beta version</li>
+<li>os - OS in use as according to Go</li>
+<li>arch - cpu architecture in use according to Go</li>
+<li>goVersion - version of Go runtime in use</li>
+<li>linking - type of rclone executable (static or dynamic)</li>
+<li>goTags - space separated build tags or "none"</li>
+</ul>
+<h3 id="debug-set-block-profile-rate"><a class="header-link" href="https://rclone.org/rc/#debug-set-block-profile-rate"><i class="fa fa-link"></i></a>debug/set-block-profile-rate: Set runtime.SetBlockProfileRate for blocking profiling.</h3>
+<p>SetBlockProfileRate controls the fraction of goroutine blocking events
+that are reported in the blocking profile. The profiler aims to sample
+an average of one blocking event per rate nanoseconds spent blocked.</p>
+<p>To include every blocking event in the profile, pass rate = 1. To turn
+off profiling entirely, pass rate &lt;= 0.</p>
+<p>After calling this you can use this to see the blocking profile:</p>
+<pre><code>go tool pprof http://localhost:5572/debug/pprof/block
+</code></pre>
+<p>Parameters:</p>
+<ul>
+<li>rate - int</li>
+</ul>
+<h3 id="debug-set-gc-percent"><a class="header-link" href="https://rclone.org/rc/#debug-set-gc-percent"><i class="fa fa-link"></i></a>debug/set-gc-percent: Call runtime/debug.SetGCPercent for setting the garbage collection target percentage.</h3>
+<p>SetGCPercent sets the garbage collection target percentage: a collection is triggered
+when the ratio of freshly allocated data to live data remaining after the previous collection
+reaches this percentage. SetGCPercent returns the previous setting. The initial setting is the
+value of the GOGC environment variable at startup, or 100 if the variable is not set.</p>
+<p>This setting may be effectively reduced in order to maintain a memory limit.
+A negative percentage effectively disables garbage collection, unless the memory limit is reached.</p>
+<p>See <a href="https://pkg.go.dev/runtime/debug#SetMemoryLimit">https://pkg.go.dev/runtime/debug#SetMemoryLimit</a> for more details.</p>
+<p>Parameters:</p>
+<ul>
+<li>gc-percent - int</li>
+</ul>
+<h3 id="debug-set-mutex-profile-fraction"><a class="header-link" href="https://rclone.org/rc/#debug-set-mutex-profile-fraction"><i class="fa fa-link"></i></a>debug/set-mutex-profile-fraction: Set runtime.SetMutexProfileFraction for mutex profiling.</h3>
+<p>SetMutexProfileFraction controls the fraction of mutex contention
+events that are reported in the mutex profile. On average 1/rate
+events are reported. The previous rate is returned.</p>
+<p>To turn off profiling entirely, pass rate 0. To just read the current
+rate, pass rate &lt; 0. (For n&gt;1 the details of sampling may change.)</p>
+<p>Once this is set you can look use this to profile the mutex contention:</p>
+<pre><code>go tool pprof http://localhost:5572/debug/pprof/mutex
+</code></pre>
+<p>Parameters:</p>
+<ul>
+<li>rate - int</li>
+</ul>
+<p>Results:</p>
+<ul>
+<li>previousRate - int</li>
+</ul>
+<h3 id="debug-set-soft-memory-limit"><a class="header-link" href="https://rclone.org/rc/#debug-set-soft-memory-limit"><i class="fa fa-link"></i></a>debug/set-soft-memory-limit: Call runtime/debug.SetMemoryLimit for setting a soft memory limit for the runtime.</h3>
+<p>SetMemoryLimit provides the runtime with a soft memory limit.</p>
+<p>The runtime undertakes several processes to try to respect this memory limit, including
+adjustments to the frequency of garbage collections and returning memory to the underlying
+system more aggressively. This limit will be respected even if GOGC=off (or, if SetGCPercent(-1) is executed).</p>
+<p>The input limit is provided as bytes, and includes all memory mapped, managed, and not
+released by the Go runtime. Notably, it does not account for space used by the Go binary
+and memory external to Go, such as memory managed by the underlying system on behalf of
+the process, or memory managed by non-Go code inside the same process.
+Examples of excluded memory sources include: OS kernel memory held on behalf of the process,
+memory allocated by C code, and memory mapped by syscall.Mmap (because it is not managed by the Go runtime).</p>
+<p>A zero limit or a limit that's lower than the amount of memory used by the Go runtime may cause
+the garbage collector to run nearly continuously. However, the application may still make progress.</p>
+<p>The memory limit is always respected by the Go runtime, so to effectively disable this behavior,
+set the limit very high. math.MaxInt64 is the canonical value for disabling the limit, but values
+much greater than the available memory on the underlying system work just as well.</p>
+<p>See <a href="https://go.dev/doc/gc-guide">https://go.dev/doc/gc-guide</a> for a detailed guide explaining the soft memory limit in more detail,
+as well as a variety of common use-cases and scenarios.</p>
+<p>SetMemoryLimit returns the previously set memory limit. A negative input does not adjust the limit,
+and allows for retrieval of the currently set memory limit.</p>
+<p>Parameters:</p>
+<ul>
+<li>mem-limit - int</li>
+</ul>
+<h3 id="fscache-clear"><a class="header-link" href="https://rclone.org/rc/#fscache-clear"><i class="fa fa-link"></i></a>fscache/clear: Clear the Fs cache.</h3>
+<p>This clears the fs cache. This is where remotes created from backends
+are cached for a short while to make repeated rc calls more efficient.</p>
+<p>If you change the parameters of a backend then you may want to call
+this to clear an existing remote out of the cache before re-creating
+it.</p>
+<p><strong>Authentication is required for this call.</strong></p>
+<h3 id="fscache-entries"><a class="header-link" href="https://rclone.org/rc/#fscache-entries"><i class="fa fa-link"></i></a>fscache/entries: Returns the number of entries in the fs cache.</h3>
+<p>This returns the number of entries in the fs cache.</p>
+<p>Returns</p>
+<ul>
+<li>entries - number of items in the cache</li>
+</ul>
+<p><strong>Authentication is required for this call.</strong></p>
+<h3 id="job-list"><a class="header-link" href="https://rclone.org/rc/#job-list"><i class="fa fa-link"></i></a>job/list: Lists the IDs of the running jobs</h3>
+<p>Parameters: None.</p>
+<p>Results:</p>
+<ul>
+<li>executeId - string id of rclone executing (change after restart)</li>
+<li>jobids - array of integer job ids (starting at 1 on each restart)</li>
+</ul>
+<h3 id="job-status"><a class="header-link" href="https://rclone.org/rc/#job-status"><i class="fa fa-link"></i></a>job/status: Reads the status of the job ID</h3>
+<p>Parameters:</p>
+<ul>
+<li>jobid - id of the job (integer).</li>
+</ul>
+<p>Results:</p>
+<ul>
+<li>finished - boolean</li>
+<li>duration - time in seconds that the job ran for</li>
+<li>endTime - time the job finished (e.g. "2018-10-26T18:50:20.528746884+01:00")</li>
+<li>error - error from the job or empty string for no error</li>
+<li>finished - boolean whether the job has finished or not</li>
+<li>id - as passed in above</li>
+<li>startTime - time the job started (e.g. "2018-10-26T18:50:20.528336039+01:00")</li>
+<li>success - boolean - true for success false otherwise</li>
+<li>output - output of the job as would have been returned if called synchronously</li>
+<li>progress - output of the progress related to the underlying job</li>
+</ul>
+<h3 id="job-stop"><a class="header-link" href="https://rclone.org/rc/#job-stop"><i class="fa fa-link"></i></a>job/stop: Stop the running job</h3>
+<p>Parameters:</p>
+<ul>
+<li>jobid - id of the job (integer).</li>
+</ul>
+<h3 id="job-stopgroup"><a class="header-link" href="https://rclone.org/rc/#job-stopgroup"><i class="fa fa-link"></i></a>job/stopgroup: Stop all running jobs in a group</h3>
+<p>Parameters:</p>
+<ul>
+<li>group - name of the group (string).</li>
+</ul>
+<h3 id="mount-listmounts"><a class="header-link" href="https://rclone.org/rc/#mount-listmounts"><i class="fa fa-link"></i></a>mount/listmounts: Show current mount points</h3>
+<p>This shows currently mounted points, which can be used for performing an unmount.</p>
+<p>This takes no parameters and returns</p>
+<ul>
+<li>mountPoints: list of current mount points</li>
+</ul>
+<p>Eg</p>
+<pre><code>rclone rc mount/listmounts
+</code></pre>
+<p><strong>Authentication is required for this call.</strong></p>
+<h3 id="mount-mount"><a class="header-link" href="https://rclone.org/rc/#mount-mount"><i class="fa fa-link"></i></a>mount/mount: Create a new mount point</h3>
+<p>rclone allows Linux, FreeBSD, macOS and Windows to mount any of
+Rclone's cloud storage systems as a file system with FUSE.</p>
+<p>If no mountType is provided, the priority is given as follows: 1. mount 2.cmount 3.mount2</p>
+<p>This takes the following parameters:</p>
+<ul>
+<li>fs - a remote path to be mounted (required)</li>
+<li>mountPoint: valid path on the local machine (required)</li>
+<li>mountType: one of the values (mount, cmount, mount2) specifies the mount implementation to use</li>
+<li>mountOpt: a JSON object with Mount options in.</li>
+<li>vfsOpt: a JSON object with VFS options in.</li>
+</ul>
+<p>Example:</p>
+<pre><code>rclone rc mount/mount fs=mydrive: mountPoint=/home/&lt;user&gt;/mountPoint
+rclone rc mount/mount fs=mydrive: mountPoint=/home/&lt;user&gt;/mountPoint mountType=mount
+rclone rc mount/mount fs=TestDrive: mountPoint=/mnt/tmp vfsOpt='{"CacheMode": 2}' mountOpt='{"AllowOther": true}'
+</code></pre>
+<p>The vfsOpt are as described in options/get and can be seen in the the
+"vfs" section when running and the mountOpt can be seen in the "mount" section:</p>
+<pre><code>rclone rc options/get
+</code></pre>
+<p><strong>Authentication is required for this call.</strong></p>
+<h3 id="mount-types"><a class="header-link" href="https://rclone.org/rc/#mount-types"><i class="fa fa-link"></i></a>mount/types: Show all possible mount types</h3>
+<p>This shows all possible mount types and returns them as a list.</p>
+<p>This takes no parameters and returns</p>
+<ul>
+<li>mountTypes: list of mount types</li>
+</ul>
+<p>The mount types are strings like "mount", "mount2", "cmount" and can
+be passed to mount/mount as the mountType parameter.</p>
+<p>Eg</p>
+<pre><code>rclone rc mount/types
+</code></pre>
+<p><strong>Authentication is required for this call.</strong></p>
+<h3 id="mount-unmount"><a class="header-link" href="https://rclone.org/rc/#mount-unmount"><i class="fa fa-link"></i></a>mount/unmount: Unmount selected active mount</h3>
+<p>rclone allows Linux, FreeBSD, macOS and Windows to
+mount any of Rclone's cloud storage systems as a file system with
+FUSE.</p>
+<p>This takes the following parameters:</p>
+<ul>
+<li>mountPoint: valid path on the local machine where the mount was created (required)</li>
+</ul>
+<p>Example:</p>
+<pre><code>rclone rc mount/unmount mountPoint=/home/&lt;user&gt;/mountPoint
+</code></pre>
+<p><strong>Authentication is required for this call.</strong></p>
+<h3 id="mount-unmountall"><a class="header-link" href="https://rclone.org/rc/#mount-unmountall"><i class="fa fa-link"></i></a>mount/unmountall: Unmount all active mounts</h3>
+<p>rclone allows Linux, FreeBSD, macOS and Windows to
+mount any of Rclone's cloud storage systems as a file system with
+FUSE.</p>
+<p>This takes no parameters and returns error if unmount does not succeed.</p>
+<p>Eg</p>
+<pre><code>rclone rc mount/unmountall
+</code></pre>
+<p><strong>Authentication is required for this call.</strong></p>
+<h3 id="operations-about"><a class="header-link" href="https://rclone.org/rc/#operations-about"><i class="fa fa-link"></i></a>operations/about: Return the space used on the remote</h3>
+<p>This takes the following parameters:</p>
+<ul>
+<li>fs - a remote name string e.g. "drive:"</li>
+</ul>
+<p>The result is as returned from rclone about --json</p>
+<p>See the <a href="https://rclone.org/commands/rclone_about/">about</a> command for more information on the above.</p>
+<p><strong>Authentication is required for this call.</strong></p>
+<h3 id="operations-check"><a class="header-link" href="https://rclone.org/rc/#operations-check"><i class="fa fa-link"></i></a>operations/check: check the source and destination are the same</h3>
+<p>Checks the files in the source and destination match.  It compares
+sizes and hashes and logs a report of files that don't
+match.  It doesn't alter the source or destination.</p>
+<p>This takes the following parameters:</p>
+<ul>
+<li>srcFs - a remote name string e.g. "drive:" for the source, "/" for local filesystem</li>
+<li>dstFs - a remote name string e.g. "drive2:" for the destination, "/" for local filesystem</li>
+<li>download - check by downloading rather than with hash</li>
+<li>checkFileHash - treat checkFileFs:checkFileRemote as a SUM file with hashes of given type</li>
+<li>checkFileFs - treat checkFileFs:checkFileRemote as a SUM file with hashes of given type</li>
+<li>checkFileRemote - treat checkFileFs:checkFileRemote as a SUM file with hashes of given type</li>
+<li>oneWay -  check one way only, source files must exist on remote</li>
+<li>combined - make a combined report of changes (default false)</li>
+<li>missingOnSrc - report all files missing from the source (default true)</li>
+<li>missingOnDst - report all files missing from the destination (default true)</li>
+<li>match - report all matching files (default false)</li>
+<li>differ - report all non-matching files (default true)</li>
+<li>error - report all files with errors (hashing or reading) (default true)</li>
+</ul>
+<p>If you supply the download flag, it will download the data from
+both remotes and check them against each other on the fly.  This can
+be useful for remotes that don't support hashes or if you really want
+to check all the data.</p>
+<p>If you supply the size-only global flag, it will only compare the sizes not
+the hashes as well.  Use this for a quick check.</p>
+<p>If you supply the checkFileHash option with a valid hash name, the
+checkFileFs:checkFileRemote must point to a text file in the SUM
+format. This treats the checksum file as the source and dstFs as the
+destination. Note that srcFs is not used and should not be supplied in
+this case.</p>
+<p>Returns:</p>
+<ul>
+<li>success - true if no error, false otherwise</li>
+<li>status - textual summary of check, OK or text string</li>
+<li>hashType - hash used in check, may be missing</li>
+<li>combined - array of strings of combined report of changes</li>
+<li>missingOnSrc - array of strings of all files missing from the source</li>
+<li>missingOnDst - array of strings of all files missing from the destination</li>
+<li>match - array of strings of all matching files</li>
+<li>differ - array of strings of all non-matching files</li>
+<li>error - array of strings of all files with errors (hashing or reading)</li>
+</ul>
+<p><strong>Authentication is required for this call.</strong></p>
+<h3 id="operations-cleanup"><a class="header-link" href="https://rclone.org/rc/#operations-cleanup"><i class="fa fa-link"></i></a>operations/cleanup: Remove trashed files in the remote or path</h3>
+<p>This takes the following parameters:</p>
+<ul>
+<li>fs - a remote name string e.g. "drive:"</li>
+</ul>
+<p>See the <a href="https://rclone.org/commands/rclone_cleanup/">cleanup</a> command for more information on the above.</p>
+<p><strong>Authentication is required for this call.</strong></p>
+<h3 id="operations-copyfile"><a class="header-link" href="https://rclone.org/rc/#operations-copyfile"><i class="fa fa-link"></i></a>operations/copyfile: Copy a file from source remote to destination remote</h3>
+<p>This takes the following parameters:</p>
+<ul>
+<li>srcFs - a remote name string e.g. "drive:" for the source, "/" for local filesystem</li>
+<li>srcRemote - a path within that remote e.g. "file.txt" for the source</li>
+<li>dstFs - a remote name string e.g. "drive2:" for the destination, "/" for local filesystem</li>
+<li>dstRemote - a path within that remote e.g. "file2.txt" for the destination</li>
+</ul>
+<p><strong>Authentication is required for this call.</strong></p>
+<h3 id="operations-copyurl"><a class="header-link" href="https://rclone.org/rc/#operations-copyurl"><i class="fa fa-link"></i></a>operations/copyurl: Copy the URL to the object</h3>
+<p>This takes the following parameters:</p>
+<ul>
+<li>fs - a remote name string e.g. "drive:"</li>
+<li>remote - a path within that remote e.g. "dir"</li>
+<li>url - string, URL to read from</li>
+<li>autoFilename - boolean, set to true to retrieve destination file name from url</li>
+</ul>
+<p>See the <a href="https://rclone.org/commands/rclone_copyurl/">copyurl</a> command for more information on the above.</p>
+<p><strong>Authentication is required for this call.</strong></p>
+<h3 id="operations-delete"><a class="header-link" href="https://rclone.org/rc/#operations-delete"><i class="fa fa-link"></i></a>operations/delete: Remove files in the path</h3>
+<p>This takes the following parameters:</p>
+<ul>
+<li>fs - a remote name string e.g. "drive:"</li>
+</ul>
+<p>See the <a href="https://rclone.org/commands/rclone_delete/">delete</a> command for more information on the above.</p>
+<p><strong>Authentication is required for this call.</strong></p>
+<h3 id="operations-deletefile"><a class="header-link" href="https://rclone.org/rc/#operations-deletefile"><i class="fa fa-link"></i></a>operations/deletefile: Remove the single file pointed to</h3>
+<p>This takes the following parameters:</p>
+<ul>
+<li>fs - a remote name string e.g. "drive:"</li>
+<li>remote - a path within that remote e.g. "dir"</li>
+</ul>
+<p>See the <a href="https://rclone.org/commands/rclone_deletefile/">deletefile</a> command for more information on the above.</p>
+<p><strong>Authentication is required for this call.</strong></p>
+<h3 id="operations-fsinfo"><a class="header-link" href="https://rclone.org/rc/#operations-fsinfo"><i class="fa fa-link"></i></a>operations/fsinfo: Return information about the remote</h3>
+<p>This takes the following parameters:</p>
+<ul>
+<li>fs - a remote name string e.g. "drive:"</li>
+</ul>
+<p>This returns info about the remote passed in;</p>
+<pre tabindex="0"><code>{
+        // optional features and whether they are available or not
+        "Features": {
+                "About": true,
+                "BucketBased": false,
+                "BucketBasedRootOK": false,
+                "CanHaveEmptyDirectories": true,
+                "CaseInsensitive": false,
+                "ChangeNotify": false,
+                "CleanUp": false,
+                "Command": true,
+                "Copy": false,
+                "DirCacheFlush": false,
+                "DirMove": true,
+                "Disconnect": false,
+                "DuplicateFiles": false,
+                "GetTier": false,
+                "IsLocal": true,
+                "ListR": false,
+                "MergeDirs": false,
+                "MetadataInfo": true,
+                "Move": true,
+                "OpenWriterAt": true,
+                "PublicLink": false,
+                "Purge": true,
+                "PutStream": true,
+                "PutUnchecked": false,
+                "ReadMetadata": true,
+                "ReadMimeType": false,
+                "ServerSideAcrossConfigs": false,
+                "SetTier": false,
+                "SetWrapper": false,
+                "Shutdown": false,
+                "SlowHash": true,
+                "SlowModTime": false,
+                "UnWrap": false,
+                "UserInfo": false,
+                "UserMetadata": true,
+                "WrapFs": false,
+                "WriteMetadata": true,
+                "WriteMimeType": false
+        },
+        // Names of hashes available
+        "Hashes": [
+                "md5",
+                "sha1",
+                "whirlpool",
+                "crc32",
+                "sha256",
+                "dropbox",
+                "mailru",
+                "quickxor"
+        ],
+        "Name": "local",        // Name as created
+        "Precision": 1,         // Precision of timestamps in ns
+        "Root": "/",            // Path as created
+        "String": "Local file system at /", // how the remote will appear in logs
+        // Information about the system metadata for this backend
+        "MetadataInfo": {
+                "System": {
+                        "atime": {
+                                "Help": "Time of last access",
+                                "Type": "RFC 3339",
+                                "Example": "2006-01-02T15:04:05.999999999Z07:00"
+                        },
+                        "btime": {
+                                "Help": "Time of file birth (creation)",
+                                "Type": "RFC 3339",
+                                "Example": "2006-01-02T15:04:05.999999999Z07:00"
+                        },
+                        "gid": {
+                                "Help": "Group ID of owner",
+                                "Type": "decimal number",
+                                "Example": "500"
+                        },
+                        "mode": {
+                                "Help": "File type and mode",
+                                "Type": "octal, unix style",
+                                "Example": "0100664"
+                        },
+                        "mtime": {
+                                "Help": "Time of last modification",
+                                "Type": "RFC 3339",
+                                "Example": "2006-01-02T15:04:05.999999999Z07:00"
+                        },
+                        "rdev": {
+                                "Help": "Device ID (if special file)",
+                                "Type": "hexadecimal",
+                                "Example": "1abc"
+                        },
+                        "uid": {
+                                "Help": "User ID of owner",
+                                "Type": "decimal number",
+                                "Example": "500"
+                        }
+                },
+                "Help": "Textual help string\n"
+        }
+}
+</code></pre><p>This command does not have a command line equivalent so use this instead:</p>
+<pre><code>rclone rc --loopback operations/fsinfo fs=remote:
+</code></pre>
+<h3 id="operations-hashsum"><a class="header-link" href="https://rclone.org/rc/#operations-hashsum"><i class="fa fa-link"></i></a>operations/hashsum: Produces a hashsum file for all the objects in the path.</h3>
+<p>Produces a hash file for all the objects in the path using the hash
+named.  The output is in the same format as the standard
+md5sum/sha1sum tool.</p>
+<p>This takes the following parameters:</p>
+<ul>
+<li>fs - a remote name string e.g. "drive:" for the source, "/" for local filesystem
+<ul>
+<li>this can point to a file and just that file will be returned in the listing.</li>
+</ul>
+</li>
+<li>hashType - type of hash to be used</li>
+<li>download - check by downloading rather than with hash (boolean)</li>
+<li>base64 - output the hashes in base64 rather than hex (boolean)</li>
+</ul>
+<p>If you supply the download flag, it will download the data from the
+remote and create the hash on the fly. This can be useful for remotes
+that don't support the given hash or if you really want to check all
+the data.</p>
+<p>Note that if you wish to supply a checkfile to check hashes against
+the current files then you should use operations/check instead of
+operations/hashsum.</p>
+<p>Returns:</p>
+<ul>
+<li>hashsum - array of strings of the hashes</li>
+<li>hashType - type of hash used</li>
+</ul>
+<p>Example:</p>
+<pre><code>$ rclone rc --loopback operations/hashsum fs=bin hashType=MD5 download=true base64=true
+{
+    "hashType": "md5",
+    "hashsum": [
+        "WTSVLpuiXyJO_kGzJerRLg==  backend-versions.sh",
+        "v1b_OlWCJO9LtNq3EIKkNQ==  bisect-go-rclone.sh",
+        "VHbmHzHh4taXzgag8BAIKQ==  bisect-rclone.sh",
+    ]
+}
+</code></pre>
+<p>See the <a href="https://rclone.org/commands/rclone_hashsum/">hashsum</a> command for more information on the above.</p>
+<p><strong>Authentication is required for this call.</strong></p>
+<h3 id="operations-list"><a class="header-link" href="https://rclone.org/rc/#operations-list"><i class="fa fa-link"></i></a>operations/list: List the given remote and path in JSON format</h3>
+<p>This takes the following parameters:</p>
+<ul>
+<li>fs - a remote name string e.g. "drive:"</li>
+<li>remote - a path within that remote e.g. "dir"</li>
+<li>opt - a dictionary of options to control the listing (optional)
+<ul>
+<li>recurse - If set recurse directories</li>
+<li>noModTime - If set return modification time</li>
+<li>showEncrypted -  If set show decrypted names</li>
+<li>showOrigIDs - If set show the IDs for each item if known</li>
+<li>showHash - If set return a dictionary of hashes</li>
+<li>noMimeType - If set don't show mime types</li>
+<li>dirsOnly - If set only show directories</li>
+<li>filesOnly - If set only show files</li>
+<li>metadata - If set return metadata of objects also</li>
+<li>hashTypes - array of strings of hash types to show if showHash set</li>
+</ul>
+</li>
+</ul>
+<p>Returns:</p>
+<ul>
+<li>list
+<ul>
+<li>This is an array of objects as described in the lsjson command</li>
+</ul>
+</li>
+</ul>
+<p>See the <a href="https://rclone.org/commands/rclone_lsjson/">lsjson</a> command for more information on the above and examples.</p>
+<p><strong>Authentication is required for this call.</strong></p>
+<h3 id="operations-mkdir"><a class="header-link" href="https://rclone.org/rc/#operations-mkdir"><i class="fa fa-link"></i></a>operations/mkdir: Make a destination directory or container</h3>
+<p>This takes the following parameters:</p>
+<ul>
+<li>fs - a remote name string e.g. "drive:"</li>
+<li>remote - a path within that remote e.g. "dir"</li>
+</ul>
+<p>See the <a href="https://rclone.org/commands/rclone_mkdir/">mkdir</a> command for more information on the above.</p>
+<p><strong>Authentication is required for this call.</strong></p>
+<h3 id="operations-movefile"><a class="header-link" href="https://rclone.org/rc/#operations-movefile"><i class="fa fa-link"></i></a>operations/movefile: Move a file from source remote to destination remote</h3>
+<p>This takes the following parameters:</p>
+<ul>
+<li>srcFs - a remote name string e.g. "drive:" for the source, "/" for local filesystem</li>
+<li>srcRemote - a path within that remote e.g. "file.txt" for the source</li>
+<li>dstFs - a remote name string e.g. "drive2:" for the destination, "/" for local filesystem</li>
+<li>dstRemote - a path within that remote e.g. "file2.txt" for the destination</li>
+</ul>
+<p><strong>Authentication is required for this call.</strong></p>
+<h3 id="operations-publiclink"><a class="header-link" href="https://rclone.org/rc/#operations-publiclink"><i class="fa fa-link"></i></a>operations/publiclink: Create or retrieve a public link to the given file or folder.</h3>
+<p>This takes the following parameters:</p>
+<ul>
+<li>fs - a remote name string e.g. "drive:"</li>
+<li>remote - a path within that remote e.g. "dir"</li>
+<li>unlink - boolean - if set removes the link rather than adding it (optional)</li>
+<li>expire - string - the expiry time of the link e.g. "1d" (optional)</li>
+</ul>
+<p>Returns:</p>
+<ul>
+<li>url - URL of the resource</li>
+</ul>
+<p>See the <a href="https://rclone.org/commands/rclone_link/">link</a> command for more information on the above.</p>
+<p><strong>Authentication is required for this call.</strong></p>
+<h3 id="operations-purge"><a class="header-link" href="https://rclone.org/rc/#operations-purge"><i class="fa fa-link"></i></a>operations/purge: Remove a directory or container and all of its contents</h3>
+<p>This takes the following parameters:</p>
+<ul>
+<li>fs - a remote name string e.g. "drive:"</li>
+<li>remote - a path within that remote e.g. "dir"</li>
+</ul>
+<p>See the <a href="https://rclone.org/commands/rclone_purge/">purge</a> command for more information on the above.</p>
+<p><strong>Authentication is required for this call.</strong></p>
+<h3 id="operations-rmdir"><a class="header-link" href="https://rclone.org/rc/#operations-rmdir"><i class="fa fa-link"></i></a>operations/rmdir: Remove an empty directory or container</h3>
+<p>This takes the following parameters:</p>
+<ul>
+<li>fs - a remote name string e.g. "drive:"</li>
+<li>remote - a path within that remote e.g. "dir"</li>
+</ul>
+<p>See the <a href="https://rclone.org/commands/rclone_rmdir/">rmdir</a> command for more information on the above.</p>
+<p><strong>Authentication is required for this call.</strong></p>
+<h3 id="operations-rmdirs"><a class="header-link" href="https://rclone.org/rc/#operations-rmdirs"><i class="fa fa-link"></i></a>operations/rmdirs: Remove all the empty directories in the path</h3>
+<p>This takes the following parameters:</p>
+<ul>
+<li>fs - a remote name string e.g. "drive:"</li>
+<li>remote - a path within that remote e.g. "dir"</li>
+<li>leaveRoot - boolean, set to true not to delete the root</li>
+</ul>
+<p>See the <a href="https://rclone.org/commands/rclone_rmdirs/">rmdirs</a> command for more information on the above.</p>
+<p><strong>Authentication is required for this call.</strong></p>
+<h3 id="operations-settier"><a class="header-link" href="https://rclone.org/rc/#operations-settier"><i class="fa fa-link"></i></a>operations/settier: Changes storage tier or class on all files in the path</h3>
+<p>This takes the following parameters:</p>
+<ul>
+<li>fs - a remote name string e.g. "drive:"</li>
+</ul>
+<p>See the <a href="https://rclone.org/commands/rclone_settier/">settier</a> command for more information on the above.</p>
+<p><strong>Authentication is required for this call.</strong></p>
+<h3 id="operations-settierfile"><a class="header-link" href="https://rclone.org/rc/#operations-settierfile"><i class="fa fa-link"></i></a>operations/settierfile: Changes storage tier or class on the single file pointed to</h3>
+<p>This takes the following parameters:</p>
+<ul>
+<li>fs - a remote name string e.g. "drive:"</li>
+<li>remote - a path within that remote e.g. "dir"</li>
+</ul>
+<p>See the <a href="https://rclone.org/commands/rclone_settierfile/">settierfile</a> command for more information on the above.</p>
+<p><strong>Authentication is required for this call.</strong></p>
+<h3 id="operations-size"><a class="header-link" href="https://rclone.org/rc/#operations-size"><i class="fa fa-link"></i></a>operations/size: Count the number of bytes and files in remote</h3>
+<p>This takes the following parameters:</p>
+<ul>
+<li>fs - a remote name string e.g. "drive:path/to/dir"</li>
+</ul>
+<p>Returns:</p>
+<ul>
+<li>count - number of files</li>
+<li>bytes - number of bytes in those files</li>
+</ul>
+<p>See the <a href="https://rclone.org/commands/rclone_size/">size</a> command for more information on the above.</p>
+<p><strong>Authentication is required for this call.</strong></p>
+<h3 id="operations-stat"><a class="header-link" href="https://rclone.org/rc/#operations-stat"><i class="fa fa-link"></i></a>operations/stat: Give information about the supplied file or directory</h3>
+<p>This takes the following parameters</p>
+<ul>
+<li>fs - a remote name string eg "drive:"</li>
+<li>remote - a path within that remote eg "dir"</li>
+<li>opt - a dictionary of options to control the listing (optional)
+<ul>
+<li>see operations/list for the options</li>
+</ul>
+</li>
+</ul>
+<p>The result is</p>
+<ul>
+<li>item - an object as described in the lsjson command. Will be null if not found.</li>
+</ul>
+<p>Note that if you are only interested in files then it is much more
+efficient to set the filesOnly flag in the options.</p>
+<p>See the <a href="https://rclone.org/commands/rclone_lsjson/">lsjson</a> command for more information on the above and examples.</p>
+<p><strong>Authentication is required for this call.</strong></p>
+<h3 id="operations-uploadfile"><a class="header-link" href="https://rclone.org/rc/#operations-uploadfile"><i class="fa fa-link"></i></a>operations/uploadfile: Upload file using multiform/form-data</h3>
+<p>This takes the following parameters:</p>
+<ul>
+<li>fs - a remote name string e.g. "drive:"</li>
+<li>remote - a path within that remote e.g. "dir"</li>
+<li>each part in body represents a file to be uploaded</li>
+</ul>
+<p>See the <a href="https://rclone.org/commands/rclone_uploadfile/">uploadfile</a> command for more information on the above.</p>
+<p><strong>Authentication is required for this call.</strong></p>
+<h3 id="options-blocks"><a class="header-link" href="https://rclone.org/rc/#options-blocks"><i class="fa fa-link"></i></a>options/blocks: List all the option blocks</h3>
+<p>Returns:</p>
+<ul>
+<li>options - a list of the options block names</li>
+</ul>
+<h3 id="options-get"><a class="header-link" href="https://rclone.org/rc/#options-get"><i class="fa fa-link"></i></a>options/get: Get all the global options</h3>
+<p>Returns an object where keys are option block names and values are an
+object with the current option values in.</p>
+<p>Parameters:</p>
+<ul>
+<li>blocks: optional string of comma separated blocks to include
+<ul>
+<li>all are included if this is missing or ""</li>
+</ul>
+</li>
+</ul>
+<p>Note that these are the global options which are unaffected by use of
+the _config and _filter parameters. If you wish to read the parameters
+set in _config then use options/config and for _filter use options/filter.</p>
+<p>This shows the internal names of the option within rclone which should
+map to the external options very easily with a few exceptions.</p>
+<h3 id="options-info"><a class="header-link" href="https://rclone.org/rc/#options-info"><i class="fa fa-link"></i></a>options/info: Get info about all the global options</h3>
+<p>Returns an object where keys are option block names and values are an
+array of objects with info about each options.</p>
+<p>Parameters:</p>
+<ul>
+<li>blocks: optional string of comma separated blocks to include
+<ul>
+<li>all are included if this is missing or ""</li>
+</ul>
+</li>
+</ul>
+<p>These objects are in the same format as returned by "config/providers". They are
+described in the <a href="https://rclone.org/rc/#option-blocks">option blocks</a> section.</p>
+<h3 id="options-local"><a class="header-link" href="https://rclone.org/rc/#options-local"><i class="fa fa-link"></i></a>options/local: Get the currently active config for this call</h3>
+<p>Returns an object with the keys "config" and "filter".
+The "config" key contains the local config and the "filter" key contains
+the local filters.</p>
+<p>Note that these are the local options specific to this rc call. If
+_config was not supplied then they will be the global options.
+Likewise with "_filter".</p>
+<p>This call is mostly useful for seeing if _config and _filter passing
+is working.</p>
+<p>This shows the internal names of the option within rclone which should
+map to the external options very easily with a few exceptions.</p>
+<h3 id="options-set"><a class="header-link" href="https://rclone.org/rc/#options-set"><i class="fa fa-link"></i></a>options/set: Set an option</h3>
+<p>Parameters:</p>
+<ul>
+<li>option block name containing an object with
+<ul>
+<li>key: value</li>
+</ul>
+</li>
+</ul>
+<p>Repeated as often as required.</p>
+<p>Only supply the options you wish to change.  If an option is unknown
+it will be silently ignored.  Not all options will have an effect when
+changed like this.</p>
+<p>For example:</p>
+<p>This sets DEBUG level logs (-vv) (these can be set by number or string)</p>
+<pre><code>rclone rc options/set --json '{"main": {"LogLevel": "DEBUG"}}'
+rclone rc options/set --json '{"main": {"LogLevel": 8}}'
+</code></pre>
+<p>And this sets INFO level logs (-v)</p>
+<pre><code>rclone rc options/set --json '{"main": {"LogLevel": "INFO"}}'
+</code></pre>
+<p>And this sets NOTICE level logs (normal without -v)</p>
+<pre><code>rclone rc options/set --json '{"main": {"LogLevel": "NOTICE"}}'
+</code></pre>
+<h3 id="pluginsctl-addPlugin"><a class="header-link" href="https://rclone.org/rc/#pluginsctl-addPlugin"><i class="fa fa-link"></i></a>pluginsctl/addPlugin: Add a plugin using url</h3>
+<p>Used for adding a plugin to the webgui.</p>
+<p>This takes the following parameters:</p>
+<ul>
+<li>url - http url of the github repo where the plugin is hosted (<a href="http://github.com/rclone/rclone-webui-react)">http://github.com/rclone/rclone-webui-react)</a>.</li>
+</ul>
+<p>Example:</p>
+<p>rclone rc pluginsctl/addPlugin</p>
+<p><strong>Authentication is required for this call.</strong></p>
+<h3 id="pluginsctl-getPluginsForType"><a class="header-link" href="https://rclone.org/rc/#pluginsctl-getPluginsForType"><i class="fa fa-link"></i></a>pluginsctl/getPluginsForType: Get plugins with type criteria</h3>
+<p>This shows all possible plugins by a mime type.</p>
+<p>This takes the following parameters:</p>
+<ul>
+<li>type - supported mime type by a loaded plugin e.g. (video/mp4, audio/mp3).</li>
+<li>pluginType - filter plugins based on their type e.g. (DASHBOARD, FILE_HANDLER, TERMINAL).</li>
+</ul>
+<p>Returns:</p>
+<ul>
+<li>loadedPlugins - list of current production plugins.</li>
+<li>testPlugins - list of temporarily loaded development plugins, usually running on a different server.</li>
+</ul>
+<p>Example:</p>
+<p>rclone rc pluginsctl/getPluginsForType type=video/mp4</p>
+<p><strong>Authentication is required for this call.</strong></p>
+<h3 id="pluginsctl-listPlugins"><a class="header-link" href="https://rclone.org/rc/#pluginsctl-listPlugins"><i class="fa fa-link"></i></a>pluginsctl/listPlugins: Get the list of currently loaded plugins</h3>
+<p>This allows you to get the currently enabled plugins and their details.</p>
+<p>This takes no parameters and returns:</p>
+<ul>
+<li>loadedPlugins - list of current production plugins.</li>
+<li>testPlugins - list of temporarily loaded development plugins, usually running on a different server.</li>
+</ul>
+<p>E.g.</p>
+<p>rclone rc pluginsctl/listPlugins</p>
+<p><strong>Authentication is required for this call.</strong></p>
+<h3 id="pluginsctl-listTestPlugins"><a class="header-link" href="https://rclone.org/rc/#pluginsctl-listTestPlugins"><i class="fa fa-link"></i></a>pluginsctl/listTestPlugins: Show currently loaded test plugins</h3>
+<p>Allows listing of test plugins with the rclone.test set to true in package.json of the plugin.</p>
+<p>This takes no parameters and returns:</p>
+<ul>
+<li>loadedTestPlugins - list of currently available test plugins.</li>
+</ul>
+<p>E.g.</p>
+<pre><code>rclone rc pluginsctl/listTestPlugins
+</code></pre>
+<p><strong>Authentication is required for this call.</strong></p>
+<h3 id="pluginsctl-removePlugin"><a class="header-link" href="https://rclone.org/rc/#pluginsctl-removePlugin"><i class="fa fa-link"></i></a>pluginsctl/removePlugin: Remove a loaded plugin</h3>
+<p>This allows you to remove a plugin using it's name.</p>
+<p>This takes parameters:</p>
+<ul>
+<li>name - name of the plugin in the format <code>author</code>/<code>plugin_name</code>.</li>
+</ul>
+<p>E.g.</p>
+<p>rclone rc pluginsctl/removePlugin name=rclone/video-plugin</p>
+<p><strong>Authentication is required for this call.</strong></p>
+<h3 id="pluginsctl-removeTestPlugin"><a class="header-link" href="https://rclone.org/rc/#pluginsctl-removeTestPlugin"><i class="fa fa-link"></i></a>pluginsctl/removeTestPlugin: Remove  a test plugin</h3>
+<p>This allows you to remove a plugin using it's name.</p>
+<p>This takes the following parameters:</p>
+<ul>
+<li>name - name of the plugin in the format <code>author</code>/<code>plugin_name</code>.</li>
+</ul>
+<p>Example:</p>
+<pre><code>rclone rc pluginsctl/removeTestPlugin name=rclone/rclone-webui-react
+</code></pre>
+<p><strong>Authentication is required for this call.</strong></p>
+<h3 id="rc-error"><a class="header-link" href="https://rclone.org/rc/#rc-error"><i class="fa fa-link"></i></a>rc/error: This returns an error</h3>
+<p>This returns an error with the input as part of its error string.
+Useful for testing error handling.</p>
+<h3 id="rc-list"><a class="header-link" href="https://rclone.org/rc/#rc-list"><i class="fa fa-link"></i></a>rc/list: List all the registered remote control commands</h3>
+<p>This lists all the registered remote control commands as a JSON map in
+the commands response.</p>
+<h3 id="rc-noop"><a class="header-link" href="https://rclone.org/rc/#rc-noop"><i class="fa fa-link"></i></a>rc/noop: Echo the input to the output parameters</h3>
+<p>This echoes the input parameters to the output parameters for testing
+purposes.  It can be used to check that rclone is still alive and to
+check that parameter passing is working properly.</p>
+<h3 id="rc-noopauth"><a class="header-link" href="https://rclone.org/rc/#rc-noopauth"><i class="fa fa-link"></i></a>rc/noopauth: Echo the input to the output parameters requiring auth</h3>
+<p>This echoes the input parameters to the output parameters for testing
+purposes.  It can be used to check that rclone is still alive and to
+check that parameter passing is working properly.</p>
+<p><strong>Authentication is required for this call.</strong></p>
+<h3 id="sync-bisync"><a class="header-link" href="https://rclone.org/rc/#sync-bisync"><i class="fa fa-link"></i></a>sync/bisync: Perform bidirectional synchronization between two paths.</h3>
+<p>This takes the following parameters</p>
+<ul>
+<li>path1 - a remote directory string e.g. <code>drive:path1</code></li>
+<li>path2 - a remote directory string e.g. <code>drive:path2</code></li>
+<li>dryRun - dry-run mode</li>
+<li>resync - performs the resync run</li>
+<li>checkAccess - abort if RCLONE_TEST files are not found on both filesystems</li>
+<li>checkFilename - file name for checkAccess (default: RCLONE_TEST)</li>
+<li>maxDelete - abort sync if percentage of deleted files is above
+this threshold (default: 50)</li>
+<li>force - Bypass maxDelete safety check and run the sync</li>
+<li>checkSync - <code>true</code> by default, <code>false</code> disables comparison of final listings,
+<code>only</code> will skip sync, only compare listings from the last run</li>
+<li>createEmptySrcDirs - Sync creation and deletion of empty directories.
+(Not compatible with --remove-empty-dirs)</li>
+<li>removeEmptyDirs - remove empty directories at the final cleanup step</li>
+<li>filtersFile - read filtering patterns from a file</li>
+<li>ignoreListingChecksum - Do not use checksums for listings</li>
+<li>resilient - Allow future runs to retry after certain less-serious errors, instead of requiring resync.
+Use at your own risk!</li>
+<li>workdir - server directory for history files (default: <code>~/.cache/rclone/bisync</code>)</li>
+<li>backupdir1 - --backup-dir for Path1. Must be a non-overlapping path on the same remote.</li>
+<li>backupdir2 - --backup-dir for Path2. Must be a non-overlapping path on the same remote.</li>
+<li>noCleanup - retain working files</li>
+</ul>
+<p>See <a href="https://rclone.org/commands/rclone_bisync/">bisync command help</a>
+and <a href="https://rclone.org/bisync/">full bisync description</a>
+for more information.</p>
+<p><strong>Authentication is required for this call.</strong></p>
+<h3 id="sync-copy"><a class="header-link" href="https://rclone.org/rc/#sync-copy"><i class="fa fa-link"></i></a>sync/copy: copy a directory from source remote to destination remote</h3>
+<p>This takes the following parameters:</p>
+<ul>
+<li>srcFs - a remote name string e.g. "drive:src" for the source</li>
+<li>dstFs - a remote name string e.g. "drive:dst" for the destination</li>
+<li>createEmptySrcDirs - create empty src directories on destination if set</li>
+</ul>
+<p>See the <a href="https://rclone.org/commands/rclone_copy/">copy</a> command for more information on the above.</p>
+<p><strong>Authentication is required for this call.</strong></p>
+<h3 id="sync-move"><a class="header-link" href="https://rclone.org/rc/#sync-move"><i class="fa fa-link"></i></a>sync/move: move a directory from source remote to destination remote</h3>
+<p>This takes the following parameters:</p>
+<ul>
+<li>srcFs - a remote name string e.g. "drive:src" for the source</li>
+<li>dstFs - a remote name string e.g. "drive:dst" for the destination</li>
+<li>createEmptySrcDirs - create empty src directories on destination if set</li>
+<li>deleteEmptySrcDirs - delete empty src directories if set</li>
+</ul>
+<p>See the <a href="https://rclone.org/commands/rclone_move/">move</a> command for more information on the above.</p>
+<p><strong>Authentication is required for this call.</strong></p>
+<h3 id="sync-sync"><a class="header-link" href="https://rclone.org/rc/#sync-sync"><i class="fa fa-link"></i></a>sync/sync: sync a directory from source remote to destination remote</h3>
+<p>This takes the following parameters:</p>
+<ul>
+<li>srcFs - a remote name string e.g. "drive:src" for the source</li>
+<li>dstFs - a remote name string e.g. "drive:dst" for the destination</li>
+<li>createEmptySrcDirs - create empty src directories on destination if set</li>
+</ul>
+<p>See the <a href="https://rclone.org/commands/rclone_sync/">sync</a> command for more information on the above.</p>
+<p><strong>Authentication is required for this call.</strong></p>
+<h3 id="vfs-forget"><a class="header-link" href="https://rclone.org/rc/#vfs-forget"><i class="fa fa-link"></i></a>vfs/forget: Forget files or directories in the directory cache.</h3>
+<p>This forgets the paths in the directory cache causing them to be
+re-read from the remote when needed.</p>
+<p>If no paths are passed in then it will forget all the paths in the
+directory cache.</p>
+<pre><code>rclone rc vfs/forget
+</code></pre>
+<p>Otherwise pass files or dirs in as file=path or dir=path.  Any
+parameter key starting with file will forget that file and any
+starting with dir will forget that dir, e.g.</p>
+<pre><code>rclone rc vfs/forget file=hello file2=goodbye dir=home/junk
+</code></pre>
+<p>This command takes an "fs" parameter. If this parameter is not
+supplied and if there is only one VFS in use then that VFS will be
+used. If there is more than one VFS in use then the "fs" parameter
+must be supplied.</p>
+<h3 id="vfs-list"><a class="header-link" href="https://rclone.org/rc/#vfs-list"><i class="fa fa-link"></i></a>vfs/list: List active VFSes.</h3>
+<p>This lists the active VFSes.</p>
+<p>It returns a list under the key "vfses" where the values are the VFS
+names that could be passed to the other VFS commands in the "fs"
+parameter.</p>
+<h3 id="vfs-poll-interval"><a class="header-link" href="https://rclone.org/rc/#vfs-poll-interval"><i class="fa fa-link"></i></a>vfs/poll-interval: Get the status or update the value of the poll-interval option.</h3>
+<p>Without any parameter given this returns the current status of the
+poll-interval setting.</p>
+<p>When the interval=duration parameter is set, the poll-interval value
+is updated and the polling function is notified.
+Setting interval=0 disables poll-interval.</p>
+<pre><code>rclone rc vfs/poll-interval interval=5m
+</code></pre>
+<p>The timeout=duration parameter can be used to specify a time to wait
+for the current poll function to apply the new value.
+If timeout is less or equal 0, which is the default, wait indefinitely.</p>
+<p>The new poll-interval value will only be active when the timeout is
+not reached.</p>
+<p>If poll-interval is updated or disabled temporarily, some changes
+might not get picked up by the polling function, depending on the
+used remote.</p>
+<p>This command takes an "fs" parameter. If this parameter is not
+supplied and if there is only one VFS in use then that VFS will be
+used. If there is more than one VFS in use then the "fs" parameter
+must be supplied.</p>
+<h3 id="vfs-queue"><a class="header-link" href="https://rclone.org/rc/#vfs-queue"><i class="fa fa-link"></i></a>vfs/queue: Queue info for a VFS.</h3>
+<p>This returns info about the upload queue for the selected VFS.</p>
+<p>This is only useful if <code>--vfs-cache-mode</code> &gt; off. If you call it when
+the <code>--vfs-cache-mode</code> is off, it will return an empty result.</p>
+<pre><code>{
+    "queued": // an array of files queued for upload
+    [
+        {
+            "name":      "file",   // string: name (full path) of the file,
+            "id":        123,      // integer: id of this item in the queue,
+            "size":      79,       // integer: size of the file in bytes
+            "expiry":    1.5       // float: time until file is eligible for transfer, lowest goes first
+            "tries":     1,        // integer: number of times we have tried to upload
+            "delay":     5.0,      // float: seconds between upload attempts
+            "uploading": false,    // boolean: true if item is being uploaded
+        },
+   ],
+}
+</code></pre>
+<p>The <code>expiry</code> time is the time until the file is eligible for being
+uploaded in floating point seconds. This may go negative. As rclone
+only transfers <code>--transfers</code> files at once, only the lowest
+<code>--transfers</code> expiry times will have <code>uploading</code> as <code>true</code>. So there
+may be files with negative expiry times for which <code>uploading</code> is
+<code>false</code>.</p>
+<p>This command takes an "fs" parameter. If this parameter is not
+supplied and if there is only one VFS in use then that VFS will be
+used. If there is more than one VFS in use then the "fs" parameter
+must be supplied.</p>
+<h3 id="vfs-queue-set-expiry"><a class="header-link" href="https://rclone.org/rc/#vfs-queue-set-expiry"><i class="fa fa-link"></i></a>vfs/queue-set-expiry: Set the expiry time for an item queued for upload.</h3>
+<p>Use this to adjust the <code>expiry</code> time for an item in the upload queue.
+You will need to read the <code>id</code> of the item using <code>vfs/queue</code> before
+using this call.</p>
+<p>You can then set <code>expiry</code> to a floating point number of seconds from
+now when the item is eligible for upload. If you want the item to be
+uploaded as soon as possible then set it to a large negative number (eg
+-1000000000). If you want the upload of the item to be delayed
+for a long time then set it to a large positive number.</p>
+<p>Setting the <code>expiry</code> of an item which has already has started uploading
+will have no effect - the item will carry on being uploaded.</p>
+<p>This will return an error if called with <code>--vfs-cache-mode</code> off or if
+the <code>id</code> passed is not found.</p>
+<p>This takes the following parameters</p>
+<ul>
+<li><code>fs</code> - select the VFS in use (optional)</li>
+<li><code>id</code> - a numeric ID as returned from <code>vfs/queue</code></li>
+<li><code>expiry</code> - a new expiry time as floating point seconds</li>
+<li><code>relative</code> - if set, expiry is to be treated as relative to the current expiry (optional, boolean)</li>
+</ul>
+<p>This returns an empty result on success, or an error.</p>
+<p>This command takes an "fs" parameter. If this parameter is not
+supplied and if there is only one VFS in use then that VFS will be
+used. If there is more than one VFS in use then the "fs" parameter
+must be supplied.</p>
+<h3 id="vfs-refresh"><a class="header-link" href="https://rclone.org/rc/#vfs-refresh"><i class="fa fa-link"></i></a>vfs/refresh: Refresh the directory cache.</h3>
+<p>This reads the directories for the specified paths and freshens the
+directory cache.</p>
+<p>If no paths are passed in then it will refresh the root directory.</p>
+<pre><code>rclone rc vfs/refresh
+</code></pre>
+<p>Otherwise pass directories in as dir=path. Any parameter key
+starting with dir will refresh that directory, e.g.</p>
+<pre><code>rclone rc vfs/refresh dir=home/junk dir2=data/misc
+</code></pre>
+<p>If the parameter recursive=true is given the whole directory tree
+will get refreshed. This refresh will use --fast-list if enabled.</p>
+<p>This command takes an "fs" parameter. If this parameter is not
+supplied and if there is only one VFS in use then that VFS will be
+used. If there is more than one VFS in use then the "fs" parameter
+must be supplied.</p>
+<h3 id="vfs-stats"><a class="header-link" href="https://rclone.org/rc/#vfs-stats"><i class="fa fa-link"></i></a>vfs/stats: Stats for a VFS.</h3>
+<p>This returns stats for the selected VFS.</p>
+<pre><code>{
+    // Status of the disk cache - only present if --vfs-cache-mode &gt; off
+    "diskCache": {
+        "bytesUsed": 0,
+        "erroredFiles": 0,
+        "files": 0,
+        "hashType": 1,
+        "outOfSpace": false,
+        "path": "/home/user/.cache/rclone/vfs/local/mnt/a",
+        "pathMeta": "/home/user/.cache/rclone/vfsMeta/local/mnt/a",
+        "uploadsInProgress": 0,
+        "uploadsQueued": 0
+    },
+    "fs": "/mnt/a",
+    "inUse": 1,
+    // Status of the in memory metadata cache
+    "metadataCache": {
+        "dirs": 1,
+        "files": 0
+    },
+    // Options as returned by options/get
+    "opt": {
+        "CacheMaxAge": 3600000000000,
+        // ...
+        "WriteWait": 1000000000
+    }
+}
+</code></pre>
+<p>This command takes an "fs" parameter. If this parameter is not
+supplied and if there is only one VFS in use then that VFS will be
+used. If there is more than one VFS in use then the "fs" parameter
+must be supplied.</p>
+
+<h2 id="api-http"><a class="header-link" href="https://rclone.org/rc/#api-http"><i class="fa fa-link"></i></a>Accessing the remote control via HTTP</h2>
+<p>Rclone implements a simple HTTP based protocol.</p>
+<p>Each endpoint takes an JSON object and returns a JSON object or an
+error.  The JSON objects are essentially a map of string names to
+values.</p>
+<p>All calls must made using POST.</p>
+<p>The input objects can be supplied using URL parameters, POST
+parameters or by supplying "Content-Type: application/json" and a JSON
+blob in the body.  There are examples of these below using <code>curl</code>.</p>
+<p>The response will be a JSON blob in the body of the response.  This is
+formatted to be reasonably human-readable.</p>
+<h3 id="error-returns"><a class="header-link" href="https://rclone.org/rc/#error-returns"><i class="fa fa-link"></i></a>Error returns</h3>
+<p>If an error occurs then there will be an HTTP error status (e.g. 500)
+and the body of the response will contain a JSON encoded error object,
+e.g.</p>
+<pre tabindex="0"><code>{
+    "error": "Expecting string value for key \"remote\" (was float64)",
+    "input": {
+        "fs": "/tmp",
+        "remote": 3
+    },
+    "status": 400
+    "path": "operations/rmdir",
+}
+</code></pre><p>The keys in the error response are</p>
+<ul>
+<li>error - error string</li>
+<li>input - the input parameters to the call</li>
+<li>status - the HTTP status code</li>
+<li>path - the path of the call</li>
+</ul>
+<h3 id="cors"><a class="header-link" href="https://rclone.org/rc/#cors"><i class="fa fa-link"></i></a>CORS</h3>
+<p>The sever implements basic CORS support and allows all origins for that.
+The response to a preflight OPTIONS request will echo the requested "Access-Control-Request-Headers" back.</p>
+<h3 id="using-post-with-url-parameters-only"><a class="header-link" href="https://rclone.org/rc/#using-post-with-url-parameters-only"><i class="fa fa-link"></i></a>Using POST with URL parameters only</h3>
+<pre tabindex="0"><code>curl -X POST 'http://localhost:5572/rc/noop?potato=1&amp;sausage=2'
+</code></pre><p>Response</p>
+<pre tabindex="0"><code>{
+	"potato": "1",
+	"sausage": "2"
+}
+</code></pre><p>Here is what an error response looks like:</p>
+<pre tabindex="0"><code>curl -X POST 'http://localhost:5572/rc/error?potato=1&amp;sausage=2'
+</code></pre><pre tabindex="0"><code>{
+	"error": "arbitrary error on input map[potato:1 sausage:2]",
+	"input": {
+		"potato": "1",
+		"sausage": "2"
+	}
+}
+</code></pre><p>Note that curl doesn't return errors to the shell unless you use the <code>-f</code> option</p>
+<pre tabindex="0"><code>$ curl -f -X POST 'http://localhost:5572/rc/error?potato=1&amp;sausage=2'
+curl: (22) The requested URL returned error: 400 Bad Request
+$ echo $?
+22
+</code></pre><h3 id="using-post-with-a-form"><a class="header-link" href="https://rclone.org/rc/#using-post-with-a-form"><i class="fa fa-link"></i></a>Using POST with a form</h3>
+<pre tabindex="0"><code>curl --data "potato=1" --data "sausage=2" http://localhost:5572/rc/noop
+</code></pre><p>Response</p>
+<pre tabindex="0"><code>{
+	"potato": "1",
+	"sausage": "2"
+}
+</code></pre><p>Note that you can combine these with URL parameters too with the POST
+parameters taking precedence.</p>
+<pre tabindex="0"><code>curl --data "potato=1" --data "sausage=2" "http://localhost:5572/rc/noop?rutabaga=3&amp;sausage=4"
+</code></pre><p>Response</p>
+<pre tabindex="0"><code>{
+	"potato": "1",
+	"rutabaga": "3",
+	"sausage": "4"
+}
+</code></pre><h3 id="using-post-with-a-json-blob"><a class="header-link" href="https://rclone.org/rc/#using-post-with-a-json-blob"><i class="fa fa-link"></i></a>Using POST with a JSON blob</h3>
+<pre tabindex="0"><code>curl -H "Content-Type: application/json" -X POST -d '{"potato":2,"sausage":1}' http://localhost:5572/rc/noop
+</code></pre><p>response</p>
+<pre tabindex="0"><code>{
+	"password": "xyz",
+	"username": "xyz"
+}
+</code></pre><p>This can be combined with URL parameters too if required.  The JSON
+blob takes precedence.</p>
+<pre tabindex="0"><code>curl -H "Content-Type: application/json" -X POST -d '{"potato":2,"sausage":1}' 'http://localhost:5572/rc/noop?rutabaga=3&amp;potato=4'
+</code></pre><pre tabindex="0"><code>{
+	"potato": 2,
+	"rutabaga": "3",
+	"sausage": 1
+}
+</code></pre><h2 id="debugging-rclone-with-pprof"><a class="header-link" href="https://rclone.org/rc/#debugging-rclone-with-pprof"><i class="fa fa-link"></i></a>Debugging rclone with pprof</h2>
+<p>If you use the <code>--rc</code> flag this will also enable the use of the go
+profiling tools on the same port.</p>
+<p>To use these, first <a href="https://golang.org/doc/install">install go</a>.</p>
+<h3 id="debugging-memory-use"><a class="header-link" href="https://rclone.org/rc/#debugging-memory-use"><i class="fa fa-link"></i></a>Debugging memory use</h3>
+<p>To profile rclone's memory use you can run:</p>
+<pre><code>go tool pprof -web http://localhost:5572/debug/pprof/heap
+</code></pre>
+<p>This should open a page in your browser showing what is using what
+memory.</p>
+<p>You can also use the <code>-text</code> flag to produce a textual summary</p>
+<pre tabindex="0"><code>$ go tool pprof -text http://localhost:5572/debug/pprof/heap
+Showing nodes accounting for 1537.03kB, 100% of 1537.03kB total
+      flat  flat%   sum%        cum   cum%
+ 1024.03kB 66.62% 66.62%  1024.03kB 66.62%  github.com/rclone/rclone/vendor/golang.org/x/net/http2/hpack.addDecoderNode
+     513kB 33.38%   100%      513kB 33.38%  net/http.newBufioWriterSize
+         0     0%   100%  1024.03kB 66.62%  github.com/rclone/rclone/cmd/all.init
+         0     0%   100%  1024.03kB 66.62%  github.com/rclone/rclone/cmd/serve.init
+         0     0%   100%  1024.03kB 66.62%  github.com/rclone/rclone/cmd/serve/restic.init
+         0     0%   100%  1024.03kB 66.62%  github.com/rclone/rclone/vendor/golang.org/x/net/http2.init
+         0     0%   100%  1024.03kB 66.62%  github.com/rclone/rclone/vendor/golang.org/x/net/http2/hpack.init
+         0     0%   100%  1024.03kB 66.62%  github.com/rclone/rclone/vendor/golang.org/x/net/http2/hpack.init.0
+         0     0%   100%  1024.03kB 66.62%  main.init
+         0     0%   100%      513kB 33.38%  net/http.(*conn).readRequest
+         0     0%   100%      513kB 33.38%  net/http.(*conn).serve
+         0     0%   100%  1024.03kB 66.62%  runtime.main
+</code></pre><h3 id="debugging-go-routine-leaks"><a class="header-link" href="https://rclone.org/rc/#debugging-go-routine-leaks"><i class="fa fa-link"></i></a>Debugging go routine leaks</h3>
+<p>Memory leaks are most often caused by go routine leaks keeping memory
+alive which should have been garbage collected.</p>
+<p>See all active go routines using</p>
+<pre><code>curl http://localhost:5572/debug/pprof/goroutine?debug=1
+</code></pre>
+<p>Or go to http://localhost:5572/debug/pprof/goroutine?debug=1 in your browser.</p>
+<h3 id="other-profiles-to-look-at"><a class="header-link" href="https://rclone.org/rc/#other-profiles-to-look-at"><i class="fa fa-link"></i></a>Other profiles to look at</h3>
+<p>You can see a summary of profiles available at http://localhost:5572/debug/pprof/</p>
+<p>Here is how to use some of them:</p>
+<ul>
+<li>Memory: <code>go tool pprof http://localhost:5572/debug/pprof/heap</code></li>
+<li>Go routines: <code>curl http://localhost:5572/debug/pprof/goroutine?debug=1</code></li>
+<li>30-second CPU profile: <code>go tool pprof http://localhost:5572/debug/pprof/profile</code></li>
+<li>5-second execution trace: <code>wget http://localhost:5572/debug/pprof/trace?seconds=5</code></li>
+<li>Goroutine blocking profile
+<ul>
+<li>Enable first with: <code>rclone rc debug/set-block-profile-rate rate=1</code> (<a href="https://rclone.org/rc/#debug-set-block-profile-rate">docs</a>)</li>
+<li><code>go tool pprof http://localhost:5572/debug/pprof/block</code></li>
+</ul>
+</li>
+<li>Contended mutexes:
+<ul>
+<li>Enable first with: <code>rclone rc debug/set-mutex-profile-fraction rate=1</code> (<a href="https://rclone.org/rc/#debug-set-mutex-profile-fraction">docs</a>)</li>
+<li><code>go tool pprof http://localhost:5572/debug/pprof/mutex</code></li>
+</ul>
+</li>
+</ul>
+<p>See the <a href="https://golang.org/pkg/net/http/pprof/">net/http/pprof docs</a>
+for more info on how to use the profiling and for a general overview
+see <a href="https://blog.golang.org/profiling-go-programs">the Go team's blog post on profiling go programs</a>.</p>
+<p>The profiling hook is <a href="https://stackoverflow.com/q/26545159/164234">zero overhead unless it is used</a>.</p>
+
+
+        </div>
+        <div class="col-md-3">
+          
+<div class="card">
+  <div class="card-header" style="padding: 5px 10px;">
+    Contents
+  </div>
+  <div class="card-body">
+    <nav id="TableOfContents">
+  <ul>
+    <li><a href="https://rclone.org/rc/#supported-parameters">Supported parameters</a>
+      <ul>
+        <li><a href="https://rclone.org/rc/#rc">--rc</a></li>
+        <li><a href="https://rclone.org/rc/#rc-addr-ip">--rc-addr=IP</a></li>
+        <li><a href="https://rclone.org/rc/#rc-cert-key">--rc-cert=KEY</a></li>
+        <li><a href="https://rclone.org/rc/#rc-client-ca-path">--rc-client-ca=PATH</a></li>
+        <li><a href="https://rclone.org/rc/#rc-htpasswd-path">--rc-htpasswd=PATH</a></li>
+        <li><a href="https://rclone.org/rc/#rc-key-path">--rc-key=PATH</a></li>
+        <li><a href="https://rclone.org/rc/#rc-max-header-bytes-value">--rc-max-header-bytes=VALUE</a></li>
+        <li><a href="https://rclone.org/rc/#rc-min-tls-version-value">--rc-min-tls-version=VALUE</a></li>
+        <li><a href="https://rclone.org/rc/#rc-user-value">--rc-user=VALUE</a></li>
+        <li><a href="https://rclone.org/rc/#rc-pass-value">--rc-pass=VALUE</a></li>
+        <li><a href="https://rclone.org/rc/#rc-realm-value">--rc-realm=VALUE</a></li>
+        <li><a href="https://rclone.org/rc/#rc-server-read-timeout-duration">--rc-server-read-timeout=DURATION</a></li>
+        <li><a href="https://rclone.org/rc/#rc-server-write-timeout-duration">--rc-server-write-timeout=DURATION</a></li>
+        <li><a href="https://rclone.org/rc/#rc-serve">--rc-serve</a></li>
+        <li><a href="https://rclone.org/rc/#rc-serve-no-modtime">--rc-serve-no-modtime</a></li>
+        <li><a href="https://rclone.org/rc/#rc-files-path-to-directory">--rc-files /path/to/directory</a></li>
+        <li><a href="https://rclone.org/rc/#rc-enable-metrics">--rc-enable-metrics</a></li>
+        <li><a href="https://rclone.org/rc/#rc-web-gui">--rc-web-gui</a></li>
+        <li><a href="https://rclone.org/rc/#rc-allow-origin">--rc-allow-origin</a></li>
+        <li><a href="https://rclone.org/rc/#rc-web-fetch-url">--rc-web-fetch-url</a></li>
+        <li><a href="https://rclone.org/rc/#rc-web-gui-update">--rc-web-gui-update</a></li>
+        <li><a href="https://rclone.org/rc/#rc-web-gui-force-update">--rc-web-gui-force-update</a></li>
+        <li><a href="https://rclone.org/rc/#rc-web-gui-no-open-browser">--rc-web-gui-no-open-browser</a></li>
+        <li><a href="https://rclone.org/rc/#rc-job-expire-duration-duration">--rc-job-expire-duration=DURATION</a></li>
+        <li><a href="https://rclone.org/rc/#rc-job-expire-interval-duration">--rc-job-expire-interval=DURATION</a></li>
+        <li><a href="https://rclone.org/rc/#rc-no-auth">--rc-no-auth</a></li>
+        <li><a href="https://rclone.org/rc/#rc-baseurl">--rc-baseurl</a></li>
+        <li><a href="https://rclone.org/rc/#rc-template">--rc-template</a></li>
+      </ul>
+    </li>
+    <li><a href="https://rclone.org/rc/#api-rc">Accessing the remote control via the rclone rc command</a></li>
+    <li><a href="https://rclone.org/rc/#json-input">JSON input</a></li>
+    <li><a href="https://rclone.org/rc/#special-parameters">Special parameters</a>
+      <ul>
+        <li><a href="https://rclone.org/rc/#running-asynchronous-jobs-with-async-true">Running asynchronous jobs with _async = true</a></li>
+        <li><a href="https://rclone.org/rc/#setting-config-flags-with-config">Setting config flags with _config</a></li>
+        <li><a href="https://rclone.org/rc/#setting-filter-flags-with-filter">Setting filter flags with _filter</a></li>
+        <li><a href="https://rclone.org/rc/#assigning-operations-to-groups-with-group-value">Assigning operations to groups with _group = value</a></li>
+      </ul>
+    </li>
+    <li><a href="https://rclone.org/rc/#data-types">Data types</a>
+      <ul>
+        <li><a href="https://rclone.org/rc/#option-blocks">Option blocks</a></li>
+      </ul>
+    </li>
+    <li><a href="https://rclone.org/rc/#specifying-remotes-to-work-on">Specifying remotes to work on</a></li>
+    <li><a href="https://rclone.org/rc/#supported-commands">Supported commands</a>
+      <ul>
+        <li><a href="https://rclone.org/rc/#backend-command">backend/command: Runs a backend command.</a></li>
+        <li><a href="https://rclone.org/rc/#cache-expire">cache/expire: Purge a remote from cache</a></li>
+        <li><a href="https://rclone.org/rc/#cache-fetch">cache/fetch: Fetch file chunks</a></li>
+        <li><a href="https://rclone.org/rc/#cache-stats">cache/stats: Get cache stats</a></li>
+        <li><a href="https://rclone.org/rc/#config-create">config/create: create the config for a remote.</a></li>
+        <li><a href="https://rclone.org/rc/#config-delete">config/delete: Delete a remote in the config file.</a></li>
+        <li><a href="https://rclone.org/rc/#config-dump">config/dump: Dumps the config file.</a></li>
+        <li><a href="https://rclone.org/rc/#config-get">config/get: Get a remote in the config file.</a></li>
+        <li><a href="https://rclone.org/rc/#config-listremotes">config/listremotes: Lists the remotes in the config file and defined in environment variables.</a></li>
+        <li><a href="https://rclone.org/rc/#config-password">config/password: password the config for a remote.</a></li>
+        <li><a href="https://rclone.org/rc/#config-paths">config/paths: Reads the config file path and other important paths.</a></li>
+        <li><a href="https://rclone.org/rc/#config-providers">config/providers: Shows how providers are configured in the config file.</a></li>
+        <li><a href="https://rclone.org/rc/#config-setpath">config/setpath: Set the path of the config file</a></li>
+        <li><a href="https://rclone.org/rc/#config-update">config/update: update the config for a remote.</a></li>
+        <li><a href="https://rclone.org/rc/#core-bwlimit">core/bwlimit: Set the bandwidth limit.</a></li>
+        <li><a href="https://rclone.org/rc/#core-command">core/command: Run a rclone terminal command over rc.</a></li>
+        <li><a href="https://rclone.org/rc/#core-du">core/du: Returns disk usage of a locally attached disk.</a></li>
+        <li><a href="https://rclone.org/rc/#core-gc">core/gc: Runs a garbage collection.</a></li>
+        <li><a href="https://rclone.org/rc/#core-group-list">core/group-list: Returns list of stats.</a></li>
+        <li><a href="https://rclone.org/rc/#core-memstats">core/memstats: Returns the memory statistics</a></li>
+        <li><a href="https://rclone.org/rc/#core-obscure">core/obscure: Obscures a string passed in.</a></li>
+        <li><a href="https://rclone.org/rc/#core-pid">core/pid: Return PID of current process</a></li>
+        <li><a href="https://rclone.org/rc/#core-quit">core/quit: Terminates the app.</a></li>
+        <li><a href="https://rclone.org/rc/#core-stats">core/stats: Returns stats about current transfers.</a></li>
+        <li><a href="https://rclone.org/rc/#core-stats-delete">core/stats-delete: Delete stats group.</a></li>
+        <li><a href="https://rclone.org/rc/#core-stats-reset">core/stats-reset: Reset stats.</a></li>
+        <li><a href="https://rclone.org/rc/#core-transferred">core/transferred: Returns stats about completed transfers.</a></li>
+        <li><a href="https://rclone.org/rc/#core-version">core/version: Shows the current version of rclone and the go runtime.</a></li>
+        <li><a href="https://rclone.org/rc/#debug-set-block-profile-rate">debug/set-block-profile-rate: Set runtime.SetBlockProfileRate for blocking profiling.</a></li>
+        <li><a href="https://rclone.org/rc/#debug-set-gc-percent">debug/set-gc-percent: Call runtime/debug.SetGCPercent for setting the garbage collection target percentage.</a></li>
+        <li><a href="https://rclone.org/rc/#debug-set-mutex-profile-fraction">debug/set-mutex-profile-fraction: Set runtime.SetMutexProfileFraction for mutex profiling.</a></li>
+        <li><a href="https://rclone.org/rc/#debug-set-soft-memory-limit">debug/set-soft-memory-limit: Call runtime/debug.SetMemoryLimit for setting a soft memory limit for the runtime.</a></li>
+        <li><a href="https://rclone.org/rc/#fscache-clear">fscache/clear: Clear the Fs cache.</a></li>
+        <li><a href="https://rclone.org/rc/#fscache-entries">fscache/entries: Returns the number of entries in the fs cache.</a></li>
+        <li><a href="https://rclone.org/rc/#job-list">job/list: Lists the IDs of the running jobs</a></li>
+        <li><a href="https://rclone.org/rc/#job-status">job/status: Reads the status of the job ID</a></li>
+        <li><a href="https://rclone.org/rc/#job-stop">job/stop: Stop the running job</a></li>
+        <li><a href="https://rclone.org/rc/#job-stopgroup">job/stopgroup: Stop all running jobs in a group</a></li>
+        <li><a href="https://rclone.org/rc/#mount-listmounts">mount/listmounts: Show current mount points</a></li>
+        <li><a href="https://rclone.org/rc/#mount-mount">mount/mount: Create a new mount point</a></li>
+        <li><a href="https://rclone.org/rc/#mount-types">mount/types: Show all possible mount types</a></li>
+        <li><a href="https://rclone.org/rc/#mount-unmount">mount/unmount: Unmount selected active mount</a></li>
+        <li><a href="https://rclone.org/rc/#mount-unmountall">mount/unmountall: Unmount all active mounts</a></li>
+        <li><a href="https://rclone.org/rc/#operations-about">operations/about: Return the space used on the remote</a></li>
+        <li><a href="https://rclone.org/rc/#operations-check">operations/check: check the source and destination are the same</a></li>
+        <li><a href="https://rclone.org/rc/#operations-cleanup">operations/cleanup: Remove trashed files in the remote or path</a></li>
+        <li><a href="https://rclone.org/rc/#operations-copyfile">operations/copyfile: Copy a file from source remote to destination remote</a></li>
+        <li><a href="https://rclone.org/rc/#operations-copyurl">operations/copyurl: Copy the URL to the object</a></li>
+        <li><a href="https://rclone.org/rc/#operations-delete">operations/delete: Remove files in the path</a></li>
+        <li><a href="https://rclone.org/rc/#operations-deletefile">operations/deletefile: Remove the single file pointed to</a></li>
+        <li><a href="https://rclone.org/rc/#operations-fsinfo">operations/fsinfo: Return information about the remote</a></li>
+        <li><a href="https://rclone.org/rc/#operations-hashsum">operations/hashsum: Produces a hashsum file for all the objects in the path.</a></li>
+        <li><a href="https://rclone.org/rc/#operations-list">operations/list: List the given remote and path in JSON format</a></li>
+        <li><a href="https://rclone.org/rc/#operations-mkdir">operations/mkdir: Make a destination directory or container</a></li>
+        <li><a href="https://rclone.org/rc/#operations-movefile">operations/movefile: Move a file from source remote to destination remote</a></li>
+        <li><a href="https://rclone.org/rc/#operations-publiclink">operations/publiclink: Create or retrieve a public link to the given file or folder.</a></li>
+        <li><a href="https://rclone.org/rc/#operations-purge">operations/purge: Remove a directory or container and all of its contents</a></li>
+        <li><a href="https://rclone.org/rc/#operations-rmdir">operations/rmdir: Remove an empty directory or container</a></li>
+        <li><a href="https://rclone.org/rc/#operations-rmdirs">operations/rmdirs: Remove all the empty directories in the path</a></li>
+        <li><a href="https://rclone.org/rc/#operations-settier">operations/settier: Changes storage tier or class on all files in the path</a></li>
+        <li><a href="https://rclone.org/rc/#operations-settierfile">operations/settierfile: Changes storage tier or class on the single file pointed to</a></li>
+        <li><a href="https://rclone.org/rc/#operations-size">operations/size: Count the number of bytes and files in remote</a></li>
+        <li><a href="https://rclone.org/rc/#operations-stat">operations/stat: Give information about the supplied file or directory</a></li>
+        <li><a href="https://rclone.org/rc/#operations-uploadfile">operations/uploadfile: Upload file using multiform/form-data</a></li>
+        <li><a href="https://rclone.org/rc/#options-blocks">options/blocks: List all the option blocks</a></li>
+        <li><a href="https://rclone.org/rc/#options-get">options/get: Get all the global options</a></li>
+        <li><a href="https://rclone.org/rc/#options-info">options/info: Get info about all the global options</a></li>
+        <li><a href="https://rclone.org/rc/#options-local">options/local: Get the currently active config for this call</a></li>
+        <li><a href="https://rclone.org/rc/#options-set">options/set: Set an option</a></li>
+        <li><a href="https://rclone.org/rc/#pluginsctl-addPlugin">pluginsctl/addPlugin: Add a plugin using url</a></li>
+        <li><a href="https://rclone.org/rc/#pluginsctl-getPluginsForType">pluginsctl/getPluginsForType: Get plugins with type criteria</a></li>
+        <li><a href="https://rclone.org/rc/#pluginsctl-listPlugins">pluginsctl/listPlugins: Get the list of currently loaded plugins</a></li>
+        <li><a href="https://rclone.org/rc/#pluginsctl-listTestPlugins">pluginsctl/listTestPlugins: Show currently loaded test plugins</a></li>
+        <li><a href="https://rclone.org/rc/#pluginsctl-removePlugin">pluginsctl/removePlugin: Remove a loaded plugin</a></li>
+        <li><a href="https://rclone.org/rc/#pluginsctl-removeTestPlugin">pluginsctl/removeTestPlugin: Remove  a test plugin</a></li>
+        <li><a href="https://rclone.org/rc/#rc-error">rc/error: This returns an error</a></li>
+        <li><a href="https://rclone.org/rc/#rc-list">rc/list: List all the registered remote control commands</a></li>
+        <li><a href="https://rclone.org/rc/#rc-noop">rc/noop: Echo the input to the output parameters</a></li>
+        <li><a href="https://rclone.org/rc/#rc-noopauth">rc/noopauth: Echo the input to the output parameters requiring auth</a></li>
+        <li><a href="https://rclone.org/rc/#sync-bisync">sync/bisync: Perform bidirectional synchronization between two paths.</a></li>
+        <li><a href="https://rclone.org/rc/#sync-copy">sync/copy: copy a directory from source remote to destination remote</a></li>
+        <li><a href="https://rclone.org/rc/#sync-move">sync/move: move a directory from source remote to destination remote</a></li>
+        <li><a href="https://rclone.org/rc/#sync-sync">sync/sync: sync a directory from source remote to destination remote</a></li>
+        <li><a href="https://rclone.org/rc/#vfs-forget">vfs/forget: Forget files or directories in the directory cache.</a></li>
+        <li><a href="https://rclone.org/rc/#vfs-list">vfs/list: List active VFSes.</a></li>
+        <li><a href="https://rclone.org/rc/#vfs-poll-interval">vfs/poll-interval: Get the status or update the value of the poll-interval option.</a></li>
+        <li><a href="https://rclone.org/rc/#vfs-queue">vfs/queue: Queue info for a VFS.</a></li>
+        <li><a href="https://rclone.org/rc/#vfs-queue-set-expiry">vfs/queue-set-expiry: Set the expiry time for an item queued for upload.</a></li>
+        <li><a href="https://rclone.org/rc/#vfs-refresh">vfs/refresh: Refresh the directory cache.</a></li>
+        <li><a href="https://rclone.org/rc/#vfs-stats">vfs/stats: Stats for a VFS.</a></li>
+      </ul>
+    </li>
+    <li><a href="https://rclone.org/rc/#api-http">Accessing the remote control via HTTP</a>
+      <ul>
+        <li><a href="https://rclone.org/rc/#error-returns">Error returns</a></li>
+        <li><a href="https://rclone.org/rc/#cors">CORS</a></li>
+        <li><a href="https://rclone.org/rc/#using-post-with-url-parameters-only">Using POST with URL parameters only</a></li>
+        <li><a href="https://rclone.org/rc/#using-post-with-a-form">Using POST with a form</a></li>
+        <li><a href="https://rclone.org/rc/#using-post-with-a-json-blob">Using POST with a JSON blob</a></li>
+      </ul>
+    </li>
+    <li><a href="https://rclone.org/rc/#debugging-rclone-with-pprof">Debugging rclone with pprof</a>
+      <ul>
+        <li><a href="https://rclone.org/rc/#debugging-memory-use">Debugging memory use</a></li>
+        <li><a href="https://rclone.org/rc/#debugging-go-routine-leaks">Debugging go routine leaks</a></li>
+        <li><a href="https://rclone.org/rc/#other-profiles-to-look-at">Other profiles to look at</a></li>
+      </ul>
+    </li>
+  </ul>
+</nav>
+    <p></p>
+  </div>
+</div>
+
+
+<div class="card">
+  <div class="card-header" style="padding: 5px 15px;">
+    Gold Sponsor
+  </div>
+  <div class="card-body">
+    <a href="https://www.idrive.com/e2/?refer=rclone" target="_blank" rel="noopener" title="Visit rclone&#39;s sponsor IDrive e2"><img src="./Remote Control _ API_files/idrive_e2.svg" viewbox="0 0 60 55"></a><br>
+  </div>
+</div>
+
+
+
+<div class="card">
+  <div class="card-header" style="padding: 5px 10px;">
+    Share and Enjoy
+  </div>
+  <div class="card-body">
+    <p class="menu">
+      
+      <i class="fab fa-twitter fa-fw" aria-hidden="true"></i> <a href="https://twitter.com/intent/tweet/?text=rclone%20-%20rsync%20for%20cloud%20storage%20from%20%40njcw&amp;url=https%3A%2F%2Frclone.org" target="_blank" rel="noopener" aria-label="Share on Twitter">Twitter</a><br>
+      <i class="fab fa-facebook fa-fw" aria-hidden="true"></i> <a href="https://facebook.com/sharer/sharer.php?u=https%3A%2F%2Frclone.org" target="_blank" rel="noopener" aria-label="Share on Facebook">Facebook</a><br>
+      <i class="fab fa-reddit fa-fw" aria-hidden="true"></i> <a href="https://reddit.com/submit/?url=https%3A%2F%2Frclone.org&amp;resubmit=true&amp;title=rclone%20-%20rsync%20for%20cloud%20storage" target="_blank" rel="noopener" aria-label="Share on Reddit">Reddit</a><br>
+      <iframe src="./Remote Control _ API_files/github-btn.html" allowtransparency="true" frameborder="0" scrolling="no" width="120" height="20"></iframe>
+    </p>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-header" style="padding: 5px 15px;">
+    Links
+  </div>
+  <div class="card-body">
+    <p class="menu">
+      <i class="fa fa-comments fa-fw" aria-hidden="true"></i> <a href="https://forum.rclone.org/">Rclone forum</a><br>
+      <i class="fab fa-github fa-fw" aria-hidden="true"></i> <a href="https://github.com/rclone/rclone">GitHub project</a><br>
+      <i class="fa fa-book fa-fw" aria-hidden="true"></i> <a href="https://github.com/rclone/rclone/wiki">Rclone Wiki</a><br>
+      <i class="fa fa-heart heart fa-fw" aria-hidden="true"></i> <a href="https://rclone.org/sponsor/">Sponsor</a><br>
+      <i class="fab fa-twitter fa-fw" aria-hidden="true"></i> <a href="https://twitter.com/njcw">@njcw</a>
+    </p>
+  </div>
+</div>
+
+        </div>
+      </div>
+      
+      <footer>
+        <div class="row">
+          <div class="col-md-10">
+            <div class="card card-body">
+              <p style="font-size: 90%;">
+                © <a href="https://www.craig-wood.com/nick/" target="blank">Nick Craig-Wood</a> 2014-2025<br>
+                Source file <a href="https://github.com/rclone/rclone/blob/master/docs/content/rc.md" target="blank">rc.md</a>
+                last updated <a href="https://github.com/rclone/rclone/commit/6cbb9fd7cbfb500517c2c78e7833e0b4ef4fd952">2025-01-15</a><br>
+                Uploaded with <a href="https://rclone.org/">rclone</a>.
+                Built with <a href="https://gohugo.io/" target="blank">Hugo</a>.
+                Logo by <a href="https://twitter.com/andy23" target="blank">@andy23</a>.
+                Served by <a href="https://caddyserver.com/" target="blank">Caddy</a>.
+                Hosted at <a href="https://hetzner.cloud/?ref=62WcciVmlzHt" title="Get €⁠20 in cloud credits" target="blank">Hetzner Cloud</a>.
+              </p>
+            </div>
+          </div>
+        </div>
+      </footer>
+      
+    </div>
+    <script src="./Remote Control _ API_files/jquery.min.3.5.1.js"></script>
+    <script src="./Remote Control _ API_files/popper.min.1.16.0.js"></script>
+    <script src="./Remote Control _ API_files/bootstrap.min.4.4.1.js"></script>
+    <script src="./Remote Control _ API_files/custom.js"></script>
+    <script src="./Remote Control _ API_files/search.js"></script>
+  
+
+</body></html>

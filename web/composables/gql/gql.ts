@@ -23,6 +23,24 @@ type Documents = {
     "\n  mutation UpdateApiKey($input: UpdateApiKeyInput!) {\n    apiKey {\n      update(input: $input) {\n        ...ApiKeyWithKey\n      }\n    }\n  }\n": typeof types.UpdateApiKeyDocument,
     "\n  mutation DeleteApiKey($input: DeleteApiKeyInput!) {\n    apiKey {\n      delete(input: $input)\n    }\n  }\n": typeof types.DeleteApiKeyDocument,
     "\n  query ApiKeyMeta {\n    apiKeyPossibleRoles\n    apiKeyPossiblePermissions {\n      resource\n      actions\n    }\n  }\n": typeof types.ApiKeyMetaDocument,
+    "\n  fragment JobStatus on JobStatus {\n    id\n    externalJobId\n    name\n    status\n    progress\n    message\n    error\n    startTime\n    endTime\n    bytesTransferred\n    totalBytes\n    speed\n    elapsedTime\n    eta\n    formattedBytesTransferred\n    formattedSpeed\n    formattedElapsedTime\n    formattedEta\n  }\n": typeof types.JobStatusFragmentDoc,
+    "\n  fragment SourceConfig on SourceConfigUnion {\n    ... on ZfsPreprocessConfig {\n      label\n      poolName\n      datasetName\n      snapshotPrefix\n      cleanupSnapshots\n      retainSnapshots\n    }\n    ... on FlashPreprocessConfig {\n      label\n      flashPath\n      includeGitHistory\n      additionalPaths\n    }\n    ... on ScriptPreprocessConfig {\n      label\n      scriptPath\n      scriptArgs\n      workingDirectory\n      environment\n      outputPath\n    }\n    ... on RawBackupConfig {\n      label\n      sourcePath\n      excludePatterns\n      includePatterns\n    }\n  }\n": typeof types.SourceConfigFragmentDoc,
+    "\n  fragment DestinationConfig on DestinationConfigUnion {\n    ... on RcloneDestinationConfig {\n      type\n      remoteName\n      destinationPath\n      rcloneOptions\n    }\n  }\n": typeof types.DestinationConfigFragmentDoc,
+    "\n  fragment BackupJobConfig on BackupJobConfig {\n    id\n    name\n    sourceType\n    destinationType\n    schedule\n    enabled\n    sourceConfig {\n      ...SourceConfig\n    }\n    destinationConfig {\n      ...DestinationConfig\n    }\n    createdAt\n    updatedAt\n    lastRunAt\n    lastRunStatus\n  }\n": typeof types.BackupJobConfigFragmentDoc,
+    "\n  fragment BackupJobConfigWithCurrentJob on BackupJobConfig {\n    ...BackupJobConfig\n    currentJob {\n      ...JobStatus\n    }\n  }\n": typeof types.BackupJobConfigWithCurrentJobFragmentDoc,
+    "\n  query BackupJobs {\n    backup {\n      id\n      jobs {\n        ...JobStatus\n      }\n    }\n  }\n": typeof types.BackupJobsDocument,
+    "\n  query BackupJob($id: PrefixedID!) {\n    backupJob(id: $id) {\n      ...JobStatus\n    }\n  }\n": typeof types.BackupJobDocument,
+    "\n  query BackupJobConfig($id: PrefixedID!) {\n    backupJobConfig(id: $id) {\n      ...BackupJobConfigWithCurrentJob\n    }\n  }\n": typeof types.BackupJobConfigDocument,
+    "\n  query BackupJobConfigs {\n    backup {\n      id\n      configs {\n        ...BackupJobConfigWithCurrentJob\n      }\n    }\n  }\n": typeof types.BackupJobConfigsDocument,
+    "\n  query BackupJobConfigsList {\n    backup {\n      id\n      configs {\n        id\n        name\n      }\n    }\n  }\n": typeof types.BackupJobConfigsListDocument,
+    "\n  query BackupJobConfigForm($input: BackupJobConfigFormInput) {\n    backupJobConfigForm(input: $input) {\n      id\n      dataSchema\n      uiSchema\n    }\n  }\n": typeof types.BackupJobConfigFormDocument,
+    "\n  mutation CreateBackupJobConfig($input: CreateBackupJobConfigInput!) {\n    backup {\n      createBackupJobConfig(input: $input) {\n        ...BackupJobConfig\n      }\n    }\n  }\n": typeof types.CreateBackupJobConfigDocument,
+    "\n  mutation UpdateBackupJobConfig($id: PrefixedID!, $input: UpdateBackupJobConfigInput!) {\n    backup {\n      updateBackupJobConfig(id: $id, input: $input) {\n        ...BackupJobConfig\n      }\n    }\n  }\n": typeof types.UpdateBackupJobConfigDocument,
+    "\n  mutation DeleteBackupJobConfig($id: PrefixedID!) {\n    backup {\n      deleteBackupJobConfig(id: $id)\n    }\n  }\n": typeof types.DeleteBackupJobConfigDocument,
+    "\n  mutation ToggleBackupJobConfig($id: PrefixedID!) {\n    backup {\n      toggleJobConfig(id: $id) {\n        ...BackupJobConfig\n      }\n    }\n  }\n": typeof types.ToggleBackupJobConfigDocument,
+    "\n  mutation TriggerBackupJob($id: PrefixedID!) {\n    backup {\n      triggerJob(id: $id) {\n        jobId\n      }\n    }\n  }\n": typeof types.TriggerBackupJobDocument,
+    "\n  mutation StopBackupJob($id: PrefixedID!) {\n    backup {\n      stopBackupJob(id: $id) {\n        status\n        jobId\n      }\n    }\n  }\n": typeof types.StopBackupJobDocument,
+    "\n  mutation InitiateBackup($input: InitiateBackupInput!) {\n    backup {\n      initiateBackup(input: $input) {\n        status\n        jobId\n      }\n    }\n  }\n": typeof types.InitiateBackupDocument,
     "\n  query Unified {\n    settings {\n      unified {\n        id\n        dataSchema\n        uiSchema\n        values\n      }\n    }\n  }\n": typeof types.UnifiedDocument,
     "\n  mutation UpdateConnectSettings($input: JSON!) {\n    updateSettings(input: $input) {\n      restartRequired\n      values\n    }\n  }\n": typeof types.UpdateConnectSettingsDocument,
     "\n  query LogFiles {\n    logFiles {\n      name\n      path\n      size\n      modifiedAt\n    }\n  }\n": typeof types.LogFilesDocument,
@@ -61,6 +79,24 @@ const documents: Documents = {
     "\n  mutation UpdateApiKey($input: UpdateApiKeyInput!) {\n    apiKey {\n      update(input: $input) {\n        ...ApiKeyWithKey\n      }\n    }\n  }\n": types.UpdateApiKeyDocument,
     "\n  mutation DeleteApiKey($input: DeleteApiKeyInput!) {\n    apiKey {\n      delete(input: $input)\n    }\n  }\n": types.DeleteApiKeyDocument,
     "\n  query ApiKeyMeta {\n    apiKeyPossibleRoles\n    apiKeyPossiblePermissions {\n      resource\n      actions\n    }\n  }\n": types.ApiKeyMetaDocument,
+    "\n  fragment JobStatus on JobStatus {\n    id\n    externalJobId\n    name\n    status\n    progress\n    message\n    error\n    startTime\n    endTime\n    bytesTransferred\n    totalBytes\n    speed\n    elapsedTime\n    eta\n    formattedBytesTransferred\n    formattedSpeed\n    formattedElapsedTime\n    formattedEta\n  }\n": types.JobStatusFragmentDoc,
+    "\n  fragment SourceConfig on SourceConfigUnion {\n    ... on ZfsPreprocessConfig {\n      label\n      poolName\n      datasetName\n      snapshotPrefix\n      cleanupSnapshots\n      retainSnapshots\n    }\n    ... on FlashPreprocessConfig {\n      label\n      flashPath\n      includeGitHistory\n      additionalPaths\n    }\n    ... on ScriptPreprocessConfig {\n      label\n      scriptPath\n      scriptArgs\n      workingDirectory\n      environment\n      outputPath\n    }\n    ... on RawBackupConfig {\n      label\n      sourcePath\n      excludePatterns\n      includePatterns\n    }\n  }\n": types.SourceConfigFragmentDoc,
+    "\n  fragment DestinationConfig on DestinationConfigUnion {\n    ... on RcloneDestinationConfig {\n      type\n      remoteName\n      destinationPath\n      rcloneOptions\n    }\n  }\n": types.DestinationConfigFragmentDoc,
+    "\n  fragment BackupJobConfig on BackupJobConfig {\n    id\n    name\n    sourceType\n    destinationType\n    schedule\n    enabled\n    sourceConfig {\n      ...SourceConfig\n    }\n    destinationConfig {\n      ...DestinationConfig\n    }\n    createdAt\n    updatedAt\n    lastRunAt\n    lastRunStatus\n  }\n": types.BackupJobConfigFragmentDoc,
+    "\n  fragment BackupJobConfigWithCurrentJob on BackupJobConfig {\n    ...BackupJobConfig\n    currentJob {\n      ...JobStatus\n    }\n  }\n": types.BackupJobConfigWithCurrentJobFragmentDoc,
+    "\n  query BackupJobs {\n    backup {\n      id\n      jobs {\n        ...JobStatus\n      }\n    }\n  }\n": types.BackupJobsDocument,
+    "\n  query BackupJob($id: PrefixedID!) {\n    backupJob(id: $id) {\n      ...JobStatus\n    }\n  }\n": types.BackupJobDocument,
+    "\n  query BackupJobConfig($id: PrefixedID!) {\n    backupJobConfig(id: $id) {\n      ...BackupJobConfigWithCurrentJob\n    }\n  }\n": types.BackupJobConfigDocument,
+    "\n  query BackupJobConfigs {\n    backup {\n      id\n      configs {\n        ...BackupJobConfigWithCurrentJob\n      }\n    }\n  }\n": types.BackupJobConfigsDocument,
+    "\n  query BackupJobConfigsList {\n    backup {\n      id\n      configs {\n        id\n        name\n      }\n    }\n  }\n": types.BackupJobConfigsListDocument,
+    "\n  query BackupJobConfigForm($input: BackupJobConfigFormInput) {\n    backupJobConfigForm(input: $input) {\n      id\n      dataSchema\n      uiSchema\n    }\n  }\n": types.BackupJobConfigFormDocument,
+    "\n  mutation CreateBackupJobConfig($input: CreateBackupJobConfigInput!) {\n    backup {\n      createBackupJobConfig(input: $input) {\n        ...BackupJobConfig\n      }\n    }\n  }\n": types.CreateBackupJobConfigDocument,
+    "\n  mutation UpdateBackupJobConfig($id: PrefixedID!, $input: UpdateBackupJobConfigInput!) {\n    backup {\n      updateBackupJobConfig(id: $id, input: $input) {\n        ...BackupJobConfig\n      }\n    }\n  }\n": types.UpdateBackupJobConfigDocument,
+    "\n  mutation DeleteBackupJobConfig($id: PrefixedID!) {\n    backup {\n      deleteBackupJobConfig(id: $id)\n    }\n  }\n": types.DeleteBackupJobConfigDocument,
+    "\n  mutation ToggleBackupJobConfig($id: PrefixedID!) {\n    backup {\n      toggleJobConfig(id: $id) {\n        ...BackupJobConfig\n      }\n    }\n  }\n": types.ToggleBackupJobConfigDocument,
+    "\n  mutation TriggerBackupJob($id: PrefixedID!) {\n    backup {\n      triggerJob(id: $id) {\n        jobId\n      }\n    }\n  }\n": types.TriggerBackupJobDocument,
+    "\n  mutation StopBackupJob($id: PrefixedID!) {\n    backup {\n      stopBackupJob(id: $id) {\n        status\n        jobId\n      }\n    }\n  }\n": types.StopBackupJobDocument,
+    "\n  mutation InitiateBackup($input: InitiateBackupInput!) {\n    backup {\n      initiateBackup(input: $input) {\n        status\n        jobId\n      }\n    }\n  }\n": types.InitiateBackupDocument,
     "\n  query Unified {\n    settings {\n      unified {\n        id\n        dataSchema\n        uiSchema\n        values\n      }\n    }\n  }\n": types.UnifiedDocument,
     "\n  mutation UpdateConnectSettings($input: JSON!) {\n    updateSettings(input: $input) {\n      restartRequired\n      values\n    }\n  }\n": types.UpdateConnectSettingsDocument,
     "\n  query LogFiles {\n    logFiles {\n      name\n      path\n      size\n      modifiedAt\n    }\n  }\n": types.LogFilesDocument,
@@ -140,6 +176,78 @@ export function graphql(source: "\n  mutation DeleteApiKey($input: DeleteApiKeyI
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
 export function graphql(source: "\n  query ApiKeyMeta {\n    apiKeyPossibleRoles\n    apiKeyPossiblePermissions {\n      resource\n      actions\n    }\n  }\n"): (typeof documents)["\n  query ApiKeyMeta {\n    apiKeyPossibleRoles\n    apiKeyPossiblePermissions {\n      resource\n      actions\n    }\n  }\n"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "\n  fragment JobStatus on JobStatus {\n    id\n    externalJobId\n    name\n    status\n    progress\n    message\n    error\n    startTime\n    endTime\n    bytesTransferred\n    totalBytes\n    speed\n    elapsedTime\n    eta\n    formattedBytesTransferred\n    formattedSpeed\n    formattedElapsedTime\n    formattedEta\n  }\n"): (typeof documents)["\n  fragment JobStatus on JobStatus {\n    id\n    externalJobId\n    name\n    status\n    progress\n    message\n    error\n    startTime\n    endTime\n    bytesTransferred\n    totalBytes\n    speed\n    elapsedTime\n    eta\n    formattedBytesTransferred\n    formattedSpeed\n    formattedElapsedTime\n    formattedEta\n  }\n"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "\n  fragment SourceConfig on SourceConfigUnion {\n    ... on ZfsPreprocessConfig {\n      label\n      poolName\n      datasetName\n      snapshotPrefix\n      cleanupSnapshots\n      retainSnapshots\n    }\n    ... on FlashPreprocessConfig {\n      label\n      flashPath\n      includeGitHistory\n      additionalPaths\n    }\n    ... on ScriptPreprocessConfig {\n      label\n      scriptPath\n      scriptArgs\n      workingDirectory\n      environment\n      outputPath\n    }\n    ... on RawBackupConfig {\n      label\n      sourcePath\n      excludePatterns\n      includePatterns\n    }\n  }\n"): (typeof documents)["\n  fragment SourceConfig on SourceConfigUnion {\n    ... on ZfsPreprocessConfig {\n      label\n      poolName\n      datasetName\n      snapshotPrefix\n      cleanupSnapshots\n      retainSnapshots\n    }\n    ... on FlashPreprocessConfig {\n      label\n      flashPath\n      includeGitHistory\n      additionalPaths\n    }\n    ... on ScriptPreprocessConfig {\n      label\n      scriptPath\n      scriptArgs\n      workingDirectory\n      environment\n      outputPath\n    }\n    ... on RawBackupConfig {\n      label\n      sourcePath\n      excludePatterns\n      includePatterns\n    }\n  }\n"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "\n  fragment DestinationConfig on DestinationConfigUnion {\n    ... on RcloneDestinationConfig {\n      type\n      remoteName\n      destinationPath\n      rcloneOptions\n    }\n  }\n"): (typeof documents)["\n  fragment DestinationConfig on DestinationConfigUnion {\n    ... on RcloneDestinationConfig {\n      type\n      remoteName\n      destinationPath\n      rcloneOptions\n    }\n  }\n"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "\n  fragment BackupJobConfig on BackupJobConfig {\n    id\n    name\n    sourceType\n    destinationType\n    schedule\n    enabled\n    sourceConfig {\n      ...SourceConfig\n    }\n    destinationConfig {\n      ...DestinationConfig\n    }\n    createdAt\n    updatedAt\n    lastRunAt\n    lastRunStatus\n  }\n"): (typeof documents)["\n  fragment BackupJobConfig on BackupJobConfig {\n    id\n    name\n    sourceType\n    destinationType\n    schedule\n    enabled\n    sourceConfig {\n      ...SourceConfig\n    }\n    destinationConfig {\n      ...DestinationConfig\n    }\n    createdAt\n    updatedAt\n    lastRunAt\n    lastRunStatus\n  }\n"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "\n  fragment BackupJobConfigWithCurrentJob on BackupJobConfig {\n    ...BackupJobConfig\n    currentJob {\n      ...JobStatus\n    }\n  }\n"): (typeof documents)["\n  fragment BackupJobConfigWithCurrentJob on BackupJobConfig {\n    ...BackupJobConfig\n    currentJob {\n      ...JobStatus\n    }\n  }\n"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "\n  query BackupJobs {\n    backup {\n      id\n      jobs {\n        ...JobStatus\n      }\n    }\n  }\n"): (typeof documents)["\n  query BackupJobs {\n    backup {\n      id\n      jobs {\n        ...JobStatus\n      }\n    }\n  }\n"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "\n  query BackupJob($id: PrefixedID!) {\n    backupJob(id: $id) {\n      ...JobStatus\n    }\n  }\n"): (typeof documents)["\n  query BackupJob($id: PrefixedID!) {\n    backupJob(id: $id) {\n      ...JobStatus\n    }\n  }\n"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "\n  query BackupJobConfig($id: PrefixedID!) {\n    backupJobConfig(id: $id) {\n      ...BackupJobConfigWithCurrentJob\n    }\n  }\n"): (typeof documents)["\n  query BackupJobConfig($id: PrefixedID!) {\n    backupJobConfig(id: $id) {\n      ...BackupJobConfigWithCurrentJob\n    }\n  }\n"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "\n  query BackupJobConfigs {\n    backup {\n      id\n      configs {\n        ...BackupJobConfigWithCurrentJob\n      }\n    }\n  }\n"): (typeof documents)["\n  query BackupJobConfigs {\n    backup {\n      id\n      configs {\n        ...BackupJobConfigWithCurrentJob\n      }\n    }\n  }\n"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "\n  query BackupJobConfigsList {\n    backup {\n      id\n      configs {\n        id\n        name\n      }\n    }\n  }\n"): (typeof documents)["\n  query BackupJobConfigsList {\n    backup {\n      id\n      configs {\n        id\n        name\n      }\n    }\n  }\n"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "\n  query BackupJobConfigForm($input: BackupJobConfigFormInput) {\n    backupJobConfigForm(input: $input) {\n      id\n      dataSchema\n      uiSchema\n    }\n  }\n"): (typeof documents)["\n  query BackupJobConfigForm($input: BackupJobConfigFormInput) {\n    backupJobConfigForm(input: $input) {\n      id\n      dataSchema\n      uiSchema\n    }\n  }\n"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "\n  mutation CreateBackupJobConfig($input: CreateBackupJobConfigInput!) {\n    backup {\n      createBackupJobConfig(input: $input) {\n        ...BackupJobConfig\n      }\n    }\n  }\n"): (typeof documents)["\n  mutation CreateBackupJobConfig($input: CreateBackupJobConfigInput!) {\n    backup {\n      createBackupJobConfig(input: $input) {\n        ...BackupJobConfig\n      }\n    }\n  }\n"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "\n  mutation UpdateBackupJobConfig($id: PrefixedID!, $input: UpdateBackupJobConfigInput!) {\n    backup {\n      updateBackupJobConfig(id: $id, input: $input) {\n        ...BackupJobConfig\n      }\n    }\n  }\n"): (typeof documents)["\n  mutation UpdateBackupJobConfig($id: PrefixedID!, $input: UpdateBackupJobConfigInput!) {\n    backup {\n      updateBackupJobConfig(id: $id, input: $input) {\n        ...BackupJobConfig\n      }\n    }\n  }\n"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "\n  mutation DeleteBackupJobConfig($id: PrefixedID!) {\n    backup {\n      deleteBackupJobConfig(id: $id)\n    }\n  }\n"): (typeof documents)["\n  mutation DeleteBackupJobConfig($id: PrefixedID!) {\n    backup {\n      deleteBackupJobConfig(id: $id)\n    }\n  }\n"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "\n  mutation ToggleBackupJobConfig($id: PrefixedID!) {\n    backup {\n      toggleJobConfig(id: $id) {\n        ...BackupJobConfig\n      }\n    }\n  }\n"): (typeof documents)["\n  mutation ToggleBackupJobConfig($id: PrefixedID!) {\n    backup {\n      toggleJobConfig(id: $id) {\n        ...BackupJobConfig\n      }\n    }\n  }\n"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "\n  mutation TriggerBackupJob($id: PrefixedID!) {\n    backup {\n      triggerJob(id: $id) {\n        jobId\n      }\n    }\n  }\n"): (typeof documents)["\n  mutation TriggerBackupJob($id: PrefixedID!) {\n    backup {\n      triggerJob(id: $id) {\n        jobId\n      }\n    }\n  }\n"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "\n  mutation StopBackupJob($id: PrefixedID!) {\n    backup {\n      stopBackupJob(id: $id) {\n        status\n        jobId\n      }\n    }\n  }\n"): (typeof documents)["\n  mutation StopBackupJob($id: PrefixedID!) {\n    backup {\n      stopBackupJob(id: $id) {\n        status\n        jobId\n      }\n    }\n  }\n"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "\n  mutation InitiateBackup($input: InitiateBackupInput!) {\n    backup {\n      initiateBackup(input: $input) {\n        status\n        jobId\n      }\n    }\n  }\n"): (typeof documents)["\n  mutation InitiateBackup($input: InitiateBackupInput!) {\n    backup {\n      initiateBackup(input: $input) {\n        status\n        jobId\n      }\n    }\n  }\n"];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */

@@ -10,7 +10,7 @@ import RCloneConfig from './RCloneConfig.vue';
 import RemoteItem from './RemoteItem.vue';
 
 interface FormState {
-  configStep: number;
+  configStep: { current: number; total: number };
   showAdvanced: boolean;
   name: string;
   type: string;
@@ -63,7 +63,7 @@ const openCryptModal = (remote: { name: string, type: string }) => {
   const entropy = Math.random().toString(36).substring(2, 8);
   selectedRemote.value = remote;
   initialFormState.value = {
-    configStep: 0,
+    configStep: { current: 0, total: 0 },
     showAdvanced: false,
     name: `${remote.name}-crypt-${entropy}`,
     type: 'crypt',

@@ -1,34 +1,16 @@
-<template>
-  <div class="text-black bg-white dark:text-white dark:bg-black">
-    <ClientOnly>
-      <div class="flex flex-row items-center justify-center gap-6 p-6 bg-white dark:bg-zinc-800">
-        <template v-for="route in routes" :key="route.path">
-          <NuxtLink
-            :to="route.path"
-            class="underline hover:no-underline focus:no-underline"
-            active-class="text-orange"
-          >
-            {{ formatRouteName(route.name) }}
-          </NuxtLink>
-        </template>
-        <ModalsCe />
-      </div>
-      <slot />
-    </ClientOnly>
-  </div>
-</template>
-
 <script setup>
-import { computed, watch } from 'vue';
-import { useRouter } from 'vue-router';
-import { storeToRefs } from 'pinia';
-import { ClientOnly, NuxtLink } from '#components';
+import { NuxtLink } from '#components';
+import { watch } from 'vue';
 import ModalsCe from '~/components/Modals.ce.vue';
 import { useThemeStore } from '~/store/theme';
+import { storeToRefs } from 'pinia';
+import { useFetch } from '#imports';
 
-const router = useRouter();
 const themeStore = useThemeStore();
 const { theme } = storeToRefs(themeStore);
+
+// Get routes from Nuxt's server-side route generation
+const { data: routes } = await useFetch('/api/routes');
 
 // Watch for theme changes (satisfies linter by using theme)
 watch(
@@ -40,13 +22,6 @@ watch(
   { immediate: true }
 );
 
-const routes = computed(() => {
-  return router
-    .getRoutes()
-    .filter((route) => !route.path.includes(':') && route.path !== '/404' && route.name)
-    .sort((a, b) => a.path.localeCompare(b.path));
-});
-
 function formatRouteName(name) {
   if (!name) return 'Home';
   // Convert route names like "web-components" to "Web Components"
@@ -57,6 +32,22 @@ function formatRouteName(name) {
     .join(' ');
 }
 </script>
+
+<template>
+  <div class="text-black bg-white dark:text-white dark:bg-black">
+    <ClientOnly>
+      <div class="flex flex-row items-center justify-center gap-6 p-6 bg-white dark:bg-zinc-800">
+        <template v-for="route in routes" :key="route.path">
+          <NuxtLink :to="route.path" class="underline hover:no-underline focus:no-underline" active-class="text-orange">
+            {{ formatRouteName(route.name) }}
+          </NuxtLink>
+        </template>
+        <ModalsCe />
+      </div>
+      <slot />
+    </ClientOnly>
+  </div>
+</template>
 
 <style lang="postcss">
 /* Import theme styles */
