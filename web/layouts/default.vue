@@ -1,8 +1,10 @@
 <script setup>
 import { NuxtLink } from '#components';
-
+import { watch } from 'vue';
 import ModalsCe from '~/components/Modals.ce.vue';
 import { useThemeStore } from '~/store/theme';
+import { storeToRefs } from 'pinia';
+import { useFetch } from '#imports';
 
 const themeStore = useThemeStore();
 const { theme } = storeToRefs(themeStore);
@@ -36,11 +38,7 @@ function formatRouteName(name) {
     <ClientOnly>
       <div class="flex flex-row items-center justify-center gap-6 p-6 bg-white dark:bg-zinc-800">
         <template v-for="route in routes" :key="route.path">
-          <NuxtLink
-            :to="route.path"
-            class="underline hover:no-underline focus:no-underline"
-            active-class="text-orange"
-          >
+          <NuxtLink :to="route.path" class="underline hover:no-underline focus:no-underline" active-class="text-orange">
             {{ formatRouteName(route.name) }}
           </NuxtLink>
         </template>

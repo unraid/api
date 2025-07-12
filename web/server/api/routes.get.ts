@@ -1,5 +1,6 @@
 import { readdir } from 'fs/promises';
 import { join } from 'path';
+import { defineEventHandler } from 'h3';
 
 export default defineEventHandler(async (_event) => {
   try {
