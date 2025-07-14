@@ -1,9 +1,6 @@
-#!/bin/sh
+#!/bin/bash
 # Unraid API Installation Verification Script
 # Checks that critical files are installed correctly
-
-# Exit on errors
-set -e
 
 echo "Performing comprehensive installation verification..."
 
@@ -171,7 +168,7 @@ if [ $TOTAL_ERRORS -eq 0 ]; then
 else
   printf 'Found %d total errors.\n' "$TOTAL_ERRORS"
   echo "Installation verification completed with issues."
-  echo "See log file for details: /var/log/unraid-api/dynamix-unraid-install.log"
+  echo "Please review the errors above and contact support if needed."
   # We don't exit with error as this is just a verification script
   exit 0
 fi 
