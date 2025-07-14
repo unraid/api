@@ -331,8 +331,7 @@ exit 0
       <![CDATA[
 SCRIPTS_DIR="/usr/local/share/dynamix.unraid.net/install/scripts"
 # Log file for debugging
-LOGFILE="/var/log/unraid-api/dynamix-unraid-install.log"
-mkdir -p "$(dirname "$LOGFILE")"
+mkdir -p "/var/log/unraid-api"
 
 echo "Starting Unraid Connect installation..."
 
@@ -344,26 +343,26 @@ CFG_NEW=/boot/config/plugins/dynamix.my.servers
 # Setup the API (but don't start it yet)
 if [ -x "$SCRIPTS_DIR/setup_api.sh" ]; then
   echo "Setting up Unraid API..."
-  echo "Running setup_api.sh" >> "$LOGFILE"
-  # Capture output and add to log file
-  setup_output=$("$SCRIPTS_DIR/setup_api.sh")
-  echo "$setup_output" >> "$LOGFILE"
+  echo "Running setup_api.sh"
+  # Run and show output to user
+  "$SCRIPTS_DIR/setup_api.sh"
 else
-  echo "ERROR: setup_api.sh not found or not executable" >> "$LOGFILE"
+  echo "ERROR: setup_api.sh not found or not executable"
+  echo "ERROR: setup_api.sh not found or not executable"
 fi
 
 # Run post-installation verification
 if [ -x "$SCRIPTS_DIR/verify_install.sh" ]; then
   echo "Running post-installation verification..."
-  echo "Running verify_install.sh" >> "$LOGFILE"
-  # Capture output and add to log file
-  verify_output=$("$SCRIPTS_DIR/verify_install.sh")
-  echo "$verify_output" >> "$LOGFILE"
+  echo "Running verify_install.sh"
+  # Run and show output to user
+  "$SCRIPTS_DIR/verify_install.sh"
 else
-  echo "ERROR: verify_install.sh not found or not executable" >> "$LOGFILE"
+  echo "ERROR: verify_install.sh not found or not executable"
+  echo "ERROR: verify_install.sh not found or not executable"
 fi
 
-echo "Installation completed at $(date)" >> "$LOGFILE"
+echo "Installation completed at $(date)"
       ]]>
     </INLINE>
   </FILE>
@@ -377,6 +376,19 @@ echo "Installation completed at $(date)" >> "$LOGFILE"
 # Must run after package installation because the package provides an update api config file,
 # which determines the current API version and vendor archive to keep.
 /etc/rc.d/rc.unraid-api cleanup-dependencies
+
+echo "Starting Unraid API service"
+echo "DEBUG: Checking PATH: $PATH"
+echo "DEBUG: Checking if unraid-api files exist:"
+ls -la /usr/local/unraid-api/dist/
+echo "DEBUG: Checking symlink:"
+ls -la /usr/local/bin/unraid-api
+echo "DEBUG: Checking Node.js version:"
+node --version
+echo "DEBUG: Checking if cli.js is executable:"
+ls -la /usr/local/unraid-api/dist/cli.js
+echo "DEBUG: Attempting to run unraid-api directly:"
+/usr/local/unraid-api/dist/cli.js version || echo "Direct execution failed"
 
 echo "If no additional messages appear within 30 seconds, it is safe to refresh the page."
 /etc/rc.d/rc.unraid-api plugins add unraid-api-plugin-connect -b --no-restart
