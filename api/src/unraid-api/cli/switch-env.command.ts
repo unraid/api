@@ -1,9 +1,10 @@
-import { copyFile, readFile } from 'fs/promises';
+import { copyFile } from 'fs/promises';
 import { join } from 'path';
 
 import { Command, CommandRunner, Option } from 'nest-commander';
 
 import { fileExistsSync } from '@app/core/utils/files/file-exists.js';
+import { ENVIRONMENT } from '@app/environment.js';
 import { getters } from '@app/store/index.js';
 import { LogService } from '@app/unraid-api/cli/log.service.js';
 import { RestartCommand } from '@app/unraid-api/cli/restart.command.js';
@@ -35,48 +36,14 @@ export class SwitchEnvCommand extends CommandRunner {
         super();
     }
 
-    private async getCurrentEnvironmentFromEnvFile(
-        envFilePath: string
-    ): Promise<'production' | 'staging'> {
-        try {
-            const envFileContent = await readFile(envFilePath, 'utf-8');
-            this.logger.debug(`Checking ${envFilePath} for current environment indicators`);
-
-            // Look for common environment indicators in the .env file
-            // This is a heuristic approach since .env files don't always have explicit env markers
-            if (envFileContent.includes('NODE_ENV=staging') || envFileContent.includes('staging')) {
-                return 'staging';
-            }
-            if (
-                envFileContent.includes('NODE_ENV=production') ||
-                envFileContent.includes('production')
-            ) {
-                return 'production';
-            }
-
-            // Default to production if we can't determine
-            return 'production';
-        } catch (error) {
-            this.logger.debug(`Could not read ${envFilePath}, defaulting to production`);
-            return 'production';
-        }
-    }
-
-    private switchToOtherEnv(environment: 'production' | 'staging'): 'production' | 'staging' {
-        if (environment === 'production') {
-            return 'staging';
-        }
-        return 'production';
-    }
-
     async run(_, options: SwitchEnvOptions): Promise<void> {
         const paths = getters.paths();
         const basePath = paths['unraid-api-base'];
         const currentEnvPath = join(basePath, '.env');
 
         // Determine target environment
-        const currentEnv = await this.getCurrentEnvironmentFromEnvFile(currentEnvPath);
-        const targetEnv = options.environment ?? this.switchToOtherEnv(currentEnv);
+        const currentEnv = ENVIRONMENT;
+        const targetEnv = options.environment ?? 'production';
 
         this.logger.info(`Switching environment from ${currentEnv} to ${targetEnv}`);
 
