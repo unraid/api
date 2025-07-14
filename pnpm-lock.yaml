@@ -930,7 +930,7 @@ importers:
         specifier: 18.0.1
         version: 18.0.1
       jiti:
-        specifier: ^2.4.2
+        specifier: 2.4.2
         version: 2.4.2
       postcss:
         specifier: 8.5.6
@@ -984,7 +984,7 @@ importers:
         specifier: 3.0.1
         version: 3.0.1(typescript@5.8.3)
       wrangler:
-        specifier: ^4.0.0
+        specifier: 4.24.3
         version: 4.24.3
     optionalDependencies:
       '@rollup/rollup-linux-x64-gnu':
@@ -16532,7 +16532,7 @@ snapshots:
 
   '@poppinss/dumper@0.6.3':
     dependencies:
-      '@poppinss/colors': 4.1.4
+      '@poppinss/colors': 4.1.5
       '@sindresorhus/is': 7.0.2
       supports-color: 10.0.0
 
