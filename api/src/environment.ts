@@ -67,6 +67,7 @@ export const getPackageJsonDependencies = (): string[] | undefined => {
 
 export const API_VERSION = process.env.npm_package_version ?? getPackageJson().version;
 
+/** Controls how the app is built/run (i.e. in terms of optimization) */
 export const NODE_ENV =
     (process.env.NODE_ENV as 'development' | 'test' | 'staging' | 'production') ?? 'production';
 export const environment = {
@@ -76,6 +77,7 @@ export const CHOKIDAR_USEPOLLING = process.env.CHOKIDAR_USEPOLLING === 'true';
 export const IS_DOCKER = process.env.IS_DOCKER === 'true';
 export const DEBUG = process.env.DEBUG === 'true';
 export const INTROSPECTION = process.env.INTROSPECTION === 'true';
+/** Determines the app-level & business logic environment (i.e. what data & infrastructure is used) */
 export const ENVIRONMENT = process.env.ENVIRONMENT
     ? (process.env.ENVIRONMENT as 'production' | 'staging' | 'development')
     : 'production';

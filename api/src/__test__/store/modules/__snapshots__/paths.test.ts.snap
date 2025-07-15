@@ -17,7 +17,6 @@ exports[`Returns paths 1`] = `
   "myservers-base",
   "myservers-config",
   "myservers-config-states",
-  "myservers-env",
   "myservers-keepalive",
   "keyfile-base",
   "machine-id",

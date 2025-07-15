@@ -49,7 +49,6 @@ const initialState = {
         resolvePath(process.env.PATHS_STATES ?? ('/usr/local/emhttp/state/' as const)),
         'myservers.cfg' as const
     ),
-    'myservers-env': '/boot/config/plugins/dynamix.my.servers/env' as const,
     'myservers-keepalive':
         process.env.PATHS_MY_SERVERS_FB ??
         ('/boot/config/plugins/dynamix.my.servers/fb_keepalive' as const),
