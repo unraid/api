@@ -18,10 +18,9 @@ $cli = php_sapi_name()=='cli';
 
 $docroot ??= ($_SERVER['DOCUMENT_ROOT'] ?: '/usr/local/emhttp');
 require_once "$docroot/webGui/include/Wrappers.php";
+require_once "$docroot/plugins/dynamix.my.servers/include/connect-config.php";
 
-$myservers_flash_cfg_path='/boot/config/plugins/dynamix.my.servers/myservers.cfg';
-$myservers = file_exists($myservers_flash_cfg_path) ? @parse_ini_file($myservers_flash_cfg_path,true) : [];
-$isRegistered = !empty($myservers['remote']['username']);
+$isRegistered = ConnectConfig::isUserSignedIn();
 
 // Read connection status from the new API status file
 $statusFilePath = '/var/local/emhttp/connectStatus.json';
