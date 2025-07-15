@@ -1,0 +1,9 @@
+# Justfile for unraid-shared
+
+# Default recipe to run when just is called without arguments
+default:
+    @just --list
+
+# Watch for changes in src files and run clean + build
+watch:
+    watchexec -r -e ts,tsx -w src -- pnpm build
