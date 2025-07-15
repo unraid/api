@@ -1,5 +1,23 @@
 # Changelog
 
+## [4.10.0](https://github.com/unraid/api/compare/v4.9.5...v4.10.0) (2025-07-15)
+
+
+### Features
+
+* trial extension allowed within 5 days of expiration ([#1490](https://github.com/unraid/api/issues/1490)) ([f34a33b](https://github.com/unraid/api/commit/f34a33bc9f1a7e135d453d9d31888789bfc3f878))
+
+
+### Bug Fixes
+
+* delay `nginx:reload` file mod effect by 10 seconds ([#1512](https://github.com/unraid/api/issues/1512)) ([af33e99](https://github.com/unraid/api/commit/af33e999a0480a77e3e6b2aa833b17b38b835656))
+* **deps:** update all non-major dependencies ([#1489](https://github.com/unraid/api/issues/1489)) ([53b05eb](https://github.com/unraid/api/commit/53b05ebe5e2050cb0916fcd65e8d41370aee0624))
+* ensure no crash if emhttp state configs are missing ([#1514](https://github.com/unraid/api/issues/1514)) ([1a7d35d](https://github.com/unraid/api/commit/1a7d35d3f6972fd8aff58c17b2b0fb79725e660e))
+* **my.servers:** improve DNS resolution robustness for backup server ([#1518](https://github.com/unraid/api/issues/1518)) ([eecd9b1](https://github.com/unraid/api/commit/eecd9b1017a63651d1dc782feaa224111cdee8b6))
+* over-eager cloud query from web components ([#1506](https://github.com/unraid/api/issues/1506)) ([074370c](https://github.com/unraid/api/commit/074370c42cdecc4dbc58193ff518aa25735c56b3))
+* replace myservers.cfg reads in UpdateFlashBackup.php ([#1517](https://github.com/unraid/api/issues/1517)) ([441e180](https://github.com/unraid/api/commit/441e1805c108a6c1cd35ee093246b975a03f8474))
+* rm short-circuit in `rc.unraid-api` if plugin config dir is absent ([#1515](https://github.com/unraid/api/issues/1515)) ([29dcb7d](https://github.com/unraid/api/commit/29dcb7d0f088937cefc5158055f48680e86e5c36))
+
 ## [4.9.5](https://github.com/unraid/api/compare/v4.9.4...v4.9.5) (2025-07-10)
 
 
