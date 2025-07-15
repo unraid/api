@@ -166,22 +166,23 @@ _enabled() {
   return 1
 }
 _connected() {
-  CFG=$API_CONFIG_HOME/connect.json
-  [[ ! -f "${CFG}" ]] && return 1
+  local connect_config username status_cfg connection_status
+  connect_config=$API_CONFIG_HOME/connect.json
+  [[ ! -f "${connect_config}" ]] && return 1
 
-  username=$(jq -r '.username // empty' "${CFG}" 2>/dev/null)
+  # is the user signed in?
+  username=$(jq -r '.username // empty' "${connect_config}" 2>/dev/null)
   if [ -z "${username}" ]; then
     return 1
   fi
-  # the minigraph status is no longer synced to the connect config file
-  # to avoid a false negative, we'll omit this check for now.
-  #
-  # shellcheck disable=SC1090
-  # source <(sed -nr '/\[connectionStatus\]/,/\[/{/minigraph/p}' "${CFG}" 2>/dev/null)
-  # # ensure connected
-  # if [[ -z "${minigraph}" || "${minigraph}" != "CONNECTED" ]]; then
-  #   return 1
-  # fi
+  # are we connected to mothership?
+  status_cfg="/var/local/emhttp/connectStatus.json"
+  [[ ! -f "${status_cfg}" ]] && return 1
+  connection_status=$(jq -r '.connectionStatus // empty' "${status_cfg}" 2>/dev/null)
+  if [[ "${connection_status}" != "CONNECTED" ]]; then
+    return 1
+  fi
+  
   return 0
 }
 _haserror() {
