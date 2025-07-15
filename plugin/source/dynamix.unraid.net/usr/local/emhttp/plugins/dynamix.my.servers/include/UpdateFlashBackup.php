@@ -594,9 +594,31 @@ set_git_config('user.email', 'gitbot@unraid.net');
 set_git_config('user.name', 'gitbot');
 
 // ensure dns can resolve backup.unraid.net
-if (! checkdnsrr("backup.unraid.net","A") ) {
+$dnsResolved = false;
+
+// Try multiple DNS resolution methods
+if (function_exists('dns_get_record')) {
+    $dnsRecords = dns_get_record("backup.unraid.net", DNS_A);
+    $dnsResolved = !empty($dnsRecords);
+}
+
+// Fallback to gethostbyname if dns_get_record fails
+if (!$dnsResolved) {
+    $ip = gethostbyname("backup.unraid.net");
+    $dnsResolved = ($ip !== "backup.unraid.net");
+}
+
+// Final fallback to system nslookup
+if (!$dnsResolved) {
+    $output = [];
+    $return_var = 0;
+    exec('nslookup backup.unraid.net 2>/dev/null', $output, $return_var);
+    $dnsResolved = ($return_var === 0 && !empty($output));
+}
+
+if (!$dnsResolved) {
   $arrState['loading'] = '';
-  $arrState['error'] = 'DNS is unable to resolve backup.unraid.net';
+  $arrState['error'] = 'DNS resolution failed for backup.unraid.net - PHP DNS functions (checkdnsrr, dns_get_record, gethostbyname) and system nslookup all failed to resolve the hostname. This indicates a DNS configuration issue on your Unraid server. Check your DNS settings in Settings > Network Settings.';
   response_complete(406, array('error' => $arrState['error']));
 }
 
