@@ -5,14 +5,14 @@ import { type UISchemaElement } from '@jsonforms/core';
 import { rendererProps, useJsonFormsRenderer } from '@jsonforms/vue';
 import { computed, ref, watchEffect } from 'vue';
 
-// Define a type for our specific Label UI Schema
-interface LabelUISchema extends UISchemaElement {
+// Define a type for our specific Label UI Schema using intersection type
+type LabelUISchema = UISchemaElement & {
   text?: string;
   options?: {
     description?: string;
     format?: 'title' | 'heading' | 'documentation' | string; // Add other formats as needed
   };
-}
+};
 
 const props = defineProps(rendererProps<UISchemaElement>());
 

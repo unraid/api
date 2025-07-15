@@ -10,6 +10,7 @@ import { cleanupTxzFiles } from "./utils/cleanup";
 import { apiDir } from "./utils/paths";
 import { getVendorBundleName, getVendorFullPath } from "./build-vendor-store";
 import { getAssetUrl } from "./utils/bucket-urls";
+import { ensureRclone } from "./utils/rclone-helper";
 
 
 // Recursively search for manifest files

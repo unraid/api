@@ -18,6 +18,8 @@ export type Scalars = {
   BigInt: { input: any; output: any; }
   /** A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date-time format. */
   DateTime: { input: string; output: string; }
+  /** A date-time string at UTC, such as 2007-12-03T10:15:30Z, compliant with the `date-time` format outlined in section 5.6 of the RFC 3339 profile of the ISO 8601 standard for representation of dates and times using the Gregorian calendar.This scalar is serialized to a string in ISO 8601 format and parsed from a string in ISO 8601 format. */
+  DateTimeISO: { input: any; output: any; }
   /** The `JSON` scalar type represents JSON values as specified by [ECMA-404](http://www.ecma-international.org/publications/files/ECMA-ST/ECMA-404.pdf). */
   JSON: { input: any; output: any; }
   /** A field whose value is a valid TCP port within the range of 0 to 65535: https://en.wikipedia.org/wiki/Transmission_Control_Protocol#TCP_ports */
@@ -385,6 +387,140 @@ export enum AuthPossession {
   OWN_ANY = 'OWN_ANY'
 }
 
+export type Backup = Node & {
+  __typename?: 'Backup';
+  configs: Array<BackupJobConfig>;
+  id: Scalars['PrefixedID']['output'];
+  jobs: Array<JobStatus>;
+  /** Get the status for the backup service */
+  status: BackupStatus;
+};
+
+export type BackupJobConfig = Node & {
+  __typename?: 'BackupJobConfig';
+  /** When this config was created */
+  createdAt: Scalars['DateTimeISO']['output'];
+  /** Get the current running job for this backup config */
+  currentJob?: Maybe<JobStatus>;
+  /** Current running job ID for this config */
+  currentJobId?: Maybe<Scalars['String']['output']>;
+  /** Destination configuration for this backup job */
+  destinationConfig: DestinationConfigUnion;
+  /** Type of the backup destination */
+  destinationType: DestinationType;
+  /** Whether this backup job is enabled */
+  enabled: Scalars['Boolean']['output'];
+  id: Scalars['PrefixedID']['output'];
+  /** Last time this job ran */
+  lastRunAt?: Maybe<Scalars['DateTimeISO']['output']>;
+  /** Status of last run */
+  lastRunStatus?: Maybe<Scalars['String']['output']>;
+  /** Human-readable name for this backup job */
+  name: Scalars['String']['output'];
+  /** Cron schedule expression (e.g., "0 2 * * *" for daily at 2AM) */
+  schedule: Scalars['String']['output'];
+  /** Source configuration for this backup job */
+  sourceConfig: SourceConfigUnion;
+  /** Type of the backup source */
+  sourceType: SourceType;
+  /** When this config was last updated */
+  updatedAt: Scalars['DateTimeISO']['output'];
+};
+
+export type BackupJobConfigForm = {
+  __typename?: 'BackupJobConfigForm';
+  dataSchema: Scalars['JSON']['output'];
+  id: Scalars['PrefixedID']['output'];
+  uiSchema: Scalars['JSON']['output'];
+};
+
+export type BackupJobConfigFormInput = {
+  showAdvanced?: Scalars['Boolean']['input'];
+};
+
+/** Status of a backup job */
+export enum BackupJobStatus {
+  CANCELLED = 'CANCELLED',
+  COMPLETED = 'COMPLETED',
+  FAILED = 'FAILED',
+  QUEUED = 'QUEUED',
+  RUNNING = 'RUNNING'
+}
+
+/** Backup related mutations */
+export type BackupMutations = {
+  __typename?: 'BackupMutations';
+  /** Create a new backup job configuration */
+  createBackupJobConfig: BackupJobConfig;
+  /** Delete a backup job configuration */
+  deleteBackupJobConfig: Scalars['Boolean']['output'];
+  /** Forget all finished backup jobs to clean up the job list */
+  forgetFinishedBackupJobs: BackupStatus;
+  /** Initiates a backup using a configured remote. */
+  initiateBackup: BackupStatus;
+  /** Stop all running backup jobs */
+  stopAllBackupJobs: BackupStatus;
+  /** Stop a specific backup job */
+  stopBackupJob: BackupStatus;
+  /** Toggle a backup job configuration enabled/disabled */
+  toggleJobConfig?: Maybe<BackupJobConfig>;
+  /** Manually trigger a backup job using existing configuration */
+  triggerJob: BackupStatus;
+  /** Update a backup job configuration */
+  updateBackupJobConfig?: Maybe<BackupJobConfig>;
+};
+
+
+/** Backup related mutations */
+export type BackupMutationsCreateBackupJobConfigArgs = {
+  input: CreateBackupJobConfigInput;
+};
+
+
+/** Backup related mutations */
+export type BackupMutationsDeleteBackupJobConfigArgs = {
+  id: Scalars['PrefixedID']['input'];
+};
+
+
+/** Backup related mutations */
+export type BackupMutationsInitiateBackupArgs = {
+  input: InitiateBackupInput;
+};
+
+
+/** Backup related mutations */
+export type BackupMutationsStopBackupJobArgs = {
+  id: Scalars['PrefixedID']['input'];
+};
+
+
+/** Backup related mutations */
+export type BackupMutationsToggleJobConfigArgs = {
+  id: Scalars['PrefixedID']['input'];
+};
+
+
+/** Backup related mutations */
+export type BackupMutationsTriggerJobArgs = {
+  id: Scalars['PrefixedID']['input'];
+};
+
+
+/** Backup related mutations */
+export type BackupMutationsUpdateBackupJobConfigArgs = {
+  id: Scalars['PrefixedID']['input'];
+  input: UpdateBackupJobConfigInput;
+};
+
+export type BackupStatus = {
+  __typename?: 'BackupStatus';
+  /** Job ID if available, can be used to check job status. */
+  jobId?: Maybe<Scalars['String']['output']>;
+  /** Status message indicating the outcome of the backup initiation. */
+  status: Scalars['String']['output'];
+};
+
 export type Baseboard = Node & {
   __typename?: 'Baseboard';
   assetTag?: Maybe<Scalars['String']['output']>;
@@ -534,6 +670,16 @@ export type CreateApiKeyInput = {
   roles?: InputMaybe<Array<Role>>;
 };
 
+export type CreateBackupJobConfigInput = {
+  /** Destination configuration for this backup job */
+  destinationConfig?: InputMaybe<DestinationConfigInput>;
+  enabled?: Scalars['Boolean']['input'];
+  name: Scalars['String']['input'];
+  schedule?: InputMaybe<Scalars['String']['input']>;
+  /** Source configuration for this backup job */
+  sourceConfig?: InputMaybe<SourceConfigInput>;
+};
+
 export type CreateRCloneRemoteInput = {
   name: Scalars['String']['input'];
   parameters: Scalars['JSON']['input'];
@@ -554,6 +700,17 @@ export type DeleteApiKeyInput = {
 export type DeleteRCloneRemoteInput = {
   name: Scalars['String']['input'];
 };
+
+export type DestinationConfigInput = {
+  rcloneConfig?: InputMaybe<RcloneDestinationConfigInput>;
+  type: DestinationType;
+};
+
+export type DestinationConfigUnion = RcloneDestinationConfig;
+
+export enum DestinationType {
+  RCLONE = 'RCLONE'
+}
 
 export type Devices = Node & {
   __typename?: 'Devices';
@@ -769,12 +926,23 @@ export type Flash = Node & {
   vendor: Scalars['String']['output'];
 };
 
-export type FlashBackupStatus = {
-  __typename?: 'FlashBackupStatus';
-  /** Job ID if available, can be used to check job status. */
-  jobId?: Maybe<Scalars['String']['output']>;
-  /** Status message indicating the outcome of the backup initiation. */
-  status: Scalars['String']['output'];
+export type FlashPreprocessConfig = {
+  __typename?: 'FlashPreprocessConfig';
+  additionalPaths?: Maybe<Array<Scalars['String']['output']>>;
+  flashPath: Scalars['String']['output'];
+  includeGitHistory: Scalars['Boolean']['output'];
+  label: Scalars['String']['output'];
+};
+
+export type FlashPreprocessConfigInput = {
+  /** Additional paths to include in backup */
+  additionalPaths?: InputMaybe<Array<Scalars['String']['input']>>;
+  /** Flash drive mount path */
+  flashPath?: Scalars['String']['input'];
+  /** Whether to include git history */
+  includeGitHistory?: Scalars['Boolean']['input'];
+  /** Human-readable label for this source configuration */
+  label?: InputMaybe<Scalars['String']['input']>;
 };
 
 export type Gpu = Node & {
@@ -853,15 +1021,48 @@ export type InfoMemory = Node & {
   used: Scalars['BigInt']['output'];
 };
 
-export type InitiateFlashBackupInput = {
+export type InitiateBackupInput = {
   /** Destination path on the remote. */
   destinationPath: Scalars['String']['input'];
   /** Additional options for the backup operation, such as --dry-run or --transfers. */
   options?: InputMaybe<Scalars['JSON']['input']>;
   /** The name of the remote configuration to use for the backup. */
   remoteName: Scalars['String']['input'];
-  /** Source path to backup (typically the flash drive). */
+  /** Source path to backup. */
   sourcePath: Scalars['String']['input'];
+};
+
+export type JobStatus = Node & {
+  __typename?: 'JobStatus';
+  /** Bytes transferred */
+  bytesTransferred?: Maybe<Scalars['Int']['output']>;
+  /** Elapsed time in seconds */
+  elapsedTime?: Maybe<Scalars['Int']['output']>;
+  endTime?: Maybe<Scalars['DateTime']['output']>;
+  error?: Maybe<Scalars['String']['output']>;
+  /** Estimated time to completion in seconds */
+  eta?: Maybe<Scalars['Int']['output']>;
+  /** External job ID from the job execution system */
+  externalJobId: Scalars['String']['output'];
+  /** Human-readable bytes transferred */
+  formattedBytesTransferred?: Maybe<Scalars['String']['output']>;
+  /** Human-readable elapsed time */
+  formattedElapsedTime?: Maybe<Scalars['String']['output']>;
+  /** Human-readable ETA */
+  formattedEta?: Maybe<Scalars['String']['output']>;
+  /** Human-readable transfer speed */
+  formattedSpeed?: Maybe<Scalars['String']['output']>;
+  id: Scalars['PrefixedID']['output'];
+  message?: Maybe<Scalars['String']['output']>;
+  name: Scalars['String']['output'];
+  /** Progress percentage (0-100) */
+  progress: Scalars['Int']['output'];
+  /** Transfer speed in bytes per second */
+  speed?: Maybe<Scalars['Int']['output']>;
+  startTime: Scalars['DateTime']['output'];
+  status: BackupJobStatus;
+  /** Total bytes to transfer */
+  totalBytes?: Maybe<Scalars['Int']['output']>;
 };
 
 export type KeyFile = {
@@ -936,6 +1137,7 @@ export type Mutation = {
   archiveNotification: Notification;
   archiveNotifications: NotificationOverview;
   array: ArrayMutations;
+  backup: BackupMutations;
   connectSignIn: Scalars['Boolean']['output'];
   connectSignOut: Scalars['Boolean']['output'];
   /** Creates a new notification record */
@@ -945,8 +1147,6 @@ export type Mutation = {
   deleteNotification: NotificationOverview;
   docker: DockerMutations;
   enableDynamicRemoteAccess: Scalars['Boolean']['output'];
-  /** Initiates a flash drive backup using a configured remote. */
-  initiateFlashBackup: FlashBackupStatus;
   parityCheck: ParityCheckMutations;
   rclone: RCloneMutations;
   /** Reads each notification to recompute & update the overview. */
@@ -1002,11 +1202,6 @@ export type MutationDeleteNotificationArgs = {
 
 export type MutationEnableDynamicRemoteAccessArgs = {
   input: EnableDynamicRemoteAccessInput;
-};
-
-
-export type MutationInitiateFlashBackupArgs = {
-  input: InitiateFlashBackupInput;
 };
 
 
@@ -1247,6 +1442,7 @@ export type PublicPartnerInfo = {
 
 export type Query = {
   __typename?: 'Query';
+  allBackupJobStatuses: Array<JobStatus>;
   apiKey?: Maybe<ApiKey>;
   /** All possible permissions for API keys */
   apiKeyPossiblePermissions: Array<Permission>;
@@ -1254,6 +1450,15 @@ export type Query = {
   apiKeyPossibleRoles: Array<Role>;
   apiKeys: Array<ApiKey>;
   array: UnraidArray;
+  /** Get backup service information */
+  backup: Backup;
+  /** Get status of a specific backup job */
+  backupJob?: Maybe<JobStatus>;
+  /** Get a specific backup job configuration */
+  backupJobConfig?: Maybe<BackupJobConfig>;
+  /** Get the JSON schema for backup job configuration form */
+  backupJobConfigForm: BackupJobConfigForm;
+  backupJobStatus?: Maybe<JobStatus>;
   cloud: Cloud;
   config: Config;
   connect: Connect;
@@ -1294,6 +1499,26 @@ export type Query = {
 
 export type QueryApiKeyArgs = {
   id: Scalars['PrefixedID']['input'];
+};
+
+
+export type QueryBackupJobArgs = {
+  id: Scalars['PrefixedID']['input'];
+};
+
+
+export type QueryBackupJobConfigArgs = {
+  id: Scalars['PrefixedID']['input'];
+};
+
+
+export type QueryBackupJobConfigFormArgs = {
+  input?: InputMaybe<BackupJobConfigFormInput>;
+};
+
+
+export type QueryBackupJobStatusArgs = {
+  jobId: Scalars['PrefixedID']['input'];
 };
 
 
@@ -1341,6 +1566,70 @@ export type RCloneDrive = {
   options: Scalars['JSON']['output'];
 };
 
+export type RCloneJobStats = {
+  __typename?: 'RCloneJobStats';
+  /** Bytes transferred */
+  bytes?: Maybe<Scalars['Float']['output']>;
+  /** Calculated percentage (fallback when percentage is null) */
+  calculatedPercentage?: Maybe<Scalars['Float']['output']>;
+  /** Currently checking files */
+  checking?: Maybe<Scalars['JSON']['output']>;
+  /** Number of checks completed */
+  checks?: Maybe<Scalars['Float']['output']>;
+  /** Number of deletes completed */
+  deletes?: Maybe<Scalars['Float']['output']>;
+  /** Elapsed time in seconds */
+  elapsedTime?: Maybe<Scalars['Float']['output']>;
+  /** Number of errors encountered */
+  errors?: Maybe<Scalars['Float']['output']>;
+  /** Estimated time to completion in seconds */
+  eta?: Maybe<Scalars['Float']['output']>;
+  /** Whether a fatal error occurred */
+  fatalError?: Maybe<Scalars['Boolean']['output']>;
+  /** Human-readable bytes transferred */
+  formattedBytes?: Maybe<Scalars['String']['output']>;
+  /** Human-readable elapsed time */
+  formattedElapsedTime?: Maybe<Scalars['String']['output']>;
+  /** Human-readable ETA */
+  formattedEta?: Maybe<Scalars['String']['output']>;
+  /** Human-readable transfer speed */
+  formattedSpeed?: Maybe<Scalars['String']['output']>;
+  /** Whether the job is actively running */
+  isActivelyRunning?: Maybe<Scalars['Boolean']['output']>;
+  /** Whether the job is completed */
+  isCompleted?: Maybe<Scalars['Boolean']['output']>;
+  /** Last error message */
+  lastError?: Maybe<Scalars['String']['output']>;
+  /** Progress percentage (0-100) */
+  percentage?: Maybe<Scalars['Float']['output']>;
+  /** Number of renames completed */
+  renames?: Maybe<Scalars['Float']['output']>;
+  /** Whether there is a retry error */
+  retryError?: Maybe<Scalars['Boolean']['output']>;
+  /** Number of server-side copies */
+  serverSideCopies?: Maybe<Scalars['Float']['output']>;
+  /** Bytes in server-side copies */
+  serverSideCopyBytes?: Maybe<Scalars['Float']['output']>;
+  /** Bytes in server-side moves */
+  serverSideMoveBytes?: Maybe<Scalars['Float']['output']>;
+  /** Number of server-side moves */
+  serverSideMoves?: Maybe<Scalars['Float']['output']>;
+  /** Transfer speed in bytes/sec */
+  speed?: Maybe<Scalars['Float']['output']>;
+  /** Total bytes to transfer */
+  totalBytes?: Maybe<Scalars['Float']['output']>;
+  /** Total checks to perform */
+  totalChecks?: Maybe<Scalars['Float']['output']>;
+  /** Total transfers to perform */
+  totalTransfers?: Maybe<Scalars['Float']['output']>;
+  /** Time spent transferring in seconds */
+  transferTime?: Maybe<Scalars['Float']['output']>;
+  /** Currently transferring files */
+  transferring?: Maybe<Scalars['JSON']['output']>;
+  /** Number of transfers completed */
+  transfers?: Maybe<Scalars['Float']['output']>;
+};
+
 /** RClone related mutations */
 export type RCloneMutations = {
   __typename?: 'RCloneMutations';
@@ -1369,6 +1658,42 @@ export type RCloneRemote = {
   name: Scalars['String']['output'];
   parameters: Scalars['JSON']['output'];
   type: Scalars['String']['output'];
+};
+
+export type RawBackupConfig = {
+  __typename?: 'RawBackupConfig';
+  excludePatterns?: Maybe<Array<Scalars['String']['output']>>;
+  includePatterns?: Maybe<Array<Scalars['String']['output']>>;
+  label: Scalars['String']['output'];
+  sourcePath: Scalars['String']['output'];
+};
+
+export type RawBackupConfigInput = {
+  /** File patterns to exclude from backup */
+  excludePatterns?: InputMaybe<Array<Scalars['String']['input']>>;
+  /** File patterns to include in backup */
+  includePatterns?: InputMaybe<Array<Scalars['String']['input']>>;
+  /** Human-readable label for this source configuration */
+  label?: InputMaybe<Scalars['String']['input']>;
+  /** Source path to backup */
+  sourcePath: Scalars['String']['input'];
+};
+
+export type RcloneDestinationConfig = {
+  __typename?: 'RcloneDestinationConfig';
+  /** Destination path on the remote */
+  destinationPath: Scalars['String']['output'];
+  /** RClone options (e.g., --transfers, --checkers) */
+  rcloneOptions?: Maybe<Scalars['JSON']['output']>;
+  /** Remote name from rclone config */
+  remoteName: Scalars['String']['output'];
+  type: Scalars['String']['output'];
+};
+
+export type RcloneDestinationConfigInput = {
+  destinationPath: Scalars['String']['input'];
+  rcloneOptions?: InputMaybe<Scalars['JSON']['input']>;
+  remoteName: Scalars['String']['input'];
 };
 
 export type Registration = Node & {
@@ -1437,6 +1762,7 @@ export enum Resource {
   ACTIVATION_CODE = 'ACTIVATION_CODE',
   API_KEY = 'API_KEY',
   ARRAY = 'ARRAY',
+  BACKUP = 'BACKUP',
   CLOUD = 'CLOUD',
   CONFIG = 'CONFIG',
   CONNECT = 'CONNECT',
@@ -1472,6 +1798,31 @@ export enum Role {
   GUEST = 'GUEST',
   USER = 'USER'
 }
+
+export type ScriptPreprocessConfig = {
+  __typename?: 'ScriptPreprocessConfig';
+  environment?: Maybe<Scalars['JSON']['output']>;
+  label: Scalars['String']['output'];
+  outputPath: Scalars['String']['output'];
+  scriptArgs?: Maybe<Array<Scalars['String']['output']>>;
+  scriptPath: Scalars['String']['output'];
+  workingDirectory?: Maybe<Scalars['String']['output']>;
+};
+
+export type ScriptPreprocessConfigInput = {
+  /** Environment variables for script execution */
+  environment?: InputMaybe<Scalars['JSON']['input']>;
+  /** Human-readable label for this source configuration */
+  label?: InputMaybe<Scalars['String']['input']>;
+  /** Output file path where script should write data */
+  outputPath: Scalars['String']['input'];
+  /** Arguments to pass to the script */
+  scriptArgs?: InputMaybe<Array<Scalars['String']['input']>>;
+  /** Path to the script file */
+  scriptPath: Scalars['String']['input'];
+  /** Working directory for script execution */
+  workingDirectory?: InputMaybe<Scalars['String']['input']>;
+};
 
 export type Server = Node & {
   __typename?: 'Server';
@@ -1554,6 +1905,28 @@ export type Share = Node & {
   /** (KB) Used Size */
   used?: Maybe<Scalars['BigInt']['output']>;
 };
+
+export type SourceConfigInput = {
+  /** Whether to cleanup on failure */
+  cleanupOnFailure?: Scalars['Boolean']['input'];
+  flashConfig?: InputMaybe<FlashPreprocessConfigInput>;
+  rawConfig?: InputMaybe<RawBackupConfigInput>;
+  scriptConfig?: InputMaybe<ScriptPreprocessConfigInput>;
+  /** Timeout for backup operation in seconds */
+  timeout?: Scalars['Float']['input'];
+  type: SourceType;
+  zfsConfig?: InputMaybe<ZfsPreprocessConfigInput>;
+};
+
+export type SourceConfigUnion = FlashPreprocessConfig | RawBackupConfig | ScriptPreprocessConfig | ZfsPreprocessConfig;
+
+/** Type of backup to perform (ZFS snapshot, Flash backup, Custom script, or Raw file backup) */
+export enum SourceType {
+  FLASH = 'FLASH',
+  RAW = 'RAW',
+  SCRIPT = 'SCRIPT',
+  ZFS = 'ZFS'
+}
 
 export type Subscription = {
   __typename?: 'Subscription';
@@ -1660,6 +2033,19 @@ export type UpdateApiKeyInput = {
   name?: InputMaybe<Scalars['String']['input']>;
   permissions?: InputMaybe<Array<AddPermissionInput>>;
   roles?: InputMaybe<Array<Role>>;
+};
+
+export type UpdateBackupJobConfigInput = {
+  currentJobId?: InputMaybe<Scalars['String']['input']>;
+  /** Destination configuration for this backup job */
+  destinationConfig?: InputMaybe<DestinationConfigInput>;
+  enabled?: InputMaybe<Scalars['Boolean']['input']>;
+  lastRunAt?: InputMaybe<Scalars['String']['input']>;
+  lastRunStatus?: InputMaybe<Scalars['String']['input']>;
+  name?: InputMaybe<Scalars['String']['input']>;
+  schedule?: InputMaybe<Scalars['String']['input']>;
+  /** Source configuration for this backup job */
+  sourceConfig?: InputMaybe<SourceConfigInput>;
 };
 
 export type UpdateSettingsResponse = {
@@ -1987,6 +2373,31 @@ export enum WanForwardType {
   UPNP = 'UPNP'
 }
 
+export type ZfsPreprocessConfig = {
+  __typename?: 'ZfsPreprocessConfig';
+  cleanupSnapshots: Scalars['Boolean']['output'];
+  datasetName: Scalars['String']['output'];
+  label: Scalars['String']['output'];
+  poolName: Scalars['String']['output'];
+  retainSnapshots?: Maybe<Scalars['Float']['output']>;
+  snapshotPrefix?: Maybe<Scalars['String']['output']>;
+};
+
+export type ZfsPreprocessConfigInput = {
+  /** Whether to cleanup snapshots after backup */
+  cleanupSnapshots?: Scalars['Boolean']['input'];
+  /** Dataset name within the pool */
+  datasetName: Scalars['String']['input'];
+  /** Human-readable label for this source configuration */
+  label?: InputMaybe<Scalars['String']['input']>;
+  /** ZFS pool name */
+  poolName: Scalars['String']['input'];
+  /** Number of snapshots to retain */
+  retainSnapshots?: InputMaybe<Scalars['Float']['input']>;
+  /** Snapshot name prefix */
+  snapshotPrefix?: InputMaybe<Scalars['String']['input']>;
+};
+
 export enum RegistrationType {
   BASIC = 'BASIC',
   INVALID = 'INVALID',
@@ -2051,6 +2462,152 @@ export type ApiKeyMetaQueryVariables = Exact<{ [key: string]: never; }>;
 
 
 export type ApiKeyMetaQuery = { __typename?: 'Query', apiKeyPossibleRoles: Array<Role>, apiKeyPossiblePermissions: Array<{ __typename?: 'Permission', resource: Resource, actions: Array<string> }> };
+
+export type JobStatusFragment = { __typename?: 'JobStatus', id: string, externalJobId: string, name: string, status: BackupJobStatus, progress: number, message?: string | null, error?: string | null, startTime: string, endTime?: string | null, bytesTransferred?: number | null, totalBytes?: number | null, speed?: number | null, elapsedTime?: number | null, eta?: number | null, formattedBytesTransferred?: string | null, formattedSpeed?: string | null, formattedElapsedTime?: string | null, formattedEta?: string | null } & { ' $fragmentName'?: 'JobStatusFragment' };
+
+type SourceConfigFlashPreprocessConfigFragment = { __typename?: 'FlashPreprocessConfig', label: string, flashPath: string, includeGitHistory: boolean, additionalPaths?: Array<string> | null } & { ' $fragmentName'?: 'SourceConfigFlashPreprocessConfigFragment' };
+
+type SourceConfigRawBackupConfigFragment = { __typename?: 'RawBackupConfig', label: string, sourcePath: string, excludePatterns?: Array<string> | null, includePatterns?: Array<string> | null } & { ' $fragmentName'?: 'SourceConfigRawBackupConfigFragment' };
+
+type SourceConfigScriptPreprocessConfigFragment = { __typename?: 'ScriptPreprocessConfig', label: string, scriptPath: string, scriptArgs?: Array<string> | null, workingDirectory?: string | null, environment?: any | null, outputPath: string } & { ' $fragmentName'?: 'SourceConfigScriptPreprocessConfigFragment' };
+
+type SourceConfigZfsPreprocessConfigFragment = { __typename?: 'ZfsPreprocessConfig', label: string, poolName: string, datasetName: string, snapshotPrefix?: string | null, cleanupSnapshots: boolean, retainSnapshots?: number | null } & { ' $fragmentName'?: 'SourceConfigZfsPreprocessConfigFragment' };
+
+export type SourceConfigFragment = SourceConfigFlashPreprocessConfigFragment | SourceConfigRawBackupConfigFragment | SourceConfigScriptPreprocessConfigFragment | SourceConfigZfsPreprocessConfigFragment;
+
+export type DestinationConfigFragment = { __typename?: 'RcloneDestinationConfig', type: string, remoteName: string, destinationPath: string, rcloneOptions?: any | null } & { ' $fragmentName'?: 'DestinationConfigFragment' };
+
+export type BackupJobConfigFragment = { __typename?: 'BackupJobConfig', id: string, name: string, sourceType: SourceType, destinationType: DestinationType, schedule: string, enabled: boolean, createdAt: any, updatedAt: any, lastRunAt?: any | null, lastRunStatus?: string | null, sourceConfig: (
+    { __typename?: 'FlashPreprocessConfig' }
+    & { ' $fragmentRefs'?: { 'SourceConfigFlashPreprocessConfigFragment': SourceConfigFlashPreprocessConfigFragment } }
+  ) | (
+    { __typename?: 'RawBackupConfig' }
+    & { ' $fragmentRefs'?: { 'SourceConfigRawBackupConfigFragment': SourceConfigRawBackupConfigFragment } }
+  ) | (
+    { __typename?: 'ScriptPreprocessConfig' }
+    & { ' $fragmentRefs'?: { 'SourceConfigScriptPreprocessConfigFragment': SourceConfigScriptPreprocessConfigFragment } }
+  ) | (
+    { __typename?: 'ZfsPreprocessConfig' }
+    & { ' $fragmentRefs'?: { 'SourceConfigZfsPreprocessConfigFragment': SourceConfigZfsPreprocessConfigFragment } }
+  ), destinationConfig: (
+    { __typename?: 'RcloneDestinationConfig' }
+    & { ' $fragmentRefs'?: { 'DestinationConfigFragment': DestinationConfigFragment } }
+  ) } & { ' $fragmentName'?: 'BackupJobConfigFragment' };
+
+export type BackupJobConfigWithCurrentJobFragment = (
+  { __typename?: 'BackupJobConfig', currentJob?: (
+    { __typename?: 'JobStatus' }
+    & { ' $fragmentRefs'?: { 'JobStatusFragment': JobStatusFragment } }
+  ) | null }
+  & { ' $fragmentRefs'?: { 'BackupJobConfigFragment': BackupJobConfigFragment } }
+) & { ' $fragmentName'?: 'BackupJobConfigWithCurrentJobFragment' };
+
+export type BackupJobsQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type BackupJobsQuery = { __typename?: 'Query', backup: { __typename?: 'Backup', id: string, jobs: Array<(
+      { __typename?: 'JobStatus' }
+      & { ' $fragmentRefs'?: { 'JobStatusFragment': JobStatusFragment } }
+    )> } };
+
+export type BackupJobQueryVariables = Exact<{
+  id: Scalars['PrefixedID']['input'];
+}>;
+
+
+export type BackupJobQuery = { __typename?: 'Query', backupJob?: (
+    { __typename?: 'JobStatus' }
+    & { ' $fragmentRefs'?: { 'JobStatusFragment': JobStatusFragment } }
+  ) | null };
+
+export type BackupJobConfigQueryVariables = Exact<{
+  id: Scalars['PrefixedID']['input'];
+}>;
+
+
+export type BackupJobConfigQuery = { __typename?: 'Query', backupJobConfig?: (
+    { __typename?: 'BackupJobConfig' }
+    & { ' $fragmentRefs'?: { 'BackupJobConfigWithCurrentJobFragment': BackupJobConfigWithCurrentJobFragment } }
+  ) | null };
+
+export type BackupJobConfigsQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type BackupJobConfigsQuery = { __typename?: 'Query', backup: { __typename?: 'Backup', id: string, configs: Array<(
+      { __typename?: 'BackupJobConfig' }
+      & { ' $fragmentRefs'?: { 'BackupJobConfigWithCurrentJobFragment': BackupJobConfigWithCurrentJobFragment } }
+    )> } };
+
+export type BackupJobConfigsListQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type BackupJobConfigsListQuery = { __typename?: 'Query', backup: { __typename?: 'Backup', id: string, configs: Array<{ __typename?: 'BackupJobConfig', id: string, name: string }> } };
+
+export type BackupJobConfigFormQueryVariables = Exact<{
+  input?: InputMaybe<BackupJobConfigFormInput>;
+}>;
+
+
+export type BackupJobConfigFormQuery = { __typename?: 'Query', backupJobConfigForm: { __typename?: 'BackupJobConfigForm', id: string, dataSchema: any, uiSchema: any } };
+
+export type CreateBackupJobConfigMutationVariables = Exact<{
+  input: CreateBackupJobConfigInput;
+}>;
+
+
+export type CreateBackupJobConfigMutation = { __typename?: 'Mutation', backup: { __typename?: 'BackupMutations', createBackupJobConfig: (
+      { __typename?: 'BackupJobConfig' }
+      & { ' $fragmentRefs'?: { 'BackupJobConfigFragment': BackupJobConfigFragment } }
+    ) } };
+
+export type UpdateBackupJobConfigMutationVariables = Exact<{
+  id: Scalars['PrefixedID']['input'];
+  input: UpdateBackupJobConfigInput;
+}>;
+
+
+export type UpdateBackupJobConfigMutation = { __typename?: 'Mutation', backup: { __typename?: 'BackupMutations', updateBackupJobConfig?: (
+      { __typename?: 'BackupJobConfig' }
+      & { ' $fragmentRefs'?: { 'BackupJobConfigFragment': BackupJobConfigFragment } }
+    ) | null } };
+
+export type DeleteBackupJobConfigMutationVariables = Exact<{
+  id: Scalars['PrefixedID']['input'];
+}>;
+
+
+export type DeleteBackupJobConfigMutation = { __typename?: 'Mutation', backup: { __typename?: 'BackupMutations', deleteBackupJobConfig: boolean } };
+
+export type ToggleBackupJobConfigMutationVariables = Exact<{
+  id: Scalars['PrefixedID']['input'];
+}>;
+
+
+export type ToggleBackupJobConfigMutation = { __typename?: 'Mutation', backup: { __typename?: 'BackupMutations', toggleJobConfig?: (
+      { __typename?: 'BackupJobConfig' }
+      & { ' $fragmentRefs'?: { 'BackupJobConfigFragment': BackupJobConfigFragment } }
+    ) | null } };
+
+export type TriggerBackupJobMutationVariables = Exact<{
+  id: Scalars['PrefixedID']['input'];
+}>;
+
+
+export type TriggerBackupJobMutation = { __typename?: 'Mutation', backup: { __typename?: 'BackupMutations', triggerJob: { __typename?: 'BackupStatus', jobId?: string | null } } };
+
+export type StopBackupJobMutationVariables = Exact<{
+  id: Scalars['PrefixedID']['input'];
+}>;
+
+
+export type StopBackupJobMutation = { __typename?: 'Mutation', backup: { __typename?: 'BackupMutations', stopBackupJob: { __typename?: 'BackupStatus', status: string, jobId?: string | null } } };
+
+export type InitiateBackupMutationVariables = Exact<{
+  input: InitiateBackupInput;
+}>;
+
+
+export type InitiateBackupMutation = { __typename?: 'Mutation', backup: { __typename?: 'BackupMutations', initiateBackup: { __typename?: 'BackupStatus', status: string, jobId?: string | null } } };
 
 export type UnifiedQueryVariables = Exact<{ [key: string]: never; }>;
 
@@ -2227,6 +2784,11 @@ export type GetThemeQuery = { __typename?: 'Query', publicTheme: { __typename?: 
 
 export const ApiKeyFragmentDoc = {"kind":"Document","definitions":[{"kind":"FragmentDefinition","name":{"kind":"Name","value":"ApiKey"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"ApiKey"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"description"}},{"kind":"Field","name":{"kind":"Name","value":"createdAt"}},{"kind":"Field","name":{"kind":"Name","value":"roles"}},{"kind":"Field","name":{"kind":"Name","value":"permissions"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"resource"}},{"kind":"Field","name":{"kind":"Name","value":"actions"}}]}}]}}]} as unknown as DocumentNode<ApiKeyFragment, unknown>;
 export const ApiKeyWithKeyFragmentDoc = {"kind":"Document","definitions":[{"kind":"FragmentDefinition","name":{"kind":"Name","value":"ApiKeyWithKey"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"ApiKeyWithSecret"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"key"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"description"}},{"kind":"Field","name":{"kind":"Name","value":"createdAt"}},{"kind":"Field","name":{"kind":"Name","value":"roles"}},{"kind":"Field","name":{"kind":"Name","value":"permissions"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"resource"}},{"kind":"Field","name":{"kind":"Name","value":"actions"}}]}}]}}]} as unknown as DocumentNode<ApiKeyWithKeyFragment, unknown>;
+export const SourceConfigFragmentDoc = {"kind":"Document","definitions":[{"kind":"FragmentDefinition","name":{"kind":"Name","value":"SourceConfig"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"SourceConfigUnion"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"InlineFragment","typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"ZfsPreprocessConfig"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"label"}},{"kind":"Field","name":{"kind":"Name","value":"poolName"}},{"kind":"Field","name":{"kind":"Name","value":"datasetName"}},{"kind":"Field","name":{"kind":"Name","value":"snapshotPrefix"}},{"kind":"Field","name":{"kind":"Name","value":"cleanupSnapshots"}},{"kind":"Field","name":{"kind":"Name","value":"retainSnapshots"}}]}},{"kind":"InlineFragment","typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"FlashPreprocessConfig"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"label"}},{"kind":"Field","name":{"kind":"Name","value":"flashPath"}},{"kind":"Field","name":{"kind":"Name","value":"includeGitHistory"}},{"kind":"Field","name":{"kind":"Name","value":"additionalPaths"}}]}},{"kind":"InlineFragment","typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"ScriptPreprocessConfig"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"label"}},{"kind":"Field","name":{"kind":"Name","value":"scriptPath"}},{"kind":"Field","name":{"kind":"Name","value":"scriptArgs"}},{"kind":"Field","name":{"kind":"Name","value":"workingDirectory"}},{"kind":"Field","name":{"kind":"Name","value":"environment"}},{"kind":"Field","name":{"kind":"Name","value":"outputPath"}}]}},{"kind":"InlineFragment","typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"RawBackupConfig"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"label"}},{"kind":"Field","name":{"kind":"Name","value":"sourcePath"}},{"kind":"Field","name":{"kind":"Name","value":"excludePatterns"}},{"kind":"Field","name":{"kind":"Name","value":"includePatterns"}}]}}]}}]} as unknown as DocumentNode<SourceConfigFragment, unknown>;
+export const DestinationConfigFragmentDoc = {"kind":"Document","definitions":[{"kind":"FragmentDefinition","name":{"kind":"Name","value":"DestinationConfig"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"DestinationConfigUnion"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"InlineFragment","typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"RcloneDestinationConfig"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"type"}},{"kind":"Field","name":{"kind":"Name","value":"remoteName"}},{"kind":"Field","name":{"kind":"Name","value":"destinationPath"}},{"kind":"Field","name":{"kind":"Name","value":"rcloneOptions"}}]}}]}}]} as unknown as DocumentNode<DestinationConfigFragment, unknown>;
+export const BackupJobConfigFragmentDoc = {"kind":"Document","definitions":[{"kind":"FragmentDefinition","name":{"kind":"Name","value":"BackupJobConfig"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"BackupJobConfig"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"sourceType"}},{"kind":"Field","name":{"kind":"Name","value":"destinationType"}},{"kind":"Field","name":{"kind":"Name","value":"schedule"}},{"kind":"Field","name":{"kind":"Name","value":"enabled"}},{"kind":"Field","name":{"kind":"Name","value":"sourceConfig"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"SourceConfig"}}]}},{"kind":"Field","name":{"kind":"Name","value":"destinationConfig"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"DestinationConfig"}}]}},{"kind":"Field","name":{"kind":"Name","value":"createdAt"}},{"kind":"Field","name":{"kind":"Name","value":"updatedAt"}},{"kind":"Field","name":{"kind":"Name","value":"lastRunAt"}},{"kind":"Field","name":{"kind":"Name","value":"lastRunStatus"}}]}},{"kind":"FragmentDefinition","name":{"kind":"Name","value":"SourceConfig"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"SourceConfigUnion"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"InlineFragment","typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"ZfsPreprocessConfig"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"label"}},{"kind":"Field","name":{"kind":"Name","value":"poolName"}},{"kind":"Field","name":{"kind":"Name","value":"datasetName"}},{"kind":"Field","name":{"kind":"Name","value":"snapshotPrefix"}},{"kind":"Field","name":{"kind":"Name","value":"cleanupSnapshots"}},{"kind":"Field","name":{"kind":"Name","value":"retainSnapshots"}}]}},{"kind":"InlineFragment","typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"FlashPreprocessConfig"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"label"}},{"kind":"Field","name":{"kind":"Name","value":"flashPath"}},{"kind":"Field","name":{"kind":"Name","value":"includeGitHistory"}},{"kind":"Field","name":{"kind":"Name","value":"additionalPaths"}}]}},{"kind":"InlineFragment","typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"ScriptPreprocessConfig"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"label"}},{"kind":"Field","name":{"kind":"Name","value":"scriptPath"}},{"kind":"Field","name":{"kind":"Name","value":"scriptArgs"}},{"kind":"Field","name":{"kind":"Name","value":"workingDirectory"}},{"kind":"Field","name":{"kind":"Name","value":"environment"}},{"kind":"Field","name":{"kind":"Name","value":"outputPath"}}]}},{"kind":"InlineFragment","typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"RawBackupConfig"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"label"}},{"kind":"Field","name":{"kind":"Name","value":"sourcePath"}},{"kind":"Field","name":{"kind":"Name","value":"excludePatterns"}},{"kind":"Field","name":{"kind":"Name","value":"includePatterns"}}]}}]}},{"kind":"FragmentDefinition","name":{"kind":"Name","value":"DestinationConfig"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"DestinationConfigUnion"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"InlineFragment","typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"RcloneDestinationConfig"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"type"}},{"kind":"Field","name":{"kind":"Name","value":"remoteName"}},{"kind":"Field","name":{"kind":"Name","value":"destinationPath"}},{"kind":"Field","name":{"kind":"Name","value":"rcloneOptions"}}]}}]}}]} as unknown as DocumentNode<BackupJobConfigFragment, unknown>;
+export const JobStatusFragmentDoc = {"kind":"Document","definitions":[{"kind":"FragmentDefinition","name":{"kind":"Name","value":"JobStatus"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"JobStatus"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"externalJobId"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"status"}},{"kind":"Field","name":{"kind":"Name","value":"progress"}},{"kind":"Field","name":{"kind":"Name","value":"message"}},{"kind":"Field","name":{"kind":"Name","value":"error"}},{"kind":"Field","name":{"kind":"Name","value":"startTime"}},{"kind":"Field","name":{"kind":"Name","value":"endTime"}},{"kind":"Field","name":{"kind":"Name","value":"bytesTransferred"}},{"kind":"Field","name":{"kind":"Name","value":"totalBytes"}},{"kind":"Field","name":{"kind":"Name","value":"speed"}},{"kind":"Field","name":{"kind":"Name","value":"elapsedTime"}},{"kind":"Field","name":{"kind":"Name","value":"eta"}},{"kind":"Field","name":{"kind":"Name","value":"formattedBytesTransferred"}},{"kind":"Field","name":{"kind":"Name","value":"formattedSpeed"}},{"kind":"Field","name":{"kind":"Name","value":"formattedElapsedTime"}},{"kind":"Field","name":{"kind":"Name","value":"formattedEta"}}]}}]} as unknown as DocumentNode<JobStatusFragment, unknown>;
+export const BackupJobConfigWithCurrentJobFragmentDoc = {"kind":"Document","definitions":[{"kind":"FragmentDefinition","name":{"kind":"Name","value":"BackupJobConfigWithCurrentJob"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"BackupJobConfig"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"BackupJobConfig"}},{"kind":"Field","name":{"kind":"Name","value":"currentJob"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"JobStatus"}}]}}]}},{"kind":"FragmentDefinition","name":{"kind":"Name","value":"SourceConfig"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"SourceConfigUnion"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"InlineFragment","typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"ZfsPreprocessConfig"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"label"}},{"kind":"Field","name":{"kind":"Name","value":"poolName"}},{"kind":"Field","name":{"kind":"Name","value":"datasetName"}},{"kind":"Field","name":{"kind":"Name","value":"snapshotPrefix"}},{"kind":"Field","name":{"kind":"Name","value":"cleanupSnapshots"}},{"kind":"Field","name":{"kind":"Name","value":"retainSnapshots"}}]}},{"kind":"InlineFragment","typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"FlashPreprocessConfig"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"label"}},{"kind":"Field","name":{"kind":"Name","value":"flashPath"}},{"kind":"Field","name":{"kind":"Name","value":"includeGitHistory"}},{"kind":"Field","name":{"kind":"Name","value":"additionalPaths"}}]}},{"kind":"InlineFragment","typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"ScriptPreprocessConfig"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"label"}},{"kind":"Field","name":{"kind":"Name","value":"scriptPath"}},{"kind":"Field","name":{"kind":"Name","value":"scriptArgs"}},{"kind":"Field","name":{"kind":"Name","value":"workingDirectory"}},{"kind":"Field","name":{"kind":"Name","value":"environment"}},{"kind":"Field","name":{"kind":"Name","value":"outputPath"}}]}},{"kind":"InlineFragment","typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"RawBackupConfig"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"label"}},{"kind":"Field","name":{"kind":"Name","value":"sourcePath"}},{"kind":"Field","name":{"kind":"Name","value":"excludePatterns"}},{"kind":"Field","name":{"kind":"Name","value":"includePatterns"}}]}}]}},{"kind":"FragmentDefinition","name":{"kind":"Name","value":"DestinationConfig"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"DestinationConfigUnion"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"InlineFragment","typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"RcloneDestinationConfig"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"type"}},{"kind":"Field","name":{"kind":"Name","value":"remoteName"}},{"kind":"Field","name":{"kind":"Name","value":"destinationPath"}},{"kind":"Field","name":{"kind":"Name","value":"rcloneOptions"}}]}}]}},{"kind":"FragmentDefinition","name":{"kind":"Name","value":"BackupJobConfig"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"BackupJobConfig"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"sourceType"}},{"kind":"Field","name":{"kind":"Name","value":"destinationType"}},{"kind":"Field","name":{"kind":"Name","value":"schedule"}},{"kind":"Field","name":{"kind":"Name","value":"enabled"}},{"kind":"Field","name":{"kind":"Name","value":"sourceConfig"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"SourceConfig"}}]}},{"kind":"Field","name":{"kind":"Name","value":"destinationConfig"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"DestinationConfig"}}]}},{"kind":"Field","name":{"kind":"Name","value":"createdAt"}},{"kind":"Field","name":{"kind":"Name","value":"updatedAt"}},{"kind":"Field","name":{"kind":"Name","value":"lastRunAt"}},{"kind":"Field","name":{"kind":"Name","value":"lastRunStatus"}}]}},{"kind":"FragmentDefinition","name":{"kind":"Name","value":"JobStatus"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"JobStatus"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"externalJobId"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"status"}},{"kind":"Field","name":{"kind":"Name","value":"progress"}},{"kind":"Field","name":{"kind":"Name","value":"message"}},{"kind":"Field","name":{"kind":"Name","value":"error"}},{"kind":"Field","name":{"kind":"Name","value":"startTime"}},{"kind":"Field","name":{"kind":"Name","value":"endTime"}},{"kind":"Field","name":{"kind":"Name","value":"bytesTransferred"}},{"kind":"Field","name":{"kind":"Name","value":"totalBytes"}},{"kind":"Field","name":{"kind":"Name","value":"speed"}},{"kind":"Field","name":{"kind":"Name","value":"elapsedTime"}},{"kind":"Field","name":{"kind":"Name","value":"eta"}},{"kind":"Field","name":{"kind":"Name","value":"formattedBytesTransferred"}},{"kind":"Field","name":{"kind":"Name","value":"formattedSpeed"}},{"kind":"Field","name":{"kind":"Name","value":"formattedElapsedTime"}},{"kind":"Field","name":{"kind":"Name","value":"formattedEta"}}]}}]} as unknown as DocumentNode<BackupJobConfigWithCurrentJobFragment, unknown>;
 export const NotificationFragmentFragmentDoc = {"kind":"Document","definitions":[{"kind":"FragmentDefinition","name":{"kind":"Name","value":"NotificationFragment"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"Notification"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"title"}},{"kind":"Field","name":{"kind":"Name","value":"subject"}},{"kind":"Field","name":{"kind":"Name","value":"description"}},{"kind":"Field","name":{"kind":"Name","value":"importance"}},{"kind":"Field","name":{"kind":"Name","value":"link"}},{"kind":"Field","name":{"kind":"Name","value":"type"}},{"kind":"Field","name":{"kind":"Name","value":"timestamp"}},{"kind":"Field","name":{"kind":"Name","value":"formattedTimestamp"}}]}}]} as unknown as DocumentNode<NotificationFragmentFragment, unknown>;
 export const NotificationCountFragmentFragmentDoc = {"kind":"Document","definitions":[{"kind":"FragmentDefinition","name":{"kind":"Name","value":"NotificationCountFragment"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"NotificationCounts"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"total"}},{"kind":"Field","name":{"kind":"Name","value":"info"}},{"kind":"Field","name":{"kind":"Name","value":"warning"}},{"kind":"Field","name":{"kind":"Name","value":"alert"}}]}}]} as unknown as DocumentNode<NotificationCountFragmentFragment, unknown>;
 export const PartialCloudFragmentDoc = {"kind":"Document","definitions":[{"kind":"FragmentDefinition","name":{"kind":"Name","value":"PartialCloud"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"Cloud"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"error"}},{"kind":"Field","name":{"kind":"Name","value":"apiKey"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"valid"}},{"kind":"Field","name":{"kind":"Name","value":"error"}}]}},{"kind":"Field","name":{"kind":"Name","value":"cloud"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"status"}},{"kind":"Field","name":{"kind":"Name","value":"error"}}]}},{"kind":"Field","name":{"kind":"Name","value":"minigraphql"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"status"}},{"kind":"Field","name":{"kind":"Name","value":"error"}}]}},{"kind":"Field","name":{"kind":"Name","value":"relay"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"status"}},{"kind":"Field","name":{"kind":"Name","value":"error"}}]}}]}}]} as unknown as DocumentNode<PartialCloudFragment, unknown>;
@@ -2237,6 +2799,19 @@ export const CreateApiKeyDocument = {"kind":"Document","definitions":[{"kind":"O
 export const UpdateApiKeyDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"UpdateApiKey"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"input"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"UpdateApiKeyInput"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"apiKey"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"update"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"input"},"value":{"kind":"Variable","name":{"kind":"Name","value":"input"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"ApiKeyWithKey"}}]}}]}}]}},{"kind":"FragmentDefinition","name":{"kind":"Name","value":"ApiKeyWithKey"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"ApiKeyWithSecret"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"key"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"description"}},{"kind":"Field","name":{"kind":"Name","value":"createdAt"}},{"kind":"Field","name":{"kind":"Name","value":"roles"}},{"kind":"Field","name":{"kind":"Name","value":"permissions"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"resource"}},{"kind":"Field","name":{"kind":"Name","value":"actions"}}]}}]}}]} as unknown as DocumentNode<UpdateApiKeyMutation, UpdateApiKeyMutationVariables>;
 export const DeleteApiKeyDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"DeleteApiKey"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"input"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"DeleteApiKeyInput"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"apiKey"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"delete"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"input"},"value":{"kind":"Variable","name":{"kind":"Name","value":"input"}}}]}]}}]}}]} as unknown as DocumentNode<DeleteApiKeyMutation, DeleteApiKeyMutationVariables>;
 export const ApiKeyMetaDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"ApiKeyMeta"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"apiKeyPossibleRoles"}},{"kind":"Field","name":{"kind":"Name","value":"apiKeyPossiblePermissions"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"resource"}},{"kind":"Field","name":{"kind":"Name","value":"actions"}}]}}]}}]} as unknown as DocumentNode<ApiKeyMetaQuery, ApiKeyMetaQueryVariables>;
+export const BackupJobsDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"BackupJobs"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"backup"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"jobs"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"JobStatus"}}]}}]}}]}},{"kind":"FragmentDefinition","name":{"kind":"Name","value":"JobStatus"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"JobStatus"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"externalJobId"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"status"}},{"kind":"Field","name":{"kind":"Name","value":"progress"}},{"kind":"Field","name":{"kind":"Name","value":"message"}},{"kind":"Field","name":{"kind":"Name","value":"error"}},{"kind":"Field","name":{"kind":"Name","value":"startTime"}},{"kind":"Field","name":{"kind":"Name","value":"endTime"}},{"kind":"Field","name":{"kind":"Name","value":"bytesTransferred"}},{"kind":"Field","name":{"kind":"Name","value":"totalBytes"}},{"kind":"Field","name":{"kind":"Name","value":"speed"}},{"kind":"Field","name":{"kind":"Name","value":"elapsedTime"}},{"kind":"Field","name":{"kind":"Name","value":"eta"}},{"kind":"Field","name":{"kind":"Name","value":"formattedBytesTransferred"}},{"kind":"Field","name":{"kind":"Name","value":"formattedSpeed"}},{"kind":"Field","name":{"kind":"Name","value":"formattedElapsedTime"}},{"kind":"Field","name":{"kind":"Name","value":"formattedEta"}}]}}]} as unknown as DocumentNode<BackupJobsQuery, BackupJobsQueryVariables>;
+export const BackupJobDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"BackupJob"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"id"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"PrefixedID"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"backupJob"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"id"},"value":{"kind":"Variable","name":{"kind":"Name","value":"id"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"JobStatus"}}]}}]}},{"kind":"FragmentDefinition","name":{"kind":"Name","value":"JobStatus"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"JobStatus"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"externalJobId"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"status"}},{"kind":"Field","name":{"kind":"Name","value":"progress"}},{"kind":"Field","name":{"kind":"Name","value":"message"}},{"kind":"Field","name":{"kind":"Name","value":"error"}},{"kind":"Field","name":{"kind":"Name","value":"startTime"}},{"kind":"Field","name":{"kind":"Name","value":"endTime"}},{"kind":"Field","name":{"kind":"Name","value":"bytesTransferred"}},{"kind":"Field","name":{"kind":"Name","value":"totalBytes"}},{"kind":"Field","name":{"kind":"Name","value":"speed"}},{"kind":"Field","name":{"kind":"Name","value":"elapsedTime"}},{"kind":"Field","name":{"kind":"Name","value":"eta"}},{"kind":"Field","name":{"kind":"Name","value":"formattedBytesTransferred"}},{"kind":"Field","name":{"kind":"Name","value":"formattedSpeed"}},{"kind":"Field","name":{"kind":"Name","value":"formattedElapsedTime"}},{"kind":"Field","name":{"kind":"Name","value":"formattedEta"}}]}}]} as unknown as DocumentNode<BackupJobQuery, BackupJobQueryVariables>;
+export const BackupJobConfigDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"BackupJobConfig"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"id"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"PrefixedID"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"backupJobConfig"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"id"},"value":{"kind":"Variable","name":{"kind":"Name","value":"id"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"BackupJobConfigWithCurrentJob"}}]}}]}},{"kind":"FragmentDefinition","name":{"kind":"Name","value":"SourceConfig"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"SourceConfigUnion"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"InlineFragment","typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"ZfsPreprocessConfig"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"label"}},{"kind":"Field","name":{"kind":"Name","value":"poolName"}},{"kind":"Field","name":{"kind":"Name","value":"datasetName"}},{"kind":"Field","name":{"kind":"Name","value":"snapshotPrefix"}},{"kind":"Field","name":{"kind":"Name","value":"cleanupSnapshots"}},{"kind":"Field","name":{"kind":"Name","value":"retainSnapshots"}}]}},{"kind":"InlineFragment","typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"FlashPreprocessConfig"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"label"}},{"kind":"Field","name":{"kind":"Name","value":"flashPath"}},{"kind":"Field","name":{"kind":"Name","value":"includeGitHistory"}},{"kind":"Field","name":{"kind":"Name","value":"additionalPaths"}}]}},{"kind":"InlineFragment","typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"ScriptPreprocessConfig"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"label"}},{"kind":"Field","name":{"kind":"Name","value":"scriptPath"}},{"kind":"Field","name":{"kind":"Name","value":"scriptArgs"}},{"kind":"Field","name":{"kind":"Name","value":"workingDirectory"}},{"kind":"Field","name":{"kind":"Name","value":"environment"}},{"kind":"Field","name":{"kind":"Name","value":"outputPath"}}]}},{"kind":"InlineFragment","typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"RawBackupConfig"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"label"}},{"kind":"Field","name":{"kind":"Name","value":"sourcePath"}},{"kind":"Field","name":{"kind":"Name","value":"excludePatterns"}},{"kind":"Field","name":{"kind":"Name","value":"includePatterns"}}]}}]}},{"kind":"FragmentDefinition","name":{"kind":"Name","value":"DestinationConfig"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"DestinationConfigUnion"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"InlineFragment","typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"RcloneDestinationConfig"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"type"}},{"kind":"Field","name":{"kind":"Name","value":"remoteName"}},{"kind":"Field","name":{"kind":"Name","value":"destinationPath"}},{"kind":"Field","name":{"kind":"Name","value":"rcloneOptions"}}]}}]}},{"kind":"FragmentDefinition","name":{"kind":"Name","value":"BackupJobConfig"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"BackupJobConfig"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"sourceType"}},{"kind":"Field","name":{"kind":"Name","value":"destinationType"}},{"kind":"Field","name":{"kind":"Name","value":"schedule"}},{"kind":"Field","name":{"kind":"Name","value":"enabled"}},{"kind":"Field","name":{"kind":"Name","value":"sourceConfig"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"SourceConfig"}}]}},{"kind":"Field","name":{"kind":"Name","value":"destinationConfig"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"DestinationConfig"}}]}},{"kind":"Field","name":{"kind":"Name","value":"createdAt"}},{"kind":"Field","name":{"kind":"Name","value":"updatedAt"}},{"kind":"Field","name":{"kind":"Name","value":"lastRunAt"}},{"kind":"Field","name":{"kind":"Name","value":"lastRunStatus"}}]}},{"kind":"FragmentDefinition","name":{"kind":"Name","value":"JobStatus"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"JobStatus"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"externalJobId"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"status"}},{"kind":"Field","name":{"kind":"Name","value":"progress"}},{"kind":"Field","name":{"kind":"Name","value":"message"}},{"kind":"Field","name":{"kind":"Name","value":"error"}},{"kind":"Field","name":{"kind":"Name","value":"startTime"}},{"kind":"Field","name":{"kind":"Name","value":"endTime"}},{"kind":"Field","name":{"kind":"Name","value":"bytesTransferred"}},{"kind":"Field","name":{"kind":"Name","value":"totalBytes"}},{"kind":"Field","name":{"kind":"Name","value":"speed"}},{"kind":"Field","name":{"kind":"Name","value":"elapsedTime"}},{"kind":"Field","name":{"kind":"Name","value":"eta"}},{"kind":"Field","name":{"kind":"Name","value":"formattedBytesTransferred"}},{"kind":"Field","name":{"kind":"Name","value":"formattedSpeed"}},{"kind":"Field","name":{"kind":"Name","value":"formattedElapsedTime"}},{"kind":"Field","name":{"kind":"Name","value":"formattedEta"}}]}},{"kind":"FragmentDefinition","name":{"kind":"Name","value":"BackupJobConfigWithCurrentJob"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"BackupJobConfig"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"BackupJobConfig"}},{"kind":"Field","name":{"kind":"Name","value":"currentJob"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"JobStatus"}}]}}]}}]} as unknown as DocumentNode<BackupJobConfigQuery, BackupJobConfigQueryVariables>;
+export const BackupJobConfigsDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"BackupJobConfigs"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"backup"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"configs"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"BackupJobConfigWithCurrentJob"}}]}}]}}]}},{"kind":"FragmentDefinition","name":{"kind":"Name","value":"SourceConfig"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"SourceConfigUnion"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"InlineFragment","typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"ZfsPreprocessConfig"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"label"}},{"kind":"Field","name":{"kind":"Name","value":"poolName"}},{"kind":"Field","name":{"kind":"Name","value":"datasetName"}},{"kind":"Field","name":{"kind":"Name","value":"snapshotPrefix"}},{"kind":"Field","name":{"kind":"Name","value":"cleanupSnapshots"}},{"kind":"Field","name":{"kind":"Name","value":"retainSnapshots"}}]}},{"kind":"InlineFragment","typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"FlashPreprocessConfig"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"label"}},{"kind":"Field","name":{"kind":"Name","value":"flashPath"}},{"kind":"Field","name":{"kind":"Name","value":"includeGitHistory"}},{"kind":"Field","name":{"kind":"Name","value":"additionalPaths"}}]}},{"kind":"InlineFragment","typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"ScriptPreprocessConfig"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"label"}},{"kind":"Field","name":{"kind":"Name","value":"scriptPath"}},{"kind":"Field","name":{"kind":"Name","value":"scriptArgs"}},{"kind":"Field","name":{"kind":"Name","value":"workingDirectory"}},{"kind":"Field","name":{"kind":"Name","value":"environment"}},{"kind":"Field","name":{"kind":"Name","value":"outputPath"}}]}},{"kind":"InlineFragment","typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"RawBackupConfig"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"label"}},{"kind":"Field","name":{"kind":"Name","value":"sourcePath"}},{"kind":"Field","name":{"kind":"Name","value":"excludePatterns"}},{"kind":"Field","name":{"kind":"Name","value":"includePatterns"}}]}}]}},{"kind":"FragmentDefinition","name":{"kind":"Name","value":"DestinationConfig"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"DestinationConfigUnion"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"InlineFragment","typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"RcloneDestinationConfig"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"type"}},{"kind":"Field","name":{"kind":"Name","value":"remoteName"}},{"kind":"Field","name":{"kind":"Name","value":"destinationPath"}},{"kind":"Field","name":{"kind":"Name","value":"rcloneOptions"}}]}}]}},{"kind":"FragmentDefinition","name":{"kind":"Name","value":"BackupJobConfig"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"BackupJobConfig"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"sourceType"}},{"kind":"Field","name":{"kind":"Name","value":"destinationType"}},{"kind":"Field","name":{"kind":"Name","value":"schedule"}},{"kind":"Field","name":{"kind":"Name","value":"enabled"}},{"kind":"Field","name":{"kind":"Name","value":"sourceConfig"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"SourceConfig"}}]}},{"kind":"Field","name":{"kind":"Name","value":"destinationConfig"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"DestinationConfig"}}]}},{"kind":"Field","name":{"kind":"Name","value":"createdAt"}},{"kind":"Field","name":{"kind":"Name","value":"updatedAt"}},{"kind":"Field","name":{"kind":"Name","value":"lastRunAt"}},{"kind":"Field","name":{"kind":"Name","value":"lastRunStatus"}}]}},{"kind":"FragmentDefinition","name":{"kind":"Name","value":"JobStatus"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"JobStatus"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"externalJobId"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"status"}},{"kind":"Field","name":{"kind":"Name","value":"progress"}},{"kind":"Field","name":{"kind":"Name","value":"message"}},{"kind":"Field","name":{"kind":"Name","value":"error"}},{"kind":"Field","name":{"kind":"Name","value":"startTime"}},{"kind":"Field","name":{"kind":"Name","value":"endTime"}},{"kind":"Field","name":{"kind":"Name","value":"bytesTransferred"}},{"kind":"Field","name":{"kind":"Name","value":"totalBytes"}},{"kind":"Field","name":{"kind":"Name","value":"speed"}},{"kind":"Field","name":{"kind":"Name","value":"elapsedTime"}},{"kind":"Field","name":{"kind":"Name","value":"eta"}},{"kind":"Field","name":{"kind":"Name","value":"formattedBytesTransferred"}},{"kind":"Field","name":{"kind":"Name","value":"formattedSpeed"}},{"kind":"Field","name":{"kind":"Name","value":"formattedElapsedTime"}},{"kind":"Field","name":{"kind":"Name","value":"formattedEta"}}]}},{"kind":"FragmentDefinition","name":{"kind":"Name","value":"BackupJobConfigWithCurrentJob"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"BackupJobConfig"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"BackupJobConfig"}},{"kind":"Field","name":{"kind":"Name","value":"currentJob"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"JobStatus"}}]}}]}}]} as unknown as DocumentNode<BackupJobConfigsQuery, BackupJobConfigsQueryVariables>;
+export const BackupJobConfigsListDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"BackupJobConfigsList"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"backup"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"configs"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"name"}}]}}]}}]}}]} as unknown as DocumentNode<BackupJobConfigsListQuery, BackupJobConfigsListQueryVariables>;
+export const BackupJobConfigFormDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"BackupJobConfigForm"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"input"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"BackupJobConfigFormInput"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"backupJobConfigForm"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"input"},"value":{"kind":"Variable","name":{"kind":"Name","value":"input"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"dataSchema"}},{"kind":"Field","name":{"kind":"Name","value":"uiSchema"}}]}}]}}]} as unknown as DocumentNode<BackupJobConfigFormQuery, BackupJobConfigFormQueryVariables>;
+export const CreateBackupJobConfigDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"CreateBackupJobConfig"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"input"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"CreateBackupJobConfigInput"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"backup"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"createBackupJobConfig"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"input"},"value":{"kind":"Variable","name":{"kind":"Name","value":"input"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"BackupJobConfig"}}]}}]}}]}},{"kind":"FragmentDefinition","name":{"kind":"Name","value":"SourceConfig"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"SourceConfigUnion"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"InlineFragment","typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"ZfsPreprocessConfig"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"label"}},{"kind":"Field","name":{"kind":"Name","value":"poolName"}},{"kind":"Field","name":{"kind":"Name","value":"datasetName"}},{"kind":"Field","name":{"kind":"Name","value":"snapshotPrefix"}},{"kind":"Field","name":{"kind":"Name","value":"cleanupSnapshots"}},{"kind":"Field","name":{"kind":"Name","value":"retainSnapshots"}}]}},{"kind":"InlineFragment","typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"FlashPreprocessConfig"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"label"}},{"kind":"Field","name":{"kind":"Name","value":"flashPath"}},{"kind":"Field","name":{"kind":"Name","value":"includeGitHistory"}},{"kind":"Field","name":{"kind":"Name","value":"additionalPaths"}}]}},{"kind":"InlineFragment","typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"ScriptPreprocessConfig"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"label"}},{"kind":"Field","name":{"kind":"Name","value":"scriptPath"}},{"kind":"Field","name":{"kind":"Name","value":"scriptArgs"}},{"kind":"Field","name":{"kind":"Name","value":"workingDirectory"}},{"kind":"Field","name":{"kind":"Name","value":"environment"}},{"kind":"Field","name":{"kind":"Name","value":"outputPath"}}]}},{"kind":"InlineFragment","typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"RawBackupConfig"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"label"}},{"kind":"Field","name":{"kind":"Name","value":"sourcePath"}},{"kind":"Field","name":{"kind":"Name","value":"excludePatterns"}},{"kind":"Field","name":{"kind":"Name","value":"includePatterns"}}]}}]}},{"kind":"FragmentDefinition","name":{"kind":"Name","value":"DestinationConfig"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"DestinationConfigUnion"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"InlineFragment","typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"RcloneDestinationConfig"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"type"}},{"kind":"Field","name":{"kind":"Name","value":"remoteName"}},{"kind":"Field","name":{"kind":"Name","value":"destinationPath"}},{"kind":"Field","name":{"kind":"Name","value":"rcloneOptions"}}]}}]}},{"kind":"FragmentDefinition","name":{"kind":"Name","value":"BackupJobConfig"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"BackupJobConfig"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"sourceType"}},{"kind":"Field","name":{"kind":"Name","value":"destinationType"}},{"kind":"Field","name":{"kind":"Name","value":"schedule"}},{"kind":"Field","name":{"kind":"Name","value":"enabled"}},{"kind":"Field","name":{"kind":"Name","value":"sourceConfig"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"SourceConfig"}}]}},{"kind":"Field","name":{"kind":"Name","value":"destinationConfig"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"DestinationConfig"}}]}},{"kind":"Field","name":{"kind":"Name","value":"createdAt"}},{"kind":"Field","name":{"kind":"Name","value":"updatedAt"}},{"kind":"Field","name":{"kind":"Name","value":"lastRunAt"}},{"kind":"Field","name":{"kind":"Name","value":"lastRunStatus"}}]}}]} as unknown as DocumentNode<CreateBackupJobConfigMutation, CreateBackupJobConfigMutationVariables>;
+export const UpdateBackupJobConfigDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"UpdateBackupJobConfig"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"id"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"PrefixedID"}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"input"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"UpdateBackupJobConfigInput"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"backup"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"updateBackupJobConfig"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"id"},"value":{"kind":"Variable","name":{"kind":"Name","value":"id"}}},{"kind":"Argument","name":{"kind":"Name","value":"input"},"value":{"kind":"Variable","name":{"kind":"Name","value":"input"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"BackupJobConfig"}}]}}]}}]}},{"kind":"FragmentDefinition","name":{"kind":"Name","value":"SourceConfig"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"SourceConfigUnion"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"InlineFragment","typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"ZfsPreprocessConfig"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"label"}},{"kind":"Field","name":{"kind":"Name","value":"poolName"}},{"kind":"Field","name":{"kind":"Name","value":"datasetName"}},{"kind":"Field","name":{"kind":"Name","value":"snapshotPrefix"}},{"kind":"Field","name":{"kind":"Name","value":"cleanupSnapshots"}},{"kind":"Field","name":{"kind":"Name","value":"retainSnapshots"}}]}},{"kind":"InlineFragment","typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"FlashPreprocessConfig"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"label"}},{"kind":"Field","name":{"kind":"Name","value":"flashPath"}},{"kind":"Field","name":{"kind":"Name","value":"includeGitHistory"}},{"kind":"Field","name":{"kind":"Name","value":"additionalPaths"}}]}},{"kind":"InlineFragment","typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"ScriptPreprocessConfig"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"label"}},{"kind":"Field","name":{"kind":"Name","value":"scriptPath"}},{"kind":"Field","name":{"kind":"Name","value":"scriptArgs"}},{"kind":"Field","name":{"kind":"Name","value":"workingDirectory"}},{"kind":"Field","name":{"kind":"Name","value":"environment"}},{"kind":"Field","name":{"kind":"Name","value":"outputPath"}}]}},{"kind":"InlineFragment","typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"RawBackupConfig"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"label"}},{"kind":"Field","name":{"kind":"Name","value":"sourcePath"}},{"kind":"Field","name":{"kind":"Name","value":"excludePatterns"}},{"kind":"Field","name":{"kind":"Name","value":"includePatterns"}}]}}]}},{"kind":"FragmentDefinition","name":{"kind":"Name","value":"DestinationConfig"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"DestinationConfigUnion"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"InlineFragment","typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"RcloneDestinationConfig"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"type"}},{"kind":"Field","name":{"kind":"Name","value":"remoteName"}},{"kind":"Field","name":{"kind":"Name","value":"destinationPath"}},{"kind":"Field","name":{"kind":"Name","value":"rcloneOptions"}}]}}]}},{"kind":"FragmentDefinition","name":{"kind":"Name","value":"BackupJobConfig"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"BackupJobConfig"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"sourceType"}},{"kind":"Field","name":{"kind":"Name","value":"destinationType"}},{"kind":"Field","name":{"kind":"Name","value":"schedule"}},{"kind":"Field","name":{"kind":"Name","value":"enabled"}},{"kind":"Field","name":{"kind":"Name","value":"sourceConfig"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"SourceConfig"}}]}},{"kind":"Field","name":{"kind":"Name","value":"destinationConfig"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"DestinationConfig"}}]}},{"kind":"Field","name":{"kind":"Name","value":"createdAt"}},{"kind":"Field","name":{"kind":"Name","value":"updatedAt"}},{"kind":"Field","name":{"kind":"Name","value":"lastRunAt"}},{"kind":"Field","name":{"kind":"Name","value":"lastRunStatus"}}]}}]} as unknown as DocumentNode<UpdateBackupJobConfigMutation, UpdateBackupJobConfigMutationVariables>;
+export const DeleteBackupJobConfigDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"DeleteBackupJobConfig"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"id"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"PrefixedID"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"backup"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"deleteBackupJobConfig"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"id"},"value":{"kind":"Variable","name":{"kind":"Name","value":"id"}}}]}]}}]}}]} as unknown as DocumentNode<DeleteBackupJobConfigMutation, DeleteBackupJobConfigMutationVariables>;
+export const ToggleBackupJobConfigDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"ToggleBackupJobConfig"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"id"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"PrefixedID"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"backup"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"toggleJobConfig"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"id"},"value":{"kind":"Variable","name":{"kind":"Name","value":"id"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"BackupJobConfig"}}]}}]}}]}},{"kind":"FragmentDefinition","name":{"kind":"Name","value":"SourceConfig"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"SourceConfigUnion"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"InlineFragment","typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"ZfsPreprocessConfig"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"label"}},{"kind":"Field","name":{"kind":"Name","value":"poolName"}},{"kind":"Field","name":{"kind":"Name","value":"datasetName"}},{"kind":"Field","name":{"kind":"Name","value":"snapshotPrefix"}},{"kind":"Field","name":{"kind":"Name","value":"cleanupSnapshots"}},{"kind":"Field","name":{"kind":"Name","value":"retainSnapshots"}}]}},{"kind":"InlineFragment","typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"FlashPreprocessConfig"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"label"}},{"kind":"Field","name":{"kind":"Name","value":"flashPath"}},{"kind":"Field","name":{"kind":"Name","value":"includeGitHistory"}},{"kind":"Field","name":{"kind":"Name","value":"additionalPaths"}}]}},{"kind":"InlineFragment","typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"ScriptPreprocessConfig"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"label"}},{"kind":"Field","name":{"kind":"Name","value":"scriptPath"}},{"kind":"Field","name":{"kind":"Name","value":"scriptArgs"}},{"kind":"Field","name":{"kind":"Name","value":"workingDirectory"}},{"kind":"Field","name":{"kind":"Name","value":"environment"}},{"kind":"Field","name":{"kind":"Name","value":"outputPath"}}]}},{"kind":"InlineFragment","typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"RawBackupConfig"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"label"}},{"kind":"Field","name":{"kind":"Name","value":"sourcePath"}},{"kind":"Field","name":{"kind":"Name","value":"excludePatterns"}},{"kind":"Field","name":{"kind":"Name","value":"includePatterns"}}]}}]}},{"kind":"FragmentDefinition","name":{"kind":"Name","value":"DestinationConfig"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"DestinationConfigUnion"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"InlineFragment","typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"RcloneDestinationConfig"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"type"}},{"kind":"Field","name":{"kind":"Name","value":"remoteName"}},{"kind":"Field","name":{"kind":"Name","value":"destinationPath"}},{"kind":"Field","name":{"kind":"Name","value":"rcloneOptions"}}]}}]}},{"kind":"FragmentDefinition","name":{"kind":"Name","value":"BackupJobConfig"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"BackupJobConfig"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"sourceType"}},{"kind":"Field","name":{"kind":"Name","value":"destinationType"}},{"kind":"Field","name":{"kind":"Name","value":"schedule"}},{"kind":"Field","name":{"kind":"Name","value":"enabled"}},{"kind":"Field","name":{"kind":"Name","value":"sourceConfig"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"SourceConfig"}}]}},{"kind":"Field","name":{"kind":"Name","value":"destinationConfig"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"DestinationConfig"}}]}},{"kind":"Field","name":{"kind":"Name","value":"createdAt"}},{"kind":"Field","name":{"kind":"Name","value":"updatedAt"}},{"kind":"Field","name":{"kind":"Name","value":"lastRunAt"}},{"kind":"Field","name":{"kind":"Name","value":"lastRunStatus"}}]}}]} as unknown as DocumentNode<ToggleBackupJobConfigMutation, ToggleBackupJobConfigMutationVariables>;
+export const TriggerBackupJobDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"TriggerBackupJob"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"id"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"PrefixedID"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"backup"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"triggerJob"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"id"},"value":{"kind":"Variable","name":{"kind":"Name","value":"id"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"jobId"}}]}}]}}]}}]} as unknown as DocumentNode<TriggerBackupJobMutation, TriggerBackupJobMutationVariables>;
+export const StopBackupJobDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"StopBackupJob"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"id"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"PrefixedID"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"backup"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"stopBackupJob"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"id"},"value":{"kind":"Variable","name":{"kind":"Name","value":"id"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"status"}},{"kind":"Field","name":{"kind":"Name","value":"jobId"}}]}}]}}]}}]} as unknown as DocumentNode<StopBackupJobMutation, StopBackupJobMutationVariables>;
+export const InitiateBackupDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"InitiateBackup"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"input"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"InitiateBackupInput"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"backup"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"initiateBackup"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"input"},"value":{"kind":"Variable","name":{"kind":"Name","value":"input"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"status"}},{"kind":"Field","name":{"kind":"Name","value":"jobId"}}]}}]}}]}}]} as unknown as DocumentNode<InitiateBackupMutation, InitiateBackupMutationVariables>;
 export const UnifiedDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"Unified"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"settings"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"unified"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"dataSchema"}},{"kind":"Field","name":{"kind":"Name","value":"uiSchema"}},{"kind":"Field","name":{"kind":"Name","value":"values"}}]}}]}}]}}]} as unknown as DocumentNode<UnifiedQuery, UnifiedQueryVariables>;
 export const UpdateConnectSettingsDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"UpdateConnectSettings"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"input"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"JSON"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"updateSettings"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"input"},"value":{"kind":"Variable","name":{"kind":"Name","value":"input"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"restartRequired"}},{"kind":"Field","name":{"kind":"Name","value":"values"}}]}}]}}]} as unknown as DocumentNode<UpdateConnectSettingsMutation, UpdateConnectSettingsMutationVariables>;
 export const LogFilesDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"LogFiles"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"logFiles"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"path"}},{"kind":"Field","name":{"kind":"Name","value":"size"}},{"kind":"Field","name":{"kind":"Name","value":"modifiedAt"}}]}}]}}]} as unknown as DocumentNode<LogFilesQuery, LogFilesQueryVariables>;

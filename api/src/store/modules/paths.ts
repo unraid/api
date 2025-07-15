@@ -71,6 +71,7 @@ const initialState = {
     ),
     webGuiBase: '/usr/local/emhttp/webGui' as const,
     identConfig: resolvePath(process.env.PATHS_IDENT_CONFIG ?? ('/boot/config/ident.cfg' as const)),
+    backupBase: resolvePath(process.env.PATHS_BACKUP_JOBS ?? ('/boot/config/api/backup/' as const)),
 };
 
 // Derive asset paths from base paths

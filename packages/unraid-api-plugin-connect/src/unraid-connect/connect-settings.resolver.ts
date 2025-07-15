@@ -3,11 +3,11 @@ import { EventEmitter2 } from '@nestjs/event-emitter';
 import { Args, Mutation, Query, ResolveField, Resolver } from '@nestjs/graphql';
 
 import { type Layout } from '@jsonforms/core';
+import { GraphQLJSON } from 'graphql-scalars';
 import { Resource } from '@unraid/shared/graphql.model.js';
 import { DataSlice } from '@unraid/shared/jsonforms/settings.js';
 import { PrefixedID } from '@unraid/shared/prefixed-id-scalar.js';
 import { UsePermissions } from '@unraid/shared/use-permissions.directive.js';
-import { GraphQLJSON } from 'graphql-scalars';
 import { AuthActionVerb, AuthPossession } from 'nest-authz';
 
 import { EVENTS } from '../helper/nest-tokens.js';

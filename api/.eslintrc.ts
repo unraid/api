@@ -53,5 +53,5 @@ export default tseslint.config(eslint.configs.recommended, ...tseslint.configs.r
         'eol-last': ['error', 'always'],
     },
 
-    ignores: ['src/graphql/generated/client/**/*'],
+    ignores: ['src/graphql/generated/client/**/*', 'scripts/**/*'],
 });

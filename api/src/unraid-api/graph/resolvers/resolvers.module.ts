@@ -2,15 +2,14 @@ import { Module } from '@nestjs/common';
 
 import { AuthModule } from '@app/unraid-api/auth/auth.module.js';
 import { ApiKeyModule } from '@app/unraid-api/graph/resolvers/api-key/api-key.module.js';
-import { ApiKeyResolver } from '@app/unraid-api/graph/resolvers/api-key/api-key.resolver.js';
 import { ArrayModule } from '@app/unraid-api/graph/resolvers/array/array.module.js';
+import { BackupModule } from '@app/unraid-api/graph/resolvers/backup/backup.module.js';
 import { ConfigResolver } from '@app/unraid-api/graph/resolvers/config/config.resolver.js';
 import { CustomizationModule } from '@app/unraid-api/graph/resolvers/customization/customization.module.js';
 import { DisksModule } from '@app/unraid-api/graph/resolvers/disks/disks.module.js';
 import { DisplayResolver } from '@app/unraid-api/graph/resolvers/display/display.resolver.js';
 import { DisplayService } from '@app/unraid-api/graph/resolvers/display/display.service.js';
 import { DockerModule } from '@app/unraid-api/graph/resolvers/docker/docker.module.js';
-import { FlashBackupModule } from '@app/unraid-api/graph/resolvers/flash-backup/flash-backup.module.js';
 import { FlashResolver } from '@app/unraid-api/graph/resolvers/flash/flash.resolver.js';
 import { DevicesResolver } from '@app/unraid-api/graph/resolvers/info/devices.resolver.js';
 import { DevicesService } from '@app/unraid-api/graph/resolvers/info/devices.service.js';
@@ -34,16 +33,18 @@ import { VmsService } from '@app/unraid-api/graph/resolvers/vms/vms.service.js';
 import { ServicesResolver } from '@app/unraid-api/graph/services/services.resolver.js';
 import { SharesResolver } from '@app/unraid-api/graph/shares/shares.resolver.js';
 import { MeResolver } from '@app/unraid-api/graph/user/user.resolver.js';
+import { UtilsModule } from '@app/unraid-api/utils/utils.module.js';
 
 @Module({
     imports: [
+        UtilsModule,
         ArrayModule,
         ApiKeyModule,
         AuthModule,
+        BackupModule,
         CustomizationModule,
         DockerModule,
         DisksModule,
-        FlashBackupModule,
         RCloneModule,
         SettingsModule,
     ],

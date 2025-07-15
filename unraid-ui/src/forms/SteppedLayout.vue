@@ -13,10 +13,9 @@ import {
   type JsonFormsSubStates,
   type JsonSchema,
   type Layout,
-  type UISchemaElement,
 } from '@jsonforms/core';
 import { DispatchRenderer, useJsonFormsLayout, type RendererProps } from '@jsonforms/vue';
-import { computed, inject, ref, type Ref } from 'vue';
+import { computed, inject, nextTick, onMounted, ref, type Ref } from 'vue';
 
 // Define props based on RendererProps<Layout>
 const props = defineProps<RendererProps<Layout>>();
@@ -48,15 +47,30 @@ const numSteps = computed(() => stepsConfig.value.length);
 // --- Current Step Logic --- Use injected core.data
 const currentStep = computed(() => {
   const stepData = core!.data?.configStep;
-  // Handle both the new object format and the old number format
+
+  // Return current step if properly initialized
   if (typeof stepData === 'object' && stepData !== null && typeof stepData.current === 'number') {
-    // Ensure step is within bounds
     return Math.max(0, Math.min(stepData.current, numSteps.value - 1));
   }
-  // Fallback for initial state or old number format
-  const numericStep = typeof stepData === 'number' ? stepData : 0;
-  return Math.max(0, Math.min(numericStep, numSteps.value - 1));
+
+  // Return 0 as default if not initialized yet
+  return 0;
 });
+
+// Initialize configStep on mount
+onMounted(async () => {
+  // Wait for next tick to ensure form data is available
+  await nextTick();
+
+  const stepData = core!.data?.configStep;
+
+  // Only initialize if configStep doesn't exist or is in wrong format
+  if (!stepData || typeof stepData !== 'object' || typeof stepData.current !== 'number') {
+    const initialStep = { current: 0, total: numSteps.value };
+    dispatch(Actions.update('configStep', () => initialStep));
+  }
+});
+
 const isLastStep = computed(() => numSteps.value > 0 && currentStep.value === numSteps.value - 1);
 
 // --- Step Update Logic ---
@@ -71,15 +85,30 @@ const updateStep = (newStep: number) => {
   dispatch(Actions.update('configStep', () => ({ current: newStep, total })));
 };
 
+// --- Type guard for elements with step options ---
+interface ElementWithStep {
+  options?: {
+    step?: number;
+    [key: string]: unknown;
+  };
+}
+
+function hasStepOption(element: unknown): element is ElementWithStep {
+  return (
+    element != null &&
+    typeof element === 'object' &&
+    'options' in element &&
+    typeof element.options === 'object' &&
+    element.options !== null &&
+    typeof (element.options as { step?: number }).step === 'number'
+  );
+}
+
 // --- Filtered Elements for Current Step ---
 const currentStepElements = computed(() => {
-  const filtered = (props.uischema.elements || []).filter((element: UISchemaElement) => {
-    // Check if the element has an 'options' object and an 'step' property
-    return (
-      typeof element.options === 'object' &&
-      element.options !== null &&
-      element.options.step === currentStep.value
-    );
+  const elements = props.uischema.elements || [];
+  const filtered = elements.filter((element) => {
+    return hasStepOption(element) && element.options!.step === currentStep.value;
   });
   return filtered;
 });
@@ -142,15 +171,12 @@ const getStepState = (stepIndex: number): StepState => {
         />
       </StepperItem>
     </Stepper>
-
-    <!-- Render elements for the current step -->
-    <!-- Added key to force re-render on step change, ensuring correct elements display -->
     <div class="current-step-content rounded-md border p-4 shadow" :key="`step-content-${currentStep}`">
       <DispatchRenderer
         v-for="(element, index) in currentStepElements"
         :key="`${layout.path}-${index}-step-${currentStep}`"
-        :schema="props.schema as JsonSchema"
-        :uischema="element as UISchemaElement"
+        :schema="props.schema"
+        :uischema="element"
         :path="layout.path || ''"
         :renderers="layout.renderers"
         :cells="layout.cells"

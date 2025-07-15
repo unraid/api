@@ -1,7 +1,4 @@
 <script setup lang="ts">
-/**
- * @todo complete this component
- */
 import { Switch, SwitchGroup, SwitchLabel } from '@headlessui/vue';
 import { ref } from 'vue';
 
