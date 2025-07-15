@@ -78,7 +78,7 @@
     "@types/node": "22.16.4",
     "@types/testing-library__vue": "5.3.0",
     "@typescript-eslint/eslint-plugin": "8.37.0",
-    "@unraid/tailwind-rem-to-rem": "1.1.0",
+    "@unraid/tailwind-rem-to-rem": "2.0.0",
     "@vitejs/plugin-vue": "6.0.0",
     "@vitest/coverage-v8": "3.2.4",
     "@vitest/ui": "3.2.4",
