@@ -1,13 +1,13 @@
-import { copyFile, readFile, writeFile } from 'fs/promises';
+import { copyFile } from 'fs/promises';
 import { join } from 'path';
 
 import { Command, CommandRunner, Option } from 'nest-commander';
 
-import { cliLogger } from '@app/core/log.js';
+import { fileExistsSync } from '@app/core/utils/files/file-exists.js';
+import { ENVIRONMENT } from '@app/environment.js';
 import { getters } from '@app/store/index.js';
 import { LogService } from '@app/unraid-api/cli/log.service.js';
-import { StartCommand } from '@app/unraid-api/cli/start.command.js';
-import { StopCommand } from '@app/unraid-api/cli/stop.command.js';
+import { RestartCommand } from '@app/unraid-api/cli/restart.command.js';
 
 interface SwitchEnvOptions {
     environment?: 'staging' | 'production';
@@ -31,60 +31,43 @@ export class SwitchEnvCommand extends CommandRunner {
 
     constructor(
         private readonly logger: LogService,
-        private readonly stopCommand: StopCommand,
-        private readonly startCommand: StartCommand
+        private readonly restartCommand: RestartCommand
     ) {
         super();
-    }
-
-    private async getEnvironmentFromFile(path: string): Promise<'production' | 'staging'> {
-        const envFile = await readFile(path, 'utf-8').catch(() => '');
-        this.logger.debug(`Checking ${path} for current ENV, found ${envFile}`);
-
-        // Match the env file env="production" which would be [0] = env="production", [1] = env and [2] = production
-        const matchArray = /([a-zA-Z]+)=["]*([a-zA-Z]+)["]*/.exec(envFile);
-        // Get item from index 2 of the regex match or return production
-        const [, , currentEnvInFile] = matchArray && matchArray.length === 3 ? matchArray : [];
-        return this.parseStringToEnv(currentEnvInFile);
-    }
-
-    private switchToOtherEnv(environment: 'production' | 'staging'): 'production' | 'staging' {
-        if (environment === 'production') {
-            return 'staging';
-        }
-        return 'production';
     }
 
     async run(_, options: SwitchEnvOptions): Promise<void> {
         const paths = getters.paths();
         const basePath = paths['unraid-api-base'];
-        const envFlashFilePath = paths['myservers-env'];
+        const currentEnvPath = join(basePath, '.env');
 
-        this.logger.warn('Stopping the Unraid API');
-        try {
-            await this.stopCommand.run([], { delete: false });
-        } catch (err) {
-            this.logger.warn('Failed to stop the Unraid API (maybe already stopped?)');
+        // Determine target environment
+        const currentEnv = ENVIRONMENT;
+        const targetEnv = options.environment ?? 'production';
+
+        this.logger.info(`Switching environment from ${currentEnv} to ${targetEnv}`);
+
+        // Check if target environment file exists
+        const sourceEnvPath = join(basePath, `.env.${targetEnv}`);
+        if (!fileExistsSync(sourceEnvPath)) {
+            this.logger.error(
+                `Environment file ${sourceEnvPath} does not exist. Cannot switch to ${targetEnv} environment.`
+            );
+            process.exit(1);
         }
 
-        const newEnv =
-            options.environment ??
-            this.switchToOtherEnv(await this.getEnvironmentFromFile(envFlashFilePath));
-        this.logger.info(`Setting environment to ${newEnv}`);
+        // Copy the target environment file to .env
+        this.logger.debug(`Copying ${sourceEnvPath} to ${currentEnvPath}`);
+        try {
+            await copyFile(sourceEnvPath, currentEnvPath);
+            this.logger.info(`Successfully switched to ${targetEnv} environment`);
+        } catch (error) {
+            this.logger.error(`Failed to copy environment file: ${error}`);
+            process.exit(1);
+        }
 
-        // Write new env to flash
-        const newEnvLine = `env="${newEnv}"`;
-        this.logger.debug('Writing %s to %s', newEnvLine, envFlashFilePath);
-        await writeFile(envFlashFilePath, newEnvLine);
-
-        // Copy the new env over to live location before restarting
-        const source = join(basePath, `.env.${newEnv}`);
-        const destination = join(basePath, '.env');
-
-        cliLogger.debug('Copying %s to %s', source, destination);
-        await copyFile(source, destination);
-
-        cliLogger.info('Now using %s', newEnv);
-        await this.startCommand.run([], {});
+        // Restart the API to pick up the new environment
+        this.logger.info('Restarting Unraid API to apply environment changes...');
+        await this.restartCommand.run();
     }
 }

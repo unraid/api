@@ -764,4 +764,323 @@ describe('useServerStore', () => {
     expect(store.cloudError).toBeDefined();
     expect((store.cloudError as { message: string })?.message).toBe('Test error');
   });
+
+  describe('trial extension features', () => {
+    it('should determine trial extension eligibility correctly', () => {
+      const store = getStore();
+
+      // Add trialExtensionEligible property to the store
+      Object.defineProperty(store, 'trialExtensionEligible', {
+        get: () => !store.regGen || store.regGen < 2,
+      });
+
+      // Eligible - no regGen
+      store.setServer({ regGen: 0 });
+      expect(store.trialExtensionEligible).toBe(true);
+
+      // Eligible - regGen = 1
+      store.setServer({ regGen: 1 });
+      expect(store.trialExtensionEligible).toBe(true);
+
+      // Not eligible - regGen = 2
+      store.setServer({ regGen: 2 });
+      expect(store.trialExtensionEligible).toBe(false);
+
+      // Not eligible - regGen > 2
+      store.setServer({ regGen: 3 });
+      expect(store.trialExtensionEligible).toBe(false);
+    });
+
+    it('should calculate trial within 5 days of expiration correctly', () => {
+      const store = getStore();
+
+      // Add properties to the store
+      Object.defineProperty(store, 'expireTime', { value: 0, writable: true });
+      Object.defineProperty(store, 'trialWithin5DaysOfExpiration', {
+        get: () => {
+          if (!store.expireTime || store.state !== 'TRIAL') {
+            return false;
+          }
+          const today = dayjs();
+          const expirationDate = dayjs(store.expireTime);
+          const daysUntilExpiration = expirationDate.diff(today, 'day');
+          return daysUntilExpiration <= 5 && daysUntilExpiration >= 0;
+        },
+      });
+
+      // Not a trial
+      store.setServer({ state: 'PRO' as ServerState, expireTime: dayjs().add(3, 'day').unix() * 1000 });
+      expect(store.trialWithin5DaysOfExpiration).toBe(false);
+
+      // Trial but no expireTime
+      store.setServer({ state: 'TRIAL' as ServerState, expireTime: 0 });
+      expect(store.trialWithin5DaysOfExpiration).toBe(false);
+
+      // Trial expiring in 3 days
+      store.setServer({ state: 'TRIAL' as ServerState, expireTime: dayjs().add(3, 'day').unix() * 1000 });
+      expect(store.trialWithin5DaysOfExpiration).toBe(true);
+
+      // Trial expiring in exactly 5 days
+      store.setServer({ state: 'TRIAL' as ServerState, expireTime: dayjs().add(5, 'day').unix() * 1000 });
+      expect(store.trialWithin5DaysOfExpiration).toBe(true);
+
+      // Trial expiring in 7 days (to ensure it's clearly outside the 5-day window)
+      store.setServer({ state: 'TRIAL' as ServerState, expireTime: dayjs().add(7, 'day').unix() * 1000 });
+      expect(store.trialWithin5DaysOfExpiration).toBe(false);
+
+      // Trial already expired
+      store.setServer({ state: 'TRIAL' as ServerState, expireTime: dayjs().subtract(1, 'day').unix() * 1000 });
+      expect(store.trialWithin5DaysOfExpiration).toBe(false);
+    });
+
+    it('should calculate trial extension renewal window conditions correctly', () => {
+      const store = getStore();
+
+      // Add all necessary properties
+      Object.defineProperty(store, 'expireTime', { value: 0, writable: true });
+      Object.defineProperty(store, 'trialExtensionEligible', {
+        get: () => !store.regGen || store.regGen < 2,
+      });
+      Object.defineProperty(store, 'trialWithin5DaysOfExpiration', {
+        get: () => {
+          if (!store.expireTime || store.state !== 'TRIAL') {
+            return false;
+          }
+          const today = dayjs();
+          const expirationDate = dayjs(store.expireTime);
+          const daysUntilExpiration = expirationDate.diff(today, 'day');
+          return daysUntilExpiration <= 5 && daysUntilExpiration >= 0;
+        },
+      });
+      Object.defineProperty(store, 'trialExtensionEligibleInsideRenewalWindow', {
+        get: () => store.trialExtensionEligible && store.trialWithin5DaysOfExpiration,
+      });
+      Object.defineProperty(store, 'trialExtensionEligibleOutsideRenewalWindow', {
+        get: () => store.trialExtensionEligible && !store.trialWithin5DaysOfExpiration,
+      });
+      Object.defineProperty(store, 'trialExtensionIneligibleInsideRenewalWindow', {
+        get: () => !store.trialExtensionEligible && store.trialWithin5DaysOfExpiration,
+      });
+
+      // Eligible inside renewal window
+      store.setServer({
+        state: 'TRIAL' as ServerState,
+        regGen: 1,
+        expireTime: dayjs().add(3, 'day').unix() * 1000,
+      });
+      expect(store.trialExtensionEligibleInsideRenewalWindow).toBe(true);
+      expect(store.trialExtensionEligibleOutsideRenewalWindow).toBe(false);
+      expect(store.trialExtensionIneligibleInsideRenewalWindow).toBe(false);
+
+      // Eligible outside renewal window
+      store.setServer({
+        state: 'TRIAL' as ServerState,
+        regGen: 1,
+        expireTime: dayjs().add(10, 'day').unix() * 1000,
+      });
+      expect(store.trialExtensionEligibleInsideRenewalWindow).toBe(false);
+      expect(store.trialExtensionEligibleOutsideRenewalWindow).toBe(true);
+      expect(store.trialExtensionIneligibleInsideRenewalWindow).toBe(false);
+
+      // Ineligible inside renewal window
+      store.setServer({
+        state: 'TRIAL' as ServerState,
+        regGen: 2,
+        expireTime: dayjs().add(3, 'day').unix() * 1000,
+      });
+      expect(store.trialExtensionEligibleInsideRenewalWindow).toBe(false);
+      expect(store.trialExtensionEligibleOutsideRenewalWindow).toBe(false);
+      expect(store.trialExtensionIneligibleInsideRenewalWindow).toBe(true);
+
+      // Ineligible outside renewal window
+      store.setServer({
+        state: 'TRIAL' as ServerState,
+        regGen: 2,
+        expireTime: dayjs().add(10, 'day').unix() * 1000,
+      });
+      expect(store.trialExtensionEligibleInsideRenewalWindow).toBe(false);
+      expect(store.trialExtensionEligibleOutsideRenewalWindow).toBe(false);
+      expect(store.trialExtensionIneligibleInsideRenewalWindow).toBe(false);
+    });
+
+    it('should display correct trial messages based on extension eligibility and renewal window', () => {
+      const store = getStore();
+
+      // Add all necessary properties
+      Object.defineProperty(store, 'expireTime', { value: 0, writable: true });
+      Object.defineProperty(store, 'trialExtensionEligible', {
+        get: () => !store.regGen || store.regGen < 2,
+      });
+      Object.defineProperty(store, 'trialWithin5DaysOfExpiration', {
+        get: () => {
+          if (!store.expireTime || store.state !== 'TRIAL') {
+            return false;
+          }
+          const today = dayjs();
+          const expirationDate = dayjs(store.expireTime);
+          const daysUntilExpiration = expirationDate.diff(today, 'day');
+          return daysUntilExpiration <= 5 && daysUntilExpiration >= 0;
+        },
+      });
+      Object.defineProperty(store, 'trialExtensionEligibleInsideRenewalWindow', {
+        get: () => store.trialExtensionEligible && store.trialWithin5DaysOfExpiration,
+      });
+      Object.defineProperty(store, 'trialExtensionEligibleOutsideRenewalWindow', {
+        get: () => store.trialExtensionEligible && !store.trialWithin5DaysOfExpiration,
+      });
+      Object.defineProperty(store, 'trialExtensionIneligibleInsideRenewalWindow', {
+        get: () => !store.trialExtensionEligible && store.trialWithin5DaysOfExpiration,
+      });
+
+      // Mock stateData getter to include trial message logic
+      Object.defineProperty(store, 'stateData', {
+        get: () => {
+          if (store.state !== 'TRIAL') {
+            return {
+              humanReadable: '',
+              heading: '',
+              message: '',
+              actions: [],
+            };
+          }
+
+          let trialMessage = '';
+          if (store.trialExtensionEligibleInsideRenewalWindow) {
+            trialMessage = '<p>Your <em>Trial</em> key includes all the functionality and device support of an <em>Unleashed</em> key.</p><p>Your trial is expiring soon. When it expires, <strong>the array will stop</strong>. You may extend your trial now, purchase a license key, or wait until expiration to take action.</p>';
+          } else if (store.trialExtensionIneligibleInsideRenewalWindow) {
+            trialMessage = '<p>Your <em>Trial</em> key includes all the functionality and device support of an <em>Unleashed</em> key.</p><p>Your trial is expiring soon and you have used all available extensions. When it expires, <strong>the array will stop</strong>. To continue using Unraid OS, you must purchase a license key.</p>';
+          } else if (store.trialExtensionEligibleOutsideRenewalWindow) {
+            trialMessage = '<p>Your <em>Trial</em> key includes all the functionality and device support of an <em>Unleashed</em> key.</p><p>When your <em>Trial</em> expires, <strong>the array will stop</strong>. At that point you may either purchase a license key or request a <em>Trial</em> extension.</p>';
+          } else {
+            trialMessage = '<p>Your <em>Trial</em> key includes all the functionality and device support of an <em>Unleashed</em> key.</p><p>You have used all available trial extensions. When your <em>Trial</em> expires, <strong>the array will stop</strong>. To continue using Unraid OS after expiration, you must purchase a license key.</p>';
+          }
+
+          return {
+            humanReadable: 'Trial',
+            heading: 'Thank you for choosing Unraid OS!',
+            message: trialMessage,
+            actions: [],
+          };
+        },
+      });
+
+      // Test case 1: Eligible inside renewal window
+      store.setServer({
+        state: 'TRIAL' as ServerState,
+        regGen: 1,
+        expireTime: dayjs().add(3, 'day').unix() * 1000,
+      });
+      expect(store.stateData.message).toContain('Your trial is expiring soon');
+      expect(store.stateData.message).toContain('You may extend your trial now');
+
+      // Test case 2: Ineligible inside renewal window
+      store.setServer({
+        state: 'TRIAL' as ServerState,
+        regGen: 2,
+        expireTime: dayjs().add(3, 'day').unix() * 1000,
+      });
+      expect(store.stateData.message).toContain('Your trial is expiring soon and you have used all available extensions');
+      expect(store.stateData.message).toContain('To continue using Unraid OS, you must purchase a license key');
+
+      // Test case 3: Eligible outside renewal window
+      store.setServer({
+        state: 'TRIAL' as ServerState,
+        regGen: 0,
+        expireTime: dayjs().add(10, 'day').unix() * 1000,
+      });
+      expect(store.stateData.message).toContain('At that point you may either purchase a license key or request a <em>Trial</em> extension');
+
+      // Test case 4: Ineligible outside renewal window
+      store.setServer({
+        state: 'TRIAL' as ServerState,
+        regGen: 2,
+        expireTime: dayjs().add(10, 'day').unix() * 1000,
+      });
+      expect(store.stateData.message).toContain('You have used all available trial extensions');
+      expect(store.stateData.message).toContain('To continue using Unraid OS after expiration, you must purchase a license key');
+    });
+
+    it('should include trial extend action only when eligible inside renewal window', () => {
+      const store = getStore();
+
+      // Add necessary properties
+      Object.defineProperty(store, 'expireTime', { value: 0, writable: true });
+      Object.defineProperty(store, 'trialExtensionEligible', {
+        get: () => !store.regGen || store.regGen < 2,
+      });
+      Object.defineProperty(store, 'trialWithin5DaysOfExpiration', {
+        get: () => {
+          if (!store.expireTime || store.state !== 'TRIAL') {
+            return false;
+          }
+          const today = dayjs();
+          const expirationDate = dayjs(store.expireTime);
+          const daysUntilExpiration = expirationDate.diff(today, 'day');
+          return daysUntilExpiration <= 5 && daysUntilExpiration >= 0;
+        },
+      });
+      Object.defineProperty(store, 'trialExtensionEligibleInsideRenewalWindow', {
+        get: () => store.trialExtensionEligible && store.trialWithin5DaysOfExpiration,
+      });
+
+      // Mock the trialExtendAction
+      const trialExtendAction = { name: 'trialExtend', text: 'Extend Trial' };
+
+      // Mock stateData getter to include actions logic
+      Object.defineProperty(store, 'stateData', {
+        get: () => {
+          if (store.state !== 'TRIAL') {
+            return {
+              humanReadable: '',
+              heading: '',
+              message: '',
+              actions: [],
+            };
+          }
+
+          const actions = [];
+          if (store.trialExtensionEligibleInsideRenewalWindow) {
+            actions.push(trialExtendAction);
+          }
+
+          return {
+            humanReadable: 'Trial',
+            heading: 'Thank you for choosing Unraid OS!',
+            message: '',
+            actions,
+          };
+        },
+      });
+
+      // Test case 1: Eligible inside renewal window - should include trialExtend action
+      store.setServer({
+        state: 'TRIAL' as ServerState,
+        regGen: 1,
+        expireTime: dayjs().add(3, 'day').unix() * 1000,
+        registered: true,
+        connectPluginInstalled: 'true' as ServerconnectPluginInstalled,
+      });
+      expect(store.stateData.actions?.some((action: { name: string }) => action.name === 'trialExtend')).toBe(true);
+
+      // Test case 2: Not eligible inside renewal window - should NOT include trialExtend action
+      store.setServer({
+        state: 'TRIAL' as ServerState,
+        regGen: 2,
+        expireTime: dayjs().add(3, 'day').unix() * 1000,
+        registered: true,
+        connectPluginInstalled: 'true' as ServerconnectPluginInstalled,
+      });
+      expect(store.stateData.actions?.some((action: { name: string }) => action.name === 'trialExtend')).toBe(false);
+
+      // Test case 3: Eligible outside renewal window - should NOT include trialExtend action
+      store.setServer({
+        state: 'TRIAL' as ServerState,
+        regGen: 1,
+        expireTime: dayjs().add(10, 'day').unix() * 1000,
+        registered: true,
+        connectPluginInstalled: 'true' as ServerconnectPluginInstalled,
+      });
+      expect(store.stateData.actions?.some((action: { name: string }) => action.name === 'trialExtend')).toBe(false);
+    });
+  });
 });

@@ -247,347 +247,6 @@ A field whose value conforms to the standard URL format as specified in RFC3986:
 """
 scalar URL
 
-type DiskPartition {
-  """The name of the partition"""
-  name: String!
-
-  """The filesystem type of the partition"""
-  fsType: DiskFsType!
-
-  """The size of the partition in bytes"""
-  size: Float!
-}
-
-"""The type of filesystem on the disk partition"""
-enum DiskFsType {
-  XFS
-  BTRFS
-  VFAT
-  ZFS
-  EXT4
-  NTFS
-}
-
-type Disk implements Node {
-  id: PrefixedID!
-
-  """The device path of the disk (e.g. /dev/sdb)"""
-  device: String!
-
-  """The type of disk (e.g. SSD, HDD)"""
-  type: String!
-
-  """The model name of the disk"""
-  name: String!
-
-  """The manufacturer of the disk"""
-  vendor: String!
-
-  """The total size of the disk in bytes"""
-  size: Float!
-
-  """The number of bytes per sector"""
-  bytesPerSector: Float!
-
-  """The total number of cylinders on the disk"""
-  totalCylinders: Float!
-
-  """The total number of heads on the disk"""
-  totalHeads: Float!
-
-  """The total number of sectors on the disk"""
-  totalSectors: Float!
-
-  """The total number of tracks on the disk"""
-  totalTracks: Float!
-
-  """The number of tracks per cylinder"""
-  tracksPerCylinder: Float!
-
-  """The number of sectors per track"""
-  sectorsPerTrack: Float!
-
-  """The firmware revision of the disk"""
-  firmwareRevision: String!
-
-  """The serial number of the disk"""
-  serialNum: String!
-
-  """The interface type of the disk"""
-  interfaceType: DiskInterfaceType!
-
-  """The SMART status of the disk"""
-  smartStatus: DiskSmartStatus!
-
-  """The current temperature of the disk in Celsius"""
-  temperature: Float
-
-  """The partitions on the disk"""
-  partitions: [DiskPartition!]!
-}
-
-"""The type of interface the disk uses to connect to the system"""
-enum DiskInterfaceType {
-  SAS
-  SATA
-  USB
-  PCIE
-  UNKNOWN
-}
-
-"""
-The SMART (Self-Monitoring, Analysis and Reporting Technology) status of the disk
-"""
-enum DiskSmartStatus {
-  OK
-  UNKNOWN
-}
-
-type KeyFile {
-  location: String
-  contents: String
-}
-
-type Registration implements Node {
-  id: PrefixedID!
-  type: registrationType
-  keyFile: KeyFile
-  state: RegistrationState
-  expiration: String
-  updateExpiration: String
-}
-
-enum registrationType {
-  BASIC
-  PLUS
-  PRO
-  STARTER
-  UNLEASHED
-  LIFETIME
-  INVALID
-  TRIAL
-}
-
-enum RegistrationState {
-  TRIAL
-  BASIC
-  PLUS
-  PRO
-  STARTER
-  UNLEASHED
-  LIFETIME
-  EEXPIRED
-  EGUID
-  EGUID1
-  ETRIAL
-  ENOKEYFILE
-  ENOKEYFILE1
-  ENOKEYFILE2
-  ENOFLASH
-  ENOFLASH1
-  ENOFLASH2
-  ENOFLASH3
-  ENOFLASH4
-  ENOFLASH5
-  ENOFLASH6
-  ENOFLASH7
-  EBLACKLISTED
-  EBLACKLISTED1
-  EBLACKLISTED2
-  ENOCONN
-}
-
-type Vars implements Node {
-  id: PrefixedID!
-
-  """Unraid version"""
-  version: String
-  maxArraysz: Int
-  maxCachesz: Int
-
-  """Machine hostname"""
-  name: String
-  timeZone: String
-  comment: String
-  security: String
-  workgroup: String
-  domain: String
-  domainShort: String
-  hideDotFiles: Boolean
-  localMaster: Boolean
-  enableFruit: String
-
-  """Should a NTP server be used for time sync?"""
-  useNtp: Boolean
-
-  """NTP Server 1"""
-  ntpServer1: String
-
-  """NTP Server 2"""
-  ntpServer2: String
-
-  """NTP Server 3"""
-  ntpServer3: String
-
-  """NTP Server 4"""
-  ntpServer4: String
-  domainLogin: String
-  sysModel: String
-  sysArraySlots: Int
-  sysCacheSlots: Int
-  sysFlashSlots: Int
-  useSsl: Boolean
-
-  """Port for the webui via HTTP"""
-  port: Int
-
-  """Port for the webui via HTTPS"""
-  portssl: Int
-  localTld: String
-  bindMgt: Boolean
-
-  """Should telnet be enabled?"""
-  useTelnet: Boolean
-  porttelnet: Int
-  useSsh: Boolean
-  portssh: Int
-  startPage: String
-  startArray: Boolean
-  spindownDelay: String
-  queueDepth: String
-  spinupGroups: Boolean
-  defaultFormat: String
-  defaultFsType: String
-  shutdownTimeout: Int
-  luksKeyfile: String
-  pollAttributes: String
-  pollAttributesDefault: String
-  pollAttributesStatus: String
-  nrRequests: Int
-  nrRequestsDefault: Int
-  nrRequestsStatus: String
-  mdNumStripes: Int
-  mdNumStripesDefault: Int
-  mdNumStripesStatus: String
-  mdSyncWindow: Int
-  mdSyncWindowDefault: Int
-  mdSyncWindowStatus: String
-  mdSyncThresh: Int
-  mdSyncThreshDefault: Int
-  mdSyncThreshStatus: String
-  mdWriteMethod: Int
-  mdWriteMethodDefault: String
-  mdWriteMethodStatus: String
-  shareDisk: String
-  shareUser: String
-  shareUserInclude: String
-  shareUserExclude: String
-  shareSmbEnabled: Boolean
-  shareNfsEnabled: Boolean
-  shareAfpEnabled: Boolean
-  shareInitialOwner: String
-  shareInitialGroup: String
-  shareCacheEnabled: Boolean
-  shareCacheFloor: String
-  shareMoverSchedule: String
-  shareMoverLogging: Boolean
-  fuseRemember: String
-  fuseRememberDefault: String
-  fuseRememberStatus: String
-  fuseDirectio: String
-  fuseDirectioDefault: String
-  fuseDirectioStatus: String
-  shareAvahiEnabled: Boolean
-  shareAvahiSmbName: String
-  shareAvahiSmbModel: String
-  shareAvahiAfpName: String
-  shareAvahiAfpModel: String
-  safeMode: Boolean
-  startMode: String
-  configValid: Boolean
-  configError: ConfigErrorState
-  joinStatus: String
-  deviceCount: Int
-  flashGuid: String
-  flashProduct: String
-  flashVendor: String
-  regCheck: String
-  regFile: String
-  regGuid: String
-  regTy: registrationType
-  regState: RegistrationState
-
-  """Registration owner"""
-  regTo: String
-  regTm: String
-  regTm2: String
-  regGen: String
-  sbName: String
-  sbVersion: String
-  sbUpdated: String
-  sbEvents: Int
-  sbState: String
-  sbClean: Boolean
-  sbSynced: Int
-  sbSyncErrs: Int
-  sbSynced2: Int
-  sbSyncExit: String
-  sbNumDisks: Int
-  mdColor: String
-  mdNumDisks: Int
-  mdNumDisabled: Int
-  mdNumInvalid: Int
-  mdNumMissing: Int
-  mdNumNew: Int
-  mdNumErased: Int
-  mdResync: Int
-  mdResyncCorr: String
-  mdResyncPos: String
-  mdResyncDb: String
-  mdResyncDt: String
-  mdResyncAction: String
-  mdResyncSize: Int
-  mdState: String
-  mdVersion: String
-  cacheNumDevices: Int
-  cacheSbNumDisks: Int
-  fsState: String
-
-  """Human friendly string of array events happening"""
-  fsProgress: String
-
-  """
-  Percentage from 0 - 100 while upgrading a disk or swapping parity drives
-  """
-  fsCopyPrcnt: Int
-  fsNumMounted: Int
-  fsNumUnmountable: Int
-  fsUnmountableMask: String
-
-  """Total amount of user shares"""
-  shareCount: Int
-
-  """Total amount shares with SMB enabled"""
-  shareSmbCount: Int
-
-  """Total amount shares with NFS enabled"""
-  shareNfsCount: Int
-
-  """Total amount shares with AFP enabled"""
-  shareAfpCount: Int
-  shareMoverActive: Boolean
-  csrfToken: String
-}
-
-"""Possible error states for configuration"""
-enum ConfigErrorState {
-  UNKNOWN_ERROR
-  INELIGIBLE
-  INVALID
-  NO_KEY_SERVER
-  WITHDRAWN
-}
-
 type Permission {
   resource: Resource!
   actions: [String!]!
@@ -959,6 +618,102 @@ enum ThemeName {
   black
   gray
   white
+}
+
+type DiskPartition {
+  """The name of the partition"""
+  name: String!
+
+  """The filesystem type of the partition"""
+  fsType: DiskFsType!
+
+  """The size of the partition in bytes"""
+  size: Float!
+}
+
+"""The type of filesystem on the disk partition"""
+enum DiskFsType {
+  XFS
+  BTRFS
+  VFAT
+  ZFS
+  EXT4
+  NTFS
+}
+
+type Disk implements Node {
+  id: PrefixedID!
+
+  """The device path of the disk (e.g. /dev/sdb)"""
+  device: String!
+
+  """The type of disk (e.g. SSD, HDD)"""
+  type: String!
+
+  """The model name of the disk"""
+  name: String!
+
+  """The manufacturer of the disk"""
+  vendor: String!
+
+  """The total size of the disk in bytes"""
+  size: Float!
+
+  """The number of bytes per sector"""
+  bytesPerSector: Float!
+
+  """The total number of cylinders on the disk"""
+  totalCylinders: Float!
+
+  """The total number of heads on the disk"""
+  totalHeads: Float!
+
+  """The total number of sectors on the disk"""
+  totalSectors: Float!
+
+  """The total number of tracks on the disk"""
+  totalTracks: Float!
+
+  """The number of tracks per cylinder"""
+  tracksPerCylinder: Float!
+
+  """The number of sectors per track"""
+  sectorsPerTrack: Float!
+
+  """The firmware revision of the disk"""
+  firmwareRevision: String!
+
+  """The serial number of the disk"""
+  serialNum: String!
+
+  """The interface type of the disk"""
+  interfaceType: DiskInterfaceType!
+
+  """The SMART status of the disk"""
+  smartStatus: DiskSmartStatus!
+
+  """The current temperature of the disk in Celsius"""
+  temperature: Float
+
+  """The partitions on the disk"""
+  partitions: [DiskPartition!]!
+}
+
+"""The type of interface the disk uses to connect to the system"""
+enum DiskInterfaceType {
+  SAS
+  SATA
+  USB
+  PCIE
+  UNKNOWN
+}
+
+"""
+The SMART (Self-Monitoring, Analysis and Reporting Technology) status of the disk
+"""
+enum DiskSmartStatus {
+  OK
+  UNKNOWN
 }
 
 type InfoApps implements Node {
@@ -1351,6 +1106,60 @@ type Owner {
   avatar: String!
 }
 
+type KeyFile {
+  location: String
+  contents: String
+}
+
+type Registration implements Node {
+  id: PrefixedID!
+  type: registrationType
+  keyFile: KeyFile
+  state: RegistrationState
+  expiration: String
+  updateExpiration: String
+}
+
+enum registrationType {
+  BASIC
+  PLUS
+  PRO
+  STARTER
+  UNLEASHED
+  LIFETIME
+  INVALID
+  TRIAL
+}
+
+enum RegistrationState {
+  TRIAL
+  BASIC
+  PLUS
+  PRO
+  STARTER
+  UNLEASHED
+  LIFETIME
+  EEXPIRED
+  EGUID
+  EGUID1
+  ETRIAL
+  ENOKEYFILE
+  ENOKEYFILE1
+  ENOKEYFILE2
+  ENOFLASH
+  ENOFLASH1
+  ENOFLASH2
+  ENOFLASH3
+  ENOFLASH4
+  ENOFLASH5
+  ENOFLASH6
+  ENOFLASH7
+  EBLACKLISTED
+  EBLACKLISTED1
+  EBLACKLISTED2
+  ENOCONN
+}
+
 type ProfileModel implements Node {
   id: PrefixedID!
   username: String!
@@ -1414,6 +1223,197 @@ type Settings implements Node {
 
   """The API setting values"""
   api: ApiConfig!
+}
+
+type Vars implements Node {
+  id: PrefixedID!
+
+  """Unraid version"""
+  version: String
+  maxArraysz: Int
+  maxCachesz: Int
+
+  """Machine hostname"""
+  name: String
+  timeZone: String
+  comment: String
+  security: String
+  workgroup: String
+  domain: String
+  domainShort: String
+  hideDotFiles: Boolean
+  localMaster: Boolean
+  enableFruit: String
+
+  """Should a NTP server be used for time sync?"""
+  useNtp: Boolean
+
+  """NTP Server 1"""
+  ntpServer1: String
+
+  """NTP Server 2"""
+  ntpServer2: String
+
+  """NTP Server 3"""
+  ntpServer3: String
+
+  """NTP Server 4"""
+  ntpServer4: String
+  domainLogin: String
+  sysModel: String
+  sysArraySlots: Int
+  sysCacheSlots: Int
+  sysFlashSlots: Int
+  useSsl: Boolean
+
+  """Port for the webui via HTTP"""
+  port: Int
+
+  """Port for the webui via HTTPS"""
+  portssl: Int
+  localTld: String
+  bindMgt: Boolean
+
+  """Should telnet be enabled?"""
+  useTelnet: Boolean
+  porttelnet: Int
+  useSsh: Boolean
+  portssh: Int
+  startPage: String
+  startArray: Boolean
+  spindownDelay: String
+  queueDepth: String
+  spinupGroups: Boolean
+  defaultFormat: String
+  defaultFsType: String
+  shutdownTimeout: Int
+  luksKeyfile: String
+  pollAttributes: String
+  pollAttributesDefault: String
+  pollAttributesStatus: String
+  nrRequests: Int
+  nrRequestsDefault: Int
+  nrRequestsStatus: String
+  mdNumStripes: Int
+  mdNumStripesDefault: Int
+  mdNumStripesStatus: String
+  mdSyncWindow: Int
+  mdSyncWindowDefault: Int
+  mdSyncWindowStatus: String
+  mdSyncThresh: Int
+  mdSyncThreshDefault: Int
+  mdSyncThreshStatus: String
+  mdWriteMethod: Int
+  mdWriteMethodDefault: String
+  mdWriteMethodStatus: String
+  shareDisk: String
+  shareUser: String
+  shareUserInclude: String
+  shareUserExclude: String
+  shareSmbEnabled: Boolean
+  shareNfsEnabled: Boolean
+  shareAfpEnabled: Boolean
+  shareInitialOwner: String
+  shareInitialGroup: String
+  shareCacheEnabled: Boolean
+  shareCacheFloor: String
+  shareMoverSchedule: String
+  shareMoverLogging: Boolean
+  fuseRemember: String
+  fuseRememberDefault: String
+  fuseRememberStatus: String
+  fuseDirectio: String
+  fuseDirectioDefault: String
+  fuseDirectioStatus: String
+  shareAvahiEnabled: Boolean
+  shareAvahiSmbName: String
+  shareAvahiSmbModel: String
+  shareAvahiAfpName: String
+  shareAvahiAfpModel: String
+  safeMode: Boolean
+  startMode: String
+  configValid: Boolean
+  configError: ConfigErrorState
+  joinStatus: String
+  deviceCount: Int
+  flashGuid: String
+  flashProduct: String
+  flashVendor: String
+  regCheck: String
+  regFile: String
+  regGuid: String
+  regTy: registrationType
+  regState: RegistrationState
+
+  """Registration owner"""
+  regTo: String
+  regTm: String
+  regTm2: String
+  regGen: String
+  sbName: String
+  sbVersion: String
+  sbUpdated: String
+  sbEvents: Int
+  sbState: String
+  sbClean: Boolean
+  sbSynced: Int
+  sbSyncErrs: Int
+  sbSynced2: Int
+  sbSyncExit: String
+  sbNumDisks: Int
+  mdColor: String
+  mdNumDisks: Int
+  mdNumDisabled: Int
+  mdNumInvalid: Int
+  mdNumMissing: Int
+  mdNumNew: Int
+  mdNumErased: Int
+  mdResync: Int
+  mdResyncCorr: String
+  mdResyncPos: String
+  mdResyncDb: String
+  mdResyncDt: String
+  mdResyncAction: String
+  mdResyncSize: Int
+  mdState: String
+  mdVersion: String
+  cacheNumDevices: Int
+  cacheSbNumDisks: Int
+  fsState: String
+
+  """Human friendly string of array events happening"""
+  fsProgress: String
+
+  """
+  Percentage from 0 - 100 while upgrading a disk or swapping parity drives
+  """
+  fsCopyPrcnt: Int
+  fsNumMounted: Int
+  fsNumUnmountable: Int
+  fsUnmountableMask: String
+
+  """Total amount of user shares"""
+  shareCount: Int
+
+  """Total amount shares with SMB enabled"""
+  shareSmbCount: Int
+
+  """Total amount shares with NFS enabled"""
+  shareNfsCount: Int
+
+  """Total amount shares with AFP enabled"""
+  shareAfpCount: Int
+  shareMoverActive: Boolean
+  csrfToken: String
+}
+
+"""Possible error states for configuration"""
+enum ConfigErrorState {
+  UNKNOWN_ERROR
+  INELIGIBLE
+  INVALID
+  NO_KEY_SERVER
+  WITHDRAWN
 }
 
 type VmDomain implements Node {

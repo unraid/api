@@ -130,11 +130,19 @@ export class MothershipConnectionService implements OnModuleInit, OnModuleDestro
     }
 
     async onModuleInit() {
-        // Crash on startup if these config values are not set initially
+        // Warn on startup if these config values are not set initially
         const { unraidVersion, flashGuid, apiVersion } = this.configKeys;
+        const warnings: string[] = [];
         [unraidVersion, flashGuid, apiVersion].forEach((key) => {
-            this.configService.getOrThrow(key);
+            try {
+                this.configService.getOrThrow(key);
+            } catch (error) {
+                warnings.push(`${key} is not set`);
+            }
         });
+        if (warnings.length > 0) {
+            this.logger.warn('Missing config values: %s', warnings.join(', '));
+        }
         // Setup IDENTITY_CHANGED & METADATA_CHANGED events
         this.setupIdentitySubscription();
         this.setupMetadataChangedEvent();

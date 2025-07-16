@@ -32,7 +32,7 @@ export class MothershipHandler {
         const state = this.connectionService.getConnectionState();
         if (
             state &&
-            [MinigraphStatus.PING_FAILURE, MinigraphStatus.ERROR_RETRYING].includes(state.status)
+            [MinigraphStatus.PING_FAILURE].includes(state.status)
         ) {
             this.logger.verbose(
                 'Mothership connection status changed to %s; setting up mothership subscription',

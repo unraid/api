@@ -24,7 +24,6 @@ test('Returns paths', async () => {
         'myservers-base': '/boot/config/plugins/dynamix.my.servers/',
         'myservers-config': expect.stringContaining('api/dev/Unraid.net/myservers.cfg'),
         'myservers-config-states': expect.stringContaining('api/dev/states/myservers.cfg'),
-        'myservers-env': '/boot/config/plugins/dynamix.my.servers/env',
         'myservers-keepalive': './dev/Unraid.net/fb_keepalive',
         'keyfile-base': expect.stringContaining('api/dev/Unraid.net'),
         'machine-id': expect.stringContaining('api/dev/data/machine-id'),

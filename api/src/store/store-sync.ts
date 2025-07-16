@@ -1,6 +1,6 @@
-import { writeFileSync } from 'fs';
 import { join } from 'path';
 
+import { ensureWriteSync } from '@unraid/shared/util/file.js';
 import { isEqual } from 'lodash-es';
 
 import type { RootState } from '@app/store/index.js';
@@ -27,8 +27,11 @@ export const startStoreSync = async () => {
             !isEqual(state, lastState) &&
             state.paths['myservers-config-states']
         ) {
-            writeFileSync(join(state.paths.states, 'config.log'), JSON.stringify(state.config, null, 2));
-            writeFileSync(
+            ensureWriteSync(
+                join(state.paths.states, 'config.log'),
+                JSON.stringify(state.config, null, 2)
+            );
+            ensureWriteSync(
                 join(state.paths.states, 'graphql.log'),
                 JSON.stringify(state.minigraph, null, 2)
             );
