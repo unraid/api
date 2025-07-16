@@ -8,7 +8,7 @@ const handleSubmit = () => {
 
 <template>
   <body>
-    <section id="login" class="shadow">
+    <section id="login" class="shadow-sm">
       <div class="logo angle">
         <div class="wordmark">
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 222.4 39" class="Nav__logo--white">

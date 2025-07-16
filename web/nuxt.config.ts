@@ -1,6 +1,7 @@
 import path from 'path';
 
 import removeConsole from 'vite-plugin-remove-console';
+import tailwindcss from '@tailwindcss/vite';
 
 import type { UserConfig, PluginOption } from 'vite';
 
@@ -48,6 +49,9 @@ const sharedTerserOptions = {
  */
 const getSharedPlugins = (includeJQueryIsolation = false) => {
   const plugins: PluginOption[] = [];
+  
+  // Add Tailwind CSS plugin
+  plugins.push(tailwindcss());
   
   // Remove console logs in production
   if (dropConsole) {
@@ -139,6 +143,10 @@ export default defineNuxtConfig({
     port: 4321,
   },
 
+  css: [
+    '@/assets/main.css',
+  ],
+
   devtools: {
     enabled: process.env.NODE_ENV === 'development',
   },
@@ -146,7 +154,6 @@ export default defineNuxtConfig({
   modules: [
     '@vueuse/nuxt',
     '@pinia/nuxt',
-    '@nuxtjs/tailwindcss',
     'nuxt-custom-elements',
     '@nuxt/eslint',
   ],

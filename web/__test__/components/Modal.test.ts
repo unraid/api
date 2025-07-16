@@ -167,7 +167,7 @@ describe('Modal', () => {
     expect(modalDiv.classes()).toContain('border-green-600/10');
   });
 
-  it('disables shadow when disableShadow is true', async () => {
+  it('disables shadow-sm when disableShadow is true', async () => {
     wrapper = mount(Modal, {
       props: {
         t,

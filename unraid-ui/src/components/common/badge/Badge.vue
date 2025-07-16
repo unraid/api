@@ -40,8 +40,8 @@ const badgeClasses = computed(() => {
 
 <template>
   <span :class="[badgeClasses.badge, props.class]">
-    <component :is="icon" v-if="icon" class="flex-shrink-0" :class="badgeClasses.icon" />
+    <component :is="icon" v-if="icon" class="shrink-0" :class="badgeClasses.icon" />
     <slot />
-    <component :is="iconRight" v-if="iconRight" class="flex-shrink-0" :class="badgeClasses.icon" />
+    <component :is="iconRight" v-if="iconRight" class="shrink-0" :class="badgeClasses.icon" />
   </span>
 </template>

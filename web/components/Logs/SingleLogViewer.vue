@@ -427,7 +427,7 @@ defineExpose({ refreshLogContent });
       <!-- Loading indicator for loading more content -->
       <div
         v-if="state.isLoadingMore"
-        class="sticky top-0 z-10 bg-muted/80 backdrop-blur-sm border-b border-border rounded-md mx-2 mt-2"
+        class="sticky top-0 z-10 bg-muted/80 backdrop-blur-xs border-b border-border rounded-md mx-2 mt-2"
       >
         <div class="flex items-center justify-center p-2 text-xs text-primary-foreground">
           <ArrowPathIcon class="h-3 w-3 mr-2 animate-spin" aria-hidden="true" />

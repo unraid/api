@@ -101,7 +101,7 @@ const updateOsStatus = computed(() => {
         target="_blank"
         rel="noopener"
       >
-        <InformationCircleIcon class="fill-current w-3 h-3 xs:w-4 xs:h-4 flex-shrink-0" />
+        <InformationCircleIcon class="fill-current w-3 h-3 xs:w-4 xs:h-4 shrink-0" />
         {{ osVersion }}
       </a>
       <component
@@ -128,7 +128,7 @@ const updateOsStatus = computed(() => {
   </div>
 </template>
 
-<style lang="postcss">
+<style >
 /* Import unraid-ui globals first */
 @import '@unraid/ui/styles';
 

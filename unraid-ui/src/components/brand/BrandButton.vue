@@ -49,11 +49,11 @@ const classes = computed(() => {
       brandButtonVariants({ variant: props.variant, size: props.size, padding: props.padding }),
       props.class
     ),
-    icon: `${iconSize} fill-current flex-shrink-0`,
+    icon: `${iconSize} fill-current shrink-0`,
   };
 });
 const needsBrandGradientBackground = computed(() => {
-  return ['outline', 'outline-primary'].includes(props.variant ?? '');
+  return ['outline-solid', 'outline-primary'].includes(props.variant ?? '');
 });
 </script>
 
@@ -71,12 +71,12 @@ const needsBrandGradientBackground = computed(() => {
   >
     <div
       v-if="variant === 'fill'"
-      class="absolute -top-[2px] -right-[2px] -bottom-[2px] -left-[2px] -z-10 bg-gradient-to-r from-unraid-red to-orange opacity-100 transition-all rounded-md group-hover:opacity-60 group-focus:opacity-60"
+      class="absolute -top-[2px] -right-[2px] -bottom-[2px] -left-[2px] -z-10 bg-linear-to-r from-unraid-red to-orange opacity-100 transition-all rounded-md group-hover:opacity-60 group-focus:opacity-60"
     />
     <!-- gives outline buttons the brand gradient background -->
     <div
       v-if="needsBrandGradientBackground"
-      class="absolute -top-[2px] -right-[2px] -bottom-[2px] -left-[2px] -z-10 bg-gradient-to-r from-unraid-red to-orange opacity-0 transition-all rounded-md group-hover:opacity-100 group-focus:opacity-100"
+      class="absolute -top-[2px] -right-[2px] -bottom-[2px] -left-[2px] -z-10 bg-linear-to-r from-unraid-red to-orange opacity-0 transition-all rounded-md group-hover:opacity-100 group-focus:opacity-100"
     />
 
     <component :is="icon" v-if="icon" :class="classes.icon" />

@@ -123,7 +123,7 @@ const computedVerticalCenter = computed<string>(() => {
           >
             <div v-if="showCloseX" class="absolute z-20 right-0 top-0 pt-4px pr-4px sm:block">
               <button
-                class="rounded-md text-foreground bg-transparent p-2 hover:text-white focus:text-white hover:bg-unraid-red focus:bg-unraid-red focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+                class="rounded-md text-foreground bg-transparent p-2 hover:text-white focus:text-white hover:bg-unraid-red focus:bg-unraid-red focus:outline-hidden focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
                 type="button"
                 @click="closeModal"
               >

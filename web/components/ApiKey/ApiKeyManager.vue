@@ -127,7 +127,7 @@ async function copyKeyValue(keyValue: string) {
                     }}</Badge>
                   </div>
                 </div>
-                <div class="flex gap-2 flex-shrink-0">
+                <div class="flex gap-2 shrink-0">
                   <Button variant="secondary" size="sm" @click="openCreateModal(key)">Edit</Button>
                   <Button variant="destructive" size="sm" @click="_deleteKey(key.id)">Delete</Button>
                 </div>

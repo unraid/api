@@ -36,7 +36,7 @@ const upgradeAction = computed((): ServerStateDataAction | undefined => {
 
     <template v-if="purchaseAction">
       <UpcServerStateBuy
-        class="text-orange-dark relative top-[1px] hidden sm:block"
+        class="text-orange-dark relative top-px hidden sm:block"
         :title="t('Purchase Key')"
         @click="purchaseAction.click?.()"
       >{{ t('Purchase') }}</UpcServerStateBuy>

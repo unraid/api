@@ -14,7 +14,17 @@
       "Bash(mv:*)",
       "Bash(ls:*)",
       "mcp__ide__getDiagnostics",
-      "Bash(pnpm --filter \"*connect*\" test connect-status-writer.service.spec)"
+      "Bash(pnpm --filter \"*connect*\" test connect-status-writer.service.spec)",
+      "Bash(pnpm storybook:*)",
+      "Bash(rm:*)",
+      "Bash(pnpm add:*)",
+      "Bash(pnpm install:*)",
+      "Bash(pkill:*)",
+      "Bash(true)",
+      "Bash(timeout 15 pnpm storybook)",
+      "WebFetch(domain:tailwindcss.com)",
+      "Bash(pnpm list:*)",
+      "Bash(pnpm remove:*)"
     ]
   },
   "enableAllProjectMcpServers": false

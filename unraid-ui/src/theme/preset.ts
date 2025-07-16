@@ -1,9 +1,6 @@
-import typography from '@tailwindcss/typography';
 import type { Config } from 'tailwindcss';
-import animate from 'tailwindcss-animate';
-import type { PluginAPI } from 'tailwindcss/types/config';
 
-export const unraidPreset = {
+export const unraidPreset: Config = {
   darkMode: ['selector', '[data-mode="dark"]'],
   theme: {
     container: {
@@ -219,7 +216,7 @@ export const unraidPreset = {
         'mark-6': 'mark-6 1.5s ease infinite',
         'mark-7': 'mark-7 1.5s ease infinite',
       },
-      typography: (theme: PluginAPI['theme']) => ({
+      typography: ({ theme }) => ({
         DEFAULT: {
           css: {
             color: theme('colors.foreground'),
@@ -267,5 +264,5 @@ export const unraidPreset = {
       }),
     },
   },
-  plugins: [typography, animate],
-} satisfies Partial<Config>;
+  plugins: [],
+};

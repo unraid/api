@@ -1,5 +1,6 @@
 import { dirname, join } from 'path';
 import type { StorybookConfig } from '@storybook/vue3-vite';
+import tailwind from '@tailwindcss/vite';
 
 const config: StorybookConfig = {
   stories: ['../stories/**/*.stories.@(js|jsx|ts|tsx)'],
@@ -19,28 +20,20 @@ const config: StorybookConfig = {
   staticDirs: ['./static'],
 
   async viteFinal(config) {
+    const storybookDir = dirname(new URL(import.meta.url).pathname);
+
     return {
       ...config,
-      root: dirname(require.resolve('@storybook/builder-vite')),
+      plugins: [...(config.plugins ?? []), tailwind()],
       resolve: {
         alias: {
-          '@': join(dirname(new URL(import.meta.url).pathname), '../src'),
-          '@/components': join(dirname(new URL(import.meta.url).pathname), '../src/components'),
-          '@/lib': join(dirname(new URL(import.meta.url).pathname), '../src/lib'),
+          '@': join(storybookDir, '../src'),
+          '@/components': join(storybookDir, '../src/components'),
+          '@/lib': join(storybookDir, '../src/lib'),
         },
       },
       optimizeDeps: {
         include: [...(config.optimizeDeps?.include ?? []), '@unraid/tailwind-rem-to-rem'],
-      },
-      css: {
-        postcss: {
-          plugins: [
-            (await import('tailwindcss')).default({
-              config: './tailwind.config.ts',
-            }),
-            (await import('autoprefixer')).default,
-          ],
-        },
       },
     };
   },

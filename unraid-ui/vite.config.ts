@@ -1,13 +1,17 @@
 /// <reference types="vitest" />
 import { resolve } from 'path';
+import { fileURLToPath } from 'url';
+import tailwindcss from '@tailwindcss/vite';
 import vue from '@vitejs/plugin-vue';
-import tailwindcss from 'tailwindcss';
 import { defineConfig } from 'vite';
 import dts from 'vite-plugin-dts';
+
+const __dirname = fileURLToPath(new URL('.', import.meta.url));
 
 export default function createConfig() {
   return defineConfig({
     plugins: [
+      tailwindcss(),
       vue(),
       ...(process.env.npm_lifecycle_script?.includes('storybook')
         ? []
@@ -21,11 +25,6 @@ export default function createConfig() {
             }),
           ]),
     ],
-    css: {
-      postcss: {
-        plugins: [tailwindcss()],
-      },
-    },
     build: {
       cssCodeSplit: false,
       rollupOptions: {

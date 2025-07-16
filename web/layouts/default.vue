@@ -58,7 +58,7 @@ function formatRouteName(name) {
 }
 </script>
 
-<style lang="postcss">
+<style >
 /* Import theme styles */
 @import '@unraid/ui/styles';
 @import '~/assets/main.css';

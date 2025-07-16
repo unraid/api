@@ -1,45 +1,26 @@
-@tailwind base;
-@tailwind components;
+@import 'tailwindcss';
 
-/*
-darkTheme
-alpha: '#1c1b1b',
-beta: '#f2f2f2',
-gamma: '#999999',
-
-lightTheme
-alpha: '#f2f2f2',
-beta: '#1c1b1b',
-gamma: '#999999',
-*/
-
-body {
-  --color-alpha: #1c1b1b;
-  --color-beta: #f2f2f2;
-  --color-gamma: #999999;
-  --color-gamma-opaque: rgba(153, 153, 153, .5);
-  --color-customgradient-start: rgba(242, 242, 242, .0);
-  --color-customgradient-end: rgba(242, 242, 242, .85);
-  --shadow-beta: 0 25px 50px -12px rgba(242, 242, 242, .15);
-  --ring-offset-shadow: 0 0 --var(--color-beta);
-  --ring-shadow: 0 0 --var(--color-beta);
-}
-
-/* .button-gradient-border-to-bg {
-  background: linear-gradient(to right,#e03237 0%,#fd8c3c 100%) left top no-repeat,linear-gradient(to right,#e03237 0%,#fd8c3c 100%) left bottom no-repeat,linear-gradient(to top,#e03237 0%,#e03237 100%) left bottom no-repeat,linear-gradient(to top,#fd8c3c 0%,#fd8c3c 100%) right bottom no-repeat;
-  background-size: 100% 2px,100% 2px,2px 100%,2px 100%;
-
-  &:hover,
-  &:focus {
-    background: linear-gradient(to right,#E22828 0%,#FF8C2F 100%);
-  }
-} */
-
-/* Ensure this is always at the bottom – @see https://tailwindcss.com/docs/content-configuration#working-with-third-party-libraries */
-@tailwind utilities;
+@config '../tailwind.config.ts';
 
 @layer base {
+  *,
+  ::after,
+  ::before,
+  ::backdrop,
+  ::file-selector-button {
+    border-color: hsl(var(--border));
+  }
+
   body {
+    --color-alpha: #1c1b1b;
+    --color-beta: #f2f2f2;
+    --color-gamma: #999999;
+    --color-gamma-opaque: rgba(153, 153, 153, 0.5);
+    --color-customgradient-start: rgba(242, 242, 242, 0);
+    --color-customgradient-end: rgba(242, 242, 242, 0.85);
+    --shadow-beta: 0 25px 50px -12px rgba(242, 242, 242, 0.15);
+    --ring-offset-shadow: 0 0 --var(--color-beta);
+    --ring-shadow: 0 0 --var(--color-beta);
     @apply bg-background text-foreground;
   }
 }

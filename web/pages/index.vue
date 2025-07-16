@@ -61,7 +61,7 @@ const variants = [
   'fill',
   'black',
   'gray',
-  'outline',
+  'outline-solid',
   'outline-black',
   'outline-white',
   'underline',
@@ -208,7 +208,7 @@ watch(
   </div>
 </template>
 
-<style lang="postcss">
+<style >
 /* Import unraid-ui globals first */
 @import '@unraid/ui/styles';
 @import '~/assets/main.css';

@@ -1,11 +1,9 @@
-import tailwindRemToRem from '@unraid/tailwind-rem-to-rem';
 import type { Config } from 'tailwindcss';
-import tailwindcssAnimate from 'tailwindcss-animate';
 /* eslint-disable no-relative-import-paths/no-relative-import-paths */
 import { unraidPreset } from './src/theme/preset';
 
-export default {
-  darkMode: ['class'],
+export const config: Config = {
+  darkMode: ['class', '[data-mode="dark"]'],
   presets: [unraidPreset],
   content: [
     './src/components/**/*.{js,vue,ts}',
@@ -13,32 +11,6 @@ export default {
     './src/composables/**/*.{js,vue,ts}',
     './stories/**/*.stories.{js,ts,jsx,mdx}',
     './index.html',
-  ],
-  safelist: [
-    'dark',
-    'unraid_mark_1',
-    'unraid_mark_2',
-    'unraid_mark_3',
-    'unraid_mark_4',
-    'unraid_mark_6',
-    'unraid_mark_7',
-    'unraid_mark_8',
-    'unraid_mark_9',
-    {
-      pattern: /^text-(header-text-secondary|orange-dark)$/,
-      variants: ['group-hover', 'group-focus'],
-    },
-    {
-      pattern: /^(underline|no-underline)$/,
-      variants: ['group-hover', 'group-focus'],
-    },
-  ],
-  plugins: [
-    tailwindRemToRem({
-      baseFontSize: 16,
-      newFontSize: Number(process.env.VITE_TAILWIND_BASE_FONT_SIZE ?? 10),
-    }),
-    tailwindcssAnimate,
   ],
   theme: {
     extend: {
@@ -113,4 +85,6 @@ export default {
       },
     },
   },
-} satisfies Partial<Config>;
+};
+
+export default config;

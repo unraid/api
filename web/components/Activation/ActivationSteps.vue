@@ -77,14 +77,14 @@ const steps: readonly Step[] = [
       v-for="step in steps"
       :key="step.step"
       v-slot="{ state }: { state: StepState }"
-      class="relative flex w-full flex-col items-center justify-center data-[disabled]:opacity-100"
+      class="relative flex w-full flex-col items-center justify-center data-disabled:opacity-100"
       :step="step.step"
       :disabled="true"
     >
       <StepperTrigger>
         <div class="flex items-center justify-center">
           <Button
-            :variant="state === 'completed' ? 'primary' : state === 'active' ? 'primary' : 'outline'"
+            :variant="state === 'completed' ? 'primary' : state === 'active' ? 'primary' : 'outline-solid'"
             size="md"
             :class="`z-10 rounded-full  ${
               state !== 'inactive'

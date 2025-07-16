@@ -57,7 +57,7 @@ watchEffect(() => {
 </script>
 
 <template>
-  <div id="modals" ref="modals" class="relative z-[99999]">
+  <div id="modals" ref="modals" class="relative z-99999">
     <Dialog
       v-model="showModal"
       :show-footer="false"
@@ -89,7 +89,7 @@ watchEffect(() => {
   </div>
 </template>
 
-<style lang="postcss">
+<style >
 /* Import unraid-ui globals first */
 @import '@unraid/ui/styles';
 @import '~/assets/main.css';
