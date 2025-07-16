@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref, watchEffect } from 'vue';
+import { computed, ref, watchEffect, onMounted } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { storeToRefs } from 'pinia';
 
@@ -36,10 +36,18 @@ const description = computed<string>(() =>
   )
 );
 
-const showModal = ref<boolean>(true);
+const showModal = ref(false);
 const dropdownHide = () => {
   showModal.value = false;
 };
+
+// Auto-show the modal when on the welcome page (for testing production behavior)
+onMounted(() => {
+  // Check if we're on the welcome page by looking at the current route
+  if (window.location.pathname === '/welcome') {
+    showModal.value = true;
+  }
+});
 
 watchEffect(() => {
   /**
