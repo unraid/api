@@ -3,6 +3,7 @@
   "private": true,
   "version": "4.10.0",
   "scripts": {
+    "preinstall": "node web/scripts/check-node-version.js",
     "build": "pnpm -r build",
     "build:watch": " pnpm -r --parallel build:watch",
     "dev": "pnpm -r dev",
