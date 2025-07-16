@@ -1,11 +1,17 @@
 <script lang="ts" setup>
 import { storeToRefs } from 'pinia';
 
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@unraid/ui';
+import { Select } from '@unraid/ui';
 import { useDummyServerStore } from '~/_data/serverState';
 
 const store = useDummyServerStore();
+
 const { selector, serverState } = storeToRefs(store);
+
+const items = [
+  { value: 'default', label: 'Default' },
+  { value: 'oemActiviation', label: 'OEM Activation' },
+];
 </script>
 
 <template>
@@ -15,15 +21,7 @@ const { selector, serverState } = storeToRefs(store);
       <summary>Initial Server State: {{ selector }}</summary>
       <pre>{{ JSON.stringify(serverState, null, 4) }}</pre>
     </details>
-    <Select v-model="selector">
-      <SelectTrigger>
-        <SelectValue placeholder="Select an initial state" />
-      </SelectTrigger>
-      <SelectContent>
-        <SelectItem value="default">Default</SelectItem>
-        <SelectItem value="oemActiviation">OEM Activation</SelectItem>
-      </SelectContent>
-    </Select>
+    <Select v-model="selector" :items="items" placeholder="Select an initial state" />
   </div>
 </template>
 

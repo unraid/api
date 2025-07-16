@@ -11,33 +11,36 @@ import type { ComposerTranslation } from 'vue-i18n';
 
 import ActivationModal from '~/components/Activation/ActivationModal.vue';
 
+// Mock @unraid/ui to use a mix of actual and mocked components
+vi.mock('@unraid/ui', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@unraid/ui')>();
+  return {
+    ...actual,
+    // We'll provide a simple mock for Dialog to make testing easier
+    Dialog: {
+      name: 'Dialog',
+      props: ['modelValue', 'title', 'description', 'showFooter', 'size', 'showCloseButton'],
+      emits: ['update:modelValue'],
+      template: `
+        <div v-if="modelValue" role="dialog" aria-modal="true">
+          <div v-if="$slots.header" class="dialog-header"><slot name="header" /></div>
+          <div class="dialog-body"><slot /></div>
+          <div v-if="$slots.footer" class="dialog-footer"><slot name="footer" /></div>
+        </div>
+      `,
+    },
+    BrandButton: {
+      template:
+        '<button data-testid="brand-button" :type="type" @click="$emit(\'click\')"><slot /></button>',
+      props: ['text', 'iconRight', 'variant', 'external', 'href', 'size', 'type'],
+      emits: ['click'],
+    },
+  };
+});
+
 const mockT = (key: string, args?: unknown[]) => (args ? `${key} ${JSON.stringify(args)}` : key);
 
 const mockComponents = {
-  Modal: {
-    template: `
-      <div data-testid="modal" v-if="open">
-        <div data-testid="modal-header"><slot name="header" /></div>
-        <div data-testid="modal-body"><slot /></div>
-        <div data-testid="modal-footer"><slot name="footer" /></div>
-        <div data-testid="modal-subfooter"><slot name="subFooter" /></div>
-      </div>
-    `,
-    props: [
-      't',
-      'open',
-      'showCloseX',
-      'title',
-      'titleInMain',
-      'description',
-      'overlayColor',
-      'overlayOpacity',
-      'maxWidth',
-      'modalVerticalCenter',
-      'disableShadow',
-      'disableOverlayClose',
-    ],
-  },
   ActivationPartnerLogo: {
     template: '<div data-testid="partner-logo"></div>',
     props: ['name'],
@@ -45,12 +48,6 @@ const mockComponents = {
   ActivationSteps: {
     template: '<div data-testid="activation-steps" :active-step="activeStep"></div>',
     props: ['activeStep'],
-  },
-  BrandButton: {
-    template:
-      '<button data-testid="brand-button" :type="type" @click="$emit(\'click\')"><slot /></button>',
-    props: ['text', 'iconRight', 'variant', 'external', 'href', 'size', 'type'],
-    emits: ['click'],
   },
 };
 
@@ -246,7 +243,7 @@ describe('Activation/ActivationModal.vue', () => {
     mockActivationCodeModalStore.isVisible.value = false;
     const wrapper = mountComponent();
 
-    expect(wrapper.html()).toBe('<!--v-if-->');
+    expect(wrapper.find('[role="dialog"]').exists()).toBe(false);
   });
 
   it('renders activation steps with correct active step', () => {

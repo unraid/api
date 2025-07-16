@@ -94,19 +94,29 @@ describe('Activation/WelcomeModal.ce.vue', () => {
       value: mockSetProperty,
       writable: true,
     });
+
+    // Mock window.location.pathname to simulate being on /welcome page
+    Object.defineProperty(window, 'location', {
+      value: {
+        pathname: '/welcome',
+      },
+      writable: true,
+    });
   });
 
   afterEach(() => {
     vi.useRealTimers();
   });
 
-  const mountComponent = () => {
-    return mount(WelcomeModal, {
+  const mountComponent = async () => {
+    const wrapper = mount(WelcomeModal, {
       props: { t: mockT as unknown as ComposerTranslation },
       global: {
         stubs: mockComponents,
       },
     });
+    await wrapper.vm.$nextTick();
+    return wrapper;
   };
 
   it('uses the correct title text when no partner name is provided', () => {
@@ -139,18 +149,18 @@ describe('Activation/WelcomeModal.ce.vue', () => {
     );
   });
 
-  it('displays the partner logo when available', () => {
+  it('displays the partner logo when available', async () => {
     mockActivationCodeDataStore.partnerInfo.value = {
       hasPartnerLogo: true,
       partnerName: 'Test Partner',
     };
-    const wrapper = mountComponent();
+    const wrapper = await mountComponent();
 
     expect(wrapper.html()).toContain('data-testid="partner-logo"');
   });
 
   it('hides modal when Create a password button is clicked', async () => {
-    const wrapper = mountComponent();
+    const wrapper = await mountComponent();
     const button = wrapper.find('button');
 
     expect(button.exists()).toBe(true);
@@ -168,17 +178,17 @@ describe('Activation/WelcomeModal.ce.vue', () => {
     expect(dialog.props('modelValue')).toBe(false);
   });
 
-  it('does not disable the Create a password button when loading', () => {
+  it('disables the Create a password button when loading', async () => {
     mockActivationCodeDataStore.loading.value = true;
 
-    const wrapper = mountComponent();
+    const wrapper = await mountComponent();
     const button = wrapper.find('button');
 
-    expect(button.attributes('disabled')).toBe(undefined);
+    expect(button.attributes('disabled')).toBe('');
   });
 
-  it('renders activation steps with correct active step', () => {
-    const wrapper = mountComponent();
+  it('renders activation steps with correct active step', async () => {
+    const wrapper = await mountComponent();
 
     expect(wrapper.html()).toContain('data-testid="activation-steps"');
     expect(wrapper.html()).toContain('active-step="1"');
@@ -227,7 +237,7 @@ describe('Activation/WelcomeModal.ce.vue', () => {
 
     it('sets font-size to 100% when modal is hidden', async () => {
       mockQuerySelector.mockReturnValue({ exists: true });
-      const wrapper = mountComponent();
+      const wrapper = await mountComponent();
 
       await vi.runAllTimersAsync();
 
@@ -242,8 +252,8 @@ describe('Activation/WelcomeModal.ce.vue', () => {
   });
 
   describe('Modal properties', () => {
-    it('passes correct props to Dialog component', () => {
-      const wrapper = mountComponent();
+    it('passes correct props to Dialog component', async () => {
+      const wrapper = await mountComponent();
       const dialog = wrapper.findComponent({ name: 'Dialog' });
 
       expect(dialog.exists()).toBe(true);
@@ -255,8 +265,8 @@ describe('Activation/WelcomeModal.ce.vue', () => {
       });
     });
 
-    it('renders modal with correct content', () => {
-      const wrapper = mountComponent();
+    it('renders modal with correct content', async () => {
+      const wrapper = await mountComponent();
       
       // Check that the modal is rendered
       expect(wrapper.text()).toContain('Welcome to Unraid!');
