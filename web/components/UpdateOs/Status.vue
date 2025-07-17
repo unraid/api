@@ -77,7 +77,6 @@ const showRebootButton = computed(
 const checkButton = computed((): BrandButtonProps => {
   if (showRebootButton.value || props.showExternalDowngrade) {
     return {
-      variant: 'outline-primary',
       click: () => {
         if (props.showExternalDowngrade) {
           accountStore.downgradeOs();
@@ -92,7 +91,6 @@ const checkButton = computed((): BrandButtonProps => {
 
   if (!updateAvailable.value) {
     return {
-      variant: 'outline-primary',
       click: () => {
         updateOsStore.localCheckForUpdate();
       },

@@ -136,7 +136,6 @@ const onChange = ({ data }: { data: Record<string, unknown> }) => {
       </div>
       <div class="col-start-2 ml-10 space-y-4">
         <BrandButton
-          variant="outline-primary"
           padding="lean"
           size="12px"
           class="leading-normal"
