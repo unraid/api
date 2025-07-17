@@ -190,7 +190,6 @@ const checkButton = computed((): BrandButtonProps => {
       <div class="inline-flex flex-col shrink-0 gap-4 grow items-center md:items-end">
         <span v-if="showRebootButton">
           <BrandButton
-            variant="fill"
             :icon="ArrowPathIcon"
             :text="
               rebootType === 'downgrade'

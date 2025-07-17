@@ -244,7 +244,6 @@ watchEffect(() => {
         </template>
 
         <BrandButton
-          variant="fill"
           :disabled="disableCallbackButton"
           :external="updateButton?.external"
           :icon="EyeIcon"

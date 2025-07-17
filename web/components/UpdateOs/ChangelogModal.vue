@@ -201,7 +201,6 @@ watch(darkMode, () => {
         <!-- Action buttons -->
         <BrandButton
           v-if="showExtendKeyButton"
-          variant="fill"
           :icon="KeyIcon"
           :icon-right="ArrowTopRightOnSquareIcon"
           @click="purchaseStore.renew()"
