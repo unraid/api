@@ -98,7 +98,6 @@
   --color-unraid-green-900: #284126;
   --color-unraid-green-950: #122211;
 
-
   /* Header colors */
   --color-header-text-primary: var(--header-text-primary);
   --color-header-text-secondary: var(--header-text-secondary);
@@ -179,10 +178,10 @@
   --animate-mark-7: mark-7 1.5s ease infinite;
 
   /* Keyframes */
-  --keyframes-mark-2: 50% { transform: translateY(-40px) } to { transform: translateY(0) };
-  --keyframes-mark-3: 50% { transform: translateY(-62px) } to { transform: translateY(0) };
-  --keyframes-mark-6: 50% { transform: translateY(40px) } to { transform: translateY(0) };
-  --keyframes-mark-7: 50% { transform: translateY(62px) } to { transform: translateY(0) };
+  --keyframes-mark-2: 50% {transform: translateY(-40px)} to {transform: translateY(0)};
+  --keyframes-mark-3: 50% {transform: translateY(-62px)} to {transform: translateY(0)};
+  --keyframes-mark-6: 50% {transform: translateY(40px)} to {transform: translateY(0)};
+  --keyframes-mark-7: 50% {transform: translateY(62px)} to {transform: translateY(0)};
 
   /* Radius */
   --radius: 0.5rem;

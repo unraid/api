@@ -1,5 +1,6 @@
 @import 'tailwindcss';
 @import '@unraid/ui/styles';
+@import '@nuxt/ui';
 
 /* Force generation of all color utilities for custom colors across packages */
 @source inline("{bg,text,border,ring,fill,stroke}-{unraid-green,unraid-red}{,-50,-100,-200,-300,-400,-500,-600,-700,-800,-900,-950}");
@@ -11,6 +12,18 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 @theme {
+  --color-primary-50: #fff7ed;
+  --color-primary-100: #ffedd5;
+  --color-primary-200: #fed7aa;
+  --color-primary-300: #fdba74;
+  --color-primary-400: #fb923c;
+  --color-primary-500: #ff6600;
+  --color-primary-600: #ea580c;
+  --color-primary-700: #c2410c;
+  --color-primary-800: #9a3412;
+  --color-primary-900: #7c2d12;
+  --color-primary-950: #431407;
+
   /* Header colors */
   --color-header-text-primary: var(--header-text-primary);
   --color-header-text-secondary: var(--header-text-secondary);
@@ -88,6 +101,18 @@
   ::backdrop,
   ::file-selector-button {
     border-color: hsl(var(--border));
+  }
+
+  :root {
+    --ui-primary: var(--color-primary-500);
+    --ui-primary-hover: var(--color-primary-600);
+    --ui-primary-active: var(--color-primary-700);
+  }
+
+  .dark {
+    --ui-primary: var(--color-primary-500);
+    --ui-primary-hover: var(--color-primary-600);
+    --ui-primary-active: var(--color-primary-700);
   }
 
   body {
