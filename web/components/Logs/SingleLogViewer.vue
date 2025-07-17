@@ -371,7 +371,7 @@ defineExpose({ refreshLogContent });
               <div
                 class="w-2 h-2 rounded-full bg-green-500 animate-pulse cursor-help"
                 aria-hidden="true"
-              ></div>
+              />
             </TooltipTrigger>
             <TooltipContent>
               <p>Watching log file</p>
@@ -439,7 +439,7 @@ defineExpose({ refreshLogContent });
         class="font-mono whitespace-pre-wrap p-4 m-0 text-xs leading-6 hljs"
         :class="{ 'theme-dark': isDarkMode, 'theme-light': !isDarkMode }"
         v-html="logContent"
-      ></pre>
+      />
     </div>
   </div>
 </template>

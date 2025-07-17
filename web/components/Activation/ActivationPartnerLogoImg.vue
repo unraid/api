@@ -18,5 +18,5 @@ const { darkMode } = storeToRefs(useThemeStore());
     :src="partnerInfo?.partnerLogoUrl"
     class="w-72"
     :class="{ invert: darkMode && partnerInfo.hasPartnerLogo }"
-  />
+  >
 </template>

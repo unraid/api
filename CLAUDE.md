@@ -139,3 +139,4 @@ Enables GraphQL playground at `http://tower.local/graphql`
 ## Development Memories
 
 - We are using tailwind v4 we do not need a tailwind config anymore 
+- always search the internet for tailwind v4 documentation when making tailwind related style changes

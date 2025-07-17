@@ -74,7 +74,6 @@
     "prettier": "3.6.2",
     "shadcn-nuxt": "2.2.0",
     "tailwindcss": "4.1.11",
-    "tailwindcss-animate": "1.0.7",
     "terser": "5.43.1",
     "typescript": "5.8.3",
     "vite": "7.0.4",

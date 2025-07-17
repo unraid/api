@@ -27,7 +27,8 @@
       "Bash(pnpm remove:*)",
       "WebFetch(domain:github.com)",
       "mcp__browsermcp__browser_navigate",
-      "Bash(clear)"
+      "Bash(clear)",
+      "Bash(git log:*)"
     ]
   },
   "enableAllProjectMcpServers": false

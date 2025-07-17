@@ -107,14 +107,14 @@ const onChange = ({ data }: { data: Record<string, unknown> }) => {
   >
     <template v-if="connectPluginInstalled">
       <Label>Account Status:</Label>
-      <div v-html="'<unraid-auth></unraid-auth>'"></div>
+      <div v-html="'<unraid-auth></unraid-auth>'"/>
     </template>
     <Label>Download Unraid API Logs:</Label>
     <div
       v-html="
         '<unraid-download-api-logs></unraid-download-api-logs>'
       "
-    ></div>
+    />
   </div>
   <!-- auto-generated settings form -->
   <div class="mt-6 pl-3 [&_.vertical-layout]:space-y-6">

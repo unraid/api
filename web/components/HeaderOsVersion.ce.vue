@@ -90,7 +90,7 @@ const updateOsStatus = computed(() => {
         :src="'/webGui/images/UN-logotype-gradient.svg'"
         class="w-[160px] h-auto max-h-[30px] object-contain"
         alt="Unraid Logo"
-      />
+      >
     </a>
 
     <div class="flex flex-wrap justify-start gap-2">
