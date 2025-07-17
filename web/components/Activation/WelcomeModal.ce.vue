@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref, watchEffect, onMounted } from 'vue';
+import { computed, onMounted, ref, watchEffect } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { storeToRefs } from 'pinia';
 
@@ -79,25 +79,19 @@ watchEffect(() => {
       size="full"
       class="bg-background"
     >
-      <div class="flex flex-col items-center justify-start mt-8">
+      <div class="flex flex-col items-center justify-start">
         <div v-if="partnerInfo?.hasPartnerLogo">
           <ActivationPartnerLogo />
         </div>
 
-        <h1 class="text-center text-xl sm:text-2xl font-semibold mt-4">{{ title }}</h1>
+        <h1 class="text-center text-20px sm:text-24px font-semibold mt-4">{{ title }}</h1>
 
-        <div class="sm:max-w-lg mx-auto mt-2 text-center">
-          <p class="text-lg sm:text-xl opacity-75">
-            {{
-              t(
-                `First, you'll create your device's login credentials, then you'll activate your Unraid license—your device's operating system (OS).`
-              )
-            }}
-          </p>
+        <div class="sm:max-w-xl mx-auto my-12 text-center">
+          <p class="text-18px sm:text-20px opacity-75 text-center">{{ description }}</p>
         </div>
 
-        <div class="flex flex-col p-6">
-          <div class="mx-auto mt-6 mb-8">
+        <div class="flex flex-col">
+          <div class="mx-auto mb-10">
             <BrandButton :text="t('Create a password')" :disabled="loading" @click="dropdownHide" />
           </div>
 

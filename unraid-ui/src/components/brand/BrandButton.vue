@@ -70,11 +70,7 @@ const needsBrandGradientBackground = computed(() => {
   >
     <div
       v-if="variant === 'fill'"
-<<<<<<< HEAD
       class="absolute -top-[2px] -right-[2px] -bottom-[2px] -left-[2px] -z-10 bg-linear-to-r from-unraid-red to-orange opacity-100 transition-all rounded-md group-hover:opacity-60 group-focus:opacity-60"
-=======
-      class="absolute -top-[2px] -right-[2px] -bottom-[2px] -left-[2px] -z-10 bg-gradient-to-r from-unraid-red to-orange opacity-100 transition-all rounded-md group-hover:opacity-60"
->>>>>>> a9500903 (refactor: update ActivationModal to use new Dialog component)
     />
     <!-- gives outline buttons the brand gradient background -->
     <div
