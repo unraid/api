@@ -9,11 +9,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import type { AcceptableValue } from 'reka-ui';
 import { computed } from 'vue';
 
 type SelectValueType = string | number;
-
-type AcceptableValue = SelectValueType | SelectValueType[] | Record<string, unknown> | bigint | null;
 
 interface SelectItemInterface {
   label: string;
