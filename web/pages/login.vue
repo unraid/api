@@ -50,7 +50,7 @@ const handleSubmit = () => {
     </section>
   </body>
 </template>
-<style>
+<style scoped>
 /************************
 /
 /  Fonts

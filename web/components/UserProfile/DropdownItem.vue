@@ -28,8 +28,8 @@ const showExternalIconOnHover = computed(() => props.item?.external && props.ite
     :rel="item?.external ? 'noopener noreferrer' : null"
     class="text-left text-sm w-full flex flex-row items-center justify-between gap-x-2 px-2 py-2 cursor-pointer"
     :class="{
-      'text-foreground bg-transparent hover:text-white hover:bg-linear-to-r hover:from-unraid-red hover:to-orange focus:text-white focus:bg-linear-to-r focus:from-unraid-red focus:to-orange focus:outline-hidden': !item?.emphasize,
-      'text-white bg-linear-to-r from-unraid-red to-orange hover:from-unraid-red/60 hover:to-orange/60 focus:from-unraid-red/60 focus:to-orange/60': item?.emphasize,
+      'text-foreground bg-transparent hover:text-white focus:text-white focus:outline-hidden dropdown-item-hover': !item?.emphasize,
+      'text-white bg-linear-to-r from-unraid-red to-orange dropdown-item-emphasized': item?.emphasize,
       'group': showExternalIconOnHover,
       'rounded-md': rounded,
       'disabled:opacity-50 disabled:hover:opacity-50 disabled:focus:opacity-50 disabled:cursor-not-allowed': item?.disabled,
@@ -46,3 +46,15 @@ const showExternalIconOnHover = computed(() => props.item?.external && props.ite
     />
   </component>
 </template>
+
+<style>
+.dropdown-item-hover:hover,
+.dropdown-item-hover:focus {
+  background: linear-gradient(to right, #e22828, #ff8c2f);
+}
+
+.dropdown-item-emphasized:hover,
+.dropdown-item-emphasized:focus {
+  background: linear-gradient(to right, rgba(226, 40, 40, 0.6), rgba(255, 140, 47, 0.6));
+}
+</style>

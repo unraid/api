@@ -6,7 +6,7 @@
   --color-header-text-primary: var(--header-text-primary);
   --color-header-text-secondary: var(--header-text-secondary);
   --color-header-background-color: var(--header-background-color);
-  
+
   /* Legacy colors */
   --color-alpha: var(--color-alpha);
   --color-beta: var(--color-beta);
@@ -14,20 +14,60 @@
   --color-gamma-opaque: var(--color-gamma-opaque);
   --color-customgradient-start: var(--color-customgradient-start);
   --color-customgradient-end: var(--color-customgradient-end);
-  
+
   /* Gradients */
   --color-header-gradient-start: var(--header-gradient-start);
   --color-header-gradient-end: var(--header-gradient-end);
   --color-banner-gradient: var(--banner-gradient);
 }
 
-/* Gradient utilities initialization for Tailwind v4 */
-@layer base {
-  * {
-    --tw-gradient-via-stops: var(--tw-gradient-from) var(--tw-gradient-from-position), var(--tw-gradient-to) var(--tw-gradient-to-position);
-    --tw-gradient-from-position: 0%;
-    --tw-gradient-to-position: 100%;
-  }
+:host {
+  --tw-divide-y-reverse: 0;
+  --tw-border-style: solid;
+  --tw-font-weight: initial;
+  --tw-tracking: initial;
+  --tw-translate-x: 0;
+  --tw-translate-y: 0;
+  --tw-translate-z: 0;
+  --tw-rotate-x: rotateX(0);
+  --tw-rotate-y: rotateY(0);
+  --tw-rotate-z: rotateZ(0);
+  --tw-skew-x: skewX(0);
+  --tw-skew-y: skewY(0);
+  --tw-space-x-reverse: 0;
+  --tw-gradient-position: initial;
+  --tw-gradient-from: #0000;
+  --tw-gradient-via: #0000;
+  --tw-gradient-to: #0000;
+  --tw-gradient-stops: initial;
+  --tw-gradient-via-stops: initial;
+  --tw-gradient-from-position: 0%;
+  --tw-gradient-via-position: 50%;
+  --tw-gradient-to-position: 100%;
+  --tw-shadow: 0 0 #0000;
+  --tw-shadow-color: initial;
+  --tw-inset-shadow: 0 0 #0000;
+  --tw-inset-shadow-color: initial;
+  --tw-ring-color: initial;
+  --tw-ring-shadow: 0 0 #0000;
+  --tw-inset-ring-color: initial;
+  --tw-inset-ring-shadow: 0 0 #0000;
+  --tw-ring-inset: initial;
+  --tw-ring-offset-width: 0px;
+  --tw-ring-offset-color: #fff;
+  --tw-ring-offset-shadow: 0 0 #0000;
+  --tw-blur: initial;
+  --tw-brightness: initial;
+  --tw-contrast: initial;
+  --tw-grayscale: initial;
+  --tw-hue-rotate: initial;
+  --tw-invert: initial;
+  --tw-opacity: initial;
+  --tw-saturate: initial;
+  --tw-sepia: initial;
+  --tw-drop-shadow: initial;
+  --tw-duration: initial;
+  --tw-ease: initial;
 }
 
 @layer base {
@@ -49,5 +89,10 @@
     --shadow-beta: 0 25px 50px -12px rgba(242, 242, 242, 0.15);
     --ring-offset-shadow: 0 0 --var(--color-beta);
     --ring-shadow: 0 0 --var(--color-beta);
+  }
+
+  button:not(:disabled),
+  [role="button"]:not(:disabled) {
+    cursor: pointer;
   }
 }
