@@ -1,11 +1,11 @@
 <script lang="ts" setup>
 import { onMounted } from 'vue';
-import { NuxtLayout, NuxtPage } from '#components';
+
+import { NuxtLayout, NuxtPage, UApp  } from '#components';
 import { devConfig } from '~/helpers/env';
 
 onMounted(() => {
   document.documentElement.setAttribute('data-env', devConfig.NODE_ENV || 'production');
-
 
   // Override text sizes back to 16px base in dev mode (from 10px base in globals.css)
   if (devConfig.NODE_ENV === 'development') {
@@ -28,7 +28,9 @@ onMounted(() => {
 </script>
 
 <template>
-  <NuxtLayout>
-    <NuxtPage />
-  </NuxtLayout>
+  <UApp>
+    <NuxtLayout>
+      <NuxtPage />
+    </NuxtLayout>
+  </UApp>
 </template>

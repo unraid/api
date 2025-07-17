@@ -1,9 +1,9 @@
 import path from 'path';
 
-import removeConsole from 'vite-plugin-remove-console';
 import tailwindcss from '@tailwindcss/vite';
+import removeConsole from 'vite-plugin-remove-console';
 
-import type { UserConfig, PluginOption } from 'vite';
+import type { PluginOption, UserConfig } from 'vite';
 
 /**
  * Used to avoid redeclaring variables in the webgui codebase.
@@ -49,10 +49,10 @@ const sharedTerserOptions = {
  */
 const getSharedPlugins = (includeJQueryIsolation = false) => {
   const plugins: PluginOption[] = [];
-  
+
   // Add Tailwind CSS plugin
   plugins.push(tailwindcss());
-  
+
   // Remove console logs in production
   if (dropConsole) {
     plugins.push(
@@ -61,7 +61,7 @@ const getSharedPlugins = (includeJQueryIsolation = false) => {
       })
     );
   }
-  
+
   // Add jQuery isolation plugin for custom elements
   if (includeJQueryIsolation) {
     plugins.push({
@@ -69,7 +69,7 @@ const getSharedPlugins = (includeJQueryIsolation = false) => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       generateBundle(options: any, bundle: any) {
         // Find the main JS file
-        const jsFile = Object.keys(bundle).find(key => key.endsWith('.js'));
+        const jsFile = Object.keys(bundle).find((key) => key.endsWith('.js'));
         if (jsFile && bundle[jsFile] && 'code' in bundle[jsFile]) {
           const originalCode = bundle[jsFile].code;
           // Wrap the entire bundle to preserve and restore jQuery
@@ -93,7 +93,7 @@ const getSharedPlugins = (includeJQueryIsolation = false) => {
 })();
 `;
         }
-      }
+      },
     });
   }
 
@@ -115,17 +115,17 @@ const applySharedViteConfig = (config: UserConfig, includeJQueryIsolation = fals
   if (!config.plugins) config.plugins = [];
   if (!config.define) config.define = {};
   if (!config.build) config.build = {};
-  
+
   // Add shared plugins
   config.plugins.push(...getSharedPlugins(includeJQueryIsolation));
-  
+
   // Merge define values
   Object.assign(config.define, sharedDefine);
-  
+
   // Apply build configuration
   config.build.minify = 'terser';
   config.build.terserOptions = sharedTerserOptions;
-  
+
   return config;
 };
 
@@ -143,20 +143,19 @@ export default defineNuxtConfig({
     port: 4321,
   },
 
-  css: [
-    '@/assets/main.css',
-  ],
+  css: ['@/assets/main.css'],
 
   devtools: {
     enabled: process.env.NODE_ENV === 'development',
   },
 
-  modules: [
-    '@vueuse/nuxt',
-    '@pinia/nuxt',
-    'nuxt-custom-elements',
-    '@nuxt/eslint',
-  ],
+  modules: ['@vueuse/nuxt', '@pinia/nuxt', 'nuxt-custom-elements', '@nuxt/eslint', '@nuxt/ui'],
+
+  ui: {
+    theme: {
+      colors: ['primary'],
+    },
+  },
 
   // Disable auto-imports
   imports: {
@@ -181,12 +180,12 @@ export default defineNuxtConfig({
       terserOptions: sharedTerserOptions,
     },
   },
-  
+
   customElements: {
     analyzer: process.env.NODE_ENV !== 'test',
     entries: [
       // @ts-expect-error The nuxt-custom-elements module types don't perfectly match our configuration object structure.
-      // The custom elements configuration requires specific properties and methods that may not align with the 
+      // The custom elements configuration requires specific properties and methods that may not align with the
       // module's TypeScript definitions, particularly around the viteExtend function and tag configuration format.
       {
         name: 'UnraidComponents',
@@ -194,7 +193,6 @@ export default defineNuxtConfig({
           return applySharedViteConfig(config, true);
         },
         tags: [
-
           {
             async: false,
             name: 'UnraidAuth',
