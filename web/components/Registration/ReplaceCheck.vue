@@ -15,7 +15,7 @@ defineProps<{
 </script>
 
 <template>
-  <div class="flex flex-wrap items-center justify-between gap-8px">
+  <div class="flex flex-wrap items-center justify-between gap-2">
     <BrandButton
       v-if="!replaceStatusOutput"
       :icon="KeyIcon"
@@ -28,14 +28,14 @@ defineProps<{
       {{ t(replaceStatusOutput.text ?? 'Unknown') }}
     </Badge>
 
-    <span class="inline-flex flex-wrap items-center justify-end gap-8px">
+    <span class="inline-flex flex-wrap items-center justify-end gap-2">
       <BrandButton
         variant="underline"
         :external="true"
         :href="DOCS_REGISTRATION_REPLACE_KEY.toString()"
         :icon-right="ArrowTopRightOnSquareIcon"
         :text="t('Learn More')"
-        class="text-14px"
+        class="text-sm"
       />
     </span>
   </div>

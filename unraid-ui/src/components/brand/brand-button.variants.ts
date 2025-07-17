@@ -24,12 +24,12 @@ export const brandButtonVariants = cva(
         none: '',
       },
       size: {
-        '12px': 'text-12px gap-4px',
-        '14px': 'text-14px gap-8px',
-        '16px': 'text-16px gap-8px',
-        '18px': 'text-18px gap-8px',
-        '20px': 'text-20px gap-8px',
-        '24px': 'text-24px gap-8px',
+        '12px': 'text-xs gap-1',
+        '14px': 'text-sm gap-2',
+        '16px': 'text-base gap-2',
+        '18px': 'text-lg gap-2',
+        '20px': 'text-xl gap-2',
+        '24px': 'text-2xl gap-2',
       },
       padding: {
         default: '',
@@ -41,32 +41,32 @@ export const brandButtonVariants = cva(
       {
         size: '12px',
         padding: 'default',
-        class: 'p-8px',
+        class: 'p-2',
       },
       {
         size: '14px',
         padding: 'default',
-        class: 'p-8px',
+        class: 'p-2',
       },
       {
         size: '16px',
         padding: 'default',
-        class: 'p-12px',
+        class: 'p-3',
       },
       {
         size: '18px',
         padding: 'default',
-        class: 'p-12px',
+        class: 'p-3',
       },
       {
         size: '20px',
         padding: 'default',
-        class: 'p-16px',
+        class: 'p-4',
       },
       {
         size: '24px',
         padding: 'default',
-        class: 'p-16px',
+        class: 'p-4',
       },
     ],
     defaultVariants: {

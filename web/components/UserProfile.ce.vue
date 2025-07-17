@@ -111,18 +111,18 @@ onMounted(() => {
     <div
       class="text-xs text-header-text-secondary text-right font-semibold leading-normal relative z-10 flex flex-wrap items-baseline justify-end gap-x-1 xs:flex-row xs:gap-x-4"
     >
-      <UpcUptimeExpire :as="'span'" :t="t" class="text-12px" />
+      <UpcUptimeExpire :as="'span'" :t="t" class="text-xs" />
       <span class="hidden xs:block">&bull;</span>
-      <UpcServerState :t="t" class="text-12px" />
+      <UpcServerState :t="t" class="text-xs" />
     </div>
 
-    <div class="relative z-10 flex flex-row items-center justify-end gap-x-16px h-full">
+    <div class="relative z-10 flex flex-row items-center justify-end gap-x-4 h-full">
       <h1
-        class="text-14px sm:text-18px relative flex flex-col-reverse items-end md:flex-row border-0 text-header-text-primary"
+        class="text-sm sm:text-lg relative flex flex-col-reverse items-end md:flex-row border-0 text-header-text-primary"
       >
         <template v-if="description && theme?.descriptionShow">
-          <span class="text-right text-12px sm:text-18px hidden 2xs:block" v-html="description" />
-          <span class="text-header-text-secondary hidden md:inline-block px-8px">&bull;</span>
+          <span class="text-right text-xs sm:text-lg hidden 2xs:block" v-html="description" />
+          <span class="text-header-text-secondary hidden md:inline-block px-2">&bull;</span>
         </template>
         <button
           v-if="lanIp"
@@ -140,14 +140,14 @@ onMounted(() => {
         </span>
         <span
           v-show="copied || showCopyNotSupported"
-          class="text-white text-12px leading-none py-4px px-8px absolute top-full right-0 bg-linear-to-r from-unraid-red to-orange text-center block rounded"
+          class="text-white text-xs leading-none py-1 px-2 absolute top-full right-0 bg-linear-to-r from-unraid-red to-orange text-center block rounded"
         >
           <template v-if="copied">{{ t('LAN IP Copied') }}</template>
           <template v-else>{{ t('LAN IP {0}', [lanIp]) }}</template>
         </span>
       </h1>
 
-      <div class="block w-2px h-24px bg-header-text-secondary" />
+      <div class="block w-[2px] h-6 bg-header-text-secondary" />
 
       <NotificationsSidebar />
 

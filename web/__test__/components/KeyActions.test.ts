@@ -164,7 +164,7 @@ describe('KeyActions', () => {
 
     const button = wrapper.findComponent(BrandButton);
 
-    expect(button.props('class')).toContain('sm:max-w-300px');
+    expect(button.props('class')).toContain('sm:max-w-[300px]');
   });
 
   it('passes all required props to BrandButton component', () => {

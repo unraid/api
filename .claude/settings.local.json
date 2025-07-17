@@ -24,7 +24,10 @@
       "Bash(timeout 15 pnpm storybook)",
       "WebFetch(domain:tailwindcss.com)",
       "Bash(pnpm list:*)",
-      "Bash(pnpm remove:*)"
+      "Bash(pnpm remove:*)",
+      "WebFetch(domain:github.com)",
+      "mcp__browsermcp__browser_navigate",
+      "Bash(clear)"
     ]
   },
   "enableAllProjectMcpServers": false

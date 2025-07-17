@@ -19,15 +19,15 @@ const { avatar, connectPluginInstalled, registered, username } = storeToRefs(ser
 </script>
 
 <template>
-  <figure class="group relative z-0 flex items-center justify-center w-36px h-36px rounded-full bg-linear-to-r from-unraid-red to-orange">
+  <figure class="group relative z-0 flex items-center justify-center w-9 h-9 rounded-full bg-linear-to-r from-unraid-red to-orange">
     <img
       v-if="avatar && connectPluginInstalled && registered"
       :src="avatar"
       :alt="username"
-      class="absolute z-10 inset-0 w-36px h-36px rounded-full overflow-hidden"
+      class="absolute z-10 inset-0 w-9 h-9 rounded-full overflow-hidden"
     >
     <template v-else>
-      <BrandMark gradient-start="#fff" gradient-stop="#fff" class="opacity-100 absolute z-10 w-36px px-4px" />
+      <BrandMark gradient-start="#fff" gradient-stop="#fff" class="opacity-100 absolute z-10 w-9 px-[4px]" />
     </template>
   </figure>
 </template>

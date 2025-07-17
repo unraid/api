@@ -1,6 +1,34 @@
 @import 'tailwindcss';
+@import '@unraid/ui/styles';
 
-@config '../tailwind.config.ts';
+@theme {
+  /* Header colors */
+  --color-header-text-primary: var(--header-text-primary);
+  --color-header-text-secondary: var(--header-text-secondary);
+  --color-header-background-color: var(--header-background-color);
+  
+  /* Legacy colors */
+  --color-alpha: var(--color-alpha);
+  --color-beta: var(--color-beta);
+  --color-gamma: var(--color-gamma);
+  --color-gamma-opaque: var(--color-gamma-opaque);
+  --color-customgradient-start: var(--color-customgradient-start);
+  --color-customgradient-end: var(--color-customgradient-end);
+  
+  /* Gradients */
+  --color-header-gradient-start: var(--header-gradient-start);
+  --color-header-gradient-end: var(--header-gradient-end);
+  --color-banner-gradient: var(--banner-gradient);
+}
+
+/* Gradient utilities initialization for Tailwind v4 */
+@layer base {
+  * {
+    --tw-gradient-via-stops: var(--tw-gradient-from) var(--tw-gradient-from-position), var(--tw-gradient-to) var(--tw-gradient-to-position);
+    --tw-gradient-from-position: 0%;
+    --tw-gradient-to-position: 100%;
+  }
+}
 
 @layer base {
   *,
@@ -21,6 +49,5 @@
     --shadow-beta: 0 25px 50px -12px rgba(242, 242, 242, 0.15);
     --ring-offset-shadow: 0 0 --var(--color-beta);
     --ring-shadow: 0 0 --var(--color-beta);
-    @apply bg-background text-foreground;
   }
 }

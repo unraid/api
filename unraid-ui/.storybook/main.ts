@@ -1,6 +1,5 @@
 import { dirname, join } from 'path';
 import type { StorybookConfig } from '@storybook/vue3-vite';
-import tailwind from '@tailwindcss/vite';
 
 const config: StorybookConfig = {
   stories: ['../stories/**/*.stories.@(js|jsx|ts|tsx)'],
@@ -24,7 +23,7 @@ const config: StorybookConfig = {
 
     return {
       ...config,
-      plugins: [...(config.plugins ?? []), tailwind()],
+      plugins: [...(config.plugins ?? [])],
       resolve: {
         alias: {
           '@': join(storybookDir, '../src'),

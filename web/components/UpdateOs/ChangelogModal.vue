@@ -131,7 +131,7 @@ watch(darkMode, () => {
   <Modal
     v-if="releaseForUpdate?.version"
     :center-content="false"
-    max-width="max-w-800px"
+    max-width="max-w-[800px]"
     :open="changelogModalVisible"
     :show-close-x="true"
     :t="t"
@@ -151,7 +151,7 @@ watch(darkMode, () => {
             class="w-full h-full border-0 rounded-md"
             sandbox="allow-scripts allow-same-origin allow-top-navigation"
             title="Unraid Changelog"
-          ></iframe>
+          />
         </div>
 
         <!-- Fallback to raw changelog -->
@@ -169,15 +169,15 @@ watch(darkMode, () => {
           v-else
           class="text-center flex flex-col justify-center w-full min-h-[250px] min-w-[280px] sm:min-w-[400px]"
         >
-          <BrandLoading class="w-[150px] mx-auto mt-24px" />
+          <BrandLoading class="w-[150px] mx-auto mt-6" />
           <p>{{ props.t('Loading changelog…') }}</p>
         </div>
       </div>
     </template>
 
     <template #footer>
-      <div class="flex flex-col-reverse xs:flex-row justify-between gap-12px md:gap-16px">
-        <div class="flex flex-col-reverse xs:flex-row xs:justify-start gap-12px md:gap-16px">
+      <div class="flex flex-col-reverse xs:flex-row justify-between gap-3 md:gap-4">
+        <div class="flex flex-col-reverse xs:flex-row xs:justify-start gap-3 md:gap-4">
           <!-- Back to changelog button (when navigated away) -->
           <BrandButton
             v-if="hasNavigated && docsChangelogUrl"

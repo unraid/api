@@ -77,7 +77,7 @@ const showRebootButton = computed(
 const checkButton = computed((): BrandButtonProps => {
   if (showRebootButton.value || props.showExternalDowngrade) {
     return {
-      variant: 'outline-solid',
+      variant: 'outline-primary',
       click: () => {
         if (props.showExternalDowngrade) {
           accountStore.downgradeOs();
@@ -92,7 +92,7 @@ const checkButton = computed((): BrandButtonProps => {
 
   if (!updateAvailable.value) {
     return {
-      variant: 'outline-solid',
+      variant: 'outline-primary',
       click: () => {
         updateOsStore.localCheckForUpdate();
       },
@@ -115,17 +115,17 @@ const checkButton = computed((): BrandButtonProps => {
 </script>
 
 <template>
-  <div class="grid gap-y-16px">
-    <header class="grid gap-y-4px">
-      <h1 v-if="title" class="text-24px font-semibold">
+  <div class="grid gap-y-4">
+    <header class="grid gap-y-1">
+      <h1 v-if="title" class="text-2xl font-semibold">
         {{ title }}
       </h1>
-      <h2 v-if="subtitle" class="text-20px">
+      <h2 v-if="subtitle" class="text-xl">
         {{ subtitle }}
       </h2>
     </header>
-    <div class="flex flex-col md:flex-row gap-16px justify-start md:items-start md:justify-between">
-      <div class="inline-flex flex-wrap justify-start gap-8px">
+    <div class="flex flex-col md:flex-row gap-4 justify-start md:items-start md:justify-between">
+      <div class="inline-flex flex-wrap justify-start gap-2">
         <button
           class="group"
           :title="t('View release notes')"
@@ -187,7 +187,7 @@ const checkButton = computed((): BrandButtonProps => {
         </Badge>
       </div>
 
-      <div class="inline-flex flex-col shrink-0 gap-16px grow items-center md:items-end">
+      <div class="inline-flex flex-col shrink-0 gap-4 grow items-center md:items-end">
         <span v-if="showRebootButton">
           <BrandButton
             variant="fill"

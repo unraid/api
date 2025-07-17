@@ -255,7 +255,7 @@ const showUpdateEligibility = computed(() => {
     :title="heading"
     :description="subheading"
     :open="open"
-    max-width="max-w-640px"
+    max-width="max-w-[640px]"
     :error="callbackStatus === 'error'"
     :success="callbackStatus === 'success'"
     :show-close-x="callbackStatus !== 'loading'"
@@ -264,7 +264,7 @@ const showUpdateEligibility = computed(() => {
     <template #main>
       <div
         v-if="keyInstallStatus !== 'ready' || accountActionStatus !== 'ready'"
-        class="text-center relative w-full flex flex-col justify-center gap-y-16px py-24px"
+        class="text-center relative w-full flex flex-col justify-center gap-y-4 py-6"
       >
         <BrandLoading v-if="callbackStatus === 'loading'" class="w-[110px] mx-auto" />
 
@@ -274,13 +274,13 @@ const showUpdateEligibility = computed(() => {
           :error="keyInstallStatus === 'failed'"
           :text="keyInstallStatusCopy.text"
         >
-          <div v-if="keyType === 'Trial'" class="opacity-75 italic mt-4px">
+          <div v-if="keyType === 'Trial'" class="opacity-75 italic mt-1">
             <UpcUptimeExpire v-if="refreshServerStateStatus === 'done'" :for-expire="true" :t="t" />
             <p v-else>
               {{ t('Calculating trial expiration…') }}
             </p>
           </div>
-          <div v-if="showUpdateEligibility" class="opacity-75 italic mt-4px">
+          <div v-if="showUpdateEligibility" class="opacity-75 italic mt-1">
             <RegistrationUpdateExpiration v-if="refreshServerStateStatus === 'done'" :t="t" />
             <p v-else>
               {{ t('Calculating OS Update Eligibility…') }}
@@ -318,10 +318,10 @@ const showUpdateEligibility = computed(() => {
           :error="true"
           :text="t('Post Install License Key Error')"
         >
-          <h4 class="text-18px text-left font-semibold">
+          <h4 class="text-lg text-left font-semibold">
             {{ t(stateData.heading) }}
           </h4>
-          <div class="text-left text-16px" v-html="t(stateData.message)" />
+          <div class="text-left text-base" v-html="t(stateData.message)" />
         </UpcCallbackFeedbackStatus>
 
         <UpcCallbackFeedbackStatus
@@ -333,21 +333,21 @@ const showUpdateEligibility = computed(() => {
       </div>
 
       <template v-if="updateOsStatus === 'confirming' && !stateDataError">
-        <div class="text-center flex flex-col gap-y-8px my-16px">
-          <div class="flex flex-col gap-y-4px">
-            <p class="text-18px">
+        <div class="text-center flex flex-col gap-y-2 my-4">
+          <div class="flex flex-col gap-y-1">
+            <p class="text-lg">
               {{ t('Current Version: Unraid {0}', [osVersion]) }}
             </p>
 
-            <ChevronDoubleDownIcon class="animate-pulse w-32px h-32px mx-auto fill-current opacity-50" />
+            <ChevronDoubleDownIcon class="animate-pulse w-8 h-8 mx-auto fill-current opacity-50" />
 
-            <p class="text-18px">
+            <p class="text-lg">
               {{ t('New Version: {0}', [callbackUpdateRelease?.name]) }}
             </p>
 
             <p
               v-if="!callbackUpdateRelease?.version?.includes('+')"
-              class="text-14px italic opacity-75"
+              class="text-sm italic opacity-75"
             >
               {{
                 callbackTypeDowngrade
@@ -361,7 +361,7 @@ const showUpdateEligibility = computed(() => {
     </template>
 
     <template v-if="callbackStatus === 'success' || updateOsStatus === 'confirming'" #footer>
-      <div class="flex flex-row justify-center gap-16px">
+      <div class="flex flex-row justify-center gap-4">
         <template v-if="callbackStatus === 'success'">
           <BrandButton variant="underline" :icon="XMarkIcon" :text="closeText" @click="close" />
 

@@ -42,14 +42,13 @@ const props = withDefaults(defineProps<BrandButtonProps>(), {
 defineEmits(['click']);
 
 const classes = computed(() => {
-  const iconSize = `w-${props.size}`;
-
   return {
     button: cn(
       brandButtonVariants({ variant: props.variant, size: props.size, padding: props.padding }),
       props.class
     ),
-    icon: `${iconSize} fill-current shrink-0`,
+    icon: 'w-[var(--icon-size)] fill-current shrink-0',
+    iconSize: props.size ?? '16px',
   };
 });
 const needsBrandGradientBackground = computed(() => {
@@ -79,7 +78,12 @@ const needsBrandGradientBackground = computed(() => {
       class="absolute -top-[2px] -right-[2px] -bottom-[2px] -left-[2px] -z-10 bg-linear-to-r from-unraid-red to-orange opacity-0 transition-all rounded-md group-hover:opacity-100 group-focus:opacity-100"
     />
 
-    <component :is="icon" v-if="icon" :class="classes.icon" />
+    <component
+      :is="icon"
+      v-if="icon"
+      :class="classes.icon"
+      :style="{ '--icon-size': classes.iconSize }"
+    />
 
     {{ text }}
     <slot />
@@ -92,6 +96,7 @@ const needsBrandGradientBackground = computed(() => {
         iconRightHoverDisplay &&
           'opacity-0 group-hover:opacity-100 group-focus:opacity-100 transition-all',
       ]"
+      :style="{ '--icon-size': classes.iconSize }"
     />
   </component>
 </template>

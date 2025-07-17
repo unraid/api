@@ -140,21 +140,21 @@ watchEffect(() => {
 
 <template>
   <CardWrapper :increased-padding="true">
-    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-20px sm:gap-24px">
-      <div class="grid gap-y-16px">
-        <h3 class="font-semibold leading-normal flex flex-row items-start justify-start gap-8px">
-          <component :is="headingIcon" class="w-20px shrink-0" />
-          <span class="leading-none inline-flex flex-wrap justify-start items-baseline gap-8px">
-            <span class="text-20px">
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-5 sm:gap-6">
+      <div class="grid gap-y-4">
+        <h3 class="font-semibold leading-normal flex flex-row items-start justify-start gap-2">
+          <component :is="headingIcon" class="w-5 shrink-0" />
+          <span class="leading-none inline-flex flex-wrap justify-start items-baseline gap-2">
+            <span class="text-xl">
               {{ heading }}
             </span>
-            <span v-if="updateOsResponse && formattedReleaseDate" class="text-16px opacity-75 shrink">
+            <span v-if="updateOsResponse && formattedReleaseDate" class="text-base opacity-75 shrink">
               {{ formattedReleaseDate }}
             </span>
           </span>
         </h3>
 
-        <div class="prose opacity-75 text-16px leading-relaxed whitespace-normal">
+        <div class="prose opacity-75 text-base leading-relaxed whitespace-normal">
           <p>
             {{
               t(
@@ -168,7 +168,7 @@ watchEffect(() => {
         </div>
       </div>
 
-      <div class="flex flex-col sm:shrink-0 items-center gap-16px">
+      <div class="flex flex-col sm:shrink-0 items-center gap-4">
         <template v-if="available && updateButton">
           <BrandButton
             variant="outline"
@@ -180,24 +180,24 @@ watchEffect(() => {
             @click="startFlashBackup"
           />
 
-          <p v-if="flashBackupBasicStatus === 'started'" class="text-12px italic opacity-75 shrink">
+          <p v-if="flashBackupBasicStatus === 'started'" class="text-xs italic opacity-75 shrink">
             {{ t('Backing up...this may take a few minutes') }}
           </p>
 
           <SwitchGroup as="div">
-            <div class="flex shrink-0 items-center gap-16px">
+            <div class="flex shrink-0 items-center gap-4">
               <Switch
                 v-model="acknowledgeBackup"
                 :disabled="flashBackupBasicStatus === 'started'"
                 :class="[
                   acknowledgeBackup ? 'bg-green-500' : 'bg-gray-200',
-                  'relative inline-flex h-24px w-[44px] shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-hidden focus:ring-2 focus:ring-indigo-600 focus:ring-offset-2',
+                  'relative inline-flex h-6 w-[44px] shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-hidden focus:ring-2 focus:ring-indigo-600 focus:ring-offset-2',
                 ]"
               >
                 <span
                   :class="[
                     acknowledgeBackup ? 'translate-x-20px' : 'translate-x-0',
-                    'pointer-events-none relative inline-block h-20px w-20px transform rounded-full bg-white shadow-sm ring-0 transition duration-200 ease-in-out',
+                    'pointer-events-none relative inline-block h-5 w-5 transform rounded-full bg-white shadow-sm ring-0 transition duration-200 ease-in-out',
                   ]"
                 >
                   <span
@@ -209,7 +209,7 @@ watchEffect(() => {
                     ]"
                     aria-hidden="true"
                   >
-                    <svg class="h-12px w-12px text-gray-400" fill="none" viewBox="0 0 12 12">
+                    <svg class="h-3 w-3 text-gray-400" fill="none" viewBox="0 0 12 12">
                       <path
                         d="M4 8l2-2m0 0l2-2M6 6L4 4m2 2l2 2"
                         stroke="currentColor"
@@ -228,7 +228,7 @@ watchEffect(() => {
                     ]"
                     aria-hidden="true"
                   >
-                    <svg class="h-12px w-12px text-green-500" fill="currentColor" viewBox="0 0 12 12">
+                    <svg class="h-3 w-3 text-green-500" fill="currentColor" viewBox="0 0 12 12">
                       <path
                         d="M3.707 5.293a1 1 0 00-1.414 1.414l1.414-1.414zM5 8l-.707.707a1 1 0 001.414 0L5 8zm4.707-3.293a1 1 0 00-1.414-1.414l1.414 1.414zm-7.414 2l2 2 1.414-1.414-2-2-1.414 1.414zm3.414 2l4-4-1.414-1.414-4 4 1.414 1.414z"
                       />
@@ -236,7 +236,7 @@ watchEffect(() => {
                   </span>
                 </span>
               </Switch>
-              <SwitchLabel class="text-14px">
+              <SwitchLabel class="text-sm">
                 {{ t('I have made a Flash Backup') }}
               </SwitchLabel>
             </div>

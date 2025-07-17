@@ -18,7 +18,7 @@ export default function createConfig() {
         : [
             dts({
               insertTypesEntry: true,
-              include: ['src/**/*.ts', 'src/**/*.vue', 'tailwind.config.ts'],
+              include: ['src/**/*.ts', 'src/**/*.vue'],
               outDir: 'dist',
               rollupTypes: true,
               copyDtsFiles: true,
@@ -35,8 +35,6 @@ export default function createConfig() {
         ],
         input: {
           index: resolve(__dirname, 'src/index.ts'),
-          tailwind: resolve(__dirname, 'tailwind.config.ts'),
-          preset: resolve(__dirname, 'src/theme/preset.ts'),
         },
         preserveEntrySignatures: 'allow-extension',
         output: {

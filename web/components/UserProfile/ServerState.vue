@@ -20,7 +20,7 @@ const upgradeAction = computed((): ServerStateDataAction | undefined => {
 </script>
 
 <template>
-  <span class="flex flex-row items-center gap-x-8px">
+  <span class="flex flex-row items-center gap-x-2">
     <template v-if="upgradeAction">
       <UpcServerStateBuy
         class="text-header-text-secondary"

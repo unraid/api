@@ -72,7 +72,7 @@ const steps: readonly Step[] = [
 </script>
 
 <template>
-  <Stepper :default-value="activeStep" class="text-foreground flex w-full items-start gap-2 text-16px">
+  <Stepper :default-value="activeStep" class="text-foreground flex w-full items-start gap-2 text-base">
     <StepperItem
       v-for="step in steps"
       :key="step.step"

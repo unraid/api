@@ -814,6 +814,9 @@ importers:
       '@jsonforms/vue-vanilla':
         specifier: 3.6.0
         version: 3.6.0(@jsonforms/core@3.6.0)(@jsonforms/vue@3.6.0(@jsonforms/core@3.6.0)(vue@3.5.17(typescript@5.8.3)))(vue@3.5.17(typescript@5.8.3))
+      '@tailwindcss/cli':
+        specifier: ^4.1.11
+        version: 4.1.11
       '@vueuse/core':
         specifier: 13.5.0
         version: 13.5.0(vue@3.5.17(typescript@5.8.3))
@@ -935,18 +938,12 @@ importers:
       prettier:
         specifier: 3.6.2
         version: 3.6.2
-      prettier-plugin-tailwindcss:
-        specifier: 0.6.14
-        version: 0.6.14(@ianvs/prettier-plugin-sort-imports@4.5.1(@vue/compiler-sfc@3.5.17)(prettier@3.6.2))(prettier@3.6.2)
       rimraf:
         specifier: 6.0.1
         version: 6.0.1
       storybook:
         specifier: 9.0.17
         version: 9.0.17(@testing-library/dom@10.4.0)(prettier@3.6.2)
-      tailwind-rem-to-rem:
-        specifier: github:unraid/tailwind-rem-to-rem
-        version: '@unraid/tailwind-rem-to-rem@https://codeload.github.com/unraid/tailwind-rem-to-rem/tar.gz/54ab7d5c7b054c4c727cb64ee823b09d2c48c1b3(tailwindcss@4.1.11)'
       tailwindcss:
         specifier: 4.1.11
         version: 4.1.11
@@ -1207,9 +1204,6 @@ importers:
       prettier:
         specifier: 3.6.2
         version: 3.6.2
-      prettier-plugin-tailwindcss:
-        specifier: 0.6.14
-        version: 0.6.14(@ianvs/prettier-plugin-sort-imports@4.5.1(@vue/compiler-sfc@3.5.17)(prettier@3.6.2))(prettier@3.6.2)
       shadcn-nuxt:
         specifier: 2.2.0
         version: 2.2.0(magicast@0.3.5)
@@ -4498,6 +4492,10 @@ packages:
     resolution: {integrity: sha512-+PmQX0PiAYPMeVYe237LJAYvOMYW1j2rH5YROyS3b4CTVJum34HfRvKvAzozHAQG0TnHNdUfY9nCeUyRAs//cw==}
     engines: {node: '>=14.16'}
 
+  '@tailwindcss/cli@4.1.11':
+    resolution: {integrity: sha512-7RAFOrVaXCFz5ooEG36Kbh+sMJiI2j4+Ozp71smgjnLfBRu7DTfoq8DsTvzse2/6nDeo2M3vS/FGaxfDgr3rtQ==}
+    hasBin: true
+
   '@tailwindcss/node@4.1.11':
     resolution: {integrity: sha512-yzhzuGRmv5QyU9qLNg4GTlYI6STedBWRE7NjxP45CsFYYq9taI0zJXZBMqIC/c8fViNLhmrbpSFS57EoxUmD6Q==}
 
@@ -5024,12 +5022,6 @@ packages:
 
   '@unraid/tailwind-rem-to-rem@2.0.0':
     resolution: {integrity: sha512-zccpQx5fvEBkAB0JkRwwtyRrT9l26LsjkozLy44LGv0NdZGaxgscniIqJRM+OQj5pSpsWDzExebAtUKdE98Flg==}
-    peerDependencies:
-      tailwindcss: ^4.0.0
-
-  '@unraid/tailwind-rem-to-rem@https://codeload.github.com/unraid/tailwind-rem-to-rem/tar.gz/54ab7d5c7b054c4c727cb64ee823b09d2c48c1b3':
-    resolution: {tarball: https://codeload.github.com/unraid/tailwind-rem-to-rem/tar.gz/54ab7d5c7b054c4c727cb64ee823b09d2c48c1b3}
-    version: 2.0.0
     peerDependencies:
       tailwindcss: ^4.0.0
 
@@ -9935,6 +9927,10 @@ packages:
   module-details-from-path@1.0.3:
     resolution: {integrity: sha512-ySViT69/76t8VhE1xXHK6Ch4NcDd26gx0MzKXLO+F7NOtnqH68d9zF94nT8ZWSxXh8ELOERsnJO/sWt1xZYw5A==}
 
+  mri@1.2.0:
+    resolution: {integrity: sha512-tzzskb3bG8LvYGFF/mDTpq3jpI6Q9wc3LEmBaghu+DdCssd1FakN7Bc0hVNmEyGq1bq3RgfkCb3cmQLpNPOroA==}
+    engines: {node: '>=4'}
+
   mrmime@2.0.1:
     resolution: {integrity: sha512-Y3wQdFg2Va6etvQ5I82yUhGdsKrcYox6p7FfL1LbK2J4V01F9TGlepTIhnK24t7koZibmg82KGglhA1XK5IsLQ==}
     engines: {node: '>=10'}
@@ -10924,67 +10920,6 @@ packages:
   prettier-linter-helpers@1.0.0:
     resolution: {integrity: sha512-GbK2cP9nraSSUF9N2XwUwqfzlAFlMNYYl+ShE/V+H8a9uNl/oUqB1w2EL54Jh0OlyRSd8RfWYJ3coVS4TROP2w==}
     engines: {node: '>=6.0.0'}
-
-  prettier-plugin-tailwindcss@0.6.14:
-    resolution: {integrity: sha512-pi2e/+ZygeIqntN+vC573BcW5Cve8zUB0SSAGxqpB4f96boZF4M3phPVoOFCeypwkpRYdi7+jQ5YJJUwrkGUAg==}
-    engines: {node: '>=14.21.3'}
-    peerDependencies:
-      '@ianvs/prettier-plugin-sort-imports': '*'
-      '@prettier/plugin-hermes': '*'
-      '@prettier/plugin-oxc': '*'
-      '@prettier/plugin-pug': '*'
-      '@shopify/prettier-plugin-liquid': '*'
-      '@trivago/prettier-plugin-sort-imports': '*'
-      '@zackad/prettier-plugin-twig': '*'
-      prettier: ^3.0
-      prettier-plugin-astro: '*'
-      prettier-plugin-css-order: '*'
-      prettier-plugin-import-sort: '*'
-      prettier-plugin-jsdoc: '*'
-      prettier-plugin-marko: '*'
-      prettier-plugin-multiline-arrays: '*'
-      prettier-plugin-organize-attributes: '*'
-      prettier-plugin-organize-imports: '*'
-      prettier-plugin-sort-imports: '*'
-      prettier-plugin-style-order: '*'
-      prettier-plugin-svelte: '*'
-    peerDependenciesMeta:
-      '@ianvs/prettier-plugin-sort-imports':
-        optional: true
-      '@prettier/plugin-hermes':
-        optional: true
-      '@prettier/plugin-oxc':
-        optional: true
-      '@prettier/plugin-pug':
-        optional: true
-      '@shopify/prettier-plugin-liquid':
-        optional: true
-      '@trivago/prettier-plugin-sort-imports':
-        optional: true
-      '@zackad/prettier-plugin-twig':
-        optional: true
-      prettier-plugin-astro:
-        optional: true
-      prettier-plugin-css-order:
-        optional: true
-      prettier-plugin-import-sort:
-        optional: true
-      prettier-plugin-jsdoc:
-        optional: true
-      prettier-plugin-marko:
-        optional: true
-      prettier-plugin-multiline-arrays:
-        optional: true
-      prettier-plugin-organize-attributes:
-        optional: true
-      prettier-plugin-organize-imports:
-        optional: true
-      prettier-plugin-sort-imports:
-        optional: true
-      prettier-plugin-style-order:
-        optional: true
-      prettier-plugin-svelte:
-        optional: true
 
   prettier@3.6.2:
     resolution: {integrity: sha512-I7AIg5boAr5R0FFtJ6rCfD+LFsWHp81dolrFD8S79U9tb8Az2nGrJncnMSnys+bpQJfRUzqs9hnA81OAA3hCuQ==}
@@ -13716,7 +13651,7 @@ snapshots:
       '@babel/traverse': 7.27.4
       '@babel/types': 7.27.6
       convert-source-map: 2.0.0
-      debug: 4.4.1
+      debug: 4.4.1(supports-color@5.5.0)
       gensync: 1.0.0-beta.2
       json5: 2.2.3
       semver: 6.3.1
@@ -14061,7 +13996,7 @@ snapshots:
       '@babel/parser': 7.27.5
       '@babel/template': 7.27.2
       '@babel/types': 7.27.6
-      debug: 4.4.1
+      debug: 4.4.1(supports-color@5.5.0)
       globals: 11.12.0
     transitivePeerDependencies:
       - supports-color
@@ -14559,7 +14494,7 @@ snapshots:
   '@eslint/config-array@0.21.0':
     dependencies:
       '@eslint/object-schema': 2.1.6
-      debug: 4.4.1
+      debug: 4.4.1(supports-color@5.5.0)
       minimatch: 3.1.2
     transitivePeerDependencies:
       - supports-color
@@ -14573,7 +14508,7 @@ snapshots:
       bundle-require: 5.1.0(esbuild@0.25.5)
       cac: 6.7.14
       chokidar: 4.0.3
-      debug: 4.4.1
+      debug: 4.4.1(supports-color@5.5.0)
       esbuild: 0.25.5
       eslint: 9.31.0(jiti@2.4.2)
       find-up: 7.0.0
@@ -14600,7 +14535,7 @@ snapshots:
   '@eslint/eslintrc@3.3.1':
     dependencies:
       ajv: 6.12.6
-      debug: 4.4.1
+      debug: 4.4.1(supports-color@5.5.0)
       espree: 10.4.0
       globals: 14.0.0
       ignore: 5.3.2
@@ -15173,7 +15108,7 @@ snapshots:
       '@types/js-yaml': 4.0.9
       '@whatwg-node/fetch': 0.10.8
       chalk: 4.1.2
-      debug: 4.4.1
+      debug: 4.4.1(supports-color@5.5.0)
       dotenv: 16.5.0
       graphql: 16.11.0
       graphql-request: 6.1.0(graphql@16.11.0)
@@ -15631,7 +15566,7 @@ snapshots:
 
   '@kwsites/file-exists@1.1.1':
     dependencies:
-      debug: 4.4.1
+      debug: 4.4.1(supports-color@5.5.0)
     transitivePeerDependencies:
       - supports-color
 
@@ -17001,6 +16936,16 @@ snapshots:
     dependencies:
       defer-to-connect: 2.0.1
 
+  '@tailwindcss/cli@4.1.11':
+    dependencies:
+      '@parcel/watcher': 2.5.1
+      '@tailwindcss/node': 4.1.11
+      '@tailwindcss/oxide': 4.1.11
+      enhanced-resolve: 5.18.1
+      mri: 1.2.0
+      picocolors: 1.1.1
+      tailwindcss: 4.1.11
+
   '@tailwindcss/node@4.1.11':
     dependencies:
       '@ampproject/remapping': 2.3.0
@@ -17470,7 +17415,7 @@ snapshots:
       '@typescript-eslint/types': 8.36.0
       '@typescript-eslint/typescript-estree': 8.36.0(typescript@5.8.3)
       '@typescript-eslint/visitor-keys': 8.36.0
-      debug: 4.4.1
+      debug: 4.4.1(supports-color@5.5.0)
       eslint: 9.31.0(jiti@2.4.2)
       typescript: 5.8.3
     transitivePeerDependencies:
@@ -17492,7 +17437,7 @@ snapshots:
     dependencies:
       '@typescript-eslint/tsconfig-utils': 8.36.0(typescript@5.8.3)
       '@typescript-eslint/types': 8.36.0
-      debug: 4.4.1
+      debug: 4.4.1(supports-color@5.5.0)
       typescript: 5.8.3
     transitivePeerDependencies:
       - supports-color
@@ -17501,7 +17446,7 @@ snapshots:
     dependencies:
       '@typescript-eslint/tsconfig-utils': 8.37.0(typescript@5.8.3)
       '@typescript-eslint/types': 8.37.0
-      debug: 4.4.1
+      debug: 4.4.1(supports-color@5.5.0)
       typescript: 5.8.3
     transitivePeerDependencies:
       - supports-color
@@ -17529,7 +17474,7 @@ snapshots:
       '@typescript-eslint/types': 8.37.0
       '@typescript-eslint/typescript-estree': 8.37.0(typescript@5.8.3)
       '@typescript-eslint/utils': 8.37.0(eslint@9.31.0(jiti@2.4.2))(typescript@5.8.3)
-      debug: 4.4.1
+      debug: 4.4.1(supports-color@5.5.0)
       eslint: 9.31.0(jiti@2.4.2)
       ts-api-utils: 2.1.0(typescript@5.8.3)
       typescript: 5.8.3
@@ -17546,7 +17491,7 @@ snapshots:
       '@typescript-eslint/tsconfig-utils': 8.36.0(typescript@5.8.3)
       '@typescript-eslint/types': 8.36.0
       '@typescript-eslint/visitor-keys': 8.36.0
-      debug: 4.4.1
+      debug: 4.4.1(supports-color@5.5.0)
       fast-glob: 3.3.3
       is-glob: 4.0.3
       minimatch: 9.0.5
@@ -17562,7 +17507,7 @@ snapshots:
       '@typescript-eslint/tsconfig-utils': 8.37.0(typescript@5.8.3)
       '@typescript-eslint/types': 8.37.0
       '@typescript-eslint/visitor-keys': 8.37.0
-      debug: 4.4.1
+      debug: 4.4.1(supports-color@5.5.0)
       fast-glob: 3.3.3
       is-glob: 4.0.3
       minimatch: 9.0.5
@@ -17640,10 +17585,6 @@ snapshots:
       crypto-js: 4.2.0
 
   '@unraid/tailwind-rem-to-rem@2.0.0(tailwindcss@4.1.11)':
-    dependencies:
-      tailwindcss: 4.1.11
-
-  '@unraid/tailwind-rem-to-rem@https://codeload.github.com/unraid/tailwind-rem-to-rem/tar.gz/54ab7d5c7b054c4c727cb64ee823b09d2c48c1b3(tailwindcss@4.1.11)':
     dependencies:
       tailwindcss: 4.1.11
 
@@ -17752,7 +17693,7 @@ snapshots:
       '@ampproject/remapping': 2.3.0
       '@bcoe/v8-coverage': 1.0.2
       ast-v8-to-istanbul: 0.3.3
-      debug: 4.4.1
+      debug: 4.4.1(supports-color@5.5.0)
       istanbul-lib-coverage: 3.2.2
       istanbul-lib-report: 3.0.1
       istanbul-lib-source-maps: 5.0.6
@@ -19783,10 +19724,6 @@ snapshots:
     dependencies:
       ms: 2.1.3
 
-  debug@4.4.1:
-    dependencies:
-      ms: 2.1.3
-
   debug@4.4.1(supports-color@5.5.0):
     dependencies:
       ms: 2.1.3
@@ -20604,7 +20541,7 @@ snapshots:
 
   eslint-import-resolver-typescript@4.4.4(eslint-plugin-import-x@4.15.2(@typescript-eslint/utils@8.37.0(eslint@9.31.0(jiti@2.4.2))(typescript@5.8.3))(eslint-import-resolver-node@0.3.9)(eslint@9.31.0(jiti@2.4.2)))(eslint-plugin-import@2.32.0)(eslint@9.31.0(jiti@2.4.2)):
     dependencies:
-      debug: 4.4.1
+      debug: 4.4.1(supports-color@5.5.0)
       eslint: 9.31.0(jiti@2.4.2)
       eslint-import-context: 0.1.8(unrs-resolver@1.9.1)
       get-tsconfig: 4.10.1
@@ -20662,7 +20599,7 @@ snapshots:
     dependencies:
       '@typescript-eslint/types': 8.37.0
       comment-parser: 1.4.1
-      debug: 4.4.1
+      debug: 4.4.1(supports-color@5.5.0)
       eslint: 9.31.0(jiti@2.4.2)
       eslint-import-context: 0.1.8(unrs-resolver@1.9.1)
       is-glob: 4.0.3
@@ -20740,7 +20677,7 @@ snapshots:
       '@es-joy/jsdoccomment': 0.52.0
       are-docs-informative: 0.0.2
       comment-parser: 1.4.1
-      debug: 4.4.1
+      debug: 4.4.1(supports-color@5.5.0)
       escape-string-regexp: 4.0.0
       eslint: 9.31.0(jiti@2.4.2)
       espree: 10.4.0
@@ -20889,7 +20826,7 @@ snapshots:
       ajv: 6.12.6
       chalk: 4.1.2
       cross-spawn: 7.0.6
-      debug: 4.4.1
+      debug: 4.4.1(supports-color@5.5.0)
       escape-string-regexp: 4.0.0
       eslint-scope: 8.4.0
       eslint-visitor-keys: 4.2.1
@@ -21090,7 +21027,7 @@ snapshots:
 
   extract-zip@2.0.1:
     dependencies:
-      debug: 4.4.1
+      debug: 4.4.1(supports-color@5.5.0)
       get-stream: 5.2.0
       yauzl: 2.10.0
     optionalDependencies:
@@ -21955,7 +21892,7 @@ snapshots:
   http-proxy-agent@7.0.2:
     dependencies:
       agent-base: 7.1.3
-      debug: 4.4.1
+      debug: 4.4.1(supports-color@5.5.0)
     transitivePeerDependencies:
       - supports-color
 
@@ -22002,7 +21939,7 @@ snapshots:
   https-proxy-agent@7.0.6:
     dependencies:
       agent-base: 7.1.3
-      debug: 4.4.1
+      debug: 4.4.1(supports-color@5.5.0)
     transitivePeerDependencies:
       - supports-color
 
@@ -22057,7 +21994,7 @@ snapshots:
   importx@0.4.4:
     dependencies:
       bundle-require: 5.1.0(esbuild@0.23.1)
-      debug: 4.4.1
+      debug: 4.4.1(supports-color@5.5.0)
       esbuild: 0.23.1
       jiti: 2.0.0-beta.3
       jiti-v1: jiti@1.21.7
@@ -22173,7 +22110,7 @@ snapshots:
     dependencies:
       '@ioredis/commands': 1.2.0
       cluster-key-slot: 1.1.2
-      debug: 4.4.1
+      debug: 4.4.1(supports-color@5.5.0)
       denque: 2.1.0
       lodash.defaults: 4.2.0
       lodash.isarguments: 3.1.0
@@ -22486,7 +22423,7 @@ snapshots:
   istanbul-lib-source-maps@5.0.6:
     dependencies:
       '@jridgewell/trace-mapping': 0.3.25
-      debug: 4.4.1
+      debug: 4.4.1(supports-color@5.5.0)
       istanbul-lib-coverage: 3.2.2
     transitivePeerDependencies:
       - supports-color
@@ -23222,6 +23159,8 @@ snapshots:
       node-source-walk: 7.0.1
 
   module-details-from-path@1.0.3: {}
+
+  mri@1.2.0: {}
 
   mrmime@2.0.1: {}
 
@@ -24540,12 +24479,6 @@ snapshots:
     dependencies:
       fast-diff: 1.3.0
 
-  prettier-plugin-tailwindcss@0.6.14(@ianvs/prettier-plugin-sort-imports@4.5.1(@vue/compiler-sfc@3.5.17)(prettier@3.6.2))(prettier@3.6.2):
-    dependencies:
-      prettier: 3.6.2
-    optionalDependencies:
-      '@ianvs/prettier-plugin-sort-imports': 4.5.1(@vue/compiler-sfc@3.5.17)(prettier@3.6.2)
-
   prettier@3.6.2: {}
 
   pretty-bytes@6.1.1: {}
@@ -25270,7 +25203,7 @@ snapshots:
 
   send@1.2.0:
     dependencies:
-      debug: 4.4.1
+      debug: 4.4.1(supports-color@5.5.0)
       encodeurl: 2.0.0
       escape-html: 1.0.3
       etag: 1.8.1
@@ -25474,7 +25407,7 @@ snapshots:
     dependencies:
       '@kwsites/file-exists': 1.1.1
       '@kwsites/promise-deferred': 1.1.1
-      debug: 4.4.1
+      debug: 4.4.1(supports-color@5.5.0)
     transitivePeerDependencies:
       - supports-color
 
@@ -25810,7 +25743,7 @@ snapshots:
   stylus@0.57.0:
     dependencies:
       css: 3.0.0
-      debug: 4.4.1
+      debug: 4.4.1(supports-color@5.5.0)
       glob: 7.2.3
       safer-buffer: 2.1.2
       sax: 1.2.4
@@ -26535,7 +26468,7 @@ snapshots:
   vite-node@3.2.4(@types/node@22.16.4)(jiti@2.4.2)(lightningcss@1.30.1)(stylus@0.57.0)(terser@5.43.1)(tsx@4.20.3)(yaml@2.8.0):
     dependencies:
       cac: 6.7.14
-      debug: 4.4.1
+      debug: 4.4.1(supports-color@5.5.0)
       es-module-lexer: 1.7.0
       pathe: 2.0.3
       vite: 7.0.4(@types/node@22.16.4)(jiti@2.4.2)(lightningcss@1.30.1)(stylus@0.57.0)(terser@5.43.1)(tsx@4.20.3)(yaml@2.8.0)
@@ -26608,7 +26541,7 @@ snapshots:
   vite-plugin-inspect@11.3.0(@nuxt/kit@3.17.6(magicast@0.3.5))(vite@7.0.4(@types/node@22.16.4)(jiti@2.4.2)(lightningcss@1.30.1)(stylus@0.57.0)(terser@5.43.1)(tsx@4.20.3)(yaml@2.8.0)):
     dependencies:
       ansis: 4.1.0
-      debug: 4.4.1
+      debug: 4.4.1(supports-color@5.5.0)
       error-stack-parser-es: 1.0.5
       ohash: 2.0.11
       open: 10.1.2
@@ -26680,7 +26613,7 @@ snapshots:
   vite-plugin-vuetify@2.1.0(vite@7.0.4(@types/node@22.16.4)(jiti@2.4.2)(lightningcss@1.30.1)(stylus@0.57.0)(terser@5.43.1)(tsx@4.20.3)(yaml@2.8.0))(vue@3.5.17(typescript@5.8.3))(vuetify@3.9.0):
     dependencies:
       '@vuetify/loader-shared': 2.1.0(vue@3.5.17(typescript@5.8.3))(vuetify@3.9.0)
-      debug: 4.4.1
+      debug: 4.4.1(supports-color@5.5.0)
       upath: 2.0.1
       vite: 7.0.4(@types/node@22.16.4)(jiti@2.4.2)(lightningcss@1.30.1)(stylus@0.57.0)(terser@5.43.1)(tsx@4.20.3)(yaml@2.8.0)
       vue: 3.5.17(typescript@5.8.3)
@@ -26763,7 +26696,7 @@ snapshots:
       '@vitest/spy': 3.2.4
       '@vitest/utils': 3.2.4
       chai: 5.2.0
-      debug: 4.4.1
+      debug: 4.4.1(supports-color@5.5.0)
       expect-type: 1.2.1
       magic-string: 0.30.17
       pathe: 2.0.3
@@ -26861,7 +26794,7 @@ snapshots:
 
   vue-eslint-parser@10.2.0(eslint@9.31.0(jiti@2.4.2)):
     dependencies:
-      debug: 4.4.1
+      debug: 4.4.1(supports-color@5.5.0)
       eslint: 9.31.0(jiti@2.4.2)
       eslint-scope: 8.4.0
       eslint-visitor-keys: 4.2.1

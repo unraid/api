@@ -48,10 +48,10 @@ const output = computed(() => {
 </script>
 
 <template>
-  <div v-if="output" class="flex flex-col gap-8px">
+  <div v-if="output" class="flex flex-col gap-2">
     <RegistrationUpdateExpiration :t="t" />
 
-    <p class="text-14px opacity-90">
+    <p class="text-sm opacity-90">
       <template v-if="renewStatus === 'installed'">
         {{
           t(
@@ -60,7 +60,7 @@ const output = computed(() => {
         }}
       </template>
     </p>
-    <div class="flex flex-wrap items-start justify-between gap-8px">
+    <div class="flex flex-wrap items-start justify-between gap-2">
       <BrandButton
         v-if="renewStatus === 'installed'"
         :icon="ArrowPathIcon"
@@ -87,7 +87,7 @@ const output = computed(() => {
         :href="DOCS_REGISTRATION_LICENSING.toString()"
         :icon-right="ArrowTopRightOnSquareIcon"
         :text="t('Learn More')"
-        class="text-14px"
+        class="text-sm"
       />
     </div>
   </div>

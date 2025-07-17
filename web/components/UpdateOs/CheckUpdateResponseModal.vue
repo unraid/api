@@ -257,9 +257,9 @@ onBeforeMount(() => {
 const modalWidth = computed(() => {
   if (availableWithRenewal.value) {
     // wider since we'll have four buttons
-    return 'max-w-800px';
+    return 'max-w-[800px]';
   }
-  return 'max-w-640px';
+  return 'max-w-[640px]';
 });
 </script>
 
@@ -275,8 +275,8 @@ const modalWidth = computed(() => {
   >
     <template v-if="renderMainSlot" #main>
       <BrandLoading v-if="checkForUpdatesLoading" class="w-[150px] mx-auto" />
-      <div v-else class="flex flex-col gap-y-16px">
-        <div v-if="extraLinks.length > 0" class="flex flex-col xs:flex-row justify-center gap-8px">
+      <div v-else class="flex flex-col gap-y-4">
+        <div v-if="extraLinks.length > 0" class="flex flex-col xs:flex-row justify-center gap-2">
           <BrandButton
             v-for="item in extraLinks"
             :key="item.text"
@@ -293,13 +293,13 @@ const modalWidth = computed(() => {
 
         <div v-if="available || availableWithRenewal" class="mx-auto">
           <SwitchGroup>
-            <div class="flex justify-center items-center gap-8px p-8px rounded">
+            <div class="flex justify-center items-center gap-2 p-2 rounded">
               <Switch
                 v-model="ignoreThisRelease"
                 :class="
                   ignoreThisRelease ? 'bg-linear-to-r from-unraid-red to-orange' : 'bg-transparent'
                 "
-                class="relative inline-flex h-24px w-[48px] items-center rounded-full overflow-hidden"
+                class="relative inline-flex h-6 w-12 items-center rounded-full overflow-hidden"
               >
                 <span
                   v-show="!ignoreThisRelease"
@@ -307,10 +307,10 @@ const modalWidth = computed(() => {
                 />
                 <span
                   :class="ignoreThisRelease ? 'translate-x-[26px]' : 'translate-x-[2px]'"
-                  class="inline-block h-20px w-20px transform rounded-full bg-white transition"
+                  class="inline-block h-5 w-5 transform rounded-full bg-white transition"
                 />
               </Switch>
-              <SwitchLabel class="text-16px">
+              <SwitchLabel class="text-base">
                 {{ t('Ignore this release until next reboot') }}
               </SwitchLabel>
             </div>
@@ -318,9 +318,9 @@ const modalWidth = computed(() => {
         </div>
         <div
           v-else-if="updateOsIgnoredReleases.length > 0"
-          class="w-full max-w-640px mx-auto flex flex-col gap-8px"
+          class="w-full max-w-[640px] mx-auto flex flex-col gap-2"
         >
-          <h3 class="text-left text-16px font-semibold italic">
+          <h3 class="text-left text-base font-semibold italic">
             {{ t('Ignored Releases') }}
           </h3>
           <UpdateOsIgnoredRelease
@@ -335,13 +335,13 @@ const modalWidth = computed(() => {
 
     <template #footer>
       <div
-        class="w-full flex gap-8px mx-auto"
+        class="w-full flex gap-2 mx-auto"
         :class="{
           'flex-col-reverse xs:flex-row justify-between': actionButtons,
           'justify-center': !actionButtons,
         }"
       >
-        <div class="flex flex-col-reverse xs:flex-row justify-start gap-8px">
+        <div class="flex flex-col-reverse xs:flex-row justify-start gap-2">
           <BrandButton
             variant="underline-hover-red"
             :icon="XMarkIcon"
@@ -355,7 +355,7 @@ const modalWidth = computed(() => {
             @click="accountStore.updateOs()"
           />
         </div>
-        <div v-if="actionButtons" class="flex flex-col xs:flex-row justify-end gap-8px">
+        <div v-if="actionButtons" class="flex flex-col xs:flex-row justify-end gap-2">
           <BrandButton
             v-for="item in actionButtons"
             :key="item.text"

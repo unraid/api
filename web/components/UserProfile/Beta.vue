@@ -10,7 +10,7 @@ withDefaults(defineProps<Props>(), {
 
 <template>
   <span
-    class="text-10px uppercase py-4px px-6px border-2 rounded-full"
+    class="text-xs uppercase py-1 px-1.5 border-2 rounded-full"
     :class="colorClasses"
   >
     {{ 'Beta' }}

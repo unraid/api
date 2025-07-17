@@ -16,7 +16,7 @@ const downloadUrl = computed(() => {
 </script>
 
 <template>
-  <div class="whitespace-normal flex flex-col gap-y-16px max-w-3xl">
+  <div class="whitespace-normal flex flex-col gap-y-4 max-w-3xl">
     <span>
       {{ t('The primary method of support for Unraid Connect is through our forums and Discord.') }}
       {{
@@ -26,7 +26,7 @@ const downloadUrl = computed(() => {
       }}
       {{ t('The logs may contain sensitive information so do not post them publicly.') }}
     </span>
-    <span class="flex flex-col gap-y-16px">
+    <span class="flex flex-col gap-y-4">
       <div class="flex">
         <BrandButton
           class="grow-0 shrink-0"
@@ -39,33 +39,33 @@ const downloadUrl = computed(() => {
         />
       </div>
 
-      <div class="flex flex-row items-baseline gap-8px">
+      <div class="flex flex-row items-baseline gap-2">
         <a
           :href="CONNECT_FORUMS.toString()"
           target="_blank"
           rel="noopener noreferrer"
-          class="text-[#486dba] hover:text-[#3b5ea9] focus:text-[#3b5ea9] hover:underline focus:underline inline-flex flex-row items-center justify-start gap-8px"
+          class="text-[#486dba] hover:text-[#3b5ea9] focus:text-[#3b5ea9] hover:underline focus:underline inline-flex flex-row items-center justify-start gap-2"
         >
           {{ t('Unraid Connect Forums') }}
-          <ArrowTopRightOnSquareIcon class="w-16px" />
+          <ArrowTopRightOnSquareIcon class="w-4" />
         </a>
         <a
           :href="DISCORD.toString()"
           target="_blank"
           rel="noopener noreferrer"
-          class="text-[#486dba] hover:text-[#3b5ea9] focus:text-[#3b5ea9] hover:underline focus:underline inline-flex flex-row items-center justify-start gap-8px"
+          class="text-[#486dba] hover:text-[#3b5ea9] focus:text-[#3b5ea9] hover:underline focus:underline inline-flex flex-row items-center justify-start gap-2"
         >
           {{ t('Unraid Discord') }}
-          <ArrowTopRightOnSquareIcon class="w-16px" />
+          <ArrowTopRightOnSquareIcon class="w-4" />
         </a>
         <a
           :href="CONTACT.toString()"
           target="_blank"
           rel="noopener noreferrer"
-          class="text-[#486dba] hover:text-[#3b5ea9] focus:text-[#3b5ea9] hover:underline focus:underline inline-flex flex-row items-center justify-start gap-8px"
+          class="text-[#486dba] hover:text-[#3b5ea9] focus:text-[#3b5ea9] hover:underline focus:underline inline-flex flex-row items-center justify-start gap-2"
         >
           {{ t('Unraid Contact Page') }}
-          <ArrowTopRightOnSquareIcon class="w-16px" />
+          <ArrowTopRightOnSquareIcon class="w-4" />
         </a>
       </div>
     </span>

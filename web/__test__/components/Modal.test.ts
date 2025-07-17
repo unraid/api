@@ -208,7 +208,7 @@ describe('Modal', () => {
 
   it('applies overlay color and opacity classes', async () => {
     const overlayColor = 'bg-blue-500';
-    const overlayOpacity = 'bg-opacity-50';
+    const overlayOpacity = 'bg-blue-500/50';
 
     wrapper = mount(Modal, {
       props: {

@@ -28,7 +28,7 @@ const evenBgColor = computed(() => {
 
 <template>
   <div
-    class="text-16px p-12px flex flex-row gap-4px sm:px-20px sm:gap-16px items-center justify-between rounded"
+    class="text-base p-3 flex flex-row gap-1 sm:px-5 sm:gap-4 items-center justify-between rounded"
     :class="evenBgColor"
   >
     <span class="font-semibold">{{ label }}</span>

@@ -23,12 +23,12 @@ const props = withDefaults(defineProps<BadgeProps>(), {
 
 const badgeClasses = computed(() => {
   const iconSizes = {
-    xs: 'w-12px',
-    sm: 'w-14px',
-    md: 'w-16px',
-    lg: 'w-18px',
-    xl: 'w-20px',
-    '2xl': 'w-24px',
+    xs: 'w-3',
+    sm: 'w-3.5',
+    md: 'w-4',
+    lg: 'w-4.5',
+    xl: 'w-5',
+    '2xl': 'w-6',
   } as const;
 
   return {

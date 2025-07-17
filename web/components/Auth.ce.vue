@@ -13,10 +13,10 @@ const { authAction, stateData } = storeToRefs(serverStore);
 </script>
 
 <template>
-  <div class="whitespace-normal flex flex-col gap-y-16px max-w-3xl">
+  <div class="whitespace-normal flex flex-col gap-y-4 max-w-3xl">
     <span v-if="stateData.error" class="text-unraid-red font-semibold">
-      <h3 class="text-16px mb-8px">{{ t(stateData.heading) }}</h3>
-      <span class="text-14px" v-html="t(stateData.message)" />
+      <h3 class="text-base mb-2">{{ t(stateData.heading) }}</h3>
+      <span class="text-sm" v-html="t(stateData.message)" />
     </span>
     <span v-if="authAction">
       <BrandButton

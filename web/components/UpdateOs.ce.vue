@@ -62,7 +62,7 @@ onBeforeMount(() => {
 
 <template>
     <PageContainer>
-      <BrandLoading v-if="showLoader" class="mx-auto my-12 max-w-160px" />
+      <BrandLoading v-if="showLoader" class="mx-auto my-12 max-w-[160px]" />
       <UpdateOsStatus
         v-else
         :show-update-check="true"
