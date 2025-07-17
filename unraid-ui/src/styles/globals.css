@@ -160,9 +160,7 @@
   --max-width-1024px: 1024px;
 
   /* Breakpoints */
-  --breakpoint-2xs: 470px;
-  --breakpoint-xs: 530px;
-  --breakpoint-tall: (min-height: 700px);
+  --breakpoint-*: initial;
 
   /* Animations */
   --animate-accordion-down: accordion-down 0.2s ease-out;

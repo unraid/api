@@ -118,7 +118,7 @@ onMounted(() => {
 
     <div class="relative z-10 flex flex-row items-center justify-end gap-x-4 h-full">
       <h1
-        class="text-sm sm:text-lg relative flex flex-col-reverse items-end md:flex-row border-0 text-header-text-primary"
+        class="text-md sm:text-lg relative flex flex-col-reverse items-end md:flex-row border-0 text-header-text-primary"
       >
         <template v-if="description && theme?.descriptionShow">
           <span class="text-right text-xs sm:text-lg hidden 2xs:block" v-html="description" />

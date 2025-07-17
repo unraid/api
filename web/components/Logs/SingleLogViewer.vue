@@ -444,7 +444,7 @@ defineExpose({ refreshLogContent });
   </div>
 </template>
 
-<style>
+<style scoped>
 /* Define CSS variables for both light and dark themes */
 :root {
   /* Light theme colors (default) - adjusted for better readability */
