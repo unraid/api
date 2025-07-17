@@ -1,7 +1,7 @@
 import { cva, type VariantProps } from 'class-variance-authority';
 
 export const brandLoadingVariants = cva(
-  'inline-flex items-center justify-center w-full h-full aspect-7/4',
+  'inline-flex items-center justify-center w-full h-full aspect-[7/4]',
   {
     variants: {
       variant: {
