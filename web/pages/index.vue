@@ -61,7 +61,7 @@ const variants = [
   'fill',
   'black',
   'gray',
-  'outline-solid',
+  'outline',
   'outline-black',
   'outline-white',
   'underline',

@@ -147,7 +147,7 @@ const extraLinks = computed((): BrandButtonProps[] => {
 
   if (showNotificationsSettingsLink.value) {
     buttons.push({
-      variant: 'outline-solid',
+      variant: 'outline',
       href: '/Settings/Notifications',
       icon: CogIcon,
       text: props.t('Enable update notifications'),
@@ -180,7 +180,7 @@ const actionButtons = computed((): BrandButtonProps[] | null => {
   // update available - open changelog to commence update
   if (available.value && updateOsResponse.value?.changelog) {
     buttons.push({
-      variant: availableWithRenewal.value ? 'outline-solid' : undefined,
+      variant: availableWithRenewal.value ? 'outline' : undefined,
       click: async () =>
         await updateOsStore.setReleaseForUpdate(updateOsResponse.value ?? null),
       icon: EyeIcon,
