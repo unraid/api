@@ -11,12 +11,10 @@ import type { ComposerTranslation } from 'vue-i18n';
 
 import ActivationModal from '~/components/Activation/ActivationModal.vue';
 
-// Mock @unraid/ui to use a mix of actual and mocked components
 vi.mock('@unraid/ui', async (importOriginal) => {
   const actual = await importOriginal<typeof import('@unraid/ui')>();
   return {
     ...actual,
-    // We'll provide a simple mock for Dialog to make testing easier
     Dialog: {
       name: 'Dialog',
       props: ['modelValue', 'title', 'description', 'showFooter', 'size', 'showCloseButton'],
