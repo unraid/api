@@ -1,6 +1,14 @@
 @import 'tailwindcss';
 @import 'tw-animate-css';
 
+/* Force generation of all color utilities for custom colors across packages */
+@source inline("{bg,text,border,ring,fill,stroke}-{unraid-green,unraid-red}{,-50,-100,-200,-300,-400,-500,-600,-700,-800,-900,-950}");
+@source inline("{bg,text,border,ring,fill,stroke}-{yellow-accent,orange-dark,orange}");
+@source inline("{from,via,to}-{unraid-red,orange}");
+@source inline("bg-linear-to-{r,l,t,b,tr,tl,br,bl}");
+@source "../**/*.vue";
+@source "../stories/**/*.ts";
+
 @custom-variant dark (&:where(.dark, .dark *));
 
 /*
@@ -19,7 +27,7 @@
   ::file-selector-button {
     border-color: var(--color-border);
   }
-  
+
   /* Fix for Tailwind v4 border styles not working */
   * {
     --tw-border-style: solid;
@@ -90,11 +98,11 @@
   --color-unraid-green-900: #284126;
   --color-unraid-green-950: #122211;
 
+
   /* Header colors */
   --color-header-text-primary: var(--header-text-primary);
   --color-header-text-secondary: var(--header-text-secondary);
   --color-header-background-color: var(--header-background-color);
-
 
   /* Font sizes */
   --font-10px: 10px;
@@ -165,24 +173,16 @@
   --breakpoint-*: initial;
 
   /* Animations */
-  --animate-accordion-down: accordion-down 0.2s ease-out;
-  --animate-accordion-up: accordion-up 0.2s ease-out;
-  --animate-collapsible-down: collapsible-down 0.2s ease-in-out;
-  --animate-collapsible-up: collapsible-up 0.2s ease-in-out;
   --animate-mark-2: mark-2 1.5s ease infinite;
   --animate-mark-3: mark-3 1.5s ease infinite;
   --animate-mark-6: mark-6 1.5s ease infinite;
   --animate-mark-7: mark-7 1.5s ease infinite;
 
   /* Keyframes */
-  --keyframes-accordion-down: 0% {height: 0;} 100% {height: var(--radix-accordion-content-height) ;};
-  --keyframes-accordion-up: 0% {height: var(--radix-accordion-content-height) ;} 100% {height: 0;};
-  --keyframes-collapsible-down: 0% {height: 0;} 100% {height: var(--radix-collapsible-content-height) ;};
-  --keyframes-collapsible-up: 0% {height: var(--radix-collapsible-content-height) ;} 100% {height: 0;};
-  --keyframes-mark-2: 50% {transform: translateY(-40px) ;} 100% {transform: translateY(0) ;};
-  --keyframes-mark-3: 50% {transform: translateY(-62px) ;} 100% {transform: translateY(0) ;};
-  --keyframes-mark-6: 50% {transform: translateY(40px) ;} 100% {transform: translateY(0) ;};
-  --keyframes-mark-7: 50% {transform: translateY(62px) ;} 100% {transform: translateY(0) ;};
+  --keyframes-mark-2: 50% { transform: translateY(-40px) } to { transform: translateY(0) };
+  --keyframes-mark-3: 50% { transform: translateY(-62px) } to { transform: translateY(0) };
+  --keyframes-mark-6: 50% { transform: translateY(40px) } to { transform: translateY(0) };
+  --keyframes-mark-7: 50% { transform: translateY(62px) } to { transform: translateY(0) };
 
   /* Radius */
   --radius: 0.5rem;
@@ -204,8 +204,9 @@
   --spacing: 0.4rem; /* 4px at 10px base */
 }
 
-/* Default values for when theme variables aren't set by the app */
+/* Hybrid theme system: Native CSS + Theme Store fallback */
 @layer base {
+  /* Light mode defaults */
   :root {
     --background: 0 0% 100%;
     --foreground: 0 0% 3.9%;
@@ -232,7 +233,7 @@
     --chart-4: 43 74% 66%;
     --chart-5: 27 87% 67%;
   }
-  
+
   /* For web components: inherit CSS variables from the host */
   :host {
     --background: inherit;
@@ -260,7 +261,43 @@
     --chart-4: inherit;
     --chart-5: inherit;
   }
-  
+
+  /* Class-based dark mode support for web components using :host-context */
+  :host-context(.dark) {
+    --background: 0 0% 3.9%;
+    --foreground: 0 0% 98%;
+    --muted: 0 0% 14.9%;
+    --muted-foreground: 0 0% 63.9%;
+    --popover: 0 0% 3.9%;
+    --popover-foreground: 0 0% 98%;
+    --card: 0 0% 3.9%;
+    --card-foreground: 0 0% 98%;
+    --border: 0 0% 14.9%;
+    --input: 0 0% 14.9%;
+    --primary: 0 0% 98%;
+    --primary-foreground: 0 0% 9%;
+    --secondary: 0 0% 14.9%;
+    --secondary-foreground: 0 0% 98%;
+    --accent: 0 0% 14.9%;
+    --accent-foreground: 0 0% 98%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 0 0% 98%;
+    --ring: 0 0% 83.1%;
+    --chart-1: 220 70% 50%;
+    --chart-2: 160 60% 45%;
+    --chart-3: 30 80% 55%;
+    --chart-4: 280 65% 60%;
+    --chart-5: 340 75% 55%;
+  }
+
+  /* Alternative class-based dark mode support for specific Unraid themes */
+  :host-context(.dark[data-theme='black']),
+  :host-context(.dark[data-theme='gray']) {
+    --background: 0 0% 3.9%;
+    --foreground: 0 0% 98%;
+    --border: 0 0% 14.9%;
+  }
+
   * {
     @apply border-border;
   }

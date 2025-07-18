@@ -30,7 +30,10 @@
       "Bash(clear)",
       "Bash(git log:*)",
       "Bash(pnpm --filter ./unraid-ui build)",
-      "Bash(pnpm --filter @unraid/ui build)"
+      "Bash(pnpm --filter @unraid/ui build)",
+      "Bash(pnpm --filter @unraid/web build)",
+      "Bash(python3:*)",
+      "Bash(pnpm tailwind:build:*)"
     ]
   },
   "enableAllProjectMcpServers": false

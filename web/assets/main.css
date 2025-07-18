@@ -1,6 +1,13 @@
 @import 'tailwindcss';
 @import '@unraid/ui/styles';
 
+/* Force generation of all color utilities for custom colors across packages */
+@source inline("{bg,text,border,ring,fill,stroke}-{unraid-green,unraid-red}{,-50,-100,-200,-300,-400,-500,-600,-700,-800,-900,-950}");
+@source inline("{bg,text,border,ring,fill,stroke}-{yellow-accent,orange-dark,orange}");
+
+/* Scan unraid-ui package for class usage */
+@source "../unraid-ui/src/**/*.{vue,ts,js}";
+
 @custom-variant dark (&:where(.dark, .dark *));
 
 @theme {
