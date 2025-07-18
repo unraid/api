@@ -177,12 +177,6 @@
   --animate-mark-6: mark-6 1.5s ease infinite;
   --animate-mark-7: mark-7 1.5s ease infinite;
 
-  /* Keyframes */
-  --keyframes-mark-2: 50% {transform: translateY(-40px)} to {transform: translateY(0)};
-  --keyframes-mark-3: 50% {transform: translateY(-62px)} to {transform: translateY(0)};
-  --keyframes-mark-6: 50% {transform: translateY(40px)} to {transform: translateY(0)};
-  --keyframes-mark-7: 50% {transform: translateY(62px)} to {transform: translateY(0)};
-
   /* Radius */
   --radius: 0.5rem;
 
@@ -306,7 +300,45 @@
   }
 }
 
+/* Keyframes */
+@keyframes mark-2 {
+  50% {
+    transform: translateY(-40px);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+
+@keyframes mark-3 {
+  50% {
+    transform: translateY(-62px);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+
+@keyframes mark-6 {
+  50% {
+    transform: translateY(40px);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+
+@keyframes mark-7 {
+  50% {
+    transform: translateY(62px);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+
 /* Define the theme colors that reference the existing CSS variables from web/themes */
+
 @theme inline {
   --color-background: hsl(var(--background));
   --color-foreground: hsl(var(--foreground));
