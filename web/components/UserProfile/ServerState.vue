@@ -20,7 +20,7 @@ const upgradeAction = computed((): ServerStateDataAction | undefined => {
 </script>
 
 <template>
-  <span class="flex flex-row items-center gap-x-8px">
+  <span class="flex flex-row items-center gap-x-2">
     <template v-if="upgradeAction">
       <UpcServerStateBuy
         class="text-header-text-secondary"
@@ -36,7 +36,7 @@ const upgradeAction = computed((): ServerStateDataAction | undefined => {
 
     <template v-if="purchaseAction">
       <UpcServerStateBuy
-        class="text-orange-dark relative top-[1px] hidden sm:block"
+        class="text-orange-dark relative top-px hidden sm:block"
         :title="t('Purchase Key')"
         @click="purchaseAction.click?.()"
       >{{ t('Purchase') }}</UpcServerStateBuy>

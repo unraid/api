@@ -1,45 +1,109 @@
-@tailwind base;
-@tailwind components;
+@import 'tailwindcss';
+@import '@unraid/ui/styles';
 
-/*
-darkTheme
-alpha: '#1c1b1b',
-beta: '#f2f2f2',
-gamma: '#999999',
+/* Force generation of all color utilities for custom colors across packages */
+@source inline("{bg,text,border,ring,fill,stroke}-{unraid-green,unraid-red}{,-50,-100,-200,-300,-400,-500,-600,-700,-800,-900,-950}");
+@source inline("{bg,text,border,ring,fill,stroke}-{yellow-accent,orange-dark,orange}");
 
-lightTheme
-alpha: '#f2f2f2',
-beta: '#1c1b1b',
-gamma: '#999999',
-*/
+/* Scan unraid-ui package for class usage */
+@source "../unraid-ui/src/**/*.{vue,ts,js}";
 
-body {
-  --color-alpha: #1c1b1b;
-  --color-beta: #f2f2f2;
-  --color-gamma: #999999;
-  --color-gamma-opaque: rgba(153, 153, 153, .5);
-  --color-customgradient-start: rgba(242, 242, 242, .0);
-  --color-customgradient-end: rgba(242, 242, 242, .85);
-  --shadow-beta: 0 25px 50px -12px rgba(242, 242, 242, .15);
-  --ring-offset-shadow: 0 0 --var(--color-beta);
-  --ring-shadow: 0 0 --var(--color-beta);
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme {
+  /* Header colors */
+  --color-header-text-primary: var(--header-text-primary);
+  --color-header-text-secondary: var(--header-text-secondary);
+  --color-header-background-color: var(--header-background-color);
+
+  /* Legacy colors */
+  --color-alpha: var(--color-alpha);
+  --color-beta: var(--color-beta);
+  --color-gamma: var(--color-gamma);
+  --color-gamma-opaque: var(--color-gamma-opaque);
+  --color-customgradient-start: var(--color-customgradient-start);
+  --color-customgradient-end: var(--color-customgradient-end);
+
+  /* Gradients */
+  --color-header-gradient-start: var(--header-gradient-start);
+  --color-header-gradient-end: var(--header-gradient-end);
+  --color-banner-gradient: var(--banner-gradient);
 }
 
-/* .button-gradient-border-to-bg {
-  background: linear-gradient(to right,#e03237 0%,#fd8c3c 100%) left top no-repeat,linear-gradient(to right,#e03237 0%,#fd8c3c 100%) left bottom no-repeat,linear-gradient(to top,#e03237 0%,#e03237 100%) left bottom no-repeat,linear-gradient(to top,#fd8c3c 0%,#fd8c3c 100%) right bottom no-repeat;
-  background-size: 100% 2px,100% 2px,2px 100%,2px 100%;
-
-  &:hover,
-  &:focus {
-    background: linear-gradient(to right,#E22828 0%,#FF8C2F 100%);
+@layer utilities {
+  :host {
+    --tw-divide-y-reverse: 0;
+    --tw-border-style: solid;
+    --tw-font-weight: initial;
+    --tw-tracking: initial;
+    --tw-translate-x: 0;
+    --tw-translate-y: 0;
+    --tw-translate-z: 0;
+    --tw-rotate-x: rotateX(0);
+    --tw-rotate-y: rotateY(0);
+    --tw-rotate-z: rotateZ(0);
+    --tw-skew-x: skewX(0);
+    --tw-skew-y: skewY(0);
+    --tw-space-x-reverse: 0;
+    --tw-gradient-position: initial;
+    --tw-gradient-from: #0000;
+    --tw-gradient-via: #0000;
+    --tw-gradient-to: #0000;
+    --tw-gradient-stops: initial;
+    --tw-gradient-via-stops: initial;
+    --tw-gradient-from-position: 0%;
+    --tw-gradient-via-position: 50%;
+    --tw-gradient-to-position: 100%;
+    --tw-shadow: 0 0 #0000;
+    --tw-shadow-color: initial;
+    --tw-inset-shadow: 0 0 #0000;
+    --tw-inset-shadow-color: initial;
+    --tw-ring-color: initial;
+    --tw-ring-shadow: 0 0 #0000;
+    --tw-inset-ring-color: initial;
+    --tw-inset-ring-shadow: 0 0 #0000;
+    --tw-ring-inset: initial;
+    --tw-ring-offset-width: 0px;
+    --tw-ring-offset-color: #fff;
+    --tw-ring-offset-shadow: 0 0 #0000;
+    --tw-blur: initial;
+    --tw-brightness: initial;
+    --tw-contrast: initial;
+    --tw-grayscale: initial;
+    --tw-hue-rotate: initial;
+    --tw-invert: initial;
+    --tw-opacity: initial;
+    --tw-saturate: initial;
+    --tw-sepia: initial;
+    --tw-drop-shadow: initial;
+    --tw-duration: initial;
+    --tw-ease: initial;
   }
-} */
-
-/* Ensure this is always at the bottom – @see https://tailwindcss.com/docs/content-configuration#working-with-third-party-libraries */
-@tailwind utilities;
+}
 
 @layer base {
+  *,
+  ::after,
+  ::before,
+  ::backdrop,
+  ::file-selector-button {
+    border-color: hsl(var(--border));
+  }
+
   body {
-    @apply bg-background text-foreground;
+    --color-alpha: #1c1b1b;
+    --color-beta: #f2f2f2;
+    --color-gamma: #999999;
+    --color-gamma-opaque: rgba(153, 153, 153, 0.5);
+    --color-customgradient-start: rgba(242, 242, 242, 0);
+    --color-customgradient-end: rgba(242, 242, 242, 0.85);
+    --shadow-beta: 0 25px 50px -12px rgba(242, 242, 242, 0.15);
+    --ring-offset-shadow: 0 0 --var(--color-beta);
+    --ring-shadow: 0 0 --var(--color-beta);
+  }
+
+  button:not(:disabled),
+  [role='button']:not(:disabled) {
+    cursor: pointer;
   }
 }

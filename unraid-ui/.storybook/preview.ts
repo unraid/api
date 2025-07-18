@@ -1,6 +1,7 @@
 import type { Preview } from '@storybook/vue3-vite';
 import { registerAllComponents } from '../src/register';
 import '@/styles/index.css';
+import '@/../.storybook/static/index.css';
 
 registerAllComponents({
   pathToSharedCss: '/index.css',

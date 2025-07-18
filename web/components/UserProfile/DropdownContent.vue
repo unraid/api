@@ -196,12 +196,12 @@ const unraidConnectWelcome = computed(() => {
 </script>
 
 <template>
-  <div class="flex flex-col grow gap-y-8px">
+  <div class="flex flex-col grow gap-y-2">
     <header
       v-if="connectPluginInstalled"
-      class="flex flex-col items-start justify-between mt-8px mx-8px"
+      class="flex flex-col items-start justify-between mt-2 mx-2"
     >
-      <h2 class="text-18px leading-none flex flex-row gap-x-4px items-center justify-between">
+      <h2 class="text-lg leading-none flex flex-row gap-x-1 items-center justify-between">
         <BrandLogoConnect
           gradient-start="currentcolor"
           gradient-stop="currentcolor"
@@ -210,19 +210,19 @@ const unraidConnectWelcome = computed(() => {
         <Beta />
       </h2>
       <template v-if="unraidConnectWelcome">
-        <h3 class="text-16px font-semibold mt-2">
+        <h3 class="text-base font-semibold mt-2">
           {{ unraidConnectWelcome.heading }}
         </h3>
-        <p class="text-14px">
+        <p class="text-sm">
           {{ unraidConnectWelcome.message }}
         </p>
       </template>
     </header>
-          <ul class="list-reset flex flex-col gap-y-4px p-0">
+          <ul class="list-reset flex flex-col gap-y-1 p-0">
         <DropdownConnectStatus v-if="showConnectStatus" :t="t" />
         <DropdownError v-if="showErrors" :t="t" />
 
-        <li v-if="showKeyline" class="my-8px">
+        <li v-if="showKeyline" class="my-2">
           <Keyline />
         </li>
 

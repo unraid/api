@@ -1,31 +1,30 @@
 /// <reference types="vitest" />
 import { resolve } from 'path';
+import { fileURLToPath } from 'url';
+import tailwindcss from '@tailwindcss/vite';
 import vue from '@vitejs/plugin-vue';
-import tailwindcss from 'tailwindcss';
 import { defineConfig } from 'vite';
 import dts from 'vite-plugin-dts';
+
+const __dirname = fileURLToPath(new URL('.', import.meta.url));
 
 export default function createConfig() {
   return defineConfig({
     plugins: [
+      tailwindcss(),
       vue(),
       ...(process.env.npm_lifecycle_script?.includes('storybook')
         ? []
         : [
             dts({
               insertTypesEntry: true,
-              include: ['src/**/*.ts', 'src/**/*.vue', 'tailwind.config.ts'],
+              include: ['src/**/*.ts', 'src/**/*.vue'],
               outDir: 'dist',
               rollupTypes: true,
               copyDtsFiles: true,
             }),
           ]),
     ],
-    css: {
-      postcss: {
-        plugins: [tailwindcss()],
-      },
-    },
     build: {
       cssCodeSplit: false,
       rollupOptions: {
@@ -36,8 +35,6 @@ export default function createConfig() {
         ],
         input: {
           index: resolve(__dirname, 'src/index.ts'),
-          tailwind: resolve(__dirname, 'tailwind.config.ts'),
-          preset: resolve(__dirname, 'src/theme/preset.ts'),
         },
         preserveEntrySignatures: 'allow-extension',
         output: {

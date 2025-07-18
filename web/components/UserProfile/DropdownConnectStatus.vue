@@ -45,26 +45,26 @@ const status = computed((): StatusOutput | undefined => {
   if (unraidApiStatus.value === 'offline') {
     return {
       icon: ExclamationTriangleIcon,
-      iconClasses: 'text-red-500 w-16px h-16px',
+      iconClasses: 'text-red-500 w-4 h-4',
       text: props.t('unraid-api is offline'),
     };
   }
   if (unraidApiStatus.value === 'online') {
     return {
       icon: CheckCircleIcon,
-      iconClasses: 'text-green-600 w-16px h-16px',
+      iconClasses: 'text-green-600 w-4 h-4',
       text: props.t('Connected'),
     };
   }
   return undefined;
 });
 
-const statusItemClasses = "text-14px flex flex-row justify-start items-center gap-8px mt-8px px-8px";
+const statusItemClasses = "text-sm flex flex-row justify-start items-center gap-2 mt-2 px-2";
 </script>
 
 <template>
   <li v-if="username" :class="statusItemClasses">
-    <UserCircleIcon class="w-16px h-16px" aria-hidden="true" />
+    <UserCircleIcon class="w-4 h-4" aria-hidden="true" />
     {{ username }}
   </li>
   <li v-if="status" :class="statusItemClasses">

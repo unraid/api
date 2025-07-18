@@ -204,7 +204,7 @@ provide('isSubmitting', isCreating);
 </script>
 
 <template>
-  <div class="bg-white rounded-lg border border-gray-200 shadow-sm">
+  <div class="bg-white rounded-lg border border-gray-200 shadow-xs">
     <div class="p-6">
       <h2 class="text-xl font-medium mb-4">Configure RClone Remote</h2>
 
@@ -239,7 +239,7 @@ provide('isSubmitting', isCreating);
   </div>
 </template>
 
-<style lang="postcss">
+<style >
 /* Import unraid-ui globals first */
 @import '@unraid/ui/styles';
 </style>

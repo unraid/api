@@ -62,7 +62,7 @@ onBeforeMount(() => {
 
 <template>
     <PageContainer>
-      <BrandLoading v-if="showLoader" class="mx-auto my-12 max-w-160px" />
+      <BrandLoading v-if="showLoader" class="mx-auto my-12 max-w-[160px]" />
       <UpdateOsStatus
         v-else
         :show-update-check="true"
@@ -74,7 +74,7 @@ onBeforeMount(() => {
     </PageContainer>
 </template>
 
-<style lang="postcss">
+<style >
 /* Import unraid-ui globals first */
 @import '@unraid/ui/styles';
 @import '~/assets/main.css';

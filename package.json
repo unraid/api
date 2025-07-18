@@ -26,6 +26,7 @@
       "@nestjs/core",
       "@parcel/watcher",
       "@swc/core",
+      "@tailwindcss/oxide",
       "@unraid/libvirt",
       "core-js",
       "cpu-features",
@@ -33,10 +34,12 @@
       "esbuild",
       "nestjs-pino",
       "protobufjs",
+      "sharp",
       "simple-git-hooks",
       "ssh2",
       "unrs-resolver",
-      "vue-demi"
+      "vue-demi",
+      "workerd"
     ]
   },
   "dependencies": {

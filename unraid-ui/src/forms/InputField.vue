@@ -46,7 +46,7 @@ const togglePasswordVisibility = () => {
     <Input
       v-model="value"
       :type="inputType"
-      :class="cn('flex-grow', classOverride, { 'pr-10': isPassword })"
+      :class="cn('grow', classOverride, { 'pr-10': isPassword })"
       :disabled="!control.enabled"
       :required="control.required"
       :placeholder="control.schema.description"

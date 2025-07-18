@@ -16,7 +16,7 @@ const accountStore = useAccountStore();
 </script>
 
 <template>
-  <div class="flex flex-col sm:flex-shrink-0 sm:flex-grow-0 items-center">
+  <div class="flex flex-col sm:shrink-0 sm:grow-0 items-center">
     <BrandButton
       :variant="variant"
       :icon="ArrowPathIcon"

@@ -99,7 +99,7 @@ if (control.value.data !== undefined && control.value.data !== null) {
               <ComboboxItem
                 :value="suggestion.value"
                 @select="handleSelect"
-                class="relative flex cursor-default select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none hover:bg-accent hover:text-accent-foreground data-[highlighted]:bg-accent data-[highlighted]:text-accent-foreground"
+                class="relative flex cursor-default select-none items-center rounded-sm px-2 py-1.5 text-sm outline-hidden hover:bg-accent hover:text-accent-foreground data-highlighted:bg-accent data-highlighted:text-accent-foreground"
               >
                 <span>{{ suggestion.label || suggestion.value }}</span>
               </ComboboxItem>
@@ -113,7 +113,7 @@ if (control.value.data !== undefined && control.value.data !== null) {
           v-else
           :value="suggestion.value"
           @select="handleSelect"
-          class="relative flex cursor-default select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none hover:bg-accent hover:text-accent-foreground data-[highlighted]:bg-accent data-[highlighted]:text-accent-foreground"
+          class="relative flex cursor-default select-none items-center rounded-sm px-2 py-1.5 text-sm outline-hidden hover:bg-accent hover:text-accent-foreground data-highlighted:bg-accent data-highlighted:text-accent-foreground"
         >
           <span>{{ suggestion.label || suggestion.value }}</span>
         </ComboboxItem>

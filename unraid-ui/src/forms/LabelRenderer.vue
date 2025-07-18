@@ -70,7 +70,7 @@ const descriptionClass = computed(() => {
 
 <template>
   <!-- Use the computed isVisible based on renderer.value.visible -->
-  <div class="flex flex-col gap-2 flex-shrink-0">
+  <div class="flex flex-col gap-2 shrink-0">
     <!-- Replace native label with the Label component -->
     <Label v-if="labelText" :class="labelClass">{{ labelText }}</Label>
     <!-- Use v-html with the parsedDescription ref -->

@@ -19,7 +19,7 @@ defineProps<{
 </script>
 
 <template>
-  <div class="flex flex-wrap items-center justify-between gap-8px">
+  <div class="flex flex-wrap items-center justify-between gap-2">
     <BrandButton
       v-if="keyLinkedStatus !== 'linked' && keyLinkedStatus !== 'checking'"
       variant="none"
@@ -41,7 +41,7 @@ defineProps<{
       {{ t(keyLinkedOutput.text ?? 'Unknown') }}
     </Badge>
 
-    <span class="inline-flex flex-wrap-items-start gap-8px">
+    <span class="inline-flex flex-wrap-items-start gap-2">
       <BrandButton
         v-if="keyLinkedStatus === 'notLinked'"
         variant="underline"
@@ -50,7 +50,7 @@ defineProps<{
         :icon-right="ArrowTopRightOnSquareIcon"
         :text="t('Link Key')"
         :title="t('Learn more and link your key to your account')"
-        class="text-14px"
+        class="text-sm"
         @click="accountStore.linkKey"
       />
       <BrandButton
@@ -59,7 +59,7 @@ defineProps<{
         :external="true"
         :icon-right="ArrowTopRightOnSquareIcon"
         :text="t('Learn More')"
-        class="text-14px"
+        class="text-sm"
         @click="accountStore.myKeys"
       />
     </span>

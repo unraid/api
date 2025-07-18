@@ -1,98 +1,336 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import 'tailwindcss';
+@import 'tw-animate-css';
 
+/* Force generation of all color utilities for custom colors across packages */
+@source inline("{bg,text,border,ring,fill,stroke}-{unraid-green,unraid-red}{,-50,-100,-200,-300,-400,-500,-600,-700,-800,-900,-950}");
+@source inline("{bg,text,border,ring,fill,stroke}-{yellow-accent,orange-dark,orange}");
+@source inline("{from,via,to}-{unraid-red,orange}");
+@source inline("bg-linear-to-{r,l,t,b,tr,tl,br,bl}");
+@source "../**/*.vue";
+@source "../stories/**/*.ts";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+/*
+  The default border color has changed to `currentcolor` in Tailwind CSS v4,
+  so we've added these compatibility styles to make sure everything still
+  looks the same as it did with Tailwind CSS v3.
+
+  If we ever want to remove these styles, we need to add an explicit border
+  color utility to any element that depends on these defaults.
+*/
 @layer base {
-  :root {
-    --background: 0 0% 100%;
-    --foreground: 0 0% 3.9%;
-
-    --muted: 0 0% 96.1%;
-    --muted-foreground: 0 0% 45.1%;
-
-    --popover: 0 0% 100%;
-    --popover-foreground: 0 0% 3.9%;
-
-    --card: 0 0% 100%;
-    --card-foreground: 0 0% 3.9%;
-
-    --border: 0 0% 89.8%;
-    --input: 0 0% 89.8%;
-
-    --primary: 0 0% 9%;
-    --primary-foreground: 0 0% 98%;
-
-    --secondary: 0 0% 96.1%;
-    --secondary-foreground: 0 0% 9%;
-
-    --accent: 0 0% 96.1%;
-    --accent-foreground: 0 0% 9%;
-
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 0 0% 98%;
-
-    --ring: 0 0% 3.9%;
-
-    --radius: 0.5rem;
-
-    --chart-1: 12 76% 61%;
-
-    --chart-2: 173 58% 39%;
-
-    --chart-3: 197 37% 24%;
-
-    --chart-4: 43 74% 66%;
-
-    --chart-5: 27 87% 67%;
+  *,
+  ::after,
+  ::before,
+  ::backdrop,
+  ::file-selector-button {
+    border-color: var(--color-border);
   }
 
-  .dark {
-    --background: 0 0% 3.9%;
-    --foreground: 0 0% 98%;
-
-    --muted: 0 0% 14.9%;
-    --muted-foreground: 0 0% 63.9%;
-
-    --popover: 0 0% 3.9%;
-    --popover-foreground: 0 0% 98%;
-
-    --card: 0 0% 3.9%;
-    --card-foreground: 0 0% 98%;
-
-    --border: 0 0% 14.9%;
-    --input: 0 0% 14.9%;
-
-    --primary: 0 0% 98%;
-    --primary-foreground: 0 0% 9%;
-
-    --secondary: 0 0% 14.9%;
-    --secondary-foreground: 0 0% 98%;
-
-    --accent: 0 0% 14.9%;
-    --accent-foreground: 0 0% 98%;
-
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 0 0% 98%;
-
-    --ring: 0 0% 83.1%;
-
-    --chart-1: 220 70% 50%;
-
-    --chart-2: 160 60% 45%;
-
-    --chart-3: 30 80% 55%;
-
-    --chart-4: 280 65% 60%;
-
-    --chart-5: 340 75% 55%;
+  /* Fix for Tailwind v4 border styles not working */
+  * {
+    --tw-border-style: solid;
   }
 }
 
+@theme static {
+  /* Container settings */
+  --container-center: true;
+  --container-padding: 2rem;
+  --container-screen-2xl: 1400px;
+
+  /* Font families */
+  --font-sans:
+    clear-sans, ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
+    'Segoe UI Symbol', 'Noto Color Emoji';
+
+  /* Grid template columns */
+  --grid-template-columns-settings: 35% 1fr;
+
+  /* Border color default */
+  --default-border-color: var(--color-border);
+
+  /* Color palette */
+  --color-inherit: inherit;
+  --color-transparent: transparent;
+  --color-black: #1c1b1b;
+  --color-grey-darkest: #222;
+  --color-grey-darker: #606f7b;
+  --color-grey-dark: #383735;
+  --color-grey-mid: #999999;
+  --color-grey: #e0e0e0;
+  --color-grey-light: #dae1e7;
+  --color-grey-lighter: #f1f5f8;
+  --color-grey-lightest: #f2f2f2;
+  --color-white: #ffffff;
+
+  /* Unraid colors */
+  --color-yellow-accent: #e9bf41;
+  --color-orange-dark: #f15a2c;
+  --color-orange: #ff8c2f;
+
+  /* Unraid red palette */
+  --color-unraid-red: #e22828;
+  --color-unraid-red-50: #fef2f2;
+  --color-unraid-red-100: #ffe1e1;
+  --color-unraid-red-200: #ffc9c9;
+  --color-unraid-red-300: #fea3a3;
+  --color-unraid-red-400: #fc6d6d;
+  --color-unraid-red-500: #f43f3f;
+  --color-unraid-red-600: #e22828;
+  --color-unraid-red-700: #bd1818;
+  --color-unraid-red-800: #9c1818;
+  --color-unraid-red-900: #821a1a;
+  --color-unraid-red-950: #470808;
+
+  /* Unraid green palette */
+  --color-unraid-green: #63a659;
+  --color-unraid-green-50: #f5f9f4;
+  --color-unraid-green-100: #e7f3e5;
+  --color-unraid-green-200: #d0e6cc;
+  --color-unraid-green-300: #aad1a4;
+  --color-unraid-green-400: #7db474;
+  --color-unraid-green-500: #63a659;
+  --color-unraid-green-600: #457b3e;
+  --color-unraid-green-700: #396134;
+  --color-unraid-green-800: #314e2d;
+  --color-unraid-green-900: #284126;
+  --color-unraid-green-950: #122211;
+
+
+  /* Header colors */
+  --color-header-text-primary: var(--header-text-primary);
+  --color-header-text-secondary: var(--header-text-secondary);
+  --color-header-background-color: var(--header-background-color);
+
+  /* Font sizes */
+  --font-10px: 10px;
+  --font-12px: 12px;
+  --font-14px: 14px;
+  --font-16px: 16px;
+  --font-18px: 18px;
+  --font-20px: 20px;
+  --font-24px: 24px;
+  --font-30px: 30px;
+
+  /* Spacing */
+  --spacing-4_5: 1.125rem;
+  --spacing--8px: -8px;
+  --spacing-2px: 2px;
+  --spacing-4px: 4px;
+  --spacing-6px: 6px;
+  --spacing-8px: 8px;
+  --spacing-10px: 10px;
+  --spacing-12px: 12px;
+  --spacing-14px: 14px;
+  --spacing-16px: 16px;
+  --spacing-20px: 20px;
+  --spacing-24px: 24px;
+  --spacing-28px: 28px;
+  --spacing-32px: 32px;
+  --spacing-36px: 36px;
+  --spacing-40px: 40px;
+  --spacing-64px: 64px;
+  --spacing-80px: 80px;
+  --spacing-90px: 90px;
+  --spacing-150px: 150px;
+  --spacing-160px: 160px;
+  --spacing-200px: 200px;
+  --spacing-260px: 260px;
+  --spacing-300px: 300px;
+  --spacing-310px: 310px;
+  --spacing-350px: 350px;
+  --spacing-448px: 448px;
+  --spacing-512px: 512px;
+  --spacing-640px: 640px;
+  --spacing-800px: 800px;
+
+  /* Width and Height values */
+  --width-36px: 36px;
+  --height-36px: 36px;
+
+  /* Min/Max widths */
+  --min-width-86px: 86px;
+  --min-width-160px: 160px;
+  --min-width-260px: 260px;
+  --min-width-300px: 300px;
+  --min-width-310px: 310px;
+  --min-width-350px: 350px;
+  --min-width-800px: 800px;
+
+  --max-width-86px: 86px;
+  --max-width-160px: 160px;
+  --max-width-260px: 260px;
+  --max-width-300px: 300px;
+  --max-width-310px: 310px;
+  --max-width-350px: 350px;
+  --max-width-640px: 640px;
+  --max-width-800px: 800px;
+  --max-width-1024px: 1024px;
+
+  /* Breakpoints */
+  --breakpoint-*: initial;
+
+  /* Animations */
+  --animate-mark-2: mark-2 1.5s ease infinite;
+  --animate-mark-3: mark-3 1.5s ease infinite;
+  --animate-mark-6: mark-6 1.5s ease infinite;
+  --animate-mark-7: mark-7 1.5s ease infinite;
+
+  /* Keyframes */
+  --keyframes-mark-2: 50% { transform: translateY(-40px) } to { transform: translateY(0) };
+  --keyframes-mark-3: 50% { transform: translateY(-62px) } to { transform: translateY(0) };
+  --keyframes-mark-6: 50% { transform: translateY(40px) } to { transform: translateY(0) };
+  --keyframes-mark-7: 50% { transform: translateY(62px) } to { transform: translateY(0) };
+
+  /* Radius */
+  --radius: 0.5rem;
+
+  /* Text Resizing */
+  --text-xs: 1.2rem; /* 12px at 10px base */
+  --text-sm: 1.4rem; /* 14px at 10px base */
+  --text-base: 1.6rem; /* 16px at 10px base */
+  --text-lg: 1.8rem; /* 18px at 10px base */
+  --text-xl: 2rem; /* 20px at 10px base */
+  --text-2xl: 2.4rem; /* 24px at 10px base */
+  --text-3xl: 3rem; /* 30px at 10px base */
+  --text-4xl: 3.6rem; /* 36px at 10px base */
+  --text-5xl: 4.8rem; /* 48px at 10px base */
+  --text-6xl: 6rem; /* 60px at 10px base */
+  --text-7xl: 7.2rem; /* 72px at 10px base */
+  --text-8xl: 9.6rem; /* 96px at 10px base */
+  --text-9xl: 12.8rem; /* 128px at 10px base */
+  --spacing: 0.4rem; /* 4px at 10px base */
+}
+
+/* Hybrid theme system: Native CSS + Theme Store fallback */
 @layer base {
+  /* Light mode defaults */
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 0 0% 3.9%;
+    --muted: 0 0% 96.1%;
+    --muted-foreground: 0 0% 45.1%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 0 0% 3.9%;
+    --card: 0 0% 100%;
+    --card-foreground: 0 0% 3.9%;
+    --border: 0 0% 89.8%;
+    --input: 0 0% 89.8%;
+    --primary: 0 0% 9%;
+    --primary-foreground: 0 0% 98%;
+    --secondary: 0 0% 96.1%;
+    --secondary-foreground: 0 0% 9%;
+    --accent: 0 0% 96.1%;
+    --accent-foreground: 0 0% 9%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 98%;
+    --ring: 0 0% 3.9%;
+    --chart-1: 12 76% 61%;
+    --chart-2: 173 58% 39%;
+    --chart-3: 197 37% 24%;
+    --chart-4: 43 74% 66%;
+    --chart-5: 27 87% 67%;
+  }
+
+  /* For web components: inherit CSS variables from the host */
+  :host {
+    --background: inherit;
+    --foreground: inherit;
+    --muted: inherit;
+    --muted-foreground: inherit;
+    --popover: inherit;
+    --popover-foreground: inherit;
+    --card: inherit;
+    --card-foreground: inherit;
+    --border: inherit;
+    --input: inherit;
+    --primary: inherit;
+    --primary-foreground: inherit;
+    --secondary: inherit;
+    --secondary-foreground: inherit;
+    --accent: inherit;
+    --accent-foreground: inherit;
+    --destructive: inherit;
+    --destructive-foreground: inherit;
+    --ring: inherit;
+    --chart-1: inherit;
+    --chart-2: inherit;
+    --chart-3: inherit;
+    --chart-4: inherit;
+    --chart-5: inherit;
+  }
+
+  /* Class-based dark mode support for web components using :host-context */
+  :host-context(.dark) {
+    --background: 0 0% 3.9%;
+    --foreground: 0 0% 98%;
+    --muted: 0 0% 14.9%;
+    --muted-foreground: 0 0% 63.9%;
+    --popover: 0 0% 3.9%;
+    --popover-foreground: 0 0% 98%;
+    --card: 0 0% 3.9%;
+    --card-foreground: 0 0% 98%;
+    --border: 0 0% 14.9%;
+    --input: 0 0% 14.9%;
+    --primary: 0 0% 98%;
+    --primary-foreground: 0 0% 9%;
+    --secondary: 0 0% 14.9%;
+    --secondary-foreground: 0 0% 98%;
+    --accent: 0 0% 14.9%;
+    --accent-foreground: 0 0% 98%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 0 0% 98%;
+    --ring: 0 0% 83.1%;
+    --chart-1: 220 70% 50%;
+    --chart-2: 160 60% 45%;
+    --chart-3: 30 80% 55%;
+    --chart-4: 280 65% 60%;
+    --chart-5: 340 75% 55%;
+  }
+
+  /* Alternative class-based dark mode support for specific Unraid themes */
+  :host-context(.dark[data-theme='black']),
+  :host-context(.dark[data-theme='gray']) {
+    --background: 0 0% 3.9%;
+    --foreground: 0 0% 98%;
+    --border: 0 0% 14.9%;
+  }
+
   * {
     @apply border-border;
   }
+
   body {
     @apply bg-background text-foreground;
   }
+}
+
+/* Define the theme colors that reference the existing CSS variables from web/themes */
+@theme inline {
+  --color-background: hsl(var(--background));
+  --color-foreground: hsl(var(--foreground));
+  --color-muted: hsl(var(--muted));
+  --color-muted-foreground: hsl(var(--muted-foreground));
+  --color-popover: hsl(var(--popover));
+  --color-popover-foreground: hsl(var(--popover-foreground));
+  --color-card: hsl(var(--card));
+  --color-card-foreground: hsl(var(--card-foreground));
+  --color-border: hsl(var(--border));
+  --color-input: hsl(var(--input));
+  --color-primary: hsl(var(--primary));
+  --color-primary-foreground: hsl(var(--primary-foreground));
+  --color-secondary: hsl(var(--secondary));
+  --color-secondary-foreground: hsl(var(--secondary-foreground));
+  --color-accent: hsl(var(--accent));
+  --color-accent-foreground: hsl(var(--accent-foreground));
+  --color-destructive: hsl(var(--destructive));
+  --color-destructive-foreground: hsl(var(--destructive-foreground));
+  --color-ring: hsl(var(--ring));
+  --color-chart-1: hsl(var(--chart-1, 12 76% 61%));
+  --color-chart-2: hsl(var(--chart-2, 173 58% 39%));
+  --color-chart-3: hsl(var(--chart-3, 197 37% 24%));
+  --color-chart-4: hsl(var(--chart-4, 43 74% 66%));
+  --color-chart-5: hsl(var(--chart-5, 27 87% 67%));
 }

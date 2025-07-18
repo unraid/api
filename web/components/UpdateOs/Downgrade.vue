@@ -56,23 +56,23 @@ const downgradeButton = ref<UserProfileLink>({
 
 <template>
   <CardWrapper :increased-padding="true">
-    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-20px sm:gap-24px">
-      <div class="grid gap-y-16px">
-        <h3 class="font-semibold leading-normal flex flex-row items-start justify-start gap-8px">
-          <ArrowUturnDownIcon class="w-20px shrink-0" />
-          <span class="leading-none inline-flex flex-wrap justify-start items-baseline gap-8px">
-            <span class="text-20px">
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-5 sm:gap-6">
+      <div class="grid gap-y-4">
+        <h3 class="font-semibold leading-normal flex flex-row items-start justify-start gap-2">
+          <ArrowUturnDownIcon class="w-5 shrink-0" />
+          <span class="leading-none inline-flex flex-wrap justify-start items-baseline gap-2">
+            <span class="text-xl">
               {{ t('Downgrade Unraid OS to {0}', [version]) }}
             </span>
             <span
               v-if="releaseDate && formattedReleaseDate !== 'Invalid Date'"
-              class="text-16px opacity-75 shrink"
+              class="text-base opacity-75 shrink"
             >
               {{ t('Original release date {0}', [formattedReleaseDate]) }}
             </span>
           </span>
         </h3>
-        <div class="prose text-16px leading-relaxed opacity-75 whitespace-normal">
+        <div class="prose text-base leading-relaxed opacity-75 whitespace-normal">
           <p>{{ t(`Downgrades are only recommended if you're unable to solve a critical issue.`) }}</p>
           <p>
             {{
@@ -91,7 +91,7 @@ const downgradeButton = ref<UserProfileLink>({
         </div>
       </div>
 
-      <div v-if="downgradeButton" class="flex flex-col flex-shrink-0 gap-16px flex-grow items-stretch">
+      <div v-if="downgradeButton" class="flex flex-col shrink-0 gap-4 grow items-stretch">
         <BrandButton
           :variant="'underline'"
           :icon="InformationCircleIcon"
@@ -131,7 +131,7 @@ const downgradeButton = ref<UserProfileLink>({
   </CardWrapper>
 </template>
 
-<style lang="postcss">
+<style >
 /* Import unraid-ui globals first */
 @import '@unraid/ui/styles';
 @import '~/assets/main.css';

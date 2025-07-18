@@ -167,7 +167,7 @@ describe('Modal', () => {
     expect(modalDiv.classes()).toContain('border-green-600/10');
   });
 
-  it('disables shadow when disableShadow is true', async () => {
+  it('disables shadow-sm when disableShadow is true', async () => {
     wrapper = mount(Modal, {
       props: {
         t,
@@ -208,7 +208,7 @@ describe('Modal', () => {
 
   it('applies overlay color and opacity classes', async () => {
     const overlayColor = 'bg-blue-500';
-    const overlayOpacity = 'bg-opacity-50';
+    const overlayOpacity = 'bg-blue-500/50';
 
     wrapper = mount(Modal, {
       props: {

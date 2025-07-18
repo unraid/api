@@ -129,9 +129,9 @@ const mutatedParsedChangelog = computed(() => {
     <div v-else-if="parsedChangelogTitle" class="mb-4">
       <h1>{{ parsedChangelogTitle }}</h1>
     </div>
-    <div v-if="mutatedParsedChangelog" v-html="mutatedParsedChangelog"></div>
+    <div v-if="mutatedParsedChangelog" v-html="mutatedParsedChangelog"/>
     <div v-else-if="isLoading" class="flex flex-col items-center justify-center py-8">
-      <span class="mx-auto animate-spin border-2 border-gray-300 rounded-full w-8 h-8 border-t-unraid-red"></span>
+      <span class="mx-auto animate-spin border-2 border-gray-300 rounded-full w-8 h-8 border-t-unraid-red"/>
       <p class="ml-2">{{ props.t('Loading changelog...') }}</p>
     </div>
     <div v-else class="text-center py-8">

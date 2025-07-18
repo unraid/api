@@ -192,7 +192,7 @@ watch(selectedLogFile, (newValue) => {
   </div>
 </template>
 
-<style lang="postcss">
+<style >
 /* Import unraid-ui globals first */
 @import '@unraid/ui/styles';
 @import '~/assets/main.css';

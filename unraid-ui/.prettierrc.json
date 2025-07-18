@@ -4,5 +4,5 @@
   "tabWidth": 2,
   "printWidth": 105,
   "singleQuote": true,
-  "plugins": ["prettier-plugin-tailwindcss", "@ianvs/prettier-plugin-sort-imports"]
+  "plugins": ["@ianvs/prettier-plugin-sort-imports"]
 }

@@ -41,7 +41,6 @@
     "src/**/*.tsx",
     "src/**/*.vue",
     "src/**/*.ce.vue",
-    "tailwind.config.ts",
     "src/theme/**/*.ts",
     "**/*.config.ts",
     "eslint.config.ts",

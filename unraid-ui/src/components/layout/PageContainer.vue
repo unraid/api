@@ -4,13 +4,13 @@ withDefaults(
     maxWidth?: string;
   }>(),
   {
-    maxWidth: 'max-w-1024px',
+    maxWidth: 'max-w-[1024px]',
   }
 );
 </script>
 
 <template>
-  <div class="grid gap-y-24px w-full mx-auto px-16px" :class="maxWidth">
+  <div class="grid gap-y-6 w-full mx-auto px-4" :class="maxWidth">
     <slot />
   </div>
 </template>

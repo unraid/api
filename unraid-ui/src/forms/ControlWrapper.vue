@@ -13,7 +13,7 @@ const { control } = useJsonFormsControl(props);
 
 <template>
   <!-- Only render the wrapper if the control is visible -->
-  <div v-if="control.visible" class="flex-grow">
+  <div v-if="control.visible" class="grow">
     <!-- Render the actual control passed via the default slot -->
     <slot />
     <!-- Automatically display errors below the control -->
