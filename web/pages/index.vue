@@ -4,8 +4,8 @@ import { storeToRefs } from 'pinia';
 
 import { ExclamationTriangleIcon } from '@heroicons/vue/24/solid';
 import { BrandButton, Toaster } from '@unraid/ui';
-import { useHead } from '#imports';
 import { UButton } from '#components';
+import { useHead } from '#imports';
 import { useDummyServerStore } from '~/_data/serverState';
 import AES from 'crypto-js/aes';
 
@@ -38,7 +38,7 @@ onMounted(() => {
 });
 
 const valueToMakeCallback = ref<SendPayloads | undefined>();
-const callbackDestination = ref<string>('');
+const callbackDestination = ref<string | undefined>('');
 
 const createCallbackUrl = (payload: SendPayloads, sendType: string) => {
   // params differs from callbackActions.send
