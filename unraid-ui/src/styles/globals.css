@@ -1,6 +1,8 @@
 @import 'tailwindcss';
 @import 'tw-animate-css';
 
+@custom-variant dark (&:where(.dark, .dark *));
+
 /*
   The default border color has changed to `currentcolor` in Tailwind CSS v4,
   so we've added these compatibility styles to make sure everything still
@@ -15,7 +17,7 @@
   ::before,
   ::backdrop,
   ::file-selector-button {
-    border-color: hsl(var(--border));
+    border-color: var(--color-border);
   }
   
   /* Fix for Tailwind v4 border styles not working */
@@ -24,14 +26,14 @@
   }
 }
 
-@theme {
+@theme static {
   /* Container settings */
   --container-center: true;
   --container-padding: 2rem;
   --container-screen-2xl: 1400px;
 
   /* Font families */
-  --font-family-sans:
+  --font-sans:
     clear-sans, ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
     'Segoe UI Symbol', 'Noto Color Emoji';
 
@@ -39,7 +41,7 @@
   --grid-template-columns-settings: 35% 1fr;
 
   /* Border color default */
-  --default-border-color: hsl(var(--border));
+  --default-border-color: var(--color-border);
 
   /* Color palette */
   --color-inherit: inherit;
@@ -182,34 +184,6 @@
   --keyframes-mark-6: 50% {transform: translateY(40px) ;} 100% {transform: translateY(0) ;};
   --keyframes-mark-7: 50% {transform: translateY(62px) ;} 100% {transform: translateY(0) ;};
 
-  /* Theme colors - Light mode */
-  --color-background: hsl(0 0% 100%);
-  --color-foreground: hsl(0 0% 3.9%);
-  --color-muted: hsl(0 0% 96.1%);
-  --color-muted-foreground: hsl(0 0% 45.1%);
-  --color-popover: hsl(0 0% 100%);
-  --color-popover-foreground: hsl(0 0% 3.9%);
-  --color-card: hsl(0 0% 100%);
-  --color-card-foreground: hsl(0 0% 3.9%);
-  --color-border: hsl(0 0% 89.8%);
-  --color-input: hsl(0 0% 89.8%);
-  --color-primary: hsl(0 0% 9%);
-  --color-primary-foreground: hsl(0 0% 98%);
-  --color-secondary: hsl(0 0% 96.1%);
-  --color-secondary-foreground: hsl(0 0% 9%);
-  --color-accent: hsl(0 0% 96.1%);
-  --color-accent-foreground: hsl(0 0% 9%);
-  --color-destructive: hsl(0 84.2% 60.2%);
-  --color-destructive-foreground: hsl(0 0% 98%);
-  --color-ring: hsl(0 0% 3.9%);
-
-  /* Chart colors */
-  --color-chart-1: hsl(12 76% 61%);
-  --color-chart-2: hsl(173 58% 39%);
-  --color-chart-3: hsl(197 37% 24%);
-  --color-chart-4: hsl(43 74% 66%);
-  --color-chart-5: hsl(27 87% 67%);
-
   /* Radius */
   --radius: 0.5rem;
 
@@ -230,33 +204,63 @@
   --spacing: 0.4rem; /* 4px at 10px base */
 }
 
+/* Default values for when theme variables aren't set by the app */
 @layer base {
-  .dark {
-    --color-background: hsl(0 0% 3.9%);
-    --color-foreground: hsl(0 0% 98%);
-    --color-muted: hsl(0 0% 14.9%);
-    --color-muted-foreground: hsl(0 0% 63.9%);
-    --color-popover: hsl(0 0% 3.9%);
-    --color-popover-foreground: hsl(0 0% 98%);
-    --color-card: hsl(0 0% 3.9%);
-    --color-card-foreground: hsl(0 0% 98%);
-    --color-border: hsl(0 0% 14.9%);
-    --color-input: hsl(0 0% 14.9%);
-    --color-primary: hsl(0 0% 98%);
-    --color-primary-foreground: hsl(0 0% 9%);
-    --color-secondary: hsl(0 0% 14.9%);
-    --color-secondary-foreground: hsl(0 0% 98%);
-    --color-accent: hsl(0 0% 14.9%);
-    --color-accent-foreground: hsl(0 0% 98%);
-    --color-destructive: hsl(0 62.8% 30.6%);
-    --color-destructive-foreground: hsl(0 0% 98%);
-    --color-ring: hsl(0 0% 83.1%);
-    --color-chart-1: hsl(220 70% 50%);
-    --color-chart-2: hsl(160 60% 45%);
-    --color-chart-3: hsl(30 80% 55%);
-    --color-chart-4: hsl(280 65% 60%);
-    --color-chart-5: hsl(340 75% 55%);
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 0 0% 3.9%;
+    --muted: 0 0% 96.1%;
+    --muted-foreground: 0 0% 45.1%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 0 0% 3.9%;
+    --card: 0 0% 100%;
+    --card-foreground: 0 0% 3.9%;
+    --border: 0 0% 89.8%;
+    --input: 0 0% 89.8%;
+    --primary: 0 0% 9%;
+    --primary-foreground: 0 0% 98%;
+    --secondary: 0 0% 96.1%;
+    --secondary-foreground: 0 0% 9%;
+    --accent: 0 0% 96.1%;
+    --accent-foreground: 0 0% 9%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 98%;
+    --ring: 0 0% 3.9%;
+    --chart-1: 12 76% 61%;
+    --chart-2: 173 58% 39%;
+    --chart-3: 197 37% 24%;
+    --chart-4: 43 74% 66%;
+    --chart-5: 27 87% 67%;
   }
+  
+  /* For web components: inherit CSS variables from the host */
+  :host {
+    --background: inherit;
+    --foreground: inherit;
+    --muted: inherit;
+    --muted-foreground: inherit;
+    --popover: inherit;
+    --popover-foreground: inherit;
+    --card: inherit;
+    --card-foreground: inherit;
+    --border: inherit;
+    --input: inherit;
+    --primary: inherit;
+    --primary-foreground: inherit;
+    --secondary: inherit;
+    --secondary-foreground: inherit;
+    --accent: inherit;
+    --accent-foreground: inherit;
+    --destructive: inherit;
+    --destructive-foreground: inherit;
+    --ring: inherit;
+    --chart-1: inherit;
+    --chart-2: inherit;
+    --chart-3: inherit;
+    --chart-4: inherit;
+    --chart-5: inherit;
+  }
+  
   * {
     @apply border-border;
   }
@@ -264,4 +268,32 @@
   body {
     @apply bg-background text-foreground;
   }
+}
+
+/* Define the theme colors that reference the existing CSS variables from web/themes */
+@theme inline {
+  --color-background: hsl(var(--background));
+  --color-foreground: hsl(var(--foreground));
+  --color-muted: hsl(var(--muted));
+  --color-muted-foreground: hsl(var(--muted-foreground));
+  --color-popover: hsl(var(--popover));
+  --color-popover-foreground: hsl(var(--popover-foreground));
+  --color-card: hsl(var(--card));
+  --color-card-foreground: hsl(var(--card-foreground));
+  --color-border: hsl(var(--border));
+  --color-input: hsl(var(--input));
+  --color-primary: hsl(var(--primary));
+  --color-primary-foreground: hsl(var(--primary-foreground));
+  --color-secondary: hsl(var(--secondary));
+  --color-secondary-foreground: hsl(var(--secondary-foreground));
+  --color-accent: hsl(var(--accent));
+  --color-accent-foreground: hsl(var(--accent-foreground));
+  --color-destructive: hsl(var(--destructive));
+  --color-destructive-foreground: hsl(var(--destructive-foreground));
+  --color-ring: hsl(var(--ring));
+  --color-chart-1: hsl(var(--chart-1, 12 76% 61%));
+  --color-chart-2: hsl(var(--chart-2, 173 58% 39%));
+  --color-chart-3: hsl(var(--chart-3, 197 37% 24%));
+  --color-chart-4: hsl(var(--chart-4, 43 74% 66%));
+  --color-chart-5: hsl(var(--chart-5, 27 87% 67%));
 }

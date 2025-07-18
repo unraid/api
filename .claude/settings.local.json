@@ -28,7 +28,9 @@
       "WebFetch(domain:github.com)",
       "mcp__browsermcp__browser_navigate",
       "Bash(clear)",
-      "Bash(git log:*)"
+      "Bash(git log:*)",
+      "Bash(pnpm --filter ./unraid-ui build)",
+      "Bash(pnpm --filter @unraid/ui build)"
     ]
   },
   "enableAllProjectMcpServers": false

@@ -1,6 +1,8 @@
 @import 'tailwindcss';
 @import '@unraid/ui/styles';
 
+@custom-variant dark (&:where(.dark, .dark *));
+
 @theme {
   /* Header colors */
   --color-header-text-primary: var(--header-text-primary);
