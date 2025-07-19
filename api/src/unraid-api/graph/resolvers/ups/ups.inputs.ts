@@ -63,72 +63,62 @@ registerEnumType(UPSKillPower, {
 
 @InputType()
 export class UPSConfigInput {
-    /**
-     * Enable or disable the UPS monitoring service
-     */
-    @Field(() => UPSServiceState)
+    @Field(() => UPSServiceState, {
+        description: 'Enable or disable the UPS monitoring service',
+    })
     service!: UPSServiceState;
 
-    /**
-     * Type of cable connecting the UPS to the server
-     */
-    @Field(() => UPSCableType)
+    @Field(() => UPSCableType, {
+        description: 'Type of cable connecting the UPS to the server',
+    })
     upsCable!: UPSCableType;
 
-    /**
-     * Custom cable configuration (only used when upsCable is CUSTOM)
-     * Format depends on specific UPS model
-     */
-    @Field({ nullable: true })
+    @Field({
+        nullable: true,
+        description:
+            'Custom cable configuration (only used when upsCable is CUSTOM). Format depends on specific UPS model',
+    })
     customUpsCable?: string;
 
-    /**
-     * UPS communication protocol
-     */
-    @Field(() => UPSType)
+    @Field(() => UPSType, {
+        description: 'UPS communication protocol',
+    })
     upsType!: UPSType;
 
-    /**
-     * Device path or network address for UPS connection
-     * Examples: '/dev/ttyUSB0' for USB, '192.168.1.100:3551' for network
-     */
-    @Field({ nullable: true })
+    @Field({
+        nullable: true,
+        description:
+            "Device path or network address for UPS connection. Examples: '/dev/ttyUSB0' for USB, '192.168.1.100:3551' for network",
+    })
     device?: string;
 
-    /**
-     * Override UPS capacity for runtime calculations
-     * Unit: watts (W)
-     * Leave unset to use UPS-reported capacity
-     */
-    @Field(() => Int, { nullable: true })
+    @Field(() => Int, {
+        nullable: true,
+        description:
+            'Override UPS capacity for runtime calculations. Unit: watts (W). Leave unset to use UPS-reported capacity',
+    })
     overrideUpsCapacity?: number;
 
-    /**
-     * Battery level percentage to initiate shutdown
-     * Unit: percent (%) - Valid range: 0-100
-     */
-    @Field(() => Int)
+    @Field(() => Int, {
+        description:
+            'Battery level percentage to initiate shutdown. Unit: percent (%) - Valid range: 0-100',
+    })
     batteryLevel!: number;
 
-    /**
-     * Runtime left in minutes to initiate shutdown
-     * Unit: minutes
-     */
-    @Field(() => Int)
+    @Field(() => Int, {
+        description: 'Runtime left in minutes to initiate shutdown. Unit: minutes',
+    })
     minutes!: number;
 
-    /**
-     * Time on battery before shutdown
-     * Unit: seconds
-     * Set to 0 to disable timeout-based shutdown
-     */
-    @Field(() => Int)
+    @Field(() => Int, {
+        description:
+            'Time on battery before shutdown. Unit: seconds. Set to 0 to disable timeout-based shutdown',
+    })
     timeout!: number;
 
-    /**
-     * Turn off UPS power after system shutdown
-     * Useful for ensuring complete power cycle
-     */
-    @Field(() => UPSKillPower)
+    @Field(() => UPSKillPower, {
+        description:
+            'Turn off UPS power after system shutdown. Useful for ensuring complete power cycle',
+    })
     killUps!: UPSKillPower;
 }
