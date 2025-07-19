@@ -62,6 +62,20 @@ const config: CodegenConfig = {
                 schema: 'zod',
             },
         },
+        // Generate Types for CLI Internal GraphQL Queries
+        'src/unraid-api/cli/generated/': {
+            documents: ['src/unraid-api/cli/queries/**/*.ts'],
+            schema: './generated-schema.graphql',
+            preset: 'client',
+            presetConfig: {
+                gqlTagName: 'gql',
+            },
+            config: {
+                useTypeImports: true,
+                withObjectType: true,
+            },
+            plugins: [{ add: { content: '/* eslint-disable */' } }],
+        },
     },
 };
 

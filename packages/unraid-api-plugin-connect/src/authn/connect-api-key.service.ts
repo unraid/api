@@ -17,6 +17,7 @@ export class ConnectApiKeyService implements ApiKeyService {
         private readonly apiKeyService: ApiKeyService
     ) {}
 
+    // Delegate all standard ApiKeyService methods to the injected service
     async findById(id: string): Promise<ApiKey | null> {
         return this.apiKeyService.findById(id);
     }
@@ -84,25 +85,11 @@ export class ConnectApiKeyService implements ApiKeyService {
      * Gets or creates a local API key for Connect
      */
     public async getOrCreateLocalApiKey(): Promise<string> {
-        const allKeys = await this.findAll();
-
-        const legacyConnectKeys = allKeys.filter((key) => key.name === 'Connect');
-        if (legacyConnectKeys.length > 0) {
-            await this.deleteApiKeys(legacyConnectKeys.map((key) => key.id));
-            this.logger.log(`Deleted legacy Connect API keys`);
-        }
-
-        const connectKey = this.findByField('name', ConnectApiKeyService.CONNECT_API_KEY_NAME);
-        if (connectKey) {
-            return connectKey.key;
-        }
-
-        const localApiKey = await this.createLocalConnectApiKey();
-
-        if (!localApiKey?.key) {
-            throw new Error('Failed to create local API key');
-        }
-
-        return localApiKey.key;
+        return this.apiKeyService.ensureKey({
+            name: ConnectApiKeyService.CONNECT_API_KEY_NAME,
+            description: ConnectApiKeyService.CONNECT_API_KEY_DESCRIPTION,
+            roles: [Role.CONNECT],
+            legacyNames: ['Connect'], // Clean up old Connect keys
+        });
     }
 }

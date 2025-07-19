@@ -58,4 +58,20 @@ export interface ApiKeyService {
      * Get all API keys
      */
     findAll(): Promise<ApiKey[]>;
+
+    /**
+     * Ensures an API key exists, creating it if necessary.
+     * Used by internal services like Connect and CLI for automatic key management.
+     */
+    ensureKey(config: {
+        name: string;
+        description: string;
+        roles: Role[];
+        legacyNames?: string[];
+    }): Promise<string>;
+
+    /**
+     * Gets or creates a local API key with the specified name, description, and roles.
+     */
+    getOrCreateLocalKey(name: string, description: string, roles: Role[]): Promise<string>;
 }

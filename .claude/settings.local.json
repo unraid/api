@@ -33,7 +33,12 @@
       "Bash(pnpm --filter @unraid/ui build)",
       "Bash(pnpm --filter @unraid/web build)",
       "Bash(python3:*)",
-      "Bash(pnpm tailwind:build:*)"
+      "Bash(pnpm tailwind:build:*)",
+      "Bash(npx tsc:*)",
+      "Bash(npx jest:*)",
+      "Bash(pnpm --filter @unraid/shared build)",
+      "Bash(pnpm --filter ./api test src/unraid-api/cli/__test__/report.command.test.ts --run)",
+      "Bash(pnpm:*)"
     ]
   },
   "enableAllProjectMcpServers": false

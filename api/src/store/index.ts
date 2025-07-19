@@ -16,11 +16,8 @@ export type AppDispatch = typeof store.dispatch;
 export type ApiStore = typeof store;
 
 export const getters = {
-    config: () => store.getState().config,
     dynamix: () => store.getState().dynamix,
     emhttp: () => store.getState().emhttp,
-    minigraph: () => store.getState().minigraph,
     paths: () => store.getState().paths,
     registration: () => store.getState().registration,
-    upnp: () => store.getState().upnp,
 };

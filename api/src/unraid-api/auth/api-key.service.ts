@@ -12,9 +12,7 @@ import { AuthActionVerb } from 'nest-authz';
 import { v4 as uuidv4 } from 'uuid';
 
 import { environment } from '@app/environment.js';
-import { getters, store } from '@app/store/index.js';
-import { setLocalApiKey } from '@app/store/modules/config.js';
-import { FileLoadStatus } from '@app/store/types.js';
+import { getters } from '@app/store/index.js';
 import {
     AddPermissionInput,
     ApiKey,
@@ -117,7 +115,7 @@ export class ApiKeyService implements OnModuleInit {
         overwrite = false,
     }: {
         name: string;
-        description: string | undefined;
+        description?: string;
         roles?: Role[];
         permissions?: Permission[] | AddPermissionInput[];
         overwrite?: boolean;
@@ -358,5 +356,60 @@ export class ApiKeyService implements OnModuleInit {
         }
         await this.saveApiKey(apiKey);
         return apiKey;
+    }
+
+    /**
+     * Ensures an API key exists, creating it if necessary.
+     * Used by internal services like Connect and CLI for automatic key management.
+     */
+    public async ensureKey(config: {
+        name: string;
+        description: string;
+        roles: Role[];
+        legacyNames?: string[];
+    }): Promise<string> {
+        // Clean up any legacy keys
+        if (config.legacyNames && config.legacyNames.length > 0) {
+            const allKeys = await this.findAll();
+            const legacyKeys = allKeys.filter((key) => config.legacyNames!.includes(key.name));
+            if (legacyKeys.length > 0) {
+                await this.deleteApiKeys(legacyKeys.map((key) => key.id));
+                this.logger.log(`Deleted legacy API keys: ${config.legacyNames.join(', ')}`);
+            }
+        }
+
+        // Check if key already exists
+        const existingKey = this.findByField('name', config.name);
+        if (existingKey) {
+            return existingKey.key;
+        }
+
+        // Create new key
+        const newApiKey = await this.getOrCreateLocalKey(config.name, config.description, config.roles);
+        this.logger.log(`Created new API key: ${config.name}`);
+        return newApiKey;
+    }
+
+    /**
+     * Gets or creates a local API key with the specified name, description, and roles.
+     */
+    public async getOrCreateLocalKey(name: string, description: string, roles: Role[]): Promise<string> {
+        try {
+            const apiKey = await this.create({
+                name,
+                description,
+                roles,
+                overwrite: true,
+            });
+
+            if (!apiKey?.key) {
+                throw new Error(`Failed to create local API key: ${name}`);
+            }
+
+            return apiKey.key;
+        } catch (err) {
+            this.logger.error(`Failed to create local API key ${name}: ${err}`);
+            throw err;
+        }
     }
 }
