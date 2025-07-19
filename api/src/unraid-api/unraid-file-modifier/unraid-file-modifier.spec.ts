@@ -1,4 +1,5 @@
 import { Logger } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { Test, TestingModule } from '@nestjs/testing';
 import { promises as fs } from 'fs';
 import { dirname, join } from 'path';
@@ -72,7 +73,17 @@ describe.sequential('FileModificationService', () => {
 
         const module: TestingModule = await Test.createTestingModule({
             imports: [NginxModule],
-            providers: [UnraidFileModificationService, FileModificationEffectService],
+            providers: [
+                UnraidFileModificationService,
+                FileModificationEffectService,
+                {
+                    provide: ConfigService,
+                    useValue: {
+                        get: vi.fn().mockReturnValue([]),
+                        getOrThrow: vi.fn().mockReturnValue([]),
+                    },
+                },
+            ],
         }).compile();
 
         service = module.get<UnraidFileModificationService>(UnraidFileModificationService);

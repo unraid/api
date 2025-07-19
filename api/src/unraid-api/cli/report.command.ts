@@ -1,19 +1,13 @@
 import { Command, CommandRunner, Option } from 'nest-commander';
 
-import type { ConnectStatusQuery } from '@app/unraid-api/cli/generated/graphql.js';
-import { CliInternalClientService } from '@app/unraid-api/cli/internal-client.service.js';
+import { ApiReportService } from '@app/unraid-api/cli/api-report.service.js';
 import { LogService } from '@app/unraid-api/cli/log.service.js';
-import {
-    CONNECT_STATUS_QUERY,
-    SERVICES_QUERY,
-    SYSTEM_REPORT_QUERY,
-} from '@app/unraid-api/cli/queries/system-report.query.js';
 
 @Command({ name: 'report' })
 export class ReportCommand extends CommandRunner {
     constructor(
         private readonly logger: LogService,
-        private readonly internalClient: CliInternalClientService
+        private readonly apiReportService: ApiReportService
     ) {
         super();
     }
@@ -59,94 +53,7 @@ export class ReportCommand extends CommandRunner {
                 return;
             }
 
-            // Get GraphQL client and query system data
-            const client = await this.internalClient.getClient();
-
-            // Always query the base system data
-            const systemResult = await client.query({
-                query: SYSTEM_REPORT_QUERY,
-            });
-
-            // Try to query connect status, but handle it gracefully if connect is not installed
-            let connectData: ConnectStatusQuery['connect'] | null = null;
-            try {
-                const connectResult = await client.query({
-                    query: CONNECT_STATUS_QUERY,
-                });
-                connectData = connectResult.data.connect;
-            } catch (error) {
-                this.logger.debug(
-                    'Connect plugin not available or error querying connect status: ' + error
-                );
-                // Connect plugin is not installed or not available, continue without it
-            }
-
-            // Query services to get cloud/minigraph status
-            let servicesData: any[] = [];
-            try {
-                const servicesResult = await client.query({
-                    query: SERVICES_QUERY,
-                });
-                servicesData = servicesResult.data.services || [];
-            } catch (error) {
-                this.logger.debug('Error querying services: ' + error);
-                // Services query failed, continue without it
-            }
-
-            // Build report with the same structure as before but using GraphQL data
-            const report = {
-                timestamp: new Date().toISOString(),
-                connectionStatus: {
-                    running: apiRunning ? 'yes' : ('no' as const),
-                },
-                system: {
-                    id: systemResult.data.info.system.uuid,
-                    name: systemResult.data.server?.name || 'Unknown',
-                    version: systemResult.data.info.versions.unraid || 'Unknown',
-                    machineId: 'REDACTED', // Redact sensitive machine ID
-                    manufacturer: systemResult.data.info.system.manufacturer,
-                    model: systemResult.data.info.system.model,
-                },
-                connect: connectData
-                    ? {
-                          installed: true,
-                          dynamicRemoteAccess: {
-                              enabledType: connectData.dynamicRemoteAccess.enabledType,
-                              runningType: connectData.dynamicRemoteAccess.runningType,
-                              error: connectData.dynamicRemoteAccess.error || null,
-                          },
-                      }
-                    : {
-                          installed: false,
-                          reason: 'Connect plugin not installed or not available',
-                      },
-                config: {
-                    valid: systemResult.data.config.valid,
-                    error: systemResult.data.config.error || null,
-                },
-                // Cloud/minigraph services status
-                services: {
-                    cloud: servicesData.find((s) => s.name === 'cloud') || null,
-                    minigraph: servicesData.find((s) => s.name === 'minigraph') || null,
-                    allServices: servicesData.map((s) => ({
-                        name: s.name,
-                        online: s.online,
-                        version: s.version,
-                        uptime: s.uptime?.timestamp || null,
-                    })),
-                },
-                // Keep some legacy fields for compatibility
-                remote: {
-                    apikey: 'REDACTED',
-                    localApiKey: 'REDACTED',
-                    accesstoken: 'REDACTED',
-                    idtoken: 'REDACTED',
-                    refreshtoken: 'REDACTED',
-                    ssoSubIds: 'REDACTED',
-                    allowedOrigins: 'REDACTED',
-                    email: 'REDACTED',
-                },
-            };
+            const report = await this.apiReportService.generateReport(apiRunning);
 
             this.logger.clear();
             this.logger.info(JSON.stringify(report, null, 2));

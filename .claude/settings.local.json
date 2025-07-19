@@ -38,7 +38,8 @@
       "Bash(npx jest:*)",
       "Bash(pnpm --filter @unraid/shared build)",
       "Bash(pnpm --filter ./api test src/unraid-api/cli/__test__/report.command.test.ts --run)",
-      "Bash(pnpm:*)"
+      "Bash(pnpm:*)",
+      "Bash(git checkout:*)"
     ]
   },
   "enableAllProjectMcpServers": false

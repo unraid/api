@@ -1,11 +1,15 @@
 import { ChoicesFor, Question, QuestionSet } from 'nest-commander';
 
-import { store } from '@app/store/index.js';
+import { CliInternalClientService } from '@app/unraid-api/cli/internal-client.service.js';
 import { LogService } from '@app/unraid-api/cli/log.service.js';
+import { SSO_USERS_QUERY } from '@app/unraid-api/cli/queries/sso-users.query.js';
 
 @QuestionSet({ name: 'remove-user' })
 export class RemoveSSOUserQuestionSet {
-    constructor(private readonly logger: LogService) {}
+    constructor(
+        private readonly logger: LogService,
+        private readonly internalClient: CliInternalClientService
+    ) {}
     static name = 'remove-user';
 
     @Question({
@@ -19,15 +23,24 @@ export class RemoveSSOUserQuestionSet {
 
     @ChoicesFor({ name: 'username' })
     async choicesForUsername() {
-        const users = store
-            .getState()
-            .config.remote.ssoSubIds.split(',')
-            .filter((user) => user !== '');
-        if (users.length === 0) {
-            this.logger.error('No SSO Users Found');
-            process.exit(0);
+        try {
+            const client = await this.internalClient.getClient();
+
+            const result = await client.query({
+                query: SSO_USERS_QUERY,
+            });
+
+            const users = result.data?.settings?.api?.ssoSubIds || [];
+
+            if (users.length === 0) {
+                this.logger.error('No SSO Users Found');
+                process.exit(0);
+            }
+            users.push('all');
+            return users;
+        } catch (error) {
+            this.logger.error('Failed to fetch SSO users:', error);
+            process.exit(1);
         }
-        users.push('all');
-        return users;
     }
 }

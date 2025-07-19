@@ -1,4 +1,5 @@
 import { Logger } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { constants } from 'fs';
 import { access, readFile, unlink, writeFile } from 'fs/promises';
 import { basename, dirname, join } from 'path';
@@ -26,7 +27,10 @@ export abstract class FileModification {
     abstract id: string;
     public abstract readonly filePath: string;
 
-    public constructor(protected readonly logger: Logger) {}
+    public constructor(
+        protected readonly logger: Logger,
+        protected readonly configService?: ConfigService
+    ) {}
 
     /**
      * Generate the patch for the target filePath
