@@ -11,6 +11,7 @@ const mockLogService = {
     debug: vi.fn(),
     info: vi.fn(),
     warn: vi.fn(),
+    error: vi.fn(),
     clear: vi.fn(),
 };
 
