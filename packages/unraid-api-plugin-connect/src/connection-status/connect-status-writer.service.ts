@@ -1,8 +1,9 @@
 import { Injectable, Logger, OnApplicationBootstrap, OnModuleDestroy } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { OnEvent } from '@nestjs/event-emitter';
-import { unlink } from 'fs/promises';
+import { unlink, mkdir } from 'fs/promises';
 import { writeFile } from 'fs/promises';
+import { dirname } from 'path';
 
 import { ConfigType, ConnectionMetadata } from '../config/connect.config.js';
 import { EVENTS } from '../helper/nest-tokens.js';
@@ -14,8 +15,8 @@ export class ConnectStatusWriterService implements OnApplicationBootstrap, OnMod
     private logger = new Logger(ConnectStatusWriterService.name);
 
     get statusFilePath() {
-        // Write to /var/local/emhttp/connectStatus.json so PHP can read it
-        return '/var/local/emhttp/connectStatus.json';
+        // Use environment variable if set, otherwise default to /var/local/emhttp/connectStatus.json
+        return this.configService.get('PATHS_CONNECT_STATUS') || '/var/local/emhttp/connectStatus.json';
     }
 
     async onApplicationBootstrap() {
@@ -59,6 +60,10 @@ export class ConnectStatusWriterService implements OnApplicationBootstrap, OnMod
 
             const data = JSON.stringify(statusData, null, 2);
             this.logger.verbose(`Writing connection status: ${data}`);
+
+            // Ensure the directory exists before writing
+            const dir = dirname(this.statusFilePath);
+            await mkdir(dir, { recursive: true });
 
             await writeFile(this.statusFilePath, data);
             this.logger.verbose(`Status written to ${this.statusFilePath}`);
