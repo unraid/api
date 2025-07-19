@@ -1,5 +1,7 @@
 import { Field, InputType, Int, registerEnumType } from '@nestjs/graphql';
 
+import { Max, Min } from 'class-validator';
+
 /**
  * Service state for UPS daemon
  */
@@ -97,23 +99,28 @@ export class UPSConfigInput {
         description:
             'Override UPS capacity for runtime calculations. Unit: watts (W). Leave unset to use UPS-reported capacity',
     })
+    @Min(0, { message: 'Override UPS capacity must be a positive number' })
     overrideUpsCapacity?: number;
 
     @Field(() => Int, {
         description:
             'Battery level percentage to initiate shutdown. Unit: percent (%) - Valid range: 0-100',
     })
+    @Min(0, { message: 'Battery level must be between 0 and 100' })
+    @Max(100, { message: 'Battery level must be between 0 and 100' })
     batteryLevel!: number;
 
     @Field(() => Int, {
         description: 'Runtime left in minutes to initiate shutdown. Unit: minutes',
     })
+    @Min(0, { message: 'Minutes must be 0 or greater' })
     minutes!: number;
 
     @Field(() => Int, {
         description:
             'Time on battery before shutdown. Unit: seconds. Set to 0 to disable timeout-based shutdown',
     })
+    @Min(0, { message: 'Timeout must be 0 or greater (0 disables timeout-based shutdown)' })
     timeout!: number;
 
     @Field(() => UPSKillPower, {
