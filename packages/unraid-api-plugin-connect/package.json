@@ -13,7 +13,7 @@
         "build": "tsc",
         "prepare": "npm run build",
         "format": "prettier --write \"src/**/*.{ts,js,json}\"",
-        "codegen": "MOTHERSHIP_GRAPHQL_LINK='https://staging.mothership.unraid.net/ws' graphql-codegen --config codegen.ts"
+        "codegen": "graphql-codegen --config codegen.ts"
     },
     "keywords": [
         "unraid",
