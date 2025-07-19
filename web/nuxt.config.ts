@@ -190,7 +190,23 @@ export default defineNuxtConfig({
       {
         name: 'UnraidComponents',
         viteExtend(config: UserConfig) {
-          return applySharedViteConfig(config, true);
+          const sharedConfig = applySharedViteConfig(config, true);
+          
+          // Add a plugin to inject CSS import into the entry point
+          if (!sharedConfig.plugins) sharedConfig.plugins = [];
+          sharedConfig.plugins.push({
+            name: 'inject-tailwind-css',
+            transform(code, id) {
+              // Only transform the client entry file
+              if (id.includes('unraid-components.client.js')) {
+                // Add CSS import at the top of the file using Nuxt alias
+                return `import '@/assets/main.css';\n${code}`;
+              }
+              return null;
+            }
+          });
+          
+          return sharedConfig;
         },
         tags: [
           {
