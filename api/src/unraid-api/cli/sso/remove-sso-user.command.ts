@@ -5,7 +5,10 @@ import { CommandRunner, InquirerService, Option, SubCommand } from 'nest-command
 import { SsoUserService } from '@app/unraid-api/auth/sso-user.service.js';
 import { LogService } from '@app/unraid-api/cli/log.service.js';
 import { RestartCommand } from '@app/unraid-api/cli/restart.command.js';
-import { RemoveSSOUserQuestionSet } from '@app/unraid-api/cli/sso/remove-sso-user.questions.js';
+import {
+    NoSSOUsersFoundError,
+    RemoveSSOUserQuestionSet,
+} from '@app/unraid-api/cli/sso/remove-sso-user.questions.js';
 
 interface RemoveSSOUserCommandOptions {
     username: string;
@@ -27,7 +30,21 @@ export class RemoveSSOUserCommand extends CommandRunner {
         super();
     }
     public async run(_input: string[], options: RemoveSSOUserCommandOptions): Promise<void> {
-        options = await this.inquirerService.prompt(RemoveSSOUserQuestionSet.name, options);
+        try {
+            options = await this.inquirerService.prompt(RemoveSSOUserQuestionSet.name, options);
+        } catch (error) {
+            if (error instanceof NoSSOUsersFoundError) {
+                this.logger.error(error.message);
+                process.exit(0);
+            } else if (error instanceof Error) {
+                this.logger.error('Failed to fetch SSO users: %s', error.message);
+                process.exit(1);
+            } else {
+                this.logger.error('An unexpected error occurred');
+                process.exit(1);
+            }
+        }
+
         if (options.username === 'all') {
             await this.ssoUserService.removeAllSsoUsers();
             this.logger.info('All users removed from SSO');
