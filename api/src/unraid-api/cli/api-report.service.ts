@@ -145,7 +145,7 @@ export class ApiReportService {
                     query: SYSTEM_REPORT_QUERY,
                 }),
                 new Promise<never>((_, reject) =>
-                    setTimeout(() => reject(new Error('Query timeout after 3 seconds')), 3000)
+                    setTimeout(() => reject(new Error('Query timeout after 10 seconds')), 10000)
                 ),
             ]);
         } catch (error) {
@@ -164,7 +164,7 @@ export class ApiReportService {
                     query: CONNECT_STATUS_QUERY,
                 }),
                 new Promise<never>((_, reject) =>
-                    setTimeout(() => reject(new Error('Connect query timeout after 3 seconds')), 3000)
+                    setTimeout(() => reject(new Error('Connect query timeout after 10 seconds')), 10000)
                 ),
             ]);
             connectData = connectResult.data.connect;
@@ -180,7 +180,7 @@ export class ApiReportService {
                     query: SERVICES_QUERY,
                 }),
                 new Promise<never>((_, reject) =>
-                    setTimeout(() => reject(new Error('Services query timeout after 3 seconds')), 3000)
+                    setTimeout(() => reject(new Error('Services query timeout after 10 seconds')), 10000)
                 ),
             ]);
             servicesData = servicesResult.data.services || [];

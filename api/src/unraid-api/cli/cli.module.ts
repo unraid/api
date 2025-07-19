@@ -4,6 +4,7 @@ import { DependencyService } from '@app/unraid-api/app/dependency.service.js';
 import { ApiKeyService } from '@app/unraid-api/auth/api-key.service.js';
 import { SsoUserService } from '@app/unraid-api/auth/sso-user.service.js';
 import { AdminKeyService } from '@app/unraid-api/cli/admin-key.service.js';
+import { ApiReportService } from '@app/unraid-api/cli/api-report.service.js';
 import { AddApiKeyQuestionSet } from '@app/unraid-api/cli/apikey/add-api-key.questions.js';
 import { ApiKeyCommand } from '@app/unraid-api/cli/apikey/api-key.command.js';
 import { DeleteApiKeyQuestionSet } from '@app/unraid-api/cli/apikey/delete-api-key.questions.js';
@@ -36,6 +37,7 @@ import { SwitchEnvCommand } from '@app/unraid-api/cli/switch-env.command.js';
 import { VersionCommand } from '@app/unraid-api/cli/version.command.js';
 import { ApiConfigModule } from '@app/unraid-api/config/api-config.module.js';
 import { LegacyConfigModule } from '@app/unraid-api/config/legacy-config.module.js';
+import { GlobalDepsModule } from '@app/unraid-api/plugin/global-deps.module.js';
 import { PluginCliModule } from '@app/unraid-api/plugin/plugin.module.js';
 
 const DEFAULT_COMMANDS = [
@@ -76,11 +78,12 @@ const DEFAULT_PROVIDERS = [
     SsoUserService,
     DependencyService,
     AdminKeyService,
+    ApiReportService,
     CliInternalClientService,
 ] as const;
 
 @Module({
-    imports: [LegacyConfigModule, ApiConfigModule, PluginCliModule.register()],
+    imports: [LegacyConfigModule, ApiConfigModule, GlobalDepsModule, PluginCliModule.register()],
     providers: [...DEFAULT_COMMANDS, ...DEFAULT_PROVIDERS],
 })
 export class CliModule {}

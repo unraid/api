@@ -79,15 +79,7 @@ export class CliInternalClientService {
 
         const httpLink = new HttpLink({
             uri: httpUri,
-            fetch: (uri, options) => {
-                const controller = new AbortController();
-                const timeoutId = setTimeout(() => controller.abort(), 3000); // 3 second timeout
-
-                return fetch(uri, {
-                    ...options,
-                    signal: controller.signal,
-                }).finally(() => clearTimeout(timeoutId));
-            },
+            fetch,
             headers: {
                 Origin: '/var/run/unraid-cli.sock',
                 'x-api-key': apiKey,

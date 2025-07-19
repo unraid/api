@@ -41,7 +41,8 @@
       "Bash(pnpm:*)",
       "Bash(git checkout:*)",
       "Bash(node:*)",
-      "Bash(time node:*)"
+      "Bash(time node:*)",
+      "Bash(timeout:*)"
     ]
   },
   "enableAllProjectMcpServers": false
