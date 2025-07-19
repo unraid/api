@@ -85,11 +85,24 @@ export class ConnectApiKeyService implements ApiKeyService {
      * Gets or creates a local API key for Connect
      */
     public async getOrCreateLocalApiKey(): Promise<string> {
-        return this.apiKeyService.ensureKey({
+        return this.ensureKey({
             name: ConnectApiKeyService.CONNECT_API_KEY_NAME,
             description: ConnectApiKeyService.CONNECT_API_KEY_DESCRIPTION,
             roles: [Role.CONNECT],
-            legacyNames: ['Connect'], // Clean up old Connect keys
+            legacyNames: ['Connect'],
         });
+    }
+
+    async ensureKey(config: {
+        name: string;
+        description: string;
+        roles: Role[];
+        legacyNames?: string[];
+    }): Promise<string> {
+        return this.apiKeyService.ensureKey(config);
+    }
+
+    async getOrCreateLocalKey(name: string, description: string, roles: Role[]): Promise<string> {
+        return this.apiKeyService.getOrCreateLocalKey(name, description, roles);
     }
 }
