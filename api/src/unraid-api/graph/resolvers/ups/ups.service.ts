@@ -64,9 +64,29 @@ export class UPSService {
 
     async configureUPS(config: UPSConfigInput): Promise<void> {
         try {
-            // Validate required fields
-            if (!config.upsType || (!config.device && config.upsType !== 'usb')) {
-                throw new Error('upsType is required, and device is required for non-USB types');
+            // Read current configuration first to merge with new values
+            const currentConfig = await this.getCurrentConfig();
+
+            // Merge provided config with existing values
+            const mergedConfig = {
+                service: config.service ?? currentConfig.SERVICE ?? 'disable',
+                upsCable: config.upsCable ?? currentConfig.UPSCABLE ?? 'usb',
+                customUpsCable: config.customUpsCable ?? currentConfig.CUSTOMUPSCABLE,
+                upsType: config.upsType ?? currentConfig.UPSTYPE ?? 'usb',
+                device: config.device ?? currentConfig.DEVICE ?? '',
+                overrideUpsCapacity: config.overrideUpsCapacity ?? currentConfig.OVERRIDE_UPS_CAPACITY,
+                batteryLevel: config.batteryLevel ?? currentConfig.BATTERYLEVEL ?? 10,
+                minutes: config.minutes ?? currentConfig.MINUTES ?? 5,
+                timeout: config.timeout ?? currentConfig.TIMEOUT ?? 0,
+                killUps: config.killUps ?? currentConfig.KILLUPS ?? 'no',
+            };
+
+            // Validate required fields after merging
+            if (!mergedConfig.upsType) {
+                throw new Error('upsType is required');
+            }
+            if (!mergedConfig.device && mergedConfig.upsType !== 'usb') {
+                throw new Error('device is required for non-USB UPS types');
             }
 
             // Stop the UPS service before making changes
@@ -76,26 +96,31 @@ export class UPSService {
                 this.logger.warn('Failed to stop apcupsd service (may not be running):', error);
             }
 
-            // Read current configuration
-            const currentConfig = await this.getCurrentConfig();
-
             // Prepare the new configuration with uppercase field names
-            const cable = config.upsCable === 'custom' ? config.customUpsCable : config.upsCable;
+            const cable =
+                mergedConfig.upsCable === 'custom' ? mergedConfig.customUpsCable : mergedConfig.upsCable;
             const newConfig: Partial<UPSConfig> = {
-                NISIP: '0.0.0.0',
-                SERVICE: config.service,
-                UPSTYPE: config.upsType,
-                DEVICE: config.device || '',
-                BATTERYLEVEL: config.batteryLevel,
-                MINUTES: config.minutes,
-                TIMEOUT: config.timeout,
+                NISIP: currentConfig.NISIP || '0.0.0.0',
+                SERVICE: mergedConfig.service,
+                UPSTYPE: mergedConfig.upsType,
+                DEVICE: mergedConfig.device || '',
+                BATTERYLEVEL: mergedConfig.batteryLevel,
+                MINUTES: mergedConfig.minutes,
+                TIMEOUT: mergedConfig.timeout,
                 UPSCABLE: cable,
-                KILLUPS: config.killUps,
+                KILLUPS: mergedConfig.killUps,
+                // Preserve other existing config values
+                NETSERVER: currentConfig.NETSERVER,
+                UPSNAME: currentConfig.UPSNAME,
+                MODELNAME: currentConfig.MODELNAME,
             };
 
             // Add optional override capacity if provided
-            if (config.overrideUpsCapacity !== undefined && config.overrideUpsCapacity !== null) {
-                newConfig.OVERRIDE_UPS_CAPACITY = config.overrideUpsCapacity;
+            if (
+                mergedConfig.overrideUpsCapacity !== undefined &&
+                mergedConfig.overrideUpsCapacity !== null
+            ) {
+                newConfig.OVERRIDE_UPS_CAPACITY = mergedConfig.overrideUpsCapacity;
             }
 
             // Backup the current configuration
@@ -130,7 +155,7 @@ export class UPSService {
             }
 
             // Handle killpower configuration
-            if (config.killUps === 'yes' && config.service === 'enable') {
+            if (mergedConfig.killUps === 'yes' && mergedConfig.service === 'enable') {
                 try {
                     // First check if apccontrol is already in rc.6
                     const { exitCode } = await execa('grep', ['-q', 'apccontrol', '/etc/rc.d/rc.6'], {
@@ -179,7 +204,7 @@ export class UPSService {
             }
 
             // Start the service if enabled
-            if (config.service === 'enable') {
+            if (mergedConfig.service === 'enable') {
                 try {
                     await execa('/etc/rc.d/rc.apcupsd', ['start'], { timeout: 10000 });
                     this.logger.debug('Successfully started apcupsd service');

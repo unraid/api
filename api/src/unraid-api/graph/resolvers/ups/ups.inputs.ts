@@ -66,14 +66,16 @@ registerEnumType(UPSKillPower, {
 @InputType()
 export class UPSConfigInput {
     @Field(() => UPSServiceState, {
+        nullable: true,
         description: 'Enable or disable the UPS monitoring service',
     })
-    service!: UPSServiceState;
+    service?: UPSServiceState;
 
     @Field(() => UPSCableType, {
+        nullable: true,
         description: 'Type of cable connecting the UPS to the server',
     })
-    upsCable!: UPSCableType;
+    upsCable?: UPSCableType;
 
     @Field({
         nullable: true,
@@ -83,9 +85,10 @@ export class UPSConfigInput {
     customUpsCable?: string;
 
     @Field(() => UPSType, {
+        nullable: true,
         description: 'UPS communication protocol',
     })
-    upsType!: UPSType;
+    upsType?: UPSType;
 
     @Field({
         nullable: true,
@@ -103,29 +106,33 @@ export class UPSConfigInput {
     overrideUpsCapacity?: number;
 
     @Field(() => Int, {
+        nullable: true,
         description:
             'Battery level percentage to initiate shutdown. Unit: percent (%) - Valid range: 0-100',
     })
     @Min(0, { message: 'Battery level must be between 0 and 100' })
     @Max(100, { message: 'Battery level must be between 0 and 100' })
-    batteryLevel!: number;
+    batteryLevel?: number;
 
     @Field(() => Int, {
+        nullable: true,
         description: 'Runtime left in minutes to initiate shutdown. Unit: minutes',
     })
     @Min(0, { message: 'Minutes must be 0 or greater' })
-    minutes!: number;
+    minutes?: number;
 
     @Field(() => Int, {
+        nullable: true,
         description:
             'Time on battery before shutdown. Unit: seconds. Set to 0 to disable timeout-based shutdown',
     })
     @Min(0, { message: 'Timeout must be 0 or greater (0 disables timeout-based shutdown)' })
-    timeout!: number;
+    timeout?: number;
 
     @Field(() => UPSKillPower, {
+        nullable: true,
         description:
             'Turn off UPS power after system shutdown. Useful for ensuring complete power cycle',
     })
-    killUps!: UPSKillPower;
+    killUps?: UPSKillPower;
 }
