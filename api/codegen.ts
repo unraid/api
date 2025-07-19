@@ -27,41 +27,6 @@ const config: CodegenConfig = {
         },
     },
     generates: {
-        // Generate Types for Mothership GraphQL Client
-        'src/graphql/generated/client/': {
-            documents: './src/graphql/mothership/*.ts',
-            schema: {
-                [process.env.MOTHERSHIP_GRAPHQL_LINK as string]: {
-                    headers: {
-                        origin: 'https://forums.unraid.net',
-                    },
-                },
-            },
-            preset: 'client',
-            presetConfig: {
-                gqlTagName: 'graphql',
-            },
-            config: {
-                useTypeImports: true,
-                withObjectType: true,
-            },
-            plugins: [{ add: { content: '/* eslint-disable */' } }],
-        },
-        'src/graphql/generated/client/validators.ts': {
-            schema: {
-                [process.env.MOTHERSHIP_GRAPHQL_LINK as string]: {
-                    headers: {
-                        origin: 'https://forums.unraid.net',
-                    },
-                },
-            },
-            plugins: ['typescript-validation-schema', { add: { content: '/* eslint-disable */' } }],
-            config: {
-                importFrom: '@app/graphql/generated/client/graphql.js',
-                strictScalars: false,
-                schema: 'zod',
-            },
-        },
         // Generate Types for CLI Internal GraphQL Queries
         'src/unraid-api/cli/generated/': {
             documents: ['src/unraid-api/cli/queries/**/*.ts'],
