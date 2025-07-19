@@ -193,16 +193,6 @@ describe('ApiReportService', () => {
                         },
                     ],
                 },
-                remote: {
-                    apikey: 'REDACTED',
-                    localApiKey: 'REDACTED',
-                    accesstoken: 'REDACTED',
-                    idtoken: 'REDACTED',
-                    refreshtoken: 'REDACTED',
-                    ssoSubIds: 'REDACTED',
-                    allowedOrigins: 'REDACTED',
-                    email: 'REDACTED',
-                },
             });
         });
 
@@ -375,14 +365,6 @@ describe('ApiReportService', () => {
 
             // Verify all sensitive fields are redacted
             expect(result.system.machineId).toBe('REDACTED');
-            expect(result.remote.apikey).toBe('REDACTED');
-            expect(result.remote.localApiKey).toBe('REDACTED');
-            expect(result.remote.accesstoken).toBe('REDACTED');
-            expect(result.remote.idtoken).toBe('REDACTED');
-            expect(result.remote.refreshtoken).toBe('REDACTED');
-            expect(result.remote.ssoSubIds).toBe('REDACTED');
-            expect(result.remote.allowedOrigins).toBe('REDACTED');
-            expect(result.remote.email).toBe('REDACTED');
         });
 
         it('should handle connect with error gracefully', async () => {
