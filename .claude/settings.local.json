@@ -39,7 +39,9 @@
       "Bash(pnpm --filter @unraid/shared build)",
       "Bash(pnpm --filter ./api test src/unraid-api/cli/__test__/report.command.test.ts --run)",
       "Bash(pnpm:*)",
-      "Bash(git checkout:*)"
+      "Bash(git checkout:*)",
+      "Bash(node:*)",
+      "Bash(time node:*)"
     ]
   },
   "enableAllProjectMcpServers": false

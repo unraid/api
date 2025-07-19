@@ -140,9 +140,14 @@ export class ApiReportService {
         // Query system data
         let systemResult: { data: SystemReportQuery } | null = null;
         try {
-            systemResult = await client.query({
-                query: SYSTEM_REPORT_QUERY,
-            });
+            systemResult = await Promise.race([
+                client.query({
+                    query: SYSTEM_REPORT_QUERY,
+                }),
+                new Promise<never>((_, reject) =>
+                    setTimeout(() => reject(new Error('Query timeout after 3 seconds')), 3000)
+                ),
+            ]);
         } catch (error) {
             this.logger.error('Error querying system data: ' + error);
             return this.createApiReportData({
@@ -154,9 +159,14 @@ export class ApiReportService {
         // Try to query connect status
         let connectData: ConnectStatusQuery['connect'] | null = null;
         try {
-            const connectResult = await client.query({
-                query: CONNECT_STATUS_QUERY,
-            });
+            const connectResult = await Promise.race([
+                client.query({
+                    query: CONNECT_STATUS_QUERY,
+                }),
+                new Promise<never>((_, reject) =>
+                    setTimeout(() => reject(new Error('Connect query timeout after 3 seconds')), 3000)
+                ),
+            ]);
             connectData = connectResult.data.connect;
         } catch (error) {
             this.logger.debug('Connect plugin not available: ' + error);
@@ -165,9 +175,14 @@ export class ApiReportService {
         // Query services
         let servicesData: ServiceInfo[] = [];
         try {
-            const servicesResult = await client.query({
-                query: SERVICES_QUERY,
-            });
+            const servicesResult = await Promise.race([
+                client.query({
+                    query: SERVICES_QUERY,
+                }),
+                new Promise<never>((_, reject) =>
+                    setTimeout(() => reject(new Error('Services query timeout after 3 seconds')), 3000)
+                ),
+            ]);
             servicesData = servicesResult.data.services || [];
         } catch (error) {
             this.logger.debug('Error querying services: ' + error);

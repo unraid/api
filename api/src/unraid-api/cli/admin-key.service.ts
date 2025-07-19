@@ -1,7 +1,7 @@
 import { Inject, Injectable, Logger, OnModuleInit } from '@nestjs/common';
 
+import type { ApiKeyService } from '@unraid/shared/services/api-key.js';
 import { Role } from '@unraid/shared/graphql.model.js';
-import { ApiKeyService } from '@unraid/shared/services/api-key.js';
 import { API_KEY_SERVICE_TOKEN } from '@unraid/shared/tokens.js';
 
 /**
