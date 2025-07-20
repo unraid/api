@@ -7,6 +7,7 @@ import { ConnectStatusWriterService } from '../connection-status/connect-status-
 import { TimeoutCheckerJob } from '../connection-status/timeout-checker.job.js';
 import { RemoteAccessModule } from '../remote-access/remote-access.module.js';
 import { MothershipConnectionService } from './connection.service.js';
+import { LocalGraphQLExecutor } from './local-graphql-executor.service.js';
 import { MothershipSubscriptionHandler } from './mothership-subscription.handler.js';
 import { MothershipController } from './mothership.controller.js';
 import { MothershipHandler } from './mothership.events.js';
