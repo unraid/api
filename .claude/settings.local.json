@@ -17,7 +17,9 @@
       "Bash(pnpm --filter \"*connect*\" test connect-status-writer.service.spec)",
       "Bash(npx tsc:*)",
       "Bash(npx eslint:*)",
-      "Bash(rm:*)"
+      "Bash(rm:*)",
+      "Bash(pnpm --filter ./packages/unraid-api-plugin-connect build)",
+      "Bash(pnpm tsc:*)"
     ]
   },
   "enableAllProjectMcpServers": false

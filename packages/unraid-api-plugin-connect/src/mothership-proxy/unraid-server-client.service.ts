@@ -1,30 +1,25 @@
 import { Injectable, Logger, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { EventEmitter2 } from '@nestjs/event-emitter';
 
 import { WebSocket } from 'ws';
 
 import { MothershipConnectionService } from './connection.service.js';
+import { LocalGraphQLExecutor } from './local-graphql-executor.service.js';
 
 /**
  * Unraid server client for connecting to the new mothership architecture
  * This handles GraphQL requests from the mothership and executes them using a local Apollo client
  */
 
-interface GraphQLRequest {
-  operationId: string
-  type: 'query' | 'mutation' | 'subscription' | 'subscription_stop'
-  payload: {
-    query: string
-    variables?: Record<string, any>
-    operationName?: string
-  }
-}
+
 
 interface GraphQLResponse {
   operationId: string
+  messageId?: string
+  event: 'query_response'
   type: 'data' | 'error' | 'complete'
   payload: any
+  requestHash?: string
 }
 
 interface GraphQLExecutor {
@@ -37,51 +32,15 @@ interface GraphQLExecutor {
   stopSubscription?(operationId: string): Promise<void>
 }
 
-class SimpleGraphQLExecutor implements GraphQLExecutor {
-  private logger = new Logger('SimpleGraphQLExecutor');
-
-  async execute(params: {
-    query: string
-    variables?: Record<string, any>
-    operationName?: string
-    operationType?: 'query' | 'mutation' | 'subscription'
-  }): Promise<any> {
-    const { query, variables, operationName, operationType } = params;
-
-    try {
-      this.logger.debug(`Executing ${operationType} operation: ${operationName || 'unnamed'}`);
-      this.logger.verbose(`Query: ${query}`);
-      this.logger.verbose(`Variables: ${JSON.stringify(variables)}`);
-
-      // For now, return a simple success response
-      // TODO: Implement actual GraphQL execution against local API
-      return {
-        data: {
-          message: 'Operation executed successfully',
-          operationType,
-          operationName,
-        },
-      };
-    } catch (error: any) {
-      this.logger.error(`GraphQL execution error: ${error?.message}`);
-      return {
-        errors: [
-          {
-            message: error?.message || 'Unknown error',
-            extensions: { code: 'EXECUTION_ERROR' },
-          },
-        ],
-      };
-    }
-  }
-}
 
 export class UnraidServerClient {
   private ws: WebSocket | null = null
   private reconnectAttempts = 0
-  private maxReconnectAttempts = 5
-  private reconnectDelay = 1000
+  private readonly initialReconnectDelay = 1000 // 1 second
+  private readonly maxReconnectDelay = 30 * 60 * 1000 // 30 minutes
   private pingInterval: NodeJS.Timeout | null = null
+  private reconnectTimeout: NodeJS.Timeout | null = null
+  private shouldReconnect = true
 
   constructor(
     private mothershipUrl: string,
@@ -90,6 +49,8 @@ export class UnraidServerClient {
   ) {}
 
   async connect(): Promise<void> {
+    this.shouldReconnect = true
+    
     return new Promise((resolve, reject) => {
       try {
         const wsUrl = `${this.mothershipUrl}/ws/server`
@@ -114,7 +75,12 @@ export class UnraidServerClient {
         this.ws.onclose = (event) => {
           console.log('Disconnected from mothership:', event.code, event.reason)
           this.clearPingInterval()
-          this.scheduleReconnect()
+          
+          if (this.shouldReconnect) {
+            this.scheduleReconnect()
+          } else {
+            console.log('Reconnection disabled, not scheduling reconnect')
+          }
         }
 
         this.ws.onerror = (error) => {
@@ -129,83 +95,81 @@ export class UnraidServerClient {
 
   private async handleGraphQLRequest(data: string) {
     try {
-      const request: any = JSON.parse(data)
-
-      // Handle ping/pong
-      if (request.type === 'ping') {
+      // Handle plaintext ping/pong messages first
+      if (data.trim() === 'ping') {
         this.sendPong()
         return
       }
-
-      // Convert to GraphQLRequest if it has the right structure
-      if (!request.operationId || !request.type || !request.payload) {
-        console.warn('Invalid GraphQL request format:', request)
+      
+      if (data.trim() === 'pong') {
+        console.log('Received pong from mothership')
         return
       }
 
-      const graphqlRequest: GraphQLRequest = request;
-
-      // Handle subscription stop
-      if (graphqlRequest.type === 'subscription_stop') {
-        // Handle subscription cleanup if needed
-        if (this.executor.stopSubscription) {
-          await this.executor.stopSubscription(graphqlRequest.operationId)
-        }
-        this.sendResponse({
-          operationId: graphqlRequest.operationId,
-          type: 'complete',
-          payload: { data: null },
-        })
+      // Try to parse as JSON for structured messages
+      let message: any
+      try {
+        message = JSON.parse(data)
+      } catch (parseError) {
+        // Not valid JSON, could be other plaintext message
+        console.log('Received non-JSON message from mothership:', data.trim())
         return
       }
 
-      // Execute GraphQL operation using the provided executor
-      const result = await this.executor.execute({
-        query: graphqlRequest.payload.query,
-        variables: graphqlRequest.payload.variables,
-        operationName: graphqlRequest.payload.operationName,
-        operationType: graphqlRequest.type,
-      })
-
-      // Send response back to mothership
-      const response: GraphQLResponse = {
-        operationId: graphqlRequest.operationId,
-        type: result.errors ? 'error' : 'data',
-        payload: result,
+      // Handle JSON ping/pong messages (fallback)
+      if (message.type === 'ping' || message.ping) {
+        this.sendPong()
+        return
+      }
+      
+      if (message.type === 'pong' || message.pong || JSON.stringify(message) === '"pong"') {
+        console.log('Received pong from mothership')
+        return
       }
 
-      this.sendResponse(response)
-
-      // For subscriptions, handle streaming
-      if (graphqlRequest.type === 'subscription' && !result.errors) {
-        // Note: Real subscription handling would require async iterators
-        // This is a simplified example
-        setTimeout(() => {
-          this.sendResponse({
-            operationId: graphqlRequest.operationId,
-            type: 'complete',
-            payload: { data: null },
-          })
-        }, 1000)
+      // Handle new event-based GraphQL requests
+      if (message.event === 'remote_query' || message.event === 'subscription_start' || message.event === 'subscription_stop') {
+        await this.handleNewFormatGraphQLRequest(message)
+        return
       }
+      
+      // Handle messages routed from RouterDO
+      if (message.event === 'route_message') {
+        await this.handleRouteMessage(message)
+        return
+      }
+
+      // Handle request type messages (legacy format)
+      if (message.type === 'request') {
+        await this.handleRequestMessage(message)
+        return
+      }
+
+      // Handle unknown message types
+      console.warn('Unknown message event received from mothership:', message.event || message.type, JSON.stringify(message).substring(0, 200))
     } catch (error: any) {
       console.error('Error handling GraphQL request:', error)
 
       // Send error response if possible
       try {
         const errorRequest = JSON.parse(data)
-        this.sendResponse({
-          operationId: errorRequest.operationId,
-          type: 'error',
-          payload: {
-            errors: [
-              {
-                message: error?.message || 'Unknown error',
-                extensions: { code: 'EXECUTION_ERROR' },
-              },
-            ],
-          },
-        })
+        // Only send error response for GraphQL requests that have operationId
+        if (errorRequest.operationId && (errorRequest.event === 'remote_query' || errorRequest.event === 'route_message')) {
+          const operationId = errorRequest.operationId || `error-${Date.now()}`
+          this.sendResponse({
+            operationId,
+            event: 'query_response',
+            type: 'error',
+            payload: {
+              errors: [
+                {
+                  message: error?.message || 'Unknown error',
+                  extensions: { code: 'EXECUTION_ERROR' },
+                },
+              ],
+            },
+          })
+        }
       } catch (e) {
         console.error('Failed to send error response:', e)
       }
@@ -220,12 +184,8 @@ export class UnraidServerClient {
 
   private sendPong() {
     if (this.ws && this.ws.readyState === WebSocket.OPEN) {
-      this.ws.send(
-        JSON.stringify({
-          type: 'pong',
-          timestamp: Date.now(),
-        }),
-      )
+      // Send plaintext pong response
+      this.ws.send('pong')
     }
   }
 
@@ -234,12 +194,8 @@ export class UnraidServerClient {
     // Send ping every 30 seconds to keep connection alive
     this.pingInterval = setInterval(() => {
       if (this.ws && this.ws.readyState === WebSocket.OPEN) {
-        this.ws.send(
-          JSON.stringify({
-            type: 'ping',
-            timestamp: Date.now(),
-          }),
-        )
+        // Send plaintext ping
+        this.ws.send('ping')
       }
     }, 30000)
   }
@@ -252,30 +208,213 @@ export class UnraidServerClient {
   }
 
   private scheduleReconnect() {
-    if (this.reconnectAttempts < this.maxReconnectAttempts) {
-      setTimeout(
-        () => {
-          this.reconnectAttempts++
-          console.log(
-            `Reconnection attempt ${this.reconnectAttempts}/${this.maxReconnectAttempts}`,
-          )
-          this.connect().catch((error) => {
-            console.error('Reconnection failed:', error)
-          })
+    if (!this.shouldReconnect) {
+      console.log('Reconnection disabled, not scheduling reconnect')
+      return
+    }
+
+    this.reconnectAttempts++
+    
+    // Calculate exponential backoff delay: 1s, 2s, 4s, 8s, 16s, 32s, etc.
+    // Cap at maxReconnectDelay (30 minutes)
+    const exponentialDelay = this.initialReconnectDelay * Math.pow(2, this.reconnectAttempts - 1)
+    const delay = Math.min(exponentialDelay, this.maxReconnectDelay)
+    
+    console.log(
+      `Scheduling reconnection attempt ${this.reconnectAttempts} in ${delay / 1000}s (${Math.floor(delay / 60000)}m ${Math.floor((delay % 60000) / 1000)}s)`
+    )
+    
+    // Clear any existing reconnect timeout
+    if (this.reconnectTimeout) {
+      clearTimeout(this.reconnectTimeout)
+    }
+    
+    this.reconnectTimeout = setTimeout(
+      () => {
+        if (!this.shouldReconnect) {
+          console.log('Reconnection disabled, skipping attempt')
+          return
+        }
+        
+        console.log(`Reconnection attempt ${this.reconnectAttempts}`)
+        this.connect().catch((error) => {
+          console.error('Reconnection failed:', error)
+          // Schedule next reconnection attempt
+          this.scheduleReconnect()
+        })
+      },
+      delay
+    )
+  }
+
+  private async handleNewFormatGraphQLRequest(message: any) {
+    if (!message.payload || !message.payload.query) {
+      console.warn('Invalid GraphQL request - missing payload or query:', message)
+      return
+    }
+
+    const operationId = message.operationId || `auto-${Date.now()}`
+    const messageId = message.messageId || `msg_${operationId}_${Date.now()}`
+
+    // Handle subscription stop
+    if (message.event === 'subscription_stop') {
+      if (this.executor.stopSubscription) {
+        await this.executor.stopSubscription(operationId)
+      }
+      this.sendResponse({
+        operationId,
+        messageId,
+        event: 'query_response',
+        type: 'complete',
+        payload: { data: null },
+      })
+      return
+    }
+
+    // Execute GraphQL operation for remote_query and subscription_start events
+    if (message.event === 'remote_query' || message.event === 'subscription_start') {
+      try {
+        const operationType = message.event === 'subscription_start' ? 'subscription' : 'query'
+        const result = await this.executor.execute({
+          query: message.payload.query,
+          variables: message.payload.variables,
+          operationName: message.payload.operationName,
+          operationType,
+        })
+
+        // Send response back to mothership
+        const response: GraphQLResponse = {
+          operationId,
+          messageId: `msg_response_${Date.now()}`,
+          event: 'query_response',
+          type: result.errors ? 'error' : 'data',
+          payload: result,
+        }
+
+        this.sendResponse(response)
+      } catch (error: any) {
+        this.sendResponse({
+          operationId,
+          messageId: `msg_error_${Date.now()}`,
+          event: 'query_response',
+          type: 'error',
+          payload: {
+            errors: [
+              {
+                message: error?.message || 'Unknown error',
+                extensions: { code: 'EXECUTION_ERROR' },
+              },
+            ],
+          },
+        })
+      }
+    }
+  }
+
+  private async handleRouteMessage(message: any) {
+    if (!message.payload || !message.payload.query) {
+      console.warn('Invalid route message - missing payload or query:', message)
+      return
+    }
+
+    const operationId = message.operationId || `auto-${Date.now()}`
+
+    try {
+      const result = await this.executor.execute({
+        query: message.payload.query,
+        variables: message.payload.variables,
+        operationName: message.payload.operationName,
+        operationType: 'query',
+      })
+
+      // Send response back to mothership
+      const response: GraphQLResponse = {
+        operationId,
+        messageId: `msg_response_${Date.now()}`,
+        event: 'query_response',
+        type: result.errors ? 'error' : 'data',
+        payload: result,
+      }
+
+      this.sendResponse(response)
+    } catch (error: any) {
+      this.sendResponse({
+        operationId,
+        messageId: `msg_error_${Date.now()}`,
+        event: 'query_response',
+        type: 'error',
+        payload: {
+          errors: [
+            {
+              message: error?.message || 'Unknown error',
+              extensions: { code: 'EXECUTION_ERROR' },
+            },
+          ],
         },
-        this.reconnectDelay * Math.pow(2, this.reconnectAttempts),
-      )
-    } else {
-      console.error('Max reconnection attempts reached')
+      })
+    }
+  }
+
+  private async handleRequestMessage(message: any) {
+    if (!message.payload || !message.payload.query) {
+      console.warn('Invalid request message - missing payload or query:', message)
+      return
+    }
+
+    const operationId = message.operationId || `auto-${Date.now()}`
+
+    try {
+      const result = await this.executor.execute({
+        query: message.payload.query,
+        variables: message.payload.variables,
+        operationName: message.payload.operationName,
+        operationType: 'query',
+      })
+
+      // Send response back to mothership
+      const response: GraphQLResponse = {
+        operationId,
+        messageId: `msg_response_${Date.now()}`,
+        event: 'query_response',
+        type: result.errors ? 'error' : 'data',
+        payload: result,
+      }
+
+      this.sendResponse(response)
+    } catch (error: any) {
+      this.sendResponse({
+        operationId,
+        messageId: `msg_error_${Date.now()}`,
+        event: 'query_response',
+        type: 'error',
+        payload: {
+          errors: [
+            {
+              message: error?.message || 'Unknown error',
+              extensions: { code: 'EXECUTION_ERROR' },
+            },
+          ],
+        },
+      })
     }
   }
 
   disconnect() {
+    this.shouldReconnect = false
     this.clearPingInterval()
+    
+    // Clear any pending reconnection attempts
+    if (this.reconnectTimeout) {
+      clearTimeout(this.reconnectTimeout)
+      this.reconnectTimeout = null
+    }
+    
     if (this.ws) {
       this.ws.close()
       this.ws = null
     }
+    
+    console.log('Disconnected from mothership (reconnection disabled)')
   }
 }
 
@@ -287,7 +426,7 @@ export class UnraidServerClientService implements OnModuleInit, OnModuleDestroy 
   constructor(
     private readonly configService: ConfigService,
     private readonly connectionService: MothershipConnectionService,
-    private readonly eventEmitter: EventEmitter2
+    private readonly localExecutor: LocalGraphQLExecutor
   ) {}
 
   async onModuleInit(): Promise<void> {
@@ -312,8 +451,8 @@ export class UnraidServerClientService implements OnModuleInit, OnModuleDestroy 
         return;
       }
 
-      // Create simple GraphQL executor for now
-      const executor = new SimpleGraphQLExecutor();
+      // Use the injected LocalGraphQLExecutor
+      const executor = this.localExecutor;
 
       this.client = new UnraidServerClient(
         mothershipUrl,
