@@ -1,12 +1,14 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { UPSResolver } from './ups.resolver';
-import { UPSService, UPSData } from './ups.service';
+import { UPSResolver } from './ups.resolver.js';
+import { UPSService, UPSData } from './ups.service.js';
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { UPSConfigInput } from './ups.inputs';
+import { UPSConfigInput } from './ups.inputs.js';
+import { PubSub } from 'graphql-subscriptions';
 
 describe('UPSResolver', () => {
   let resolver: UPSResolver;
   let service: UPSService;
+  let pubSub: PubSub;
 
   const mockUPSData: UPSData = {
     MODEL: 'Test UPS',
@@ -29,11 +31,19 @@ describe('UPSResolver', () => {
             configureUPS: vi.fn().mockResolvedValue(undefined),
           },
         },
+        {
+          provide: PubSub,
+          useValue: {
+            publish: vi.fn(),
+            asyncIterator: vi.fn(),
+          },
+        },
       ],
     }).compile();
 
     resolver = module.get<UPSResolver>(UPSResolver);
     service = module.get<UPSService>(UPSService);
+    pubSub = module.get<PubSub>(PubSub);
   });
 
   it('should be defined', () => {
@@ -63,6 +73,14 @@ describe('UPSResolver', () => {
       const result = await resolver.configureUps(config);
       expect(result).toBe(true);
       expect(service.configureUPS).toHaveBeenCalledWith(config);
+      expect(pubSub.publish).toHaveBeenCalledWith('upsUpdates', expect.any(Object));
+    });
+  });
+
+  describe('upsUpdates', () => {
+    it('should return an async iterator', () => {
+      resolver.upsUpdates();
+      expect(pubSub.asyncIterator).toHaveBeenCalledWith('upsUpdates');
     });
   });
 });
