@@ -4,7 +4,6 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { fileExists } from '@app/core/utils/files/file-exists.js';
 import { ApiConfigPersistence, loadApiConfig } from '@app/unraid-api/config/api-config.module.js';
-import { ConfigPersistenceHelper } from '@app/unraid-api/config/persistence.helper.js';
 
 // Mock the core file-exists utility used by ApiStateConfig
 vi.mock('@app/core/utils/files/file-exists.js', () => ({
@@ -25,16 +24,56 @@ vi.mock('fs/promises', () => ({
 describe('ApiConfigPersistence', () => {
     let service: ApiConfigPersistence;
     let configService: ConfigService;
-    let persistenceHelper: ConfigPersistenceHelper;
 
     beforeEach(() => {
         configService = {
             get: vi.fn(),
             set: vi.fn(),
+            getOrThrow: vi.fn().mockReturnValue('test-config-path'),
         } as any;
 
-        persistenceHelper = {} as ConfigPersistenceHelper;
-        service = new ApiConfigPersistence(configService, persistenceHelper);
+        service = new ApiConfigPersistence(configService);
+    });
+
+    describe('required ConfigFilePersister methods', () => {
+        it('should return correct file name', () => {
+            expect(service.fileName()).toBe('api.json');
+        });
+
+        it('should return correct config key', () => {
+            expect(service.configKey()).toBe('api');
+        });
+
+        it('should return default config', () => {
+            const defaultConfig = service.defaultConfig();
+            expect(defaultConfig).toEqual({
+                version: expect.any(String),
+                extraOrigins: [],
+                sandbox: false,
+                ssoSubIds: [],
+                plugins: [],
+            });
+        });
+
+        it('should migrate config from legacy format', async () => {
+            const mockLegacyConfig = {
+                local: { sandbox: 'yes' },
+                api: { extraOrigins: 'https://example.com,https://test.com' },
+                remote: { ssoSubIds: 'sub1,sub2' },
+            };
+
+            vi.mocked(configService.get).mockReturnValue(mockLegacyConfig);
+
+            const result = await service.migrateConfig();
+
+            expect(result).toEqual({
+                version: expect.any(String),
+                extraOrigins: ['https://example.com', 'https://test.com'],
+                sandbox: true,
+                ssoSubIds: ['sub1', 'sub2'],
+                plugins: [],
+            });
+        });
     });
 
     describe('convertLegacyConfig', () => {

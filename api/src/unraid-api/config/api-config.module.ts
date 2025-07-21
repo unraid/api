@@ -1,10 +1,9 @@
 import { Injectable, Logger, Module } from '@nestjs/common';
-import { ConfigService, registerAs } from '@nestjs/config';
+import { registerAs } from '@nestjs/config';
 
 import type { ApiConfig } from '@unraid/shared/services/api-config.js';
+import { ConfigFilePersister } from '@unraid/shared/services/config-file.js';
 import { csvStringToArray } from '@unraid/shared/util/data.js';
-import { fileExists } from '@unraid/shared/util/file.js';
-import { bufferTime } from 'rxjs/operators';
 
 import { API_VERSION } from '@app/environment.js';
 import { ApiStateConfig } from '@app/unraid-api/config/factory/api-state.model.js';
@@ -91,54 +90,26 @@ export const loadApiConfig = async () => {
 export const apiConfig = registerAs<ApiConfig>('api', loadApiConfig);
 
 @Injectable()
-export class ApiConfigPersistence {
-    private configModel: ApiStateConfig<ApiConfig>;
-    private logger = new Logger(ApiConfigPersistence.name);
-    get filePath() {
-        return this.configModel.filePath;
-    }
-    get config() {
-        return this.configService.getOrThrow('api');
+export class ApiConfigPersistence extends ConfigFilePersister<ApiConfig> {
+    fileName(): string {
+        return 'api.json';
     }
 
-    constructor(
-        private readonly configService: ConfigService,
-        private readonly persistenceHelper: ConfigPersistenceHelper
-    ) {
-        this.configModel = new ApiStateConfig<ApiConfig>(
-            {
-                name: 'api',
-                defaultConfig: createDefaultConfig(),
-                parse: (data) => data as ApiConfig,
-            },
-            this.persistenceHelper
-        );
+    configKey(): string {
+        return 'api';
     }
 
-    async onModuleInit() {
-        try {
-            if (!(await fileExists(this.filePath))) {
-                this.migrateFromMyServersConfig();
-            }
-            await this.persistenceHelper.persistIfChanged(this.filePath, this.config);
-            this.configService.changes$.pipe(bufferTime(25)).subscribe({
-                next: async (changes) => {
-                    if (changes.some((change) => change.path.startsWith('api'))) {
-                        this.logger.verbose(`API Config changed ${JSON.stringify(changes)}`);
-                        try {
-                            await this.persistenceHelper.persistIfChanged(this.filePath, this.config);
-                        } catch (persistError) {
-                            this.logger.error('Error persisting config changes:', persistError);
-                        }
-                    }
-                },
-                error: (err) => {
-                    this.logger.error('Error receiving config changes:', err);
-                },
-            });
-        } catch (error) {
-            this.logger.error('Error during API config module initialization:', error);
-        }
+    defaultConfig(): ApiConfig {
+        return createDefaultConfig();
+    }
+
+    async migrateConfig(): Promise<ApiConfig> {
+        const legacyConfig = this.configService.get('store.config', {});
+        const migrated = this.convertLegacyConfig(legacyConfig);
+        return {
+            ...this.defaultConfig(),
+            ...migrated,
+        };
     }
 
     convertLegacyConfig(
@@ -156,18 +127,10 @@ export class ApiConfigPersistence {
             ssoSubIds: csvStringToArray(config?.remote?.ssoSubIds ?? ''),
         };
     }
-
-    migrateFromMyServersConfig() {
-        const legacyConfig = this.configService.get('store.config', {});
-        const { sandbox, extraOrigins, ssoSubIds } = this.convertLegacyConfig(legacyConfig);
-        this.configService.set('api.sandbox', sandbox);
-        this.configService.set('api.extraOrigins', extraOrigins);
-        this.configService.set('api.ssoSubIds', ssoSubIds);
-    }
 }
 
 // apiConfig should be registered in root config in app.module.ts, not here.
 @Module({
-    providers: [ApiConfigPersistence, ConfigPersistenceHelper],
+    providers: [ApiConfigPersistence],
 })
 export class ApiConfigModule {}
