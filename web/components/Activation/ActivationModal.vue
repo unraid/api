@@ -69,10 +69,10 @@ const docsButtons = computed<BrandButtonProps[]>(() => {
         <ActivationPartnerLogo :name="partnerInfo.partnerName" />
       </div>
 
-      <h1 class="text-center text-20px sm:text-24px font-semibold mt-4">{{ title }}</h1>
+      <h1 class="text-center text-xl sm:text-2xl font-semibold mt-4">{{ title }}</h1>
 
       <div class="sm:max-w-xl mx-auto my-12 text-center">
-        <p class="text-18px sm:text-20px opacity-75 text-center">{{ description }}</p>
+        <p class="text-lg sm:text-xl opacity-75 text-center">{{ description }}</p>
       </div>
 
       <div class="flex flex-col">
