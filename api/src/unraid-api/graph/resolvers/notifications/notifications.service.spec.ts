@@ -1,3 +1,11 @@
+// Integration Test File for NotificationsService
+// ------------------------------------------------
+// This file contains integration-style tests for the NotificationsService.
+// It uses the full NestJS TestingModule, mocks only the minimum required dependencies,
+// and interacts with the real filesystem (in /tmp/test/notifications).
+// These tests cover end-to-end service behavior, including notification creation,
+// archiving, unarchiving, deletion, and legacy CLI compatibility.
+
 import type { TestingModule } from '@nestjs/testing';
 import { Test } from '@nestjs/testing';
 import { existsSync } from 'fs';
