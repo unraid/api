@@ -57,27 +57,28 @@ export class UPSResolver {
     return null;
   }
 
-  @Mutation(() => UPSDevice)
-  async configureUps(@Args('config') config: UPSConfigInput): Promise<UPSDevice> {
-    // Mock data for now, will be replaced with actual UPS data
+  @Mutation(() => Boolean)
+  async configureUps(@Args('config') config: UPSConfigInput): Promise<boolean> {
+    await this.upsService.configureUPS(config);
+    const updatedData = await this.upsService.getUPSData();
     const newDevice = {
-      id: config.id,
-      name: config.name,
-      model: config.model,
-      status: 'Online',
-      battery: {
-        chargeLevel: 100,
-        estimatedRuntime: 3600,
-        health: 'Good',
-      },
-      power: {
-        inputVoltage: 120.5,
-        outputVoltage: 120.5,
-        loadPercentage: 25,
-      },
+        id: 'ups1',
+        name: updatedData.MODEL || 'My UPS',
+        model: updatedData.MODEL || 'APC Back-UPS Pro 1500',
+        status: updatedData.STATUS || 'Online',
+        battery: {
+          chargeLevel: parseInt(updatedData.BCHARGE, 10) || 100,
+          estimatedRuntime: parseInt(updatedData.TIMELEFT, 10) || 3600,
+          health: 'Good',
+        },
+        power: {
+          inputVoltage: parseFloat(updatedData.LINEV) || 120.5,
+          outputVoltage: parseFloat(updatedData.OUTPUTV) || 120.5,
+          loadPercentage: parseInt(updatedData.LOADPCT, 10) || 25,
+        },
     };
     pubSub.publish('upsUpdates', { upsUpdates: newDevice });
-    return newDevice;
+    return true;
   }
 
   @Subscription(() => UPSDevice)
