@@ -1,4 +1,6 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Inject, Injectable, NotFoundException } from '@nestjs/common';
+import { Store } from '@reduxjs/toolkit';
+import { join } from 'path';
 
 import type { Systeminformation } from 'systeminformation';
 import { execa } from 'execa';
@@ -11,9 +13,23 @@ import {
     DiskSmartStatus,
 } from '@app/unraid-api/graph/resolvers/disks/disks.model.js';
 import { batchProcess } from '@app/utils.js';
+import { parseConfig } from '@app/core/utils/misc/parse-config.js';
+import type { IniSlot } from '@app/store/state-parsers/slots.js';
+import { toBoolean } from '@app/core/utils/index.js';
 
 @Injectable()
 export class DisksService {
+    public constructor(@Inject('STORE') private readonly store: Store) {}
+
+    private getDisksIni(): Record<string, IniSlot> {
+        const { paths } = this.store.getState();
+        const filePath = join(paths.states, 'disks.ini');
+        return parseConfig<Record<string, IniSlot>>({
+            filePath,
+            type: 'ini',
+        });
+    }
+
     public async getTemperature(device: string): Promise<number | null> {
         try {
             const { stdout } = await execa('smartctl', ['-A', device]);
@@ -51,7 +67,8 @@ export class DisksService {
 
     private async parseDisk(
         disk: Systeminformation.DiskLayoutData,
-        partitionsToParse: Systeminformation.BlockDevicesData[]
+        partitionsToParse: Systeminformation.BlockDevicesData[],
+        disksIni: Record<string, IniSlot>
     ): Promise<Omit<Disk, 'temperature'>> {
         const partitions = partitionsToParse
             // Only get partitions from this disk
@@ -115,6 +132,10 @@ export class DisksService {
                 mappedInterfaceType = DiskInterfaceType.UNKNOWN;
         }
 
+        const diskIni = Object.values(disksIni).find(
+            (d) => d.id.trim() === disk.serialNum.trim()
+        );
+
         return {
             ...disk,
             id: disk.serialNum, // Ensure id is set
@@ -123,6 +144,7 @@ export class DisksService {
                 DiskSmartStatus.UNKNOWN,
             interfaceType: mappedInterfaceType,
             partitions,
+            isSpinning: diskIni ? diskIni.spundown === '0' : false,
         };
     }
 
@@ -133,9 +155,9 @@ export class DisksService {
         const partitions = await blockDevices().then((devices) =>
             devices.filter((device) => device.type === 'part')
         );
-
+        const disksIni = this.getDisksIni();
         const { data } = await batchProcess(await diskLayout(), async (disk) =>
-            this.parseDisk(disk, partitions)
+            this.parseDisk(disk, partitions, disksIni)
         );
         return data;
     }
