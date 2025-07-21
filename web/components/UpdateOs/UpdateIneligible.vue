@@ -61,33 +61,33 @@ watchEffect(() => {
 
 <template>
   <CardWrapper :increased-padding="true" :warning="true">
-    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-20px sm:gap-24px">
-      <div class="grid gap-y-16px">
-        <h3 class="font-semibold leading-normal flex flex-row items-start justify-start gap-8px">
-          <ExclamationTriangleIcon class="w-20px shrink-0" />
-          <span class="leading-none inline-flex flex-wrap justify-start items-baseline gap-8px">
-            <span class="text-20px">
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-5 sm:gap-6">
+      <div class="grid gap-y-4">
+        <h3 class="font-semibold leading-normal flex flex-row items-start justify-start gap-2">
+          <ExclamationTriangleIcon class="w-5 shrink-0" />
+          <span class="leading-none inline-flex flex-wrap justify-start items-baseline gap-2">
+            <span class="text-xl">
               {{ heading }}
             </span>
             <span
               v-if="
                 availableWithRenewalRelease && availableWithRenewalRelease.date && formattedReleaseDate
               "
-              class="text-16px opacity-75 shrink"
+              class="text-base opacity-75 shrink"
             >
               {{ formattedReleaseDate }}
             </span>
           </span>
         </h3>
 
-        <h4 class="text-18px font-semibold italic">
+        <h4 class="text-lg font-semibold italic">
           <RegistrationUpdateExpiration :t="t" />
         </h4>
 
-        <div class="prose text-black text-16px leading-relaxed whitespace-normal" v-html="text" />
+        <div class="prose text-black text-base leading-relaxed whitespace-normal" v-html="text" />
       </div>
 
-      <div class="flex flex-col sm:flex-shrink-0 items-center gap-16px">
+      <div class="flex flex-col sm:shrink-0 items-center gap-4">
         <BrandButton
           :disabled="renewAction?.disabled"
           :external="renewAction?.external"
@@ -95,7 +95,7 @@ watchEffect(() => {
           :icon-right="ArrowTopRightOnSquareIcon"
           :text="t('Extend License')"
           :title="t('Pay your annual fee to continue receiving OS updates.')"
-          class="flex-grow"
+          class="grow"
           @click="renewAction.click?.()"
         />
         <!-- <BrandButton
@@ -122,7 +122,7 @@ watchEffect(() => {
   </CardWrapper>
 </template>
 
-<style lang="postcss">
+<style >
 /* Import unraid-ui globals first */
 @import '@unraid/ui/styles';
 @import '~/assets/main.css';

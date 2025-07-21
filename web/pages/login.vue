@@ -8,14 +8,14 @@ const handleSubmit = () => {
 
 <template>
   <body>
-    <section id="login" class="shadow">
+    <section id="login" class="shadow-sm">
       <div class="logo angle">
         <div class="wordmark">
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 222.4 39" class="Nav__logo--white">
             <path
               fill="#ffffff"
               d="M146.70000000000002 29.5H135l-3 9h-6.5L138.9 0h8l13.4 38.5h-7.1L142.6 6.9l-5.8 16.9h8.2l1.7 5.7zM29.7 0v25.4c0 8.9-5.8 13.6-14.9 13.6C5.8 39 0 34.3 0 25.4V0h6.5v25.4c0 5.2 3.2 7.9 8.2 7.9 5.2 0 8.4-2.7 8.4-7.9V0h6.6zM50.9 12v26.5h-6.5V0h6.1l17 26.5V0H74v38.5h-6.1L50.9 12zM171.3 0h6.5v38.5h-6.5V0zM222.4 24.7c0 9-5.9 13.8-15.2 13.8h-14.5V0h14.6c9.2 0 15.1 4.8 15.1 13.8v10.9zm-6.6-10.9c0-5.3-3.3-8.1-8.5-8.1h-8.1v27.1h8c5.3 0 8.6-2.8 8.6-8.1V13.8zM108.3 23.9c4.3-1.6 6.9-5.3 6.9-11.5 0-8.7-5.1-12.4-12.8-12.4H88.8v38.5h6.5V5.7h6.9c3.8 0 6.2 1.8 6.2 6.7s-2.4 6.8-6.2 6.8h-3.4l9.2 19.4h7.5l-7.2-14.7z"
-            ></path>
+            />
           </svg>
         </div>
       </div>
@@ -37,8 +37,8 @@ const handleSubmit = () => {
                 spellcheck="false"
                 autofocus
                 required
-              />
-              <input name="password" type="password" placeholder="<?=_('Password')?>" required />
+              >
+              <input name="password" type="password" placeholder="<?=_('Password')?>" required >
             </p>
             <p>
               <button type="submit" class="button button--small">Login</button>
@@ -50,7 +50,7 @@ const handleSubmit = () => {
     </section>
   </body>
 </template>
-<style>
+<style scoped>
 /************************
 /
 /  Fonts

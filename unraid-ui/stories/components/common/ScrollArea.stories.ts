@@ -60,7 +60,7 @@ export const Horizontal: Story = {
         <div class="flex p-4">
           ${Array(50)
             .fill(0)
-            .map((_, i) => `<div class="flex-shrink-0 mr-2">Content ${i + 1}</div>`)
+            .map((_, i) => `<div class="shrink-0 mr-2">Content ${i + 1}</div>`)
             .join('')}
         </div>
         <ScrollBar orientation="horizontal" />

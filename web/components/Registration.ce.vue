@@ -271,22 +271,22 @@ const items = computed((): RegistrationItemProps[] => {
 
 <template>
   <div>
-    <PageContainer class="max-w-800px">
+    <PageContainer class="max-w-[800px]">
       <CardWrapper :increased-padding="true">
-        <div class="flex flex-col gap-20px sm:gap-24px">
-          <header class="flex flex-col gap-y-16px">
+        <div class="flex flex-col gap-5 sm:gap-6">
+          <header class="flex flex-col gap-y-4">
             <h3
-              class="text-20px md:text-24px font-semibold leading-normal flex flex-row items-center gap-8px"
+              class="text-xl md:text-2xl font-semibold leading-normal flex flex-row items-center gap-2"
               :class="serverErrors.length ? 'text-unraid-red' : 'text-green-500'"
             >
-              <component :is="headingIcon" class="w-24px h-24px" />
+              <component :is="headingIcon" class="w-6 h-6" />
               <span>
                 {{ heading }}
               </span>
             </h3>
             <div
               v-if="subheading"
-              class="prose text-16px leading-relaxed whitespace-normal opacity-75"
+              class="prose text-base leading-relaxed whitespace-normal opacity-75"
               v-html="subheading"
             />
             <span v-if="authAction" class="grow-0">
@@ -325,7 +325,7 @@ const items = computed((): RegistrationItemProps[] => {
   </div>
 </template>
 
-<style lang="postcss">
+<style >
 /* Import unraid-ui globals first */
 @import '@unraid/ui/styles';
 @import '~/assets/main.css';

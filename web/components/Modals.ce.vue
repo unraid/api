@@ -22,7 +22,7 @@ const { modalVisible: apiKeyModalVisible } = storeToRefs(useApiKeyStore());
 </script>
 
 <template>
-  <div id="modals" ref="modals" class="relative z-[99999]">
+  <div id="modals" ref="modals" class="relative z-99999">
     <UpcCallbackFeedback :t="t" :open="callbackStatus !== 'ready'" />
     <UpcTrial :t="t" :open="trialModalVisible" />
     <UpdateOsCheckUpdateResponseModal :t="t" :open="updateOsModalVisible" />
@@ -32,7 +32,7 @@ const { modalVisible: apiKeyModalVisible } = storeToRefs(useApiKeyStore());
   </div>
 </template>
 
-<style lang="postcss">
+<style >
 /* Import unraid-ui globals first */
 @import '@unraid/ui/styles';
 @import '~/assets/main.css';

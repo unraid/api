@@ -7,7 +7,7 @@ const config = {
   tabWidth: 2,
   printWidth: 105,
   singleQuote: true,
-  plugins: ['prettier-plugin-tailwindcss', '@ianvs/prettier-plugin-sort-imports'],
+  plugins: ['@ianvs/prettier-plugin-sort-imports'],
   // decorators-legacy lets the import sorter transform files with decorators
   importOrderParserPlugins: ['typescript', 'decorators-legacy'],
   importOrder: [

@@ -33,7 +33,7 @@ const getLinkedRemote = (remote: string | unknown): string => {
 </script>
 
 <template>
-  <div class="bg-white rounded-lg border border-gray-200 shadow-sm p-4">
+  <div class="bg-white rounded-lg border border-gray-200 shadow-xs p-4">
     <div class="flex justify-between items-start">
       <div class="space-y-1">
         <h3 class="text-lg font-medium">{{ remote.name }}</h3>

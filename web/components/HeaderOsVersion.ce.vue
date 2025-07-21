@@ -90,7 +90,7 @@ const updateOsStatus = computed(() => {
         :src="'/webGui/images/UN-logotype-gradient.svg'"
         class="w-[160px] h-auto max-h-[30px] object-contain"
         alt="Unraid Logo"
-      />
+      >
     </a>
 
     <div class="flex flex-wrap justify-start gap-2">
@@ -101,7 +101,7 @@ const updateOsStatus = computed(() => {
         target="_blank"
         rel="noopener"
       >
-        <InformationCircleIcon class="fill-current w-3 h-3 xs:w-4 xs:h-4 flex-shrink-0" />
+        <InformationCircleIcon class="fill-current w-3 h-3 xs:w-4 xs:h-4 shrink-0" />
         {{ osVersion }}
       </a>
       <component
@@ -128,7 +128,7 @@ const updateOsStatus = computed(() => {
   </div>
 </template>
 
-<style lang="postcss">
+<style >
 /* Import unraid-ui globals first */
 @import '@unraid/ui/styles';
 

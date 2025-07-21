@@ -46,10 +46,10 @@ const filteredKeyActions = computed((): ServerStateDataAction[] | undefined => {
 </script>
 
 <template>
-  <ul v-if="filteredKeyActions" class="flex flex-col gap-y-8px">
+  <ul v-if="filteredKeyActions" class="flex flex-col gap-y-2">
     <li v-for="action in filteredKeyActions" :key="action.name">
       <BrandButton
-        :class="cn('w-full', props.maxWidth ? 'sm:max-w-300px' : '')"
+        :class="cn('w-full', props.maxWidth ? 'sm:max-w-[300px]' : '')"
         :disabled="action?.disabled"
         :external="action?.external"
         :href="action?.href"

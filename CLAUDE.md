@@ -135,3 +135,8 @@ Enables GraphQL playground at `http://tower.local/graphql`
 - Place all mock declarations at the top level
 - Use factory functions for module mocks to avoid hoisting issues
 - Clear mocks between tests to ensure isolation
+
+## Development Memories
+
+- We are using tailwind v4 we do not need a tailwind config anymore 
+- always search the internet for tailwind v4 documentation when making tailwind related style changes

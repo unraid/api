@@ -145,7 +145,10 @@ const getStepState = (stepIndex: number): StepState => {
 
     <!-- Render elements for the current step -->
     <!-- Added key to force re-render on step change, ensuring correct elements display -->
-    <div class="current-step-content rounded-md border p-4 shadow" :key="`step-content-${currentStep}`">
+    <div
+      class="current-step-content rounded-md border p-4 shadow-sm"
+      :key="`step-content-${currentStep}`"
+    >
       <DispatchRenderer
         v-for="(element, index) in currentStepElements"
         :key="`${layout.path}-${index}-step-${currentStep}`"

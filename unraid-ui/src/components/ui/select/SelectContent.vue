@@ -48,7 +48,7 @@ const { teleportTarget } = useTeleport();
           cn(
             'p-1',
             position === 'popper' &&
-              'h-[--reka-select-trigger-height] w-full min-w-[--reka-select-trigger-width]'
+              'h-(--reka-select-trigger-height) w-full min-w-(--reka-select-trigger-width)'
           )
         "
       >

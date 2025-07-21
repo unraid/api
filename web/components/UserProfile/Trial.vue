@@ -68,18 +68,18 @@ const close = () => {
     :title="trialStatusCopy?.heading"
     :description="trialStatusCopy?.subheading"
     :show-close-x="!trialModalLoading"
-    max-width="max-w-640px"
+    max-width="max-w-[640px]"
     @close="close"
   >
     <template #main>
-      <BrandLoading v-if="trialModalLoading" class="w-[150px] mx-auto my-24px" />
+      <BrandLoading v-if="trialModalLoading" class="w-[150px] mx-auto my-6" />
     </template>
 
     <template v-if="!trialModalLoading" #footer>
-      <div class="w-full max-w-xs flex flex-col items-center gap-y-16px mx-auto">
+      <div class="w-full max-w-xs flex flex-col items-center gap-y-4 mx-auto">
         <div>
           <button
-            class="text-12px tracking-wide inline-block mx-8px opacity-60 hover:opacity-100 focus:opacity-100 underline transition"
+            class="text-xs tracking-wide inline-block mx-2 opacity-60 hover:opacity-100 focus:opacity-100 underline transition"
             :title="t('Close Modal')"
             @click="close"
           >

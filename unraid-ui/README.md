@@ -27,36 +27,6 @@ Import the component library styles in your main entry file:
 import '@unraid/ui/style.css';
 ```
 
-### 2. Configure TailwindCSS
-
-Create a `tailwind.config.ts` file with the following configuration:
-
-```typescript
-import tailwindConfig from '@unraid/ui/tailwind.config.ts';
-import type { Config } from 'tailwindcss';
-
-export default {
-  presets: [tailwindConfig],
-  content: [
-    // ... your content paths
-    './components/**/*.{js,vue,ts}',
-    './layouts/**/*.vue',
-    './pages/**/*.vue',
-  ],
-  theme: {
-    extend: {
-      // your theme extensions
-    },
-  },
-} satisfies Partial<Config>;
-```
-
-This configuration:
-
-- Uses the Unraid UI library's Tailwind config as a preset
-- Properly types your configuration with TypeScript
-- Allows you to extend the base theme while maintaining all Unraid UI defaults
-
 ## Usage
 
 ```vue
@@ -249,7 +219,7 @@ const meta = {
   argTypes: {
     variant: {
       control: 'select',
-      options: ['primary', 'secondary', 'outline'],
+      options: ['primary', 'secondary', 'outline-solid'],
     },
     size: {
       control: 'select',

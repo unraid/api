@@ -107,14 +107,14 @@ const onChange = ({ data }: { data: Record<string, unknown> }) => {
   >
     <template v-if="connectPluginInstalled">
       <Label>Account Status:</Label>
-      <div v-html="'<unraid-auth></unraid-auth>'"></div>
+      <div v-html="'<unraid-auth></unraid-auth>'"/>
     </template>
     <Label>Download Unraid API Logs:</Label>
     <div
       v-html="
         '<unraid-download-api-logs></unraid-download-api-logs>'
       "
-    ></div>
+    />
   </div>
   <!-- auto-generated settings form -->
   <div class="mt-6 pl-3 [&_.vertical-layout]:space-y-6">
@@ -136,7 +136,6 @@ const onChange = ({ data }: { data: Record<string, unknown> }) => {
       </div>
       <div class="col-start-2 ml-10 space-y-4">
         <BrandButton
-          variant="outline-primary"
           padding="lean"
           size="12px"
           class="leading-normal"
@@ -151,7 +150,7 @@ const onChange = ({ data }: { data: Record<string, unknown> }) => {
     </div>
   </div>
 </template>
-<style lang="postcss">
+<style >
 /* Import unraid-ui globals first */
 @import '@unraid/ui/styles';
 @import '../../assets/main.css';

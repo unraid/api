@@ -20,7 +20,7 @@ describe('Button', () => {
     });
 
     rerender({
-      props: { variant: 'outline' },
+      props: { variant: 'outline-solid' },
       slots: { default: 'Delete' },
     });
   });

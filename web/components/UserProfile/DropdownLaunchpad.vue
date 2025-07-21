@@ -24,19 +24,19 @@ const showExpireTime = computed(
 </script>
 
 <template>
-  <div class="flex flex-col grow gap-y-24px p-16px">
+  <div class="flex flex-col grow gap-y-6 p-4">
     <header>
-      <h2 class="text-24px text-center font-semibold" v-html="t(stateData.heading)" />
+      <h2 class="text-2xl text-center font-semibold" v-html="t(stateData.heading)" />
       <div
-        class="text-center prose text-16px leading-relaxed whitespace-normal opacity-75 gap-y-8px"
+        class="text-center prose text-base leading-relaxed whitespace-normal opacity-75 gap-y-2"
         v-html="t(stateData.message)"
       />
-      <UpcUptimeExpire v-if="showExpireTime" class="text-center opacity-75 mt-12px" :t="t" />
+      <UpcUptimeExpire v-if="showExpireTime" class="text-center opacity-75 mt-3" :t="t" />
     </header>
     <template v-if="stateData.actions">
       <ul
         v-if="connectPluginInstalled && unraidApiStatus !== 'online'"
-        class="list-reset flex flex-col gap-y-8px px-16px"
+        class="list-reset flex flex-col gap-y-2 px-4"
       >
         <li>
           <BrandButton
@@ -58,7 +58,7 @@ const showExpireTime = computed(
   </div>
 </template>
 
-<style lang="postcss">
+<style >
 /* Import unraid-ui globals first */
 @import '@unraid/ui/styles';
 @import '~/assets/main.css';

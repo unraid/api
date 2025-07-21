@@ -245,7 +245,7 @@ describe('UserProfile.ce.vue', () => {
     expect(mockCopy).toHaveBeenCalledTimes(1);
     expect(mockCopy).toHaveBeenCalledWith(initialServerData.lanIp);
 
-    const copiedMessage = wrapper.find('.text-white.text-12px');
+    const copiedMessage = wrapper.find('.text-white.text-xs');
 
     expect(copiedMessage.exists()).toBe(true);
     expect(copiedMessage.text()).toContain(t('LAN IP Copied'));
@@ -265,7 +265,7 @@ describe('UserProfile.ce.vue', () => {
     expect(copyLanIpSpy).toHaveBeenCalledTimes(1);
     expect(mockCopy).not.toHaveBeenCalled();
 
-    const notSupportedMessage = wrapper.find('.text-white.text-12px');
+    const notSupportedMessage = wrapper.find('.text-white.text-xs');
 
     expect(notSupportedMessage.exists()).toBe(true);
     expect(notSupportedMessage.text()).toContain(t('LAN IP {0}', [initialServerData.lanIp]));

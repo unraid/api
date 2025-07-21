@@ -24,7 +24,7 @@ import { CogIcon } from '@heroicons/vue/24/solid';
   
 </template>
 
-<style lang="postcss">
+<style >
 /* Import unraid-ui globals first */
 @import '@unraid/ui/styles';
 @import '~/assets/main.css';

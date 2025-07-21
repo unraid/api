@@ -207,7 +207,7 @@ async function upsertKey() {
     "
     @primary-click="upsertKey"
   >
-    <div class="max-w-800px">
+    <div class="max-w-[800px]">
       <form @submit.prevent="upsertKey">
         <div class="mb-2">
           <Label for="api-key-name">Name</Label>
@@ -290,7 +290,7 @@ async function upsertKey() {
                                 (e.target as HTMLInputElement)?.checked
                               )
                           "
-                        />
+                        >
                         <span class="text-sm">{{ action }}</span>
                       </label>
                     </div>

@@ -67,8 +67,8 @@ const docsButtons = computed<BrandButtonProps[]>(() => {
     :title-in-main="partnerInfo?.hasPartnerLogo"
     :description="description"
     overlay-color="bg-background"
-    overlay-opacity="bg-opacity-100"
-    max-width="max-w-800px"
+    overlay-opacity="bg-background/100"
+    max-width="max-w-[800px]"
     :modal-vertical-center="false"
     :disable-shadow="true"
   >
@@ -77,7 +77,7 @@ const docsButtons = computed<BrandButtonProps[]>(() => {
     </template>
 
     <template #footer>
-      <div class="w-full flex gap-8px justify-center mx-auto">
+      <div class="w-full flex gap-2 justify-center mx-auto">
         <BrandButton
           :text="t('Activate Now')"
           :icon-right="ArrowTopRightOnSquareIcon"

@@ -371,7 +371,7 @@ defineExpose({ refreshLogContent });
               <div
                 class="w-2 h-2 rounded-full bg-green-500 animate-pulse cursor-help"
                 aria-hidden="true"
-              ></div>
+              />
             </TooltipTrigger>
             <TooltipContent>
               <p>Watching log file</p>
@@ -427,7 +427,7 @@ defineExpose({ refreshLogContent });
       <!-- Loading indicator for loading more content -->
       <div
         v-if="state.isLoadingMore"
-        class="sticky top-0 z-10 bg-muted/80 backdrop-blur-sm border-b border-border rounded-md mx-2 mt-2"
+        class="sticky top-0 z-10 bg-muted/80 backdrop-blur-xs border-b border-border rounded-md mx-2 mt-2"
       >
         <div class="flex items-center justify-center p-2 text-xs text-primary-foreground">
           <ArrowPathIcon class="h-3 w-3 mr-2 animate-spin" aria-hidden="true" />
@@ -439,12 +439,12 @@ defineExpose({ refreshLogContent });
         class="font-mono whitespace-pre-wrap p-4 m-0 text-xs leading-6 hljs"
         :class="{ 'theme-dark': isDarkMode, 'theme-light': !isDarkMode }"
         v-html="logContent"
-      ></pre>
+      />
     </div>
   </div>
 </template>
 
-<style>
+<style scoped>
 /* Define CSS variables for both light and dark themes */
 :root {
   /* Light theme colors (default) - adjusted for better readability */

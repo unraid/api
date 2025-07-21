@@ -57,7 +57,7 @@ watchEffect(() => {
 </script>
 
 <template>
-  <div id="modals" ref="modals" class="relative z-[99999]">
+  <div id="modals" ref="modals" class="relative z-99999">
     <Dialog
       v-model="showModal"
       :show-footer="false"
@@ -70,9 +70,9 @@ watchEffect(() => {
           <ActivationPartnerLogo />
         </div>
 
-        <h1 class="text-center text-20px sm:text-24px font-semibold mt-4">{{ title }}</h1>
+        <h1 class="text-center text-xl sm:text-2xl font-semibold mt-4">{{ title }}</h1>
         <div class="sm:max-w-lg mx-auto mt-2 text-center">
-          <p class="text-18px sm:text-20px opacity-75">
+          <p class="text-lg sm:text-xl opacity-75">
             {{ t(`First, you'll create your device's login credentials, then you'll activate your Unraid license—your device's operating system (OS).`) }}
           </p>
         </div>
@@ -89,7 +89,7 @@ watchEffect(() => {
   </div>
 </template>
 
-<style lang="postcss">
+<style >
 /* Import unraid-ui globals first */
 @import '@unraid/ui/styles';
 @import '~/assets/main.css';
