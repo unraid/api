@@ -1,27 +1,29 @@
 <script lang="ts" setup>
-import { ref, onMounted, watch } from 'vue';
+import { onMounted, ref, watch } from 'vue';
 import { storeToRefs } from 'pinia';
-import { useHead } from '#imports';
+
 import { ExclamationTriangleIcon } from '@heroicons/vue/24/solid';
 import { BrandButton, Toaster } from '@unraid/ui';
+import { UButton } from '#components';
+import { useHead } from '#imports';
 import { useDummyServerStore } from '~/_data/serverState';
 import AES from 'crypto-js/aes';
 
 import type { SendPayloads } from '@unraid/shared-callbacks';
 
-import LogViewerCe from '~/components/Logs/LogViewer.ce.vue';
-import SsoButtonCe from '~/components/SsoButton.ce.vue';
-import { useThemeStore } from '~/store/theme';
-import ModalsCe from '~/components/Modals.ce.vue';
-import ConnectSettingsCe from '~/components/ConnectSettings/ConnectSettings.ce.vue';
-import DummyServerSwitcher from '~/components/DummyServerSwitcher.vue';
-import ColorSwitcherCe from '~/components/ColorSwitcher.ce.vue';
-import HeaderOsVersionCe from '~/components/HeaderOsVersion.ce.vue';
-import UserProfileCe from '~/components/UserProfile.ce.vue';
-import UpdateOsCe from '~/components/UpdateOs.ce.vue';
-import DowngradeOsCe from '~/components/DowngradeOs.ce.vue';
-import RegistrationCe from '~/components/Registration.ce.vue';
 import WelcomeModalCe from '~/components/Activation/WelcomeModal.ce.vue';
+import ColorSwitcherCe from '~/components/ColorSwitcher.ce.vue';
+import ConnectSettingsCe from '~/components/ConnectSettings/ConnectSettings.ce.vue';
+import DowngradeOsCe from '~/components/DowngradeOs.ce.vue';
+import DummyServerSwitcher from '~/components/DummyServerSwitcher.vue';
+import HeaderOsVersionCe from '~/components/HeaderOsVersion.ce.vue';
+import LogViewerCe from '~/components/Logs/LogViewer.ce.vue';
+import ModalsCe from '~/components/Modals.ce.vue';
+import RegistrationCe from '~/components/Registration.ce.vue';
+import SsoButtonCe from '~/components/SsoButton.ce.vue';
+import UpdateOsCe from '~/components/UpdateOs.ce.vue';
+import UserProfileCe from '~/components/UserProfile.ce.vue';
+import { useThemeStore } from '~/store/theme';
 
 const serverStore = useDummyServerStore();
 const { serverState } = storeToRefs(serverStore);
@@ -36,7 +38,7 @@ onMounted(() => {
 });
 
 const valueToMakeCallback = ref<SendPayloads | undefined>();
-const callbackDestination = ref<string>('');
+const callbackDestination = ref<string | undefined>('');
 
 const createCallbackUrl = (payload: SendPayloads, sendType: string) => {
   // params differs from callbackActions.send
@@ -178,6 +180,17 @@ watch(
               <pre>{{ callbackDestination }}</pre>
             </code>
           </div>
+          <div>
+            <hr class="border-black dark:border-white" >
+            <h2 class="text-xl font-semibold font-mono">Nuxt UI Button - Primary Color Test</h2>
+            <div class="flex gap-4 items-center">
+              <UButton color="primary" variant="solid">Primary Solid</UButton>
+              <UButton color="primary" variant="outline">Primary Outline</UButton>
+              <UButton color="primary" variant="soft">Primary Soft</UButton>
+              <UButton color="primary" variant="ghost">Primary Ghost</UButton>
+              <UButton color="primary" variant="link">Primary Link</UButton>
+            </div>
+          </div>
           <div class="bg-background">
             <hr class="border-black dark:border-white" >
             <h2 class="text-xl font-semibold font-mono">Brand Button Component</h2>
@@ -208,7 +221,7 @@ watch(
   </div>
 </template>
 
-<style >
+<style>
 /* Import unraid-ui globals first */
 @import '@unraid/ui/styles';
 @import '~/assets/main.css';
