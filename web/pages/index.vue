@@ -180,7 +180,7 @@ watch(
               <pre>{{ callbackDestination }}</pre>
             </code>
           </div>
-          <div class="bg-background">
+          <div>
             <hr class="border-black dark:border-white" >
             <h2 class="text-xl font-semibold font-mono">Nuxt UI Button - Primary Color Test</h2>
             <div class="flex gap-4 items-center">
