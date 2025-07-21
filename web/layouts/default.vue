@@ -9,8 +9,6 @@ import ColorSwitcherCe from '~/components/ColorSwitcher.ce.vue';
 import DummyServerSwitcher from '~/components/DummyServerSwitcher.vue';
 import ModalsCe from '~/components/Modals.ce.vue';
 
-import { storeToRefs } from 'pinia';
-
 const router = useRouter();
 
 const routes = computed(() => {
