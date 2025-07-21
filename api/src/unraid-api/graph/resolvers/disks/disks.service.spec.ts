@@ -181,7 +181,19 @@ describe('DisksService', () => {
         vi.clearAllMocks();
 
         const module: TestingModule = await Test.createTestingModule({
-            providers: [DisksService],
+            providers: [
+                DisksService,
+                {
+                    provide: 'STORE',
+                    useValue: {
+                        getState: () => ({
+                            paths: {
+                                states: 'dev/states',
+                            },
+                        }),
+                    },
+                },
+            ],
         }).compile();
 
         service = module.get<DisksService>(DisksService);
