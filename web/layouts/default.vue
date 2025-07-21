@@ -22,7 +22,9 @@
 import { computed, watch } from 'vue';
 import { useRouter } from 'vue-router';
 import { storeToRefs } from 'pinia';
+
 import { ClientOnly, NuxtLink } from '#components';
+
 import ModalsCe from '~/components/Modals.ce.vue';
 import { useThemeStore } from '~/store/theme';
 
@@ -58,7 +60,7 @@ function formatRouteName(name) {
 }
 </script>
 
-<style >
+<style>
 /* Import theme styles */
 @import '~/assets/main.css';
 </style>
