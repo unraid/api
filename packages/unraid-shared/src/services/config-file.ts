@@ -63,7 +63,7 @@ export abstract class ConfigFilePersister<T extends object>
       .subscribe({
         next: async (changes) => {
           const configChanged = changes.some(({ path }) =>
-            path.startsWith(this.configKey())
+            path?.startsWith(this.configKey())
           );
           if (configChanged) {
             await this.persist();
@@ -83,6 +83,10 @@ export abstract class ConfigFilePersister<T extends object>
    * @returns `true` if the config was persisted, `false` otherwise.
    */
   async persist(config = this.configService.get(this.configKey())) {
+    if (!config) {
+      this.logger.warn(`Cannot persist undefined config`);
+      return false;
+    }
     try {
       if (isEqual(config, await this.getConfigFromFile())) {
         this.logger.verbose(`Config is unchanged, skipping persistence`);
