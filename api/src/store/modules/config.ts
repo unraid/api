@@ -1,6 +1,5 @@
 import { F_OK } from 'constants';
-import { writeFileSync } from 'fs';
-import { access } from 'fs/promises';
+import { access, writeFile } from 'fs/promises';
 
 import type { PayloadAction } from '@reduxjs/toolkit';
 import { createAsyncThunk, createSlice, isAnyOf } from '@reduxjs/toolkit';
@@ -140,7 +139,7 @@ export const loadConfigFile = createAsyncThunk<
         const newConfig = getWriteableConfig(initialState, 'flash');
         newConfig.remote.wanaccess = 'no';
         const serializedConfig = safelySerializeObjectToIni(newConfig);
-        writeFileSync(getState().paths['myservers-config'], serializedConfig);
+        await writeFile(getState().paths['myservers-config'], serializedConfig);
         return rejectWithValue({
             type: CONFIG_LOAD_ERROR.CONFIG_CORRUPTED,
             error: error instanceof Error ? error : new Error('Unknown Error'),

@@ -1,6 +1,6 @@
-import { existsSync } from 'fs';
 import { readFile } from 'fs/promises';
 
+import { fileExists } from '@app/core/utils/files/file-exists.js';
 import {
     FileModification,
     ShouldApplyWithReason,
@@ -25,7 +25,7 @@ export default class RcNginxModification extends FileModification {
      * @returns The patch for the rc.nginx file
      */
     protected async generatePatch(overridePath?: string): Promise<string> {
-        if (!existsSync(this.filePath)) {
+        if (!(await fileExists(this.filePath))) {
             throw new Error(`File ${this.filePath} not found.`);
         }
         const fileContent = await readFile(this.filePath, 'utf8');

@@ -1,7 +1,7 @@
-import { existsSync } from 'fs';
 import { readFile } from 'fs/promises';
 import { join } from 'node:path';
 
+import { fileExists } from '@app/core/utils/files/file-exists.js';
 import {
     FileModification,
     ShouldApplyWithReason,
@@ -45,7 +45,7 @@ export default class AuthRequestModification extends FileModification {
 
         const filesToAdd = [getters.paths().webgui.logo.assetPath, ...jsFiles];
 
-        if (!existsSync(this.filePath)) {
+        if (!(await fileExists(this.filePath))) {
             throw new Error(`File ${this.filePath} not found.`);
         }
 
