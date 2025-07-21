@@ -1,13 +1,14 @@
 import { Injectable, Logger, Module } from '@nestjs/common';
 import { registerAs } from '@nestjs/config';
+import { readFile } from 'fs/promises';
+import path from 'path';
 
 import type { ApiConfig } from '@unraid/shared/services/api-config.js';
 import { ConfigFilePersister } from '@unraid/shared/services/config-file.js';
 import { csvStringToArray } from '@unraid/shared/util/data.js';
+import { fileExists } from '@unraid/shared/util/file.js';
 
-import { API_VERSION } from '@app/environment.js';
-import { ApiStateConfig } from '@app/unraid-api/config/factory/api-state.model.js';
-import { ConfigPersistenceHelper } from '@app/unraid-api/config/persistence.helper.js';
+import { API_VERSION, PATHS_CONFIG_MODULES } from '@app/environment.js';
 
 export { type ApiConfig };
 
@@ -21,67 +22,32 @@ const createDefaultConfig = (): ApiConfig => ({
     plugins: [],
 });
 
-export const persistApiConfig = async (config: ApiConfig) => {
-    const apiConfig = new ApiStateConfig<ApiConfig>(
-        {
-            name: 'api',
-            defaultConfig: config,
-            parse: (data) => data as ApiConfig,
-        },
-        new ConfigPersistenceHelper()
-    );
-    return await apiConfig.persist(config);
-};
-
+/**
+ * Simple file-based config loading for plugin discovery (outside of nestjs DI container).
+ * This avoids complex DI container instantiation during module loading.
+ */
 export const loadApiConfig = async () => {
+    const defaultConfig = createDefaultConfig();
+    const configPath = path.join(PATHS_CONFIG_MODULES, 'api.json');
+
+    let diskConfig: Partial<ApiConfig> = {};
+
     try {
-        const defaultConfig = createDefaultConfig();
-        const apiConfig = new ApiStateConfig<ApiConfig>(
-            {
-                name: 'api',
-                defaultConfig,
-                parse: (data) => data as ApiConfig,
-            },
-            new ConfigPersistenceHelper()
-        );
-
-        let diskConfig: ApiConfig | undefined;
-        try {
-            diskConfig = await apiConfig.parseConfig();
-        } catch (error) {
-            logger.error('Failed to load API config from disk, using defaults:', error);
-            diskConfig = undefined;
-
-            // Try to overwrite the invalid config with defaults to fix the issue
-            try {
-                const configToWrite = {
-                    ...defaultConfig,
-                    version: API_VERSION,
-                };
-
-                const writeSuccess = await apiConfig.persist(configToWrite);
-                if (writeSuccess) {
-                    logger.log('Successfully overwrote invalid config file with defaults.');
-                } else {
-                    logger.error(
-                        'Failed to overwrite invalid config file. Continuing with defaults in memory only.'
-                    );
-                }
-            } catch (persistError) {
-                logger.error('Error during config file repair:', persistError);
+        if (await fileExists(configPath)) {
+            const fileContent = await readFile(configPath, 'utf8');
+            if (fileContent.trim()) {
+                diskConfig = JSON.parse(fileContent);
             }
         }
-
-        return {
-            ...defaultConfig,
-            ...diskConfig,
-            version: API_VERSION,
-        };
-    } catch (outerError) {
-        // This should never happen, but ensures the config factory never throws
-        logger.error('Critical error in loadApiConfig, using minimal defaults:', outerError);
-        return createDefaultConfig();
+    } catch (error) {
+        logger.warn('Failed to load API config from disk:', error);
     }
+
+    return {
+        ...defaultConfig,
+        ...diskConfig,
+        version: API_VERSION,
+    };
 };
 
 /**
