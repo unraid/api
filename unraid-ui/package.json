@@ -52,7 +52,7 @@
     "@jsonforms/core": "3.6.0",
     "@jsonforms/vue": "3.6.0",
     "@jsonforms/vue-vanilla": "3.6.0",
-    "@tailwindcss/cli": "^4.1.11",
+    "@tailwindcss/cli": "4.1.11",
     "@vueuse/core": "13.5.0",
     "class-variance-authority": "0.7.1",
     "clsx": "2.1.1",
@@ -63,7 +63,7 @@
     "reka-ui": "2.3.2",
     "shadcn-vue": "2.2.0",
     "tailwind-merge": "2.6.0",
-    "tw-animate-css": "^1.3.5",
+    "tw-animate-css": "1.3.5",
     "vue-sonner": "1.3.2"
   },
   "devDependencies": {
@@ -72,7 +72,7 @@
     "@storybook/addon-links": "9.0.17",
     "@storybook/builder-vite": "9.0.17",
     "@storybook/vue3-vite": "9.0.17",
-    "@tailwindcss/vite": "^4.1.11",
+    "@tailwindcss/vite": "4.1.11",
     "@testing-library/vue": "8.1.0",
     "@types/jsdom": "21.1.7",
     "@types/node": "22.16.4",
