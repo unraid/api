@@ -1,11 +1,14 @@
 import { Inject, Injectable, NotFoundException } from '@nestjs/common';
-import { Store } from '@reduxjs/toolkit';
 import { join } from 'path';
 
 import type { Systeminformation } from 'systeminformation';
+import { Store } from '@reduxjs/toolkit';
 import { execa } from 'execa';
 import { blockDevices, diskLayout } from 'systeminformation';
 
+import type { IniSlot } from '@app/store/state-parsers/slots.js';
+import { toBoolean } from '@app/core/utils/index.js';
+import { parseConfig } from '@app/core/utils/misc/parse-config.js';
 import {
     Disk,
     DiskFsType,
@@ -13,9 +16,6 @@ import {
     DiskSmartStatus,
 } from '@app/unraid-api/graph/resolvers/disks/disks.model.js';
 import { batchProcess } from '@app/utils.js';
-import { parseConfig } from '@app/core/utils/misc/parse-config.js';
-import type { IniSlot } from '@app/store/state-parsers/slots.js';
-import { toBoolean } from '@app/core/utils/index.js';
 
 @Injectable()
 export class DisksService {
@@ -132,9 +132,7 @@ export class DisksService {
                 mappedInterfaceType = DiskInterfaceType.UNKNOWN;
         }
 
-        const diskIni = Object.values(disksIni).find(
-            (d) => d.id.trim() === disk.serialNum.trim()
-        );
+        const diskIni = Object.values(disksIni).find((d) => d.id.trim() === disk.serialNum.trim());
 
         return {
             ...disk,
