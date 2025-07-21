@@ -5,6 +5,7 @@ import { basename, join } from 'path';
 
 import type { Stats } from 'fs';
 import { FSWatcher, watch } from 'chokidar';
+import { ValidationError } from 'class-validator';
 import { execa } from 'execa';
 import { emptyDir } from 'fs-extra';
 import { encode as encodeIni } from 'ini';
@@ -635,10 +636,14 @@ export class NotificationsService {
      * Loads a notification file from disk, parses it to a Notification object, and
      * validates the object against the NotificationSchema.
      *
+     * If the file contains invalid data (doesn't conform to the Notification schema),
+     * instead of throwing, returns a masked warning notification with details masked,
+     * and logs a warning. This allows the system to gracefully handle corrupt or malformed notifications.
+     *
      * @param path The path to the notification file on disk.
      * @param type The type of the notification that is being loaded.
-     * @returns A parsed Notification object, or throws an error if the object is invalid.
-     * @throws An error if the object is invalid (doesn't conform to the graphql NotificationSchema).
+     * @returns A parsed Notification object, or a masked warning notification if invalid.
+     * @throws File system errors (file not found, permission issues) or unexpected validation errors.
      */
     private async loadNotificationFile(path: string, type: NotificationType): Promise<Notification> {
         const notificationFile = parseConfig<NotificationIni>({
@@ -656,8 +661,28 @@ export class NotificationsService {
         // The contents of the file, and therefore the notification, may not always be a valid notification.
         // so we parse it through the schema to make sure it is
 
-        const validatedNotification = await validateObject(Notification, notification);
-        return validatedNotification;
+        try {
+            const validatedNotification = await validateObject(Notification, notification);
+            return validatedNotification;
+        } catch (error) {
+            if (!(error instanceof ValidationError)) {
+                throw error;
+            }
+            const errorsToLog = error.children?.length ? error.children : error;
+            this.logger.warn(errorsToLog, `notification file at ${path} is invalid. Will mask.`);
+            const nameMask = this.getIdFromPath(path);
+            const dateMask = new Date();
+            return {
+                id: nameMask,
+                type,
+                title: nameMask,
+                subject: nameMask,
+                description: `This notification is invalid and cannot be displayed! For details, see the logs and the notification file at ${path}`,
+                importance: NotificationImportance.WARNING,
+                timestamp: dateMask.toISOString(),
+                formattedTimestamp: this.formatDatetime(dateMask),
+            };
+        }
     }
 
     private getIdFromPath(path: string) {
@@ -729,19 +754,22 @@ export class NotificationsService {
     }
 
     private formatTimestamp(timestamp: string) {
-        const { display: settings } = getters.dynamix();
         const date = this.parseNotificationDateToIsoDate(timestamp);
+        if (!date) {
+            this.logger.warn(`[formatTimestamp] Could not parse date from timestamp: ${date}`);
+            return timestamp;
+        }
+        return this.formatDatetime(date);
+    }
 
+    private formatDatetime(date: Date) {
+        const { display: settings } = getters.dynamix();
         if (!settings) {
             this.logger.warn(
                 '[formatTimestamp] Dynamix display settings not found. Cannot apply user settings.'
             );
-            return timestamp;
-        } else if (!date) {
-            this.logger.warn(`[formatTimestamp] Could not parse date from timestamp: ${date}`);
-            return timestamp;
+            return date.toISOString();
         }
-        // this.logger.debug(`[formatTimestamp] ${settings.date} :: ${settings.time} :: ${date}`);
         return formatDatetime(date, {
             dateFormat: settings.date,
             timeFormat: settings.time,
