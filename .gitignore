@@ -112,3 +112,6 @@ api/dev/Unraid.net/myservers.cfg
 
 # Claude local settings
 .claude/settings.local.json
+
+# environment variables
+web/.env.production

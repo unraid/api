@@ -1,7 +1,6 @@
 @import 'tailwindcss';
 @import 'tw-animate-css';
 @import '../../@tailwind-shared/index.css';
-
 @import '@nuxt/ui-pro';
 
 /* Scan unraid-ui package from linked directory for class usage */

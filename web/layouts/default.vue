@@ -23,6 +23,8 @@ import { computed, watch } from 'vue';
 import { useRouter } from 'vue-router';
 import { storeToRefs } from 'pinia';
 
+import { ClientOnly, NuxtLink } from '#components';
+
 import ModalsCe from '~/components/Modals.ce.vue';
 import { useThemeStore } from '~/store/theme';
 
