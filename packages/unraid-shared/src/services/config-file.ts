@@ -189,10 +189,16 @@ export abstract class ConfigFilePersister<T extends object>
    * const persisted = await persister.persist(myConfig);
    * ```
    */
-  async persist(config = this.configService.get(this.configKey())) {
+  async persist(config = this.configService.get(this.configKey())): Promise<boolean> {
     if (!config) {
       this.logger.warn(`Cannot persist undefined config`);
       return false;
+    }
+    try {
+      config = await this.validate(config);
+    } catch (error) {
+      this.logger.error(error, `Cannot persist invalid config`);
+      return false; 
     }
     try {
       if (isEqual(config, await this.getConfigFromFile())) {
@@ -206,7 +212,6 @@ export abstract class ConfigFilePersister<T extends object>
     this.logger.verbose(`Persisting config to ${this.configPath()}: ${data}`);
     try {
       await writeFile(this.configPath(), data);
-      this.logger.verbose(`Config persisted to ${this.configPath()}`);
       return true;
     } catch (error) {
       this.logger.error(
