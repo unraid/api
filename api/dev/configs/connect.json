@@ -15,5 +15,5 @@
   "accesstoken": "",
   "idtoken": "",
   "refreshtoken": "",
-  "ssoSubIds": ""
+  "ssoSubIds": []
 }
