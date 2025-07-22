@@ -8,7 +8,6 @@ import { describe, expect, test, vi } from 'vitest';
 import { FileModification } from '@app/unraid-api/unraid-file-modifier/file-modification.js';
 import AuthRequestModification from '@app/unraid-api/unraid-file-modifier/modifications/auth-request.modification.js';
 import DefaultPageLayoutModification from '@app/unraid-api/unraid-file-modifier/modifications/default-page-layout.modification.js';
-import LogRotateModification from '@app/unraid-api/unraid-file-modifier/modifications/log-rotate.modification.js';
 import NotificationsPageModification from '@app/unraid-api/unraid-file-modifier/modifications/notifications-page.modification.js';
 import RcNginxModification from '@app/unraid-api/unraid-file-modifier/modifications/rc-nginx.modification.js';
 import SSOFileModification from '@app/unraid-api/unraid-file-modifier/modifications/sso.modification.js';
@@ -56,13 +55,7 @@ const patchTestCases: ModificationTestCase[] = [
 ];
 
 /** Modifications that simply add a new file & remove it on rollback. */
-const simpleTestCases: ModificationTestCase[] = [
-    {
-        ModificationClass: LogRotateModification,
-        fileUrl: 'logrotate.conf',
-        fileName: 'logrotate.conf',
-    },
-];
+const simpleTestCases: ModificationTestCase[] = [];
 
 const downloadOrRetrieveOriginalFile = async (filePath: string, fileUrl: string): Promise<string> => {
     let originalContent = '';

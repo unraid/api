@@ -1,6 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { Cron } from '@nestjs/schedule';
-import { existsSync } from 'fs';
+import { stat } from 'fs/promises';
 
 import { execa } from 'execa';
 
@@ -8,25 +8,26 @@ import { execa } from 'execa';
 export class LogRotateService {
     private readonly logger = new Logger(LogRotateService.name);
 
-    logRotatePath: string = '/usr/sbin/logrotate';
-    configPath: string = '/etc/logrotate.conf';
-    @Cron('0 * * * *')
+    private readonly logFilePath = '/var/log/graphql-api.log';
+    private readonly maxSizeBytes = 5 * 1024 * 1024; // 5MB
+
+    @Cron('*/20 * * * *') // Every 20 minutes
     async handleCron() {
         try {
-            if (!existsSync(this.logRotatePath)) {
-                throw new Error(`Logrotate binary not found at ${this.logRotatePath}`);
+            const stats = await stat(this.logFilePath);
+            if (stats.size > this.maxSizeBytes) {
+                this.logger.debug(`Log file size (${stats.size} bytes) exceeds limit, truncating`);
+                await execa('truncate', ['-s', '0', this.logFilePath]);
+                this.logger.debug('Log file truncated successfully');
+            } else {
+                this.logger.debug(`Log file size (${stats.size} bytes) within limit`);
             }
-            if (!existsSync(this.configPath)) {
-                throw new Error(`Logrotate config not found at ${this.configPath}`);
-            }
-            this.logger.debug('Running logrotate');
-            const result = await execa(this.logRotatePath, [this.configPath]);
-            if (result.failed) {
-                throw new Error(`Logrotate execution failed: ${result.stderr}`);
-            }
-            this.logger.debug('Logrotate completed successfully');
         } catch (error) {
-            this.logger.debug('Failed to run logrotate with error' + error);
+            if (error instanceof Error && 'code' in error && error.code === 'ENOENT') {
+                this.logger.debug('Log file does not exist, skipping truncation');
+            } else {
+                this.logger.debug('Failed to check/truncate log file: ' + error);
+            }
         }
     }
 }
