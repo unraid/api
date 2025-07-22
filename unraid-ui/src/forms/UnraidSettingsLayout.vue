@@ -15,6 +15,7 @@
  * @prop cells - Available cells
  */
 
+import SettingsGrid from '@/components/layout/SettingsGrid.vue';
 import { useJsonFormsVisibility } from '@/forms/composables/useJsonFormsVisibility';
 import type { HorizontalLayout } from '@jsonforms/core';
 import { DispatchRenderer, type RendererProps } from '@jsonforms/vue';
@@ -32,10 +33,7 @@ const elements = computed(() => {
 </script>
 
 <template>
-  <div
-    v-if="isVisible"
-    class="grid grid-cols-settings items-baseline pl-3 gap-y-6 [&>*:nth-child(odd)]:text-end [&>*:nth-child(even)]:ml-10"
-  >
+  <SettingsGrid v-if="isVisible">
     <template v-for="(element, _i) in elements" :key="_i">
       <DispatchRenderer
         :schema="layout.layout.value.schema"
@@ -46,5 +44,5 @@ const elements = computed(() => {
         :cells="layout.layout.value.cells"
       />
     </template>
-  </div>
+  </SettingsGrid>
 </template>

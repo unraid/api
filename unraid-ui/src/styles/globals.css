@@ -168,9 +168,6 @@
   --max-width-800px: 800px;
   --max-width-1024px: 1024px;
 
-  /* Breakpoints */
-  --breakpoint-*: initial;
-
   /* Animations */
   --animate-mark-2: mark-2 1.5s ease infinite;
   --animate-mark-3: mark-3 1.5s ease infinite;
