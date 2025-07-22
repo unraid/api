@@ -35,6 +35,11 @@
 }
 
 @theme static {
+  /* Breakpoints */
+  --breakpoint-xs: 30rem;
+  --breakpoint-2xl: 100rem;
+  --breakpoint-3xl: 120rem;
+
   /* Container settings */
   --container-center: true;
   --container-padding: 2rem;
