@@ -99,8 +99,7 @@ export abstract class ConfigFilePersister<T extends object>
    * @param configService The NestJS ConfigService instance for reactive config management
    */
   constructor(protected readonly configService: ConfigService) {
-    super(`ConfigFilePersister`);
-    // Update logger name after fileName() is available
+    super();
     this.logger = new Logger(`ConfigFilePersister:${this.fileName()}`);
     this.fileHandler = new ConfigFileHandler(this);
   }

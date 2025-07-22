@@ -57,7 +57,7 @@ export abstract class ConfigDefinition<T extends object> {
    * @param loggerName Optional custom logger name (defaults to generic name)
    */
   constructor(loggerName?: string) {
-    this.logger = new Logger(loggerName ?? `ConfigDefinition`);
+    this.logger = new Logger(loggerName ?? `ConfigDefinition:${this.fileName()}`);
   }
 
   /**
