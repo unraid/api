@@ -1,4 +1,5 @@
 import {
+  Injectable,
   Logger,
   type OnModuleDestroy,
   type OnModuleInit,
@@ -32,6 +33,10 @@ import type { Subscription } from "rxjs";
  * }
  *
  * class MyConfigPersister extends ConfigFilePersister<MyConfig> {
+ *   constructor(configService: ConfigService) {
+ *     super(configService);
+ *   }
+ *
  *   fileName() { return "my-config.json"; }
  *   configKey() { return "myConfig"; }
  *   defaultConfig() { return { enabled: false, timeout: 5000 }; }
@@ -52,6 +57,10 @@ import type { Subscription } from "rxjs";
 export abstract class ConfigFilePersister<T extends object>
   implements OnModuleInit, OnModuleDestroy
 {
+  /**
+   * Sub-classes must provide a configService. This is not auto-injectable here.
+   * @param configService 
+   */
   constructor(protected readonly configService: ConfigService) {
     this.logger = new Logger(`ConfigFilePersister:${this.fileName()}`);
   }

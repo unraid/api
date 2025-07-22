@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { existsSync, readFileSync } from 'fs';
 
 import { ConfigFilePersister } from '@unraid/shared/services/config-file.js';
@@ -11,6 +12,10 @@ import { emptyMyServersConfig, MyServersConfig } from './connect.config.js';
 
 @Injectable()
 export class ConnectConfigPersister extends ConfigFilePersister<MyServersConfig> {
+    constructor(configService: ConfigService) {
+        super(configService);
+    }
+
     /**
      * @override
      * @returns The name of the config file.

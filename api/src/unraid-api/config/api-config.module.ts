@@ -1,5 +1,5 @@
 import { Injectable, Logger, Module } from '@nestjs/common';
-import { registerAs } from '@nestjs/config';
+import { ConfigService, registerAs } from '@nestjs/config';
 import { readFile } from 'fs/promises';
 import path from 'path';
 
@@ -57,6 +57,10 @@ export const apiConfig = registerAs<ApiConfig>('api', loadApiConfig);
 
 @Injectable()
 export class ApiConfigPersistence extends ConfigFilePersister<ApiConfig> {
+    constructor(configService: ConfigService) {
+        super(configService);
+    }
+
     fileName(): string {
         return 'api.json';
     }
@@ -98,5 +102,6 @@ export class ApiConfigPersistence extends ConfigFilePersister<ApiConfig> {
 // apiConfig should be registered in root config in app.module.ts, not here.
 @Module({
     providers: [ApiConfigPersistence],
+    exports: [ApiConfigPersistence],
 })
 export class ApiConfigModule {}
