@@ -1,6 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { statSync } from 'fs';
-import { readdir, rename, unlink, writeFile } from 'fs/promises';
+import { readdir, rename, stat, unlink, writeFile } from 'fs/promises';
 import { basename, join } from 'path';
 
 import type { Stats } from 'fs';
@@ -582,12 +581,15 @@ export class NotificationsService {
         sortFn: SortFn<Stats> = (fileA, fileB) => fileB.birthtimeMs - fileA.birthtimeMs // latest first
     ): Promise<string[]> {
         const contents = narrowContent(await readdir(folderPath));
-        return contents
-            .map((content) => {
+        const contentStats = await Promise.all(
+            contents.map(async (content) => {
                 // pre-map each file's stats to avoid excess calls during sorting
                 const path = join(folderPath, content);
-                return { path, stats: statSync(path) };
+                const stats = await stat(path);
+                return { path, stats };
             })
+        );
+        return contentStats
             .sort((fileA, fileB) => sortFn(fileA.stats, fileB.stats))
             .map(({ path }) => path);
     }

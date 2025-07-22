@@ -1,10 +1,10 @@
 import { Injectable } from '@nestjs/common';
-import { existsSync } from 'node:fs';
 import { readFile } from 'node:fs/promises';
 import { join } from 'node:path';
 
 import { type DynamixConfig } from '@app/core/types/ini.js';
 import { toBoolean } from '@app/core/utils/casting.js';
+import { fileExists } from '@app/core/utils/files/file-exists.js';
 import { loadState } from '@app/core/utils/misc/load-state.js';
 import { getters } from '@app/store/index.js';
 import { ThemeName } from '@app/unraid-api/graph/resolvers/customization/theme.model.js';
@@ -80,7 +80,7 @@ export class DisplayService {
 
         // If the config file doesn't exist then it's a new OS install
         // Default to "default"
-        if (!existsSync(configFilePath)) {
+        if (!(await fileExists(configFilePath))) {
             return states.default;
         }
 

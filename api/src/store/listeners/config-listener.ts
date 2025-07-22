@@ -1,4 +1,4 @@
-import { writeFileSync } from 'fs';
+import { writeFile } from 'fs/promises';
 
 import type { ConfigType } from '@app/core/utils/files/config-file-normalizer.js';
 import { logger } from '@app/core/log.js';
@@ -17,6 +17,6 @@ export const enableConfigFileListener = (mode: ConfigType) => () =>
             const writeableConfig = getWriteableConfig(config, mode);
             const serializedConfig = safelySerializeObjectToIni(writeableConfig);
             logger.debug('Writing updated config to %s', pathToWrite);
-            writeFileSync(pathToWrite, serializedConfig);
+            await writeFile(pathToWrite, serializedConfig);
         },
     });

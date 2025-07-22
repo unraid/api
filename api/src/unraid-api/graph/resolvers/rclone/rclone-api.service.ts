@@ -1,7 +1,6 @@
 import { Injectable, Logger, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
 import crypto from 'crypto';
 import { ChildProcess } from 'node:child_process';
-import { existsSync } from 'node:fs';
 import { mkdir, rm, writeFile } from 'node:fs/promises';
 import { dirname, join } from 'node:path';
 
@@ -10,6 +9,7 @@ import got, { HTTPError } from 'got';
 import pRetry from 'p-retry';
 
 import { sanitizeParams } from '@app/core/log.js';
+import { fileExists } from '@app/core/utils/files/file-exists.js';
 import {
     CreateRCloneRemoteDto,
     DeleteRCloneRemoteDto,
@@ -104,7 +104,7 @@ export class RCloneApiService implements OnModuleInit, OnModuleDestroy {
     private async startRcloneSocket(socketPath: string, logFilePath: string): Promise<boolean> {
         try {
             // Make log file exists
-            if (!existsSync(logFilePath)) {
+            if (!(await fileExists(logFilePath))) {
                 this.logger.debug(`Creating log file: ${logFilePath}`);
                 await mkdir(dirname(logFilePath), { recursive: true });
                 await writeFile(logFilePath, '', 'utf-8');
@@ -187,7 +187,7 @@ export class RCloneApiService implements OnModuleInit, OnModuleDestroy {
         }
 
         // Clean up the socket file if it exists
-        if (this.rcloneSocketPath && existsSync(this.rcloneSocketPath)) {
+        if (this.rcloneSocketPath && (await fileExists(this.rcloneSocketPath))) {
             this.logger.log(`Removing RClone socket file: ${this.rcloneSocketPath}`);
             try {
                 await rm(this.rcloneSocketPath, { force: true });
@@ -201,7 +201,7 @@ export class RCloneApiService implements OnModuleInit, OnModuleDestroy {
      * Checks if the RClone socket exists
      */
     private async checkRcloneSocketExists(socketPath: string): Promise<boolean> {
-        const socketExists = existsSync(socketPath);
+        const socketExists = await fileExists(socketPath);
         if (!socketExists) {
             this.logger.warn(`RClone socket does not exist at: ${socketPath}`);
             return false;

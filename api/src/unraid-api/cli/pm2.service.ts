@@ -1,11 +1,11 @@
 import { Injectable } from '@nestjs/common';
-import { existsSync } from 'node:fs';
 import { mkdir, rm } from 'node:fs/promises';
 import { join } from 'node:path';
 
 import type { Options, Result, ResultPromise } from 'execa';
 import { execa, ExecaError } from 'execa';
 
+import { fileExists } from '@app/core/utils/files/file-exists.js';
 import { LOGS_DIR, PM2_HOME, PM2_PATH } from '@app/environment.js';
 import { LogService } from '@app/unraid-api/cli/log.service.js';
 
@@ -90,7 +90,7 @@ export class PM2Service {
     }
 
     async deletePm2Home() {
-        if (existsSync(PM2_HOME) && existsSync(join(PM2_HOME, 'pm2.log'))) {
+        if ((await fileExists(PM2_HOME)) && (await fileExists(join(PM2_HOME, 'pm2.log')))) {
             await rm(PM2_HOME, { recursive: true, force: true });
             this.logger.trace('PM2 home directory cleared.');
         } else {
