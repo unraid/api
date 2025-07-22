@@ -1,2 +1,2 @@
 !.env.staging
-!.env.production
+.env.production
