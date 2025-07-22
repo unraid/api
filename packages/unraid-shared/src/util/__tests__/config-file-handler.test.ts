@@ -344,6 +344,26 @@ describe("ConfigFileHandler", () => {
       expect(success).toBe(false); // Skipped
     });
 
+    test("writeConfigFile proceeds with write when existing file has invalid JSON", async () => {
+      // Pre-existing file with invalid JSON
+      await writeFile(configPath, "{ invalid json");
+
+      const config = {
+        name: "write-despite-invalid",
+        version: 2,
+        enabled: true,
+        timeout: 4000,
+      };
+
+      // Should proceed with write despite invalid existing file
+      const success = await fileHandler.writeConfigFile(config);
+      expect(success).toBe(true);
+
+      // Should have written valid config
+      const fileContent = await readFile(configPath, "utf8");
+      expect(JSON.parse(fileContent)).toEqual(config);
+    });
+
     test("writeConfigFile handles validation errors", async () => {
       configDefinition.validationShouldFail = true;
       const config = {
