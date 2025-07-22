@@ -5,6 +5,40 @@ import { join } from "node:path";
 import { tmpdir } from "node:os";
 import { ConfigFilePersister } from "../config-file.js";
 
+/**
+ * TEST SCOPE: ConfigFilePersister NestJS Integration
+ *
+ * BEHAVIORS TESTED:
+ * • NestJS lifecycle integration (OnModuleInit, OnModuleDestroy)
+ * • Reactive config change subscription with 25ms buffering
+ * • ConfigService integration for path resolution and config storage
+ * • Automatic config loading with migration priority over defaults
+ * • Config change detection and selective persistence (matching configKey only)
+ * • Graceful error handling for all failure scenarios
+ * • Flash drive optimization through change detection
+ * • Standalone file access via getFileHandler() delegation
+ * • Proper cleanup of subscriptions and final state persistence
+ *
+ * INTEGRATION SCENARIOS:
+ * ✓ Module initialization with existing/missing/invalid config files
+ * ✓ Reactive config change processing with proper filtering
+ * ✓ Module destruction with subscription cleanup and final persistence
+ * ✓ Error resilience (file system errors, validation failures, service errors)
+ * ✓ Migration vs defaults priority during initialization
+ * ✓ Full application lifecycle from startup to shutdown
+ *
+ * COVERAGE FOCUS:
+ * • NestJS framework integration correctness
+ * • Reactive configuration management
+ * • Production-like error scenarios
+ * • Memory leak prevention (subscription management)
+ * • Data persistence guarantees during shutdown
+ *
+ * NOT TESTED (covered in other files):
+ * • Low-level file operations (ConfigFileHandler)
+ * • Abstract class behavior (ConfigDefinition)
+ */
+
 interface TestConfig {
   name: string;
   version: number;
@@ -80,7 +114,7 @@ describe("ConfigFilePersister Integration Tests", () => {
 
     // Setup config store
     configStore = {};
-    
+
     // Setup rxjs subject for config changes
     changesSubject = new Subject();
 
@@ -205,13 +239,13 @@ describe("ConfigFilePersister Integration Tests", () => {
     };
     await writeFile(configPath, JSON.stringify(config));
 
-    const result = await persister.getConfigFromFile();
+    const result = await persister.getFileHandler().readConfigFile();
 
     expect(result).toEqual(config);
   });
 
   test("throws error when file doesn't exist", async () => {
-    await expect(persister.getConfigFromFile()).rejects.toThrow(
+    await expect(persister.getFileHandler().readConfigFile()).rejects.toThrow(
       "Config file does not exist"
     );
   });
@@ -219,7 +253,7 @@ describe("ConfigFilePersister Integration Tests", () => {
   test("throws error when file contains invalid JSON", async () => {
     await writeFile(configPath, "{ invalid json");
 
-    await expect(persister.getConfigFromFile()).rejects.toThrow();
+    await expect(persister.getFileHandler().readConfigFile()).rejects.toThrow();
   });
 
   test("throws error when config is invalid", async () => {
@@ -234,17 +268,23 @@ describe("ConfigFilePersister Integration Tests", () => {
     };
     await writeFile(configPath, JSON.stringify(invalidConfig));
 
-    await expect(persister.getConfigFromFile()).rejects.toThrow(
+    await expect(persister.getFileHandler().readConfigFile()).rejects.toThrow(
       "Invalid version"
     );
   });
 
   test("base class migration throws not implemented error", async () => {
-    const basePersister = new class extends ConfigFilePersister<TestConfig> {
-      fileName() { return "base-test.json"; }
-      configKey() { return "baseTest"; }
-      defaultConfig() { return persister.defaultConfig(); }
-    }(configService);
+    const basePersister = new (class extends ConfigFilePersister<TestConfig> {
+      fileName() {
+        return "base-test.json";
+      }
+      configKey() {
+        return "baseTest";
+      }
+      defaultConfig() {
+        return persister.defaultConfig();
+      }
+    })(configService);
 
     await expect(basePersister.migrateConfig()).rejects.toThrow(
       "Not implemented"
@@ -282,24 +322,24 @@ describe("ConfigFilePersister Integration Tests", () => {
     // Pre-create config file to avoid migration
     const initialConfig = persister.defaultConfig();
     await writeFile(configPath, JSON.stringify(initialConfig, null, 2));
-    
+
     await persister.onModuleInit();
 
     // Verify that the config observer is active by checking internal state
     // This tests that the subscription was created without relying on timing
     expect((persister as any).configObserver).toBeDefined();
     expect((persister as any).configObserver.closed).toBe(false);
-    
+
     // Test that non-matching changes are ignored (synchronous test)
     configStore["testConfig"] = persister.defaultConfig();
     const initialFileContent = await readFile(configPath, "utf8");
-    
+
     // Emit a non-matching config change
     changesSubject.next([{ path: "otherConfig.setting" }]);
-    
+
     // Wait briefly to ensure no processing occurs
-    await new Promise(resolve => setTimeout(resolve, 30));
-    
+    await new Promise((resolve) => setTimeout(resolve, 30));
+
     // File should remain unchanged
     const afterFileContent = await readFile(configPath, "utf8");
     expect(afterFileContent).toBe(initialFileContent);
@@ -309,26 +349,30 @@ describe("ConfigFilePersister Integration Tests", () => {
     // Pre-create config file
     const initialConfig = persister.defaultConfig();
     await writeFile(configPath, JSON.stringify(initialConfig, null, 2));
-    
+
     await persister.onModuleInit();
 
     // Set initial config and write to file
     configStore["testConfig"] = persister.defaultConfig();
-    
+
     // Get initial modification time
-    const stats1 = await import('fs/promises').then(fs => fs.stat(configPath));
-    
+    const stats1 = await import("fs/promises").then((fs) =>
+      fs.stat(configPath)
+    );
+
     // Wait a bit to ensure timestamp difference
-    await new Promise(resolve => setTimeout(resolve, 10));
+    await new Promise((resolve) => setTimeout(resolve, 10));
 
     // Emit change for different config key
     changesSubject.next([{ path: "otherConfig.setting" }]);
-    
+
     // Wait for buffer time
-    await new Promise(resolve => setTimeout(resolve, 50));
+    await new Promise((resolve) => setTimeout(resolve, 50));
 
     // File should remain unchanged (same modification time)
-    const stats2 = await import('fs/promises').then(fs => fs.stat(configPath));
+    const stats2 = await import("fs/promises").then((fs) =>
+      fs.stat(configPath)
+    );
     expect(stats2.mtime).toEqual(stats1.mtime);
   });
 
@@ -338,14 +382,14 @@ describe("ConfigFilePersister Integration Tests", () => {
       ...configService,
       get: () => {
         throw new Error("Config service error");
-      }
+      },
     };
 
     const errorPersister = new TestConfigFilePersister(errorConfigService);
-    
+
     // Should still initialize (migration will be called due to no file)
     await errorPersister.onModuleInit();
-    
+
     // Should have migrated config since get failed
     const expectedMigrated = await errorPersister.migrateConfig();
     expect(configStore.testConfig).toEqual(expectedMigrated);
@@ -358,13 +402,14 @@ describe("ConfigFilePersister Integration Tests", () => {
     const invalidPersister = new TestConfigFilePersister({
       ...configService,
       getOrThrow: (key: string) => {
-        if (key === "PATHS_CONFIG_MODULES") return "/invalid/path/that/does/not/exist";
+        if (key === "PATHS_CONFIG_MODULES")
+          return "/invalid/path/that/does/not/exist";
         throw new Error(`Config key ${key} not found`);
       },
     });
 
     const config = { ...persister.defaultConfig(), name: "error-test" };
-    
+
     // Should not throw despite write error
     const result = await invalidPersister.persist(config);
     expect(result).toBe(false);
@@ -427,9 +472,9 @@ describe("ConfigFilePersister Integration Tests", () => {
 
     // Trigger change notification
     changesSubject.next([{ path: "testConfig.enabled" }]);
-    
+
     // Wait for persistence
-    await new Promise(resolve => setTimeout(resolve, 50));
+    await new Promise((resolve) => setTimeout(resolve, 50));
 
     // Cleanup
     await persister.onModuleDestroy();
@@ -447,4 +492,4 @@ describe("ConfigFilePersister Integration Tests", () => {
       },
     });
   });
-}); 
+});
