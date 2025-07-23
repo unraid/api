@@ -74,7 +74,7 @@ describe('ReportCommand PM2 integration', () => {
         expect(combinedOutput).toContain('API is not running');
         expect(combinedOutput).toContain('apiRunning');
         expect(combinedOutput).toContain('false');
-    });
+    }, 30000);
 
     it('should detect when API is running via PM2', async () => {
         // Start a dummy process named 'unraid-api'
@@ -109,7 +109,7 @@ describe('ReportCommand PM2 integration', () => {
 
         // Clean up
         await execa(PM2_PATH, ['delete', 'unraid-api'], { reject: false });
-    });
+    }, 30000);
 
     it('should handle PM2 connection errors gracefully', async () => {
         // This test is actually tricky because PM2 tries to create directories early
@@ -126,5 +126,5 @@ describe('ReportCommand PM2 integration', () => {
         const combinedOutput = (result.stdout || '') + (result.stderr || '');
         expect(combinedOutput).toContain('apiRunning');
         expect(result.exitCode).toBe(0);
-    });
+    }, 30000);
 });

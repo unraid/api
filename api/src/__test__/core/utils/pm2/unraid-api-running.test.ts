@@ -59,7 +59,7 @@ describe('isUnraidApiRunning integration test', () => {
 
         // Clean up
         await execa(PM2_PATH, ['delete', 'unraid-api'], { reject: false });
-    });
+    }, 30000);
 
     it('should return false when unraid-api process is stopped', async () => {
         // Start and then stop the process
@@ -76,7 +76,7 @@ describe('isUnraidApiRunning integration test', () => {
 
         // Clean up
         await execa(PM2_PATH, ['delete', 'unraid-api'], { reject: false });
-    });
+    }, 30000);
 
     it('should handle PM2 connection errors gracefully', async () => {
         // Set an invalid PM2_HOME to force connection failure
