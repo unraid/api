@@ -85,5 +85,6 @@ const DEFAULT_PROVIDERS = [
 @Module({
     imports: [LegacyConfigModule, ApiConfigModule, GlobalDepsModule, PluginCliModule.register()],
     providers: [...DEFAULT_COMMANDS, ...DEFAULT_PROVIDERS],
+    exports: [ApiReportService],
 })
 export class CliModule {}
