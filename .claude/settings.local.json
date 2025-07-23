@@ -36,7 +36,9 @@
       "WebFetch(domain:erangrin.github.io)",
       "Bash(pnpm clean:*)",
       "Bash(pnpm validate:css:*)",
-      "Bash(node:*)"
+      "Bash(node:*)",
+      "Bash(rm:*)",
+      "Bash(pnpm run:*)"
     ]
   },
   "enableAllProjectMcpServers": false

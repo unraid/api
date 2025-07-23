@@ -4,7 +4,7 @@ import { useI18n } from 'vue-i18n';
 import { storeToRefs } from 'pinia';
 import { useClipboard } from '@vueuse/core';
 
-import { DropdownMenu } from '@unraid/ui';
+import { DropdownMenu, cn } from '@unraid/ui';
 import { devConfig } from '~/helpers/env';
 
 import type { Server } from '~/types/server';
@@ -109,7 +109,7 @@ onMounted(() => {
     />
 
     <div
-      class="text-xs text-header-text-secondary text-right font-semibold leading-normal relative z-10 flex flex-wrap items-baseline justify-end gap-x-1 xs:!flex-row xs:gap-x-4"
+      :class="cn('text-xs text-header-text-secondary text-right font-semibold leading-normal relative z-10 flex flex-wrap xs:!flex-row items-baseline justify-end gap-x-1 xs:gap-x-4')"
     >
       <UpcUptimeExpire :as="'span'" :t="t" class="text-xs" />
       <span class="hidden xs:!block">&bull;</span>
