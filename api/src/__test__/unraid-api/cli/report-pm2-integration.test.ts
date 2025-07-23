@@ -21,10 +21,18 @@ describe('ReportCommand PM2 integration', () => {
         // Build the CLI if it doesn't exist
         if (!existsSync(CLI_PATH)) {
             console.log('Building CLI for integration tests...');
-            await execa('pnpm', ['build'], {
-                cwd: PROJECT_ROOT,
-                stdio: 'inherit',
-            });
+            try {
+                await execa('pnpm', ['build'], {
+                    cwd: PROJECT_ROOT,
+                    stdio: 'inherit',
+                    timeout: 120000, // 2 minute timeout for build
+                });
+            } catch (error) {
+                console.error('Failed to build CLI:', error);
+                throw new Error(
+                    'Cannot run integration tests without built CLI. Run `pnpm build` first.'
+                );
+            }
         }
 
         // Ensure we have a clean state
@@ -40,7 +48,7 @@ describe('ReportCommand PM2 integration', () => {
         } catch {
             // Ignore if PM2 daemon not running
         }
-    }, 60000); // 60 second timeout for build
+    }, 150000); // 2.5 minute timeout for setup
 
     afterAll(async () => {
         // Clean up
