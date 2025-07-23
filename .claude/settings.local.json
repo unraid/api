@@ -43,7 +43,10 @@
       "Bash(node:*)",
       "Bash(time node:*)",
       "Bash(timeout:*)",
-      "Bash(chmod:*)"
+      "Bash(chmod:*)",
+      "Bash(cd /Users/elibosley/Code/api)",
+      "Bash(find . -name \"*.ts\" -type f -exec grep -l \"vue-eslint-parser\" {})",
+      "Bash(find . -name \"eslint.config.ts\" -type f)"
     ]
   },
   "enableAllProjectMcpServers": false
