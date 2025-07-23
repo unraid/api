@@ -40,7 +40,7 @@ class WebComponentsExtractor
     }
 
 
-    private function getRichComponentsScript(): string
+    private function getRichComponentsFile(): string
     {
         $manifestFiles = $this->findManifestFiles('manifest.json');
         
@@ -59,26 +59,20 @@ class WebComponentsExtractor
                 $matchesJs = strpos($key, self::RICH_COMPONENTS_ENTRY_JS) !== false;
                 
                 if (($matchesMjs || $matchesJs) && isset($value["file"])) {
-                    $jsFile = ($subfolder ? $subfolder . '/' : '') . $value["file"];
-                    $html = '';
-                    
-                    // Add CSS files if they exist
-                    if (isset($value["css"]) && is_array($value["css"])) {
-                        foreach ($value["css"] as $cssFile) {
-                            $cssPath = ($subfolder ? $subfolder . '/' : '') . $cssFile;
-                            $html .= '<link rel="stylesheet" href="' . $this->getAssetPath($cssPath) . '">';
-                        }
-                    }
-                    
-                    // Add JavaScript file
-                    $html .= '<script src="' . $this->getAssetPath($jsFile) . '"></script>';
-                    
-                    return $html;
+                    return ($subfolder ? $subfolder . '/' : '') . $value["file"];
                 }
             }
         }
-        
-        return '<script>console.error("%cNo matching key containing \'' . self::RICH_COMPONENTS_ENTRY . '\' or \'' . self::RICH_COMPONENTS_ENTRY_JS . '\' found.", "font-weight: bold; color: white; background-color: red");</script>';
+        return '';
+    }
+
+    private function getRichComponentsScript(): string
+    {
+        $jsFile = $this->getRichComponentsFile();
+        if (empty($jsFile)) {
+            return '<script>console.error("%cNo matching key containing \'' . self::RICH_COMPONENTS_ENTRY . '\' or \'' . self::RICH_COMPONENTS_ENTRY_JS . '\' found.", "font-weight: bold; color: white; background-color: red");</script>';
+        }
+        return '<script src="' . $this->getAssetPath($jsFile) . '"></script>';
     }
 
     private function getUnraidUiScriptHtml(): string

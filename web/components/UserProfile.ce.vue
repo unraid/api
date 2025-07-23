@@ -109,7 +109,7 @@ onMounted(() => {
     />
 
     <div
-      class="text-xs text-header-text-secondary text-right font-semibold leading-normal relative z-10 flex flex-wrap items-baseline justify-end gap-x-1 xs:flex-row xs:gap-x-4"
+      class="text-xs text-header-text-secondary text-right font-semibold leading-normal relative z-10 flex flex-wrap items-baseline justify-end gap-x-1 xs:!flex-row xs:gap-x-4"
     >
       <UpcUptimeExpire :as="'span'" :t="t" class="text-xs" />
       <span class="hidden xs:!block">&bull;</span>

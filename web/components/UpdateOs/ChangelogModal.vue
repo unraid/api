@@ -176,8 +176,8 @@ watch(darkMode, () => {
     </template>
 
     <template #footer>
-      <div class="flex flex-col-reverse xs:flex-row justify-between gap-3 md:gap-4">
-        <div class="flex flex-col-reverse xs:flex-row xs:justify-start gap-3 md:gap-4">
+      <div class="flex flex-col-reverse xs:!flex-row justify-between gap-3 md:gap-4">
+        <div class="flex flex-col-reverse xs:!flex-row xs:justify-start gap-3 md:gap-4">
           <!-- Back to changelog button (when navigated away) -->
           <BrandButton
             v-if="hasNavigated && docsChangelogUrl"

@@ -276,7 +276,7 @@ const modalWidth = computed(() => {
     <template v-if="renderMainSlot" #main>
       <BrandLoading v-if="checkForUpdatesLoading" class="w-[150px] mx-auto" />
       <div v-else class="flex flex-col gap-y-4">
-        <div v-if="extraLinks.length > 0" class="flex flex-col xs:flex-row justify-center gap-2">
+        <div v-if="extraLinks.length > 0" class="flex flex-col xs:!flex-row justify-center gap-2">
           <BrandButton
             v-for="item in extraLinks"
             :key="item.text"
@@ -337,11 +337,11 @@ const modalWidth = computed(() => {
       <div
         class="w-full flex gap-2 mx-auto"
         :class="{
-          'flex-col-reverse xs:flex-row justify-between': actionButtons,
+          'flex-col-reverse xs:!flex-row justify-between': actionButtons,
           'justify-center': !actionButtons,
         }"
       >
-        <div class="flex flex-col-reverse xs:flex-row justify-start gap-2">
+        <div class="flex flex-col-reverse xs:!flex-row justify-start gap-2">
           <BrandButton
             variant="underline-hover-red"
             :icon="XMarkIcon"
@@ -355,7 +355,7 @@ const modalWidth = computed(() => {
             @click="accountStore.updateOs()"
           />
         </div>
-        <div v-if="actionButtons" class="flex flex-col xs:flex-row justify-end gap-2">
+        <div v-if="actionButtons" class="flex flex-col xs:!flex-row justify-end gap-2">
           <BrandButton
             v-for="item in actionButtons"
             :key="item.text"

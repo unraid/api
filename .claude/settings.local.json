@@ -32,7 +32,11 @@
       "Bash(pnpm --filter @unraid/ui build)",
       "Bash(pnpm --filter @unraid/web build)",
       "Bash(python3:*)",
-      "Bash(pnpm tailwind:build:*)"
+      "Bash(pnpm tailwind:build:*)",
+      "WebFetch(domain:erangrin.github.io)",
+      "Bash(pnpm clean:*)",
+      "Bash(pnpm validate:css:*)",
+      "Bash(node:*)"
     ]
   },
   "enableAllProjectMcpServers": false
