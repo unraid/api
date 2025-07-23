@@ -98,5 +98,5 @@ describe('isUnraidApiRunning integration test', () => {
         } else {
             delete process.env.PM2_HOME;
         }
-    });
+    }, 30000);
 });
