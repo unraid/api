@@ -127,10 +127,3 @@ const updateOsStatus = computed(() => {
     </div>
   </div>
 </template>
-
-<style >
-/* Import unraid-ui globals first */
-@import '@unraid/ui/styles';
-
-@import '~/assets/main.css';
-</style>

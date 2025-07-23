@@ -24,9 +24,3 @@ const items = [
     <Select v-model="selector" :items="items" placeholder="Select an initial state" />
   </div>
 </template>
-
-<style >
-/* Import unraid-ui globals first */
-@import '@unraid/ui/styles';
-@import '~/assets/main.css';
-</style>

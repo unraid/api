@@ -148,8 +148,3 @@ const onChange = ({ data }: { data: Record<string, unknown> }) => {
     </div>
   </div>
 </template>
-<style >
-/* Import unraid-ui globals first */
-@import '@unraid/ui/styles';
-@import '../../assets/main.css';
-</style>

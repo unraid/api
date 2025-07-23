@@ -6,8 +6,3 @@ import ApiKeyManager from '~/components/ApiKey/ApiKeyManager.vue';
     <ApiKeyManager />
   </div>
 </template>
-<style>
-/* Import unraid-ui globals first */
-@import '@unraid/ui/styles';
-@import '~/assets/main.css';
-</style>
