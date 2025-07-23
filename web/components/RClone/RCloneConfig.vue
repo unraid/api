@@ -238,8 +238,3 @@ provide('isSubmitting', isCreating);
     </div>
   </div>
 </template>
-
-<style >
-/* Import unraid-ui globals first */
-@import '@unraid/ui/styles';
-</style>

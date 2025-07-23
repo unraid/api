@@ -10,7 +10,7 @@ import {
   KeyIcon,
   XMarkIcon,
 } from '@heroicons/vue/24/solid';
-import { BrandButton, BrandLoading } from '@unraid/ui';
+import { BrandButton, BrandLoading, cn } from '@unraid/ui';
 import { Switch, SwitchGroup, SwitchLabel } from '@headlessui/vue';
 
 import type { BrandButtonProps } from '@unraid/ui';
@@ -276,7 +276,7 @@ const modalWidth = computed(() => {
     <template v-if="renderMainSlot" #main>
       <BrandLoading v-if="checkForUpdatesLoading" class="w-[150px] mx-auto" />
       <div v-else class="flex flex-col gap-y-4">
-        <div v-if="extraLinks.length > 0" class="flex flex-col xs:flex-row justify-center gap-2">
+        <div v-if="extraLinks.length > 0" :class="cn('flex flex-col xs:!flex-row justify-center gap-2')">
           <BrandButton
             v-for="item in extraLinks"
             :key="item.text"
@@ -335,13 +335,12 @@ const modalWidth = computed(() => {
 
     <template #footer>
       <div
-        class="w-full flex gap-2 mx-auto"
-        :class="{
-          'flex-col-reverse xs:flex-row justify-between': actionButtons,
-          'justify-center': !actionButtons,
-        }"
+        :class="cn(
+          'w-full flex gap-2 mx-auto',
+          actionButtons ? 'flex-col-reverse xs:!flex-row justify-between' : 'justify-center'
+        )"
       >
-        <div class="flex flex-col-reverse xs:flex-row justify-start gap-2">
+        <div :class="cn('flex flex-col-reverse xs:!flex-row justify-start gap-2')">
           <BrandButton
             variant="underline-hover-red"
             :icon="XMarkIcon"
@@ -355,7 +354,7 @@ const modalWidth = computed(() => {
             @click="accountStore.updateOs()"
           />
         </div>
-        <div v-if="actionButtons" class="flex flex-col xs:flex-row justify-end gap-2">
+        <div v-if="actionButtons" :class="cn('flex flex-col xs:!flex-row justify-end gap-2')">
           <BrandButton
             v-for="item in actionButtons"
             :key="item.text"

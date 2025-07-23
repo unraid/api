@@ -16,7 +16,6 @@
       "mcp__ide__getDiagnostics",
       "Bash(pnpm --filter \"*connect*\" test connect-status-writer.service.spec)",
       "Bash(pnpm storybook:*)",
-      "Bash(rm:*)",
       "Bash(pnpm add:*)",
       "Bash(pnpm install:*)",
       "Bash(pkill:*)",
@@ -33,7 +32,13 @@
       "Bash(pnpm --filter @unraid/ui build)",
       "Bash(pnpm --filter @unraid/web build)",
       "Bash(python3:*)",
-      "Bash(pnpm tailwind:build:*)"
+      "Bash(pnpm tailwind:build:*)",
+      "WebFetch(domain:erangrin.github.io)",
+      "Bash(pnpm clean:*)",
+      "Bash(pnpm validate:css:*)",
+      "Bash(node:*)",
+      "Bash(rm:*)",
+      "Bash(pnpm run:*)"
     ]
   },
   "enableAllProjectMcpServers": false

@@ -74,9 +74,3 @@ const items = [
     <Switch id="banner" v-model:checked="form.banner" />
   </div>
 </template>
-
-<style >
-/* Import unraid-ui globals first */
-@import '@unraid/ui/styles';
-@import '~/assets/main.css';
-</style>

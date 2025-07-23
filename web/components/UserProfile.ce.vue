@@ -4,7 +4,7 @@ import { useI18n } from 'vue-i18n';
 import { storeToRefs } from 'pinia';
 import { useClipboard } from '@vueuse/core';
 
-import { DropdownMenu } from '@unraid/ui';
+import { DropdownMenu, cn } from '@unraid/ui';
 import { devConfig } from '~/helpers/env';
 
 import type { Server } from '~/types/server';
@@ -109,10 +109,10 @@ onMounted(() => {
     />
 
     <div
-      class="text-xs text-header-text-secondary text-right font-semibold leading-normal relative z-10 flex flex-wrap items-baseline justify-end gap-x-1 xs:flex-row xs:gap-x-4"
+      :class="cn('text-xs text-header-text-secondary text-right font-semibold leading-normal relative z-10 flex flex-wrap xs:!flex-row items-baseline justify-end gap-x-1 xs:gap-x-4')"
     >
       <UpcUptimeExpire :as="'span'" :t="t" class="text-xs" />
-      <span class="hidden xs:block">&bull;</span>
+      <span class="hidden xs:!block">&bull;</span>
       <UpcServerState :t="t" class="text-xs" />
     </div>
 
@@ -121,8 +121,8 @@ onMounted(() => {
         class="text-md sm:text-lg relative flex flex-col-reverse items-end md:flex-row border-0 text-header-text-primary"
       >
         <template v-if="description && theme?.descriptionShow">
-          <span class="text-right text-xs sm:text-lg hidden 2xs:block" v-html="description" />
-          <span class="text-header-text-secondary hidden md:inline-block px-2">&bull;</span>
+          <span class="text-right text-xs sm:text-lg hidden 2xs:!block" v-html="description" />
+          <span class="text-header-text-secondary hidden md:!inline-block px-2">&bull;</span>
         </template>
         <button
           v-if="lanIp"
@@ -164,57 +164,3 @@ onMounted(() => {
     </div>
   </div>
 </template>
-
-<style >
-/* Import unraid-ui globals first */
-@import '@unraid/ui/styles';
-@import '~/assets/main.css';
-
-.unraid_mark_2,
-.unraid_mark_4 {
-  animation: mark_2 1.5s ease infinite;
-}
-.unraid_mark_3 {
-  animation: mark_3 1.5s ease infinite;
-}
-.unraid_mark_6,
-.unraid_mark_8 {
-  animation: mark_6 1.5s ease infinite;
-}
-.unraid_mark_7 {
-  animation: mark_7 1.5s ease infinite;
-}
-
-@keyframes mark_2 {
-  50% {
-    transform: translateY(-40px);
-  }
-  100% {
-    transform: translateY(0);
-  }
-}
-@keyframes mark_3 {
-  50% {
-    transform: translateY(-62px);
-  }
-  100% {
-    transform: translateY(0);
-  }
-}
-@keyframes mark_6 {
-  50% {
-    transform: translateY(40px);
-  }
-  100% {
-    transform: translateY(0);
-  }
-}
-@keyframes mark_7 {
-  50% {
-    transform: translateY(62px);
-  }
-  100% {
-    transform: translateY(0);
-  }
-}
-</style>
