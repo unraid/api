@@ -226,27 +226,6 @@ type Share implements Node {
   luksStatus: String
 }
 
-type AccessUrl {
-  type: URL_TYPE!
-  name: String
-  ipv4: URL
-  ipv6: URL
-}
-
-enum URL_TYPE {
-  LAN
-  WIREGUARD
-  WAN
-  MDNS
-  OTHER
-  DEFAULT
-}
-
-"""
-A field whose value conforms to the standard URL format as specified in RFC3986: https://www.ietf.org/rfc/rfc3986.txt.
-"""
-scalar URL
-
 type DiskPartition {
   """The name of the partition"""
   name: String!
@@ -1490,6 +1469,27 @@ type Plugin {
   hasCliModule: Boolean
 }
 
+type AccessUrl {
+  type: URL_TYPE!
+  name: String
+  ipv4: URL
+  ipv6: URL
+}
+
+enum URL_TYPE {
+  LAN
+  WIREGUARD
+  WAN
+  MDNS
+  OTHER
+  DEFAULT
+}
+
+"""
+A field whose value conforms to the standard URL format as specified in RFC3986: https://www.ietf.org/rfc/rfc3986.txt.
+"""
+scalar URL
+
 type AccessUrlObject {
   ipv4: String
   ipv6: String
@@ -1829,7 +1829,6 @@ type Subscription {
   notificationAdded: Notification!
   notificationsOverview: NotificationOverview!
   ownerSubscription: Owner!
-  registrationSubscription: Registration!
   serversSubscription: Server!
   parityHistorySubscription: ParityCheck!
   arraySubscription: UnraidArray!
