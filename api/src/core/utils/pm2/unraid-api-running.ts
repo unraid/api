@@ -6,7 +6,8 @@ export const isUnraidApiRunning = async (): Promise<boolean | undefined> => {
         process.env.PM2_HOME = PM2_HOME;
     }
 
-    const { connect, describe, disconnect, list } = await import('pm2');
+    const pm2 = await import('pm2');
+    const { connect, describe, disconnect, list } = pm2.default || pm2;
     return new Promise((resolve) => {
         connect(function (err) {
             if (err) {
