@@ -112,7 +112,7 @@ onMounted(() => {
       class="text-xs text-header-text-secondary text-right font-semibold leading-normal relative z-10 flex flex-wrap items-baseline justify-end gap-x-1 xs:flex-row xs:gap-x-4"
     >
       <UpcUptimeExpire :as="'span'" :t="t" class="text-xs" />
-      <span class="hidden xs:block">&bull;</span>
+      <span class="hidden xs:!block">&bull;</span>
       <UpcServerState :t="t" class="text-xs" />
     </div>
 
@@ -121,8 +121,8 @@ onMounted(() => {
         class="text-md sm:text-lg relative flex flex-col-reverse items-end md:flex-row border-0 text-header-text-primary"
       >
         <template v-if="description && theme?.descriptionShow">
-          <span class="text-right text-xs sm:text-lg hidden 2xs:block" v-html="description" />
-          <span class="text-header-text-secondary hidden md:inline-block px-2">&bull;</span>
+          <span class="text-right text-xs sm:text-lg hidden 2xs:!block" v-html="description" />
+          <span class="text-header-text-secondary hidden md:!inline-block px-2">&bull;</span>
         </template>
         <button
           v-if="lanIp"

@@ -192,10 +192,14 @@ export default defineNuxtConfig({
         viteExtend(config: UserConfig) {
           const sharedConfig = applySharedViteConfig(config, true);
           
-          // Add a plugin to inject CSS import into the entry point
+          // Optimize CSS while keeping it inlined for functionality
+          if (!sharedConfig.css) sharedConfig.css = {};
+          sharedConfig.css.devSourcemap = process.env.NODE_ENV === 'development';
+          
+          // Add CSS optimization plugin
           if (!sharedConfig.plugins) sharedConfig.plugins = [];
           sharedConfig.plugins.push({
-            name: 'inject-tailwind-css',
+            name: 'inject-optimized-tailwind-css',
             transform(code, id) {
               // Only transform the client entry file
               if (id.includes('unraid-components.client.js')) {
