@@ -61,8 +61,7 @@ export class AddSSOUserCommand extends CommandRunner {
                     },
                 });
 
-                this.logger.info(`User added ${options.username}, restarting the API`);
-                await this.restartCommand.run();
+                this.logger.info(`User added: ${options.username}`);
             }
         } catch (e: unknown) {
             this.logger.error('Error adding user:', e);

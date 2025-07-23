@@ -121,7 +121,7 @@ onMounted(() => {
         class="text-md sm:text-lg relative flex flex-col-reverse items-end md:flex-row border-0 text-header-text-primary"
       >
         <template v-if="description && theme?.descriptionShow">
-          <span class="text-right text-xs sm:text-lg hidden 2xs:!block" v-html="description" />
+          <span class="text-right text-xs sm:!text-lg hidden" v-html="description" />
           <span class="text-header-text-secondary hidden md:!inline-block px-2">&bull;</span>
         </template>
         <button
