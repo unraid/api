@@ -28,34 +28,69 @@ const dockerContainers = [
     id: 'immich',
     label: 'immich',
     icon: 'i-lucide-play-circle',
+    slot: 'immich' as const,
+    status: [
+      { label: 'Update available', dotColor: 'bg-orange-500' },
+      { label: 'Started', dotColor: 'bg-green-500' }
+    ],
   },
   {
     id: 'organizrv2',
     label: 'organizrv2',
     icon: 'i-lucide-layers',
+    slot: 'organizrv2' as const,
+    status: [
+      { label: 'Started', dotColor: 'bg-green-500' }
+    ],
   },
   {
     id: 'jellyfin',
     label: 'Jellyfin',
     icon: 'i-lucide-film',
+    slot: 'jellyfin' as const,
+    status: [
+      { label: 'Stopped', dotColor: 'bg-red-500' }
+    ],
   },
   {
-    id: 'mongodb',
-    label: 'MongoDB',
-    icon: 'i-lucide-database',
-    badge: 'DB',
-  },
-  {
-    id: 'postgres17',
-    label: 'postgres17',
-    icon: 'i-lucide-database',
-    badge: 'DB',
-  },
-  {
-    id: 'redis',
-    label: 'Redis',
-    icon: 'i-lucide-database',
-    badge: 'DB',
+    id: 'databases',
+    label: 'Databases',
+    icon: 'i-lucide-folder-database',
+    slot: 'databases' as const,
+    isGroup: true,
+    children: [
+      {
+        id: 'mongodb',
+        label: 'MongoDB',
+        icon: 'i-lucide-database',
+        badge: 'DB',
+        slot: 'mongodb' as const,
+        status: [
+          { label: 'Started', dotColor: 'bg-green-500' }
+        ],
+      },
+      {
+        id: 'postgres17',
+        label: 'postgres17',
+        icon: 'i-lucide-database',
+        badge: 'DB',
+        slot: 'postgres17' as const,
+        status: [
+          { label: 'Update available', dotColor: 'bg-orange-500' },
+          { label: 'Paused', dotColor: 'bg-blue-500' }
+        ],
+      },
+      {
+        id: 'redis',
+        label: 'Redis',
+        icon: 'i-lucide-database',
+        badge: 'DB',
+        slot: 'redis' as const,
+        status: [
+          { label: 'Started', dotColor: 'bg-green-500' }
+        ],
+      },
+    ]
   },
 ];
 
