@@ -54,7 +54,10 @@ export class ConfigFileHandler<T extends object> {
 
     try {
       const fileConfig = await this.readConfigFile();
-      return await this.definition.validate({ ...defaultConfig, ...fileConfig });
+      return await this.definition.validate({
+        ...defaultConfig,
+        ...fileConfig,
+      });
     } catch (error) {
       this.logger.warn(error, "Error loading config. Attempting to migrate...");
 
@@ -76,7 +79,7 @@ export class ConfigFileHandler<T extends object> {
 
   /**
    * Reads and validates configuration from file.
-   * 
+   *
    * @param configPath - Path to config file (defaults to `configPath()`)
    * @returns Validated configuration object from disk
    * @throws Error if file doesn't exist, contains invalid JSON, or fails validation
@@ -117,12 +120,9 @@ export class ConfigFileHandler<T extends object> {
       this.logger.verbose(`Existing config unreadable, proceeding with write`);
     }
 
-    const data = JSON.stringify(config, null, 2);
-    this.logger.verbose(
-      `Writing config to ${this.definition.configPath()}: ${data}`
-    );
-
     try {
+      const data = JSON.stringify(config, null, 2);
+      this.logger.verbose("Writing config");
       await writeFile(this.definition.configPath(), data);
       return true;
     } catch (error) {
