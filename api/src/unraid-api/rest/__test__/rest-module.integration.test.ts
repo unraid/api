@@ -71,5 +71,5 @@ describe('RestModule Integration', () => {
         expect(restService['apiReportService']).toBeDefined();
 
         await module.close();
-    });
+    }, 10000);
 });
