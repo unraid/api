@@ -55,7 +55,7 @@ export class ConnectConfigPersister extends ConfigFilePersister<MyServersConfig>
                 enableImplicitConversion: true,
             });
         }
-        await validateOrReject(instance);
+        await validateOrReject(instance, { whitelist: true });
         return instance;
     }
 
