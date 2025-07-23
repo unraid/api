@@ -28,10 +28,21 @@ interface NavigationItem {
   isGroup?: boolean; // Indicates if this is a group/folder
 }
 
-interface NavigationMenuItem extends NavigationItem {
-  to?: string;
+interface NavigationMenuItem {
+  id: string;
+  label: string;
+  icon?: string;
+  badge?: string;
   slot?: string;
   onClick?: () => void;
+  isGroup?: boolean;
+  status?: {
+    label: string;
+    dotColor: string;
+  }[];
+  children?: NavigationMenuItem[];
+  to?: string;
+  defaultOpen?: boolean;
 }
 
 interface TabItem {
@@ -81,19 +92,25 @@ const navigationMenuItems = computed((): NavigationMenuItem[] =>
     label: item.label,
     icon: item.icon,
     id: item.id,
-    badge: item.badge,
+    badge: String(item.badge || ''),
     slot: item.slot,
     onClick: () => selectNavigationItem(item.id),
+    isGroup: item.isGroup,
+    status: item.status,
+    // For groups, don't add 'to' property to enable accordion behavior
+    to: item.isGroup ? undefined : '#',
+    // Add defaultOpen for groups to control initial state
+    defaultOpen: item.isGroup ? true : undefined,
     children: item.children?.map((child) => ({
       label: child.label,
       icon: child.icon,
       id: child.id,
-      badge: child.badge,
+      badge: String(child.badge || ''),
       slot: child.slot,
       onClick: () => selectNavigationItem(child.id),
       status: child.status,
+      to: '#', // Add 'to' property for children to make them clickable
     })),
-    isGroup: item.isGroup,
   }))
 );
 
@@ -123,6 +140,25 @@ const selectNavigationItem = (id: string) => {
   selectedTab.value = '0'; // Reset to first tab index
 };
 
+// Helper to get all items with slots (including nested children)
+const allItemsWithSlots = computed(() => {
+  const items: NavigationMenuItem[] = [];
+  
+  const collectItems = (navItems: NavigationMenuItem[]) => {
+    for (const item of navItems) {
+      if (item.slot) {
+        items.push(item);
+      }
+      if (item.children) {
+        collectItems(item.children);
+      }
+    }
+  };
+  
+  collectItems(navigationMenuItems.value);
+  return items;
+});
+
 // UTabs uses index, so convert to tab key
 const getCurrentTabComponent = () => {
   const tabIndex = parseInt(selectedTab.value);
@@ -146,17 +182,22 @@ const getCurrentTabProps = () => {
     <!-- Left Navigation Section -->
     <div class="w-64 flex-shrink-0">
       <UNavigationMenu :items="navigationMenuItems" orientation="vertical">
-        <template v-for="navItem in navigationMenuItems" :key="navItem.id" #[navItem.slot]>
+        <!-- Dynamic slots for all items with custom content -->
+        <template 
+          v-for="item in allItemsWithSlots" 
+          :key="`slot-${item.id}`"
+          #[item.slot!]
+        >
           <div class="flex items-center gap-3">
             <UCheckbox
-              :model-value="isItemSelected(navItem.id)"
+              :model-value="isItemSelected(item.id)"
               class="flex-shrink-0"
-              @update:model-value="toggleItemSelection(navItem.id)"
+              @update:model-value="toggleItemSelection(item.id)"
               @click.stop
             />
-            <UIcon v-if="navItem.icon" :name="navItem.icon" class="h-5 w-5 flex-shrink-0" />
-            <span class="truncate flex-1">{{ navItem.label }}</span>
-            <UBadge v-if="navItem.badge" size="xs" :label="String(navItem.badge)" />
+            <UIcon v-if="item.icon" :name="item.icon" class="h-5 w-5 flex-shrink-0" />
+            <span class="truncate flex-1">{{ item.label }}</span>
+            <UBadge v-if="item.badge" size="xs" :label="String(item.badge)" />
           </div>
         </template>
       </UNavigationMenu>
