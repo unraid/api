@@ -1,82 +1,48 @@
-import { Injectable, Logger, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { existsSync, readFileSync } from 'fs';
-import { writeFile } from 'fs/promises';
-import path from 'path';
 
+import { ConfigFilePersister } from '@unraid/shared/services/config-file.js';
 import { plainToInstance } from 'class-transformer';
 import { validateOrReject } from 'class-validator';
 import { parse as parseIni } from 'ini';
-import { isEqual } from 'lodash-es';
-import { bufferTime } from 'rxjs/operators';
 
 import type { MyServersConfig as LegacyConfig } from './my-servers.config.js';
-import { ConfigType, MyServersConfig } from './connect.config.js';
+import { emptyMyServersConfig, MyServersConfig } from './connect.config.js';
 
 @Injectable()
-export class ConnectConfigPersister implements OnModuleInit, OnModuleDestroy {
-    constructor(private readonly configService: ConfigService<ConfigType, true>) {}
-
-    private logger = new Logger(ConnectConfigPersister.name);
-    get configPath() {
-        // PATHS_CONFIG_MODULES is a required environment variable.
-        // It is the directory where custom config files are stored.
-        return path.join(this.configService.getOrThrow('PATHS_CONFIG_MODULES'), 'connect.json');
-    }
-
-    async onModuleDestroy() {
-        await this.persist();
-    }
-
-    async onModuleInit() {
-        this.logger.verbose(`Config path: ${this.configPath}`);
-        await this.loadOrMigrateConfig();
-        // Persist changes to the config.
-        this.configService.changes$.pipe(bufferTime(25)).subscribe({
-            next: async (changes) => {
-                const connectConfigChanged = changes.some(({ path }) =>
-                    path.startsWith('connect.config')
-                );
-                if (connectConfigChanged) {
-                    await this.persist();
-                }
-            },
-            error: (err) => {
-                this.logger.error('Error receiving config changes:', err);
-            },
-        });
+export class ConnectConfigPersister extends ConfigFilePersister<MyServersConfig> {
+    constructor(configService: ConfigService) {
+        super(configService);
     }
 
     /**
-     * Persist the config to disk if the given data is different from the data on-disk.
-     * This helps preserve the boot flash drive's life by avoiding unnecessary writes.
-     *
-     * @param config - The config object to persist.
-     * @returns `true` if the config was persisted, `false` otherwise.
+     * @override
+     * @returns The name of the config file.
      */
-    async persist(config = this.configService.get<MyServersConfig>('connect.config')) {
-        try {
-            if (isEqual(config, await this.loadConfig())) {
-                this.logger.verbose(`Config is unchanged, skipping persistence`);
-                return false;
-            }
-        } catch (error) {
-            this.logger.error(error, `Error loading config (will overwrite file)`);
-        }
-        const data = JSON.stringify(config, null, 2);
-        this.logger.verbose(`Persisting config to ${this.configPath}: ${data}`);
-        try {
-            await writeFile(this.configPath, data);
-            this.logger.verbose(`Config persisted to ${this.configPath}`);
-            return true;
-        } catch (error) {
-            this.logger.error(error, `Error persisting config to '${this.configPath}'`);
-            return false;
-        }
+    fileName(): string {
+        return 'connect.json';
+    }
+
+    /**
+     * @override
+     * @returns The key of the config in the config service.
+     */
+    configKey(): string {
+        return 'connect.config';
+    }
+
+    /**
+     * @override
+     * @returns The default config object.
+     */
+    defaultConfig(): MyServersConfig {
+        return emptyMyServersConfig();
     }
 
     /**
      * Validate the config object.
+     * @override
      * @param config - The config object to validate.
      * @returns The validated config instance.
      */
@@ -94,44 +60,16 @@ export class ConnectConfigPersister implements OnModuleInit, OnModuleDestroy {
     }
 
     /**
-     * Load the config from the filesystem, or migrate the legacy config file to the new config format.
-     * When unable to load or migrate the config, messages are logged at WARN level, but no other action is taken.
-     * @returns true if the config was loaded successfully, false otherwise.
+     * @override
+     * @returns The migrated config object.
      */
-    private async loadOrMigrateConfig() {
-        try {
-            const config = await this.loadConfig();
-            this.configService.set('connect.config', config);
-            this.logger.verbose(`Config loaded from ${this.configPath}`);
-            return true;
-        } catch (error) {
-            this.logger.warn(error, 'Error loading config');
-        }
-
-        try {
-            await this.migrateLegacyConfig();
-            return this.persist();
-        } catch (error) {
-            this.logger.warn('Error migrating legacy config:', error);
-        }
-
-        this.logger.error(
-            'Failed to load or migrate config from filesystem. Config is not persisted. Using defaults in-memory.'
-        );
-        return false;
+    async migrateConfig(): Promise<MyServersConfig> {
+        return await this.migrateLegacyConfig();
     }
 
-    /**
-     * Load the JSON config from the filesystem
-     * @throws {Error} - If the config file does not exist.
-     * @throws {Error} - If the config file is not parse-able.
-     * @throws {Error} - If the config file is not valid.
-     */
-    private async loadConfig(configFilePath = this.configPath) {
-        if (!existsSync(configFilePath))
-            throw new Error(`Config file does not exist at '${configFilePath}'`);
-        return this.validate(JSON.parse(readFileSync(configFilePath, 'utf8')));
-    }
+    /**-----------------------------------------------------
+     *  Helpers for migrating myservers.cfg to connect.json
+     *------------------------------------------------------**/
 
     /**
      * Migrate the legacy config file to the new config format.
@@ -143,8 +81,7 @@ export class ConnectConfigPersister implements OnModuleInit, OnModuleDestroy {
     private async migrateLegacyConfig(filePath?: string) {
         const myServersCfgFile = await this.readLegacyConfig(filePath);
         const legacyConfig = this.parseLegacyConfig(myServersCfgFile);
-        const newConfig = await this.convertLegacyConfig(legacyConfig);
-        this.configService.set('connect.config', newConfig);
+        return await this.convertLegacyConfig(legacyConfig);
     }
 
     /**

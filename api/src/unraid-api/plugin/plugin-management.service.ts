@@ -4,13 +4,14 @@ import { ConfigService } from '@nestjs/config';
 import { ApiConfig } from '@unraid/shared/services/api-config.js';
 
 import { DependencyService } from '@app/unraid-api/app/dependency.service.js';
-import { persistApiConfig } from '@app/unraid-api/config/api-config.module.js';
+import { ApiConfigPersistence } from '@app/unraid-api/config/api-config.module.js';
 
 @Injectable()
 export class PluginManagementService {
     constructor(
         private readonly configService: ConfigService<{ api: ApiConfig }, true>,
-        private readonly dependencyService: DependencyService
+        private readonly dependencyService: DependencyService,
+        private readonly apiConfigPersistence: ApiConfigPersistence
     ) {}
 
     get plugins() {
@@ -111,6 +112,6 @@ export class PluginManagementService {
     }
 
     private async persistConfig() {
-        return await persistApiConfig(this.configService.get('api', { infer: true }));
+        return await this.apiConfigPersistence.persist();
     }
 }
