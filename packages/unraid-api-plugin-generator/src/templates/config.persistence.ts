@@ -1,81 +1,25 @@
-import { Logger, Injectable, OnModuleInit } from "@nestjs/common";
-import { ConfigService } from "@nestjs/config";
-import { existsSync, readFileSync } from "fs";
-import { writeFile } from "fs/promises";
-import path from "path";
-import { bufferTime } from "rxjs/operators";
+import { Injectable } from "@nestjs/common";
+import { ConfigFilePersister } from "@unraid/shared/services/config-file.js"; // npm install @unraid/shared
 import { PluginNameConfig } from "./config.entity.js";
+import { ConfigService } from "@nestjs/config";
 
 @Injectable()
-export class PluginNameConfigPersister implements OnModuleInit {
-  constructor(private readonly configService: ConfigService) {}
-
-  private logger = new Logger(PluginNameConfigPersister.name);
-
-  /** the file path to the config file for this plugin */
-  get configPath() {
-    return path.join(
-      this.configService.get("PATHS_CONFIG_MODULES")!,
-      "plugin-name.json" // Use kebab-case for the filename
-    );
+export class PluginNameConfigPersister extends ConfigFilePersister<PluginNameConfig> {
+  constructor(configService: ConfigService) {
+    super(configService);
   }
 
-  onModuleInit() {
-    this.logger.debug(`Config path: ${this.configPath}`);
-    // Load the config from the file if it exists, otherwise initialize it with defaults.
-    if (existsSync(this.configPath)) {
-      try {
-        const configFromFile = JSON.parse(
-          readFileSync(this.configPath, "utf8")
-        );
-        this.configService.set("plugin-name", configFromFile);
-        this.logger.verbose(`Config loaded from ${this.configPath}`);
-      } catch (error) {
-        this.logger.error(
-          `Error reading or parsing config file at ${this.configPath}. Using defaults.`,
-          error
-        );
-        // If loading fails, ensure default config is set and persisted
-        this.persist();
-      }
-    } else {
-      this.logger.log(
-        `Config file ${this.configPath} does not exist. Writing default config...`
-      );
-      // Persist the default configuration provided by configFeature
-      this.persist();
-    }
-
-    // Automatically persist changes to the config file after a short delay.
-    this.configService.changes$.pipe(bufferTime(25)).subscribe({
-      next: async (changes) => {
-        const pluginNameConfigChanged = changes.some(({ path }) =>
-          path.startsWith("plugin-name.")
-        );
-        if (pluginNameConfigChanged) {
-          this.logger.verbose("Plugin config changed");
-          await this.persist();
-        }
-      },
-      error: (err) => {
-        this.logger.error("Error receiving config changes:", err);
-      },
-    });
+  fileName(): string {
+    return "plugin-name.json"; // Use kebab-case for the filename
   }
 
-  async persist(
-    config = this.configService.get<PluginNameConfig>("plugin-name")
-  ) {
-    const data = JSON.stringify(config, null, 2);
-    this.logger.verbose(`Persisting config to ${this.configPath}: ${data}`);
-    try {
-      await writeFile(this.configPath, data);
-      this.logger.verbose(`Config change persisted to ${this.configPath}`);
-    } catch (error) {
-      this.logger.error(
-        `Error persisting config to '${this.configPath}':`,
-        error
-      );
-    }
+  configKey(): string {
+    return "plugin-name";
+  }
+
+  defaultConfig(): PluginNameConfig {
+    // Return the default configuration for your plugin
+    // This should match the structure defined in your config.entity.ts
+    return {} as PluginNameConfig;
   }
 }

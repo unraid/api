@@ -1,16 +1,7 @@
 <script lang="ts" setup>
 import { reactive, watch } from 'vue';
 
-import {
-  Input,
-  Label,
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-  Switch,
-} from '@unraid/ui';
+import { Input, Label, Select, Switch } from '@unraid/ui';
 import { defaultColors } from '~/themes/default';
 
 import type { Theme } from '~/themes/types';
@@ -48,6 +39,13 @@ watch([form], () => {
   };
   themeStore.setTheme(themeToSet);
 });
+
+const items = [
+  { value: 'white', label: 'Light' },
+  { value: 'black', label: 'Dark' },
+  { value: 'azure', label: 'Azure' },
+  { value: 'gray', label: 'Gray' },
+];
 </script>
 
 <template>
@@ -55,17 +53,7 @@ watch([form], () => {
     <h1 class="text-lg">Color Theme Customization</h1>
 
     <Label for="theme-select">Theme</Label>
-    <Select v-model="form.selectedTheme">
-      <SelectTrigger>
-        <SelectValue placeholder="Select a theme" />
-      </SelectTrigger>
-      <SelectContent>
-        <SelectItem value="white">Light</SelectItem>
-        <SelectItem value="black">Dark</SelectItem>
-        <SelectItem value="azure">Azure</SelectItem>
-        <SelectItem value="gray">Gray</SelectItem>
-      </SelectContent>
-    </Select>
+    <Select v-model="form.selectedTheme" :items="items" placeholder="Select a theme" />
 
     <Label for="primary-text-color">Header Primary Text Color</Label>
     <Input id="primary-text-color" v-model="form.textPrimary" />

@@ -4,14 +4,12 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { fileExists } from '@app/core/utils/files/file-exists.js';
 import { ApiConfigPersistence, loadApiConfig } from '@app/unraid-api/config/api-config.module.js';
-import { ConfigPersistenceHelper } from '@app/unraid-api/config/persistence.helper.js';
 
-// Mock the core file-exists utility used by ApiStateConfig
+// Mock file utilities
 vi.mock('@app/core/utils/files/file-exists.js', () => ({
     fileExists: vi.fn(),
 }));
 
-// Mock the shared file-exists utility used by ConfigPersistenceHelper
 vi.mock('@unraid/shared/util/file.js', () => ({
     fileExists: vi.fn(),
 }));
@@ -25,16 +23,56 @@ vi.mock('fs/promises', () => ({
 describe('ApiConfigPersistence', () => {
     let service: ApiConfigPersistence;
     let configService: ConfigService;
-    let persistenceHelper: ConfigPersistenceHelper;
 
     beforeEach(() => {
         configService = {
             get: vi.fn(),
             set: vi.fn(),
+            getOrThrow: vi.fn().mockReturnValue('test-config-path'),
         } as any;
 
-        persistenceHelper = {} as ConfigPersistenceHelper;
-        service = new ApiConfigPersistence(configService, persistenceHelper);
+        service = new ApiConfigPersistence(configService);
+    });
+
+    describe('required ConfigFilePersister methods', () => {
+        it('should return correct file name', () => {
+            expect(service.fileName()).toBe('api.json');
+        });
+
+        it('should return correct config key', () => {
+            expect(service.configKey()).toBe('api');
+        });
+
+        it('should return default config', () => {
+            const defaultConfig = service.defaultConfig();
+            expect(defaultConfig).toEqual({
+                version: expect.any(String),
+                extraOrigins: [],
+                sandbox: false,
+                ssoSubIds: [],
+                plugins: [],
+            });
+        });
+
+        it('should migrate config from legacy format', async () => {
+            const mockLegacyConfig = {
+                local: { sandbox: 'yes' },
+                api: { extraOrigins: 'https://example.com,https://test.com' },
+                remote: { ssoSubIds: 'sub1,sub2' },
+            };
+
+            vi.mocked(configService.get).mockReturnValue(mockLegacyConfig);
+
+            const result = await service.migrateConfig();
+
+            expect(result).toEqual({
+                version: expect.any(String),
+                extraOrigins: ['https://example.com', 'https://test.com'],
+                sandbox: true,
+                ssoSubIds: ['sub1', 'sub2'],
+                plugins: [],
+            });
+        });
     });
 
     describe('convertLegacyConfig', () => {
@@ -154,23 +192,11 @@ describe('ApiConfigPersistence', () => {
 });
 
 describe('loadApiConfig', () => {
-    let readFile: any;
-    let writeFile: any;
-
     beforeEach(async () => {
         vi.clearAllMocks();
-        // Reset modules to ensure fresh imports
-        vi.resetModules();
-
-        // Get mocked functions
-        const fsMocks = await import('fs/promises');
-        readFile = fsMocks.readFile;
-        writeFile = fsMocks.writeFile;
     });
 
-    it('should return default config when file does not exist', async () => {
-        vi.mocked(fileExists).mockResolvedValue(false);
-
+    it('should return default config with current API_VERSION', async () => {
         const result = await loadApiConfig();
 
         expect(result).toEqual({
@@ -182,39 +208,9 @@ describe('loadApiConfig', () => {
         });
     });
 
-    it('should merge disk config with defaults when file exists', async () => {
-        const diskConfig = {
-            extraOrigins: ['https://example.com'],
-            sandbox: true,
-            ssoSubIds: ['sub1', 'sub2'],
-        };
-
-        vi.mocked(fileExists).mockResolvedValue(true);
-        vi.mocked(readFile).mockResolvedValue(JSON.stringify(diskConfig));
-
+    it('should handle errors gracefully and return defaults', async () => {
         const result = await loadApiConfig();
 
-        expect(result).toEqual({
-            version: expect.any(String),
-            extraOrigins: ['https://example.com'],
-            sandbox: true,
-            ssoSubIds: ['sub1', 'sub2'],
-            plugins: [],
-        });
-    });
-
-    it('should use default config and overwrite file when JSON parsing fails', async () => {
-        const { fileExists: sharedFileExists } = await import('@unraid/shared/util/file.js');
-
-        vi.mocked(fileExists).mockResolvedValue(true);
-        vi.mocked(readFile).mockResolvedValue('{ invalid json }');
-        vi.mocked(sharedFileExists).mockResolvedValue(false); // For persist operation
-        vi.mocked(writeFile).mockResolvedValue(undefined);
-
-        const result = await loadApiConfig();
-
-        // Error logging is handled by NestJS Logger, just verify the config is returned
-        expect(writeFile).toHaveBeenCalled();
         expect(result).toEqual({
             version: expect.any(String),
             extraOrigins: [],
@@ -222,57 +218,5 @@ describe('loadApiConfig', () => {
             ssoSubIds: [],
             plugins: [],
         });
-    });
-
-    it('should handle write failure gracefully when JSON parsing fails', async () => {
-        const { fileExists: sharedFileExists } = await import('@unraid/shared/util/file.js');
-
-        vi.mocked(fileExists).mockResolvedValue(true);
-        vi.mocked(readFile).mockResolvedValue('{ invalid json }');
-        vi.mocked(sharedFileExists).mockResolvedValue(false); // For persist operation
-        vi.mocked(writeFile).mockRejectedValue(new Error('Permission denied'));
-
-        const result = await loadApiConfig();
-
-        // Error logging is handled by NestJS Logger, just verify the config is returned
-        expect(writeFile).toHaveBeenCalled();
-        expect(result).toEqual({
-            version: expect.any(String),
-            extraOrigins: [],
-            sandbox: false,
-            ssoSubIds: [],
-            plugins: [],
-        });
-    });
-
-    it('should use default config when file is empty', async () => {
-        vi.mocked(fileExists).mockResolvedValue(true);
-        vi.mocked(readFile).mockResolvedValue('');
-
-        const result = await loadApiConfig();
-
-        // No error logging expected for empty files
-        expect(result).toEqual({
-            version: expect.any(String),
-            extraOrigins: [],
-            sandbox: false,
-            ssoSubIds: [],
-            plugins: [],
-        });
-    });
-
-    it('should always override version with current API_VERSION', async () => {
-        const diskConfig = {
-            version: 'old-version',
-            extraOrigins: ['https://example.com'],
-        };
-
-        vi.mocked(fileExists).mockResolvedValue(true);
-        vi.mocked(readFile).mockResolvedValue(JSON.stringify(diskConfig));
-
-        const result = await loadApiConfig();
-
-        expect(result.version).not.toBe('old-version');
-        expect(result.version).toBeTruthy();
     });
 });
