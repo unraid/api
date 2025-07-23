@@ -29,7 +29,7 @@ const config: CodegenConfig = {
     generates: {
         // Generate Types for CLI Internal GraphQL Queries
         'src/unraid-api/cli/generated/': {
-            documents: ['src/unraid-api/cli/queries/**/*.ts'],
+            documents: ['src/unraid-api/cli/queries/**/*.ts', 'src/unraid-api/cli/mutations/**/*.ts'],
             schema: './generated-schema.graphql',
             preset: 'client',
             presetConfig: {

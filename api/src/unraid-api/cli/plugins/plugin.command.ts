@@ -2,11 +2,12 @@ import { Injectable } from '@nestjs/common';
 
 import { Command, CommandRunner, Option, SubCommand } from 'nest-commander';
 
+import { CliInternalClientService } from '@app/unraid-api/cli/internal-client.service.js';
 import { LogService } from '@app/unraid-api/cli/log.service.js';
+import { ADD_PLUGIN_MUTATION } from '@app/unraid-api/cli/mutations/add-plugin.mutation.js';
+import { REMOVE_PLUGIN_MUTATION } from '@app/unraid-api/cli/mutations/remove-plugin.mutation.js';
+import { PLUGINS_QUERY } from '@app/unraid-api/cli/queries/plugins.query.js';
 import { RestartCommand } from '@app/unraid-api/cli/restart.command.js';
-import { PluginManagementService } from '@app/unraid-api/plugin/plugin-management.service.js';
-import { PluginService } from '@app/unraid-api/plugin/plugin.service.js';
-import { parsePackageArg } from '@app/utils.js';
 
 interface InstallPluginCommandOptions {
     bundled: boolean;
@@ -23,7 +24,7 @@ export class InstallPluginCommand extends CommandRunner {
     constructor(
         private readonly logService: LogService,
         private readonly restartCommand: RestartCommand,
-        private readonly pluginManagementService: PluginManagementService
+        private readonly internalClient: CliInternalClientService
     ) {
         super();
     }
@@ -34,15 +35,35 @@ export class InstallPluginCommand extends CommandRunner {
             process.exitCode = 1;
             return;
         }
-        if (options.bundled) {
-            await this.pluginManagementService.addBundledPlugin(...passedParams);
-            this.logService.log(`Added bundled plugin ${passedParams.join(', ')}`);
-        } else {
-            await this.pluginManagementService.addPlugin(...passedParams);
-            this.logService.log(`Added plugin ${passedParams.join(', ')}`);
-        }
-        if (options.restart) {
-            await this.restartCommand.run();
+
+        try {
+            const client = await this.internalClient.getClient();
+
+            const result = await client.mutate({
+                mutation: ADD_PLUGIN_MUTATION,
+                variables: {
+                    input: {
+                        names: passedParams,
+                        bundled: options.bundled,
+                        restart: options.restart,
+                    },
+                },
+            });
+
+            const requiresManualRestart = result.data?.addPlugin;
+
+            if (options.bundled) {
+                this.logService.log(`Added bundled plugin ${passedParams.join(', ')}`);
+            } else {
+                this.logService.log(`Added plugin ${passedParams.join(', ')}`);
+            }
+
+            if (requiresManualRestart && options.restart) {
+                await this.restartCommand.run();
+            }
+        } catch (error) {
+            this.logService.error('Failed to add plugin:', error);
+            process.exitCode = 1;
         }
     }
 
@@ -60,7 +81,7 @@ export class InstallPluginCommand extends CommandRunner {
         description: 'do NOT restart the service after deploy',
         defaultValue: true,
     })
-    parseRestart(value: boolean): boolean {
+    parseRestart(): boolean {
         return false;
     }
 }
@@ -74,7 +95,7 @@ export class InstallPluginCommand extends CommandRunner {
 export class RemovePluginCommand extends CommandRunner {
     constructor(
         private readonly logService: LogService,
-        private readonly pluginManagementService: PluginManagementService,
+        private readonly internalClient: CliInternalClientService,
         private readonly restartCommand: RestartCommand
     ) {
         super();
@@ -86,15 +107,35 @@ export class RemovePluginCommand extends CommandRunner {
             process.exitCode = 1;
             return;
         }
-        if (options.bundled) {
-            await this.pluginManagementService.removeBundledPlugin(...passedParams);
-            this.logService.log(`Removed bundled plugin ${passedParams.join(', ')}`);
-        } else {
-            await this.pluginManagementService.removePlugin(...passedParams);
-            this.logService.log(`Removed plugin ${passedParams.join(', ')}`);
-        }
-        if (options.restart) {
-            await this.restartCommand.run();
+
+        try {
+            const client = await this.internalClient.getClient();
+
+            const result = await client.mutate({
+                mutation: REMOVE_PLUGIN_MUTATION,
+                variables: {
+                    input: {
+                        names: passedParams,
+                        bundled: options.bundled,
+                        restart: options.restart,
+                    },
+                },
+            });
+
+            const requiresManualRestart = result.data?.removePlugin;
+
+            if (options.bundled) {
+                this.logService.log(`Removed bundled plugin ${passedParams.join(', ')}`);
+            } else {
+                this.logService.log(`Removed plugin ${passedParams.join(', ')}`);
+            }
+
+            if (requiresManualRestart && options.restart) {
+                await this.restartCommand.run();
+            }
+        } catch (error) {
+            this.logService.error('Failed to remove plugin:', error);
+            process.exitCode = 1;
         }
     }
 
@@ -112,7 +153,7 @@ export class RemovePluginCommand extends CommandRunner {
         description: 'do NOT restart the service after deploy',
         defaultValue: true,
     })
-    parseRestart(value: boolean): boolean {
+    parseRestart(): boolean {
         return false;
     }
 }
@@ -125,34 +166,39 @@ export class RemovePluginCommand extends CommandRunner {
 export class ListPluginCommand extends CommandRunner {
     constructor(
         private readonly logService: LogService,
-        private readonly pluginManagementService: PluginManagementService
+        private readonly internalClient: CliInternalClientService
     ) {
         super();
     }
 
     async run(): Promise<void> {
-        const configPlugins = this.pluginManagementService.plugins;
-        const installedPlugins = await PluginService.listPlugins();
+        try {
+            const client = await this.internalClient.getClient();
 
-        // this can happen if configPlugins is a super set of installedPlugins
-        if (installedPlugins.length !== configPlugins.length) {
-            const configSet = new Set(configPlugins.map((plugin) => parsePackageArg(plugin).name));
-            const installedSet = new Set(installedPlugins.map(([name]) => name));
-            const notInstalled = Array.from(configSet.difference(installedSet));
-            this.logService.warn(`${notInstalled.length} plugins are not installed:`);
-            this.logService.table('warn', notInstalled);
+            const result = await client.query({
+                query: PLUGINS_QUERY,
+            });
+
+            const plugins = result.data?.plugins || [];
+
+            if (plugins.length === 0) {
+                this.logService.log('No plugins installed.');
+                return;
+            }
+
+            this.logService.log('Installed plugins:\n');
+            plugins.forEach((plugin) => {
+                const moduleInfo: string[] = [];
+                if (plugin.hasApiModule) moduleInfo.push('API');
+                if (plugin.hasCliModule) moduleInfo.push('CLI');
+                const modules = moduleInfo.length > 0 ? ` [${moduleInfo.join(', ')}]` : '';
+                this.logService.log(`☑️ ${plugin.name}@${plugin.version}${modules}`);
+            });
+            this.logService.log(); // for spacing
+        } catch (error) {
+            this.logService.error('Failed to list plugins:', error);
+            process.exitCode = 1;
         }
-
-        if (installedPlugins.length === 0) {
-            this.logService.log('No plugins installed.');
-            return;
-        }
-
-        this.logService.log('Installed plugins:\n');
-        installedPlugins.forEach(([name, version]) => {
-            this.logService.log(`☑️ ${name}@${version}`);
-        });
-        this.logService.log(); // for spacing
     }
 }
 

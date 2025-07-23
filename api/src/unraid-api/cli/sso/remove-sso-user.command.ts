@@ -2,8 +2,10 @@ import { Injectable } from '@nestjs/common';
 
 import { CommandRunner, InquirerService, Option, SubCommand } from 'nest-commander';
 
-import { SsoUserService } from '@app/unraid-api/auth/sso-user.service.js';
+import { CliInternalClientService } from '@app/unraid-api/cli/internal-client.service.js';
 import { LogService } from '@app/unraid-api/cli/log.service.js';
+import { UPDATE_SSO_USERS_MUTATION } from '@app/unraid-api/cli/mutations/update-sso-users.mutation.js';
+import { SSO_USERS_QUERY } from '@app/unraid-api/cli/queries/sso-users.query.js';
 import { RestartCommand } from '@app/unraid-api/cli/restart.command.js';
 import {
     NoSSOUsersFoundError,
@@ -25,11 +27,11 @@ export class RemoveSSOUserCommand extends CommandRunner {
         private readonly logger: LogService,
         private readonly inquirerService: InquirerService,
         private readonly restartCommand: RestartCommand,
-        private readonly ssoUserService: SsoUserService
+        private readonly internalClient: CliInternalClientService
     ) {
         super();
     }
-    public async run(_input: string[], options: RemoveSSOUserCommandOptions): Promise<void> {
+    public async run(_input: string[], options?: RemoveSSOUserCommandOptions): Promise<void> {
         try {
             options = await this.inquirerService.prompt(RemoveSSOUserQuestionSet.name, options);
         } catch (error) {
@@ -45,11 +47,44 @@ export class RemoveSSOUserCommand extends CommandRunner {
             }
         }
 
+        const client = await this.internalClient.getClient();
+
+        const result = await client.query({
+            query: SSO_USERS_QUERY,
+        });
+
+        const currentUsers = result.data?.settings?.api?.ssoSubIds || [];
+
         if (options.username === 'all') {
-            await this.ssoUserService.removeAllSsoUsers();
+            await client.mutate({
+                mutation: UPDATE_SSO_USERS_MUTATION,
+                variables: {
+                    input: {
+                        api: {
+                            ssoSubIds: [],
+                        },
+                    },
+                },
+            });
             this.logger.info('All users removed from SSO');
         } else {
-            await this.ssoUserService.removeSsoUser(options.username);
+            const updatedUsers = currentUsers.filter((id: string) => id !== options.username);
+
+            if (updatedUsers.length === currentUsers.length) {
+                this.logger.error(`User ${options.username} not found in SSO users`);
+                return;
+            }
+
+            await client.mutate({
+                mutation: UPDATE_SSO_USERS_MUTATION,
+                variables: {
+                    input: {
+                        api: {
+                            ssoSubIds: updatedUsers,
+                        },
+                    },
+                },
+            });
             this.logger.info('User removed: ' + options.username);
         }
         this.logger.info('Restarting the API');

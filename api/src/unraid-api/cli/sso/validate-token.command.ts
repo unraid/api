@@ -3,8 +3,9 @@ import { createLocalJWKSet, createRemoteJWKSet, jwtVerify } from 'jose';
 import { CommandRunner, SubCommand } from 'nest-commander';
 
 import { JWKS_LOCAL_PAYLOAD, JWKS_REMOTE_LINK } from '@app/consts.js';
-import { SsoUserService } from '@app/unraid-api/auth/sso-user.service.js';
+import { CliInternalClientService } from '@app/unraid-api/cli/internal-client.service.js';
 import { LogService } from '@app/unraid-api/cli/log.service.js';
+import { SSO_USERS_QUERY } from '@app/unraid-api/cli/queries/sso-users.query.js';
 
 @SubCommand({
     name: 'validate-token',
@@ -17,7 +18,7 @@ export class ValidateTokenCommand extends CommandRunner {
     JWKSOnline: ReturnType<typeof createRemoteJWKSet>;
     constructor(
         private readonly logger: LogService,
-        private readonly ssoUserService: SsoUserService
+        private readonly internalClient: CliInternalClientService
     ) {
         super();
         this.JWKSOffline = createLocalJWKSet(JWKS_LOCAL_PAYLOAD);
@@ -80,7 +81,14 @@ export class ValidateTokenCommand extends CommandRunner {
         if (!username) {
             return this.createErrorAndExit('No ID found in token');
         }
-        const ssoUsers = await this.ssoUserService.getSsoUsers();
+        const client = await this.internalClient.getClient();
+
+        const result = await client.query({
+            query: SSO_USERS_QUERY,
+        });
+
+        const ssoUsers = result.data?.settings?.api?.ssoSubIds || [];
+
         if (ssoUsers.length === 0) {
             this.createErrorAndExit(
                 'No local user token set to compare to - please set any valid SSO IDs you would like to sign in with'
