@@ -6,10 +6,10 @@ export const isUnraidApiRunning = async (): Promise<boolean | undefined> => {
         process.env.PM2_HOME = PM2_HOME;
     }
 
-    const pm2 = await import('pm2');
-    const { connect, describe, disconnect, list } = pm2.default || pm2;
+    const pm2Module = await import('pm2');
+    const pm2 = pm2Module.default || pm2Module;
     return new Promise((resolve) => {
-        connect(function (err) {
+        pm2.connect(function (err) {
             if (err) {
                 // Don't reject here, resolve with false since we can't connect to PM2
                 resolve(false);
@@ -17,7 +17,7 @@ export const isUnraidApiRunning = async (): Promise<boolean | undefined> => {
             }
 
             // First list all processes to debug
-            list(function (listErr, processDescriptionList) {
+            pm2.list(function (listErr, processDescriptionList) {
                 if (!listErr && processDescriptionList) {
                     // Log all running PM2 processes for debugging
                     const processNames = processDescriptionList.map((p) => p.name);
@@ -27,7 +27,7 @@ export const isUnraidApiRunning = async (): Promise<boolean | undefined> => {
                 }
 
                 // Now try to describe unraid-api specifically
-                describe('unraid-api', function (err, processDescription) {
+                pm2.describe('unraid-api', function (err, processDescription) {
                     if (err || processDescription.length === 0) {
                         // Service not found or error occurred
                         resolve(false);
@@ -36,7 +36,7 @@ export const isUnraidApiRunning = async (): Promise<boolean | undefined> => {
                         resolve(isOnline);
                     }
 
-                    disconnect();
+                    pm2.disconnect();
                 });
             });
         });
