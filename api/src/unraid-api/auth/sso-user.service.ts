@@ -1,17 +1,21 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, Optional } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 
 import type { SsoUserService as ISsoUserService } from '@unraid/shared/services/sso.js';
 import { GraphQLError } from 'graphql/error/GraphQLError.js';
 
 import type { ApiConfig } from '@app/unraid-api/config/api-config.module.js';
+import { UnraidFileModificationService } from '@app/unraid-api/unraid-file-modifier/unraid-file-modifier.service.js';
 
 @Injectable()
 export class SsoUserService implements ISsoUserService {
     private readonly logger = new Logger(SsoUserService.name);
     private ssoSubIdsConfigKey = 'api.ssoSubIds';
 
-    constructor(private readonly configService: ConfigService) {}
+    constructor(
+        private readonly configService: ConfigService,
+        @Optional() private readonly fileModificationService?: UnraidFileModificationService
+    ) {}
 
     /**
      * Get the current list of SSO user IDs
@@ -48,75 +52,29 @@ export class SsoUserService implements ISsoUserService {
         // Update the config
         this.configService.set(this.ssoSubIdsConfigKey, userIds);
 
-        // Request a restart if there were no SSO users before
-        return currentUserSet.size === 0;
-    }
-
-    /**
-     * Add a single SSO user ID
-     * @param userId - The SSO user ID to add
-     * @returns true if a restart is required, false otherwise
-     */
-    async addSsoUser(userId: string): Promise<boolean> {
-        const currentUsers = await this.getSsoUsers();
-
-        // If user already exists, no need to update
-        if (currentUsers.includes(userId)) {
-            return false;
+        // Handle file modification if available
+        if (this.fileModificationService) {
+            // If going from 0 to 1+ users, apply the SSO modification
+            if (currentUserSet.size === 0 && newUserSet.size > 0) {
+                try {
+                    await this.fileModificationService.applyModificationById('sso');
+                    this.logger.log('Applied SSO file modification after adding SSO users');
+                } catch (error) {
+                    this.logger.error('Failed to apply SSO file modification', error);
+                }
+            }
+            // If going from 1+ to 0 users, rollback the SSO modification
+            else if (currentUserSet.size > 0 && newUserSet.size === 0) {
+                try {
+                    await this.fileModificationService.rollbackModificationById('sso');
+                    this.logger.log('Rolled back SSO file modification after removing all SSO users');
+                } catch (error) {
+                    this.logger.error('Failed to rollback SSO file modification', error);
+                }
+            }
         }
 
-        // Validate user ID
-        const uuidRegex =
-            /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/;
-        if (!uuidRegex.test(userId)) {
-            throw new GraphQLError(`Invalid SSO user ID: ${userId}`);
-        }
-
-        // Add the new user
-        const newUsers = [...currentUsers, userId];
-        this.configService.set(this.ssoSubIdsConfigKey, newUsers);
-
-        // Request a restart if there were no SSO users before
-        return currentUsers.length === 0;
-    }
-
-    /**
-     * Remove a single SSO user ID
-     * @param userId - The SSO user ID to remove
-     * @returns true if a restart is required, false otherwise
-     */
-    async removeSsoUser(userId: string): Promise<boolean> {
-        const currentUsers = await this.getSsoUsers();
-
-        // If user doesn't exist, no need to update
-        if (!currentUsers.includes(userId)) {
-            return false;
-        }
-
-        // Remove the user
-        const newUsers = currentUsers.filter((id) => id !== userId);
-        this.configService.set(this.ssoSubIdsConfigKey, newUsers);
-
-        // Request a restart if this was the last SSO user
-        return currentUsers.length === 1;
-    }
-
-    /**
-     * Remove all SSO users
-     * @returns true if a restart is required, false otherwise
-     */
-    async removeAllSsoUsers(): Promise<boolean> {
-        const currentUsers = await this.getSsoUsers();
-
-        // If no users exist, no need to update
-        if (currentUsers.length === 0) {
-            return false;
-        }
-
-        // Remove all users
-        this.configService.set(this.ssoSubIdsConfigKey, []);
-
-        // Request a restart if there were any SSO users
-        return true;
+        // No restart required - file modifications are applied immediately
+        return false;
     }
 }

@@ -60,7 +60,7 @@ describe('AddSSOUserCommand', () => {
             mutate: vi.fn().mockResolvedValue({
                 data: {
                     updateSettings: {
-                        restartRequired: true,
+                        restartRequired: false,
                         values: {},
                     },
                 },
@@ -86,8 +86,9 @@ describe('AddSSOUserCommand', () => {
                 },
             },
         });
-        expect(mockLogger.info).toHaveBeenCalledWith('User added new-user-id, restarting the API');
-        expect(mockRestartCommand.run).toHaveBeenCalled();
+        expect(mockLogger.info).toHaveBeenCalledWith('User added: new-user-id');
+        expect(mockLogger.info).not.toHaveBeenCalledWith('Restarting the API');
+        expect(mockRestartCommand.run).not.toHaveBeenCalled();
     });
 
     it('should not add user if disclaimer is not accepted', async () => {

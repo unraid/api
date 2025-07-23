@@ -7,5 +7,6 @@ import { UnraidFileModificationService } from '@app/unraid-api/unraid-file-modif
 @Module({
     imports: [NginxModule],
     providers: [UnraidFileModificationService, FileModificationEffectService],
+    exports: [UnraidFileModificationService],
 })
 export class UnraidFileModifierModule {}

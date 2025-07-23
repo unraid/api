@@ -50,7 +50,7 @@ export class AddSSOUserCommand extends CommandRunner {
 
                 const updatedUsers = [...currentUsers, options.username];
 
-                await client.mutate({
+                const mutationResult = await client.mutate({
                     mutation: UPDATE_SSO_USERS_MUTATION,
                     variables: {
                         input: {
@@ -62,6 +62,12 @@ export class AddSSOUserCommand extends CommandRunner {
                 });
 
                 this.logger.info(`User added: ${options.username}`);
+
+                // Check if restart is required based on mutation response
+                if (mutationResult.data?.updateSettings?.restartRequired) {
+                    this.logger.info('Restarting the API');
+                    await this.restartCommand.run();
+                }
             }
         } catch (e: unknown) {
             this.logger.error('Error adding user:', e);
