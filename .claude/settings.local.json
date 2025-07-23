@@ -46,7 +46,9 @@
       "Bash(chmod:*)",
       "Bash(cd /Users/elibosley/Code/api)",
       "Bash(find . -name \"*.ts\" -type f -exec grep -l \"vue-eslint-parser\" {})",
-      "Bash(find . -name \"eslint.config.ts\" -type f)"
+      "Bash(find . -name \"eslint.config.ts\" -type f)",
+      "Bash(cd /Users/elibosley/Code/api/api)",
+      "Bash(find . -name \"*.test.ts\" -path \"./__test__/*\" -type f)"
     ]
   },
   "enableAllProjectMcpServers": false
