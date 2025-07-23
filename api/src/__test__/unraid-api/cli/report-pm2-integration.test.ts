@@ -3,7 +3,7 @@ import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 import { execa } from 'execa';
-import { afterAll, beforeAll, expect, it, test } from 'vitest';
+import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 
 const __dirname = fileURLToPath(new URL('.', import.meta.url));
 const PM2_PATH = join(__dirname, '../../../../node_modules/.bin/pm2');
@@ -31,7 +31,7 @@ async function cleanupAllPM2Processes() {
     }
 }
 
-test.skipIf(!!process.env.CI)('ReportCommand PM2 integration', () => {
+describe.skipIf(!!process.env.CI)('ReportCommand PM2 integration', () => {
     beforeAll(async () => {
         // Build the CLI if it doesn't exist
         if (!existsSync(CLI_PATH)) {

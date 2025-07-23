@@ -2,7 +2,7 @@ import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 import { execa } from 'execa';
-import { afterAll, afterEach, beforeAll, beforeEach, expect, it, test } from 'vitest';
+import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 
 import { isUnraidApiRunning } from '@app/core/utils/pm2/unraid-api-running.js';
 
@@ -27,7 +27,7 @@ async function cleanupAllPM2Processes() {
     }
 }
 
-test.skipIf(!!process.env.CI)('isUnraidApiRunning integration test', () => {
+describe.skipIf(!!process.env.CI)('isUnraidApiRunning integration test', () => {
     beforeAll(async () => {
         await cleanupAllPM2Processes();
     }, 30000);
