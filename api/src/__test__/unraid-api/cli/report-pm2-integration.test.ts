@@ -16,6 +16,21 @@ async function runCliCommand(command: string, options: any = {}) {
     return await execa('node', [CLI_PATH, command], options);
 }
 
+// Helper to ensure PM2 is completely clean
+async function cleanupAllPM2Processes() {
+    try {
+        // Delete all processes we might have created
+        await execa(PM2_PATH, ['delete', 'unraid-api'], { reject: false });
+        await execa(PM2_PATH, ['delete', 'all'], { reject: false });
+        // Kill the daemon to ensure fresh state
+        await execa(PM2_PATH, ['kill'], { reject: false });
+        // Small delay to let PM2 fully shutdown
+        await new Promise((resolve) => setTimeout(resolve, 500));
+    } catch {
+        // Ignore all errors in cleanup
+    }
+}
+
 describe('ReportCommand PM2 integration', () => {
     beforeAll(async () => {
         // Build the CLI if it doesn't exist
@@ -35,29 +50,11 @@ describe('ReportCommand PM2 integration', () => {
             }
         }
 
-        // Ensure we have a clean state
-        try {
-            await execa(PM2_PATH, ['delete', 'unraid-api']);
-        } catch {
-            // Ignore if process doesn't exist
-        }
-
-        // Kill any existing PM2 daemon to ensure clean state
-        try {
-            await execa(PM2_PATH, ['kill']);
-        } catch {
-            // Ignore if PM2 daemon not running
-        }
+        await cleanupAllPM2Processes();
     }, 150000); // 2.5 minute timeout for setup
 
     afterAll(async () => {
-        // Clean up
-        try {
-            await execa(PM2_PATH, ['delete', 'unraid-api']);
-            await execa(PM2_PATH, ['kill']);
-        } catch {
-            // Ignore cleanup errors
-        }
+        await cleanupAllPM2Processes();
     });
 
     it('should report API is not running when PM2 process does not exist', async () => {
