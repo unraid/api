@@ -12,6 +12,12 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 @theme {
+  /* Breakpoints */
+  --breakpoint-xs: 30rem;
+  --breakpoint-2xl: 100rem;
+  --breakpoint-3xl: 120rem;
+
+  /* Colors */
   --color-primary-50: #fff7ed;
   --color-primary-100: #ffedd5;
   --color-primary-200: #fed7aa;

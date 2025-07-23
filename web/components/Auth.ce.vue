@@ -30,9 +30,3 @@ const { authAction, stateData } = storeToRefs(serverStore);
     </span>
   </div>
 </template>
-
-<style>
-/* Import unraid-ui globals first */
-@import '@unraid/ui/styles';
-@import '~/assets/main.css';
-</style>

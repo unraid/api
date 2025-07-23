@@ -2,6 +2,9 @@ import { createI18n } from 'vue-i18n';
 import type { App } from 'vue';
 import { DefaultApolloClient } from '@vue/apollo-composable';
 
+// Import Tailwind CSS for web components shadow DOM injection
+import tailwindStyles from '~/assets/main.css?inline';
+
 import en_US from '~/locales/en_US.json';
 import { createHtmlEntityDecoder } from '~/helpers/i18n-utils';
 import { globalPinia } from '~/store/globalPinia';
@@ -46,4 +49,19 @@ export default function (Vue: App) {
 
   // Provide Apollo client for all web components
   Vue.provide(DefaultApolloClient, client);
-} 
+
+  // Inject Tailwind CSS into the shadow DOM
+  Vue.mixin({
+    mounted() {
+      if (typeof window !== 'undefined' && this.$el) {
+        const shadowRoot = this.$el.getRootNode();
+        if (shadowRoot && shadowRoot !== document && !shadowRoot.querySelector('style[data-tailwind]')) {
+          const styleElement = document.createElement('style');
+          styleElement.setAttribute('data-tailwind', 'true');
+          styleElement.textContent = tailwindStyles;
+          shadowRoot.prepend(styleElement);
+        }
+      }
+    }
+  });
+}

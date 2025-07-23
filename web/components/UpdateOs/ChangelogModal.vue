@@ -9,7 +9,7 @@ import {
   KeyIcon,
   ServerStackIcon,
 } from '@heroicons/vue/24/solid';
-import { BrandButton, BrandLoading } from '@unraid/ui';
+import { BrandButton, BrandLoading, cn } from '@unraid/ui';
 import { allowedDocsOriginRegex, allowedDocsUrlRegex } from '~/helpers/urls';
 
 import type { ComposerTranslation } from 'vue-i18n';
@@ -176,8 +176,8 @@ watch(darkMode, () => {
     </template>
 
     <template #footer>
-      <div class="flex flex-col-reverse xs:flex-row justify-between gap-3 md:gap-4">
-        <div class="flex flex-col-reverse xs:flex-row xs:justify-start gap-3 md:gap-4">
+      <div :class="cn('flex flex-col-reverse xs:!flex-row justify-between gap-3 md:gap-4')">
+        <div :class="cn('flex flex-col-reverse xs:!flex-row xs:justify-start gap-3 md:gap-4')">
           <!-- Back to changelog button (when navigated away) -->
           <BrandButton
             v-if="hasNavigated && docsChangelogUrl"

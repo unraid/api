@@ -39,6 +39,7 @@ class WebComponentsExtractor
         return $contents ? json_decode($contents, true) : [];
     }
 
+
     private function getRichComponentsFile(): string
     {
         $manifestFiles = $this->findManifestFiles('manifest.json');
