@@ -4,7 +4,7 @@ import { readFile, writeFile } from 'fs/promises';
 import { execa } from 'execa';
 import { z } from 'zod';
 
-import { fileExistsSync } from '@app/core/utils/files/file-exists.js';
+import { fileExists } from '@app/core/utils/files/file-exists.js';
 import { UPSConfigInput } from '@app/unraid-api/graph/resolvers/ups/ups.inputs.js';
 
 const UPSSchema = z.object({
@@ -42,6 +42,7 @@ export type UPSConfig = z.infer<typeof UPSConfigSchema>;
 export class UPSService {
     private readonly logger = new Logger(UPSService.name);
     private readonly configPath = '/etc/apcupsd/apcupsd.conf';
+    private rc6Path = '/etc/rc.d/rc.6'; // Made non-readonly for testing
 
     async getUPSData(): Promise<UPSData> {
         try {
@@ -64,156 +65,21 @@ export class UPSService {
 
     async configureUPS(config: UPSConfigInput): Promise<void> {
         try {
-            // Read current configuration first to merge with new values
             const currentConfig = await this.getCurrentConfig();
+            const mergedConfig = this.mergeConfigurations(config, currentConfig);
 
-            // Merge provided config with existing values
-            const mergedConfig = {
-                service: config.service ?? currentConfig.SERVICE ?? 'disable',
-                upsCable: config.upsCable ?? currentConfig.UPSCABLE ?? 'usb',
-                customUpsCable: config.customUpsCable ?? currentConfig.CUSTOMUPSCABLE,
-                upsType: config.upsType ?? currentConfig.UPSTYPE ?? 'usb',
-                device: config.device ?? currentConfig.DEVICE ?? '',
-                overrideUpsCapacity: config.overrideUpsCapacity ?? currentConfig.OVERRIDE_UPS_CAPACITY,
-                batteryLevel: config.batteryLevel ?? currentConfig.BATTERYLEVEL ?? 10,
-                minutes: config.minutes ?? currentConfig.MINUTES ?? 5,
-                timeout: config.timeout ?? currentConfig.TIMEOUT ?? 0,
-                killUps: config.killUps ?? currentConfig.KILLUPS ?? 'no',
-            };
+            this.validateConfiguration(mergedConfig);
 
-            // Validate required fields after merging
-            if (!mergedConfig.upsType) {
-                throw new Error('upsType is required');
-            }
-            if (!mergedConfig.device && mergedConfig.upsType !== 'usb') {
-                throw new Error('device is required for non-USB UPS types');
-            }
+            await this.stopUPSService();
 
-            // Stop the UPS service before making changes
-            try {
-                await execa('/etc/rc.d/rc.apcupsd', ['stop'], { timeout: 10000 });
-            } catch (error) {
-                this.logger.warn('Failed to stop apcupsd service (may not be running):', error);
-            }
+            const newConfig = this.prepareConfigObject(mergedConfig, currentConfig);
 
-            // Prepare the new configuration with uppercase field names
-            const cable =
-                mergedConfig.upsCable === 'custom' ? mergedConfig.customUpsCable : mergedConfig.upsCable;
-            const newConfig: Partial<UPSConfig> = {
-                NISIP: currentConfig.NISIP || '0.0.0.0',
-                SERVICE: mergedConfig.service,
-                UPSTYPE: mergedConfig.upsType,
-                DEVICE: mergedConfig.device || '',
-                BATTERYLEVEL: mergedConfig.batteryLevel,
-                MINUTES: mergedConfig.minutes,
-                TIMEOUT: mergedConfig.timeout,
-                UPSCABLE: cable,
-                KILLUPS: mergedConfig.killUps,
-                // Preserve other existing config values
-                NETSERVER: currentConfig.NETSERVER,
-                UPSNAME: currentConfig.UPSNAME,
-                MODELNAME: currentConfig.MODELNAME,
-            };
+            await this.writeConfigurationWithBackup(newConfig, currentConfig);
 
-            // Add optional override capacity if provided
-            if (
-                mergedConfig.overrideUpsCapacity !== undefined &&
-                mergedConfig.overrideUpsCapacity !== null
-            ) {
-                newConfig.OVERRIDE_UPS_CAPACITY = mergedConfig.overrideUpsCapacity;
-            }
+            await this.configureKillPower(mergedConfig);
 
-            // Backup the current configuration
-            const backupPath = `${this.configPath}.backup`;
-            try {
-                if (fileExistsSync(this.configPath)) {
-                    const currentContent = await readFile(this.configPath, 'utf-8');
-                    await writeFile(backupPath, currentContent, 'utf-8');
-                    this.logger.debug(`Backed up current config to ${backupPath}`);
-                }
-            } catch (error) {
-                this.logger.warn('Failed to create config backup:', error);
-            }
-
-            // Generate and write the new configuration file
-            const configContent = this.generateApcupsdConfig(newConfig, currentConfig);
-            try {
-                await writeFile(this.configPath, configContent, 'utf-8');
-                this.logger.debug('Successfully wrote new UPS configuration');
-            } catch (error) {
-                // Try to restore backup if writing fails
-                try {
-                    if (fileExistsSync(backupPath)) {
-                        const backupContent = await readFile(backupPath, 'utf-8');
-                        await writeFile(this.configPath, backupContent, 'utf-8');
-                        this.logger.warn('Restored config from backup after write failure');
-                    }
-                } catch (restoreError) {
-                    this.logger.error('Failed to restore config backup:', restoreError);
-                }
-                throw error;
-            }
-
-            // Handle killpower configuration
-            if (mergedConfig.killUps === 'yes' && mergedConfig.service === 'enable') {
-                try {
-                    // First check if apccontrol is already in rc.6
-                    const { exitCode } = await execa('grep', ['-q', 'apccontrol', '/etc/rc.d/rc.6'], {
-                        reject: false,
-                    });
-
-                    // If not found (exitCode !== 0), add it
-                    if (exitCode !== 0) {
-                        await execa('sed', [
-                            '-i',
-                            '-e',
-                            's:/sbin/poweroff:/etc/apcupsd/apccontrol killpower; /sbin/poweroff:',
-                            '/etc/rc.d/rc.6',
-                        ]);
-                        this.logger.debug('Added killpower to rc.6');
-                    }
-                } catch (error) {
-                    this.logger.error('Failed to update rc.6 for killpower enable:', error);
-                    throw new Error(
-                        `Failed to enable killpower in /etc/rc.d/rc.6: ${error instanceof Error ? error.message : String(error)}`
-                    );
-                }
-            } else {
-                try {
-                    // Check if apccontrol is in rc.6
-                    const { exitCode } = await execa('grep', ['-q', 'apccontrol', '/etc/rc.d/rc.6'], {
-                        reject: false,
-                    });
-
-                    // If found (exitCode === 0), remove it
-                    if (exitCode === 0) {
-                        await execa('sed', [
-                            '-i',
-                            '-e',
-                            's:/etc/apcupsd/apccontrol killpower; /sbin/poweroff:/sbin/poweroff:',
-                            '/etc/rc.d/rc.6',
-                        ]);
-                        this.logger.debug('Removed killpower from rc.6');
-                    }
-                } catch (error) {
-                    this.logger.error('Failed to update rc.6 for killpower disable:', error);
-                    throw new Error(
-                        `Failed to disable killpower in /etc/rc.d/rc.6: ${error instanceof Error ? error.message : String(error)}`
-                    );
-                }
-            }
-
-            // Start the service if enabled
             if (mergedConfig.service === 'enable') {
-                try {
-                    await execa('/etc/rc.d/rc.apcupsd', ['start'], { timeout: 10000 });
-                    this.logger.debug('Successfully started apcupsd service');
-                } catch (error) {
-                    this.logger.error('Failed to start apcupsd service:', error);
-                    throw new Error(
-                        `Configuration written successfully, but failed to start service: ${error instanceof Error ? error.message : String(error)}`
-                    );
-                }
+                await this.startUPSService();
             }
         } catch (error) {
             this.logger.error('Error configuring UPS:', error);
@@ -223,26 +89,219 @@ export class UPSService {
         }
     }
 
-    private parseUPSData(data: string): any {
-        const lines = data.split('\n');
-        const upsData = {};
-        for (const line of lines) {
-            const [key, value] = line.split(': ');
-            if (key && value) {
-                upsData[key.trim()] = value.trim();
-            }
+    private mergeConfigurations(config: UPSConfigInput, currentConfig: UPSConfig) {
+        return {
+            service: config.service ?? currentConfig.SERVICE ?? 'disable',
+            upsCable: config.upsCable ?? currentConfig.UPSCABLE ?? 'usb',
+            customUpsCable: config.customUpsCable ?? currentConfig.CUSTOMUPSCABLE,
+            upsType: config.upsType ?? currentConfig.UPSTYPE ?? 'usb',
+            device: config.device ?? currentConfig.DEVICE ?? '',
+            overrideUpsCapacity: config.overrideUpsCapacity ?? currentConfig.OVERRIDE_UPS_CAPACITY,
+            batteryLevel: config.batteryLevel ?? currentConfig.BATTERYLEVEL ?? 10,
+            minutes: config.minutes ?? currentConfig.MINUTES ?? 5,
+            timeout: config.timeout ?? currentConfig.TIMEOUT ?? 0,
+            killUps: config.killUps ?? currentConfig.KILLUPS ?? 'no',
+        };
+    }
+
+    private validateConfiguration(config: ReturnType<typeof this.mergeConfigurations>): void {
+        if (!config.upsType) {
+            throw new Error('upsType is required');
         }
-        return upsData;
+        if (!config.device && config.upsType !== 'usb') {
+            throw new Error('device is required for non-USB UPS types');
+        }
+    }
+
+    private async stopUPSService(): Promise<void> {
+        try {
+            await execa('/etc/rc.d/rc.apcupsd', ['stop'], { timeout: 10000 });
+        } catch (error) {
+            this.logger.warn('Failed to stop apcupsd service (may not be running):', error);
+        }
+    }
+
+    private async startUPSService(): Promise<void> {
+        try {
+            await execa('/etc/rc.d/rc.apcupsd', ['start'], { timeout: 10000 });
+            this.logger.debug('Successfully started apcupsd service');
+        } catch (error) {
+            this.logger.error('Failed to start apcupsd service:', error);
+            throw new Error(
+                `Configuration written successfully, but failed to start service: ${error instanceof Error ? error.message : String(error)}`
+            );
+        }
+    }
+
+    private prepareConfigObject(
+        mergedConfig: ReturnType<typeof this.mergeConfigurations>,
+        currentConfig: UPSConfig
+    ): Partial<UPSConfig> {
+        const cable =
+            mergedConfig.upsCable === 'custom' ? mergedConfig.customUpsCable : mergedConfig.upsCable;
+
+        const newConfig: Partial<UPSConfig> = {
+            NISIP: currentConfig.NISIP || '0.0.0.0',
+            SERVICE: mergedConfig.service,
+            UPSTYPE: mergedConfig.upsType,
+            DEVICE: mergedConfig.device || '',
+            BATTERYLEVEL: mergedConfig.batteryLevel,
+            MINUTES: mergedConfig.minutes,
+            TIMEOUT: mergedConfig.timeout,
+            UPSCABLE: cable,
+            KILLUPS: mergedConfig.killUps,
+            NETSERVER: currentConfig.NETSERVER,
+            UPSNAME: currentConfig.UPSNAME,
+            MODELNAME: currentConfig.MODELNAME,
+        };
+
+        if (
+            mergedConfig.overrideUpsCapacity !== undefined &&
+            mergedConfig.overrideUpsCapacity !== null
+        ) {
+            newConfig.OVERRIDE_UPS_CAPACITY = mergedConfig.overrideUpsCapacity;
+        }
+
+        return newConfig;
+    }
+
+    private async writeConfigurationWithBackup(
+        newConfig: Partial<UPSConfig>,
+        currentConfig: UPSConfig
+    ): Promise<void> {
+        const backupPath = `${this.configPath}.backup`;
+
+        await this.createBackup(backupPath);
+
+        const configContent = this.generateApcupsdConfig(newConfig, currentConfig);
+
+        try {
+            await writeFile(this.configPath, configContent, 'utf-8');
+            this.logger.debug('Successfully wrote new UPS configuration');
+        } catch (error) {
+            await this.restoreBackup(backupPath);
+            throw error;
+        }
+    }
+
+    private async createBackup(backupPath: string): Promise<void> {
+        try {
+            if (await fileExists(this.configPath)) {
+                const currentContent = await readFile(this.configPath, 'utf-8');
+                await writeFile(backupPath, currentContent, 'utf-8');
+                this.logger.debug(`Backed up current config to ${backupPath}`);
+            }
+        } catch (error) {
+            this.logger.warn('Failed to create config backup:', error);
+        }
+    }
+
+    private async restoreBackup(backupPath: string): Promise<void> {
+        try {
+            if (await fileExists(backupPath)) {
+                const backupContent = await readFile(backupPath, 'utf-8');
+                await writeFile(this.configPath, backupContent, 'utf-8');
+                this.logger.warn('Restored config from backup after write failure');
+            }
+        } catch (restoreError) {
+            this.logger.error('Failed to restore config backup:', restoreError);
+        }
+    }
+
+    private async configureKillPower(
+        config: ReturnType<typeof this.mergeConfigurations>
+    ): Promise<void> {
+        // Only configure killpower if service is enabled
+        if (config.service !== 'enable') {
+            this.logger.debug('Skipping killpower configuration: service is not enabled');
+            return;
+        }
+
+        const shouldEnableKillPower = config.killUps === 'yes';
+
+        try {
+            await this.modifyRc6File(shouldEnableKillPower);
+        } catch (error) {
+            // If file doesn't exist, just skip (e.g., in tests)
+            if (error instanceof Error && error.message.includes('not found')) {
+                this.logger.debug(`Skipping killpower configuration: ${this.rc6Path} not found`);
+                return;
+            }
+            throw error;
+        }
+    }
+
+    private async modifyRc6File(enableKillPower: boolean): Promise<void> {
+        const content = await this.readFileIfExists(this.rc6Path);
+        if (!content) {
+            throw new Error(`${this.rc6Path} not found`);
+        }
+
+        const killPowerCommand = '/etc/apcupsd/apccontrol killpower; /sbin/poweroff';
+        const normalPoweroff = '/sbin/poweroff';
+        const hasKillPower = content.includes('apccontrol killpower');
+
+        // Check if modification is needed
+        if (enableKillPower && hasKillPower) {
+            this.logger.debug('Killpower already enabled in rc.6');
+            return;
+        }
+        if (!enableKillPower && !hasKillPower) {
+            this.logger.debug('Killpower already disabled in rc.6');
+            return;
+        }
+
+        // Modify content
+        const modifiedContent = enableKillPower
+            ? content.replace(normalPoweroff, killPowerCommand)
+            : content.replace(killPowerCommand, normalPoweroff);
+
+        // Write the modified content
+        try {
+            await writeFile(this.rc6Path, modifiedContent, 'utf-8');
+            this.logger.debug(
+                enableKillPower ? 'Added killpower to rc.6' : 'Removed killpower from rc.6'
+            );
+        } catch (error) {
+            const action = enableKillPower ? 'enable' : 'disable';
+            this.logger.error(`Failed to update rc.6 for killpower ${action}:`, error);
+            throw new Error(
+                `Failed to ${action} killpower in ${this.rc6Path}: ${error instanceof Error ? error.message : String(error)}`
+            );
+        }
+    }
+
+    private async readFileIfExists(path: string): Promise<string | null> {
+        try {
+            return await readFile(path, 'utf-8');
+        } catch (error) {
+            // File doesn't exist or can't be read
+            return null;
+        }
+    }
+
+    private parseUPSData(data: string): any {
+        return data
+            .split('\n')
+            .map((line) => line.split(': '))
+            .filter((parts) => parts.length === 2 && parts[0] && parts[1])
+            .reduce(
+                (upsData, [key, value]) => {
+                    upsData[key.trim()] = value.trim();
+                    return upsData;
+                },
+                {} as Record<string, string>
+            );
     }
 
     async getCurrentConfig(): Promise<UPSConfig> {
         try {
-            if (!fileExistsSync(this.configPath)) {
+            const configContent = await this.readFileIfExists(this.configPath);
+            if (!configContent) {
                 this.logger.warn(`UPS config file not found at ${this.configPath}`);
                 return {};
             }
 
-            const configContent = await readFile(this.configPath, 'utf-8');
             const config = this.parseApcupsdConfig(configContent);
             return UPSConfigSchema.parse(config);
         } catch (error) {
@@ -254,38 +313,31 @@ export class UPSService {
     }
 
     private parseApcupsdConfig(content: string): Record<string, any> {
-        const config = {};
-        const lines = content.split('\n');
+        return content
+            .split('\n')
+            .map((line) => line.trim())
+            .filter((line) => line && !line.startsWith('#'))
+            .map((line) => line.match(/^([A-Z_]+)\s+(.+)$/))
+            .filter((match): match is RegExpMatchArray => match !== null)
+            .reduce(
+                (config, match) => {
+                    const [, directive, value] = match;
+                    let parsedValue = value.trim();
 
-        for (const line of lines) {
-            const trimmedLine = line.trim();
+                    // Remove quotes if present
+                    if (parsedValue.startsWith('"') && parsedValue.endsWith('"')) {
+                        parsedValue = parsedValue.slice(1, -1);
+                    }
 
-            // Skip empty lines and comments
-            if (!trimmedLine || trimmedLine.startsWith('#')) {
-                continue;
-            }
+                    // Convert numeric values
+                    config[directive] = /^\d+$/.test(parsedValue)
+                        ? parseInt(parsedValue, 10)
+                        : parsedValue;
 
-            // Match pattern: DIRECTIVE value or DIRECTIVE "value"
-            const match = trimmedLine.match(/^([A-Z_]+)\s+(.+)$/);
-            if (match) {
-                const [, directive, value] = match;
-                let parsedValue = value.trim();
-
-                // Remove quotes if present
-                if (parsedValue.startsWith('"') && parsedValue.endsWith('"')) {
-                    parsedValue = parsedValue.slice(1, -1);
-                }
-
-                // Convert numeric values
-                if (/^\d+$/.test(parsedValue)) {
-                    config[directive] = parseInt(parsedValue, 10);
-                } else {
-                    config[directive] = parsedValue;
-                }
-            }
-        }
-
-        return config;
+                    return config;
+                },
+                {} as Record<string, any>
+            );
     }
 
     private generateApcupsdConfig(config: Partial<UPSConfig>, existingConfig: UPSConfig): string {

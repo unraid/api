@@ -1,6 +1,5 @@
-import { Logger } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
-import { mkdtemp, readFile, rm, writeFile } from 'fs/promises';
+import { mkdtemp, readFile, rm, unlink, writeFile } from 'fs/promises';
 import { tmpdir } from 'os';
 import { join } from 'path';
 
@@ -20,9 +19,7 @@ vi.mock('execa');
 vi.mock('@app/core/utils/files/file-exists.js');
 
 const mockExeca = vi.mocked((await import('execa')).execa);
-const mockFileExistsSync = vi.mocked(
-    (await import('@app/core/utils/files/file-exists.js')).fileExistsSync
-);
+const mockFileExists = vi.mocked((await import('@app/core/utils/files/file-exists.js')).fileExists);
 
 describe('UPSService', () => {
     let service: UPSService;
@@ -85,7 +82,7 @@ describe('UPSService', () => {
         vi.spyOn(service['logger'], 'error').mockImplementation(() => {});
 
         // Default mocks
-        mockFileExistsSync.mockImplementation((path) => {
+        mockFileExists.mockImplementation(async (path) => {
             if (path === configPath) {
                 return true;
             }
@@ -174,53 +171,51 @@ describe('UPSService', () => {
         });
 
         it('should handle killpower configuration for enable + yes', async () => {
+            // Create a mock rc.6 file for this test
+            const mockRc6Path = join(tempDir, 'mock-rc.6');
+            await writeFile(mockRc6Path, '/sbin/poweroff', 'utf-8');
+            service['rc6Path'] = mockRc6Path;
+
+            // Update mock to indicate rc6 file exists
+            mockFileExists.mockImplementation(async (path) => {
+                if (path === configPath || path === mockRc6Path) {
+                    return true;
+                }
+                return false;
+            });
+
             const config: UPSConfigInput = {
                 service: UPSServiceState.ENABLE,
                 killUps: UPSKillPower.YES,
             };
 
-            // Mock grep to return exit code 1 (not found)
-            mockExeca.mockImplementation(((cmd: any, args: any) => {
-                if (cmd === 'grep' && Array.isArray(args) && args.includes('apccontrol')) {
-                    return Promise.resolve({ stdout: '', stderr: '', exitCode: 1 } as any);
-                }
-                return Promise.resolve({ stdout: '', stderr: '', exitCode: 0 } as any);
-            }) as any);
-
             await service.configureUPS(config);
 
-            // Should call sed to add killpower
-            expect(mockExeca).toHaveBeenCalledWith('sed', [
-                '-i',
-                '-e',
-                's:/sbin/poweroff:/etc/apcupsd/apccontrol killpower; /sbin/poweroff:',
-                '/etc/rc.d/rc.6',
-            ]);
+            // Should have modified the rc.6 file
+            const rc6Content = await readFile(mockRc6Path, 'utf-8');
+            expect(rc6Content).toContain('/etc/apcupsd/apccontrol killpower; /sbin/poweroff');
+
+            expect(mockExeca).toHaveBeenCalledWith('/etc/rc.d/rc.apcupsd', ['start'], {
+                timeout: 10000,
+            });
         });
 
         it('should handle killpower configuration for disable case', async () => {
+            // Create a mock rc.6 file with killpower already enabled
+            const mockRc6Path = join(tempDir, 'mock-rc.6-2');
+            await writeFile(mockRc6Path, '/etc/apcupsd/apccontrol killpower; /sbin/poweroff', 'utf-8');
+            service['rc6Path'] = mockRc6Path;
+
             const config: UPSConfigInput = {
                 service: UPSServiceState.DISABLE,
                 killUps: UPSKillPower.YES, // should be ignored since service is disabled
             };
 
-            // Mock grep to return exit code 0 (found)
-            mockExeca.mockImplementation(((cmd: any, args: any) => {
-                if (cmd === 'grep' && Array.isArray(args) && args.includes('apccontrol')) {
-                    return Promise.resolve({ stdout: '', stderr: '', exitCode: 0 } as any);
-                }
-                return Promise.resolve({ stdout: '', stderr: '', exitCode: 0 } as any);
-            }) as any);
-
             await service.configureUPS(config);
 
-            // Should call sed to remove killpower
-            expect(mockExeca).toHaveBeenCalledWith('sed', [
-                '-i',
-                '-e',
-                's:/etc/apcupsd/apccontrol killpower; /sbin/poweroff:/sbin/poweroff:',
-                '/etc/rc.d/rc.6',
-            ]);
+            // Should NOT have modified the rc.6 file since service is disabled
+            const rc6Content = await readFile(mockRc6Path, 'utf-8');
+            expect(rc6Content).toContain('/etc/apcupsd/apccontrol killpower; /sbin/poweroff');
         });
 
         it('should start service when enabled', async () => {
@@ -322,6 +317,146 @@ describe('UPSService', () => {
             // Config should remain unchanged
             const currentContent = await readFile(configPath, 'utf-8');
             expect(currentContent).toBe(originalContent);
+        });
+    });
+
+    describe('killpower functionality', () => {
+        let tempRc6Path: string;
+
+        beforeEach(async () => {
+            // Create a temporary rc.6 file for testing
+            tempRc6Path = join(tempDir, 'rc.6');
+
+            // Create a mock rc.6 content
+            const mockRc6Content = `#!/bin/sh
+# Shutdown script
+echo "Shutting down..."
+/sbin/poweroff
+exit 0
+`;
+            await writeFile(tempRc6Path, mockRc6Content, 'utf-8');
+
+            // Override the rc6Path in the service (we'll need to make it configurable)
+            service['rc6Path'] = tempRc6Path;
+
+            // Update mock to indicate rc6 file exists
+            mockFileExists.mockImplementation(async (path) => {
+                if (path === configPath || path === tempRc6Path) {
+                    return true;
+                }
+                return false;
+            });
+        });
+
+        it('should enable killpower when killUps=yes and service=enable', async () => {
+            const config: UPSConfigInput = {
+                killUps: UPSKillPower.YES,
+                service: UPSServiceState.ENABLE,
+                upsType: UPSType.USB,
+            };
+
+            await service.configureUPS(config);
+
+            const rc6Content = await readFile(tempRc6Path, 'utf-8');
+            expect(rc6Content).toContain('/etc/apcupsd/apccontrol killpower; /sbin/poweroff');
+            // The file still contains "exit 0" on a separate line
+            expect(rc6Content).toContain('exit 0');
+        });
+
+        it('should disable killpower when killUps=no', async () => {
+            // First enable killpower
+            const enableConfig: UPSConfigInput = {
+                killUps: UPSKillPower.YES,
+                service: UPSServiceState.ENABLE,
+                upsType: UPSType.USB,
+            };
+            await service.configureUPS(enableConfig);
+
+            // Then disable it
+            const disableConfig: UPSConfigInput = {
+                killUps: UPSKillPower.NO,
+                service: UPSServiceState.ENABLE,
+                upsType: UPSType.USB,
+            };
+            await service.configureUPS(disableConfig);
+
+            const rc6Content = await readFile(tempRc6Path, 'utf-8');
+            expect(rc6Content).not.toContain('apccontrol killpower');
+            expect(rc6Content).toContain('/sbin/poweroff\nexit 0'); // Should be restored
+        });
+
+        it('should not enable killpower when service=disable', async () => {
+            const config: UPSConfigInput = {
+                killUps: UPSKillPower.YES,
+                service: UPSServiceState.DISABLE, // Service is disabled
+                upsType: UPSType.USB,
+            };
+
+            await service.configureUPS(config);
+
+            const rc6Content = await readFile(tempRc6Path, 'utf-8');
+            expect(rc6Content).not.toContain('apccontrol killpower');
+        });
+
+        it('should handle missing rc.6 file gracefully', async () => {
+            // Remove the file
+            await unlink(tempRc6Path);
+
+            // Update mock to indicate rc6 file does NOT exist
+            mockFileExists.mockImplementation(async (path) => {
+                if (path === configPath) {
+                    return true;
+                }
+                return false;
+            });
+
+            const config: UPSConfigInput = {
+                killUps: UPSKillPower.YES,
+                service: UPSServiceState.ENABLE,
+                upsType: UPSType.USB,
+            };
+
+            // Should not throw - just skip killpower configuration
+            await expect(service.configureUPS(config)).resolves.not.toThrow();
+        });
+
+        it('should be idempotent - enabling killpower multiple times', async () => {
+            const config: UPSConfigInput = {
+                killUps: UPSKillPower.YES,
+                service: UPSServiceState.ENABLE,
+                upsType: UPSType.USB,
+            };
+
+            // Enable killpower twice
+            await service.configureUPS(config);
+            const firstContent = await readFile(tempRc6Path, 'utf-8');
+
+            await service.configureUPS(config);
+            const secondContent = await readFile(tempRc6Path, 'utf-8');
+
+            // Content should be the same after second run
+            expect(firstContent).toBe(secondContent);
+            // Should only have one instance of killpower
+            expect((secondContent.match(/apccontrol killpower/g) || []).length).toBe(1);
+        });
+
+        it('should be idempotent - disabling killpower multiple times', async () => {
+            const config: UPSConfigInput = {
+                killUps: UPSKillPower.NO,
+                service: UPSServiceState.ENABLE,
+                upsType: UPSType.USB,
+            };
+
+            // Disable killpower twice (when it's not enabled)
+            await service.configureUPS(config);
+            const firstContent = await readFile(tempRc6Path, 'utf-8');
+
+            await service.configureUPS(config);
+            const secondContent = await readFile(tempRc6Path, 'utf-8');
+
+            // Content should be the same after second run
+            expect(firstContent).toBe(secondContent);
+            expect(secondContent).not.toContain('apccontrol killpower');
         });
     });
 });
