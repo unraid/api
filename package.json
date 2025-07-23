@@ -16,6 +16,10 @@
     "postinstall": "simple-git-hooks"
   },
   "pnpm": {
+    "overrides": {
+      "graphql": "16.11.0",
+      "@graphql-tools/utils": "10.8.6"
+    },
     "peerDependencyRules": {
       "allowAny": [
         "vue"
