@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue';
+import { computed, ref, watch } from 'vue';
 
 import {
   UBadge,
@@ -22,10 +22,10 @@ interface NavigationItem {
   slot?: string;
   status?: {
     label: string;
-    dotColor: string; // Tailwind color class like 'bg-green-500'
+    dotColor: string;
   }[];
-  children?: NavigationItem[]; // For grouped/nested items
-  isGroup?: boolean; // Indicates if this is a group/folder
+  children?: NavigationItem[];
+  isGroup?: boolean;
 }
 
 interface NavigationMenuItem {
@@ -71,15 +71,39 @@ const selectedNavigationId = ref(props.defaultNavigationId || props.navigationIt
 const selectedTab = ref(props.defaultTabKey || '0');
 const selectedItems = ref<string[]>([]);
 
+const expandedGroups = ref<Record<string, boolean>>({});
+
+// Initialize expanded state for groups (defaultOpen = true)
+const initializeExpandedState = () => {
+  props.navigationItems.forEach((item) => {
+    if (item.isGroup) {
+      expandedGroups.value[item.id] = true; // Start expanded
+      console.log(`Initialized group ${item.id} as expanded:`, true);
+    }
+  });
+  console.log('Initial expandedGroups state:', expandedGroups.value);
+};
+
+initializeExpandedState();
+
+// Watch for changes in navigation items to reinitialize expanded state
+watch(
+  () => props.navigationItems,
+  () => {
+    initializeExpandedState();
+  },
+  { deep: true }
+);
+
 const selectedNavigationItem = computed(() => {
-  // First check top-level items
   const topLevel = props.navigationItems.find((item) => item.id === selectedNavigationId.value);
+
   if (topLevel) return topLevel;
 
-  // Then check nested items
   for (const item of props.navigationItems) {
     if (item.children) {
       const nested = item.children.find((child) => child.id === selectedNavigationId.value);
+
       if (nested) return nested;
     }
   }
@@ -94,12 +118,12 @@ const navigationMenuItems = computed((): NavigationMenuItem[] =>
     id: item.id,
     badge: String(item.badge || ''),
     slot: item.slot,
-    onClick: () => selectNavigationItem(item.id),
+    // Only add onClick for non-group items
+    ...(item.isGroup ? {} : { onClick: () => selectNavigationItem(item.id) }),
     isGroup: item.isGroup,
     status: item.status,
-    // For groups, don't add 'to' property to enable accordion behavior
-    to: item.isGroup ? undefined : '#',
-    // Add defaultOpen for groups to control initial state
+    // Only add 'to' for non-group items to preserve chevron arrow for groups
+    ...(item.isGroup ? {} : { to: '#' }),
     defaultOpen: item.isGroup ? true : undefined,
     children: item.children?.map((child) => ({
       label: child.label,
@@ -109,13 +133,14 @@ const navigationMenuItems = computed((): NavigationMenuItem[] =>
       slot: child.slot,
       onClick: () => selectNavigationItem(child.id),
       status: child.status,
-      to: '#', // Add 'to' property for children to make them clickable
+      to: '#',
     })),
   }))
 );
 
 const toggleItemSelection = (itemId: string) => {
   const index = selectedItems.value.indexOf(itemId);
+
   if (index > -1) {
     selectedItems.value.splice(index, 1);
   } else {
@@ -136,25 +161,85 @@ const tabItems = computed(() =>
 );
 
 const selectNavigationItem = (id: string) => {
-  selectedNavigationId.value = id;
-  selectedTab.value = '0'; // Reset to first tab index
+  // Don't select group items - they should only toggle expansion
+  const actualItem =
+    props.navigationItems.find((item) => item.id === id) ||
+    props.navigationItems.flatMap((item) => item.children || []).find((child) => child.id === id);
+
+  if (actualItem && !actualItem.isGroup) {
+    selectedNavigationId.value = id;
+    selectedTab.value = '0'; // Reset to first tab index
+  }
 };
+
+const toggleGroupExpansion = (groupId: string) => {
+  expandedGroups.value[groupId] = !expandedGroups.value[groupId];
+  console.log(`Manually toggled group ${groupId} to:`, expandedGroups.value[groupId]);
+};
+
+// Select all functionality
+const selectAllItems = () => {
+  const allSelectableItems: string[] = [];
+
+  const collectSelectableItems = (items: NavigationItem[]) => {
+    for (const item of items) {
+      if (!item.isGroup) {
+        allSelectableItems.push(item.id);
+      }
+
+      if (item.children) {
+        collectSelectableItems(item.children);
+      }
+    }
+  };
+
+  collectSelectableItems(props.navigationItems);
+  selectedItems.value = [...allSelectableItems];
+};
+
+const clearAllSelections = () => {
+  selectedItems.value = [];
+};
+
+const allItemsSelected = computed(() => {
+  const allSelectableItems: string[] = [];
+
+  const collectSelectableItems = (items: NavigationItem[]) => {
+    for (const item of items) {
+      if (!item.isGroup) {
+        allSelectableItems.push(item.id);
+      }
+
+      if (item.children) {
+        collectSelectableItems(item.children);
+      }
+    }
+  };
+
+  collectSelectableItems(props.navigationItems);
+  return (
+    allSelectableItems.length > 0 && allSelectableItems.every((id) => selectedItems.value.includes(id))
+  );
+});
+
+const selectedItemsCount = computed(() => selectedItems.value.length);
 
 // Helper to get all items with slots (including nested children)
 const allItemsWithSlots = computed(() => {
   const items: NavigationMenuItem[] = [];
-  
+
   const collectItems = (navItems: NavigationMenuItem[]) => {
     for (const item of navItems) {
       if (item.slot) {
         items.push(item);
       }
+
       if (item.children) {
         collectItems(item.children);
       }
     }
   };
-  
+
   collectItems(navigationMenuItems.value);
   return items;
 });
@@ -180,24 +265,69 @@ const getCurrentTabProps = () => {
 <template>
   <div class="flex h-full gap-6">
     <!-- Left Navigation Section -->
-    <div class="w-64 flex-shrink-0">
+    <div class="mr-8 w-64 flex-shrink-0">
+      <!-- Header Section -->
+      <div class="mb-6">
+        <div class="flex items-center justify-between mb-3">
+          <h2 class="text-lg font-semibold text-gray-900 dark:text-white">Service Name</h2>
+          <UButton icon="i-lucide-plus" size="sm" color="primary" variant="ghost" square />
+        </div>
+
+        <div class="flex items-center justify-between">
+          <UButton
+            variant="link"
+            color="primary"
+            size="sm"
+            :label="allItemsSelected ? 'Clear all' : 'Select all'"
+            @click="allItemsSelected ? clearAllSelections() : selectAllItems()"
+          />
+
+          <UDropdownMenu
+            :items="[
+              [{ label: 'Start', icon: 'i-lucide-play' }],
+              [{ label: 'Stop', icon: 'i-lucide-square' }],
+              [{ label: 'Restart', icon: 'i-lucide-refresh-cw' }],
+              [{ label: 'Remove', icon: 'i-lucide-trash-2' }],
+            ]"
+          >
+            <UButton
+              variant="subtle"
+              color="primary"
+              size="sm"
+              trailing-icon="i-lucide-chevron-down"
+              :disabled="selectedItemsCount === 0"
+            >
+              Manage Selected ({{ selectedItemsCount }})
+            </UButton>
+          </UDropdownMenu>
+        </div>
+      </div>
       <UNavigationMenu :items="navigationMenuItems" orientation="vertical">
-        <!-- Dynamic slots for all items with custom content -->
-        <template 
-          v-for="item in allItemsWithSlots" 
-          :key="`slot-${item.id}`"
-          #[item.slot!]
-        >
-          <div class="flex items-center gap-3">
+        <!-- Dynamic nav item slots -->
+        <template v-for="item in allItemsWithSlots" :key="`slot-${item.id}`" #[item.slot!]>
+          <div
+            class="flex items-center gap-3 mb-2"
+            @click="
+              item.children && item.children.length > 0 ? toggleGroupExpansion(item.id) : undefined
+            "
+          >
             <UCheckbox
               :model-value="isItemSelected(item.id)"
-              class="flex-shrink-0"
               @update:model-value="toggleItemSelection(item.id)"
               @click.stop
             />
-            <UIcon v-if="item.icon" :name="item.icon" class="h-5 w-5 flex-shrink-0" />
+            <UIcon v-if="item.icon" :name="item.icon" class="h-5 w-5" />
             <span class="truncate flex-1">{{ item.label }}</span>
             <UBadge v-if="item.badge" size="xs" :label="String(item.badge)" />
+
+            <UIcon
+              v-if="item.children?.length"
+              name="i-lucide-chevron-down"
+              :class="[
+                'h-5 w-5 text-gray-400 transition-transform duration-200',
+                expandedGroups[item.id] ? 'rotate-180' : 'rotate-0',
+              ]"
+            />
           </div>
         </template>
       </UNavigationMenu>
@@ -212,7 +342,7 @@ const getCurrentTabProps = () => {
             :name="selectedNavigationItem.icon"
             class="h-8 w-8"
           />
-          <h1 class="text-2xl font-semibold text-gray-900 dark:text-white">
+          <h1 class="text-2xl mr-2 font-semibold text-gray-900 dark:text-white">
             {{ selectedNavigationItem.label }}
           </h1>
 
@@ -225,7 +355,7 @@ const getCurrentTabProps = () => {
               color="neutral"
               size="sm"
             >
-              <div :class="['h-2 w-2 rounded-full mr-2', statusItem.dotColor]"/>
+              <div :class="['h-2 w-2 rounded-full mr-2', statusItem.dotColor]" />
               {{ statusItem.label }}
             </UBadge>
           </div>
@@ -247,7 +377,7 @@ const getCurrentTabProps = () => {
               [{ label: 'Force Update', icon: 'i-lucide-download' }],
             ]"
           >
-            <UButton variant="outline" color="primary" trailing-icon="i-lucide-chevron-down">
+            <UButton variant="subtle" color="primary" size="sm" trailing-icon="i-lucide-chevron-down">
               Manage
             </UButton>
           </UDropdownMenu>
