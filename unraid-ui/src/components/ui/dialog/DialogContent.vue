@@ -13,21 +13,42 @@ import {
   type DialogContentProps,
 } from 'reka-ui';
 import type { HTMLAttributes } from 'vue';
+import { onMounted } from 'vue';
 
 const props = defineProps<
-  DialogContentProps & { class?: HTMLAttributes['class']; showCloseButton?: boolean }
+  DialogContentProps & {
+    class?: HTMLAttributes['class'];
+    showCloseButton?: boolean;
+    to?: string | HTMLElement;
+  }
 >();
 const emits = defineEmits<DialogContentEmits>();
 
-const delegatedProps = reactiveOmit(props, 'class', 'showCloseButton');
+const delegatedProps = reactiveOmit(props, 'class', 'showCloseButton', 'to');
 
 const forwarded = useForwardPropsEmits(delegatedProps, emits);
 
 const { teleportTarget } = useTeleport();
+
+// Debug logging
+console.log('DialogContent mounted with props:', {
+  to: props.to,
+  teleportTarget,
+  showCloseButton: props.showCloseButton,
+});
+
+onMounted(() => {
+  console.log('DialogContent onMounted - checking teleport target:', {
+    providedTo: props.to,
+    defaultTarget: teleportTarget,
+    actualTarget: props.to || teleportTarget,
+    targetExists: props.to ? document.querySelector(props.to as string) : null,
+  });
+});
 </script>
 
 <template>
-  <DialogPortal :to="teleportTarget">
+  <DialogPortal :to="props.to || teleportTarget || 'body'">
     <DialogOverlay
       class="fixed inset-0 z-50 bg-black/80 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0"
     />

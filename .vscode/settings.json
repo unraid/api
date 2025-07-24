@@ -10,5 +10,8 @@
   "i18n-ally.keystyle": "flat",
   "eslint.experimental.useFlatConfig": true,
   "typescript.preferences.importModuleSpecifier": "non-relative",
-  "javascript.preferences.importModuleSpecifier": "non-relative"
+  "javascript.preferences.importModuleSpecifier": "non-relative",
+  "terminal.integrated.env.osx": {
+    "PATH": "/Users/elibosley/.nvm/versions/node/v22.14.0/bin:${env:PATH}"
+  }
 }

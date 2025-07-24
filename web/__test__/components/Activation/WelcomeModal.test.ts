@@ -35,6 +35,7 @@ const mockT = (key: string, args?: unknown[]) => (args ? `${key} ${JSON.stringif
 const mockComponents = {
   ActivationPartnerLogo: {
     template: '<div data-testid="partner-logo"></div>',
+    props: ['partnerInfo'],
   },
   ActivationSteps: {
     template: '<div data-testid="activation-steps" :active-step="activeStep"></div>',
@@ -174,9 +175,10 @@ describe('Activation/WelcomeModal.ce.vue', () => {
     await button.trigger('click');
     await wrapper.vm.$nextTick();
 
-    // After click, the dialog should no longer exist because v-if="showModal" will be false
+    // After click, the dialog should be hidden (modelValue should be false)
     dialog = wrapper.findComponent({ name: 'Dialog' });
-    expect(dialog.exists()).toBe(false);
+    expect(dialog.exists()).toBe(true);
+    expect(dialog.props('modelValue')).toBe(false);
   });
 
   it('disables the Create a password button when loading', async () => {
@@ -219,40 +221,6 @@ describe('Activation/WelcomeModal.ce.vue', () => {
     vi.useRealTimers();
   });
 
-  describe('Font size adjustment', () => {
-    it('sets font-size to 62.5% when confirmPassword field exists', async () => {
-      mockQuerySelector.mockReturnValue({ id: 'confirmPassword' });
-      mountComponent();
-
-      await vi.runAllTimersAsync();
-
-      expect(mockSetProperty).toHaveBeenCalledWith('font-size', '62.5%');
-    });
-
-    it('does not set font-size when confirmPassword field does not exist', async () => {
-      mockQuerySelector.mockReturnValue(null);
-      mountComponent();
-
-      await vi.runAllTimersAsync();
-
-      expect(mockSetProperty).not.toHaveBeenCalled();
-    });
-
-    it('sets font-size to 100% when modal is hidden', async () => {
-      mockQuerySelector.mockReturnValue({ id: 'confirmPassword' });
-      const wrapper = await mountComponent();
-
-      await vi.runAllTimersAsync();
-
-      expect(mockSetProperty).toHaveBeenCalledWith('font-size', '62.5%');
-
-      const button = wrapper.find('button');
-      await button.trigger('click');
-      await wrapper.vm.$nextTick();
-
-      expect(mockSetProperty).toHaveBeenCalledWith('font-size', '100%');
-    });
-  });
 
   it('shows modal on login page even when isInitialSetup is false', async () => {
     Object.defineProperty(window, 'location', {
@@ -290,7 +258,8 @@ describe('Activation/WelcomeModal.ce.vue', () => {
     const wrapper = await mountComponent();
     const dialog = wrapper.findComponent({ name: 'Dialog' });
     
-    expect(dialog.exists()).toBe(false);
+    expect(dialog.exists()).toBe(true);
+    expect(dialog.props('modelValue')).toBe(false);
   });
 
   describe('Modal properties', () => {

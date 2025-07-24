@@ -54,7 +54,10 @@
       "Bash(rm:*)",
       "mcp__browsermcp__browser_click",
       "mcp__browsermcp__browser_screenshot",
-      "Bash(cat:*)"
+      "Bash(cat:*)",
+      "WebFetch(domain:reka-ui.com)",
+      "Bash(corepack enable)",
+      "Bash(corepack prepare:*)"
     ]
   },
   "enableAllProjectMcpServers": false

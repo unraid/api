@@ -68,7 +68,7 @@ const docsButtons = computed<BrandButtonProps[]>(() => {
   >
     <div class="flex flex-col items-center justify-start">
       <div v-if="partnerInfo?.hasPartnerLogo">
-        <ActivationPartnerLogo :name="partnerInfo.partnerName" />
+        <ActivationPartnerLogo :partner-info="partnerInfo" />
       </div>
 
       <h1 class="text-center text-xl sm:text-2xl font-semibold mt-4">{{ title }}</h1>

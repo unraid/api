@@ -12,6 +12,7 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog';
 import { cn } from '@/lib/utils';
+import { watchEffect } from 'vue';
 
 export interface DialogProps {
   description?: string;
@@ -27,6 +28,7 @@ export interface DialogProps {
   scrollable?: boolean;
   size?: 'sm' | 'md' | 'lg' | 'xl' | 'full';
   showCloseButton?: boolean;
+  to?: string | HTMLElement;
 }
 
 const {
@@ -43,6 +45,7 @@ const {
   scrollable = false,
   size = 'md',
   showCloseButton = true,
+  to,
 } = defineProps<DialogProps>();
 
 const emit = defineEmits<{
@@ -51,6 +54,7 @@ const emit = defineEmits<{
 }>();
 
 const handleOpenChange = (open: boolean) => {
+  console.log('Dialog handleOpenChange:', open, 'current modelValue:', modelValue);
   emit('update:modelValue', open);
 };
 
@@ -65,10 +69,39 @@ const sizeClasses = {
   xl: 'max-w-4xl',
   full: 'w-full max-w-full h-full min-h-screen',
 };
+
+// Debug logging
+console.log('Dialog component mounted with props:', {
+  modelValue,
+  to,
+  showCloseButton,
+  size,
+  showFooter,
+});
+
+watchEffect(() => {
+  console.log('Dialog modelValue changed:', modelValue);
+});
 </script>
 
 <template>
   <DialogRoot :open="modelValue" @update:open="handleOpenChange">
+    <!-- Debug: Check if DialogRoot is rendering -->
+    <div
+      v-if="false"
+      style="
+        position: fixed;
+        top: 50px;
+        left: 0;
+        background: red;
+        color: white;
+        padding: 10px;
+        z-index: 9999;
+      "
+    >
+      DialogRoot is rendering, modelValue: {{ modelValue }}
+    </div>
+
     <DialogTrigger v-if="triggerText || $slots.trigger">
       <slot name="trigger">
         <Button>{{ triggerText }}</Button>
@@ -86,6 +119,7 @@ const sizeClasses = {
         )
       "
       :show-close-button="showCloseButton"
+      :to="to"
     >
       <DialogHeader v-if="title || description || $slots.header">
         <slot name="header">

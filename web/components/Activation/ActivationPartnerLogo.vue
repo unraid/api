@@ -1,10 +1,15 @@
 <script lang="ts" setup>
-import { storeToRefs } from 'pinia';
-
 import ActivationPartnerLogoImg from '~/components/Activation/ActivationPartnerLogoImg.vue';
-import { useActivationCodeDataStore } from '~/components/Activation/store/activationCodeData';
 
-const { partnerInfo } = storeToRefs(useActivationCodeDataStore());
+interface Props {
+  partnerInfo?: {
+    partnerUrl?: string | null;
+    partnerLogoUrl?: string | null;
+    hasPartnerLogo?: boolean;
+  };
+}
+
+defineProps<Props>();
 </script>
 
 <template>
@@ -16,8 +21,8 @@ const { partnerInfo } = storeToRefs(useActivationCodeDataStore());
       target="_blank"
       rel="noopener noreferrer"
     >
-      <ActivationPartnerLogoImg />
+      <ActivationPartnerLogoImg :partner-info="partnerInfo" />
     </a>
-    <ActivationPartnerLogoImg v-else />
+    <ActivationPartnerLogoImg v-else :partner-info="partnerInfo" />
   </template>
 </template>

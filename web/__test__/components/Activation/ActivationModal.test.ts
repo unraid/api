@@ -41,7 +41,7 @@ const mockT = (key: string, args?: unknown[]) => (args ? `${key} ${JSON.stringif
 const mockComponents = {
   ActivationPartnerLogo: {
     template: '<div data-testid="partner-logo"></div>',
-    props: ['name'],
+    props: ['partnerInfo'],
   },
   ActivationSteps: {
     template: '<div data-testid="activation-steps" :active-step="activeStep"></div>',
