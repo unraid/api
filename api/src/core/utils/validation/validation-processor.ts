@@ -69,9 +69,18 @@ export type ValidationResult<TSteps extends readonly ValidationStepConfig<any, a
     errors: Partial<ExtractStepResults<TSteps>>;
 };
 
-// Extract TInput from the first step's validator function
+// Util: convert a union to an intersection
+type UnionToIntersection<U> = (U extends any ? (arg: U) => void : never) extends (arg: infer I) => void
+    ? I
+    : never;
+
+// Extract the *intersection* of all input types required by the steps. This guarantees that
+// the resulting processor knows about every property that any individual step relies on.
+// We purposely compute an intersection (not a union) so that all required fields are present.
 type ExtractInputType<TSteps extends readonly ValidationStepConfig<any, any, string>[]> =
-    TSteps[number] extends ValidationStepConfig<infer TInput, any, string> ? TInput : never;
+    UnionToIntersection<
+        TSteps[number] extends ValidationStepConfig<infer TInput, any, string> ? TInput : never
+    >;
 
 /**
  * Creates a type-safe validation processor that executes a series of validation steps
@@ -162,17 +171,23 @@ type ExtractInputType<TSteps extends readonly ValidationStepConfig<any, any, str
 export function createValidationProcessor<
     const TSteps extends readonly ValidationStepConfig<any, any, string>[],
 >(definition: { steps: TSteps }) {
-    type TInput = ExtractInputType<TSteps>;
+    // Determine the base input type required by all steps (intersection).
+    type BaseInput = ExtractInputType<TSteps>;
+
+    // Helper: widen input type for object literals while keeping regular objects assignable.
+    type InputWithExtras = BaseInput extends object
+        ? BaseInput | (BaseInput & Record<string, unknown>)
+        : BaseInput;
 
     return function processValidation(
-        input: TInput,
+        input: InputWithExtras,
         config: ValidationPipelineConfig = {}
     ): ValidationResult<TSteps> {
         const errors: Partial<ExtractStepResults<TSteps>> = {};
         let hasErrors = false;
 
         for (const step of definition.steps) {
-            const result = step.validator(input);
+            const result = step.validator(input as BaseInput);
             const isError = step.isError(result);
 
             if (isError) {

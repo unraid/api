@@ -372,5 +372,66 @@ describe('ValidationProcessor', () => {
             const errorCount = Object.keys(result.errors).length;
             expect(errorCount).toBe(25);
         });
+
+        it('should handle validation by sum typing their inputs', () => {
+            const processor = createValidationProcessor({
+                steps: [
+                    {
+                        name: 'step1',
+                        validator: ({ age }: { age: number }) => age > 18,
+                        isError: ResultInterpreters.booleanMeansSuccess,
+                    },
+                    {
+                        name: 'step2',
+                        validator: ({ name }: { name: string }) => name.length > 0,
+                        isError: ResultInterpreters.booleanMeansSuccess,
+                    },
+                ],
+            });
+
+            const result = processor({ age: 25, name: 'John' });
+            expect(result.isValid).toBe(true);
+
+            const result2 = processor({ age: 15, name: '' });
+            expect(result2.isValid).toBe(false);
+        });
+
+        it('should allow wider types as processor inputs', () => {
+            const sumProcessor = createValidationProcessor({
+                steps: [
+                    {
+                        name: 'step1',
+                        validator: ({ age }: { age: number }) => age > 18,
+                        isError: ResultInterpreters.booleanMeansSuccess,
+                    },
+                    {
+                        name: 'step2',
+                        validator: ({ name }: { name: string }) => name.length > 0,
+                        isError: ResultInterpreters.booleanMeansSuccess,
+                    },
+                ],
+            });
+            type Person = { age: number; name: string };
+            const groupProcessor = createValidationProcessor({
+                steps: [
+                    {
+                        name: 'step1',
+                        validator: ({ age }: Person) => age > 18,
+                        isError: ResultInterpreters.booleanMeansSuccess,
+                    },
+                    {
+                        name: 'step2',
+                        validator: ({ name }: Person) => name.length > 0,
+                        isError: ResultInterpreters.booleanMeansSuccess,
+                    },
+                ],
+            });
+
+            const result = sumProcessor({ age: 25, name: 'John', favoriteColor: 'red' });
+            expect(result.isValid).toBe(true);
+
+            const result2 = groupProcessor({ name: '', favoriteColor: 'red', age: 15 });
+            expect(result2.isValid).toBe(false);
+        });
     });
 });
