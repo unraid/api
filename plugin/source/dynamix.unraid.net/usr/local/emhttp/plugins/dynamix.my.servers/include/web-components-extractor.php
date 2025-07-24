@@ -118,6 +118,18 @@ class WebComponentsExtractor
 
         $jsFile = ($subfolder ? $subfolder . '/' : '') . $manifest[self::UI_ENTRY]['file'];
         $cssFile = ($subfolder ? $subfolder . '/' : '') . $manifest[self::UI_STYLES_ENTRY]['file'];
+        
+        // Read the CSS file content
+        $cssPath = '/usr/local/emhttp' . $this->getAssetPath($cssFile);
+        $cssContent = @file_get_contents($cssPath);
+        
+        if ($cssContent === false) {
+            error_log("Failed to read CSS file: " . $cssPath);
+            $cssContent = '';
+        }
+        
+        // Escape the CSS content for JavaScript
+        $escapedCssContent = json_encode($cssContent);
 
         // Use a data attribute to ensure this only runs once per page
         return '<script data-unraid-ui-register defer type="module">
@@ -132,7 +144,7 @@ class WebComponentsExtractor
                 
                 try {
                     const { registerAllComponents } = await import("' . $this->getAssetPath($jsFile) . '");
-                    registerAllComponents({ pathToSharedCss: "' . $this->getAssetPath($cssFile) . '" });
+                    registerAllComponents({ sharedCssContent: ' . $escapedCssContent . ' });
                 } catch (error) {
                     console.error("[Unraid UI] Failed to register components:", error);
                     // Reset flag on error so it can be retried

@@ -48,7 +48,7 @@ const mockWelcomeModalDataStore = {
     partnerName: null as string | null,
   }),
   loading: ref(false),
-  isInitialSetup: ref(false),
+  isInitialSetup: ref(true), // Default to true for testing
 };
 
 const mockThemeStore = {
@@ -81,6 +81,7 @@ describe('Activation/WelcomeModal.ce.vue', () => {
       partnerName: null,
     };
     mockWelcomeModalDataStore.loading.value = false;
+    mockWelcomeModalDataStore.isInitialSetup.value = true;
 
     // Mock document methods
     mockSetProperty = vi.fn();
@@ -155,7 +156,8 @@ describe('Activation/WelcomeModal.ce.vue', () => {
     };
     const wrapper = await mountComponent();
 
-    expect(wrapper.html()).toContain('data-testid="partner-logo"');
+    const partnerLogo = wrapper.find('[data-testid="partner-logo"]');
+    expect(partnerLogo.exists()).toBe(true);
   });
 
   it('hides modal when Create a password button is clicked', async () => {
@@ -172,9 +174,9 @@ describe('Activation/WelcomeModal.ce.vue', () => {
     await button.trigger('click');
     await wrapper.vm.$nextTick();
 
-    // After click, dialog modelValue should be false
+    // After click, the dialog should no longer exist because v-if="showModal" will be false
     dialog = wrapper.findComponent({ name: 'Dialog' });
-    expect(dialog.props('modelValue')).toBe(false);
+    expect(dialog.exists()).toBe(false);
   });
 
   it('disables the Create a password button when loading', async () => {
@@ -183,14 +185,16 @@ describe('Activation/WelcomeModal.ce.vue', () => {
     const wrapper = await mountComponent();
     const button = wrapper.find('button');
 
+    expect(button.exists()).toBe(true);
     expect(button.attributes('disabled')).toBe('');
   });
 
   it('renders activation steps with correct active step', async () => {
     const wrapper = await mountComponent();
 
-    expect(wrapper.html()).toContain('data-testid="activation-steps"');
-    expect(wrapper.html()).toContain('active-step="1"');
+    const activationSteps = wrapper.find('[data-testid="activation-steps"]');
+    expect(activationSteps.exists()).toBe(true);
+    expect(activationSteps.attributes('active-step')).toBe('1');
   });
 
   it('calls setTheme on mount', () => {
@@ -250,6 +254,45 @@ describe('Activation/WelcomeModal.ce.vue', () => {
     });
   });
 
+  it('shows modal on login page even when isInitialSetup is false', async () => {
+    Object.defineProperty(window, 'location', {
+      value: { pathname: '/login' },
+      writable: true,
+    });
+    mockWelcomeModalDataStore.isInitialSetup.value = false;
+    
+    const wrapper = await mountComponent();
+    const dialog = wrapper.findComponent({ name: 'Dialog' });
+    
+    expect(dialog.exists()).toBe(true);
+  });
+
+  it('shows modal on non-login page when isInitialSetup is true', async () => {
+    Object.defineProperty(window, 'location', {
+      value: { pathname: '/Dashboard' },
+      writable: true,
+    });
+    mockWelcomeModalDataStore.isInitialSetup.value = true;
+    
+    const wrapper = await mountComponent();
+    const dialog = wrapper.findComponent({ name: 'Dialog' });
+    
+    expect(dialog.exists()).toBe(true);
+  });
+
+  it('does not show modal on non-login page when isInitialSetup is false', async () => {
+    Object.defineProperty(window, 'location', {
+      value: { pathname: '/Dashboard' },
+      writable: true,
+    });
+    mockWelcomeModalDataStore.isInitialSetup.value = false;
+    
+    const wrapper = await mountComponent();
+    const dialog = wrapper.findComponent({ name: 'Dialog' });
+    
+    expect(dialog.exists()).toBe(false);
+  });
+
   describe('Modal properties', () => {
     it('shows close button when on /login page', async () => {
       Object.defineProperty(window, 'location', {
@@ -278,39 +321,13 @@ describe('Activation/WelcomeModal.ce.vue', () => {
         },
       });
 
+      // Manually show the modal since it won't auto-show on non-login pages
+      wrapper.vm.showWelcomeModal();
       await wrapper.vm.$nextTick();
 
-      // The modal won't be shown on non-login pages, but we can check the prop
-      // that would be passed if it were shown
-      // Since showModal is false on non-login pages, the dialog won't render
-      // Let's instead test by checking the Dialog stub's props when we mock a visible state
-      const DialogStub = {
-        name: 'Dialog',
-        props: ['modelValue', 'title', 'description', 'showFooter', 'size', 'showCloseButton'],
-        emits: ['update:modelValue'],
-        template: `
-          <div v-if="true" role="dialog" aria-modal="true" :data-show-close-button="showCloseButton">
-            <div v-if="$slots.header" class="dialog-header"><slot name="header" /></div>
-            <div class="dialog-body"><slot /></div>
-            <div v-if="$slots.footer" class="dialog-footer"><slot name="footer" /></div>
-          </div>
-        `,
-      };
-
-      const wrapper2 = mount(WelcomeModal, {
-        props: { t: mockT as unknown as ComposerTranslation },
-        global: {
-          stubs: {
-            ...mockComponents,
-            Dialog: DialogStub,
-          },
-        },
-      });
-
-      await wrapper2.vm.$nextTick();
-      
-      const dialogElement = wrapper2.find('[role="dialog"]');
-      expect(dialogElement.attributes('data-show-close-button')).toBe('false');
+      const dialog = wrapper.findComponent({ name: 'Dialog' });
+      expect(dialog.exists()).toBe(true);
+      expect(dialog.props('showCloseButton')).toBe(false);
     });
 
     it('passes correct props to Dialog component', async () => {
@@ -330,6 +347,8 @@ describe('Activation/WelcomeModal.ce.vue', () => {
       const wrapper = await mountComponent();
 
       // Check that the modal is rendered
+      const dialog = wrapper.findComponent({ name: 'Dialog' });
+      expect(dialog.exists()).toBe(true);
       expect(wrapper.text()).toContain('Welcome to Unraid!');
       expect(wrapper.text()).toContain('Create a password');
     });

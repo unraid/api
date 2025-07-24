@@ -5,7 +5,9 @@ const useTeleport = () => {
 
   const determineTeleportTarget = (): HTMLElement | undefined => {
     const myModalsComponent =
-      document.querySelector('unraid-modals') || document.querySelector('uui-modals');
+      document.querySelector('unraid-modals') ||
+      document.querySelector('uui-modals') ||
+      document.querySelector('uui-modal-target');
     if (!myModalsComponent?.shadowRoot) return;
 
     const potentialTarget = myModalsComponent.shadowRoot.querySelector('#modals');
