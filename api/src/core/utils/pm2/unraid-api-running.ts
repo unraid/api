@@ -8,7 +8,8 @@ export const isUnraidApiRunning = async (): Promise<boolean | undefined> => {
 
     const pm2Module = await import('pm2');
     const pm2 = pm2Module.default || pm2Module;
-    return new Promise((resolve) => {
+
+    const pm2Promise = new Promise<boolean>((resolve) => {
         pm2.connect(function (err) {
             if (err) {
                 // Don't reject here, resolve with false since we can't connect to PM2
@@ -16,29 +17,24 @@ export const isUnraidApiRunning = async (): Promise<boolean | undefined> => {
                 return;
             }
 
-            // First list all processes to debug
-            pm2.list(function (listErr, processDescriptionList) {
-                if (!listErr && processDescriptionList) {
-                    // Log all running PM2 processes for debugging
-                    const processNames = processDescriptionList.map((p) => p.name);
-                    if (processNames.length > 0) {
-                        console.debug('PM2 processes found:', processNames);
-                    }
+            // Now try to describe unraid-api specifically
+            pm2.describe('unraid-api', function (err, processDescription) {
+                if (err || processDescription.length === 0) {
+                    // Service not found or error occurred
+                    resolve(false);
+                } else {
+                    const isOnline = processDescription?.[0]?.pm2_env?.status === 'online';
+                    resolve(isOnline);
                 }
 
-                // Now try to describe unraid-api specifically
-                pm2.describe('unraid-api', function (err, processDescription) {
-                    if (err || processDescription.length === 0) {
-                        // Service not found or error occurred
-                        resolve(false);
-                    } else {
-                        const isOnline = processDescription?.[0]?.pm2_env?.status === 'online';
-                        resolve(isOnline);
-                    }
-
-                    pm2.disconnect();
-                });
+                pm2.disconnect();
             });
         });
     });
+
+    const timeoutPromise = new Promise<boolean>((resolve) => {
+        setTimeout(() => resolve(false), 10000); // 10 second timeout
+    });
+
+    return Promise.race([pm2Promise, timeoutPromise]);
 };
