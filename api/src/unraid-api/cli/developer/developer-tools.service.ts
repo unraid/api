@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { access, readFile, unlink, writeFile } from 'fs/promises';
 import * as path from 'path';
 
@@ -12,7 +12,8 @@ import SSOFileModification from '@app/unraid-api/unraid-file-modifier/modificati
 export class DeveloperToolsService {
     private readonly modalPageFilePath =
         '/usr/local/emhttp/plugins/dynamix.my.servers/DevModalTest.page';
-    private readonly loginPagePath = new SSOFileModification().filePath;
+    private readonly loginPagePath = new SSOFileModification(new Logger(DeveloperToolsService.name))
+        .filePath;
     private readonly welcomeModalInclude =
         '<?include "$docroot/plugins/dynamix.my.servers/include/welcome-modal.php"?>';
     private readonly modalPageContent = `Menu="UNRAID-OS:99"

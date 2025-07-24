@@ -14,8 +14,8 @@ export class ConnectStatusWriterService implements OnApplicationBootstrap, OnMod
     private logger = new Logger(ConnectStatusWriterService.name);
 
     get statusFilePath() {
-        // Write to /var/local/emhttp/connectStatus.json so PHP can read it
-        return '/var/local/emhttp/connectStatus.json';
+        // Use environment variable if provided, otherwise use default path
+        return process.env.UNRAID_API_STATUS_FILE_PATH ?? '/var/local/emhttp/connectStatus.json';
     }
 
     async onApplicationBootstrap() {
