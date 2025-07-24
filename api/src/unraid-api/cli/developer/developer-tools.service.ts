@@ -33,7 +33,7 @@ Tag="wrench"
 $docroot = $docroot ?? $_SERVER['DOCUMENT_ROOT'] ?: '/usr/local/emhttp';
 
 require_once("$docroot/plugins/dynamix.my.servers/include/web-components-extractor.php");
-$wcExtractor = new WebComponentsExtractor();
+$wcExtractor = WebComponentsExtractor::getInstance();
 echo $wcExtractor->getScriptTagHtml();
 ?>
 
