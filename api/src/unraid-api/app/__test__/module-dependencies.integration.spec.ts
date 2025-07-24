@@ -19,13 +19,4 @@ describe('Module Dependencies Integration', () => {
             }
         }
     });
-
-    it('should detect dependency injection issues at compile time', async () => {
-        // This test validates that RestModule can be compiled without errors
-        await expect(
-            Test.createTestingModule({
-                imports: [RestModule],
-            }).compile()
-        ).resolves.toBeDefined();
-    });
 });

@@ -83,9 +83,18 @@ export class ValidateTokenCommand extends CommandRunner {
         }
         const client = await this.internalClient.getClient();
 
-        const result = await client.query({
-            query: SSO_USERS_QUERY,
-        });
+        let result;
+        try {
+            result = await client.query({
+                query: SSO_USERS_QUERY,
+            });
+        } catch (error) {
+            this.createErrorAndExit('Failed to query SSO users');
+        }
+
+        if (result.errors && result.errors.length > 0) {
+            this.createErrorAndExit('Failed to retrieve SSO configuration');
+        }
 
         const ssoUsers = result.data?.settings?.api?.ssoSubIds || [];
 
