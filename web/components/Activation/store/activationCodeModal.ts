@@ -78,6 +78,7 @@ export const useActivationCodeModalStore = defineStore('activationCodeModal', ()
 
   return {
     isVisible,
+    isHidden,
     setIsHidden,
   };
 });

@@ -41,10 +41,10 @@ const dropdownHide = () => {
   showModal.value = false;
 };
 
-// Auto-show the modal when on the welcome page (for testing production behavior)
+const isLoginPage = computed(() => window.location.pathname === '/login');
+
 onMounted(() => {
-  // Check if we're on the welcome page by looking at the current route
-  if (window.location.pathname === '/welcome') {
+  if (window.location.pathname === '/login') {
     showModal.value = true;
   }
 });
@@ -75,7 +75,7 @@ watchEffect(() => {
     <Dialog
       v-model="showModal"
       :show-footer="false"
-      :show-close-button="false"
+      :show-close-button="isLoginPage"
       size="full"
       class="bg-background"
     >

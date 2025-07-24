@@ -93,10 +93,10 @@ describe('Activation/WelcomeModal.ce.vue', () => {
       writable: true,
     });
 
-    // Mock window.location.pathname to simulate being on /welcome page
+    // Mock window.location.pathname to simulate being on /login page
     Object.defineProperty(window, 'location', {
       value: {
-        pathname: '/welcome',
+        pathname: '/login',
       },
       writable: true,
     });
@@ -216,7 +216,7 @@ describe('Activation/WelcomeModal.ce.vue', () => {
 
   describe('Font size adjustment', () => {
     it('sets font-size to 62.5% when confirmPassword field exists', async () => {
-      mockQuerySelector.mockReturnValue({ exists: true });
+      mockQuerySelector.mockReturnValue({ id: 'confirmPassword' });
       mountComponent();
 
       await vi.runAllTimersAsync();
@@ -234,7 +234,7 @@ describe('Activation/WelcomeModal.ce.vue', () => {
     });
 
     it('sets font-size to 100% when modal is hidden', async () => {
-      mockQuerySelector.mockReturnValue({ exists: true });
+      mockQuerySelector.mockReturnValue({ id: 'confirmPassword' });
       const wrapper = await mountComponent();
 
       await vi.runAllTimersAsync();
@@ -250,6 +250,41 @@ describe('Activation/WelcomeModal.ce.vue', () => {
   });
 
   describe('Modal properties', () => {
+    it('shows close button when on /login page', async () => {
+      Object.defineProperty(window, 'location', {
+        value: { pathname: '/login' },
+        writable: true,
+      });
+
+      const wrapper = await mountComponent();
+      const dialog = wrapper.findComponent({ name: 'Dialog' });
+
+      expect(dialog.exists()).toBe(true);
+      expect(dialog.props('showCloseButton')).toBe(true);
+    });
+
+    it('hides close button when NOT on /login page', async () => {
+      Object.defineProperty(window, 'location', {
+        value: { pathname: '/welcome' },
+        writable: true,
+      });
+
+      const wrapper = mount(WelcomeModal, {
+        props: { t: mockT as unknown as ComposerTranslation },
+        global: {
+          stubs: mockComponents,
+        },
+      });
+
+      // Force show the modal to test the props
+      wrapper.vm.showModal = true;
+      await wrapper.vm.$nextTick();
+
+      const dialog = wrapper.findComponent({ name: 'Dialog' });
+      expect(dialog.exists()).toBe(true);
+      expect(dialog.props('showCloseButton')).toBe(false);
+    });
+
     it('passes correct props to Dialog component', async () => {
       const wrapper = await mountComponent();
       const dialog = wrapper.findComponent({ name: 'Dialog' });
@@ -258,7 +293,7 @@ describe('Activation/WelcomeModal.ce.vue', () => {
       expect(dialog.props()).toMatchObject({
         modelValue: true,
         showFooter: false,
-        showCloseButton: false,
+        showCloseButton: true,
         size: 'full',
       });
     });
