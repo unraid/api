@@ -1,5 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { access, unlink, writeFile } from 'fs/promises';
+import { access, readFile, unlink, writeFile } from 'fs/promises';
 
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
@@ -102,6 +102,7 @@ describe('DeveloperToolsService', () => {
         it('should create modal test page file', async () => {
             vi.mocked(access).mockResolvedValue(undefined);
             vi.mocked(writeFile).mockResolvedValue(undefined);
+            vi.mocked(readFile).mockResolvedValue('<html><body></body></html>');
 
             await service.enableModalTest();
 
