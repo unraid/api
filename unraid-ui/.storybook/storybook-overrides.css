@@ -1,0 +1,24 @@
+/* Override Unraid's font sizing for Storybook */
+html {
+  font-size: 100% !important; /* Reset to 16px base instead of 10px */
+}
+
+/* Override the text size variables to use standard rem values based on 16px */
+:root {
+  --text-xs: 0.75rem !important; /* 12px */
+  --text-sm: 0.875rem !important; /* 14px */
+  --text-base: 1rem !important; /* 16px */
+  --text-lg: 1.125rem !important; /* 18px */
+  --text-xl: 1.25rem !important; /* 20px */
+  --text-2xl: 1.5rem !important; /* 24px */
+  --text-3xl: 1.875rem !important; /* 30px */
+  --text-4xl: 2.25rem !important; /* 36px */
+  --text-5xl: 3rem !important; /* 48px */
+  --text-6xl: 3.75rem !important; /* 60px */
+  --text-7xl: 4.5rem !important; /* 72px */
+  --text-8xl: 6rem !important; /* 96px */
+  --text-9xl: 8rem !important; /* 128px */
+  
+  /* Also override the spacing to match 16px base */
+  --spacing: 0.25rem !important; /* 4px at 16px base */
+}

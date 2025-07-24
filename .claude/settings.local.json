@@ -50,7 +50,10 @@
       "Bash(find . -name \"*.test.ts\" -path \"./__test__/*\" -type f)",
       "Bash(mkdir:*)",
       "Bash(BOOT_PATH=/tmp/boot node dist/cli.js report)",
-      "Bash(NODE_ENV=test node dist/cli.js report)"
+      "Bash(NODE_ENV=test node dist/cli.js report)",
+      "Bash(rm:*)",
+      "mcp__browsermcp__browser_click",
+      "mcp__browsermcp__browser_screenshot"
     ]
   },
   "enableAllProjectMcpServers": false

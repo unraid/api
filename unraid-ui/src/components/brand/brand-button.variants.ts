@@ -9,9 +9,9 @@ export const brandButtonVariants = cva(
         black:
           '[&]:text-white bg-black border-black transition hover:text-black focus:text-black hover:bg-grey focus:bg-grey hover:border-grey focus:border-grey',
         gray: 'text-black bg-grey transition hover:text-white focus:text-white hover:bg-grey-mid focus:bg-grey-mid hover:border-grey-mid focus:border-grey-mid',
-        outline: '[&]:text-orange bg-transparent border-orange hover:text-white focus:text-white',
+        outline: '[&]:text-orange bg-transparent border-orange hover:!text-white focus:!text-white',
         'outline-primary':
-          'text-primary [&]:text-primary uppercase tracking-widest bg-transparent border-primary rounded-sm hover:text-white focus:text-white',
+          'text-orange [&]:text-orange uppercase tracking-widest bg-transparent border-orange rounded-sm hover:!text-white focus:!text-white',
         'outline-black':
           'text-black bg-transparent border-black hover:text-black focus:text-black hover:bg-grey focus:bg-grey hover:border-grey focus:border-grey',
         'outline-white':

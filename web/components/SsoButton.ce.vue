@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue';
 import { useQuery } from '@vue/apollo-composable';
+import { useI18n } from 'vue-i18n';
 import { SSO_ENABLED } from '~/store/account.fragment';
 
 import { BrandButton } from '@unraid/ui';
@@ -8,6 +9,7 @@ import { ACCOUNT } from '~/helpers/urls';
 
 type CurrentState = 'loading' | 'idle' | 'error';
 
+const { t } = useI18n();
 const currentState = ref<CurrentState>('idle');
 const error = ref<string | null>(null);
 
@@ -75,7 +77,27 @@ onMounted(async () => {
     const search = new URLSearchParams(window.location.search);
     const code = search.get('code') ?? '';
     const state = search.get('state') ?? '';
+    const ssoError = search.get('sso_error') ?? '';
     const sessionState = getStateToken();
+
+    // Check for SSO error parameter
+    if (ssoError) {
+      currentState.value = 'error';
+      // Map common SSO errors to user-friendly messages with translation support
+      const errorMap: Record<string, string> = {
+        'invalid_credentials': t('Invalid Unraid.net credentials'),
+        'user_not_authorized': t('This Unraid.net account is not authorized to access this server'),
+        'sso_disabled': t('SSO login is not enabled on this server'),
+        'token_expired': t('Login session expired. Please try again'),
+        'network_error': t('Network error. Please check your connection'),
+      };
+      error.value = errorMap[ssoError] || t('SSO login failed. Please try again');
+      // Clean up the URL
+      const url = new URL(window.location.href);
+      url.searchParams.delete('sso_error');
+      window.history.replaceState({}, document.title, url.pathname + url.search);
+      return;
+    }
 
     if (code && state === sessionState) {
       disableFormOnSubmit();
@@ -105,7 +127,7 @@ onMounted(async () => {
     console.error('Error fetching token', err);
 
     currentState.value = 'error';
-    error.value = 'Error fetching token';
+    error.value = t('Error fetching token');
     reEnableFormOnError();
   }
 });
@@ -113,11 +135,11 @@ onMounted(async () => {
 const buttonText = computed<string>(() => {
   switch (currentState.value) {
     case 'loading':
-      return 'Logging in...';
+      return t('Logging in...');
     case 'error':
-      return 'Error';
+      return t('Try Again');
     default:
-      return 'Log In With Unraid.net';
+      return t('Log In With Unraid.net');
   }
 });
 
@@ -137,12 +159,12 @@ const navigateToExternalSSOUrl = () => {
   <div>
     <template v-if="isSsoEnabled">
       <div class="w-full flex flex-col gap-1 my-1">
-        <p v-if="currentState === 'idle' || currentState === 'error'" class="text-center">or</p>
+        <p v-if="currentState === 'idle' || currentState === 'error'" class="text-center">{{ t('or') }}</p>
         <p v-if="currentState === 'error'" class="text-red-500 text-center">{{ error }}</p>
         <BrandButton
           :disabled="currentState === 'loading'"
-          variant="outline"
-          class="rounded-none uppercase tracking-widest"
+          variant="outline-primary"
+          class="sso-button"
           @click="navigateToExternalSSOUrl"
           >{{ buttonText }}</BrandButton
         >
@@ -171,5 +193,15 @@ const navigateToExternalSSOUrl = () => {
   
   /* Spacing - standard Tailwind value */
   --spacing: 0.25rem; /* 4px */
+}
+
+.sso-button {
+  font-size: 0.875rem !important;
+  font-weight: 600 !important;
+  line-height: 1 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 2px !important;
+  padding: 0.75rem 1.5rem !important;
+  border-radius: 0.125rem !important;
 }
 </style>

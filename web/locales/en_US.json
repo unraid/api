@@ -389,5 +389,16 @@
   "Create an Unraid.net account and activate your key": "Create an Unraid.net account and activate your key",
   "Device is ready to configure": "Device is ready to configure",
   "Secure your device": "Secure your device",
-  "Unraid OS {0} Changelog": "Unraid OS {0} Changelog"
+  "Unraid OS {0} Changelog": "Unraid OS {0} Changelog",
+  "or": "or",
+  "Logging in...": "Logging in...",
+  "Try Again": "Try Again",
+  "Log In With Unraid.net": "Log In With Unraid.net",
+  "Invalid Unraid.net credentials": "Invalid Unraid.net credentials",
+  "This Unraid.net account is not authorized to access this server": "This Unraid.net account is not authorized to access this server",
+  "SSO login is not enabled on this server": "SSO login is not enabled on this server",
+  "Login session expired. Please try again": "Login session expired. Please try again",
+  "Network error. Please check your connection": "Network error. Please check your connection",
+  "SSO login failed. Please try again": "SSO login failed. Please try again",
+  "Error fetching token": "Error fetching token"
 }

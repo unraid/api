@@ -70,12 +70,17 @@ const needsBrandGradientBackground = computed(() => {
   >
     <div
       v-if="variant === 'fill'"
-      class="absolute -top-[2px] -right-[2px] -bottom-[2px] -left-[2px] -z-10 bg-linear-to-r from-unraid-red to-orange opacity-100 transition-all rounded-md group-hover:opacity-60 group-focus:opacity-60"
+      class="absolute -top-[2px] -right-[2px] -bottom-[2px] -left-[2px] -z-10 bg-linear-to-r from-unraid-red to-orange opacity-100 transition-all rounded-md group-hover:!opacity-60 group-focus:!opacity-60"
     />
+
     <!-- gives outline buttons the brand gradient background -->
     <div
       v-if="needsBrandGradientBackground"
-      class="absolute -top-[2px] -right-[2px] -bottom-[2px] -left-[2px] -z-10 bg-linear-to-r from-unraid-red to-orange opacity-0 transition-all rounded-md group-hover:opacity-100 group-focus:opacity-100"
+      :class="[
+        'absolute -top-[2px] -right-[2px] -bottom-[2px] -left-[2px] -z-10 bg-linear-to-r from-unraid-red to-orange transition-all pointer-events-none',
+        variant === 'outline-primary' ? 'rounded-sm' : 'rounded-md',
+        'opacity-0 group-hover:!opacity-100 group-focus:!opacity-100',
+      ]"
     />
 
     <component
@@ -94,7 +99,7 @@ const needsBrandGradientBackground = computed(() => {
       :class="[
         classes.icon,
         iconRightHoverDisplay &&
-          'opacity-0 group-hover:opacity-100 group-focus:opacity-100 transition-all',
+          'opacity-0 group-hover:!opacity-100 group-focus:!opacity-100 transition-all',
       ]"
       :style="{ '--icon-size': classes.iconSize }"
     />
