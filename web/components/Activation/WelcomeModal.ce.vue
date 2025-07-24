@@ -52,7 +52,7 @@ defineExpose({
 const isLoginPage = computed(() => window.location.pathname === '/login');
 
 onMounted(() => {
-  // Always show on /login testing route, ignoring isInitialSetup value
+  // Always show on /login testing route
   if (window.location.pathname === '/login') {
     showModal.value = true;
   }
@@ -81,9 +81,6 @@ watchEffect(() => {
 
 <template>
   <div>
-    <!-- Modals teleport target -->
-    <div id="modals" class="relative z-99999" />
-    
     <Dialog
       v-model="showModal"
       :show-footer="false"

@@ -53,7 +53,8 @@
       "Bash(NODE_ENV=test node dist/cli.js report)",
       "Bash(rm:*)",
       "mcp__browsermcp__browser_click",
-      "mcp__browsermcp__browser_screenshot"
+      "mcp__browsermcp__browser_screenshot",
+      "Bash(cat:*)"
     ]
   },
   "enableAllProjectMcpServers": false
