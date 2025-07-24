@@ -264,8 +264,9 @@ describe('Activation/WelcomeModal.ce.vue', () => {
     });
 
     it('hides close button when NOT on /login page', async () => {
+      // Set location to a non-login page
       Object.defineProperty(window, 'location', {
-        value: { pathname: '/welcome' },
+        value: { pathname: '/Dashboard' },
         writable: true,
       });
 
@@ -276,13 +277,39 @@ describe('Activation/WelcomeModal.ce.vue', () => {
         },
       });
 
-      // Force show the modal to test the props
-      wrapper.vm.showModal = true;
       await wrapper.vm.$nextTick();
 
-      const dialog = wrapper.findComponent({ name: 'Dialog' });
-      expect(dialog.exists()).toBe(true);
-      expect(dialog.props('showCloseButton')).toBe(false);
+      // The modal won't be shown on non-login pages, but we can check the prop
+      // that would be passed if it were shown
+      // Since showModal is false on non-login pages, the dialog won't render
+      // Let's instead test by checking the Dialog stub's props when we mock a visible state
+      const DialogStub = {
+        name: 'Dialog',
+        props: ['modelValue', 'title', 'description', 'showFooter', 'size', 'showCloseButton'],
+        emits: ['update:modelValue'],
+        template: `
+          <div v-if="true" role="dialog" aria-modal="true" :data-show-close-button="showCloseButton">
+            <div v-if="$slots.header" class="dialog-header"><slot name="header" /></div>
+            <div class="dialog-body"><slot /></div>
+            <div v-if="$slots.footer" class="dialog-footer"><slot name="footer" /></div>
+          </div>
+        `,
+      };
+
+      const wrapper2 = mount(WelcomeModal, {
+        props: { t: mockT as unknown as ComposerTranslation },
+        global: {
+          stubs: {
+            ...mockComponents,
+            Dialog: DialogStub,
+          },
+        },
+      });
+
+      await wrapper2.vm.$nextTick();
+      
+      const dialogElement = wrapper2.find('[role="dialog"]');
+      expect(dialogElement.attributes('data-show-close-button')).toBe('false');
     });
 
     it('passes correct props to Dialog component', async () => {
