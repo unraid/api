@@ -1,9 +1,17 @@
 import path from 'path';
 
+
+
 import tailwindcss from '@tailwindcss/vite';
 import removeConsole from 'vite-plugin-remove-console';
 
+
+
 import type { PluginOption, UserConfig } from 'vite';
+
+
+
+
 
 /**
  * Used to avoid redeclaring variables in the webgui codebase.
@@ -41,7 +49,7 @@ const createWebComponentTag = (name: string, path: string, appContext: string) =
   async: false,
   name,
   path,
-  appContext
+  appContext,
 });
 
 /**
@@ -215,11 +223,11 @@ export default defineNuxtConfig({
         name: 'UnraidComponents',
         viteExtend(config: UserConfig) {
           const sharedConfig = applySharedViteConfig(config, true);
-          
+
           // Optimize CSS while keeping it inlined for functionality
           if (!sharedConfig.css) sharedConfig.css = {};
           sharedConfig.css.devSourcemap = process.env.NODE_ENV === 'development';
-          
+
           return sharedConfig;
         },
         tags: [
