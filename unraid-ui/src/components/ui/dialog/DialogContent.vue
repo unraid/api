@@ -29,22 +29,6 @@ const delegatedProps = reactiveOmit(props, 'class', 'showCloseButton', 'to');
 const forwarded = useForwardPropsEmits(delegatedProps, emits);
 
 const { teleportTarget } = useTeleport();
-
-// Debug logging
-console.log('DialogContent mounted with props:', {
-  to: props.to,
-  teleportTarget,
-  showCloseButton: props.showCloseButton,
-});
-
-onMounted(() => {
-  console.log('DialogContent onMounted - checking teleport target:', {
-    providedTo: props.to,
-    defaultTarget: teleportTarget,
-    actualTarget: props.to || teleportTarget,
-    targetExists: props.to ? document.querySelector(props.to as string) : null,
-  });
-});
 </script>
 
 <template>

@@ -12,7 +12,6 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog';
 import { cn } from '@/lib/utils';
-import { watchEffect } from 'vue';
 
 export interface DialogProps {
   description?: string;
@@ -54,7 +53,6 @@ const emit = defineEmits<{
 }>();
 
 const handleOpenChange = (open: boolean) => {
-  console.log('Dialog handleOpenChange:', open, 'current modelValue:', modelValue);
   emit('update:modelValue', open);
 };
 
@@ -69,19 +67,6 @@ const sizeClasses = {
   xl: 'max-w-4xl',
   full: 'w-full max-w-full h-full min-h-screen',
 };
-
-// Debug logging
-console.log('Dialog component mounted with props:', {
-  modelValue,
-  to,
-  showCloseButton,
-  size,
-  showFooter,
-});
-
-watchEffect(() => {
-  console.log('Dialog modelValue changed:', modelValue);
-});
 </script>
 
 <template>
