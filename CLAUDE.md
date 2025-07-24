@@ -46,6 +46,16 @@ cd api && pnpm codegen    # Generate GraphQL types
 pnpm unraid:deploy <SERVER_IP>  # Deploy all to Unraid server
 ```
 
+### Developer Tools
+
+```bash
+unraid-api developer                       # Interactive prompt for tools
+unraid-api developer --sandbox true        # Enable GraphQL sandbox
+unraid-api developer --sandbox false       # Disable GraphQL sandbox
+unraid-api developer --enable-modal        # Enable modal testing tool
+unraid-api developer --disable-modal       # Disable modal testing tool
+```
+
 ## Architecture Notes
 
 ### API Structure (NestJS)

@@ -224,6 +224,7 @@ export default defineNuxtConfig({
           createWebComponentTag('UnraidLogViewer', '@/components/Logs/LogViewer.ce', '@/components/Wrapper/web-component-plugins'),
           createWebComponentTag('UnraidThemeSwitcher', '@/components/ThemeSwitcher.ce', '@/components/Wrapper/web-component-plugins'),
           createWebComponentTag('UnraidApiKeyManager', '@/components/ApiKeyPage.ce', '@/components/Wrapper/web-component-plugins'),
+          createWebComponentTag('UnraidDevModalTest', '@/components/DevModalTest.ce', '@/components/Wrapper/web-component-plugins'),
         ],
       },
     ],

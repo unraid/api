@@ -9,6 +9,7 @@ import { AddApiKeyQuestionSet } from '@app/unraid-api/cli/apikey/add-api-key.que
 import { ApiKeyCommand } from '@app/unraid-api/cli/apikey/api-key.command.js';
 import { DeleteApiKeyQuestionSet } from '@app/unraid-api/cli/apikey/delete-api-key.questions.js';
 import { ConfigCommand } from '@app/unraid-api/cli/config.command.js';
+import { DeveloperToolsService } from '@app/unraid-api/cli/developer/developer-tools.service.js';
 import { DeveloperCommand } from '@app/unraid-api/cli/developer/developer.command.js';
 import { DeveloperQuestions } from '@app/unraid-api/cli/developer/developer.questions.js';
 import { CliInternalClientService } from '@app/unraid-api/cli/internal-client.service.js';
@@ -72,6 +73,7 @@ const DEFAULT_PROVIDERS = [
     AddSSOUserQuestionSet,
     RemoveSSOUserQuestionSet,
     DeveloperQuestions,
+    DeveloperToolsService,
     LogService,
     PM2Service,
     ApiKeyService,
