@@ -42,12 +42,13 @@ const mockComponents = {
   },
 };
 
-const mockActivationCodeDataStore = {
+const mockWelcomeModalDataStore = {
   partnerInfo: ref({
     hasPartnerLogo: false,
     partnerName: null as string | null,
   }),
   loading: ref(false),
+  isInitialSetup: ref(false),
 };
 
 const mockThemeStore = {
@@ -60,8 +61,8 @@ vi.mock('vue-i18n', () => ({
   }),
 }));
 
-vi.mock('~/components/Activation/store/activationCodeData', () => ({
-  useActivationCodeDataStore: () => mockActivationCodeDataStore,
+vi.mock('~/components/Activation/store/welcomeModalData', () => ({
+  useWelcomeModalDataStore: () => mockWelcomeModalDataStore,
 }));
 
 vi.mock('~/store/theme', () => ({
@@ -75,11 +76,11 @@ describe('Activation/WelcomeModal.ce.vue', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     vi.useFakeTimers();
-    mockActivationCodeDataStore.partnerInfo.value = {
+    mockWelcomeModalDataStore.partnerInfo.value = {
       hasPartnerLogo: false,
       partnerName: null,
     };
-    mockActivationCodeDataStore.loading.value = false;
+    mockWelcomeModalDataStore.loading.value = false;
 
     // Mock document methods
     mockSetProperty = vi.fn();
@@ -124,7 +125,7 @@ describe('Activation/WelcomeModal.ce.vue', () => {
   });
 
   it('uses the correct title text when partner name is provided', () => {
-    mockActivationCodeDataStore.partnerInfo.value = {
+    mockWelcomeModalDataStore.partnerInfo.value = {
       hasPartnerLogo: true,
       partnerName: 'Test Partner',
     };
@@ -148,7 +149,7 @@ describe('Activation/WelcomeModal.ce.vue', () => {
   });
 
   it('displays the partner logo when available', async () => {
-    mockActivationCodeDataStore.partnerInfo.value = {
+    mockWelcomeModalDataStore.partnerInfo.value = {
       hasPartnerLogo: true,
       partnerName: 'Test Partner',
     };
@@ -177,7 +178,7 @@ describe('Activation/WelcomeModal.ce.vue', () => {
   });
 
   it('disables the Create a password button when loading', async () => {
-    mockActivationCodeDataStore.loading.value = true;
+    mockWelcomeModalDataStore.loading.value = true;
 
     const wrapper = await mountComponent();
     const button = wrapper.find('button');
