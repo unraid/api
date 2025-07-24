@@ -71,7 +71,7 @@ export type ValidationResult<TSteps extends readonly ValidationStepConfig<any, a
 
 // Extract TInput from the first step's validator function
 type ExtractInputType<TSteps extends readonly ValidationStepConfig<any, any, string>[]> =
-    TSteps extends readonly [ValidationStepConfig<infer TInput, any, string>, ...any[]] ? TInput : never;
+    TSteps[number] extends ValidationStepConfig<infer TInput, any, string> ? TInput : never;
 
 /**
  * Creates a type-safe validation processor that executes a series of validation steps
