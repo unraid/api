@@ -1653,6 +1653,7 @@ type Query {
   services: [Service!]!
   shares: [Share!]!
   vars: Vars!
+  isInitialSetup: Boolean!
 
   """Get information about all VMs on the system"""
   vms: Vms!

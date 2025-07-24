@@ -1,8 +1,7 @@
 import { Injectable, Logger, OnApplicationBootstrap, OnModuleDestroy } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { OnEvent } from '@nestjs/event-emitter';
-import { unlink } from 'fs/promises';
-import { writeFile } from 'fs/promises';
+import { unlink, writeFile } from 'fs/promises';
 
 import { ConfigType, ConnectionMetadata } from '../config/connect.config.js';
 import { EVENTS } from '../helper/nest-tokens.js';
@@ -15,7 +14,7 @@ export class ConnectStatusWriterService implements OnApplicationBootstrap, OnMod
 
     get statusFilePath() {
         // Use environment variable if provided, otherwise use default path
-        return process.env.UNRAID_API_STATUS_FILE_PATH ?? '/var/local/emhttp/connectStatus.json';
+        return process.env.PATHS_CONNECT_STATUS_FILE_PATH ?? '/var/local/emhttp/connectStatus.json';
     }
 
     async onApplicationBootstrap() {

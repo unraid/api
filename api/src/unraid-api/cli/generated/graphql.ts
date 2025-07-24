@@ -1264,6 +1264,7 @@ export type Query = {
   docker: Docker;
   flash: Flash;
   info: Info;
+  isInitialSetup: Scalars['Boolean']['output'];
   isSSOEnabled: Scalars['Boolean']['output'];
   logFile: LogFileContent;
   logFiles: Array<LogFile>;

@@ -15,6 +15,7 @@ import type { TypedDocumentNode as DocumentNode } from '@graphql-typed-document-
  */
 type Documents = {
     "\n  query PartnerInfo {\n    publicPartnerInfo {\n      hasPartnerLogo\n      partnerName\n      partnerUrl\n      partnerLogoUrl\n    }\n  }\n": typeof types.PartnerInfoDocument,
+    "\n  query PublicWelcomeData {\n    publicPartnerInfo {\n      hasPartnerLogo\n      partnerName\n      partnerUrl\n      partnerLogoUrl\n    }\n    isInitialSetup\n  }\n": typeof types.PublicWelcomeDataDocument,
     "\n  query ActivationCode {\n    vars {\n      regState\n    }\n    customization {\n      activationCode {\n        code\n        partnerName\n        serverName\n        sysModel\n        comment\n        header\n        headermetacolor\n        background\n        showBannerGradient\n        theme\n      }\n      partnerInfo {\n        hasPartnerLogo\n        partnerName\n        partnerUrl\n        partnerLogoUrl\n      }\n    }\n  }\n": typeof types.ActivationCodeDocument,
     "\n  fragment ApiKey on ApiKey {\n    id\n    name\n    description\n    createdAt\n    roles\n    permissions {\n      resource\n      actions\n    }\n  }\n": typeof types.ApiKeyFragmentDoc,
     "\n  fragment ApiKeyWithKey on ApiKeyWithSecret {\n    id\n    key\n    name\n    description\n    createdAt\n    roles\n    permissions {\n      resource\n      actions\n    }\n  }\n": typeof types.ApiKeyWithKeyFragmentDoc,
@@ -54,6 +55,7 @@ type Documents = {
 };
 const documents: Documents = {
     "\n  query PartnerInfo {\n    publicPartnerInfo {\n      hasPartnerLogo\n      partnerName\n      partnerUrl\n      partnerLogoUrl\n    }\n  }\n": types.PartnerInfoDocument,
+    "\n  query PublicWelcomeData {\n    publicPartnerInfo {\n      hasPartnerLogo\n      partnerName\n      partnerUrl\n      partnerLogoUrl\n    }\n    isInitialSetup\n  }\n": types.PublicWelcomeDataDocument,
     "\n  query ActivationCode {\n    vars {\n      regState\n    }\n    customization {\n      activationCode {\n        code\n        partnerName\n        serverName\n        sysModel\n        comment\n        header\n        headermetacolor\n        background\n        showBannerGradient\n        theme\n      }\n      partnerInfo {\n        hasPartnerLogo\n        partnerName\n        partnerUrl\n        partnerLogoUrl\n      }\n    }\n  }\n": types.ActivationCodeDocument,
     "\n  fragment ApiKey on ApiKey {\n    id\n    name\n    description\n    createdAt\n    roles\n    permissions {\n      resource\n      actions\n    }\n  }\n": types.ApiKeyFragmentDoc,
     "\n  fragment ApiKeyWithKey on ApiKeyWithSecret {\n    id\n    key\n    name\n    description\n    createdAt\n    roles\n    permissions {\n      resource\n      actions\n    }\n  }\n": types.ApiKeyWithKeyFragmentDoc,
@@ -110,6 +112,10 @@ export function graphql(source: string): unknown;
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
 export function graphql(source: "\n  query PartnerInfo {\n    publicPartnerInfo {\n      hasPartnerLogo\n      partnerName\n      partnerUrl\n      partnerLogoUrl\n    }\n  }\n"): (typeof documents)["\n  query PartnerInfo {\n    publicPartnerInfo {\n      hasPartnerLogo\n      partnerName\n      partnerUrl\n      partnerLogoUrl\n    }\n  }\n"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "\n  query PublicWelcomeData {\n    publicPartnerInfo {\n      hasPartnerLogo\n      partnerName\n      partnerUrl\n      partnerLogoUrl\n    }\n    isInitialSetup\n  }\n"): (typeof documents)["\n  query PublicWelcomeData {\n    publicPartnerInfo {\n      hasPartnerLogo\n      partnerName\n      partnerUrl\n      partnerLogoUrl\n    }\n    isInitialSetup\n  }\n"];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */

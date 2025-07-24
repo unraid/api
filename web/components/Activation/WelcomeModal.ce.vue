@@ -7,12 +7,12 @@ import { BrandButton, Dialog } from '@unraid/ui';
 
 import ActivationPartnerLogo from '~/components/Activation/ActivationPartnerLogo.vue';
 import ActivationSteps from '~/components/Activation/ActivationSteps.vue';
-import { useActivationCodeDataStore } from '~/components/Activation/store/activationCodeData';
+import { useWelcomeModalDataStore } from '~/components/Activation/store/welcomeModalData';
 import { useThemeStore } from '~/store/theme';
 
 const { t } = useI18n();
 
-const { partnerInfo, loading } = storeToRefs(useActivationCodeDataStore());
+const { partnerInfo, loading } = storeToRefs(useWelcomeModalDataStore());
 
 const { setTheme } = useThemeStore();
 
@@ -41,9 +41,18 @@ const dropdownHide = () => {
   showModal.value = false;
 };
 
+const showWelcomeModal = () => {
+  showModal.value = true;
+};
+
+defineExpose({
+  showWelcomeModal,
+});
+
 const isLoginPage = computed(() => window.location.pathname === '/login');
 
 onMounted(() => {
+  // Always show on /login testing route, ignoring isInitialSetup value
   if (window.location.pathname === '/login') {
     showModal.value = true;
   }
@@ -71,7 +80,10 @@ watchEffect(() => {
 </script>
 
 <template>
-  <div id="modals" ref="modals" class="relative z-99999">
+  <div>
+    <!-- Modals teleport target -->
+    <div id="modals" class="relative z-99999" />
+    
     <Dialog
       v-model="showModal"
       :show-footer="false"
@@ -79,25 +91,25 @@ watchEffect(() => {
       size="full"
       class="bg-background"
     >
-      <div class="flex flex-col items-center justify-start">
-        <div v-if="partnerInfo?.hasPartnerLogo">
-          <ActivationPartnerLogo />
-        </div>
-
-        <h1 class="text-center text-xl sm:text-2xl font-semibold mt-4">{{ title }}</h1>
-
-        <div class="sm:max-w-xl mx-auto my-12 text-center">
-          <p class="text-lg sm:text-xl opacity-75 text-center">{{ description }}</p>
-        </div>
-
-        <div class="flex flex-col">
-          <div class="mx-auto mb-10">
-            <BrandButton :text="t('Create a password')" :disabled="loading" @click="dropdownHide" />
+        <div class="flex flex-col items-center justify-start">
+          <div v-if="partnerInfo?.hasPartnerLogo">
+            <ActivationPartnerLogo />
           </div>
 
-          <ActivationSteps :active-step="1" class="mt-6" />
+          <h1 class="text-center text-xl sm:text-2xl font-semibold mt-4">{{ title }}</h1>
+
+          <div class="sm:max-w-xl mx-auto my-12 text-center">
+            <p class="text-lg sm:text-xl opacity-75 text-center">{{ description }}</p>
+          </div>
+
+          <div class="flex flex-col">
+            <div class="mx-auto mb-10">
+              <BrandButton :text="t('Create a password')" :disabled="loading" @click="dropdownHide" />
+            </div>
+
+            <ActivationSteps :active-step="1" class="mt-6" />
+          </div>
         </div>
-      </div>
     </Dialog>
   </div>
 </template>
