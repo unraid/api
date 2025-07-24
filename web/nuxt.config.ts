@@ -1,9 +1,16 @@
 import path from 'path';
 
+
+
 import tailwindcss from '@tailwindcss/vite';
 import removeConsole from 'vite-plugin-remove-console';
 
-import type { PluginOption } from 'vite';
+
+import type { PluginOption, UserConfig } from 'vite';
+
+
+
+
 
 /**
  * Used to avoid redeclaring variables in the webgui codebase.
