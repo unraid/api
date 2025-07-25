@@ -3,7 +3,13 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { PubSub } from 'graphql-subscriptions';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { UPSConfigInput } from '@app/unraid-api/graph/resolvers/ups/ups.inputs.js';
+import {
+    UPSCableType,
+    UPSConfigInput,
+    UPSKillPower,
+    UPSServiceState,
+    UPSType,
+} from '@app/unraid-api/graph/resolvers/ups/ups.inputs.js';
 import { UPSResolver } from '@app/unraid-api/graph/resolvers/ups/ups.resolver.js';
 import { UPSData, UPSService } from '@app/unraid-api/graph/resolvers/ups/ups.service.js';
 
@@ -65,13 +71,13 @@ describe('UPSResolver', () => {
     describe('configureUps', () => {
         it('should call the configureUPS service method and return true', async () => {
             const config: UPSConfigInput = {
-                SERVICE: 'enable',
-                UPSCABLE: 'usb',
-                UPSTYPE: 'usb',
-                BATTERYLEVEL: 10,
-                MINUTES: 5,
-                TIMEOUT: 0,
-                KILLUPS: 'no',
+                service: UPSServiceState.ENABLE,
+                upsCable: UPSCableType.USB,
+                upsType: UPSType.USB,
+                batteryLevel: 10,
+                minutes: 5,
+                timeout: 0,
+                killUps: UPSKillPower.NO,
             };
             const result = await resolver.configureUps(config);
             expect(result).toBe(true);
