@@ -1,14 +1,11 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { exec } from 'child_process';
 import { readFile, writeFile } from 'fs/promises';
-import { promisify } from 'util';
 
+import { execa, ExecaError } from 'execa';
 import { z } from 'zod';
 
 import { fileExistsSync } from '@app/core/utils/files/file-exists.js';
 import { UPSConfigInput } from '@app/unraid-api/graph/resolvers/ups/ups.inputs.js';
-
-const execPromise = promisify(exec);
 
 const UPSSchema = z.object({
     MODEL: z.string().optional(),
@@ -48,7 +45,10 @@ export class UPSService {
 
     async getUPSData(): Promise<UPSData> {
         try {
-            const { stdout } = await execPromise('/sbin/apcaccess 2>/dev/null', { timeout: 10000 });
+            const { stdout } = await execa('/sbin/apcaccess', [], {
+                timeout: 10000,
+                reject: false, // Handle errors manually
+            });
             if (!stdout || stdout.trim().length === 0) {
                 throw new Error('No UPS data returned from apcaccess');
             }
@@ -71,7 +71,7 @@ export class UPSService {
 
             // Stop the UPS service before making changes
             try {
-                await execPromise('/etc/rc.d/rc.apcupsd stop', { timeout: 10000 });
+                await execa('/etc/rc.d/rc.apcupsd', ['stop'], { timeout: 10000 });
             } catch (error) {
                 this.logger.warn('Failed to stop apcupsd service (may not be running):', error);
             }
@@ -122,21 +122,73 @@ export class UPSService {
                 throw error;
             }
 
+            // Validate KILLUPS and SERVICE values
+            const validKillUpsValues = ['yes', 'no'];
+            const validServiceValues = ['enable', 'disable'];
+
+            if (config.KILLUPS && !validKillUpsValues.includes(config.KILLUPS)) {
+                throw new Error(`Invalid KILLUPS value: ${config.KILLUPS}. Must be 'yes' or 'no'`);
+            }
+
+            if (config.SERVICE && !validServiceValues.includes(config.SERVICE)) {
+                throw new Error(
+                    `Invalid SERVICE value: ${config.SERVICE}. Must be 'enable' or 'disable'`
+                );
+            }
+
             // Handle killpower configuration
             if (config.KILLUPS === 'yes' && config.SERVICE === 'enable') {
-                await execPromise(
-                    `! grep -q apccontrol /etc/rc.d/rc.6 && sed -i -e 's:/sbin/poweroff:/etc/apcupsd/apccontrol killpower; /sbin/poweroff:' /etc/rc.d/rc.6`
-                );
+                try {
+                    // First check if apccontrol is already in rc.6
+                    const { exitCode } = await execa('grep', ['-q', 'apccontrol', '/etc/rc.d/rc.6'], {
+                        reject: false,
+                    });
+
+                    // If not found (exitCode !== 0), add it
+                    if (exitCode !== 0) {
+                        await execa('sed', [
+                            '-i',
+                            '-e',
+                            's:/sbin/poweroff:/etc/apcupsd/apccontrol killpower; /sbin/poweroff:',
+                            '/etc/rc.d/rc.6',
+                        ]);
+                        this.logger.debug('Added killpower to rc.6');
+                    }
+                } catch (error) {
+                    this.logger.error('Failed to update rc.6 for killpower enable:', error);
+                    throw new Error(
+                        `Failed to enable killpower in /etc/rc.d/rc.6: ${error instanceof Error ? error.message : String(error)}`
+                    );
+                }
             } else {
-                await execPromise(
-                    `grep -q apccontrol /etc/rc.d/rc.6 && sed -i -e 's:/etc/apcupsd/apccontrol killpower; /sbin/poweroff:/sbin/poweroff:' /etc/rc.d/rc.6`
-                );
+                try {
+                    // Check if apccontrol is in rc.6
+                    const { exitCode } = await execa('grep', ['-q', 'apccontrol', '/etc/rc.d/rc.6'], {
+                        reject: false,
+                    });
+
+                    // If found (exitCode === 0), remove it
+                    if (exitCode === 0) {
+                        await execa('sed', [
+                            '-i',
+                            '-e',
+                            's:/etc/apcupsd/apccontrol killpower; /sbin/poweroff:/sbin/poweroff:',
+                            '/etc/rc.d/rc.6',
+                        ]);
+                        this.logger.debug('Removed killpower from rc.6');
+                    }
+                } catch (error) {
+                    this.logger.error('Failed to update rc.6 for killpower disable:', error);
+                    throw new Error(
+                        `Failed to disable killpower in /etc/rc.d/rc.6: ${error instanceof Error ? error.message : String(error)}`
+                    );
+                }
             }
 
             // Start the service if enabled
             if (config.SERVICE === 'enable') {
                 try {
-                    await execPromise('/etc/rc.d/rc.apcupsd start', { timeout: 10000 });
+                    await execa('/etc/rc.d/rc.apcupsd', ['start'], { timeout: 10000 });
                     this.logger.debug('Successfully started apcupsd service');
                 } catch (error) {
                     this.logger.error('Failed to start apcupsd service:', error);
