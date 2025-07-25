@@ -1,9 +1,0 @@
-{
-    "eslint.lintTask.options": "--flag unstable_ts_config",
-    "eslint.options": {
-        "flags": ["unstable_ts_config"],
-        "overrideConfigFile": ".eslintrc.ts"
-    },
-    "typescript.preferences.importModuleSpecifier": "non-relative",
-    "javascript.preferences.importModuleSpecifier": "non-relative"
-}
