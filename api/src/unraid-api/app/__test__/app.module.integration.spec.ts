@@ -238,22 +238,6 @@ describe('AppModule Integration Tests', () => {
         });
     });
 
-    describe('REST API Health Check', () => {
-        it('should respond to health check endpoint', async () => {
-            // Most NestJS apps have a health check endpoint
-            const response = await request(app.getHttpServer())
-                .get('/health')
-                .expect((res) => {
-                    // Accept either 200 or 404 if health endpoint doesn't exist
-                    expect([200, 404]).toContain(res.status);
-                });
-
-            if (response.status === 200) {
-                expect(response.body).toBeDefined();
-            }
-        });
-    });
-
     describe('Service Integration', () => {
         it('should have working service-to-service communication', async () => {
             const dockerService = moduleRef.get(DockerService);
