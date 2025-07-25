@@ -22,10 +22,8 @@ import { loadDynamixConfigFile } from '@app/store/actions/load-dynamix-config-fi
 import { shutdownApiEvent } from '@app/store/actions/shutdown-api-event.js';
 import { store } from '@app/store/index.js';
 import { startMiddlewareListeners } from '@app/store/listeners/listener-middleware.js';
-import { loadConfigFile } from '@app/store/modules/config.js';
 import { loadStateFiles } from '@app/store/modules/emhttp.js';
 import { loadRegistrationKey } from '@app/store/modules/registration.js';
-import { startStoreSync } from '@app/store/store-sync.js';
 import { setupDynamixConfigWatch } from '@app/store/watch/dynamix-config-watch.js';
 import { setupRegistrationKeyWatch } from '@app/store/watch/registration-watch.js';
 import { StateManager } from '@app/store/watch/state-watch.js';
@@ -70,13 +68,6 @@ export const viteNodeApp = async () => {
         // Ensure all DNS lookups are cached for their TTL
         cacheable.install(http.globalAgent);
         cacheable.install(https.globalAgent);
-
-        // Start file <-> store sync
-        // Must occur before config is loaded to ensure that the handler can fix broken configs
-        await startStoreSync();
-
-        // Load my servers config file into store
-        await store.dispatch(loadConfigFile());
 
         // Load emhttp state into store
         await store.dispatch(loadStateFiles());

@@ -5,6 +5,7 @@ import {
     OnModuleDestroy,
     OnModuleInit,
 } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 
 import type { ModificationEffect } from '@app/unraid-api/unraid-file-modifier/file-modification.js';
 import { FileModificationEffectService } from '@app/unraid-api/unraid-file-modifier/file-modification-effect.service.js';
@@ -18,7 +19,10 @@ export class UnraidFileModificationService
     private appliedModifications: FileModification[] = [];
     private effects: Set<ModificationEffect> = new Set();
 
-    constructor(private readonly effectService: FileModificationEffectService) {}
+    constructor(
+        private readonly effectService: FileModificationEffectService,
+        private readonly configService: ConfigService
+    ) {}
 
     /**
      * Load and apply all modifications on module init
@@ -73,7 +77,7 @@ export class UnraidFileModificationService
             if (module.default) {
                 this.logger.debug(`Loading default modification: ${module.default.name}`);
                 const ModificationClass = module.default;
-                const instance = new ModificationClass(this.logger);
+                const instance = new ModificationClass(this.logger, this.configService);
                 modifications.push(instance);
             }
             // If no default export, try to find the first exported class that extends FileModification
@@ -89,7 +93,7 @@ export class UnraidFileModificationService
                     // Check if it's a class that extends FileModification
                     if (ExportedClass.prototype instanceof FileModification) {
                         this.logger.debug(`Loading named modification: ${ExportedClass.name}`);
-                        const instance = new ExportedClass(this.logger);
+                        const instance = new ExportedClass(this.logger, this.configService);
                         modifications.push(instance);
                     }
                 }
@@ -151,5 +155,59 @@ export class UnraidFileModificationService
             }
         }
         this.appliedModifications = [];
+    }
+
+    /**
+     * Apply a specific modification by ID
+     * @param modificationId - The ID of the modification to apply
+     */
+    async applyModificationById(modificationId: string): Promise<void> {
+        const modifications = await this.loadModifications();
+        const modification = modifications.find((mod) => mod.id === modificationId);
+
+        if (!modification) {
+            throw new Error(`Modification with ID "${modificationId}" not found`);
+        }
+
+        // Check if already applied
+        const isAlreadyApplied = this.appliedModifications.some((mod) => mod.id === modificationId);
+        if (isAlreadyApplied) {
+            this.logger.debug(`Modification "${modificationId}" is already applied`);
+            return;
+        }
+
+        await this.applyModification(modification);
+    }
+
+    /**
+     * Rollback a specific modification by ID
+     * @param modificationId - The ID of the modification to rollback
+     */
+    async rollbackModificationById(modificationId: string): Promise<void> {
+        const modification = this.appliedModifications.find((mod) => mod.id === modificationId);
+
+        if (!modification) {
+            this.logger.debug(`Modification "${modificationId}" is not currently applied`);
+            return;
+        }
+
+        try {
+            this.logger.debug(`Rolling back modification: ${modification.id}`);
+            await modification.rollback();
+            this.logger.debug(`Successfully rolled back modification: ${modification.id}`);
+
+            // Remove from applied list
+            this.appliedModifications = this.appliedModifications.filter(
+                (mod) => mod.id !== modificationId
+            );
+        } catch (error) {
+            if (error instanceof Error) {
+                this.logger.error(`Failed to roll back modification: ${error.message}`);
+                throw error;
+            } else {
+                this.logger.error('Failed to roll back modification: Unknown error');
+                throw new Error('Failed to roll back modification');
+            }
+        }
     }
 }

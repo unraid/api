@@ -83,7 +83,8 @@ export default defineConfig(({ mode }): ViteUserConfig => {
                 'term.js',
                 'class-transformer/storage',
                 'unicorn-magic',
-                ...Object.keys(workspaceDependencies),
+                // Exclude workspace dependencies except in test mode to avoid GraphQL version conflicts
+                ...(mode === 'test' ? [] : Object.keys(workspaceDependencies)),
             ],
             include: [
                 '@nestjs/common',
@@ -155,7 +156,7 @@ export default defineConfig(({ mode }): ViteUserConfig => {
             },
         },
         ssr: {
-            external: [...Object.keys(workspaceDependencies)],
+            external: mode === 'test' ? [] : [...Object.keys(workspaceDependencies)],
         },
         server: {
             hmr: true,

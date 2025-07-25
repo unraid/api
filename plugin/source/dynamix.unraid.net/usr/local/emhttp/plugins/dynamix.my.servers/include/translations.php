@@ -403,6 +403,17 @@ class WebComponentTranslations
             'Your Trial has expired' => _('Your Trial has expired'),
             'Your Trial key has been extended!' => _('Your Trial key has been extended!'),
             'Unraid OS {0} Changelog' => sprintf(_('Unraid OS %s Changelog'), '{0}'),
+            'or' => _('or'),
+            'Logging in...' => _('Logging in...'),
+            'Try Again' => _('Try Again'),
+            'Log In With Unraid.net' => _('Log In With Unraid.net'),
+            'Invalid Unraid.net credentials' => _('Invalid Unraid.net credentials'),
+            'This Unraid.net account is not authorized to access this server' => _('This Unraid.net account is not authorized to access this server'),
+            'SSO login is not enabled on this server' => _('SSO login is not enabled on this server'),
+            'Login session expired. Please try again' => _('Login session expired. Please try again'),
+            'Network error. Please check your connection' => _('Network error. Please check your connection'),
+            'SSO login failed. Please try again' => _('SSO login failed. Please try again'),
+            'Error fetching token' => _('Error fetching token'),
         ];
     }
 

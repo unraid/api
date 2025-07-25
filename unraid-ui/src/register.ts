@@ -8,6 +8,7 @@ const debugImports = process.env.NODE_ENV !== 'production';
 type RegisterParams = {
   namePrefix?: string;
   pathToSharedCss?: string;
+  sharedCssContent?: string;
 };
 
 type CustomElementComponent = {
@@ -18,7 +19,7 @@ type CustomElementComponent = {
 };
 
 export function registerAllComponents(params: RegisterParams = {}) {
-  const { namePrefix = 'uui', pathToSharedCss = './src/styles/index.css' } = params;
+  const { namePrefix = 'uui', pathToSharedCss = './src/styles/index.css', sharedCssContent } = params;
 
   Object.entries(Components).forEach(([name, originalComponent]) => {
     try {
@@ -46,7 +47,13 @@ export function registerAllComponents(params: RegisterParams = {}) {
       const component = originalComponent as CustomElementComponent;
 
       component.styles ??= [];
-      component.styles.unshift(`@import "${pathToSharedCss}"`);
+
+      // Use inline CSS content if provided, otherwise fall back to @import
+      if (sharedCssContent) {
+        component.styles.unshift(sharedCssContent);
+      } else {
+        component.styles.unshift(`@import "${pathToSharedCss}"`);
+      }
 
       let elementName = kebabCase(name);
       if (!elementName) {

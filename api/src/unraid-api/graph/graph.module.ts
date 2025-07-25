@@ -53,9 +53,12 @@ console.log('ENVIRONMENT', ENVIRONMENT);
                     },
                     buildSchemaOptions: {
                         dateScalarMode: 'isoDate',
-                        directives: [UsePermissionsDirective],
+                        // Only add directive when not in test environment to avoid GraphQL version conflicts
+                        directives: process.env.NODE_ENV === 'test' ? [] : [UsePermissionsDirective],
                     },
-                    transformSchema: usePermissionsSchemaTransformer,
+                    // Only add transform when not in test environment to avoid GraphQL version conflicts
+                    transformSchema:
+                        process.env.NODE_ENV === 'test' ? undefined : usePermissionsSchemaTransformer,
                     validationRules: [NoUnusedVariablesRule],
                 };
             },

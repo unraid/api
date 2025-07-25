@@ -2,7 +2,7 @@ import { Field, InputType, Int, ObjectType, registerEnumType } from '@nestjs/gra
 
 import { Node } from '@unraid/shared/graphql.model.js';
 import { PrefixedID } from '@unraid/shared/prefixed-id-scalar.js';
-import { IsEnum } from 'class-validator';
+import { IsEnum, IsInt, IsOptional, IsString } from 'class-validator';
 import { GraphQLBigInt } from 'graphql-scalars';
 
 @ObjectType()
@@ -152,9 +152,12 @@ export class UnraidArray extends Node {
 @InputType()
 export class ArrayDiskInput {
     @Field(() => PrefixedID, { description: 'Disk ID' })
+    @IsString()
     id!: string;
 
     @Field(() => Int, { nullable: true, description: 'The slot for the disk' })
+    @IsOptional()
+    @IsInt()
     slot?: number;
 }
 

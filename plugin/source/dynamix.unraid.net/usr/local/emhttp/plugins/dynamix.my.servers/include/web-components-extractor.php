@@ -9,7 +9,17 @@ class WebComponentsExtractor
     private const UI_ENTRY = 'src/register.ts';
     private const UI_STYLES_ENTRY = 'style.css';
 
-    public function __construct() {}
+    private static ?WebComponentsExtractor $instance = null;
+
+    private function __construct() {}
+
+    public static function getInstance(): WebComponentsExtractor
+    {
+        if (self::$instance === null) {
+            self::$instance = new WebComponentsExtractor();
+        }
+        return self::$instance;
+    }
 
     private function findManifestFiles(string $manifestName): array
     {
@@ -72,7 +82,20 @@ class WebComponentsExtractor
         if (empty($jsFile)) {
             return '<script>console.error("%cNo matching key containing \'' . self::RICH_COMPONENTS_ENTRY . '\' or \'' . self::RICH_COMPONENTS_ENTRY_JS . '\' found.", "font-weight: bold; color: white; background-color: red");</script>';
         }
-        return '<script src="' . $this->getAssetPath($jsFile) . '"></script>';
+        // Add a unique identifier to prevent duplicate script loading
+        $scriptId = 'unraid-rich-components-script';
+        return '<script id="' . $scriptId . '" src="' . $this->getAssetPath($jsFile) . '"></script>
+        <script>
+            // Remove duplicate script tags to prevent multiple loads
+            (function() {
+                var scripts = document.querySelectorAll(\'script[id="' . $scriptId . '"]\');
+                if (scripts.length > 1) {
+                    for (var i = 1; i < scripts.length; i++) {
+                        scripts[i].remove();
+                    }
+                }
+            })();
+        </script>';
     }
 
     private function getUnraidUiScriptHtml(): string
@@ -95,19 +118,65 @@ class WebComponentsExtractor
 
         $jsFile = ($subfolder ? $subfolder . '/' : '') . $manifest[self::UI_ENTRY]['file'];
         $cssFile = ($subfolder ? $subfolder . '/' : '') . $manifest[self::UI_STYLES_ENTRY]['file'];
+        
+        // Read the CSS file content
+        $cssPath = '/usr/local/emhttp' . $this->getAssetPath($cssFile);
+        $cssContent = @file_get_contents($cssPath);
+        
+        if ($cssContent === false) {
+            error_log("Failed to read CSS file: " . $cssPath);
+            $cssContent = '';
+        }
+        
+        // Escape the CSS content for JavaScript
+        $escapedCssContent = json_encode($cssContent);
 
-        return '<script defer type="module">
-            import { registerAllComponents } from "' . $this->getAssetPath($jsFile) . '";
-            registerAllComponents({ pathToSharedCss: "' . $this->getAssetPath($cssFile) . '" });
+        // Use a data attribute to ensure this only runs once per page
+        return '<script data-unraid-ui-register defer type="module">
+            (async function() {
+                // Check if components have already been registered
+                if (window.__unraidUiComponentsRegistered) {
+                    return;
+                }
+                
+                // Mark as registered immediately to prevent race conditions
+                window.__unraidUiComponentsRegistered = true;
+                
+                try {
+                    const { registerAllComponents } = await import("' . $this->getAssetPath($jsFile) . '");
+                    registerAllComponents({ sharedCssContent: ' . $escapedCssContent . ' });
+                } catch (error) {
+                    console.error("[Unraid UI] Failed to register components:", error);
+                    // Reset flag on error so it can be retried
+                    window.__unraidUiComponentsRegistered = false;
+                }
+                
+                // Clean up duplicate script tags
+                const scripts = document.querySelectorAll(\'script[data-unraid-ui-register]\');
+                if (scripts.length > 1) {
+                    for (let i = 1; i < scripts.length; i++) {
+                        scripts[i].remove();
+                    }
+                }
+            })();
         </script>';
     }
 
     public function getScriptTagHtml(): string
     {
+        // Use a static flag to ensure scripts are only output once per request
+        static $scriptsOutput = false;
+        
+        if ($scriptsOutput) {
+            return '<!-- Web components scripts already loaded -->';
+        }
+        
         try {
+            $scriptsOutput = true;
             return $this->getRichComponentsScript() . $this->getUnraidUiScriptHtml();
         } catch (\Exception $e) {
             error_log("Error in WebComponentsExtractor::getScriptTagHtml: " . $e->getMessage());
+            $scriptsOutput = false; // Reset on error
             return "";
         }
     }

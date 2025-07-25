@@ -15,6 +15,7 @@ import type { TypedDocumentNode as DocumentNode } from '@graphql-typed-document-
  */
 type Documents = {
     "\n  query PartnerInfo {\n    publicPartnerInfo {\n      hasPartnerLogo\n      partnerName\n      partnerUrl\n      partnerLogoUrl\n    }\n  }\n": typeof types.PartnerInfoDocument,
+    "\n  query PublicWelcomeData {\n    publicPartnerInfo {\n      hasPartnerLogo\n      partnerName\n      partnerUrl\n      partnerLogoUrl\n    }\n    isInitialSetup\n  }\n": typeof types.PublicWelcomeDataDocument,
     "\n  query ActivationCode {\n    vars {\n      regState\n    }\n    customization {\n      activationCode {\n        code\n        partnerName\n        serverName\n        sysModel\n        comment\n        header\n        headermetacolor\n        background\n        showBannerGradient\n        theme\n      }\n      partnerInfo {\n        hasPartnerLogo\n        partnerName\n        partnerUrl\n        partnerLogoUrl\n      }\n    }\n  }\n": typeof types.ActivationCodeDocument,
     "\n  fragment ApiKey on ApiKey {\n    id\n    name\n    description\n    createdAt\n    roles\n    permissions {\n      resource\n      actions\n    }\n  }\n": typeof types.ApiKeyFragmentDoc,
     "\n  fragment ApiKeyWithKey on ApiKeyWithSecret {\n    id\n    key\n    name\n    description\n    createdAt\n    roles\n    permissions {\n      resource\n      actions\n    }\n  }\n": typeof types.ApiKeyWithKeyFragmentDoc,
@@ -43,6 +44,7 @@ type Documents = {
     "\n  mutation DeleteRCloneRemote($input: DeleteRCloneRemoteInput!) {\n    rclone {\n      deleteRCloneRemote(input: $input)\n    }\n  }\n": typeof types.DeleteRCloneRemoteDocument,
     "\n  query GetRCloneConfigForm($formOptions: RCloneConfigFormInput) {\n    rclone {\n      configForm(formOptions: $formOptions) {\n        id\n        dataSchema\n        uiSchema\n      }\n    }\n  }\n": typeof types.GetRCloneConfigFormDocument,
     "\n  query ListRCloneRemotes {\n    rclone {\n      remotes {\n        name\n        type\n        parameters\n        config\n      }\n    }\n  }\n": typeof types.ListRCloneRemotesDocument,
+    "\n  query serverInfo {\n    info {\n      os {\n        hostname\n      }\n    }\n    vars {\n      comment\n    }\n  }\n": typeof types.ServerInfoDocument,
     "\n  mutation ConnectSignIn($input: ConnectSignInInput!) {\n    connectSignIn(input: $input)\n  }\n": typeof types.ConnectSignInDocument,
     "\n  mutation SignOut {\n    connectSignOut\n  }\n": typeof types.SignOutDocument,
     "\n  query IsSSOEnabled {\n    isSSOEnabled\n  }\n": typeof types.IsSsoEnabledDocument,
@@ -53,6 +55,7 @@ type Documents = {
 };
 const documents: Documents = {
     "\n  query PartnerInfo {\n    publicPartnerInfo {\n      hasPartnerLogo\n      partnerName\n      partnerUrl\n      partnerLogoUrl\n    }\n  }\n": types.PartnerInfoDocument,
+    "\n  query PublicWelcomeData {\n    publicPartnerInfo {\n      hasPartnerLogo\n      partnerName\n      partnerUrl\n      partnerLogoUrl\n    }\n    isInitialSetup\n  }\n": types.PublicWelcomeDataDocument,
     "\n  query ActivationCode {\n    vars {\n      regState\n    }\n    customization {\n      activationCode {\n        code\n        partnerName\n        serverName\n        sysModel\n        comment\n        header\n        headermetacolor\n        background\n        showBannerGradient\n        theme\n      }\n      partnerInfo {\n        hasPartnerLogo\n        partnerName\n        partnerUrl\n        partnerLogoUrl\n      }\n    }\n  }\n": types.ActivationCodeDocument,
     "\n  fragment ApiKey on ApiKey {\n    id\n    name\n    description\n    createdAt\n    roles\n    permissions {\n      resource\n      actions\n    }\n  }\n": types.ApiKeyFragmentDoc,
     "\n  fragment ApiKeyWithKey on ApiKeyWithSecret {\n    id\n    key\n    name\n    description\n    createdAt\n    roles\n    permissions {\n      resource\n      actions\n    }\n  }\n": types.ApiKeyWithKeyFragmentDoc,
@@ -81,6 +84,7 @@ const documents: Documents = {
     "\n  mutation DeleteRCloneRemote($input: DeleteRCloneRemoteInput!) {\n    rclone {\n      deleteRCloneRemote(input: $input)\n    }\n  }\n": types.DeleteRCloneRemoteDocument,
     "\n  query GetRCloneConfigForm($formOptions: RCloneConfigFormInput) {\n    rclone {\n      configForm(formOptions: $formOptions) {\n        id\n        dataSchema\n        uiSchema\n      }\n    }\n  }\n": types.GetRCloneConfigFormDocument,
     "\n  query ListRCloneRemotes {\n    rclone {\n      remotes {\n        name\n        type\n        parameters\n        config\n      }\n    }\n  }\n": types.ListRCloneRemotesDocument,
+    "\n  query serverInfo {\n    info {\n      os {\n        hostname\n      }\n    }\n    vars {\n      comment\n    }\n  }\n": types.ServerInfoDocument,
     "\n  mutation ConnectSignIn($input: ConnectSignInInput!) {\n    connectSignIn(input: $input)\n  }\n": types.ConnectSignInDocument,
     "\n  mutation SignOut {\n    connectSignOut\n  }\n": types.SignOutDocument,
     "\n  query IsSSOEnabled {\n    isSSOEnabled\n  }\n": types.IsSsoEnabledDocument,
@@ -108,6 +112,10 @@ export function graphql(source: string): unknown;
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
 export function graphql(source: "\n  query PartnerInfo {\n    publicPartnerInfo {\n      hasPartnerLogo\n      partnerName\n      partnerUrl\n      partnerLogoUrl\n    }\n  }\n"): (typeof documents)["\n  query PartnerInfo {\n    publicPartnerInfo {\n      hasPartnerLogo\n      partnerName\n      partnerUrl\n      partnerLogoUrl\n    }\n  }\n"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "\n  query PublicWelcomeData {\n    publicPartnerInfo {\n      hasPartnerLogo\n      partnerName\n      partnerUrl\n      partnerLogoUrl\n    }\n    isInitialSetup\n  }\n"): (typeof documents)["\n  query PublicWelcomeData {\n    publicPartnerInfo {\n      hasPartnerLogo\n      partnerName\n      partnerUrl\n      partnerLogoUrl\n    }\n    isInitialSetup\n  }\n"];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
@@ -220,6 +228,10 @@ export function graphql(source: "\n  query GetRCloneConfigForm($formOptions: RCl
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
 export function graphql(source: "\n  query ListRCloneRemotes {\n    rclone {\n      remotes {\n        name\n        type\n        parameters\n        config\n      }\n    }\n  }\n"): (typeof documents)["\n  query ListRCloneRemotes {\n    rclone {\n      remotes {\n        name\n        type\n        parameters\n        config\n      }\n    }\n  }\n"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "\n  query serverInfo {\n    info {\n      os {\n        hostname\n      }\n    }\n    vars {\n      comment\n    }\n  }\n"): (typeof documents)["\n  query serverInfo {\n    info {\n      os {\n        hostname\n      }\n    }\n    vars {\n      comment\n    }\n  }\n"];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */

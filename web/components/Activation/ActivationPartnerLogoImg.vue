@@ -5,10 +5,17 @@
  */
 import { storeToRefs } from 'pinia';
 
-import { useActivationCodeDataStore } from '~/components/Activation/store/activationCodeData';
 import { useThemeStore } from '~/store/theme';
 
-const { partnerInfo } = storeToRefs(useActivationCodeDataStore());
+interface Props {
+  partnerInfo?: {
+    partnerLogoUrl?: string | null;
+    hasPartnerLogo?: boolean;
+  };
+}
+
+defineProps<Props>();
+
 const { darkMode } = storeToRefs(useThemeStore());
 </script>
 

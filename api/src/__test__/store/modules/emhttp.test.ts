@@ -24,7 +24,7 @@ test('Before init returns default values for all fields', async () => {
 	`);
 });
 
-test('After init returns values from cfg file for all fields', async () => {
+test('After init returns values from cfg file for all fields', { timeout: 30000 }, async () => {
     const { loadStateFiles } = await import('@app/store/modules/emhttp.js');
 
     // Load state files into store

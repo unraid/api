@@ -27,6 +27,7 @@ export interface DialogProps {
   scrollable?: boolean;
   size?: 'sm' | 'md' | 'lg' | 'xl' | 'full';
   showCloseButton?: boolean;
+  to?: string | HTMLElement;
 }
 
 const {
@@ -43,6 +44,7 @@ const {
   scrollable = false,
   size = 'md',
   showCloseButton = true,
+  to,
 } = defineProps<DialogProps>();
 
 const emit = defineEmits<{
@@ -86,6 +88,7 @@ const sizeClasses = {
         )
       "
       :show-close-button="showCloseButton"
+      :to="to"
     >
       <DialogHeader v-if="title || description || $slots.header">
         <slot name="header">

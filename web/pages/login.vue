@@ -1,14 +1,19 @@
 <script lang="ts" setup>
+import { computed } from 'vue';
+import { useQuery } from '@vue/apollo-composable';
+import { useI18n } from 'vue-i18n';
 import SsoButtonCe from '~/components/SsoButton.ce.vue';
+import { SERVER_INFO_QUERY } from './login.query';
 
-const handleSubmit = () => {
-  console.log('Form submitted');
-};
+const { t } = useI18n();
+const { result } = useQuery(SERVER_INFO_QUERY);
+
+const serverName = computed(() => result.value?.info?.os?.hostname || 'UNRAID');
+const serverComment = computed(() => result.value?.vars?.comment || '');
 </script>
 
 <template>
-  <body>
-    <section id="login" class="shadow-sm">
+  <section id="login" class="shadow">
       <div class="logo angle">
         <div class="wordmark">
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 222.4 39" class="Nav__logo--white">
@@ -20,35 +25,39 @@ const handleSubmit = () => {
         </div>
       </div>
       <div class="content">
-        <h1>SERVER NAME</h1>
-        <h2>COMMENT</h2>
+        <h1>{{ serverName }}</h1>
+        <h2>{{ serverComment }}</h2>
 
-        <div class="case">Case Icon</div>
+        <div class="case">
+          <!-- Case icon will be implemented in a future update -->
+        </div>
 
         <div class="form">
-          <form class="js-removeTimeout" action="/login" @submit.prevent="handleSubmit">
+          <form action="/login" method="POST">
             <p>
               <input
                 name="username"
                 type="text"
-                placeholder="<?=_('Username')?>"
+                :placeholder="t('Username')"
                 autocapitalize="none"
                 autocomplete="off"
                 spellcheck="false"
                 autofocus
                 required
               >
-              <input name="password" type="password" placeholder="<?=_('Password')?>" required >
+              <input name="password" type="password" :placeholder="t('Password')" required>
             </p>
             <p>
-              <button type="submit" class="button button--small">Login</button>
+              <button type="submit" class="button button--small">{{ t('Login') }}</button>
             </p>
           </form>
-          <SsoButtonCe ssoenabled="true" />
+          <!-- SSO Button will show when GraphQL query isSSOEnabled returns true -->
+          <SsoButtonCe />
         </div>
+
+        <a href="https://docs.unraid.net/go/lost-root-password/" target="_blank" class="password-recovery">{{ t('Password recovery') }}</a>
       </div>
     </section>
-  </body>
 </template>
 <style scoped>
 /************************
@@ -181,7 +190,7 @@ textarea:focus {
   width: 500px;
   margin: 6rem auto;
   border-radius: 10px;
-  background: '#fff';
+  background: #fff;
 }
 #login::after {
   content: '';
@@ -246,6 +255,11 @@ textarea:focus {
 .shadow {
   -webkit-box-shadow: 0 2px 8px 0 rgba(0, 0, 0, 0.12);
   box-shadow: 0 2px 8px 0 rgba(0, 0, 0, 0.12);
+}
+.password-recovery {
+  display: block;
+  margin-top: 1rem;
+  text-align: center;
 }
 .hidden {
   display: none;

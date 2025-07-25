@@ -21,8 +21,18 @@ vi.mock('@vue/apollo-composable', () => ({
   useQuery: vi.fn(),
 }));
 
+// Mock vue-i18n
+const t = (key: string) => key;
+vi.mock('vue-i18n', () => ({
+  useI18n: () => ({ t }),
+}));
+
 vi.mock('~/helpers/urls', () => ({
   ACCOUNT: 'http://mock-account-url.net',
+}));
+
+vi.mock('~/store/account.fragment', () => ({
+  SSO_ENABLED: 'SSO_ENABLED_QUERY',
 }));
 
 // Mock window APIs
@@ -262,7 +272,7 @@ describe('SsoButton.ce.vue', () => {
 
     const button = wrapper.findComponent(BrandButtonStub);
 
-    expect(button.text()).toBe('Error');
+    expect(button.text()).toBe('Try Again');
 
     expect(mockForm.style.display).toBe('block');
     expect(mockForm.requestSubmit).not.toHaveBeenCalled();

@@ -5,9 +5,6 @@ import { addListener, createListenerMiddleware } from '@reduxjs/toolkit';
 
 import { type AppDispatch, type RootState } from '@app/store/index.js';
 import { enableArrayEventListener } from '@app/store/listeners/array-event-listener.js';
-import { enableConfigFileListener } from '@app/store/listeners/config-listener.js';
-import { enableUpnpListener } from '@app/store/listeners/upnp-listener.js';
-import { enableVersionListener } from '@app/store/listeners/version-listener.js';
 
 export const listenerMiddleware = createListenerMiddleware();
 
@@ -21,9 +18,5 @@ export const addAppListener = addListener as TypedAddListener<RootState, AppDisp
 
 export const startMiddlewareListeners = () => {
     // Begin listening for events
-    enableConfigFileListener('flash')();
-    enableConfigFileListener('memory')();
-    enableUpnpListener();
-    enableVersionListener();
     enableArrayEventListener();
 };

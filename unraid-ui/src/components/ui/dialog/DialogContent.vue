@@ -15,11 +15,15 @@ import {
 import type { HTMLAttributes } from 'vue';
 
 const props = defineProps<
-  DialogContentProps & { class?: HTMLAttributes['class']; showCloseButton?: boolean }
+  DialogContentProps & {
+    class?: HTMLAttributes['class'];
+    showCloseButton?: boolean;
+    to?: string | HTMLElement;
+  }
 >();
 const emits = defineEmits<DialogContentEmits>();
 
-const delegatedProps = reactiveOmit(props, 'class', 'showCloseButton');
+const delegatedProps = reactiveOmit(props, 'class', 'showCloseButton', 'to');
 
 const forwarded = useForwardPropsEmits(delegatedProps, emits);
 
@@ -27,7 +31,7 @@ const { teleportTarget } = useTeleport();
 </script>
 
 <template>
-  <DialogPortal :to="teleportTarget">
+  <DialogPortal :to="props.to || teleportTarget || 'body'">
     <DialogOverlay
       class="fixed inset-0 z-50 bg-black/80 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0"
     />
@@ -35,7 +39,13 @@ const { teleportTarget } = useTeleport();
       v-bind="forwarded"
       :class="
         cn(
-          'fixed left-1/2 top-1/2 z-50 grid w-full max-w-lg -translate-x-1/2 -translate-y-1/2 gap-4 border bg-background p-6 shadow-lg rounded-lg duration-200 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[state=closed]:slide-out-to-left-1/2 data-[state=closed]:slide-out-to-top-[48%] data-[state=open]:slide-in-from-left-1/2 data-[state=open]:slide-in-from-top-[48%]',
+          'fixed left-1/2 top-1/2 z-50 grid w-full max-w-lg -translate-x-1/2 -translate-y-1/2 gap-4 border bg-background p-6 shadow-lg rounded-lg duration-200 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0',
+          // Only apply zoom and slide animations if not fullscreen
+          !props.class?.includes('min-h-screen') &&
+            'data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[state=closed]:slide-out-to-left-1/2 data-[state=closed]:slide-out-to-top-[48%] data-[state=open]:slide-in-from-left-1/2 data-[state=open]:slide-in-from-top-[48%]',
+          // Apply slide-up animation for fullscreen modals
+          props.class?.includes('min-h-screen') &&
+            'data-[state=closed]:slide-out-to-bottom data-[state=open]:slide-in-from-bottom',
           props.class
         )
       "

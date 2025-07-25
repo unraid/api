@@ -2,7 +2,7 @@ import { Inject, Injectable, Logger, OnModuleDestroy } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Cron, SchedulerRegistry } from '@nestjs/schedule';
 
-import { Client, Mapping } from '@runonflux/nat-upnp';
+import type { Client, Mapping } from '@runonflux/nat-upnp';
 import { UPNP_CLIENT_TOKEN } from '@unraid/shared/tokens.js';
 import { isDefined } from 'class-validator';
 

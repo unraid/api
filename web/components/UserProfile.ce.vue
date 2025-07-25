@@ -4,21 +4,20 @@ import { useI18n } from 'vue-i18n';
 import { storeToRefs } from 'pinia';
 import { useClipboard } from '@vueuse/core';
 
-import { DropdownMenu, cn } from '@unraid/ui';
+import { cn, DropdownMenu } from '@unraid/ui';
 import { devConfig } from '~/helpers/env';
 
 import type { Server } from '~/types/server';
 
-import { useCallbackActionsStore } from '~/store/callbackActions';
-import { useServerStore } from '~/store/server';
-import { useThemeStore } from '~/store/theme';
-
-// Auto-imported components - now manually imported
-import UpcUptimeExpire from '~/components/UserProfile/UptimeExpire.vue';
-import UpcServerState from '~/components/UserProfile/ServerState.vue';
 import NotificationsSidebar from '~/components/Notifications/Sidebar.vue';
 import UpcDropdownContent from '~/components/UserProfile/DropdownContent.vue';
 import UpcDropdownTrigger from '~/components/UserProfile/DropdownTrigger.vue';
+import UpcServerState from '~/components/UserProfile/ServerState.vue';
+// Auto-imported components - now manually imported
+import UpcUptimeExpire from '~/components/UserProfile/UptimeExpire.vue';
+import { useCallbackActionsStore } from '~/store/callbackActions';
+import { useServerStore } from '~/store/server';
+import { useThemeStore } from '~/store/theme';
 
 export interface Props {
   server?: Server | string;
@@ -98,10 +97,7 @@ onMounted(() => {
 </script>
 
 <template>
-  <div
-    id="UserProfile"
-    class="text-foreground relative z-20 flex flex-col h-full gap-y-1 pt-2 pr-2"
-  >
+  <div id="UserProfile" class="text-foreground relative z-20 flex flex-col h-full gap-y-1 pt-2 pr-2">
     <div
       v-if="bannerGradient"
       class="absolute z-0 w-full top-0 bottom-0 right-0"
@@ -109,10 +105,14 @@ onMounted(() => {
     />
 
     <div
-      :class="cn('text-xs text-header-text-secondary text-right font-semibold leading-normal relative z-10 flex flex-wrap xs:!flex-row items-baseline justify-end gap-x-1 xs:gap-x-4')"
+      :class="
+        cn(
+          'text-xs text-header-text-secondary text-right font-semibold leading-normal relative z-10 flex flex-wrap xs:flex-row items-baseline justify-end gap-x-1 xs:gap-x-4'
+        )
+      "
     >
       <UpcUptimeExpire :as="'span'" :t="t" class="text-xs" />
-      <span class="hidden xs:!block">&bull;</span>
+      <span class="hidden xs:block">&bull;</span>
       <UpcServerState :t="t" class="text-xs" />
     </div>
 
@@ -121,8 +121,8 @@ onMounted(() => {
         class="text-md sm:text-lg relative flex flex-col-reverse items-end md:flex-row border-0 text-header-text-primary"
       >
         <template v-if="description && theme?.descriptionShow">
-          <span class="text-right text-xs sm:text-lg hidden 2xs:!block" v-html="description" />
-          <span class="text-header-text-secondary hidden md:!inline-block px-2">&bull;</span>
+          <span class="text-right text-xs sm:text-lg hidden md:inline-block" v-html="description" />
+          <span class="text-header-text-secondary hidden md:inline-block px-2">&bull;</span>
         </template>
         <button
           v-if="lanIp"
@@ -132,10 +132,7 @@ onMounted(() => {
         >
           {{ name }}
         </button>
-        <span
-          v-else
-          class="text-header-text-primary"
-        >
+        <span v-else class="text-header-text-primary">
           {{ name }}
         </span>
         <span

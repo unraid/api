@@ -2,7 +2,6 @@
  * ActivationPartnerLogo Component Test Coverage
  */
 
-import { ref } from 'vue';
 import { mount } from '@vue/test-utils';
 
 import { beforeEach, describe, expect, it, vi } from 'vitest';
@@ -11,28 +10,17 @@ import ActivationPartnerLogo from '~/components/Activation/ActivationPartnerLogo
 
 const mockActivationPartnerLogoImg = {
   template: '<div data-testid="partner-logo-img"></div>',
+  props: ['partnerInfo'],
 };
-
-const mockActivationCodeDataStore = {
-  partnerInfo: ref({
-    partnerUrl: null as string | null,
-  }),
-};
-
-vi.mock('~/components/Activation/store/activationCodeData', () => ({
-  useActivationCodeDataStore: () => mockActivationCodeDataStore,
-}));
 
 describe('ActivationPartnerLogo', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    mockActivationCodeDataStore.partnerInfo.value = {
-      partnerUrl: null,
-    };
   });
 
-  const mountComponent = () => {
+  const mountComponent = (props = {}) => {
     return mount(ActivationPartnerLogo, {
+      props,
       global: {
         stubs: {
           ActivationPartnerLogoImg: mockActivationPartnerLogoImg,
@@ -42,11 +30,11 @@ describe('ActivationPartnerLogo', () => {
   };
 
   it('renders a link with partner logo when partnerUrl exists', () => {
-    mockActivationCodeDataStore.partnerInfo.value = {
-      partnerUrl: 'https://example.com',
-    };
-
-    const wrapper = mountComponent();
+    const wrapper = mountComponent({
+      partnerInfo: {
+        partnerUrl: 'https://example.com',
+      },
+    });
     const link = wrapper.find('a');
     const logoImg = wrapper.find('[data-testid="partner-logo-img"]');
 
@@ -58,7 +46,11 @@ describe('ActivationPartnerLogo', () => {
   });
 
   it('does not render anything when no partnerUrl exists', () => {
-    const wrapper = mountComponent();
+    const wrapper = mountComponent({
+      partnerInfo: {
+        partnerUrl: null,
+      },
+    });
     const link = wrapper.find('a');
     const logoImg = wrapper.find('[data-testid="partner-logo-img"]');
 
@@ -67,11 +59,11 @@ describe('ActivationPartnerLogo', () => {
   });
 
   it('applies correct opacity classes for hover and focus states', () => {
-    mockActivationCodeDataStore.partnerInfo.value = {
-      partnerUrl: 'https://example.com',
-    };
-
-    const wrapper = mountComponent();
+    const wrapper = mountComponent({
+      partnerInfo: {
+        partnerUrl: 'https://example.com',
+      },
+    });
     const link = wrapper.find('a');
 
     expect(link.classes()).toContain('opacity-100');

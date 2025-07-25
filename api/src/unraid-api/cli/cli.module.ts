@@ -3,12 +3,16 @@ import { Module } from '@nestjs/common';
 import { DependencyService } from '@app/unraid-api/app/dependency.service.js';
 import { ApiKeyService } from '@app/unraid-api/auth/api-key.service.js';
 import { SsoUserService } from '@app/unraid-api/auth/sso-user.service.js';
+import { AdminKeyService } from '@app/unraid-api/cli/admin-key.service.js';
+import { ApiReportService } from '@app/unraid-api/cli/api-report.service.js';
 import { AddApiKeyQuestionSet } from '@app/unraid-api/cli/apikey/add-api-key.questions.js';
 import { ApiKeyCommand } from '@app/unraid-api/cli/apikey/api-key.command.js';
 import { DeleteApiKeyQuestionSet } from '@app/unraid-api/cli/apikey/delete-api-key.questions.js';
 import { ConfigCommand } from '@app/unraid-api/cli/config.command.js';
+import { DeveloperToolsService } from '@app/unraid-api/cli/developer/developer-tools.service.js';
 import { DeveloperCommand } from '@app/unraid-api/cli/developer/developer.command.js';
 import { DeveloperQuestions } from '@app/unraid-api/cli/developer/developer.questions.js';
+import { CliInternalClientService } from '@app/unraid-api/cli/internal-client.service.js';
 import { LogService } from '@app/unraid-api/cli/log.service.js';
 import { LogsCommand } from '@app/unraid-api/cli/logs.command.js';
 import {
@@ -34,6 +38,7 @@ import { SwitchEnvCommand } from '@app/unraid-api/cli/switch-env.command.js';
 import { VersionCommand } from '@app/unraid-api/cli/version.command.js';
 import { ApiConfigModule } from '@app/unraid-api/config/api-config.module.js';
 import { LegacyConfigModule } from '@app/unraid-api/config/legacy-config.module.js';
+import { GlobalDepsModule } from '@app/unraid-api/plugin/global-deps.module.js';
 import { PluginCliModule } from '@app/unraid-api/plugin/plugin.module.js';
 
 const DEFAULT_COMMANDS = [
@@ -68,15 +73,20 @@ const DEFAULT_PROVIDERS = [
     AddSSOUserQuestionSet,
     RemoveSSOUserQuestionSet,
     DeveloperQuestions,
+    DeveloperToolsService,
     LogService,
     PM2Service,
     ApiKeyService,
     SsoUserService,
     DependencyService,
+    AdminKeyService,
+    ApiReportService,
+    CliInternalClientService,
 ] as const;
 
 @Module({
-    imports: [LegacyConfigModule, ApiConfigModule, PluginCliModule.register()],
+    imports: [LegacyConfigModule, ApiConfigModule, GlobalDepsModule, PluginCliModule.register()],
     providers: [...DEFAULT_COMMANDS, ...DEFAULT_PROVIDERS],
+    exports: [ApiReportService],
 })
 export class CliModule {}

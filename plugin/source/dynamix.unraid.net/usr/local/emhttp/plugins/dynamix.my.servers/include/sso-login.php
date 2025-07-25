@@ -13,7 +13,7 @@ require_once("$docroot/plugins/dynamix.my.servers/include/web-components-extract
 
 $serverState = new ServerState();
 
-$wcExtractor = new WebComponentsExtractor();
+$wcExtractor = WebComponentsExtractor::getInstance();
 echo $wcExtractor->getScriptTagHtml();
 ?>
 

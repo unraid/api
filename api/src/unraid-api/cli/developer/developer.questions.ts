@@ -5,22 +5,40 @@ export class DeveloperQuestions {
     static name = 'developer';
 
     @Question({
-        message: `Are you sure you wish to enable developer mode?
-Currently this allows enabling the GraphQL sandbox on SERVER_URL/graphql.
-`,
-        type: 'confirm',
-        name: 'disclaimer',
+        message: 'Which developer tool would you like to configure?',
+        type: 'list',
+        name: 'tool',
+        choices: [
+            { name: 'GraphQL Sandbox', value: 'sandbox' },
+            { name: 'Modal Testing Tool', value: 'modal-test' },
+        ],
     })
-    parseDisclaimer(val: boolean) {
+    parseTool(val: string) {
         return val;
     }
 
     @Question({
-        message: 'Do you wish to enable the sandbox?',
+        message: 'Enable GraphQL sandbox mode?',
         type: 'confirm',
-        name: 'sandbox',
+        name: 'sandboxEnabled',
+        when: (answers) => answers.tool === 'sandbox',
     })
-    parseSandbox(val: boolean) {
+    parseSandboxEnabled(val: boolean) {
+        return val;
+    }
+
+    @Question({
+        message: 'What would you like to do with the modal testing tool?',
+        type: 'list',
+        name: 'modalAction',
+        choices: [
+            { name: 'Enable', value: 'enable' },
+            { name: 'Disable', value: 'disable' },
+            { name: 'Show Status', value: 'status' },
+        ],
+        when: (answers) => answers.tool === 'modal-test',
+    })
+    parseModalAction(val: string) {
         return val;
     }
 }

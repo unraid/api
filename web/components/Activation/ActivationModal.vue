@@ -21,7 +21,8 @@ export interface Props {
 
 const props = defineProps<Props>();
 
-const { isVisible } = storeToRefs(useActivationCodeModalStore());
+const modalStore = useActivationCodeModalStore();
+const { isVisible, isHidden } = storeToRefs(modalStore);
 const { partnerInfo } = storeToRefs(useActivationCodeDataStore());
 const purchaseStore = usePurchaseStore();
 
@@ -60,13 +61,14 @@ const docsButtons = computed<BrandButtonProps[]>(() => {
     v-if="isVisible"
     :model-value="isVisible"
     :show-footer="false"
-    :show-close-button="false"
+    :show-close-button="isHidden === false"
     size="full"
     class="bg-background"
+    @update:model-value="(value) => !value && modalStore.setIsHidden(true)"
   >
     <div class="flex flex-col items-center justify-start">
       <div v-if="partnerInfo?.hasPartnerLogo">
-        <ActivationPartnerLogo :name="partnerInfo.partnerName" />
+        <ActivationPartnerLogo :partner-info="partnerInfo" />
       </div>
 
       <h1 class="text-center text-xl sm:text-2xl font-semibold mt-4">{{ title }}</h1>

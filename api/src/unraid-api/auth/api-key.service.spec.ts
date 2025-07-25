@@ -8,20 +8,13 @@ import { AuthActionVerb } from 'nest-authz';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { environment } from '@app/environment.js';
-import { getters, store } from '@app/store/index.js';
-import { updateUserConfig } from '@app/store/modules/config.js';
-import { FileLoadStatus } from '@app/store/types.js';
+import { getters } from '@app/store/index.js';
 import { ApiKeyService } from '@app/unraid-api/auth/api-key.service.js';
-import {
-    ApiKey,
-    ApiKeyWithSecret,
-    Permission,
-} from '@app/unraid-api/graph/resolvers/api-key/api-key.model.js';
+import { ApiKey, ApiKeyWithSecret } from '@app/unraid-api/graph/resolvers/api-key/api-key.model.js';
 
 // Mock the store and its modules
 vi.mock('@app/store/index.js', () => ({
     getters: {
-        config: vi.fn(),
         paths: vi.fn(),
     },
     store: {
@@ -29,15 +22,6 @@ vi.mock('@app/store/index.js', () => ({
         getState: vi.fn(),
     },
 }));
-
-vi.mock('@app/store/modules/config.js', async (importOriginal) => {
-    const actual = await importOriginal<typeof import('@app/store/modules/config.js')>();
-    return {
-        ...actual,
-        updateUserConfig: vi.fn(),
-        setLocalApiKey: vi.fn(),
-    };
-});
 
 // Mock fs/promises
 vi.mock('fs/promises', async () => ({
@@ -116,15 +100,6 @@ describe('ApiKeyService', () => {
             'auth-keys': mockBasePath,
         } as any);
 
-        // Set up default config mock
-        vi.mocked(getters.config).mockReturnValue({
-            status: FileLoadStatus.LOADED,
-            remote: {
-                apikey: null,
-                localApiKey: null,
-            },
-        } as any);
-
         // Mock ensureDir
         vi.mocked(ensureDir).mockResolvedValue();
 
@@ -142,7 +117,7 @@ describe('ApiKeyService', () => {
 
     describe('initialization', () => {
         it('should ensure directory exists', async () => {
-            const service = new ApiKeyService();
+            new ApiKeyService();
             expect(ensureDirSync).toHaveBeenCalledWith(mockBasePath);
         });
 

@@ -3,8 +3,10 @@ import { Injectable } from '@nestjs/common';
 import { CommandRunner, InquirerService, Option, SubCommand } from 'nest-commander';
 import { v4 } from 'uuid';
 
-import { SsoUserService } from '@app/unraid-api/auth/sso-user.service.js';
+import { CliInternalClientService } from '@app/unraid-api/cli/internal-client.service.js';
 import { LogService } from '@app/unraid-api/cli/log.service.js';
+import { UPDATE_SSO_USERS_MUTATION } from '@app/unraid-api/cli/mutations/update-sso-users.mutation.js';
+import { SSO_USERS_QUERY } from '@app/unraid-api/cli/queries/sso-users.query.js';
 import { RestartCommand } from '@app/unraid-api/cli/restart.command.js';
 import { AddSSOUserQuestionSet } from '@app/unraid-api/cli/sso/add-sso-user.questions.js';
 
@@ -24,18 +26,48 @@ export class AddSSOUserCommand extends CommandRunner {
         private readonly logger: LogService,
         private readonly inquirerService: InquirerService,
         private readonly restartCommand: RestartCommand,
-        private readonly ssoUserService: SsoUserService
+        private readonly internalClient: CliInternalClientService
     ) {
         super();
     }
 
-    async run(_input: string[], options: AddSSOUserCommandOptions): Promise<void> {
+    async run(_input: string[], options?: AddSSOUserCommandOptions): Promise<void> {
         try {
             options = await this.inquirerService.prompt(AddSSOUserQuestionSet.name, options);
             if (options.disclaimer === 'y' && options.username) {
-                await this.ssoUserService.addSsoUser(options.username);
-                this.logger.info(`User added ${options.username}, restarting the API`);
-                await this.restartCommand.run();
+                const client = await this.internalClient.getClient();
+
+                const result = await client.query({
+                    query: SSO_USERS_QUERY,
+                });
+
+                const currentUsers = result.data?.settings?.api?.ssoSubIds || [];
+
+                if (currentUsers.includes(options.username)) {
+                    this.logger.error(`User ${options.username} already exists in SSO users`);
+                    return;
+                }
+
+                const updatedUsers = [...currentUsers, options.username];
+
+                const mutationResult = await client.mutate({
+                    mutation: UPDATE_SSO_USERS_MUTATION,
+                    variables: {
+                        input: {
+                            api: {
+                                ssoSubIds: updatedUsers,
+                            },
+                        },
+                    },
+                });
+
+                this.logger.info(`User added: ${options.username}`);
+
+                // Check if restart is required based on mutation response
+                if (mutationResult.data?.updateSettings?.restartRequired) {
+                    this.logger.info('Restarting the API');
+                    await this.restartCommand.run();
+                }
             }
         } catch (e: unknown) {
             this.logger.error('Error adding user:', e);

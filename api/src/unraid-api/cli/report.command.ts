@@ -1,15 +1,14 @@
-import { readFile } from 'fs/promises';
-
 import { Command, CommandRunner, Option } from 'nest-commander';
 
-import type { MyServersConfigMemory } from '@app/types/my-servers-config.js';
-import { getters } from '@app/store/index.js';
-import { MyServersConfigMemorySchema } from '@app/types/my-servers-config.js';
+import { ApiReportService } from '@app/unraid-api/cli/api-report.service.js';
 import { LogService } from '@app/unraid-api/cli/log.service.js';
 
 @Command({ name: 'report' })
 export class ReportCommand extends CommandRunner {
-    constructor(private readonly logger: LogService) {
+    constructor(
+        private readonly logger: LogService,
+        private readonly apiReportService: ApiReportService
+    ) {
         super();
     }
 
@@ -31,55 +30,41 @@ export class ReportCommand extends CommandRunner {
         return true;
     }
 
-    async getBothMyServersConfigsWithoutError(): Promise<MyServersConfigMemory | null> {
-        const ini = await import('ini');
-        const diskConfig = await readFile(getters.paths()['myservers-config'], 'utf-8').catch(
-            (_) => null
-        );
-        const memoryConfig = await readFile(getters.paths()['myservers-config-states'], 'utf-8').catch(
-            (_) => null
-        );
-
-        if (memoryConfig) {
-            return MyServersConfigMemorySchema.parse(ini.parse(memoryConfig));
-        } else if (diskConfig) {
-            return MyServersConfigMemorySchema.parse(ini.parse(diskConfig));
-        }
-        return null;
-    }
-
     async report(): Promise<string | void> {
         try {
+            // Check if API is running
             const { isUnraidApiRunning } = await import('@app/core/utils/pm2/unraid-api-running.js');
-
             const apiRunning = await isUnraidApiRunning().catch((err) => {
                 this.logger.debug('failed to get PM2 state with error: ' + err);
                 return false;
             });
 
-            const config =
-                (await this.getBothMyServersConfigsWithoutError()) as MyServersConfigMemory & {
-                    connectionStatus: { running: 'yes' | 'no' };
-                };
-            config.connectionStatus.running = apiRunning ? 'yes' : 'no';
-            config.remote = {
-                ...config.remote,
-                apikey: 'REDACTED',
-                localApiKey: 'REDACTED',
-                accesstoken: 'REDACTED',
-                idtoken: 'REDACTED',
-                refreshtoken: 'REDACTED',
-                ssoSubIds: 'REDACTED',
-                allowedOrigins: 'REDACTED',
-                email: 'REDACTED',
-            };
+            if (!apiRunning) {
+                this.logger.warn(
+                    JSON.stringify(
+                        {
+                            error: 'API is not running. Please start the API server before running a report.',
+                            apiRunning: false,
+                        },
+                        null,
+                        2
+                    )
+                );
+                return;
+            }
+
+            const report = await this.apiReportService.generateReport(apiRunning);
+
             this.logger.clear();
-            this.logger.info(JSON.stringify(config, null, 2));
+            this.logger.info(JSON.stringify(report, null, 2));
         } catch (error) {
-            this.logger.debug('Error Generating Config: ' + error);
+            this.logger.debug('Error generating report via GraphQL: ' + error);
             this.logger.warn(
                 JSON.stringify(
-                    { error: 'Please ensure the API is configured before attempting to run a report' },
+                    {
+                        error: 'Failed to generate system report. Please ensure the API is running and properly configured.',
+                        details: error instanceof Error ? error.message : String(error),
+                    },
                     null,
                     2
                 )

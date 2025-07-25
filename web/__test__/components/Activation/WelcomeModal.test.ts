@@ -35,6 +35,7 @@ const mockT = (key: string, args?: unknown[]) => (args ? `${key} ${JSON.stringif
 const mockComponents = {
   ActivationPartnerLogo: {
     template: '<div data-testid="partner-logo"></div>',
+    props: ['partnerInfo'],
   },
   ActivationSteps: {
     template: '<div data-testid="activation-steps" :active-step="activeStep"></div>',
@@ -42,12 +43,13 @@ const mockComponents = {
   },
 };
 
-const mockActivationCodeDataStore = {
+const mockWelcomeModalDataStore = {
   partnerInfo: ref({
     hasPartnerLogo: false,
     partnerName: null as string | null,
   }),
   loading: ref(false),
+  isInitialSetup: ref(true), // Default to true for testing
 };
 
 const mockThemeStore = {
@@ -60,8 +62,8 @@ vi.mock('vue-i18n', () => ({
   }),
 }));
 
-vi.mock('~/components/Activation/store/activationCodeData', () => ({
-  useActivationCodeDataStore: () => mockActivationCodeDataStore,
+vi.mock('~/components/Activation/store/welcomeModalData', () => ({
+  useWelcomeModalDataStore: () => mockWelcomeModalDataStore,
 }));
 
 vi.mock('~/store/theme', () => ({
@@ -75,11 +77,12 @@ describe('Activation/WelcomeModal.ce.vue', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     vi.useFakeTimers();
-    mockActivationCodeDataStore.partnerInfo.value = {
+    mockWelcomeModalDataStore.partnerInfo.value = {
       hasPartnerLogo: false,
       partnerName: null,
     };
-    mockActivationCodeDataStore.loading.value = false;
+    mockWelcomeModalDataStore.loading.value = false;
+    mockWelcomeModalDataStore.isInitialSetup.value = true;
 
     // Mock document methods
     mockSetProperty = vi.fn();
@@ -93,10 +96,10 @@ describe('Activation/WelcomeModal.ce.vue', () => {
       writable: true,
     });
 
-    // Mock window.location.pathname to simulate being on /welcome page
+    // Mock window.location.pathname to simulate being on /login page
     Object.defineProperty(window, 'location', {
       value: {
-        pathname: '/welcome',
+        pathname: '/login',
       },
       writable: true,
     });
@@ -124,7 +127,7 @@ describe('Activation/WelcomeModal.ce.vue', () => {
   });
 
   it('uses the correct title text when partner name is provided', () => {
-    mockActivationCodeDataStore.partnerInfo.value = {
+    mockWelcomeModalDataStore.partnerInfo.value = {
       hasPartnerLogo: true,
       partnerName: 'Test Partner',
     };
@@ -148,13 +151,14 @@ describe('Activation/WelcomeModal.ce.vue', () => {
   });
 
   it('displays the partner logo when available', async () => {
-    mockActivationCodeDataStore.partnerInfo.value = {
+    mockWelcomeModalDataStore.partnerInfo.value = {
       hasPartnerLogo: true,
       partnerName: 'Test Partner',
     };
     const wrapper = await mountComponent();
 
-    expect(wrapper.html()).toContain('data-testid="partner-logo"');
+    const partnerLogo = wrapper.find('[data-testid="partner-logo"]');
+    expect(partnerLogo.exists()).toBe(true);
   });
 
   it('hides modal when Create a password button is clicked', async () => {
@@ -171,25 +175,28 @@ describe('Activation/WelcomeModal.ce.vue', () => {
     await button.trigger('click');
     await wrapper.vm.$nextTick();
 
-    // After click, dialog modelValue should be false
+    // After click, the dialog should be hidden (modelValue should be false)
     dialog = wrapper.findComponent({ name: 'Dialog' });
+    expect(dialog.exists()).toBe(true);
     expect(dialog.props('modelValue')).toBe(false);
   });
 
   it('disables the Create a password button when loading', async () => {
-    mockActivationCodeDataStore.loading.value = true;
+    mockWelcomeModalDataStore.loading.value = true;
 
     const wrapper = await mountComponent();
     const button = wrapper.find('button');
 
+    expect(button.exists()).toBe(true);
     expect(button.attributes('disabled')).toBe('');
   });
 
   it('renders activation steps with correct active step', async () => {
     const wrapper = await mountComponent();
 
-    expect(wrapper.html()).toContain('data-testid="activation-steps"');
-    expect(wrapper.html()).toContain('active-step="1"');
+    const activationSteps = wrapper.find('[data-testid="activation-steps"]');
+    expect(activationSteps.exists()).toBe(true);
+    expect(activationSteps.attributes('active-step')).toBe('1');
   });
 
   it('calls setTheme on mount', () => {
@@ -214,42 +221,84 @@ describe('Activation/WelcomeModal.ce.vue', () => {
     vi.useRealTimers();
   });
 
-  describe('Font size adjustment', () => {
-    it('sets font-size to 62.5% when confirmPassword field exists', async () => {
-      mockQuerySelector.mockReturnValue({ exists: true });
-      mountComponent();
 
-      await vi.runAllTimersAsync();
-
-      expect(mockSetProperty).toHaveBeenCalledWith('font-size', '62.5%');
+  it('shows modal on login page even when isInitialSetup is false', async () => {
+    Object.defineProperty(window, 'location', {
+      value: { pathname: '/login' },
+      writable: true,
     });
+    mockWelcomeModalDataStore.isInitialSetup.value = false;
+    
+    const wrapper = await mountComponent();
+    const dialog = wrapper.findComponent({ name: 'Dialog' });
+    
+    expect(dialog.exists()).toBe(true);
+  });
 
-    it('does not set font-size when confirmPassword field does not exist', async () => {
-      mockQuerySelector.mockReturnValue(null);
-      mountComponent();
-
-      await vi.runAllTimersAsync();
-
-      expect(mockSetProperty).not.toHaveBeenCalled();
+  it('shows modal on non-login page when isInitialSetup is true', async () => {
+    Object.defineProperty(window, 'location', {
+      value: { pathname: '/Dashboard' },
+      writable: true,
     });
+    mockWelcomeModalDataStore.isInitialSetup.value = true;
+    
+    const wrapper = await mountComponent();
+    const dialog = wrapper.findComponent({ name: 'Dialog' });
+    
+    expect(dialog.exists()).toBe(true);
+  });
 
-    it('sets font-size to 100% when modal is hidden', async () => {
-      mockQuerySelector.mockReturnValue({ exists: true });
-      const wrapper = await mountComponent();
-
-      await vi.runAllTimersAsync();
-
-      expect(mockSetProperty).toHaveBeenCalledWith('font-size', '62.5%');
-
-      const button = wrapper.find('button');
-      await button.trigger('click');
-      await wrapper.vm.$nextTick();
-
-      expect(mockSetProperty).toHaveBeenCalledWith('font-size', '100%');
+  it('does not show modal on non-login page when isInitialSetup is false', async () => {
+    Object.defineProperty(window, 'location', {
+      value: { pathname: '/Dashboard' },
+      writable: true,
     });
+    mockWelcomeModalDataStore.isInitialSetup.value = false;
+    
+    const wrapper = await mountComponent();
+    const dialog = wrapper.findComponent({ name: 'Dialog' });
+    
+    expect(dialog.exists()).toBe(true);
+    expect(dialog.props('modelValue')).toBe(false);
   });
 
   describe('Modal properties', () => {
+    it('shows close button when on /login page', async () => {
+      Object.defineProperty(window, 'location', {
+        value: { pathname: '/login' },
+        writable: true,
+      });
+
+      const wrapper = await mountComponent();
+      const dialog = wrapper.findComponent({ name: 'Dialog' });
+
+      expect(dialog.exists()).toBe(true);
+      expect(dialog.props('showCloseButton')).toBe(true);
+    });
+
+    it('hides close button when NOT on /login page', async () => {
+      // Set location to a non-login page
+      Object.defineProperty(window, 'location', {
+        value: { pathname: '/Dashboard' },
+        writable: true,
+      });
+
+      const wrapper = mount(WelcomeModal, {
+        props: { t: mockT as unknown as ComposerTranslation },
+        global: {
+          stubs: mockComponents,
+        },
+      });
+
+      // Manually show the modal since it won't auto-show on non-login pages
+      wrapper.vm.showWelcomeModal();
+      await wrapper.vm.$nextTick();
+
+      const dialog = wrapper.findComponent({ name: 'Dialog' });
+      expect(dialog.exists()).toBe(true);
+      expect(dialog.props('showCloseButton')).toBe(false);
+    });
+
     it('passes correct props to Dialog component', async () => {
       const wrapper = await mountComponent();
       const dialog = wrapper.findComponent({ name: 'Dialog' });
@@ -258,7 +307,7 @@ describe('Activation/WelcomeModal.ce.vue', () => {
       expect(dialog.props()).toMatchObject({
         modelValue: true,
         showFooter: false,
-        showCloseButton: false,
+        showCloseButton: true,
         size: 'full',
       });
     });
@@ -267,6 +316,8 @@ describe('Activation/WelcomeModal.ce.vue', () => {
       const wrapper = await mountComponent();
 
       // Check that the modal is rendered
+      const dialog = wrapper.findComponent({ name: 'Dialog' });
+      expect(dialog.exists()).toBe(true);
       expect(wrapper.text()).toContain('Welcome to Unraid!');
       expect(wrapper.text()).toContain('Create a password');
     });

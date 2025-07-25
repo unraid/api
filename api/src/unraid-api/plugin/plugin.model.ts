@@ -1,5 +1,7 @@
 import { Field, InputType, ObjectType } from '@nestjs/graphql';
 
+import { IsArray, IsBoolean, IsOptional, IsString } from 'class-validator';
+
 @ObjectType()
 export class Plugin {
     @Field({ description: 'The name of the plugin package' })
@@ -18,6 +20,8 @@ export class Plugin {
 @InputType()
 export class PluginManagementInput {
     @Field(() => [String], { description: 'Array of plugin package names to add or remove' })
+    @IsArray()
+    @IsString({ each: true })
     names!: string[];
 
     @Field({
@@ -25,6 +29,8 @@ export class PluginManagementInput {
         description:
             'Whether to treat plugins as bundled plugins. Bundled plugins are installed to node_modules at build time and controlled via config only.',
     })
+    @IsOptional()
+    @IsBoolean()
     bundled!: boolean;
 
     @Field({
@@ -32,5 +38,7 @@ export class PluginManagementInput {
         description:
             'Whether to restart the API after the operation. When false, a restart has already been queued.',
     })
+    @IsOptional()
+    @IsBoolean()
     restart!: boolean;
 }

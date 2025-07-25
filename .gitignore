@@ -109,3 +109,6 @@ plugin/source/dynamix.unraid.net/usr/local/emhttp/plugins/dynamix.my.servers/dat
 
 # Config file that changes between versions
 api/dev/Unraid.net/myservers.cfg
+
+# Claude local settings
+.claude/settings.local.json

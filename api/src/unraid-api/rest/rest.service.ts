@@ -11,18 +11,17 @@ import {
     getCasePathIfPresent,
 } from '@app/core/utils/images/image-file-helpers.js';
 import { getters } from '@app/store/index.js';
-import { LogService } from '@app/unraid-api/cli/log.service.js';
-import { ReportCommand } from '@app/unraid-api/cli/report.command.js';
+import { ApiReportService } from '@app/unraid-api/cli/api-report.service.js';
 
 @Injectable()
 export class RestService {
     protected logger = new Logger(RestService.name);
 
+    constructor(private readonly apiReportService: ApiReportService) {}
+
     async saveApiReport(pathToReport: string) {
         try {
-            const reportCommand = new ReportCommand(new LogService());
-
-            const apiReport = await reportCommand.report();
+            const apiReport = await this.apiReportService.generateReport();
             this.logger.debug('Report object %o', apiReport);
             await writeFile(pathToReport, JSON.stringify(apiReport, null, 2), 'utf-8');
         } catch (error) {

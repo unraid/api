@@ -4,13 +4,19 @@ The Unraid API provides a GraphQL interface that allows you to interact with you
 
 ## Enabling the GraphQL Sandbox
 
-1. First, enable developer mode using the CLI:
+1. Enable developer mode using the CLI:
 
+    ```bash
+    unraid-api developer --sandbox true
+    ```
+    
+    Or use the interactive mode:
+    
     ```bash
     unraid-api developer
     ```
 
-2. Follow the prompts to enable the sandbox. This will allow you to access the Apollo Sandbox interface.
+2. Once enabled, you can access the Apollo Sandbox interface
 
 3. Access the GraphQL playground by navigating to:
 

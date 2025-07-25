@@ -10,9 +10,9 @@
 require_once("$docroot/plugins/dynamix.my.servers/include/state.php");
 require_once("$docroot/plugins/dynamix.my.servers/include/web-components-extractor.php");
 
-$wcExtractor = new WebComponentsExtractor();
+$wcExtractor = WebComponentsExtractor::getInstance();
 echo $wcExtractor->getScriptTagHtml();
 ?>
 
+<!-- Welcome modal -->
 <unraid-welcome-modal></unraid-welcome-modal>
-

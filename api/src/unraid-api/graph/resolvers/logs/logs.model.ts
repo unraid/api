@@ -1,5 +1,7 @@
 import { Field, GraphQLISODateTime, InputType, Int, ObjectType } from '@nestjs/graphql';
 
+import { IsInt, IsOptional, IsString } from 'class-validator';
+
 @ObjectType()
 export class LogFile {
     @Field(() => String, { description: 'Name of the log file' })
@@ -33,14 +35,19 @@ export class LogFileContent {
 @InputType()
 export class LogFileInput {
     @Field(() => String, { description: 'Path to the log file' })
+    @IsString()
     path!: string;
 
     @Field(() => Int, {
         nullable: true,
         description: 'Number of lines to read from the end of the file (default: 100)',
     })
+    @IsOptional()
+    @IsInt()
     lines?: number;
 
     @Field(() => Int, { nullable: true, description: 'Optional starting line number (1-indexed)' })
+    @IsOptional()
+    @IsInt()
     startLine?: number;
 }
