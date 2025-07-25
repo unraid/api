@@ -14,9 +14,5 @@ $wcExtractor = WebComponentsExtractor::getInstance();
 echo $wcExtractor->getScriptTagHtml();
 ?>
 
-<!-- Modal target for Dialog teleportation -->
-<uui-modal-target></uui-modal-target>
-
 <!-- Welcome modal -->
 <unraid-welcome-modal></unraid-welcome-modal>
-
