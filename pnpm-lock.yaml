@@ -304,8 +304,8 @@ importers:
         specifier: 1.1.0
         version: 1.1.0
       zod:
-        specifier: 3.25.76
-        version: 3.25.76
+        specifier: 4.0.10
+        version: 4.0.10
     devDependencies:
       '@eslint/js':
         specifier: 9.31.0
@@ -785,8 +785,8 @@ importers:
         specifier: 4.20.3
         version: 4.20.3
       zod:
-        specifier: 3.25.76
-        version: 3.25.76
+        specifier: 4.0.10
+        version: 4.0.10
       zx:
         specifier: 8.7.1
         version: 8.7.1
@@ -13175,8 +13175,8 @@ packages:
   vue-component-type-helpers@2.2.8:
     resolution: {integrity: sha512-4bjIsC284coDO9om4HPA62M7wfsTvcmZyzdfR0aUlFXqq4tXxM1APyXpNVxPC8QazKw9OhmZNHBVDA6ODaZsrA==}
 
-  vue-component-type-helpers@3.0.3:
-    resolution: {integrity: sha512-koiBu7lO8e6w/UlbZAAIW11qcFQocYIl7Nh/SVwGZ804ej5KrncU32bRxi2zfU2Kyf6HWuk1CeeVP2rhIL+vyQ==}
+  vue-component-type-helpers@3.0.4:
+    resolution: {integrity: sha512-WtR3kPk8vqKYfCK/HGyT47lK/T3FaVyWxaCNuosaHYE8h9/k0lYRZ/PI/+T/z2wP+uuNKmL6z30rOcBboOu/YA==}
 
   vue-demi@0.14.10:
     resolution: {integrity: sha512-nMZBOwuzabUO0nLgIcc6rycZEebF6eeUfaiQx9+WSk8e29IbLvPU9feI6tqW4kTo3hvoYAJkMh8n8D0fuISphg==}
@@ -13646,6 +13646,9 @@ packages:
 
   zod@3.25.76:
     resolution: {integrity: sha512-gzUt/qt81nXsFGKIFcC3YnfEAx5NkunCfnDlvuBSSFS02bcXu4Lmea0AFIUwbLWxWPx3d9p8S5QoaujKcNQxcQ==}
+
+  zod@4.0.10:
+    resolution: {integrity: sha512-3vB+UU3/VmLL2lvwcY/4RV2i9z/YU0DTV/tDuYjrwmx5WeJ7hwy+rGEEx8glHp6Yxw7ibRbKSaIFBgReRPe5KA==}
 
   zx@8.7.1:
     resolution: {integrity: sha512-28u1w2LlIfvyvJvYe6pmCipesk8oL5AFMVp+P/U445LcaPgzrU5lNDtAPd6nJvWmoCNyXZz37R/xKOGokccjsw==}
@@ -17301,7 +17304,7 @@ snapshots:
       storybook: 9.0.17(@testing-library/dom@10.4.0)(prettier@3.6.2)
       type-fest: 2.19.0
       vue: 3.5.17(typescript@5.8.3)
-      vue-component-type-helpers: 3.0.3
+      vue-component-type-helpers: 3.0.4
 
   '@stylistic/eslint-plugin@5.1.0(eslint@9.31.0(jiti@2.4.2))':
     dependencies:
@@ -27416,7 +27419,7 @@ snapshots:
 
   vue-component-type-helpers@2.2.8: {}
 
-  vue-component-type-helpers@3.0.3: {}
+  vue-component-type-helpers@3.0.4: {}
 
   vue-demi@0.14.10(vue@3.5.17(typescript@5.8.3)):
     dependencies:
@@ -28000,5 +28003,7 @@ snapshots:
   zod@3.22.3: {}
 
   zod@3.25.76: {}
+
+  zod@4.0.10: {}
 
   zx@8.7.1: {}
