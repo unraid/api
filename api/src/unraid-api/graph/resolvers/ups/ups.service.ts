@@ -1,7 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { readFile, writeFile } from 'fs/promises';
 
-import { execa, ExecaError } from 'execa';
+import { execa } from 'execa';
 import { z } from 'zod';
 
 import { fileExistsSync } from '@app/core/utils/files/file-exists.js';
@@ -65,8 +65,8 @@ export class UPSService {
     async configureUPS(config: UPSConfigInput): Promise<void> {
         try {
             // Validate required fields
-            if (!config.UPSTYPE || !config.DEVICE) {
-                throw new Error('UPSTYPE and DEVICE are required fields');
+            if (!config.upsType || (!config.device && config.upsType !== 'usb')) {
+                throw new Error('upsType is required, and device is required for non-USB types');
             }
 
             // Stop the UPS service before making changes
@@ -79,17 +79,24 @@ export class UPSService {
             // Read current configuration
             const currentConfig = await this.getCurrentConfig();
 
-            // Prepare the new configuration
-            const cable = config.UPSCABLE === 'custom' ? config.CUSTOMUPSCABLE : config.UPSCABLE;
+            // Prepare the new configuration with uppercase field names
+            const cable = config.upsCable === 'custom' ? config.customUpsCable : config.upsCable;
             const newConfig: Partial<UPSConfig> = {
                 NISIP: '0.0.0.0',
-                UPSTYPE: config.UPSTYPE,
-                DEVICE: config.DEVICE,
-                BATTERYLEVEL: config.BATTERYLEVEL,
-                MINUTES: config.MINUTES,
-                TIMEOUT: config.TIMEOUT,
+                SERVICE: config.service,
+                UPSTYPE: config.upsType,
+                DEVICE: config.device || '',
+                BATTERYLEVEL: config.batteryLevel,
+                MINUTES: config.minutes,
+                TIMEOUT: config.timeout,
                 UPSCABLE: cable,
+                KILLUPS: config.killUps,
             };
+
+            // Add optional override capacity if provided
+            if (config.overrideUpsCapacity !== undefined && config.overrideUpsCapacity !== null) {
+                newConfig.OVERRIDE_UPS_CAPACITY = config.overrideUpsCapacity;
+            }
 
             // Backup the current configuration
             const backupPath = `${this.configPath}.backup`;
@@ -122,22 +129,8 @@ export class UPSService {
                 throw error;
             }
 
-            // Validate KILLUPS and SERVICE values
-            const validKillUpsValues = ['yes', 'no'];
-            const validServiceValues = ['enable', 'disable'];
-
-            if (config.KILLUPS && !validKillUpsValues.includes(config.KILLUPS)) {
-                throw new Error(`Invalid KILLUPS value: ${config.KILLUPS}. Must be 'yes' or 'no'`);
-            }
-
-            if (config.SERVICE && !validServiceValues.includes(config.SERVICE)) {
-                throw new Error(
-                    `Invalid SERVICE value: ${config.SERVICE}. Must be 'enable' or 'disable'`
-                );
-            }
-
             // Handle killpower configuration
-            if (config.KILLUPS === 'yes' && config.SERVICE === 'enable') {
+            if (config.killUps === 'yes' && config.service === 'enable') {
                 try {
                     // First check if apccontrol is already in rc.6
                     const { exitCode } = await execa('grep', ['-q', 'apccontrol', '/etc/rc.d/rc.6'], {
@@ -186,7 +179,7 @@ export class UPSService {
             }
 
             // Start the service if enabled
-            if (config.SERVICE === 'enable') {
+            if (config.service === 'enable') {
                 try {
                     await execa('/etc/rc.d/rc.apcupsd', ['start'], { timeout: 10000 });
                     this.logger.debug('Successfully started apcupsd service');
