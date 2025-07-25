@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref, onMounted } from 'vue';
+import { computed, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { storeToRefs } from 'pinia';
 
@@ -49,33 +49,16 @@ const showModal = ref(isLoginPage.value || isInitialSetup.value);
 // Template ref for the teleport container
 const modalContainer = ref<HTMLElement>();
 
-console.log('WelcomeModal setup:', {
-  showModal: showModal.value,
-  isLoginPage: isLoginPage.value,
-  isInitialSetup: isInitialSetup.value,
-  pathname: window.location.pathname
-});
-
 const dropdownHide = () => {
-  console.log('WelcomeModal: dropdownHide called');
   showModal.value = false;
 };
 
 const showWelcomeModal = () => {
-  console.log('WelcomeModal: showWelcomeModal called');
   showModal.value = true;
 };
 
 defineExpose({
   showWelcomeModal,
-});
-
-// Check if the container exists after mount
-onMounted(() => {
-  console.log('WelcomeModal onMounted - checking container:', {
-    modalContainerRef: modalContainer.value,
-    showModal: showModal.value
-  });
 });
 
 </script>
