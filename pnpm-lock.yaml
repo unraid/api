@@ -308,8 +308,8 @@ importers:
         specifier: 1.1.0
         version: 1.1.0
       zod:
-        specifier: 3.25.76
-        version: 3.25.76
+        specifier: 4.0.10
+        version: 4.0.10
     devDependencies:
       '@eslint/js':
         specifier: 9.31.0
@@ -795,8 +795,8 @@ importers:
         specifier: 4.20.3
         version: 4.20.3
       zod:
-        specifier: 3.25.76
-        version: 3.25.76
+        specifier: 4.0.10
+        version: 4.0.10
       zx:
         specifier: 8.7.1
         version: 8.7.1
@@ -13695,6 +13695,9 @@ packages:
 
   zod@3.25.76:
     resolution: {integrity: sha512-gzUt/qt81nXsFGKIFcC3YnfEAx5NkunCfnDlvuBSSFS02bcXu4Lmea0AFIUwbLWxWPx3d9p8S5QoaujKcNQxcQ==}
+
+  zod@4.0.10:
+    resolution: {integrity: sha512-3vB+UU3/VmLL2lvwcY/4RV2i9z/YU0DTV/tDuYjrwmx5WeJ7hwy+rGEEx8glHp6Yxw7ibRbKSaIFBgReRPe5KA==}
 
   zx@8.7.1:
     resolution: {integrity: sha512-28u1w2LlIfvyvJvYe6pmCipesk8oL5AFMVp+P/U445LcaPgzrU5lNDtAPd6nJvWmoCNyXZz37R/xKOGokccjsw==}
@@ -28094,5 +28097,7 @@ snapshots:
   zod@3.22.3: {}
 
   zod@3.25.76: {}
+
+  zod@4.0.10: {}
 
   zx@8.7.1: {}
