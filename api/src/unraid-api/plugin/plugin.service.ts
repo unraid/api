@@ -52,7 +52,7 @@ export class PluginService {
             }
         });
 
-        if (plugins.errorOccured) {
+        if (plugins.errorOccurred) {
             PluginService.logger.warn(`Failed to load ${plugins.errors.length} plugins. Ignoring them.`);
         }
         PluginService.logger.log(`Loaded ${plugins.data.length} plugins.`);

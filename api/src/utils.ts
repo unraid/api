@@ -66,7 +66,7 @@ export async function batchProcess<Input, T>(items: Input[], action: (id: Input)
         data: successes,
         successes: successes.length,
         errors: errors,
-        errorOccured: errors.length > 0,
+        errorOccurred: errors.length > 0,
     };
 }
 

@@ -182,13 +182,13 @@ export class NotificationsService {
             recalculate
         );
 
-        if (results.errorOccured) {
+        if (results.errorOccurred) {
             results.errors.forEach((e) => this.logger.error('[recalculateOverview] ' + e));
         }
 
         NotificationsService.overview = overview;
         void this.publishOverview();
-        return { error: results.errorOccured, overview: this.getOverview() };
+        return { error: results.errorOccurred, overview: this.getOverview() };
     }
 
     /**------------------------------------------------------------------------
