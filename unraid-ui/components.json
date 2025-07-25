@@ -3,7 +3,7 @@
   "style": "default",
   "typescript": true,
   "tailwind": {
-    "css": "src/styles/globals.css",
+    "css": "src/styles/index.css",
     "baseColor": "neutral",
     "cssVariables": true,
     "prefix": ""

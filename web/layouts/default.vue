@@ -60,6 +60,5 @@ function formatRouteName(name) {
 
 <style >
 /* Import theme styles */
-@import '@unraid/ui/styles';
 @import '~/assets/main.css';
 </style>

@@ -76,6 +76,7 @@
     "shadcn-nuxt": "2.2.0",
     "tailwindcss": "4.1.11",
     "terser": "5.43.1",
+    "tw-animate-css": "^1.3.5",
     "typescript": "5.8.3",
     "vite": "7.0.4",
     "vite-plugin-remove-console": "2.2.0",

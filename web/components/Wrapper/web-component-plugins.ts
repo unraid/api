@@ -59,7 +59,8 @@ export default function (Vue: App) {
           const styleElement = document.createElement('style');
           styleElement.setAttribute('data-tailwind', 'true');
           styleElement.textContent = tailwindStyles;
-          shadowRoot.prepend(styleElement);
+          // Append instead of prepend to ensure styles come after any component styles
+          shadowRoot.appendChild(styleElement);
         }
       }
     }
