@@ -92,11 +92,11 @@ export async function validateOrganizerIntegrity(organizer: OrganizerV1) {
     const views = Object.entries(organizer.views);
     const validateView = async (view: OrganizerView) => validateViewIntegrity({ view, resources });
 
-    const { errorOccured, data } = await batchProcess(views, async ([viewName, view]) => {
+    const { errorOccurred, data } = await batchProcess(views, async ([viewName, view]) => {
         return [viewName, await validateView(view)] as const;
     });
     return {
-        isValid: !errorOccured && data.every(([, result]) => result.isValid),
+        isValid: !errorOccurred && data.every(([, result]) => result.isValid),
         errors: Object.fromEntries(data),
     };
 }
