@@ -80,8 +80,8 @@
     --color-customgradient-start: rgba(242, 242, 242, 0);
     --color-customgradient-end: rgba(242, 242, 242, 0.85);
     --shadow-beta: 0 25px 50px -12px rgba(242, 242, 242, 0.15);
-    --ring-offset-shadow: 0 0 --var(--color-beta);
-    --ring-shadow: 0 0 --var(--color-beta);
+    --ring-offset-shadow: 0 0 var(--color-beta);
+    --ring-shadow: 0 0 var(--color-beta);
   }
 
   button:not(:disabled),
