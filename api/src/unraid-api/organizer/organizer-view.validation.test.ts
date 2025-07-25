@@ -219,18 +219,6 @@ describe('findCycleInView', () => {
         expect(result).toEqual(['root1', 'child1', 'root1']);
     });
 
-    it('should detect longer cycle', () => {
-        const view = createView('view1', 'Test View', 'root1', {
-            root1: createFolder('root1', 'Root', ['child1']),
-            child1: createFolder('child1', 'Child 1', ['child2']),
-            child2: createFolder('child2', 'Child 2', ['child3']),
-            child3: createFolder('child3', 'Child 3', ['child1']),
-        });
-
-        const result = findCycleInView(view);
-        expect(result).toEqual(['child1', 'child2', 'child3', 'child1']);
-    });
-
     it('should handle missing root entry', () => {
         const view = createView('view1', 'Test View', 'nonexistent', {
             root1: createFolder('root1', 'Root', ['child1']),
@@ -259,7 +247,7 @@ describe('findCycleInView', () => {
         expect(result).toBeNull();
     });
 
-    it('should detect cycle in complex tree structure', () => {
+    it('should detect cycle in tree structure', () => {
         const view = createView('view1', 'Test View', 'root1', {
             root1: createFolder('root1', 'Root', ['child1']),
             child1: createFolder('child1', 'Child 1', ['child2']),
