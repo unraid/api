@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 backup_file_if_exists() {
   if [ -f "$1" ]; then
