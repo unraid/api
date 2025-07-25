@@ -71,22 +71,6 @@ const sizeClasses = {
 
 <template>
   <DialogRoot :open="modelValue" @update:open="handleOpenChange">
-    <!-- Debug: Check if DialogRoot is rendering -->
-    <div
-      v-if="false"
-      style="
-        position: fixed;
-        top: 50px;
-        left: 0;
-        background: red;
-        color: white;
-        padding: 10px;
-        z-index: 9999;
-      "
-    >
-      DialogRoot is rendering, modelValue: {{ modelValue }}
-    </div>
-
     <DialogTrigger v-if="triggerText || $slots.trigger">
       <slot name="trigger">
         <Button>{{ triggerText }}</Button>
