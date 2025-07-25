@@ -62,10 +62,17 @@ Switch between production and staging environments.
 ### Developer Mode
 
 ```bash
-unraid-api developer
+unraid-api developer                       # Interactive prompt for tools
+unraid-api developer --sandbox true        # Enable GraphQL sandbox
+unraid-api developer --sandbox false       # Disable GraphQL sandbox
+unraid-api developer --enable-modal        # Enable modal testing tool
+unraid-api developer --disable-modal       # Disable modal testing tool
 ```
 
-Configure developer features for the API (e.g., GraphQL sandbox).
+Configure developer features for the API:
+
+- **GraphQL Sandbox**: Enable/disable Apollo GraphQL sandbox at `/graphql`
+- **Modal Testing Tool**: Enable/disable UI modal testing in the Unraid menu
 
 ## API Key Management
 
