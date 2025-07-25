@@ -3,12 +3,6 @@
 @import '../../@tailwind-shared/index.css';
 @import '@nuxt/ui';
 
-/* Force generation of all color utilities for custom colors across packages */
-@source inline("{bg,text,border,ring,fill,stroke}-{unraid-green,unraid-red}{,-50,-100,-200,-300,-400,-500,-600,-700,-800,-900,-950}");
-@source inline("{bg,text,border,ring,fill,stroke}-{yellow-accent,orange-dark,orange}");
-@source inline("{from,via,to}-{unraid-red,orange}");
-@source inline("bg-linear-to-{r,l,t,b,tr,tl,br,bl}");
-
 /* Scan unraid-ui package from linked directory for class usage */
 @source "../../unraid-ui/dist/**/*.{js,mjs}";
 @source "../../unraid-ui/src/**/*.{vue,ts}";
