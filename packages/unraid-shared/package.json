@@ -44,6 +44,7 @@
         "graphql-ws": "6.0.6",
         "lodash-es": "4.17.21",
         "nest-authz": "2.17.0",
+        "pify": "^6.1.0",
         "rimraf": "6.0.1",
         "type-fest": "4.41.0",
         "typescript": "5.9.2",

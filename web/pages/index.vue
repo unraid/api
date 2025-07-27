@@ -4,6 +4,7 @@ import { storeToRefs } from 'pinia';
 
 import { ExclamationTriangleIcon } from '@heroicons/vue/24/solid';
 import { BrandButton, Toaster } from '@unraid/ui';
+import { useHead } from '#imports';
 import { UButton } from '#components';
 import { useDummyServerStore } from '~/_data/serverState';
 import AES from 'crypto-js/aes';

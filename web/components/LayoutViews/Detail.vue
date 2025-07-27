@@ -1,17 +1,6 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue';
 
-import {
-  UBadge,
-  UButton,
-  UCheckbox,
-  UDropdownMenu,
-  UIcon,
-  UNavigationMenu,
-  USwitch,
-  UTabs,
-} from '#components';
-
 import type { Component } from 'vue';
 
 interface NavigationItem {
