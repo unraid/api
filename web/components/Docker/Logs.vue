@@ -1,6 +1,4 @@
 <script setup lang="ts">
-import { UButton } from '#components';
-
 interface Props {
   item: {
     id: string;
