@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { definePageMeta } from '#imports';
 
 import Console from '../Docker/Console.vue';
 import Edit from '../Docker/Edit.vue';
@@ -7,10 +6,6 @@ import Logs from '../Docker/Logs.vue';
 import Overview from '../Docker/Overview.vue';
 import Preview from '../Docker/Preview.vue';
 import Detail from '../LayoutViews/Detail.vue';
-
-definePageMeta({
-  layout: 'unraid-next',
-});
 
 interface ContainerDetails {
   network: string;
