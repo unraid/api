@@ -164,7 +164,7 @@ export default defineNuxtConfig({
 
   // Disable auto-imports
   imports: {
-    autoImport: false,
+    autoImport: true,
   },
 
   // Properly handle ES modules in testing and build environments

@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { ref } from 'vue';
-import { UButton, UCard, UInput, USelectMenu, UIcon, UFormField } from '#components';
 
 interface Props {
   item: {

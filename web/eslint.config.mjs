@@ -27,7 +27,7 @@ export default withNuxt(
     rules: {
       'vue/multi-word-component-names': 'off',
       'vue/no-v-html': 'off',
-      'vue/no-undef-components': [
+      /* 'vue/no-undef-components': [
         'error',
         {
           ignorePatterns: [
@@ -46,7 +46,7 @@ export default withNuxt(
             '^ConnectSettingsCe$',
           ],
         },
-      ],
+      ], */
       'eol-last': ['error', 'always'],
       
       // TypeScript rules for unused variables and undefined variables
