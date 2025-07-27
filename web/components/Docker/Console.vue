@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { ref } from 'vue';
-import { UButton } from '#components';
 
 interface Props {
   item: {
