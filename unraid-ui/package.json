@@ -42,7 +42,7 @@
     "deploy:storybook:staging": "pnpm build-storybook && wrangler deploy --env staging"
   },
   "peerDependencies": {
-    "tailwindcss": "3.4.17",
+    "tailwindcss": "4.1.11",
     "vue": "3.5.18"
   },
   "dependencies": {
