@@ -18,6 +18,11 @@
 
   /* Border color default */
   --default-border-color: var(--color-border);
+  --ui-border-muted: hsl(var(--border));
+  --ui-radius: 0.5rem;
+  --ui-primary: var(--color-primary-500);
+  --ui-primary-hover: var(--color-primary-600);
+  --ui-primary-active: var(--color-primary-700);
 
   /* Color palette */
   --color-inherit: inherit;
@@ -170,7 +175,6 @@
 
   /* Radius */
   --radius: 0.5rem;
-  --ui-radius: 0.5rem;
 
   /* Text Resizing */
   --text-xs: 1.2rem; /* 12px at 10px base */

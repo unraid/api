@@ -60,17 +60,7 @@
     border-color: hsl(var(--border));
   }
 
-  :root {
-    --ui-primary: var(--color-primary-500);
-    --ui-primary-hover: var(--color-primary-600);
-    --ui-primary-active: var(--color-primary-700);
-  }
 
-  .dark {
-    --ui-primary: var(--color-primary-500);
-    --ui-primary-hover: var(--color-primary-600);
-    --ui-primary-active: var(--color-primary-700);
-  }
 
   body {
     --color-alpha: #1c1b1b;
