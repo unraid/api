@@ -1,5 +1,29 @@
 # Changelog
 
+## [4.11.0](https://github.com/unraid/api/compare/v4.10.0...v4.11.0) (2025-07-28)
+
+
+### Features
+
+* tailwind v4 ([#1522](https://github.com/unraid/api/issues/1522)) ([2c62e0a](https://github.com/unraid/api/commit/2c62e0ad09c56d2293b76d07833dfb142c898937))
+* **web:** install and configure nuxt ui ([#1524](https://github.com/unraid/api/issues/1524)) ([407585c](https://github.com/unraid/api/commit/407585cd40c409175d8e7b861f8d61d8cabc11c9))
+
+
+### Bug Fixes
+
+* add missing breakpoints ([#1535](https://github.com/unraid/api/issues/1535)) ([f5352e3](https://github.com/unraid/api/commit/f5352e3a26a2766e85d19ffb5f74960c536b91b3))
+* border color incorrect in tailwind ([#1544](https://github.com/unraid/api/issues/1544)) ([f14b74a](https://github.com/unraid/api/commit/f14b74af91783b08640c0949c51ba7f18508f06f))
+* **connect:** omit extraneous fields during connect config validation ([#1538](https://github.com/unraid/api/issues/1538)) ([45bd736](https://github.com/unraid/api/commit/45bd73698b2bd534a8aff2c6ac73403de6c58561))
+* **deps:** pin dependencies ([#1528](https://github.com/unraid/api/issues/1528)) ([a74d935](https://github.com/unraid/api/commit/a74d935b566dd7af1a21824c9b7ab562232f9d8b))
+* **deps:** pin dependency @nuxt/ui to 3.2.0 ([#1532](https://github.com/unraid/api/issues/1532)) ([8279531](https://github.com/unraid/api/commit/8279531f2b86a78e81a77e6c037a0fb752e98062))
+* **deps:** update all non-major dependencies ([#1510](https://github.com/unraid/api/issues/1510)) ([1a8da6d](https://github.com/unraid/api/commit/1a8da6d92b96d3afa2a8b42446b36f1ee98b64a0))
+* **deps:** update all non-major dependencies ([#1520](https://github.com/unraid/api/issues/1520)) ([e2fa648](https://github.com/unraid/api/commit/e2fa648d1cf5a6cbe3e55c3f52c203d26bb4d526))
+* inject Tailwind CSS into client entry point ([#1537](https://github.com/unraid/api/issues/1537)) ([86b6c4f](https://github.com/unraid/api/commit/86b6c4f85b7b30bb4a13d57450a76bf4c28a3fff))
+* make settings grid responsive ([#1463](https://github.com/unraid/api/issues/1463)) ([9dfdb8d](https://github.com/unraid/api/commit/9dfdb8dce781fa662d6434ee432e4521f905ffa5))
+* **notifications:** gracefully handle & mask invalid notifications ([#1529](https://github.com/unraid/api/issues/1529)) ([05056e7](https://github.com/unraid/api/commit/05056e7ca1702eb7bf6c507950460b6b15bf7916))
+* truncate log files when they take up more than 5mb of space ([#1530](https://github.com/unraid/api/issues/1530)) ([0a18b38](https://github.com/unraid/api/commit/0a18b38008dd86a125cde7f684636d5dbb36f082))
+* use async for primary file read/writes ([#1531](https://github.com/unraid/api/issues/1531)) ([23b2b88](https://github.com/unraid/api/commit/23b2b8846158a27d1c9808bce0cc1506779c4dc3))
+
 ## [4.10.0](https://github.com/unraid/api/compare/v4.9.5...v4.10.0) (2025-07-15)
 
 
