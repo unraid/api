@@ -30,7 +30,7 @@ jobs:
           prerelease: false
       - uses: actions/setup-node@v4
         with:
-          node-version: '22.17.0'
+          node-version: '22.17.1'
       - run: |
           cat << 'EOF' > release-notes.txt
           ${{ steps.release-info.outputs.body }}
