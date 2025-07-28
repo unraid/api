@@ -46,11 +46,13 @@ export async function bootstrapNestServer(): Promise<NestFastifyApplication> {
      * tl;dr different types used by nestjs/platform-fastify and fastify.
      *------------------------------------------------------------------------**/
 
-    // @ts-expect-error - Known nestjs x fastify type compatibility issue
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore - Known nestjs x fastify type compatibility issue
     await server.register(fastifyCookie);
 
     // Minimal Helmet configuration to avoid blocking plugin functionality
-    // @ts-expect-error - Known nestjs x fastify type compatibility issue
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore - Known nestjs x fastify type compatibility issue
     await server.register(fastifyHelmet, {
         // Disable restrictive policies
         contentSecurityPolicy: false,
