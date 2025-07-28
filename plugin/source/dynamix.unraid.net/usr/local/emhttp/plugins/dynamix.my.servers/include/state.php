@@ -130,6 +130,9 @@ class ServerState
         $this->updateOsNotificationsEnabled = !empty(@$this->getWebguiGlobal('notify', 'unraidos'));
         $this->updateOsResponse = $this->updateOsCheck->getUnraidOSCheckResult();
 
+        // Initialize SSO state regardless of connect plugin status
+        $this->ssoEnabled = ApiUserConfig::isSSOEnabled();
+
         $this->setConnectValues();
     }
 
@@ -201,7 +204,6 @@ class ServerState
         $this->registered = !empty($connectConfig['apikey']) && $this->connectPluginInstalled;
         $this->registeredTime = $connectConfig['regWizTime'] ?? '';
         $this->username = $connectConfig['username'] ?? '';
-        $this->ssoEnabled = ApiUserConfig::isSSOEnabled();
     }
 
     private function getConnectKnownOrigins()
