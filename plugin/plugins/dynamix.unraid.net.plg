@@ -198,7 +198,8 @@ exit 0
       
       if [ "$is_7_2_or_higher" = true ]; then
         echo "Unraid 7.2+ detected. Using safe removal method."
-        
+        /etc/rc.d/rc.unraid-api plugins remove unraid-api-plugin-connect -b --no-restart
+
         # Send notification to user
         /usr/local/emhttp/webGui/scripts/notify \
           -e "Unraid Connect" \
