@@ -118,7 +118,7 @@ export class AuthService {
                 }))
             );
 
-            const { errors, errorOccured } = await batchProcess(
+            const { errors, errorOccurred: errorOccured } = await batchProcess(
                 permissionActions,
                 ({ resource, action }) =>
                     this.authzService.addPermissionForUser(apiKeyId, resource, action)
