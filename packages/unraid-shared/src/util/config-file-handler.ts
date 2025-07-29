@@ -1,8 +1,8 @@
 import { Logger } from "@nestjs/common";
-import { readFile } from "node:fs/promises";
+import { readFile, writeFile } from "atomically";
 import { isEqual } from "lodash-es";
 import { ConfigDefinition } from "./config-definition.js";
-import { fileExists, writeFileAtomically } from "./file.js";
+import { fileExists } from "./file.js";
 
 /**
  * Standalone configuration file handler that works with any ConfigDefinition.
@@ -125,7 +125,7 @@ export class ConfigFileHandler<T extends object> {
       this.logger.verbose(
         `Writing config to ${this.definition.configPath()} ${data}`
       );
-      await writeFileAtomically(this.definition.configPath(), data);
+      await writeFile(this.definition.configPath(), data);
       return true;
     } catch (error) {
       this.logger.error(
