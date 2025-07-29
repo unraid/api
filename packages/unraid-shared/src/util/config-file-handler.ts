@@ -122,9 +122,7 @@ export class ConfigFileHandler<T extends object> {
 
     try {
       const data = JSON.stringify(config, null, 2);
-      this.logger.verbose(
-        `Writing config to ${this.definition.configPath()} ${data}`
-      );
+      this.logger.verbose(`Writing config to ${this.definition.configPath()}`);
       await writeFile(this.definition.configPath(), data);
       return true;
     } catch (error) {
