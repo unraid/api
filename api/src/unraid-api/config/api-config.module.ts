@@ -1,4 +1,4 @@
-import { Injectable, Logger, Module } from '@nestjs/common';
+import { Injectable, Logger, Module, OnApplicationBootstrap } from '@nestjs/common';
 import { ConfigService, registerAs } from '@nestjs/config';
 import path from 'path';
 
@@ -50,7 +50,10 @@ export const loadApiConfig = async () => {
 export const apiConfig = registerAs<ApiConfig>('api', loadApiConfig);
 
 @Injectable()
-export class ApiConfigPersistence extends ConfigFilePersister<ApiConfig> {
+export class ApiConfigPersistence
+    extends ConfigFilePersister<ApiConfig>
+    implements OnApplicationBootstrap
+{
     constructor(configService: ConfigService) {
         super(configService);
     }
@@ -79,12 +82,17 @@ export class ApiConfigPersistence extends ConfigFilePersister<ApiConfig> {
         return createDefaultConfig();
     }
 
+    async onApplicationBootstrap() {
+        this.configService.set('api.version', API_VERSION);
+    }
+
     async migrateConfig(): Promise<ApiConfig> {
         const legacyConfig = this.configService.get('store.config', {});
         const migrated = this.convertLegacyConfig(legacyConfig);
         return {
             ...this.defaultConfig(),
             ...migrated,
+            version: API_VERSION,
         };
     }
 

@@ -4,14 +4,12 @@ import { ConfigService } from '@nestjs/config';
 import { ApiConfig } from '@unraid/shared/services/api-config.js';
 
 import { DependencyService } from '@app/unraid-api/app/dependency.service.js';
-import { ApiConfigPersistence } from '@app/unraid-api/config/api-config.module.js';
 
 @Injectable()
 export class PluginManagementService {
     constructor(
         private readonly configService: ConfigService<{ api: ApiConfig }, true>,
-        private readonly dependencyService: DependencyService,
-        private readonly apiConfigPersistence: ApiConfigPersistence
+        private readonly dependencyService: DependencyService
     ) {}
 
     get plugins() {
@@ -20,14 +18,12 @@ export class PluginManagementService {
 
     async addPlugin(...plugins: string[]) {
         const added = this.addPluginToConfig(...plugins);
-        await this.persistConfig();
         await this.installPlugins(...added);
         await this.dependencyService.rebuildVendorArchive();
     }
 
     async removePlugin(...plugins: string[]) {
         const removed = this.removePluginFromConfig(...plugins);
-        await this.persistConfig();
         await this.uninstallPlugins(...removed);
         await this.dependencyService.rebuildVendorArchive();
     }
@@ -101,17 +97,11 @@ export class PluginManagementService {
 
     async addBundledPlugin(...plugins: string[]) {
         const added = this.addPluginToConfig(...plugins);
-        await this.persistConfig();
         return added;
     }
 
     async removeBundledPlugin(...plugins: string[]) {
         const removed = this.removePluginFromConfig(...plugins);
-        await this.persistConfig();
         return removed;
-    }
-
-    private async persistConfig() {
-        return await this.apiConfigPersistence.persist();
     }
 }
