@@ -1,8 +1,6 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue';
 
-import { UBadge } from '#components';
-
 import type { Component } from 'vue';
 
 import HeaderContent from '../../Docker/HeaderContent.vue';
@@ -10,7 +8,7 @@ import DetailContentHeader from './DetailContentHeader.vue';
 import DetailLeftNavigation from './DetailLeftNavigation.vue';
 import DetailRightContent from './DetailRightContent.vue';
 
-interface Item {
+export interface Item {
   id: string;
   label: string;
   icon?: string;
@@ -24,7 +22,7 @@ interface Item {
   isGroup?: boolean;
 }
 
-interface TabItem {
+export interface TabItem {
   key: string;
   label: string;
   component?: Component;

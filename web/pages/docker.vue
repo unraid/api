@@ -134,6 +134,6 @@ const tabs = getTabsWithProps('immich');
 
 <template>
   <div class="h-full">
-    <Detail :navigation-items="dockerContainers" :tabs="tabs" default-navigation-id="immich" />
+    <Detail :items="dockerContainers" :tabs="tabs" default-item-id="immich" />
   </div>
 </template>

@@ -1,6 +1,4 @@
 <script setup lang="ts">
-import { UButton, UDropdownMenu, USwitch } from '#components';
-
 interface Props {
   autostartValue?: boolean;
   showAutostart?: boolean;

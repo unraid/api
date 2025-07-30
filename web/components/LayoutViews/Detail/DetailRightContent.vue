@@ -1,31 +1,10 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 
-import { UTabs } from '#components';
-
-import type { Component } from 'vue';
-
-interface TabItem {
-  key: string;
-  label: string;
-  component?: Component;
-  props?: Record<string, unknown>;
-  disabled?: boolean;
-}
-
-interface ContentItem {
-  id: string;
-  label: string;
-  icon?: string;
-  badge?: string | number;
-  status?: {
-    label: string;
-    dotColor: string;
-  }[];
-}
+import type { Item, TabItem } from './Detail.vue';
 
 interface Props {
-  selectedItem?: ContentItem;
+  selectedItem?: Item;
   tabs: TabItem[];
   selectedTab: string;
   showHeader?: boolean;
