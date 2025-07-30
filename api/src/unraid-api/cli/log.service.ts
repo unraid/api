@@ -6,9 +6,34 @@ import { LOG_LEVEL } from '@app/environment.js';
 @Injectable()
 export class LogService {
     private logger = console;
+    private readonly isValidateTokenCommand: boolean;
+
+    constructor() {
+        // Check if running validate-token command
+        this.isValidateTokenCommand =
+            process.argv.includes('validate-token') ||
+            process.argv.includes('validate') ||
+            process.argv.includes('v') ||
+            (process.argv.includes('sso') &&
+                (process.argv.includes('validate-token') ||
+                    process.argv.includes('validate') ||
+                    process.argv.includes('v')));
+
+        // Suppress all console output for validate-token command
+        if (this.isValidateTokenCommand) {
+            const noop = () => {};
+            console.log = noop;
+            console.error = noop;
+            console.warn = noop;
+            console.info = noop;
+            console.debug = noop;
+        }
+    }
 
     clear(): void {
-        this.logger.clear();
+        if (!this.isValidateTokenCommand) {
+            this.logger.clear();
+        }
     }
 
     shouldLog(level: LogLevel): boolean {
