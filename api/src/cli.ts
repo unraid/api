@@ -1,29 +1,37 @@
 import '@app/dotenv.js';
 
-import { execa } from 'execa';
+import { Logger } from '@nestjs/common';
+
 import { CommandFactory } from 'nest-commander';
 
-import { internalLogger, logger } from '@app/core/log.js';
-import { LOG_LEVEL } from '@app/environment.js';
-import { CliModule } from '@app/unraid-api/cli/cli.module.js';
+import { LOG_LEVEL, SUPPRESS_LOGS } from '@app/environment.js';
 import { LogService } from '@app/unraid-api/cli/log.service.js';
 
 const getUnraidApiLocation = async () => {
+    const { execa } = await import('execa');
     try {
         const shellToUse = await execa('which unraid-api');
         return shellToUse.stdout.trim();
     } catch (err) {
-        logger.debug('Could not find unraid-api in PATH, using default location');
-
         return '/usr/bin/unraid-api';
     }
 };
 
+const getLogger = () => {
+    if (LOG_LEVEL === 'TRACE' && !SUPPRESS_LOGS) {
+        return new LogService();
+    }
+    return false;
+};
+
+const logger = getLogger();
 try {
     await import('json-bigint-patch');
+    const { CliModule } = await import('@app/unraid-api/cli/cli.module.js');
+
     await CommandFactory.run(CliModule, {
         cliName: 'unraid-api',
-        logger: LOG_LEVEL === 'TRACE' ? new LogService() : false, // - enable this to see nest initialization issues
+        logger: logger, // - enable this to see nest initialization issues
         completion: {
             fig: false,
             cmd: 'completion-script',
@@ -32,10 +40,8 @@ try {
     });
     process.exit(0);
 } catch (error) {
-    logger.error('ERROR:', error);
-    internalLogger.error({
-        message: 'Failed to start unraid-api',
-        error,
-    });
+    if (logger) {
+        logger.error('ERROR:', error);
+    }
     process.exit(1);
 }

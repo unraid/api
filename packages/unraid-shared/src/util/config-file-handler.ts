@@ -29,13 +29,13 @@ import { fileExists } from "./file.js";
  * ```
  */
 export class ConfigFileHandler<T extends object> {
-  private readonly logger: Logger;
+  private readonly logger: Logger
 
   /**
    * @param definition The configuration definition that provides behavior
    */
-  constructor(private readonly definition: ConfigDefinition<T>) {
-    this.logger = new Logger(`ConfigFileHandler:${definition.fileName()}`);
+  constructor(private readonly definition: ConfigDefinition<T>, logger?: Logger) {
+    this.logger = logger ?? new Logger(`ConfigFileHandler:${definition.fileName()}`);
   }
 
   /**

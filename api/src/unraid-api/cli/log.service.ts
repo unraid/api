@@ -1,17 +1,36 @@
 import { Injectable } from '@nestjs/common';
 
 import { levels, LogLevel } from '@app/core/log.js';
-import { LOG_LEVEL } from '@app/environment.js';
+import { LOG_LEVEL, SUPPRESS_LOGS } from '@app/environment.js';
+
+export interface ILogService {
+    clear(): void;
+    shouldLog(level: LogLevel): boolean;
+    table(level: LogLevel, data: unknown, columns?: string[]): void;
+    log(...messages: unknown[]): void;
+    info(...messages: unknown[]): void;
+    warn(...messages: unknown[]): void;
+    error(...messages: unknown[]): void;
+    always(...messages: unknown[]): void;
+    debug(...messages: unknown[]): void;
+    trace(...messages: unknown[]): void;
+}
 
 @Injectable()
-export class LogService {
+export class LogService implements ILogService {
     private logger = console;
+    private suppressLogs = SUPPRESS_LOGS;
 
     clear(): void {
-        this.logger.clear();
+        if (!this.suppressLogs) {
+            this.logger.clear();
+        }
     }
 
     shouldLog(level: LogLevel): boolean {
+        if (this.suppressLogs) {
+            return false;
+        }
         const logLevelsLowToHigh = levels;
         const shouldLog =
             logLevelsLowToHigh.indexOf(level) >=
@@ -47,6 +66,11 @@ export class LogService {
         if (this.shouldLog('error')) {
             this.logger.error(...messages);
         }
+    }
+
+    always(...messages: unknown[]): void {
+        // Always output to stdout, regardless of log level or suppression
+        console.log(...messages);
     }
 
     debug(...messages: unknown[]): void {

@@ -17,7 +17,7 @@
         "start": "node dist/main.js",
         "dev": "vite",
         "dev:debug": "NODE_OPTIONS='--inspect-brk=9229 --enable-source-maps' vite",
-        "command": "pnpm run build && clear && ./dist/cli.js",
+        "command": "COMMAND_TESTER=true pnpm run build > /dev/null 2>&1 && NODE_ENV=development ./dist/cli.js",
         "command:raw": "./dist/cli.js",
         "// Build and Deploy": "",
         "build": "vite build --mode=production",

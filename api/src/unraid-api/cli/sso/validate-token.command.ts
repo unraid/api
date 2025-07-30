@@ -26,7 +26,7 @@ export class ValidateTokenCommand extends CommandRunner {
     }
 
     private createErrorAndExit = (errorMessage: string) => {
-        this.logger.error(
+        this.logger.always(
             JSON.stringify({
                 error: errorMessage,
                 valid: false,
@@ -104,7 +104,7 @@ export class ValidateTokenCommand extends CommandRunner {
             );
         }
         if (ssoUsers.includes(username)) {
-            this.logger.info(JSON.stringify({ error: null, valid: true, username }));
+            this.logger.always(JSON.stringify({ error: null, valid: true, username }));
             process.exit(0);
         } else {
             this.createErrorAndExit('Username on token does not match');

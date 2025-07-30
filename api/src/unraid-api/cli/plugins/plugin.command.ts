@@ -1,13 +1,17 @@
 import { Injectable } from '@nestjs/common';
 
-import { Command, CommandRunner, Option, SubCommand } from 'nest-commander';
+import { Command, CommandRunner, InquirerService, Option, SubCommand } from 'nest-commander';
 
-import { CliInternalClientService } from '@app/unraid-api/cli/internal-client.service.js';
 import { LogService } from '@app/unraid-api/cli/log.service.js';
-import { ADD_PLUGIN_MUTATION } from '@app/unraid-api/cli/mutations/add-plugin.mutation.js';
-import { REMOVE_PLUGIN_MUTATION } from '@app/unraid-api/cli/mutations/remove-plugin.mutation.js';
-import { PLUGINS_QUERY } from '@app/unraid-api/cli/queries/plugins.query.js';
+import {
+    NoPluginsFoundError,
+    RemovePluginQuestionSet,
+} from '@app/unraid-api/cli/plugins/remove-plugin.questions.js';
 import { RestartCommand } from '@app/unraid-api/cli/restart.command.js';
+import { ApiConfigPersistence } from '@app/unraid-api/config/api-config.module.js';
+import { PluginManagementService } from '@app/unraid-api/plugin/plugin-management.service.js';
+import { PluginService } from '@app/unraid-api/plugin/plugin.service.js';
+import { parsePackageArg } from '@app/utils.js';
 
 interface InstallPluginCommandOptions {
     bundled: boolean;
@@ -24,7 +28,8 @@ export class InstallPluginCommand extends CommandRunner {
     constructor(
         private readonly logService: LogService,
         private readonly restartCommand: RestartCommand,
-        private readonly internalClient: CliInternalClientService
+        private readonly pluginManagementService: PluginManagementService,
+        private readonly apiConfigPersistence: ApiConfigPersistence
     ) {
         super();
     }
@@ -35,35 +40,16 @@ export class InstallPluginCommand extends CommandRunner {
             process.exitCode = 1;
             return;
         }
-
-        try {
-            const client = await this.internalClient.getClient();
-
-            const result = await client.mutate({
-                mutation: ADD_PLUGIN_MUTATION,
-                variables: {
-                    input: {
-                        names: passedParams,
-                        bundled: options.bundled,
-                        restart: options.restart,
-                    },
-                },
-            });
-
-            const requiresManualRestart = result.data?.addPlugin;
-
-            if (options.bundled) {
-                this.logService.log(`Added bundled plugin ${passedParams.join(', ')}`);
-            } else {
-                this.logService.log(`Added plugin ${passedParams.join(', ')}`);
-            }
-
-            if (requiresManualRestart && options.restart) {
-                await this.restartCommand.run();
-            }
-        } catch (error) {
-            this.logService.error('Failed to add plugin:', error);
-            process.exitCode = 1;
+        if (options.bundled) {
+            await this.pluginManagementService.addBundledPlugin(...passedParams);
+            this.logService.log(`Added bundled plugin ${passedParams.join(', ')}`);
+        } else {
+            await this.pluginManagementService.addPlugin(...passedParams);
+            this.logService.log(`Added plugin ${passedParams.join(', ')}`);
+        }
+        await this.apiConfigPersistence.persist();
+        if (options.restart) {
+            await this.restartCommand.run();
         }
     }
 
@@ -86,66 +72,57 @@ export class InstallPluginCommand extends CommandRunner {
     }
 }
 
+interface RemovePluginCommandOptions {
+    plugins?: string[];
+    restart: boolean;
+}
+
 @SubCommand({
     name: 'remove',
     aliases: ['rm'],
-    description: 'Remove a plugin peer dependency.',
-    arguments: '<package>',
+    description: 'Remove plugin peer dependencies.',
 })
 export class RemovePluginCommand extends CommandRunner {
     constructor(
         private readonly logService: LogService,
-        private readonly internalClient: CliInternalClientService,
-        private readonly restartCommand: RestartCommand
+        private readonly pluginManagementService: PluginManagementService,
+        private readonly restartCommand: RestartCommand,
+        private readonly inquirerService: InquirerService,
+        private readonly apiConfigPersistence: ApiConfigPersistence
     ) {
         super();
     }
 
-    async run(passedParams: string[], options: InstallPluginCommandOptions): Promise<void> {
-        if (passedParams.length === 0) {
-            this.logService.error('Package name is required.');
-            process.exitCode = 1;
+    async run(_passedParams: string[], options?: RemovePluginCommandOptions): Promise<void> {
+        try {
+            options = await this.inquirerService.prompt(RemovePluginQuestionSet.name, options);
+        } catch (error) {
+            if (error instanceof NoPluginsFoundError) {
+                this.logService.error(error.message);
+                process.exit(0);
+            } else if (error instanceof Error) {
+                this.logService.error('Failed to fetch plugins: %s', error.message);
+                process.exit(1);
+            } else {
+                this.logService.error('An unexpected error occurred');
+                process.exit(1);
+            }
+        }
+
+        if (!options.plugins || options.plugins.length === 0) {
+            this.logService.warn('No plugins selected for removal.');
             return;
         }
 
-        try {
-            const client = await this.internalClient.getClient();
-
-            const result = await client.mutate({
-                mutation: REMOVE_PLUGIN_MUTATION,
-                variables: {
-                    input: {
-                        names: passedParams,
-                        bundled: options.bundled,
-                        restart: options.restart,
-                    },
-                },
-            });
-
-            const requiresManualRestart = result.data?.removePlugin;
-
-            if (options.bundled) {
-                this.logService.log(`Removed bundled plugin ${passedParams.join(', ')}`);
-            } else {
-                this.logService.log(`Removed plugin ${passedParams.join(', ')}`);
-            }
-
-            if (requiresManualRestart && options.restart) {
-                await this.restartCommand.run();
-            }
-        } catch (error) {
-            this.logService.error('Failed to remove plugin:', error);
-            process.exitCode = 1;
+        await this.pluginManagementService.removePlugin(...options.plugins);
+        for (const plugin of options.plugins) {
+            this.logService.log(`Removed plugin ${plugin}`);
         }
-    }
+        await this.apiConfigPersistence.persist();
 
-    @Option({
-        flags: '-b, --bundled',
-        description: 'Uninstall a bundled plugin',
-        defaultValue: false,
-    })
-    parseBundled(): boolean {
-        return true;
+        if (options.restart) {
+            await this.restartCommand.run();
+        }
     }
 
     @Option({
@@ -166,39 +143,34 @@ export class RemovePluginCommand extends CommandRunner {
 export class ListPluginCommand extends CommandRunner {
     constructor(
         private readonly logService: LogService,
-        private readonly internalClient: CliInternalClientService
+        private readonly pluginManagementService: PluginManagementService
     ) {
         super();
     }
 
     async run(): Promise<void> {
-        try {
-            const client = await this.internalClient.getClient();
+        const configPlugins = this.pluginManagementService.plugins;
+        const installedPlugins = await PluginService.listPlugins();
 
-            const result = await client.query({
-                query: PLUGINS_QUERY,
-            });
-
-            const plugins = result.data?.plugins || [];
-
-            if (plugins.length === 0) {
-                this.logService.log('No plugins installed.');
-                return;
-            }
-
-            this.logService.log('Installed plugins:\n');
-            plugins.forEach((plugin) => {
-                const moduleInfo: string[] = [];
-                if (plugin.hasApiModule) moduleInfo.push('API');
-                if (plugin.hasCliModule) moduleInfo.push('CLI');
-                const modules = moduleInfo.length > 0 ? ` [${moduleInfo.join(', ')}]` : '';
-                this.logService.log(`☑️ ${plugin.name}@${plugin.version}${modules}`);
-            });
-            this.logService.log(); // for spacing
-        } catch (error) {
-            this.logService.error('Failed to list plugins:', error);
-            process.exitCode = 1;
+        // this can happen if configPlugins is a super set of installedPlugins
+        if (installedPlugins.length !== configPlugins.length) {
+            const configSet = new Set(configPlugins.map((plugin) => parsePackageArg(plugin).name));
+            const installedSet = new Set(installedPlugins.map(([name]) => name));
+            const notInstalled = Array.from(configSet.difference(installedSet));
+            this.logService.warn(`${notInstalled.length} plugins are not installed:`);
+            this.logService.table('warn', notInstalled);
         }
+
+        if (installedPlugins.length === 0) {
+            this.logService.log('No plugins installed.');
+            return;
+        }
+
+        this.logService.log('Installed plugins:\n');
+        installedPlugins.forEach(([name, version]) => {
+            this.logService.log(`☑️ ${name}@${version}`);
+        });
+        this.logService.log(); // for spacing
     }
 }
 

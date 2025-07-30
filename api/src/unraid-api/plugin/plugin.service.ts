@@ -1,6 +1,7 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 
 import type { ApiNestPluginDefinition } from '@app/unraid-api/plugin/plugin.interface.js';
+import { pluginLogger } from '@app/core/log.js';
 import { getPackageJson } from '@app/environment.js';
 import { loadApiConfig } from '@app/unraid-api/config/api-config.module.js';
 import { NotificationImportance } from '@app/unraid-api/graph/resolvers/notifications/notifications.model.js';
@@ -15,7 +16,7 @@ type Plugin = ApiNestPluginDefinition & {
 
 @Injectable()
 export class PluginService {
-    private static readonly logger = new Logger(PluginService.name);
+    private static readonly logger = pluginLogger;
     private static plugins: Promise<Plugin[]> | undefined;
 
     static async getPlugins() {
@@ -55,7 +56,6 @@ export class PluginService {
         if (plugins.errorOccurred) {
             PluginService.logger.warn(`Failed to load ${plugins.errors.length} plugins. Ignoring them.`);
         }
-        PluginService.logger.log(`Loaded ${plugins.data.length} plugins.`);
         return plugins.data;
     }
 

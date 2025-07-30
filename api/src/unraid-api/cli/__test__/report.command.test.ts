@@ -2,17 +2,23 @@ import { Test } from '@nestjs/testing';
 
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
+import type { ILogService } from '@app/unraid-api/cli/log.service.js';
 import { ApiReportService } from '@app/unraid-api/cli/api-report.service.js';
 import { LogService } from '@app/unraid-api/cli/log.service.js';
 import { ReportCommand } from '@app/unraid-api/cli/report.command.js';
 
 // Mock log service
-const mockLogService = {
-    debug: vi.fn(),
-    info: vi.fn(),
-    warn: vi.fn(),
-    error: vi.fn(),
+const mockLogService: ILogService = {
+    shouldLog: vi.fn(),
     clear: vi.fn(),
+    always: vi.fn(),
+    error: vi.fn(),
+    warn: vi.fn(),
+    log: vi.fn(),
+    table: vi.fn(),
+    info: vi.fn(),
+    debug: vi.fn(),
+    trace: vi.fn(),
 };
 
 // Mock ApiReportService
@@ -101,7 +107,7 @@ describe('ReportCommand', () => {
 
             // Verify report was logged
             expect(mockLogService.clear).toHaveBeenCalled();
-            expect(mockLogService.info).toHaveBeenCalledWith(JSON.stringify(mockReport, null, 2));
+            expect(mockLogService.always).toHaveBeenCalledWith(JSON.stringify(mockReport, null, 2));
         });
 
         it('should handle API not running gracefully', async () => {
@@ -113,7 +119,7 @@ describe('ReportCommand', () => {
             expect(mockApiReportService.generateReport).not.toHaveBeenCalled();
 
             // Verify warning was logged
-            expect(mockLogService.warn).toHaveBeenCalledWith(
+            expect(mockLogService.always).toHaveBeenCalledWith(
                 expect.stringContaining('API is not running')
             );
         });
@@ -128,7 +134,7 @@ describe('ReportCommand', () => {
             expect(mockLogService.debug).toHaveBeenCalledWith(
                 expect.stringContaining('Error generating report via GraphQL')
             );
-            expect(mockLogService.warn).toHaveBeenCalledWith(
+            expect(mockLogService.always).toHaveBeenCalledWith(
                 expect.stringContaining('Failed to generate system report')
             );
         });

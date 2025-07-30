@@ -1,4 +1,4 @@
-import { Injectable, Logger, Module, OnApplicationBootstrap } from '@nestjs/common';
+import { Injectable, Module, OnApplicationBootstrap } from '@nestjs/common';
 import { ConfigService, registerAs } from '@nestjs/config';
 import path from 'path';
 
@@ -9,8 +9,6 @@ import { csvStringToArray } from '@unraid/shared/util/data.js';
 import { API_VERSION, PATHS_CONFIG_MODULES } from '@app/environment.js';
 
 export { type ApiConfig };
-
-const logger = new Logger('ApiConfig');
 
 const createDefaultConfig = (): ApiConfig => ({
     version: API_VERSION,
@@ -23,17 +21,14 @@ const createDefaultConfig = (): ApiConfig => ({
 /**
  * Simple file-based config loading for plugin discovery (outside of nestjs DI container).
  * This avoids complex DI container instantiation during module loading.
+ *
+ * @throws {Error} if the config file is not found or cannot be parsed
  */
 export const loadApiConfig = async () => {
     const defaultConfig = createDefaultConfig();
     const apiHandler = new ApiConfigPersistence(new ConfigService()).getFileHandler();
 
-    let diskConfig: Partial<ApiConfig> = {};
-    try {
-        diskConfig = await apiHandler.loadConfig();
-    } catch (error) {
-        logger.warn('Failed to load API config from disk:', error);
-    }
+    const diskConfig: Partial<ApiConfig> = await apiHandler.loadConfig();
 
     return {
         ...defaultConfig,

@@ -6,7 +6,7 @@ import type { Options, Result, ResultPromise } from 'execa';
 import { execa, ExecaError } from 'execa';
 
 import { fileExists } from '@app/core/utils/files/file-exists.js';
-import { LOGS_DIR, PM2_HOME, PM2_PATH } from '@app/environment.js';
+import { PATHS_LOGS_DIR, PM2_HOME, PM2_PATH } from '@app/environment.js';
 import { LogService } from '@app/unraid-api/cli/log.service.js';
 
 type CmdContext = Options & {
@@ -102,6 +102,6 @@ export class PM2Service {
      * Ensures that the dependencies necessary for PM2 to start and operate are present.
      */
     async ensurePm2Dependencies() {
-        await mkdir(LOGS_DIR, { recursive: true });
+        await mkdir(PATHS_LOGS_DIR, { recursive: true });
     }
 }
