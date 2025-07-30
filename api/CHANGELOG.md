@@ -1,5 +1,19 @@
 # Changelog
 
+## [4.12.0](https://github.com/unraid/api/compare/v4.11.0...v4.12.0) (2025-07-30)
+
+
+### Features
+
+* add ups monitoring to graphql api ([#1526](https://github.com/unraid/api/issues/1526)) ([6ea94f0](https://github.com/unraid/api/commit/6ea94f061d5b2e6c6fbfa6949006960501e3f4e7))
+
+
+### Bug Fixes
+
+* enhance plugin management with interactive removal prompts ([#1549](https://github.com/unraid/api/issues/1549)) ([23ef760](https://github.com/unraid/api/commit/23ef760d763c525a38108048200fa73fc8531aed))
+* remove connect api plugin upon removal of Connect Unraid plugin ([#1548](https://github.com/unraid/api/issues/1548)) ([782d5eb](https://github.com/unraid/api/commit/782d5ebadc67854298f3b2355255983024d2a225))
+* SSO not being detected ([#1546](https://github.com/unraid/api/issues/1546)) ([6b3b951](https://github.com/unraid/api/commit/6b3b951d8288cd31d096252be544537dc2bfce50))
+
 ## [4.11.0](https://github.com/unraid/api/compare/v4.10.0...v4.11.0) (2025-07-28)
 
 
