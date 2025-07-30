@@ -8,6 +8,7 @@ import {
     RemovePluginQuestionSet,
 } from '@app/unraid-api/cli/plugins/remove-plugin.questions.js';
 import { RestartCommand } from '@app/unraid-api/cli/restart.command.js';
+import { ApiConfigPersistence } from '@app/unraid-api/config/api-config.module.js';
 import { PluginManagementService } from '@app/unraid-api/plugin/plugin-management.service.js';
 import { PluginService } from '@app/unraid-api/plugin/plugin.service.js';
 import { parsePackageArg } from '@app/utils.js';
@@ -27,7 +28,8 @@ export class InstallPluginCommand extends CommandRunner {
     constructor(
         private readonly logService: LogService,
         private readonly restartCommand: RestartCommand,
-        private readonly pluginManagementService: PluginManagementService
+        private readonly pluginManagementService: PluginManagementService,
+        private readonly apiConfigPersistence: ApiConfigPersistence
     ) {
         super();
     }
@@ -45,6 +47,7 @@ export class InstallPluginCommand extends CommandRunner {
             await this.pluginManagementService.addPlugin(...passedParams);
             this.logService.log(`Added plugin ${passedParams.join(', ')}`);
         }
+        await this.apiConfigPersistence.persist();
         if (options.restart) {
             await this.restartCommand.run();
         }
@@ -84,7 +87,8 @@ export class RemovePluginCommand extends CommandRunner {
         private readonly logService: LogService,
         private readonly pluginManagementService: PluginManagementService,
         private readonly restartCommand: RestartCommand,
-        private readonly inquirerService: InquirerService
+        private readonly inquirerService: InquirerService,
+        private readonly apiConfigPersistence: ApiConfigPersistence
     ) {
         super();
     }
@@ -114,6 +118,7 @@ export class RemovePluginCommand extends CommandRunner {
         for (const plugin of options.plugins) {
             this.logService.log(`Removed plugin ${plugin}`);
         }
+        await this.apiConfigPersistence.persist();
 
         if (options.restart) {
             await this.restartCommand.run();
