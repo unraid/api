@@ -60,7 +60,5 @@ defineProps<Props>();
       </div>
     </div>
   </div>
-  <div v-else class="text-gray-500 dark:text-gray-400">
-    No details available for {{ item.label }}
-  </div>
+  <div v-else class="text-gray-500 dark:text-gray-400">No details available for {{ item.label }}</div>
 </template>
