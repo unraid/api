@@ -1,4 +1,5 @@
 import { Module } from '@nestjs/common';
+import { ConfigModule } from '@nestjs/config';
 
 import { DependencyService } from '@app/unraid-api/app/dependency.service.js';
 import { ApiKeyService } from '@app/unraid-api/auth/api-key.service.js';
@@ -87,7 +88,12 @@ const DEFAULT_PROVIDERS = [
 ] as const;
 
 @Module({
-    imports: [LegacyConfigModule, ApiConfigModule, GlobalDepsModule, PluginCliModule.register()],
+    imports: [
+        ConfigModule.forRoot({ ignoreEnvFile: true, isGlobal: true }),
+        ApiConfigModule,
+        GlobalDepsModule,
+        PluginCliModule.register(),
+    ],
     providers: [...DEFAULT_COMMANDS, ...DEFAULT_PROVIDERS],
     exports: [ApiReportService],
 })

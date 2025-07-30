@@ -1,4 +1,4 @@
-import { Injectable, Logger, Module, OnApplicationBootstrap } from '@nestjs/common';
+import { Injectable, Module, OnApplicationBootstrap } from '@nestjs/common';
 import { ConfigService, registerAs } from '@nestjs/config';
 import path from 'path';
 
@@ -25,7 +25,6 @@ const createDefaultConfig = (): ApiConfig => ({
  * @throws {Error} if the config file is not found or cannot be parsed
  */
 export const loadApiConfig = async () => {
-    console.log('testing 123');
     const defaultConfig = createDefaultConfig();
     const apiHandler = new ApiConfigPersistence(new ConfigService()).getFileHandler();
 

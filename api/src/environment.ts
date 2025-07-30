@@ -101,7 +101,9 @@ export const MOTHERSHIP_GRAPHQL_LINK = process.env.MOTHERSHIP_GRAPHQL_LINK
 export const PM2_HOME = process.env.PM2_HOME ?? join(homedir(), '.pm2');
 export const PM2_PATH = join(import.meta.dirname, '../../', 'node_modules', 'pm2', 'bin', 'pm2');
 export const ECOSYSTEM_PATH = join(import.meta.dirname, '../../', 'ecosystem.config.json');
-export const LOGS_DIR = process.env.LOGS_DIR ?? '/var/log/unraid-api';
+export const PATHS_LOGS_DIR =
+    process.env.PATHS_LOGS_DIR ?? process.env.LOGS_DIR ?? '/var/log/unraid-api';
+export const PATHS_LOGS_FILE = process.env.PATHS_LOGS_FILE ?? '/var/log/graphql-api.log';
 
 export const PATHS_CONFIG_MODULES =
     process.env.PATHS_CONFIG_MODULES ?? '/boot/config/plugins/dynamix.my.servers/configs';

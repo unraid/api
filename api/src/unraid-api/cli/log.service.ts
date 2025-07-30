@@ -6,12 +6,18 @@ import { LOG_LEVEL } from '@app/environment.js';
 @Injectable()
 export class LogService {
     private logger = console;
+    private suppressLogs = process.env.SUPPRESS_LOGS === 'true';
 
     clear(): void {
-        this.logger.clear();
+        if (!this.suppressLogs) {
+            this.logger.clear();
+        }
     }
 
     shouldLog(level: LogLevel): boolean {
+        if (this.suppressLogs) {
+            return false;
+        }
         const logLevelsLowToHigh = levels;
         const shouldLog =
             logLevelsLowToHigh.indexOf(level) >=
@@ -47,6 +53,11 @@ export class LogService {
         if (this.shouldLog('error')) {
             this.logger.error(...messages);
         }
+    }
+
+    always(...messages: unknown[]): void {
+        // Always output to stdout, regardless of log level or suppression
+        console.log(...messages);
     }
 
     debug(...messages: unknown[]): void {

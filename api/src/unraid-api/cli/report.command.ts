@@ -40,7 +40,7 @@ export class ReportCommand extends CommandRunner {
             });
 
             if (!apiRunning) {
-                this.logger.warn(
+                this.logger.always(
                     JSON.stringify(
                         {
                             error: 'API is not running. Please start the API server before running a report.',
@@ -56,10 +56,10 @@ export class ReportCommand extends CommandRunner {
             const report = await this.apiReportService.generateReport(apiRunning);
 
             this.logger.clear();
-            this.logger.info(JSON.stringify(report, null, 2));
+            this.logger.always(JSON.stringify(report, null, 2));
         } catch (error) {
             this.logger.debug('Error generating report via GraphQL: ' + error);
-            this.logger.warn(
+            this.logger.always(
                 JSON.stringify(
                     {
                         error: 'Failed to generate system report. Please ensure the API is running and properly configured.',

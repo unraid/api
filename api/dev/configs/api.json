@@ -1,7 +1,7 @@
 {
   "version": "4.11.0",
   "extraOrigins": [],
-  "sandbox": false,
+  "sandbox": true,
   "ssoSubIds": [],
-  "plugins": []
+  "plugins": ["unraid-api-plugin-connect"]
 }

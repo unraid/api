@@ -1,7 +1,7 @@
 import { pino } from 'pino';
 import pretty from 'pino-pretty';
 
-import { API_VERSION, LOG_LEVEL, LOG_TYPE } from '@app/environment.js';
+import { API_VERSION, LOG_LEVEL, LOG_TYPE, PATHS_LOGS_FILE } from '@app/environment.js';
 
 export const levels = ['trace', 'debug', 'info', 'warn', 'error', 'fatal'] as const;
 
@@ -9,18 +9,31 @@ export type LogLevel = (typeof levels)[number];
 
 const level = levels[levels.indexOf(LOG_LEVEL.toLowerCase() as LogLevel)] ?? 'info';
 
-export const logDestination = pino.destination();
+const nullDestination = pino.destination({
+    write() {
+        // Suppress all logs
+    },
+});
+
+export const logDestination =
+    process.env.SUPPRESS_LOGS === 'true' ? nullDestination : pino.destination();
+const localFileDestination = pino.destination({
+    dest: PATHS_LOGS_FILE,
+    sync: true,
+});
 
 const stream =
-    LOG_TYPE === 'pretty'
-        ? pretty({
-              singleLine: true,
-              hideObject: false,
-              colorize: true,
-              ignore: 'hostname,pid',
-              destination: logDestination,
-          })
-        : logDestination;
+    process.env.SUPPRESS_LOGS === 'true'
+        ? nullDestination
+        : LOG_TYPE === 'pretty'
+          ? pretty({
+                singleLine: true,
+                hideObject: false,
+                colorize: true,
+                ignore: 'hostname,pid',
+                destination: logDestination,
+            })
+          : logDestination;
 
 export const logger = pino(
     {
@@ -70,6 +83,7 @@ export const keyServerLogger = logger.child({ logger: 'key-server' });
 export const remoteAccessLogger = logger.child({ logger: 'remote-access' });
 export const remoteQueryLogger = logger.child({ logger: 'remote-query' });
 export const apiLogger = logger.child({ logger: 'api' });
+export const pluginLogger = logger.child({ logger: 'plugin', stream: localFileDestination });
 
 export const loggers = [
     internalLogger,
