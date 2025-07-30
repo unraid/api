@@ -63,8 +63,8 @@ const getCurrentTabProps = () => {
   };
 };
 
-const updateSelectedTab = (value: string) => {
-  emit('update:selectedTab', value);
+const updateSelectedTab = (value: string | number) => {
+  emit('update:selectedTab', String(value));
 };
 </script>
 
