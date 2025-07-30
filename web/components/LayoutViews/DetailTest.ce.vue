@@ -1,11 +1,10 @@
 <script setup lang="ts">
-
 import Console from '../Docker/Console.vue';
 import Edit from '../Docker/Edit.vue';
 import Logs from '../Docker/Logs.vue';
 import Overview from '../Docker/Overview.vue';
 import Preview from '../Docker/Preview.vue';
-import Detail from '../LayoutViews/Detail.vue';
+import Detail from '../LayoutViews/Detail/Detail.vue';
 
 interface ContainerDetails {
   network: string;
@@ -129,6 +128,6 @@ const tabs = getTabsWithProps('immich');
 
 <template>
   <div class="h-full">
-    <Detail :navigation-items="dockerContainers" :tabs="tabs" default-navigation-id="immich" />
+    <Detail :items="dockerContainers" :tabs="tabs" default-item-id="immich" />
   </div>
 </template>
