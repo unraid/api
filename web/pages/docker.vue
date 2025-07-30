@@ -6,7 +6,7 @@ import Edit from '../components/Docker/Edit.vue';
 import Logs from '../components/Docker/Logs.vue';
 import Overview from '../components/Docker/Overview.vue';
 import Preview from '../components/Docker/Preview.vue';
-import Detail from '../components/LayoutViews/Detail.vue';
+import Detail from '../components/LayoutViews/Detail/Detail.vue';
 
 definePageMeta({
   layout: 'unraid-next',
