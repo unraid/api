@@ -43,6 +43,14 @@ vi.mock('@app/core/log.js', () => ({
         error: vi.fn(),
         debug: vi.fn(),
     },
+    pluginLogger: {
+        info: vi.fn(),
+        warn: vi.fn(),
+        error: vi.fn(),
+        debug: vi.fn(),
+        trace: vi.fn(),
+        fatal: vi.fn(),
+    },
 }));
 
 vi.mock('execa', () => ({

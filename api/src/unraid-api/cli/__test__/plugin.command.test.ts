@@ -3,28 +3,29 @@ import { Test } from '@nestjs/testing';
 import { InquirerService } from 'nest-commander';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { CliInternalClientService } from '@app/unraid-api/cli/internal-client.service.js';
-import { LogService } from '@app/unraid-api/cli/log.service.js';
+import { ILogService, LogService } from '@app/unraid-api/cli/log.service.js';
 import {
     InstallPluginCommand,
     ListPluginCommand,
     RemovePluginCommand,
 } from '@app/unraid-api/cli/plugins/plugin.command.js';
 import { RestartCommand } from '@app/unraid-api/cli/restart.command.js';
+import { ApiConfigPersistence } from '@app/unraid-api/config/api-config.module.js';
 import { PluginManagementService } from '@app/unraid-api/plugin/plugin-management.service.js';
 import { PluginService } from '@app/unraid-api/plugin/plugin.service.js';
 
 // Mock services
-const mockInternalClient = {
-    getClient: vi.fn(),
-};
-
-const mockLogger = {
+const mockLogger: ILogService = {
+    clear: vi.fn(),
+    shouldLog: vi.fn(),
     log: vi.fn(),
     info: vi.fn(),
     error: vi.fn(),
     warn: vi.fn(),
     table: vi.fn(),
+    always: vi.fn(),
+    debug: vi.fn(),
+    trace: vi.fn(),
 };
 
 const mockRestartCommand = {
@@ -43,6 +44,10 @@ const mockInquirerService = {
     prompt: vi.fn(),
 };
 
+const mockApiConfigPersistence = {
+    persist: vi.fn(),
+};
+
 vi.mock('@app/unraid-api/plugin/plugin.service.js', () => ({
     PluginService: {
         listPlugins: vi.fn(),
@@ -53,6 +58,8 @@ describe('Plugin Commands', () => {
     beforeEach(() => {
         // Clear mocks before each test
         vi.clearAllMocks();
+        // Reset process.exitCode
+        process.exitCode = 0;
     });
 
     describe('InstallPluginCommand', () => {
@@ -65,6 +72,7 @@ describe('Plugin Commands', () => {
                     { provide: LogService, useValue: mockLogger },
                     { provide: RestartCommand, useValue: mockRestartCommand },
                     { provide: PluginManagementService, useValue: mockPluginManagementService },
+                    { provide: ApiConfigPersistence, useValue: mockApiConfigPersistence },
                 ],
             }).compile();
 
@@ -76,6 +84,7 @@ describe('Plugin Commands', () => {
 
             expect(mockPluginManagementService.addPlugin).toHaveBeenCalledWith('@unraid/plugin-example');
             expect(mockLogger.log).toHaveBeenCalledWith('Added plugin @unraid/plugin-example');
+            expect(mockApiConfigPersistence.persist).toHaveBeenCalled();
             expect(mockRestartCommand.run).toHaveBeenCalled();
         });
 
@@ -86,6 +95,7 @@ describe('Plugin Commands', () => {
                 '@unraid/bundled-plugin'
             );
             expect(mockLogger.log).toHaveBeenCalledWith('Added bundled plugin @unraid/bundled-plugin');
+            expect(mockApiConfigPersistence.persist).toHaveBeenCalled();
             expect(mockRestartCommand.run).toHaveBeenCalled();
         });
 
@@ -93,6 +103,7 @@ describe('Plugin Commands', () => {
             await command.run(['@unraid/plugin'], { bundled: false, restart: false });
 
             expect(mockPluginManagementService.addPlugin).toHaveBeenCalledWith('@unraid/plugin');
+            expect(mockApiConfigPersistence.persist).toHaveBeenCalled();
             expect(mockRestartCommand.run).not.toHaveBeenCalled();
         });
 
@@ -100,6 +111,8 @@ describe('Plugin Commands', () => {
             await command.run([], { bundled: false, restart: true });
 
             expect(mockLogger.error).toHaveBeenCalledWith('Package name is required.');
+            expect(mockApiConfigPersistence.persist).not.toHaveBeenCalled();
+            expect(mockRestartCommand.run).not.toHaveBeenCalled();
             expect(process.exitCode).toBe(1);
         });
     });
@@ -115,6 +128,7 @@ describe('Plugin Commands', () => {
                     { provide: PluginManagementService, useValue: mockPluginManagementService },
                     { provide: RestartCommand, useValue: mockRestartCommand },
                     { provide: InquirerService, useValue: mockInquirerService },
+                    { provide: ApiConfigPersistence, useValue: mockApiConfigPersistence },
                 ],
             }).compile();
 
@@ -135,6 +149,7 @@ describe('Plugin Commands', () => {
             );
             expect(mockLogger.log).toHaveBeenCalledWith('Removed plugin @unraid/plugin-example');
             expect(mockLogger.log).toHaveBeenCalledWith('Removed plugin @unraid/plugin-test');
+            expect(mockApiConfigPersistence.persist).toHaveBeenCalled();
             expect(mockRestartCommand.run).toHaveBeenCalled();
         });
 
@@ -148,6 +163,7 @@ describe('Plugin Commands', () => {
 
             expect(mockLogger.warn).toHaveBeenCalledWith('No plugins selected for removal.');
             expect(mockPluginManagementService.removePlugin).not.toHaveBeenCalled();
+            expect(mockApiConfigPersistence.persist).not.toHaveBeenCalled();
             expect(mockRestartCommand.run).not.toHaveBeenCalled();
         });
 
@@ -162,6 +178,7 @@ describe('Plugin Commands', () => {
             expect(mockPluginManagementService.removePlugin).toHaveBeenCalledWith(
                 '@unraid/plugin-example'
             );
+            expect(mockApiConfigPersistence.persist).toHaveBeenCalled();
             expect(mockRestartCommand.run).not.toHaveBeenCalled();
         });
     });

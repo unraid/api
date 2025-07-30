@@ -3,8 +3,21 @@ import { Injectable } from '@nestjs/common';
 import { levels, LogLevel } from '@app/core/log.js';
 import { LOG_LEVEL, SUPPRESS_LOGS } from '@app/environment.js';
 
+export interface ILogService {
+    clear(): void;
+    shouldLog(level: LogLevel): boolean;
+    table(level: LogLevel, data: unknown, columns?: string[]): void;
+    log(...messages: unknown[]): void;
+    info(...messages: unknown[]): void;
+    warn(...messages: unknown[]): void;
+    error(...messages: unknown[]): void;
+    always(...messages: unknown[]): void;
+    debug(...messages: unknown[]): void;
+    trace(...messages: unknown[]): void;
+}
+
 @Injectable()
-export class LogService {
+export class LogService implements ILogService {
     private logger = console;
     private suppressLogs = SUPPRESS_LOGS;
 
