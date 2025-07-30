@@ -21,6 +21,7 @@ import {
     PluginCommand,
     RemovePluginCommand,
 } from '@app/unraid-api/cli/plugins/plugin.command.js';
+import { RemovePluginQuestionSet } from '@app/unraid-api/cli/plugins/remove-plugin.questions.js';
 import { PM2Service } from '@app/unraid-api/cli/pm2.service.js';
 import { ReportCommand } from '@app/unraid-api/cli/report.command.js';
 import { RestartCommand } from '@app/unraid-api/cli/restart.command.js';
@@ -72,6 +73,7 @@ const DEFAULT_PROVIDERS = [
     DeleteApiKeyQuestionSet,
     AddSSOUserQuestionSet,
     RemoveSSOUserQuestionSet,
+    RemovePluginQuestionSet,
     DeveloperQuestions,
     DeveloperToolsService,
     LogService,

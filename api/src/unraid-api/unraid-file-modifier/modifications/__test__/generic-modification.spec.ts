@@ -57,37 +57,10 @@ const patchTestCases: ModificationTestCase[] = [
 /** Modifications that simply add a new file & remove it on rollback. */
 const simpleTestCases: ModificationTestCase[] = [];
 
-const downloadOrRetrieveOriginalFile = async (filePath: string, fileUrl: string): Promise<string> => {
-    let originalContent = '';
-    // Check last download time, if > than 1 week and not in CI, download the file from Github
-    const lastDownloadTime = await readFile(`${filePath}.last-download-time`, 'utf-8')
-        .catch(() => 0)
-        .then(Number);
-    const shouldDownload = lastDownloadTime < Date.now() - 1000 * 60 * 60 * 24 * 7 && !process.env.CI;
-    if (shouldDownload) {
-        try {
-            console.log('Downloading file', fileUrl);
-            originalContent = await fetch(fileUrl).then((response) => response.text());
-            if (!originalContent) {
-                throw new Error('Failed to download file');
-            }
-            await writeFile(filePath, originalContent);
-            await writeFile(`${filePath}.last-download-time`, Date.now().toString());
-            return originalContent;
-        } catch (error) {
-            console.error('Error downloading file', error);
-            console.error(
-                `Failed to download file - using version created at ${new Date(lastDownloadTime).toISOString()}`
-            );
-        }
-    }
-    return await readFile(filePath, 'utf-8').catch(() => '');
-};
-
 async function testModification(testCase: ModificationTestCase) {
     const fileName = basename(testCase.fileUrl);
     const filePath = getPathToFixture(fileName);
-    const originalContent = await downloadOrRetrieveOriginalFile(filePath, testCase.fileUrl);
+    const originalContent = await readFile(filePath, 'utf-8').catch(() => '');
     const logger = new Logger();
     const patcher = await new testCase.ModificationClass(logger);
     const originalPath = patcher.filePath;
