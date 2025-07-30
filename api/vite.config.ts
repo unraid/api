@@ -110,6 +110,9 @@ export default defineConfig(({ mode }): ViteUserConfig => {
                     interop: 'auto',
                     banner: (chunk) => {
                         if (chunk.fileName === 'main.js' || chunk.fileName === 'cli.js') {
+                            if (process.env.COMMAND_TESTER) {
+                                return '#!/usr/bin/env node\n';
+                            }
                             return '#!/usr/local/bin/node\n';
                         }
                         return '';
