@@ -155,7 +155,7 @@ export default defineNuxtConfig({
     },
   },
 
-  // Disable auto-imports
+  // Enable auto-imports
   imports: {
     autoImport: true,
   },
