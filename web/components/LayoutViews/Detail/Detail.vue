@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue';
+
 import { UBadge } from '#components';
 
 import type { Component } from 'vue';
@@ -9,7 +10,7 @@ import DetailContentHeader from './DetailContentHeader.vue';
 import DetailLeftNavigation from './DetailLeftNavigation.vue';
 import DetailRightContent from './DetailRightContent.vue';
 
-interface NavigationItem {
+interface Item {
   id: string;
   label: string;
   icon?: string;
@@ -19,7 +20,7 @@ interface NavigationItem {
     label: string;
     dotColor: string;
   }[];
-  children?: NavigationItem[];
+  children?: Item[];
   isGroup?: boolean;
 }
 
@@ -32,20 +33,20 @@ interface TabItem {
 }
 
 interface Props {
-  navigationItems?: NavigationItem[];
+  items?: Item[];
   tabs?: TabItem[];
-  defaultNavigationId?: string;
+  defaultItemId?: string;
   defaultTabKey?: string;
 }
 
 const props = withDefaults(defineProps<Props>(), {
-  navigationItems: () => [],
+  items: () => [],
   tabs: () => [],
-  defaultNavigationId: undefined,
+  defaultItemId: undefined,
   defaultTabKey: undefined,
 });
 
-const selectedNavigationId = ref(props.defaultNavigationId || props.navigationItems[0]?.id || '');
+const selectedItemId = ref(props.defaultItemId || props.items[0]?.id || '');
 const selectedTab = ref(props.defaultTabKey || '0');
 const selectedItems = ref<string[]>([]);
 const expandedGroups = ref<Record<string, boolean>>({});
@@ -53,7 +54,7 @@ const autostartEnabled = ref(true);
 
 // Initialize expanded state for groups
 const initializeExpandedState = () => {
-  props.navigationItems.forEach((item) => {
+  props.items.forEach((item) => {
     if (item.isGroup) {
       expandedGroups.value[item.id] = true;
     }
@@ -63,21 +64,21 @@ const initializeExpandedState = () => {
 initializeExpandedState();
 
 watch(
-  () => props.navigationItems,
+  () => props.items,
   () => {
     initializeExpandedState();
   },
   { deep: true }
 );
 
-const selectedNavigationItem = computed(() => {
-  const topLevel = props.navigationItems.find((item) => item.id === selectedNavigationId.value);
+const selectedItem = computed(() => {
+  const topLevel = props.items.find((item) => item.id === selectedItemId.value);
 
   if (topLevel) return topLevel;
 
-  for (const item of props.navigationItems) {
+  for (const item of props.items) {
     if (item.children) {
-      const nested = item.children.find((child) => child.id === selectedNavigationId.value);
+      const nested = item.children.find((child) => child.id === selectedItemId.value);
 
       if (nested) return nested;
     }
@@ -86,10 +87,10 @@ const selectedNavigationItem = computed(() => {
 });
 
 // Reusable function to collect all selectable items
-const collectSelectableItems = (items: NavigationItem[]): string[] => {
+const collectSelectableItems = (items: Item[]): string[] => {
   const selectableItems: string[] = [];
 
-  const collect = (items: NavigationItem[]) => {
+  const collect = (items: Item[]) => {
     for (const item of items) {
       if (!item.isGroup) {
         selectableItems.push(item.id);
@@ -107,7 +108,7 @@ const collectSelectableItems = (items: NavigationItem[]): string[] => {
 };
 
 const selectAllItems = () => {
-  selectedItems.value = [...collectSelectableItems(props.navigationItems)];
+  selectedItems.value = [...collectSelectableItems(props.items)];
 };
 
 const clearAllSelections = () => {
@@ -130,11 +131,11 @@ const handleManageItemAction = (action: string) => {
 <template>
   <div class="flex h-full gap-6">
     <DetailLeftNavigation
-      :navigation-items="navigationItems"
-      :selected-id="selectedNavigationId"
+      :items="items"
+      :selected-id="selectedItemId"
       :selected-items="selectedItems"
       :expanded-groups="expandedGroups"
-      @update:selected-id="selectedNavigationId = $event"
+      @update:selected-id="selectedItemId = $event"
       @update:selected-items="selectedItems = $event"
       @update:expanded-groups="expandedGroups = $event"
       @add="handleAddAction"
@@ -144,7 +145,7 @@ const handleManageItemAction = (action: string) => {
     />
 
     <DetailRightContent
-      :selected-item="selectedNavigationItem"
+      :selected-item="selectedItem"
       :tabs="tabs"
       :selected-tab="selectedTab"
       @update:selected-tab="selectedTab = $event"
