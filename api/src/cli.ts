@@ -4,7 +4,7 @@ import { Logger } from '@nestjs/common';
 
 import { CommandFactory } from 'nest-commander';
 
-import { LOG_LEVEL } from '@app/environment.js';
+import { LOG_LEVEL, SUPPRESS_LOGS } from '@app/environment.js';
 import { LogService } from '@app/unraid-api/cli/log.service.js';
 
 const getUnraidApiLocation = async () => {
@@ -17,7 +17,14 @@ const getUnraidApiLocation = async () => {
     }
 };
 
-const logger = LOG_LEVEL === 'TRACE' ? new LogService() : false;
+const getLogger = () => {
+    if (LOG_LEVEL === 'TRACE' && !SUPPRESS_LOGS) {
+        return new LogService();
+    }
+    return false;
+};
+
+const logger = getLogger();
 try {
     await import('json-bigint-patch');
     const { CliModule } = await import('@app/unraid-api/cli/cli.module.js');

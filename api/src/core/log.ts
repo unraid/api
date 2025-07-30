@@ -1,7 +1,7 @@
 import { pino } from 'pino';
 import pretty from 'pino-pretty';
 
-import { API_VERSION, LOG_LEVEL, LOG_TYPE, PATHS_LOGS_FILE } from '@app/environment.js';
+import { API_VERSION, LOG_LEVEL, LOG_TYPE, PATHS_LOGS_FILE, SUPPRESS_LOGS } from '@app/environment.js';
 
 export const levels = ['trace', 'debug', 'info', 'warn', 'error', 'fatal'] as const;
 
@@ -22,18 +22,17 @@ const localFileDestination = pino.destination({
     sync: true,
 });
 
-const stream =
-    process.env.SUPPRESS_LOGS === 'true'
-        ? nullDestination
-        : LOG_TYPE === 'pretty'
-          ? pretty({
-                singleLine: true,
-                hideObject: false,
-                colorize: true,
-                ignore: 'hostname,pid',
-                destination: logDestination,
-            })
-          : logDestination;
+const stream = SUPPRESS_LOGS
+    ? nullDestination
+    : LOG_TYPE === 'pretty'
+      ? pretty({
+            singleLine: true,
+            hideObject: false,
+            colorize: true,
+            ignore: 'hostname,pid',
+            destination: logDestination,
+        })
+      : logDestination;
 
 export const logger = pino(
     {

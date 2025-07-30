@@ -1,12 +1,12 @@
 import { Injectable } from '@nestjs/common';
 
 import { levels, LogLevel } from '@app/core/log.js';
-import { LOG_LEVEL } from '@app/environment.js';
+import { LOG_LEVEL, SUPPRESS_LOGS } from '@app/environment.js';
 
 @Injectable()
 export class LogService {
     private logger = console;
-    private suppressLogs = process.env.SUPPRESS_LOGS === 'true';
+    private suppressLogs = SUPPRESS_LOGS;
 
     clear(): void {
         if (!this.suppressLogs) {
