@@ -7,6 +7,8 @@ import { DependencyService } from '@app/unraid-api/app/dependency.service.js';
 
 @Injectable()
 export class PluginManagementService {
+    static WORKSPACE_PACKAGES_TO_VENDOR = ['@unraid/shared', 'unraid-api-plugin-connect'];
+
     constructor(
         private readonly configService: ConfigService<{ api: ApiConfig }, true>,
         private readonly dependencyService: DependencyService
@@ -22,6 +24,15 @@ export class PluginManagementService {
         await this.dependencyService.rebuildVendorArchive();
     }
 
+    isBundled(plugin: string) {
+        return PluginManagementService.WORKSPACE_PACKAGES_TO_VENDOR.includes(plugin);
+    }
+
+    /**
+     * Removes plugins from the config and uninstalls them from node_modules.
+     *
+     * @param plugins - The npm package names to remove.
+     */
     async removePlugin(...plugins: string[]) {
         const removed = this.removePluginFromConfig(...plugins);
         await this.uninstallPlugins(...removed);
@@ -64,13 +75,20 @@ export class PluginManagementService {
     }
 
     /**
-     * Installs plugins using npm.
+     * Install bundle / unbundled plugins using npm or direct with the config.
      *
      * @param plugins - The plugins to install.
      * @returns The execa result of the npm command.
      */
-    private installPlugins(...plugins: string[]) {
-        return this.dependencyService.npm('i', '--save-peer', '--save-exact', ...plugins);
+    private async installPlugins(...plugins: string[]) {
+        const bundled = plugins.filter((plugin) => this.isBundled(plugin));
+        const unbundled = plugins.filter((plugin) => !this.isBundled(plugin));
+        if (unbundled.length > 0) {
+            await this.dependencyService.npm('i', '--save-peer', '--save-exact', ...unbundled);
+        }
+        if (bundled.length > 0) {
+            await this.addBundledPlugin(...bundled);
+        }
     }
 
     /**
@@ -79,8 +97,15 @@ export class PluginManagementService {
      * @param plugins - The plugins to uninstall.
      * @returns The execa result of the npm command.
      */
-    private uninstallPlugins(...plugins: string[]) {
-        return this.dependencyService.npm('uninstall', ...plugins);
+    private async uninstallPlugins(...plugins: string[]) {
+        const bundled = plugins.filter((plugin) => this.isBundled(plugin));
+        const unbundled = plugins.filter((plugin) => !this.isBundled(plugin));
+        if (unbundled.length > 0) {
+            await this.dependencyService.npm('uninstall', ...unbundled);
+        }
+        if (bundled.length > 0) {
+            await this.removeBundledPlugin(...bundled);
+        }
     }
 
     /**------------------------------------------------------------------------
