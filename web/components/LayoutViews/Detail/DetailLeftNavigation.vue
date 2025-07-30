@@ -1,25 +1,10 @@
 <script setup lang="ts">
 import { computed } from 'vue';
-
-import { UBadge, UButton, UCheckbox, UDropdownMenu, UIcon, UNavigationMenu } from '#components';
-
-interface NavigationItem {
-  id: string;
-  label: string;
-  icon?: string;
-  badge?: string | number;
-  slot?: string;
-  status?: {
-    label: string;
-    dotColor: string;
-  }[];
-  children?: NavigationItem[];
-  isGroup?: boolean;
-}
+import type { Item } from './Detail.vue';
 
 interface Props {
   title?: string;
-  navigationItems: NavigationItem[];
+  items: Item[];
   selectedId: string;
   selectedItems: string[];
   expandedGroups: Record<string, boolean>;
@@ -49,7 +34,7 @@ const emit = defineEmits<{
 }>();
 
 const navigationMenuItems = computed(() =>
-  props.navigationItems.map((item) => ({
+  props.items.map((item) => ({
     label: item.label,
     icon: item.icon,
     id: item.id,
@@ -108,7 +93,7 @@ const allItemsWithSlots = computed(() => {
 
 const allItemsSelected = computed(() => {
   const allSelectableItems: string[] = [];
-  const collectSelectableItems = (items: NavigationItem[]) => {
+  const collectSelectableItems = (items: Item[]) => {
     for (const item of items) {
       if (!item.isGroup) {
         allSelectableItems.push(item.id);
@@ -118,7 +103,7 @@ const allItemsSelected = computed(() => {
       }
     }
   };
-  collectSelectableItems(props.navigationItems);
+  collectSelectableItems(props.items);
   return (
     allSelectableItems.length > 0 && allSelectableItems.every((id) => props.selectedItems.includes(id))
   );
@@ -128,8 +113,8 @@ const selectedItemsCount = computed(() => props.selectedItems.length);
 
 const selectNavigationItem = (id: string) => {
   const actualItem =
-    props.navigationItems.find((item) => item.id === id) ||
-    props.navigationItems.flatMap((item) => item.children || []).find((child) => child.id === id);
+    props.items.find((item) => item.id === id) ||
+    props.items.flatMap((item) => item.children || []).find((child) => child.id === id);
 
   if (actualItem && !actualItem.isGroup) {
     emit('update:selectedId', id);
@@ -160,6 +145,14 @@ const toggleGroupExpansion = (groupId: string) => {
 const handleManageAction = (action: { label: string; icon: string }) => {
   emit('manageAction', action.label);
 };
+
+const dropdownItems = computed(() => [
+  props.manageActions.map(action => ({
+    label: action.label,
+    icon: action.icon,
+    onSelect: () => handleManageAction(action)
+  }))
+]);
 </script>
 
 <template>
@@ -186,7 +179,7 @@ const handleManageAction = (action: { label: string; icon: string }) => {
           @click="allItemsSelected ? $emit('clearAll') : $emit('selectAll')"
         />
 
-        <UDropdownMenu :items="[manageActions]" @click="handleManageAction">
+        <UDropdownMenu :items="dropdownItems">
           <UButton
             variant="subtle"
             color="primary"
