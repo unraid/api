@@ -82,3 +82,6 @@ deploy/*
 .idea
 
 !**/*.login.*
+
+# local status - doesn't need to be tracked
+dev/connectStatus.json
