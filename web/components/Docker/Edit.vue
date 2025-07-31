@@ -33,7 +33,7 @@ const config = ref({
 
 <template>
   <div class="space-y-6">
-    <div class="flex justify-between items-center">
+    <div class="flex justify-between items-center sm:mx-4">
       <h3 class="text-lg font-medium">Container Configuration</h3>
       <div class="flex gap-2">
         <UButton color="primary" variant="outline">Cancel</UButton>
@@ -41,7 +41,7 @@ const config = ref({
       </div>
     </div>
 
-    <UCard>
+    <UCard class="sm:mx-4">
       <template #header>
         <h4 class="font-medium">Basic Settings</h4>
       </template>
@@ -64,7 +64,7 @@ const config = ref({
       </div>
     </UCard>
 
-    <UCard>
+    <UCard class="sm:mx-4">
       <template #header>
         <h4 class="font-medium">Resource Limits</h4>
       </template>
@@ -78,7 +78,7 @@ const config = ref({
       </div>
     </UCard>
 
-    <UCard>
+    <UCard class="sm:mx-4">
       <template #header>
         <h4 class="font-medium">Port Mappings</h4>
       </template>
@@ -94,7 +94,7 @@ const config = ref({
       </div>
     </UCard>
 
-    <UCard>
+    <UCard class="sm:mx-4">
       <template #header>
         <h4 class="font-medium">Volume Mappings</h4>
       </template>

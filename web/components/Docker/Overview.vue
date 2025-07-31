@@ -25,7 +25,7 @@ defineProps<Props>();
 
 <template>
   <div v-if="details" class="space-y-4">
-    <div class="grid grid-cols-2 gap-4">
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:mx-4">
       <div>
         <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Network:</p>
         <p class="mt-1">{{ details.network }}</p>
@@ -60,5 +60,7 @@ defineProps<Props>();
       </div>
     </div>
   </div>
-  <div v-else class="text-gray-500 dark:text-gray-400">No details available for {{ item.label }}</div>
+  <div v-else class="text-gray-500 dark:text-gray-400 sm:mx-4">
+    No details available for {{ item.label }}
+  </div>
 </template>

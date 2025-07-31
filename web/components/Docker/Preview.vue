@@ -15,7 +15,7 @@ const previewUrl = props.port ? `http://localhost:${props.port}` : null;
 
 <template>
   <div class="space-y-4">
-    <div class="flex justify-between items-center">
+    <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2 sm:mx-4">
       <h3 class="text-lg font-medium">Web Preview</h3>
       <div class="flex gap-2">
         <UButton
@@ -27,12 +27,14 @@ const previewUrl = props.port ? `http://localhost:${props.port}` : null;
           :to="previewUrl"
           target="_blank"
         >
-          Open in new tab
+          <span class="hidden sm:inline">Open in new tab</span>
         </UButton>
-        <UButton size="sm" color="primary" variant="outline" icon="i-lucide-refresh-cw"> Refresh </UButton>
+        <UButton size="sm" color="primary" variant="outline" icon="i-lucide-refresh-cw">
+          <span class="hidden sm:inline">Refresh</span>
+        </UButton>
       </div>
     </div>
-    <div class="border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden">
+    <div class="border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden sm:mx-4">
       <div v-if="previewUrl" class="bg-gray-100 dark:bg-gray-800 px-4 py-2 flex items-center gap-2">
         <UIcon name="i-lucide-lock" class="w-4 h-4 text-gray-500" />
         <span class="text-sm text-gray-600 dark:text-gray-400">{{ previewUrl }}</span>
