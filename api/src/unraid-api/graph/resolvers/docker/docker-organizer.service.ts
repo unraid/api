@@ -6,6 +6,7 @@ import { DockerConfigService } from '@app/unraid-api/graph/resolvers/docker/dock
 import { DockerContainer } from '@app/unraid-api/graph/resolvers/docker/docker.model.js';
 import { DockerService } from '@app/unraid-api/graph/resolvers/docker/docker.service.js';
 import {
+    OrganizerContainerResource,
     OrganizerFolder,
     OrganizerResource,
     OrganizerResourceRef,
@@ -19,23 +20,13 @@ import {
     resourceToResourceRef,
 } from '@app/unraid-api/organizer/organizer.js';
 
-export function containerToResource(container: DockerContainer): OrganizerResource {
+export function containerToResource(container: DockerContainer): OrganizerContainerResource {
     const stableRef = container.names[0] || container.image;
     return {
         id: container.id,
         type: 'container',
         name: stableRef,
-        meta: {
-            image: container.image,
-            imageId: container.imageId,
-            state: container.state,
-            status: container.status,
-            created: container.created,
-            command: container.command,
-            ports: container.ports,
-            autoStart: container.autoStart,
-            labels: container.labels,
-        },
+        meta: container,
     };
 }
 

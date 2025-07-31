@@ -16,9 +16,20 @@ import {
 } from 'class-validator';
 import { GraphQLJSON } from 'graphql-scalars';
 
-// Resource definition (global)
+// Import Docker container type for typing
+import { DockerContainer } from '@app/unraid-api/graph/resolvers/docker/docker.model.js';
+
+// Base resource definition (common fields)
+export interface BaseOrganizerResource {
+    id: string;
+    type: string;
+    name: string;
+    meta?: unknown;
+}
+
+// Generic resource (fallback for unknown types)
 @ObjectType()
-export class OrganizerResource {
+export class OrganizerResource implements BaseOrganizerResource {
     @Field()
     @IsString()
     id!: string;
@@ -36,6 +47,43 @@ export class OrganizerResource {
     @IsObject()
     meta?: Record<string, unknown>;
 }
+
+// Container-specific resource with typed meta
+@ObjectType()
+export class OrganizerContainerResource implements BaseOrganizerResource {
+    @Field()
+    @IsString()
+    id!: string;
+
+    @Field()
+    @IsIn(['container'])
+    type!: 'container';
+
+    @Field()
+    @IsString()
+    name!: string;
+
+    @Field(() => DockerContainer, { nullable: true })
+    @IsOptional()
+    @ValidateNested()
+    @Type(() => DockerContainer)
+    meta?: DockerContainer;
+}
+
+// Union type for all resource types
+export type AnyOrganizerResource = OrganizerContainerResource | OrganizerResource;
+
+// For GraphQL, we need to use a union type
+export const AnyOrganizerResource = createUnionType({
+    name: 'AnyOrganizerResource',
+    types: () => [OrganizerContainerResource, OrganizerResource] as const,
+    resolveType(value) {
+        if (value.type === 'container') {
+            return OrganizerContainerResource;
+        }
+        return OrganizerResource;
+    },
+});
 
 // Folder or ref inside a view
 @ObjectType()
@@ -114,8 +162,8 @@ export class OrganizerV1 {
     @Field(() => GraphQLJSON)
     @IsObject()
     @ValidateNested({ each: true })
-    @Type(() => OrganizerResource)
-    resources!: { [id: string]: OrganizerResource };
+    @Type(() => Object)
+    resources!: { [id: string]: AnyOrganizerResource };
 
     @Field(() => GraphQLJSON)
     @IsObject()
@@ -152,17 +200,20 @@ export class ResolvedOrganizerFolder {
 // For GraphQL, we need to use a union type
 export const ResolvedOrganizerEntry = createUnionType({
     name: 'ResolvedOrganizerEntry',
-    types: () => [ResolvedOrganizerFolder, OrganizerResource] as const,
+    types: () => [ResolvedOrganizerFolder, OrganizerContainerResource, OrganizerResource] as const,
     resolveType(value) {
         if (value.type === 'folder') {
             return ResolvedOrganizerFolder;
+        }
+        if (value.type === 'container') {
+            return OrganizerContainerResource;
         }
         return OrganizerResource;
     },
 });
 
 // Union type for resolved entries - can be either a resolved folder or a resource
-export type ResolvedOrganizerEntryType = ResolvedOrganizerFolder | OrganizerResource;
+export type ResolvedOrganizerEntryType = ResolvedOrganizerFolder | AnyOrganizerResource;
 
 // Resolved view where root is the actual object, not ID
 @ObjectType()
@@ -193,9 +244,9 @@ export class ResolvedOrganizerV1 {
     @Equals(1, { message: 'Version must be 1' })
     version!: 1;
 
-    @Field(() => GraphQLJSON)
-    @IsObject()
+    @Field(() => [ResolvedOrganizerView])
+    @IsArray()
     @ValidateNested({ each: true })
     @Type(() => ResolvedOrganizerView)
-    views!: { [id: string]: ResolvedOrganizerView };
+    views!: ResolvedOrganizerView[];
 }

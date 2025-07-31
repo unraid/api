@@ -3,6 +3,7 @@ import { describe, expect, test } from 'vitest';
 import {
     OrganizerResource,
     OrganizerV1,
+    ResolvedOrganizerFolder,
     ResolvedOrganizerV1,
 } from '@app/unraid-api/organizer/organizer.dto.js';
 import { resolveOrganizer } from '@app/unraid-api/organizer/organizer.js';
@@ -65,31 +66,33 @@ describe('Organizer Resolver', () => {
         const resolved: ResolvedOrganizerV1 = resolveOrganizer(organizer);
 
         expect(resolved.version).toBe(1);
-        expect(resolved.views.default).toBeDefined();
+        expect(resolved.views).toHaveLength(1);
 
-        const defaultView = resolved.views.default;
+        const defaultView = resolved.views[0];
         expect(defaultView.id).toBe('default');
         expect(defaultView.name).toBe('Default View');
         expect(defaultView.root.type).toBe('folder');
 
         if (defaultView.root.type === 'folder') {
-            expect(defaultView.root.name).toBe('Root');
-            expect(defaultView.root.children).toHaveLength(2);
+            const rootFolder = defaultView.root as ResolvedOrganizerFolder;
+            expect(rootFolder.name).toBe('Root');
+            expect(rootFolder.children).toHaveLength(2);
 
             // First child should be the resolved container1
-            const firstChild = defaultView.root.children[0];
+            const firstChild = rootFolder.children[0];
             expect(firstChild.type).toBe('container');
             expect(firstChild.id).toBe('container1');
             expect(firstChild.name).toBe('My Container');
 
             // Second child should be the resolved subfolder
-            const secondChild = defaultView.root.children[1];
+            const secondChild = rootFolder.children[1];
             expect(secondChild.type).toBe('folder');
             if (secondChild.type === 'folder') {
-                expect(secondChild.name).toBe('Subfolder');
-                expect(secondChild.children).toHaveLength(1);
+                const subFolder = secondChild as ResolvedOrganizerFolder;
+                expect(subFolder.name).toBe('Subfolder');
+                expect(subFolder.children).toHaveLength(1);
 
-                const nestedChild = secondChild.children[0];
+                const nestedChild = subFolder.children[0];
                 expect(nestedChild.type).toBe('container');
                 expect(nestedChild.id).toBe('container2');
                 expect(nestedChild.name).toBe('Another Container');

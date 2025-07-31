@@ -1157,11 +1157,6 @@ type Info implements Node {
   versions: Versions!
 }
 
-type ResolvedOrganizerV1 {
-  version: Float!
-  views: JSON!
-}
-
 type ContainerPort {
   ip: String
   privatePort: Port
@@ -1231,6 +1226,41 @@ type Docker implements Node {
   containers(skipCache: Boolean! = false): [DockerContainer!]!
   networks(skipCache: Boolean! = false): [DockerNetwork!]!
   organizer: ResolvedOrganizerV1!
+}
+
+type ResolvedOrganizerView {
+  id: String!
+  name: String!
+  root: ResolvedOrganizerEntry!
+  prefs: JSON
+}
+
+union ResolvedOrganizerEntry = ResolvedOrganizerFolder | OrganizerContainerResource | OrganizerResource
+
+type ResolvedOrganizerFolder {
+  id: String!
+  type: String!
+  name: String!
+  children: [ResolvedOrganizerEntry!]!
+}
+
+type OrganizerContainerResource {
+  id: String!
+  type: String!
+  name: String!
+  meta: DockerContainer
+}
+
+type OrganizerResource {
+  id: String!
+  type: String!
+  name: String!
+  meta: JSON
+}
+
+type ResolvedOrganizerV1 {
+  version: Float!
+  views: [ResolvedOrganizerView!]!
 }
 
 type FlashBackupStatus {

@@ -38,26 +38,7 @@ describe('containerToResource', () => {
             id: 'container-123',
             type: 'container',
             name: '/my-app',
-            meta: {
-                image: 'nginx:latest',
-                imageId: 'sha256:abc123',
-                state: ContainerState.RUNNING,
-                status: 'Up 2 hours',
-                created: 1640995200,
-                command: 'nginx -g "daemon off;"',
-                ports: [
-                    {
-                        ip: '0.0.0.0',
-                        privatePort: 80,
-                        publicPort: 8080,
-                        type: ContainerPortType.TCP,
-                    },
-                ],
-                autoStart: true,
-                labels: {
-                    'com.docker.compose.service': 'web',
-                },
-            },
+            meta: container, // Now we store the entire container object
         });
     });
 
@@ -102,17 +83,7 @@ describe('containerToResource', () => {
             id: 'container-789',
             type: 'container',
             name: '/minimal-container',
-            meta: {
-                image: 'alpine:latest',
-                imageId: 'sha256:ghi789',
-                state: ContainerState.EXITED,
-                status: 'Exited (0) 5 minutes ago',
-                created: 1640995400,
-                command: 'sh',
-                ports: [],
-                autoStart: false,
-                labels: undefined,
-            },
+            meta: container, // Now we store the entire container object
         });
     });
 

@@ -669,6 +669,7 @@ export type Docker = Node & {
   containers: Array<DockerContainer>;
   id: Scalars['PrefixedID']['output'];
   networks: Array<DockerNetwork>;
+  organizer: ResolvedOrganizerV1;
 };
 
 
@@ -936,6 +937,7 @@ export type Mutation = {
   archiveNotification: Notification;
   archiveNotifications: NotificationOverview;
   array: ArrayMutations;
+  configureUps: Scalars['Boolean']['output'];
   connectSignIn: Scalars['Boolean']['output'];
   connectSignOut: Scalars['Boolean']['output'];
   /** Creates a new notification record */
@@ -981,6 +983,11 @@ export type MutationArchiveNotificationArgs = {
 
 export type MutationArchiveNotificationsArgs = {
   ids: Array<Scalars['PrefixedID']['input']>;
+};
+
+
+export type MutationConfigureUpsArgs = {
+  config: UpsConfigInput;
 };
 
 
@@ -1121,6 +1128,30 @@ export type Notifications = Node & {
 export type NotificationsListArgs = {
   filter: NotificationFilter;
 };
+
+export type OrganizerContainerResource = {
+  __typename?: 'OrganizerContainerResource';
+  id: Scalars['String']['output'];
+  meta?: Maybe<DockerContainer>;
+  name: Scalars['String']['output'];
+  type: OrganizerResourceType;
+};
+
+export type OrganizerResource = {
+  __typename?: 'OrganizerResource';
+  id: Scalars['String']['output'];
+  meta?: Maybe<Scalars['JSON']['output']>;
+  name: Scalars['String']['output'];
+  type: OrganizerResourceType;
+};
+
+/** The type of organizer resource */
+export enum OrganizerResourceType {
+  BOOKMARK = 'BOOKMARK',
+  CONTAINER = 'CONTAINER',
+  FILE = 'FILE',
+  VM = 'VM'
+}
 
 export type Os = Node & {
   __typename?: 'Os';
@@ -1287,6 +1318,9 @@ export type Query = {
   services: Array<Service>;
   settings: Settings;
   shares: Array<Share>;
+  upsConfiguration: UpsConfiguration;
+  upsDeviceById?: Maybe<UpsDevice>;
+  upsDevices: Array<UpsDevice>;
   vars: Vars;
   /** Get information about all VMs on the system */
   vms: Vms;
@@ -1307,6 +1341,11 @@ export type QueryLogFileArgs = {
   lines?: InputMaybe<Scalars['Int']['input']>;
   path: Scalars['String']['input'];
   startLine?: InputMaybe<Scalars['Int']['input']>;
+};
+
+
+export type QueryUpsDeviceByIdArgs = {
+  id: Scalars['String']['input'];
 };
 
 export type RCloneBackupConfigForm = {
@@ -1431,6 +1470,30 @@ export type RemoteAccess = {
 export type RemoveRoleFromApiKeyInput = {
   apiKeyId: Scalars['PrefixedID']['input'];
   role: Role;
+};
+
+export type ResolvedOrganizerEntry = OrganizerContainerResource | OrganizerResource | ResolvedOrganizerFolder;
+
+export type ResolvedOrganizerFolder = {
+  __typename?: 'ResolvedOrganizerFolder';
+  children: Array<ResolvedOrganizerEntry>;
+  id: Scalars['String']['output'];
+  name: Scalars['String']['output'];
+  type: Scalars['String']['output'];
+};
+
+export type ResolvedOrganizerV1 = {
+  __typename?: 'ResolvedOrganizerV1';
+  version: Scalars['Float']['output'];
+  views: Array<ResolvedOrganizerView>;
+};
+
+export type ResolvedOrganizerView = {
+  __typename?: 'ResolvedOrganizerView';
+  id: Scalars['String']['output'];
+  name: Scalars['String']['output'];
+  prefs?: Maybe<Scalars['JSON']['output']>;
+  root: ResolvedOrganizerEntry;
 };
 
 /** Available resources for permissions */
@@ -1567,6 +1630,7 @@ export type Subscription = {
   ownerSubscription: Owner;
   parityHistorySubscription: ParityCheck;
   serversSubscription: Server;
+  upsUpdates: UpsDevice;
 };
 
 
@@ -1615,6 +1679,129 @@ export enum ThemeName {
   BLACK = 'black',
   GRAY = 'gray',
   WHITE = 'white'
+}
+
+export type UpsBattery = {
+  __typename?: 'UPSBattery';
+  /** Battery charge level as a percentage (0-100). Unit: percent (%). Example: 100 means battery is fully charged */
+  chargeLevel: Scalars['Int']['output'];
+  /** Estimated runtime remaining on battery power. Unit: seconds. Example: 3600 means 1 hour of runtime remaining */
+  estimatedRuntime: Scalars['Int']['output'];
+  /** Battery health status. Possible values: 'Good', 'Replace', 'Unknown'. Indicates if the battery needs replacement */
+  health: Scalars['String']['output'];
+};
+
+/** UPS cable connection types */
+export enum UpsCableType {
+  CUSTOM = 'CUSTOM',
+  ETHER = 'ETHER',
+  SIMPLE = 'SIMPLE',
+  SMART = 'SMART',
+  USB = 'USB'
+}
+
+export type UpsConfigInput = {
+  /** Battery level percentage to initiate shutdown. Unit: percent (%) - Valid range: 0-100 */
+  batteryLevel?: InputMaybe<Scalars['Int']['input']>;
+  /** Custom cable configuration (only used when upsCable is CUSTOM). Format depends on specific UPS model */
+  customUpsCable?: InputMaybe<Scalars['String']['input']>;
+  /** Device path or network address for UPS connection. Examples: '/dev/ttyUSB0' for USB, '192.168.1.100:3551' for network */
+  device?: InputMaybe<Scalars['String']['input']>;
+  /** Turn off UPS power after system shutdown. Useful for ensuring complete power cycle */
+  killUps?: InputMaybe<UpsKillPower>;
+  /** Runtime left in minutes to initiate shutdown. Unit: minutes */
+  minutes?: InputMaybe<Scalars['Int']['input']>;
+  /** Override UPS capacity for runtime calculations. Unit: watts (W). Leave unset to use UPS-reported capacity */
+  overrideUpsCapacity?: InputMaybe<Scalars['Int']['input']>;
+  /** Enable or disable the UPS monitoring service */
+  service?: InputMaybe<UpsServiceState>;
+  /** Time on battery before shutdown. Unit: seconds. Set to 0 to disable timeout-based shutdown */
+  timeout?: InputMaybe<Scalars['Int']['input']>;
+  /** Type of cable connecting the UPS to the server */
+  upsCable?: InputMaybe<UpsCableType>;
+  /** UPS communication protocol */
+  upsType?: InputMaybe<UpsType>;
+};
+
+export type UpsConfiguration = {
+  __typename?: 'UPSConfiguration';
+  /** Battery level threshold for shutdown. Unit: percent (%). Example: 10 means shutdown when battery reaches 10%. System will shutdown when battery drops to this level */
+  batteryLevel?: Maybe<Scalars['Int']['output']>;
+  /** Custom cable configuration string. Only used when upsCable is set to 'custom'. Format depends on specific UPS model */
+  customUpsCable?: Maybe<Scalars['String']['output']>;
+  /** Device path or network address for UPS connection. Examples: '/dev/ttyUSB0' for USB, '192.168.1.100:3551' for network. Depends on upsType setting */
+  device?: Maybe<Scalars['String']['output']>;
+  /** Kill UPS power after shutdown. Values: 'yes' or 'no'. If 'yes', tells UPS to cut power after system shutdown. Useful for ensuring complete power cycle */
+  killUps?: Maybe<Scalars['String']['output']>;
+  /** Runtime threshold for shutdown. Unit: minutes. Example: 5 means shutdown when 5 minutes runtime remaining. System will shutdown when estimated runtime drops below this */
+  minutes?: Maybe<Scalars['Int']['output']>;
+  /** Override UPS model name. Used for display purposes. Leave unset to use UPS-reported model */
+  modelName?: Maybe<Scalars['String']['output']>;
+  /** Network server mode. Values: 'on' or 'off'. Enable to allow network clients to monitor this UPS */
+  netServer?: Maybe<Scalars['String']['output']>;
+  /** Network Information Server (NIS) IP address. Default: '0.0.0.0' (listen on all interfaces). IP address for apcupsd network information server */
+  nisIp?: Maybe<Scalars['String']['output']>;
+  /** Override UPS capacity for runtime calculations. Unit: volt-amperes (VA). Example: 1500 for a 1500VA UPS. Leave unset to use UPS-reported capacity */
+  overrideUpsCapacity?: Maybe<Scalars['Int']['output']>;
+  /** UPS service state. Values: 'enable' or 'disable'. Controls whether the UPS monitoring service is running */
+  service?: Maybe<Scalars['String']['output']>;
+  /** Timeout for UPS communications. Unit: seconds. Example: 0 means no timeout. Time to wait for UPS response before considering it offline */
+  timeout?: Maybe<Scalars['Int']['output']>;
+  /** Type of cable connecting the UPS to the server. Common values: 'usb', 'smart', 'ether', 'custom'. Determines communication protocol */
+  upsCable?: Maybe<Scalars['String']['output']>;
+  /** UPS name for network monitoring. Used to identify this UPS on the network. Example: 'SERVER_UPS' */
+  upsName?: Maybe<Scalars['String']['output']>;
+  /** UPS communication type. Common values: 'usb', 'net', 'snmp', 'dumb', 'pcnet', 'modbus'. Defines how the server communicates with the UPS */
+  upsType?: Maybe<Scalars['String']['output']>;
+};
+
+export type UpsDevice = {
+  __typename?: 'UPSDevice';
+  /** Battery-related information */
+  battery: UpsBattery;
+  /** Unique identifier for the UPS device. Usually based on the model name or a generated ID */
+  id: Scalars['ID']['output'];
+  /** UPS model name/number. Example: 'APC Back-UPS Pro 1500' */
+  model: Scalars['String']['output'];
+  /** Display name for the UPS device. Can be customized by the user */
+  name: Scalars['String']['output'];
+  /** Power-related information */
+  power: UpsPower;
+  /** Current operational status of the UPS. Common values: 'Online', 'On Battery', 'Low Battery', 'Replace Battery', 'Overload', 'Offline'. 'Online' means running on mains power, 'On Battery' means running on battery backup */
+  status: Scalars['String']['output'];
+};
+
+/** Kill UPS power after shutdown option */
+export enum UpsKillPower {
+  NO = 'NO',
+  YES = 'YES'
+}
+
+export type UpsPower = {
+  __typename?: 'UPSPower';
+  /** Input voltage from the wall outlet/mains power. Unit: volts (V). Example: 120.5 for typical US household voltage */
+  inputVoltage: Scalars['Float']['output'];
+  /** Current load on the UPS as a percentage of its capacity. Unit: percent (%). Example: 25 means UPS is loaded at 25% of its maximum capacity */
+  loadPercentage: Scalars['Int']['output'];
+  /** Output voltage being delivered to connected devices. Unit: volts (V). Example: 120.5 - should match input voltage when on mains power */
+  outputVoltage: Scalars['Float']['output'];
+};
+
+/** Service state for UPS daemon */
+export enum UpsServiceState {
+  DISABLE = 'DISABLE',
+  ENABLE = 'ENABLE'
+}
+
+/** UPS communication protocols */
+export enum UpsType {
+  APCSMART = 'APCSMART',
+  DUMB = 'DUMB',
+  MODBUS = 'MODBUS',
+  NET = 'NET',
+  PCNET = 'PCNET',
+  SNMP = 'SNMP',
+  USB = 'USB'
 }
 
 export enum UrlType {

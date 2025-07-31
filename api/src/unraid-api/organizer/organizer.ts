@@ -1,4 +1,5 @@
 import {
+    AnyOrganizerResource,
     OrganizerFolder,
     OrganizerResource,
     OrganizerResourceRef,
@@ -11,8 +12,8 @@ import {
 } from '@app/unraid-api/organizer/organizer.dto.js';
 
 export function resourceToResourceRef(
-    resource: OrganizerResource,
-    refId: (resource: OrganizerResource) => string
+    resource: AnyOrganizerResource,
+    refId: (resource: AnyOrganizerResource) => string
 ): OrganizerResourceRef {
     return {
         id: refId(resource) ?? resource.id,
@@ -137,10 +138,10 @@ export function resolveOrganizerView(
  * @returns A resolved organizer with nested objects instead of ID references
  */
 export function resolveOrganizer(organizer: OrganizerV1): ResolvedOrganizerV1 {
-    const resolvedViews: { [id: string]: ResolvedOrganizerView } = {};
+    const resolvedViews: ResolvedOrganizerView[] = [];
 
     for (const [viewId, view] of Object.entries(organizer.views)) {
-        resolvedViews[viewId] = resolveOrganizerView(view, organizer.resources);
+        resolvedViews.push(resolveOrganizerView(view, organizer.resources));
     }
 
     return {
