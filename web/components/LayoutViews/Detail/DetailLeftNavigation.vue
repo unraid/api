@@ -10,7 +10,7 @@ interface Props {
   selectedItems: string[];
   expandedGroups: Record<string, boolean>;
   showHeader?: boolean;
-  manageActions?: Array<{ label: string; icon: string; onClick?: () => void }>;
+  manageActions?: Array<Array<{ label: string; icon: string; onClick?: () => void }>>;
   navigationLabel?: string;
 }
 
@@ -18,10 +18,23 @@ const props = withDefaults(defineProps<Props>(), {
   title: 'Service Name',
   showHeader: true,
   manageActions: () => [
-    { label: 'Start', icon: 'i-lucide-play' },
-    { label: 'Stop', icon: 'i-lucide-square' },
-    { label: 'Restart', icon: 'i-lucide-refresh-cw' },
-    { label: 'Remove', icon: 'i-lucide-trash-2' },
+    [
+      { label: 'Sort Alpha Asc', icon: 'i-lucide-arrow-up-a-z' },
+      { label: 'Sort Alpha Dec', icon: 'i-lucide-arrow-down-z-a' },
+    ],
+    [
+      { label: 'Start Selected', icon: 'i-lucide-play' },
+      { label: 'Stop Selected', icon: 'i-lucide-square' },
+      { label: 'Pause Selected', icon: 'i-lucide-pause' },
+      { label: 'Restart Selected', icon: 'i-lucide-refresh-cw' },
+      { label: 'Autostart Selected', icon: 'i-lucide-timer' },
+    ],
+    [
+      { label: 'Check for Updates', icon: 'i-lucide-refresh-ccw' },
+      { label: 'Update Selected', icon: 'i-lucide-download' },
+      { label: 'Remove Selected', icon: 'i-lucide-trash-2' },
+    ],
+    [{ label: 'Add Container', icon: 'i-lucide-plus' }],
   ],
   navigationLabel: 'Select Item',
 });
@@ -164,11 +177,13 @@ const handleManageAction = (action: { label: string; icon: string }) => {
 };
 
 const dropdownItems = computed(() =>
-  props.manageActions.map((action) => ({
-    label: action.label,
-    icon: action.icon,
-    onSelect: () => handleManageAction(action),
-  }))
+  props.manageActions.map((group) =>
+    group.map((action) => ({
+      label: action.label,
+      icon: action.icon,
+      onSelect: () => handleManageAction(action),
+    }))
+  )
 );
 </script>
 
@@ -200,7 +215,7 @@ const dropdownItems = computed(() =>
               @click="allItemsSelected ? $emit('clearAll') : $emit('selectAll')"
             />
 
-            <UDropdownMenu :items="dropdownItems">
+            <UDropdownMenu :items="dropdownItems" size="md">
               <UButton
                 variant="subtle"
                 color="primary"
@@ -283,7 +298,7 @@ const dropdownItems = computed(() =>
                   @click="allItemsSelected ? $emit('clearAll') : $emit('selectAll')"
                 />
 
-                <UDropdownMenu :items="dropdownItems">
+                <UDropdownMenu :items="dropdownItems" size="md">
                   <UButton
                     variant="subtle"
                     color="primary"
