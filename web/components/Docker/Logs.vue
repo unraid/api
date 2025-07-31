@@ -21,11 +21,11 @@ const sampleLogs = [
 
 <template>
   <div class="space-y-2">
-    <div class="flex justify-between items-center mb-4">
+    <div class="flex justify-between items-center sm:mx-4">
       <h3 class="text-lg font-medium">Container Logs</h3>
       <UButton size="sm" color="primary" variant="outline" icon="i-lucide-download"> Export </UButton>
     </div>
-    <div class="bg-gray-900 text-gray-100 p-4 rounded-lg font-mono text-sm overflow-x-auto">
+    <div class="bg-gray-900 text-gray-100 p-4 rounded-lg font-mono sm:mx-4 text-sm overflow-x-auto">
       <div v-for="(log, index) in sampleLogs" :key="index" class="whitespace-nowrap">
         <span class="text-gray-500">[{{ log.timestamp }}]</span> {{ log.message }}
       </div>
