@@ -30,18 +30,18 @@ const executeCommand = () => {
 
 <template>
   <div class="space-y-4">
-    <div class="flex justify-between items-center">
+    <div class="flex justify-between items-center sm:mx-4">
       <h3 class="text-lg font-medium">Terminal</h3>
       <div class="flex gap-2">
         <UButton size="sm" color="primary" variant="outline" icon="i-lucide-maximize-2">
-          Fullscreen
+          <span class="hidden sm:inline">Fullscreen</span>
         </UButton>
         <UButton size="sm" color="primary" variant="outline" icon="i-lucide-refresh-cw">
-          Restart
+          <span class="hidden sm:inline">Restart</span>
         </UButton>
       </div>
     </div>
-    <div class="bg-black text-green-400 p-4 rounded-lg font-mono text-sm h-96 overflow-y-auto">
+    <div class="bg-black text-green-400 p-4 rounded-lg font-mono text-sm h-96 overflow-y-auto sm:mx-4">
       <div v-for="(line, index) in output" :key="index">
         {{ line }}
       </div>

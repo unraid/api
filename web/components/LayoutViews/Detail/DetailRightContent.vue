@@ -29,11 +29,25 @@ const tabItems = computed(() =>
 
 const getCurrentTabComponent = () => {
   const tabIndex = parseInt(props.selectedTab);
-  return props.tabs[tabIndex]?.component;
+
+  // Validate that tabIndex is a valid number and within bounds
+  if (isNaN(tabIndex) || tabIndex < 0 || tabIndex >= props.tabs.length) {
+    return null;
+  }
+
+  return props.tabs[tabIndex]?.component || null;
 };
 
 const getCurrentTabProps = () => {
   const tabIndex = parseInt(props.selectedTab);
+
+  // Validate that tabIndex is a valid number and within bounds
+  if (isNaN(tabIndex) || tabIndex < 0 || tabIndex >= props.tabs.length) {
+    return {
+      item: props.selectedItem,
+    };
+  }
+
   const currentTab = props.tabs[tabIndex];
 
   return {
@@ -53,15 +67,20 @@ const updateSelectedTab = (value: string | number) => {
       <slot name="header" :item="selectedItem" />
     </div>
 
-    <UTabs
-      :model-value="selectedTab"
-      variant="link"
-      :items="tabItems"
-      class="w-full"
-      @update:model-value="updateSelectedTab"
-    />
+    <div class="overflow-x-auto -mx-4 px-4">
+      <UTabs
+        :model-value="selectedTab"
+        variant="link"
+        :items="tabItems"
+        class="w-full"
+        :ui="{ 
+          list: 'gap-3 sm:gap-6 md:gap-8 whitespace-nowrap text-sm sm:text-base'
+        }"
+        @update:model-value="updateSelectedTab"
+      />
+    </div>
 
-    <div class="mt-6">
+    <div class="mt-4 sm:mt-6">
       <component
         :is="getCurrentTabComponent()"
         v-if="getCurrentTabComponent() && selectedItem"

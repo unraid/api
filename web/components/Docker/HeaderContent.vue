@@ -27,9 +27,9 @@ const handleManageAction = (action: { label: string; icon: string }) => {
 </script>
 
 <template>
-  <div class="flex items-center gap-4">
-    <div v-if="showAutostart" class="flex items-center gap-3">
-      <span class="text-sm font-medium">Autostart</span>
+  <div class="flex items-center gap-3 sm:gap-6">
+    <div v-if="showAutostart" class="flex items-center gap-2 sm:gap-3">
+      <span class="text-xs sm:text-sm font-medium">Autostart</span>
       <USwitch :model-value="autostartValue" @update:model-value="$emit('update:autostart', $event)" />
     </div>
 

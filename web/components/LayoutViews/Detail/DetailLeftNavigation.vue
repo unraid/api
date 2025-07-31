@@ -146,17 +146,17 @@ const handleManageAction = (action: { label: string; icon: string }) => {
   emit('manageAction', action.label);
 };
 
-const dropdownItems = computed(() => [
+const dropdownItems = computed(() =>
   props.manageActions.map(action => ({
     label: action.label,
     icon: action.icon,
     onSelect: () => handleManageAction(action)
   }))
-]);
+);
 </script>
 
 <template>
-  <div class="mr-8 w-64 flex-shrink-0">
+  <div class="w-full lg:mr-16 lg:w-72 lg:flex-shrink-0">
     <div v-if="showHeader" class="mb-6">
       <div class="flex items-center justify-between mb-3">
         <h2 class="text-lg font-semibold">{{ title }}</h2>
@@ -170,7 +170,7 @@ const dropdownItems = computed(() => [
         />
       </div>
 
-      <div class="flex items-center justify-between">
+      <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
         <UButton
           variant="link"
           color="primary"
@@ -186,8 +186,10 @@ const dropdownItems = computed(() => [
             size="sm"
             trailing-icon="i-lucide-chevron-down"
             :disabled="selectedItemsCount === 0"
+            class="w-full sm:w-auto"
           >
-            Manage Selected ({{ selectedItemsCount }})
+            <span class="sm:hidden">Manage ({{ selectedItemsCount }})</span>
+            <span class="hidden sm:inline">Manage Selected ({{ selectedItemsCount }})</span>
           </UButton>
         </UDropdownMenu>
       </div>
@@ -196,23 +198,24 @@ const dropdownItems = computed(() => [
     <UNavigationMenu :items="navigationMenuItems" orientation="vertical">
       <template v-for="item in allItemsWithSlots" :key="`slot-${item.id}`" #[item.slot!]>
         <div
-          class="flex items-center gap-3 mb-2"
+          class="flex items-center gap-3 mb-2 min-w-0"
           @click="item.children && item.children.length > 0 ? toggleGroupExpansion(item.id) : undefined"
         >
           <UCheckbox
             :model-value="isItemSelected(item.id)"
+            class="flex-shrink-0"
             @update:model-value="toggleItemSelection(item.id)"
             @click.stop
           />
-          <UIcon v-if="item.icon" :name="item.icon" class="h-5 w-5" />
-          <span class="truncate flex-1">{{ item.label }}</span>
-          <UBadge v-if="item.badge" size="xs" :label="String(item.badge)" />
+          <UIcon v-if="item.icon" :name="item.icon" class="h-5 w-5 flex-shrink-0" />
+          <span class="truncate flex-1 min-w-0">{{ item.label }}</span>
+          <UBadge v-if="item.badge" size="xs" :label="String(item.badge)" class="flex-shrink-0" />
 
           <UIcon
             v-if="item.children?.length"
             name="i-lucide-chevron-down"
             :class="[
-              'h-5 w-5 text-gray-400 transition-transform duration-200',
+              'h-5 w-5 text-gray-400 transition-transform duration-200 flex-shrink-0',
               expandedGroups[item.id] ? 'rotate-180' : 'rotate-0',
             ]"
           />

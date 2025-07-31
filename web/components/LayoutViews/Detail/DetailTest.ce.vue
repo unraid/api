@@ -1,10 +1,10 @@
 <script setup lang="ts">
-import Console from '../Docker/Console.vue';
-import Edit from '../Docker/Edit.vue';
-import Logs from '../Docker/Logs.vue';
-import Overview from '../Docker/Overview.vue';
-import Preview from '../Docker/Preview.vue';
-import Detail from '../LayoutViews/Detail/Detail.vue';
+import Console from '../../Docker/Console.vue';
+import Edit from '../../Docker/Edit.vue';
+import Logs from '../../Docker/Logs.vue';
+import Overview from '../../Docker/Overview.vue';
+import Preview from '../../Docker/Preview.vue';
+import Detail from './Detail.vue';
 
 interface ContainerDetails {
   network: string;
