@@ -1,8 +1,11 @@
+import { ConfigService } from '@nestjs/config';
 import { Test, TestingModule } from '@nestjs/testing';
 
 import { describe, expect, it, vi } from 'vitest';
 
+import { DockerConfigService } from '@app/unraid-api/graph/resolvers/docker/docker-config.service.js';
 import { DockerEventService } from '@app/unraid-api/graph/resolvers/docker/docker-event.service.js';
+import { DockerOrganizerService } from '@app/unraid-api/graph/resolvers/docker/docker-organizer.service.js';
 import { DockerModule } from '@app/unraid-api/graph/resolvers/docker/docker.module.js';
 import { DockerMutationsResolver } from '@app/unraid-api/graph/resolvers/docker/docker.mutations.resolver.js';
 import { DockerResolver } from '@app/unraid-api/graph/resolvers/docker/docker.resolver.js';
@@ -15,6 +18,8 @@ describe('DockerModule', () => {
         })
             .overrideProvider(DockerService)
             .useValue({ getDockerClient: vi.fn() })
+            .overrideProvider(DockerConfigService)
+            .useValue({ getConfig: vi.fn() })
             .compile();
 
         expect(module).toBeDefined();
@@ -52,7 +57,11 @@ describe('DockerModule', () => {
 
     it('should provide DockerResolver', async () => {
         const module: TestingModule = await Test.createTestingModule({
-            providers: [DockerResolver, { provide: DockerService, useValue: {} }],
+            providers: [
+                DockerResolver,
+                { provide: DockerService, useValue: {} },
+                { provide: DockerOrganizerService, useValue: {} },
+            ],
         }).compile();
 
         const resolver = module.get<DockerResolver>(DockerResolver);

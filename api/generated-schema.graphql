@@ -1157,9 +1157,8 @@ type Info implements Node {
   versions: Versions!
 }
 
-type OrganizerV1 {
+type ResolvedOrganizerV1 {
   version: Float!
-  resources: JSON!
   views: JSON!
 }
 
@@ -1231,7 +1230,7 @@ type Docker implements Node {
   id: PrefixedID!
   containers(skipCache: Boolean! = false): [DockerContainer!]!
   networks(skipCache: Boolean! = false): [DockerNetwork!]!
-  organizer: OrganizerV1!
+  organizer: ResolvedOrganizerV1!
 }
 
 type FlashBackupStatus {

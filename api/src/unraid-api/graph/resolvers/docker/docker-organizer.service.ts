@@ -11,21 +11,21 @@ import {
     OrganizerResourceRef,
     OrganizerV1,
     OrganizerView,
+    ResolvedOrganizerV1,
 } from '@app/unraid-api/organizer/organizer.dto.js';
 import {
     addMissingResourcesToView,
+    resolveOrganizer,
     resourceToResourceRef,
 } from '@app/unraid-api/organizer/organizer.js';
 
 export function containerToResource(container: DockerContainer): OrganizerResource {
     const stableRef = container.names[0] || container.image;
     return {
-        // container id's are ephemeral, so we use the stable ref as the id
-        id: stableRef,
+        id: container.id,
         type: 'container',
         name: stableRef,
         meta: {
-            id: container.id,
             image: container.image,
             imageId: container.imageId,
             state: container.state,
@@ -83,5 +83,10 @@ export class DockerOrganizerService {
         organizer.resources = await this.getResources();
         this.syncDefaultView(organizer, organizer.resources);
         return organizer;
+    }
+
+    async getResolvedOrganizer(): Promise<ResolvedOrganizerV1> {
+        const organizer = await this.getOrganizer();
+        return resolveOrganizer(organizer);
     }
 }

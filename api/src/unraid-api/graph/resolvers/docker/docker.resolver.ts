@@ -14,7 +14,7 @@ import {
     DockerNetwork,
 } from '@app/unraid-api/graph/resolvers/docker/docker.model.js';
 import { DockerService } from '@app/unraid-api/graph/resolvers/docker/docker.service.js';
-import { OrganizerV1 } from '@app/unraid-api/organizer/organizer.dto.js';
+import { ResolvedOrganizerV1 } from '@app/unraid-api/organizer/organizer.dto.js';
 
 @Resolver(() => Docker)
 export class DockerResolver {
@@ -64,8 +64,8 @@ export class DockerResolver {
         resource: Resource.DOCKER,
         possession: AuthPossession.ANY,
     })
-    @ResolveField(() => OrganizerV1)
+    @ResolveField(() => ResolvedOrganizerV1)
     public async organizer() {
-        return this.dockerOrganizerService.getOrganizer();
+        return this.dockerOrganizerService.getResolvedOrganizer();
     }
 }
