@@ -1,4 +1,4 @@
-import { ObjectType } from '@nestjs/graphql';
+import { Field, ObjectType } from '@nestjs/graphql';
 
 import { Type } from 'class-transformer';
 import {
@@ -14,19 +14,24 @@ import {
     IsString,
     ValidateNested,
 } from 'class-validator';
+import { GraphQLJSON } from 'graphql-scalars';
 
 // Resource definition (global)
 @ObjectType()
 export class OrganizerResource {
+    @Field()
     @IsString()
     id!: string;
 
+    @Field()
     @IsString()
     type!: string; // e.g., "container", "vm", "file", "bookmark"
 
+    @Field()
     @IsString()
     name!: string;
 
+    @Field(() => GraphQLJSON, { nullable: true })
     @IsOptional()
     @IsObject()
     meta?: Record<string, unknown>;
@@ -35,15 +40,19 @@ export class OrganizerResource {
 // Folder or ref inside a view
 @ObjectType()
 export class OrganizerFolder {
+    @Field()
     @IsString()
     id!: string;
 
+    @Field()
     @IsIn(['folder'])
     type!: 'folder';
 
+    @Field()
     @IsString()
     name!: string;
 
+    @Field(() => [String])
     @IsArray()
     @IsString({ each: true })
     children!: string[]; // array of entry IDs
@@ -51,12 +60,15 @@ export class OrganizerFolder {
 
 @ObjectType()
 export class OrganizerResourceRef {
+    @Field()
     @IsString()
     id!: string;
 
+    @Field()
     @IsIn(['ref'])
     type!: 'ref';
 
+    @Field()
     @IsString()
     target!: string; // resource id
 }
@@ -67,21 +79,25 @@ export type OrganizerEntry = OrganizerFolder | OrganizerResourceRef;
 // Each view (user-definable Organizer)
 @ObjectType()
 export class OrganizerView {
+    @Field()
     @IsString()
     id!: string;
 
+    @Field()
     @IsString()
     name!: string;
 
+    @Field()
     @IsString()
     root!: string; // id of the root entry
 
+    @Field(() => GraphQLJSON)
     @IsObject()
     @ValidateNested({ each: true })
     @Type(() => Object) // we'll validate the values below
     entries!: { [id: string]: OrganizerFolder | OrganizerResourceRef };
 
-    // todo: evolve as needed
+    @Field(() => GraphQLJSON, { nullable: true })
     @IsOptional()
     @IsObject()
     prefs?: Record<string, unknown>;
@@ -90,15 +106,18 @@ export class OrganizerView {
 // The whole root structure
 @ObjectType()
 export class OrganizerV1 {
+    @Field()
     @IsNumber()
     @Equals(1, { message: 'Version must be 1' })
     version!: 1;
 
+    @Field(() => GraphQLJSON)
     @IsObject()
     @ValidateNested({ each: true })
     @Type(() => OrganizerResource)
     resources!: { [id: string]: OrganizerResource };
 
+    @Field(() => GraphQLJSON)
     @IsObject()
     @ValidateNested({ each: true })
     @Type(() => OrganizerView)

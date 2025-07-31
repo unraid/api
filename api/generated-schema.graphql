@@ -1157,6 +1157,12 @@ type Info implements Node {
   versions: Versions!
 }
 
+type OrganizerV1 {
+  version: Float!
+  resources: JSON!
+  views: JSON!
+}
+
 type ContainerPort {
   ip: String
   privatePort: Port
@@ -1225,6 +1231,7 @@ type Docker implements Node {
   id: PrefixedID!
   containers(skipCache: Boolean! = false): [DockerContainer!]!
   networks(skipCache: Boolean! = false): [DockerNetwork!]!
+  organizer: OrganizerV1!
 }
 
 type FlashBackupStatus {

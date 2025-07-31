@@ -26,7 +26,16 @@ export class DockerConfigService extends ConfigFilePersister<OrganizerV1> {
         return {
             version: 1,
             resources: {},
-            views: {},
+            views: {
+                default: {
+                    id: 'default',
+                    name: 'Default',
+                    root: 'root',
+                    entries: {
+                        root: { type: 'folder', id: 'root', name: 'Root', children: [] },
+                    },
+                },
+            },
         };
     }
 
