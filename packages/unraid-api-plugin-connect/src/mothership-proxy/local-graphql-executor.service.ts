@@ -2,8 +2,6 @@ import { Injectable, Logger } from '@nestjs/common';
 import { gql } from '@apollo/client/core/index.js';
 import { parse, print, visit } from 'graphql';
 
-import { InternalClientService } from '../internal-rpc/internal.client.js';
-
 interface GraphQLExecutor {
   execute(params: {
     query: string
