@@ -72,7 +72,10 @@ export abstract class ConfigFilePersister<T extends object>
    * @param assertExists - Whether to throw an error if the config does not exist. Defaults to true.
    * @returns The current config object, or the default config if assertExists is false & no config exists
    */
-  getConfig(assertExists: boolean = true): T | undefined {
+  getConfig(assertExists: true): T;
+  getConfig(assertExists: false): T;
+  getConfig(): T;
+  getConfig(assertExists: boolean = true): T {
     try {
       const config = this.configService.getOrThrow(this.configKey());
       return structuredClone(config);
