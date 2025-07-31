@@ -291,7 +291,7 @@ export default defineNuxtConfig({
           ),
           createWebComponentTag(
             'UnraidDetailTest',
-            '@/components/LayoutViews/DetailTest.ce',
+            '@/components/LayoutViews/Detail/DetailTest.ce',
             '@/components/Wrapper/web-component-plugins'
           ),
         ],
