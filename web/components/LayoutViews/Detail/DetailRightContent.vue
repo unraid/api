@@ -62,7 +62,7 @@ const updateSelectedTab = (value: string | number) => {
 </script>
 
 <template>
-  <div class="flex-1 min-w-0">
+  <div class="flex-1 min-w-0 px-4 lg:px-0">
     <div v-if="showHeader && selectedItem" class="mb-6">
       <slot name="header" :item="selectedItem" />
     </div>
