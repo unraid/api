@@ -12,6 +12,7 @@ import ActivationPartnerLogo from '~/components/Activation/ActivationPartnerLogo
 import ActivationSteps from '~/components/Activation/ActivationSteps.vue';
 import { useActivationCodeDataStore } from '~/components/Activation/store/activationCodeData';
 import { useActivationCodeModalStore } from '~/components/Activation/store/activationCodeModal';
+import { DOCS_URL_ACCOUNT, DOCS_URL_LICENSING_FAQ } from '~/consts';
 import { usePurchaseStore } from '~/store/purchase';
 import { useThemeStore } from '~/store/theme';
 
@@ -39,7 +40,7 @@ const docsButtons = computed<BrandButtonProps[]>(() => {
     {
       variant: 'underline',
       external: true,
-      href: 'https://docs.unraid.net/unraid-os/faq/licensing-faq/',
+      href: DOCS_URL_LICENSING_FAQ,
       iconRight: ArrowTopRightOnSquareIcon,
       size: '14px',
       text: props.t('More about Licensing'),
@@ -47,7 +48,7 @@ const docsButtons = computed<BrandButtonProps[]>(() => {
     {
       variant: 'underline',
       external: true,
-      href: 'https://docs.unraid.net/account/',
+      href: DOCS_URL_ACCOUNT,
       iconRight: ArrowTopRightOnSquareIcon,
       size: '14px',
       text: props.t('More about Unraid.net Accounts'),
