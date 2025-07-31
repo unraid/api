@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { computed } from 'vue';
+import { computed, ref } from 'vue';
+
 import type { Item } from './Detail.vue';
 
 interface Props {
@@ -10,6 +11,7 @@ interface Props {
   expandedGroups: Record<string, boolean>;
   showHeader?: boolean;
   manageActions?: Array<{ label: string; icon: string; onClick?: () => void }>;
+  navigationLabel?: string;
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -21,6 +23,7 @@ const props = withDefaults(defineProps<Props>(), {
     { label: 'Restart', icon: 'i-lucide-refresh-cw' },
     { label: 'Remove', icon: 'i-lucide-trash-2' },
   ],
+  navigationLabel: 'Select Item',
 });
 
 const emit = defineEmits<{
@@ -32,6 +35,13 @@ const emit = defineEmits<{
   clearAll: [];
   manageAction: [action: string];
 }>();
+
+// Internal drawer state for mobile
+const sidebarOpen = ref(false);
+
+const toggleSidebar = () => {
+  sidebarOpen.value = !sidebarOpen.value;
+};
 
 const navigationMenuItems = computed(() =>
   props.items.map((item) => ({
@@ -82,6 +92,7 @@ const allItemsWithSlots = computed(() => {
       if (item.slot) {
         items.push(item);
       }
+
       if (item.children) {
         collectItems(item.children);
       }
@@ -98,12 +109,14 @@ const allItemsSelected = computed(() => {
       if (!item.isGroup) {
         allSelectableItems.push(item.id);
       }
+
       if (item.children) {
         collectSelectableItems(item.children);
       }
     }
   };
   collectSelectableItems(props.items);
+
   return (
     allSelectableItems.length > 0 && allSelectableItems.every((id) => props.selectedItems.includes(id))
   );
@@ -118,17 +131,20 @@ const selectNavigationItem = (id: string) => {
 
   if (actualItem && !actualItem.isGroup) {
     emit('update:selectedId', id);
+    sidebarOpen.value = false; // Close drawer on mobile when item is selected
   }
 };
 
 const toggleItemSelection = (itemId: string) => {
   const newItems = [...props.selectedItems];
   const index = newItems.indexOf(itemId);
+
   if (index > -1) {
     newItems.splice(index, 1);
   } else {
     newItems.push(itemId);
   }
+
   emit('update:selectedItems', newItems);
 };
 
@@ -138,6 +154,7 @@ const isItemSelected = (itemId: string) => {
 
 const toggleGroupExpansion = (groupId: string) => {
   const newGroups = { ...props.expandedGroups };
+
   newGroups[groupId] = !newGroups[groupId];
   emit('update:expandedGroups', newGroups);
 };
@@ -147,80 +164,179 @@ const handleManageAction = (action: { label: string; icon: string }) => {
 };
 
 const dropdownItems = computed(() =>
-  props.manageActions.map(action => ({
+  props.manageActions.map((action) => ({
     label: action.label,
     icon: action.icon,
-    onSelect: () => handleManageAction(action)
+    onSelect: () => handleManageAction(action),
   }))
 );
 </script>
 
 <template>
-  <div class="w-full lg:mr-16 lg:w-72 lg:flex-shrink-0">
-    <div v-if="showHeader" class="mb-6">
-      <div class="flex items-center justify-between mb-3">
-        <h2 class="text-lg font-semibold">{{ title }}</h2>
-        <UButton
-          icon="i-lucide-plus"
-          size="sm"
-          color="primary"
-          variant="ghost"
-          square
-          @click="$emit('add')"
-        />
-      </div>
+  <div>
+    <!-- Desktop navigation -->
+    <div class="hidden lg:block lg:mr-16">
+      <div class="h-full overflow-y-auto overflow-x-hidden">
+        <!-- Navigation Header -->
+        <div v-if="showHeader" class="mb-6">
+          <div class="flex items-center justify-between mb-3">
+            <h2 class="text-lg font-semibold">{{ title }}</h2>
+            <UButton
+              icon="i-lucide-plus"
+              size="sm"
+              color="primary"
+              variant="ghost"
+              square
+              @click="$emit('add')"
+            />
+          </div>
 
-      <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
-        <UButton
-          variant="link"
-          color="primary"
-          size="sm"
-          :label="allItemsSelected ? 'Clear all' : 'Select all'"
-          @click="allItemsSelected ? $emit('clearAll') : $emit('selectAll')"
-        />
+          <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
+            <UButton
+              variant="link"
+              color="primary"
+              size="sm"
+              :label="allItemsSelected ? 'Clear all' : 'Select all'"
+              @click="allItemsSelected ? $emit('clearAll') : $emit('selectAll')"
+            />
 
-        <UDropdownMenu :items="dropdownItems">
-          <UButton
-            variant="subtle"
-            color="primary"
-            size="sm"
-            trailing-icon="i-lucide-chevron-down"
-            :disabled="selectedItemsCount === 0"
-            class="w-full sm:w-auto"
-          >
-            <span class="sm:hidden">Manage ({{ selectedItemsCount }})</span>
-            <span class="hidden sm:inline">Manage Selected ({{ selectedItemsCount }})</span>
-          </UButton>
-        </UDropdownMenu>
+            <UDropdownMenu :items="dropdownItems">
+              <UButton
+                variant="subtle"
+                color="primary"
+                size="sm"
+                trailing-icon="i-lucide-chevron-down"
+                :disabled="selectedItemsCount === 0"
+                class="w-full sm:w-auto"
+              >
+                <span class="sm:hidden">Manage ({{ selectedItemsCount }})</span>
+                <span class="hidden sm:inline">Manage Selected ({{ selectedItemsCount }})</span>
+              </UButton>
+            </UDropdownMenu>
+          </div>
+        </div>
+
+        <!-- Navigation Menu -->
+        <UNavigationMenu :items="navigationMenuItems" orientation="vertical">
+          <template v-for="item in allItemsWithSlots" :key="`slot-${item.id}`" #[item.slot!]>
+            <div
+              class="flex items-center gap-3 mb-2 min-w-0"
+              @click="
+                item.children && item.children.length > 0 ? toggleGroupExpansion(item.id) : undefined
+              "
+            >
+              <UCheckbox
+                :model-value="isItemSelected(item.id)"
+                class="flex-shrink-0"
+                @update:model-value="toggleItemSelection(item.id)"
+                @click.stop
+              />
+              <UIcon v-if="item.icon" :name="item.icon" class="h-5 w-5 flex-shrink-0" />
+              <span class="truncate flex-1 min-w-0">{{ item.label }}</span>
+              <UBadge v-if="item.badge" size="xs" :label="String(item.badge)" class="flex-shrink-0" />
+
+              <UIcon
+                v-if="item.children?.length"
+                name="i-lucide-chevron-down"
+                :class="[
+                  'h-5 w-5 text-gray-400 transition-transform duration-200 flex-shrink-0',
+                  expandedGroups[item.id] ? 'rotate-180' : 'rotate-0',
+                ]"
+              />
+            </div>
+          </template>
+        </UNavigationMenu>
       </div>
     </div>
 
-    <UNavigationMenu :items="navigationMenuItems" orientation="vertical">
-      <template v-for="item in allItemsWithSlots" :key="`slot-${item.id}`" #[item.slot!]>
-        <div
-          class="flex items-center gap-3 mb-2 min-w-0"
-          @click="item.children && item.children.length > 0 ? toggleGroupExpansion(item.id) : undefined"
-        >
-          <UCheckbox
-            :model-value="isItemSelected(item.id)"
-            class="flex-shrink-0"
-            @update:model-value="toggleItemSelection(item.id)"
-            @click.stop
-          />
-          <UIcon v-if="item.icon" :name="item.icon" class="h-5 w-5 flex-shrink-0" />
-          <span class="truncate flex-1 min-w-0">{{ item.label }}</span>
-          <UBadge v-if="item.badge" size="xs" :label="String(item.badge)" class="flex-shrink-0" />
+    <!-- Mobile UDrawer -->
+    <div class="lg:hidden">
+      <div class="m-4">
+        <UButton color="primary" size="md" class="w-full justify-center" @click="toggleSidebar">
+          {{ navigationLabel }}
+        </UButton>
+      </div>
 
-          <UIcon
-            v-if="item.children?.length"
-            name="i-lucide-chevron-down"
-            :class="[
-              'h-5 w-5 text-gray-400 transition-transform duration-200 flex-shrink-0',
-              expandedGroups[item.id] ? 'rotate-180' : 'rotate-0',
-            ]"
-          />
-        </div>
-      </template>
-    </UNavigationMenu>
+      <UDrawer v-model:open="sidebarOpen" direction="left" size="md">
+        <template #content>
+          <div class="h-full overflow-y-auto overflow-x-hidden p-4">
+            <!-- Navigation Header -->
+            <div v-if="showHeader" class="mb-6">
+              <div class="flex items-center justify-between mb-3">
+                <h2 class="text-lg font-semibold">{{ title }}</h2>
+                <UButton
+                  icon="i-lucide-plus"
+                  size="sm"
+                  color="primary"
+                  variant="ghost"
+                  square
+                  @click="$emit('add')"
+                />
+              </div>
+
+              <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
+                <UButton
+                  variant="link"
+                  color="primary"
+                  size="sm"
+                  :label="allItemsSelected ? 'Clear all' : 'Select all'"
+                  @click="allItemsSelected ? $emit('clearAll') : $emit('selectAll')"
+                />
+
+                <UDropdownMenu :items="dropdownItems">
+                  <UButton
+                    variant="subtle"
+                    color="primary"
+                    size="sm"
+                    trailing-icon="i-lucide-chevron-down"
+                    :disabled="selectedItemsCount === 0"
+                    class="w-full sm:w-auto"
+                  >
+                    <span class="sm:hidden">Manage ({{ selectedItemsCount }})</span>
+                    <span class="hidden sm:inline">Manage Selected ({{ selectedItemsCount }})</span>
+                  </UButton>
+                </UDropdownMenu>
+              </div>
+            </div>
+
+            <!-- Navigation Menu -->
+            <UNavigationMenu :items="navigationMenuItems" orientation="vertical">
+              <template v-for="item in allItemsWithSlots" :key="`slot-${item.id}`" #[item.slot!]>
+                <div
+                  class="flex items-center gap-4 mb-2 min-w-0"
+                  @click="
+                    item.children && item.children.length > 0 ? toggleGroupExpansion(item.id) : undefined
+                  "
+                >
+                  <UCheckbox
+                    :model-value="isItemSelected(item.id)"
+                    class="flex-shrink-0"
+                    @update:model-value="toggleItemSelection(item.id)"
+                    @click.stop
+                  />
+                  <UIcon v-if="item.icon" :name="item.icon" class="h-5 w-5 flex-shrink-0" />
+                  <span class="truncate flex-1 min-w-0">{{ item.label }}</span>
+                  <UBadge
+                    v-if="item.badge"
+                    size="xs"
+                    :label="String(item.badge)"
+                    class="flex-shrink-0"
+                  />
+
+                  <UIcon
+                    v-if="item.children?.length"
+                    name="i-lucide-chevron-down"
+                    :class="[
+                      'h-5 w-5 text-gray-400 transition-transform duration-200 flex-shrink-0',
+                      expandedGroups[item.id] ? 'rotate-180' : 'rotate-0',
+                    ]"
+                  />
+                </div>
+              </template>
+            </UNavigationMenu>
+          </div>
+        </template>
+      </UDrawer>
+    </div>
   </div>
 </template>
