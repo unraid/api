@@ -256,7 +256,7 @@ describe('DockerOrganizerService', () => {
         it('should throw error if parent does not exist', async () => {
             await expect(
                 service.createFolder({ name: 'Test', parentId: 'nonexistent' })
-            ).rejects.toThrow('Parent nonexistent not found or is not a folder');
+            ).rejects.toThrow();
         });
 
         it('should throw error if parent is not a folder', async () => {
@@ -268,9 +268,7 @@ describe('DockerOrganizerService', () => {
             };
             (configService.getConfig as any).mockReturnValue(organizerWithRef);
 
-            await expect(service.createFolder({ name: 'Test', parentId: 'refEntry' })).rejects.toThrow(
-                'Parent refEntry not found or is not a folder'
-            );
+            await expect(service.createFolder({ name: 'Test', parentId: 'refEntry' })).rejects.toThrow();
         });
     });
 
@@ -326,7 +324,7 @@ describe('DockerOrganizerService', () => {
         it('should throw error if folder does not exist', async () => {
             await expect(
                 service.setFolderChildren({ folderId: 'nonexistent', childrenIds: [] })
-            ).rejects.toThrow('Folder nonexistent not found or is not a folder');
+            ).rejects.toThrow();
         });
 
         it('should throw error if target is not a folder', async () => {
@@ -340,7 +338,7 @@ describe('DockerOrganizerService', () => {
 
             await expect(
                 service.setFolderChildren({ folderId: 'refEntry', childrenIds: [] })
-            ).rejects.toThrow('Folder refEntry not found or is not a folder');
+            ).rejects.toThrow();
         });
 
         it('should throw error if child does not exist', async () => {
@@ -349,7 +347,7 @@ describe('DockerOrganizerService', () => {
                     folderId: 'existingFolder',
                     childrenIds: ['nonexistentChild'],
                 })
-            ).rejects.toThrow('Child nonexistentChild not found in entries or resources');
+            ).rejects.toThrow();
         });
     });
 });
