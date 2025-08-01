@@ -11,6 +11,9 @@ import {
     ResolvedOrganizerView,
 } from '@app/unraid-api/organizer/organizer.dto.js';
 
+export const DEFAULT_ORGANIZER_VIEW_ID = 'default';
+export const DEFAULT_ORGANIZER_ROOT_ID = 'root';
+
 export function resourceToResourceRef(
     resource: AnyOrganizerResource,
     refId: (resource: AnyOrganizerResource) => string

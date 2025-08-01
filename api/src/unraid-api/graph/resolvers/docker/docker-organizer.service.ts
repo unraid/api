@@ -13,9 +13,11 @@ import {
 import {
     addMissingResourcesToView,
     createFolderInView,
+    DEFAULT_ORGANIZER_ROOT_ID,
     resolveOrganizer,
     setFolderChildrenInView,
 } from '@app/unraid-api/organizer/organizer.js';
+import { AppError } from '@app/core/errors/app-error.js';
 
 export function containerToResource(container: DockerContainer): OrganizerContainerResource {
     const stableRef = container.names[0] || container.image;
@@ -88,18 +90,26 @@ export class DockerOrganizerService {
         parentId?: string;
         childrenIds?: string[];
     }): Promise<OrganizerV1> {
-        const { name, parentId = 'root', childrenIds = [] } = params;
-        const organizer = await this.syncAndGetOrganizer();
+        const { name, parentId = DEFAULT_ORGANIZER_ROOT_ID, childrenIds = [] } = params;
 
+        if (name === DEFAULT_ORGANIZER_ROOT_ID) {
+            throw new AppError(`Folder name '${name}' is reserved`);
+        } else if (name === parentId) {
+            throw new AppError(`Folder ID '${name}' cannot be the same as the parent ID`);
+        } else if (!name) {
+            throw new AppError(`Folder name cannot be empty`);
+        }
+
+        const organizer = await this.syncAndGetOrganizer();
         // Validate parent exists and is a folder
         const defaultView = organizer.views.default;
         if (!defaultView) {
-            throw new Error('Default view not found');
+            throw new AppError('Default view not found');
         }
 
         const parentEntry = defaultView.entries[parentId];
         if (!parentEntry || parentEntry.type !== 'folder') {
-            throw new Error(`Parent ${parentId} not found or is not a folder`);
+            throw new AppError(`Parent '${parentId}' not found or is not a folder`);
         }
 
         // If folder already exists, we don't need to create it
@@ -133,13 +143,16 @@ export class DockerOrganizerService {
         // Validate view exists
         const defaultView = organizer.views.default;
         if (!defaultView) {
-            throw new Error('Default view not found');
+            throw new AppError('Default view not found');
         }
 
         // Validate folder exists and is a folder
         const targetFolder = defaultView.entries[folderId];
-        if (!targetFolder || targetFolder.type !== 'folder') {
-            throw new Error(`Folder ${folderId} not found or is not a folder`);
+        if (!targetFolder) {
+            throw new AppError(`Folder '${folderId}' not found`);
+        }
+        if (targetFolder.type !== 'folder') {
+            throw new AppError(`Entry '${folderId}' is not a folder`);
         }
 
         // Validate all children exist
@@ -148,7 +161,7 @@ export class DockerOrganizerService {
             const childResource = organizer.resources[childId];
 
             if (!childEntry && !childResource) {
-                throw new Error(`Child ${childId} not found in entries or resources`);
+                throw new AppError(`Child '${childId}' not found in entries or resources`);
             }
         }
 
