@@ -1,7 +1,6 @@
 <script lang="ts" setup>
 import { onMounted } from 'vue';
 
-import { NuxtLayout, NuxtPage, UApp  } from '#components';
 import { devConfig } from '~/helpers/env';
 
 onMounted(() => {
