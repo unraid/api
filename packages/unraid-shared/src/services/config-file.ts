@@ -67,6 +67,38 @@ export abstract class ConfigFilePersister<T extends object>
   abstract configKey(): string;
 
   /**
+   * Returns a `structuredClone` of the current config object.
+   * 
+   * @param assertExists - Whether to throw an error if the config does not exist. Defaults to true.
+   * @returns The current config object, or the default config if assertExists is false & no config exists
+   */
+  getConfig(assertExists: true): T;
+  getConfig(assertExists: false): T;
+  getConfig(): T;
+  getConfig(assertExists: boolean = true): T {
+    try {
+      const config = this.configService.getOrThrow(this.configKey());
+      return structuredClone(config);
+    } catch (error) {
+      if (assertExists) {
+        throw error;
+      } else {
+        return this.defaultConfig();
+      }
+    }
+  }
+
+  /**
+   * Replaces the current config with a new one. Will trigger a persistence attempt.
+   * 
+   * @param config - The new config object
+   */
+  replaceConfig(config: T) {
+    this.configService.set(this.configKey(), config);
+    this.persist(config);
+  }
+
+  /**
    * Returns the absolute path to the configuration file.
    * Combines `PATHS_CONFIG_MODULES` environment variable with the filename.
    * 

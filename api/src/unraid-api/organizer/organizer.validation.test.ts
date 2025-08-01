@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import * as viewValidation from '@app/unraid-api/organizer/organizer-view.validation.js';
 import {
@@ -577,6 +577,39 @@ describe('organizer.validation', () => {
 
             expect(validViewResult.isValid).toBe(true);
             expect(invalidViewResult.isValid).toBe(false);
+        });
+
+        it('should test class-validator transformation integration', async () => {
+            // This test reproduces the actual issue with validateObject
+            const plainConfig = {
+                version: 1,
+                resources: {
+                    resource1: { id: 'resource1', type: 'container', name: 'Container 1' },
+                },
+                views: {
+                    default: {
+                        id: 'default',
+                        name: 'Default',
+                        root: 'root',
+                        entries: {
+                            root: { type: 'folder', id: 'root', name: 'Root', children: ['ref1'] },
+                            ref1: { id: 'ref1', type: 'ref', target: 'resource1' },
+                        },
+                    },
+                },
+            };
+
+            // Import the validateObject function to test the actual transformation
+            const { validateObject } = await import(
+                '@app/unraid-api/graph/resolvers/validation.utils.js'
+            );
+
+            const validated = await validateObject(OrganizerV1, plainConfig);
+
+            // Verify the validation creates a proper class instance
+            expect(validated).toBeInstanceOf(OrganizerV1);
+            // Compare data content by serializing both objects (ignores prototype differences)
+            expect(JSON.parse(JSON.stringify(validated))).toEqual(plainConfig);
         });
     });
 });
