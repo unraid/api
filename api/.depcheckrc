@@ -1,0 +1,10 @@
+{
+  "parsers": {
+    "**/*.ts": [
+      "@depcheck/parser-typescript",
+      {
+        "project": "tsconfig.json"
+      }
+    ]
+  }
+}
