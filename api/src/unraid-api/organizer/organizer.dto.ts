@@ -141,8 +141,6 @@ export class OrganizerView {
 
     @Field(() => GraphQLJSON)
     @IsObject()
-    @ValidateNested({ each: true })
-    @Type(() => Object) // we'll validate the values below
     entries!: { [id: string]: OrganizerFolder | OrganizerResourceRef };
 
     @Field(() => GraphQLJSON, { nullable: true })
@@ -161,14 +159,10 @@ export class OrganizerV1 {
 
     @Field(() => GraphQLJSON)
     @IsObject()
-    @ValidateNested({ each: true })
-    @Type(() => Object)
     resources!: { [id: string]: AnyOrganizerResource };
 
     @Field(() => GraphQLJSON)
     @IsObject()
-    @ValidateNested({ each: true })
-    @Type(() => OrganizerView)
     views!: { [id: string]: OrganizerView };
 }
 

@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 
 import type { ContainerListOptions } from 'dockerode';
 
@@ -7,23 +7,15 @@ import { DockerContainer } from '@app/unraid-api/graph/resolvers/docker/docker.m
 import { DockerService } from '@app/unraid-api/graph/resolvers/docker/docker.service.js';
 import {
     OrganizerContainerResource,
-    OrganizerFolder,
-    OrganizerResource,
-    OrganizerResourceRef,
     OrganizerV1,
-    OrganizerView,
     ResolvedOrganizerV1,
 } from '@app/unraid-api/organizer/organizer.dto.js';
-import {
-    addMissingResourcesToView,
-    resolveOrganizer,
-    resourceToResourceRef,
-} from '@app/unraid-api/organizer/organizer.js';
+import { addMissingResourcesToView, resolveOrganizer } from '@app/unraid-api/organizer/organizer.js';
 
 export function containerToResource(container: DockerContainer): OrganizerContainerResource {
     const stableRef = container.names[0] || container.image;
     return {
-        id: container.id,
+        id: stableRef,
         type: 'container',
         name: stableRef,
         meta: container,
@@ -33,7 +25,8 @@ export function containerToResource(container: DockerContainer): OrganizerContai
 export function containerListToResourcesObject(containers: DockerContainer[]): OrganizerV1['resources'] {
     return containers.reduce(
         (acc, container) => {
-            acc[container.id] = containerToResource(container);
+            const resource = containerToResource(container);
+            acc[resource.id] = resource;
             return acc;
         },
         {} as OrganizerV1['resources']
@@ -42,6 +35,7 @@ export function containerListToResourcesObject(containers: DockerContainer[]): O
 
 @Injectable()
 export class DockerOrganizerService {
+    private readonly logger = new Logger(DockerOrganizerService.name);
     constructor(
         private readonly dockerConfigService: DockerConfigService,
         private readonly dockerService: DockerService
@@ -55,8 +49,9 @@ export class DockerOrganizerService {
     async syncDefaultView(
         organizer: OrganizerV1,
         resources?: OrganizerV1['resources']
-    ): Promise<OrganizerView> {
-        const view = organizer.views.default ?? {
+    ): Promise<OrganizerV1> {
+        const newOrganizer = structuredClone(organizer);
+        const view = newOrganizer.views.default ?? {
             id: 'default',
             name: 'Default',
             root: 'root',
@@ -65,15 +60,15 @@ export class DockerOrganizerService {
         resources ??= await this.getResources();
 
         const updatedView = addMissingResourcesToView(resources, view);
-        organizer.views.default = updatedView;
-        return updatedView;
+        newOrganizer.views.default = updatedView;
+        return newOrganizer;
     }
 
     async getOrganizer(): Promise<OrganizerV1> {
-        const organizer = this.dockerConfigService.getConfig();
+        let organizer = this.dockerConfigService.getConfig();
         organizer.resources = await this.getResources();
-        this.syncDefaultView(organizer, organizer.resources);
-        return organizer;
+        organizer = await this.syncDefaultView(organizer, organizer.resources);
+        return await this.dockerConfigService.validate(organizer);
     }
 
     async getResolvedOrganizer(): Promise<ResolvedOrganizerV1> {

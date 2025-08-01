@@ -35,7 +35,7 @@ describe('containerToResource', () => {
         const result = containerToResource(container);
 
         expect(result).toEqual({
-            id: 'container-123',
+            id: '/my-app',
             type: 'container',
             name: '/my-app',
             meta: container, // Now we store the entire container object
@@ -60,7 +60,7 @@ describe('containerToResource', () => {
 
         expect(result.name).toBe('redis:alpine');
         expect(result.type).toBe('container');
-        expect(result.id).toBe('container-456');
+        expect(result.id).toBe('redis:alpine');
     });
 
     it('should handle containers with minimal data', () => {
@@ -80,7 +80,7 @@ describe('containerToResource', () => {
         const result = containerToResource(container);
 
         expect(result).toEqual({
-            id: 'container-789',
+            id: '/minimal-container',
             type: 'container',
             name: '/minimal-container',
             meta: container, // Now we store the entire container object
