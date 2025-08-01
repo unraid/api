@@ -8,6 +8,7 @@ import {
 import { ConfigService } from '@nestjs/config';
 
 import type { ModificationEffect } from '@app/unraid-api/unraid-file-modifier/file-modification.js';
+import { NODE_ENV } from '@app/environment.js';
 import { FileModificationEffectService } from '@app/unraid-api/unraid-file-modifier/file-modification-effect.service.js';
 import { FileModification } from '@app/unraid-api/unraid-file-modifier/file-modification.js';
 
@@ -29,6 +30,11 @@ export class UnraidFileModificationService
      */
     async onModuleInit() {
         try {
+            if (NODE_ENV === 'development') {
+                this.logger.log('Skipping file modifications in development mode');
+                return;
+            }
+
             this.logger.log('Loading file modifications...');
             const mods = await this.loadModifications();
             await this.applyModifications(mods);
