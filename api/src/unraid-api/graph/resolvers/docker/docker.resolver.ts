@@ -15,6 +15,7 @@ import {
 } from '@app/unraid-api/graph/resolvers/docker/docker.model.js';
 import { DockerService } from '@app/unraid-api/graph/resolvers/docker/docker.service.js';
 import { OrganizerV1, ResolvedOrganizerV1 } from '@app/unraid-api/organizer/organizer.dto.js';
+import { DEFAULT_ORGANIZER_ROOT_ID } from '@app/unraid-api/organizer/organizer.js';
 
 @Resolver(() => Docker)
 export class DockerResolver {
@@ -82,7 +83,7 @@ export class DockerResolver {
     ) {
         const organizer = await this.dockerOrganizerService.createFolder({
             name,
-            parentId: parentId ?? 'root',
+            parentId: parentId ?? DEFAULT_ORGANIZER_ROOT_ID,
             childrenIds: childrenIds ?? [],
         });
         return this.dockerOrganizerService.resolveOrganizer(organizer);
@@ -99,7 +100,7 @@ export class DockerResolver {
         @Args('childrenIds', { type: () => [String] }) childrenIds: string[]
     ) {
         const organizer = await this.dockerOrganizerService.setFolderChildren({
-            folderId: folderId ?? 'root',
+            folderId: folderId ?? DEFAULT_ORGANIZER_ROOT_ID,
             childrenIds,
         });
         return this.dockerOrganizerService.resolveOrganizer(organizer);

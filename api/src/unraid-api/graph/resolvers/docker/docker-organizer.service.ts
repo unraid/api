@@ -2,6 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 
 import type { ContainerListOptions } from 'dockerode';
 
+import { AppError } from '@app/core/errors/app-error.js';
 import { DockerConfigService } from '@app/unraid-api/graph/resolvers/docker/docker-config.service.js';
 import { DockerContainer } from '@app/unraid-api/graph/resolvers/docker/docker.model.js';
 import { DockerService } from '@app/unraid-api/graph/resolvers/docker/docker.service.js';
@@ -14,10 +15,10 @@ import {
     addMissingResourcesToView,
     createFolderInView,
     DEFAULT_ORGANIZER_ROOT_ID,
+    DEFAULT_ORGANIZER_VIEW_ID,
     resolveOrganizer,
     setFolderChildrenInView,
 } from '@app/unraid-api/organizer/organizer.js';
-import { AppError } from '@app/core/errors/app-error.js';
 
 export function containerToResource(container: DockerContainer): OrganizerContainerResource {
     const stableRef = container.names[0] || container.image;
@@ -59,9 +60,9 @@ export class DockerOrganizerService {
     ): Promise<OrganizerV1> {
         const newOrganizer = structuredClone(organizer);
         const view = newOrganizer.views.default ?? {
-            id: 'default',
+            id: DEFAULT_ORGANIZER_VIEW_ID,
             name: 'Default',
-            root: 'root',
+            root: DEFAULT_ORGANIZER_ROOT_ID,
             entries: {},
         };
         resources ??= await this.getResources();
@@ -137,7 +138,7 @@ export class DockerOrganizerService {
     }
 
     async setFolderChildren(params: { folderId?: string; childrenIds: string[] }): Promise<OrganizerV1> {
-        const { folderId = 'root', childrenIds } = params;
+        const { folderId = DEFAULT_ORGANIZER_ROOT_ID, childrenIds } = params;
         const organizer = await this.syncAndGetOrganizer();
 
         // Validate view exists
