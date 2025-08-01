@@ -13,7 +13,7 @@ done
 chmod +x usr/local/unraid-api/dist/cli.js
 chmod +x usr/local/unraid-api/dist/main.js
 
-rm -f usr/local/bin/unraid-api
+rm -rf usr/local/bin/unraid-api
 ln -sf ../unraid-api/dist/cli.js usr/local/bin/unraid-api
 # deprecated
 ln -sf ../bin/unraid-api usr/local/sbin/unraid-api
