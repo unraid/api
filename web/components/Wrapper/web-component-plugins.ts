@@ -5,6 +5,9 @@ import { DefaultApolloClient } from '@vue/apollo-composable';
 // Import Tailwind CSS for web components shadow DOM injection
 import tailwindStyles from '~/assets/main.css?inline';
 
+// Import UI configurations from .nuxt generated files
+import * as uiConfig from '~/.nuxt/ui';
+
 import en_US from '~/locales/en_US.json';
 import { createHtmlEntityDecoder } from '~/helpers/i18n-utils';
 import { globalPinia } from '~/store/globalPinia';
@@ -23,7 +26,7 @@ export default function (Vue: App) {
     if (windowLocaleData) {
       try {
         parsedMessages = JSON.parse(decodeURIComponent(windowLocaleData));
-        parsedLocale = Object.keys(parsedMessages)[0];
+        parsedLocale = Object.keys(parsedMessages)[0] || '';
         nonDefaultLocale = parsedLocale !== defaultLocale;
       } catch (error) {
         console.error('[WebComponentPlugins] error parsing messages', error);
@@ -49,6 +52,10 @@ export default function (Vue: App) {
 
   // Provide Apollo client for all web components
   Vue.provide(DefaultApolloClient, client);
+
+  // Provide UI config for components
+  Vue.provide('ui.config', uiConfig);
+
 
   // Inject Tailwind CSS into the shadow DOM
   Vue.mixin({
