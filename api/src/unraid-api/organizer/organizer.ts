@@ -70,6 +70,8 @@ export function addMissingResourcesToView(
  * Recursively resolves an organizer entry (folder or resource ref) into its actual objects.
  * This transforms the flat ID-based structure into a nested object structure for frontend convenience.
  *
+ * PRECONDITION: The given view is valid (ie. does not contain any cycles or depth issues).
+ *
  * @param entryId - The ID of the entry to resolve
  * @param view - The organizer view containing the entry definitions
  * @param resources - The collection of all available resources
@@ -111,6 +113,8 @@ function resolveEntry(
 /**
  * Transforms a flat organizer view into a resolved view where all ID references
  * are replaced with actual objects.
+ *
+ * PRECONDITION: The given view is valid (ie. does not contain any cycles or depth issues).
  *
  * @param view - The flat organizer view to resolve
  * @param resources - The collection of all available resources
