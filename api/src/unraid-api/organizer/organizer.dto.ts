@@ -4,10 +4,7 @@ import { Type } from 'class-transformer';
 import {
     Equals,
     IsArray,
-    IsDefined,
     IsIn,
-    IsInt,
-    IsNotEmpty,
     IsNumber,
     IsObject,
     IsOptional,
@@ -196,6 +193,11 @@ export const ResolvedOrganizerEntry = createUnionType({
     name: 'ResolvedOrganizerEntry',
     types: () => [ResolvedOrganizerFolder, OrganizerContainerResource, OrganizerResource] as const,
     resolveType(value) {
+        if (!value || typeof value !== 'object' || !value.type) {
+            throw new Error(
+                `Invalid organizer entry: missing type property. Got: ${JSON.stringify(value)}`
+            );
+        }
         if (value.type === 'folder') {
             return ResolvedOrganizerFolder;
         }

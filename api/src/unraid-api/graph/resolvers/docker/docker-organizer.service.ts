@@ -13,10 +13,8 @@ import {
 import {
     addMissingResourcesToView,
     createFolderInView,
-    CreateFolderInViewParams,
     resolveOrganizer,
     setFolderChildrenInView,
-    SetFolderChildrenInViewParams,
 } from '@app/unraid-api/organizer/organizer.js';
 
 export function containerToResource(container: DockerContainer): OrganizerContainerResource {
@@ -104,15 +102,17 @@ export class DockerOrganizerService {
             throw new Error(`Parent ${parentId} not found or is not a folder`);
         }
 
-        // Generate unique folder ID
-        // const folderId = `folder-${Date.now()}-${Math.random().toString(36).substring(2, 11)}`;
+        // If folder already exists, we don't need to create it
+        if (parentEntry.children.includes(name)) {
+            return organizer;
+        }
 
         // Use pure function to create folder
         const updatedView = createFolderInView({
             view: defaultView,
+            parentId,
             folderId: name,
             folderName: name,
-            parentId,
             childrenIds,
         });
 
