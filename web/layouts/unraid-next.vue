@@ -10,16 +10,19 @@ const themeStore = useThemeStore();
 // Initialize theme on mount
 onMounted(() => {
   // Set a default theme similar to ColorSwitcherCe
-  const defaultTheme = {
-    banner: false,
-    bannerGradient: false,
-    descriptionShow: true,
-    textColor: defaultColors.white['--header-text-primary']!,
-    metaColor: defaultColors.white['--header-text-secondary']!,
-    bgColor: defaultColors.white['--header-background-color']!,
-    name: 'white',
-  };
-  themeStore.setTheme(defaultTheme);
+  const whiteTheme = defaultColors.white;
+  if (whiteTheme) {
+    const defaultTheme = {
+      banner: false,
+      bannerGradient: false,
+      descriptionShow: true,
+      textColor: whiteTheme['--header-text-primary'],
+      metaColor: whiteTheme['--header-text-secondary'],
+      bgColor: whiteTheme['--header-background-color'],
+      name: 'white',
+    };
+    themeStore.setTheme(defaultTheme);
+  }
 });
 </script>
 
