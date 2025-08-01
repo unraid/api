@@ -120,6 +120,13 @@ Enables GraphQL playground at `http://tower.local/graphql`
 
 ### Testing Guidelines
 
+#### General Testing Best Practices
+
+- **Error Testing:** Use `.rejects.toThrow()` without arguments to test that functions throw errors. Don't test exact error message strings unless the message format is specifically what you're testing
+- **Focus on Behavior:** Test what the code does, not implementation details like exact error message wording
+- **Avoid Brittleness:** Don't write tests that break when minor changes are made to error messages, log formats, or other non-essential details
+- **Use Mocks Correctly**: Mocks should be used as nouns, not verbs.
+
 #### Vue Component Testing
 
 - This is a Nuxt.js app but we are testing with vitest outside of the Nuxt environment

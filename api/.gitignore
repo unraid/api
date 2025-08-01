@@ -83,5 +83,6 @@ deploy/*
 
 !**/*.login.*
 
-# local status - doesn't need to be tracked
+# local api configs - don't need project-wide tracking
 dev/connectStatus.json
+dev/configs/*
