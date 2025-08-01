@@ -1,5 +1,17 @@
 # Changelog
 
+## [4.13.0](https://github.com/unraid/api/compare/v4.12.0...v4.13.0) (2025-08-01)
+
+
+### Features
+
+* add docker -&gt; organizer query ([#1555](https://github.com/unraid/api/issues/1555)) ([dfe352d](https://github.com/unraid/api/commit/dfe352dfa1bd6aa059cab56357ba6bff5e8ed7cb))
+
+
+### Bug Fixes
+
+* **connect:** remove unraid-api folder before creating symlink ([#1556](https://github.com/unraid/api/issues/1556)) ([514a0ef](https://github.com/unraid/api/commit/514a0ef560a90595f774b6c0db60f1d2b4cd853c))
+
 ## [4.12.0](https://github.com/unraid/api/compare/v4.11.0...v4.12.0) (2025-07-30)
 
 
