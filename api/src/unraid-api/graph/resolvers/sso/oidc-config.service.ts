@@ -276,8 +276,15 @@ export class OidcConfigPersistence extends ConfigFilePersister<OidcConfig> {
                             buttonVariant: {
                                 type: 'string',
                                 title: 'Button Style',
-                                description:
-                                    'Button variant style from Reka UI. See https://reka-ui.com/docs/components/button',
+                                enum: [
+                                    'primary',
+                                    'destructive',
+                                    'outline',
+                                    'secondary',
+                                    'ghost',
+                                    'link',
+                                ],
+                                description: 'Visual style of the login button',
                                 default: 'outline',
                             },
                             buttonStyle: {
@@ -453,9 +460,7 @@ export class OidcConfigPersistence extends ConfigFilePersister<OidcConfig> {
                                             scope: '#/properties/buttonVariant',
                                             label: 'Button Style:',
                                             description: 'Visual style of the login button',
-                                            controlOptions: {
-                                                format: 'select',
-                                            },
+                                            controlOptions: {},
                                         }),
                                         createSimpleLabeledControl({
                                             scope: '#/properties/buttonStyle',
