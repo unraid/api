@@ -1441,6 +1441,25 @@ type Settings implements Node {
   api: ApiConfig!
 }
 
+type OidcAuthorizationRule {
+  """The claim to check (e.g., email, sub, groups, hd)"""
+  claim: String!
+
+  """The comparison operator"""
+  operator: AuthorizationOperator!
+
+  """The value(s) to match against"""
+  value: [String!]!
+}
+
+"""Operators for authorization rule matching"""
+enum AuthorizationOperator {
+  EQUALS
+  CONTAINS
+  ENDS_WITH
+  STARTS_WITH
+}
+
 type OidcProvider {
   """The unique identifier for the OIDC provider"""
   id: PrefixedID!
@@ -1477,8 +1496,8 @@ type OidcProvider {
   """OAuth2 scopes to request (e.g., openid, profile, email)"""
   scopes: [String!]!
 
-  """List of authorized subject IDs allowed to authenticate"""
-  authorizedSubIds: [String!]!
+  """Flexible authorization rules based on claims"""
+  authorizationRules: [OidcAuthorizationRule!]
 
   """Custom text for the login button"""
   buttonText: String
@@ -2061,8 +2080,8 @@ input OidcProviderInput {
   """OAuth2 scopes to request (e.g., openid, profile, email)"""
   scopes: [String!]!
 
-  """List of authorized subject IDs allowed to authenticate"""
-  authorizedSubIds: [String!]!
+  """Flexible authorization rules based on claims"""
+  authorizationRules: [OidcAuthorizationRuleInput!]
 
   """Custom text for the login button"""
   buttonText: String
@@ -2084,6 +2103,17 @@ input OidcProviderInput {
   Use custom parameter names for authorization (e.g., callbackUrl instead of redirect_uri)
   """
   customAuthParams: Boolean
+}
+
+input OidcAuthorizationRuleInput {
+  """The claim to check (e.g., email, sub, groups, hd)"""
+  claim: String!
+
+  """The comparison operator"""
+  operator: AuthorizationOperator!
+
+  """The value(s) to match against"""
+  value: [String!]!
 }
 
 input UPSConfigInput {

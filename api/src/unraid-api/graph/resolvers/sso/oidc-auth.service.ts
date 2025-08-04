@@ -4,7 +4,11 @@ import { ConfigService } from '@nestjs/config';
 import * as client from 'openid-client';
 
 import { OidcConfigPersistence } from '@app/unraid-api/graph/resolvers/sso/oidc-config.service.js';
-import { OidcProvider } from '@app/unraid-api/graph/resolvers/sso/oidc-provider.model.js';
+import {
+    AuthorizationOperator,
+    OidcAuthorizationRule,
+    OidcProvider,
+} from '@app/unraid-api/graph/resolvers/sso/oidc-provider.model.js';
 import { OidcSessionService } from '@app/unraid-api/graph/resolvers/sso/oidc-session.service.js';
 
 @Injectable()
@@ -26,6 +30,9 @@ export class OidcAuthService {
 
         const redirectUri = this.getRedirectUri(requestHost);
 
+        // Encode provider ID in state for callback identification
+        const stateWithProvider = `${providerId}:${state}`;
+
         // Build authorization URL
         if (provider.authorizationEndpoint) {
             // Use custom authorization endpoint
@@ -34,14 +41,14 @@ export class OidcAuthService {
             // Handle custom parameter names (e.g., Unraid.net uses 'callbackUrl' instead of 'redirect_uri')
             if (provider.customAuthParams) {
                 authUrl.searchParams.set('callbackUrl', redirectUri);
-                authUrl.searchParams.set('state', state);
+                authUrl.searchParams.set('state', stateWithProvider);
                 this.logger.debug(`Unraid.net callback URL: ${redirectUri}`);
             } else {
                 // Standard OAuth2 parameters
                 authUrl.searchParams.set('client_id', provider.clientId);
                 authUrl.searchParams.set('redirect_uri', redirectUri);
                 authUrl.searchParams.set('scope', provider.scopes.join(' '));
-                authUrl.searchParams.set('state', state);
+                authUrl.searchParams.set('state', stateWithProvider);
                 authUrl.searchParams.set('response_type', 'code');
             }
 
@@ -53,7 +60,7 @@ export class OidcAuthService {
         const parameters: Record<string, string> = {
             redirect_uri: redirectUri,
             scope: provider.scopes.join(' '),
-            state,
+            state: stateWithProvider,
             response_type: 'code',
         };
 
@@ -62,11 +69,27 @@ export class OidcAuthService {
         return authUrl.href;
     }
 
+    extractProviderFromState(state: string): { providerId: string; originalState: string } {
+        const parts = state.split(':');
+        if (parts.length >= 2) {
+            return {
+                providerId: parts[0],
+                originalState: parts.slice(1).join(':'),
+            };
+        }
+        // Fallback for states without provider ID
+        return {
+            providerId: 'unraid.net',
+            originalState: state,
+        };
+    }
+
     async handleCallback(
         providerId: string,
         code: string,
         state: string,
-        requestHost?: string
+        requestHost?: string,
+        fullCallbackUrl?: string
     ): Promise<string> {
         const provider = await this.oidcConfig.getProvider(providerId);
         if (!provider) {
@@ -76,102 +99,80 @@ export class OidcAuthService {
         try {
             const redirectUri = this.getRedirectUri(requestHost);
 
-            // For providers with manual endpoints, do manual token exchange
-            if (provider.tokenEndpoint) {
-                const tokenUrl = new URL(provider.tokenEndpoint);
-
-                const body = new URLSearchParams({
-                    grant_type: 'authorization_code',
-                    code,
-                    redirect_uri: redirectUri,
-                    client_id: provider.clientId,
-                });
-
-                if (provider.clientSecret) {
-                    body.append('client_secret', provider.clientSecret);
-                }
-
-                const response = await fetch(tokenUrl.href, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/x-www-form-urlencoded',
-                    },
-                    body: body.toString(),
-                });
-
-                if (!response.ok) {
-                    const errorText = await response.text();
-                    this.logger.error(`Token exchange failed: ${response.status} - ${errorText}`);
-                    throw new UnauthorizedException('Token exchange failed');
-                }
-
-                const tokens = await response.json();
-                this.logger.debug(`Token response: ${JSON.stringify(tokens)}`);
-
-                // Parse the ID token to get user info
-                let userSub = 'unknown-user';
-                if (tokens.id_token) {
-                    try {
-                        const payload = tokens.id_token.split('.')[1];
-                        const claims = JSON.parse(Buffer.from(payload, 'base64').toString());
-                        this.logger.debug(`ID token claims: ${JSON.stringify(claims)}`);
-                        userSub = claims.sub || userSub;
-                    } catch (e) {
-                        this.logger.warn('Failed to parse ID token', e);
-                    }
-                } else if (tokens.access_token) {
-                    // Maybe Unraid.net returns a different token format
-                    this.logger.debug('No ID token, checking access token');
-                    try {
-                        const payload = tokens.access_token.split('.')[1];
-                        const claims = JSON.parse(Buffer.from(payload, 'base64').toString());
-                        this.logger.debug(`Access token claims: ${JSON.stringify(claims)}`);
-                        userSub = claims.sub || userSub;
-                    } catch (e) {
-                        this.logger.warn('Failed to parse access token', e);
-                    }
-                }
-
-                // Check if user is authorized
-                if (
-                    provider.authorizedSubIds.length > 0 &&
-                    !provider.authorizedSubIds.includes(userSub)
-                ) {
-                    throw new UnauthorizedException(
-                        `User ${userSub} not authorized for provider ${providerId}`
-                    );
-                }
-
-                // Create session and return padded token
-                const paddedToken = this.sessionService.createSession(providerId, userSub);
-
-                this.logger.log(`Successfully authenticated user ${userSub} via provider ${providerId}`);
-
-                return paddedToken;
-            }
-
-            // For providers with discovery, use the standard flow
+            // Always use openid-client for consistency
             const config = await this.getOrCreateConfig(provider);
 
+            // Log configuration details
+            this.logger.debug(`Provider ${providerId} config loaded`);
+            this.logger.debug(`Redirect URI: ${redirectUri}`);
+
             // Build current URL for token exchange
+            // CRITICAL: The URL used here MUST match the redirect_uri that was sent to the authorization endpoint
+            // Google expects the exact same redirect_uri during token exchange
             const currentUrl = new URL(redirectUri);
             currentUrl.searchParams.set('code', code);
             currentUrl.searchParams.set('state', state);
 
-            // Exchange authorization code for tokens
-            const tokens = await client.authorizationCodeGrant(config, currentUrl, {
-                expectedState: state,
+            // Copy additional parameters from the actual callback if provided
+            if (fullCallbackUrl) {
+                const actualUrl = new URL(fullCallbackUrl);
+                // Copy over additional params that Google might have added (scope, authuser, prompt, etc)
+                // but DO NOT change the base URL or path
+                ['scope', 'authuser', 'prompt', 'hd', 'session_state', 'iss'].forEach((param) => {
+                    const value = actualUrl.searchParams.get(param);
+                    if (value && !currentUrl.searchParams.has(param)) {
+                        currentUrl.searchParams.set(param, value);
+                    }
+                });
+            }
+
+            // Google returns iss in the response, openid-client v6 expects it
+            // If not present, add it based on the provider's issuer
+            if (!currentUrl.searchParams.has('iss') && provider.issuer) {
+                currentUrl.searchParams.set('iss', provider.issuer);
+            }
+
+            this.logger.debug(`Token exchange URL (matches redirect_uri): ${currentUrl.href}`);
+
+            // Extract original state for validation
+            const { originalState } = this.extractProviderFromState(state);
+
+            this.logger.debug(`Exchanging code for tokens with provider ${providerId}`);
+            this.logger.debug(`Expected state: ${originalState}`);
+
+            // For openid-client v6, we need to validate the state ourselves
+            // The library expects the authorization response to have specific parameters
+            const authorizationResponse = new URLSearchParams(currentUrl.search);
+
+            // Validate state parameter matches what we expect
+            const responseState = authorizationResponse.get('state');
+            if (responseState !== `${providerId}:${originalState}`) {
+                throw new Error('State parameter mismatch');
+            }
+
+            // Remove our provider prefix from state before passing to openid-client
+            authorizationResponse.set('state', originalState);
+
+            // Create a new URL with the cleaned parameters
+            const cleanUrl = new URL(redirectUri);
+            cleanUrl.search = authorizationResponse.toString();
+
+            this.logger.debug(`Clean URL for token exchange: ${cleanUrl.href}`);
+
+            const tokens = await client.authorizationCodeGrant(config, cleanUrl, {
+                expectedState: originalState,
             });
 
             // Parse ID token to get user info
             let claims: { sub?: string } | null = null;
             if (tokens.id_token) {
                 try {
-                    // For v6, decode the JWT manually
+                    // Decode the JWT manually
                     const payload = tokens.id_token.split('.')[1];
                     claims = JSON.parse(Buffer.from(payload, 'base64').toString());
+                    this.logger.debug(`ID token claims: ${JSON.stringify(claims)}`);
                 } catch (e) {
-                    this.logger.warn('Failed to parse ID token');
+                    this.logger.warn(`Failed to parse ID token: ${e}`);
                 }
             }
 
@@ -181,12 +182,9 @@ export class OidcAuthService {
 
             const userSub = claims.sub;
 
-            // Check if user is authorized
-            if (provider.authorizedSubIds.length > 0 && !provider.authorizedSubIds.includes(userSub)) {
-                throw new UnauthorizedException(
-                    `User ${userSub} not authorized for provider ${providerId}`
-                );
-            }
+            // Check authorization based on rules
+            // This will throw a helpful error if misconfigured or unauthorized
+            await this.checkAuthorization(provider, claims);
 
             // Create session and return padded token
             const paddedToken = await this.sessionService.createSession(providerId, userSub);
@@ -198,6 +196,11 @@ export class OidcAuthService {
             this.logger.error(
                 `OAuth callback error: ${error instanceof Error ? error.message : 'Unknown error'}`
             );
+            // Re-throw the original error if it's already an UnauthorizedException
+            if (error instanceof UnauthorizedException) {
+                throw error;
+            }
+            // Otherwise throw a generic error
             throw new UnauthorizedException('Authentication failed');
         }
     }
@@ -217,43 +220,52 @@ export class OidcAuthService {
 
             let config: client.Configuration;
 
-            // Only use discovery for providers without manual endpoints
-            if (!provider.tokenEndpoint) {
-                // Try discovery
+            // Try discovery first
+            if (provider.issuer) {
                 this.logger.debug(`Attempting discovery for ${provider.id} at ${provider.issuer}`);
 
                 try {
                     const serverUrl = new URL(provider.issuer);
+
                     config = await client.discovery(
                         serverUrl,
                         provider.clientId,
                         undefined, // client metadata
                         clientAuth
                     );
+
+                    this.configCache.set(cacheKey, config);
+                    return config;
                 } catch (discoveryError) {
                     this.logger.warn(
                         `Discovery failed for ${provider.id}: ${
                             discoveryError instanceof Error ? discoveryError.message : 'Unknown error'
-                        }. Falling back to manual configuration if endpoints are provided.`
+                        }`
                     );
 
-                    // If discovery fails but we don't have manual endpoints, throw
-                    if (!provider.authorizationEndpoint || !provider.tokenEndpoint) {
+                    // If discovery fails but we have manual endpoints, use them
+                    if (provider.authorizationEndpoint && provider.tokenEndpoint) {
+                        this.logger.log(`Using manual endpoints for ${provider.id}`);
+                    } else {
                         throw new Error(
                             `OIDC discovery failed and no manual endpoints provided for ${provider.id}`
                         );
                     }
-
-                    throw discoveryError;
                 }
-
-                this.configCache.set(cacheKey, config);
-                return config;
             }
 
-            // If we have manual endpoints, we handle token exchange manually
-            // so we don't need a config object
-            throw new Error(`Provider ${provider.id} has manual endpoints, use manual token exchange`);
+            // Manual configuration when discovery fails or no issuer provided
+            if (!provider.authorizationEndpoint || !provider.tokenEndpoint) {
+                throw new Error(
+                    `Manual endpoints required for ${provider.id} when discovery is not available`
+                );
+            }
+
+            // Manual configuration is not supported yet with openid-client v6
+            // For now, throw an error and require discovery
+            throw new Error(
+                `Manual configuration not yet implemented. Provider ${provider.id} must support OIDC discovery.`
+            );
         } catch (error) {
             this.logger.error(
                 `Failed to create OIDC configuration for ${provider.id}: ${
@@ -270,15 +282,68 @@ export class OidcAuthService {
         }
     }
 
-    private getRedirectUri(requestHost?: string): string {
-        // If request host is provided and contains localhost, use it
-        if (requestHost && requestHost.includes('localhost')) {
-            // For local development, we need to use the frontend URL (3000) not the API URL (3001)
-            const host = requestHost.replace(':3001', ':3000');
-            return `http://${host}/graphql/api/auth/oidc/callback`;
+    private async checkAuthorization(provider: OidcProvider, claims: any): Promise<void> {
+        // If no authorization rules are specified, throw a helpful error
+        if (!provider.authorizationRules || provider.authorizationRules.length === 0) {
+            throw new UnauthorizedException(
+                `Login failed: The ${provider.name} provider has no authorization rules configured. ` +
+                    `Please configure authorization rules.`
+            );
         }
 
-        // Otherwise use the configured base URL
+        // Evaluate the rules
+        const isAuthorized = this.evaluateAuthorizationRules(provider.authorizationRules, claims);
+
+        if (!isAuthorized) {
+            throw new UnauthorizedException(
+                `Access denied: Your account does not meet the authorization requirements for ${provider.name}.`
+            );
+        }
+    }
+
+    private evaluateAuthorizationRules(rules: OidcAuthorizationRule[], claims: any): boolean {
+        // All rules must pass (AND logic)
+        // If you want OR logic, you can create multiple rules with the same claim
+        return rules.every((rule) => this.evaluateRule(rule, claims));
+    }
+
+    private evaluateRule(rule: OidcAuthorizationRule, claims: any): boolean {
+        const claimValue = claims[rule.claim];
+
+        if (claimValue === undefined || claimValue === null) {
+            this.logger.debug(`Claim ${rule.claim} not found in token`);
+            return false;
+        }
+
+        const value = String(claimValue);
+
+        switch (rule.operator) {
+            case AuthorizationOperator.EQUALS:
+                return rule.value.some((v) => value === v);
+
+            case AuthorizationOperator.CONTAINS:
+                return rule.value.some((v) => value.includes(v));
+
+            case AuthorizationOperator.STARTS_WITH:
+                return rule.value.some((v) => value.startsWith(v));
+
+            case AuthorizationOperator.ENDS_WITH:
+                return rule.value.some((v) => value.endsWith(v));
+
+            default:
+                this.logger.error(`Unknown authorization operator: ${rule.operator}`);
+                return false;
+        }
+    }
+
+    private getRedirectUri(requestHost?: string): string {
+        // Always use the proxied path through /graphql to match production
+        if (requestHost && requestHost.includes('localhost')) {
+            // In development, use the Nuxt proxy at port 3000
+            return `http://localhost:3000/graphql/api/auth/oidc/callback`;
+        }
+
+        // In production, use the configured base URL with /graphql prefix
         const baseUrl = this.configService.get('BASE_URL', 'http://tower.local');
         return `${baseUrl}/graphql/api/auth/oidc/callback`;
     }
