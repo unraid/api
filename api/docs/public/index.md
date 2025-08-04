@@ -22,6 +22,7 @@ The API will be integrated directly into the Unraid operating system in an upcom
 
 - [CLI Commands](./cli.md) - Reference for all available command-line interface commands
 - [Using the Unraid API](./how-to-use-the-api.md) - Comprehensive guide on using the GraphQL API
+- [OIDC Provider Examples](./oidc-provider-examples.md) - Configuration examples for SSO authentication providers
 - [Upcoming Features](./upcoming-features.md) - Roadmap of planned features and improvements
 
 ## Key Features

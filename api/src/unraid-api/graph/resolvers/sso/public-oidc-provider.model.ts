@@ -13,4 +13,10 @@ export class PublicOidcProvider {
 
     @Field(() => String, { nullable: true })
     buttonIcon?: string;
+
+    @Field(() => String, { nullable: true })
+    buttonVariant?: string;
+
+    @Field(() => String, { nullable: true })
+    buttonStyle?: string;
 }

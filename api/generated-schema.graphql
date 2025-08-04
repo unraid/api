@@ -1485,6 +1485,21 @@ type OidcProvider {
 
   """URL or base64 encoded icon for the login button"""
   buttonIcon: String
+
+  """
+  Button variant style from Reka UI. See https://reka-ui.com/docs/components/button
+  """
+  buttonVariant: String
+
+  """
+  Custom CSS styles for the button (e.g., "background: linear-gradient(to right, #4f46e5, #7c3aed); border-radius: 9999px;")
+  """
+  buttonStyle: String
+
+  """
+  Use custom parameter names for authorization (e.g., callbackUrl instead of redirect_uri)
+  """
+  customAuthParams: Boolean
 }
 
 type PublicOidcProvider {
@@ -1492,6 +1507,13 @@ type PublicOidcProvider {
   name: String!
   buttonText: String
   buttonIcon: String
+  buttonVariant: String
+  buttonStyle: String
+}
+
+type OidcSessionValidation {
+  valid: Boolean!
+  username: String
 }
 
 type UPSBattery {
@@ -1906,6 +1928,9 @@ type Query {
 
   """Get a specific OIDC provider by ID"""
   oidcProvider(id: String!): OidcProvider
+
+  """Validate an OIDC session token (internal use for CLI validation)"""
+  validateOidcSession(token: String!): OidcSessionValidation!
   upsDevices: [UPSDevice!]!
   upsDeviceById(id: String!): UPSDevice
   upsConfiguration: UPSConfiguration!
@@ -2044,6 +2069,21 @@ input OidcProviderInput {
 
   """URL or base64 encoded icon for the login button"""
   buttonIcon: String
+
+  """
+  Button variant style from Reka UI. See https://reka-ui.com/docs/components/button
+  """
+  buttonVariant: String
+
+  """
+  Custom CSS styles for the button (e.g., "background: linear-gradient(to right, #4f46e5, #7c3aed); border-radius: 9999px;")
+  """
+  buttonStyle: String
+
+  """
+  Use custom parameter names for authorization (e.g., callbackUrl instead of redirect_uri)
+  """
+  customAuthParams: Boolean
 }
 
 input UPSConfigInput {
