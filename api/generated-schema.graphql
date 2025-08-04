@@ -1502,6 +1502,11 @@ type OidcProvider {
   customAuthParams: Boolean
 }
 
+type OidcSessionValidation {
+  valid: Boolean!
+  username: String
+}
+
 type PublicOidcProvider {
   id: ID!
   name: String!
@@ -1509,11 +1514,6 @@ type PublicOidcProvider {
   buttonIcon: String
   buttonVariant: String
   buttonStyle: String
-}
-
-type OidcSessionValidation {
-  valid: Boolean!
-  username: String
 }
 
 type UPSBattery {
