@@ -189,7 +189,7 @@ export class OidcAuthService {
             }
 
             // Create session and return padded token
-            const paddedToken = this.sessionService.createSession(providerId, userSub);
+            const paddedToken = await this.sessionService.createSession(providerId, userSub);
 
             this.logger.log(`Successfully authenticated user ${userSub} via provider ${providerId}`);
 

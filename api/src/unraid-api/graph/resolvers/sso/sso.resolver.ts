@@ -94,6 +94,6 @@ export class SsoResolver {
         description: 'Validate an OIDC session token (internal use for CLI validation)',
     })
     public async validateOidcSession(@Args('token') token: string): Promise<OidcSessionValidation> {
-        return this.oidcSessionService.validateSession(token);
+        return await this.oidcSessionService.validateSession(token);
     }
 }
