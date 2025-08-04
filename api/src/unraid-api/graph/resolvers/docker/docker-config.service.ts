@@ -5,11 +5,11 @@ import { ConfigFilePersister } from '@unraid/shared/services/config-file.js';
 
 import { AppError } from '@app/core/errors/app-error.js';
 import { validateObject } from '@app/unraid-api/graph/resolvers/validation.utils.js';
-import { OrganizerV1 } from '@app/unraid-api/organizer/organizer.dto.js';
 import {
     DEFAULT_ORGANIZER_ROOT_ID,
     DEFAULT_ORGANIZER_VIEW_ID,
 } from '@app/unraid-api/organizer/organizer.js';
+import { OrganizerV1 } from '@app/unraid-api/organizer/organizer.model.js';
 import { validateOrganizerIntegrity } from '@app/unraid-api/organizer/organizer.validation.js';
 
 @Injectable()

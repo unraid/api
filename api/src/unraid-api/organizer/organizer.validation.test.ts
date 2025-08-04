@@ -6,7 +6,7 @@ import {
     OrganizerResourceRef,
     OrganizerV1,
     OrganizerView,
-} from '@app/unraid-api/organizer/organizer.dto.js';
+} from '@app/unraid-api/organizer/organizer.model.js';
 import {
     getRefsFromViewEntries,
     validateOrganizerIntegrity,

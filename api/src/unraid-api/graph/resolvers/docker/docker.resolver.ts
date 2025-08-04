@@ -14,8 +14,8 @@ import {
     DockerNetwork,
 } from '@app/unraid-api/graph/resolvers/docker/docker.model.js';
 import { DockerService } from '@app/unraid-api/graph/resolvers/docker/docker.service.js';
-import { OrganizerV1, ResolvedOrganizerV1 } from '@app/unraid-api/organizer/organizer.dto.js';
 import { DEFAULT_ORGANIZER_ROOT_ID } from '@app/unraid-api/organizer/organizer.js';
+import { OrganizerV1, ResolvedOrganizerV1 } from '@app/unraid-api/organizer/organizer.model.js';
 
 @Resolver(() => Docker)
 export class DockerResolver {

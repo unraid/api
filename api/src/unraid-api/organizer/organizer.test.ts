@@ -1,13 +1,13 @@
 import { describe, expect, it } from 'vitest';
 
+import { addMissingResourcesToView } from '@app/unraid-api/organizer/organizer.js';
 import {
     OrganizerFolder,
     OrganizerResource,
     OrganizerResourceRef,
     OrganizerV1,
     OrganizerView,
-} from '@app/unraid-api/organizer/organizer.dto.js';
-import { addMissingResourcesToView } from '@app/unraid-api/organizer/organizer.js';
+} from '@app/unraid-api/organizer/organizer.model.js';
 
 describe('addMissingResourcesToView', () => {
     const mockResource1: OrganizerResource = {

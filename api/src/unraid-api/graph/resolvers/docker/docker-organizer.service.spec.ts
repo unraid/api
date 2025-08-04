@@ -13,7 +13,7 @@ import {
     DockerContainer,
 } from '@app/unraid-api/graph/resolvers/docker/docker.model.js';
 import { DockerService } from '@app/unraid-api/graph/resolvers/docker/docker.service.js';
-import { OrganizerV1 } from '@app/unraid-api/organizer/organizer.dto.js';
+import { OrganizerV1 } from '@app/unraid-api/organizer/organizer.model.js';
 
 describe('containerToResource', () => {
     it('should transform a DockerContainer to OrganizerResource', () => {

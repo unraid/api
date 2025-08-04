@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
-import { OrganizerV1, OrganizerView } from '@app/unraid-api/organizer/organizer.dto.js';
 import { createFolderInView, setFolderChildrenInView } from '@app/unraid-api/organizer/organizer.js';
+import { OrganizerV1, OrganizerView } from '@app/unraid-api/organizer/organizer.model.js';
 
 describe('organizer', () => {
     describe('createFolderInView', () => {

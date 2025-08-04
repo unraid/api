@@ -1,13 +1,13 @@
 import { describe, expect, test } from 'vitest';
 
+import { resolveOrganizer } from '@app/unraid-api/organizer/organizer.js';
 import {
     OrganizerResource,
     OrganizerV1,
     ResolvedOrganizerEntryType,
     ResolvedOrganizerFolder,
     ResolvedOrganizerV1,
-} from '@app/unraid-api/organizer/organizer.dto.js';
-import { resolveOrganizer } from '@app/unraid-api/organizer/organizer.js';
+} from '@app/unraid-api/organizer/organizer.model.js';
 
 describe('Organizer Resolver', () => {
     test('should resolve a simple organizer structure', () => {

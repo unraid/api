@@ -7,11 +7,6 @@ import { DockerConfigService } from '@app/unraid-api/graph/resolvers/docker/dock
 import { DockerContainer } from '@app/unraid-api/graph/resolvers/docker/docker.model.js';
 import { DockerService } from '@app/unraid-api/graph/resolvers/docker/docker.service.js';
 import {
-    OrganizerContainerResource,
-    OrganizerV1,
-    ResolvedOrganizerV1,
-} from '@app/unraid-api/organizer/organizer.dto.js';
-import {
     addMissingResourcesToView,
     createFolderInView,
     DEFAULT_ORGANIZER_ROOT_ID,
@@ -19,6 +14,11 @@ import {
     resolveOrganizer,
     setFolderChildrenInView,
 } from '@app/unraid-api/organizer/organizer.js';
+import {
+    OrganizerContainerResource,
+    OrganizerV1,
+    ResolvedOrganizerV1,
+} from '@app/unraid-api/organizer/organizer.model.js';
 
 export function containerToResource(container: DockerContainer): OrganizerContainerResource {
     const stableRef = container.names[0] || container.image;

@@ -9,7 +9,7 @@ import {
     ResolvedOrganizerFolder,
     ResolvedOrganizerV1,
     ResolvedOrganizerView,
-} from '@app/unraid-api/organizer/organizer.dto.js';
+} from '@app/unraid-api/organizer/organizer.model.js';
 
 export const DEFAULT_ORGANIZER_VIEW_ID = 'default';
 export const DEFAULT_ORGANIZER_ROOT_ID = 'root';
