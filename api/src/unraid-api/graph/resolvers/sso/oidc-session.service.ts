@@ -1,5 +1,8 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { CACHE_MANAGER } from '@nestjs/cache-manager';
+import { Inject, Injectable, Logger } from '@nestjs/common';
 import { randomUUID } from 'node:crypto';
+
+import type { Cache } from 'cache-manager';
 
 export interface OidcSession {
     id: string;
@@ -12,10 +15,11 @@ export interface OidcSession {
 @Injectable()
 export class OidcSessionService {
     private readonly logger = new Logger(OidcSessionService.name);
-    private readonly sessions = new Map<string, OidcSession>();
-    private readonly SESSION_TTL_MS = 5 * 60 * 1000; // 5 minutes
+    private readonly SESSION_TTL_SECONDS = 5 * 60; // 5 minutes
 
-    createSession(providerId: string, providerUserId: string): string {
+    constructor(@Inject(CACHE_MANAGER) private readonly cacheManager: Cache) {}
+
+    async createSession(providerId: string, providerUserId: string): Promise<string> {
         const sessionId = randomUUID();
         const now = new Date();
 
@@ -24,41 +28,42 @@ export class OidcSessionService {
             providerId,
             providerUserId,
             createdAt: now,
-            expiresAt: new Date(now.getTime() + this.SESSION_TTL_MS),
+            expiresAt: new Date(now.getTime() + this.SESSION_TTL_SECONDS * 1000),
         };
 
-        this.sessions.set(sessionId, session);
+        // Store in cache with TTL
+        await this.cacheManager.set(sessionId, session, this.SESSION_TTL_SECONDS * 1000);
         this.logger.log(`Created OIDC session ${sessionId} for provider ${providerId}`);
-
-        // Schedule cleanup
-        setTimeout(() => {
-            this.sessions.delete(sessionId);
-            this.logger.debug(`Cleaned up expired session ${sessionId}`);
-        }, this.SESSION_TTL_MS);
 
         return this.createPaddedToken(sessionId);
     }
 
-    validateSession(token: string): { valid: boolean; username?: string } {
+    async validateSession(token: string): Promise<{ valid: boolean; username?: string }> {
         const sessionId = this.extractSessionId(token);
         if (!sessionId) {
             return { valid: false };
         }
 
-        const session = this.sessions.get(sessionId);
+        const session = await this.cacheManager.get<OidcSession>(sessionId);
         if (!session) {
             this.logger.debug(`Session ${sessionId} not found`);
             return { valid: false };
         }
 
         const now = new Date();
-        if (now > session.expiresAt) {
+        if (now > new Date(session.expiresAt)) {
             this.logger.debug(`Session ${sessionId} expired`);
-            this.sessions.delete(sessionId);
+            await this.cacheManager.del(sessionId);
             return { valid: false };
         }
 
-        this.logger.log(`Validated session ${sessionId} for provider ${session.providerId}`);
+        // Delete the session immediately after successful validation
+        // This ensures the token can only be validated once
+        await this.cacheManager.del(sessionId);
+
+        this.logger.log(
+            `Validated and invalidated session ${sessionId} for provider ${session.providerId} (one-time use)`
+        );
         return { valid: true, username: 'root' };
     }
 
