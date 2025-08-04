@@ -17,7 +17,7 @@ export default defineEventHandler(async (event) => {
 
   try {
     // Execute the Unraid API CLI command using command:raw to avoid build output
-    const cliCommand = `cd ../api && pnpm command:raw sso validate-token "${token}" 2>&1`;
+    const cliCommand = `cd ../api && pnpm command sso validate-token "${token}" 2>&1`;
     const { stdout, stderr } = await execAsync(cliCommand, { 
       timeout: 30000,
       env: { ...process.env, NODE_ENV: 'production' } // Suppress debug output

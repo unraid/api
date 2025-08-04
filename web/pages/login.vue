@@ -80,7 +80,7 @@ const executeCliCommand = async () => {
 </script>
 
 <template>
-  <div>
+  <div class="min-h-screen bg-gray-100 dark:bg-gray-900">
     <section id="login" class="shadow">
       <div class="logo angle">
         <div class="wordmark">
@@ -138,7 +138,7 @@ const executeCliCommand = async () => {
       <div class="space-y-6 p-4">
         <div>
           <h3 class="font-semibold mb-2 text-sm">Form Data Submitted:</h3>
-          <pre class="bg-muted p-3 rounded text-xs overflow-x-auto max-h-32 overflow-y-auto">{{ JSON.stringify(debugData, null, 2) }}</pre>
+          <pre class="bg-muted p-3 rounded text-xs overflow-x-auto max-h-32 overflow-y-auto whitespace-pre-wrap break-all">{{ JSON.stringify(debugData, null, 2) }}</pre>
         </div>
         
         <div class="border-t pt-4">
@@ -150,7 +150,8 @@ const executeCliCommand = async () => {
               v-model="cliToken"
               type="text"
               placeholder="Enter JWT or OIDC session token"
-              class="w-full"
+              class="w-full break-all overflow-hidden"
+              style="word-break: break-all; overflow-wrap: break-word;"
             />
             <Button
               :disabled="isExecutingCli"
@@ -163,7 +164,7 @@ const executeCliCommand = async () => {
           
           <div v-if="cliOutput" class="mt-4">
             <h4 class="font-semibold mb-2 text-sm">CLI Output:</h4>
-            <pre class="bg-muted p-3 rounded text-xs overflow-x-auto max-h-48 overflow-y-auto">{{ cliOutput }}</pre>
+            <pre class="bg-muted p-3 rounded text-xs overflow-x-auto max-h-48 overflow-y-auto whitespace-pre-wrap break-all">{{ cliOutput }}</pre>
           </div>
         </div>
       </div>
@@ -189,6 +190,11 @@ body {
   padding: 0;
   margin: 0;
 }
+
+:root.dark body {
+  background: #111827;
+  color: #f3f4f6;
+}
 a {
   text-transform: uppercase;
   font-weight: bold;
@@ -202,11 +208,22 @@ a:hover {
 h1 {
   font-size: 1.8em;
   margin: 0;
+  color: #111827;
 }
+
+:root.dark h1 {
+  color: #f3f4f6;
+}
+
 h2 {
   font-size: 0.8em;
   margin-top: 0;
   margin-bottom: 1.8em;
+  color: #374151;
+}
+
+:root.dark h2 {
+  color: #d1d5db;
 }
 .button {
   color: #ff8c2f;
@@ -262,15 +279,29 @@ h2 {
 textarea {
   font-family: clear-sans, sans-serif;
   font-size: 0.875rem;
-  background-color: #f2f2f2;
+  background-color: #f3f4f6;
+  color: #111827;
   width: 100%;
   margin-bottom: 1rem;
-  border: 2px solid #ccc;
+  border: 2px solid #d1d5db;
   padding: 0.75rem 1rem;
   -webkit-box-sizing: border-box;
   box-sizing: border-box;
   border-radius: 0;
   -webkit-appearance: none;
+}
+
+:root.dark [type='email'],
+:root.dark [type='number'],
+:root.dark [type='password'],
+:root.dark [type='search'],
+:root.dark [type='tel'],
+:root.dark [type='text'],
+:root.dark [type='url'],
+:root.dark textarea {
+  background-color: #1f2937;
+  color: #f3f4f6;
+  border-color: #4b5563;
 }
 [type='email']:active,
 [type='email']:focus,
@@ -302,6 +333,10 @@ textarea:focus {
   margin: 6rem auto;
   border-radius: 10px;
   background: #fff;
+}
+
+:root.dark #login {
+  background: #1f2937;
 }
 #login::after {
   content: '';
@@ -404,6 +439,10 @@ textarea:focus {
 @media (max-width: 500px) {
   body {
     background: #fff;
+  }
+  
+  :root.dark body {
+    background: #111827;
   }
   [type='email'],
   [type='number'],
