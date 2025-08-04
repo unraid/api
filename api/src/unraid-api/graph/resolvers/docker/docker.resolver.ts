@@ -105,4 +105,17 @@ export class DockerResolver {
         });
         return this.dockerOrganizerService.resolveOrganizer(organizer);
     }
+
+    @UsePermissions({
+        action: AuthActionVerb.UPDATE,
+        resource: Resource.DOCKER,
+        possession: AuthPossession.ANY,
+    })
+    @Mutation(() => ResolvedOrganizerV1)
+    public async deleteDockerEntries(@Args('entryIds', { type: () => [String] }) entryIds: string[]) {
+        const organizer = await this.dockerOrganizerService.deleteEntries({
+            entryIds: new Set(entryIds),
+        });
+        return this.dockerOrganizerService.resolveOrganizer(organizer);
+    }
 }

@@ -1874,6 +1874,7 @@ type Mutation {
   rclone: RCloneMutations!
   createDockerFolder(name: String!, parentId: String, childrenIds: [String!]): ResolvedOrganizerV1!
   setDockerFolderChildren(folderId: String, childrenIds: [String!]!): ResolvedOrganizerV1!
+  deleteDockerEntries(entryIds: [String!]!): ResolvedOrganizerV1!
 
   """Initiates a flash drive backup using a configured remote."""
   initiateFlashBackup(input: InitiateFlashBackupInput!): FlashBackupStatus!
