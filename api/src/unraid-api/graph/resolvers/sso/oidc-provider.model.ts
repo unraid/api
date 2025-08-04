@@ -1,7 +1,63 @@
-import { Field, InputType, ObjectType } from '@nestjs/graphql';
+import { Field, InputType, ObjectType, registerEnumType } from '@nestjs/graphql';
 
 import { PrefixedID } from '@unraid/shared/prefixed-id-scalar.js';
-import { IsArray, IsBoolean, IsNotEmpty, IsOptional, IsString, IsUrl } from 'class-validator';
+import { Type } from 'class-transformer';
+import {
+    IsArray,
+    IsBoolean,
+    IsEnum,
+    IsNotEmpty,
+    IsOptional,
+    IsString,
+    IsUrl,
+    ValidateNested,
+} from 'class-validator';
+
+export enum AuthorizationOperator {
+    EQUALS = 'equals',
+    CONTAINS = 'contains',
+    ENDS_WITH = 'endsWith',
+    STARTS_WITH = 'startsWith',
+}
+
+registerEnumType(AuthorizationOperator, {
+    name: 'AuthorizationOperator',
+    description: 'Operators for authorization rule matching',
+});
+
+@ObjectType()
+export class OidcAuthorizationRule {
+    @Field(() => String, { description: 'The claim to check (e.g., email, sub, groups, hd)' })
+    @IsString()
+    @IsNotEmpty()
+    claim!: string;
+
+    @Field(() => AuthorizationOperator, { description: 'The comparison operator' })
+    @IsEnum(AuthorizationOperator)
+    operator!: AuthorizationOperator;
+
+    @Field(() => [String], { description: 'The value(s) to match against' })
+    @IsArray()
+    @IsString({ each: true })
+    value!: string[];
+}
+
+@InputType()
+export class OidcAuthorizationRuleInput {
+    @Field(() => String, { description: 'The claim to check (e.g., email, sub, groups, hd)' })
+    @IsString()
+    @IsNotEmpty()
+    claim!: string;
+
+    @Field(() => AuthorizationOperator, { description: 'The comparison operator' })
+    @IsEnum(AuthorizationOperator)
+    operator!: AuthorizationOperator;
+
+    @Field(() => [String], { description: 'The value(s) to match against' })
+    @IsArray()
+    @IsString({ each: true })
+    value!: string[];
+}
 
 @ObjectType()
 export class OidcProvider {
@@ -67,10 +123,15 @@ export class OidcProvider {
     @IsString({ each: true })
     scopes!: string[];
 
-    @Field(() => [String], { description: 'List of authorized subject IDs allowed to authenticate' })
+    @Field(() => [OidcAuthorizationRule], {
+        nullable: true,
+        description: 'Flexible authorization rules based on claims',
+    })
     @IsArray()
-    @IsString({ each: true })
-    authorizedSubIds!: string[];
+    @ValidateNested({ each: true })
+    @Type(() => OidcAuthorizationRule)
+    @IsOptional()
+    authorizationRules?: OidcAuthorizationRule[];
 
     @Field(() => String, { nullable: true, description: 'Custom text for the login button' })
     @IsString()
@@ -176,10 +237,15 @@ export class OidcProviderInput {
     @IsString({ each: true })
     scopes!: string[];
 
-    @Field(() => [String], { description: 'List of authorized subject IDs allowed to authenticate' })
+    @Field(() => [OidcAuthorizationRuleInput], {
+        nullable: true,
+        description: 'Flexible authorization rules based on claims',
+    })
     @IsArray()
-    @IsString({ each: true })
-    authorizedSubIds!: string[];
+    @ValidateNested({ each: true })
+    @Type(() => OidcAuthorizationRuleInput)
+    @IsOptional()
+    authorizationRules?: OidcAuthorizationRuleInput[];
 
     @Field(() => String, { nullable: true, description: 'Custom text for the login button' })
     @IsString()

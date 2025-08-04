@@ -152,6 +152,14 @@ export default defineNuxtConfig({
       '/graphql': {
         target: 'http://localhost:3001',
         changeOrigin: true,
+        ws: true,
+        secure: false,
+        // Important: preserve the host header
+        headers: {
+          'X-Forwarded-Host': 'localhost:3000',
+          'X-Forwarded-Proto': 'http',
+          'X-Forwarded-For': '127.0.0.1',
+        },
       },
     },
   },

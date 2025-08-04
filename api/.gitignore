@@ -86,3 +86,8 @@ deploy/*
 # local api configs - don't need project-wide tracking
 dev/connectStatus.json
 dev/configs/*
+# local status - doesn't need to be tracked
+dev/connectStatus.json
+
+# local OIDC config for testing - contains secrets
+dev/configs/oidc.local.json

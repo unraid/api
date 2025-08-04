@@ -54,6 +54,22 @@ const isObjectArray = (schema: JsonSchema): boolean => {
   return schema.type === 'array' && items?.type === 'object';
 };
 
+const isStringOrAnyOfString = (schema: JsonSchema): boolean => {
+  if (!schema || typeof schema !== 'object' || Array.isArray(schema)) return false;
+  // Exclude enum fields - they should use select renderer
+  if (schema.enum) return false;
+  // Handle direct string type (but not enums)
+  if (schema.type === 'string') return true;
+  // Handle anyOf with all string types (for optional URL fields)
+  if (schema.anyOf && Array.isArray(schema.anyOf) && schema.anyOf.length === 2) {
+    // Check if it's the pattern we expect: [{type: 'string', minLength: 1}, {type: 'string', maxLength: 0}]
+    const hasMinLength = schema.anyOf.some((s: JsonSchema) => s.type === 'string' && s.minLength === 1);
+    const hasMaxLength = schema.anyOf.some((s: JsonSchema) => s.type === 'string' && s.maxLength === 0);
+    return hasMinLength && hasMaxLength;
+  }
+  return false;
+};
+
 export const jsonFormsRenderers: JsonFormsRendererRegistryEntry[] = [
   // Layouts
   {
@@ -83,15 +99,19 @@ export const jsonFormsRenderers: JsonFormsRendererRegistryEntry[] = [
   },
   {
     renderer: markRaw(withErrorWrapper(selectRenderer)),
-    tester: rankWith(4, and(isEnumControl)),
+    tester: rankWith(6, isEnumControl),
   },
   {
     renderer: markRaw(withErrorWrapper(comboBoxRenderer)),
-    tester: rankWith(4, and(isControl, optionIs('format', 'combobox'))),
+    tester: rankWith(5, and(isControl, optionIs('format', 'combobox'))),
   },
   {
     renderer: markRaw(withErrorWrapper(numberFieldRenderer)),
     tester: rankWith(4, or(isNumberControl, isIntegerControl)),
+  },
+  {
+    renderer: markRaw(withErrorWrapper(inputFieldRenderer)),
+    tester: rankWith(4, and(isControl, schemaMatches(isStringOrAnyOfString))),
   },
   {
     renderer: markRaw(withErrorWrapper(inputFieldRenderer)),

@@ -79,27 +79,18 @@ export function useSsoAuth() {
       const search = new URLSearchParams(window.location.search);
       const code = search.get('code') ?? '';
       const state = search.get('state') ?? '';
-      const ssoError = search.get('sso_error') ?? '';
-      const oidcError = search.get('oidc_error') ?? '';
+      const errorParam = search.get('error') ?? '';
       const sessionState = getStateToken();
 
-      // Check for SSO error parameter
-      if (ssoError || oidcError) {
+      // Check for error parameter
+      if (errorParam) {
         currentState.value = 'error';
-        // Map common SSO errors to user-friendly messages with translation support
-        const errorMap: Record<string, string> = {
-          'invalid_credentials': t('Invalid credentials'),
-          'user_not_authorized': t('This account is not authorized to access this server'),
-          'sso_disabled': t('SSO login is not enabled on this server'),
-          'token_expired': t('Login session expired. Please try again'),
-          'network_error': t('Network error. Please check your connection'),
-          'provider_error': t('Authentication provider error. Please try again'),
-        };
-        error.value = errorMap[ssoError || oidcError] || t('SSO login failed. Please try again');
+        // Use the error parameter directly from the backend
+        error.value = errorParam;
+        
         // Clean up the URL
         const url = new URL(window.location.href);
-        url.searchParams.delete('sso_error');
-        url.searchParams.delete('oidc_error');
+        url.searchParams.delete('error');
         window.history.replaceState({}, document.title, url.pathname + url.search);
         return;
       }

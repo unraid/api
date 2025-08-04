@@ -385,6 +385,14 @@ export enum AuthPossession {
   OWN_ANY = 'OWN_ANY'
 }
 
+/** Operators for authorization rule matching */
+export enum AuthorizationOperator {
+  CONTAINS = 'CONTAINS',
+  ENDS_WITH = 'ENDS_WITH',
+  EQUALS = 'EQUALS',
+  STARTS_WITH = 'STARTS_WITH'
+}
+
 export type Baseboard = Node & {
   __typename?: 'Baseboard';
   assetTag?: Maybe<Scalars['String']['output']>;
@@ -1143,12 +1151,31 @@ export type NotificationsListArgs = {
   filter: NotificationFilter;
 };
 
+export type OidcAuthorizationRule = {
+  __typename?: 'OidcAuthorizationRule';
+  /** The claim to check (e.g., email, sub, groups, hd) */
+  claim: Scalars['String']['output'];
+  /** The comparison operator */
+  operator: AuthorizationOperator;
+  /** The value(s) to match against */
+  value: Array<Scalars['String']['output']>;
+};
+
+export type OidcAuthorizationRuleInput = {
+  /** The claim to check (e.g., email, sub, groups, hd) */
+  claim: Scalars['String']['input'];
+  /** The comparison operator */
+  operator: AuthorizationOperator;
+  /** The value(s) to match against */
+  value: Array<Scalars['String']['input']>;
+};
+
 export type OidcProvider = {
   __typename?: 'OidcProvider';
   /** OAuth2 authorization endpoint URL. If omitted, will be auto-discovered from issuer/.well-known/openid-configuration */
   authorizationEndpoint?: Maybe<Scalars['String']['output']>;
-  /** List of authorized subject IDs allowed to authenticate */
-  authorizedSubIds: Array<Scalars['String']['output']>;
+  /** Flexible authorization rules based on claims */
+  authorizationRules?: Maybe<Array<OidcAuthorizationRule>>;
   /** URL or base64 encoded icon for the login button */
   buttonIcon?: Maybe<Scalars['String']['output']>;
   /** Custom CSS styles for the button (e.g., "background: linear-gradient(to right, #4f46e5, #7c3aed); border-radius: 9999px;") */
@@ -1180,8 +1207,8 @@ export type OidcProvider = {
 export type OidcProviderInput = {
   /** OAuth2 authorization endpoint URL. If omitted, will be auto-discovered from issuer/.well-known/openid-configuration */
   authorizationEndpoint?: InputMaybe<Scalars['String']['input']>;
-  /** List of authorized subject IDs allowed to authenticate */
-  authorizedSubIds: Array<Scalars['String']['input']>;
+  /** Flexible authorization rules based on claims */
+  authorizationRules?: InputMaybe<Array<OidcAuthorizationRuleInput>>;
   /** URL or base64 encoded icon for the login button */
   buttonIcon?: InputMaybe<Scalars['String']['input']>;
   /** Custom CSS styles for the button (e.g., "background: linear-gradient(to right, #4f46e5, #7c3aed); border-radius: 9999px;") */

@@ -73,12 +73,18 @@ const elementLabelProp = computed(() => {
   return (options?.elementLabelProp as string) ?? 'name';
 });
 
+// Get the item type name (e.g., "Provider", "Rule", etc.)
+const itemTypeName = computed(() => {
+  const options = control.value.uischema?.options as Record<string, unknown> | undefined;
+  return (options?.itemTypeName as string) ?? 'Provider';
+});
+
 const getItemLabel = (item: unknown, index: number) => {
   if (item && typeof item === 'object' && item !== null && elementLabelProp.value in item) {
     const itemObj = item as Record<string, unknown>;
-    return String(itemObj[elementLabelProp.value] || `Provider ${index + 1}`);
+    return String(itemObj[elementLabelProp.value] || `${itemTypeName.value} ${index + 1}`);
   }
-  return `Provider ${index + 1}`;
+  return `${itemTypeName.value} ${index + 1}`;
 };
 
 const addItem = () => {
@@ -181,10 +187,10 @@ const updateItem = (index: number, newValue: unknown) => {
     </Tabs>
 
     <div v-else class="text-center py-8 border-2 border-dashed rounded-lg">
-      <p class="text-muted-foreground mb-4">No providers configured</p>
+      <p class="text-muted-foreground mb-4">No {{ itemTypeName.toLowerCase() }}s configured</p>
       <Button variant="outline" size="md" :disabled="!control.enabled" @click="addItem">
         <Plus class="h-4 w-4 mr-2" />
-        Add First Provider
+        Add First {{ itemTypeName }}
       </Button>
     </div>
   </div>
