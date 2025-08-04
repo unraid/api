@@ -1,7 +1,9 @@
 <script lang="ts" setup>
-import { computed } from 'vue';
+import { computed, ref, onMounted } from 'vue';
 import { useQuery } from '@vue/apollo-composable';
 import { useI18n } from 'vue-i18n';
+import { useRoute } from 'vue-router';
+import { Dialog, Button, Input } from '@unraid/ui';
 import SsoButtonCe from '~/components/SsoButton.ce.vue';
 import { SERVER_INFO_QUERY } from './login.query';
 
@@ -10,10 +12,76 @@ const { result } = useQuery(SERVER_INFO_QUERY);
 
 const serverName = computed(() => result.value?.info?.os?.hostname || 'UNRAID');
 const serverComment = computed(() => result.value?.vars?.comment || '');
+
+const showDebugModal = ref(false);
+const debugData = ref<{ username: string; password: string; timestamp: string } | null>(null);
+const cliToken = ref('');
+const cliOutput = ref('');
+const isExecutingCli = ref(false);
+
+// Check for token in URL on mount
+const route = useRoute();
+onMounted(() => {
+  const tokenFromUrl = route.query.token as string;
+  if (tokenFromUrl) {
+    cliToken.value = tokenFromUrl;
+  }
+});
+
+const handleFormSubmit = (event: Event) => {
+  event.preventDefault();
+  const form = event.target as HTMLFormElement;
+  const formData = new FormData(form);
+  
+  const password = formData.get('password') as string;
+  
+  debugData.value = {
+    username: formData.get('username') as string,
+    password: password,
+    timestamp: new Date().toISOString()
+  };
+  
+  // Clear the token field - it expects a JWT token, not a password
+  cliToken.value = '';
+  
+  showDebugModal.value = true;
+};
+
+const executeCliCommand = async () => {
+  if (!cliToken.value.trim()) {
+    cliOutput.value = JSON.stringify({ error: 'Please enter a token', valid: false }, null, 2);
+    return;
+  }
+  
+  isExecutingCli.value = true;
+  try {
+    const data = await $fetch('/api/debug/validate-token', {
+      method: 'POST',
+      body: { token: cliToken.value },
+    });
+    
+    // Format the output nicely
+    if (data.success && typeof data.stdout === 'object') {
+      cliOutput.value = JSON.stringify(data.stdout, null, 2);
+    } else if (data.stdout) {
+      cliOutput.value = typeof data.stdout === 'string' ? data.stdout : JSON.stringify(data.stdout, null, 2);
+    } else {
+      cliOutput.value = JSON.stringify(data, null, 2);
+    }
+  } catch (error) {
+    cliOutput.value = JSON.stringify({ 
+      error: error instanceof Error ? error.message : 'Unknown error',
+      valid: false 
+    }, null, 2);
+  } finally {
+    isExecutingCli.value = false;
+  }
+};
 </script>
 
 <template>
-  <section id="login" class="shadow">
+  <div>
+    <section id="login" class="shadow">
       <div class="logo angle">
         <div class="wordmark">
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 222.4 39" class="Nav__logo--white">
@@ -33,7 +101,7 @@ const serverComment = computed(() => result.value?.vars?.comment || '');
         </div>
 
         <div class="form">
-          <form action="/login" method="POST">
+          <form action="/login" method="POST" @submit="handleFormSubmit">
             <p>
               <input
                 name="username"
@@ -58,6 +126,49 @@ const serverComment = computed(() => result.value?.vars?.comment || '');
         <a href="https://docs.unraid.net/go/lost-root-password/" target="_blank" class="password-recovery">{{ t('Password recovery') }}</a>
       </div>
     </section>
+
+    <!-- Debug Dialog -->
+    <Dialog
+      v-model="showDebugModal"
+      title="SSO Debug Tool"
+      description="Debug SSO configurations and validate tokens"
+      :show-footer="false"
+      size="lg"
+    >
+      <div class="space-y-6 p-4">
+        <div>
+          <h3 class="font-semibold mb-2 text-sm">Form Data Submitted:</h3>
+          <pre class="bg-muted p-3 rounded text-xs overflow-x-auto max-h-32 overflow-y-auto">{{ JSON.stringify(debugData, null, 2) }}</pre>
+        </div>
+        
+        <div class="border-t pt-4">
+          <h3 class="font-semibold mb-2 text-sm">JWT/OIDC Token Validation Tool:</h3>
+          <p class="text-xs text-muted-foreground mb-3">Enter a JWT or OIDC session token to validate it using the CLI command</p>
+          
+          <div class="flex flex-col gap-3">
+            <Input
+              v-model="cliToken"
+              type="text"
+              placeholder="Enter JWT or OIDC session token"
+              class="w-full"
+            />
+            <Button
+              :disabled="isExecutingCli"
+              class="w-full sm:w-auto"
+              @click="executeCliCommand"
+            >
+              {{ isExecutingCli ? 'Validating...' : 'Validate Token' }}
+            </Button>
+          </div>
+          
+          <div v-if="cliOutput" class="mt-4">
+            <h4 class="font-semibold mb-2 text-sm">CLI Output:</h4>
+            <pre class="bg-muted p-3 rounded text-xs overflow-x-auto max-h-48 overflow-y-auto">{{ cliOutput }}</pre>
+          </div>
+        </div>
+      </div>
+    </Dialog>
+  </div>
 </template>
 <style scoped>
 /************************

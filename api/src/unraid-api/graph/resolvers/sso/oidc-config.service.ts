@@ -47,6 +47,8 @@ export class OidcConfigPersistence extends ConfigFilePersister<OidcConfig> {
             authorizedSubIds: [],
             buttonText: 'Login With Unraid.net',
             buttonIcon: undefined,
+            buttonVariant: 'primary',
+            buttonStyle: undefined,
         };
     }
 
@@ -208,6 +210,19 @@ export class OidcConfigPersistence extends ConfigFilePersister<OidcConfig> {
                                 format: 'uri',
                                 description: 'URL or base64 encoded icon for the login button',
                             },
+                            buttonVariant: {
+                                type: 'string',
+                                title: 'Button Style',
+                                description:
+                                    'Button variant style from Reka UI. See https://reka-ui.com/docs/components/button',
+                                default: 'outline',
+                            },
+                            buttonStyle: {
+                                type: 'string',
+                                title: 'Custom CSS Styles',
+                                description:
+                                    'Custom inline CSS styles for the button (e.g., "background: linear-gradient(to right, #4f46e5, #7c3aed); border-radius: 9999px;")',
+                            },
                         },
                         required: ['id', 'name', 'clientId', 'issuer'],
                     },
@@ -327,6 +342,24 @@ export class OidcConfigPersistence extends ConfigFilePersister<OidcConfig> {
                                     description: 'Icon URL or base64 data URI (optional)',
                                     controlOptions: {
                                         inputType: 'url',
+                                    },
+                                }),
+                                createLabeledControl({
+                                    scope: '#/properties/buttonVariant',
+                                    label: 'Button Style:',
+                                    description: 'Visual style of the login button',
+                                    controlOptions: {
+                                        format: 'select',
+                                    },
+                                }),
+                                createLabeledControl({
+                                    scope: '#/properties/buttonStyle',
+                                    label: 'Custom CSS Styles:',
+                                    description:
+                                        'Inline CSS styles for custom button appearance. Examples: "background: linear-gradient(45deg, #667eea, #764ba2); box-shadow: 0 4px 6px rgba(0,0,0,0.1);" for gradient with shadow',
+                                    controlOptions: {
+                                        inputType: 'text',
+                                        placeholder: 'border-radius: 9999px; text-transform: none;',
                                     },
                                 }),
                             ],

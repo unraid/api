@@ -125,6 +125,7 @@
         "nestjs-pino": "4.4.0",
         "node-cache": "5.1.2",
         "node-window-polyfill": "1.0.4",
+        "openid-client": "^6.6.2",
         "p-retry": "6.2.1",
         "passport-custom": "1.1.1",
         "passport-http-header-strategy": "1.1.0",

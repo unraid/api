@@ -148,9 +148,15 @@ export default defineNuxtConfig({
         dir: assetsDir,
       },
     ],
+    devProxy: {
+      '/graphql': {
+        target: 'http://localhost:3001',
+        changeOrigin: true,
+      },
+    },
   },
   devServer: {
-    port: 4321,
+    port: 3000,
   },
 
   css: ['@/assets/main.css'],

@@ -3,6 +3,7 @@ import { createLocalJWKSet, createRemoteJWKSet, jwtVerify } from 'jose';
 import { CommandRunner, SubCommand } from 'nest-commander';
 
 import { JWKS_LOCAL_PAYLOAD, JWKS_REMOTE_LINK } from '@app/consts.js';
+import { gql } from '@app/unraid-api/cli/generated/index.js';
 import { CliInternalClientService } from '@app/unraid-api/cli/internal-client.service.js';
 import { LogService } from '@app/unraid-api/cli/log.service.js';
 import { SSO_USERS_QUERY } from '@app/unraid-api/cli/queries/sso-users.query.js';
@@ -46,8 +47,19 @@ export class ValidateTokenCommand extends CommandRunner {
             this.createErrorAndExit('Invalid token provided');
         }
 
-        if (!/^[A-Za-z0-9-_]+\.[A-Za-z0-9-_]+\.[A-Za-z0-9-_]+$/.test(token)) {
+        // Check if token meets the JWT format or OIDC session format
+        const isJwtFormat = /^[A-Za-z0-9-_]+\.[A-Za-z0-9-_]+\.[A-Za-z0-9-_]+$/.test(token);
+
+        if (!isJwtFormat) {
             this.createErrorAndExit('Token format is invalid');
+        }
+
+        // Check if this is an OIDC session token
+        const isOidcToken = token.includes('OIDC-SESSION-');
+
+        if (isOidcToken) {
+            await this.validateOidcToken(token);
+            return;
         }
 
         let caughtError: null | unknown = null;
@@ -108,6 +120,48 @@ export class ValidateTokenCommand extends CommandRunner {
             process.exit(0);
         } else {
             this.createErrorAndExit('Username on token does not match');
+        }
+    }
+
+    private async validateOidcToken(token: string): Promise<void> {
+        const client = await this.internalClient.getClient();
+
+        const VALIDATE_OIDC_SESSION_QUERY = gql(`
+            query ValidateOidcSession($token: String!) {
+                validateOidcSession(token: $token) {
+                    valid
+                    username
+                }
+            }
+        `);
+
+        let result;
+        try {
+            result = await client.query({
+                query: VALIDATE_OIDC_SESSION_QUERY,
+                variables: { token },
+            });
+        } catch (error) {
+            this.createErrorAndExit('Failed to validate OIDC session');
+        }
+
+        if (result.errors && result.errors.length > 0) {
+            this.createErrorAndExit('Failed to validate OIDC session token');
+        }
+
+        const validation = result.data?.validateOidcSession;
+
+        if (validation?.valid) {
+            this.logger.always(
+                JSON.stringify({
+                    error: null,
+                    valid: true,
+                    username: validation.username || 'root',
+                })
+            );
+            process.exit(0);
+        } else {
+            this.createErrorAndExit('Invalid OIDC session token');
         }
     }
 }
