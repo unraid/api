@@ -1872,6 +1872,8 @@ type Mutation {
   parityCheck: ParityCheckMutations!
   apiKey: ApiKeyMutations!
   rclone: RCloneMutations!
+  createDockerFolder(name: String!, parentId: String, childrenIds: [String!]): ResolvedOrganizerV1!
+  setDockerFolderChildren(folderId: String, childrenIds: [String!]!): ResolvedOrganizerV1!
 
   """Initiates a flash drive backup using a configured remote."""
   initiateFlashBackup(input: InitiateFlashBackupInput!): FlashBackupStatus!

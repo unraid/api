@@ -1,4 +1,4 @@
-import { Args, Query, ResolveField, Resolver } from '@nestjs/graphql';
+import { Args, Mutation, Query, ResolveField, Resolver } from '@nestjs/graphql';
 
 import { Resource } from '@unraid/shared/graphql.model.js';
 import {
@@ -14,7 +14,8 @@ import {
     DockerNetwork,
 } from '@app/unraid-api/graph/resolvers/docker/docker.model.js';
 import { DockerService } from '@app/unraid-api/graph/resolvers/docker/docker.service.js';
-import { ResolvedOrganizerV1 } from '@app/unraid-api/organizer/organizer.dto.js';
+import { DEFAULT_ORGANIZER_ROOT_ID } from '@app/unraid-api/organizer/organizer.js';
+import { OrganizerV1, ResolvedOrganizerV1 } from '@app/unraid-api/organizer/organizer.model.js';
 
 @Resolver(() => Docker)
 export class DockerResolver {
@@ -66,6 +67,42 @@ export class DockerResolver {
     })
     @ResolveField(() => ResolvedOrganizerV1)
     public async organizer() {
-        return this.dockerOrganizerService.getResolvedOrganizer();
+        return this.dockerOrganizerService.resolveOrganizer();
+    }
+
+    @UsePermissions({
+        action: AuthActionVerb.UPDATE,
+        resource: Resource.DOCKER,
+        possession: AuthPossession.ANY,
+    })
+    @Mutation(() => ResolvedOrganizerV1)
+    public async createDockerFolder(
+        @Args('name') name: string,
+        @Args('parentId', { nullable: true }) parentId?: string,
+        @Args('childrenIds', { type: () => [String], nullable: true }) childrenIds?: string[]
+    ) {
+        const organizer = await this.dockerOrganizerService.createFolder({
+            name,
+            parentId: parentId ?? DEFAULT_ORGANIZER_ROOT_ID,
+            childrenIds: childrenIds ?? [],
+        });
+        return this.dockerOrganizerService.resolveOrganizer(organizer);
+    }
+
+    @UsePermissions({
+        action: AuthActionVerb.UPDATE,
+        resource: Resource.DOCKER,
+        possession: AuthPossession.ANY,
+    })
+    @Mutation(() => ResolvedOrganizerV1)
+    public async setDockerFolderChildren(
+        @Args('folderId', { nullable: true, type: () => String }) folderId: string | undefined,
+        @Args('childrenIds', { type: () => [String] }) childrenIds: string[]
+    ) {
+        const organizer = await this.dockerOrganizerService.setFolderChildren({
+            folderId: folderId ?? DEFAULT_ORGANIZER_ROOT_ID,
+            childrenIds,
+        });
+        return this.dockerOrganizerService.resolveOrganizer(organizer);
     }
 }

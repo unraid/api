@@ -2,7 +2,7 @@ import {
     createValidationProcessor,
     ResultInterpreters,
 } from '@app/core/utils/validation/validation-processor.js';
-import { OrganizerView } from '@app/unraid-api/organizer/organizer.dto.js';
+import { OrganizerView } from '@app/unraid-api/organizer/organizer.model.js';
 
 /**========================================================================
  *                   Health of individual entries (graph-nodes)

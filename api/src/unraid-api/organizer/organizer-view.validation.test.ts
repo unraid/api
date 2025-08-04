@@ -13,7 +13,7 @@ import {
     OrganizerFolder,
     OrganizerResourceRef,
     OrganizerView,
-} from '@app/unraid-api/organizer/organizer.dto.js';
+} from '@app/unraid-api/organizer/organizer.model.js';
 
 // Helper functions to create test data
 function createFolder(id: string, name: string, children: string[] = []): OrganizerFolder {

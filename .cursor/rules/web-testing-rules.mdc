@@ -4,6 +4,10 @@ globs: **/*.test.ts,**/__test__/components/**/*.ts,**/__test__/store/**/*.ts,**/
 alwaysApply: false
 ---
 
+## General Testing Best Practices
+- **Error Testing:** Use `.rejects.toThrow()` without arguments to test that functions throw errors. Don't test exact error message strings unless the message format is specifically what you're testing
+- **Focus on Behavior:** Test what the code does, not implementation details like exact error message wording
+
 ## Vue Component Testing Best Practices
 - This is a Nuxt.js app but we are testing with vitest outside of the Nuxt environment
 - Nuxt is currently set to auto import so some vue files may need compute or ref imported

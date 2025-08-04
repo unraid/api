@@ -9,7 +9,10 @@ import {
     ResolvedOrganizerFolder,
     ResolvedOrganizerV1,
     ResolvedOrganizerView,
-} from '@app/unraid-api/organizer/organizer.dto.js';
+} from '@app/unraid-api/organizer/organizer.model.js';
+
+export const DEFAULT_ORGANIZER_VIEW_ID = 'default';
+export const DEFAULT_ORGANIZER_ROOT_ID = 'root';
 
 export function resourceToResourceRef(
     resource: AnyOrganizerResource,
@@ -152,4 +155,79 @@ export function resolveOrganizer(organizer: OrganizerV1): ResolvedOrganizerV1 {
         version: 1,
         views: resolvedViews,
     };
+}
+
+export interface CreateFolderInViewParams {
+    view: OrganizerView;
+    folderId: string;
+    folderName: string;
+    parentId: string;
+    childrenIds?: string[];
+}
+
+/**
+ * Creates a new folder in a view and adds it to the parent folder's children.
+ * This is a pure function that returns a new view object without modifying the original.
+ *
+ * @param params - Parameters for creating the folder
+ * @returns A new view object with the folder added
+ */
+export function createFolderInView(params: CreateFolderInViewParams): OrganizerView {
+    const { view, folderId, folderName, parentId, childrenIds = [] } = params;
+    const newView = structuredClone(view);
+
+    // Create the new folder
+    const newFolder: OrganizerFolder = {
+        id: folderId,
+        type: 'folder',
+        name: folderName,
+        children: childrenIds,
+    };
+
+    // Add folder to entries
+    newView.entries[folderId] = newFolder;
+
+    // Add to parent's children
+    const parentEntry = newView.entries[parentId] as OrganizerFolder;
+    parentEntry.children = [...parentEntry.children, folderId];
+
+    return newView;
+}
+
+export interface SetFolderChildrenInViewParams {
+    view: OrganizerView;
+    folderId: string;
+    childrenIds: string[];
+    resources?: OrganizerV1['resources'];
+}
+
+/**
+ * Updates a folder's children list in a view.
+ * This is a pure function that returns a new view object without modifying the original.
+ *
+ * @param params - Parameters for updating the folder's children
+ * @returns A new view object with the folder's children updated
+ */
+export function setFolderChildrenInView(params: SetFolderChildrenInViewParams): OrganizerView {
+    const { view, folderId, childrenIds, resources } = params;
+    const newView = structuredClone(view);
+
+    // Update the folder's children
+    const folder = newView.entries[folderId] as OrganizerFolder;
+    folder.children = childrenIds;
+
+    // If resources are provided, create refs for any resources not already in entries
+    if (resources) {
+        for (const childId of childrenIds) {
+            if (!newView.entries[childId] && resources[childId]) {
+                newView.entries[childId] = {
+                    id: childId,
+                    type: 'ref',
+                    target: childId,
+                };
+            }
+        }
+    }
+
+    return newView;
 }

@@ -10,4 +10,5 @@ alwaysApply: false
 * Test suite is VITEST, do not use jest
 pnpm --filter ./api test
 * Prefer to not mock simple dependencies
+* For error testing, use `.rejects.toThrow()` without arguments - don't test exact error message strings unless the message format is specifically what you're testing
 
