@@ -231,3 +231,150 @@ export function setFolderChildrenInView(params: SetFolderChildrenInViewParams): 
 
     return newView;
 }
+
+/**
+ * Recursively collects all descendants of an entry in an organizer view.
+ *
+ * **IMPORTANT: The returned set includes the starting `entryId` as well, not just its descendants.**
+ *
+ * This function performs a depth-first traversal of the organizer hierarchy, collecting
+ * all reachable entry IDs starting from the given entry. It handles various edge cases
+ * gracefully and prevents infinite loops in circular structures.
+ *
+ * @param view - The organizer view containing the entry definitions
+ * @param entryId - The ID of the entry to start collection from
+ * @param collection - Optional existing Set to add results to. If provided, this Set
+ *   will be modified in-place and returned.
+ * @returns A Set containing the entryId and all its descendants
+ *
+ * @example
+ * ```typescript
+ * // Basic usage - collects entry and all descendants
+ * const descendants = collectDescendants(view, 'folder1');
+ * // descendants contains 'folder1' plus all nested children
+ *
+ * // Using existing collection
+ * const existing = new Set(['other-item']);
+ * const result = collectDescendants(view, 'folder1', existing);
+ * // result === existing (same Set object, modified in-place)
+ * ```
+ *
+ * @remarks
+ * **Behavior and Edge Cases:**
+ *
+ * - **Self-inclusion**: The starting `entryId` is always included in the result set
+ * - **Cycle detection**: Automatically prevents infinite loops when entries reference themselves
+ *   or create circular dependencies. Each entry ID is only processed once.
+ * - **Missing entries**: If `entryId` doesn't exist in the view, returns an empty set (or
+ *   the provided collection unchanged)
+ * - **Broken references**: If a folder's children array contains IDs that don't exist in the
+ *   view, those missing children are silently skipped without errors
+ * - **Resource refs**: Entries with `type: 'ref'` are treated as leaf nodes - they are
+ *   collected but don't traverse further (as they have no children)
+ * - **Empty folders**: Folders with no children are still collected and returned
+ * - **Collection mutation**: If a collection parameter is provided, it is modified in-place
+ *   rather than creating a new Set
+ * - **Traversal order**: Uses depth-first traversal, processing folders before their children.
+ *   The Set maintains insertion order, so parent entries appear before their descendants.
+ *
+ * **Performance:** O(n) where n is the number of reachable entries. Each entry is visited
+ * at most once due to the cycle detection mechanism.
+ */
+export function collectDescendants(
+    view: OrganizerView,
+    entryId: string,
+    collection?: Set<string>
+): Set<string> {
+    collection ??= new Set<string>();
+    const entry = view.entries[entryId];
+    if (!entry || collection.has(entryId)) return collection;
+
+    collection.add(entryId);
+    if (entry.type === 'folder') {
+        for (const childId of entry.children) {
+            collectDescendants(view, childId, collection);
+        }
+    }
+    return collection;
+}
+
+/**
+ * Deletes entries from an organizer view along with all their descendants.
+ *
+ * This function performs a cascading deletion - when you delete a folder, all of its
+ * nested children (folders and resource references) are also deleted. The function
+ * automatically handles cleanup by removing deleted entry references from all parent
+ * folders throughout the view.
+ *
+ * @param view - The organizer view to delete entries from
+ * @param entryIds - Set of entry IDs to delete (folders and/or resource refs)
+ * @param opts - Options object
+ * @param opts.mutate - If true, modifies the original view in-place. If false (default),
+ *   returns a new cloned view with deletions applied
+ * @returns The modified organizer view (original if mutate=true, clone if mutate=false)
+ *
+ * @example
+ * ```typescript
+ * // Delete multiple entries (returns new view)
+ * const updatedView = deleteOrganizerEntries(view, new Set(['folder1', 'resource2']));
+ *
+ * // Delete in-place (mutates original view)
+ * const sameView = deleteOrganizerEntries(view, new Set(['folder1']), { mutate: true });
+ * ```
+ *
+ * @remarks
+ * **Important Behaviors:**
+ *
+ * - **Cascading deletion**: Deleting a folder automatically deletes all its descendants
+ *   (nested folders and resource references). Use `collectDescendants()` first if you
+ *   need to know what will be deleted.
+ *
+ * - **Reference cleanup**: Removes deleted entry IDs from ALL folder children arrays
+ *   throughout the view, not just direct parents. This handles cases where entries
+ *   are referenced by multiple folders.
+ *
+ * - **Circular reference safe**: Handles circular folder structures without infinite
+ *   loops thanks to the underlying `collectDescendants()` function.
+ *
+ * - **Graceful handling**: Non-existent entry IDs are silently ignored. Empty deletion
+ *   sets are handled without errors.
+ *
+ * - **Immutability control**: By default creates a new view object (`mutate=false`).
+ *   Set `mutate=true` only when you want to modify the original view in-place.
+ *
+ * **Performance**: O(n*m) where n is the number of entries in the view and m is the
+ * average number of children per folder, due to the reference cleanup step.
+ */
+export function deleteOrganizerEntries(
+    view: OrganizerView,
+    entryIds: Set<string>,
+    opts: {
+        mutate?: boolean;
+        descendantCollector?: (
+            view: OrganizerView,
+            entryId: string,
+            collection?: Set<string>
+        ) => Set<string>;
+    } = {}
+): OrganizerView {
+    const { descendantCollector = collectDescendants } = opts;
+    // Stage entries for deletion
+    const toDelete = new Set<string>();
+    for (const entryId of entryIds) {
+        descendantCollector(view, entryId, toDelete);
+    }
+
+    const newView = opts.mutate ? view : structuredClone(view);
+    // Remove references from parent folders
+    Object.values(newView.entries).forEach((entry) => {
+        if (entry.type === 'folder') {
+            entry.children = entry.children.filter((childId) => !toDelete.has(childId));
+        }
+    });
+
+    // Delete entries
+    for (const entryId of toDelete) {
+        delete newView.entries[entryId];
+    }
+    return newView;
+}
