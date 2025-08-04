@@ -1,12 +1,8 @@
-import type { JWTPayload } from 'jose';
-import { createLocalJWKSet, createRemoteJWKSet, jwtVerify } from 'jose';
 import { CommandRunner, SubCommand } from 'nest-commander';
 
-import { JWKS_LOCAL_PAYLOAD, JWKS_REMOTE_LINK } from '@app/consts.js';
-import { gql } from '@app/unraid-api/cli/generated/index.js';
 import { CliInternalClientService } from '@app/unraid-api/cli/internal-client.service.js';
 import { LogService } from '@app/unraid-api/cli/log.service.js';
-import { SSO_USERS_QUERY } from '@app/unraid-api/cli/queries/sso-users.query.js';
+import { VALIDATE_OIDC_SESSION_QUERY } from '@app/unraid-api/cli/queries/validate-oidc-session.query.js';
 
 @SubCommand({
     name: 'validate-token',
@@ -15,15 +11,11 @@ import { SSO_USERS_QUERY } from '@app/unraid-api/cli/queries/sso-users.query.js'
     arguments: '<token>',
 })
 export class ValidateTokenCommand extends CommandRunner {
-    JWKSOffline: ReturnType<typeof createLocalJWKSet>;
-    JWKSOnline: ReturnType<typeof createRemoteJWKSet>;
     constructor(
         private readonly logger: LogService,
         private readonly internalClient: CliInternalClientService
     ) {
         super();
-        this.JWKSOffline = createLocalJWKSet(JWKS_LOCAL_PAYLOAD);
-        this.JWKSOnline = createRemoteJWKSet(new URL(JWKS_REMOTE_LINK));
     }
 
     private createErrorAndExit = (errorMessage: string) => {
@@ -47,121 +39,40 @@ export class ValidateTokenCommand extends CommandRunner {
             this.createErrorAndExit('Invalid token provided');
         }
 
-        // Check if token meets the JWT format or OIDC session format
-        const isJwtFormat = /^[A-Za-z0-9-_]+\.[A-Za-z0-9-_]+\.[A-Za-z0-9-_]+$/.test(token);
-
-        if (!isJwtFormat) {
-            this.createErrorAndExit('Token format is invalid');
-        }
-
-        // Check if this is an OIDC session token
-        const isOidcToken = token.includes('OIDC-SESSION-');
-
-        if (isOidcToken) {
-            await this.validateOidcToken(token);
-            return;
-        }
-
-        let caughtError: null | unknown = null;
-        let tokenPayload: null | JWTPayload = null;
-        try {
-            // this.logger.debug('Attempting to validate token with local key');
-            tokenPayload = (await jwtVerify(token, this.JWKSOffline)).payload;
-        } catch (error: unknown) {
-            try {
-                // this.logger.debug('Local validation failed for key, trying remote validation');
-                tokenPayload = (await jwtVerify(token, this.JWKSOnline)).payload;
-            } catch (error: unknown) {
-                caughtError = error;
-            }
-        }
-
-        if (caughtError) {
-            if (caughtError instanceof Error) {
-                this.createErrorAndExit(`Caught error validating jwt token: ${caughtError.message}`);
-            } else {
-                this.createErrorAndExit('Caught unknown error validating jwt token');
-            }
-        }
-
-        if (tokenPayload === null) {
-            this.createErrorAndExit('No data in JWT to use for user validation');
-        }
-
-        const username = tokenPayload?.sub;
-
-        if (!username) {
-            return this.createErrorAndExit('No ID found in token');
-        }
-        const client = await this.internalClient.getClient();
-
-        let result;
-        try {
-            result = await client.query({
-                query: SSO_USERS_QUERY,
-            });
-        } catch (error) {
-            this.createErrorAndExit('Failed to query SSO users');
-        }
-
-        if (result.errors && result.errors.length > 0) {
-            this.createErrorAndExit('Failed to retrieve SSO configuration');
-        }
-
-        const ssoUsers = result.data?.settings?.api?.ssoSubIds || [];
-
-        if (ssoUsers.length === 0) {
-            this.createErrorAndExit(
-                'No local user token set to compare to - please set any valid SSO IDs you would like to sign in with'
-            );
-        }
-        if (ssoUsers.includes(username)) {
-            this.logger.always(JSON.stringify({ error: null, valid: true, username }));
-            process.exit(0);
-        } else {
-            this.createErrorAndExit('Username on token does not match');
-        }
+        // Always validate as OIDC token
+        await this.validateOidcToken(token);
     }
 
     private async validateOidcToken(token: string): Promise<void> {
-        const client = await this.internalClient.getClient();
-
-        const VALIDATE_OIDC_SESSION_QUERY = gql(`
-            query ValidateOidcSession($token: String!) {
-                validateOidcSession(token: $token) {
-                    valid
-                    username
-                }
-            }
-        `);
-
-        let result;
         try {
-            result = await client.query({
+            const client = await this.internalClient.getClient();
+            const { data, errors } = await client.query({
                 query: VALIDATE_OIDC_SESSION_QUERY,
                 variables: { token },
             });
+
+            if (errors?.length) {
+                const errorMessages = errors.map((e) => e.message).join(', ');
+                this.createErrorAndExit(`GraphQL errors: ${errorMessages}`);
+            }
+
+            const validation = data?.validateOidcSession;
+
+            if (validation?.valid) {
+                this.logger.always(
+                    JSON.stringify({
+                        error: null,
+                        valid: true,
+                        username: validation.username || 'root',
+                    })
+                );
+                process.exit(0);
+            } else {
+                this.createErrorAndExit('Invalid OIDC session token');
+            }
         } catch (error) {
-            this.createErrorAndExit('Failed to validate OIDC session');
-        }
-
-        if (result.errors && result.errors.length > 0) {
-            this.createErrorAndExit('Failed to validate OIDC session token');
-        }
-
-        const validation = result.data?.validateOidcSession;
-
-        if (validation?.valid) {
-            this.logger.always(
-                JSON.stringify({
-                    error: null,
-                    valid: true,
-                    username: validation.username || 'root',
-                })
-            );
-            process.exit(0);
-        } else {
-            this.createErrorAndExit('Invalid OIDC session token');
+            const errorMessage = error instanceof Error ? error.message : String(error);
+            this.createErrorAndExit(`Failed to validate OIDC session: ${errorMessage}`);
         }
     }
 }

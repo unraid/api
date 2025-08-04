@@ -1,6 +1,6 @@
 import { Field, InputType, ObjectType } from '@nestjs/graphql';
 
-import { PrefixedID } from '@unraid/shared/prefixed-id-scalar';
+import { PrefixedID } from '@unraid/shared/prefixed-id-scalar.js';
 import { IsArray, IsBoolean, IsNotEmpty, IsOptional, IsString, IsUrl } from 'class-validator';
 
 @ObjectType()
