@@ -59,7 +59,7 @@ export class ConfigFileHandler<T extends object> {
         ...fileConfig,
       });
     } catch (error) {
-      this.logger.warn(error, "Error loading config. Attempting to migrate...");
+      this.logger.debug(error, "Error loading config. Attempting to migrate...");
 
       try {
         const migratedConfig = await this.definition.migrateConfig();
