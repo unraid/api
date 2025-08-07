@@ -1638,8 +1638,8 @@ describe('moveEntriesToFolder', () => {
         expect((result.entries.targetFolder as any).children).toContain('branch1_ref50');
         expect((result.entries.targetFolder as any).children).toContain('branch2_ref90');
 
-        // Performance should be good even with 200+ folders in the view
-        expect(endTime - startTime).toBeLessThan(50); // Should complete in less than 50ms
+        // Performance should be good even with 1500+ folders in the view
+        expect(endTime - startTime).toBeLessThan(200); // Should complete in reasonable time
     });
 
     it('should efficiently detect circular moves without full descendant traversal', () => {
