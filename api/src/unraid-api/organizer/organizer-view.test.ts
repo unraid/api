@@ -1,6 +1,10 @@
 import { describe, expect, it } from 'vitest';
 
-import { collectDescendants, deleteOrganizerEntries } from '@app/unraid-api/organizer/organizer.js';
+import {
+    collectDescendants,
+    deleteOrganizerEntries,
+    moveEntriesToFolder,
+} from '@app/unraid-api/organizer/organizer.js';
 import { OrganizerView } from '@app/unraid-api/organizer/organizer.model.js';
 
 describe('collectDescendants', () => {
@@ -987,5 +991,286 @@ describe('deleteOrganizerEntries', () => {
                 children: [],
             },
         });
+    });
+});
+
+describe('moveEntriesToFolder', () => {
+    const baseView: OrganizerView = {
+        id: 'test-view',
+        name: 'Test View',
+        root: 'root',
+        entries: {
+            root: {
+                id: 'root',
+                type: 'folder',
+                name: 'Root',
+                children: ['folder1', 'folder2', 'ref1'],
+            },
+            folder1: {
+                id: 'folder1',
+                type: 'folder',
+                name: 'Folder 1',
+                children: ['ref2', 'folder3'],
+            },
+            folder2: {
+                id: 'folder2',
+                type: 'folder',
+                name: 'Folder 2',
+                children: [],
+            },
+            folder3: {
+                id: 'folder3',
+                type: 'folder',
+                name: 'Folder 3',
+                children: ['ref3'],
+            },
+            ref1: {
+                id: 'ref1',
+                type: 'ref',
+                target: 'resource1',
+            },
+            ref2: {
+                id: 'ref2',
+                type: 'ref',
+                target: 'resource2',
+            },
+            ref3: {
+                id: 'ref3',
+                type: 'ref',
+                target: 'resource3',
+            },
+        },
+    };
+
+    it('should move a single entry to destination folder', () => {
+        const result = moveEntriesToFolder({
+            view: baseView,
+            sourceEntryIds: new Set(['ref1']),
+            destinationFolderId: 'folder2',
+        });
+
+        // ref1 should be removed from root and added to folder2
+        expect((result.entries.root as any).children).toEqual(['folder1', 'folder2']);
+        expect((result.entries.folder2 as any).children).toEqual(['ref1']);
+    });
+
+    it('should move multiple entries to destination folder', () => {
+        const result = moveEntriesToFolder({
+            view: baseView,
+            sourceEntryIds: new Set(['ref1', 'folder1']),
+            destinationFolderId: 'folder2',
+        });
+
+        // Both should be removed from root and added to folder2
+        expect((result.entries.root as any).children).toEqual(['folder2']);
+        expect((result.entries.folder2 as any).children).toEqual(['ref1', 'folder1']);
+    });
+
+    it('should move nested entries correctly', () => {
+        const result = moveEntriesToFolder({
+            view: baseView,
+            sourceEntryIds: new Set(['ref2', 'folder3']),
+            destinationFolderId: 'root',
+        });
+
+        // Both should be removed from folder1 and added to root
+        expect((result.entries.folder1 as any).children).toEqual([]);
+        expect((result.entries.root as any).children).toEqual([
+            'folder1',
+            'folder2',
+            'ref1',
+            'ref2',
+            'folder3',
+        ]);
+    });
+
+    it('should handle moving entries that are already in destination', () => {
+        const result = moveEntriesToFolder({
+            view: baseView,
+            sourceEntryIds: new Set(['folder1', 'ref1']),
+            destinationFolderId: 'root',
+        });
+
+        // They should remain in root, no duplicates, but order may change due to removal and re-addition
+        expect((result.entries.root as any).children).toEqual(['folder2', 'folder1', 'ref1']);
+    });
+
+    it('should throw error when destination folder does not exist', () => {
+        expect(() =>
+            moveEntriesToFolder({
+                view: baseView,
+                sourceEntryIds: new Set(['ref1']),
+                destinationFolderId: 'non-existent',
+            })
+        ).toThrow("Destination folder with id 'non-existent' not found in view");
+    });
+
+    it('should throw error when destination is not a folder', () => {
+        expect(() =>
+            moveEntriesToFolder({
+                view: baseView,
+                sourceEntryIds: new Set(['folder1']),
+                destinationFolderId: 'ref1',
+            })
+        ).toThrow("Destination 'ref1' is not a folder");
+    });
+
+    it('should throw error when moving folder into itself', () => {
+        expect(() =>
+            moveEntriesToFolder({
+                view: baseView,
+                sourceEntryIds: new Set(['folder1']),
+                destinationFolderId: 'folder1',
+            })
+        ).toThrow("Cannot move folder 'folder1' into its own descendant 'folder1'");
+    });
+
+    it('should throw error when moving folder into its descendant', () => {
+        expect(() =>
+            moveEntriesToFolder({
+                view: baseView,
+                sourceEntryIds: new Set(['folder1']),
+                destinationFolderId: 'folder3',
+            })
+        ).toThrow("Cannot move folder 'folder1' into its own descendant 'folder3'");
+    });
+
+    it('should ignore non-existent source entries', () => {
+        const result = moveEntriesToFolder({
+            view: baseView,
+            sourceEntryIds: new Set(['ref1', 'non-existent']),
+            destinationFolderId: 'folder2',
+        });
+
+        // Only ref1 should be moved
+        expect((result.entries.root as any).children).toEqual(['folder1', 'folder2']);
+        expect((result.entries.folder2 as any).children).toEqual(['ref1']);
+    });
+
+    it('should handle empty source set', () => {
+        const result = moveEntriesToFolder({
+            view: baseView,
+            sourceEntryIds: new Set(),
+            destinationFolderId: 'folder2',
+        });
+
+        // Nothing should change
+        expect(result).toEqual(baseView);
+    });
+
+    it('should not modify the original view', () => {
+        const originalRootChildren = [...(baseView.entries.root as any).children];
+        const originalFolder2Children = [...(baseView.entries.folder2 as any).children];
+
+        moveEntriesToFolder({
+            view: baseView,
+            sourceEntryIds: new Set(['ref1']),
+            destinationFolderId: 'folder2',
+        });
+
+        expect((baseView.entries.root as any).children).toEqual(originalRootChildren);
+        expect((baseView.entries.folder2 as any).children).toEqual(originalFolder2Children);
+    });
+
+    it('should handle complex move with multiple sources and destinations', () => {
+        // Create a view where some entries exist in multiple folders
+        const complexView: OrganizerView = {
+            ...baseView,
+            entries: {
+                ...baseView.entries,
+                folder4: {
+                    id: 'folder4',
+                    type: 'folder',
+                    name: 'Folder 4',
+                    children: ['ref1', 'ref2'], // ref1 and ref2 also exist elsewhere
+                },
+            },
+        };
+
+        const result = moveEntriesToFolder({
+            view: complexView,
+            sourceEntryIds: new Set(['ref1', 'ref2']),
+            destinationFolderId: 'folder3',
+        });
+
+        // ref1 should be removed from root and folder4
+        expect((result.entries.root as any).children).toEqual(['folder1', 'folder2']);
+        // ref2 should be removed from folder1 and folder4
+        expect((result.entries.folder1 as any).children).toEqual(['folder3']);
+        // folder4 should have no children left
+        expect((result.entries.folder4 as any).children).toEqual([]);
+        // Both should be in folder3 now
+        expect((result.entries.folder3 as any).children).toEqual(['ref3', 'ref1', 'ref2']);
+    });
+
+    it('should preserve order when moving to a folder with existing children', () => {
+        const result = moveEntriesToFolder({
+            view: baseView,
+            sourceEntryIds: new Set(['ref1', 'ref2']),
+            destinationFolderId: 'folder2',
+        });
+
+        // New entries should be appended after existing children
+        expect((result.entries.folder2 as any).children).toEqual(['ref1', 'ref2']);
+    });
+
+    it('should handle moving entries from deeply nested structures', () => {
+        const deepView: OrganizerView = {
+            ...baseView,
+            entries: {
+                ...baseView.entries,
+                folder4: {
+                    id: 'folder4',
+                    type: 'folder',
+                    name: 'Folder 4',
+                    children: ['folder5'],
+                },
+                folder5: {
+                    id: 'folder5',
+                    type: 'folder',
+                    name: 'Folder 5',
+                    children: ['ref4'],
+                },
+                ref4: {
+                    id: 'ref4',
+                    type: 'ref',
+                    target: 'resource4',
+                },
+            },
+        };
+        (deepView.entries.folder3 as any).children.push('folder4');
+
+        const result = moveEntriesToFolder({
+            view: deepView,
+            sourceEntryIds: new Set(['ref4']),
+            destinationFolderId: 'root',
+        });
+
+        expect((result.entries.folder5 as any).children).toEqual([]);
+        expect((result.entries.root as any).children).toContain('ref4');
+    });
+
+    it('should handle circular reference prevention with multiple folders', () => {
+        expect(() =>
+            moveEntriesToFolder({
+                view: baseView,
+                sourceEntryIds: new Set(['root']),
+                destinationFolderId: 'folder3',
+            })
+        ).toThrow("Cannot move folder 'root' into its own descendant 'folder3'");
+    });
+
+    it('should allow moving a parent and child together', () => {
+        const result = moveEntriesToFolder({
+            view: baseView,
+            sourceEntryIds: new Set(['folder1', 'folder3']),
+            destinationFolderId: 'folder2',
+        });
+
+        // Both folder1 and its child folder3 should move to folder2
+        expect((result.entries.root as any).children).toEqual(['folder2', 'ref1']);
+        expect((result.entries.folder2 as any).children).toEqual(['folder1', 'folder3']);
+        // folder3 gets removed from folder1's children since it's also being moved independently
+        expect((result.entries.folder1 as any).children).toEqual(['ref2']);
     });
 });

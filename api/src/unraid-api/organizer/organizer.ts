@@ -378,3 +378,114 @@ export function deleteOrganizerEntries(
     }
     return newView;
 }
+
+export interface MoveEntriesToFolderParams {
+    view: OrganizerView;
+    sourceEntryIds: Set<string>;
+    destinationFolderId: string;
+}
+
+/**
+ * Moves entries from their current locations to a destination folder.
+ *
+ * This function moves the specified entries (folders and/or resource refs) to the
+ * destination folder's children list, removing them from their current parent folders.
+ * The function preserves the entries themselves, only changing their location in the
+ * folder hierarchy.
+ *
+ * @param params - Parameters for moving entries
+ * @param params.view - The organizer view containing the entries
+ * @param params.sourceEntryIds - Set of entry IDs to move
+ * @param params.destinationFolderId - ID of the folder to move entries into
+ * @returns A new view object with the entries moved
+ *
+ * @example
+ * ```typescript
+ * // Move multiple entries to a folder
+ * const updatedView = moveEntriesToFolder({
+ *   view: currentView,
+ *   sourceEntryIds: new Set(['item1', 'item2']),
+ *   destinationFolderId: 'targetFolder'
+ * });
+ * ```
+ *
+ * @remarks
+ * **Important Behaviors:**
+ *
+ * - **Non-destructive**: Entries are moved, not copied or deleted. Their IDs and
+ *   content remain unchanged.
+ *
+ * - **Parent cleanup**: Automatically removes moved entries from all parent folders
+ *   throughout the view, handling cases where entries exist in multiple folders.
+ *
+ * - **Self-move prevention**: If an entry is already a child of the destination folder,
+ *   it remains in its current position within that folder's children array.
+ *
+ * - **Folder-to-self prevention**: Prevents moving a folder into itself or its own
+ *   descendants, which would create invalid circular structures.
+ *
+ * - **Non-existent entries**: Source entry IDs that don't exist in the view are
+ *   silently ignored.
+ *
+ * - **Non-existent destination**: If the destination folder doesn't exist or is not
+ *   a folder type, the function throws an error.
+ *
+ * - **Immutability**: Always returns a new view object, never modifies the original.
+ *
+ * - **Order preservation**: Moved entries are appended to the destination folder's
+ *   children array in the order they appear in the sourceEntryIds set.
+ *
+ * **Performance**: O(n*m) where n is the number of entries in the view and m is the
+ * average number of children per folder, due to the parent cleanup step.
+ */
+export function moveEntriesToFolder(params: MoveEntriesToFolderParams): OrganizerView {
+    const { view, sourceEntryIds, destinationFolderId } = params;
+    const newView = structuredClone(view);
+
+    // Validate destination exists and is a folder
+    const destinationEntry = newView.entries[destinationFolderId];
+    if (!destinationEntry) {
+        throw new Error(`Destination folder with id '${destinationFolderId}' not found in view`);
+    }
+    if (destinationEntry.type !== 'folder') {
+        throw new Error(`Destination '${destinationFolderId}' is not a folder`);
+    }
+
+    // Check for circular moves (moving a folder into itself or its descendants)
+    for (const sourceId of sourceEntryIds) {
+        const sourceEntry = newView.entries[sourceId];
+        if (sourceEntry && sourceEntry.type === 'folder') {
+            const descendants = collectDescendants(newView, sourceId);
+            if (descendants.has(destinationFolderId)) {
+                throw new Error(
+                    `Cannot move folder '${sourceId}' into its own descendant '${destinationFolderId}'`
+                );
+            }
+        }
+    }
+
+    // Filter out non-existent entries and collect valid ones to move
+    const entriesToMove = Array.from(sourceEntryIds).filter((id) => newView.entries[id]);
+
+    // Remove entries from all parent folders
+    Object.values(newView.entries).forEach((entry) => {
+        if (entry.type === 'folder') {
+            entry.children = entry.children.filter((childId) => !sourceEntryIds.has(childId));
+        }
+    });
+
+    // Add entries to destination folder, avoiding duplicates
+    const destinationFolder = destinationEntry as OrganizerFolder;
+    const existingChildren = new Set(destinationFolder.children);
+    const newChildren = [...destinationFolder.children];
+
+    for (const entryId of entriesToMove) {
+        if (!existingChildren.has(entryId)) {
+            newChildren.push(entryId);
+        }
+    }
+
+    destinationFolder.children = newChildren;
+
+    return newView;
+}
