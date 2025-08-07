@@ -214,6 +214,13 @@ export abstract class FileModification {
     // Default implementation that can be overridden if needed
     async shouldApply(): Promise<ShouldApplyWithReason> {
         try {
+            if (await this.isUnraidVersionGreaterThanOrEqualTo('7.2.0')) {
+                return {
+                    shouldApply: false,
+                    reason: 'Patch unnecessary for Unraid 7.2 or later because the Unraid API is integrated.',
+                };
+            }
+
             if (!this.filePath || !this.id) {
                 throw new Error('Invalid file modification configuration');
             }

@@ -17,19 +17,6 @@ export default class NotificationsPageModification extends FileModification {
         return this.createPatchWithDiff(overridePath ?? this.filePath, fileContent, newContent);
     }
 
-    async shouldApply(): Promise<ShouldApplyWithReason> {
-        if (await this.isUnraidVersionGreaterThanOrEqualTo('7.2.0')) {
-            return {
-                shouldApply: false,
-                reason: 'Skipping for Unraid 7.2 or later, where the Unraid API is integrated.',
-            };
-        }
-        return {
-            shouldApply: true,
-            reason: 'Always apply the allowed file changes to ensure compatibility.',
-        };
-    }
-
     private static applyToSource(fileContent: string): string {
         return (
             fileContent

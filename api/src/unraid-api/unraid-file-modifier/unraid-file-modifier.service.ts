@@ -124,7 +124,7 @@ export class UnraidFileModificationService
                 shouldApplyWithReason.effects?.forEach((effect) => this.effects.add(effect));
                 this.logger.log(`Modification applied successfully: ${modification.id}`);
             } else {
-                this.logger.log(
+                this.logger.debug(
                     `Skipping modification: ${modification.id} - ${shouldApplyWithReason.reason}`
                 );
             }
