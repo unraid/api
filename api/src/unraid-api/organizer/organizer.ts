@@ -532,9 +532,7 @@ export function moveEntriesToFolder(params: MoveEntriesToFolderParams): Organize
 
     // Optimize: First check if destination is directly in sourceEntryIds (O(1) check)
     if (sourceEntryIds.has(destinationFolderId)) {
-        throw new Error(
-            `Cannot move folder '${destinationFolderId}' into its own descendant '${destinationFolderId}'`
-        );
+        throw new Error(`Cannot move folder '${destinationFolderId}' into itself`);
     }
 
     // Optimize: Only check folders, and only compute descendants if needed
