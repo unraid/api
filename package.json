@@ -13,7 +13,7 @@
     "type-check": "pnpm -r type-check",
     "check": "manypkg check",
     "sync-webgui-repo": "node web/scripts/sync-webgui-repo.js",
-    "preinstall": "check-node-version --node 22",
+    "preinstall": "npx check-node-version --node 22",
     "postinstall": "simple-git-hooks"
   },
   "pnpm": {
@@ -54,7 +54,6 @@
     "ignore": "7.0.5"
   },
   "devDependencies": {
-    "check-node-version": "^4.2.1",
     "lint-staged": "16.1.2",
     "simple-git-hooks": "2.13.0"
   },
