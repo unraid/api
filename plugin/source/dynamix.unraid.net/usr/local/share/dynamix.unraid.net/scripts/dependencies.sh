@@ -128,7 +128,6 @@ restore_dependencies() {
   
   # Check if backup file exists
   if [ ! -f "$backup_file" ]; then
-    echo "Backup file not found at '$backup_file'. Skipping restore."
     return 0
   fi
 
@@ -145,14 +144,13 @@ restore_dependencies() {
     return 1
   fi
 
-  echo "Restoring node_modules from '$backup_file' to '$DEPENDENCIES_DIR'"
   # Remove existing store directory if it exists and ensure its parent directory exists
   rm -rf "$DEPENDENCIES_DIR"
   mkdir -p "$(dirname "$DEPENDENCIES_DIR")"
 
   # Extract directly to final location
   if ! tar -xJf "$backup_file" -C "$(dirname "$DEPENDENCIES_DIR")" --preserve-permissions; then
-    echo "Error: Failed to extract backup to final location."
+    echo "Error: Failed to extract '$backup_file' to '$DEPENDENCIES_DIR'."
     rm -rf "$DEPENDENCIES_DIR"
     return 1
   fi
@@ -160,7 +158,7 @@ restore_dependencies() {
   # Set ownership to root (0:0)
   chown -R 0:0 "$DEPENDENCIES_DIR"
 
-  echo "node_modules restored successfully."
+  echo "node_modules restored from '$backup_file'"
   return 0
 }
 
