@@ -99,21 +99,4 @@ if (is_localhost() && !is_good_session()) {
 
         return this.createPatchWithDiff(overridePath ?? this.filePath, fileContent, newContent);
     }
-
-    async shouldApply(): Promise<ShouldApplyWithReason> {
-        // Check if system is running Unraid 7.2 or later, where the Unraid API is integrated
-        const isUnraidVersionGreaterThanOrEqualTo72 =
-            await this.isUnraidVersionGreaterThanOrEqualTo('7.2.0');
-        if (isUnraidVersionGreaterThanOrEqualTo72) {
-            return {
-                shouldApply: false,
-                reason: 'Skipping for Unraid 7.2 or later, where the Unraid API is integrated.',
-            };
-        }
-
-        return {
-            shouldApply: true,
-            reason: 'Always apply the allowed file changes to ensure compatibility.',
-        };
-    }
 }

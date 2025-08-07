@@ -62,17 +62,4 @@ export default class AuthRequestModification extends FileModification {
 
         return this.createPatchWithDiff(overridePath ?? this.filePath, fileContent, newContent);
     }
-
-    async shouldApply(): Promise<ShouldApplyWithReason> {
-        if (await this.isUnraidVersionGreaterThanOrEqualTo('7.2.0')) {
-            return {
-                shouldApply: false,
-                reason: 'Skipping for Unraid 7.2 or later, where the Unraid API is integrated.',
-            };
-        }
-        return {
-            shouldApply: true,
-            reason: 'Unraid version is less than 7.2.0, applying the patch.',
-        };
-    }
 }

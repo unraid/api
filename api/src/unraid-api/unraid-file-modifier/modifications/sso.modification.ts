@@ -89,13 +89,9 @@ function verifyUsernamePasswordAndSSO(string $username, string $password): bool 
     }
 
     async shouldApply(): Promise<ShouldApplyWithReason> {
-        const isUnraidVersionGreaterThanOrEqualTo72 =
-            await this.isUnraidVersionGreaterThanOrEqualTo('7.2.0');
-        if (isUnraidVersionGreaterThanOrEqualTo72) {
-            return {
-                shouldApply: false,
-                reason: 'Skipping for Unraid 7.2 or later, where the Unraid API is integrated.',
-            };
+        const superShouldApply = await super.shouldApply();
+        if (!superShouldApply.shouldApply) {
+            return superShouldApply;
         }
 
         if (!this.configService) {

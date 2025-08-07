@@ -91,16 +91,10 @@ check_remote_access(){
     }
 
     async shouldApply(): Promise<ShouldApplyWithReason> {
-        if (await this.isUnraidVersionGreaterThanOrEqualTo('7.2.0')) {
-            return {
-                shouldApply: false,
-                reason: 'Patch unnecessary for Unraid 7.2 or later because the Unraid API is integrated.',
-            };
-        }
         const { shouldApply, reason } = await super.shouldApply();
         return {
-            shouldApply: shouldApply,
-            reason: shouldApply ? 'Unraid version is less than 7.2.0, applying the patch.' : reason,
+            shouldApply,
+            reason,
             effects: ['nginx:reload'],
         };
     }
