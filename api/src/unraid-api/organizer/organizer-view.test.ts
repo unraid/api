@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import {
+    collectAncestors,
     collectDescendants,
     deleteOrganizerEntries,
     moveEntriesToFolder,
@@ -289,6 +290,294 @@ describe('collectDescendants', () => {
         const resultArray = Array.from(result);
 
         expect(resultArray).toEqual(['folder', 'c', 'a', 'b']);
+    });
+});
+
+describe('collectAncestors', () => {
+    const createMockView = (entries: Record<string, any>): OrganizerView => ({
+        id: 'test-view',
+        name: 'Test View',
+        root: 'root',
+        entries,
+    });
+
+    it('should collect single entry with no parent', () => {
+        const view = createMockView({
+            orphan: {
+                id: 'orphan',
+                type: 'ref',
+                target: 'target1',
+            },
+        });
+
+        const result = collectAncestors(view, 'orphan');
+
+        expect(result).toEqual(new Set(['orphan']));
+    });
+
+    it('should collect entry and its parent', () => {
+        const view = createMockView({
+            parent: {
+                id: 'parent',
+                type: 'folder',
+                name: 'Parent',
+                children: ['child'],
+            },
+            child: {
+                id: 'child',
+                type: 'ref',
+                target: 'target1',
+            },
+        });
+
+        const result = collectAncestors(view, 'child');
+
+        expect(result).toEqual(new Set(['child', 'parent']));
+    });
+
+    it('should collect all ancestors up to root', () => {
+        const view = createMockView({
+            root: {
+                id: 'root',
+                type: 'folder',
+                name: 'Root',
+                children: ['level1'],
+            },
+            level1: {
+                id: 'level1',
+                type: 'folder',
+                name: 'Level 1',
+                children: ['level2'],
+            },
+            level2: {
+                id: 'level2',
+                type: 'folder',
+                name: 'Level 2',
+                children: ['level3'],
+            },
+            level3: {
+                id: 'level3',
+                type: 'folder',
+                name: 'Level 3',
+                children: ['deepItem'],
+            },
+            deepItem: {
+                id: 'deepItem',
+                type: 'ref',
+                target: 'target1',
+            },
+        });
+
+        const result = collectAncestors(view, 'deepItem');
+
+        expect(result).toEqual(new Set(['deepItem', 'level3', 'level2', 'level1', 'root']));
+    });
+
+    it('should return empty set for non-existent entry', () => {
+        const view = createMockView({});
+
+        const result = collectAncestors(view, 'non-existent');
+
+        expect(result).toEqual(new Set());
+    });
+
+    it('should handle folders with multiple children', () => {
+        const view = createMockView({
+            parent: {
+                id: 'parent',
+                type: 'folder',
+                name: 'Parent',
+                children: ['child1', 'child2', 'child3'],
+            },
+            child1: {
+                id: 'child1',
+                type: 'ref',
+                target: 'target1',
+            },
+            child2: {
+                id: 'child2',
+                type: 'ref',
+                target: 'target2',
+            },
+            child3: {
+                id: 'child3',
+                type: 'folder',
+                name: 'Child 3',
+                children: ['grandchild'],
+            },
+            grandchild: {
+                id: 'grandchild',
+                type: 'ref',
+                target: 'target3',
+            },
+        });
+
+        const result = collectAncestors(view, 'grandchild');
+
+        expect(result).toEqual(new Set(['grandchild', 'child3', 'parent']));
+    });
+
+    it('should handle entry that is referenced by multiple parents (invalid but defensive)', () => {
+        const view = createMockView({
+            parent1: {
+                id: 'parent1',
+                type: 'folder',
+                name: 'Parent 1',
+                children: ['shared'],
+            },
+            parent2: {
+                id: 'parent2',
+                type: 'folder',
+                name: 'Parent 2',
+                children: ['shared'],
+            },
+            shared: {
+                id: 'shared',
+                type: 'ref',
+                target: 'target1',
+            },
+        });
+
+        const result = collectAncestors(view, 'shared');
+
+        // Should find first parent (parent1 based on object iteration order)
+        expect(result).toContain('shared');
+        expect(result.size).toBe(2); // shared + one parent
+    });
+
+    it('should use provided collection when passed', () => {
+        const view = createMockView({
+            parent: {
+                id: 'parent',
+                type: 'folder',
+                name: 'Parent',
+                children: ['child'],
+            },
+            child: {
+                id: 'child',
+                type: 'ref',
+                target: 'target1',
+            },
+        });
+
+        const existingCollection = new Set(['existing-item']);
+        const result = collectAncestors(view, 'child', existingCollection);
+
+        expect(result).toEqual(new Set(['existing-item', 'child', 'parent']));
+        expect(result).toBe(existingCollection); // Should modify the same set
+    });
+
+    it('should handle circular references gracefully', () => {
+        const view = createMockView({
+            folder1: {
+                id: 'folder1',
+                type: 'folder',
+                name: 'Folder 1',
+                children: ['folder2'],
+            },
+            folder2: {
+                id: 'folder2',
+                type: 'folder',
+                name: 'Folder 2',
+                children: ['folder1'], // Creates a cycle
+            },
+        });
+
+        const result = collectAncestors(view, 'folder1');
+
+        // Should handle the cycle without infinite loop
+        expect(result.size).toBeGreaterThan(0);
+        expect(result.has('folder1')).toBe(true);
+    });
+
+    it('should handle deeply nested structures efficiently', () => {
+        const entries: Record<string, any> = {};
+
+        // Create a deep chain of folders
+        for (let i = 0; i < 100; i++) {
+            const id = `folder${i}`;
+
+            entries[id] = {
+                id,
+                type: 'folder',
+                name: `Folder ${i}`,
+                children: i < 99 ? [`folder${i + 1}`] : ['deepRef'],
+            };
+        }
+
+        entries.deepRef = {
+            id: 'deepRef',
+            type: 'ref',
+            target: 'deepTarget',
+        };
+
+        const view = createMockView(entries);
+        const result = collectAncestors(view, 'deepRef');
+
+        expect(result.size).toBe(101); // deepRef + 100 folders
+        expect(result.has('deepRef')).toBe(true);
+        expect(result.has('folder0')).toBe(true);
+        expect(result.has('folder99')).toBe(true);
+    });
+
+    it('should stop at entry without parent', () => {
+        const view = createMockView({
+            grandparent: {
+                id: 'grandparent',
+                type: 'folder',
+                name: 'Grandparent',
+                children: ['parent'],
+            },
+            parent: {
+                id: 'parent',
+                type: 'folder',
+                name: 'Parent',
+                children: ['child'],
+            },
+            child: {
+                id: 'child',
+                type: 'ref',
+                target: 'target1',
+            },
+            orphan: {
+                id: 'orphan',
+                type: 'folder',
+                name: 'Orphan',
+                children: [],
+            },
+        });
+
+        // Start from an orphaned branch
+        const result = collectAncestors(view, 'orphan');
+
+        expect(result).toEqual(new Set(['orphan']));
+    });
+
+    it('should preserve insertion order in the set', () => {
+        const view = createMockView({
+            a: {
+                id: 'a',
+                type: 'folder',
+                name: 'A',
+                children: ['b'],
+            },
+            b: {
+                id: 'b',
+                type: 'folder',
+                name: 'B',
+                children: ['c'],
+            },
+            c: {
+                id: 'c',
+                type: 'ref',
+                target: 'target1',
+            },
+        });
+
+        const result = collectAncestors(view, 'c');
+        const resultArray = Array.from(result);
+
+        expect(resultArray).toEqual(['c', 'b', 'a']);
     });
 });
 

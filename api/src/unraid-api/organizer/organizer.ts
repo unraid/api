@@ -299,6 +299,84 @@ export function collectDescendants(
 }
 
 /**
+ * Collects all ancestors of an entry in an organizer view by walking up the tree.
+ *
+ * **IMPORTANT: The returned set includes the starting `entryId` as well, not just its ancestors.**
+ *
+ * This function walks up the organizer hierarchy from the given entry to the root,
+ * collecting all ancestor entry IDs. This is more efficient than collecting descendants
+ * when you need to check if an entry is an ancestor of another.
+ *
+ * @param view - The organizer view containing the entry definitions
+ * @param entryId - The ID of the entry to start collection from
+ * @param collection - Optional existing Set to add results to. If provided, this Set
+ *   will be modified in-place and returned.
+ * @returns A Set containing the entryId and all its ancestors up to the root
+ *
+ * @example
+ * ```typescript
+ * // Basic usage - collects entry and all ancestors
+ * const ancestors = collectAncestors(view, 'deepFolder');
+ * // ancestors contains 'deepFolder' plus all parent folders up to root
+ *
+ * // Check if one entry is an ancestor of another
+ * const ancestors = collectAncestors(view, 'childFolder');
+ * if (ancestors.has('parentFolder')) {
+ *   // parentFolder is an ancestor of childFolder
+ * }
+ * ```
+ *
+ * @remarks
+ * **Behavior and Edge Cases:**
+ *
+ * - **Self-inclusion**: The starting `entryId` is always included in the result set
+ * - **Missing entries**: If `entryId` doesn't exist in the view, returns an empty set (or
+ *   the provided collection unchanged)
+ * - **Multiple parents**: In valid views, each entry should have at most one parent.
+ *   This function finds the first parent and continues from there.
+ * - **Orphaned entries**: If an entry has no parent (not referenced by any folder),
+ *   the collection will only contain that entry
+ * - **Root entry**: The root entry is included in the ancestors if reached
+ * - **Collection mutation**: If a collection parameter is provided, it is modified in-place
+ *   rather than creating a new Set
+ * - **Traversal order**: Walks from child to parent, so the Set will contain entries
+ *   in order from the starting entry up to the root
+ *
+ * **Performance:** O(h * n) where h is the height of the tree and n is the number of
+ * entries in the view (due to parent search). For typical tree structures, h is O(log n),
+ * making this much more efficient than collecting all descendants for large subtrees.
+ */
+export function collectAncestors(
+    view: OrganizerView,
+    entryId: string,
+    collection?: Set<string>
+): Set<string> {
+    collection ??= new Set<string>();
+
+    let currentId: string | null = entryId;
+
+    while (currentId && !collection.has(currentId)) {
+        const entry = view.entries[currentId];
+        if (!entry) break;
+
+        collection.add(currentId);
+
+        // Find parent of current entry
+        let parentId: string | null = null;
+        for (const [potentialParentId, potentialParent] of Object.entries(view.entries)) {
+            if (potentialParent.type === 'folder' && potentialParent.children.includes(currentId)) {
+                parentId = potentialParentId;
+                break;
+            }
+        }
+
+        currentId = parentId;
+    }
+
+    return collection;
+}
+
+/**
  * Deletes entries from an organizer view along with all their descendants.
  *
  * This function performs a cascading deletion - when you delete a folder, all of its
@@ -467,32 +545,9 @@ export function moveEntriesToFolder(params: MoveEntriesToFolderParams): Organize
 
     // If there are folders to move, check for circular dependencies
     if (foldersToMove.length > 0) {
-        // Use a single traversal to check all folders at once
-        let destinationAncestors: Set<string> | null = null;
-
+        // Lazy compute destination ancestors only once
+        const destinationAncestors = collectAncestors(newView, destinationFolderId);
         for (const folderId of foldersToMove) {
-            // Lazy compute destination ancestors only once when needed
-            if (!destinationAncestors) {
-                destinationAncestors = new Set<string>();
-                let currentId: string | null = destinationFolderId;
-
-                // Walk up the tree to find all ancestors of destination
-                while (currentId) {
-                    destinationAncestors.add(currentId);
-
-                    // Find parent of current folder
-                    let parentId: string | null = null;
-                    for (const [entryId, entry] of Object.entries(newView.entries)) {
-                        if (entry.type === 'folder' && entry.children.includes(currentId)) {
-                            parentId = entryId;
-                            break;
-                        }
-                    }
-                    currentId = parentId;
-                }
-            }
-
-            // Check if this folder is an ancestor of the destination
             if (destinationAncestors.has(folderId)) {
                 throw new Error(
                     `Cannot move folder '${folderId}' into its own descendant '${destinationFolderId}'`
