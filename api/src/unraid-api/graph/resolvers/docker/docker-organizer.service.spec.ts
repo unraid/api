@@ -350,4 +350,409 @@ describe('DockerOrganizerService', () => {
             ).rejects.toThrow();
         });
     });
+
+    describe('deleteEntries', () => {
+        // Test constants to avoid magic values
+        const TEST_FOLDER_ID = 'testFolder';
+        const TEST_ENTRY_ID = 'testEntry';
+        const PERFORMANCE_TEST_SIZE = 50; // Reduced for faster tests
+
+        // Helper function to create test organizer with specific entries
+        const createTestOrganizer = (entries: Record<string, any> = {}) => {
+            const organizer = structuredClone(mockOrganizer);
+            Object.assign(organizer.views.default.entries, entries);
+            return organizer;
+        };
+
+        // Helper to get typed root folder
+        const getRootFolder = (result: any) => result.views.default.entries.root;
+
+        it('should delete entries and maintain proper orchestration', async () => {
+            const testOrganizer = createTestOrganizer({
+                [TEST_FOLDER_ID]: {
+                    id: TEST_FOLDER_ID,
+                    type: 'folder',
+                    name: 'Test Folder',
+                    children: [],
+                },
+            });
+            (configService.getConfig as any).mockReturnValue(testOrganizer);
+
+            const result = await service.deleteEntries({
+                entryIds: new Set([TEST_FOLDER_ID]),
+            });
+
+            // Verify service contract fulfillment
+            expect(result).toBeDefined();
+            expect(result.version).toBe(1);
+            expect(result.views.default).toBeDefined();
+
+            // Verify service orchestration without being overly specific
+            expect(configService.getConfig).toHaveBeenCalled();
+            expect(configService.validate).toHaveBeenCalled();
+            expect(configService.replaceConfig).toHaveBeenCalled();
+
+            // Verify the deletion outcome
+            expect(result.views.default.entries[TEST_FOLDER_ID]).toBeUndefined();
+        });
+
+        it('should handle empty entryIds set gracefully', async () => {
+            const originalEntryCount = Object.keys(mockOrganizer.views.default.entries).length;
+
+            const result = await service.deleteEntries({
+                entryIds: new Set(),
+            });
+
+            // Verify basic service contract
+            expect(result).toBeDefined();
+            expect(result.version).toBe(1);
+            expect(configService.validate).toHaveBeenCalled();
+            expect(configService.replaceConfig).toHaveBeenCalled();
+
+            // Verify no unintended deletions occurred
+            expect(Object.keys(result.views.default.entries).length).toBeGreaterThanOrEqual(
+                originalEntryCount
+            );
+            expect(result.views.default.entries.existingFolder).toBeDefined();
+        });
+
+        it('should synchronize resources during operation', async () => {
+            const result = await service.deleteEntries({
+                entryIds: new Set(),
+            });
+
+            // Verify resources structure is maintained and updated
+            expect(result.resources).toBeDefined();
+            expect(typeof result.resources).toBe('object');
+
+            // Verify container resources are properly structured
+            const containerResources = Object.values(result.resources).filter(
+                (resource: any) => resource.type === 'container'
+            );
+            expect(containerResources.length).toBeGreaterThan(0);
+
+            // Each container resource should have required properties
+            containerResources.forEach((resource: any) => {
+                expect(resource).toHaveProperty('id');
+                expect(resource).toHaveProperty('type', 'container');
+                expect(resource).toHaveProperty('name');
+                expect(resource).toHaveProperty('meta');
+            });
+        });
+
+        it('should handle deletion of non-existent entries gracefully', async () => {
+            const NON_EXISTENT_ID = 'definitivelyDoesNotExist';
+            const originalEntries = Object.keys(mockOrganizer.views.default.entries);
+
+            const result = await service.deleteEntries({
+                entryIds: new Set([NON_EXISTENT_ID]),
+            });
+
+            // Verify service completed successfully
+            expect(result).toBeDefined();
+            expect(result.version).toBe(1);
+
+            // Verify no existing entries were accidentally deleted
+            originalEntries.forEach((entryId) => {
+                expect(result.views.default.entries[entryId]).toBeDefined();
+            });
+        });
+
+        it('should handle mixed valid and invalid entry deletion', async () => {
+            const VALID_ENTRY = 'existingFolder';
+            const INVALID_ENTRY = 'nonExistentEntry';
+
+            const result = await service.deleteEntries({
+                entryIds: new Set([VALID_ENTRY, INVALID_ENTRY]),
+            });
+
+            // Verify operation completed successfully despite invalid entry
+            expect(result).toBeDefined();
+            expect(result.version).toBe(1);
+
+            // Valid entry should be deleted, invalid entry should be ignored
+            expect(result.views.default.entries[VALID_ENTRY]).toBeUndefined();
+            expect(result.views.default.entries[INVALID_ENTRY]).toBeUndefined(); // Never existed
+        });
+
+        it('should perform synchronization as part of operation', async () => {
+            const syncSpy = vi.spyOn(service, 'syncAndGetOrganizer');
+
+            const result = await service.deleteEntries({
+                entryIds: new Set(),
+            });
+
+            // Verify sync occurred and result reflects synchronized state
+            expect(syncSpy).toHaveBeenCalled();
+            expect(result.resources).toBeDefined();
+            expect(Object.keys(result.resources).length).toBeGreaterThan(0);
+        });
+
+        it('should handle cascading deletions correctly', async () => {
+            const PARENT_FOLDER = 'parentFolder';
+            const CHILD_FOLDER = 'childFolder';
+
+            const hierarchicalOrganizer = createTestOrganizer({
+                [PARENT_FOLDER]: {
+                    id: PARENT_FOLDER,
+                    type: 'folder',
+                    name: 'Parent Folder',
+                    children: [CHILD_FOLDER],
+                },
+                [CHILD_FOLDER]: {
+                    id: CHILD_FOLDER,
+                    type: 'folder',
+                    name: 'Child Folder',
+                    children: [],
+                },
+            });
+
+            const rootFolder = getRootFolder(hierarchicalOrganizer);
+            rootFolder.children = [PARENT_FOLDER];
+            (configService.getConfig as any).mockReturnValue(hierarchicalOrganizer);
+
+            const result = await service.deleteEntries({
+                entryIds: new Set([PARENT_FOLDER]),
+            });
+
+            // Both parent and child should be deleted due to cascading
+            expect(result.views.default.entries[PARENT_FOLDER]).toBeUndefined();
+            expect(result.views.default.entries[CHILD_FOLDER]).toBeUndefined();
+
+            // Root should no longer reference deleted parent
+            const resultRoot = getRootFolder(result);
+            expect(resultRoot.children).not.toContain(PARENT_FOLDER);
+        });
+
+        it('should handle validation failure appropriately', async () => {
+            const validationError = new Error('Configuration validation failed');
+            (configService.validate as any).mockRejectedValue(validationError);
+
+            await expect(
+                service.deleteEntries({
+                    entryIds: new Set([TEST_FOLDER_ID]),
+                })
+            ).rejects.toThrow();
+
+            // Should not save invalid configuration
+            expect(configService.replaceConfig).not.toHaveBeenCalled();
+        });
+
+        it('should handle docker service failure gracefully', async () => {
+            const dockerError = new Error('Docker service unavailable');
+            (dockerService.getContainers as any).mockRejectedValue(dockerError);
+
+            await expect(
+                service.deleteEntries({
+                    entryIds: new Set([TEST_FOLDER_ID]),
+                })
+            ).rejects.toThrow();
+
+            // Should fail early before attempting validation/save
+            expect(configService.replaceConfig).not.toHaveBeenCalled();
+        });
+
+        it('should handle complex folder hierarchies correctly', async () => {
+            const PARENT_FOLDER = 'parentFolder';
+            const CHILD_FOLDER = 'childFolder';
+            const SIBLING_FOLDER = 'siblingFolder';
+
+            const complexOrganizer = createTestOrganizer({
+                [PARENT_FOLDER]: {
+                    id: PARENT_FOLDER,
+                    type: 'folder',
+                    name: 'Parent Folder',
+                    children: ['existingFolder'], // References existing mock entry
+                },
+                [SIBLING_FOLDER]: {
+                    id: SIBLING_FOLDER,
+                    type: 'folder',
+                    name: 'Sibling Folder',
+                    children: [],
+                },
+            });
+
+            const rootFolder = getRootFolder(complexOrganizer);
+            rootFolder.children = [PARENT_FOLDER, SIBLING_FOLDER];
+            (configService.getConfig as any).mockReturnValue(complexOrganizer);
+
+            const result = await service.deleteEntries({
+                entryIds: new Set([PARENT_FOLDER]),
+            });
+
+            // Verify targeted deletion occurred
+            expect(result.views.default.entries[PARENT_FOLDER]).toBeUndefined();
+            expect(result.views.default.entries.existingFolder).toBeUndefined(); // Cascaded deletion
+
+            // Verify unrelated entries are preserved
+            expect(result.views.default.entries[SIBLING_FOLDER]).toBeDefined();
+
+            // Verify view structure integrity
+            const resultRoot = getRootFolder(result);
+            expect(resultRoot.children).not.toContain(PARENT_FOLDER);
+            expect(resultRoot.children).toContain(SIBLING_FOLDER);
+        });
+
+        it('should maintain resource integrity after operations', async () => {
+            const result = await service.deleteEntries({
+                entryIds: new Set(['existingFolder']),
+            });
+
+            // Verify resources maintain expected structure and content
+            expect(result.resources).toBeDefined();
+            expect(typeof result.resources).toBe('object');
+
+            // Verify each resource has consistent structure
+            Object.entries(result.resources).forEach(([resourceId, resource]: [string, any]) => {
+                expect(resource).toHaveProperty('id', resourceId);
+                expect(resource).toHaveProperty('type');
+                expect(resource).toHaveProperty('name');
+
+                // Container resources should have metadata
+                if (resource.type === 'container') {
+                    expect(resource).toHaveProperty('meta');
+                    expect(resource.meta).toBeDefined();
+                }
+            });
+        });
+
+        it('should maintain data consistency throughout operation', async () => {
+            // Test that the service maintains data integrity without testing specific call sequences
+            let configGetCount = 0;
+            let validateCount = 0;
+            let replaceCount = 0;
+
+            (configService.getConfig as any).mockImplementation(() => {
+                configGetCount++;
+                return structuredClone(mockOrganizer);
+            });
+
+            (configService.validate as any).mockImplementation((config: any) => {
+                validateCount++;
+                // Validate that we received a proper config object
+                expect(config).toHaveProperty('version');
+                expect(config).toHaveProperty('resources');
+                expect(config).toHaveProperty('views');
+                return Promise.resolve(config);
+            });
+
+            (configService.replaceConfig as any).mockImplementation((config: any) => {
+                replaceCount++;
+                // Validate that we're saving a consistent config
+                expect(config).toHaveProperty('version');
+                expect(config.views.default).toBeDefined();
+            });
+
+            const result = await service.deleteEntries({
+                entryIds: new Set(['existingFolder']),
+            });
+
+            // Verify essential operations occurred without being overly specific about sequence
+            expect(configGetCount).toBeGreaterThan(0);
+            expect(validateCount).toBeGreaterThan(0);
+            expect(replaceCount).toBeGreaterThan(0);
+            expect(result).toBeDefined();
+        });
+
+        it('should handle deletion when default view is missing', async () => {
+            const organizerWithoutDefaultView = structuredClone(mockOrganizer);
+            delete organizerWithoutDefaultView.views.default;
+            (configService.getConfig as any).mockReturnValue(organizerWithoutDefaultView);
+
+            const result = await service.deleteEntries({
+                entryIds: new Set(['someEntry']),
+            });
+
+            // Should still work and create/maintain proper structure
+            expect(result.views.default).toBeDefined();
+            expect(configService.validate).toHaveBeenCalled();
+            expect(configService.replaceConfig).toHaveBeenCalled();
+        });
+
+        it('should maintain relative order of remaining entries', async () => {
+            const ENTRIES = ['entryA', 'entryB', 'entryC', 'entryD'];
+            const TO_DELETE = ['entryB', 'entryD'];
+            const EXPECTED_REMAINING = ['entryA', 'entryC'];
+
+            const organizerWithOrdering = createTestOrganizer();
+            const rootFolder = getRootFolder(organizerWithOrdering);
+            rootFolder.children = [...ENTRIES];
+
+            // Create the test entries
+            ENTRIES.forEach((entryId) => {
+                organizerWithOrdering.views.default.entries[entryId] = {
+                    id: entryId,
+                    type: 'ref',
+                    target: `target_${entryId}`,
+                };
+            });
+
+            (configService.getConfig as any).mockReturnValue(organizerWithOrdering);
+
+            const result = await service.deleteEntries({
+                entryIds: new Set(TO_DELETE),
+            });
+
+            const resultRoot = getRootFolder(result);
+
+            // Verify deleted entries are gone
+            TO_DELETE.forEach((entryId) => {
+                expect(result.views.default.entries[entryId]).toBeUndefined();
+                expect(resultRoot.children).not.toContain(entryId);
+            });
+
+            // Verify remaining entries are present and in relative order
+            EXPECTED_REMAINING.forEach((entryId) => {
+                expect(result.views.default.entries[entryId]).toBeDefined();
+                expect(resultRoot.children).toContain(entryId);
+            });
+
+            // Check that relative order is preserved among remaining entries
+            const remainingPositions = EXPECTED_REMAINING.map((id) => resultRoot.children.indexOf(id));
+            expect(remainingPositions[0]).toBeLessThan(remainingPositions[1]); // entryA before entryC
+        });
+
+        it('should handle bulk operations efficiently', async () => {
+            const bulkOrganizer = createTestOrganizer();
+            const entriesToDelete = new Set<string>();
+
+            // Create test entries for bulk deletion
+            for (let i = 0; i < PERFORMANCE_TEST_SIZE; i++) {
+                const entryId = `bulkEntry${i}`;
+                entriesToDelete.add(entryId);
+                bulkOrganizer.views.default.entries[entryId] = {
+                    id: entryId,
+                    type: 'ref',
+                    target: `bulkTarget${i}`,
+                };
+            }
+
+            const rootFolder = getRootFolder(bulkOrganizer);
+            rootFolder.children.push(...Array.from(entriesToDelete));
+            (configService.getConfig as any).mockReturnValue(bulkOrganizer);
+
+            const startTime = Date.now();
+            const result = await service.deleteEntries({
+                entryIds: entriesToDelete,
+            });
+            const endTime = Date.now();
+
+            // Verify all bulk entries were deleted
+            entriesToDelete.forEach((entryId) => {
+                expect(result.views.default.entries[entryId]).toBeUndefined();
+            });
+
+            const resultRoot = getRootFolder(result);
+            entriesToDelete.forEach((entryId) => {
+                expect(resultRoot.children).not.toContain(entryId);
+            });
+
+            // Verify operation completed in reasonable time (not a strict performance test)
+            expect(endTime - startTime).toBeLessThan(5000); // 5 seconds should be more than enough
+
+            // Verify service contract still fulfilled
+            expect(result).toBeDefined();
+            expect(result.version).toBe(1);
+        });
+    });
 });
