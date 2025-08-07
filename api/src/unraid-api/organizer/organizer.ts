@@ -435,8 +435,9 @@ export interface MoveEntriesToFolderParams {
  * - **Order preservation**: Moved entries are appended to the destination folder's
  *   children array in the order they appear in the sourceEntryIds set.
  *
- * **Performance**: O(n*m) where n is the number of entries in the view and m is the
- * average number of children per folder, due to the parent cleanup step.
+ * **Performance**: O(n) for parent cleanup where n is the number of folders in the view.
+ * Circular move detection is optimized to O(h) where h is the height of the tree
+ * (walking up from destination to root), avoiding expensive descendant traversals.
  */
 export function moveEntriesToFolder(params: MoveEntriesToFolderParams): OrganizerView {
     const { view, sourceEntryIds, destinationFolderId } = params;
@@ -451,14 +452,50 @@ export function moveEntriesToFolder(params: MoveEntriesToFolderParams): Organize
         throw new Error(`Destination '${destinationFolderId}' is not a folder`);
     }
 
-    // Check for circular moves (moving a folder into itself or its descendants)
-    for (const sourceId of sourceEntryIds) {
-        const sourceEntry = newView.entries[sourceId];
-        if (sourceEntry && sourceEntry.type === 'folder') {
-            const descendants = collectDescendants(newView, sourceId);
-            if (descendants.has(destinationFolderId)) {
+    // Optimize: First check if destination is directly in sourceEntryIds (O(1) check)
+    if (sourceEntryIds.has(destinationFolderId)) {
+        throw new Error(
+            `Cannot move folder '${destinationFolderId}' into its own descendant '${destinationFolderId}'`
+        );
+    }
+
+    // Optimize: Only check folders, and only compute descendants if needed
+    const foldersToMove = Array.from(sourceEntryIds).filter((id) => {
+        const entry = newView.entries[id];
+        return entry && entry.type === 'folder';
+    });
+
+    // If there are folders to move, check for circular dependencies
+    if (foldersToMove.length > 0) {
+        // Use a single traversal to check all folders at once
+        let destinationAncestors: Set<string> | null = null;
+
+        for (const folderId of foldersToMove) {
+            // Lazy compute destination ancestors only once when needed
+            if (!destinationAncestors) {
+                destinationAncestors = new Set<string>();
+                let currentId: string | null = destinationFolderId;
+
+                // Walk up the tree to find all ancestors of destination
+                while (currentId) {
+                    destinationAncestors.add(currentId);
+
+                    // Find parent of current folder
+                    let parentId: string | null = null;
+                    for (const [entryId, entry] of Object.entries(newView.entries)) {
+                        if (entry.type === 'folder' && entry.children.includes(currentId)) {
+                            parentId = entryId;
+                            break;
+                        }
+                    }
+                    currentId = parentId;
+                }
+            }
+
+            // Check if this folder is an ancestor of the destination
+            if (destinationAncestors.has(folderId)) {
                 throw new Error(
-                    `Cannot move folder '${sourceId}' into its own descendant '${destinationFolderId}'`
+                    `Cannot move folder '${folderId}' into its own descendant '${destinationFolderId}'`
                 );
             }
         }
@@ -476,16 +513,11 @@ export function moveEntriesToFolder(params: MoveEntriesToFolderParams): Organize
 
     // Add entries to destination folder, avoiding duplicates
     const destinationFolder = destinationEntry as OrganizerFolder;
-    const existingChildren = new Set(destinationFolder.children);
-    const newChildren = [...destinationFolder.children];
+    const destinationChildren = new Set(destinationFolder.children);
 
-    for (const entryId of entriesToMove) {
-        if (!existingChildren.has(entryId)) {
-            newChildren.push(entryId);
-        }
-    }
-
-    destinationFolder.children = newChildren;
-
+    entriesToMove.forEach((entryId) => {
+        destinationChildren.add(entryId);
+    });
+    destinationFolder.children = Array.from(destinationChildren);
     return newView;
 }

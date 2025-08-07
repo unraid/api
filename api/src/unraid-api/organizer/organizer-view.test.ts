@@ -1273,4 +1273,143 @@ describe('moveEntriesToFolder', () => {
         // folder3 gets removed from folder1's children since it's also being moved independently
         expect((result.entries.folder1 as any).children).toEqual(['ref2']);
     });
+
+    it('should efficiently handle large views with many folders', () => {
+        // Create a large view with many nested folders
+        const largeView: OrganizerView = {
+            id: 'large-view',
+            name: 'Large View',
+            root: 'root',
+            entries: {
+                root: {
+                    id: 'root',
+                    type: 'folder',
+                    name: 'Root',
+                    children: ['branch1', 'branch2', 'targetFolder'],
+                },
+                targetFolder: {
+                    id: 'targetFolder',
+                    type: 'folder',
+                    name: 'Target Folder',
+                    children: [],
+                },
+            },
+        };
+
+        // Create two deep branches with many folders
+        for (let branch = 1; branch <= 3; branch++) {
+            let parentId = `branch${branch}`;
+            largeView.entries[parentId] = {
+                id: parentId,
+                type: 'folder',
+                name: `Branch ${branch}`,
+                children: [],
+            };
+
+            // Create a deep hierarchy in each branch
+            for (let i = 1; i <= 500; i++) {
+                const folderId = `branch${branch}_folder${i}`;
+                const refId = `branch${branch}_ref${i}`;
+
+                largeView.entries[folderId] = {
+                    id: folderId,
+                    type: 'folder',
+                    name: `Folder ${i}`,
+                    children: [refId],
+                };
+
+                largeView.entries[refId] = {
+                    id: refId,
+                    type: 'ref',
+                    target: `resource${branch}_${i}`,
+                };
+
+                // Add to parent's children
+                (largeView.entries[parentId] as any).children.push(folderId);
+                parentId = folderId;
+            }
+        }
+
+        // Move multiple refs from different branches - should be fast since we only check folders
+        const startTime = performance.now();
+        const result = moveEntriesToFolder({
+            view: largeView,
+            sourceEntryIds: new Set([
+                'branch1_ref50',
+                'branch1_ref75',
+                'branch2_ref25',
+                'branch2_ref90',
+            ]),
+            destinationFolderId: 'targetFolder',
+        });
+        const endTime = performance.now();
+
+        // Verify the move was successful
+        expect((result.entries.targetFolder as any).children).toHaveLength(4);
+        expect((result.entries.targetFolder as any).children).toContain('branch1_ref50');
+        expect((result.entries.targetFolder as any).children).toContain('branch2_ref90');
+
+        // Performance should be good even with 200+ folders in the view
+        expect(endTime - startTime).toBeLessThan(50); // Should complete in less than 50ms
+    });
+
+    it('should efficiently detect circular moves without full descendant traversal', () => {
+        // Create a view where we're moving a folder that's an ancestor of the destination
+        const efficientView: OrganizerView = {
+            id: 'efficient-view',
+            name: 'Efficient View',
+            root: 'root',
+            entries: {
+                root: {
+                    id: 'root',
+                    type: 'folder',
+                    name: 'Root',
+                    children: ['topFolder'],
+                },
+                topFolder: {
+                    id: 'topFolder',
+                    type: 'folder',
+                    name: 'Top Folder',
+                    children: ['middleFolder'],
+                },
+                middleFolder: {
+                    id: 'middleFolder',
+                    type: 'folder',
+                    name: 'Middle Folder',
+                    children: ['bottomFolder'],
+                },
+                bottomFolder: {
+                    id: 'bottomFolder',
+                    type: 'folder',
+                    name: 'Bottom Folder',
+                    children: ['deeplyNested'],
+                },
+                deeplyNested: {
+                    id: 'deeplyNested',
+                    type: 'folder',
+                    name: 'Deeply Nested',
+                    children: Array.from({ length: 100 }, (_, i) => `ref${i}`),
+                },
+            },
+        };
+
+        // Add many refs to the deeply nested folder
+        for (let i = 0; i < 100; i++) {
+            efficientView.entries[`ref${i}`] = {
+                id: `ref${i}`,
+                type: 'ref',
+                target: `resource${i}`,
+            };
+        }
+
+        // This should quickly detect the circular move by walking up from bottomFolder
+        // without needing to traverse all descendants of topFolder
+        expect(() =>
+            moveEntriesToFolder({
+                view: efficientView,
+                sourceEntryIds: new Set(['topFolder']),
+                destinationFolderId: 'bottomFolder',
+            })
+        ).toThrow("Cannot move folder 'topFolder' into its own descendant 'bottomFolder'");
+    });
 });
