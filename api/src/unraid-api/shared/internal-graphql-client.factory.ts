@@ -96,7 +96,10 @@ export class InternalGraphQLClientFactory {
             const socketPath = this.getSocketPath();
             this.logger.debug('Creating GraphQL client using Unix socket: %s', socketPath);
             if (enableSubscriptions) {
-                wsUri = 'ws://localhost/graphql';
+                // For Unix sockets, use the ws+unix:// protocol
+                // Format: ws+unix://socket/path:/url/path
+                wsUri = `ws+unix://${socketPath}:/graphql`;
+                this.logger.debug('WebSocket subscriptions over Unix socket: %s', wsUri);
             }
 
             const agent = new Agent({

@@ -31,6 +31,7 @@ export interface InternalClientOptions {
 export abstract class BaseInternalClientService {
     protected readonly logger: Logger;
     protected client: ApolloClient<NormalizedCacheObject> | null = null;
+    private wsClient: ReturnType<typeof createClient> | null = null;
     
     private readonly PROD_NGINX_PORT = 80;
 
@@ -156,16 +157,25 @@ export abstract class BaseInternalClientService {
 
         // If subscriptions are enabled, set up WebSocket link
         if (this.options.enableSubscriptions) {
-            const wsUri = this.isRunningOnSocket() 
-                ? 'ws://localhost/graphql' 
-                : this.getApiAddress('ws');
+            let wsUri: string;
+            
+            if (this.isRunningOnSocket()) {
+                // For Unix sockets, use the ws+unix:// protocol
+                // Format: ws+unix://socket/path:/url/path
+                const socketPath = this.getSocketPath();
+                wsUri = `ws+unix://${socketPath}:/graphql`;
+                this.logger.debug('Enabling WebSocket subscriptions over Unix socket: %s', wsUri);
+            } else {
+                wsUri = this.getApiAddress('ws');
+                this.logger.debug('Enabling WebSocket subscriptions at: %s', wsUri);
+            }
 
-            const wsLink = new GraphQLWsLink(
-                createClient({
-                    url: wsUri,
-                    connectionParams: () => ({ 'x-api-key': apiKey }),
-                })
-            );
+            this.wsClient = createClient({
+                url: wsUri,
+                connectionParams: () => ({ 'x-api-key': apiKey }),
+            });
+            
+            const wsLink = new GraphQLWsLink(this.wsClient);
 
             const splitLink = split(
                 ({ query }) => {
@@ -214,7 +224,13 @@ export abstract class BaseInternalClientService {
     }
 
     public clearClient() {
+        // Stop the Apollo client to terminate any active processes
         this.client?.stop();
+        // Clean up WebSocket client if it exists
+        if (this.wsClient) {
+            this.wsClient.dispose();
+            this.wsClient = null;
+        }
         this.client = null;
     }
 }
