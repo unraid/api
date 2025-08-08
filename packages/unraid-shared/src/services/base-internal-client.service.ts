@@ -10,6 +10,8 @@ import { getMainDefinition } from '@apollo/client/utilities/index.js';
 import { createClient } from 'graphql-ws';
 import { Agent, fetch as undiciFetch } from 'undici';
 
+import { SocketConfigService } from './socket-config.service.js';
+
 export interface ApiKeyProvider {
     getOrCreateLocalApiKey(): Promise<string>;
 }
@@ -32,8 +34,7 @@ export abstract class BaseInternalClientService {
     protected readonly logger: Logger;
     protected client: ApolloClient<NormalizedCacheObject> | null = null;
     private wsClient: ReturnType<typeof createClient> | null = null;
-    
-    private readonly PROD_NGINX_PORT = 80;
+    protected readonly socketConfig: SocketConfigService;
 
     constructor(
         protected readonly configService: ConfigService,
@@ -41,55 +42,10 @@ export abstract class BaseInternalClientService {
         protected readonly options: InternalClientOptions = {}
     ) {
         this.logger = new Logger(this.constructor.name);
+        this.socketConfig = new SocketConfigService(configService);
         this.options.origin = this.options.origin ?? '/var/run/unraid-cli.sock';
     }
 
-    private getNginxPort() {
-        return Number(this.configService.get('store.emhttp.nginx.httpPort', this.PROD_NGINX_PORT));
-    }
-
-    /**
-     * Check if the API is running on a Unix socket
-     */
-    private isRunningOnSocket() {
-        const port = this.configService.get<string>('PORT', '/var/run/unraid-api.sock');
-        return port.includes('.sock');
-    }
-
-    /**
-     * Get the socket path from config
-     */
-    private getSocketPath() {
-        return this.configService.get<string>('PORT', '/var/run/unraid-api.sock');
-    }
-
-    /**
-     * Get the numeric port if not running on socket
-     */
-    private getNumericPort() {
-        const port = this.configService.get<string>('PORT', '/var/run/unraid-api.sock');
-        if (port.includes('.sock')) {
-            return undefined;
-        }
-        return Number(port);
-    }
-
-    /**
-     * Get the API address for the given protocol.
-     * @param protocol - The protocol to use.
-     * @returns The API address.
-     */
-    protected getApiAddress(protocol: 'http' | 'ws' = 'http'): string {
-        const numericPort = this.getNumericPort();
-        if (numericPort) {
-            return `${protocol}://127.0.0.1:${numericPort}/graphql`;
-        }
-        const nginxPort = this.getNginxPort();
-        if (nginxPort !== this.PROD_NGINX_PORT) {
-            return `${protocol}://127.0.0.1:${nginxPort}/graphql`;
-        }
-        return `${protocol}://127.0.0.1/graphql`;
-    }
 
     /**
      * Get the admin API key using the configured ApiKeyProvider.
@@ -110,8 +66,8 @@ export abstract class BaseInternalClientService {
         const apiKey = await this.getLocalApiKey();
         let httpLink: HttpLink;
 
-        if (this.isRunningOnSocket()) {
-            const socketPath = this.getSocketPath();
+        if (this.socketConfig.isRunningOnSocket()) {
+            const socketPath = this.socketConfig.getSocketPath();
             this.logger.debug('Internal GraphQL using Unix socket: %s', socketPath);
 
             const agent = new Agent({
@@ -135,7 +91,7 @@ export abstract class BaseInternalClientService {
                 },
             });
         } else {
-            const httpUri = this.getApiAddress('http');
+            const httpUri = this.socketConfig.getApiAddress('http');
             this.logger.debug('Internal GraphQL URL: %s', httpUri);
 
             httpLink = new HttpLink({
@@ -156,19 +112,10 @@ export abstract class BaseInternalClientService {
         });
 
         // If subscriptions are enabled, set up WebSocket link
-        if (this.options.enableSubscriptions) {
-            let wsUri: string;
-            
-            if (this.isRunningOnSocket()) {
-                // For Unix sockets, use the ws+unix:// protocol
-                // Format: ws+unix://socket/path:/url/path
-                const socketPath = this.getSocketPath();
-                wsUri = `ws+unix://${socketPath}:/graphql`;
-                this.logger.debug('Enabling WebSocket subscriptions over Unix socket: %s', wsUri);
-            } else {
-                wsUri = this.getApiAddress('ws');
-                this.logger.debug('Enabling WebSocket subscriptions at: %s', wsUri);
-            }
+        const wsUri = this.socketConfig.getWebSocketUri(this.options.enableSubscriptions);
+        
+        if (wsUri) {
+            this.logger.debug('Enabling WebSocket subscriptions: %s', wsUri);
 
             this.wsClient = createClient({
                 url: wsUri,

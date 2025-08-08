@@ -7,6 +7,7 @@ import { onError } from '@apollo/client/link/error/index.js';
 import { HttpLink } from '@apollo/client/link/http/index.js';
 import { GraphQLWsLink } from '@apollo/client/link/subscriptions/index.js';
 import { getMainDefinition } from '@apollo/client/utilities/index.js';
+import { SocketConfigService } from '@unraid/shared';
 import { createClient } from 'graphql-ws';
 import { Agent, fetch as undiciFetch } from 'undici';
 
@@ -22,54 +23,11 @@ import { Agent, fetch as undiciFetch } from 'undici';
 @Injectable()
 export class InternalGraphQLClientFactory {
     private readonly logger = new Logger(InternalGraphQLClientFactory.name);
-    private readonly PROD_NGINX_PORT = 80;
 
-    constructor(private readonly configService: ConfigService) {}
-
-    private getNginxPort() {
-        return Number(this.configService.get('store.emhttp.nginx.httpPort', this.PROD_NGINX_PORT));
-    }
-
-    /**
-     * Check if the API is running on a Unix socket
-     */
-    private isRunningOnSocket() {
-        const port = this.configService.get<string>('PORT', '/var/run/unraid-api.sock');
-        return port.includes('.sock');
-    }
-
-    /**
-     * Get the socket path from config
-     */
-    private getSocketPath() {
-        return this.configService.get<string>('PORT', '/var/run/unraid-api.sock');
-    }
-
-    /**
-     * Get the numeric port if not running on socket
-     */
-    private getNumericPort() {
-        const port = this.configService.get<string>('PORT', '/var/run/unraid-api.sock');
-        if (port.includes('.sock')) {
-            return undefined;
-        }
-        return Number(port);
-    }
-
-    /**
-     * Get the API address for HTTP or WebSocket requests.
-     */
-    private getApiAddress(protocol: 'http' | 'ws' = 'http') {
-        const numericPort = this.getNumericPort();
-        if (numericPort) {
-            return `${protocol}://127.0.0.1:${numericPort}/graphql`;
-        }
-        const nginxPort = this.getNginxPort();
-        if (nginxPort !== this.PROD_NGINX_PORT) {
-            return `${protocol}://127.0.0.1:${nginxPort}/graphql`;
-        }
-        return `${protocol}://127.0.0.1/graphql`;
-    }
+    constructor(
+        private readonly configService: ConfigService,
+        private readonly socketConfig: SocketConfigService
+    ) {}
 
     /**
      * Create a GraphQL client with the provided configuration.
@@ -90,17 +48,16 @@ export class InternalGraphQLClientFactory {
 
         const { apiKey, enableSubscriptions = false, origin = '/var/run/unraid-cli.sock' } = options;
         let httpLink: HttpLink;
-        let wsUri: string | undefined;
 
-        if (this.isRunningOnSocket()) {
-            const socketPath = this.getSocketPath();
+        // Get WebSocket URI if subscriptions are enabled
+        const wsUri = this.socketConfig.getWebSocketUri(enableSubscriptions);
+        if (enableSubscriptions && wsUri) {
+            this.logger.debug('WebSocket subscriptions enabled: %s', wsUri);
+        }
+
+        if (this.socketConfig.isRunningOnSocket()) {
+            const socketPath = this.socketConfig.getSocketPath();
             this.logger.debug('Creating GraphQL client using Unix socket: %s', socketPath);
-            if (enableSubscriptions) {
-                // For Unix sockets, use the ws+unix:// protocol
-                // Format: ws+unix://socket/path:/url/path
-                wsUri = `ws+unix://${socketPath}:/graphql`;
-                this.logger.debug('WebSocket subscriptions over Unix socket: %s', wsUri);
-            }
 
             const agent = new Agent({
                 connect: {
@@ -126,11 +83,8 @@ export class InternalGraphQLClientFactory {
                 },
             });
         } else {
-            const httpUri = this.getApiAddress('http');
+            const httpUri = this.socketConfig.getApiAddress('http');
             this.logger.debug('Creating GraphQL client using HTTP: %s', httpUri);
-            if (enableSubscriptions) {
-                wsUri = this.getApiAddress('ws');
-            }
 
             httpLink = new HttpLink({
                 uri: httpUri,
