@@ -4,6 +4,7 @@ import { ConfigService } from '@nestjs/config';
 import { ApolloClient, InMemoryCache, NormalizedCacheObject } from '@apollo/client/core/index.js';
 import { onError } from '@apollo/client/link/error/index.js';
 import { HttpLink } from '@apollo/client/link/http/index.js';
+import { Agent, fetch as undiciFetch } from 'undici';
 
 import { AdminKeyService } from '@app/unraid-api/cli/admin-key.service.js';
 
@@ -31,12 +32,26 @@ export class CliInternalClientService {
     }
 
     /**
-     * Get the port override from the environment variable PORT. e.g. during development.
-     * If the port is a socket port, return undefined.
+     * Check if the API is running on a Unix socket
      */
-    private getNonSocketPortOverride() {
-        const port = this.configService.get<string | number | undefined>('PORT');
-        if (!port || port.toString().includes('.sock')) {
+    private isRunningOnSocket() {
+        const port = this.configService.get<string>('PORT', '/var/run/unraid-api.sock');
+        return port.includes('.sock');
+    }
+
+    /**
+     * Get the socket path from config
+     */
+    private getSocketPath() {
+        return this.configService.get<string>('PORT', '/var/run/unraid-api.sock');
+    }
+
+    /**
+     * Get the numeric port if not running on socket
+     */
+    private getNumericPort() {
+        const port = this.configService.get<string>('PORT', '/var/run/unraid-api.sock');
+        if (port.includes('.sock')) {
             return undefined;
         }
         return Number(port);
@@ -45,13 +60,14 @@ export class CliInternalClientService {
     /**
      * Get the API address for HTTP requests.
      */
-    private getApiAddress(port = this.getNginxPort()) {
-        const portOverride = this.getNonSocketPortOverride();
-        if (portOverride) {
-            return `http://127.0.0.1:${portOverride}/graphql`;
+    private getApiAddress() {
+        const numericPort = this.getNumericPort();
+        if (numericPort) {
+            return `http://127.0.0.1:${numericPort}/graphql`;
         }
-        if (port !== this.PROD_NGINX_PORT) {
-            return `http://127.0.0.1:${port}/graphql`;
+        const nginxPort = this.getNginxPort();
+        if (nginxPort !== this.PROD_NGINX_PORT) {
+            return `http://127.0.0.1:${nginxPort}/graphql`;
         }
         return `http://127.0.0.1/graphql`;
     }
@@ -72,20 +88,50 @@ export class CliInternalClientService {
     }
 
     private async createApiClient(): Promise<ApolloClient<NormalizedCacheObject>> {
-        const httpUri = this.getApiAddress();
         const apiKey = await this.getLocalApiKey();
+        let httpLink: HttpLink;
 
-        this.logger.debug('Internal GraphQL URL: %s', httpUri);
+        if (this.isRunningOnSocket()) {
+            const socketPath = this.getSocketPath();
+            this.logger.debug('Internal GraphQL using Unix socket: %s', socketPath);
 
-        const httpLink = new HttpLink({
-            uri: httpUri,
-            fetch,
-            headers: {
-                Origin: '/var/run/unraid-cli.sock',
-                'x-api-key': apiKey,
-                'Content-Type': 'application/json',
-            },
-        });
+            const agent = new Agent({
+                connect: {
+                    socketPath,
+                },
+            });
+
+            httpLink = new HttpLink({
+                uri: 'http://localhost/graphql',
+                fetch: (uri, options) => {
+                    return undiciFetch(
+                        uri as string,
+                        {
+                            ...options,
+                            dispatcher: agent,
+                        } as any
+                    );
+                },
+                headers: {
+                    Origin: '/var/run/unraid-cli.sock',
+                    'x-api-key': apiKey,
+                    'Content-Type': 'application/json',
+                },
+            });
+        } else {
+            const httpUri = this.getApiAddress();
+            this.logger.debug('Internal GraphQL URL: %s', httpUri);
+
+            httpLink = new HttpLink({
+                uri: httpUri,
+                fetch,
+                headers: {
+                    Origin: '/var/run/unraid-cli.sock',
+                    'x-api-key': apiKey,
+                    'Content-Type': 'application/json',
+                },
+            });
+        }
 
         const errorLink = onError(({ networkError }) => {
             if (networkError) {
