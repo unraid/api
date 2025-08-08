@@ -714,7 +714,7 @@ importers:
     dependencies:
       '@apollo/client':
         specifier: 3.13.8
-        version: 3.13.8(@types/react@19.0.8)(graphql-ws@6.0.6(crossws@0.3.5)(graphql@16.11.0)(ws@8.18.1))(graphql@16.11.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)(subscriptions-transport-ws@0.11.0(graphql@16.11.0))
+        version: 3.13.8(@types/react@19.0.8)(graphql-ws@6.0.6(crossws@0.3.5)(graphql@16.11.0)(ws@8.18.3))(graphql@16.11.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)(subscriptions-transport-ws@0.11.0(graphql@16.11.0))
       '@nestjs/config':
         specifier: 4.0.2
         version: 4.0.2(@nestjs/common@11.1.6(class-transformer@0.5.1)(class-validator@0.14.2)(reflect-metadata@0.1.14)(rxjs@7.8.2))(rxjs@7.8.2)
@@ -723,13 +723,16 @@ importers:
         version: 2.0.3
       graphql-ws:
         specifier: 6.0.6
-        version: 6.0.6(crossws@0.3.5)(graphql@16.11.0)(ws@8.18.1)
+        version: 6.0.6(crossws@0.3.5)(graphql@16.11.0)(ws@8.18.3)
       rxjs:
         specifier: 7.8.2
         version: 7.8.2
       undici:
         specifier: 7.13.0
         version: 7.13.0
+      ws:
+        specifier: ^8.18.0
+        version: 8.18.3
     devDependencies:
       '@graphql-tools/utils':
         specifier: 10.9.1
@@ -755,6 +758,9 @@ importers:
       '@types/node':
         specifier: 22.17.1
         version: 22.17.1
+      '@types/ws':
+        specifier: ^8.5.13
+        version: 8.18.1
       class-validator:
         specifier: 0.14.2
         version: 0.14.2
@@ -13869,7 +13875,7 @@ snapshots:
     dependencies:
       graphql: 16.11.0
 
-  '@apollo/client@3.13.8(@types/react@19.0.8)(graphql-ws@6.0.6(crossws@0.3.5)(graphql@16.11.0)(ws@8.18.1))(graphql@16.11.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)(subscriptions-transport-ws@0.11.0(graphql@16.11.0))':
+  '@apollo/client@3.13.8(@types/react@19.0.8)(graphql-ws@6.0.6(crossws@0.3.5)(graphql@16.11.0)(ws@8.18.3))(graphql@16.11.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)(subscriptions-transport-ws@0.11.0(graphql@16.11.0))':
     dependencies:
       '@graphql-typed-document-node/core': 3.2.0(graphql@16.11.0)
       '@wry/caches': 1.0.1
@@ -13886,7 +13892,7 @@ snapshots:
       tslib: 2.8.1
       zen-observable-ts: 1.2.5
     optionalDependencies:
-      graphql-ws: 6.0.6(crossws@0.3.5)(graphql@16.11.0)(ws@8.18.1)
+      graphql-ws: 6.0.6(crossws@0.3.5)(graphql@16.11.0)(ws@8.18.3)
       react: 19.1.0
       react-dom: 19.1.0(react@19.1.0)
       subscriptions-transport-ws: 0.11.0(graphql@16.11.0)
@@ -22758,13 +22764,6 @@ snapshots:
     dependencies:
       graphql: 16.11.0
     optionalDependencies:
-      ws: 8.18.1
-
-  graphql-ws@6.0.6(crossws@0.3.5)(graphql@16.11.0)(ws@8.18.1):
-    dependencies:
-      graphql: 16.11.0
-    optionalDependencies:
-      crossws: 0.3.5
       ws: 8.18.1
 
   graphql-ws@6.0.6(crossws@0.3.5)(graphql@16.11.0)(ws@8.18.3):
