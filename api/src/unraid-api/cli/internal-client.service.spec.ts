@@ -2,6 +2,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { Test, TestingModule } from '@nestjs/testing';
 
 import { ApolloClient } from '@apollo/client/core/index.js';
+import { INTERNAL_CLIENT_SERVICE_TOKEN } from '@unraid/shared/tokens.js';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { AdminKeyService } from '@app/unraid-api/cli/admin-key.service.js';
@@ -26,7 +27,7 @@ describe('CliInternalClientService', () => {
             providers: [
                 CliInternalClientService,
                 {
-                    provide: InternalGraphQLClientFactory,
+                    provide: INTERNAL_CLIENT_SERVICE_TOKEN,
                     useValue: {
                         createClient: vi.fn().mockResolvedValue(mockApolloClient),
                     },
@@ -41,7 +42,7 @@ describe('CliInternalClientService', () => {
         }).compile();
 
         service = module.get<CliInternalClientService>(CliInternalClientService);
-        clientFactory = module.get<InternalGraphQLClientFactory>(InternalGraphQLClientFactory);
+        clientFactory = module.get<InternalGraphQLClientFactory>(INTERNAL_CLIENT_SERVICE_TOKEN);
         adminKeyService = module.get<AdminKeyService>(AdminKeyService);
     });
 

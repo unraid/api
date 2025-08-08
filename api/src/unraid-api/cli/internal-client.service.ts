@@ -1,6 +1,7 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Inject, Injectable, Logger } from '@nestjs/common';
 
 import { ApolloClient, NormalizedCacheObject } from '@apollo/client/core/index.js';
+import { INTERNAL_CLIENT_SERVICE_TOKEN } from '@unraid/shared/tokens.js';
 
 import { AdminKeyService } from '@app/unraid-api/cli/admin-key.service.js';
 import { InternalGraphQLClientFactory } from '@app/unraid-api/shared/internal-graphql-client.factory.js';
@@ -17,6 +18,7 @@ export class CliInternalClientService {
     private client: ApolloClient<NormalizedCacheObject> | null = null;
 
     constructor(
+        @Inject(INTERNAL_CLIENT_SERVICE_TOKEN)
         private readonly clientFactory: InternalGraphQLClientFactory,
         private readonly adminKeyService: AdminKeyService
     ) {}
