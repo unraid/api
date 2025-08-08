@@ -73,8 +73,8 @@ const updateSelectedTab = (value: string | number) => {
         variant="link"
         :items="tabItems"
         class="w-full"
-        :ui="{ 
-          list: 'gap-3 sm:gap-6 md:gap-8 whitespace-nowrap text-sm sm:text-base'
+        :ui="{
+          list: 'gap-3 sm:gap-6 md:gap-8 whitespace-nowrap text-sm sm:text-base',
         }"
         @update:model-value="updateSelectedTab"
       />
@@ -86,10 +86,10 @@ const updateSelectedTab = (value: string | number) => {
         v-if="getCurrentTabComponent() && selectedItem"
         v-bind="getCurrentTabProps()"
       />
-      <div v-else-if="!selectedItem" class="text-gray-500 dark:text-gray-400">
+      <div v-else-if="!selectedItem">
         <slot name="empty">No item selected</slot>
       </div>
-      <div v-else class="text-gray-500 dark:text-gray-400">
+      <div v-else>
         <slot name="no-content">No content available</slot>
       </div>
     </div>
