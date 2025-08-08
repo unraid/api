@@ -1,4 +1,4 @@
-import { expect, test, describe, beforeEach } from "bun:test";
+import { expect, test, describe, beforeEach } from "vitest";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
 import { ConfigDefinition } from "../config-definition.js";

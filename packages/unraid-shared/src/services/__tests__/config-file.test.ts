@@ -1,4 +1,4 @@
-import { expect, test, describe, beforeEach, afterEach } from "bun:test";
+import { expect, test, describe, beforeEach, afterEach } from "vitest";
 import { Subject } from "rxjs";
 import { readFile, writeFile, mkdir, rm } from "node:fs/promises";
 import { join } from "node:path";
