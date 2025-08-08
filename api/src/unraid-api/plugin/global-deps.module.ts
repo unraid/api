@@ -26,7 +26,10 @@ import { upnpClient } from '@app/upnp/helpers.js';
     imports: [ApiKeyModule, NginxModule],
     providers: [
         SocketConfigService,
-        InternalGraphQLClientFactory,
+        {
+            provide: INTERNAL_CLIENT_SERVICE_TOKEN,
+            useClass: InternalGraphQLClientFactory,
+        },
         {
             provide: UPNP_CLIENT_TOKEN,
             useValue: upnpClient,
@@ -42,10 +45,6 @@ import { upnpClient } from '@app/upnp/helpers.js';
         {
             provide: NGINX_SERVICE_TOKEN,
             useClass: NginxService,
-        },
-        {
-            provide: INTERNAL_CLIENT_SERVICE_TOKEN,
-            useClass: InternalGraphQLClientFactory,
         },
         PrefixedID,
         LifecycleService,
