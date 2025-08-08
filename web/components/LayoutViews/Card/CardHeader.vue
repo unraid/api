@@ -68,41 +68,38 @@ const dropdownItems = computed(() =>
 <template>
   <div class="border-b border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-950">
     <div class="p-4 space-y-4">
-      <!-- Title and Add Button -->
+      <!-- Title Row -->
       <div class="flex items-center justify-between">
         <h1 class="text-2xl font-bold text-gray-900 dark:text-white">{{ title }}</h1>
-        <UButton icon="i-lucide-plus" color="primary" variant="solid" @click="$emit('add')">
-          Add Folder
-        </UButton>
       </div>
 
       <!-- Controls Row -->
       <div class="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
         <!-- Left Side: Filter and Configure View -->
-        <div class="flex items-center gap-3 flex-1 min-w-0">
-          <!-- Filter Input -->
-          <div v-if="showFilter" class="flex-1 max-w-sm">
+        <div class="flex items-center gap-2">
+          <!-- Filter Input with Configure View -->
+          <div v-if="showFilter" class="flex items-center gap-2 max-w-sm">
             <UInput
               :model-value="filterQuery"
               placeholder="Filter"
               icon="i-lucide-search"
               size="md"
+              class="flex-1"
               @update:model-value="$emit('update:filterQuery', $event)"
             />
+            
+            <!-- Configure View Button -->
+            <UButton
+              v-if="showGrouping"
+              color="primary"
+              variant="outline"
+            >
+              Configure View
+            </UButton>
           </div>
-
-          <!-- Configure View Dropdown -->
-          <UButton
-            v-if="showGrouping"
-            color="primary"
-            variant="outline"
-            trailing-icon="i-lucide-chevron-down"
-          >
-            Configure View
-          </UButton>
         </div>
 
-        <!-- Right Side: Selection Controls -->
+        <!-- Right Side: All action buttons -->
         <div class="flex items-center gap-3">
           <!-- Select All / Clear All -->
           <UButton
@@ -125,6 +122,11 @@ const dropdownItems = computed(() =>
               Manage Selected ({{ selectedCount }})
             </UButton>
           </UDropdownMenu>
+
+          <!-- Add Folder Button -->
+          <UButton icon="i-lucide-plus" color="primary" variant="solid" @click="$emit('add')">
+            Add Folder
+          </UButton>
         </div>
       </div>
     </div>

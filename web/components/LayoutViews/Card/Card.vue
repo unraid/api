@@ -53,6 +53,7 @@ const selectedItems = ref<string[]>([]);
 const expandedGroups = ref<Record<string, boolean>>({});
 const filterQuery = ref('');
 const groupBy = ref<string>('none');
+const autostartStates = ref<Record<string, boolean>>({});
 
 // Initialize expanded state for groups
 const initializeExpandedState = () => {
@@ -137,6 +138,11 @@ const handleItemSelect = (itemId: string) => {
 const handleItemsSelectionUpdate = (items: string[]) => {
   selectedItems.value = items;
 };
+
+const handleAutostartUpdate = (itemId: string, value: boolean) => {
+  console.log('Autostart update for item:', itemId, 'value:', value);
+  autostartStates.value[itemId] = value;
+};
 </script>
 
 <template>
@@ -164,9 +170,11 @@ const handleItemsSelectionUpdate = (items: string[]) => {
         :selected-items="selectedItems"
         :selected-item-id="selectedItemId"
         :expanded-groups="expandedGroups"
+        :autostart-states="autostartStates"
         @update:selected-items="handleItemsSelectionUpdate"
         @update:expanded-groups="expandedGroups = $event"
         @item-select="handleItemSelect"
+        @update:autostart="handleAutostartUpdate"
       />
     </div>
   </div>
