@@ -29,11 +29,11 @@
     "devDependencies": {
         "@graphql-tools/utils": "10.9.1",
         "@jsonforms/core": "3.6.0",
-        "@nestjs/common": "11.1.5",
+        "@nestjs/common": "11.1.6",
         "@nestjs/graphql": "13.1.0",
         "@types/bun": "1.2.19",
         "@types/lodash-es": "4.17.12",
-        "@types/node": "22.16.5",
+        "@types/node": "22.17.1",
         "class-validator": "0.14.2",
         "graphql": "16.11.0",
         "graphql-scalars": "1.24.2",
@@ -41,12 +41,12 @@
         "nest-authz": "2.17.0",
         "rimraf": "6.0.1",
         "type-fest": "4.41.0",
-        "typescript": "5.8.3"
+        "typescript": "5.9.2"
     },
     "peerDependencies": {
         "@graphql-tools/utils": "10.9.1",
         "@jsonforms/core": "3.6.0",
-        "@nestjs/common": "11.1.5",
+        "@nestjs/common": "11.1.6",
         "@nestjs/config": "4.0.2",
         "@nestjs/graphql": "13.1.0",
         "atomically": "2.0.3",

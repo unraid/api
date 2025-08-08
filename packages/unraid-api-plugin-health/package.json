@@ -16,17 +16,17 @@
   "license": "GPL-2.0-or-later",
   "description": "Example Health plugin for Unraid API",
   "devDependencies": {
-    "@nestjs/common": "11.1.5",
+    "@nestjs/common": "11.1.6",
     "@nestjs/config": "4.0.2",
-    "@nestjs/core": "11.1.5",
+    "@nestjs/core": "11.1.6",
     "@nestjs/graphql": "13.1.0",
     "nest-authz": "2.17.0",
-    "typescript": "5.8.3"
+    "typescript": "5.9.2"
   },
   "peerDependencies": {
-    "@nestjs/common": "11.1.5",
+    "@nestjs/common": "11.1.6",
     "@nestjs/config": "4.0.2",
-    "@nestjs/core": "11.1.5",
+    "@nestjs/core": "11.1.6",
     "@nestjs/graphql": "13.1.0",
     "nest-authz": "2.17.0"
   }

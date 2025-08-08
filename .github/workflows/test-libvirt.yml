@@ -28,7 +28,7 @@ jobs:
 
       - uses: actions/setup-python@v5
         with:
-          python-version: "3.13.5"
+          python-version: "3.13.6"
 
       - name: Cache APT Packages
         uses: awalsh128/cache-apt-pkgs-action@v1.5.1
