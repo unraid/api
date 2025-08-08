@@ -23,6 +23,7 @@ interface InternalGraphQLClientFactory {
 export class InternalClientService {
     private readonly logger = new Logger(InternalClientService.name);
     private client: ApolloClient<NormalizedCacheObject> | null = null;
+    private clientCreationPromise: Promise<ApolloClient<NormalizedCacheObject>> | null = null;
 
     constructor(
         @Inject(INTERNAL_CLIENT_SERVICE_TOKEN)
@@ -31,10 +32,38 @@ export class InternalClientService {
     ) {}
 
     public async getClient(): Promise<ApolloClient<NormalizedCacheObject>> {
+        // If client already exists, return it
         if (this.client) {
             return this.client;
         }
         
+        // If client creation is in progress, wait for it
+        if (this.clientCreationPromise) {
+            return this.clientCreationPromise;
+        }
+        
+        // Start client creation and store the promise
+        const creationPromise = this.createClient();
+        this.clientCreationPromise = creationPromise;
+        
+        try {
+            // Wait for client creation to complete
+            const client = await creationPromise;
+            // Only set the client if this is still the current creation promise
+            // (if clearClient was called, clientCreationPromise would be null)
+            if (this.clientCreationPromise === creationPromise) {
+                this.client = client;
+            }
+            return client;
+        } finally {
+            // Clear the in-flight promise only if it's still ours
+            if (this.clientCreationPromise === creationPromise) {
+                this.clientCreationPromise = null;
+            }
+        }
+    }
+
+    private async createClient(): Promise<ApolloClient<NormalizedCacheObject>> {
         // Get Connect's API key
         const localApiKey = await this.apiKeyService.getOrCreateLocalApiKey();
         
@@ -43,7 +72,6 @@ export class InternalClientService {
             apiKey: localApiKey,
             enableSubscriptions: true
         });
-        this.client = client;
         
         this.logger.debug('Created Connect internal GraphQL client with subscriptions enabled');
         return client;
@@ -53,5 +81,6 @@ export class InternalClientService {
         // Stop the Apollo client to terminate any active processes
         this.client?.stop();
         this.client = null;
+        this.clientCreationPromise = null;
     }
 }
