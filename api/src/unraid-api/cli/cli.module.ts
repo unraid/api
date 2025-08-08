@@ -42,6 +42,7 @@ import { ApiConfigModule } from '@app/unraid-api/config/api-config.module.js';
 import { LegacyConfigModule } from '@app/unraid-api/config/legacy-config.module.js';
 import { GlobalDepsModule } from '@app/unraid-api/plugin/global-deps.module.js';
 import { PluginCliModule } from '@app/unraid-api/plugin/plugin.module.js';
+import { InternalGraphQLClientFactory } from '@app/unraid-api/shared/internal-graphql-client.factory.js';
 
 const DEFAULT_COMMANDS = [
     ApiKeyCommand,
@@ -84,6 +85,7 @@ const DEFAULT_PROVIDERS = [
     DependencyService,
     AdminKeyService,
     ApiReportService,
+    InternalGraphQLClientFactory,
     CliInternalClientService,
 ] as const;
 
