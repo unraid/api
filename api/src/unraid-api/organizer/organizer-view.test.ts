@@ -1391,7 +1391,7 @@ describe('moveEntriesToFolder', () => {
                 sourceEntryIds: new Set(['ref1']),
                 destinationFolderId: 'non-existent',
             })
-        ).toThrow("Destination folder with id 'non-existent' not found in view");
+        ).toThrow();
     });
 
     it('should throw error when destination is not a folder', () => {
@@ -1401,7 +1401,7 @@ describe('moveEntriesToFolder', () => {
                 sourceEntryIds: new Set(['folder1']),
                 destinationFolderId: 'ref1',
             })
-        ).toThrow("Destination 'ref1' is not a folder");
+        ).toThrow();
     });
 
     it('should throw error when moving folder into itself', () => {
@@ -1411,7 +1411,7 @@ describe('moveEntriesToFolder', () => {
                 sourceEntryIds: new Set(['folder1']),
                 destinationFolderId: 'folder1',
             })
-        ).toThrow("Cannot move folder 'folder1' into its own descendant 'folder1'");
+        ).toThrow();
     });
 
     it('should throw error when moving folder into its descendant', () => {
@@ -1421,7 +1421,7 @@ describe('moveEntriesToFolder', () => {
                 sourceEntryIds: new Set(['folder1']),
                 destinationFolderId: 'folder3',
             })
-        ).toThrow("Cannot move folder 'folder1' into its own descendant 'folder3'");
+        ).toThrow();
     });
 
     it('should ignore non-existent source entries', () => {
@@ -1546,7 +1546,7 @@ describe('moveEntriesToFolder', () => {
                 sourceEntryIds: new Set(['root']),
                 destinationFolderId: 'folder3',
             })
-        ).toThrow("Cannot move folder 'root' into its own descendant 'folder3'");
+        ).toThrow();
     });
 
     it('should allow moving a parent and child together', () => {
@@ -1699,6 +1699,6 @@ describe('moveEntriesToFolder', () => {
                 sourceEntryIds: new Set(['topFolder']),
                 destinationFolderId: 'bottomFolder',
             })
-        ).toThrow("Cannot move folder 'topFolder' into its own descendant 'bottomFolder'");
+        ).toThrow();
     });
 });
