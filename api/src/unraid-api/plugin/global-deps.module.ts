@@ -1,5 +1,6 @@
 import { Global, Module } from '@nestjs/common';
 
+import { SocketConfigService } from '@unraid/shared';
 import { PrefixedID } from '@unraid/shared/prefixed-id-scalar.js';
 import { GRAPHQL_PUBSUB_TOKEN } from '@unraid/shared/pubsub/graphql.pubsub.js';
 import {
@@ -24,6 +25,7 @@ import { upnpClient } from '@app/upnp/helpers.js';
 @Module({
     imports: [ApiKeyModule, NginxModule],
     providers: [
+        SocketConfigService,
         InternalGraphQLClientFactory,
         {
             provide: UPNP_CLIENT_TOKEN,
@@ -53,6 +55,7 @@ import { upnpClient } from '@app/upnp/helpers.js';
         },
     ],
     exports: [
+        SocketConfigService,
         UPNP_CLIENT_TOKEN,
         GRAPHQL_PUBSUB_TOKEN,
         API_KEY_SERVICE_TOKEN,
