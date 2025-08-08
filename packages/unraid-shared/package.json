@@ -44,6 +44,7 @@
         "typescript": "5.8.3"
     },
     "peerDependencies": {
+        "@apollo/client": "3.13.8",
         "@graphql-tools/utils": "10.9.1",
         "@jsonforms/core": "3.6.0",
         "@nestjs/common": "11.1.5",
@@ -53,8 +54,10 @@
         "class-validator": "0.14.2",
         "graphql": "16.11.0",
         "graphql-scalars": "1.24.2",
+        "graphql-ws": "6.0.6",
         "lodash-es": "4.17.21",
         "nest-authz": "2.17.0",
-        "rxjs": "7.8.2"
+        "rxjs": "7.8.2",
+        "undici": "7.13.0"
     }
 }
