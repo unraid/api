@@ -1,19 +1,15 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
 
-import { ApolloClient, InMemoryCache, NormalizedCacheObject } from '@apollo/client/core/index.js';
-import { onError } from '@apollo/client/link/error/index.js';
-import { HttpLink } from '@apollo/client/link/http/index.js';
-import { Agent, fetch as undiciFetch } from 'undici';
+import { ApolloClient, NormalizedCacheObject } from '@apollo/client/core/index.js';
 
 import { AdminKeyService } from '@app/unraid-api/cli/admin-key.service.js';
+import { InternalGraphQLClientFactory } from '@app/unraid-api/shared/internal-graphql-client.factory.js';
 
 /**
  * Internal GraphQL client for CLI commands.
  *
  * This service creates an Apollo client that queries the local API server
- * through IPC, providing access to the same data that external clients would get
- * but without needing to parse config files directly.
+ * with admin privileges for CLI operations.
  */
 @Injectable()
 export class CliInternalClientService {
@@ -21,56 +17,9 @@ export class CliInternalClientService {
     private client: ApolloClient<NormalizedCacheObject> | null = null;
 
     constructor(
-        private readonly configService: ConfigService,
+        private readonly clientFactory: InternalGraphQLClientFactory,
         private readonly adminKeyService: AdminKeyService
     ) {}
-
-    private PROD_NGINX_PORT = 80;
-
-    private getNginxPort() {
-        return Number(this.configService.get('store.emhttp.nginx.httpPort', this.PROD_NGINX_PORT));
-    }
-
-    /**
-     * Check if the API is running on a Unix socket
-     */
-    private isRunningOnSocket() {
-        const port = this.configService.get<string>('PORT', '/var/run/unraid-api.sock');
-        return port.includes('.sock');
-    }
-
-    /**
-     * Get the socket path from config
-     */
-    private getSocketPath() {
-        return this.configService.get<string>('PORT', '/var/run/unraid-api.sock');
-    }
-
-    /**
-     * Get the numeric port if not running on socket
-     */
-    private getNumericPort() {
-        const port = this.configService.get<string>('PORT', '/var/run/unraid-api.sock');
-        if (port.includes('.sock')) {
-            return undefined;
-        }
-        return Number(port);
-    }
-
-    /**
-     * Get the API address for HTTP requests.
-     */
-    private getApiAddress() {
-        const numericPort = this.getNumericPort();
-        if (numericPort) {
-            return `http://127.0.0.1:${numericPort}/graphql`;
-        }
-        const nginxPort = this.getNginxPort();
-        if (nginxPort !== this.PROD_NGINX_PORT) {
-            return `http://127.0.0.1:${nginxPort}/graphql`;
-        }
-        return `http://127.0.0.1/graphql`;
-    }
 
     /**
      * Get the admin API key using the AdminKeyService.
@@ -87,74 +36,22 @@ export class CliInternalClientService {
         }
     }
 
-    private async createApiClient(): Promise<ApolloClient<NormalizedCacheObject>> {
-        const apiKey = await this.getLocalApiKey();
-        let httpLink: HttpLink;
-
-        if (this.isRunningOnSocket()) {
-            const socketPath = this.getSocketPath();
-            this.logger.debug('Internal GraphQL using Unix socket: %s', socketPath);
-
-            const agent = new Agent({
-                connect: {
-                    socketPath,
-                },
-            });
-
-            httpLink = new HttpLink({
-                uri: 'http://localhost/graphql',
-                fetch: ((uri: any, options: any) => {
-                    return undiciFetch(
-                        uri as string,
-                        {
-                            ...options,
-                            dispatcher: agent,
-                        } as any
-                    );
-                }) as unknown as typeof fetch,
-                headers: {
-                    Origin: '/var/run/unraid-cli.sock',
-                    'x-api-key': apiKey,
-                    'Content-Type': 'application/json',
-                },
-            });
-        } else {
-            const httpUri = this.getApiAddress();
-            this.logger.debug('Internal GraphQL URL: %s', httpUri);
-
-            httpLink = new HttpLink({
-                uri: httpUri,
-                fetch,
-                headers: {
-                    Origin: '/var/run/unraid-cli.sock',
-                    'x-api-key': apiKey,
-                    'Content-Type': 'application/json',
-                },
-            });
-        }
-
-        const errorLink = onError(({ networkError }) => {
-            if (networkError) {
-                this.logger.warn('[GRAPHQL-CLIENT] NETWORK ERROR ENCOUNTERED %o', networkError);
-            }
-        });
-
-        return new ApolloClient({
-            defaultOptions: {
-                query: {
-                    fetchPolicy: 'no-cache',
-                },
-            },
-            cache: new InMemoryCache(),
-            link: errorLink.concat(httpLink),
-        });
-    }
-
+    /**
+     * Get the default CLI client with admin API key.
+     * This is for CLI commands that need admin access.
+     */
     public async getClient(): Promise<ApolloClient<NormalizedCacheObject>> {
         if (this.client) {
             return this.client;
         }
-        this.client = await this.createApiClient();
+
+        const apiKey = await this.getLocalApiKey();
+        this.client = await this.clientFactory.createClient({
+            apiKey,
+            enableSubscriptions: false, // CLI doesn't need subscriptions
+        });
+
+        this.logger.debug('Created CLI internal GraphQL client with admin privileges');
         return this.client;
     }
 

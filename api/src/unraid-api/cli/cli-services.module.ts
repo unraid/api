@@ -12,6 +12,7 @@ import { ApiConfigModule } from '@app/unraid-api/config/api-config.module.js';
 import { LegacyConfigModule } from '@app/unraid-api/config/legacy-config.module.js';
 import { GlobalDepsModule } from '@app/unraid-api/plugin/global-deps.module.js';
 import { PluginCliModule } from '@app/unraid-api/plugin/plugin.module.js';
+import { InternalGraphQLClientFactory } from '@app/unraid-api/shared/internal-graphql-client.factory.js';
 import { UnraidFileModifierModule } from '@app/unraid-api/unraid-file-modifier/unraid-file-modifier.module.js';
 
 // This module provides only the services from CliModule without the CLI commands
@@ -32,6 +33,7 @@ import { UnraidFileModifierModule } from '@app/unraid-api/unraid-file-modifier/u
         DependencyService,
         AdminKeyService,
         ApiReportService,
+        InternalGraphQLClientFactory,
         CliInternalClientService,
     ],
     exports: [ApiReportService, LogService, ApiKeyService, SsoUserService, CliInternalClientService],

@@ -4,6 +4,7 @@ import { PrefixedID } from '@unraid/shared/prefixed-id-scalar.js';
 import { GRAPHQL_PUBSUB_TOKEN } from '@unraid/shared/pubsub/graphql.pubsub.js';
 import {
     API_KEY_SERVICE_TOKEN,
+    INTERNAL_CLIENT_SERVICE_TOKEN,
     LIFECYCLE_SERVICE_TOKEN,
     NGINX_SERVICE_TOKEN,
     UPNP_CLIENT_TOKEN,
@@ -15,6 +16,7 @@ import { ApiKeyService } from '@app/unraid-api/auth/api-key.service.js';
 import { ApiKeyModule } from '@app/unraid-api/graph/resolvers/api-key/api-key.module.js';
 import { NginxModule } from '@app/unraid-api/nginx/nginx.module.js';
 import { NginxService } from '@app/unraid-api/nginx/nginx.service.js';
+import { InternalGraphQLClientFactory } from '@app/unraid-api/shared/internal-graphql-client.factory.js';
 import { upnpClient } from '@app/upnp/helpers.js';
 
 // This is the actual module that provides the global dependencies
@@ -22,6 +24,7 @@ import { upnpClient } from '@app/upnp/helpers.js';
 @Module({
     imports: [ApiKeyModule, NginxModule],
     providers: [
+        InternalGraphQLClientFactory,
         {
             provide: UPNP_CLIENT_TOKEN,
             useValue: upnpClient,
@@ -38,6 +41,10 @@ import { upnpClient } from '@app/upnp/helpers.js';
             provide: NGINX_SERVICE_TOKEN,
             useClass: NginxService,
         },
+        {
+            provide: INTERNAL_CLIENT_SERVICE_TOKEN,
+            useClass: InternalGraphQLClientFactory,
+        },
         PrefixedID,
         LifecycleService,
         {
@@ -50,6 +57,7 @@ import { upnpClient } from '@app/upnp/helpers.js';
         GRAPHQL_PUBSUB_TOKEN,
         API_KEY_SERVICE_TOKEN,
         NGINX_SERVICE_TOKEN,
+        INTERNAL_CLIENT_SERVICE_TOKEN,
         PrefixedID,
         LIFECYCLE_SERVICE_TOKEN,
         LifecycleService,
