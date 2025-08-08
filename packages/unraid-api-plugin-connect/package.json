@@ -62,6 +62,7 @@
         "rxjs": "7.8.2",
         "type-fest": "4.41.0",
         "typescript": "5.8.3",
+        "undici": "^7.13.0",
         "vitest": "3.2.4",
         "ws": "8.18.3",
         "zen-observable-ts": "1.1.0"
@@ -97,6 +98,7 @@
         "lodash-es": "4.17.21",
         "nest-authz": "2.17.0",
         "rxjs": "7.8.2",
+        "undici": "^7.13.0",
         "ws": "8.18.3",
         "zen-observable-ts": "1.1.0"
     }
