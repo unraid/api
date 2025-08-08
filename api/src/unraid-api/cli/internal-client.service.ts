@@ -56,6 +56,7 @@ export class CliInternalClientService {
     }
 
     public clearClient() {
+        // Stop the Apollo client to terminate any active processes
         this.client?.stop();
         this.client = null;
     }
