@@ -9,6 +9,7 @@ import { GraphQLWsLink } from '@apollo/client/link/subscriptions/index.js';
 import { getMainDefinition } from '@apollo/client/utilities/index.js';
 import { createClient } from 'graphql-ws';
 import { Agent, fetch as undiciFetch } from 'undici';
+import WebSocket from 'ws';
 
 import { SocketConfigService } from './socket-config.service.js';
 
@@ -120,6 +121,7 @@ export abstract class BaseInternalClientService {
             this.wsClient = createClient({
                 url: wsUri,
                 connectionParams: () => ({ 'x-api-key': apiKey }),
+                webSocketImpl: WebSocket,
             });
             
             const wsLink = new GraphQLWsLink(this.wsClient);

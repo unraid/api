@@ -10,6 +10,7 @@ import { getMainDefinition } from '@apollo/client/utilities/index.js';
 import { SocketConfigService } from '@unraid/shared';
 import { createClient } from 'graphql-ws';
 import { Agent, fetch as undiciFetch } from 'undici';
+import WebSocket from 'ws';
 
 /**
  * Factory service for creating internal GraphQL clients.
@@ -109,6 +110,7 @@ export class InternalGraphQLClientFactory {
                 createClient({
                     url: wsUri,
                     connectionParams: () => ({ 'x-api-key': apiKey }),
+                    webSocketImpl: WebSocket,
                 })
             );
 
