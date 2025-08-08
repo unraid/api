@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { ref } from 'vue';
+
 import { definePageMeta } from '#imports';
 
 import Console from '../components/Docker/Console.vue';
@@ -6,6 +8,7 @@ import Edit from '../components/Docker/Edit.vue';
 import Logs from '../components/Docker/Logs.vue';
 import Overview from '../components/Docker/Overview.vue';
 import Preview from '../components/Docker/Preview.vue';
+import Card from '../components/LayoutViews/Card/Card.vue';
 import Detail from '../components/LayoutViews/Detail/Detail.vue';
 
 definePageMeta({
@@ -130,10 +133,45 @@ const getTabsWithProps = (containerId: string) => [
 ];
 
 const tabs = getTabsWithProps('immich');
+
+// View mode toggle
+const viewMode = ref<'detail' | 'card'>('detail');
+
+const toggleView = () => {
+  viewMode.value = viewMode.value === 'detail' ? 'card' : 'detail';
+};
 </script>
 
 <template>
-  <div class="h-full">
-    <Detail :items="dockerContainers" :tabs="tabs" default-item-id="immich" />
+  <div class="h-full flex flex-col">
+    <!-- View Toggle Header -->
+    <div class="border-b border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-950 p-4">
+      <div class="flex items-center justify-between">
+        <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Docker</h1>
+        <div class="flex items-center gap-2">
+          <span class="text-sm text-gray-600 dark:text-gray-400">View:</span>
+          <UButton
+            :icon="viewMode === 'detail' ? 'i-lucide-list' : 'i-lucide-grid-3x3'"
+            :color="viewMode === 'detail' ? 'primary' : 'neutral'"
+            :variant="viewMode === 'detail' ? 'solid' : 'outline'"
+            size="sm"
+            @click="toggleView"
+          >
+            {{ viewMode === 'detail' ? 'Detail' : 'Card' }}
+          </UButton>
+        </div>
+      </div>
+    </div>
+
+    <!-- View Content -->
+    <div class="flex-1 min-h-0">
+      <Detail
+        v-if="viewMode === 'detail'"
+        :items="dockerContainers"
+        :tabs="tabs"
+        default-item-id="immich"
+      />
+      <Card v-else :items="dockerContainers" navigation-label="Docker Overview" />
+    </div>
   </div>
 </template>
