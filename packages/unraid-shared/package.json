@@ -45,7 +45,8 @@
         "rimraf": "6.0.1",
         "type-fest": "4.41.0",
         "typescript": "5.9.2",
-        "vitest": "3.2.4"
+        "vitest": "3.2.4",
+        "ws": "^8.18.3"
     },
     "peerDependencies": {
         "@apollo/client": "3.13.8",
