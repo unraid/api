@@ -103,7 +103,7 @@ export class CliInternalClientService {
 
             httpLink = new HttpLink({
                 uri: 'http://localhost/graphql',
-                fetch: (uri, options) => {
+                fetch: ((uri: any, options: any) => {
                     return undiciFetch(
                         uri as string,
                         {
@@ -111,7 +111,7 @@ export class CliInternalClientService {
                             dispatcher: agent,
                         } as any
                     );
-                },
+                }) as unknown as typeof fetch,
                 headers: {
                     Origin: '/var/run/unraid-cli.sock',
                     'x-api-key': apiKey,
