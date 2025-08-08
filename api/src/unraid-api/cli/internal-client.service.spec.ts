@@ -1,0 +1,128 @@
+import { ConfigModule, ConfigService } from '@nestjs/config';
+import { Test, TestingModule } from '@nestjs/testing';
+
+import { ApolloClient } from '@apollo/client/core/index.js';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+
+import { AdminKeyService } from '@app/unraid-api/cli/admin-key.service.js';
+import { CliInternalClientService } from '@app/unraid-api/cli/internal-client.service.js';
+import { InternalGraphQLClientFactory } from '@app/unraid-api/shared/internal-graphql-client.factory.js';
+
+describe('CliInternalClientService', () => {
+    let service: CliInternalClientService;
+    let clientFactory: InternalGraphQLClientFactory;
+    let adminKeyService: AdminKeyService;
+    let module: TestingModule;
+
+    const mockApolloClient = {
+        query: vi.fn(),
+        mutate: vi.fn(),
+        stop: vi.fn(),
+    };
+
+    beforeEach(async () => {
+        module = await Test.createTestingModule({
+            imports: [ConfigModule.forRoot()],
+            providers: [
+                CliInternalClientService,
+                {
+                    provide: InternalGraphQLClientFactory,
+                    useValue: {
+                        createClient: vi.fn().mockResolvedValue(mockApolloClient),
+                    },
+                },
+                {
+                    provide: AdminKeyService,
+                    useValue: {
+                        getOrCreateLocalAdminKey: vi.fn().mockResolvedValue('test-admin-key'),
+                    },
+                },
+            ],
+        }).compile();
+
+        service = module.get<CliInternalClientService>(CliInternalClientService);
+        clientFactory = module.get<InternalGraphQLClientFactory>(InternalGraphQLClientFactory);
+        adminKeyService = module.get<AdminKeyService>(AdminKeyService);
+    });
+
+    afterEach(async () => {
+        await module?.close();
+    });
+
+    it('should be defined', () => {
+        expect(service).toBeDefined();
+    });
+
+    describe('dependency injection', () => {
+        it('should have InternalGraphQLClientFactory injected', () => {
+            expect(clientFactory).toBeDefined();
+            expect(clientFactory.createClient).toBeDefined();
+        });
+
+        it('should have AdminKeyService injected', () => {
+            expect(adminKeyService).toBeDefined();
+            expect(adminKeyService.getOrCreateLocalAdminKey).toBeDefined();
+        });
+    });
+
+    describe('getClient', () => {
+        it('should create a client with admin API key', async () => {
+            const client = await service.getClient();
+
+            expect(adminKeyService.getOrCreateLocalAdminKey).toHaveBeenCalled();
+            expect(clientFactory.createClient).toHaveBeenCalledWith({
+                apiKey: 'test-admin-key',
+                enableSubscriptions: false,
+            });
+            expect(client).toBe(mockApolloClient);
+        });
+
+        it('should return cached client on subsequent calls', async () => {
+            const client1 = await service.getClient();
+            const client2 = await service.getClient();
+
+            expect(client1).toBe(client2);
+            expect(clientFactory.createClient).toHaveBeenCalledTimes(1);
+        });
+
+        it('should handle errors when getting admin key', async () => {
+            const error = new Error('Failed to get admin key');
+            vi.mocked(adminKeyService.getOrCreateLocalAdminKey).mockRejectedValueOnce(error);
+
+            await expect(service.getClient()).rejects.toThrow(
+                'Unable to get admin API key for internal client'
+            );
+        });
+    });
+
+    describe('clearClient', () => {
+        it('should stop and clear the client', async () => {
+            // First create a client
+            await service.getClient();
+
+            // Clear the client
+            service.clearClient();
+
+            expect(mockApolloClient.stop).toHaveBeenCalled();
+        });
+
+        it('should handle clearing when no client exists', () => {
+            // Should not throw when clearing a non-existent client
+            expect(() => service.clearClient()).not.toThrow();
+        });
+
+        it('should create a new client after clearing', async () => {
+            // Create initial client
+            await service.getClient();
+
+            // Clear it
+            service.clearClient();
+
+            // Create new client
+            await service.getClient();
+
+            // Should have created client twice
+            expect(clientFactory.createClient).toHaveBeenCalledTimes(2);
+        });
+    });
+});
