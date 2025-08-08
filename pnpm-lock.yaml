@@ -295,6 +295,9 @@ importers:
       systeminformation:
         specifier: 5.27.7
         version: 5.27.7
+      undici:
+        specifier: ^7.13.0
+        version: 7.13.0
       unraid-api-plugin-connect:
         specifier: workspace:*
         version: link:../packages/unraid-api-plugin-connect
@@ -12776,6 +12779,10 @@ packages:
 
   undici@7.10.0:
     resolution: {integrity: sha512-u5otvFBOBZvmdjWLVW+5DAc9Nkq8f24g0O9oY7qw2JVIF1VocIFoyz9JFkuVOS2j41AufeO0xnlweJ2RLT8nGw==}
+    engines: {node: '>=20.18.1'}
+
+  undici@7.13.0:
+    resolution: {integrity: sha512-l+zSMssRqrzDcb3fjMkjjLGmuiiK2pMIcV++mJaAc9vhjSGpvM7h43QgP+OAMb1GImHmbPyG2tBXeuyG5iY4gA==}
     engines: {node: '>=20.18.1'}
 
   unenv@2.0.0-rc.18:
@@ -27027,6 +27034,8 @@ snapshots:
   undici-types@6.21.0: {}
 
   undici@7.10.0: {}
+
+  undici@7.13.0: {}
 
   unenv@2.0.0-rc.18:
     dependencies:
