@@ -85,6 +85,48 @@ describe('SocketConfigService', () => {
             
             expect(service.getNumericPort()).toBe(8080);
         });
+
+        it('should return undefined for non-numeric port values', () => {
+            vi.spyOn(configService, 'get').mockReturnValue('invalid-port');
+            
+            expect(service.getNumericPort()).toBeUndefined();
+        });
+
+        it('should return undefined for empty string port', () => {
+            vi.spyOn(configService, 'get').mockReturnValue('');
+            
+            expect(service.getNumericPort()).toBeUndefined();
+        });
+
+        it('should return undefined for port with mixed characters', () => {
+            vi.spyOn(configService, 'get').mockReturnValue('3000abc');
+            
+            expect(service.getNumericPort()).toBeUndefined();
+        });
+
+        it('should return undefined for port 0', () => {
+            vi.spyOn(configService, 'get').mockReturnValue('0');
+            
+            expect(service.getNumericPort()).toBeUndefined();
+        });
+
+        it('should return undefined for negative port', () => {
+            vi.spyOn(configService, 'get').mockReturnValue('-1');
+            
+            expect(service.getNumericPort()).toBeUndefined();
+        });
+
+        it('should return undefined for port above 65535', () => {
+            vi.spyOn(configService, 'get').mockReturnValue('70000');
+            
+            expect(service.getNumericPort()).toBeUndefined();
+        });
+
+        it('should return valid port 65535', () => {
+            vi.spyOn(configService, 'get').mockReturnValue('65535');
+            
+            expect(service.getNumericPort()).toBe(65535);
+        });
     });
 
     describe('getApiAddress', () => {
@@ -133,6 +175,26 @@ describe('SocketConfigService', () => {
             });
             
             expect(service.getApiAddress()).toBe('http://127.0.0.1:3000/graphql');
+        });
+
+        it('should fallback to nginx port when PORT is invalid', () => {
+            vi.spyOn(configService, 'get').mockImplementation((key, defaultValue) => {
+                if (key === 'PORT') return 'invalid-port';
+                if (key === 'store.emhttp.nginx.httpPort') return '8080';
+                return defaultValue;
+            });
+            
+            expect(service.getApiAddress('http')).toBe('http://127.0.0.1:8080/graphql');
+        });
+
+        it('should use default port when PORT is invalid and nginx port is default', () => {
+            vi.spyOn(configService, 'get').mockImplementation((key, defaultValue) => {
+                if (key === 'PORT') return 'not-a-number';
+                if (key === 'store.emhttp.nginx.httpPort') return '80';
+                return defaultValue;
+            });
+            
+            expect(service.getApiAddress('http')).toBe('http://127.0.0.1/graphql');
         });
     });
 

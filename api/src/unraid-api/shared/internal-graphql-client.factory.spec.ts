@@ -152,7 +152,7 @@ describe('InternalGraphQLClientFactory', () => {
             });
 
             expect(client).toBeInstanceOf(ApolloClient);
-            // Default origin should be '/var/run/unraid-cli.sock'
+            // Default origin should be 'http://localhost'
         });
 
         it('should handle subscription disabled even when wsUri is provided', async () => {

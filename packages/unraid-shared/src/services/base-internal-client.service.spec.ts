@@ -70,7 +70,7 @@ describe('BaseInternalClientService', () => {
             const service = new TestInternalClientService(configService, apiKeyProvider);
             expect(service).toBeDefined();
             // @ts-ignore - accessing protected property for testing
-            expect(service.options.origin).toBe('/var/run/unraid-cli.sock');
+            expect(service.options.origin).toBe('http://localhost');
         });
 
         it('should initialize with custom options', () => {
