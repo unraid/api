@@ -44,7 +44,11 @@ export abstract class BaseInternalClientService {
     ) {
         this.logger = new Logger(this.constructor.name);
         this.socketConfig = new SocketConfigService(configService);
-        this.options.origin = this.options.origin ?? '/var/run/unraid-cli.sock';
+        // Use a valid HTTP origin or omit if not provided
+        // Internal clients typically don't need origin headers
+        if (!this.options.origin) {
+            this.options.origin = 'http://localhost';
+        }
     }
 
 

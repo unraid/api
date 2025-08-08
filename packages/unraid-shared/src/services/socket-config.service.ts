@@ -41,7 +41,13 @@ export class SocketConfigService {
         if (port.includes('.sock')) {
             return undefined;
         }
-        return Number(port);
+        const numericPort = Number(port);
+        // Check if the conversion resulted in a valid finite number
+        // Also check for reasonable port range (0 is not a valid port)
+        if (!Number.isFinite(numericPort) || numericPort <= 0 || numericPort > 65535) {
+            return undefined;
+        }
+        return numericPort;
     }
 
     /**

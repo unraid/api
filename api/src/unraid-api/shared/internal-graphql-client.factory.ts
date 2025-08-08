@@ -36,7 +36,7 @@ export class InternalGraphQLClientFactory {
      * @param options Configuration options
      * @param options.apiKey Required API key for authentication
      * @param options.enableSubscriptions Optional flag to enable WebSocket subscriptions
-     * @param options.origin Optional origin header (defaults to '/var/run/unraid-cli.sock')
+     * @param options.origin Optional origin header (defaults to 'http://localhost')
      */
     public async createClient(options: {
         apiKey: string;
@@ -47,7 +47,7 @@ export class InternalGraphQLClientFactory {
             throw new Error('API key is required for creating a GraphQL client');
         }
 
-        const { apiKey, enableSubscriptions = false, origin = '/var/run/unraid-cli.sock' } = options;
+        const { apiKey, enableSubscriptions = false, origin = 'http://localhost' } = options;
         let httpLink: HttpLink;
 
         // Get WebSocket URI if subscriptions are enabled
