@@ -32,6 +32,12 @@ export class UpdateSettingsResponse {
 
     @Field(() => GraphQLJSON, { description: 'The updated settings values' })
     values!: Record<string, any>;
+
+    @Field(() => [String], {
+        nullable: true,
+        description: 'Warning messages about configuration issues found during validation',
+    })
+    warnings?: string[];
 }
 
 @ObjectType({

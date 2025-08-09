@@ -12,6 +12,7 @@ import {
     OidcProvider,
 } from '@app/unraid-api/graph/resolvers/sso/oidc-provider.model.js';
 import { OidcSessionService } from '@app/unraid-api/graph/resolvers/sso/oidc-session.service.js';
+import { OidcValidationService } from '@app/unraid-api/graph/resolvers/sso/oidc-validation.service.js';
 
 describe('OidcAuthService', () => {
     let service: OidcAuthService;
@@ -39,6 +40,12 @@ describe('OidcAuthService', () => {
                     provide: OidcSessionService,
                     useValue: {
                         createSession: vi.fn(),
+                    },
+                },
+                {
+                    provide: OidcValidationService,
+                    useValue: {
+                        validateProvider: vi.fn(),
                     },
                 },
             ],

@@ -87,6 +87,42 @@ const getItemLabel = (item: unknown, index: number) => {
   return `${itemTypeName.value} ${index + 1}`;
 };
 
+// Check if an item is protected based on options configuration
+const isItemProtected = (item: unknown): boolean => {
+  const options = control.value.uischema?.options as Record<string, unknown> | undefined;
+  const protectedItems = options?.protectedItems as Array<{ field: string; value: unknown }> | undefined;
+
+  if (!protectedItems || !item || typeof item !== 'object') {
+    return false;
+  }
+
+  const itemObj = item as Record<string, unknown>;
+  return protectedItems.some((rule) => rule.field in itemObj && itemObj[rule.field] === rule.value);
+};
+
+// Get warning message for an item if it matches warning conditions
+const getItemWarning = (item: unknown): { title: string; description: string } | null => {
+  const options = control.value.uischema?.options as Record<string, unknown> | undefined;
+  const itemWarnings = options?.itemWarnings as
+    | Array<{
+        condition: { field: string; value: unknown };
+        title: string;
+        description: string;
+      }>
+    | undefined;
+
+  if (!itemWarnings || !item || typeof item !== 'object') {
+    return null;
+  }
+
+  const itemObj = item as Record<string, unknown>;
+  const warning = itemWarnings.find(
+    (w) => w.condition.field in itemObj && itemObj[w.condition.field] === w.condition.value
+  );
+
+  return warning ? { title: warning.title, description: warning.description } : null;
+};
+
 const addItem = () => {
   const schema = control.value.schema;
   const newItem: Record<string, unknown> = {};
@@ -162,6 +198,7 @@ const updateItem = (index: number, newValue: unknown) => {
         <div class="border rounded-lg p-6 w-full">
           <div class="flex justify-end mb-4">
             <Button
+              v-if="!isItemProtected(item)"
               variant="ghost"
               size="sm"
               class="text-destructive hover:text-destructive"
@@ -173,6 +210,21 @@ const updateItem = (index: number, newValue: unknown) => {
             </Button>
           </div>
           <div class="w-full max-w-none">
+            <!-- Show warning if item matches protected condition -->
+            <div
+              v-if="getItemWarning(item)"
+              class="mb-4 p-3 bg-warning/10 border border-warning/20 rounded-lg"
+            >
+              <div class="flex items-start gap-2">
+                <span class="text-warning">⚠️</span>
+                <div>
+                  <div class="font-medium text-warning">{{ getItemWarning(item)?.title }}</div>
+                  <div class="text-sm text-muted-foreground mt-1">
+                    {{ getItemWarning(item)?.description }}
+                  </div>
+                </div>
+              </div>
+            </div>
             <JsonForms
               :data="item"
               :schema="control.schema.items as JsonSchema"
