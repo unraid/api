@@ -94,7 +94,7 @@ export const run = async (channel: string, mutation: string, options: RunOptions
                 );
             }
         } else {
-            logger.debug('Error: %s', error);
+            logger.debug('Error: %o', error as object);
         }
     }
 };

@@ -1,4 +1,4 @@
-import { pino } from 'pino';
+import pino from 'pino';
 import pretty from 'pino-pretty';
 
 import { API_VERSION, LOG_LEVEL, LOG_TYPE, PATHS_LOGS_FILE, SUPPRESS_LOGS } from '@app/environment.js';
