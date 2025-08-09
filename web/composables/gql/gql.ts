@@ -44,6 +44,7 @@ type Documents = {
     "\n  mutation DeleteRCloneRemote($input: DeleteRCloneRemoteInput!) {\n    rclone {\n      deleteRCloneRemote(input: $input)\n    }\n  }\n": typeof types.DeleteRCloneRemoteDocument,
     "\n  query GetRCloneConfigForm($formOptions: RCloneConfigFormInput) {\n    rclone {\n      configForm(formOptions: $formOptions) {\n        id\n        dataSchema\n        uiSchema\n      }\n    }\n  }\n": typeof types.GetRCloneConfigFormDocument,
     "\n  query ListRCloneRemotes {\n    rclone {\n      remotes {\n        name\n        type\n        parameters\n        config\n      }\n    }\n  }\n": typeof types.ListRCloneRemotesDocument,
+    "\n  query OidcProviders {\n    settings {\n      sso {\n        oidcProviders {\n          id\n          name\n          clientId\n          issuer\n          authorizationEndpoint\n          tokenEndpoint\n          jwksUri\n          scopes\n          buttonText\n          buttonIcon\n        }\n      }\n    }\n  }\n": typeof types.OidcProvidersDocument,
     "\n  query serverInfo {\n    info {\n      os {\n        hostname\n      }\n    }\n    vars {\n      comment\n    }\n  }\n": typeof types.ServerInfoDocument,
     "\n  mutation ConnectSignIn($input: ConnectSignInInput!) {\n    connectSignIn(input: $input)\n  }\n": typeof types.ConnectSignInDocument,
     "\n  mutation SignOut {\n    connectSignOut\n  }\n": typeof types.SignOutDocument,
@@ -84,6 +85,7 @@ const documents: Documents = {
     "\n  mutation DeleteRCloneRemote($input: DeleteRCloneRemoteInput!) {\n    rclone {\n      deleteRCloneRemote(input: $input)\n    }\n  }\n": types.DeleteRCloneRemoteDocument,
     "\n  query GetRCloneConfigForm($formOptions: RCloneConfigFormInput) {\n    rclone {\n      configForm(formOptions: $formOptions) {\n        id\n        dataSchema\n        uiSchema\n      }\n    }\n  }\n": types.GetRCloneConfigFormDocument,
     "\n  query ListRCloneRemotes {\n    rclone {\n      remotes {\n        name\n        type\n        parameters\n        config\n      }\n    }\n  }\n": types.ListRCloneRemotesDocument,
+    "\n  query OidcProviders {\n    settings {\n      sso {\n        oidcProviders {\n          id\n          name\n          clientId\n          issuer\n          authorizationEndpoint\n          tokenEndpoint\n          jwksUri\n          scopes\n          buttonText\n          buttonIcon\n        }\n      }\n    }\n  }\n": types.OidcProvidersDocument,
     "\n  query serverInfo {\n    info {\n      os {\n        hostname\n      }\n    }\n    vars {\n      comment\n    }\n  }\n": types.ServerInfoDocument,
     "\n  mutation ConnectSignIn($input: ConnectSignInInput!) {\n    connectSignIn(input: $input)\n  }\n": types.ConnectSignInDocument,
     "\n  mutation SignOut {\n    connectSignOut\n  }\n": types.SignOutDocument,
@@ -228,6 +230,10 @@ export function graphql(source: "\n  query GetRCloneConfigForm($formOptions: RCl
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
 export function graphql(source: "\n  query ListRCloneRemotes {\n    rclone {\n      remotes {\n        name\n        type\n        parameters\n        config\n      }\n    }\n  }\n"): (typeof documents)["\n  query ListRCloneRemotes {\n    rclone {\n      remotes {\n        name\n        type\n        parameters\n        config\n      }\n    }\n  }\n"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "\n  query OidcProviders {\n    settings {\n      sso {\n        oidcProviders {\n          id\n          name\n          clientId\n          issuer\n          authorizationEndpoint\n          tokenEndpoint\n          jwksUri\n          scopes\n          buttonText\n          buttonIcon\n        }\n      }\n    }\n  }\n"): (typeof documents)["\n  query OidcProviders {\n    settings {\n      sso {\n        oidcProviders {\n          id\n          name\n          clientId\n          issuer\n          authorizationEndpoint\n          tokenEndpoint\n          jwksUri\n          scopes\n          buttonText\n          buttonIcon\n        }\n      }\n    }\n  }\n"];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */

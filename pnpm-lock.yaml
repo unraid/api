@@ -737,6 +737,9 @@ importers:
       '@types/node':
         specifier: 22.17.1
         version: 22.17.1
+      class-transformer:
+        specifier: 0.5.1
+        version: 0.5.1
       class-validator:
         specifier: 0.14.2
         version: 0.14.2
@@ -26614,7 +26617,7 @@ snapshots:
 
   terser-webpack-plugin@5.3.14(esbuild@0.23.1)(webpack@5.98.0(esbuild@0.23.1)):
     dependencies:
-      '@jridgewell/trace-mapping': 0.3.25
+      '@jridgewell/trace-mapping': 0.3.29
       jest-worker: 27.5.1
       schema-utils: 4.3.2
       serialize-javascript: 6.0.2

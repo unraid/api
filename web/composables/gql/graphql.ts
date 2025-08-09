@@ -936,6 +936,7 @@ export type Mutation = {
   archiveNotification: Notification;
   archiveNotifications: NotificationOverview;
   array: ArrayMutations;
+  configureUps: Scalars['Boolean']['output'];
   connectSignIn: Scalars['Boolean']['output'];
   connectSignOut: Scalars['Boolean']['output'];
   /** Creates a new notification record */
@@ -943,6 +944,8 @@ export type Mutation = {
   /** Deletes all archived notifications on server. */
   deleteArchivedNotifications: NotificationOverview;
   deleteNotification: NotificationOverview;
+  /** Delete an OIDC provider */
+  deleteOidcProvider: Scalars['Boolean']['output'];
   docker: DockerMutations;
   enableDynamicRemoteAccess: Scalars['Boolean']['output'];
   /** Initiates a flash drive backup using a configured remote. */
@@ -960,6 +963,8 @@ export type Mutation = {
   unreadNotification: Notification;
   updateApiSettings: ConnectSettingsValues;
   updateSettings: UpdateSettingsResponse;
+  /** Create or update an OIDC provider */
+  upsertOidcProvider: OidcProvider;
   vm: VmMutations;
 };
 
@@ -984,6 +989,11 @@ export type MutationArchiveNotificationsArgs = {
 };
 
 
+export type MutationConfigureUpsArgs = {
+  config: UpsConfigInput;
+};
+
+
 export type MutationConnectSignInArgs = {
   input: ConnectSignInInput;
 };
@@ -997,6 +1007,11 @@ export type MutationCreateNotificationArgs = {
 export type MutationDeleteNotificationArgs = {
   id: Scalars['PrefixedID']['input'];
   type: NotificationType;
+};
+
+
+export type MutationDeleteOidcProviderArgs = {
+  id: Scalars['String']['input'];
 };
 
 
@@ -1042,6 +1057,11 @@ export type MutationUpdateApiSettingsArgs = {
 
 export type MutationUpdateSettingsArgs = {
   input: Scalars['JSON']['input'];
+};
+
+
+export type MutationUpsertOidcProviderArgs = {
+  provider: OidcProviderInput;
 };
 
 export type Network = Node & {
@@ -1120,6 +1140,61 @@ export type Notifications = Node & {
 
 export type NotificationsListArgs = {
   filter: NotificationFilter;
+};
+
+export type OidcProvider = {
+  __typename?: 'OidcProvider';
+  /** OAuth2 authorization endpoint URL. If omitted, will be auto-discovered from issuer/.well-known/openid-configuration */
+  authorizationEndpoint?: Maybe<Scalars['String']['output']>;
+  /** List of authorized subject IDs allowed to authenticate */
+  authorizedSubIds: Array<Scalars['String']['output']>;
+  /** URL or base64 encoded icon for the login button */
+  buttonIcon?: Maybe<Scalars['String']['output']>;
+  /** Custom text for the login button */
+  buttonText?: Maybe<Scalars['String']['output']>;
+  /** OAuth2 client ID registered with the provider */
+  clientId: Scalars['String']['output'];
+  /** OAuth2 client secret (if required by provider) */
+  clientSecret?: Maybe<Scalars['String']['output']>;
+  /** The unique identifier for the OIDC provider */
+  id: Scalars['PrefixedID']['output'];
+  /** OIDC issuer URL (e.g., https://accounts.google.com). Required for auto-discovery via /.well-known/openid-configuration */
+  issuer: Scalars['String']['output'];
+  /** JSON Web Key Set URI for token validation. If omitted, will be auto-discovered from issuer/.well-known/openid-configuration */
+  jwksUri?: Maybe<Scalars['String']['output']>;
+  /** Display name of the OIDC provider */
+  name: Scalars['String']['output'];
+  /** OAuth2 scopes to request (e.g., openid, profile, email) */
+  scopes: Array<Scalars['String']['output']>;
+  /** OAuth2 token endpoint URL. If omitted, will be auto-discovered from issuer/.well-known/openid-configuration */
+  tokenEndpoint?: Maybe<Scalars['String']['output']>;
+};
+
+export type OidcProviderInput = {
+  /** OAuth2 authorization endpoint URL. If omitted, will be auto-discovered from issuer/.well-known/openid-configuration */
+  authorizationEndpoint?: InputMaybe<Scalars['String']['input']>;
+  /** List of authorized subject IDs allowed to authenticate */
+  authorizedSubIds: Array<Scalars['String']['input']>;
+  /** URL or base64 encoded icon for the login button */
+  buttonIcon?: InputMaybe<Scalars['String']['input']>;
+  /** Custom text for the login button */
+  buttonText?: InputMaybe<Scalars['String']['input']>;
+  /** OAuth2 client ID registered with the provider */
+  clientId: Scalars['String']['input'];
+  /** OAuth2 client secret (if required by provider) */
+  clientSecret?: InputMaybe<Scalars['String']['input']>;
+  /** The unique identifier for the OIDC provider */
+  id: Scalars['String']['input'];
+  /** OIDC issuer URL (e.g., https://accounts.google.com). Required for auto-discovery via /.well-known/openid-configuration */
+  issuer: Scalars['String']['input'];
+  /** JSON Web Key Set URI for token validation. If omitted, will be auto-discovered from issuer/.well-known/openid-configuration */
+  jwksUri?: InputMaybe<Scalars['String']['input']>;
+  /** Display name of the OIDC provider */
+  name: Scalars['String']['input'];
+  /** OAuth2 scopes to request (e.g., openid, profile, email) */
+  scopes: Array<Scalars['String']['input']>;
+  /** OAuth2 token endpoint URL. If omitted, will be auto-discovered from issuer/.well-known/openid-configuration */
+  tokenEndpoint?: InputMaybe<Scalars['String']['input']>;
 };
 
 export type Os = Node & {
@@ -1235,6 +1310,14 @@ export type ProfileModel = Node & {
   username: Scalars['String']['output'];
 };
 
+export type PublicOidcProvider = {
+  __typename?: 'PublicOidcProvider';
+  buttonIcon?: Maybe<Scalars['String']['output']>;
+  buttonText?: Maybe<Scalars['String']['output']>;
+  id: Scalars['ID']['output'];
+  name: Scalars['String']['output'];
+};
+
 export type PublicPartnerInfo = {
   __typename?: 'PublicPartnerInfo';
   /** Indicates if a partner logo exists */
@@ -1272,11 +1355,17 @@ export type Query = {
   network: Network;
   /** Get all notifications */
   notifications: Notifications;
+  /** Get a specific OIDC provider by ID */
+  oidcProvider?: Maybe<OidcProvider>;
+  /** Get all configured OIDC providers (admin only) */
+  oidcProviders: Array<OidcProvider>;
   online: Scalars['Boolean']['output'];
   owner: Owner;
   parityHistory: Array<ParityCheck>;
   /** List all installed plugins with their metadata */
   plugins: Array<Plugin>;
+  /** Get public OIDC provider information for login buttons */
+  publicOidcProviders: Array<PublicOidcProvider>;
   publicPartnerInfo?: Maybe<PublicPartnerInfo>;
   publicTheme: Theme;
   rclone: RCloneBackupSettings;
@@ -1287,6 +1376,9 @@ export type Query = {
   services: Array<Service>;
   settings: Settings;
   shares: Array<Share>;
+  upsConfiguration: UpsConfiguration;
+  upsDeviceById?: Maybe<UpsDevice>;
+  upsDevices: Array<UpsDevice>;
   vars: Vars;
   /** Get information about all VMs on the system */
   vms: Vms;
@@ -1307,6 +1399,16 @@ export type QueryLogFileArgs = {
   lines?: InputMaybe<Scalars['Int']['input']>;
   path: Scalars['String']['input'];
   startLine?: InputMaybe<Scalars['Int']['input']>;
+};
+
+
+export type QueryOidcProviderArgs = {
+  id: Scalars['String']['input'];
+};
+
+
+export type QueryUpsDeviceByIdArgs = {
+  id: Scalars['String']['input'];
 };
 
 export type RCloneBackupConfigForm = {
@@ -1508,6 +1610,8 @@ export type Settings = Node & {
   /** The API setting values */
   api: ApiConfig;
   id: Scalars['PrefixedID']['output'];
+  /** SSO settings */
+  sso: SsoSettings;
   /** A view of all settings */
   unified: UnifiedSettings;
 };
@@ -1556,6 +1660,13 @@ export type Share = Node & {
   used?: Maybe<Scalars['BigInt']['output']>;
 };
 
+export type SsoSettings = Node & {
+  __typename?: 'SsoSettings';
+  id: Scalars['PrefixedID']['output'];
+  /** List of configured OIDC providers */
+  oidcProviders: Array<OidcProvider>;
+};
+
 export type Subscription = {
   __typename?: 'Subscription';
   arraySubscription: UnraidArray;
@@ -1567,6 +1678,7 @@ export type Subscription = {
   ownerSubscription: Owner;
   parityHistorySubscription: ParityCheck;
   serversSubscription: Server;
+  upsUpdates: UpsDevice;
 };
 
 
@@ -1615,6 +1727,129 @@ export enum ThemeName {
   BLACK = 'black',
   GRAY = 'gray',
   WHITE = 'white'
+}
+
+export type UpsBattery = {
+  __typename?: 'UPSBattery';
+  /** Battery charge level as a percentage (0-100). Unit: percent (%). Example: 100 means battery is fully charged */
+  chargeLevel: Scalars['Int']['output'];
+  /** Estimated runtime remaining on battery power. Unit: seconds. Example: 3600 means 1 hour of runtime remaining */
+  estimatedRuntime: Scalars['Int']['output'];
+  /** Battery health status. Possible values: 'Good', 'Replace', 'Unknown'. Indicates if the battery needs replacement */
+  health: Scalars['String']['output'];
+};
+
+/** UPS cable connection types */
+export enum UpsCableType {
+  CUSTOM = 'CUSTOM',
+  ETHER = 'ETHER',
+  SIMPLE = 'SIMPLE',
+  SMART = 'SMART',
+  USB = 'USB'
+}
+
+export type UpsConfigInput = {
+  /** Battery level percentage to initiate shutdown. Unit: percent (%) - Valid range: 0-100 */
+  batteryLevel?: InputMaybe<Scalars['Int']['input']>;
+  /** Custom cable configuration (only used when upsCable is CUSTOM). Format depends on specific UPS model */
+  customUpsCable?: InputMaybe<Scalars['String']['input']>;
+  /** Device path or network address for UPS connection. Examples: '/dev/ttyUSB0' for USB, '192.168.1.100:3551' for network */
+  device?: InputMaybe<Scalars['String']['input']>;
+  /** Turn off UPS power after system shutdown. Useful for ensuring complete power cycle */
+  killUps?: InputMaybe<UpsKillPower>;
+  /** Runtime left in minutes to initiate shutdown. Unit: minutes */
+  minutes?: InputMaybe<Scalars['Int']['input']>;
+  /** Override UPS capacity for runtime calculations. Unit: watts (W). Leave unset to use UPS-reported capacity */
+  overrideUpsCapacity?: InputMaybe<Scalars['Int']['input']>;
+  /** Enable or disable the UPS monitoring service */
+  service?: InputMaybe<UpsServiceState>;
+  /** Time on battery before shutdown. Unit: seconds. Set to 0 to disable timeout-based shutdown */
+  timeout?: InputMaybe<Scalars['Int']['input']>;
+  /** Type of cable connecting the UPS to the server */
+  upsCable?: InputMaybe<UpsCableType>;
+  /** UPS communication protocol */
+  upsType?: InputMaybe<UpsType>;
+};
+
+export type UpsConfiguration = {
+  __typename?: 'UPSConfiguration';
+  /** Battery level threshold for shutdown. Unit: percent (%). Example: 10 means shutdown when battery reaches 10%. System will shutdown when battery drops to this level */
+  batteryLevel?: Maybe<Scalars['Int']['output']>;
+  /** Custom cable configuration string. Only used when upsCable is set to 'custom'. Format depends on specific UPS model */
+  customUpsCable?: Maybe<Scalars['String']['output']>;
+  /** Device path or network address for UPS connection. Examples: '/dev/ttyUSB0' for USB, '192.168.1.100:3551' for network. Depends on upsType setting */
+  device?: Maybe<Scalars['String']['output']>;
+  /** Kill UPS power after shutdown. Values: 'yes' or 'no'. If 'yes', tells UPS to cut power after system shutdown. Useful for ensuring complete power cycle */
+  killUps?: Maybe<Scalars['String']['output']>;
+  /** Runtime threshold for shutdown. Unit: minutes. Example: 5 means shutdown when 5 minutes runtime remaining. System will shutdown when estimated runtime drops below this */
+  minutes?: Maybe<Scalars['Int']['output']>;
+  /** Override UPS model name. Used for display purposes. Leave unset to use UPS-reported model */
+  modelName?: Maybe<Scalars['String']['output']>;
+  /** Network server mode. Values: 'on' or 'off'. Enable to allow network clients to monitor this UPS */
+  netServer?: Maybe<Scalars['String']['output']>;
+  /** Network Information Server (NIS) IP address. Default: '0.0.0.0' (listen on all interfaces). IP address for apcupsd network information server */
+  nisIp?: Maybe<Scalars['String']['output']>;
+  /** Override UPS capacity for runtime calculations. Unit: volt-amperes (VA). Example: 1500 for a 1500VA UPS. Leave unset to use UPS-reported capacity */
+  overrideUpsCapacity?: Maybe<Scalars['Int']['output']>;
+  /** UPS service state. Values: 'enable' or 'disable'. Controls whether the UPS monitoring service is running */
+  service?: Maybe<Scalars['String']['output']>;
+  /** Timeout for UPS communications. Unit: seconds. Example: 0 means no timeout. Time to wait for UPS response before considering it offline */
+  timeout?: Maybe<Scalars['Int']['output']>;
+  /** Type of cable connecting the UPS to the server. Common values: 'usb', 'smart', 'ether', 'custom'. Determines communication protocol */
+  upsCable?: Maybe<Scalars['String']['output']>;
+  /** UPS name for network monitoring. Used to identify this UPS on the network. Example: 'SERVER_UPS' */
+  upsName?: Maybe<Scalars['String']['output']>;
+  /** UPS communication type. Common values: 'usb', 'net', 'snmp', 'dumb', 'pcnet', 'modbus'. Defines how the server communicates with the UPS */
+  upsType?: Maybe<Scalars['String']['output']>;
+};
+
+export type UpsDevice = {
+  __typename?: 'UPSDevice';
+  /** Battery-related information */
+  battery: UpsBattery;
+  /** Unique identifier for the UPS device. Usually based on the model name or a generated ID */
+  id: Scalars['ID']['output'];
+  /** UPS model name/number. Example: 'APC Back-UPS Pro 1500' */
+  model: Scalars['String']['output'];
+  /** Display name for the UPS device. Can be customized by the user */
+  name: Scalars['String']['output'];
+  /** Power-related information */
+  power: UpsPower;
+  /** Current operational status of the UPS. Common values: 'Online', 'On Battery', 'Low Battery', 'Replace Battery', 'Overload', 'Offline'. 'Online' means running on mains power, 'On Battery' means running on battery backup */
+  status: Scalars['String']['output'];
+};
+
+/** Kill UPS power after shutdown option */
+export enum UpsKillPower {
+  NO = 'NO',
+  YES = 'YES'
+}
+
+export type UpsPower = {
+  __typename?: 'UPSPower';
+  /** Input voltage from the wall outlet/mains power. Unit: volts (V). Example: 120.5 for typical US household voltage */
+  inputVoltage: Scalars['Float']['output'];
+  /** Current load on the UPS as a percentage of its capacity. Unit: percent (%). Example: 25 means UPS is loaded at 25% of its maximum capacity */
+  loadPercentage: Scalars['Int']['output'];
+  /** Output voltage being delivered to connected devices. Unit: volts (V). Example: 120.5 - should match input voltage when on mains power */
+  outputVoltage: Scalars['Float']['output'];
+};
+
+/** Service state for UPS daemon */
+export enum UpsServiceState {
+  DISABLE = 'DISABLE',
+  ENABLE = 'ENABLE'
+}
+
+/** UPS communication protocols */
+export enum UpsType {
+  APCSMART = 'APCSMART',
+  DUMB = 'DUMB',
+  MODBUS = 'MODBUS',
+  NET = 'NET',
+  PCNET = 'PCNET',
+  SNMP = 'SNMP',
+  USB = 'USB'
 }
 
 export enum UrlType {
@@ -2193,6 +2428,11 @@ export type ListRCloneRemotesQueryVariables = Exact<{ [key: string]: never; }>;
 
 export type ListRCloneRemotesQuery = { __typename?: 'Query', rclone: { __typename?: 'RCloneBackupSettings', remotes: Array<{ __typename?: 'RCloneRemote', name: string, type: string, parameters: any, config: any }> } };
 
+export type OidcProvidersQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type OidcProvidersQuery = { __typename?: 'Query', settings: { __typename?: 'Settings', sso: { __typename?: 'SsoSettings', oidcProviders: Array<{ __typename?: 'OidcProvider', id: string, name: string, clientId: string, issuer: string, authorizationEndpoint?: string | null, tokenEndpoint?: string | null, jwksUri?: string | null, scopes: Array<string>, buttonText?: string | null, buttonIcon?: string | null }> } } };
+
 export type ServerInfoQueryVariables = Exact<{ [key: string]: never; }>;
 
 
@@ -2266,6 +2506,7 @@ export const CreateRCloneRemoteDocument = {"kind":"Document","definitions":[{"ki
 export const DeleteRCloneRemoteDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"DeleteRCloneRemote"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"input"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"DeleteRCloneRemoteInput"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"rclone"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"deleteRCloneRemote"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"input"},"value":{"kind":"Variable","name":{"kind":"Name","value":"input"}}}]}]}}]}}]} as unknown as DocumentNode<DeleteRCloneRemoteMutation, DeleteRCloneRemoteMutationVariables>;
 export const GetRCloneConfigFormDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"GetRCloneConfigForm"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"formOptions"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"RCloneConfigFormInput"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"rclone"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"configForm"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"formOptions"},"value":{"kind":"Variable","name":{"kind":"Name","value":"formOptions"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"dataSchema"}},{"kind":"Field","name":{"kind":"Name","value":"uiSchema"}}]}}]}}]}}]} as unknown as DocumentNode<GetRCloneConfigFormQuery, GetRCloneConfigFormQueryVariables>;
 export const ListRCloneRemotesDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"ListRCloneRemotes"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"rclone"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"remotes"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"type"}},{"kind":"Field","name":{"kind":"Name","value":"parameters"}},{"kind":"Field","name":{"kind":"Name","value":"config"}}]}}]}}]}}]} as unknown as DocumentNode<ListRCloneRemotesQuery, ListRCloneRemotesQueryVariables>;
+export const OidcProvidersDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"OidcProviders"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"settings"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"sso"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"oidcProviders"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"clientId"}},{"kind":"Field","name":{"kind":"Name","value":"issuer"}},{"kind":"Field","name":{"kind":"Name","value":"authorizationEndpoint"}},{"kind":"Field","name":{"kind":"Name","value":"tokenEndpoint"}},{"kind":"Field","name":{"kind":"Name","value":"jwksUri"}},{"kind":"Field","name":{"kind":"Name","value":"scopes"}},{"kind":"Field","name":{"kind":"Name","value":"buttonText"}},{"kind":"Field","name":{"kind":"Name","value":"buttonIcon"}}]}}]}}]}}]}}]} as unknown as DocumentNode<OidcProvidersQuery, OidcProvidersQueryVariables>;
 export const ServerInfoDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"serverInfo"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"info"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"os"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"hostname"}}]}}]}},{"kind":"Field","name":{"kind":"Name","value":"vars"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"comment"}}]}}]}}]} as unknown as DocumentNode<ServerInfoQuery, ServerInfoQueryVariables>;
 export const ConnectSignInDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"ConnectSignIn"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"input"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"ConnectSignInInput"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"connectSignIn"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"input"},"value":{"kind":"Variable","name":{"kind":"Name","value":"input"}}}]}]}}]} as unknown as DocumentNode<ConnectSignInMutation, ConnectSignInMutationVariables>;
 export const SignOutDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"SignOut"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"connectSignOut"}}]}}]} as unknown as DocumentNode<SignOutMutation, SignOutMutationVariables>;
