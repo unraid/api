@@ -385,6 +385,14 @@ export enum AuthPossession {
   OWN_ANY = 'OWN_ANY'
 }
 
+/** Operators for authorization rule matching */
+export enum AuthorizationOperator {
+  CONTAINS = 'CONTAINS',
+  ENDS_WITH = 'ENDS_WITH',
+  EQUALS = 'EQUALS',
+  STARTS_WITH = 'STARTS_WITH'
+}
+
 export type Baseboard = Node & {
   __typename?: 'Baseboard';
   assetTag?: Maybe<Scalars['String']['output']>;
@@ -940,11 +948,14 @@ export type Mutation = {
   configureUps: Scalars['Boolean']['output'];
   connectSignIn: Scalars['Boolean']['output'];
   connectSignOut: Scalars['Boolean']['output'];
+  createDockerFolder: ResolvedOrganizerV1;
   /** Creates a new notification record */
   createNotification: Notification;
   /** Deletes all archived notifications on server. */
   deleteArchivedNotifications: NotificationOverview;
   deleteNotification: NotificationOverview;
+  /** Delete an OIDC provider */
+  deleteOidcProvider: Scalars['Boolean']['output'];
   docker: DockerMutations;
   enableDynamicRemoteAccess: Scalars['Boolean']['output'];
   /** Initiates a flash drive backup using a configured remote. */
@@ -955,6 +966,7 @@ export type Mutation = {
   recalculateOverview: NotificationOverview;
   /** Remove one or more plugins from the API. Returns false if restart was triggered automatically, true if manual restart is required. */
   removePlugin: Scalars['Boolean']['output'];
+  setDockerFolderChildren: ResolvedOrganizerV1;
   setupRemoteAccess: Scalars['Boolean']['output'];
   unarchiveAll: NotificationOverview;
   unarchiveNotifications: NotificationOverview;
@@ -962,6 +974,8 @@ export type Mutation = {
   unreadNotification: Notification;
   updateApiSettings: ConnectSettingsValues;
   updateSettings: UpdateSettingsResponse;
+  /** Create or update an OIDC provider */
+  upsertOidcProvider: OidcProvider;
   vm: VmMutations;
 };
 
@@ -996,6 +1010,13 @@ export type MutationConnectSignInArgs = {
 };
 
 
+export type MutationCreateDockerFolderArgs = {
+  childrenIds?: InputMaybe<Array<Scalars['String']['input']>>;
+  name: Scalars['String']['input'];
+  parentId?: InputMaybe<Scalars['String']['input']>;
+};
+
+
 export type MutationCreateNotificationArgs = {
   input: NotificationData;
 };
@@ -1004,6 +1025,11 @@ export type MutationCreateNotificationArgs = {
 export type MutationDeleteNotificationArgs = {
   id: Scalars['PrefixedID']['input'];
   type: NotificationType;
+};
+
+
+export type MutationDeleteOidcProviderArgs = {
+  id: Scalars['String']['input'];
 };
 
 
@@ -1019,6 +1045,12 @@ export type MutationInitiateFlashBackupArgs = {
 
 export type MutationRemovePluginArgs = {
   input: PluginManagementInput;
+};
+
+
+export type MutationSetDockerFolderChildrenArgs = {
+  childrenIds: Array<Scalars['String']['input']>;
+  folderId?: InputMaybe<Scalars['String']['input']>;
 };
 
 
@@ -1049,6 +1081,11 @@ export type MutationUpdateApiSettingsArgs = {
 
 export type MutationUpdateSettingsArgs = {
   input: Scalars['JSON']['input'];
+};
+
+
+export type MutationUpsertOidcProviderArgs = {
+  provider: OidcProviderInput;
 };
 
 export type Network = Node & {
@@ -1129,12 +1166,104 @@ export type NotificationsListArgs = {
   filter: NotificationFilter;
 };
 
+export type OidcAuthorizationRule = {
+  __typename?: 'OidcAuthorizationRule';
+  /** The claim to check (e.g., email, sub, groups, hd) */
+  claim: Scalars['String']['output'];
+  /** The comparison operator */
+  operator: AuthorizationOperator;
+  /** The value(s) to match against */
+  value: Array<Scalars['String']['output']>;
+};
+
+export type OidcAuthorizationRuleInput = {
+  /** The claim to check (e.g., email, sub, groups, hd) */
+  claim: Scalars['String']['input'];
+  /** The comparison operator */
+  operator: AuthorizationOperator;
+  /** The value(s) to match against */
+  value: Array<Scalars['String']['input']>;
+};
+
+export type OidcProvider = {
+  __typename?: 'OidcProvider';
+  /** OAuth2 authorization endpoint URL. If omitted, will be auto-discovered from issuer/.well-known/openid-configuration */
+  authorizationEndpoint?: Maybe<Scalars['String']['output']>;
+  /** Flexible authorization rules based on claims */
+  authorizationRules?: Maybe<Array<OidcAuthorizationRule>>;
+  /** URL or base64 encoded icon for the login button */
+  buttonIcon?: Maybe<Scalars['String']['output']>;
+  /** Custom CSS styles for the button (e.g., "background: linear-gradient(to right, #4f46e5, #7c3aed); border-radius: 9999px;") */
+  buttonStyle?: Maybe<Scalars['String']['output']>;
+  /** Custom text for the login button */
+  buttonText?: Maybe<Scalars['String']['output']>;
+  /** Button variant style from Reka UI. See https://reka-ui.com/docs/components/button */
+  buttonVariant?: Maybe<Scalars['String']['output']>;
+  /** OAuth2 client ID registered with the provider */
+  clientId: Scalars['String']['output'];
+  /** OAuth2 client secret (if required by provider) */
+  clientSecret?: Maybe<Scalars['String']['output']>;
+  /** Use custom parameter names for authorization (e.g., callbackUrl instead of redirect_uri) */
+  customAuthParams?: Maybe<Scalars['Boolean']['output']>;
+  /** The unique identifier for the OIDC provider */
+  id: Scalars['PrefixedID']['output'];
+  /** OIDC issuer URL (e.g., https://accounts.google.com). Required for auto-discovery via /.well-known/openid-configuration */
+  issuer: Scalars['String']['output'];
+  /** JSON Web Key Set URI for token validation. If omitted, will be auto-discovered from issuer/.well-known/openid-configuration */
+  jwksUri?: Maybe<Scalars['String']['output']>;
+  /** Display name of the OIDC provider */
+  name: Scalars['String']['output'];
+  /** OAuth2 scopes to request (e.g., openid, profile, email) */
+  scopes: Array<Scalars['String']['output']>;
+  /** OAuth2 token endpoint URL. If omitted, will be auto-discovered from issuer/.well-known/openid-configuration */
+  tokenEndpoint?: Maybe<Scalars['String']['output']>;
+};
+
+export type OidcProviderInput = {
+  /** OAuth2 authorization endpoint URL. If omitted, will be auto-discovered from issuer/.well-known/openid-configuration */
+  authorizationEndpoint?: InputMaybe<Scalars['String']['input']>;
+  /** Flexible authorization rules based on claims */
+  authorizationRules?: InputMaybe<Array<OidcAuthorizationRuleInput>>;
+  /** URL or base64 encoded icon for the login button */
+  buttonIcon?: InputMaybe<Scalars['String']['input']>;
+  /** Custom CSS styles for the button (e.g., "background: linear-gradient(to right, #4f46e5, #7c3aed); border-radius: 9999px;") */
+  buttonStyle?: InputMaybe<Scalars['String']['input']>;
+  /** Custom text for the login button */
+  buttonText?: InputMaybe<Scalars['String']['input']>;
+  /** Button variant style from Reka UI. See https://reka-ui.com/docs/components/button */
+  buttonVariant?: InputMaybe<Scalars['String']['input']>;
+  /** OAuth2 client ID registered with the provider */
+  clientId: Scalars['String']['input'];
+  /** OAuth2 client secret (if required by provider) */
+  clientSecret?: InputMaybe<Scalars['String']['input']>;
+  /** Use custom parameter names for authorization (e.g., callbackUrl instead of redirect_uri) */
+  customAuthParams?: InputMaybe<Scalars['Boolean']['input']>;
+  /** The unique identifier for the OIDC provider */
+  id: Scalars['String']['input'];
+  /** OIDC issuer URL (e.g., https://accounts.google.com). Required for auto-discovery via /.well-known/openid-configuration */
+  issuer: Scalars['String']['input'];
+  /** JSON Web Key Set URI for token validation. If omitted, will be auto-discovered from issuer/.well-known/openid-configuration */
+  jwksUri?: InputMaybe<Scalars['String']['input']>;
+  /** Display name of the OIDC provider */
+  name: Scalars['String']['input'];
+  /** OAuth2 scopes to request (e.g., openid, profile, email) */
+  scopes: Array<Scalars['String']['input']>;
+  /** OAuth2 token endpoint URL. If omitted, will be auto-discovered from issuer/.well-known/openid-configuration */
+  tokenEndpoint?: InputMaybe<Scalars['String']['input']>;
+};
+
+export type OidcSessionValidation = {
+  __typename?: 'OidcSessionValidation';
+  username?: Maybe<Scalars['String']['output']>;
+  valid: Scalars['Boolean']['output'];
+};
+
 export type OrganizerContainerResource = {
   __typename?: 'OrganizerContainerResource';
   id: Scalars['String']['output'];
   meta?: Maybe<DockerContainer>;
   name: Scalars['String']['output'];
-  type: OrganizerResourceType;
+  type: Scalars['String']['output'];
 };
 
 export type OrganizerResource = {
@@ -1142,16 +1271,8 @@ export type OrganizerResource = {
   id: Scalars['String']['output'];
   meta?: Maybe<Scalars['JSON']['output']>;
   name: Scalars['String']['output'];
-  type: OrganizerResourceType;
+  type: Scalars['String']['output'];
 };
-
-/** The type of organizer resource */
-export enum OrganizerResourceType {
-  BOOKMARK = 'BOOKMARK',
-  CONTAINER = 'CONTAINER',
-  FILE = 'FILE',
-  VM = 'VM'
-}
 
 export type Os = Node & {
   __typename?: 'Os';
@@ -1266,6 +1387,16 @@ export type ProfileModel = Node & {
   username: Scalars['String']['output'];
 };
 
+export type PublicOidcProvider = {
+  __typename?: 'PublicOidcProvider';
+  buttonIcon?: Maybe<Scalars['String']['output']>;
+  buttonStyle?: Maybe<Scalars['String']['output']>;
+  buttonText?: Maybe<Scalars['String']['output']>;
+  buttonVariant?: Maybe<Scalars['String']['output']>;
+  id: Scalars['ID']['output'];
+  name: Scalars['String']['output'];
+};
+
 export type PublicPartnerInfo = {
   __typename?: 'PublicPartnerInfo';
   /** Indicates if a partner logo exists */
@@ -1303,11 +1434,17 @@ export type Query = {
   network: Network;
   /** Get all notifications */
   notifications: Notifications;
+  /** Get a specific OIDC provider by ID */
+  oidcProvider?: Maybe<OidcProvider>;
+  /** Get all configured OIDC providers (admin only) */
+  oidcProviders: Array<OidcProvider>;
   online: Scalars['Boolean']['output'];
   owner: Owner;
   parityHistory: Array<ParityCheck>;
   /** List all installed plugins with their metadata */
   plugins: Array<Plugin>;
+  /** Get public OIDC provider information for login buttons */
+  publicOidcProviders: Array<PublicOidcProvider>;
   publicPartnerInfo?: Maybe<PublicPartnerInfo>;
   publicTheme: Theme;
   rclone: RCloneBackupSettings;
@@ -1321,6 +1458,8 @@ export type Query = {
   upsConfiguration: UpsConfiguration;
   upsDeviceById?: Maybe<UpsDevice>;
   upsDevices: Array<UpsDevice>;
+  /** Validate an OIDC session token (internal use for CLI validation) */
+  validateOidcSession: OidcSessionValidation;
   vars: Vars;
   /** Get information about all VMs on the system */
   vms: Vms;
@@ -1344,8 +1483,18 @@ export type QueryLogFileArgs = {
 };
 
 
+export type QueryOidcProviderArgs = {
+  id: Scalars['String']['input'];
+};
+
+
 export type QueryUpsDeviceByIdArgs = {
   id: Scalars['String']['input'];
+};
+
+
+export type QueryValidateOidcSessionArgs = {
+  token: Scalars['String']['input'];
 };
 
 export type RCloneBackupConfigForm = {
@@ -1571,6 +1720,8 @@ export type Settings = Node & {
   /** The API setting values */
   api: ApiConfig;
   id: Scalars['PrefixedID']['output'];
+  /** SSO settings */
+  sso: SsoSettings;
   /** A view of all settings */
   unified: UnifiedSettings;
 };
@@ -1617,6 +1768,13 @@ export type Share = Node & {
   splitLevel?: Maybe<Scalars['String']['output']>;
   /** (KB) Used Size */
   used?: Maybe<Scalars['BigInt']['output']>;
+};
+
+export type SsoSettings = Node & {
+  __typename?: 'SsoSettings';
+  id: Scalars['PrefixedID']['output'];
+  /** List of configured OIDC providers */
+  oidcProviders: Array<OidcProvider>;
 };
 
 export type Subscription = {
@@ -2238,6 +2396,13 @@ export type ServicesQueryVariables = Exact<{ [key: string]: never; }>;
 
 export type ServicesQuery = { __typename?: 'Query', services: Array<{ __typename?: 'Service', id: any, name?: string | null, online?: boolean | null, version?: string | null, uptime?: { __typename?: 'Uptime', timestamp?: string | null } | null }> };
 
+export type ValidateOidcSessionQueryVariables = Exact<{
+  token: Scalars['String']['input'];
+}>;
+
+
+export type ValidateOidcSessionQuery = { __typename?: 'Query', validateOidcSession: { __typename?: 'OidcSessionValidation', valid: boolean, username?: string | null } };
+
 
 export const AddPluginDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"AddPlugin"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"input"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"PluginManagementInput"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"addPlugin"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"input"},"value":{"kind":"Variable","name":{"kind":"Name","value":"input"}}}]}]}}]} as unknown as DocumentNode<AddPluginMutation, AddPluginMutationVariables>;
 export const RemovePluginDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"RemovePlugin"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"input"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"PluginManagementInput"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"removePlugin"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"input"},"value":{"kind":"Variable","name":{"kind":"Name","value":"input"}}}]}]}}]} as unknown as DocumentNode<RemovePluginMutation, RemovePluginMutationVariables>;
@@ -2248,3 +2413,4 @@ export const GetSsoUsersDocument = {"kind":"Document","definitions":[{"kind":"Op
 export const SystemReportDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"SystemReport"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"info"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"machineId"}},{"kind":"Field","name":{"kind":"Name","value":"system"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"manufacturer"}},{"kind":"Field","name":{"kind":"Name","value":"model"}},{"kind":"Field","name":{"kind":"Name","value":"version"}},{"kind":"Field","name":{"kind":"Name","value":"sku"}},{"kind":"Field","name":{"kind":"Name","value":"serial"}},{"kind":"Field","name":{"kind":"Name","value":"uuid"}}]}},{"kind":"Field","name":{"kind":"Name","value":"versions"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"unraid"}},{"kind":"Field","name":{"kind":"Name","value":"kernel"}},{"kind":"Field","name":{"kind":"Name","value":"openssl"}}]}}]}},{"kind":"Field","name":{"kind":"Name","value":"config"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"valid"}},{"kind":"Field","name":{"kind":"Name","value":"error"}}]}},{"kind":"Field","name":{"kind":"Name","value":"server"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"name"}}]}}]}}]} as unknown as DocumentNode<SystemReportQuery, SystemReportQueryVariables>;
 export const ConnectStatusDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"ConnectStatus"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"connect"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"dynamicRemoteAccess"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"enabledType"}},{"kind":"Field","name":{"kind":"Name","value":"runningType"}},{"kind":"Field","name":{"kind":"Name","value":"error"}}]}}]}}]}}]} as unknown as DocumentNode<ConnectStatusQuery, ConnectStatusQueryVariables>;
 export const ServicesDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"Services"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"services"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"online"}},{"kind":"Field","name":{"kind":"Name","value":"uptime"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"timestamp"}}]}},{"kind":"Field","name":{"kind":"Name","value":"version"}}]}}]}}]} as unknown as DocumentNode<ServicesQuery, ServicesQueryVariables>;
+export const ValidateOidcSessionDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"ValidateOidcSession"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"token"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"validateOidcSession"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"token"},"value":{"kind":"Variable","name":{"kind":"Name","value":"token"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"valid"}},{"kind":"Field","name":{"kind":"Name","value":"username"}}]}}]}}]} as unknown as DocumentNode<ValidateOidcSessionQuery, ValidateOidcSessionQueryVariables>;

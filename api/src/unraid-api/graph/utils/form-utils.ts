@@ -1,4 +1,48 @@
 import type { ControlElement, LabelElement, Layout, Rule } from '@jsonforms/core';
+import { RuleEffect } from '@jsonforms/core';
+
+/**
+ * Creates a simple VerticalLayout containing a Label followed by a Control element.
+ * Useful for detail views within array fields where UnraidSettingsLayout doesn't work well.
+ */
+export function createSimpleLabeledControl({
+    scope,
+    label,
+    description,
+    controlOptions,
+    rule,
+}: {
+    scope: string;
+    label: string;
+    description?: string;
+    controlOptions?: ControlElement['options'];
+    rule?: Rule;
+}): Layout {
+    const layout: Layout = {
+        type: 'VerticalLayout',
+        elements: [
+            {
+                type: 'Label',
+                text: label,
+                options: {
+                    description,
+                },
+            } as LabelElement,
+            {
+                type: 'Control',
+                scope: scope,
+                options: controlOptions,
+            } as ControlElement,
+        ],
+    };
+
+    // Add rule if provided
+    if (rule) {
+        layout.rule = rule;
+    }
+
+    return layout;
+}
 
 /**
  * Creates a Layout (typically UnraidSettingsLayout) containing a Label and a Control element.

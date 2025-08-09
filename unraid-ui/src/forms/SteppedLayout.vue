@@ -18,6 +18,14 @@ import {
 import { DispatchRenderer, useJsonFormsLayout, type RendererProps } from '@jsonforms/vue';
 import { computed, inject, ref, type Ref } from 'vue';
 
+// Extend UISchemaElement to include options property
+interface UISchemaElementWithOptions extends UISchemaElement {
+  options?: {
+    step?: number;
+    [key: string]: unknown;
+  };
+}
+
 // Define props based on RendererProps<Layout>
 const props = defineProps<RendererProps<Layout>>();
 
@@ -73,8 +81,9 @@ const updateStep = (newStep: number) => {
 
 // --- Filtered Elements for Current Step ---
 const currentStepElements = computed(() => {
-  const filtered = (props.uischema.elements || []).filter((element: UISchemaElement) => {
-    // Check if the element has an 'options' object and an 'step' property
+  const elements = (props.uischema.elements || []) as UISchemaElementWithOptions[];
+  const filtered = elements.filter((element) => {
+    // Check if the element has an 'options' object and a 'step' property
     return (
       typeof element.options === 'object' &&
       element.options !== null &&

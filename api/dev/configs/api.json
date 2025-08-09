@@ -3,5 +3,7 @@
   "extraOrigins": [],
   "sandbox": true,
   "ssoSubIds": [],
-  "plugins": ["unraid-api-plugin-connect"]
+  "plugins": [
+    "unraid-api-plugin-connect"
+  ]
 }

@@ -2,11 +2,11 @@
   "wanaccess": true,
   "wanport": 8443,
   "upnpEnabled": false,
-  "apikey": "_______________________BIG_API_KEY_HERE_________________________",
+  "apikey": "",
   "localApiKey": "_______________________LOCAL_API_KEY_HERE_________________________",
   "email": "test@example.com",
   "username": "zspearmint",
   "avatar": "https://via.placeholder.com/200",
   "regWizTime": "1611175408732_0951-1653-3509-FBA155FA23C0",
-  "dynamicRemoteAccessType": "DISABLED"
+  "dynamicRemoteAccessType": "STATIC"
 }
