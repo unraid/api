@@ -83,6 +83,15 @@ export class RestController {
             return res.send();
         } catch (error: unknown) {
             this.logger.error(`OIDC authorize error for provider ${providerId}:`, error);
+
+            // Log more details about the error
+            if (error instanceof Error) {
+                this.logger.error(`Error message: ${error.message}`);
+                if (error.stack) {
+                    this.logger.debug(`Stack trace: ${error.stack}`);
+                }
+            }
+
             return res.status(400).send('Invalid provider or configuration');
         }
     }
@@ -103,9 +112,10 @@ export class RestController {
             // Extract provider ID from state
             const { providerId } = this.oidcAuthService.extractProviderFromState(state);
 
-            // Get the full callback URL as received
-            const protocol = req.protocol || 'http';
-            const host = req.headers.host || 'localhost:3000';
+            // Get the full callback URL as received, respecting reverse proxy headers
+            const protocol = (req.headers['x-forwarded-proto'] as string) || req.protocol || 'http';
+            const host =
+                (req.headers['x-forwarded-host'] as string) || req.headers.host || 'localhost:3000';
             const fullUrl = `${protocol}://${host}${req.url}`;
 
             this.logger.debug(`Full callback URL from request: ${fullUrl}`);
@@ -127,38 +137,17 @@ export class RestController {
             return res.send();
         } catch (error: unknown) {
             this.logger.error(`OIDC callback error: ${error}`);
-            // Redirect to login page with error message
-            let errorMessage = 'Authentication failed';
 
+            // Use a generic error message to avoid leaking sensitive information
+            const errorMessage = 'Authentication failed';
+
+            // Log detailed error for debugging but don't expose to user
             if (error instanceof UnauthorizedException) {
-                // NestJS exceptions store the message in the response property
-                const response = error.getResponse();
-                this.logger.debug(`UnauthorizedException response: ${JSON.stringify(response)}`);
-                this.logger.debug(`UnauthorizedException message: ${error.message}`);
-
-                // Try to get the message from various places
-                if (typeof response === 'string') {
-                    errorMessage = response;
-                } else if (typeof response === 'object' && response !== null) {
-                    // Check for message in response object
-                    if ('message' in response && response.message) {
-                        errorMessage = Array.isArray(response.message)
-                            ? response.message[0]
-                            : String(response.message);
-                    } else if ('error' in response && response.error) {
-                        errorMessage = String(response.error);
-                    }
-                }
-
-                // If we still don't have a message, use the error's message property
-                if (errorMessage === 'Authentication failed' && error.message) {
-                    errorMessage = error.message;
-                }
+                this.logger.debug(`UnauthorizedException occurred during OIDC callback`);
             } else if (error instanceof Error) {
-                errorMessage = error.message;
+                this.logger.debug(`Error during OIDC callback: ${error.message}`);
             }
 
-            this.logger.debug(`Redirecting to login with error: ${errorMessage}`);
             const loginUrl = `/login?error=${encodeURIComponent(errorMessage)}`;
 
             res.status(302);

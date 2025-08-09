@@ -1,6 +1,7 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 
+import { RuleEffect } from '@jsonforms/core';
 import { mergeSettingSlices } from '@unraid/shared/jsonforms/settings.js';
 import { ConfigFilePersister } from '@unraid/shared/services/config-file.js';
 import { UserSettingsService } from '@unraid/shared/services/user-settings.js';
@@ -10,6 +11,7 @@ import {
     OidcAuthorizationRule,
     OidcProvider,
 } from '@app/unraid-api/graph/resolvers/sso/oidc-provider.model.js';
+import { OidcValidationService } from '@app/unraid-api/graph/resolvers/sso/oidc-validation.service.js';
 import {
     createLabeledControl,
     createSimpleLabeledControl,
@@ -24,7 +26,8 @@ export interface OidcConfig {
 export class OidcConfigPersistence extends ConfigFilePersister<OidcConfig> {
     constructor(
         configService: ConfigService,
-        private readonly userSettings: UserSettingsService
+        private readonly userSettings: UserSettingsService,
+        private readonly validationService: OidcValidationService
     ) {
         super(configService);
         this.registerSettings();
@@ -94,6 +97,12 @@ export class OidcConfigPersistence extends ConfigFilePersister<OidcConfig> {
         const config = this.configService.get<OidcConfig>(this.configKey());
         const providers = config?.providers || [];
 
+        // Ensure unraid.net provider is always present
+        const hasUnraidNet = providers.some((p) => p.id === 'unraid.net');
+        if (!hasUnraidNet) {
+            providers.unshift(this.getUnraidNetSsoProvider());
+        }
+
         // Clean up providers - convert empty strings to undefined
         return providers.map((provider) => this.cleanProvider(provider));
     }
@@ -160,11 +169,16 @@ export class OidcConfigPersistence extends ConfigFilePersister<OidcConfig> {
         return cleanedProvider;
     }
 
-    private convertSimpleToRules(simpleAuth: any): OidcAuthorizationRule[] {
+    private convertSimpleToRules(simpleAuth: {
+        allowedDomains?: string[];
+        allowedEmails?: string[];
+        allowedUserIds?: string[];
+        googleWorkspaceDomain?: string;
+    }): OidcAuthorizationRule[] {
         const rules: OidcAuthorizationRule[] = [];
 
         // Convert email domains to endsWith rules
-        if (simpleAuth?.allowedDomains?.length > 0) {
+        if (simpleAuth?.allowedDomains && simpleAuth.allowedDomains.length > 0) {
             rules.push({
                 claim: 'email',
                 operator: AuthorizationOperator.ENDS_WITH,
@@ -175,7 +189,7 @@ export class OidcConfigPersistence extends ConfigFilePersister<OidcConfig> {
         }
 
         // Convert specific emails to equals rules
-        if (simpleAuth?.allowedEmails?.length > 0) {
+        if (simpleAuth?.allowedEmails && simpleAuth.allowedEmails.length > 0) {
             rules.push({
                 claim: 'email',
                 operator: AuthorizationOperator.EQUALS,
@@ -184,7 +198,7 @@ export class OidcConfigPersistence extends ConfigFilePersister<OidcConfig> {
         }
 
         // Convert user IDs to sub equals rules
-        if (simpleAuth?.allowedUserIds?.length > 0) {
+        if (simpleAuth?.allowedUserIds && simpleAuth.allowedUserIds.length > 0) {
             rules.push({
                 claim: 'sub',
                 operator: AuthorizationOperator.EQUALS,
@@ -205,6 +219,12 @@ export class OidcConfigPersistence extends ConfigFilePersister<OidcConfig> {
     }
 
     async deleteProvider(id: string): Promise<boolean> {
+        // Prevent deletion of the unraid.net provider
+        if (id === 'unraid.net') {
+            this.logger.warn(`Attempted to delete protected provider: ${id}`);
+            return false;
+        }
+
         const config = this.configService.get<OidcConfig>(this.configKey()) || this.defaultConfig();
         const filteredProviders = config.providers.filter((p) => p.id !== id);
 
@@ -223,36 +243,100 @@ export class OidcConfigPersistence extends ConfigFilePersister<OidcConfig> {
         this.userSettings.register('sso', {
             buildSlice: async () => this.buildSlice(),
             getCurrentValues: async () => this.getConfig(),
-            updateValues: async (config: any) => {
+            updateValues: async (
+                config: OidcConfig & {
+                    providers: Array<
+                        OidcProvider & { authorizationMode?: string; simpleAuthorization?: unknown }
+                    >;
+                }
+            ) => {
                 // Process each provider to handle simple mode conversion
                 const processedConfig: OidcConfig = {
                     ...config,
-                    providers: config.providers.map((provider: any) => {
+                    providers: config.providers.map((provider) => {
+                        const extendedProvider = provider as OidcProvider & {
+                            authorizationMode?: string;
+                            simpleAuthorization?: unknown;
+                        };
                         // If in simple mode, convert simple fields to authorization rules
-                        if (provider.authorizationMode === 'simple' && provider.simpleAuthorization) {
-                            const rules = this.convertSimpleToRules(provider.simpleAuthorization);
+                        if (
+                            extendedProvider.authorizationMode === 'simple' &&
+                            extendedProvider.simpleAuthorization
+                        ) {
+                            const rules = this.convertSimpleToRules(
+                                extendedProvider.simpleAuthorization as {
+                                    allowedDomains?: string[];
+                                    allowedEmails?: string[];
+                                    allowedUserIds?: string[];
+                                    googleWorkspaceDomain?: string;
+                                }
+                            );
                             // Return provider with generated rules, removing UI-only fields
                             const { authorizationMode, simpleAuthorization, ...cleanProvider } =
-                                provider;
+                                extendedProvider;
                             return {
                                 ...cleanProvider,
                                 authorizationRules: rules,
                             };
                         }
                         // If in advanced mode or no mode specified, just clean up UI fields
-                        const { authorizationMode, simpleAuthorization, ...cleanProvider } = provider;
+                        const { authorizationMode, simpleAuthorization, ...cleanProvider } =
+                            extendedProvider;
                         return cleanProvider;
                     }),
                 };
 
+                // Validate OIDC discovery for all providers with issuer URLs
+                const validationErrors: string[] = [];
+                for (const provider of processedConfig.providers) {
+                    if (provider.issuer && !provider.issuer.includes('unraid.net')) {
+                        // Skip validation for unraid.net as it uses custom auth flow
+                        try {
+                            const validation = await this.validationService.validateProvider(provider);
+                            if (!validation.isValid) {
+                                validationErrors.push(`❌ ${provider.name}: ${validation.error}`);
+                            }
+                        } catch (error) {
+                            // Don't fail the save, just warn
+                            this.logger.warn(`Failed to validate provider ${provider.id}: ${error}`);
+                        }
+                    }
+                }
+
                 this.configService.set(this.configKey(), processedConfig);
                 await this.persist(processedConfig);
-                return { restartRequired: true, values: processedConfig };
+
+                // Include validation results in response
+                const response: { restartRequired: boolean; values: OidcConfig; warnings?: string[] } = {
+                    restartRequired: true,
+                    values: processedConfig,
+                };
+
+                if (validationErrors.length > 0) {
+                    response.warnings = [
+                        '⚠️  OIDC Discovery Issues Found:',
+                        '',
+                        ...validationErrors,
+                        '',
+                        '💡 These providers may not work properly. Please check your configuration.',
+                        'Note: Configuration has been saved, but you should fix these issues before testing login.',
+                    ];
+                }
+
+                return response;
             },
         });
     }
 
-    getConfig(): any {
+    getConfig(): OidcConfig & {
+        providers: Array<
+            OidcProvider & {
+                authorizationMode?: string;
+                simpleAuthorization?: unknown;
+                isProtected?: boolean;
+            }
+        >;
+    } {
         const config = this.configService.get<OidcConfig>(this.configKey()) || this.defaultConfig();
 
         // Enhance providers with UI fields
@@ -266,6 +350,7 @@ export class OidcConfigPersistence extends ConfigFilePersister<OidcConfig> {
                 ...provider,
                 authorizationMode: canUseSimpleMode ? 'simple' : 'advanced',
                 simpleAuthorization: simpleAuth,
+                isProtected: provider.id === 'unraid.net', // Mark unraid.net as protected
             };
         });
 
@@ -298,12 +383,17 @@ export class OidcConfigPersistence extends ConfigFilePersister<OidcConfig> {
         });
     }
 
-    private convertRulesToSimple(rules: OidcAuthorizationRule[]): any {
-        const simpleAuth: any = {
-            allowedDomains: [],
-            allowedEmails: [],
-            allowedUserIds: [],
-            googleWorkspaceDomain: undefined,
+    private convertRulesToSimple(rules: OidcAuthorizationRule[]): {
+        allowedDomains: string[];
+        allowedEmails: string[];
+        allowedUserIds: string[];
+        googleWorkspaceDomain?: string;
+    } {
+        const simpleAuth = {
+            allowedDomains: [] as string[],
+            allowedEmails: [] as string[],
+            allowedUserIds: [] as string[],
+            googleWorkspaceDomain: undefined as string | undefined,
         };
 
         rules.forEach((rule) => {
@@ -522,6 +612,15 @@ export class OidcConfigPersistence extends ConfigFilePersister<OidcConfig> {
                             options: {
                                 elementLabelProp: 'name',
                                 itemTypeName: 'Provider',
+                                protectedItems: [{ field: 'id', value: 'unraid.net' }],
+                                itemWarnings: [
+                                    {
+                                        condition: { field: 'id', value: 'unraid.net' },
+                                        title: 'Unraid.net Provider',
+                                        description:
+                                            'This is the built-in Unraid.net provider. Only authorization rules can be modified.',
+                                    },
+                                ],
                                 detail: {
                                     type: 'VerticalLayout',
                                     elements: [
@@ -533,6 +632,13 @@ export class OidcConfigPersistence extends ConfigFilePersister<OidcConfig> {
                                                 inputType: 'text',
                                                 placeholder: 'provider-id',
                                             },
+                                            rule: {
+                                                effect: RuleEffect.HIDE,
+                                                condition: {
+                                                    scope: '#/properties/id',
+                                                    schema: { const: 'unraid.net' },
+                                                },
+                                            },
                                         }),
                                         createSimpleLabeledControl({
                                             scope: '#/properties/name',
@@ -542,6 +648,13 @@ export class OidcConfigPersistence extends ConfigFilePersister<OidcConfig> {
                                                 inputType: 'text',
                                                 placeholder: 'My Provider',
                                             },
+                                            rule: {
+                                                effect: RuleEffect.HIDE,
+                                                condition: {
+                                                    scope: '#/properties/id',
+                                                    schema: { const: 'unraid.net' },
+                                                },
+                                            },
                                         }),
                                         createSimpleLabeledControl({
                                             scope: '#/properties/clientId',
@@ -550,6 +663,13 @@ export class OidcConfigPersistence extends ConfigFilePersister<OidcConfig> {
                                             controlOptions: {
                                                 inputType: 'text',
                                             },
+                                            rule: {
+                                                effect: RuleEffect.HIDE,
+                                                condition: {
+                                                    scope: '#/properties/id',
+                                                    schema: { const: 'unraid.net' },
+                                                },
+                                            },
                                         }),
                                         createSimpleLabeledControl({
                                             scope: '#/properties/clientSecret',
@@ -557,6 +677,13 @@ export class OidcConfigPersistence extends ConfigFilePersister<OidcConfig> {
                                             description: 'OAuth2 application client secret (optional)',
                                             controlOptions: {
                                                 inputType: 'password',
+                                            },
+                                            rule: {
+                                                effect: RuleEffect.HIDE,
+                                                condition: {
+                                                    scope: '#/properties/id',
+                                                    schema: { const: 'unraid.net' },
+                                                },
                                             },
                                         }),
                                         createSimpleLabeledControl({
@@ -567,6 +694,13 @@ export class OidcConfigPersistence extends ConfigFilePersister<OidcConfig> {
                                                 inputType: 'url',
                                                 placeholder: 'https://accounts.google.com',
                                             },
+                                            rule: {
+                                                effect: RuleEffect.HIDE,
+                                                condition: {
+                                                    scope: '#/properties/id',
+                                                    schema: { const: 'unraid.net' },
+                                                },
+                                            },
                                         }),
                                         createSimpleLabeledControl({
                                             scope: '#/properties/authorizationEndpoint',
@@ -574,6 +708,13 @@ export class OidcConfigPersistence extends ConfigFilePersister<OidcConfig> {
                                             description: 'Override auto-discovery (optional)',
                                             controlOptions: {
                                                 inputType: 'url',
+                                            },
+                                            rule: {
+                                                effect: RuleEffect.HIDE,
+                                                condition: {
+                                                    scope: '#/properties/id',
+                                                    schema: { const: 'unraid.net' },
+                                                },
                                             },
                                         }),
                                         createSimpleLabeledControl({
@@ -583,6 +724,13 @@ export class OidcConfigPersistence extends ConfigFilePersister<OidcConfig> {
                                             controlOptions: {
                                                 inputType: 'url',
                                             },
+                                            rule: {
+                                                effect: RuleEffect.HIDE,
+                                                condition: {
+                                                    scope: '#/properties/id',
+                                                    schema: { const: 'unraid.net' },
+                                                },
+                                            },
                                         }),
                                         createSimpleLabeledControl({
                                             scope: '#/properties/jwksUri',
@@ -590,6 +738,13 @@ export class OidcConfigPersistence extends ConfigFilePersister<OidcConfig> {
                                             description: 'Override auto-discovery (optional)',
                                             controlOptions: {
                                                 inputType: 'url',
+                                            },
+                                            rule: {
+                                                effect: RuleEffect.HIDE,
+                                                condition: {
+                                                    scope: '#/properties/id',
+                                                    schema: { const: 'unraid.net' },
+                                                },
                                             },
                                         }),
                                         createSimpleLabeledControl({
@@ -600,6 +755,13 @@ export class OidcConfigPersistence extends ConfigFilePersister<OidcConfig> {
                                                 format: 'array',
                                                 inputType: 'text',
                                                 placeholder: 'openid',
+                                            },
+                                            rule: {
+                                                effect: RuleEffect.HIDE,
+                                                condition: {
+                                                    scope: '#/properties/id',
+                                                    schema: { const: 'unraid.net' },
+                                                },
                                             },
                                         }),
                                         // Authorization Mode Toggle
@@ -614,7 +776,7 @@ export class OidcConfigPersistence extends ConfigFilePersister<OidcConfig> {
                                         {
                                             type: 'VerticalLayout',
                                             rule: {
-                                                effect: 'SHOW',
+                                                effect: RuleEffect.SHOW,
                                                 condition: {
                                                     scope: '#/properties/authorizationMode',
                                                     schema: { const: 'simple' },
@@ -667,7 +829,7 @@ export class OidcConfigPersistence extends ConfigFilePersister<OidcConfig> {
                                                 {
                                                     type: 'VerticalLayout',
                                                     rule: {
-                                                        effect: 'SHOW',
+                                                        effect: RuleEffect.SHOW,
                                                         condition: {
                                                             scope: '#/properties/issuer',
                                                             schema: { pattern: '.*google.*' },
@@ -692,7 +854,7 @@ export class OidcConfigPersistence extends ConfigFilePersister<OidcConfig> {
                                         {
                                             type: 'VerticalLayout',
                                             rule: {
-                                                effect: 'SHOW',
+                                                effect: RuleEffect.SHOW,
                                                 condition: {
                                                     scope: '#/properties/authorizationMode',
                                                     schema: { const: 'advanced' },

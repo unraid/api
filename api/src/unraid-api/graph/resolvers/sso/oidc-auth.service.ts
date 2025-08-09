@@ -10,6 +10,15 @@ import {
     OidcProvider,
 } from '@app/unraid-api/graph/resolvers/sso/oidc-provider.model.js';
 import { OidcSessionService } from '@app/unraid-api/graph/resolvers/sso/oidc-session.service.js';
+import { OidcValidationService } from '@app/unraid-api/graph/resolvers/sso/oidc-validation.service.js';
+
+interface JwtClaims {
+    sub?: string;
+    email?: string;
+    name?: string;
+    hd?: string; // Google hosted domain
+    [claim: string]: unknown;
+}
 
 @Injectable()
 export class OidcAuthService {
@@ -19,7 +28,8 @@ export class OidcAuthService {
     constructor(
         private readonly configService: ConfigService,
         private readonly oidcConfig: OidcConfigPersistence,
-        private readonly sessionService: OidcSessionService
+        private readonly sessionService: OidcSessionService,
+        private readonly validationService: OidcValidationService
     ) {}
 
     async getAuthorizationUrl(providerId: string, state: string, requestHost?: string): Promise<string> {
@@ -63,6 +73,18 @@ export class OidcAuthService {
             state: stateWithProvider,
             response_type: 'code',
         };
+
+        // For HTTP endpoints, we need to pass the allowInsecureRequests option
+        const serverUrl = new URL(provider.issuer || '');
+        let clientOptions: any = undefined;
+        if (serverUrl.protocol === 'http:') {
+            this.logger.debug(
+                `Building authorization URL with allowInsecureRequests for ${provider.id}`
+            );
+            clientOptions = {
+                execute: [client.allowInsecureRequests],
+            };
+        }
 
         const authUrl = client.buildAuthorizationUrl(config, parameters);
 
@@ -159,28 +181,99 @@ export class OidcAuthService {
 
             this.logger.debug(`Clean URL for token exchange: ${cleanUrl.href}`);
 
-            const tokens = await client.authorizationCodeGrant(config, cleanUrl, {
-                expectedState: originalState,
-            });
+            let tokens;
+            try {
+                this.logger.debug(`Starting token exchange with openid-client`);
+                this.logger.debug(`Config issuer: ${config.serverMetadata().issuer}`);
+                this.logger.debug(`Config token endpoint: ${config.serverMetadata().token_endpoint}`);
+
+                // For HTTP endpoints, we need to pass the allowInsecureRequests option
+                const serverUrl = new URL(provider.issuer || '');
+                let clientOptions: any = undefined;
+                if (serverUrl.protocol === 'http:') {
+                    this.logger.debug(`Token exchange with allowInsecureRequests for ${provider.id}`);
+                    clientOptions = {
+                        execute: [client.allowInsecureRequests],
+                    };
+                }
+
+                tokens = await client.authorizationCodeGrant(
+                    config,
+                    cleanUrl,
+                    {
+                        expectedState: originalState,
+                    },
+                    clientOptions
+                );
+                this.logger.debug(
+                    `Token exchange successful, received tokens: ${Object.keys(tokens).join(', ')}`
+                );
+            } catch (tokenError) {
+                const errorMessage =
+                    tokenError instanceof Error ? tokenError.message : String(tokenError);
+                this.logger.error(`Token exchange failed: ${errorMessage}`);
+
+                // Check if error message contains the "unexpected JWT claim" text
+                if (errorMessage.includes('unexpected JWT claim value encountered')) {
+                    this.logger.error(
+                        `unexpected JWT claim value encountered during token validation by openid-client`
+                    );
+                    this.logger.debug(
+                        `Token exchange error details: ${JSON.stringify(tokenError, null, 2)}`
+                    );
+
+                    // Log the actual vs expected issuer
+                    this.logger.error(
+                        `This error typically means the 'iss' claim in the JWT doesn't match the expected issuer`
+                    );
+                    this.logger.error(`Check that your provider's issuer URL is configured correctly`);
+                }
+
+                throw tokenError;
+            }
 
             // Parse ID token to get user info
-            let claims: { sub?: string } | null = null;
+            let claims: JwtClaims | null = null;
             if (tokens.id_token) {
                 try {
                     // Decode the JWT manually
                     const payload = tokens.id_token.split('.')[1];
                     claims = JSON.parse(Buffer.from(payload, 'base64').toString());
                     this.logger.debug(`ID token claims: ${JSON.stringify(claims)}`);
+
+                    // Log all claim types for debugging
+                    if (claims) {
+                        for (const [key, value] of Object.entries(claims)) {
+                            const valueType = Array.isArray(value) ? 'array' : typeof value;
+                            this.logger.debug(
+                                `Claim '${key}': type=${valueType}, value=${JSON.stringify(value)}`
+                            );
+
+                            // Check for unexpected claim types early
+                            if (valueType === 'object' && value !== null && !Array.isArray(value)) {
+                                this.logger.error(
+                                    `unexpected JWT claim value encountered - claim '${key}' is complex object: ${JSON.stringify(value)}`
+                                );
+                            }
+                        }
+                    }
                 } catch (e) {
                     this.logger.warn(`Failed to parse ID token: ${e}`);
                 }
+            } else {
+                this.logger.error('No ID token received from provider');
             }
 
             if (!claims?.sub) {
+                this.logger.error(
+                    'No subject in token - claims available: ' +
+                        (claims ? Object.keys(claims).join(', ') : 'none')
+                );
                 throw new UnauthorizedException('No subject in token');
             }
 
             const userSub = claims.sub;
+            this.logger.debug(`Processing authentication for user: ${userSub}`);
 
             // Check authorization based on rules
             // This will throw a helpful error if misconfigured or unauthorized
@@ -213,35 +306,49 @@ export class OidcAuthService {
         }
 
         try {
-            // Configure client auth method
-            const clientAuth = provider.clientSecret
-                ? client.ClientSecretPost(provider.clientSecret)
-                : undefined;
-
-            let config: client.Configuration;
-
-            // Try discovery first
+            // Use the validation service to perform discovery with HTTP support
             if (provider.issuer) {
                 this.logger.debug(`Attempting discovery for ${provider.id} at ${provider.issuer}`);
 
+                // Create client options with HTTP support if needed
+                const serverUrl = new URL(provider.issuer);
+                let clientOptions: any = undefined;
+                if (serverUrl.protocol === 'http:') {
+                    this.logger.debug(`Allowing HTTP for ${provider.id} as specified by user`);
+                    clientOptions = {
+                        execute: [client.allowInsecureRequests],
+                    };
+                }
+
                 try {
-                    const serverUrl = new URL(provider.issuer);
-
-                    config = await client.discovery(
-                        serverUrl,
-                        provider.clientId,
-                        undefined, // client metadata
-                        clientAuth
+                    const config = await this.validationService.performDiscovery(
+                        provider,
+                        clientOptions
                     );
-
+                    this.logger.debug(`Discovery successful for ${provider.id}`);
+                    this.logger.debug(
+                        `Authorization endpoint: ${config.serverMetadata().authorization_endpoint}`
+                    );
+                    this.logger.debug(`Token endpoint: ${config.serverMetadata().token_endpoint}`);
                     this.configCache.set(cacheKey, config);
                     return config;
                 } catch (discoveryError) {
-                    this.logger.warn(
-                        `Discovery failed for ${provider.id}: ${
-                            discoveryError instanceof Error ? discoveryError.message : 'Unknown error'
-                        }`
+                    const errorMessage =
+                        discoveryError instanceof Error ? discoveryError.message : 'Unknown error';
+                    this.logger.warn(`Discovery failed for ${provider.id}: ${errorMessage}`);
+
+                    // Log more details about the discovery error
+                    this.logger.debug(
+                        `Discovery URL attempted: ${provider.issuer}/.well-known/openid-configuration`
                     );
+                    this.logger.debug(
+                        `Full discovery error: ${JSON.stringify(discoveryError, null, 2)}`
+                    );
+
+                    // Log stack trace for better debugging
+                    if (discoveryError instanceof Error && discoveryError.stack) {
+                        this.logger.debug(`Stack trace: ${discoveryError.stack}`);
+                    }
 
                     // If discovery fails but we have manual endpoints, use them
                     if (provider.authorizationEndpoint && provider.tokenEndpoint) {
@@ -282,7 +389,12 @@ export class OidcAuthService {
         }
     }
 
-    private async checkAuthorization(provider: OidcProvider, claims: any): Promise<void> {
+    private async checkAuthorization(provider: OidcProvider, claims: JwtClaims): Promise<void> {
+        this.logger.debug(
+            `Checking authorization for provider ${provider.id} with ${provider.authorizationRules?.length || 0} rules`
+        );
+        this.logger.debug(`Available claims: ${Object.keys(claims).join(', ')}`);
+
         // If no authorization rules are specified, throw a helpful error
         if (!provider.authorizationRules || provider.authorizationRules.length === 0) {
             throw new UnauthorizedException(
@@ -291,49 +403,116 @@ export class OidcAuthService {
             );
         }
 
+        this.logger.debug(
+            `Authorization rules to evaluate: ${JSON.stringify(provider.authorizationRules, null, 2)}`
+        );
+
         // Evaluate the rules
         const isAuthorized = this.evaluateAuthorizationRules(provider.authorizationRules, claims);
 
+        this.logger.debug(`Authorization result: ${isAuthorized}`);
+
         if (!isAuthorized) {
+            this.logger.warn(
+                `Authorization failed for user ${claims.sub} with claims: ${JSON.stringify(claims)}`
+            );
             throw new UnauthorizedException(
                 `Access denied: Your account does not meet the authorization requirements for ${provider.name}.`
             );
         }
+
+        this.logger.debug(`Authorization successful for user ${claims.sub}`);
     }
 
-    private evaluateAuthorizationRules(rules: OidcAuthorizationRule[], claims: any): boolean {
+    private evaluateAuthorizationRules(rules: OidcAuthorizationRule[], claims: JwtClaims): boolean {
         // Any rule can pass (OR logic)
         // Multiple rules act as alternative authorization paths
         return rules.some((rule) => this.evaluateRule(rule, claims));
     }
 
-    private evaluateRule(rule: OidcAuthorizationRule, claims: any): boolean {
+    private evaluateRule(rule: OidcAuthorizationRule, claims: JwtClaims): boolean {
         const claimValue = claims[rule.claim];
+
+        this.logger.debug(
+            `Evaluating rule for claim ${rule.claim}: ${JSON.stringify({
+                claimValue,
+                claimType: typeof claimValue,
+                ruleOperator: rule.operator,
+                ruleValues: rule.value,
+            })}`
+        );
 
         if (claimValue === undefined || claimValue === null) {
             this.logger.debug(`Claim ${rule.claim} not found in token`);
             return false;
         }
 
-        const value = String(claimValue);
+        // Log detailed claim analysis
+        if (typeof claimValue === 'object' && claimValue !== null) {
+            this.logger.warn(
+                `unexpected JWT claim value encountered - claim ${rule.claim} is object type: ${JSON.stringify(claimValue)}`
+            );
+            return false;
+        }
 
+        if (Array.isArray(claimValue)) {
+            this.logger.warn(
+                `unexpected JWT claim value encountered - claim ${rule.claim} is array type: ${JSON.stringify(claimValue)}`
+            );
+            return false;
+        }
+
+        const value = String(claimValue);
+        this.logger.debug(`Processing claim ${rule.claim} with string value: "${value}"`);
+
+        let result: boolean;
         switch (rule.operator) {
             case AuthorizationOperator.EQUALS:
-                return rule.value.some((v) => value === v);
+                result = rule.value.some((v) => value === v);
+                this.logger.debug(
+                    `EQUALS check: "${value}" matches any of [${rule.value.join(', ')}]: ${result}`
+                );
+                return result;
 
             case AuthorizationOperator.CONTAINS:
-                return rule.value.some((v) => value.includes(v));
+                result = rule.value.some((v) => value.includes(v));
+                this.logger.debug(
+                    `CONTAINS check: "${value}" contains any of [${rule.value.join(', ')}]: ${result}`
+                );
+                return result;
 
             case AuthorizationOperator.STARTS_WITH:
-                return rule.value.some((v) => value.startsWith(v));
+                result = rule.value.some((v) => value.startsWith(v));
+                this.logger.debug(
+                    `STARTS_WITH check: "${value}" starts with any of [${rule.value.join(', ')}]: ${result}`
+                );
+                return result;
 
             case AuthorizationOperator.ENDS_WITH:
-                return rule.value.some((v) => value.endsWith(v));
+                result = rule.value.some((v) => value.endsWith(v));
+                this.logger.debug(
+                    `ENDS_WITH check: "${value}" ends with any of [${rule.value.join(', ')}]: ${result}`
+                );
+                return result;
 
             default:
                 this.logger.error(`Unknown authorization operator: ${rule.operator}`);
                 return false;
         }
+    }
+
+    /**
+     * Validate OIDC provider configuration by attempting discovery
+     * Returns validation result with helpful error messages for debugging
+     */
+    async validateProvider(
+        provider: OidcProvider
+    ): Promise<{ isValid: boolean; error?: string; details?: unknown }> {
+        // Clear any cached config for this provider to force fresh validation
+        this.configCache.delete(provider.id);
+
+        // Delegate to the validation service
+        return this.validationService.validateProvider(provider);
     }
 
     private getRedirectUri(requestHost?: string): string {

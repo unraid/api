@@ -32,7 +32,38 @@ export class SsoResolver {
     @Public()
     public async publicOidcProviders(): Promise<PublicOidcProvider[]> {
         const providers = await this.oidcConfig.getProviders();
-        return providers.map((provider) => ({
+
+        // Filter out providers without valid authorization rules
+        const providersWithRules = providers.filter((provider) => {
+            // Check if provider has authorization rules
+            if (!provider.authorizationRules || provider.authorizationRules.length === 0) {
+                this.logger.debug(
+                    `Hiding provider ${provider.id} from login page - no authorization rules configured`
+                );
+                return false;
+            }
+
+            // Check if at least one rule is complete and valid
+            const hasValidRules = provider.authorizationRules.some(
+                (rule) =>
+                    rule.claim && // Has a claim specified
+                    rule.operator && // Has an operator specified
+                    rule.value && // Has values array
+                    rule.value.length > 0 && // Has at least one value
+                    rule.value.some((v) => v && v.trim() !== '') // At least one non-empty value
+            );
+
+            if (!hasValidRules) {
+                this.logger.debug(
+                    `Hiding provider ${provider.id} from login page - no valid rule values`
+                );
+                return false;
+            }
+
+            return true;
+        });
+
+        return providersWithRules.map((provider) => ({
             id: provider.id,
             name: provider.name,
             buttonText: provider.buttonText,
@@ -71,6 +102,28 @@ export class SsoResolver {
     public async upsertOidcProvider(
         @Args('provider') provider: OidcProviderInput
     ): Promise<OidcProvider> {
+        // Special handling for unraid.net provider - only allow updating authorization rules
+        if (provider.id === 'unraid.net') {
+            const existingProvider = await this.oidcConfig.getProvider('unraid.net');
+            if (!existingProvider) {
+                throw new Error('Unraid.net provider not found');
+            }
+
+            // Only allow updating authorization rules and button customization for unraid.net
+            const restrictedUpdate: OidcProvider = {
+                ...existingProvider,
+                authorizationRules: provider.authorizationRules || existingProvider.authorizationRules,
+                buttonText: provider.buttonText || existingProvider.buttonText,
+                buttonIcon: provider.buttonIcon || existingProvider.buttonIcon,
+                buttonVariant: provider.buttonVariant || existingProvider.buttonVariant,
+                buttonStyle: provider.buttonStyle || existingProvider.buttonStyle,
+            };
+
+            const result = await this.oidcConfig.upsertProvider(restrictedUpdate);
+            this.logger.log(`Updated Unraid.net provider authorization rules`);
+            return result;
+        }
+
         const result = await this.oidcConfig.upsertProvider(provider as OidcProvider);
         this.logger.log(`Upserted OIDC provider: ${provider.id}`);
         return result;
@@ -83,6 +136,11 @@ export class SsoResolver {
         possession: AuthPossession.ANY,
     })
     public async deleteOidcProvider(@Args('id') id: string): Promise<boolean> {
+        // Prevent deletion of the unraid.net provider
+        if (id === 'unraid.net') {
+            throw new Error('Cannot delete the Unraid.net provider');
+        }
+
         const result = await this.oidcConfig.deleteProvider(id);
         if (result) {
             this.logger.log(`Deleted OIDC provider: ${id}`);

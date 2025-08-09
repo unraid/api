@@ -1,4 +1,5 @@
 import type { ControlElement, LabelElement, Layout, Rule } from '@jsonforms/core';
+import { RuleEffect } from '@jsonforms/core';
 
 /**
  * Creates a simple VerticalLayout containing a Label followed by a Control element.
@@ -9,13 +10,15 @@ export function createSimpleLabeledControl({
     label,
     description,
     controlOptions,
+    rule,
 }: {
     scope: string;
     label: string;
     description?: string;
     controlOptions?: ControlElement['options'];
+    rule?: Rule;
 }): Layout {
-    return {
+    const layout: Layout = {
         type: 'VerticalLayout',
         elements: [
             {
@@ -32,6 +35,13 @@ export function createSimpleLabeledControl({
             } as ControlElement,
         ],
     };
+
+    // Add rule if provided
+    if (rule) {
+        layout.rule = rule;
+    }
+
+    return layout;
 }
 
 /**
