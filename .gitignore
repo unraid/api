@@ -115,3 +115,6 @@ api/dev/Unraid.net/myservers.cfg
 
 # local Mise settings
 .mise.toml
+
+# environment variables
+web/.env.production
