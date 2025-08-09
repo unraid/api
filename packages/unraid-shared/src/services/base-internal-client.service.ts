@@ -35,15 +35,14 @@ export abstract class BaseInternalClientService {
     protected readonly logger: Logger;
     protected client: ApolloClient<NormalizedCacheObject> | null = null;
     private wsClient: ReturnType<typeof createClient> | null = null;
-    protected readonly socketConfig: SocketConfigService;
 
     constructor(
         protected readonly configService: ConfigService,
         protected readonly apiKeyProvider: ApiKeyProvider,
+        protected readonly socketConfig: SocketConfigService,
         protected readonly options: InternalClientOptions = {}
     ) {
         this.logger = new Logger(this.constructor.name);
-        this.socketConfig = new SocketConfigService(configService);
         // Use a valid HTTP origin or omit if not provided
         // Internal clients typically don't need origin headers
         if (!this.options.origin) {
@@ -122,6 +121,8 @@ export abstract class BaseInternalClientService {
         if (wsUri) {
             this.logger.debug('Enabling WebSocket subscriptions: %s', wsUri);
 
+            // The ws library natively supports ws+unix:// URLs!
+            // Format: ws+unix://absolute/path/to/socket.sock:/path
             this.wsClient = createClient({
                 url: wsUri,
                 connectionParams: () => ({ 'x-api-key': apiKey }),
