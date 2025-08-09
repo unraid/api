@@ -7,6 +7,7 @@ import { UserSettingsService } from '@unraid/shared/services/user-settings.js';
 
 import {
     AuthorizationOperator,
+    OidcAuthorizationRule,
     OidcProvider,
 } from '@app/unraid-api/graph/resolvers/sso/oidc-provider.model.js';
 import {
@@ -114,22 +115,93 @@ export class OidcConfigPersistence extends ConfigFilePersister<OidcConfig> {
         return providers.find((p) => p.id === id) || null;
     }
 
-    async upsertProvider(provider: OidcProvider): Promise<OidcProvider> {
+    async upsertProvider(
+        provider: OidcProvider & { authorizationMode?: string; simpleAuthorization?: any }
+    ): Promise<OidcProvider> {
         const config = this.configService.get<OidcConfig>(this.configKey()) || this.defaultConfig();
         const providers = [...config.providers];
-        const existingIndex = providers.findIndex((p) => p.id === provider.id);
 
+        // If in simple mode, convert simple fields to authorization rules
+        if (provider.authorizationMode === 'simple' && provider.simpleAuthorization) {
+            const rules = this.convertSimpleToRules(provider.simpleAuthorization);
+            provider.authorizationRules = rules;
+        }
+
+        // Clean up the provider object - remove UI-only fields
+        const cleanedProvider: OidcProvider = {
+            id: provider.id,
+            name: provider.name,
+            clientId: provider.clientId,
+            clientSecret: provider.clientSecret,
+            issuer: provider.issuer,
+            authorizationEndpoint: provider.authorizationEndpoint,
+            tokenEndpoint: provider.tokenEndpoint,
+            jwksUri: provider.jwksUri,
+            scopes: provider.scopes,
+            authorizationRules: provider.authorizationRules,
+            buttonText: provider.buttonText,
+            buttonIcon: provider.buttonIcon,
+            buttonVariant: provider.buttonVariant,
+            buttonStyle: provider.buttonStyle,
+            customAuthParams: provider.customAuthParams,
+        };
+
+        const existingIndex = providers.findIndex((p) => p.id === provider.id);
         if (existingIndex >= 0) {
-            providers[existingIndex] = provider;
+            providers[existingIndex] = cleanedProvider;
         } else {
-            providers.push(provider);
+            providers.push(cleanedProvider);
         }
 
         const newConfig = { ...config, providers };
         this.configService.set(this.configKey(), newConfig);
         await this.persist(newConfig);
 
-        return provider;
+        return cleanedProvider;
+    }
+
+    private convertSimpleToRules(simpleAuth: any): OidcAuthorizationRule[] {
+        const rules: OidcAuthorizationRule[] = [];
+
+        // Convert email domains to endsWith rules
+        if (simpleAuth?.allowedDomains?.length > 0) {
+            rules.push({
+                claim: 'email',
+                operator: AuthorizationOperator.ENDS_WITH,
+                value: simpleAuth.allowedDomains.map((domain: string) =>
+                    domain.startsWith('@') ? domain : `@${domain}`
+                ),
+            });
+        }
+
+        // Convert specific emails to equals rules
+        if (simpleAuth?.allowedEmails?.length > 0) {
+            rules.push({
+                claim: 'email',
+                operator: AuthorizationOperator.EQUALS,
+                value: simpleAuth.allowedEmails,
+            });
+        }
+
+        // Convert user IDs to sub equals rules
+        if (simpleAuth?.allowedUserIds?.length > 0) {
+            rules.push({
+                claim: 'sub',
+                operator: AuthorizationOperator.EQUALS,
+                value: simpleAuth.allowedUserIds,
+            });
+        }
+
+        // Google Workspace domain (hd claim)
+        if (simpleAuth?.googleWorkspaceDomain) {
+            rules.push({
+                claim: 'hd',
+                operator: AuthorizationOperator.EQUALS,
+                value: [simpleAuth.googleWorkspaceDomain],
+            });
+        }
+
+        return rules;
     }
 
     async deleteProvider(id: string): Promise<boolean> {
@@ -151,16 +223,108 @@ export class OidcConfigPersistence extends ConfigFilePersister<OidcConfig> {
         this.userSettings.register('sso', {
             buildSlice: async () => this.buildSlice(),
             getCurrentValues: async () => this.getConfig(),
-            updateValues: async (config: OidcConfig) => {
-                this.configService.set(this.configKey(), config);
-                await this.persist(config);
-                return { restartRequired: true, values: config };
+            updateValues: async (config: any) => {
+                // Process each provider to handle simple mode conversion
+                const processedConfig: OidcConfig = {
+                    ...config,
+                    providers: config.providers.map((provider: any) => {
+                        // If in simple mode, convert simple fields to authorization rules
+                        if (provider.authorizationMode === 'simple' && provider.simpleAuthorization) {
+                            const rules = this.convertSimpleToRules(provider.simpleAuthorization);
+                            // Return provider with generated rules, removing UI-only fields
+                            const { authorizationMode, simpleAuthorization, ...cleanProvider } =
+                                provider;
+                            return {
+                                ...cleanProvider,
+                                authorizationRules: rules,
+                            };
+                        }
+                        // If in advanced mode or no mode specified, just clean up UI fields
+                        const { authorizationMode, simpleAuthorization, ...cleanProvider } = provider;
+                        return cleanProvider;
+                    }),
+                };
+
+                this.configService.set(this.configKey(), processedConfig);
+                await this.persist(processedConfig);
+                return { restartRequired: true, values: processedConfig };
             },
         });
     }
 
-    getConfig(): OidcConfig {
-        return this.configService.get<OidcConfig>(this.configKey()) || this.defaultConfig();
+    getConfig(): any {
+        const config = this.configService.get<OidcConfig>(this.configKey()) || this.defaultConfig();
+
+        // Enhance providers with UI fields
+        const enhancedProviders = config.providers.map((provider) => {
+            const simpleAuth = this.convertRulesToSimple(provider.authorizationRules || []);
+
+            // Determine if rules can be represented in simple mode
+            const canUseSimpleMode = this.canConvertToSimpleMode(provider.authorizationRules || []);
+
+            return {
+                ...provider,
+                authorizationMode: canUseSimpleMode ? 'simple' : 'advanced',
+                simpleAuthorization: simpleAuth,
+            };
+        });
+
+        return {
+            ...config,
+            providers: enhancedProviders,
+        };
+    }
+
+    private canConvertToSimpleMode(rules: OidcAuthorizationRule[]): boolean {
+        // Check if all rules match simple patterns
+        return rules.every((rule) => {
+            // Email domain rules
+            if (rule.claim === 'email' && rule.operator === AuthorizationOperator.ENDS_WITH) {
+                return rule.value.every((v) => v.startsWith('@'));
+            }
+            // Email equals rules
+            if (rule.claim === 'email' && rule.operator === AuthorizationOperator.EQUALS) {
+                return true;
+            }
+            // Sub equals rules
+            if (rule.claim === 'sub' && rule.operator === AuthorizationOperator.EQUALS) {
+                return true;
+            }
+            // Google Workspace domain
+            if (rule.claim === 'hd' && rule.operator === AuthorizationOperator.EQUALS) {
+                return true;
+            }
+            return false;
+        });
+    }
+
+    private convertRulesToSimple(rules: OidcAuthorizationRule[]): any {
+        const simpleAuth: any = {
+            allowedDomains: [],
+            allowedEmails: [],
+            allowedUserIds: [],
+            googleWorkspaceDomain: undefined,
+        };
+
+        rules.forEach((rule) => {
+            if (rule.claim === 'email' && rule.operator === AuthorizationOperator.ENDS_WITH) {
+                simpleAuth.allowedDomains = rule.value.map((v) =>
+                    v.startsWith('@') ? v.substring(1) : v
+                );
+            } else if (rule.claim === 'email' && rule.operator === AuthorizationOperator.EQUALS) {
+                simpleAuth.allowedEmails = rule.value;
+            } else if (rule.claim === 'sub' && rule.operator === AuthorizationOperator.EQUALS) {
+                simpleAuth.allowedUserIds = rule.value;
+            } else if (
+                rule.claim === 'hd' &&
+                rule.operator === AuthorizationOperator.EQUALS &&
+                rule.value.length > 0
+            ) {
+                simpleAuth.googleWorkspaceDomain = rule.value[0];
+            }
+        });
+
+        return simpleAuth;
     }
 
     private buildSlice(): SettingSlice {
@@ -232,6 +396,46 @@ export class OidcConfigPersistence extends ConfigFilePersister<OidcConfig> {
                                 title: 'Scopes',
                                 default: ['openid', 'profile', 'email'],
                                 description: 'OAuth2 scopes to request',
+                            },
+                            authorizationMode: {
+                                type: 'string',
+                                title: 'Authorization Mode',
+                                enum: ['simple', 'advanced'],
+                                default: 'simple',
+                                description:
+                                    'Choose between simple presets or advanced rule configuration',
+                            },
+                            simpleAuthorization: {
+                                type: 'object',
+                                properties: {
+                                    allowedDomains: {
+                                        type: 'array',
+                                        items: { type: 'string' },
+                                        title: 'Allowed Email Domains',
+                                        description:
+                                            'Email domains that are allowed to login (e.g., company.com)',
+                                    },
+                                    allowedEmails: {
+                                        type: 'array',
+                                        items: { type: 'string' },
+                                        title: 'Specific Email Addresses',
+                                        description:
+                                            'Specific email addresses that are allowed to login',
+                                    },
+                                    allowedUserIds: {
+                                        type: 'array',
+                                        items: { type: 'string' },
+                                        title: 'Allowed User IDs',
+                                        description:
+                                            'Specific user IDs (sub claim) that are allowed to login',
+                                    },
+                                    googleWorkspaceDomain: {
+                                        type: 'string',
+                                        title: 'Google Workspace Domain',
+                                        description:
+                                            'Restrict to users from a specific Google Workspace domain',
+                                    },
+                                },
                             },
                             authorizationRules: {
                                 type: 'array',
@@ -398,54 +602,153 @@ export class OidcConfigPersistence extends ConfigFilePersister<OidcConfig> {
                                                 placeholder: 'openid',
                                             },
                                         }),
+                                        // Authorization Mode Toggle
+                                        createSimpleLabeledControl({
+                                            scope: '#/properties/authorizationMode',
+                                            label: 'Authorization Mode:',
+                                            description:
+                                                'Choose between simple presets or advanced rule configuration',
+                                            controlOptions: {},
+                                        }),
+                                        // Simple Authorization Fields (shown when mode is 'simple')
                                         {
-                                            type: 'Label',
-                                            text: 'Authorization Rules',
-                                            options: {
-                                                description:
-                                                    'Define authorization rules based on claims in the ID token. Multiple rules use OR logic - if any rule matches, the user is authorized.',
+                                            type: 'VerticalLayout',
+                                            rule: {
+                                                effect: 'SHOW',
+                                                condition: {
+                                                    scope: '#/properties/authorizationMode',
+                                                    schema: { const: 'simple' },
+                                                },
                                             },
-                                        },
-                                        {
-                                            type: 'Control',
-                                            scope: '#/properties/authorizationRules',
-                                            options: {
-                                                elementLabelFormat: '${claim} ${operator}',
-                                                itemTypeName: 'Rule',
-                                                detail: {
+                                            elements: [
+                                                {
+                                                    type: 'Label',
+                                                    text: 'Simple Authorization',
+                                                    options: {
+                                                        description:
+                                                            'Configure who can login using simple presets. At least one field must be configured.',
+                                                        format: 'title',
+                                                    },
+                                                },
+                                                createSimpleLabeledControl({
+                                                    scope: '#/properties/simpleAuthorization/properties/allowedDomains',
+                                                    label: 'Allowed Email Domains:',
+                                                    description:
+                                                        'Users with emails ending in these domains can login (e.g., company.com)',
+                                                    controlOptions: {
+                                                        format: 'array',
+                                                        inputType: 'text',
+                                                        placeholder: 'company.com',
+                                                    },
+                                                }),
+                                                createSimpleLabeledControl({
+                                                    scope: '#/properties/simpleAuthorization/properties/allowedEmails',
+                                                    label: 'Specific Email Addresses:',
+                                                    description:
+                                                        'Only these exact email addresses can login',
+                                                    controlOptions: {
+                                                        format: 'array',
+                                                        inputType: 'email',
+                                                        placeholder: 'user@example.com',
+                                                    },
+                                                }),
+                                                createSimpleLabeledControl({
+                                                    scope: '#/properties/simpleAuthorization/properties/allowedUserIds',
+                                                    label: 'Allowed User IDs:',
+                                                    description:
+                                                        'Specific user IDs from the identity provider',
+                                                    controlOptions: {
+                                                        format: 'array',
+                                                        inputType: 'text',
+                                                        placeholder: 'user-id-123',
+                                                    },
+                                                }),
+                                                // Google-specific field (shown only for Google providers)
+                                                {
                                                     type: 'VerticalLayout',
+                                                    rule: {
+                                                        effect: 'SHOW',
+                                                        condition: {
+                                                            scope: '#/properties/issuer',
+                                                            schema: { pattern: '.*google.*' },
+                                                        },
+                                                    },
                                                     elements: [
                                                         createSimpleLabeledControl({
-                                                            scope: '#/properties/claim',
-                                                            label: 'JWT Claim:',
+                                                            scope: '#/properties/simpleAuthorization/properties/googleWorkspaceDomain',
+                                                            label: 'Google Workspace Domain:',
                                                             description:
-                                                                'JWT claim to check (e.g., email, sub, groups, hd for Google hosted domain)',
+                                                                'Restrict to users from your Google Workspace domain',
                                                             controlOptions: {
                                                                 inputType: 'text',
-                                                                placeholder: 'email',
-                                                            },
-                                                        }),
-                                                        createSimpleLabeledControl({
-                                                            scope: '#/properties/operator',
-                                                            label: 'Operator:',
-                                                            description:
-                                                                'How to compare the claim value',
-                                                            controlOptions: {},
-                                                        }),
-                                                        createSimpleLabeledControl({
-                                                            scope: '#/properties/value',
-                                                            label: 'Values:',
-                                                            description:
-                                                                'Value(s) to match against (any match passes)',
-                                                            controlOptions: {
-                                                                format: 'array',
-                                                                inputType: 'text',
-                                                                placeholder: '@company.com',
+                                                                placeholder: 'company.com',
                                                             },
                                                         }),
                                                     ],
                                                 },
+                                            ],
+                                        },
+                                        // Advanced Authorization Rules (shown when mode is 'advanced')
+                                        {
+                                            type: 'VerticalLayout',
+                                            rule: {
+                                                effect: 'SHOW',
+                                                condition: {
+                                                    scope: '#/properties/authorizationMode',
+                                                    schema: { const: 'advanced' },
+                                                },
                                             },
+                                            elements: [
+                                                {
+                                                    type: 'Label',
+                                                    text: 'Advanced Authorization Rules',
+                                                    options: {
+                                                        description:
+                                                            'Define authorization rules based on claims in the ID token. Multiple rules use OR logic - if any rule matches, the user is authorized.',
+                                                    },
+                                                },
+                                                {
+                                                    type: 'Control',
+                                                    scope: '#/properties/authorizationRules',
+                                                    options: {
+                                                        elementLabelFormat: '${claim} ${operator}',
+                                                        itemTypeName: 'Rule',
+                                                        detail: {
+                                                            type: 'VerticalLayout',
+                                                            elements: [
+                                                                createSimpleLabeledControl({
+                                                                    scope: '#/properties/claim',
+                                                                    label: 'JWT Claim:',
+                                                                    description:
+                                                                        'JWT claim to check (e.g., email, sub, groups, hd for Google hosted domain)',
+                                                                    controlOptions: {
+                                                                        inputType: 'text',
+                                                                        placeholder: 'email',
+                                                                    },
+                                                                }),
+                                                                createSimpleLabeledControl({
+                                                                    scope: '#/properties/operator',
+                                                                    label: 'Operator:',
+                                                                    description:
+                                                                        'How to compare the claim value',
+                                                                    controlOptions: {},
+                                                                }),
+                                                                createSimpleLabeledControl({
+                                                                    scope: '#/properties/value',
+                                                                    label: 'Values:',
+                                                                    description:
+                                                                        'Value(s) to match against (any match passes)',
+                                                                    controlOptions: {
+                                                                        format: 'array',
+                                                                        inputType: 'text',
+                                                                        placeholder: '@company.com',
+                                                                    },
+                                                                }),
+                                                            ],
+                                                        },
+                                                    },
+                                                },
+                                            ],
                                         },
                                         createSimpleLabeledControl({
                                             scope: '#/properties/buttonText',
