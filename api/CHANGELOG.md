@@ -1,5 +1,21 @@
 # Changelog
 
+## [4.13.0](https://github.com/unraid/api/compare/v4.12.0...v4.13.0) (2025-08-09)
+
+
+### Features
+
+* `createDockerFolder` & `setDockerFolderChildren` mutations ([#1558](https://github.com/unraid/api/issues/1558)) ([557b03f](https://github.com/unraid/api/commit/557b03f8829d3f179b5e26162fa250121cb33420))
+* `deleteDockerEntries` mutation ([#1564](https://github.com/unraid/api/issues/1564)) ([78997a0](https://github.com/unraid/api/commit/78997a02c6d96ec0ed75352dfc9849524147428c))
+* add docker -&gt; organizer query ([#1555](https://github.com/unraid/api/issues/1555)) ([dfe352d](https://github.com/unraid/api/commit/dfe352dfa1bd6aa059cab56357ba6bff5e8ed7cb))
+
+
+### Bug Fixes
+
+* change config file loading error log to debug ([#1565](https://github.com/unraid/api/issues/1565)) ([3534d6f](https://github.com/unraid/api/commit/3534d6fdd7c59e65615167cfe306deebad9ca4d3))
+* **connect:** remove unraid-api folder before creating symlink ([#1556](https://github.com/unraid/api/issues/1556)) ([514a0ef](https://github.com/unraid/api/commit/514a0ef560a90595f774b6c0db60f1d2b4cd853c))
+* **deps:** update all non-major dependencies ([#1543](https://github.com/unraid/api/issues/1543)) ([18b5209](https://github.com/unraid/api/commit/18b52090874c0ba86878d0f7e31bf0dc42734d75))
+
 ## [4.12.0](https://github.com/unraid/api/compare/v4.11.0...v4.12.0) (2025-07-30)
 
 
