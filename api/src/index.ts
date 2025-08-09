@@ -99,7 +99,7 @@ export const viteNodeApp = async () => {
 
         asyncExitHook(
             async (signal) => {
-                logger.info('Exiting with signal %s', signal);
+                logger.info('Exiting with signal %d', signal);
                 await server?.close?.();
                 // If port is unix socket, delete socket before exiting
                 unlinkUnixPort();

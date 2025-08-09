@@ -39,7 +39,7 @@ export class PluginService {
                     version,
                 };
             } catch (error) {
-                PluginService.logger.error(`Plugin from ${pkgName} is invalid`, error);
+                PluginService.logger.error(`Plugin from ${pkgName} is invalid: %o`, error as object);
                 const notificationService = new NotificationsService();
                 const errorMessage = error?.toString?.() ?? (error as Error)?.message ?? '';
                 await notificationService.createNotification({
@@ -71,8 +71,8 @@ export class PluginService {
             plugins = config.plugins || [];
         } catch (error) {
             PluginService.logger.error(
-                'Failed to load API config for plugin discovery, using empty list:',
-                error
+                'Failed to load API config for plugin discovery, using empty list: %o',
+                error as object
             );
         }
         const pluginNames = new Set(

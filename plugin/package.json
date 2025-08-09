@@ -11,7 +11,7 @@
     "semver": "7.7.2",
     "tsx": "4.20.3",
     "zod": "3.25.76",
-    "zx": "8.7.1"
+    "zx": "8.8.0"
   },
   "type": "module",
   "license": "GPL-2.0-or-later",
@@ -39,5 +39,5 @@
     "nodemon": "3.1.10",
     "vitest": "3.2.4"
   },
-  "packageManager": "pnpm@10.13.1"
+  "packageManager": "pnpm@10.14.0"
 }

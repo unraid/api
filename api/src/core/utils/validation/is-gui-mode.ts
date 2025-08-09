@@ -13,7 +13,7 @@ const isGuiMode = async (): Promise<boolean> => {
         // exitCode 0 means process was found, 1 means not found
         return exitCode === 0;
     } catch (error) {
-        internalLogger.error('Error checking GUI mode: %s', error);
+        internalLogger.error('Error checking GUI mode: %o', error as object);
         return false;
     }
 };
