@@ -169,7 +169,7 @@ const updateItem = (index: number, newValue: unknown) => {
               @click="removeItem(index)"
             >
               <X class="h-4 w-4 mr-2" />
-              Remove Provider
+              Remove {{ getItemLabel(item, index) }}
             </Button>
           </div>
           <div class="w-full max-w-none">

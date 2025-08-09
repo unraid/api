@@ -250,7 +250,7 @@ describe('OidcAuthService', () => {
                 return (service as any).evaluateAuthorizationRules(rules, claims);
             };
 
-            it('should require ALL rules to pass (AND logic)', () => {
+            it('should require ANY rule to pass (OR logic)', () => {
                 const rules: OidcAuthorizationRule[] = [
                     {
                         claim: 'email',
@@ -278,7 +278,7 @@ describe('OidcAuthService', () => {
                         email: 'user@company.com',
                         department: 'marketing',
                     })
-                ).toBe(false);
+                ).toBe(true);
 
                 // Only department rule passes
                 expect(
@@ -286,7 +286,7 @@ describe('OidcAuthService', () => {
                         email: 'user@other.com',
                         department: 'engineering',
                     })
-                ).toBe(false);
+                ).toBe(true);
 
                 // Neither rule passes
                 expect(
@@ -297,8 +297,8 @@ describe('OidcAuthService', () => {
                 ).toBe(false);
             });
 
-            it('should return true when no rules are defined', () => {
-                expect(evaluateAuthorizationRules([], { email: 'any@email.com' })).toBe(true);
+            it('should return false when no rules are defined', () => {
+                expect(evaluateAuthorizationRules([], { email: 'any@email.com' })).toBe(false);
             });
         });
 
@@ -418,6 +418,48 @@ describe('OidcAuthService', () => {
             await expect(
                 checkAuthorization(provider, { email: 'user@company.com' })
             ).resolves.toBeUndefined();
+        });
+
+        it('should authorize when ANY rule matches (OR logic)', async () => {
+            const provider: OidcProvider = {
+                id: 'test',
+                name: 'Test Provider',
+                clientId: 'test-client',
+                issuer: 'https://test.com',
+                scopes: ['openid'],
+                authorizationRules: [
+                    {
+                        claim: 'email',
+                        operator: AuthorizationOperator.ENDS_WITH,
+                        value: ['@company.com'],
+                    },
+                    {
+                        claim: 'email',
+                        operator: AuthorizationOperator.ENDS_WITH,
+                        value: ['@partner.com'],
+                    },
+                    {
+                        claim: 'sub',
+                        operator: AuthorizationOperator.EQUALS,
+                        value: ['specific-user-id'],
+                    },
+                ],
+            } as OidcProvider;
+
+            // Should pass with @partner.com email (second rule)
+            await expect(
+                checkAuthorization(provider, { email: 'user@partner.com', sub: 'other-id' })
+            ).resolves.toBeUndefined();
+
+            // Should pass with specific sub (third rule)
+            await expect(
+                checkAuthorization(provider, { email: 'user@external.com', sub: 'specific-user-id' })
+            ).resolves.toBeUndefined();
+
+            // Should fail when no rules match
+            await expect(
+                checkAuthorization(provider, { email: 'user@external.com', sub: 'other-id' })
+            ).rejects.toThrow();
         });
     });
 });
