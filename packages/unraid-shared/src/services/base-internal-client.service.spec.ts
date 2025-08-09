@@ -3,6 +3,7 @@ import { ConfigService } from '@nestjs/config';
 import { ApolloClient } from '@apollo/client/core/index.js';
 
 import { BaseInternalClientService, ApiKeyProvider, InternalClientOptions } from './base-internal-client.service.js';
+import { SocketConfigService } from './socket-config.service.js';
 
 // Mock graphql-ws
 vi.mock('graphql-ws', () => ({
@@ -26,9 +27,10 @@ class TestInternalClientService extends BaseInternalClientService {
     constructor(
         configService: ConfigService,
         apiKeyProvider: ApiKeyProvider,
+        socketConfig: SocketConfigService,
         options?: InternalClientOptions
     ) {
-        super(configService, apiKeyProvider, options);
+        super(configService, apiKeyProvider, socketConfig, options);
     }
 }
 
@@ -36,6 +38,7 @@ describe('BaseInternalClientService', () => {
     let service: TestInternalClientService;
     let configService: ConfigService;
     let apiKeyProvider: ApiKeyProvider;
+    let socketConfig: SocketConfigService;
     let mockApolloClient: any;
 
     beforeEach(() => {
@@ -52,13 +55,16 @@ describe('BaseInternalClientService', () => {
             getOrCreateLocalApiKey: vi.fn().mockResolvedValue('test-api-key'),
         };
 
+        // Create SocketConfigService instance
+        socketConfig = new SocketConfigService(configService);
+
         mockApolloClient = {
             query: vi.fn(),
             mutate: vi.fn(),
             stop: vi.fn(),
         };
 
-        service = new TestInternalClientService(configService, apiKeyProvider);
+        service = new TestInternalClientService(configService, apiKeyProvider, socketConfig);
     });
 
     afterEach(() => {
@@ -67,7 +73,7 @@ describe('BaseInternalClientService', () => {
 
     describe('constructor', () => {
         it('should initialize with default options', () => {
-            const service = new TestInternalClientService(configService, apiKeyProvider);
+            const service = new TestInternalClientService(configService, apiKeyProvider, socketConfig);
             expect(service).toBeDefined();
             // @ts-ignore - accessing protected property for testing
             expect(service.options.origin).toBe('http://localhost');
@@ -78,7 +84,7 @@ describe('BaseInternalClientService', () => {
                 enableSubscriptions: true,
                 origin: 'custom-origin',
             };
-            const service = new TestInternalClientService(configService, apiKeyProvider, options);
+            const service = new TestInternalClientService(configService, apiKeyProvider, socketConfig, options);
             
             // @ts-ignore - accessing protected property for testing
             expect(service.options.enableSubscriptions).toBe(true);
@@ -86,10 +92,12 @@ describe('BaseInternalClientService', () => {
             expect(service.options.origin).toBe('custom-origin');
         });
 
-        it('should create SocketConfigService instance', () => {
-            const service = new TestInternalClientService(configService, apiKeyProvider);
+        it('should use injected SocketConfigService instance', () => {
+            const service = new TestInternalClientService(configService, apiKeyProvider, socketConfig);
             // @ts-ignore - accessing protected property for testing
             expect(service.socketConfig).toBeDefined();
+            // @ts-ignore - accessing protected property for testing
+            expect(service.socketConfig).toBe(socketConfig);
         });
     });
 
@@ -122,7 +130,8 @@ describe('BaseInternalClientService', () => {
                 return defaultValue;
             });
             
-            const service = new TestInternalClientService(configService, apiKeyProvider);
+            const socketConfig = new SocketConfigService(configService);
+            const service = new TestInternalClientService(configService, apiKeyProvider, socketConfig);
             const client = await service.getClient();
             
             expect(client).toBeInstanceOf(ApolloClient);
@@ -143,7 +152,7 @@ describe('BaseInternalClientService', () => {
 
         it('should create client with WebSocket subscriptions when enabled', async () => {
             const options = { enableSubscriptions: true };
-            const service = new TestInternalClientService(configService, apiKeyProvider, options);
+            const service = new TestInternalClientService(configService, apiKeyProvider, socketConfig, options);
             
             const client = await service.getClient();
             
@@ -175,7 +184,7 @@ describe('BaseInternalClientService', () => {
 
         it('should dispose WebSocket client when subscriptions are enabled', async () => {
             const options = { enableSubscriptions: true };
-            const service = new TestInternalClientService(configService, apiKeyProvider, options);
+            const service = new TestInternalClientService(configService, apiKeyProvider, socketConfig, options);
             
             // First create a client to initialize the WebSocket client
             await service.getClient();
@@ -199,7 +208,8 @@ describe('BaseInternalClientService', () => {
                 return defaultValue;
             });
             
-            const service = new TestInternalClientService(configService, apiKeyProvider, {
+            const socketConfig = new SocketConfigService(configService);
+            const service = new TestInternalClientService(configService, apiKeyProvider, socketConfig, {
                 enableSubscriptions: true,
             });
             
@@ -213,7 +223,8 @@ describe('BaseInternalClientService', () => {
                 return defaultValue;
             });
             
-            const service = new TestInternalClientService(configService, apiKeyProvider, {
+            const socketConfig = new SocketConfigService(configService);
+            const service = new TestInternalClientService(configService, apiKeyProvider, socketConfig, {
                 enableSubscriptions: true,
             });
             

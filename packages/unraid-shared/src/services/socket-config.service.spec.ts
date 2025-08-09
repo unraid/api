@@ -45,7 +45,15 @@ describe('SocketConfigService', () => {
         });
 
         it('should use default socket path when PORT not set', () => {
-            vi.spyOn(configService, 'get').mockReturnValue('/var/run/unraid-api.sock');
+            // Mock to simulate PORT not being set in configuration
+            // When PORT returns undefined, ConfigService should use the default value
+            vi.spyOn(configService, 'get').mockImplementation((key, defaultValue) => {
+                if (key === 'PORT') {
+                    // Simulate ConfigService behavior: return default when config is undefined
+                    return defaultValue; // This simulates PORT not being in config
+                }
+                return defaultValue;
+            });
             
             expect(service.isRunningOnSocket()).toBe(true);
             expect(configService.get).toHaveBeenCalledWith('PORT', '/var/run/unraid-api.sock');
@@ -232,19 +240,19 @@ describe('SocketConfigService', () => {
             expect(uri).toBe(`ws+unix://${customSocket}:/graphql`);
         });
 
-        it('should use nginx port for WebSocket when appropriate', () => {
+        it('should use TCP port for WebSocket when running on TCP port', () => {
+            // Configure to use TCP port instead of Unix socket
+            // This naturally causes isRunningOnSocket() to return false
             vi.spyOn(configService, 'get').mockImplementation((key, defaultValue) => {
-                if (key === 'PORT') return '/var/run/unraid-api.sock';
+                if (key === 'PORT') return '3001'; // TCP port, not a socket
                 if (key === 'store.emhttp.nginx.httpPort') return '8080';
                 return defaultValue;
             });
             
-            // When not running on socket (mocking for this specific call)
-            vi.spyOn(service, 'isRunningOnSocket').mockReturnValueOnce(false);
-            
             const uri = service.getWebSocketUri(true);
             
-            expect(uri).toBe('ws://127.0.0.1:8080/graphql');
+            // When PORT is numeric, it uses that port directly for WebSocket
+            expect(uri).toBe('ws://127.0.0.1:3001/graphql');
         });
     });
 
