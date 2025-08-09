@@ -52,7 +52,7 @@
     },
     "dependencies": {
         "@apollo/client": "3.13.9",
-        "@apollo/server": "4.12.2",
+        "@apollo/server": "5.0.0",
         "@as-integrations/fastify": "2.1.1",
         "@fastify/cookie": "11.0.2",
         "@fastify/helmet": "13.0.1",
