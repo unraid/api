@@ -118,4 +118,21 @@ export class DockerResolver {
         });
         return this.dockerOrganizerService.resolveOrganizer(organizer);
     }
+
+    @UsePermissions({
+        action: AuthActionVerb.UPDATE,
+        resource: Resource.DOCKER,
+        possession: AuthPossession.ANY,
+    })
+    @Mutation(() => ResolvedOrganizerV1)
+    public async moveDockerEntriesToFolder(
+        @Args('sourceEntryIds', { type: () => [String] }) sourceEntryIds: string[],
+        @Args('destinationFolderId') destinationFolderId: string
+    ) {
+        const organizer = await this.dockerOrganizerService.moveEntriesToFolder({
+            sourceEntryIds,
+            destinationFolderId,
+        });
+        return this.dockerOrganizerService.resolveOrganizer(organizer);
+    }
 }
