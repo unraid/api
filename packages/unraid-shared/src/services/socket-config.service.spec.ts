@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { ConfigService } from '@nestjs/config';
 
 import { SocketConfigService } from './socket-config.service.js';
@@ -10,6 +10,11 @@ describe('SocketConfigService', () => {
     beforeEach(() => {
         configService = new ConfigService();
         service = new SocketConfigService(configService);
+    });
+
+    afterEach(() => {
+        // Clean up all spies and mocks after each test
+        vi.restoreAllMocks();
     });
 
     describe('getNginxPort', () => {
