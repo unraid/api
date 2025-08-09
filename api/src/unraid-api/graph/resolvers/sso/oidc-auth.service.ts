@@ -302,9 +302,9 @@ export class OidcAuthService {
     }
 
     private evaluateAuthorizationRules(rules: OidcAuthorizationRule[], claims: any): boolean {
-        // All rules must pass (AND logic)
-        // If you want OR logic, you can create multiple rules with the same claim
-        return rules.every((rule) => this.evaluateRule(rule, claims));
+        // Any rule can pass (OR logic)
+        // Multiple rules act as alternative authorization paths
+        return rules.some((rule) => this.evaluateRule(rule, claims));
     }
 
     private evaluateRule(rule: OidcAuthorizationRule, claims: any): boolean {

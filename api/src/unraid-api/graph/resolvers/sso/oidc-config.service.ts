@@ -257,8 +257,9 @@ export class OidcConfigPersistence extends ConfigFilePersister<OidcConfig> {
                                     },
                                     required: ['claim', 'operator', 'value'],
                                 },
-                                title: 'Authorization Rules',
-                                description: 'Flexible claim-based authorization rules',
+                                title: 'Claim Rules',
+                                description:
+                                    'Define authorization rules based on claims in the ID token. Multiple rules use OR logic - if any rule matches, the user is authorized.',
                             },
                             buttonText: {
                                 type: 'string',
@@ -398,9 +399,16 @@ export class OidcConfigPersistence extends ConfigFilePersister<OidcConfig> {
                                             },
                                         }),
                                         {
+                                            type: 'Label',
+                                            text: 'Authorization Rules',
+                                            options: {
+                                                description:
+                                                    'Define authorization rules based on claims in the ID token. Multiple rules use OR logic - if any rule matches, the user is authorized.',
+                                            },
+                                        },
+                                        {
                                             type: 'Control',
                                             scope: '#/properties/authorizationRules',
-                                            label: 'Authorization Rules',
                                             options: {
                                                 elementLabelFormat: '${claim} ${operator}',
                                                 itemTypeName: 'Rule',

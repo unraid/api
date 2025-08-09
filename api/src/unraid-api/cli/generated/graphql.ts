@@ -948,6 +948,7 @@ export type Mutation = {
   configureUps: Scalars['Boolean']['output'];
   connectSignIn: Scalars['Boolean']['output'];
   connectSignOut: Scalars['Boolean']['output'];
+  createDockerFolder: ResolvedOrganizerV1;
   /** Creates a new notification record */
   createNotification: Notification;
   /** Deletes all archived notifications on server. */
@@ -965,6 +966,7 @@ export type Mutation = {
   recalculateOverview: NotificationOverview;
   /** Remove one or more plugins from the API. Returns false if restart was triggered automatically, true if manual restart is required. */
   removePlugin: Scalars['Boolean']['output'];
+  setDockerFolderChildren: ResolvedOrganizerV1;
   setupRemoteAccess: Scalars['Boolean']['output'];
   unarchiveAll: NotificationOverview;
   unarchiveNotifications: NotificationOverview;
@@ -1008,6 +1010,13 @@ export type MutationConnectSignInArgs = {
 };
 
 
+export type MutationCreateDockerFolderArgs = {
+  childrenIds?: InputMaybe<Array<Scalars['String']['input']>>;
+  name: Scalars['String']['input'];
+  parentId?: InputMaybe<Scalars['String']['input']>;
+};
+
+
 export type MutationCreateNotificationArgs = {
   input: NotificationData;
 };
@@ -1036,6 +1045,12 @@ export type MutationInitiateFlashBackupArgs = {
 
 export type MutationRemovePluginArgs = {
   input: PluginManagementInput;
+};
+
+
+export type MutationSetDockerFolderChildrenArgs = {
+  childrenIds: Array<Scalars['String']['input']>;
+  folderId?: InputMaybe<Scalars['String']['input']>;
 };
 
 
