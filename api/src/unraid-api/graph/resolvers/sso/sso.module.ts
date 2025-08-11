@@ -1,3 +1,4 @@
+import { CacheModule } from '@nestjs/cache-manager';
 import { Module } from '@nestjs/common';
 
 import { UserSettingsModule } from '@unraid/shared/services/user-settings.js';
@@ -11,7 +12,7 @@ import { SsoResolver } from '@app/unraid-api/graph/resolvers/sso/sso.resolver.js
 import '@app/unraid-api/graph/resolvers/sso/sso-settings.types.js';
 
 @Module({
-    imports: [UserSettingsModule],
+    imports: [UserSettingsModule, CacheModule.register()],
     providers: [
         SsoResolver,
         OidcConfigPersistence,

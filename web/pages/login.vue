@@ -61,9 +61,9 @@ const executeCliCommand = async () => {
     });
     
     // Format the output nicely
-    if (data.success && typeof data.stdout === 'object') {
+    if (data.success && 'stdout' in data && typeof data.stdout === 'object') {
       cliOutput.value = JSON.stringify(data.stdout, null, 2);
-    } else if (data.stdout) {
+    } else if ('stdout' in data && data.stdout) {
       cliOutput.value = typeof data.stdout === 'string' ? data.stdout : JSON.stringify(data.stdout, null, 2);
     } else {
       cliOutput.value = JSON.stringify(data, null, 2);
