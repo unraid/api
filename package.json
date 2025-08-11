@@ -13,6 +13,7 @@
     "type-check": "pnpm -r type-check",
     "check": "manypkg check",
     "sync-webgui-repo": "node web/scripts/sync-webgui-repo.js",
+    "preinstall": "npx check-node-version --node 22 || echo '❌ Node.js 22 required. See readme.md Prerequisites section.'",
     "postinstall": "simple-git-hooks"
   },
   "pnpm": {

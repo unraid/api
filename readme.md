@@ -118,7 +118,7 @@ Make sure the following software is installed before proceeding.
 
 * Bash
 * Docker (for macOS folks, Orbstack works too)
-* [Node.js (v20)][Node-url]
+* [Node.js (v22)][Node-url]
 * [Just](https://github.com/casey/just) (optional)
 * libvirt (macOS folks can run `brew install libvirt`)
 * rclone (for development)
