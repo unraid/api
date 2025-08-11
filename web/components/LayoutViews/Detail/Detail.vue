@@ -129,7 +129,7 @@ const handleManageItemAction = (action: string) => {
 </script>
 
 <template>
-  <div class="flex flex-col lg:flex-row h-full">
+  <div class="flex flex-col p-4 lg:flex-row h-full">
     <!-- Navigation -->
     <DetailLeftNavigation
       :items="items"
