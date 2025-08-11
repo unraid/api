@@ -67,14 +67,21 @@ describe('CliInternalClientService', () => {
     });
 
     describe('getClient', () => {
-        it('should create a client with admin API key', async () => {
+        it('should create a client with getApiKey function', async () => {
             const client = await service.getClient();
 
-            expect(adminKeyService.getOrCreateLocalAdminKey).toHaveBeenCalled();
+            // The API key is now fetched lazily, not immediately
             expect(clientFactory.createClient).toHaveBeenCalledWith({
-                apiKey: 'test-admin-key',
+                getApiKey: expect.any(Function),
                 enableSubscriptions: false,
             });
+
+            // Verify the getApiKey function works correctly when called
+            const callArgs = vi.mocked(clientFactory.createClient).mock.calls[0][0];
+            const apiKey = await callArgs.getApiKey();
+            expect(apiKey).toBe('test-admin-key');
+            expect(adminKeyService.getOrCreateLocalAdminKey).toHaveBeenCalled();
+
             expect(client).toBe(mockApolloClient);
         });
 
@@ -90,7 +97,13 @@ describe('CliInternalClientService', () => {
             const error = new Error('Failed to get admin key');
             vi.mocked(adminKeyService.getOrCreateLocalAdminKey).mockRejectedValueOnce(error);
 
-            await expect(service.getClient()).rejects.toThrow(
+            // The client creation will succeed, but the API key error happens later
+            const client = await service.getClient();
+            expect(client).toBe(mockApolloClient);
+
+            // Now test that the getApiKey function throws the expected error
+            const callArgs = vi.mocked(clientFactory.createClient).mock.calls[0][0];
+            await expect(callArgs.getApiKey()).rejects.toThrow(
                 'Unable to get admin API key for internal client'
             );
         });

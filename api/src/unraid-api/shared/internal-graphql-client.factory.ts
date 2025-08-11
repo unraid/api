@@ -2,6 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 
 import { ApolloClient, InMemoryCache, NormalizedCacheObject } from '@apollo/client/core/index.js';
+import { setContext } from '@apollo/client/link/context/index.js';
 import { split } from '@apollo/client/link/core/index.js';
 import { onError } from '@apollo/client/link/error/index.js';
 import { HttpLink } from '@apollo/client/link/http/index.js';
@@ -34,20 +35,20 @@ export class InternalGraphQLClientFactory {
      * Create a GraphQL client with the provided configuration.
      *
      * @param options Configuration options
-     * @param options.apiKey Required API key for authentication
+     * @param options.getApiKey Function to get the current API key
      * @param options.enableSubscriptions Optional flag to enable WebSocket subscriptions
      * @param options.origin Optional origin header (defaults to 'http://localhost')
      */
     public async createClient(options: {
-        apiKey: string;
+        getApiKey: () => Promise<string>;
         enableSubscriptions?: boolean;
         origin?: string;
     }): Promise<ApolloClient<NormalizedCacheObject>> {
-        if (!options.apiKey) {
-            throw new Error('API key is required for creating a GraphQL client');
+        if (!options.getApiKey) {
+            throw new Error('getApiKey function is required for creating a GraphQL client');
         }
 
-        const { apiKey, enableSubscriptions = false, origin = 'http://localhost' } = options;
+        const { getApiKey, enableSubscriptions = false, origin = 'http://localhost' } = options;
         let httpLink: HttpLink;
 
         // Get WebSocket URI if subscriptions are enabled
@@ -79,7 +80,6 @@ export class InternalGraphQLClientFactory {
                 }) as unknown as typeof fetch,
                 headers: {
                     Origin: origin,
-                    'x-api-key': apiKey,
                     'Content-Type': 'application/json',
                 },
             });
@@ -92,11 +92,21 @@ export class InternalGraphQLClientFactory {
                 fetch,
                 headers: {
                     Origin: origin,
-                    'x-api-key': apiKey,
                     'Content-Type': 'application/json',
                 },
             });
         }
+
+        // Create auth link that dynamically fetches the API key for each request
+        const authLink = setContext(async (_, { headers }) => {
+            const apiKey = await getApiKey();
+            return {
+                headers: {
+                    ...headers,
+                    'x-api-key': apiKey,
+                },
+            };
+        });
 
         const errorLink = onError(({ networkError }) => {
             if (networkError) {
@@ -109,7 +119,10 @@ export class InternalGraphQLClientFactory {
             const wsLink = new GraphQLWsLink(
                 createClient({
                     url: wsUri,
-                    connectionParams: () => ({ 'x-api-key': apiKey }),
+                    connectionParams: async () => {
+                        const apiKey = await getApiKey();
+                        return { 'x-api-key': apiKey };
+                    },
                     webSocketImpl: WebSocket,
                 })
             );
@@ -136,7 +149,7 @@ export class InternalGraphQLClientFactory {
                     },
                 },
                 cache: new InMemoryCache(),
-                link: errorLink.concat(splitLink),
+                link: errorLink.concat(authLink).concat(splitLink),
             });
         }
 
@@ -148,7 +161,7 @@ export class InternalGraphQLClientFactory {
                 },
             },
             cache: new InMemoryCache(),
-            link: errorLink.concat(httpLink),
+            link: errorLink.concat(authLink).concat(httpLink),
         });
     }
 }

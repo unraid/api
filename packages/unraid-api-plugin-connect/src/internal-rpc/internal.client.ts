@@ -7,7 +7,7 @@ import { ConnectApiKeyService } from '../authn/connect-api-key.service.js';
 // Type for the injected factory
 interface InternalGraphQLClientFactory {
     createClient(options: {
-        apiKey: string;
+        getApiKey: () => Promise<string>;
         enableSubscriptions?: boolean;
         origin?: string;
     }): Promise<ApolloClient<NormalizedCacheObject>>;
@@ -64,12 +64,9 @@ export class InternalClientService {
     }
 
     private async createClient(): Promise<ApolloClient<NormalizedCacheObject>> {
-        // Get Connect's API key
-        const localApiKey = await this.apiKeyService.getOrCreateLocalApiKey();
-        
-        // Create a client with Connect's API key and subscriptions enabled
+        // Create a client with a function to get Connect's API key dynamically
         const client = await this.clientFactory.createClient({
-            apiKey: localApiKey,
+            getApiKey: () => this.apiKeyService.getOrCreateLocalApiKey(),
             enableSubscriptions: true
         });
         

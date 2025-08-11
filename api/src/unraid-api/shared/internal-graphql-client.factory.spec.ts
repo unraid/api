@@ -63,9 +63,9 @@ describe('InternalGraphQLClientFactory', () => {
     });
 
     describe('createClient', () => {
-        it('should throw error when API key is not provided', async () => {
-            await expect(factory.createClient({ apiKey: '' })).rejects.toThrow(
-                'API key is required for creating a GraphQL client'
+        it('should throw error when getApiKey is not provided', async () => {
+            await expect(factory.createClient({ getApiKey: null as any })).rejects.toThrow(
+                'getApiKey function is required for creating a GraphQL client'
             );
         });
 
@@ -75,7 +75,7 @@ describe('InternalGraphQLClientFactory', () => {
             vi.mocked(socketConfig.getWebSocketUri).mockReturnValue(undefined);
 
             const client = await factory.createClient({
-                apiKey: 'test-api-key',
+                getApiKey: async () => 'test-api-key',
                 enableSubscriptions: false,
             });
 
@@ -90,7 +90,7 @@ describe('InternalGraphQLClientFactory', () => {
             vi.mocked(socketConfig.getWebSocketUri).mockReturnValue(undefined);
 
             const client = await factory.createClient({
-                apiKey: 'test-api-key',
+                getApiKey: async () => 'test-api-key',
                 enableSubscriptions: false,
             });
 
@@ -106,7 +106,7 @@ describe('InternalGraphQLClientFactory', () => {
             );
 
             const client = await factory.createClient({
-                apiKey: 'test-api-key',
+                getApiKey: async () => 'test-api-key',
                 enableSubscriptions: true,
             });
 
@@ -120,7 +120,7 @@ describe('InternalGraphQLClientFactory', () => {
             vi.mocked(socketConfig.getWebSocketUri).mockReturnValue('ws://127.0.0.1:3001/graphql');
 
             const client = await factory.createClient({
-                apiKey: 'test-api-key',
+                getApiKey: async () => 'test-api-key',
                 enableSubscriptions: true,
             });
 
@@ -133,7 +133,7 @@ describe('InternalGraphQLClientFactory', () => {
             vi.mocked(socketConfig.getApiAddress).mockReturnValue('http://127.0.0.1:3001/graphql');
 
             const client = await factory.createClient({
-                apiKey: 'test-api-key',
+                getApiKey: async () => 'test-api-key',
                 enableSubscriptions: false,
                 origin: 'custom-origin',
             });
@@ -147,7 +147,7 @@ describe('InternalGraphQLClientFactory', () => {
             vi.mocked(socketConfig.getApiAddress).mockReturnValue('http://127.0.0.1:3001/graphql');
 
             const client = await factory.createClient({
-                apiKey: 'test-api-key',
+                getApiKey: async () => 'test-api-key',
                 enableSubscriptions: false,
             });
 
@@ -161,7 +161,7 @@ describe('InternalGraphQLClientFactory', () => {
             vi.mocked(socketConfig.getWebSocketUri).mockReturnValue(undefined); // Subscriptions disabled
 
             const client = await factory.createClient({
-                apiKey: 'test-api-key',
+                getApiKey: async () => 'test-api-key',
                 enableSubscriptions: false,
             });
 
@@ -179,7 +179,7 @@ describe('InternalGraphQLClientFactory', () => {
             );
 
             const client = await factory.createClient({
-                apiKey: 'production-key',
+                getApiKey: async () => 'production-key',
                 enableSubscriptions: true,
             });
 
@@ -195,7 +195,7 @@ describe('InternalGraphQLClientFactory', () => {
             vi.mocked(socketConfig.getWebSocketUri).mockReturnValue('ws://127.0.0.1:3001/graphql');
 
             const client = await factory.createClient({
-                apiKey: 'dev-key',
+                getApiKey: async () => 'dev-key',
                 enableSubscriptions: true,
             });
 
@@ -213,12 +213,12 @@ describe('InternalGraphQLClientFactory', () => {
                 .mockReturnValueOnce('ws://127.0.0.1:3001/graphql');
 
             const client1 = await factory.createClient({
-                apiKey: 'key1',
+                getApiKey: async () => 'key1',
                 enableSubscriptions: false,
             });
 
             const client2 = await factory.createClient({
-                apiKey: 'key2',
+                getApiKey: async () => 'key2',
                 enableSubscriptions: true,
             });
 

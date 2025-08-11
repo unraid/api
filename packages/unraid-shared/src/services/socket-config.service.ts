@@ -15,7 +15,12 @@ export class SocketConfigService {
      * Get the nginx port from configuration
      */
     getNginxPort(): number {
-        return Number(this.configService.get('store.emhttp.nginx.httpPort', this.PROD_NGINX_PORT));
+        const port = Number(this.configService.get('store.emhttp.nginx.httpPort', this.PROD_NGINX_PORT));
+        // Validate the numeric result and fall back to PROD_NGINX_PORT if invalid
+        if (!Number.isFinite(port) || port <= 0 || port > 65535) {
+            return this.PROD_NGINX_PORT;
+        }
+        return port;
     }
 
     /**
