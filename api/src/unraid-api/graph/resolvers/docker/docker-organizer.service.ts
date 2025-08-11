@@ -12,6 +12,7 @@ import {
     DEFAULT_ORGANIZER_ROOT_ID,
     DEFAULT_ORGANIZER_VIEW_ID,
     deleteOrganizerEntries,
+    moveEntriesToFolder,
     resolveOrganizer,
     setFolderChildrenInView,
 } from '@app/unraid-api/organizer/organizer.js';
@@ -192,6 +193,30 @@ export class DockerOrganizerService {
 
         deleteOrganizerEntries(newOrganizer.views.default, entryIds, { mutate: true });
         addMissingResourcesToView(newOrganizer.resources, newOrganizer.views.default);
+
+        const validated = await this.dockerConfigService.validate(newOrganizer);
+        this.dockerConfigService.replaceConfig(validated);
+        return validated;
+    }
+
+    async moveEntriesToFolder(params: {
+        sourceEntryIds: string[];
+        destinationFolderId: string;
+    }): Promise<OrganizerV1> {
+        const { sourceEntryIds, destinationFolderId } = params;
+        const organizer = await this.syncAndGetOrganizer();
+        const newOrganizer = structuredClone(organizer);
+
+        const defaultView = newOrganizer.views.default;
+        if (!defaultView) {
+            throw new AppError('Default view not found');
+        }
+
+        newOrganizer.views.default = moveEntriesToFolder({
+            view: defaultView,
+            sourceEntryIds: new Set(sourceEntryIds),
+            destinationFolderId,
+        });
 
         const validated = await this.dockerConfigService.validate(newOrganizer);
         this.dockerConfigService.replaceConfig(validated);

@@ -1,6 +1,11 @@
 import { describe, expect, it } from 'vitest';
 
-import { collectDescendants, deleteOrganizerEntries } from '@app/unraid-api/organizer/organizer.js';
+import {
+    collectAncestors,
+    collectDescendants,
+    deleteOrganizerEntries,
+    moveEntriesToFolder,
+} from '@app/unraid-api/organizer/organizer.js';
 import { OrganizerView } from '@app/unraid-api/organizer/organizer.model.js';
 
 describe('collectDescendants', () => {
@@ -285,6 +290,294 @@ describe('collectDescendants', () => {
         const resultArray = Array.from(result);
 
         expect(resultArray).toEqual(['folder', 'c', 'a', 'b']);
+    });
+});
+
+describe('collectAncestors', () => {
+    const createMockView = (entries: Record<string, any>): OrganizerView => ({
+        id: 'test-view',
+        name: 'Test View',
+        root: 'root',
+        entries,
+    });
+
+    it('should collect single entry with no parent', () => {
+        const view = createMockView({
+            orphan: {
+                id: 'orphan',
+                type: 'ref',
+                target: 'target1',
+            },
+        });
+
+        const result = collectAncestors(view, 'orphan');
+
+        expect(result).toEqual(new Set(['orphan']));
+    });
+
+    it('should collect entry and its parent', () => {
+        const view = createMockView({
+            parent: {
+                id: 'parent',
+                type: 'folder',
+                name: 'Parent',
+                children: ['child'],
+            },
+            child: {
+                id: 'child',
+                type: 'ref',
+                target: 'target1',
+            },
+        });
+
+        const result = collectAncestors(view, 'child');
+
+        expect(result).toEqual(new Set(['child', 'parent']));
+    });
+
+    it('should collect all ancestors up to root', () => {
+        const view = createMockView({
+            root: {
+                id: 'root',
+                type: 'folder',
+                name: 'Root',
+                children: ['level1'],
+            },
+            level1: {
+                id: 'level1',
+                type: 'folder',
+                name: 'Level 1',
+                children: ['level2'],
+            },
+            level2: {
+                id: 'level2',
+                type: 'folder',
+                name: 'Level 2',
+                children: ['level3'],
+            },
+            level3: {
+                id: 'level3',
+                type: 'folder',
+                name: 'Level 3',
+                children: ['deepItem'],
+            },
+            deepItem: {
+                id: 'deepItem',
+                type: 'ref',
+                target: 'target1',
+            },
+        });
+
+        const result = collectAncestors(view, 'deepItem');
+
+        expect(result).toEqual(new Set(['deepItem', 'level3', 'level2', 'level1', 'root']));
+    });
+
+    it('should return empty set for non-existent entry', () => {
+        const view = createMockView({});
+
+        const result = collectAncestors(view, 'non-existent');
+
+        expect(result).toEqual(new Set());
+    });
+
+    it('should handle folders with multiple children', () => {
+        const view = createMockView({
+            parent: {
+                id: 'parent',
+                type: 'folder',
+                name: 'Parent',
+                children: ['child1', 'child2', 'child3'],
+            },
+            child1: {
+                id: 'child1',
+                type: 'ref',
+                target: 'target1',
+            },
+            child2: {
+                id: 'child2',
+                type: 'ref',
+                target: 'target2',
+            },
+            child3: {
+                id: 'child3',
+                type: 'folder',
+                name: 'Child 3',
+                children: ['grandchild'],
+            },
+            grandchild: {
+                id: 'grandchild',
+                type: 'ref',
+                target: 'target3',
+            },
+        });
+
+        const result = collectAncestors(view, 'grandchild');
+
+        expect(result).toEqual(new Set(['grandchild', 'child3', 'parent']));
+    });
+
+    it('should handle entry that is referenced by multiple parents (invalid but defensive)', () => {
+        const view = createMockView({
+            parent1: {
+                id: 'parent1',
+                type: 'folder',
+                name: 'Parent 1',
+                children: ['shared'],
+            },
+            parent2: {
+                id: 'parent2',
+                type: 'folder',
+                name: 'Parent 2',
+                children: ['shared'],
+            },
+            shared: {
+                id: 'shared',
+                type: 'ref',
+                target: 'target1',
+            },
+        });
+
+        const result = collectAncestors(view, 'shared');
+
+        // Should find first parent (parent1 based on object iteration order)
+        expect(result).toContain('shared');
+        expect(result.size).toBe(2); // shared + one parent
+    });
+
+    it('should use provided collection when passed', () => {
+        const view = createMockView({
+            parent: {
+                id: 'parent',
+                type: 'folder',
+                name: 'Parent',
+                children: ['child'],
+            },
+            child: {
+                id: 'child',
+                type: 'ref',
+                target: 'target1',
+            },
+        });
+
+        const existingCollection = new Set(['existing-item']);
+        const result = collectAncestors(view, 'child', existingCollection);
+
+        expect(result).toEqual(new Set(['existing-item', 'child', 'parent']));
+        expect(result).toBe(existingCollection); // Should modify the same set
+    });
+
+    it('should handle circular references gracefully', () => {
+        const view = createMockView({
+            folder1: {
+                id: 'folder1',
+                type: 'folder',
+                name: 'Folder 1',
+                children: ['folder2'],
+            },
+            folder2: {
+                id: 'folder2',
+                type: 'folder',
+                name: 'Folder 2',
+                children: ['folder1'], // Creates a cycle
+            },
+        });
+
+        const result = collectAncestors(view, 'folder1');
+
+        // Should handle the cycle without infinite loop
+        expect(result.size).toBeGreaterThan(0);
+        expect(result.has('folder1')).toBe(true);
+    });
+
+    it('should handle deeply nested structures efficiently', () => {
+        const entries: Record<string, any> = {};
+
+        // Create a deep chain of folders
+        for (let i = 0; i < 100; i++) {
+            const id = `folder${i}`;
+
+            entries[id] = {
+                id,
+                type: 'folder',
+                name: `Folder ${i}`,
+                children: i < 99 ? [`folder${i + 1}`] : ['deepRef'],
+            };
+        }
+
+        entries.deepRef = {
+            id: 'deepRef',
+            type: 'ref',
+            target: 'deepTarget',
+        };
+
+        const view = createMockView(entries);
+        const result = collectAncestors(view, 'deepRef');
+
+        expect(result.size).toBe(101); // deepRef + 100 folders
+        expect(result.has('deepRef')).toBe(true);
+        expect(result.has('folder0')).toBe(true);
+        expect(result.has('folder99')).toBe(true);
+    });
+
+    it('should stop at entry without parent', () => {
+        const view = createMockView({
+            grandparent: {
+                id: 'grandparent',
+                type: 'folder',
+                name: 'Grandparent',
+                children: ['parent'],
+            },
+            parent: {
+                id: 'parent',
+                type: 'folder',
+                name: 'Parent',
+                children: ['child'],
+            },
+            child: {
+                id: 'child',
+                type: 'ref',
+                target: 'target1',
+            },
+            orphan: {
+                id: 'orphan',
+                type: 'folder',
+                name: 'Orphan',
+                children: [],
+            },
+        });
+
+        // Start from an orphaned branch
+        const result = collectAncestors(view, 'orphan');
+
+        expect(result).toEqual(new Set(['orphan']));
+    });
+
+    it('should preserve insertion order in the set', () => {
+        const view = createMockView({
+            a: {
+                id: 'a',
+                type: 'folder',
+                name: 'A',
+                children: ['b'],
+            },
+            b: {
+                id: 'b',
+                type: 'folder',
+                name: 'B',
+                children: ['c'],
+            },
+            c: {
+                id: 'c',
+                type: 'ref',
+                target: 'target1',
+            },
+        });
+
+        const result = collectAncestors(view, 'c');
+        const resultArray = Array.from(result);
+
+        expect(resultArray).toEqual(['c', 'b', 'a']);
     });
 });
 
@@ -987,5 +1280,428 @@ describe('deleteOrganizerEntries', () => {
                 children: [],
             },
         });
+    });
+});
+
+describe('moveEntriesToFolder', () => {
+    const createBaseView = (): OrganizerView => ({
+        id: 'test-view',
+        name: 'Test View',
+        root: 'root',
+        entries: {
+            root: {
+                id: 'root',
+                type: 'folder',
+                name: 'Root',
+                children: ['folder1', 'folder2', 'ref1'],
+            },
+            folder1: {
+                id: 'folder1',
+                type: 'folder',
+                name: 'Folder 1',
+                children: ['ref2', 'folder3'],
+            },
+            folder2: {
+                id: 'folder2',
+                type: 'folder',
+                name: 'Folder 2',
+                children: [],
+            },
+            folder3: {
+                id: 'folder3',
+                type: 'folder',
+                name: 'Folder 3',
+                children: ['ref3'],
+            },
+            ref1: {
+                id: 'ref1',
+                type: 'ref',
+                target: 'resource1',
+            },
+            ref2: {
+                id: 'ref2',
+                type: 'ref',
+                target: 'resource2',
+            },
+            ref3: {
+                id: 'ref3',
+                type: 'ref',
+                target: 'resource3',
+            },
+        },
+    });
+
+    it('should move a single entry to destination folder', () => {
+        const result = moveEntriesToFolder({
+            view: createBaseView(),
+            sourceEntryIds: new Set(['ref1']),
+            destinationFolderId: 'folder2',
+        });
+
+        // ref1 should be removed from root and added to folder2
+        expect((result.entries.root as any).children).toEqual(['folder1', 'folder2']);
+        expect((result.entries.folder2 as any).children).toEqual(['ref1']);
+    });
+
+    it('should move multiple entries to destination folder', () => {
+        const result = moveEntriesToFolder({
+            view: createBaseView(),
+            sourceEntryIds: new Set(['ref1', 'folder1']),
+            destinationFolderId: 'folder2',
+        });
+
+        // Both should be removed from root and added to folder2
+        expect((result.entries.root as any).children).toEqual(['folder2']);
+        expect((result.entries.folder2 as any).children).toEqual(['ref1', 'folder1']);
+    });
+
+    it('should move nested entries correctly', () => {
+        const result = moveEntriesToFolder({
+            view: createBaseView(),
+            sourceEntryIds: new Set(['ref2', 'folder3']),
+            destinationFolderId: 'root',
+        });
+
+        // Both should be removed from folder1 and added to root
+        expect((result.entries.folder1 as any).children).toEqual([]);
+        expect((result.entries.root as any).children).toEqual([
+            'folder1',
+            'folder2',
+            'ref1',
+            'ref2',
+            'folder3',
+        ]);
+    });
+
+    it('should handle moving entries that are already in destination', () => {
+        const result = moveEntriesToFolder({
+            view: createBaseView(),
+            sourceEntryIds: new Set(['folder1', 'ref1']),
+            destinationFolderId: 'root',
+        });
+
+        // They should remain in root, no duplicates, but order may change due to removal and re-addition
+        expect((result.entries.root as any).children).toEqual(['folder2', 'folder1', 'ref1']);
+    });
+
+    it('should throw error when destination folder does not exist', () => {
+        expect(() =>
+            moveEntriesToFolder({
+                view: createBaseView(),
+                sourceEntryIds: new Set(['ref1']),
+                destinationFolderId: 'non-existent',
+            })
+        ).toThrow();
+    });
+
+    it('should throw error when destination is not a folder', () => {
+        expect(() =>
+            moveEntriesToFolder({
+                view: createBaseView(),
+                sourceEntryIds: new Set(['folder1']),
+                destinationFolderId: 'ref1',
+            })
+        ).toThrow();
+    });
+
+    it('should throw error when moving folder into itself', () => {
+        expect(() =>
+            moveEntriesToFolder({
+                view: createBaseView(),
+                sourceEntryIds: new Set(['folder1']),
+                destinationFolderId: 'folder1',
+            })
+        ).toThrow();
+    });
+
+    it('should throw error when moving folder into its descendant', () => {
+        expect(() =>
+            moveEntriesToFolder({
+                view: createBaseView(),
+                sourceEntryIds: new Set(['folder1']),
+                destinationFolderId: 'folder3',
+            })
+        ).toThrow();
+    });
+
+    it('should ignore non-existent source entries', () => {
+        const result = moveEntriesToFolder({
+            view: createBaseView(),
+            sourceEntryIds: new Set(['ref1', 'non-existent']),
+            destinationFolderId: 'folder2',
+        });
+
+        // Only ref1 should be moved
+        expect((result.entries.root as any).children).toEqual(['folder1', 'folder2']);
+        expect((result.entries.folder2 as any).children).toEqual(['ref1']);
+    });
+
+    it('should handle empty source set', () => {
+        const result = moveEntriesToFolder({
+            view: createBaseView(),
+            sourceEntryIds: new Set(),
+            destinationFolderId: 'folder2',
+        });
+
+        // Nothing should change
+        expect(result).toEqual(createBaseView());
+    });
+
+    it('should not modify the original view', () => {
+        const originalView = createBaseView();
+        const originalRootChildren = [...(originalView.entries.root as any).children];
+        const originalFolder2Children = [...(originalView.entries.folder2 as any).children];
+
+        moveEntriesToFolder({
+            view: originalView,
+            sourceEntryIds: new Set(['ref1']),
+            destinationFolderId: 'folder2',
+        });
+
+        expect((originalView.entries.root as any).children).toEqual(originalRootChildren);
+        expect((originalView.entries.folder2 as any).children).toEqual(originalFolder2Children);
+    });
+
+    it('should handle complex move with multiple sources and destinations', () => {
+        // Create a view where some entries exist in multiple folders
+        const baseView = createBaseView();
+        const complexView: OrganizerView = {
+            ...baseView,
+            entries: {
+                ...baseView.entries,
+                folder4: {
+                    id: 'folder4',
+                    type: 'folder',
+                    name: 'Folder 4',
+                    children: ['ref1', 'ref2'], // ref1 and ref2 also exist elsewhere
+                },
+            },
+        };
+
+        const result = moveEntriesToFolder({
+            view: complexView,
+            sourceEntryIds: new Set(['ref1', 'ref2']),
+            destinationFolderId: 'folder3',
+        });
+
+        // ref1 should be removed from root and folder4
+        expect((result.entries.root as any).children).toEqual(['folder1', 'folder2']);
+        // ref2 should be removed from folder1 and folder4
+        expect((result.entries.folder1 as any).children).toEqual(['folder3']);
+        // folder4 should have no children left
+        expect((result.entries.folder4 as any).children).toEqual([]);
+        // Both should be in folder3 now
+        expect((result.entries.folder3 as any).children).toEqual(['ref3', 'ref1', 'ref2']);
+    });
+
+    it('should preserve order when moving to a folder with existing children', () => {
+        const result = moveEntriesToFolder({
+            view: createBaseView(),
+            sourceEntryIds: new Set(['ref1', 'ref2']),
+            destinationFolderId: 'folder2',
+        });
+
+        // New entries should be appended after existing children
+        expect((result.entries.folder2 as any).children).toEqual(['ref1', 'ref2']);
+    });
+
+    it('should handle moving entries from deeply nested structures', () => {
+        const baseView = createBaseView();
+        const deepView: OrganizerView = {
+            ...baseView,
+            entries: {
+                ...baseView.entries,
+                folder4: {
+                    id: 'folder4',
+                    type: 'folder',
+                    name: 'Folder 4',
+                    children: ['folder5'],
+                },
+                folder5: {
+                    id: 'folder5',
+                    type: 'folder',
+                    name: 'Folder 5',
+                    children: ['ref4'],
+                },
+                ref4: {
+                    id: 'ref4',
+                    type: 'ref',
+                    target: 'resource4',
+                },
+            },
+        };
+        (deepView.entries.folder3 as any).children.push('folder4');
+
+        const result = moveEntriesToFolder({
+            view: deepView,
+            sourceEntryIds: new Set(['ref4']),
+            destinationFolderId: 'root',
+        });
+
+        expect((result.entries.folder5 as any).children).toEqual([]);
+        expect((result.entries.root as any).children).toContain('ref4');
+    });
+
+    it('should handle circular reference prevention with multiple folders', () => {
+        expect(() =>
+            moveEntriesToFolder({
+                view: createBaseView(),
+                sourceEntryIds: new Set(['root']),
+                destinationFolderId: 'folder3',
+            })
+        ).toThrow();
+    });
+
+    it('should allow moving a parent and child together', () => {
+        const result = moveEntriesToFolder({
+            view: createBaseView(),
+            sourceEntryIds: new Set(['folder1', 'folder3']),
+            destinationFolderId: 'folder2',
+        });
+
+        // Both folder1 and its child folder3 should move to folder2
+        expect((result.entries.root as any).children).toEqual(['folder2', 'ref1']);
+        expect((result.entries.folder2 as any).children).toEqual(['folder1', 'folder3']);
+        // folder3 gets removed from folder1's children since it's also being moved independently
+        expect((result.entries.folder1 as any).children).toEqual(['ref2']);
+    });
+
+    it('should efficiently handle large views with many folders', () => {
+        // Create a large view with many nested folders
+        const largeView: OrganizerView = {
+            id: 'large-view',
+            name: 'Large View',
+            root: 'root',
+            entries: {
+                root: {
+                    id: 'root',
+                    type: 'folder',
+                    name: 'Root',
+                    children: ['branch1', 'branch2', 'targetFolder'],
+                },
+                targetFolder: {
+                    id: 'targetFolder',
+                    type: 'folder',
+                    name: 'Target Folder',
+                    children: [],
+                },
+            },
+        };
+
+        // Create two deep branches with many folders
+        for (let branch = 1; branch <= 3; branch++) {
+            let parentId = `branch${branch}`;
+            largeView.entries[parentId] = {
+                id: parentId,
+                type: 'folder',
+                name: `Branch ${branch}`,
+                children: [],
+            };
+
+            // Create a deep hierarchy in each branch
+            for (let i = 1; i <= 500; i++) {
+                const folderId = `branch${branch}_folder${i}`;
+                const refId = `branch${branch}_ref${i}`;
+
+                largeView.entries[folderId] = {
+                    id: folderId,
+                    type: 'folder',
+                    name: `Folder ${i}`,
+                    children: [refId],
+                };
+
+                largeView.entries[refId] = {
+                    id: refId,
+                    type: 'ref',
+                    target: `resource${branch}_${i}`,
+                };
+
+                // Add to parent's children
+                (largeView.entries[parentId] as any).children.push(folderId);
+                parentId = folderId;
+            }
+        }
+
+        // Move multiple refs from different branches - should be fast since we only check folders
+        const startTime = performance.now();
+        const result = moveEntriesToFolder({
+            view: largeView,
+            sourceEntryIds: new Set([
+                'branch1_ref50',
+                'branch1_ref75',
+                'branch2_ref25',
+                'branch2_ref90',
+            ]),
+            destinationFolderId: 'targetFolder',
+        });
+        const endTime = performance.now();
+
+        // Verify the move was successful
+        expect((result.entries.targetFolder as any).children).toHaveLength(4);
+        expect((result.entries.targetFolder as any).children).toContain('branch1_ref50');
+        expect((result.entries.targetFolder as any).children).toContain('branch2_ref90');
+
+        // Performance should be good even with 1500+ folders in the view
+        expect(endTime - startTime).toBeLessThan(200); // Should complete in reasonable time
+    });
+
+    it('should efficiently detect circular moves without full descendant traversal', () => {
+        // Create a view where we're moving a folder that's an ancestor of the destination
+        const efficientView: OrganizerView = {
+            id: 'efficient-view',
+            name: 'Efficient View',
+            root: 'root',
+            entries: {
+                root: {
+                    id: 'root',
+                    type: 'folder',
+                    name: 'Root',
+                    children: ['topFolder'],
+                },
+                topFolder: {
+                    id: 'topFolder',
+                    type: 'folder',
+                    name: 'Top Folder',
+                    children: ['middleFolder'],
+                },
+                middleFolder: {
+                    id: 'middleFolder',
+                    type: 'folder',
+                    name: 'Middle Folder',
+                    children: ['bottomFolder'],
+                },
+                bottomFolder: {
+                    id: 'bottomFolder',
+                    type: 'folder',
+                    name: 'Bottom Folder',
+                    children: ['deeplyNested'],
+                },
+                deeplyNested: {
+                    id: 'deeplyNested',
+                    type: 'folder',
+                    name: 'Deeply Nested',
+                    children: Array.from({ length: 100 }, (_, i) => `ref${i}`),
+                },
+            },
+        };
+
+        // Add many refs to the deeply nested folder
+        for (let i = 0; i < 100; i++) {
+            efficientView.entries[`ref${i}`] = {
+                id: `ref${i}`,
+                type: 'ref',
+                target: `resource${i}`,
+            };
+        }
+
+        // This should quickly detect the circular move by walking up from bottomFolder
+        // without needing to traverse all descendants of topFolder
+        expect(() =>
+            moveEntriesToFolder({
+                view: efficientView,
+                sourceEntryIds: new Set(['topFolder']),
+                destinationFolderId: 'bottomFolder',
+            })
+        ).toThrow();
     });
 });
