@@ -62,7 +62,7 @@ export class StateManager {
                             emhttpLogger.error(
                                 'Failed to load state file: [%s]\nerror:  %o',
                                 stateFile,
-                                error
+                                error as object
                             );
                         }
                     } else {

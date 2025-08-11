@@ -10,25 +10,25 @@
     "prepare": "npm run build"
   },
   "dependencies": {
-    "chalk": "5.4.1",
+    "chalk": "5.5.0",
     "change-case": "5.4.4",
     "commander": "14.0.0",
     "create-create-app": "7.3.0",
-    "fs-extra": "11.3.0",
-    "inquirer": "12.8.2",
+    "fs-extra": "11.3.1",
+    "inquirer": "12.9.1",
     "validate-npm-package-name": "6.0.2"
   },
   "devDependencies": {
-    "@nestjs/common": "11.1.5",
+    "@nestjs/common": "11.1.6",
     "@nestjs/config": "4.0.2",
-    "@nestjs/core": "11.1.5",
+    "@nestjs/core": "11.1.6",
     "@nestjs/graphql": "13.1.0",
     "@types/fs-extra": "11.0.4",
-    "@types/inquirer": "9.0.8",
-    "@types/node": "22.16.5",
+    "@types/inquirer": "9.0.9",
+    "@types/node": "22.17.1",
     "@types/validate-npm-package-name": "4.0.2",
     "class-transformer": "0.5.1",
     "class-validator": "0.14.2",
-    "typescript": "5.8.3"
+    "typescript": "5.9.2"
   }
 }

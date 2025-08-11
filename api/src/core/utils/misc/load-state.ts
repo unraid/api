@@ -26,7 +26,7 @@ export const loadState = <T extends Record<string, unknown>>(filePath: string): 
         logger.trace(
             'Failed loading state file "%s" with "%s"',
             filePath,
-            error instanceof Error ? error.message : error
+            error instanceof Error ? error.message : String(error)
         );
     }
 
