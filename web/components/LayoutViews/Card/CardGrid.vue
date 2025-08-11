@@ -12,6 +12,7 @@ interface Props {
   selectedItemId?: string;
   expandedGroups: Record<string, boolean>;
   autostartStates: Record<string, boolean>;
+  runningStates: Record<string, boolean>;
 }
 
 const props = defineProps<Props>();
@@ -21,6 +22,7 @@ const emit = defineEmits<{
   'item-select': [itemId: string];
   'update:expandedGroups': [groups: Record<string, boolean>];
   'update:autostart': [itemId: string, value: boolean];
+  'toggle-running': [itemId: string];
 }>();
 
 const flattenedItems = computed(() => {
@@ -78,6 +80,10 @@ const toggleGroupExpansion = (groupId: string) => {
 const handleAutostartUpdate = (itemId: string, value: boolean) => {
   emit('update:autostart', itemId, value);
 };
+
+const handleToggleRunning = (itemId: string) => {
+  emit('toggle-running', itemId);
+};
 </script>
 
 <template>
@@ -102,9 +108,11 @@ const handleAutostartUpdate = (itemId: string, value: boolean) => {
           :is-active="selectedItemId === item.id"
           :is-group-child="item.isGroupChild"
           :autostart-value="autostartStates[item.id] || false"
+          :is-running="runningStates[item.id] || false"
           @toggle-selection="toggleItemSelection"
           @click="handleItemClick"
           @update:autostart="handleAutostartUpdate(item.id, $event)"
+          @toggle-running="handleToggleRunning"
         />
       </template>
     </div>
