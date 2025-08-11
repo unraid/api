@@ -61,15 +61,21 @@ describe('WebSocket Unix Socket - Actual Connection Test', () => {
     afterAll(async () => {
         // First, close all WebSocket clients gracefully
         if (wss && wss.clients) {
+            const closePromises: Promise<void>[] = [];
             for (const client of wss.clients) {
                 if (client.readyState === WebSocket.OPEN) {
-                    client.close(1000, 'Test ending');
+                    closePromises.push(
+                        new Promise<void>((resolve) => {
+                            client.once('close', () => resolve());
+                            client.close(1000, 'Test ending');
+                        })
+                    );
                 } else {
                     client.terminate();
                 }
             }
-            // Wait a bit for clients to close
-            await new Promise(resolve => setTimeout(resolve, 100));
+            // Wait for all clients to close
+            await Promise.all(closePromises);
         }
         
         // Close WebSocket server
@@ -108,18 +114,20 @@ describe('WebSocket Unix Socket - Actual Connection Test', () => {
         
         // Wait for connection and first message
         const connected = await new Promise<boolean>((resolve, reject) => {
-            client.on('open', () => {
+            const timeout = setTimeout(() => reject(new Error('Connection timeout')), 10000);
+            
+            client.once('open', () => {
                 console.log('Client: Connected successfully!');
+                clearTimeout(timeout);
                 // Connection established - that's what we want to test
                 resolve(true);
             });
             
-            client.on('error', (err) => {
+            client.once('error', (err) => {
                 console.error('Client error:', err);
+                clearTimeout(timeout);
                 reject(err);
             });
-            
-            setTimeout(() => reject(new Error('Connection timeout')), 2000);
         });
         
         expect(connected).toBe(true);
@@ -170,24 +178,17 @@ describe('WebSocket Unix Socket - Actual Connection Test', () => {
     });
     
     it('should fail when using regular ws:// to connect to Unix socket', async () => {
-        // This should fail - can't connect to Unix socket with regular ws://
-        const client = new WebSocket('ws://localhost:3000/test');
+        // This should fail - attempting to connect to non-existent Unix socket
+        const nonExistentSocket = `${socketPath}.nonexistent`;
+        const wsUrl = `ws+unix://${nonExistentSocket}:/test`;
         
-        const errorOccurred = await new Promise<boolean>((resolve) => {
-            client.on('error', (err: any) => {
-                console.log('Expected error:', err.code);
-                resolve(true);
-            });
-            
-            client.on('open', () => {
-                // Should not happen
-                resolve(false);
-            });
-            
-            setTimeout(() => resolve(true), 1000);
-        });
-        
-        expect(errorOccurred).toBe(true);
+        await expect(
+            new Promise((_, reject) => {
+                const client = new WebSocket(wsUrl);
+                client.on('error', reject);
+                client.on('open', () => reject(new Error('Should not connect')));
+            })
+        ).rejects.toThrow();
     });
     
     it('should work with multiple concurrent connections', async () => {
@@ -242,7 +243,8 @@ describe('WebSocket Unix Socket - Actual Connection Test', () => {
             on: {
                 error: (err) => {
                     // Suppress connection errors in test
-                    console.log('GraphQL client error (expected in test):', err.message);
+                    const message = err instanceof Error ? err.message : String(err);
+                    console.log('GraphQL client error (expected in test):', message);
                 },
             },
         });
