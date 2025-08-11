@@ -1284,7 +1284,7 @@ describe('deleteOrganizerEntries', () => {
 });
 
 describe('moveEntriesToFolder', () => {
-    const baseView: OrganizerView = {
+    const createBaseView = (): OrganizerView => ({
         id: 'test-view',
         name: 'Test View',
         root: 'root',
@@ -1329,11 +1329,11 @@ describe('moveEntriesToFolder', () => {
                 target: 'resource3',
             },
         },
-    };
+    });
 
     it('should move a single entry to destination folder', () => {
         const result = moveEntriesToFolder({
-            view: baseView,
+            view: createBaseView(),
             sourceEntryIds: new Set(['ref1']),
             destinationFolderId: 'folder2',
         });
@@ -1345,7 +1345,7 @@ describe('moveEntriesToFolder', () => {
 
     it('should move multiple entries to destination folder', () => {
         const result = moveEntriesToFolder({
-            view: baseView,
+            view: createBaseView(),
             sourceEntryIds: new Set(['ref1', 'folder1']),
             destinationFolderId: 'folder2',
         });
@@ -1357,7 +1357,7 @@ describe('moveEntriesToFolder', () => {
 
     it('should move nested entries correctly', () => {
         const result = moveEntriesToFolder({
-            view: baseView,
+            view: createBaseView(),
             sourceEntryIds: new Set(['ref2', 'folder3']),
             destinationFolderId: 'root',
         });
@@ -1375,7 +1375,7 @@ describe('moveEntriesToFolder', () => {
 
     it('should handle moving entries that are already in destination', () => {
         const result = moveEntriesToFolder({
-            view: baseView,
+            view: createBaseView(),
             sourceEntryIds: new Set(['folder1', 'ref1']),
             destinationFolderId: 'root',
         });
@@ -1387,7 +1387,7 @@ describe('moveEntriesToFolder', () => {
     it('should throw error when destination folder does not exist', () => {
         expect(() =>
             moveEntriesToFolder({
-                view: baseView,
+                view: createBaseView(),
                 sourceEntryIds: new Set(['ref1']),
                 destinationFolderId: 'non-existent',
             })
@@ -1397,7 +1397,7 @@ describe('moveEntriesToFolder', () => {
     it('should throw error when destination is not a folder', () => {
         expect(() =>
             moveEntriesToFolder({
-                view: baseView,
+                view: createBaseView(),
                 sourceEntryIds: new Set(['folder1']),
                 destinationFolderId: 'ref1',
             })
@@ -1407,7 +1407,7 @@ describe('moveEntriesToFolder', () => {
     it('should throw error when moving folder into itself', () => {
         expect(() =>
             moveEntriesToFolder({
-                view: baseView,
+                view: createBaseView(),
                 sourceEntryIds: new Set(['folder1']),
                 destinationFolderId: 'folder1',
             })
@@ -1417,7 +1417,7 @@ describe('moveEntriesToFolder', () => {
     it('should throw error when moving folder into its descendant', () => {
         expect(() =>
             moveEntriesToFolder({
-                view: baseView,
+                view: createBaseView(),
                 sourceEntryIds: new Set(['folder1']),
                 destinationFolderId: 'folder3',
             })
@@ -1426,7 +1426,7 @@ describe('moveEntriesToFolder', () => {
 
     it('should ignore non-existent source entries', () => {
         const result = moveEntriesToFolder({
-            view: baseView,
+            view: createBaseView(),
             sourceEntryIds: new Set(['ref1', 'non-existent']),
             destinationFolderId: 'folder2',
         });
@@ -1438,31 +1438,33 @@ describe('moveEntriesToFolder', () => {
 
     it('should handle empty source set', () => {
         const result = moveEntriesToFolder({
-            view: baseView,
+            view: createBaseView(),
             sourceEntryIds: new Set(),
             destinationFolderId: 'folder2',
         });
 
         // Nothing should change
-        expect(result).toEqual(baseView);
+        expect(result).toEqual(createBaseView());
     });
 
     it('should not modify the original view', () => {
-        const originalRootChildren = [...(baseView.entries.root as any).children];
-        const originalFolder2Children = [...(baseView.entries.folder2 as any).children];
+        const originalView = createBaseView();
+        const originalRootChildren = [...(originalView.entries.root as any).children];
+        const originalFolder2Children = [...(originalView.entries.folder2 as any).children];
 
         moveEntriesToFolder({
-            view: baseView,
+            view: originalView,
             sourceEntryIds: new Set(['ref1']),
             destinationFolderId: 'folder2',
         });
 
-        expect((baseView.entries.root as any).children).toEqual(originalRootChildren);
-        expect((baseView.entries.folder2 as any).children).toEqual(originalFolder2Children);
+        expect((originalView.entries.root as any).children).toEqual(originalRootChildren);
+        expect((originalView.entries.folder2 as any).children).toEqual(originalFolder2Children);
     });
 
     it('should handle complex move with multiple sources and destinations', () => {
         // Create a view where some entries exist in multiple folders
+        const baseView = createBaseView();
         const complexView: OrganizerView = {
             ...baseView,
             entries: {
@@ -1494,7 +1496,7 @@ describe('moveEntriesToFolder', () => {
 
     it('should preserve order when moving to a folder with existing children', () => {
         const result = moveEntriesToFolder({
-            view: baseView,
+            view: createBaseView(),
             sourceEntryIds: new Set(['ref1', 'ref2']),
             destinationFolderId: 'folder2',
         });
@@ -1504,6 +1506,7 @@ describe('moveEntriesToFolder', () => {
     });
 
     it('should handle moving entries from deeply nested structures', () => {
+        const baseView = createBaseView();
         const deepView: OrganizerView = {
             ...baseView,
             entries: {
@@ -1542,7 +1545,7 @@ describe('moveEntriesToFolder', () => {
     it('should handle circular reference prevention with multiple folders', () => {
         expect(() =>
             moveEntriesToFolder({
-                view: baseView,
+                view: createBaseView(),
                 sourceEntryIds: new Set(['root']),
                 destinationFolderId: 'folder3',
             })
@@ -1551,7 +1554,7 @@ describe('moveEntriesToFolder', () => {
 
     it('should allow moving a parent and child together', () => {
         const result = moveEntriesToFolder({
-            view: baseView,
+            view: createBaseView(),
             sourceEntryIds: new Set(['folder1', 'folder3']),
             destinationFolderId: 'folder2',
         });
