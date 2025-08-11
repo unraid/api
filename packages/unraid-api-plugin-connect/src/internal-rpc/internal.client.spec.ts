@@ -40,11 +40,18 @@ describe('InternalClientService', () => {
         it('should create a client with Connect API key and subscriptions', async () => {
             const client = await service.getClient();
 
-            expect(apiKeyService.getOrCreateLocalApiKey).toHaveBeenCalled();
+            // The API key is now fetched lazily through getApiKey function
             expect(clientFactory.createClient).toHaveBeenCalledWith({
-                apiKey: 'test-connect-key',
+                getApiKey: expect.any(Function),
                 enableSubscriptions: true,
             });
+            
+            // Verify the getApiKey function works correctly when called
+            const callArgs = vi.mocked(clientFactory.createClient).mock.calls[0][0];
+            const apiKey = await callArgs.getApiKey();
+            expect(apiKey).toBe('test-connect-key');
+            expect(apiKeyService.getOrCreateLocalApiKey).toHaveBeenCalled();
+            
             expect(client).toBe(mockApolloClient);
         });
 
