@@ -3,7 +3,7 @@ import { ConfigService } from '@nestjs/config';
 
 /**
  * Shared service for socket detection and address resolution.
- * Eliminates code duplication between InternalGraphQLClientFactory and BaseInternalClientService.
+ * Used by InternalGraphQLClientFactory and other services that need socket configuration.
  */
 @Injectable()
 export class SocketConfigService {
