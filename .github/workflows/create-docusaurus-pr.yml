@@ -20,12 +20,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout source repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           path: source-repo
 
       - name: Checkout docs repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           repository: unraid/docs
           path: docs-repo
