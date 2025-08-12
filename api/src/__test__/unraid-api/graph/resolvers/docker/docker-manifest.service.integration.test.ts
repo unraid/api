@@ -3,7 +3,7 @@ import { beforeAll, describe, expect, it, vi } from 'vitest';
 import { DockerAuthService } from '@app/unraid-api/graph/resolvers/docker/docker-auth.service.js';
 import { DockerManifestService } from '@app/unraid-api/graph/resolvers/docker/docker-manifest.service.js';
 
-describe.skipIf(!!process.env.CI)('DockerManifestService - Real Integration Tests', () => {
+describe('DockerManifestService - Integration Tests', () => {
     let service: DockerManifestService;
     let dockerAuthService: DockerAuthService;
 
