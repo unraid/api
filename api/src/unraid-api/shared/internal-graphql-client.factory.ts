@@ -1,6 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 
+import type { InternalGraphQLClientFactory as IInternalGraphQLClientFactory } from '@unraid/shared';
 import { ApolloClient, InMemoryCache, NormalizedCacheObject } from '@apollo/client/core/index.js';
 import { setContext } from '@apollo/client/link/context/index.js';
 import { split } from '@apollo/client/link/core/index.js';
@@ -23,7 +24,7 @@ import WebSocket from 'ws';
  * This ensures proper security isolation between different modules.
  */
 @Injectable()
-export class InternalGraphQLClientFactory {
+export class InternalGraphQLClientFactory implements IInternalGraphQLClientFactory {
     private readonly logger = new Logger(InternalGraphQLClientFactory.name);
 
     constructor(

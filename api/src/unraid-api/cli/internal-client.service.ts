@@ -1,10 +1,10 @@
 import { Inject, Injectable, Logger } from '@nestjs/common';
 
+import type { InternalGraphQLClientFactory } from '@unraid/shared';
 import { ApolloClient, NormalizedCacheObject } from '@apollo/client/core/index.js';
-import { INTERNAL_CLIENT_SERVICE_TOKEN } from '@unraid/shared/tokens.js';
+import { INTERNAL_CLIENT_SERVICE_TOKEN } from '@unraid/shared';
 
 import { AdminKeyService } from '@app/unraid-api/cli/admin-key.service.js';
-import { InternalGraphQLClientFactory } from '@app/unraid-api/shared/internal-graphql-client.factory.js';
 
 /**
  * Internal GraphQL client for CLI commands.

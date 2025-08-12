@@ -1,7 +1,7 @@
 import { ConfigModule } from '@nestjs/config';
 import { Test, TestingModule } from '@nestjs/testing';
 
-import { INTERNAL_CLIENT_SERVICE_TOKEN } from '@unraid/shared/tokens.js';
+import { INTERNAL_CLIENT_SERVICE_TOKEN } from '@unraid/shared';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 
 import { AdminKeyService } from '@app/unraid-api/cli/admin-key.service.js';

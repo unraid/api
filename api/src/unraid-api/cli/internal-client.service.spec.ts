@@ -1,13 +1,13 @@
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { Test, TestingModule } from '@nestjs/testing';
 
+import type { InternalGraphQLClientFactory } from '@unraid/shared';
 import { ApolloClient } from '@apollo/client/core/index.js';
-import { INTERNAL_CLIENT_SERVICE_TOKEN } from '@unraid/shared/tokens.js';
+import { INTERNAL_CLIENT_SERVICE_TOKEN } from '@unraid/shared';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { AdminKeyService } from '@app/unraid-api/cli/admin-key.service.js';
 import { CliInternalClientService } from '@app/unraid-api/cli/internal-client.service.js';
-import { InternalGraphQLClientFactory } from '@app/unraid-api/shared/internal-graphql-client.factory.js';
 
 describe('CliInternalClientService', () => {
     let service: CliInternalClientService;

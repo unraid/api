@@ -1,17 +1,8 @@
 import { Inject, Injectable, Logger } from '@nestjs/common';
 import { ApolloClient, NormalizedCacheObject } from '@apollo/client/core/index.js';
-import { INTERNAL_CLIENT_SERVICE_TOKEN } from '@unraid/shared/tokens.js';
+import { INTERNAL_CLIENT_SERVICE_TOKEN, type InternalGraphQLClientFactory } from '@unraid/shared';
 
 import { ConnectApiKeyService } from '../authn/connect-api-key.service.js';
-
-// Type for the injected factory
-interface InternalGraphQLClientFactory {
-    createClient(options: {
-        getApiKey: () => Promise<string>;
-        enableSubscriptions?: boolean;
-        origin?: string;
-    }): Promise<ApolloClient<NormalizedCacheObject>>;
-}
 
 /**
  * Connect-specific internal GraphQL client.
