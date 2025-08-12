@@ -45,7 +45,7 @@ jobs:
           node-version-file: ".nvmrc"
 
       - name: Cache APT Packages
-        uses: awalsh128/cache-apt-pkgs-action@v1.5.1
+        uses: awalsh128/cache-apt-pkgs-action@v1.5.3
         with:
           packages: bash procps python3 libvirt-dev jq zstd git build-essential libvirt-daemon-system
           version: 1.0
@@ -190,7 +190,7 @@ jobs:
             ${{ runner.os }}-pnpm-store-
 
       - name: Cache APT Packages
-        uses: awalsh128/cache-apt-pkgs-action@v1.5.1
+        uses: awalsh128/cache-apt-pkgs-action@v1.5.3
         with:
           packages: bash procps python3 libvirt-dev jq zstd git build-essential
           version: 1.0
@@ -267,7 +267,7 @@ jobs:
             ${{ runner.os }}-pnpm-store-
 
       - name: Cache APT Packages
-        uses: awalsh128/cache-apt-pkgs-action@v1.5.1
+        uses: awalsh128/cache-apt-pkgs-action@v1.5.3
         with:
           packages: bash procps python3 libvirt-dev jq zstd git build-essential
           version: 1.0
