@@ -20,9 +20,20 @@ export enum AuthorizationOperator {
     STARTS_WITH = 'startsWith',
 }
 
+export enum AuthorizationRuleMode {
+    OR = 'or',
+    AND = 'and',
+}
+
 registerEnumType(AuthorizationOperator, {
     name: 'AuthorizationOperator',
     description: 'Operators for authorization rule matching',
+});
+
+registerEnumType(AuthorizationRuleMode, {
+    name: 'AuthorizationRuleMode',
+    description:
+        'Mode for evaluating authorization rules - OR (any rule passes) or AND (all rules must pass)',
 });
 
 @ObjectType()
@@ -132,6 +143,16 @@ export class OidcProvider {
     @Type(() => OidcAuthorizationRule)
     @IsOptional()
     authorizationRules?: OidcAuthorizationRule[];
+
+    @Field(() => AuthorizationRuleMode, {
+        nullable: true,
+        description:
+            'Mode for evaluating authorization rules - OR (any rule passes) or AND (all rules must pass). Defaults to OR.',
+        defaultValue: AuthorizationRuleMode.OR,
+    })
+    @IsEnum(AuthorizationRuleMode)
+    @IsOptional()
+    authorizationRuleMode?: AuthorizationRuleMode;
 
     @Field(() => String, { nullable: true, description: 'Custom text for the login button' })
     @IsString()
@@ -246,6 +267,16 @@ export class OidcProviderInput {
     @Type(() => OidcAuthorizationRuleInput)
     @IsOptional()
     authorizationRules?: OidcAuthorizationRuleInput[];
+
+    @Field(() => AuthorizationRuleMode, {
+        nullable: true,
+        description:
+            'Mode for evaluating authorization rules - OR (any rule passes) or AND (all rules must pass). Defaults to OR.',
+        defaultValue: AuthorizationRuleMode.OR,
+    })
+    @IsEnum(AuthorizationRuleMode)
+    @IsOptional()
+    authorizationRuleMode?: AuthorizationRuleMode;
 
     @Field(() => String, { nullable: true, description: 'Custom text for the login button' })
     @IsString()

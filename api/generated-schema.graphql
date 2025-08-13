@@ -1502,6 +1502,11 @@ type OidcProvider {
   """Flexible authorization rules based on claims"""
   authorizationRules: [OidcAuthorizationRule!]
 
+  """
+  Mode for evaluating authorization rules - OR (any rule passes) or AND (all rules must pass). Defaults to OR.
+  """
+  authorizationRuleMode: AuthorizationRuleMode
+
   """Custom text for the login button"""
   buttonText: String
 
@@ -1522,6 +1527,14 @@ type OidcProvider {
   Use custom parameter names for authorization (e.g., callbackUrl instead of redirect_uri)
   """
   customAuthParams: Boolean
+}
+
+"""
+Mode for evaluating authorization rules - OR (any rule passes) or AND (all rules must pass)
+"""
+enum AuthorizationRuleMode {
+  OR
+  AND
 }
 
 type OidcSessionValidation {
@@ -2085,6 +2098,11 @@ input OidcProviderInput {
 
   """Flexible authorization rules based on claims"""
   authorizationRules: [OidcAuthorizationRuleInput!]
+
+  """
+  Mode for evaluating authorization rules - OR (any rule passes) or AND (all rules must pass). Defaults to OR.
+  """
+  authorizationRuleMode: AuthorizationRuleMode = OR
 
   """Custom text for the login button"""
   buttonText: String

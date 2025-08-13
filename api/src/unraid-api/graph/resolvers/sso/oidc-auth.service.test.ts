@@ -8,6 +8,7 @@ import { OidcAuthService } from '@app/unraid-api/graph/resolvers/sso/oidc-auth.s
 import { OidcConfigPersistence } from '@app/unraid-api/graph/resolvers/sso/oidc-config.service.js';
 import {
     AuthorizationOperator,
+    AuthorizationRuleMode,
     OidcAuthorizationRule,
     OidcProvider,
 } from '@app/unraid-api/graph/resolvers/sso/oidc-provider.model.js';
@@ -467,6 +468,146 @@ describe('OidcAuthService', () => {
             await expect(
                 checkAuthorization(provider, { email: 'user@external.com', sub: 'other-id' })
             ).rejects.toThrow();
+        });
+
+        it('should authorize using AND mode when all rules match', async () => {
+            const provider: OidcProvider = {
+                id: 'test',
+                name: 'Test Provider',
+                clientId: 'test-client',
+                issuer: 'https://test.com',
+                scopes: ['openid'],
+                authorizationRuleMode: AuthorizationRuleMode.AND,
+                authorizationRules: [
+                    {
+                        claim: 'email',
+                        operator: AuthorizationOperator.ENDS_WITH,
+                        value: ['@company.com'],
+                    },
+                    {
+                        claim: 'department',
+                        operator: AuthorizationOperator.EQUALS,
+                        value: ['engineering'],
+                    },
+                ],
+            } as OidcProvider;
+
+            // Should pass when both rules match
+            await expect(
+                checkAuthorization(provider, {
+                    email: 'user@company.com',
+                    department: 'engineering',
+                })
+            ).resolves.toBeUndefined();
+        });
+
+        it('should reject using AND mode when only some rules match', async () => {
+            const provider: OidcProvider = {
+                id: 'test',
+                name: 'Test Provider',
+                clientId: 'test-client',
+                issuer: 'https://test.com',
+                scopes: ['openid'],
+                authorizationRuleMode: AuthorizationRuleMode.AND,
+                authorizationRules: [
+                    {
+                        claim: 'email',
+                        operator: AuthorizationOperator.ENDS_WITH,
+                        value: ['@company.com'],
+                    },
+                    {
+                        claim: 'department',
+                        operator: AuthorizationOperator.EQUALS,
+                        value: ['engineering'],
+                    },
+                ],
+            } as OidcProvider;
+
+            // Should fail when only first rule matches
+            await expect(
+                checkAuthorization(provider, {
+                    email: 'user@company.com',
+                    department: 'marketing',
+                })
+            ).rejects.toThrow();
+
+            // Should fail when only second rule matches
+            await expect(
+                checkAuthorization(provider, {
+                    email: 'user@external.com',
+                    department: 'engineering',
+                })
+            ).rejects.toThrow();
+        });
+
+        it('should default to OR mode when authorizationRuleMode is not specified', async () => {
+            const provider: OidcProvider = {
+                id: 'test',
+                name: 'Test Provider',
+                clientId: 'test-client',
+                issuer: 'https://test.com',
+                scopes: ['openid'],
+                // authorizationRuleMode not specified, should default to OR
+                authorizationRules: [
+                    {
+                        claim: 'email',
+                        operator: AuthorizationOperator.ENDS_WITH,
+                        value: ['@company.com'],
+                    },
+                    {
+                        claim: 'department',
+                        operator: AuthorizationOperator.EQUALS,
+                        value: ['engineering'],
+                    },
+                ],
+            } as OidcProvider;
+
+            // Should pass when only first rule matches (OR mode default)
+            await expect(
+                checkAuthorization(provider, {
+                    email: 'user@company.com',
+                    department: 'marketing',
+                })
+            ).resolves.toBeUndefined();
+        });
+
+        it('should work with OR mode explicitly set', async () => {
+            const provider: OidcProvider = {
+                id: 'test',
+                name: 'Test Provider',
+                clientId: 'test-client',
+                issuer: 'https://test.com',
+                scopes: ['openid'],
+                authorizationRuleMode: AuthorizationRuleMode.OR,
+                authorizationRules: [
+                    {
+                        claim: 'email',
+                        operator: AuthorizationOperator.ENDS_WITH,
+                        value: ['@company.com'],
+                    },
+                    {
+                        claim: 'department',
+                        operator: AuthorizationOperator.EQUALS,
+                        value: ['engineering'],
+                    },
+                ],
+            } as OidcProvider;
+
+            // Should pass when only first rule matches
+            await expect(
+                checkAuthorization(provider, {
+                    email: 'user@company.com',
+                    department: 'marketing',
+                })
+            ).resolves.toBeUndefined();
+
+            // Should pass when only second rule matches
+            await expect(
+                checkAuthorization(provider, {
+                    email: 'user@external.com',
+                    department: 'engineering',
+                })
+            ).resolves.toBeUndefined();
         });
     });
 });

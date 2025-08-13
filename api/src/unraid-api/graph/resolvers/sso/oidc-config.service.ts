@@ -527,6 +527,14 @@ export class OidcConfigPersistence extends ConfigFilePersister<OidcConfig> {
                                     },
                                 },
                             },
+                            authorizationRuleMode: {
+                                type: 'string',
+                                title: 'Rule Mode',
+                                enum: ['or', 'and'],
+                                default: 'or',
+                                description:
+                                    'How to evaluate multiple rules: OR (any rule passes) or AND (all rules must pass)',
+                            },
                             authorizationRules: {
                                 type: 'array',
                                 items: {
@@ -553,7 +561,7 @@ export class OidcConfigPersistence extends ConfigFilePersister<OidcConfig> {
                                 },
                                 title: 'Claim Rules',
                                 description:
-                                    'Define authorization rules based on claims in the ID token. Multiple rules use OR logic - if any rule matches, the user is authorized.',
+                                    'Define authorization rules based on claims in the ID token. Rule mode can be configured: OR logic (any rule matches) or AND logic (all rules must match).',
                             },
                             buttonText: {
                                 type: 'string',
@@ -850,14 +858,23 @@ export class OidcConfigPersistence extends ConfigFilePersister<OidcConfig> {
                                                 },
                                             ],
                                         },
-                                        // Advanced Authorization Rules (shown when mode is 'advanced')
+                                        // Advanced Authorization Rules (shown when mode is 'advanced' or authorizationRuleMode is 'and')
                                         {
                                             type: 'VerticalLayout',
                                             rule: {
                                                 effect: RuleEffect.SHOW,
                                                 condition: {
-                                                    scope: '#/properties/authorizationMode',
-                                                    schema: { const: 'advanced' },
+                                                    type: 'OR',
+                                                    conditions: [
+                                                        {
+                                                            scope: '#/properties/authorizationMode',
+                                                            schema: { const: 'advanced' },
+                                                        },
+                                                        {
+                                                            scope: '#/properties/authorizationRuleMode',
+                                                            schema: { const: 'and' },
+                                                        },
+                                                    ],
                                                 },
                                             },
                                             elements: [
@@ -866,9 +883,16 @@ export class OidcConfigPersistence extends ConfigFilePersister<OidcConfig> {
                                                     text: 'Advanced Authorization Rules',
                                                     options: {
                                                         description:
-                                                            'Define authorization rules based on claims in the ID token. Multiple rules use OR logic - if any rule matches, the user is authorized.',
+                                                            'Define authorization rules based on claims in the ID token. Rule mode can be configured: OR logic (any rule matches) or AND logic (all rules must match).',
                                                     },
                                                 },
+                                                createSimpleLabeledControl({
+                                                    scope: '#/properties/authorizationRuleMode',
+                                                    label: 'Rule Mode:',
+                                                    description:
+                                                        'How to evaluate multiple rules: OR (any rule passes) or AND (all rules must pass)',
+                                                    controlOptions: {},
+                                                }),
                                                 {
                                                     type: 'Control',
                                                     scope: '#/properties/authorizationRules',

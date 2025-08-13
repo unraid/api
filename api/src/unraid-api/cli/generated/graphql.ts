@@ -953,6 +953,7 @@ export type Mutation = {
   createNotification: Notification;
   /** Deletes all archived notifications on server. */
   deleteArchivedNotifications: NotificationOverview;
+  deleteDockerEntries: ResolvedOrganizerV1;
   deleteNotification: NotificationOverview;
   /** Delete an OIDC provider */
   deleteOidcProvider: Scalars['Boolean']['output'];
@@ -960,6 +961,7 @@ export type Mutation = {
   enableDynamicRemoteAccess: Scalars['Boolean']['output'];
   /** Initiates a flash drive backup using a configured remote. */
   initiateFlashBackup: FlashBackupStatus;
+  moveDockerEntriesToFolder: ResolvedOrganizerV1;
   parityCheck: ParityCheckMutations;
   rclone: RCloneMutations;
   /** Reads each notification to recompute & update the overview. */
@@ -1022,6 +1024,11 @@ export type MutationCreateNotificationArgs = {
 };
 
 
+export type MutationDeleteDockerEntriesArgs = {
+  entryIds: Array<Scalars['String']['input']>;
+};
+
+
 export type MutationDeleteNotificationArgs = {
   id: Scalars['PrefixedID']['input'];
   type: NotificationType;
@@ -1040,6 +1047,12 @@ export type MutationEnableDynamicRemoteAccessArgs = {
 
 export type MutationInitiateFlashBackupArgs = {
   input: InitiateFlashBackupInput;
+};
+
+
+export type MutationMoveDockerEntriesToFolderArgs = {
+  destinationFolderId: Scalars['String']['input'];
+  sourceEntryIds: Array<Scalars['String']['input']>;
 };
 
 
@@ -2013,6 +2026,8 @@ export type UpdateSettingsResponse = {
   restartRequired: Scalars['Boolean']['output'];
   /** The updated settings values */
   values: Scalars['JSON']['output'];
+  /** Warning messages about configuration issues found during validation */
+  warnings?: Maybe<Array<Scalars['String']['output']>>;
 };
 
 export type Uptime = {

@@ -6,6 +6,7 @@ import * as client from 'openid-client';
 import { OidcConfigPersistence } from '@app/unraid-api/graph/resolvers/sso/oidc-config.service.js';
 import {
     AuthorizationOperator,
+    AuthorizationRuleMode,
     OidcAuthorizationRule,
     OidcProvider,
 } from '@app/unraid-api/graph/resolvers/sso/oidc-provider.model.js';
@@ -394,6 +395,9 @@ export class OidcAuthService {
             `Checking authorization for provider ${provider.id} with ${provider.authorizationRules?.length || 0} rules`
         );
         this.logger.debug(`Available claims: ${Object.keys(claims).join(', ')}`);
+        this.logger.debug(
+            `Authorization rule mode: ${provider.authorizationRuleMode || AuthorizationRuleMode.OR}`
+        );
 
         // If no authorization rules are specified, throw a helpful error
         if (!provider.authorizationRules || provider.authorizationRules.length === 0) {
@@ -408,7 +412,12 @@ export class OidcAuthService {
         );
 
         // Evaluate the rules
-        const isAuthorized = this.evaluateAuthorizationRules(provider.authorizationRules, claims);
+        const ruleMode = provider.authorizationRuleMode || AuthorizationRuleMode.OR;
+        const isAuthorized = this.evaluateAuthorizationRules(
+            provider.authorizationRules,
+            claims,
+            ruleMode
+        );
 
         this.logger.debug(`Authorization result: ${isAuthorized}`);
 
@@ -424,10 +433,19 @@ export class OidcAuthService {
         this.logger.debug(`Authorization successful for user ${claims.sub}`);
     }
 
-    private evaluateAuthorizationRules(rules: OidcAuthorizationRule[], claims: JwtClaims): boolean {
-        // Any rule can pass (OR logic)
-        // Multiple rules act as alternative authorization paths
-        return rules.some((rule) => this.evaluateRule(rule, claims));
+    private evaluateAuthorizationRules(
+        rules: OidcAuthorizationRule[],
+        claims: JwtClaims,
+        mode: AuthorizationRuleMode = AuthorizationRuleMode.OR
+    ): boolean {
+        if (mode === AuthorizationRuleMode.AND) {
+            // All rules must pass (AND logic)
+            return rules.every((rule) => this.evaluateRule(rule, claims));
+        } else {
+            // Any rule can pass (OR logic) - default behavior
+            // Multiple rules act as alternative authorization paths
+            return rules.some((rule) => this.evaluateRule(rule, claims));
+        }
     }
 
     private evaluateRule(rule: OidcAuthorizationRule, claims: JwtClaims): boolean {

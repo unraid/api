@@ -13,6 +13,12 @@ export const OIDC_PROVIDERS = gql`
           tokenEndpoint
           jwksUri
           scopes
+          authorizationRules {
+            claim
+            operator
+            value
+          }
+          authorizationRuleMode
           buttonText
           buttonIcon
         }
