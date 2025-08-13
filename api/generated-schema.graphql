@@ -1196,6 +1196,8 @@ type DockerContainer implements Node {
   networkSettings: JSON
   mounts: [JSON!]
   autoStart: Boolean!
+  isUpdateAvailable: Boolean
+  isRebuildReady: Boolean
 }
 
 enum ContainerState {
@@ -1226,6 +1228,7 @@ type Docker implements Node {
   containers(skipCache: Boolean! = false): [DockerContainer!]!
   networks(skipCache: Boolean! = false): [DockerNetwork!]!
   organizer: ResolvedOrganizerV1!
+  containerUpdateStatuses: JSON!
 }
 
 type ResolvedOrganizerView {
