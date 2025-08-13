@@ -70,6 +70,24 @@ export default defineConfig(({ mode }): ViteUserConfig => {
                     },
                 },
             }),
+            // Copy PHP files to assets directory
+            {
+                name: 'copy-php-files',
+                async generateBundle() {
+                    const { readFileSync } = await import('fs');
+                    const { join, basename } = await import('path');
+
+                    const phpFiles = ['src/core/utils/plugins/wrapper.php'];
+                    phpFiles.forEach((file) => {
+                        const content = readFileSync(file);
+                        this.emitFile({
+                            type: 'asset',
+                            fileName: join('assets', basename(file)),
+                            source: content,
+                        });
+                    });
+                },
+            },
         ],
         define: {
             // Allows vite to preserve process.env variables and not hardcode them
