@@ -491,12 +491,14 @@ $('body').on('click', '.js-setCurrentHostExtraOrigins', function(e) {
 
 <?if($isConnectPluginInstalled):?>
 <div markdown="1" class="<?=$shade?>"><!-- begin Flash Backup section -->
-_(Flash backup)_:
 <?if(!$isRegistered):?>
+_(Flash backup)_:
 : <span><i class="fa fa-warning icon warning"></i> _(Disabled until you have signed in)_</span>
 <?elseif(!$isMiniGraphConnected):?>
+ _(Flash backup)_:
 : <span><i class="fa fa-warning icon warning"></i> _(Disabled until connected to Unraid Connect Cloud - try reloading the page)_</span>
 <?else: // begin show flash backup form ?>
+_(Flash backup)_:
 : <span id='flashbackuptext'><span class='blue p0'>_(Loading)_ <i class="fa fa-spinner fa-spin" aria-hidden="true"></i></span></span>
 
 <form markdown="1" name="FlashBackup" method="POST" action="/update.htm" target="progressFrame">
@@ -512,40 +514,60 @@ _(Flash backup)_:
 
 </div>
 <div markdown="1" id="inactivespanel" style="display:none">
-&nbsp;
 <?if(disk_free_space('/boot') > 1024*1000*1000):?>
-: <button type="button" onclick="enableFlashBackup(this)">_(Activate)_</button> <span>_(Please note that the flash backup is not encrypted at this time.)_ <a href="https://docs.unraid.net/go/connect-flash-backup/" target="_blank">_(More information.)_</a></span>
+&nbsp;
+: <span class="buttons-spaced">
+    <button type="button" onclick="enableFlashBackup(this)">_(Activate)_</button>
+    <span>_(Please note that the flash backup is not encrypted at this time.)_ <a href="https://docs.unraid.net/go/connect-flash-backup/" target="_blank">_(More information.)_</a></span>
+  </span>
 <?else:?>
-: <button type="button" disabled>_(Activate)_</button> <span><i class="fa fa-warning icon warning"></i> _(In order to activate Flash Backup there must be at least 1GB of free space on your flash drive.)_</span>
+&nbsp;
+: <span class="buttons-spaced">
+    <button type="button" disabled>_(Activate)_</button>
+    <span><i class="fa fa-warning icon warning"></i> _(In order to activate Flash Backup there must be at least 1GB of free space on your flash drive.)_</span>
+  </span>
 <?endif?>
 
 &nbsp;
-: <button type="button" onclick="enableFlashBackup(this)" id="deletecloudbackup" disabled>_(Delete Cloud Backup)_</button>
+: <span class="buttons-spaced">
+    <button type="button" onclick="enableFlashBackup(this)" id="deletecloudbackup" disabled>_(Delete Cloud Backup)_</button>
+  </span>
 
 :unraidnet_inactivespanel_help:
 
 </div>
 <div markdown="1" id="changespanel" style="display:none">
 &nbsp;
-: <button type="button" onclick="enableFlashBackup(this)">_(Update)_</button> <button type="button" onclick="enableFlashBackup(this)">_(Changes)_</button>
+: <span class="buttons-spaced">
+    <button type="button" onclick="enableFlashBackup(this)">_(Update)_</button>
+    <button type="button" onclick="enableFlashBackup(this)">_(Changes)_</button>
+  </span>
 
 :unraidnet_changespanel_help:
 
 </div>
 <div markdown="1" id="uptodatepanel" style="display:none">
 &nbsp;
-: <button type="button" disabled>_(Update)_</button>
+: <span class="buttons-spaced">
+    <button type="button" disabled>_(Update)_</button>
+  </span>
 
 :unraidnet_uptodatepanel_help:
 
 </div>
 <div markdown="1" id="activepanel" style="display:none">
 &nbsp;
-: <button type="button" onclick="enableFlashBackup(this)">_(Deactivate)_</button> <span>_(Please note that the flash backup is not encrypted at this time.)_ <a href="https://docs.unraid.net/go/connect-flash-backup/" target="_blank">_(More information.)_</a></span>
+: <span class="buttons-spaced">
+    <button type="button" onclick="enableFlashBackup(this)">_(Deactivate)_</button>
+    <span>_(Please note that the flash backup is not encrypted at this time.)_ <a href="https://docs.unraid.net/go/connect-flash-backup/" target="_blank">_(More information.)_</a></span>
+  </span>
 
 <?if (in_array($_COOKIE['UPC_ENV']??'', ['development','staging']) && file_exists("/var/log/gitflash") && filesize("/var/log/gitflash")):?>
 &nbsp;
-: <button type="button" onclick="openBox('/plugins/dynamix.my.servers/scripts/gitflash_log', 'Flash Backup Error Log', 800, 800);">_(View Flash Backup Error Log)_</button>  <span><em>_(Transient errors in this log can be ignored unless you are having issues)_</em></span>
+: <span class="buttons-spaced">
+    <button type="button" onclick="openBox('/plugins/dynamix.my.servers/scripts/gitflash_log', 'Flash Backup Error Log', 800, 800);">_(View Flash Backup Error Log)_</button>
+    <span><em>_(Transient errors in this log can be ignored unless you are having issues)_</em></span>
+  </span>
 <?endif?>
 
 </div>
