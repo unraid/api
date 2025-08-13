@@ -1,4 +1,4 @@
-import { graphql } from '~/composables/gql/gql';
+import { graphql } from '~/composables/gql/gql.js';
 
 export const PUBLIC_OIDC_PROVIDERS = graphql(/* GraphQL */`
   query PublicOidcProviders {
