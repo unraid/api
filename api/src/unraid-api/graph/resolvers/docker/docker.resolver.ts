@@ -2,8 +2,10 @@ import { Args, Mutation, Query, ResolveField, Resolver } from '@nestjs/graphql';
 
 import { AuthAction, Resource } from '@unraid/shared/graphql.model.js';
 import { UsePermissions } from '@unraid/shared/use-permissions.directive.js';
+import { GraphQLJSON } from 'graphql-scalars';
 
 import { DockerOrganizerService } from '@app/unraid-api/graph/resolvers/docker/docker-organizer.service.js';
+import { DockerPhpService } from '@app/unraid-api/graph/resolvers/docker/docker-php.service.js';
 import {
     Docker,
     DockerContainer,
@@ -11,13 +13,14 @@ import {
 } from '@app/unraid-api/graph/resolvers/docker/docker.model.js';
 import { DockerService } from '@app/unraid-api/graph/resolvers/docker/docker.service.js';
 import { DEFAULT_ORGANIZER_ROOT_ID } from '@app/unraid-api/organizer/organizer.js';
-import { OrganizerV1, ResolvedOrganizerV1 } from '@app/unraid-api/organizer/organizer.model.js';
+import { ResolvedOrganizerV1 } from '@app/unraid-api/organizer/organizer.model.js';
 
 @Resolver(() => Docker)
 export class DockerResolver {
     constructor(
         private readonly dockerService: DockerService,
-        private readonly dockerOrganizerService: DockerOrganizerService
+        private readonly dockerOrganizerService: DockerOrganizerService,
+        private readonly dockerPhpService: DockerPhpService
     ) {}
 
     @UsePermissions({
@@ -122,5 +125,14 @@ export class DockerResolver {
             destinationFolderId,
         });
         return this.dockerOrganizerService.resolveOrganizer(organizer);
+    }
+
+    @UsePermissions({
+        action: AuthAction.READ_ANY,
+        resource: Resource.DOCKER,
+    })
+    @ResolveField(() => GraphQLJSON)
+    public async containerUpdateStatuses() {
+        return this.dockerPhpService.getContainerUpdateStatuses();
     }
 }
