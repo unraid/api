@@ -60,13 +60,15 @@ Advanced mode provides granular control using claim-based rules. You can:
 
 - Create complex authorization rules based on JWT claims
 - Use operators like equals, contains, endsWith, startsWith
-- Combine multiple conditions
+- Combine multiple conditions with OR/AND logic
+- Choose whether ANY rule must pass (OR mode) or ALL rules must pass (AND mode)
 
 **When to use Advanced Mode:**
 
 - You need to check group memberships
 - You want to verify multiple claims (e.g., email domain AND verified status)
 - You have complex authorization requirements
+- You need fine-grained control over how rules are evaluated
 
 ## Provider Configuration Examples
 
@@ -215,7 +217,10 @@ For Simple Mode:
 For Advanced Mode (group-based):
 
 1. Switch to **Advanced Mode**
-2. Add rule:
+2. Choose **Authorization Rule Mode**:
+    - `OR` if user can be in ANY of the specified groups
+    - `AND` if user must meet ALL specified conditions
+3. Add rule:
     - **Claim**: `groups`
     - **Operator**: `contains`
     - **Value**: `unraid-admins`
@@ -347,30 +352,63 @@ In Simple Authorization:
 
 ### Advanced Mode Examples
 
-#### Email Domain with Verification
+#### Authorization Rule Mode
 
-Add two rules:
+When using multiple rules, you can choose how they're evaluated:
 
-1. Rule 1:
-    - **Claim**: `email`
-    - **Operator**: `endsWith`
-    - **Value**: `@company.com`
-2. Rule 2:
-    - **Claim**: `email_verified`
-    - **Operator**: `equals`
-    - **Value**: `true`
+- **OR Mode** (default): User is authorized if ANY rule passes
+- **AND Mode**: User is authorized only if ALL rules pass
 
-#### Group-Based Access
+#### Email Domain with Verification (AND Mode)
 
-- **Claim**: `groups`
-- **Operator**: `contains`
-- **Value**: `admins`
+To require both email domain AND verification:
+
+1. Set **Authorization Rule Mode** to `AND`
+2. Add two rules:
+   - Rule 1:
+     - **Claim**: `email`
+     - **Operator**: `endsWith`
+     - **Value**: `@company.com`
+   - Rule 2:
+     - **Claim**: `email_verified`
+     - **Operator**: `equals`
+     - **Value**: `true`
+
+This ensures users must have both a company email AND a verified email address.
+
+#### Group-Based Access (OR Mode)
+
+To allow access to multiple groups:
+
+1. Set **Authorization Rule Mode** to `OR` (default)
+2. Add rules for each group:
+   - **Claim**: `groups`
+   - **Operator**: `contains`
+   - **Value**: `admins`
+   
+   Or add another rule:
+   - **Claim**: `groups`
+   - **Operator**: `contains`
+   - **Value**: `developers`
+
+Users in either `admins` OR `developers` group will be authorized.
 
 #### Multiple Domains
 
 - **Claim**: `email`
 - **Operator**: `endsWith`
-- **Values**: Add multiple domains
+- **Values**: Add multiple domains (e.g., `company.com`, `subsidiary.com`)
+
+#### Complex Authorization (AND Mode)
+
+For strict security requiring multiple conditions:
+
+1. Set **Authorization Rule Mode** to `AND`
+2. Add multiple rules that ALL must pass:
+   - Email must be from company domain
+   - Email must be verified
+   - User must be in specific group
+   - Account must have 2FA enabled (if claim available)
 
 ## Understanding the Interface
 
@@ -394,6 +432,17 @@ When "simple" mode is selected, you'll see:
 - **Specific Email Addresses**: Add individual email addresses
     - Helper text: "Only these exact email addresses can login"
 - **Add Item** buttons to add multiple entries
+
+### Advanced Authorization Fields
+
+When "advanced" mode is selected, you'll see:
+
+- **Authorization Rule Mode**: Choose `OR` (any rule passes) or `AND` (all rules must pass)
+- **Authorization Rules**: Add multiple claim-based rules
+- **For each rule**:
+    - **Claim**: The JWT claim to check
+    - **Operator**: How to compare (equals, contains, endsWith, startsWith)
+    - **Value**: What to match against
 
 ### Additional Interface Elements
 
@@ -423,8 +472,11 @@ Replace `YOUR_UNRAID_IP` with your actual server IP address.
 #### "Authorization failed"
 
 - In Simple Mode: Check email domains are entered correctly (without @)
-- In Advanced Mode: Verify claim names match exactly what your provider sends
-- Enable debug logging to see actual claims
+- In Advanced Mode: 
+  - Verify claim names match exactly what your provider sends
+  - Check if Authorization Rule Mode is set correctly (OR vs AND)
+  - Ensure all required claims are present in the token
+- Enable debug logging to see actual claims and rule evaluation
 
 #### "Invalid redirect URI"
 
