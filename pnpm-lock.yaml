@@ -295,6 +295,9 @@ importers:
       systeminformation:
         specifier: 5.27.7
         version: 5.27.7
+      undici:
+        specifier: ^7.13.0
+        version: 7.13.0
       unraid-api-plugin-connect:
         specifier: workspace:*
         version: link:../packages/unraid-api-plugin-connect
@@ -615,6 +618,9 @@ importers:
       typescript:
         specifier: 5.9.2
         version: 5.9.2
+      undici:
+        specifier: ^7.13.0
+        version: 7.13.0
       vitest:
         specifier: 3.2.4
         version: 3.2.4(@types/node@22.17.1)(@vitest/ui@3.2.4)(happy-dom@18.0.1)(jiti@2.5.1)(jsdom@26.1.0)(lightningcss@1.30.1)(stylus@0.57.0)(terser@5.43.1)(tsx@4.20.3)(yaml@2.8.1)
@@ -706,6 +712,9 @@ importers:
 
   packages/unraid-shared:
     dependencies:
+      '@apollo/client':
+        specifier: 3.13.9
+        version: 3.13.9(@types/react@19.0.8)(graphql-ws@6.0.6(crossws@0.3.5)(graphql@16.11.0)(ws@8.18.3))(graphql@16.11.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)(subscriptions-transport-ws@0.11.0(graphql@16.11.0))
       '@nestjs/config':
         specifier: 4.0.2
         version: 4.0.2(@nestjs/common@11.1.6(class-transformer@0.5.1)(class-validator@0.14.2)(reflect-metadata@0.1.14)(rxjs@7.8.2))(rxjs@7.8.2)
@@ -715,6 +724,9 @@ importers:
       rxjs:
         specifier: 7.8.2
         version: 7.8.2
+      undici:
+        specifier: 7.13.0
+        version: 7.13.0
     devDependencies:
       '@graphql-tools/utils':
         specifier: 10.9.1
@@ -728,6 +740,9 @@ importers:
       '@nestjs/graphql':
         specifier: 13.1.0
         version: 13.1.0(@nestjs/common@11.1.6(class-transformer@0.5.1)(class-validator@0.14.2)(reflect-metadata@0.1.14)(rxjs@7.8.2))(@nestjs/core@11.1.6(@nestjs/common@11.1.6(class-transformer@0.5.1)(class-validator@0.14.2)(reflect-metadata@0.1.14)(rxjs@7.8.2))(reflect-metadata@0.1.14)(rxjs@7.8.2))(class-transformer@0.5.1)(class-validator@0.14.2)(graphql@16.11.0)(reflect-metadata@0.1.14)(ts-morph@24.0.0)
+      '@nestjs/testing':
+        specifier: 11.1.5
+        version: 11.1.5(@nestjs/common@11.1.6(class-transformer@0.5.1)(class-validator@0.14.2)(reflect-metadata@0.1.14)(rxjs@7.8.2))
       '@types/bun':
         specifier: 1.2.20
         version: 1.2.20(@types/react@19.0.8)
@@ -737,6 +752,9 @@ importers:
       '@types/node':
         specifier: 22.17.1
         version: 22.17.1
+      '@types/ws':
+        specifier: ^8.5.13
+        version: 8.18.1
       class-validator:
         specifier: 0.14.2
         version: 0.14.2
@@ -746,6 +764,9 @@ importers:
       graphql-scalars:
         specifier: 1.24.2
         version: 1.24.2(graphql@16.11.0)
+      graphql-ws:
+        specifier: 6.0.6
+        version: 6.0.6(crossws@0.3.5)(graphql@16.11.0)(ws@8.18.3)
       lodash-es:
         specifier: 4.17.21
         version: 4.17.21
@@ -761,6 +782,12 @@ importers:
       typescript:
         specifier: 5.9.2
         version: 5.9.2
+      vitest:
+        specifier: 3.2.4
+        version: 3.2.4(@types/node@22.17.1)(@vitest/ui@3.2.4)(happy-dom@18.0.1)(jiti@2.5.1)(jsdom@26.1.0)(lightningcss@1.30.1)(stylus@0.57.0)(terser@5.43.1)(tsx@4.20.3)(yaml@2.8.1)
+      ws:
+        specifier: ^8.18.3
+        version: 8.18.3
 
   plugin:
     dependencies:
@@ -3703,6 +3730,19 @@ packages:
     peerDependencies:
       '@nestjs/common': ^10.0.0 || ^11.0.0
       '@nestjs/core': ^10.0.0 || ^11.0.0
+
+  '@nestjs/testing@11.1.5':
+    resolution: {integrity: sha512-ZYRYF750SefmuIo7ZqPlHDcin1OHh6My0OkOfGEFjrD9mJ0vMVIpwMTOOkpzCfCcpqUuxeHBuecpiIn+NLrQbQ==}
+    peerDependencies:
+      '@nestjs/common': ^11.0.0
+      '@nestjs/core': ^11.0.0
+      '@nestjs/microservices': ^11.0.0
+      '@nestjs/platform-express': ^11.0.0
+    peerDependenciesMeta:
+      '@nestjs/microservices':
+        optional: true
+      '@nestjs/platform-express':
+        optional: true
 
   '@nestjs/testing@11.1.6':
     resolution: {integrity: sha512-srYzzDNxGvVCe1j0SpTS9/ix75PKt6Sn6iMaH1rpJ6nj2g8vwNrhK0CoJJXvpCYgrnI+2WES2pprYnq8rAMYHA==}
@@ -12774,8 +12814,8 @@ packages:
   undici-types@6.21.0:
     resolution: {integrity: sha512-iwDZqg0QAGrg9Rav5H4n0M64c3mkR59cJ6wQp+7C4nI0gsmExaedaYLNO44eT4AtBBwjbTiGPMlt2Md0T9H9JQ==}
 
-  undici@7.10.0:
-    resolution: {integrity: sha512-u5otvFBOBZvmdjWLVW+5DAc9Nkq8f24g0O9oY7qw2JVIF1VocIFoyz9JFkuVOS2j41AufeO0xnlweJ2RLT8nGw==}
+  undici@7.13.0:
+    resolution: {integrity: sha512-l+zSMssRqrzDcb3fjMkjjLGmuiiK2pMIcV++mJaAc9vhjSGpvM7h43QgP+OAMb1GImHmbPyG2tBXeuyG5iY4gA==}
     engines: {node: '>=20.18.1'}
 
   unenv@2.0.0-rc.18:
@@ -16374,6 +16414,11 @@ snapshots:
       '@nestjs/common': 11.1.6(class-transformer@0.5.1)(class-validator@0.14.2)(reflect-metadata@0.1.14)(rxjs@7.8.2)
       '@nestjs/core': 11.1.6(@nestjs/common@11.1.6(class-transformer@0.5.1)(class-validator@0.14.2)(reflect-metadata@0.1.14)(rxjs@7.8.2))(reflect-metadata@0.1.14)(rxjs@7.8.2)
       cron: 4.3.0
+
+  '@nestjs/testing@11.1.5(@nestjs/common@11.1.6(class-transformer@0.5.1)(class-validator@0.14.2)(reflect-metadata@0.1.14)(rxjs@7.8.2))':
+    dependencies:
+      '@nestjs/common': 11.1.6(class-transformer@0.5.1)(class-validator@0.14.2)(reflect-metadata@0.1.14)(rxjs@7.8.2)
+      tslib: 2.8.1
 
   '@nestjs/testing@11.1.6(@nestjs/common@11.1.6(class-transformer@0.5.1)(class-validator@0.14.2)(reflect-metadata@0.1.14)(rxjs@7.8.2))(@nestjs/core@11.1.6(@nestjs/common@11.1.6(class-transformer@0.5.1)(class-validator@0.14.2)(reflect-metadata@0.1.14)(rxjs@7.8.2))(reflect-metadata@0.1.14)(rxjs@7.8.2))':
     dependencies:
@@ -23951,7 +23996,7 @@ snapshots:
       glob-to-regexp: 0.4.1
       sharp: 0.33.5
       stoppable: 1.1.0
-      undici: 7.10.0
+      undici: 7.13.0
       workerd: 1.20250803.0
       ws: 8.18.0
       youch: 4.1.0-beta.10
@@ -26165,7 +26210,7 @@ snapshots:
       tinyexec: 1.0.1
       tinyglobby: 0.2.14
       ts-morph: 26.0.0
-      undici: 7.10.0
+      undici: 7.13.0
       vue-metamorph: 3.3.3(eslint@9.33.0(jiti@2.5.1))
       zod: 3.25.76
     transitivePeerDependencies:
@@ -27026,7 +27071,7 @@ snapshots:
 
   undici-types@6.21.0: {}
 
-  undici@7.10.0: {}
+  undici@7.13.0: {}
 
   unenv@2.0.0-rc.18:
     dependencies:
@@ -27597,7 +27642,7 @@ snapshots:
       expect-type: 1.2.1
       magic-string: 0.30.17
       pathe: 2.0.3
-      picomatch: 4.0.2
+      picomatch: 4.0.3
       std-env: 3.9.0
       tinybench: 2.9.0
       tinyexec: 0.3.2
