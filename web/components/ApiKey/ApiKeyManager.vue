@@ -169,7 +169,7 @@ async function copyKeyValue(keyValue: string) {
                 <div class="relative w-64">
                   <Input
                     :model-value="showKey[key.id] ? key.key : '••••••••••••••••••••••••••••••••'"
-                    class="w-full font-mono text-base px-2 py-1 bg-gray-50 border border-gray-200 rounded pr-10"
+                    class="w-full font-mono text-base px-2 py-1 rounded pr-10"
                     readonly
                   />
                   <button
