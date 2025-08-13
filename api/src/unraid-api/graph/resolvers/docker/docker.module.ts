@@ -4,6 +4,7 @@ import { DockerAuthService } from '@app/unraid-api/graph/resolvers/docker/docker
 import { DockerConfigService } from '@app/unraid-api/graph/resolvers/docker/docker-config.service.js';
 import { DockerManifestService } from '@app/unraid-api/graph/resolvers/docker/docker-manifest.service.js';
 import { DockerOrganizerService } from '@app/unraid-api/graph/resolvers/docker/docker-organizer.service.js';
+import { DockerPhpService } from '@app/unraid-api/graph/resolvers/docker/docker-php.service.js';
 import { DockerMutationsResolver } from '@app/unraid-api/graph/resolvers/docker/docker.mutations.resolver.js';
 import { DockerResolver } from '@app/unraid-api/graph/resolvers/docker/docker.resolver.js';
 import { DockerService } from '@app/unraid-api/graph/resolvers/docker/docker.service.js';
@@ -16,6 +17,7 @@ import { DockerService } from '@app/unraid-api/graph/resolvers/docker/docker.ser
         DockerOrganizerService,
         DockerAuthService,
         DockerManifestService,
+        DockerPhpService,
         // DockerEventService,
 
         // Resolvers
