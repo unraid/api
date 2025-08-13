@@ -54,24 +54,38 @@ export class CliInternalClientService {
             return await this.creatingClient;
         }
 
-        // Start creating the client
-        this.creatingClient = (async () => {
+        // Start creating the client with race condition protection
+        let creationPromise!: Promise<ApolloClient<NormalizedCacheObject>>;
+        // eslint-disable-next-line prefer-const
+        creationPromise = (async () => {
             try {
                 const client = await this.clientFactory.createClient({
                     getApiKey: () => this.getLocalApiKey(),
                     enableSubscriptions: false, // CLI doesn't need subscriptions
                 });
 
-                this.client = client;
-                this.logger.debug('Created CLI internal GraphQL client with admin privileges');
+                // awaiting *before* checking this.creatingClient is important!
+                // by yielding to the event loop, it ensures
+                // `this.creatingClient = creationPromise;` is executed before the next check.
+
+                // This prevents race conditions where the client is assigned to the wrong instance.
+                // Only assign client if this creation is still current
+                if (this.creatingClient === creationPromise) {
+                    this.client = client;
+                    this.logger.debug('Created CLI internal GraphQL client with admin privileges');
+                }
+
                 return client;
             } finally {
-                // Clear the creating promise on both success and failure
-                this.creatingClient = null;
+                // Only clear if this creation is still current
+                if (this.creatingClient === creationPromise) {
+                    this.creatingClient = null;
+                }
             }
         })();
 
-        return await this.creatingClient;
+        this.creatingClient = creationPromise;
+        return await creationPromise;
     }
 
     public clearClient() {
