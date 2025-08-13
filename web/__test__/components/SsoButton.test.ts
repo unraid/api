@@ -61,7 +61,6 @@ const mockLocation = {
 };
 vi.stubGlobal('location', mockLocation);
 vi.stubGlobal('URLSearchParams', URLSearchParams);
-vi.stubGlobal('URLSearchParams', URLSearchParams);
 vi.stubGlobal('URL', URL);
 const mockHistory = {
   replaceState: vi.fn(),
