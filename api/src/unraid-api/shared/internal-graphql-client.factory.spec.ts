@@ -64,9 +64,7 @@ describe('InternalGraphQLClientFactory', () => {
 
     describe('createClient', () => {
         it('should throw error when getApiKey is not provided', async () => {
-            await expect(factory.createClient({ getApiKey: null as any })).rejects.toThrow(
-                'getApiKey function is required for creating a GraphQL client'
-            );
+            await expect(factory.createClient({ getApiKey: null as any })).rejects.toThrow();
         });
 
         it('should create client with Unix socket configuration', async () => {

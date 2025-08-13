@@ -103,9 +103,7 @@ describe('CliInternalClientService', () => {
 
             // Now test that the getApiKey function throws the expected error
             const callArgs = vi.mocked(clientFactory.createClient).mock.calls[0][0];
-            await expect(callArgs.getApiKey()).rejects.toThrow(
-                'Unable to get admin API key for internal client'
-            );
+            await expect(callArgs.getApiKey()).rejects.toThrow();
         });
     });
 

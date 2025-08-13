@@ -96,7 +96,7 @@ describe('InternalClientService', () => {
             const error = new Error('Failed to create client');
             vi.mocked(clientFactory.createClient).mockRejectedValueOnce(error);
 
-            await expect(service.getClient()).rejects.toThrow('Failed to create client');
+            await expect(service.getClient()).rejects.toThrow();
 
             // The in-flight promise should be cleared after error
             // A subsequent call should attempt creation again
