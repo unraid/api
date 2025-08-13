@@ -137,4 +137,67 @@ describe('CliInternalClientService', () => {
             expect(clientFactory.createClient).toHaveBeenCalledTimes(2);
         });
     });
+
+    describe('race condition protection', () => {
+        it('should prevent stale client resurrection when clearClient() is called during creation', async () => {
+            let resolveClientCreation!: (client: any) => void;
+
+            // Mock createClient to return a controllable promise
+            const clientCreationPromise = new Promise<any>((resolve) => {
+                resolveClientCreation = resolve;
+            });
+            vi.mocked(clientFactory.createClient).mockReturnValueOnce(clientCreationPromise);
+
+            // Start client creation (but don't await yet)
+            const getClientPromise = service.getClient();
+
+            // Clear the client while creation is in progress
+            service.clearClient();
+
+            // Now complete the client creation
+            resolveClientCreation(mockApolloClient);
+
+            // Wait for getClient to complete
+            const client = await getClientPromise;
+
+            // The client should be returned from getClient
+            expect(client).toBe(mockApolloClient);
+
+            // But subsequent getClient calls should create a new client
+            // because the race condition protection prevented assignment
+            await service.getClient();
+
+            // Should have created a second client, proving the first wasn't assigned
+            expect(clientFactory.createClient).toHaveBeenCalledTimes(2);
+        });
+
+        it('should handle concurrent getClient calls during race condition', async () => {
+            let resolveClientCreation!: (client: any) => void;
+
+            // Mock createClient to return a controllable promise
+            const clientCreationPromise = new Promise<any>((resolve) => {
+                resolveClientCreation = resolve;
+            });
+            vi.mocked(clientFactory.createClient).mockReturnValueOnce(clientCreationPromise);
+
+            // Start multiple concurrent client creation calls
+            const getClientPromise1 = service.getClient();
+            const getClientPromise2 = service.getClient(); // Should wait for first one
+
+            // Clear the client while creation is in progress
+            service.clearClient();
+
+            // Complete the client creation
+            resolveClientCreation(mockApolloClient);
+
+            // Both calls should resolve with the same client
+            const [client1, client2] = await Promise.all([getClientPromise1, getClientPromise2]);
+            expect(client1).toBe(mockApolloClient);
+            expect(client2).toBe(mockApolloClient);
+
+            // But the client should not be cached due to race condition protection
+            await service.getClient();
+            expect(clientFactory.createClient).toHaveBeenCalledTimes(2);
+        });
+    });
 });
