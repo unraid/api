@@ -21,8 +21,10 @@ export class DockerPhpService {
                 file: dockerUpdatePath,
                 method: 'GET',
             });
+            return true;
         } catch {
             // ignore; offline may keep remote as 'undef'
+            return false;
         }
     }
 
