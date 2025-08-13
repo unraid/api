@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 
 import { ExtendOptions, Got, got as gotClient, OptionsOfTextResponseBody } from 'got';
 
@@ -11,6 +11,7 @@ const ACCEPT_MANIFEST =
 
 @Injectable()
 export class DockerManifestService {
+    private readonly logger = new Logger(DockerManifestService.name);
     constructor(private readonly dockerAuthService: DockerAuthService) {}
 
     parseImageRef(imageRef: string) {
@@ -104,21 +105,21 @@ export class DockerManifestService {
         return digest ? digest.trim() : null;
     }
 
-    async getLocalDigest(imageRef) {
+    async getLocalDigest(imageRef: string) {
         try {
             const data = await docker.getImage(imageRef).inspect();
             const digests = data.RepoDigests || [];
             if (digests.length === 0) return null;
             // Prefer a digest matching this repo if present; else first
             const pick = digests.find((d) => d.startsWith(imageRef.split(':')[0] + '@')) || digests[0];
-            const at = pick.indexOf('@');
-            return at >= 0 ? pick.slice(at + 1) : null;
+            const [, shaDigestString] = pick.split('@');
+            return shaDigestString ?? null;
         } catch {
             return null;
         }
     }
 
-    async isRebuildReady(networkMode) {
+    async isRebuildReady(networkMode?: string) {
         if (!networkMode || !networkMode.startsWith('container:')) return false;
         const target = networkMode.slice('container:'.length);
         try {
