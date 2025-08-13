@@ -1,4 +1,4 @@
-import { ApolloClient, NormalizedCacheObject } from '@apollo/client/core/index.js';
+import type { ApolloClient, NormalizedCacheObject } from '@apollo/client/core/index.js';
 
 /**
  * Interface for the internal GraphQL client factory.
