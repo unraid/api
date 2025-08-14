@@ -128,8 +128,8 @@ export class RestController {
                 fullUrl
             );
 
-            // Redirect to login page with the token
-            const loginUrl = `/login?token=${encodeURIComponent(paddedToken)}`;
+            // Redirect to login page with the token in hash to keep it out of server logs
+            const loginUrl = `/login#token=${encodeURIComponent(paddedToken)}`;
 
             // Manually set redirect headers for better proxy compatibility
             res.status(302);
@@ -148,7 +148,7 @@ export class RestController {
                 this.logger.debug(`Error during OIDC callback: ${error.message}`);
             }
 
-            const loginUrl = `/login?error=${encodeURIComponent(errorMessage)}`;
+            const loginUrl = `/login#error=${encodeURIComponent(errorMessage)}`;
 
             res.status(302);
             res.header('Location', loginUrl);

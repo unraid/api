@@ -48,16 +48,16 @@ export function useSsoAuth() {
   };
 
   const disableFormOnSubmit = () => {
-    const { form } = getInputFields();
-    if (form) {
-      form.style.display = 'none';
+    const fields = getInputFields();
+    if (fields?.form) {
+      fields.form.style.display = 'none';
     }
   };
 
   const reEnableFormOnError = () => {
-    const { form } = getInputFields();
-    if (form) {
-      form.style.display = 'block';
+    const fields = getInputFields();
+    if (fields?.form) {
+      fields.form.style.display = 'block';
     }
   };
 
@@ -76,36 +76,37 @@ export function useSsoAuth() {
 
   const handleOAuthCallback = async () => {
     try {
+      // First check hash parameters (for token and error - keeps them out of server logs)
+      const hashParams = new URLSearchParams(window.location.hash.slice(1));
+      const hashToken = hashParams.get('token');
+      const hashError = hashParams.get('error');
+      
+      // Then check query parameters (for OAuth code/state from provider redirects)
       const search = new URLSearchParams(window.location.search);
       const code = search.get('code') ?? '';
       const state = search.get('state') ?? '';
-      const errorParam = search.get('error') ?? '';
       const sessionState = getStateToken();
 
-      // Check for error parameter
+      // Check for error in hash (preferred) or query params (fallback)
+      const errorParam = hashError || search.get('error') || '';
       if (errorParam) {
         currentState.value = 'error';
-        // Use the error parameter directly from the backend
         error.value = errorParam;
         
-        // Clean up the URL
-        const url = new URL(window.location.href);
-        url.searchParams.delete('error');
-        window.history.replaceState({}, document.title, url.pathname + url.search);
+        // Clean up the URL (both hash and query params)
+        window.history.replaceState({}, document.title, window.location.pathname);
         return;
       }
 
-      // Handle OAuth callback if we have a token (from OIDC redirect)
-      const token = search.get('token');
+      // Handle OAuth callback if we have a token in hash (from OIDC redirect)
+      const token = hashToken || search.get('token'); // Check hash first, query as fallback
       if (token) {
         currentState.value = 'loading';
         disableFormOnSubmit();
         enterCallbackTokenIntoField(token);
         
-        // Clean up the URL
-        const url = new URL(window.location.href);
-        url.searchParams.delete('token');
-        window.history.replaceState({}, document.title, url.pathname);
+        // Clean up the URL (both hash and query params)
+        window.history.replaceState({}, document.title, window.location.pathname);
         return;
       }
       

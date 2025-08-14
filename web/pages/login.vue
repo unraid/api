@@ -19,12 +19,17 @@ const cliToken = ref('');
 const cliOutput = ref('');
 const isExecutingCli = ref(false);
 
-// Check for token in URL on mount
+// Check for token in URL hash on mount (keeps token out of server logs)
 const route = useRoute();
 onMounted(() => {
-  const tokenFromUrl = route.query.token as string;
-  if (tokenFromUrl) {
-    cliToken.value = tokenFromUrl;
+  // Check hash first (preferred), then query params (fallback)
+  const hashParams = new URLSearchParams(window.location.hash.slice(1));
+  const tokenFromHash = hashParams.get('token');
+  const tokenFromQuery = route.query.token as string;
+  
+  const token = tokenFromHash || tokenFromQuery;
+  if (token) {
+    cliToken.value = token;
   }
 });
 
