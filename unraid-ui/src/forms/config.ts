@@ -2,7 +2,15 @@ import { createAjv } from '@jsonforms/core';
 import type Ajv from 'ajv';
 
 export interface JsonFormsConfig {
+  /**
+   * When true, only properties defined in the schema will be rendered.
+   * Extra properties not in the schema are omitted from the form.
+   */
   restrict: boolean;
+  /**
+   * When true, leading and trailing whitespace is removed from string inputs
+   * before validation.
+   */
   trim: boolean;
   ajv?: Ajv;
 }
@@ -14,7 +22,6 @@ export interface JsonFormsConfig {
 export function createJsonFormsAjv(): Ajv {
   return createAjv({
     allErrors: true,
-    verbose: true,
     strict: false,
   });
 }
