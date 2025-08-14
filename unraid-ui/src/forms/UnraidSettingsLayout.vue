@@ -17,7 +17,7 @@
 
 import SettingsGrid from '@/components/layout/SettingsGrid.vue';
 import { useJsonFormsVisibility } from '@/forms/composables/useJsonFormsVisibility';
-import type { HorizontalLayout } from '@jsonforms/core';
+import type { HorizontalLayout, UISchemaElement } from '@jsonforms/core';
 import { DispatchRenderer, type RendererProps } from '@jsonforms/vue';
 import { computed } from 'vue';
 
@@ -37,7 +37,7 @@ const elements = computed(() => {
     <template v-for="(element, _i) in elements" :key="_i">
       <DispatchRenderer
         :schema="layout.layout.value.schema"
-        :uischema="element"
+        :uischema="element as UISchemaElement"
         :path="layout.layout.value.path"
         :enabled="layout.layout.value.enabled"
         :renderers="layout.layout.value.renderers"
