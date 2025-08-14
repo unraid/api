@@ -54,7 +54,10 @@ export class OidcValidationService {
                 userFriendlyError = `Connection timeout. The server at '${provider.issuer}' is not responding.`;
                 details = { type: 'TIMEOUT_ERROR', originalError: errorMessage };
             } else if (errorMessage.includes('404') || errorMessage.includes('Not Found')) {
-                userFriendlyError = `OIDC discovery endpoint not found. Please verify that '${provider.issuer}/.well-known/openid-configuration' exists.`;
+                const baseUrl = provider.issuer?.endsWith('/.well-known/openid-configuration')
+                    ? provider.issuer.replace('/.well-known/openid-configuration', '')
+                    : provider.issuer;
+                userFriendlyError = `OIDC discovery endpoint not found. Please verify that '${baseUrl}/.well-known/openid-configuration' exists.`;
                 details = { type: 'DISCOVERY_NOT_FOUND', originalError: errorMessage };
             } else if (errorMessage.includes('401') || errorMessage.includes('403')) {
                 userFriendlyError = `Access denied to discovery endpoint. Please check the issuer URL and any authentication requirements.`;
@@ -63,7 +66,10 @@ export class OidcValidationService {
                 // Extract status code if possible
                 const statusMatch = errorMessage.match(/status code (\d+)/);
                 const statusCode = statusMatch ? statusMatch[1] : 'unknown';
-                userFriendlyError = `HTTP ${statusCode} error from discovery endpoint. Please check that '${provider.issuer}/.well-known/openid-configuration' returns a valid OIDC discovery document.`;
+                const baseUrl = provider.issuer?.endsWith('/.well-known/openid-configuration')
+                    ? provider.issuer.replace('/.well-known/openid-configuration', '')
+                    : provider.issuer;
+                userFriendlyError = `HTTP ${statusCode} error from discovery endpoint. Please check that '${baseUrl}/.well-known/openid-configuration' returns a valid OIDC discovery document.`;
                 details = { type: 'HTTP_STATUS_ERROR', statusCode, originalError: errorMessage };
             } else if (
                 errorMessage.includes('certificate') ||
@@ -76,7 +82,10 @@ export class OidcValidationService {
                 userFriendlyError = `Invalid OIDC discovery response. The server returned malformed JSON.`;
                 details = { type: 'INVALID_JSON', originalError: errorMessage };
             } else if (error && (error as any).code === 'OAUTH_RESPONSE_IS_NOT_CONFORM') {
-                userFriendlyError = `Invalid OIDC discovery document. The server at '${provider.issuer}/.well-known/openid-configuration' returned a response that doesn't conform to the OpenID Connect Discovery specification. Please verify the endpoint returns valid OIDC metadata.`;
+                const baseUrl = provider.issuer?.endsWith('/.well-known/openid-configuration')
+                    ? provider.issuer.replace('/.well-known/openid-configuration', '')
+                    : provider.issuer;
+                userFriendlyError = `Invalid OIDC discovery document. The server at '${baseUrl}/.well-known/openid-configuration' returned a response that doesn't conform to the OpenID Connect Discovery specification. Please verify the endpoint returns valid OIDC metadata.`;
                 details = { type: 'INVALID_OIDC_DOCUMENT', originalError: errorMessage };
             }
 
@@ -84,9 +93,10 @@ export class OidcValidationService {
 
             // Add debug logging for HTTP status errors
             if (errorMessage.includes('unexpected HTTP response status code')) {
-                this.logger.debug(
-                    `Attempted to fetch: ${provider.issuer}/.well-known/openid-configuration`
-                );
+                const baseUrl = provider.issuer?.endsWith('/.well-known/openid-configuration')
+                    ? provider.issuer.replace('/.well-known/openid-configuration', '')
+                    : provider.issuer;
+                this.logger.debug(`Attempted to fetch: ${baseUrl}/.well-known/openid-configuration`);
                 this.logger.debug(`Full error details: ${JSON.stringify(error)}`);
             }
 
