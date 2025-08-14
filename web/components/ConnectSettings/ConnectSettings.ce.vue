@@ -8,7 +8,7 @@ import { storeToRefs } from 'pinia';
 import { watchDebounced } from '@vueuse/core';
 import { useMutation, useQuery } from '@vue/apollo-composable';
 
-import { BrandButton, jsonFormsRenderers, Label, SettingsGrid } from '@unraid/ui';
+import { BrandButton, jsonFormsRenderers, jsonFormsAjv, Label, SettingsGrid } from '@unraid/ui';
 import { JsonForms } from '@jsonforms/vue';
 
 import { useServerStore } from '~/store/server';
@@ -123,6 +123,7 @@ const onChange = ({ data }: { data: Record<string, unknown> }) => {
       :renderers="renderers"
       :data="formState"
       :config="jsonFormsConfig"
+      :ajv="jsonFormsAjv"
       :readonly="isUpdating"
       @change="onChange"
     />

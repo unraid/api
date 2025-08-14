@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import { Button } from '@/components/common/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/common/tabs';
-// Import the renderers directly
+import { jsonFormsAjv } from '@/forms/config';
+// Import the renderers and AJV directly
 import { jsonFormsRenderers } from '@/forms/renderers';
 import type { ControlElement, JsonSchema, UISchemaElement } from '@jsonforms/core';
 import { JsonForms, useJsonFormsControl } from '@jsonforms/vue';
@@ -230,6 +231,7 @@ const updateItem = (index: number, newValue: unknown) => {
               :schema="control.schema.items as JsonSchema"
               :uischema="detailLayout"
               :renderers="renderers"
+              :ajv="jsonFormsAjv"
               :readonly="!control.enabled"
               @change="({ data }) => updateItem(index, data)"
             />

@@ -88,3 +88,42 @@ export function createLabeledControl({
     }
     return layout;
 }
+
+/**
+ * Creates an AccordionLayout that wraps child elements in an accordion interface.
+ * Each element becomes an accordion item with configurable titles and descriptions.
+ */
+export function createAccordionLayout({
+    elements,
+    defaultOpen,
+    rule,
+}: {
+    elements: Array<
+        Layout & {
+            options?: Layout['options'] & {
+                accordion?: {
+                    title?: string;
+                    description?: string;
+                };
+            };
+        }
+    >;
+    defaultOpen?: number | number[] | 'all';
+    rule?: Rule;
+}): Layout {
+    const layout: Layout = {
+        type: 'AccordionLayout',
+        options: {
+            accordion: {
+                defaultOpen,
+            },
+        },
+        elements,
+    };
+
+    if (rule) {
+        layout.rule = rule;
+    }
+
+    return layout;
+}

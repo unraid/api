@@ -13,6 +13,7 @@ import {
 } from '@app/unraid-api/graph/resolvers/sso/oidc-provider.model.js';
 import { OidcValidationService } from '@app/unraid-api/graph/resolvers/sso/oidc-validation.service.js';
 import {
+    createAccordionLayout,
     createLabeledControl,
     createSimpleLabeledControl,
 } from '@app/unraid-api/graph/utils/form-utils.js';
@@ -63,9 +64,10 @@ export class OidcConfigPersistence extends ConfigFilePersister<OidcConfig> {
             scopes: ['openid', 'profile', 'email'],
             authorizationRules: [],
             buttonText: 'Login With Unraid.net',
-            buttonIcon: undefined,
+            buttonIcon:
+                'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMzMuNTIgNzYuOTciPjx0aXRsZT5VTi1tYXJrLXdoaXRlPC90aXRsZT48cGF0aCBkPSJNNjMuNDksMTkuMjRINzBWNTcuNzNINjMuNDlaTTYuNTQsNTcuNzNIMFYxOS4yNEg2LjU0Wm0yNS4yLDQuNTRoNi41NVY3N0gzMS43NFpNMTUuODcsNDUuODRoNi41NFY2OS42MkgxNS44N1ptMzEuNzUsMGg2LjU0VjY5LjYySDQ3LjYyWk0xMjcsMTkuMjRoNi41NFY1Ny43M0gxMjdaTTEwMS43NywxNC43SDk1LjIzVjBoNi41NFptMTUuODgsMTYuNDRIMTExLjFWNy4zNWg2LjU1Wm0tMzEuNzUsMEg3OS4zNlY3LjM1SDg1LjlaIiBmaWxsPSIjZmZmIi8+PC9zdmc+',
             buttonVariant: 'primary',
-            buttonStyle: undefined,
+            buttonStyle: 'background-color: #ff6600; border-color: #ff6600; color: white;',
         };
     }
 
@@ -289,8 +291,18 @@ export class OidcConfigPersistence extends ConfigFilePersister<OidcConfig> {
                 // Validate OIDC discovery for all providers with issuer URLs
                 const validationErrors: string[] = [];
                 for (const provider of processedConfig.providers) {
-                    if (provider.issuer && !provider.issuer.includes('unraid.net')) {
-                        // Skip validation for unraid.net as it uses custom auth flow
+                    if (provider.issuer) {
+                        try {
+                            // Parse the issuer URL and check if hostname is exactly 'unraid.net'
+                            const issuerUrl = new URL(provider.issuer);
+                            if (issuerUrl.hostname === 'unraid.net') {
+                                // Skip validation for unraid.net as it uses custom auth flow
+                                continue;
+                            }
+                        } catch (urlError) {
+                            // Invalid URL, proceed with validation
+                        }
+
                         try {
                             const validation = await this.validationService.validateProvider(provider);
                             if (!validation.isValid) {
@@ -339,8 +351,24 @@ export class OidcConfigPersistence extends ConfigFilePersister<OidcConfig> {
     } {
         const config = this.configService.get<OidcConfig>(this.configKey()) || this.defaultConfig();
 
+        // Ensure unraid.net provider always has current defaults while preserving authorization rules
+        const providers = config.providers.map((provider) => {
+            if (provider.id === 'unraid.net') {
+                const currentDefaults = this.getUnraidNetSsoProvider();
+                // Preserve existing authorization rules but override UI/button properties
+                return {
+                    ...provider,
+                    ...currentDefaults,
+                    // Keep existing authorization rules if they exist
+                    authorizationRules:
+                        provider.authorizationRules || currentDefaults.authorizationRules,
+                };
+            }
+            return provider;
+        });
+
         // Enhance providers with UI fields
-        const enhancedProviders = config.providers.map((provider) => {
+        const enhancedProviders = providers.map((provider) => {
             const simpleAuth = this.convertRulesToSimple(provider.authorizationRules || []);
 
             // Determine if rules can be represented in simple mode
@@ -629,349 +657,421 @@ export class OidcConfigPersistence extends ConfigFilePersister<OidcConfig> {
                                             'This is the built-in Unraid.net provider. Only authorization rules can be modified.',
                                     },
                                 ],
-                                detail: {
-                                    type: 'VerticalLayout',
+                                detail: createAccordionLayout({
+                                    defaultOpen: [0],
                                     elements: [
-                                        createSimpleLabeledControl({
-                                            scope: '#/properties/id',
-                                            label: 'Provider ID:',
-                                            description: 'Unique identifier (e.g., google, github)',
-                                            controlOptions: {
-                                                inputType: 'text',
-                                                placeholder: 'provider-id',
-                                            },
-                                            rule: {
-                                                effect: RuleEffect.HIDE,
-                                                condition: {
-                                                    scope: '#/properties/id',
-                                                    schema: { const: 'unraid.net' },
-                                                },
-                                            },
-                                        }),
-                                        createSimpleLabeledControl({
-                                            scope: '#/properties/name',
-                                            label: 'Provider Name:',
-                                            description: 'Display name for users',
-                                            controlOptions: {
-                                                inputType: 'text',
-                                                placeholder: 'My Provider',
-                                            },
-                                            rule: {
-                                                effect: RuleEffect.HIDE,
-                                                condition: {
-                                                    scope: '#/properties/id',
-                                                    schema: { const: 'unraid.net' },
-                                                },
-                                            },
-                                        }),
-                                        createSimpleLabeledControl({
-                                            scope: '#/properties/clientId',
-                                            label: 'Client ID:',
-                                            description: 'OAuth2 application client ID',
-                                            controlOptions: {
-                                                inputType: 'text',
-                                            },
-                                            rule: {
-                                                effect: RuleEffect.HIDE,
-                                                condition: {
-                                                    scope: '#/properties/id',
-                                                    schema: { const: 'unraid.net' },
-                                                },
-                                            },
-                                        }),
-                                        createSimpleLabeledControl({
-                                            scope: '#/properties/clientSecret',
-                                            label: 'Client Secret:',
-                                            description: 'OAuth2 application client secret (optional)',
-                                            controlOptions: {
-                                                inputType: 'password',
-                                            },
-                                            rule: {
-                                                effect: RuleEffect.HIDE,
-                                                condition: {
-                                                    scope: '#/properties/id',
-                                                    schema: { const: 'unraid.net' },
-                                                },
-                                            },
-                                        }),
-                                        createSimpleLabeledControl({
-                                            scope: '#/properties/issuer',
-                                            label: 'Issuer URL:',
-                                            description: 'OIDC issuer/discovery URL',
-                                            controlOptions: {
-                                                inputType: 'url',
-                                                placeholder: 'https://accounts.google.com',
-                                            },
-                                            rule: {
-                                                effect: RuleEffect.HIDE,
-                                                condition: {
-                                                    scope: '#/properties/id',
-                                                    schema: { const: 'unraid.net' },
-                                                },
-                                            },
-                                        }),
-                                        createSimpleLabeledControl({
-                                            scope: '#/properties/authorizationEndpoint',
-                                            label: 'Authorization Endpoint:',
-                                            description: 'Override auto-discovery (optional)',
-                                            controlOptions: {
-                                                inputType: 'url',
-                                            },
-                                            rule: {
-                                                effect: RuleEffect.HIDE,
-                                                condition: {
-                                                    scope: '#/properties/id',
-                                                    schema: { const: 'unraid.net' },
-                                                },
-                                            },
-                                        }),
-                                        createSimpleLabeledControl({
-                                            scope: '#/properties/tokenEndpoint',
-                                            label: 'Token Endpoint:',
-                                            description: 'Override auto-discovery (optional)',
-                                            controlOptions: {
-                                                inputType: 'url',
-                                            },
-                                            rule: {
-                                                effect: RuleEffect.HIDE,
-                                                condition: {
-                                                    scope: '#/properties/id',
-                                                    schema: { const: 'unraid.net' },
-                                                },
-                                            },
-                                        }),
-                                        createSimpleLabeledControl({
-                                            scope: '#/properties/jwksUri',
-                                            label: 'JWKS URI:',
-                                            description: 'Override auto-discovery (optional)',
-                                            controlOptions: {
-                                                inputType: 'url',
-                                            },
-                                            rule: {
-                                                effect: RuleEffect.HIDE,
-                                                condition: {
-                                                    scope: '#/properties/id',
-                                                    schema: { const: 'unraid.net' },
-                                                },
-                                            },
-                                        }),
-                                        createSimpleLabeledControl({
-                                            scope: '#/properties/scopes',
-                                            label: 'OAuth Scopes:',
-                                            description: 'Scopes to request from the provider',
-                                            controlOptions: {
-                                                format: 'array',
-                                                inputType: 'text',
-                                                placeholder: 'openid',
-                                            },
-                                            rule: {
-                                                effect: RuleEffect.HIDE,
-                                                condition: {
-                                                    scope: '#/properties/id',
-                                                    schema: { const: 'unraid.net' },
-                                                },
-                                            },
-                                        }),
-                                        // Authorization Mode Toggle
-                                        createSimpleLabeledControl({
-                                            scope: '#/properties/authorizationMode',
-                                            label: 'Authorization Mode:',
-                                            description:
-                                                'Choose between simple presets or advanced rule configuration',
-                                            controlOptions: {},
-                                        }),
-                                        // Simple Authorization Fields (shown when mode is 'simple')
                                         {
                                             type: 'VerticalLayout',
+                                            options: {
+                                                accordion: {
+                                                    title: 'Basic Configuration',
+                                                    description: 'Essential provider settings',
+                                                },
+                                            },
                                             rule: {
-                                                effect: RuleEffect.SHOW,
+                                                effect: RuleEffect.HIDE,
                                                 condition: {
-                                                    scope: '#/properties/authorizationMode',
-                                                    schema: { const: 'simple' },
+                                                    scope: '#/properties/id',
+                                                    schema: { const: 'unraid.net' },
                                                 },
                                             },
                                             elements: [
-                                                {
-                                                    type: 'Label',
-                                                    text: 'Simple Authorization',
-                                                    options: {
-                                                        description:
-                                                            'Configure who can login using simple presets. At least one field must be configured.',
-                                                        format: 'title',
+                                                createSimpleLabeledControl({
+                                                    scope: '#/properties/id',
+                                                    label: 'Provider ID:',
+                                                    description:
+                                                        'Unique identifier (e.g., google, github)',
+                                                    controlOptions: {
+                                                        inputType: 'text',
+                                                        placeholder: 'provider-id',
                                                     },
+                                                    rule: {
+                                                        effect: RuleEffect.HIDE,
+                                                        condition: {
+                                                            scope: '#/properties/id',
+                                                            schema: { const: 'unraid.net' },
+                                                        },
+                                                    },
+                                                }),
+                                                createSimpleLabeledControl({
+                                                    scope: '#/properties/name',
+                                                    label: 'Provider Name:',
+                                                    description: 'Display name for users',
+                                                    controlOptions: {
+                                                        inputType: 'text',
+                                                        placeholder: 'My Provider',
+                                                    },
+                                                    rule: {
+                                                        effect: RuleEffect.HIDE,
+                                                        condition: {
+                                                            scope: '#/properties/id',
+                                                            schema: { const: 'unraid.net' },
+                                                        },
+                                                    },
+                                                }),
+                                                createSimpleLabeledControl({
+                                                    scope: '#/properties/clientId',
+                                                    label: 'Client ID:',
+                                                    description: 'OAuth2 application client ID',
+                                                    controlOptions: {
+                                                        inputType: 'text',
+                                                    },
+                                                    rule: {
+                                                        effect: RuleEffect.HIDE,
+                                                        condition: {
+                                                            scope: '#/properties/id',
+                                                            schema: { const: 'unraid.net' },
+                                                        },
+                                                    },
+                                                }),
+                                                createSimpleLabeledControl({
+                                                    scope: '#/properties/clientSecret',
+                                                    label: 'Client Secret:',
+                                                    description:
+                                                        'OAuth2 application client secret (optional)',
+                                                    controlOptions: {
+                                                        inputType: 'password',
+                                                    },
+                                                    rule: {
+                                                        effect: RuleEffect.HIDE,
+                                                        condition: {
+                                                            scope: '#/properties/id',
+                                                            schema: { const: 'unraid.net' },
+                                                        },
+                                                    },
+                                                }),
+                                                createSimpleLabeledControl({
+                                                    scope: '#/properties/issuer',
+                                                    label: 'Issuer URL:',
+                                                    description: 'OIDC issuer/discovery URL',
+                                                    controlOptions: {
+                                                        inputType: 'url',
+                                                        placeholder: 'https://accounts.google.com',
+                                                    },
+                                                    rule: {
+                                                        effect: RuleEffect.HIDE,
+                                                        condition: {
+                                                            scope: '#/properties/id',
+                                                            schema: { const: 'unraid.net' },
+                                                        },
+                                                    },
+                                                }),
+                                                createSimpleLabeledControl({
+                                                    scope: '#/properties/scopes',
+                                                    label: 'OAuth Scopes:',
+                                                    description: 'Scopes to request from the provider',
+                                                    controlOptions: {
+                                                        format: 'array',
+                                                        inputType: 'text',
+                                                        placeholder: 'openid',
+                                                    },
+                                                    rule: {
+                                                        effect: RuleEffect.HIDE,
+                                                        condition: {
+                                                            scope: '#/properties/id',
+                                                            schema: { const: 'unraid.net' },
+                                                        },
+                                                    },
+                                                }),
+                                            ],
+                                        },
+                                        {
+                                            type: 'VerticalLayout',
+                                            options: {
+                                                accordion: {
+                                                    title: 'Advanced Endpoints',
+                                                    description:
+                                                        'Override auto-discovery settings (optional)',
                                                 },
+                                            },
+                                            rule: {
+                                                effect: RuleEffect.HIDE,
+                                                condition: {
+                                                    scope: '#/properties/id',
+                                                    schema: { const: 'unraid.net' },
+                                                },
+                                            },
+                                            elements: [
                                                 createSimpleLabeledControl({
-                                                    scope: '#/properties/simpleAuthorization/properties/allowedDomains',
-                                                    label: 'Allowed Email Domains:',
-                                                    description:
-                                                        'Users with emails ending in these domains can login (e.g., company.com)',
+                                                    scope: '#/properties/authorizationEndpoint',
+                                                    label: 'Authorization Endpoint:',
+                                                    description: 'Override auto-discovery (optional)',
                                                     controlOptions: {
-                                                        format: 'array',
-                                                        inputType: 'text',
-                                                        placeholder: 'company.com',
+                                                        inputType: 'url',
+                                                    },
+                                                    rule: {
+                                                        effect: RuleEffect.HIDE,
+                                                        condition: {
+                                                            scope: '#/properties/id',
+                                                            schema: { const: 'unraid.net' },
+                                                        },
                                                     },
                                                 }),
                                                 createSimpleLabeledControl({
-                                                    scope: '#/properties/simpleAuthorization/properties/allowedEmails',
-                                                    label: 'Specific Email Addresses:',
-                                                    description:
-                                                        'Only these exact email addresses can login',
+                                                    scope: '#/properties/tokenEndpoint',
+                                                    label: 'Token Endpoint:',
+                                                    description: 'Override auto-discovery (optional)',
                                                     controlOptions: {
-                                                        format: 'array',
-                                                        inputType: 'email',
-                                                        placeholder: 'user@example.com',
+                                                        inputType: 'url',
+                                                    },
+                                                    rule: {
+                                                        effect: RuleEffect.HIDE,
+                                                        condition: {
+                                                            scope: '#/properties/id',
+                                                            schema: { const: 'unraid.net' },
+                                                        },
                                                     },
                                                 }),
                                                 createSimpleLabeledControl({
-                                                    scope: '#/properties/simpleAuthorization/properties/allowedUserIds',
-                                                    label: 'Allowed User IDs:',
-                                                    description:
-                                                        'Specific user IDs from the identity provider',
+                                                    scope: '#/properties/jwksUri',
+                                                    label: 'JWKS URI:',
+                                                    description: 'Override auto-discovery (optional)',
                                                     controlOptions: {
-                                                        format: 'array',
-                                                        inputType: 'text',
-                                                        placeholder: 'user-id-123',
+                                                        inputType: 'url',
+                                                    },
+                                                    rule: {
+                                                        effect: RuleEffect.HIDE,
+                                                        condition: {
+                                                            scope: '#/properties/id',
+                                                            schema: { const: 'unraid.net' },
+                                                        },
                                                     },
                                                 }),
-                                                // Google-specific field (shown only for Google providers)
+                                            ],
+                                        },
+                                        {
+                                            type: 'VerticalLayout',
+                                            options: {
+                                                accordion: {
+                                                    title: 'Authorization Rules',
+                                                    description: 'Configure who can access your server',
+                                                },
+                                            },
+                                            elements: [
+                                                // Authorization Mode Toggle
+                                                createSimpleLabeledControl({
+                                                    scope: '#/properties/authorizationMode',
+                                                    label: 'Authorization Mode:',
+                                                    description:
+                                                        'Choose between simple presets or advanced rule configuration',
+                                                    controlOptions: {},
+                                                }),
+                                                // Simple Authorization Fields (shown when mode is 'simple')
                                                 {
                                                     type: 'VerticalLayout',
                                                     rule: {
                                                         effect: RuleEffect.SHOW,
                                                         condition: {
-                                                            scope: '#/properties/issuer',
-                                                            schema: { pattern: '.*google.*' },
+                                                            scope: '#/properties/authorizationMode',
+                                                            schema: { const: 'simple' },
                                                         },
                                                     },
                                                     elements: [
+                                                        {
+                                                            type: 'Label',
+                                                            text: 'Simple Authorization',
+                                                            options: {
+                                                                description:
+                                                                    'Configure who can login using simple presets. At least one field must be configured.',
+                                                                format: 'title',
+                                                            },
+                                                        },
                                                         createSimpleLabeledControl({
-                                                            scope: '#/properties/simpleAuthorization/properties/googleWorkspaceDomain',
-                                                            label: 'Google Workspace Domain:',
+                                                            scope: '#/properties/simpleAuthorization/properties/allowedDomains',
+                                                            label: 'Allowed Email Domains:',
                                                             description:
-                                                                'Restrict to users from your Google Workspace domain',
+                                                                'Users with emails ending in these domains can login (e.g., company.com)',
                                                             controlOptions: {
+                                                                format: 'array',
                                                                 inputType: 'text',
                                                                 placeholder: 'company.com',
                                                             },
                                                         }),
-                                                    ],
-                                                },
-                                            ],
-                                        },
-                                        // Advanced Authorization Rules (shown when mode is 'advanced' or authorizationRuleMode is 'and')
-                                        {
-                                            type: 'VerticalLayout',
-                                            rule: {
-                                                effect: RuleEffect.SHOW,
-                                                condition: {
-                                                    type: 'OR',
-                                                    conditions: [
+                                                        createSimpleLabeledControl({
+                                                            scope: '#/properties/simpleAuthorization/properties/allowedEmails',
+                                                            label: 'Specific Email Addresses:',
+                                                            description:
+                                                                'Only these exact email addresses can login',
+                                                            controlOptions: {
+                                                                format: 'array',
+                                                                inputType: 'email',
+                                                                placeholder: 'user@example.com',
+                                                            },
+                                                        }),
+                                                        createSimpleLabeledControl({
+                                                            scope: '#/properties/simpleAuthorization/properties/allowedUserIds',
+                                                            label: 'Allowed User IDs:',
+                                                            description:
+                                                                'Specific user IDs from the identity provider',
+                                                            controlOptions: {
+                                                                format: 'array',
+                                                                inputType: 'text',
+                                                                placeholder: 'user-id-123',
+                                                            },
+                                                        }),
+                                                        // Google-specific field (shown only for Google providers)
                                                         {
-                                                            scope: '#/properties/authorizationMode',
-                                                            schema: { const: 'advanced' },
-                                                        },
-                                                        {
-                                                            scope: '#/properties/authorizationRuleMode',
-                                                            schema: { const: 'and' },
-                                                        },
-                                                    ],
-                                                },
-                                            },
-                                            elements: [
-                                                {
-                                                    type: 'Label',
-                                                    text: 'Advanced Authorization Rules',
-                                                    options: {
-                                                        description:
-                                                            'Define authorization rules based on claims in the ID token. Rule mode can be configured: OR logic (any rule matches) or AND logic (all rules must match).',
-                                                    },
-                                                },
-                                                createSimpleLabeledControl({
-                                                    scope: '#/properties/authorizationRuleMode',
-                                                    label: 'Rule Mode:',
-                                                    description:
-                                                        'How to evaluate multiple rules: OR (any rule passes) or AND (all rules must pass)',
-                                                    controlOptions: {},
-                                                }),
-                                                {
-                                                    type: 'Control',
-                                                    scope: '#/properties/authorizationRules',
-                                                    options: {
-                                                        elementLabelFormat: '${claim} ${operator}',
-                                                        itemTypeName: 'Rule',
-                                                        detail: {
                                                             type: 'VerticalLayout',
+                                                            rule: {
+                                                                effect: RuleEffect.SHOW,
+                                                                condition: {
+                                                                    scope: '#/properties/issuer',
+                                                                    schema: { pattern: '.*google.*' },
+                                                                },
+                                                            },
                                                             elements: [
                                                                 createSimpleLabeledControl({
-                                                                    scope: '#/properties/claim',
-                                                                    label: 'JWT Claim:',
+                                                                    scope: '#/properties/simpleAuthorization/properties/googleWorkspaceDomain',
+                                                                    label: 'Google Workspace Domain:',
                                                                     description:
-                                                                        'JWT claim to check (e.g., email, sub, groups, hd for Google hosted domain)',
+                                                                        'Restrict to users from your Google Workspace domain',
                                                                     controlOptions: {
                                                                         inputType: 'text',
-                                                                        placeholder: 'email',
-                                                                    },
-                                                                }),
-                                                                createSimpleLabeledControl({
-                                                                    scope: '#/properties/operator',
-                                                                    label: 'Operator:',
-                                                                    description:
-                                                                        'How to compare the claim value',
-                                                                    controlOptions: {},
-                                                                }),
-                                                                createSimpleLabeledControl({
-                                                                    scope: '#/properties/value',
-                                                                    label: 'Values:',
-                                                                    description:
-                                                                        'Value(s) to match against (any match passes)',
-                                                                    controlOptions: {
-                                                                        format: 'array',
-                                                                        inputType: 'text',
-                                                                        placeholder: '@company.com',
+                                                                        placeholder: 'company.com',
                                                                     },
                                                                 }),
                                                             ],
                                                         },
+                                                    ],
+                                                },
+                                                // Advanced Authorization Rules (shown when mode is 'advanced' or authorizationRuleMode is 'and')
+                                                {
+                                                    type: 'VerticalLayout',
+                                                    rule: {
+                                                        effect: RuleEffect.SHOW,
+                                                        condition: {
+                                                            type: 'OR',
+                                                            conditions: [
+                                                                {
+                                                                    scope: '#/properties/authorizationMode',
+                                                                    schema: { const: 'advanced' },
+                                                                },
+                                                                {
+                                                                    scope: '#/properties/authorizationRuleMode',
+                                                                    schema: { const: 'and' },
+                                                                },
+                                                            ],
+                                                        },
                                                     },
+                                                    elements: [
+                                                        {
+                                                            type: 'Label',
+                                                            text: 'Advanced Authorization Rules',
+                                                            options: {
+                                                                description:
+                                                                    'Define authorization rules based on claims in the ID token. Rule mode can be configured: OR logic (any rule matches) or AND logic (all rules must match).',
+                                                            },
+                                                        },
+                                                        createSimpleLabeledControl({
+                                                            scope: '#/properties/authorizationRuleMode',
+                                                            label: 'Rule Mode:',
+                                                            description:
+                                                                'How to evaluate multiple rules: OR (any rule passes) or AND (all rules must pass)',
+                                                            controlOptions: {},
+                                                        }),
+                                                        {
+                                                            type: 'Control',
+                                                            scope: '#/properties/authorizationRules',
+                                                            options: {
+                                                                elementLabelFormat:
+                                                                    '${claim} ${operator}',
+                                                                itemTypeName: 'Rule',
+                                                                detail: {
+                                                                    type: 'VerticalLayout',
+                                                                    elements: [
+                                                                        createSimpleLabeledControl({
+                                                                            scope: '#/properties/claim',
+                                                                            label: 'JWT Claim:',
+                                                                            description:
+                                                                                'JWT claim to check (e.g., email, sub, groups, hd for Google hosted domain)',
+                                                                            controlOptions: {
+                                                                                inputType: 'text',
+                                                                                placeholder: 'email',
+                                                                            },
+                                                                        }),
+                                                                        createSimpleLabeledControl({
+                                                                            scope: '#/properties/operator',
+                                                                            label: 'Operator:',
+                                                                            description:
+                                                                                'How to compare the claim value',
+                                                                            controlOptions: {},
+                                                                        }),
+                                                                        createSimpleLabeledControl({
+                                                                            scope: '#/properties/value',
+                                                                            label: 'Values:',
+                                                                            description:
+                                                                                'Value(s) to match against (any match passes)',
+                                                                            controlOptions: {
+                                                                                format: 'array',
+                                                                                inputType: 'text',
+                                                                                placeholder:
+                                                                                    '@company.com',
+                                                                            },
+                                                                        }),
+                                                                    ],
+                                                                },
+                                                            },
+                                                        },
+                                                    ],
                                                 },
                                             ],
                                         },
-                                        createSimpleLabeledControl({
-                                            scope: '#/properties/buttonText',
-                                            label: 'Button Text:',
-                                            description: 'Custom login button text (optional)',
-                                            controlOptions: {
-                                                inputType: 'text',
-                                                placeholder: 'Sign in with Provider',
+                                        {
+                                            type: 'VerticalLayout',
+                                            options: {
+                                                accordion: {
+                                                    title: 'Button Customization',
+                                                    description:
+                                                        'Customize the appearance of the login button',
+                                                },
                                             },
-                                        }),
-                                        createSimpleLabeledControl({
-                                            scope: '#/properties/buttonIcon',
-                                            label: 'Button Icon URL:',
-                                            description: 'Icon URL or base64 data URI (optional)',
-                                            controlOptions: {
-                                                inputType: 'url',
+                                            rule: {
+                                                effect: RuleEffect.HIDE,
+                                                condition: {
+                                                    scope: '#/properties/id',
+                                                    schema: { const: 'unraid.net' },
+                                                },
                                             },
-                                        }),
-                                        createSimpleLabeledControl({
-                                            scope: '#/properties/buttonVariant',
-                                            label: 'Button Style:',
-                                            description: 'Visual style of the login button',
-                                            controlOptions: {},
-                                        }),
-                                        createSimpleLabeledControl({
-                                            scope: '#/properties/buttonStyle',
-                                            label: 'Custom CSS Styles:',
-                                            description:
-                                                'Inline CSS styles for custom button appearance. Examples: "background: linear-gradient(45deg, #667eea, #764ba2); box-shadow: 0 4px 6px rgba(0,0,0,0.1);" for gradient with shadow',
-                                            controlOptions: {
-                                                inputType: 'text',
-                                                placeholder:
-                                                    'border-radius: 9999px; text-transform: none;',
-                                            },
-                                        }),
+                                            elements: [
+                                                createSimpleLabeledControl({
+                                                    scope: '#/properties/buttonText',
+                                                    label: 'Button Text:',
+                                                    description: 'Custom login button text (optional)',
+                                                    controlOptions: {
+                                                        inputType: 'text',
+                                                        placeholder: 'Sign in with Provider',
+                                                    },
+                                                }),
+                                                createSimpleLabeledControl({
+                                                    scope: '#/properties/buttonIcon',
+                                                    label: 'Button Icon URL:',
+                                                    description:
+                                                        'Icon URL or base64 data URI (optional)',
+                                                    controlOptions: {
+                                                        inputType: 'url',
+                                                    },
+                                                }),
+                                                createSimpleLabeledControl({
+                                                    scope: '#/properties/buttonVariant',
+                                                    label: 'Button Style:',
+                                                    description: 'Visual style of the login button',
+                                                    controlOptions: {},
+                                                }),
+                                                createSimpleLabeledControl({
+                                                    scope: '#/properties/buttonStyle',
+                                                    label: 'Custom CSS Styles:',
+                                                    description:
+                                                        'Inline CSS styles for custom button appearance. Examples: "background: linear-gradient(45deg, #667eea, #764ba2); box-shadow: 0 4px 6px rgba(0,0,0,0.1);" for gradient with shadow',
+                                                    controlOptions: {
+                                                        inputType: 'text',
+                                                        placeholder:
+                                                            'border-radius: 9999px; text-transform: none;',
+                                                    },
+                                                }),
+                                            ],
+                                        },
                                     ],
-                                },
+                                }),
                             },
                         },
                     ],

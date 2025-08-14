@@ -253,9 +253,10 @@ describe('OidcAuthService', () => {
             // Access the private method through any type casting for testing
             const evaluateAuthorizationRules = (
                 rules: OidcAuthorizationRule[],
-                claims: any
+                claims: any,
+                mode: AuthorizationRuleMode = AuthorizationRuleMode.OR
             ): boolean => {
-                return (service as any).evaluateAuthorizationRules(rules, claims);
+                return (service as any).evaluateAuthorizationRules(rules, claims, mode);
             };
 
             it('should require ANY rule to pass (OR logic)', () => {
@@ -307,6 +308,477 @@ describe('OidcAuthService', () => {
 
             it('should return false when no rules are defined', () => {
                 expect(evaluateAuthorizationRules([], { email: 'any@email.com' })).toBe(false);
+            });
+
+            describe('AND logic mode', () => {
+                it('should require ALL rules to pass when using AND mode', () => {
+                    const rules: OidcAuthorizationRule[] = [
+                        {
+                            claim: 'email',
+                            operator: AuthorizationOperator.ENDS_WITH,
+                            value: ['@company.com'],
+                        },
+                        {
+                            claim: 'department',
+                            operator: AuthorizationOperator.EQUALS,
+                            value: ['engineering'],
+                        },
+                    ];
+
+                    // Both rules pass - should return true
+                    expect(
+                        evaluateAuthorizationRules(
+                            rules,
+                            {
+                                email: 'user@company.com',
+                                department: 'engineering',
+                            },
+                            AuthorizationRuleMode.AND
+                        )
+                    ).toBe(true);
+
+                    // Only email rule passes - should return false
+                    expect(
+                        evaluateAuthorizationRules(
+                            rules,
+                            {
+                                email: 'user@company.com',
+                                department: 'marketing',
+                            },
+                            AuthorizationRuleMode.AND
+                        )
+                    ).toBe(false);
+
+                    // Only department rule passes - should return false
+                    expect(
+                        evaluateAuthorizationRules(
+                            rules,
+                            {
+                                email: 'user@other.com',
+                                department: 'engineering',
+                            },
+                            AuthorizationRuleMode.AND
+                        )
+                    ).toBe(false);
+
+                    // Neither rule passes - should return false
+                    expect(
+                        evaluateAuthorizationRules(
+                            rules,
+                            {
+                                email: 'user@other.com',
+                                department: 'marketing',
+                            },
+                            AuthorizationRuleMode.AND
+                        )
+                    ).toBe(false);
+                });
+
+                it('should handle complex AND conditions with multiple operators', () => {
+                    const rules: OidcAuthorizationRule[] = [
+                        {
+                            claim: 'email',
+                            operator: AuthorizationOperator.ENDS_WITH,
+                            value: ['@company.com'],
+                        },
+                        {
+                            claim: 'name',
+                            operator: AuthorizationOperator.STARTS_WITH,
+                            value: ['John', 'Jane'],
+                        },
+                        {
+                            claim: 'role',
+                            operator: AuthorizationOperator.CONTAINS,
+                            value: ['admin', 'manager'],
+                        },
+                    ];
+
+                    // All rules pass
+                    expect(
+                        evaluateAuthorizationRules(
+                            rules,
+                            {
+                                email: 'john.doe@company.com',
+                                name: 'John Doe',
+                                role: 'senior-admin',
+                            },
+                            AuthorizationRuleMode.AND
+                        )
+                    ).toBe(true);
+
+                    // Missing one condition (role doesn't contain admin/manager)
+                    expect(
+                        evaluateAuthorizationRules(
+                            rules,
+                            {
+                                email: 'john.doe@company.com',
+                                name: 'John Doe',
+                                role: 'developer',
+                            },
+                            AuthorizationRuleMode.AND
+                        )
+                    ).toBe(false);
+                });
+
+                it('should return true with single rule in AND mode', () => {
+                    const rules: OidcAuthorizationRule[] = [
+                        {
+                            claim: 'email',
+                            operator: AuthorizationOperator.EQUALS,
+                            value: ['admin@company.com'],
+                        },
+                    ];
+
+                    expect(
+                        evaluateAuthorizationRules(
+                            rules,
+                            { email: 'admin@company.com' },
+                            AuthorizationRuleMode.AND
+                        )
+                    ).toBe(true);
+
+                    expect(
+                        evaluateAuthorizationRules(
+                            rules,
+                            { email: 'user@company.com' },
+                            AuthorizationRuleMode.AND
+                        )
+                    ).toBe(false);
+                });
+            });
+
+            describe('OR logic mode (default)', () => {
+                it('should handle complex OR conditions with multiple operators', () => {
+                    const rules: OidcAuthorizationRule[] = [
+                        {
+                            claim: 'email',
+                            operator: AuthorizationOperator.EQUALS,
+                            value: ['admin@company.com', 'superuser@company.com'],
+                        },
+                        {
+                            claim: 'groups',
+                            operator: AuthorizationOperator.CONTAINS,
+                            value: ['administrators', 'power-users'],
+                        },
+                        {
+                            claim: 'department',
+                            operator: AuthorizationOperator.STARTS_WITH,
+                            value: ['IT-', 'SEC-'],
+                        },
+                    ];
+
+                    // Multiple rules pass
+                    expect(
+                        evaluateAuthorizationRules(
+                            rules,
+                            {
+                                email: 'admin@company.com',
+                                groups: 'administrators',
+                                department: 'IT-Support',
+                            },
+                            AuthorizationRuleMode.OR
+                        )
+                    ).toBe(true);
+
+                    // Only one rule passes (department)
+                    expect(
+                        evaluateAuthorizationRules(
+                            rules,
+                            {
+                                email: 'user@company.com',
+                                groups: 'users',
+                                department: 'SEC-Operations',
+                            },
+                            AuthorizationRuleMode.OR
+                        )
+                    ).toBe(true);
+
+                    // No rules pass
+                    expect(
+                        evaluateAuthorizationRules(
+                            rules,
+                            {
+                                email: 'user@company.com',
+                                groups: 'users',
+                                department: 'HR-Management',
+                            },
+                            AuthorizationRuleMode.OR
+                        )
+                    ).toBe(false);
+                });
+
+                it('should use OR mode as default when mode is not specified', () => {
+                    const rules: OidcAuthorizationRule[] = [
+                        {
+                            claim: 'email',
+                            operator: AuthorizationOperator.ENDS_WITH,
+                            value: ['@company.com'],
+                        },
+                        {
+                            claim: 'special_user',
+                            operator: AuthorizationOperator.EQUALS,
+                            value: ['true'],
+                        },
+                    ];
+
+                    // Test without explicit mode (should default to OR)
+                    expect(
+                        evaluateAuthorizationRules(rules, {
+                            email: 'user@other.com',
+                            special_user: 'true',
+                        })
+                    ).toBe(true);
+                });
+            });
+
+            describe('Edge cases and boundary conditions', () => {
+                it('should handle empty rules array correctly', () => {
+                    expect(
+                        evaluateAuthorizationRules(
+                            [],
+                            { email: 'any@email.com' },
+                            AuthorizationRuleMode.AND
+                        )
+                    ).toBe(false);
+                    expect(
+                        evaluateAuthorizationRules(
+                            [],
+                            { email: 'any@email.com' },
+                            AuthorizationRuleMode.OR
+                        )
+                    ).toBe(false);
+                });
+
+                it('should handle rules with empty value arrays', () => {
+                    const rules: OidcAuthorizationRule[] = [
+                        {
+                            claim: 'email',
+                            operator: AuthorizationOperator.EQUALS,
+                            value: [],
+                        },
+                    ];
+
+                    expect(
+                        evaluateAuthorizationRules(
+                            rules,
+                            { email: 'user@company.com' },
+                            AuthorizationRuleMode.OR
+                        )
+                    ).toBe(false);
+
+                    expect(
+                        evaluateAuthorizationRules(
+                            rules,
+                            { email: 'user@company.com' },
+                            AuthorizationRuleMode.AND
+                        )
+                    ).toBe(false);
+                });
+
+                it('should handle missing claims in AND mode', () => {
+                    const rules: OidcAuthorizationRule[] = [
+                        {
+                            claim: 'email',
+                            operator: AuthorizationOperator.ENDS_WITH,
+                            value: ['@company.com'],
+                        },
+                        {
+                            claim: 'department',
+                            operator: AuthorizationOperator.EQUALS,
+                            value: ['engineering'],
+                        },
+                    ];
+
+                    // Missing department claim
+                    expect(
+                        evaluateAuthorizationRules(
+                            rules,
+                            { email: 'user@company.com' },
+                            AuthorizationRuleMode.AND
+                        )
+                    ).toBe(false);
+                });
+
+                it('should handle missing claims in OR mode', () => {
+                    const rules: OidcAuthorizationRule[] = [
+                        {
+                            claim: 'email',
+                            operator: AuthorizationOperator.ENDS_WITH,
+                            value: ['@company.com'],
+                        },
+                        {
+                            claim: 'department',
+                            operator: AuthorizationOperator.EQUALS,
+                            value: ['engineering'],
+                        },
+                    ];
+
+                    // Missing department claim but email passes
+                    expect(
+                        evaluateAuthorizationRules(
+                            rules,
+                            { email: 'user@company.com' },
+                            AuthorizationRuleMode.OR
+                        )
+                    ).toBe(true);
+
+                    // Missing both claims
+                    expect(
+                        evaluateAuthorizationRules(rules, { other: 'value' }, AuthorizationRuleMode.OR)
+                    ).toBe(false);
+                });
+
+                it('should handle all claims missing in both modes', () => {
+                    const rules: OidcAuthorizationRule[] = [
+                        {
+                            claim: 'email',
+                            operator: AuthorizationOperator.EQUALS,
+                            value: ['admin@company.com'],
+                        },
+                        {
+                            claim: 'role',
+                            operator: AuthorizationOperator.EQUALS,
+                            value: ['admin'],
+                        },
+                    ];
+
+                    const claimsWithoutRequired = { name: 'John', sub: '12345' };
+
+                    expect(
+                        evaluateAuthorizationRules(
+                            rules,
+                            claimsWithoutRequired,
+                            AuthorizationRuleMode.AND
+                        )
+                    ).toBe(false);
+
+                    expect(
+                        evaluateAuthorizationRules(
+                            rules,
+                            claimsWithoutRequired,
+                            AuthorizationRuleMode.OR
+                        )
+                    ).toBe(false);
+                });
+            });
+
+            describe('Real-world authorization scenarios', () => {
+                it('should handle Google Workspace domain + specific users (OR)', () => {
+                    const rules: OidcAuthorizationRule[] = [
+                        {
+                            claim: 'hd',
+                            operator: AuthorizationOperator.EQUALS,
+                            value: ['company.com'],
+                        },
+                        {
+                            claim: 'email',
+                            operator: AuthorizationOperator.EQUALS,
+                            value: ['contractor1@gmail.com', 'contractor2@outlook.com'],
+                        },
+                    ];
+
+                    // Company domain user
+                    expect(
+                        evaluateAuthorizationRules(
+                            rules,
+                            { hd: 'company.com', email: 'employee@company.com' },
+                            AuthorizationRuleMode.OR
+                        )
+                    ).toBe(true);
+
+                    // Allowed contractor
+                    expect(
+                        evaluateAuthorizationRules(
+                            rules,
+                            { email: 'contractor1@gmail.com' },
+                            AuthorizationRuleMode.OR
+                        )
+                    ).toBe(true);
+
+                    // Unauthorized user
+                    expect(
+                        evaluateAuthorizationRules(
+                            rules,
+                            { email: 'random@gmail.com' },
+                            AuthorizationRuleMode.OR
+                        )
+                    ).toBe(false);
+                });
+
+                it('should handle department + role requirements (AND)', () => {
+                    const rules: OidcAuthorizationRule[] = [
+                        {
+                            claim: 'department',
+                            operator: AuthorizationOperator.EQUALS,
+                            value: ['engineering', 'devops'],
+                        },
+                        {
+                            claim: 'role',
+                            operator: AuthorizationOperator.CONTAINS,
+                            value: ['senior', 'lead', 'manager'],
+                        },
+                    ];
+
+                    // Senior engineer - both conditions met
+                    expect(
+                        evaluateAuthorizationRules(
+                            rules,
+                            { department: 'engineering', role: 'senior-engineer' },
+                            AuthorizationRuleMode.AND
+                        )
+                    ).toBe(true);
+
+                    // Junior engineer - department ok, but not senior
+                    expect(
+                        evaluateAuthorizationRules(
+                            rules,
+                            { department: 'engineering', role: 'junior-engineer' },
+                            AuthorizationRuleMode.AND
+                        )
+                    ).toBe(false);
+
+                    // Senior in wrong department
+                    expect(
+                        evaluateAuthorizationRules(
+                            rules,
+                            { department: 'marketing', role: 'senior-marketer' },
+                            AuthorizationRuleMode.AND
+                        )
+                    ).toBe(false);
+                });
+
+                it('should handle email domain + group membership (AND)', () => {
+                    const rules: OidcAuthorizationRule[] = [
+                        {
+                            claim: 'email',
+                            operator: AuthorizationOperator.ENDS_WITH,
+                            value: ['@trusted.com', '@partner.com'],
+                        },
+                        {
+                            claim: 'groups',
+                            operator: AuthorizationOperator.CONTAINS,
+                            value: ['vpn-access'],
+                        },
+                    ];
+
+                    // Trusted domain with VPN access
+                    expect(
+                        evaluateAuthorizationRules(
+                            rules,
+                            { email: 'user@trusted.com', groups: 'vpn-access,developers' },
+                            AuthorizationRuleMode.AND
+                        )
+                    ).toBe(true);
+
+                    // Trusted domain without VPN access
+                    expect(
+                        evaluateAuthorizationRules(
+                            rules,
+                            { email: 'user@trusted.com', groups: 'developers' },
+                            AuthorizationRuleMode.AND
+                        )
+                    ).toBe(false);
+                });
             });
         });
 

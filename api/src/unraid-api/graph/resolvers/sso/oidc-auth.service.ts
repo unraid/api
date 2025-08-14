@@ -438,6 +438,11 @@ export class OidcAuthService {
         claims: JwtClaims,
         mode: AuthorizationRuleMode = AuthorizationRuleMode.OR
     ): boolean {
+        // No rules means no authorization
+        if (rules.length === 0) {
+            return false;
+        }
+
         if (mode === AuthorizationRuleMode.AND) {
             // All rules must pass (AND logic)
             return rules.every((rule) => this.evaluateRule(rule, claims));

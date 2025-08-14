@@ -1,3 +1,4 @@
+import AccordionLayout from '@/forms/AccordionLayout.vue';
 import comboBoxRenderer from '@/forms/ComboBoxField.vue';
 import ControlWrapper from '@/forms/ControlWrapper.vue';
 import HorizontalLayout from '@/forms/HorizontalLayout.vue';
@@ -72,6 +73,10 @@ const isStringOrAnyOfString = (schema: JsonSchema): boolean => {
 
 export const jsonFormsRenderers: JsonFormsRendererRegistryEntry[] = [
   // Layouts
+  {
+    renderer: markRaw(AccordionLayout),
+    tester: rankWith(4, and(isLayout, uiTypeIs('AccordionLayout'))),
+  },
   {
     renderer: markRaw(VerticalLayout),
     tester: rankWith(2, and(isLayout, uiTypeIs('VerticalLayout'))),
