@@ -43,7 +43,8 @@
   },
   "peerDependencies": {
     "tailwindcss": "4.1.11",
-    "vue": "3.5.18"
+    "vue": "3.5.18",
+    "ajv": "8.17.1"
   },
   "dependencies": {
     "@headlessui/vue": "1.7.23",
@@ -84,6 +85,7 @@
     "@vitest/ui": "3.2.4",
     "@vue/test-utils": "2.4.6",
     "@vue/tsconfig": "0.7.0",
+    "ajv": "8.17.1",
     "concurrently": "9.2.0",
     "eslint": "9.33.0",
     "eslint-config-prettier": "10.1.8",

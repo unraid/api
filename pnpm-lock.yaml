@@ -442,7 +442,7 @@ importers:
         version: 9.33.0(jiti@2.5.1)
       eslint-plugin-import:
         specifier: 2.32.0
-        version: 2.32.0(@typescript-eslint/parser@8.39.1(eslint@9.33.0(jiti@2.5.1))(typescript@5.9.2))(eslint@9.33.0(jiti@2.5.1))
+        version: 2.32.0(@typescript-eslint/parser@8.39.0(eslint@9.33.0(jiti@2.5.1))(typescript@5.9.2))(eslint-import-resolver-typescript@4.4.4)(eslint@9.33.0(jiti@2.5.1))
       eslint-plugin-no-relative-import-paths:
         specifier: 1.6.1
         version: 1.6.1
@@ -946,6 +946,9 @@ importers:
       '@vue/tsconfig':
         specifier: 0.7.0
         version: 0.7.0(typescript@5.9.2)(vue@3.5.18(typescript@5.9.2))
+      ajv:
+        specifier: 8.17.1
+        version: 8.17.1
       concurrently:
         specifier: 9.2.0
         version: 9.2.0
@@ -1082,6 +1085,9 @@ importers:
       '@vueuse/integrations':
         specifier: 13.6.0
         version: 13.6.0(change-case@5.4.4)(focus-trap@7.6.5)(fuse.js@7.1.0)(jwt-decode@4.0.0)(vue@3.5.18(typescript@5.9.2))
+      ajv:
+        specifier: 8.17.1
+        version: 8.17.1
       class-variance-authority:
         specifier: 0.7.1
         version: 0.7.1

@@ -1,5 +1,5 @@
 import { createAjv } from '@jsonforms/core';
-import type { Ajv } from 'ajv';
+import type Ajv from 'ajv';
 
 export interface JsonFormsConfig {
   restrict: boolean;

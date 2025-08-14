@@ -10,14 +10,13 @@ The default OIDC configuration file. This file is committed to git and should on
 ### Using a Local Configuration (gitignored)
 For local testing with real OAuth providers:
 
-1. Create an `oidc.local.json` file based on `oidc.local.example.json`
-2. Add it to your local `.gitignore` to prevent committing secrets
-3. Set the environment variable: `PATHS_OIDC_JSON=oidc.local.json`
-4. The API will load your local configuration instead of the default
+1. Create an `oidc.local.json` file based on `oidc.json`
+2. Set the environment variable: `PATHS_OIDC_JSON=./dev/configs/oidc.local.json`
+3. The API will load your local configuration instead of the default
 
 Example:
 ```bash
-PATHS_OIDC_JSON=oidc.local.json pnpm dev
+PATHS_OIDC_JSON=./dev/configs/oidc.local.json pnpm dev
 ```
 
 ### Setting up OAuth Apps
