@@ -646,7 +646,14 @@ export class OidcAuthService {
             return `http://localhost:3000/graphql/api/auth/oidc/callback`;
         }
 
-        // In production, use the configured base URL with /graphql prefix
+        // In production, use the actual request host or configured base URL
+        if (requestHost) {
+            // Use the actual host from the request (supports custom hostnames)
+            const protocol = requestHost.includes('localhost') ? 'http' : 'https';
+            return `${protocol}://${requestHost}/graphql/api/auth/oidc/callback`;
+        }
+
+        // Fall back to configured BASE_URL or default
         const baseUrl = this.configService.get('BASE_URL', 'http://tower.local');
         return `${baseUrl}/graphql/api/auth/oidc/callback`;
     }
