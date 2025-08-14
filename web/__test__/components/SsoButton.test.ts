@@ -53,11 +53,18 @@ const mockCrypto = {
   }),
 };
 vi.stubGlobal('crypto', mockCrypto);
+let mockLocationHref = 'http://mock-origin.com/login';
 const mockLocation = {
   search: '',
+  hash: '',
   origin: 'http://mock-origin.com',
   pathname: '/login',
-  href: 'http://mock-origin.com/login',
+  get href() {
+    return mockLocationHref;
+  },
+  set href(value: string) {
+    mockLocationHref = value;
+  },
 };
 vi.stubGlobal('location', mockLocation);
 vi.stubGlobal('URLSearchParams', URLSearchParams);
@@ -94,7 +101,8 @@ describe('SsoButtons', () => {
     mockUsernameField.value = '';
     mockForm.style.display = 'block';
     mockLocation.search = '';
-    mockLocation.href = 'http://mock-origin.com/login';
+    mockLocation.hash = '';
+    mockLocationHref = 'http://mock-origin.com/login';
     mockLocation.pathname = '/login';
     (fetch as Mock).mockClear();
     mockUseQuery.mockClear();
@@ -265,9 +273,10 @@ describe('SsoButtons', () => {
     });
 
     const mockToken = 'mock_access_token_123';
-    mockLocation.search = `?token=${mockToken}`;
+    mockLocation.search = '';  // No query params - using hash instead
     mockLocation.pathname = '/login';
-    mockLocation.href = `http://mock-origin.com/login?token=${mockToken}`;
+    mockLocationHref = `http://mock-origin.com/login#token=${mockToken}`;
+    mockLocation.hash = `#token=${mockToken}`;
 
     // Mount the component so that onMounted hook is called
     mount(SsoButtons, {
@@ -285,6 +294,7 @@ describe('SsoButtons', () => {
     expect(mockUsernameField.value).toBe('root');
     expect(mockPasswordField.value).toBe(mockToken);
     expect(mockForm.requestSubmit).toHaveBeenCalledTimes(1);
+    // Should clear the URL hash after processing
     expect(mockHistory.replaceState).toHaveBeenCalledWith({}, 'Mock Title', '/login');
   });
 
@@ -303,9 +313,10 @@ describe('SsoButtons', () => {
     });
 
     const errorMessage = 'Authentication failed';
-    mockLocation.search = `?error=${encodeURIComponent(errorMessage)}`;
+    mockLocation.search = '';  // No query params - using hash instead
     mockLocation.pathname = '/login';
-    mockLocation.href = `http://mock-origin.com/login?error=${encodeURIComponent(errorMessage)}`;
+    mockLocationHref = `http://mock-origin.com/login#error=${encodeURIComponent(errorMessage)}`;
+    mockLocation.hash = `#error=${encodeURIComponent(errorMessage)}`;
     
     const wrapper = mount(SsoButtons, {
       global: {
@@ -325,7 +336,7 @@ describe('SsoButtons', () => {
     expect(mockForm.style.display).toBe('block');
     expect(mockForm.requestSubmit).not.toHaveBeenCalled();
     
-    // The URL cleanup happens with the error query param being removed
+    // The URL cleanup happens with both hash and query params being removed
     const expectedUrl = mockLocation.pathname;
     expect(mockHistory.replaceState).toHaveBeenCalledWith({}, 'Mock Title', expectedUrl);
   });
