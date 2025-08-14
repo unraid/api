@@ -24,14 +24,15 @@ export function useSsoAuth() {
 
   const enterCallbackTokenIntoField = (token: string) => {
     const { form, passwordField, usernameField } = getInputFields();
-    if (!passwordField || !usernameField || !form) {
+    if (!form || !passwordField || !usernameField) {
       console.warn('Could not find form, username, or password field');
-    } else {
-      usernameField.value = 'root';
-      passwordField.value = token;
-      // Submit the form
-      form.requestSubmit();
+      return;
     }
+    
+    usernameField.value = 'root';
+    passwordField.value = token;
+    // Submit the form
+    form.requestSubmit();
   };
 
   const getStateToken = (): string | null => {
