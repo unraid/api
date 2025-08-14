@@ -240,7 +240,13 @@ export class OidcAuthService {
                     // Decode the JWT manually
                     const payload = tokens.id_token.split('.')[1];
                     claims = JSON.parse(Buffer.from(payload, 'base64').toString());
-                    this.logger.debug(`ID token claims: ${JSON.stringify(claims)}`);
+                    // Log claims safely without PII - only non-sensitive identifiers and claim keys
+                    if (claims) {
+                        const claimKeys = Object.keys(claims).join(', ');
+                        this.logger.debug(
+                            `ID token claims for user ${claims.sub}: claim keys [${claimKeys}]`
+                        );
+                    }
 
                     // Log all claim types for debugging
                     if (claims) {
@@ -354,6 +360,55 @@ export class OidcAuthService {
                     // If discovery fails but we have manual endpoints, use them
                     if (provider.authorizationEndpoint && provider.tokenEndpoint) {
                         this.logger.log(`Using manual endpoints for ${provider.id}`);
+
+                        // Create manual configuration
+                        const serverMetadata: client.ServerMetadata = {
+                            issuer: provider.issuer || `manual-${provider.id}`,
+                            authorization_endpoint: provider.authorizationEndpoint,
+                            token_endpoint: provider.tokenEndpoint,
+                            jwks_uri: provider.jwksUri,
+                        };
+
+                        const clientMetadata: Partial<client.ClientMetadata> = {
+                            client_secret: provider.clientSecret,
+                        };
+
+                        // Configure client auth method
+                        const clientAuth = provider.clientSecret
+                            ? client.ClientSecretPost(provider.clientSecret)
+                            : client.None();
+
+                        try {
+                            const config = new client.Configuration(
+                                serverMetadata,
+                                provider.clientId,
+                                clientMetadata,
+                                clientAuth
+                            );
+
+                            // Use manual configuration with HTTP support if needed
+                            const serverUrl = new URL(provider.tokenEndpoint);
+                            if (serverUrl.protocol === 'http:') {
+                                this.logger.debug(
+                                    `Allowing HTTP for manual endpoints on ${provider.id}`
+                                );
+                                client.allowInsecureRequests(config);
+                            }
+
+                            this.logger.debug(`Manual configuration created for ${provider.id}`);
+                            this.logger.debug(
+                                `Authorization endpoint: ${serverMetadata.authorization_endpoint}`
+                            );
+                            this.logger.debug(`Token endpoint: ${serverMetadata.token_endpoint}`);
+
+                            this.configCache.set(cacheKey, config);
+                            return config;
+                        } catch (manualConfigError) {
+                            this.logger.error(
+                                `Failed to create manual configuration: ${manualConfigError instanceof Error ? manualConfigError.message : 'Unknown error'}`
+                            );
+                            throw new Error(`Manual configuration failed for ${provider.id}`);
+                        }
                     } else {
                         throw new Error(
                             `OIDC discovery failed and no manual endpoints provided for ${provider.id}`
@@ -362,17 +417,61 @@ export class OidcAuthService {
                 }
             }
 
-            // Manual configuration when discovery fails or no issuer provided
-            if (!provider.authorizationEndpoint || !provider.tokenEndpoint) {
-                throw new Error(
-                    `Manual endpoints required for ${provider.id} when discovery is not available`
-                );
+            // Manual configuration when no issuer is provided
+            if (provider.authorizationEndpoint && provider.tokenEndpoint) {
+                this.logger.log(`Using manual endpoints for ${provider.id} (no issuer provided)`);
+
+                // Create manual configuration
+                const serverMetadata: client.ServerMetadata = {
+                    issuer: provider.issuer || `manual-${provider.id}`,
+                    authorization_endpoint: provider.authorizationEndpoint,
+                    token_endpoint: provider.tokenEndpoint,
+                    jwks_uri: provider.jwksUri,
+                };
+
+                const clientMetadata: Partial<client.ClientMetadata> = {
+                    client_secret: provider.clientSecret,
+                };
+
+                // Configure client auth method
+                const clientAuth = provider.clientSecret
+                    ? client.ClientSecretPost(provider.clientSecret)
+                    : client.None();
+
+                try {
+                    const config = new client.Configuration(
+                        serverMetadata,
+                        provider.clientId,
+                        clientMetadata,
+                        clientAuth
+                    );
+
+                    // Use manual configuration with HTTP support if needed
+                    const serverUrl = new URL(provider.tokenEndpoint);
+                    if (serverUrl.protocol === 'http:') {
+                        this.logger.debug(`Allowing HTTP for manual endpoints on ${provider.id}`);
+                        client.allowInsecureRequests(config);
+                    }
+
+                    this.logger.debug(`Manual configuration created for ${provider.id}`);
+                    this.logger.debug(
+                        `Authorization endpoint: ${serverMetadata.authorization_endpoint}`
+                    );
+                    this.logger.debug(`Token endpoint: ${serverMetadata.token_endpoint}`);
+
+                    this.configCache.set(cacheKey, config);
+                    return config;
+                } catch (manualConfigError) {
+                    this.logger.error(
+                        `Failed to create manual configuration: ${manualConfigError instanceof Error ? manualConfigError.message : 'Unknown error'}`
+                    );
+                    throw new Error(`Manual configuration failed for ${provider.id}`);
+                }
             }
 
-            // Manual configuration is not supported yet with openid-client v6
-            // For now, throw an error and require discovery
+            // If we reach here, neither discovery nor manual endpoints are available
             throw new Error(
-                `Manual configuration not yet implemented. Provider ${provider.id} must support OIDC discovery.`
+                `No configuration method available for ${provider.id}: requires either valid issuer for discovery or manual endpoints`
             );
         } catch (error) {
             this.logger.error(
@@ -422,8 +521,10 @@ export class OidcAuthService {
         this.logger.debug(`Authorization result: ${isAuthorized}`);
 
         if (!isAuthorized) {
+            // Log authorization failure with safe claim representation (no PII)
+            const availableClaimKeys = Object.keys(claims).join(', ');
             this.logger.warn(
-                `Authorization failed for user ${claims.sub} with claims: ${JSON.stringify(claims)}`
+                `Authorization failed for provider ${provider.name}, user ${claims.sub}, available claim keys: [${availableClaimKeys}]`
             );
             throw new UnauthorizedException(
                 `Access denied: Your account does not meet the authorization requirements for ${provider.name}.`

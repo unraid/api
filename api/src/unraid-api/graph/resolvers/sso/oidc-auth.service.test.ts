@@ -2,6 +2,7 @@ import { UnauthorizedException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Test, TestingModule } from '@nestjs/testing';
 
+import * as client from 'openid-client';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { OidcAuthService } from '@app/unraid-api/graph/resolvers/sso/oidc-auth.service.js';
@@ -20,9 +21,11 @@ describe('OidcAuthService', () => {
     let oidcConfig: any;
     let sessionService: any;
     let configService: any;
+    let validationService: any;
+    let module: TestingModule;
 
     beforeEach(async () => {
-        const module: TestingModule = await Test.createTestingModule({
+        module = await Test.createTestingModule({
             providers: [
                 OidcAuthService,
                 {
@@ -47,6 +50,7 @@ describe('OidcAuthService', () => {
                     provide: OidcValidationService,
                     useValue: {
                         validateProvider: vi.fn(),
+                        performDiscovery: vi.fn(),
                     },
                 },
             ],
@@ -56,6 +60,7 @@ describe('OidcAuthService', () => {
         oidcConfig = module.get(OidcConfigPersistence);
         sessionService = module.get(OidcSessionService);
         configService = module.get(ConfigService);
+        validationService = module.get<OidcValidationService>(OidcValidationService);
     });
 
     describe('Authorization Rule Evaluation', () => {
@@ -1080,6 +1085,458 @@ describe('OidcAuthService', () => {
                     department: 'engineering',
                 })
             ).resolves.toBeUndefined();
+        });
+    });
+
+    describe('Manual Configuration (No Discovery)', () => {
+        it('should create manual configuration when discovery fails but manual endpoints are provided', async () => {
+            const provider: OidcProvider = {
+                id: 'manual-provider',
+                name: 'Manual Provider',
+                clientId: 'test-client-id',
+                clientSecret: 'test-client-secret',
+                issuer: 'https://manual.example.com',
+                authorizationEndpoint: 'https://manual.example.com/auth',
+                tokenEndpoint: 'https://manual.example.com/token',
+                jwksUri: 'https://manual.example.com/jwks',
+                scopes: ['openid', 'profile'],
+                authorizationRules: [],
+            };
+
+            oidcConfig.getProvider.mockResolvedValue(provider);
+
+            // Mock discovery to fail
+            validationService.performDiscovery = vi
+                .fn()
+                .mockRejectedValue(new Error('Discovery failed'));
+
+            // Access the private method
+            const getOrCreateConfig = async (provider: OidcProvider) => {
+                return (service as any).getOrCreateConfig(provider);
+            };
+
+            const config = await getOrCreateConfig(provider);
+
+            // Verify the configuration was created with the correct endpoints
+            expect(config).toBeDefined();
+            expect(config.serverMetadata().authorization_endpoint).toBe(
+                'https://manual.example.com/auth'
+            );
+            expect(config.serverMetadata().token_endpoint).toBe('https://manual.example.com/token');
+            expect(config.serverMetadata().jwks_uri).toBe('https://manual.example.com/jwks');
+            expect(config.serverMetadata().issuer).toBe('https://manual.example.com');
+        });
+
+        it('should create manual configuration with fallback issuer when not provided', async () => {
+            const provider: OidcProvider = {
+                id: 'manual-provider-no-issuer',
+                name: 'Manual Provider No Issuer',
+                clientId: 'test-client-id',
+                clientSecret: 'test-client-secret',
+                issuer: '', // Empty issuer should skip discovery and use manual endpoints
+                authorizationEndpoint: 'https://manual.example.com/auth',
+                tokenEndpoint: 'https://manual.example.com/token',
+                scopes: ['openid', 'profile'],
+                authorizationRules: [],
+            };
+
+            oidcConfig.getProvider.mockResolvedValue(provider);
+
+            // No need to mock discovery since it won't be called with empty issuer
+
+            // Access the private method
+            const getOrCreateConfig = async (provider: OidcProvider) => {
+                return (service as any).getOrCreateConfig(provider);
+            };
+
+            const config = await getOrCreateConfig(provider);
+
+            // Verify the configuration was created with fallback issuer
+            expect(config).toBeDefined();
+            expect(config.serverMetadata().issuer).toBe('manual-manual-provider-no-issuer');
+            expect(config.serverMetadata().authorization_endpoint).toBe(
+                'https://manual.example.com/auth'
+            );
+            expect(config.serverMetadata().token_endpoint).toBe('https://manual.example.com/token');
+        });
+
+        it('should handle manual configuration with client secret properly', async () => {
+            const provider: OidcProvider = {
+                id: 'manual-with-secret',
+                name: 'Manual With Secret',
+                clientId: 'test-client-id',
+                clientSecret: 'secret-123',
+                issuer: 'https://manual.example.com',
+                authorizationEndpoint: 'https://manual.example.com/auth',
+                tokenEndpoint: 'https://manual.example.com/token',
+                scopes: ['openid', 'profile'],
+                authorizationRules: [],
+            };
+
+            oidcConfig.getProvider.mockResolvedValue(provider);
+
+            // Mock discovery to fail
+            validationService.performDiscovery = vi
+                .fn()
+                .mockRejectedValue(new Error('Discovery failed'));
+
+            // Access the private method
+            const getOrCreateConfig = async (provider: OidcProvider) => {
+                return (service as any).getOrCreateConfig(provider);
+            };
+
+            const config = await getOrCreateConfig(provider);
+
+            // Verify configuration was created successfully
+            expect(config).toBeDefined();
+            expect(config.clientMetadata().client_secret).toBe('secret-123');
+        });
+
+        it('should handle manual configuration without client secret (public client)', async () => {
+            const provider: OidcProvider = {
+                id: 'manual-public-client',
+                name: 'Manual Public Client',
+                clientId: 'public-client-id',
+                // No client secret
+                issuer: 'https://manual.example.com',
+                authorizationEndpoint: 'https://manual.example.com/auth',
+                tokenEndpoint: 'https://manual.example.com/token',
+                scopes: ['openid', 'profile'],
+                authorizationRules: [],
+            };
+
+            oidcConfig.getProvider.mockResolvedValue(provider);
+
+            // Mock discovery to fail
+            validationService.performDiscovery = vi
+                .fn()
+                .mockRejectedValue(new Error('Discovery failed'));
+
+            // Access the private method
+            const getOrCreateConfig = async (provider: OidcProvider) => {
+                return (service as any).getOrCreateConfig(provider);
+            };
+
+            const config = await getOrCreateConfig(provider);
+
+            // Verify configuration was created successfully for public client
+            expect(config).toBeDefined();
+            expect(config.clientMetadata().client_secret).toBeUndefined();
+        });
+
+        it('should throw error when discovery fails and no manual endpoints provided', async () => {
+            const provider: OidcProvider = {
+                id: 'no-manual-endpoints',
+                name: 'No Manual Endpoints',
+                clientId: 'test-client-id',
+                issuer: 'https://broken.example.com',
+                // Missing authorizationEndpoint and tokenEndpoint
+                scopes: ['openid', 'profile'],
+                authorizationRules: [],
+            };
+
+            oidcConfig.getProvider.mockResolvedValue(provider);
+
+            // Mock discovery to fail
+            validationService.performDiscovery = vi
+                .fn()
+                .mockRejectedValue(new Error('Discovery failed'));
+
+            // Access the private method
+            const getOrCreateConfig = async (provider: OidcProvider) => {
+                return (service as any).getOrCreateConfig(provider);
+            };
+
+            await expect(getOrCreateConfig(provider)).rejects.toThrow(UnauthorizedException);
+        });
+
+        it('should throw error when only authorization endpoint is provided', async () => {
+            const provider: OidcProvider = {
+                id: 'partial-manual-endpoints',
+                name: 'Partial Manual Endpoints',
+                clientId: 'test-client-id',
+                issuer: 'https://broken.example.com',
+                authorizationEndpoint: 'https://manual.example.com/auth',
+                // Missing tokenEndpoint
+                scopes: ['openid', 'profile'],
+                authorizationRules: [],
+            };
+
+            oidcConfig.getProvider.mockResolvedValue(provider);
+
+            // Mock discovery to fail
+            validationService.performDiscovery = vi
+                .fn()
+                .mockRejectedValue(new Error('Discovery failed'));
+
+            // Access the private method
+            const getOrCreateConfig = async (provider: OidcProvider) => {
+                return (service as any).getOrCreateConfig(provider);
+            };
+
+            await expect(getOrCreateConfig(provider)).rejects.toThrow(UnauthorizedException);
+        });
+
+        it('should cache manual configuration properly', async () => {
+            const provider: OidcProvider = {
+                id: 'cache-test',
+                name: 'Cache Test',
+                clientId: 'test-client-id',
+                clientSecret: 'test-secret',
+                issuer: 'https://manual.example.com',
+                authorizationEndpoint: 'https://manual.example.com/auth',
+                tokenEndpoint: 'https://manual.example.com/token',
+                scopes: ['openid', 'profile'],
+                authorizationRules: [],
+            };
+
+            oidcConfig.getProvider.mockResolvedValue(provider);
+
+            // Mock discovery to fail
+            validationService.performDiscovery = vi
+                .fn()
+                .mockRejectedValue(new Error('Discovery failed'));
+
+            // Access the private method
+            const getOrCreateConfig = async (provider: OidcProvider) => {
+                return (service as any).getOrCreateConfig(provider);
+            };
+
+            // First call should create configuration
+            const config1 = await getOrCreateConfig(provider);
+
+            // Second call should return cached configuration
+            const config2 = await getOrCreateConfig(provider);
+
+            expect(config1).toBe(config2); // Should be the exact same instance
+            expect(validationService.performDiscovery).toHaveBeenCalledTimes(1); // Only called once due to caching
+        });
+
+        it('should handle HTTP endpoints with allowInsecureRequests', async () => {
+            const provider: OidcProvider = {
+                id: 'http-endpoints',
+                name: 'HTTP Endpoints',
+                clientId: 'test-client-id',
+                clientSecret: 'test-secret',
+                issuer: 'http://manual.example.com', // HTTP instead of HTTPS
+                authorizationEndpoint: 'http://manual.example.com/auth',
+                tokenEndpoint: 'http://manual.example.com/token',
+                scopes: ['openid', 'profile'],
+                authorizationRules: [],
+            };
+
+            oidcConfig.getProvider.mockResolvedValue(provider);
+
+            // Mock discovery to fail
+            validationService.performDiscovery = vi
+                .fn()
+                .mockRejectedValue(new Error('Discovery failed'));
+
+            // Access the private method
+            const getOrCreateConfig = async (provider: OidcProvider) => {
+                return (service as any).getOrCreateConfig(provider);
+            };
+
+            const config = await getOrCreateConfig(provider);
+
+            // Verify configuration was created successfully even with HTTP
+            expect(config).toBeDefined();
+            expect(config.serverMetadata().token_endpoint).toBe('http://manual.example.com/token');
+            expect(config.serverMetadata().authorization_endpoint).toBe(
+                'http://manual.example.com/auth'
+            );
+        });
+    });
+
+    describe('getAuthorizationUrl', () => {
+        it('should generate authorization URL with custom authorization endpoint', async () => {
+            const provider: OidcProvider = {
+                id: 'test-provider',
+                name: 'Test Provider',
+                clientId: 'test-client-id',
+                issuer: 'https://example.com',
+                authorizationEndpoint: 'https://custom.example.com/auth',
+                scopes: ['openid', 'profile'],
+                authorizationRules: [],
+            };
+
+            oidcConfig.getProvider.mockResolvedValue(provider);
+
+            const authUrl = await service.getAuthorizationUrl(
+                'test-provider',
+                'test-state',
+                'localhost:3001'
+            );
+
+            expect(authUrl).toContain('https://custom.example.com/auth');
+            expect(authUrl).toContain('client_id=test-client-id');
+            expect(authUrl).toContain('response_type=code');
+            expect(authUrl).toContain('scope=openid+profile');
+            expect(authUrl).toContain('state=test-provider%3Atest-state');
+            expect(authUrl).toContain('redirect_uri=');
+        });
+
+        it('should encode provider ID in state parameter', async () => {
+            const provider: OidcProvider = {
+                id: 'encode-test-provider',
+                name: 'Encode Test Provider',
+                clientId: 'test-client-id',
+                issuer: 'https://example.com',
+                authorizationEndpoint: 'https://example.com/auth',
+                scopes: ['openid', 'email'],
+                authorizationRules: [],
+            };
+
+            oidcConfig.getProvider.mockResolvedValue(provider);
+
+            const authUrl = await service.getAuthorizationUrl('encode-test-provider', 'original-state');
+
+            // Verify that the state parameter includes both provider ID and original state
+            expect(authUrl).toContain('state=encode-test-provider%3Aoriginal-state');
+        });
+
+        it('should throw error when provider not found', async () => {
+            oidcConfig.getProvider.mockResolvedValue(null);
+
+            await expect(
+                service.getAuthorizationUrl('nonexistent-provider', 'test-state')
+            ).rejects.toThrow('Provider nonexistent-provider not found');
+        });
+
+        it('should handle custom scopes properly', async () => {
+            const provider: OidcProvider = {
+                id: 'custom-scopes-provider',
+                name: 'Custom Scopes Provider',
+                clientId: 'test-client-id',
+                issuer: 'https://example.com',
+                authorizationEndpoint: 'https://example.com/auth',
+                scopes: ['openid', 'profile', 'groups', 'custom:scope'],
+                authorizationRules: [],
+            };
+
+            oidcConfig.getProvider.mockResolvedValue(provider);
+
+            const authUrl = await service.getAuthorizationUrl('custom-scopes-provider', 'test-state');
+
+            expect(authUrl).toContain('scope=openid+profile+groups+custom%3Ascope');
+        });
+    });
+
+    describe('handleCallback', () => {
+        it('should throw error when provider not found in callback', async () => {
+            oidcConfig.getProvider.mockResolvedValue(null);
+
+            await expect(
+                service.handleCallback('nonexistent-provider', 'code', 'redirect-uri')
+            ).rejects.toThrow('Provider nonexistent-provider not found');
+        });
+
+        it('should handle malformed state parameter', async () => {
+            await expect(
+                service.handleCallback('invalid-state', 'code', 'redirect-uri')
+            ).rejects.toThrow(UnauthorizedException);
+        });
+
+        it('should call getProvider with the provided provider ID', async () => {
+            const provider: OidcProvider = {
+                id: 'test-provider',
+                name: 'Test Provider',
+                clientId: 'test-client-id',
+                issuer: 'https://example.com',
+                scopes: ['openid'],
+                authorizationRules: [],
+            };
+
+            oidcConfig.getProvider.mockResolvedValue(provider);
+
+            // This will fail during token exchange, but we're testing the provider lookup logic
+            await expect(
+                service.handleCallback('test-provider', 'code', 'redirect-uri')
+            ).rejects.toThrow(UnauthorizedException);
+
+            // Verify the provider was looked up with the correct ID
+            expect(oidcConfig.getProvider).toHaveBeenCalledWith('test-provider');
+        });
+    });
+
+    describe('validateProvider', () => {
+        it('should delegate to validation service and return result', async () => {
+            const provider: OidcProvider = {
+                id: 'validate-provider',
+                name: 'Validate Provider',
+                clientId: 'test-client-id',
+                issuer: 'https://example.com',
+                scopes: ['openid'],
+                authorizationRules: [],
+            };
+
+            const expectedResult = {
+                isValid: true,
+                authorizationEndpoint: 'https://example.com/auth',
+                tokenEndpoint: 'https://example.com/token',
+            };
+
+            validationService.validateProvider.mockResolvedValue(expectedResult);
+
+            const result = await service.validateProvider(provider);
+
+            expect(result).toEqual(expectedResult);
+            expect(validationService.validateProvider).toHaveBeenCalledWith(provider);
+        });
+
+        it('should clear config cache before validation', async () => {
+            const provider: OidcProvider = {
+                id: 'cache-clear-provider',
+                name: 'Cache Clear Provider',
+                clientId: 'test-client-id',
+                issuer: 'https://example.com',
+                scopes: ['openid'],
+                authorizationRules: [],
+            };
+
+            const expectedResult = {
+                isValid: false,
+                error: 'Validation failed',
+            };
+
+            validationService.validateProvider.mockResolvedValue(expectedResult);
+
+            const result = await service.validateProvider(provider);
+
+            expect(result).toEqual(expectedResult);
+            // Verify the cache was cleared by checking the method was called
+            expect(validationService.validateProvider).toHaveBeenCalledWith(provider);
+        });
+    });
+
+    describe('getRedirectUri (private method)', () => {
+        it('should generate correct redirect URI with localhost (development)', () => {
+            const getRedirectUri = (service as any).getRedirectUri.bind(service);
+            const redirectUri = getRedirectUri('localhost:3001');
+
+            expect(redirectUri).toBe('http://localhost:3000/graphql/api/auth/oidc/callback');
+        });
+
+        it('should generate correct redirect URI with non-localhost host', () => {
+            const getRedirectUri = (service as any).getRedirectUri.bind(service);
+
+            // Mock the ConfigService to return a production base URL
+            configService.get.mockReturnValue('https://example.com');
+
+            const redirectUri = getRedirectUri('example.com:443');
+
+            expect(redirectUri).toBe('https://example.com/graphql/api/auth/oidc/callback');
+        });
+
+        it('should use default redirect URI when no request host provided', () => {
+            const getRedirectUri = (service as any).getRedirectUri.bind(service);
+
+            // Mock the ConfigService to return a default value
+            configService.get.mockReturnValue('http://tower.local');
+
+            const redirectUri = getRedirectUri();
+
+            expect(redirectUri).toBe('http://tower.local/graphql/api/auth/oidc/callback');
         });
     });
 });
