@@ -19,11 +19,36 @@ export class OidcValidationService {
         provider: OidcProvider
     ): Promise<{ isValid: boolean; error?: string; details?: unknown }> {
         try {
-            // Create client options with HTTP support if needed
-            const serverUrl = new URL(provider.issuer || '');
+            // Validate issuer URL is present
+            if (!provider.issuer) {
+                return {
+                    isValid: false,
+                    error: 'No issuer URL provided. Please specify the OIDC provider issuer URL.',
+                    details: { type: 'MISSING_ISSUER' },
+                };
+            }
+
+            // Validate issuer URL is valid
+            let serverUrl: URL;
+            try {
+                serverUrl = new URL(provider.issuer);
+            } catch (urlError) {
+                return {
+                    isValid: false,
+                    error: `Invalid issuer URL format: '${provider.issuer}'. Please provide a valid URL.`,
+                    details: {
+                        type: 'INVALID_URL',
+                        originalError: urlError instanceof Error ? urlError.message : String(urlError),
+                    },
+                };
+            }
+
+            // Configure client options for HTTP if needed
             let clientOptions: any = undefined;
             if (serverUrl.protocol === 'http:') {
-                this.logger.debug(`Allowing HTTP for ${provider.id} as specified by user`);
+                this.logger.debug(
+                    `HTTP issuer URL detected for provider ${provider.id}: ${provider.issuer}`
+                );
                 clientOptions = {
                     execute: [client.allowInsecureRequests],
                 };
@@ -36,9 +61,7 @@ export class OidcValidationService {
             const errorMessage = error instanceof Error ? error.message : 'Unknown error';
 
             // Log the raw error for debugging
-            this.logger.debug(
-                `Raw discovery error for ${provider.id}: ${JSON.stringify(error, Object.getOwnPropertyNames(error), 2)}`
-            );
+            this.logger.debug(`Raw discovery error for ${provider.id}: ${errorMessage}`);
 
             // Provide specific error messages for common issues
             let userFriendlyError = errorMessage;
@@ -97,7 +120,7 @@ export class OidcValidationService {
                     ? provider.issuer.replace('/.well-known/openid-configuration', '')
                     : provider.issuer;
                 this.logger.debug(`Attempted to fetch: ${baseUrl}/.well-known/openid-configuration`);
-                this.logger.debug(`Full error details: ${JSON.stringify(error)}`);
+                this.logger.debug(`Full error details: ${errorMessage}`);
             }
 
             return {
