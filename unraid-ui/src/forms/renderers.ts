@@ -5,6 +5,7 @@ import inputFieldRenderer from '@/forms/InputField.vue';
 import LabelRenderer from '@/forms/LabelRenderer.vue';
 import MissingRenderer from '@/forms/MissingRenderer.vue';
 import numberFieldRenderer from '@/forms/NumberField.vue';
+import ObjectArrayField from '@/forms/ObjectArrayField.vue';
 import PreconditionsLabel from '@/forms/PreconditionsLabel.vue';
 import selectRenderer from '@/forms/Select.vue';
 import SteppedLayout from '@/forms/SteppedLayout.vue';
@@ -45,6 +46,12 @@ const isStringArray = (schema: JsonSchema): boolean => {
   if (!schema || typeof schema !== 'object' || Array.isArray(schema)) return false;
   const items = schema.items as JsonSchema;
   return schema.type === 'array' && items?.type === 'string';
+};
+
+const isObjectArray = (schema: JsonSchema): boolean => {
+  if (!schema || typeof schema !== 'object' || Array.isArray(schema)) return false;
+  const items = schema.items as JsonSchema;
+  return schema.type === 'array' && items?.type === 'object';
 };
 
 export const jsonFormsRenderers: JsonFormsRendererRegistryEntry[] = [
@@ -93,6 +100,10 @@ export const jsonFormsRenderers: JsonFormsRendererRegistryEntry[] = [
   {
     renderer: markRaw(withErrorWrapper(StringArrayField)),
     tester: rankWith(4, and(isControl, schemaMatches(isStringArray), optionIs('format', 'array'))),
+  },
+  {
+    renderer: markRaw(withErrorWrapper(ObjectArrayField)),
+    tester: rankWith(5, and(isControl, schemaMatches(isObjectArray))),
   },
   // Labels
   {

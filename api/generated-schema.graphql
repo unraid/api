@@ -1400,6 +1400,13 @@ type ApiConfig {
   plugins: [String!]!
 }
 
+type SsoSettings implements Node {
+  id: PrefixedID!
+
+  """List of configured OIDC providers"""
+  oidcProviders: [OidcProvider!]!
+}
+
 type UnifiedSettings implements Node {
   id: PrefixedID!
 
@@ -1427,8 +1434,64 @@ type Settings implements Node {
   """A view of all settings"""
   unified: UnifiedSettings!
 
+  """SSO settings"""
+  sso: SsoSettings!
+
   """The API setting values"""
   api: ApiConfig!
+}
+
+type OidcProvider {
+  """The unique identifier for the OIDC provider"""
+  id: PrefixedID!
+
+  """Display name of the OIDC provider"""
+  name: String!
+
+  """OAuth2 client ID registered with the provider"""
+  clientId: String!
+
+  """OAuth2 client secret (if required by provider)"""
+  clientSecret: String
+
+  """
+  OIDC issuer URL (e.g., https://accounts.google.com). Required for auto-discovery via /.well-known/openid-configuration
+  """
+  issuer: String!
+
+  """
+  OAuth2 authorization endpoint URL. If omitted, will be auto-discovered from issuer/.well-known/openid-configuration
+  """
+  authorizationEndpoint: String
+
+  """
+  OAuth2 token endpoint URL. If omitted, will be auto-discovered from issuer/.well-known/openid-configuration
+  """
+  tokenEndpoint: String
+
+  """
+  JSON Web Key Set URI for token validation. If omitted, will be auto-discovered from issuer/.well-known/openid-configuration
+  """
+  jwksUri: String
+
+  """OAuth2 scopes to request (e.g., openid, profile, email)"""
+  scopes: [String!]!
+
+  """List of authorized subject IDs allowed to authenticate"""
+  authorizedSubIds: [String!]!
+
+  """Custom text for the login button"""
+  buttonText: String
+
+  """URL or base64 encoded icon for the login button"""
+  buttonIcon: String
+}
+
+type PublicOidcProvider {
+  id: ID!
+  name: String!
+  buttonText: String
+  buttonIcon: String
 }
 
 type UPSBattery {
@@ -1834,6 +1897,15 @@ type Query {
   rclone: RCloneBackupSettings!
   settings: Settings!
   isSSOEnabled: Boolean!
+
+  """Get public OIDC provider information for login buttons"""
+  publicOidcProviders: [PublicOidcProvider!]!
+
+  """Get all configured OIDC providers (admin only)"""
+  oidcProviders: [OidcProvider!]!
+
+  """Get a specific OIDC provider by ID"""
+  oidcProvider(id: String!): OidcProvider
   upsDevices: [UPSDevice!]!
   upsDeviceById(id: String!): UPSDevice
   upsConfiguration: UPSConfiguration!
@@ -1880,6 +1952,12 @@ type Mutation {
   """Initiates a flash drive backup using a configured remote."""
   initiateFlashBackup(input: InitiateFlashBackupInput!): FlashBackupStatus!
   updateSettings(input: JSON!): UpdateSettingsResponse!
+
+  """Create or update an OIDC provider"""
+  upsertOidcProvider(provider: OidcProviderInput!): OidcProvider!
+
+  """Delete an OIDC provider"""
+  deleteOidcProvider(id: String!): Boolean!
   configureUps(config: UPSConfigInput!): Boolean!
 
   """
@@ -1920,6 +1998,52 @@ input InitiateFlashBackupInput {
   Additional options for the backup operation, such as --dry-run or --transfers.
   """
   options: JSON
+}
+
+input OidcProviderInput {
+  """The unique identifier for the OIDC provider"""
+  id: String!
+
+  """Display name of the OIDC provider"""
+  name: String!
+
+  """OAuth2 client ID registered with the provider"""
+  clientId: String!
+
+  """OAuth2 client secret (if required by provider)"""
+  clientSecret: String
+
+  """
+  OIDC issuer URL (e.g., https://accounts.google.com). Required for auto-discovery via /.well-known/openid-configuration
+  """
+  issuer: String!
+
+  """
+  OAuth2 authorization endpoint URL. If omitted, will be auto-discovered from issuer/.well-known/openid-configuration
+  """
+  authorizationEndpoint: String
+
+  """
+  OAuth2 token endpoint URL. If omitted, will be auto-discovered from issuer/.well-known/openid-configuration
+  """
+  tokenEndpoint: String
+
+  """
+  JSON Web Key Set URI for token validation. If omitted, will be auto-discovered from issuer/.well-known/openid-configuration
+  """
+  jwksUri: String
+
+  """OAuth2 scopes to request (e.g., openid, profile, email)"""
+  scopes: [String!]!
+
+  """List of authorized subject IDs allowed to authenticate"""
+  authorizedSubIds: [String!]!
+
+  """Custom text for the login button"""
+  buttonText: String
+
+  """URL or base64 encoded icon for the login button"""
+  buttonIcon: String
 }
 
 input UPSConfigInput {
