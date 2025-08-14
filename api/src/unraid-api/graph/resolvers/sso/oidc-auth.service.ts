@@ -648,9 +648,21 @@ export class OidcAuthService {
 
         // In production, use the actual request host or configured base URL
         if (requestHost) {
-            // Use the actual host from the request (supports custom hostnames)
-            const protocol = requestHost.includes('localhost') ? 'http' : 'https';
-            return `${protocol}://${requestHost}/graphql/api/auth/oidc/callback`;
+            // Parse the host to handle port numbers properly
+            const isLocalhost = requestHost.includes('localhost');
+            const protocol = isLocalhost ? 'http' : 'https';
+
+            // Remove standard ports (:443 for HTTPS, :80 for HTTP)
+            let cleanHost = requestHost;
+            if (!isLocalhost) {
+                if (requestHost.endsWith(':443')) {
+                    cleanHost = requestHost.slice(0, -4); // Remove :443
+                } else if (requestHost.endsWith(':80')) {
+                    cleanHost = requestHost.slice(0, -3); // Remove :80
+                }
+            }
+
+            return `${protocol}://${cleanHost}/graphql/api/auth/oidc/callback`;
         }
 
         // Fall back to configured BASE_URL or default
