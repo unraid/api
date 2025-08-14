@@ -67,7 +67,8 @@ export class OidcConfigPersistence extends ConfigFilePersister<OidcConfig> {
             buttonIcon:
                 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMzMuNTIgNzYuOTciPjx0aXRsZT5VTi1tYXJrLXdoaXRlPC90aXRsZT48cGF0aCBkPSJNNjMuNDksMTkuMjRINzBWNTcuNzNINjMuNDlaTTYuNTQsNTcuNzNIMFYxOS4yNEg2LjU0Wm0yNS4yLDQuNTRoNi41NVY3N0gzMS43NFpNMTUuODcsNDUuODRoNi41NFY2OS42MkgxNS44N1ptMzEuNzUsMGg2LjU0VjY5LjYySDQ3LjYyWk0xMjcsMTkuMjRoNi41NFY1Ny43M0gxMjdaTTEwMS43NywxNC43SDk1LjIzVjBoNi41NFptMTUuODgsMTYuNDRIMTExLjFWNy4zNWg2LjU1Wm0tMzEuNzUsMEg3OS4zNlY3LjM1SDg1LjlaIiBmaWxsPSIjZmZmIi8+PC9zdmc+',
             buttonVariant: 'primary',
-            buttonStyle: 'background-color: #ff6600; border-color: #ff6600; color: white;',
+            buttonStyle:
+                'background-color: #ff6600; border-color: #ff6600; color: white; transition: all 0.2s;',
         };
     }
 
@@ -99,14 +100,30 @@ export class OidcConfigPersistence extends ConfigFilePersister<OidcConfig> {
         const config = this.configService.get<OidcConfig>(this.configKey());
         const providers = config?.providers || [];
 
-        // Ensure unraid.net provider is always present
+        // Ensure unraid.net provider is always present with current defaults
         const hasUnraidNet = providers.some((p) => p.id === 'unraid.net');
         if (!hasUnraidNet) {
             providers.unshift(this.getUnraidNetSsoProvider());
         }
 
+        // Ensure unraid.net provider always has current defaults while preserving authorization rules
+        const updatedProviders = providers.map((provider) => {
+            if (provider.id === 'unraid.net') {
+                const currentDefaults = this.getUnraidNetSsoProvider();
+                // Preserve existing authorization rules but override UI/button properties
+                return {
+                    ...provider,
+                    ...currentDefaults,
+                    // Keep existing authorization rules if they exist
+                    authorizationRules:
+                        provider.authorizationRules || currentDefaults.authorizationRules,
+                };
+            }
+            return provider;
+        });
+
         // Clean up providers - convert empty strings to undefined
-        return providers.map((provider) => this.cleanProvider(provider));
+        return updatedProviders.map((provider) => this.cleanProvider(provider));
     }
 
     private cleanProvider(provider: OidcProvider): OidcProvider {
@@ -1061,11 +1078,11 @@ export class OidcConfigPersistence extends ConfigFilePersister<OidcConfig> {
                                                     scope: '#/properties/buttonStyle',
                                                     label: 'Custom CSS Styles:',
                                                     description:
-                                                        'Inline CSS styles for custom button appearance. Examples: "background: linear-gradient(45deg, #667eea, #764ba2); box-shadow: 0 4px 6px rgba(0,0,0,0.1);" for gradient with shadow',
+                                                        'Inline CSS styles for custom button appearance. Buttons with background-color will automatically get hover effects (darkening on hover/active). Examples:\n\nSolid color: "background-color: #ff6600; border-color: #ff6600; color: white;"\nGradient: "background: linear-gradient(45deg, #667eea, #764ba2); border: none; color: white;"\nRounded: "border-radius: 25px; background-color: #10b981; color: white;"',
                                                     controlOptions: {
-                                                        inputType: 'text',
+                                                        inputType: 'textarea',
                                                         placeholder:
-                                                            'border-radius: 9999px; text-transform: none;',
+                                                            'background-color: #3b82f6; border-color: #3b82f6; color: white; transition: all 0.2s;',
                                                     },
                                                 }),
                                             ],
