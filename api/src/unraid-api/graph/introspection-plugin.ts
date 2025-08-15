@@ -8,7 +8,13 @@ export const createDynamicIntrospectionPlugin = (
             willSendResponse: async (requestContext) => {
                 const { request, response } = requestContext;
 
-                if (request.operationName === 'IntrospectionQuery' && !isSandboxEnabled()) {
+                // Detect introspection either by conventional operationName or by presence of __schema/__type in query
+                const isIntrospectionRequest =
+                    request.operationName === 'IntrospectionQuery' ||
+                    (request.query &&
+                        (request.query.includes('__schema') || request.query.includes('__type')));
+
+                if (isIntrospectionRequest && !isSandboxEnabled()) {
                     response.body = {
                         kind: 'single',
                         singleResult: {
@@ -17,13 +23,15 @@ export const createDynamicIntrospectionPlugin = (
                                     message:
                                         'GraphQL introspection is not allowed, but the current request is for introspection.',
                                     extensions: {
-                                        code: 'GRAPHQL_VALIDATION_FAILED',
+                                        code: 'INTROSPECTION_DISABLED',
                                     },
                                 },
                             ],
                         },
                     };
-                    response.http.status = 400;
+                    if (response.http) {
+                        response.http.status = 400;
+                    }
                 }
             },
         }) satisfies GraphQLRequestListener<any>,

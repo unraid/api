@@ -964,7 +964,7 @@ export class OidcConfigPersistence extends ConfigFilePersister<OidcConfig> {
                                                                 },
                                                                 {
                                                                     scope: '#/properties/authorizationRuleMode',
-                                                                    schema: { const: 'and' },
+                                                                    schema: { const: 'AND' },
                                                                 },
                                                             ],
                                                         },

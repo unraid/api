@@ -79,22 +79,32 @@ export async function bootstrapNestServer(): Promise<NestFastifyApplication> {
     // Add sandbox access control hook
     server.addHook('preHandler', async (request, reply) => {
         // Only block GET requests to /graphql when sandbox is disabled
-        if (request.method === 'GET' && request.url === '/graphql') {
-            const configService = app.get(ConfigService);
-            const sandboxEnabled = configService.get('api.sandbox');
+        if (request.method === 'GET') {
+            // Extract pathname without query parameters
+            const urlPath = request.url.split('?')[0];
 
-            if (!sandboxEnabled) {
-                reply.status(403).send({
-                    errors: [
-                        {
-                            message: 'GraphQL sandbox is disabled. Enable it in the API settings.',
-                            extensions: {
-                                code: 'SANDBOX_DISABLED',
+            if (urlPath === '/graphql') {
+                const configService = app.get(ConfigService);
+                const sandboxValue = configService.get('api.sandbox');
+
+                // Robustly coerce to boolean - only true when explicitly true
+                const sandboxEnabled =
+                    sandboxValue === true ||
+                    (typeof sandboxValue === 'string' && sandboxValue.toLowerCase() === 'true');
+
+                if (!sandboxEnabled) {
+                    reply.status(403).send({
+                        errors: [
+                            {
+                                message: 'GraphQL sandbox is disabled. Enable it in the API settings.',
+                                extensions: {
+                                    code: 'SANDBOX_DISABLED',
+                                },
                             },
-                        },
-                    ],
-                });
-                return;
+                        ],
+                    });
+                    return;
+                }
             }
         }
     });
