@@ -272,11 +272,10 @@ LOG_LEVEL=debug unraid-api start --debug
 
 ## Security Best Practices
 
-1. **Use HTTPS when possible** - Provides encrypted connections for authentication
-2. **Use Simple Mode for authorization** - Prevents overly accepting configurations and reduces misconfiguration risks
-3. **Be specific with authorization** - Don't use overly broad rules
-4. **Rotate secrets regularly** - Update client secrets periodically
-5. **Test thoroughly** - Verify only intended users can access
+1. **Use Simple Mode for authorization** - Prevents overly accepting configurations and reduces misconfiguration risks
+2. **Be specific with authorization** - Don't use overly broad rules
+3. **Rotate secrets regularly** - Update client secrets periodically
+4. **Test thoroughly** - Verify only intended users can access
 
 ## Need Help?
 
@@ -292,6 +291,7 @@ LOG_LEVEL=debug unraid-api start --debug
 The Unraid.net provider is built-in and pre-configured. You only need to configure authorization rules in the interface.
 
 **Configuration:**
+
 - **Issuer URL**: Pre-configured (built-in provider)
 - **Client ID/Secret**: Pre-configured (built-in provider)
 - **Redirect URI**: `http://YOUR_UNRAID_IP/graphql/api/auth/oidc/callback`

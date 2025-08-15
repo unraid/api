@@ -167,6 +167,6 @@ We value community input! Please submit feature requests and feedback through:
 Versions prior to Unraid 7.2 require the API to be installed through the Unraid Connect plugin. Some features may not be available on older versions.
 :::
 
-:::tip Development Builds
-You can always install the Unraid Connect plugin to track the latest released development changes and get early access to new API features before they're included in Unraid OS releases.
+:::tip Pre-release Versions
+You can always install the Unraid Connect plugin to access pre-release versions of the API and get early access to new features before they're included in Unraid OS releases.
 :::

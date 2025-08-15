@@ -4,25 +4,29 @@ The Unraid API provides a GraphQL interface that allows you to interact with you
 
 ## Enabling the GraphQL Sandbox
 
-1. Enable developer mode using the CLI:
+### Web GUI Method (Recommended)
 
-    ```bash
-    unraid-api developer --sandbox true
-    ```
-    
-    Or use the interactive mode:
-    
-    ```bash
-    unraid-api developer
-    ```
-
-2. Once enabled, you can access the Apollo Sandbox interface
-
+1. Navigate to **Settings** → **Management Access** → **Developer Options**
+2. Enable the **GraphQL Sandbox** toggle
 3. Access the GraphQL playground by navigating to:
 
     ```txt
     http://YOUR_SERVER_IP/graphql
     ```
+
+### CLI Method
+
+Alternatively, you can enable developer mode using the CLI:
+
+```bash
+unraid-api developer --sandbox true
+```
+
+Or use the interactive mode:
+
+```bash
+unraid-api developer
+```
 
 ## Authentication
 
@@ -30,10 +34,22 @@ Most queries and mutations require authentication. You can authenticate using ei
 
 1. API Keys
 2. Cookies (default method when signed into the WebGUI)
+3. SSO/OIDC (when configured)
 
-### Creating an API Key
+### Managing API Keys
 
-Use the CLI to create an API key:
+#### Web GUI Method (Recommended)
+
+Navigate to **Settings** → **Management Access** → **API Keys** in your Unraid web interface to:
+
+- View existing API keys
+- Create new API keys
+- Manage permissions and roles
+- Revoke or regenerate keys
+
+#### CLI Method
+
+You can also use the CLI to create an API key:
 
 ```bash
 unraid-api apikey --create
@@ -45,6 +61,8 @@ Follow the prompts to set:
 - Description
 - Roles
 - Permissions
+
+### Using API Keys
 
 The generated API key should be included in your GraphQL requests as a header:
 
