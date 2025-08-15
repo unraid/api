@@ -336,7 +336,7 @@ export class OidcConfigPersistence extends ConfigFilePersister<OidcConfig> {
 
                 // Include validation results in response
                 const response: { restartRequired: boolean; values: OidcConfig; warnings?: string[] } = {
-                    restartRequired: true,
+                    restartRequired: false,
                     values: processedConfig,
                 };
 

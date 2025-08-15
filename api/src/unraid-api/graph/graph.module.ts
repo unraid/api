@@ -46,7 +46,7 @@ import { PluginModule } from '@app/unraid-api/plugin/plugin.module.js';
                     },
                     plugins: [
                         createDynamicIntrospectionPlugin(isSandboxEnabled),
-                        createSandboxPlugin(isSandboxEnabled),
+                        createSandboxPlugin(),
                     ] as any[],
                     subscriptions: {
                         'graphql-ws': {
