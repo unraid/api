@@ -17,7 +17,7 @@ This guide walks you through configuring OIDC (OpenID Connect) providers for SSO
 ### OIDC Providers Interface Overview
 
 ![Login Page with SSO Options](./images/sso-with-options.png)
-_Screenshot: Login page showing traditional login form with SSO options - "Login With Unraid.net" and "Sign in with Google" buttons_
+*Login page showing traditional login form with SSO options - "Login With Unraid.net" and "Sign in with Google" buttons*
 
 The interface includes:
 
@@ -67,7 +67,7 @@ Advanced mode provides granular control using claim-based rules. You can:
 ## Authorization Rules
 
 ![Authorization Rules Configuration](./images/advanced-rules.png)
-_Screenshot: Advanced authorization rules showing JWT claim configuration with email endsWith operator for domain-based access control_
+*Advanced authorization rules showing JWT claim configuration with email endsWith operator for domain-based access control*
 
 ### Simple Mode Examples
 
@@ -194,7 +194,7 @@ When "advanced" mode is selected, you'll see:
 All providers must be configured with this redirect URI:
 
 ```
-http://YOUR_UNRAID_IP:3001/graphql/api/auth/oidc/callback
+http://YOUR_UNRAID_IP/graphql/api/auth/oidc/callback
 ```
 
 Replace `YOUR_UNRAID_IP` with your actual server IP address.
@@ -217,7 +217,7 @@ The **Issuer URL** field accepts both formats, but **base URL is strongly recomm
 ## Testing Your Configuration
 
 ![Login Page with SSO Buttons](./images/sso-with-options.png)
-_Screenshot: Unraid login page displaying both traditional username/password authentication and SSO options with customized provider buttons_
+*Unraid login page displaying both traditional username/password authentication and SSO options with customized provider buttons*
 
 1. Save your provider configuration
 2. Log out (if logged in)
@@ -246,7 +246,7 @@ _Screenshot: Unraid login page displaying both traditional username/password aut
 #### "Invalid redirect URI"
 
 - Ensure the redirect URI in your provider matches exactly
-- Include the port number (:3001)
+- Include the correct port if using a non-standard configuration
 - Use HTTP for local, HTTPS for production
 
 #### Cannot see login button
@@ -294,10 +294,10 @@ The Unraid.net provider is built-in and pre-configured. You only need to configu
 **Configuration:**
 - **Issuer URL**: Pre-configured (built-in provider)
 - **Client ID/Secret**: Pre-configured (built-in provider)
-- **Redirect URI**: `http://YOUR_UNRAID_IP:3001/graphql/api/auth/oidc/callback`
+- **Redirect URI**: `http://YOUR_UNRAID_IP/graphql/api/auth/oidc/callback`
 
 :::warning[Security Notice]
-**Always use HTTPS for production redirect URIs!** The examples above use HTTP for initial setup and testing only. In production environments, you MUST use HTTPS (e.g., `https://YOUR_UNRAID_IP:3001/graphql/api/auth/oidc/callback`) to ensure secure communication and prevent credential interception. Most OIDC providers will reject HTTP redirect URIs for security reasons.
+**Always use HTTPS for production redirect URIs!** The examples above use HTTP for initial setup and testing only. In production environments, you MUST use HTTPS (e.g., `https://YOUR_UNRAID_IP/graphql/api/auth/oidc/callback`) to ensure secure communication and prevent credential interception. Most OIDC providers will reject HTTP redirect URIs for security reasons.
 :::
 
 Configure authorization rules using Simple Mode (allowed email domains/addresses) or Advanced Mode for complex requirements.
@@ -317,7 +317,7 @@ Set up OAuth 2.0 credentials in [Google Cloud Console](https://console.cloud.goo
 - **Issuer URL**: `https://accounts.google.com`
 - **Client ID/Secret**: From your OAuth 2.0 client credentials
 - **Required Scopes**: `openid`, `profile`, `email`
-- **Redirect URI**: `http://YOUR_UNRAID_IP:3001/graphql/api/auth/oidc/callback`
+- **Redirect URI**: `http://YOUR_UNRAID_IP/graphql/api/auth/oidc/callback`
 
 :::warning[Google Domain Requirements]
 **Google requires valid domain names for OAuth redirect URIs.** Local IP addresses and `.local` domains are not accepted. To use Google OAuth with your Unraid server, you'll need:
@@ -341,7 +341,7 @@ Configure OIDC client in your Authelia `configuration.yml` with client ID `unrai
 - **Client ID**: `unraid-api` (or as configured in Authelia)
 - **Client Secret**: Your unhashed secret
 - **Required Scopes**: `openid`, `profile`, `email`, `groups`
-- **Redirect URI**: `http://YOUR_UNRAID_IP:3001/graphql/api/auth/oidc/callback`
+- **Redirect URI**: `http://YOUR_UNRAID_IP/graphql/api/auth/oidc/callback`
 
 Use Advanced Mode with `groups` claim for group-based authorization.
 
@@ -355,7 +355,7 @@ Register a new app in [Azure Portal](https://portal.azure.com/) under Azure Acti
 - **Client ID**: Your Application (client) ID
 - **Client Secret**: Generated client secret
 - **Required Scopes**: `openid`, `profile`, `email`
-- **Redirect URI**: `http://YOUR_UNRAID_IP:3001/graphql/api/auth/oidc/callback`
+- **Redirect URI**: `http://YOUR_UNRAID_IP/graphql/api/auth/oidc/callback`
 
 Authorization rules can be configured in the interface using email domains or advanced claims.
 
@@ -369,7 +369,7 @@ Create a new confidential client in Keycloak Admin Console with `openid-connect`
 - **Client ID**: `unraid-api` (or as configured in Keycloak)
 - **Client Secret**: From Keycloak Credentials tab
 - **Required Scopes**: `openid`, `profile`, `email`
-- **Redirect URI**: `http://YOUR_UNRAID_IP:3001/graphql/api/auth/oidc/callback`
+- **Redirect URI**: `http://YOUR_UNRAID_IP/graphql/api/auth/oidc/callback`
 
 For role-based authorization, use Advanced Mode with `realm_access.roles` or `resource_access` claims.
 
@@ -383,7 +383,7 @@ Create a new OAuth2/OpenID Provider in Authentik, then create an Application and
 - **Client ID**: From Authentik provider configuration
 - **Client Secret**: From Authentik provider configuration
 - **Required Scopes**: `openid`, `profile`, `email`
-- **Redirect URI**: `http://YOUR_UNRAID_IP:3001/graphql/api/auth/oidc/callback`
+- **Redirect URI**: `http://YOUR_UNRAID_IP/graphql/api/auth/oidc/callback`
 
 Authorization rules can be configured in the interface.
 
@@ -397,6 +397,6 @@ Create a new OIDC Web Application in Okta Admin Console and assign appropriate u
 - **Client ID**: From Okta application configuration
 - **Client Secret**: From Okta application configuration
 - **Required Scopes**: `openid`, `profile`, `email`
-- **Redirect URI**: `http://YOUR_UNRAID_IP:3001/graphql/api/auth/oidc/callback`
+- **Redirect URI**: `http://YOUR_UNRAID_IP/graphql/api/auth/oidc/callback`
 
 Authorization rules can be configured in the interface using email domains or advanced claims.
