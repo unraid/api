@@ -304,21 +304,39 @@ Configure authorization rules using Simple Mode (allowed email domains/addresses
 
 ### Google
 
-Set up OAuth credentials in [Google Cloud Console](https://console.cloud.google.com/). Create a new OAuth client ID with Web application type.
+Set up OAuth 2.0 credentials in [Google Cloud Console](https://console.cloud.google.com/):
+
+1. Go to **APIs & Services** → **Credentials**
+2. Click **Create Credentials** → **OAuth client ID**
+3. Choose **Web application** as the application type
+4. Add your redirect URI to **Authorized redirect URIs**
+5. Configure the OAuth consent screen if prompted
 
 **Configuration:**
+
 - **Issuer URL**: `https://accounts.google.com`
-- **Client ID/Secret**: From Google Cloud Console OAuth credentials
+- **Client ID/Secret**: From your OAuth 2.0 client credentials
 - **Required Scopes**: `openid`, `profile`, `email`
 - **Redirect URI**: `http://YOUR_UNRAID_IP:3001/graphql/api/auth/oidc/callback`
 
-For Google Workspace, use Advanced Mode with `hd` claim to restrict to your domain.
+:::warning[Google Domain Requirements]
+**Google requires valid domain names for OAuth redirect URIs.** Local IP addresses and `.local` domains are not accepted. To use Google OAuth with your Unraid server, you'll need:
+
+- **Option 1: Reverse Proxy** - Set up a reverse proxy (like NGINX Proxy Manager or Traefik) with a valid domain name pointing to your Unraid API
+- **Option 2: Tailscale** - Use Tailscale to get a valid `*.ts.net` domain that Google will accept
+- **Option 3: Dynamic DNS** - Use a DDNS service to get a public domain name for your server
+
+Remember to update your redirect URI in both Google Cloud Console and your Unraid OIDC configuration to use the valid domain.
+:::
+
+For Google Workspace domains, use Advanced Mode with the `hd` claim to restrict access to your organization's domain.
 
 ### Authelia
 
 Configure OIDC client in your Authelia `configuration.yml` with client ID `unraid-api` and generate a hashed secret using the Authelia hash-password command.
 
 **Configuration:**
+
 - **Issuer URL**: `https://auth.yourdomain.com`
 - **Client ID**: `unraid-api` (or as configured in Authelia)
 - **Client Secret**: Your unhashed secret
@@ -332,6 +350,7 @@ Use Advanced Mode with `groups` claim for group-based authorization.
 Register a new app in [Azure Portal](https://portal.azure.com/) under Azure Active Directory → App registrations. Note the Application ID, create a client secret, and note your tenant ID.
 
 **Configuration:**
+
 - **Issuer URL**: `https://login.microsoftonline.com/YOUR_TENANT_ID/v2.0`
 - **Client ID**: Your Application (client) ID
 - **Client Secret**: Generated client secret
@@ -345,6 +364,7 @@ Authorization rules can be configured in the interface using email domains or ad
 Create a new confidential client in Keycloak Admin Console with `openid-connect` protocol and copy the client secret from the Credentials tab.
 
 **Configuration:**
+
 - **Issuer URL**: `https://keycloak.example.com/realms/YOUR_REALM`
 - **Client ID**: `unraid-api` (or as configured in Keycloak)
 - **Client Secret**: From Keycloak Credentials tab
@@ -358,6 +378,7 @@ For role-based authorization, use Advanced Mode with `realm_access.roles` or `re
 Create a new OAuth2/OpenID Provider in Authentik, then create an Application and link it to the provider.
 
 **Configuration:**
+
 - **Issuer URL**: `https://authentik.example.com/application/o/unraid-api/`
 - **Client ID**: From Authentik provider configuration
 - **Client Secret**: From Authentik provider configuration
@@ -371,6 +392,7 @@ Authorization rules can be configured in the interface.
 Create a new OIDC Web Application in Okta Admin Console and assign appropriate users or groups.
 
 **Configuration:**
+
 - **Issuer URL**: `https://YOUR_DOMAIN.okta.com`
 - **Client ID**: From Okta application configuration
 - **Client Secret**: From Okta application configuration

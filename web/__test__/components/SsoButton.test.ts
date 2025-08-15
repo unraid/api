@@ -32,7 +32,7 @@ vi.mock('vue-i18n', () => ({
 }));
 
 // Mock the GraphQL query
-vi.mock('~/components/queries/public-oidc-providers.query', () => ({
+vi.mock('~/components/queries/public-oidc-providers.query.js', () => ({
   PUBLIC_OIDC_PROVIDERS: 'PUBLIC_OIDC_PROVIDERS_QUERY',
 }));
 

@@ -4,7 +4,7 @@ import { createDynamicIntrospectionPlugin } from '@app/unraid-api/graph/introspe
 
 describe('Dynamic Introspection Plugin', () => {
     const mockResponse = () => ({
-        body: null,
+        body: null as any,
         http: {
             status: 200,
         },
@@ -25,9 +25,9 @@ describe('Dynamic Introspection Plugin', () => {
                 operationName,
             },
             response,
-        };
+        } as any;
 
-        const requestListener = await plugin.requestDidStart();
+        const requestListener = await (plugin as any).requestDidStart();
         await requestListener.willSendResponse(requestContext);
 
         return response;
@@ -202,16 +202,16 @@ describe('Dynamic Introspection Plugin', () => {
             const isSandboxEnabled = vi.fn().mockReturnValue(false);
             const plugin = createDynamicIntrospectionPlugin(isSandboxEnabled);
 
-            const response = { body: null };
+            const response = { body: null as any };
             const requestContext = {
                 request: {
                     query: '{ __schema { queryType { name } } }',
                     operationName: undefined,
                 },
                 response,
-            };
+            } as any;
 
-            const requestListener = await plugin.requestDidStart();
+            const requestListener = await (plugin as any).requestDidStart();
             await requestListener.willSendResponse(requestContext);
 
             expect(response.body).toEqual({
@@ -244,9 +244,9 @@ describe('Dynamic Introspection Plugin', () => {
                     operationName: undefined,
                 },
                 response: response1,
-            };
+            } as any;
 
-            let requestListener = await plugin.requestDidStart();
+            let requestListener = await (plugin as any).requestDidStart();
             await requestListener.willSendResponse(requestContext1);
             expect(response1.http.status).toBe(400);
 
@@ -259,9 +259,9 @@ describe('Dynamic Introspection Plugin', () => {
                     operationName: undefined,
                 },
                 response: response2,
-            };
+            } as any;
 
-            requestListener = await plugin.requestDidStart();
+            requestListener = await (plugin as any).requestDidStart();
             await requestListener.willSendResponse(requestContext2);
             expect(response2.http.status).toBe(200);
 

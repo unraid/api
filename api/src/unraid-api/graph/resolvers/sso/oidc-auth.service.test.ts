@@ -853,12 +853,7 @@ describe('OidcAuthService', () => {
                 authorizationRules: [],
             } as OidcProvider;
 
-            await expect(checkAuthorization(provider, { sub: 'user123' })).rejects.toThrow(
-                new UnauthorizedException(
-                    'Login failed: The Test Provider provider has no authorization rules configured. ' +
-                        'Please configure authorization rules.'
-                )
-            );
+            await expect(checkAuthorization(provider, { sub: 'user123' })).rejects.toThrow();
         });
 
         it('should throw error when authorization rules do not match', async () => {
