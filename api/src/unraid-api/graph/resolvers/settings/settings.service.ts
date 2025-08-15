@@ -52,16 +52,13 @@ export class ApiSettings {
     }
 
     async updateSettings(settings: Partial<ApiConfig>) {
-        let restartRequired = false;
+        const restartRequired = false;
         if (typeof settings.sandbox === 'boolean') {
-            const currentSandbox = this.configService.get('api.sandbox', { infer: true });
-            restartRequired ||= settings.sandbox !== currentSandbox;
             // @ts-expect-error - depend on the configService.get calls above for type safety
             this.configService.set('api.sandbox', settings.sandbox);
         }
         if (settings.ssoSubIds) {
-            const ssoNeedsRestart = await this.ssoUserService.setSsoUsers(settings.ssoSubIds);
-            restartRequired ||= ssoNeedsRestart;
+            await this.ssoUserService.setSsoUsers(settings.ssoSubIds);
         }
         if (settings.extraOrigins) {
             // @ts-expect-error - this is correct, but the configService typescript implementation is too narrow
@@ -115,7 +112,6 @@ export class ApiSettings {
 
     /**
      * Extra origins settings slice
-     */
     private extraOriginsSlice(): SettingSlice {
         return {
             properties: {
@@ -143,7 +139,7 @@ export class ApiSettings {
                 }),
             ],
         };
-    }
+    } */
 
     /**
      * SSO users settings slice
@@ -157,14 +153,14 @@ export class ApiSettings {
                         type: 'string',
                     },
                     title: 'Unraid API SSO Users',
-                    description: `Provide a list of Unique Unraid Account ID's. Find yours at <a href="https://account.unraid.net/settings" target="_blank" rel="noopener noreferrer">account.unraid.net/settings</a>. Requires restart if adding first user.`,
+                    description: `Provide a list of Unique Unraid Account ID's. Find yours at <a href="https://account.unraid.net/settings" target="_blank" rel="noopener noreferrer">account.unraid.net/settings</a>.`,
                 },
             },
             elements: [
                 createLabeledControl({
                     scope: '#/properties/api/properties/ssoSubIds',
                     label: 'Unraid Connect SSO Users:',
-                    description: `Provide a list of Unique Unraid Account IDs. Find yours at <a href="https://account.unraid.net/settings" target="_blank" rel="noopener noreferrer">account.unraid.net/settings</a>. Requires restart if adding first user.`,
+                    description: `Provide a list of Unique Unraid Account IDs. Find yours at <a href="https://account.unraid.net/settings" target="_blank" rel="noopener noreferrer">account.unraid.net/settings</a>.`,
                     controlOptions: {
                         inputType: 'text',
                         placeholder: 'UUID',
