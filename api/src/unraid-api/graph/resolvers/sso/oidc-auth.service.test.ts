@@ -14,6 +14,7 @@ import {
     OidcProvider,
 } from '@app/unraid-api/graph/resolvers/sso/oidc-provider.model.js';
 import { OidcSessionService } from '@app/unraid-api/graph/resolvers/sso/oidc-session.service.js';
+import { OidcStateService } from '@app/unraid-api/graph/resolvers/sso/oidc-state.service.js';
 import { OidcValidationService } from '@app/unraid-api/graph/resolvers/sso/oidc-validation.service.js';
 
 describe('OidcAuthService', () => {
@@ -21,6 +22,7 @@ describe('OidcAuthService', () => {
     let oidcConfig: any;
     let sessionService: any;
     let configService: any;
+    let stateService: any;
     let validationService: any;
     let module: TestingModule;
 
@@ -46,6 +48,7 @@ describe('OidcAuthService', () => {
                         createSession: vi.fn(),
                     },
                 },
+                OidcStateService,
                 {
                     provide: OidcValidationService,
                     useValue: {
@@ -60,6 +63,7 @@ describe('OidcAuthService', () => {
         oidcConfig = module.get(OidcConfigPersistence);
         sessionService = module.get(OidcSessionService);
         configService = module.get(ConfigService);
+        stateService = module.get(OidcStateService);
         validationService = module.get<OidcValidationService>(OidcValidationService);
     });
 
@@ -1367,7 +1371,8 @@ describe('OidcAuthService', () => {
             expect(authUrl).toContain('client_id=test-client-id');
             expect(authUrl).toContain('response_type=code');
             expect(authUrl).toContain('scope=openid+profile');
-            expect(authUrl).toContain('state=test-provider%3Atest-state');
+            // State should start with provider ID followed by secure state token
+            expect(authUrl).toMatch(/state=test-provider%3A[a-f0-9]+\.[0-9]+\.[a-f0-9]+/);
             expect(authUrl).toContain('redirect_uri=');
         });
 
@@ -1386,8 +1391,8 @@ describe('OidcAuthService', () => {
 
             const authUrl = await service.getAuthorizationUrl('encode-test-provider', 'original-state');
 
-            // Verify that the state parameter includes both provider ID and original state
-            expect(authUrl).toContain('state=encode-test-provider%3Aoriginal-state');
+            // Verify that the state parameter includes provider ID at the start
+            expect(authUrl).toMatch(/state=encode-test-provider%3A[a-f0-9]+\.[0-9]+\.[a-f0-9]+/);
         });
 
         it('should throw error when provider not found', async () => {
