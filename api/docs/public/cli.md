@@ -1,4 +1,16 @@
+---
+title: CLI Reference
+description: Complete reference for all Unraid API CLI commands
+sidebar_position: 4
+---
+
 # CLI Commands
+
+:::info[Command Structure]
+All commands follow the pattern: `unraid-api <command> [options]`
+:::
+
+## 🚀 Service Management
 
 ### Start
 
@@ -39,7 +51,7 @@ View the API logs.
 
 - `-l, --lines`: Optional. Number of lines to tail (default: 100)
 
-## Configuration Commands
+## ⚙️ Configuration Commands
 
 ### Config
 
