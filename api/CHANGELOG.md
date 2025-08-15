@@ -1,5 +1,28 @@
 # Changelog
 
+## [4.13.0](https://github.com/unraid/api/compare/v4.12.0...v4.13.0) (2025-08-15)
+
+
+### Features
+
+* `createDockerFolder` & `setDockerFolderChildren` mutations ([#1558](https://github.com/unraid/api/issues/1558)) ([557b03f](https://github.com/unraid/api/commit/557b03f8829d3f179b5e26162fa250121cb33420))
+* `deleteDockerEntries` mutation ([#1564](https://github.com/unraid/api/issues/1564)) ([78997a0](https://github.com/unraid/api/commit/78997a02c6d96ec0ed75352dfc9849524147428c))
+* add `moveDockerEntriesToFolder` mutation ([#1569](https://github.com/unraid/api/issues/1569)) ([20c2d5b](https://github.com/unraid/api/commit/20c2d5b4457ad50d1e287fb3141aa98e8e7de665))
+* add docker -&gt; organizer query ([#1555](https://github.com/unraid/api/issues/1555)) ([dfe352d](https://github.com/unraid/api/commit/dfe352dfa1bd6aa059cab56357ba6bff5e8ed7cb))
+* connect settings page updated for responsive webgui ([#1585](https://github.com/unraid/api/issues/1585)) ([96c120f](https://github.com/unraid/api/commit/96c120f9b24d3c91df5e9401917c8994eef36c46))
+* implement OIDC provider management in GraphQL API ([#1563](https://github.com/unraid/api/issues/1563)) ([979a267](https://github.com/unraid/api/commit/979a267bc5e128a8b789f0123e23c61860ebb11b))
+
+
+### Bug Fixes
+
+* change config file loading error log to debug ([#1565](https://github.com/unraid/api/issues/1565)) ([3534d6f](https://github.com/unraid/api/commit/3534d6fdd7c59e65615167cfe306deebad9ca4d3))
+* **connect:** remove unraid-api folder before creating symlink ([#1556](https://github.com/unraid/api/issues/1556)) ([514a0ef](https://github.com/unraid/api/commit/514a0ef560a90595f774b6c0db60f1d2b4cd853c))
+* **deps:** pin dependencies ([#1586](https://github.com/unraid/api/issues/1586)) ([5721785](https://github.com/unraid/api/commit/57217852a337ead4c8c8e7596d1b7d590b64a26f))
+* **deps:** update all non-major dependencies ([#1543](https://github.com/unraid/api/issues/1543)) ([18b5209](https://github.com/unraid/api/commit/18b52090874c0ba86878d0f7e31bf0dc42734d75))
+* **deps:** update all non-major dependencies ([#1579](https://github.com/unraid/api/issues/1579)) ([ad6aa3b](https://github.com/unraid/api/commit/ad6aa3b6743aeeb42eff34d1c89ad874dfd0af09))
+* refactor API client to support Unix socket connections ([#1575](https://github.com/unraid/api/issues/1575)) ([a2c5d24](https://github.com/unraid/api/commit/a2c5d2495ffc02efa1ec5c63f0a1c5d23c9ed7ff))
+* **theme:** API key white text on white background ([#1584](https://github.com/unraid/api/issues/1584)) ([b321687](https://github.com/unraid/api/commit/b3216874faae208cdfc3edec719629fce428b6a3))
+
 ## [4.12.0](https://github.com/unraid/api/compare/v4.11.0...v4.12.0) (2025-07-30)
 
 
