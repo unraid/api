@@ -1,5 +1,14 @@
 # Changelog
 
+## [4.13.2](https://github.com/unraid/api/compare/v4.13.1...v4.13.2) (2025-08-15)
+
+
+### Bug Fixes
+
+* update Docusaurus PR workflow to process and copy API docs ([3a10871](https://github.com/unraid/api/commit/3a10871918fe392a1974b69d16a135546166e058))
+* update OIDC provider setup documentation for navigation clarity ([1a01696](https://github.com/unraid/api/commit/1a01696dc7b947abf5f2f097de1b231d5593c2ff))
+* update OIDC provider setup documentation for redirect URI and screenshots ([1bc5251](https://github.com/unraid/api/commit/1bc52513109436b3ce8237c3796af765e208f9fc))
+
 ## [4.13.1](https://github.com/unraid/api/compare/v4.13.0...v4.13.1) (2025-08-15)
 
 
