@@ -1522,11 +1522,6 @@ type OidcProvider {
   Custom CSS styles for the button (e.g., "background: linear-gradient(to right, #4f46e5, #7c3aed); border-radius: 9999px;")
   """
   buttonStyle: String
-
-  """
-  Use custom parameter names for authorization (e.g., callbackUrl instead of redirect_uri)
-  """
-  customAuthParams: Boolean
 }
 
 """
@@ -2119,11 +2114,6 @@ input OidcProviderInput {
   Custom CSS styles for the button (e.g., "background: linear-gradient(to right, #4f46e5, #7c3aed); border-radius: 9999px;")
   """
   buttonStyle: String
-
-  """
-  Use custom parameter names for authorization (e.g., callbackUrl instead of redirect_uri)
-  """
-  customAuthParams: Boolean
 }
 
 input OidcAuthorizationRuleInput {

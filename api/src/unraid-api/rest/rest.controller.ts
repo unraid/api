@@ -58,7 +58,11 @@ export class RestController {
         }
     }
 
-    @Get(['/graphql/api/auth/oidc/authorize/:providerId', '/api/auth/oidc/authorize/:providerId'])
+    @Get(
+        process.env.NODE_ENV === 'development'
+            ? ['/graphql/api/auth/oidc/authorize/:providerId', '/api/auth/oidc/authorize/:providerId']
+            : ['/graphql/api/auth/oidc/authorize/:providerId']
+    )
     @Public()
     async oidcAuthorize(
         @Param('providerId') providerId: string,
@@ -96,7 +100,11 @@ export class RestController {
         }
     }
 
-    @Get(['/graphql/api/auth/oidc/callback', '/api/auth/oidc/callback', '/auth/oidc/callback'])
+    @Get(
+        process.env.NODE_ENV === 'development'
+            ? ['/graphql/api/auth/oidc/callback', '/api/auth/oidc/callback']
+            : ['/graphql/api/auth/oidc/callback']
+    )
     @Public()
     async oidcCallback(
         @Query('code') code: string,

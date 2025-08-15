@@ -393,6 +393,12 @@ export enum AuthorizationOperator {
   STARTS_WITH = 'STARTS_WITH'
 }
 
+/** Mode for evaluating authorization rules - OR (any rule passes) or AND (all rules must pass) */
+export enum AuthorizationRuleMode {
+  AND = 'AND',
+  OR = 'OR'
+}
+
 export type Baseboard = Node & {
   __typename?: 'Baseboard';
   assetTag?: Maybe<Scalars['String']['output']>;
@@ -1202,6 +1208,8 @@ export type OidcProvider = {
   __typename?: 'OidcProvider';
   /** OAuth2 authorization endpoint URL. If omitted, will be auto-discovered from issuer/.well-known/openid-configuration */
   authorizationEndpoint?: Maybe<Scalars['String']['output']>;
+  /** Mode for evaluating authorization rules - OR (any rule passes) or AND (all rules must pass). Defaults to OR. */
+  authorizationRuleMode?: Maybe<AuthorizationRuleMode>;
   /** Flexible authorization rules based on claims */
   authorizationRules?: Maybe<Array<OidcAuthorizationRule>>;
   /** URL or base64 encoded icon for the login button */
@@ -1235,6 +1243,8 @@ export type OidcProvider = {
 export type OidcProviderInput = {
   /** OAuth2 authorization endpoint URL. If omitted, will be auto-discovered from issuer/.well-known/openid-configuration */
   authorizationEndpoint?: InputMaybe<Scalars['String']['input']>;
+  /** Mode for evaluating authorization rules - OR (any rule passes) or AND (all rules must pass). Defaults to OR. */
+  authorizationRuleMode?: InputMaybe<AuthorizationRuleMode>;
   /** Flexible authorization rules based on claims */
   authorizationRules?: InputMaybe<Array<OidcAuthorizationRuleInput>>;
   /** URL or base64 encoded icon for the login button */

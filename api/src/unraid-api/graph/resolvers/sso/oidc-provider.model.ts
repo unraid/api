@@ -183,15 +183,6 @@ export class OidcProvider {
     @IsString()
     @IsOptional()
     buttonStyle?: string;
-
-    @Field(() => Boolean, {
-        nullable: true,
-        description:
-            'Use custom parameter names for authorization (e.g., callbackUrl instead of redirect_uri)',
-    })
-    @IsBoolean()
-    @IsOptional()
-    customAuthParams?: boolean;
 }
 
 @InputType()
@@ -307,13 +298,4 @@ export class OidcProviderInput {
     @IsString()
     @IsOptional()
     buttonStyle?: string;
-
-    @Field(() => Boolean, {
-        nullable: true,
-        description:
-            'Use custom parameter names for authorization (e.g., callbackUrl instead of redirect_uri)',
-    })
-    @IsBoolean()
-    @IsOptional()
-    customAuthParams?: boolean;
 }

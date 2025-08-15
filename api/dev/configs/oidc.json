@@ -7,7 +7,6 @@
       "issuer": "https://account.unraid.net",
       "authorizationEndpoint": "https://account.unraid.net/sso/",
       "tokenEndpoint": "https://account.unraid.net/api/oauth2/token",
-      "customAuthParams": true,
       "scopes": [
         "openid",
         "profile",

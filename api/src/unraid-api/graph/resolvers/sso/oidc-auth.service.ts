@@ -49,19 +49,12 @@ export class OidcAuthService {
             // Use custom authorization endpoint
             const authUrl = new URL(provider.authorizationEndpoint);
 
-            // Handle custom parameter names (e.g., Unraid.net uses 'callbackUrl' instead of 'redirect_uri')
-            if (provider.customAuthParams) {
-                authUrl.searchParams.set('callbackUrl', redirectUri);
-                authUrl.searchParams.set('state', stateWithProvider);
-                this.logger.debug(`Unraid.net callback URL: ${redirectUri}`);
-            } else {
-                // Standard OAuth2 parameters
-                authUrl.searchParams.set('client_id', provider.clientId);
-                authUrl.searchParams.set('redirect_uri', redirectUri);
-                authUrl.searchParams.set('scope', provider.scopes.join(' '));
-                authUrl.searchParams.set('state', stateWithProvider);
-                authUrl.searchParams.set('response_type', 'code');
-            }
+            // Standard OAuth2 parameters
+            authUrl.searchParams.set('client_id', provider.clientId);
+            authUrl.searchParams.set('redirect_uri', redirectUri);
+            authUrl.searchParams.set('scope', provider.scopes.join(' '));
+            authUrl.searchParams.set('state', stateWithProvider);
+            authUrl.searchParams.set('response_type', 'code');
 
             return authUrl.href;
         }
