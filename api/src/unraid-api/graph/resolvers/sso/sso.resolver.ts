@@ -96,6 +96,11 @@ export class SsoResolver {
     @Query(() => OidcSessionValidation, {
         description: 'Validate an OIDC session token (internal use for CLI validation)',
     })
+    @UsePermissions({
+        action: AuthActionVerb.READ,
+        resource: 'sso',
+        possession: AuthPossession.ANY,
+    })
     public async validateOidcSession(@Args('token') token: string): Promise<OidcSessionValidation> {
         return await this.oidcSessionService.validateSession(token);
     }

@@ -961,8 +961,6 @@ export type Mutation = {
   deleteArchivedNotifications: NotificationOverview;
   deleteDockerEntries: ResolvedOrganizerV1;
   deleteNotification: NotificationOverview;
-  /** Delete an OIDC provider */
-  deleteOidcProvider: Scalars['Boolean']['output'];
   docker: DockerMutations;
   enableDynamicRemoteAccess: Scalars['Boolean']['output'];
   /** Initiates a flash drive backup using a configured remote. */
@@ -982,8 +980,6 @@ export type Mutation = {
   unreadNotification: Notification;
   updateApiSettings: ConnectSettingsValues;
   updateSettings: UpdateSettingsResponse;
-  /** Create or update an OIDC provider */
-  upsertOidcProvider: OidcProvider;
   vm: VmMutations;
 };
 
@@ -1041,11 +1037,6 @@ export type MutationDeleteNotificationArgs = {
 };
 
 
-export type MutationDeleteOidcProviderArgs = {
-  id: Scalars['String']['input'];
-};
-
-
 export type MutationEnableDynamicRemoteAccessArgs = {
   input: EnableDynamicRemoteAccessInput;
 };
@@ -1100,11 +1091,6 @@ export type MutationUpdateApiSettingsArgs = {
 
 export type MutationUpdateSettingsArgs = {
   input: Scalars['JSON']['input'];
-};
-
-
-export type MutationUpsertOidcProviderArgs = {
-  provider: OidcProviderInput;
 };
 
 export type Network = Node & {
@@ -1195,15 +1181,6 @@ export type OidcAuthorizationRule = {
   value: Array<Scalars['String']['output']>;
 };
 
-export type OidcAuthorizationRuleInput = {
-  /** The claim to check (e.g., email, sub, groups, hd) */
-  claim: Scalars['String']['input'];
-  /** The comparison operator */
-  operator: AuthorizationOperator;
-  /** The value(s) to match against */
-  value: Array<Scalars['String']['input']>;
-};
-
 export type OidcProvider = {
   __typename?: 'OidcProvider';
   /** OAuth2 authorization endpoint URL. If omitted, will be auto-discovered from issuer/.well-known/openid-configuration */
@@ -1224,8 +1201,6 @@ export type OidcProvider = {
   clientId: Scalars['String']['output'];
   /** OAuth2 client secret (if required by provider) */
   clientSecret?: Maybe<Scalars['String']['output']>;
-  /** Use custom parameter names for authorization (e.g., callbackUrl instead of redirect_uri) */
-  customAuthParams?: Maybe<Scalars['Boolean']['output']>;
   /** The unique identifier for the OIDC provider */
   id: Scalars['PrefixedID']['output'];
   /** OIDC issuer URL (e.g., https://accounts.google.com). Required for auto-discovery via /.well-known/openid-configuration */
@@ -1238,41 +1213,6 @@ export type OidcProvider = {
   scopes: Array<Scalars['String']['output']>;
   /** OAuth2 token endpoint URL. If omitted, will be auto-discovered from issuer/.well-known/openid-configuration */
   tokenEndpoint?: Maybe<Scalars['String']['output']>;
-};
-
-export type OidcProviderInput = {
-  /** OAuth2 authorization endpoint URL. If omitted, will be auto-discovered from issuer/.well-known/openid-configuration */
-  authorizationEndpoint?: InputMaybe<Scalars['String']['input']>;
-  /** Mode for evaluating authorization rules - OR (any rule passes) or AND (all rules must pass). Defaults to OR. */
-  authorizationRuleMode?: InputMaybe<AuthorizationRuleMode>;
-  /** Flexible authorization rules based on claims */
-  authorizationRules?: InputMaybe<Array<OidcAuthorizationRuleInput>>;
-  /** URL or base64 encoded icon for the login button */
-  buttonIcon?: InputMaybe<Scalars['String']['input']>;
-  /** Custom CSS styles for the button (e.g., "background: linear-gradient(to right, #4f46e5, #7c3aed); border-radius: 9999px;") */
-  buttonStyle?: InputMaybe<Scalars['String']['input']>;
-  /** Custom text for the login button */
-  buttonText?: InputMaybe<Scalars['String']['input']>;
-  /** Button variant style from Reka UI. See https://reka-ui.com/docs/components/button */
-  buttonVariant?: InputMaybe<Scalars['String']['input']>;
-  /** OAuth2 client ID registered with the provider */
-  clientId: Scalars['String']['input'];
-  /** OAuth2 client secret (if required by provider) */
-  clientSecret?: InputMaybe<Scalars['String']['input']>;
-  /** Use custom parameter names for authorization (e.g., callbackUrl instead of redirect_uri) */
-  customAuthParams?: InputMaybe<Scalars['Boolean']['input']>;
-  /** The unique identifier for the OIDC provider */
-  id: Scalars['String']['input'];
-  /** OIDC issuer URL (e.g., https://accounts.google.com). Required for auto-discovery via /.well-known/openid-configuration */
-  issuer: Scalars['String']['input'];
-  /** JSON Web Key Set URI for token validation. If omitted, will be auto-discovered from issuer/.well-known/openid-configuration */
-  jwksUri?: InputMaybe<Scalars['String']['input']>;
-  /** Display name of the OIDC provider */
-  name: Scalars['String']['input'];
-  /** OAuth2 scopes to request (e.g., openid, profile, email) */
-  scopes: Array<Scalars['String']['input']>;
-  /** OAuth2 token endpoint URL. If omitted, will be auto-discovered from issuer/.well-known/openid-configuration */
-  tokenEndpoint?: InputMaybe<Scalars['String']['input']>;
 };
 
 export type OidcSessionValidation = {
@@ -1507,7 +1447,7 @@ export type QueryLogFileArgs = {
 
 
 export type QueryOidcProviderArgs = {
-  id: Scalars['String']['input'];
+  id: Scalars['PrefixedID']['input'];
 };
 
 
