@@ -34,6 +34,15 @@ vi.mock('@app/store/index.js', () => ({
         }),
     },
 }));
+vi.mock('@app/environment.js', () => ({
+    ENVIRONMENT: 'development',
+    environment: {
+        IS_MAIN_PROCESS: true,
+    },
+}));
+vi.mock('@app/core/utils/files/file-exists.js', () => ({
+    fileExists: vi.fn().mockResolvedValue(true),
+}));
 
 // Mock NestJS Logger to suppress logs during tests
 vi.mock('@nestjs/common', async (importOriginal) => {
@@ -63,13 +72,22 @@ describe('RCloneApiService', () => {
         const { execa } = await import('execa');
         const pRetry = await import('p-retry');
         const { existsSync } = await import('node:fs');
+        const { fileExists } = await import('@app/core/utils/files/file-exists.js');
 
         mockGot = vi.mocked(got);
         mockExeca = vi.mocked(execa);
         mockPRetry = vi.mocked(pRetry.default);
         mockExistsSync = vi.mocked(existsSync);
 
-        mockGot.post = vi.fn().mockResolvedValue({ body: {} });
+        // Mock successful RClone API response for socket check
+        mockGot.post = vi.fn().mockResolvedValue({ body: { pid: 12345 } });
+
+        // Mock RClone binary exists check
+        vi.mocked(fileExists).mockResolvedValue(true);
+
+        // Mock socket exists
+        mockExistsSync.mockReturnValue(true);
+
         mockExeca.mockReturnValue({
             on: vi.fn(),
             kill: vi.fn(),
@@ -77,10 +95,12 @@ describe('RCloneApiService', () => {
             pid: 12345,
         } as any);
         mockPRetry.mockResolvedValue(undefined);
-        mockExistsSync.mockReturnValue(false);
 
         service = new RCloneApiService();
         await service.onModuleInit();
+
+        // Reset the mock after initialization to prepare for test-specific responses
+        mockGot.post.mockClear();
     });
 
     describe('getProviders', () => {
@@ -102,6 +122,9 @@ describe('RCloneApiService', () => {
                     json: {},
                     responseType: 'json',
                     enableUnixSockets: true,
+                    headers: expect.objectContaining({
+                        Authorization: expect.stringMatching(/^Basic /),
+                    }),
                 })
             );
         });
@@ -129,6 +152,11 @@ describe('RCloneApiService', () => {
                 'http://unix:/tmp/rclone.sock:/config/listremotes',
                 expect.objectContaining({
                     json: {},
+                    responseType: 'json',
+                    enableUnixSockets: true,
+                    headers: expect.objectContaining({
+                        Authorization: expect.stringMatching(/^Basic /),
+                    }),
                 })
             );
         });
@@ -155,6 +183,11 @@ describe('RCloneApiService', () => {
                 'http://unix:/tmp/rclone.sock:/config/get',
                 expect.objectContaining({
                     json: { name: 'test-remote' },
+                    responseType: 'json',
+                    enableUnixSockets: true,
+                    headers: expect.objectContaining({
+                        Authorization: expect.stringMatching(/^Basic /),
+                    }),
                 })
             );
         });
@@ -193,6 +226,11 @@ describe('RCloneApiService', () => {
                         type: 's3',
                         parameters: { access_key_id: 'AKIA...', secret_access_key: 'secret' },
                     },
+                    responseType: 'json',
+                    enableUnixSockets: true,
+                    headers: expect.objectContaining({
+                        Authorization: expect.stringMatching(/^Basic /),
+                    }),
                 })
             );
         });
@@ -217,6 +255,11 @@ describe('RCloneApiService', () => {
                         name: 'existing-remote',
                         access_key_id: 'NEW_AKIA...',
                     },
+                    responseType: 'json',
+                    enableUnixSockets: true,
+                    headers: expect.objectContaining({
+                        Authorization: expect.stringMatching(/^Basic /),
+                    }),
                 })
             );
         });
@@ -235,6 +278,11 @@ describe('RCloneApiService', () => {
                 'http://unix:/tmp/rclone.sock:/config/delete',
                 expect.objectContaining({
                     json: { name: 'remote-to-delete' },
+                    responseType: 'json',
+                    enableUnixSockets: true,
+                    headers: expect.objectContaining({
+                        Authorization: expect.stringMatching(/^Basic /),
+                    }),
                 })
             );
         });
@@ -261,6 +309,11 @@ describe('RCloneApiService', () => {
                         dstFs: 'remote:backup/path',
                         delete_on: 'dst',
                     },
+                    responseType: 'json',
+                    enableUnixSockets: true,
+                    headers: expect.objectContaining({
+                        Authorization: expect.stringMatching(/^Basic /),
+                    }),
                 })
             );
         });
@@ -279,6 +332,11 @@ describe('RCloneApiService', () => {
                 'http://unix:/tmp/rclone.sock:/job/status',
                 expect.objectContaining({
                     json: { jobid: 'job-123' },
+                    responseType: 'json',
+                    enableUnixSockets: true,
+                    headers: expect.objectContaining({
+                        Authorization: expect.stringMatching(/^Basic /),
+                    }),
                 })
             );
         });
@@ -299,6 +357,11 @@ describe('RCloneApiService', () => {
                 'http://unix:/tmp/rclone.sock:/job/list',
                 expect.objectContaining({
                     json: {},
+                    responseType: 'json',
+                    enableUnixSockets: true,
+                    headers: expect.objectContaining({
+                        Authorization: expect.stringMatching(/^Basic /),
+                    }),
                 })
             );
         });

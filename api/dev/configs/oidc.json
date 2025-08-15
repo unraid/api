@@ -1,0 +1,21 @@
+{
+  "providers": [
+    {
+      "id": "unraid.net",
+      "name": "Unraid.net",
+      "clientId": "CONNECT_SERVER_SSO",
+      "issuer": "https://account.unraid.net",
+      "authorizationEndpoint": "https://account.unraid.net/sso/",
+      "tokenEndpoint": "https://account.unraid.net/api/oauth2/token",
+      "scopes": [
+        "openid",
+        "profile",
+        "email"
+      ],
+      "authorizedSubIds": [
+        "297294e2-b31c-4bcc-a441-88aee0ad609f"
+      ],
+      "buttonText": "Login With Unraid.net"
+    }
+  ]
+}

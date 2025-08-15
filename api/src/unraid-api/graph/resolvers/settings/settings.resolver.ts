@@ -21,12 +21,16 @@ import {
     UpdateSettingsResponse,
 } from '@app/unraid-api/graph/resolvers/settings/settings.model.js';
 import { ApiSettings } from '@app/unraid-api/graph/resolvers/settings/settings.service.js';
+import { SsoSettings } from '@app/unraid-api/graph/resolvers/settings/sso-settings.model.js';
+import { OidcConfigPersistence } from '@app/unraid-api/graph/resolvers/sso/oidc-config.service.js';
+import { OidcProvider } from '@app/unraid-api/graph/resolvers/sso/oidc-provider.model.js';
 
 @Resolver(() => Settings)
 export class SettingsResolver {
     constructor(
         private readonly apiSettings: ApiSettings,
-        private readonly ssoUserService: SsoUserService
+        private readonly ssoUserService: SsoUserService,
+        private readonly oidcConfig: OidcConfigPersistence
     ) {}
 
     @Query(() => Settings)
@@ -51,6 +55,13 @@ export class SettingsResolver {
         };
     }
 
+    @ResolveField(() => SsoSettings)
+    async sso() {
+        return {
+            id: 'sso-settings',
+        };
+    }
+
     @Query(() => Boolean)
     @Public()
     public async isSSOEnabled(): Promise<boolean> {
@@ -68,7 +79,7 @@ export class UnifiedSettingsResolver {
 
     @ResolveField(() => GraphQLJSON)
     async dataSchema() {
-        const { properties } = await this.userSettings.getAllSettings(['api']);
+        const { properties } = await this.userSettings.getAllSettings(['api', 'sso']);
         return {
             type: 'object',
             properties,
@@ -77,7 +88,7 @@ export class UnifiedSettingsResolver {
 
     @ResolveField(() => GraphQLJSON)
     async uiSchema() {
-        const { elements } = await this.userSettings.getAllSettings(['api']);
+        const { elements } = await this.userSettings.getAllSettings(['api', 'sso']);
         return {
             type: 'VerticalLayout',
             elements,
@@ -96,7 +107,7 @@ export class UnifiedSettingsResolver {
         possession: AuthPossession.ANY,
     })
     async updateSettings(
-        @Args('input', { type: () => GraphQLJSON }) input: object
+        @Args('input', { type: () => GraphQLJSON }) input: Record<string, unknown>
     ): Promise<UpdateSettingsResponse> {
         this.logger.verbose('Updating Settings %O', input);
         const { restartRequired, values } = await this.userSettings.updateNamespacedValues(input);
@@ -106,5 +117,15 @@ export class UnifiedSettingsResolver {
             this.lifecycleService.restartApi({ delayMs: 300 });
         }
         return { restartRequired, values };
+    }
+}
+
+@Resolver(() => SsoSettings)
+export class SsoSettingsResolver {
+    constructor(private readonly oidcConfig: OidcConfigPersistence) {}
+
+    @ResolveField(() => [OidcProvider], { description: 'List of configured OIDC providers' })
+    async oidcProviders(): Promise<OidcProvider[]> {
+        return this.oidcConfig.getProviders();
     }
 }

@@ -4,16 +4,20 @@
 
 import { useQuery } from '@vue/apollo-composable';
 import { flushPromises, mount } from '@vue/test-utils';
-
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-
 import type { Mock, MockInstance } from 'vitest';
 
-import SsoButton from '~/components/SsoButton.ce.vue';
+import SsoButtons from '~/components/sso/SsoButtons.vue';
 
-const BrandButtonStub = {
-  template: '<button><slot /></button>',
-  props: ['disabled', 'variant', 'class'],
+// Mock the child components
+const SsoProviderButtonStub = {
+  template: '<button @click="handleClick" :disabled="disabled">{{ provider.buttonText || `Sign in with ${provider.name}` }}</button>',
+  props: ['provider', 'disabled', 'onClick'],
+  methods: {
+    handleClick(this: { onClick: (id: string) => void; provider: { id: string } }) {
+      this.onClick(this.provider.id);
+    }
+  }
 };
 
 // Mock the GraphQL composable
@@ -27,12 +31,9 @@ vi.mock('vue-i18n', () => ({
   useI18n: () => ({ t }),
 }));
 
-vi.mock('~/helpers/urls', () => ({
-  ACCOUNT: 'http://mock-account-url.net',
-}));
-
-vi.mock('~/store/account.fragment', () => ({
-  SSO_ENABLED: 'SSO_ENABLED_QUERY',
+// Mock the GraphQL query
+vi.mock('~/components/queries/public-oidc-providers.query.js', () => ({
+  PUBLIC_OIDC_PROVIDERS: 'PUBLIC_OIDC_PROVIDERS_QUERY',
 }));
 
 // Mock window APIs
@@ -52,11 +53,18 @@ const mockCrypto = {
   }),
 };
 vi.stubGlobal('crypto', mockCrypto);
+let mockLocationHref = 'http://mock-origin.com/login';
 const mockLocation = {
   search: '',
+  hash: '',
   origin: 'http://mock-origin.com',
   pathname: '/login',
-  href: '',
+  get href() {
+    return mockLocationHref;
+  },
+  set href(value: string) {
+    mockLocationHref = value;
+  },
 };
 vi.stubGlobal('location', mockLocation);
 vi.stubGlobal('URLSearchParams', URLSearchParams);
@@ -74,23 +82,28 @@ const mockForm = {
 const mockPasswordField = { value: '' };
 const mockUsernameField = { value: '' };
 
-describe('SsoButton.ce.vue', () => {
+describe('SsoButtons', () => {
   let querySelectorSpy: MockInstance;
   let mockUseQuery: Mock;
 
   beforeEach(async () => {
     vi.restoreAllMocks();
+    vi.clearAllTimers();
+    vi.useFakeTimers();
 
     mockUseQuery = useQuery as Mock;
 
     (sessionStorage.getItem as Mock).mockReturnValue(null);
     (sessionStorage.setItem as Mock).mockClear();
+    (sessionStorage.removeItem as Mock).mockClear();
     mockForm.requestSubmit.mockClear();
     mockPasswordField.value = '';
     mockUsernameField.value = '';
     mockForm.style.display = 'block';
     mockLocation.search = '';
-    mockLocation.href = '';
+    mockLocation.hash = '';
+    mockLocationHref = 'http://mock-origin.com/login';
+    mockLocation.pathname = '/login';
     (fetch as Mock).mockClear();
     mockUseQuery.mockClear();
 
@@ -111,220 +124,300 @@ describe('SsoButton.ce.vue', () => {
 
   afterEach(() => {
     vi.restoreAllMocks();
+    vi.useRealTimers();
   });
 
-  it('renders the button when SSO is enabled via GraphQL', () => {
+  it('renders provider buttons when OIDC providers are available', async () => {
+    const mockProviders = [
+      { 
+        id: 'unraid-net', 
+        name: 'Unraid.net',
+        buttonText: 'Log In With Unraid.net',
+        buttonIcon: null,
+        buttonVariant: 'secondary',
+        buttonStyle: null
+      }
+    ];
+    
     mockUseQuery.mockReturnValue({
-      result: { value: { isSSOEnabled: true } },
+      result: { value: { publicOidcProviders: mockProviders } },
+      refetch: vi.fn().mockResolvedValue({ data: { publicOidcProviders: mockProviders } }),
     });
 
-    const wrapper = mount(SsoButton, {
+    const wrapper = mount(SsoButtons, {
       global: {
-        stubs: { BrandButton: BrandButtonStub },
+        stubs: { 
+          SsoProviderButton: SsoProviderButtonStub,
+          Button: { template: '<button><slot /></button>' }
+        },
       },
     });
-    expect(wrapper.findComponent(BrandButtonStub).exists()).toBe(true);
+    
+    // Wait for the API check to complete
+    await flushPromises();
+    vi.runAllTimers();
+    await flushPromises();
+    
     expect(wrapper.text()).toContain('or');
     expect(wrapper.text()).toContain('Log In With Unraid.net');
   });
 
-  it('does not render the button when SSO is disabled via GraphQL', () => {
+  it('does not render buttons when no OIDC providers are configured', async () => {
     mockUseQuery.mockReturnValue({
-      result: { value: { isSSOEnabled: false } },
+      result: { value: { publicOidcProviders: [] } },
+      refetch: vi.fn().mockResolvedValue({ data: { publicOidcProviders: [] } }),
     });
 
-    const wrapper = mount(SsoButton, {
+    const wrapper = mount(SsoButtons, {
       global: {
-        stubs: { BrandButton: BrandButtonStub },
+        stubs: { 
+          SsoProviderButton: SsoProviderButtonStub,
+          Button: { template: '<button><slot /></button>' }
+        },
       },
     });
-    expect(wrapper.findComponent(BrandButtonStub).exists()).toBe(false);
+    
+    await flushPromises();
+    vi.runAllTimers();
+    await flushPromises();
+    
     expect(wrapper.text()).not.toContain('or');
+    expect(wrapper.findAll('button')).toHaveLength(0);
   });
 
-  it('does not render the button when GraphQL result is null/undefined', () => {
+  it('shows checking message while API is being polled', async () => {
+    const refetchMock = vi.fn()
+      .mockRejectedValueOnce(new Error('API not available'))
+      .mockResolvedValueOnce({ data: { publicOidcProviders: [] } });
+    
     mockUseQuery.mockReturnValue({
       result: { value: null },
+      refetch: refetchMock,
     });
 
-    const wrapper = mount(SsoButton, {
+    const wrapper = mount(SsoButtons, {
       global: {
-        stubs: { BrandButton: BrandButtonStub },
+        stubs: { 
+          SsoProviderButton: SsoProviderButtonStub,
+          Button: { template: '<button><slot /></button>' }
+        },
       },
     });
-    expect(wrapper.findComponent(BrandButtonStub).exists()).toBe(false);
-    expect(wrapper.text()).not.toContain('or');
+    
+    expect(wrapper.text()).toContain('Checking authentication options...');
+    
+    // Advance timers to trigger the polling
+    await flushPromises();
+    vi.advanceTimersByTime(2000);
+    await flushPromises();
+    
+    // After successful API response, checking message should disappear
+    expect(wrapper.text()).not.toContain('Checking authentication options...');
   });
 
-  it('does not render the button when GraphQL result is undefined', () => {
+  it('navigates to the OIDC provider URL on button click', async () => {
+    const mockProviders = [
+      { 
+        id: 'unraid-net', 
+        name: 'Unraid.net',
+        buttonText: 'Log In With Unraid.net',
+        buttonIcon: null,
+        buttonVariant: 'secondary',
+        buttonStyle: null
+      }
+    ];
+    
     mockUseQuery.mockReturnValue({
-      result: { value: undefined },
+      result: { value: { publicOidcProviders: mockProviders } },
+      refetch: vi.fn().mockResolvedValue({ data: { publicOidcProviders: mockProviders } }),
     });
 
-    const wrapper = mount(SsoButton, {
+    const wrapper = mount(SsoButtons, {
       global: {
-        stubs: { BrandButton: BrandButtonStub },
+        stubs: { 
+          SsoProviderButton: SsoProviderButtonStub,
+          Button: { template: '<button><slot /></button>' }
+        },
       },
     });
-    expect(wrapper.findComponent(BrandButtonStub).exists()).toBe(false);
-    expect(wrapper.text()).not.toContain('or');
-  });
+    
+    await flushPromises();
+    vi.runAllTimers();
+    await flushPromises();
 
-  it('navigates to the external SSO URL on button click', async () => {
-    mockUseQuery.mockReturnValue({
-      result: { value: { isSSOEnabled: true } },
-    });
-
-    const wrapper = mount(SsoButton, {
-      global: {
-        stubs: { BrandButton: BrandButtonStub },
-      },
-    });
-
-    const button = wrapper.findComponent(BrandButtonStub);
+    const button = wrapper.find('button');
     await button.trigger('click');
 
-    expect(sessionStorage.setItem).toHaveBeenCalledTimes(1);
+    // Should set state and provider in sessionStorage
     expect(sessionStorage.setItem).toHaveBeenCalledWith('sso_state', expect.any(String));
+    expect(sessionStorage.setItem).toHaveBeenCalledWith('sso_provider', 'unraid-net');
 
     const generatedState = (sessionStorage.setItem as Mock).mock.calls[0][1];
-    const expectedUrl = new URL('sso', 'http://mock-account-url.net');
-    const expectedCallbackUrl = new URL('login', 'http://mock-origin.com');
+    const expectedUrl = `/graphql/api/auth/oidc/authorize/unraid-net?state=${encodeURIComponent(generatedState)}`;
 
-    expectedUrl.searchParams.append('callbackUrl', expectedCallbackUrl.toString());
-    expectedUrl.searchParams.append('state', generatedState);
-
-    expect(mockLocation.href).toBe(expectedUrl.toString());
+    expect(mockLocation.href).toBe(expectedUrl);
   });
 
-  it('handles SSO callback in onMounted hook successfully', async () => {
+  it('handles OIDC callback with token successfully', async () => {
+    const mockProviders = [
+      { 
+        id: 'unraid-net', 
+        name: 'Unraid.net',
+        buttonText: 'Log In With Unraid.net'
+      }
+    ];
+    
     mockUseQuery.mockReturnValue({
-      result: { value: { isSSOEnabled: true } },
+      result: { value: { publicOidcProviders: mockProviders } },
+      refetch: vi.fn().mockResolvedValue({ data: { publicOidcProviders: mockProviders } }),
     });
 
-    const mockCode = 'mock_auth_code';
-    const mockState = 'mock_session_state_value';
-    const mockAccessToken = 'mock_access_token_123';
-
-    mockLocation.search = `?code=${mockCode}&state=${mockState}`;
-    (sessionStorage.getItem as Mock).mockReturnValue(mockState);
-    (fetch as Mock).mockResolvedValueOnce({
-      ok: true,
-      json: async () => ({ access_token: mockAccessToken }),
-    } as Response);
+    const mockToken = 'mock_access_token_123';
+    mockLocation.search = '';  // No query params - using hash instead
+    mockLocation.pathname = '/login';
+    mockLocationHref = `http://mock-origin.com/login#token=${mockToken}`;
+    mockLocation.hash = `#token=${mockToken}`;
 
     // Mount the component so that onMounted hook is called
-    mount(SsoButton, {
+    mount(SsoButtons, {
       global: {
-        stubs: { BrandButton: BrandButtonStub },
+        stubs: { 
+          SsoProviderButton: SsoProviderButtonStub,
+          Button: { template: '<button><slot /></button>' }
+        },
       },
     });
 
     await flushPromises();
 
-    expect(sessionStorage.getItem).toHaveBeenCalledWith('sso_state');
-    expect(fetch).toHaveBeenCalledTimes(1);
-    expect(fetch).toHaveBeenCalledWith(new URL('/api/oauth2/token', 'http://mock-account-url.net'), {
-      method: 'POST',
-      body: new URLSearchParams({
-        code: mockCode,
-        client_id: 'CONNECT_SERVER_SSO',
-        grant_type: 'authorization_code',
-      }),
-    });
     expect(mockForm.style.display).toBe('none');
     expect(mockUsernameField.value).toBe('root');
-    expect(mockPasswordField.value).toBe(mockAccessToken);
+    expect(mockPasswordField.value).toBe(mockToken);
     expect(mockForm.requestSubmit).toHaveBeenCalledTimes(1);
+    // Should clear the URL hash after processing
     expect(mockHistory.replaceState).toHaveBeenCalledWith({}, 'Mock Title', '/login');
   });
 
-  it('handles SSO callback error in onMounted hook', async () => {
+  it('handles OIDC callback error from backend', async () => {
+    const mockProviders = [
+      { 
+        id: 'unraid-net', 
+        name: 'Unraid.net',
+        buttonText: 'Log In With Unraid.net'
+      }
+    ];
+    
     mockUseQuery.mockReturnValue({
-      result: { value: { isSSOEnabled: true } },
+      result: { value: { publicOidcProviders: mockProviders } },
+      refetch: vi.fn().mockResolvedValue({ data: { publicOidcProviders: mockProviders } }),
     });
 
-    const mockCode = 'mock_auth_code_error';
-    const mockState = 'mock_session_state_error';
-
-    mockLocation.search = `?code=${mockCode}&state=${mockState}`;
-    (sessionStorage.getItem as Mock).mockReturnValue(mockState);
-
-    const fetchError = new Error('Failed to fetch token');
-    (fetch as Mock).mockRejectedValueOnce(fetchError);
-    const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
-    const wrapper = mount(SsoButton, {
+    const errorMessage = 'Authentication failed';
+    mockLocation.search = '';  // No query params - using hash instead
+    mockLocation.pathname = '/login';
+    mockLocationHref = `http://mock-origin.com/login#error=${encodeURIComponent(errorMessage)}`;
+    mockLocation.hash = `#error=${encodeURIComponent(errorMessage)}`;
+    
+    const wrapper = mount(SsoButtons, {
       global: {
-        stubs: { BrandButton: BrandButtonStub },
+        stubs: { 
+          SsoProviderButton: SsoProviderButtonStub,
+          Button: { template: '<button><slot /></button>' }
+        },
       },
     });
 
     await flushPromises();
 
-    expect(sessionStorage.getItem).toHaveBeenCalledWith('sso_state');
-    expect(fetch).toHaveBeenCalledTimes(1);
-    expect(consoleErrorSpy).toHaveBeenCalledWith('Error fetching token', fetchError);
-
     const errorElement = wrapper.find('p.text-red-500');
-
     expect(errorElement.exists()).toBe(true);
-    expect(errorElement.text()).toBe('Error fetching token');
-
-    const button = wrapper.findComponent(BrandButtonStub);
-
-    expect(button.text()).toBe('Try Again');
+    expect(errorElement.text()).toBe(errorMessage);
 
     expect(mockForm.style.display).toBe('block');
     expect(mockForm.requestSubmit).not.toHaveBeenCalled();
-
-    consoleErrorSpy.mockRestore();
+    
+    // The URL cleanup happens with both hash and query params being removed
+    const expectedUrl = mockLocation.pathname;
+    expect(mockHistory.replaceState).toHaveBeenCalledWith({}, 'Mock Title', expectedUrl);
   });
 
-  it('handles SSO callback when state does not match', async () => {
+  it('redirects to OIDC callback endpoint when code and state are present', async () => {
+    const mockProviders = [
+      { 
+        id: 'unraid-net', 
+        name: 'Unraid.net',
+        buttonText: 'Log In With Unraid.net'
+      }
+    ];
+    
     mockUseQuery.mockReturnValue({
-      result: { value: { isSSOEnabled: true } },
+      result: { value: { publicOidcProviders: mockProviders } },
+      refetch: vi.fn().mockResolvedValue({ data: { publicOidcProviders: mockProviders } }),
     });
 
     const mockCode = 'mock_auth_code';
     const mockState = 'mock_session_state_value';
-    const differentState = 'different_state_value';
 
     mockLocation.search = `?code=${mockCode}&state=${mockState}`;
-    (sessionStorage.getItem as Mock).mockReturnValue(differentState);
+    mockLocation.pathname = '/login';
 
-    const wrapper = mount(SsoButton, {
+    mount(SsoButtons, {
       global: {
-        stubs: { BrandButton: BrandButtonStub },
+        stubs: { 
+          SsoProviderButton: SsoProviderButtonStub,
+          Button: { template: '<button><slot /></button>' }
+        },
       },
     });
 
     await flushPromises();
 
-    // Should not make any fetch calls when state doesn't match
-    expect(fetch).not.toHaveBeenCalled();
-    expect(mockForm.requestSubmit).not.toHaveBeenCalled();
-    expect(wrapper.findComponent(BrandButtonStub).text()).toBe('Log In With Unraid.net');
+    // Should redirect to the OIDC callback endpoint
+    const expectedUrl = `/graphql/api/auth/oidc/callback?code=${encodeURIComponent(mockCode)}&state=${encodeURIComponent(mockState)}`;
+    expect(mockLocation.href).toBe(expectedUrl);
   });
 
-  it('handles SSO callback when no code is present', async () => {
+  it('handles multiple OIDC providers', async () => {
+    const mockProviders = [
+      { 
+        id: 'unraid-net', 
+        name: 'Unraid.net',
+        buttonText: 'Log In With Unraid.net',
+        buttonIcon: null,
+        buttonVariant: 'secondary',
+        buttonStyle: null
+      },
+      { 
+        id: 'google', 
+        name: 'Google',
+        buttonText: 'Sign in with Google',
+        buttonIcon: 'https://google.com/icon.png',
+        buttonVariant: 'outline',
+        buttonStyle: 'background: white;'
+      }
+    ];
+    
     mockUseQuery.mockReturnValue({
-      result: { value: { isSSOEnabled: true } },
+      result: { value: { publicOidcProviders: mockProviders } },
+      refetch: vi.fn().mockResolvedValue({ data: { publicOidcProviders: mockProviders } }),
     });
 
-    mockLocation.search = '?state=some_state';
-    (sessionStorage.getItem as Mock).mockReturnValue('some_state');
-
-    const wrapper = mount(SsoButton, {
+    const wrapper = mount(SsoButtons, {
       global: {
-        stubs: { BrandButton: BrandButtonStub },
+        stubs: { 
+          SsoProviderButton: SsoProviderButtonStub,
+          Button: { template: '<button><slot /></button>' }
+        },
       },
     });
-
+    
     await flushPromises();
-
-    // Should not make any fetch calls when no code is present
-    expect(fetch).not.toHaveBeenCalled();
-    expect(mockForm.requestSubmit).not.toHaveBeenCalled();
-    expect(wrapper.findComponent(BrandButtonStub).text()).toBe('Log In With Unraid.net');
+    vi.runAllTimers();
+    await flushPromises();
+    
+    const buttons = wrapper.findAll('button');
+    expect(buttons).toHaveLength(2);
+    expect(wrapper.text()).toContain('Log In With Unraid.net');
+    expect(wrapper.text()).toContain('Sign in with Google');
   });
 });

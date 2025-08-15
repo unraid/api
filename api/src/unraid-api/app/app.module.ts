@@ -28,18 +28,10 @@ import { UnraidFileModifierModule } from '@app/unraid-api/unraid-file-modifier/u
                 logger: apiLogger,
                 autoLogging: false,
                 timestamp: false,
-                ...(LOG_LEVEL !== 'TRACE'
-                    ? {
-                          serializers: {
-                              req: (req) => ({
-                                  id: req.id,
-                                  method: req.method,
-                                  url: req.url,
-                                  remoteAddress: req.remoteAddress,
-                              }),
-                          },
-                      }
-                    : {}),
+                serializers: {
+                    req: () => undefined,
+                    res: () => undefined,
+                },
             },
         }),
         AuthModule,

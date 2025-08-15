@@ -8,7 +8,7 @@ import { storeToRefs } from 'pinia';
 import { watchDebounced } from '@vueuse/core';
 import { useMutation, useQuery } from '@vue/apollo-composable';
 
-import { BrandButton, jsonFormsRenderers, Label, SettingsGrid } from '@unraid/ui';
+import { BrandButton, jsonFormsRenderers, jsonFormsAjv, Label, SettingsGrid } from '@unraid/ui';
 import { JsonForms } from '@jsonforms/vue';
 
 import { useServerStore } from '~/store/server';
@@ -34,16 +34,7 @@ watch(result, () => {
   // unified values are namespaced (e.g., { api: { ... } })
   formState.value = structuredClone(result.value.settings.unified.values ?? {});
 });
-const restartRequired = computed(() => {
-  interface SandboxValues {
-    api?: {
-      sandbox?: boolean;
-    };
-  }
-  const currentSandbox = (settings.value?.values as SandboxValues)?.api?.sandbox;
-  const updatedSandbox = (formState.value as SandboxValues)?.api?.sandbox;
-  return currentSandbox !== updatedSandbox;
-});
+// Remove the computed restartRequired since we get it from the mutation response
 
 /**--------------------------------------------
  *     Update Settings Actions
@@ -57,6 +48,7 @@ const {
 } = useMutation(updateConnectSettings);
 
 const isUpdating = ref(false);
+const actualRestartRequired = ref(false);
 
 // prevent ui flash if loading finishes too fast
 watchDebounced(
@@ -70,9 +62,10 @@ watchDebounced(
 );
 
 // show a toast when the update is done
-onMutateSettingsDone(() => {
+onMutateSettingsDone((result) => {
+  actualRestartRequired.value = result.data?.updateSettings?.restartRequired ?? false;
   globalThis.toast.success('Updated API Settings', {
-    description: restartRequired.value ? 'The API is restarting...' : undefined,
+    description: actualRestartRequired.value ? 'The API is restarting...' : undefined,
   });
 });
 
@@ -123,6 +116,7 @@ const onChange = ({ data }: { data: Record<string, unknown> }) => {
       :renderers="renderers"
       :data="formState"
       :config="jsonFormsConfig"
+      :ajv="jsonFormsAjv"
       :readonly="isUpdating"
       @change="onChange"
     />
@@ -130,7 +124,6 @@ const onChange = ({ data }: { data: Record<string, unknown> }) => {
     <div class="mt-6 grid grid-cols-settings gap-y-6 items-baseline">
       <div class="text-sm text-end">
         <p v-if="isUpdating">Applying Settings...</p>
-        <p v-else-if="restartRequired">The API will restart after settings are applied.</p>
       </div>
       <div class="col-start-2 ml-10 space-y-4">
         <BrandButton

@@ -76,6 +76,9 @@ typescript
 # Github actions
 RELEASE_NOTES.md
 
+# Test backups
+api/dev/configs/api.json.backup
+
 # Docker Deploy Folder
 deploy/*
 !deploy/.gitkeep

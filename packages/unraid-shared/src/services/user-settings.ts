@@ -19,7 +19,7 @@ export interface SettingsFragment<T> {
   getCurrentValues(): Promise<T>;
   updateValues(
     values: Partial<T>
-  ): Promise<{ restartRequired?: boolean; values: Partial<T> }>;
+  ): Promise<{ restartRequired?: boolean; values: Partial<T>; warnings?: string[] }>;
 }
 
 /**
@@ -117,16 +117,17 @@ export class UserSettingsService {
   async updateValues<T extends keyof UserSettings>(
     name: T,
     values: Partial<UserSettings[T]>
-  ): Promise<{ restartRequired?: boolean; values: Partial<UserSettings[T]> }> {
+  ): Promise<{ restartRequired?: boolean; values: Partial<UserSettings[T]>; warnings?: string[] }> {
     const fragment = this.getOrThrow(name);
     return fragment.updateValues(values);
   }
 
   /** Update values from a namespaced object. */
   async updateNamespacedValues(
-    values: Record<string, any>
-  ): Promise<{ restartRequired: boolean; values: Record<string, any> }> {
+    values: Record<string, unknown>
+  ): Promise<{ restartRequired: boolean; values: Record<string, unknown>; warnings?: string[] }> {
     let restartRequired = false;
+    let allWarnings: string[] = [];
 
     for (const [key, fragmentValues] of Object.entries(values)) {
       if (!this.settings.has(key as keyof UserSettings)) {
@@ -136,14 +137,26 @@ export class UserSettingsService {
 
       const result = await this.updateValues(
         key as keyof UserSettings,
-        fragmentValues
+        fragmentValues as Partial<UserSettings[keyof UserSettings]>
       );
       if (result.restartRequired) {
         restartRequired = true;
       }
+      // Collect any warnings from individual fragments
+      if (result.warnings) {
+        allWarnings = allWarnings.concat(result.warnings);
+      }
     }
 
-    return { restartRequired, values: await this.getAllValues() };
+    const response: { restartRequired: boolean; values: Record<string, unknown>; warnings?: string[] } = { 
+      restartRequired, 
+      values: await this.getAllValues() 
+    };
+    if (allWarnings.length > 0) {
+      response.warnings = allWarnings;
+    }
+    
+    return response;
   }
 }
 

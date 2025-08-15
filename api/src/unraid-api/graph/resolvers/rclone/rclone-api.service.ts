@@ -10,13 +10,13 @@ import pRetry from 'p-retry';
 
 import { sanitizeParams } from '@app/core/log.js';
 import { fileExists } from '@app/core/utils/files/file-exists.js';
+import { ENVIRONMENT } from '@app/environment.js';
 import {
     CreateRCloneRemoteDto,
     DeleteRCloneRemoteDto,
     GetRCloneJobStatusDto,
     GetRCloneRemoteConfigDto,
     GetRCloneRemoteDetailsDto,
-    RCloneProviderOptionResponse,
     RCloneProviderResponse,
     RCloneRemoteConfig,
     RCloneStartBackupInput,
@@ -45,6 +45,13 @@ export class RCloneApiService implements OnModuleInit, OnModuleDestroy {
     }
 
     async onModuleInit(): Promise<void> {
+        // RClone startup disabled - early return
+        if (ENVIRONMENT === 'production') {
+            this.logger.debug('RClone startup is disabled');
+            this.isInitialized = false;
+            return;
+        }
+
         try {
             // Check if rclone binary is available first
             const isBinaryAvailable = await this.checkRcloneBinaryExists();
@@ -356,7 +363,9 @@ export class RCloneApiService implements OnModuleInit, OnModuleDestroy {
      * Generic method to call the RClone RC API
      */
     private async callRcloneApi(endpoint: string, params: Record<string, any> = {}): Promise<any> {
-        const url = `${this.rcloneBaseUrl}/${endpoint}`;
+        // Ensure endpoint starts with '/' for proper Unix socket URL format
+        const normalizedEndpoint = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
+        const url = `${this.rcloneBaseUrl}${normalizedEndpoint}`;
         try {
             this.logger.debug(
                 `Calling RClone API: ${url} with params: ${JSON.stringify(sanitizeParams(params))}`
