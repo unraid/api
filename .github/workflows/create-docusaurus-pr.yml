@@ -53,7 +53,7 @@ jobs:
             Changes were automatically generated from api/docs/* directory.
 
             @coderabbitai ignore
-          reviewers: ljm42, elibosley, pujitm, mdatelle
+          reviewers: ljm42, elibosley
           branch: update-api-docs
           base: main
           delete-branch: true
