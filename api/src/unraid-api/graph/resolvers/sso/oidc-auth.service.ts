@@ -1,6 +1,7 @@
 import { Injectable, Logger, UnauthorizedException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 
+import { decodeJwt } from 'jose';
 import * as client from 'openid-client';
 
 import { OidcConfigPersistence } from '@app/unraid-api/graph/resolvers/sso/oidc-config.service.js';
@@ -230,30 +231,28 @@ export class OidcAuthService {
             let claims: JwtClaims | null = null;
             if (tokens.id_token) {
                 try {
-                    // Decode the JWT manually
-                    const payload = tokens.id_token.split('.')[1];
-                    claims = JSON.parse(Buffer.from(payload, 'base64').toString());
-                    // Log claims safely without PII - only non-sensitive identifiers and claim keys
+                    // Use jose to properly decode the JWT
+                    claims = decodeJwt(tokens.id_token) as JwtClaims;
+
+                    // Log claims safely without PII - only structure, not values
                     if (claims) {
                         const claimKeys = Object.keys(claims).join(', ');
                         this.logger.debug(
-                            `ID token claims for user ${claims.sub}: claim keys [${claimKeys}]`
+                            `ID token decoded successfully. Available claims: [${claimKeys}]`
                         );
-                    }
 
-                    // Log all claim types for debugging
-                    if (claims) {
+                        // Log claim types without exposing sensitive values
                         for (const [key, value] of Object.entries(claims)) {
-                            const valueType = Array.isArray(value) ? 'array' : typeof value;
-                            this.logger.debug(
-                                `Claim '${key}': type=${valueType}, value=${JSON.stringify(value)}`
-                            );
+                            const valueType = Array.isArray(value)
+                                ? `array[${value.length}]`
+                                : typeof value;
 
-                            // Check for unexpected claim types early
+                            // Only log structure, not actual values (avoid PII)
+                            this.logger.debug(`Claim '${key}': type=${valueType}`);
+
+                            // Check for unexpected claim types
                             if (valueType === 'object' && value !== null && !Array.isArray(value)) {
-                                this.logger.error(
-                                    `unexpected JWT claim value encountered - claim '${key}' is complex object: ${JSON.stringify(value)}`
-                                );
+                                this.logger.warn(`Claim '${key}' contains complex object structure`);
                             }
                         }
                     }

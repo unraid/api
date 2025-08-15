@@ -15,7 +15,7 @@ export interface OidcSession {
 @Injectable()
 export class OidcSessionService {
     private readonly logger = new Logger(OidcSessionService.name);
-    private readonly SESSION_TTL_SECONDS = 5 * 60; // 5 minutes
+    private readonly SESSION_TTL_SECONDS = 2 * 60; // 2 minutes for one-time token security
 
     constructor(@Inject(CACHE_MANAGER) private readonly cacheManager: Cache) {}
 
