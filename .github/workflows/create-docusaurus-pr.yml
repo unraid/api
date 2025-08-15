@@ -37,9 +37,26 @@ jobs:
             echo "Source directory does not exist!"
             exit 1
           fi
+          # Remove old API docs but preserve other folders
           rm -rf docs-repo/docs/API/
           mkdir -p docs-repo/docs/API
+          
+          # Copy all markdown files and maintain directory structure
           cp -r source-repo/api/docs/public/. docs-repo/docs/API/
+          
+          # Clean and copy images directory specifically
+          rm -rf docs-repo/docs/API/images/
+          mkdir -p docs-repo/docs/API/images
+          
+          # Copy images from public/images if they exist
+          if [ -d "source-repo/api/docs/public/images" ]; then
+            cp -r source-repo/api/docs/public/images/. docs-repo/docs/API/images/
+          fi
+          
+          # Also copy any images from the parent docs/images directory
+          if [ -d "source-repo/api/docs/images" ]; then
+            cp -r source-repo/api/docs/images/. docs-repo/docs/API/images/
+          fi
       - name: Create Pull Request
         uses: peter-evans/create-pull-request@v7
         with:

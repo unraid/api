@@ -1512,20 +1512,30 @@ describe('OidcAuthService', () => {
     describe('getRedirectUri (private method)', () => {
         it('should generate correct redirect URI with localhost (development)', () => {
             const getRedirectUri = (service as any).getRedirectUri.bind(service);
-            const redirectUri = getRedirectUri('localhost:3001');
+            const redirectUri = getRedirectUri('http://localhost:3000');
 
             expect(redirectUri).toBe('http://localhost:3000/graphql/api/auth/oidc/callback');
         });
 
         it('should generate correct redirect URI with non-localhost host', () => {
             const getRedirectUri = (service as any).getRedirectUri.bind(service);
-
-            // Mock the ConfigService to return a production base URL
-            configService.get.mockReturnValue('https://example.com');
-
-            const redirectUri = getRedirectUri('example.com:443');
+            const redirectUri = getRedirectUri('https://example.com');
 
             expect(redirectUri).toBe('https://example.com/graphql/api/auth/oidc/callback');
+        });
+
+        it('should handle HTTP protocol for non-localhost hosts', () => {
+            const getRedirectUri = (service as any).getRedirectUri.bind(service);
+            const redirectUri = getRedirectUri('http://tower.local');
+
+            expect(redirectUri).toBe('http://tower.local/graphql/api/auth/oidc/callback');
+        });
+
+        it('should handle non-standard ports correctly', () => {
+            const getRedirectUri = (service as any).getRedirectUri.bind(service);
+            const redirectUri = getRedirectUri('http://example.com:8080');
+
+            expect(redirectUri).toBe('http://example.com:8080/graphql/api/auth/oidc/callback');
         });
 
         it('should use default redirect URI when no request host provided', () => {

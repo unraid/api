@@ -75,10 +75,16 @@ export class RestController {
                 return res.status(400).send('State parameter is required');
             }
 
-            // Get the host from the request headers
-            const host = req.headers.host || undefined;
+            // Get the host and protocol from the request headers
+            const protocol = (req.headers['x-forwarded-proto'] as string) || req.protocol || 'http';
+            const host = (req.headers['x-forwarded-host'] as string) || req.headers.host || undefined;
+            const requestInfo = host ? `${protocol}://${host}` : undefined;
 
-            const authUrl = await this.oidcAuthService.getAuthorizationUrl(providerId, state, host);
+            const authUrl = await this.oidcAuthService.getAuthorizationUrl(
+                providerId,
+                state,
+                requestInfo
+            );
             this.logger.log(`Redirecting to OIDC provider: ${authUrl}`);
 
             // Manually set redirect headers for better proxy compatibility
@@ -125,6 +131,7 @@ export class RestController {
             const host =
                 (req.headers['x-forwarded-host'] as string) || req.headers.host || 'localhost:3000';
             const fullUrl = `${protocol}://${host}${req.url}`;
+            const requestInfo = `${protocol}://${host}`;
 
             this.logger.debug(`Full callback URL from request: ${fullUrl}`);
 
@@ -132,7 +139,7 @@ export class RestController {
                 providerId,
                 code,
                 state,
-                host,
+                requestInfo,
                 fullUrl
             );
 

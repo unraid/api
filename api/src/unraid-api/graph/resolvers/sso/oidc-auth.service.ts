@@ -36,13 +36,17 @@ export class OidcAuthService {
         private readonly validationService: OidcValidationService
     ) {}
 
-    async getAuthorizationUrl(providerId: string, state: string, requestHost?: string): Promise<string> {
+    async getAuthorizationUrl(
+        providerId: string,
+        state: string,
+        requestOrigin?: string
+    ): Promise<string> {
         const provider = await this.oidcConfig.getProvider(providerId);
         if (!provider) {
             throw new UnauthorizedException(`Provider ${providerId} not found`);
         }
 
-        const redirectUri = this.getRedirectUri(requestHost);
+        const redirectUri = this.getRedirectUri(requestOrigin);
 
         // Generate secure state with cryptographic signature
         const secureState = this.stateService.generateSecureState(providerId, state);
@@ -110,7 +114,7 @@ export class OidcAuthService {
         providerId: string,
         code: string,
         state: string,
-        requestHost?: string,
+        requestOrigin?: string,
         fullCallbackUrl?: string
     ): Promise<string> {
         const provider = await this.oidcConfig.getProvider(providerId);
@@ -119,7 +123,7 @@ export class OidcAuthService {
         }
 
         try {
-            const redirectUri = this.getRedirectUri(requestHost);
+            const redirectUri = this.getRedirectUri(requestOrigin);
 
             // Always use openid-client for consistency
             const config = await this.getOrCreateConfig(provider);
@@ -634,30 +638,35 @@ export class OidcAuthService {
         return this.validationService.validateProvider(provider);
     }
 
-    private getRedirectUri(requestHost?: string): string {
-        // Always use the proxied path through /graphql to match production
-        if (requestHost && requestHost.includes('localhost')) {
-            // In development, use the Nuxt proxy at port 3000
-            return `http://localhost:3000/graphql/api/auth/oidc/callback`;
-        }
+    private getRedirectUri(requestOrigin?: string): string {
+        // If we have the full origin (protocol://host), use it directly
+        if (requestOrigin) {
+            // Parse the origin to extract protocol and host
+            try {
+                const url = new URL(requestOrigin);
+                const { protocol, hostname, port } = url;
 
-        // In production, use the actual request host or configured base URL
-        if (requestHost) {
-            // Parse the host to handle port numbers properly
-            const isLocalhost = requestHost.includes('localhost');
-            const protocol = isLocalhost ? 'http' : 'https';
+                // Reconstruct the URL, removing default ports
+                let cleanOrigin = `${protocol}//${hostname}`;
 
-            // Remove standard ports (:443 for HTTPS, :80 for HTTP)
-            let cleanHost = requestHost;
-            if (!isLocalhost) {
-                if (requestHost.endsWith(':443')) {
-                    cleanHost = requestHost.slice(0, -4); // Remove :443
-                } else if (requestHost.endsWith(':80')) {
-                    cleanHost = requestHost.slice(0, -3); // Remove :80
+                // Add port if it's not the default for the protocol
+                if (
+                    port &&
+                    !(protocol === 'https:' && port === '443') &&
+                    !(protocol === 'http:' && port === '80')
+                ) {
+                    cleanOrigin += `:${port}`;
                 }
-            }
 
-            return `${protocol}://${cleanHost}/graphql/api/auth/oidc/callback`;
+                // Special handling for localhost development with Nuxt proxy
+                if (hostname === 'localhost' && port === '3000') {
+                    return `${cleanOrigin}/graphql/api/auth/oidc/callback`;
+                }
+
+                return `${cleanOrigin}/graphql/api/auth/oidc/callback`;
+            } catch (e) {
+                this.logger.warn(`Failed to parse request origin: ${requestOrigin}, error: ${e}`);
+            }
         }
 
         // Fall back to configured BASE_URL or default

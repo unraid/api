@@ -24,7 +24,7 @@ function verifyUsernamePasswordAndSSO(string $username, string $password): bool 
         return true;
     }
     // We may have an SSO token, attempt validation
-    if (strlen($password) > 800) {
+    if (strlen($password) > 500) {
         if (!preg_match('/^[A-Za-z0-9-_]+\.[A-Za-z0-9-_]+\.[A-Za-z0-9-_]+$/', $password)) {
             my_logger("SSO Login Attempt Failed: Invalid token format");
             return false;
