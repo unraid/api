@@ -89,11 +89,35 @@ const accordionOptions = computed(() => props.uischema?.options?.accordion || {}
 // Determine which items should be open by default
 const defaultOpenItems = computed(() => {
   const defaultOpen = accordionOptions.value?.defaultOpen;
+  const allElements = props.uischema?.elements || [];
+
+  // Helper function to map original index to filtered position
+  const mapOriginalToFiltered = (originalIndex: number): number | null => {
+    const originalElement = allElements[originalIndex];
+    if (!originalElement) return null;
+
+    const filteredIndex = elements.value.findIndex((el) => el === originalElement);
+    return filteredIndex >= 0 ? filteredIndex : null;
+  };
+
   if (Array.isArray(defaultOpen)) {
-    return defaultOpen.map((index: number) => `item-${index}`);
+    // Map original indices to filtered positions
+    const mappedItems = defaultOpen
+      .map((originalIndex: number) => {
+        const filteredIndex = mapOriginalToFiltered(originalIndex);
+        return filteredIndex !== null ? `item-${filteredIndex}` : null;
+      })
+      .filter((item) => item !== null);
+    return mappedItems.length > 0 ? mappedItems : elements.value.length > 0 ? ['item-0'] : [];
   }
   if (typeof defaultOpen === 'number') {
-    return [`item-${defaultOpen}`];
+    // Map single original index to filtered position
+    const filteredIndex = mapOriginalToFiltered(defaultOpen);
+    return filteredIndex !== null
+      ? [`item-${filteredIndex}`]
+      : elements.value.length > 0
+        ? ['item-0']
+        : [];
   }
   if (defaultOpen === 'all') {
     return elements.value.map((_, index) => `item-${index}`);

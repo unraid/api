@@ -363,8 +363,8 @@ export class RCloneApiService implements OnModuleInit, OnModuleDestroy {
      * Generic method to call the RClone RC API
      */
     private async callRcloneApi(endpoint: string, params: Record<string, any> = {}): Promise<any> {
-        // Normalize endpoint - remove leading slash if present since base URL ends with ':'
-        const normalizedEndpoint = endpoint.startsWith('/') ? endpoint.slice(1) : endpoint;
+        // Ensure endpoint starts with '/' for proper Unix socket URL format
+        const normalizedEndpoint = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
         const url = `${this.rcloneBaseUrl}${normalizedEndpoint}`;
         try {
             this.logger.debug(

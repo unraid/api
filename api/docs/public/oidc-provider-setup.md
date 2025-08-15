@@ -296,6 +296,10 @@ The Unraid.net provider is built-in and pre-configured. You only need to configu
 - **Client ID/Secret**: Pre-configured (built-in provider)
 - **Redirect URI**: `http://YOUR_UNRAID_IP:3001/graphql/api/auth/oidc/callback`
 
+:::warning[Security Notice]
+**Always use HTTPS for production redirect URIs!** The examples above use HTTP for initial setup and testing only. In production environments, you MUST use HTTPS (e.g., `https://YOUR_UNRAID_IP:3001/graphql/api/auth/oidc/callback`) to ensure secure communication and prevent credential interception. Most OIDC providers will reject HTTP redirect URIs for security reasons.
+:::
+
 Configure authorization rules using Simple Mode (allowed email domains/addresses) or Advanced Mode for complex requirements.
 
 ### Google

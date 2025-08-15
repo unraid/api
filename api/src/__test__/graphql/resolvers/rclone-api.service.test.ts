@@ -117,7 +117,7 @@ describe('RCloneApiService', () => {
 
             expect(result).toEqual(mockProviders);
             expect(mockGot.post).toHaveBeenCalledWith(
-                'http://unix:/tmp/rclone.sock:config/providers',
+                'http://unix:/tmp/rclone.sock:/config/providers',
                 expect.objectContaining({
                     json: {},
                     responseType: 'json',
@@ -149,7 +149,7 @@ describe('RCloneApiService', () => {
 
             expect(result).toEqual(mockRemotes);
             expect(mockGot.post).toHaveBeenCalledWith(
-                'http://unix:/tmp/rclone.sock:config/listremotes',
+                'http://unix:/tmp/rclone.sock:/config/listremotes',
                 expect.objectContaining({
                     json: {},
                     responseType: 'json',
@@ -180,7 +180,7 @@ describe('RCloneApiService', () => {
 
             expect(result).toEqual(mockConfig);
             expect(mockGot.post).toHaveBeenCalledWith(
-                'http://unix:/tmp/rclone.sock:config/get',
+                'http://unix:/tmp/rclone.sock:/config/get',
                 expect.objectContaining({
                     json: { name: 'test-remote' },
                     responseType: 'json',
@@ -219,7 +219,7 @@ describe('RCloneApiService', () => {
 
             expect(result).toEqual(mockResponse);
             expect(mockGot.post).toHaveBeenCalledWith(
-                'http://unix:/tmp/rclone.sock:config/create',
+                'http://unix:/tmp/rclone.sock:/config/create',
                 expect.objectContaining({
                     json: {
                         name: 'new-remote',
@@ -249,7 +249,7 @@ describe('RCloneApiService', () => {
 
             expect(result).toEqual(mockResponse);
             expect(mockGot.post).toHaveBeenCalledWith(
-                'http://unix:/tmp/rclone.sock:config/update',
+                'http://unix:/tmp/rclone.sock:/config/update',
                 expect.objectContaining({
                     json: {
                         name: 'existing-remote',
@@ -275,7 +275,7 @@ describe('RCloneApiService', () => {
 
             expect(result).toEqual(mockResponse);
             expect(mockGot.post).toHaveBeenCalledWith(
-                'http://unix:/tmp/rclone.sock:config/delete',
+                'http://unix:/tmp/rclone.sock:/config/delete',
                 expect.objectContaining({
                     json: { name: 'remote-to-delete' },
                     responseType: 'json',
@@ -302,7 +302,7 @@ describe('RCloneApiService', () => {
 
             expect(result).toEqual(mockResponse);
             expect(mockGot.post).toHaveBeenCalledWith(
-                'http://unix:/tmp/rclone.sock:sync/copy',
+                'http://unix:/tmp/rclone.sock:/sync/copy',
                 expect.objectContaining({
                     json: {
                         srcFs: '/source/path',
@@ -329,7 +329,7 @@ describe('RCloneApiService', () => {
 
             expect(result).toEqual(mockStatus);
             expect(mockGot.post).toHaveBeenCalledWith(
-                'http://unix:/tmp/rclone.sock:job/status',
+                'http://unix:/tmp/rclone.sock:/job/status',
                 expect.objectContaining({
                     json: { jobid: 'job-123' },
                     responseType: 'json',
@@ -354,7 +354,7 @@ describe('RCloneApiService', () => {
 
             expect(result).toEqual(mockJobs);
             expect(mockGot.post).toHaveBeenCalledWith(
-                'http://unix:/tmp/rclone.sock:job/list',
+                'http://unix:/tmp/rclone.sock:/job/list',
                 expect.objectContaining({
                     json: {},
                     responseType: 'json',

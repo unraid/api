@@ -1,5 +1,4 @@
 import type { ControlElement, LabelElement, Layout, Rule } from '@jsonforms/core';
-import { RuleEffect } from '@jsonforms/core';
 
 /**
  * Creates a simple VerticalLayout containing a Label followed by a Control element.
