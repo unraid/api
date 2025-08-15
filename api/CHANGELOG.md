@@ -1,5 +1,12 @@
 # Changelog
 
+## [4.13.1](https://github.com/unraid/api/compare/v4.13.0...v4.13.1) (2025-08-15)
+
+
+### Bug Fixes
+
+* insecure routes not working for SSO ([#1587](https://github.com/unraid/api/issues/1587)) ([a4ff3c4](https://github.com/unraid/api/commit/a4ff3c40926915f6989ed4af679b30cf295ea15d))
+
 ## [4.13.0](https://github.com/unraid/api/compare/v4.12.0...v4.13.0) (2025-08-15)
 
 
