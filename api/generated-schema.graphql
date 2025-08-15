@@ -1957,7 +1957,7 @@ type Query {
   oidcProviders: [OidcProvider!]!
 
   """Get a specific OIDC provider by ID"""
-  oidcProvider(id: String!): OidcProvider
+  oidcProvider(id: PrefixedID!): OidcProvider
 
   """Validate an OIDC session token (internal use for CLI validation)"""
   validateOidcSession(token: String!): OidcSessionValidation!
@@ -2007,12 +2007,6 @@ type Mutation {
   """Initiates a flash drive backup using a configured remote."""
   initiateFlashBackup(input: InitiateFlashBackupInput!): FlashBackupStatus!
   updateSettings(input: JSON!): UpdateSettingsResponse!
-
-  """Create or update an OIDC provider"""
-  upsertOidcProvider(provider: OidcProviderInput!): OidcProvider!
-
-  """Delete an OIDC provider"""
-  deleteOidcProvider(id: String!): Boolean!
   configureUps(config: UPSConfigInput!): Boolean!
 
   """
@@ -2053,78 +2047,6 @@ input InitiateFlashBackupInput {
   Additional options for the backup operation, such as --dry-run or --transfers.
   """
   options: JSON
-}
-
-input OidcProviderInput {
-  """The unique identifier for the OIDC provider"""
-  id: String!
-
-  """Display name of the OIDC provider"""
-  name: String!
-
-  """OAuth2 client ID registered with the provider"""
-  clientId: String!
-
-  """OAuth2 client secret (if required by provider)"""
-  clientSecret: String
-
-  """
-  OIDC issuer URL (e.g., https://accounts.google.com). Required for auto-discovery via /.well-known/openid-configuration
-  """
-  issuer: String!
-
-  """
-  OAuth2 authorization endpoint URL. If omitted, will be auto-discovered from issuer/.well-known/openid-configuration
-  """
-  authorizationEndpoint: String
-
-  """
-  OAuth2 token endpoint URL. If omitted, will be auto-discovered from issuer/.well-known/openid-configuration
-  """
-  tokenEndpoint: String
-
-  """
-  JSON Web Key Set URI for token validation. If omitted, will be auto-discovered from issuer/.well-known/openid-configuration
-  """
-  jwksUri: String
-
-  """OAuth2 scopes to request (e.g., openid, profile, email)"""
-  scopes: [String!]!
-
-  """Flexible authorization rules based on claims"""
-  authorizationRules: [OidcAuthorizationRuleInput!]
-
-  """
-  Mode for evaluating authorization rules - OR (any rule passes) or AND (all rules must pass). Defaults to OR.
-  """
-  authorizationRuleMode: AuthorizationRuleMode = OR
-
-  """Custom text for the login button"""
-  buttonText: String
-
-  """URL or base64 encoded icon for the login button"""
-  buttonIcon: String
-
-  """
-  Button variant style from Reka UI. See https://reka-ui.com/docs/components/button
-  """
-  buttonVariant: String
-
-  """
-  Custom CSS styles for the button (e.g., "background: linear-gradient(to right, #4f46e5, #7c3aed); border-radius: 9999px;")
-  """
-  buttonStyle: String
-}
-
-input OidcAuthorizationRuleInput {
-  """The claim to check (e.g., email, sub, groups, hd)"""
-  claim: String!
-
-  """The comparison operator"""
-  operator: AuthorizationOperator!
-
-  """The value(s) to match against"""
-  value: [String!]!
 }
 
 input UPSConfigInput {

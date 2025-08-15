@@ -34,6 +34,15 @@ vi.mock('@app/store/index.js', () => ({
         }),
     },
 }));
+vi.mock('@app/environment.js', () => ({
+    ENVIRONMENT: 'development',
+    environment: {
+        IS_MAIN_PROCESS: true,
+    },
+}));
+vi.mock('@app/core/utils/files/file-exists.js', () => ({
+    fileExists: vi.fn().mockResolvedValue(true),
+}));
 
 // Mock NestJS Logger to suppress logs during tests
 vi.mock('@nestjs/common', async (importOriginal) => {
@@ -63,13 +72,22 @@ describe('RCloneApiService', () => {
         const { execa } = await import('execa');
         const pRetry = await import('p-retry');
         const { existsSync } = await import('node:fs');
+        const { fileExists } = await import('@app/core/utils/files/file-exists.js');
 
         mockGot = vi.mocked(got);
         mockExeca = vi.mocked(execa);
         mockPRetry = vi.mocked(pRetry.default);
         mockExistsSync = vi.mocked(existsSync);
 
-        mockGot.post = vi.fn().mockResolvedValue({ body: {} });
+        // Mock successful RClone API response for socket check
+        mockGot.post = vi.fn().mockResolvedValue({ body: { pid: 12345 } });
+
+        // Mock RClone binary exists check
+        vi.mocked(fileExists).mockResolvedValue(true);
+
+        // Mock socket exists
+        mockExistsSync.mockReturnValue(true);
+
         mockExeca.mockReturnValue({
             on: vi.fn(),
             kill: vi.fn(),
@@ -77,10 +95,12 @@ describe('RCloneApiService', () => {
             pid: 12345,
         } as any);
         mockPRetry.mockResolvedValue(undefined);
-        mockExistsSync.mockReturnValue(false);
 
         service = new RCloneApiService();
         await service.onModuleInit();
+
+        // Reset the mock after initialization to prepare for test-specific responses
+        mockGot.post.mockClear();
     });
 
     describe('getProviders', () => {
@@ -97,11 +117,14 @@ describe('RCloneApiService', () => {
 
             expect(result).toEqual(mockProviders);
             expect(mockGot.post).toHaveBeenCalledWith(
-                'http://unix:/tmp/rclone.sock:/config/providers',
+                'http://unix:/tmp/rclone.sock:config/providers',
                 expect.objectContaining({
                     json: {},
                     responseType: 'json',
                     enableUnixSockets: true,
+                    headers: expect.objectContaining({
+                        Authorization: expect.stringMatching(/^Basic /),
+                    }),
                 })
             );
         });
@@ -126,9 +149,14 @@ describe('RCloneApiService', () => {
 
             expect(result).toEqual(mockRemotes);
             expect(mockGot.post).toHaveBeenCalledWith(
-                'http://unix:/tmp/rclone.sock:/config/listremotes',
+                'http://unix:/tmp/rclone.sock:config/listremotes',
                 expect.objectContaining({
                     json: {},
+                    responseType: 'json',
+                    enableUnixSockets: true,
+                    headers: expect.objectContaining({
+                        Authorization: expect.stringMatching(/^Basic /),
+                    }),
                 })
             );
         });
@@ -152,9 +180,14 @@ describe('RCloneApiService', () => {
 
             expect(result).toEqual(mockConfig);
             expect(mockGot.post).toHaveBeenCalledWith(
-                'http://unix:/tmp/rclone.sock:/config/get',
+                'http://unix:/tmp/rclone.sock:config/get',
                 expect.objectContaining({
                     json: { name: 'test-remote' },
+                    responseType: 'json',
+                    enableUnixSockets: true,
+                    headers: expect.objectContaining({
+                        Authorization: expect.stringMatching(/^Basic /),
+                    }),
                 })
             );
         });
@@ -186,13 +219,18 @@ describe('RCloneApiService', () => {
 
             expect(result).toEqual(mockResponse);
             expect(mockGot.post).toHaveBeenCalledWith(
-                'http://unix:/tmp/rclone.sock:/config/create',
+                'http://unix:/tmp/rclone.sock:config/create',
                 expect.objectContaining({
                     json: {
                         name: 'new-remote',
                         type: 's3',
                         parameters: { access_key_id: 'AKIA...', secret_access_key: 'secret' },
                     },
+                    responseType: 'json',
+                    enableUnixSockets: true,
+                    headers: expect.objectContaining({
+                        Authorization: expect.stringMatching(/^Basic /),
+                    }),
                 })
             );
         });
@@ -211,12 +249,17 @@ describe('RCloneApiService', () => {
 
             expect(result).toEqual(mockResponse);
             expect(mockGot.post).toHaveBeenCalledWith(
-                'http://unix:/tmp/rclone.sock:/config/update',
+                'http://unix:/tmp/rclone.sock:config/update',
                 expect.objectContaining({
                     json: {
                         name: 'existing-remote',
                         access_key_id: 'NEW_AKIA...',
                     },
+                    responseType: 'json',
+                    enableUnixSockets: true,
+                    headers: expect.objectContaining({
+                        Authorization: expect.stringMatching(/^Basic /),
+                    }),
                 })
             );
         });
@@ -232,9 +275,14 @@ describe('RCloneApiService', () => {
 
             expect(result).toEqual(mockResponse);
             expect(mockGot.post).toHaveBeenCalledWith(
-                'http://unix:/tmp/rclone.sock:/config/delete',
+                'http://unix:/tmp/rclone.sock:config/delete',
                 expect.objectContaining({
                     json: { name: 'remote-to-delete' },
+                    responseType: 'json',
+                    enableUnixSockets: true,
+                    headers: expect.objectContaining({
+                        Authorization: expect.stringMatching(/^Basic /),
+                    }),
                 })
             );
         });
@@ -254,13 +302,18 @@ describe('RCloneApiService', () => {
 
             expect(result).toEqual(mockResponse);
             expect(mockGot.post).toHaveBeenCalledWith(
-                'http://unix:/tmp/rclone.sock:/sync/copy',
+                'http://unix:/tmp/rclone.sock:sync/copy',
                 expect.objectContaining({
                     json: {
                         srcFs: '/source/path',
                         dstFs: 'remote:backup/path',
                         delete_on: 'dst',
                     },
+                    responseType: 'json',
+                    enableUnixSockets: true,
+                    headers: expect.objectContaining({
+                        Authorization: expect.stringMatching(/^Basic /),
+                    }),
                 })
             );
         });
@@ -276,9 +329,14 @@ describe('RCloneApiService', () => {
 
             expect(result).toEqual(mockStatus);
             expect(mockGot.post).toHaveBeenCalledWith(
-                'http://unix:/tmp/rclone.sock:/job/status',
+                'http://unix:/tmp/rclone.sock:job/status',
                 expect.objectContaining({
                     json: { jobid: 'job-123' },
+                    responseType: 'json',
+                    enableUnixSockets: true,
+                    headers: expect.objectContaining({
+                        Authorization: expect.stringMatching(/^Basic /),
+                    }),
                 })
             );
         });
@@ -296,9 +354,14 @@ describe('RCloneApiService', () => {
 
             expect(result).toEqual(mockJobs);
             expect(mockGot.post).toHaveBeenCalledWith(
-                'http://unix:/tmp/rclone.sock:/job/list',
+                'http://unix:/tmp/rclone.sock:job/list',
                 expect.objectContaining({
                     json: {},
+                    responseType: 'json',
+                    enableUnixSockets: true,
+                    headers: expect.objectContaining({
+                        Authorization: expect.stringMatching(/^Basic /),
+                    }),
                 })
             );
         });

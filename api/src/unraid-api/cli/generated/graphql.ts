@@ -1042,7 +1042,7 @@ export type MutationDeleteNotificationArgs = {
 
 
 export type MutationDeleteOidcProviderArgs = {
-  id: Scalars['String']['input'];
+  id: Scalars['PrefixedID']['input'];
 };
 
 
@@ -1224,8 +1224,6 @@ export type OidcProvider = {
   clientId: Scalars['String']['output'];
   /** OAuth2 client secret (if required by provider) */
   clientSecret?: Maybe<Scalars['String']['output']>;
-  /** Use custom parameter names for authorization (e.g., callbackUrl instead of redirect_uri) */
-  customAuthParams?: Maybe<Scalars['Boolean']['output']>;
   /** The unique identifier for the OIDC provider */
   id: Scalars['PrefixedID']['output'];
   /** OIDC issuer URL (e.g., https://accounts.google.com). Required for auto-discovery via /.well-known/openid-configuration */
@@ -1259,10 +1257,8 @@ export type OidcProviderInput = {
   clientId: Scalars['String']['input'];
   /** OAuth2 client secret (if required by provider) */
   clientSecret?: InputMaybe<Scalars['String']['input']>;
-  /** Use custom parameter names for authorization (e.g., callbackUrl instead of redirect_uri) */
-  customAuthParams?: InputMaybe<Scalars['Boolean']['input']>;
   /** The unique identifier for the OIDC provider */
-  id: Scalars['String']['input'];
+  id: Scalars['PrefixedID']['input'];
   /** OIDC issuer URL (e.g., https://accounts.google.com). Required for auto-discovery via /.well-known/openid-configuration */
   issuer: Scalars['String']['input'];
   /** JSON Web Key Set URI for token validation. If omitted, will be auto-discovered from issuer/.well-known/openid-configuration */
@@ -1507,7 +1503,7 @@ export type QueryLogFileArgs = {
 
 
 export type QueryOidcProviderArgs = {
-  id: Scalars['String']['input'];
+  id: Scalars['PrefixedID']['input'];
 };
 
 

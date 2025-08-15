@@ -1,6 +1,7 @@
 import { Logger } from '@nestjs/common';
-import { Args, Mutation, Query, Resolver } from '@nestjs/graphql';
+import { Args, Query, Resolver } from '@nestjs/graphql';
 
+import { PrefixedID } from '@unraid/shared/prefixed-id-scalar.js';
 import {
     AuthActionVerb,
     AuthPossession,
@@ -9,10 +10,7 @@ import {
 
 import { Public } from '@app/unraid-api/auth/public.decorator.js';
 import { OidcConfigPersistence } from '@app/unraid-api/graph/resolvers/sso/oidc-config.service.js';
-import {
-    OidcProvider,
-    OidcProviderInput,
-} from '@app/unraid-api/graph/resolvers/sso/oidc-provider.model.js';
+import { OidcProvider } from '@app/unraid-api/graph/resolvers/sso/oidc-provider.model.js';
 import { OidcSessionValidation } from '@app/unraid-api/graph/resolvers/sso/oidc-session-validation.model.js';
 import { OidcSessionService } from '@app/unraid-api/graph/resolvers/sso/oidc-session.service.js';
 import { PublicOidcProvider } from '@app/unraid-api/graph/resolvers/sso/public-oidc-provider.model.js';
@@ -89,63 +87,10 @@ export class SsoResolver {
         resource: 'sso',
         possession: AuthPossession.ANY,
     })
-    public async oidcProvider(@Args('id') id: string): Promise<OidcProvider | null> {
+    public async oidcProvider(
+        @Args('id', { type: () => PrefixedID }) id: string
+    ): Promise<OidcProvider | null> {
         return this.oidcConfig.getProvider(id);
-    }
-
-    @Mutation(() => OidcProvider, { description: 'Create or update an OIDC provider' })
-    @UsePermissions({
-        action: AuthActionVerb.UPDATE,
-        resource: 'sso',
-        possession: AuthPossession.ANY,
-    })
-    public async upsertOidcProvider(
-        @Args('provider') provider: OidcProviderInput
-    ): Promise<OidcProvider> {
-        // Special handling for unraid.net provider - only allow updating authorization rules
-        if (provider.id === 'unraid.net') {
-            const existingProvider = await this.oidcConfig.getProvider('unraid.net');
-            if (!existingProvider) {
-                throw new Error('Unraid.net provider not found');
-            }
-
-            // Only allow updating authorization rules and button customization for unraid.net
-            const restrictedUpdate: OidcProvider = {
-                ...existingProvider,
-                authorizationRules: provider.authorizationRules || existingProvider.authorizationRules,
-                buttonText: provider.buttonText || existingProvider.buttonText,
-                buttonIcon: provider.buttonIcon || existingProvider.buttonIcon,
-                buttonVariant: provider.buttonVariant || existingProvider.buttonVariant,
-                buttonStyle: provider.buttonStyle || existingProvider.buttonStyle,
-            };
-
-            const result = await this.oidcConfig.upsertProvider(restrictedUpdate);
-            this.logger.log(`Updated Unraid.net provider authorization rules`);
-            return result;
-        }
-
-        const result = await this.oidcConfig.upsertProvider(provider as OidcProvider);
-        this.logger.log(`Upserted OIDC provider: ${provider.id}`);
-        return result;
-    }
-
-    @Mutation(() => Boolean, { description: 'Delete an OIDC provider' })
-    @UsePermissions({
-        action: AuthActionVerb.DELETE,
-        resource: 'sso',
-        possession: AuthPossession.ANY,
-    })
-    public async deleteOidcProvider(@Args('id') id: string): Promise<boolean> {
-        // Prevent deletion of the unraid.net provider
-        if (id === 'unraid.net') {
-            throw new Error('Cannot delete the Unraid.net provider');
-        }
-
-        const result = await this.oidcConfig.deleteProvider(id);
-        if (result) {
-            this.logger.log(`Deleted OIDC provider: ${id}`);
-        }
-        return result;
     }
 
     @Query(() => OidcSessionValidation, {
