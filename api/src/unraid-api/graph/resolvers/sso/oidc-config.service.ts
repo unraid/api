@@ -171,7 +171,6 @@ export class OidcConfigPersistence extends ConfigFilePersister<OidcConfig> {
             buttonIcon: provider.buttonIcon,
             buttonVariant: provider.buttonVariant,
             buttonStyle: provider.buttonStyle,
-            customAuthParams: provider.customAuthParams,
         };
 
         const existingIndex = providers.findIndex((p) => p.id === provider.id);
