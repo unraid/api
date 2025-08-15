@@ -39,7 +39,20 @@ jobs:
           fi
           rm -rf docs-repo/docs/API/
           mkdir -p docs-repo/docs/API
+          # Copy all markdown files and maintain directory structure
           cp -r source-repo/api/docs/public/. docs-repo/docs/API/
+          
+          # Ensure images directory is properly copied
+          if [ -d "source-repo/api/docs/public/images" ]; then
+            mkdir -p docs-repo/docs/API/images
+            cp -r source-repo/api/docs/public/images/. docs-repo/docs/API/images/
+          fi
+          
+          # Also check for images in the parent docs directory
+          if [ -d "source-repo/api/docs/images" ]; then
+            mkdir -p docs-repo/docs/API/images
+            cp -r source-repo/api/docs/images/. docs-repo/docs/API/images/
+          fi
       - name: Create Pull Request
         uses: peter-evans/create-pull-request@v7
         with:
