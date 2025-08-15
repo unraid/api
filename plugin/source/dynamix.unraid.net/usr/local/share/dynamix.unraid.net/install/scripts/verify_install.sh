@@ -2,6 +2,26 @@
 # Unraid API Installation Verification Script
 # Checks that critical files are installed correctly
 
+# Function to check for ZSH as the default shell
+check_zsh() {
+  # We are forcing the script to run in bash, so we can check if the parent process is ZSH
+  # We must use ps -o comm= $$ to get the name of the shell running this script
+  # Then we use ps -o comm= -p $PPID to get the name of the parent process
+  # If the parent process is ZSH, we need to error out
+  local parent_shell
+  parent_shell=$(ps -o comm= -p $$)
+  if [[ "$parent_shell" == "zsh" ]]; then
+    echo "Unsupported shell detected: Your system is configured to use ZSH as the default shell for scripts." >&2
+    echo "This can cause issues with Unraid." >&2
+    echo "Please configure ZSH to only activate for interactive shells." >&2
+    echo "You can do this by moving your ZSH configuration from ~/.profile or /etc/profile to ~/.zshrc or /etc/zshrc." >&2
+    exit 1
+  fi
+}
+
+# Run ZSH check first
+check_zsh
+
 echo "Performing comprehensive installation verification..."
 
 # Define critical files to check (POSIX-compliant, no arrays)
