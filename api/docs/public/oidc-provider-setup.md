@@ -247,7 +247,7 @@ The **Issuer URL** field accepts both formats, but **base URL is strongly recomm
 
 - Ensure the redirect URI in your provider matches exactly
 - Include the correct port if using a non-standard configuration
-- Use HTTP for local, HTTPS for production
+- Verify the redirect URI protocol matches your server's configuration (HTTP or HTTPS)
 
 #### Cannot see login button
 
@@ -272,7 +272,7 @@ LOG_LEVEL=debug unraid-api start --debug
 
 ## Security Best Practices
 
-1. **Always use HTTPS in production** - OAuth requires secure connections
+1. **Use HTTPS when possible** - Provides encrypted connections for authentication
 2. **Use Simple Mode for authorization** - Prevents overly accepting configurations and reduces misconfiguration risks
 3. **Be specific with authorization** - Don't use overly broad rules
 4. **Rotate secrets regularly** - Update client secrets periodically
@@ -296,8 +296,8 @@ The Unraid.net provider is built-in and pre-configured. You only need to configu
 - **Client ID/Secret**: Pre-configured (built-in provider)
 - **Redirect URI**: `http://YOUR_UNRAID_IP/graphql/api/auth/oidc/callback`
 
-:::warning[Security Notice]
-**Always use HTTPS for production redirect URIs!** The examples above use HTTP for initial setup and testing only. In production environments, you MUST use HTTPS (e.g., `https://YOUR_UNRAID_IP/graphql/api/auth/oidc/callback`) to ensure secure communication and prevent credential interception. Most OIDC providers will reject HTTP redirect URIs for security reasons.
+:::tip[Redirect URI Protocol]
+**Match the protocol to your server setup:** Use `http://` if accessing your Unraid server without SSL/TLS (typical for local network access). Use `https://` if you've configured SSL/TLS on your server. Some OIDC providers (like Google) require HTTPS and won't accept HTTP redirect URIs.
 :::
 
 Configure authorization rules using Simple Mode (allowed email domains/addresses) or Advanced Mode for complex requirements.
