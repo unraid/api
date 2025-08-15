@@ -11,7 +11,7 @@ This guide walks you through configuring OIDC (OpenID Connect) providers for SSO
 ## Accessing OIDC Settings
 
 1. Navigate to your Unraid server's web interface
-2. The OIDC Providers section is available on the main configuration page
+2. Go to **Settings** → **Management Access** → **API** → **OIDC**
 3. You'll see tabs for different providers - click the **+** button to add a new provider
 
 ### OIDC Providers Interface Overview
