@@ -31,12 +31,13 @@ jobs:
           path: docs-repo
           token: ${{ secrets.DOCS_PAT_UNRAID_BOT }}
 
-      - name: Copy updated docs
+      - name: Copy and process docs
         run: |
           if [ ! -d "source-repo/api/docs" ]; then
             echo "Source directory does not exist!"
             exit 1
           fi
+          
           # Remove old API docs but preserve other folders
           rm -rf docs-repo/docs/API/
           mkdir -p docs-repo/docs/API
@@ -44,19 +45,24 @@ jobs:
           # Copy all markdown files and maintain directory structure
           cp -r source-repo/api/docs/public/. docs-repo/docs/API/
           
-          # Clean and copy images directory specifically
-          rm -rf docs-repo/docs/API/images/
-          mkdir -p docs-repo/docs/API/images
+          # Copy images to Docusaurus static directory
+          mkdir -p docs-repo/static/img/api
           
           # Copy images from public/images if they exist
           if [ -d "source-repo/api/docs/public/images" ]; then
-            cp -r source-repo/api/docs/public/images/. docs-repo/docs/API/images/
+            cp -r source-repo/api/docs/public/images/. docs-repo/static/img/api/
           fi
           
           # Also copy any images from the parent docs/images directory
           if [ -d "source-repo/api/docs/images" ]; then
-            cp -r source-repo/api/docs/images/. docs-repo/docs/API/images/
+            cp -r source-repo/api/docs/images/. docs-repo/static/img/api/
           fi
+          
+          # Update image paths in markdown files
+          # Replace relative image paths with absolute paths pointing to /img/api/
+          find docs-repo/docs/API -name "*.md" -type f -exec sed -i 's|!\[\([^]]*\)\](\./images/\([^)]*\))|![\1](/img/api/\2)|g' {} \;
+          find docs-repo/docs/API -name "*.md" -type f -exec sed -i 's|!\[\([^]]*\)\](images/\([^)]*\))|![\1](/img/api/\2)|g' {} \;
+          find docs-repo/docs/API -name "*.md" -type f -exec sed -i 's|!\[\([^]]*\)\](../images/\([^)]*\))|![\1](/img/api/\2)|g' {} \;
       - name: Create Pull Request
         uses: peter-evans/create-pull-request@v7
         with:
