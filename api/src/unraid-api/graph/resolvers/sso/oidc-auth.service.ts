@@ -12,6 +12,7 @@ import {
     OidcProvider,
 } from '@app/unraid-api/graph/resolvers/sso/oidc-provider.model.js';
 import { OidcSessionService } from '@app/unraid-api/graph/resolvers/sso/oidc-session.service.js';
+import { OidcStateService } from '@app/unraid-api/graph/resolvers/sso/oidc-state.service.js';
 import { OidcValidationService } from '@app/unraid-api/graph/resolvers/sso/oidc-validation.service.js';
 
 interface JwtClaims {
@@ -31,6 +32,7 @@ export class OidcAuthService {
         private readonly configService: ConfigService,
         private readonly oidcConfig: OidcConfigPersistence,
         private readonly sessionService: OidcSessionService,
+        private readonly stateService: OidcStateService,
         private readonly validationService: OidcValidationService
     ) {}
 
@@ -42,8 +44,8 @@ export class OidcAuthService {
 
         const redirectUri = this.getRedirectUri(requestHost);
 
-        // Encode provider ID in state for callback identification
-        const stateWithProvider = `${providerId}:${state}`;
+        // Generate secure state with cryptographic signature
+        const secureState = this.stateService.generateSecureState(providerId, state);
 
         // Build authorization URL
         if (provider.authorizationEndpoint) {
@@ -54,7 +56,7 @@ export class OidcAuthService {
             authUrl.searchParams.set('client_id', provider.clientId);
             authUrl.searchParams.set('redirect_uri', redirectUri);
             authUrl.searchParams.set('scope', provider.scopes.join(' '));
-            authUrl.searchParams.set('state', stateWithProvider);
+            authUrl.searchParams.set('state', secureState);
             authUrl.searchParams.set('response_type', 'code');
 
             return authUrl.href;
@@ -65,7 +67,7 @@ export class OidcAuthService {
         const parameters: Record<string, string> = {
             redirect_uri: redirectUri,
             scope: provider.scopes.join(' '),
-            state: stateWithProvider,
+            state: secureState,
             response_type: 'code',
         };
 
@@ -87,16 +89,19 @@ export class OidcAuthService {
     }
 
     extractProviderFromState(state: string): { providerId: string; originalState: string } {
-        const parts = state.split(':');
-        if (parts.length >= 2) {
+        // Extract provider from state prefix (no decryption needed)
+        const providerId = this.stateService.extractProviderFromState(state);
+
+        if (providerId) {
             return {
-                providerId: parts[0],
-                originalState: parts.slice(1).join(':'),
+                providerId,
+                originalState: state,
             };
         }
-        // Fallback for states without provider ID
+
+        // Fallback for unknown formats
         return {
-            providerId: 'unraid.net',
+            providerId: '',
             originalState: state,
         };
     }
@@ -151,23 +156,21 @@ export class OidcAuthService {
 
             this.logger.debug(`Token exchange URL (matches redirect_uri): ${currentUrl.href}`);
 
-            // Extract original state for validation
-            const { originalState } = this.extractProviderFromState(state);
-
-            this.logger.debug(`Exchanging code for tokens with provider ${providerId}`);
-            this.logger.debug(`Expected state: ${originalState}`);
-
-            // For openid-client v6, we need to validate the state ourselves
-            // The library expects the authorization response to have specific parameters
-            const authorizationResponse = new URLSearchParams(currentUrl.search);
-
-            // Validate state parameter matches what we expect
-            const responseState = authorizationResponse.get('state');
-            if (responseState !== `${providerId}:${originalState}`) {
-                throw new Error('State parameter mismatch');
+            // Validate secure state
+            const stateValidation = this.stateService.validateSecureState(state, providerId);
+            if (!stateValidation.isValid) {
+                this.logger.error(`State validation failed: ${stateValidation.error}`);
+                throw new UnauthorizedException(stateValidation.error || 'Invalid state parameter');
             }
 
-            // Remove our provider prefix from state before passing to openid-client
+            const originalState = stateValidation.clientState!;
+            this.logger.debug(`Exchanging code for tokens with provider ${providerId}`);
+            this.logger.debug(`Client state extracted: ${originalState}`);
+
+            // For openid-client v6, we need to prepare the authorization response
+            const authorizationResponse = new URLSearchParams(currentUrl.search);
+
+            // Set the original client state for openid-client
             authorizationResponse.set('state', originalState);
 
             // Create a new URL with the cleaned parameters

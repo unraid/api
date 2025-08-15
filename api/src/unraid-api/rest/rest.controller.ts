@@ -140,6 +140,9 @@ export class RestController {
             const loginUrl = `/login#token=${encodeURIComponent(paddedToken)}`;
 
             // Manually set redirect headers for better proxy compatibility
+            res.header('Cache-Control', 'no-store');
+            res.header('Pragma', 'no-cache');
+            res.header('Expires', '0');
             res.status(302);
             res.header('Location', loginUrl);
             return res.send();
