@@ -13,6 +13,7 @@ interface KeyOptions {
     name: string;
     create: boolean;
     delete?: boolean;
+    list?: boolean;
     description?: string;
     roles?: Role[];
     permissions?: Permission[];
@@ -20,7 +21,7 @@ interface KeyOptions {
 
 @Command({
     name: 'apikey',
-    description: `Create / Fetch / Delete Connect API Keys - use --create with no arguments for a creation wizard, or --delete to remove keys`,
+    description: `Create / Fetch / Delete / List Connect API Keys - use --create with no arguments for a creation wizard, --delete to remove keys, or --list to show all keys`,
 })
 export class ApiKeyCommand extends CommandRunner {
     constructor(
@@ -55,7 +56,7 @@ export class ApiKeyCommand extends CommandRunner {
         if (!roles) return [Role.GUEST];
         const validRoles: Set<Role> = new Set(Object.values(Role));
 
-        const requestedRoles = roles.split(',').map((role) => role.trim().toLocaleLowerCase() as Role);
+        const requestedRoles = roles.split(',').map((role) => role.trim().toUpperCase() as Role);
         const validRequestedRoles = requestedRoles.filter((role) => validRoles.has(role));
 
         if (validRequestedRoles.length === 0) {
@@ -99,6 +100,14 @@ ACTIONS: ${Object.values(AuthActionVerb).join(', ')}`,
         return true;
     }
 
+    @Option({
+        flags: '--list',
+        description: 'List all API keys',
+    })
+    parseList(): boolean {
+        return true;
+    }
+
     /** Prompt the user to select API keys to delete. Then, delete the selected keys. */
     private async deleteKeys() {
         const allKeys = await this.apiKeyService.findAll();
@@ -125,11 +134,49 @@ ACTIONS: ${Object.values(AuthActionVerb).join(', ')}`,
         }
     }
 
+    /** List all API keys with their details */
+    private async listKeys() {
+        const allKeys = await this.apiKeyService.findAll();
+        if (allKeys.length === 0) {
+            this.logger.log('No API keys found');
+            return;
+        }
+
+        this.logger.log(`Found ${allKeys.length} API key${allKeys.length > 1 ? 's' : ''}:\n`);
+
+        for (const key of allKeys) {
+            this.logger.log(`Name: ${key.name}`);
+            if (key.description) {
+                this.logger.log(`  Description: ${key.description}`);
+            }
+            if (key.roles && key.roles.length > 0) {
+                this.logger.log(`  Roles: ${key.roles.join(', ')}`);
+            }
+            if (key.permissions && key.permissions.length > 0) {
+                const permissionStrings = key.permissions.flatMap((p) =>
+                    p.actions.map((action) => `${p.resource}:${action}`)
+                );
+                this.logger.log(`  Permissions: ${permissionStrings.join(', ')}`);
+            }
+            // Get the actual key value using findByField
+            const keyWithSecret = this.apiKeyService.findByField('id', key.id);
+            if (keyWithSecret) {
+                this.logger.log(`  Key: ${keyWithSecret.key}`);
+            }
+            this.logger.log('');
+        }
+    }
+
     async run(
         _: string[],
-        options: KeyOptions = { create: false, name: '', delete: false }
+        options: KeyOptions = { create: false, name: '', delete: false, list: false }
     ): Promise<void> {
         try {
+            if (options.list) {
+                await this.listKeys();
+                return;
+            }
+
             if (options.delete) {
                 await this.deleteKeys();
                 return;
