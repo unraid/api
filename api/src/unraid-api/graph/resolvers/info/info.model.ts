@@ -117,6 +117,42 @@ export class InfoCpu extends Node {
 
     @Field(() => [String])
     flags!: string[];
+
+    @Field(() => Float, {
+        description: 'CPU utilization in percent',
+        nullable: true,
+    })
+    utilization?: number;
+}
+
+@ObjectType({ description: 'CPU load for a single core' })
+export class CpuLoad {
+    @Field(() => Float, { description: 'The total CPU load on a single core, in percent.' })
+    load!: number;
+
+    @Field(() => Float, { description: 'The percentage of time the CPU spent in user space.' })
+    loadUser!: number;
+
+    @Field(() => Float, { description: 'The percentage of time the CPU spent in kernel space.' })
+    loadSystem!: number;
+
+    @Field(() => Float, { description: 'The percentage of time the CPU spent on low-priority (niced) user space processes.' })
+    loadNice!: number;
+
+    @Field(() => Float, { description: 'The percentage of time the CPU was idle.' })
+    loadIdle!: number;
+
+    @Field(() => Float, { description: 'The percentage of time the CPU spent servicing hardware interrupts.' })
+    loadIrq!: number;
+}
+
+@ObjectType({ implements: () => Node })
+export class CpuUtilization extends Node {
+    @Field(() => Float)
+    load!: number;
+
+    @Field(() => [CpuLoad])
+    cpus!: CpuLoad[];
 }
 
 @ObjectType({ implements: () => Node })

@@ -6,8 +6,10 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { DisplayService } from '@app/unraid-api/graph/resolvers/display/display.service.js';
 import { DockerService } from '@app/unraid-api/graph/resolvers/docker/docker.service.js';
+import { CpuDataService } from '@app/unraid-api/graph/resolvers/info/cpu-data.service.js';
 import { InfoResolver } from '@app/unraid-api/graph/resolvers/info/info.resolver.js';
 import { InfoService } from '@app/unraid-api/graph/resolvers/info/info.service.js';
+import { SubscriptionTrackerService } from '@app/unraid-api/graph/services/subscription-tracker.service.js';
 
 // Mock necessary modules
 vi.mock('fs/promises', () => ({
@@ -187,6 +189,19 @@ describe('InfoResolver', () => {
         generateDisplay: vi.fn().mockResolvedValue(mockDisplayData),
     };
 
+    const mockSubscriptionTrackerService = {
+        registerTopic: vi.fn(),
+        subscribe: vi.fn(),
+        unsubscribe: vi.fn(),
+    };
+
+    const mockCpuDataService = {
+        getCpuLoad: vi.fn().mockResolvedValue({
+            currentLoad: 10,
+            cpus: [],
+        }),
+    };
+
     beforeEach(async () => {
         const module: TestingModule = await Test.createTestingModule({
             providers: [
@@ -206,6 +221,14 @@ describe('InfoResolver', () => {
                 {
                     provide: CACHE_MANAGER,
                     useValue: mockCacheManager,
+                },
+                {
+                    provide: SubscriptionTrackerService,
+                    useValue: mockSubscriptionTrackerService,
+                },
+                {
+                    provide: CpuDataService,
+                    useValue: mockCpuDataService,
                 },
             ],
         }).compile();

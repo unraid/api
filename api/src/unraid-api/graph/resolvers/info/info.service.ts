@@ -1,6 +1,14 @@
 import { Injectable } from '@nestjs/common';
 
-import { cpu, cpuFlags, mem, memLayout, osInfo, versions } from 'systeminformation';
+import {
+    cpu,
+    cpuFlags,
+    mem,
+    memLayout,
+    osInfo,
+    versions,
+    currentLoad,
+} from 'systeminformation';
 
 import { bootTimestamp } from '@app/common/dashboard/boot-timestamp.js';
 import { getUnraidVersion } from '@app/common/dashboard/get-unraid-version.js';
@@ -15,6 +23,7 @@ import {
     Os as InfoOs,
     MemoryLayout,
     Versions,
+    CpuUtilization,
 } from '@app/unraid-api/graph/resolvers/info/info.model.js';
 
 @Injectable()
@@ -90,5 +99,15 @@ export class InfoService {
             id: 'info/devices',
             // These fields will be resolved by DevicesResolver
         } as Devices;
+    }
+
+    async generateCpuLoad(): Promise<CpuUtilization> {
+        const { currentLoad: load, cpus } = await currentLoad();
+
+        return {
+            id: 'info/cpu-load',
+            load,
+            cpus,
+        };
     }
 }

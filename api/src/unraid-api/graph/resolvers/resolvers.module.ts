@@ -33,12 +33,16 @@ import { VarsResolver } from '@app/unraid-api/graph/resolvers/vars/vars.resolver
 import { VmMutationsResolver } from '@app/unraid-api/graph/resolvers/vms/vms.mutations.resolver.js';
 import { VmsResolver } from '@app/unraid-api/graph/resolvers/vms/vms.resolver.js';
 import { VmsService } from '@app/unraid-api/graph/resolvers/vms/vms.service.js';
+import { ServicesModule } from '@app/unraid-api/graph/services/services.module.js';
 import { ServicesResolver } from '@app/unraid-api/graph/services/services.resolver.js';
 import { SharesResolver } from '@app/unraid-api/graph/shares/shares.resolver.js';
 import { MeResolver } from '@app/unraid-api/graph/user/user.resolver.js';
+import { InfoCpuResolver } from '@app/unraid-api/graph/resolvers/info/info.resolver.js';
+import { CpuDataService } from '@app/unraid-api/graph/resolvers/info/cpu-data.service.js';
 
 @Module({
     imports: [
+        ServicesModule,
         ArrayModule,
         ApiKeyModule,
         AuthModule,
@@ -76,6 +80,8 @@ import { MeResolver } from '@app/unraid-api/graph/user/user.resolver.js';
         VmMutationsResolver,
         VmsResolver,
         VmsService,
+        InfoCpuResolver,
+        CpuDataService,
     ],
     exports: [ApiKeyModule],
 })
