@@ -30,11 +30,9 @@ import {
 import { InfoService } from '@app/unraid-api/graph/resolvers/info/info.service.js';
 import { SubscriptionTrackerService } from '@app/unraid-api/graph/services/subscription-tracker.service.js';
 
-const CPU_UTILIZATION = 'CPU_UTILIZATION';
-
 @Resolver(() => Info)
 export class InfoResolver implements OnModuleInit {
-    private cpuPollingTimer: NodeJS.Timeout;
+    private cpuPollingTimer: NodeJS.Timeout | undefined;
 
     constructor(
         private readonly infoService: InfoService,
@@ -45,11 +43,11 @@ export class InfoResolver implements OnModuleInit {
 
     onModuleInit() {
         this.subscriptionTracker.registerTopic(
-            CPU_UTILIZATION,
+            PUBSUB_CHANNEL.CPU_UTILIZATION,
             () => {
                 this.cpuPollingTimer = setInterval(async () => {
                     const payload = await this.infoService.generateCpuLoad();
-                    pubsub.publish(CPU_UTILIZATION, { cpuUtilization: payload });
+                    pubsub.publish(PUBSUB_CHANNEL.CPU_UTILIZATION, { cpuUtilization: payload });
                 }, 1000);
             },
             () => {
@@ -168,15 +166,15 @@ export class InfoResolver implements OnModuleInit {
         possession: AuthPossession.ANY,
     })
     public async cpuUtilizationSubscription() {
-        const iterator = createSubscription(CPU_UTILIZATION);
+        const iterator = createSubscription(PUBSUB_CHANNEL.CPU_UTILIZATION);
 
         return {
             [Symbol.asyncIterator]: () => {
-                this.subscriptionTracker.subscribe(CPU_UTILIZATION);
+                this.subscriptionTracker.subscribe(PUBSUB_CHANNEL.CPU_UTILIZATION);
                 return iterator[Symbol.asyncIterator]();
             },
             return: () => {
-                this.subscriptionTracker.unsubscribe(CPU_UTILIZATION);
+                this.subscriptionTracker.unsubscribe(PUBSUB_CHANNEL.CPU_UTILIZATION);
                 return iterator.return();
             },
         };
