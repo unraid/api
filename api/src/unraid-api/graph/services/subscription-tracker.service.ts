@@ -3,16 +3,9 @@ import { Injectable } from '@nestjs/common';
 @Injectable()
 export class SubscriptionTrackerService {
     private subscriberCounts = new Map<string, number>();
-    private topicHandlers = new Map<
-        string,
-        { onStart: () => void; onStop: () => void }
-    >();
+    private topicHandlers = new Map<string, { onStart: () => void; onStop: () => void }>();
 
-    public registerTopic(
-        topic: string,
-        onStart: () => void,
-        onStop: () => void
-    ): void {
+    public registerTopic(topic: string, onStart: () => void, onStop: () => void): void {
         this.topicHandlers.set(topic, { onStart, onStop });
     }
 

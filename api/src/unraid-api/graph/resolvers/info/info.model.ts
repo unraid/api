@@ -136,13 +136,18 @@ export class CpuLoad {
     @Field(() => Float, { description: 'The percentage of time the CPU spent in kernel space.' })
     loadSystem!: number;
 
-    @Field(() => Float, { description: 'The percentage of time the CPU spent on low-priority (niced) user space processes.' })
+    @Field(() => Float, {
+        description:
+            'The percentage of time the CPU spent on low-priority (niced) user space processes.',
+    })
     loadNice!: number;
 
     @Field(() => Float, { description: 'The percentage of time the CPU was idle.' })
     loadIdle!: number;
 
-    @Field(() => Float, { description: 'The percentage of time the CPU spent servicing hardware interrupts.' })
+    @Field(() => Float, {
+        description: 'The percentage of time the CPU spent servicing hardware interrupts.',
+    })
     loadIrq!: number;
 }
 

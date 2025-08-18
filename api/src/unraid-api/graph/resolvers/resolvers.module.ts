@@ -12,9 +12,10 @@ import { DisplayService } from '@app/unraid-api/graph/resolvers/display/display.
 import { DockerModule } from '@app/unraid-api/graph/resolvers/docker/docker.module.js';
 import { FlashBackupModule } from '@app/unraid-api/graph/resolvers/flash-backup/flash-backup.module.js';
 import { FlashResolver } from '@app/unraid-api/graph/resolvers/flash/flash.resolver.js';
+import { CpuDataService } from '@app/unraid-api/graph/resolvers/info/cpu-data.service.js';
 import { DevicesResolver } from '@app/unraid-api/graph/resolvers/info/devices.resolver.js';
 import { DevicesService } from '@app/unraid-api/graph/resolvers/info/devices.service.js';
-import { InfoResolver } from '@app/unraid-api/graph/resolvers/info/info.resolver.js';
+import { InfoCpuResolver, InfoResolver } from '@app/unraid-api/graph/resolvers/info/info.resolver.js';
 import { InfoService } from '@app/unraid-api/graph/resolvers/info/info.service.js';
 import { LogsResolver } from '@app/unraid-api/graph/resolvers/logs/logs.resolver.js';
 import { LogsService } from '@app/unraid-api/graph/resolvers/logs/logs.service.js';
@@ -37,8 +38,6 @@ import { ServicesModule } from '@app/unraid-api/graph/services/services.module.j
 import { ServicesResolver } from '@app/unraid-api/graph/services/services.resolver.js';
 import { SharesResolver } from '@app/unraid-api/graph/shares/shares.resolver.js';
 import { MeResolver } from '@app/unraid-api/graph/user/user.resolver.js';
-import { InfoCpuResolver } from '@app/unraid-api/graph/resolvers/info/info.resolver.js';
-import { CpuDataService } from '@app/unraid-api/graph/resolvers/info/cpu-data.service.js';
 
 @Module({
     imports: [

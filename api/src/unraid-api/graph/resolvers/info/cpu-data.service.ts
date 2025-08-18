@@ -1,4 +1,5 @@
 import { Injectable, Scope } from '@nestjs/common';
+
 import { currentLoad, Systeminformation } from 'systeminformation';
 
 @Injectable({ scope: Scope.REQUEST })

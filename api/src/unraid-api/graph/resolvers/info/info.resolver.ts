@@ -1,12 +1,5 @@
 import { OnModuleInit } from '@nestjs/common';
-import {
-    Parent,
-    Query,
-    Resolver,
-    Subscription,
-    ResolveField,
-} from '@nestjs/graphql';
-import { PubSub } from 'graphql-subscriptions';
+import { Parent, Query, ResolveField, Resolver, Subscription } from '@nestjs/graphql';
 
 import { Resource } from '@unraid/shared/graphql.model.js';
 import {
@@ -14,21 +7,16 @@ import {
     AuthPossession,
     UsePermissions,
 } from '@unraid/shared/use-permissions.directive.js';
-import {
-    baseboard as getBaseboard,
-    system as getSystem,
-} from 'systeminformation';
+import { PubSub } from 'graphql-subscriptions';
+import { baseboard as getBaseboard, system as getSystem } from 'systeminformation';
 
+import { createSubscription, pubsub, PUBSUB_CHANNEL } from '@app/core/pubsub.js';
 import { getMachineId } from '@app/core/utils/misc/get-machine-id.js';
-import {
-    createSubscription,
-    PUBSUB_CHANNEL,
-    pubsub,
-} from '@app/core/pubsub.js';
-
 import { DisplayService } from '@app/unraid-api/graph/resolvers/display/display.service.js';
+import { CpuDataService } from '@app/unraid-api/graph/resolvers/info/cpu-data.service.js';
 import {
     Baseboard,
+    CpuUtilization,
     Devices,
     Display,
     Info,
@@ -38,9 +26,7 @@ import {
     Os,
     System,
     Versions,
-    CpuUtilization,
 } from '@app/unraid-api/graph/resolvers/info/info.model.js';
-import { CpuDataService } from '@app/unraid-api/graph/resolvers/info/cpu-data.service.js';
 import { InfoService } from '@app/unraid-api/graph/resolvers/info/info.service.js';
 import { SubscriptionTrackerService } from '@app/unraid-api/graph/services/subscription-tracker.service.js';
 

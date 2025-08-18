@@ -1,14 +1,6 @@
 import { Injectable } from '@nestjs/common';
 
-import {
-    cpu,
-    cpuFlags,
-    mem,
-    memLayout,
-    osInfo,
-    versions,
-    currentLoad,
-} from 'systeminformation';
+import { cpu, cpuFlags, currentLoad, mem, memLayout, osInfo, versions } from 'systeminformation';
 
 import { bootTimestamp } from '@app/common/dashboard/boot-timestamp.js';
 import { getUnraidVersion } from '@app/common/dashboard/get-unraid-version.js';
@@ -16,6 +8,7 @@ import { getters } from '@app/store/index.js';
 import { ContainerState } from '@app/unraid-api/graph/resolvers/docker/docker.model.js';
 import { DockerService } from '@app/unraid-api/graph/resolvers/docker/docker.service.js';
 import {
+    CpuUtilization,
     Devices,
     InfoApps,
     InfoCpu,
@@ -23,7 +16,6 @@ import {
     Os as InfoOs,
     MemoryLayout,
     Versions,
-    CpuUtilization,
 } from '@app/unraid-api/graph/resolvers/info/info.model.js';
 
 @Injectable()
