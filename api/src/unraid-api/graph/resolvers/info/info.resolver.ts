@@ -1,5 +1,5 @@
 import { OnModuleInit } from '@nestjs/common';
-import { Parent, Query, ResolveField, Resolver, Subscription } from '@nestjs/graphql';
+import { Query, ResolveField, Resolver, Subscription } from '@nestjs/graphql';
 
 import { Resource } from '@unraid/shared/graphql.model.js';
 import {
@@ -7,7 +7,6 @@ import {
     AuthPossession,
     UsePermissions,
 } from '@unraid/shared/use-permissions.directive.js';
-import { PubSub } from 'graphql-subscriptions';
 import { baseboard as getBaseboard, system as getSystem } from 'systeminformation';
 
 import { createSubscription, pubsub, PUBSUB_CHANNEL } from '@app/core/pubsub.js';
@@ -37,8 +36,7 @@ export class InfoResolver implements OnModuleInit {
     constructor(
         private readonly infoService: InfoService,
         private readonly displayService: DisplayService,
-        private readonly subscriptionTracker: SubscriptionTrackerService,
-        private readonly cpuDataService: CpuDataService
+        private readonly subscriptionTracker: SubscriptionTrackerService
     ) {}
 
     onModuleInit() {
@@ -148,12 +146,7 @@ export class InfoResolver implements OnModuleInit {
         possession: AuthPossession.ANY,
     })
     public async cpuUtilization(): Promise<CpuUtilization> {
-        const { currentLoad: load, cpus } = await this.cpuDataService.getCpuLoad();
-        return {
-            id: 'info/cpu-load',
-            load,
-            cpus,
-        };
+        return this.infoService.generateCpuLoad();
     }
 
     @Subscription(() => CpuUtilization, {
@@ -189,7 +182,7 @@ export class InfoCpuResolver {
         description: 'CPU utilization in percent',
         nullable: true,
     })
-    public async utilization(@Parent() cpu: InfoCpu): Promise<number> {
+    public async utilization(): Promise<number> {
         const { currentLoad } = await this.cpuDataService.getCpuLoad();
         return currentLoad;
     }

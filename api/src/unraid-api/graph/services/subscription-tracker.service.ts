@@ -10,28 +10,39 @@ export class SubscriptionTrackerService {
     }
 
     public subscribe(topic: string): void {
-        const currentCount = this.subscriberCounts.get(topic) || 0;
+        const currentCount = this.subscriberCounts.get(topic) ?? 0;
         this.subscriberCounts.set(topic, currentCount + 1);
 
         if (currentCount === 0) {
             const handlers = this.topicHandlers.get(topic);
-            if (handlers) {
+            if (handlers?.onStart) {
                 handlers.onStart();
             }
         }
     }
 
     public unsubscribe(topic: string): void {
-        const currentCount = this.subscriberCounts.get(topic) || 1;
+        const currentCount = this.subscriberCounts.get(topic) ?? 0;
+
+        // Early return for idempotency - if already at 0, do nothing
+        if (currentCount === 0) {
+            return;
+        }
+
         const newCount = currentCount - 1;
 
-        this.subscriberCounts.set(topic, newCount);
-
         if (newCount === 0) {
+            // Delete the topic entry when reaching zero
+            this.subscriberCounts.delete(topic);
+
+            // Call onStop handler if it exists
             const handlers = this.topicHandlers.get(topic);
-            if (handlers) {
+            if (handlers?.onStop) {
                 handlers.onStop();
             }
+        } else {
+            // Only update the count if not zero
+            this.subscriberCounts.set(topic, newCount);
         }
     }
 }
