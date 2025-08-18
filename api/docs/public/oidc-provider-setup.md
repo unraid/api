@@ -397,7 +397,7 @@ Create a new OAuth2/OpenID Provider in Authentik, then create an Application and
 
 **Configuration:**
 
-- **Issuer URL**: `https://authentik.example.com/application/o/unraid-api/`
+- **Issuer URL**: `https://authentik.example.com/application/o/<application_slug>/`
 - **Client ID**: From Authentik provider configuration
 - **Client Secret**: From Authentik provider configuration
 - **Required Scopes**: `openid`, `profile`, `email`
