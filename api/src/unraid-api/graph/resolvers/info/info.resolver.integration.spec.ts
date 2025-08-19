@@ -34,8 +34,16 @@ describe('InfoResolver Integration Tests', () => {
                 OsService,
                 VersionsService,
                 DisplayService,
-                SubscriptionTrackerService,
-                SubscriptionHelperService,
+                {
+                    provide: SubscriptionTrackerService,
+                    useValue: {
+                        trackActiveSubscriptions: vi.fn(),
+                    },
+                },
+                {
+                    provide: SubscriptionHelperService,
+                    useValue: {},
+                },
                 {
                     provide: ConfigService,
                     useValue: {

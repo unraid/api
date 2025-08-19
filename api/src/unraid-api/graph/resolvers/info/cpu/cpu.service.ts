@@ -35,12 +35,19 @@ export class CpuService {
     }
 
     async generateCpuLoad(): Promise<CpuUtilization> {
-        const { currentLoad: load, cpus } = await currentLoad();
+        const loadData = await currentLoad();
 
         return {
             id: 'info/cpu-load',
-            load,
-            cpus,
+            percentTotal: loadData.currentLoad,
+            cpus: loadData.cpus.map((cpu) => ({
+                percentTotal: cpu.load,
+                percentUser: cpu.loadUser,
+                percentSystem: cpu.loadSystem,
+                percentNice: cpu.loadNice,
+                percentIdle: cpu.loadIdle,
+                percentIrq: cpu.loadIrq,
+            })),
         };
     }
 }

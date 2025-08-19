@@ -54,18 +54,18 @@ describe('MetricsResolver Integration Tests', () => {
             const result = await metricsResolver.cpu();
 
             expect(result).toHaveProperty('id', 'info/cpu-load');
-            expect(result).toHaveProperty('load');
+            expect(result).toHaveProperty('percentTotal');
             expect(result).toHaveProperty('cpus');
             expect(result.cpus).toBeInstanceOf(Array);
-            expect(result.load).toBeGreaterThanOrEqual(0);
-            expect(result.load).toBeLessThanOrEqual(100);
+            expect(result.percentTotal).toBeGreaterThanOrEqual(0);
+            expect(result.percentTotal).toBeLessThanOrEqual(100);
 
             if (result.cpus.length > 0) {
                 const firstCpu = result.cpus[0];
-                expect(firstCpu).toHaveProperty('load');
-                expect(firstCpu).toHaveProperty('loadUser');
-                expect(firstCpu).toHaveProperty('loadSystem');
-                expect(firstCpu).toHaveProperty('loadIdle');
+                expect(firstCpu).toHaveProperty('percentTotal');
+                expect(firstCpu).toHaveProperty('percentUser');
+                expect(firstCpu).toHaveProperty('percentSystem');
+                expect(firstCpu).toHaveProperty('percentIdle');
             }
         });
 
@@ -77,15 +77,15 @@ describe('MetricsResolver Integration Tests', () => {
             expect(result).toHaveProperty('used');
             expect(result).toHaveProperty('free');
             expect(result).toHaveProperty('available');
-            expect(result).toHaveProperty('usedPercent');
+            expect(result).toHaveProperty('percentUsed');
             expect(result).toHaveProperty('swapTotal');
             expect(result).toHaveProperty('swapUsed');
             expect(result).toHaveProperty('swapFree');
-            expect(result).toHaveProperty('swapUsedPercent');
+            expect(result).toHaveProperty('percentSwapUsed');
 
             expect(result.total).toBeGreaterThan(0);
-            expect(result.usedPercent).toBeGreaterThanOrEqual(0);
-            expect(result.usedPercent).toBeLessThanOrEqual(100);
+            expect(result.percentUsed).toBeGreaterThanOrEqual(0);
+            expect(result.percentUsed).toBeLessThanOrEqual(100);
         });
     });
 
@@ -100,7 +100,7 @@ describe('MetricsResolver Integration Tests', () => {
                 await new Promise((resolve) => setTimeout(resolve, 50)); // Simulate slow operation
                 return {
                     id: 'info/cpu-load',
-                    load: 50,
+                    percentTotal: 50,
                     cpus: [],
                 };
             });
@@ -131,11 +131,11 @@ describe('MetricsResolver Integration Tests', () => {
                     available: 8000000000,
                     active: 4000000000,
                     buffcache: 2000000000,
-                    usedPercent: 50,
+                    percentUsed: 50,
                     swapTotal: 0,
                     swapUsed: 0,
                     swapFree: 0,
-                    swapUsedPercent: 0,
+                    percentSwapUsed: 0,
                 } as any;
             });
 
@@ -164,7 +164,7 @@ describe('MetricsResolver Integration Tests', () => {
                 expect.objectContaining({
                     systemMetricsCpu: expect.objectContaining({
                         id: 'info/cpu-load',
-                        load: expect.any(Number),
+                        percentTotal: expect.any(Number),
                         cpus: expect.any(Array),
                     }),
                 })
@@ -191,7 +191,7 @@ describe('MetricsResolver Integration Tests', () => {
                         id: 'memory-utilization',
                         used: expect.any(Number),
                         free: expect.any(Number),
-                        usedPercent: expect.any(Number),
+                        percentUsed: expect.any(Number),
                     }),
                 })
             );
