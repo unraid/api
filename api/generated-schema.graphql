@@ -1657,6 +1657,17 @@ type LogFileContent {
   startLine: Int
 }
 
+"""System metrics including CPU and memory utilization"""
+type Metrics implements Node {
+  id: PrefixedID!
+
+  """Current CPU utilization metrics"""
+  cpu: CpuUtilization
+
+  """Current memory utilization metrics"""
+  memory: MemoryUtilization
+}
+
 type NotificationCounts {
   info: Int!
   warning: Int!
@@ -1895,17 +1906,6 @@ type PublicOidcProvider {
   buttonIcon: String
   buttonVariant: String
   buttonStyle: String
-}
-
-"""System metrics including CPU and memory utilization"""
-type Metrics implements Node {
-  id: PrefixedID!
-
-  """Current CPU utilization metrics"""
-  cpu: CpuUtilization
-
-  """Current memory utilization metrics"""
-  memory: MemoryUtilization
 }
 
 type UPSBattery {
