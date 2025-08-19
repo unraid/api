@@ -5,7 +5,7 @@ import { Test } from '@nestjs/testing';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { pubsub, PUBSUB_CHANNEL } from '@app/core/pubsub.js';
-import { CpuDataService, CpuService } from '@app/unraid-api/graph/resolvers/info/cpu/cpu.service.js';
+import { CpuService } from '@app/unraid-api/graph/resolvers/info/cpu/cpu.service.js';
 import { MemoryService } from '@app/unraid-api/graph/resolvers/info/memory/memory.service.js';
 import { MetricsResolver } from '@app/unraid-api/graph/resolvers/metrics/metrics.resolver.js';
 import { SubscriptionHelperService } from '@app/unraid-api/graph/services/subscription-helper.service.js';
@@ -22,7 +22,6 @@ describe('MetricsResolver Integration Tests', () => {
             providers: [
                 MetricsResolver,
                 CpuService,
-                CpuDataService,
                 MemoryService,
                 SubscriptionTrackerService,
                 SubscriptionHelperService,

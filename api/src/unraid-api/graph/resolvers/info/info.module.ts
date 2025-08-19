@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 
-import { CpuDataService, CpuService } from '@app/unraid-api/graph/resolvers/info/cpu/cpu.service.js';
+import { CpuService } from '@app/unraid-api/graph/resolvers/info/cpu/cpu.service.js';
 import { DevicesResolver } from '@app/unraid-api/graph/resolvers/info/devices/devices.resolver.js';
 import { DevicesService } from '@app/unraid-api/graph/resolvers/info/devices/devices.service.js';
 import { DisplayService } from '@app/unraid-api/graph/resolvers/info/display/display.service.js';
@@ -22,7 +22,6 @@ import { ServicesModule } from '@app/unraid-api/graph/services/services.module.j
 
         // Services
         CpuService,
-        CpuDataService,
         MemoryService,
         DevicesService,
         OsService,

@@ -1,18 +1,8 @@
-import { Injectable, Scope } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 
-import { cpu, cpuFlags, currentLoad, Systeminformation } from 'systeminformation';
+import { cpu, cpuFlags, currentLoad } from 'systeminformation';
 
 import { CpuUtilization, InfoCpu } from '@app/unraid-api/graph/resolvers/info/cpu/cpu.model.js';
-
-@Injectable({ scope: Scope.REQUEST })
-export class CpuDataService {
-    private cpuLoadData: Promise<Systeminformation.CurrentLoadData> | undefined;
-
-    public getCpuLoad(): Promise<Systeminformation.CurrentLoadData> {
-        this.cpuLoadData ??= currentLoad();
-        return this.cpuLoadData;
-    }
-}
 
 @Injectable()
 export class CpuService {
