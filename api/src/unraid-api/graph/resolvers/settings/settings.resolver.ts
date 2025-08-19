@@ -11,10 +11,8 @@ import {
 } from '@unraid/shared/use-permissions.directive.js';
 import { GraphQLJSON } from 'graphql-scalars';
 
-import { ENVIRONMENT } from '@app/environment.js';
 import { LifecycleService } from '@app/unraid-api/app/lifecycle.service.js';
 import { Public } from '@app/unraid-api/auth/public.decorator.js';
-import { SsoUserService } from '@app/unraid-api/auth/sso-user.service.js';
 import {
     Settings,
     UnifiedSettings,
@@ -29,7 +27,6 @@ import { OidcProvider } from '@app/unraid-api/graph/resolvers/sso/oidc-provider.
 export class SettingsResolver {
     constructor(
         private readonly apiSettings: ApiSettings,
-        private readonly ssoUserService: SsoUserService,
         private readonly oidcConfig: OidcConfigPersistence
     ) {}
 
@@ -65,7 +62,9 @@ export class SettingsResolver {
     @Query(() => Boolean)
     @Public()
     public async isSSOEnabled(): Promise<boolean> {
-        return this.ssoUserService.getSsoUsers().then((users) => users.length > 0);
+        // Check if any OIDC provider has authorization rules configured
+        const providers = await this.oidcConfig.getProviders();
+        return providers.some((p) => p.authorizationRules && p.authorizationRules.length > 0);
     }
 }
 
