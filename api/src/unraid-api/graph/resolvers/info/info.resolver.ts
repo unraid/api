@@ -1,5 +1,4 @@
-import { OnModuleInit } from '@nestjs/common';
-import { Query, ResolveField, Resolver, Subscription } from '@nestjs/graphql';
+import { GraphQLISODateTime, Query, ResolveField, Resolver } from '@nestjs/graphql';
 
 import { Resource } from '@unraid/shared/graphql.model.js';
 import {
@@ -7,54 +6,20 @@ import {
     AuthPossession,
     UsePermissions,
 } from '@unraid/shared/use-permissions.directive.js';
-import { baseboard as getBaseboard, system as getSystem } from 'systeminformation';
 
-import { createSubscription, pubsub, PUBSUB_CHANNEL } from '@app/core/pubsub.js';
 import { getMachineId } from '@app/core/utils/misc/get-machine-id.js';
-import { DisplayService } from '@app/unraid-api/graph/resolvers/display/display.service.js';
-import { CpuDataService } from '@app/unraid-api/graph/resolvers/info/cpu-data.service.js';
-import {
-    Baseboard,
-    CpuUtilization,
-    Devices,
-    Display,
-    Info,
-    InfoApps,
-    InfoCpu,
-    InfoMemory,
-    Os,
-    System,
-    Versions,
-} from '@app/unraid-api/graph/resolvers/info/info.model.js';
-import { InfoService } from '@app/unraid-api/graph/resolvers/info/info.service.js';
-import { SubscriptionHelperService } from '@app/unraid-api/graph/services/subscription-helper.service.js';
-import { SubscriptionTrackerService } from '@app/unraid-api/graph/services/subscription-tracker.service.js';
+import { InfoCpu } from '@app/unraid-api/graph/resolvers/info/cpu/cpu.model.js';
+import { InfoDevices } from '@app/unraid-api/graph/resolvers/info/devices/devices.model.js';
+import { InfoDisplay } from '@app/unraid-api/graph/resolvers/info/display/display.model.js';
+import { Info } from '@app/unraid-api/graph/resolvers/info/info.model.js';
+import { InfoMemory } from '@app/unraid-api/graph/resolvers/info/memory/memory.model.js';
+import { InfoOs } from '@app/unraid-api/graph/resolvers/info/os/os.model.js';
+import { InfoBaseboard, InfoSystem } from '@app/unraid-api/graph/resolvers/info/system/system.model.js';
+import { InfoVersions } from '@app/unraid-api/graph/resolvers/info/versions/versions.model.js';
 
 @Resolver(() => Info)
-export class InfoResolver implements OnModuleInit {
-    private cpuPollingTimer: NodeJS.Timeout | undefined;
-
-    constructor(
-        private readonly infoService: InfoService,
-        private readonly displayService: DisplayService,
-        private readonly subscriptionTracker: SubscriptionTrackerService,
-        private readonly subscriptionHelper: SubscriptionHelperService
-    ) {}
-
-    onModuleInit() {
-        this.subscriptionTracker.registerTopic(
-            PUBSUB_CHANNEL.CPU_UTILIZATION,
-            () => {
-                this.cpuPollingTimer = setInterval(async () => {
-                    const payload = await this.infoService.generateCpuLoad();
-                    pubsub.publish(PUBSUB_CHANNEL.CPU_UTILIZATION, { cpuUtilization: payload });
-                }, 1000);
-            },
-            () => {
-                clearInterval(this.cpuPollingTimer);
-            }
-        );
-    }
+export class InfoResolver {
+    constructor() {}
 
     @Query(() => Info)
     @UsePermissions({
@@ -68,38 +33,33 @@ export class InfoResolver implements OnModuleInit {
         };
     }
 
-    @ResolveField(() => Date)
+    @ResolveField(() => GraphQLISODateTime)
     public async time(): Promise<Date> {
         return new Date();
     }
 
-    @ResolveField(() => InfoApps)
-    public async apps(): Promise<InfoApps> {
-        return this.infoService.generateApps();
-    }
-
-    @ResolveField(() => Baseboard)
-    public async baseboard(): Promise<Baseboard> {
-        const baseboard = await getBaseboard();
-        return {
-            id: 'baseboard',
-            ...baseboard,
-        };
+    @ResolveField(() => InfoBaseboard)
+    public baseboard(): Partial<InfoBaseboard> {
+        // Return minimal stub, let BaseboardResolver handle all fields
+        return { id: 'info/baseboard' };
     }
 
     @ResolveField(() => InfoCpu)
-    public async cpu(): Promise<InfoCpu> {
-        return this.infoService.generateCpu();
+    public cpu(): Partial<InfoCpu> {
+        // Return minimal stub, let InfoCpuResolver handle all fields
+        return { id: 'info/cpu' };
     }
 
-    @ResolveField(() => Devices)
-    public async devices(): Promise<Devices> {
-        return this.infoService.generateDevices();
+    @ResolveField(() => InfoDevices)
+    public devices(): Partial<InfoDevices> {
+        // Return minimal stub, let InfoDevicesResolver handle all fields
+        return { id: 'info/devices' };
     }
 
-    @ResolveField(() => Display)
-    public async display(): Promise<Display> {
-        return this.displayService.generateDisplay();
+    @ResolveField(() => InfoDisplay)
+    public display(): Partial<InfoDisplay> {
+        // Return minimal stub, let InfoDisplayResolver handle all fields
+        return { id: 'info/display' };
     }
 
     @ResolveField(() => String, { nullable: true })
@@ -108,73 +68,26 @@ export class InfoResolver implements OnModuleInit {
     }
 
     @ResolveField(() => InfoMemory)
-    public async memory(): Promise<InfoMemory> {
-        return this.infoService.generateMemory();
+    public memory(): Partial<InfoMemory> {
+        // Return minimal stub, let InfoMemoryResolver handle all fields
+        return { id: 'info/memory' };
     }
 
-    @ResolveField(() => Os)
-    public async os(): Promise<Os> {
-        return this.infoService.generateOs();
+    @ResolveField(() => InfoOs)
+    public os(): Partial<InfoOs> {
+        // Return minimal stub, let OsResolver handle all fields
+        return { id: 'info/os' };
     }
 
-    @ResolveField(() => System)
-    public async system(): Promise<System> {
-        const system = await getSystem();
-        return {
-            id: 'system',
-            ...system,
-        };
+    @ResolveField(() => InfoSystem)
+    public system(): Partial<InfoSystem> {
+        // Return minimal stub, let SystemResolver handle all fields
+        return { id: 'info/system' };
     }
 
-    @ResolveField(() => Versions)
-    public async versions(): Promise<Versions> {
-        return this.infoService.generateVersions();
-    }
-
-    @Subscription(() => Info)
-    @UsePermissions({
-        action: AuthActionVerb.READ,
-        resource: Resource.INFO,
-        possession: AuthPossession.ANY,
-    })
-    public async infoSubscription() {
-        return createSubscription(PUBSUB_CHANNEL.INFO);
-    }
-
-    @Query(() => CpuUtilization)
-    @UsePermissions({
-        action: AuthActionVerb.READ,
-        resource: Resource.INFO,
-        possession: AuthPossession.ANY,
-    })
-    public async cpuUtilization(): Promise<CpuUtilization> {
-        return this.infoService.generateCpuLoad();
-    }
-
-    @Subscription(() => CpuUtilization, {
-        name: 'cpuUtilization',
-        resolve: (value) => value.cpuUtilization,
-    })
-    @UsePermissions({
-        action: AuthActionVerb.READ,
-        resource: Resource.INFO,
-        possession: AuthPossession.ANY,
-    })
-    public async cpuUtilizationSubscription() {
-        return this.subscriptionHelper.createTrackedSubscription(PUBSUB_CHANNEL.CPU_UTILIZATION);
-    }
-}
-
-@Resolver(() => InfoCpu)
-export class InfoCpuResolver {
-    constructor(private readonly cpuDataService: CpuDataService) {}
-
-    @ResolveField(() => Number, {
-        description: 'CPU utilization in percent',
-        nullable: true,
-    })
-    public async utilization(): Promise<number> {
-        const { currentLoad } = await this.cpuDataService.getCpuLoad();
-        return currentLoad;
+    @ResolveField(() => InfoVersions)
+    public versions(): Partial<InfoVersions> {
+        // Return minimal stub, let VersionsResolver handle all fields
+        return { id: 'info/versions' };
     }
 }

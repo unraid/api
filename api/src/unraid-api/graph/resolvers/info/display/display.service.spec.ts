@@ -3,7 +3,7 @@ import { Test } from '@nestjs/testing';
 
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { DisplayService } from '@app/unraid-api/graph/resolvers/display/display.service.js';
+import { DisplayService } from '@app/unraid-api/graph/resolvers/info/display/display.service.js';
 
 // Mock fs/promises at the module level only for specific test cases
 vi.mock('node:fs/promises', async () => {
@@ -69,6 +69,7 @@ describe('DisplayService', () => {
             const result = await service.generateDisplay();
 
             expect(result.case).toEqual({
+                id: 'display/case',
                 url: '',
                 icon: 'custom',
                 error: 'could-not-read-config-file',
@@ -114,11 +115,6 @@ describe('DisplayService', () => {
             expect(result.critical).toBe(90);
             expect(result.hot).toBe(45);
             expect(result.max).toBe(55);
-            expect(result.date).toBe('%c');
-            expect(result.number).toBe('.,');
-            expect(result.users).toBe('Tasks:3');
-            expect(result.banner).toBe('image');
-            expect(result.dashapps).toBe('icons');
             expect(result.locale).toBe('en_US'); // default fallback when not specified
         });
 
@@ -140,6 +136,7 @@ describe('DisplayService', () => {
             const result = await service.generateDisplay();
 
             expect(result.case).toEqual({
+                id: 'display/case',
                 url: '',
                 icon: 'default',
                 error: '',
