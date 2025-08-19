@@ -40,7 +40,8 @@ export class MemoryService {
             available: Math.floor(memInfo.available),
             active: Math.floor(memInfo.active),
             buffcache: Math.floor(memInfo.buffcache),
-            usedPercent: ((memInfo.total - memInfo.available) / memInfo.total) * 100,
+            usedPercent:
+                memInfo.total > 0 ? ((memInfo.total - memInfo.available) / memInfo.total) * 100 : 0,
             swapTotal: Math.floor(memInfo.swaptotal),
             swapUsed: Math.floor(memInfo.swapused),
             swapFree: Math.floor(memInfo.swapfree),
