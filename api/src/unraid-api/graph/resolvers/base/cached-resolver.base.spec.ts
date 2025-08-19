@@ -167,7 +167,7 @@ describe('CachedResolverBase', () => {
                 })();
             };
 
-            const parent = {};
+            const parent: any = {};
             const resolvers = Array.from({ length: 10 }, (_, i) => createResolverWithKey(i));
 
             // All resolvers try to modify the same parent concurrently
@@ -386,7 +386,7 @@ describe('CachedResolverBase', () => {
             }
 
             const dirtyResolver = new DirtyDataResolver();
-            const parent = {};
+            const parent: any = {};
 
             // Create another resolver to add a second cache key
             class SecondResolver extends DirtyDataResolver {
