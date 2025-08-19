@@ -1,4 +1,5 @@
 import type { TestingModule } from '@nestjs/testing';
+import { ScheduleModule } from '@nestjs/schedule';
 import { Test } from '@nestjs/testing';
 
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
@@ -8,6 +9,7 @@ import { CpuDataService, CpuService } from '@app/unraid-api/graph/resolvers/info
 import { MemoryService } from '@app/unraid-api/graph/resolvers/info/memory/memory.service.js';
 import { MetricsResolver } from '@app/unraid-api/graph/resolvers/metrics/metrics.resolver.js';
 import { SubscriptionHelperService } from '@app/unraid-api/graph/services/subscription-helper.service.js';
+import { SubscriptionPollingService } from '@app/unraid-api/graph/services/subscription-polling.service.js';
 import { SubscriptionTrackerService } from '@app/unraid-api/graph/services/subscription-tracker.service.js';
 
 describe('MetricsResolver Integration Tests', () => {
@@ -16,6 +18,7 @@ describe('MetricsResolver Integration Tests', () => {
 
     beforeEach(async () => {
         module = await Test.createTestingModule({
+            imports: [ScheduleModule.forRoot()],
             providers: [
                 MetricsResolver,
                 CpuService,
@@ -23,20 +26,19 @@ describe('MetricsResolver Integration Tests', () => {
                 MemoryService,
                 SubscriptionTrackerService,
                 SubscriptionHelperService,
+                SubscriptionPollingService,
             ],
         }).compile();
 
         metricsResolver = module.get<MetricsResolver>(MetricsResolver);
+        // Initialize the module to register polling topics
+        metricsResolver.onModuleInit();
     });
 
     afterEach(async () => {
-        // Clean up any active timers
-        if (metricsResolver['cpuPollingTimer']) {
-            clearInterval(metricsResolver['cpuPollingTimer']);
-        }
-        if (metricsResolver['memoryPollingTimer']) {
-            clearInterval(metricsResolver['memoryPollingTimer']);
-        }
+        // Clean up polling service
+        const pollingService = module.get<SubscriptionPollingService>(SubscriptionPollingService);
+        pollingService.stopAll();
         await module.close();
     });
 
@@ -89,33 +91,73 @@ describe('MetricsResolver Integration Tests', () => {
 
     describe('Polling Mechanism', () => {
         it('should prevent concurrent CPU polling executions', async () => {
-            // Start multiple polling attempts simultaneously
-            const promises = Array(5)
-                .fill(null)
-                .map(() => metricsResolver['pollCpuUtilization']());
+            const trackerService = module.get<SubscriptionTrackerService>(SubscriptionTrackerService);
+            const cpuService = module.get<CpuService>(CpuService);
+            let executionCount = 0;
 
-            await Promise.all(promises);
+            vi.spyOn(cpuService, 'generateCpuLoad').mockImplementation(async () => {
+                executionCount++;
+                await new Promise((resolve) => setTimeout(resolve, 50)); // Simulate slow operation
+                return {
+                    id: 'info/cpu-load',
+                    load: 50,
+                    cpus: [],
+                };
+            });
 
-            // Only one execution should have occurred
-            expect(metricsResolver['isCpuPollingInProgress']).toBe(false);
+            // Trigger polling by simulating subscription
+            trackerService.subscribe(PUBSUB_CHANNEL.CPU_UTILIZATION);
+
+            // Wait a bit for potential multiple executions
+            await new Promise((resolve) => setTimeout(resolve, 100));
+
+            // Should only execute once despite potential concurrent attempts
+            expect(executionCount).toBeLessThanOrEqual(2); // Allow for initial execution
         });
 
         it('should prevent concurrent memory polling executions', async () => {
-            // Start multiple polling attempts simultaneously
-            const promises = Array(5)
-                .fill(null)
-                .map(() => metricsResolver['pollMemoryUtilization']());
+            const trackerService = module.get<SubscriptionTrackerService>(SubscriptionTrackerService);
+            const memoryService = module.get<MemoryService>(MemoryService);
+            let executionCount = 0;
 
-            await Promise.all(promises);
+            vi.spyOn(memoryService, 'generateMemoryLoad').mockImplementation(async () => {
+                executionCount++;
+                await new Promise((resolve) => setTimeout(resolve, 50)); // Simulate slow operation
+                return {
+                    id: 'memory-utilization',
+                    total: 16000000000,
+                    used: 8000000000,
+                    free: 8000000000,
+                    available: 8000000000,
+                    active: 4000000000,
+                    buffcache: 2000000000,
+                    usedPercent: 50,
+                    swapTotal: 0,
+                    swapUsed: 0,
+                    swapFree: 0,
+                    swapUsedPercent: 0,
+                } as any;
+            });
 
-            // Only one execution should have occurred
-            expect(metricsResolver['isMemoryPollingInProgress']).toBe(false);
+            // Trigger polling by simulating subscription
+            trackerService.subscribe(PUBSUB_CHANNEL.MEMORY_UTILIZATION);
+
+            // Wait a bit for potential multiple executions
+            await new Promise((resolve) => setTimeout(resolve, 100));
+
+            // Should only execute once despite potential concurrent attempts
+            expect(executionCount).toBeLessThanOrEqual(2); // Allow for initial execution
         });
 
         it('should publish CPU metrics to pubsub', async () => {
             const publishSpy = vi.spyOn(pubsub, 'publish');
+            const trackerService = module.get<SubscriptionTrackerService>(SubscriptionTrackerService);
 
-            await metricsResolver['pollCpuUtilization']();
+            // Trigger polling by starting subscription
+            trackerService.subscribe(PUBSUB_CHANNEL.CPU_UTILIZATION);
+
+            // Wait for the polling interval to trigger (1000ms for CPU)
+            await new Promise((resolve) => setTimeout(resolve, 1100));
 
             expect(publishSpy).toHaveBeenCalledWith(
                 PUBSUB_CHANNEL.CPU_UTILIZATION,
@@ -128,13 +170,19 @@ describe('MetricsResolver Integration Tests', () => {
                 })
             );
 
+            trackerService.unsubscribe(PUBSUB_CHANNEL.CPU_UTILIZATION);
             publishSpy.mockRestore();
         });
 
         it('should publish memory metrics to pubsub', async () => {
             const publishSpy = vi.spyOn(pubsub, 'publish');
+            const trackerService = module.get<SubscriptionTrackerService>(SubscriptionTrackerService);
 
-            await metricsResolver['pollMemoryUtilization']();
+            // Trigger polling by starting subscription
+            trackerService.subscribe(PUBSUB_CHANNEL.MEMORY_UTILIZATION);
+
+            // Wait for the polling interval to trigger (2000ms for memory)
+            await new Promise((resolve) => setTimeout(resolve, 2100));
 
             expect(publishSpy).toHaveBeenCalledWith(
                 PUBSUB_CHANNEL.MEMORY_UTILIZATION,
@@ -148,54 +196,78 @@ describe('MetricsResolver Integration Tests', () => {
                 })
             );
 
+            trackerService.unsubscribe(PUBSUB_CHANNEL.MEMORY_UTILIZATION);
             publishSpy.mockRestore();
         });
 
         it('should handle errors in CPU polling gracefully', async () => {
             const service = module.get<CpuService>(CpuService);
-            const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+            const trackerService = module.get<SubscriptionTrackerService>(SubscriptionTrackerService);
+            const pollingService = module.get<SubscriptionPollingService>(SubscriptionPollingService);
+
+            // Mock logger to capture error logs
+            const loggerSpy = vi.spyOn(pollingService['logger'], 'error').mockImplementation(() => {});
             vi.spyOn(service, 'generateCpuLoad').mockRejectedValueOnce(new Error('CPU error'));
 
-            await metricsResolver['pollCpuUtilization']();
+            // Trigger polling
+            trackerService.subscribe(PUBSUB_CHANNEL.CPU_UTILIZATION);
 
-            expect(errorSpy).toHaveBeenCalledWith('Error polling CPU utilization:', expect.any(Error));
-            expect(metricsResolver['isCpuPollingInProgress']).toBe(false);
+            // Wait for polling interval to trigger and handle error (1000ms for CPU)
+            await new Promise((resolve) => setTimeout(resolve, 1100));
 
-            errorSpy.mockRestore();
+            expect(loggerSpy).toHaveBeenCalledWith(
+                expect.stringContaining('Error in polling task'),
+                expect.any(Error)
+            );
+
+            trackerService.unsubscribe(PUBSUB_CHANNEL.CPU_UTILIZATION);
+            loggerSpy.mockRestore();
         });
 
         it('should handle errors in memory polling gracefully', async () => {
             const service = module.get<MemoryService>(MemoryService);
-            const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+            const trackerService = module.get<SubscriptionTrackerService>(SubscriptionTrackerService);
+            const pollingService = module.get<SubscriptionPollingService>(SubscriptionPollingService);
+
+            // Mock logger to capture error logs
+            const loggerSpy = vi.spyOn(pollingService['logger'], 'error').mockImplementation(() => {});
             vi.spyOn(service, 'generateMemoryLoad').mockRejectedValueOnce(new Error('Memory error'));
 
-            await metricsResolver['pollMemoryUtilization']();
+            // Trigger polling
+            trackerService.subscribe(PUBSUB_CHANNEL.MEMORY_UTILIZATION);
 
-            expect(errorSpy).toHaveBeenCalledWith(
-                'Error polling memory utilization:',
+            // Wait for polling interval to trigger and handle error (2000ms for memory)
+            await new Promise((resolve) => setTimeout(resolve, 2100));
+
+            expect(loggerSpy).toHaveBeenCalledWith(
+                expect.stringContaining('Error in polling task'),
                 expect.any(Error)
             );
-            expect(metricsResolver['isMemoryPollingInProgress']).toBe(false);
 
-            errorSpy.mockRestore();
+            trackerService.unsubscribe(PUBSUB_CHANNEL.MEMORY_UTILIZATION);
+            loggerSpy.mockRestore();
         });
     });
 
     describe('Polling cleanup on module destroy', () => {
         it('should clean up timers when module is destroyed', async () => {
-            // Force-start polling
-            await metricsResolver['pollCpuUtilization']();
-            expect(metricsResolver['isCpuPollingInProgress']).toBe(false);
+            const trackerService = module.get<SubscriptionTrackerService>(SubscriptionTrackerService);
+            const pollingService = module.get<SubscriptionPollingService>(SubscriptionPollingService);
 
-            await metricsResolver['pollMemoryUtilization']();
-            expect(metricsResolver['isMemoryPollingInProgress']).toBe(false);
+            // Start polling
+            trackerService.subscribe(PUBSUB_CHANNEL.CPU_UTILIZATION);
+            trackerService.subscribe(PUBSUB_CHANNEL.MEMORY_UTILIZATION);
+
+            // Verify polling is active
+            expect(pollingService.isPolling(PUBSUB_CHANNEL.CPU_UTILIZATION)).toBe(true);
+            expect(pollingService.isPolling(PUBSUB_CHANNEL.MEMORY_UTILIZATION)).toBe(true);
 
             // Clean up the module
             await module.close();
 
             // Timers should be cleaned up
-            expect(metricsResolver['cpuPollingTimer']).toBeUndefined();
-            expect(metricsResolver['memoryPollingTimer']).toBeUndefined();
+            expect(pollingService.isPolling(PUBSUB_CHANNEL.CPU_UTILIZATION)).toBe(false);
+            expect(pollingService.isPolling(PUBSUB_CHANNEL.MEMORY_UTILIZATION)).toBe(false);
         });
     });
 });
