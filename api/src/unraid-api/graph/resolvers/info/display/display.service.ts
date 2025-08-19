@@ -6,6 +6,7 @@ import { type DynamixConfig } from '@app/core/types/ini.js';
 import { toBoolean } from '@app/core/utils/casting.js';
 import { fileExists } from '@app/core/utils/files/file-exists.js';
 import { loadState } from '@app/core/utils/misc/load-state.js';
+import { validateEnumValue } from '@app/core/utils/validation/enum-validator.js';
 import { getters } from '@app/store/index.js';
 import { ThemeName } from '@app/unraid-api/graph/resolvers/customization/theme.model.js';
 import { Display, Temperature } from '@app/unraid-api/graph/resolvers/info/display/display.model.js';
@@ -77,8 +78,8 @@ export class DisplayService {
         const display: Display = {
             id: 'info/display',
             case: caseInfo,
-            theme: config.theme || ThemeName.white,
-            unit: config.unit || Temperature.CELSIUS,
+            theme: config.theme ?? ThemeName.white,
+            unit: config.unit ?? Temperature.CELSIUS,
             scale: config.scale ?? false,
             tabs: config.tabs ?? true,
             resize: config.resize ?? true,
@@ -145,10 +146,11 @@ export class DisplayService {
         }
 
         const { theme, unit, ...display } = state.display;
+
         return {
             ...display,
-            theme: theme as ThemeName,
-            unit: unit as Temperature,
+            theme: validateEnumValue(theme, ThemeName),
+            unit: validateEnumValue(unit, Temperature),
             scale: toBoolean(display.scale),
             tabs: toBoolean(display.tabs),
             resize: toBoolean(display.resize),
