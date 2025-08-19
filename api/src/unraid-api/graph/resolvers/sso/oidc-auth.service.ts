@@ -560,6 +560,7 @@ export class OidcAuthService {
             `Evaluating rule for claim ${rule.claim}: ${JSON.stringify({
                 claimValue,
                 claimType: typeof claimValue,
+                isArray: Array.isArray(claimValue),
                 ruleOperator: rule.operator,
                 ruleValues: rule.value,
             })}`
@@ -570,24 +571,46 @@ export class OidcAuthService {
             return false;
         }
 
-        // Log detailed claim analysis
-        if (typeof claimValue === 'object' && claimValue !== null) {
+        // Handle non-array, non-string objects
+        if (typeof claimValue === 'object' && claimValue !== null && !Array.isArray(claimValue)) {
             this.logger.warn(
                 `unexpected JWT claim value encountered - claim ${rule.claim} is object type: ${JSON.stringify(claimValue)}`
             );
             return false;
         }
 
+        // Handle array claims - evaluate rule against each array element
         if (Array.isArray(claimValue)) {
-            this.logger.warn(
-                `unexpected JWT claim value encountered - claim ${rule.claim} is array type: ${JSON.stringify(claimValue)}`
-            );
-            return false;
+            this.logger.debug(`Processing array claim ${rule.claim} with ${claimValue.length} elements`);
+
+            // For array claims, check if ANY element in the array matches the rule
+            const arrayResult = claimValue.some((element) => {
+                // Skip non-string elements
+                if (
+                    typeof element !== 'string' &&
+                    typeof element !== 'number' &&
+                    typeof element !== 'boolean'
+                ) {
+                    this.logger.debug(`Skipping non-primitive element in array: ${typeof element}`);
+                    return false;
+                }
+
+                const elementValue = String(element);
+                return this.evaluateSingleValue(elementValue, rule);
+            });
+
+            this.logger.debug(`Array evaluation result for claim ${rule.claim}: ${arrayResult}`);
+            return arrayResult;
         }
 
+        // Handle single value claims (string, number, boolean)
         const value = String(claimValue);
-        this.logger.debug(`Processing claim ${rule.claim} with string value: "${value}"`);
+        this.logger.debug(`Processing single value claim ${rule.claim} with value: "${value}"`);
 
+        return this.evaluateSingleValue(value, rule);
+    }
+
+    private evaluateSingleValue(value: string, rule: OidcAuthorizationRule): boolean {
         let result: boolean;
         switch (rule.operator) {
             case AuthorizationOperator.EQUALS:

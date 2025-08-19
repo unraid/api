@@ -258,6 +258,109 @@ describe('OidcAuthService', () => {
             });
         });
 
+        describe('Array claim handling', () => {
+            it('should evaluate EQUALS operator on array claims', () => {
+                const rule: OidcAuthorizationRule = {
+                    claim: 'groups',
+                    operator: AuthorizationOperator.EQUALS,
+                    value: ['admin', 'developer'],
+                };
+
+                // Array with matching value
+                expect(evaluateRule(rule, { groups: ['user', 'admin', 'viewer'] })).toBe(true);
+                expect(evaluateRule(rule, { groups: ['developer', 'tester'] })).toBe(true);
+
+                // Array without matching value
+                expect(evaluateRule(rule, { groups: ['user', 'viewer'] })).toBe(false);
+
+                // Empty array
+                expect(evaluateRule(rule, { groups: [] })).toBe(false);
+            });
+
+            it('should evaluate CONTAINS operator on array claims', () => {
+                const rule: OidcAuthorizationRule = {
+                    claim: 'roles',
+                    operator: AuthorizationOperator.CONTAINS,
+                    value: ['admin', 'super'],
+                };
+
+                // Array elements containing the substring
+                expect(evaluateRule(rule, { roles: ['superuser', 'viewer'] })).toBe(true);
+                expect(evaluateRule(rule, { roles: ['admin-read', 'user'] })).toBe(true);
+                expect(evaluateRule(rule, { roles: ['administrator'] })).toBe(true);
+
+                // Array without matching substrings
+                expect(evaluateRule(rule, { roles: ['user', 'viewer'] })).toBe(false);
+            });
+
+            it('should evaluate STARTS_WITH operator on array claims', () => {
+                const rule: OidcAuthorizationRule = {
+                    claim: 'permissions',
+                    operator: AuthorizationOperator.STARTS_WITH,
+                    value: ['read:', 'write:'],
+                };
+
+                // Array with elements starting with prefix
+                expect(evaluateRule(rule, { permissions: ['read:users', 'update:settings'] })).toBe(
+                    true
+                );
+                expect(evaluateRule(rule, { permissions: ['write:logs', 'delete:cache'] })).toBe(true);
+
+                // Array without matching prefixes
+                expect(evaluateRule(rule, { permissions: ['execute:scripts', 'admin:all'] })).toBe(
+                    false
+                );
+            });
+
+            it('should evaluate ENDS_WITH operator on array claims', () => {
+                const rule: OidcAuthorizationRule = {
+                    claim: 'emails',
+                    operator: AuthorizationOperator.ENDS_WITH,
+                    value: ['@company.com', '@partner.org'],
+                };
+
+                // Array with elements ending with suffix
+                expect(evaluateRule(rule, { emails: ['user@company.com', 'test@other.com'] })).toBe(
+                    true
+                );
+                expect(evaluateRule(rule, { emails: ['admin@partner.org'] })).toBe(true);
+
+                // Array without matching suffixes
+                expect(evaluateRule(rule, { emails: ['user@gmail.com', 'test@yahoo.com'] })).toBe(false);
+            });
+
+            it('should handle arrays with mixed types', () => {
+                const rule: OidcAuthorizationRule = {
+                    claim: 'mixed',
+                    operator: AuthorizationOperator.EQUALS,
+                    value: ['123', 'true'],
+                };
+
+                // Array with numbers and booleans that get converted to strings
+                expect(evaluateRule(rule, { mixed: [123, 'text', true] })).toBe(true);
+                expect(evaluateRule(rule, { mixed: [false, 456, 'true'] })).toBe(true);
+
+                // Array with objects should skip them
+                expect(evaluateRule(rule, { mixed: [{}, 'other', null] })).toBe(false);
+            });
+
+            it('should return true if ANY element in array matches (not ALL)', () => {
+                const rule: OidcAuthorizationRule = {
+                    claim: 'departments',
+                    operator: AuthorizationOperator.EQUALS,
+                    value: ['engineering'],
+                };
+
+                // Should pass if at least one element matches
+                expect(evaluateRule(rule, { departments: ['marketing', 'engineering', 'sales'] })).toBe(
+                    true
+                );
+
+                // Should fail if no elements match
+                expect(evaluateRule(rule, { departments: ['marketing', 'sales'] })).toBe(false);
+            });
+        });
+
         describe('Multiple rules evaluation', () => {
             // Access the private method through any type casting for testing
             const evaluateAuthorizationRules = (
