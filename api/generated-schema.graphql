@@ -1411,50 +1411,6 @@ type InfoMemory implements Node {
   utilization: MemoryUtilization
 }
 
-type InfoSystem implements Node {
-  id: PrefixedID!
-
-  """System manufacturer"""
-  manufacturer: String
-
-  """System model"""
-  model: String
-
-  """System version"""
-  version: String
-
-  """System serial number"""
-  serial: String
-
-  """System UUID"""
-  uuid: String
-
-  """System SKU"""
-  sku: String
-
-  """Virtual machine flag"""
-  virtual: Boolean
-}
-
-type InfoBaseboard implements Node {
-  id: PrefixedID!
-
-  """Motherboard manufacturer"""
-  manufacturer: String
-
-  """Motherboard model"""
-  model: String
-
-  """Motherboard version"""
-  version: String
-
-  """Motherboard serial number"""
-  serial: String
-
-  """Motherboard asset tag"""
-  assetTag: String
-}
-
 type InfoOs implements Node {
   id: PrefixedID!
 
@@ -1499,6 +1455,56 @@ type InfoOs implements Node {
 
   """OS started via UEFI"""
   uefi: Boolean
+}
+
+type InfoSystem implements Node {
+  id: PrefixedID!
+
+  """System manufacturer"""
+  manufacturer: String
+
+  """System model"""
+  model: String
+
+  """System version"""
+  version: String
+
+  """System serial number"""
+  serial: String
+
+  """System UUID"""
+  uuid: String
+
+  """System SKU"""
+  sku: String
+
+  """Virtual machine flag"""
+  virtual: Boolean
+}
+
+type InfoBaseboard implements Node {
+  id: PrefixedID!
+
+  """Motherboard manufacturer"""
+  manufacturer: String
+
+  """Motherboard model"""
+  model: String
+
+  """Motherboard version"""
+  version: String
+
+  """Motherboard serial number"""
+  serial: String
+
+  """Motherboard asset tag"""
+  assetTag: String
+
+  """Maximum memory capacity in bytes"""
+  memMax: Float
+
+  """Number of memory slots"""
+  memSlots: Float
 }
 
 type InfoVersions implements Node {
