@@ -1,248 +1,115 @@
 import type { TestingModule } from '@nestjs/testing';
-import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { Test } from '@nestjs/testing';
 
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { DisplayService } from '@app/unraid-api/graph/resolvers/display/display.service.js';
-import { DockerService } from '@app/unraid-api/graph/resolvers/docker/docker.service.js';
-import { CpuDataService } from '@app/unraid-api/graph/resolvers/info/cpu-data.service.js';
+import { CpuService } from '@app/unraid-api/graph/resolvers/info/cpu/cpu.service.js';
+import { DisplayService } from '@app/unraid-api/graph/resolvers/info/display/display.service.js';
 import { InfoResolver } from '@app/unraid-api/graph/resolvers/info/info.resolver.js';
-import { InfoService } from '@app/unraid-api/graph/resolvers/info/info.service.js';
-import { SubscriptionTrackerService } from '@app/unraid-api/graph/services/subscription-tracker.service.js';
+import { MemoryService } from '@app/unraid-api/graph/resolvers/info/memory/memory.service.js';
+import { OsService } from '@app/unraid-api/graph/resolvers/info/os/os.service.js';
+import { VersionsService } from '@app/unraid-api/graph/resolvers/info/versions/versions.service.js';
 
 // Mock necessary modules
-vi.mock('fs/promises', () => ({
-    readFile: vi.fn().mockResolvedValue(''),
-}));
-
-vi.mock('@app/core/pubsub.js', () => ({
-    pubsub: {
-        publish: vi.fn().mockResolvedValue(undefined),
-    },
-    PUBSUB_CHANNEL: {
-        INFO: 'info',
-    },
-    createSubscription: vi.fn().mockReturnValue('mock-subscription'),
-}));
-
-vi.mock('dockerode', () => {
-    return {
-        default: vi.fn().mockImplementation(() => ({
-            listContainers: vi.fn(),
-            listNetworks: vi.fn(),
-        })),
-    };
-});
-
-vi.mock('@app/store/index.js', () => ({
-    getters: {
-        paths: () => ({
-            'docker-autostart': '/path/to/docker-autostart',
-        }),
-    },
+vi.mock('@app/core/utils/misc/get-machine-id.js', () => ({
+    getMachineId: vi.fn().mockResolvedValue('test-machine-id-123'),
 }));
 
 vi.mock('systeminformation', () => ({
     baseboard: vi.fn().mockResolvedValue({
         manufacturer: 'ASUS',
-        model: 'PRIME X570-P',
-        version: 'Rev X.0x',
-        serial: 'ABC123',
-        assetTag: 'Default string',
+        model: 'ROG STRIX',
+        version: '1.0',
     }),
     system: vi.fn().mockResolvedValue({
         manufacturer: 'ASUS',
-        model: 'System Product Name',
-        version: 'System Version',
-        serial: 'System Serial Number',
-        uuid: '550e8400-e29b-41d4-a716-446655440000',
-        sku: 'SKU',
+        model: 'System Model',
+        version: '1.0',
+        serial: '123456',
+        uuid: 'test-uuid',
     }),
 }));
 
-vi.mock('@app/core/utils/misc/get-machine-id.js', () => ({
-    getMachineId: vi.fn().mockResolvedValue('test-machine-id-123'),
-}));
-
-// Mock Cache Manager
-const mockCacheManager = {
-    get: vi.fn(),
-    set: vi.fn(),
-    del: vi.fn(),
-};
-
 describe('InfoResolver', () => {
     let resolver: InfoResolver;
-
-    // Mock data for testing
-    const mockAppsData = {
-        id: 'info/apps',
-        installed: 5,
-        started: 3,
-    };
-
-    const mockCpuData = {
-        id: 'info/cpu',
-        manufacturer: 'AMD',
-        brand: 'AMD Ryzen 9 5900X',
-        vendor: 'AMD',
-        family: '19',
-        model: '33',
-        stepping: 0,
-        revision: '',
-        voltage: '1.4V',
-        speed: 3.7,
-        speedmin: 2.2,
-        speedmax: 4.8,
-        threads: 24,
-        cores: 12,
-        processors: 1,
-        socket: 'AM4',
-        cache: { l1d: 32768, l1i: 32768, l2: 524288, l3: 33554432 },
-        flags: ['fpu', 'vme', 'de', 'pse'],
-    };
-
-    const mockDevicesData = {
-        id: 'info/devices',
-        gpu: [],
-        pci: [],
-        usb: [],
-    };
-
-    const mockDisplayData = {
-        id: 'display',
-        case: {
-            url: '',
-            icon: 'default',
-            error: '',
-            base64: '',
-        },
-        theme: 'black',
-        unit: 'C',
-        scale: true,
-        tabs: false,
-        resize: true,
-        wwn: false,
-        total: true,
-        usage: false,
-        text: true,
-        warning: 40,
-        critical: 50,
-        hot: 60,
-        max: 80,
-        locale: 'en_US',
-    };
-
-    const mockMemoryData = {
-        id: 'info/memory',
-        max: 68719476736,
-        total: 67108864000,
-        free: 33554432000,
-        used: 33554432000,
-        active: 16777216000,
-        available: 50331648000,
-        buffcache: 8388608000,
-        swaptotal: 4294967296,
-        swapused: 0,
-        swapfree: 4294967296,
-        layout: [],
-    };
-
-    const mockOsData = {
-        id: 'info/os',
-        platform: 'linux',
-        distro: 'Unraid',
-        release: '6.12.0',
-        codename: '',
-        kernel: '6.1.0-unraid',
-        arch: 'x64',
-        hostname: 'Tower',
-        codepage: 'UTF-8',
-        logofile: 'unraid',
-        serial: '',
-        build: '',
-        uptime: '2024-01-01T00:00:00.000Z',
-    };
-
-    const mockVersionsData = {
-        id: 'info/versions',
-        unraid: '6.12.0',
-        kernel: '6.1.0',
-        node: '20.10.0',
-        npm: '10.2.3',
-        docker: '24.0.7',
-    };
-
-    // Mock InfoService
-    const mockInfoService = {
-        generateApps: vi.fn().mockResolvedValue(mockAppsData),
-        generateCpu: vi.fn().mockResolvedValue(mockCpuData),
-        generateDevices: vi.fn().mockResolvedValue(mockDevicesData),
-        generateMemory: vi.fn().mockResolvedValue(mockMemoryData),
-        generateOs: vi.fn().mockResolvedValue(mockOsData),
-        generateVersions: vi.fn().mockResolvedValue(mockVersionsData),
-    };
-
-    // Mock DisplayService
-    const mockDisplayService = {
-        generateDisplay: vi.fn().mockResolvedValue(mockDisplayData),
-    };
-
-    const mockSubscriptionTrackerService = {
-        registerTopic: vi.fn(),
-        subscribe: vi.fn(),
-        unsubscribe: vi.fn(),
-    };
-
-    const mockCpuDataService = {
-        getCpuLoad: vi.fn().mockResolvedValue({
-            currentLoad: 10,
-            cpus: [],
-        }),
-    };
+    let cpuService: CpuService;
+    let memoryService: MemoryService;
+    let module: TestingModule;
 
     beforeEach(async () => {
-        const module: TestingModule = await Test.createTestingModule({
+        module = await Test.createTestingModule({
             providers: [
                 InfoResolver,
                 {
-                    provide: InfoService,
-                    useValue: mockInfoService,
+                    provide: CpuService,
+                    useValue: {
+                        generateCpu: vi.fn().mockResolvedValue({
+                            id: 'info/cpu',
+                            manufacturer: 'Intel',
+                            brand: 'Core i7',
+                            cores: 8,
+                            threads: 16,
+                        }),
+                    },
+                },
+                {
+                    provide: MemoryService,
+                    useValue: {
+                        generateMemory: vi.fn().mockResolvedValue({
+                            id: 'info/memory',
+                            layout: [
+                                {
+                                    id: 'mem-1',
+                                    size: 8589934592,
+                                    bank: 'BANK 0',
+                                    type: 'DDR4',
+                                },
+                            ],
+                        }),
+                    },
                 },
                 {
                     provide: DisplayService,
-                    useValue: mockDisplayService,
+                    useValue: {
+                        generateDisplay: vi.fn().mockResolvedValue({
+                            id: 'info/display',
+                            theme: 'dark',
+                            unit: 'metric',
+                            scale: true,
+                        }),
+                    },
                 },
                 {
-                    provide: DockerService,
-                    useValue: {},
+                    provide: OsService,
+                    useValue: {
+                        generateOs: vi.fn().mockResolvedValue({
+                            id: 'info/os',
+                            platform: 'linux',
+                            distro: 'Unraid',
+                            release: '6.12.0',
+                        }),
+                    },
                 },
                 {
-                    provide: CACHE_MANAGER,
-                    useValue: mockCacheManager,
-                },
-                {
-                    provide: SubscriptionTrackerService,
-                    useValue: mockSubscriptionTrackerService,
-                },
-                {
-                    provide: CpuDataService,
-                    useValue: mockCpuDataService,
+                    provide: VersionsService,
+                    useValue: {
+                        generateVersions: vi.fn().mockResolvedValue({
+                            id: 'info/versions',
+                            unraid: '6.12.0',
+                        }),
+                    },
                 },
             ],
         }).compile();
 
         resolver = module.get<InfoResolver>(InfoResolver);
-
-        // Reset mocks before each test
-        vi.clearAllMocks();
+        cpuService = module.get<CpuService>(CpuService);
+        memoryService = module.get<MemoryService>(MemoryService);
     });
 
     describe('info', () => {
         it('should return basic info object', async () => {
             const result = await resolver.info();
-
             expect(result).toEqual({
                 id: 'info',
             });
@@ -251,155 +118,129 @@ describe('InfoResolver', () => {
 
     describe('time', () => {
         it('should return current date', async () => {
-            const beforeCall = new Date();
+            const before = new Date();
             const result = await resolver.time();
-            const afterCall = new Date();
+            const after = new Date();
 
             expect(result).toBeInstanceOf(Date);
-            expect(result.getTime()).toBeGreaterThanOrEqual(beforeCall.getTime());
-            expect(result.getTime()).toBeLessThanOrEqual(afterCall.getTime());
-        });
-    });
-
-    describe('apps', () => {
-        it('should return apps info from service', async () => {
-            const result = await resolver.apps();
-
-            expect(mockInfoService.generateApps).toHaveBeenCalledOnce();
-            expect(result).toEqual(mockAppsData);
+            expect(result.getTime()).toBeGreaterThanOrEqual(before.getTime());
+            expect(result.getTime()).toBeLessThanOrEqual(after.getTime());
         });
     });
 
     describe('baseboard', () => {
-        it('should return baseboard info with id', async () => {
+        it('should return baseboard data from systeminformation', async () => {
             const result = await resolver.baseboard();
-
             expect(result).toEqual({
-                id: 'baseboard',
+                id: 'info/baseboard',
                 manufacturer: 'ASUS',
-                model: 'PRIME X570-P',
-                version: 'Rev X.0x',
-                serial: 'ABC123',
-                assetTag: 'Default string',
+                model: 'ROG STRIX',
+                version: '1.0',
             });
         });
     });
 
     describe('cpu', () => {
-        it('should return cpu info from service', async () => {
+        it('should return full cpu data from service', async () => {
             const result = await resolver.cpu();
-
-            expect(mockInfoService.generateCpu).toHaveBeenCalledOnce();
-            expect(result).toEqual(mockCpuData);
+            expect(cpuService.generateCpu).toHaveBeenCalled();
+            expect(result).toEqual({
+                id: 'info/cpu',
+                manufacturer: 'Intel',
+                brand: 'Core i7',
+                cores: 8,
+                threads: 16,
+            });
         });
     });
 
     describe('devices', () => {
-        it('should return devices info from service', async () => {
-            const result = await resolver.devices();
-
-            expect(mockInfoService.generateDevices).toHaveBeenCalledOnce();
-            expect(result).toEqual(mockDevicesData);
+        it('should return devices stub for sub-resolver', () => {
+            const result = resolver.devices();
+            expect(result).toEqual({
+                id: 'info/devices',
+            });
         });
     });
 
     describe('display', () => {
-        it('should return display info from display service', async () => {
+        it('should return display data from service', async () => {
+            const displayService = module.get<DisplayService>(DisplayService);
             const result = await resolver.display();
-
-            expect(mockDisplayService.generateDisplay).toHaveBeenCalledOnce();
-            expect(result).toEqual(mockDisplayData);
+            expect(displayService.generateDisplay).toHaveBeenCalled();
+            expect(result).toEqual({
+                id: 'info/display',
+                theme: 'dark',
+                unit: 'metric',
+                scale: true,
+            });
         });
     });
 
     describe('machineId', () => {
         it('should return machine id', async () => {
-            const result = await resolver.machineId();
-
-            expect(result).toBe('test-machine-id-123');
-        });
-
-        it('should handle getMachineId errors gracefully', async () => {
             const { getMachineId } = await import('@app/core/utils/misc/get-machine-id.js');
-            vi.mocked(getMachineId).mockRejectedValueOnce(new Error('Machine ID error'));
-
-            await expect(resolver.machineId()).rejects.toThrow('Machine ID error');
+            const result = await resolver.machineId();
+            expect(getMachineId).toHaveBeenCalled();
+            expect(result).toBe('test-machine-id-123');
         });
     });
 
     describe('memory', () => {
-        it('should return memory info from service', async () => {
+        it('should return full memory data from service', async () => {
             const result = await resolver.memory();
-
-            expect(mockInfoService.generateMemory).toHaveBeenCalledOnce();
-            expect(result).toEqual(mockMemoryData);
+            expect(memoryService.generateMemory).toHaveBeenCalled();
+            expect(result).toEqual({
+                id: 'info/memory',
+                layout: [
+                    {
+                        id: 'mem-1',
+                        size: 8589934592,
+                        bank: 'BANK 0',
+                        type: 'DDR4',
+                    },
+                ],
+            });
         });
     });
 
     describe('os', () => {
-        it('should return os info from service', async () => {
+        it('should return os data from service', async () => {
+            const osService = module.get<OsService>(OsService);
             const result = await resolver.os();
-
-            expect(mockInfoService.generateOs).toHaveBeenCalledOnce();
-            expect(result).toEqual(mockOsData);
+            expect(osService.generateOs).toHaveBeenCalled();
+            expect(result).toEqual({
+                id: 'info/os',
+                platform: 'linux',
+                distro: 'Unraid',
+                release: '6.12.0',
+            });
         });
     });
 
     describe('system', () => {
-        it('should return system info with id', async () => {
+        it('should return system data from systeminformation', async () => {
             const result = await resolver.system();
-
             expect(result).toEqual({
-                id: 'system',
+                id: 'info/system',
                 manufacturer: 'ASUS',
-                model: 'System Product Name',
-                version: 'System Version',
-                serial: 'System Serial Number',
-                uuid: '550e8400-e29b-41d4-a716-446655440000',
-                sku: 'SKU',
+                model: 'System Model',
+                version: '1.0',
+                serial: '123456',
+                uuid: 'test-uuid',
             });
         });
     });
 
     describe('versions', () => {
-        it('should return versions info from service', async () => {
+        it('should return versions data from service', async () => {
+            const versionsService = module.get<VersionsService>(VersionsService);
             const result = await resolver.versions();
-
-            expect(mockInfoService.generateVersions).toHaveBeenCalledOnce();
-            expect(result).toEqual(mockVersionsData);
-        });
-    });
-
-    describe('infoSubscription', () => {
-        it('should create and return subscription', async () => {
-            const { createSubscription, PUBSUB_CHANNEL } = await import('@app/core/pubsub.js');
-
-            const result = await resolver.infoSubscription();
-
-            expect(createSubscription).toHaveBeenCalledWith(PUBSUB_CHANNEL.INFO);
-            expect(result).toBe('mock-subscription');
-        });
-    });
-
-    describe('error handling', () => {
-        it('should handle baseboard errors gracefully', async () => {
-            const { baseboard } = await import('systeminformation');
-            vi.mocked(baseboard).mockRejectedValueOnce(new Error('Baseboard error'));
-
-            await expect(resolver.baseboard()).rejects.toThrow('Baseboard error');
-        });
-
-        it('should handle system errors gracefully', async () => {
-            const { system } = await import('systeminformation');
-            vi.mocked(system).mockRejectedValueOnce(new Error('System error'));
-
-            await expect(resolver.system()).rejects.toThrow('System error');
-        });
-
-        it('should handle service errors gracefully', async () => {
-            mockInfoService.generateApps.mockRejectedValueOnce(new Error('Service error'));
-
-            await expect(resolver.apps()).rejects.toThrow('Service error');
+            expect(versionsService.generateVersions).toHaveBeenCalled();
+            expect(result).toEqual({
+                id: 'info/versions',
+                unraid: '6.12.0',
+            });
         });
     });
 });

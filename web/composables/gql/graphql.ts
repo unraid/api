@@ -399,16 +399,6 @@ export enum AuthorizationRuleMode {
   OR = 'OR'
 }
 
-export type Baseboard = Node & {
-  __typename?: 'Baseboard';
-  assetTag?: Maybe<Scalars['String']['output']>;
-  id: Scalars['PrefixedID']['output'];
-  manufacturer: Scalars['String']['output'];
-  model?: Maybe<Scalars['String']['output']>;
-  serial?: Maybe<Scalars['String']['output']>;
-  version?: Maybe<Scalars['String']['output']>;
-};
-
 export type Capacity = {
   __typename?: 'Capacity';
   /** Free capacity */
@@ -417,15 +407,6 @@ export type Capacity = {
   total: Scalars['String']['output'];
   /** Used capacity */
   used: Scalars['String']['output'];
-};
-
-export type Case = Node & {
-  __typename?: 'Case';
-  base64?: Maybe<Scalars['String']['output']>;
-  error?: Maybe<Scalars['String']['output']>;
-  icon?: Maybe<Scalars['String']['output']>;
-  id: Scalars['PrefixedID']['output'];
-  url?: Maybe<Scalars['String']['output']>;
 };
 
 export type Cloud = {
@@ -539,6 +520,32 @@ export enum ContainerState {
   RUNNING = 'RUNNING'
 }
 
+/** CPU load for a single core */
+export type CpuLoad = {
+  __typename?: 'CpuLoad';
+  /** The total CPU load on a single core, in percent. */
+  load: Scalars['Float']['output'];
+  /** The percentage of time the CPU was idle. */
+  loadIdle: Scalars['Float']['output'];
+  /** The percentage of time the CPU spent servicing hardware interrupts. */
+  loadIrq: Scalars['Float']['output'];
+  /** The percentage of time the CPU spent on low-priority (niced) user space processes. */
+  loadNice: Scalars['Float']['output'];
+  /** The percentage of time the CPU spent in kernel space. */
+  loadSystem: Scalars['Float']['output'];
+  /** The percentage of time the CPU spent in user space. */
+  loadUser: Scalars['Float']['output'];
+};
+
+export type CpuUtilization = Node & {
+  __typename?: 'CpuUtilization';
+  /** CPU load for each core */
+  cpus: Array<CpuLoad>;
+  id: Scalars['PrefixedID']['output'];
+  /** Total CPU load in percent */
+  load: Scalars['Float']['output'];
+};
+
 export type CreateApiKeyInput = {
   description?: InputMaybe<Scalars['String']['input']>;
   name: Scalars['String']['input'];
@@ -567,14 +574,6 @@ export type DeleteApiKeyInput = {
 
 export type DeleteRCloneRemoteInput = {
   name: Scalars['String']['input'];
-};
-
-export type Devices = Node & {
-  __typename?: 'Devices';
-  gpu: Array<Gpu>;
-  id: Scalars['PrefixedID']['output'];
-  pci: Array<Pci>;
-  usb: Array<Usb>;
 };
 
 export type Disk = Node & {
@@ -652,31 +651,6 @@ export enum DiskSmartStatus {
   OK = 'OK',
   UNKNOWN = 'UNKNOWN'
 }
-
-export type Display = Node & {
-  __typename?: 'Display';
-  banner?: Maybe<Scalars['String']['output']>;
-  case?: Maybe<Case>;
-  critical?: Maybe<Scalars['Int']['output']>;
-  dashapps?: Maybe<Scalars['String']['output']>;
-  date?: Maybe<Scalars['String']['output']>;
-  hot?: Maybe<Scalars['Int']['output']>;
-  id: Scalars['PrefixedID']['output'];
-  locale?: Maybe<Scalars['String']['output']>;
-  max?: Maybe<Scalars['Int']['output']>;
-  number?: Maybe<Scalars['String']['output']>;
-  resize?: Maybe<Scalars['Boolean']['output']>;
-  scale?: Maybe<Scalars['Boolean']['output']>;
-  tabs?: Maybe<Scalars['Boolean']['output']>;
-  text?: Maybe<Scalars['Boolean']['output']>;
-  theme?: Maybe<ThemeName>;
-  total?: Maybe<Scalars['Boolean']['output']>;
-  unit?: Maybe<Temperature>;
-  usage?: Maybe<Scalars['Boolean']['output']>;
-  users?: Maybe<Scalars['String']['output']>;
-  warning?: Maybe<Scalars['Int']['output']>;
-  wwn?: Maybe<Scalars['Boolean']['output']>;
-};
 
 export type Docker = Node & {
   __typename?: 'Docker';
@@ -792,80 +766,340 @@ export type FlashBackupStatus = {
   status: Scalars['String']['output'];
 };
 
-export type Gpu = Node & {
-  __typename?: 'Gpu';
-  blacklisted: Scalars['Boolean']['output'];
-  class: Scalars['String']['output'];
-  id: Scalars['PrefixedID']['output'];
-  productid: Scalars['String']['output'];
-  type: Scalars['String']['output'];
-  typeid: Scalars['String']['output'];
-  vendorname: Scalars['String']['output'];
-};
-
 export type Info = Node & {
   __typename?: 'Info';
-  /** Count of docker containers */
-  apps: InfoApps;
-  baseboard: Baseboard;
+  /** Motherboard information */
+  baseboard: InfoBaseboard;
+  /** CPU information */
   cpu: InfoCpu;
-  devices: Devices;
-  display: Display;
+  /** Device information */
+  devices: InfoDevices;
+  /** Display configuration */
+  display: InfoDisplay;
   id: Scalars['PrefixedID']['output'];
   /** Machine ID */
-  machineId?: Maybe<Scalars['PrefixedID']['output']>;
+  machineId?: Maybe<Scalars['ID']['output']>;
+  /** Memory information */
   memory: InfoMemory;
-  os: Os;
-  system: System;
+  /** Operating system information */
+  os: InfoOs;
+  /** System information */
+  system: InfoSystem;
+  /** Current server time */
   time: Scalars['DateTime']['output'];
-  versions: Versions;
+  /** Software versions */
+  versions: InfoVersions;
 };
 
-export type InfoApps = Node & {
-  __typename?: 'InfoApps';
+export type InfoBaseboard = Node & {
+  __typename?: 'InfoBaseboard';
+  /** Motherboard asset tag */
+  assetTag?: Maybe<Scalars['String']['output']>;
   id: Scalars['PrefixedID']['output'];
-  /** How many docker containers are installed */
-  installed: Scalars['Int']['output'];
-  /** How many docker containers are running */
-  started: Scalars['Int']['output'];
+  /** Motherboard manufacturer */
+  manufacturer?: Maybe<Scalars['String']['output']>;
+  /** Maximum memory capacity in bytes */
+  memMax?: Maybe<Scalars['Float']['output']>;
+  /** Number of memory slots */
+  memSlots?: Maybe<Scalars['Float']['output']>;
+  /** Motherboard model */
+  model?: Maybe<Scalars['String']['output']>;
+  /** Motherboard serial number */
+  serial?: Maybe<Scalars['String']['output']>;
+  /** Motherboard version */
+  version?: Maybe<Scalars['String']['output']>;
 };
 
 export type InfoCpu = Node & {
   __typename?: 'InfoCpu';
-  brand: Scalars['String']['output'];
-  cache: Scalars['JSON']['output'];
-  cores: Scalars['Int']['output'];
-  family: Scalars['String']['output'];
-  flags: Array<Scalars['String']['output']>;
+  /** CPU brand name */
+  brand?: Maybe<Scalars['String']['output']>;
+  /** CPU cache information */
+  cache?: Maybe<Scalars['JSON']['output']>;
+  /** Number of CPU cores */
+  cores?: Maybe<Scalars['Int']['output']>;
+  /** CPU family */
+  family?: Maybe<Scalars['String']['output']>;
+  /** CPU feature flags */
+  flags?: Maybe<Array<Scalars['String']['output']>>;
   id: Scalars['PrefixedID']['output'];
-  manufacturer: Scalars['String']['output'];
-  model: Scalars['String']['output'];
-  processors: Scalars['Int']['output'];
-  revision: Scalars['String']['output'];
-  socket: Scalars['String']['output'];
-  speed: Scalars['Float']['output'];
-  speedmax: Scalars['Float']['output'];
-  speedmin: Scalars['Float']['output'];
-  stepping: Scalars['Int']['output'];
-  threads: Scalars['Int']['output'];
-  vendor: Scalars['String']['output'];
+  /** CPU manufacturer */
+  manufacturer?: Maybe<Scalars['String']['output']>;
+  /** CPU model */
+  model?: Maybe<Scalars['String']['output']>;
+  /** Number of physical processors */
+  processors?: Maybe<Scalars['Int']['output']>;
+  /** CPU revision */
+  revision?: Maybe<Scalars['String']['output']>;
+  /** CPU socket type */
+  socket?: Maybe<Scalars['String']['output']>;
+  /** Current CPU speed in GHz */
+  speed?: Maybe<Scalars['Float']['output']>;
+  /** Maximum CPU speed in GHz */
+  speedmax?: Maybe<Scalars['Float']['output']>;
+  /** Minimum CPU speed in GHz */
+  speedmin?: Maybe<Scalars['Float']['output']>;
+  /** CPU stepping */
+  stepping?: Maybe<Scalars['Int']['output']>;
+  /** Number of CPU threads */
+  threads?: Maybe<Scalars['Int']['output']>;
+  /** CPU vendor */
+  vendor?: Maybe<Scalars['String']['output']>;
+  /** CPU voltage */
   voltage?: Maybe<Scalars['String']['output']>;
+};
+
+export type InfoDevices = Node & {
+  __typename?: 'InfoDevices';
+  /** List of GPU devices */
+  gpu?: Maybe<Array<InfoGpu>>;
+  id: Scalars['PrefixedID']['output'];
+  /** List of network interfaces */
+  network?: Maybe<Array<InfoNetwork>>;
+  /** List of PCI devices */
+  pci?: Maybe<Array<InfoPci>>;
+  /** List of USB devices */
+  usb?: Maybe<Array<InfoUsb>>;
+};
+
+export type InfoDisplay = Node & {
+  __typename?: 'InfoDisplay';
+  /** Case display configuration */
+  case: InfoDisplayCase;
+  /** Critical temperature threshold */
+  critical: Scalars['Int']['output'];
+  /** Hot temperature threshold */
+  hot: Scalars['Int']['output'];
+  id: Scalars['PrefixedID']['output'];
+  /** Locale setting */
+  locale?: Maybe<Scalars['String']['output']>;
+  /** Maximum temperature threshold */
+  max?: Maybe<Scalars['Int']['output']>;
+  /** Enable UI resize */
+  resize: Scalars['Boolean']['output'];
+  /** Enable UI scaling */
+  scale: Scalars['Boolean']['output'];
+  /** Show tabs in UI */
+  tabs: Scalars['Boolean']['output'];
+  /** Show text labels */
+  text: Scalars['Boolean']['output'];
+  /** UI theme name */
+  theme: ThemeName;
+  /** Show totals */
+  total: Scalars['Boolean']['output'];
+  /** Temperature unit (C or F) */
+  unit: Temperature;
+  /** Show usage statistics */
+  usage: Scalars['Boolean']['output'];
+  /** Warning temperature threshold */
+  warning: Scalars['Int']['output'];
+  /** Show WWN identifiers */
+  wwn: Scalars['Boolean']['output'];
+};
+
+export type InfoDisplayCase = Node & {
+  __typename?: 'InfoDisplayCase';
+  /** Base64 encoded case image */
+  base64: Scalars['String']['output'];
+  /** Error message if any */
+  error: Scalars['String']['output'];
+  /** Case icon identifier */
+  icon: Scalars['String']['output'];
+  id: Scalars['PrefixedID']['output'];
+  /** Case image URL */
+  url: Scalars['String']['output'];
+};
+
+export type InfoGpu = Node & {
+  __typename?: 'InfoGpu';
+  /** Whether GPU is blacklisted */
+  blacklisted: Scalars['Boolean']['output'];
+  /** Device class */
+  class: Scalars['String']['output'];
+  id: Scalars['PrefixedID']['output'];
+  /** Product ID */
+  productid: Scalars['String']['output'];
+  /** GPU type/manufacturer */
+  type: Scalars['String']['output'];
+  /** GPU type identifier */
+  typeid: Scalars['String']['output'];
+  /** Vendor name */
+  vendorname?: Maybe<Scalars['String']['output']>;
 };
 
 export type InfoMemory = Node & {
   __typename?: 'InfoMemory';
-  active: Scalars['BigInt']['output'];
-  available: Scalars['BigInt']['output'];
-  buffcache: Scalars['BigInt']['output'];
-  free: Scalars['BigInt']['output'];
   id: Scalars['PrefixedID']['output'];
+  /** Physical memory layout */
   layout: Array<MemoryLayout>;
-  max: Scalars['BigInt']['output'];
-  swapfree: Scalars['BigInt']['output'];
-  swaptotal: Scalars['BigInt']['output'];
-  swapused: Scalars['BigInt']['output'];
-  total: Scalars['BigInt']['output'];
-  used: Scalars['BigInt']['output'];
+};
+
+export type InfoNetwork = Node & {
+  __typename?: 'InfoNetwork';
+  /** DHCP enabled flag */
+  dhcp?: Maybe<Scalars['Boolean']['output']>;
+  id: Scalars['PrefixedID']['output'];
+  /** Network interface name */
+  iface: Scalars['String']['output'];
+  /** MAC address */
+  mac?: Maybe<Scalars['String']['output']>;
+  /** Network interface model */
+  model?: Maybe<Scalars['String']['output']>;
+  /** Network speed */
+  speed?: Maybe<Scalars['String']['output']>;
+  /** Network vendor */
+  vendor?: Maybe<Scalars['String']['output']>;
+  /** Virtual interface flag */
+  virtual?: Maybe<Scalars['Boolean']['output']>;
+};
+
+export type InfoOs = Node & {
+  __typename?: 'InfoOs';
+  /** OS architecture */
+  arch?: Maybe<Scalars['String']['output']>;
+  /** OS build identifier */
+  build?: Maybe<Scalars['String']['output']>;
+  /** OS codename */
+  codename?: Maybe<Scalars['String']['output']>;
+  /** Linux distribution name */
+  distro?: Maybe<Scalars['String']['output']>;
+  /** Fully qualified domain name */
+  fqdn?: Maybe<Scalars['String']['output']>;
+  /** Hostname */
+  hostname?: Maybe<Scalars['String']['output']>;
+  id: Scalars['PrefixedID']['output'];
+  /** Kernel version */
+  kernel?: Maybe<Scalars['String']['output']>;
+  /** OS logo name */
+  logofile?: Maybe<Scalars['String']['output']>;
+  /** Operating system platform */
+  platform?: Maybe<Scalars['String']['output']>;
+  /** OS release version */
+  release?: Maybe<Scalars['String']['output']>;
+  /** OS serial number */
+  serial?: Maybe<Scalars['String']['output']>;
+  /** Service pack version */
+  servicepack?: Maybe<Scalars['String']['output']>;
+  /** OS started via UEFI */
+  uefi?: Maybe<Scalars['Boolean']['output']>;
+  /** Boot time ISO string */
+  uptime?: Maybe<Scalars['String']['output']>;
+};
+
+export type InfoPci = Node & {
+  __typename?: 'InfoPci';
+  /** Blacklisted status */
+  blacklisted: Scalars['String']['output'];
+  /** Device class */
+  class: Scalars['String']['output'];
+  id: Scalars['PrefixedID']['output'];
+  /** Product ID */
+  productid: Scalars['String']['output'];
+  /** Product name */
+  productname?: Maybe<Scalars['String']['output']>;
+  /** Device type/manufacturer */
+  type: Scalars['String']['output'];
+  /** Type identifier */
+  typeid: Scalars['String']['output'];
+  /** Vendor ID */
+  vendorid: Scalars['String']['output'];
+  /** Vendor name */
+  vendorname?: Maybe<Scalars['String']['output']>;
+};
+
+export type InfoSystem = Node & {
+  __typename?: 'InfoSystem';
+  id: Scalars['PrefixedID']['output'];
+  /** System manufacturer */
+  manufacturer?: Maybe<Scalars['String']['output']>;
+  /** System model */
+  model?: Maybe<Scalars['String']['output']>;
+  /** System serial number */
+  serial?: Maybe<Scalars['String']['output']>;
+  /** System SKU */
+  sku?: Maybe<Scalars['String']['output']>;
+  /** System UUID */
+  uuid?: Maybe<Scalars['String']['output']>;
+  /** System version */
+  version?: Maybe<Scalars['String']['output']>;
+  /** Virtual machine flag */
+  virtual?: Maybe<Scalars['Boolean']['output']>;
+};
+
+export type InfoUsb = Node & {
+  __typename?: 'InfoUsb';
+  /** USB bus number */
+  bus?: Maybe<Scalars['String']['output']>;
+  /** USB device number */
+  device?: Maybe<Scalars['String']['output']>;
+  id: Scalars['PrefixedID']['output'];
+  /** USB device name */
+  name: Scalars['String']['output'];
+};
+
+export type InfoVersions = Node & {
+  __typename?: 'InfoVersions';
+  /** Apache version */
+  apache?: Maybe<Scalars['String']['output']>;
+  /** Docker version */
+  docker?: Maybe<Scalars['String']['output']>;
+  /** gcc version */
+  gcc?: Maybe<Scalars['String']['output']>;
+  /** Git version */
+  git?: Maybe<Scalars['String']['output']>;
+  /** Grunt version */
+  grunt?: Maybe<Scalars['String']['output']>;
+  /** Gulp version */
+  gulp?: Maybe<Scalars['String']['output']>;
+  id: Scalars['PrefixedID']['output'];
+  /** Java version */
+  java?: Maybe<Scalars['String']['output']>;
+  /** Kernel version */
+  kernel?: Maybe<Scalars['String']['output']>;
+  /** MongoDB version */
+  mongodb?: Maybe<Scalars['String']['output']>;
+  /** MySQL version */
+  mysql?: Maybe<Scalars['String']['output']>;
+  /** nginx version */
+  nginx?: Maybe<Scalars['String']['output']>;
+  /** Node.js version */
+  node?: Maybe<Scalars['String']['output']>;
+  /** npm version */
+  npm?: Maybe<Scalars['String']['output']>;
+  /** OpenSSL version */
+  openssl?: Maybe<Scalars['String']['output']>;
+  /** Perl version */
+  perl?: Maybe<Scalars['String']['output']>;
+  /** PHP version */
+  php?: Maybe<Scalars['String']['output']>;
+  /** pip version */
+  pip?: Maybe<Scalars['String']['output']>;
+  /** pip3 version */
+  pip3?: Maybe<Scalars['String']['output']>;
+  /** pm2 version */
+  pm2?: Maybe<Scalars['String']['output']>;
+  /** Postfix version */
+  postfix?: Maybe<Scalars['String']['output']>;
+  /** PostgreSQL version */
+  postgresql?: Maybe<Scalars['String']['output']>;
+  /** Python version */
+  python?: Maybe<Scalars['String']['output']>;
+  /** Python3 version */
+  python3?: Maybe<Scalars['String']['output']>;
+  /** Redis version */
+  redis?: Maybe<Scalars['String']['output']>;
+  /** System OpenSSL version */
+  systemOpenssl?: Maybe<Scalars['String']['output']>;
+  /** tsc version */
+  tsc?: Maybe<Scalars['String']['output']>;
+  /** Unraid version */
+  unraid?: Maybe<Scalars['String']['output']>;
+  /** V8 engine version */
+  v8?: Maybe<Scalars['String']['output']>;
+  /** VirtualBox version */
+  virtualbox?: Maybe<Scalars['String']['output']>;
+  /** Yarn version */
+  yarn?: Maybe<Scalars['String']['output']>;
 };
 
 export type InitiateFlashBackupInput = {
@@ -911,18 +1145,66 @@ export type LogFileContent = {
 
 export type MemoryLayout = Node & {
   __typename?: 'MemoryLayout';
+  /** Memory bank location (e.g., BANK 0) */
   bank?: Maybe<Scalars['String']['output']>;
+  /** Memory clock speed in MHz */
   clockSpeed?: Maybe<Scalars['Int']['output']>;
+  /** Form factor (e.g., DIMM, SODIMM) */
   formFactor?: Maybe<Scalars['String']['output']>;
   id: Scalars['PrefixedID']['output'];
+  /** Memory manufacturer */
   manufacturer?: Maybe<Scalars['String']['output']>;
+  /** Part number of the memory module */
   partNum?: Maybe<Scalars['String']['output']>;
+  /** Serial number of the memory module */
   serialNum?: Maybe<Scalars['String']['output']>;
+  /** Memory module size in bytes */
   size: Scalars['BigInt']['output'];
+  /** Memory type (e.g., DDR4, DDR5) */
   type?: Maybe<Scalars['String']['output']>;
+  /** Configured voltage in millivolts */
   voltageConfigured?: Maybe<Scalars['Int']['output']>;
+  /** Maximum voltage in millivolts */
   voltageMax?: Maybe<Scalars['Int']['output']>;
+  /** Minimum voltage in millivolts */
   voltageMin?: Maybe<Scalars['Int']['output']>;
+};
+
+export type MemoryUtilization = Node & {
+  __typename?: 'MemoryUtilization';
+  /** Active memory in bytes */
+  active: Scalars['BigInt']['output'];
+  /** Available memory in bytes */
+  available: Scalars['BigInt']['output'];
+  /** Buffer/cache memory in bytes */
+  buffcache: Scalars['BigInt']['output'];
+  /** Free memory in bytes */
+  free: Scalars['BigInt']['output'];
+  id: Scalars['PrefixedID']['output'];
+  /** Free swap memory in bytes */
+  swapFree: Scalars['BigInt']['output'];
+  /** Total swap memory in bytes */
+  swapTotal: Scalars['BigInt']['output'];
+  /** Used swap memory in bytes */
+  swapUsed: Scalars['BigInt']['output'];
+  /** Swap usage percentage */
+  swapUsedPercent: Scalars['Float']['output'];
+  /** Total system memory in bytes */
+  total: Scalars['BigInt']['output'];
+  /** Used memory in bytes */
+  used: Scalars['BigInt']['output'];
+  /** Memory usage percentage */
+  usedPercent: Scalars['Float']['output'];
+};
+
+/** System metrics including CPU and memory utilization */
+export type Metrics = Node & {
+  __typename?: 'Metrics';
+  /** Current CPU utilization metrics */
+  cpu?: Maybe<CpuUtilization>;
+  id: Scalars['PrefixedID']['output'];
+  /** Current memory utilization metrics */
+  memory?: Maybe<MemoryUtilization>;
 };
 
 /** The status of the minigraph */
@@ -1237,23 +1519,6 @@ export type OrganizerResource = {
   type: Scalars['String']['output'];
 };
 
-export type Os = Node & {
-  __typename?: 'Os';
-  arch?: Maybe<Scalars['String']['output']>;
-  build?: Maybe<Scalars['String']['output']>;
-  codename?: Maybe<Scalars['String']['output']>;
-  codepage?: Maybe<Scalars['String']['output']>;
-  distro?: Maybe<Scalars['String']['output']>;
-  hostname?: Maybe<Scalars['String']['output']>;
-  id: Scalars['PrefixedID']['output'];
-  kernel?: Maybe<Scalars['String']['output']>;
-  logofile?: Maybe<Scalars['String']['output']>;
-  platform?: Maybe<Scalars['String']['output']>;
-  release?: Maybe<Scalars['String']['output']>;
-  serial?: Maybe<Scalars['String']['output']>;
-  uptime?: Maybe<Scalars['String']['output']>;
-};
-
 export type Owner = {
   __typename?: 'Owner';
   avatar: Scalars['String']['output'];
@@ -1300,19 +1565,6 @@ export type ParityCheckMutations = {
 /** Parity check related mutations, WIP, response types and functionaliy will change */
 export type ParityCheckMutationsStartArgs = {
   correct: Scalars['Boolean']['input'];
-};
-
-export type Pci = Node & {
-  __typename?: 'Pci';
-  blacklisted?: Maybe<Scalars['String']['output']>;
-  class?: Maybe<Scalars['String']['output']>;
-  id: Scalars['PrefixedID']['output'];
-  productid?: Maybe<Scalars['String']['output']>;
-  productname?: Maybe<Scalars['String']['output']>;
-  type?: Maybe<Scalars['String']['output']>;
-  typeid?: Maybe<Scalars['String']['output']>;
-  vendorid?: Maybe<Scalars['String']['output']>;
-  vendorname?: Maybe<Scalars['String']['output']>;
 };
 
 export type Permission = {
@@ -1385,7 +1637,6 @@ export type Query = {
   customization?: Maybe<Customization>;
   disk: Disk;
   disks: Array<Disk>;
-  display: Display;
   docker: Docker;
   flash: Flash;
   info: Info;
@@ -1394,6 +1645,7 @@ export type Query = {
   logFile: LogFileContent;
   logFiles: Array<LogFile>;
   me: UserAccount;
+  metrics: Metrics;
   network: Network;
   /** Get all notifications */
   notifications: Notifications;
@@ -1743,14 +1995,14 @@ export type SsoSettings = Node & {
 export type Subscription = {
   __typename?: 'Subscription';
   arraySubscription: UnraidArray;
-  displaySubscription: Display;
-  infoSubscription: Info;
   logFile: LogFileContent;
   notificationAdded: Notification;
   notificationsOverview: NotificationOverview;
   ownerSubscription: Owner;
   parityHistorySubscription: ParityCheck;
   serversSubscription: Server;
+  systemMetricsCpu: CpuUtilization;
+  systemMetricsMemory: MemoryUtilization;
   upsUpdates: UpsDevice;
 };
 
@@ -1759,21 +2011,10 @@ export type SubscriptionLogFileArgs = {
   path: Scalars['String']['input'];
 };
 
-export type System = Node & {
-  __typename?: 'System';
-  id: Scalars['PrefixedID']['output'];
-  manufacturer?: Maybe<Scalars['String']['output']>;
-  model?: Maybe<Scalars['String']['output']>;
-  serial?: Maybe<Scalars['String']['output']>;
-  sku?: Maybe<Scalars['String']['output']>;
-  uuid?: Maybe<Scalars['String']['output']>;
-  version?: Maybe<Scalars['String']['output']>;
-};
-
-/** Temperature unit (Celsius or Fahrenheit) */
+/** Temperature unit */
 export enum Temperature {
-  C = 'C',
-  F = 'F'
+  CELSIUS = 'CELSIUS',
+  FAHRENHEIT = 'FAHRENHEIT'
 }
 
 export type Theme = {
@@ -1985,12 +2226,6 @@ export type Uptime = {
   timestamp?: Maybe<Scalars['String']['output']>;
 };
 
-export type Usb = Node & {
-  __typename?: 'Usb';
-  id: Scalars['PrefixedID']['output'];
-  name?: Maybe<Scalars['String']['output']>;
-};
-
 export type UserAccount = Node & {
   __typename?: 'UserAccount';
   /** A description of the user */
@@ -2166,37 +2401,6 @@ export type Vars = Node & {
   /** Unraid version */
   version?: Maybe<Scalars['String']['output']>;
   workgroup?: Maybe<Scalars['String']['output']>;
-};
-
-export type Versions = Node & {
-  __typename?: 'Versions';
-  apache?: Maybe<Scalars['String']['output']>;
-  docker?: Maybe<Scalars['String']['output']>;
-  gcc?: Maybe<Scalars['String']['output']>;
-  git?: Maybe<Scalars['String']['output']>;
-  grunt?: Maybe<Scalars['String']['output']>;
-  gulp?: Maybe<Scalars['String']['output']>;
-  id: Scalars['PrefixedID']['output'];
-  kernel?: Maybe<Scalars['String']['output']>;
-  mongodb?: Maybe<Scalars['String']['output']>;
-  mysql?: Maybe<Scalars['String']['output']>;
-  nginx?: Maybe<Scalars['String']['output']>;
-  node?: Maybe<Scalars['String']['output']>;
-  npm?: Maybe<Scalars['String']['output']>;
-  openssl?: Maybe<Scalars['String']['output']>;
-  perl?: Maybe<Scalars['String']['output']>;
-  php?: Maybe<Scalars['String']['output']>;
-  pm2?: Maybe<Scalars['String']['output']>;
-  postfix?: Maybe<Scalars['String']['output']>;
-  postgresql?: Maybe<Scalars['String']['output']>;
-  python?: Maybe<Scalars['String']['output']>;
-  redis?: Maybe<Scalars['String']['output']>;
-  systemOpenssl?: Maybe<Scalars['String']['output']>;
-  systemOpensslLib?: Maybe<Scalars['String']['output']>;
-  tsc?: Maybe<Scalars['String']['output']>;
-  unraid?: Maybe<Scalars['String']['output']>;
-  v8?: Maybe<Scalars['String']['output']>;
-  yarn?: Maybe<Scalars['String']['output']>;
 };
 
 export type VmDomain = Node & {
@@ -2516,7 +2720,7 @@ export type PublicOidcProvidersQuery = { __typename?: 'Query', publicOidcProvide
 export type ServerInfoQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type ServerInfoQuery = { __typename?: 'Query', info: { __typename?: 'Info', os: { __typename?: 'Os', hostname?: string | null } }, vars: { __typename?: 'Vars', comment?: string | null } };
+export type ServerInfoQuery = { __typename?: 'Query', info: { __typename?: 'Info', os: { __typename?: 'InfoOs', hostname?: string | null } }, vars: { __typename?: 'Vars', comment?: string | null } };
 
 export type ConnectSignInMutationVariables = Exact<{
   input: ConnectSignInInput;
@@ -2548,7 +2752,7 @@ export type CloudStateQuery = { __typename?: 'Query', cloud: (
 export type ServerStateQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type ServerStateQuery = { __typename?: 'Query', config: { __typename?: 'Config', error?: string | null, valid?: boolean | null }, info: { __typename?: 'Info', os: { __typename?: 'Os', hostname?: string | null } }, owner: { __typename?: 'Owner', avatar: string, username: string }, registration?: { __typename?: 'Registration', state?: RegistrationState | null, expiration?: string | null, updateExpiration?: string | null, keyFile?: { __typename?: 'KeyFile', contents?: string | null } | null } | null, vars: { __typename?: 'Vars', regGen?: string | null, regState?: RegistrationState | null, configError?: ConfigErrorState | null, configValid?: boolean | null } };
+export type ServerStateQuery = { __typename?: 'Query', config: { __typename?: 'Config', error?: string | null, valid?: boolean | null }, info: { __typename?: 'Info', os: { __typename?: 'InfoOs', hostname?: string | null } }, owner: { __typename?: 'Owner', avatar: string, username: string }, registration?: { __typename?: 'Registration', state?: RegistrationState | null, expiration?: string | null, updateExpiration?: string | null, keyFile?: { __typename?: 'KeyFile', contents?: string | null } | null } | null, vars: { __typename?: 'Vars', regGen?: string | null, regState?: RegistrationState | null, configError?: ConfigErrorState | null, configValid?: boolean | null } };
 
 export type GetThemeQueryVariables = Exact<{ [key: string]: never; }>;
 

@@ -8,8 +8,8 @@ import {
 } from '@unraid/shared/use-permissions.directive.js';
 
 import { createSubscription, PUBSUB_CHANNEL } from '@app/core/pubsub.js';
-import { DisplayService } from '@app/unraid-api/graph/resolvers/display/display.service.js';
-import { Display } from '@app/unraid-api/graph/resolvers/info/info.model.js';
+import { Display } from '@app/unraid-api/graph/resolvers/info/display/display.model.js';
+import { DisplayService } from '@app/unraid-api/graph/resolvers/info/display/display.service.js';
 
 @Resolver(() => Display)
 export class DisplayResolver {
