@@ -1061,97 +1061,6 @@ type Flash implements Node {
   product: String!
 }
 
-"""CPU load for a single core"""
-type CpuLoad {
-  """The total CPU load on a single core, in percent."""
-  load: Float!
-
-  """The percentage of time the CPU spent in user space."""
-  loadUser: Float!
-
-  """The percentage of time the CPU spent in kernel space."""
-  loadSystem: Float!
-
-  """
-  The percentage of time the CPU spent on low-priority (niced) user space processes.
-  """
-  loadNice: Float!
-
-  """The percentage of time the CPU was idle."""
-  loadIdle: Float!
-
-  """The percentage of time the CPU spent servicing hardware interrupts."""
-  loadIrq: Float!
-}
-
-type CpuUtilization implements Node {
-  id: PrefixedID!
-
-  """Total CPU load in percent"""
-  load: Float!
-
-  """CPU load for each core"""
-  cpus: [CpuLoad!]!
-}
-
-type InfoCpu implements Node {
-  id: PrefixedID!
-
-  """CPU manufacturer"""
-  manufacturer: String
-
-  """CPU brand name"""
-  brand: String
-
-  """CPU vendor"""
-  vendor: String
-
-  """CPU family"""
-  family: String
-
-  """CPU model"""
-  model: String
-
-  """CPU stepping"""
-  stepping: Int
-
-  """CPU revision"""
-  revision: String
-
-  """CPU voltage"""
-  voltage: String
-
-  """Current CPU speed in GHz"""
-  speed: Float
-
-  """Minimum CPU speed in GHz"""
-  speedmin: Float
-
-  """Maximum CPU speed in GHz"""
-  speedmax: Float
-
-  """Number of CPU threads"""
-  threads: Int
-
-  """Number of CPU cores"""
-  cores: Int
-
-  """Number of physical processors"""
-  processors: Int
-
-  """CPU socket type"""
-  socket: String
-
-  """CPU cache information"""
-  cache: JSON
-
-  """CPU feature flags"""
-  flags: [String!]
-
-  """Current CPU utilization"""
-  utilization: CpuUtilization
-}
-
 type InfoGpu implements Node {
   id: PrefixedID!
 
@@ -1327,6 +1236,94 @@ enum Temperature {
   FAHRENHEIT
 }
 
+"""CPU load for a single core"""
+type CpuLoad {
+  """The total CPU load on a single core, in percent."""
+  load: Float!
+
+  """The percentage of time the CPU spent in user space."""
+  loadUser: Float!
+
+  """The percentage of time the CPU spent in kernel space."""
+  loadSystem: Float!
+
+  """
+  The percentage of time the CPU spent on low-priority (niced) user space processes.
+  """
+  loadNice: Float!
+
+  """The percentage of time the CPU was idle."""
+  loadIdle: Float!
+
+  """The percentage of time the CPU spent servicing hardware interrupts."""
+  loadIrq: Float!
+}
+
+type CpuUtilization implements Node {
+  id: PrefixedID!
+
+  """Total CPU load in percent"""
+  load: Float!
+
+  """CPU load for each core"""
+  cpus: [CpuLoad!]!
+}
+
+type InfoCpu implements Node {
+  id: PrefixedID!
+
+  """CPU manufacturer"""
+  manufacturer: String
+
+  """CPU brand name"""
+  brand: String
+
+  """CPU vendor"""
+  vendor: String
+
+  """CPU family"""
+  family: String
+
+  """CPU model"""
+  model: String
+
+  """CPU stepping"""
+  stepping: Int
+
+  """CPU revision"""
+  revision: String
+
+  """CPU voltage"""
+  voltage: String
+
+  """Current CPU speed in GHz"""
+  speed: Float
+
+  """Minimum CPU speed in GHz"""
+  speedmin: Float
+
+  """Maximum CPU speed in GHz"""
+  speedmax: Float
+
+  """Number of CPU threads"""
+  threads: Int
+
+  """Number of CPU cores"""
+  cores: Int
+
+  """Number of physical processors"""
+  processors: Int
+
+  """CPU socket type"""
+  socket: String
+
+  """CPU cache information"""
+  cache: JSON
+
+  """CPU feature flags"""
+  flags: [String!]
+}
+
 type MemoryLayout implements Node {
   id: PrefixedID!
 
@@ -1406,9 +1403,6 @@ type InfoMemory implements Node {
 
   """Physical memory layout"""
   layout: [MemoryLayout!]!
-
-  """Current memory utilization and totals"""
-  utilization: MemoryUtilization
 }
 
 type InfoOs implements Node {
@@ -1903,6 +1897,17 @@ type PublicOidcProvider {
   buttonStyle: String
 }
 
+"""System metrics including CPU and memory utilization"""
+type Metrics implements Node {
+  id: PrefixedID!
+
+  """Current CPU utilization metrics"""
+  cpu: CpuUtilization
+
+  """Current memory utilization metrics"""
+  memory: MemoryUtilization
+}
+
 type UPSBattery {
   """
   Battery charge level as a percentage (0-100). Unit: percent (%). Example: 100 means battery is fully charged
@@ -2303,7 +2308,6 @@ type Query {
   disk(id: PrefixedID!): Disk!
   rclone: RCloneBackupSettings!
   info: Info!
-  display: InfoDisplay!
   settings: Settings!
   isSSOEnabled: Boolean!
 
@@ -2318,6 +2322,7 @@ type Query {
 
   """Validate an OIDC session token (internal use for CLI validation)"""
   validateOidcSession(token: String!): OidcSessionValidation!
+  metrics: Metrics!
   upsDevices: [UPSDevice!]!
   upsDeviceById(id: String!): UPSDevice
   upsConfiguration: UPSConfiguration!
@@ -2567,7 +2572,6 @@ type Subscription {
   arraySubscription: UnraidArray!
   systemMetricsCpu: CpuUtilization!
   systemMetricsMemory: MemoryUtilization!
-  displaySubscription: InfoDisplay!
   upsUpdates: UPSDevice!
 }
 

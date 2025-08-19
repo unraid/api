@@ -37,7 +37,7 @@ describe('DisplayService', () => {
             const result = await service.generateDisplay();
 
             // Verify basic structure
-            expect(result).toHaveProperty('id', 'display');
+            expect(result).toHaveProperty('id', 'info/display');
             expect(result).toHaveProperty('case');
             expect(result.case).toHaveProperty('url');
             expect(result.case).toHaveProperty('icon');
@@ -91,7 +91,7 @@ describe('DisplayService', () => {
             const result = await service.generateDisplay();
 
             // Should still return basic structure even if some config is missing
-            expect(result).toHaveProperty('id', 'display');
+            expect(result).toHaveProperty('id', 'info/display');
             expect(result).toHaveProperty('case');
             // The actual config depends on what's in the dev files
         });

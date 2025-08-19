@@ -79,10 +79,4 @@ export class MemoryUtilization extends Node {
 export class InfoMemory extends Node {
     @Field(() => [MemoryLayout], { description: 'Physical memory layout' })
     layout!: MemoryLayout[];
-
-    @Field(() => MemoryUtilization, {
-        description: 'Current memory utilization and totals',
-        nullable: true,
-    })
-    utilization?: MemoryUtilization;
 }

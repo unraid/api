@@ -6,20 +6,32 @@ import {
     AuthPossession,
     UsePermissions,
 } from '@unraid/shared/use-permissions.directive.js';
+import { baseboard as getBaseboard, system as getSystem } from 'systeminformation';
 
 import { getMachineId } from '@app/core/utils/misc/get-machine-id.js';
 import { InfoCpu } from '@app/unraid-api/graph/resolvers/info/cpu/cpu.model.js';
+import { CpuService } from '@app/unraid-api/graph/resolvers/info/cpu/cpu.service.js';
 import { InfoDevices } from '@app/unraid-api/graph/resolvers/info/devices/devices.model.js';
 import { InfoDisplay } from '@app/unraid-api/graph/resolvers/info/display/display.model.js';
+import { DisplayService } from '@app/unraid-api/graph/resolvers/info/display/display.service.js';
 import { Info } from '@app/unraid-api/graph/resolvers/info/info.model.js';
 import { InfoMemory } from '@app/unraid-api/graph/resolvers/info/memory/memory.model.js';
+import { MemoryService } from '@app/unraid-api/graph/resolvers/info/memory/memory.service.js';
 import { InfoOs } from '@app/unraid-api/graph/resolvers/info/os/os.model.js';
+import { OsService } from '@app/unraid-api/graph/resolvers/info/os/os.service.js';
 import { InfoBaseboard, InfoSystem } from '@app/unraid-api/graph/resolvers/info/system/system.model.js';
 import { InfoVersions } from '@app/unraid-api/graph/resolvers/info/versions/versions.model.js';
+import { VersionsService } from '@app/unraid-api/graph/resolvers/info/versions/versions.service.js';
 
 @Resolver(() => Info)
 export class InfoResolver {
-    constructor() {}
+    constructor(
+        private readonly cpuService: CpuService,
+        private readonly memoryService: MemoryService,
+        private readonly displayService: DisplayService,
+        private readonly osService: OsService,
+        private readonly versionsService: VersionsService
+    ) {}
 
     @Query(() => Info)
     @UsePermissions({
@@ -39,15 +51,14 @@ export class InfoResolver {
     }
 
     @ResolveField(() => InfoBaseboard)
-    public baseboard(): Partial<InfoBaseboard> {
-        // Return minimal stub, let BaseboardResolver handle all fields
-        return { id: 'info/baseboard' };
+    public async baseboard(): Promise<InfoBaseboard> {
+        const baseboard = await getBaseboard();
+        return { id: 'info/baseboard', ...baseboard } as InfoBaseboard;
     }
 
     @ResolveField(() => InfoCpu)
-    public cpu(): Partial<InfoCpu> {
-        // Return minimal stub, let InfoCpuResolver handle all fields
-        return { id: 'info/cpu' };
+    public async cpu(): Promise<InfoCpu> {
+        return this.cpuService.generateCpu();
     }
 
     @ResolveField(() => InfoDevices)
@@ -57,9 +68,8 @@ export class InfoResolver {
     }
 
     @ResolveField(() => InfoDisplay)
-    public display(): Partial<InfoDisplay> {
-        // Return minimal stub, let InfoDisplayResolver handle all fields
-        return { id: 'info/display' };
+    public async display(): Promise<InfoDisplay> {
+        return this.displayService.generateDisplay();
     }
 
     @ResolveField(() => String, { nullable: true })
@@ -68,26 +78,23 @@ export class InfoResolver {
     }
 
     @ResolveField(() => InfoMemory)
-    public memory(): Partial<InfoMemory> {
-        // Return minimal stub, let InfoMemoryResolver handle all fields
-        return { id: 'info/memory' };
+    public async memory(): Promise<InfoMemory> {
+        return this.memoryService.generateMemory();
     }
 
     @ResolveField(() => InfoOs)
-    public os(): Partial<InfoOs> {
-        // Return minimal stub, let OsResolver handle all fields
-        return { id: 'info/os' };
+    public async os(): Promise<InfoOs> {
+        return this.osService.generateOs();
     }
 
     @ResolveField(() => InfoSystem)
-    public system(): Partial<InfoSystem> {
-        // Return minimal stub, let SystemResolver handle all fields
-        return { id: 'info/system' };
+    public async system(): Promise<InfoSystem> {
+        const system = await getSystem();
+        return { id: 'info/system', ...system } as InfoSystem;
     }
 
     @ResolveField(() => InfoVersions)
-    public versions(): Partial<InfoVersions> {
-        // Return minimal stub, let VersionsResolver handle all fields
-        return { id: 'info/versions' };
+    public async versions(): Promise<InfoVersions> {
+        return this.versionsService.generateVersions();
     }
 }

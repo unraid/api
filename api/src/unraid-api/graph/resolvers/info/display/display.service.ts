@@ -75,7 +75,7 @@ export class DisplayService {
         const config = await this.getDisplayConfig();
 
         const display: Display = {
-            id: 'display',
+            id: 'info/display',
             case: caseInfo,
             theme: config.theme || ThemeName.white,
             unit: config.unit || Temperature.CELSIUS,

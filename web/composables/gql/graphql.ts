@@ -798,6 +798,10 @@ export type InfoBaseboard = Node & {
   id: Scalars['PrefixedID']['output'];
   /** Motherboard manufacturer */
   manufacturer?: Maybe<Scalars['String']['output']>;
+  /** Maximum memory capacity in bytes */
+  memMax?: Maybe<Scalars['Float']['output']>;
+  /** Number of memory slots */
+  memSlots?: Maybe<Scalars['Float']['output']>;
   /** Motherboard model */
   model?: Maybe<Scalars['String']['output']>;
   /** Motherboard serial number */
@@ -839,8 +843,6 @@ export type InfoCpu = Node & {
   stepping?: Maybe<Scalars['Int']['output']>;
   /** Number of CPU threads */
   threads?: Maybe<Scalars['Int']['output']>;
-  /** Current CPU utilization */
-  utilization?: Maybe<CpuUtilization>;
   /** CPU vendor */
   vendor?: Maybe<Scalars['String']['output']>;
   /** CPU voltage */
@@ -930,8 +932,6 @@ export type InfoMemory = Node & {
   id: Scalars['PrefixedID']['output'];
   /** Physical memory layout */
   layout: Array<MemoryLayout>;
-  /** Current memory utilization and totals */
-  utilization?: Maybe<MemoryUtilization>;
 };
 
 export type InfoNetwork = Node & {
@@ -1195,6 +1195,16 @@ export type MemoryUtilization = Node & {
   used: Scalars['BigInt']['output'];
   /** Memory usage percentage */
   usedPercent: Scalars['Float']['output'];
+};
+
+/** System metrics including CPU and memory utilization */
+export type Metrics = Node & {
+  __typename?: 'Metrics';
+  /** Current CPU utilization metrics */
+  cpu?: Maybe<CpuUtilization>;
+  id: Scalars['PrefixedID']['output'];
+  /** Current memory utilization metrics */
+  memory?: Maybe<MemoryUtilization>;
 };
 
 /** The status of the minigraph */
@@ -1627,7 +1637,6 @@ export type Query = {
   customization?: Maybe<Customization>;
   disk: Disk;
   disks: Array<Disk>;
-  display: InfoDisplay;
   docker: Docker;
   flash: Flash;
   info: Info;
@@ -1636,6 +1645,7 @@ export type Query = {
   logFile: LogFileContent;
   logFiles: Array<LogFile>;
   me: UserAccount;
+  metrics: Metrics;
   network: Network;
   /** Get all notifications */
   notifications: Notifications;
@@ -1985,7 +1995,6 @@ export type SsoSettings = Node & {
 export type Subscription = {
   __typename?: 'Subscription';
   arraySubscription: UnraidArray;
-  displaySubscription: InfoDisplay;
   logFile: LogFileContent;
   notificationAdded: Notification;
   notificationsOverview: NotificationOverview;

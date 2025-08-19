@@ -90,7 +90,4 @@ export class InfoCpu extends Node {
 
     @Field(() => [String], { nullable: true, description: 'CPU feature flags' })
     flags?: string[];
-
-    @Field(() => CpuUtilization, { description: 'Current CPU utilization', nullable: true })
-    utilization?: CpuUtilization;
 }

@@ -13,6 +13,7 @@ import { FlashResolver } from '@app/unraid-api/graph/resolvers/flash/flash.resol
 import { InfoModule } from '@app/unraid-api/graph/resolvers/info/info.module.js';
 import { LogsResolver } from '@app/unraid-api/graph/resolvers/logs/logs.resolver.js';
 import { LogsService } from '@app/unraid-api/graph/resolvers/logs/logs.service.js';
+import { MetricsModule } from '@app/unraid-api/graph/resolvers/metrics/metrics.module.js';
 import { RootMutationsResolver } from '@app/unraid-api/graph/resolvers/mutation/mutation.resolver.js';
 import { NotificationsResolver } from '@app/unraid-api/graph/resolvers/notifications/notifications.resolver.js';
 import { NotificationsService } from '@app/unraid-api/graph/resolvers/notifications/notifications.service.js';
@@ -47,6 +48,7 @@ import { MeResolver } from '@app/unraid-api/graph/user/user.resolver.js';
         RCloneModule,
         SettingsModule,
         SsoModule,
+        MetricsModule,
         UPSModule,
     ],
     providers: [
