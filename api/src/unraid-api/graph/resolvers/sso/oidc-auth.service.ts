@@ -556,7 +556,7 @@ export class OidcAuthService {
     private evaluateRule(rule: OidcAuthorizationRule, claims: JwtClaims): boolean {
         const claimValue = claims[rule.claim];
 
-        this.logger.debug(
+        this.logger.verbose(
             `Evaluating rule for claim ${rule.claim}: ${JSON.stringify({
                 claimValue,
                 claimType: typeof claimValue,
@@ -567,21 +567,23 @@ export class OidcAuthService {
         );
 
         if (claimValue === undefined || claimValue === null) {
-            this.logger.debug(`Claim ${rule.claim} not found in token`);
+            this.logger.verbose(`Claim ${rule.claim} not found in token`);
             return false;
         }
 
         // Handle non-array, non-string objects
         if (typeof claimValue === 'object' && claimValue !== null && !Array.isArray(claimValue)) {
             this.logger.warn(
-                `unexpected JWT claim value encountered - claim ${rule.claim} is object type: ${JSON.stringify(claimValue)}`
+                `unexpected JWT claim value encountered - claim ${rule.claim} has unsupported object type (keys: [${Object.keys(claimValue as Record<string, unknown>).join(', ')}])`
             );
             return false;
         }
 
         // Handle array claims - evaluate rule against each array element
         if (Array.isArray(claimValue)) {
-            this.logger.debug(`Processing array claim ${rule.claim} with ${claimValue.length} elements`);
+            this.logger.verbose(
+                `Processing array claim ${rule.claim} with ${claimValue.length} elements`
+            );
 
             // For array claims, check if ANY element in the array matches the rule
             const arrayResult = claimValue.some((element) => {
@@ -591,7 +593,7 @@ export class OidcAuthService {
                     typeof element !== 'number' &&
                     typeof element !== 'boolean'
                 ) {
-                    this.logger.debug(`Skipping non-primitive element in array: ${typeof element}`);
+                    this.logger.verbose(`Skipping non-primitive element in array: ${typeof element}`);
                     return false;
                 }
 
@@ -599,13 +601,13 @@ export class OidcAuthService {
                 return this.evaluateSingleValue(elementValue, rule);
             });
 
-            this.logger.debug(`Array evaluation result for claim ${rule.claim}: ${arrayResult}`);
+            this.logger.verbose(`Array evaluation result for claim ${rule.claim}: ${arrayResult}`);
             return arrayResult;
         }
 
         // Handle single value claims (string, number, boolean)
         const value = String(claimValue);
-        this.logger.debug(`Processing single value claim ${rule.claim} with value: "${value}"`);
+        this.logger.verbose(`Processing single value claim ${rule.claim} with value: "${value}"`);
 
         return this.evaluateSingleValue(value, rule);
     }
@@ -615,28 +617,28 @@ export class OidcAuthService {
         switch (rule.operator) {
             case AuthorizationOperator.EQUALS:
                 result = rule.value.some((v) => value === v);
-                this.logger.debug(
+                this.logger.verbose(
                     `EQUALS check: "${value}" matches any of [${rule.value.join(', ')}]: ${result}`
                 );
                 return result;
 
             case AuthorizationOperator.CONTAINS:
                 result = rule.value.some((v) => value.includes(v));
-                this.logger.debug(
+                this.logger.verbose(
                     `CONTAINS check: "${value}" contains any of [${rule.value.join(', ')}]: ${result}`
                 );
                 return result;
 
             case AuthorizationOperator.STARTS_WITH:
                 result = rule.value.some((v) => value.startsWith(v));
-                this.logger.debug(
+                this.logger.verbose(
                     `STARTS_WITH check: "${value}" starts with any of [${rule.value.join(', ')}]: ${result}`
                 );
                 return result;
 
             case AuthorizationOperator.ENDS_WITH:
                 result = rule.value.some((v) => value.endsWith(v));
-                this.logger.debug(
+                this.logger.verbose(
                     `ENDS_WITH check: "${value}" ends with any of [${rule.value.join(', ')}]: ${result}`
                 );
                 return result;
