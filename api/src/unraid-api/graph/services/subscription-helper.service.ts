@@ -16,8 +16,7 @@ export class SubscriptionHelperService {
      * @returns A proxy async iterator with automatic cleanup
      */
     public createTrackedSubscription<T = any>(topic: PUBSUB_CHANNEL): AsyncIterableIterator<T> {
-        const iterator = createSubscription(topic) as AsyncIterable<T>;
-        const innerIterator = iterator[Symbol.asyncIterator]();
+        const innerIterator = createSubscription<T>(topic);
 
         // Subscribe when the subscription starts
         this.subscriptionTracker.subscribe(topic);
