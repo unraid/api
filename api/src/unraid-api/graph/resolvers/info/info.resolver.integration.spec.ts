@@ -68,7 +68,9 @@ describe('InfoResolver Integration Tests', () => {
     });
 
     afterEach(async () => {
-        await module.close();
+        if (module) {
+            await module.close();
+        }
     });
 
     describe('InfoResolver ResolveFields', () => {
