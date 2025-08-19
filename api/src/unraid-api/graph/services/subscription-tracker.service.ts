@@ -1,13 +1,44 @@
 import { Injectable, Logger } from '@nestjs/common';
 
+import { SubscriptionPollingService } from '@app/unraid-api/graph/services/subscription-polling.service.js';
+
 @Injectable()
 export class SubscriptionTrackerService {
     private readonly logger = new Logger(SubscriptionTrackerService.name);
     private subscriberCounts = new Map<string, number>();
     private topicHandlers = new Map<string, { onStart: () => void; onStop: () => void }>();
 
-    public registerTopic(topic: string, onStart: () => void, onStop: () => void): void {
-        this.topicHandlers.set(topic, { onStart, onStop });
+    constructor(private readonly pollingService: SubscriptionPollingService) {}
+
+    /**
+     * Register a topic with optional polling support
+     * @param topic The topic identifier
+     * @param callbackOrOnStart The callback function to execute (can be async) OR onStart handler for legacy support
+     * @param intervalMsOrOnStop Optional interval in ms for polling OR onStop handler for legacy support
+     */
+    public registerTopic(
+        topic: string,
+        callbackOrOnStart: () => void | Promise<void>,
+        intervalMsOrOnStop?: number | (() => void)
+    ): void {
+        if (typeof intervalMsOrOnStop === 'number') {
+            // New API: callback with polling interval
+            const pollingConfig = {
+                name: topic,
+                intervalMs: intervalMsOrOnStop,
+                callback: async () => callbackOrOnStart(),
+            };
+            this.topicHandlers.set(topic, {
+                onStart: () => this.pollingService.startPolling(pollingConfig),
+                onStop: () => this.pollingService.stopPolling(topic),
+            });
+        } else {
+            // Legacy API: onStart and onStop handlers
+            this.topicHandlers.set(topic, {
+                onStart: callbackOrOnStart,
+                onStop: intervalMsOrOnStop || (() => {}),
+            });
+        }
     }
 
     public subscribe(topic: string): void {

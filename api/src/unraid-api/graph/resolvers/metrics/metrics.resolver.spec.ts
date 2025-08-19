@@ -174,12 +174,12 @@ describe('MetricsResolver', () => {
             expect(subscriptionTracker.registerTopic).toHaveBeenCalledWith(
                 'CPU_UTILIZATION',
                 expect.any(Function),
-                expect.any(Function)
+                1000
             );
             expect(subscriptionTracker.registerTopic).toHaveBeenCalledWith(
                 'MEMORY_UTILIZATION',
                 expect.any(Function),
-                expect.any(Function)
+                2000
             );
         });
     });

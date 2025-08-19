@@ -19,11 +19,6 @@ import { SubscriptionTrackerService } from '@app/unraid-api/graph/services/subsc
 
 @Resolver(() => Metrics)
 export class MetricsResolver implements OnModuleInit {
-    private cpuPollingTimer: NodeJS.Timeout | undefined;
-    private memoryPollingTimer: NodeJS.Timeout | undefined;
-    private isCpuPollingInProgress = false;
-    private isMemoryPollingInProgress = false;
-
     constructor(
         private readonly cpuService: CpuService,
         private readonly memoryService: MemoryService,
@@ -32,57 +27,25 @@ export class MetricsResolver implements OnModuleInit {
     ) {}
 
     onModuleInit() {
+        // Register CPU polling with 1 second interval
         this.subscriptionTracker.registerTopic(
             PUBSUB_CHANNEL.CPU_UTILIZATION,
-            () => {
-                this.pollCpuUtilization();
-                this.cpuPollingTimer = setInterval(() => this.pollCpuUtilization(), 1000);
+            async () => {
+                const payload = await this.cpuService.generateCpuLoad();
+                pubsub.publish(PUBSUB_CHANNEL.CPU_UTILIZATION, { systemMetricsCpu: payload });
             },
-            () => {
-                clearInterval(this.cpuPollingTimer);
-                this.isCpuPollingInProgress = false;
-            }
+            1000
         );
 
+        // Register memory polling with 2 second interval
         this.subscriptionTracker.registerTopic(
             PUBSUB_CHANNEL.MEMORY_UTILIZATION,
-            () => {
-                this.pollMemoryUtilization();
-                this.memoryPollingTimer = setInterval(() => this.pollMemoryUtilization(), 2000);
+            async () => {
+                const payload = await this.memoryService.generateMemoryLoad();
+                pubsub.publish(PUBSUB_CHANNEL.MEMORY_UTILIZATION, { systemMetricsMemory: payload });
             },
-            () => {
-                clearInterval(this.memoryPollingTimer);
-                this.isMemoryPollingInProgress = false;
-            }
+            2000
         );
-    }
-
-    private async pollCpuUtilization(): Promise<void> {
-        if (this.isCpuPollingInProgress) return;
-
-        this.isCpuPollingInProgress = true;
-        try {
-            const payload = await this.cpuService.generateCpuLoad();
-            pubsub.publish(PUBSUB_CHANNEL.CPU_UTILIZATION, { systemMetricsCpu: payload });
-        } catch (error) {
-            console.error('Error polling CPU utilization:', error);
-        } finally {
-            this.isCpuPollingInProgress = false;
-        }
-    }
-
-    private async pollMemoryUtilization(): Promise<void> {
-        if (this.isMemoryPollingInProgress) return;
-
-        this.isMemoryPollingInProgress = true;
-        try {
-            const payload = await this.memoryService.generateMemoryLoad();
-            pubsub.publish(PUBSUB_CHANNEL.MEMORY_UTILIZATION, { systemMetricsMemory: payload });
-        } catch (error) {
-            console.error('Error polling memory utilization:', error);
-        } finally {
-            this.isMemoryPollingInProgress = false;
-        }
     }
 
     @Query(() => Metrics)

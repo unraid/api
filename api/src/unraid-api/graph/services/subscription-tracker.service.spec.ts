@@ -9,7 +9,11 @@ describe('SubscriptionTrackerService', () => {
     let loggerSpy: any;
 
     beforeEach(() => {
-        service = new SubscriptionTrackerService();
+        const mockPollingService = {
+            startPolling: vi.fn(),
+            stopPolling: vi.fn(),
+        };
+        service = new SubscriptionTrackerService(mockPollingService as any);
         // Spy on logger methods
         loggerSpy = vi.spyOn(Logger.prototype, 'debug').mockImplementation(() => {});
     });
