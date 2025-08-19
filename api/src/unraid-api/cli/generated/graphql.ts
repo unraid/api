@@ -1182,9 +1182,9 @@ export type MemoryUtilization = Node & {
   free: Scalars['BigInt']['output'];
   id: Scalars['PrefixedID']['output'];
   /** Swap usage percentage */
-  percentSwapUsed: Scalars['Float']['output'];
+  percentSwapTotal: Scalars['Float']['output'];
   /** Memory usage percentage */
-  percentUsed: Scalars['Float']['output'];
+  percentTotal: Scalars['Float']['output'];
   /** Free swap memory in bytes */
   swapFree: Scalars['BigInt']['output'];
   /** Total swap memory in bytes */
