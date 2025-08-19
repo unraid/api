@@ -7,7 +7,6 @@ import { type ApiConfig } from '@unraid/shared/services/api-config.js';
 import { UserSettingsService } from '@unraid/shared/services/user-settings.js';
 import { execa } from 'execa';
 
-import { SsoUserService } from '@app/unraid-api/auth/sso-user.service.js';
 import { OidcConfigPersistence } from '@app/unraid-api/graph/resolvers/sso/oidc-config.service.js';
 import { createLabeledControl } from '@app/unraid-api/graph/utils/form-utils.js';
 import { SettingSlice } from '@app/unraid-api/types/json-forms.js';
@@ -18,7 +17,6 @@ export class ApiSettings {
     constructor(
         private readonly userSettings: UserSettingsService,
         private readonly configService: ConfigService<{ api: ApiConfig }, true>,
-        private readonly ssoUserService: SsoUserService,
         private readonly oidcConfig: OidcConfigPersistence
     ) {
         this.userSettings.register('api', {
@@ -29,16 +27,9 @@ export class ApiSettings {
     }
 
     private async shouldShowSsoUsersSettings(): Promise<boolean> {
-        // Check if OIDC config exists, which means migration has happened
-        try {
-            const { access } = await import('fs/promises');
-            await access(this.oidcConfig.configPath());
-            // File exists, migration has happened
-            return false;
-        } catch {
-            // File doesn't exist, show the setting
-            return true;
-        }
+        // SSO users are now managed through OIDC provider configuration
+        // This legacy setting is no longer shown
+        return false;
     }
 
     getSettings(): ApiConfig {
@@ -57,9 +48,8 @@ export class ApiSettings {
             // @ts-expect-error - depend on the configService.get calls above for type safety
             this.configService.set('api.sandbox', settings.sandbox);
         }
-        if (settings.ssoSubIds) {
-            await this.ssoUserService.setSsoUsers(settings.ssoSubIds);
-        }
+        // SSO user IDs are now managed through OIDC provider configuration
+        // Migration happens automatically when OIDC config is created
         if (settings.extraOrigins) {
             // @ts-expect-error - this is correct, but the configService typescript implementation is too narrow
             this.configService.set('api.extraOrigins', settings.extraOrigins);

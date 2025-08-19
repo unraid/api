@@ -94,18 +94,12 @@ function verifyUsernamePasswordAndSSO(string $username, string $password): bool 
             return superShouldApply;
         }
 
-        if (!this.configService) {
-            return {
-                shouldApply: false,
-                reason: 'ConfigService not available - cannot check SSO configuration',
-            };
-        }
-
-        const ssoSubIds = this.configService.get<string[]>('api.ssoSubIds', []);
-        const hasConfiguredSso = Array.isArray(ssoSubIds) && ssoSubIds.length > 0;
-
-        return hasConfiguredSso
-            ? { shouldApply: true, reason: 'SSO is configured - enabling support in .login.php' }
-            : { shouldApply: false, reason: 'SSO is not configured' };
+        // Always apply SSO modification to support OIDC authentication
+        // OIDC providers are now configured through the web interface
+        // and the modification is needed for the authentication flow to work
+        return {
+            shouldApply: true,
+            reason: 'SSO/OIDC support is always enabled for authentication',
+        };
     }
 }

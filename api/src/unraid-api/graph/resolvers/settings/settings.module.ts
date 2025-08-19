@@ -2,7 +2,6 @@ import { Module } from '@nestjs/common';
 
 import { UserSettingsModule } from '@unraid/shared/services/user-settings.js';
 
-import { SsoUserService } from '@app/unraid-api/auth/sso-user.service.js';
 import {
     SettingsResolver,
     SsoSettingsResolver,
@@ -14,13 +13,7 @@ import { UnraidFileModifierModule } from '@app/unraid-api/unraid-file-modifier/u
 
 @Module({
     imports: [UserSettingsModule, UnraidFileModifierModule, SsoModule],
-    providers: [
-        SettingsResolver,
-        UnifiedSettingsResolver,
-        SsoSettingsResolver,
-        SsoUserService,
-        ApiSettings,
-    ],
+    providers: [SettingsResolver, UnifiedSettingsResolver, SsoSettingsResolver, ApiSettings],
     exports: [
         SettingsResolver,
         UnifiedSettingsResolver,
