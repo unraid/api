@@ -6,19 +6,22 @@ import { type DynamixConfig } from '@app/core/types/ini.js';
 import { toBoolean } from '@app/core/utils/casting.js';
 import { fileExists } from '@app/core/utils/files/file-exists.js';
 import { loadState } from '@app/core/utils/misc/load-state.js';
+import { validateEnumValue } from '@app/core/utils/validation/enum-validator.js';
 import { getters } from '@app/store/index.js';
 import { ThemeName } from '@app/unraid-api/graph/resolvers/customization/theme.model.js';
-import { Display, Temperature } from '@app/unraid-api/graph/resolvers/info/info.model.js';
+import { Display, Temperature } from '@app/unraid-api/graph/resolvers/info/display/display.model.js';
 
 const states = {
     // Success
     custom: {
+        id: 'display/case',
         url: '',
         icon: 'custom',
         error: '',
         base64: '',
     },
     default: {
+        id: 'display/case',
         url: '',
         icon: 'default',
         error: '',
@@ -27,30 +30,35 @@ const states = {
 
     // Errors
     couldNotReadConfigFile: {
+        id: 'display/case',
         url: '',
         icon: 'custom',
         error: 'could-not-read-config-file',
         base64: '',
     },
     couldNotReadImage: {
+        id: 'display/case',
         url: '',
         icon: 'custom',
         error: 'could-not-read-image',
         base64: '',
     },
     imageMissing: {
+        id: 'display/case',
         url: '',
         icon: 'custom',
         error: 'image-missing',
         base64: '',
     },
     imageTooBig: {
+        id: 'display/case',
         url: '',
         icon: 'custom',
         error: 'image-too-big',
         base64: '',
     },
     imageCorrupt: {
+        id: 'display/case',
         url: '',
         icon: 'custom',
         error: 'image-corrupt',
@@ -67,11 +75,26 @@ export class DisplayService {
         // Get display configuration
         const config = await this.getDisplayConfig();
 
-        return {
-            id: 'display',
+        const display: Display = {
+            id: 'info/display',
             case: caseInfo,
-            ...config,
+            theme: config.theme ?? ThemeName.white,
+            unit: config.unit ?? Temperature.CELSIUS,
+            scale: config.scale ?? false,
+            tabs: config.tabs ?? true,
+            resize: config.resize ?? true,
+            wwn: config.wwn ?? false,
+            total: config.total ?? true,
+            usage: config.usage ?? true,
+            text: config.text ?? true,
+            warning: config.warning ?? 60,
+            critical: config.critical ?? 80,
+            hot: config.hot ?? 90,
+            max: config.max,
+            locale: config.locale,
         };
+
+        return display;
     }
 
     private async getCaseInfo() {
@@ -102,11 +125,12 @@ export class DisplayService {
         // Non-custom icon
         return {
             ...states.default,
+            id: 'display/case',
             icon: serverCase,
         };
     }
 
-    private async getDisplayConfig() {
+    private async getDisplayConfig(): Promise<Partial<Omit<Display, 'id' | 'case'>>> {
         const filePaths = getters.paths()['dynamix-config'];
 
         const state = filePaths.reduce<Partial<DynamixConfig>>((acc, filePath) => {
@@ -122,10 +146,11 @@ export class DisplayService {
         }
 
         const { theme, unit, ...display } = state.display;
+
         return {
             ...display,
-            theme: theme as ThemeName,
-            unit: unit as Temperature,
+            theme: validateEnumValue(theme, ThemeName),
+            unit: validateEnumValue(unit, Temperature),
             scale: toBoolean(display.scale),
             tabs: toBoolean(display.tabs),
             resize: toBoolean(display.resize),

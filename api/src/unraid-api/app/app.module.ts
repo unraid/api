@@ -1,6 +1,7 @@
 import { CacheModule } from '@nestjs/cache-manager';
 import { Module } from '@nestjs/common';
 import { APP_GUARD } from '@nestjs/core';
+import { ScheduleModule } from '@nestjs/schedule';
 import { ThrottlerModule } from '@nestjs/throttler';
 
 import { AuthZGuard } from 'nest-authz';
@@ -23,6 +24,7 @@ import { UnraidFileModifierModule } from '@app/unraid-api/unraid-file-modifier/u
         GlobalDepsModule,
         LegacyConfigModule,
         PubSubModule,
+        ScheduleModule.forRoot(),
         LoggerModule.forRoot({
             pinoHttp: {
                 logger: apiLogger,

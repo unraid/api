@@ -3,7 +3,7 @@ import { Test } from '@nestjs/testing';
 
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { DevicesService } from '@app/unraid-api/graph/resolvers/info/devices.service.js';
+import { DevicesService } from '@app/unraid-api/graph/resolvers/info/devices/devices.service.js';
 
 // Mock external dependencies
 vi.mock('fs/promises', () => ({

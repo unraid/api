@@ -3,8 +3,8 @@ import { Test } from '@nestjs/testing';
 
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { DevicesResolver } from '@app/unraid-api/graph/resolvers/info/devices.resolver.js';
-import { DevicesService } from '@app/unraid-api/graph/resolvers/info/devices.service.js';
+import { DevicesResolver } from '@app/unraid-api/graph/resolvers/info/devices/devices.resolver.js';
+import { DevicesService } from '@app/unraid-api/graph/resolvers/info/devices/devices.service.js';
 
 describe('DevicesResolver', () => {
     let resolver: DevicesResolver;

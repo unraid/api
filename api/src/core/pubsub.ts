@@ -15,6 +15,8 @@ export const pubsub = new PubSub({ eventEmitter });
  * Create a pubsub subscription.
  * @param channel The pubsub channel to subscribe to.
  */
-export const createSubscription = (channel: GRAPHQL_PUBSUB_CHANNEL) => {
-    return pubsub.asyncIterableIterator(channel);
+export const createSubscription = <T = any>(
+    channel: GRAPHQL_PUBSUB_CHANNEL
+): AsyncIterableIterator<T> => {
+    return pubsub.asyncIterableIterator<T>(channel);
 };

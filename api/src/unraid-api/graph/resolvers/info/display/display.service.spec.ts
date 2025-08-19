@@ -3,7 +3,7 @@ import { Test } from '@nestjs/testing';
 
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { DisplayService } from '@app/unraid-api/graph/resolvers/display/display.service.js';
+import { DisplayService } from '@app/unraid-api/graph/resolvers/info/display/display.service.js';
 
 // Mock fs/promises at the module level only for specific test cases
 vi.mock('node:fs/promises', async () => {
@@ -37,7 +37,7 @@ describe('DisplayService', () => {
             const result = await service.generateDisplay();
 
             // Verify basic structure
-            expect(result).toHaveProperty('id', 'display');
+            expect(result).toHaveProperty('id', 'info/display');
             expect(result).toHaveProperty('case');
             expect(result.case).toHaveProperty('url');
             expect(result.case).toHaveProperty('icon');
@@ -69,6 +69,7 @@ describe('DisplayService', () => {
             const result = await service.generateDisplay();
 
             expect(result.case).toEqual({
+                id: 'display/case',
                 url: '',
                 icon: 'custom',
                 error: 'could-not-read-config-file',
@@ -90,7 +91,7 @@ describe('DisplayService', () => {
             const result = await service.generateDisplay();
 
             // Should still return basic structure even if some config is missing
-            expect(result).toHaveProperty('id', 'display');
+            expect(result).toHaveProperty('id', 'info/display');
             expect(result).toHaveProperty('case');
             // The actual config depends on what's in the dev files
         });
@@ -114,11 +115,6 @@ describe('DisplayService', () => {
             expect(result.critical).toBe(90);
             expect(result.hot).toBe(45);
             expect(result.max).toBe(55);
-            expect(result.date).toBe('%c');
-            expect(result.number).toBe('.,');
-            expect(result.users).toBe('Tasks:3');
-            expect(result.banner).toBe('image');
-            expect(result.dashapps).toBe('icons');
             expect(result.locale).toBe('en_US'); // default fallback when not specified
         });
 
@@ -140,6 +136,7 @@ describe('DisplayService', () => {
             const result = await service.generateDisplay();
 
             expect(result.case).toEqual({
+                id: 'display/case',
                 url: '',
                 icon: 'default',
                 error: '',
