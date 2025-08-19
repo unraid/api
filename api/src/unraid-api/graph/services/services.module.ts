@@ -6,7 +6,7 @@ import { SubscriptionPollingService } from '@app/unraid-api/graph/services/subsc
 import { SubscriptionTrackerService } from '@app/unraid-api/graph/services/subscription-tracker.service.js';
 
 @Module({
-    imports: [ScheduleModule.forRoot()],
+    imports: [],
     providers: [SubscriptionTrackerService, SubscriptionHelperService, SubscriptionPollingService],
     exports: [SubscriptionTrackerService, SubscriptionHelperService, SubscriptionPollingService],
 })
