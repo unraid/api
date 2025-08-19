@@ -27,6 +27,7 @@ import {
     Versions,
 } from '@app/unraid-api/graph/resolvers/info/info.model.js';
 import { InfoService } from '@app/unraid-api/graph/resolvers/info/info.service.js';
+import { SubscriptionHelperService } from '@app/unraid-api/graph/services/subscription-helper.service.js';
 import { SubscriptionTrackerService } from '@app/unraid-api/graph/services/subscription-tracker.service.js';
 
 @Resolver(() => Info)
@@ -36,7 +37,8 @@ export class InfoResolver implements OnModuleInit {
     constructor(
         private readonly infoService: InfoService,
         private readonly displayService: DisplayService,
-        private readonly subscriptionTracker: SubscriptionTrackerService
+        private readonly subscriptionTracker: SubscriptionTrackerService,
+        private readonly subscriptionHelper: SubscriptionHelperService
     ) {}
 
     onModuleInit() {
@@ -159,18 +161,7 @@ export class InfoResolver implements OnModuleInit {
         possession: AuthPossession.ANY,
     })
     public async cpuUtilizationSubscription() {
-        const iterator = createSubscription(PUBSUB_CHANNEL.CPU_UTILIZATION);
-
-        return {
-            [Symbol.asyncIterator]: () => {
-                this.subscriptionTracker.subscribe(PUBSUB_CHANNEL.CPU_UTILIZATION);
-                return iterator[Symbol.asyncIterator]();
-            },
-            return: () => {
-                this.subscriptionTracker.unsubscribe(PUBSUB_CHANNEL.CPU_UTILIZATION);
-                return iterator.return();
-            },
-        };
+        return this.subscriptionHelper.createTrackedSubscription(PUBSUB_CHANNEL.CPU_UTILIZATION);
     }
 }
 

@@ -978,6 +978,38 @@ type InfoCpu implements Node {
   socket: String!
   cache: JSON!
   flags: [String!]!
+
+  """CPU utilization in percent"""
+  utilization: Float
+}
+
+"""CPU load for a single core"""
+type CpuLoad {
+  """The total CPU load on a single core, in percent."""
+  load: Float!
+
+  """The percentage of time the CPU spent in user space."""
+  loadUser: Float!
+
+  """The percentage of time the CPU spent in kernel space."""
+  loadSystem: Float!
+
+  """
+  The percentage of time the CPU spent on low-priority (niced) user space processes.
+  """
+  loadNice: Float!
+
+  """The percentage of time the CPU was idle."""
+  loadIdle: Float!
+
+  """The percentage of time the CPU spent servicing hardware interrupts."""
+  loadIrq: Float!
+}
+
+type CpuUtilization implements Node {
+  id: PrefixedID!
+  load: Float!
+  cpus: [CpuLoad!]!
 }
 
 type Gpu implements Node {
@@ -1750,160 +1782,6 @@ type Plugin {
   hasCliModule: Boolean
 }
 
-type AccessUrl {
-  type: URL_TYPE!
-  name: String
-  ipv4: URL
-  ipv6: URL
-}
-
-enum URL_TYPE {
-  LAN
-  WIREGUARD
-  WAN
-  MDNS
-  OTHER
-  DEFAULT
-}
-
-"""
-A field whose value conforms to the standard URL format as specified in RFC3986: https://www.ietf.org/rfc/rfc3986.txt.
-"""
-scalar URL
-
-type AccessUrlObject {
-  ipv4: String
-  ipv6: String
-  type: URL_TYPE!
-  name: String
-}
-
-type ApiKeyResponse {
-  valid: Boolean!
-  error: String
-}
-
-type MinigraphqlResponse {
-  status: MinigraphStatus!
-  timeout: Int
-  error: String
-}
-
-"""The status of the minigraph"""
-enum MinigraphStatus {
-  PRE_INIT
-  CONNECTING
-  CONNECTED
-  PING_FAILURE
-  ERROR_RETRYING
-}
-
-type CloudResponse {
-  status: String!
-  ip: String
-  error: String
-}
-
-type RelayResponse {
-  status: String!
-  timeout: String
-  error: String
-}
-
-type Cloud {
-  error: String
-  apiKey: ApiKeyResponse!
-  relay: RelayResponse
-  minigraphql: MinigraphqlResponse!
-  cloud: CloudResponse!
-  allowedOrigins: [String!]!
-}
-
-type RemoteAccess {
-  """The type of WAN access used for Remote Access"""
-  accessType: WAN_ACCESS_TYPE!
-
-  """The type of port forwarding used for Remote Access"""
-  forwardType: WAN_FORWARD_TYPE
-
-  """The port used for Remote Access"""
-  port: Int
-}
-
-enum WAN_ACCESS_TYPE {
-  DYNAMIC
-  ALWAYS
-  DISABLED
-}
-
-enum WAN_FORWARD_TYPE {
-  UPNP
-  STATIC
-}
-
-type DynamicRemoteAccessStatus {
-  """The type of dynamic remote access that is enabled"""
-  enabledType: DynamicRemoteAccessType!
-
-  """The type of dynamic remote access that is currently running"""
-  runningType: DynamicRemoteAccessType!
-
-  """Any error message associated with the dynamic remote access"""
-  error: String
-}
-
-enum DynamicRemoteAccessType {
-  STATIC
-  UPNP
-  DISABLED
-}
-
-type ConnectSettingsValues {
-  """The type of WAN access used for Remote Access"""
-  accessType: WAN_ACCESS_TYPE!
-
-  """The type of port forwarding used for Remote Access"""
-  forwardType: WAN_FORWARD_TYPE
-
-  """The port used for Remote Access"""
-  port: Int
-}
-
-type ConnectSettings implements Node {
-  id: PrefixedID!
-
-  """The data schema for the Connect settings"""
-  dataSchema: JSON!
-
-  """The UI schema for the Connect settings"""
-  uiSchema: JSON!
-
-  """The values for the Connect settings"""
-  values: ConnectSettingsValues!
-}
-
-type Connect implements Node {
-  id: PrefixedID!
-
-  """The status of dynamic remote access"""
-  dynamicRemoteAccess: DynamicRemoteAccessStatus!
-
-  """The settings for the Connect instance"""
-  settings: ConnectSettings!
-}
-
-type Network implements Node {
-  id: PrefixedID!
-  accessUrls: [AccessUrl!]
-}
-
-input AccessUrlObjectInput {
-  ipv4: String
-  ipv6: String
-  type: URL_TYPE!
-  name: String
-}
-
 "\n### Description:\n\nID scalar type that prefixes the underlying ID with the server identifier on output and strips it on input.\n\nWe use this scalar type to ensure that the ID is unique across all servers, allowing the same underlying resource ID to be used across different server instances.\n\n#### Input Behavior:\n\nWhen providing an ID as input (e.g., in arguments or input objects), the server identifier prefix ('<serverId>:') is optional.\n\n- If the prefix is present (e.g., '123:456'), it will be automatically stripped, and only the underlying ID ('456') will be used internally.\n- If the prefix is absent (e.g., '456'), the ID will be used as-is.\n\nThis makes it flexible for clients, as they don't strictly need to know or provide the server ID.\n\n#### Output Behavior:\n\nWhen an ID is returned in the response (output), it will *always* be prefixed with the current server's unique identifier (e.g., '123:456').\n\n#### Example:\n\nNote: The server identifier is '123' in this example.\n\n##### Input (Prefix Optional):\n```graphql\n# Both of these are valid inputs resolving to internal ID '456'\n{\n  someQuery(id: \"123:456\") { ... }\n  anotherQuery(id: \"456\") { ... }\n}\n```\n\n##### Output (Prefix Always Added):\n```graphql\n# Assuming internal ID is '456'\n{\n  \"data\": {\n    \"someResource\": {\n      \"id\": \"123:456\" \n    }\n  }\n}\n```\n        "
 scalar PrefixedID
 
@@ -1920,6 +1798,7 @@ type Query {
   display: Display!
   flash: Flash!
   info: Info!
+  cpuUtilization: CpuUtilization!
   logFiles: [LogFile!]!
   logFile(path: String!, lines: Int, startLine: Int): LogFileContent!
   me: UserAccount!
@@ -1967,10 +1846,6 @@ type Query {
 
   """List all installed plugins with their metadata"""
   plugins: [Plugin!]!
-  remoteAccess: RemoteAccess!
-  connect: Connect!
-  network: Network!
-  cloud: Cloud!
 }
 
 type Mutation {
@@ -2018,11 +1893,6 @@ type Mutation {
   Remove one or more plugins from the API. Returns false if restart was triggered automatically, true if manual restart is required.
   """
   removePlugin(input: PluginManagementInput!): Boolean!
-  updateApiSettings(input: ConnectSettingsInput!): ConnectSettingsValues!
-  connectSignIn(input: ConnectSignInInput!): Boolean!
-  connectSignOut: Boolean!
-  setupRemoteAccess(input: SetupRemoteAccessInput!): Boolean!
-  enableDynamicRemoteAccess(input: EnableDynamicRemoteAccessInput!): Boolean!
 }
 
 input NotificationData {
@@ -2140,69 +2010,10 @@ input PluginManagementInput {
   restart: Boolean! = true
 }
 
-input ConnectSettingsInput {
-  """The type of WAN access to use for Remote Access"""
-  accessType: WAN_ACCESS_TYPE
-
-  """The type of port forwarding to use for Remote Access"""
-  forwardType: WAN_FORWARD_TYPE
-
-  """
-  The port to use for Remote Access. Not required for UPNP forwardType. Required for STATIC forwardType. Ignored if accessType is DISABLED or forwardType is UPNP.
-  """
-  port: Int
-}
-
-input ConnectSignInInput {
-  """The API key for authentication"""
-  apiKey: String!
-
-  """User information for the sign-in"""
-  userInfo: ConnectUserInfoInput
-}
-
-input ConnectUserInfoInput {
-  """The preferred username of the user"""
-  preferred_username: String!
-
-  """The email address of the user"""
-  email: String!
-
-  """The avatar URL of the user"""
-  avatar: String
-}
-
-input SetupRemoteAccessInput {
-  """The type of WAN access to use for Remote Access"""
-  accessType: WAN_ACCESS_TYPE!
-
-  """The type of port forwarding to use for Remote Access"""
-  forwardType: WAN_FORWARD_TYPE
-
-  """
-  The port to use for Remote Access. Not required for UPNP forwardType. Required for STATIC forwardType. Ignored if accessType is DISABLED or forwardType is UPNP.
-  """
-  port: Int
-}
-
-input EnableDynamicRemoteAccessInput {
-  """The AccessURL Input for dynamic remote access"""
-  url: AccessUrlInput!
-
-  """Whether to enable or disable dynamic remote access"""
-  enabled: Boolean!
-}
-
-input AccessUrlInput {
-  type: URL_TYPE!
-  name: String
-  ipv4: URL
-  ipv6: URL
-}
-
 type Subscription {
   displaySubscription: Display!
   infoSubscription: Info!
+  cpuUtilization: CpuUtilization!
   logFile(path: String!): LogFileContent!
   notificationAdded: Notification!
   notificationsOverview: NotificationOverview!
