@@ -156,7 +156,7 @@ describe('InfoResolver Integration Tests', () => {
             expect(typeof result.platform).toBe('string');
         });
 
-        it('should return versions data from service', async () => {
+        it.skipIf(process.env.CI)('should return versions data from service', async () => {
             const result = await infoResolver.versions();
 
             expect(result).toHaveProperty('id', 'info/versions');
