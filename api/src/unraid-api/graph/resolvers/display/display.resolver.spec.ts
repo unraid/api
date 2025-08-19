@@ -4,7 +4,7 @@ import { Test } from '@nestjs/testing';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { DisplayResolver } from '@app/unraid-api/graph/resolvers/display/display.resolver.js';
-import { DisplayService } from '@app/unraid-api/graph/resolvers/display/display.service.js';
+import { DisplayService } from '@app/unraid-api/graph/resolvers/info/display/display.service.js';
 
 // Mock the pubsub module
 vi.mock('@app/core/pubsub.js', () => ({

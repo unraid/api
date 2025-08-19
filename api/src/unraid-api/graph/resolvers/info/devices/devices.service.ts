@@ -13,24 +13,35 @@ import { filterDevices } from '@app/core/utils/vms/filter-devices.js';
 import { getPciDevices } from '@app/core/utils/vms/get-pci-devices.js';
 import { getters } from '@app/store/index.js';
 import {
-    Gpu,
-    Pci,
-    RawUsbDeviceData,
-    Usb,
-    UsbDevice,
-} from '@app/unraid-api/graph/resolvers/info/info.model.js';
+    InfoGpu,
+    InfoNetwork,
+    InfoPci,
+    InfoUsb,
+} from '@app/unraid-api/graph/resolvers/info/devices/devices.model.js';
+
+interface RawUsbDeviceData {
+    id: string;
+    n?: string;
+}
+
+interface UsbDevice {
+    id: string;
+    name: string;
+    guid: string;
+    vendorname?: string;
+}
 
 @Injectable()
 export class DevicesService {
     private readonly logger = new Logger(DevicesService.name);
 
-    async generateGpu(): Promise<Gpu[]> {
+    async generateGpu(): Promise<InfoGpu[]> {
         try {
             const systemPciDevices = await this.getSystemPciDevices();
             return systemPciDevices
                 .filter((device) => device.class === 'vga' && !device.allowed)
                 .map((entry) => {
-                    const gpu: Gpu = {
+                    const gpu: InfoGpu = {
                         id: `gpu/${entry.id}`,
                         blacklisted: entry.allowed,
                         class: entry.class,
@@ -50,7 +61,7 @@ export class DevicesService {
         }
     }
 
-    async generatePci(): Promise<Pci[]> {
+    async generatePci(): Promise<InfoPci[]> {
         try {
             const devices = await this.getSystemPciDevices();
             return devices.map((device) => ({
@@ -73,7 +84,21 @@ export class DevicesService {
         }
     }
 
-    async generateUsb(): Promise<Usb[]> {
+    async generateNetwork(): Promise<InfoNetwork[]> {
+        try {
+            // For now, return empty array. This can be implemented later to fetch actual network interfaces
+            // using systeminformation or similar libraries
+            return [];
+        } catch (error: unknown) {
+            this.logger.error(
+                `Failed to generate network devices: ${error instanceof Error ? error.message : String(error)}`,
+                error instanceof Error ? error.stack : undefined
+            );
+            return [];
+        }
+    }
+
+    async generateUsb(): Promise<InfoUsb[]> {
         try {
             const usbDevices = await this.getSystemUSBDevices();
             return usbDevices.map((device) => ({

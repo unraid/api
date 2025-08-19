@@ -7,17 +7,13 @@ import { ArrayModule } from '@app/unraid-api/graph/resolvers/array/array.module.
 import { ConfigResolver } from '@app/unraid-api/graph/resolvers/config/config.resolver.js';
 import { CustomizationModule } from '@app/unraid-api/graph/resolvers/customization/customization.module.js';
 import { DisksModule } from '@app/unraid-api/graph/resolvers/disks/disks.module.js';
-import { DisplayResolver } from '@app/unraid-api/graph/resolvers/display/display.resolver.js';
-import { DisplayService } from '@app/unraid-api/graph/resolvers/display/display.service.js';
 import { DockerModule } from '@app/unraid-api/graph/resolvers/docker/docker.module.js';
 import { FlashBackupModule } from '@app/unraid-api/graph/resolvers/flash-backup/flash-backup.module.js';
 import { FlashResolver } from '@app/unraid-api/graph/resolvers/flash/flash.resolver.js';
-import { DevicesResolver } from '@app/unraid-api/graph/resolvers/info/devices.resolver.js';
-import { DevicesService } from '@app/unraid-api/graph/resolvers/info/devices.service.js';
-import { InfoResolver } from '@app/unraid-api/graph/resolvers/info/info.resolver.js';
-import { InfoService } from '@app/unraid-api/graph/resolvers/info/info.service.js';
+import { InfoModule } from '@app/unraid-api/graph/resolvers/info/info.module.js';
 import { LogsResolver } from '@app/unraid-api/graph/resolvers/logs/logs.resolver.js';
 import { LogsService } from '@app/unraid-api/graph/resolvers/logs/logs.service.js';
+import { MetricsModule } from '@app/unraid-api/graph/resolvers/metrics/metrics.module.js';
 import { RootMutationsResolver } from '@app/unraid-api/graph/resolvers/mutation/mutation.resolver.js';
 import { NotificationsResolver } from '@app/unraid-api/graph/resolvers/notifications/notifications.resolver.js';
 import { NotificationsService } from '@app/unraid-api/graph/resolvers/notifications/notifications.service.js';
@@ -33,12 +29,14 @@ import { VarsResolver } from '@app/unraid-api/graph/resolvers/vars/vars.resolver
 import { VmMutationsResolver } from '@app/unraid-api/graph/resolvers/vms/vms.mutations.resolver.js';
 import { VmsResolver } from '@app/unraid-api/graph/resolvers/vms/vms.resolver.js';
 import { VmsService } from '@app/unraid-api/graph/resolvers/vms/vms.service.js';
+import { ServicesModule } from '@app/unraid-api/graph/services/services.module.js';
 import { ServicesResolver } from '@app/unraid-api/graph/services/services.resolver.js';
 import { SharesResolver } from '@app/unraid-api/graph/shares/shares.resolver.js';
 import { MeResolver } from '@app/unraid-api/graph/user/user.resolver.js';
 
 @Module({
     imports: [
+        ServicesModule,
         ArrayModule,
         ApiKeyModule,
         AuthModule,
@@ -46,20 +44,16 @@ import { MeResolver } from '@app/unraid-api/graph/user/user.resolver.js';
         DockerModule,
         DisksModule,
         FlashBackupModule,
+        InfoModule,
         RCloneModule,
         SettingsModule,
         SsoModule,
+        MetricsModule,
         UPSModule,
     ],
     providers: [
         ConfigResolver,
-        DevicesResolver,
-        DevicesService,
-        DisplayResolver,
-        DisplayService,
         FlashResolver,
-        InfoResolver,
-        InfoService,
         LogsResolver,
         LogsService,
         MeResolver,
