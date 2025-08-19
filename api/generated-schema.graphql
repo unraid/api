@@ -1239,31 +1239,31 @@ enum Temperature {
 """CPU load for a single core"""
 type CpuLoad {
   """The total CPU load on a single core, in percent."""
-  load: Float!
+  percentTotal: Float!
 
   """The percentage of time the CPU spent in user space."""
-  loadUser: Float!
+  percentUser: Float!
 
   """The percentage of time the CPU spent in kernel space."""
-  loadSystem: Float!
+  percentSystem: Float!
 
   """
   The percentage of time the CPU spent on low-priority (niced) user space processes.
   """
-  loadNice: Float!
+  percentNice: Float!
 
   """The percentage of time the CPU was idle."""
-  loadIdle: Float!
+  percentIdle: Float!
 
   """The percentage of time the CPU spent servicing hardware interrupts."""
-  loadIrq: Float!
+  percentIrq: Float!
 }
 
 type CpuUtilization implements Node {
   id: PrefixedID!
 
   """Total CPU load in percent"""
-  load: Float!
+  percentTotal: Float!
 
   """CPU load for each core"""
   cpus: [CpuLoad!]!
@@ -1383,7 +1383,7 @@ type MemoryUtilization implements Node {
   buffcache: BigInt!
 
   """Memory usage percentage"""
-  usedPercent: Float!
+  percentTotal: Float!
 
   """Total swap memory in bytes"""
   swapTotal: BigInt!
@@ -1395,7 +1395,7 @@ type MemoryUtilization implements Node {
   swapFree: BigInt!
 
   """Swap usage percentage"""
-  swapUsedPercent: Float!
+  percentSwapTotal: Float!
 }
 
 type InfoMemory implements Node {

@@ -77,15 +77,15 @@ describe('MetricsResolver Integration Tests', () => {
             expect(result).toHaveProperty('used');
             expect(result).toHaveProperty('free');
             expect(result).toHaveProperty('available');
-            expect(result).toHaveProperty('percentUsed');
+            expect(result).toHaveProperty('percentTotal');
             expect(result).toHaveProperty('swapTotal');
             expect(result).toHaveProperty('swapUsed');
             expect(result).toHaveProperty('swapFree');
-            expect(result).toHaveProperty('percentSwapUsed');
+            expect(result).toHaveProperty('percentSwapTotal');
 
             expect(result.total).toBeGreaterThan(0);
-            expect(result.percentUsed).toBeGreaterThanOrEqual(0);
-            expect(result.percentUsed).toBeLessThanOrEqual(100);
+            expect(result.percentTotal).toBeGreaterThanOrEqual(0);
+            expect(result.percentTotal).toBeLessThanOrEqual(100);
         });
     });
 
@@ -131,11 +131,11 @@ describe('MetricsResolver Integration Tests', () => {
                     available: 8000000000,
                     active: 4000000000,
                     buffcache: 2000000000,
-                    percentUsed: 50,
+                    percentTotal: 50,
                     swapTotal: 0,
                     swapUsed: 0,
                     swapFree: 0,
-                    percentSwapUsed: 0,
+                    percentSwapTotal: 0,
                 } as any;
             });
 
@@ -191,7 +191,7 @@ describe('MetricsResolver Integration Tests', () => {
                         id: 'memory-utilization',
                         used: expect.any(Number),
                         free: expect.any(Number),
-                        percentUsed: expect.any(Number),
+                        percentTotal: expect.any(Number),
                     }),
                 })
             );

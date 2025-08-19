@@ -523,18 +523,18 @@ export enum ContainerState {
 /** CPU load for a single core */
 export type CpuLoad = {
   __typename?: 'CpuLoad';
-  /** The total CPU load on a single core, in percent. */
-  load: Scalars['Float']['output'];
   /** The percentage of time the CPU was idle. */
-  loadIdle: Scalars['Float']['output'];
+  percentIdle: Scalars['Float']['output'];
   /** The percentage of time the CPU spent servicing hardware interrupts. */
-  loadIrq: Scalars['Float']['output'];
+  percentIrq: Scalars['Float']['output'];
   /** The percentage of time the CPU spent on low-priority (niced) user space processes. */
-  loadNice: Scalars['Float']['output'];
+  percentNice: Scalars['Float']['output'];
   /** The percentage of time the CPU spent in kernel space. */
-  loadSystem: Scalars['Float']['output'];
+  percentSystem: Scalars['Float']['output'];
+  /** The total CPU load on a single core, in percent. */
+  percentTotal: Scalars['Float']['output'];
   /** The percentage of time the CPU spent in user space. */
-  loadUser: Scalars['Float']['output'];
+  percentUser: Scalars['Float']['output'];
 };
 
 export type CpuUtilization = Node & {
@@ -543,7 +543,7 @@ export type CpuUtilization = Node & {
   cpus: Array<CpuLoad>;
   id: Scalars['PrefixedID']['output'];
   /** Total CPU load in percent */
-  load: Scalars['Float']['output'];
+  percentTotal: Scalars['Float']['output'];
 };
 
 export type CreateApiKeyInput = {
@@ -1181,20 +1181,20 @@ export type MemoryUtilization = Node & {
   /** Free memory in bytes */
   free: Scalars['BigInt']['output'];
   id: Scalars['PrefixedID']['output'];
+  /** Swap usage percentage */
+  percentSwapTotal: Scalars['Float']['output'];
+  /** Memory usage percentage */
+  percentTotal: Scalars['Float']['output'];
   /** Free swap memory in bytes */
   swapFree: Scalars['BigInt']['output'];
   /** Total swap memory in bytes */
   swapTotal: Scalars['BigInt']['output'];
   /** Used swap memory in bytes */
   swapUsed: Scalars['BigInt']['output'];
-  /** Swap usage percentage */
-  swapUsedPercent: Scalars['Float']['output'];
   /** Total system memory in bytes */
   total: Scalars['BigInt']['output'];
   /** Used memory in bytes */
   used: Scalars['BigInt']['output'];
-  /** Memory usage percentage */
-  usedPercent: Scalars['Float']['output'];
 };
 
 /** System metrics including CPU and memory utilization */

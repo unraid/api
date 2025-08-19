@@ -60,7 +60,7 @@ export class MemoryUtilization extends Node {
     buffcache!: number;
 
     @Field(() => Float, { description: 'Memory usage percentage' })
-    percentUsed!: number;
+    percentTotal!: number;
 
     @Field(() => GraphQLBigInt, { description: 'Total swap memory in bytes' })
     swapTotal!: number;
@@ -72,7 +72,7 @@ export class MemoryUtilization extends Node {
     swapFree!: number;
 
     @Field(() => Float, { description: 'Swap usage percentage' })
-    percentSwapUsed!: number;
+    percentSwapTotal!: number;
 }
 
 @ObjectType({ implements: () => Node })
