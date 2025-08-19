@@ -7,7 +7,6 @@
  */
 export abstract class CachedResolverBase<TData> {
     private static readonly promiseCaches = new WeakMap<any, Map<string, Promise<any>>>();
-    private static readonly dataLocks = new WeakMap<any, Promise<void>>();
 
     /**
      * Get the promise cache key for storing the promise on the parent object
@@ -51,38 +50,15 @@ export abstract class CachedResolverBase<TData> {
         let dataPromise = parentCache.get(promiseKey);
 
         if (!dataPromise) {
-            // Create the data fetch promise with thread-safe parent mutation
-            dataPromise = this.fetchData().then(async (data) => {
-                // Wait for any existing lock on the parent object
-                const existingLock = CachedResolverBase.dataLocks.get(parent);
-                if (existingLock) {
-                    await existingLock;
-                }
-
-                // Create a new lock for this mutation
-                let releaseLock: () => void;
-                const lockPromise = new Promise<void>((resolve) => {
-                    releaseLock = resolve;
+            // Create the data fetch promise and cache it immediately
+            // The promise itself handles concurrency - multiple awaits on the same promise are safe
+            dataPromise = this.fetchData().then((data) => {
+                // Merge data into parent, excluding promise cache keys
+                Object.keys(data as any).forEach((key) => {
+                    if (!parentCache!.has(key)) {
+                        (parent as any)[key] = (data as any)[key];
+                    }
                 });
-                CachedResolverBase.dataLocks.set(parent, lockPromise);
-
-                try {
-                    // Safely merge the data into parent
-                    const dataCopy = { ...data } as any;
-                    // Remove any promise cache keys that might exist in the data
-                    for (const [key] of parentCache!.entries()) {
-                        delete dataCopy[key];
-                    }
-                    Object.assign(parent, dataCopy);
-                } finally {
-                    // Release the lock
-                    releaseLock!();
-                    // Clean up the lock if it's still the current one
-                    if (CachedResolverBase.dataLocks.get(parent) === lockPromise) {
-                        CachedResolverBase.dataLocks.delete(parent);
-                    }
-                }
-
                 return data;
             });
 
