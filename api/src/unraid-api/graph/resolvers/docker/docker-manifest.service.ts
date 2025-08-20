@@ -1,5 +1,7 @@
 import { Injectable } from '@nestjs/common';
 
+import { AsyncMutex } from '@unraid/shared/util/processing.js';
+
 import { docker } from '@app/core/utils/index.js';
 import {
     CachedStatusEntry,
