@@ -31,3 +31,41 @@ export function makeSafeRunner(onError: (error: unknown) => void) {
     }
   };
 }
+
+type AsyncOperation<T> = () => Promise<T>;
+
+export class AsyncMutex<T = unknown> {
+  private currentOperation: Promise<any> | null = null;
+  private defaultOperation?: AsyncOperation<T>;
+
+  constructor(operation?: AsyncOperation<T>) {
+    this.defaultOperation = operation;
+  }
+
+  do(): Promise<T>;
+  do<U>(operation: AsyncOperation<U>): Promise<U>;
+  do<U = T>(operation?: AsyncOperation<U>): Promise<U | T> {
+    if (!operation && !this.defaultOperation) {
+      return Promise.reject(new Error('No operation provided and no default operation set'));
+    }
+
+    if (this.currentOperation) {
+      return this.currentOperation;
+    }
+
+    const op = (operation || this.defaultOperation) as AsyncOperation<U | T>;
+    
+    const promise = this.executeOperation(op).finally(() => {
+      if (this.currentOperation === promise) {
+        this.currentOperation = null;
+      }
+    });
+    
+    this.currentOperation = promise;
+    return promise;
+  }
+
+  private async executeOperation<U>(operation: AsyncOperation<U>): Promise<U> {
+    return operation();
+  }
+}
