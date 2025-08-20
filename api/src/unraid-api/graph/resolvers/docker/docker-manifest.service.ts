@@ -4,7 +4,6 @@ import { readFile } from 'fs/promises';
 import { ExtendOptions, Got, got as gotClient, OptionsOfTextResponseBody } from 'got';
 
 import { docker } from '@app/core/utils/index.js';
-import { DockerAuthService } from '@app/unraid-api/graph/resolvers/docker/docker-auth.service.js';
 
 /** Accept header for Docker API manifest listing */
 const ACCEPT_MANIFEST =
@@ -21,8 +20,7 @@ export type CachedStatusEntry = {
 
 @Injectable()
 export class DockerManifestService {
-    private readonly logger = new Logger(DockerManifestService.name);
-    constructor(private readonly dockerAuthService: DockerAuthService) {}
+    constructor() {}
 
     async readCachedUpdateStatus(cacheFile = '/var/lib/docker/unraid-update-status.json') {
         const cache = await readFile(cacheFile, 'utf8');

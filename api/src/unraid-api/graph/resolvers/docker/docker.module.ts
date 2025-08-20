@@ -1,7 +1,6 @@
 import { Module } from '@nestjs/common';
 
 import { ContainerStatusJob } from '@app/unraid-api/graph/resolvers/docker/container-status.job.js';
-import { DockerAuthService } from '@app/unraid-api/graph/resolvers/docker/docker-auth.service.js';
 import { DockerConfigService } from '@app/unraid-api/graph/resolvers/docker/docker-config.service.js';
 import { DockerContainerResolver } from '@app/unraid-api/graph/resolvers/docker/docker-container.resolver.js';
 import { DockerManifestService } from '@app/unraid-api/graph/resolvers/docker/docker-manifest.service.js';
@@ -17,7 +16,6 @@ import { DockerService } from '@app/unraid-api/graph/resolvers/docker/docker.ser
         DockerService,
         DockerConfigService,
         DockerOrganizerService,
-        DockerAuthService,
         DockerManifestService,
         DockerPhpService,
         // DockerEventService,
