@@ -64,9 +64,13 @@ describe('ApiReportService', () => {
                     uuid: 'test-uuid',
                 },
                 versions: {
-                    unraid: '6.12.0',
-                    kernel: '5.19.17',
-                    openssl: '3.0.8',
+                    core: {
+                        unraid: '6.12.0',
+                        kernel: '5.19.17',
+                    },
+                    packages: {
+                        openssl: '3.0.8',
+                    },
                 },
             },
             config: {

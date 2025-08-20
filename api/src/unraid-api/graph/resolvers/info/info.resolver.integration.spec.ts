@@ -165,11 +165,12 @@ describe('InfoResolver Integration Tests', () => {
             expect(typeof result.platform).toBe('string');
         });
 
-        it.skipIf(process.env.CI)('should return versions data from service', async () => {
-            const result = await infoResolver.versions();
+        it('should return versions stub for field resolvers', () => {
+            const result = infoResolver.versions();
 
             expect(result).toHaveProperty('id', 'info/versions');
             // Versions now returns a stub object, with actual data resolved via field resolvers
+            expect(Object.keys(result)).toEqual(['id']);
         });
     });
 
