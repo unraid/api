@@ -7,32 +7,34 @@ sidebar_position: 1
 # Welcome to Unraid API
 
 :::tip[What's New]
-Native integration in Unraid v7.2+ brings the API directly into the OS - no plugin needed!
+Starting with Unraid OS v7.2, the API comes built into the operating system - no plugin installation required!
 :::
 
 The Unraid API provides a GraphQL interface for programmatic interaction with your Unraid server. It enables automation, monitoring, and integration capabilities.
 
 ## 📦 Availability
 
-### ✨ Native Integration (Unraid v7.2-beta.1+)
+### ✨ Native Integration (Unraid OS v7.2+)
 
-Starting with Unraid v7.2-beta.1, the API is integrated directly into the Unraid operating system:
+Starting with Unraid OS v7.2, the API is integrated directly into the operating system:
 
 - No plugin installation required
 - Automatically available on system startup
 - Deep system integration
 - Access through **Settings** → **Management Access** → **API**
 
-### 🔌 Plugin Installation (Earlier Versions)
+### 🔌 Plugin Installation (Pre-7.2 and Advanced Users)
 
-For Unraid versions prior to v7.2:
+For Unraid versions prior to v7.2 or to access newer API features:
 
-1. Install Unraid Connect Plugin from Apps
+1. Install the Unraid Connect Plugin from Community Apps
 2. [Configure the plugin](./how-to-use-the-api.md#enabling-the-graphql-sandbox)
 3. Access API functionality through the [GraphQL Sandbox](./how-to-use-the-api.md)
 
-:::tip Pre-release Versions
-You can install the Unraid Connect plugin on any version to access pre-release versions of the API and get early access to new features before they're included in Unraid OS releases.
+:::info Important Notes
+- The Unraid Connect plugin provides the API for pre-7.2 versions
+- You do NOT need to sign in to Unraid Connect to use the API locally
+- Installing the plugin on 7.2+ gives you access to newer API features before they're included in OS releases
 :::
 
 ## 📚 Documentation Sections
@@ -69,20 +71,22 @@ The API provides:
 ## 🚀 Get Started
 
 <tabs>
-<tabItem value="v72" label="Unraid v7.2+" default>
+<tabItem value="v72" label="Unraid OS v7.2+" default>
 
-1. Access the API settings at **Settings** → **Management Access** → **API**
-2. Enable the GraphQL Sandbox for development
-3. Create your first API key
-4. Start making GraphQL queries!
+1. The API is already installed and running
+2. Access settings at **Settings** → **Management Access** → **API**
+3. Enable the GraphQL Sandbox for development
+4. Create your first API key
+5. Start making GraphQL queries!
 
 </tabItem>
-<tabItem value="older" label="Earlier Versions">
+<tabItem value="older" label="Pre-7.2 Versions">
 
-1. Install the Unraid Connect plugin from Apps
-2. Configure the plugin settings
-3. Enable the GraphQL Sandbox
-4. Start exploring the API!
+1. Install the Unraid Connect plugin from Community Apps
+2. No Unraid Connect login required for local API access
+3. Configure the plugin settings
+4. Enable the GraphQL Sandbox
+5. Start exploring the API!
 
 </tabItem>
 </tabs>
