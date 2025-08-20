@@ -1,5 +1,12 @@
 # Changelog
 
+## [4.15.1](https://github.com/unraid/api/compare/v4.15.0...v4.15.1) (2025-08-20)
+
+
+### Bug Fixes
+
+* minor duplicate click handler and version resolver nullability issue ([ac198d5](https://github.com/unraid/api/commit/ac198d5d1a3073fdeb053c2ff8f704b0dba0d047))
+
 ## [4.15.0](https://github.com/unraid/api/compare/v4.14.0...v4.15.0) (2025-08-20)
 
 
