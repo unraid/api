@@ -1486,16 +1486,18 @@ export type PackageVersions = {
   docker?: Maybe<Scalars['String']['output']>;
   /** Git version */
   git?: Maybe<Scalars['String']['output']>;
+  /** nginx version */
+  nginx?: Maybe<Scalars['String']['output']>;
+  /** Node.js version */
+  node?: Maybe<Scalars['String']['output']>;
+  /** npm version */
+  npm?: Maybe<Scalars['String']['output']>;
   /** OpenSSL version */
   openssl?: Maybe<Scalars['String']['output']>;
-  /** Perl version */
-  perl?: Maybe<Scalars['String']['output']>;
   /** PHP version */
   php?: Maybe<Scalars['String']['output']>;
-  /** Python version */
-  python?: Maybe<Scalars['String']['output']>;
-  /** Python3 version */
-  python3?: Maybe<Scalars['String']['output']>;
+  /** pm2 version */
+  pm2?: Maybe<Scalars['String']['output']>;
 };
 
 export type ParityCheck = {
