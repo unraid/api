@@ -1,5 +1,12 @@
 # Changelog
 
+## [4.15.0](https://github.com/unraid/api/compare/v4.14.0...v4.15.0) (2025-08-20)
+
+
+### Features
+
+* **api:** restructure versioning information in GraphQL schema ([#1600](https://github.com/unraid/api/issues/1600)) ([d0c6602](https://github.com/unraid/api/commit/d0c66020e1d1d5b6fcbc4ee8979bba4b3d34c7ad))
+
 ## [4.14.0](https://github.com/unraid/api/compare/v4.13.1...v4.14.0) (2025-08-19)
 
 
