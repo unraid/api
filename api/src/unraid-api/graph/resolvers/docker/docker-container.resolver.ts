@@ -61,7 +61,7 @@ export class DockerContainerResolver {
         possession: AuthPossession.ANY,
     })
     @Mutation(() => Boolean)
-    public async refreshDigests() {
+    public async refreshDockerDigests() {
         return this.dockerPhpService.refreshDigests();
     }
 }

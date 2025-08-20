@@ -1,5 +1,7 @@
 import { Injectable } from '@nestjs/common';
 
+import { AsyncMutex } from '@unraid/shared/util/processing.js';
+
 import { phpLoader } from '@app/core/utils/plugins/php-loader.js';
 
 type StatusItem = { name: string; updateStatus: 0 | 1 | 2 | 3 };
@@ -12,10 +14,34 @@ type ExplicitStatusItem = {
 export class DockerPhpService {
     constructor() {}
 
-    async refreshDigests(
+    /**----------------------
+     * Refresh Container Digests
+     *------------------------**/
+
+    private readonly refreshDigestsMutex = new AsyncMutex(() => {
+        return this.refreshDigestsViaPhp();
+    });
+
+    /**
+     * Recomputes local/remote docker container digests and writes them to /var/lib/docker/unraid-update-status.json
+     * @param mutex - Optional mutex to use for the operation. If not provided, a default mutex will be used.
+     * @param dockerUpdatePath - Optional path to the DockerUpdate.php file. If not provided, the default path will be used.
+     * @returns True if the digests were refreshed, false if the operation failed
+     */
+    async refreshDigests(mutex = this.refreshDigestsMutex, dockerUpdatePath?: string) {
+        return mutex.do(() => {
+            return this.refreshDigestsViaPhp(dockerUpdatePath);
+        });
+    }
+
+    /**
+     * Recomputes local/remote digests by triggering `DockerTemplates->getAllInfo(true)` via DockerUpdate.php
+     * @param dockerUpdatePath - Path to the DockerUpdate.php file
+     * @returns True if the digests were refreshed, false if the file is not found or the operation failed
+     */
+    private async refreshDigestsViaPhp(
         dockerUpdatePath = '/usr/local/emhttp/plugins/dynamix.docker.manager/include/DockerUpdate.php'
     ) {
-        // Triggers getAllInfo(true) → recomputes local/remote digests
         try {
             await phpLoader({
                 file: dockerUpdatePath,
@@ -27,6 +53,10 @@ export class DockerPhpService {
             return false;
         }
     }
+
+    /**----------------------
+     * Parse Container Statuses
+     *------------------------**/
 
     private parseStatusesFromDockerPush(js: string): ExplicitStatusItem[] {
         const items: ExplicitStatusItem[] = [];
