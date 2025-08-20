@@ -28,7 +28,7 @@ jobs:
 
       - uses: actions/setup-python@v5
         with:
-          python-version: "3.13.6"
+          python-version: "3.13.7"
 
       - name: Cache APT Packages
         uses: awalsh128/cache-apt-pkgs-action@v1.5.3
@@ -44,7 +44,7 @@ jobs:
       - name: Install pnpm
         uses: pnpm/action-setup@v4
         with:
-          version: 10.14.0
+          version: 10.15.0
           run_install: false
 
       - name: Get pnpm store directory
