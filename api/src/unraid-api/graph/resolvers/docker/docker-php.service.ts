@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import { readFile } from 'fs/promises';
 
 import { AsyncMutex } from '@unraid/shared/util/processing.js';
 
@@ -9,37 +10,35 @@ type ExplicitStatusItem = {
     name: string;
     updateStatus: 'up to date' | 'update available' | 'rebuild ready' | 'unknown';
 };
+export type CachedStatusEntry = {
+    /** sha256 digest - "sha256:..." */
+    local: string;
+    /** sha256 digest - "sha256:..." */
+    remote: string;
+    /** whether update is available (true), not available (false), or unknown (null) */
+    status: 'true' | 'false' | null;
+};
 
 @Injectable()
 export class DockerPhpService {
     constructor() {}
 
+    async readCachedUpdateStatus(cacheFile = '/var/lib/docker/unraid-update-status.json') {
+        const cache = await readFile(cacheFile, 'utf8');
+        const cacheData = JSON.parse(cache);
+        return cacheData as Record<string, CachedStatusEntry>;
+    }
+
     /**----------------------
      * Refresh Container Digests
      *------------------------**/
-
-    private readonly refreshDigestsMutex = new AsyncMutex(() => {
-        return this.refreshDigestsViaPhp();
-    });
-
-    /**
-     * Recomputes local/remote docker container digests and writes them to /var/lib/docker/unraid-update-status.json
-     * @param mutex - Optional mutex to use for the operation. If not provided, a default mutex will be used.
-     * @param dockerUpdatePath - Optional path to the DockerUpdate.php file. If not provided, the default path will be used.
-     * @returns True if the digests were refreshed, false if the operation failed
-     */
-    async refreshDigests(mutex = this.refreshDigestsMutex, dockerUpdatePath?: string) {
-        return mutex.do(() => {
-            return this.refreshDigestsViaPhp(dockerUpdatePath);
-        });
-    }
 
     /**
      * Recomputes local/remote digests by triggering `DockerTemplates->getAllInfo(true)` via DockerUpdate.php
      * @param dockerUpdatePath - Path to the DockerUpdate.php file
      * @returns True if the digests were refreshed, false if the file is not found or the operation failed
      */
-    private async refreshDigestsViaPhp(
+    async refreshDigestsViaPhp(
         dockerUpdatePath = '/usr/local/emhttp/plugins/dynamix.docker.manager/include/DockerUpdate.php'
     ) {
         try {

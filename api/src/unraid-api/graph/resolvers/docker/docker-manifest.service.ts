@@ -1,38 +1,36 @@
-import { Injectable, Logger } from '@nestjs/common';
-import { readFile } from 'fs/promises';
-
-import { ExtendOptions, Got, got as gotClient, OptionsOfTextResponseBody } from 'got';
+import { Injectable } from '@nestjs/common';
 
 import { docker } from '@app/core/utils/index.js';
-
-/** Accept header for Docker API manifest listing */
-const ACCEPT_MANIFEST =
-    'application/vnd.docker.distribution.manifest.list.v2+json,application/vnd.docker.distribution.manifest.v2+json,application/vnd.oci.image.index.v1+json';
-
-export type CachedStatusEntry = {
-    /** sha256 digest - "sha256:..." */
-    local: string;
-    /** sha256 digest - "sha256:..." */
-    remote: string;
-    /** whether update is available (true), not available (false), or unknown (null) */
-    status: 'true' | 'false' | null;
-};
+import {
+    CachedStatusEntry,
+    DockerPhpService,
+} from '@app/unraid-api/graph/resolvers/docker/docker-php.service.js';
 
 @Injectable()
 export class DockerManifestService {
-    constructor() {}
+    constructor(private readonly dockerPhpService: DockerPhpService) {}
 
-    async readCachedUpdateStatus(cacheFile = '/var/lib/docker/unraid-update-status.json') {
-        const cache = await readFile(cacheFile, 'utf8');
-        const cacheData = JSON.parse(cache);
-        return cacheData as Record<string, CachedStatusEntry>;
+    private readonly refreshDigestsMutex = new AsyncMutex(() => {
+        return this.dockerPhpService.refreshDigestsViaPhp();
+    });
+
+    /**
+     * Recomputes local/remote docker container digests and writes them to /var/lib/docker/unraid-update-status.json
+     * @param mutex - Optional mutex to use for the operation. If not provided, a default mutex will be used.
+     * @param dockerUpdatePath - Optional path to the DockerUpdate.php file. If not provided, the default path will be used.
+     * @returns True if the digests were refreshed, false if the operation failed
+     */
+    async refreshDigests(mutex = this.refreshDigestsMutex, dockerUpdatePath?: string) {
+        return mutex.do(() => {
+            return this.dockerPhpService.refreshDigestsViaPhp(dockerUpdatePath);
+        });
     }
 
     async isUpdateAvailableCached(imageRef: string, cacheData?: Record<string, CachedStatusEntry>) {
         let taggedRef = imageRef;
         if (!taggedRef.includes(':')) taggedRef += ':latest';
 
-        cacheData ??= await this.readCachedUpdateStatus();
+        cacheData ??= await this.dockerPhpService.readCachedUpdateStatus();
         const containerData = cacheData[taggedRef];
         if (!containerData) return null;
         return containerData.status?.toLowerCase() === 'true';

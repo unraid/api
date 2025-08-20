@@ -1,15 +1,15 @@
 import { Injectable } from '@nestjs/common';
 import { Cron, CronExpression, Timeout } from '@nestjs/schedule';
 
-import { DockerPhpService } from '@app/unraid-api/graph/resolvers/docker/docker-php.service.js';
+import { DockerManifestService } from '@app/unraid-api/graph/resolvers/docker/docker-manifest.service.js';
 
 @Injectable()
 export class ContainerStatusJob {
-    constructor(private readonly dockerPhpService: DockerPhpService) {}
+    constructor(private readonly dockerManifestService: DockerManifestService) {}
 
     @Cron(CronExpression.EVERY_DAY_AT_6AM)
     async refreshContainerDigests() {
-        await this.dockerPhpService.refreshDigests();
+        await this.dockerManifestService.refreshDigests();
     }
 
     /**
@@ -17,6 +17,6 @@ export class ContainerStatusJob {
      */
     @Timeout(5_000)
     async refreshContainerDigestsAfterStartup() {
-        await this.dockerPhpService.refreshDigests();
+        await this.dockerManifestService.refreshDigests();
     }
 }
