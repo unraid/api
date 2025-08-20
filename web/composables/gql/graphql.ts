@@ -1482,24 +1482,10 @@ export type Owner = {
 
 export type PackageVersions = {
   __typename?: 'PackageVersions';
-  /** Apache version */
-  apache?: Maybe<Scalars['String']['output']>;
   /** Docker version */
   docker?: Maybe<Scalars['String']['output']>;
-  /** gcc version */
-  gcc?: Maybe<Scalars['String']['output']>;
   /** Git version */
   git?: Maybe<Scalars['String']['output']>;
-  /** Grunt version */
-  grunt?: Maybe<Scalars['String']['output']>;
-  /** Gulp version */
-  gulp?: Maybe<Scalars['String']['output']>;
-  /** Java version */
-  java?: Maybe<Scalars['String']['output']>;
-  /** MongoDB version */
-  mongodb?: Maybe<Scalars['String']['output']>;
-  /** MySQL version */
-  mysql?: Maybe<Scalars['String']['output']>;
   /** nginx version */
   nginx?: Maybe<Scalars['String']['output']>;
   /** Node.js version */
@@ -1508,36 +1494,10 @@ export type PackageVersions = {
   npm?: Maybe<Scalars['String']['output']>;
   /** OpenSSL version */
   openssl?: Maybe<Scalars['String']['output']>;
-  /** Perl version */
-  perl?: Maybe<Scalars['String']['output']>;
   /** PHP version */
   php?: Maybe<Scalars['String']['output']>;
-  /** pip version */
-  pip?: Maybe<Scalars['String']['output']>;
-  /** pip3 version */
-  pip3?: Maybe<Scalars['String']['output']>;
   /** pm2 version */
   pm2?: Maybe<Scalars['String']['output']>;
-  /** Postfix version */
-  postfix?: Maybe<Scalars['String']['output']>;
-  /** PostgreSQL version */
-  postgresql?: Maybe<Scalars['String']['output']>;
-  /** Python version */
-  python?: Maybe<Scalars['String']['output']>;
-  /** Python3 version */
-  python3?: Maybe<Scalars['String']['output']>;
-  /** Redis version */
-  redis?: Maybe<Scalars['String']['output']>;
-  /** System OpenSSL version */
-  systemOpenssl?: Maybe<Scalars['String']['output']>;
-  /** tsc version */
-  tsc?: Maybe<Scalars['String']['output']>;
-  /** V8 engine version */
-  v8?: Maybe<Scalars['String']['output']>;
-  /** VirtualBox version */
-  virtualbox?: Maybe<Scalars['String']['output']>;
-  /** Yarn version */
-  yarn?: Maybe<Scalars['String']['output']>;
 };
 
 export type ParityCheck = {
