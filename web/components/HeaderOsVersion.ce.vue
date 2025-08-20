@@ -1,16 +1,19 @@
 <script lang="ts" setup>
-import { computed } from 'vue';
+import { computed, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { storeToRefs } from 'pinia';
+import { useQuery } from '@vue/apollo-composable';
 
-import { BellAlertIcon, ExclamationTriangleIcon, InformationCircleIcon } from '@heroicons/vue/24/solid';
-import { Badge } from '@unraid/ui';
-import { getReleaseNotesUrl, WEBGUI_TOOLS_DOWNGRADE, WEBGUI_TOOLS_UPDATE } from '~/helpers/urls';
+import { BellAlertIcon, ExclamationTriangleIcon, InformationCircleIcon, DocumentTextIcon, ArrowTopRightOnSquareIcon } from '@heroicons/vue/24/solid';
+import { Badge, DropdownMenuRoot, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator } from '@unraid/ui';
+import { WEBGUI_TOOLS_DOWNGRADE, WEBGUI_TOOLS_UPDATE } from '~/helpers/urls';
 
 import { useActivationCodeDataStore } from '~/components/Activation/store/activationCodeData';
 import { useServerStore } from '~/store/server';
 import { useUpdateOsStore } from '~/store/updateOs';
 import { useUpdateOsActionsStore } from '~/store/updateOsActions';
+import { INFO_VERSIONS_QUERY } from './UserProfile/versions.query';
+import ReleaseNotesModal from '~/components/ReleaseNotesModal.vue';
 
 const { t } = useI18n();
 
@@ -22,6 +25,20 @@ const { partnerInfo } = storeToRefs(useActivationCodeDataStore());
 const { osVersion, rebootType, stateDataError } = storeToRefs(serverStore);
 const { available, availableWithRenewal } = storeToRefs(updateOsStore);
 const { rebootTypeText } = storeToRefs(updateOsActionsStore);
+
+// Query for version information
+const { result: versionsResult } = useQuery(INFO_VERSIONS_QUERY, null, {
+  fetchPolicy: 'cache-first',
+});
+
+// Use versions endpoint as primary source, fallback to store
+const displayOsVersion = computed(() => versionsResult.value?.info?.versions?.core?.unraid || osVersion.value || null);
+const apiVersion = computed(() => versionsResult.value?.info?.versions?.core?.api || null);
+const showOsReleaseNotesModal = ref(false);
+
+const openApiChangelog = () => {
+  window.open('https://github.com/unraid/api/releases', '_blank');
+};
 
 const unraidLogoHeaderLink = computed<{ href: string; title: string }>(() => {
   if (partnerInfo.value?.partnerUrl) {
@@ -94,16 +111,56 @@ const updateOsStatus = computed(() => {
     </a>
 
     <div class="flex flex-wrap justify-start gap-2">
-      <a
-        class="text-xs xs:text-sm flex flex-row items-center gap-x-1 font-semibold text-header-text-secondary hover:text-orange-dark focus:text-orange-dark hover:underline focus:underline leading-none"
-        :title="t('View release notes')"
-        :href="getReleaseNotesUrl(osVersion).toString()"
-        target="_blank"
-        rel="noopener"
-      >
-        <InformationCircleIcon class="fill-current w-3 h-3 xs:w-4 xs:h-4 shrink-0" />
-        {{ osVersion }}
-      </a>
+      <DropdownMenuRoot>
+        <DropdownMenuTrigger as-child>
+          <button 
+            class="text-xs xs:text-sm flex flex-row items-center gap-x-1 font-semibold text-header-text-secondary hover:text-orange-dark focus:text-orange-dark hover:underline focus:underline leading-none"
+            :title="t('Version Information')"
+          >
+            <InformationCircleIcon class="fill-current w-3 h-3 xs:w-4 xs:h-4 shrink-0" />
+            {{ displayOsVersion }}
+          </button>
+        </DropdownMenuTrigger>
+        
+        <DropdownMenuContent class="min-w-[200px]" align="start" :side-offset="4">
+          <DropdownMenuLabel>
+            {{ t('Version Information') }}
+          </DropdownMenuLabel>
+          
+          <DropdownMenuItem disabled class="text-xs opacity-100">
+            <span class="flex justify-between w-full">
+              <span>{{ t('Unraid OS') }}</span>
+              <span class="font-semibold">{{ displayOsVersion || t('Unknown') }}</span>
+            </span>
+          </DropdownMenuItem>
+          
+          <DropdownMenuItem disabled class="text-xs opacity-100">
+            <span class="flex justify-between w-full">
+              <span>{{ t('Unraid API') }}</span>
+              <span class="font-semibold">{{ apiVersion || t('Unknown') }}</span>
+            </span>
+          </DropdownMenuItem>
+          
+          <DropdownMenuSeparator />
+          
+          <DropdownMenuItem @click="showOsReleaseNotesModal = true">
+            <span class="flex items-center gap-x-2">
+              <InformationCircleIcon class="w-4 h-4" />
+              {{ t('View OS Release Notes') }}
+            </span>
+          </DropdownMenuItem>
+          
+          <DropdownMenuItem @click="openApiChangelog">
+            <span class="flex items-center justify-between w-full">
+              <span class="flex items-center gap-x-2">
+                <DocumentTextIcon class="w-4 h-4" />
+                {{ t('View API Changelog') }}
+              </span>
+              <ArrowTopRightOnSquareIcon class="w-3 h-3 opacity-60" />
+            </span>
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenuRoot>
       <component
         :is="updateOsStatus.href ? 'a' : 'button'"
         v-if="updateOsStatus"
@@ -125,5 +182,14 @@ const updateOsStatus = computed(() => {
         </template>
       </component>
     </div>
+    
+    <!-- OS Release Notes Modal -->
+    <ReleaseNotesModal
+      v-if="displayOsVersion"
+      :open="showOsReleaseNotesModal"
+      :version="displayOsVersion"
+      :t="t"
+      @close="showOsReleaseNotesModal = false"
+    />
   </div>
 </template>

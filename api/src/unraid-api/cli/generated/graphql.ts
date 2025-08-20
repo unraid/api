@@ -1041,6 +1041,8 @@ export type InfoVersions = Node & {
   __typename?: 'InfoVersions';
   /** Apache version */
   apache?: Maybe<Scalars['String']['output']>;
+  /** Unraid API version */
+  api?: Maybe<Scalars['String']['output']>;
   /** Docker version */
   docker?: Maybe<Scalars['String']['output']>;
   /** gcc version */

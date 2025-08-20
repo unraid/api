@@ -520,6 +520,16 @@ export enum ContainerState {
   RUNNING = 'RUNNING'
 }
 
+export type CoreVersions = {
+  __typename?: 'CoreVersions';
+  /** Unraid API version */
+  api?: Maybe<Scalars['String']['output']>;
+  /** Kernel version */
+  kernel?: Maybe<Scalars['String']['output']>;
+  /** Unraid version */
+  unraid?: Maybe<Scalars['String']['output']>;
+};
+
 /** CPU load for a single core */
 export type CpuLoad = {
   __typename?: 'CpuLoad';
@@ -1039,67 +1049,11 @@ export type InfoUsb = Node & {
 
 export type InfoVersions = Node & {
   __typename?: 'InfoVersions';
-  /** Apache version */
-  apache?: Maybe<Scalars['String']['output']>;
-  /** Docker version */
-  docker?: Maybe<Scalars['String']['output']>;
-  /** gcc version */
-  gcc?: Maybe<Scalars['String']['output']>;
-  /** Git version */
-  git?: Maybe<Scalars['String']['output']>;
-  /** Grunt version */
-  grunt?: Maybe<Scalars['String']['output']>;
-  /** Gulp version */
-  gulp?: Maybe<Scalars['String']['output']>;
+  /** Core system versions */
+  core: CoreVersions;
   id: Scalars['PrefixedID']['output'];
-  /** Java version */
-  java?: Maybe<Scalars['String']['output']>;
-  /** Kernel version */
-  kernel?: Maybe<Scalars['String']['output']>;
-  /** MongoDB version */
-  mongodb?: Maybe<Scalars['String']['output']>;
-  /** MySQL version */
-  mysql?: Maybe<Scalars['String']['output']>;
-  /** nginx version */
-  nginx?: Maybe<Scalars['String']['output']>;
-  /** Node.js version */
-  node?: Maybe<Scalars['String']['output']>;
-  /** npm version */
-  npm?: Maybe<Scalars['String']['output']>;
-  /** OpenSSL version */
-  openssl?: Maybe<Scalars['String']['output']>;
-  /** Perl version */
-  perl?: Maybe<Scalars['String']['output']>;
-  /** PHP version */
-  php?: Maybe<Scalars['String']['output']>;
-  /** pip version */
-  pip?: Maybe<Scalars['String']['output']>;
-  /** pip3 version */
-  pip3?: Maybe<Scalars['String']['output']>;
-  /** pm2 version */
-  pm2?: Maybe<Scalars['String']['output']>;
-  /** Postfix version */
-  postfix?: Maybe<Scalars['String']['output']>;
-  /** PostgreSQL version */
-  postgresql?: Maybe<Scalars['String']['output']>;
-  /** Python version */
-  python?: Maybe<Scalars['String']['output']>;
-  /** Python3 version */
-  python3?: Maybe<Scalars['String']['output']>;
-  /** Redis version */
-  redis?: Maybe<Scalars['String']['output']>;
-  /** System OpenSSL version */
-  systemOpenssl?: Maybe<Scalars['String']['output']>;
-  /** tsc version */
-  tsc?: Maybe<Scalars['String']['output']>;
-  /** Unraid version */
-  unraid?: Maybe<Scalars['String']['output']>;
-  /** V8 engine version */
-  v8?: Maybe<Scalars['String']['output']>;
-  /** VirtualBox version */
-  virtualbox?: Maybe<Scalars['String']['output']>;
-  /** Yarn version */
-  yarn?: Maybe<Scalars['String']['output']>;
+  /** Software package versions */
+  packages: PackageVersions;
 };
 
 export type InitiateFlashBackupInput = {
@@ -1524,6 +1478,66 @@ export type Owner = {
   avatar: Scalars['String']['output'];
   url: Scalars['String']['output'];
   username: Scalars['String']['output'];
+};
+
+export type PackageVersions = {
+  __typename?: 'PackageVersions';
+  /** Apache version */
+  apache?: Maybe<Scalars['String']['output']>;
+  /** Docker version */
+  docker?: Maybe<Scalars['String']['output']>;
+  /** gcc version */
+  gcc?: Maybe<Scalars['String']['output']>;
+  /** Git version */
+  git?: Maybe<Scalars['String']['output']>;
+  /** Grunt version */
+  grunt?: Maybe<Scalars['String']['output']>;
+  /** Gulp version */
+  gulp?: Maybe<Scalars['String']['output']>;
+  /** Java version */
+  java?: Maybe<Scalars['String']['output']>;
+  /** MongoDB version */
+  mongodb?: Maybe<Scalars['String']['output']>;
+  /** MySQL version */
+  mysql?: Maybe<Scalars['String']['output']>;
+  /** nginx version */
+  nginx?: Maybe<Scalars['String']['output']>;
+  /** Node.js version */
+  node?: Maybe<Scalars['String']['output']>;
+  /** npm version */
+  npm?: Maybe<Scalars['String']['output']>;
+  /** OpenSSL version */
+  openssl?: Maybe<Scalars['String']['output']>;
+  /** Perl version */
+  perl?: Maybe<Scalars['String']['output']>;
+  /** PHP version */
+  php?: Maybe<Scalars['String']['output']>;
+  /** pip version */
+  pip?: Maybe<Scalars['String']['output']>;
+  /** pip3 version */
+  pip3?: Maybe<Scalars['String']['output']>;
+  /** pm2 version */
+  pm2?: Maybe<Scalars['String']['output']>;
+  /** Postfix version */
+  postfix?: Maybe<Scalars['String']['output']>;
+  /** PostgreSQL version */
+  postgresql?: Maybe<Scalars['String']['output']>;
+  /** Python version */
+  python?: Maybe<Scalars['String']['output']>;
+  /** Python3 version */
+  python3?: Maybe<Scalars['String']['output']>;
+  /** Redis version */
+  redis?: Maybe<Scalars['String']['output']>;
+  /** System OpenSSL version */
+  systemOpenssl?: Maybe<Scalars['String']['output']>;
+  /** tsc version */
+  tsc?: Maybe<Scalars['String']['output']>;
+  /** V8 engine version */
+  v8?: Maybe<Scalars['String']['output']>;
+  /** VirtualBox version */
+  virtualbox?: Maybe<Scalars['String']['output']>;
+  /** Yarn version */
+  yarn?: Maybe<Scalars['String']['output']>;
 };
 
 export type ParityCheck = {
@@ -2707,6 +2721,11 @@ export type ListRCloneRemotesQueryVariables = Exact<{ [key: string]: never; }>;
 
 export type ListRCloneRemotesQuery = { __typename?: 'Query', rclone: { __typename?: 'RCloneBackupSettings', remotes: Array<{ __typename?: 'RCloneRemote', name: string, type: string, parameters: any, config: any }> } };
 
+export type InfoVersionsQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type InfoVersionsQuery = { __typename?: 'Query', info: { __typename?: 'Info', id: string, os: { __typename?: 'InfoOs', id: string, hostname?: string | null }, versions: { __typename?: 'InfoVersions', id: string, core: { __typename?: 'CoreVersions', unraid?: string | null, api?: string | null } } } };
+
 export type OidcProvidersQueryVariables = Exact<{ [key: string]: never; }>;
 
 
@@ -2790,6 +2809,7 @@ export const CreateRCloneRemoteDocument = {"kind":"Document","definitions":[{"ki
 export const DeleteRCloneRemoteDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"DeleteRCloneRemote"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"input"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"DeleteRCloneRemoteInput"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"rclone"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"deleteRCloneRemote"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"input"},"value":{"kind":"Variable","name":{"kind":"Name","value":"input"}}}]}]}}]}}]} as unknown as DocumentNode<DeleteRCloneRemoteMutation, DeleteRCloneRemoteMutationVariables>;
 export const GetRCloneConfigFormDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"GetRCloneConfigForm"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"formOptions"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"RCloneConfigFormInput"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"rclone"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"configForm"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"formOptions"},"value":{"kind":"Variable","name":{"kind":"Name","value":"formOptions"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"dataSchema"}},{"kind":"Field","name":{"kind":"Name","value":"uiSchema"}}]}}]}}]}}]} as unknown as DocumentNode<GetRCloneConfigFormQuery, GetRCloneConfigFormQueryVariables>;
 export const ListRCloneRemotesDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"ListRCloneRemotes"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"rclone"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"remotes"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"type"}},{"kind":"Field","name":{"kind":"Name","value":"parameters"}},{"kind":"Field","name":{"kind":"Name","value":"config"}}]}}]}}]}}]} as unknown as DocumentNode<ListRCloneRemotesQuery, ListRCloneRemotesQueryVariables>;
+export const InfoVersionsDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"InfoVersions"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"info"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"os"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"hostname"}}]}},{"kind":"Field","name":{"kind":"Name","value":"versions"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"core"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"unraid"}},{"kind":"Field","name":{"kind":"Name","value":"api"}}]}}]}}]}}]}}]} as unknown as DocumentNode<InfoVersionsQuery, InfoVersionsQueryVariables>;
 export const OidcProvidersDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"OidcProviders"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"settings"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"sso"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"oidcProviders"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"clientId"}},{"kind":"Field","name":{"kind":"Name","value":"issuer"}},{"kind":"Field","name":{"kind":"Name","value":"authorizationEndpoint"}},{"kind":"Field","name":{"kind":"Name","value":"tokenEndpoint"}},{"kind":"Field","name":{"kind":"Name","value":"jwksUri"}},{"kind":"Field","name":{"kind":"Name","value":"scopes"}},{"kind":"Field","name":{"kind":"Name","value":"authorizationRules"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"claim"}},{"kind":"Field","name":{"kind":"Name","value":"operator"}},{"kind":"Field","name":{"kind":"Name","value":"value"}}]}},{"kind":"Field","name":{"kind":"Name","value":"authorizationRuleMode"}},{"kind":"Field","name":{"kind":"Name","value":"buttonText"}},{"kind":"Field","name":{"kind":"Name","value":"buttonIcon"}}]}}]}}]}}]}}]} as unknown as DocumentNode<OidcProvidersQuery, OidcProvidersQueryVariables>;
 export const PublicOidcProvidersDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"PublicOidcProviders"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"publicOidcProviders"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"buttonText"}},{"kind":"Field","name":{"kind":"Name","value":"buttonIcon"}},{"kind":"Field","name":{"kind":"Name","value":"buttonVariant"}},{"kind":"Field","name":{"kind":"Name","value":"buttonStyle"}}]}}]}}]} as unknown as DocumentNode<PublicOidcProvidersQuery, PublicOidcProvidersQueryVariables>;
 export const ServerInfoDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"serverInfo"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"info"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"os"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"hostname"}}]}}]}},{"kind":"Field","name":{"kind":"Name","value":"vars"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"comment"}}]}}]}}]} as unknown as DocumentNode<ServerInfoQuery, ServerInfoQueryVariables>;

@@ -1501,12 +1501,18 @@ type InfoBaseboard implements Node {
   memSlots: Float
 }
 
-type InfoVersions implements Node {
-  id: PrefixedID!
+type CoreVersions {
+  """Unraid version"""
+  unraid: String
+
+  """Unraid API version"""
+  api: String
 
   """Kernel version"""
   kernel: String
+}
 
+type PackageVersions {
   """OpenSSL version"""
   openssl: String
 
@@ -1590,9 +1596,16 @@ type InfoVersions implements Node {
 
   """Docker version"""
   docker: String
+}
 
-  """Unraid version"""
-  unraid: String
+type InfoVersions implements Node {
+  id: PrefixedID!
+
+  """Core system versions"""
+  core: CoreVersions!
+
+  """Software package versions"""
+  packages: PackageVersions!
 }
 
 type Info implements Node {

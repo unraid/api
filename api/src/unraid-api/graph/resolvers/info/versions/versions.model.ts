@@ -2,11 +2,20 @@ import { Field, ObjectType } from '@nestjs/graphql';
 
 import { Node } from '@unraid/shared/graphql.model.js';
 
-@ObjectType({ implements: () => Node })
-export class InfoVersions extends Node {
+@ObjectType()
+export class CoreVersions {
+    @Field(() => String, { nullable: true, description: 'Unraid version' })
+    unraid?: string;
+
+    @Field(() => String, { nullable: true, description: 'Unraid API version' })
+    api?: string;
+
     @Field(() => String, { nullable: true, description: 'Kernel version' })
     kernel?: string;
+}
 
+@ObjectType()
+export class PackageVersions {
     @Field(() => String, { nullable: true, description: 'OpenSSL version' })
     openssl?: string;
 
@@ -90,7 +99,13 @@ export class InfoVersions extends Node {
 
     @Field(() => String, { nullable: true, description: 'Docker version' })
     docker?: string;
+}
 
-    @Field(() => String, { nullable: true, description: 'Unraid version' })
-    unraid?: string;
+@ObjectType({ implements: () => Node })
+export class InfoVersions extends Node {
+    @Field(() => CoreVersions, { description: 'Core system versions' })
+    core!: CoreVersions;
+
+    @Field(() => PackageVersions, { description: 'Software package versions' })
+    packages!: PackageVersions;
 }
