@@ -46,6 +46,6 @@ export class InfoVersions extends Node {
     @Field(() => CoreVersions, { description: 'Core system versions' })
     core!: CoreVersions;
 
-    @Field(() => PackageVersions, { description: 'Software package versions' })
-    packages!: PackageVersions;
+    @Field(() => PackageVersions, { nullable: true, description: 'Software package versions' })
+    packages?: PackageVersions;
 }

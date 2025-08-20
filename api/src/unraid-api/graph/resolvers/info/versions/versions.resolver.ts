@@ -25,19 +25,24 @@ export class VersionsResolver {
         };
     }
 
-    @ResolveField(() => PackageVersions)
-    async packages(): Promise<PackageVersions> {
-        const softwareVersions = await versions();
+    @ResolveField(() => PackageVersions, { nullable: true })
+    async packages(): Promise<PackageVersions | null> {
+        try {
+            const softwareVersions = await versions();
 
-        return {
-            openssl: softwareVersions.openssl,
-            node: softwareVersions.node,
-            npm: softwareVersions.npm,
-            pm2: softwareVersions.pm2,
-            git: softwareVersions.git,
-            nginx: softwareVersions.nginx,
-            php: softwareVersions.php,
-            docker: softwareVersions.docker,
-        };
+            return {
+                openssl: softwareVersions.openssl,
+                node: softwareVersions.node,
+                npm: softwareVersions.npm,
+                pm2: softwareVersions.pm2,
+                git: softwareVersions.git,
+                nginx: softwareVersions.nginx,
+                php: softwareVersions.php,
+                docker: softwareVersions.docker,
+            };
+        } catch (error) {
+            console.error('Failed to get package versions:', error);
+            return null;
+        }
     }
 }

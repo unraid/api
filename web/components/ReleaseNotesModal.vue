@@ -31,16 +31,12 @@ const handleIframeLoad = () => {
 const handleClose = () => {
   emit('close');
 };
-
-const openInNewTab = () => {
-  window.open(releaseNotesUrl.value, '_blank');
-};
 </script>
 
 <template>
   <Modal
     :center-content="false"
-    max-width="max-w-[800px]"
+    max-width="max-w-6xl"
     :open="open"
     :show-close-x="true"
     :t="t"
@@ -61,7 +57,7 @@ const openInNewTab = () => {
         </div>
         
         <!-- iframe for release notes -->
-        <div class="w-[calc(100%+3rem)] h-[475px] -mx-6 -my-6">
+        <div class="w-[calc(100%+3rem)] h-[75vh] max-h-[800px] -mx-6 -my-6">
           <iframe
             ref="iframeRef"
             :src="releaseNotesUrl"
@@ -83,7 +79,6 @@ const openInNewTab = () => {
           :href="releaseNotesUrl"
           :icon="ArrowTopRightOnSquareIcon"
           aria-label="View on Docs"
-          @click="openInNewTab"
         >
           Open in New Tab
         </BrandButton>
