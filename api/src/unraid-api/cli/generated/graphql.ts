@@ -520,6 +520,16 @@ export enum ContainerState {
   RUNNING = 'RUNNING'
 }
 
+export type CoreVersions = {
+  __typename?: 'CoreVersions';
+  /** Unraid API version */
+  api?: Maybe<Scalars['String']['output']>;
+  /** Kernel version */
+  kernel?: Maybe<Scalars['String']['output']>;
+  /** Unraid version */
+  unraid?: Maybe<Scalars['String']['output']>;
+};
+
 /** CPU load for a single core */
 export type CpuLoad = {
   __typename?: 'CpuLoad';
@@ -1039,69 +1049,11 @@ export type InfoUsb = Node & {
 
 export type InfoVersions = Node & {
   __typename?: 'InfoVersions';
-  /** Apache version */
-  apache?: Maybe<Scalars['String']['output']>;
-  /** Unraid API version */
-  api?: Maybe<Scalars['String']['output']>;
-  /** Docker version */
-  docker?: Maybe<Scalars['String']['output']>;
-  /** gcc version */
-  gcc?: Maybe<Scalars['String']['output']>;
-  /** Git version */
-  git?: Maybe<Scalars['String']['output']>;
-  /** Grunt version */
-  grunt?: Maybe<Scalars['String']['output']>;
-  /** Gulp version */
-  gulp?: Maybe<Scalars['String']['output']>;
+  /** Core system versions */
+  core: CoreVersions;
   id: Scalars['PrefixedID']['output'];
-  /** Java version */
-  java?: Maybe<Scalars['String']['output']>;
-  /** Kernel version */
-  kernel?: Maybe<Scalars['String']['output']>;
-  /** MongoDB version */
-  mongodb?: Maybe<Scalars['String']['output']>;
-  /** MySQL version */
-  mysql?: Maybe<Scalars['String']['output']>;
-  /** nginx version */
-  nginx?: Maybe<Scalars['String']['output']>;
-  /** Node.js version */
-  node?: Maybe<Scalars['String']['output']>;
-  /** npm version */
-  npm?: Maybe<Scalars['String']['output']>;
-  /** OpenSSL version */
-  openssl?: Maybe<Scalars['String']['output']>;
-  /** Perl version */
-  perl?: Maybe<Scalars['String']['output']>;
-  /** PHP version */
-  php?: Maybe<Scalars['String']['output']>;
-  /** pip version */
-  pip?: Maybe<Scalars['String']['output']>;
-  /** pip3 version */
-  pip3?: Maybe<Scalars['String']['output']>;
-  /** pm2 version */
-  pm2?: Maybe<Scalars['String']['output']>;
-  /** Postfix version */
-  postfix?: Maybe<Scalars['String']['output']>;
-  /** PostgreSQL version */
-  postgresql?: Maybe<Scalars['String']['output']>;
-  /** Python version */
-  python?: Maybe<Scalars['String']['output']>;
-  /** Python3 version */
-  python3?: Maybe<Scalars['String']['output']>;
-  /** Redis version */
-  redis?: Maybe<Scalars['String']['output']>;
-  /** System OpenSSL version */
-  systemOpenssl?: Maybe<Scalars['String']['output']>;
-  /** tsc version */
-  tsc?: Maybe<Scalars['String']['output']>;
-  /** Unraid version */
-  unraid?: Maybe<Scalars['String']['output']>;
-  /** V8 engine version */
-  v8?: Maybe<Scalars['String']['output']>;
-  /** VirtualBox version */
-  virtualbox?: Maybe<Scalars['String']['output']>;
-  /** Yarn version */
-  yarn?: Maybe<Scalars['String']['output']>;
+  /** Software package versions */
+  packages: PackageVersions;
 };
 
 export type InitiateFlashBackupInput = {
@@ -1526,6 +1478,24 @@ export type Owner = {
   avatar: Scalars['String']['output'];
   url: Scalars['String']['output'];
   username: Scalars['String']['output'];
+};
+
+export type PackageVersions = {
+  __typename?: 'PackageVersions';
+  /** Docker version */
+  docker?: Maybe<Scalars['String']['output']>;
+  /** Git version */
+  git?: Maybe<Scalars['String']['output']>;
+  /** OpenSSL version */
+  openssl?: Maybe<Scalars['String']['output']>;
+  /** Perl version */
+  perl?: Maybe<Scalars['String']['output']>;
+  /** PHP version */
+  php?: Maybe<Scalars['String']['output']>;
+  /** Python version */
+  python?: Maybe<Scalars['String']['output']>;
+  /** Python3 version */
+  python3?: Maybe<Scalars['String']['output']>;
 };
 
 export type ParityCheck = {
@@ -2555,7 +2525,7 @@ export type GetSsoUsersQuery = { __typename?: 'Query', settings: { __typename?: 
 export type SystemReportQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type SystemReportQuery = { __typename?: 'Query', info: { __typename?: 'Info', id: any, machineId?: string | null, system: { __typename?: 'InfoSystem', manufacturer?: string | null, model?: string | null, version?: string | null, sku?: string | null, serial?: string | null, uuid?: string | null }, versions: { __typename?: 'InfoVersions', unraid?: string | null, kernel?: string | null, openssl?: string | null } }, config: { __typename?: 'Config', id: any, valid?: boolean | null, error?: string | null }, server?: { __typename?: 'Server', id: any, name: string } | null };
+export type SystemReportQuery = { __typename?: 'Query', info: { __typename?: 'Info', id: any, machineId?: string | null, system: { __typename?: 'InfoSystem', manufacturer?: string | null, model?: string | null, version?: string | null, sku?: string | null, serial?: string | null, uuid?: string | null }, versions: { __typename?: 'InfoVersions', core: { __typename?: 'CoreVersions', unraid?: string | null, kernel?: string | null }, packages: { __typename?: 'PackageVersions', openssl?: string | null } } }, config: { __typename?: 'Config', id: any, valid?: boolean | null, error?: string | null }, server?: { __typename?: 'Server', id: any, name: string } | null };
 
 export type ConnectStatusQueryVariables = Exact<{ [key: string]: never; }>;
 
@@ -2581,7 +2551,7 @@ export const UpdateSsoUsersDocument = {"kind":"Document","definitions":[{"kind":
 export const UpdateSandboxSettingsDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"UpdateSandboxSettings"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"input"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"JSON"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"updateSettings"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"input"},"value":{"kind":"Variable","name":{"kind":"Name","value":"input"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"restartRequired"}},{"kind":"Field","name":{"kind":"Name","value":"values"}}]}}]}}]} as unknown as DocumentNode<UpdateSandboxSettingsMutation, UpdateSandboxSettingsMutationVariables>;
 export const GetPluginsDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"GetPlugins"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"plugins"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"version"}},{"kind":"Field","name":{"kind":"Name","value":"hasApiModule"}},{"kind":"Field","name":{"kind":"Name","value":"hasCliModule"}}]}}]}}]} as unknown as DocumentNode<GetPluginsQuery, GetPluginsQueryVariables>;
 export const GetSsoUsersDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"GetSSOUsers"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"settings"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"api"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"ssoSubIds"}}]}}]}}]}}]} as unknown as DocumentNode<GetSsoUsersQuery, GetSsoUsersQueryVariables>;
-export const SystemReportDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"SystemReport"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"info"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"machineId"}},{"kind":"Field","name":{"kind":"Name","value":"system"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"manufacturer"}},{"kind":"Field","name":{"kind":"Name","value":"model"}},{"kind":"Field","name":{"kind":"Name","value":"version"}},{"kind":"Field","name":{"kind":"Name","value":"sku"}},{"kind":"Field","name":{"kind":"Name","value":"serial"}},{"kind":"Field","name":{"kind":"Name","value":"uuid"}}]}},{"kind":"Field","name":{"kind":"Name","value":"versions"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"unraid"}},{"kind":"Field","name":{"kind":"Name","value":"kernel"}},{"kind":"Field","name":{"kind":"Name","value":"openssl"}}]}}]}},{"kind":"Field","name":{"kind":"Name","value":"config"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"valid"}},{"kind":"Field","name":{"kind":"Name","value":"error"}}]}},{"kind":"Field","name":{"kind":"Name","value":"server"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"name"}}]}}]}}]} as unknown as DocumentNode<SystemReportQuery, SystemReportQueryVariables>;
+export const SystemReportDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"SystemReport"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"info"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"machineId"}},{"kind":"Field","name":{"kind":"Name","value":"system"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"manufacturer"}},{"kind":"Field","name":{"kind":"Name","value":"model"}},{"kind":"Field","name":{"kind":"Name","value":"version"}},{"kind":"Field","name":{"kind":"Name","value":"sku"}},{"kind":"Field","name":{"kind":"Name","value":"serial"}},{"kind":"Field","name":{"kind":"Name","value":"uuid"}}]}},{"kind":"Field","name":{"kind":"Name","value":"versions"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"core"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"unraid"}},{"kind":"Field","name":{"kind":"Name","value":"kernel"}}]}},{"kind":"Field","name":{"kind":"Name","value":"packages"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"openssl"}}]}}]}}]}},{"kind":"Field","name":{"kind":"Name","value":"config"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"valid"}},{"kind":"Field","name":{"kind":"Name","value":"error"}}]}},{"kind":"Field","name":{"kind":"Name","value":"server"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"name"}}]}}]}}]} as unknown as DocumentNode<SystemReportQuery, SystemReportQueryVariables>;
 export const ConnectStatusDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"ConnectStatus"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"connect"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"dynamicRemoteAccess"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"enabledType"}},{"kind":"Field","name":{"kind":"Name","value":"runningType"}},{"kind":"Field","name":{"kind":"Name","value":"error"}}]}}]}}]}}]} as unknown as DocumentNode<ConnectStatusQuery, ConnectStatusQueryVariables>;
 export const ServicesDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"Services"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"services"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"online"}},{"kind":"Field","name":{"kind":"Name","value":"uptime"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"timestamp"}}]}},{"kind":"Field","name":{"kind":"Name","value":"version"}}]}}]}}]} as unknown as DocumentNode<ServicesQuery, ServicesQueryVariables>;
 export const ValidateOidcSessionDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"ValidateOidcSession"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"token"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"validateOidcSession"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"token"},"value":{"kind":"Variable","name":{"kind":"Name","value":"token"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"valid"}},{"kind":"Field","name":{"kind":"Name","value":"username"}}]}}]}}]} as unknown as DocumentNode<ValidateOidcSessionQuery, ValidateOidcSessionQueryVariables>;

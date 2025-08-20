@@ -18,11 +18,40 @@ import HeaderOsVersion from '~/components/HeaderOsVersion.ce.vue';
 import { useErrorsStore } from '~/store/errors';
 import { useServerStore } from '~/store/server';
 
-const testMockReleaseNotesUrl = 'http://mock.release.notes/v';
-
 vi.mock('crypto-js/aes', () => ({ default: {} }));
 vi.mock('@unraid/shared-callbacks', () => ({
   useCallback: vi.fn(() => ({ send: vi.fn(), watcher: vi.fn() })),
+}));
+
+vi.mock('@unraid/ui', () => ({
+  Badge: {
+    name: 'Badge',
+    template: '<div><slot /></div>',
+  },
+  DropdownMenuRoot: {
+    name: 'DropdownMenuRoot',
+    template: '<div><slot /></div>',
+  },
+  DropdownMenuTrigger: {
+    name: 'DropdownMenuTrigger',
+    template: '<div><slot /></div>',
+  },
+  DropdownMenuContent: {
+    name: 'DropdownMenuContent',
+    template: '<div><slot /></div>',
+  },
+  DropdownMenuItem: {
+    name: 'DropdownMenuItem',
+    template: '<div><slot /></div>',
+  },
+  DropdownMenuLabel: {
+    name: 'DropdownMenuLabel',
+    template: '<div><slot /></div>',
+  },
+  DropdownMenuSeparator: {
+    name: 'DropdownMenuSeparator',
+    template: '<div />',
+  },
 }));
 
 vi.mock('@vue/apollo-composable', () => ({
@@ -123,13 +152,11 @@ describe('HeaderOsVersion', () => {
     vi.restoreAllMocks();
   });
 
-  it('renders OS version link with correct URL and no update status initially', () => {
-    const versionLink = wrapper.find('a[title*="release notes"]');
+  it('renders OS version button with correct version and no update status initially', () => {
+    const versionButton = wrapper.find('button[title*="Version Information"]');
 
-    expect(versionLink.exists()).toBe(true);
-    expect(versionLink.attributes('href')).toBe(`${testMockReleaseNotesUrl}6.12.0`);
-
-    expect(versionLink.text()).toContain('6.12.0');
+    expect(versionButton.exists()).toBe(true);
+    expect(versionButton.text()).toContain('6.12.0');
     expect(findUpdateStatusComponent()).toBeNull();
   });
 
