@@ -8,6 +8,8 @@ import { DisplayService } from '@app/unraid-api/graph/resolvers/info/display/dis
 import { InfoResolver } from '@app/unraid-api/graph/resolvers/info/info.resolver.js';
 import { MemoryService } from '@app/unraid-api/graph/resolvers/info/memory/memory.service.js';
 import { OsService } from '@app/unraid-api/graph/resolvers/info/os/os.service.js';
+import { CoreVersionsResolver } from '@app/unraid-api/graph/resolvers/info/versions/core-versions.resolver.js';
+import { VersionsResolver } from '@app/unraid-api/graph/resolvers/info/versions/versions.resolver.js';
 import { VersionsService } from '@app/unraid-api/graph/resolvers/info/versions/versions.service.js';
 import { ServicesModule } from '@app/unraid-api/graph/services/services.module.js';
 
@@ -19,6 +21,8 @@ import { ServicesModule } from '@app/unraid-api/graph/services/services.module.j
 
         // Sub-resolvers
         DevicesResolver,
+        VersionsResolver,
+        CoreVersionsResolver,
 
         // Services
         CpuService,
@@ -28,6 +32,6 @@ import { ServicesModule } from '@app/unraid-api/graph/services/services.module.j
         VersionsService,
         DisplayService,
     ],
-    exports: [InfoResolver, DevicesResolver, DisplayService],
+    exports: [InfoResolver, DevicesResolver, VersionsResolver, CoreVersionsResolver, DisplayService],
 })
 export class InfoModule {}

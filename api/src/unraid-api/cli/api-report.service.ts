@@ -82,7 +82,7 @@ export class ApiReportService {
                 ? {
                       id: systemData.info.system.uuid,
                       name: systemData.server?.name || 'Unknown',
-                      version: systemData.info.versions.unraid || 'Unknown',
+                      version: systemData.info.versions.core.unraid || 'Unknown',
                       machineId: 'REDACTED',
                       manufacturer: systemData.info.system.manufacturer,
                       model: systemData.info.system.model,

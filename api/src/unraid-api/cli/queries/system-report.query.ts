@@ -14,9 +14,13 @@ export const SYSTEM_REPORT_QUERY = gql(`
                 uuid
             }
             versions {
-                unraid
-                kernel
-                openssl
+                core {
+                    unraid
+                    kernel
+                }
+                packages {
+                    openssl
+                }
             }
         }
         config {

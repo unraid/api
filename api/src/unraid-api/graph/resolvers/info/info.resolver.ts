@@ -94,7 +94,7 @@ export class InfoResolver {
     }
 
     @ResolveField(() => InfoVersions)
-    public async versions(): Promise<InfoVersions> {
+    public versions(): Partial<InfoVersions> {
         return this.versionsService.generateVersions();
     }
 }
