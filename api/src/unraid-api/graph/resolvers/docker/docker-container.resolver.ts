@@ -25,10 +25,7 @@ import { OrganizerV1, ResolvedOrganizerV1 } from '@app/unraid-api/organizer/orga
 @Resolver(() => DockerContainer)
 export class DockerContainerResolver {
     private readonly logger = new Logger(DockerContainerResolver.name);
-    constructor(
-        private readonly dockerManifestService: DockerManifestService,
-        private readonly dockerPhpService: DockerPhpService
-    ) {}
+    constructor(private readonly dockerManifestService: DockerManifestService) {}
 
     @UsePermissions({
         action: AuthActionVerb.READ,
@@ -62,6 +59,6 @@ export class DockerContainerResolver {
     })
     @Mutation(() => Boolean)
     public async refreshDockerDigests() {
-        return this.dockerPhpService.refreshDigests();
+        return this.dockerManifestService.refreshDigests();
     }
 }
