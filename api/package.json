@@ -101,7 +101,6 @@
         "dotenv": "17.2.1",
         "execa": "9.6.0",
         "exit-hook": "4.0.0",
-        "fast-xml-parser": "5.2.5",
         "fastify": "5.5.0",
         "filenamify": "6.0.0",
         "fs-extra": "11.3.1",
