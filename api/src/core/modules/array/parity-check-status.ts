@@ -1,3 +1,5 @@
+import { toNumberAlways } from '@unraid/shared/util/data.js';
+
 import type { Var } from '@app/core/types/states/var.js';
 
 export enum ParityCheckStatus {
@@ -11,10 +13,11 @@ export enum ParityCheckStatus {
 
 export function getParityCheckStatus(varData: Var): ParityCheckStatus {
     const { mdResyncPos, mdResyncDt, sbSyncExit, sbSynced, sbSynced2 } = varData;
-    const sbSyncExitNumber = Number(sbSyncExit);
+    const mdResyncDtNumber = toNumberAlways(mdResyncDt, 0);
+    const sbSyncExitNumber = toNumberAlways(sbSyncExit, 0);
 
     if (mdResyncPos > 0) {
-        return Number(mdResyncDt) > 0 ? ParityCheckStatus.RUNNING : ParityCheckStatus.PAUSED;
+        return mdResyncDtNumber > 0 ? ParityCheckStatus.RUNNING : ParityCheckStatus.PAUSED;
     }
 
     if (sbSynced === 0) {

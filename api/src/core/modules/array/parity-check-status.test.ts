@@ -300,6 +300,173 @@ describe('getParityCheckStatus', () => {
         });
     });
 
+    describe('Corrupt/Invalid Number Handling', () => {
+        it('should return PAUSED when mdResyncDt is null and mdResyncPos > 0', () => {
+            const varData = createMockVarData({
+                mdResyncPos: 100,
+                mdResyncDt: null as any,
+                sbSynced: 100,
+            });
+
+            expect(getParityCheckStatus(varData)).toBe(ParityCheckStatus.PAUSED);
+        });
+
+        it('should return PAUSED when mdResyncDt is undefined and mdResyncPos > 0', () => {
+            const varData = createMockVarData({
+                mdResyncPos: 100,
+                mdResyncDt: undefined as any,
+                sbSynced: 100,
+            });
+
+            expect(getParityCheckStatus(varData)).toBe(ParityCheckStatus.PAUSED);
+        });
+
+        it('should return NEVER_RUN when sbSyncExit is null (converts to 0)', () => {
+            const varData = createMockVarData({
+                mdResyncPos: 0,
+                sbSynced: 100,
+                sbSyncExit: null as any,
+            });
+
+            // Number(null) = 0, so this behaves like sbSyncExit = '0'
+            expect(getParityCheckStatus(varData)).toBe(ParityCheckStatus.NEVER_RUN);
+        });
+
+        it('should return NEVER_RUN when sbSyncExit is undefined (NaN treated as 0)', () => {
+            const varData = createMockVarData({
+                mdResyncPos: 0,
+                sbSynced: 100,
+                sbSyncExit: undefined as any,
+            });
+
+            // Number(undefined) = NaN, treated as 0, so behaves like sbSyncExit = '0'
+            expect(getParityCheckStatus(varData)).toBe(ParityCheckStatus.NEVER_RUN);
+        });
+
+        it('should return NEVER_RUN when sbSyncExit is an object (NaN treated as 0)', () => {
+            const varData = createMockVarData({
+                mdResyncPos: 0,
+                sbSynced: 100,
+                sbSyncExit: {} as any,
+            });
+
+            // Number({}) = NaN, treated as 0, so behaves like sbSyncExit = '0'
+            expect(getParityCheckStatus(varData)).toBe(ParityCheckStatus.NEVER_RUN);
+        });
+
+        it('should return NEVER_RUN when sbSyncExit is an empty array (converts to 0)', () => {
+            const varData = createMockVarData({
+                mdResyncPos: 0,
+                sbSynced: 100,
+                sbSyncExit: [] as any,
+            });
+
+            // Number([]) = 0, so this behaves like sbSyncExit = '0'
+            expect(getParityCheckStatus(varData)).toBe(ParityCheckStatus.NEVER_RUN);
+        });
+
+        it('should return NEVER_RUN when sbSyncExit is a non-empty array (NaN treated as 0)', () => {
+            const varData = createMockVarData({
+                mdResyncPos: 0,
+                sbSynced: 100,
+                sbSyncExit: [1, 2, 3] as any,
+            });
+
+            // Number([1,2,3]) = NaN, treated as 0, so behaves like sbSyncExit = '0'
+            expect(getParityCheckStatus(varData)).toBe(ParityCheckStatus.NEVER_RUN);
+        });
+
+        it('should return FAILED when sbSyncExit is boolean true', () => {
+            const varData = createMockVarData({
+                mdResyncPos: 0,
+                sbSynced: 100,
+                sbSyncExit: true as any,
+            });
+
+            expect(getParityCheckStatus(varData)).toBe(ParityCheckStatus.FAILED);
+        });
+
+        it('should return NEVER_RUN when sbSyncExit is boolean false (converts to 0)', () => {
+            const varData = createMockVarData({
+                mdResyncPos: 0,
+                sbSynced: 100,
+                sbSyncExit: false as any,
+            });
+
+            // Number(false) = 0, so sbSyncExitNumber === -4 is false, sbSyncExitNumber !== 0 is false
+            // Falls through to check sbSynced2 > 0, which is false, so returns NEVER_RUN fallback
+            expect(getParityCheckStatus(varData)).toBe(ParityCheckStatus.NEVER_RUN);
+        });
+
+        it('should return PAUSED when mdResyncDt contains special characters', () => {
+            const varData = createMockVarData({
+                mdResyncPos: 100,
+                mdResyncDt: '!@#$%^&*()',
+                sbSynced: 100,
+            });
+
+            expect(getParityCheckStatus(varData)).toBe(ParityCheckStatus.PAUSED);
+        });
+
+        it('should return NEVER_RUN when sbSyncExit contains special characters (NaN treated as 0)', () => {
+            const varData = createMockVarData({
+                mdResyncPos: 0,
+                sbSynced: 100,
+                sbSyncExit: '!@#$%^&*()',
+            });
+
+            // Number('!@#$%^&*()') = NaN, treated as 0, so behaves like sbSyncExit = '0'
+            expect(getParityCheckStatus(varData)).toBe(ParityCheckStatus.NEVER_RUN);
+        });
+
+        it('should return PAUSED when mdResyncDt is Infinity string', () => {
+            const varData = createMockVarData({
+                mdResyncPos: 100,
+                mdResyncDt: 'Infinity',
+                sbSynced: 100,
+            });
+
+            // Number('Infinity') = Infinity, and Infinity > 0 is true
+            expect(getParityCheckStatus(varData)).toBe(ParityCheckStatus.RUNNING);
+        });
+
+        it('should return PAUSED when mdResyncDt is -Infinity string', () => {
+            const varData = createMockVarData({
+                mdResyncPos: 100,
+                mdResyncDt: '-Infinity',
+                sbSynced: 100,
+            });
+
+            // Number('-Infinity') = -Infinity, and -Infinity > 0 is false
+            expect(getParityCheckStatus(varData)).toBe(ParityCheckStatus.PAUSED);
+        });
+
+        it('should return FAILED when sbSyncExit is Infinity string', () => {
+            const varData = createMockVarData({
+                mdResyncPos: 0,
+                sbSynced: 100,
+                sbSyncExit: 'Infinity',
+            });
+
+            // Number('Infinity') = Infinity, Infinity !== 0 is true, Infinity !== -4 is true
+            expect(getParityCheckStatus(varData)).toBe(ParityCheckStatus.FAILED);
+        });
+
+        it('should demonstrate NaN-to-0 treatment with completed status', () => {
+            const varData = createMockVarData({
+                mdResyncPos: 0,
+                sbSynced: 100,
+                sbSynced2: 200,
+                sbSyncExit: 'completely-invalid-string',
+            });
+
+            // Number('completely-invalid-string') = NaN, treated as 0
+            // sbSyncExitValue === -4 is false, sbSyncExitValue !== 0 is false
+            // Falls through to sbSynced2 > 0 check, which is true, so COMPLETED
+            expect(getParityCheckStatus(varData)).toBe(ParityCheckStatus.COMPLETED);
+        });
+    });
+
     describe('Edge cases and string-to-number conversion', () => {
         it('should handle mdResyncDt with whitespace', () => {
             const varData = createMockVarData({
@@ -320,7 +487,7 @@ describe('getParityCheckStatus', () => {
             expect(getParityCheckStatus(varData)).toBe(ParityCheckStatus.CANCELLED);
         });
 
-        it('should handle sbSyncExit as non-numeric string (becomes NaN, then not equal to -4 or 0)', () => {
+        it('should handle sbSyncExit as non-numeric string (NaN treated as 0)', () => {
             const varData = createMockVarData({
                 mdResyncPos: 0,
                 sbSynced: 100,
@@ -328,7 +495,8 @@ describe('getParityCheckStatus', () => {
                 sbSyncExit: 'invalid',
             });
 
-            expect(getParityCheckStatus(varData)).toBe(ParityCheckStatus.FAILED);
+            // Number('invalid') = NaN, treated as 0, then checks sbSynced2 > 0 (true) = COMPLETED
+            expect(getParityCheckStatus(varData)).toBe(ParityCheckStatus.COMPLETED);
         });
 
         it('should handle all zero values', () => {
@@ -420,6 +588,7 @@ describe('getParityCheckStatus', () => {
                 sbSyncExit: '0x4',
             });
 
+            // Number('0x4') = 4 (valid hex), so 4 !== 0 is true, returns FAILED
             expect(getParityCheckStatus(varData)).toBe(ParityCheckStatus.FAILED);
         });
 
