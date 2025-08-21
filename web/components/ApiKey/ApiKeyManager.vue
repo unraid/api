@@ -27,7 +27,7 @@ import type { ApiKeyFragment } from '~/composables/gql/graphql';
 import { useFragment } from '~/composables/gql/fragment-masking';
 import { useApiKeyStore } from '~/store/apiKey';
 import { API_KEY_FRAGMENT, DELETE_API_KEY, GET_API_KEY_META, GET_API_KEYS } from './apikey.query';
-import EffectivePermissions from './EffectivePermissions.vue';
+import EffectivePermissions from '~/components/ApiKey/EffectivePermissions.vue';
 
 const { result, refetch } = useQuery(GET_API_KEYS);
 
@@ -37,15 +37,15 @@ const apiKeys = ref<ApiKeyFragment[]>([]);
 
 
 watchEffect(() => {
-  const baseKeys: (ApiKeyFragment | ApiKeyFragment)[] =
+  const baseKeys: ApiKeyFragment[] =
     result.value?.apiKeys.map((key) => useFragment(API_KEY_FRAGMENT, key)) || [];
   
   if (createdKey.value) {
     const existingKeyIndex = baseKeys.findIndex((key) => key.id === createdKey.value?.id);
     if (existingKeyIndex >= 0) {
-      baseKeys[existingKeyIndex] = createdKey.value as ApiKeyFragment | ApiKeyFragment;
+      baseKeys[existingKeyIndex] = createdKey.value;
     } else {
-      baseKeys.unshift(createdKey.value as ApiKeyFragment | ApiKeyFragment);
+      baseKeys.unshift(createdKey.value);
     }
     
     // Don't automatically show keys - keep them hidden by default
