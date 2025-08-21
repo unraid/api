@@ -10,6 +10,7 @@ export interface AuthorizationFormData {
     resources: string[];
     actions: string[];
   }>;
+  [key: string]: unknown; // Allow additional properties
 }
 
 /**
