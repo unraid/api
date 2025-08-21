@@ -143,9 +143,20 @@ export type ApiKey = Node & {
   createdAt: Scalars['String']['output'];
   description?: Maybe<Scalars['String']['output']>;
   id: Scalars['PrefixedID']['output'];
+  key: Scalars['String']['output'];
   name: Scalars['String']['output'];
   permissions: Array<Permission>;
   roles: Array<Role>;
+};
+
+export type ApiKeyFormSchema = {
+  __typename?: 'ApiKeyFormSchema';
+  /** Initial form data */
+  formData?: Maybe<Scalars['JSON']['output']>;
+  /** JSON Schema for the form data */
+  schema: Scalars['JSON']['output'];
+  /** UI Schema for form layout */
+  uiSchema: Scalars['JSON']['output'];
 };
 
 /** API Key related mutations */
@@ -154,13 +165,13 @@ export type ApiKeyMutations = {
   /** Add a role to an API key */
   addRole: Scalars['Boolean']['output'];
   /** Create an API key */
-  create: ApiKeyWithSecret;
+  create: ApiKey;
   /** Delete one or more API keys */
   delete: Scalars['Boolean']['output'];
   /** Remove a role from an API key */
   removeRole: Scalars['Boolean']['output'];
   /** Update an API key */
-  update: ApiKeyWithSecret;
+  update: ApiKey;
 };
 
 
@@ -197,17 +208,6 @@ export type ApiKeyResponse = {
   __typename?: 'ApiKeyResponse';
   error?: Maybe<Scalars['String']['output']>;
   valid: Scalars['Boolean']['output'];
-};
-
-export type ApiKeyWithSecret = Node & {
-  __typename?: 'ApiKeyWithSecret';
-  createdAt: Scalars['String']['output'];
-  description?: Maybe<Scalars['String']['output']>;
-  id: Scalars['PrefixedID']['output'];
-  key: Scalars['String']['output'];
-  name: Scalars['String']['output'];
-  permissions: Array<Permission>;
-  roles: Array<Role>;
 };
 
 export type ArrayCapacity = {
@@ -1053,7 +1053,7 @@ export type InfoVersions = Node & {
   core: CoreVersions;
   id: Scalars['PrefixedID']['output'];
   /** Software package versions */
-  packages: PackageVersions;
+  packages?: Maybe<PackageVersions>;
 };
 
 export type InitiateFlashBackupInput = {
@@ -1613,6 +1613,12 @@ export type Query = {
   disks: Array<Disk>;
   docker: Docker;
   flash: Flash;
+  /** Get JSON Schema for API key authorization form */
+  getApiKeyAuthorizationFormSchema: ApiKeyFormSchema;
+  /** Get JSON Schema for API key creation form */
+  getApiKeyCreationFormSchema: ApiKeyFormSchema;
+  /** Get the actual permissions that would be granted by a set of roles */
+  getPermissionsForRoles: Array<Permission>;
   info: Info;
   isInitialSetup: Scalars['Boolean']['output'];
   isSSOEnabled: Scalars['Boolean']['output'];
@@ -1632,6 +1638,8 @@ export type Query = {
   parityHistory: Array<ParityCheck>;
   /** List all installed plugins with their metadata */
   plugins: Array<Plugin>;
+  /** Preview the effective permissions for a combination of roles and explicit permissions */
+  previewEffectivePermissions: Array<Permission>;
   /** Get public OIDC provider information for login buttons */
   publicOidcProviders: Array<PublicOidcProvider>;
   publicPartnerInfo?: Maybe<PublicPartnerInfo>;
@@ -1665,6 +1673,18 @@ export type QueryDiskArgs = {
 };
 
 
+export type QueryGetApiKeyAuthorizationFormSchemaArgs = {
+  appDescription?: InputMaybe<Scalars['String']['input']>;
+  appName: Scalars['String']['input'];
+  requestedScopes: Array<Scalars['String']['input']>;
+};
+
+
+export type QueryGetPermissionsForRolesArgs = {
+  roles: Array<Role>;
+};
+
+
 export type QueryLogFileArgs = {
   lines?: InputMaybe<Scalars['Int']['input']>;
   path: Scalars['String']['input'];
@@ -1674,6 +1694,12 @@ export type QueryLogFileArgs = {
 
 export type QueryOidcProviderArgs = {
   id: Scalars['PrefixedID']['input'];
+};
+
+
+export type QueryPreviewEffectivePermissionsArgs = {
+  permissions?: InputMaybe<Array<AddPermissionInput>>;
+  roles?: InputMaybe<Array<Role>>;
 };
 
 
@@ -1869,10 +1895,14 @@ export enum Resource {
 
 /** Available roles for API keys and users */
 export enum Role {
+  /** Full administrative access to all resources */
   ADMIN = 'ADMIN',
+  /** Internal Role for Unraid Connect */
   CONNECT = 'CONNECT',
+  /** Basic read access to user profile only */
   GUEST = 'GUEST',
-  USER = 'USER'
+  /** Read-only access to all resources */
+  VIEWER = 'VIEWER'
 }
 
 export type Server = Node & {
@@ -2527,7 +2557,7 @@ export type GetSsoUsersQuery = { __typename?: 'Query', settings: { __typename?: 
 export type SystemReportQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type SystemReportQuery = { __typename?: 'Query', info: { __typename?: 'Info', id: any, machineId?: string | null, system: { __typename?: 'InfoSystem', manufacturer?: string | null, model?: string | null, version?: string | null, sku?: string | null, serial?: string | null, uuid?: string | null }, versions: { __typename?: 'InfoVersions', core: { __typename?: 'CoreVersions', unraid?: string | null, kernel?: string | null }, packages: { __typename?: 'PackageVersions', openssl?: string | null } } }, config: { __typename?: 'Config', id: any, valid?: boolean | null, error?: string | null }, server?: { __typename?: 'Server', id: any, name: string } | null };
+export type SystemReportQuery = { __typename?: 'Query', info: { __typename?: 'Info', id: any, machineId?: string | null, system: { __typename?: 'InfoSystem', manufacturer?: string | null, model?: string | null, version?: string | null, sku?: string | null, serial?: string | null, uuid?: string | null }, versions: { __typename?: 'InfoVersions', core: { __typename?: 'CoreVersions', unraid?: string | null, kernel?: string | null }, packages?: { __typename?: 'PackageVersions', openssl?: string | null } | null } }, config: { __typename?: 'Config', id: any, valid?: boolean | null, error?: string | null }, server?: { __typename?: 'Server', id: any, name: string } | null };
 
 export type ConnectStatusQueryVariables = Exact<{ [key: string]: never; }>;
 

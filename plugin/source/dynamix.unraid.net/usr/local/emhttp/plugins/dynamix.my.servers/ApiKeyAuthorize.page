@@ -1,0 +1,6 @@
+Menu="ManagementAccess:160"
+Title="API Key Authorization"
+Icon="icon-u-shield-keyhole"
+Tag="key"
+---
+<unraid-api-key-authorize />

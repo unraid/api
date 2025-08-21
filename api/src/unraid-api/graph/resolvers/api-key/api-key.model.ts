@@ -33,6 +33,10 @@ export class Permission {
 export class ApiKey extends Node {
     @Field()
     @IsString()
+    key!: string;
+
+    @Field()
+    @IsString()
     @IsNotEmpty()
     name!: string;
 
@@ -56,13 +60,6 @@ export class ApiKey extends Node {
     @ValidateNested({ each: true })
     @Type(() => Permission)
     permissions!: Permission[];
-}
-
-@ObjectType()
-export class ApiKeyWithSecret extends ApiKey {
-    @Field()
-    @IsString()
-    key!: string;
 }
 
 @InputType()

@@ -169,7 +169,7 @@ const updateItem = (index: number, newValue: unknown) => {
   <div class="w-full">
     <Tabs v-if="items.length > 0" v-model="activeTab" class="w-full">
       <div class="flex items-center gap-2 mb-4">
-        <TabsList class="flex-1">
+        <TabsList class="flex-1 flex-wrap">
           <TabsTrigger
             v-for="(item, index) in items"
             :key="index"

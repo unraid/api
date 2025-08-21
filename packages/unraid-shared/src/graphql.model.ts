@@ -39,10 +39,10 @@ export enum Resource {
 }
 
 export enum Role {
-    ADMIN = 'ADMIN',
-    USER = 'USER',
-    CONNECT = 'CONNECT',
-    GUEST = 'GUEST',
+    ADMIN = 'ADMIN', // Full administrative access to all resources
+    CONNECT = 'CONNECT', // Read access to all resources with remote access management
+    GUEST = 'GUEST', // Basic read access to user profile only
+    VIEWER = 'VIEWER', // Read-only access to all resources
 }
 
 @InterfaceType()
@@ -61,6 +61,20 @@ registerEnumType(Resource, {
 registerEnumType(Role, {
     name: 'Role',
     description: 'Available roles for API keys and users',
+    valuesMap: {
+        ADMIN: {
+            description: 'Full administrative access to all resources',
+        },
+        CONNECT: {
+            description: 'Internal Role for Unraid Connect',
+        },
+        GUEST: {
+            description: 'Basic read access to user profile only',
+        },
+        VIEWER: {
+            description: 'Read-only access to all resources',
+        },
+    },
 });
 
 export interface ApiKey {

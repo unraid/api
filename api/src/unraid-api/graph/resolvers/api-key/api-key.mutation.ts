@@ -11,14 +11,13 @@ import { ApiKeyService } from '@app/unraid-api/auth/api-key.service.js';
 import { AuthService } from '@app/unraid-api/auth/auth.service.js';
 import {
     AddRoleForApiKeyInput,
-    ApiKeyWithSecret,
+    ApiKey,
     CreateApiKeyInput,
     DeleteApiKeyInput,
     RemoveRoleFromApiKeyInput,
     UpdateApiKeyInput,
 } from '@app/unraid-api/graph/resolvers/api-key/api-key.model.js';
 import { ApiKeyMutations } from '@app/unraid-api/graph/resolvers/mutation/mutation.model.js';
-import { validateObject } from '@app/unraid-api/graph/resolvers/validation.utils.js';
 
 @Resolver(() => ApiKeyMutations)
 export class ApiKeyMutationsResolver {
@@ -32,8 +31,8 @@ export class ApiKeyMutationsResolver {
         resource: Resource.API_KEY,
         possession: AuthPossession.ANY,
     })
-    @ResolveField(() => ApiKeyWithSecret, { description: 'Create an API key' })
-    async create(@Args('input') input: CreateApiKeyInput): Promise<ApiKeyWithSecret> {
+    @ResolveField(() => ApiKey, { description: 'Create an API key' })
+    async create(@Args('input') input: CreateApiKeyInput): Promise<ApiKey> {
         const apiKey = await this.apiKeyService.create({
             name: input.name,
             description: input.description ?? undefined,
@@ -81,8 +80,8 @@ export class ApiKeyMutationsResolver {
         resource: Resource.API_KEY,
         possession: AuthPossession.ANY,
     })
-    @ResolveField(() => ApiKeyWithSecret, { description: 'Update an API key' })
-    async update(@Args('input') input: UpdateApiKeyInput): Promise<ApiKeyWithSecret> {
+    @ResolveField(() => ApiKey, { description: 'Update an API key' })
+    async update(@Args('input') input: UpdateApiKeyInput): Promise<ApiKey> {
         const apiKey = await this.apiKeyService.update(input);
         await this.authService.syncApiKeyRoles(apiKey.id, apiKey.roles);
         return apiKey;

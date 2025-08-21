@@ -1,7 +1,7 @@
 import { Injectable, Logger, UnauthorizedException } from '@nestjs/common';
 
-import { Role } from '@unraid/shared/graphql.model.js';
-import { AuthZService } from 'nest-authz';
+import { Resource, Role } from '@unraid/shared/graphql.model.js';
+import { AuthAction, AuthZService } from 'nest-authz';
 
 import { getters } from '@app/store/index.js';
 import { ApiKeyService } from '@app/unraid-api/auth/api-key.service.js';
@@ -225,6 +225,107 @@ export class AuthService {
 
     public validateCsrfToken(token?: string): boolean {
         return Boolean(token) && token === getters.emhttp().var.csrfToken;
+    }
+
+    /**
+     * Get implicit permissions for a role (including inherited permissions)
+     */
+    public async getImplicitPermissionsForRole(role: Role): Promise<Map<Resource, string[]>> {
+        const permissions = new Map<Resource, string[]>();
+
+        // Define the standard CRUD actions using the enum
+        const CRUD_ACTIONS = [
+            AuthAction.CREATE_ANY,
+            AuthAction.READ_ANY,
+            AuthAction.UPDATE_ANY,
+            AuthAction.DELETE_ANY,
+        ];
+
+        try {
+            // Get all permissions for this role from Casbin
+            const casbinPermissions = await this.authzService.getImplicitPermissionsForUser(role);
+
+            // Track wildcard permissions
+            const wildcardActions: string[] = [];
+
+            // Parse the Casbin permissions format: [["role", "resource", "action"], ...]
+            for (const perm of casbinPermissions) {
+                if (perm.length >= 3) {
+                    const resourceStr = perm[1];
+                    const action = perm[2];
+
+                    // Handle wildcard resources (e.g., CONNECT role has *, READ_ANY)
+                    if (resourceStr === '*') {
+                        // This means all resources get this action
+                        if (action === '*') {
+                            // Wildcard action - expand to all CRUD operations with _ANY suffix
+                            wildcardActions.push(
+                                AuthAction.CREATE_ANY,
+                                AuthAction.READ_ANY,
+                                AuthAction.UPDATE_ANY,
+                                AuthAction.DELETE_ANY
+                            );
+                        } else {
+                            wildcardActions.push(action);
+                        }
+                        continue;
+                    }
+
+                    if (!resourceStr) {
+                        continue;
+                    }
+
+                    // Validate that this is a valid Resource enum value
+                    const resource = Resource[resourceStr as keyof typeof Resource];
+                    if (!resource) {
+                        this.logger.debug(`Skipping invalid resource from Casbin: ${resourceStr}`);
+                        continue;
+                    }
+
+                    if (!permissions.has(resource)) {
+                        permissions.set(resource, []);
+                    }
+                    const actions = permissions.get(resource)!;
+
+                    // Expand wildcard action to CRUD operations with _ANY suffix
+                    if (action === '*') {
+                        const crudActionsWithSuffix = [
+                            AuthAction.CREATE_ANY,
+                            AuthAction.READ_ANY,
+                            AuthAction.UPDATE_ANY,
+                            AuthAction.DELETE_ANY,
+                        ];
+                        for (const crudAction of crudActionsWithSuffix) {
+                            if (!actions.includes(crudAction)) {
+                                actions.push(crudAction);
+                            }
+                        }
+                    } else {
+                        if (!actions.includes(action)) {
+                            actions.push(action);
+                        }
+                    }
+                }
+            }
+
+            // Apply wildcard actions to all resources
+            if (wildcardActions.length > 0) {
+                // Get all valid resources from the enum
+                for (const resourceKey of Object.keys(Resource)) {
+                    const resource = Resource[resourceKey as keyof typeof Resource];
+                    if (resource) {
+                        const existingActions = permissions.get(resource) || [];
+                        // Merge wildcard actions with existing specific actions
+                        const allActions = Array.from(new Set([...existingActions, ...wildcardActions]));
+                        permissions.set(resource, allActions);
+                    }
+                }
+            }
+        } catch (error) {
+            this.logger.error(`Failed to get permissions for role ${role}:`, error);
+        }
+
+        return permissions;
     }
 
     /**
