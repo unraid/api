@@ -23,7 +23,6 @@ import Modal from '~/components/Modal.vue';
 export interface Props {
   open?: boolean;
   t: ComposerTranslation;
-  viewDocsLabel?: string;
   // When provided, uses prop data instead of store data (for viewing release notes)
   release?: {
     version: string;
@@ -38,7 +37,6 @@ export interface Props {
 const props = withDefaults(defineProps<Props>(), {
   open: false,
   release: null,
-  viewDocsLabel: undefined,
 });
 
 const emit = defineEmits<{
@@ -48,7 +46,13 @@ const emit = defineEmits<{
 const purchaseStore = usePurchaseStore();
 const updateOsStore = useUpdateOsStore();
 const themeStore = useThemeStore();
-const { darkMode } = storeToRefs(themeStore);
+const { darkMode, theme } = storeToRefs(themeStore);
+const isDarkMode = computed(() => {
+  if (theme.value.name === 'azure') {
+    return true;
+  }
+  return darkMode.value;
+});
 const { availableWithRenewal, releaseForUpdate, changelogModalVisible } = storeToRefs(updateOsStore);
 const { setReleaseForUpdate, fetchAndConfirmInstall } = updateOsStore;
 
@@ -114,7 +118,7 @@ const handleDocsPostMessages = (event: MessageEvent) => {
 const sendThemeToIframe = () => {
   if (iframeRef.value && iframeRef.value.contentWindow) {
     try {
-      const message = { type: 'theme-update', theme: darkMode.value ? 'dark' : 'light' };
+      const message = { type: 'theme-update', theme: isDarkMode.value ? 'dark' : 'light' };
       iframeRef.value.contentWindow.postMessage(message, '*');
     } catch (error) {
       console.error('Failed to send theme to iframe:', error);
@@ -154,7 +158,7 @@ watch(docsChangelogUrl, (newUrl) => {
 });
 
 // Only need to watch for theme changes
-watch(darkMode, () => {
+watch(isDarkMode, () => {
   // The iframe will only pick up the message if it has sent theme-ready
   sendThemeToIframe();
 });
@@ -228,7 +232,6 @@ watch(darkMode, () => {
             :external="true"
             :href="currentIframeUrl || currentRelease?.changelogPretty"
             :icon-right="ArrowTopRightOnSquareIcon"
-            :text="viewDocsLabel ? props.t(viewDocsLabel) : undefined"
             aria-label="View on Docs"
           />
         </div>
