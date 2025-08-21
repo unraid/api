@@ -1,6 +1,7 @@
-Menu="ManagementAccess:160"
+Menu="WebGui"
 Title="API Key Authorization"
 Icon="icon-u-shield-keyhole"
 Tag="key"
+Cond="false"
 ---
 <unraid-api-key-authorize />
