@@ -36,17 +36,13 @@ export function useApiKeyAuthorization(urlSearchParams?: URLSearchParams) {
     state: params.get('state') || '',
   });
 
-  // Validate redirect URI
+  // Validate redirect URI - allow any valid URL including app URLs and custom schemes
   const isValidRedirectUri = (uri: string): boolean => {
     if (!uri) return false;
     try {
-      const url = new URL(uri);
-      // Allow localhost for development
-      if (url.hostname === 'localhost' || url.hostname === '127.0.0.1') {
-        return true;
-      }
-      // Require HTTPS for production redirects
-      return url.protocol === 'https:';
+      // Just check if it's a valid URL format, don't restrict protocols or hosts
+      new URL(uri);
+      return true;
     } catch {
       return false;
     }
