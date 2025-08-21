@@ -44,7 +44,7 @@ const props = defineProps<Props>();
 const { t } = props;
 
 const apiKeyStore = useApiKeyStore();
-const { modalVisible, editingKey, isAuthorizationMode, authorizationData } = storeToRefs(apiKeyStore);
+const { modalVisible, editingKey, isAuthorizationMode, authorizationData, createdKey } = storeToRefs(apiKeyStore);
 
 // Form schema and data - these come from the backend JSON Schema service
 // We parse the JSON string response into this structure
@@ -345,9 +345,8 @@ async function upsertKey() {
 
 // Copy API key after creation
 const copyApiKey = async () => {
-  const createdKey = apiKeyStore.createdKey;
-  if (createdKey && 'key' in createdKey) {
-    await copy(createdKey.key);
+  if (createdKey.value && 'key' in createdKey.value) {
+    await copy(createdKey.value.key);
   }
 };
 </script>
@@ -465,7 +464,7 @@ const copyApiKey = async () => {
       </div>
 
       <!-- Success state for authorization mode -->
-      <div v-if="isAuthorizationMode && apiKeyStore.createdKey && 'key' in apiKeyStore.createdKey" class="mt-4 p-4 bg-green-50 dark:bg-green-900/20 rounded-lg">
+      <div v-if="isAuthorizationMode && createdKey && 'key' in createdKey" class="mt-4 p-4 bg-green-50 dark:bg-green-900/20 rounded-lg">
         <div class="flex items-center justify-between mb-2">
           <span class="text-sm font-medium">API Key created successfully!</span>
           <Button
@@ -479,7 +478,7 @@ const copyApiKey = async () => {
           </Button>
         </div>
         <code class="block mt-2 p-2 bg-white dark:bg-gray-800 rounded text-xs break-all border">
-          {{ apiKeyStore.createdKey.key }}
+          {{ createdKey.key }}
         </code>
         <p class="text-xs text-muted-foreground mt-2">
           Save this key securely. You won't be able to see it again.
