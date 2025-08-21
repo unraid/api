@@ -20,13 +20,13 @@ export function useApiKeyAuthorizationForm(urlSearchParams?: URLSearchParams) {
   const {
     authParams,
     defaultKeyName,
+    convertScopesToPermissions,
   } = useApiKeyAuthorization(urlSearchParams);
 
   /**
    * Convert URL params to form data including parsed scopes
    */
   const convertScopesToFormData = computed((): AuthorizationFormData => {
-    const { convertScopesToPermissions } = useApiKeyAuthorization();
     const scopeConversion = convertScopesToPermissions(authParams.value.scopes);
     
     return {
