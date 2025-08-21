@@ -535,6 +535,53 @@ describe('ApiKeyService', () => {
                 key: 'unique-key',
             });
         });
+
+        it('should normalize permission actions to lowercase when loading from disk', async () => {
+            const apiKeyWithMixedCaseActions = {
+                ...loadMockApiKey,
+                permissions: [
+                    {
+                        resource: Resource.DOCKER,
+                        actions: ['READ:ANY', 'Update:Any', 'create:any', 'DELETE:ANY'], // Mixed case actions
+                    },
+                    {
+                        resource: Resource.ARRAY,
+                        actions: ['Read:Any'], // Mixed case
+                    },
+                ],
+            };
+
+            vi.mocked(readdir).mockResolvedValue(['key1.json'] as any);
+            vi.mocked(readFile).mockResolvedValueOnce(JSON.stringify(apiKeyWithMixedCaseActions));
+
+            const result = await apiKeyService.loadAllFromDisk();
+
+            expect(result).toHaveLength(1);
+            // All actions should be normalized to lowercase
+            expect(result[0].permissions[0].actions).toEqual([
+                'read:any',
+                'update:any',
+                'create:any',
+                'delete:any',
+            ]);
+            expect(result[0].permissions[1].actions).toEqual(['read:any']);
+        });
+
+        it('should normalize roles to uppercase when loading from disk', async () => {
+            const apiKeyWithMixedCaseRoles = {
+                ...loadMockApiKey,
+                roles: ['admin', 'Viewer', 'CONNECT'], // Mixed case roles
+            };
+
+            vi.mocked(readdir).mockResolvedValue(['key1.json'] as any);
+            vi.mocked(readFile).mockResolvedValueOnce(JSON.stringify(apiKeyWithMixedCaseRoles));
+
+            const result = await apiKeyService.loadAllFromDisk();
+
+            expect(result).toHaveLength(1);
+            // All roles should be normalized to uppercase
+            expect(result[0].roles).toEqual(['ADMIN', 'VIEWER', 'CONNECT']);
+        });
     });
 
     describe('loadApiKeyFile', () => {

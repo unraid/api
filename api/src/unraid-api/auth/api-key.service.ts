@@ -185,6 +185,15 @@ export class ApiKeyService implements OnModuleInit {
             if (parsedContent.roles) {
                 parsedContent.roles = parsedContent.roles.map((role: string) => role.toUpperCase());
             }
+
+            // Normalize permission actions to lowercase for consistent matching
+            if (parsedContent.permissions) {
+                parsedContent.permissions = parsedContent.permissions.map((permission: any) => ({
+                    ...permission,
+                    actions: permission.actions?.map((action: string) => action.toLowerCase()) || [],
+                }));
+            }
+
             return await validateObject(ApiKey, parsedContent);
         } catch (error) {
             if (error instanceof SyntaxError) {
