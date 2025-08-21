@@ -86,7 +86,7 @@ watch(
         <div 
           v-for="perm in effectivePermissions" 
           :key="perm.resource"
-          class="text-xs bg-white dark:bg-gray-800 p-2 rounded border border-gray-200 dark:border-gray-700"
+          class="text-xs bg-background p-2 rounded border border-muted"
         >
           <div class="flex items-center gap-2 mb-1">
             <span class="font-medium">{{ perm.resource }}</span>

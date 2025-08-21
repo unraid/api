@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref } from 'vue';
+import { Button } from '@unraid/ui';
 import { useApiKeyAuthorization } from '~/composables/useApiKeyAuthorization';
 import { useApiKeyAuthorizationForm } from '~/composables/useApiKeyAuthorizationForm';
 import { useApiKeyStore } from '~/store/apiKey';
@@ -100,7 +101,7 @@ const returnToApp = () => {
 <template>
   <div class="max-w-4xl mx-auto p-6">
     <!-- Success state -->
-    <div v-if="showSuccess && createdApiKey" class="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+    <div v-if="showSuccess && createdApiKey" class="bg-background rounded-lg shadow p-6 border border-muted">
       <div class="space-y-4">
         <div class="p-4 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg">
           <h3 class="text-lg font-medium text-green-900 dark:text-green-100 mb-2">
@@ -111,30 +112,31 @@ const returnToApp = () => {
           </p>
         </div>
 
-        <div class="bg-gray-100 dark:bg-gray-700 rounded-lg p-4">
+        <div class="bg-secondary rounded-lg p-4">
           <p class="text-sm font-medium mb-2">Your API Key:</p>
-          <code class="block text-sm font-mono break-all bg-white dark:bg-gray-900 p-3 rounded border">
+          <code class="block text-sm font-mono break-all bg-background p-3 rounded border border-muted">
             {{ createdApiKey }}
           </code>
-          <p class="mt-2 text-sm text-gray-500 dark:text-gray-400">
+          <p class="mt-2 text-sm text-muted-foreground">
             Save this key securely. It won't be shown again.
           </p>
         </div>
 
         <div class="flex gap-3">
-          <button
+          <Button
             v-if="hasValidRedirectUri"
-            class="flex-1 py-2 px-4 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+            class="flex-1"
             @click="returnToApp"
           >
             Return to {{ authParams.name }}
-          </button>
-          <button
-            class="flex-1 py-2 px-4 border border-gray-300 rounded-md hover:bg-gray-50 dark:border-gray-600 dark:hover:bg-gray-700"
+          </Button>
+          <Button
+            variant="outline"
+            class="flex-1"
             @click="navigateToWebgui"
           >
             Return to Unraid
-          </button>
+          </Button>
         </div>
       </div>
     </div>
@@ -143,16 +145,16 @@ const returnToApp = () => {
     <div v-else>
       <div class="mb-6 text-center">
         <h2 class="text-2xl font-bold mb-2">API Key Authorization</h2>
-        <p class="text-gray-600 dark:text-gray-400">
+        <p class="text-muted-foreground">
           <strong>{{ displayAppName }}</strong> is requesting API access to your Unraid server
         </p>
       </div>
 
       <!-- Authorization details -->
-      <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+      <div class="bg-background rounded-lg shadow p-6 border border-muted">
         <div v-if="hasPermissions" class="mb-4">
           <h3 class="text-sm font-semibold mb-2">Requested Permissions:</h3>
-          <p class="text-sm text-gray-600 dark:text-gray-400">
+          <p class="text-sm text-muted-foreground">
             {{ permissionsSummary }}
           </p>
         </div>
@@ -163,25 +165,25 @@ const returnToApp = () => {
           </p>
         </div>
         
-        <p class="text-gray-600 dark:text-gray-400 mb-4">
+        <p class="text-muted-foreground mb-4">
           Click the button below to review the detailed permissions and authorize access.
         </p>
         
-        <button
-          class="w-full py-2 px-4 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+        <Button
+          class="w-full"
           @click="openAuthorizationModal"
         >
           Review Permissions & Authorize
-        </button>
+        </Button>
       </div>
 
       <div class="mt-4 text-center">
-        <button
-          class="px-4 py-2 text-gray-600 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200"
+        <Button
+          variant="ghost"
           @click="deny"
         >
           Cancel and return
-        </button>
+        </Button>
       </div>
     </div>
 
