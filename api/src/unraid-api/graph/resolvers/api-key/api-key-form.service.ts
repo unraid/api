@@ -45,23 +45,26 @@ export class ApiKeyFormService {
      * Generate form schema for API key creation
      */
     getApiKeyCreationFormSchema(): {
-        schema: JsonSchema;
-        uiSchema: UISchemaElement;
-        formData?: Record<string, any>;
+        id: string;
+        dataSchema: Record<string, any>;
+        uiSchema: Record<string, any>;
+        values: Record<string, any>;
     } {
         const slice = this.createApiKeyCreationSlice();
         const merged = mergeSettingSlices([slice]);
 
         return {
-            schema: {
+            id: 'api-key-creation-form',
+            dataSchema: {
                 type: 'object',
                 required: ['name'],
                 properties: merged.properties,
-            } as JsonSchema,
+            },
             uiSchema: {
                 type: 'VerticalLayout',
                 elements: merged.elements,
             },
+            values: {},
         };
     }
 
@@ -72,7 +75,12 @@ export class ApiKeyFormService {
         appName: string,
         requestedScopes: string[],
         appDescription?: string
-    ): { schema: JsonSchema; uiSchema: UISchemaElement; formData?: Record<string, any> } {
+    ): {
+        id: string;
+        dataSchema: Record<string, any>;
+        uiSchema: Record<string, any>;
+        values: Record<string, any>;
+    } {
         const { roles, permissionGroups, customPermissions } =
             this.parseScopesToPermissions(requestedScopes);
         // Convert to old format for display
@@ -89,35 +97,36 @@ export class ApiKeyFormService {
         const merged = mergeSettingSlices([slice]);
 
         // Prepare initial form data
-        const formData: Record<string, any> = {
+        const values: Record<string, any> = {
             consent: false,
             keyName: `${appName} API Key`,
             requestedPermissions: {},
         };
 
         if (roles.length > 0) {
-            formData.requestedPermissions.roles = roles;
+            values.requestedPermissions.roles = roles;
         }
         if (permissionGroups.length > 0) {
-            formData.requestedPermissions.permissionGroups = permissionGroups;
+            values.requestedPermissions.permissionGroups = permissionGroups;
         }
         if (customPermissions.length > 0) {
-            formData.requestedPermissions.customPermissions = customPermissions;
+            values.requestedPermissions.customPermissions = customPermissions;
         }
 
         return {
-            schema: {
+            id: 'api-key-authorization-form',
+            dataSchema: {
                 type: 'object',
                 title: `Authorize ${appName}`,
                 description: appDescription || `Grant API access to ${appName}`,
                 required: ['consent', 'keyName'],
                 properties: merged.properties,
-            } as JsonSchema,
+            },
             uiSchema: {
                 type: 'VerticalLayout',
                 elements: merged.elements,
             },
-            formData,
+            values,
         };
     }
 

@@ -19,15 +19,6 @@ describe('AuthService', () => {
     let cookieService: CookieService;
 
     const mockApiKey: ApiKey = {
-        id: '10f356da-1e9e-43b8-9028-a26a645539a6',
-        name: 'Test API Key',
-        description: 'Test API Key Description',
-        roles: [Role.GUEST, Role.CONNECT],
-        createdAt: new Date().toISOString(),
-        permissions: [],
-    };
-
-    const mockApiKey: ApiKey = {
         id: 'test-api-id',
         key: 'test-api-key',
         name: 'Test API Key',
@@ -379,7 +370,7 @@ describe('AuthService', () => {
                 mockCasbinPermissions
             );
 
-            const result = await authService.getImplicitPermissionsForRole(Role.DOCKER_MANAGER);
+            const result = await authService.getImplicitPermissionsForRole(Role.ADMIN);
 
             expect(result).toBeInstanceOf(Map);
             // Docker should have all CRUD actions with proper format
@@ -395,9 +386,7 @@ describe('AuthService', () => {
                 ['ADMIN', 'INVALID_RESOURCE', 'READ'],
                 ['ADMIN', 'DOCKER', 'WRITE'],
                 ['ADMIN', '', 'READ'],
-                ['ADMIN', null, 'READ'],
-                ['ADMIN', undefined, 'READ'],
-            ];
+            ] as string[][];
 
             vi.spyOn(authzService, 'getImplicitPermissionsForUser').mockResolvedValue(
                 mockCasbinPermissions

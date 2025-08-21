@@ -55,6 +55,7 @@ export function createLabeledControl({
     layoutOptions,
     layoutType = 'UnraidSettingsLayout',
     rule,
+    passScopeToLayout = false,
 }: {
     scope: string;
     label: string;
@@ -64,6 +65,7 @@ export function createLabeledControl({
     layoutOptions?: Layout['options'];
     layoutType?: 'UnraidSettingsLayout' | 'VerticalLayout' | 'HorizontalLayout';
     rule?: Rule;
+    passScopeToLayout?: boolean;
 }): Layout {
     const elements: Array<LabelElement | ControlElement> = [
         {
@@ -82,7 +84,12 @@ export function createLabeledControl({
         type: layoutType,
         options: layoutOptions,
         elements,
-    };
+    } as Layout;
+
+    // Optionally add scope to the layout itself (for backward compatibility)
+    if (passScopeToLayout) {
+        (layout as any).scope = scope;
+    }
 
     // Conditionally add the rule to the layout if provided
     if (rule) {
