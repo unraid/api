@@ -288,6 +288,55 @@ describe('AuthService', () => {
         });
     });
 
+    describe('VIEWER role API_KEY access restriction', () => {
+        it('should deny VIEWER role access to API_KEY resource', async () => {
+            // Test that VIEWER role cannot access API_KEY resource
+            const mockCasbinPermissions = Object.values(Resource)
+                .filter((resource) => resource !== Resource.API_KEY)
+                .map((resource) => ['VIEWER', resource, 'read:any']);
+
+            vi.spyOn(authzService, 'getImplicitPermissionsForUser').mockResolvedValue(
+                mockCasbinPermissions
+            );
+
+            const result = await authService.getImplicitPermissionsForRole(Role.VIEWER);
+
+            // VIEWER should have read access to all resources EXCEPT API_KEY
+            expect(result).toBeInstanceOf(Map);
+            expect(result.size).toBeGreaterThan(0);
+
+            // Should NOT have API_KEY in the permissions
+            expect(result.has(Resource.API_KEY)).toBe(false);
+
+            // Should have read access to other resources
+            expect(result.get(Resource.DOCKER)).toEqual(['read:any']);
+            expect(result.get(Resource.ARRAY)).toEqual(['read:any']);
+            expect(result.get(Resource.CONFIG)).toEqual(['read:any']);
+            expect(result.get(Resource.ME)).toEqual(['read:any']);
+        });
+
+        it('should allow ADMIN role access to API_KEY resource', async () => {
+            // Test that ADMIN role CAN access API_KEY resource
+            const mockCasbinPermissions = [
+                ['ADMIN', '*', '*'], // Admin has wildcard access
+            ];
+
+            vi.spyOn(authzService, 'getImplicitPermissionsForUser').mockResolvedValue(
+                mockCasbinPermissions
+            );
+
+            const result = await authService.getImplicitPermissionsForRole(Role.ADMIN);
+
+            // ADMIN should have access to API_KEY through wildcard
+            expect(result).toBeInstanceOf(Map);
+            expect(result.has(Resource.API_KEY)).toBe(true);
+            expect(result.get(Resource.API_KEY)).toContain('create:any');
+            expect(result.get(Resource.API_KEY)).toContain('read:any');
+            expect(result.get(Resource.API_KEY)).toContain('update:any');
+            expect(result.get(Resource.API_KEY)).toContain('delete:any');
+        });
+    });
+
     describe('getImplicitPermissionsForRole', () => {
         it('should return permissions for a role', async () => {
             const mockCasbinPermissions = [
