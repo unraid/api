@@ -3,11 +3,11 @@ import { computed, ref } from 'vue';
 import { Button } from '@unraid/ui';
 import { ClipboardDocumentIcon, LinkIcon } from '@heroicons/vue/24/outline';
 import { generateAuthorizationUrl, copyAuthorizationUrl } from '~/utils/authorizationLink';
-import type { Role } from '~/composables/gql/graphql';
+import type { Role, AuthActionVerb } from '~/composables/gql/graphql';
 
 interface RawPermission {
   resource: string;
-  actions: string[];
+  actions: AuthActionVerb[];
 }
 
 interface Props {
