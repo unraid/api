@@ -3,6 +3,7 @@ import { readFile } from 'fs/promises';
 
 import { GraphQLError } from 'graphql';
 
+import { getParityCheckStatus, ParityCheckStatus } from '@app/core/modules/array/parity-check-status.js';
 import { emcmd } from '@app/core/utils/index.js';
 import { ParityCheck } from '@app/unraid-api/graph/resolvers/array/parity.model.js';
 
@@ -91,5 +92,10 @@ export class ParityService {
         }
 
         return this.getParityHistory();
+    }
+
+    async getParityCheckStatus(): Promise<ParityCheckStatus> {
+        const { getters } = await import('@app/store/index.js');
+        return getParityCheckStatus(getters.emhttp().var);
     }
 }

@@ -156,6 +156,9 @@ type UnraidArray implements Node {
   """Parity disks in the current array"""
   parities: [ArrayDisk!]!
 
+  """Current parity check status"""
+  parityCheckStatus: ParityCheckStatus!
+
   """Data disks in the current array"""
   disks: [ArrayDisk!]!
 
@@ -175,6 +178,15 @@ enum ArrayState {
   TOO_MANY_MISSING_DISKS
   NEW_DISK_TOO_SMALL
   NO_DATA_DISKS
+}
+
+enum ParityCheckStatus {
+  NEVER_RUN
+  RUNNING
+  PAUSED
+  COMPLETED
+  CANCELLED
+  FAILED
 }
 
 type Share implements Node {

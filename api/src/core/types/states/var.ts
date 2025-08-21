@@ -68,11 +68,24 @@ export type Var = {
     mdNumStripes: number;
     mdNumStripesDefault: number;
     mdNumStripesStatus: string;
+    /**
+     * Serves a dual purpose depending on context:
+     * - Total size of the operation (in sectors/blocks)
+     * - Running state indicator (0 = paused, >0 = running)
+     */
     mdResync: number;
     mdResyncAction: string;
     mdResyncCorr: string;
     mdResyncDb: string;
+    /** Average time interval (delta time) in seconds of current parity operations */
     mdResyncDt: string;
+    /**
+     * Current position in the parity operation (in sectors/blocks).
+     * When mdResyncPos > 0, a parity operation is active.
+     * When mdResyncPos = 0, no parity operation is running.
+     *
+     * Used to calculate progress percentage.
+     */
     mdResyncPos: number;
     mdResyncSize: number;
     mdState: ArrayState;
@@ -136,9 +149,36 @@ export type Var = {
     sbName: string;
     sbNumDisks: number;
     sbState: string;
+    /**
+     * Unix timestamp when parity operation started.
+     * When sbSynced = 0, indicates no parity check has ever been run.
+     *
+     * Used to calculate elapsed time during active operations.
+     */
     sbSynced: number;
     sbSynced2: number;
+    /**
+     * Unix timestamp when parity operation completed (successfully or with errors).
+     * Used to display completion time in status messages.
+     *
+     * When sbSynced2 = 0, indicates operation started but not yet finished
+     */
     sbSyncErrs: number;
+    /**
+     * Exit status code that indicates how the last parity operation completed, following standard Unix conventions.
+     *
+     * sbSyncExit = 0 - Successful Completion
+     * - Parity operation completed normally without errors
+     * - Used to calculate speed and display success message
+     *
+     * sbSyncExit = -4 - Aborted/Cancelled
+     * - Operation was manually cancelled by user
+     * - Displays as "aborted" in the UI
+     *
+     * sbSyncExit ≠ 0 (other values) - Failed/Incomplete
+     * - Operation failed due to errors or other issues
+     * - Displays the numeric error code
+     */
     sbSyncExit: string;
     sbUpdated: string;
     sbVersion: string;

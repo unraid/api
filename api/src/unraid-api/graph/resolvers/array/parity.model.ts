@@ -1,4 +1,10 @@
-import { Field, GraphQLISODateTime, Int, ObjectType } from '@nestjs/graphql';
+import { Field, GraphQLISODateTime, Int, ObjectType, registerEnumType } from '@nestjs/graphql';
+
+import { ParityCheckStatus } from '@app/core/modules/array/parity-check-status.js';
+
+registerEnumType(ParityCheckStatus, {
+    name: 'ParityCheckStatus',
+});
 
 @ObjectType()
 export class ParityCheck {
