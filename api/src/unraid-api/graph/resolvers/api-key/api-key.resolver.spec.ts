@@ -6,7 +6,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { ApiKeyService } from '@app/unraid-api/auth/api-key.service.js';
 import { AuthService } from '@app/unraid-api/auth/auth.service.js';
 import { CookieService } from '@app/unraid-api/auth/cookie.service.js';
-import { ApiKey, ApiKeyWithSecret } from '@app/unraid-api/graph/resolvers/api-key/api-key.model.js';
+import { ApiKey } from '@app/unraid-api/graph/resolvers/api-key/api-key.model.js';
 import { ApiKeyResolver } from '@app/unraid-api/graph/resolvers/api-key/api-key.resolver.js';
 
 describe('ApiKeyResolver', () => {
@@ -18,16 +18,7 @@ describe('ApiKeyResolver', () => {
 
     const mockApiKey: ApiKey = {
         id: 'test-api-id',
-        name: 'Test API Key',
-        description: 'Test API Key Description',
-        roles: [Role.GUEST],
-        createdAt: new Date().toISOString(),
-        permissions: [],
-    };
-
-    const mockApiKeyWithSecret: ApiKeyWithSecret = {
-        id: 'test-api-id',
-        key: 'test-api-key',
+        key: 'test-secret-key',
         name: 'Test API Key',
         description: 'Test API Key Description',
         roles: [Role.GUEST],

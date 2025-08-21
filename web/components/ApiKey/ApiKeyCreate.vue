@@ -50,9 +50,10 @@ const { modalVisible, editingKey, isAuthorizationMode, authorizationData } = sto
 // Form schema and data - these come from the backend JSON Schema service
 // We parse the JSON string response into this structure
 interface JsonSchemaForm {
-  schema: Record<string, unknown>;
+  id: string;
+  dataSchema: Record<string, unknown>;
   uiSchema?: Record<string, unknown>;
-  formData?: Record<string, unknown>;
+  values?: Record<string, unknown>;
 }
 
 // Form data that matches what the backend expects
@@ -121,7 +122,7 @@ const loadFormSchema = () => {
       if (result.data?.getApiKeyAuthorizationFormSchema) {
         console.log('Authorization form schema received:', result.data.getApiKeyAuthorizationFormSchema);
         formSchema.value = result.data.getApiKeyAuthorizationFormSchema;
-        formData.value = result.data.getApiKeyAuthorizationFormSchema.formData || {};
+        formData.value = result.data.getApiKeyAuthorizationFormSchema.values || {};
       }
     });
     
@@ -379,7 +380,7 @@ const copyApiKey = async () => {
       <!-- Shared form content -->
       <template v-if="formSchema">
         <JsonForms
-          :schema="formSchema.schema"
+          :schema="formSchema.dataSchema"
           :uischema="formSchema.uiSchema"
           :renderers="jsonFormsRenderers"
           :data="formData"
@@ -465,15 +466,15 @@ const copyApiKey = async () => {
   >
     <div class="max-w-[800px]">
       <!-- Show authorization description if in authorization mode -->
-      <div v-if="isAuthorizationMode && formSchema?.schema?.description" class="mb-4 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
-        <p class="text-sm">{{ formSchema.schema.description }}</p>
+      <div v-if="isAuthorizationMode && formSchema?.dataSchema?.description" class="mb-4 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+        <p class="text-sm">{{ formSchema.dataSchema.description }}</p>
       </div>
 
       <!-- Dynamic Form based on schema -->
       <div v-if="formSchema" class="[&_.vertical-layout]:space-y-4">
         
         <JsonForms
-          :schema="formSchema.schema"
+          :schema="formSchema.dataSchema"
           :uischema="formSchema.uiSchema"
           :renderers="jsonFormsRenderers"
           :data="formData"

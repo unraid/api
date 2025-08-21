@@ -10,7 +10,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { environment } from '@app/environment.js';
 import { getters } from '@app/store/index.js';
 import { ApiKeyService } from '@app/unraid-api/auth/api-key.service.js';
-import { ApiKey, ApiKeyWithSecret } from '@app/unraid-api/graph/resolvers/api-key/api-key.model.js';
+import { ApiKey } from '@app/unraid-api/graph/resolvers/api-key/api-key.model.js';
 
 // Mock the store and its modules
 vi.mock('@app/store/index.js', () => ({
@@ -48,21 +48,7 @@ describe('ApiKeyService', () => {
 
     const mockApiKey: ApiKey = {
         id: 'test-api-id',
-        name: 'Test API Key',
-        description: 'Test API Key Description',
-        roles: [Role.GUEST],
-        permissions: [
-            {
-                resource: Resource.CONNECT,
-                actions: [AuthActionVerb.READ],
-            },
-        ],
-        createdAt: new Date().toISOString(),
-    };
-
-    const mockApiKeyWithSecret: ApiKeyWithSecret = {
-        id: 'test-api-id',
-        key: 'test-api-key',
+        key: 'test-secret-key',
         name: 'Test API Key',
         description: 'Test API Key Description',
         roles: [Role.GUEST],
@@ -130,21 +116,23 @@ describe('ApiKeyService', () => {
     });
 
     describe('create', () => {
-        it('should create ApiKeyWithSecret with generated key', async () => {
+        it('should create ApiKey with generated key', async () => {
             const saveSpy = vi.spyOn(apiKeyService, 'saveApiKey').mockResolvedValue();
-            const { key, id, description, roles } = mockApiKeyWithSecret;
+            const { id, description, roles } = mockApiKey;
             const name = 'Test API Key';
 
             const result = await apiKeyService.create({ name, description: description ?? '', roles });
 
             expect(result).toMatchObject({
                 id,
-                key,
                 name: name,
                 description,
                 roles,
                 createdAt: expect.any(String),
             });
+            expect(result.key).toBeDefined();
+            expect(typeof result.key).toBe('string');
+            expect(result.key.length).toBeGreaterThan(0);
 
             expect(saveSpy).toHaveBeenCalledWith(result);
         });
@@ -177,8 +165,8 @@ describe('ApiKeyService', () => {
     describe('findAll', () => {
         it('should return all API keys', async () => {
             vi.spyOn(apiKeyService, 'loadAllFromDisk').mockResolvedValue([
-                mockApiKeyWithSecret,
-                { ...mockApiKeyWithSecret, id: 'second-id' },
+                mockApiKey,
+                { ...mockApiKey, id: 'second-id' },
             ]);
             await apiKeyService.onModuleInit();
 
@@ -219,17 +207,17 @@ describe('ApiKeyService', () => {
 
     describe('findById', () => {
         it('should return API key by id when found', async () => {
-            vi.spyOn(apiKeyService, 'loadAllFromDisk').mockResolvedValue([mockApiKeyWithSecret]);
+            vi.spyOn(apiKeyService, 'loadAllFromDisk').mockResolvedValue([mockApiKey]);
             await apiKeyService.onModuleInit();
 
-            const result = await apiKeyService.findById(mockApiKeyWithSecret.id);
+            const result = await apiKeyService.findById(mockApiKey.id);
 
             expect(result).toMatchObject({ ...mockApiKey, createdAt: expect.any(String) });
         });
 
         it('should return null if API key not found', async () => {
             vi.spyOn(apiKeyService, 'loadAllFromDisk').mockResolvedValue([
-                { ...mockApiKeyWithSecret, id: 'different-id' },
+                { ...mockApiKey, id: 'different-id' },
             ]);
             await apiKeyService.onModuleInit();
 
@@ -241,12 +229,12 @@ describe('ApiKeyService', () => {
 
     describe('findByIdWithSecret', () => {
         it('should return API key with secret when found', async () => {
-            vi.spyOn(apiKeyService, 'loadAllFromDisk').mockResolvedValue([mockApiKeyWithSecret]);
+            vi.spyOn(apiKeyService, 'loadAllFromDisk').mockResolvedValue([mockApiKey]);
             await apiKeyService.onModuleInit();
 
-            const result = await apiKeyService.findByIdWithSecret(mockApiKeyWithSecret.id);
+            const result = await apiKeyService.findByIdWithSecret(mockApiKey.id);
 
-            expect(result).toEqual(mockApiKeyWithSecret);
+            expect(result).toEqual(mockApiKey);
         });
 
         it('should return null when API key not found', async () => {
@@ -274,23 +262,20 @@ describe('ApiKeyService', () => {
 
     describe('findByKey', () => {
         it('should return API key by key value when multiple keys exist', async () => {
-            const differentKey = { ...mockApiKeyWithSecret, key: 'different-key' };
-            vi.spyOn(apiKeyService, 'loadAllFromDisk').mockResolvedValue([
-                differentKey,
-                mockApiKeyWithSecret,
-            ]);
+            const differentKey = { ...mockApiKey, key: 'different-key' };
+            vi.spyOn(apiKeyService, 'loadAllFromDisk').mockResolvedValue([differentKey, mockApiKey]);
 
             await apiKeyService.onModuleInit();
 
-            const result = await apiKeyService.findByKey(mockApiKeyWithSecret.key);
+            const result = await apiKeyService.findByKey(mockApiKey.key);
 
-            expect(result).toEqual(mockApiKeyWithSecret);
+            expect(result).toEqual(mockApiKey);
         });
 
         it('should return null if key not found in any file', async () => {
             vi.spyOn(apiKeyService, 'loadAllFromDisk').mockResolvedValue([
-                { ...mockApiKeyWithSecret, key: 'different-key-1' },
-                { ...mockApiKeyWithSecret, key: 'different-key-2' },
+                { ...mockApiKey, key: 'different-key-1' },
+                { ...mockApiKey, key: 'different-key-2' },
             ]);
             await apiKeyService.onModuleInit();
 
@@ -314,21 +299,21 @@ describe('ApiKeyService', () => {
         it('should save API key to file', async () => {
             vi.mocked(writeFile).mockResolvedValue(undefined);
 
-            await apiKeyService.saveApiKey(mockApiKeyWithSecret);
+            await apiKeyService.saveApiKey(mockApiKey);
 
             const writeFileCalls = vi.mocked(writeFile).mock.calls;
 
             expect(writeFileCalls.length).toBe(1);
 
             const [filePath, fileContent] = writeFileCalls[0] ?? [];
-            const expectedPath = join(mockBasePath, `${mockApiKeyWithSecret.id}.json`);
+            const expectedPath = join(mockBasePath, `${mockApiKey.id}.json`);
 
             expect(filePath).toBe(expectedPath);
 
             if (typeof fileContent === 'string') {
                 const savedApiKey = JSON.parse(fileContent);
 
-                expect(savedApiKey).toEqual(mockApiKeyWithSecret);
+                expect(savedApiKey).toEqual(mockApiKey);
             } else {
                 throw new Error('File content should be a string');
             }
@@ -337,16 +322,16 @@ describe('ApiKeyService', () => {
         it('should throw GraphQLError on write error', async () => {
             vi.mocked(writeFile).mockRejectedValue(new Error('Write failed'));
 
-            await expect(apiKeyService.saveApiKey(mockApiKeyWithSecret)).rejects.toThrow(
+            await expect(apiKeyService.saveApiKey(mockApiKey)).rejects.toThrow(
                 'Failed to save API key: Write failed'
             );
         });
 
         it('should throw GraphQLError on invalid API key structure', async () => {
             const invalidApiKey = {
-                ...mockApiKeyWithSecret,
+                ...mockApiKey,
                 name: '', // Invalid: name cannot be empty
-            } as ApiKeyWithSecret;
+            } as ApiKey;
 
             await expect(apiKeyService.saveApiKey(invalidApiKey)).rejects.toThrow(
                 'Failed to save API key: Invalid data structure'
@@ -355,10 +340,10 @@ describe('ApiKeyService', () => {
 
         it('should throw GraphQLError when roles and permissions array is empty', async () => {
             const invalidApiKey = {
-                ...mockApiKeyWithSecret,
+                ...mockApiKey,
                 permissions: [],
                 roles: [],
-            } as ApiKeyWithSecret;
+            } as ApiKey;
 
             await expect(apiKeyService.saveApiKey(invalidApiKey)).rejects.toThrow(
                 'At least one of permissions or roles must be specified'
@@ -367,7 +352,7 @@ describe('ApiKeyService', () => {
     });
 
     describe('update', () => {
-        let updateMockApiKey: ApiKeyWithSecret;
+        let updateMockApiKey: ApiKey;
 
         beforeEach(() => {
             // Create a fresh copy of the mock data for update tests
@@ -474,7 +459,7 @@ describe('ApiKeyService', () => {
     });
 
     describe('loadAllFromDisk', () => {
-        let loadMockApiKey: ApiKeyWithSecret;
+        let loadMockApiKey: ApiKey;
 
         beforeEach(() => {
             // Create a fresh copy of the mock data for loadAllFromDisk tests
@@ -554,11 +539,11 @@ describe('ApiKeyService', () => {
 
     describe('loadApiKeyFile', () => {
         it('should load and parse a valid API key file', async () => {
-            vi.mocked(readFile).mockResolvedValue(JSON.stringify(mockApiKeyWithSecret));
+            vi.mocked(readFile).mockResolvedValue(JSON.stringify(mockApiKey));
 
             const result = await apiKeyService['loadApiKeyFile']('test.json');
 
-            expect(result).toEqual(mockApiKeyWithSecret);
+            expect(result).toEqual(mockApiKey);
             expect(readFile).toHaveBeenCalledWith(join(mockBasePath, 'test.json'), 'utf8');
         });
 
@@ -592,7 +577,7 @@ describe('ApiKeyService', () => {
                 expect.stringContaining('Error validating API key file test.json')
             );
             expect(mockLogger.error).toHaveBeenCalledWith(
-                expect.stringContaining('An instance of ApiKeyWithSecret has failed the validation')
+                expect.stringContaining('An instance of ApiKey has failed the validation')
             );
             expect(mockLogger.error).toHaveBeenCalledWith(expect.stringContaining('property key'));
             expect(mockLogger.error).toHaveBeenCalledWith(expect.stringContaining('property id'));

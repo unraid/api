@@ -1,4 +1,4 @@
-import { Field, ObjectType } from '@nestjs/graphql';
+import { Field, InterfaceType, ObjectType } from '@nestjs/graphql';
 
 import { Node } from '@unraid/shared/graphql.model.js';
 import { IsObject, ValidateNested } from 'class-validator';
@@ -6,10 +6,25 @@ import { GraphQLJSON } from 'graphql-scalars';
 
 import { SsoSettings } from '@app/unraid-api/graph/resolvers/settings/sso-settings.model.js';
 
+@InterfaceType()
+export abstract class FormSchema {
+    @Field(() => GraphQLJSON, { description: 'The data schema for the form' })
+    @IsObject()
+    dataSchema!: Record<string, any>;
+
+    @Field(() => GraphQLJSON, { description: 'The UI schema for the form' })
+    @IsObject()
+    uiSchema!: Record<string, any>;
+
+    @Field(() => GraphQLJSON, { description: 'The current values of the form' })
+    @IsObject()
+    values!: Record<string, any>;
+}
+
 @ObjectType({
-    implements: () => Node,
+    implements: () => [Node, FormSchema],
 })
-export class UnifiedSettings extends Node {
+export class UnifiedSettings extends Node implements FormSchema {
     @Field(() => GraphQLJSON, { description: 'The data schema for the settings' })
     @IsObject()
     dataSchema!: Record<string, any>;
@@ -19,6 +34,23 @@ export class UnifiedSettings extends Node {
     uiSchema!: Record<string, any>;
 
     @Field(() => GraphQLJSON, { description: 'The current values of the settings' })
+    @IsObject()
+    values!: Record<string, any>;
+}
+
+@ObjectType({
+    implements: () => [Node, FormSchema],
+})
+export class ApiKeyFormSettings extends Node implements FormSchema {
+    @Field(() => GraphQLJSON, { description: 'The data schema for the API key form' })
+    @IsObject()
+    dataSchema!: Record<string, any>;
+
+    @Field(() => GraphQLJSON, { description: 'The UI schema for the API key form' })
+    @IsObject()
+    uiSchema!: Record<string, any>;
+
+    @Field(() => GraphQLJSON, { description: 'The current values of the API key form' })
     @IsObject()
     values!: Record<string, any>;
 }

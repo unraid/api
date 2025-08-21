@@ -149,14 +149,15 @@ export type ApiKey = Node & {
   roles: Array<Role>;
 };
 
-export type ApiKeyFormSchema = {
-  __typename?: 'ApiKeyFormSchema';
-  /** Initial form data */
-  formData?: Maybe<Scalars['JSON']['output']>;
-  /** JSON Schema for the form data */
-  schema: Scalars['JSON']['output'];
-  /** UI Schema for form layout */
+export type ApiKeyFormSettings = FormSchema & Node & {
+  __typename?: 'ApiKeyFormSettings';
+  /** The data schema for the API key form */
+  dataSchema: Scalars['JSON']['output'];
+  id: Scalars['PrefixedID']['output'];
+  /** The UI schema for the API key form */
   uiSchema: Scalars['JSON']['output'];
+  /** The current values of the API key form */
+  values: Scalars['JSON']['output'];
 };
 
 /** API Key related mutations */
@@ -774,6 +775,15 @@ export type FlashBackupStatus = {
   jobId?: Maybe<Scalars['String']['output']>;
   /** Status message indicating the outcome of the backup initiation. */
   status: Scalars['String']['output'];
+};
+
+export type FormSchema = {
+  /** The data schema for the form */
+  dataSchema: Scalars['JSON']['output'];
+  /** The UI schema for the form */
+  uiSchema: Scalars['JSON']['output'];
+  /** The current values of the form */
+  values: Scalars['JSON']['output'];
 };
 
 export type Info = Node & {
@@ -1614,9 +1624,9 @@ export type Query = {
   docker: Docker;
   flash: Flash;
   /** Get JSON Schema for API key authorization form */
-  getApiKeyAuthorizationFormSchema: ApiKeyFormSchema;
+  getApiKeyAuthorizationFormSchema: ApiKeyFormSettings;
   /** Get JSON Schema for API key creation form */
-  getApiKeyCreationFormSchema: ApiKeyFormSchema;
+  getApiKeyCreationFormSchema: ApiKeyFormSettings;
   /** Get the actual permissions that would be granted by a set of roles */
   getPermissionsForRoles: Array<Permission>;
   info: Info;
@@ -2179,7 +2189,7 @@ export enum UrlType {
   WIREGUARD = 'WIREGUARD'
 }
 
-export type UnifiedSettings = Node & {
+export type UnifiedSettings = FormSchema & Node & {
   __typename?: 'UnifiedSettings';
   /** The data schema for the settings */
   dataSchema: Scalars['JSON']['output'];

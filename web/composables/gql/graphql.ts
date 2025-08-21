@@ -149,14 +149,15 @@ export type ApiKey = Node & {
   roles: Array<Role>;
 };
 
-export type ApiKeyFormSchema = {
-  __typename?: 'ApiKeyFormSchema';
-  /** Initial form data */
-  formData?: Maybe<Scalars['JSON']['output']>;
-  /** JSON Schema for the form data */
-  schema: Scalars['JSON']['output'];
-  /** UI Schema for form layout */
+export type ApiKeyFormSettings = FormSchema & Node & {
+  __typename?: 'ApiKeyFormSettings';
+  /** The data schema for the API key form */
+  dataSchema: Scalars['JSON']['output'];
+  id: Scalars['PrefixedID']['output'];
+  /** The UI schema for the API key form */
   uiSchema: Scalars['JSON']['output'];
+  /** The current values of the API key form */
+  values: Scalars['JSON']['output'];
 };
 
 /** API Key related mutations */
@@ -774,6 +775,15 @@ export type FlashBackupStatus = {
   jobId?: Maybe<Scalars['String']['output']>;
   /** Status message indicating the outcome of the backup initiation. */
   status: Scalars['String']['output'];
+};
+
+export type FormSchema = {
+  /** The data schema for the form */
+  dataSchema: Scalars['JSON']['output'];
+  /** The UI schema for the form */
+  uiSchema: Scalars['JSON']['output'];
+  /** The current values of the form */
+  values: Scalars['JSON']['output'];
 };
 
 export type Info = Node & {
@@ -1614,9 +1624,9 @@ export type Query = {
   docker: Docker;
   flash: Flash;
   /** Get JSON Schema for API key authorization form */
-  getApiKeyAuthorizationFormSchema: ApiKeyFormSchema;
+  getApiKeyAuthorizationFormSchema: ApiKeyFormSettings;
   /** Get JSON Schema for API key creation form */
-  getApiKeyCreationFormSchema: ApiKeyFormSchema;
+  getApiKeyCreationFormSchema: ApiKeyFormSettings;
   /** Get the actual permissions that would be granted by a set of roles */
   getPermissionsForRoles: Array<Permission>;
   info: Info;
@@ -2179,7 +2189,7 @@ export enum UrlType {
   WIREGUARD = 'WIREGUARD'
 }
 
-export type UnifiedSettings = Node & {
+export type UnifiedSettings = FormSchema & Node & {
   __typename?: 'UnifiedSettings';
   /** The data schema for the settings */
   dataSchema: Scalars['JSON']['output'];
@@ -2534,7 +2544,7 @@ export type ActivationCodeQuery = { __typename?: 'Query', vars: { __typename?: '
 export type GetApiKeyCreationFormSchemaQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type GetApiKeyCreationFormSchemaQuery = { __typename?: 'Query', getApiKeyCreationFormSchema: { __typename?: 'ApiKeyFormSchema', schema: any, uiSchema: any, formData?: any | null } };
+export type GetApiKeyCreationFormSchemaQuery = { __typename?: 'Query', getApiKeyCreationFormSchema: { __typename?: 'ApiKeyFormSettings', id: string, dataSchema: any, uiSchema: any, values: any } };
 
 export type GetApiKeyAuthorizationFormSchemaQueryVariables = Exact<{
   appName: Scalars['String']['input'];
@@ -2543,7 +2553,7 @@ export type GetApiKeyAuthorizationFormSchemaQueryVariables = Exact<{
 }>;
 
 
-export type GetApiKeyAuthorizationFormSchemaQuery = { __typename?: 'Query', getApiKeyAuthorizationFormSchema: { __typename?: 'ApiKeyFormSchema', schema: any, uiSchema: any, formData?: any | null } };
+export type GetApiKeyAuthorizationFormSchemaQuery = { __typename?: 'Query', getApiKeyAuthorizationFormSchema: { __typename?: 'ApiKeyFormSettings', id: string, dataSchema: any, uiSchema: any, values: any } };
 
 export type ApiKeyFragment = { __typename?: 'ApiKey', id: string, key: string, name: string, description?: string | null, createdAt: string, roles: Array<Role>, permissions: Array<{ __typename?: 'Permission', resource: Resource, actions: Array<string> }> } & { ' $fragmentName'?: 'ApiKeyFragment' };
 
@@ -2802,8 +2812,8 @@ export const PartialCloudFragmentDoc = {"kind":"Document","definitions":[{"kind"
 export const PartnerInfoDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"PartnerInfo"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"publicPartnerInfo"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"hasPartnerLogo"}},{"kind":"Field","name":{"kind":"Name","value":"partnerName"}},{"kind":"Field","name":{"kind":"Name","value":"partnerUrl"}},{"kind":"Field","name":{"kind":"Name","value":"partnerLogoUrl"}}]}}]}}]} as unknown as DocumentNode<PartnerInfoQuery, PartnerInfoQueryVariables>;
 export const PublicWelcomeDataDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"PublicWelcomeData"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"publicPartnerInfo"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"hasPartnerLogo"}},{"kind":"Field","name":{"kind":"Name","value":"partnerName"}},{"kind":"Field","name":{"kind":"Name","value":"partnerUrl"}},{"kind":"Field","name":{"kind":"Name","value":"partnerLogoUrl"}}]}},{"kind":"Field","name":{"kind":"Name","value":"isInitialSetup"}}]}}]} as unknown as DocumentNode<PublicWelcomeDataQuery, PublicWelcomeDataQueryVariables>;
 export const ActivationCodeDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"ActivationCode"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"vars"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"regState"}}]}},{"kind":"Field","name":{"kind":"Name","value":"customization"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"activationCode"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"code"}},{"kind":"Field","name":{"kind":"Name","value":"partnerName"}},{"kind":"Field","name":{"kind":"Name","value":"serverName"}},{"kind":"Field","name":{"kind":"Name","value":"sysModel"}},{"kind":"Field","name":{"kind":"Name","value":"comment"}},{"kind":"Field","name":{"kind":"Name","value":"header"}},{"kind":"Field","name":{"kind":"Name","value":"headermetacolor"}},{"kind":"Field","name":{"kind":"Name","value":"background"}},{"kind":"Field","name":{"kind":"Name","value":"showBannerGradient"}},{"kind":"Field","name":{"kind":"Name","value":"theme"}}]}},{"kind":"Field","name":{"kind":"Name","value":"partnerInfo"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"hasPartnerLogo"}},{"kind":"Field","name":{"kind":"Name","value":"partnerName"}},{"kind":"Field","name":{"kind":"Name","value":"partnerUrl"}},{"kind":"Field","name":{"kind":"Name","value":"partnerLogoUrl"}}]}}]}}]}}]} as unknown as DocumentNode<ActivationCodeQuery, ActivationCodeQueryVariables>;
-export const GetApiKeyCreationFormSchemaDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"GetApiKeyCreationFormSchema"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"getApiKeyCreationFormSchema"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"schema"}},{"kind":"Field","name":{"kind":"Name","value":"uiSchema"}},{"kind":"Field","name":{"kind":"Name","value":"formData"}}]}}]}}]} as unknown as DocumentNode<GetApiKeyCreationFormSchemaQuery, GetApiKeyCreationFormSchemaQueryVariables>;
-export const GetApiKeyAuthorizationFormSchemaDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"GetApiKeyAuthorizationFormSchema"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"appName"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"requestedScopes"}},"type":{"kind":"NonNullType","type":{"kind":"ListType","type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"appDescription"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"getApiKeyAuthorizationFormSchema"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"appName"},"value":{"kind":"Variable","name":{"kind":"Name","value":"appName"}}},{"kind":"Argument","name":{"kind":"Name","value":"requestedScopes"},"value":{"kind":"Variable","name":{"kind":"Name","value":"requestedScopes"}}},{"kind":"Argument","name":{"kind":"Name","value":"appDescription"},"value":{"kind":"Variable","name":{"kind":"Name","value":"appDescription"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"schema"}},{"kind":"Field","name":{"kind":"Name","value":"uiSchema"}},{"kind":"Field","name":{"kind":"Name","value":"formData"}}]}}]}}]} as unknown as DocumentNode<GetApiKeyAuthorizationFormSchemaQuery, GetApiKeyAuthorizationFormSchemaQueryVariables>;
+export const GetApiKeyCreationFormSchemaDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"GetApiKeyCreationFormSchema"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"getApiKeyCreationFormSchema"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"dataSchema"}},{"kind":"Field","name":{"kind":"Name","value":"uiSchema"}},{"kind":"Field","name":{"kind":"Name","value":"values"}}]}}]}}]} as unknown as DocumentNode<GetApiKeyCreationFormSchemaQuery, GetApiKeyCreationFormSchemaQueryVariables>;
+export const GetApiKeyAuthorizationFormSchemaDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"GetApiKeyAuthorizationFormSchema"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"appName"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"requestedScopes"}},"type":{"kind":"NonNullType","type":{"kind":"ListType","type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"appDescription"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"getApiKeyAuthorizationFormSchema"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"appName"},"value":{"kind":"Variable","name":{"kind":"Name","value":"appName"}}},{"kind":"Argument","name":{"kind":"Name","value":"requestedScopes"},"value":{"kind":"Variable","name":{"kind":"Name","value":"requestedScopes"}}},{"kind":"Argument","name":{"kind":"Name","value":"appDescription"},"value":{"kind":"Variable","name":{"kind":"Name","value":"appDescription"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"dataSchema"}},{"kind":"Field","name":{"kind":"Name","value":"uiSchema"}},{"kind":"Field","name":{"kind":"Name","value":"values"}}]}}]}}]} as unknown as DocumentNode<GetApiKeyAuthorizationFormSchemaQuery, GetApiKeyAuthorizationFormSchemaQueryVariables>;
 export const ApiKeysDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"ApiKeys"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"apiKeys"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"ApiKey"}}]}}]}},{"kind":"FragmentDefinition","name":{"kind":"Name","value":"ApiKey"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"ApiKey"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"key"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"description"}},{"kind":"Field","name":{"kind":"Name","value":"createdAt"}},{"kind":"Field","name":{"kind":"Name","value":"roles"}},{"kind":"Field","name":{"kind":"Name","value":"permissions"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"resource"}},{"kind":"Field","name":{"kind":"Name","value":"actions"}}]}}]}}]} as unknown as DocumentNode<ApiKeysQuery, ApiKeysQueryVariables>;
 export const CreateApiKeyDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"CreateApiKey"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"input"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"CreateApiKeyInput"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"apiKey"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"create"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"input"},"value":{"kind":"Variable","name":{"kind":"Name","value":"input"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"ApiKey"}}]}}]}}]}},{"kind":"FragmentDefinition","name":{"kind":"Name","value":"ApiKey"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"ApiKey"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"key"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"description"}},{"kind":"Field","name":{"kind":"Name","value":"createdAt"}},{"kind":"Field","name":{"kind":"Name","value":"roles"}},{"kind":"Field","name":{"kind":"Name","value":"permissions"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"resource"}},{"kind":"Field","name":{"kind":"Name","value":"actions"}}]}}]}}]} as unknown as DocumentNode<CreateApiKeyMutation, CreateApiKeyMutationVariables>;
 export const UpdateApiKeyDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"UpdateApiKey"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"input"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"UpdateApiKeyInput"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"apiKey"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"update"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"input"},"value":{"kind":"Variable","name":{"kind":"Name","value":"input"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"ApiKey"}}]}}]}}]}},{"kind":"FragmentDefinition","name":{"kind":"Name","value":"ApiKey"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"ApiKey"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"key"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"description"}},{"kind":"Field","name":{"kind":"Name","value":"createdAt"}},{"kind":"Field","name":{"kind":"Name","value":"roles"}},{"kind":"Field","name":{"kind":"Name","value":"permissions"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"resource"}},{"kind":"Field","name":{"kind":"Name","value":"actions"}}]}}]}}]} as unknown as DocumentNode<UpdateApiKeyMutation, UpdateApiKeyMutationVariables>;
