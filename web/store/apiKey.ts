@@ -1,14 +1,14 @@
 import { ref } from 'vue';
 import { defineStore } from 'pinia';
 
-import type { ApiKeyFragment, ApiKeyWithKeyFragment } from '~/composables/gql/graphql';
+import type { ApiKeyFragment } from '~/composables/gql/graphql';
 
 import '~/store/globalPinia';
 
 export const useApiKeyStore = defineStore('apiKey', () => {
   const modalVisible = ref(false);
   const editingKey = ref<ApiKeyFragment | null>(null);
-  const createdKey = ref<ApiKeyWithKeyFragment | null>(null);
+  const createdKey = ref<ApiKeyFragment | null>(null);
   
   // Authorization mode state
   const isAuthorizationMode = ref(false);
@@ -16,6 +16,7 @@ export const useApiKeyStore = defineStore('apiKey', () => {
     name: string;
     description: string;
     scopes: string[];
+    formData?: Record<string, unknown>;
     onAuthorize?: (apiKey: string) => void;
   } | null>(null);
 
@@ -40,19 +41,21 @@ export const useApiKeyStore = defineStore('apiKey', () => {
     name: string,
     description: string,
     scopes: string[],
-    onAuthorize?: (apiKey: string) => void
+    onAuthorize?: (apiKey: string) => void,
+    formData?: Record<string, unknown>
   ) {
     isAuthorizationMode.value = true;
     authorizationData.value = {
       name,
       description,
       scopes,
+      formData,
       onAuthorize,
     };
     editingKey.value = null;
   }
 
-  function setCreatedKey(key: ApiKeyWithKeyFragment | null) {
+  function setCreatedKey(key: ApiKeyFragment | null) {
     createdKey.value = key;
   }
 

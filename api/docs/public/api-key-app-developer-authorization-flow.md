@@ -11,7 +11,7 @@ Applications can request API access to an Unraid server by redirecting users to 
 1. **Application initiates request**: The app redirects the user to:
 
     ```
-    https://[unraid-server]/ApiKeyAuthorize?app_name=MyApp&scopes=docker:read,vm:*&redirect_uri=https://myapp.com/callback&state=abc123
+    https://[unraid-server]/ApiKeyAuthorize?name=MyApp&scopes=docker:read,vm:*&redirect_uri=https://myapp.com/callback&state=abc123
     ```
 
 2. **User authentication**: If not already logged in, the user is redirected to login first (standard Unraid auth)
@@ -34,8 +34,8 @@ Applications can request API access to an Unraid server by redirecting users to 
 
 ## Query Parameters
 
-- `app_name` (required): Name of the requesting application
-- `app_description` (optional): Description of the application
+- `name` (required): Name of the requesting application
+- `description` (optional): Description of the application
 - `scopes` (required): Comma-separated list of requested scopes
 - `redirect_uri` (optional): URL to redirect after authorization
 - `state` (optional): Opaque value for maintaining state
@@ -83,7 +83,7 @@ sessionStorage.setItem('oauth_state', state);
 // Redirect user to authorization page
 window.location.href =
     `https://${unraidServer}/ApiKeyAuthorize?` +
-    `app_name=${encodeURIComponent(appName)}&` +
+    `name=${encodeURIComponent(appName)}&` +
     `scopes=${encodeURIComponent(scopes)}&` +
     `redirect_uri=${encodeURIComponent(redirectUri)}&` +
     `state=${encodeURIComponent(state)}`;

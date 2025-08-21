@@ -1,14 +1,22 @@
 <script setup lang="ts">
 import { ref } from 'vue';
 import { useApiKeyAuthorization } from '~/composables/useApiKeyAuthorization';
+import { useApiKeyAuthorizationForm } from '~/composables/useApiKeyAuthorizationForm';
 import { useApiKeyStore } from '~/store/apiKey';
 
-// Use the composable for authorization logic
+// Use the composables for authorization logic
 const {
   authParams,
   hasValidRedirectUri,
   buildCallbackUrl,
 } = useApiKeyAuthorization();
+
+const {
+  formData: authorizationFormData,
+  displayAppName,
+  hasPermissions,
+  permissionsSummary,
+} = useApiKeyAuthorizationForm();
 
 // Use the API key store to control the global modal
 const apiKeyStore = useApiKeyStore();
@@ -18,14 +26,15 @@ const showSuccess = ref(false);
 const createdApiKey = ref('');
 const error = ref('');
 
-// Open the authorization modal with prefilled data
+// Open the authorization modal
 const openAuthorizationModal = () => {
   // Set up authorization parameters in the store
   apiKeyStore.setAuthorizationMode(
-    authParams.value.appName + ' API Key',
-    authParams.value.appDescription || `API key for ${authParams.value.appName}`,
+    authParams.value.name,
+    authParams.value.description || `API key for ${displayAppName.value}`,
     authParams.value.scopes,
-    handleAuthorize
+    handleAuthorize,
+    authorizationFormData.value
   );
   
   // Show the modal
@@ -41,6 +50,13 @@ const handleAuthorize = (apiKey: string) => {
   // If redirect URI is provided, redirect after a delay
   if (hasValidRedirectUri.value && apiKey) {
     setTimeout(() => returnToApp(), 3000);
+  }
+};
+
+// Navigate back to Unraid webgui home
+const navigateToWebgui = () => {
+  if (typeof window !== 'undefined') {
+    window.location.assign('/');
   }
 };
 
@@ -111,13 +127,13 @@ const returnToApp = () => {
             class="flex-1 py-2 px-4 bg-blue-600 text-white rounded-md hover:bg-blue-700"
             @click="returnToApp"
           >
-            Return to {{ authParams.appName }}
+            Return to {{ authParams.name }}
           </button>
           <button
             class="flex-1 py-2 px-4 border border-gray-300 rounded-md hover:bg-gray-50 dark:border-gray-600 dark:hover:bg-gray-700"
-            @click="() => window.location.href = '/apikeys'"
+            @click="navigateToWebgui"
           >
-            View All API Keys
+            Return to Unraid
           </button>
         </div>
       </div>
@@ -128,20 +144,34 @@ const returnToApp = () => {
       <div class="mb-6 text-center">
         <h2 class="text-2xl font-bold mb-2">API Key Authorization</h2>
         <p class="text-gray-600 dark:text-gray-400">
-          <strong>{{ authParams.appName }}</strong> is requesting API access to your Unraid server
+          <strong>{{ displayAppName }}</strong> is requesting API access to your Unraid server
         </p>
       </div>
 
-      <!-- Trigger the global modal instead of inline component -->
+      <!-- Authorization details -->
       <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+        <div v-if="hasPermissions" class="mb-4">
+          <h3 class="text-sm font-semibold mb-2">Requested Permissions:</h3>
+          <p class="text-sm text-gray-600 dark:text-gray-400">
+            {{ permissionsSummary }}
+          </p>
+        </div>
+        
+        <div v-else class="mb-4">
+          <p class="text-sm text-amber-600 dark:text-amber-400">
+            No specific permissions requested. The application may be requesting basic access.
+          </p>
+        </div>
+        
         <p class="text-gray-600 dark:text-gray-400 mb-4">
-          Click the button below to review and approve the requested permissions.
+          Click the button below to review the detailed permissions and authorize access.
         </p>
+        
         <button
           class="w-full py-2 px-4 bg-blue-600 text-white rounded-md hover:bg-blue-700"
           @click="openAuthorizationModal"
         >
-          Review Permissions
+          Review Permissions & Authorize
         </button>
       </div>
 

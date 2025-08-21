@@ -2,8 +2,8 @@ import { computed, ref } from 'vue';
 import { Resource, Role, AuthActionVerb } from '~/composables/gql/graphql';
 
 export interface ApiKeyAuthorizationParams {
-  appName: string;
-  appDescription: string;
+  name: string;
+  description: string;
   scopes: string[];
   redirectUri: string;
   state: string;
@@ -29,8 +29,8 @@ export function useApiKeyAuthorization(urlSearchParams?: URLSearchParams) {
   const params = urlSearchParams || new URLSearchParams(window.location.search);
   
   const authParams = ref<ApiKeyAuthorizationParams>({
-    appName: params.get('app_name') || 'Unknown Application',
-    appDescription: params.get('app_description') || '',
+    name: params.get('name') || 'Unknown Application',
+    description: params.get('description') || '',
     scopes: (params.get('scopes') || '').split(',').filter(Boolean),
     redirectUri: params.get('redirect_uri') || '',
     state: params.get('state') || '',
@@ -191,7 +191,7 @@ export function useApiKeyAuthorization(urlSearchParams?: URLSearchParams) {
   );
 
   const defaultKeyName = computed(() => 
-    `${authParams.value.appName} API Key`
+    `${authParams.value.name} API Key`
   );
 
   return {

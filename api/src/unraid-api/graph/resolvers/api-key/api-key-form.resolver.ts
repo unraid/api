@@ -23,19 +23,4 @@ export class ApiKeyFormResolver {
     getApiKeyCreationFormSchema(): ApiKeyFormSettings {
         return this.apiKeyFormService.getApiKeyCreationFormSchema();
     }
-
-    @Query(() => ApiKeyFormSettings, {
-        description: 'Get JSON Schema for API key authorization form',
-    })
-    getApiKeyAuthorizationFormSchema(
-        @Args('appName') appName: string,
-        @Args('requestedScopes', { type: () => [String] }) requestedScopes: string[],
-        @Args('appDescription', { nullable: true }) appDescription?: string
-    ): ApiKeyFormSettings {
-        return this.apiKeyFormService.getApiKeyAuthorizationFormSchema(
-            appName,
-            requestedScopes,
-            appDescription
-        );
-    }
 }
