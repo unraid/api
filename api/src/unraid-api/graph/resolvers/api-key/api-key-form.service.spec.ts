@@ -40,24 +40,24 @@ describe('ApiKeyFormService', () => {
             it('should handle only roles when others are not provided', () => {
                 const formData: ApiKeyFormData = {
                     name: 'Test Key',
-                    roles: [Role.GUEST, Role.USER],
+                    roles: [Role.GUEST, Role.VIEWER],
                 };
 
                 const result = service.convertFormDataToPermissions(formData);
 
-                expect(result.roles).toEqual([Role.GUEST, Role.USER]);
+                expect(result.roles).toEqual([Role.GUEST, Role.VIEWER]);
                 expect(result.permissions).toEqual([]);
             });
 
             it('should handle multiple roles', () => {
                 const formData: ApiKeyFormData = {
                     name: 'Test Key',
-                    roles: [Role.GUEST, Role.USER, Role.ADMIN],
+                    roles: [Role.GUEST, Role.VIEWER, Role.ADMIN],
                 };
 
                 const result = service.convertFormDataToPermissions(formData);
 
-                expect(result.roles).toEqual([Role.GUEST, Role.USER, Role.ADMIN]);
+                expect(result.roles).toEqual([Role.GUEST, Role.VIEWER, Role.ADMIN]);
                 expect(result.permissions).toEqual([]);
             });
 
@@ -201,7 +201,6 @@ describe('ApiKeyFormService', () => {
                 const formData: ApiKeyFormData = {
                     name: 'Test Key',
                     roles: [],
-                    permissionGroups: [],
                     customPermissions: [],
                 };
 
@@ -214,7 +213,7 @@ describe('ApiKeyFormService', () => {
             it('should handle both roles and custom permissions together', () => {
                 const formData: ApiKeyFormData = {
                     name: 'Test Key',
-                    roles: [Role.USER],
+                    roles: [Role.VIEWER],
                     customPermissions: [
                         {
                             resources: [Resource.DOCKER, Resource.VMS],
@@ -229,7 +228,7 @@ describe('ApiKeyFormService', () => {
 
                 const result = service.convertFormDataToPermissions(formData);
 
-                expect(result.roles).toEqual([Role.USER]);
+                expect(result.roles).toEqual([Role.VIEWER]);
                 expect(result.permissions).toHaveLength(3);
                 expect(result.permissions).toContainEqual({
                     resource: Resource.DOCKER,

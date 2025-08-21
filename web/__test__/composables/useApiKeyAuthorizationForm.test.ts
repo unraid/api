@@ -22,7 +22,7 @@ describe('useApiKeyAuthorizationForm', () => {
     const { formData, displayAppName, hasPermissions, permissionsSummary } = useApiKeyAuthorizationForm(params);
 
     expect(formData.value).toEqual({
-      name: 'MyApp API Key',
+      name: 'MyApp',
       description: 'My test application',
       roles: [Role.ADMIN, Role.VIEWER],
       customPermissions: [],
@@ -42,7 +42,7 @@ describe('useApiKeyAuthorizationForm', () => {
     const { formData, hasPermissions, permissionsSummary } = useApiKeyAuthorizationForm(params);
 
     expect(formData.value).toEqual({
-      name: 'Docker Manager API Key',
+      name: 'Docker Manager',
       description: '',
       roles: [],
       customPermissions: [
@@ -64,7 +64,7 @@ describe('useApiKeyAuthorizationForm', () => {
     const { formData, hasPermissions, permissionsSummary } = useApiKeyAuthorizationForm(params);
 
     expect(formData.value).toEqual({
-      name: 'Mixed Access App API Key',
+      name: 'Mixed Access App',
       description: '',
       roles: [Role.ADMIN],
       customPermissions: [
@@ -98,7 +98,7 @@ describe('useApiKeyAuthorizationForm', () => {
     const { formData, hasPermissions, permissionsSummary } = useApiKeyAuthorizationForm(params);
 
     expect(formData.value).toEqual({
-      name: 'No Permissions App API Key',
+      name: 'No Permissions App',
       description: '',
       roles: [],
       customPermissions: [],
@@ -114,9 +114,11 @@ describe('useApiKeyAuthorizationForm', () => {
       scopes: 'role:viewer',
     });
 
-    const { displayAppName } = useApiKeyAuthorizationForm(params);
+    const { formData, displayAppName } = useApiKeyAuthorizationForm(params);
 
     expect(displayAppName.value).toBe('MyApp');
+    // Name should be used as-is without appending
+    expect(formData.value.name).toBe('MyApp API Key');
   });
 
   it('should handle invalid scopes gracefully', () => {
@@ -136,7 +138,7 @@ describe('useApiKeyAuthorizationForm', () => {
 
     const { formData, displayAppName } = useApiKeyAuthorizationForm(params);
 
-    expect(formData.value.name).toBe('Unknown Application API Key');
+    expect(formData.value.name).toBe('Unknown Application');
     expect(displayAppName.value).toBe('Unknown Application');
   });
 });

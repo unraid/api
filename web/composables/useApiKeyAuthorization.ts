@@ -186,9 +186,7 @@ export function useApiKeyAuthorization(urlSearchParams?: URLSearchParams) {
     isValidRedirectUri(authParams.value.redirectUri)
   );
 
-  const defaultKeyName = computed(() => 
-    `${authParams.value.name} API Key`
-  );
+  const defaultKeyName = computed(() => authParams.value.name);
 
   return {
     authParams,
