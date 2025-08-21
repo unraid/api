@@ -59,8 +59,8 @@ export function generateAuthorizationUrl(params: AuthorizationLinkParams): strin
     urlParams.set('description', appDescription);
   }
   
-  // Use current origin for the authorization URL
-  const baseUrl = `${window.location.origin}/apikeyauthorize`;
+  // Use current origin for the authorization URL (Tools menu in WebGui)
+  const baseUrl = `${window.location.origin}/Tools/ApiKeyAuthorize`;
   
   return `${baseUrl}?${urlParams.toString()}`;
 }
