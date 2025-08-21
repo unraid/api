@@ -37,7 +37,7 @@ export function useApiKeyAuthorizationForm(urlSearchParams?: URLSearchParams) {
         resources: [perm.resource as Resource],
         actions: perm.actions.map(action => 
           // Convert from enum format (CREATE) to form format (create:any)
-          action.includes(':') ? action : `${action.toLowerCase()}:any`
+          (action.includes(':') ? action : `${action.toLowerCase()}:any`) as AuthActionVerb
         ),
       })),
     };

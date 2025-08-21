@@ -22,7 +22,8 @@ import type { ComposerTranslation } from 'vue-i18n';
 import type { 
   Resource, 
   Role, 
-  CreateApiKeyInput
+  CreateApiKeyInput,
+  AuthActionVerb
 } from '~/composables/gql/graphql';
 
 import { useFragment } from '~/composables/gql/fragment-masking';
@@ -92,7 +93,7 @@ const formDataPermissions = computed(() => {
   return formData.value.customPermissions.flatMap(perm =>
     perm.resources.map(resource => ({
       resource,
-      actions: perm.actions
+      actions: perm.actions as AuthActionVerb[]
     }))
   );
 });
