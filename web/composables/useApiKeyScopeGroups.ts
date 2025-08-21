@@ -1,4 +1,4 @@
-import { Resource, Role } from '~/composables/gql/graphql';
+import { Resource, Role, AuthActionVerb } from '~/composables/gql/graphql';
 
 export interface PermissionGroup {
   id: string;
@@ -7,7 +7,7 @@ export interface PermissionGroup {
   icon?: string;
   permissions: Array<{
     resource: Resource;
-    actions: string[];
+    actions: AuthActionVerb[];
   }>;
 }
 
@@ -19,10 +19,10 @@ export const PERMISSION_GROUPS: PermissionGroup[] = [
     description: 'Full access to Docker containers and images',
     icon: 'docker',
     permissions: [
-      { resource: Resource.DOCKER, actions: ['create:any', 'read:any', 'update:any', 'delete:any'] },
-      { resource: Resource.ARRAY, actions: ['read:any'] },
-      { resource: Resource.DISK, actions: ['read:any'] },
-      { resource: Resource.NETWORK, actions: ['read:any'] },
+      { resource: Resource.DOCKER, actions: [AuthActionVerb.CREATE, AuthActionVerb.READ, AuthActionVerb.UPDATE, AuthActionVerb.DELETE] },
+      { resource: Resource.ARRAY, actions: [AuthActionVerb.READ] },
+      { resource: Resource.DISK, actions: [AuthActionVerb.READ] },
+      { resource: Resource.NETWORK, actions: [AuthActionVerb.READ] },
     ],
   },
   {
@@ -31,10 +31,10 @@ export const PERMISSION_GROUPS: PermissionGroup[] = [
     description: 'Full access to virtual machines',
     icon: 'computer',
     permissions: [
-      { resource: Resource.VMS, actions: ['create:any', 'read:any', 'update:any', 'delete:any'] },
-      { resource: Resource.ARRAY, actions: ['read:any'] },
-      { resource: Resource.DISK, actions: ['read:any'] },
-      { resource: Resource.NETWORK, actions: ['read:any'] },
+      { resource: Resource.VMS, actions: [AuthActionVerb.CREATE, AuthActionVerb.READ, AuthActionVerb.UPDATE, AuthActionVerb.DELETE] },
+      { resource: Resource.ARRAY, actions: [AuthActionVerb.READ] },
+      { resource: Resource.DISK, actions: [AuthActionVerb.READ] },
+      { resource: Resource.NETWORK, actions: [AuthActionVerb.READ] },
     ],
   },
   {
@@ -43,10 +43,10 @@ export const PERMISSION_GROUPS: PermissionGroup[] = [
     description: 'Access to manage backups and flash storage',
     icon: 'archive',
     permissions: [
-      { resource: Resource.FLASH, actions: ['create:any', 'read:any', 'update:any', 'delete:any'] },
-      { resource: Resource.ARRAY, actions: ['read:any'] },
-      { resource: Resource.DISK, actions: ['read:any'] },
-      { resource: Resource.SHARE, actions: ['read:any'] },
+      { resource: Resource.FLASH, actions: [AuthActionVerb.CREATE, AuthActionVerb.READ, AuthActionVerb.UPDATE, AuthActionVerb.DELETE] },
+      { resource: Resource.ARRAY, actions: [AuthActionVerb.READ] },
+      { resource: Resource.DISK, actions: [AuthActionVerb.READ] },
+      { resource: Resource.SHARE, actions: [AuthActionVerb.READ] },
     ],
   },
   {
@@ -55,8 +55,8 @@ export const PERMISSION_GROUPS: PermissionGroup[] = [
     description: 'Full network configuration access',
     icon: 'network',
     permissions: [
-      { resource: Resource.NETWORK, actions: ['create:any', 'read:any', 'update:any', 'delete:any'] },
-      { resource: Resource.SERVICES, actions: ['create:any', 'read:any', 'update:any', 'delete:any'] },
+      { resource: Resource.NETWORK, actions: [AuthActionVerb.CREATE, AuthActionVerb.READ, AuthActionVerb.UPDATE, AuthActionVerb.DELETE] },
+      { resource: Resource.SERVICES, actions: [AuthActionVerb.CREATE, AuthActionVerb.READ, AuthActionVerb.UPDATE, AuthActionVerb.DELETE] },
     ],
   },
   {
@@ -65,14 +65,14 @@ export const PERMISSION_GROUPS: PermissionGroup[] = [
     description: 'Read-only access for monitoring and dashboards',
     icon: 'chart-bar',
     permissions: [
-      { resource: Resource.DOCKER, actions: ['read:any'] },
-      { resource: Resource.VMS, actions: ['read:any'] },
-      { resource: Resource.ARRAY, actions: ['read:any'] },
-      { resource: Resource.DISK, actions: ['read:any'] },
-      { resource: Resource.NETWORK, actions: ['read:any'] },
-      { resource: Resource.INFO, actions: ['read:any'] },
-      { resource: Resource.DASHBOARD, actions: ['read:any'] },
-      { resource: Resource.LOGS, actions: ['read:any'] },
+      { resource: Resource.DOCKER, actions: [AuthActionVerb.READ] },
+      { resource: Resource.VMS, actions: [AuthActionVerb.READ] },
+      { resource: Resource.ARRAY, actions: [AuthActionVerb.READ] },
+      { resource: Resource.DISK, actions: [AuthActionVerb.READ] },
+      { resource: Resource.NETWORK, actions: [AuthActionVerb.READ] },
+      { resource: Resource.INFO, actions: [AuthActionVerb.READ] },
+      { resource: Resource.DASHBOARD, actions: [AuthActionVerb.READ] },
+      { resource: Resource.LOGS, actions: [AuthActionVerb.READ] },
     ],
   },
 ];
@@ -116,7 +116,7 @@ export const CORE_ROLES: RoleInfo[] = [
  * Convert permissions and roles to scope strings
  */
 export function convertPermissionsToScopes(
-  permissions: Array<{ resource: Resource; actions: string[] }>,
+  permissions: Array<{ resource: Resource; actions: AuthActionVerb[] }>,
   roles: Role[]
 ): string[] {
   const scopes: string[] = [];
@@ -127,17 +127,19 @@ export function convertPermissionsToScopes(
     
     // Check if all CRUD actions are selected (means wildcard)
     const hasAllActions = 
-      perm.actions.includes('create:any') &&
-      perm.actions.includes('read:any') &&
-      perm.actions.includes('update:any') &&
-      perm.actions.includes('delete:any');
+      perm.actions.includes(AuthActionVerb.CREATE) &&
+      perm.actions.includes(AuthActionVerb.READ) &&
+      perm.actions.includes(AuthActionVerb.UPDATE) &&
+      perm.actions.includes(AuthActionVerb.DELETE);
     
     if (hasAllActions) {
       scopes.push(`${resource}:*`);
     } else {
       // Add individual action scopes
       for (const action of perm.actions) {
-        scopes.push(`${resource}:${action}`);
+        // Convert AuthActionVerb enum to lowercase string
+        const actionStr = action.toLowerCase();
+        scopes.push(`${resource}:${actionStr}`);
       }
     }
   }
@@ -205,7 +207,7 @@ export function useApiKeyScopeGroups() {
   /**
    * Convert permission group to explicit permissions
    */
-  const getPermissionsFromGroup = (groupId: string): Array<{ resource: Resource; actions: string[] }> => {
+  const getPermissionsFromGroup = (groupId: string): Array<{ resource: Resource; actions: AuthActionVerb[] }> => {
     const group = getPermissionGroup(groupId);
     return group ? group.permissions : [];
   };

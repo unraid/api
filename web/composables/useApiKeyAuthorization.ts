@@ -17,7 +17,7 @@ export interface FormattedPermission {
 }
 
 export interface ScopeConversion {
-  permissions: Array<{ resource: Resource; actions: string[] }>;
+  permissions: Array<{ resource: Resource; actions: AuthActionVerb[] }>;
   roles: Role[];
 }
 
@@ -85,7 +85,7 @@ export function useApiKeyAuthorization(urlSearchParams?: URLSearchParams) {
 
   // Convert scopes to permissions and roles for API key creation
   const convertScopesToPermissions = (scopes: string[]): ScopeConversion => {
-    const permissions: Array<{ resource: Resource; actions: string[] }> = [];
+    const permissions: Array<{ resource: Resource; actions: AuthActionVerb[] }> = [];
     const roles: Role[] = [];
     
     for (const scope of scopes) {
@@ -117,7 +117,7 @@ export function useApiKeyAuthorization(urlSearchParams?: URLSearchParams) {
           }
           
           // Convert action strings to AuthActionVerb enum values
-          let actions: string[];
+          let actions: AuthActionVerb[];
           if (actionStr === '*') {
             actions = [
               AuthActionVerb.CREATE,

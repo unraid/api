@@ -1,6 +1,5 @@
 import { Resource, Role } from '@unraid/shared/graphql.model.js';
 import { Model as CasbinModel, newEnforcer, StringAdapter } from 'casbin';
-import { AuthAction } from 'nest-authz';
 import { beforeEach, describe, expect, it } from 'vitest';
 
 import { CASBIN_MODEL } from '@app/unraid-api/auth/casbin/model.js';
@@ -15,7 +14,7 @@ describe('Comprehensive Casbin Permissions Tests', () => {
                 resource: Resource.API_KEY,
                 action: 'read:any',
                 allowedRoles: [Role.ADMIN],
-                deniedRoles: [Role.VIEWER, Role.GUEST],
+                deniedRoles: [Role.VIEWER, Role.GUEST, Role.CONNECT],
             },
             {
                 resource: Resource.API_KEY,
@@ -373,13 +372,13 @@ describe('Comprehensive Casbin Permissions Tests', () => {
             }
         });
 
-        it('should allow CONNECT wildcard read access but not write', async () => {
+        it('should allow CONNECT read access to most resources but NOT API_KEY', async () => {
             const resources = Object.values(Resource).filter(
-                (r) => r !== Resource.CONNECT__REMOTE_ACCESS
+                (r) => r !== Resource.CONNECT__REMOTE_ACCESS && r !== Resource.API_KEY
             );
 
             for (const resource of resources) {
-                // Should be able to read
+                // Should be able to read most resources
                 const readResult = await enforcer.enforce(Role.CONNECT, resource, 'read:any');
                 expect(readResult).toBe(true);
 
@@ -388,6 +387,18 @@ describe('Comprehensive Casbin Permissions Tests', () => {
                 expect(updateResult).toBe(false);
             }
 
+            // CONNECT should NOT be able to read API_KEY
+            const apiKeyRead = await enforcer.enforce(Role.CONNECT, Resource.API_KEY, 'read:any');
+            expect(apiKeyRead).toBe(false);
+
+            // CONNECT should NOT be able to perform any action on API_KEY
+            const apiKeyCreate = await enforcer.enforce(Role.CONNECT, Resource.API_KEY, 'create:any');
+            expect(apiKeyCreate).toBe(false);
+            const apiKeyUpdate = await enforcer.enforce(Role.CONNECT, Resource.API_KEY, 'update:any');
+            expect(apiKeyUpdate).toBe(false);
+            const apiKeyDelete = await enforcer.enforce(Role.CONNECT, Resource.API_KEY, 'delete:any');
+            expect(apiKeyDelete).toBe(false);
+
             // Special case: CONNECT can update CONNECT__REMOTE_ACCESS
             const remoteAccessUpdate = await enforcer.enforce(
                 Role.CONNECT,
@@ -395,6 +406,23 @@ describe('Comprehensive Casbin Permissions Tests', () => {
                 'update:any'
             );
             expect(remoteAccessUpdate).toBe(true);
+        });
+
+        it('should explicitly deny CONNECT role from accessing API_KEY to prevent secret exposure', async () => {
+            // CONNECT should NOT be able to read API_KEY (which would expose secrets)
+            const apiKeyRead = await enforcer.enforce(Role.CONNECT, Resource.API_KEY, 'read:any');
+            expect(apiKeyRead).toBe(false);
+
+            // Verify all API_KEY operations are denied for CONNECT
+            const actions = ['create:any', 'read:any', 'update:any', 'delete:any'];
+            for (const action of actions) {
+                const result = await enforcer.enforce(Role.CONNECT, Resource.API_KEY, action);
+                expect(result).toBe(false);
+            }
+
+            // Verify ADMIN can still access API_KEY
+            const adminApiKeyRead = await enforcer.enforce(Role.ADMIN, Resource.API_KEY, 'read:any');
+            expect(adminApiKeyRead).toBe(true);
         });
     });
 
