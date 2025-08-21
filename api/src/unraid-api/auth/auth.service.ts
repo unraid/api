@@ -239,14 +239,6 @@ export class AuthService {
     public async getImplicitPermissionsForRole(role: Role): Promise<Map<Resource, string[]>> {
         const permissions = new Map<Resource, string[]>();
 
-        // Define the standard CRUD actions using the enum
-        const CRUD_ACTIONS = [
-            AuthAction.CREATE_ANY,
-            AuthAction.READ_ANY,
-            AuthAction.UPDATE_ANY,
-            AuthAction.DELETE_ANY,
-        ];
-
         try {
             // Get all permissions for this role from Casbin
             const casbinPermissions = await this.authzService.getImplicitPermissionsForUser(role);

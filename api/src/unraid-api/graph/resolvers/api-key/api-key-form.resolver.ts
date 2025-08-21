@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { Args, Query, Resolver } from '@nestjs/graphql';
+import { Query, Resolver } from '@nestjs/graphql';
 
 import { Resource } from '@unraid/shared/graphql.model.js';
 import { AuthActionVerb, AuthPossession, UsePermissions } from 'nest-authz';
