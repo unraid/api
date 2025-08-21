@@ -92,13 +92,13 @@ const toggleShowUrl = () => {
       </div>
     </div>
     
-    <p class="text-sm text-gray-600 dark:text-gray-400">
+    <p class="text-sm text-muted-foreground">
       Use this link to create an API key authorization for <strong>{{ appName }}</strong> with the selected permissions. 
       Perfect for testing your app's OAuth-style API key flow.
     </p>
     
-    <div v-if="showUrl" class="p-3 bg-gray-50 dark:bg-gray-800 rounded border">
-      <code class="text-xs break-all text-gray-800 dark:text-gray-200">
+    <div v-if="showUrl" class="p-3 bg-secondary rounded border border-muted">
+      <code class="text-xs break-all text-foreground">
         {{ authorizationUrl }}
       </code>
     </div>
