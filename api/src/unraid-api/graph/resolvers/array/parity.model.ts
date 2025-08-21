@@ -17,8 +17,8 @@ export class ParityCheck {
     @Field(() => String, { nullable: true, description: 'Speed of the parity check, in MB/s' })
     speed?: string;
 
-    @Field(() => String, { nullable: true, description: 'Status of the parity check' })
-    status?: string;
+    @Field(() => ParityCheckStatus, { description: 'Status of the parity check' })
+    status!: ParityCheckStatus;
 
     @Field(() => Int, { nullable: true, description: 'Number of errors during the parity check' })
     errors?: number;

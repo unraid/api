@@ -83,7 +83,13 @@ describe('ArrayService', () => {
             parities: [],
             disks: [],
             caches: [],
-            parityCheckStatus: ParityCheckStatus.NEVER_RUN,
+            parityCheckStatus: {
+                status: ParityCheckStatus.NEVER_RUN,
+                progress: 0,
+                date: undefined,
+                duration: 0,
+                speed: '0',
+            },
         };
         mockGetArrayDataUtil.mockResolvedValue(mockArrayData);
 

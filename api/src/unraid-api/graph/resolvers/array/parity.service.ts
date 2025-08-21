@@ -1,9 +1,10 @@
 import { Injectable } from '@nestjs/common';
 import { readFile } from 'fs/promises';
 
+import { toNumberAlways } from '@unraid/shared/util/data.js';
 import { GraphQLError } from 'graphql';
 
-import { getParityCheckStatus, ParityCheckStatus } from '@app/core/modules/array/parity-check-status.js';
+import { ParityCheckStatus } from '@app/core/modules/array/parity-check-status.js';
 import { emcmd } from '@app/core/utils/index.js';
 import { ParityCheck } from '@app/unraid-api/graph/resolvers/array/parity.model.js';
 
@@ -27,7 +28,12 @@ export class ParityService {
                 date: new Date(date),
                 duration: Number.parseInt(duration, 10),
                 speed: speed ?? 'Unavailable',
-                status: status === '-4' ? 'Cancelled' : 'OK',
+                status:
+                    status === '-4'
+                        ? ParityCheckStatus.CANCELLED
+                        : toNumberAlways(status, 0) === 0
+                          ? ParityCheckStatus.COMPLETED
+                          : ParityCheckStatus.FAILED,
                 errors: Number.parseInt(errors, 10),
             };
         });
@@ -92,10 +98,5 @@ export class ParityService {
         }
 
         return this.getParityHistory();
-    }
-
-    async getParityCheckStatus(): Promise<ParityCheckStatus> {
-        const { getters } = await import('@app/store/index.js');
-        return getParityCheckStatus(getters.emhttp().var);
     }
 }

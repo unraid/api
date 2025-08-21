@@ -7,6 +7,8 @@ const createMockVarData = (overrides: Partial<Var> = {}): Var =>
     ({
         mdResyncPos: 0,
         mdResyncDt: '0',
+        mdResyncDb: '0',
+        mdResyncSize: 100000,
         sbSyncExit: '0',
         sbSynced: 0,
         sbSynced2: 0,
@@ -51,7 +53,7 @@ describe('getParityCheckStatus', () => {
                 mdResyncDt: '1000',
             });
 
-            expect(getParityCheckStatus(varData)).toBe(ParityCheckStatus.RUNNING);
+            expect(getParityCheckStatus(varData).status).toBe(ParityCheckStatus.RUNNING);
         });
 
         it('should return RUNNING when mdResyncPos is very large', () => {
@@ -60,7 +62,7 @@ describe('getParityCheckStatus', () => {
                 mdResyncDt: '1',
             });
 
-            expect(getParityCheckStatus(varData)).toBe(ParityCheckStatus.RUNNING);
+            expect(getParityCheckStatus(varData).status).toBe(ParityCheckStatus.RUNNING);
         });
 
         it('should return RUNNING when mdResyncDt is a decimal string', () => {
@@ -69,7 +71,7 @@ describe('getParityCheckStatus', () => {
                 mdResyncDt: '0.1',
             });
 
-            expect(getParityCheckStatus(varData)).toBe(ParityCheckStatus.RUNNING);
+            expect(getParityCheckStatus(varData).status).toBe(ParityCheckStatus.RUNNING);
         });
 
         it('should return RUNNING even with other status fields set', () => {
@@ -81,7 +83,7 @@ describe('getParityCheckStatus', () => {
                 sbSyncExit: '0',
             });
 
-            expect(getParityCheckStatus(varData)).toBe(ParityCheckStatus.RUNNING);
+            expect(getParityCheckStatus(varData).status).toBe(ParityCheckStatus.RUNNING);
         });
     });
 
@@ -92,7 +94,7 @@ describe('getParityCheckStatus', () => {
                 mdResyncDt: '0',
             });
 
-            expect(getParityCheckStatus(varData)).toBe(ParityCheckStatus.PAUSED);
+            expect(getParityCheckStatus(varData).status).toBe(ParityCheckStatus.PAUSED);
         });
 
         it('should return PAUSED when mdResyncDt is string "0"', () => {
@@ -101,7 +103,7 @@ describe('getParityCheckStatus', () => {
                 mdResyncDt: '0',
             });
 
-            expect(getParityCheckStatus(varData)).toBe(ParityCheckStatus.PAUSED);
+            expect(getParityCheckStatus(varData).status).toBe(ParityCheckStatus.PAUSED);
         });
 
         it('should return PAUSED when mdResyncDt is empty string (converts to 0)', () => {
@@ -110,7 +112,7 @@ describe('getParityCheckStatus', () => {
                 mdResyncDt: '',
             });
 
-            expect(getParityCheckStatus(varData)).toBe(ParityCheckStatus.PAUSED);
+            expect(getParityCheckStatus(varData).status).toBe(ParityCheckStatus.PAUSED);
         });
 
         it('should return PAUSED when mdResyncDt is non-numeric string (converts to NaN, then 0)', () => {
@@ -119,7 +121,7 @@ describe('getParityCheckStatus', () => {
                 mdResyncDt: 'not-a-number',
             });
 
-            expect(getParityCheckStatus(varData)).toBe(ParityCheckStatus.PAUSED);
+            expect(getParityCheckStatus(varData).status).toBe(ParityCheckStatus.PAUSED);
         });
 
         it('should return PAUSED even with completed check history', () => {
@@ -131,7 +133,7 @@ describe('getParityCheckStatus', () => {
                 sbSyncExit: '0',
             });
 
-            expect(getParityCheckStatus(varData)).toBe(ParityCheckStatus.PAUSED);
+            expect(getParityCheckStatus(varData).status).toBe(ParityCheckStatus.PAUSED);
         });
     });
 
@@ -142,7 +144,7 @@ describe('getParityCheckStatus', () => {
                 sbSynced: 0,
             });
 
-            expect(getParityCheckStatus(varData)).toBe(ParityCheckStatus.NEVER_RUN);
+            expect(getParityCheckStatus(varData).status).toBe(ParityCheckStatus.NEVER_RUN);
         });
 
         it('should return NEVER_RUN as fallback when all conditions fail', () => {
@@ -153,7 +155,7 @@ describe('getParityCheckStatus', () => {
                 sbSyncExit: '0',
             });
 
-            expect(getParityCheckStatus(varData)).toBe(ParityCheckStatus.NEVER_RUN);
+            expect(getParityCheckStatus(varData).status).toBe(ParityCheckStatus.NEVER_RUN);
         });
 
         it('should return NEVER_RUN when sbSynced is exactly 0', () => {
@@ -164,7 +166,7 @@ describe('getParityCheckStatus', () => {
                 sbSyncExit: '0',
             });
 
-            expect(getParityCheckStatus(varData)).toBe(ParityCheckStatus.NEVER_RUN);
+            expect(getParityCheckStatus(varData).status).toBe(ParityCheckStatus.NEVER_RUN);
         });
     });
 
@@ -177,7 +179,7 @@ describe('getParityCheckStatus', () => {
                 sbSyncExit: '-4',
             });
 
-            expect(getParityCheckStatus(varData)).toBe(ParityCheckStatus.CANCELLED);
+            expect(getParityCheckStatus(varData).status).toBe(ParityCheckStatus.CANCELLED);
         });
 
         it('should return CANCELLED when sbSyncExit is numeric -4 as string', () => {
@@ -187,7 +189,7 @@ describe('getParityCheckStatus', () => {
                 sbSyncExit: '-4',
             });
 
-            expect(getParityCheckStatus(varData)).toBe(ParityCheckStatus.CANCELLED);
+            expect(getParityCheckStatus(varData).status).toBe(ParityCheckStatus.CANCELLED);
         });
 
         it('should return CANCELLED even when sbSynced2 is 0', () => {
@@ -198,7 +200,7 @@ describe('getParityCheckStatus', () => {
                 sbSyncExit: '-4',
             });
 
-            expect(getParityCheckStatus(varData)).toBe(ParityCheckStatus.CANCELLED);
+            expect(getParityCheckStatus(varData).status).toBe(ParityCheckStatus.CANCELLED);
         });
 
         it('should return CANCELLED when sbSyncExit is "-4.0" (decimal notation)', () => {
@@ -208,7 +210,7 @@ describe('getParityCheckStatus', () => {
                 sbSyncExit: '-4.0',
             });
 
-            expect(getParityCheckStatus(varData)).toBe(ParityCheckStatus.CANCELLED);
+            expect(getParityCheckStatus(varData).status).toBe(ParityCheckStatus.CANCELLED);
         });
     });
 
@@ -221,7 +223,7 @@ describe('getParityCheckStatus', () => {
                 sbSyncExit: '1',
             });
 
-            expect(getParityCheckStatus(varData)).toBe(ParityCheckStatus.FAILED);
+            expect(getParityCheckStatus(varData).status).toBe(ParityCheckStatus.FAILED);
         });
 
         it('should return FAILED when sbSyncExit is negative but not -4', () => {
@@ -231,7 +233,7 @@ describe('getParityCheckStatus', () => {
                 sbSyncExit: '-1',
             });
 
-            expect(getParityCheckStatus(varData)).toBe(ParityCheckStatus.FAILED);
+            expect(getParityCheckStatus(varData).status).toBe(ParityCheckStatus.FAILED);
         });
 
         it('should return FAILED when sbSyncExit is positive error code', () => {
@@ -241,7 +243,7 @@ describe('getParityCheckStatus', () => {
                 sbSyncExit: '5',
             });
 
-            expect(getParityCheckStatus(varData)).toBe(ParityCheckStatus.FAILED);
+            expect(getParityCheckStatus(varData).status).toBe(ParityCheckStatus.FAILED);
         });
 
         it('should return FAILED for large error codes', () => {
@@ -251,7 +253,7 @@ describe('getParityCheckStatus', () => {
                 sbSyncExit: '255',
             });
 
-            expect(getParityCheckStatus(varData)).toBe(ParityCheckStatus.FAILED);
+            expect(getParityCheckStatus(varData).status).toBe(ParityCheckStatus.FAILED);
         });
 
         it('should return FAILED when sbSyncExit is decimal error code', () => {
@@ -261,7 +263,7 @@ describe('getParityCheckStatus', () => {
                 sbSyncExit: '1.5',
             });
 
-            expect(getParityCheckStatus(varData)).toBe(ParityCheckStatus.FAILED);
+            expect(getParityCheckStatus(varData).status).toBe(ParityCheckStatus.FAILED);
         });
     });
 
@@ -274,7 +276,7 @@ describe('getParityCheckStatus', () => {
                 sbSyncExit: '0',
             });
 
-            expect(getParityCheckStatus(varData)).toBe(ParityCheckStatus.COMPLETED);
+            expect(getParityCheckStatus(varData).status).toBe(ParityCheckStatus.COMPLETED);
         });
 
         it('should return COMPLETED when sbSynced2 is very large', () => {
@@ -285,7 +287,7 @@ describe('getParityCheckStatus', () => {
                 sbSyncExit: '0',
             });
 
-            expect(getParityCheckStatus(varData)).toBe(ParityCheckStatus.COMPLETED);
+            expect(getParityCheckStatus(varData).status).toBe(ParityCheckStatus.COMPLETED);
         });
 
         it('should return COMPLETED when sbSynced2 is minimal positive value', () => {
@@ -296,7 +298,7 @@ describe('getParityCheckStatus', () => {
                 sbSyncExit: '0',
             });
 
-            expect(getParityCheckStatus(varData)).toBe(ParityCheckStatus.COMPLETED);
+            expect(getParityCheckStatus(varData).status).toBe(ParityCheckStatus.COMPLETED);
         });
     });
 
@@ -308,7 +310,7 @@ describe('getParityCheckStatus', () => {
                 sbSynced: 100,
             });
 
-            expect(getParityCheckStatus(varData)).toBe(ParityCheckStatus.PAUSED);
+            expect(getParityCheckStatus(varData).status).toBe(ParityCheckStatus.PAUSED);
         });
 
         it('should return PAUSED when mdResyncDt is undefined and mdResyncPos > 0', () => {
@@ -318,7 +320,7 @@ describe('getParityCheckStatus', () => {
                 sbSynced: 100,
             });
 
-            expect(getParityCheckStatus(varData)).toBe(ParityCheckStatus.PAUSED);
+            expect(getParityCheckStatus(varData).status).toBe(ParityCheckStatus.PAUSED);
         });
 
         it('should return NEVER_RUN when sbSyncExit is null (converts to 0)', () => {
@@ -329,7 +331,7 @@ describe('getParityCheckStatus', () => {
             });
 
             // Number(null) = 0, so this behaves like sbSyncExit = '0'
-            expect(getParityCheckStatus(varData)).toBe(ParityCheckStatus.NEVER_RUN);
+            expect(getParityCheckStatus(varData).status).toBe(ParityCheckStatus.NEVER_RUN);
         });
 
         it('should return NEVER_RUN when sbSyncExit is undefined (NaN treated as 0)', () => {
@@ -340,7 +342,7 @@ describe('getParityCheckStatus', () => {
             });
 
             // Number(undefined) = NaN, treated as 0, so behaves like sbSyncExit = '0'
-            expect(getParityCheckStatus(varData)).toBe(ParityCheckStatus.NEVER_RUN);
+            expect(getParityCheckStatus(varData).status).toBe(ParityCheckStatus.NEVER_RUN);
         });
 
         it('should return NEVER_RUN when sbSyncExit is an object (NaN treated as 0)', () => {
@@ -351,7 +353,7 @@ describe('getParityCheckStatus', () => {
             });
 
             // Number({}) = NaN, treated as 0, so behaves like sbSyncExit = '0'
-            expect(getParityCheckStatus(varData)).toBe(ParityCheckStatus.NEVER_RUN);
+            expect(getParityCheckStatus(varData).status).toBe(ParityCheckStatus.NEVER_RUN);
         });
 
         it('should return NEVER_RUN when sbSyncExit is an empty array (converts to 0)', () => {
@@ -362,7 +364,7 @@ describe('getParityCheckStatus', () => {
             });
 
             // Number([]) = 0, so this behaves like sbSyncExit = '0'
-            expect(getParityCheckStatus(varData)).toBe(ParityCheckStatus.NEVER_RUN);
+            expect(getParityCheckStatus(varData).status).toBe(ParityCheckStatus.NEVER_RUN);
         });
 
         it('should return NEVER_RUN when sbSyncExit is a non-empty array (NaN treated as 0)', () => {
@@ -373,7 +375,7 @@ describe('getParityCheckStatus', () => {
             });
 
             // Number([1,2,3]) = NaN, treated as 0, so behaves like sbSyncExit = '0'
-            expect(getParityCheckStatus(varData)).toBe(ParityCheckStatus.NEVER_RUN);
+            expect(getParityCheckStatus(varData).status).toBe(ParityCheckStatus.NEVER_RUN);
         });
 
         it('should return FAILED when sbSyncExit is boolean true', () => {
@@ -383,7 +385,7 @@ describe('getParityCheckStatus', () => {
                 sbSyncExit: true as any,
             });
 
-            expect(getParityCheckStatus(varData)).toBe(ParityCheckStatus.FAILED);
+            expect(getParityCheckStatus(varData).status).toBe(ParityCheckStatus.FAILED);
         });
 
         it('should return NEVER_RUN when sbSyncExit is boolean false (converts to 0)', () => {
@@ -395,7 +397,7 @@ describe('getParityCheckStatus', () => {
 
             // Number(false) = 0, so sbSyncExitNumber === -4 is false, sbSyncExitNumber !== 0 is false
             // Falls through to check sbSynced2 > 0, which is false, so returns NEVER_RUN fallback
-            expect(getParityCheckStatus(varData)).toBe(ParityCheckStatus.NEVER_RUN);
+            expect(getParityCheckStatus(varData).status).toBe(ParityCheckStatus.NEVER_RUN);
         });
 
         it('should return PAUSED when mdResyncDt contains special characters', () => {
@@ -405,7 +407,7 @@ describe('getParityCheckStatus', () => {
                 sbSynced: 100,
             });
 
-            expect(getParityCheckStatus(varData)).toBe(ParityCheckStatus.PAUSED);
+            expect(getParityCheckStatus(varData).status).toBe(ParityCheckStatus.PAUSED);
         });
 
         it('should return NEVER_RUN when sbSyncExit contains special characters (NaN treated as 0)', () => {
@@ -416,7 +418,7 @@ describe('getParityCheckStatus', () => {
             });
 
             // Number('!@#$%^&*()') = NaN, treated as 0, so behaves like sbSyncExit = '0'
-            expect(getParityCheckStatus(varData)).toBe(ParityCheckStatus.NEVER_RUN);
+            expect(getParityCheckStatus(varData).status).toBe(ParityCheckStatus.NEVER_RUN);
         });
 
         it('should return PAUSED when mdResyncDt is Infinity string', () => {
@@ -427,7 +429,7 @@ describe('getParityCheckStatus', () => {
             });
 
             // Number('Infinity') = Infinity, and Infinity > 0 is true
-            expect(getParityCheckStatus(varData)).toBe(ParityCheckStatus.RUNNING);
+            expect(getParityCheckStatus(varData).status).toBe(ParityCheckStatus.RUNNING);
         });
 
         it('should return PAUSED when mdResyncDt is -Infinity string', () => {
@@ -438,7 +440,7 @@ describe('getParityCheckStatus', () => {
             });
 
             // Number('-Infinity') = -Infinity, and -Infinity > 0 is false
-            expect(getParityCheckStatus(varData)).toBe(ParityCheckStatus.PAUSED);
+            expect(getParityCheckStatus(varData).status).toBe(ParityCheckStatus.PAUSED);
         });
 
         it('should return FAILED when sbSyncExit is Infinity string', () => {
@@ -449,7 +451,7 @@ describe('getParityCheckStatus', () => {
             });
 
             // Number('Infinity') = Infinity, Infinity !== 0 is true, Infinity !== -4 is true
-            expect(getParityCheckStatus(varData)).toBe(ParityCheckStatus.FAILED);
+            expect(getParityCheckStatus(varData).status).toBe(ParityCheckStatus.FAILED);
         });
 
         it('should demonstrate NaN-to-0 treatment with completed status', () => {
@@ -463,7 +465,7 @@ describe('getParityCheckStatus', () => {
             // Number('completely-invalid-string') = NaN, treated as 0
             // sbSyncExitValue === -4 is false, sbSyncExitValue !== 0 is false
             // Falls through to sbSynced2 > 0 check, which is true, so COMPLETED
-            expect(getParityCheckStatus(varData)).toBe(ParityCheckStatus.COMPLETED);
+            expect(getParityCheckStatus(varData).status).toBe(ParityCheckStatus.COMPLETED);
         });
     });
 
@@ -474,7 +476,7 @@ describe('getParityCheckStatus', () => {
                 mdResyncDt: ' 100 ',
             });
 
-            expect(getParityCheckStatus(varData)).toBe(ParityCheckStatus.RUNNING);
+            expect(getParityCheckStatus(varData).status).toBe(ParityCheckStatus.RUNNING);
         });
 
         it('should handle sbSyncExit with whitespace', () => {
@@ -484,7 +486,7 @@ describe('getParityCheckStatus', () => {
                 sbSyncExit: ' -4 ',
             });
 
-            expect(getParityCheckStatus(varData)).toBe(ParityCheckStatus.CANCELLED);
+            expect(getParityCheckStatus(varData).status).toBe(ParityCheckStatus.CANCELLED);
         });
 
         it('should handle sbSyncExit as non-numeric string (NaN treated as 0)', () => {
@@ -496,7 +498,7 @@ describe('getParityCheckStatus', () => {
             });
 
             // Number('invalid') = NaN, treated as 0, then checks sbSynced2 > 0 (true) = COMPLETED
-            expect(getParityCheckStatus(varData)).toBe(ParityCheckStatus.COMPLETED);
+            expect(getParityCheckStatus(varData).status).toBe(ParityCheckStatus.COMPLETED);
         });
 
         it('should handle all zero values', () => {
@@ -508,7 +510,7 @@ describe('getParityCheckStatus', () => {
                 sbSyncExit: '0',
             });
 
-            expect(getParityCheckStatus(varData)).toBe(ParityCheckStatus.NEVER_RUN);
+            expect(getParityCheckStatus(varData).status).toBe(ParityCheckStatus.NEVER_RUN);
         });
 
         it('should prioritize active operation over completed status', () => {
@@ -520,7 +522,7 @@ describe('getParityCheckStatus', () => {
                 sbSyncExit: '0',
             });
 
-            expect(getParityCheckStatus(varData)).toBe(ParityCheckStatus.RUNNING);
+            expect(getParityCheckStatus(varData).status).toBe(ParityCheckStatus.RUNNING);
         });
 
         it('should prioritize active paused operation over completed status', () => {
@@ -532,7 +534,7 @@ describe('getParityCheckStatus', () => {
                 sbSyncExit: '0',
             });
 
-            expect(getParityCheckStatus(varData)).toBe(ParityCheckStatus.PAUSED);
+            expect(getParityCheckStatus(varData).status).toBe(ParityCheckStatus.PAUSED);
         });
 
         it('should prioritize never run over other statuses when sbSynced is 0', () => {
@@ -543,7 +545,7 @@ describe('getParityCheckStatus', () => {
                 sbSyncExit: '-4',
             });
 
-            expect(getParityCheckStatus(varData)).toBe(ParityCheckStatus.NEVER_RUN);
+            expect(getParityCheckStatus(varData).status).toBe(ParityCheckStatus.NEVER_RUN);
         });
 
         it('should prioritize cancelled over failed status', () => {
@@ -554,7 +556,7 @@ describe('getParityCheckStatus', () => {
                 sbSyncExit: '-4',
             });
 
-            expect(getParityCheckStatus(varData)).toBe(ParityCheckStatus.CANCELLED);
+            expect(getParityCheckStatus(varData).status).toBe(ParityCheckStatus.CANCELLED);
         });
 
         it('should handle very large numbers', () => {
@@ -566,7 +568,7 @@ describe('getParityCheckStatus', () => {
                 sbSyncExit: '0',
             });
 
-            expect(getParityCheckStatus(varData)).toBe(ParityCheckStatus.RUNNING);
+            expect(getParityCheckStatus(varData).status).toBe(ParityCheckStatus.RUNNING);
         });
 
         it('should handle negative mdResyncPos as edge case', () => {
@@ -578,7 +580,7 @@ describe('getParityCheckStatus', () => {
                 sbSyncExit: '0',
             });
 
-            expect(getParityCheckStatus(varData)).toBe(ParityCheckStatus.COMPLETED);
+            expect(getParityCheckStatus(varData).status).toBe(ParityCheckStatus.COMPLETED);
         });
 
         it('should handle hexadecimal string in sbSyncExit', () => {
@@ -589,7 +591,7 @@ describe('getParityCheckStatus', () => {
             });
 
             // Number('0x4') = 4 (valid hex), so 4 !== 0 is true, returns FAILED
-            expect(getParityCheckStatus(varData)).toBe(ParityCheckStatus.FAILED);
+            expect(getParityCheckStatus(varData).status).toBe(ParityCheckStatus.FAILED);
         });
 
         it('should handle scientific notation in mdResyncDt', () => {
@@ -598,7 +600,7 @@ describe('getParityCheckStatus', () => {
                 mdResyncDt: '1e3',
             });
 
-            expect(getParityCheckStatus(varData)).toBe(ParityCheckStatus.RUNNING);
+            expect(getParityCheckStatus(varData).status).toBe(ParityCheckStatus.RUNNING);
         });
     });
 
@@ -612,7 +614,7 @@ describe('getParityCheckStatus', () => {
                 sbSyncExit: '0',
             });
 
-            expect(getParityCheckStatus(varData)).toBe(ParityCheckStatus.NEVER_RUN);
+            expect(getParityCheckStatus(varData).status).toBe(ParityCheckStatus.NEVER_RUN);
         });
 
         it('should handle system with successful completed check', () => {
@@ -624,7 +626,7 @@ describe('getParityCheckStatus', () => {
                 sbSyncExit: '0',
             });
 
-            expect(getParityCheckStatus(varData)).toBe(ParityCheckStatus.COMPLETED);
+            expect(getParityCheckStatus(varData).status).toBe(ParityCheckStatus.COMPLETED);
         });
 
         it('should handle user-cancelled check scenario', () => {
@@ -636,7 +638,7 @@ describe('getParityCheckStatus', () => {
                 sbSyncExit: '-4',
             });
 
-            expect(getParityCheckStatus(varData)).toBe(ParityCheckStatus.CANCELLED);
+            expect(getParityCheckStatus(varData).status).toBe(ParityCheckStatus.CANCELLED);
         });
 
         it('should handle failed check with error', () => {
@@ -648,7 +650,7 @@ describe('getParityCheckStatus', () => {
                 sbSyncExit: '1', // Generic error
             });
 
-            expect(getParityCheckStatus(varData)).toBe(ParityCheckStatus.FAILED);
+            expect(getParityCheckStatus(varData).status).toBe(ParityCheckStatus.FAILED);
         });
 
         it('should handle currently running check at 50%', () => {
@@ -660,7 +662,7 @@ describe('getParityCheckStatus', () => {
                 sbSyncExit: '0',
             });
 
-            expect(getParityCheckStatus(varData)).toBe(ParityCheckStatus.RUNNING);
+            expect(getParityCheckStatus(varData).status).toBe(ParityCheckStatus.RUNNING);
         });
 
         it('should handle paused check scenario', () => {
@@ -672,7 +674,7 @@ describe('getParityCheckStatus', () => {
                 sbSyncExit: '0',
             });
 
-            expect(getParityCheckStatus(varData)).toBe(ParityCheckStatus.PAUSED);
+            expect(getParityCheckStatus(varData).status).toBe(ParityCheckStatus.PAUSED);
         });
     });
 });
