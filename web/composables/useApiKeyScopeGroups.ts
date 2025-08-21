@@ -165,11 +165,11 @@ export function buildAuthorizationUrl(
 ): string {
   const url = new URL(`${baseUrl}/ApiKeyAuthorize`);
   
-  url.searchParams.set('app_name', appName);
+  url.searchParams.set('name', appName);
   url.searchParams.set('scopes', scopes.join(','));
   
   if (options?.appDescription) {
-    url.searchParams.set('app_description', options.appDescription);
+    url.searchParams.set('description', options.appDescription);
   }
   if (options?.redirectUri) {
     url.searchParams.set('redirect_uri', options.redirectUri);

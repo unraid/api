@@ -5,10 +5,10 @@ import { Resource, Role, AuthActionVerb } from '~/composables/gql/graphql';
 describe('useApiKeyAuthorization', () => {
   describe('parameter parsing', () => {
     it('should parse query parameters correctly', () => {
-      const params = new URLSearchParams('?app_name=TestApp&scopes=docker:read,vm:*&redirect_uri=https://example.com&state=abc123');
+      const params = new URLSearchParams('?name=TestApp&scopes=docker:read,vm:*&redirect_uri=https://example.com&state=abc123');
       const { authParams } = useApiKeyAuthorization(params);
       
-      expect(authParams.value.appName).toBe('TestApp');
+      expect(authParams.value.name).toBe('TestApp');
       expect(authParams.value.scopes).toEqual(['docker:read', 'vm:*']);
       expect(authParams.value.redirectUri).toBe('https://example.com');
       expect(authParams.value.state).toBe('abc123');
@@ -18,7 +18,7 @@ describe('useApiKeyAuthorization', () => {
       const params = new URLSearchParams('');
       const { authParams } = useApiKeyAuthorization(params);
       
-      expect(authParams.value.appName).toBe('Unknown Application');
+      expect(authParams.value.name).toBe('Unknown Application');
       expect(authParams.value.scopes).toEqual([]);
       expect(authParams.value.redirectUri).toBe('');
       expect(authParams.value.state).toBe('');

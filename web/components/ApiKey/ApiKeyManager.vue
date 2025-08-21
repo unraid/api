@@ -22,7 +22,7 @@ import {
 } from '@unraid/ui';
 import { extractGraphQLErrorMessage } from '~/helpers/functions';
 
-import type { ApiKeyFragment, ApiKeyWithKeyFragment } from '~/composables/gql/graphql';
+import type { ApiKeyFragment } from '~/composables/gql/graphql';
 
 import { useFragment } from '~/composables/gql/fragment-masking';
 import { useApiKeyStore } from '~/store/apiKey';
@@ -33,23 +33,23 @@ const { result, refetch } = useQuery(GET_API_KEYS);
 
 const apiKeyStore = useApiKeyStore();
 const { createdKey } = storeToRefs(apiKeyStore);
-const apiKeys = ref<(ApiKeyFragment | ApiKeyWithKeyFragment)[]>([]);
+const apiKeys = ref<ApiKeyFragment[]>([]);
 
 // Helper function to check if a key has the actual key value
-function hasKey(key: ApiKeyFragment | ApiKeyWithKeyFragment): key is ApiKeyWithKeyFragment {
+function hasKey(key: ApiKeyFragment): key is ApiKeyFragment {
   return 'key' in key && !!key.key;
 }
 
 watchEffect(() => {
-  const baseKeys: (ApiKeyFragment | ApiKeyWithKeyFragment)[] =
+  const baseKeys: (ApiKeyFragment | ApiKeyFragment)[] =
     result.value?.apiKeys.map((key) => useFragment(API_KEY_FRAGMENT, key)) || [];
   
   if (createdKey.value) {
     const existingKeyIndex = baseKeys.findIndex((key) => key.id === createdKey.value?.id);
     if (existingKeyIndex >= 0) {
-      baseKeys[existingKeyIndex] = createdKey.value as ApiKeyFragment | ApiKeyWithKeyFragment;
+      baseKeys[existingKeyIndex] = createdKey.value as ApiKeyFragment | ApiKeyFragment;
     } else {
-      baseKeys.unshift(createdKey.value as ApiKeyFragment | ApiKeyWithKeyFragment);
+      baseKeys.unshift(createdKey.value as ApiKeyFragment | ApiKeyFragment);
     }
     
     // Don't automatically show keys - keep them hidden by default
@@ -77,7 +77,7 @@ function toggleShowKey(keyId: string) {
   showKey.value[keyId] = !showKey.value[keyId];
 }
 
-function openCreateModal(key: ApiKeyFragment | ApiKeyWithKeyFragment | null = null) {
+function openCreateModal(key: ApiKeyFragment | ApiKeyFragment | null = null) {
   apiKeyStore.clearCreatedKey();
   apiKeyStore.showModal(key as ApiKeyFragment | null);
 }

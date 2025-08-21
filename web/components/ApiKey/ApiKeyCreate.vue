@@ -14,6 +14,7 @@ import { JsonForms } from '@jsonforms/vue';
 import { ClipboardDocumentIcon } from '@heroicons/vue/24/solid';
 import { extractGraphQLErrorMessage } from '~/helpers/functions';
 import EffectivePermissions from './EffectivePermissions.vue';
+import DeveloperAuthorizationLink from './DeveloperAuthorizationLink.vue';
 
 import type { ApolloError } from '@apollo/client/errors';
 import type { FragmentType } from '~/composables/gql/fragment-masking';
@@ -28,13 +29,11 @@ import { useFragment } from '~/composables/gql/fragment-masking';
 import { useApiKeyStore } from '~/store/apiKey';
 import {
   API_KEY_FRAGMENT,
-  API_KEY_FRAGMENT_WITH_KEY,
   CREATE_API_KEY,
   UPDATE_API_KEY,
 } from './apikey.query';
 import {
   GET_API_KEY_CREATION_FORM_SCHEMA,
-  GET_API_KEY_AUTHORIZATION_FORM_SCHEMA,
 } from './api-key-form.query';
 
 interface Props {
@@ -105,62 +104,41 @@ const postCreateLoading = ref(false);
 const loading = computed<boolean>(() => createLoading.value || updateLoading.value);
 const error = computed<ApolloError | null>(() => createError.value || updateError.value);
 
-// Load form schema based on mode
+// Load form schema - always use creation form
 const loadFormSchema = () => {
-  console.log('Loading form schema, authorization mode:', isAuthorizationMode.value);
-  console.log('Available renderers:', jsonFormsRenderers);
+  // Always load creation form schema
+  const { onResult, onError } = useQuery(GET_API_KEY_CREATION_FORM_SCHEMA);
   
-  if (isAuthorizationMode.value && authorizationData.value?.scopes) {
-    // Load authorization form schema
-    const { onResult, onError } = useQuery(GET_API_KEY_AUTHORIZATION_FORM_SCHEMA, {
-      appName: authorizationData.value.name.replace(' API Key', '') || 'Application',
-      requestedScopes: authorizationData.value.scopes,
-      appDescription: authorizationData.value.description,
-    });
-    
-    onResult((result) => {
-      if (result.data?.getApiKeyAuthorizationFormSchema) {
-        console.log('Authorization form schema received:', result.data.getApiKeyAuthorizationFormSchema);
-        formSchema.value = result.data.getApiKeyAuthorizationFormSchema;
-        formData.value = result.data.getApiKeyAuthorizationFormSchema.values || {};
-      }
-    });
-    
-    onError((error) => {
-      console.error('Error loading authorization form schema:', error);
-    });
-  } else {
-    // Load creation form schema
-    const { onResult, onError } = useQuery(GET_API_KEY_CREATION_FORM_SCHEMA);
-    
-    onResult((result) => {
-      if (result.data?.getApiKeyCreationFormSchema) {
-        console.log('Creation form schema received:', result.data.getApiKeyCreationFormSchema);
-        formSchema.value = result.data.getApiKeyCreationFormSchema;
-        
+  onResult((result) => {
+    if (result.data?.getApiKeyCreationFormSchema) {
+      formSchema.value = result.data.getApiKeyCreationFormSchema;
+      
+      if (isAuthorizationMode.value && authorizationData.value?.formData) {
+        // In authorization mode, use the form data from the authorization store
+        formData.value = { ...authorizationData.value.formData };
+      } else if (editingKey.value) {
         // If editing, populate form data from existing key
-        if (editingKey.value) {
-          populateFormFromExistingKey();
-        } else {
-          // For new keys, initialize with empty data
-          formData.value = {
-            customPermissions: [],
-            permissionPresets: 'none', // Initialize the preset dropdown
-          };
-        }
+        populateFormFromExistingKey();
+      } else {
+        // For new keys, initialize with empty data
+        formData.value = {
+          customPermissions: [],
+          permissionPresets: 'none', // Initialize the preset dropdown
+        };
       }
-    });
-    
-    onError((error) => {
-      console.error('Error loading creation form schema:', error);
-    });
-  }
+    }
+  });
+  
+  onError((error) => {
+    console.error('Error loading creation form schema:', error);
+  });
 };
 
 // Initialize form on mount
 onMounted(() => {
   loadFormSchema();
 });
+
 
 // Watch for editing key changes
 watch(
@@ -171,6 +149,29 @@ watch(
     }
   }
 );
+
+// Watch for authorization mode changes
+watch(
+  () => isAuthorizationMode.value,
+  (newValue) => {
+    if (newValue && authorizationData.value?.formData) {
+      formData.value = { ...authorizationData.value.formData };
+    }
+  }
+);
+
+// Watch for authorization form data changes
+watch(
+  () => authorizationData.value?.formData,
+  async (newFormData) => {
+    if (isAuthorizationMode.value && newFormData) {
+      formData.value = { ...newFormData };
+      
+    }
+  },
+  { deep: true }
+);
+
 
 // Watch for permission preset selection
 watch(
@@ -262,43 +263,24 @@ const transformFormDataForApi = (): CreateApiKeyInput => {
     permissions: undefined,
   };
 
-  if (isAuthorizationMode.value) {
-    // In authorization mode, use the requested permissions
-    const { roles, customPermissions } = formData.value.requestedPermissions || {};
-    
-    if (roles && roles.length > 0) {
-      apiData.roles = roles;
-    }
-    
-    if (customPermissions && customPermissions.length > 0) {
-      // Expand resources array into individual AddPermissionInput entries
-      apiData.permissions = customPermissions.flatMap(perm =>
-        perm.resources.map(resource => ({
-          resource,
-          actions: perm.actions
-        }))
-      );
-    }
-  } else {
-    // Regular creation mode - combine all selected permissions
-    if (formData.value.roles && formData.value.roles.length > 0) {
-      apiData.roles = formData.value.roles;
-    }
+  // Both authorization and regular mode now use the same form structure
+  if (formData.value.roles && formData.value.roles.length > 0) {
+    apiData.roles = formData.value.roles;
+  }
     
     // Note: permissionGroups would need to be handled by backend
     // The CreateApiKeyInput doesn't have permissionGroups field yet
     // For now, we could expand them client-side by querying the permissions
     // or add backend support to handle permission groups
     
-    if (formData.value.customPermissions && formData.value.customPermissions.length > 0) {
-      // Expand resources array into individual AddPermissionInput entries
-      apiData.permissions = formData.value.customPermissions.flatMap(perm =>
-        perm.resources.map(resource => ({
-          resource,
-          actions: perm.actions
-        }))
-      );
-    }
+  if (formData.value.customPermissions && formData.value.customPermissions.length > 0) {
+    // Expand resources array into individual AddPermissionInput entries
+    apiData.permissions = formData.value.customPermissions.flatMap(perm =>
+      perm.resources.map(resource => ({
+        resource,
+        actions: perm.actions
+      }))
+    );
   }
 
   // Note: expiresAt field would need to be added to CreateApiKeyInput type
@@ -318,10 +300,7 @@ const close = () => {
 async function upsertKey() {
   if (!formValid.value && !isAuthorizationMode.value) return;
   
-  // In authorization mode, check consent
-  if (isAuthorizationMode.value && !formData.value.consent) {
-    return;
-  }
+  // In authorization mode, validation is enough - no separate consent field
 
   postCreateLoading.value = true;
   try {
@@ -344,10 +323,10 @@ async function upsertKey() {
 
     const apiKeyResult = res?.data?.apiKey;
     if (isEdit && apiKeyResult && 'update' in apiKeyResult) {
-      const fragmentData = useFragment(API_KEY_FRAGMENT_WITH_KEY, apiKeyResult.update);
+      const fragmentData = useFragment(API_KEY_FRAGMENT, apiKeyResult.update);
       apiKeyStore.setCreatedKey(fragmentData);
     } else if (!isEdit && apiKeyResult && 'create' in apiKeyResult) {
-      const fragmentData = useFragment(API_KEY_FRAGMENT_WITH_KEY, apiKeyResult.create);
+      const fragmentData = useFragment(API_KEY_FRAGMENT, apiKeyResult.create);
       apiKeyStore.setCreatedKey(fragmentData);
       
       // If in authorization mode, call the callback with the API key
@@ -374,81 +353,32 @@ const copyApiKey = async () => {
 </script>
 
 <template>
-  <!-- Authorization mode (standalone page) -->
-  <div v-if="isAuthorizationMode" class="bg-white dark:bg-gray-800 rounded-lg shadow">
-    <div class="p-6">
-      <!-- Shared form content -->
-      <template v-if="formSchema">
-        <JsonForms
-          :schema="formSchema.dataSchema"
-          :uischema="formSchema.uiSchema"
-          :renderers="jsonFormsRenderers"
-          :data="formData"
-          :ajv="jsonFormsAjv"
-          @change="({ data, errors }) => {
-            formData = data;
-            formValid = errors ? errors.length === 0 : true;
-          }"
-        />
-        
-        <!-- Permissions Preview -->
-        <div class="mt-6 p-4 bg-gray-50 dark:bg-gray-900/50 rounded-lg border border-gray-200 dark:border-gray-700">
-          <EffectivePermissions
-            :roles="formData.roles || []"
-            :raw-permissions="formDataPermissions"
-            :show-header="true"
-          />
-          
-          <!-- Show selected roles for context -->
-          <div v-if="formData.roles && formData.roles.length > 0" class="mt-3 pt-3 border-t border-gray-200 dark:border-gray-700">
-            <div class="text-xs text-gray-600 dark:text-gray-400 mb-1">Selected Roles:</div>
-            <div class="flex flex-wrap gap-1">
-              <span 
-                v-for="role in formData.roles" 
-                :key="role"
-                class="px-2 py-1 bg-blue-100 dark:bg-blue-900/50 text-blue-800 dark:text-blue-300 rounded text-xs"
-              >
-                {{ role }}
-              </span>
-            </div>
-          </div>
-        </div>
-      </template>
-      
-      <!-- Action buttons for authorization mode -->
-      <div class="mt-6 flex gap-3">
-        <Button
-          type="button"
-          :disabled="loading || postCreateLoading || !formData.consent"
-          :loading="loading || postCreateLoading"
-          @click="upsertKey"
-        >
-          Authorize
-        </Button>
-      </div>
-    </div>
-  </div>
-  
-  <!-- Regular modal mode -->
+  <!-- Modal mode (handles both regular creation and authorization) -->
   <Dialog
-    v-else
+    v-if="modalVisible"
     v-model="modalVisible"
     size="lg"
     :title="
-      editingKey 
+      isAuthorizationMode
+        ? 'Authorize API Key Access'
+        : editingKey 
         ? (t ? t('Edit API Key') : 'Edit API Key') 
         : (t ? t('Create API Key') : 'Create API Key')
     "
     :scrollable="true"
     close-button-text="Cancel"
     :primary-button-text="
-      editingKey 
+      isAuthorizationMode
+        ? 'Authorize'
+        : editingKey 
         ? 'Save' 
         : 'Create'
     "
     :primary-button-loading="loading || postCreateLoading"
     :primary-button-loading-text="
-      editingKey 
+      isAuthorizationMode
+        ? 'Authorizing...'
+        : editingKey 
         ? 'Saving...' 
         : 'Creating...'
     "
@@ -522,6 +452,16 @@ const copyApiKey = async () => {
             </span>
           </div>
         </div>
+      </div>
+
+      <!-- Developer Authorization Link for Modal Mode -->
+      <div class="mt-4">
+        <DeveloperAuthorizationLink
+          :roles="formData.roles || []"
+          :raw-permissions="formDataPermissions"
+          :app-name="formData.name || 'My Application'"
+          :app-description="formData.description || 'API key for my application'"
+        />
       </div>
 
       <!-- Success state for authorization mode -->

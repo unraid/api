@@ -2276,9 +2276,6 @@ type Query {
 
   """Get JSON Schema for API key creation form"""
   getApiKeyCreationFormSchema: ApiKeyFormSettings!
-
-  """Get JSON Schema for API key authorization form"""
-  getApiKeyAuthorizationFormSchema(appName: String!, requestedScopes: [String!]!, appDescription: String): ApiKeyFormSettings!
   config: Config!
   flash: Flash!
   logFiles: [LogFile!]!
