@@ -19,41 +19,39 @@ function calculateParitySpeed(deltaTime: number, deltaBlocks: number) {
     return Math.round(speedMBps);
 }
 
-export function getParityCheckStatus(varData: Var): ParityCheck {
+function getStatusFromVarData(varData: Var): ParityCheckStatus {
     const { mdResyncPos, mdResyncDt, sbSyncExit, sbSynced, sbSynced2 } = varData;
     const mdResyncDtNumber = toNumberAlways(mdResyncDt, 0);
     const sbSyncExitNumber = toNumberAlways(sbSyncExit, 0);
-    let status: ParityCheckStatus;
 
-    // Priority 1: Active operations (highest priority)
-    if (mdResyncPos > 0) {
-        status = mdResyncDtNumber > 0 ? ParityCheckStatus.RUNNING : ParityCheckStatus.PAUSED;
+    switch (true) {
+        case mdResyncPos > 0:
+            return mdResyncDtNumber > 0 ? ParityCheckStatus.RUNNING : ParityCheckStatus.PAUSED;
+        case sbSynced === 0:
+            return ParityCheckStatus.NEVER_RUN;
+        case sbSyncExitNumber === -4:
+            return ParityCheckStatus.CANCELLED;
+        case sbSyncExitNumber !== 0:
+            return ParityCheckStatus.FAILED;
+        case sbSynced2 > 0:
+            return ParityCheckStatus.COMPLETED;
+        default:
+            return ParityCheckStatus.NEVER_RUN;
     }
-    // Priority 2: Never run check
-    else if (sbSynced === 0) {
-        status = ParityCheckStatus.NEVER_RUN;
-    }
-    // Priority 3: Error conditions
-    else if (sbSyncExitNumber === -4) {
-        status = ParityCheckStatus.CANCELLED;
-    } else if (sbSyncExitNumber !== 0) {
-        status = ParityCheckStatus.FAILED;
-    }
-    // Priority 4: Completed check
-    else if (sbSynced2 > 0) {
-        status = ParityCheckStatus.COMPLETED;
-    }
-    // Fallback
-    else {
-        status = ParityCheckStatus.NEVER_RUN;
-    }
+}
+
+export function getParityCheckStatus(varData: Var): ParityCheck {
+    const { sbSynced, sbSynced2, mdResyncDt, mdResyncDb, mdResyncPos, mdResyncSize } = varData;
+    const deltaTime = toNumberAlways(mdResyncDt, 0);
+    const deltaBlocks = toNumberAlways(mdResyncDb, 0);
 
     // seconds since epoch (unix timestamp)
     const now = sbSynced2 > 0 ? sbSynced2 : Date.now() / 1000;
     return {
-        status,
-        speed: String(calculateParitySpeed(mdResyncDtNumber, toNumberAlways(varData.mdResyncDb, 0))),
-        progress: mdResyncPos / (varData.mdResyncSize / 100 + 1),
+        status: getStatusFromVarData(varData),
+        speed: String(calculateParitySpeed(deltaTime, deltaBlocks)),
+        // divide resyncSize by 100 to get percentage directly (instead of multiplying by 100)
+        progress: mdResyncPos / (mdResyncSize / 100 + 1),
         date: new Date(sbSynced * 1000),
         duration: Math.round(now - sbSynced),
     };
