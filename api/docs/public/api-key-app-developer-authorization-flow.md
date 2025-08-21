@@ -9,27 +9,28 @@ Applications can request API access to an Unraid server by redirecting users to 
 ## Flow
 
 1. **Application initiates request**: The app redirects the user to:
-   ```
-   https://[unraid-server]/ApiKeyAuthorize?app_name=MyApp&scopes=docker:read,vm:*&redirect_uri=https://myapp.com/callback&state=abc123
-   ```
+
+    ```
+    https://[unraid-server]/ApiKeyAuthorize?app_name=MyApp&scopes=docker:read,vm:*&redirect_uri=https://myapp.com/callback&state=abc123
+    ```
 
 2. **User authentication**: If not already logged in, the user is redirected to login first (standard Unraid auth)
 
 3. **Consent screen**: User sees:
-   - Application name and description
-   - Requested permissions (with checkboxes to approve/deny specific scopes)
-   - API key name field (pre-filled)
-   - Authorize & Cancel buttons
+    - Application name and description
+    - Requested permissions (with checkboxes to approve/deny specific scopes)
+    - API key name field (pre-filled)
+    - Authorize & Cancel buttons
 
 4. **API key creation**: Upon authorization:
-   - API key is created with approved scopes
-   - Key is displayed to the user
-   - If `redirect_uri` is provided, user is redirected back with the key
+    - API key is created with approved scopes
+    - Key is displayed to the user
+    - If `redirect_uri` is provided, user is redirected back with the key
 
 5. **Callback**: App receives the API key:
-   ```
-   https://myapp.com/callback?api_key=xxx&state=abc123
-   ```
+    ```
+    https://myapp.com/callback?api_key=xxx&state=abc123
+    ```
 
 ## Query Parameters
 
@@ -44,6 +45,7 @@ Applications can request API access to an Unraid server by redirecting users to 
 Scopes follow the pattern: `resource:action`
 
 ### Examples:
+
 - `docker:read` - Read access to Docker
 - `vm:*` - Full access to VMs
 - `system:update` - Update access to system
@@ -51,9 +53,11 @@ Scopes follow the pattern: `resource:action`
 - `role:admin` - Admin role access
 
 ### Available Resources:
+
 - `docker`, `vm`, `system`, `share`, `user`, `network`, `disk`, etc.
 
 ### Available Actions:
+
 - `create`, `read`, `update`, `delete` or `*` for all
 
 ## Security Considerations
@@ -77,11 +81,12 @@ const state = generateRandomState();
 sessionStorage.setItem('oauth_state', state);
 
 // Redirect user to authorization page
-window.location.href = `https://${unraidServer}/ApiKeyAuthorize?` +
-  `app_name=${encodeURIComponent(appName)}&` +
-  `scopes=${encodeURIComponent(scopes)}&` +
-  `redirect_uri=${encodeURIComponent(redirectUri)}&` +
-  `state=${encodeURIComponent(state)}`;
+window.location.href =
+    `https://${unraidServer}/ApiKeyAuthorize?` +
+    `app_name=${encodeURIComponent(appName)}&` +
+    `scopes=${encodeURIComponent(scopes)}&` +
+    `redirect_uri=${encodeURIComponent(redirectUri)}&` +
+    `state=${encodeURIComponent(state)}`;
 
 // Handle callback
 const urlParams = new URLSearchParams(window.location.search);
@@ -89,7 +94,7 @@ const apiKey = urlParams.get('api_key');
 const returnedState = urlParams.get('state');
 
 if (returnedState === sessionStorage.getItem('oauth_state')) {
-  // Save API key securely
-  saveApiKey(apiKey);
+    // Save API key securely
+    saveApiKey(apiKey);
 }
 ```
