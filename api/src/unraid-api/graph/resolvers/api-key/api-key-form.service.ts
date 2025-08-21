@@ -15,9 +15,8 @@ import {
 export interface ApiKeyFormData {
     name: string;
     description?: string;
-    authorizationType?: 'roles' | 'groups' | 'custom';
     roles?: Role[];
-    permissionGroups?: string[];
+    permissionPresets?: string; // Single preset selection from dropdown
     customPermissions?: Array<{
         resources: Resource[]; // Form uses array for multi-select
         actions: string[];
@@ -419,6 +418,8 @@ export class ApiKeyFormService {
 
     /**
      * Convert form data back to permissions for API key creation
+     * The form provides: name, description, roles, and customPermissions
+     * Note: permissionPresets is only a UI helper that adds to customPermissions
      */
     convertFormDataToPermissions(formData: ApiKeyFormData): {
         roles: Role[];
@@ -427,28 +428,27 @@ export class ApiKeyFormService {
         const roles: Role[] = [];
         const permissions = new Map<Resource, Set<string>>();
 
-        // Handle based on authorization type
-        if (formData.authorizationType === 'roles' && formData.roles) {
+        // 1. Add roles if provided
+        if (formData.roles && formData.roles.length > 0) {
             roles.push(...formData.roles);
-        } else if (formData.authorizationType === 'groups' && formData.permissionGroups) {
-            // Convert permission groups to explicit permissions
-            for (const groupId of formData.permissionGroups) {
-                const groupPermissions = this.getPermissionsForGroup(groupId);
-                for (const perm of groupPermissions) {
-                    if (!permissions.has(perm.resource)) {
-                        permissions.set(perm.resource, new Set());
-                    }
-                    perm.actions.forEach((action) => permissions.get(perm.resource)!.add(action));
-                }
-            }
-        } else if (formData.authorizationType === 'custom' && formData.customPermissions) {
-            // Expand resources array into individual permission entries
+        }
+
+        // 2. Add custom permissions if provided
+        // This includes permissions added via the preset dropdown
+        if (formData.customPermissions && formData.customPermissions.length > 0) {
             for (const perm of formData.customPermissions) {
-                for (const resource of perm.resources) {
+                // Handle resources as an array (form uses multi-select)
+                const resources = Array.isArray(perm.resources)
+                    ? perm.resources
+                    : [perm.resources as Resource];
+
+                for (const resource of resources) {
                     if (!permissions.has(resource)) {
                         permissions.set(resource, new Set());
                     }
-                    perm.actions.forEach((action) => permissions.get(resource)!.add(action));
+                    // Handle actions as an array
+                    const actions = Array.isArray(perm.actions) ? perm.actions : [perm.actions];
+                    actions.forEach((action) => permissions.get(resource)!.add(action));
                 }
             }
         }
@@ -460,85 +460,5 @@ export class ApiKeyFormService {
                 actions: Array.from(actions),
             })),
         };
-    }
-
-    private getPermissionsForGroup(groupId: string): Array<{ resource: Resource; actions: string[] }> {
-        // This would be moved to a central configuration
-        const groups: Record<string, Array<{ resource: Resource; actions: string[] }>> = {
-            docker_manager: [
-                {
-                    resource: Resource.DOCKER,
-                    actions: [
-                        AuthAction.CREATE_ANY,
-                        AuthAction.READ_ANY,
-                        AuthAction.UPDATE_ANY,
-                        AuthAction.DELETE_ANY,
-                    ],
-                },
-                { resource: Resource.ARRAY, actions: [AuthAction.READ_ANY] },
-                { resource: Resource.DISK, actions: [AuthAction.READ_ANY] },
-                { resource: Resource.NETWORK, actions: [AuthAction.READ_ANY] },
-            ],
-            vm_manager: [
-                {
-                    resource: Resource.VMS,
-                    actions: [
-                        AuthAction.CREATE_ANY,
-                        AuthAction.READ_ANY,
-                        AuthAction.UPDATE_ANY,
-                        AuthAction.DELETE_ANY,
-                    ],
-                },
-                { resource: Resource.ARRAY, actions: [AuthAction.READ_ANY] },
-                { resource: Resource.DISK, actions: [AuthAction.READ_ANY] },
-                { resource: Resource.NETWORK, actions: [AuthAction.READ_ANY] },
-            ],
-            backup_manager: [
-                {
-                    resource: Resource.FLASH,
-                    actions: [
-                        AuthAction.CREATE_ANY,
-                        AuthAction.READ_ANY,
-                        AuthAction.UPDATE_ANY,
-                        AuthAction.DELETE_ANY,
-                    ],
-                },
-                { resource: Resource.ARRAY, actions: [AuthAction.READ_ANY] },
-                { resource: Resource.DISK, actions: [AuthAction.READ_ANY] },
-                { resource: Resource.SHARE, actions: [AuthAction.READ_ANY] },
-            ],
-            network_admin: [
-                {
-                    resource: Resource.NETWORK,
-                    actions: [
-                        AuthAction.CREATE_ANY,
-                        AuthAction.READ_ANY,
-                        AuthAction.UPDATE_ANY,
-                        AuthAction.DELETE_ANY,
-                    ],
-                },
-                {
-                    resource: Resource.SERVICES,
-                    actions: [
-                        AuthAction.CREATE_ANY,
-                        AuthAction.READ_ANY,
-                        AuthAction.UPDATE_ANY,
-                        AuthAction.DELETE_ANY,
-                    ],
-                },
-            ],
-            monitoring: [
-                { resource: Resource.DOCKER, actions: [AuthAction.READ_ANY] },
-                { resource: Resource.VMS, actions: [AuthAction.READ_ANY] },
-                { resource: Resource.ARRAY, actions: [AuthAction.READ_ANY] },
-                { resource: Resource.DISK, actions: [AuthAction.READ_ANY] },
-                { resource: Resource.NETWORK, actions: [AuthAction.READ_ANY] },
-                { resource: Resource.INFO, actions: [AuthAction.READ_ANY] },
-                { resource: Resource.DASHBOARD, actions: [AuthAction.READ_ANY] },
-                { resource: Resource.LOGS, actions: [AuthAction.READ_ANY] },
-            ],
-        };
-
-        return groups[groupId] || [];
     }
 }
