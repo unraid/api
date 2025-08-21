@@ -111,12 +111,18 @@ export class AuthService {
             await this.authzService.deletePermissionsForUser(apiKeyId);
 
             // Create array of permission-action pairs for processing
-            const permissionActions = permissions.flatMap((permission) =>
-                (permission.actions || []).map((action) => ({
-                    resource: permission.resource,
-                    action,
-                }))
-            );
+            // Filter out any permissions with empty or undefined resources
+            const permissionActions = permissions
+                .filter((permission) => permission.resource && permission.resource.trim() !== '')
+                .flatMap((permission) =>
+                    (permission.actions || [])
+                        .filter((action) => action && action.trim() !== '')
+                        .map((action) => ({
+                            resource: permission.resource,
+                            // Normalize action to lowercase for consistent matching
+                            action: action.toLowerCase(),
+                        }))
+                );
 
             const { errors, errorOccurred: errorOccured } = await batchProcess(
                 permissionActions,
