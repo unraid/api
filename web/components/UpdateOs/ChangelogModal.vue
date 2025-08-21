@@ -23,11 +23,27 @@ import Modal from '~/components/Modal.vue';
 export interface Props {
   open?: boolean;
   t: ComposerTranslation;
+  viewDocsLabel?: string;
+  // When provided, uses prop data instead of store data (for viewing release notes)
+  release?: {
+    version: string;
+    name?: string;
+    date?: string;
+    changelog?: string | null;
+    changelogPretty?: string;
+    sha256?: string | null;
+  } | null;
 }
 
 const props = withDefaults(defineProps<Props>(), {
   open: false,
+  release: null,
+  viewDocsLabel: undefined,
 });
+
+const emit = defineEmits<{
+  close: [];
+}>();
 
 const purchaseStore = usePurchaseStore();
 const updateOsStore = useUpdateOsStore();
@@ -36,9 +52,27 @@ const { darkMode } = storeToRefs(themeStore);
 const { availableWithRenewal, releaseForUpdate, changelogModalVisible } = storeToRefs(updateOsStore);
 const { setReleaseForUpdate, fetchAndConfirmInstall } = updateOsStore;
 
+// Determine if we're in prop mode (viewing specific release) or store mode (update workflow)
+const isPropMode = computed(() => !!props.release);
+
+// Use prop data when provided, store data when not
+const currentRelease = computed(() => props.release || releaseForUpdate.value);
+
+// Modal visibility: use prop when in prop mode, store visibility when in store mode
+const modalVisible = computed(() => isPropMode.value ? props.open : changelogModalVisible.value);
+
 const showExtendKeyButton = computed(() => {
-  return availableWithRenewal.value;
+  return !isPropMode.value && availableWithRenewal.value;
 });
+
+// Handle modal closing - emit event in prop mode, clear store in store mode
+const handleClose = () => {
+  if (isPropMode.value) {
+    emit('close');
+  } else {
+    setReleaseForUpdate(null);
+  }
+};
 
 // iframe navigation handling
 const iframeRef = ref<HTMLIFrameElement | null>(null);
@@ -47,11 +81,11 @@ const currentIframeUrl = ref<string | null>(null);
 const actualIframeSrc = ref<string | null>(null);
 
 const docsChangelogUrl = computed(() => {
-  return releaseForUpdate.value?.changelogPretty ?? null;
+  return currentRelease.value?.changelogPretty ?? null;
 });
 
 const showRawChangelog = computed<boolean>(() => {
-  return !docsChangelogUrl.value && !!releaseForUpdate.value?.changelog;
+  return !docsChangelogUrl.value && !!currentRelease.value?.changelog;
 });
 
 const handleDocsPostMessages = (event: MessageEvent) => {
@@ -129,16 +163,16 @@ watch(darkMode, () => {
 
 <template>
   <Modal
-    v-if="releaseForUpdate?.version"
+    v-if="currentRelease?.version"
     :center-content="false"
     max-width="max-w-[800px]"
-    :open="changelogModalVisible"
+    :open="modalVisible"
     :show-close-x="true"
     :t="t"
     :tall-content="true"
-    :title="t('Unraid OS {0} Changelog', [releaseForUpdate.version])"
+    :title="t('Unraid OS {0} Changelog', [currentRelease.version])"
     :disable-overlay-close="false"
-    @close="setReleaseForUpdate(null)"
+    @close="handleClose"
   >
     <template #main>
       <div class="flex flex-col gap-4 min-w-[280px] sm:min-w-[400px]">
@@ -156,12 +190,12 @@ watch(darkMode, () => {
 
         <!-- Fallback to raw changelog -->
         <RawChangelogRenderer
-          v-else-if="showRawChangelog && releaseForUpdate?.changelog"
-          :changelog="releaseForUpdate?.changelog"
-          :version="releaseForUpdate?.version"
-          :date="releaseForUpdate?.date"
+          v-else-if="showRawChangelog && currentRelease?.changelog"
+          :changelog="currentRelease?.changelog"
+          :version="currentRelease?.version"
+          :date="currentRelease?.date"
           :t="t"
-          :changelog-pretty="releaseForUpdate?.changelogPretty"
+          :changelog-pretty="currentRelease?.changelogPretty"
         />
 
         <!-- Loading state -->
@@ -189,32 +223,35 @@ watch(darkMode, () => {
 
           <!-- View on docs button -->
           <BrandButton
-            v-if="currentIframeUrl || releaseForUpdate?.changelogPretty"
+            v-if="currentIframeUrl || currentRelease?.changelogPretty"
             variant="underline"
             :external="true"
-            :href="currentIframeUrl || releaseForUpdate?.changelogPretty"
-            :icon="ArrowTopRightOnSquareIcon"
+            :href="currentIframeUrl || currentRelease?.changelogPretty"
+            :icon-right="ArrowTopRightOnSquareIcon"
+            :text="viewDocsLabel ? props.t(viewDocsLabel) : undefined"
             aria-label="View on Docs"
           />
         </div>
 
-        <!-- Action buttons -->
-        <BrandButton
-          v-if="showExtendKeyButton"
-          :icon="KeyIcon"
-          :icon-right="ArrowTopRightOnSquareIcon"
-          @click="purchaseStore.renew()"
-        >
-          {{ props.t('Extend License to Update') }}
-        </BrandButton>
-        <BrandButton
-          v-else-if="releaseForUpdate?.sha256"
-          :icon="ServerStackIcon"
-          :icon-right="ArrowRightIcon"
-          @click="fetchAndConfirmInstall(releaseForUpdate.sha256)"
-        >
-          {{ props.t('Continue') }}
-        </BrandButton>
+        <!-- Action buttons (only in store mode for update workflow) -->
+        <template v-if="!isPropMode">
+          <BrandButton
+            v-if="showExtendKeyButton"
+            :icon="KeyIcon"
+            :icon-right="ArrowTopRightOnSquareIcon"
+            @click="purchaseStore.renew()"
+          >
+            {{ props.t('Extend License to Update') }}
+          </BrandButton>
+          <BrandButton
+            v-else-if="currentRelease?.sha256"
+            :icon="ServerStackIcon"
+            :icon-right="ArrowRightIcon"
+            @click="fetchAndConfirmInstall(currentRelease.sha256)"
+          >
+            {{ props.t('Continue') }}
+          </BrandButton>
+        </template>
       </div>
     </template>
   </Modal>

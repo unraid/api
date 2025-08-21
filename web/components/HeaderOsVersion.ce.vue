@@ -6,14 +6,14 @@ import { useQuery } from '@vue/apollo-composable';
 
 import { BellAlertIcon, ExclamationTriangleIcon, InformationCircleIcon, DocumentTextIcon, ArrowTopRightOnSquareIcon } from '@heroicons/vue/24/solid';
 import { Badge, DropdownMenuRoot, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator } from '@unraid/ui';
-import { WEBGUI_TOOLS_DOWNGRADE, WEBGUI_TOOLS_UPDATE } from '~/helpers/urls';
+import { WEBGUI_TOOLS_DOWNGRADE, WEBGUI_TOOLS_UPDATE, getReleaseNotesUrl } from '~/helpers/urls';
 
 import { useActivationCodeDataStore } from '~/components/Activation/store/activationCodeData';
 import { useServerStore } from '~/store/server';
 import { useUpdateOsStore } from '~/store/updateOs';
 import { useUpdateOsActionsStore } from '~/store/updateOsActions';
 import { INFO_VERSIONS_QUERY } from './UserProfile/versions.query';
-import ReleaseNotesModal from '~/components/ReleaseNotesModal.vue';
+import ChangelogModal from '~/components/UpdateOs/ChangelogModal.vue';
 
 const { t } = useI18n();
 
@@ -35,6 +35,23 @@ const { result: versionsResult } = useQuery(INFO_VERSIONS_QUERY, null, {
 const displayOsVersion = computed(() => versionsResult.value?.info?.versions?.core?.unraid || osVersion.value || null);
 const apiVersion = computed(() => versionsResult.value?.info?.versions?.core?.api || null);
 const showOsReleaseNotesModal = ref(false);
+
+// Create release object for current version to pass to ChangelogModal
+const currentVersionRelease = computed(() => {
+  if (!displayOsVersion.value) return null;
+  
+  const version = displayOsVersion.value;
+  const releaseNotesUrl = getReleaseNotesUrl(version).toString();
+  
+  return {
+    version,
+    name: `Unraid ${version}`,
+    date: undefined, // We don't know the release date for current version
+    changelog: null, // No raw changelog for current version
+    changelogPretty: releaseNotesUrl,
+    sha256: null, // No update functionality for current version
+  };
+});
 
 const openApiChangelog = () => {
   window.open('https://github.com/unraid/api/releases', '_blank');
@@ -184,10 +201,10 @@ const updateOsStatus = computed(() => {
     </div>
     
     <!-- OS Release Notes Modal -->
-    <ReleaseNotesModal
-      v-if="displayOsVersion"
+    <ChangelogModal
       :open="showOsReleaseNotesModal"
-      :version="displayOsVersion"
+      :release="currentVersionRelease"
+      view-docs-label="Open in new tab"
       :t="t"
       @close="showOsReleaseNotesModal = false"
     />
