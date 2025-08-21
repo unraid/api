@@ -97,6 +97,8 @@ async function _deleteKey(_id: string) {
 async function copyKeyValue(keyValue: string) {
   await copy(keyValue);
 }
+
+
 </script>
 
 <template>
@@ -143,9 +145,7 @@ async function copyKeyValue(keyValue: string) {
                 >
                   <AccordionItem :value="'permissions-' + key.id">
                     <AccordionTrigger>
-                      <div class="flex items-center gap-2">
-                        <span class="text-sm font-semibold">Effective Permissions</span>
-                      </div>
+                      <span class="text-sm font-semibold">Effective Permissions</span>
                     </AccordionTrigger>
                     <AccordionContent>
                       <div class="py-2">

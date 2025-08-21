@@ -2,6 +2,7 @@ import { ref } from 'vue';
 import { defineStore } from 'pinia';
 
 import type { ApiKeyFragment } from '~/composables/gql/graphql';
+import type { AuthorizationFormData } from '~/composables/useApiKeyAuthorizationForm';
 
 import '~/store/globalPinia';
 
@@ -16,7 +17,7 @@ export const useApiKeyStore = defineStore('apiKey', () => {
     name: string;
     description: string;
     scopes: string[];
-    formData?: Record<string, unknown>;
+    formData?: AuthorizationFormData;
     onAuthorize?: (apiKey: string) => void;
   } | null>(null);
 
@@ -42,7 +43,7 @@ export const useApiKeyStore = defineStore('apiKey', () => {
     description: string,
     scopes: string[],
     onAuthorize?: (apiKey: string) => void,
-    formData?: Record<string, unknown>
+    formData?: AuthorizationFormData
   ) {
     isAuthorizationMode.value = true;
     authorizationData.value = {
