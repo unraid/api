@@ -27,7 +27,7 @@ import type { ApiKeyFragment, ApiKeyWithKeyFragment } from '~/composables/gql/gr
 import { useFragment } from '~/composables/gql/fragment-masking';
 import { useApiKeyStore } from '~/store/apiKey';
 import { API_KEY_FRAGMENT, DELETE_API_KEY, GET_API_KEY_META, GET_API_KEYS } from './apikey.query';
-import PermissionCounter from './PermissionCounter.vue';
+import EffectivePermissions from './EffectivePermissions.vue';
 
 const { result, refetch } = useQuery(GET_API_KEYS);
 
@@ -35,10 +35,15 @@ const apiKeyStore = useApiKeyStore();
 const { createdKey } = storeToRefs(apiKeyStore);
 const apiKeys = ref<(ApiKeyFragment | ApiKeyWithKeyFragment)[]>([]);
 
+// Helper function to check if a key has the actual key value
+function hasKey(key: ApiKeyFragment | ApiKeyWithKeyFragment): key is ApiKeyWithKeyFragment {
+  return 'key' in key && !!key.key;
+}
+
 watchEffect(() => {
   const baseKeys: (ApiKeyFragment | ApiKeyWithKeyFragment)[] =
     result.value?.apiKeys.map((key) => useFragment(API_KEY_FRAGMENT, key)) || [];
-  console.log(createdKey.value);
+  
   if (createdKey.value) {
     const existingKeyIndex = baseKeys.findIndex((key) => key.id === createdKey.value?.id);
     if (existingKeyIndex >= 0) {
@@ -46,6 +51,8 @@ watchEffect(() => {
     } else {
       baseKeys.unshift(createdKey.value as ApiKeyFragment | ApiKeyWithKeyFragment);
     }
+    
+    // Don't automatically show keys - keep them hidden by default
   }
 
   apiKeys.value = baseKeys;
@@ -85,10 +92,6 @@ async function _deleteKey(_id: string) {
   } catch (err: unknown) {
     deleteError.value = extractGraphQLErrorMessage(err);
   }
-}
-
-function hasKey(key: ApiKeyFragment | ApiKeyWithKeyFragment): key is ApiKeyWithKeyFragment {
-  return 'key' in key && !!key.key;
 }
 
 async function copyKeyValue(keyValue: string) {
@@ -132,47 +135,41 @@ async function copyKeyValue(keyValue: string) {
                   <Button variant="destructive" size="sm" @click="_deleteKey(key.id)">Delete</Button>
                 </div>
               </header>
-              <div v-if="key.permissions?.length" class="pt-2 w-full">
-                <span class="text-sm"><b>Permissions:</b></span>
-                <Accordion type="single" collapsible class="w-full">
+              <div v-if="key.permissions?.length || key.roles?.length" class="pt-2 w-full">
+                <Accordion 
+                  type="single" 
+                  collapsible 
+                  class="w-full"
+                >
                   <AccordionItem :value="'permissions-' + key.id">
                     <AccordionTrigger>
-                      <PermissionCounter
-                        :permissions="key.permissions"
-                        :possible-permissions="possiblePermissions"
-                      />
+                      <div class="flex items-center gap-2">
+                        <span class="text-sm font-semibold">Effective Permissions</span>
+                      </div>
                     </AccordionTrigger>
                     <AccordionContent>
-                      <div v-if="key.permissions?.length" class="flex flex-col gap-2 my-2">
-                        <div
-                          v-for="perm in key.permissions ?? []"
-                          :key="perm.resource"
-                          class="border rounded-sm p-2"
-                        >
-                          <div class="flex items-center gap-2 justify-between">
-                            <span class="font-semibold">{{ perm.resource }}</span>
-                            <PermissionCounter
-                              :permissions="[perm]"
-                              :possible-permissions="possiblePermissions"
-                              :hide-number="true"
-                            />
-                          </div>
-                        </div>
+                      <div class="py-2">
+                        <EffectivePermissions
+                          :roles="key.roles"
+                          :raw-permissions="key.permissions"
+                          :show-header="false"
+                        />
                       </div>
                     </AccordionContent>
                   </AccordionItem>
                 </Accordion>
               </div>
 
-              <div v-if="hasKey(key)" class="mt-4 flex items-center gap-2">
-                <span class="text-green-700 font-medium">API Key:</span>
+              <div class="mt-4 flex items-center gap-2">
+                <span :class="hasKey(key) ? 'text-green-700' : 'text-gray-500'" class="font-medium">API Key:</span>
                 <div class="relative w-64">
                   <Input
-                    :model-value="showKey[key.id] ? key.key : '••••••••••••••••••••••••••••••••'"
+                    :model-value="hasKey(key) && showKey[key.id] ? key.key : '••••••••••••••••••••••••••••••••'"
                     class="w-full font-mono text-base px-2 py-1 rounded pr-10"
                     readonly
                   />
                   <button
+                    v-if="hasKey(key)"
                     type="button"
                     class="absolute inset-y-0 right-2 flex items-center px-1 text-gray-500 hover:text-gray-700"
                     tabindex="-1"
@@ -181,7 +178,7 @@ async function copyKeyValue(keyValue: string) {
                     <component :is="showKey[key.id] ? EyeSlashIcon : EyeIcon" class="w-5 h-5" />
                   </button>
                 </div>
-                <TooltipProvider>
+                <TooltipProvider v-if="hasKey(key)">
                   <Tooltip :delay-duration="0">
                     <TooltipTrigger>
                       <Button variant="ghost" size="icon" @click="copyKeyValue(key.key)">
@@ -193,6 +190,7 @@ async function copyKeyValue(keyValue: string) {
                     </TooltipContent>
                   </Tooltip>
                 </TooltipProvider>
+                <span v-else class="text-xs text-gray-500 italic">Key value not available</span>
               </div>
             </div>
           </li>

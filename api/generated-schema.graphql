@@ -607,6 +607,7 @@ enum Resource {
 
 type ApiKey implements Node {
   id: PrefixedID!
+  key: String!
   name: String!
   description: String
   roles: [Role!]!
@@ -616,20 +617,17 @@ type ApiKey implements Node {
 
 """Available roles for API keys and users"""
 enum Role {
+  """Full administrative access to all resources"""
   ADMIN
-  USER
-  CONNECT
-  GUEST
-}
 
-type ApiKeyWithSecret implements Node {
-  id: PrefixedID!
-  name: String!
-  description: String
-  roles: [Role!]!
-  createdAt: String!
-  permissions: [Permission!]!
-  key: String!
+  """Internal Role for Unraid Connect"""
+  CONNECT
+
+  """Basic read access to user profile only"""
+  GUEST
+
+  """Read-only access to all resources"""
+  VIEWER
 }
 
 type RCloneDrive {
@@ -746,7 +744,7 @@ type VmMutations {
 """API Key related mutations"""
 type ApiKeyMutations {
   """Create an API key"""
-  create(input: CreateApiKeyInput!): ApiKeyWithSecret!
+  create(input: CreateApiKeyInput!): ApiKey!
 
   """Add a role to an API key"""
   addRole(input: AddRoleForApiKeyInput!): Boolean!
@@ -758,7 +756,7 @@ type ApiKeyMutations {
   delete(input: DeleteApiKeyInput!): Boolean!
 
   """Update an API key"""
-  update(input: UpdateApiKeyInput!): ApiKeyWithSecret!
+  update(input: UpdateApiKeyInput!): ApiKey!
 }
 
 input CreateApiKeyInput {
@@ -834,6 +832,17 @@ input CreateRCloneRemoteInput {
 
 input DeleteRCloneRemoteInput {
   name: String!
+}
+
+type ApiKeyFormSchema {
+  """JSON Schema for the form data"""
+  schema: JSON!
+
+  """UI Schema for form layout"""
+  uiSchema: JSON!
+
+  """Initial form data"""
+  formData: JSON
 }
 
 type ParityCheck {
@@ -1545,7 +1554,7 @@ type InfoVersions implements Node {
   core: CoreVersions!
 
   """Software package versions"""
-  packages: PackageVersions!
+  packages: PackageVersions
 }
 
 type Info implements Node {
@@ -2231,6 +2240,20 @@ type Query {
 
   """All possible permissions for API keys"""
   apiKeyPossiblePermissions: [Permission!]!
+
+  """Get the actual permissions that would be granted by a set of roles"""
+  getPermissionsForRoles(roles: [Role!]!): [Permission!]!
+
+  """
+  Preview the effective permissions for a combination of roles and explicit permissions
+  """
+  previewEffectivePermissions(roles: [Role!], permissions: [AddPermissionInput!]): [Permission!]!
+
+  """Get JSON Schema for API key creation form"""
+  getApiKeyCreationFormSchema: ApiKeyFormSchema!
+
+  """Get JSON Schema for API key authorization form"""
+  getApiKeyAuthorizationFormSchema(appName: String!, requestedScopes: [String!]!, appDescription: String): ApiKeyFormSchema!
   config: Config!
   flash: Flash!
   logFiles: [LogFile!]!

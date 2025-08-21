@@ -8,7 +8,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { ApiKeyService } from '@app/unraid-api/auth/api-key.service.js';
 import { AuthService } from '@app/unraid-api/auth/auth.service.js';
 import { CookieService } from '@app/unraid-api/auth/cookie.service.js';
-import { ApiKey, ApiKeyWithSecret } from '@app/unraid-api/graph/resolvers/api-key/api-key.model.js';
+import { ApiKey } from '@app/unraid-api/graph/resolvers/api-key/api-key.model.js';
 import { UserAccount } from '@app/unraid-api/graph/user/user.model.js';
 import { FastifyRequest } from '@app/unraid-api/types/fastify.js';
 
@@ -27,7 +27,7 @@ describe('AuthService', () => {
         permissions: [],
     };
 
-    const mockApiKeyWithSecret: ApiKeyWithSecret = {
+    const mockApiKey: ApiKey = {
         id: 'test-api-id',
         key: 'test-api-key',
         name: 'Test API Key',
@@ -95,6 +95,46 @@ describe('AuthService', () => {
             });
             await expect(authService.validateCookiesWithCsrfToken(mockRequest)).rejects.toThrow(
                 UnauthorizedException
+            );
+        });
+
+        it('should validate API key with only permissions (no roles)', async () => {
+            const apiKeyWithOnlyPermissions: ApiKey = {
+                ...mockApiKey,
+                roles: [], // No roles, only permissions
+                permissions: [
+                    {
+                        resource: Resource.DOCKER,
+                        actions: [
+                            AuthActionVerb.READ.toUpperCase(),
+                            AuthActionVerb.UPDATE.toUpperCase(),
+                        ],
+                    },
+                    {
+                        resource: Resource.VMS,
+                        actions: [AuthActionVerb.READ.toUpperCase()],
+                    },
+                ],
+            };
+
+            vi.spyOn(apiKeyService, 'findByKey').mockResolvedValue(apiKeyWithOnlyPermissions);
+            vi.spyOn(authService, 'syncApiKeyRoles').mockResolvedValue(undefined);
+            vi.spyOn(authService, 'syncApiKeyPermissions').mockResolvedValue(undefined);
+            vi.spyOn(authzService, 'getRolesForUser').mockResolvedValue([]);
+
+            const result = await authService.validateApiKeyCasbin('test-api-key');
+
+            expect(result).toEqual({
+                id: apiKeyWithOnlyPermissions.id,
+                name: apiKeyWithOnlyPermissions.name,
+                description: apiKeyWithOnlyPermissions.description,
+                roles: [],
+                permissions: apiKeyWithOnlyPermissions.permissions,
+            });
+            expect(authService.syncApiKeyRoles).toHaveBeenCalledWith(apiKeyWithOnlyPermissions.id, []);
+            expect(authService.syncApiKeyPermissions).toHaveBeenCalledWith(
+                apiKeyWithOnlyPermissions.id,
+                apiKeyWithOnlyPermissions.permissions
             );
         });
 
@@ -196,7 +236,7 @@ describe('AuthService', () => {
 
             vi.spyOn(apiKeyService, 'findById').mockResolvedValue(mockApiKeyWithoutRole);
             vi.spyOn(apiKeyService, 'findByIdWithSecret').mockResolvedValue({
-                ...mockApiKeyWithSecret,
+                ...mockApiKey,
                 roles: [Role.ADMIN],
             });
             vi.spyOn(apiKeyService, 'saveApiKey').mockResolvedValue();
@@ -208,7 +248,7 @@ describe('AuthService', () => {
             expect(apiKeyService.findById).toHaveBeenCalledWith(apiKeyId);
             expect(apiKeyService.findByIdWithSecret).toHaveBeenCalledWith(apiKeyId);
             expect(apiKeyService.saveApiKey).toHaveBeenCalledWith({
-                ...mockApiKeyWithSecret,
+                ...mockApiKey,
                 roles: [Role.ADMIN, role],
             });
             expect(authzService.addRoleForUser).toHaveBeenCalledWith(apiKeyId, role);
@@ -227,7 +267,7 @@ describe('AuthService', () => {
         it('should remove role from API key', async () => {
             const apiKey = { ...mockApiKey, roles: [Role.ADMIN, Role.GUEST] };
             const apiKeyWithSecret = {
-                ...mockApiKeyWithSecret,
+                ...mockApiKey,
                 roles: [Role.ADMIN, Role.GUEST],
             };
 
@@ -254,6 +294,179 @@ describe('AuthService', () => {
             await expect(authService.removeRoleFromApiKey('invalid-id', Role.GUEST)).rejects.toThrow(
                 UnauthorizedException
             );
+        });
+    });
+
+    describe('getImplicitPermissionsForRole', () => {
+        it('should return permissions for a role', async () => {
+            const mockCasbinPermissions = [
+                ['ADMIN', 'DOCKER', 'READ'],
+                ['ADMIN', 'DOCKER', 'WRITE'],
+                ['ADMIN', 'VMS', 'READ'],
+            ];
+
+            vi.spyOn(authzService, 'getImplicitPermissionsForUser').mockResolvedValue(
+                mockCasbinPermissions
+            );
+
+            const result = await authService.getImplicitPermissionsForRole(Role.ADMIN);
+
+            expect(result).toBeInstanceOf(Map);
+            expect(result.size).toBe(2);
+            expect(result.get(Resource.DOCKER)).toEqual(['READ', 'WRITE']);
+            expect(result.get(Resource.VMS)).toEqual(['READ']);
+        });
+
+        it('should handle wildcard permissions for admin role', async () => {
+            const mockCasbinPermissions = [
+                ['ADMIN', '*', '*'],
+                ['ADMIN', 'ME', 'READ'], // Inherited from GUEST
+            ];
+
+            vi.spyOn(authzService, 'getImplicitPermissionsForUser').mockResolvedValue(
+                mockCasbinPermissions
+            );
+
+            const result = await authService.getImplicitPermissionsForRole(Role.ADMIN);
+
+            expect(result).toBeInstanceOf(Map);
+            expect(result.size).toBeGreaterThan(0);
+            // Should have expanded CRUD actions with proper format for all resources
+            expect(result.get(Resource.DOCKER)).toContain('create:any');
+            expect(result.get(Resource.DOCKER)).toContain('read:any');
+            expect(result.get(Resource.DOCKER)).toContain('update:any');
+            expect(result.get(Resource.DOCKER)).toContain('delete:any');
+            expect(result.get(Resource.VMS)).toContain('create:any');
+            expect(result.get(Resource.VMS)).toContain('read:any');
+            expect(result.get(Resource.VMS)).toContain('update:any');
+            expect(result.get(Resource.VMS)).toContain('delete:any');
+            expect(result.get(Resource.ME)).toContain('READ');
+            expect(result.get(Resource.ME)).toContain('create:any'); // Also gets CRUD from wildcard
+            expect(result.has('*' as any)).toBe(false); // Still shouldn't have literal wildcard
+        });
+
+        it('should handle connect role with wildcard resource and specific action', async () => {
+            const mockCasbinPermissions = [
+                ['CONNECT', '*', 'READ'],
+                ['CONNECT', 'CONNECT__REMOTE_ACCESS', 'UPDATE'],
+                ['CONNECT', 'ME', 'READ'], // Inherited from GUEST
+            ];
+
+            vi.spyOn(authzService, 'getImplicitPermissionsForUser').mockResolvedValue(
+                mockCasbinPermissions
+            );
+
+            const result = await authService.getImplicitPermissionsForRole(Role.CONNECT);
+
+            expect(result).toBeInstanceOf(Map);
+            expect(result.size).toBeGreaterThan(0);
+            // All resources should have READ
+            expect(result.get(Resource.DOCKER)).toContain('READ');
+            expect(result.get(Resource.VMS)).toContain('READ');
+            expect(result.get(Resource.ARRAY)).toContain('READ');
+            // CONNECT__REMOTE_ACCESS should have both READ and UPDATE
+            expect(result.get(Resource.CONNECT__REMOTE_ACCESS)).toContain('READ');
+            expect(result.get(Resource.CONNECT__REMOTE_ACCESS)).toContain('UPDATE');
+        });
+
+        it('should expand resource-specific wildcard actions to CRUD', async () => {
+            const mockCasbinPermissions = [
+                ['DOCKER_MANAGER', 'DOCKER', '*'],
+                ['DOCKER_MANAGER', 'ARRAY', 'READ'],
+            ];
+
+            vi.spyOn(authzService, 'getImplicitPermissionsForUser').mockResolvedValue(
+                mockCasbinPermissions
+            );
+
+            const result = await authService.getImplicitPermissionsForRole(Role.DOCKER_MANAGER);
+
+            expect(result).toBeInstanceOf(Map);
+            // Docker should have all CRUD actions with proper format
+            expect(result.get(Resource.DOCKER)).toEqual(
+                expect.arrayContaining(['create:any', 'read:any', 'update:any', 'delete:any'])
+            );
+            // Array should only have READ
+            expect(result.get(Resource.ARRAY)).toEqual(['READ']);
+        });
+
+        it('should skip invalid resources', async () => {
+            const mockCasbinPermissions = [
+                ['ADMIN', 'INVALID_RESOURCE', 'READ'],
+                ['ADMIN', 'DOCKER', 'WRITE'],
+                ['ADMIN', '', 'READ'],
+                ['ADMIN', null, 'READ'],
+                ['ADMIN', undefined, 'READ'],
+            ];
+
+            vi.spyOn(authzService, 'getImplicitPermissionsForUser').mockResolvedValue(
+                mockCasbinPermissions
+            );
+
+            const result = await authService.getImplicitPermissionsForRole(Role.ADMIN);
+
+            expect(result).toBeInstanceOf(Map);
+            expect(result.size).toBe(1);
+            expect(result.get(Resource.DOCKER)).toEqual(['WRITE']);
+        });
+
+        it('should handle empty permissions', async () => {
+            vi.spyOn(authzService, 'getImplicitPermissionsForUser').mockResolvedValue([]);
+
+            const result = await authService.getImplicitPermissionsForRole(Role.ADMIN);
+
+            expect(result).toBeInstanceOf(Map);
+            expect(result.size).toBe(0);
+        });
+
+        it('should handle malformed permission entries', async () => {
+            const mockCasbinPermissions = [
+                ['ADMIN'], // Too short
+                ['ADMIN', 'DOCKER'], // Missing action
+                ['ADMIN', 'DOCKER', 'READ', 'EXTRA'], // Extra fields are ok
+                ['ADMIN', 'VMS', 'WRITE'],
+            ];
+
+            vi.spyOn(authzService, 'getImplicitPermissionsForUser').mockResolvedValue(
+                mockCasbinPermissions
+            );
+
+            const result = await authService.getImplicitPermissionsForRole(Role.ADMIN);
+
+            expect(result).toBeInstanceOf(Map);
+            expect(result.size).toBe(2);
+            expect(result.get(Resource.DOCKER)).toEqual(['READ']);
+            expect(result.get(Resource.VMS)).toEqual(['WRITE']);
+        });
+
+        it('should not duplicate actions for the same resource', async () => {
+            const mockCasbinPermissions = [
+                ['ADMIN', 'DOCKER', 'READ'],
+                ['ADMIN', 'DOCKER', 'READ'],
+                ['ADMIN', 'DOCKER', 'WRITE'],
+                ['ADMIN', 'DOCKER', 'WRITE'],
+            ];
+
+            vi.spyOn(authzService, 'getImplicitPermissionsForUser').mockResolvedValue(
+                mockCasbinPermissions
+            );
+
+            const result = await authService.getImplicitPermissionsForRole(Role.ADMIN);
+
+            expect(result).toBeInstanceOf(Map);
+            expect(result.size).toBe(1);
+            expect(result.get(Resource.DOCKER)).toEqual(['READ', 'WRITE']);
+        });
+
+        it('should handle errors gracefully', async () => {
+            vi.spyOn(authzService, 'getImplicitPermissionsForUser').mockRejectedValue(
+                new Error('Casbin error')
+            );
+
+            const result = await authService.getImplicitPermissionsForRole(Role.ADMIN);
+
+            expect(result).toBeInstanceOf(Map);
+            expect(result.size).toBe(0);
         });
     });
 });

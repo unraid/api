@@ -53,34 +53,37 @@ export function createLabeledControl({
     controlOptions,
     labelOptions,
     layoutOptions,
+    layoutType = 'UnraidSettingsLayout',
     rule,
 }: {
     scope: string;
     label: string;
     description?: string;
-    controlOptions: ControlElement['options'];
+    controlOptions?: ControlElement['options'];
     labelOptions?: LabelElement['options'];
     layoutOptions?: Layout['options'];
+    layoutType?: 'UnraidSettingsLayout' | 'VerticalLayout' | 'HorizontalLayout';
     rule?: Rule;
 }): Layout {
-    const layout: Layout & { scope?: string } = {
-        type: 'UnraidSettingsLayout', // Use the specific Unraid layout type
-        scope: scope, // Apply scope to the layout for potential rules/visibility
+    const elements: Array<LabelElement | ControlElement> = [
+        {
+            type: 'Label',
+            text: label,
+            options: { ...labelOptions, description },
+        } as LabelElement,
+        {
+            type: 'Control',
+            scope: scope,
+            options: controlOptions,
+        } as ControlElement,
+    ];
+
+    const layout: Layout = {
+        type: layoutType,
         options: layoutOptions,
-        elements: [
-            {
-                type: 'Label',
-                text: label,
-                scope: scope, // Scope might be needed for specific label behaviors
-                options: { ...labelOptions, description },
-            } as LabelElement,
-            {
-                type: 'Control',
-                scope: scope,
-                options: controlOptions,
-            } as ControlElement,
-        ],
+        elements,
     };
+
     // Conditionally add the rule to the layout if provided
     if (rule) {
         layout.rule = rule;

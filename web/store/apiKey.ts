@@ -9,14 +9,46 @@ export const useApiKeyStore = defineStore('apiKey', () => {
   const modalVisible = ref(false);
   const editingKey = ref<ApiKeyFragment | null>(null);
   const createdKey = ref<ApiKeyWithKeyFragment | null>(null);
+  
+  // Authorization mode state
+  const isAuthorizationMode = ref(false);
+  const authorizationData = ref<{
+    name: string;
+    description: string;
+    scopes: string[];
+    onAuthorize?: (apiKey: string) => void;
+  } | null>(null);
 
   function showModal(key: ApiKeyFragment | null = null) {
     editingKey.value = key;
     modalVisible.value = true;
+    // Reset authorization mode if editing
+    if (key) {
+      isAuthorizationMode.value = false;
+      authorizationData.value = null;
+    }
   }
 
   function hideModal() {
     modalVisible.value = false;
+    editingKey.value = null;
+    isAuthorizationMode.value = false;
+    authorizationData.value = null;
+  }
+  
+  function setAuthorizationMode(
+    name: string,
+    description: string,
+    scopes: string[],
+    onAuthorize?: (apiKey: string) => void
+  ) {
+    isAuthorizationMode.value = true;
+    authorizationData.value = {
+      name,
+      description,
+      scopes,
+      onAuthorize,
+    };
     editingKey.value = null;
   }
 
@@ -32,8 +64,11 @@ export const useApiKeyStore = defineStore('apiKey', () => {
     modalVisible,
     editingKey,
     createdKey,
+    isAuthorizationMode,
+    authorizationData,
     showModal,
     hideModal,
+    setAuthorizationMode,
     setCreatedKey,
     clearCreatedKey,
   };

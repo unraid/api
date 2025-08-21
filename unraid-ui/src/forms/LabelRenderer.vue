@@ -51,8 +51,12 @@ const labelClass = computed(() => {
   switch (labelFormat.value) {
     case 'title':
       return 'text-xl font-semibold mb-2'; // Example styling for title
+    case 'subtitle':
+      return 'text-base font-semibold mb-1'; // Styling for subtitle
     case 'heading':
       return 'text-lg font-semibold mt-4 mb-1'; // Example styling for heading
+    case 'description':
+      return 'text-sm text-muted-foreground'; // Description format should not be bold
     default:
       return 'font-semibold'; // Default label styling
   }
