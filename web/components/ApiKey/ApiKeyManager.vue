@@ -35,10 +35,6 @@ const apiKeyStore = useApiKeyStore();
 const { createdKey } = storeToRefs(apiKeyStore);
 const apiKeys = ref<ApiKeyFragment[]>([]);
 
-// Helper function to check if a key has the actual key value
-function hasKey(key: ApiKeyFragment): key is ApiKeyFragment {
-  return 'key' in key && !!key.key;
-}
 
 watchEffect(() => {
   const baseKeys: (ApiKeyFragment | ApiKeyFragment)[] =
@@ -161,15 +157,14 @@ async function copyKeyValue(keyValue: string) {
               </div>
 
               <div class="mt-4 flex items-center gap-2">
-                <span :class="hasKey(key) ? 'text-green-700' : 'text-gray-500'" class="font-medium">API Key:</span>
+                <span class="text-green-700 font-medium">API Key:</span>
                 <div class="relative w-64">
                   <Input
-                    :model-value="hasKey(key) && showKey[key.id] ? key.key : '••••••••••••••••••••••••••••••••'"
+                    :model-value="showKey[key.id] ? key.key : '••••••••••••••••••••••••••••••••'"
                     class="w-full font-mono text-base px-2 py-1 rounded pr-10"
                     readonly
                   />
                   <button
-                    v-if="hasKey(key)"
                     type="button"
                     class="absolute inset-y-0 right-2 flex items-center px-1 text-gray-500 hover:text-gray-700"
                     tabindex="-1"
@@ -178,7 +173,7 @@ async function copyKeyValue(keyValue: string) {
                     <component :is="showKey[key.id] ? EyeSlashIcon : EyeIcon" class="w-5 h-5" />
                   </button>
                 </div>
-                <TooltipProvider v-if="hasKey(key)">
+                <TooltipProvider>
                   <Tooltip :delay-duration="0">
                     <TooltipTrigger>
                       <Button variant="ghost" size="icon" @click="copyKeyValue(key.key)">
@@ -190,7 +185,6 @@ async function copyKeyValue(keyValue: string) {
                     </TooltipContent>
                   </Tooltip>
                 </TooltipProvider>
-                <span v-else class="text-xs text-gray-500 italic">Key value not available</span>
               </div>
             </div>
           </li>
