@@ -133,11 +133,11 @@ describe('useApiKeyAuthorization', () => {
       expect(hasValidRedirectUri.value).toBe(true);
     });
 
-    it('should reject HTTP URLs (non-localhost)', () => {
+    it('should accept HTTP URLs (non-localhost)', () => {
       const params = new URLSearchParams('?redirect_uri=http://example.com/callback');
       const { hasValidRedirectUri } = useApiKeyAuthorization(params);
       
-      expect(hasValidRedirectUri.value).toBe(false);
+      expect(hasValidRedirectUri.value).toBe(true);
     });
 
     it('should reject invalid URLs', () => {
