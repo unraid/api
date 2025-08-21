@@ -89,7 +89,7 @@ const docsChangelogUrl = computed(() => {
 });
 
 const showRawChangelog = computed<boolean>(() => {
-  return !docsChangelogUrl.value && !!currentRelease.value?.changelog;
+  return Boolean(!docsChangelogUrl.value && currentRelease.value?.changelog);
 });
 
 const handleDocsPostMessages = (event: MessageEvent) => {
