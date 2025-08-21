@@ -1,8 +1,8 @@
-import type { Role } from '~/composables/gql/graphql';
+import type { Role, AuthActionVerb } from '~/composables/gql/graphql';
 
 interface RawPermission {
   resource: string;
-  actions: string[];
+  actions: AuthActionVerb[];
 }
 
 export interface AuthorizationLinkParams {

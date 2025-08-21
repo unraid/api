@@ -1,6 +1,6 @@
 import { computed } from 'vue';
 import { useApiKeyAuthorization } from './useApiKeyAuthorization';
-import type { Role, Resource } from '~/composables/gql/graphql';
+import type { Role, Resource, AuthActionVerb } from '~/composables/gql/graphql';
 
 export interface AuthorizationFormData {
   name: string;
@@ -8,7 +8,7 @@ export interface AuthorizationFormData {
   roles?: Role[];
   customPermissions?: Array<{
     resources: Resource[];
-    actions: string[];
+    actions: AuthActionVerb[];
   }>;
 }
 

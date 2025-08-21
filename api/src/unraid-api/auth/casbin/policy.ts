@@ -11,8 +11,7 @@ export const BASE_POLICY = `
 # Admin permissions - full access
 p, ${Role.ADMIN}, *, *
 
-# Connect permissions - read all, manage remote access
-p, ${Role.CONNECT}, *, ${AuthAction.READ_ANY}
+# Connect permissions - inherits from VIEWER plus can manage remote access
 p, ${Role.CONNECT}, ${Resource.CONNECT__REMOTE_ACCESS}, ${AuthAction.UPDATE_ANY}
 
 # Guest permissions - basic profile access
@@ -23,6 +22,6 @@ ${viewerPermissions}
 
 # Role inheritance
 g, ${Role.ADMIN}, ${Role.GUEST}
-g, ${Role.CONNECT}, ${Role.GUEST}
+g, ${Role.CONNECT}, ${Role.VIEWER}
 g, ${Role.VIEWER}, ${Role.GUEST}
 `;
