@@ -49,10 +49,13 @@ describe('permissions.utils', () => {
             expect(normalizeAction(' READ_ANY ')).toBe('read:any');
         });
 
-        it('should preserve custom actions as lowercase', () => {
-            expect(normalizeAction('custom_action')).toBe('custom_action');
-            expect(normalizeAction('CUSTOM')).toBe('custom');
-            expect(normalizeAction('special:permission')).toBe('special:permission');
+        it('should throw error for invalid actions', () => {
+            expect(() => normalizeAction('custom_action')).toThrow('Invalid action "custom_action"');
+            expect(() => normalizeAction('CUSTOM')).toThrow('Invalid action "CUSTOM"');
+            expect(() => normalizeAction('special:permission')).toThrow(
+                'Invalid action "special:permission"'
+            );
+            expect(() => normalizeAction('WRITE')).toThrow('Invalid action "WRITE"');
         });
 
         it('should handle mixed formats consistently', () => {
@@ -61,6 +64,15 @@ describe('permissions.utils', () => {
             expect(normalizeAction('READ')).toBe('read:any');
             expect(normalizeAction('READ_ANY')).toBe('read:any');
             expect(normalizeAction('read:any')).toBe('read:any');
+        });
+
+        it('should handle OWN possession actions', () => {
+            expect(normalizeAction('READ_OWN')).toBe('read:own');
+            expect(normalizeAction('CREATE_OWN')).toBe('create:own');
+            expect(normalizeAction('UPDATE_OWN')).toBe('update:own');
+            expect(normalizeAction('DELETE_OWN')).toBe('delete:own');
+            expect(normalizeAction('read:own')).toBe('read:own');
+            expect(normalizeAction('create:own')).toBe('create:own');
         });
     });
 

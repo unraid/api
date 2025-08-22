@@ -341,7 +341,7 @@ describe('AuthService', () => {
         it('should return permissions for a role', async () => {
             const mockCasbinPermissions = [
                 ['ADMIN', 'DOCKER', 'READ'],
-                ['ADMIN', 'DOCKER', 'WRITE'],
+                ['ADMIN', 'DOCKER', 'UPDATE'],
                 ['ADMIN', 'VMS', 'READ'],
             ];
 
@@ -353,7 +353,7 @@ describe('AuthService', () => {
 
             expect(result).toBeInstanceOf(Map);
             expect(result.size).toBe(2);
-            expect(result.get(Resource.DOCKER)).toEqual(['read:any', 'write']);
+            expect(result.get(Resource.DOCKER)).toEqual(['read:any', 'update:any']);
             expect(result.get(Resource.VMS)).toEqual(['read:any']);
         });
 
@@ -433,7 +433,7 @@ describe('AuthService', () => {
         it('should skip invalid resources', async () => {
             const mockCasbinPermissions = [
                 ['ADMIN', 'INVALID_RESOURCE', 'READ'],
-                ['ADMIN', 'DOCKER', 'WRITE'],
+                ['ADMIN', 'DOCKER', 'UPDATE'],
                 ['ADMIN', '', 'READ'],
             ] as string[][];
 
@@ -445,7 +445,7 @@ describe('AuthService', () => {
 
             expect(result).toBeInstanceOf(Map);
             expect(result.size).toBe(1);
-            expect(result.get(Resource.DOCKER)).toEqual(['write']);
+            expect(result.get(Resource.DOCKER)).toEqual(['update:any']);
         });
 
         it('should handle empty permissions', async () => {
@@ -462,7 +462,7 @@ describe('AuthService', () => {
                 ['ADMIN'], // Too short
                 ['ADMIN', 'DOCKER'], // Missing action
                 ['ADMIN', 'DOCKER', 'READ', 'EXTRA'], // Extra fields are ok
-                ['ADMIN', 'VMS', 'WRITE'],
+                ['ADMIN', 'VMS', 'UPDATE'],
             ];
 
             vi.spyOn(authzService, 'getImplicitPermissionsForUser').mockResolvedValue(
@@ -474,15 +474,15 @@ describe('AuthService', () => {
             expect(result).toBeInstanceOf(Map);
             expect(result.size).toBe(2);
             expect(result.get(Resource.DOCKER)).toEqual(['read:any']);
-            expect(result.get(Resource.VMS)).toEqual(['write']);
+            expect(result.get(Resource.VMS)).toEqual(['update:any']);
         });
 
         it('should not duplicate actions for the same resource', async () => {
             const mockCasbinPermissions = [
                 ['ADMIN', 'DOCKER', 'READ'],
                 ['ADMIN', 'DOCKER', 'READ'],
-                ['ADMIN', 'DOCKER', 'WRITE'],
-                ['ADMIN', 'DOCKER', 'WRITE'],
+                ['ADMIN', 'DOCKER', 'UPDATE'],
+                ['ADMIN', 'DOCKER', 'UPDATE'],
             ];
 
             vi.spyOn(authzService, 'getImplicitPermissionsForUser').mockResolvedValue(
@@ -493,7 +493,7 @@ describe('AuthService', () => {
 
             expect(result).toBeInstanceOf(Map);
             expect(result.size).toBe(1);
-            expect(result.get(Resource.DOCKER)).toEqual(['read:any', 'write']);
+            expect(result.get(Resource.DOCKER)).toEqual(['read:any', 'update:any']);
         });
 
         it('should handle errors gracefully', async () => {
