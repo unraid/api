@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue';
-import { Button } from '@unraid/ui';
+import { computed, ref, watch } from 'vue';
+import { Button, Input, Switch } from '@unraid/ui';
 import { ClipboardDocumentIcon, LinkIcon } from '@heroicons/vue/24/outline';
 import { generateAuthorizationUrl, copyAuthorizationUrl } from '~/utils/authorizationLink';
 import type { Role, AuthActionVerb } from '~/composables/gql/graphql';
@@ -17,6 +17,7 @@ interface Props {
   appDescription?: string;
   redirectUrl?: string;
   show?: boolean;
+  isAuthorizationMode?: boolean;
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -26,11 +27,29 @@ const props = withDefaults(defineProps<Props>(), {
   appDescription: '',
   redirectUrl: '',
   show: true,
+  isAuthorizationMode: false,
 });
 
 // State for UI interactions
 const copySuccess = ref(false);
 const showUrl = ref(false);
+const useCustomCallback = ref(false);
+const customCallbackUrl = ref('');
+
+// Reset custom callback URL when checkbox is unchecked
+watch(useCustomCallback, (newValue) => {
+  if (!newValue) {
+    customCallbackUrl.value = '';
+  }
+});
+
+// Computed property for the effective redirect URL
+const effectiveRedirectUrl = computed(() => {
+  if (useCustomCallback.value && customCallbackUrl.value) {
+    return customCallbackUrl.value;
+  }
+  return props.redirectUrl;
+});
 
 // Computed property for authorization URL
 const authorizationUrl = computed(() => {
@@ -43,7 +62,7 @@ const authorizationUrl = computed(() => {
     appDescription: props.appDescription,
     roles: props.roles,
     rawPermissions: props.rawPermissions,
-    redirectUrl: props.redirectUrl,
+    redirectUrl: effectiveRedirectUrl.value,
   });
 });
 
@@ -59,7 +78,7 @@ const handleCopy = async () => {
     appDescription: props.appDescription,
     roles: props.roles,
     rawPermissions: props.rawPermissions,
-    redirectUrl: props.redirectUrl,
+    redirectUrl: effectiveRedirectUrl.value,
   });
   
   if (success) {
@@ -97,7 +116,29 @@ const toggleShowUrl = () => {
       Perfect for testing your app's OAuth-style API key flow.
     </p>
     
-    <div v-if="showUrl" class="p-3 bg-secondary rounded border border-muted">
+    <div v-if="!isAuthorizationMode" class="flex items-center gap-2 mt-3">
+      <Switch 
+        id="custom-callback" 
+        v-model="useCustomCallback"
+      />
+      <label for="custom-callback" class="text-sm font-medium cursor-pointer">
+        Use custom callback URL
+      </label>
+    </div>
+    
+    <div v-if="!isAuthorizationMode && useCustomCallback" class="mt-2">
+      <Input
+        v-model="customCallbackUrl"
+        type="url"
+        placeholder="https://example.com/callback"
+        class="w-full"
+      />
+      <p class="text-xs text-muted-foreground mt-1">
+        Enter the URL where users will be redirected after authorization
+      </p>
+    </div>
+    
+    <div v-if="showUrl" class="p-3 bg-secondary rounded border border-muted mt-3">
       <code class="text-xs break-all text-foreground">
         {{ authorizationUrl }}
       </code>

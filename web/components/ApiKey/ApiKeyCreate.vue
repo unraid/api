@@ -401,7 +401,13 @@ const copyApiKey = async () => {
       </div>
 
       <!-- Dynamic Form based on schema -->
-      <div v-if="formSchema" class="[&_.vertical-layout]:space-y-4">
+      <div 
+        v-if="formSchema" 
+        class="[&_.vertical-layout]:space-y-4"
+        @click.stop
+        @mousedown.stop
+        @focus.stop
+      >
         
         <JsonForms
           :schema="formSchema.dataSchema"
