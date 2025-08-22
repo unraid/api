@@ -353,8 +353,8 @@ describe('AuthService', () => {
 
             expect(result).toBeInstanceOf(Map);
             expect(result.size).toBe(2);
-            expect(result.get(Resource.DOCKER)).toEqual(['READ', 'WRITE']);
-            expect(result.get(Resource.VMS)).toEqual(['READ']);
+            expect(result.get(Resource.DOCKER)).toEqual(['read:any', 'write']);
+            expect(result.get(Resource.VMS)).toEqual(['read:any']);
         });
 
         it('should handle wildcard permissions for admin role', async () => {
@@ -380,7 +380,7 @@ describe('AuthService', () => {
             expect(result.get(Resource.VMS)).toContain('read:any');
             expect(result.get(Resource.VMS)).toContain('update:any');
             expect(result.get(Resource.VMS)).toContain('delete:any');
-            expect(result.get(Resource.ME)).toContain('READ');
+            expect(result.get(Resource.ME)).toContain('read:any');
             expect(result.get(Resource.ME)).toContain('create:any'); // Also gets CRUD from wildcard
             expect(result.has('*' as any)).toBe(false); // Still shouldn't have literal wildcard
         });
@@ -401,12 +401,12 @@ describe('AuthService', () => {
             expect(result).toBeInstanceOf(Map);
             expect(result.size).toBeGreaterThan(0);
             // All resources should have READ
-            expect(result.get(Resource.DOCKER)).toContain('READ');
-            expect(result.get(Resource.VMS)).toContain('READ');
-            expect(result.get(Resource.ARRAY)).toContain('READ');
+            expect(result.get(Resource.DOCKER)).toContain('read:any');
+            expect(result.get(Resource.VMS)).toContain('read:any');
+            expect(result.get(Resource.ARRAY)).toContain('read:any');
             // CONNECT__REMOTE_ACCESS should have both READ and UPDATE
-            expect(result.get(Resource.CONNECT__REMOTE_ACCESS)).toContain('READ');
-            expect(result.get(Resource.CONNECT__REMOTE_ACCESS)).toContain('UPDATE');
+            expect(result.get(Resource.CONNECT__REMOTE_ACCESS)).toContain('read:any');
+            expect(result.get(Resource.CONNECT__REMOTE_ACCESS)).toContain('update:any');
         });
 
         it('should expand resource-specific wildcard actions to CRUD', async () => {
@@ -427,7 +427,7 @@ describe('AuthService', () => {
                 expect.arrayContaining(['create:any', 'read:any', 'update:any', 'delete:any'])
             );
             // Array should only have READ
-            expect(result.get(Resource.ARRAY)).toEqual(['READ']);
+            expect(result.get(Resource.ARRAY)).toEqual(['read:any']);
         });
 
         it('should skip invalid resources', async () => {
@@ -445,7 +445,7 @@ describe('AuthService', () => {
 
             expect(result).toBeInstanceOf(Map);
             expect(result.size).toBe(1);
-            expect(result.get(Resource.DOCKER)).toEqual(['WRITE']);
+            expect(result.get(Resource.DOCKER)).toEqual(['write']);
         });
 
         it('should handle empty permissions', async () => {
@@ -473,8 +473,8 @@ describe('AuthService', () => {
 
             expect(result).toBeInstanceOf(Map);
             expect(result.size).toBe(2);
-            expect(result.get(Resource.DOCKER)).toEqual(['READ']);
-            expect(result.get(Resource.VMS)).toEqual(['WRITE']);
+            expect(result.get(Resource.DOCKER)).toEqual(['read:any']);
+            expect(result.get(Resource.VMS)).toEqual(['write']);
         });
 
         it('should not duplicate actions for the same resource', async () => {
@@ -493,7 +493,7 @@ describe('AuthService', () => {
 
             expect(result).toBeInstanceOf(Map);
             expect(result.size).toBe(1);
-            expect(result.get(Resource.DOCKER)).toEqual(['READ', 'WRITE']);
+            expect(result.get(Resource.DOCKER)).toEqual(['read:any', 'write']);
         });
 
         it('should handle errors gracefully', async () => {

@@ -2,6 +2,46 @@ import { Resource } from '@unraid/shared/graphql.model.js';
 import { AuthAction } from 'nest-authz';
 
 /**
+ * Normalizes action strings to ensure consistent representation across the system.
+ * Handles various input formats and maps them to canonical AuthAction values.
+ *
+ * @param action - The action string to normalize (e.g., 'read', 'READ_ANY', 'read:any')
+ * @returns The canonical action string in lowercase colon-delimited format (e.g., 'read:any')
+ */
+export function normalizeAction(action: string): string {
+    const normalized = action.toLowerCase().trim();
+
+    // Handle wildcard
+    if (normalized === '*') {
+        return '*';
+    }
+
+    // Map simple verbs to AuthAction format with ':any' suffix
+    const simpleVerbMapping: Record<string, string> = {
+        create: AuthAction.CREATE_ANY,
+        read: AuthAction.READ_ANY,
+        update: AuthAction.UPDATE_ANY,
+        delete: AuthAction.DELETE_ANY,
+    };
+
+    if (simpleVerbMapping[normalized]) {
+        return simpleVerbMapping[normalized];
+    }
+
+    // Handle underscore format (e.g., 'READ_ANY' -> 'read:any')
+    if (normalized.includes('_')) {
+        const underscoreFormatted = normalized.replace('_', ':');
+        // Validate it's a known AuthAction value
+        if (Object.values(AuthAction).includes(underscoreFormatted as AuthAction)) {
+            return underscoreFormatted;
+        }
+    }
+
+    // Return as-is if already in correct format or custom action
+    return normalized;
+}
+
+/**
  * Merges permissions from a source map into a target map, combining actions for each resource.
  * The target map uses Sets to store unique actions per resource, while the source map uses arrays.
  * This function ensures no duplicate actions are added to the target map.
