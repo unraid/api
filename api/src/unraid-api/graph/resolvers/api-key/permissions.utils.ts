@@ -2,43 +2,56 @@ import { Resource } from '@unraid/shared/graphql.model.js';
 import { AuthAction } from 'nest-authz';
 
 /**
+ * Validates if an action string corresponds to a valid AuthAction enum value
+ * @param action - The action string to validate
+ * @returns True if the action is a valid AuthAction value
+ */
+export function isValidAuthAction(action: string): boolean {
+    return Object.values(AuthAction).includes(action as AuthAction);
+}
+
+/**
  * Normalizes action strings to ensure consistent representation across the system.
  * Handles various input formats and maps them to canonical AuthAction values.
  *
  * @param action - The action string to normalize (e.g., 'read', 'READ_ANY', 'read:any')
  * @returns The canonical action string in lowercase colon-delimited format (e.g., 'read:any')
+ * @throws Error if the action cannot be mapped to a valid AuthAction enum value
  */
 export function normalizeAction(action: string): string {
-    const normalized = action.toLowerCase().trim();
+    // Apply consistent transformations
+    const normalized = action.trim().toLowerCase().replace(/_/g, ':'); // Convert underscores to colons
 
     // Handle wildcard
     if (normalized === '*') {
         return '*';
     }
 
+    // Check if it's already a valid AuthAction value
+    if (Object.values(AuthAction).includes(normalized as AuthAction)) {
+        return normalized;
+    }
+
     // Map simple verbs to AuthAction format with ':any' suffix
-    const simpleVerbMapping: Record<string, string> = {
+    const simpleVerbs: Record<string, string> = {
         create: AuthAction.CREATE_ANY,
         read: AuthAction.READ_ANY,
         update: AuthAction.UPDATE_ANY,
         delete: AuthAction.DELETE_ANY,
     };
 
-    if (simpleVerbMapping[normalized]) {
-        return simpleVerbMapping[normalized];
+    if (simpleVerbs[normalized]) {
+        return simpleVerbs[normalized];
     }
 
-    // Handle underscore format (e.g., 'READ_ANY' -> 'read:any')
-    if (normalized.includes('_')) {
-        const underscoreFormatted = normalized.replace('_', ':');
-        // Validate it's a known AuthAction value
-        if (Object.values(AuthAction).includes(underscoreFormatted as AuthAction)) {
-            return underscoreFormatted;
-        }
+    // Try to get from enum key for backward compatibility (e.g., 'READ_ANY' -> 'read:any')
+    const enumKey = action.trim().toUpperCase().replace(/:/g, '_') as keyof typeof AuthAction;
+    if (enumKey in AuthAction) {
+        return AuthAction[enumKey];
     }
 
-    // Return as-is if already in correct format or custom action
-    return normalized;
+    // Throw error for invalid actions
+    throw new Error(`Invalid action "${action}" - must be a valid AuthAction enum value`);
 }
 
 /**
