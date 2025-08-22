@@ -1,4 +1,4 @@
-import type { Role, AuthActionVerb } from '~/composables/gql/graphql';
+import type { Role, AuthActionVerb } from '~/composables/gql/graphql.js';
 
 interface RawPermission {
   resource: string;
@@ -43,15 +43,22 @@ export function generateAuthorizationUrl(params: AuthorizationLinkParams): strin
     appDescription,
     roles = [],
     rawPermissions = [],
-    redirectUrl = window.location.origin + '/api-key-created'
+    redirectUrl
   } = params;
+  
+  // Compute redirectUrl with SSR safety
+  const computedRedirectUrl = redirectUrl || (
+    typeof window !== 'undefined' 
+      ? window.location.origin + '/api-key-created'
+      : '/api-key-created'
+  );
   
   const scopes = generateScopes(roles, rawPermissions);
   
   // Build URL parameters
   const urlParams = new URLSearchParams({
     name: appName,
-    redirect_uri: redirectUrl,
+    redirect_uri: computedRedirectUrl,
     scopes: scopes.join(','),
   });
   
@@ -59,8 +66,10 @@ export function generateAuthorizationUrl(params: AuthorizationLinkParams): strin
     urlParams.set('description', appDescription);
   }
   
-  // Use current origin for the authorization URL (Tools menu in WebGui)
-  const baseUrl = `${window.location.origin}/Tools/ApiKeyAuthorize`;
+  // Use current origin for the authorization URL (Tools menu in WebGui) with SSR safety
+  const baseUrl = typeof window !== 'undefined'
+    ? `${window.location.origin}/Tools/ApiKeyAuthorize`
+    : '/Tools/ApiKeyAuthorize';
   
   return `${baseUrl}?${urlParams.toString()}`;
 }

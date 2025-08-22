@@ -25,8 +25,12 @@ export interface ScopeConversion {
  * Composable for handling API key authorization flow
  */
 export function useApiKeyAuthorization(urlSearchParams?: URLSearchParams) {
-  // Parse query parameters
-  const params = urlSearchParams || new URLSearchParams(window.location.search);
+  // Parse query parameters with SSR safety
+  const params = urlSearchParams || (
+    typeof window !== 'undefined' 
+      ? new URLSearchParams(window.location.search)
+      : new URLSearchParams()
+  );
   
   const authParams = ref<ApiKeyAuthorizationParams>({
     name: params.get('name') || 'Unknown Application',

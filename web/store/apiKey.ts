@@ -1,10 +1,10 @@
 import { ref } from 'vue';
 import { defineStore } from 'pinia';
 
-import type { ApiKeyFragment } from '~/composables/gql/graphql';
-import type { AuthorizationFormData } from '~/composables/useApiKeyAuthorizationForm';
+import type { ApiKeyFragment } from '~/composables/gql/graphql.js';
+import type { AuthorizationFormData } from '~/composables/useApiKeyAuthorizationForm.js';
 
-import '~/store/globalPinia';
+import '~/store/globalPinia.js';
 
 export const useApiKeyStore = defineStore('apiKey', () => {
   const modalVisible = ref(false);
