@@ -196,7 +196,7 @@ const updateItem = (index: number, newValue: unknown) => {
         :value="String(index)"
         class="mt-0 w-full"
       >
-        <div class="border rounded-lg p-6 w-full">
+        <div class="border rounded-lg p-1 sm:p-6 w-full">
           <div class="flex justify-end mb-4">
             <Button
               v-if="!isItemProtected(item)"

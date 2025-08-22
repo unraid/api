@@ -357,7 +357,7 @@ const copyApiKey = async () => {
   <Dialog
     v-if="modalVisible"
     v-model="modalVisible"
-    size="lg"
+    size="xl"
     :title="
       isAuthorizationMode
         ? 'Authorize API Key Access'
@@ -394,7 +394,7 @@ const copyApiKey = async () => {
     "
     @primary-click="upsertKey"
   >
-    <div class="max-w-[800px]">
+    <div class="w-full">
       <!-- Show authorization description if in authorization mode -->
       <div v-if="isAuthorizationMode && formSchema?.dataSchema?.description" class="mb-4 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
         <p class="text-sm">{{ formSchema.dataSchema.description }}</p>
@@ -432,7 +432,7 @@ const copyApiKey = async () => {
       </div>
 
       <!-- Permissions Preview -->
-      <div class="mt-6 p-4 bg-gray-50 dark:bg-gray-900/50 rounded-lg border border-gray-200 dark:border-gray-700">
+      <div class="mt-6 p-4 bg-muted/50 rounded-lg border border-muted">
         <EffectivePermissions
           :roles="formData.roles || []"
           :raw-permissions="formDataPermissions"

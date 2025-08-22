@@ -73,12 +73,12 @@ watch(
   <div class="w-full">
     <h3 v-if="showHeader" class="text-sm font-semibold mb-3 flex items-center gap-2">
       {{ headerText }}
-      <span v-if="loading" class="text-xs text-gray-500">(loading...)</span>
+      <span v-if="loading" class="text-xs text-muted-foreground">(loading...)</span>
     </h3>
     
     <!-- Show effective permissions -->
     <div v-if="effectivePermissions.length > 0 && !loading" class="space-y-2">
-      <div class="text-xs text-gray-600 dark:text-gray-400 mb-2">
+      <div class="text-xs text-muted-foreground mb-2">
         These are the actual permissions that will be granted based on selected roles and custom permissions:
       </div>
       
@@ -107,12 +107,12 @@ watch(
     </div>
     
     <!-- Show loading state -->
-    <div v-else-if="loading" class="text-xs text-gray-500">
+    <div v-else-if="loading" class="text-xs text-muted-foreground">
       Loading permissions...
     </div>
     
     <!-- Show message when no permissions selected -->
-    <div v-else class="text-xs text-gray-500 italic">
+    <div v-else class="text-xs text-muted-foreground italic">
       No permissions selected yet
     </div>
   </div>

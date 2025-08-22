@@ -110,30 +110,53 @@ async function copyKeyValue(keyValue: string) {
       >
         {{ deleteError }}
       </div>
-      <ul v-if="apiKeys.length" class="flex flex-col gap-4 mb-6">
-        <CardWrapper v-for="key in apiKeys" :key="key.id">
-          <li class="flex flex-row items-start justify-between gap-4 p-4 list-none">
-            <div class="flex-1 min-w-0">
-              <header class="flex gap-2 justify-between items-start">
-                <div class="flex flex-col gap-2">
-                  <span class="text-sm truncate"><b>ID:</b> {{ key.id.split(':')[1] }}</span>
-                  <span class="text-sm truncate"><b>Name:</b> {{ key.name }}</span>
-                  <span v-if="key.description" class="text-sm truncate"
-                    ><b>Description:</b> {{ key.description }}</span
-                  >
-                  <div v-if="key.roles.length" class="flex flex-wrap gap-2 items-center">
-                    <span class="text-sm"><b>Roles:</b></span>
-                    <Badge v-for="role in key.roles" :key="role" variant="blue" size="xs">{{
-                      role
-                    }}</Badge>
+      <div v-if="apiKeys.length" class="flex flex-col gap-4 mb-6">
+        <div v-for="key in apiKeys" :key="key.id" class="w-full">
+          <CardWrapper :padding="false">
+            <div class="p-4 overflow-hidden">
+              <div class="flex flex-col gap-2">
+                <div class="text-sm truncate max-w-[250px] md:max-w-md"><b>ID:</b> {{ key.id.split(':')[1] }}</div>
+                <div class="text-sm"><b>Name:</b> {{ key.name }}</div>
+                <div v-if="key.description" class="text-sm"
+                  ><b>Description:</b> {{ key.description }}</div>
+                <div v-if="key.roles.length" class="flex flex-wrap gap-2 items-center">
+                  <span class="text-sm"><b>Roles:</b></span>
+                  <Badge v-for="role in key.roles" :key="role" variant="blue" size="xs">{{
+                    role
+                  }}</Badge>
+                </div>
+                <div class="flex items-center gap-2">
+                  <span class="text-sm text-green-700 font-medium"><b>API Key:</b></span>
+                  <div class="relative flex-1 max-w-[300px]">
+                    <Input
+                      :model-value="showKey[key.id] ? key.key : '••••••••••••••••••••••••••••••••'"
+                      class="w-full font-mono text-xs px-2 py-1 rounded pr-10"
+                      readonly
+                    />
+                    <button
+                      type="button"
+                      class="absolute inset-y-0 right-2 flex items-center px-1 text-gray-500 hover:text-gray-700"
+                      tabindex="-1"
+                      @click="toggleShowKey(key.id)"
+                    >
+                      <component :is="showKey[key.id] ? EyeSlashIcon : EyeIcon" class="w-5 h-5" />
+                    </button>
                   </div>
+                  <TooltipProvider>
+                    <Tooltip :delay-duration="0">
+                      <TooltipTrigger>
+                        <Button variant="ghost" size="icon" class="h-8 w-8" @click="copyKeyValue(key.key)">
+                          <ClipboardDocumentIcon class="w-4 h-4" />
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>{{ copied ? 'Copied!' : 'Copy to clipboard...' }}</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
                 </div>
-                <div class="flex gap-2 shrink-0">
-                  <Button variant="secondary" size="sm" @click="openCreateModal(key)">Edit</Button>
-                  <Button variant="destructive" size="sm" @click="_deleteKey(key.id)">Delete</Button>
-                </div>
-              </header>
-              <div v-if="key.permissions?.length || key.roles?.length" class="pt-2 w-full">
+              </div>
+              <div v-if="key.permissions?.length || key.roles?.length" class="mt-4 pt-4 border-t">
                 <Accordion 
                   type="single" 
                   collapsible 
@@ -144,7 +167,7 @@ async function copyKeyValue(keyValue: string) {
                       <span class="text-sm font-semibold">Effective Permissions</span>
                     </AccordionTrigger>
                     <AccordionContent>
-                      <div class="py-2">
+                      <div class="py-2 overflow-auto">
                         <EffectivePermissions
                           :roles="key.roles"
                           :raw-permissions="key.permissions"
@@ -155,44 +178,17 @@ async function copyKeyValue(keyValue: string) {
                   </AccordionItem>
                 </Accordion>
               </div>
-
-              <div class="mt-4 flex items-center gap-2">
-                <span class="text-green-700 font-medium">API Key:</span>
-                <div class="relative w-64">
-                  <Input
-                    :model-value="showKey[key.id] ? key.key : '••••••••••••••••••••••••••••••••'"
-                    class="w-full font-mono text-base px-2 py-1 rounded pr-10"
-                    readonly
-                  />
-                  <button
-                    type="button"
-                    class="absolute inset-y-0 right-2 flex items-center px-1 text-gray-500 hover:text-gray-700"
-                    tabindex="-1"
-                    @click="toggleShowKey(key.id)"
-                  >
-                    <component :is="showKey[key.id] ? EyeSlashIcon : EyeIcon" class="w-5 h-5" />
-                  </button>
-                </div>
-                <TooltipProvider>
-                  <Tooltip :delay-duration="0">
-                    <TooltipTrigger>
-                      <Button variant="ghost" size="icon" @click="copyKeyValue(key.key)">
-                        <ClipboardDocumentIcon class="w-5 h-5" />
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p>{{ copied ? 'Copied!' : 'Copy to clipboard...' }}</p>
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
+              <div class="mt-4 pt-4 border-t flex gap-2 md:justify-between">
+                <Button variant="secondary" size="sm" class="flex-1 md:flex-none" @click="openCreateModal(key)">Edit</Button>
+                <Button variant="destructive" size="sm" class="flex-1 md:flex-none" @click="_deleteKey(key.id)">Delete</Button>
               </div>
             </div>
-          </li>
-        </CardWrapper>
-      </ul>
-      <ul v-else class="flex flex-col gap-4 mb-6">
-        <li class="text-sm">No API keys found</li>
-      </ul>
+          </CardWrapper>
+        </div>
+      </div>
+      <div v-else class="flex flex-col gap-4 mb-6">
+        <p class="text-sm">No API keys found</p>
+      </div>
     </div>
   </PageContainer>
 </template>
