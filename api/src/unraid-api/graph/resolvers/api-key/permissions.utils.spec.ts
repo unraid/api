@@ -6,10 +6,64 @@ import {
     convertPermissionSetsToArrays,
     expandWildcardAction,
     mergePermissionsIntoMap,
+    normalizeAction,
     reconcileWildcardPermissions,
 } from '@app/unraid-api/graph/resolvers/api-key/permissions.utils.js';
 
 describe('permissions.utils', () => {
+    describe('normalizeAction', () => {
+        it('should preserve wildcard action', () => {
+            expect(normalizeAction('*')).toBe('*');
+        });
+
+        it('should normalize simple verbs to AuthAction format', () => {
+            expect(normalizeAction('create')).toBe(AuthAction.CREATE_ANY);
+            expect(normalizeAction('read')).toBe(AuthAction.READ_ANY);
+            expect(normalizeAction('update')).toBe(AuthAction.UPDATE_ANY);
+            expect(normalizeAction('delete')).toBe(AuthAction.DELETE_ANY);
+        });
+
+        it('should handle case-insensitive input', () => {
+            expect(normalizeAction('CREATE')).toBe(AuthAction.CREATE_ANY);
+            expect(normalizeAction('Read')).toBe(AuthAction.READ_ANY);
+            expect(normalizeAction('UPDATE')).toBe(AuthAction.UPDATE_ANY);
+            expect(normalizeAction('Delete')).toBe(AuthAction.DELETE_ANY);
+        });
+
+        it('should convert underscore format to colon format', () => {
+            expect(normalizeAction('READ_ANY')).toBe('read:any');
+            expect(normalizeAction('CREATE_OWN')).toBe('create:own');
+            expect(normalizeAction('update_any')).toBe('update:any');
+            expect(normalizeAction('DELETE_OWN')).toBe('delete:own');
+        });
+
+        it('should preserve already normalized actions', () => {
+            expect(normalizeAction('read:any')).toBe('read:any');
+            expect(normalizeAction('create:own')).toBe('create:own');
+            expect(normalizeAction('update:any')).toBe('update:any');
+            expect(normalizeAction('delete:own')).toBe('delete:own');
+        });
+
+        it('should trim whitespace', () => {
+            expect(normalizeAction('  read  ')).toBe(AuthAction.READ_ANY);
+            expect(normalizeAction(' READ_ANY ')).toBe('read:any');
+        });
+
+        it('should preserve custom actions as lowercase', () => {
+            expect(normalizeAction('custom_action')).toBe('custom_action');
+            expect(normalizeAction('CUSTOM')).toBe('custom');
+            expect(normalizeAction('special:permission')).toBe('special:permission');
+        });
+
+        it('should handle mixed formats consistently', () => {
+            // All these should normalize to the same value
+            expect(normalizeAction('read')).toBe('read:any');
+            expect(normalizeAction('READ')).toBe('read:any');
+            expect(normalizeAction('READ_ANY')).toBe('read:any');
+            expect(normalizeAction('read:any')).toBe('read:any');
+        });
+    });
+
     describe('mergePermissionsIntoMap', () => {
         it('should merge permissions from source map into empty target map', () => {
             const target = new Map<Resource, Set<string>>();

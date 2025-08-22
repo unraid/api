@@ -10,6 +10,7 @@ import { Permission } from '@app/unraid-api/graph/resolvers/api-key/api-key.mode
 import {
     convertPermissionSetsToArrays,
     expandWildcardAction,
+    normalizeAction,
     reconcileWildcardPermissions,
 } from '@app/unraid-api/graph/resolvers/api-key/permissions.utils.js';
 import { UserAccount } from '@app/unraid-api/graph/user/user.model.js';
@@ -124,8 +125,8 @@ export class AuthService {
                         .filter((action) => action && action.trim() !== '')
                         .map((action) => ({
                             resource: permission.resource,
-                            // Normalize action to lowercase for consistent matching
-                            action: action.toLowerCase(),
+                            // Normalize action to canonical format for consistent matching
+                            action: normalizeAction(action),
                         }))
                 );
 
@@ -283,11 +284,14 @@ export class AuthService {
 
             const actionsSet = permissionsWithSets.get(resourceKey as Resource | '*')!;
 
+            // Normalize and handle action
+            const normalizedAction = normalizeAction(action);
+
             // Expand wildcard action to CRUD operations
-            if (action === '*') {
+            if (normalizedAction === '*') {
                 expandWildcardAction().forEach((a) => actionsSet.add(a));
             } else {
-                actionsSet.add(action);
+                actionsSet.add(normalizedAction);
             }
         }
 
