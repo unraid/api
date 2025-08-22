@@ -329,12 +329,13 @@ export class ApiKeyFormService {
                     ? perm.resources
                     : [perm.resources as Resource];
 
+                // Handle actions as an array
+                const actions = Array.isArray(perm.actions) ? perm.actions : [perm.actions];
+
                 for (const resource of resources) {
                     if (!permissions.has(resource)) {
                         permissions.set(resource, new Set());
                     }
-                    // Handle actions as an array
-                    const actions = Array.isArray(perm.actions) ? perm.actions : [perm.actions];
                     actions.forEach((action) => permissions.get(resource)!.add(action));
                 }
             }
