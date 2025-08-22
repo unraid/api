@@ -1,12 +1,17 @@
 import { Injectable, Logger, UnauthorizedException } from '@nestjs/common';
 
 import { Resource, Role } from '@unraid/shared/graphql.model.js';
-import { AuthAction, AuthZService } from 'nest-authz';
+import { AuthZService } from 'nest-authz';
 
 import { getters } from '@app/store/index.js';
 import { ApiKeyService } from '@app/unraid-api/auth/api-key.service.js';
 import { CookieService } from '@app/unraid-api/auth/cookie.service.js';
 import { Permission } from '@app/unraid-api/graph/resolvers/api-key/api-key.model.js';
+import {
+    convertPermissionSetsToArrays,
+    expandWildcardAction,
+    reconcileWildcardPermissions,
+} from '@app/unraid-api/graph/resolvers/api-key/permissions.utils.js';
 import { UserAccount } from '@app/unraid-api/graph/user/user.model.js';
 import { FastifyRequest } from '@app/unraid-api/types/fastify.js';
 import { batchProcess, handleAuthError } from '@app/utils.js';
@@ -237,93 +242,58 @@ export class AuthService {
      * Get implicit permissions for a role (including inherited permissions)
      */
     public async getImplicitPermissionsForRole(role: Role): Promise<Map<Resource, string[]>> {
-        const permissions = new Map<Resource, string[]>();
+        // Use Set internally for efficient deduplication, with '*' as a special key for wildcards
+        const permissionsWithSets = new Map<Resource | '*', Set<string>>();
 
+        // Load permissions from Casbin, defaulting to empty array on error
+        let casbinPermissions: string[][] = [];
         try {
-            // Get all permissions for this role from Casbin
-            const casbinPermissions = await this.authzService.getImplicitPermissionsForUser(role);
-
-            // Track wildcard permissions
-            const wildcardActions: string[] = [];
-
-            // Parse the Casbin permissions format: [["role", "resource", "action"], ...]
-            for (const perm of casbinPermissions) {
-                if (perm.length >= 3) {
-                    const resourceStr = perm[1];
-                    const action = perm[2];
-
-                    // Handle wildcard resources (e.g., CONNECT role has *, READ_ANY)
-                    if (resourceStr === '*') {
-                        // This means all resources get this action
-                        if (action === '*') {
-                            // Wildcard action - expand to all CRUD operations with _ANY suffix
-                            wildcardActions.push(
-                                AuthAction.CREATE_ANY,
-                                AuthAction.READ_ANY,
-                                AuthAction.UPDATE_ANY,
-                                AuthAction.DELETE_ANY
-                            );
-                        } else {
-                            wildcardActions.push(action);
-                        }
-                        continue;
-                    }
-
-                    if (!resourceStr) {
-                        continue;
-                    }
-
-                    // Validate that this is a valid Resource enum value
-                    const resource = Resource[resourceStr as keyof typeof Resource];
-                    if (!resource) {
-                        this.logger.debug(`Skipping invalid resource from Casbin: ${resourceStr}`);
-                        continue;
-                    }
-
-                    if (!permissions.has(resource)) {
-                        permissions.set(resource, []);
-                    }
-                    const actions = permissions.get(resource)!;
-
-                    // Expand wildcard action to CRUD operations with _ANY suffix
-                    if (action === '*') {
-                        const crudActionsWithSuffix = [
-                            AuthAction.CREATE_ANY,
-                            AuthAction.READ_ANY,
-                            AuthAction.UPDATE_ANY,
-                            AuthAction.DELETE_ANY,
-                        ];
-                        for (const crudAction of crudActionsWithSuffix) {
-                            if (!actions.includes(crudAction)) {
-                                actions.push(crudAction);
-                            }
-                        }
-                    } else {
-                        if (!actions.includes(action)) {
-                            actions.push(action);
-                        }
-                    }
-                }
-            }
-
-            // Apply wildcard actions to all resources
-            if (wildcardActions.length > 0) {
-                // Get all valid resources from the enum
-                for (const resourceKey of Object.keys(Resource)) {
-                    const resource = Resource[resourceKey as keyof typeof Resource];
-                    if (resource) {
-                        const existingActions = permissions.get(resource) || [];
-                        // Merge wildcard actions with existing specific actions
-                        const allActions = Array.from(new Set([...existingActions, ...wildcardActions]));
-                        permissions.set(resource, allActions);
-                    }
-                }
-            }
+            casbinPermissions = await this.authzService.getImplicitPermissionsForUser(role);
         } catch (error) {
             this.logger.error(`Failed to get permissions for role ${role}:`, error);
         }
 
-        return permissions;
+        // Parse the Casbin permissions format: [["role", "resource", "action"], ...]
+        for (const perm of casbinPermissions) {
+            if (perm.length < 3) continue;
+
+            const resourceStr = perm[1];
+            const action = perm[2];
+
+            if (!resourceStr) continue;
+
+            // Use '*' as a key for wildcard resources, or validate it's a valid Resource enum value
+            const resourceKey =
+                resourceStr === '*'
+                    ? '*'
+                    : Object.values(Resource).includes(resourceStr as Resource)
+                      ? (resourceStr as Resource)
+                      : null;
+
+            // Skip invalid resources (except wildcard)
+            if (!resourceKey) {
+                this.logger.debug(`Skipping invalid resource from Casbin: ${resourceStr}`);
+                continue;
+            }
+
+            // Initialize Set if needed
+            if (!permissionsWithSets.has(resourceKey as Resource | '*')) {
+                permissionsWithSets.set(resourceKey as Resource | '*', new Set());
+            }
+
+            const actionsSet = permissionsWithSets.get(resourceKey as Resource | '*')!;
+
+            // Expand wildcard action to CRUD operations
+            if (action === '*') {
+                expandWildcardAction().forEach((a) => actionsSet.add(a));
+            } else {
+                actionsSet.add(action);
+            }
+        }
+
+        // Reconcile wildcard permissions and convert to final format
+        reconcileWildcardPermissions(permissionsWithSets);
+        return convertPermissionSetsToArrays(permissionsWithSets);
     }
 
     /**

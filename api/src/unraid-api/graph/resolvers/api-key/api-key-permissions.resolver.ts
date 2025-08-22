@@ -9,6 +9,7 @@ import {
     AddPermissionInput,
     Permission,
 } from '@app/unraid-api/graph/resolvers/api-key/api-key.model.js';
+import { mergePermissionsIntoMap } from '@app/unraid-api/graph/resolvers/api-key/permissions.utils.js';
 
 @Injectable()
 @Resolver()
@@ -32,14 +33,7 @@ export class ApiKeyPermissionsResolver {
         for (const role of roles) {
             // Query Casbin for what permissions this role actually has
             const rolePermissions = await this.authService.getImplicitPermissionsForRole(role);
-
-            for (const [resource, actions] of rolePermissions) {
-                if (!allPermissions.has(resource)) {
-                    allPermissions.set(resource, new Set());
-                }
-                const resourceActions = allPermissions.get(resource)!;
-                actions.forEach((action) => resourceActions.add(action));
-            }
+            mergePermissionsIntoMap(allPermissions, rolePermissions);
         }
 
         // Convert to Permission array
@@ -71,18 +65,9 @@ export class ApiKeyPermissionsResolver {
         const effectivePermissions = new Map<Resource, Set<string>>();
 
         // Add permissions from roles
-        if (roles && roles.length > 0) {
-            for (const role of roles) {
-                const rolePermissions = await this.authService.getImplicitPermissionsForRole(role);
-
-                for (const [resource, actions] of rolePermissions) {
-                    if (!effectivePermissions.has(resource)) {
-                        effectivePermissions.set(resource, new Set());
-                    }
-                    const resourceActions = effectivePermissions.get(resource)!;
-                    actions.forEach((action) => resourceActions.add(action));
-                }
-            }
+        for (const role of roles ?? []) {
+            const rolePermissions = await this.authService.getImplicitPermissionsForRole(role);
+            mergePermissionsIntoMap(effectivePermissions, rolePermissions);
         }
 
         // Add explicit permissions
