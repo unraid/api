@@ -48,22 +48,26 @@ const inlineSvgContent = computed(() => {
   <Button
     :disabled="disabled"
     :variant="(provider.buttonVariant as any) || 'outline'"
-    class="sso-provider-button"
+    class="sso-provider-button w-full min-h-[2.5rem] h-auto py-2 px-4"
     :style="provider.buttonStyle || ''"
     @click="handleClick"
   >
-    <div 
-      v-if="inlineSvgContent"
-      class="w-6 h-6 mr-2 sso-button-icon-svg flex-shrink-0"
-      v-html="inlineSvgContent"
-    />
-    <img 
-      v-else-if="provider.buttonIcon" 
-      :src="provider.buttonIcon" 
-      class="w-6 h-6 mr-2 sso-button-icon" 
-      :alt="provider.name"
-    >
-    {{ provider.buttonText || `Sign in with ${provider.name}` }}
+    <div class="flex items-center justify-center gap-2 w-full">
+      <div 
+        v-if="inlineSvgContent"
+        class="w-6 h-6 sso-button-icon-svg flex-shrink-0"
+        v-html="inlineSvgContent"
+      />
+      <img 
+        v-else-if="provider.buttonIcon" 
+        :src="provider.buttonIcon" 
+        class="w-6 h-6 sso-button-icon flex-shrink-0" 
+        :alt="provider.name"
+      >
+      <span class="text-center whitespace-normal">
+        {{ provider.buttonText || `Sign in with ${provider.name}` }}
+      </span>
+    </div>
   </Button>
 </template>
 
