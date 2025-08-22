@@ -60,7 +60,7 @@ export class ApiKeyFormService {
                     type: 'string',
                     title: 'API Key Name',
                     description: 'A descriptive name for this API key',
-                    minLength: 3,
+                    minLength: 1,
                     maxLength: 100,
                 },
                 description: {
