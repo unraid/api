@@ -50,6 +50,10 @@ export class VmsService implements OnApplicationBootstrap, OnModuleDestroy {
         while (!this.isVmsAvailable && retries <= maxRetries) {
             this.logger.log(`Attempting to initialize VMs service...attempt ${retries}/${maxRetries}`);
             await this.attemptHypervisorInitializationAndWatch();
+            if (this.isVmsAvailable) {
+                this.logger.log('VMs service initialized successfully');
+                break;
+            }
             await new Promise((resolve) => setTimeout(resolve, delay));
             retries++;
         }
