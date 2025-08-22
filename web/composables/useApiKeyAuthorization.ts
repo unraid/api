@@ -1,5 +1,5 @@
 import { computed, ref } from 'vue';
-import { Resource, Role, AuthActionVerb } from '~/composables/gql/graphql';
+import { Resource, Role, AuthActionVerb } from '~/composables/gql/graphql.js';
 
 export interface ApiKeyAuthorizationParams {
   name: string;
