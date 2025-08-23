@@ -19,12 +19,8 @@ import DeveloperAuthorizationLink from './DeveloperAuthorizationLink.vue';
 import type { ApolloError } from '@apollo/client/errors';
 import type { FragmentType } from '~/composables/gql/fragment-masking';
 import type { ComposerTranslation } from 'vue-i18n';
-import type { 
-  Resource, 
-  Role, 
-  CreateApiKeyInput,
-  AuthActionVerb
-} from '~/composables/gql/graphql';
+import { AuthAction } from '~/composables/gql/graphql';
+import type { CreateApiKeyInput , Resource, Role } from '~/composables/gql/graphql';
 
 import { useFragment } from '~/composables/gql/fragment-masking';
 import { useApiKeyStore } from '~/store/apiKey';
@@ -65,14 +61,14 @@ interface FormData extends Partial<CreateApiKeyInput> {
   permissionPresets?: string; // For the preset dropdown
   customPermissions?: Array<{
     resources: Resource[];
-    actions: string[];
+    actions: AuthAction[];
   }>;
   requestedPermissions?: {
     roles?: Role[];
     permissionGroups?: string[];
     customPermissions?: Array<{
       resources: Resource[];
-      actions: string[];
+      actions: AuthAction[];
     }>;
   };
   consent?: boolean;
@@ -93,7 +89,7 @@ const formDataPermissions = computed(() => {
   return formData.value.customPermissions.flatMap(perm =>
     perm.resources.map(resource => ({
       resource,
-      actions: perm.actions as AuthActionVerb[]
+      actions: perm.actions // Already string[] which can be AuthAction values
     }))
   );
 });
@@ -180,27 +176,27 @@ watch(
   (presetId) => {
     if (!presetId || presetId === 'none') return;
     
-    // Define presets locally (matching backend)
-    const presets: Record<string, { resources: Resource[]; actions: string[] }> = {
+    // Define presets locally (matching backend) - using AuthAction
+    const presets: Record<string, { resources: Resource[]; actions: AuthAction[] }> = {
       docker_manager: {
         resources: ['DOCKER' as Resource],
-        actions: ['create:any', 'read:any', 'update:any', 'delete:any'],
+        actions: [AuthAction.CREATE_ANY, AuthAction.READ_ANY, AuthAction.UPDATE_ANY, AuthAction.DELETE_ANY],
       },
       vm_manager: {
         resources: ['VMS' as Resource],
-        actions: ['create:any', 'read:any', 'update:any', 'delete:any'],
+        actions: [AuthAction.CREATE_ANY, AuthAction.READ_ANY, AuthAction.UPDATE_ANY, AuthAction.DELETE_ANY],
       },
       monitoring: {
         resources: ['INFO', 'DASHBOARD', 'LOGS', 'ARRAY', 'DISK', 'NETWORK'] as Resource[],
-        actions: ['read:any'],
+        actions: [AuthAction.READ_ANY],
       },
       backup_manager: {
         resources: ['FLASH', 'SHARE'] as Resource[],
-        actions: ['create:any', 'read:any', 'update:any', 'delete:any'],
+        actions: [AuthAction.CREATE_ANY, AuthAction.READ_ANY, AuthAction.UPDATE_ANY, AuthAction.DELETE_ANY],
       },
       network_admin: {
         resources: ['NETWORK', 'SERVICES'] as Resource[],
-        actions: ['create:any', 'read:any', 'update:any', 'delete:any'],
+        actions: [AuthAction.CREATE_ANY, AuthAction.READ_ANY, AuthAction.UPDATE_ANY, AuthAction.DELETE_ANY],
       },
     };
     
@@ -242,7 +238,7 @@ const populateFormFromExistingKey = async () => {
     
     const customPermissions = Array.from(permissionGroups.entries()).map(([actionKey, resources]) => ({
       resources,
-      actions: actionKey.split(','),
+      actions: actionKey.split(',') as AuthAction[], // These are already AuthAction values joined as strings
     }));
     
     formData.value = {

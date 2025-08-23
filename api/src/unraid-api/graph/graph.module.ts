@@ -12,6 +12,10 @@ import { NoUnusedVariablesRule } from 'graphql';
 
 import { ENVIRONMENT } from '@app/environment.js';
 import { ApiConfigModule } from '@app/unraid-api/config/api-config.module.js';
+
+// Import enum registrations to ensure they're registered with GraphQL
+import '@app/unraid-api/graph/auth/auth-action.enum.js';
+
 import { createDynamicIntrospectionPlugin } from '@app/unraid-api/graph/introspection-plugin.js';
 import { ResolversModule } from '@app/unraid-api/graph/resolvers/resolvers.module.js';
 import { createSandboxPlugin } from '@app/unraid-api/graph/sandbox-plugin.js';

@@ -1,4 +1,23 @@
-import { Resource, Role, AuthActionVerb } from '~/composables/gql/graphql';
+import { Resource, Role, AuthAction } from '~/composables/gql/graphql';
+
+/**
+ * Create a scope string from a role
+ * @param role - The role to convert
+ * @returns Scope string like "role:admin"
+ */
+export function roleToScope(role: Role | string): string {
+  return `role:${role.toLowerCase()}`;
+}
+
+/**
+ * Create a scope string from resource and action
+ * @param resource - The resource
+ * @param action - The action (can be verb, AuthAction, or wildcard)
+ * @returns Scope string like "docker:read" or "docker:*"
+ */
+export function permissionToScope(resource: Resource | string, action: string): string {
+  return `${resource.toLowerCase()}:${action.toLowerCase()}`;
+}
 
 export interface PermissionGroup {
   id: string;
@@ -7,7 +26,7 @@ export interface PermissionGroup {
   icon?: string;
   permissions: Array<{
     resource: Resource;
-    actions: AuthActionVerb[];
+    actions: AuthAction[];
   }>;
 }
 
@@ -19,10 +38,10 @@ export const PERMISSION_GROUPS: PermissionGroup[] = [
     description: 'Full access to Docker containers and images',
     icon: 'docker',
     permissions: [
-      { resource: Resource.DOCKER, actions: [AuthActionVerb.CREATE, AuthActionVerb.READ, AuthActionVerb.UPDATE, AuthActionVerb.DELETE] },
-      { resource: Resource.ARRAY, actions: [AuthActionVerb.READ] },
-      { resource: Resource.DISK, actions: [AuthActionVerb.READ] },
-      { resource: Resource.NETWORK, actions: [AuthActionVerb.READ] },
+      { resource: Resource.DOCKER, actions: [AuthAction.CREATE_ANY, AuthAction.READ_ANY, AuthAction.UPDATE_ANY, AuthAction.DELETE_ANY] },
+      { resource: Resource.ARRAY, actions: [AuthAction.READ_ANY] },
+      { resource: Resource.DISK, actions: [AuthAction.READ_ANY] },
+      { resource: Resource.NETWORK, actions: [AuthAction.READ_ANY] },
     ],
   },
   {
@@ -31,10 +50,10 @@ export const PERMISSION_GROUPS: PermissionGroup[] = [
     description: 'Full access to virtual machines',
     icon: 'computer',
     permissions: [
-      { resource: Resource.VMS, actions: [AuthActionVerb.CREATE, AuthActionVerb.READ, AuthActionVerb.UPDATE, AuthActionVerb.DELETE] },
-      { resource: Resource.ARRAY, actions: [AuthActionVerb.READ] },
-      { resource: Resource.DISK, actions: [AuthActionVerb.READ] },
-      { resource: Resource.NETWORK, actions: [AuthActionVerb.READ] },
+      { resource: Resource.VMS, actions: [AuthAction.CREATE_ANY, AuthAction.READ_ANY, AuthAction.UPDATE_ANY, AuthAction.DELETE_ANY] },
+      { resource: Resource.ARRAY, actions: [AuthAction.READ_ANY] },
+      { resource: Resource.DISK, actions: [AuthAction.READ_ANY] },
+      { resource: Resource.NETWORK, actions: [AuthAction.READ_ANY] },
     ],
   },
   {
@@ -43,10 +62,10 @@ export const PERMISSION_GROUPS: PermissionGroup[] = [
     description: 'Access to manage backups and flash storage',
     icon: 'archive',
     permissions: [
-      { resource: Resource.FLASH, actions: [AuthActionVerb.CREATE, AuthActionVerb.READ, AuthActionVerb.UPDATE, AuthActionVerb.DELETE] },
-      { resource: Resource.ARRAY, actions: [AuthActionVerb.READ] },
-      { resource: Resource.DISK, actions: [AuthActionVerb.READ] },
-      { resource: Resource.SHARE, actions: [AuthActionVerb.READ] },
+      { resource: Resource.FLASH, actions: [AuthAction.CREATE_ANY, AuthAction.READ_ANY, AuthAction.UPDATE_ANY, AuthAction.DELETE_ANY] },
+      { resource: Resource.ARRAY, actions: [AuthAction.READ_ANY] },
+      { resource: Resource.DISK, actions: [AuthAction.READ_ANY] },
+      { resource: Resource.SHARE, actions: [AuthAction.READ_ANY] },
     ],
   },
   {
@@ -55,8 +74,8 @@ export const PERMISSION_GROUPS: PermissionGroup[] = [
     description: 'Full network configuration access',
     icon: 'network',
     permissions: [
-      { resource: Resource.NETWORK, actions: [AuthActionVerb.CREATE, AuthActionVerb.READ, AuthActionVerb.UPDATE, AuthActionVerb.DELETE] },
-      { resource: Resource.SERVICES, actions: [AuthActionVerb.CREATE, AuthActionVerb.READ, AuthActionVerb.UPDATE, AuthActionVerb.DELETE] },
+      { resource: Resource.NETWORK, actions: [AuthAction.CREATE_ANY, AuthAction.READ_ANY, AuthAction.UPDATE_ANY, AuthAction.DELETE_ANY] },
+      { resource: Resource.SERVICES, actions: [AuthAction.CREATE_ANY, AuthAction.READ_ANY, AuthAction.UPDATE_ANY, AuthAction.DELETE_ANY] },
     ],
   },
   {
@@ -65,14 +84,14 @@ export const PERMISSION_GROUPS: PermissionGroup[] = [
     description: 'Read-only access for monitoring and dashboards',
     icon: 'chart-bar',
     permissions: [
-      { resource: Resource.DOCKER, actions: [AuthActionVerb.READ] },
-      { resource: Resource.VMS, actions: [AuthActionVerb.READ] },
-      { resource: Resource.ARRAY, actions: [AuthActionVerb.READ] },
-      { resource: Resource.DISK, actions: [AuthActionVerb.READ] },
-      { resource: Resource.NETWORK, actions: [AuthActionVerb.READ] },
-      { resource: Resource.INFO, actions: [AuthActionVerb.READ] },
-      { resource: Resource.DASHBOARD, actions: [AuthActionVerb.READ] },
-      { resource: Resource.LOGS, actions: [AuthActionVerb.READ] },
+      { resource: Resource.DOCKER, actions: [AuthAction.READ_ANY] },
+      { resource: Resource.VMS, actions: [AuthAction.READ_ANY] },
+      { resource: Resource.ARRAY, actions: [AuthAction.READ_ANY] },
+      { resource: Resource.DISK, actions: [AuthAction.READ_ANY] },
+      { resource: Resource.NETWORK, actions: [AuthAction.READ_ANY] },
+      { resource: Resource.INFO, actions: [AuthAction.READ_ANY] },
+      { resource: Resource.DASHBOARD, actions: [AuthAction.READ_ANY] },
+      { resource: Resource.LOGS, actions: [AuthAction.READ_ANY] },
     ],
   },
 ];
@@ -116,37 +135,34 @@ export const CORE_ROLES: RoleInfo[] = [
  * Convert permissions and roles to scope strings
  */
 export function convertPermissionsToScopes(
-  permissions: Array<{ resource: Resource; actions: AuthActionVerb[] }>,
+  permissions: Array<{ resource: Resource; actions: AuthAction[] }>,
   roles: Role[]
 ): string[] {
   const scopes: string[] = [];
 
   // Convert permissions to scopes
   for (const perm of permissions) {
-    const resource = perm.resource.toLowerCase();
     
     // Check if all CRUD actions are selected (means wildcard)
     const hasAllActions = 
-      perm.actions.includes(AuthActionVerb.CREATE) &&
-      perm.actions.includes(AuthActionVerb.READ) &&
-      perm.actions.includes(AuthActionVerb.UPDATE) &&
-      perm.actions.includes(AuthActionVerb.DELETE);
+      perm.actions.includes(AuthAction.CREATE_ANY) &&
+      perm.actions.includes(AuthAction.READ_ANY) &&
+      perm.actions.includes(AuthAction.UPDATE_ANY) &&
+      perm.actions.includes(AuthAction.DELETE_ANY);
     
     if (hasAllActions) {
-      scopes.push(`${resource}:*`);
+      scopes.push(permissionToScope(perm.resource, '*'));
     } else {
-      // Add individual action scopes
+      // Add individual action scopes using shared utility
       for (const action of perm.actions) {
-        // Convert AuthActionVerb enum to lowercase string
-        const actionStr = action.toLowerCase();
-        scopes.push(`${resource}:${actionStr}`);
+        scopes.push(permissionToScope(perm.resource, action));
       }
     }
   }
 
-  // Convert roles to scopes
+  // Convert roles to scopes using shared utility
   for (const role of roles) {
-    scopes.push(`role:${role.toLowerCase()}`);
+    scopes.push(roleToScope(role));
   }
 
   return scopes;
@@ -207,7 +223,7 @@ export function useApiKeyScopeGroups() {
   /**
    * Convert permission group to explicit permissions
    */
-  const getPermissionsFromGroup = (groupId: string): Array<{ resource: Resource; actions: AuthActionVerb[] }> => {
+  const getPermissionsFromGroup = (groupId: string): Array<{ resource: Resource; actions: AuthAction[] }> => {
     const group = getPermissionGroup(groupId);
     return group ? group.permissions : [];
   };

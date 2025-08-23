@@ -371,19 +371,24 @@ export enum ArrayStateInputState {
   STOP = 'STOP'
 }
 
-/** Available authentication action verbs */
-export enum AuthActionVerb {
-  CREATE = 'CREATE',
-  DELETE = 'DELETE',
-  READ = 'READ',
-  UPDATE = 'UPDATE'
-}
-
-/** Available authentication possession types */
-export enum AuthPossession {
-  ANY = 'ANY',
-  OWN = 'OWN',
-  OWN_ANY = 'OWN_ANY'
+/** Authentication actions with possession (e.g., create:any, read:own) */
+export enum AuthAction {
+  /** Create any resource */
+  CREATE_ANY = 'CREATE_ANY',
+  /** Create own resource */
+  CREATE_OWN = 'CREATE_OWN',
+  /** Delete any resource */
+  DELETE_ANY = 'DELETE_ANY',
+  /** Delete own resource */
+  DELETE_OWN = 'DELETE_OWN',
+  /** Read any resource */
+  READ_ANY = 'READ_ANY',
+  /** Read own resource */
+  READ_OWN = 'READ_OWN',
+  /** Update any resource */
+  UPDATE_ANY = 'UPDATE_ANY',
+  /** Update own resource */
+  UPDATE_OWN = 'UPDATE_OWN'
 }
 
 /** Operators for authorization rule matching */
@@ -1553,6 +1558,7 @@ export type ParityCheckMutationsStartArgs = {
 
 export type Permission = {
   __typename?: 'Permission';
+  /** Actions allowed on this resource (can be AuthAction values or custom strings) */
   actions: Array<Scalars['String']['output']>;
   resource: Resource;
 };
@@ -1623,10 +1629,10 @@ export type Query = {
   disks: Array<Disk>;
   docker: Docker;
   flash: Flash;
-  /** Get JSON Schema for API key authorization form */
-  getApiKeyAuthorizationFormSchema: ApiKeyFormSettings;
   /** Get JSON Schema for API key creation form */
   getApiKeyCreationFormSchema: ApiKeyFormSettings;
+  /** Get all available authentication actions with possession */
+  getAvailableAuthActions: Array<AuthAction>;
   /** Get the actual permissions that would be granted by a set of roles */
   getPermissionsForRoles: Array<Permission>;
   info: Info;
@@ -1680,13 +1686,6 @@ export type QueryApiKeyArgs = {
 
 export type QueryDiskArgs = {
   id: Scalars['PrefixedID']['input'];
-};
-
-
-export type QueryGetApiKeyAuthorizationFormSchemaArgs = {
-  appDescription?: InputMaybe<Scalars['String']['input']>;
-  appName: Scalars['String']['input'];
-  requestedScopes: Array<Scalars['String']['input']>;
 };
 
 

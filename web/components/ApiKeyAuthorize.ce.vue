@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import { ref } from 'vue';
 import { Button } from '@unraid/ui';
-import { useApiKeyAuthorization } from '~/composables/useApiKeyAuthorization';
-import { useApiKeyAuthorizationForm } from '~/composables/useApiKeyAuthorizationForm';
-import { useApiKeyStore } from '~/store/apiKey';
+import { useApiKeyAuthorization } from '~/composables/useApiKeyAuthorization.js';
+import { useApiKeyAuthorizationForm } from '~/composables/useApiKeyAuthorizationForm.js';
+import { useApiKeyStore } from '~/store/apiKey.js';
 
 // Use the composables for authorization logic
 const {

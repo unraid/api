@@ -1,18 +1,18 @@
 import { Injectable, Logger, UnauthorizedException } from '@nestjs/common';
 
 import { Resource, Role } from '@unraid/shared/graphql.model.js';
-import { AuthZService } from 'nest-authz';
-
-import { getters } from '@app/store/index.js';
-import { ApiKeyService } from '@app/unraid-api/auth/api-key.service.js';
-import { CookieService } from '@app/unraid-api/auth/cookie.service.js';
-import { Permission } from '@app/unraid-api/graph/resolvers/api-key/api-key.model.js';
 import {
     convertPermissionSetsToArrays,
     expandWildcardAction,
     normalizeAction,
     reconcileWildcardPermissions,
-} from '@app/unraid-api/graph/resolvers/api-key/permissions.utils.js';
+} from '@unraid/shared/util/permissions.js';
+import { AuthAction, AuthZService } from 'nest-authz';
+
+import { getters } from '@app/store/index.js';
+import { ApiKeyService } from '@app/unraid-api/auth/api-key.service.js';
+import { CookieService } from '@app/unraid-api/auth/cookie.service.js';
+import { Permission } from '@app/unraid-api/graph/resolvers/api-key/api-key.model.js';
 import { UserAccount } from '@app/unraid-api/graph/user/user.model.js';
 import { FastifyRequest } from '@app/unraid-api/types/fastify.js';
 import { batchProcess, handleAuthError } from '@app/utils.js';

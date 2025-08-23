@@ -4,7 +4,6 @@ import { useI18n } from 'vue-i18n';
 import { useUpdateOsStore } from '~/store/updateOs';
 import { storeToRefs } from 'pinia';
 import UpdateOsChangelogModal from '~/components/UpdateOs/ChangelogModal.vue';
-import ColorSwitcherCe from '~/components/ColorSwitcher.ce.vue';
 
 const updateOsStore = useUpdateOsStore();
 const { changelogModalVisible } = storeToRefs(updateOsStore);
@@ -79,7 +78,6 @@ function showChangelogFromLocalhost() {
         <h1 class="text-2xl font-bold mb-6">Changelog</h1>
         <UpdateOsChangelogModal :t="t" :open="changelogModalVisible" />
         <div class="mb-6 flex flex-col gap-4">
-            <ColorSwitcherCe />
             <div class="max-w-md flex flex-col gap-4">
                 <button 
                     class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600" 
