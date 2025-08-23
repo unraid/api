@@ -295,7 +295,7 @@ const close = () => {
 
 // Handle form submission
 async function upsertKey() {
-  if (!formValid.value && !isAuthorizationMode.value) return;
+  if (!formValid.value) return;
   
   // In authorization mode, validation is enough - no separate consent field
 
