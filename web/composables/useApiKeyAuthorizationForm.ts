@@ -1,6 +1,6 @@
 import { computed } from 'vue';
-import { useApiKeyAuthorization } from './useApiKeyAuthorization';
-import type { Role, Resource, AuthActionVerb } from '~/composables/gql/graphql';
+import { useApiKeyAuthorization } from './useApiKeyAuthorization.js';
+import type { Role, Resource, AuthAction } from '~/composables/gql/graphql.js';
 
 export interface AuthorizationFormData {
   name: string;
@@ -8,7 +8,7 @@ export interface AuthorizationFormData {
   roles?: Role[];
   customPermissions?: Array<{
     resources: Resource[];
-    actions: AuthActionVerb[];
+    actions: AuthAction[];
   }>;
 }
 
@@ -34,20 +34,17 @@ export function useApiKeyAuthorizationForm(urlSearchParams?: URLSearchParams) {
       description: authParams.value.description,
       roles: scopeConversion.roles,
       customPermissions: scopeConversion.permissions.map(perm => ({
-        resources: [perm.resource as Resource],
-        actions: perm.actions.map(action => 
-          // Convert from enum format (CREATE) to form format (create:any)
-          (action.includes(':') ? action : `${action.toLowerCase()}:any`) as AuthActionVerb
-        ),
+        resources: [perm.resource],
+        actions: perm.actions, // Pass AuthAction strings directly
       })),
     };
   });
 
   /**
-   * Get the app name without the " API Key" suffix for display
+   * Get the app name for display
    */
   const displayAppName = computed(() => {
-    return authParams.value.name.replace(' API Key', '');
+    return authParams.value.name;
   });
 
   /**

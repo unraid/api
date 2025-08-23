@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { Query, Resolver } from '@nestjs/graphql';
 
 import { Resource } from '@unraid/shared/graphql.model.js';
-import { AuthActionVerb, AuthPossession, UsePermissions } from 'nest-authz';
+import { AuthAction, UsePermissions } from 'nest-authz';
 
 import { ApiKeyFormService } from '@app/unraid-api/graph/resolvers/api-key/api-key-form.service.js';
 import { ApiKeyFormSettings } from '@app/unraid-api/graph/resolvers/settings/settings.model.js';
@@ -16,9 +16,8 @@ export class ApiKeyFormResolver {
         description: 'Get JSON Schema for API key creation form',
     })
     @UsePermissions({
-        action: AuthActionVerb.READ,
+        action: AuthAction.READ_ANY,
         resource: Resource.API_KEY,
-        possession: AuthPossession.ANY,
     })
     getApiKeyCreationFormSchema(): ApiKeyFormSettings {
         return this.apiKeyFormService.getApiKeyCreationFormSchema();

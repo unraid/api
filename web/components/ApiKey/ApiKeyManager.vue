@@ -3,6 +3,7 @@ import { ref, watchEffect } from 'vue';
 import { storeToRefs } from 'pinia';
 import { useMutation, useQuery } from '@vue/apollo-composable';
 import { useClipboard } from '@vueuse/core';
+import type { AuthAction, ApiKeyFragment  } from '~/composables/gql/graphql';
 
 import { ClipboardDocumentIcon, EyeIcon, EyeSlashIcon } from '@heroicons/vue/24/solid';
 import {
@@ -22,7 +23,6 @@ import {
 } from '@unraid/ui';
 import { extractGraphQLErrorMessage } from '~/helpers/functions';
 
-import type { ApiKeyFragment } from '~/composables/gql/graphql';
 
 import { useFragment } from '~/composables/gql/fragment-masking';
 import { useApiKeyStore } from '~/store/apiKey';
@@ -56,10 +56,14 @@ watchEffect(() => {
 
 const metaQuery = useQuery(GET_API_KEY_META);
 const possibleRoles = ref<string[]>([]);
-const possiblePermissions = ref<{ resource: string; actions: string[] }[]>([]);
+const possiblePermissions = ref<{ resource: string; actions: AuthAction[] }[]>([]);
 watchEffect(() => {
   possibleRoles.value = metaQuery.result.value?.apiKeyPossibleRoles || [];
-  possiblePermissions.value = metaQuery.result.value?.apiKeyPossiblePermissions || [];
+  // Cast actions to AuthAction[] since GraphQL returns string[] but we know they're AuthAction values
+  possiblePermissions.value = (metaQuery.result.value?.apiKeyPossiblePermissions || []).map(p => ({
+    resource: p.resource,
+    actions: p.actions as AuthAction[]
+  }));
 });
 
 const showKey = ref<Record<string, boolean>>({});
@@ -170,7 +174,10 @@ async function copyKeyValue(keyValue: string) {
                       <div class="py-2 overflow-auto">
                         <EffectivePermissions
                           :roles="key.roles"
-                          :raw-permissions="key.permissions"
+                          :raw-permissions="key.permissions?.map(p => ({
+                            resource: p.resource,
+                            actions: p.actions as AuthAction[]
+                          })) || []"
                           :show-header="false"
                         />
                       </div>

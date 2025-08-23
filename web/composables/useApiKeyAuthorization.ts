@@ -1,5 +1,88 @@
 import { computed, ref } from 'vue';
-import { Resource, Role, AuthActionVerb } from '~/composables/gql/graphql.js';
+import { Resource, Role, AuthAction } from '~/composables/gql/graphql';
+
+export interface ScopeConversion {
+  permissions: Array<{ resource: Resource; actions: AuthAction[] }>;
+  roles: Role[];
+}
+
+/**
+ * Convert scope strings to permissions and roles
+ * Scopes can be in format:
+ * - "role:admin" for roles
+ * - "docker:read" for resource permissions
+ * - "docker:*" for all actions on a resource
+ */
+function convertScopesToPermissions(scopes: string[]): ScopeConversion {
+  const permissions: Array<{ resource: Resource; actions: AuthAction[] }> = [];
+  const roles: Role[] = [];
+  
+  for (const scope of scopes) {
+    if (scope.startsWith('role:')) {
+      // Handle role scope
+      const roleStr = scope.substring(5).toUpperCase();
+      if (Object.values(Role).includes(roleStr as Role)) {
+        roles.push(roleStr as Role);
+      } else {
+        console.warn(`Unknown role in scope: ${scope}`);
+      }
+    } else {
+      // Handle permission scope
+      const [resourceStr, actionStr] = scope.split(':');
+      if (resourceStr && actionStr) {
+        const resourceUpper = resourceStr.toUpperCase();
+        const resource = Object.values(Resource).find(r => r === resourceUpper) as Resource;
+        
+        if (!resource) {
+          console.warn(`Unknown resource in scope: ${scope}`);
+          continue;
+        }
+        
+        // Handle wildcard or specific action
+        let actions: AuthAction[];
+        if (actionStr === '*') {
+          actions = [
+            AuthAction.CREATE_ANY,
+            AuthAction.READ_ANY,
+            AuthAction.UPDATE_ANY,
+            AuthAction.DELETE_ANY
+          ];
+        } else {
+          // Try to map action string to AuthAction enum
+          const actionUpper = actionStr.toUpperCase().replace(':', '_');
+          const mappedAction = `${actionUpper}_ANY` as AuthAction;
+          
+          if (Object.values(AuthAction).includes(mappedAction)) {
+            actions = [mappedAction];
+          } else {
+            // Try direct match
+            const directAction = actionStr.toUpperCase().replace(':', '_') as AuthAction;
+            if (Object.values(AuthAction).includes(directAction)) {
+              actions = [directAction];
+            } else {
+              console.warn(`Unknown action in scope: ${scope}`);
+              continue;
+            }
+          }
+        }
+        
+        // Merge with existing permissions for the same resource
+        const existing = permissions.find(p => p.resource === resource);
+        if (existing) {
+          actions.forEach(a => {
+            if (!existing.actions.includes(a)) {
+              existing.actions.push(a);
+            }
+          });
+        } else {
+          permissions.push({ resource, actions });
+        }
+      }
+    }
+  }
+  
+  return { permissions, roles };
+}
 
 export interface ApiKeyAuthorizationParams {
   name: string;
@@ -16,10 +99,6 @@ export interface FormattedPermission {
   isRole: boolean;
 }
 
-export interface ScopeConversion {
-  permissions: Array<{ resource: Resource; actions: AuthActionVerb[] }>;
-  roles: Role[];
-}
 
 /**
  * Composable for handling API key authorization flow
@@ -87,75 +166,8 @@ export function useApiKeyAuthorization(urlSearchParams?: URLSearchParams) {
     });
   };
 
-  // Convert scopes to permissions and roles for API key creation
-  const convertScopesToPermissions = (scopes: string[]): ScopeConversion => {
-    const permissions: Array<{ resource: Resource; actions: AuthActionVerb[] }> = [];
-    const roles: Role[] = [];
-    
-    for (const scope of scopes) {
-      if (scope.startsWith('role:')) {
-        const roleStr = scope.substring(5).toUpperCase();
-        const role = Role[roleStr as keyof typeof Role];
-        if (role) {
-          roles.push(role);
-        } else {
-          console.warn(`Unknown role: ${roleStr}`);
-        }
-      } else {
-        const [resourceStr, actionStr] = scope.split(':');
-        if (resourceStr && actionStr) {
-          // Try direct enum lookup first (most resources match their enum name)
-          let resource = Resource[resourceStr.toUpperCase() as keyof typeof Resource];
-          
-          // Handle special cases
-          if (!resource) {
-            // Special case: 'vm' and 'vms' both map to VMS
-            if (resourceStr.toLowerCase() === 'vm') {
-              resource = Resource.VMS;
-            }
-          }
-          
-          if (!resource) {
-            console.warn(`Unknown resource: ${resourceStr}`);
-            continue;
-          }
-          
-          // Convert action strings to AuthActionVerb enum values
-          let actions: AuthActionVerb[];
-          if (actionStr === '*') {
-            actions = [
-              AuthActionVerb.CREATE,
-              AuthActionVerb.READ,
-              AuthActionVerb.UPDATE,
-              AuthActionVerb.DELETE
-            ];
-          } else {
-            const action = AuthActionVerb[actionStr.toUpperCase() as keyof typeof AuthActionVerb];
-            if (action) {
-              actions = [action];
-            } else {
-              console.warn(`Unknown action: ${actionStr}`);
-              continue;
-            }
-          }
-          
-          // Merge with existing permissions for the same resource
-          const existing = permissions.find(p => p.resource === resource);
-          if (existing) {
-            actions.forEach(a => {
-              if (!existing.actions.includes(a)) {
-                existing.actions.push(a);
-              }
-            });
-          } else {
-            permissions.push({ resource, actions });
-          }
-        }
-      }
-    }
-    
-    return { permissions, roles };
-  };
+  // Use the shared convertScopesToPermissions function from @unraid/shared
+  // This ensures consistent scope parsing across frontend and backend
 
   // Build redirect URL with API key or error
   const buildCallbackUrl = (

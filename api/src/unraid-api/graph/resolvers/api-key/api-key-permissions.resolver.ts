@@ -2,14 +2,28 @@ import { Injectable } from '@nestjs/common';
 import { Args, Query, Resolver } from '@nestjs/graphql';
 
 import { Resource, Role } from '@unraid/shared/graphql.model.js';
-import { AuthActionVerb, AuthPossession, UsePermissions } from 'nest-authz';
+import { AuthAction, AuthActionVerb, AuthPossession, UsePermissions } from 'nest-authz';
 
 import { AuthService } from '@app/unraid-api/auth/auth.service.js';
+import { AuthAction as AuthActionEnum } from '@app/unraid-api/graph/auth/auth-action.enum.js';
 import {
     AddPermissionInput,
     Permission,
 } from '@app/unraid-api/graph/resolvers/api-key/api-key.model.js';
-import { mergePermissionsIntoMap } from '@app/unraid-api/graph/resolvers/api-key/permissions.utils.js';
+
+// Helper function to merge permissions into a map
+function mergePermissionsIntoMap(
+    targetMap: Map<Resource, Set<string>>,
+    sourceMap: Map<Resource, string[]>
+): void {
+    for (const [resource, actions] of sourceMap) {
+        if (!targetMap.has(resource)) {
+            targetMap.set(resource, new Set());
+        }
+        const actionsSet = targetMap.get(resource)!;
+        actions.forEach((action) => actionsSet.add(action));
+    }
+}
 
 @Injectable()
 @Resolver()
@@ -91,5 +105,12 @@ export class ApiKeyPermissionsResolver {
         }
 
         return result;
+    }
+
+    @Query(() => [AuthActionEnum], {
+        description: 'Get all available authentication actions with possession',
+    })
+    getAvailableAuthActions(): AuthAction[] {
+        return Object.values(AuthAction);
     }
 }

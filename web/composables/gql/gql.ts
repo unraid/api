@@ -18,7 +18,6 @@ type Documents = {
     "\n  query PublicWelcomeData {\n    publicPartnerInfo {\n      hasPartnerLogo\n      partnerName\n      partnerUrl\n      partnerLogoUrl\n    }\n    isInitialSetup\n  }\n": typeof types.PublicWelcomeDataDocument,
     "\n  query ActivationCode {\n    vars {\n      regState\n    }\n    customization {\n      activationCode {\n        code\n        partnerName\n        serverName\n        sysModel\n        comment\n        header\n        headermetacolor\n        background\n        showBannerGradient\n        theme\n      }\n      partnerInfo {\n        hasPartnerLogo\n        partnerName\n        partnerUrl\n        partnerLogoUrl\n      }\n    }\n  }\n": typeof types.ActivationCodeDocument,
     "\n  query GetApiKeyCreationFormSchema {\n    getApiKeyCreationFormSchema {\n      id\n      dataSchema\n      uiSchema\n      values\n    }\n  }\n": typeof types.GetApiKeyCreationFormSchemaDocument,
-    "\n  query GetApiKeyAuthorizationFormSchema($appName: String!, $requestedScopes: [String!]!, $appDescription: String) {\n    getApiKeyAuthorizationFormSchema(\n      appName: $appName\n      requestedScopes: $requestedScopes\n      appDescription: $appDescription\n    ) {\n      id\n      dataSchema\n      uiSchema\n      values\n    }\n  }\n": typeof types.GetApiKeyAuthorizationFormSchemaDocument,
     "\n  fragment ApiKey on ApiKey {\n    id\n    key\n    name\n    description\n    createdAt\n    roles\n    permissions {\n      resource\n      actions\n    }\n  }\n": typeof types.ApiKeyFragmentDoc,
     "\n  query ApiKeys {\n    apiKeys {\n      ...ApiKey\n    }\n  }\n": typeof types.ApiKeysDocument,
     "\n  mutation CreateApiKey($input: CreateApiKeyInput!) {\n    apiKey {\n      create(input: $input) {\n        ...ApiKey\n      }\n    } \n  }\n": typeof types.CreateApiKeyDocument,
@@ -64,7 +63,6 @@ const documents: Documents = {
     "\n  query PublicWelcomeData {\n    publicPartnerInfo {\n      hasPartnerLogo\n      partnerName\n      partnerUrl\n      partnerLogoUrl\n    }\n    isInitialSetup\n  }\n": types.PublicWelcomeDataDocument,
     "\n  query ActivationCode {\n    vars {\n      regState\n    }\n    customization {\n      activationCode {\n        code\n        partnerName\n        serverName\n        sysModel\n        comment\n        header\n        headermetacolor\n        background\n        showBannerGradient\n        theme\n      }\n      partnerInfo {\n        hasPartnerLogo\n        partnerName\n        partnerUrl\n        partnerLogoUrl\n      }\n    }\n  }\n": types.ActivationCodeDocument,
     "\n  query GetApiKeyCreationFormSchema {\n    getApiKeyCreationFormSchema {\n      id\n      dataSchema\n      uiSchema\n      values\n    }\n  }\n": types.GetApiKeyCreationFormSchemaDocument,
-    "\n  query GetApiKeyAuthorizationFormSchema($appName: String!, $requestedScopes: [String!]!, $appDescription: String) {\n    getApiKeyAuthorizationFormSchema(\n      appName: $appName\n      requestedScopes: $requestedScopes\n      appDescription: $appDescription\n    ) {\n      id\n      dataSchema\n      uiSchema\n      values\n    }\n  }\n": types.GetApiKeyAuthorizationFormSchemaDocument,
     "\n  fragment ApiKey on ApiKey {\n    id\n    key\n    name\n    description\n    createdAt\n    roles\n    permissions {\n      resource\n      actions\n    }\n  }\n": types.ApiKeyFragmentDoc,
     "\n  query ApiKeys {\n    apiKeys {\n      ...ApiKey\n    }\n  }\n": types.ApiKeysDocument,
     "\n  mutation CreateApiKey($input: CreateApiKeyInput!) {\n    apiKey {\n      create(input: $input) {\n        ...ApiKey\n      }\n    } \n  }\n": types.CreateApiKeyDocument,
@@ -136,10 +134,6 @@ export function graphql(source: "\n  query ActivationCode {\n    vars {\n      r
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
 export function graphql(source: "\n  query GetApiKeyCreationFormSchema {\n    getApiKeyCreationFormSchema {\n      id\n      dataSchema\n      uiSchema\n      values\n    }\n  }\n"): (typeof documents)["\n  query GetApiKeyCreationFormSchema {\n    getApiKeyCreationFormSchema {\n      id\n      dataSchema\n      uiSchema\n      values\n    }\n  }\n"];
-/**
- * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
- */
-export function graphql(source: "\n  query GetApiKeyAuthorizationFormSchema($appName: String!, $requestedScopes: [String!]!, $appDescription: String) {\n    getApiKeyAuthorizationFormSchema(\n      appName: $appName\n      requestedScopes: $requestedScopes\n      appDescription: $appDescription\n    ) {\n      id\n      dataSchema\n      uiSchema\n      values\n    }\n  }\n"): (typeof documents)["\n  query GetApiKeyAuthorizationFormSchema($appName: String!, $requestedScopes: [String!]!, $appDescription: String) {\n    getApiKeyAuthorizationFormSchema(\n      appName: $appName\n      requestedScopes: $requestedScopes\n      appDescription: $appDescription\n    ) {\n      id\n      dataSchema\n      uiSchema\n      values\n    }\n  }\n"];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */

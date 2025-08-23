@@ -14,6 +14,7 @@ import {
     ValidateNested,
 } from 'class-validator';
 
+import { AuthAction } from '@app/unraid-api/graph/auth/auth-action.enum.js';
 import { AtLeastOneOf } from '@app/unraid-api/graph/resolvers/validation.utils.js';
 
 @ObjectType()
@@ -22,7 +23,9 @@ export class Permission {
     @IsEnum(Resource)
     resource!: Resource;
 
-    @Field(() => [String])
+    @Field(() => [String], {
+        description: 'Actions allowed on this resource (can be AuthAction values or custom strings)',
+    })
     @IsArray()
     @IsString({ each: true })
     @ArrayMinSize(1)

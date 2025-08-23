@@ -4,14 +4,11 @@
 
 """Directive to document required permissions for fields"""
 directive @usePermissions(
-  """The action verb required for access"""
-  action: AuthActionVerb
+  """The action required for access (must be a valid AuthAction enum value)"""
+  action: String
 
-  """The resource required for access"""
+  """The resource required for access (must be a valid Resource enum value)"""
   resource: String
-
-  """The possession type required for access"""
-  possession: AuthPossession
 ) on FIELD_DEFINITION
 
 type ParityCheck {
@@ -615,6 +612,10 @@ enum ConfigErrorState {
 
 type Permission {
   resource: Resource!
+
+  """
+  Actions allowed on this resource (can be AuthAction values or custom strings)
+  """
   actions: [String!]!
 }
 
@@ -2274,6 +2275,9 @@ type Query {
   """
   previewEffectivePermissions(roles: [Role!], permissions: [AddPermissionInput!]): [Permission!]!
 
+  """Get all available authentication actions with possession"""
+  getAvailableAuthActions: [AuthAction!]!
+
   """Get JSON Schema for API key creation form"""
   getApiKeyCreationFormSchema: ApiKeyFormSettings!
   config: Config!
@@ -2331,6 +2335,33 @@ type Query {
   connect: Connect!
   network: Network!
   cloud: Cloud!
+}
+
+"""Authentication actions with possession (e.g., create:any, read:own)"""
+enum AuthAction {
+  """Create any resource"""
+  CREATE_ANY
+
+  """Create own resource"""
+  CREATE_OWN
+
+  """Update any resource"""
+  UPDATE_ANY
+
+  """Update own resource"""
+  UPDATE_OWN
+
+  """Delete any resource"""
+  DELETE_ANY
+
+  """Delete own resource"""
+  DELETE_OWN
+
+  """Read any resource"""
+  READ_ANY
+
+  """Read own resource"""
+  READ_OWN
 }
 
 type Mutation {
@@ -2571,19 +2602,4 @@ type Subscription {
   systemMetricsCpu: CpuUtilization!
   systemMetricsMemory: MemoryUtilization!
   upsUpdates: UPSDevice!
-}
-
-"""Available authentication action verbs"""
-enum AuthActionVerb {
-  CREATE
-  UPDATE
-  DELETE
-  READ
-}
-
-"""Available authentication possession types"""
-enum AuthPossession {
-  ANY
-  OWN
-  OWN_ANY
 }

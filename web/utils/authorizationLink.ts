@@ -1,8 +1,9 @@
-import type { Role, AuthActionVerb } from '~/composables/gql/graphql.js';
+import type { Role, AuthAction } from '~/composables/gql/graphql.js';
+import { roleToScope, permissionToScope } from '~/composables/useApiKeyScopeGroups.js';
 
 interface RawPermission {
   resource: string;
-  actions: AuthActionVerb[];
+  actions: AuthAction[];
 }
 
 export interface AuthorizationLinkParams {
@@ -15,19 +16,20 @@ export interface AuthorizationLinkParams {
 
 /**
  * Generate scopes array from roles and permissions for API key authorization
+ * Uses shared utility functions for consistent scope generation
  */
 export function generateScopes(roles: Role[] = [], rawPermissions: RawPermission[] = []): string[] {
   const scopes: string[] = [];
   
-  // Add role scopes
+  // Add role scopes using shared utility
   for (const role of roles) {
-    scopes.push(`role:${role.toLowerCase()}`);
+    scopes.push(roleToScope(role));
   }
   
-  // Add permission scopes
+  // Add permission scopes using shared utility
   for (const perm of rawPermissions) {
     for (const action of perm.actions) {
-      scopes.push(`${perm.resource.toLowerCase()}:${action}`);
+      scopes.push(permissionToScope(perm.resource, action));
     }
   }
   

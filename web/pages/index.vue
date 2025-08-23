@@ -5,17 +5,14 @@ import { storeToRefs } from 'pinia';
 import { ExclamationTriangleIcon } from '@heroicons/vue/24/solid';
 import { BrandButton, Toaster } from '@unraid/ui';
 import { UButton } from '#components';
-import { useHead } from '#imports';
 import { useDummyServerStore } from '~/_data/serverState';
 import AES from 'crypto-js/aes';
 
 import type { SendPayloads } from '@unraid/shared-callbacks';
 
 import WelcomeModalCe from '~/components/Activation/WelcomeModal.ce.vue';
-import ColorSwitcherCe from '~/components/ColorSwitcher.ce.vue';
 import ConnectSettingsCe from '~/components/ConnectSettings/ConnectSettings.ce.vue';
 import DowngradeOsCe from '~/components/DowngradeOs.ce.vue';
-import DummyServerSwitcher from '~/components/DummyServerSwitcher.vue';
 import HeaderOsVersionCe from '~/components/HeaderOsVersion.ce.vue';
 import LogViewerCe from '~/components/Logs/LogViewer.ce.vue';
 import ModalsCe from '~/components/Modals.ce.vue';
@@ -27,11 +24,6 @@ import { useThemeStore } from '~/store/theme';
 
 const serverStore = useDummyServerStore();
 const { serverState } = storeToRefs(serverStore);
-const { theme } = storeToRefs(useThemeStore());
-
-useHead({
-  meta: [{ name: 'viewport', content: 'width=1300' }],
-});
 
 onMounted(() => {
   document.cookie = 'unraid_session_cookie=mockusersession';
@@ -89,9 +81,9 @@ onMounted(() => {
     'forUpc'
   );
 });
-
 const bannerImage = ref<string>('none');
 
+const { theme } = storeToRefs(useThemeStore());
 watch(
   theme,
   (newTheme) => {
@@ -103,6 +95,7 @@ watch(
   },
   { immediate: true }
 );
+
 </script>
 
 <template>
@@ -110,8 +103,6 @@ watch(
     <div class="pb-12 mx-auto">
       <client-only>
         <div class="flex flex-col gap-6 p-6">
-          <DummyServerSwitcher />
-          <ColorSwitcherCe />
           <h2 class="text-xl font-semibold font-mono">Vue Components</h2>
           <h3 class="text-lg font-semibold font-mono">UserProfileCe</h3>
           <header

@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { useApiKeyAuthorization } from '~/composables/useApiKeyAuthorization';
-import { Resource, Role, AuthActionVerb } from '~/composables/gql/graphql';
+import { Resource, Role, AuthAction } from '~/composables/gql/graphql';
 
 describe('useApiKeyAuthorization', () => {
   describe('parameter parsing', () => {
@@ -85,7 +85,7 @@ describe('useApiKeyAuthorization', () => {
       expect(result.permissions).toEqual([
         {
           resource: Resource.DOCKER,
-          actions: [AuthActionVerb.READ],
+          actions: [AuthAction.READ_ANY],
         },
       ]);
       expect(result.roles).toEqual([]);
@@ -99,7 +99,7 @@ describe('useApiKeyAuthorization', () => {
       expect(result.permissions).toEqual([
         {
           resource: Resource.VMS,
-          actions: [AuthActionVerb.CREATE, AuthActionVerb.READ, AuthActionVerb.UPDATE, AuthActionVerb.DELETE],
+          actions: [AuthAction.CREATE_ANY, AuthAction.READ_ANY, AuthAction.UPDATE_ANY, AuthAction.DELETE_ANY],
         },
       ]);
     });
@@ -112,7 +112,7 @@ describe('useApiKeyAuthorization', () => {
       expect(result.permissions).toEqual([
         {
           resource: Resource.DOCKER,
-          actions: [AuthActionVerb.READ, AuthActionVerb.UPDATE],
+          actions: [AuthAction.READ_ANY, AuthAction.UPDATE_ANY],
         },
       ]);
     });

@@ -3,16 +3,16 @@ import { computed, watch } from 'vue';
 import { useLazyQuery } from '@vue/apollo-composable';
 import { Badge } from '@unraid/ui';
 import { PREVIEW_EFFECTIVE_PERMISSIONS } from './permissions-preview.query';
-import type { Role } from '~/composables/gql/graphql';
+import type { Role, AuthAction } from '~/composables/gql/graphql';
 
 interface RawPermission {
   resource: string;
-  actions: string[];
+  actions: AuthAction[];
 }
 
 interface EffectivePermission {
   resource: string;
-  actions: string[];
+  actions: AuthAction[];
 }
 
 interface Props {
@@ -36,6 +36,16 @@ const { load: loadEffectivePermissions, loading, result } = useLazyQuery(PREVIEW
 const effectivePermissions = computed<EffectivePermission[]>(() => {
   return result.value?.previewEffectivePermissions || [];
 });
+
+// Format action for display
+const formatAction = (action: string): string => {
+  if (action === '*') return 'ALL ACTIONS';
+  
+  // Handle backend format (e.g., 'read:any' -> 'READ')
+  // Extract just the verb part before the colon
+  const verb = action.split(':')[0];
+  return verb.toUpperCase();
+};
 
 // Watch for changes to roles and permissions and reload
 watch(
@@ -99,7 +109,7 @@ watch(
               variant="green"
               size="xs"
             >
-              {{ action === '*' ? 'ALL ACTIONS' : action.replace(':any', '').toUpperCase() }}
+              {{ formatAction(action) }}
             </Badge>
           </div>
         </div>
