@@ -161,37 +161,46 @@ export class OidcStateService {
                 );
                 this.logger.warn(`Cache key checked: ${cacheKey}`);
 
-                // Try to list all keys in cache for debugging
+                // Try to list all keys in cache for debugging (implementation-specific)
+                // This is debugging code only used when validation fails
                 try {
+                    // Note: Accessing internals of cache manager for debugging purposes
+                    // Different cache implementations may have different internal structures
                     const store = (this.cacheManager as any).store;
-                    this.logger.debug(`Cache store type: ${store?.constructor?.name || 'unknown'}`);
-                    if (store && store.keys) {
-                        const keys = await store.keys();
-                        this.logger.debug(
-                            `Current cache keys (${keys.length} total): ${keys.join(', ')}`
-                        );
-                        // Also check if any keys match our prefix
-                        const oidcKeys = keys.filter((k: string) =>
-                            k.startsWith(this.STATE_CACHE_PREFIX)
-                        );
-                        this.logger.debug(
-                            `OIDC state keys (${oidcKeys.length}): ${oidcKeys.join(', ')}`
-                        );
-                    } else if (store && store.data) {
-                        // For in-memory cache, check the data Map directly
-                        const dataKeys = Array.from(store.data.keys());
-                        this.logger.debug(
-                            `Cache data keys (${dataKeys.length} total): ${dataKeys.join(', ')}`
-                        );
-                        const oidcKeys = dataKeys.filter((k: string) =>
-                            k.startsWith(this.STATE_CACHE_PREFIX)
-                        );
-                        this.logger.debug(
-                            `OIDC state keys (${oidcKeys.length}): ${oidcKeys.join(', ')}`
-                        );
+                    if (!store) {
+                        this.logger.debug('Cache store not accessible for debugging');
+                    } else {
+                        this.logger.debug(`Cache store type: ${store.constructor?.name || 'unknown'}`);
+
+                        // Try to get keys - implementation varies by cache type
+                        let cacheKeys: string[] = [];
+
+                        if (typeof store.keys === 'function') {
+                            // Redis-like cache with keys() method
+                            const keys = await store.keys();
+                            if (Array.isArray(keys)) {
+                                cacheKeys = keys.map((k) => String(k));
+                            }
+                        } else if (store.data instanceof Map) {
+                            // In-memory cache using Map
+                            cacheKeys = Array.from(store.data.keys()).map((k) => String(k));
+                        }
+
+                        if (cacheKeys.length > 0) {
+                            this.logger.debug(`Cache contains ${cacheKeys.length} total keys`);
+                            const oidcKeys = cacheKeys.filter((k) =>
+                                k.startsWith(this.STATE_CACHE_PREFIX)
+                            );
+                            this.logger.debug(
+                                `Found ${oidcKeys.length} OIDC state keys: ${oidcKeys.join(', ')}`
+                            );
+                        } else {
+                            this.logger.debug('No cache keys found or unable to enumerate keys');
+                        }
                     }
                 } catch (e) {
-                    this.logger.debug(`Could not list cache keys: ${e}`);
+                    // This is debug code, so failures are expected with some cache implementations
+                    this.logger.debug(`Could not enumerate cache keys for debugging: ${e}`);
                 }
 
                 return {
