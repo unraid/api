@@ -315,7 +315,9 @@ export class LogsService implements OnModuleInit {
      */
     private filterContent(content: string, filter: string): string {
         const lines = content.split('\n');
-        const filteredLines = lines.filter((line) => line.includes(filter));
+        // Case-insensitive filter that matches OIDC anywhere in the line
+        const filterRegex = new RegExp(filter, 'i');
+        const filteredLines = lines.filter((line) => filterRegex.test(line));
         return filteredLines.join('\n');
     }
 
@@ -369,8 +371,8 @@ export class LogsService implements OnModuleInit {
             rl.on('line', (line) => {
                 currentLine++;
                 if (currentLine > linesToSkip) {
-                    // Apply filter if provided
-                    if (!filter || line.includes(filter)) {
+                    // Apply filter if provided (case-insensitive)
+                    if (!filter || new RegExp(filter, 'i').test(line)) {
                         content += line + '\n';
                     }
                 }
@@ -415,8 +417,8 @@ export class LogsService implements OnModuleInit {
 
                 // Skip lines before the starting position
                 if (currentLine >= startLine) {
-                    // Apply filter if provided
-                    if (!filter || line.includes(filter)) {
+                    // Apply filter if provided (case-insensitive)
+                    if (!filter || new RegExp(filter, 'i').test(line)) {
                         // Only read the requested number of lines
                         if (linesRead < lineCount) {
                             content += line + '\n';

@@ -81,15 +81,23 @@ export class OidcAuthService {
         };
 
         // For HTTP endpoints, we need to pass the allowInsecureRequests option
-        const serverUrl = new URL(provider.issuer || '');
-        let clientOptions: any = undefined;
-        if (serverUrl.protocol === 'http:') {
-            this.logger.debug(
-                `Building authorization URL with allowInsecureRequests for ${provider.id}`
-            );
-            clientOptions = {
-                execute: [client.allowInsecureRequests],
-            };
+        // The execute array contains functions that modify the request behavior
+        let clientOptions: { execute: Array<typeof client.allowInsecureRequests> } | undefined;
+        if (provider.issuer) {
+            try {
+                const serverUrl = new URL(provider.issuer);
+                if (serverUrl.protocol === 'http:') {
+                    this.logger.debug(
+                        `Building authorization URL with allowInsecureRequests for ${provider.id}`
+                    );
+                    clientOptions = {
+                        execute: [client.allowInsecureRequests],
+                    };
+                }
+            } catch (error) {
+                this.logger.warn(`Invalid issuer URL for provider ${provider.id}: ${provider.issuer}`);
+                // Continue without special HTTP options
+            }
         }
 
         const authUrl = client.buildAuthorizationUrl(config, parameters);
@@ -207,13 +215,25 @@ export class OidcAuthService {
                 this.logger.debug(`Expected state value: ${originalState}`);
 
                 // For HTTP endpoints, we need to pass the allowInsecureRequests option
-                const serverUrl = new URL(provider.issuer || '');
-                let clientOptions: any = undefined;
-                if (serverUrl.protocol === 'http:') {
-                    this.logger.debug(`Token exchange with allowInsecureRequests for ${provider.id}`);
-                    clientOptions = {
-                        execute: [client.allowInsecureRequests],
-                    };
+                // The execute array contains functions that modify the request behavior
+                let clientOptions: { execute: Array<typeof client.allowInsecureRequests> } | undefined;
+                if (provider.issuer) {
+                    try {
+                        const serverUrl = new URL(provider.issuer);
+                        if (serverUrl.protocol === 'http:') {
+                            this.logger.debug(
+                                `Token exchange with allowInsecureRequests for ${provider.id}`
+                            );
+                            clientOptions = {
+                                execute: [client.allowInsecureRequests],
+                            };
+                        }
+                    } catch (error) {
+                        this.logger.warn(
+                            `Invalid issuer URL for provider ${provider.id}: ${provider.issuer}`
+                        );
+                        // Continue without special HTTP options
+                    }
                 }
 
                 tokens = await client.authorizationCodeGrant(
@@ -420,7 +440,7 @@ export class OidcAuthService {
 
                 // Create client options with HTTP support if needed
                 const serverUrl = new URL(provider.issuer);
-                let clientOptions: any = undefined;
+                let clientOptions: { execute: Array<typeof client.allowInsecureRequests> } | undefined;
                 if (serverUrl.protocol === 'http:') {
                     this.logger.debug(`Allowing HTTP for ${provider.id} as specified by user`);
                     clientOptions = {
