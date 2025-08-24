@@ -77,7 +77,7 @@ export class RestController {
             }
 
             // Use the redirect_uri from the client if provided, otherwise fall back to headers
-            let requestInfo = redirectUri;
+            let requestInfo: string | undefined = redirectUri;
             if (!requestInfo) {
                 // Fall back to extracting from headers if redirect_uri not provided
                 const protocol = (req.headers['x-forwarded-proto'] as string) || req.protocol || 'http';
