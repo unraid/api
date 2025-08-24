@@ -65,6 +65,7 @@ export class RestController {
     async oidcAuthorize(
         @Param('providerId') providerId: string,
         @Query('state') state: string,
+        @Query('redirect_uri') redirectUri: string,
         @Req() req: FastifyRequest,
         @Res() res: FastifyReply
     ) {
@@ -73,10 +74,15 @@ export class RestController {
                 return res.status(400).send('State parameter is required');
             }
 
-            // Get the host and protocol from the request headers
-            const protocol = (req.headers['x-forwarded-proto'] as string) || req.protocol || 'http';
-            const host = (req.headers['x-forwarded-host'] as string) || req.headers.host || undefined;
-            const requestInfo = host ? `${protocol}://${host}` : undefined;
+            // Use the redirect_uri from the client if provided, otherwise fall back to headers
+            let requestInfo = redirectUri;
+            if (!requestInfo) {
+                // Fall back to extracting from headers if redirect_uri not provided
+                const protocol = (req.headers['x-forwarded-proto'] as string) || req.protocol || 'http';
+                const host =
+                    (req.headers['x-forwarded-host'] as string) || req.headers.host || undefined;
+                requestInfo = host ? `${protocol}://${host}` : undefined;
+            }
 
             const authUrl = await this.oidcAuthService.getAuthorizationUrl(
                 providerId,
@@ -129,6 +135,7 @@ export class RestController {
             const host =
                 (req.headers['x-forwarded-host'] as string) || req.headers.host || 'localhost:3000';
             const fullUrl = `${protocol}://${host}${req.url}`;
+            // Extract the base URL (protocol://host:port) from the callback URL
             const requestInfo = `${protocol}://${host}`;
 
             this.logger.debug(`Full callback URL from request: ${fullUrl}`);
