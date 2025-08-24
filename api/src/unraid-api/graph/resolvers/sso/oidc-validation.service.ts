@@ -150,8 +150,9 @@ export class OidcValidationService {
         } catch (discoveryError) {
             this.logger.error(`Discovery failed for ${provider.id} at ${discoveryUrl}`);
 
-            // Use the helper to log error details
-            OidcErrorHelper.logErrorDetails(discoveryError, this.logger, '');
+            if (discoveryError instanceof Error) {
+                this.logger.error('Discovery error: %o', discoveryError);
+            }
 
             throw discoveryError;
         }

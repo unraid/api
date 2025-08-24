@@ -20,7 +20,7 @@ export class OidcErrorHelper {
         if (error instanceof Error && 'cause' in error) {
             const cause = (error as any).cause;
             if (cause) {
-                this.logger.log(`Fetch error cause: ${JSON.stringify(cause, null, 2)}`);
+                this.logger.log('Fetch error cause: %o', cause);
 
                 const errorCode = cause.code || '';
                 const causeMessage = cause.message || '';
@@ -224,40 +224,5 @@ export class OidcErrorHelper {
 
         // Fall back to generic error parsing
         return this.parseGenericError(error, issuerUrl);
-    }
-
-    /**
-     * Log response details from an error
-     */
-    static logErrorDetails(error: unknown, logger: Logger, context: string): void {
-        if (!(error instanceof Error)) {
-            return;
-        }
-
-        logger.error(`${context} Error type: ${error.constructor.name}`);
-        logger.error(`${context} Error message: ${error.message}`);
-
-        // Log response details if available
-        if ('response' in error) {
-            const response = (error as any).response;
-            if (response) {
-                logger.error(`${context} HTTP Status: ${response.status}`);
-                logger.error(`${context} HTTP Status Text: ${response.statusText}`);
-                if (response.body) {
-                    logger.error(
-                        `${context} Response body: ${
-                            typeof response.body === 'string'
-                                ? response.body
-                                : JSON.stringify(response.body, null, 2)
-                        }`
-                    );
-                }
-            }
-        }
-
-        // Log cause if available
-        if ('cause' in error && error.cause) {
-            logger.error(`${context} Error cause: ${JSON.stringify(error.cause, null, 2)}`);
-        }
     }
 }

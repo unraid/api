@@ -80,19 +80,13 @@ export class OidcAuthService {
             response_type: 'code',
         };
 
-        // For HTTP endpoints, we need to pass the allowInsecureRequests option
-        // The execute array contains functions that modify the request behavior
-        let clientOptions: { execute: Array<typeof client.allowInsecureRequests> } | undefined;
+        // For HTTP endpoints, we need to call allowInsecureRequests on the config
         if (provider.issuer) {
             try {
                 const serverUrl = new URL(provider.issuer);
                 if (serverUrl.protocol === 'http:') {
-                    this.logger.debug(
-                        `Building authorization URL with allowInsecureRequests for ${provider.id}`
-                    );
-                    clientOptions = {
-                        execute: [client.allowInsecureRequests],
-                    };
+                    this.logger.debug(`Allowing insecure requests for HTTP endpoint: ${provider.id}`);
+                    client.allowInsecureRequests(config);
                 }
             } catch (error) {
                 this.logger.warn(`Invalid issuer URL for provider ${provider.id}: ${provider.issuer}`);
@@ -103,7 +97,7 @@ export class OidcAuthService {
         const authUrl = client.buildAuthorizationUrl(config, parameters);
 
         this.logger.log(`Built authorization URL via discovery for provider ${provider.id}`);
-        this.logger.log(`Authorization parameters: ${JSON.stringify(parameters, null, 2)}`);
+        this.logger.log('Authorization parameters: %o', parameters);
 
         return authUrl.href;
     }
@@ -214,19 +208,15 @@ export class OidcAuthService {
                 this.logger.debug(`Client secret configured: ${provider.clientSecret ? 'Yes' : 'No'}`);
                 this.logger.debug(`Expected state value: ${originalState}`);
 
-                // For HTTP endpoints, we need to pass the allowInsecureRequests option
-                // The execute array contains functions that modify the request behavior
-                let clientOptions: { execute: Array<typeof client.allowInsecureRequests> } | undefined;
+                // For HTTP endpoints, we need to call allowInsecureRequests on the config
                 if (provider.issuer) {
                     try {
                         const serverUrl = new URL(provider.issuer);
                         if (serverUrl.protocol === 'http:') {
                             this.logger.debug(
-                                `Token exchange with allowInsecureRequests for ${provider.id}`
+                                `Allowing insecure requests for HTTP endpoint: ${provider.id}`
                             );
-                            clientOptions = {
-                                execute: [client.allowInsecureRequests],
-                            };
+                            client.allowInsecureRequests(config);
                         }
                     } catch (error) {
                         this.logger.warn(
@@ -236,14 +226,9 @@ export class OidcAuthService {
                     }
                 }
 
-                tokens = await client.authorizationCodeGrant(
-                    config,
-                    cleanUrl,
-                    {
-                        expectedState: originalState,
-                    },
-                    clientOptions
-                );
+                tokens = await client.authorizationCodeGrant(config, cleanUrl, {
+                    expectedState: originalState,
+                });
                 this.logger.debug(
                     `Token exchange successful, received tokens: ${Object.keys(tokens).join(', ')}`
                 );
@@ -289,14 +274,10 @@ export class OidcAuthService {
                             this.logger.error(`HTTP Response Status: ${response.status}`);
                             this.logger.error(`HTTP Response Status Text: ${response.statusText}`);
                             if (response.body) {
-                                this.logger.error(
-                                    `HTTP Response Body: ${JSON.stringify(response.body, null, 2)}`
-                                );
+                                this.logger.error('HTTP Response Body: %o', response.body);
                             }
                             if (response.headers) {
-                                this.logger.debug(
-                                    `HTTP Response Headers: ${JSON.stringify(response.headers, null, 2)}`
-                                );
+                                this.logger.debug('HTTP Response Headers: %o', response.headers);
                             }
                         }
                     }
@@ -309,13 +290,13 @@ export class OidcAuthService {
                                 `Error response body (string): ${body.substring(0, 1000)}`
                             );
                         } else {
-                            this.logger.error(`Error response body: ${JSON.stringify(body, null, 2)}`);
+                            this.logger.error('Error response body: %o', body);
                         }
                     }
 
                     // Check for cause property (newer error patterns)
                     if ('cause' in tokenError && tokenError.cause) {
-                        this.logger.error(`Error cause: ${JSON.stringify(tokenError.cause, null, 2)}`);
+                        this.logger.error('Error cause: %o', tokenError.cause);
                     }
 
                     // Log any additional error properties
@@ -327,9 +308,7 @@ export class OidcAuthService {
                         for (const key of errorKeys) {
                             const value = (tokenError as any)[key];
                             if (value !== undefined && value !== null) {
-                                this.logger.debug(
-                                    `${key}: ${typeof value === 'object' ? JSON.stringify(value, null, 2) : value}`
-                                );
+                                this.logger.debug(`${key}: %o`, value);
                             }
                         }
                     }
@@ -340,9 +319,7 @@ export class OidcAuthService {
                     this.logger.error(
                         `unexpected JWT claim value encountered during token validation by openid-client`
                     );
-                    this.logger.debug(
-                        `Token exchange error details: ${JSON.stringify(tokenError, null, 2)}`
-                    );
+                    this.logger.debug('Token exchange error details: %o', tokenError);
 
                     // Log the actual vs expected issuer
                     this.logger.error(
@@ -484,23 +461,17 @@ export class OidcAuthService {
                                 this.logger.error(`Discovery HTTP Status: ${response.status}`);
                                 this.logger.error(`Discovery HTTP Status Text: ${response.statusText}`);
                                 if (response.body) {
-                                    this.logger.error(
-                                        `Discovery Response Body: ${typeof response.body === 'string' ? response.body : JSON.stringify(response.body, null, 2)}`
-                                    );
+                                    this.logger.error('Discovery Response Body: %o', response.body);
                                 }
                             }
                         }
 
                         // Check for cause
                         if ('cause' in discoveryError && discoveryError.cause) {
-                            this.logger.debug(
-                                `Discovery error cause: ${JSON.stringify(discoveryError.cause, null, 2)}`
-                            );
+                            this.logger.debug('Discovery error cause: %o', discoveryError.cause);
                         }
 
-                        this.logger.debug(
-                            `Full discovery error: ${JSON.stringify(discoveryError, null, 2)}`
-                        );
+                        this.logger.debug('Full discovery error: %o', discoveryError);
 
                         // Log stack trace for better debugging
                         if (discoveryError.stack) {
@@ -657,9 +628,7 @@ export class OidcAuthService {
             );
         }
 
-        this.logger.debug(
-            `Authorization rules to evaluate: ${JSON.stringify(provider.authorizationRules, null, 2)}`
-        );
+        this.logger.debug('Authorization rules to evaluate: %o', provider.authorizationRules);
 
         // Evaluate the rules
         const ruleMode = provider.authorizationRuleMode || AuthorizationRuleMode.OR;
