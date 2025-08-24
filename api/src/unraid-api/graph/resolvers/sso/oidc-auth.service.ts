@@ -236,6 +236,28 @@ export class OidcAuthService {
                 if (tokenError instanceof Error) {
                     // Log the error type and full details
                     this.logger.error(`Error type: ${tokenError.constructor.name}`);
+
+                    // Special handling for content-type errors
+                    if (
+                        errorMessage.includes('unexpected response content-type') ||
+                        (tokenError as any).code === 'OAUTH_RESPONSE_IS_NOT_JSON'
+                    ) {
+                        this.logger.error('Token endpoint returned non-JSON response.');
+                        this.logger.error('This typically means:');
+                        this.logger.error(
+                            '1. The token endpoint URL is incorrect (check for typos or wrong paths)'
+                        );
+                        this.logger.error('2. The server returned an HTML error page instead of JSON');
+                        this.logger.error(
+                            '3. Authentication failed (invalid client_id or client_secret)'
+                        );
+                        this.logger.error('4. A proxy/firewall is intercepting the request');
+                        this.logger.error(
+                            `Configured token endpoint: ${config.serverMetadata().token_endpoint}`
+                        );
+                        this.logger.error('Please verify your OIDC provider configuration.');
+                    }
+
                     if (tokenError.stack) {
                         this.logger.debug(`Stack trace: ${tokenError.stack}`);
                     }
@@ -256,6 +278,18 @@ export class OidcAuthService {
                                     `HTTP Response Headers: ${JSON.stringify(response.headers, null, 2)}`
                                 );
                             }
+                        }
+                    }
+
+                    // Try to extract body from error if available
+                    if ('body' in tokenError && (tokenError as any).body) {
+                        const body = (tokenError as any).body;
+                        if (typeof body === 'string') {
+                            this.logger.error(
+                                `Error response body (string): ${body.substring(0, 1000)}`
+                            );
+                        } else {
+                            this.logger.error(`Error response body: ${JSON.stringify(body, null, 2)}`);
                         }
                     }
 
