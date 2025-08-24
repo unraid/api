@@ -153,7 +153,12 @@ onMounted(() => {
         // Update the local state with the new content
         if (newContent && state.loadedContentChunks.length > 0) {
           const lastChunk = state.loadedContentChunks[state.loadedContentChunks.length - 1];
-          lastChunk.content += newContent;
+          // Ensure there's a newline between the existing content and new content if needed
+          if (lastChunk.content && !lastChunk.content.endsWith('\n') && newContent) {
+            lastChunk.content += '\n' + newContent;
+          } else {
+            lastChunk.content += newContent;
+          }
 
           // Force scroll to bottom if auto-scroll is enabled
           if (props.autoScroll) {
@@ -235,7 +240,11 @@ const highlightLog = (content: string): string => {
 
 // Computed properties
 const logContent = computed(() => {
-  const rawContent = state.loadedContentChunks.map((chunk) => chunk.content).join('');
+  // Join chunks ensuring proper newline handling
+  const rawContent = state.loadedContentChunks
+    .map((chunk) => chunk.content)
+    .filter(content => content) // Remove empty chunks
+    .join(''); // Content should already have proper newlines
   return highlightLog(rawContent);
 });
 
