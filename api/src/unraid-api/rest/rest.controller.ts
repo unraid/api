@@ -83,6 +83,24 @@ export class RestController {
                 return res.status(400).send('redirect_uri parameter is required');
             }
 
+            // Security validation: ensure redirect_uri is from the same hostname
+            // but allow different ports (proxies may change ports)
+            try {
+                const redirectUrl = new URL(params.redirectUri);
+                const requestHost = req.hostname || req.headers.host?.split(':')[0];
+
+                // Compare hostnames (ignoring ports)
+                if (requestHost && redirectUrl.hostname.toLowerCase() !== requestHost.toLowerCase()) {
+                    this.logger.warn(
+                        `Redirect URI hostname mismatch. Expected: ${requestHost}, Got: ${redirectUrl.hostname}`
+                    );
+                    return res.status(400).send('Invalid redirect_uri: hostname mismatch');
+                }
+            } catch (e) {
+                this.logger.error(`Invalid redirect_uri format: ${params.redirectUri}`);
+                return res.status(400).send('Invalid redirect_uri format');
+            }
+
             // Handle authorization flow using the exact redirect_uri from query params
             const authUrl = await OidcRequestHandler.handleAuthorize(
                 params.providerId,
