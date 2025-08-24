@@ -195,7 +195,7 @@ describe('OidcAuthService Integration Tests - Enhanced Logging', () => {
             vi.mocked(configPersistence.getProvider).mockResolvedValue(provider);
 
             try {
-                const authUrl = await service.getAuthorizationUrl(
+                await service.getAuthorizationUrl(
                     'auth-url-test',
                     'test-state',
                     'http://test.local'
