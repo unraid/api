@@ -664,38 +664,51 @@ export class OidcAuthService {
     }
 
     private getRedirectUri(requestOrigin?: string): string {
-        // If we have the full origin (protocol://host), use it directly
-        if (requestOrigin) {
-            // Parse the origin to extract protocol and host
-            try {
-                const url = new URL(requestOrigin);
-                const { protocol, hostname, port } = url;
+        const CALLBACK_PATH = '/graphql/api/auth/oidc/callback';
 
-                // Reconstruct the URL, removing default ports
-                let cleanOrigin = `${protocol}//${hostname}`;
-
-                // Add port if it's not the default for the protocol
-                if (
-                    port &&
-                    !(protocol === 'https:' && port === '443') &&
-                    !(protocol === 'http:' && port === '80')
-                ) {
-                    cleanOrigin += `:${port}`;
-                }
-
-                // Special handling for localhost development with Nuxt proxy
-                if (hostname === 'localhost' && port === '3000') {
-                    return `${cleanOrigin}/graphql/api/auth/oidc/callback`;
-                }
-
-                return `${cleanOrigin}/graphql/api/auth/oidc/callback`;
-            } catch (e) {
-                this.logger.warn(`Failed to parse request origin: ${requestOrigin}, error: ${e}`);
-            }
+        if (!requestOrigin) {
+            // No origin provided, use fallback
+            const baseUrl = this.configService.get('BASE_URL', 'http://tower.local');
+            this.logger.debug(`Using fallback redirect URI: ${baseUrl}${CALLBACK_PATH}`);
+            return `${baseUrl}${CALLBACK_PATH}`;
         }
 
-        // Fall back to configured BASE_URL or default
-        const baseUrl = this.configService.get('BASE_URL', 'http://tower.local');
-        return `${baseUrl}/graphql/api/auth/oidc/callback`;
+        try {
+            const url = new URL(requestOrigin);
+
+            // Check if this is already a full redirect URI
+            if (url.pathname.endsWith(CALLBACK_PATH)) {
+                // Use the full redirect URI as-is (preserving any ports)
+                this.logger.debug(`Using full redirect URI from client: ${requestOrigin}`);
+                return requestOrigin;
+            }
+
+            // Build redirect URI from origin
+            const origin = this.buildOriginWithPort(url);
+            const redirectUri = `${origin}${CALLBACK_PATH}`;
+
+            this.logger.debug(`Constructed redirect URI: ${redirectUri}`);
+            return redirectUri;
+        } catch (e) {
+            this.logger.warn(`Failed to parse request origin: ${requestOrigin}, error: ${e}`);
+
+            // Fall back to configured BASE_URL
+            const baseUrl = this.configService.get('BASE_URL', 'http://tower.local');
+            this.logger.debug(`Using fallback redirect URI: ${baseUrl}${CALLBACK_PATH}`);
+            return `${baseUrl}${CALLBACK_PATH}`;
+        }
+    }
+
+    private buildOriginWithPort(url: URL): string {
+        const { protocol, hostname, port } = url;
+
+        // Check if port is empty, or is default for the protocol
+        const isDefaultPort =
+            !port ||
+            (protocol === 'https:' && port === '443') ||
+            (protocol === 'http:' && port === '80');
+
+        // Build origin with port only if non-default
+        return isDefaultPort ? `${protocol}//${hostname}` : `${protocol}//${hostname}:${port}`;
     }
 }

@@ -70,8 +70,11 @@ export function useSsoAuth() {
     sessionStorage.setItem('sso_state', state);
     sessionStorage.setItem('sso_provider', providerId);
     
-    // Redirect to OIDC authorization endpoint with just the state token
-    const authUrl = `/graphql/api/auth/oidc/authorize/${encodeURIComponent(providerId)}?state=${encodeURIComponent(state)}`;
+    // Build the redirect URI based on current window location
+    const redirectUri = `${window.location.protocol}//${window.location.host}/graphql/api/auth/oidc/callback`;
+    
+    // Redirect to OIDC authorization endpoint with state token and redirect URI
+    const authUrl = `/graphql/api/auth/oidc/authorize/${encodeURIComponent(providerId)}?state=${encodeURIComponent(state)}&redirect_uri=${encodeURIComponent(redirectUri)}`;
     window.location.href = authUrl;
   };
 
