@@ -173,7 +173,7 @@ export class OidcAuthService {
             this.logger.debug(`Token exchange URL (matches redirect_uri): ${currentUrl.href}`);
 
             // Validate secure state
-            const stateValidation = this.stateService.validateSecureState(state, providerId);
+            const stateValidation = await this.stateService.validateSecureState(state, providerId);
             if (!stateValidation.isValid) {
                 this.logger.error(`State validation failed: ${stateValidation.error}`);
                 throw new UnauthorizedException(stateValidation.error || 'Invalid state parameter');
