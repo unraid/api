@@ -49,6 +49,7 @@ const props = defineProps<{
   lineCount: number;
   autoScroll: boolean;
   highlightLanguage?: string; // Optional prop to specify the language for highlighting
+  filter?: string; // Optional filter to apply to log content
 }>();
 
 // Default language for highlighting
@@ -83,6 +84,7 @@ const {
     path: props.logFilePath,
     lines: props.lineCount || DEFAULT_CHUNK_SIZE,
     startLine: state.currentStartLine,
+    filter: props.filter,
   }),
   () => ({
     enabled: !!props.logFilePath,
@@ -114,7 +116,7 @@ onMounted(() => {
   if (props.logFilePath) {
     subscribeToMore({
       document: LOG_FILE_SUBSCRIPTION,
-      variables: { path: props.logFilePath },
+      variables: { path: props.logFilePath, filter: props.filter },
       updateQuery: (prev, { subscriptionData }) => {
         if (!subscriptionData.data || !prev) return prev;
 

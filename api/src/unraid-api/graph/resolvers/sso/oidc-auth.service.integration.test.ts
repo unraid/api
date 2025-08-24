@@ -18,12 +18,14 @@ describe('OidcAuthService Integration Tests - Enhanced Logging', () => {
     let debugLogs: string[] = [];
     let errorLogs: string[] = [];
     let warnLogs: string[] = [];
+    let logLogs: string[] = [];
 
     beforeEach(async () => {
         // Clear log arrays
         debugLogs = [];
         errorLogs = [];
         warnLogs = [];
+        logLogs = [];
 
         const module: TestingModule = await Test.createTestingModule({
             imports: [
@@ -76,7 +78,9 @@ describe('OidcAuthService Integration Tests - Enhanced Logging', () => {
             warn: vi.spyOn(Logger.prototype, 'warn').mockImplementation((message: string) => {
                 warnLogs.push(message);
             }),
-            log: vi.spyOn(Logger.prototype, 'log').mockImplementation(() => {}),
+            log: vi.spyOn(Logger.prototype, 'log').mockImplementation((message: string) => {
+                logLogs.push(message);
+            }),
             verbose: vi.spyOn(Logger.prototype, 'verbose').mockImplementation(() => {}),
         };
     });
@@ -172,9 +176,9 @@ describe('OidcAuthService Integration Tests - Enhanced Logging', () => {
                 // Expected to fail
             }
 
-            // Check that HTTP status details are logged
-            expect(debugLogs.some((log) => log.includes('Discovery URL:'))).toBe(true);
-            expect(debugLogs.some((log) => log.includes('Client ID:'))).toBe(true);
+            // Check that HTTP status details are logged (now in log level)
+            expect(logLogs.some((log) => log.includes('Discovery URL:'))).toBe(true);
+            expect(logLogs.some((log) => log.includes('Client ID:'))).toBe(true);
         });
 
         it('should log authorization URL building details', async () => {
@@ -198,8 +202,8 @@ describe('OidcAuthService Integration Tests - Enhanced Logging', () => {
                 );
 
                 // Verify URL building logs
-                expect(debugLogs.some((log) => log.includes('Built authorization URL'))).toBe(true);
-                expect(debugLogs.some((log) => log.includes('Authorization parameters:'))).toBe(true);
+                expect(logLogs.some((log) => log.includes('Built authorization URL'))).toBe(true);
+                expect(logLogs.some((log) => log.includes('Authorization parameters:'))).toBe(true);
             } catch (error) {
                 // May fail due to real discovery, but we're interested in the logs
             }
@@ -227,8 +231,8 @@ describe('OidcAuthService Integration Tests - Enhanced Logging', () => {
             );
 
             // Verify manual endpoint logs
-            expect(debugLogs.some((log) => log.includes('Built authorization URL:'))).toBe(true);
-            expect(debugLogs.some((log) => log.includes('client_id=test-client-id'))).toBe(true);
+            expect(logLogs.some((log) => log.includes('Built authorization URL'))).toBe(true);
+            expect(logLogs.some((log) => log.includes('client_id=test-client-id'))).toBe(true);
             expect(authUrl).toContain('https://auth.example.com/authorize');
         });
 
@@ -292,9 +296,9 @@ describe('OidcAuthService Integration Tests - Enhanced Logging', () => {
                 // May fail due to network, but we're checking logs
             }
 
-            // Verify discovery logging
-            expect(debugLogs.some((log) => log.includes('Starting OIDC discovery'))).toBe(true);
-            expect(debugLogs.some((log) => log.includes('Discovery URL:'))).toBe(true);
+            // Verify discovery logging (now in log level)
+            expect(logLogs.some((log) => log.includes('Starting discovery'))).toBe(true);
+            expect(logLogs.some((log) => log.includes('Discovery URL:'))).toBe(true);
         });
 
         it('should log discovery failures with malformed JSON response', async () => {

@@ -370,21 +370,6 @@ export enum ArrayStateInputState {
   STOP = 'STOP'
 }
 
-/** Available authentication action verbs */
-export enum AuthActionVerb {
-  CREATE = 'CREATE',
-  DELETE = 'DELETE',
-  READ = 'READ',
-  UPDATE = 'UPDATE'
-}
-
-/** Available authentication possession types */
-export enum AuthPossession {
-  ANY = 'ANY',
-  OWN = 'OWN',
-  OWN_ANY = 'OWN_ANY'
-}
-
 /** Operators for authorization rule matching */
 export enum AuthorizationOperator {
   CONTAINS = 'CONTAINS',
@@ -1053,7 +1038,7 @@ export type InfoVersions = Node & {
   core: CoreVersions;
   id: Scalars['PrefixedID']['output'];
   /** Software package versions */
-  packages: PackageVersions;
+  packages?: Maybe<PackageVersions>;
 };
 
 export type InitiateFlashBackupInput = {
@@ -1440,7 +1425,7 @@ export type OidcProvider = {
   /** The unique identifier for the OIDC provider */
   id: Scalars['PrefixedID']['output'];
   /** OIDC issuer URL (e.g., https://accounts.google.com). Required for auto-discovery via /.well-known/openid-configuration */
-  issuer: Scalars['String']['output'];
+  issuer?: Maybe<Scalars['String']['output']>;
   /** JSON Web Key Set URI for token validation. If omitted, will be auto-discovered from issuer/.well-known/openid-configuration */
   jwksUri?: Maybe<Scalars['String']['output']>;
   /** Display name of the OIDC provider */
@@ -1666,6 +1651,7 @@ export type QueryDiskArgs = {
 
 
 export type QueryLogFileArgs = {
+  filter?: InputMaybe<Scalars['String']['input']>;
   lines?: InputMaybe<Scalars['Int']['input']>;
   path: Scalars['String']['input'];
   startLine?: InputMaybe<Scalars['Int']['input']>;
@@ -1869,10 +1855,14 @@ export enum Resource {
 
 /** Available roles for API keys and users */
 export enum Role {
+  /** Full administrative access to all resources */
   ADMIN = 'ADMIN',
+  /** Internal Role for Unraid Connect */
   CONNECT = 'CONNECT',
+  /** Basic read access to user profile only */
   GUEST = 'GUEST',
-  USER = 'USER'
+  /** Read-only access to all resources */
+  VIEWER = 'VIEWER'
 }
 
 export type Server = Node & {
@@ -1982,6 +1972,7 @@ export type Subscription = {
 
 
 export type SubscriptionLogFileArgs = {
+  filter?: InputMaybe<Scalars['String']['input']>;
   path: Scalars['String']['input'];
 };
 
@@ -2527,7 +2518,7 @@ export type GetSsoUsersQuery = { __typename?: 'Query', settings: { __typename?: 
 export type SystemReportQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type SystemReportQuery = { __typename?: 'Query', info: { __typename?: 'Info', id: any, machineId?: string | null, system: { __typename?: 'InfoSystem', manufacturer?: string | null, model?: string | null, version?: string | null, sku?: string | null, serial?: string | null, uuid?: string | null }, versions: { __typename?: 'InfoVersions', core: { __typename?: 'CoreVersions', unraid?: string | null, kernel?: string | null }, packages: { __typename?: 'PackageVersions', openssl?: string | null } } }, config: { __typename?: 'Config', id: any, valid?: boolean | null, error?: string | null }, server?: { __typename?: 'Server', id: any, name: string } | null };
+export type SystemReportQuery = { __typename?: 'Query', info: { __typename?: 'Info', id: any, machineId?: string | null, system: { __typename?: 'InfoSystem', manufacturer?: string | null, model?: string | null, version?: string | null, sku?: string | null, serial?: string | null, uuid?: string | null }, versions: { __typename?: 'InfoVersions', core: { __typename?: 'CoreVersions', unraid?: string | null, kernel?: string | null }, packages?: { __typename?: 'PackageVersions', openssl?: string | null } | null } }, config: { __typename?: 'Config', id: any, valid?: boolean | null, error?: string | null }, server?: { __typename?: 'Server', id: any, name: string } | null };
 
 export type ConnectStatusQueryVariables = Exact<{ [key: string]: never; }>;
 
