@@ -173,6 +173,11 @@ export class OidcAuthService {
             this.logger.debug(`Token exchange URL (matches redirect_uri): ${currentUrl.href}`);
 
             // State was already validated in extractAndValidateState above, use that result
+            // The clientState should be present after successful validation, but handle the edge case
+            if (!stateInfo.clientState) {
+                this.logger.warn('Client state missing after successful validation');
+                throw new UnauthorizedException('Invalid state: missing client state');
+            }
             const originalState = stateInfo.clientState;
             this.logger.debug(`Exchanging code for tokens with provider ${providerId}`);
             this.logger.debug(`Client state extracted: ${originalState}`);
