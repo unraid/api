@@ -34,6 +34,15 @@ import { UnraidFileModifierModule } from '@app/unraid-api/unraid-file-modifier/u
                     req: () => undefined,
                     res: () => undefined,
                 },
+                formatters: {
+                    log: (obj) => {
+                        // Map NestJS context to Pino context field for pino-pretty
+                        if (obj.context && !obj.logger) {
+                            return { ...obj, logger: obj.context };
+                        }
+                        return obj;
+                    },
+                },
             },
         }),
         AuthModule,

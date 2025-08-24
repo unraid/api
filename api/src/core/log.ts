@@ -29,8 +29,20 @@ const stream = SUPPRESS_LOGS
             singleLine: true,
             hideObject: false,
             colorize: true,
+            colorizeObjects: true,
+            levelFirst: false,
             ignore: 'hostname,pid',
             destination: logDestination,
+            translateTime: 'HH:MM:ss',
+            customPrettifiers: {
+                time: (timestamp: string | object) => `[${timestamp}`,
+                level: (level: string | object) => `${String(level).toUpperCase()}]:`,
+            },
+            messageFormat: (log: any, messageKey: string) => {
+                const context = log.context || log.logger || 'app';
+                const msg = log[messageKey] || log.msg || '';
+                return `[${context}] ${msg}`;
+            },
         })
       : logDestination;
 
