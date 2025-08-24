@@ -324,14 +324,22 @@ const downloadLogFile = async () => {
 };
 
 // Refresh logs
-const refreshLogContent = () => {
+const refreshLogContent = async () => {
+  // Clear the state
   state.loadedContentChunks = [];
   state.currentStartLine = undefined;
   state.isAtTop = false;
   state.canLoadMore = false;
   state.initialLoadComplete = false;
   state.isLoadingMore = false;
-  refetchLogContent();
+  
+  // Refetch with explicit variables to ensure we get the latest logs
+  await refetchLogContent({
+    path: props.logFilePath,
+    lines: props.lineCount || DEFAULT_CHUNK_SIZE,
+    startLine: undefined, // Explicitly pass undefined to get the latest lines
+    filter: props.filter,
+  });
 
   nextTick(() => {
     forceScrollToBottom();
