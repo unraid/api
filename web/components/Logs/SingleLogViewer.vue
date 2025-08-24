@@ -217,13 +217,9 @@ watch(
 // Function to highlight log content
 const highlightLog = (content: string): string => {
   try {
-    // Replace tabs with spaces BEFORE converting ANSI codes
-    // This ensures consistent spacing regardless of position
-    const contentWithSpaces = content.replace(/\t/g, '    ');
-    
-    // Then convert ANSI codes to HTML
+    // Convert ANSI codes to HTML
     // This preserves the terminal colors from pino-pretty
-    const highlighted = ansiConverter.toHtml(contentWithSpaces);
+    const highlighted = ansiConverter.toHtml(content);
 
     // Don't apply additional regex replacements that might break the HTML
     // The ANSI converter already handles the coloring
@@ -433,7 +429,7 @@ defineExpose({ refreshLogContent });
       </div>
 
       <pre
-        class="font-mono whitespace-pre-wrap p-4 m-0 text-xs leading-6 hljs log-content"
+        class="font-mono whitespace-pre p-4 m-0 text-xs leading-6 hljs"
         :class="{ 'theme-dark': isDarkMode, 'theme-light': !isDarkMode }"
         v-html="logContent"
       />
@@ -608,13 +604,6 @@ defineExpose({ refreshLogContent });
 .hljs-success-keyword {
   color: var(--log-success-color);
   font-weight: bold;
-}
-
-/* Tab size for proper tab rendering */
-.log-content {
-  tab-size: 4;
-  -moz-tab-size: 4;
-  -webkit-tab-size: 4;
 }
 
 /* ANSI color styles for ansi-to-html output */

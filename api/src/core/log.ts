@@ -36,12 +36,16 @@ const stream = SUPPRESS_LOGS
             translateTime: 'HH:MM:ss',
             customPrettifiers: {
                 time: (timestamp: string | object) => `[${timestamp}`,
-                level: (level: string | object) => `${String(level).toUpperCase()}]:`,
+                level: (logLevel: string | object, key: string, log: any, extras: any) => {
+                    // Use labelColorized which preserves the colors
+                    const { labelColorized } = extras;
+                    const context = log.context || log.logger || 'app';
+                    return `${labelColorized} ${context}]`;
+                },
             },
             messageFormat: (log: any, messageKey: string) => {
-                const context = log.context || log.logger || 'app';
                 const msg = log[messageKey] || log.msg || '';
-                return `[${context}] ${msg}`;
+                return msg;
             },
         })
       : logDestination;
