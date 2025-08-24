@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref } from 'vue';
 import { Button } from '@unraid/ui';
-import { BugIcon } from '@heroicons/vue/24/outline';
+import { BugAntIcon } from '@heroicons/vue/24/outline';
 import FilteredLogModal from './FilteredLogModal.vue';
 
 const showOidcLogs = ref(false);
@@ -10,7 +10,7 @@ const showOidcLogs = ref(false);
 <template>
   <div>
     <Button variant="outline" size="sm" @click="showOidcLogs = true">
-      <BugIcon class="w-4 h-4 mr-2" />
+      <BugAntIcon class="w-4 h-4 mr-2" />
       View OIDC Debug Logs
     </Button>
 

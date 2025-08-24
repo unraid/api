@@ -20,12 +20,12 @@ interface LogFile {
 }
 
 // Component state
-const selectedLogFile = ref<string>('');
+const selectedLogFile = ref<string | null>(null);
 const lineCount = ref<number>(100);
 const autoScroll = ref<boolean>(true);
 const highlightLanguage = ref<string>('plaintext');
 const filterText = ref<string>('');
-const presetFilter = ref<string>('');
+const presetFilter = ref<string>('none');
 
 // Available highlight languages
 const highlightLanguages = [
@@ -43,7 +43,7 @@ const highlightLanguages = [
 
 // Preset filter options
 const presetFilters = [
-  { value: '', label: 'No Filter' },
+  { value: 'none', label: 'No Filter' },
   { value: 'OIDC', label: 'OIDC Logs' },
   { value: 'ERROR', label: 'Errors' },
   { value: 'WARNING', label: 'Warnings' },
@@ -116,9 +116,9 @@ watch(selectedLogFile, (newValue) => {
 
 // Watch for preset filter changes to update the filter text
 watch(presetFilter, (newValue) => {
-  if (newValue) {
+  if (newValue && newValue !== 'none') {
     filterText.value = newValue;
-  } else if (filterText.value === presetFilter.value) {
+  } else if (newValue === 'none') {
     filterText.value = '';
   }
 });

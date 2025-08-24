@@ -98,9 +98,11 @@ const isOidcEnabled = computed(() => {
   // Check if OIDC is enabled in the form state
   // The path might be api.sso.oidc.enabled or similar based on the schema
   const api = formState.value.api as Record<string, unknown> | undefined;
-  const ssoEnabled = api?.sso?.enabled;
-  const oidcEnabled = api?.sso?.oidc?.enabled;
-  return ssoEnabled && oidcEnabled;
+  const sso = api?.sso as Record<string, unknown> | undefined;
+  const ssoEnabled = sso?.enabled as boolean | undefined;
+  const oidc = sso?.oidc as Record<string, unknown> | undefined;
+  const oidcEnabled = oidc?.enabled as boolean | undefined;
+  return Boolean(ssoEnabled && oidcEnabled);
 });
 </script>
 

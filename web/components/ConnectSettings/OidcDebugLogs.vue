@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue';
-import { Button, Card, CardContent, CardDescription, CardHeader, CardTitle } from '@unraid/ui';
+import { Button } from '@unraid/ui';
 import { ArrowPathIcon, EyeIcon, EyeSlashIcon, FunnelIcon } from '@heroicons/vue/24/outline';
 import SingleLogViewer from '../Logs/SingleLogViewer.vue';
 
@@ -35,14 +35,14 @@ const toggleFilter = () => {
 </script>
 
 <template>
-  <Card v-if="enabled" class="mt-6">
-    <CardHeader class="pb-3">
+  <div v-if="enabled" class="mt-6 border-2 border-solid rounded-md shadow-md bg-background border-muted">
+    <div class="p-4 pb-3 border-b border-muted">
       <div class="flex justify-between items-center">
         <div>
-          <CardTitle class="text-base">OIDC Debug Logs</CardTitle>
-          <CardDescription class="text-sm mt-1">
+          <h3 class="text-base font-semibold">OIDC Debug Logs</h3>
+          <p class="text-sm mt-1 text-muted-foreground">
             View real-time OIDC authentication and configuration logs
-          </CardDescription>
+          </p>
         </div>
         <div class="flex gap-2">
           <Button
@@ -72,9 +72,9 @@ const toggleFilter = () => {
           </Button>
         </div>
       </div>
-    </CardHeader>
+    </div>
     
-    <CardContent v-if="showLogs" class="pt-0">
+    <div v-if="showLogs" class="p-4 pt-0">
       <div class="border rounded-lg bg-muted/30 h-[400px] overflow-hidden">
         <SingleLogViewer
           ref="logViewerRef"
@@ -99,6 +99,6 @@ const toggleFilter = () => {
           <span>Auto-scroll</span>
         </label>
       </div>
-    </CardContent>
-  </Card>
+    </div>
+  </div>
 </template>
