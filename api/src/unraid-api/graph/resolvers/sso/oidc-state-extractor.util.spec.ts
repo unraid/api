@@ -1,3 +1,4 @@
+import { Cache } from '@nestjs/cache-manager';
 import { UnauthorizedException } from '@nestjs/common';
 
 import { beforeEach, describe, expect, it, vi } from 'vitest';
@@ -7,10 +8,30 @@ import { OidcStateService } from '@app/unraid-api/graph/resolvers/sso/oidc-state
 
 describe('OidcStateExtractor', () => {
     let stateService: OidcStateService;
+    let mockCacheManager: Cache;
 
     beforeEach(() => {
         vi.clearAllMocks();
-        stateService = new OidcStateService();
+
+        // Create a mock cache manager
+        const cacheData = new Map<string, any>();
+        mockCacheManager = {
+            get: vi.fn(async (key: string) => cacheData.get(key)),
+            set: vi.fn(async (key: string, value: any, ttl?: number) => {
+                cacheData.set(key, value);
+                if (ttl) {
+                    setTimeout(() => cacheData.delete(key), ttl);
+                }
+            }),
+            del: vi.fn(async (key: string) => {
+                cacheData.delete(key);
+            }),
+            reset: vi.fn(async () => {
+                cacheData.clear();
+            }),
+        } as any;
+
+        stateService = new OidcStateService(mockCacheManager);
     });
 
     describe('extractProviderFromState', () => {
@@ -32,16 +53,16 @@ describe('OidcStateExtractor', () => {
     });
 
     describe('extractAndValidateState', () => {
-        it('should extract and validate a valid state with redirectUri', () => {
+        it('should extract and validate a valid state with redirectUri', async () => {
             const providerId = 'test-provider';
             const clientState = 'client-state-123';
             const redirectUri = 'https://example.com/callback';
 
             // Generate a valid state
-            const state = stateService.generateSecureState(providerId, clientState, redirectUri);
+            const state = await stateService.generateSecureState(providerId, clientState, redirectUri);
 
             // Extract and validate
-            const result = OidcStateExtractor.extractAndValidateState(state, stateService);
+            const result = await OidcStateExtractor.extractAndValidateState(state, stateService);
 
             expect(result.providerId).toBe(providerId);
             expect(result.originalState).toBe(state);
@@ -49,15 +70,15 @@ describe('OidcStateExtractor', () => {
             expect(result.redirectUri).toBe(redirectUri);
         });
 
-        it('should extract and validate a valid state without redirectUri', () => {
+        it('should extract and validate a valid state without redirectUri', async () => {
             const providerId = 'test-provider';
             const clientState = 'client-state-123';
 
             // Generate a valid state without redirectUri
-            const state = stateService.generateSecureState(providerId, clientState);
+            const state = await stateService.generateSecureState(providerId, clientState);
 
             // Extract and validate
-            const result = OidcStateExtractor.extractAndValidateState(state, stateService);
+            const result = await OidcStateExtractor.extractAndValidateState(state, stateService);
 
             expect(result.providerId).toBe(providerId);
             expect(result.originalState).toBe(state);
@@ -65,15 +86,15 @@ describe('OidcStateExtractor', () => {
             expect(result.redirectUri).toBeUndefined();
         });
 
-        it('should throw UnauthorizedException for invalid state format', () => {
+        it('should throw UnauthorizedException for invalid state format', async () => {
             const invalidState = 'invalid-format';
 
-            expect(() => {
-                OidcStateExtractor.extractAndValidateState(invalidState, stateService);
-            }).toThrow(UnauthorizedException);
+            await expect(async () => {
+                await OidcStateExtractor.extractAndValidateState(invalidState, stateService);
+            }).rejects.toThrow(UnauthorizedException);
         });
 
-        it('should throw UnauthorizedException for expired state', () => {
+        it('should throw UnauthorizedException for expired state', async () => {
             vi.useFakeTimers();
 
             const providerId = 'test-provider';
@@ -81,33 +102,67 @@ describe('OidcStateExtractor', () => {
             const redirectUri = 'https://example.com/callback';
 
             // Generate a valid state
-            const state = stateService.generateSecureState(providerId, clientState, redirectUri);
+            const state = await stateService.generateSecureState(providerId, clientState, redirectUri);
 
             // Fast forward time beyond expiration (11 minutes)
             vi.advanceTimersByTime(11 * 60 * 1000);
 
-            expect(() => {
-                OidcStateExtractor.extractAndValidateState(state, stateService);
-            }).toThrow(UnauthorizedException);
+            await expect(async () => {
+                await OidcStateExtractor.extractAndValidateState(state, stateService);
+            }).rejects.toThrow(UnauthorizedException);
 
             vi.useRealTimers();
         });
 
-        it('should throw UnauthorizedException for wrong provider ID', () => {
+        it('should throw UnauthorizedException for wrong provider ID', async () => {
             const providerId = 'test-provider';
             const wrongProviderId = 'wrong-provider';
             const clientState = 'client-state-123';
             const redirectUri = 'https://example.com/callback';
 
-            // Generate a valid state for one provider
-            const state = stateService.generateSecureState(providerId, clientState, redirectUri);
+            // Generate a valid state
+            const state = await stateService.generateSecureState(providerId, clientState, redirectUri);
 
-            // Create a state string with wrong provider but otherwise valid signature
-            const wrongProviderState = state.replace(`${providerId}:`, `${wrongProviderId}:`);
+            // Create a fake state with wrong provider prefix
+            const tamperedState = state.replace(providerId, wrongProviderId);
 
-            expect(() => {
-                OidcStateExtractor.extractAndValidateState(wrongProviderState, stateService);
-            }).toThrow(UnauthorizedException);
+            await expect(async () => {
+                await OidcStateExtractor.extractAndValidateState(tamperedState, stateService);
+            }).rejects.toThrow(UnauthorizedException);
+        });
+
+        it('should throw UnauthorizedException for tampered state', async () => {
+            const providerId = 'test-provider';
+            const clientState = 'client-state-123';
+            const redirectUri = 'https://example.com/callback';
+
+            // Generate a valid state
+            const state = await stateService.generateSecureState(providerId, clientState, redirectUri);
+
+            // Tamper with the signature
+            const tamperedState = state.slice(0, -5) + 'xxxxx';
+
+            await expect(async () => {
+                await OidcStateExtractor.extractAndValidateState(tamperedState, stateService);
+            }).rejects.toThrow(UnauthorizedException);
+        });
+
+        it('should throw UnauthorizedException for reused state (replay attack)', async () => {
+            const providerId = 'test-provider';
+            const clientState = 'client-state-123';
+            const redirectUri = 'https://example.com/callback';
+
+            // Generate a valid state
+            const state = await stateService.generateSecureState(providerId, clientState, redirectUri);
+
+            // First validation should succeed
+            const result1 = await OidcStateExtractor.extractAndValidateState(state, stateService);
+            expect(result1.providerId).toBe(providerId);
+
+            // Second validation should fail (replay attack)
+            await expect(async () => {
+                await OidcStateExtractor.extractAndValidateState(state, stateService);
+            }).rejects.toThrow(UnauthorizedException);
         });
     });
 });
