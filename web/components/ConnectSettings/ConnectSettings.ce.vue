@@ -92,18 +92,6 @@ const submitSettingsUpdate = async () => {
 const onChange = ({ data }: { data: Record<string, unknown> }) => {
   formState.value = data;
 };
-
-/** Check if OIDC is enabled in the form */
-const isOidcEnabled = computed(() => {
-  // Check if OIDC is enabled in the form state
-  // The path might be api.sso.oidc.enabled or similar based on the schema
-  const api = formState.value.api as Record<string, unknown> | undefined;
-  const sso = api?.sso as Record<string, unknown> | undefined;
-  const ssoEnabled = sso?.enabled as boolean | undefined;
-  const oidc = sso?.oidc as Record<string, unknown> | undefined;
-  const oidcEnabled = oidc?.enabled as boolean | undefined;
-  return Boolean(ssoEnabled && oidcEnabled);
-});
 </script>
 
 <template>
@@ -133,8 +121,8 @@ const isOidcEnabled = computed(() => {
       :readonly="isUpdating"
       @change="onChange"
     />
-    <!-- OIDC Debug Logs - shown when OIDC is enabled -->
-    <OidcDebugLogs :enabled="isOidcEnabled" />
+    <!-- OIDC Debug Logs -->
+    <OidcDebugLogs />
     
     <!-- form submission & fallback reaction message -->
     <div class="mt-6 grid grid-cols-settings gap-y-6 items-baseline">

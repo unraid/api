@@ -4,11 +4,7 @@ import { Button } from '@unraid/ui';
 import { ArrowPathIcon, EyeIcon, EyeSlashIcon, FunnelIcon } from '@heroicons/vue/24/outline';
 import SingleLogViewer from '../Logs/SingleLogViewer.vue';
 
-withDefaults(defineProps<{
-  enabled?: boolean;
-}>(), {
-  enabled: true
-});
+// No props needed anymore
 
 const showLogs = ref(false);
 const autoScroll = ref(true);
@@ -35,7 +31,7 @@ const toggleFilter = () => {
 </script>
 
 <template>
-  <div v-if="enabled" class="mt-6 border-2 border-solid rounded-md shadow-md bg-background border-muted">
+  <div class="mt-6 border-2 border-solid rounded-md shadow-md bg-background border-muted">
     <div class="p-4 pb-3 border-b border-muted">
       <div class="flex justify-between items-center">
         <div>
