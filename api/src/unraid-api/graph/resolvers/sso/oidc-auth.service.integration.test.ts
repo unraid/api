@@ -55,9 +55,11 @@ describe('OidcAuthService Integration Tests - Enhanced Logging', () => {
                     provide: OidcStateService,
                     useValue: {
                         generateSecureState: vi.fn().mockReturnValue('secure-state'),
-                        validateSecureState: vi
-                            .fn()
-                            .mockReturnValue({ isValid: true, clientState: 'test-state' }),
+                        validateSecureState: vi.fn().mockReturnValue({
+                            isValid: true,
+                            clientState: 'test-state',
+                            redirectUri: 'https://myapp.example.com/graphql/api/auth/oidc/callback',
+                        }),
                         extractProviderFromState: vi.fn().mockReturnValue('test-provider'),
                     },
                 },

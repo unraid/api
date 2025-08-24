@@ -20,8 +20,9 @@ describe('OidcStateService', () => {
         it('should generate a state with provider prefix and signed token', () => {
             const providerId = 'test-provider';
             const clientState = 'client-state-123';
+            const redirectUri = 'https://example.com/callback';
 
-            const state = service.generateSecureState(providerId, clientState);
+            const state = service.generateSecureState(providerId, clientState, redirectUri);
 
             expect(state).toBeTruthy();
             expect(typeof state).toBe('string');
@@ -35,11 +36,23 @@ describe('OidcStateService', () => {
         it('should generate unique states for each call', () => {
             const providerId = 'test-provider';
             const clientState = 'client-state-123';
+            const redirectUri = 'https://example.com/callback';
 
-            const state1 = service.generateSecureState(providerId, clientState);
-            const state2 = service.generateSecureState(providerId, clientState);
+            const state1 = service.generateSecureState(providerId, clientState, redirectUri);
+            const state2 = service.generateSecureState(providerId, clientState, redirectUri);
 
             expect(state1).not.toBe(state2);
+        });
+
+        it('should work without redirectUri parameter (backwards compatibility)', () => {
+            const providerId = 'test-provider';
+            const clientState = 'client-state-123';
+
+            const state = service.generateSecureState(providerId, clientState);
+
+            expect(state).toBeTruthy();
+            expect(typeof state).toBe('string');
+            expect(state.startsWith(`${providerId}:`)).toBe(true);
         });
     });
 
@@ -53,6 +66,21 @@ describe('OidcStateService', () => {
 
             expect(result.isValid).toBe(true);
             expect(result.clientState).toBe(clientState);
+            expect(result.redirectUri).toBeUndefined();
+            expect(result.error).toBeUndefined();
+        });
+
+        it('should validate a state token with redirectUri', () => {
+            const providerId = 'test-provider';
+            const clientState = 'client-state-123';
+            const redirectUri = 'https://example.com/callback';
+
+            const state = service.generateSecureState(providerId, clientState, redirectUri);
+            const result = service.validateSecureState(state, providerId);
+
+            expect(result.isValid).toBe(true);
+            expect(result.clientState).toBe(clientState);
+            expect(result.redirectUri).toBe(redirectUri);
             expect(result.error).toBeUndefined();
         });
 

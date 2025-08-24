@@ -12,6 +12,7 @@ import {
     OidcProvider,
 } from '@app/unraid-api/graph/resolvers/sso/oidc-provider.model.js';
 import { OidcSessionService } from '@app/unraid-api/graph/resolvers/sso/oidc-session.service.js';
+import { OidcStateExtractor } from '@app/unraid-api/graph/resolvers/sso/oidc-state-extractor.util.js';
 import { OidcStateService } from '@app/unraid-api/graph/resolvers/sso/oidc-state.service.js';
 import { OidcValidationService } from '@app/unraid-api/graph/resolvers/sso/oidc-validation.service.js';
 
@@ -48,8 +49,8 @@ export class OidcAuthService {
 
         const redirectUri = this.getRedirectUri(requestOrigin);
 
-        // Generate secure state with cryptographic signature
-        const secureState = this.stateService.generateSecureState(providerId, state);
+        // Generate secure state with cryptographic signature, including redirect URI
+        const secureState = this.stateService.generateSecureState(providerId, state, redirectUri);
 
         // Build authorization URL
         if (provider.authorizationEndpoint) {
@@ -97,27 +98,20 @@ export class OidcAuthService {
         const authUrl = client.buildAuthorizationUrl(config, parameters);
 
         this.logger.log(`Built authorization URL via discovery for provider ${provider.id}`);
-        this.logger.log('Authorization parameters: %o', parameters);
+        this.logger.log(`Authorization parameters: ${JSON.stringify(parameters)}`);
 
         return authUrl.href;
     }
 
     extractProviderFromState(state: string): { providerId: string; originalState: string } {
-        // Extract provider from state prefix (no decryption needed)
-        const providerId = this.stateService.extractProviderFromState(state);
+        return OidcStateExtractor.extractProviderFromState(state, this.stateService);
+    }
 
-        if (providerId) {
-            return {
-                providerId,
-                originalState: state,
-            };
-        }
-
-        // Fallback for unknown formats
-        return {
-            providerId: '',
-            originalState: state,
-        };
+    /**
+     * Get the state service for external utilities
+     */
+    getStateService(): OidcStateService {
+        return this.stateService;
     }
 
     async handleCallback(
@@ -132,9 +126,17 @@ export class OidcAuthService {
             throw new UnauthorizedException(`Provider ${providerId} not found`);
         }
 
-        try {
-            const redirectUri = this.getRedirectUri(requestOrigin);
+        // Extract and validate state, including the stored redirect URI
+        const stateInfo = OidcStateExtractor.extractAndValidateState(state, this.stateService);
+        if (!stateInfo.redirectUri) {
+            throw new UnauthorizedException('Missing redirect URI in state');
+        }
 
+        // Use the redirect URI that was stored during authorization
+        const redirectUri = stateInfo.redirectUri;
+        this.logger.debug(`Using stored redirect URI from state: ${redirectUri}`);
+
+        try {
             // Always use openid-client for consistency
             const config = await this.getOrCreateConfig(provider);
 

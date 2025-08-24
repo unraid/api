@@ -6,6 +6,7 @@ import { UsePermissions } from '@unraid/shared/use-permissions.directive.js';
 import type { FastifyReply, FastifyRequest } from '@app/unraid-api/types/fastify.js';
 import { Public } from '@app/unraid-api/auth/public.decorator.js';
 import { OidcAuthService } from '@app/unraid-api/graph/resolvers/sso/oidc-auth.service.js';
+import { OidcRequestHandler } from '@app/unraid-api/graph/resolvers/sso/oidc-request-handler.util.js';
 import { RestService } from '@app/unraid-api/rest/rest.service.js';
 import { validateRedirectUri } from '@app/unraid-api/utils/redirect-uri-validator.js';
 
@@ -71,28 +72,30 @@ export class RestController {
         @Res() res: FastifyReply
     ) {
         try {
-            if (!state) {
-                return res.status(400).send('State parameter is required');
-            }
+            // Validate required parameters
+            const params = OidcRequestHandler.validateAuthorizeParams(providerId, state, redirectUri);
 
             // Extract protocol and host from request headers
-            const protocol = (req.headers['x-forwarded-proto'] as string) || req.protocol || 'http';
-            const host = (req.headers['x-forwarded-host'] as string) || req.headers.host || undefined;
+            const requestInfo = OidcRequestHandler.extractRequestInfo(req);
+            const { protocol, host } = requestInfo;
 
             // Validate redirect_uri using the helper function
             const validation = validateRedirectUri(redirectUri, protocol, host, this.logger);
-            const requestInfo = validation.validatedUri;
+            const validatedRedirectUri = validation.validatedUri;
 
-            if (!requestInfo) {
+            if (!validatedRedirectUri) {
                 return res.status(400).send('Unable to determine redirect URI');
             }
 
-            const authUrl = await this.oidcAuthService.getAuthorizationUrl(
-                providerId,
-                state,
-                requestInfo
+            // Handle authorization flow
+            const authUrl = await OidcRequestHandler.handleAuthorize(
+                params.providerId,
+                params.state,
+                validatedRedirectUri,
+                req,
+                this.oidcAuthService,
+                this.logger
             );
-            this.logger.log(`Redirecting to OIDC provider: ${authUrl}`);
 
             // Manually set redirect headers for better proxy compatibility
             res.status(302);
@@ -126,33 +129,20 @@ export class RestController {
         @Res() res: FastifyReply
     ) {
         try {
-            if (!code || !state) {
-                return res.status(400).send('Missing required parameters');
-            }
+            // Validate required parameters
+            const params = OidcRequestHandler.validateCallbackParams(code, state);
 
-            // Extract provider ID from state
-            const { providerId } = this.oidcAuthService.extractProviderFromState(state);
-
-            // Get the full callback URL as received, respecting reverse proxy headers
-            const protocol = (req.headers['x-forwarded-proto'] as string) || req.protocol || 'http';
-            const host =
-                (req.headers['x-forwarded-host'] as string) || req.headers.host || 'localhost:3000';
-            const fullUrl = `${protocol}://${host}${req.url}`;
-            // Extract the base URL (protocol://host:port) from the callback URL
-            const requestInfo = `${protocol}://${host}`;
-
-            this.logger.debug(`Full callback URL from request: ${fullUrl}`);
-
-            const paddedToken = await this.oidcAuthService.handleCallback(
-                providerId,
-                code,
-                state,
-                requestInfo,
-                fullUrl
+            // Handle callback flow
+            const result = await OidcRequestHandler.handleCallback(
+                params.code,
+                params.state,
+                req,
+                this.oidcAuthService,
+                this.logger
             );
 
             // Redirect to login page with the token in hash to keep it out of server logs
-            const loginUrl = `/login#token=${encodeURIComponent(paddedToken)}`;
+            const loginUrl = `/login#token=${encodeURIComponent(result.paddedToken)}`;
 
             // Manually set redirect headers for better proxy compatibility
             res.header('Cache-Control', 'no-store');
