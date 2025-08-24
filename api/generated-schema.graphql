@@ -1854,7 +1854,7 @@ type OidcProvider {
   """
   OIDC issuer URL (e.g., https://accounts.google.com). Required for auto-discovery via /.well-known/openid-configuration
   """
-  issuer: String!
+  issuer: String
 
   """
   OAuth2 authorization endpoint URL. If omitted, will be auto-discovered from issuer/.well-known/openid-configuration
@@ -2308,7 +2308,7 @@ type Query {
   config: Config!
   flash: Flash!
   logFiles: [LogFile!]!
-  logFile(path: String!, lines: Int, startLine: Int): LogFileContent!
+  logFile(path: String!, lines: Int, startLine: Int, filter: String): LogFileContent!
   me: UserAccount!
 
   """Get all notifications"""
@@ -2590,7 +2590,7 @@ input AccessUrlInput {
 }
 
 type Subscription {
-  logFile(path: String!): LogFileContent!
+  logFile(path: String!, filter: String): LogFileContent!
   notificationAdded: Notification!
   notificationsOverview: NotificationOverview!
   ownerSubscription: Owner!

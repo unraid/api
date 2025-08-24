@@ -1455,7 +1455,7 @@ export type OidcProvider = {
   /** The unique identifier for the OIDC provider */
   id: Scalars['PrefixedID']['output'];
   /** OIDC issuer URL (e.g., https://accounts.google.com). Required for auto-discovery via /.well-known/openid-configuration */
-  issuer: Scalars['String']['output'];
+  issuer?: Maybe<Scalars['String']['output']>;
   /** JSON Web Key Set URI for token validation. If omitted, will be auto-discovered from issuer/.well-known/openid-configuration */
   jwksUri?: Maybe<Scalars['String']['output']>;
   /** Display name of the OIDC provider */
@@ -1704,6 +1704,7 @@ export type QueryGetPermissionsForRolesArgs = {
 
 
 export type QueryLogFileArgs = {
+  filter?: InputMaybe<Scalars['String']['input']>;
   lines?: InputMaybe<Scalars['Int']['input']>;
   path: Scalars['String']['input'];
   startLine?: InputMaybe<Scalars['Int']['input']>;
@@ -2030,6 +2031,7 @@ export type Subscription = {
 
 
 export type SubscriptionLogFileArgs = {
+  filter?: InputMaybe<Scalars['String']['input']>;
   path: Scalars['String']['input'];
 };
 

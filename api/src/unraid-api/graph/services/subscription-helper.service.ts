@@ -4,7 +4,25 @@ import { createSubscription, PUBSUB_CHANNEL } from '@app/core/pubsub.js';
 import { SubscriptionTrackerService } from '@app/unraid-api/graph/services/subscription-tracker.service.js';
 
 /**
- * Helper service for creating tracked GraphQL subscriptions with automatic cleanup
+ * High-level helper service for creating GraphQL subscriptions with automatic cleanup.
+ *
+ * This service provides a convenient way to create GraphQL subscriptions that:
+ * - Automatically track subscriber count via SubscriptionTrackerService
+ * - Properly clean up resources when subscriptions end
+ * - Handle errors gracefully
+ *
+ * **When to use this service:**
+ * - In GraphQL resolvers when implementing subscriptions
+ * - When you need automatic reference counting for shared resources
+ * - When you want to ensure proper cleanup on subscription termination
+ *
+ * @example
+ * // In a GraphQL resolver
+ * \@Subscription(() => MetricsUpdate)
+ * async metricsSubscription() {
+ *   // Topic must be registered first via SubscriptionTrackerService
+ *   return this.subscriptionHelper.createTrackedSubscription(PUBSUB_CHANNEL.METRICS);
+ * }
  */
 @Injectable()
 export class SubscriptionHelperService {
