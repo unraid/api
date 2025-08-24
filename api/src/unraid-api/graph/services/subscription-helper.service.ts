@@ -33,7 +33,7 @@ export class SubscriptionHelperService {
      * @param topic The subscription topic/channel to subscribe to
      * @returns A proxy async iterator with automatic cleanup
      */
-    public createTrackedSubscription<T = any>(topic: PUBSUB_CHANNEL): AsyncIterableIterator<T> {
+    public createTrackedSubscription<T = any>(topic: PUBSUB_CHANNEL | string): AsyncIterableIterator<T> {
         const innerIterator = createSubscription<T>(topic);
 
         // Subscribe when the subscription starts

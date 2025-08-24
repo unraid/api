@@ -52,6 +52,6 @@ export class LogsResolver {
 
         // Use the helper service to create a tracked subscription
         // This automatically handles subscribe/unsubscribe with reference counting
-        return this.subscriptionHelper.createTrackedSubscription(topicKey as PUBSUB_CHANNEL);
+        return this.subscriptionHelper.createTrackedSubscription(topicKey);
     }
 }

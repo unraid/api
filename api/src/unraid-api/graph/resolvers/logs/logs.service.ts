@@ -125,7 +125,7 @@ export class LogsService implements OnModuleInit {
      */
     registerLogFileSubscription(path: string, filter?: string): string {
         const normalizedPath = join(this.logBasePath, basename(path));
-        const topicKey = `LOG_FILE:${normalizedPath}:${filter || ''}`;
+        const topicKey = this.getTopicKey(normalizedPath, filter);
 
         // Register the topic if not already registered
         if (!this.subscriptionTracker.getSubscriberCount(topicKey)) {
@@ -201,11 +201,14 @@ export class LogsService implements OnModuleInit {
                                         ? this.filterContent(newContent, filter)
                                         : newContent;
                                     if (filteredContent) {
-                                        pubsub.publish(PUBSUB_CHANNEL.LOG_FILE, {
+                                        // Use topic-specific channel
+                                        const topicKey = this.getTopicKey(path, filter);
+                                        pubsub.publish(topicKey, {
                                             logFile: {
                                                 path,
                                                 content: filteredContent,
                                                 totalLines: 0, // We don't need to count lines for updates
+                                                filter, // Include filter in payload
                                             },
                                         });
                                     }
@@ -214,16 +217,30 @@ export class LogsService implements OnModuleInit {
                                 // Update position for next read
                                 position = newStats.size;
                             });
+
+                            stream.on('error', (error) => {
+                                this.logger.error(`Error reading stream for ${path}: ${error}`);
+                            });
                         } else if (newStats.size < position) {
                             // File was truncated, reset position and read from beginning
                             position = 0;
                             this.logger.debug(`File ${path} was truncated, resetting position`);
 
-                            // Read the entire file content
-                            const content = await this.getLogFileContent(path);
+                            // Read the entire file content with filter
+                            const content = await this.getLogFileContent(
+                                path,
+                                this.DEFAULT_LINES,
+                                undefined,
+                                filter
+                            );
 
-                            pubsub.publish(PUBSUB_CHANNEL.LOG_FILE, {
-                                logFile: content,
+                            // Use topic-specific channel
+                            const topicKey = this.getTopicKey(path, filter);
+                            pubsub.publish(topicKey, {
+                                logFile: {
+                                    ...content,
+                                    filter, // Include filter in payload
+                                },
                             });
 
                             position = newStats.size;
@@ -240,6 +257,21 @@ export class LogsService implements OnModuleInit {
                 // Store the watcher and current position
                 this.logWatchers.set(watcherKey, { watcher, position });
 
+                // Publish initial snapshot with filter applied
+                this.getLogFileContent(path, this.DEFAULT_LINES, undefined, filter)
+                    .then((content) => {
+                        const topicKey = this.getTopicKey(path, filter);
+                        pubsub.publish(topicKey, {
+                            logFile: {
+                                ...content,
+                                filter, // Include filter in payload
+                            },
+                        });
+                    })
+                    .catch((error) => {
+                        this.logger.error(`Error publishing initial log content for ${path}: ${error}`);
+                    });
+
                 this.logger.debug(
                     `Started watching log file with chokidar: ${path} with filter: ${filter || 'none'}`
                 );
@@ -247,6 +279,17 @@ export class LogsService implements OnModuleInit {
             .catch((error) => {
                 this.logger.error(`Error setting up file watcher for ${path}: ${error}`);
             });
+    }
+
+    /**
+     * Get the topic key for a log file subscription
+     * @param path Path to the log file (should already be normalized)
+     * @param filter Optional filter
+     * @returns The topic key
+     */
+    private getTopicKey(path: string, filter?: string): string {
+        // Assume path is already normalized (full path)
+        return `LOG_FILE:${path}:${filter || ''}`;
     }
 
     /**

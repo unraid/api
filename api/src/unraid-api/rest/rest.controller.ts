@@ -7,6 +7,7 @@ import type { FastifyReply, FastifyRequest } from '@app/unraid-api/types/fastify
 import { Public } from '@app/unraid-api/auth/public.decorator.js';
 import { OidcAuthService } from '@app/unraid-api/graph/resolvers/sso/oidc-auth.service.js';
 import { RestService } from '@app/unraid-api/rest/rest.service.js';
+import { validateRedirectUri } from '@app/unraid-api/utils/redirect-uri-validator.js';
 
 @Controller()
 export class RestController {
@@ -74,14 +75,16 @@ export class RestController {
                 return res.status(400).send('State parameter is required');
             }
 
-            // Use the redirect_uri from the client if provided, otherwise fall back to headers
-            let requestInfo: string | undefined = redirectUri;
+            // Extract protocol and host from request headers
+            const protocol = (req.headers['x-forwarded-proto'] as string) || req.protocol || 'http';
+            const host = (req.headers['x-forwarded-host'] as string) || req.headers.host || undefined;
+
+            // Validate redirect_uri using the helper function
+            const validation = validateRedirectUri(redirectUri, protocol, host, this.logger);
+            const requestInfo = validation.validatedUri;
+
             if (!requestInfo) {
-                // Fall back to extracting from headers if redirect_uri not provided
-                const protocol = (req.headers['x-forwarded-proto'] as string) || req.protocol || 'http';
-                const host =
-                    (req.headers['x-forwarded-host'] as string) || req.headers.host || undefined;
-                requestInfo = host ? `${protocol}://${host}` : undefined;
+                return res.status(400).send('Unable to determine redirect URI');
             }
 
             const authUrl = await this.oidcAuthService.getAuthorizationUrl(
