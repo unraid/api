@@ -49,8 +49,8 @@ export class SubscriptionManagerService implements OnModuleDestroy {
 
     constructor(private readonly schedulerRegistry: SchedulerRegistry) {}
 
-    onModuleDestroy() {
-        this.stopAll();
+    async onModuleDestroy() {
+        await this.stopAll();
     }
 
     /**
@@ -154,9 +154,14 @@ export class SubscriptionManagerService implements OnModuleDestroy {
      *
      * This is automatically called when the module is destroyed.
      */
-    stopAll(): void {
-        const intervals = this.schedulerRegistry.getIntervals();
-        intervals.forEach((key) => this.stopSubscription(key));
+    async stopAll(): Promise<void> {
+        // Get all active subscription keys (both polling and event-based)
+        const activeKeys = Array.from(this.activeSubscriptions.keys());
+
+        // Stop each subscription and await cleanup
+        await Promise.all(activeKeys.map((key) => this.stopSubscription(key)));
+
+        // Clear the map after all subscriptions are stopped
         this.activeSubscriptions.clear();
     }
 
