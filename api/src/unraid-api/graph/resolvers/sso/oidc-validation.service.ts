@@ -63,11 +63,88 @@ export class OidcValidationService {
             // Log the raw error for debugging
             this.logger.debug(`Raw discovery error for ${provider.id}: ${errorMessage}`);
 
+            // Log additional error details if available
+            if (error instanceof Error) {
+                this.logger.debug(`Error type: ${error.constructor.name}`);
+                if ('stack' in error && error.stack) {
+                    this.logger.debug(`Stack trace: ${error.stack}`);
+                }
+                if ('response' in error) {
+                    const response = (error as any).response;
+                    if (response) {
+                        this.logger.debug(`Response status: ${response.status}`);
+                        this.logger.debug(`Response body: ${response.body}`);
+                    }
+                }
+            }
+
             // Provide specific error messages for common issues
             let userFriendlyError = errorMessage;
             let details: Record<string, unknown> = {};
 
-            if (errorMessage.includes('getaddrinfo ENOTFOUND')) {
+            // Check for fetch-specific errors (Node.js fetch API)
+            if (errorMessage.includes('fetch failed')) {
+                // Try to extract more specific information from the error
+                if (error instanceof Error && 'cause' in error) {
+                    const cause = (error as any).cause;
+                    if (cause) {
+                        this.logger.debug(`Fetch error cause: ${JSON.stringify(cause, null, 2)}`);
+
+                        // Check the cause for specific error types
+                        if (cause.code === 'ENOTFOUND' || cause.message?.includes('ENOTFOUND')) {
+                            userFriendlyError = `Cannot resolve domain name. Please check that '${provider.issuer}' is accessible and spelled correctly.`;
+                            details = {
+                                type: 'DNS_ERROR',
+                                originalError: errorMessage,
+                                cause: cause.message || cause.code,
+                            };
+                        } else if (
+                            cause.code === 'ECONNREFUSED' ||
+                            cause.message?.includes('ECONNREFUSED')
+                        ) {
+                            userFriendlyError = `Connection refused. The server at '${provider.issuer}' is not accepting connections.`;
+                            details = {
+                                type: 'CONNECTION_ERROR',
+                                originalError: errorMessage,
+                                cause: cause.message || cause.code,
+                            };
+                        } else if (
+                            cause.code === 'CERT_HAS_EXPIRED' ||
+                            cause.message?.includes('certificate')
+                        ) {
+                            userFriendlyError = `SSL/TLS certificate error. The server certificate may be invalid or expired.`;
+                            details = {
+                                type: 'SSL_ERROR',
+                                originalError: errorMessage,
+                                cause: cause.message || cause.code,
+                            };
+                        } else if (cause.code === 'ETIMEDOUT' || cause.message?.includes('ETIMEDOUT')) {
+                            userFriendlyError = `Connection timeout. The server at '${provider.issuer}' is not responding.`;
+                            details = {
+                                type: 'TIMEOUT_ERROR',
+                                originalError: errorMessage,
+                                cause: cause.message || cause.code,
+                            };
+                        } else {
+                            // Generic fetch failed with cause details
+                            userFriendlyError = `Failed to connect to OIDC provider at '${provider.issuer}'. ${cause.message || cause.code || 'Unknown network error'}`;
+                            details = {
+                                type: 'FETCH_ERROR',
+                                originalError: errorMessage,
+                                cause: cause.message || cause.code,
+                            };
+                        }
+                    } else {
+                        // Generic fetch failed without cause
+                        userFriendlyError = `Failed to connect to OIDC provider at '${provider.issuer}'. Please verify the URL is correct and accessible.`;
+                        details = { type: 'FETCH_ERROR', originalError: errorMessage };
+                    }
+                } else {
+                    // Fetch failed but no cause information
+                    userFriendlyError = `Failed to connect to OIDC provider at '${provider.issuer}'. Please verify the URL is correct and accessible.`;
+                    details = { type: 'FETCH_ERROR', originalError: errorMessage };
+                }
+            } else if (errorMessage.includes('getaddrinfo ENOTFOUND')) {
                 userFriendlyError = `Cannot resolve domain name. Please check that '${provider.issuer}' is accessible and spelled correctly.`;
                 details = { type: 'DNS_ERROR', originalError: errorMessage };
             } else if (errorMessage.includes('ECONNREFUSED')) {
@@ -142,6 +219,12 @@ export class OidcValidationService {
             : undefined;
 
         const serverUrl = new URL(provider.issuer);
+        const discoveryUrl = `${provider.issuer}/.well-known/openid-configuration`;
+
+        this.logger.debug(`Starting OIDC discovery for provider ${provider.id}`);
+        this.logger.debug(`Discovery URL: ${discoveryUrl}`);
+        this.logger.debug(`Client ID: ${provider.clientId}`);
+        this.logger.debug(`Client secret configured: ${provider.clientSecret ? 'Yes' : 'No'}`);
 
         // Use provided client options or create default options with HTTP support if needed
         if (!clientOptions && serverUrl.protocol === 'http:') {
@@ -153,12 +236,62 @@ export class OidcValidationService {
             };
         }
 
-        return client.discovery(
-            serverUrl,
-            provider.clientId,
-            undefined, // client metadata
-            clientAuth,
-            clientOptions
-        );
+        try {
+            const config = await client.discovery(
+                serverUrl,
+                provider.clientId,
+                undefined, // client metadata
+                clientAuth,
+                clientOptions
+            );
+
+            this.logger.debug(`Discovery successful for ${provider.id}`);
+            this.logger.debug(`Discovery response metadata:`);
+            this.logger.debug(`  - issuer: ${config.serverMetadata().issuer}`);
+            this.logger.debug(
+                `  - authorization_endpoint: ${config.serverMetadata().authorization_endpoint}`
+            );
+            this.logger.debug(`  - token_endpoint: ${config.serverMetadata().token_endpoint}`);
+            this.logger.debug(
+                `  - userinfo_endpoint: ${config.serverMetadata().userinfo_endpoint || 'not provided'}`
+            );
+            this.logger.debug(`  - jwks_uri: ${config.serverMetadata().jwks_uri || 'not provided'}`);
+            this.logger.debug(
+                `  - response_types_supported: ${config.serverMetadata().response_types_supported?.join(', ') || 'not provided'}`
+            );
+            this.logger.debug(
+                `  - scopes_supported: ${config.serverMetadata().scopes_supported?.join(', ') || 'not provided'}`
+            );
+
+            return config;
+        } catch (discoveryError) {
+            this.logger.error(`Discovery failed for ${provider.id} at ${discoveryUrl}`);
+
+            if (discoveryError instanceof Error) {
+                this.logger.error(`Error type: ${discoveryError.constructor.name}`);
+                this.logger.error(`Error message: ${discoveryError.message}`);
+
+                // Log response details if available
+                if ('response' in discoveryError) {
+                    const response = (discoveryError as any).response;
+                    if (response) {
+                        this.logger.error(`HTTP Status: ${response.status}`);
+                        this.logger.error(`HTTP Status Text: ${response.statusText}`);
+                        if (response.body) {
+                            this.logger.error(
+                                `Response body: ${typeof response.body === 'string' ? response.body : JSON.stringify(response.body, null, 2)}`
+                            );
+                        }
+                    }
+                }
+
+                // Log cause if available
+                if ('cause' in discoveryError && discoveryError.cause) {
+                    this.logger.error(`Error cause: ${JSON.stringify(discoveryError.cause, null, 2)}`);
+                }
+            }
+
+            throw discoveryError;
+        }
     }
 }

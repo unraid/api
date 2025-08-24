@@ -63,6 +63,11 @@ export class OidcAuthService {
             authUrl.searchParams.set('state', secureState);
             authUrl.searchParams.set('response_type', 'code');
 
+            this.logger.debug(`Built authorization URL: ${authUrl.href}`);
+            this.logger.debug(
+                `Authorization parameters: client_id=${provider.clientId}, redirect_uri=${redirectUri}, scope=${provider.scopes.join(' ')}, response_type=code`
+            );
+
             return authUrl.href;
         }
 
@@ -88,6 +93,9 @@ export class OidcAuthService {
         }
 
         const authUrl = client.buildAuthorizationUrl(config, parameters);
+
+        this.logger.debug(`Built authorization URL via discovery: ${authUrl.href}`);
+        this.logger.debug(`Authorization parameters: ${JSON.stringify(parameters, null, 2)}`);
 
         return authUrl.href;
     }
@@ -189,6 +197,15 @@ export class OidcAuthService {
                 this.logger.debug(`Config issuer: ${config.serverMetadata().issuer}`);
                 this.logger.debug(`Config token endpoint: ${config.serverMetadata().token_endpoint}`);
 
+                // Log the complete token exchange request details
+                const tokenEndpoint = config.serverMetadata().token_endpoint;
+                this.logger.debug(`Full token endpoint URL: ${tokenEndpoint}`);
+                this.logger.debug(`Authorization code: ${code.substring(0, 10)}...`);
+                this.logger.debug(`Redirect URI in token request: ${redirectUri}`);
+                this.logger.debug(`Client ID: ${provider.clientId}`);
+                this.logger.debug(`Client secret configured: ${provider.clientSecret ? 'Yes' : 'No'}`);
+                this.logger.debug(`Expected state value: ${originalState}`);
+
                 // For HTTP endpoints, we need to pass the allowInsecureRequests option
                 const serverUrl = new URL(provider.issuer || '');
                 let clientOptions: any = undefined;
@@ -215,6 +232,55 @@ export class OidcAuthService {
                     tokenError instanceof Error ? tokenError.message : String(tokenError);
                 this.logger.error(`Token exchange failed: ${errorMessage}`);
 
+                // Enhanced error logging for debugging
+                if (tokenError instanceof Error) {
+                    // Log the error type and full details
+                    this.logger.error(`Error type: ${tokenError.constructor.name}`);
+                    if (tokenError.stack) {
+                        this.logger.debug(`Stack trace: ${tokenError.stack}`);
+                    }
+
+                    // Check for common openid-client error patterns
+                    if ('response' in tokenError) {
+                        const response = (tokenError as any).response;
+                        if (response) {
+                            this.logger.error(`HTTP Response Status: ${response.status}`);
+                            this.logger.error(`HTTP Response Status Text: ${response.statusText}`);
+                            if (response.body) {
+                                this.logger.error(
+                                    `HTTP Response Body: ${JSON.stringify(response.body, null, 2)}`
+                                );
+                            }
+                            if (response.headers) {
+                                this.logger.debug(
+                                    `HTTP Response Headers: ${JSON.stringify(response.headers, null, 2)}`
+                                );
+                            }
+                        }
+                    }
+
+                    // Check for cause property (newer error patterns)
+                    if ('cause' in tokenError && tokenError.cause) {
+                        this.logger.error(`Error cause: ${JSON.stringify(tokenError.cause, null, 2)}`);
+                    }
+
+                    // Log any additional error properties
+                    const errorKeys = Object.keys(tokenError).filter(
+                        (k) => k !== 'message' && k !== 'stack'
+                    );
+                    if (errorKeys.length > 0) {
+                        this.logger.debug(`Additional error properties: ${errorKeys.join(', ')}`);
+                        for (const key of errorKeys) {
+                            const value = (tokenError as any)[key];
+                            if (value !== undefined && value !== null) {
+                                this.logger.debug(
+                                    `${key}: ${typeof value === 'object' ? JSON.stringify(value, null, 2) : value}`
+                                );
+                            }
+                        }
+                    }
+                }
+
                 // Check if error message contains the "unexpected JWT claim" text
                 if (errorMessage.includes('unexpected JWT claim value encountered')) {
                     this.logger.error(
@@ -229,6 +295,8 @@ export class OidcAuthService {
                         `This error typically means the 'iss' claim in the JWT doesn't match the expected issuer`
                     );
                     this.logger.error(`Check that your provider's issuer URL is configured correctly`);
+                    this.logger.error(`Expected issuer: ${config.serverMetadata().issuer}`);
+                    this.logger.error(`Provider configured issuer: ${provider.issuer}`);
                 }
 
                 throw tokenError;
@@ -336,6 +404,10 @@ export class OidcAuthService {
                         `Authorization endpoint: ${config.serverMetadata().authorization_endpoint}`
                     );
                     this.logger.debug(`Token endpoint: ${config.serverMetadata().token_endpoint}`);
+                    this.logger.debug(`JWKS URI: ${config.serverMetadata().jwks_uri || 'Not provided'}`);
+                    this.logger.debug(
+                        `Userinfo endpoint: ${config.serverMetadata().userinfo_endpoint || 'Not provided'}`
+                    );
                     this.configCache.set(cacheKey, config);
                     return config;
                 } catch (discoveryError) {
@@ -344,16 +416,42 @@ export class OidcAuthService {
                     this.logger.warn(`Discovery failed for ${provider.id}: ${errorMessage}`);
 
                     // Log more details about the discovery error
-                    this.logger.debug(
-                        `Discovery URL attempted: ${provider.issuer}/.well-known/openid-configuration`
-                    );
-                    this.logger.debug(
-                        `Full discovery error: ${JSON.stringify(discoveryError, null, 2)}`
-                    );
+                    const discoveryUrl = `${provider.issuer}/.well-known/openid-configuration`;
+                    this.logger.debug(`Discovery URL attempted: ${discoveryUrl}`);
 
-                    // Log stack trace for better debugging
-                    if (discoveryError instanceof Error && discoveryError.stack) {
-                        this.logger.debug(`Stack trace: ${discoveryError.stack}`);
+                    // Enhanced discovery error logging
+                    if (discoveryError instanceof Error) {
+                        this.logger.debug(`Discovery error type: ${discoveryError.constructor.name}`);
+
+                        // Check for response details in the error
+                        if ('response' in discoveryError) {
+                            const response = (discoveryError as any).response;
+                            if (response) {
+                                this.logger.error(`Discovery HTTP Status: ${response.status}`);
+                                this.logger.error(`Discovery HTTP Status Text: ${response.statusText}`);
+                                if (response.body) {
+                                    this.logger.error(
+                                        `Discovery Response Body: ${typeof response.body === 'string' ? response.body : JSON.stringify(response.body, null, 2)}`
+                                    );
+                                }
+                            }
+                        }
+
+                        // Check for cause
+                        if ('cause' in discoveryError && discoveryError.cause) {
+                            this.logger.debug(
+                                `Discovery error cause: ${JSON.stringify(discoveryError.cause, null, 2)}`
+                            );
+                        }
+
+                        this.logger.debug(
+                            `Full discovery error: ${JSON.stringify(discoveryError, null, 2)}`
+                        );
+
+                        // Log stack trace for better debugging
+                        if (discoveryError.stack) {
+                            this.logger.debug(`Stack trace: ${discoveryError.stack}`);
+                        }
                     }
 
                     // If discovery fails but we have manual endpoints, use them
