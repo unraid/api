@@ -50,7 +50,7 @@ export class OidcAuthService {
         const redirectUri = this.getRedirectUri(requestOrigin);
 
         // Generate secure state with cryptographic signature, including redirect URI
-        const secureState = this.stateService.generateSecureState(providerId, state, redirectUri);
+        const secureState = await this.stateService.generateSecureState(providerId, state, redirectUri);
 
         // Build authorization URL
         if (provider.authorizationEndpoint) {
@@ -127,7 +127,7 @@ export class OidcAuthService {
         }
 
         // Extract and validate state, including the stored redirect URI
-        const stateInfo = OidcStateExtractor.extractAndValidateState(state, this.stateService);
+        const stateInfo = await OidcStateExtractor.extractAndValidateState(state, this.stateService);
         if (!stateInfo.redirectUri) {
             throw new UnauthorizedException('Missing redirect URI in state');
         }

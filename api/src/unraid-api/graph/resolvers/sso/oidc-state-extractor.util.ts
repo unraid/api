@@ -33,10 +33,10 @@ export class OidcStateExtractor {
     /**
      * Extract provider ID and validate the full encrypted state
      */
-    static extractAndValidateState(
+    static async extractAndValidateState(
         state: string,
         stateService: OidcStateService
-    ): StateExtractionResult {
+    ): Promise<StateExtractionResult> {
         // First extract provider ID for routing
         const { providerId } = this.extractProviderFromState(state, stateService);
 
@@ -45,7 +45,7 @@ export class OidcStateExtractor {
         }
 
         // Then validate the full encrypted state
-        const stateValidation = stateService.validateSecureState(state, providerId);
+        const stateValidation = await stateService.validateSecureState(state, providerId);
         if (!stateValidation.isValid) {
             throw new UnauthorizedException(`Invalid state: ${stateValidation.error}`);
         }

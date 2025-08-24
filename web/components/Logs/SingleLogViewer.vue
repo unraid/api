@@ -229,8 +229,11 @@ const highlightLog = (content: string): string => {
     // Don't apply additional regex replacements that might break the HTML
     // The ANSI converter already handles the coloring
 
-    // Sanitize the highlighted HTML
-    return DOMPurify.sanitize(highlighted);
+    // Sanitize the highlighted HTML while preserving style attributes for ANSI colors
+    return DOMPurify.sanitize(highlighted, {
+      ALLOWED_TAGS: ['span', 'br'],
+      ALLOWED_ATTR: ['style']
+    });
   } catch (error) {
     console.error('Error highlighting log content:', error);
     // Fallback to sanitized but not highlighted content
