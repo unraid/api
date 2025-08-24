@@ -12,16 +12,22 @@ interface StateData {
 
 @Injectable()
 export class OidcStateService {
+    private static instanceCount = 0;
+    private readonly instanceId: number;
     private readonly logger = new Logger(OidcStateService.name);
     private readonly hmacSecret: string;
     private readonly STATE_TTL_SECONDS = 600; // 10 minutes
     private readonly STATE_CACHE_PREFIX = 'oidc_state:';
 
     constructor(@Inject(CACHE_MANAGER) private cacheManager: Cache) {
+        // Track instance creation
+        this.instanceId = ++OidcStateService.instanceCount;
+
         // Always generate a new secret on API restart for security
         // This ensures state tokens cannot be reused across restarts
         this.hmacSecret = crypto.randomBytes(32).toString('hex');
-        this.logger.debug('Generated new OIDC state secret for this session');
+        this.logger.warn(`OidcStateService instance #${this.instanceId} created with new HMAC secret`);
+        this.logger.debug(`HMAC secret first 8 chars: ${this.hmacSecret.substring(0, 8)}`);
     }
 
     async generateSecureState(
@@ -45,6 +51,14 @@ export class OidcStateService {
         const cacheKey = `${this.STATE_CACHE_PREFIX}${nonce}`;
         await this.cacheManager.set(cacheKey, stateData, this.STATE_TTL_SECONDS * 1000);
 
+        // Verify it was stored
+        const verifyStored = await this.cacheManager.get(cacheKey);
+        if (!verifyStored) {
+            this.logger.error(`Failed to store state in cache with key: ${cacheKey}`);
+        } else {
+            this.logger.debug(`Successfully stored state in cache with key: ${cacheKey}`);
+        }
+
         // Create signed state: nonce.timestamp.signature
         const dataToSign = `${nonce}.${timestamp}`;
         const signature = crypto.createHmac('sha256', this.hmacSecret).update(dataToSign).digest('hex');
@@ -52,7 +66,9 @@ export class OidcStateService {
         const signedState = `${dataToSign}.${signature}`;
 
         this.logger.debug(`Generated secure state for provider ${providerId} with nonce ${nonce}`);
-        this.logger.debug(`Stored in cache with key: ${cacheKey}`);
+        this.logger.debug(
+            `Instance #${this.instanceId}, HMAC secret first 8 chars: ${this.hmacSecret.substring(0, 8)}`
+        );
         this.logger.debug(`Stored redirectUri: ${redirectUri}`);
         // Return state with provider ID prefix (unencrypted) for routing
         return `${providerId}:${signedState}`;
@@ -126,14 +142,30 @@ export class OidcStateService {
 
             // Check if state exists in cache (prevents replay attacks)
             const cacheKey = `${this.STATE_CACHE_PREFIX}${nonce}`;
-            const cachedState = await this.cacheManager.get<StateData>(cacheKey);
             this.logger.debug(`Looking for nonce ${nonce} in cache with key: ${cacheKey}`);
+            this.logger.debug(
+                `Instance #${this.instanceId}, HMAC secret first 8 chars: ${this.hmacSecret.substring(0, 8)}`
+            );
+
+            const cachedState = await this.cacheManager.get<StateData>(cacheKey);
 
             if (!cachedState) {
                 this.logger.warn(
                     `State validation failed: nonce ${nonce} not found in cache (possible replay attack)`
                 );
                 this.logger.warn(`Cache key checked: ${cacheKey}`);
+
+                // Try to list all keys in cache for debugging
+                try {
+                    const store = (this.cacheManager as any).store;
+                    if (store && store.keys) {
+                        const keys = await store.keys();
+                        this.logger.debug(`Current cache keys: ${keys.join(', ')}`);
+                    }
+                } catch (e) {
+                    // Cache implementation might not support listing keys
+                }
+
                 return {
                     isValid: false,
                     error: 'State token not found or already used',
